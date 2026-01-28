@@ -5,6 +5,7 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
+import { sendToAnalytics } from './services/analytics';
 
 // Initialize Sentry for error monitoring (only if DSN is configured)
 const SENTRY_DSN = process.env.REACT_APP_SENTRY_DSN;
@@ -26,18 +27,7 @@ root.render(
 );
 
 // Report Web Vitals for performance monitoring
-// In production, these can be sent to an analytics endpoint
-reportWebVitals((metric) => {
-  // Log to console in development
-  if (process.env.NODE_ENV === 'development') {
-    console.log(metric);
-  }
-  // TODO: Send to analytics endpoint in production
-  // Example: sendToAnalytics(metric)
-});
+reportWebVitals(sendToAnalytics);
 
 // Register service worker for offline support (production only)
-serviceWorkerRegistration.register({
-  onSuccess: () => console.log('Kingshot Atlas is ready for offline use'),
-  onUpdate: () => console.log('New version available - refresh to update'),
-});
+serviceWorkerRegistration.register();
