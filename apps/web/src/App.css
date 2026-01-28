@@ -1,0 +1,124 @@
+/* 
+ * Kingshot Atlas - App Styles
+ * Component-specific styles that aren't in index.css
+ */
+
+/* S-Tier Badge Glow Animation */
+.s-tier-badge {
+  animation: tierGlow 2s ease-in-out infinite;
+}
+
+@keyframes tierGlow {
+  0%, 100% { box-shadow: 0 0 8px #fbbf2440; }
+  50% { box-shadow: 0 0 16px #fbbf2460, 0 0 24px #fbbf2430; }
+}
+
+/* Page Transition */
+.page-transition {
+  animation: pageIn 0.3s ease-out;
+}
+
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Card Hover Effects */
+.kingdom-card {
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.25s ease;
+}
+
+/* Filter Panel Animation */
+.filter-panel {
+  animation: fadeIn 0.2s ease;
+}
+
+/* Share Popup */
+.share-popup {
+  animation: fadeIn 0.15s ease;
+}
+
+/* Loading Spinner */
+.loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid #2a2a2a;
+  border-top-color: #22d3ee;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-spinner-sm {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #2a2a2a;
+  border-top-color: #22d3ee;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Stat Card Hover */
+.stat-card {
+  background-color: #131318;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+  border-color: #22d3ee30;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+/* Leaderboard Entry Hover */
+.leaderboard-entry {
+  transition: background-color 0.15s ease;
+}
+
+.leaderboard-entry:hover {
+  background-color: #1a1a1f !important;
+}
+
+/* Comparison Row Hover */
+.comparison-row {
+  transition: background-color 0.15s ease;
+}
+
+.comparison-row:hover {
+  background-color: #151518;
+}
+
+/* Input Focus Glow */
+.input-glow:focus {
+  border-color: #22d3ee !important;
+  box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.15);
+}
+
+/* Phase Card */
+.phase-card {
+  background-color: #131318;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  transition: border-color 0.2s ease;
+}
+
+.phase-card:hover {
+  border-color: #3a3a3a;
+}
+
+/* KvK History Table Row */
+.kvk-row {
+  transition: background-color 0.15s ease;
+}
+
+.kvk-row:hover {
+  background-color: #18181f !important;
+}

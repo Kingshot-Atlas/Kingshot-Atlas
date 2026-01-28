@@ -1,0 +1,298 @@
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { User, Session, AuthError } from '@supabase/supabase-js';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { userDataService } from '../services/userDataService';
+
+export interface UserProfile {
+  id: string;
+  username: string;
+  email: string;
+  avatar_url: string;
+  home_kingdom: number | null;
+  alliance_tag: string;
+  language: string;
+  region: string;
+  bio: string;
+  theme_color: string;
+  badge_style: string;
+  created_at: string;
+}
+
+interface AuthContextType {
+  user: User | null;
+  session: Session | null;
+  profile: UserProfile | null;
+  loading: boolean;
+  isConfigured: boolean;
+  signInWithGoogle: () => Promise<void>;
+  signInWithDiscord: () => Promise<void>;
+  signInWithEmail: (email: string, password: string) => Promise<{ error: AuthError | null }>;
+  signUpWithEmail: (email: string, password: string) => Promise<{ error: AuthError | null }>;
+  signOut: () => Promise<void>;
+  updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
+
+const PROFILE_KEY = 'kingshot_profile';
+
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured || !supabase) {
+      setLoading(false);
+      return;
+    }
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchOrCreateProfile(session.user);
+      } else {
+        setLoading(false);
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchOrCreateProfile(session.user);
+        // Sync user data across devices
+        userDataService.setUserId(session.user.id);
+      } else {
+        setProfile(null);
+        userDataService.setUserId(null);
+        setLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const fetchOrCreateProfile = async (user: User) => {
+    if (!supabase) {
+      // Create local profile when Supabase is not configured
+      const avatarUrl = user.user_metadata?.avatar_url || 
+                        user.user_metadata?.picture || 
+                        '';
+      const username = user.user_metadata?.full_name || 
+                       user.user_metadata?.name || 
+                       user.user_metadata?.preferred_username ||
+                       user.email?.split('@')[0] || 
+                       'User';
+      const localProfile: UserProfile = {
+        id: user.id,
+        username,
+        email: user.email || '',
+        avatar_url: avatarUrl,
+        home_kingdom: null,
+        alliance_tag: '',
+        language: '',
+        region: '',
+        bio: '',
+        theme_color: '#22d3ee',
+        badge_style: 'default',
+        created_at: new Date().toISOString()
+      };
+      setProfile(localProfile);
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(localProfile));
+      setLoading(false);
+      return;
+    }
+    
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (error && error.code === 'PGRST116') {
+        // Profile doesn't exist, create one
+        const avatarUrl = user.user_metadata?.avatar_url || 
+                          user.user_metadata?.picture || 
+                          '';
+        const username = user.user_metadata?.full_name || 
+                         user.user_metadata?.name || 
+                         user.user_metadata?.preferred_username ||
+                         user.email?.split('@')[0] || 
+                         'User';
+
+        const newProfile: UserProfile = {
+          id: user.id,
+          username,
+          email: user.email || '',
+          avatar_url: avatarUrl,
+          home_kingdom: null,
+          alliance_tag: '',
+          language: '',
+          region: '',
+          bio: '',
+          theme_color: '#22d3ee',
+          badge_style: 'default',
+          created_at: new Date().toISOString()
+        };
+
+        const { data: created, error: createError } = await supabase
+          .from('profiles')
+          .insert([newProfile])
+          .select()
+          .single();
+
+        if (createError) {
+          console.error('Error creating profile:', createError);
+          // Use local profile on error
+          setProfile(newProfile);
+          localStorage.setItem(PROFILE_KEY, JSON.stringify(newProfile));
+        } else if (created) {
+          setProfile(created);
+          localStorage.setItem(PROFILE_KEY, JSON.stringify(created));
+        } else {
+          setProfile(newProfile);
+          localStorage.setItem(PROFILE_KEY, JSON.stringify(newProfile));
+        }
+      } else if (error) {
+        // Some other error occurred, try to use cached profile
+        console.error('Error fetching profile:', error);
+        const cached = localStorage.getItem(PROFILE_KEY);
+        if (cached) {
+          setProfile(JSON.parse(cached));
+        }
+      } else if (data) {
+        const avatarUrl = user.user_metadata?.avatar_url || 
+                          user.user_metadata?.picture || 
+                          data.avatar_url;
+        const updatedProfile = { ...data, avatar_url: avatarUrl };
+        setProfile(updatedProfile);
+        localStorage.setItem(PROFILE_KEY, JSON.stringify(updatedProfile));
+      }
+    } catch (err) {
+      console.error('Error fetching profile:', err);
+      // Try cached profile on network error
+      const cached = localStorage.getItem(PROFILE_KEY);
+      if (cached) {
+        setProfile(JSON.parse(cached));
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    if (!supabase) return;
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/profile`
+      }
+    });
+    if (error) console.error('Google sign-in error:', error);
+  };
+
+  const signInWithDiscord = async () => {
+    if (!supabase) return;
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'discord',
+      options: {
+        redirectTo: `${window.location.origin}/profile`
+      }
+    });
+    if (error) console.error('Discord sign-in error:', error);
+  };
+
+  const signInWithEmail = async (email: string, password: string) => {
+    if (!supabase) return { error: { message: 'Auth not configured' } as AuthError };
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    return { error };
+  };
+
+  const signUpWithEmail = async (email: string, password: string) => {
+    if (!supabase) return { error: { message: 'Auth not configured' } as AuthError };
+    const { error } = await supabase.auth.signUp({ 
+      email, 
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/profile`
+      }
+    });
+    return { error };
+  };
+
+  const signOut = async () => {
+    if (supabase) {
+      await supabase.auth.signOut();
+    }
+    setUser(null);
+    setSession(null);
+    setProfile(null);
+    localStorage.removeItem(PROFILE_KEY);
+  };
+
+  const updateProfile = async (updates: Partial<UserProfile>) => {
+    if (!user) return;
+
+    if (updates.alliance_tag) {
+      updates.alliance_tag = updates.alliance_tag.slice(0, 3).toUpperCase();
+    }
+
+    if (!supabase) {
+      if (profile) {
+        const localUpdate = { ...profile, ...updates };
+        setProfile(localUpdate);
+        localStorage.setItem(PROFILE_KEY, JSON.stringify(localUpdate));
+      }
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .update(updates)
+      .eq('id', user.id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating profile:', error);
+      if (profile) {
+        const localUpdate = { ...profile, ...updates };
+        setProfile(localUpdate);
+        localStorage.setItem(PROFILE_KEY, JSON.stringify(localUpdate));
+      }
+    } else {
+      setProfile(data);
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(data));
+    }
+  };
+
+  return (
+    <AuthContext.Provider value={{
+      user,
+      session,
+      profile,
+      loading,
+      isConfigured: isSupabaseConfigured,
+      signInWithGoogle,
+      signInWithDiscord,
+      signInWithEmail,
+      signUpWithEmail,
+      signOut,
+      updateProfile
+    }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};

@@ -1,0 +1,94 @@
+import React, { Suspense, lazy } from 'react';
+import * as Sentry from '@sentry/react';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import Header from './components/Header';
+import ErrorBoundary from './components/ErrorBoundary';
+import { ToastProvider } from './components/Toast';
+import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
+import './App.css';
+
+// Lazy load pages for code splitting
+const KingdomDirectory = lazy(() => import('./pages/KingdomDirectory'));
+const KingdomProfile = lazy(() => import('./pages/KingdomProfile'));
+const CompareKingdoms = lazy(() => import('./pages/CompareKingdoms'));
+const Leaderboards = lazy(() => import('./pages/Leaderboards'));
+const Profile = lazy(() => import('./pages/Profile'));
+const About = lazy(() => import('./pages/About'));
+const UserDirectory = lazy(() => import('./pages/UserDirectory'));
+const Admin = lazy(() => import('./pages/Admin'));
+
+// Loading fallback component
+const PageLoader = () => (
+  <div style={{ 
+    display: 'flex', 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    minHeight: '200px',
+    color: '#6b7280' 
+  }}>
+    Loading...
+  </div>
+);
+
+// Page transition wrapper
+const PageTransition: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const location = useLocation();
+  return (
+    <div key={location.pathname} className="page-transition">
+      {children}
+      <style>{`
+        .page-transition {
+          animation: pageIn 0.3s ease-out;
+        }
+        @keyframes pageIn {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+    </div>
+  );
+};
+
+function AppContent() {
+  return (
+    <div className="min-h-screen bg-bg">
+      <Header />
+      <main className="container mx-auto px-4 py-8">
+        <PageTransition>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/" element={<ErrorBoundary><KingdomDirectory /></ErrorBoundary>} />
+              <Route path="/kingdom/:kingdomNumber" element={<ErrorBoundary><KingdomProfile /></ErrorBoundary>} />
+              <Route path="/compare" element={<ErrorBoundary><CompareKingdoms /></ErrorBoundary>} />
+              <Route path="/leaderboards" element={<ErrorBoundary><Leaderboards /></ErrorBoundary>} />
+              <Route path="/profile" element={<ErrorBoundary><Profile /></ErrorBoundary>} />
+              <Route path="/profile/:userId" element={<ErrorBoundary><Profile /></ErrorBoundary>} />
+              <Route path="/players" element={<ErrorBoundary><UserDirectory /></ErrorBoundary>} />
+              <Route path="/about" element={<ErrorBoundary><About /></ErrorBoundary>} />
+              <Route path="/admin" element={<ErrorBoundary><Admin /></ErrorBoundary>} />
+                          </Routes>
+          </Suspense>
+        </PageTransition>
+      </main>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <Sentry.ErrorBoundary fallback={<div className="min-h-screen bg-bg flex items-center justify-center text-white">Something went wrong. Please refresh the page.</div>}>
+      <ThemeProvider>
+        <AuthProvider>
+          <ToastProvider>
+            <Router>
+              <AppContent />
+            </Router>
+          </ToastProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </Sentry.ErrorBoundary>
+  );
+}
+
+export default App;

@@ -1,0 +1,1008 @@
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { apiService } from '../services/api';
+import { Kingdom, getPowerTier, TIER_COLORS } from '../types';
+
+interface Review {
+  id: string;
+  kingdomNumber: number;
+  author: string;
+  rating: number;
+  comment: string;
+  timestamp: number;
+}
+
+// Mini Kingdom Card - summarized version of directory cards
+const MiniKingdomCard: React.FC<{
+  kingdom: Kingdom;
+  rank: number;
+  onRemove: () => void;
+  themeColor: string;
+  isMobile: boolean;
+  navigate: (path: string) => void;
+}> = ({ kingdom, rank, onRemove, isMobile, navigate }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const [showTierTooltip, setShowTierTooltip] = useState(false);
+
+  const neonGlow = (color: string) => ({
+    color: color,
+    textShadow: `0 0 8px ${color}40, 0 0 12px ${color}20`
+  });
+
+  const tier = kingdom.power_tier ?? getPowerTier(kingdom.overall_score);
+  const tierColors = TIER_COLORS;
+  
+  const prepWins = kingdom.prep_wins;
+  const prepLosses = kingdom.prep_losses;
+  const battleWins = kingdom.battle_wins;
+  const battleLosses = kingdom.battle_losses;
+
+  return (
+    <div
+      style={{
+        backgroundColor: '#131318',
+        borderRadius: '16px',
+        padding: isMobile ? '1rem' : '1.25rem',
+        border: `1px solid ${isHovered ? '#22d3ee40' : '#2a2a2a'}`,
+        position: 'relative',
+        transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+        transform: isHovered ? 'translateY(-4px)' : 'translateY(0)',
+        boxShadow: isHovered 
+          ? '0 20px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(34, 211, 238, 0.08)' 
+          : '0 4px 20px rgba(0, 0, 0, 0.15)',
+        cursor: 'pointer',
+        display: 'flex',
+        flexDirection: 'column' as const,
+        gap: '0'
+      }}
+      onClick={() => navigate(`/kingdom/${kingdom.kingdom_number}`)}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Remove button */}
+      <button
+        onClick={(e) => { e.stopPropagation(); onRemove(); }}
+        style={{
+          position: 'absolute',
+          top: '0.5rem',
+          right: '0.5rem',
+          background: 'none',
+          border: 'none',
+          color: '#ef4444',
+          cursor: 'pointer',
+          fontSize: '1rem',
+          opacity: 0.6,
+          transition: 'opacity 0.2s',
+          padding: '0.25rem',
+          zIndex: 10
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+        onMouseLeave={(e) => e.currentTarget.style.opacity = '0.6'}
+      >
+        ✕
+      </button>
+
+      {/* Header: Kingdom Name + Tier */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+        <span style={{ 
+          fontSize: isMobile ? '1.2rem' : '1.4rem', 
+          fontWeight: '700', 
+          color: '#fff',
+          fontFamily: "'Cinzel', serif",
+          letterSpacing: '0.02em'
+        }}>
+          Kingdom {kingdom.kingdom_number}
+        </span>
+        <div
+          style={{
+            position: 'relative',
+            padding: '0.2rem 0.5rem',
+            borderRadius: '6px',
+            fontSize: '0.7rem',
+            fontWeight: 'bold',
+            cursor: 'default',
+            backgroundColor: `${tierColors[tier]}20`,
+            color: tierColors[tier],
+            border: `1px solid ${tierColors[tier]}50`
+          }}
+          onClick={(e) => e.stopPropagation()}
+          onMouseEnter={() => setShowTierTooltip(true)}
+          onMouseLeave={() => setShowTierTooltip(false)}
+        >
+          {tier}
+          {showTierTooltip && (
+            <div style={{
+              position: 'absolute',
+              bottom: '100%',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              marginBottom: '8px',
+              backgroundColor: '#0a0a0a',
+              border: `1px solid ${tierColors[tier]}`,
+              borderRadius: '8px',
+              padding: '0.6rem 0.8rem',
+              zIndex: 1000,
+              whiteSpace: 'nowrap',
+              fontSize: '0.75rem',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.5)'
+            }}>
+              <div style={{ fontWeight: 'bold', marginBottom: '0.4rem', color: '#fff', fontSize: '0.8rem' }}>Power Tiers</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                <span style={{ color: '#fbbf24', fontWeight: 'bold', width: '14px' }}>S</span>
+                <span style={{ color: '#9ca3af' }}>10+ (Top 10%)</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                <span style={{ color: '#22c55e', fontWeight: 'bold', width: '14px' }}>A</span>
+                <span style={{ color: '#9ca3af' }}>7 – 9.9 (Top 25%)</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                <span style={{ color: '#3b82f6', fontWeight: 'bold', width: '14px' }}>B</span>
+                <span style={{ color: '#9ca3af' }}>4.5 – 6.9 (Top 50%)</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                <span style={{ color: '#9ca3af', fontWeight: 'bold', width: '14px' }}>C</span>
+                <span style={{ color: '#9ca3af' }}>2.5 – 4.4 (Top 75%)</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: '#6b7280', fontWeight: 'bold', width: '14px' }}>D</span>
+                <span style={{ color: '#9ca3af' }}>{'< 2.5'} (Bottom 25%)</span>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Atlas Score Row */}
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'baseline', 
+        gap: '0.5rem',
+        marginBottom: '1rem'
+      }}>
+        <span style={{ 
+          fontSize: '2rem', 
+          fontWeight: '700', 
+          ...neonGlow('#22d3ee'),
+          fontFamily: 'system-ui',
+          lineHeight: 1
+        }}>
+          {kingdom.overall_score.toFixed(1)}
+        </span>
+        <span style={{ 
+          fontSize: '1rem', 
+          color: '#22d3ee', 
+          fontWeight: 'normal'
+        }}>
+          (#{rank})
+        </span>
+        <span style={{ fontSize: '0.75rem', color: '#6b7280', marginLeft: 'auto' }}>
+          {kingdom.total_kvks} KvKs
+        </span>
+      </div>
+
+      {/* Stats Section - Prep & Battle */}
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: '1fr 1fr', 
+        gap: '1rem',
+        padding: '0.75rem',
+        backgroundColor: '#0d0d10',
+        borderRadius: '10px',
+        border: '1px solid #1f1f25'
+      }}>
+        {/* Prep Phase */}
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.4rem' }}>
+            <span style={{ fontSize: '0.9rem' }}>🛡️</span>
+            <span style={{ fontSize: '0.75rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Prep</span>
+          </div>
+          <div style={{ fontSize: '0.85rem', color: '#fff', marginBottom: '0.4rem' }}>
+            {prepWins}W – {prepLosses}L
+          </div>
+          <div style={{ height: '4px', backgroundColor: '#2a2a30', borderRadius: '2px', overflow: 'hidden' }}>
+            <div style={{
+              height: '100%',
+              width: `${kingdom.prep_win_rate * 100}%`,
+              backgroundColor: '#eab308',
+              borderRadius: '2px',
+              transition: 'width 0.5s ease'
+            }} />
+          </div>
+          <div style={{ fontSize: '0.7rem', color: '#fff', marginTop: '0.25rem' }}>
+            {Math.round(kingdom.prep_win_rate * 100)}%
+          </div>
+        </div>
+
+        {/* Battle Phase */}
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.4rem' }}>
+            <span style={{ fontSize: '0.9rem' }}>⚔️</span>
+            <span style={{ fontSize: '0.75rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Battle</span>
+          </div>
+          <div style={{ fontSize: '0.85rem', color: '#fff', marginBottom: '0.4rem' }}>
+            {battleWins}W – {battleLosses}L
+          </div>
+          <div style={{ height: '4px', backgroundColor: '#2a2a30', borderRadius: '2px', overflow: 'hidden' }}>
+            <div style={{
+              height: '100%',
+              width: `${kingdom.battle_win_rate * 100}%`,
+              backgroundColor: '#f97316',
+              borderRadius: '2px',
+              transition: 'width 0.5s ease'
+            }} />
+          </div>
+          <div style={{ fontSize: '0.7rem', color: '#fff', marginTop: '0.25rem' }}>
+            {Math.round(kingdom.battle_win_rate * 100)}%
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const ProfileFeatures: React.FC = () => {
+  const { user, profile } = useAuth();
+  const navigate = useNavigate();
+  const [favorites, setFavorites] = useState<number[]>([]);
+  const [watchlist, setWatchlist] = useState<number[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [homeKingdomData, setHomeKingdomData] = useState<Kingdom | null>(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [showAllFavorites, setShowAllFavorites] = useState(false);
+  const [showAllReviews, setShowAllReviews] = useState(false);
+  const [favoriteKingdoms, setFavoriteKingdoms] = useState<Kingdom[]>([]);
+
+  const themeColor = profile?.theme_color || '#22d3ee';
+  
+  // Sort reviews by timestamp (most recent first)
+  const sortedReviews = [...reviews].sort((a, b) => b.timestamp - a.timestamp);
+
+  const neonGlow = (color: string) => ({
+    color: color,
+    textShadow: `0 0 8px ${color}40, 0 0 12px ${color}20`
+  });
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    // Load favorites
+    const favKey = 'kingshot_favorites';
+    const saved = localStorage.getItem(favKey);
+    if (saved) setFavorites(JSON.parse(saved));
+
+    // Load watchlist
+    const watchKey = 'kingshot_watchlist';
+    const savedWatch = localStorage.getItem(watchKey);
+    if (savedWatch) setWatchlist(JSON.parse(savedWatch));
+
+    // Load user's reviews
+    const reviewsKey = 'kingshot_kingdom_reviews';
+    const savedReviews = localStorage.getItem(reviewsKey);
+    if (savedReviews) {
+      const allReviews = JSON.parse(savedReviews) as Review[];
+      const userReviews = allReviews.filter(r => 
+        r.author === profile?.username || r.author === user?.email?.split('@')[0]
+      );
+      setReviews(userReviews);
+    }
+  }, [profile, user]);
+
+  useEffect(() => {
+    // Load home kingdom data
+    if (profile?.home_kingdom) {
+      apiService.getKingdomProfile(profile.home_kingdom)
+        .then(setHomeKingdomData)
+        .catch(() => setHomeKingdomData(null));
+    }
+  }, [profile?.home_kingdom]);
+
+  // Load all favorite kingdoms data
+  useEffect(() => {
+    if (favorites.length > 0) {
+      Promise.all(favorites.map(k => apiService.getKingdomProfile(k).catch(() => null)))
+        .then(kingdoms => {
+          const valid: Kingdom[] = [];
+          for (const k of kingdoms) {
+            if (k !== null) {
+              valid.push(k as Kingdom);
+            }
+          }
+          // Sort by Atlas Score descending
+          valid.sort((a, b) => b.overall_score - a.overall_score);
+          setFavoriteKingdoms(valid);
+        });
+    } else {
+      setFavoriteKingdoms([]);
+    }
+  }, [favorites]);
+
+  const removeFromFavorites = (kingdomNumber: number) => {
+    const newFavorites = favorites.filter(k => k !== kingdomNumber);
+    setFavorites(newFavorites);
+    localStorage.setItem('kingshot_favorites', JSON.stringify(newFavorites));
+  };
+
+  const removeFromWatchlist = (kingdomNumber: number) => {
+    const newWatchlist = watchlist.filter(k => k !== kingdomNumber);
+    setWatchlist(newWatchlist);
+    localStorage.setItem('kingshot_watchlist', JSON.stringify(newWatchlist));
+  };
+
+  const KingdomCard = ({ kingdom, onRemove, showRemove = true }: { kingdom: Kingdom | null; onRemove?: () => void; showRemove?: boolean }) => {
+    if (!kingdom) return null;
+    
+    const tier = kingdom.power_tier ?? getPowerTier(kingdom.overall_score);
+    const tierColors = TIER_COLORS;
+
+    return (
+      <div style={{
+        backgroundColor: '#111116',
+        borderRadius: '12px',
+        padding: isMobile ? '1rem' : '1.25rem',
+        border: '1px solid #2a2a2a',
+        position: 'relative',
+        transition: 'transform 0.2s, border-color 0.2s',
+        cursor: 'pointer'
+      }}
+      onClick={() => navigate(`/kingdom/${kingdom.kingdom_number}`)}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'translateY(-2px)';
+        e.currentTarget.style.borderColor = themeColor + '40';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.borderColor = '#1f1f1f';
+      }}
+    >
+      {showRemove && onRemove && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove();
+          }}
+          style={{
+            position: 'absolute',
+            top: '0.5rem',
+            right: '0.5rem',
+            background: 'none',
+            border: 'none',
+            color: '#ef4444',
+            cursor: 'pointer',
+            fontSize: '1.25rem',
+            opacity: 0.7,
+            transition: 'opacity 0.2s'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+          onMouseLeave={(e) => e.currentTarget.style.opacity = '0.7'}
+        >
+          ✕
+        </button>
+      )}
+      
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span style={{ color: '#fff', fontSize: isMobile ? '1.1rem' : '1.25rem', fontWeight: 'bold' }}>
+            K-{kingdom.kingdom_number}
+          </span>
+          <span style={{
+            padding: '0.2rem 0.5rem',
+            borderRadius: '4px',
+            fontSize: '0.7rem',
+            fontWeight: 'bold',
+            backgroundColor: `${tierColors[tier]}20`,
+            color: tierColors[tier]
+          }}>
+            {tier}-Tier
+          </span>
+        </div>
+        <span style={{ ...neonGlow(themeColor), fontSize: isMobile ? '1.1rem' : '1.25rem', fontWeight: 'bold' }}>
+          {kingdom.overall_score.toFixed(1)}
+        </span>
+      </div>
+      
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', fontSize: '0.8rem' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ color: '#6b7280' }}>KvKs</div>
+          <div style={{ color: themeColor, fontWeight: 'bold' }}>{kingdom.total_kvks}</div>
+        </div>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ color: '#6b7280' }}>Prep</div>
+          <div style={{ color: kingdom.prep_win_rate >= 0.8 ? '#22c55e' : '#ef4444', fontWeight: 'bold' }}>
+            {Math.round(kingdom.prep_win_rate * 100)}%
+          </div>
+        </div>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ color: '#6b7280' }}>Battle</div>
+          <div style={{ color: kingdom.battle_win_rate >= 0.8 ? '#22c55e' : '#ef4444', fontWeight: 'bold' }}>
+            {Math.round(kingdom.battle_win_rate * 100)}%
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+  };
+
+  const ReviewCard = ({ review }: { review: Review }) => (
+    <div style={{
+      backgroundColor: '#131318',
+      borderRadius: '12px',
+      padding: '1.25rem',
+      border: '1px solid #2a2a2a',
+      cursor: 'pointer',
+      transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)'
+    }}
+    onClick={() => navigate(`/kingdom/${review.kingdomNumber}`)}
+    onMouseEnter={(e) => {
+      e.currentTarget.style.transform = 'translateY(-2px)';
+      e.currentTarget.style.borderColor = themeColor + '50';
+      e.currentTarget.style.boxShadow = `0 8px 24px rgba(0, 0, 0, 0.3), 0 0 12px ${themeColor}10`;
+    }}
+    onMouseLeave={(e) => {
+      e.currentTarget.style.transform = 'translateY(0)';
+      e.currentTarget.style.borderColor = '#2a2a2a';
+      e.currentTarget.style.boxShadow = 'none';
+    }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <span style={{ 
+            color: '#fff', 
+            fontSize: '1.1rem', 
+            fontWeight: '700',
+            fontFamily: "'Cinzel', 'Times New Roman', serif"
+          }}>
+            Kingdom {review.kingdomNumber}
+          </span>
+          <span style={{ color: '#fbbf24', fontSize: '0.9rem' }}>
+            {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
+          </span>
+        </div>
+        <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+          {new Date(review.timestamp).toLocaleDateString()}
+        </span>
+      </div>
+      <p style={{ color: '#9ca3af', fontSize: '0.9rem', lineHeight: 1.6, margin: 0 }}>
+        {review.comment}
+      </p>
+    </div>
+  );
+
+  const AllianceBadge = () => {
+    if (!profile?.alliance_tag) return null;
+    
+    const getBadgeStyle = (style: string, color: string) => {
+      switch (style) {
+        case 'gradient':
+          return { background: `linear-gradient(135deg, ${color} 0%, ${color}80 100%)` };
+        case 'outline':
+          return { backgroundColor: 'transparent', border: `2px solid ${color}` };
+        case 'glow':
+          return { backgroundColor: color, boxShadow: `0 0 20px ${color}60` };
+        default:
+          return { backgroundColor: color };
+      }
+    };
+
+    return (
+      <div style={{
+        backgroundColor: '#111116',
+        borderRadius: '12px',
+        padding: '1.5rem',
+        border: '1px solid #2a2a2a',
+        textAlign: 'center'
+      }}>
+        <h3 style={{ color: '#fff', fontSize: '1rem', fontWeight: '600', marginBottom: '1rem' }}>
+          Alliance Badge
+        </h3>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem' }}>
+          <div style={{
+            padding: '0.75rem 1.5rem',
+            borderRadius: '8px',
+            ...getBadgeStyle(profile.badge_style || 'default', themeColor),
+            color: '#fff',
+            fontSize: '1.5rem',
+            fontWeight: 'bold',
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase' as const
+          }}>
+            [{profile.alliance_tag}]
+          </div>
+          {profile.home_kingdom && (
+            <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>
+              K-{profile.home_kingdom}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // Quick Actions Bar
+  const QuickActionsBar = () => (
+    <div style={{
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: '0.75rem',
+      marginBottom: '1.5rem'
+    }}>
+      {profile?.home_kingdom && (
+        <button
+          onClick={() => navigate(`/kingdom/${profile.home_kingdom}`)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '0.6rem 1rem',
+            backgroundColor: '#131318',
+            border: `1px solid ${themeColor}40`,
+            borderRadius: '8px',
+            color: '#fff',
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = `${themeColor}15`;
+            e.currentTarget.style.borderColor = themeColor;
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = '#131318';
+            e.currentTarget.style.borderColor = `${themeColor}40`;
+          }}
+        >
+          <span>🏠</span>
+          <span>View Home Kingdom</span>
+        </button>
+      )}
+      {favoriteKingdoms.length >= 2 && (
+        <button
+          onClick={() => {
+            const nums = favoriteKingdoms.slice(0, 2).map(k => k.kingdom_number);
+            navigate(`/compare?kingdoms=${nums.join(',')}`);
+          }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '0.6rem 1rem',
+            backgroundColor: '#131318',
+            border: '1px solid #3b82f640',
+            borderRadius: '8px',
+            color: '#fff',
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#3b82f615';
+            e.currentTarget.style.borderColor = '#3b82f6';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = '#131318';
+            e.currentTarget.style.borderColor = '#3b82f640';
+          }}
+        >
+          <span>⚖️</span>
+          <span>Compare Favorites</span>
+        </button>
+      )}
+      <button
+        onClick={() => navigate('/')}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          padding: '0.6rem 1rem',
+          backgroundColor: '#131318',
+          border: '1px solid #22c55e40',
+          borderRadius: '8px',
+          color: '#fff',
+          fontSize: '0.85rem',
+          cursor: 'pointer',
+          transition: 'all 0.2s'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = '#22c55e15';
+          e.currentTarget.style.borderColor = '#22c55e';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = '#131318';
+          e.currentTarget.style.borderColor = '#22c55e40';
+        }}
+      >
+        <span>🔍</span>
+        <span>Browse Kingdoms</span>
+      </button>
+      <button
+        onClick={() => navigate('/leaderboards')}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          padding: '0.6rem 1rem',
+          backgroundColor: '#131318',
+          border: '1px solid #fbbf2440',
+          borderRadius: '8px',
+          color: '#fff',
+          fontSize: '0.85rem',
+          cursor: 'pointer',
+          transition: 'all 0.2s'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = '#fbbf2415';
+          e.currentTarget.style.borderColor = '#fbbf24';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = '#131318';
+          e.currentTarget.style.borderColor = '#fbbf2440';
+        }}
+      >
+        <span>🏆</span>
+        <span>Leaderboards</span>
+      </button>
+    </div>
+  );
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      {/* Quick Actions Bar */}
+      <QuickActionsBar />
+
+      {/* Home Kingdom Stats */}
+      {homeKingdomData && (
+        <div style={{
+          backgroundColor: '#111116',
+          borderRadius: '12px',
+          padding: isMobile ? '1.25rem' : '1.5rem',
+          border: `1px solid ${themeColor}30`
+        }}>
+          <h3 style={{ color: '#fff', fontSize: '1.1rem', fontWeight: '600', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            🏠 Home Kingdom Stats
+          </h3>
+          <KingdomCard kingdom={homeKingdomData} showRemove={false} />
+        </div>
+      )}
+
+      {/* Alliance Badge */}
+      <AllianceBadge />
+
+      {/* Favorite Kingdoms - Top 5 by Atlas Score */}
+      {favoriteKingdoms.length > 0 && (
+        <div style={{
+          backgroundColor: '#111116',
+          borderRadius: '12px',
+          padding: isMobile ? '1.25rem' : '1.5rem',
+          border: '1px solid #2a2a2a'
+        }}>
+          <h3 style={{ color: '#fff', fontSize: '1.1rem', fontWeight: '600', marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              ⭐ Favorite Kingdoms
+              <span style={{ fontSize: '0.8rem', color: '#6b7280', fontWeight: 'normal' }}>
+                ({favoriteKingdoms.length})
+              </span>
+            </span>
+            <span style={{ fontSize: '0.7rem', color: '#6b7280', fontWeight: 'normal' }}>
+              Sorted by Atlas Score
+            </span>
+          </h3>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
+            {(showAllFavorites ? favoriteKingdoms : favoriteKingdoms.slice(0, 5)).map((kingdom) => (
+              <MiniKingdomCard 
+                key={kingdom.kingdom_number} 
+                kingdom={kingdom} 
+                rank={kingdom.rank || 0}
+                onRemove={() => removeFromFavorites(kingdom.kingdom_number)} 
+                themeColor={themeColor} 
+                isMobile={isMobile}
+                navigate={navigate}
+              />
+            ))}
+          </div>
+          {favoriteKingdoms.length > 5 && (
+            <button
+              onClick={() => setShowAllFavorites(!showAllFavorites)}
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                marginTop: '1rem',
+                backgroundColor: 'transparent',
+                border: `1px solid ${themeColor}40`,
+                borderRadius: '8px',
+                color: themeColor,
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = `${themeColor}10`;
+                e.currentTarget.style.borderColor = themeColor;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+                e.currentTarget.style.borderColor = `${themeColor}40`;
+              }}
+            >
+              {showAllFavorites ? '▲ Show Less' : `▼ View All ${favoriteKingdoms.length} Favorites`}
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Kingdom Watchlist */}
+      {watchlist.length > 0 && (
+        <div style={{
+          backgroundColor: '#111116',
+          borderRadius: '12px',
+          padding: isMobile ? '1.25rem' : '1.5rem',
+          border: '1px solid #2a2a2a'
+        }}>
+          <h3 style={{ color: '#fff', fontSize: '1.1rem', fontWeight: '600', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            👁️ Watchlist ({watchlist.length})
+          </h3>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
+            {watchlist.map(kingdomNumber => (
+              <KingCardLoader key={kingdomNumber} kingdomNumber={kingdomNumber} onRemove={() => removeFromWatchlist(kingdomNumber)} themeColor={themeColor} isMobile={isMobile} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Review History - Most Recent 5 */}
+      {reviews.length > 0 && (
+        <div style={{
+          backgroundColor: '#111116',
+          borderRadius: '12px',
+          padding: isMobile ? '1.25rem' : '1.5rem',
+          border: '1px solid #2a2a2a'
+        }}>
+          <h3 style={{ color: '#fff', fontSize: '1.1rem', fontWeight: '600', marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              📝 Review History
+              <span style={{ fontSize: '0.8rem', color: '#6b7280', fontWeight: 'normal' }}>
+                ({reviews.length})
+              </span>
+            </span>
+            <span style={{ fontSize: '0.7rem', color: '#6b7280', fontWeight: 'normal' }}>
+              Most Recent First
+            </span>
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {(showAllReviews ? sortedReviews : sortedReviews.slice(0, 5)).map(review => (
+              <ReviewCard key={review.id} review={review} />
+            ))}
+          </div>
+          {reviews.length > 5 && (
+            <button
+              onClick={() => setShowAllReviews(!showAllReviews)}
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                marginTop: '1rem',
+                backgroundColor: 'transparent',
+                border: `1px solid ${themeColor}40`,
+                borderRadius: '8px',
+                color: themeColor,
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = `${themeColor}10`;
+                e.currentTarget.style.borderColor = themeColor;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+                e.currentTarget.style.borderColor = `${themeColor}40`;
+              }}
+            >
+              {showAllReviews ? '▲ Show Less' : `▼ View All ${reviews.length} Reviews`}
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Empty State */}
+      {favorites.length === 0 && watchlist.length === 0 && reviews.length === 0 && !homeKingdomData && (
+        <div style={{
+          backgroundColor: '#111116',
+          borderRadius: '12px',
+          padding: '3rem 2rem',
+          border: '1px solid #2a2a2a',
+          textAlign: 'center'
+        }}>
+          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎯</div>
+          <h3 style={{ color: '#fff', fontSize: '1.25rem', fontWeight: '600', marginBottom: '0.75rem' }}>
+            Start Building Your Profile
+          </h3>
+          <p style={{ color: '#6b7280', fontSize: '0.95rem', marginBottom: '1.5rem', lineHeight: 1.6 }}>
+            Add kingdoms to your favorites, create a watchlist, write reviews, and set your home kingdom to personalize your profile.
+          </p>
+          <Link 
+            to="/"
+            style={{
+              display: 'inline-block',
+              padding: '0.75rem 2rem',
+              background: `linear-gradient(135deg, ${themeColor} 0%, ${themeColor}80 100%)`,
+              border: 'none',
+              borderRadius: '8px',
+              color: '#fff',
+              fontWeight: 'bold',
+              textDecoration: 'none',
+              transition: 'transform 0.2s, box-shadow 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = `0 4px 20px ${themeColor}40`;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
+          >
+            Browse Kingdoms
+          </Link>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Helper component to load kingdom data
+const KingCardLoader: React.FC<{ kingdomNumber: number; onRemove: () => void; themeColor: string; isMobile: boolean }> = ({ kingdomNumber, onRemove, themeColor, isMobile }) => {
+  const navigate = useNavigate();
+  const [kingdom, setKingdom] = useState<Kingdom | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const neonGlow = (color: string) => ({
+    color: color,
+    textShadow: `0 0 8px ${color}40, 0 0 12px ${color}20`
+  });
+
+  useEffect(() => {
+    apiService.getKingdomProfile(kingdomNumber)
+      .then(setKingdom)
+      .catch(() => setKingdom(null))
+      .finally(() => setLoading(false));
+  }, [kingdomNumber]);
+
+  if (loading) {
+    return (
+      <div style={{
+        backgroundColor: '#111116',
+        borderRadius: '12px',
+        padding: '1.25rem',
+        border: '1px solid #2a2a2a',
+        textAlign: 'center',
+        color: '#6b7280'
+      }}>
+        Loading K-{kingdomNumber}...
+      </div>
+    );
+  }
+
+  if (!kingdom) {
+    return (
+      <div style={{
+        backgroundColor: '#111116',
+        borderRadius: '12px',
+        padding: '1.25rem',
+        border: '1px solid #2a2a2a',
+        textAlign: 'center',
+        color: '#ef4444'
+      }}>
+        K-{kingdomNumber} not found in database
+        <button
+          onClick={onRemove}
+          style={{
+            display: 'block',
+            margin: '0.5rem auto 0',
+            padding: '0.25rem 0.75rem',
+            backgroundColor: '#ef4444',
+            border: 'none',
+            borderRadius: '4px',
+            color: '#fff',
+            fontSize: '0.75rem',
+            cursor: 'pointer'
+          }}
+        >
+          Remove
+        </button>
+      </div>
+    );
+  }
+
+  const tier = kingdom.power_tier ?? getPowerTier(kingdom.overall_score);
+  const tierColors = { S: '#fbbf24', A: '#22c55e', B: '#3b82f6', C: '#9ca3af', D: '#6b7280' };
+
+  return (
+    <div style={{
+      backgroundColor: '#111116',
+      borderRadius: '12px',
+      padding: isMobile ? '1rem' : '1.25rem',
+      border: '1px solid #2a2a2a',
+      position: 'relative',
+      transition: 'transform 0.2s, border-color 0.2s',
+      cursor: 'pointer'
+    }}
+    onClick={() => navigate(`/kingdom/${kingdom.kingdom_number}`)}
+    onMouseEnter={(e) => {
+      e.currentTarget.style.transform = 'translateY(-2px)';
+      e.currentTarget.style.borderColor = themeColor + '40';
+    }}
+    onMouseLeave={(e) => {
+      e.currentTarget.style.transform = 'translateY(0)';
+      e.currentTarget.style.borderColor = '#1f1f1f';
+    }}
+    >
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onRemove();
+        }}
+        style={{
+          position: 'absolute',
+          top: '0.5rem',
+          right: '0.5rem',
+          background: 'none',
+          border: 'none',
+          color: '#ef4444',
+          cursor: 'pointer',
+          fontSize: '1.25rem',
+          opacity: 0.7,
+          transition: 'opacity 0.2s'
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+        onMouseLeave={(e) => e.currentTarget.style.opacity = '0.7'}
+      >
+        ✕
+      </button>
+      
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span style={{ color: '#fff', fontSize: isMobile ? '1.1rem' : '1.25rem', fontWeight: 'bold' }}>
+            K-{kingdom.kingdom_number}
+          </span>
+          <span style={{
+            padding: '0.2rem 0.5rem',
+            borderRadius: '4px',
+            fontSize: '0.7rem',
+            fontWeight: 'bold',
+            backgroundColor: `${tierColors[tier]}20`,
+            color: tierColors[tier]
+          }}>
+            {tier}-Tier
+          </span>
+        </div>
+        <span style={{ ...neonGlow(themeColor), fontSize: isMobile ? '1.1rem' : '1.25rem', fontWeight: 'bold' }}>
+          {kingdom.overall_score.toFixed(1)}
+        </span>
+      </div>
+      
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', fontSize: '0.8rem' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ color: '#6b7280' }}>KvKs</div>
+          <div style={{ color: themeColor, fontWeight: 'bold' }}>{kingdom.total_kvks}</div>
+        </div>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ color: '#6b7280' }}>Prep</div>
+          <div style={{ color: kingdom.prep_win_rate >= 0.8 ? '#22c55e' : '#ef4444', fontWeight: 'bold' }}>
+            {Math.round(kingdom.prep_win_rate * 100)}%
+          </div>
+        </div>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ color: '#6b7280' }}>Battle</div>
+          <div style={{ color: kingdom.battle_win_rate >= 0.8 ? '#22c55e' : '#ef4444', fontWeight: 'bold' }}>
+            {Math.round(kingdom.battle_win_rate * 100)}%
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ProfileFeatures;
