@@ -5,6 +5,14 @@
 [build.environment]
   NODE_VERSION = "20"
 
+# Redirect old domain to new primary domain
+[[redirects]]
+  from = "https://kingshot-atlas.netlify.app/*"
+  to = "https://ks-atlas.com/:splat"
+  status = 301
+  force = true
+
+# SPA fallback - must be last
 [[redirects]]
   from = "/*"
   to = "/index.html"

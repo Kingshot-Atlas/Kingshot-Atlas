@@ -35,7 +35,7 @@ limiter = Limiter(key_func=get_remote_address)
 # Development: localhost variants
 ALLOWED_ORIGINS = os.getenv(
     "ALLOWED_ORIGINS",
-    "http://localhost:3000,http://127.0.0.1:3000,https://www.ks-atlas.com,https://ks-atlas.com,https://kingshot-atlas.netlify.app"
+    "http://localhost:3000,http://127.0.0.1:3000,https://www.ks-atlas.com,https://ks-atlas.com"
 ).split(",")
 
 app = FastAPI(

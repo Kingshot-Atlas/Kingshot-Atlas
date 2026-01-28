@@ -249,8 +249,7 @@ Directory must support:
 
 | Component | URL |
 |-----------|-----|
-| **Frontend** | https://www.ks-atlas.com |
-| **Netlify** | https://kingshot-atlas.netlify.app |
+| **Frontend** | https://ks-atlas.com |
 
 ### Frontend (Netlify)
 
@@ -282,7 +281,7 @@ The backend is configured for Railway deployment with `railway.json` and `Procfi
 |----------|----------|-------------|
 | `SECRET_KEY` | ✅ Yes | JWT signing key - generate with `openssl rand -hex 32` |
 | `DATABASE_URL` | ✅ Yes | PostgreSQL connection string (Railway provides this) |
-| `ALLOWED_ORIGINS` | ✅ Yes | `https://www.ks-atlas.com,https://ks-atlas.com,https://kingshot-atlas.netlify.app` |
+| `ALLOWED_ORIGINS` | ✅ Yes | `https://www.ks-atlas.com,https://ks-atlas.com` |
 | `SUPABASE_JWT_SECRET` | ✅ Yes | Supabase JWT secret for auth validation |
 | `SENTRY_DSN` | No | Sentry error tracking DSN |
 | `ENVIRONMENT` | No | Set to `production` |

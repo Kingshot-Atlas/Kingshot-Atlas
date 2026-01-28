@@ -5,7 +5,6 @@
 | Component | URL |
 |-----------|-----|
 | **Frontend** | https://ks-atlas.com |
-| **Netlify** | https://kingshot-atlas.netlify.app |
 | **Backend API** | (configure with Railway/Render) |
 
 ## Overview
@@ -137,7 +136,7 @@ CREATE POLICY "Users can insert own profile" ON profiles FOR INSERT WITH CHECK (
 3. Update DNS with provided CNAME
 4. Set environment variable:
    ```
-   ALLOWED_ORIGINS=https://www.ks-atlas.com,https://ks-atlas.com,https://kingshot-atlas.netlify.app
+   ALLOWED_ORIGINS=https://www.ks-atlas.com,https://ks-atlas.com
    ```
 
 ---
