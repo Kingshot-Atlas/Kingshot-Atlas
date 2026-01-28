@@ -58,6 +58,7 @@ const Profile: React.FC = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [viewedProfile, setViewedProfile] = useState<UserProfile | null>(null);
   const [isViewingOther, setIsViewingOther] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_favorites, _setFavorites] = useState<number[]>(() => {
     const saved = localStorage.getItem(FAVORITES_KEY);
     return saved ? JSON.parse(saved) : [];

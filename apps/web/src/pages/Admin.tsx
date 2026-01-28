@@ -63,6 +63,7 @@ const Admin: React.FC = () => {
     } else if (activeTab === 'corrections') {
       fetchCorrections();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, filter]);
 
   const fetchCorrections = () => {

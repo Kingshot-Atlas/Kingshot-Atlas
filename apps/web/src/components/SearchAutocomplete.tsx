@@ -74,6 +74,7 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
         inputRef.current?.blur();
         break;
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showDropdown, highlightedIndex, suggestions]);
 
   const handleSelect = (kingdom: Kingdom) => {
