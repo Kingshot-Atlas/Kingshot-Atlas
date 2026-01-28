@@ -4,7 +4,7 @@
 
 | Component | URL |
 |-----------|-----|
-| **Frontend** | https://www.ks-atlas.com |
+| **Frontend** | https://ks-atlas.com |
 | **Netlify** | https://kingshot-atlas.netlify.app |
 | **Backend API** | (configure with Railway/Render) |
 

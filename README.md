@@ -1,6 +1,6 @@
 # Kingshot Atlas
 
-🌐 **Live:** [https://www.ks-atlas.com](https://www.ks-atlas.com)
+🌐 **Live:** [https://ks-atlas.com](https://ks-atlas.com)
 
 [![CI](https://github.com/Kingshot-Atlas/Kingshot-Atlas/actions/workflows/ci.yml/badge.svg)](https://github.com/Kingshot-Atlas/Kingshot-Atlas/actions/workflows/ci.yml)
 
