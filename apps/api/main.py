@@ -31,7 +31,12 @@ Base.metadata.create_all(bind=engine)
 limiter = Limiter(key_func=get_remote_address)
 
 # Allowed origins for CORS
-ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000").split(",")
+# Production: https://www.ks-atlas.com and https://ks-atlas.com
+# Development: localhost variants
+ALLOWED_ORIGINS = os.getenv(
+    "ALLOWED_ORIGINS",
+    "http://localhost:3000,http://127.0.0.1:3000,https://www.ks-atlas.com,https://ks-atlas.com,https://kingshot-atlas.netlify.app"
+).split(",")
 
 app = FastAPI(
     title="Kingshot Atlas API",

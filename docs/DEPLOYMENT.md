@@ -1,5 +1,13 @@
 # Deployment Guide
 
+## Production URLs
+
+| Component | URL |
+|-----------|-----|
+| **Frontend** | https://www.ks-atlas.com |
+| **Netlify** | https://kingshot-atlas.netlify.app |
+| **Backend API** | (configure with Railway/Render) |
+
 ## Overview
 
 | Component | Service | Cost |
@@ -7,7 +15,7 @@
 | Frontend | Netlify | $0 (free tier) |
 | Backend API | Railway or Render | $5-7/mo |
 | Database | Supabase PostgreSQL | $0 (free tier) |
-| Domain | Namecheap/Cloudflare | ~$12/yr |
+| Domain | ks-atlas.com | ~$12/yr |
 
 **Total: ~$5-7/month + domain**
 
@@ -111,21 +119,26 @@ CREATE POLICY "Users can insert own profile" ON profiles FOR INSERT WITH CHECK (
 
 ## 4. Custom Domain Setup
 
-### For Netlify (Frontend)
+### For Netlify (Frontend) - CONFIGURED
+
+**Production domain:** `www.ks-atlas.com`
 
 1. Go to Netlify Dashboard → Domain settings
-2. Add custom domain (e.g., `kingshotatlas.com`)
-3. Update DNS:
-   - Add CNAME record: `www` → `your-site.netlify.app`
-   - Add A record: `@` → Netlify IP (provided)
-4. Enable HTTPS (automatic with Let's Encrypt)
+2. Custom domain `ks-atlas.com` is configured
+3. DNS configured:
+   - CNAME: `www` → `kingshot-atlas.netlify.app`
+   - A record: `@` → Netlify IP
+4. HTTPS enabled (Let's Encrypt)
 
 ### For Railway/Render (API)
 
 1. Go to Settings → Domains
-2. Add custom domain (e.g., `api.kingshotatlas.com`)
+2. Add custom domain (e.g., `api.ks-atlas.com`)
 3. Update DNS with provided CNAME
-4. Update `ALLOWED_ORIGINS` to include your domain
+4. Set environment variable:
+   ```
+   ALLOWED_ORIGINS=https://www.ks-atlas.com,https://ks-atlas.com,https://kingshot-atlas.netlify.app
+   ```
 
 ---
 

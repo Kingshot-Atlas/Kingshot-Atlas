@@ -1,6 +1,8 @@
 # Kingshot Atlas
 
-[![CI](https://github.com/YOUR_USERNAME/kingshot-atlas/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/kingshot-atlas/actions/workflows/ci.yml)
+🌐 **Live:** [https://www.ks-atlas.com](https://www.ks-atlas.com)
+
+[![CI](https://github.com/Kingshot-Atlas/Kingshot-Atlas/actions/workflows/ci.yml/badge.svg)](https://github.com/Kingshot-Atlas/Kingshot-Atlas/actions/workflows/ci.yml)
 
 Kingshot Atlas is an all-in-one kingdom database for the game Kingshot.
 
@@ -243,9 +245,18 @@ Directory must support:
 
 ## Deployment
 
+### Production URLs
+
+| Component | URL |
+|-----------|-----|
+| **Frontend** | https://www.ks-atlas.com |
+| **Netlify** | https://kingshot-atlas.netlify.app |
+
 ### Frontend (Netlify)
 
-The frontend is deployed on Netlify. Build settings:
+The frontend is deployed on Netlify with custom domain `ks-atlas.com`.
+
+Build settings:
 - **Build command**: `npm run build`
 - **Publish directory**: `build`
 - **Base directory**: `apps/web`
@@ -271,7 +282,8 @@ The backend is configured for Railway deployment with `railway.json` and `Procfi
 |----------|----------|-------------|
 | `SECRET_KEY` | ✅ Yes | JWT signing key - generate with `openssl rand -hex 32` |
 | `DATABASE_URL` | ✅ Yes | PostgreSQL connection string (Railway provides this) |
-| `ALLOWED_ORIGINS` | ✅ Yes | Frontend URL, e.g. `https://kingshot-atlas.netlify.app` |
+| `ALLOWED_ORIGINS` | ✅ Yes | `https://www.ks-atlas.com,https://ks-atlas.com,https://kingshot-atlas.netlify.app` |
+| `SUPABASE_JWT_SECRET` | ✅ Yes | Supabase JWT secret for auth validation |
 | `SENTRY_DSN` | No | Sentry error tracking DSN |
 | `ENVIRONMENT` | No | Set to `production` |
 
