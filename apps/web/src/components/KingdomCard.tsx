@@ -145,7 +145,8 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
         flexDirection: 'column',
         gap: '0',
         position: 'relative',
-        zIndex: (showTierTooltip || showAtlasTooltip || showHKTooltip || showIKTooltip || showStatusTooltip || hoveredResult !== null || hoveredAchievement !== null || showSharePopup) ? 60 : 'auto'
+        overflow: 'visible',
+        zIndex: (showTierTooltip || showAtlasTooltip || showHKTooltip || showIKTooltip || showStatusTooltip || hoveredResult !== null || hoveredAchievement !== null || showSharePopup) ? 100 : 1
       }}
     >
       {/* ═══════════════════ HEADER SECTION ═══════════════════ */}

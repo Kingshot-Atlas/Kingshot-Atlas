@@ -803,7 +803,7 @@ const KingdomDirectory: React.FC = () => {
             )}
           </div>
         ) : viewMode === 'grid' ? (
-          <div ref={gridRef} style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(300px, 1fr))', gap: isMobile ? '1rem' : '1.5rem', paddingBottom: '3rem' }}>
+          <div ref={gridRef} style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(300px, 1fr))', gap: isMobile ? '1rem' : '1.5rem', paddingTop: '0.5rem', paddingBottom: '3rem' }}>
             {displayedKingdoms.map((kingdom, index) => (
               <div 
                 key={kingdom.kingdom_number} 
