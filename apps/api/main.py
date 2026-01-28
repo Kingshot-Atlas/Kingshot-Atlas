@@ -1,5 +1,9 @@
 import os
-import sentry_sdk
+try:
+    import sentry_sdk
+    SENTRY_AVAILABLE = True
+except ImportError:
+    SENTRY_AVAILABLE = False
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
@@ -11,9 +15,9 @@ from api.routers import kingdoms, auth, leaderboard, compare, submissions
 from database import engine
 from models import Base
 
-# Initialize Sentry for error monitoring (only if DSN is configured)
+# Initialize Sentry for error monitoring (only if available and DSN is configured)
 SENTRY_DSN = os.getenv("SENTRY_DSN")
-if SENTRY_DSN:
+if SENTRY_AVAILABLE and SENTRY_DSN:
     sentry_sdk.init(
         dsn=SENTRY_DSN,
         traces_sample_rate=0.1,

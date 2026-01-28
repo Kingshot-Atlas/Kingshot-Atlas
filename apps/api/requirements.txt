@@ -3,7 +3,7 @@ uvicorn[standard]==0.27.0
 sqlalchemy==2.0.25
 alembic==1.13.1
 python-dotenv==1.0.0
-pandas>=2.2.3
+# pandas>=2.2.3  # Disabled for deployment - causes Rust build issues
 pydantic[email]==2.5.3
 passlib[bcrypt]==1.7.4
 python-jose[cryptography]==3.3.0
