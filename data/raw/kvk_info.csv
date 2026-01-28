@@ -1,0 +1,9 @@
+,,
+,Category,Meaning
+,Win,The kingdom listed by row won both the preparation phase and the battle phase
+,Preparation,"The kingdom listed by row won the preparation phase, but lost the battle phase"
+,Battle,"The kingdom listed by row won the battle phase, but lost the preparation phase"
+,Loss,The kingdom listed by row lost both the preparation phase and the battle phase
+,Bye,The kingdom listed by row did not recieve a KvK opponent
+,Draw,"The kingdom listed by row either won the preparation phase or the battle phase, but I do not know which yet"
+,N/A,"A KvK opponent or result did not exist, either due to the kingdom being too young or the kingdom recieving a bye"
