@@ -6,7 +6,8 @@ import KvKCountdown from './KvKCountdown';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { neonGlow } from '../utils/styles';
 
-const DISCORD_INVITE = 'https://discord.gg/aA3a7JGcHV';
+// Discord invite link - configurable via environment variable
+const DISCORD_INVITE = process.env.REACT_APP_DISCORD_INVITE || 'https://discord.gg/aA3a7JGcHV';
 
 const Header: React.FC = () => {
   const location = useLocation();
@@ -170,6 +171,28 @@ const Header: React.FC = () => {
             }}
           >
             About
+          </Link>
+          <Link
+            to="/upgrade"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              color: '#22d3ee',
+              textDecoration: 'none',
+              fontSize: '0.85rem',
+              fontWeight: '600',
+              padding: '0.35rem 0.65rem',
+              backgroundColor: '#22d3ee15',
+              border: '1px solid #22d3ee40',
+              borderRadius: '6px',
+              transition: 'all 0.2s'
+            }}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+            </svg>
+            Pro
           </Link>
           
           {/* <Link
@@ -450,6 +473,26 @@ const Header: React.FC = () => {
             }}
           >
             About
+          </Link>
+          <Link
+            to="/upgrade"
+            style={{
+              color: '#22d3ee',
+              textDecoration: 'none',
+              fontSize: '1rem',
+              padding: '0.75rem 1rem',
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              backgroundColor: '#22d3ee15',
+              border: '1px solid #22d3ee40'
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+            </svg>
+            Upgrade to Pro
           </Link>
           <div style={{ height: '1px', backgroundColor: '#1f1f1f', margin: '0.5rem 0' }} />
           <a

@@ -131,7 +131,7 @@ class TestSubmissionValidation:
 class TestSubmissionReview:
     """Test submission review functionality."""
 
-    def test_review_submission_approve(self, client, sample_kingdom):
+    def test_review_submission_approve(self, client, sample_kingdom, moderator_user):
         """Test approving a submission."""
         # First create a submission
         create_response = client.post(
@@ -147,16 +147,16 @@ class TestSubmissionReview:
         )
         submission_id = create_response.json()["id"]
         
-        # Review it
+        # Review it with moderator user ID
         response = client.post(
             f"/api/submissions/{submission_id}/review",
             json={"status": "approved", "review_notes": "Looks good"},
-            headers={"X-User-Id": "moderator-123"}
+            headers={"X-User-Id": str(moderator_user.id)}
         )
         assert response.status_code == 200
         assert "approved" in response.json()["message"]
 
-    def test_review_submission_reject(self, client, sample_kingdom):
+    def test_review_submission_reject(self, client, sample_kingdom, moderator_user):
         """Test rejecting a submission."""
         create_response = client.post(
             "/api/submissions",
@@ -174,12 +174,12 @@ class TestSubmissionReview:
         response = client.post(
             f"/api/submissions/{submission_id}/review",
             json={"status": "rejected", "review_notes": "Invalid data"},
-            headers={"X-User-Id": "moderator-123"}
+            headers={"X-User-Id": str(moderator_user.id)}
         )
         assert response.status_code == 200
         assert "rejected" in response.json()["message"]
 
-    def test_review_submission_invalid_status(self, client, sample_kingdom):
+    def test_review_submission_invalid_status(self, client, sample_kingdom, moderator_user):
         """Test review fails with invalid status."""
         create_response = client.post(
             "/api/submissions",
@@ -197,15 +197,39 @@ class TestSubmissionReview:
         response = client.post(
             f"/api/submissions/{submission_id}/review",
             json={"status": "invalid_status"},
-            headers={"X-User-Id": "moderator-123"}
+            headers={"X-User-Id": str(moderator_user.id)}
         )
         assert response.status_code == 422
 
-    def test_review_nonexistent_submission(self, client):
+    def test_review_nonexistent_submission(self, client, moderator_user):
         """Test reviewing non-existent submission fails."""
         response = client.post(
             "/api/submissions/99999/review",
             json={"status": "approved"},
-            headers={"X-User-Id": "moderator-123"}
+            headers={"X-User-Id": str(moderator_user.id)}
         )
         assert response.status_code == 404
+
+    def test_review_submission_unauthorized(self, client, sample_kingdom):
+        """Test that non-moderators cannot review submissions."""
+        create_response = client.post(
+            "/api/submissions",
+            json={
+                "kingdom_number": sample_kingdom.kingdom_number,
+                "kvk_number": 8,
+                "opponent_kingdom": 203,
+                "prep_result": "W",
+                "battle_result": "W"
+            },
+            headers={"X-User-Id": "test-user-123"}
+        )
+        submission_id = create_response.json()["id"]
+        
+        # Try to review with a regular user ID (not moderator)
+        response = client.post(
+            f"/api/submissions/{submission_id}/review",
+            json={"status": "approved"},
+            headers={"X-User-Id": "regular-user-456"}
+        )
+        assert response.status_code == 403
+        assert "Moderator" in response.json()["detail"]

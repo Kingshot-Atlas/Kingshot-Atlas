@@ -1,18 +1,23 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.orm import Session
-from sqlalchemy import desc
+from sqlalchemy import desc, func
 from typing import Optional, List
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from database import get_db
 from models import Kingdom
 from schemas import Kingdom as KingdomSchema
 
 router = APIRouter()
+limiter = Limiter(key_func=get_remote_address)
 
 @router.get("/leaderboard", response_model=List[KingdomSchema])
+@limiter.limit("30/minute")
 def get_leaderboard(
+    request: Request,
     sort_by: Optional[str] = Query("overall_score", description="Sort by: overall_score, prep_win_rate, battle_win_rate, total_kvks"),
-    limit: Optional[int] = Query(50, description="Number of results to return"),
-    offset: Optional[int] = Query(0, description="Number of results to skip"),
+    limit: Optional[int] = Query(50, ge=1, le=200, description="Number of results to return (max 200)"),
+    offset: Optional[int] = Query(0, ge=0, le=10000, description="Number of results to skip"),
     db: Session = Depends(get_db)
 ):
     query = db.query(Kingdom)
@@ -36,6 +41,14 @@ def get_leaderboard(
         query = query.offset(offset)
     
     kingdoms = query.all()
+    
+    # Add rank based on overall_score (higher score = better rank)
+    for kingdom in kingdoms:
+        rank = db.query(func.count(Kingdom.kingdom_number)).filter(
+            Kingdom.overall_score > kingdom.overall_score
+        ).scalar() + 1
+        kingdom.rank = rank
+    
     return kingdoms
 
 @router.get("/leaderboard/top-by-status")

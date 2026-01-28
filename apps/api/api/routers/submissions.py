@@ -1,28 +1,203 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, Header
+import os
+from fastapi import APIRouter, Depends, HTTPException, Query, Header, Request
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from typing import Optional, List
 from datetime import datetime
 import secrets
+from jose import jwt, JWTError
 
 from database import get_db
-from models import KVKSubmission, KVKRecord, Kingdom, KingdomClaim
+from models import KVKSubmission, KVKRecord, Kingdom, KingdomClaim, User
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from schemas import (
     KVKSubmissionCreate, KVKSubmission as KVKSubmissionSchema,
     SubmissionReview, KingdomClaimCreate, KingdomClaimUpdate,
     KingdomClaim as KingdomClaimSchema
 )
 
+# Supabase JWT configuration for secure user ID extraction
+SUPABASE_JWT_SECRET = os.getenv("SUPABASE_JWT_SECRET")
+SUPABASE_ISSUER = os.getenv("SUPABASE_URL", "").rstrip("/") + "/auth/v1"
+
 router = APIRouter()
+limiter = Limiter(key_func=get_remote_address)
 
 
-def get_current_user_id(authorization: Optional[str] = Header(None)) -> Optional[str]:
-    """Extract user ID from Supabase JWT token header"""
-    if not authorization:
+def _recalculate_kingdom_stats(kingdom: Kingdom, db: Session) -> None:
+    """Recalculate aggregate stats for a kingdom based on all its KVK records."""
+    records = db.query(KVKRecord).filter(
+        KVKRecord.kingdom_number == kingdom.kingdom_number
+    ).order_by(KVKRecord.kvk_number.desc()).all()
+    
+    if not records:
+        return
+    
+    # Count wins/losses
+    prep_wins = sum(1 for r in records if r.prep_result == 'W')
+    prep_losses = sum(1 for r in records if r.prep_result == 'L')
+    battle_wins = sum(1 for r in records if r.battle_result == 'W')
+    battle_losses = sum(1 for r in records if r.battle_result == 'L')
+    
+    total_kvks = len(records)
+    
+    # Calculate win rates
+    kingdom.prep_wins = prep_wins
+    kingdom.prep_losses = prep_losses
+    kingdom.prep_win_rate = prep_wins / total_kvks if total_kvks > 0 else 0.0
+    
+    kingdom.battle_wins = battle_wins
+    kingdom.battle_losses = battle_losses
+    kingdom.battle_win_rate = battle_wins / total_kvks if total_kvks > 0 else 0.0
+    
+    kingdom.total_kvks = total_kvks
+    
+    # Calculate current streaks (from most recent records)
+    prep_streak = 0
+    for r in records:  # Already sorted desc by kvk_number
+        if r.prep_result == 'W':
+            prep_streak += 1
+        else:
+            break
+    kingdom.prep_streak = prep_streak
+    
+    battle_streak = 0
+    for r in records:
+        if r.battle_result == 'W':
+            battle_streak += 1
+        else:
+            break
+    kingdom.battle_streak = battle_streak
+    
+    # Count dominations (W+W) and defeats (L+L)
+    kingdom.dominations = sum(1 for r in records if r.prep_result == 'W' and r.battle_result == 'W')
+    kingdom.defeats = sum(1 for r in records if r.prep_result == 'L' and r.battle_result == 'L')
+    
+    # Recalculate overall score (prep:battle = 1:2 weighting)
+    kingdom.overall_score = round((kingdom.prep_win_rate + 2 * kingdom.battle_win_rate) / 3 * 15, 2)
+    
+    kingdom.last_updated = datetime.utcnow()
+
+
+def verify_supabase_jwt(token: str) -> Optional[str]:
+    """
+    Validate Supabase JWT token and extract user ID.
+    Returns user_id (sub claim) if valid, None otherwise.
+    
+    Security: This validates the JWT signature if SUPABASE_JWT_SECRET is set.
+    In development without the secret, it will decode without verification (less secure).
+    """
+    if not token:
         return None
-    # In production, validate the JWT and extract user_id
-    # For now, we accept the user_id directly in a custom header
-    return authorization.replace("Bearer ", "") if authorization else None
+    
+    try:
+        # Remove "Bearer " prefix if present
+        if token.startswith("Bearer "):
+            token = token[7:]
+        
+        if SUPABASE_JWT_SECRET:
+            # Production: Verify JWT signature
+            payload = jwt.decode(
+                token,
+                SUPABASE_JWT_SECRET,
+                algorithms=["HS256"],
+                options={"verify_aud": False}  # Supabase doesn't always set audience
+            )
+        else:
+            # Development fallback: Decode without verification (log warning)
+            import logging
+            logging.warning("SUPABASE_JWT_SECRET not set - JWT signature not verified!")
+            payload = jwt.decode(token, options={"verify_signature": False})
+        
+        # Extract user ID from 'sub' claim
+        user_id = payload.get("sub")
+        if not user_id:
+            return None
+        
+        return user_id
+    except JWTError as e:
+        import logging
+        logging.warning(f"JWT validation failed: {e}")
+        return None
+
+
+def verify_moderator_role(user_id: str, db: Session) -> bool:
+    """Verify user has moderator or admin role. Returns True if authorized."""
+    if not user_id:
+        return False
+    
+    # Query by Supabase UUID (string) - check profiles or users table
+    # For now, we check the local User table
+    try:
+        # Try as integer ID first (legacy support)
+        if user_id.isdigit():
+            user = db.query(User).filter(User.id == int(user_id)).first()
+        else:
+            # UUID from Supabase - would need profiles table lookup
+            # For now, return False as we can't verify UUID against local User table
+            return False
+        
+        if user and user.role in ['moderator', 'admin']:
+            return True
+    except Exception:
+        pass
+    
+    return False
+
+
+def verify_admin_role(user_id: str, db: Session) -> bool:
+    """Verify user has admin role. Returns True if authorized."""
+    if not user_id:
+        return False
+    
+    try:
+        if user_id.isdigit():
+            user = db.query(User).filter(User.id == int(user_id)).first()
+        else:
+            return False
+        
+        if user and user.role == 'admin':
+            return True
+    except Exception:
+        pass
+    
+    return False
+
+
+def get_verified_user_id(
+    authorization: Optional[str] = Header(None, alias="Authorization"),
+    x_user_id: Optional[str] = Header(None, alias="X-User-Id")
+) -> Optional[str]:
+    """
+    Securely extract user ID from request.
+    
+    Priority:
+    1. If Authorization header contains valid JWT, extract user_id from token
+    2. If no valid JWT but X-User-Id provided, use it (development only with warning)
+    
+    Security: Always prefer JWT validation over trusting X-User-Id header.
+    """
+    # Try JWT validation first (most secure)
+    if authorization:
+        jwt_user_id = verify_supabase_jwt(authorization)
+        if jwt_user_id:
+            return jwt_user_id
+    
+    # Fallback to X-User-Id header (less secure, for development)
+    if x_user_id:
+        if SUPABASE_JWT_SECRET:
+            # In production (secret is set), don't trust unverified headers
+            import logging
+            logging.warning("X-User-Id header rejected - use Authorization with valid JWT")
+            return None
+        else:
+            # Development mode - allow but log warning
+            import logging
+            logging.warning("Using unverified X-User-Id header - development mode only!")
+            return x_user_id
+    
+    return None
 
 
 # ==================== SUBMISSIONS ====================
@@ -30,11 +205,15 @@ def get_current_user_id(authorization: Optional[str] = Header(None)) -> Optional
 @router.post("/submissions", response_model=KVKSubmissionSchema)
 def create_submission(
     submission: KVKSubmissionCreate,
-    user_id: str = Header(..., alias="X-User-Id"),
-    user_name: Optional[str] = Header(None, alias="X-User-Name"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    verified_user_id: Optional[str] = Depends(get_verified_user_id),
+    user_name: Optional[str] = Header(None, alias="X-User-Name")
 ):
     """Submit a KVK result for moderation"""
+    # Require authenticated user
+    if not verified_user_id:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    user_id = verified_user_id
     # Validate prep_result and battle_result
     if submission.prep_result not in ["W", "L"]:
         raise HTTPException(status_code=400, detail="prep_result must be W or L")
@@ -88,12 +267,14 @@ def get_submissions(
 
 @router.get("/submissions/my", response_model=List[KVKSubmissionSchema])
 def get_my_submissions(
-    user_id: str = Header(..., alias="X-User-Id"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    verified_user_id: Optional[str] = Depends(get_verified_user_id)
 ):
     """Get current user's submissions"""
+    if not verified_user_id:
+        raise HTTPException(status_code=401, detail="Authentication required")
     return db.query(KVKSubmission).filter(
-        KVKSubmission.submitter_id == user_id
+        KVKSubmission.submitter_id == verified_user_id
     ).order_by(desc(KVKSubmission.created_at)).all()
 
 
@@ -101,10 +282,19 @@ def get_my_submissions(
 def review_submission(
     submission_id: int,
     review: SubmissionReview,
-    reviewer_id: str = Header(..., alias="X-User-Id"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    verified_user_id: Optional[str] = Depends(get_verified_user_id)
 ):
     """Approve or reject a submission (moderators only)"""
+    if not verified_user_id:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    reviewer_id = verified_user_id
+    # Authorization check - only moderators/admins can review
+    if not verify_moderator_role(reviewer_id, db):
+        raise HTTPException(
+            status_code=403,
+            detail="Moderator or admin role required to review submissions"
+        )
     submission = db.query(KVKSubmission).filter(KVKSubmission.id == submission_id).first()
     if not submission:
         raise HTTPException(status_code=404, detail="Submission not found")
@@ -117,17 +307,11 @@ def review_submission(
     submission.review_notes = review.review_notes
     submission.reviewed_at = datetime.utcnow()
     
-    # If approved, create the actual KVK record
+    # If approved, create the actual KVK record and update kingdom stats
     if review.status == "approved":
-        # Calculate overall result
-        if submission.prep_result == "W" and submission.battle_result == "W":
-            overall_result = "Domination"
-        elif submission.prep_result == "L" and submission.battle_result == "L":
-            overall_result = "Defeat"
-        elif submission.battle_result == "W":
-            overall_result = "Battle"
-        else:
-            overall_result = "Prep"
+        # Calculate overall result - use W/L format to match existing data
+        # W = won overall (battle win takes priority), L = lost overall
+        overall_result = "W" if submission.battle_result == "W" else "L"
         
         kvk_record = KVKRecord(
             kingdom_number=submission.kingdom_number,
@@ -139,6 +323,11 @@ def review_submission(
             date_or_order_index=submission.date_or_order_index or f"Submitted {datetime.utcnow().strftime('%b %d, %Y')}"
         )
         db.add(kvk_record)
+        
+        # CRITICAL: Recalculate kingdom aggregate stats after adding new KVK record
+        kingdom = db.query(Kingdom).filter(Kingdom.kingdom_number == submission.kingdom_number).first()
+        if kingdom:
+            _recalculate_kingdom_stats(kingdom, db)
     
     db.commit()
     return {"message": f"Submission {review.status}", "submission_id": submission_id}
@@ -147,12 +336,17 @@ def review_submission(
 # ==================== KINGDOM CLAIMS ====================
 
 @router.post("/claims", response_model=KingdomClaimSchema)
+@limiter.limit("5/hour")
 def create_claim(
+    request: Request,
     claim: KingdomClaimCreate,
-    user_id: str = Header(..., alias="X-User-Id"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    verified_user_id: Optional[str] = Depends(get_verified_user_id)
 ):
-    """Claim a kingdom as its manager"""
+    """Claim a kingdom as its manager. Rate limited: 5/hour"""
+    if not verified_user_id:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    user_id = verified_user_id
     # Check if kingdom exists
     kingdom = db.query(Kingdom).filter(Kingdom.kingdom_number == claim.kingdom_number).first()
     if not kingdom:
@@ -183,11 +377,13 @@ def create_claim(
 
 @router.get("/claims/my", response_model=List[KingdomClaimSchema])
 def get_my_claims(
-    user_id: str = Header(..., alias="X-User-Id"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    verified_user_id: Optional[str] = Depends(get_verified_user_id)
 ):
     """Get current user's kingdom claims"""
-    return db.query(KingdomClaim).filter(KingdomClaim.user_id == user_id).all()
+    if not verified_user_id:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    return db.query(KingdomClaim).filter(KingdomClaim.user_id == verified_user_id).all()
 
 
 @router.get("/claims/{kingdom_number}", response_model=KingdomClaimSchema)
@@ -209,13 +405,15 @@ def get_kingdom_claim(
 def update_claim(
     kingdom_number: int,
     updates: KingdomClaimUpdate,
-    user_id: str = Header(..., alias="X-User-Id"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    verified_user_id: Optional[str] = Depends(get_verified_user_id)
 ):
     """Update kingdom customization (premium feature)"""
+    if not verified_user_id:
+        raise HTTPException(status_code=401, detail="Authentication required")
     claim = db.query(KingdomClaim).filter(
         KingdomClaim.kingdom_number == kingdom_number,
-        KingdomClaim.user_id == user_id
+        KingdomClaim.user_id == verified_user_id
     ).first()
     
     if not claim:
@@ -236,10 +434,19 @@ def update_claim(
 @router.post("/claims/{claim_id}/verify")
 def verify_claim(
     claim_id: int,
-    reviewer_id: str = Header(..., alias="X-User-Id"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    verified_user_id: Optional[str] = Depends(get_verified_user_id)
 ):
     """Verify a kingdom claim (admin only)"""
+    if not verified_user_id:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    reviewer_id = verified_user_id
+    # Authorization check - only admins can verify claims
+    if not verify_admin_role(reviewer_id, db):
+        raise HTTPException(
+            status_code=403,
+            detail="Admin role required to verify kingdom claims"
+        )
     claim = db.query(KingdomClaim).filter(KingdomClaim.id == claim_id).first()
     if not claim:
         raise HTTPException(status_code=404, detail="Claim not found")

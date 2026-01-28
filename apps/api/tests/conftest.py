@@ -98,8 +98,46 @@ def sample_user(db_session):
     user = User(
         username="testuser",
         email="test@example.com",
-        hashed_password=hash_password("TestPass123"),
+        hashed_password=hash_password("TestPass1"),  # Shorter password for bcrypt compat
         role="user",
+        is_active=True
+    )
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+    return user
+
+
+@pytest.fixture
+def moderator_user(db_session):
+    """Create a moderator user for testing."""
+    from models import User
+    from api.routers.auth import hash_password
+    
+    user = User(
+        username="moduser",
+        email="mod@example.com",
+        hashed_password=hash_password("ModPass123"),
+        role="moderator",
+        is_active=True
+    )
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+    return user
+
+
+@pytest.fixture
+def admin_user(db_session):
+    """Create an admin user for testing."""
+    from models import User
+    from api.routers.auth import hash_password
+    
+    user = User(
+        username="adminuser",
+        email="admin@example.com",
+        hashed_password=hash_password("AdminPass1"),
+        role="admin",
         is_active=True
     )
     db_session.add(user)
@@ -113,7 +151,7 @@ def auth_headers(client, sample_user):
     """Get authentication headers for a test user."""
     response = client.post(
         "/api/auth/token",
-        data={"username": "testuser", "password": "TestPass123"}
+        data={"username": "testuser", "password": "TestPass1"}
     )
     token = response.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}

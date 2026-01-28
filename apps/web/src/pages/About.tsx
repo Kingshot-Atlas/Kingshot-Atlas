@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { neonGlow } from '../utils/styles';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import SupportButton from '../components/SupportButton';
 
 const About: React.FC = () => {
   useDocumentTitle('About');
@@ -216,6 +217,52 @@ const About: React.FC = () => {
           </p>
           <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.9rem' : '0.95rem', lineHeight: 1.7 }}>
             Kingshot Atlas is a fan-made project and is not affiliated with or endorsed by the developers of Kingshot. Kingshot is a trademark of its respective owners.
+          </p>
+        </section>
+
+        {/* Support Us */}
+        <section style={{ 
+          marginBottom: '2.5rem',
+          backgroundColor: '#111111', 
+          padding: isMobile ? '1.5rem' : '2rem', 
+          borderRadius: '12px',
+          border: '1px solid #FF5E5B30',
+          textAlign: 'center',
+          background: 'linear-gradient(135deg, #111111 0%, #FF5E5B08 100%)'
+        }}>
+          <div style={{
+            width: '56px',
+            height: '56px',
+            margin: '0 auto 1rem',
+            backgroundColor: '#FF5E5B20',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="#FF5E5B">
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+          </div>
+          <h2 style={{ 
+            fontSize: isMobile ? '1.1rem' : '1.25rem', 
+            fontWeight: 'bold', 
+            color: '#fff', 
+            marginBottom: '0.75rem',
+            fontFamily: "'Cinzel', serif"
+          }}>
+            Support Kingshot Atlas
+          </h2>
+          <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.85rem' : '0.9rem', lineHeight: 1.6, marginBottom: '1.25rem', maxWidth: '500px', margin: '0 auto 1.25rem' }}>
+            Atlas is a passion project built by and for the Kingshot community. Your support helps us keep the servers running and develop new features.
+          </p>
+          <SupportButton />
+          <p style={{ 
+            color: '#6b7280', 
+            fontSize: '0.75rem', 
+            marginTop: '1rem' 
+          }}>
+            Every contribution helps, no matter the size ☕
           </p>
         </section>
 

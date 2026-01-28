@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, or_
+from sqlalchemy import and_, or_, func
 from typing import List, Dict, Any
 from database import get_db
 from models import Kingdom, KVKRecord
@@ -33,10 +33,13 @@ def compare_kingdoms(
         missing = set(kingdom_numbers) - set(found_numbers)
         raise HTTPException(status_code=404, detail=f"Kingdoms not found: {missing}")
     
-    # Add ranks to kingdoms
-    all_kingdoms = db.query(Kingdom).all()
-    kingdoms_sorted = sorted(all_kingdoms, key=lambda k: k.overall_score, reverse=True)
-    rank_map = {k.kingdom_number: idx+1 for idx, k in enumerate(kingdoms_sorted)}
+    # Add ranks to kingdoms using efficient COUNT query instead of loading all
+    rank_map = {}
+    for k in kingdoms_data:
+        rank = db.query(func.count(Kingdom.kingdom_number)).filter(
+            Kingdom.overall_score > k.overall_score
+        ).scalar() + 1
+        rank_map[k.kingdom_number] = rank
     
     # Get recent KVK records for each kingdom
     comparison_data = []
@@ -92,10 +95,28 @@ def head_to_head(
     ).order_by(KVKRecord.kvk_number.desc()).all()
     
     # Calculate head-to-head stats
-    k1_wins = sum(1 for match in direct_matches if 
-                  match.kingdom_number == kingdom1 and match.overall_result == 'W')
-    k2_wins = sum(1 for match in direct_matches if 
-                  match.kingdom_number == kingdom2 and match.overall_result == 'W')
+    # Records are stored from one kingdom's perspective, so we need to account for both views:
+    # - When kingdom1 is the record owner and won (overall_result == 'W'), k1 wins
+    # - When kingdom2 is the record owner and lost (overall_result == 'L'), k1 wins (from k2's loss)
+    k1_wins = 0
+    k2_wins = 0
+    
+    for match in direct_matches:
+        if match.kingdom_number == kingdom1:
+            if match.overall_result == 'W':
+                k1_wins += 1
+            else:
+                k2_wins += 1
+        else:  # match.kingdom_number == kingdom2
+            if match.overall_result == 'W':
+                k2_wins += 1
+            else:
+                k1_wins += 1
+    
+    # Deduplicate: if the same match is recorded from both perspectives, divide by 2
+    # This handles cases where both kingdoms submitted the same match
+    unique_matches = len(set((m.kvk_number, min(m.kingdom_number, m.opponent_kingdom), 
+                               max(m.kingdom_number, m.opponent_kingdom)) for m in direct_matches))
     
     return {
         "kingdoms": kingdoms,
@@ -103,6 +124,6 @@ def head_to_head(
         "head_to_head_record": {
             f"kingdom_{kingdom1}_wins": k1_wins,
             f"kingdom_{kingdom2}_wins": k2_wins,
-            "total_matches": len(direct_matches)
+            "total_matches": unique_matches
         }
     }

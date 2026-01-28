@@ -6,10 +6,13 @@ import html2canvas from 'html2canvas';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { neonGlow, getTierColor } from '../utils/styles';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { usePremium } from '../contexts/PremiumContext';
+import ProBadge from '../components/ProBadge';
 
 const CompareKingdoms: React.FC = () => {
   useDocumentTitle('Compare Kingdoms');
   const [searchParams] = useSearchParams();
+  const { isPro, features } = usePremium();
   const [kingdom1Input, setKingdom1Input] = useState('');
   const [kingdom2Input, setKingdom2Input] = useState('');
   const [kingdom1, setKingdom1] = useState<KingdomProfile | null>(null);
@@ -318,6 +321,30 @@ const CompareKingdoms: React.FC = () => {
           >
             {loading ? 'Loading...' : 'Compare'}
           </button>
+          
+          {/* Multi-Compare Pro Upsell */}
+          {!isPro && (
+            <Link to="/upgrade" style={{ textDecoration: 'none' }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem',
+                marginTop: '0.75rem',
+                padding: '0.5rem 0.75rem',
+                backgroundColor: '#22d3ee10',
+                border: '1px solid #22d3ee30',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}>
+                <ProBadge size="sm" />
+                <span style={{ color: '#9ca3af', fontSize: '0.8rem' }}>
+                  Compare up to {features.multiCompare} kingdoms with Pro
+                </span>
+              </div>
+            </Link>
+          )}
         </div>
 
         {error && (

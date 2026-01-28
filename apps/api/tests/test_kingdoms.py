@@ -137,8 +137,7 @@ class TestCompareEndpoints:
         assert len(data["kingdoms"]) == 2
 
     def test_compare_kingdom_not_found(self, client):
-        """Test comparing with non-existent kingdom."""
+        """Test comparing with non-existent kingdom returns 404."""
         response = client.get("/api/compare?kingdoms=99998,99999")
-        assert response.status_code == 200
-        data = response.json()
-        assert len(data["kingdoms"]) == 0
+        assert response.status_code == 404
+        assert "not found" in response.json()["detail"].lower()

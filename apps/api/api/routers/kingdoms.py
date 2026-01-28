@@ -1,25 +1,36 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import desc, asc, func
 from typing import Optional, List
 from collections import defaultdict
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from database import get_db
 from models import Kingdom, KVKRecord
 from schemas import Kingdom as KingdomSchema, KingdomProfile, PaginatedResponse
 import math
 
 router = APIRouter()
+limiter = Limiter(key_func=get_remote_address)
+
+# Whitelist of allowed sort fields to prevent information disclosure
+ALLOWED_SORT_FIELDS = {
+    'kingdom_number', 'overall_score', 'prep_win_rate', 'battle_win_rate',
+    'total_kvks', 'prep_streak', 'battle_streak', 'dominations', 'defeats'
+}
 
 @router.get("/kingdoms", response_model=PaginatedResponse[KingdomSchema])
+@limiter.limit("60/minute")
 def get_kingdoms(
+    request: Request,
     search: Optional[str] = Query(None, description="Search by kingdom number"),
     status: Optional[str] = Query(None, description="Filter by status"),
-    min_kvks: Optional[int] = Query(None, description="Minimum total KVKs"),
-    min_prep_wr: Optional[float] = Query(None, description="Minimum prep win rate"),
-    min_battle_wr: Optional[float] = Query(None, description="Minimum battle win rate"),
+    min_kvks: Optional[int] = Query(None, ge=0, le=1000, description="Minimum total KVKs"),
+    min_prep_wr: Optional[float] = Query(None, ge=0, le=1, description="Minimum prep win rate (0-1)"),
+    min_battle_wr: Optional[float] = Query(None, ge=0, le=1, description="Minimum battle win rate (0-1)"),
     sort: Optional[str] = Query("kingdom_number", description="Sort field"),
-    order: Optional[str] = Query("asc", description="Sort order: asc or desc"),
-    page: int = Query(1, ge=1, description="Page number (1-indexed)"),
+    order: Optional[str] = Query("asc", pattern="^(asc|desc)$", description="Sort order: asc or desc"),
+    page: int = Query(1, ge=1, le=1000, description="Page number (1-indexed)"),
     page_size: int = Query(50, ge=1, le=100, description="Items per page (max 100)"),
     db: Session = Depends(get_db)
 ):
@@ -49,10 +60,10 @@ def get_kingdoms(
     total = query.count()
     total_pages = math.ceil(total / page_size) if total > 0 else 1
     
-    # Apply sorting
-    if hasattr(Kingdom, sort):
+    # Apply sorting - validate against whitelist to prevent information disclosure
+    if sort and sort in ALLOWED_SORT_FIELDS:
         sort_column = getattr(Kingdom, sort)
-        if order.lower() == "desc":
+        if order and order.lower() == "desc":
             query = query.order_by(desc(sort_column))
         else:
             query = query.order_by(asc(sort_column))

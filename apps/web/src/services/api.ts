@@ -4,6 +4,8 @@ import kingdomData from '../data/kingdoms.json';
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:8000';
 const CACHE_KEY = 'kingshot_kingdom_cache';
 const CACHE_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
+const REQUEST_TIMEOUT_MS = 10000; // 10 second timeout
+const MAX_RETRIES = 2;
 
 interface CacheData {
   kingdoms: Kingdom[];
@@ -129,15 +131,45 @@ class ApiService {
     };
   }
 
+  private async fetchWithTimeout(url: string, timeoutMs: number = REQUEST_TIMEOUT_MS): Promise<Response> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    
+    try {
+      const response = await fetch(url, { signal: controller.signal });
+      return response;
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
+  private async fetchWithRetry<T>(endpoint: string, retries: number = MAX_RETRIES): Promise<T> {
+    let lastError: Error | null = null;
+    
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        const response = await this.fetchWithTimeout(`${API_BASE_URL}${endpoint}`);
+        if (!response.ok) {
+          throw new Error(`API Error: ${response.status}`);
+        }
+        return await response.json();
+      } catch (error) {
+        lastError = error as Error;
+        if (attempt < retries && (error as Error).name !== 'AbortError') {
+          // Exponential backoff: 100ms, 200ms, 400ms...
+          await new Promise(resolve => setTimeout(resolve, 100 * Math.pow(2, attempt)));
+        }
+      }
+    }
+    
+    throw lastError || new Error('Request failed after retries');
+  }
+
   private async fetchWithFallback<T>(endpoint: string, fallbackData: T): Promise<T> {
     try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`);
-      if (!response.ok) {
-        throw new Error(`API Error: ${response.status}`);
-      }
-      return await response.json();
+      return await this.fetchWithRetry<T>(endpoint);
     } catch (error) {
-      console.warn(`API call failed for ${endpoint}, using mock data:`, error);
+      console.warn(`API call failed for ${endpoint}, using fallback data:`, error);
       return fallbackData;
     }
   }

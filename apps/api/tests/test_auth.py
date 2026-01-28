@@ -14,7 +14,7 @@ class TestAuthEndpoints:
             json={
                 "username": "newuser",
                 "email": "newuser@example.com",
-                "password": "SecurePass123"
+                "password": "SecPass1"  # Shorter for bcrypt compat
             }
         )
         assert response.status_code == 200
@@ -30,7 +30,7 @@ class TestAuthEndpoints:
             json={
                 "username": "anotheruser",
                 "email": "test@example.com",  # Same as sample_user
-                "password": "SecurePass123"
+                "password": "SecPass1"
             }
         )
         assert response.status_code == 400
@@ -43,7 +43,7 @@ class TestAuthEndpoints:
             json={
                 "username": "testuser",  # Same as sample_user
                 "email": "another@example.com",
-                "password": "SecurePass123"
+                "password": "SecPass1"
             }
         )
         assert response.status_code == 400
@@ -77,7 +77,7 @@ class TestAuthEndpoints:
         """Test successful login returns token."""
         response = client.post(
             "/api/auth/token",
-            data={"username": "testuser", "password": "TestPass123"}
+            data={"username": "testuser", "password": "TestPass1"}
         )
         assert response.status_code == 200
         data = response.json()

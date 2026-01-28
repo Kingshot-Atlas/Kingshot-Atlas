@@ -6,6 +6,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { ToastProvider } from './components/Toast';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { PremiumProvider } from './contexts/PremiumContext';
 import './App.css';
 
 // Lazy load pages for code splitting
@@ -17,6 +18,7 @@ const Profile = lazy(() => import('./pages/Profile'));
 const About = lazy(() => import('./pages/About'));
 const UserDirectory = lazy(() => import('./pages/UserDirectory'));
 const Admin = lazy(() => import('./pages/Admin'));
+const Upgrade = lazy(() => import('./pages/Upgrade'));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -67,7 +69,8 @@ function AppContent() {
               <Route path="/players" element={<ErrorBoundary><UserDirectory /></ErrorBoundary>} />
               <Route path="/about" element={<ErrorBoundary><About /></ErrorBoundary>} />
               <Route path="/admin" element={<ErrorBoundary><Admin /></ErrorBoundary>} />
-                          </Routes>
+              <Route path="/upgrade" element={<ErrorBoundary><Upgrade /></ErrorBoundary>} />
+            </Routes>
           </Suspense>
         </PageTransition>
       </main>
@@ -80,11 +83,13 @@ function App() {
     <Sentry.ErrorBoundary fallback={<div className="min-h-screen bg-bg flex items-center justify-center text-white">Something went wrong. Please refresh the page.</div>}>
       <ThemeProvider>
         <AuthProvider>
-          <ToastProvider>
-            <Router>
-              <AppContent />
-            </Router>
-          </ToastProvider>
+          <PremiumProvider>
+            <ToastProvider>
+              <Router>
+                <AppContent />
+              </Router>
+            </ToastProvider>
+          </PremiumProvider>
         </AuthProvider>
       </ThemeProvider>
     </Sentry.ErrorBoundary>

@@ -60,14 +60,22 @@ export const getOutcome = (prepResult: string, battleResult: string): OutcomeTyp
 };
 
 export const getOutcomeFromOverall = (overallResult: string): OutcomeType => {
-  switch (overallResult) {
-    case 'Win':
-    case 'W':
+  // Handle actual API response values
+  const result = overallResult.toLowerCase();
+  switch (result) {
+    case 'domination':
+    case 'win':
+    case 'w':
       return 'Domination';
-    case 'Loss':
-    case 'L':
+    case 'reversal':
+      return 'Reversal';
+    case 'comeback':
+      return 'Comeback';
+    case 'defeat':
+    case 'loss':
+    case 'l':
       return 'Defeat';
-    case 'Bye':
+    case 'bye':
       return 'Bye';
     default:
       return 'Defeat';
@@ -83,7 +91,6 @@ export const getOutcomeStyle = (outcome: OutcomeType) => ({
   textShadow: `0 0 8px ${OUTCOMES[outcome].color}40`
 });
 
-export const neonGlow = (color: string) => ({
-  color: color,
-  textShadow: `0 0 8px ${color}40, 0 0 12px ${color}20`
-});
+// Note: neonGlow is defined in utils/styles.ts - import from there
+// Keeping this export for backward compatibility but it should be removed in future refactor
+export { neonGlow } from './styles';
