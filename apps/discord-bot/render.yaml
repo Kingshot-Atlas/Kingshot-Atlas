@@ -5,7 +5,7 @@ services:
     plan: free
     rootDir: apps/discord-bot
     buildCommand: npm install
-    startCommand: node health.js & node src/bot.js
+    startCommand: ./start.sh
     autoDeploy: true
     healthCheckPath: /health
     envVars:
