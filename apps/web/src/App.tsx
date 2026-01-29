@@ -1,12 +1,18 @@
 import React, { Suspense, lazy } from 'react';
 import * as Sentry from '@sentry/react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from './lib/queryClient';
 import Header from './components/Header';
 import ErrorBoundary from './components/ErrorBoundary';
 import { ToastProvider } from './components/Toast';
+import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
+import { useKeyboardShortcuts, useKeyboardHelp } from './hooks/useKeyboardShortcuts';
+import { usePageTracking } from './hooks/useAnalytics';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { PremiumProvider } from './contexts/PremiumContext';
+import { AccessibilityProvider } from './contexts/AccessibilityContext';
 import './App.css';
 
 // Lazy load pages for code splitting
@@ -17,8 +23,9 @@ const Leaderboards = lazy(() => import('./pages/Leaderboards'));
 const Profile = lazy(() => import('./pages/Profile'));
 const About = lazy(() => import('./pages/About'));
 const UserDirectory = lazy(() => import('./pages/UserDirectory'));
-const Admin = lazy(() => import('./pages/Admin'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const Upgrade = lazy(() => import('./pages/Upgrade'));
+const Changelog = lazy(() => import('./pages/Changelog'));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -53,9 +60,14 @@ const PageTransition: React.FC<{ children: React.ReactNode }> = ({ children }) =
 };
 
 function AppContent() {
+  const { showHelp, openHelp, closeHelp } = useKeyboardHelp();
+  useKeyboardShortcuts({ onShowHelp: openHelp });
+  usePageTracking(); // Track page views for analytics
+
   return (
     <div className="min-h-screen bg-bg">
       <Header />
+      <KeyboardShortcutsModal isOpen={showHelp} onClose={closeHelp} />
       <main className="container mx-auto px-4 py-8">
         <PageTransition>
           <Suspense fallback={<PageLoader />}>
@@ -68,8 +80,9 @@ function AppContent() {
               <Route path="/profile/:userId" element={<ErrorBoundary><Profile /></ErrorBoundary>} />
               <Route path="/players" element={<ErrorBoundary><UserDirectory /></ErrorBoundary>} />
               <Route path="/about" element={<ErrorBoundary><About /></ErrorBoundary>} />
-              <Route path="/admin" element={<ErrorBoundary><Admin /></ErrorBoundary>} />
+              <Route path="/admin" element={<ErrorBoundary><AdminDashboard /></ErrorBoundary>} />
               <Route path="/upgrade" element={<ErrorBoundary><Upgrade /></ErrorBoundary>} />
+              <Route path="/changelog" element={<ErrorBoundary><Changelog /></ErrorBoundary>} />
             </Routes>
           </Suspense>
         </PageTransition>
@@ -81,17 +94,21 @@ function AppContent() {
 function App() {
   return (
     <Sentry.ErrorBoundary fallback={<div className="min-h-screen bg-bg flex items-center justify-center text-white">Something went wrong. Please refresh the page.</div>}>
-      <ThemeProvider>
-        <AuthProvider>
-          <PremiumProvider>
-            <ToastProvider>
-              <Router>
-                <AppContent />
-              </Router>
-            </ToastProvider>
-          </PremiumProvider>
-        </AuthProvider>
-      </ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <AccessibilityProvider>
+            <AuthProvider>
+              <PremiumProvider>
+                <ToastProvider>
+                  <Router>
+                    <AppContent />
+                  </Router>
+                </ToastProvider>
+              </PremiumProvider>
+            </AuthProvider>
+          </AccessibilityProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
     </Sentry.ErrorBoundary>
   );
 }

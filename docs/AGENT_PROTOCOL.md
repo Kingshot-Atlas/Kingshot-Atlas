@@ -1,8 +1,8 @@
 # Agent Protocol - Kingshot Atlas
 
-**Last Updated:** 2026-01-27  
+**Last Updated:** 2026-01-28  
 **Status:** Active  
-**Version:** 2.0 (Specialist System)
+**Version:** 3.0 (Coordination System)
 
 ---
 
@@ -106,6 +106,59 @@ Enter HANDOFF MODE if:
 
 ---
 
+## COORDINATION SYSTEM (MANDATORY)
+
+All agents MUST follow this workflow to prevent conflicts and maintain visibility.
+
+### Before Starting ANY Work
+
+```
+1. READ  /agents/project-instances/kingshot-atlas/STATUS_SNAPSHOT.md
+2. CHECK /agents/project-instances/kingshot-atlas/FILE_CLAIMS.md
+3. SCAN  /agents/project-instances/kingshot-atlas/ACTIVITY_LOG.md (last 24h)
+```
+
+### File Claiming (REQUIRED before editing)
+
+1. Check `FILE_CLAIMS.md` - if file is claimed, coordinate with Manager
+2. Add your claim with timestamp and task description
+3. Claims expire after 2 hours - stale claims can be overridden
+
+**Claim format:**
+```markdown
+| apps/web/src/pages/Example.tsx | Core-Functionality | 2026-01-28 10:00 | Feature X | 2026-01-28 12:00 |
+```
+
+### Activity Logging (REQUIRED)
+
+Log to `ACTIVITY_LOG.md` when:
+- Starting a task (STATUS: STARTED)
+- Completing a task (STATUS: COMPLETED)
+- Getting blocked (STATUS: BLOCKED)
+
+**Log format:**
+```markdown
+## 2026-01-28 10:00 | Core-Functionality | STARTED
+Task: Add pagination to directory
+Files: apps/web/src/pages/KingdomDirectory.tsx
+```
+
+### Decision Logging
+
+Log significant decisions to your worklog at:
+`/agents/project-instances/kingshot-atlas/worklogs/[your-agent].md`
+
+### After Completing Work
+
+```
+1. RELEASE claims in FILE_CLAIMS.md
+2. LOG completion in ACTIVITY_LOG.md
+3. UPDATE STATUS_SNAPSHOT.md
+4. UPDATE your worklog with decisions made
+```
+
+---
+
 ## DEPLOYMENT POLICY
 
 **LOCAL ONLY by default.**  
@@ -128,14 +181,15 @@ Enter HANDOFF MODE if:
 
 ---
 
-## SPECIALIST AGENT SYSTEM
+## AGENT SYSTEM
 
-Managers have access to 4 specialist agents for domain-specific work.
+The Manager Agent orchestrates 4 specialist agents for domain-specific work.
 
-### Available Specialists
+### Available Agents
 
-| Specialist | Domain | Location |
-|------------|--------|----------|
+| Agent | Domain | Location |
+|-------|--------|----------|
+| **Manager** | Coordination, planning, orchestration | `/agents/manager/` |
 | **Core Functionality** | UX, features, user flows | `/agents/core-functionality/` |
 | **Technical Foundation** | Architecture, security, performance | `/agents/technical-foundation/` |
 | **Design & Content** | Visual design, styling, content | `/agents/design-content/` |

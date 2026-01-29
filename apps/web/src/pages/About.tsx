@@ -30,7 +30,7 @@ const About: React.FC = () => {
             <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>US</span>
           </h1>
           <p style={{ color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.9rem', marginBottom: '0.75rem' }}>
-            The story behind Kingshot Atlas
+            Know your enemy. Choose your allies. Dominate KvK.
           </p>
           {!isMobile && (
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
@@ -52,13 +52,16 @@ const About: React.FC = () => {
             marginBottom: '1rem',
             fontFamily: "'Cinzel', serif"
           }}>
-            What is Kingshot Atlas?
+            Stop Guessing. Start Winning.
           </h2>
           <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.9rem' : '0.95rem', lineHeight: 1.7, marginBottom: '1rem' }}>
-            Kingshot Atlas is a comprehensive analytics platform designed for Kingshot players who want to make informed decisions about Kingdom vs Kingdom (KvK) matchups. We aggregate and analyze historical KvK data to provide insights into kingdom performance, helping players understand the competitive landscape.
+            <span style={{ color: '#22d3ee' }}>Kingshot Atlas</span> is the only analytics platform built specifically for Kingshot players who refuse to leave victory to chance. We track every KvK result, analyze every kingdom's performance, and give you the intelligence you need to make decisions that actually matter.
+          </p>
+          <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.9rem' : '0.95rem', lineHeight: 1.7, marginBottom: '1rem' }}>
+            Scouting your next KvK opponent? We've got their win rate, their streaks, and their weaknesses. Looking for a new home during Transfer? Find kingdoms that match your competitive level. Recruiting for your alliance? Show prospects exactly why your kingdom dominates.
           </p>
           <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.9rem' : '0.95rem', lineHeight: 1.7 }}>
-            Whether you're looking to migrate to a new kingdom, scout your next opponent, or simply track your kingdom's progress, Kingshot Atlas provides the data you need in an intuitive, easy-to-understand format.
+            No more guessing. No more blind migrations. No more surprises. Just <span style={{ color: '#22c55e' }}>data-driven dominance</span>.
           </p>
         </section>
 
@@ -71,28 +74,34 @@ const About: React.FC = () => {
             marginBottom: '1rem',
             fontFamily: "'Cinzel', serif"
           }}>
-            Key Features
+            Your Competitive Edge
           </h2>
           <div style={{ display: 'grid', gap: '1rem' }}>
             {[
-              { title: 'Kingdom Directory', desc: 'Browse and search through hundreds of kingdoms with detailed performance metrics and tier rankings.' },
-              { title: 'Atlas Score', desc: 'Our proprietary scoring system that evaluates kingdom strength based on historical KvK performance, win rates, and streaks.' },
-              { title: 'Head-to-Head Comparison', desc: 'Compare any two kingdoms side-by-side to see how they stack up across all key metrics.' },
-              { title: 'KvK History', desc: 'View complete KvK match history for any kingdom, including prep phase and battle phase results.' },
-              { title: 'Tier Rankings', desc: 'Kingdoms are ranked into tiers (S, A, B, C) based on their Atlas Score for quick reference.' },
+              { title: 'Kingdom Directory', desc: 'Every kingdom. Every stat. Searchable, filterable, and ranked. Find exactly what you\'re looking for in seconds.', icon: '🗺️' },
+              { title: 'Atlas Score', desc: 'Our battle-tested rating system cuts through the noise. One number tells you if a kingdom is a threat or a target.', icon: '⚡' },
+              { title: 'Head-to-Head Comparison', desc: 'Pit any two kingdoms against each other. See who has the edge in Prep, Battle, and overall dominance.', icon: '⚔️' },
+              { title: 'Complete KvK History', desc: 'Every match. Every result. Every streak. Know exactly what you\'re walking into before the gates open.', icon: '📜' },
+              { title: 'Power Tier Rankings', desc: 'S-Tier elites to D-Tier underdogs. Instantly identify where any kingdom stands in the pecking order.', icon: '🏆' },
             ].map((feature, i) => (
               <div key={i} style={{ 
                 backgroundColor: '#111111', 
                 padding: isMobile ? '1rem' : '1.25rem', 
                 borderRadius: '10px',
-                border: '1px solid #2a2a2a'
+                border: '1px solid #2a2a2a',
+                display: 'flex',
+                gap: '1rem',
+                alignItems: 'flex-start'
               }}>
-                <h3 style={{ color: '#22d3ee', fontSize: isMobile ? '0.9rem' : '0.95rem', fontWeight: '600', marginBottom: '0.5rem' }}>
-                  {feature.title}
-                </h3>
-                <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.85rem' : '0.9rem', lineHeight: 1.6 }}>
-                  {feature.desc}
-                </p>
+                <span style={{ fontSize: '1.5rem' }}>{feature.icon}</span>
+                <div>
+                  <h3 style={{ color: '#22d3ee', fontSize: isMobile ? '0.9rem' : '0.95rem', fontWeight: '600', marginBottom: '0.5rem' }}>
+                    {feature.title}
+                  </h3>
+                  <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.85rem' : '0.9rem', lineHeight: 1.6 }}>
+                    {feature.desc}
+                  </p>
+                </div>
               </div>
             ))}
           </div>
@@ -107,18 +116,18 @@ const About: React.FC = () => {
             marginBottom: '1rem',
             fontFamily: "'Cinzel', serif"
           }}>
-            How the Atlas Score Works
+            The Atlas Score: Your Kingdom's True Power Level
           </h2>
           <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.9rem' : '0.95rem', lineHeight: 1.7, marginBottom: '1rem' }}>
-            The Atlas Score is a skill-based rating that reflects true kingdom performance, not just volume. It combines four key factors with specific weights:
+            Forget participation trophies. The Atlas Score measures what actually matters: <span style={{ color: '#22d3ee' }}>winning</span>. Our algorithm weighs victories, punishes defeats, and rewards kingdoms that dominate both phases. Here's how it breaks down:
           </p>
           
           <div style={{ display: 'grid', gap: '0.75rem', marginBottom: '1.25rem' }}>
             {[
-              { icon: '⚔️', title: 'Win Rate (70%)', desc: 'Combined Prep and Battle win rates, with Battle weighted higher (70/30 split)', color: '#f97316' },
-              { icon: '👑', title: 'Domination Bonus (+30%)', desc: 'Kingdoms that win both phases (Dominations) get a significant score boost', color: '#22c55e' },
-              { icon: '🏳️', title: 'Invasion Penalty (-20%)', desc: 'Kingdoms that lose both phases (Invasions) receive a score reduction', color: '#ef4444' },
-              { icon: '📈', title: 'Recent Performance (30% weight)', desc: 'Your last 3 KvKs are weighted most heavily—recent performance matters most', color: '#eab308' },
+              { icon: '⚔️', title: 'Win Rate (70%)', desc: 'Prep and Battle wins combined, with Battle weighted heavier. Because when the gates open, that\'s when it counts.', color: '#f97316' },
+              { icon: '👑', title: 'Domination Bonus (+30%)', desc: 'Win both phases? That\'s not luck—that\'s dominance. Dominations earn a massive score boost.', color: '#22c55e' },
+              { icon: '💀', title: 'Invasion Penalty (-20%)', desc: 'Lose both phases? Your score takes a hit. No hiding from a complete defeat.', color: '#ef4444' },
+              { icon: '📈', title: 'Recent Performance (30%)', desc: 'Your last 3 KvKs carry the most weight. Past glory fades—what have you done lately?', color: '#eab308' },
             ].map((item, i) => (
               <div key={i} style={{ 
                 display: 'flex', 
@@ -157,7 +166,7 @@ const About: React.FC = () => {
           </div>
 
           <p style={{ color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.85rem', lineHeight: 1.6 }}>
-            Experience also plays a role—newer kingdoms receive a slight scaling factor until they've proven themselves across multiple KvKs.
+            New kingdoms start with a scaling factor until they've proven themselves. Talk is cheap—show us your results.
           </p>
         </section>
 
@@ -170,35 +179,57 @@ const About: React.FC = () => {
             marginBottom: '1rem',
             fontFamily: "'Cinzel', serif"
           }}>
-            Tier Rankings
+            The Tier System: Where Does Your Kingdom Rank?
           </h2>
           <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.9rem' : '0.95rem', lineHeight: 1.7, marginBottom: '1rem' }}>
-            Kingdoms are classified into tiers based on their Atlas Score, which reflects their percentile ranking among all tracked kingdoms.
+            Every kingdom earns their tier through battle. No politics, no favoritism—just cold, hard results.
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(5, 1fr)', gap: '0.75rem' }}>
             {[
-              { tier: 'S', range: '10.0+', color: '#fbbf24', desc: 'Elite', detail: 'Top 10% of kingdoms' },
-              { tier: 'A', range: '7.0-9.9', color: '#22c55e', desc: 'Strong', detail: 'Top 25% of kingdoms' },
-              { tier: 'B', range: '4.5-6.9', color: '#3b82f6', desc: 'Average', detail: 'Top 50% of kingdoms' },
-              { tier: 'C', range: '2.5-4.4', color: '#9ca3af', desc: 'Below Average', detail: 'Top 75% of kingdoms' },
-              { tier: 'D', range: '0-2.4', color: '#6b7280', desc: 'Developing', detail: 'Bottom 25% of kingdoms' },
+              { tier: 'S', range: '10.0+', color: '#fbbf24', desc: 'Elite', detail: 'The apex predators' },
+              { tier: 'A', range: '7.0-9.9', color: '#22c55e', desc: 'Formidable', detail: 'Serious contenders' },
+              { tier: 'B', range: '4.5-6.9', color: '#3b82f6', desc: 'Competitive', detail: 'Solid performers' },
+              { tier: 'C', range: '2.5-4.4', color: '#f97316', desc: 'Developing', detail: 'Room to grow' },
+              { tier: 'D', range: '0-2.4', color: '#ef4444', desc: 'Struggling', detail: 'Rebuilding phase' },
             ].map((t, i) => (
               <div key={i} style={{ 
                 backgroundColor: '#111111', 
                 padding: '1rem', 
                 borderRadius: '8px',
-                border: '1px solid #2a2a2a',
+                border: `1px solid ${t.color}30`,
                 textAlign: 'center'
               }}>
                 <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: t.color, marginBottom: '0.25rem' }}>
                   {t.tier}
                 </div>
                 <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>{t.range}</div>
-                <div style={{ fontSize: '0.8rem', color: '#9ca3af', marginBottom: '0.25rem' }}>{t.desc}</div>
+                <div style={{ fontSize: '0.8rem', color: t.color, marginBottom: '0.25rem', fontWeight: '500' }}>{t.desc}</div>
                 <div style={{ fontSize: '0.7rem', color: '#6b7280', fontStyle: 'italic' }}>{t.detail}</div>
               </div>
             ))}
           </div>
+        </section>
+
+        {/* Origin Story */}
+        <section style={{ marginBottom: '2.5rem' }}>
+          <h2 style={{ 
+            fontSize: isMobile ? '1.1rem' : '1.25rem', 
+            fontWeight: 'bold', 
+            color: '#fff', 
+            marginBottom: '1rem',
+            fontFamily: "'Cinzel', serif"
+          }}>
+            Built by a Player, For Players
+          </h2>
+          <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.9rem' : '0.95rem', lineHeight: 1.7, marginBottom: '1rem' }}>
+            Kingshot Atlas was born in <span style={{ color: '#22d3ee' }}>Kingdom 172</span>. The founder got tired of making transfer decisions based on rumors and Discord hearsay. Tired of walking into KvK blind. Tired of guessing.
+          </p>
+          <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.9rem' : '0.95rem', lineHeight: 1.7, marginBottom: '1rem' }}>
+            So he built the tool he wished existed: a place where every kingdom's track record is laid bare. Real data. Real results. No spin.
+          </p>
+          <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.9rem' : '0.95rem', lineHeight: 1.7 }}>
+            Today, Atlas is powered by the community—players contributing data, reporting results, and helping each other make smarter decisions. This isn't a corporate product. It's a passion project built by someone who plays the game and wants to see the community thrive.
+          </p>
         </section>
 
         {/* Data & Disclaimer */}
@@ -210,13 +241,13 @@ const About: React.FC = () => {
             marginBottom: '1rem',
             fontFamily: "'Cinzel', serif"
           }}>
-            Data & Disclaimer
+            The Fine Print
           </h2>
           <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.9rem' : '0.95rem', lineHeight: 1.7, marginBottom: '1rem' }}>
-            Our data is sourced from community contributions and publicly available KvK results. While we strive for accuracy, KvK results can be complex and may not capture every nuance of a match.
+            Our data comes from community contributions and verified KvK results. We obsess over accuracy, but KvK is complex—edge cases exist. If you spot an error, let us know.
           </p>
-          <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.9rem' : '0.95rem', lineHeight: 1.7 }}>
-            Kingshot Atlas is a fan-made project and is not affiliated with or endorsed by the developers of Kingshot. Kingshot is a trademark of its respective owners.
+          <p style={{ color: '#6b7280', fontSize: isMobile ? '0.85rem' : '0.9rem', lineHeight: 1.7 }}>
+            Kingshot Atlas is an independent fan project. We're not affiliated with or endorsed by the developers of Kingshot. We're just players who love the game.
           </p>
         </section>
 
@@ -251,10 +282,10 @@ const About: React.FC = () => {
             marginBottom: '0.75rem',
             fontFamily: "'Cinzel', serif"
           }}>
-            Support Kingshot Atlas
+            Fuel the Atlas
           </h2>
           <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.85rem' : '0.9rem', lineHeight: 1.6, marginBottom: '1.25rem', maxWidth: '500px', margin: '0 auto 1.25rem' }}>
-            Atlas is a passion project built by and for the Kingshot community. Your support helps us keep the servers running and develop new features.
+            Servers cost money. Development takes time. If Atlas has helped you make better decisions, consider throwing some support our way. Every bit helps keep the lights on and new features coming.
           </p>
           <SupportButton />
           <p style={{ 
@@ -262,7 +293,7 @@ const About: React.FC = () => {
             fontSize: '0.75rem', 
             marginTop: '1rem' 
           }}>
-            Every contribution helps, no matter the size ☕
+            Buy us a coffee, fund a feature, or just say thanks ☕
           </p>
         </section>
 
@@ -271,7 +302,7 @@ const About: React.FC = () => {
           backgroundColor: '#111111', 
           padding: isMobile ? '1.25rem' : '1.5rem', 
           borderRadius: '12px',
-          border: '1px solid #2a2a2a',
+          border: '1px solid #5865F230',
           textAlign: 'center'
         }}>
           <h2 style={{ 
@@ -281,10 +312,10 @@ const About: React.FC = () => {
             marginBottom: '0.75rem',
             fontFamily: "'Cinzel', serif"
           }}>
-            Get in Touch
+            Join the Community
           </h2>
           <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.85rem' : '0.9rem', lineHeight: 1.6, marginBottom: '1rem' }}>
-            Have feedback, found an error, or want to contribute data? We'd love to hear from you.
+            Got intel to share? Found a bug? Want to argue about tier rankings? Jump into our Discord. We're always looking for contributors, testers, and fellow data nerds.
           </p>
           <a
             href="https://discord.gg/aA3a7JGcHV"
@@ -315,7 +346,7 @@ const About: React.FC = () => {
 
         {/* Back Link */}
         <div style={{ textAlign: 'center', marginTop: '2rem' }}>
-          <Link to="/" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: '0.85rem' }}>← Back to Directory</Link>
+          <Link to="/" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: '0.85rem' }}>← Back to Home</Link>
         </div>
       </div>
     </div>

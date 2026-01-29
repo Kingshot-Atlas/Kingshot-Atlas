@@ -1,3 +1,5 @@
+import React from 'react';
+
 /**
  * Shared style utilities for Kingshot Atlas
  * These utilities ensure consistent styling across all components
@@ -80,8 +82,8 @@ export const tierColors = {
   S: '#fbbf24',
   A: '#22c55e',
   B: '#3b82f6',
-  C: '#9ca3af',
-  D: '#6b7280',
+  C: '#f97316',  // Orange
+  D: '#ef4444',  // Red
 } as const;
 
 /**
@@ -130,6 +132,38 @@ export const radius = {
 } as const;
 
 /**
+ * Transition durations - centralized for consistency
+ */
+export const transitions = {
+  fast: '150ms',
+  base: '200ms',
+  slow: '300ms',
+} as const;
+
+/**
+ * Transition presets with easing
+ */
+export const transition = {
+  fast: `all ${transitions.fast} ease`,
+  base: `all ${transitions.base} ease`,
+  slow: `all ${transitions.slow} ease`,
+  colors: `background-color ${transitions.base} ease, border-color ${transitions.base} ease, color ${transitions.base} ease`,
+  transform: `transform ${transitions.fast} ease`,
+} as const;
+
+/**
+ * Shadow presets
+ */
+export const shadows = {
+  sm: '0 1px 2px rgba(0, 0, 0, 0.2)',
+  card: '0 4px 20px rgba(0, 0, 0, 0.2)',
+  cardHover: '0 12px 40px rgba(0, 0, 0, 0.4)',
+  tooltip: '0 4px 12px rgba(0, 0, 0, 0.4)',
+  glow: '0 0 20px rgba(34, 211, 238, 0.1)',
+  glowStrong: '0 0 20px rgba(34, 211, 238, 0.3)',
+} as const;
+
+/**
  * Common tooltip styles following the style guide
  */
 export const tooltipStyles = (accentColor: string = colors.primary) => ({
@@ -146,5 +180,47 @@ export const tooltipStyles = (accentColor: string = colors.primary) => ({
   color: colors.text,
   whiteSpace: 'nowrap' as const,
   zIndex: 100,
-  boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+  boxShadow: shadows.tooltip,
 });
+
+/**
+ * Card base styles - use for consistent card appearance
+ */
+export const cardStyles = {
+  base: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    border: `1px solid ${colors.border}`,
+    transition: transition.base,
+  } as React.CSSProperties,
+  
+  hover: {
+    borderColor: `${colors.primary}50`,
+    boxShadow: shadows.cardHover,
+    transform: 'translateY(-2px)',
+  } as React.CSSProperties,
+};
+
+/**
+ * Get card styles with hover state
+ */
+export const getCardStyles = (isHovered: boolean): React.CSSProperties => ({
+  backgroundColor: colors.surface,
+  borderRadius: radius.lg,
+  border: `1px solid ${isHovered ? `${colors.primary}50` : colors.border}`,
+  boxShadow: isHovered ? shadows.cardHover : shadows.card,
+  transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
+  transition: transition.base,
+});
+
+/**
+ * Outcome colors for KvK results
+ */
+export const outcomeColors = {
+  domination: colors.success,   // Won both phases
+  comeback: colors.blue,        // Lost prep, won battle
+  reversal: colors.purple,      // Won prep, lost battle
+  invasion: colors.error,       // Lost both phases
+  prepWin: colors.warning,      // Prep phase win
+  battleWin: colors.orange,     // Battle phase win
+} as const;

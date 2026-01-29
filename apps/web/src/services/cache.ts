@@ -2,6 +2,7 @@
  * Client-side caching utilities for Kingshot Atlas.
  */
 import { Kingdom } from '../types';
+import { logger } from '../utils/logger';
 
 const CACHE_KEY = 'kingshot_kingdom_cache';
 const CACHE_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
@@ -24,7 +25,7 @@ export function loadCache(): CacheData | null {
       }
     }
   } catch (e) {
-    console.warn('Failed to load cache:', e);
+    logger.warn('Failed to load cache:', e);
   }
   return null;
 }
@@ -37,7 +38,7 @@ export function saveCache(kingdoms: Kingdom[]): CacheData {
   try {
     localStorage.setItem(CACHE_KEY, JSON.stringify(data));
   } catch (e) {
-    console.warn('Failed to save cache:', e);
+    logger.warn('Failed to save cache:', e);
   }
   return data;
 }

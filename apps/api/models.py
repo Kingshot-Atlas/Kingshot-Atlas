@@ -1,7 +1,12 @@
 from sqlalchemy import Column, Integer, String, Float, DateTime, Boolean, Text, ForeignKey, Index
 from sqlalchemy.orm import relationship
 from database import Base
-from datetime import datetime
+from datetime import datetime, timezone
+
+
+def utc_now():
+    """Return current UTC time as timezone-aware datetime (Python 3.12+ compatible)."""
+    return datetime.now(timezone.utc)
 
 class User(Base):
     __tablename__ = "users"
@@ -12,7 +17,7 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     role = Column(String, default="user")  # user, admin, moderator
     is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utc_now)
 
 class Kingdom(Base):
     __tablename__ = "kingdoms"
@@ -37,7 +42,7 @@ class Kingdom(Base):
     defeats = Column(Integer, nullable=False, default=0)
     most_recent_status = Column(String, nullable=False)
     overall_score = Column(Float, nullable=False)
-    last_updated = Column(DateTime, default=datetime.utcnow)
+    last_updated = Column(DateTime, default=utc_now)
     
     # Relationship to KVK records
     kvk_records = relationship("KVKRecord", back_populates="kingdom")
@@ -56,7 +61,7 @@ class KVKRecord(Base):
     battle_result = Column(String, nullable=False)  # W, L
     overall_result = Column(String, nullable=False)  # W, L
     date_or_order_index = Column(String, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utc_now)
     
     # Relationship to kingdom
     kingdom = relationship("Kingdom", back_populates="kvk_records")
@@ -87,7 +92,7 @@ class KVKSubmission(Base):
     reviewed_by = Column(String, nullable=True)
     review_notes = Column(Text, nullable=True)
     
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utc_now)
     reviewed_at = Column(DateTime, nullable=True)
 
 
@@ -114,5 +119,5 @@ class KingdomClaim(Base):
     discord_link = Column(String, nullable=True)
     recruitment_status = Column(String, default="closed")  # open, closed, selective
     
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)

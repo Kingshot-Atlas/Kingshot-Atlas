@@ -2,7 +2,8 @@
  * Kingdom API service for Kingshot Atlas.
  * Handles all kingdom-related API calls with caching and fallback support.
  */
-import { Kingdom, KingdomProfile, FilterOptions, SortOptions, PaginatedResponse } from '../types';
+import { Kingdom, KingdomProfile, KVKRecord, FilterOptions, SortOptions, PaginatedResponse } from '../types';
+import { logger } from '../utils/logger';
 import { loadCache, saveCache, clearCache, CacheData } from './cache';
 import { loadKingdomData, enrichKingdom, toKingdomProfile } from './transformers';
 import { applyFiltersAndSort, paginate } from './filters';
@@ -39,7 +40,7 @@ class KingdomService {
       }
       return await response.json();
     } catch (error) {
-      console.warn(`API call failed for ${endpoint}, using local data:`, error);
+      logger.warn(`API call failed for ${endpoint}, using local data:`, error);
       return fallbackData;
     }
   }
@@ -56,7 +57,7 @@ class KingdomService {
     if (useCache) {
       const cached = this.cache || loadCache();
       if (cached) {
-        console.log('Using cached kingdom data');
+        logger.log('Using cached kingdom data');
         return applyFiltersAndSort(cached.kingdoms, filters, sort);
       }
     }
@@ -86,7 +87,7 @@ class KingdomService {
       this.cache = saveCache(enriched);
       return enriched;
     } catch (error) {
-      console.warn(`API call failed for ${endpoint}, using local data:`, error);
+      logger.warn(`API call failed for ${endpoint}, using local data:`, error);
       return applyFiltersAndSort(localKingdoms, filters, sort);
     }
   }
@@ -126,7 +127,7 @@ class KingdomService {
         items: data.items.map((k: Kingdom) => enrichKingdom(k))
       };
     } catch (error) {
-      console.warn(`API call failed for ${endpoint}, using local data:`, error);
+      logger.warn(`API call failed for ${endpoint}, using local data:`, error);
       const filtered = applyFiltersAndSort(localKingdoms, filters, sort);
       const { items, total, totalPages } = paginate(filtered, page, pageSize);
       return { items, total, page, page_size: pageSize, total_pages: totalPages };
@@ -147,7 +148,7 @@ class KingdomService {
       }
       return await response.json();
     } catch (error) {
-      console.warn(`API call failed for ${endpoint}, using local data:`, error);
+      logger.warn(`API call failed for ${endpoint}, using local data:`, error);
       const kingdom = localKingdoms.find(k => k.kingdom_number === kingdomNumber);
       if (!kingdom) return null;
       return toKingdomProfile(kingdom);
@@ -178,7 +179,7 @@ class KingdomService {
       const data = await response.json();
       
       if (data.kingdoms && Array.isArray(data.kingdoms)) {
-        return data.kingdoms.map((item: any) => ({
+        return data.kingdoms.map((item: { kingdom: KingdomProfile; recent_kvks?: KVKRecord[] }) => ({
           ...item.kingdom,
           recent_kvks: item.recent_kvks || []
         }));
@@ -188,7 +189,7 @@ class KingdomService {
       }
       return [];
     } catch (error) {
-      console.warn(`API call failed for ${endpoint}, using fallback:`, error);
+      logger.warn(`API call failed for ${endpoint}, using fallback:`, error);
       const profiles: KingdomProfile[] = [];
       
       for (const number of kingdomNumbers) {
@@ -214,7 +215,7 @@ class KingdomService {
       const data = await response.json();
       return data.items || data;
     } catch (error) {
-      console.warn(`API call failed for ${endpoint}, using local data:`, error);
+      logger.warn(`API call failed for ${endpoint}, using local data:`, error);
       return localKingdoms.filter(k => 
         k.kingdom_number.toString().includes(query)
       );

@@ -1,0 +1,26 @@
+{
+  "name": "atlas-discord-bot",
+  "version": "1.0.0",
+  "description": "Atlas - The Kingshot Atlas Discord Bot",
+  "main": "src/bot.js",
+  "scripts": {
+    "start": "node src/bot.js",
+    "dev": "nodemon src/bot.js",
+    "register": "node src/register-commands.js",
+    "webhook:test": "node src/webhook-test.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.3.1",
+    "node-cron": "^3.0.3",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "author": "Kingshot Atlas",
+  "license": "MIT"
+}

@@ -1,6 +1,7 @@
 # https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /api/
 
 # Sitemap
-Sitemap: https://www.ks-atlas.com/sitemap.xml
+Sitemap: https://ks-atlas.com/sitemap.xml

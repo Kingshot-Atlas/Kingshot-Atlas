@@ -38,7 +38,8 @@ module.exports = {
         'tier-s': '#fbbf24',
         'tier-a': '#22c55e',
         'tier-b': '#3b82f6',
-        'tier-c': '#6b7280',
+        'tier-c': '#f97316',
+        'tier-d': '#ef4444',
       },
       fontFamily: {
         sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],

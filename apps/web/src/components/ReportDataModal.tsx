@@ -36,9 +36,11 @@ const ReportDataModal: React.FC<ReportDataModalProps> = ({ kingdom, isOpen, onCl
   if (!isOpen) return null;
 
   const getCurrentValue = (field: string): string => {
-    const value = (kingdom as any)[field];
+    const fieldKey = field as keyof Kingdom;
+    const value = kingdom[fieldKey];
     if (typeof value === 'number') return value.toString();
-    return value || 'N/A';
+    if (typeof value === 'string') return value;
+    return 'N/A';
   };
 
   const handleAddCorrection = () => {

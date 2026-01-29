@@ -5,6 +5,7 @@
  */
 
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { logger } from '../utils/logger';
 
 export interface StatusSubmission {
   id: string;
@@ -72,9 +73,9 @@ class StatusService {
           };
         }
         // Fall through to localStorage if Supabase fails
-        console.warn('Supabase submission failed, using localStorage:', error);
+        logger.warn('Supabase submission failed, using localStorage:', error);
       } catch (err) {
-        console.warn('Supabase submission error, using localStorage:', err);
+        logger.warn('Supabase submission error, using localStorage:', err);
       }
     }
 
@@ -183,6 +184,36 @@ class StatusService {
     return this.getSubmissions()
       .filter(s => s.kingdom_number === kingdomNumber)
       .sort((a, b) => new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime());
+  }
+
+  /**
+   * Get the most recent approved status for a kingdom
+   * Returns the new_status from the most recently approved submission
+   */
+  getApprovedStatus(kingdomNumber: number): string | null {
+    const submissions = this.getSubmissions()
+      .filter(s => s.kingdom_number === kingdomNumber && s.status === 'approved')
+      .sort((a, b) => new Date(b.reviewed_at || b.submitted_at).getTime() - new Date(a.reviewed_at || a.submitted_at).getTime());
+    
+    return submissions[0]?.new_status || null;
+  }
+
+  /**
+   * Get all approved status overrides as a map of kingdom_number -> new_status
+   * Used by api.ts to apply approved statuses when loading kingdom data
+   */
+  getAllApprovedStatusOverrides(): Map<number, string> {
+    const overrides = new Map<number, string>();
+    const submissions = this.getSubmissions()
+      .filter(s => s.status === 'approved')
+      .sort((a, b) => new Date(a.reviewed_at || a.submitted_at).getTime() - new Date(b.reviewed_at || b.submitted_at).getTime());
+    
+    // Later approvals override earlier ones for the same kingdom
+    for (const sub of submissions) {
+      overrides.set(sub.kingdom_number, sub.new_status);
+    }
+    
+    return overrides;
   }
 }
 

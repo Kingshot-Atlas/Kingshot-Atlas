@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { SubscriptionTier } from '../contexts/PremiumContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -73,7 +74,8 @@ const UpgradePrompt: React.FC<UpgradePromptProps> = ({
             <strong>{feature}</strong> requires Atlas {tierLabel}
           </span>
         </div>
-        <button
+        <Link
+          to={user ? '/upgrade' : '/profile'}
           style={{
             padding: '0.4rem 0.75rem',
             backgroundColor: tierColor,
@@ -83,11 +85,12 @@ const UpgradePrompt: React.FC<UpgradePromptProps> = ({
             fontSize: '0.8rem',
             fontWeight: '600',
             cursor: 'pointer',
-            whiteSpace: 'nowrap'
+            whiteSpace: 'nowrap',
+            textDecoration: 'none'
           }}
         >
           Upgrade
-        </button>
+        </Link>
       </div>
     );
   }
@@ -154,10 +157,12 @@ const UpgradePrompt: React.FC<UpgradePromptProps> = ({
       </div>
       
       <div>
-        <button
+        <Link
+          to={user ? '/upgrade' : '/profile'}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
           style={{
+            display: 'inline-block',
             padding: '0.75rem 1.5rem',
             backgroundColor: isHovered ? tierColor : `${tierColor}dd`,
             border: 'none',
@@ -167,11 +172,12 @@ const UpgradePrompt: React.FC<UpgradePromptProps> = ({
             fontWeight: '600',
             cursor: 'pointer',
             transition: 'all 0.2s',
-            boxShadow: isHovered ? `0 4px 20px ${tierColor}40` : 'none'
+            boxShadow: isHovered ? `0 4px 20px ${tierColor}40` : 'none',
+            textDecoration: 'none'
           }}
         >
           {user ? 'Upgrade Now' : 'Sign In to Upgrade'}
-        </button>
+        </Link>
       </div>
       
       <p style={{ 

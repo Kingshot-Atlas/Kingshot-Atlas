@@ -1,11 +1,14 @@
 import os
+import logging
 from fastapi import APIRouter, Depends, HTTPException, Query, Header, Request
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, timezone
 import secrets
 from jose import jwt, JWTError
+
+logger = logging.getLogger(__name__)
 
 from database import get_db
 from models import KVKSubmission, KVKRecord, Kingdom, KingdomClaim, User
@@ -77,7 +80,7 @@ def _recalculate_kingdom_stats(kingdom: Kingdom, db: Session) -> None:
     # Recalculate overall score (prep:battle = 1:2 weighting)
     kingdom.overall_score = round((kingdom.prep_win_rate + 2 * kingdom.battle_win_rate) / 3 * 15, 2)
     
-    kingdom.last_updated = datetime.utcnow()
+    kingdom.last_updated = datetime.now(timezone.utc)
 
 
 def verify_supabase_jwt(token: str) -> Optional[str]:
@@ -106,8 +109,7 @@ def verify_supabase_jwt(token: str) -> Optional[str]:
             )
         else:
             # Development fallback: Decode without verification (log warning)
-            import logging
-            logging.warning("SUPABASE_JWT_SECRET not set - JWT signature not verified!")
+            logger.warning("SUPABASE_JWT_SECRET not set - JWT signature not verified!")
             payload = jwt.decode(token, options={"verify_signature": False})
         
         # Extract user ID from 'sub' claim
@@ -117,8 +119,7 @@ def verify_supabase_jwt(token: str) -> Optional[str]:
         
         return user_id
     except JWTError as e:
-        import logging
-        logging.warning(f"JWT validation failed: {e}")
+        logger.warning(f"JWT validation failed: {e}")
         return None
 
 
@@ -188,13 +189,11 @@ def get_verified_user_id(
     if x_user_id:
         if SUPABASE_JWT_SECRET:
             # In production (secret is set), don't trust unverified headers
-            import logging
-            logging.warning("X-User-Id header rejected - use Authorization with valid JWT")
+            logger.warning("X-User-Id header rejected - use Authorization with valid JWT")
             return None
         else:
             # Development mode - allow but log warning
-            import logging
-            logging.warning("Using unverified X-User-Id header - development mode only!")
+            logger.warning("Using unverified X-User-Id header - development mode only!")
             return x_user_id
     
     return None
@@ -305,7 +304,7 @@ def review_submission(
     submission.status = review.status
     submission.reviewed_by = reviewer_id
     submission.review_notes = review.review_notes
-    submission.reviewed_at = datetime.utcnow()
+    submission.reviewed_at = datetime.now(timezone.utc)
     
     # If approved, create the actual KVK record and update kingdom stats
     if review.status == "approved":
@@ -320,7 +319,7 @@ def review_submission(
             prep_result=submission.prep_result,
             battle_result=submission.battle_result,
             overall_result=overall_result,
-            date_or_order_index=submission.date_or_order_index or f"Submitted {datetime.utcnow().strftime('%b %d, %Y')}"
+            date_or_order_index=submission.date_or_order_index or f"Submitted {datetime.now(timezone.utc).strftime('%b %d, %Y')}"
         )
         db.add(kvk_record)
         
@@ -452,7 +451,7 @@ def verify_claim(
         raise HTTPException(status_code=404, detail="Claim not found")
     
     claim.status = "verified"
-    claim.verified_at = datetime.utcnow()
+    claim.verified_at = datetime.now(timezone.utc)
     db.commit()
     
     return {"message": "Claim verified", "kingdom_number": claim.kingdom_number}

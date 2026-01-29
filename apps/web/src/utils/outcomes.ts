@@ -32,7 +32,7 @@ export const OUTCOMES: Record<OutcomeType, OutcomeInfo> = {
   },
   Defeat: {
     name: 'Defeat',
-    abbrev: '🏳️',
+    abbrev: '💀',
     color: '#ef4444',
     bgColor: '#ef444420',
     description: 'Lost both Prep and Battle'

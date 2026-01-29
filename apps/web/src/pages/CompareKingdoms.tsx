@@ -2,45 +2,91 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { KingdomProfile, Kingdom, getPowerTier } from '../types';
 import { apiService } from '../services/api';
-import html2canvas from 'html2canvas';
 import { useIsMobile } from '../hooks/useMediaQuery';
+import { useAnalytics } from '../hooks/useAnalytics';
 import { neonGlow, getTierColor } from '../utils/styles';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { usePremium } from '../contexts/PremiumContext';
+import { useAuth } from '../contexts/AuthContext';
 import ProBadge from '../components/ProBadge';
+import CompareRadarChart from '../components/CompareRadarChart';
+import ShareButton from '../components/ShareButton';
+import { useMetaTags, getCompareMetaTags } from '../hooks/useMetaTags';
+
+// Max slots to show in UI (Pro limit)
+const MAX_COMPARE_SLOTS = 5;
 
 const CompareKingdoms: React.FC = () => {
   useDocumentTitle('Compare Kingdoms');
   const [searchParams] = useSearchParams();
-  const { isPro, features } = usePremium();
-  const [kingdom1Input, setKingdom1Input] = useState('');
-  const [kingdom2Input, setKingdom2Input] = useState('');
-  const [kingdom1, setKingdom1] = useState<KingdomProfile | null>(null);
-  const [kingdom2, setKingdom2] = useState<KingdomProfile | null>(null);
+  const { features, tier } = usePremium();
+  const { user } = useAuth();
+  const { trackFeature } = useAnalytics();
+  // Multi-kingdom state: array of inputs and loaded kingdoms
+  const [kingdomInputs, setKingdomInputs] = useState<string[]>(['', '']);
+  const [kingdoms, setKingdoms] = useState<(KingdomProfile | null)[]>([null, null]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [allKingdoms, setAllKingdoms] = useState<Kingdom[]>([]);
   const isMobile = useIsMobile();
-  const [showShareMenu, setShowShareMenu] = useState(false);
-  const [copySuccess, setCopySuccess] = useState('');
   const comparisonRef = useRef<HTMLDivElement>(null);
+  
+  // Track if initial load from URL params has been done
+  const initialLoadDone = useRef(false);
+  
+  // Legacy compatibility for old state names
+  const kingdom1Input = kingdomInputs[0] || '';
+  const kingdom2Input = kingdomInputs[1] || '';
+  const setKingdom1Input = (v: string) => setKingdomInputs(prev => [v, prev[1] || '']);
+  const setKingdom2Input = (v: string) => setKingdomInputs(prev => [prev[0] || '', v]);
+  const kingdom1 = kingdoms[0];
+  const kingdom2 = kingdoms[1];
+  const setKingdom1 = (k: KingdomProfile | null) => setKingdoms(prev => [k, prev[1] ?? null]);
+  const setKingdom2 = (k: KingdomProfile | null) => setKingdoms(prev => [prev[0] ?? null, k]);
+
+  // Update meta tags for better link previews when sharing
+  useMetaTags(getCompareMetaTags(kingdom1?.kingdom_number, kingdom2?.kingdom_number));
 
   useEffect(() => {
     // Fetch ALL kingdoms for accurate ranking (not just top 50)
     apiService.getKingdoms().then(setAllKingdoms);
   }, []);
 
+  // Handle URL params on initial load only
   useEffect(() => {
+    if (initialLoadDone.current) return;
+    
     const kingdomsParam = searchParams.get('kingdoms');
     if (kingdomsParam) {
       const nums = kingdomsParam.split(',').map(n => n.trim());
       if (nums[0]) setKingdom1Input(nums[0]);
       if (nums[1]) setKingdom2Input(nums[1]);
       if (nums[0] && nums[1]) {
-        setTimeout(() => handleCompare(nums[0], nums[1]), 100);
+        initialLoadDone.current = true;
+        // Inline the compare logic to avoid dependency issues
+        const loadComparison = async () => {
+          setLoading(true);
+          setError('');
+          try {
+            const [data1, data2] = await Promise.all([
+              apiService.getKingdomProfile(parseInt(nums[0]!)),
+              apiService.getKingdomProfile(parseInt(nums[1]!))
+            ]);
+            if (!data1 || !data2) {
+              setError('One or both kingdoms not found');
+            } else {
+              setKingdom1(data1);
+              setKingdom2(data2);
+            }
+          } catch {
+            setError('Failed to load kingdom data');
+          } finally {
+            setLoading(false);
+          }
+        };
+        loadComparison();
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   const handleCompare = async (k1?: string, k2?: string) => {
@@ -52,6 +98,7 @@ const CompareKingdoms: React.FC = () => {
       return;
     }
 
+    trackFeature('Compare Kingdoms', { kingdom1: parseInt(input1), kingdom2: parseInt(input2) });
     setLoading(true);
     setError('');
 
@@ -102,30 +149,7 @@ const CompareKingdoms: React.FC = () => {
   const getDominations = (k: KingdomProfile) => k.dominations ?? 0;
   const getDefeats = (k: KingdomProfile) => k.defeats ?? 0;
 
-  const copyLink = () => {
-    const url = `${window.location.origin}/compare?kingdoms=${kingdom1?.kingdom_number},${kingdom2?.kingdom_number}`;
-    navigator.clipboard.writeText(url);
-    setCopySuccess('Link copied!');
-    setTimeout(() => setCopySuccess(''), 2000);
-  };
-
-  const copyImage = async () => {
-    if (!comparisonRef.current) return;
-    try {
-      const canvas = await html2canvas(comparisonRef.current, { backgroundColor: '#0a0a0a' });
-      canvas.toBlob(async (blob) => {
-        if (blob) {
-          await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-          setCopySuccess('Image copied!');
-          setTimeout(() => setCopySuccess(''), 2000);
-        }
-      });
-    } catch (err) {
-      setCopySuccess('Failed to copy image');
-      setTimeout(() => setCopySuccess(''), 2000);
-    }
-  };
-
+  
   const ComparisonRow = ({ label, val1, val2, format = 'number', higherIsBetter = true }: { 
     label: string; val1: number | string; val2: number | string; format?: string; higherIsBetter?: boolean 
   }) => {
@@ -228,7 +252,7 @@ const CompareKingdoms: React.FC = () => {
             <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>COMPARISON</span>
           </h1>
           <p style={{ color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.9rem', marginBottom: '0.75rem' }}>
-            Head-to-head performance analysis
+            Put any two kingdoms in the ring. Let the stats decide.
           </p>
           {!isMobile && (
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
@@ -322,9 +346,135 @@ const CompareKingdoms: React.FC = () => {
             {loading ? 'Loading...' : 'Compare'}
           </button>
           
-          {/* Multi-Compare Pro Upsell */}
-          {!isPro && (
-            <Link to="/upgrade" style={{ textDecoration: 'none' }}>
+          {/* Additional Kingdom Slots */}
+          <div style={{ 
+            display: 'flex', 
+            flexWrap: 'wrap', 
+            gap: '0.5rem', 
+            justifyContent: 'center',
+            marginTop: '0.75rem',
+            width: '100%'
+          }}>
+            {/* Slot 3 - Free users get this */}
+            {(() => {
+              const slotIndex = 2;
+              const isLocked = features.multiCompare < 3;
+              const input = kingdomInputs[slotIndex] || '';
+              
+              if (isLocked) {
+                return (
+                  <Link to={user ? '/upgrade' : '/profile'} style={{ textDecoration: 'none' }}>
+                    <div style={{
+                      width: isMobile ? '80px' : '100px',
+                      height: isMobile ? '38px' : '42px',
+                      backgroundColor: '#0a0a0a',
+                      border: '1px dashed #333',
+                      borderRadius: '8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      filter: 'blur(2px)',
+                      opacity: 0.5,
+                      position: 'relative',
+                      cursor: 'pointer'
+                    }}>
+                      <span style={{ color: '#4b5563', fontSize: '0.7rem' }}>+3</span>
+                    </div>
+                  </Link>
+                );
+              }
+              
+              return (
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={input}
+                  onChange={(e) => {
+                    const newInputs = [...kingdomInputs];
+                    newInputs[slotIndex] = e.target.value.replace(/[^0-9]/g, '');
+                    setKingdomInputs(newInputs);
+                  }}
+                  placeholder="+3"
+                  className="input-glow"
+                  style={{
+                    width: isMobile ? '80px' : '100px',
+                    padding: isMobile ? '0.6rem' : '0.7rem',
+                    backgroundColor: '#0a0a0a',
+                    border: '1px solid #3a3a3a',
+                    borderRadius: '8px',
+                    color: '#fff',
+                    fontSize: isMobile ? '0.8rem' : '0.85rem',
+                    textAlign: 'center',
+                    fontWeight: '500',
+                    outline: 'none'
+                  }}
+                />
+              );
+            })()}
+            
+            {/* Slots 4-5 - Pro users only */}
+            {[3, 4].map((slotIndex) => {
+              const isLocked = features.multiCompare <= slotIndex;
+              const input = kingdomInputs[slotIndex] || '';
+              
+              if (isLocked) {
+                return (
+                  <Link key={slotIndex} to={user ? '/upgrade' : '/profile'} style={{ textDecoration: 'none' }}>
+                    <div style={{
+                      width: isMobile ? '80px' : '100px',
+                      height: isMobile ? '38px' : '42px',
+                      backgroundColor: '#0a0a0a',
+                      border: '1px dashed #22d3ee30',
+                      borderRadius: '8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      filter: 'blur(2px)',
+                      opacity: 0.4,
+                      position: 'relative',
+                      cursor: 'pointer'
+                    }}>
+                      <span style={{ color: '#22d3ee', fontSize: '0.7rem' }}>+{slotIndex + 1}</span>
+                    </div>
+                  </Link>
+                );
+              }
+              
+              return (
+                <input
+                  key={slotIndex}
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={input}
+                  onChange={(e) => {
+                    const newInputs = [...kingdomInputs];
+                    newInputs[slotIndex] = e.target.value.replace(/[^0-9]/g, '');
+                    setKingdomInputs(newInputs);
+                  }}
+                  placeholder={`+${slotIndex + 1}`}
+                  className="input-glow"
+                  style={{
+                    width: isMobile ? '80px' : '100px',
+                    padding: isMobile ? '0.6rem' : '0.7rem',
+                    backgroundColor: '#0a0a0a',
+                    border: '1px solid #3a3a3a',
+                    borderRadius: '8px',
+                    color: '#fff',
+                    fontSize: isMobile ? '0.8rem' : '0.85rem',
+                    textAlign: 'center',
+                    fontWeight: '500',
+                    outline: 'none'
+                  }}
+                />
+              );
+            })}
+          </div>
+          
+          {/* Upgrade Prompt - tier-aware messaging */}
+          {features.multiCompare < MAX_COMPARE_SLOTS && (
+            <Link to={user ? '/upgrade' : '/profile'} style={{ textDecoration: 'none' }}>
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -332,15 +482,18 @@ const CompareKingdoms: React.FC = () => {
                 gap: '0.5rem',
                 marginTop: '0.75rem',
                 padding: '0.5rem 0.75rem',
-                backgroundColor: '#22d3ee10',
-                border: '1px solid #22d3ee30',
+                backgroundColor: tier === 'anonymous' ? '#ffffff08' : '#22d3ee10',
+                border: `1px solid ${tier === 'anonymous' ? '#ffffff20' : '#22d3ee30'}`,
                 borderRadius: '6px',
                 cursor: 'pointer',
                 transition: 'all 0.2s'
               }}>
-                <ProBadge size="sm" />
+                {tier !== 'anonymous' && <ProBadge size="sm" />}
                 <span style={{ color: '#9ca3af', fontSize: '0.8rem' }}>
-                  Compare up to {features.multiCompare} kingdoms with Pro
+                  {tier === 'anonymous' 
+                    ? 'Sign in to compare up to 3 kingdoms'
+                    : 'Go Pro to compare up to 5 kingdoms'
+                  }
                 </span>
               </div>
             </Link>
@@ -440,120 +593,41 @@ const CompareKingdoms: React.FC = () => {
             </div>
           </div>
 
+          {/* Radar Chart Comparison */}
+          <CompareRadarChart kingdom1={kingdom1} kingdom2={kingdom2} />
+
           {/* Share Button */}
-          <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'center', position: 'relative' }}>
-            <button
-              onClick={() => setShowShareMenu(!showShareMenu)}
-              style={{
-                padding: '0.6rem 1.5rem',
-                backgroundColor: '#1f1f1f',
-                border: '1px solid #333',
-                borderRadius: '8px',
-                color: '#fff',
-                cursor: 'pointer',
-                fontSize: '0.85rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem'
+          <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'center' }}>
+            <ShareButton
+              type="compare"
+              compareData={{
+                kingdom1: { 
+                  number: kingdom1.kingdom_number, 
+                  score: kingdom1.overall_score, 
+                  tier: kingdom1.power_tier ?? getPowerTier(kingdom1.overall_score) 
+                },
+                kingdom2: { 
+                  number: kingdom2.kingdom_number, 
+                  score: kingdom2.overall_score, 
+                  tier: kingdom2.power_tier ?? getPowerTier(kingdom2.overall_score) 
+                },
+                winner: calculateWinner() === 'tie' ? 'tie' : 
+                  calculateWinner() === kingdom1.kingdom_number ? 'kingdom1' : 'kingdom2'
               }}
-            >
-              <svg style={{ width: '16px', height: '16px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-              </svg>
-              Share
-            </button>
-            
-            {showShareMenu && (
-              <div style={{
-                position: 'absolute',
-                bottom: '100%',
-                marginBottom: '0.5rem',
-                backgroundColor: '#1a1a1a',
-                border: '1px solid #333',
-                borderRadius: '8px',
-                padding: '0.5rem',
-                minWidth: '150px',
-                boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.4)'
-              }}>
-                <button
-                  onClick={copyLink}
-                  style={{
-                    width: '100%',
-                    padding: '0.6rem 0.75rem',
-                    backgroundColor: 'transparent',
-                    border: 'none',
-                    borderRadius: '6px',
-                    color: '#fff',
-                    cursor: 'pointer',
-                    fontSize: '0.85rem',
-                    textAlign: 'left',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#2a2a2a'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                >
-                  <svg style={{ width: '14px', height: '14px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                  </svg>
-                  Copy Link
-                </button>
-                <button
-                  onClick={copyImage}
-                  style={{
-                    width: '100%',
-                    padding: '0.6rem 0.75rem',
-                    backgroundColor: 'transparent',
-                    border: 'none',
-                    borderRadius: '6px',
-                    color: '#fff',
-                    cursor: 'pointer',
-                    fontSize: '0.85rem',
-                    textAlign: 'left',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#2a2a2a'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                >
-                  <svg style={{ width: '14px', height: '14px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  Copy Image
-                </button>
-              </div>
-            )}
-            
-            {copySuccess && (
-              <div style={{
-                position: 'absolute',
-                bottom: '100%',
-                marginBottom: '0.5rem',
-                padding: '0.5rem 1rem',
-                backgroundColor: '#22c55e',
-                color: '#fff',
-                borderRadius: '6px',
-                fontSize: '0.8rem',
-                fontWeight: '500'
-              }}>
-                {copySuccess}
-              </div>
-            )}
+            />
           </div>
           </>
         )}
 
         {!kingdom1 && !kingdom2 && !loading && (
           <div style={{ textAlign: 'center', color: '#6b7280', marginTop: '-0.5rem' }}>
-            <div style={{ fontSize: isMobile ? '0.8rem' : '0.85rem' }}>Enter two kingdom numbers above to compare their stats</div>
+            <div style={{ fontSize: isMobile ? '0.8rem' : '0.85rem' }}>Pick your matchup. The numbers will tell the story.</div>
           </div>
         )}
 
-        {/* Back to Directory link */}
+        {/* Back to Home link */}
         <div style={{ textAlign: 'center', marginTop: '2rem', paddingBottom: '1rem' }}>
-          <Link to="/" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: '0.8rem' }}>← Back to Directory</Link>
+          <Link to="/" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: '0.8rem' }}>← Back to Home</Link>
         </div>
       </div>
     </div>

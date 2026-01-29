@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Kingdom } from '../types';
+import { Kingdom, KingdomWithStats } from '../types';
 import { apiService } from '../services/api';
 import { useIsMobile } from '../hooks/useMediaQuery';
+import { useAnalytics } from '../hooks/useAnalytics';
+import { usePremium } from '../contexts/PremiumContext';
 import { neonGlow } from '../utils/styles';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
@@ -13,6 +15,11 @@ const Leaderboards: React.FC = () => {
   const [displayCount, setDisplayCount] = useState<10 | 20 | 50>(10);
   const [kvkFilter, setKvkFilter] = useState<string>('all');
   const isMobile = useIsMobile();
+  const { tier, isPro } = usePremium();
+  const { trackFeature } = useAnalytics();
+  
+  // Tier-based leaderboard limits: anonymous=10, free=25, pro=unlimited
+  const leaderboardLimit = isPro ? 999 : (tier === 'free' ? 25 : 10);
 
   useEffect(() => {
     loadLeaderboard();
@@ -118,6 +125,40 @@ const Leaderboards: React.FC = () => {
     [kingdomsWithStats, displayCount]
   );
 
+  // Highest-ever Win Streak Records (all-time best streaks)
+  const prepBestStreakRanking = useMemo(() => 
+    [...kingdomsWithStats]
+      .filter(k => (k.prep_best_streak ?? 0) > 0)
+      .sort((a, b) => (b.prep_best_streak ?? 0) - (a.prep_best_streak ?? 0))
+      .slice(0, displayCount),
+    [kingdomsWithStats, displayCount]
+  );
+
+  const battleBestStreakRanking = useMemo(() => 
+    [...kingdomsWithStats]
+      .filter(k => (k.battle_best_streak ?? 0) > 0)
+      .sort((a, b) => (b.battle_best_streak ?? 0) - (a.battle_best_streak ?? 0))
+      .slice(0, displayCount),
+    [kingdomsWithStats, displayCount]
+  );
+
+  // Highest-ever win rates (for kingdoms with 3+ KvKs to be meaningful)
+  const prepWinRateRanking = useMemo(() => 
+    [...kingdomsWithStats]
+      .filter(k => k.total_kvks >= 3)
+      .sort((a, b) => b.prep_win_rate - a.prep_win_rate)
+      .slice(0, displayCount),
+    [kingdomsWithStats, displayCount]
+  );
+
+  const battleWinRateRanking = useMemo(() => 
+    [...kingdomsWithStats]
+      .filter(k => k.total_kvks >= 3)
+      .sort((a, b) => b.battle_win_rate - a.battle_win_rate)
+      .slice(0, displayCount),
+    [kingdomsWithStats, displayCount]
+  );
+
   const getRankStyle = (rank: number) => {
     if (rank === 1) return { ...neonGlow('#fbbf24'), fontWeight: 'bold' as const };
     if (rank === 2) return { ...neonGlow('#9ca3af'), fontWeight: 'bold' as const };
@@ -136,8 +177,12 @@ const Leaderboards: React.FC = () => {
 
   const rankingTooltips: Record<string, string> = {
     'Atlas Score': 'Overall kingdom performance rating',
-    'Prep Win Streak': 'Consecutive Preparation Phase wins',
-    'Battle Win Streak': 'Consecutive Battle Phase wins',
+    'Prep Win Rate': 'Highest Preparation Phase win percentage (3+ KvKs)',
+    'Battle Win Rate': 'Highest Battle Phase win percentage (3+ KvKs)',
+    'Prep Win Streak': 'Current consecutive Prep Phase wins',
+    'Battle Win Streak': 'Current consecutive Battle Phase wins',
+    'Prep Streak Record': 'All-time best Prep Phase win streak',
+    'Battle Streak Record': 'All-time best Battle Phase win streak',
     'Dominations': 'Won both Prep and Battle phases',
     'Comebacks': 'Lost Prep but won Battle',
     'Reversals': 'Won Prep but lost Battle',
@@ -154,8 +199,8 @@ const Leaderboards: React.FC = () => {
     title: string; 
     icon: string; 
     color: string; 
-    data: any[]; 
-    getValue: (k: any) => string;
+    data: KingdomWithStats[]; 
+    getValue: (k: KingdomWithStats) => string;
   }) => (
     <div style={{ 
       backgroundColor: '#131318', 
@@ -207,66 +252,129 @@ const Leaderboards: React.FC = () => {
           </div>
         )}
       </div>
-      <div style={{ padding: isMobile ? '0.4rem' : '0.5rem' }}>
-        {data.map((kingdom, index) => (
-          <Link 
-            key={kingdom.kingdom_number}
-            to={`/kingdom/${kingdom.kingdom_number}`}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: isMobile ? '0.4rem 0.6rem' : '0.5rem 0.75rem',
-              borderRadius: '6px',
-              textDecoration: 'none',
-              transition: 'background-color 0.2s',
-              backgroundColor: index < 3 ? `${color}08` : 'transparent'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = index < 3 ? `${color}08` : 'transparent'}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '0.4rem' : '0.5rem' }}>
+      <div style={{ padding: isMobile ? '0.4rem' : '0.5rem', position: 'relative' }}>
+        {data.map((kingdom, index) => {
+          const isGated = index >= leaderboardLimit;
+          return (
+            <Link 
+              key={kingdom.kingdom_number}
+              to={isGated ? '#' : `/kingdom/${kingdom.kingdom_number}`}
+              onClick={(e) => isGated && e.preventDefault()}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: isMobile ? '0.4rem 0.6rem' : '0.5rem 0.75rem',
+                borderRadius: '6px',
+                textDecoration: 'none',
+                transition: 'background-color 0.2s',
+                backgroundColor: index < 3 ? `${color}08` : 'transparent',
+                filter: isGated ? 'blur(4px)' : 'none',
+                opacity: isGated ? 0.5 : 1,
+                pointerEvents: isGated ? 'none' : 'auto'
+              }}
+              onMouseEnter={(e) => !isGated && (e.currentTarget.style.backgroundColor = '#1a1a1a')}
+              onMouseLeave={(e) => !isGated && (e.currentTarget.style.backgroundColor = index < 3 ? `${color}08` : 'transparent')}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '0.4rem' : '0.5rem' }}>
+                <span style={{ 
+                  ...getRankStyle(index + 1), 
+                  minWidth: isMobile ? '22px' : '26px',
+                  fontSize: isMobile ? '0.75rem' : '0.8rem'
+                }}>
+                  {getRankBadge(index + 1)}
+                </span>
+                <span style={{ 
+                  color: '#fff', 
+                  fontWeight: '500',
+                  fontSize: isMobile ? '0.75rem' : '0.8rem'
+                }}>
+                  Kingdom {kingdom.kingdom_number}
+                </span>
+              </div>
               <span style={{ 
-                ...getRankStyle(index + 1), 
-                minWidth: isMobile ? '22px' : '26px',
-                fontSize: isMobile ? '0.75rem' : '0.8rem'
+                ...neonGlow(color), 
+                fontWeight: 'bold',
+                fontSize: isMobile ? '0.8rem' : '0.85rem'
               }}>
-                {getRankBadge(index + 1)}
+                {getValue(kingdom)}
               </span>
-              <span style={{ 
-                color: '#fff', 
-                fontWeight: '500',
-                fontSize: isMobile ? '0.75rem' : '0.8rem'
-              }}>
-                Kingdom {kingdom.kingdom_number}
-              </span>
-            </div>
-            <span style={{ 
-              ...neonGlow(color), 
-              fontWeight: 'bold',
-              fontSize: isMobile ? '0.8rem' : '0.85rem'
-            }}>
-              {getValue(kingdom)}
-            </span>
-          </Link>
-        ))}
+            </Link>
+          );
+        })}
+        {/* Upgrade prompt overlay when content is gated */}
+        {data.length > leaderboardLimit && (
+          <div style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: '80px',
+            background: 'linear-gradient(transparent, #131318 70%)',
+            display: 'flex',
+            alignItems: 'flex-end',
+            justifyContent: 'center',
+            paddingBottom: '0.5rem'
+          }}>
+            <Link
+              to={tier === 'anonymous' ? '/profile' : '/upgrade'}
+              style={{
+                padding: '0.4rem 0.75rem',
+                backgroundColor: '#22d3ee15',
+                border: '1px solid #22d3ee40',
+                borderRadius: '6px',
+                color: '#22d3ee',
+                fontSize: '0.7rem',
+                textDecoration: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.25rem'
+              }}
+            >
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+              </svg>
+              {tier === 'anonymous' ? 'Sign in to see more' : 'Upgrade for full rankings'}
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );
 
-  // Layout: Row 1: Atlas Score, Prep Win Streak, Battle Win Streak
-  //         Row 2: Conquests, Rebounds, Fumbles
-  //         Row 3: (empty), Invasions, (empty)
-  const rankings = [
-    { title: 'Atlas Score', icon: '🏆', color: '#22d3ee', data: atlasScoreRanking, getValue: (k: any) => k.overall_score.toFixed(1) },
-    { title: 'Prep Win Streak', icon: '🛡️', color: '#eab308', data: prepStreakRanking, getValue: (k: any) => `${k.prepStreak}W` },
-    { title: 'Battle Win Streak', icon: '⚔️', color: '#f97316', data: battleStreakRanking, getValue: (k: any) => `${k.battleStreak}W` },
-    { title: 'Dominations', icon: '👑', color: '#22c55e', data: dominationsRanking, getValue: (k: any) => `${k.dominations}` },
-    { title: 'Comebacks', icon: '💪', color: '#3b82f6', data: comebacksRanking, getValue: (k: any) => `${k.comebacks}` },
-    { title: 'Reversals', icon: '🔄', color: '#a855f7', data: reversalsRanking, getValue: (k: any) => `${k.reversals}` },
+  // Layout: Organized by category for meaningful groupings
+  // Row 1: Atlas Score (Overall), Win Rates (Performance %)
+  // Row 2: Win Streaks (Current momentum)
+  // Row 3: Match Outcomes (Historical results)
+  // Row 4: Invasions (Defeats)
+  
+  // Performance Rankings (Overall & Win Rates)
+  const performanceRankings = [
+    { title: 'Atlas Score', icon: '🏆', color: '#22d3ee', data: atlasScoreRanking, getValue: (k: KingdomWithStats) => k.overall_score.toFixed(1) },
+    { title: 'Prep Win Rate', icon: '📊', color: '#10b981', data: prepWinRateRanking, getValue: (k: KingdomWithStats) => `${(k.prep_win_rate * 100).toFixed(0)}%` },
+    { title: 'Battle Win Rate', icon: '📈', color: '#8b5cf6', data: battleWinRateRanking, getValue: (k: KingdomWithStats) => `${(k.battle_win_rate * 100).toFixed(0)}%` },
   ];
   
-  const defeatRanking = { title: 'Invasions', icon: '🏳️', color: '#ef4444', data: defeatsRanking, getValue: (k: any) => `${k.defeats}` };
+  // Current Momentum Rankings (Current Streaks)
+  const momentumRankings = [
+    { title: 'Prep Win Streak', icon: '🛡️', color: '#eab308', data: prepStreakRanking, getValue: (k: KingdomWithStats) => `${k.prepStreak}W` },
+    { title: 'Battle Win Streak', icon: '⚔️', color: '#f97316', data: battleStreakRanking, getValue: (k: KingdomWithStats) => `${k.battleStreak}W` },
+  ];
+  
+  // Record Rankings (All-Time Best Streaks)
+  const recordRankings = [
+    { title: 'Prep Streak Record', icon: '🏅', color: '#fbbf24', data: prepBestStreakRanking, getValue: (k: KingdomWithStats) => `${k.prep_best_streak ?? 0}W` },
+    { title: 'Battle Streak Record', icon: '🎖️', color: '#f59e0b', data: battleBestStreakRanking, getValue: (k: KingdomWithStats) => `${k.battle_best_streak ?? 0}W` },
+  ];
+  
+  // Match Outcome Rankings (Historical)
+  const outcomeRankings = [
+    { title: 'Dominations', icon: '👑', color: '#22c55e', data: dominationsRanking, getValue: (k: KingdomWithStats) => `${k.dominations}` },
+    { title: 'Comebacks', icon: '💪', color: '#3b82f6', data: comebacksRanking, getValue: (k: KingdomWithStats) => `${k.comebacks}` },
+    { title: 'Reversals', icon: '🔄', color: '#a855f7', data: reversalsRanking, getValue: (k: KingdomWithStats) => `${k.reversals}` },
+  ];
+  
+  const defeatRanking = { title: 'Invasions', icon: '💀', color: '#ef4444', data: defeatsRanking, getValue: (k: KingdomWithStats) => `${k.defeats}` };
 
   const kvkFilterOptions = [
     { value: 'all', label: 'All KvKs' },
@@ -297,7 +405,7 @@ const Leaderboards: React.FC = () => {
             <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>LEADERBOARDS</span>
           </h1>
           <p style={{ color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.9rem', marginBottom: '0.75rem' }}>
-            Top kingdoms across all metrics
+            Who's dominating? The data doesn't lie.
           </p>
           {!isMobile && (
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
@@ -331,7 +439,7 @@ const Leaderboards: React.FC = () => {
             {([10, 20, 50] as const).map((count) => (
               <button
                 key={count}
-                onClick={() => setDisplayCount(count)}
+                onClick={() => { trackFeature('Leaderboard Display Count', { count }); setDisplayCount(count); }}
                 style={{
                   padding: isMobile ? '0.45rem 0.9rem' : '0.5rem 1.25rem',
                   backgroundColor: displayCount === count ? '#22d3ee' : 'transparent',
@@ -381,46 +489,156 @@ const Leaderboards: React.FC = () => {
           </div>
         ) : (
           <>
-            {/* Main 6 rankings in 3-column grid */}
-            <div style={{ 
-              display: 'grid', 
-              gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', 
-              gap: isMobile ? '1rem' : '1rem',
-              marginBottom: '1rem'
-            }}>
-              {rankings.map((ranking, idx) => (
-                <LeaderboardCard
-                  key={idx}
-                  title={ranking.title}
-                  icon={ranking.icon}
-                  color={ranking.color}
-                  data={ranking.data}
-                  getValue={ranking.getValue}
-                />
-              ))}
+            {/* Performance Rankings: Atlas Score + Win Rates */}
+            <div style={{ marginBottom: '1.5rem' }}>
+              <h2 style={{ 
+                color: '#fff', 
+                fontSize: isMobile ? '0.9rem' : '1rem', 
+                marginBottom: '0.75rem',
+                paddingLeft: '0.5rem',
+                borderLeft: '3px solid #22d3ee'
+              }}>
+                📊 Performance Rankings
+              </h2>
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', 
+                gap: isMobile ? '1rem' : '1rem'
+              }}>
+                {performanceRankings.map((ranking, idx) => (
+                  <LeaderboardCard
+                    key={idx}
+                    title={ranking.title}
+                    icon={ranking.icon}
+                    color={ranking.color}
+                    data={ranking.data}
+                    getValue={ranking.getValue}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Current Momentum: Win Streaks */}
+            <div style={{ marginBottom: '1.5rem' }}>
+              <h2 style={{ 
+                color: '#fff', 
+                fontSize: isMobile ? '0.9rem' : '1rem', 
+                marginBottom: '0.75rem',
+                paddingLeft: '0.5rem',
+                borderLeft: '3px solid #eab308'
+              }}>
+                🔥 Current Momentum
+              </h2>
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', 
+                gap: isMobile ? '1rem' : '1rem',
+                maxWidth: isMobile ? '100%' : '66.666%'
+              }}>
+                {momentumRankings.map((ranking, idx) => (
+                  <LeaderboardCard
+                    key={idx}
+                    title={ranking.title}
+                    icon={ranking.icon}
+                    color={ranking.color}
+                    data={ranking.data}
+                    getValue={ranking.getValue}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* All-Time Records: Best Streaks Ever */}
+            <div style={{ marginBottom: '1.5rem' }}>
+              <h2 style={{ 
+                color: '#fff', 
+                fontSize: isMobile ? '0.9rem' : '1rem', 
+                marginBottom: '0.75rem',
+                paddingLeft: '0.5rem',
+                borderLeft: '3px solid #fbbf24'
+              }}>
+                🏅 All-Time Records
+              </h2>
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', 
+                gap: isMobile ? '1rem' : '1rem',
+                maxWidth: isMobile ? '100%' : '66.666%'
+              }}>
+                {recordRankings.map((ranking, idx) => (
+                  <LeaderboardCard
+                    key={idx}
+                    title={ranking.title}
+                    icon={ranking.icon}
+                    color={ranking.color}
+                    data={ranking.data}
+                    getValue={ranking.getValue}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Match Outcomes: Historical Results */}
+            <div style={{ marginBottom: '1.5rem' }}>
+              <h2 style={{ 
+                color: '#fff', 
+                fontSize: isMobile ? '0.9rem' : '1rem', 
+                marginBottom: '0.75rem',
+                paddingLeft: '0.5rem',
+                borderLeft: '3px solid #22c55e'
+              }}>
+                📈 Match Outcomes
+              </h2>
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', 
+                gap: isMobile ? '1rem' : '1rem'
+              }}>
+                {outcomeRankings.map((ranking, idx) => (
+                  <LeaderboardCard
+                    key={idx}
+                    title={ranking.title}
+                    icon={ranking.icon}
+                    color={ranking.color}
+                    data={ranking.data}
+                    getValue={ranking.getValue}
+                  />
+                ))}
+              </div>
             </div>
             
-            {/* Invasions centered in third row */}
-            <div style={{ 
-              display: 'flex',
-              justifyContent: 'center'
-            }}>
-              <div style={{ width: isMobile ? '100%' : 'calc(33.333% - 0.67rem)' }}>
-                <LeaderboardCard
-                  title={defeatRanking.title}
-                  icon={defeatRanking.icon}
-                  color={defeatRanking.color}
-                  data={defeatRanking.data}
-                  getValue={defeatRanking.getValue}
-                />
+            {/* Invasions (Defeats) - centered */}
+            <div style={{ marginBottom: '1rem' }}>
+              <h2 style={{ 
+                color: '#fff', 
+                fontSize: isMobile ? '0.9rem' : '1rem', 
+                marginBottom: '0.75rem',
+                paddingLeft: '0.5rem',
+                borderLeft: '3px solid #ef4444'
+              }}>
+                ⚠️ Hall of Infamy
+              </h2>
+              <div style={{ 
+                display: 'flex',
+                justifyContent: 'center'
+              }}>
+                <div style={{ width: isMobile ? '100%' : 'calc(33.333% - 0.67rem)' }}>
+                  <LeaderboardCard
+                    title={defeatRanking.title}
+                    icon={defeatRanking.icon}
+                    color={defeatRanking.color}
+                    data={defeatRanking.data}
+                    getValue={defeatRanking.getValue}
+                  />
+                </div>
               </div>
             </div>
           </>
         )}
 
-        {/* Back to Directory link */}
+        {/* Back to Home link */}
         <div style={{ textAlign: 'center', marginTop: '2rem', paddingBottom: '1rem' }}>
-          <Link to="/" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: '0.8rem' }}>← Back to Directory</Link>
+          <Link to="/" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: '0.8rem' }}>← Back to Home</Link>
         </div>
       </div>
     </div>

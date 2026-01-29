@@ -1,5 +1,6 @@
 // Service Worker Registration for offline support
 // Based on Create React App's PWA template
+import { logger } from './utils/logger';
 
 const isLocalhost = Boolean(
   window.location.hostname === 'localhost' ||
@@ -25,7 +26,7 @@ export function register(config?: Config): void {
       if (isLocalhost) {
         checkValidServiceWorker(swUrl, config);
         navigator.serviceWorker.ready.then(() => {
-          console.log('Kingshot Atlas is being served cache-first by a service worker.');
+          logger.log('Kingshot Atlas is being served cache-first by a service worker.');
         });
       } else {
         registerValidSW(swUrl, config);
@@ -46,12 +47,12 @@ function registerValidSW(swUrl: string, config?: Config): void {
         installingWorker.onstatechange = () => {
           if (installingWorker.state === 'installed') {
             if (navigator.serviceWorker.controller) {
-              console.log('New content available; please refresh.');
+              logger.log('New content available; please refresh.');
               if (config && config.onUpdate) {
                 config.onUpdate(registration);
               }
             } else {
-              console.log('Content is cached for offline use.');
+              logger.log('Content is cached for offline use.');
               if (config && config.onSuccess) {
                 config.onSuccess(registration);
               }
@@ -61,7 +62,7 @@ function registerValidSW(swUrl: string, config?: Config): void {
       };
     })
     .catch((error) => {
-      console.error('Error during service worker registration:', error);
+      logger.error('Error during service worker registration:', error);
     });
 }
 
@@ -83,7 +84,7 @@ function checkValidServiceWorker(swUrl: string, config?: Config): void {
       }
     })
     .catch(() => {
-      console.log('No internet connection found. App is running in offline mode.');
+      logger.log('No internet connection found. App is running in offline mode.');
     });
 }
 
@@ -94,7 +95,7 @@ export function unregister(): void {
         registration.unregister();
       })
       .catch((error) => {
-        console.error(error.message);
+        logger.error(error.message);
       });
   }
 }

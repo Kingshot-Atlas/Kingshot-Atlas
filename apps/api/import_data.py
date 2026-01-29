@@ -17,8 +17,18 @@ def import_kingdoms_data():
         db.query(Kingdom).delete()
         db.commit()
         
-        # Import kingdoms summary
-        kingdoms_df = pd.read_csv("../../data/processed/kingdoms_summary.csv")
+        # Import kingdoms summary (check both local and bundled paths)
+        data_paths = ["../../data/processed/", "./data/", "../data/processed/"]
+        kingdoms_path = None
+        for path in data_paths:
+            if os.path.exists(f"{path}kingdoms_summary.csv"):
+                kingdoms_path = path
+                break
+        
+        if not kingdoms_path:
+            raise FileNotFoundError("Could not find kingdoms_summary.csv in any expected location")
+        
+        kingdoms_df = pd.read_csv(f"{kingdoms_path}kingdoms_summary.csv")
         
         for _, row in kingdoms_df.iterrows():
             kingdom = Kingdom(
@@ -43,7 +53,7 @@ def import_kingdoms_data():
         print(f"Imported {len(kingdoms_df)} kingdoms")
         
         # Import ALL KVK records (full history for kingdom profiles)
-        kvks_df = pd.read_csv("../../data/processed/kingdoms_all_kvks.csv")
+        kvks_df = pd.read_csv(f"{kingdoms_path}kingdoms_all_kvks.csv")
         
         for _, row in kvks_df.iterrows():
             kvk_record = KVKRecord(

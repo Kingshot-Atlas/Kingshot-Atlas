@@ -107,7 +107,7 @@ class TestCompareEndpoints:
     def test_compare_kingdoms(self, client, sample_kingdom, db_session):
         """Test comparing multiple kingdoms."""
         from models import Kingdom
-        from datetime import datetime
+        from datetime import datetime, timezone
         
         # Create another kingdom
         kingdom2 = Kingdom(
@@ -125,7 +125,7 @@ class TestCompareEndpoints:
             defeats=1,
             most_recent_status="Unannounced",
             overall_score=82.0,
-            last_updated=datetime.utcnow()
+            last_updated=datetime.now(timezone.utc)
         )
         db_session.add(kingdom2)
         db_session.commit()

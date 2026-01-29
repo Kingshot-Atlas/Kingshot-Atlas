@@ -295,7 +295,7 @@ const EventCalendar: React.FC = () => {
                         borderRadius: '50%',
                         backgroundColor: e.color
                       }}
-                      title={e.name}
+                      aria-label={e.name}
                     />
                   ))}
                 </div>

@@ -140,7 +140,7 @@ const ClaimKingdom: React.FC<ClaimKingdomProps> = ({ kingdomNumber, isOpen, onCl
                   ].map(opt => (
                     <button
                       key={opt.value}
-                      onClick={() => setRole(opt.value as any)}
+                      onClick={() => setRole(opt.value as 'king' | 'r4' | 'r5')}
                       style={{
                         padding: '0.75rem 1rem',
                         backgroundColor: role === opt.value ? '#22d3ee15' : '#1a1a20',

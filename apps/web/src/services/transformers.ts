@@ -1,7 +1,7 @@
 /**
  * Data transformation utilities for Kingshot Atlas.
  */
-import { Kingdom, KingdomProfile, KVKRecord, getPowerTier } from '../types';
+import { Kingdom, KingdomProfile, KVKRecord, getPowerTier, RawKingdomData, KingdomDataFile } from '../types';
 import kingdomData from '../data/kingdoms.json';
 
 /**
@@ -33,7 +33,7 @@ export function loadKingdomData(): Kingdom[] {
   }
   
   // Build kingdom objects
-  const kingdoms = kingdomData.kingdoms.map((k: any) => {
+  const kingdoms = (kingdomData as KingdomDataFile).kingdoms.map((k: RawKingdomData) => {
     const recentKvks = kvksByKingdom[k.kingdom_number] || [];
     
     // Calculate High Kings and Invader Kings from recent KvKs
@@ -47,10 +47,14 @@ export function loadKingdomData(): Kingdom[] {
       prep_losses: k.prep_losses,
       prep_win_rate: k.prep_win_rate,
       prep_streak: k.prep_streak,
+      prep_loss_streak: k.prep_loss_streak ?? 0,
+      prep_best_streak: k.prep_best_streak ?? 0,
       battle_wins: k.battle_wins,
       battle_losses: k.battle_losses,
       battle_win_rate: k.battle_win_rate,
       battle_streak: k.battle_streak,
+      battle_loss_streak: k.battle_loss_streak ?? 0,
+      battle_best_streak: k.battle_best_streak ?? 0,
       most_recent_status: 'Unannounced',
       overall_score: k.overall_score,
       power_tier: getPowerTier(k.overall_score),

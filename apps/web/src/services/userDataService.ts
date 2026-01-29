@@ -4,6 +4,7 @@
  */
 
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { logger } from '../utils/logger';
 
 const FAVORITES_KEY = 'kingshot_favorites';
 const RECENTLY_VIEWED_KEY = 'kingshot_recently_viewed';
@@ -79,7 +80,7 @@ class UserDataService {
         this.saveLocalData(merged);
       }
     } catch (err) {
-      console.warn('Failed to sync from cloud:', err);
+      logger.warn('Failed to sync from cloud:', err);
     }
   }
 
@@ -100,7 +101,7 @@ class UserDataService {
           updated_at: new Date().toISOString()
         }, { onConflict: 'user_id' });
     } catch (err) {
-      console.warn('Failed to sync to cloud:', err);
+      logger.warn('Failed to sync to cloud:', err);
     }
   }
 

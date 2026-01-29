@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 /**
  * Breakpoint values in pixels
@@ -12,6 +12,26 @@ export const BREAKPOINTS = {
 } as const;
 
 /**
+ * Debounce helper for resize handlers
+ */
+const useDebouncedCallback = (callback: () => void, delay: number): (() => void) => {
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const callbackRef = useRef(callback);
+  
+  // Keep callback ref updated
+  useEffect(() => {
+    callbackRef.current = callback;
+  }, [callback]);
+  
+  return useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    timeoutRef.current = setTimeout(() => callbackRef.current(), delay);
+  }, [delay]);
+};
+
+/**
  * Hook to detect if viewport is mobile width
  * @returns boolean indicating if viewport is < 768px
  */
@@ -20,14 +40,14 @@ export const useIsMobile = (): boolean => {
     typeof window !== 'undefined' ? window.innerWidth < BREAKPOINTS.mobile : false
   );
 
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < BREAKPOINTS.mobile);
-    };
+  const handleResize = useDebouncedCallback(() => {
+    setIsMobile(window.innerWidth < BREAKPOINTS.mobile);
+  }, 100);
 
+  useEffect(() => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [handleResize]);
 
   return isMobile;
 };
@@ -43,16 +63,16 @@ export const useIsTablet = (): boolean => {
       : false
   );
 
-  useEffect(() => {
-    const handleResize = () => {
-      setIsTablet(
-        window.innerWidth >= BREAKPOINTS.mobile && window.innerWidth < BREAKPOINTS.tablet
-      );
-    };
+  const handleResize = useDebouncedCallback(() => {
+    setIsTablet(
+      window.innerWidth >= BREAKPOINTS.mobile && window.innerWidth < BREAKPOINTS.tablet
+    );
+  }, 100);
 
+  useEffect(() => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [handleResize]);
 
   return isTablet;
 };
@@ -66,14 +86,14 @@ export const useIsDesktop = (): boolean => {
     typeof window !== 'undefined' ? window.innerWidth >= BREAKPOINTS.tablet : true
   );
 
-  useEffect(() => {
-    const handleResize = () => {
-      setIsDesktop(window.innerWidth >= BREAKPOINTS.tablet);
-    };
+  const handleResize = useDebouncedCallback(() => {
+    setIsDesktop(window.innerWidth >= BREAKPOINTS.tablet);
+  }, 100);
 
+  useEffect(() => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [handleResize]);
 
   return isDesktop;
 };
@@ -112,29 +132,31 @@ export const usePrefersReducedMotion = (): boolean => {
 };
 
 /**
+ * Helper to get breakpoint from window width
+ */
+const getBreakpoint = (): 'mobile' | 'tablet' | 'desktop' | 'wide' => {
+  const width = typeof window !== 'undefined' ? window.innerWidth : 1024;
+  if (width < BREAKPOINTS.mobile) return 'mobile';
+  if (width < BREAKPOINTS.tablet) return 'tablet';
+  if (width < BREAKPOINTS.wide) return 'desktop';
+  return 'wide';
+};
+
+/**
  * Hook to get current breakpoint name
  * @returns 'mobile' | 'tablet' | 'desktop' | 'wide'
  */
 export const useBreakpoint = (): 'mobile' | 'tablet' | 'desktop' | 'wide' => {
-  const [breakpoint, setBreakpoint] = useState<'mobile' | 'tablet' | 'desktop' | 'wide'>('desktop');
+  const [breakpoint, setBreakpoint] = useState<'mobile' | 'tablet' | 'desktop' | 'wide'>(getBreakpoint);
+
+  const handleResize = useDebouncedCallback(() => {
+    setBreakpoint(getBreakpoint());
+  }, 100);
 
   useEffect(() => {
-    const getBreakpoint = (): 'mobile' | 'tablet' | 'desktop' | 'wide' => {
-      const width = window.innerWidth;
-      if (width < BREAKPOINTS.mobile) return 'mobile';
-      if (width < BREAKPOINTS.tablet) return 'tablet';
-      if (width < BREAKPOINTS.wide) return 'desktop';
-      return 'wide';
-    };
-
-    const handleResize = () => setBreakpoint(getBreakpoint());
-    
-    // Set initial value
-    setBreakpoint(getBreakpoint());
-    
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [handleResize]);
 
   return breakpoint;
 };

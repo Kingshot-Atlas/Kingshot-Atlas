@@ -6,9 +6,44 @@ on:
   push:
     branches: [main]
 
+# Cancel in-progress runs for the same branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
+  # Python API Tests
+  api-test:
+    name: API Tests (Python)
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: apps/api
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+          cache-dependency-path: apps/api/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        run: pytest tests/ -v --tb=short
+        env:
+          SECRET_KEY: "test-secret-key-for-ci-only"
+          DATABASE_URL: "sqlite:///:memory:"
+
+  # Frontend Lint & Test
   lint-and-test:
-    name: Lint & Test
+    name: Lint & Test (Frontend)
     runs-on: ubuntu-latest
     
     defaults:
@@ -30,7 +65,7 @@ jobs:
         run: npm ci
 
       - name: Run ESLint
-        run: npm run lint --if-present
+        run: npm run lint
 
       - name: Run tests
         run: npm test -- --watchAll=false --passWithNoTests
@@ -40,7 +75,7 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    needs: lint-and-test
+    needs: [api-test, lint-and-test]
     
     defaults:
       run:
@@ -64,7 +99,7 @@ jobs:
         run: npm run build
         env:
           CI: true
-          REACT_APP_API_URL: ${{ vars.REACT_APP_API_URL || 'https://api.kingshot-atlas.com' }}
+          REACT_APP_API_URL: ${{ vars.REACT_APP_API_URL || 'https://api.ks-atlas.com' }}
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
@@ -96,8 +131,8 @@ jobs:
       - name: Install Lighthouse CI
         run: npm install -g @lhci/cli
 
-      - name: Run Lighthouse
+      - name: Run Lighthouse CI
         run: |
-          lhci autorun --collect.staticDistDir=./apps/web/build --upload.target=temporary-public-storage
+          lhci autorun --config=./apps/web/lighthouserc.js
         env:
           LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}

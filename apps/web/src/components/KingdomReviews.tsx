@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth, getCacheBustedAvatarUrl } from '../contexts/AuthContext';
 import AuthModal from './AuthModal';
 
 interface Review {
@@ -149,7 +149,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
           }}>
             {profile?.avatar_url && (
               <img 
-                src={profile.avatar_url} 
+                src={getCacheBustedAvatarUrl(profile.avatar_url)} 
                 alt="" 
                 style={{ width: '24px', height: '24px', borderRadius: '50%' }}
               />

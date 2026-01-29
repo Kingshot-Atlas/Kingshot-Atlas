@@ -88,7 +88,7 @@ class TestSubmissionValidation:
         assert response.status_code == 422
 
     def test_create_submission_missing_user_id(self, client, sample_kingdom):
-        """Test submission fails without user ID header."""
+        """Test submission fails without user ID header (returns 401 Unauthorized)."""
         response = client.post(
             "/api/submissions",
             json={
@@ -99,7 +99,7 @@ class TestSubmissionValidation:
                 "battle_result": "W"
             }
         )
-        assert response.status_code == 422
+        assert response.status_code == 401  # Authentication required
 
     def test_create_submission_kingdom_not_found(self, client):
         """Test submission fails for non-existent kingdom."""

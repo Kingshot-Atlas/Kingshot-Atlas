@@ -13,9 +13,11 @@ import SearchAutocomplete from '../components/SearchAutocomplete';
 import EventCalendar from '../components/EventCalendar';
 import PostKvKSubmission from '../components/PostKvKSubmission';
 import HotRightNow from '../components/HotRightNow';
+import AdBanner from '../components/AdBanner';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { usePreferences } from '../hooks/useUrlState';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { useAuth } from '../contexts/AuthContext';
 import { neonGlow } from '../utils/styles';
 import { countActiveFilters, DEFAULT_FILTERS } from '../utils/kingdomStats';
 
@@ -27,6 +29,7 @@ const KingdomDirectory: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { showToast } = useToast();
+  const { user } = useAuth();
   const { loadPreferences, savePreferences } = usePreferences();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
@@ -195,6 +198,12 @@ const KingdomDirectory: React.FC = () => {
   }, [sort, showToast]);
 
   const toggleFavorite = useCallback((kingdomNumber: number) => {
+    // Gate favorites to logged-in users only
+    if (!user) {
+      showToast('Sign in to save favorites', 'info');
+      navigate('/profile');
+      return;
+    }
     setFavorites(prev => {
       const isFav = prev.includes(kingdomNumber);
       if (isFav) {
@@ -205,7 +214,7 @@ const KingdomDirectory: React.FC = () => {
         return [...prev, kingdomNumber];
       }
     });
-  }, [showToast]);
+  }, [showToast, user, navigate]);
 
   const filteredKingdoms = useMemo(() => {
     let result = [...allKingdoms];
@@ -298,7 +307,7 @@ const KingdomDirectory: React.FC = () => {
             <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>ATLAS</span>
           </h1>
           <p style={{ color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.9rem', marginBottom: '0.75rem' }}>
-            Compare kingdoms, track results, and find your next home.
+            Know your enemy. Choose your allies. Dominate KvK.
           </p>
           
           {!isMobile && (
@@ -627,6 +636,9 @@ const KingdomDirectory: React.FC = () => {
 
       {/* Content Area */}
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: isMobile ? '0 0.75rem' : '0 2rem' }}>
+        {/* Ad Banner - shows upgrade prompt for non-Pro users */}
+        <AdBanner placement="directory" />
+        
         {/* Recently Viewed - Compact Inline */}
         {recentlyViewed.length > 0 && (
           <div style={{ 
@@ -676,7 +688,7 @@ const KingdomDirectory: React.FC = () => {
                   padding: '0.25rem',
                   marginLeft: '0.25rem'
                 }}
-                title="Clear history"
+                aria-label="Clear history"
               >
                 ✕
               </button>
@@ -923,7 +935,7 @@ const KingdomDirectory: React.FC = () => {
             e.currentTarget.style.backgroundColor = '#111111';
             e.currentTarget.style.borderColor = '#2a2a2a';
           }}
-          title="Back to top"
+          aria-label="Back to top"
         >
           <svg style={{ width: '20px', height: '20px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />

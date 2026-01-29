@@ -60,7 +60,7 @@ const AtlasScoreInfo: React.FC<AtlasScoreInfoProps> = ({ inline = false }) => {
           alignItems: 'center',
           color: '#6b7280'
         }}
-        title="How is Atlas Score calculated?"
+        aria-label="How is Atlas Score calculated?"
       >
         <svg style={{ width: '16px', height: '16px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

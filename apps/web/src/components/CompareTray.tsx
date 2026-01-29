@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAnalytics } from '../hooks/useAnalytics';
 
 interface CompareTrayProps {
   compareKingdom1: string;
@@ -23,6 +24,7 @@ const CompareTray: React.FC<CompareTrayProps> = ({
   setShowCompareTray
 }) => {
   const navigate = useNavigate();
+  const { trackFeature } = useAnalytics();
   const [showHistory, setShowHistory] = useState(false);
 
   const handleCompare = () => {
@@ -30,6 +32,7 @@ const CompareTray: React.FC<CompareTrayProps> = ({
       const k1 = parseInt(compareKingdom1);
       const k2 = parseInt(compareKingdom2);
       
+      trackFeature('Compare Tray', { kingdom1: k1, kingdom2: k2 });
       setCompareHistory(prev => {
         const newHistory = [{ k1, k2 }, ...prev.filter(h => !(h.k1 === k1 && h.k2 === k2))].slice(0, 5);
         return newHistory;

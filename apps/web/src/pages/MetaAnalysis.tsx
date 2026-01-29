@@ -17,9 +17,8 @@ const MetaAnalysis: React.FC = () => {
   const loadKingdoms = async () => {
     try {
       const data = await apiService.getKingdoms();
-      // Handle both array and paginated response formats
-      const kingdomList = Array.isArray(data) ? data : (data as any).items || [];
-      setKingdoms(kingdomList);
+      // apiService.getKingdoms() always returns Kingdom[]
+      setKingdoms(data);
     } catch (e) {
       console.error('Failed to load kingdoms:', e);
     } finally {
@@ -105,7 +104,7 @@ const MetaAnalysis: React.FC = () => {
           <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.5rem' }}>ANALYSIS</span>
         </h1>
         <p style={{ color: '#6b7280', fontSize: '0.9rem' }}>
-          Aggregate statistics across {stats.total.toLocaleString()} kingdoms
+          The big picture across {stats.total.toLocaleString()} kingdoms. No spin.
         </p>
       </div>
 
@@ -214,9 +213,9 @@ const MetaAnalysis: React.FC = () => {
           marginBottom: '2rem'
         }}>
           {[
-            { title: 'Top by Atlas Score', data: stats.topByScore, valueKey: 'overall_score', format: (v: number) => v.toFixed(1) },
-            { title: 'Top Prep Win Rate', data: stats.topByPrepWR, valueKey: 'prep_win_rate', format: (v: number) => `${Math.round(v * 100)}%` },
-            { title: 'Top Battle Win Rate', data: stats.topByBattleWR, valueKey: 'battle_win_rate', format: (v: number) => `${Math.round(v * 100)}%` }
+            { title: 'Top by Atlas Score', data: stats.topByScore, getValue: (k: Kingdom) => k.overall_score, format: (v: number) => v.toFixed(1) },
+            { title: 'Top Prep Win Rate', data: stats.topByPrepWR, getValue: (k: Kingdom) => k.prep_win_rate, format: (v: number) => `${Math.round(v * 100)}%` },
+            { title: 'Top Battle Win Rate', data: stats.topByBattleWR, getValue: (k: Kingdom) => k.battle_win_rate, format: (v: number) => `${Math.round(v * 100)}%` }
           ].map((section, i) => (
             <div key={i} style={{
               backgroundColor: '#131318',
@@ -248,7 +247,7 @@ const MetaAnalysis: React.FC = () => {
                     <span style={{ color: '#fff', fontWeight: '500' }}>K{k.kingdom_number}</span>
                   </div>
                   <span style={{ color: '#22d3ee', fontWeight: '600' }}>
-                    {section.format((k as any)[section.valueKey])}
+                    {section.format(section.getValue(k))}
                   </span>
                 </Link>
               ))}
@@ -346,10 +345,10 @@ const MetaAnalysis: React.FC = () => {
           </div>
         </div>
 
-        {/* Back to Directory */}
+        {/* Back to Home */}
         <div style={{ textAlign: 'center' }}>
           <Link to="/" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: '0.9rem' }}>
-            ← Back to Directory
+            ← Back to Home
           </Link>
         </div>
       </div>

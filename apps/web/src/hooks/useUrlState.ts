@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { logger } from '../utils/logger';
 import { useSearchParams } from 'react-router-dom';
 import { FilterOptions, SortOptions } from '../types';
 
@@ -96,7 +97,7 @@ export const usePreferences = () => {
         return { ...DEFAULT_PREFERENCES, ...JSON.parse(saved) };
       }
     } catch (e) {
-      console.warn('Failed to load preferences:', e);
+      logger.warn('Failed to load preferences:', e);
     }
     return DEFAULT_PREFERENCES;
   }, []);
@@ -107,7 +108,7 @@ export const usePreferences = () => {
       const updated = { ...current, ...prefs };
       localStorage.setItem(PREFERENCES_KEY, JSON.stringify(updated));
     } catch (e) {
-      console.warn('Failed to save preferences:', e);
+      logger.warn('Failed to save preferences:', e);
     }
   }, [loadPreferences]);
 

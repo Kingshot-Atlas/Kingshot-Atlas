@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Kingdom } from '../types';
 import { useIsMobile } from '../hooks/useMediaQuery';
+import { useAnalytics } from '../hooks/useAnalytics';
 
 interface SearchAutocompleteProps {
   kingdoms: Kingdom[];
@@ -24,10 +25,12 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const { trackSearch, trackFeature } = useAnalytics();
 
   const suggestions = value.trim()
     ? kingdoms
         .filter(k => k.kingdom_number.toString().includes(value.trim()))
+        .sort((a, b) => a.kingdom_number - b.kingdom_number)
         .slice(0, 8)
     : [];
 
@@ -47,6 +50,18 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
   useEffect(() => {
     setHighlightedIndex(-1);
   }, [value]);
+
+  const handleSelect = useCallback((kingdom: Kingdom) => {
+    trackSearch(`K${kingdom.kingdom_number}`);
+    trackFeature('Kingdom Search', { kingdom: kingdom.kingdom_number });
+    if (onSelect) {
+      onSelect(kingdom);
+    } else {
+      navigate(`/kingdom/${kingdom.kingdom_number}`);
+    }
+    setIsFocused(false);
+    onChange('');
+  }, [onSelect, navigate, onChange, trackSearch, trackFeature]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (!showDropdown) return;
@@ -74,18 +89,7 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
         inputRef.current?.blur();
         break;
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showDropdown, highlightedIndex, suggestions]);
-
-  const handleSelect = (kingdom: Kingdom) => {
-    if (onSelect) {
-      onSelect(kingdom);
-    } else {
-      navigate(`/kingdom/${kingdom.kingdom_number}`);
-    }
-    setIsFocused(false);
-    onChange('');
-  };
+  }, [showDropdown, highlightedIndex, suggestions, handleSelect]);
 
   const handleBlur = (e: React.FocusEvent) => {
     if (dropdownRef.current?.contains(e.relatedTarget as Node)) {

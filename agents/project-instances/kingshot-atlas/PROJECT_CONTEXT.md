@@ -1,7 +1,17 @@
 # Kingshot Atlas - Project Context for Specialists
 
-**Last Updated:** 2026-01-27  
+**Last Updated:** 2026-01-28  
 **Read this before starting any work on this project.**
+
+---
+
+## ⚠️ BEFORE YOU START
+
+1. **Read** `STATUS_SNAPSHOT.md` - Current project state
+2. **Check** `FILE_CLAIMS.md` - Ensure no conflicts
+3. **Scan** `ACTIVITY_LOG.md` - See recent changes
+
+All files are in this directory: `/agents/project-instances/kingshot-atlas/`
 
 ---
 
@@ -9,17 +19,19 @@
 
 **Kingshot Atlas** is a web application for tracking and comparing gaming kingdoms. Users can browse kingdoms, view detailed profiles, compare multiple kingdoms side-by-side, and track battle outcomes.
 
+**Live URL:** https://ks-atlas.com
+
 ---
 
 ## Tech Stack
 
 | Layer | Technology |
 |-------|------------|
-| Frontend | React 18, TypeScript, Tailwind CSS |
+| Frontend | React 19, TypeScript, Tailwind CSS |
 | State | React hooks, local state |
 | Backend | Python FastAPI |
-| Database | SQLite |
-| Frontend Hosting | Netlify |
+| Database | SQLite (PostgreSQL-ready) |
+| Frontend Hosting | Netlify (ks-atlas.com) |
 | Backend Hosting | Railway/Render |
 
 ---
@@ -72,17 +84,19 @@
 
 ## Current State
 
-See `/docs/STATE_PACKET.md` for latest status.
+See `STATUS_SNAPSHOT.md` in this directory for real-time status.
 
 **Recent Work:**
+- Established coordination system (2026-01-28)
 - Refactored KingdomDirectory.tsx (1191 → 878 lines)
 - Extracted components: SkeletonCard, KingdomTable, CompareTray
 - Added unit tests for core utilities
-- Deployed to Netlify
+- Deployed to Netlify with custom domain
 
 **Known Issues:**
 - `getOutcome()` case-sensitivity test failing
 - ESLint warnings in Admin.tsx, Profile.tsx
+- FilterPanel created but not integrated
 
 ---
 
@@ -90,9 +104,12 @@ See `/docs/STATE_PACKET.md` for latest status.
 
 | Topic | File |
 |-------|------|
+| **Current status** | `STATUS_SNAPSHOT.md` (this directory) |
+| **Activity log** | `ACTIVITY_LOG.md` (this directory) |
+| **File claims** | `FILE_CLAIMS.md` (this directory) |
 | Visual styling | `/apps/web/src/STYLE_GUIDE.md` |
 | Agent behavior | `/docs/AGENT_PROTOCOL.md` |
-| Current state | `/docs/STATE_PACKET.md` |
+| State packet | `/docs/STATE_PACKET.md` |
 | Power tiers | `/apps/web/src/types/index.ts` |
 
 ---
@@ -103,23 +120,39 @@ See `/docs/STATE_PACKET.md` for latest status.
 # Frontend
 cd apps/web
 npm install
-npm start          # Dev server
+npm start          # Dev server (http://localhost:3000)
 npm run build      # Production build
 npm test           # Run tests
 
 # Backend
 cd apps/api
-python -m uvicorn main:app --reload
+python -m uvicorn main:app --reload  # http://127.0.0.1:8000
 ```
 
 ---
 
 ## Deployment
 
-- **Frontend:** Auto-deploys to Netlify from main branch
-- **Site URL:** https://kingshot-atlas.netlify.app
+- **Frontend:** Netlify with custom domain
+- **Live URL:** https://ks-atlas.com
+- **Netlify URL:** https://ks-atlas.netlify.app
 - **Policy:** Local testing only unless user explicitly requests deployment
 
 ---
 
-*Read the relevant STYLE_GUIDE.md and STATE_PACKET.md before making changes.*
+## Coordination Checklist
+
+Before starting work:
+- [ ] Read `STATUS_SNAPSHOT.md`
+- [ ] Check `FILE_CLAIMS.md`
+- [ ] Scan `ACTIVITY_LOG.md`
+
+After completing work:
+- [ ] Release claims in `FILE_CLAIMS.md`
+- [ ] Log completion in `ACTIVITY_LOG.md`
+- [ ] Update `STATUS_SNAPSHOT.md`
+- [ ] Update your worklog in `worklogs/[your-agent].md`
+
+---
+
+*Read STATUS_SNAPSHOT.md and STYLE_GUIDE.md before making changes.*

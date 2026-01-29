@@ -82,12 +82,28 @@ Premium features:
 
 ---
 
-## 8) How to work with Cascade efficiently
+## 8) Agent Coordination System
+
+Before starting any work:
+1. **Read** `/agents/project-instances/kingshot-atlas/STATUS_SNAPSHOT.md`
+2. **Check** `/agents/project-instances/kingshot-atlas/FILE_CLAIMS.md`
+3. **Scan** `/agents/project-instances/kingshot-atlas/ACTIVITY_LOG.md`
+
+After completing work:
+1. Release claims in `FILE_CLAIMS.md`
+2. Log completion in `ACTIVITY_LOG.md`
+3. Update `STATUS_SNAPSHOT.md`
+
+Full protocol: `/docs/AGENT_PROTOCOL.md`
+
+---
+
+## 9) How to work with Cascade efficiently
 When using AI:
 - Tell it exactly what to build
 - Limit it to a few files
-- Avoid “scan everything”
+- Avoid "scan everything"
 - Ship MVP first, polish later
 
 Suggested AI prompt:
-"Only open the minimum files needed. Build the MVP directory + profile first. Keep it clean and dark/neon styling."
+"Read STATUS_SNAPSHOT.md first. Only open the minimum files needed. Build the MVP directory + profile first. Keep it clean and dark/neon styling."

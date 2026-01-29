@@ -46,6 +46,9 @@ yarn-error.log*
 *.sqlite
 *.sqlite3
 
+# Allow data files in apps/api for deployment
+!apps/api/data/
+
 # Secrets and keys
 *.pem
 *.key

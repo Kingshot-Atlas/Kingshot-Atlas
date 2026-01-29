@@ -1,4 +1,6 @@
-import { Kingdom, KingdomProfile, KVKRecord, FilterOptions, SortOptions, getPowerTier, PaginatedResponse } from '../types';
+import { Kingdom, KingdomProfile, KVKRecord, FilterOptions, SortOptions, getPowerTier, PaginatedResponse, RawKingdomData, KingdomDataFile } from '../types';
+import { logger } from '../utils/logger';
+import { statusService } from './statusService';
 import kingdomData from '../data/kingdoms.json';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:8000';
@@ -38,9 +40,14 @@ const loadKingdomData = (): Kingdom[] => {
     kvksByKingdom[kNum]?.sort((a, b) => b.kvk_number - a.kvk_number);
   }
   
+  // Get approved status overrides from statusService
+  const statusOverrides = statusService.getAllApprovedStatusOverrides();
+  
   // Build kingdom objects
-  const kingdoms = kingdomData.kingdoms.map((k: any) => {
+  const kingdoms = (kingdomData as KingdomDataFile).kingdoms.map((k: RawKingdomData) => {
     const recentKvks = kvksByKingdom[k.kingdom_number] || [];
+    // Use approved status override if available, otherwise default to 'Unannounced'
+    const approvedStatus = statusOverrides.get(k.kingdom_number);
     
     return {
       kingdom_number: k.kingdom_number,
@@ -56,7 +63,7 @@ const loadKingdomData = (): Kingdom[] => {
       // Use full history values from JSON data
       dominations: k.dominations ?? 0,
       defeats: k.defeats ?? 0,
-      most_recent_status: 'Unannounced', // All statuses are Unannounced per user request
+      most_recent_status: approvedStatus || 'Unannounced',
       overall_score: k.overall_score,
       power_tier: getPowerTier(k.overall_score),
       last_updated: new Date().toISOString(),
@@ -75,7 +82,12 @@ const loadKingdomData = (): Kingdom[] => {
   return kingdoms;
 };
 
-const realKingdoms: Kingdom[] = loadKingdomData();
+// Function to reload kingdom data (called when status overrides change)
+const reloadKingdomData = (): Kingdom[] => {
+  return loadKingdomData();
+};
+
+let realKingdoms: Kingdom[] = loadKingdomData();
 
 class ApiService {
   private cache: CacheData | null = null;
@@ -90,6 +102,15 @@ class ApiService {
     this.cache = null;
   }
 
+  /**
+   * Reload kingdom data to pick up approved status changes
+   * Call this after approving/rejecting a status submission
+   */
+  reloadData(): void {
+    realKingdoms = reloadKingdomData();
+    this.clearCache();
+  }
+
   private loadCache(): CacheData | null {
     try {
       const cached = localStorage.getItem(CACHE_KEY);
@@ -100,7 +121,7 @@ class ApiService {
         }
       }
     } catch (e) {
-      console.warn('Failed to load cache:', e);
+      logger.warn('Failed to load cache:', e);
     }
     return null;
   }
@@ -111,7 +132,7 @@ class ApiService {
       localStorage.setItem(CACHE_KEY, JSON.stringify(data));
       this.cache = data;
     } catch (e) {
-      console.warn('Failed to save cache:', e);
+      logger.warn('Failed to save cache:', e);
     }
   }
 
@@ -169,7 +190,7 @@ class ApiService {
     try {
       return await this.fetchWithRetry<T>(endpoint);
     } catch (error) {
-      console.warn(`API call failed for ${endpoint}, using fallback data:`, error);
+      logger.warn(`API call failed for ${endpoint}, using fallback data:`, error);
       return fallbackData;
     }
   }
@@ -179,7 +200,7 @@ class ApiService {
     if (useCache) {
       const cached = this.cache || this.loadCache();
       if (cached) {
-        console.log('Using cached kingdom data');
+        logger.log('Using cached kingdom data');
         return this.applyFiltersAndSort(cached.kingdoms, filters, sort);
       }
     }
@@ -211,7 +232,7 @@ class ApiService {
       this.saveCache(enriched);
       return enriched;
     } catch (error) {
-      console.warn(`API call failed for ${endpoint}, using local data:`, error);
+      logger.warn(`API call failed for ${endpoint}, using local data:`, error);
       return this.applyFiltersAndSort(realKingdoms, filters, sort);
     }
   }
@@ -249,7 +270,7 @@ class ApiService {
         items: data.items.map((k: Kingdom) => this.enrichKingdom(k))
       };
     } catch (error) {
-      console.warn(`API call failed for ${endpoint}, using local data:`, error);
+      logger.warn(`API call failed for ${endpoint}, using local data:`, error);
       // Fallback to local data with manual pagination
       const filtered = this.applyFiltersAndSort(realKingdoms, filters, sort);
       const total = filtered.length;
@@ -300,7 +321,7 @@ class ApiService {
       // Enrich the data to ensure all fields are present
       return this.enrichKingdom(data) as KingdomProfile;
     } catch (error) {
-      console.warn(`API call failed for ${endpoint}, using local data:`, error);
+      logger.warn(`API call failed for ${endpoint}, using local data:`, error);
       const kingdom = realKingdoms.find(k => k.kingdom_number === kingdomNumber);
       if (!kingdom) return null;
       
@@ -331,7 +352,7 @@ class ApiService {
       const data = await response.json();
       // Handle the actual API response structure
       if (data.kingdoms && Array.isArray(data.kingdoms)) {
-        return data.kingdoms.map((item: any) => this.enrichKingdom({
+        return data.kingdoms.map((item: { kingdom: Kingdom; recent_kvks?: KVKRecord[] }) => this.enrichKingdom({
           ...item.kingdom,
           recent_kvks: item.recent_kvks || []
         }) as KingdomProfile);
@@ -342,7 +363,7 @@ class ApiService {
       }
       return [];
     } catch (error) {
-      console.warn(`API call failed for ${endpoint}, using fallback:`, error);
+      logger.warn(`API call failed for ${endpoint}, using fallback:`, error);
       // Fallback: call individual kingdom profiles (already enriched)
       const profiles: KingdomProfile[] = [];
       
@@ -368,7 +389,7 @@ class ApiService {
       // Handle both paginated and legacy array responses
       return data.items || data;
     } catch (error) {
-      console.warn(`API call failed for ${endpoint}, using local data:`, error);
+      logger.warn(`API call failed for ${endpoint}, using local data:`, error);
       const filtered = realKingdoms.filter(k => 
         k.kingdom_number.toString().includes(query)
       );

@@ -12,8 +12,39 @@ const SENTRY_DSN = process.env.REACT_APP_SENTRY_DSN;
 if (SENTRY_DSN) {
   Sentry.init({
     dsn: SENTRY_DSN,
-    tracesSampleRate: 0.1,
     environment: process.env.REACT_APP_ENVIRONMENT || 'development',
+    
+    // Performance monitoring
+    tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+    
+    // Session replay for debugging (only on errors in production)
+    replaysSessionSampleRate: 0,
+    replaysOnErrorSampleRate: process.env.NODE_ENV === 'production' ? 1.0 : 0,
+    
+    // Filter out noisy errors
+    ignoreErrors: [
+      // Browser extensions
+      /extensions\//i,
+      /^chrome-extension:\/\//,
+      // Network errors (handled gracefully by app)
+      'Network request failed',
+      'Failed to fetch',
+      'Load failed',
+      // User-initiated navigation
+      'AbortError',
+    ],
+    
+    // Add release version for tracking deployments
+    release: process.env.REACT_APP_VERSION || 'development',
+    
+    // Attach user context when available
+    beforeSend(event) {
+      // Don't send events in development
+      if (process.env.NODE_ENV === 'development') {
+        return null;
+      }
+      return event;
+    },
   });
 }
 

@@ -3,13 +3,14 @@ services:
     name: kingshot-atlas-api
     runtime: python
     plan: free
-    buildCommand: pip install -r requirements.txt
+    rootDir: apps/api
+    buildCommand: pip install -r requirements.txt && python import_data.py
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     autoDeploy: true
     envVars:
       - key: DATABASE_URL
-        sync: false
+        value: sqlite:///./kingshot_atlas.db
       - key: SECRET_KEY
         generateValue: true
       - key: SENTRY_DSN

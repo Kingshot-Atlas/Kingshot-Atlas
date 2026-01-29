@@ -92,7 +92,7 @@ const Upgrade: React.FC = () => {
             <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>PRO</span>
           </h1>
           <p style={{ color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.9rem', marginBottom: '0.75rem' }}>
-            Unlock the full potential of Kingshot Atlas
+            Stop guessing. Start winning.
           </p>
           {!isMobile && (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
@@ -208,7 +208,7 @@ const Upgrade: React.FC = () => {
               <h2 style={{ color: '#fff', fontSize: '1.25rem', fontWeight: 'bold', margin: 0 }}>Atlas Pro</h2>
             </div>
             <p style={{ color: '#6b7280', fontSize: '0.85rem', marginBottom: '1rem' }}>
-              For serious players and kingdom scouts
+              For players who refuse to lose
             </p>
             
             <div style={{ marginBottom: '1.5rem' }}>
@@ -298,7 +298,7 @@ const Upgrade: React.FC = () => {
               <h2 style={{ color: '#fff', fontSize: '1.25rem', fontWeight: 'bold', margin: 0 }}>Atlas Recruiter</h2>
             </div>
             <p style={{ color: '#6b7280', fontSize: '0.85rem', marginBottom: '1rem' }}>
-              For alliance recruiters and kingdom managers
+              For leaders building winning kingdoms
             </p>
             
             <div style={{ marginBottom: '1.5rem' }}>
@@ -388,7 +388,7 @@ const Upgrade: React.FC = () => {
         {/* Back Link */}
         <div style={{ textAlign: 'center', marginTop: '2rem' }}>
           <Link to="/" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: '0.85rem' }}>
-            ← Back to Directory
+            ← Back to Home
           </Link>
         </div>
       </div>

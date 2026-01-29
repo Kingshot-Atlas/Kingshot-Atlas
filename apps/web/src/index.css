@@ -232,6 +232,10 @@ select:focus-visible {
     @apply bg-tier-c/20 text-tier-c border border-tier-c/40;
   }
   
+  .badge-tier-d {
+    @apply bg-tier-d/20 text-tier-d border border-tier-d/40;
+  }
+  
   /* Input Styles */
   .input {
     @apply w-full px-4 py-3 bg-bg border border-border rounded-md text-white text-sm outline-none transition-colors duration-200 focus:border-primary;
@@ -275,5 +279,171 @@ select:focus-visible {
   
   .empty-state-description {
     @apply text-text-muted text-sm max-w-md mx-auto mb-6;
+  }
+}
+
+/* Mobile-First Responsive Utilities */
+@media (max-width: 768px) {
+  /* Improve touch targets on mobile */
+  button, a, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Prevent horizontal overflow */
+  body {
+    overflow-x: hidden;
+  }
+  
+  /* Better table scrolling on mobile */
+  .mobile-table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Reduce padding on mobile containers */
+  .container {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+  
+  /* Improve form inputs on mobile */
+  input, select, textarea {
+    font-size: 16px; /* Prevents iOS zoom on focus */
+  }
+  
+  /* Hide scrollbar on mobile for cleaner look */
+  .hide-scrollbar-mobile::-webkit-scrollbar {
+    display: none;
+  }
+  .hide-scrollbar-mobile {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Safe area insets for notched devices */
+@supports (padding: max(0px)) {
+  .safe-area-inset {
+    padding-left: max(0.75rem, env(safe-area-inset-left));
+    padding-right: max(0.75rem, env(safe-area-inset-right));
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* High Contrast Mode */
+.high-contrast {
+  /* Increase contrast for text */
+  --color-text: #ffffff;
+  --color-text-secondary: #e5e5e5;
+  --color-text-muted: #b0b0b0;
+  
+  /* Stronger borders */
+  --color-border: #555555;
+  --color-border-subtle: #444444;
+  --color-border-strong: #666666;
+  
+  /* Higher contrast backgrounds */
+  --color-bg: #000000;
+  --color-surface: #0a0a0a;
+  --color-card: #111111;
+}
+
+.high-contrast * {
+  /* Ensure minimum contrast */
+  text-shadow: none !important;
+}
+
+.high-contrast a,
+.high-contrast button {
+  /* Underline links for visibility */
+  text-decoration-thickness: 2px;
+}
+
+.high-contrast .stat-card,
+.high-contrast .phase-card,
+.high-contrast .kingdom-card {
+  border-width: 2px !important;
+}
+
+/* Focus indicators for high contrast */
+.high-contrast *:focus {
+  outline: 3px solid #ffffff !important;
+  outline-offset: 2px !important;
+}
+
+.high-contrast svg text {
+  /* Ensure SVG text is readable */
+  fill: #ffffff !important;
+}
+
+.high-contrast svg polygon[fill*="20"] {
+  /* Make radar fill more visible */
+  fill-opacity: 0.4 !important;
+}
+
+/* Print Styles for Kingdom Profiles */
+@media print {
+  /* Reset backgrounds for printing */
+  body, html {
+    background-color: #fff !important;
+    color: #000 !important;
+  }
+  
+  /* Hide non-essential elements */
+  header, nav, footer,
+  .no-print,
+  button:not(.print-include),
+  [role="navigation"],
+  .share-menu,
+  .ad-banner {
+    display: none !important;
+  }
+  
+  /* Adjust card backgrounds for print */
+  .stat-card, .phase-card, .kingdom-card {
+    background-color: #f5f5f5 !important;
+    border: 1px solid #ddd !important;
+    color: #000 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  /* Ensure radar chart prints with colors */
+  svg {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  /* Radar chart specific print styles */
+  .radar-chart-container {
+    page-break-inside: avoid;
+  }
+  
+  /* Make text readable on print */
+  * {
+    color: #000 !important;
+    text-shadow: none !important;
+  }
+  
+  /* Keep accent colors for important elements */
+  .print-color {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  /* Ensure links are visible */
+  a {
+    text-decoration: underline !important;
+  }
+  
+  /* Page margins */
+  @page {
+    margin: 1cm;
+  }
+  
+  /* Avoid page breaks in cards */
+  .phase-card, .stat-card {
+    page-break-inside: avoid;
   }
 }

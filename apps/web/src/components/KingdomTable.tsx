@@ -33,7 +33,7 @@ const ALL_COLUMNS: TableColumn[] = [
     const battleLosses = k.battle_losses || (k.total_kvks - k.battle_wins);
     return Math.min(prepWins, battleLosses);
   }, align: 'center' },
-  { id: 'defeats', label: '🏳️ Invasions', color: '#ef4444', getValue: (k) => k.invader_kings || 0, align: 'center' },
+  { id: 'defeats', label: '💀 Invasions', color: '#ef4444', getValue: (k) => k.invader_kings || 0, align: 'center' },
   { id: 'status', label: 'Transfer Status', getValue: (k) => k.most_recent_status || 'Unannounced', align: 'center' }
 ];
 

@@ -64,7 +64,7 @@ def client(db_session):
 def sample_kingdom(db_session):
     """Create a sample kingdom for testing."""
     from models import Kingdom
-    from datetime import datetime
+    from datetime import datetime, timezone
     
     kingdom = Kingdom(
         kingdom_number=100,
@@ -81,7 +81,7 @@ def sample_kingdom(db_session):
         defeats=2,
         most_recent_status="Unannounced",
         overall_score=85.5,
-        last_updated=datetime.utcnow()
+        last_updated=datetime.now(timezone.utc)
     )
     db_session.add(kingdom)
     db_session.commit()

@@ -15,23 +15,37 @@ const SimilarKingdoms: React.FC<SimilarKingdomsProps> = ({
   limit = 5 
 }) => {
   const similarKingdoms = useMemo(() => {
-    // Calculate similarity score based on multiple factors
+    const currentTier = getPowerTier(currentKingdom.overall_score);
+    
+    // Calculate similarity as a percentage (100% = identical)
     const scored = allKingdoms
       .filter(k => k.kingdom_number !== currentKingdom.kingdom_number)
       .map(k => {
-        // Score similarity (lower = more similar)
-        const scoreDiff = Math.abs(k.overall_score - currentKingdom.overall_score);
-        const prepWRDiff = Math.abs(k.prep_win_rate - currentKingdom.prep_win_rate) * 10;
-        const battleWRDiff = Math.abs(k.battle_win_rate - currentKingdom.battle_win_rate) * 10;
-        const kvkDiff = Math.abs(k.total_kvks - currentKingdom.total_kvks) * 0.5;
-        const sameTier = getPowerTier(k.overall_score) === getPowerTier(currentKingdom.overall_score) ? -2 : 0;
-        const sameStatus = k.most_recent_status === currentKingdom.most_recent_status ? -1 : 0;
+        // Weighted similarity calculation
+        // Atlas Score similarity (max 15 point difference in data, weight: 40%)
+        const maxScoreDiff = 15;
+        const scoreSim = Math.max(0, 1 - Math.abs(k.overall_score - currentKingdom.overall_score) / maxScoreDiff);
         
-        const similarity = scoreDiff + prepWRDiff + battleWRDiff + kvkDiff + sameTier + sameStatus;
+        // Win rate similarity (weight: 25% each)
+        const prepWRSim = 1 - Math.abs(k.prep_win_rate - currentKingdom.prep_win_rate);
+        const battleWRSim = 1 - Math.abs(k.battle_win_rate - currentKingdom.battle_win_rate);
+        
+        // Tier match bonus (weight: 10%)
+        const tierMatch = getPowerTier(k.overall_score) === currentTier ? 1 : 0.5;
+        
+        // Calculate weighted average (0-100%)
+        const similarity = (
+          scoreSim * 0.40 +
+          prepWRSim * 0.25 +
+          battleWRSim * 0.25 +
+          tierMatch * 0.10
+        ) * 100;
         
         return { kingdom: k, similarity };
       })
-      .sort((a, b) => a.similarity - b.similarity)
+      // Filter to only show kingdoms with >70% similarity
+      .filter(k => k.similarity >= 70)
+      .sort((a, b) => b.similarity - a.similarity)
       .slice(0, limit);
 
     return scored;
@@ -47,18 +61,26 @@ const SimilarKingdoms: React.FC<SimilarKingdomsProps> = ({
       padding: '1rem',
       marginBottom: '1rem'
     }}>
-      <h3 style={{ 
-        color: '#fff', 
-        fontSize: '0.95rem', 
-        fontWeight: '600', 
-        marginBottom: '0.75rem',
+      <div style={{ 
         display: 'flex',
+        justifyContent: 'space-between',
         alignItems: 'center',
-        gap: '0.5rem'
+        marginBottom: '0.75rem'
       }}>
-        <span style={{ fontSize: '1rem' }}>🎯</span>
-        Kingdoms Like This
-      </h3>
+        <h3 style={{ 
+          color: '#fff', 
+          fontSize: '0.95rem', 
+          fontWeight: '600', 
+          margin: 0,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem'
+        }}>
+          <span style={{ fontSize: '1rem' }}>🎯</span>
+          Kingdoms Like This
+        </h3>
+        <span style={{ color: '#6b7280', fontSize: '0.7rem' }}>Atlas Score</span>
+      </div>
       
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         {similarKingdoms.map(({ kingdom, similarity }) => {
@@ -107,12 +129,23 @@ const SimilarKingdoms: React.FC<SimilarKingdomsProps> = ({
                 </span>
               </div>
               
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <span style={{ color: '#22d3ee', fontSize: '0.85rem', fontWeight: '600' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ 
+                  color: '#22d3ee', 
+                  fontSize: '0.85rem', 
+                  fontWeight: '600',
+                  textShadow: '0 0 8px rgba(34, 211, 238, 0.5)'
+                }}>
                   {kingdom.overall_score.toFixed(1)}
                 </span>
-                <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>
-                  {Math.round(similarity * 10) / 10}% match
+                <span style={{ 
+                  color: '#22c55e', 
+                  fontSize: '0.7rem',
+                  backgroundColor: '#22c55e15',
+                  padding: '0.15rem 0.4rem',
+                  borderRadius: '4px'
+                }}>
+                  {Math.round(similarity)}%
                 </span>
               </div>
             </Link>

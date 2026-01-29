@@ -3,6 +3,8 @@
  * Tracks user contributions and quality to incentivize accurate data
  */
 
+import { logger } from '../utils/logger';
+
 export interface UserReputation {
   userId: string;
   username: string;
@@ -65,7 +67,7 @@ class ReputationService {
       allReps[rep.userId] = rep;
       localStorage.setItem(REPUTATION_KEY, JSON.stringify(allReps));
     } catch (e) {
-      console.warn('Failed to save reputation:', e);
+      logger.warn('Failed to save reputation:', e);
     }
   }
 

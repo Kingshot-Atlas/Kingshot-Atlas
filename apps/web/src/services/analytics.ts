@@ -1,4 +1,5 @@
 import type { Metric } from 'web-vitals';
+import { logger } from '../utils/logger';
 
 interface AnalyticsEvent {
   name: string;
@@ -23,7 +24,7 @@ export function sendToAnalytics(metric: Metric): void {
 
   // Always log in development
   if (process.env.NODE_ENV === 'development') {
-    console.log('[Analytics]', event);
+    logger.log('[Analytics]', event);
     return;
   }
 
@@ -49,7 +50,7 @@ export function sendToAnalytics(metric: Metric): void {
 
 export function trackEvent(eventName: string, properties?: Record<string, unknown>): void {
   if (process.env.NODE_ENV === 'development') {
-    console.log('[Track]', eventName, properties);
+    logger.log('[Track]', eventName, properties);
     return;
   }
 

@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth, getCacheBustedAvatarUrl } from '../contexts/AuthContext';
 import AuthModal from './AuthModal';
 import KvKCountdown from './KvKCountdown';
 import { useIsMobile } from '../hooks/useMediaQuery';
+import { useAnalytics } from '../hooks/useAnalytics';
 import { neonGlow } from '../utils/styles';
+import { useAccessibility } from '../contexts/AccessibilityContext';
+
+// Admin users list - must match AdminDashboard.tsx
+const ADMIN_USERS = ['gatreno'];
 
 // Discord invite link - configurable via environment variable
 const DISCORD_INVITE = process.env.REACT_APP_DISCORD_INVITE || 'https://discord.gg/aA3a7JGcHV';
@@ -12,6 +17,9 @@ const DISCORD_INVITE = process.env.REACT_APP_DISCORD_INVITE || 'https://discord.
 const Header: React.FC = () => {
   const location = useLocation();
   const { user, profile, signOut } = useAuth();
+  const { trackButton } = useAnalytics();
+  const { highContrast, toggleHighContrast } = useAccessibility();
+  const isAdmin = profile?.username && ADMIN_USERS.includes(profile.username.toLowerCase());
   const [showLoginMenu, setShowLoginMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -113,6 +121,29 @@ const Header: React.FC = () => {
         {/* Mobile Menu Button + Discord */}
         {isMobile && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            {/* Pro Button - visible on mobile header (left of Discord) */}
+            <Link
+              to="/upgrade"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.25rem',
+                padding: '0.4rem 0.6rem',
+                backgroundColor: '#22d3ee15',
+                border: '1px solid #22d3ee40',
+                borderRadius: '8px',
+                color: '#22d3ee',
+                textDecoration: 'none',
+                fontSize: '0.75rem',
+                fontWeight: '600'
+              }}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+              </svg>
+              Pro
+            </Link>
             {/* Discord Button - visible on mobile header */}
             <a
               href={DISCORD_INVITE}
@@ -162,6 +193,19 @@ const Header: React.FC = () => {
         {!isMobile && (
         <nav style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
           <Link
+            to="/"
+            style={{
+              color: isActive('/') ? '#22d3ee' : '#9ca3af',
+              textDecoration: 'none',
+              fontSize: '0.9rem',
+              fontWeight: isActive('/') ? '600' : '400',
+              transition: 'color 0.2s',
+              ...(isActive('/') ? neonGlow('#22d3ee') : {})
+            }}
+          >
+            Home
+          </Link>
+          <Link
             to="/leaderboards"
             style={{
               color: isActive('/leaderboards') ? '#22d3ee' : '#9ca3af',
@@ -172,7 +216,7 @@ const Header: React.FC = () => {
               ...(isActive('/leaderboards') ? neonGlow('#22d3ee') : {})
             }}
           >
-            Leaderboards
+            Rankings
           </Link>
           <Link
             to="/compare"
@@ -185,7 +229,7 @@ const Header: React.FC = () => {
               ...(isActive('/compare') ? neonGlow('#22d3ee') : {})
             }}
           >
-            Comparison
+            Compare
           </Link>
           <Link
             to="/about"
@@ -237,6 +281,35 @@ const Header: React.FC = () => {
             Players
           </Link> */}
           
+          {/* Accessibility Toggle */}
+          <button
+            onClick={() => {
+              toggleHighContrast();
+              trackButton('Toggle High Contrast');
+            }}
+            title={highContrast ? 'Disable high contrast mode' : 'Enable high contrast mode'}
+            aria-label={highContrast ? 'Disable high contrast mode' : 'Enable high contrast mode'}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '32px',
+              height: '32px',
+              padding: 0,
+              backgroundColor: highContrast ? '#ffffff' : '#1a1a1a',
+              border: `1px solid ${highContrast ? '#ffffff' : '#333'}`,
+              borderRadius: '6px',
+              color: highContrast ? '#000000' : '#9ca3af',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="5" />
+              <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+            </svg>
+          </button>
+          
           <a
             href={DISCORD_INVITE}
             target="_blank"
@@ -279,7 +352,7 @@ const Header: React.FC = () => {
                 }}
               >
                 {profile?.avatar_url ? (
-                  <img src={profile.avatar_url} alt="" style={{ width: '28px', height: '28px', borderRadius: '50%' }} />
+                  <img src={getCacheBustedAvatarUrl(profile.avatar_url)} alt="" style={{ width: '28px', height: '28px', borderRadius: '50%' }} />
                 ) : (
                   <div style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: profile?.theme_color || '#22d3ee', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 'bold', color: '#000' }}>
                     {profile?.username?.[0]?.toUpperCase() || '?'}
@@ -289,7 +362,7 @@ const Header: React.FC = () => {
               </button>
             ) : (
               <button
-                onClick={() => setShowAuthModal(true)}
+                onClick={() => { trackButton('Sign In Button'); setShowAuthModal(true); }}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -351,6 +424,36 @@ const Header: React.FC = () => {
                   </svg>
                   My Profile
                 </Link>
+                {isAdmin && (
+                  <Link
+                    to="/admin"
+                    onClick={() => setShowLoginMenu(false)}
+                    style={{
+                      width: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.75rem',
+                      padding: '0.75rem 1rem',
+                      backgroundColor: 'transparent',
+                      border: 'none',
+                      borderRadius: '8px',
+                      color: '#a855f7',
+                      cursor: 'pointer',
+                      fontSize: '0.9rem',
+                      textAlign: 'left',
+                      textDecoration: 'none',
+                      transition: 'background-color 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  >
+                    <svg style={{ width: '18px', height: '18px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Admin Dashboard
+                  </Link>
+                )}
                 <div style={{ height: '1px', backgroundColor: '#2a2a2a', margin: '0.25rem 0' }} />
                 <button
                   onClick={() => { signOut(); setShowLoginMenu(false); }}
@@ -416,7 +519,7 @@ const Header: React.FC = () => {
               }}
             >
               {profile?.avatar_url ? (
-                <img src={profile.avatar_url} alt="" style={{ width: '24px', height: '24px', borderRadius: '50%' }} />
+                <img src={getCacheBustedAvatarUrl(profile.avatar_url)} alt="" style={{ width: '24px', height: '24px', borderRadius: '50%' }} />
               ) : (
                 <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: profile?.theme_color || '#22d3ee', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 'bold', color: '#000' }}>
                   {profile?.username?.[0]?.toUpperCase() || '?'}
@@ -461,7 +564,7 @@ const Header: React.FC = () => {
               backgroundColor: isActive('/') ? '#111' : 'transparent'
             }}
           >
-            Directory
+            Home
           </Link>
           <Link
             to="/leaderboards"
@@ -474,7 +577,7 @@ const Header: React.FC = () => {
               backgroundColor: isActive('/leaderboards') ? '#111' : 'transparent'
             }}
           >
-            Leaderboards
+            Rankings
           </Link>
           <Link
             to="/compare"
@@ -487,7 +590,7 @@ const Header: React.FC = () => {
               backgroundColor: isActive('/compare') ? '#111' : 'transparent'
             }}
           >
-            Comparison
+            Compare
           </Link>
           <Link
             to="/about"

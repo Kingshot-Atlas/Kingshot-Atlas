@@ -202,10 +202,40 @@ const neonGlow = (color: string) => ({
 ---
 
 ## Power Tier Colors
-- **S-Tier**: `#fbbf24` (Gold)
-- **A-Tier**: `#22c55e` (Green)
-- **B-Tier**: `#3b82f6` (Blue)
-- **C-Tier**: `#6b7280` (Gray)
+
+| Tier | Color | Hex | Tailwind Class |
+|------|-------|-----|----------------|
+| **S-Tier** | Gold | `#fbbf24` | `tier-s` |
+| **A-Tier** | Green | `#22c55e` | `tier-a` |
+| **B-Tier** | Blue | `#3b82f6` | `tier-b` |
+| **C-Tier** | Orange | `#f97316` | `tier-c` |
+| **D-Tier** | Red | `#ef4444` | `tier-d` |
+
+### Usage
+```tsx
+// Tailwind classes
+<span className="badge-tier-s">S-Tier</span>
+<span className="badge-tier-a">A-Tier</span>
+
+// JavaScript (from utils/styles.ts)
+import { tierColors, getTierColor } from '../utils/styles';
+const color = getTierColor('S'); // Returns '#fbbf24'
+```
+
+---
+
+## Avatar Image Caching
+
+When displaying user avatar images, always use cache-busting to ensure fresh images:
+
+```tsx
+import { getCacheBustedAvatarUrl } from '../contexts/AuthContext';
+
+// Always use cache-busted URL when rendering
+<img src={getCacheBustedAvatarUrl(profile.avatar_url)} alt="" />
+```
+
+**Why?** Avatar URLs are stored clean (without timestamps) in localStorage. Cache-busting is applied at render time to ensure browsers always fetch the latest image, preventing stale cached avatars on regular refresh (Command+R).
 
 ---
 
@@ -241,3 +271,158 @@ The app respects `prefers-reduced-motion: reduce`. All animations are disabled f
 ### Color Contrast
 - Use `--color-text-secondary` (`#9ca3af`) instead of `--color-text-muted` (`#6b7280`) when better contrast is needed
 - All text should meet WCAG 2.1 AA contrast ratios (4.5:1 for normal text)
+
+---
+
+## Native Title Attributes
+
+**IMPORTANT:** Do NOT use native HTML `title` attributes for tooltips.
+
+### Why?
+- Native titles have inconsistent styling across browsers
+- They cannot be styled to match our design system
+- They don't work well on mobile (no tap support)
+- They have a delay before appearing
+
+### Instead Use:
+1. **Custom tooltips** following the tooltip standards above
+2. **`aria-label`** for accessibility when visual tooltip isn't needed
+3. **The shared `Tooltip` component** from `/components/shared/Tooltip.tsx`
+
+### Examples
+```tsx
+// ❌ Wrong: Native title
+<button title="Delete item">🗑️</button>
+
+// ✅ Correct: aria-label for simple cases
+<button aria-label="Delete item">🗑️</button>
+
+// ✅ Correct: Custom tooltip for rich content
+<Tooltip content={<TooltipContent />}>
+  <button>🗑️</button>
+</Tooltip>
+```
+
+---
+
+## Centralized Style Utilities
+
+All design tokens and style utilities are available in `/src/utils/styles.ts`. **Always import from here instead of hardcoding values.**
+
+### Available Exports
+
+```tsx
+import { 
+  // Colors
+  colors,           // Full color palette object
+  tierColors,       // Power tier colors (S, A, B, C, D)
+  getTierColor,     // Get color for a tier
+  getStatusColor,   // Get color for transfer status
+  outcomeColors,    // KvK outcome colors (domination, comeback, etc.)
+  
+  // Spacing & Layout
+  spacing,          // Spacing scale (1-12)
+  radius,           // Border radius presets (sm, md, lg, xl, full)
+  
+  // Effects
+  neonGlow,         // Text glow effect
+  neonGlowStrong,   // Stronger glow for emphasis
+  shadows,          // Shadow presets (sm, card, cardHover, tooltip, glow)
+  
+  // Transitions
+  transitions,      // Duration values (fast, base, slow)
+  transition,       // Full transition strings (fast, base, slow, colors, transform)
+  
+  // Card Utilities
+  cardStyles,       // Base and hover card styles
+  getCardStyles,    // Get card styles with hover state
+  cardBorder,       // Dynamic border based on hover
+  cardShadow,       // Dynamic shadow based on hover
+  
+  // Tooltip
+  tooltipStyles,    // Standard tooltip styles
+} from '../utils/styles';
+```
+
+### Usage Examples
+
+```tsx
+// Using colors
+<div style={{ backgroundColor: colors.surface, color: colors.textSecondary }}>
+
+// Using transitions
+<button style={{ transition: transition.fast }}>
+
+// Using shadows
+<div style={{ boxShadow: shadows.card }}>
+
+// Using card styles
+<div style={getCardStyles(isHovered)}>
+
+// Using neon glow
+<span style={neonGlow(colors.primary)}>Score: 12.5</span>
+```
+
+---
+
+## Reusable Card Component
+
+Use the shared `Card` component for consistent card styling:
+
+```tsx
+import { Card } from '../components/shared';
+
+// Basic card
+<Card>Content here</Card>
+
+// Hoverable card with click
+<Card hoverable onClick={() => navigate('/somewhere')}>
+  Clickable content
+</Card>
+
+// Custom accent color and padding
+<Card hoverable accentColor={colors.success} padding="lg">
+  Success themed card
+</Card>
+```
+
+### Card Props
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `hoverable` | boolean | false | Enable hover effects |
+| `accentColor` | string | `#22d3ee` | Hover border color |
+| `padding` | `'none'` \| `'sm'` \| `'md'` \| `'lg'` | `'md'` | Padding preset |
+| `variant` | `'default'` \| `'elevated'` | `'default'` | Card variant |
+| `onClick` | function | - | Click handler |
+| `style` | CSSProperties | - | Additional styles |
+| `className` | string | - | Additional classes |
+
+---
+
+---
+
+## Outcome Emojis
+
+| Outcome | Emoji | Color | Description |
+|---------|-------|-------|-------------|
+| **Domination** | 👑 | `#22c55e` | Won both Prep and Battle |
+| **Reversal** | 🔄 | `#a855f7` | Won Prep but lost Battle |
+| **Comeback** | 💪 | `#3b82f6` | Lost Prep but won Battle |
+| **Invasion** | 💀 | `#ef4444` | Lost both Prep and Battle |
+
+**Note:** The Invasion emoji was changed from 🏳️ to 💀 on 2026-01-29 for better visual impact.
+
+---
+
+## Terminology Standards
+
+| Use This | Not This |
+|----------|----------|
+| Rankings | Leaderboards |
+| Compare | Comparison |
+| Back to Home | Back to Directory |
+| Recent Performance | Recent Form / Recent KvKs |
+
+---
+
+*Last Updated: 2026-01-29 by Design Lead*

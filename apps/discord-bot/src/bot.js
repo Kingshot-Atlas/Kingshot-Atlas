@@ -1,0 +1,183 @@
+/**
+ * Atlas - Kingshot Atlas Discord Bot
+ * 
+ * "Know your enemy. Choose your allies. Dominate KvK."
+ * 
+ * A data-driven companion for competitive Kingshot players.
+ * Built by players, for players.
+ * 
+ * Commands:
+ * /kingdom <number>  - Get detailed kingdom stats
+ * /compare <k1> <k2> - Compare two kingdoms head-to-head
+ * /leaderboard       - Show top 10 kingdoms by Atlas Score
+ * /tier <S|A|B|C|D>  - List kingdoms by tier
+ * /top <prep|battle> - Top 10 by phase win rate
+ * /upcoming          - Show next KvK and Transfer dates
+ * /countdown         - Time until next KvK
+ * /random            - Discover a random kingdom
+ * /help              - Show all commands
+ * 
+ * Setup:
+ * 1. Create Discord Application at https://discord.com/developers/applications
+ * 2. Create Bot and get token
+ * 3. Copy .env.example to .env and fill in credentials
+ * 4. Run: npm install
+ * 5. Run: npm run register (registers slash commands)
+ * 6. Run: npm start
+ */
+
+require('dotenv').config();
+const { Client, GatewayIntentBits, REST, Routes, ActivityType } = require('discord.js');
+const config = require('./config');
+const commands = require('./commands');
+const handlers = require('./commands/handlers');
+
+// Validate configuration
+if (!config.token || !config.clientId) {
+  console.error('❌ Missing DISCORD_TOKEN or DISCORD_CLIENT_ID in .env');
+  console.log('\n📋 Setup instructions:');
+  console.log('1. Create app at https://discord.com/developers/applications');
+  console.log('2. Go to Bot section and create a bot');
+  console.log('3. Copy the bot token');
+  console.log('4. Copy .env.example to .env');
+  console.log('5. Fill in DISCORD_TOKEN and DISCORD_CLIENT_ID');
+  console.log('6. Run: npm run register');
+  console.log('7. Run: npm start');
+  process.exit(1);
+}
+
+// Initialize Discord client
+const client = new Client({
+  intents: [GatewayIntentBits.Guilds],
+});
+
+// Event: Ready
+client.once('ready', () => {
+  console.log(`\n✅ Atlas is online as ${client.user.tag}`);
+  console.log(`📊 Serving ${client.guilds.cache.size} server(s)`);
+  console.log(`🔗 API: ${config.apiUrl}`);
+  console.log(`\n"${config.bot.tagline}"\n`);
+
+  // Set bot presence
+  client.user.setPresence({
+    activities: [{
+      name: '/help | ks-atlas.com',
+      type: ActivityType.Playing,
+    }],
+    status: 'online',
+  });
+});
+
+// Event: Interaction (slash commands)
+client.on('interactionCreate', async (interaction) => {
+  if (!interaction.isChatInputCommand()) return;
+
+  const { commandName } = interaction;
+
+  try {
+    switch (commandName) {
+      case 'kingdom':
+        await handlers.handleKingdom(interaction);
+        break;
+      case 'compare':
+        await handlers.handleCompare(interaction);
+        break;
+      case 'leaderboard':
+        await handlers.handleLeaderboard(interaction);
+        break;
+      case 'tier':
+        await handlers.handleTier(interaction);
+        break;
+      case 'top':
+        await handlers.handleTop(interaction);
+        break;
+      case 'upcoming':
+        await handlers.handleUpcoming(interaction);
+        break;
+      case 'countdown':
+        await handlers.handleCountdown(interaction);
+        break;
+      case 'random':
+        await handlers.handleRandom(interaction);
+        break;
+      case 'help':
+        await handlers.handleHelp(interaction);
+        break;
+      default:
+        console.warn(`Unknown command: ${commandName}`);
+    }
+  } catch (error) {
+    console.error(`Command error (${commandName}):`, error);
+
+    const errorReply = {
+      content: '❌ Something went wrong. Please try again later.',
+      ephemeral: true,
+    };
+
+    try {
+      if (interaction.deferred || interaction.replied) {
+        await interaction.editReply(errorReply);
+      } else {
+        await interaction.reply(errorReply);
+      }
+    } catch (replyError) {
+      console.error('Failed to send error reply:', replyError);
+    }
+  }
+});
+
+// Event: Guild join (new server)
+client.on('guildCreate', (guild) => {
+  console.log(`📥 Joined new server: ${guild.name} (${guild.id})`);
+});
+
+// Event: Guild leave
+client.on('guildDelete', (guild) => {
+  console.log(`📤 Left server: ${guild.name} (${guild.id})`);
+});
+
+// Register slash commands and start bot
+async function main() {
+  const rest = new REST({ version: '10' }).setToken(config.token);
+
+  try {
+    console.log('🔄 Registering slash commands...');
+
+    if (config.guildId) {
+      // Guild-specific registration (faster for development)
+      await rest.put(
+        Routes.applicationGuildCommands(config.clientId, config.guildId),
+        { body: commands }
+      );
+      console.log(`✅ Commands registered for guild ${config.guildId}`);
+    } else {
+      // Global registration (takes up to 1 hour to propagate)
+      await rest.put(
+        Routes.applicationCommands(config.clientId),
+        { body: commands }
+      );
+      console.log('✅ Global commands registered (may take up to 1 hour to appear)');
+    }
+  } catch (error) {
+    console.error('❌ Failed to register commands:', error);
+  }
+
+  // Login to Discord
+  await client.login(config.token);
+}
+
+// Handle graceful shutdown
+process.on('SIGINT', () => {
+  console.log('\n👋 Shutting down Atlas...');
+  client.destroy();
+  process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+  console.log('\n👋 Shutting down Atlas...');
+  client.destroy();
+  process.exit(0);
+});
+
+// Start the bot
+main().catch(console.error);

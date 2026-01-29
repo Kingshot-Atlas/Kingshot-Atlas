@@ -99,20 +99,44 @@ CREATE POLICY "Users can insert own profile" ON profiles FOR INSERT WITH CHECK (
 
 ## 3. Deploy Frontend to Netlify
 
-1. **Already configured** via `netlify.toml`
+### ⚠️ CRITICAL: Correct Netlify Site Configuration
 
-2. **Set environment variables** in Netlify Dashboard:
+There are TWO Netlify sites - only deploy to the correct one:
+
+| Site Name | Site ID | Custom Domain | Status |
+|-----------|---------|---------------|--------|
+| **ks-atlas** | `716ed1c2-eb00-4842-8781-c37fb2823eb8` | ks-atlas.com | ✅ USE THIS ONE |
+| kingshot-atlas | `48267beb-2840-44b1-bedb-39d6b2defcd4` | (none) | ❌ DO NOT USE |
+
+### Verify Correct Site Before Deploying
+
+```bash
+cd apps/web
+npx netlify-cli status
+# Should show: Current project: ks-atlas
+```
+
+If linked to wrong site, fix with:
+```bash
+npx netlify-cli unlink
+npx netlify-cli link --id 716ed1c2-eb00-4842-8781-c37fb2823eb8
+```
+
+### Deploy Commands
+
+```bash
+cd apps/web
+npm run build
+npx netlify-cli deploy --prod --dir=build
+```
+
+### Environment Variables (Netlify Dashboard)
    ```
    REACT_APP_API_URL=https://your-api.railway.app
    REACT_APP_SUPABASE_URL=https://xxx.supabase.co
    REACT_APP_SUPABASE_ANON_KEY=your-anon-key
    REACT_APP_ENVIRONMENT=production
    ```
-
-3. **Deploy**
-   - Connect GitHub repo
-   - Build command: `npm run build`
-   - Publish directory: `build`
 
 ---
 

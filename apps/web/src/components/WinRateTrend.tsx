@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { KVKRecord } from '../types';
+import { useIsMobile } from '../hooks/useMediaQuery';
 
 interface WinRateTrendProps {
   records: KVKRecord[];
@@ -7,6 +8,9 @@ interface WinRateTrendProps {
 }
 
 const WinRateTrend: React.FC<WinRateTrendProps> = ({ records, type }) => {
+  const [hoveredBar, setHoveredBar] = useState<number | null>(null);
+  const isMobile = useIsMobile();
+  
   if (!records || records.length < 2) return null;
 
   const isWin = (result: string) => result === 'Win' || result === 'W';
@@ -20,10 +24,11 @@ const WinRateTrend: React.FC<WinRateTrendProps> = ({ records, type }) => {
   
   const color = type === 'prep' ? '#eab308' : '#3b82f6';
   const maxHeight = 20;
+  const reversedWins = [...wins].reverse();
 
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-end', gap: '2px', height: maxHeight + 4 }}>
-      {wins.reverse().map((won, i) => (
+    <div style={{ display: 'flex', alignItems: 'flex-end', gap: '2px', height: maxHeight + 4, position: 'relative' }}>
+      {reversedWins.map((won, i) => (
         <div
           key={i}
           style={{
@@ -31,10 +36,35 @@ const WinRateTrend: React.FC<WinRateTrendProps> = ({ records, type }) => {
             height: won ? `${maxHeight}px` : '6px',
             backgroundColor: won ? color : '#2a2a2a',
             borderRadius: '1px',
-            transition: 'height 0.3s ease'
+            transition: 'height 0.3s ease',
+            cursor: 'default',
+            position: 'relative'
           }}
-          title={`KvK ${last10.length - i}: ${won ? 'Win' : 'Loss'}`}
-        />
+          onMouseEnter={() => !isMobile && setHoveredBar(i)}
+          onMouseLeave={() => !isMobile && setHoveredBar(null)}
+          onClick={() => isMobile && setHoveredBar(hoveredBar === i ? null : i)}
+        >
+          {hoveredBar === i && (
+            <div style={{
+              position: 'absolute',
+              bottom: '100%',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              marginBottom: '6px',
+              backgroundColor: '#0a0a0a',
+              border: `1px solid ${won ? color : '#6b7280'}`,
+              borderRadius: '6px',
+              padding: '0.3rem 0.5rem',
+              whiteSpace: 'nowrap',
+              zIndex: 100,
+              boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+              fontSize: '0.65rem',
+              color: won ? color : '#9ca3af'
+            }}>
+              KvK {last10.length - i}: {won ? 'Win' : 'Loss'}
+            </div>
+          )}
+        </div>
       ))}
       {trend !== 0 && (
         <span style={{ 
