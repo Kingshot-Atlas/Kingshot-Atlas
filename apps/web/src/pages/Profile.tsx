@@ -4,10 +4,11 @@ import ParticleEffect from '../components/ParticleEffect';
 import UserAchievements from '../components/UserAchievements';
 import AuthModal from '../components/AuthModal';
 import ProfileFeatures from '../components/ProfileFeatures';
-import { useAuth, UserProfile } from '../contexts/AuthContext';
+import LinkKingshotAccount from '../components/LinkKingshotAccount';
+import { useAuth, getCacheBustedAvatarUrl, UserProfile } from '../contexts/AuthContext';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
-
-const FAVORITES_KEY = 'kingshot_favorites';
+import { useIsMobile } from '../hooks/useMediaQuery';
+import { neonGlow } from '../utils/styles';
 
 const LANGUAGES = [
   'English', 'Spanish', 'Portuguese', 'French', 'German', 'Italian', 
@@ -55,14 +56,9 @@ const Profile: React.FC = () => {
   useDocumentTitle(userId ? 'User Profile' : 'My Profile');
   const { user, profile, loading, updateProfile } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const isMobile = useIsMobile();
   const [viewedProfile, setViewedProfile] = useState<UserProfile | null>(null);
   const [isViewingOther, setIsViewingOther] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [_favorites, _setFavorites] = useState<number[]>(() => {
-    const saved = localStorage.getItem(FAVORITES_KEY);
-    return saved ? JSON.parse(saved) : [];
-  });
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState<EditForm>({
     username: '',
@@ -76,17 +72,6 @@ const Profile: React.FC = () => {
   });
 
   const themeColor = viewedProfile?.theme_color || '#22d3ee';
-
-  const neonGlow = (color: string) => ({
-    color: color,
-    textShadow: `0 0 8px ${color}40, 0 0 12px ${color}20`
-  });
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   useEffect(() => {
     if (userId) {
@@ -218,7 +203,7 @@ const Profile: React.FC = () => {
             My <span style={neonGlow('#22d3ee')}>Profile</span>
           </h1>
           <p style={{ color: '#6b7280', marginBottom: '2rem' }}>
-            Sign in to access your profile, track kingdoms, and earn achievements.
+            Track your kingdoms, earn achievements, and prove your dominance.
           </p>
           <button
             onClick={() => setShowAuthModal(true)}
@@ -237,7 +222,7 @@ const Profile: React.FC = () => {
           </button>
           <div style={{ marginTop: '3rem' }}>
             <Link to="/" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: '0.85rem' }}>
-              ← Back to Directory
+              ← Back to Home
             </Link>
           </div>
         </div>
@@ -333,7 +318,7 @@ const Profile: React.FC = () => {
             <span style={{ ...neonGlow(themeColor), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>PROFILE</span>
           </h1>
           <p style={{ color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.9rem', marginBottom: '0.75rem' }}>
-            {isViewingOther ? viewedProfile?.bio : 'Manage your profile and tracked kingdoms'}
+            {isViewingOther ? viewedProfile?.bio : 'Your command center for kingdom intel'}
           </p>
           {!isMobile && (
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
@@ -345,13 +330,13 @@ const Profile: React.FC = () => {
         </div>
       </div>
 
-      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem' }}>
+      <div style={{ maxWidth: '800px', margin: '0 auto', padding: isMobile ? '1rem' : '2rem' }}>
         {/* Profile Card */}
         <div style={{
           backgroundColor: '#111111',
-          borderRadius: '16px',
-          padding: '2rem',
-          marginBottom: '2rem',
+          borderRadius: isMobile ? '12px' : '16px',
+          padding: isMobile ? '1.25rem' : '2rem',
+          marginBottom: isMobile ? '1.5rem' : '2rem',
           border: `1px solid ${themeColor}30`
         }}>
           {isEditing && !isViewingOther ? (
@@ -367,7 +352,7 @@ const Profile: React.FC = () => {
                 />
               </div>
               
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '0.75rem' : '1rem' }}>
                 <div>
                   <label style={{ color: '#9ca3af', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>Home Kingdom</label>
                   <input
@@ -391,7 +376,7 @@ const Profile: React.FC = () => {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '0.75rem' : '1rem' }}>
                 <div>
                   <label style={{ color: '#9ca3af', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>Main Language</label>
                   <select
@@ -461,7 +446,7 @@ const Profile: React.FC = () => {
                           transition: 'all 0.15s',
                           boxShadow: editForm.theme_color === c.value ? `0 0 12px ${c.value}60` : 'none'
                         }}
-                        title={c.name}
+                        aria-label={c.name}
                         onMouseEnter={(e) => {
                           if (editForm.theme_color !== c.value) {
                             e.currentTarget.style.transform = 'scale(1.1)';
@@ -503,7 +488,7 @@ const Profile: React.FC = () => {
                             transition: 'all 0.2s',
                             ...getBadgeStyle(s.value, editForm.theme_color)
                           }}
-                          title={s.desc}
+                          aria-label={s.desc}
                         >
                           {s.name}
                         </button>
@@ -575,7 +560,7 @@ const Profile: React.FC = () => {
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                 {viewedProfile?.avatar_url ? (
                   <img 
-                    src={viewedProfile.avatar_url} 
+                    src={getCacheBustedAvatarUrl(viewedProfile.avatar_url)} 
                     alt="Avatar"
                     style={{
                       width: '64px',
@@ -631,7 +616,7 @@ const Profile: React.FC = () => {
             </div>
 
             {/* Profile Details */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: isMobile ? '0.5rem' : '1rem', marginBottom: isMobile ? '1rem' : '1.5rem' }}>
               {viewedProfile?.alliance_tag && (
                 <div style={{ padding: '0.75rem', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a' }}>
                   <div style={{ fontSize: '0.7rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Alliance</div>
@@ -656,6 +641,48 @@ const Profile: React.FC = () => {
             )}
           </div>
         )}
+        {/* Link Kingshot Account - only show for own profile */}
+        {!isViewingOther && (
+          <div style={{ marginBottom: '2rem' }}>
+            <LinkKingshotAccount
+              onLink={(playerData) => {
+                // Update profile with linked player data
+                if (updateProfile) {
+                  updateProfile({
+                    ...viewedProfile,
+                    linked_player_id: playerData.player_id,
+                    linked_username: playerData.username,
+                    linked_avatar_url: playerData.avatar_url,
+                    linked_kingdom: playerData.kingdom,
+                    linked_tc_level: playerData.town_center_level,
+                  });
+                }
+              }}
+              onUnlink={() => {
+                // Remove linked player data
+                if (updateProfile) {
+                  updateProfile({
+                    ...viewedProfile,
+                    linked_player_id: undefined,
+                    linked_username: undefined,
+                    linked_avatar_url: undefined,
+                    linked_kingdom: undefined,
+                    linked_tc_level: undefined,
+                  });
+                }
+              }}
+              linkedPlayer={viewedProfile?.linked_player_id ? {
+                player_id: viewedProfile.linked_player_id,
+                username: viewedProfile.linked_username || 'Unknown',
+                avatar_url: viewedProfile.linked_avatar_url || null,
+                kingdom: viewedProfile.linked_kingdom || 0,
+                town_center_level: viewedProfile.linked_tc_level || 0,
+                verified: true,
+              } : null}
+            />
+          </div>
+        )}
+
         {/* User Achievements */}
         <div style={{ marginBottom: '2rem' }}>
           <UserAchievements />
@@ -665,7 +692,7 @@ const Profile: React.FC = () => {
         <div>
           <ProfileFeatures />
           <div style={{ textAlign: 'center', marginTop: '2rem', paddingBottom: '1rem' }}>
-            <Link to="/" style={{ color: themeColor, textDecoration: 'none', fontSize: '0.8rem' }}>← Back to Directory</Link>
+            <Link to="/" style={{ color: themeColor, textDecoration: 'none', fontSize: '0.8rem' }}>← Back to Home</Link>
           </div>
         </div>
         </div>

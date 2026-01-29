@@ -9,25 +9,30 @@ import ReportDataModal from '../components/ReportDataModal';
 import TrendChart from '../components/TrendChart';
 import SimilarKingdoms from '../components/SimilarKingdoms';
 import ClaimKingdom from '../components/ClaimKingdom';
+import AdBanner from '../components/AdBanner';
+import AtlasScoreBreakdown from '../components/AtlasScoreBreakdown';
+import ShareButton from '../components/ShareButton';
 import { getOutcome, OUTCOMES } from '../utils/outcomes';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useAuth } from '../contexts/AuthContext';
+import { usePremium } from '../contexts/PremiumContext';
 import { useToast } from '../components/Toast';
 import { neonGlow, getStatusColor, getTierColor } from '../utils/styles';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { useMetaTags, getKingdomMetaTags } from '../hooks/useMetaTags';
 
 const KingdomProfile: React.FC = () => {
   const { kingdomNumber } = useParams<{ kingdomNumber: string }>();
   useDocumentTitle(kingdomNumber ? `Kingdom ${kingdomNumber}` : undefined);
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { tier, features, isPro } = usePremium();
   const { showToast } = useToast();
   const [kingdom, setKingdom] = useState<KingdomProfileType | null>(null);
   const [allKingdoms, setAllKingdoms] = useState<KingdomProfileType[]>([]);
   const [loading, setLoading] = useState(true);
   const isMobile = useIsMobile();
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
-  const [showAllKvks, setShowAllKvks] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [hasPendingSubmission, setHasPendingSubmission] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
@@ -97,6 +102,18 @@ const KingdomProfile: React.FC = () => {
     return OUTCOMES[outcome].abbrev;
   };
 
+  // Calculate derived values (needed for hooks that must be called unconditionally)
+  const status = kingdom?.most_recent_status || 'Unannounced';
+  const powerTier = kingdom ? (kingdom.power_tier ?? getPowerTier(kingdom.overall_score)) : 'D';
+  const tierColor = getTierColor(powerTier);
+  
+  // Calculate rank for meta tags
+  const sortedByScore = [...allKingdoms].sort((a, b) => b.overall_score - a.overall_score);
+  const rank = kingdom ? sortedByScore.findIndex(k => k.kingdom_number === kingdom.kingdom_number) + 1 : 0;
+  
+  // Update meta tags - must be called before any early returns
+  useMetaTags(kingdom ? getKingdomMetaTags(kingdom.kingdom_number, kingdom.overall_score, powerTier, rank > 0 ? rank : undefined) : {});
+
   if (loading) {
     return (
       <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -113,16 +130,12 @@ const KingdomProfile: React.FC = () => {
       <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>❌</div>
-          <div style={{ color: '#ef4444', fontSize: '1.25rem', marginBottom: '1rem' }}>Kingdom not found. It may not exist in our database yet.</div>
-          <Link to="/" style={{ color: '#22d3ee', textDecoration: 'none' }}>← Back to Directory</Link>
+          <div style={{ color: '#ef4444', fontSize: '1.25rem', marginBottom: '1rem' }}>Kingdom not found. Either it doesn't exist, or we haven't tracked it yet.</div>
+          <Link to="/" style={{ color: '#22d3ee', textDecoration: 'none' }}>← Back to Home</Link>
         </div>
       </div>
     );
   }
-
-  const status = kingdom.most_recent_status || 'Unannounced';
-  const powerTier = kingdom.power_tier ?? getPowerTier(kingdom.overall_score);
-  const tierColor = getTierColor(powerTier);
   
   // Calculate achievements
   const isSupremeRuler = kingdom.prep_losses === 0 && kingdom.battle_losses === 0 && kingdom.total_kvks > 0;
@@ -143,10 +156,6 @@ const KingdomProfile: React.FC = () => {
   
   // All KvK records sorted by kvk_number descending (most recent first)
   const allKvks = [...(kingdom.recent_kvks || [])].sort((a, b) => b.kvk_number - a.kvk_number);
-  
-  // Calculate rank
-  const sortedByScore = [...allKingdoms].sort((a, b) => b.overall_score - a.overall_score);
-  const rank = sortedByScore.findIndex(k => k.kingdom_number === kingdom.kingdom_number) + 1;
   
   // Tooltip descriptions
   const getTierDescription = (tier: string) => {
@@ -213,7 +222,7 @@ const KingdomProfile: React.FC = () => {
                   cursor: 'pointer',
                   position: 'relative'
                 }}
-                title={!isMobile ? getTierDescription(powerTier) : undefined}
+                aria-label={getTierDescription(powerTier)}
               >
                 {powerTier}-Tier
                 {isMobile && activeTooltip === 'tier' && (
@@ -393,11 +402,26 @@ const KingdomProfile: React.FC = () => {
               </button>
             </div>
             
-            {/* Row 4: Total KvKs + Report Data */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', marginTop: '0.5rem' }}>
+            {/* Row 4: Total KvKs + Actions */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
               <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>Total KvKs:</span>
               <span style={{ color: '#fff', fontSize: '0.9rem', fontWeight: 'bold' }}>{kingdom.total_kvks}</span>
               <span style={{ color: '#3a3a3a' }}>|</span>
+              
+              {/* Share Button */}
+              <ShareButton
+                type="kingdom"
+                kingdomData={{
+                  number: kingdom.kingdom_number,
+                  score: kingdom.overall_score,
+                  tier: powerTier,
+                  rank: rank,
+                  prepWinRate: Math.round(kingdom.prep_win_rate * 100),
+                  battleWinRate: Math.round(kingdom.battle_win_rate * 100),
+                  totalKvks: kingdom.total_kvks
+                }}
+              />
+              
               <button
                 onClick={() => setShowReportModal(true)}
                 style={{
@@ -435,6 +459,8 @@ const KingdomProfile: React.FC = () => {
 
       {/* Main Content */}
       <div style={{ maxWidth: '1000px', margin: '0 auto', padding: isMobile ? '1rem' : '1.5rem 2rem' }}>
+        {/* Ad Banner - shows upgrade prompt for non-Pro users */}
+        <AdBanner placement="profile" />
         
         {/* Quick Stats Grid - 4 columns on desktop, 2x2 on mobile */}
         <div style={{ 
@@ -451,7 +477,7 @@ const KingdomProfile: React.FC = () => {
               { label: 'Dominations', value: highKings, color: '#22c55e', icon: '👑', tooltip: 'Won both Prep and Battle', percent: Math.round((highKings / totalKvks) * 100) },
               { label: 'Reversals', value: reversals, color: '#a855f7', icon: '🔄', tooltip: 'Won Prep but lost Battle', percent: Math.round((reversals / totalKvks) * 100) },
               { label: 'Comebacks', value: comebacks, color: '#3b82f6', icon: '💪', tooltip: 'Lost Prep but won Battle', percent: Math.round((comebacks / totalKvks) * 100) },
-              { label: 'Invasions', value: invaderKings, color: '#ef4444', icon: '🏳️', tooltip: 'Lost both Prep and Battle', percent: Math.round((invaderKings / totalKvks) * 100) },
+              { label: 'Invasions', value: invaderKings, color: '#ef4444', icon: '💀', tooltip: 'Lost both Prep and Battle', percent: Math.round((invaderKings / totalKvks) * 100) },
             ];
             return stats.map((stat, i) => (
               <div 
@@ -504,6 +530,13 @@ const KingdomProfile: React.FC = () => {
           })()}
         </div>
 
+        {/* Atlas Score Breakdown - Toggleable Radar Chart */}
+        <AtlasScoreBreakdown 
+          kingdom={kingdom} 
+          rank={allKingdoms.findIndex(k => k.kingdom_number === kingdom.kingdom_number) + 1 || undefined}
+          totalKingdoms={allKingdoms.length || undefined}
+        />
+
         {/* Phase Performance Cards */}
         <div style={{ 
           display: 'grid', 
@@ -523,6 +556,7 @@ const KingdomProfile: React.FC = () => {
               else break;
             }
             const showPrepStreak = prepStreak >= 2;
+            const prepBestStreak = kingdom.prep_best_streak ?? 0;
             
             return (
               <div className="phase-card" style={{ 
@@ -575,6 +609,11 @@ const KingdomProfile: React.FC = () => {
                       {Math.round(kingdom.prep_win_rate * 100)}%
                     </div>
                     <div style={{ color: '#6b7280', fontSize: '0.7rem', marginTop: '0.25rem' }}>Win Rate</div>
+                    {prepBestStreak >= 3 && (
+                      <div style={{ color: '#6b7280', fontSize: '0.65rem', marginTop: '0.25rem' }}>
+                        Best: {prepBestStreak}W
+                      </div>
+                    )}
                   </div>
                   
                   {/* Losses column */}
@@ -614,6 +653,7 @@ const KingdomProfile: React.FC = () => {
               else break;
             }
             const showBattleStreak = battleStreak >= 2;
+            const battleBestStreak = kingdom.battle_best_streak ?? 0;
             
             return (
               <div className="phase-card" style={{ 
@@ -666,6 +706,11 @@ const KingdomProfile: React.FC = () => {
                       {Math.round(kingdom.battle_win_rate * 100)}%
                     </div>
                     <div style={{ color: '#6b7280', fontSize: '0.7rem', marginTop: '0.25rem' }}>Win Rate</div>
+                    {battleBestStreak >= 3 && (
+                      <div style={{ color: '#6b7280', fontSize: '0.65rem', marginTop: '0.25rem' }}>
+                        Best: {battleBestStreak}W
+                      </div>
+                    )}
                   </div>
                   
                   {/* Losses column */}
@@ -717,24 +762,48 @@ const KingdomProfile: React.FC = () => {
               </h3>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>
-                  {showAllKvks ? allKvks.length : Math.min(10, allKvks.length)} of {allKvks.length}
+                  Showing {Math.min(features.kvkHistoryLimit, allKvks.length)} of {kingdom.total_kvks}
                 </span>
-                {allKvks.length > 10 && (
-                  <button
-                    onClick={() => setShowAllKvks(!showAllKvks)}
-                    style={{
-                      padding: '0.35rem 0.75rem',
-                      backgroundColor: showAllKvks ? '#22d3ee20' : 'transparent',
-                      border: `1px solid ${showAllKvks ? '#22d3ee' : '#333'}`,
-                      borderRadius: '6px',
-                      color: showAllKvks ? '#22d3ee' : '#6b7280',
-                      fontSize: '0.75rem',
-                      cursor: 'pointer',
-                      transition: 'all 0.15s'
-                    }}
-                  >
-                    {showAllKvks ? 'Show Less' : 'View All'}
-                  </button>
+                {allKvks.length > features.kvkHistoryLimit && !isPro && (
+                  tier === 'anonymous' ? (
+                    <Link
+                      to="/profile"
+                      style={{
+                        padding: '0.35rem 0.75rem',
+                        backgroundColor: 'transparent',
+                        border: '1px solid #333',
+                        borderRadius: '6px',
+                        color: '#6b7280',
+                        fontSize: '0.75rem',
+                        textDecoration: 'none',
+                        transition: 'all 0.15s'
+                      }}
+                    >
+                      Sign In for More
+                    </Link>
+                  ) : (
+                    <Link
+                      to="/upgrade"
+                      style={{
+                        padding: '0.35rem 0.75rem',
+                        backgroundColor: '#22d3ee15',
+                        border: '1px solid #22d3ee40',
+                        borderRadius: '6px',
+                        color: '#22d3ee',
+                        fontSize: '0.75rem',
+                        textDecoration: 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.25rem',
+                        transition: 'all 0.15s'
+                      }}
+                    >
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                      </svg>
+                      Full History
+                    </Link>
+                  )
                 )}
               </div>
             </div>
@@ -752,7 +821,7 @@ const KingdomProfile: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {(showAllKvks ? allKvks : allKvks.slice(0, 10)).map((kvk, index) => {
+                  {allKvks.slice(0, features.kvkHistoryLimit).map((kvk, index) => {
                     const outcomeStyle = getOutcomeStyle(kvk.prep_result, kvk.battle_result);
                     const isWin = (r: string) => r === 'Win' || r === 'W';
                     const outcomeLetter = getOutcomeLetter(kvk.prep_result, kvk.battle_result);
@@ -943,7 +1012,7 @@ const KingdomProfile: React.FC = () => {
               e.currentTarget.style.color = '#6b7280';
             }}
           >
-            ← Back to Directory
+            ← Back to Home
           </Link>
         </div>
       </div>

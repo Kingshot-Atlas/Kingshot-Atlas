@@ -1,24 +1,92 @@
 # Agent Registry
 
-**Last Updated:** 2026-01-27  
-**Version:** 1.0
+**Last Updated:** 2026-01-29  
+**Version:** 3.2 (Added Security Specialist sub-agent)
 
 ---
 
 ## Overview
 
-This registry indexes all specialist agents available for project work. Each specialist maintains top-tier industry knowledge in their domain and can be instantiated for specific projects.
+Kingshot Atlas is run by a professional team of specialized AI agents, structured like an industry-leading company. The **Atlas Director** serves as CEO, reporting directly to the Owner and orchestrating all specialist agents.
 
 ---
 
-## Specialist Agents
+## Organization Chart
 
-| Agent | Domain | Invoke When |
-|-------|--------|-------------|
-| **Core Functionality** | UX, features, user flows, value delivery | Building/refining features, user-facing logic |
-| **Technical Foundation** | Architecture, security, accessibility, performance | Infrastructure, optimization, security reviews |
-| **Design & Content** | Visual design, content strategy, responsiveness | UI work, styling, copy, mobile optimization |
-| **Business & Maintenance** | SEO, analytics, CI/CD, scalability | Deployment, monitoring, growth optimization |
+```
+                         ┌─────────────────┐
+                         │   OWNER (You)   │
+                         └────────┬────────┘
+                                  │ Reports to
+                         ┌────────▼────────┐
+                         │  ATLAS DIRECTOR │
+                         │   (Executive)   │
+                         └────────┬────────┘
+                                  │ Orchestrates
+    ┌───────────┬───────────┬─────┴─────┬───────────┬───────────┐
+    ▼           ▼           ▼           ▼           ▼           ▼
+┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐
+│PRODUCT │ │PLATFORM│ │ DESIGN │ │  OPS   │ │BUSINESS│ │RELEASE │
+│ENGINEER│ │ENGINEER│ │  LEAD  │ │  LEAD  │ │  LEAD  │ │MANAGER │
+└────────┘ └───┬────┘ └────────┘ └────────┘ └────────┘ └────────┘
+               │
+               ▼
+          ┌────────┐
+          │SECURITY│
+          │  SPEC  │
+          └────────┘
+```
+
+---
+
+## Brand Compliance (MANDATORY)
+
+**All agents MUST follow the brand guide when creating or updating any user-facing content.**
+
+### Reference Document
+`/docs/BRAND_GUIDE.md` - The authoritative source for brand voice, personality, and messaging.
+
+### Brand Voice Summary
+| Trait | Meaning | Example |
+|-------|---------|--------|
+| **Competitive** | Speak to players who want to win | "Stop guessing. Start winning." |
+| **Analytical** | Facts over opinions, data over rumors | "Data-driven dominance" |
+| **Direct** | No corporate fluff, get to the point | "No more blind migrations." |
+| **Community-powered** | We're players, not a corporation | "Built by players, for players" |
+
+### Terminology Standards
+| Use This | Not This |
+|----------|----------|
+| KvK | Kingdom vs Kingdom (after first use) |
+| Prep Phase / Battle Phase | Preparation Phase / Combat Phase |
+| Transfer Event | Migration Event |
+| Atlas Score | Rating / Points |
+| Domination | Double win |
+| Invasion | Double loss |
+| S-Tier, A-Tier, etc. | Top tier, high tier |
+
+### Content Checklist
+Before publishing any user-facing content, verify:
+- [ ] Tone is competitive and gaming-focused
+- [ ] Language is direct and punchy (no corporate jargon)
+- [ ] Correct terminology is used
+- [ ] Copy empowers users to make better decisions
+- [ ] No condescending or elitist language
+
+---
+
+## The Team
+
+| Agent | Role | Domain | Invoke When |
+|-------|------|--------|-------------|
+| **Atlas Director** | CEO | Strategy, orchestration, reporting | Starting work, status checks, multi-agent tasks |
+| **Product Engineer** | Core Dev | Features, UX, React, data integration | Building features, user-facing logic, components |
+| **Platform Engineer** | Tech Lead | API, security, performance, architecture | Backend work, security, optimization |
+| ↳ **Security Specialist** | Sub-agent | Vulnerability assessment, pen testing, incident response | Security audits, threat modeling, compliance |
+| **Design Lead** | Creative | UI design, styling, content, brand | Visual work, CSS, content, responsive design, **brand enforcement** |
+| **Ops Lead** | DevOps | CI/CD, deployment, SEO, analytics | Deployment, monitoring, SEO, infrastructure |
+| **Business Lead** | Revenue | Monetization, growth, market research | Pricing, conversion, user growth, competitive analysis |
+| **Release Manager** | Comms | Patch notes, changelog, announcements | Every 3 days, user communications |
 
 ---
 
@@ -26,111 +94,253 @@ This registry indexes all specialist agents available for project work. Each spe
 
 ```
 /agents/
-├── core-functionality/
-│   ├── SPECIALIST.md           # Identity, skills, workflows
-│   └── LATEST_KNOWLEDGE.md     # Current best practices (refresh before work)
-├── technical-foundation/
-│   ├── SPECIALIST.md
-│   └── LATEST_KNOWLEDGE.md
-├── design-content/
-│   ├── SPECIALIST.md
-│   └── LATEST_KNOWLEDGE.md
-├── business-maintenance/
-│   ├── SPECIALIST.md
-│   └── LATEST_KNOWLEDGE.md
+├── AGENT_REGISTRY.md              # This file
+├── director/
+│   ├── SPECIALIST.md              # Executive identity, autonomy levels
+│   └── LATEST_KNOWLEDGE.md        # Leadership best practices
+├── product-engineer/
+│   ├── SPECIALIST.md              # Identity, React expertise
+│   └── LATEST_KNOWLEDGE.md        # Frontend best practices
+├── platform-engineer/
+│   ├── SPECIALIST.md              # Identity, backend expertise
+│   ├── LATEST_KNOWLEDGE.md        # API/security best practices
+│   └── security-specialist/       # Sub-agent
+│       ├── SPECIALIST.md          # Security expertise
+│       └── LATEST_KNOWLEDGE.md    # Current threats & tools
+├── design-lead/
+│   ├── SPECIALIST.md              # Identity, design expertise
+│   └── LATEST_KNOWLEDGE.md        # CSS/design best practices
+├── ops-lead/
+│   ├── SPECIALIST.md              # Identity, DevOps expertise
+│   └── LATEST_KNOWLEDGE.md        # CI/CD/SEO best practices
+├── business-lead/
+│   ├── SPECIALIST.md              # Identity, revenue/growth expertise
+│   └── LATEST_KNOWLEDGE.md        # Monetization best practices
+├── release-manager/
+│   ├── SPECIALIST.md              # Identity, communications
+│   ├── LATEST_KNOWLEDGE.md        # Patch notes best practices
+│   └── templates/                 # Patch notes & Discord templates
 └── project-instances/
-    └── [project-name]/
-        ├── HANDOFF_TEMPLATE.md
-        └── [specialist]_WORKLOG.md
+    └── kingshot-atlas/
+        ├── STATUS_SNAPSHOT.md     # Current project state
+        ├── ACTIVITY_LOG.md        # Real-time action log
+        ├── FILE_CLAIMS.md         # Conflict prevention
+        └── worklogs/              # Per-agent decision logs
 ```
 
 ---
 
-## How Specialists Work
+## Agent Boundaries
 
-### 1. Invocation
-Manager creates a handoff document with:
-- Task scope and goals
-- Constraints and limitations
-- Project context summary
-- Success criteria
+### Scope Matrix
 
-### 2. Project Instance Creation
-Specialist reads:
-1. Their `SPECIALIST.md` (identity/skills)
-2. Their `LATEST_KNOWLEDGE.md` (current best practices)
-3. Project-specific context from `/project-instances/[project]/`
-4. The handoff document
-
-### 3. Work Execution
-Specialist:
-- Operates within defined scope
-- Logs significant decisions to their worklog
-- Requests Manager approval for scope changes
-- Returns control to Manager upon completion
-
-### 4. Handback
-Specialist provides:
-- Summary of changes made
-- Files modified
-- Decisions made and rationale
-- Recommendations for follow-up
+| Agent | Owns (Writes) | Reads | Never Touches |
+|-------|---------------|-------|---------------|
+| **Director** | Coordination files, STATE_PACKET | Everything | Code (delegates) |
+| **Product Engineer** | `/apps/web/src/` (components, logic) | Specs, worklogs | CSS-only, API |
+| **Platform Engineer** | `/apps/api/`, build config, types | Architecture docs | UI components |
+| **Design Lead** | CSS, design tokens, content, `/docs/BRAND_GUIDE.md` | Style guide | Component logic |
+| **Ops Lead** | CI/CD, deployment, SEO config | Monitoring data | Feature code |
+| **Business Lead** | Pricing strategy, growth docs, marketing copy | Analytics, user feedback | Code implementation |
+| **Release Manager** | `/docs/releases/`, CHANGELOG | All worklogs (read-only) | Everything else |
 
 ---
 
-## Invocation Protocol
+## Director Autonomy
 
-### When to Invoke a Specialist
-✅ **DO invoke when:**
-- Task requires deep domain expertise
-- Work spans multiple files in the domain
-- Quality/consistency is critical
-- Task would benefit from specialized workflows
+The Atlas Director can make certain decisions independently:
 
-❌ **DON'T invoke when:**
-- Task is trivial (single-line fix)
-- Manager has sufficient context
-- Urgency outweighs specialization benefit
+### ✅ Auto-Approve (No Owner approval needed)
+- Bug fix prioritization
+- Specialist assignment
+- Task sequencing
+- Documentation updates
+- Minor improvements
 
-### Handoff Document Template
+### ⚠️ Needs Owner Approval
+- New feature development
+- Breaking changes
+- Strategic direction changes
+- Major architectural decisions
+- External integrations
+
+### 🚨 Escalate Immediately
+- Security vulnerabilities
+- Data integrity issues
+- Production outages
+- Blocking resource constraints
+
+---
+
+## Patch Notes Schedule
+
+The **Release Manager** compiles user-facing patch notes **every 3 days**.
+
+### Process
+1. Read all agent worklogs from past 3 days
+2. Filter for user-relevant changes
+3. Categorize: ✨ New, 🐛 Fixed, 🔧 Improved
+4. Publish to `/docs/releases/PATCH_NOTES_YYYY-MM-DD.md`
+5. Update `/docs/CHANGELOG.md`
+6. Post to Discord via `POST /api/discord/webhook/patch-notes`
+
+### What Gets Included
+- ✅ User-visible features
+- ✅ Bug fixes users noticed
+- ✅ Performance improvements
+- ❌ Internal refactoring
+- ❌ Code cleanup
+- ❌ Agent system changes
+
+---
+
+## Coordination Protocol
+
+### Starting Work
+```
+1. READ STATUS_SNAPSHOT.md     → Current state
+2. CHECK FILE_CLAIMS.md        → No conflicts
+3. SCAN ACTIVITY_LOG.md        → Recent history
+4. CLAIM files before editing
+5. LOG "STARTED" in ACTIVITY_LOG.md
+6. DO the work
+7. LOG decisions in worklog
+8. RELEASE claims
+9. LOG "COMPLETED" in ACTIVITY_LOG.md
+10. UPDATE STATUS_SNAPSHOT.md
+```
+
+### File Claiming Rules
+- **Check before editing** — Never edit a claimed file
+- **Claim before starting** — Add claim with timestamp
+- **Release on completion** — Remove claim when done
+- **2-hour expiry** — Stale claims can be overridden by Director
+
+---
+
+## Handoff Protocol
+
+### When Director Invokes a Specialist
+
+1. **Prepare Handoff Document**
+   ```markdown
+   # Specialist Handoff: [AGENT NAME]
+   
+   **Project:** Kingshot Atlas
+   **Date:** [Date]
+   **From:** Atlas Director
+   
+   ## Task
+   [Clear description]
+   
+   ## Goals
+   - [ ] Goal 1
+   - [ ] Goal 2
+   
+   ## Constraints
+   - [What NOT to do]
+   
+   ## Context
+   [Relevant background]
+   
+   ## Success Criteria
+   [How we know it's done]
+   ```
+
+2. **Specialist Reads**
+   - Their `SPECIALIST.md`
+   - Their `LATEST_KNOWLEDGE.md`
+   - Project files in `/project-instances/kingshot-atlas/`
+   - The handoff document
+
+3. **Specialist Works**
+   - Claims files
+   - Executes task
+   - Logs decisions
+   - Stays within scope
+
+4. **Specialist Returns**
+   - Summary of changes
+   - Files modified
+   - Decisions made
+   - Follow-up recommendations
+
+---
+
+## Post-Task Requirements (MANDATORY)
+
+**After completing ANY task, ALL agents MUST:**
+
+### 1. Document Knowledge
+Record all relevant information that must be known by yourself or other agents in the future:
+- Technical decisions and rationale
+- API endpoints, secrets, or configurations discovered
+- Gotchas, edge cases, or lessons learned
+- Dependencies or prerequisites for future work
+
+**Where to document:**
+- Agent-specific: Update your `LATEST_KNOWLEDGE.md`
+- Project-wide: Update `/docs/` or relevant documentation
+- Cross-agent: Update `AGENT_REGISTRY.md` if it affects coordination
+
+### 2. Provide Summary Report
+Deliver a concise report including:
+- **What was done** — Clear description of completed work
+- **Why it was done** — Business/technical justification
+- **Key decisions made** — And their rationale
+- **Files changed** — With brief descriptions
+
+### 3. Provide Suggestions
+Offer 3 actionable suggestions for next steps, each including:
+- **Relevance** — How it connects to completed work
+- **Utility** — What value it provides
+- **Priority reasoning** — Why it should (or shouldn't) be done soon
+
+**Format:**
 ```markdown
-# Specialist Handoff: [SPECIALIST NAME]
+## Suggestions
 
-**Project:** [Project Name]
-**Date:** [Date]
-**Manager:** [Cascade Session ID or identifier]
+### Option A: [Title]
+- **Tasks:** [5 specific tasks]
+- **Relevance:** [Connection to completed work]
+- **Utility:** [Value provided]
+- **Priority:** [Why now or later]
 
-## Task
-[Clear description of what needs to be done]
-
-## Goals
-- [ ] Goal 1
-- [ ] Goal 2
-
-## Constraints
-- [Limitation 1]
-- [Limitation 2]
-
-## Project Context
-[Brief summary of project state, relevant files, recent changes]
-
-## Success Criteria
-[How we know the task is complete]
-
-## Return Instructions
-[What to include in handback]
+### Option B: [Title]
+...
 ```
 
 ---
 
-## Cross-Specialist Coordination
+## When to Invoke Specialists
 
-When tasks span multiple domains:
-1. Manager identifies primary and supporting specialists
-2. Primary specialist leads; others provide input
-3. Manager coordinates handoffs between specialists
-4. Final integration reviewed by Manager
+### ✅ DO Invoke When
+- Task requires domain expertise
+- Work spans multiple files
+- Quality/consistency is critical
+- Specialized workflows add value
+
+### ❌ DON'T Invoke When
+- Single-line fixes
+- Trivial updates
+- Director has sufficient context
+- Urgency outweighs specialization
 
 ---
 
-*Registry maintained by Project Managers*
+## Communication Flow
+
+```
+Owner
+  ↑↓ Strategic decisions, approvals, direction
+Atlas Director
+  ↓  Task assignments, handoffs
+  ↑  Status updates, completions, blockers
+Specialists (Product, Platform, Design, Ops)
+  ↓  Worklogs, activity logs
+Release Manager → Patch Notes → (Future) Discord → Users
+```
+
+---
+
+*Registry maintained by Atlas Director*

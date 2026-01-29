@@ -5,10 +5,14 @@ export interface Kingdom {
   prep_losses: number;
   prep_win_rate: number;
   prep_streak: number;
+  prep_loss_streak?: number;
+  prep_best_streak?: number;
   battle_wins: number;
   battle_losses: number;
   battle_win_rate: number;
   battle_streak: number;
+  battle_loss_streak?: number;
+  battle_best_streak?: number;
   dominations: number;
   defeats: number;
   most_recent_status: string;
@@ -84,8 +88,8 @@ export const TIER_COLORS: Record<PowerTier, string> = {
   S: '#fbbf24',  // Gold
   A: '#22c55e',  // Green
   B: '#3b82f6',  // Blue
-  C: '#9ca3af',  // Gray
-  D: '#6b7280',  // Dark gray
+  C: '#f97316',  // Orange
+  D: '#ef4444',  // Red
 };
 
 export const TIER_DESCRIPTIONS: Record<PowerTier, string> = {
@@ -117,4 +121,56 @@ export interface UserProfile {
   theme_color: string;
   badge_style: string;
   created_at: string;
+  linked_player_id?: string;
+  linked_username?: string;
+  linked_avatar_url?: string | null;
+  linked_kingdom?: number;
+  linked_tc_level?: number;
+}
+
+// Raw JSON data types for type safety
+export interface RawKingdomData {
+  kingdom_number: number;
+  total_kvks: number;
+  prep_wins: number;
+  prep_losses: number;
+  prep_win_rate: number;
+  prep_streak: number;
+  prep_loss_streak?: number;
+  prep_best_streak?: number;
+  battle_wins: number;
+  battle_losses: number;
+  battle_win_rate: number;
+  battle_streak: number;
+  battle_loss_streak?: number;
+  battle_best_streak?: number;
+  dominations: number;
+  defeats: number;
+  most_recent_status: string;
+  overall_score: number;
+}
+
+export interface RawKvKRecord {
+  kingdom_number: number;
+  kvk_number: number;
+  opponent_kingdom: number;
+  prep_result: string;
+  battle_result: string;
+  overall_result: string;
+  date_or_order_index: string;
+}
+
+export interface KingdomDataFile {
+  kingdoms: RawKingdomData[];
+  kvk_records: RawKvKRecord[];
+}
+
+// Leaderboard stat types
+export interface KingdomWithStats extends Kingdom {
+  prepStreak: number;
+  battleStreak: number;
+  dominations: number;
+  defeats: number;
+  reversals: number;
+  comebacks: number;
 }

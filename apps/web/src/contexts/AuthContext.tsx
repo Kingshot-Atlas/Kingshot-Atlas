@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { logger } from '../utils/logger';
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { userDataService } from '../services/userDataService';
@@ -16,6 +17,12 @@ export interface UserProfile {
   theme_color: string;
   badge_style: string;
   created_at: string;
+  is_admin?: boolean;
+  linked_player_id?: string;
+  linked_username?: string;
+  linked_avatar_url?: string | null;
+  linked_kingdom?: number;
+  linked_tc_level?: number;
 }
 
 interface AuthContextType {
@@ -43,6 +50,31 @@ export const useAuth = () => {
 };
 
 const PROFILE_KEY = 'kingshot_profile';
+
+// Strip any existing cache-busting params from avatar URL (for clean storage)
+const getCleanAvatarUrl = (url: string | undefined): string => {
+  if (!url) return '';
+  try {
+    const urlObj = new URL(url);
+    urlObj.searchParams.delete('_t');
+    return urlObj.toString();
+  } catch {
+    return url;
+  }
+};
+
+// Add cache-busting timestamp to avatar URLs at render time
+// This is exported so components can use it when displaying avatars
+export const getCacheBustedAvatarUrl = (url: string | undefined): string => {
+  if (!url) return '';
+  try {
+    const urlObj = new URL(url);
+    urlObj.searchParams.set('_t', Date.now().toString());
+    return urlObj.toString();
+  } catch {
+    return url;
+  }
+};
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -86,9 +118,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const fetchOrCreateProfile = async (user: User) => {
     if (!supabase) {
       // Create local profile when Supabase is not configured
-      const avatarUrl = user.user_metadata?.avatar_url || 
-                        user.user_metadata?.picture || 
-                        '';
+      const avatarUrl = getCleanAvatarUrl(
+        user.user_metadata?.avatar_url || 
+        user.user_metadata?.picture
+      );
       const username = user.user_metadata?.full_name || 
                        user.user_metadata?.name || 
                        user.user_metadata?.preferred_username ||
@@ -106,7 +139,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         bio: '',
         theme_color: '#22d3ee',
         badge_style: 'default',
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        is_admin: false
       };
       setProfile(localProfile);
       localStorage.setItem(PROFILE_KEY, JSON.stringify(localProfile));
@@ -123,9 +157,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       if (error && error.code === 'PGRST116') {
         // Profile doesn't exist, create one
-        const avatarUrl = user.user_metadata?.avatar_url || 
-                          user.user_metadata?.picture || 
-                          '';
+        const avatarUrl = getCleanAvatarUrl(
+          user.user_metadata?.avatar_url || 
+          user.user_metadata?.picture
+        );
         const username = user.user_metadata?.full_name || 
                          user.user_metadata?.name || 
                          user.user_metadata?.preferred_username ||
@@ -144,7 +179,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           bio: '',
           theme_color: '#22d3ee',
           badge_style: 'default',
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
+          is_admin: false
         };
 
         const { data: created, error: createError } = await supabase
@@ -154,7 +190,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           .single();
 
         if (createError) {
-          console.error('Error creating profile:', createError);
+          logger.error('Error creating profile:', createError);
           // Use local profile on error
           setProfile(newProfile);
           localStorage.setItem(PROFILE_KEY, JSON.stringify(newProfile));
@@ -167,21 +203,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
       } else if (error) {
         // Some other error occurred, try to use cached profile
-        console.error('Error fetching profile:', error);
+        logger.error('Error fetching profile:', error);
         const cached = localStorage.getItem(PROFILE_KEY);
         if (cached) {
           setProfile(JSON.parse(cached));
         }
       } else if (data) {
-        const avatarUrl = user.user_metadata?.avatar_url || 
-                          user.user_metadata?.picture || 
-                          data.avatar_url;
+        // Always prefer fresh avatar from OAuth metadata over cached DB value
+        // Store clean URL without cache-busting - apply cache-busting at render time
+        const avatarUrl = getCleanAvatarUrl(
+          user.user_metadata?.avatar_url || 
+          user.user_metadata?.picture || 
+          data.avatar_url
+        );
         const updatedProfile = { ...data, avatar_url: avatarUrl };
         setProfile(updatedProfile);
         localStorage.setItem(PROFILE_KEY, JSON.stringify(updatedProfile));
       }
     } catch (err) {
-      console.error('Error fetching profile:', err);
+      logger.error('Error fetching profile:', err);
       // Try cached profile on network error
       const cached = localStorage.getItem(PROFILE_KEY);
       if (cached) {
@@ -200,7 +240,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         redirectTo: `${window.location.origin}/profile`
       }
     });
-    if (error) console.error('Google sign-in error:', error);
+    if (error) logger.error('Google sign-in error:', error);
   };
 
   const signInWithDiscord = async () => {
@@ -211,7 +251,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         redirectTo: `${window.location.origin}/profile`
       }
     });
-    if (error) console.error('Discord sign-in error:', error);
+    if (error) logger.error('Discord sign-in error:', error);
   };
 
   const signInWithEmail = async (email: string, password: string) => {

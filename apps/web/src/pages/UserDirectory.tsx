@@ -1,21 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-
-interface UserProfile {
-  id: string;
-  username: string;
-  email: string;
-  avatar_url: string;
-  home_kingdom: number | null;
-  alliance_tag: string;
-  language: string;
-  region: string;
-  bio: string;
-  theme_color: string;
-  badge_style: string;
-  created_at: string;
-}
+import { useAuth, UserProfile } from '../contexts/AuthContext';
 
 const UserDirectory: React.FC = () => {
   const { user: currentUser } = useAuth();
@@ -179,7 +164,7 @@ const UserDirectory: React.FC = () => {
             <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>DIRECTORY</span>
           </h1>
           <p style={{ color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.9rem', marginBottom: '0.75rem' }}>
-            Discover players, view profiles, and connect with the community
+            Find allies, scout rivals, connect with the community
           </p>
           
           {!isMobile && (
@@ -229,7 +214,7 @@ const UserDirectory: React.FC = () => {
             <select
               value={filterBy}
               onChange={(e) => {
-                setFilterBy(e.target.value as any);
+                setFilterBy(e.target.value as 'all' | 'alliance' | 'region' | 'kingdom');
                 setFilterValue('');
               }}
               style={{
@@ -461,10 +446,10 @@ const UserDirectory: React.FC = () => {
         )}
       </div>
 
-      {/* Back to Directory */}
+      {/* Back to Home */}
       <div style={{ textAlign: 'center', marginTop: '3rem', paddingBottom: '2rem' }}>
         <Link to="/" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: '0.85rem' }}>
-          ← Back to Kingdom Directory
+          ← Back to Home
         </Link>
       </div>
     </div>

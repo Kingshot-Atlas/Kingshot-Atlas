@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-from api.routers import kingdoms, auth, leaderboard, compare, submissions
+from api.routers import kingdoms, auth, leaderboard, compare, submissions, agent, discord, player_link
 from database import engine
 from models import Base
 
@@ -35,7 +35,7 @@ limiter = Limiter(key_func=get_remote_address)
 # Development: localhost variants
 ALLOWED_ORIGINS = os.getenv(
     "ALLOWED_ORIGINS",
-    "http://localhost:3000,http://127.0.0.1:3000,https://www.ks-atlas.com,https://ks-atlas.com"
+    "http://localhost:3000,http://127.0.0.1:3000,https://www.ks-atlas.com,https://ks-atlas.com,https://ks-atlas.netlify.app"
 ).split(",")
 
 app = FastAPI(
@@ -65,6 +65,9 @@ app.include_router(auth.router, prefix="/api", tags=["auth"])
 app.include_router(leaderboard.router, prefix="/api", tags=["leaderboard"])
 app.include_router(compare.router, prefix="/api", tags=["compare"])
 app.include_router(submissions.router, prefix="/api", tags=["submissions"])
+app.include_router(agent.router, prefix="/api/agent", tags=["agent"])
+app.include_router(discord.router, prefix="/api/discord", tags=["discord"])
+app.include_router(player_link.router, prefix="/api/player-link", tags=["player-link"])
 
 @app.get("/")
 def root():
