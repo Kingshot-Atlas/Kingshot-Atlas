@@ -4,7 +4,7 @@
   "description": "Atlas - The Kingshot Atlas Discord Bot",
   "main": "src/bot.js",
   "scripts": {
-    "start": "node src/bot.js",
+    "start": "node health.js & node src/bot.js",
     "dev": "nodemon src/bot.js",
     "register": "node src/register-commands.js",
     "webhook:test": "node src/webhook-test.js"
