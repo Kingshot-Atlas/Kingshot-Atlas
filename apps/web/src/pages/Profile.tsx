@@ -10,6 +10,86 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { neonGlow } from '../utils/styles';
 
+// Avatar component with error handling and fallback
+const AvatarWithFallback: React.FC<{
+  avatarUrl?: string;
+  username?: string;
+  size: number;
+  themeColor: string;
+  badgeStyle?: string;
+}> = ({ avatarUrl, username, size, themeColor, badgeStyle = 'default' }) => {
+  const [imgError, setImgError] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
+
+  const getBadgeStyle = (style: string, color: string) => {
+    switch (style) {
+      case 'gradient':
+        return { background: `linear-gradient(135deg, ${color} 0%, ${color}80 100%)` };
+      case 'outline':
+        return { backgroundColor: 'transparent', border: `2px solid ${color}` };
+      case 'glow':
+        return { backgroundColor: color, boxShadow: `0 0 20px ${color}60` };
+      default:
+        return { backgroundColor: color };
+    }
+  };
+
+  // Show fallback if no URL, error loading, or URL is empty
+  if (!avatarUrl || imgError || avatarUrl === '') {
+    return (
+      <div style={{
+        width: `${size}px`,
+        height: `${size}px`,
+        borderRadius: '50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: `${size * 0.4}px`,
+        color: '#000',
+        fontWeight: 'bold',
+        ...getBadgeStyle(badgeStyle, themeColor)
+      }}>
+        {username?.[0]?.toUpperCase() ?? '?'}
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ position: 'relative', width: `${size}px`, height: `${size}px` }}>
+      {!imgLoaded && (
+        <div style={{
+          position: 'absolute',
+          width: `${size}px`,
+          height: `${size}px`,
+          borderRadius: '50%',
+          backgroundColor: '#1a1a1a',
+          animation: 'pulse 1.5s ease-in-out infinite',
+        }} />
+      )}
+      <img 
+        src={getCacheBustedAvatarUrl(avatarUrl)} 
+        alt="Avatar"
+        style={{
+          width: `${size}px`,
+          height: `${size}px`,
+          borderRadius: '50%',
+          objectFit: 'cover',
+          border: `2px solid ${themeColor}`,
+          opacity: imgLoaded ? 1 : 0,
+          transition: 'opacity 0.2s ease-in-out'
+        }}
+        onLoad={() => setImgLoaded(true)}
+        onError={() => {
+          console.error('Avatar failed to load:', avatarUrl);
+          setImgError(true);
+        }}
+        crossOrigin="anonymous"
+        referrerPolicy="no-referrer"
+      />
+    </div>
+  );
+};
+
 const LANGUAGES = [
   'English', 'Spanish', 'Portuguese', 'French', 'German', 'Italian', 
   'Russian', 'Chinese', 'Japanese', 'Korean', 'Arabic', 'Turkish',
@@ -558,34 +638,13 @@ const Profile: React.FC = () => {
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                {viewedProfile?.avatar_url ? (
-                  <img 
-                    src={getCacheBustedAvatarUrl(viewedProfile.avatar_url)} 
-                    alt="Avatar"
-                    style={{
-                      width: '64px',
-                      height: '64px',
-                      borderRadius: '50%',
-                      objectFit: 'cover',
-                      border: `2px solid ${themeColor}`
-                    }}
-                  />
-                ) : (
-                  <div style={{
-                    width: '64px',
-                    height: '64px',
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '1.5rem',
-                    color: '#000',
-                    fontWeight: 'bold',
-                    ...getBadgeStyle(viewedProfile?.badge_style || 'default', themeColor)
-                  }}>
-                    {viewedProfile?.username?.[0]?.toUpperCase() ?? '?'}
-                  </div>
-                )}
+                <AvatarWithFallback 
+                  avatarUrl={viewedProfile?.avatar_url}
+                  username={viewedProfile?.username}
+                  size={64}
+                  themeColor={themeColor}
+                  badgeStyle={viewedProfile?.badge_style}
+                />
                 <div>
                   <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#fff' }}>
                     {viewedProfile?.username || 'Anonymous User'}
