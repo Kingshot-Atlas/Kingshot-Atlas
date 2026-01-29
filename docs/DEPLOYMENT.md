@@ -38,7 +38,13 @@ CREATE TABLE IF NOT EXISTS profiles (
   bio TEXT,
   theme_color TEXT DEFAULT '#22d3ee',
   badge_style TEXT DEFAULT 'default',
-  created_at TIMESTAMPTZ DEFAULT NOW()
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  -- Linked Kingshot account fields
+  linked_player_id TEXT,
+  linked_username TEXT,
+  linked_avatar_url TEXT,
+  linked_kingdom INTEGER,
+  linked_tc_level INTEGER
 );
 
 -- Enable RLS

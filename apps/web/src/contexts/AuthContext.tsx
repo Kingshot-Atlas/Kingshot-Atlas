@@ -216,7 +216,29 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           user.user_metadata?.picture || 
           data.avatar_url
         );
-        const updatedProfile = { ...data, avatar_url: avatarUrl };
+        
+        // Merge with cached linked player data (in case DB columns don't exist yet)
+        const cached = localStorage.getItem(PROFILE_KEY);
+        let linkedPlayerData = {};
+        if (cached) {
+          try {
+            const cachedProfile = JSON.parse(cached);
+            // Preserve linked player data from cache if not in DB response
+            if (cachedProfile.linked_player_id && !data.linked_player_id) {
+              linkedPlayerData = {
+                linked_player_id: cachedProfile.linked_player_id,
+                linked_username: cachedProfile.linked_username,
+                linked_avatar_url: cachedProfile.linked_avatar_url,
+                linked_kingdom: cachedProfile.linked_kingdom,
+                linked_tc_level: cachedProfile.linked_tc_level,
+              };
+            }
+          } catch {
+            // Ignore parse errors
+          }
+        }
+        
+        const updatedProfile = { ...data, avatar_url: avatarUrl, ...linkedPlayerData };
         setProfile(updatedProfile);
         localStorage.setItem(PROFILE_KEY, JSON.stringify(updatedProfile));
       }

@@ -3,6 +3,26 @@ import { useIsMobile } from '../hooks/useMediaQuery';
 import { useToast } from './Toast';
 import { colors, neonGlow, shadows, transition } from '../utils/styles';
 
+// Convert TC level to display string (TC 31+ becomes TG tiers)
+const formatTCLevel = (level: number): string => {
+  if (level <= 30) return `TC ${level}`;
+  if (level <= 34) return 'TC 30';
+  const tgTier = Math.floor((level - 35) / 5) + 1;
+  return `TG${tgTier}`;
+};
+
+// Add cache-busting to avatar URLs to prevent stale cache issues
+const getCacheBustedUrl = (url: string | null): string | null => {
+  if (!url) return null;
+  try {
+    const urlObj = new URL(url);
+    urlObj.searchParams.set('_t', Date.now().toString());
+    return urlObj.toString();
+  } catch {
+    return url;
+  }
+};
+
 // Loading skeleton for preview state
 const LoadingSkeleton: React.FC = () => (
   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem' }}>
@@ -216,7 +236,7 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
         >
           {linkedPlayer.avatar_url ? (
             <img
-              src={linkedPlayer.avatar_url}
+              src={getCacheBustedUrl(linkedPlayer.avatar_url) || ''}
               alt=""
               style={{
                 width: '56px',
@@ -224,6 +244,7 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
                 borderRadius: '50%',
                 border: `2px solid ${colors.primary}`,
               }}
+              crossOrigin="anonymous"
             />
           ) : (
             <div
@@ -255,7 +276,7 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
               {linkedPlayer.username}
             </div>
             <div style={{ fontSize: '0.8rem', color: colors.textSecondary }}>
-              Kingdom {linkedPlayer.kingdom} • TC Level {linkedPlayer.town_center_level}
+              Kingdom {linkedPlayer.kingdom} • {formatTCLevel(linkedPlayer.town_center_level)}
             </div>
             <div style={{ fontSize: '0.7rem', color: colors.textMuted, marginTop: '0.25rem' }}>
               ID: {linkedPlayer.player_id}
@@ -389,7 +410,7 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
         >
           {previewData.avatar_url ? (
             <img
-              src={previewData.avatar_url}
+              src={getCacheBustedUrl(previewData.avatar_url) || ''}
               alt=""
               style={{
                 width: '64px',
@@ -398,6 +419,7 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
                 border: `2px solid ${colors.primary}`,
                 boxShadow: shadows.glow,
               }}
+              crossOrigin="anonymous"
             />
           ) : (
             <div
@@ -438,7 +460,7 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
               }}
             >
               <span>🏰 Kingdom {previewData.kingdom}</span>
-              <span>🏠 TC Level {previewData.town_center_level}</span>
+              <span>🏠 {formatTCLevel(previewData.town_center_level)}</span>
             </div>
           </div>
         </div>
