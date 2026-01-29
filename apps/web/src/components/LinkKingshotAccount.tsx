@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useToast } from './Toast';
-import { colors, neonGlow, shadows, transition } from '../utils/styles';
+import { colors, neonGlow, transition } from '../utils/styles';
 
 // Convert TC level to display string (TC 31+ becomes TG tiers)
 const formatTCLevel = (level: number): string => {
@@ -11,16 +11,76 @@ const formatTCLevel = (level: number): string => {
   return `TG${tgTier}`;
 };
 
-// Add cache-busting to avatar URLs to prevent stale cache issues
-const getCacheBustedUrl = (url: string | null): string | null => {
-  if (!url) return null;
-  try {
-    const urlObj = new URL(url);
-    urlObj.searchParams.set('_t', Date.now().toString());
-    return urlObj.toString();
-  } catch {
-    return url;
+// Avatar component with error handling - no crossOrigin to avoid CORS issues with Akamai CDN
+const KingshotAvatar: React.FC<{
+  url: string | null;
+  size: number;
+  borderColor: string;
+}> = ({ url, size, borderColor }) => {
+  const [imgError, setImgError] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
+  
+  // Reset error state when URL changes
+  useEffect(() => {
+    setImgError(false);
+    setImgLoaded(false);
+  }, [url]);
+
+  if (!url || imgError) {
+    return (
+      <div
+        style={{
+          width: `${size}px`,
+          height: `${size}px`,
+          borderRadius: '50%',
+          backgroundColor: colors.card,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: `${size * 0.4}px`,
+          border: `2px solid ${borderColor}`,
+        }}
+      >
+        👤
+      </div>
+    );
   }
+
+  return (
+    <div style={{ position: 'relative', width: `${size}px`, height: `${size}px` }}>
+      {!imgLoaded && (
+        <div
+          style={{
+            position: 'absolute',
+            width: `${size}px`,
+            height: `${size}px`,
+            borderRadius: '50%',
+            backgroundColor: colors.card,
+            border: `2px solid ${borderColor}`,
+            animation: 'pulse 1.5s ease-in-out infinite',
+          }}
+        />
+      )}
+      <img
+        src={url}
+        alt=""
+        style={{
+          width: `${size}px`,
+          height: `${size}px`,
+          borderRadius: '50%',
+          border: `2px solid ${borderColor}`,
+          opacity: imgLoaded ? 1 : 0,
+          transition: 'opacity 0.2s ease-in-out',
+        }}
+        onLoad={() => setImgLoaded(true)}
+        onError={() => {
+          console.error('Kingshot avatar failed to load:', url);
+          setImgError(true);
+        }}
+        referrerPolicy="no-referrer"
+      />
+    </div>
+  );
 };
 
 // Loading skeleton for preview state
@@ -234,35 +294,11 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
             marginBottom: '1rem',
           }}
         >
-          {linkedPlayer.avatar_url ? (
-            <img
-              src={getCacheBustedUrl(linkedPlayer.avatar_url) || ''}
-              alt=""
-              style={{
-                width: '56px',
-                height: '56px',
-                borderRadius: '50%',
-                border: `2px solid ${colors.primary}`,
-              }}
-              crossOrigin="anonymous"
-            />
-          ) : (
-            <div
-              style={{
-                width: '56px',
-                height: '56px',
-                borderRadius: '50%',
-                backgroundColor: colors.card,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '1.5rem',
-                border: `2px solid ${colors.primary}`,
-              }}
-            >
-              👤
-            </div>
-          )}
+          <KingshotAvatar 
+            url={linkedPlayer.avatar_url} 
+            size={56} 
+            borderColor={colors.primary} 
+          />
 
           <div style={{ flex: 1 }}>
             <div
@@ -408,36 +444,11 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
             marginBottom: '1rem',
           }}
         >
-          {previewData.avatar_url ? (
-            <img
-              src={getCacheBustedUrl(previewData.avatar_url) || ''}
-              alt=""
-              style={{
-                width: '64px',
-                height: '64px',
-                borderRadius: '50%',
-                border: `2px solid ${colors.primary}`,
-                boxShadow: shadows.glow,
-              }}
-              crossOrigin="anonymous"
-            />
-          ) : (
-            <div
-              style={{
-                width: '64px',
-                height: '64px',
-                borderRadius: '50%',
-                backgroundColor: colors.card,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '2rem',
-                border: `2px solid ${colors.primary}`,
-              }}
-            >
-              👤
-            </div>
-          )}
+          <KingshotAvatar 
+            url={previewData.avatar_url} 
+            size={64} 
+            borderColor={colors.primary} 
+          />
 
           <div style={{ flex: 1 }}>
             <div

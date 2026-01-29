@@ -191,15 +191,68 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
         if (createError) {
           logger.error('Error creating profile:', createError);
-          // Use local profile on error
-          setProfile(newProfile);
-          localStorage.setItem(PROFILE_KEY, JSON.stringify(newProfile));
+          // Use local profile on error, but preserve any cached linked player data
+          const cached = localStorage.getItem(PROFILE_KEY);
+          let linkedData = {};
+          if (cached) {
+            try {
+              const cachedProfile = JSON.parse(cached);
+              if (cachedProfile.linked_player_id) {
+                linkedData = {
+                  linked_player_id: cachedProfile.linked_player_id,
+                  linked_username: cachedProfile.linked_username,
+                  linked_avatar_url: cachedProfile.linked_avatar_url,
+                  linked_kingdom: cachedProfile.linked_kingdom,
+                  linked_tc_level: cachedProfile.linked_tc_level,
+                };
+              }
+            } catch { /* ignore */ }
+          }
+          const mergedProfile = { ...newProfile, ...linkedData };
+          setProfile(mergedProfile);
+          localStorage.setItem(PROFILE_KEY, JSON.stringify(mergedProfile));
         } else if (created) {
-          setProfile(created);
-          localStorage.setItem(PROFILE_KEY, JSON.stringify(created));
+          // Merge created profile with any cached linked player data
+          const cached = localStorage.getItem(PROFILE_KEY);
+          let linkedData = {};
+          if (cached) {
+            try {
+              const cachedProfile = JSON.parse(cached);
+              if (cachedProfile.linked_player_id) {
+                linkedData = {
+                  linked_player_id: cachedProfile.linked_player_id,
+                  linked_username: cachedProfile.linked_username,
+                  linked_avatar_url: cachedProfile.linked_avatar_url,
+                  linked_kingdom: cachedProfile.linked_kingdom,
+                  linked_tc_level: cachedProfile.linked_tc_level,
+                };
+              }
+            } catch { /* ignore */ }
+          }
+          const mergedProfile = { ...created, ...linkedData };
+          setProfile(mergedProfile);
+          localStorage.setItem(PROFILE_KEY, JSON.stringify(mergedProfile));
         } else {
-          setProfile(newProfile);
-          localStorage.setItem(PROFILE_KEY, JSON.stringify(newProfile));
+          // Fallback: merge with cached linked player data
+          const cached = localStorage.getItem(PROFILE_KEY);
+          let linkedData = {};
+          if (cached) {
+            try {
+              const cachedProfile = JSON.parse(cached);
+              if (cachedProfile.linked_player_id) {
+                linkedData = {
+                  linked_player_id: cachedProfile.linked_player_id,
+                  linked_username: cachedProfile.linked_username,
+                  linked_avatar_url: cachedProfile.linked_avatar_url,
+                  linked_kingdom: cachedProfile.linked_kingdom,
+                  linked_tc_level: cachedProfile.linked_tc_level,
+                };
+              }
+            } catch { /* ignore */ }
+          }
+          const mergedProfile = { ...newProfile, ...linkedData };
+          setProfile(mergedProfile);
+          localStorage.setItem(PROFILE_KEY, JSON.stringify(mergedProfile));
         }
       } else if (error) {
         // Some other error occurred, try to use cached profile
