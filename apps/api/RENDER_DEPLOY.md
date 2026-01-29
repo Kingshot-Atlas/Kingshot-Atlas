@@ -28,7 +28,7 @@ In Render dashboard → Environment:
 | `SECRET_KEY` | (click Generate) |
 | `ENVIRONMENT` | `production` |
 | `ALLOWED_ORIGINS` | `https://ks-atlas.com,https://www.ks-atlas.com` |
-| `DATABASE_URL` | `sqlite:///./kingshot_atlas.db` |
+| `DATABASE_URL` | *(delete or leave empty - defaults to SQLite)* |
 
 ### 5. Deploy
 Click **Create Web Service** and wait for deployment (~3-5 minutes).
@@ -91,4 +91,11 @@ curl "https://kingshot-atlas-api.onrender.com/api/leaderboard?limit=1"
 
 ---
 
+## Production URL
+
+```
+https://kingshot-atlas-api.onrender.com
+```
+
 *Created: 2026-01-29*
+*Last deployed: 2026-01-29*

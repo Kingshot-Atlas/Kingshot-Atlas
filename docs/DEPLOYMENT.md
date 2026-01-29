@@ -5,7 +5,7 @@
 | Component | URL |
 |-----------|-----|
 | **Frontend** | https://ks-atlas.com |
-| **Backend API** | (configure with Railway/Render) |
+| **Backend API** | https://kingshot-atlas-api.onrender.com |
 
 ## Overview
 
