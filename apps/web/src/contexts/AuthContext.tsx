@@ -209,6 +209,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           setProfile(JSON.parse(cached));
         }
       } else if (data) {
+        // Debug: Log OAuth metadata to understand avatar source
+        logger.info('OAuth metadata:', {
+          avatar_url: user.user_metadata?.avatar_url,
+          picture: user.user_metadata?.picture,
+          db_avatar: data.avatar_url
+        });
+        
         // Always prefer fresh avatar from OAuth metadata over cached DB value
         // Store clean URL without cache-busting - apply cache-busting at render time
         const avatarUrl = getCleanAvatarUrl(
@@ -216,6 +223,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           user.user_metadata?.picture || 
           data.avatar_url
         );
+        
+        logger.info('Final avatar URL:', avatarUrl);
         
         // Merge with cached linked player data (in case DB columns don't exist yet)
         const cached = localStorage.getItem(PROFILE_KEY);
@@ -232,6 +241,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 linked_kingdom: cachedProfile.linked_kingdom,
                 linked_tc_level: cachedProfile.linked_tc_level,
               };
+              logger.info('Restored linked player data from cache:', linkedPlayerData);
             }
           } catch {
             // Ignore parse errors
@@ -241,6 +251,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const updatedProfile = { ...data, avatar_url: avatarUrl, ...linkedPlayerData };
         setProfile(updatedProfile);
         localStorage.setItem(PROFILE_KEY, JSON.stringify(updatedProfile));
+        logger.info('Profile loaded:', { hasAvatar: !!avatarUrl, hasLinkedPlayer: !!(linkedPlayerData as any).linked_player_id });
       }
     } catch (err) {
       logger.error('Error fetching profile:', err);
@@ -311,33 +322,42 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       updates.alliance_tag = updates.alliance_tag.slice(0, 3).toUpperCase();
     }
 
+    // Always update local state and localStorage first (optimistic update)
+    const localUpdate = { ...profile, ...updates };
+    setProfile(localUpdate as UserProfile);
+    localStorage.setItem(PROFILE_KEY, JSON.stringify(localUpdate));
+
     if (!supabase) {
-      if (profile) {
-        const localUpdate = { ...profile, ...updates };
-        setProfile(localUpdate);
-        localStorage.setItem(PROFILE_KEY, JSON.stringify(localUpdate));
-      }
       return;
     }
 
-    const { data, error } = await supabase
-      .from('profiles')
-      .update(updates)
-      .eq('id', user.id)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error updating profile:', error);
-      if (profile) {
-        const localUpdate = { ...profile, ...updates };
-        setProfile(localUpdate);
-        localStorage.setItem(PROFILE_KEY, JSON.stringify(localUpdate));
+    // Separate linked player fields (stored locally only until DB columns exist)
+    const linkedFields = ['linked_player_id', 'linked_username', 'linked_avatar_url', 'linked_kingdom', 'linked_tc_level'];
+    const dbUpdates: Partial<UserProfile> = {};
+    const localOnlyUpdates: Partial<UserProfile> = {};
+    
+    for (const [key, value] of Object.entries(updates)) {
+      if (linkedFields.includes(key)) {
+        localOnlyUpdates[key as keyof UserProfile] = value as any;
+      } else {
+        dbUpdates[key as keyof UserProfile] = value as any;
       }
-    } else {
-      setProfile(data);
-      localStorage.setItem(PROFILE_KEY, JSON.stringify(data));
     }
+
+    // Only send non-linked fields to Supabase
+    if (Object.keys(dbUpdates).length > 0) {
+      const { error } = await supabase
+        .from('profiles')
+        .update(dbUpdates)
+        .eq('id', user.id);
+
+      if (error) {
+        console.error('Error updating profile in Supabase:', error);
+        // Local update already applied, so user sees changes
+      }
+    }
+    // Note: We don't overwrite local state with Supabase response
+    // because Supabase may not have linked player columns yet
   };
 
   return (
