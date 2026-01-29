@@ -28,7 +28,7 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "geolocation=(), camera=(), microphone=()"
     Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.stripe.com https://plausible.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: blob:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co https://*.sentry.io https://api.stripe.com https://plausible.io wss://*.supabase.co; frame-src https://*.stripe.com; frame-ancestors 'none'; report-uri https://o4508123456.ingest.sentry.io/api/4508123456/security/?sentry_key=YOUR_SENTRY_KEY"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.stripe.com https://plausible.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: blob:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co https://*.sentry.io https://api.stripe.com https://plausible.io wss://*.supabase.co https://*.railway.app https://*.onrender.com https://kingshot-giftcode.centurygame.com; frame-src https://*.stripe.com; frame-ancestors 'none'; report-uri https://o4508123456.ingest.sentry.io/api/4508123456/security/?sentry_key=YOUR_SENTRY_KEY"
     Report-To = '{"group":"csp-endpoint","max_age":10886400,"endpoints":[{"url":"https://o4508123456.ingest.sentry.io/api/4508123456/security/?sentry_key=YOUR_SENTRY_KEY"}]}'
 
 # CRITICAL: index.html must NEVER be cached - it contains references to hashed JS/CSS files
