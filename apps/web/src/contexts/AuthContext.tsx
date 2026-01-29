@@ -279,13 +279,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         
         logger.info('Final avatar URL:', avatarUrl);
         
-        // Merge with cached linked player data (in case DB columns don't exist yet)
+        // Merge with cached linked player data (prioritize cache over null DB values)
         const cached = localStorage.getItem(PROFILE_KEY);
         let linkedPlayerData = {};
         if (cached) {
           try {
             const cachedProfile = JSON.parse(cached);
-            // Preserve linked player data from cache if not in DB response
+            // Always restore linked player data from cache if DB has null values
             if (cachedProfile.linked_player_id && !data.linked_player_id) {
               linkedPlayerData = {
                 linked_player_id: cachedProfile.linked_player_id,
@@ -384,33 +384,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return;
     }
 
-    // Separate linked player fields (stored locally only until DB columns exist)
-    const linkedFields = ['linked_player_id', 'linked_username', 'linked_avatar_url', 'linked_kingdom', 'linked_tc_level'];
-    const dbUpdates: Partial<UserProfile> = {};
-    const localOnlyUpdates: Partial<UserProfile> = {};
-    
-    for (const [key, value] of Object.entries(updates)) {
-      if (linkedFields.includes(key)) {
-        localOnlyUpdates[key as keyof UserProfile] = value as any;
-      } else {
-        dbUpdates[key as keyof UserProfile] = value as any;
-      }
-    }
-
-    // Only send non-linked fields to Supabase
-    if (Object.keys(dbUpdates).length > 0) {
+    // Send all updates to Supabase (linked player columns now exist in database)
+    if (Object.keys(updates).length > 0) {
       const { error } = await supabase
         .from('profiles')
-        .update(dbUpdates)
+        .update(updates)
         .eq('id', user.id);
 
       if (error) {
         console.error('Error updating profile in Supabase:', error);
         // Local update already applied, so user sees changes
+      } else {
+        logger.info('Profile updated in Supabase:', updates);
       }
     }
-    // Note: We don't overwrite local state with Supabase response
-    // because Supabase may not have linked player columns yet
   };
 
   return (

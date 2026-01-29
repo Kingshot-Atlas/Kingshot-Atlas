@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Avatar Test</title>
+</head>
+<body>
+    <h1>Avatar Test</h1>
+    
+    <h2>Direct Image Test</h2>
+    <img src="https://got-global-avatar.akamaized.net/avatar/2026/01/13/pg2zYN_1768344468.png" 
+         referrerPolicy="no-referrer" 
+         style="width: 100px; height: 100px; border: 2px solid red;"
+         onError="console.error('Direct image failed')"
+         onLoad="console.log('Direct image loaded')" />
+    
+    <h2>With CrossOrigin (should fail)</h2>
+    <img src="https://got-global-avatar.akamaized.net/avatar/2026/01/13/pg2zYN_1768344468.png" 
+         crossOrigin="anonymous"
+         style="width: 100px; height: 100px; border: 2px solid blue;"
+         onError="console.error('CrossOrigin image failed')"
+         onLoad="console.log('CrossOrigin image loaded')" />
+    
+    <h2>Console Check</h2>
+    <p>Check browser console for load/error messages</p>
+    
+    <script>
+        console.log('Testing avatar URLs...');
+        console.log('Direct URL:', 'https://got-global-avatar.akamaized.net/avatar/2026/01/13/pg2zYN_1768344468.png');
+    </script>
+</body>
+</html>

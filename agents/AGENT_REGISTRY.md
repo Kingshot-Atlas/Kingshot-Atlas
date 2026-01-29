@@ -48,13 +48,33 @@ Kingshot Atlas is run by a professional team of specialized AI agents, structure
 
 ### Brand Voice Summary
 | Trait | Meaning | Example |
-|-------|---------|--------|
-| **Competitive** | Speak to players who want to win | "Stop guessing. Start winning." |
-| **Analytical** | Facts over opinions, data over rumors | "Data-driven dominance" |
-| **Direct** | No corporate fluff, get to the point | "No more blind migrations." |
-| **Community-powered** | We're players, not a corporation | "Built by players, for players" |
+|-------|---------|---------|
+| Competitive & Gaming-focused | Speak to players who want to win | "Stop guessing. Start winning." |
+| Analytical & Data-driven | Facts over opinions, results over rumors | "Data-driven dominance" |
+| Direct & Punchy | No corporate fluff, get to the point | "No more blind migrations" |
+| Community-powered | We're players, not a corporation | "Built by Kingdom 172 players" |
 
-### Terminology Standards
+---
+
+## Critical Setup Requirements (MANDATORY)
+
+**All agents MUST review `/docs/CRITICAL_SETUP.md` before any deployment or database work.**
+
+### Key Requirements
+1. **Database Setup:** Always run `/docs/migrations/recreate_profiles.sql` for new setups
+2. **Service Worker:** Never cache external resources - causes CSP violations
+3. **Avatar CORS:** Use `referrerPolicy="no-referrer"` for Akamai CDN images
+4. **Schema Cache:** Run `NOTIFY pgrst, 'reload schema'` after table changes
+
+### Common Issues
+- Kingshot Player Linking not persisting → Missing database columns
+- Avatar images not loading → CORS issue with Akamai CDN
+- CSP violations in console → Service worker caching external resources
+- Supabase 406/400 errors → PostgREST schema cache outdated
+
+---
+
+## Terminology Standards
 | Use This | Not This |
 |----------|----------|
 | KvK | Kingdom vs Kingdom (after first use) |
@@ -64,14 +84,6 @@ Kingshot Atlas is run by a professional team of specialized AI agents, structure
 | Domination | Double win |
 | Invasion | Double loss |
 | S-Tier, A-Tier, etc. | Top tier, high tier |
-
-### Content Checklist
-Before publishing any user-facing content, verify:
-- [ ] Tone is competitive and gaming-focused
-- [ ] Language is direct and punchy (no corporate jargon)
-- [ ] Correct terminology is used
-- [ ] Copy empowers users to make better decisions
-- [ ] No condescending or elitist language
 
 ---
 

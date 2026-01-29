@@ -1,12 +1,13 @@
 services:
-  - type: worker
+  - type: web
     name: atlas-discord-bot
     runtime: node
     plan: free
     rootDir: apps/discord-bot
     buildCommand: npm install
-    startCommand: node src/bot.js
+    startCommand: node health.js & node src/bot.js
     autoDeploy: true
+    healthCheckPath: /health
     envVars:
       - key: DISCORD_TOKEN
         sync: false

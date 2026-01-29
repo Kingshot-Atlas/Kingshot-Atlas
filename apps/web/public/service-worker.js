@@ -98,6 +98,11 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Skip external resources (avatars, fonts, etc.) - let browser handle them
+  if (url.origin !== self.location.origin) {
+    return;
+  }
+
   // Images - Cache first with long expiry (stale-while-revalidate)
   if (isImageRequest(url)) {
     event.respondWith(
@@ -119,7 +124,8 @@ self.addEventListener('fetch', (event) => {
   }
 
   // API requests - Stale-while-revalidate for cacheable endpoints
-  if (url.pathname.startsWith('/api/') && isCacheableApi(url)) {
+  // Only cache our own API, not external ones
+  if (url.pathname.startsWith('/api/') && url.origin === self.location.origin && isCacheableApi(url)) {
     event.respondWith(
       caches.open(API_CACHE).then(async (cache) => {
         const cachedResponse = await cache.match(request);
