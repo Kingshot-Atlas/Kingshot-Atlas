@@ -11,12 +11,14 @@ services:
     envVars:
       - key: DISCORD_TOKEN
         sync: false
+        generateValue: false
       - key: DISCORD_CLIENT_ID
         value: "1465531618965061672"
       - key: DISCORD_GUILD_ID
         value: "1128775375477018775"
       - key: DISCORD_PATCH_NOTES_WEBHOOK
         sync: false
+        generateValue: false
       - key: API_URL
         value: "https://kingshot-atlas-api.onrender.com"
       - key: PATCH_NOTES_CHANNEL_ID
@@ -25,5 +27,11 @@ services:
         value: "1465719633238556703"
       - key: ATLAS_COMMANDS_CHANNEL_ID
         value: "1466406083428876410"
+      - key: GENERAL_CHANNEL_ID
+        value: "1465021959065698386"
+      - key: SUGGESTIONS_CHANNEL_ID
+        value: "1465741454700707982"
+      - key: BUGS_CHANNEL_ID
+        value: "1466084333470351523"
       - key: NODE_VERSION
         value: "20"
