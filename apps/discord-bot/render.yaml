@@ -1,0 +1,28 @@
+services:
+  - type: worker
+    name: atlas-discord-bot
+    runtime: node
+    plan: free
+    rootDir: apps/discord-bot
+    buildCommand: npm install
+    startCommand: node src/bot.js
+    autoDeploy: true
+    envVars:
+      - key: DISCORD_TOKEN
+        sync: false
+      - key: DISCORD_CLIENT_ID
+        value: "1465531618965061672"
+      - key: DISCORD_GUILD_ID
+        value: "1128775375477018775"
+      - key: DISCORD_PATCH_NOTES_WEBHOOK
+        sync: false
+      - key: API_URL
+        value: "https://kingshot-atlas-api.onrender.com"
+      - key: PATCH_NOTES_CHANNEL_ID
+        value: "1465931103482155073"
+      - key: ANNOUNCEMENTS_CHANNEL_ID
+        value: "1465719633238556703"
+      - key: ATLAS_COMMANDS_CHANNEL_ID
+        value: "1466406083428876410"
+      - key: NODE_VERSION
+        value: "20"

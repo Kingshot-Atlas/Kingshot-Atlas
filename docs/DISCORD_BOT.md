@@ -14,7 +14,7 @@
 
 Atlas is the official Discord bot for Kingshot Atlas.
 
-> **⚠️ Important:** Bot commands require the API to be running. The API is not deployed to production yet. For commands to work, run `cd apps/api && uvicorn main:app --reload` locally. It provides instant access to kingdom data, rankings, and event schedules directly in Discord. The bot also posts automated patch notes and announcements via webhooks.
+> **✅ Production Ready:** API deployed to Render at `https://kingshot-atlas-api.onrender.com`. UptimeRobot configured to keep it awake. It provides instant access to kingdom data, rankings, and event schedules directly in Discord. The bot also posts automated patch notes and announcements via webhooks.
 
 **Tagline:** *"Know your enemy. Choose your allies. Dominate KvK."*
 

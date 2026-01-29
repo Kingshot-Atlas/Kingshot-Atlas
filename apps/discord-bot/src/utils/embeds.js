@@ -8,13 +8,14 @@ const config = require('../config');
 
 /**
  * Get tier from Atlas Score
+ * IMPORTANT: Keep in sync with apps/web/src/types/index.ts POWER_TIER_THRESHOLDS
  */
 function getTier(score) {
-  if (score >= 12) return 'S';
-  if (score >= 8) return 'A';
-  if (score >= 5) return 'B';
-  if (score >= 2) return 'C';
-  return 'D';
+  if (score >= 10) return 'S';   // Top 10%: Score 10+
+  if (score >= 7) return 'A';    // Top 25%: Score 7-9.9
+  if (score >= 4.5) return 'B';  // Top 50%: Score 4.5-6.9
+  if (score >= 2.5) return 'C';  // Top 75%: Score 2.5-4.4
+  return 'D';                    // Bottom 25%: Score below 2.5
 }
 
 /**
