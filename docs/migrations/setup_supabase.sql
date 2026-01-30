@@ -21,7 +21,11 @@ CREATE TABLE IF NOT EXISTS profiles (
   linked_username TEXT,
   linked_avatar_url TEXT,
   linked_kingdom INTEGER,
-  linked_tc_level INTEGER
+  linked_tc_level INTEGER,
+  -- Subscription fields (for Stripe integration)
+  subscription_tier TEXT DEFAULT 'free',
+  stripe_customer_id TEXT,
+  stripe_subscription_id TEXT
 );
 
 -- 2. Enable RLS (Row Level Security)

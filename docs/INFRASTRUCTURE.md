@@ -17,6 +17,13 @@
 | **Database** | Supabase | `qdczmafwcvnwfvixxbwg` | https://qdczmafwcvnwfvixxbwg.supabase.co |
 | **Payments** | Stripe | `Kingshot Atlas` | Dashboard at stripe.com |
 
+### Supabase Schema
+
+**profiles table** (subscription columns added 2026-01-30):
+- `subscription_tier` TEXT DEFAULT 'free' — User's subscription tier (free/pro/recruiter)
+- `stripe_customer_id` TEXT — Stripe customer ID for billing
+- `stripe_subscription_id` TEXT — Active Stripe subscription ID
+
 ---
 
 ## Render Services (2 Active)

@@ -1,6 +1,8 @@
 -- Migration: Add subscription columns to profiles table
 -- Run this in Supabase SQL Editor
 -- Required for Stripe integration
+-- 
+-- STATUS: ✅ APPLIED on 2026-01-30
 
 -- Add subscription columns
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS subscription_tier TEXT DEFAULT 'free';
