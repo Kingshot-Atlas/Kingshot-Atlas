@@ -1,0 +1,31 @@
+{
+  "startedAt": "2026-01-30T03:21:28.304Z",
+  "lastUpdated": "2026-01-30T03:55:29.344Z",
+  "totalCommands": 9,
+  "totalErrors": 3,
+  "commandCounts": {
+    "leaderboard": 4,
+    "kingdom": 4,
+    "compare": 1
+  },
+  "dailyActivity": {
+    "2026-01-30": {
+      "commands": 9,
+      "errors": 3,
+      "uniqueUsers": [
+        "332218895765209089"
+      ]
+    }
+  },
+  "errorTypes": {
+    "DiscordAPIError[10062]": 3
+  },
+  "guilds": {
+    "1128775375477018775": {
+      "name": "Kingshot Atlas",
+      "commands": 9,
+      "firstSeen": "2026-01-30T03:26:24.972Z",
+      "lastActive": "2026-01-30T03:55:28.342Z"
+    }
+  }
+}

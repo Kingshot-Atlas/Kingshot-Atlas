@@ -14,7 +14,6 @@ import SearchAutocomplete from '../components/SearchAutocomplete';
 import EventCalendar from '../components/EventCalendar';
 import PostKvKSubmission from '../components/PostKvKSubmission';
 import HotRightNow from '../components/HotRightNow';
-import AdBanner from '../components/AdBanner';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { usePreferences } from '../hooks/useUrlState';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
@@ -458,9 +457,10 @@ const KingdomDirectory: React.FC = () => {
             {showFavoritesOnly && <span style={{ color: '#22d3ee' }}> (Favorites)</span>}
           </span>
           
-          {/* Quick Filter Chips */}
+          {/* Quick Filter Chips - Desktop only */}
+          {!isMobile && (
           <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', alignItems: 'center' }}>
-            {/* S-Tier - Always shown */}
+            {/* S-Tier */}
             <button
               onClick={() => setFilters(f => ({ ...f, tier: f.tier === 'S' ? 'all' : 'S' }))}
               style={{
@@ -477,8 +477,7 @@ const KingdomDirectory: React.FC = () => {
             >
               S-Tier
             </button>
-            {/* A-Tier - Desktop only */}
-            {!isMobile && (
+            {/* A-Tier */}
             <button
               onClick={() => setFilters(f => ({ ...f, tier: f.tier === 'A' ? 'all' : 'A' }))}
               style={{
@@ -495,11 +494,10 @@ const KingdomDirectory: React.FC = () => {
             >
               A-Tier
             </button>
-            )}
             
-            {!isMobile && <span style={{ color: '#2a2a2a', margin: '0 0.25rem' }}>|</span>}
+            <span style={{ color: '#2a2a2a', margin: '0 0.25rem' }}>|</span>
             
-            {/* 100% Prep - Always shown */}
+            {/* 100% Prep */}
             <button
               onClick={() => setFilters(f => ({ ...f, minPrepWinRate: f.minPrepWinRate === 1 ? 0 : 1 }))}
               style={{
@@ -516,8 +514,7 @@ const KingdomDirectory: React.FC = () => {
             >
               100% Prep
             </button>
-            {/* 80%+ Prep - Desktop only */}
-            {!isMobile && (
+            {/* 80%+ Prep */}
             <button
               onClick={() => setFilters(f => ({ ...f, minPrepWinRate: f.minPrepWinRate === 0.8 ? 0 : 0.8 }))}
               style={{
@@ -534,8 +531,7 @@ const KingdomDirectory: React.FC = () => {
             >
               80%+ Prep
             </button>
-            )}
-            {/* 100% Battle - Always shown */}
+            {/* 100% Battle */}
             <button
               onClick={() => setFilters(f => ({ ...f, minBattleWinRate: f.minBattleWinRate === 1 ? 0 : 1 }))}
               style={{
@@ -552,8 +548,7 @@ const KingdomDirectory: React.FC = () => {
             >
               100% Battle
             </button>
-            {/* 80%+ Battle - Desktop only */}
-            {!isMobile && (
+            {/* 80%+ Battle */}
             <button
               onClick={() => setFilters(f => ({ ...f, minBattleWinRate: f.minBattleWinRate === 0.8 ? 0 : 0.8 }))}
               style={{
@@ -570,13 +565,10 @@ const KingdomDirectory: React.FC = () => {
             >
               80%+ Battle
             </button>
-            )}
             
-            {!isMobile && <span style={{ color: '#2a2a2a', margin: '0 0.25rem' }}>|</span>}
+            <span style={{ color: '#2a2a2a', margin: '0 0.25rem' }}>|</span>
             
-            {/* Experience Chips - Desktop only */}
-            {!isMobile && (
-            <>
+            {/* Experience Chips */}
             <button
               onClick={() => setFilters(f => (f.minKvKs === 1 && f.maxKvKs === 3) ? { ...f, minKvKs: 0, maxKvKs: 99 } : { ...f, minKvKs: 1, maxKvKs: 3 })}
               style={{
@@ -625,20 +617,18 @@ const KingdomDirectory: React.FC = () => {
             >
               7-9 KvKs
             </button>
-            </>
-            )}
           </div>
+          )}
         </div>
         </div>
       </div>
 
       {/* Content Area */}
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: isMobile ? '0 0.75rem' : '0 2rem' }}>
-        {/* Ad Banner - shows upgrade prompt for non-Pro users */}
-        <AdBanner placement="directory" />
+        {/* Ad Banner removed per user request */}
         
-        {/* Recently Viewed - Compact Inline */}
-        {recentlyViewed.length > 0 && (
+        {/* Recently Viewed - Compact Inline - Desktop only */}
+        {!isMobile && recentlyViewed.length > 0 && (
           <div style={{ 
             marginBottom: '1rem', 
             display: 'flex', 

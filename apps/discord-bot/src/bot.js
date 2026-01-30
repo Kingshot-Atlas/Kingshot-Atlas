@@ -49,10 +49,10 @@ if (!config.token || !config.clientId) {
 }
 
 // Initialize Discord client
+// Note: GuildMembers intent removed - requires privileged intent in Discord Developer Portal
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMembers, // Required for welcome messages
   ],
 });
 

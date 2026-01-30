@@ -6,8 +6,6 @@ import KvKCountdown from './KvKCountdown';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { neonGlow } from '../utils/styles';
-import { useAccessibility } from '../contexts/AccessibilityContext';
-
 // Admin users list - must match AdminDashboard.tsx
 const ADMIN_USERS = ['gatreno'];
 
@@ -18,12 +16,12 @@ const Header: React.FC = () => {
   const location = useLocation();
   const { user, profile, signOut } = useAuth();
   const { trackButton } = useAnalytics();
-  const { highContrast, toggleHighContrast } = useAccessibility();
   const isAdmin = profile?.username && ADMIN_USERS.includes(profile.username.toLowerCase());
   const [showLoginMenu, setShowLoginMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showToolsMenu, setShowToolsMenu] = useState(false);
+  const [showMobileToolsMenu, setShowMobileToolsMenu] = useState(false);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -51,74 +49,72 @@ const Header: React.FC = () => {
         justifyContent: 'space-between',
         height: '56px'
       }}>
-        {/* Logo + Countdowns Section */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '0.75rem' : '9rem' }}>
-          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
-            <img 
-              src="/Atlas Favicon.png" 
-              alt="KA" 
-              style={{
-                width: isMobile ? '28px' : '32px',
-                height: isMobile ? '28px' : '32px',
-                objectFit: 'contain'
-              }}
-            />
-            {!isMobile && (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.1rem' }}>
-                <span style={{ 
-                  color: '#fff', 
-                  fontSize: '1rem', 
-                  fontWeight: 'bold', 
-                  fontFamily: "'Cinzel', 'Times New Roman', serif",
-                  lineHeight: 1
-                }}>
-                  KINGSHOT
-                </span>
-                <span style={{ 
-                  ...neonGlow('#22d3ee'), 
-                  fontSize: '1.4rem', 
-                  fontWeight: 'bold', 
-                  fontFamily: "'Cinzel', 'Times New Roman', serif",
-                  lineHeight: 1
-                }}>
-                  ATLAS
-                </span>
-              </div>
-            )}
-            {isMobile && (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0' }}>
-                <span style={{ 
-                  color: '#fff', 
-                  fontSize: '0.65rem', 
-                  fontWeight: 'bold', 
-                  fontFamily: "'Cinzel', 'Times New Roman', serif",
-                  lineHeight: 1.1,
-                  letterSpacing: '0.02em'
-                }}>
-                  KINGSHOT
-                </span>
-                <span style={{ 
-                  ...neonGlow('#22d3ee'), 
-                  fontSize: '0.95rem', 
-                  fontWeight: 'bold', 
-                  fontFamily: "'Cinzel', 'Times New Roman', serif",
-                  lineHeight: 1,
-                  letterSpacing: '0.02em'
-                }}>
-                  ATLAS
-                </span>
-              </div>
-            )}
-          </Link>
-
-          {/* Countdowns - next to logo */}
+        {/* Logo Section */}
+        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
+          <img 
+            src="/Atlas Favicon.png" 
+            alt="KA" 
+            style={{
+              width: isMobile ? '28px' : '32px',
+              height: isMobile ? '28px' : '32px',
+              objectFit: 'contain'
+            }}
+          />
           {!isMobile && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <KvKCountdown navbar type="kvk" />
-              <KvKCountdown navbar type="transfer" />
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.1rem' }}>
+              <span style={{ 
+                color: '#fff', 
+                fontSize: '1rem', 
+                fontWeight: 'bold', 
+                fontFamily: "'Cinzel', 'Times New Roman', serif",
+                lineHeight: 1
+              }}>
+                KINGSHOT
+              </span>
+              <span style={{ 
+                ...neonGlow('#22d3ee'), 
+                fontSize: '1.4rem', 
+                fontWeight: 'bold', 
+                fontFamily: "'Cinzel', 'Times New Roman', serif",
+                lineHeight: 1
+              }}>
+                ATLAS
+              </span>
             </div>
           )}
-        </div>
+          {isMobile && (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0' }}>
+              <span style={{ 
+                color: '#fff', 
+                fontSize: '0.65rem', 
+                fontWeight: 'bold', 
+                fontFamily: "'Cinzel', 'Times New Roman', serif",
+                lineHeight: 1.1,
+                letterSpacing: '0.02em'
+              }}>
+                KINGSHOT
+              </span>
+              <span style={{ 
+                ...neonGlow('#22d3ee'), 
+                fontSize: '0.95rem', 
+                fontWeight: 'bold', 
+                fontFamily: "'Cinzel', 'Times New Roman', serif",
+                lineHeight: 1,
+                letterSpacing: '0.02em'
+              }}>
+                ATLAS
+              </span>
+            </div>
+          )}
+        </Link>
+
+        {/* Countdowns - centered between logo and nav */}
+        {!isMobile && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <KvKCountdown navbar type="kvk" />
+            <KvKCountdown navbar type="transfer" />
+          </div>
+        )}
 
         {/* Mobile Menu Button + Discord */}
         {isMobile && (
@@ -144,8 +140,33 @@ const Header: React.FC = () => {
               <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
               </svg>
-              Pro
+              Get Pro
             </Link>
+            {/* Ko-fi Tip Button */}
+            <a
+              href="https://ko-fi.com/kingshotatlas"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.25rem',
+                padding: '0.4rem 0.6rem',
+                backgroundColor: '#ff5e5b15',
+                border: '1px solid #ff5e5b40',
+                borderRadius: '8px',
+                color: '#ff5e5b',
+                textDecoration: 'none',
+                fontSize: '0.75rem',
+                fontWeight: '600'
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M23.881 8.948c-.773-4.085-4.859-4.593-4.859-4.593H.723c-.604 0-.679.798-.679.798s-.082 7.324-.022 11.822c.164 2.424 2.586 2.672 2.586 2.672s8.267-.023 11.966-.049c2.438-.426 2.683-2.566 2.658-3.734 4.352.24 7.422-2.831 6.649-6.916zm-11.062 3.511c-1.246 1.453-4.011 3.976-4.011 3.976s-.121.119-.31.023c-.076-.057-.108-.09-.108-.09-.443-.441-3.368-3.049-4.034-3.954-.709-.965-1.041-2.7-.091-3.71.951-1.01 3.005-1.086 4.363.407 0 0 1.565-1.782 3.468-.963 1.904.82 1.832 3.011.723 4.311z"/>
+              </svg>
+              Tip
+            </a>
             {/* Discord Button - visible on mobile header */}
             <a
               href={DISCORD_INVITE}
@@ -382,23 +403,49 @@ const Header: React.FC = () => {
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '0.35rem',
+              gap: '0.4rem',
               color: '#22d3ee',
               textDecoration: 'none',
               fontSize: '0.85rem',
-              fontWeight: '600',
-              padding: '0.35rem 0.65rem',
+              fontWeight: '500',
+              padding: '0.4rem 0.75rem',
               backgroundColor: '#22d3ee15',
               border: '1px solid #22d3ee40',
               borderRadius: '6px',
-              transition: 'all 0.2s'
+              whiteSpace: 'nowrap'
             }}
           >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
             </svg>
-            Pro
+            Get Pro
           </Link>
+          
+          {/* Ko-fi Tip Button */}
+          <a
+            href="https://ko-fi.com/kingshotatlas"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              color: '#ff5e5b',
+              textDecoration: 'none',
+              fontSize: '0.85rem',
+              fontWeight: '500',
+              padding: '0.4rem 0.75rem',
+              backgroundColor: '#ff5e5b15',
+              border: '1px solid #ff5e5b40',
+              borderRadius: '6px',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M23.881 8.948c-.773-4.085-4.859-4.593-4.859-4.593H.723c-.604 0-.679.798-.679.798s-.082 7.324-.022 11.822c.164 2.424 2.586 2.672 2.586 2.672s8.267-.023 11.966-.049c2.438-.426 2.683-2.566 2.658-3.734 4.352.24 7.422-2.831 6.649-6.916zm-11.062 3.511c-1.246 1.453-4.011 3.976-4.011 3.976s-.121.119-.31.023c-.076-.057-.108-.09-.108-.09-.443-.441-3.368-3.049-4.034-3.954-.709-.965-1.041-2.7-.091-3.71.951-1.01 3.005-1.086 4.363.407 0 0 1.565-1.782 3.468-.963 1.904.82 1.832 3.011.723 4.311z"/>
+            </svg>
+            Tip
+          </a>
           
           {/* <Link
             to="/players"
@@ -413,35 +460,6 @@ const Header: React.FC = () => {
           >
             Players
           </Link> */}
-          
-          {/* Accessibility Toggle */}
-          <button
-            onClick={() => {
-              toggleHighContrast();
-              trackButton('Toggle High Contrast');
-            }}
-            aria-label={highContrast ? 'Disable high contrast mode' : 'Enable high contrast mode'}
-            aria-pressed={highContrast}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '32px',
-              height: '32px',
-              padding: 0,
-              backgroundColor: highContrast ? '#ffffff' : '#1a1a1a',
-              border: `1px solid ${highContrast ? '#ffffff' : '#333'}`,
-              borderRadius: '6px',
-              color: highContrast ? '#000000' : '#9ca3af',
-              cursor: 'pointer',
-              transition: 'all 0.2s'
-            }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="5" />
-              <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
-            </svg>
-          </button>
           
           <a
             href={DISCORD_INVITE}
@@ -463,7 +481,7 @@ const Header: React.FC = () => {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
               <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
             </svg>
-            Discord
+            Join
           </a>
           
           <div style={{ position: 'relative' }}>
@@ -499,17 +517,18 @@ const Header: React.FC = () => {
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.5rem',
-                  padding: '0.5rem 1rem',
-                  backgroundColor: '#111111',
-                  border: '1px solid #2a2a2a',
-                  borderRadius: '8px',
+                  gap: '0.4rem',
+                  padding: '0.4rem 0.75rem',
+                  backgroundColor: '#1a1a1a',
+                  border: '1px solid #333',
+                  borderRadius: '6px',
                   color: '#fff',
                   cursor: 'pointer',
-                  fontSize: '0.9rem'
+                  fontSize: '0.85rem',
+                  whiteSpace: 'nowrap'
                 }}
               >
-                <svg style={{ width: '18px', height: '18px', color: '#9ca3af' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
                 Sign In
@@ -712,34 +731,57 @@ const Header: React.FC = () => {
           >
             Rankings
           </Link>
-          <Link
-            to="/tools"
+          <button
+            onClick={() => setShowMobileToolsMenu(!showMobileToolsMenu)}
             style={{
               color: (isActive('/tools') || isActive('/compare')) ? '#22d3ee' : '#9ca3af',
               textDecoration: 'none',
               fontSize: '1rem',
               padding: '0.75rem 1rem',
               borderRadius: '8px',
-              backgroundColor: (isActive('/tools') || isActive('/compare')) ? '#111' : 'transparent'
+              backgroundColor: (isActive('/tools') || isActive('/compare')) ? '#111' : 'transparent',
+              border: 'none',
+              width: '100%',
+              textAlign: 'left',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
             }}
           >
             Tools
-          </Link>
-          <Link
-            to="/compare"
-            style={{
-              color: isActive('/compare') ? '#22d3ee' : '#6b7280',
-              textDecoration: 'none',
-              fontSize: '0.9rem',
-              padding: '0.5rem 1rem 0.5rem 1.5rem',
-              borderRadius: '8px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem'
-            }}
-          >
-            <span style={{ color: '#333' }}>└</span> Kingdom Comparison
-          </Link>
+            <svg 
+              width="12" 
+              height="12" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2"
+              style={{ 
+                transform: showMobileToolsMenu ? 'rotate(180deg)' : 'rotate(0deg)',
+                transition: 'transform 0.2s'
+              }}
+            >
+              <path d="M6 9l6 6 6-6"/>
+            </svg>
+          </button>
+          {showMobileToolsMenu && (
+            <Link
+              to="/compare"
+              style={{
+                color: isActive('/compare') ? '#22d3ee' : '#6b7280',
+                textDecoration: 'none',
+                fontSize: '0.9rem',
+                padding: '0.5rem 1rem 0.5rem 1.5rem',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}
+            >
+              <span style={{ color: '#333' }}>└</span> Kingdom Comparison
+            </Link>
+          )}
           <Link
             to="/about"
             style={{

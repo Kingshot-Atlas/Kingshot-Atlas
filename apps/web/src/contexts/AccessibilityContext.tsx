@@ -11,19 +11,20 @@ const AccessibilityContext = createContext<AccessibilityContextType | undefined>
 const STORAGE_KEY = 'kingshot_accessibility';
 
 export const AccessibilityProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Initialize from localStorage or system preference
+  // Initialize from localStorage or default to high contrast (true)
   const [highContrast, setHighContrast] = useState(() => {
-    if (typeof window === 'undefined') return false;
+    if (typeof window === 'undefined') return true;
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
-        return JSON.parse(saved).highContrast || false;
+        const parsed = JSON.parse(saved);
+        return parsed.highContrast !== undefined ? parsed.highContrast : true;
       } catch {
-        return false;
+        return true;
       }
     }
-    // Check system preference
-    return window.matchMedia?.('(prefers-contrast: more)').matches || false;
+    // Default to high contrast for better visibility
+    return true;
   });
 
   // Check system reduced motion preference

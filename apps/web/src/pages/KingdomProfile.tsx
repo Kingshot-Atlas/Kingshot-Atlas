@@ -9,7 +9,6 @@ import ReportDataModal from '../components/ReportDataModal';
 import TrendChart from '../components/TrendChart';
 import SimilarKingdoms from '../components/SimilarKingdoms';
 import ClaimKingdom from '../components/ClaimKingdom';
-import AdBanner from '../components/AdBanner';
 import AtlasScoreBreakdown from '../components/AtlasScoreBreakdown';
 import ShareButton from '../components/ShareButton';
 import { ScoreSimulator } from '../components/ScoreSimulator';
@@ -74,8 +73,8 @@ const KingdomProfile: React.FC = () => {
       const data = await apiService.getKingdomProfile(id);
       setKingdom(data);
       
-      // Load all kingdoms for ranking
-      const all = await apiService.getLeaderboard(200);
+      // Load all kingdoms for ranking (need all 1190+ kingdoms for accurate rank)
+      const all = await apiService.getLeaderboard(1500);
       setAllKingdoms(all as unknown as KingdomProfileType[]);
       
       // Save to recently viewed
@@ -189,7 +188,7 @@ const KingdomProfile: React.FC = () => {
         textAlign: 'center',
         background: 'linear-gradient(180deg, #111111 0%, #0a0a0a 100%)',
         position: 'relative',
-        overflow: 'hidden'
+        overflow: 'visible'
       }}>
         <div style={{ position: 'relative', zIndex: 1, maxWidth: '800px', margin: '0 auto' }}>
           
@@ -433,13 +432,13 @@ const KingdomProfile: React.FC = () => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.4rem',
-                  padding: '0.5rem 0.75rem',
+                  padding: isMobile ? '0.35rem 0.6rem' : '0.5rem 0.75rem',
                   backgroundColor: '#1a1a1a',
                   border: '1px solid #333',
                   borderRadius: '6px',
                   color: '#ef4444',
                   cursor: 'pointer',
-                  fontSize: '0.85rem',
+                  fontSize: isMobile ? '0.75rem' : '0.85rem',
                   fontWeight: '500',
                   transition: 'all 0.2s'
                 }}
@@ -474,8 +473,7 @@ const KingdomProfile: React.FC = () => {
 
       {/* Main Content */}
       <div style={{ maxWidth: '1000px', margin: '0 auto', padding: isMobile ? '1rem' : '1.5rem 2rem' }}>
-        {/* Ad Banner - shows upgrade prompt for non-Pro users */}
-        <AdBanner placement="profile" />
+        {/* Ad Banner removed per user request */}
         
         {/* Atlas Score Breakdown - Toggleable Radar Chart */}
         <AtlasScoreBreakdown 
@@ -778,69 +776,31 @@ const KingdomProfile: React.FC = () => {
               <h3 style={{ color: '#fff', fontSize: isMobile ? '0.95rem' : '1.1rem', fontWeight: '600', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 📜 KvK History
               </h3>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>
-                  Showing {Math.min(features.kvkHistoryLimit, allKvks.length)} of {kingdom.total_kvks}
-                </span>
+              <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                Showing {Math.min(features.kvkHistoryLimit, allKvks.length)} of {kingdom.total_kvks} KvKs
                 {allKvks.length > features.kvkHistoryLimit && !isPro && (
-                  tier === 'anonymous' ? (
+                  <>
+                    {' · '}
                     <Link
-                      to="/profile"
+                      to={tier === 'anonymous' ? '/profile' : '/upgrade'}
                       style={{
-                        padding: '0.35rem 0.75rem',
-                        backgroundColor: '#22d3ee15',
-                        border: '1px solid #22d3ee40',
-                        borderRadius: '6px',
                         color: '#22d3ee',
-                        fontSize: '0.75rem',
-                        fontWeight: '500',
                         textDecoration: 'none',
-                        transition: 'all 0.15s',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.25rem'
+                        fontWeight: '500',
+                        transition: 'opacity 0.15s'
                       }}
                       onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => {
-                        e.currentTarget.style.backgroundColor = '#22d3ee25';
-                        e.currentTarget.style.borderColor = '#22d3ee60';
+                        e.currentTarget.style.opacity = '0.8';
                       }}
                       onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => {
-                        e.currentTarget.style.backgroundColor = '#22d3ee15';
-                        e.currentTarget.style.borderColor = '#22d3ee40';
+                        e.currentTarget.style.opacity = '1';
                       }}
                     >
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
-                        <polyline points="10 17 15 12 10 7"/>
-                        <line x1="15" y1="12" x2="3" y2="12"/>
-                      </svg>
-                      Sign In
+                      {tier === 'anonymous' ? 'Sign in for more' : 'View full history with Pro'}
                     </Link>
-                  ) : (
-                    <Link
-                      to="/upgrade"
-                      style={{
-                        padding: '0.35rem 0.75rem',
-                        backgroundColor: '#22d3ee15',
-                        border: '1px solid #22d3ee40',
-                        borderRadius: '6px',
-                        color: '#22d3ee',
-                        fontSize: '0.75rem',
-                        textDecoration: 'none',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.25rem',
-                        transition: 'all 0.15s'
-                      }}
-                    >
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
-                      </svg>
-                      Full History
-                    </Link>
-                  )
+                  </>
                 )}
-              </div>
+              </span>
             </div>
             
             {/* KvK Table */}

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback, lazy, Suspense } from 'react';
 import { useAnalytics } from '../hooks/useAnalytics';
+import { useIsMobile } from '../hooks/useMediaQuery';
 import {
   copyToClipboard,
   copyImageToClipboard,
@@ -40,6 +41,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({ type, kingdomData, compareDat
   const [showQRCode, setShowQRCode] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const { trackFeature } = useAnalytics();
+  const isMobile = useIsMobile();
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -266,13 +268,13 @@ const ShareButton: React.FC<ShareButtonProps> = ({ type, kingdomData, compareDat
           display: 'flex',
           alignItems: 'center',
           gap: '0.4rem',
-          padding: '0.5rem 0.75rem',
+          padding: isMobile ? '0.35rem 0.6rem' : '0.5rem 0.75rem',
           backgroundColor: showMenu ? '#22d3ee20' : '#1a1a1a',
           border: `1px solid ${showMenu ? '#22d3ee40' : '#333'}`,
           borderRadius: '6px',
           color: showMenu ? '#22d3ee' : '#9ca3af',
           cursor: 'pointer',
-          fontSize: '0.85rem',
+          fontSize: isMobile ? '0.75rem' : '0.85rem',
           fontWeight: '500',
           transition: 'all 0.2s'
         }}

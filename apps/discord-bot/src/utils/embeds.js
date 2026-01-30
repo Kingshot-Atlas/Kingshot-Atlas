@@ -64,11 +64,23 @@ function createProgressBar(value, max = 100, length = 10) {
 }
 
 /**
+ * Calculate dominations (double wins) from recent_kvks
+ */
+function calculateDominations(recentKvks) {
+  if (!recentKvks || !Array.isArray(recentKvks)) return 0;
+  return recentKvks.filter(kvk => 
+    kvk.overall_result === 'Win' || 
+    (kvk.prep_result === 'W' && kvk.battle_result === 'W')
+  ).length;
+}
+
+/**
  * Create kingdom stats embed
  */
 function createKingdomEmbed(kingdom) {
   const tier = getTier(kingdom.overall_score);
   const tierEmoji = getTierEmoji(tier);
+  const dominations = calculateDominations(kingdom.recent_kvks);
 
   const embed = new EmbedBuilder()
     .setColor(getTierColor(tier))
@@ -81,7 +93,7 @@ function createKingdomEmbed(kingdom) {
         value: [
           `**Total KvKs:** ${kingdom.total_kvks}`,
           `**Status:** ${kingdom.most_recent_status || 'Unknown'}`,
-          `**Dominations:** ${kingdom.high_kings || 0} 👑`,
+          `**Dominations:** ${dominations} 👑`,
         ].join('\n'),
         inline: true,
       },
