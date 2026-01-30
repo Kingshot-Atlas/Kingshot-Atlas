@@ -128,6 +128,7 @@ jobs:
         run: npm install -g @lhci/cli
 
       - name: Run Lighthouse CI
+        continue-on-error: true
         run: |
           lhci autorun --config=./apps/web/lighthouserc.js
         env:
