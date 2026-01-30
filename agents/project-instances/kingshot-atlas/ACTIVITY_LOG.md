@@ -9,6 +9,24 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-01-30 02:15 | Atlas Director | COMPLETED
+Task: Sync tier thresholds across all systems + Fix Score Simulator Bayesian bug
+Issues Found:
+  1. bayesianAdjustedWinRate in simulatorUtils.ts called with (wins, total) instead of (wins, losses)
+  2. Tier thresholds inconsistent across 7 files (About, KingdomProfile, TierBadge, Discord bot)
+Files Fixed:
+  - apps/web/src/components/ScoreSimulator/simulatorUtils.ts - Bayesian formula fix
+  - apps/web/src/pages/About.tsx - Tier ranges updated (8.9+, 7.8-8.9, etc.)
+  - apps/web/src/pages/KingdomProfile.tsx - getTierDescription updated
+  - apps/web/src/components/shared/TierBadge.tsx - TIER_DESCRIPTIONS updated
+  - apps/discord-bot/src/utils/embeds.js - getTier function updated
+  - apps/discord-bot/src/utils/api.js - tierRanges updated
+Documentation:
+  - Created docs/TIER_THRESHOLDS.md - Single source of truth + update checklist
+Deployments:
+  - Frontend: https://ks-atlas.com (Deploy ID: 697c13c7c48a2a38aae408dd)
+  - Discord Bot: Auto-deploying from GitHub push
+
 ## 2026-01-30 02:00 | Platform Engineer | COMPLETED
 Task: Fix Bayesian formula parameter bug
 Issue: bayesian_adjusted_win_rate(wins, losses) was being called with (wins, total) causing ~10% score deflation
