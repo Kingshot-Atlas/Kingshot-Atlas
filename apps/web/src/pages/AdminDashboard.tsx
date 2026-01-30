@@ -7,6 +7,7 @@ import { apiService } from '../services/api';
 import { contributorService } from '../services/contributorService';
 import { correctionService } from '../services/correctionService';
 import { AnalyticsDashboard } from '../components/AnalyticsCharts';
+import { EngagementDashboard } from '../components/EngagementDashboard';
 
 // Admin users - Discord usernames that have admin access
 const ADMIN_USERS = ['gatreno'];
@@ -115,7 +116,7 @@ const AdminDashboard: React.FC = () => {
   const { user, profile } = useAuth();
   const { showToast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [activeTab, setActiveTab] = useState<'analytics' | 'saas-metrics' | 'submissions' | 'claims' | 'corrections' | 'kvk-errors' | 'import' | 'users' | 'plausible' | 'transfer-status'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'saas-metrics' | 'engagement' | 'submissions' | 'claims' | 'corrections' | 'kvk-errors' | 'import' | 'users' | 'plausible' | 'transfer-status'>('analytics');
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [claims, setClaims] = useState<Claim[]>([]);
   const [transferSubmissions, setTransferSubmissions] = useState<StatusSubmission[]>([]);
@@ -861,6 +862,7 @@ const AdminDashboard: React.FC = () => {
         {[
           { id: 'analytics', label: 'Analytics', icon: '📊', countKey: null },
           { id: 'saas-metrics', label: 'SaaS Metrics', icon: '💰', countKey: null },
+          { id: 'engagement', label: 'Engagement', icon: '👥', countKey: null },
           { id: 'submissions', label: 'KvK Results', icon: '⚔️', countKey: 'submissions' as const },
           { id: 'claims', label: 'Kingdom Claims', icon: '👑', countKey: 'claims' as const },
           { id: 'transfer-status', label: 'Transfer Status', icon: '🔄', countKey: 'transfers' as const },
@@ -939,6 +941,8 @@ const AdminDashboard: React.FC = () => {
         renderAnalytics()
       ) : activeTab === 'saas-metrics' ? (
         <AnalyticsDashboard />
+      ) : activeTab === 'engagement' ? (
+        <EngagementDashboard />
       ) : activeTab === 'submissions' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {submissions.length === 0 ? (

@@ -7,6 +7,18 @@ import { logger } from '../utils/logger';
 
 const ANALYTICS_KEY = 'kingshot_analytics_events';
 const SESSION_KEY = 'kingshot_session_id';
+const SESSION_START_KEY = 'kingshot_session_start';
+const USER_ACTIVITY_KEY = 'kingshot_user_activity';
+
+interface UserActivity {
+  user_id: string;
+  date: string;
+  session_count: number;
+  total_duration_ms: number;
+  page_views: number;
+  feature_uses: number;
+  subscription_tier?: string;
+}
 
 interface AnalyticsEvent {
   event_type: string;
@@ -25,9 +37,12 @@ interface FeatureUsage {
 
 class AnalyticsService {
   private sessionId: string;
+  private sessionStartTime: number;
 
   constructor() {
     this.sessionId = this.getOrCreateSession();
+    this.sessionStartTime = this.getOrCreateSessionStart();
+    this.setupSessionTracking();
   }
 
   private getOrCreateSession(): string {
@@ -37,6 +52,80 @@ class AnalyticsService {
       sessionStorage.setItem(SESSION_KEY, sessionId);
     }
     return sessionId;
+  }
+
+  private getOrCreateSessionStart(): number {
+    const stored = sessionStorage.getItem(SESSION_START_KEY);
+    if (stored) {
+      return parseInt(stored, 10);
+    }
+    const now = Date.now();
+    sessionStorage.setItem(SESSION_START_KEY, now.toString());
+    return now;
+  }
+
+  private setupSessionTracking(): void {
+    // Track session end on page unload
+    window.addEventListener('beforeunload', () => {
+      this.recordSessionEnd();
+    });
+
+    // Track visibility changes (tab switching)
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') {
+        this.recordSessionEnd();
+      }
+    });
+  }
+
+  private recordSessionEnd(): void {
+    const duration = Date.now() - this.sessionStartTime;
+    this.updateUserActivity(duration);
+  }
+
+  private getUserActivity(): UserActivity[] {
+    try {
+      const stored = localStorage.getItem(USER_ACTIVITY_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  private saveUserActivity(activities: UserActivity[]): void {
+    try {
+      // Keep only last 90 days of activity
+      const ninetyDaysAgo = new Date();
+      ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+      const filtered = activities.filter(a => new Date(a.date) >= ninetyDaysAgo);
+      localStorage.setItem(USER_ACTIVITY_KEY, JSON.stringify(filtered));
+    } catch (e) {
+      logger.warn('Failed to save user activity:', e);
+    }
+  }
+
+  private updateUserActivity(sessionDuration: number): void {
+    const today = new Date().toISOString().split('T')[0];
+    const activities = this.getUserActivity();
+    
+    // Find or create today's activity record
+    let todayActivity = activities.find(a => a.date === today);
+    if (!todayActivity) {
+      todayActivity = {
+        user_id: this.sessionId.split('_')[1] || 'anonymous',
+        date: today!,
+        session_count: 0,
+        total_duration_ms: 0,
+        page_views: 0,
+        feature_uses: 0
+      };
+      activities.push(todayActivity);
+    }
+
+    todayActivity.session_count++;
+    todayActivity.total_duration_ms += sessionDuration;
+    
+    this.saveUserActivity(activities);
   }
 
   private getEvents(): AnalyticsEvent[] {
@@ -220,6 +309,152 @@ class AnalyticsService {
   // Clear all analytics data (admin function)
   clearAnalytics(): void {
     localStorage.removeItem(ANALYTICS_KEY);
+  }
+
+  // Get engagement metrics for dashboard
+  getEngagementMetrics(): {
+    dau: number;
+    wau: number;
+    mau: number;
+    dauWauRatio: number;
+    avgSessionDuration: number;
+    avgSessionsPerDay: number;
+    dailyActivity: { date: string; users: number; sessions: number; duration: number }[];
+    hourlyHeatmap: { hour: number; day: number; count: number }[];
+    featureAdoption: { feature: string; users: number; totalUses: number }[];
+    userJourney: { step: string; users: number; dropoff: number }[];
+  } {
+    const events = this.getEvents();
+    const activities = this.getUserActivity();
+    const now = new Date();
+    
+    // Calculate DAU/WAU/MAU from unique sessions
+    const today = now.toISOString().split('T')[0];
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    const todayEvents = events.filter(e => e.timestamp.startsWith(today!));
+    const weekEvents = events.filter(e => new Date(e.timestamp) >= sevenDaysAgo);
+    const monthEvents = events.filter(e => new Date(e.timestamp) >= thirtyDaysAgo);
+
+    const dau = new Set(todayEvents.map(e => e.session_id)).size;
+    const wau = new Set(weekEvents.map(e => e.session_id)).size;
+    const mau = new Set(monthEvents.map(e => e.session_id)).size;
+    const dauWauRatio = wau > 0 ? Math.round((dau / wau) * 100) : 0;
+
+    // Session duration from activities
+    const recentActivities = activities.filter(a => new Date(a.date) >= sevenDaysAgo);
+    const totalDuration = recentActivities.reduce((sum, a) => sum + a.total_duration_ms, 0);
+    const totalSessions = recentActivities.reduce((sum, a) => sum + a.session_count, 0);
+    const avgSessionDuration = totalSessions > 0 ? Math.round(totalDuration / totalSessions / 1000) : 0;
+    const avgSessionsPerDay = recentActivities.length > 0 
+      ? Math.round((totalSessions / recentActivities.length) * 10) / 10 
+      : 0;
+
+    // Daily activity for chart
+    const dailyMap = new Map<string, { users: Set<string>; sessions: number; duration: number }>();
+    for (let i = 29; i >= 0; i--) {
+      const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+      const dateStr = date.toISOString().split('T')[0];
+      dailyMap.set(dateStr!, { users: new Set(), sessions: 0, duration: 0 });
+    }
+
+    monthEvents.forEach(e => {
+      const dateStr = e.timestamp.split('T')[0];
+      if (dateStr && dailyMap.has(dateStr)) {
+        const entry = dailyMap.get(dateStr)!;
+        entry.users.add(e.session_id);
+        if (e.event_type === 'page_view') entry.sessions++;
+      }
+    });
+
+    activities.filter(a => new Date(a.date) >= thirtyDaysAgo).forEach(a => {
+      if (dailyMap.has(a.date)) {
+        const entry = dailyMap.get(a.date)!;
+        entry.duration += a.total_duration_ms;
+      }
+    });
+
+    const dailyActivity = Array.from(dailyMap.entries()).map(([date, data]) => ({
+      date,
+      users: data.users.size,
+      sessions: data.sessions,
+      duration: Math.round(data.duration / 1000 / 60) // minutes
+    }));
+
+    // Hourly heatmap (hour x day of week)
+    const heatmapData: { hour: number; day: number; count: number }[] = [];
+    const hourDayMap = new Map<string, number>();
+    
+    for (let day = 0; day < 7; day++) {
+      for (let hour = 0; hour < 24; hour++) {
+        hourDayMap.set(`${day}-${hour}`, 0);
+      }
+    }
+
+    weekEvents.forEach(e => {
+      const date = new Date(e.timestamp);
+      const key = `${date.getDay()}-${date.getHours()}`;
+      hourDayMap.set(key, (hourDayMap.get(key) || 0) + 1);
+    });
+
+    hourDayMap.forEach((count, key) => {
+      const [day, hour] = key.split('-').map(Number);
+      heatmapData.push({ hour: hour!, day: day!, count });
+    });
+
+    // Feature adoption by unique users
+    const featureUserMap = new Map<string, Set<string>>();
+    const featureCountMap = new Map<string, number>();
+    
+    monthEvents
+      .filter(e => e.event_type === 'feature_use' || e.event_type === 'button_click')
+      .forEach(e => {
+        if (!featureUserMap.has(e.event_name)) {
+          featureUserMap.set(e.event_name, new Set());
+          featureCountMap.set(e.event_name, 0);
+        }
+        featureUserMap.get(e.event_name)!.add(e.session_id);
+        featureCountMap.set(e.event_name, (featureCountMap.get(e.event_name) || 0) + 1);
+      });
+
+    const featureAdoption = Array.from(featureUserMap.entries())
+      .map(([feature, users]) => ({
+        feature,
+        users: users.size,
+        totalUses: featureCountMap.get(feature) || 0
+      }))
+      .sort((a, b) => b.users - a.users)
+      .slice(0, 15);
+
+    // User journey funnel
+    const journeySteps = ['Home', 'Kingdom Directory', 'Kingdom Profile', 'Compare', 'Profile'];
+    const journeyData: { step: string; users: number; dropoff: number }[] = [];
+    let prevUsers = mau;
+
+    journeySteps.forEach(step => {
+      const stepEvents = monthEvents.filter(e => 
+        e.event_type === 'page_view' && 
+        e.event_name.toLowerCase().includes(step.toLowerCase())
+      );
+      const stepUsers = new Set(stepEvents.map(e => e.session_id)).size;
+      const dropoff = prevUsers > 0 ? Math.round(((prevUsers - stepUsers) / prevUsers) * 100) : 0;
+      journeyData.push({ step, users: stepUsers, dropoff });
+      prevUsers = stepUsers;
+    });
+
+    return {
+      dau,
+      wau,
+      mau,
+      dauWauRatio,
+      avgSessionDuration,
+      avgSessionsPerDay,
+      dailyActivity,
+      hourlyHeatmap: heatmapData,
+      featureAdoption,
+      userJourney: journeyData
+    };
   }
 }
 
