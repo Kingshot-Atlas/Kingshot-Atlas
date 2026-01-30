@@ -9,6 +9,27 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-01-30 13:45 | Platform Engineer | COMPLETED
+Task: Fix Stripe Integration - Wrong API URL
+Root Cause: Two Render services exist with different names:
+  - kingshot-atlas.onrender.com ✅ (has STRIPE_SECRET_KEY)
+  - kingshot-atlas-api.onrender.com ❌ (missing env vars)
+  Frontend was pointing to wrong service.
+Changes:
+  - Fixed VITE_API_URL in netlify.toml: kingshot-atlas-api → kingshot-atlas
+  - Updated RENDER_DEPLOY.md with correct service name/URL
+  - Removed temporary debug endpoint
+  - Deployed frontend to Netlify
+Verification:
+  - Checkout endpoint: ✅ Returns Stripe checkout URL
+  - Subscription status: ✅ Returns user tier info
+  - Webhook endpoint: ✅ Validates signature (returns error for invalid)
+Files Changed:
+  - apps/web/netlify.toml - Fixed API URL
+  - apps/api/RENDER_DEPLOY.md - Updated docs
+  - apps/api/api/routers/stripe.py - Removed debug endpoint
+Build: ✅ Success | Deploy: ✅ Live at ks-atlas.com
+
 ## 2026-01-30 11:40 | Platform Engineer | COMPLETED
 Task: Supabase Subscription Sync
 Changes:
