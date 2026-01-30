@@ -158,14 +158,14 @@ const KingdomProfile: React.FC = () => {
   // All KvK records sorted by kvk_number descending (most recent first)
   const allKvks = [...(kingdom.recent_kvks || [])].sort((a, b) => b.kvk_number - a.kvk_number);
   
-  // Tooltip descriptions
+  // Tooltip descriptions - aligned with POWER_TIER_THRESHOLDS
   const getTierDescription = (tier: string) => {
     switch (tier) {
-      case 'S': return 'S-Tier: Elite kingdom (Top 10%) with Atlas Score 10+';
-      case 'A': return 'A-Tier: Strong kingdom (Top 25%) with Atlas Score 7-9.9';
-      case 'B': return 'B-Tier: Average kingdom (Top 50%) with Atlas Score 4.5-6.9';
-      case 'C': return 'C-Tier: Below Average kingdom (Top 75%) with Atlas Score 2.5-4.4';
-      default: return 'D-Tier: Developing kingdom (Bottom 25%) with Atlas Score below 2.5';
+      case 'S': return 'S-Tier: Elite kingdom (Top 3%) with Atlas Score 8.9+';
+      case 'A': return 'A-Tier: Strong kingdom (Top 10%) with Atlas Score 7.8-8.9';
+      case 'B': return 'B-Tier: Competitive kingdom (Top 25%) with Atlas Score 6.4-7.8';
+      case 'C': return 'C-Tier: Developing kingdom (Top 50%) with Atlas Score 4.7-6.4';
+      default: return 'D-Tier: Rebuilding kingdom (Bottom 50%) with Atlas Score below 4.7';
     }
   };
   

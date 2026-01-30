@@ -14,11 +14,11 @@ const TIER_CONFIG = {
 } as const;
 
 const TIER_DESCRIPTIONS = [
-  { tier: 'S', range: '10+ (Top 10%)', color: '#fbbf24' },
-  { tier: 'A', range: '7 – 9.9 (Top 25%)', color: '#22c55e' },
-  { tier: 'B', range: '4.5 – 6.9 (Top 50%)', color: '#3b82f6' },
-  { tier: 'C', range: '2.5 – 4.4 (Top 75%)', color: '#f97316' },
-  { tier: 'D', range: '< 2.5 (Bottom 25%)', color: '#ef4444' },
+  { tier: 'S', range: '8.9+ (Top 3%)', color: '#fbbf24' },
+  { tier: 'A', range: '7.8 – 8.9 (Top 10%)', color: '#22c55e' },
+  { tier: 'B', range: '6.4 – 7.8 (Top 25%)', color: '#3b82f6' },
+  { tier: 'C', range: '4.7 – 6.4 (Top 50%)', color: '#f97316' },
+  { tier: 'D', range: '< 4.7 (Bottom 50%)', color: '#ef4444' },
 ];
 
 const TierBadge: React.FC<TierBadgeProps> = ({ tier }) => {

@@ -45,11 +45,11 @@ async function fetchKingdomsByTier(tier) {
     // Filter by tier based on score
     // IMPORTANT: Keep in sync with apps/web/src/types/index.ts POWER_TIER_THRESHOLDS
     const tierRanges = {
-      S: { min: 10, max: Infinity },    // Top 10%: Score 10+
-      A: { min: 7, max: 10 },           // Top 25%: Score 7-9.9
-      B: { min: 4.5, max: 7 },          // Top 50%: Score 4.5-6.9
-      C: { min: 2.5, max: 4.5 },        // Top 75%: Score 2.5-4.4
-      D: { min: -Infinity, max: 2.5 },  // Bottom 25%: Score below 2.5
+      S: { min: 8.90, max: Infinity },   // Top 3%: Score 8.90+
+      A: { min: 7.79, max: 8.90 },       // Top 10%: Score 7.79-8.89
+      B: { min: 6.42, max: 7.79 },       // Top 25%: Score 6.42-7.78
+      C: { min: 4.72, max: 6.42 },       // Top 50%: Score 4.72-6.41
+      D: { min: -Infinity, max: 4.72 },  // Bottom 50%: Score below 4.72
     };
     
     const range = tierRanges[tier.toUpperCase()];

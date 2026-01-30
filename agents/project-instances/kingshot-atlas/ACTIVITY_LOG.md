@@ -9,6 +9,15 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-01-30 02:00 | Platform Engineer | COMPLETED
+Task: Fix Bayesian formula parameter bug
+Issue: bayesian_adjusted_win_rate(wins, losses) was being called with (wins, total) causing ~10% score deflation
+Files:
+  - regenerate_kingdoms_with_atlas_score.py - Fixed domination/defeat rate calculations
+  - enhanced_atlas_formulas.py - Same fix for hybrid formula
+  - apps/web/src/data/kingdoms.json - Regenerated with corrected scores
+Result: Atlas Scores now accurately reflect domination/defeat performance
+
 ## 2026-01-30 01:40 | Ops Lead | COMPLETED
 Task: Security test + Production deployment
 Security Scan Results:

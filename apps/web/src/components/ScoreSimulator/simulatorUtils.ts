@@ -168,8 +168,9 @@ function calculateAtlasScoreComprehensive(
   let defRate: number;
   
   if (totalKvks < 3) {
-    domRate = totalKvks > 0 ? bayesianAdjustedWinRate(dominations, totalKvks, 10, 10) : 0;
-    defRate = totalKvks > 0 ? bayesianAdjustedWinRate(defeats, totalKvks, 10, 10) : 0;
+    // Fix: bayesianAdjustedWinRate expects (wins, losses), not (wins, total)
+    domRate = totalKvks > 0 ? bayesianAdjustedWinRate(dominations, totalKvks - dominations, 10, 10) : 0;
+    defRate = totalKvks > 0 ? bayesianAdjustedWinRate(defeats, totalKvks - defeats, 10, 10) : 0;
   } else if (totalKvks < 8) {
     domRate = totalKvks > 0 ? enhancedWilsonScore(dominations, totalKvks, 0.85) : 0;
     defRate = totalKvks > 0 ? enhancedWilsonScore(defeats, totalKvks, 0.85) : 0;

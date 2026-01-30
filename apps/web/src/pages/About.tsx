@@ -189,11 +189,11 @@ const About: React.FC = () => {
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(5, 1fr)', gap: '0.75rem' }}>
             {[
-              { tier: 'S', range: '10.0+', color: '#fbbf24', desc: 'Elite', detail: 'The apex predators' },
-              { tier: 'A', range: '7.0-9.9', color: '#22c55e', desc: 'Formidable', detail: 'Serious contenders' },
-              { tier: 'B', range: '4.5-6.9', color: '#3b82f6', desc: 'Competitive', detail: 'Solid performers' },
-              { tier: 'C', range: '2.5-4.4', color: '#f97316', desc: 'Developing', detail: 'Room to grow' },
-              { tier: 'D', range: '0-2.4', color: '#ef4444', desc: 'Struggling', detail: 'Rebuilding phase' },
+              { tier: 'S', range: '8.9+', color: '#fbbf24', desc: 'Elite', detail: 'Top 3% - Apex predators' },
+              { tier: 'A', range: '7.8-8.9', color: '#22c55e', desc: 'Formidable', detail: 'Top 10% - Serious contenders' },
+              { tier: 'B', range: '6.4-7.8', color: '#3b82f6', desc: 'Competitive', detail: 'Top 25% - Solid performers' },
+              { tier: 'C', range: '4.7-6.4', color: '#f97316', desc: 'Developing', detail: 'Top 50% - Room to grow' },
+              { tier: 'D', range: '0-4.7', color: '#ef4444', desc: 'Struggling', detail: 'Bottom 50% - Rebuilding' },
             ].map((t, i) => (
               <div key={i} style={{ 
                 backgroundColor: '#111111', 
