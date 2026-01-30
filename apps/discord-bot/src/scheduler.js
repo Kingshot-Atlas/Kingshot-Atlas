@@ -39,6 +39,16 @@ function initScheduler(client) {
   });
 
   console.log('✅ Scheduled: KvK reminders (24h before)');
+
+  // ONE-TIME TEST: Post test message at 00:33 UTC (Jan 30, 2026)
+  // Remove this after confirming the scheduler works
+  cron.schedule('33 0 30 1 *', async () => {
+    console.log('🧪 [00:33 UTC] Sending test message...');
+    await postTestMessage();
+  }, {
+    timezone: 'UTC'
+  });
+  console.log('🧪 Scheduled: Test message at 00:33 UTC');
 }
 
 /**
@@ -165,6 +175,36 @@ function generateDailyUpdateContent() {
 async function triggerDailyUpdate(client) {
   console.log('🔧 Manually triggering daily update...');
   await postDailyUpdate(client);
+}
+
+/**
+ * Post a test message to verify scheduler is working
+ */
+async function postTestMessage() {
+  if (!config.patchNotesWebhook) {
+    console.warn('⚠️ No patch notes webhook configured for test');
+    return;
+  }
+
+  try {
+    const response = await fetch(config.patchNotesWebhook, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: 'Atlas',
+        avatar_url: 'https://ks-atlas.com/atlas-icon.png',
+        content: '🧪 Just testing, no worries!',
+      }),
+    });
+
+    if (response.ok) {
+      console.log('✅ Test message posted successfully');
+    } else {
+      console.error(`❌ Failed to post test message: ${response.status}`);
+    }
+  } catch (error) {
+    console.error('❌ Error posting test message:', error);
+  }
 }
 
 module.exports = {
