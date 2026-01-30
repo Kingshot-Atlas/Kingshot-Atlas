@@ -5,6 +5,7 @@ import { analyticsService } from '../services/analyticsService';
 import { statusService, type StatusSubmission } from '../services/statusService';
 import { apiService } from '../services/api';
 import { contributorService } from '../services/contributorService';
+import { correctionService } from '../services/correctionService';
 
 // Admin users - Discord usernames that have admin access
 const ADMIN_USERS = ['gatreno'];
@@ -317,6 +318,12 @@ const AdminDashboard: React.FC = () => {
     }
     
     showToast(`Correction ${status}`, 'success');
+    
+    // Apply corrections to kingdom data immediately if approved
+    if (status === 'approved') {
+      correctionService.applyCorrectionsAndReload();
+    }
+    
     fetchCorrections();
     fetchPendingCounts();
     setRejectModalOpen(null);

@@ -8,7 +8,9 @@ import ProfileFeatures from '../components/ProfileFeatures';
 import LinkKingshotAccount from '../components/LinkKingshotAccount';
 import PlayersFromMyKingdom from '../components/PlayersFromMyKingdom';
 import { useAuth, getCacheBustedAvatarUrl, UserProfile } from '../contexts/AuthContext';
+import { usePremium } from '../contexts/PremiumContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { createPortalSession } from '../lib/stripe';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { neonGlow } from '../utils/styles';
@@ -245,7 +247,9 @@ const Profile: React.FC = () => {
   const { userId } = useParams<{ userId?: string }>();
   useDocumentTitle(userId ? 'User Profile' : 'My Profile');
   const { user, profile, loading, updateProfile, refreshLinkedPlayer } = useAuth();
+  const { tierName, isPro, isRecruiter } = usePremium();
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [managingSubscription, setManagingSubscription] = useState(false);
   const isMobile = useIsMobile();
   const [viewedProfile, setViewedProfile] = useState<UserProfile | null>(null);
   const [isViewingOther, setIsViewingOther] = useState(false);
@@ -812,6 +816,99 @@ const Profile: React.FC = () => {
             )}
           </div>
         )}
+
+        {/* Subscription Status - only show for own profile */}
+        {!isViewingOther && user && (
+          <div style={{
+            backgroundColor: '#111111',
+            borderRadius: '12px',
+            padding: isMobile ? '1rem' : '1.25rem',
+            marginBottom: '1.5rem',
+            border: `1px solid ${isPro || isRecruiter ? themeColor : '#2a2a2a'}30`,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ fontSize: '1.1rem' }}>{isPro || isRecruiter ? '⭐' : '👤'}</span>
+                <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: '600', color: '#fff' }}>
+                  Subscription
+                </h3>
+              </div>
+              <div style={{
+                padding: '0.25rem 0.75rem',
+                backgroundColor: isPro || isRecruiter 
+                  ? (isRecruiter ? '#a855f720' : '#22d3ee20') 
+                  : '#3a3a3a20',
+                borderRadius: '9999px',
+                fontSize: '0.75rem',
+                fontWeight: '600',
+                color: isPro || isRecruiter 
+                  ? (isRecruiter ? '#a855f7' : '#22d3ee') 
+                  : '#9ca3af',
+              }}>
+                {tierName}
+              </div>
+            </div>
+            
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between',
+              gap: '1rem',
+              flexWrap: 'wrap'
+            }}>
+              <p style={{ color: '#6b7280', fontSize: '0.85rem', margin: 0 }}>
+                {isPro || isRecruiter 
+                  ? `You have full access to ${isRecruiter ? 'Recruiter' : 'Pro'} features.`
+                  : 'Upgrade to unlock premium features and support the project.'}
+              </p>
+              
+              {isPro || isRecruiter ? (
+                <button
+                  onClick={async () => {
+                    setManagingSubscription(true);
+                    try {
+                      const portalUrl = await createPortalSession(user.id);
+                      window.location.href = portalUrl;
+                    } catch (err) {
+                      console.error('Failed to open subscription portal:', err);
+                      setManagingSubscription(false);
+                    }
+                  }}
+                  disabled={managingSubscription}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    backgroundColor: 'transparent',
+                    border: `1px solid ${themeColor}50`,
+                    borderRadius: '8px',
+                    color: themeColor,
+                    fontSize: '0.85rem',
+                    fontWeight: '500',
+                    cursor: managingSubscription ? 'wait' : 'pointer',
+                    opacity: managingSubscription ? 0.7 : 1,
+                  }}
+                >
+                  {managingSubscription ? 'Loading...' : 'Manage Subscription'}
+                </button>
+              ) : (
+                <Link
+                  to="/upgrade"
+                  style={{
+                    padding: '0.5rem 1rem',
+                    background: `linear-gradient(135deg, ${themeColor} 0%, ${themeColor}cc 100%)`,
+                    borderRadius: '8px',
+                    color: '#000',
+                    fontSize: '0.85rem',
+                    fontWeight: '600',
+                    textDecoration: 'none',
+                  }}
+                >
+                  Upgrade to Pro
+                </Link>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Kingdom Leaderboard Position - show if user has a linked kingdom or home kingdom */}
         <KingdomLeaderboardPosition 
           kingdomId={viewedProfile?.linked_kingdom || viewedProfile?.home_kingdom || null}

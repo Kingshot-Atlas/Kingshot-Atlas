@@ -101,6 +101,25 @@ export const getCustomerPortalUrl = (): string => {
   return STRIPE_CONFIG.customerPortalUrl || '/profile';
 };
 
+// Create customer portal session via API (for managing subscriptions)
+export const createPortalSession = async (userId: string): Promise<string> => {
+  const response = await fetch(`${API_BASE_URL}/api/v1/stripe/portal`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ user_id: userId }),
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail?.error || 'Failed to create portal session');
+  }
+  
+  const data = await response.json();
+  return data.portal_url;
+};
+
 // Check if user has an active subscription (client-side check)
 export const hasActiveSubscription = (
   tier: string | undefined,

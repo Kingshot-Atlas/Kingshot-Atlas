@@ -1,6 +1,7 @@
 import { Kingdom, KingdomProfile, KVKRecord, FilterOptions, SortOptions, getPowerTier, PaginatedResponse, RawKingdomData, KingdomDataFile } from '../types';
 import { logger } from '../utils/logger';
 import { statusService } from './statusService';
+import { correctionService } from './correctionService';
 import kingdomData from '../data/kingdoms.json';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
@@ -43,29 +44,49 @@ const loadKingdomData = (): Kingdom[] => {
   // Get approved status overrides from statusService
   const statusOverrides = statusService.getAllApprovedStatusOverrides();
   
+  // Get approved data corrections
+  const dataCorrections = correctionService.getAllApprovedCorrections();
+  
   // Build kingdom objects
   const kingdoms = (kingdomData as KingdomDataFile).kingdoms.map((k: RawKingdomData) => {
     const recentKvks = kvksByKingdom[k.kingdom_number] || [];
     // Use approved status override if available, otherwise default to 'Unannounced'
     const approvedStatus = statusOverrides.get(k.kingdom_number);
     
+    // Get any approved corrections for this kingdom
+    const corrections = dataCorrections.get(k.kingdom_number);
+    
+    // Apply corrections to base values
+    const getValue = (field: string, defaultValue: number | string) => {
+      if (corrections?.has(field)) {
+        const corrected = corrections.get(field)!;
+        // Try to parse as number if the default is a number
+        if (typeof defaultValue === 'number') {
+          const parsed = parseFloat(corrected);
+          return isNaN(parsed) ? defaultValue : parsed;
+        }
+        return corrected;
+      }
+      return defaultValue;
+    };
+    
     return {
       kingdom_number: k.kingdom_number,
-      total_kvks: k.total_kvks,
-      prep_wins: k.prep_wins,
-      prep_losses: k.prep_losses,
-      prep_win_rate: k.prep_win_rate,
-      prep_streak: k.prep_streak,
-      battle_wins: k.battle_wins,
-      battle_losses: k.battle_losses,
-      battle_win_rate: k.battle_win_rate,
-      battle_streak: k.battle_streak,
+      total_kvks: getValue('total_kvks', k.total_kvks) as number,
+      prep_wins: getValue('prep_wins', k.prep_wins) as number,
+      prep_losses: getValue('prep_losses', k.prep_losses) as number,
+      prep_win_rate: getValue('prep_win_rate', k.prep_win_rate) as number,
+      prep_streak: getValue('prep_streak', k.prep_streak) as number,
+      battle_wins: getValue('battle_wins', k.battle_wins) as number,
+      battle_losses: getValue('battle_losses', k.battle_losses) as number,
+      battle_win_rate: getValue('battle_win_rate', k.battle_win_rate) as number,
+      battle_streak: getValue('battle_streak', k.battle_streak) as number,
       // Use full history values from JSON data
-      dominations: k.dominations ?? 0,
-      defeats: k.defeats ?? 0,
+      dominations: getValue('dominations', k.dominations ?? 0) as number,
+      defeats: getValue('defeats', k.defeats ?? 0) as number,
       most_recent_status: approvedStatus || 'Unannounced',
-      overall_score: k.overall_score,
-      power_tier: getPowerTier(k.overall_score),
+      overall_score: getValue('overall_score', k.overall_score) as number,
+      power_tier: getPowerTier(getValue('overall_score', k.overall_score) as number),
       last_updated: new Date().toISOString(),
       recent_kvks: recentKvks
     } as Kingdom;
