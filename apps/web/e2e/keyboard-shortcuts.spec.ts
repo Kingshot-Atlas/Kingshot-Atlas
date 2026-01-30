@@ -5,24 +5,32 @@ test.describe('Keyboard Shortcuts', () => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
     
+    // Click body first to ensure page has focus
+    await page.click('body');
+    await page.waitForTimeout(100);
+    
     // Press ? to open help
     await page.keyboard.press('Shift+/'); // ? is Shift+/
     
-    // Check for keyboard shortcuts modal
-    await expect(page.locator('text=/keyboard shortcuts/i')).toBeVisible();
+    // Check for keyboard shortcuts modal with timeout
+    await expect(page.locator('text=/keyboard shortcuts/i')).toBeVisible({ timeout: 5000 });
   });
 
   test('should close help modal with Escape', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
     
+    // Click body first to ensure page has focus
+    await page.click('body');
+    await page.waitForTimeout(100);
+    
     // Open help modal
     await page.keyboard.press('Shift+/');
-    await expect(page.locator('text=/keyboard shortcuts/i')).toBeVisible();
+    await expect(page.locator('text=/keyboard shortcuts/i')).toBeVisible({ timeout: 5000 });
     
     // Close with Escape
     await page.keyboard.press('Escape');
-    await expect(page.locator('text=/keyboard shortcuts/i')).not.toBeVisible();
+    await expect(page.locator('text=/keyboard shortcuts/i')).not.toBeVisible({ timeout: 3000 });
   });
 
   test('should focus search with / key', async ({ page }) => {

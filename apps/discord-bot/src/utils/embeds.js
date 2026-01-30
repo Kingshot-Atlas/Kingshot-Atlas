@@ -104,6 +104,10 @@ function createKingdomEmbed(kingdom) {
         inline: true,
       }
     )
+    .addFields({
+      name: '\u200b',
+      value: `[${config.premium.ctaShort}](${config.premium.ctaUrl})`,
+    })
     .setFooter({ text: config.bot.footerText })
     .setTimestamp();
 
@@ -158,6 +162,10 @@ function createCompareEmbed(k1, k2) {
         inline: true,
       }
     )
+    .addFields({
+      name: '\u200b',
+      value: `[🔓 Get matchup predictions with Atlas Pro](${config.premium.ctaUrl})`,
+    })
     .setFooter({ text: `${config.bot.footerText} • ✅ = Better` })
     .setTimestamp();
 
@@ -181,6 +189,10 @@ function createLeaderboardEmbed(kingdoms, title = '🏆 Atlas Leaderboard') {
     .setTitle(title)
     .setURL(config.urls.leaderboard)
     .setDescription(leaderboardText || 'No kingdoms found.')
+    .addFields({
+      name: '\u200b',
+      value: `[🔓 Track historical rankings with Atlas Pro](${config.premium.ctaUrl})`,
+    })
     .setFooter({ text: `${config.bot.footerText} • Based on Atlas Score` })
     .setTimestamp();
 
@@ -302,6 +314,16 @@ function createHelpEmbed() {
           `[Leaderboard](${config.urls.leaderboard})`,
           `[Changelog](${config.urls.changelog})`,
         ].join(' • '),
+      },
+      {
+        name: '⭐ Atlas Pro',
+        value: [
+          '**Unlock premium features:**',
+          '• Historical trends & predictions',
+          '• Matchup win probabilities',
+          '• Advanced analytics',
+          `[Upgrade Now](${config.premium.ctaUrl})`,
+        ].join('\n'),
       }
     )
     .setFooter({ text: config.bot.footerText })
@@ -340,10 +362,16 @@ function createPatchNotesEmbed(patchNotes) {
     });
   }
 
-  embed.addFields({
-    name: '📖 Full Notes',
-    value: `[View on website](${config.urls.changelog})`,
-  });
+  embed.addFields(
+    {
+      name: '📖 Full Notes',
+      value: `[View on website](${config.urls.changelog})`,
+    },
+    {
+      name: '\u200b',
+      value: `💬 Love these updates? [Support development with Atlas Pro](${config.premium.ctaUrl})`,
+    }
+  );
 
   embed.setFooter({ text: config.bot.footerText })
     .setTimestamp();
@@ -412,6 +440,224 @@ function createCountdownEmbed(event, timeRemaining) {
   return embed;
 }
 
+/**
+ * Create a base embed with default styling
+ */
+function createBaseEmbed() {
+  return new EmbedBuilder()
+    .setColor(config.colors.primary)
+    .setTimestamp();
+}
+
+/**
+ * Create daily update embed for automated patch notes
+ * Posted at 02:00 UTC daily
+ */
+function createDailyUpdateEmbed(content) {
+  const embed = new EmbedBuilder()
+    .setColor(config.colors.primary)
+    .setTitle(`📢 Atlas Daily Update — ${content.date}`)
+    .setDescription(content.highlight 
+      ? `🎯 **Today's Highlight:** ${content.highlight}`
+      : '*Building something great. Stay tuned.*'
+    );
+
+  // New features
+  if (content.newFeatures && content.newFeatures.length > 0) {
+    embed.addFields({
+      name: '✨ What\'s New',
+      value: content.newFeatures.map(f => `• ${f}`).join('\n'),
+    });
+  }
+
+  // Improvements
+  if (content.improvements && content.improvements.length > 0) {
+    embed.addFields({
+      name: '🔧 Improved',
+      value: content.improvements.map(f => `• ${f}`).join('\n'),
+    });
+  }
+
+  // Bug fixes
+  if (content.fixes && content.fixes.length > 0) {
+    embed.addFields({
+      name: '🐛 Fixed',
+      value: content.fixes.map(f => `• ${f}`).join('\n'),
+    });
+  }
+
+  // Coming soon teaser
+  if (content.comingSoon && content.comingSoon.length > 0) {
+    embed.addFields({
+      name: '🔮 Coming Soon',
+      value: content.comingSoon.map(f => `• ${f}`).join('\n'),
+    });
+  }
+
+  // Stats footer
+  if (content.stats && content.stats.changesCount > 0) {
+    embed.addFields({
+      name: '\u200b',
+      value: `📊 *${content.stats.changesCount} changes today${content.stats.focusArea ? ` • Focus: ${content.stats.focusArea}` : ''}*`,
+    });
+  }
+
+  embed
+    .setFooter({ text: `${config.bot.footerText} • Daily at 02:00 UTC` })
+    .setTimestamp()
+    .setURL(config.urls.changelog);
+
+  return embed;
+}
+
+/**
+ * Create KvK reminder embed with premium CTA
+ * Used for automated 24h pre-KvK announcements
+ */
+function createKvkReminderEmbed(kvkNumber, hoursUntil = 24) {
+  const embed = new EmbedBuilder()
+    .setColor(config.colors.orange)
+    .setTitle(`⚔️ KvK #${kvkNumber} starts in ${hoursUntil} hours!`)
+    .setDescription('Time to scout your opponents and plan your strategy.')
+    .addFields(
+      {
+        name: '📊 Free',
+        value: [
+          '• Check kingdom stats with `/kingdom`',
+          '• Compare matchups with `/compare`',
+          '• View the leaderboard',
+        ].join('\n'),
+        inline: true,
+      },
+      {
+        name: '🔓 Atlas Pro',
+        value: [
+          '• Matchup win probabilities',
+          '• Historical performance trends',
+          '• Advanced predictions',
+        ].join('\n'),
+        inline: true,
+      },
+      {
+        name: '\u200b',
+        value: `**Don't go in blind.** [Get Atlas Pro →](${config.premium.ctaUrl})`,
+      }
+    )
+    .setFooter({ text: config.bot.footerText })
+    .setTimestamp();
+
+  return embed;
+}
+
+/**
+ * Create premium showcase embed
+ * Used for #premium-showcase channel to demonstrate Pro features
+ */
+function createPremiumShowcaseEmbed(showcaseData) {
+  const embed = new EmbedBuilder()
+    .setColor(config.colors.gold)
+    .setTitle(`🔮 Premium Insight — ${showcaseData.title}`)
+    .setDescription(showcaseData.teaser);
+
+  if (showcaseData.preview) {
+    embed.addFields({
+      name: '👀 Sneak Peek',
+      value: showcaseData.preview,
+    });
+  }
+
+  embed.addFields({
+    name: '\u200b',
+    value: [
+      '**Atlas Pro members saw this first.**',
+      '',
+      `[Unlock Premium Features →](${config.premium.ctaUrl})`,
+    ].join('\n'),
+  });
+
+  embed.setFooter({ text: `${config.bot.footerText} • Premium Preview` })
+    .setTimestamp();
+
+  return embed;
+}
+
+/**
+ * Welcome message variations - keeps things fresh
+ */
+const welcomeVariations = [
+  {
+    title: 'Welcome to Kingshot Atlas! 🏰',
+    greeting: (name) => `Hey ${name}! **Stop guessing. Start winning.**`,
+    tagline: "We're a community of competitive players who make decisions with data, not rumors.",
+    footer: 'Built by Kingdom 172 — Data-driven dominance.'
+  },
+  {
+    title: 'A New Challenger Appears! ⚔️',
+    greeting: (name) => `${name} has entered the arena. **Ready to dominate?**`,
+    tagline: 'Here, we turn data into victories. No more blind decisions.',
+    footer: 'Know your enemy. Choose your allies. Dominate KvK.'
+  },
+  {
+    title: 'Welcome, Strategist! 🎯',
+    greeting: (name) => `${name}, you've found the right place. **Real data. Real results.**`,
+    tagline: "Tired of Discord rumors? We deal in facts, not hearsay.",
+    footer: 'No more blind migrations. Just wins.'
+  },
+  {
+    title: 'The Atlas Awaits! 🗺️',
+    greeting: (name) => `${name} joins the ranks. **Time to level up your game.**`,
+    tagline: 'Every kingdom. Every stat. Every advantage you need.',
+    footer: 'Data-driven dominance starts here.'
+  },
+  {
+    title: 'New Recruit Spotted! 👀',
+    greeting: (name) => `${name} is here. **Let's get you winning.**`,
+    tagline: 'We built the tool we wished existed. Now it\'s yours.',
+    footer: 'By players, for players.'
+  }
+];
+
+/**
+ * Create welcome embed for new members with varied messages
+ */
+function createWelcomeEmbed(memberName) {
+  // Pick a random variation
+  const variation = welcomeVariations[Math.floor(Math.random() * welcomeVariations.length)];
+  
+  const embed = new EmbedBuilder()
+    .setColor(config.colors.primary)
+    .setTitle(variation.title)
+    .setDescription([
+      variation.greeting(memberName),
+      '',
+      variation.tagline,
+    ].join('\n'))
+    .addFields(
+      {
+        name: '🚀 Quick Start',
+        value: [
+          '• Check out #rules',
+          '• Try `/kingdom YOUR_NUMBER`',
+          '• Browse [ks-atlas.com](https://ks-atlas.com)',
+        ].join('\n'),
+        inline: true,
+      },
+      {
+        name: '💬 Join In',
+        value: [
+          '• Chat in #general',
+          '• Ideas → #suggestions',
+          '• Bugs → #bugs',
+        ].join('\n'),
+        inline: true,
+      }
+    )
+    .setFooter({ text: variation.footer })
+    .setTimestamp();
+
+  return embed;
+}
+
 module.exports = {
   getTier,
   getTierColor,
@@ -419,6 +665,7 @@ module.exports = {
   formatWinRate,
   formatRecord,
   createProgressBar,
+  createBaseEmbed,
   createKingdomEmbed,
   createCompareEmbed,
   createLeaderboardEmbed,
@@ -428,4 +675,8 @@ module.exports = {
   createPatchNotesEmbed,
   createErrorEmbed,
   createCountdownEmbed,
+  createKvkReminderEmbed,
+  createPremiumShowcaseEmbed,
+  createWelcomeEmbed,
+  createDailyUpdateEmbed,
 };

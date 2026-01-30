@@ -31,6 +31,8 @@ const { Client, GatewayIntentBits, REST, Routes, ActivityType } = require('disco
 const config = require('./config');
 const commands = require('./commands');
 const handlers = require('./commands/handlers');
+const logger = require('./utils/logger');
+const scheduler = require('./scheduler');
 
 // Validate configuration
 if (!config.token || !config.clientId) {
@@ -48,7 +50,10 @@ if (!config.token || !config.clientId) {
 
 // Initialize Discord client
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds],
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMembers, // Required for welcome messages
+  ],
 });
 
 // Event: Ready
@@ -66,6 +71,9 @@ client.once('ready', () => {
     }],
     status: 'online',
   });
+
+  // Initialize scheduled tasks (daily updates at 02:00 UTC)
+  scheduler.initScheduler(client);
 });
 
 // Event: Interaction (slash commands)
@@ -74,6 +82,8 @@ client.on('interactionCreate', async (interaction) => {
 
   const { commandName } = interaction;
 
+  const startTime = Date.now();
+  
   try {
     switch (commandName) {
       case 'kingdom':
@@ -103,11 +113,19 @@ client.on('interactionCreate', async (interaction) => {
       case 'help':
         await handlers.handleHelp(interaction);
         break;
+      case 'stats':
+        await handlers.handleStats(interaction);
+        break;
       default:
         console.warn(`Unknown command: ${commandName}`);
     }
+    
+    // Log successful command
+    const responseTime = Date.now() - startTime;
+    logger.logCommand(interaction, responseTime, true);
   } catch (error) {
     console.error(`Command error (${commandName}):`, error);
+    logger.logError(commandName, error, interaction);
 
     const errorReply = {
       content: '❌ Something went wrong. Please try again later.',
@@ -129,11 +147,34 @@ client.on('interactionCreate', async (interaction) => {
 // Event: Guild join (new server)
 client.on('guildCreate', (guild) => {
   console.log(`📥 Joined new server: ${guild.name} (${guild.id})`);
+  logger.logGuildEvent('join', guild);
 });
 
 // Event: Guild leave
 client.on('guildDelete', (guild) => {
   console.log(`📤 Left server: ${guild.name} (${guild.id})`);
+  logger.logGuildEvent('leave', guild);
+});
+
+// Event: New member joins - send welcome message to #welcome channel
+client.on('guildMemberAdd', async (member) => {
+  console.log(`👋 New member: ${member.user.username} joined ${member.guild.name}`);
+  
+  try {
+    // Find the #welcome channel
+    const welcomeChannel = member.guild.channels.cache.find(
+      ch => ch.name === 'welcome' && ch.isTextBased()
+    );
+    
+    if (welcomeChannel) {
+      const embeds = require('./utils/embeds');
+      const welcomeEmbed = embeds.createWelcomeEmbed(member.user.username);
+      await welcomeChannel.send({ embeds: [welcomeEmbed] });
+      console.log(`✅ Sent welcome message for ${member.user.username}`);
+    }
+  } catch (error) {
+    console.error('Failed to send welcome message:', error);
+  }
 });
 
 // Register slash commands and start bot
