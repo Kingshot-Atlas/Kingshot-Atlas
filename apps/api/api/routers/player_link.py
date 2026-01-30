@@ -20,9 +20,15 @@ from slowapi.util import get_remote_address
 
 router = APIRouter()
 
-# Century Games API Configuration - salt loaded from environment variable
+# Century Games API Configuration
+# Salt is loaded from environment variable with fallback to known public value
+# Note: This salt is public (used by the gift code website) - not a secret
 KINGSHOT_API_BASE = "https://kingshot-giftcode.centurygame.com/api"
-KINGSHOT_API_SALT = os.getenv("KINGSHOT_API_SALT", "")
+# IMPORTANT: Handle empty env var case - os.getenv returns "" if var is set but empty
+# which bypasses the default. Always fall back to known working salt.
+_DEFAULT_SALT = "mN4!pQs6JrYwV9"
+_env_salt = os.getenv("KINGSHOT_API_SALT", "")
+KINGSHOT_API_SALT = _env_salt.strip() if _env_salt.strip() else _DEFAULT_SALT
 
 # Rate limiter for this router
 limiter = Limiter(key_func=get_remote_address)
@@ -62,7 +68,9 @@ def generate_signature(params: dict) -> str:
     Raises:
         HTTPException: If API salt is not configured
     """
-    if not KINGSHOT_API_SALT:
+    # Use the module-level salt, which has a default fallback
+    salt = KINGSHOT_API_SALT
+    if not salt or salt.strip() == "":
         raise HTTPException(
             status_code=503,
             detail={

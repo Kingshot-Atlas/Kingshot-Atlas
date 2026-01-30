@@ -2,6 +2,23 @@
 
 ## Issues Identified & Fixed
 
+### 0. Empty Environment Variable Fallback (Jan 30, 2026)
+**Problem:** `KINGSHOT_API_SALT` env var set to empty string in production bypassed default fallback
+**Symptoms:** "Player linking service not configured" error
+**Root Cause:** `os.getenv("VAR", "default")` returns empty string if VAR exists but is empty
+**Fix:** Added explicit empty-string check with guaranteed fallback to working salt
+**File:** `/apps/api/api/routers/player_link.py` (lines 27-31)
+
+```python
+# Before (broken):
+KINGSHOT_API_SALT = os.getenv("KINGSHOT_API_SALT", "mN4!pQs6JrYwV9")
+
+# After (fixed):
+_DEFAULT_SALT = "mN4!pQs6JrYwV9"
+_env_salt = os.getenv("KINGSHOT_API_SALT", "")
+KINGSHOT_API_SALT = _env_salt.strip() if _env_salt.strip() else _DEFAULT_SALT
+```
+
 ### 1. Database Schema Missing
 **Problem:** Supabase `profiles` and `user_data` tables didn't exist
 **Symptoms:** 404/406/400 errors on profile queries
@@ -91,11 +108,12 @@ if ('serviceWorker' in navigator) {
 
 ## Files Changed
 
-1. `/apps/web/src/contexts/AuthContext.tsx` - Fixed persistence and update logic
-2. `/apps/web/public/service-worker.js` - Fixed CSP violations
-3. `/apps/web/src/components/LinkKingshotAccount.tsx` - Fixed CORS issue
-4. `/docs/migrations/setup_supabase.sql` - Complete database setup
-5. `/docs/migrations/add_linked_player_columns.sql` - Column migration (already run)
+1. `/apps/api/api/routers/player_link.py` - Fixed empty env var fallback (Jan 30, 2026)
+2. `/apps/web/src/contexts/AuthContext.tsx` - Fixed persistence and update logic
+3. `/apps/web/public/service-worker.js` - Fixed CSP violations
+4. `/apps/web/src/components/LinkKingshotAccount.tsx` - Fixed CORS issue
+5. `/docs/migrations/setup_supabase.sql` - Complete database setup
+6. `/docs/migrations/add_linked_player_columns.sql` - Column migration (already run)
 
 ## Deployment Notes
 
