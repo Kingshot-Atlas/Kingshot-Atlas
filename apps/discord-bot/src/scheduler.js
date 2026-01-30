@@ -14,6 +14,19 @@ const embeds = require('./utils/embeds');
 function initScheduler(client) {
   console.log('📅 Initializing scheduled tasks...');
 
+  // Log webhook status
+  if (config.patchNotesWebhook) {
+    console.log('✅ Patch notes webhook configured');
+    
+    // Immediate test on startup (remove after confirming)
+    setTimeout(async () => {
+      console.log('🧪 Running immediate startup test...');
+      await postTestMessage();
+    }, 5000); // Wait 5 seconds after startup
+  } else {
+    console.warn('⚠️ DISCORD_PATCH_NOTES_WEBHOOK not set - daily updates disabled');
+  }
+
   // Daily patch notes at 02:00 UTC
   // Cron: minute hour day month weekday
   cron.schedule('0 2 * * *', async () => {
@@ -40,15 +53,7 @@ function initScheduler(client) {
 
   console.log('✅ Scheduled: KvK reminders (24h before)');
 
-  // ONE-TIME TEST: Post test message at 00:42 UTC (Jan 30, 2026)
-  // Remove this after confirming the scheduler works
-  cron.schedule('42 0 30 1 *', async () => {
-    console.log('🧪 [00:42 UTC] Sending test message...');
-    await postTestMessage();
-  }, {
-    timezone: 'UTC'
-  });
-  console.log('🧪 Scheduled: Test message at 00:42 UTC');
+  // Note: Immediate test runs on startup if webhook is configured
 }
 
 /**
