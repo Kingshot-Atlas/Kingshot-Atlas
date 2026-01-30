@@ -149,8 +149,9 @@ def calculate_atlas_score_comprehensive(total_kvks, prep_wins, prep_losses, batt
     # Also uses hybrid statistical approach
     
     if total_kvks < 3:
-        dom_rate = bayesian_adjusted_win_rate(dominations, total_kvks, 10, 10) if total_kvks > 0 else 0
-        def_rate = bayesian_adjusted_win_rate(defeats, total_kvks, 10, 10) if total_kvks > 0 else 0
+        # Fix: bayesian_adjusted_win_rate expects (wins, losses), not (wins, total)
+        dom_rate = bayesian_adjusted_win_rate(dominations, total_kvks - dominations, 10, 10) if total_kvks > 0 else 0
+        def_rate = bayesian_adjusted_win_rate(defeats, total_kvks - defeats, 10, 10) if total_kvks > 0 else 0
     elif total_kvks < 8:
         dom_rate = enhanced_wilson_score(dominations, total_kvks, confidence=0.90, min_sample_penalty=0.85) if total_kvks > 0 else 0
         def_rate = enhanced_wilson_score(defeats, total_kvks, confidence=0.90, min_sample_penalty=0.85) if total_kvks > 0 else 0

@@ -95,8 +95,9 @@ def calculate_atlas_score(total_kvks, prep_wins, prep_losses, battle_wins, battl
     combined_bayesian = (prep_bayesian * 0.3) + (battle_bayesian * 0.7)
     
     # === COMPONENT 2: Domination/Defeat Modifier (also Bayesian) ===
-    dom_bayesian = bayesian_adjusted_win_rate(dominations, total_kvks, 10, 10) if total_kvks > 0 else 0
-    def_bayesian = bayesian_adjusted_win_rate(defeats, total_kvks, 10, 10) if total_kvks > 0 else 0
+    # Fix: Pass (wins, losses) not (wins, total) - total_kvks includes wins, causing double-counting
+    dom_bayesian = bayesian_adjusted_win_rate(dominations, total_kvks - dominations, 10, 10) if total_kvks > 0 else 0
+    def_bayesian = bayesian_adjusted_win_rate(defeats, total_kvks - defeats, 10, 10) if total_kvks > 0 else 0
     
     # Increased weight for domination/defeat pattern
     dominance_modifier = (dom_bayesian * 0.8) - (def_bayesian * 0.6)
