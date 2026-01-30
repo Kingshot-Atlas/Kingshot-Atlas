@@ -40,15 +40,15 @@ function initScheduler(client) {
 
   console.log('✅ Scheduled: KvK reminders (24h before)');
 
-  // ONE-TIME TEST: Post test message at 00:33 UTC (Jan 30, 2026)
+  // ONE-TIME TEST: Post test message at 00:42 UTC (Jan 30, 2026)
   // Remove this after confirming the scheduler works
-  cron.schedule('33 0 30 1 *', async () => {
-    console.log('🧪 [00:33 UTC] Sending test message...');
+  cron.schedule('42 0 30 1 *', async () => {
+    console.log('🧪 [00:42 UTC] Sending test message...');
     await postTestMessage();
   }, {
     timezone: 'UTC'
   });
-  console.log('🧪 Scheduled: Test message at 00:33 UTC');
+  console.log('🧪 Scheduled: Test message at 00:42 UTC');
 }
 
 /**
