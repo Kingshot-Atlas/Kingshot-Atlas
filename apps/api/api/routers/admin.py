@@ -33,6 +33,15 @@ def verify_admin(api_key: Optional[str]) -> bool:
     return api_key == ADMIN_API_KEY
 
 
+def require_admin(x_admin_key: Optional[str] = Header(None)):
+    """FastAPI dependency to enforce admin authentication on endpoints."""
+    if not verify_admin(x_admin_key):
+        raise HTTPException(
+            status_code=401,
+            detail="Admin API key required. Set X-Admin-Key header."
+        )
+
+
 @router.get("/stats/subscriptions")
 async def get_subscription_stats(x_admin_key: Optional[str] = Header(None)):
     """
@@ -40,6 +49,7 @@ async def get_subscription_stats(x_admin_key: Optional[str] = Header(None)):
     
     Returns counts by tier and list of active subscribers.
     """
+    require_admin(x_admin_key)
     client = get_supabase_admin()
     
     if not client:
@@ -102,6 +112,7 @@ async def get_revenue_stats(x_admin_key: Optional[str] = Header(None)):
     
     Returns MRR, total revenue, and subscription breakdown.
     """
+    require_admin(x_admin_key)
     if not STRIPE_SECRET_KEY:
         return {
             "mrr": 0,
@@ -184,6 +195,7 @@ async def get_admin_overview(x_admin_key: Optional[str] = Header(None)):
     """
     Get combined overview stats for admin dashboard.
     """
+    require_admin(x_admin_key)
     # Get subscription stats
     sub_stats = await get_subscription_stats(x_admin_key)
     
@@ -217,6 +229,7 @@ async def get_mrr_history(
     Get MRR history over time for charting.
     Returns daily MRR values for the specified number of days.
     """
+    require_admin(x_admin_key)
     if not STRIPE_SECRET_KEY:
         return {"data": [], "error": "Stripe not configured"}
     
@@ -266,6 +279,7 @@ async def get_churn_stats(x_admin_key: Optional[str] = Header(None)):
     Get churn rate and retention metrics.
     Industry-standard churn calculations.
     """
+    require_admin(x_admin_key)
     if not STRIPE_SECRET_KEY:
         return {
             "churn_rate": 0,
@@ -336,6 +350,7 @@ async def get_revenue_forecast(
     Get revenue forecast based on current MRR and growth rate.
     Simple linear projection with growth assumptions.
     """
+    require_admin(x_admin_key)
     if not STRIPE_SECRET_KEY:
         return {"forecast": [], "error": "Stripe not configured"}
     
@@ -388,6 +403,7 @@ async def get_cohort_analysis(x_admin_key: Optional[str] = Header(None)):
     Get subscriber cohort analysis by signup month.
     Shows retention by cohort over time.
     """
+    require_admin(x_admin_key)
     if not STRIPE_SECRET_KEY:
         return {"cohorts": [], "error": "Stripe not configured"}
     
@@ -435,6 +451,7 @@ async def export_subscribers_csv(x_admin_key: Optional[str] = Header(None)):
     """
     Export all subscriber data as CSV.
     """
+    require_admin(x_admin_key)
     client = get_supabase_admin()
     
     if not client:
@@ -488,6 +505,7 @@ async def export_revenue_csv(
     """
     Export revenue data as CSV.
     """
+    require_admin(x_admin_key)
     if not STRIPE_SECRET_KEY:
         raise HTTPException(status_code=500, detail="Stripe not configured")
     
@@ -537,6 +555,7 @@ async def get_key_performance_indicators(x_admin_key: Optional[str] = Header(Non
     Get all key performance indicators in one call.
     Optimized for dashboard display.
     """
+    require_admin(x_admin_key)
     # Gather all stats in parallel-ish fashion
     sub_stats = await get_subscription_stats(x_admin_key)
     rev_stats = await get_revenue_stats(x_admin_key)
@@ -585,6 +604,7 @@ async def get_webhook_events_list(
         event_type: Filter by event type
         status: Filter by status (received, processed, failed)
     """
+    require_admin(x_admin_key)
     events = get_webhook_events(limit=limit, event_type=event_type, status=status)
     return {"events": events, "count": len(events)}
 
@@ -601,5 +621,6 @@ async def get_webhook_health_stats(x_admin_key: Optional[str] = Header(None)):
         - Failure rate percentage
         - Health status (healthy/warning/critical)
     """
+    require_admin(x_admin_key)
     stats = get_webhook_stats()
     return stats
