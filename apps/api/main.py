@@ -12,8 +12,8 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from api.routers import kingdoms, auth, leaderboard, compare, submissions, agent, discord, player_link
-from database import engine
-from models import Base
+from database import engine, SessionLocal
+from models import Base, Kingdom
 
 # Initialize Sentry for error monitoring (only if available and DSN is configured)
 SENTRY_DSN = os.getenv("SENTRY_DSN")
@@ -27,15 +27,35 @@ if SENTRY_AVAILABLE and SENTRY_DSN:
 
 Base.metadata.create_all(bind=engine)
 
+def ensure_data_loaded():
+    """Check if database has data, import if empty (handles Render's ephemeral storage)"""
+    db = SessionLocal()
+    try:
+        count = db.query(Kingdom).count()
+        if count == 0:
+            print("Database empty, importing data...")
+            from import_data import import_kingdoms_data
+            import_kingdoms_data()
+            print("Data import completed on startup")
+        else:
+            print(f"Database has {count} kingdoms")
+    except Exception as e:
+        print(f"Error checking/importing data: {e}")
+    finally:
+        db.close()
+
+# Import data if database is empty (critical for Render's ephemeral storage)
+ensure_data_loaded()
+
 # Rate limiter setup
 limiter = Limiter(key_func=get_remote_address)
 
-# Allowed origins for CORS
-# Production: https://www.ks-atlas.com and https://ks-atlas.com
+# Allowed origins for CORS - tightened security
+# Production: https://www.ks-atlas.com and https://ks-atlas.com only
 # Development: localhost variants
 ALLOWED_ORIGINS = os.getenv(
     "ALLOWED_ORIGINS",
-    "http://localhost:3000,http://127.0.0.1:3000,https://www.ks-atlas.com,https://ks-atlas.com,https://ks-atlas.netlify.app"
+    "http://localhost:3000,http://127.0.0.1:3000,https://ks-atlas.com,https://www.ks-atlas.com"
 ).split(",")
 
 app = FastAPI(
@@ -60,14 +80,14 @@ app.add_middleware(
     allow_headers=["Authorization", "Content-Type", "X-User-Id", "X-User-Name"],
 )
 
-app.include_router(kingdoms.router, prefix="/api", tags=["kingdoms"])
-app.include_router(auth.router, prefix="/api", tags=["auth"])
-app.include_router(leaderboard.router, prefix="/api", tags=["leaderboard"])
-app.include_router(compare.router, prefix="/api", tags=["compare"])
-app.include_router(submissions.router, prefix="/api", tags=["submissions"])
-app.include_router(agent.router, prefix="/api/agent", tags=["agent"])
-app.include_router(discord.router, prefix="/api/discord", tags=["discord"])
-app.include_router(player_link.router, prefix="/api/player-link", tags=["player-link"])
+app.include_router(kingdoms.router, prefix="/api/v1", tags=["kingdoms"])
+app.include_router(auth.router, prefix="/api/v1", tags=["auth"])
+app.include_router(leaderboard.router, prefix="/api/v1", tags=["leaderboard"])
+app.include_router(compare.router, prefix="/api/v1", tags=["compare"])
+app.include_router(submissions.router, prefix="/api/v1", tags=["submissions"])
+app.include_router(agent.router, prefix="/api/v1/agent", tags=["agent"])
+app.include_router(discord.router, prefix="/api/v1/discord", tags=["discord"])
+app.include_router(player_link.router, prefix="/api/v1/player-link", tags=["player-link"])
 
 @app.get("/")
 def root():
@@ -81,36 +101,50 @@ def health_check():
 async def add_headers(request: Request, call_next):
     response = await call_next(request)
     
+    # Generate nonce for CSP (for inline scripts/styles)
+    import secrets
+    nonce = secrets.token_urlsafe(16)
+    
     # Security headers (2025 standards)
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Permissions-Policy"] = "geolocation=(), camera=(), microphone=()"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
     
-    # Content Security Policy - adjust as needed for your CDN/assets
+    # Content Security Policy with nonce-based inline script/style support
     csp_directives = [
         "default-src 'self'",
-        "script-src 'self' 'unsafe-inline'",  # unsafe-inline needed for React
-        "style-src 'self' 'unsafe-inline'",   # unsafe-inline needed for Tailwind
-        "img-src 'self' data: https:",
+        f"script-src 'self' 'nonce-{nonce}' https://*.stripe.com https://plausible.io",
+        f"style-src 'self' 'nonce-{nonce}' https://fonts.googleapis.com",
+        "img-src 'self' data: https: blob: https://*.akamaized.net https://*.centurygame.com https://cdn.discordapp.com https://*.googleusercontent.com https://lh3.googleusercontent.com",
         "font-src 'self' https://fonts.gstatic.com",
-        "connect-src 'self' https://*.supabase.co https://*.sentry.io",
+        "connect-src 'self' https://*.supabase.co https://*.sentry.io https://api.stripe.com https://plausible.io wss://*.supabase.co https://*.railway.app https://*.onrender.com https://kingshot-giftcode.centurygame.com",
+        "frame-src https://*.stripe.com",
         "frame-ancestors 'none'",
+        "base-uri 'self'",
+        "form-action 'self'"
     ]
     response.headers["Content-Security-Policy"] = "; ".join(csp_directives)
     
+    # Pass nonce to client for development
+    if os.getenv("ENVIRONMENT", "development") == "development":
+        response.headers["X-CSP-Nonce"] = nonce
+    
     # Cache-Control headers for API endpoints
+    # Use 'private' to prevent CDN caching - only browser can cache
+    # This ensures Discord bot and other API clients always get fresh data
     path = request.url.path
     if path.startswith("/api/"):
-        if path.startswith("/api/kingdoms") or path.startswith("/api/leaderboard"):
-            # Kingdom data changes infrequently - cache for 5 minutes
-            response.headers["Cache-Control"] = "public, max-age=300, stale-while-revalidate=60"
-        elif path.startswith("/api/compare"):
-            # Comparison results - cache for 2 minutes
-            response.headers["Cache-Control"] = "public, max-age=120, stale-while-revalidate=30"
+        if path.startswith("/api/v1/kingdoms") or path.startswith("/api/v1/leaderboard"):
+            # Kingdom data - private cache only, no CDN caching
+            response.headers["Cache-Control"] = "private, max-age=60, must-revalidate"
+        elif path.startswith("/api/v1/compare"):
+            # Comparison results - private cache only
+            response.headers["Cache-Control"] = "private, max-age=60, must-revalidate"
         else:
-            # Other endpoints - short cache
-            response.headers["Cache-Control"] = "public, max-age=60"
+            # Other endpoints - no caching for dynamic data
+            response.headers["Cache-Control"] = "private, no-cache, must-revalidate"
     
     return response
 

@@ -1,0 +1,185 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e6]:
+          - link "KA KINGSHOT ATLAS" [ref=e7] [cursor=pointer]:
+            - /url: /
+            - img "KA" [ref=e8]
+            - generic [ref=e9]:
+              - generic [ref=e10]: KINGSHOT
+              - generic [ref=e11]: ATLAS
+          - generic [ref=e12]:
+            - generic [ref=e13]:
+              - generic [ref=e14]: 🛡️
+              - generic [ref=e15]:
+                - generic [ref=e16]: Prep Phase
+                - generic [ref=e17]: ●1d 09h 43m 45s
+            - generic [ref=e18]:
+              - generic [ref=e19]: 🚀
+              - generic [ref=e20]:
+                - generic [ref=e21]: Next Transfer
+                - generic [ref=e22]: 29d 23h 43m 45s
+        - navigation [ref=e23]:
+          - link "Home" [ref=e24] [cursor=pointer]:
+            - /url: /
+          - link "Rankings" [ref=e25] [cursor=pointer]:
+            - /url: /leaderboards
+          - link "Tools" [ref=e27] [cursor=pointer]:
+            - /url: /tools
+            - text: Tools
+            - img [ref=e28]
+          - link "About" [ref=e30] [cursor=pointer]:
+            - /url: /about
+          - link "Pro" [ref=e31] [cursor=pointer]:
+            - /url: /upgrade
+            - img [ref=e32]
+            - text: Pro
+          - button "Enable high contrast mode" [ref=e34] [cursor=pointer]:
+            - img [ref=e35]
+          - link "Discord" [ref=e38] [cursor=pointer]:
+            - /url: https://discord.gg/aA3a7JGcHV
+            - img [ref=e39]
+            - text: Discord
+          - button "Sign In" [ref=e42] [cursor=pointer]:
+            - img [ref=e43]
+            - text: Sign In
+    - main [ref=e45]:
+      - generic [ref=e47]:
+        - generic [ref=e49]:
+          - heading "ABOUTUS" [level=1] [ref=e50]
+          - paragraph [ref=e51]: Know your enemy. Choose your allies. Dominate Kingshot.
+        - generic [ref=e56]:
+          - generic [ref=e57]:
+            - heading "Stop Guessing. Start Winning." [level=2] [ref=e58]
+            - paragraph [ref=e59]: Kingshot Atlas is the only analytics platform built specifically for Kingshot players who refuse to leave victory to chance. We track every KvK result, analyze every kingdom's performance, and give you the intelligence you need to make decisions that actually matter.
+            - paragraph [ref=e60]: Scouting your next KvK opponent? We've got their win rate, their streaks, and their weaknesses. Looking for a new home during Transfer? Find kingdoms that match your competitive level. Recruiting for your alliance? Show prospects exactly why your kingdom dominates.
+            - paragraph [ref=e61]: No more guessing. No more blind migrations. No more surprises. Just data-driven dominance.
+          - generic [ref=e62]:
+            - heading "Your Competitive Edge" [level=2] [ref=e63]
+            - generic [ref=e64]:
+              - generic [ref=e65]:
+                - generic [ref=e66]: 🗺️
+                - generic [ref=e67]:
+                  - heading "Kingdom Directory" [level=3] [ref=e68]
+                  - paragraph [ref=e69]: Every kingdom. Every stat. Searchable, filterable, and ranked. Find exactly what you're looking for in seconds.
+              - generic [ref=e70]:
+                - generic [ref=e71]: ⚡
+                - generic [ref=e72]:
+                  - heading "Atlas Score" [level=3] [ref=e73]
+                  - paragraph [ref=e74]: Battle-tested rating that rewards experience and consistency. One number tells you who's a real threat vs a lucky newcomer.
+              - generic [ref=e75]:
+                - generic [ref=e76]: ⚔️
+                - generic [ref=e77]:
+                  - heading "Head-to-Head Comparison" [level=3] [ref=e78]
+                  - paragraph [ref=e79]: Pit any two kingdoms against each other. See who has the edge in Prep, Battle, and overall dominance.
+              - generic [ref=e80]:
+                - generic [ref=e81]: 📜
+                - generic [ref=e82]:
+                  - heading "Complete KvK History" [level=3] [ref=e83]
+                  - paragraph [ref=e84]: Every match. Every result. Every streak. Know exactly what you're walking into before the gates open.
+              - generic [ref=e85]:
+                - generic [ref=e86]: 🏆
+                - generic [ref=e87]:
+                  - heading "Power Tier Rankings" [level=3] [ref=e88]
+                  - paragraph [ref=e89]: S-Tier elites to D-Tier underdogs. Instantly identify where any kingdom stands in the pecking order.
+          - generic [ref=e90]:
+            - 'heading "The Atlas Score: Your Kingdom''s True Power Level" [level=2] [ref=e91]'
+            - paragraph [ref=e92]: "Stop guessing. Start winning. The Atlas Score measures what actually matters: consistent performance. Our formula rewards experience, punishes lucky streaks, and shows who really dominates. Here's the breakdown:"
+            - generic [ref=e93]:
+              - generic [ref=e94]:
+                - generic [ref=e95]: ⚔️
+                - generic [ref=e96]:
+                  - generic [ref=e97]: Win Rate (60%)
+                  - generic [ref=e98]: Overall wins with experience scaling. Veterans get full credit—new kingdoms prove themselves first.
+              - generic [ref=e99]:
+                - generic [ref=e100]: 👑
+                - generic [ref=e101]:
+                  - generic [ref=e102]: Domination Pattern (25%)
+                  - generic [ref=e103]: Win both phases consistently? That's dominance. Double wins boost your score, double losses hurt it.
+              - generic [ref=e104]:
+                - generic [ref=e105]: 🔥
+                - generic [ref=e106]:
+                  - generic [ref=e107]: Recent Form (10%)
+                  - generic [ref=e108]: Your last 3 KvKs matter. Hot streaks help, but consistency beats luck every time.
+              - generic [ref=e109]:
+                - generic [ref=e110]: ⚡
+                - generic [ref=e111]:
+                  - generic [ref=e112]: Streak Momentum (15%)
+                  - generic [ref=e113]: Current win streaks and best-ever records. Battle streaks count more—that's when KvKs are won.
+            - generic [ref=e114]:
+              - generic [ref=e115]: Why It Works
+              - paragraph [ref=e116]:
+                - text: •
+                - strong [ref=e117]: "Experience matters:"
+                - text: Kingdoms with 6+ KvKs get full scoring power
+              - paragraph [ref=e118]:
+                - text: •
+                - strong [ref=e119]: "Consistency over luck:"
+                - text: No inflated scores from lucky 2-0 starts
+              - paragraph [ref=e120]:
+                - text: •
+                - strong [ref=e121]: "All performance counts:"
+                - text: Streaks, recent trends, and domination patterns
+            - paragraph [ref=e122]: Real data. Real results. No spin. That's how you know who to fear and who to target.
+          - generic [ref=e123]:
+            - 'heading "The Tier System: Where Does Your Kingdom Rank?" [level=2] [ref=e124]'
+            - paragraph [ref=e125]: Every kingdom earns their tier through battle. No politics, no favoritism—just cold, hard results.
+            - generic [ref=e126]:
+              - generic [ref=e127]:
+                - generic [ref=e128]: S
+                - generic [ref=e129]: 10.0+
+                - generic [ref=e130]: Elite
+                - generic [ref=e131]: The apex predators
+              - generic [ref=e132]:
+                - generic [ref=e133]: A
+                - generic [ref=e134]: 7.0-9.9
+                - generic [ref=e135]: Formidable
+                - generic [ref=e136]: Serious contenders
+              - generic [ref=e137]:
+                - generic [ref=e138]: B
+                - generic [ref=e139]: 4.5-6.9
+                - generic [ref=e140]: Competitive
+                - generic [ref=e141]: Solid performers
+              - generic [ref=e142]:
+                - generic [ref=e143]: C
+                - generic [ref=e144]: 2.5-4.4
+                - generic [ref=e145]: Developing
+                - generic [ref=e146]: Room to grow
+              - generic [ref=e147]:
+                - generic [ref=e148]: D
+                - generic [ref=e149]: 0-2.4
+                - generic [ref=e150]: Struggling
+                - generic [ref=e151]: Rebuilding phase
+          - generic [ref=e152]:
+            - heading "Built by a Player, For Players" [level=2] [ref=e153]
+            - paragraph [ref=e154]: Kingshot Atlas was born in Kingdom 172. The founder got tired of making transfer decisions based on rumors and Discord hearsay. Tired of walking into KvK blind. Tired of guessing.
+            - paragraph [ref=e155]: "So he built the tool he wished existed: a place where every kingdom's track record is laid bare. Real data. Real results. No spin."
+            - paragraph [ref=e156]: Today, Atlas is powered by the community—players contributing data, reporting results, and helping each other make smarter decisions. This isn't a corporate product. It's a passion project built by someone who plays the game and wants to see the community thrive.
+          - generic [ref=e157]:
+            - heading "The Fine Print" [level=2] [ref=e158]
+            - paragraph [ref=e159]: Our data comes from community contributions and verified KvK results. We obsess over accuracy, but KvK is complex—edge cases exist. If you spot an error, let us know.
+            - paragraph [ref=e160]: Kingshot Atlas is an independent fan project. We're not affiliated with or endorsed by the developers of Kingshot. We're just players who love the game.
+          - generic [ref=e161]:
+            - img [ref=e163]
+            - heading "Fuel the Atlas" [level=2] [ref=e165]
+            - paragraph [ref=e166]: Servers cost money. Development takes time. If Atlas has helped you make better decisions, consider throwing some support our way. Every bit helps keep the lights on and new features coming.
+            - link "Support Atlas on Ko-fi" [ref=e167] [cursor=pointer]:
+              - /url: https://ko-fi.com/ksatlas
+              - img [ref=e168]
+              - text: Support Atlas on Ko-fi
+            - paragraph [ref=e170]: Buy us a coffee, fund a feature, or just say thanks ☕
+          - generic [ref=e171]:
+            - heading "Join the Community" [level=2] [ref=e172]
+            - paragraph [ref=e173]: Got intel to share? Found a bug? Want to argue about tier rankings? Jump into our Discord. We're always looking for contributors, testers, and fellow data nerds.
+            - link "Join Our Discord" [ref=e174] [cursor=pointer]:
+              - /url: https://discord.gg/aA3a7JGcHV
+              - img [ref=e175]
+              - text: Join Our Discord
+          - link "← Back to Home" [ref=e178] [cursor=pointer]:
+            - /url: /
+  - region "Notifications"
+```

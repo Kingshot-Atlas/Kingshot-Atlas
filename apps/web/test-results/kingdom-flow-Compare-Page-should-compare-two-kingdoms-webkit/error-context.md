@@ -1,0 +1,80 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e6]:
+          - link "KA KINGSHOT ATLAS" [ref=e7]:
+            - /url: /
+            - img "KA" [ref=e8]
+            - generic [ref=e9]:
+              - generic [ref=e10]: KINGSHOT
+              - generic [ref=e11]: ATLAS
+          - generic [ref=e12]:
+            - generic [ref=e13]:
+              - generic [ref=e14]: 🛡️
+              - generic [ref=e15]:
+                - generic [ref=e16]: Prep Phase
+                - generic [ref=e17]: ●1d 09h 42m 53s
+            - generic [ref=e18]:
+              - generic [ref=e19]: 🚀
+              - generic [ref=e20]:
+                - generic [ref=e21]: Next Transfer
+                - generic [ref=e22]: 29d 23h 42m 53s
+        - navigation [ref=e23]:
+          - link "Home" [ref=e24]:
+            - /url: /
+          - link "Rankings" [ref=e25]:
+            - /url: /leaderboards
+          - link "Tools" [ref=e27]:
+            - /url: /tools
+            - text: Tools
+            - img [ref=e28]
+          - link "About" [ref=e30]:
+            - /url: /about
+          - link "Pro" [ref=e31]:
+            - /url: /upgrade
+            - img [ref=e32]
+            - text: Pro
+          - button "Enable high contrast mode" [ref=e34] [cursor=pointer]:
+            - img [ref=e35]
+          - link "Discord" [ref=e38]:
+            - /url: https://discord.gg/aA3a7JGcHV
+            - img [ref=e39]
+            - text: Discord
+          - button "Sign In" [ref=e42] [cursor=pointer]:
+            - img [ref=e43]
+            - text: Sign In
+    - main [ref=e45]:
+      - generic [ref=e47]:
+        - generic [ref=e49]:
+          - heading "KINGDOMCOMPARISON" [level=1] [ref=e50]
+          - paragraph [ref=e51]: Put any kingdoms in the ring. Let the stats decide.
+        - generic [ref=e56]:
+          - generic [ref=e57]:
+            - generic [ref=e58]:
+              - textbox "Kingdom A" [ref=e59]: "100"
+              - generic [ref=e60]: vs
+              - textbox "Kingdom B" [ref=e61]: "101"
+            - button "Compare" [ref=e62] [cursor=pointer]
+            - generic [ref=e63]:
+              - link "+3" [ref=e64]:
+                - /url: /profile
+                - generic [ref=e66] [cursor=pointer]: "+3"
+              - link "+4" [ref=e67]:
+                - /url: /profile
+                - generic [ref=e69] [cursor=pointer]: "+4"
+              - link "+5" [ref=e70]:
+                - /url: /profile
+                - generic [ref=e72] [cursor=pointer]: "+5"
+            - link "Sign in to compare up to 3 kingdoms" [ref=e73]:
+              - /url: /profile
+              - generic [ref=e75] [cursor=pointer]: Sign in to compare up to 3 kingdoms
+          - generic [ref=e76]: One or both kingdoms not found
+          - generic [ref=e78]: Pick your matchup. The numbers will tell the story.
+          - link "← Back to Home" [ref=e80]:
+            - /url: /
+  - region "Notifications"
+```

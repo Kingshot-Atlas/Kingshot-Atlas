@@ -1,16 +1,30 @@
 import React, { useMemo } from 'react';
 import { KVKRecord } from '../types';
+import { usePremium } from '../contexts/PremiumContext';
+import UpgradePrompt from './UpgradePrompt';
 
 interface TrendChartProps {
   kvkRecords: KVKRecord[];
-  kingdomNumber: number;
   height?: number;
 }
 
 const TrendChart: React.FC<TrendChartProps> = ({ kvkRecords, height = 200 }) => {
+  const { features } = usePremium();
+  
+  // Apply data-gating: limit KvK records based on subscription tier
+  const gatedRecords = useMemo(() => {
+    if (features.fullKvkHistory) {
+      // Pro/Recruiter: show all records
+      return kvkRecords;
+    } else {
+      // Free/Anonymous: show limited records (3 for anonymous, 5 for free)
+      return kvkRecords.slice(0, features.kvkHistoryLimit);
+    }
+  }, [kvkRecords, features.fullKvkHistory, features.kvkHistoryLimit]);
+  
   const chartData = useMemo(() => {
     // Sort by KvK number ascending (oldest first)
-    const sorted = [...kvkRecords].sort((a, b) => a.kvk_number - b.kvk_number);
+    const sorted = [...gatedRecords].sort((a, b) => a.kvk_number - b.kvk_number);
     
     // Calculate cumulative stats
     let prepWins = 0, prepLosses = 0, battleWins = 0, battleLosses = 0;
@@ -33,7 +47,7 @@ const TrendChart: React.FC<TrendChartProps> = ({ kvkRecords, height = 200 }) => 
         opponent: kvk.opponent_kingdom
       };
     });
-  }, [kvkRecords]);
+  }, [gatedRecords]);
 
   if (chartData.length < 2) {
     return (
@@ -75,7 +89,7 @@ const TrendChart: React.FC<TrendChartProps> = ({ kvkRecords, height = 200 }) => 
   const prepPath = generatePath(chartData.map(d => d.prepWR));
   const battlePath = generatePath(chartData.map(d => d.battleWR));
 
-  return (
+  const chartElement = (
     <div style={{ backgroundColor: '#1a1a20', borderRadius: '10px', padding: '1rem' }}>
       <div style={{ 
         display: 'flex', 
@@ -206,8 +220,42 @@ const TrendChart: React.FC<TrendChartProps> = ({ kvkRecords, height = 200 }) => 
           </div>
         </div>
       </div>
+
+      {/* Data limit indicator for free users */}
+      {!features.fullKvkHistory && kvkRecords.length > features.kvkHistoryLimit && (
+        <div style={{
+          marginTop: '0.75rem',
+          padding: '0.5rem 0.75rem',
+          backgroundColor: '#22d3ee10',
+          border: '1px solid #22d3ee30',
+          borderRadius: '6px',
+          fontSize: '0.75rem',
+          color: '#22d3ee',
+          textAlign: 'center'
+        }}>
+          Showing {features.kvkHistoryLimit} most recent KvKs of {kvkRecords.length} total
+        </div>
+      )}
     </div>
   );
+
+  // Upgrade prompt for non-pro users with more data available
+  if (!features.fullKvkHistory && kvkRecords.length > features.kvkHistoryLimit) {
+    return (
+      <>
+        {chartElement}
+        <div style={{ marginTop: '1rem' }}>
+          <UpgradePrompt 
+            feature="Full KvK History"
+            description={`See all ${kvkRecords.length} KvK records instead of just ${features.kvkHistoryLimit}. Track complete performance trends and make better decisions.`}
+            compact
+          />
+        </div>
+      </>
+    );
+  }
+
+  return chartElement;
 };
 
 export default TrendChart;

@@ -37,6 +37,28 @@ When creating SEO content, meta descriptions, or public-facing infrastructure me
 
 ---
 
+## Vision Alignment (MANDATORY)
+
+Before starting any work, verify alignment with `/docs/VISION.md`:
+
+### Decision Filter
+- [ ] Does this help get Atlas to more players?
+- [ ] Does this improve reliability for users?
+- [ ] Does this support our data-driven mission?
+- [ ] Would our core users benefit from this infrastructure?
+
+### Pre-Work Checks
+- Read `FEATURES_IMPLEMENTED.md` — Is this already deployed?
+- Read `DECISIONS.md` — Has infrastructure been decided?
+- Read `PARKING_LOT.md` — Was this explicitly deferred?
+
+### Deployment Philosophy
+- Reliability over speed
+- User experience over cost savings
+- Security always comes first
+
+---
+
 ## Core Competencies
 
 ### CI/CD & Deployment

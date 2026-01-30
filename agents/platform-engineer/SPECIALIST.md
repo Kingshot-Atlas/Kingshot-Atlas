@@ -42,6 +42,28 @@ When creating user-facing error messages, API responses, or documentation:
 
 ---
 
+## Vision Alignment (MANDATORY)
+
+Before starting any work, verify alignment with `/docs/VISION.md`:
+
+### Decision Filter
+- [ ] Does this help players make better decisions?
+- [ ] Does this maintain data integrity principles?
+- [ ] Does this support system reliability and security?
+- [ ] Would our core users benefit from this infrastructure?
+
+### Pre-Work Checks
+- Read `FEATURES_IMPLEMENTED.md` — Is this already built?
+- Read `DECISIONS.md` — Has architecture been decided?
+- Read `PARKING_LOT.md` — Was this explicitly deferred?
+
+### I Refuse To Build
+- Automation/bot features (violates fair play)
+- Data export that could enable abuse
+- Systems that compromise user privacy
+
+---
+
 ## Core Competencies
 
 ### API Development

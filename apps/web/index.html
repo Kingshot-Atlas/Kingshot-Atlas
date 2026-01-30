@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/Atlas Favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0a0a0a" />
+    <meta name="description" content="Kingshot Atlas - Compare kingdoms, track KvK results, and find your next home." />
+    
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://plausible.io" crossorigin>
+    <link rel="dns-prefetch" href="https://api.ks-atlas.com">
+    <link rel="dns-prefetch" href="https://sentry.io">
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="https://fonts.gstatic.com/s/cinzel/v23/8vIU7ww63mVu7gtR-kwKxNvkNOjw-tbnfY3lCQ.woff2" as="font" type="font/woff2" crossorigin>
+    
+    <!-- Security Headers (meta tags as backup) -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+    
+    <!-- Open Graph / Social Media -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://ks-atlas.com/" />
+    <meta property="og:title" content="Kingshot Atlas - Kingdom Database" />
+    <meta property="og:description" content="Compare kingdoms, track KvK results, and find your next home in Kingshot." />
+    <meta property="og:image" content="https://ks-atlas.com/Atlas%20Favicon.png" />
+    <meta property="og:site_name" content="Kingshot Atlas" />
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Kingshot Atlas - Kingdom Database" />
+    <meta name="twitter:description" content="Compare kingdoms, track KvK results, and find your next home in Kingshot." />
+    <meta name="twitter:image" content="https://ks-atlas.com/Atlas%20Favicon.png" />
+    
+    <!-- SEO -->
+    <meta name="keywords" content="Kingshot, kingdom, KvK, atlas, database, comparison, transfer" />
+    <meta name="author" content="Kingshot Atlas" />
+    <link rel="canonical" href="https://ks-atlas.com/" />
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Kingshot Atlas",
+      "description": "Compare kingdoms, track KvK results, and find your next home in Kingshot.",
+      "url": "https://ks-atlas.com/",
+      "applicationCategory": "GameApplication",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "author": {
+        "@type": "Organization",
+        "name": "Kingshot Atlas"
+      }
+    }
+    </script>
+    
+    <!-- Analytics -->
+    <script defer data-domain="ks-atlas.com" src="https://plausible.io/js/script.js"></script>
+    
+    <title>Kingshot Atlas</title>
+  </head>
+  <body style="background-color: #0a0a0a; margin: 0; padding: 0;">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

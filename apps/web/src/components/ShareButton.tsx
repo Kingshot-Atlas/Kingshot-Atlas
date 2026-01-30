@@ -276,10 +276,24 @@ const ShareButton: React.FC<ShareButtonProps> = ({ type, kingdomData, compareDat
           fontWeight: '500',
           transition: 'all 0.2s'
         }}
+        onMouseEnter={(e) => {
+          if (!showMenu) {
+            e.currentTarget.style.backgroundColor = '#22d3ee15';
+            e.currentTarget.style.borderColor = '#22d3ee30';
+            e.currentTarget.style.color = '#22d3ee';
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!showMenu) {
+            e.currentTarget.style.backgroundColor = '#1a1a1a';
+            e.currentTarget.style.borderColor = '#333';
+            e.currentTarget.style.color = '#9ca3af';
+          }
+        }}
         aria-label="Share options"
         aria-expanded={showMenu}
       >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <circle cx="18" cy="5" r="3" />
           <circle cx="6" cy="12" r="3" />
           <circle cx="18" cy="19" r="3" />

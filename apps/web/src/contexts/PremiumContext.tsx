@@ -20,6 +20,7 @@ export interface PremiumFeatures {
   exportData: boolean;
   submitData: boolean; // Can submit KvK results
   prioritySubmissions: boolean;
+  scoreSimulator: boolean; // Pro feature: simulate future KvK scores
   
   // Premium perks
   adFree: boolean;
@@ -47,6 +48,7 @@ const TIER_FEATURES: Record<SubscriptionTier, PremiumFeatures> = {
     exportData: false,
     submitData: false,
     prioritySubmissions: false,
+    scoreSimulator: false,
     adFree: false,
     proBadge: false,
     earlyAccess: false,
@@ -68,6 +70,7 @@ const TIER_FEATURES: Record<SubscriptionTier, PremiumFeatures> = {
     exportData: false,
     submitData: true,
     prioritySubmissions: false,
+    scoreSimulator: false,
     adFree: false,
     proBadge: false,
     earlyAccess: false,
@@ -86,9 +89,10 @@ const TIER_FEATURES: Record<SubscriptionTier, PremiumFeatures> = {
     watchlistLimit: 20,
     advancedFilters: true,
     multiCompare: 5,
-    exportData: true,
+    exportData: false,
     submitData: true,
     prioritySubmissions: true,
+    scoreSimulator: true,
     adFree: true,
     proBadge: true,
     earlyAccess: true,
@@ -106,10 +110,11 @@ const TIER_FEATURES: Record<SubscriptionTier, PremiumFeatures> = {
     viewDetailedStats: true,
     watchlistLimit: 50,
     advancedFilters: true,
-    multiCompare: 10,
-    exportData: true,
+    multiCompare: 5,
+    exportData: false,
     submitData: true,
     prioritySubmissions: true,
+    scoreSimulator: true,
     adFree: true,
     proBadge: true,
     earlyAccess: true,

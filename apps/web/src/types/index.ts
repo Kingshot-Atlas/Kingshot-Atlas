@@ -58,22 +58,22 @@ export interface SortOptions {
   order: 'asc' | 'desc';
 }
 
-// Power Tier system using percentiles
-// S: Top 10%
-// A: Top 25% (10-25th percentile)
-// B: Top 50% (25-50th percentile)
-// C: Top 75% (50-75th percentile)
-// D: Bottom 25% (below 75th percentile)
+// Enhanced experience scaling - rewards proven veterans
+// S: Top 3% (Elite kingdoms)
+// A: Top 10% (Strong kingdoms) 
+// B: Top 25% (Above average)
+// C: Top 50% (Average kingdoms)
+// D: Bottom 50% (Below average)
 export type PowerTier = 'S' | 'A' | 'B' | 'C' | 'D';
 
 // Score-based thresholds aligned with percentiles
-// Based on data distribution: scores roughly 0-15 range
+// Enhanced experience scaling - rewards proven veterans
 export const POWER_TIER_THRESHOLDS = {
-  S: 10,   // Top 10%: Score 10+
-  A: 7,    // Top 25%: Score 7-9.9
-  B: 4.5,  // Top 50%: Score 4.5-6.9
-  C: 2.5,  // Top 75%: Score 2.5-4.4
-  D: 0,    // Bottom 25%: Score below 2.5
+  S: 8.90,   // Top 3%: Elite kingdoms (8.90+)
+  A: 7.79,   // Top 10%: Strong kingdoms (7.79-8.89)
+  B: 6.42,   // Top 25%: Above average (6.42-7.78)
+  C: 4.72,   // Top 50%: Average kingdoms (4.72-6.41)
+  D: 0,      // Bottom 50%: Below average (0-4.71)
 } as const;
 
 export const getPowerTier = (score: number): PowerTier => {
@@ -93,11 +93,11 @@ export const TIER_COLORS: Record<PowerTier, string> = {
 };
 
 export const TIER_DESCRIPTIONS: Record<PowerTier, string> = {
-  S: 'Elite (Top 10%)',
-  A: 'Strong (Top 25%)',
-  B: 'Average (Top 50%)',
-  C: 'Below Average (Top 75%)',
-  D: 'Developing (Bottom 25%)',
+  S: 'Elite (Top 3%)',
+  A: 'Strong (Top 10%)',
+  B: 'Above Average (Top 25%)',
+  C: 'Average (Top 50%)',
+  D: 'Below Average (Bottom 50%)',
 };
 
 export interface PaginatedResponse<T> {

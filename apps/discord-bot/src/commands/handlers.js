@@ -6,6 +6,7 @@
 const api = require('../utils/api');
 const events = require('../utils/events');
 const embeds = require('../utils/embeds');
+const logger = require('../utils/logger');
 
 /**
  * /kingdom <number>
@@ -172,6 +173,58 @@ async function handleHelp(interaction) {
   return interaction.reply({ embeds: [embed] });
 }
 
+/**
+ * /stats (admin only)
+ * Shows bot usage statistics for Discord Community Manager analysis
+ */
+async function handleStats(interaction) {
+  // Check if user has admin permissions
+  const isAdmin = interaction.member?.permissions?.has('Administrator') || false;
+  
+  if (!isAdmin) {
+    return interaction.reply({
+      content: '❌ This command is only available to server administrators.',
+      ephemeral: true,
+    });
+  }
+
+  const stats = logger.getStats();
+  
+  const embed = embeds.createBaseEmbed()
+    .setTitle('📊 Atlas Bot Statistics')
+    .setDescription('Usage analytics for community management')
+    .addFields(
+      {
+        name: '📈 All Time',
+        value: [
+          `Commands: **${stats.totals.commands.toLocaleString()}**`,
+          `Errors: **${stats.totals.errors}** (${stats.totals.errorRate})`,
+          `Active Servers: **${stats.activeGuilds}**`,
+        ].join('\n'),
+        inline: true,
+      },
+      {
+        name: '📅 Today',
+        value: [
+          `Commands: **${stats.today.commands}**`,
+          `Unique Users: **${stats.today.uniqueUsers}**`,
+          `Errors: **${stats.today.errors}**`,
+        ].join('\n'),
+        inline: true,
+      },
+      {
+        name: '🏆 Top Commands',
+        value: stats.topCommands.length > 0
+          ? stats.topCommands.map((c, i) => `${i + 1}. \`/${c.command}\`: ${c.count}`).join('\n')
+          : 'No data yet',
+        inline: false,
+      }
+    )
+    .setFooter({ text: `Last updated: ${new Date(stats.lastUpdated).toLocaleString()}` });
+
+  return interaction.reply({ embeds: [embed], ephemeral: true });
+}
+
 module.exports = {
   handleKingdom,
   handleCompare,
@@ -182,4 +235,5 @@ module.exports = {
   handleCountdown,
   handleRandom,
   handleHelp,
+  handleStats,
 };

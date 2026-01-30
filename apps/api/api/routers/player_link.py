@@ -11,6 +11,7 @@ Endpoints:
 
 import hashlib
 import time
+import os
 import httpx
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
@@ -19,9 +20,9 @@ from slowapi.util import get_remote_address
 
 router = APIRouter()
 
-# Century Games API Configuration
+# Century Games API Configuration - salt loaded from environment variable
 KINGSHOT_API_BASE = "https://kingshot-giftcode.centurygame.com/api"
-KINGSHOT_API_SALT = "mN4!pQs6JrYwV9"
+KINGSHOT_API_SALT = os.getenv("KINGSHOT_API_SALT", "")
 
 # Rate limiter for this router
 limiter = Limiter(key_func=get_remote_address)
@@ -57,7 +58,18 @@ def generate_signature(params: dict) -> str:
         
     Returns:
         MD5 hash string
+        
+    Raises:
+        HTTPException: If API salt is not configured
     """
+    if not KINGSHOT_API_SALT:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "error": "Player linking service not configured",
+                "code": "SERVICE_UNAVAILABLE"
+            }
+        )
     sorted_keys = sorted(params.keys())
     param_string = "&".join(f"{k}={params[k]}" for k in sorted_keys)
     return hashlib.md5((param_string + KINGSHOT_API_SALT).encode()).hexdigest()

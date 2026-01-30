@@ -19,6 +19,7 @@ import './App.css';
 const KingdomDirectory = lazy(() => import('./pages/KingdomDirectory'));
 const KingdomProfile = lazy(() => import('./pages/KingdomProfile'));
 const CompareKingdoms = lazy(() => import('./pages/CompareKingdoms'));
+const Tools = lazy(() => import('./pages/Tools'));
 const Leaderboards = lazy(() => import('./pages/Leaderboards'));
 const Profile = lazy(() => import('./pages/Profile'));
 const About = lazy(() => import('./pages/About'));
@@ -75,6 +76,7 @@ function AppContent() {
               <Route path="/" element={<ErrorBoundary><KingdomDirectory /></ErrorBoundary>} />
               <Route path="/kingdom/:kingdomNumber" element={<ErrorBoundary><KingdomProfile /></ErrorBoundary>} />
               <Route path="/compare" element={<ErrorBoundary><CompareKingdoms /></ErrorBoundary>} />
+              <Route path="/tools" element={<ErrorBoundary><Tools /></ErrorBoundary>} />
               <Route path="/leaderboards" element={<ErrorBoundary><Leaderboards /></ErrorBoundary>} />
               <Route path="/profile" element={<ErrorBoundary><Profile /></ErrorBoundary>} />
               <Route path="/profile/:userId" element={<ErrorBoundary><Profile /></ErrorBoundary>} />
@@ -82,8 +84,9 @@ function AppContent() {
               <Route path="/about" element={<ErrorBoundary><About /></ErrorBoundary>} />
               <Route path="/admin" element={<ErrorBoundary><AdminDashboard /></ErrorBoundary>} />
               <Route path="/upgrade" element={<ErrorBoundary><Upgrade /></ErrorBoundary>} />
+              <Route path="/pro" element={<ErrorBoundary><Upgrade /></ErrorBoundary>} />
               <Route path="/changelog" element={<ErrorBoundary><Changelog /></ErrorBoundary>} />
-            </Routes>
+                          </Routes>
           </Suspense>
         </PageTransition>
       </main>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Supabase Config Test</title>
+</head>
+<body>
+    <h1>Supabase Configuration Test</h1>
+    <div id="results"></div>
+    
+    <script>
+        // Check if environment variables are available
+        const results = document.getElementById('results');
+        
+        function log(message) {
+            console.log(message);
+            results.innerHTML += '<p>' + message + '</p>';
+        }
+        
+        log('Checking environment variables...');
+        log('REACT_APP_SUPABASE_URL: ' + (process.env.REACT_APP_SUPABASE_URL ? 'SET' : 'MISSING'));
+        log('REACT_APP_SUPABASE_ANON_KEY: ' + (process.env.REACT_APP_SUPABASE_ANON_KEY ? 'SET' : 'MISSING'));
+        
+        // Try to load Supabase
+        import('./src/lib/supabase.js').then(module => {
+            log('Supabase module loaded successfully');
+            log('isSupabaseConfigured: ' + module.isSupabaseConfigured);
+            log('supabase client: ' + (module.supabase ? 'CREATED' : 'NULL'));
+            
+            if (module.supabase) {
+                module.supabase.auth.getSession().then(({ data, error }) => {
+                    log('Auth session check completed');
+                    log('Has session: ' + !!data.session);
+                    log('Error: ' + (error ? error.message : 'None'));
+                });
+            }
+        }).catch(err => {
+            log('Error loading Supabase: ' + err.message);
+        });
+    </script>
+</body>
+</html>

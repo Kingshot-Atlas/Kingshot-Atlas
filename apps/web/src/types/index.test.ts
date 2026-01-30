@@ -1,35 +1,35 @@
 import { getPowerTier, POWER_TIER_THRESHOLDS } from './index';
 
 describe('getPowerTier', () => {
-  it('returns S tier for scores >= 10', () => {
+  it('returns S tier for scores >= 8.90', () => {
+    expect(getPowerTier(8.90)).toBe('S');
+    expect(getPowerTier(9)).toBe('S');
     expect(getPowerTier(10)).toBe('S');
-    expect(getPowerTier(12)).toBe('S');
     expect(getPowerTier(15)).toBe('S');
-    expect(getPowerTier(100)).toBe('S');
   });
 
-  it('returns A tier for scores >= 7 and < 10', () => {
-    expect(getPowerTier(7)).toBe('A');
-    expect(getPowerTier(8)).toBe('A');
-    expect(getPowerTier(9.9)).toBe('A');
+  it('returns A tier for scores >= 7.79 and < 8.90', () => {
+    expect(getPowerTier(7.79)).toBe('A');
+    expect(getPowerTier(8.5)).toBe('A');
+    expect(getPowerTier(8.89)).toBe('A');
   });
 
-  it('returns B tier for scores >= 4.5 and < 7', () => {
-    expect(getPowerTier(4.5)).toBe('B');
-    expect(getPowerTier(5)).toBe('B');
-    expect(getPowerTier(6.9)).toBe('B');
+  it('returns B tier for scores >= 6.42 and < 7.79', () => {
+    expect(getPowerTier(6.42)).toBe('B');
+    expect(getPowerTier(7)).toBe('B');
+    expect(getPowerTier(7.78)).toBe('B');
   });
 
-  it('returns C tier for scores >= 2.5 and < 4.5', () => {
-    expect(getPowerTier(2.5)).toBe('C');
-    expect(getPowerTier(3)).toBe('C');
-    expect(getPowerTier(4.4)).toBe('C');
+  it('returns C tier for scores >= 4.72 and < 6.42', () => {
+    expect(getPowerTier(4.72)).toBe('C');
+    expect(getPowerTier(5)).toBe('C');
+    expect(getPowerTier(6.41)).toBe('C');
   });
 
-  it('returns D tier for scores < 2.5', () => {
+  it('returns D tier for scores < 4.72', () => {
     expect(getPowerTier(0)).toBe('D');
-    expect(getPowerTier(2)).toBe('D');
-    expect(getPowerTier(2.4)).toBe('D');
+    expect(getPowerTier(3)).toBe('D');
+    expect(getPowerTier(4.71)).toBe('D');
   });
 
   it('handles edge cases at thresholds', () => {

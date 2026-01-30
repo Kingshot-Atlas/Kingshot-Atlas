@@ -8,7 +8,7 @@ import { loadCache, saveCache, clearCache, CacheData } from './cache';
 import { loadKingdomData, enrichKingdom, toKingdomProfile } from './transformers';
 import { applyFiltersAndSort, paginate } from './filters';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
 // Load local data once on module initialization
 const localKingdoms: Kingdom[] = loadKingdomData();
@@ -76,7 +76,7 @@ class KingdomService {
     params.append('page_size', '100');
     
     const queryString = params.toString();
-    const endpoint = `/api/kingdoms${queryString ? '?' + queryString : ''}`;
+    const endpoint = `/api/v1/kingdoms${queryString ? '?' + queryString : ''}`;
     
     try {
       const response = await fetch(`${API_BASE_URL}${endpoint}`);
@@ -116,7 +116,7 @@ class KingdomService {
       params.append('order', sort.order);
     }
     
-    const endpoint = `/api/kingdoms?${params.toString()}`;
+    const endpoint = `/api/v1/kingdoms?${params.toString()}`;
     
     try {
       const response = await fetch(`${API_BASE_URL}${endpoint}`);
@@ -138,12 +138,20 @@ class KingdomService {
    * Get a single kingdom profile.
    */
   async getKingdomProfile(kingdomNumber: number): Promise<KingdomProfile | null> {
-    const endpoint = `/api/kingdoms/${kingdomNumber}`;
+    const endpoint = `/api/v1/kingdoms/${kingdomNumber}`;
     
     try {
       const response = await fetch(`${API_BASE_URL}${endpoint}`);
       if (!response.ok) {
-        if (response.status === 404) return null;
+        if (response.status === 404) {
+          // API returned 404 - try local data fallback before giving up
+          const kingdom = localKingdoms.find(k => k.kingdom_number === kingdomNumber);
+          if (kingdom) {
+            logger.log(`Kingdom ${kingdomNumber} not in API, using local data`);
+            return toKingdomProfile(kingdom);
+          }
+          return null;
+        }
         throw new Error(`API Error: ${response.status}`);
       }
       return await response.json();
@@ -162,14 +170,14 @@ class KingdomService {
     const sortedKingdoms = [...localKingdoms]
       .sort((a, b) => b.overall_score - a.overall_score)
       .slice(0, limit);
-    return this.fetchWithFallback(`/api/leaderboard?limit=${limit}`, sortedKingdoms);
+    return this.fetchWithFallback(`/api/v1/leaderboard?limit=${limit}`, sortedKingdoms);
   }
 
   /**
    * Compare multiple kingdoms.
    */
   async compareKingdoms(kingdomNumbers: number[]): Promise<KingdomProfile[]> {
-    const endpoint = `/api/compare?kingdoms=${kingdomNumbers.join(',')}`;
+    const endpoint = `/api/v1/compare?kingdoms=${kingdomNumbers.join(',')}`;
     
     try {
       const response = await fetch(`${API_BASE_URL}${endpoint}`);
@@ -205,7 +213,7 @@ class KingdomService {
    * Search kingdoms by query.
    */
   async searchKingdoms(query: string): Promise<Kingdom[]> {
-    const endpoint = `/api/kingdoms?search=${encodeURIComponent(query)}`;
+    const endpoint = `/api/v1/kingdoms?search=${encodeURIComponent(query)}`;
     
     try {
       const response = await fetch(`${API_BASE_URL}${endpoint}`);

@@ -30,30 +30,27 @@ Kingshot Atlas should monetize through a **freemium model** with optional premiu
 ### Premium Tier — **Atlas Pro** ($4.99/month or $39.99/year)
 *Goal: Serious players and recruiters*
 
-| Feature | Value Proposition |
-|---------|-------------------|
-| **Full KvK History** | See all historical performance, not just last 5 |
-| **Kingdom Watchlist** | Track up to 20 kingdoms with status change alerts |
-| **Advanced Filters** | Filter by win streaks, specific KvK ranges, status |
-| **Multi-Compare** | Compare 3-4 kingdoms side-by-side |
-| **Export Data** | CSV/PDF exports of comparisons |
-| **Priority Submissions** | Status updates reviewed faster |
-| **Ad-Free Experience** | No banner ads |
-| **Pro Badge** | Visible on profile and reviews |
-| **Early Access** | New features first |
+| Feature | Value Proposition | Status |
+|---------|-------------------|--------|
+| **Full KvK History** | See all historical performance, not just last 5 | ✅ Live |
+| **Score Timeline** | Track performance over time | ✅ Live |
+| **Kingdom Watchlist** | Track up to 20 kingdoms with status change alerts | 🛠️ Coming Soon |
+| **Multi-Compare** | Compare up to 5 kingdoms side-by-side | ✅ Live |
+| **Priority Support** | Faster response times | ✅ Live |
+| **Pro Badge** | Visible on profile and reviews | ✅ Live |
+| **Discord Role** | Exclusive Pro role & badge in Discord | ✅ Live |
 
 ### Recruiter Tier — **Atlas Recruiter** ($14.99/month)
 *Goal: Alliance recruiters and kingdom managers*
 
-| Feature | Value Proposition |
-|---------|-------------------|
-| All Pro features | ✅ |
-| **Claim Kingdom** | Official kingdom representative badge |
-| **Recruiter Dashboard** | Track kingdom views, profile engagement |
-| **Custom Kingdom Banner** | Upload alliance banner for profile |
-| **Recruit Inbox** | Receive transfer interest from players |
-| **Bulk Compare** | Compare up to 10 kingdoms |
-| **API Access** | Basic read API for integration |
+| Feature | Value Proposition | Status |
+|---------|-------------------|--------|
+| All Pro features | ✅ | ✅ Live |
+| **Claim Kingdom** | Official kingdom representative badge | ✅ Live |
+| **Recruiter Dashboard** | Track kingdom views, profile engagement | 🛠️ Coming Soon |
+| **Custom Kingdom Banner** | Upload alliance banner for profile | 🛠️ Coming Soon |
+| **Recruit Inbox** | Receive transfer interest from players | 🛠️ Coming Soon |
+| **Discord Role** | Exclusive Recruiter role & badge in Discord | ✅ Live |
 
 ---
 

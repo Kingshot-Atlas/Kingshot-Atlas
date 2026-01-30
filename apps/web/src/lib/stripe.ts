@@ -2,17 +2,17 @@
 // See /docs/STRIPE_QUICK_SETUP.md for setup instructions
 
 export const STRIPE_CONFIG = {
-  publishableKey: process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || '',
+  publishableKey: import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '',
   
   // Price IDs from Stripe Dashboard
   prices: {
     pro: {
-      monthly: process.env.REACT_APP_STRIPE_PRO_MONTHLY || '',
-      yearly: process.env.REACT_APP_STRIPE_PRO_YEARLY || '',
+      monthly: import.meta.env.VITE_STRIPE_PRO_MONTHLY || '',
+      yearly: import.meta.env.VITE_STRIPE_PRO_YEARLY || '',
     },
     recruiter: {
-      monthly: process.env.REACT_APP_STRIPE_RECRUITER_MONTHLY || '',
-      yearly: process.env.REACT_APP_STRIPE_RECRUITER_YEARLY || '',
+      monthly: import.meta.env.VITE_STRIPE_RECRUITER_MONTHLY || '',
+      yearly: import.meta.env.VITE_STRIPE_RECRUITER_YEARLY || '',
     },
   },
   
@@ -20,17 +20,17 @@ export const STRIPE_CONFIG = {
   // These are the full payment link URLs or IDs from Stripe Dashboard
   paymentLinks: {
     pro: {
-      monthly: process.env.REACT_APP_STRIPE_PRO_MONTHLY_LINK || '',
-      yearly: process.env.REACT_APP_STRIPE_PRO_YEARLY_LINK || '',
+      monthly: import.meta.env.VITE_STRIPE_PRO_MONTHLY_LINK || '',
+      yearly: import.meta.env.VITE_STRIPE_PRO_YEARLY_LINK || '',
     },
     recruiter: {
-      monthly: process.env.REACT_APP_STRIPE_RECRUITER_MONTHLY_LINK || '',
-      yearly: process.env.REACT_APP_STRIPE_RECRUITER_YEARLY_LINK || '',
+      monthly: import.meta.env.VITE_STRIPE_RECRUITER_MONTHLY_LINK || '',
+      yearly: import.meta.env.VITE_STRIPE_RECRUITER_YEARLY_LINK || '',
     },
   },
   
   // Customer portal URL for managing subscriptions
-  customerPortalUrl: process.env.REACT_APP_STRIPE_PORTAL_URL || '',
+  customerPortalUrl: import.meta.env.VITE_STRIPE_PORTAL_URL || '',
   
   // Ko-fi fallback URL
   kofiUrl: 'https://ko-fi.com/ksatlas',

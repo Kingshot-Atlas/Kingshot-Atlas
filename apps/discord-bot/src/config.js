@@ -74,6 +74,14 @@ module.exports = {
     compare: (k1, k2) => `https://ks-atlas.com/compare?k1=${k1}&k2=${k2}`,
     leaderboard: 'https://ks-atlas.com/leaderboard',
     changelog: 'https://ks-atlas.com/changelog',
+    pro: 'https://ks-atlas.com/pro',
+  },
+
+  // Premium conversion messaging
+  premium: {
+    cta: '🔓 Want historical trends & predictions? → Atlas Pro',
+    ctaShort: '🔓 Unlock more with Atlas Pro',
+    ctaUrl: 'https://ks-atlas.com/pro',
   },
 
   // Bot identity

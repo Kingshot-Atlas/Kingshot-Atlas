@@ -81,6 +81,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const isConfigured = isSupabaseConfigured;
 
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase) {
@@ -400,20 +401,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const contextValue: AuthContextType = {
+    user,
+    session,
+    profile,
+    loading,
+    isConfigured,
+    signInWithGoogle,
+    signInWithDiscord,
+    signInWithEmail,
+    signUpWithEmail,
+    signOut,
+    updateProfile
+  };
+
   return (
-    <AuthContext.Provider value={{
-      user,
-      session,
-      profile,
-      loading,
-      isConfigured: isSupabaseConfigured,
-      signInWithGoogle,
-      signInWithDiscord,
-      signInWithEmail,
-      signUpWithEmail,
-      signOut,
-      updateProfile
-    }}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

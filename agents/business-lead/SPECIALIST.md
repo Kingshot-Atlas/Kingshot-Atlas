@@ -38,6 +38,29 @@ When creating pricing pages, marketing copy, or user communications:
 
 ---
 
+## Vision Alignment (MANDATORY)
+
+Before starting any work, verify alignment with `/docs/VISION.md`:
+
+### Decision Filter
+- [ ] Does this monetization respect user trust?
+- [ ] Does this growth strategy align with community values?
+- [ ] Does this maintain our player-first principles?
+- [ ] Would this make the product better, not just more profitable?
+
+### Pre-Work Checks
+- Read `FEATURES_IMPLEMENTED.md` — Is this revenue feature built?
+- Read `DECISIONS.md` — Has pricing been decided?
+- Read `PARKING_LOT.md` — Was this explicitly deferred?
+
+### Revenue Principles
+- Never sell player data
+- Never artificially boost kingdom scores for money
+- Free tier must provide real value
+- Premium features enhance, don't gate-keep essentials
+
+---
+
 ## Core Competencies
 
 ### Monetization Strategy

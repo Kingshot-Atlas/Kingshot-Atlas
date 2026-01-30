@@ -9,7 +9,7 @@ import { neonGlow } from '../utils/styles';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 const Leaderboards: React.FC = () => {
-  useDocumentTitle('Leaderboards');
+  useDocumentTitle('Kingdom Rankings');
   const [kingdoms, setKingdoms] = useState<Kingdom[]>([]);
   const [loading, setLoading] = useState(true);
   const [displayCount, setDisplayCount] = useState<10 | 20 | 50>(10);
@@ -176,7 +176,7 @@ const Leaderboards: React.FC = () => {
   const [hoveredRanking, setHoveredRanking] = useState<string | null>(null);
 
   const rankingTooltips: Record<string, string> = {
-    'Atlas Score': 'Overall kingdom performance rating',
+    'Atlas Score': 'Rewards experience and consistency over lucky streaks',
     'Prep Win Rate': 'Highest Preparation Phase win percentage (3+ KvKs)',
     'Battle Win Rate': 'Highest Battle Phase win percentage (3+ KvKs)',
     'Prep Win Streak': 'Current consecutive Prep Phase wins',
@@ -402,7 +402,7 @@ const Leaderboards: React.FC = () => {
             fontFamily: "'Cinzel', 'Times New Roman', serif"
           }}>
             <span style={{ color: '#fff' }}>KINGDOM</span>
-            <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>LEADERBOARDS</span>
+            <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>RANKINGS</span>
           </h1>
           <p style={{ color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.9rem', marginBottom: '0.75rem' }}>
             Who's dominating? The data doesn't lie.
@@ -484,7 +484,7 @@ const Leaderboards: React.FC = () => {
           <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem 0' }}>
             <div style={{ textAlign: 'center' }}>
               <div className="loading-spinner-sm" style={{ margin: '0 auto 1rem' }} />
-              <div style={{ color: '#9ca3af', fontSize: '0.9rem' }}>Loading leaderboards...</div>
+              <div style={{ color: '#9ca3af', fontSize: '0.9rem' }}>Loading rankings...</div>
             </div>
           </div>
         ) : (

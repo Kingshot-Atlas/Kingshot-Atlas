@@ -12,6 +12,7 @@ import ClaimKingdom from '../components/ClaimKingdom';
 import AdBanner from '../components/AdBanner';
 import AtlasScoreBreakdown from '../components/AtlasScoreBreakdown';
 import ShareButton from '../components/ShareButton';
+import { ScoreSimulator } from '../components/ScoreSimulator';
 import { getOutcome, OUTCOMES } from '../utils/outcomes';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useAuth } from '../contexts/AuthContext';
@@ -283,7 +284,7 @@ const KingdomProfile: React.FC = () => {
                     boxShadow: '0 4px 12px rgba(0,0,0,0.4)'
                   }}>
                     <div style={{ color: '#22d3ee', fontWeight: 'bold', marginBottom: '2px' }}>Atlas Score</div>
-                    <div style={{ color: '#9ca3af' }}>Overall performance rating based on KvK results</div>
+                    <div style={{ color: '#9ca3af' }}>Rewards experience and consistency over lucky streaks</div>
                   </div>
                 )}
               </span>
@@ -344,7 +345,10 @@ const KingdomProfile: React.FC = () => {
                   color: status === 'Unannounced' ? '#6b7280' : getStatusColor(status),
                   border: `1px solid ${status === 'Unannounced' ? '#6b728030' : `${getStatusColor(status)}30`}`,
                   cursor: 'pointer',
-                  position: 'relative'
+                  position: 'relative',
+                  height: '24px',
+                  display: 'inline-flex',
+                  alignItems: 'center'
                 }}
                 onMouseEnter={() => !isMobile && setActiveTooltip('status')}
                 onMouseLeave={() => !isMobile && setActiveTooltip(null)}
@@ -386,16 +390,17 @@ const KingdomProfile: React.FC = () => {
                 onClick={() => setShowStatusModal(true)}
                 disabled={hasPendingSubmission}
                 style={{
-                  padding: '0.2rem 0.5rem',
+                  padding: '0.25rem 0.5rem',
                   backgroundColor: hasPendingSubmission ? '#2a2a2a' : '#22d3ee15',
                   border: `1px solid ${hasPendingSubmission ? '#3a3a3a' : '#22d3ee40'}`,
                   borderRadius: '4px',
                   color: hasPendingSubmission ? '#6b7280' : '#22d3ee',
-                  fontSize: '0.65rem',
+                  fontSize: '0.7rem',
                   cursor: hasPendingSubmission ? 'not-allowed' : 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.25rem'
+                  gap: '0.25rem',
+                  height: '24px'
                 }}
               >
                 {hasPendingSubmission ? '⏳ Pending' : '✏️ Update'}
@@ -425,23 +430,33 @@ const KingdomProfile: React.FC = () => {
               <button
                 onClick={() => setShowReportModal(true)}
                 style={{
-                  padding: '0.2rem 0.5rem',
-                  backgroundColor: '#ef444415',
-                  border: '1px solid #ef444440',
-                  borderRadius: '4px',
-                  color: '#ef4444',
-                  fontSize: '0.65rem',
-                  cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.25rem'
+                  gap: '0.4rem',
+                  padding: '0.5rem 0.75rem',
+                  backgroundColor: '#1a1a1a',
+                  border: '1px solid #333',
+                  borderRadius: '6px',
+                  color: '#ef4444',
+                  cursor: 'pointer',
+                  fontSize: '0.85rem',
+                  fontWeight: '500',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#ef444420';
+                  e.currentTarget.style.borderColor = '#ef444440';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#1a1a1a';
+                  e.currentTarget.style.borderColor = '#333';
                 }}
               >
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
                   <line x1="4" y1="22" x2="4" y2="15"/>
                 </svg>
-                Report Data
+                Report
               </button>
             </div>
             
@@ -462,6 +477,16 @@ const KingdomProfile: React.FC = () => {
         {/* Ad Banner - shows upgrade prompt for non-Pro users */}
         <AdBanner placement="profile" />
         
+        {/* Atlas Score Breakdown - Toggleable Radar Chart */}
+        <AtlasScoreBreakdown 
+          kingdom={kingdom} 
+          rank={allKingdoms.findIndex(k => k.kingdom_number === kingdom.kingdom_number) + 1 || undefined}
+          totalKingdoms={allKingdoms.length || undefined}
+        />
+
+        {/* Score Simulator - Pro Feature */}
+        <ScoreSimulator kingdom={kingdom} />
+
         {/* Quick Stats Grid - 4 columns on desktop, 2x2 on mobile */}
         <div style={{ 
           display: 'grid', 
@@ -529,13 +554,6 @@ const KingdomProfile: React.FC = () => {
             ));
           })()}
         </div>
-
-        {/* Atlas Score Breakdown - Toggleable Radar Chart */}
-        <AtlasScoreBreakdown 
-          kingdom={kingdom} 
-          rank={allKingdoms.findIndex(k => k.kingdom_number === kingdom.kingdom_number) + 1 || undefined}
-          totalKingdoms={allKingdoms.length || undefined}
-        />
 
         {/* Phase Performance Cards */}
         <div style={{ 
@@ -742,7 +760,7 @@ const KingdomProfile: React.FC = () => {
         {/* Trend Chart */}
         {kingdom.recent_kvks && kingdom.recent_kvks.length >= 2 && (
           <div style={{ marginBottom: isMobile ? '1.25rem' : '1.5rem' }}>
-            <TrendChart kvkRecords={kingdom.recent_kvks} kingdomNumber={kingdom.kingdom_number} />
+            <TrendChart kvkRecords={kingdom.recent_kvks} />
           </div>
         )}
 
@@ -770,16 +788,33 @@ const KingdomProfile: React.FC = () => {
                       to="/profile"
                       style={{
                         padding: '0.35rem 0.75rem',
-                        backgroundColor: 'transparent',
-                        border: '1px solid #333',
+                        backgroundColor: '#22d3ee15',
+                        border: '1px solid #22d3ee40',
                         borderRadius: '6px',
-                        color: '#6b7280',
+                        color: '#22d3ee',
                         fontSize: '0.75rem',
+                        fontWeight: '500',
                         textDecoration: 'none',
-                        transition: 'all 0.15s'
+                        transition: 'all 0.15s',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.25rem'
+                      }}
+                      onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => {
+                        e.currentTarget.style.backgroundColor = '#22d3ee25';
+                        e.currentTarget.style.borderColor = '#22d3ee60';
+                      }}
+                      onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => {
+                        e.currentTarget.style.backgroundColor = '#22d3ee15';
+                        e.currentTarget.style.borderColor = '#22d3ee40';
                       }}
                     >
-                      Sign In for More
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+                        <polyline points="10 17 15 12 10 7"/>
+                        <line x1="15" y1="12" x2="3" y2="12"/>
+                      </svg>
+                      Sign In
                     </Link>
                   ) : (
                     <Link

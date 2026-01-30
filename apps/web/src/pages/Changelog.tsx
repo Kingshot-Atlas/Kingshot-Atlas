@@ -14,31 +14,64 @@ interface ChangelogEntry {
 
 const changelogData: ChangelogEntry[] = [
   {
+    date: 'January 29, 2026 (Night)',
+    version: '1.3.0',
+    new: [
+      '📅 Daily updates now post to Discord at 02:00 UTC — never miss a change',
+      '🔮 "Coming Soon" page — see what\'s cooking before anyone else',
+      '🧪 Frontend testing infrastructure — more stable releases ahead',
+      '📊 Data quality monitoring — your data, bulletproof',
+    ],
+    improved: [
+      'Streamlined agent system with 3 new specialists',
+      'Activity tracking for transparent development',
+    ],
+  },
+  {
+    date: 'January 29, 2026 (Evening)',
+    version: '1.2.0',
+    new: [
+      '⚖️ Multi-Compare now supports 5 kingdoms — Pro users, go wild',
+      '🎭 Discord roles dropping soon for Pro & Recruiter subscribers',
+      '🏰 Claim Kingdom preview — verify you\'re the real deal',
+    ],
+    improved: [
+      'Radar charts got a glow-up — cleaner, centered, sexier',
+      'Stat labels are bolder — no more squinting',
+      'Quick Compare icon swapped to ⚖️ — because balance matters',
+      'Cinzel font finally loading right — titles look royal now',
+    ],
+    fixed: [
+      'Pro badge only shows when you\'re actually logged in (oops)',
+      'Removed vaporware from upgrade page — honesty policy',
+    ],
+  },
+  {
     date: 'January 29, 2026',
     version: '1.1.0',
     new: [
-      'Atlas Discord bot launched with 9 slash commands',
-      'Automated patch notes posting to Discord',
-      'Kingdom lookup directly in Discord with /kingdom command',
-      'Head-to-head comparison via /compare command',
-      'Live KvK countdown with /countdown command',
+      '🤖 Atlas Discord bot is LIVE — 9 slash commands at your fingertips',
+      '📢 Auto patch notes in Discord — updates delivered fresh',
+      '🔍 /kingdom command — lookup any kingdom without leaving Discord',
+      '⚔️ /compare command — head-to-head matchups on demand',
+      '⏰ /countdown command — know exactly when KvK drops',
     ],
     improved: [
-      'Enhanced Discord integration with webhooks',
-      'Better mobile experience for comparison views',
+      'Discord webhooks for instant notifications',
+      'Mobile comparison views actually work now',
     ],
   },
   {
     date: 'January 28, 2026',
     version: '1.0.0',
     new: [
-      'Agent system restructure with clearer roles',
-      'Release Manager for user communications',
-      'Enhanced Director role with executive autonomy',
+      '🎉 Atlas goes live — stop guessing, start winning',
+      '🏆 1,190 kingdoms tracked and scored',
+      '📊 Atlas Score system — S/A/B/C/D tiers at a glance',
     ],
     improved: [
-      'Documentation and workflows for all agents',
-      'Better coordination between system components',
+      'Complete backend overhaul for speed',
+      'Agent team restructured for faster updates',
     ],
   },
 ];

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Environment Test</title>
+    <style>
+        body { 
+            font-family: monospace; 
+            background: #1a1a1a; 
+            color: #fff; 
+            padding: 20px; 
+        }
+        .error { color: #ff6b6b; }
+        .success { color: #51cf66; }
+        .info { color: #339af0; }
+    </style>
+</head>
+<body>
+    <h1>Environment Variables Test</h1>
+    <div id="output"></div>
+    
+    <script>
+        const output = document.getElementById('output');
+        
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = type;
+            div.textContent = message;
+            output.appendChild(div);
+            console.log(message);
+        }
+        
+        log('Testing environment variables...', 'info');
+        
+        // Check if we're in development or production
+        const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        log(`Environment: ${isDev ? 'Development' : 'Production'}`, 'info');
+        
+        // Check for environment variables in window object (Create React App injects them)
+        if (window._env_) {
+            log('Found window._env_ object', 'success');
+            Object.keys(window._env_).forEach(key => {
+                if (key.includes('SUPABASE')) {
+                    log(`${key}: ${window._env_[key] ? 'SET' : 'MISSING'}`, window._env_[key] ? 'success' : 'error');
+                }
+            });
+        } else {
+            log('No window._env_ object found', 'error');
+        }
+        
+        // Check process.env (might not work in browser)
+        log('Checking process.env...', 'info');
+        try {
+            if (typeof process !== 'undefined' && process.env) {
+                log('process.env exists', 'success');
+                log(`REACT_APP_SUPABASE_URL: ${process.env.REACT_APP_SUPABASE_URL ? 'SET' : 'MISSING'}`, process.env.REACT_APP_SUPABASE_URL ? 'success' : 'error');
+                log(`REACT_APP_SUPABASE_ANON_KEY: ${process.env.REACT_APP_SUPABASE_ANON_KEY ? 'SET' : 'MISSING'}`, process.env.REACT_APP_SUPABASE_ANON_KEY ? 'success' : 'error');
+            } else {
+                log('process.env not available in browser', 'error');
+            }
+        } catch (e) {
+            log(`Error checking process.env: ${e.message}`, 'error');
+        }
+        
+        // Test loading the Supabase module
+        log('Testing Supabase module import...', 'info');
+        fetch('/src/lib/supabase.js')
+            .then(response => {
+                if (response.ok) {
+                    log('Supabase module file exists', 'success');
+                    return response.text();
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            })
+            .then(content => {
+                log('Supabase module loaded successfully', 'success');
+                log('Module content length: ' + content.length + ' characters', 'info');
+            })
+            .catch(err => {
+                log(`Failed to load Supabase module: ${err.message}`, 'error');
+            });
+        
+        log('\nTo test sign-in:', 'info');
+        log('1. Open http://localhost:3000/auth-test', 'info');
+        log('2. Check browser console for debug logs', 'info');
+        log('3. Try clicking the sign-in buttons', 'info');
+    </script>
+</body>
+</html>

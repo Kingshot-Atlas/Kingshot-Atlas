@@ -8,18 +8,18 @@ import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 import { sendToAnalytics } from './services/analytics';
 
 // Initialize Sentry for error monitoring (only if DSN is configured)
-const SENTRY_DSN = process.env.REACT_APP_SENTRY_DSN;
+const SENTRY_DSN = import.meta.env.VITE_SENTRY_DSN;
 if (SENTRY_DSN) {
   Sentry.init({
     dsn: SENTRY_DSN,
-    environment: process.env.REACT_APP_ENVIRONMENT || 'development',
+    environment: import.meta.env.VITE_ENVIRONMENT || 'development',
     
     // Performance monitoring
-    tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+    tracesSampleRate: import.meta.env.PROD ? 0.1 : 1.0,
     
     // Session replay for debugging (only on errors in production)
     replaysSessionSampleRate: 0,
-    replaysOnErrorSampleRate: process.env.NODE_ENV === 'production' ? 1.0 : 0,
+    replaysOnErrorSampleRate: import.meta.env.PROD ? 1.0 : 0,
     
     // Filter out noisy errors
     ignoreErrors: [
@@ -35,12 +35,12 @@ if (SENTRY_DSN) {
     ],
     
     // Add release version for tracking deployments
-    release: process.env.REACT_APP_VERSION || 'development',
+    release: import.meta.env.VITE_VERSION || 'development',
     
     // Attach user context when available
     beforeSend(event) {
       // Don't send events in development
-      if (process.env.NODE_ENV === 'development') {
+      if (import.meta.env.DEV) {
         return null;
       }
       return event;

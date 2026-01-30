@@ -39,21 +39,24 @@ const MiniRadarChart: React.FC<MiniRadarChartProps> = ({
 
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-      {/* Outer boundary */}
+      {/* Outer boundary - more prominent */}
       <polygon
         points={outerPolygon}
         fill="none"
-        stroke="#2a2a2a"
-        strokeWidth="1"
-        opacity={0.5}
+        stroke="#3a3a3a"
+        strokeWidth="1.5"
+        opacity={0.8}
       />
       
-      {/* Data polygon */}
+      {/* Data polygon - enhanced border */}
       <polygon
         points={polygonPoints}
         fill={`${accentColor}30`}
         stroke={accentColor}
-        strokeWidth="1.5"
+        strokeWidth="2"
+        style={{
+          filter: `drop-shadow(0 0 3px ${accentColor}60)`
+        }}
       />
     </svg>
   );

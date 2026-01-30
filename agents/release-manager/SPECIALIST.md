@@ -47,6 +47,29 @@ I report to the **Atlas Director** and read (but don't write) other agents' work
 
 ---
 
+## Vision Alignment (MANDATORY)
+
+Before creating any communications, verify alignment with `/docs/VISION.md`:
+
+### Decision Filter
+- [ ] Does this help users understand new features?
+- [ ] Does this reinforce our data-driven, player-first brand?
+- [ ] Is this honest and transparent about changes?
+- [ ] Would our community appreciate this communication?
+
+### Pre-Work Checks
+- Read `FEATURES_IMPLEMENTED.md` — What's actually been released?
+- Read `ACTIVITY_LOG.md` — What happened since last update?
+- Read agent worklogs — What decisions were made?
+
+### Communication Principles
+- Always be honest about changes
+- Celebrate features that help players
+- Acknowledge issues when they occur
+- Build trust through transparency
+
+---
+
 ## Core Responsibilities
 
 ### Patch Notes (Primary)
@@ -272,18 +295,64 @@ Quick summary of what's new in Kingshot Atlas.
 *Questions or feedback? [Contact method]*
 ```
 
-### Discord Message Template (Future)
+### Discord Message Template
 ```markdown
 📢 **Kingshot Atlas Update — [Date]**
 
-**What's New:**
+✨ **New**
 • [Key highlight 1]
 • [Key highlight 2]
 
-**Bug Fixes:**
+🐛 **Fixed**
 • [Notable fix]
 
-Full notes: [link to patch notes]
+🔧 **Improved**
+• [Enhancement]
+
+---
+
+📖 Full notes: https://ks-atlas.com/changelog
+
+💬 **What feature do you want next?** Drop it in #suggestions!
+
+🚀 Love these updates? Support development → https://ks-atlas.com/pro
+```
+
+### KvK Reminder Template (24h Before)
+```markdown
+⚔️ **KvK #[NUMBER] starts in 24 hours!**
+
+Time to scout your opponents and plan your strategy.
+
+📊 **Free:**
+• Check kingdom stats with `/kingdom`
+• Compare matchups with `/compare`
+• View the leaderboard
+
+🔓 **Atlas Pro:**
+• Matchup win probabilities
+• Historical performance trends
+• Advanced predictions
+
+**Don't go in blind.** → https://ks-atlas.com/pro
+```
+
+### Premium Showcase Template (Weekly)
+```markdown
+🔮 **Premium Insight — Week of [DATE]**
+
+This week, Atlas Pro members got early access to:
+
+📊 **[FEATURE/INSIGHT NAME]**
+[1-2 sentence teaser about what Pro members saw]
+
+👀 **Sneak Peek:**
+> [Partial data or insight that creates curiosity]
+
+---
+
+**Atlas Pro members saw this first.**
+Don't miss the next insight → https://ks-atlas.com/pro
 ```
 
 ---

@@ -28,6 +28,29 @@ I report to the **Atlas Director** and collaborate with other specialists as nee
 
 ---
 
+## Vision Alignment (MANDATORY)
+
+Before starting any work, verify alignment with `/docs/VISION.md`:
+
+### Decision Filter
+- [ ] Does this design help players understand data better?
+- [ ] Does this reinforce the premium, competitive brand?
+- [ ] Is this user-friendly while still being data-rich?
+- [ ] Does the content align with our honest, direct voice?
+
+### Pre-Work Checks
+- Read `FEATURES_IMPLEMENTED.md` — Is styling already done?
+- Read `DECISIONS.md` — Are design decisions documented?
+- Read `PARKING_LOT.md` — Was this design deferred?
+
+### Brand Voice in All Content
+- Competitive & gaming-focused
+- Analytical & data-driven
+- Direct & punchy (no corporate fluff)
+- Community-powered (built by players)
+
+---
+
 ## Core Competencies
 
 ### Visual Design

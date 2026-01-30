@@ -466,6 +466,27 @@ GENERATE_SOURCEMAP=true npm run build
 npx source-map-explorer 'build/static/js/main.*.js'
 ```
 
+### API Fallback Pattern (2026-01-30)
+
+**Critical:** When API returns 404, always check local data fallback before returning null:
+
+```typescript
+// ✅ CORRECT: Check local data on 404
+if (response.status === 404) {
+  const localData = localKingdoms.find(k => k.kingdom_number === id);
+  if (localData) {
+    logger.log(`Using local data for kingdom ${id}`);
+    return toProfile(localData);
+  }
+  return null; // Only null if truly not found anywhere
+}
+
+// ❌ WRONG: Immediately returning null on 404
+if (response.status === 404) return null;
+```
+
+This pattern ensures kingdom profiles work even when API database is out of sync with local `kingdoms.json` data.
+
 ---
 
 *Updated by Product Engineer based on current React best practices.*

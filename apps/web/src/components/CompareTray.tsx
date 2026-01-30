@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAnalytics } from '../hooks/useAnalytics';
+import { useIsMobile } from '../hooks/useMediaQuery';
 
 interface CompareTrayProps {
   compareKingdom1: string;
@@ -26,6 +27,7 @@ const CompareTray: React.FC<CompareTrayProps> = ({
   const navigate = useNavigate();
   const { trackFeature } = useAnalytics();
   const [showHistory, setShowHistory] = useState(false);
+  const isMobile = useIsMobile();
 
   const handleCompare = () => {
     if (compareKingdom1 && compareKingdom2) {
@@ -45,69 +47,121 @@ const CompareTray: React.FC<CompareTrayProps> = ({
   if (!showCompareTray) {
     return (
       <button 
-        onClick={() => setShowCompareTray(true)} 
+        onClick={() => setShowCompareTray(true)}
+        aria-label="Open compare kingdoms panel"
         style={{ 
           position: 'fixed', 
-          bottom: '1rem', 
-          right: '1rem', 
-          padding: '0.75rem 1rem', 
+          bottom: isMobile ? '1rem' : '1.5rem', 
+          right: isMobile ? '1rem' : '1.5rem', 
+          padding: isMobile ? '0.875rem 1.25rem' : '1rem 1.5rem',
+          minHeight: '48px',
           background: 'linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%)', 
-          border: 'none', 
-          borderRadius: '8px', 
+          border: '2px solid rgba(255, 255, 255, 0.3)', 
+          borderRadius: '50px', 
           color: '#fff', 
           fontWeight: 'bold', 
+          fontSize: isMobile ? '0.9rem' : '1rem',
           cursor: 'pointer', 
-          boxShadow: '0 4px 15px rgba(34, 211, 238, 0.4)', 
+          boxShadow: '0 4px 25px rgba(34, 211, 238, 0.6), 0 0 40px rgba(34, 211, 238, 0.3)', 
           display: 'flex', 
           alignItems: 'center', 
-          gap: '0.5rem', 
-          zIndex: 1000 
+          gap: isMobile ? '0.5rem' : '0.75rem', 
+          zIndex: 1000,
+          animation: 'comparePulse 2s ease-in-out infinite',
+          transition: 'transform 0.2s ease, box-shadow 0.2s ease'
+        }}
+        onMouseEnter={(e) => {
+          if (!isMobile) {
+            e.currentTarget.style.transform = 'scale(1.08)';
+            e.currentTarget.style.boxShadow = '0 6px 35px rgba(34, 211, 238, 0.8), 0 0 60px rgba(34, 211, 238, 0.4)';
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!isMobile) {
+            e.currentTarget.style.transform = 'scale(1)';
+            e.currentTarget.style.boxShadow = '0 4px 25px rgba(34, 211, 238, 0.6), 0 0 40px rgba(34, 211, 238, 0.3)';
+          }
         }}
       >
-        Compare
+        <svg style={{ width: isMobile ? '18px' : '20px', height: isMobile ? '18px' : '20px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+        {isMobile ? 'Compare' : '⚔️ Compare Kingdoms'}
+        <style>{`
+          @keyframes comparePulse {
+            0%, 100% { box-shadow: 0 4px 25px rgba(34, 211, 238, 0.6), 0 0 40px rgba(34, 211, 238, 0.3); }
+            50% { box-shadow: 0 4px 35px rgba(34, 211, 238, 0.8), 0 0 60px rgba(34, 211, 238, 0.5); }
+          }
+        `}</style>
       </button>
     );
   }
 
   return (
-    <div style={{ 
-      position: 'fixed', 
-      bottom: 0, 
-      left: 0, 
-      right: 0, 
-      backgroundColor: '#111111', 
-      borderTop: '1px solid #22d3ee', 
-      padding: '1rem 2rem', 
-      boxShadow: '0 -4px 20px rgba(34, 211, 238, 0.2)', 
-      zIndex: 1000 
-    }}>
+    <div 
+      role="region"
+      aria-label="Compare kingdoms panel"
+      style={{ 
+        position: 'fixed', 
+        bottom: 0, 
+        left: 0, 
+        right: 0, 
+        background: 'linear-gradient(180deg, #0d1117 0%, #111111 100%)', 
+        borderTop: '2px solid #22d3ee', 
+        padding: isMobile ? '1rem' : '1.25rem 2rem',
+        paddingBottom: isMobile ? 'max(1rem, env(safe-area-inset-bottom))' : '1.25rem',
+        boxShadow: '0 -8px 40px rgba(34, 211, 238, 0.25), 0 -2px 20px rgba(0, 0, 0, 0.5)', 
+        zIndex: 1000,
+        animation: 'traySlideUp 0.3s ease-out'
+      }}>
+      <style>{`
+        @keyframes traySlideUp {
+          from { transform: translateY(100%); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+      `}</style>
       <div style={{ 
         maxWidth: '900px', 
         margin: '0 auto', 
         display: 'flex', 
-        alignItems: 'center', 
+        alignItems: isMobile ? 'stretch' : 'center', 
         justifyContent: 'center', 
-        gap: '1rem', 
-        flexWrap: 'wrap' 
+        gap: isMobile ? '0.75rem' : '1rem', 
+        flexWrap: 'wrap',
+        flexDirection: isMobile ? 'column' : 'row'
       }}>
-        <span style={{ color: '#9ca3af', fontWeight: '500' }}>Quick Compare:</span>
+        {!isMobile && (
+          <span style={{ 
+            color: '#22d3ee', 
+            fontWeight: '600', 
+            fontSize: '1rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem'
+          }}>
+            <span style={{ fontSize: '1.2rem' }}>⚖️</span>
+            Quick Compare:
+          </span>
+        )}
         
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: isMobile ? 'center' : 'flex-start' }}>
           <input 
             type="text" 
             inputMode="numeric" 
             pattern="[0-9]*" 
             value={compareKingdom1} 
-            onChange={(e) => setCompareKingdom1(e.target.value.replace(/[^0-9]/g, ''))} 
-            placeholder="Kingdom A" 
+            onChange={(e) => setCompareKingdom1(e.target.value.replace(/[^0-9]/g, ''))}
+            placeholder={isMobile ? "K1" : "Kingdom A"}
+            aria-label="First kingdom number to compare"
             style={{ 
-              width: '100px', 
-              padding: '0.6rem 0.75rem', 
+              width: isMobile ? '80px' : '100px', 
+              padding: isMobile ? '0.75rem' : '0.6rem 0.75rem',
+              minHeight: '44px',
               backgroundColor: '#0a0a0a', 
               border: '1px solid #fff', 
               borderRadius: '8px', 
               color: '#fff', 
-              fontSize: '0.9rem', 
+              fontSize: '1rem', 
               textAlign: 'center' 
             }} 
           />
@@ -117,93 +171,109 @@ const CompareTray: React.FC<CompareTrayProps> = ({
             inputMode="numeric" 
             pattern="[0-9]*" 
             value={compareKingdom2} 
-            onChange={(e) => setCompareKingdom2(e.target.value.replace(/[^0-9]/g, ''))} 
-            placeholder="Kingdom B" 
+            onChange={(e) => setCompareKingdom2(e.target.value.replace(/[^0-9]/g, ''))}
+            placeholder={isMobile ? "K2" : "Kingdom B"}
+            aria-label="Second kingdom number to compare"
             style={{ 
-              width: '100px', 
-              padding: '0.6rem 0.75rem', 
+              width: isMobile ? '80px' : '100px', 
+              padding: isMobile ? '0.75rem' : '0.6rem 0.75rem',
+              minHeight: '44px',
               backgroundColor: '#0a0a0a', 
               border: '1px solid #fff', 
               borderRadius: '8px', 
               color: '#fff', 
-              fontSize: '0.9rem', 
+              fontSize: '1rem', 
               textAlign: 'center' 
             }} 
           />
         </div>
 
-        <button 
-          onClick={handleCompare} 
-          disabled={!compareKingdom1 || !compareKingdom2} 
-          style={{ 
-            padding: '0.6rem 1.5rem', 
-            background: compareKingdom1 && compareKingdom2 ? 'linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%)' : '#2a2a2a', 
-            border: 'none', 
-            borderRadius: '8px', 
-            color: '#fff', 
-            fontWeight: 'bold', 
-            cursor: compareKingdom1 && compareKingdom2 ? 'pointer' : 'not-allowed', 
-            opacity: compareKingdom1 && compareKingdom2 ? 1 : 0.5, 
-            boxShadow: compareKingdom1 && compareKingdom2 ? '0 0 15px rgba(34, 211, 238, 0.4)' : 'none', 
-            transition: 'all 0.2s ease' 
-          }}
-        >
-          Compare
-        </button>
-
-        {compareHistory.length > 0 && (
+        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: isMobile ? 'center' : 'flex-start', flexWrap: 'wrap' }}>
           <button 
-            onClick={() => setShowHistory(!showHistory)} 
+            onClick={handleCompare} 
+            disabled={!compareKingdom1 || !compareKingdom2} 
             style={{ 
-              padding: '0.6rem 1rem', 
+              padding: isMobile ? '0.75rem 1.25rem' : '0.6rem 1.5rem',
+              minHeight: '44px',
+              flex: isMobile ? '1' : 'none',
+              background: compareKingdom1 && compareKingdom2 ? 'linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%)' : '#2a2a2a', 
+              border: 'none', 
+              borderRadius: '8px', 
+              color: '#fff', 
+              fontWeight: 'bold', 
+              cursor: compareKingdom1 && compareKingdom2 ? 'pointer' : 'not-allowed', 
+              opacity: compareKingdom1 && compareKingdom2 ? 1 : 0.5, 
+              boxShadow: compareKingdom1 && compareKingdom2 ? '0 0 15px rgba(34, 211, 238, 0.4)' : 'none', 
+              transition: 'all 0.2s ease' 
+            }}
+          >
+            Compare
+          </button>
+
+          {compareHistory.length > 0 && !isMobile && (
+            <button 
+              onClick={() => setShowHistory(!showHistory)}
+              aria-expanded={showHistory}
+              aria-label="Show comparison history"
+              style={{ 
+                padding: '0.6rem 1rem',
+                minHeight: '44px',
+                backgroundColor: 'transparent', 
+                border: '1px solid #3a3a3a', 
+                borderRadius: '8px', 
+                color: '#6b7280', 
+                cursor: 'pointer', 
+                fontSize: '0.85rem', 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '0.5rem' 
+              }}
+            >
+              <svg style={{ width: '14px', height: '14px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              History
+            </button>
+          )}
+
+          <button 
+            onClick={() => { setCompareKingdom1(''); setCompareKingdom2(''); }}
+            aria-label="Clear comparison inputs"
+            style={{ 
+              padding: isMobile ? '0.75rem 1rem' : '0.6rem 1rem',
+              minHeight: '44px',
               backgroundColor: 'transparent', 
               border: '1px solid #3a3a3a', 
               borderRadius: '8px', 
               color: '#6b7280', 
               cursor: 'pointer', 
-              fontSize: '0.85rem', 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '0.5rem' 
+              fontSize: '0.85rem' 
             }}
           >
-            <svg style={{ width: '14px', height: '14px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            History
+            Clear
           </button>
-        )}
 
-        <button 
-          onClick={() => { setCompareKingdom1(''); setCompareKingdom2(''); }} 
-          style={{ 
-            padding: '0.6rem 1rem', 
-            backgroundColor: 'transparent', 
-            border: '1px solid #3a3a3a', 
-            borderRadius: '8px', 
-            color: '#6b7280', 
-            cursor: 'pointer', 
-            fontSize: '0.85rem' 
-          }}
-        >
-          Clear
-        </button>
-
-        <button 
-          onClick={() => setShowCompareTray(false)} 
-          style={{ 
-            padding: '0.4rem', 
-            backgroundColor: 'transparent', 
-            border: 'none', 
-            color: '#6b7280', 
-            cursor: 'pointer', 
-            marginLeft: 'auto' 
-          }}
-        >
-          <svg style={{ width: '20px', height: '20px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
+          <button 
+            onClick={() => setShowCompareTray(false)}
+            aria-label="Close compare panel"
+            style={{ 
+              padding: '0.5rem',
+              minWidth: '44px',
+              minHeight: '44px',
+              backgroundColor: 'transparent', 
+              border: 'none', 
+              color: '#6b7280', 
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <svg style={{ width: '20px', height: '20px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
       </div>
       
       {showHistory && compareHistory.length > 0 && (

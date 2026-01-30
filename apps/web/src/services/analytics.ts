@@ -9,8 +9,8 @@ interface AnalyticsEvent {
   rating?: string;
 }
 
-const ANALYTICS_ENDPOINT = process.env.REACT_APP_API_URL 
-  ? `${process.env.REACT_APP_API_URL}/api/analytics`
+const ANALYTICS_ENDPOINT = import.meta.env.VITE_API_URL 
+  ? `${import.meta.env.VITE_API_URL}/api/analytics`
   : null;
 
 export function sendToAnalytics(metric: Metric): void {

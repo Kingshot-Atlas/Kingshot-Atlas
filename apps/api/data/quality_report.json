@@ -1,0 +1,421 @@
+{
+  "generated_at": "2026-01-30T00:17:42.474237",
+  "database": "/Users/giovanni/projects/ai/Kingshot Atlas/apps/api/kingshot_atlas.db",
+  "stats": {
+    "total_kingdoms": 1190,
+    "kingdoms_checked": 1190,
+    "issues_found": 141,
+    "critical_issues": 141,
+    "warnings": 0,
+    "quality_score": 98.81512605042016
+  },
+  "issues_by_type": {
+    "invalid_score_range": 141
+  },
+  "issues_by_severity": {
+    "critical": 141
+  },
+  "sample_issues": [
+    {
+      "kingdom_number": 26,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -0.06 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.470293"
+    },
+    {
+      "kingdom_number": 35,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -0.72 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.470538"
+    },
+    {
+      "kingdom_number": 50,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -0.05 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.471155"
+    },
+    {
+      "kingdom_number": 70,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -0.24 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.471206"
+    },
+    {
+      "kingdom_number": 95,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -0.39 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.471316"
+    },
+    {
+      "kingdom_number": 102,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -0.42 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.471336"
+    },
+    {
+      "kingdom_number": 104,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -1.17 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.471343"
+    },
+    {
+      "kingdom_number": 110,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -0.76 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.471358"
+    },
+    {
+      "kingdom_number": 120,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -0.03 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.471383"
+    },
+    {
+      "kingdom_number": 122,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -0.21 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.471389"
+    },
+    {
+      "kingdom_number": 178,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -0.78 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.471520"
+    },
+    {
+      "kingdom_number": 192,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -1.03 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.471556"
+    },
+    {
+      "kingdom_number": 206,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -0.49 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.471588"
+    },
+    {
+      "kingdom_number": 209,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -1.77 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.471596"
+    },
+    {
+      "kingdom_number": 212,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -1.16 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.471604"
+    },
+    {
+      "kingdom_number": 216,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -0.41 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.471614"
+    },
+    {
+      "kingdom_number": 227,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -0.4 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.471640"
+    },
+    {
+      "kingdom_number": 229,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -0.25 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.471650"
+    },
+    {
+      "kingdom_number": 258,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -1.35 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.471716"
+    },
+    {
+      "kingdom_number": 280,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -2.72 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.471769"
+    },
+    {
+      "kingdom_number": 300,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -0.25 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.471816"
+    },
+    {
+      "kingdom_number": 314,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -0.25 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.471848"
+    },
+    {
+      "kingdom_number": 344,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -0.1 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.471952"
+    },
+    {
+      "kingdom_number": 353,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -0.25 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.471974"
+    },
+    {
+      "kingdom_number": 368,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -0.4 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.472012"
+    },
+    {
+      "kingdom_number": 378,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -0.81 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.472035"
+    },
+    {
+      "kingdom_number": 381,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -1.15 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.472044"
+    },
+    {
+      "kingdom_number": 382,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -1.15 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.472047"
+    },
+    {
+      "kingdom_number": 388,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -0.55 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.472062"
+    },
+    {
+      "kingdom_number": 405,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -1.15 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.472101"
+    },
+    {
+      "kingdom_number": 408,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -1.22 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.472109"
+    },
+    {
+      "kingdom_number": 411,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -1.22 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.472116"
+    },
+    {
+      "kingdom_number": 413,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -1.15 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.472124"
+    },
+    {
+      "kingdom_number": 426,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -1.51 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.472154"
+    },
+    {
+      "kingdom_number": 431,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -0.22 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.472166"
+    },
+    {
+      "kingdom_number": 434,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -0.16 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.472174"
+    },
+    {
+      "kingdom_number": 441,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -1.22 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.472191"
+    },
+    {
+      "kingdom_number": 445,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -1.15 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.472201"
+    },
+    {
+      "kingdom_number": 458,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -0.81 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.472231"
+    },
+    {
+      "kingdom_number": 476,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -0.72 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.472274"
+    },
+    {
+      "kingdom_number": 480,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -0.48 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.472285"
+    },
+    {
+      "kingdom_number": 508,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -0.48 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.472352"
+    },
+    {
+      "kingdom_number": 520,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -1.81 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.472380"
+    },
+    {
+      "kingdom_number": 546,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -0.06 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.472439"
+    },
+    {
+      "kingdom_number": 553,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -0.21 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.472457"
+    },
+    {
+      "kingdom_number": 565,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -0.54 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.472485"
+    },
+    {
+      "kingdom_number": 574,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -0.88 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.472507"
+    },
+    {
+      "kingdom_number": 577,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -0.21 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.472515"
+    },
+    {
+      "kingdom_number": 595,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -0.66 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.472556"
+    },
+    {
+      "kingdom_number": 616,
+      "type": "invalid_score_range",
+      "severity": "critical",
+      "description": "Score -2.31 outside valid range (0-15)",
+      "field": "overall_score",
+      "timestamp": "2026-01-30T00:17:42.472712"
+    }
+  ],
+  "total_issues": 141
+}

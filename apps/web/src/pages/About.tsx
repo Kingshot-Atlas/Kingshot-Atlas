@@ -30,7 +30,7 @@ const About: React.FC = () => {
             <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>US</span>
           </h1>
           <p style={{ color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.9rem', marginBottom: '0.75rem' }}>
-            Know your enemy. Choose your allies. Dominate KvK.
+            Know your enemy. Choose your allies. Dominate Kingshot.
           </p>
           {!isMobile && (
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
@@ -79,7 +79,7 @@ const About: React.FC = () => {
           <div style={{ display: 'grid', gap: '1rem' }}>
             {[
               { title: 'Kingdom Directory', desc: 'Every kingdom. Every stat. Searchable, filterable, and ranked. Find exactly what you\'re looking for in seconds.', icon: '🗺️' },
-              { title: 'Atlas Score', desc: 'Our battle-tested rating system cuts through the noise. One number tells you if a kingdom is a threat or a target.', icon: '⚡' },
+              { title: 'Atlas Score', desc: 'Battle-tested rating that rewards experience and consistency. One number tells you who\'s a real threat vs a lucky newcomer.', icon: '⚡' },
               { title: 'Head-to-Head Comparison', desc: 'Pit any two kingdoms against each other. See who has the edge in Prep, Battle, and overall dominance.', icon: '⚔️' },
               { title: 'Complete KvK History', desc: 'Every match. Every result. Every streak. Know exactly what you\'re walking into before the gates open.', icon: '📜' },
               { title: 'Power Tier Rankings', desc: 'S-Tier elites to D-Tier underdogs. Instantly identify where any kingdom stands in the pecking order.', icon: '🏆' },
@@ -119,15 +119,15 @@ const About: React.FC = () => {
             The Atlas Score: Your Kingdom's True Power Level
           </h2>
           <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.9rem' : '0.95rem', lineHeight: 1.7, marginBottom: '1rem' }}>
-            Forget participation trophies. The Atlas Score measures what actually matters: <span style={{ color: '#22d3ee' }}>winning</span>. Our algorithm weighs victories, punishes defeats, and rewards kingdoms that dominate both phases. Here's how it breaks down:
+            Stop guessing. Start winning. The Atlas Score measures what actually matters: <span style={{ color: '#22d3ee' }}>consistent performance</span>. Our formula rewards experience, punishes lucky streaks, and shows who really dominates. Here's the breakdown:
           </p>
           
           <div style={{ display: 'grid', gap: '0.75rem', marginBottom: '1.25rem' }}>
             {[
-              { icon: '⚔️', title: 'Win Rate (70%)', desc: 'Prep and Battle wins combined, with Battle weighted heavier. Because when the gates open, that\'s when it counts.', color: '#f97316' },
-              { icon: '👑', title: 'Domination Bonus (+30%)', desc: 'Win both phases? That\'s not luck—that\'s dominance. Dominations earn a massive score boost.', color: '#22c55e' },
-              { icon: '💀', title: 'Invasion Penalty (-20%)', desc: 'Lose both phases? Your score takes a hit. No hiding from a complete defeat.', color: '#ef4444' },
-              { icon: '📈', title: 'Recent Performance (30%)', desc: 'Your last 3 KvKs carry the most weight. Past glory fades—what have you done lately?', color: '#eab308' },
+              { icon: '⚔️', title: 'Win Rate (60%)', desc: 'Overall wins with experience scaling. Veterans get full credit—new kingdoms prove themselves first.', color: '#f97316' },
+              { icon: '👑', title: 'Domination Pattern (25%)', desc: 'Win both phases consistently? That\'s dominance. Double wins boost your score, double losses hurt it.', color: '#22c55e' },
+              { icon: '🔥', title: 'Recent Form (10%)', desc: 'Your last 3 KvKs matter. Hot streaks help, but consistency beats luck every time.', color: '#eab308' },
+              { icon: '⚡', title: 'Streak Momentum (15%)', desc: 'Current win streaks and best-ever records. Battle streaks count more—that\'s when KvKs are won.', color: '#a855f7' },
             ].map((item, i) => (
               <div key={i} style={{ 
                 display: 'flex', 
@@ -155,18 +155,21 @@ const About: React.FC = () => {
             marginBottom: '1rem'
           }}>
             <div style={{ color: '#22d3ee', fontWeight: '600', fontSize: isMobile ? '0.85rem' : '0.9rem', marginBottom: '0.5rem' }}>
-              Scoring Formula
+              Why It Works
             </div>
-            <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.8rem' : '0.85rem', lineHeight: 1.6, margin: '0 0 0.5rem 0', fontFamily: 'monospace' }}>
-              Base Score = (Win Rate × 0.7) + (Domination Rate × 0.3) - (Defeat Rate × 0.2)
+            <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.8rem' : '0.85rem', lineHeight: 1.6, margin: '0 0 0.5rem 0' }}>
+              • <strong>Experience matters:</strong> Kingdoms with 6+ KvKs get full scoring power
+            </p>
+            <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.8rem' : '0.85rem', lineHeight: 1.6, margin: '0 0 0.5rem 0' }}>
+              • <strong>Consistency over luck:</strong> No inflated scores from lucky 2-0 starts
             </p>
             <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.8rem' : '0.85rem', lineHeight: 1.6, margin: 0 }}>
-              Final Score = Base Score × (Recent Performance Weight) + Experience Modifier
+              • <strong>All performance counts:</strong> Streaks, recent trends, and domination patterns
             </p>
           </div>
 
           <p style={{ color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.85rem', lineHeight: 1.6 }}>
-            New kingdoms start with a scaling factor until they've proven themselves. Talk is cheap—show us your results.
+            Real data. Real results. No spin. That's how you know who to fear and who to target.
           </p>
         </section>
 

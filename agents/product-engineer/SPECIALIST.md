@@ -38,6 +38,34 @@ All user-facing content I create must follow the brand guide:
 
 ---
 
+## Vision Alignment (MANDATORY)
+
+Before starting any work, verify alignment with `/docs/VISION.md`:
+
+### Decision Filter
+- [ ] Does this help players make better decisions?
+- [ ] Does this maintain data integrity principles?
+- [ ] Does this align with competitive-but-fair values?
+- [ ] Would our core users find this valuable?
+
+### Pre-Work Checks
+- Read `FEATURES_IMPLEMENTED.md` — Is this already built?
+- Read `DECISIONS.md` — Has this been decided?
+- Read `PARKING_LOT.md` — Was this explicitly deferred?
+
+### I Build Features That
+- Help players scout KvK opponents
+- Help players find transfer destinations
+- Help players understand kingdom rankings
+- Provide actionable, honest data insights
+
+### I Don't Build Features That
+- Give unfair advantages (bots, automation)
+- Compromise data integrity
+- Add complexity without clear user value
+
+---
+
 ## Core Competencies
 
 ### Feature Development

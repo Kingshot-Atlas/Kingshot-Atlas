@@ -1,5 +1,6 @@
 import React, { useState, memo } from 'react';
 import { Kingdom } from '../../types';
+import { useIsMobile } from '../../hooks/useMediaQuery';
 
 interface CardActionsProps {
   kingdom: Kingdom;
@@ -15,6 +16,7 @@ const CardActions: React.FC<CardActionsProps> = ({
   cardRef 
 }) => {
   const [showPopup, setShowPopup] = useState(false);
+  const isMobile = useIsMobile();
 
   const handleCopyLink = () => {
     const url = `${window.location.origin}/kingdom/${kingdom.kingdom_number}`;
@@ -63,13 +65,14 @@ const CardActions: React.FC<CardActionsProps> = ({
 
   const buttonStyle: React.CSSProperties = {
     width: '100%',
-    padding: '0.5rem 0.75rem',
+    padding: isMobile ? '0.75rem 1rem' : '0.5rem 0.75rem',
+    minHeight: isMobile ? '44px' : 'auto',
     backgroundColor: 'transparent',
     border: 'none',
-    borderRadius: '4px',
+    borderRadius: '6px',
     color: '#d1d5db',
     cursor: 'pointer',
-    fontSize: '0.75rem',
+    fontSize: isMobile ? '0.875rem' : '0.75rem',
     display: 'flex',
     alignItems: 'center',
     gap: '0.5rem',
@@ -83,8 +86,13 @@ const CardActions: React.FC<CardActionsProps> = ({
           e.stopPropagation();
           setShowPopup(!showPopup);
         }}
+        aria-expanded={showPopup}
+        aria-haspopup="menu"
+        aria-label={`Actions for Kingdom ${kingdom.kingdom_number}`}
         style={{
-          padding: '0.4rem 0.6rem',
+          padding: isMobile ? '0.5rem 0.75rem' : '0.4rem 0.6rem',
+          minHeight: isMobile ? '44px' : 'auto',
+          minWidth: isMobile ? '44px' : 'auto',
           backgroundColor: 'transparent',
           border: '1px solid #3a3a3a',
           borderRadius: '6px',
@@ -94,15 +102,19 @@ const CardActions: React.FC<CardActionsProps> = ({
           display: 'flex',
           alignItems: 'center',
           gap: '0.35rem',
-          fontSize: '0.7rem'
+          fontSize: isMobile ? '0.8rem' : '0.7rem'
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.borderColor = '#22d3ee';
-          e.currentTarget.style.color = '#22d3ee';
+          if (!isMobile) {
+            e.currentTarget.style.borderColor = '#22d3ee';
+            e.currentTarget.style.color = '#22d3ee';
+          }
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.borderColor = '#3a3a3a';
-          e.currentTarget.style.color = '#6b7280';
+          if (!isMobile) {
+            e.currentTarget.style.borderColor = '#3a3a3a';
+            e.currentTarget.style.color = '#6b7280';
+          }
         }}
       >
         Actions
@@ -114,6 +126,8 @@ const CardActions: React.FC<CardActionsProps> = ({
       {showPopup && (
         <div
           className="share-popup"
+          role="menu"
+          aria-label="Kingdom actions"
           style={{
             position: 'absolute',
             bottom: '100%',
@@ -122,15 +136,16 @@ const CardActions: React.FC<CardActionsProps> = ({
             backgroundColor: '#1a1a2e',
             border: '1px solid #333',
             borderRadius: '8px',
-            padding: '0.5rem',
+            padding: isMobile ? '0.5rem' : '0.5rem',
             zIndex: 1000,
-            minWidth: '160px',
+            minWidth: isMobile ? '180px' : '160px',
             boxShadow: '0 4px 16px rgba(0,0,0,0.5)'
           }}
           onClick={(e) => e.stopPropagation()}
         >
           <button
             onClick={handleCopyLink}
+            role="menuitem"
             style={buttonStyle}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#2a2a3e'}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
@@ -144,6 +159,7 @@ const CardActions: React.FC<CardActionsProps> = ({
           
           <button
             onClick={handleCopyImage}
+            role="menuitem"
             style={buttonStyle}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#2a2a3e'}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
@@ -158,15 +174,13 @@ const CardActions: React.FC<CardActionsProps> = ({
           
           <button
             onClick={handleCompare}
+            role="menuitem"
             style={buttonStyle}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#2a2a3e'}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="3" y="3" width="7" height="7"/>
-              <rect x="14" y="3" width="7" height="7"/>
-              <line x1="7" y1="21" x2="7" y2="14"/>
-              <line x1="17" y1="21" x2="17" y2="14"/>
+              <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
             Compare Kingdom
           </button>

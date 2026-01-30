@@ -8,19 +8,25 @@ interface QuickFilterChipsProps {
 }
 
 const QuickFilterChips: React.FC<QuickFilterChipsProps> = ({ filters, setFilters, isMobile }) => {
+  // Mobile-friendly touch target padding
+  const chipPadding = isMobile ? '0.5rem 0.75rem' : '0.3rem 0.6rem';
+  const chipFontSize = isMobile ? '0.8rem' : '0.75rem';
+  
   return (
-    <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', alignItems: 'center' }}>
+    <div style={{ display: 'flex', gap: isMobile ? '0.5rem' : '0.4rem', flexWrap: 'wrap', alignItems: 'center' }}>
       {/* S-Tier - Always shown */}
       <button
         onClick={() => setFilters(f => ({ ...f, tier: f.tier === 'S' ? 'all' : 'S' }))}
+        aria-pressed={filters.tier === 'S'}
         style={{
-          padding: '0.3rem 0.6rem',
+          padding: chipPadding,
+          minHeight: isMobile ? '44px' : 'auto',
           backgroundColor: filters.tier === 'S' ? '#fbbf2420' : 'transparent',
           border: `1px solid ${filters.tier === 'S' ? '#fbbf24' : '#3a3a3a'}`,
           borderRadius: '16px',
           color: filters.tier === 'S' ? '#fbbf24' : '#6b7280',
           cursor: 'pointer',
-          fontSize: '0.75rem',
+          fontSize: chipFontSize,
           fontWeight: '500',
           transition: 'all 0.2s'
         }}
@@ -53,14 +59,16 @@ const QuickFilterChips: React.FC<QuickFilterChipsProps> = ({ filters, setFilters
       {/* 100% Prep - Always shown */}
       <button
         onClick={() => setFilters(f => ({ ...f, minPrepWinRate: f.minPrepWinRate === 1 ? 0 : 1 }))}
+        aria-pressed={filters.minPrepWinRate === 1}
         style={{
-          padding: '0.3rem 0.6rem',
+          padding: chipPadding,
+          minHeight: isMobile ? '44px' : 'auto',
           backgroundColor: filters.minPrepWinRate === 1 ? '#eab30820' : 'transparent',
           border: `1px solid ${filters.minPrepWinRate === 1 ? '#eab308' : '#3a3a3a'}`,
           borderRadius: '16px',
           color: filters.minPrepWinRate === 1 ? '#eab308' : '#6b7280',
           cursor: 'pointer',
-          fontSize: '0.75rem',
+          fontSize: chipFontSize,
           fontWeight: '500',
           transition: 'all 0.2s'
         }}
@@ -91,14 +99,16 @@ const QuickFilterChips: React.FC<QuickFilterChipsProps> = ({ filters, setFilters
       {/* 100% Battle - Always shown */}
       <button
         onClick={() => setFilters(f => ({ ...f, minBattleWinRate: f.minBattleWinRate === 1 ? 0 : 1 }))}
+        aria-pressed={filters.minBattleWinRate === 1}
         style={{
-          padding: '0.3rem 0.6rem',
+          padding: chipPadding,
+          minHeight: isMobile ? '44px' : 'auto',
           backgroundColor: filters.minBattleWinRate === 1 ? '#f9731620' : 'transparent',
           border: `1px solid ${filters.minBattleWinRate === 1 ? '#f97316' : '#3a3a3a'}`,
           borderRadius: '16px',
           color: filters.minBattleWinRate === 1 ? '#f97316' : '#6b7280',
           cursor: 'pointer',
-          fontSize: '0.75rem',
+          fontSize: chipFontSize,
           fontWeight: '500',
           transition: 'all 0.2s'
         }}

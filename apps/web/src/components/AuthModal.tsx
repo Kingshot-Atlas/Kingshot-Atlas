@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useIsMobile } from '../hooks/useMediaQuery';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -10,6 +11,26 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const { signInWithGoogle, signInWithDiscord, isConfigured } = useAuth();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const isMobile = useIsMobile();
+  const modalRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Focus trap and escape key handler
+  useEffect(() => {
+    if (!isOpen) return;
+    
+    closeButtonRef.current?.focus();
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleEscape);
+    document.body.style.overflow = 'hidden';
+    
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = '';
+    };
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -37,32 +58,52 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
   return (
     <div 
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="auth-modal-title"
       style={{
         position: 'fixed',
         inset: 0,
         backgroundColor: 'rgba(0, 0, 0, 0.8)',
         display: 'flex',
-        alignItems: 'center',
+        alignItems: isMobile ? 'flex-end' : 'center',
         justifyContent: 'center',
         zIndex: 1000,
-        backdropFilter: 'blur(4px)'
+        backdropFilter: 'blur(4px)',
+        padding: isMobile ? '0' : '1rem'
       }}
       onClick={onClose}
     >
       <div 
+        ref={modalRef}
         style={{
           backgroundColor: '#111111',
-          borderRadius: '16px',
-          padding: '2rem',
+          borderRadius: isMobile ? '16px 16px 0 0' : '16px',
+          padding: isMobile ? '1.5rem 1.5rem 2rem' : '2rem',
+          paddingBottom: isMobile ? 'max(2rem, env(safe-area-inset-bottom))' : '2rem',
           width: '100%',
-          maxWidth: '400px',
+          maxWidth: isMobile ? '100%' : '400px',
           border: '1px solid #2a2a2a',
-          position: 'relative'
+          borderBottom: isMobile ? 'none' : '1px solid #2a2a2a',
+          position: 'relative',
+          animation: isMobile ? 'slideUpModal 0.3s ease-out' : 'fadeInModal 0.2s ease-out'
         }}
         onClick={e => e.stopPropagation()}
       >
+        <style>{`
+          @keyframes slideUpModal {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+          }
+          @keyframes fadeInModal {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+          }
+        `}</style>
         <button
+          ref={closeButtonRef}
           onClick={onClose}
+          aria-label="Close sign in dialog"
           style={{
             position: 'absolute',
             top: '1rem',
@@ -70,20 +111,30 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             background: 'none',
             border: 'none',
             color: '#6b7280',
-            fontSize: '1.25rem',
-            cursor: 'pointer'
+            fontSize: '1.5rem',
+            cursor: 'pointer',
+            padding: '0.5rem',
+            minWidth: '44px',
+            minHeight: '44px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: '8px'
           }}
         >
           ×
         </button>
 
-        <h2 style={{ 
-          fontSize: '1.5rem', 
-          fontWeight: 'bold', 
-          color: '#fff', 
-          marginBottom: '0.5rem',
-          textAlign: 'center'
-        }}>
+        <h2 
+          id="auth-modal-title"
+          style={{ 
+            fontSize: isMobile ? '1.35rem' : '1.5rem', 
+            fontWeight: 'bold', 
+            color: '#fff', 
+            marginBottom: '0.5rem',
+            textAlign: 'center'
+          }}
+        >
           Welcome to Atlas
         </h2>
         <p style={{ color: '#6b7280', fontSize: '0.9rem', textAlign: 'center', marginBottom: '1.5rem' }}>
@@ -94,20 +145,29 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           <button
             onClick={() => handleOAuthSignIn('google')}
             disabled={loading}
+            aria-busy={loading}
             style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '0.75rem',
-              padding: '0.75rem 1rem',
+              padding: isMobile ? '1rem 1.25rem' : '0.75rem 1rem',
+              minHeight: '48px',
               backgroundColor: '#fff',
               border: 'none',
-              borderRadius: '8px',
+              borderRadius: '10px',
               color: '#333',
               fontWeight: '600',
               cursor: loading ? 'not-allowed' : 'pointer',
-              fontSize: '0.95rem',
-              opacity: loading ? 0.7 : 1
+              fontSize: '1rem',
+              opacity: loading ? 0.7 : 1,
+              transition: 'transform 0.1s ease, box-shadow 0.1s ease'
+            }}
+            onTouchStart={(e) => {
+              if (!loading) e.currentTarget.style.transform = 'scale(0.98)';
+            }}
+            onTouchEnd={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
             }}
           >
             <svg width="20" height="20" viewBox="0 0 24 24">
@@ -122,20 +182,29 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           <button
             onClick={() => handleOAuthSignIn('discord')}
             disabled={loading}
+            aria-busy={loading}
             style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '0.75rem',
-              padding: '0.75rem 1rem',
+              padding: isMobile ? '1rem 1.25rem' : '0.75rem 1rem',
+              minHeight: '48px',
               backgroundColor: '#5865F2',
               border: 'none',
-              borderRadius: '8px',
+              borderRadius: '10px',
               color: '#fff',
               fontWeight: '600',
               cursor: loading ? 'not-allowed' : 'pointer',
-              fontSize: '0.95rem',
-              opacity: loading ? 0.7 : 1
+              fontSize: '1rem',
+              opacity: loading ? 0.7 : 1,
+              transition: 'transform 0.1s ease, box-shadow 0.1s ease'
+            }}
+            onTouchStart={(e) => {
+              if (!loading) e.currentTarget.style.transform = 'scale(0.98)';
+            }}
+            onTouchEnd={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
             }}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">

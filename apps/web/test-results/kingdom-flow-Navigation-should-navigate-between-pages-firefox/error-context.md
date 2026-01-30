@@ -1,0 +1,128 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e6]:
+          - link "KA KINGSHOT ATLAS" [ref=e7] [cursor=pointer]:
+            - /url: /
+            - img "KA" [ref=e8]
+            - generic [ref=e9]:
+              - generic [ref=e10]: KINGSHOT
+              - generic [ref=e11]: ATLAS
+          - generic [ref=e12]:
+            - generic [ref=e13]:
+              - generic [ref=e14]: 🛡️
+              - generic [ref=e15]:
+                - generic [ref=e16]: Prep Phase
+                - generic [ref=e17]: ●1d 09h 43m 13s
+            - generic [ref=e18]:
+              - generic [ref=e19]: 🚀
+              - generic [ref=e20]:
+                - generic [ref=e21]: Next Transfer
+                - generic [ref=e22]: 29d 23h 43m 13s
+        - navigation [ref=e23]:
+          - link "Home" [ref=e24] [cursor=pointer]:
+            - /url: /
+          - link "Rankings" [ref=e25] [cursor=pointer]:
+            - /url: /leaderboards
+          - link "Tools" [ref=e27] [cursor=pointer]:
+            - /url: /tools
+            - text: Tools
+            - img [ref=e28]
+          - link "About" [ref=e30] [cursor=pointer]:
+            - /url: /about
+          - link "Pro" [ref=e31] [cursor=pointer]:
+            - /url: /upgrade
+            - img [ref=e32]
+            - text: Pro
+          - button "Enable high contrast mode" [ref=e34] [cursor=pointer]:
+            - img [ref=e35]
+          - link "Discord" [ref=e38] [cursor=pointer]:
+            - /url: https://discord.gg/aA3a7JGcHV
+            - img [ref=e39]
+            - text: Discord
+          - button "Sign In" [ref=e42] [cursor=pointer]:
+            - img [ref=e43]
+            - text: Sign In
+    - main [ref=e45]:
+      - generic [ref=e47]:
+        - generic [ref=e49]:
+          - heading "KINGSHOTATLAS" [level=1] [ref=e50]
+          - paragraph [ref=e51]: Scout your enemy. Choose your allies. Dominate Kingshot.
+        - generic [ref=e57]:
+          - generic [ref=e58]:
+            - generic [ref=e59]:
+              - img [ref=e60]
+              - textbox "Search by kingdom number (e.g., 1001)..." [ref=e62]
+              - generic: /
+            - button "☆ Favorites" [ref=e63] [cursor=pointer]:
+              - generic [ref=e64]: ☆
+              - text: Favorites
+            - generic [ref=e65]:
+              - button [ref=e66] [cursor=pointer]:
+                - img [ref=e67]
+              - button [ref=e69] [cursor=pointer]:
+                - img [ref=e70]
+            - button "Filters" [ref=e72] [cursor=pointer]:
+              - img [ref=e73]
+              - text: Filters
+            - generic [ref=e75]:
+              - generic [ref=e76]: "Sort:"
+              - combobox [ref=e77] [cursor=pointer]:
+                - option "Atlas Score" [selected]
+                - option "Kingdom Number"
+                - option "Prep Win Rate"
+                - option "Battle Win Rate"
+                - option "Total KvKs"
+              - button "↓" [ref=e78] [cursor=pointer]:
+                - img [ref=e79]
+                - generic [ref=e81]: ↓
+          - generic [ref=e82]:
+            - generic [ref=e83]: Showing 15 of 1190 kingdoms
+            - generic [ref=e84]:
+              - button "S-Tier" [ref=e85] [cursor=pointer]
+              - button "A-Tier" [ref=e86] [cursor=pointer]
+              - generic [ref=e87]: "|"
+              - button "100% Prep" [ref=e88] [cursor=pointer]
+              - button "80%+ Prep" [ref=e89] [cursor=pointer]
+              - button "100% Battle" [ref=e90] [cursor=pointer]
+              - button "80%+ Battle" [ref=e91] [cursor=pointer]
+              - generic [ref=e92]: "|"
+              - button "1-3 KvKs" [ref=e93] [cursor=pointer]
+              - button "4-6 KvKs" [ref=e94] [cursor=pointer]
+              - button "7-9 KvKs" [ref=e95] [cursor=pointer]
+        - generic [ref=e96]:
+          - generic [ref=e97]:
+            - generic [ref=e98]:
+              - img [ref=e100]
+              - generic [ref=e102]:
+                - generic [ref=e103]: Sign in for more features
+                - generic [ref=e104]: Create a free account to unlock watchlists, submissions, and more
+            - link "Sign In" [ref=e105] [cursor=pointer]:
+              - /url: /profile
+              - img [ref=e106]
+              - text: Sign In
+          - button "Load More (1175 remaining)" [ref=e172] [cursor=pointer]
+        - region "Compare kingdoms panel" [ref=e173]:
+          - generic [ref=e174]:
+            - generic [ref=e175]:
+              - generic [ref=e176]: ⚖️
+              - text: "Quick Compare:"
+            - generic [ref=e177]:
+              - textbox "First kingdom number to compare" [ref=e178]:
+                - /placeholder: Kingdom A
+              - generic [ref=e179]: vs
+              - textbox "Second kingdom number to compare" [ref=e180]:
+                - /placeholder: Kingdom B
+            - generic [ref=e181]:
+              - button "Compare" [disabled] [ref=e182]
+              - button "Clear comparison inputs" [ref=e183] [cursor=pointer]: Clear
+              - button "Close compare panel" [ref=e184] [cursor=pointer]:
+                - img [ref=e185]
+        - button [ref=e187] [cursor=pointer]:
+          - img [ref=e188]
+  - region "Notifications"
+```

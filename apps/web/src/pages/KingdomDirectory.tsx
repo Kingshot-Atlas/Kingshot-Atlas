@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Kingdom, FilterOptions, SortOptions, getPowerTier } from '../types';
+import { addRanksToKingdoms } from '../utils/rankCalculation';
 import { apiService } from '../services/api';
 import KingdomCard from '../components/KingdomCard';
 import ParticleEffect from '../components/ParticleEffect';
@@ -252,10 +253,7 @@ const KingdomDirectory: React.FC = () => {
 
   // Add rank based on overall_score order (all kingdoms, not just filtered)
   const rankedKingdoms = useMemo(() => {
-    const sorted = [...allKingdoms].sort((a, b) => b.overall_score - a.overall_score);
-    const rankMap = new Map<number, number>();
-    sorted.forEach((k, i) => rankMap.set(k.kingdom_number, i + 1));
-    return filteredKingdoms.map(k => ({ ...k, rank: rankMap.get(k.kingdom_number) }));
+    return addRanksToKingdoms(filteredKingdoms, allKingdoms);
   }, [allKingdoms, filteredKingdoms]);
 
   const displayedKingdoms = rankedKingdoms.slice(0, displayCount);
@@ -307,7 +305,7 @@ const KingdomDirectory: React.FC = () => {
             <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>ATLAS</span>
           </h1>
           <p style={{ color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.9rem', marginBottom: '0.75rem' }}>
-            Know your enemy. Choose your allies. Dominate KvK.
+            Scout your enemy. Choose your allies. Dominate Kingshot.
           </p>
           
           {!isMobile && (

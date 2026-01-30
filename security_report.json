@@ -1,0 +1,32 @@
+{
+  "timestamp": "2026-01-29T17:35:00Z",
+  "overall_status": "fail",
+  "checks": {
+    "npm_vulnerabilities": {
+      "status": "pass",
+      "vulnerabilities": 0
+    },
+    "python_vulnerabilities": {
+      "status": "fail",
+      "message": "/bin/sh: safety: command not found\n"
+    },
+    "security_headers": {
+      "status": "pass"
+    },
+    "cors_configuration": {
+      "status": "pass"
+    },
+    "static_analysis": {
+      "status": "fail",
+      "issues": [
+        "Line 17 in apps/api/models.py: hashed_password = Column(String, nullable=False)",
+        "Line 48 in apps/api/rate_limiter.py: key = f\"{client_ip}:{limit_key}\"",
+        "Line 63 in apps/api/schemas.py: @field_validator('password')",
+        "Line 156 in apps/api/tests/conftest.py: token = response.json()[\"access_token\"]",
+        "Line 80 in apps/api/api/routers/auth.py: hashed_password = hash_password(user.password)",
+        "Line 106 in apps/api/api/routers/auth.py: access_token = create_access_token(",
+        "Line 100 in apps/api/api/routers/submissions.py: token = token[7:]"
+      ]
+    }
+  }
+}

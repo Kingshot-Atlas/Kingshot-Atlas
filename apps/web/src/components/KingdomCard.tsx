@@ -210,39 +210,55 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
           )}
         </div>
         
-        {/* Mini Radar Chart - shows on hover */}
+        {/* Mini Radar Chart - shows on hover, clickable to profile */}
         {!isMobile && (
           <div 
             style={{ marginLeft: 'auto', position: 'relative' }}
             onMouseEnter={() => setShowMiniRadar(true)}
             onMouseLeave={() => setShowMiniRadar(false)}
           >
-            <div style={{ 
-              cursor: 'pointer',
-              opacity: isHovered ? 1 : 0.5,
-              transition: transition.fast
-            }}>
+            <div 
+              onClick={(e) => {
+                e.stopPropagation();
+                trackFeature('Quick Insights Click', { kingdom: kingdom.kingdom_number });
+                navigate(`/kingdom/${kingdom.kingdom_number}#performance`);
+              }}
+              style={{ 
+                cursor: 'pointer',
+                opacity: isHovered ? 1 : 0.5,
+                transition: transition.fast
+              }}
+              title=""
+            >
               <MiniRadarChart data={miniRadarData} size={50} accentColor={colors.primary} />
             </div>
             
             {showMiniRadar && (
-              <div style={{
-                position: 'absolute',
-                top: '100%',
-                right: 0,
-                marginTop: '0.5rem',
-                backgroundColor: colors.bg,
-                border: `1px solid ${colors.primary}40`,
-                borderRadius: radius.md,
-                padding: '0.5rem 0.75rem',
-                boxShadow: shadows.tooltip,
-                zIndex: 1000,
-                whiteSpace: 'nowrap',
-                fontSize: '0.65rem',
-                color: colors.textSecondary
-              }}>
-                <div style={{ fontWeight: '600', color: colors.primary, marginBottom: '0.25rem' }}>
+              <div 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/kingdom/${kingdom.kingdom_number}#performance`);
+                }}
+                style={{
+                  position: 'absolute',
+                  bottom: '100%',
+                  right: 0,
+                  marginBottom: '0.5rem',
+                  backgroundColor: colors.bg,
+                  border: `1px solid ${colors.primary}`,
+                  borderRadius: '6px',
+                  padding: '0.5rem 0.75rem',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+                  zIndex: 1000,
+                  whiteSpace: 'nowrap',
+                  fontSize: '0.65rem',
+                  color: colors.textSecondary,
+                  cursor: 'pointer'
+                }}
+              >
+                <div style={{ fontWeight: '600', color: colors.primary, marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                   Quick Insights
+                  <span style={{ fontSize: '0.6rem', color: colors.textMuted }}>→ View Full</span>
                 </div>
                 {miniRadarData.map((d, i) => (
                   <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>
@@ -273,7 +289,7 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
               Atlas Score
             </div>
             <div style={{ color: colors.textSecondary, fontSize: '0.7rem' }}>
-              Performance rating based on KvK results
+              Rewards experience and consistency over lucky streaks
             </div>
           </div>
         )}

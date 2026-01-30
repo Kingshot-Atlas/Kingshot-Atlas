@@ -1,0 +1,53 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e6]:
+          - link "KA KINGSHOT ATLAS" [ref=e7] [cursor=pointer]:
+            - /url: /
+            - img "KA" [ref=e8]
+            - generic [ref=e9]:
+              - generic [ref=e10]: KINGSHOT
+              - generic [ref=e11]: ATLAS
+          - generic [ref=e12]:
+            - generic [ref=e13]:
+              - generic [ref=e14]: 🛡️
+              - generic [ref=e15]:
+                - generic [ref=e16]: Prep Phase
+                - generic [ref=e17]: ●1d 09h 43m 36s
+            - generic [ref=e18]:
+              - generic [ref=e19]: 🚀
+              - generic [ref=e20]:
+                - generic [ref=e21]: Next Transfer
+                - generic [ref=e22]: 29d 23h 43m 36s
+        - navigation [ref=e23]:
+          - link "Home" [ref=e24] [cursor=pointer]:
+            - /url: /
+          - link "Rankings" [ref=e25] [cursor=pointer]:
+            - /url: /leaderboards
+          - link "Tools" [ref=e27] [cursor=pointer]:
+            - /url: /tools
+            - text: Tools
+            - img [ref=e28]
+          - link "About" [ref=e30] [cursor=pointer]:
+            - /url: /about
+          - link "Pro" [ref=e31] [cursor=pointer]:
+            - /url: /upgrade
+            - img [ref=e32]
+            - text: Pro
+          - button "Enable high contrast mode" [ref=e34] [cursor=pointer]:
+            - img [ref=e35]
+          - link "Discord" [ref=e38] [cursor=pointer]:
+            - /url: https://discord.gg/aA3a7JGcHV
+            - img [ref=e39]
+            - text: Discord
+          - button "Sign In" [ref=e42] [cursor=pointer]:
+            - img [ref=e43]
+            - text: Sign In
+    - main [ref=e45]:
+      - generic [ref=e47]: Loading...
+  - region "Notifications"
+```

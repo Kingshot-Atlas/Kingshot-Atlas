@@ -76,7 +76,7 @@ interface AnalyticsData {
   eventsByDay?: { date: string; count: number }[];
 }
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:8000';
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 const CORRECTIONS_KEY = 'kingshot_data_corrections';
 
 const AdminDashboard: React.FC = () => {
@@ -147,8 +147,8 @@ const AdminDashboard: React.FC = () => {
       // Fetch real user count from Supabase
       try {
         const { createClient } = await import('@supabase/supabase-js');
-        const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
-        const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
         if (supabaseUrl && supabaseKey) {
           const supabase = createClient(supabaseUrl, supabaseKey);
           const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true });

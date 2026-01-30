@@ -37,25 +37,22 @@ const Upgrade: React.FC = () => {
   };
 
   const proFeatures = [
-    { icon: '📜', text: 'Full KvK History (all matches, not just last 5)' },
-    { icon: '👀', text: 'Kingdom Watchlist (track up to 20 kingdoms)' },
-    { icon: '🔍', text: 'Advanced Filters (win streaks, KvK ranges)' },
-    { icon: '⚔️', text: 'Multi-Compare (up to 4 kingdoms side-by-side)' },
-    { icon: '📊', text: 'Export Data (CSV/PDF comparisons)' },
-    { icon: '⚡', text: 'Priority Submissions (faster review)' },
-    { icon: '🚫', text: 'Ad-Free Experience' },
-    { icon: '⭐', text: 'Pro Badge on profile and reviews' },
-    { icon: '🎯', text: 'Early Access to new features' },
+    { icon: '📜', text: 'Full KvK History — Every match, every outcome' },
+    { icon: '📈', text: 'Score Timeline — Track performance over time' },
+    { icon: '👀', text: 'Kingdom Watchlist — Monitor up to 20 rivals', comingSoon: true },
+    { icon: '⚖️', text: 'Multi-Compare — Up to 5 kingdoms side-by-side' },
+    { icon: '⚡', text: 'Priority Support — Faster response times' },
+    { icon: '⭐', text: 'Pro Badge — Stand out in the community' },
+    { icon: '👾', text: 'Discord Role — Exclusive Pro role & badge' },
   ];
 
   const recruiterFeatures = [
     { icon: '✅', text: 'Everything in Pro, plus:' },
-    { icon: '👑', text: 'Claim Kingdom (official representative badge)' },
-    { icon: '📈', text: 'Recruiter Dashboard (track profile views)' },
-    { icon: '🖼️', text: 'Custom Kingdom Banner' },
-    { icon: '📬', text: 'Recruit Inbox (receive transfer interest)' },
-    { icon: '🔄', text: 'Bulk Compare (up to 10 kingdoms)' },
-    { icon: '🔗', text: 'API Access for integrations' },
+    { icon: '👑', text: 'Claim Kingdom — Official representative status', comingSoon: true },
+    { icon: '📈', text: 'Recruiter Dashboard — Track who\'s looking', comingSoon: true },
+    { icon: '🖼️', text: 'Custom Banner — Make your kingdom stand out', comingSoon: true },
+    { icon: '📬', text: 'Recruit Inbox — Receive transfer interest', comingSoon: true },
+    { icon: '�', text: 'Discord Role — Exclusive Recruiter role & badge' },
   ];
 
   const pricing = {
@@ -105,8 +102,8 @@ const Upgrade: React.FC = () => {
       </div>
 
       <div style={{ maxWidth: '1000px', margin: '0 auto', padding: isMobile ? '1.5rem 1rem' : '2rem' }}>
-        {/* Current Tier Badge */}
-        {tier !== 'free' && (
+        {/* Current Tier Badge - only show when logged in with paid tier */}
+        {user && tier !== 'free' && tier !== 'anonymous' && (
           <div style={{
             textAlign: 'center',
             marginBottom: '1.5rem',
@@ -208,7 +205,7 @@ const Upgrade: React.FC = () => {
               <h2 style={{ color: '#fff', fontSize: '1.25rem', fontWeight: 'bold', margin: 0 }}>Atlas Pro</h2>
             </div>
             <p style={{ color: '#6b7280', fontSize: '0.85rem', marginBottom: '1rem' }}>
-              For players who refuse to lose
+              For players who play to win
             </p>
             
             <div style={{ marginBottom: '1.5rem' }}>
@@ -250,10 +247,24 @@ const Upgrade: React.FC = () => {
                   alignItems: 'flex-start',
                   gap: '0.75rem',
                   padding: '0.5rem 0',
-                  borderBottom: i < proFeatures.length - 1 ? '1px solid #1f1f1f' : 'none'
+                  borderBottom: i < proFeatures.length - 1 ? '1px solid #1f1f1f' : 'none',
+                  opacity: feature.comingSoon ? 0.7 : 1
                 }}>
                   <span style={{ fontSize: '1rem' }}>{feature.icon}</span>
-                  <span style={{ color: '#d1d5db', fontSize: '0.85rem' }}>{feature.text}</span>
+                  <span style={{ color: '#d1d5db', fontSize: '0.85rem' }}>
+                    {feature.text}
+                    {feature.comingSoon && (
+                      <span style={{ 
+                        marginLeft: '0.5rem', 
+                        fontSize: '0.65rem', 
+                        padding: '0.1rem 0.35rem', 
+                        backgroundColor: '#6b728020', 
+                        color: '#9ca3af', 
+                        borderRadius: '4px',
+                        fontWeight: '500'
+                      }}>SOON</span>
+                    )}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -298,7 +309,7 @@ const Upgrade: React.FC = () => {
               <h2 style={{ color: '#fff', fontSize: '1.25rem', fontWeight: 'bold', margin: 0 }}>Atlas Recruiter</h2>
             </div>
             <p style={{ color: '#6b7280', fontSize: '0.85rem', marginBottom: '1rem' }}>
-              For leaders building winning kingdoms
+              For leaders who build dynasties
             </p>
             
             <div style={{ marginBottom: '1.5rem' }}>
@@ -340,10 +351,24 @@ const Upgrade: React.FC = () => {
                   alignItems: 'flex-start',
                   gap: '0.75rem',
                   padding: '0.5rem 0',
-                  borderBottom: i < recruiterFeatures.length - 1 ? '1px solid #1f1f1f' : 'none'
+                  borderBottom: i < recruiterFeatures.length - 1 ? '1px solid #1f1f1f' : 'none',
+                  opacity: feature.comingSoon ? 0.7 : 1
                 }}>
                   <span style={{ fontSize: '1rem' }}>{feature.icon}</span>
-                  <span style={{ color: '#d1d5db', fontSize: '0.85rem' }}>{feature.text}</span>
+                  <span style={{ color: '#d1d5db', fontSize: '0.85rem' }}>
+                    {feature.text}
+                    {feature.comingSoon && (
+                      <span style={{ 
+                        marginLeft: '0.5rem', 
+                        fontSize: '0.65rem', 
+                        padding: '0.1rem 0.35rem', 
+                        backgroundColor: '#6b728020', 
+                        color: '#9ca3af', 
+                        borderRadius: '4px',
+                        fontWeight: '500'
+                      }}>SOON</span>
+                    )}
+                  </span>
                 </li>
               ))}
             </ul>

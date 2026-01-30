@@ -1,0 +1,137 @@
+# Parking Lot
+
+**Last Updated:** 2026-01-29  
+**Purpose:** Track ideas explicitly deferred to prevent scope creep and enable future revisiting.
+
+---
+
+## How to Use This File
+
+**When an idea comes up that's not for now:**
+1. Add it here with context
+2. Note why it's parked
+3. Specify conditions for revisiting
+
+**Before starting new work:**
+1. Check if it's already parked (and why)
+2. If conditions have changed, propose moving it out
+
+---
+
+## Parked Ideas
+
+### Alliance Analytics
+**Parked:** 2026-01-29  
+**Proposed By:** Owner  
+**Why Parked:** Scope creep — need to nail kingdom-level features first  
+**Revisit When:** After v2.0, when kingdom features are mature  
+**Description:** Track alliance-level stats, alliance rankings, alliance KvK performance
+
+---
+
+### Mobile Native App
+**Parked:** 2026-01-29  
+**Proposed By:** Owner  
+**Why Parked:** Web-first strategy, limited resources  
+**Revisit When:** 10k+ active users, proven product-market fit  
+**Description:** iOS/Android native apps for Atlas
+
+---
+
+### Real-Time Data Sync
+**Parked:** 2026-01-29  
+**Proposed By:** Platform Engineer  
+**Why Parked:** Complex to implement, current update frequency is sufficient  
+**Revisit When:** User demand for fresher data, resources available  
+**Description:** WebSocket-based real-time kingdom data updates
+
+---
+
+### Social Features (Friend Lists, Messaging)
+**Parked:** 2026-01-29  
+**Proposed By:** Community feedback  
+**Why Parked:** Atlas is a data platform, not a social network (see ADR-008 principles)  
+**Revisit When:** Clear user demand that doesn't duplicate Discord  
+**Description:** In-app friend lists, direct messaging between users
+
+---
+
+### Kingdom Claiming / Official Representation
+**Parked:** 2026-01-29  
+**Proposed By:** Owner  
+**Why Parked:** Complex verification, potential for abuse  
+**Revisit When:** Strong community trust established, verification system designed  
+**Description:** Allow kingdom leaders to "claim" their kingdom and post official updates
+
+---
+
+### Historical Data Archive
+**Parked:** 2026-01-29  
+**Proposed By:** Product Engineer  
+**Why Parked:** Storage costs, complexity of time-series queries  
+**Revisit When:** Premium feature demand, infrastructure budget  
+**Description:** Full historical snapshots of kingdom stats over time
+
+---
+
+### API for Third Parties
+**Parked:** 2026-01-29  
+**Proposed By:** Community request  
+**Why Parked:** Security concerns, rate limiting complexity, monetization questions  
+**Revisit When:** Clear use cases, API monetization strategy  
+**Description:** Public API for third-party tools and integrations
+
+---
+
+### Multi-Language Support
+**Parked:** 2026-01-29  
+**Proposed By:** Community feedback  
+**Why Parked:** Translation effort, limited resources  
+**Revisit When:** Significant non-English user base, translation volunteers  
+**Description:** i18n support for multiple languages
+
+---
+
+### Dark/Light Theme Toggle
+**Parked:** 2026-01-29  
+**Proposed By:** Design Lead  
+**Why Parked:** ThemeContext exists but light theme not designed  
+**Revisit When:** Design resources available, user demand  
+**Description:** Full light theme option (currently dark-only)  
+**Note:** Infrastructure exists in `ThemeContext.tsx`
+
+---
+
+## Rejected Ideas (Not Coming Back)
+
+### Game Automation / Bots
+**Rejected:** 2026-01-29  
+**Why:** Violates core values — fair play, no unfair advantages (see ADR-008)  
+**Final:** Will never implement
+
+### Selling Player Data
+**Rejected:** 2026-01-29  
+**Why:** Violates trust principles in VISION.md  
+**Final:** Will never implement
+
+### Pay-to-Win Kingdom Boosting
+**Rejected:** 2026-01-29  
+**Why:** Would corrupt data integrity  
+**Final:** Will never implement
+
+---
+
+## Template
+
+```markdown
+### [Idea Name]
+**Parked:** YYYY-MM-DD  
+**Proposed By:** [Who suggested it]  
+**Why Parked:** [Brief reason]  
+**Revisit When:** [Conditions that would trigger reconsideration]  
+**Description:** [What the idea is]
+```
+
+---
+
+*Ideas here are not forgotten — they're intentionally deferred. Check before proposing "new" ideas.*

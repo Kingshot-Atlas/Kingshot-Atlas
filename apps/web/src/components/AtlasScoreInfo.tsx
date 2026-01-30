@@ -26,7 +26,7 @@ const AtlasScoreInfo: React.FC<AtlasScoreInfoProps> = ({ inline = false }) => {
         Atlas Score
       </div>
       <p style={{ color: '#9ca3af', fontSize: '0.7rem', lineHeight: 1.4, marginBottom: '0.5rem' }}>
-        Skill-based rating. More wins = higher score.
+        Bayesian rating. Experience matters. No more lucky newcomers.
       </p>
       <div style={{ 
         backgroundColor: '#111111', 
@@ -35,8 +35,8 @@ const AtlasScoreInfo: React.FC<AtlasScoreInfoProps> = ({ inline = false }) => {
         fontFamily: 'monospace',
         fontSize: '0.6rem'
       }}>
-        <div><span style={{ color: '#eab308' }}>Prep</span> + <span style={{ color: '#3b82f6' }}>Battle</span> wins weighted</div>
-        <div><span style={{ color: '#22c55e' }}>+HK bonus</span> · <span style={{ color: '#ef4444' }}>−IK penalty</span></div>
+        <div><span style={{ color: '#eab308' }}>Bayesian win rates</span> · <span style={{ color: '#3b82f6' }}>Experience scaled</span></div>
+        <div><span style={{ color: '#22c55e' }}>+Domination bonus</span> · <span style={{ color: '#ef4444' }}>−Invasion penalty</span></div>
       </div>
     </div>
   );

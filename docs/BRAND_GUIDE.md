@@ -76,6 +76,19 @@ Built by a Kingdom 172 player who was tired of making transfer decisions based o
 | Warning | `#eab308` | Prep phase, caution |
 | Error | `#ef4444` | Losses, negative stats |
 | Orange | `#f97316` | Battle phase |
+| Purple | `#a855f7` | Recruiter tier, reversals |
+
+### Subscription Tier Colors
+| Tier | Color | Hex | Icon |
+|------|-------|-----|------|
+| **Atlas Pro** | Cyan | `#22d3ee` | ⭐ Star |
+| **Atlas Recruiter** | Purple | `#a855f7` | 👑 Crown |
+
+These colors must be used consistently across:
+- Pricing cards and buttons
+- Role badges in user profiles
+- Tier indicators in navigation
+- Marketing materials and landing pages
 
 ### Typography
 - **Display:** Cinzel (headings, kingdom names)

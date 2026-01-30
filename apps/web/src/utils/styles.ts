@@ -87,6 +87,25 @@ export const tierColors = {
 } as const;
 
 /**
+ * Subscription tier colors
+ */
+export const subscriptionColors = {
+  pro: '#22d3ee',       // Cyan - Atlas Pro
+  recruiter: '#a855f7', // Purple - Atlas Recruiter
+} as const;
+
+/**
+ * Get color for a subscription tier
+ */
+export const getSubscriptionColor = (tier: 'pro' | 'recruiter' | 'free'): string => {
+  switch (tier) {
+    case 'pro': return subscriptionColors.pro;
+    case 'recruiter': return subscriptionColors.recruiter;
+    default: return colors.textSecondary;
+  }
+};
+
+/**
  * Get color for a power tier
  */
 export const getTierColor = (tier: 'S' | 'A' | 'B' | 'C' | 'D' | string): string => {

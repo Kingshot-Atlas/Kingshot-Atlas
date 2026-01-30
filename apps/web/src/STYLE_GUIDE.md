@@ -144,6 +144,37 @@ const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
 
 ---
 
+## Typography
+
+### Font Families
+| Token | Font | Usage |
+|-------|------|-------|
+| `--font-sans` | Inter | Body text, UI elements |
+| `--font-display` | Cinzel | Page titles, hero headings, brand elements |
+| `--font-mono` | Orbitron | Numbers, stats, technical data |
+
+### Usage
+```tsx
+// Page titles - use Cinzel
+<h1 style={{ fontFamily: "'Cinzel', 'Times New Roman', serif" }}>UPGRADE TO PRO</h1>
+
+// Or use CSS variable
+<h1 style={{ fontFamily: 'var(--font-display)' }}>Page Title</h1>
+
+// Body text - Inter (default, no need to specify)
+<p>Regular content</p>
+
+// Stats/numbers - Orbitron
+<span style={{ fontFamily: "'Orbitron', monospace" }}>12.5</span>
+```
+
+### Font Weight Guidelines
+- **Page titles (Cinzel)**: 700-900 (bold to black)
+- **Body text (Inter)**: 400-600 (normal to semibold)
+- **Stats (Orbitron)**: 500-700 (medium to bold)
+
+---
+
 ## Color Palette
 
 ### Primary Colors
@@ -181,6 +212,14 @@ When showing percentages alongside values:
 - **Weight**: Normal (not bold)
 - **Size**: Slightly smaller than the value (`0.65rem` - `0.7rem`)
 
+### Score Contribution Format
+For Atlas Score breakdowns, show both weighted contribution AND raw value:
+```tsx
+<span style={{ fontWeight: 'bold', color: '#22d3ee' }}>+18.8%</span>
+<span style={{ fontSize: '0.55rem', color: '#4a4a4a', fontWeight: 'normal' }}>(75%)</span>
+```
+Format: `+18.8% (75%)` - weighted contribution (raw win rate)
+
 ### Example
 ```tsx
 <span style={{ fontWeight: 'bold', color: '#22c55e' }}>{value}</span>
@@ -198,6 +237,30 @@ const neonGlow = (color: string) => ({
   textShadow: `0 0 8px ${color}40, 0 0 12px ${color}20`
 });
 ```
+
+---
+
+## Subscription Tier Colors
+
+| Tier | Color | Hex | Usage |
+|------|-------|-----|-------|
+| **Atlas Pro** | Cyan | `#22d3ee` | Pro buttons, badges, price text, role indicators |
+| **Atlas Recruiter** | Purple | `#a855f7` | Recruiter buttons, badges, price text, role indicators |
+
+### Usage Examples
+```tsx
+// Pro tier styling
+<button style={{ backgroundColor: '#22d3ee', color: '#000' }}>Upgrade to Pro</button>
+<span style={{ color: '#22d3ee' }}>$3.33/month</span>
+
+// Recruiter tier styling
+<button style={{ backgroundColor: '#a855f7', color: '#fff' }}>Upgrade to Recruiter</button>
+<span style={{ color: '#a855f7' }}>$9.99/month</span>
+```
+
+### Role Badges
+- **Pro badge**: Cyan background with dark text, star icon (⭐)
+- **Recruiter badge**: Purple background with white text, crown icon (👑)
 
 ---
 
@@ -251,6 +314,37 @@ import { getCacheBustedAvatarUrl } from '../contexts/AuthContext';
 | Mobile | < 768px | `useIsMobile()` |
 | Tablet | 768px - 1023px | `useIsTablet()` |
 | Desktop | ≥ 1024px | `useIsDesktop()` |
+
+### Mobile Touch Targets (IMPORTANT)
+All interactive elements MUST meet minimum touch target sizes on mobile:
+- **Buttons**: `minHeight: 44px` (iOS) or `48px` (Material Design)
+- **Links/Clickable areas**: `minHeight: 44px`, `minWidth: 44px`
+- **Form inputs**: `minHeight: 44px`, `fontSize: 16px` (prevents iOS zoom)
+
+```tsx
+// Example: Mobile-friendly button
+<button
+  style={{
+    padding: isMobile ? '0.75rem 1rem' : '0.5rem 0.75rem',
+    minHeight: isMobile ? '44px' : 'auto',
+    minWidth: isMobile ? '44px' : 'auto',
+    fontSize: isMobile ? '1rem' : '0.875rem'
+  }}
+>
+  Action
+</button>
+```
+
+### Safe Area Insets
+For components at screen edges (modals, bottom sheets, toasts), support notched devices:
+```tsx
+paddingBottom: isMobile ? 'max(1rem, env(safe-area-inset-bottom))' : '1rem'
+```
+
+### Mobile-Specific Patterns
+- **Bottom sheets**: Use `alignItems: 'flex-end'` for mobile modals
+- **Hover states**: Disable on mobile (`if (!isMobile) { ... }`)
+- **Touch feedback**: Add `transform: scale(0.98)` on touch for buttons
 
 ---
 
@@ -317,6 +411,8 @@ import {
   colors,           // Full color palette object
   tierColors,       // Power tier colors (S, A, B, C, D)
   getTierColor,     // Get color for a tier
+  subscriptionColors, // Subscription tier colors (pro, recruiter)
+  getSubscriptionColor, // Get color for subscription tier
   getStatusColor,   // Get color for transfer status
   outcomeColors,    // KvK outcome colors (domination, comeback, etc.)
   
@@ -398,6 +494,57 @@ import { Card } from '../components/shared';
 | `className` | string | - | Additional classes |
 
 ---
+
+---
+
+## Data Visualization
+
+### Radar Charts
+Use the shared `RadarChart` component for single-dataset visualizations:
+```tsx
+import RadarChart from '../components/RadarChart';
+
+<RadarChart 
+  data={[
+    { label: 'Prep Win', value: 75 },
+    { label: 'Battle Win', value: 82 },
+    // ...
+  ]}
+  accentColor="#22d3ee"
+  size={260}
+  animated={true}
+/>
+```
+
+### Comparison Radar Charts
+Use the shared `ComparisonRadarChart` component for multi-dataset visualizations:
+```tsx
+import ComparisonRadarChart from '../components/ComparisonRadarChart';
+
+<ComparisonRadarChart
+  datasets={[
+    {
+      label: 'Kingdom 172',
+      data: [{ label: 'Prep Win', value: 75 }, ...],
+      color: '#22d3ee'
+    },
+    {
+      label: 'Kingdom 145',
+      data: [{ label: 'Prep Win', value: 82 }, ...],
+      color: '#a855f7'
+    }
+  ]}
+  size={300}
+  animated={true}
+/>
+```
+
+### Chart Standards
+- **Mobile size**: 200-240px
+- **Desktop size**: 260-300px
+- **Animation**: 600-800ms ease-out
+- **Colors**: Use brand color palette
+- **Accessibility**: Keyboard navigation, screen reader support
 
 ---
 

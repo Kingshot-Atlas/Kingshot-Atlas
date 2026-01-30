@@ -8,6 +8,19 @@ interface RadarDataPoint {
   description?: string; // For accessibility
 }
 
+// Tooltip descriptions for radar chart metrics
+const RADAR_TOOLTIPS: Record<string, string> = {
+  'Win Rate': 'Combined Prep (30%) and Battle (70%) win rate. Higher is better.',
+  'Domination': 'Percentage of KvKs where both Prep and Battle were won.',
+  'Form': 'Recent performance trend based on last 3 KvKs.',
+  'Streaks': 'Strength of current and historical winning streaks.',
+  'Experience': 'Number of KvKs participated (7+ for full score).',
+  'Resilience': 'Ability to avoid double-losses (invasions).',
+  'Prep Win': 'Preparation Phase win rate percentage.',
+  'Battle Win': 'Battle Phase win rate percentage.',
+  'Recent': 'Performance in your most recent KvKs.'
+};
+
 interface RadarChartProps {
   data: RadarDataPoint[];
   size?: number;
@@ -24,19 +37,20 @@ const RadarChart: React.FC<RadarChartProps> = ({
   ariaLabel = 'Performance radar chart'
 }) => {
   const isMobile = useIsMobile();
-  const size = propSize || (isMobile ? 200 : 260);
+  const size = propSize || (isMobile ? 240 : 300);
   const center = size / 2;
-  const radius = (size / 2) - 30; // Leave room for labels
+  const radius = (size / 2) - 55; // Leave more room for labels to prevent cutoff
   const levels = 5; // Number of concentric rings
   
-  // Animation state
-  const [animatedValues, setAnimatedValues] = useState<number[]>(data.map(() => 0));
+  // Animation state - initialize with actual data values to prevent empty chart
+  const [animatedValues, setAnimatedValues] = useState<number[]>(data.map(d => d.value));
   const animationRef = useRef<number | null>(null);
-  const prevDataRef = useRef<string>('');
+  const prevDataRef = useRef<string>(data.map(d => d.value).join(','));
   
   // Touch/hover state for mobile interactions
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
+  const [hoveredLabel, setHoveredLabel] = useState<number | null>(null);
   
   // Check for reduced motion preference
   const prefersReducedMotion = useRef(
@@ -159,10 +173,10 @@ const RadarChart: React.FC<RadarChartProps> = ({
     };
   });
   
-  // Label positions (slightly outside the chart)
+  // Label positions (further outside the chart to prevent cutoff)
   const labelPositions = data.map((d, i) => {
     const angle = (i * angleStep) - (Math.PI / 2);
-    const labelRadius = radius + 18;
+    const labelRadius = radius + (isMobile ? 35 : 42);
     return {
       x: center + labelRadius * Math.cos(angle),
       y: center + labelRadius * Math.sin(angle),
@@ -270,60 +284,106 @@ const RadarChart: React.FC<RadarChartProps> = ({
               />
               {/* Tooltip on active/focused */}
               {(isActive || isFocused) && (
-                <g>
-                  <rect
-                    x={point.x - 35}
-                    y={point.y - 35}
-                    width={70}
-                    height={24}
-                    rx={4}
-                    fill="#0a0a0a"
-                    stroke={accentColor}
-                    strokeWidth={1}
-                  />
-                  <text
-                    x={point.x}
-                    y={point.y - 20}
-                    textAnchor="middle"
-                    fill="#fff"
-                    fontSize="11"
-                    fontWeight="600"
-                  >
-                    {data[i]?.label}: {Math.round(data[i]?.value || 0)}%
-                  </text>
-                </g>
+                <foreignObject
+                  x={point.x - 90}
+                  y={point.y - 75}
+                  width={180}
+                  height={70}
+                  style={{ overflow: 'visible' }}
+                >
+                  <div style={{
+                    backgroundColor: '#0a0a0a',
+                    border: `1px solid ${accentColor}`,
+                    borderRadius: '6px',
+                    padding: '0.5rem 0.6rem',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+                    textAlign: 'center'
+                  }}>
+                    <div style={{ 
+                      color: accentColor, 
+                      fontWeight: 600, 
+                      fontSize: '0.75rem',
+                      marginBottom: '0.2rem'
+                    }}>
+                      {data[i]?.label}: {Math.round(data[i]?.value || 0)}%
+                    </div>
+                    {RADAR_TOOLTIPS[data[i]?.label || ''] && (
+                      <div style={{ 
+                        color: '#9ca3af', 
+                        fontSize: '0.6rem',
+                        lineHeight: 1.3
+                      }}>
+                        {RADAR_TOOLTIPS[data[i]?.label || '']}
+                      </div>
+                    )}
+                  </div>
+                </foreignObject>
               )}
             </g>
           );
         })}
         
-        {/* Labels */}
-        {labelPositions.map((pos, i) => (
-          <g key={`label-${i}`}>
-            <text
-              x={pos.x}
-              y={pos.y}
-              textAnchor="middle"
-              dominantBaseline="middle"
-              fill="#9ca3af"
-              fontSize={isMobile ? "9" : "10"}
-              fontWeight="500"
+        {/* Labels with tooltips */}
+        {labelPositions.map((pos, i) => {
+          return (
+            <g 
+              key={`label-${i}`}
+              style={{ cursor: 'pointer' }}
+              onMouseEnter={() => !isMobile && setHoveredLabel(i)}
+              onMouseLeave={() => !isMobile && setHoveredLabel(null)}
+              onClick={() => isMobile && setHoveredLabel(hoveredLabel === i ? null : i)}
             >
-              {pos.label}
-            </text>
-            <text
-              x={pos.x}
-              y={pos.y + (isMobile ? 11 : 12)}
-              textAnchor="middle"
-              dominantBaseline="middle"
-              fill={accentColor}
-              fontSize={isMobile ? "10" : "11"}
-              fontWeight="bold"
-            >
-              {Math.round(pos.value)}%
-            </text>
-          </g>
-        ))}
+              <text
+                x={pos.x}
+                y={pos.y - (isMobile ? 6 : 7)}
+                textAnchor="middle"
+                dominantBaseline="middle"
+                fill={hoveredLabel === i ? accentColor : '#9ca3af'}
+                fontSize={isMobile ? "9" : "10"}
+                fontWeight="500"
+                style={{ transition: 'fill 0.2s ease' }}
+              >
+                {pos.label}
+              </text>
+              <text
+                x={pos.x}
+                y={pos.y + (isMobile ? 6 : 7)}
+                textAnchor="middle"
+                dominantBaseline="middle"
+                fill={accentColor}
+                fontSize={isMobile ? "10" : "11"}
+                fontWeight="bold"
+              >
+                {Math.round(pos.value)}%
+              </text>
+            </g>
+          );
+        })}
+        
+        {/* Tooltip layer - rendered last to be on top */}
+        {hoveredLabel !== null && labelPositions[hoveredLabel] && RADAR_TOOLTIPS[labelPositions[hoveredLabel].label] && (
+          <foreignObject
+            x={Math.max(10, Math.min(size - 190, labelPositions[hoveredLabel].x - 90))}
+            y={labelPositions[hoveredLabel].y + 18}
+            width={180}
+            height={50}
+            style={{ overflow: 'visible', pointerEvents: 'none' }}
+          >
+            <div style={{
+              backgroundColor: '#0a0a0a',
+              border: `1px solid ${accentColor}`,
+              borderRadius: '6px',
+              padding: '0.4rem 0.5rem',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+              textAlign: 'center',
+              fontSize: '0.6rem',
+              color: '#d1d5db',
+              lineHeight: 1.3
+            }}>
+              {RADAR_TOOLTIPS[labelPositions[hoveredLabel]?.label]}
+            </div>
+          </foreignObject>
+        )}
       </svg>
       
       {/* Accessible data table (hidden visually, available to screen readers) */}

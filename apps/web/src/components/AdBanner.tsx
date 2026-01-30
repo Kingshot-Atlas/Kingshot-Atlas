@@ -9,7 +9,7 @@ interface AdBannerProps {
 
 // EthicalAds publisher ID - set this when you have an approved publisher account
 // Apply at: https://www.ethicalads.io/publishers/
-const ETHICALADS_PUBLISHER_ID = process.env.REACT_APP_ETHICALADS_PUBLISHER_ID || '';
+const ETHICALADS_PUBLISHER_ID = import.meta.env.VITE_ETHICALADS_PUBLISHER_ID || '';
 
 const AdBanner: React.FC<AdBannerProps> = ({ placement: _placement = 'directory' }) => {
   const { features, tier } = usePremium();
@@ -117,19 +117,38 @@ const SelfPromoAd: React.FC<{ tier: string; isMobile: boolean }> = ({ tier, isMo
     <Link
       to={tier === 'anonymous' ? '/profile' : '/upgrade'}
       style={{
-        padding: '0.5rem 1rem',
+        padding: isMobile ? '0.5rem 0.875rem' : '0.5rem 1rem',
         backgroundColor: '#22d3ee',
         border: 'none',
         borderRadius: '6px',
         color: '#000',
-        fontSize: '0.85rem',
+        fontSize: isMobile ? '0.8rem' : '0.85rem',
         fontWeight: '600',
         textDecoration: 'none',
         whiteSpace: 'nowrap',
-        transition: 'all 0.2s'
+        transition: 'all 0.2s',
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '0.35rem'
       }}
     >
-      {tier === 'anonymous' ? 'Sign In Free' : 'Go Pro – $4.99/mo'}
+      {tier === 'anonymous' ? (
+        <>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+            <polyline points="10 17 15 12 10 7"/>
+            <line x1="15" y1="12" x2="3" y2="12"/>
+          </svg>
+          Sign In
+        </>
+      ) : (
+        <>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+          </svg>
+          Go Pro
+        </>
+      )}
     </Link>
   </div>
 );

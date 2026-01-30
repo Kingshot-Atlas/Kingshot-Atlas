@@ -1,4 +1,5 @@
 import React, { useState, createContext, useContext, useCallback } from 'react';
+import { useIsMobile } from '../hooks/useMediaQuery';
 
 interface Toast {
   id: string;
@@ -22,6 +23,7 @@ export const useToast = () => {
 
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const isMobile = useIsMobile();
 
   const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'success') => {
     const id = Math.random().toString(36).substr(2, 9);
@@ -50,31 +52,41 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       {children}
       
       {/* Toast Container */}
-      <div style={{
-        position: 'fixed',
-        bottom: '100px',
-        right: '20px',
-        zIndex: 9999,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '0.5rem'
-      }}>
+      <div 
+        role="region"
+        aria-label="Notifications"
+        aria-live="polite"
+        style={{
+          position: 'fixed',
+          bottom: isMobile ? '80px' : '100px',
+          right: isMobile ? '12px' : '20px',
+          left: isMobile ? '12px' : 'auto',
+          zIndex: 9999,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.5rem',
+          maxWidth: isMobile ? 'calc(100% - 24px)' : '320px'
+        }}>
         {toasts.map((toast) => {
           const style = getToastStyle(toast.type);
           return (
             <div
               key={toast.id}
+              role="alert"
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.75rem',
-                padding: '0.75rem 1rem',
+                padding: isMobile ? '0.875rem 1rem' : '0.75rem 1rem',
                 backgroundColor: '#111111',
                 border: `1px solid ${style.bg}`,
                 borderRadius: '10px',
                 boxShadow: `0 4px 20px ${style.bg}30`,
                 animation: 'slideIn 0.3s ease',
-                minWidth: '200px'
+                minWidth: isMobile ? 'auto' : '200px',
+                width: isMobile ? '100%' : 'auto',
+                cursor: 'pointer',
+                minHeight: '44px'
               }}
               onClick={() => removeToast(toast.id)}
             >

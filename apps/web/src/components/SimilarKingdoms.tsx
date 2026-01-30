@@ -61,25 +61,33 @@ const SimilarKingdoms: React.FC<SimilarKingdomsProps> = ({
       padding: '1rem',
       marginBottom: '1rem'
     }}>
-      <div style={{ 
+      <h3 style={{ 
+        color: '#fff', 
+        fontSize: '0.95rem', 
+        fontWeight: '600', 
+        margin: 0,
+        marginBottom: '0.75rem',
         display: 'flex',
-        justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: '0.75rem'
+        gap: '0.5rem'
       }}>
-        <h3 style={{ 
-          color: '#fff', 
-          fontSize: '0.95rem', 
-          fontWeight: '600', 
-          margin: 0,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem'
-        }}>
-          <span style={{ fontSize: '1rem' }}>🎯</span>
-          Kingdoms Like This
-        </h3>
-        <span style={{ color: '#6b7280', fontSize: '0.7rem' }}>Atlas Score</span>
+        <span style={{ fontSize: '1rem' }}>🎯</span>
+        Kingdoms Like This
+      </h3>
+      
+      {/* Table Header */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: '2fr auto 1.5fr auto',
+        gap: '0.75rem',
+        padding: '0 0.75rem 0.5rem',
+        borderBottom: '1px solid #2a2a2a',
+        marginBottom: '0.5rem'
+      }}>
+        <span style={{ color: '#6b7280', fontSize: '0.7rem', fontWeight: '500', textAlign: 'left' }}>Kingdom</span>
+        <span style={{ color: '#6b7280', fontSize: '0.7rem', fontWeight: '500', textAlign: 'left', paddingLeft: '0.25rem' }}>Tier</span>
+        <span style={{ color: '#6b7280', fontSize: '0.7rem', fontWeight: '500', textAlign: 'center' }}>Atlas Score</span>
+        <span style={{ color: '#6b7280', fontSize: '0.7rem', fontWeight: '500', textAlign: 'center' }}>Match</span>
       </div>
       
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -92,10 +100,11 @@ const SimilarKingdoms: React.FC<SimilarKingdomsProps> = ({
               key={kingdom.kingdom_number}
               to={`/kingdom/${kingdom.kingdom_number}`}
               style={{
-                display: 'flex',
+                display: 'grid',
+                gridTemplateColumns: '2fr auto 1.5fr auto',
+                gap: '0.75rem',
                 alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '0.6rem 0.75rem',
+                padding: '0.4rem 0.75rem',
                 backgroundColor: '#1a1a20',
                 borderRadius: '8px',
                 textDecoration: 'none',
@@ -103,51 +112,63 @@ const SimilarKingdoms: React.FC<SimilarKingdomsProps> = ({
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = '#222230';
-                e.currentTarget.style.borderColor = '#3a3a3a';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = '#1a1a20';
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <span style={{ 
-                  color: '#fff', 
-                  fontWeight: '600',
-                  fontSize: '0.9rem'
-                }}>
-                  K{kingdom.kingdom_number}
-                </span>
-                <span style={{
-                  padding: '0.15rem 0.35rem',
-                  backgroundColor: `${tierColor}20`,
-                  color: tierColor,
-                  fontSize: '0.65rem',
-                  fontWeight: '600',
-                  borderRadius: '3px'
-                }}>
-                  {tier}
-                </span>
-              </div>
+              {/* Kingdom */}
+              <span style={{ 
+                color: '#fff', 
+                fontWeight: '600',
+                fontSize: '0.85rem',
+                textAlign: 'left'
+              }}>
+                Kingdom {kingdom.kingdom_number}
+              </span>
               
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              {/* Tier */}
+              <span style={{
+                padding: '0.15rem 0.35rem',
+                backgroundColor: `${tierColor}20`,
+                color: tierColor,
+                fontSize: '0.65rem',
+                fontWeight: '600',
+                borderRadius: '3px',
+                textAlign: 'center',
+                marginLeft: '0.25rem'
+              }}>
+                {tier}
+              </span>
+              
+              {/* Atlas Score with Rank */}
+              <span style={{ 
+                color: '#22d3ee', 
+                fontSize: '0.85rem', 
+                fontWeight: '600',
+                textShadow: '0 0 8px rgba(34, 211, 238, 0.5)',
+                textAlign: 'center',
+                whiteSpace: 'nowrap'
+              }}>
+                {kingdom.overall_score.toFixed(1)}
                 <span style={{ 
                   color: '#22d3ee', 
-                  fontSize: '0.85rem', 
-                  fontWeight: '600',
-                  textShadow: '0 0 8px rgba(34, 211, 238, 0.5)'
+                  fontWeight: '400',
+                  marginLeft: '0.25rem'
                 }}>
-                  {kingdom.overall_score.toFixed(1)}
+                  (#{kingdom.rank || '—'})
                 </span>
-                <span style={{ 
-                  color: '#22c55e', 
-                  fontSize: '0.7rem',
-                  backgroundColor: '#22c55e15',
-                  padding: '0.15rem 0.4rem',
-                  borderRadius: '4px'
-                }}>
-                  {Math.round(similarity)}%
-                </span>
-              </div>
+              </span>
+              
+              {/* Match % */}
+              <span style={{ 
+                color: '#22c55e', 
+                fontSize: '0.75rem',
+                fontWeight: '500',
+                textAlign: 'center'
+              }}>
+                {Math.round(similarity)}%
+              </span>
             </Link>
           );
         })}

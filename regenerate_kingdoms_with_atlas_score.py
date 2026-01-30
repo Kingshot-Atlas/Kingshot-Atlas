@@ -23,6 +23,23 @@ KVK_DATES = {
 }
 
 
+def bayesian_adjusted_win_rate(wins, losses, prior_wins=45, prior_losses=55):
+    """
+    Bayesian average with moderate prior toward 45% win rate.
+    This penalizes small samples but less aggressively than the previous version.
+    
+    Formula: (wins + prior_wins) / (wins + losses + prior_wins + prior_losses)
+    
+    Examples:
+    - 2-0 (100%) → (2+45)/(2+0+100) = 47/104 = 45.2%
+    - 8-1 (89%) → (8+45)/(8+1+100) = 53/109 = 48.6%
+    - 80-10 (89%) → (80+45)/(80+10+100) = 125/190 = 65.8%
+    """
+    total_wins = wins + prior_wins
+    total_games = wins + losses + prior_wins + prior_losses
+    return total_wins / total_games if total_games > 0 else 0.0
+
+
 def wilson_score_lower_bound(wins, total, confidence=0.90):
     """
     Calculate Wilson Score lower bound - a confidence-adjusted win rate.
@@ -53,39 +70,44 @@ def wilson_score_lower_bound(wins, total, confidence=0.90):
 def calculate_atlas_score(total_kvks, prep_wins, prep_losses, battle_wins, battle_losses,
                           dominations, defeats, recent_results):
     """
-    Calculate Atlas Score using hybrid formula with Wilson Score confidence adjustment.
+    Calculate Atlas Score using improved Bayesian Average approach.
     
-    Components:
-    - Component 1: Confidence-adjusted win rate (Wilson Score lower bound)
-    - Component 2: Domination/Defeat modifier  
-    - Component 3: Recent form from last 3 KvKs
-    - Component 4: Light experience scaling for very new kingdoms only
+    Uses moderate Bayesian priors to balance penalizing small samples while 
+    still rewarding strong performance. Enhanced with 5-KvK recent form.
+    
+    Key changes:
+    - Moderate Bayesian priors (45% prior, 100 weight) instead of aggressive
+    - Expanded recent form to 5 KvKs with better weight distribution
+    - Enhanced experience scaling (25% → 115% across 1-10+ KvKs)
+    - Increased domination/defeat weight to ±8 points
+    - Bonus experience multiplier for 7+ KvKs (rewards veterans)
     """
     total_matches = prep_wins + prep_losses
     if total_matches == 0:
         return 0.0
     
-    # === COMPONENT 1: Confidence-Adjusted Win Rate (Wilson Score) ===
-    prep_wilson = wilson_score_lower_bound(prep_wins, total_matches, confidence=0.90)
-    battle_wilson = wilson_score_lower_bound(battle_wins, total_matches, confidence=0.90)
+    # === COMPONENT 1: Bayesian-Adjusted Win Rate ===
+    # Moderate prior toward 45% with 100 weight (45 wins, 55 losses)
+    prep_bayesian = bayesian_adjusted_win_rate(prep_wins, prep_losses, 45, 55)
+    battle_bayesian = bayesian_adjusted_win_rate(battle_wins, battle_losses, 45, 55)
     
-    # Weighted combined rate (battle slightly more important)
-    combined_wilson = (prep_wilson * 0.3) + (battle_wilson * 0.7)
+    # Weighted combined rate
+    combined_bayesian = (prep_bayesian * 0.3) + (battle_bayesian * 0.7)
     
-    # === COMPONENT 2: Domination/Defeat Modifier ===
-    dom_wilson = wilson_score_lower_bound(dominations, total_kvks, confidence=0.90) if total_kvks > 0 else 0
-    def_wilson = wilson_score_lower_bound(defeats, total_kvks, confidence=0.90) if total_kvks > 0 else 0
+    # === COMPONENT 2: Domination/Defeat Modifier (also Bayesian) ===
+    dom_bayesian = bayesian_adjusted_win_rate(dominations, total_kvks, 10, 10) if total_kvks > 0 else 0
+    def_bayesian = bayesian_adjusted_win_rate(defeats, total_kvks, 10, 10) if total_kvks > 0 else 0
     
-    # Bonus for domination-heavy kingdoms, penalty for defeat-heavy
-    dominance_modifier = (dom_wilson * 0.6) - (def_wilson * 0.4)
+    # Increased weight for domination/defeat pattern
+    dominance_modifier = (dom_bayesian * 0.8) - (def_bayesian * 0.6)
     
-    # === COMPONENT 3: Recent Form (last 3 KvKs) ===
-    weights = [1.0, 0.75, 0.5]
+    # === COMPONENT 3: Recent Form (expanded to 5 KvKs) ===
+    weights = [1.0, 0.9, 0.8, 0.7, 0.6]
     recent_score = 0
     total_weight = 0
     
-    for i, result in enumerate(recent_results[:3]):
-        weight = weights[i] if i < len(weights) else 0.3
+    for i, result in enumerate(recent_results[:5]):
+        weight = weights[i] if i < len(weights) else 0.5
         if result == 'D':      # Domination (won both phases)
             recent_score += 1.0 * weight
         elif result == 'W':    # Partial win (Prep or Battle only)
@@ -98,15 +120,34 @@ def calculate_atlas_score(total_kvks, prep_wins, prep_losses, battle_wins, battl
     
     recent_form = recent_score / total_weight if total_weight > 0 else 0
     
-    # === COMPONENT 4: Light Experience Factor ===
-    if total_kvks < 3:
-        experience_factor = 0.6 + (total_kvks * 0.15)
-    else:
+    # === COMPONENT 4: Enhanced Experience Scaling ===
+    # Much steeper curve for experience - rewards proven performance
+    if total_kvks == 0:
+        experience_factor = 0.0
+    elif total_kvks == 1:
+        experience_factor = 0.25
+    elif total_kvks == 2:
+        experience_factor = 0.4
+    elif total_kvks == 3:
+        experience_factor = 0.55
+    elif total_kvks == 4:
+        experience_factor = 0.7
+    elif total_kvks == 5:
+        experience_factor = 0.85
+    elif total_kvks == 6:
+        experience_factor = 0.95
+    elif total_kvks == 7:
         experience_factor = 1.0
+    elif total_kvks == 8:
+        experience_factor = 1.05
+    elif total_kvks == 9:
+        experience_factor = 1.1
+    else:
+        experience_factor = 1.15
     
     # === FINAL SCORE ===
-    base_score = combined_wilson * 10
-    adjusted_score = base_score + (dominance_modifier * 5)
+    base_score = combined_bayesian * 10
+    adjusted_score = base_score + (dominance_modifier * 8)  # Increased weight
     form_bonus = recent_form * 4
     
     raw_score = adjusted_score + form_bonus
@@ -334,7 +375,7 @@ def main():
     print(f"Total KvK records: {len(kvk_records)}")
     
     # Show some sample scores
-    print("\nSample Atlas Scores (using Wilson Score formula):")
+    print("\nSample Atlas Scores (using Bayesian Average formula):")
     for k in sorted(kingdoms, key=lambda x: -x['overall_score'])[:10]:
         print(f"  K{k['kingdom_number']}: {k['overall_score']:.2f} (P:{k['prep_win_rate']*100:.0f}% B:{k['battle_win_rate']*100:.0f}% Dom:{k['dominations']} Def:{k['defeats']})")
     

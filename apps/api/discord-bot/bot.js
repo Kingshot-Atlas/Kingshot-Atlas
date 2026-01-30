@@ -59,7 +59,7 @@ const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 // Helper: Fetch kingdom data
 async function fetchKingdom(number) {
   try {
-    const res = await fetch(`${API_URL}/api/kingdoms/${number}`);
+    const res = await fetch(`${API_URL}/api/v1/kingdoms/${number}`);
     if (!res.ok) return null;
     return await res.json();
   } catch (e) {
@@ -166,7 +166,7 @@ async function handleLeaderboard(interaction) {
   await interaction.deferReply();
 
   try {
-    const res = await fetch(`${API_URL}/api/leaderboard?limit=10`);
+    const res = await fetch(`${API_URL}/api/v1/leaderboard?limit=10`);
     const kingdoms = await res.json();
 
     const leaderboard = kingdoms.map((k, i) => {

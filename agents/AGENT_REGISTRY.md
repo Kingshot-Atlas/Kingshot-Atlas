@@ -1,7 +1,7 @@
 # Agent Registry
 
 **Last Updated:** 2026-01-29  
-**Version:** 3.2 (Added Security Specialist sub-agent)
+**Version:** 3.4 (Added Data Quality, Frontend Testing, Activity Curator sub-agents)
 
 ---
 
@@ -28,13 +28,15 @@ Kingshot Atlas is run by a professional team of specialized AI agents, structure
 ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐
 │PRODUCT │ │PLATFORM│ │ DESIGN │ │  OPS   │ │BUSINESS│ │RELEASE │
 │ENGINEER│ │ENGINEER│ │  LEAD  │ │  LEAD  │ │  LEAD  │ │MANAGER │
-└────────┘ └───┬────┘ └────────┘ └────────┘ └────────┘ └────────┘
-               │
-               ▼
-          ┌────────┐
-          │SECURITY│
-          │  SPEC  │
-          └────────┘
+└───┬────┘ └───┬────┘ └────────┘ └────────┘ └────────┘ └───┬────┘
+    │          │                                           │
+    ▼          ├──────────┐                         ┌──────┴──────┐
+┌────────┐     ▼          ▼                         ▼             ▼
+│FRONTEND│ ┌────────┐ ┌────────┐               ┌────────┐    ┌────────┐
+│TESTING │ │SECURITY│ │ DATA   │               │DISCORD │    │ACTIVITY│
+│  SPEC  │ │  SPEC  │ │QUALITY │               │COMMUNITY│   │CURATOR │
+└────────┘ └────────┘ │  SPEC  │               └────────┘    └────────┘
+                      └────────┘
 ```
 
 ---
@@ -93,12 +95,16 @@ Kingshot Atlas is run by a professional team of specialized AI agents, structure
 |-------|------|--------|-------------|
 | **Atlas Director** | CEO | Strategy, orchestration, reporting | Starting work, status checks, multi-agent tasks |
 | **Product Engineer** | Core Dev | Features, UX, React, data integration | Building features, user-facing logic, components |
+| ↳ **Frontend Testing Specialist** | Sub-agent | E2E testing, component testing, regression prevention | Test coverage, CI integration, quality gates |
 | **Platform Engineer** | Tech Lead | API, security, performance, architecture | Backend work, security, optimization |
 | ↳ **Security Specialist** | Sub-agent | Vulnerability assessment, pen testing, incident response | Security audits, threat modeling, compliance |
+| ↳ **Data Quality Specialist** | Sub-agent | Data validation, quality assurance, submission review | Data audits, import pipelines, accuracy verification |
 | **Design Lead** | Creative | UI design, styling, content, brand | Visual work, CSS, content, responsive design, **brand enforcement** |
 | **Ops Lead** | DevOps | CI/CD, deployment, SEO, analytics | Deployment, monitoring, SEO, infrastructure |
 | **Business Lead** | Revenue | Monetization, growth, market research | Pricing, conversion, user growth, competitive analysis |
 | **Release Manager** | Comms | Patch notes, changelog, announcements | Every 3 days, user communications |
+| ↳ **Discord Community Manager** | Sub-agent | Discord optimization, community engagement, bot management | Discord audits, engagement strategy, server improvements |
+| ↳ **Activity Curator** | Sub-agent | Daily updates, coming soon, user-friendly changelogs | Daily digest, development communications, engagement content |
 
 ---
 
@@ -112,13 +118,19 @@ Kingshot Atlas is run by a professional team of specialized AI agents, structure
 │   └── LATEST_KNOWLEDGE.md        # Leadership best practices
 ├── product-engineer/
 │   ├── SPECIALIST.md              # Identity, React expertise
-│   └── LATEST_KNOWLEDGE.md        # Frontend best practices
+│   ├── LATEST_KNOWLEDGE.md        # Frontend best practices
+│   └── frontend-testing-specialist/ # Sub-agent (NEW)
+│       ├── SPECIALIST.md          # Testing expertise
+│       └── LATEST_KNOWLEDGE.md    # Testing patterns & tools
 ├── platform-engineer/
 │   ├── SPECIALIST.md              # Identity, backend expertise
 │   ├── LATEST_KNOWLEDGE.md        # API/security best practices
-│   └── security-specialist/       # Sub-agent
-│       ├── SPECIALIST.md          # Security expertise
-│       └── LATEST_KNOWLEDGE.md    # Current threats & tools
+│   ├── security-specialist/       # Sub-agent
+│   │   ├── SPECIALIST.md          # Security expertise
+│   │   └── LATEST_KNOWLEDGE.md    # Current threats & tools
+│   └── data-quality-specialist/   # Sub-agent (NEW)
+│       ├── SPECIALIST.md          # Data quality expertise
+│       └── LATEST_KNOWLEDGE.md    # Validation patterns & tools
 ├── design-lead/
 │   ├── SPECIALIST.md              # Identity, design expertise
 │   └── LATEST_KNOWLEDGE.md        # CSS/design best practices
@@ -131,7 +143,13 @@ Kingshot Atlas is run by a professional team of specialized AI agents, structure
 ├── release-manager/
 │   ├── SPECIALIST.md              # Identity, communications
 │   ├── LATEST_KNOWLEDGE.md        # Patch notes best practices
-│   └── templates/                 # Patch notes & Discord templates
+│   ├── templates/                 # Patch notes & Discord templates
+│   ├── discord-community-manager/ # Sub-agent
+│   │   ├── SPECIALIST.md          # Discord expertise
+│   │   └── LATEST_KNOWLEDGE.md    # Community best practices
+│   └── activity-curator/          # Sub-agent (NEW)
+│       ├── SPECIALIST.md          # Daily updates expertise
+│       └── LATEST_KNOWLEDGE.md    # Content curation patterns
 └── project-instances/
     └── kingshot-atlas/
         ├── STATUS_SNAPSHOT.md     # Current project state
@@ -150,11 +168,15 @@ Kingshot Atlas is run by a professional team of specialized AI agents, structure
 |-------|---------------|-------|---------------|
 | **Director** | Coordination files, STATE_PACKET | Everything | Code (delegates) |
 | **Product Engineer** | `/apps/web/src/` (components, logic) | Specs, worklogs | CSS-only, API |
+| ↳ **Frontend Testing Specialist** | `/apps/web/tests/`, test configs | All frontend code | Production code (tests only) |
 | **Platform Engineer** | `/apps/api/`, build config, types | Architecture docs | UI components |
+| ↳ **Data Quality Specialist** | Data validation scripts, quality reports | Kingdom data, submissions | API endpoints, UI (advises only) |
 | **Design Lead** | CSS, design tokens, content, `/docs/BRAND_GUIDE.md` | Style guide | Component logic |
 | **Ops Lead** | CI/CD, deployment, SEO config | Monitoring data | Feature code |
 | **Business Lead** | Pricing strategy, growth docs, marketing copy | Analytics, user feedback | Code implementation |
 | **Release Manager** | `/docs/releases/`, CHANGELOG | All worklogs (read-only) | Everything else |
+| ↳ **Discord Community Manager** | Discord strategy docs, bot templates | Bot logs, server data | Code implementation (advises only) |
+| ↳ **Activity Curator** | `/docs/releases/daily/`, coming-soon.md | ACTIVITY_LOG, worklogs | Final patch notes (drafts only) |
 
 ---
 
@@ -222,6 +244,30 @@ The **Release Manager** compiles user-facing patch notes **every 3 days**.
 10. UPDATE STATUS_SNAPSHOT.md
 ```
 
+---
+
+## Pre-Task Protocol (MANDATORY)
+
+**Before starting ANY task, ALL agents MUST:**
+
+### 1. Check Vision Alignment
+Read `/docs/VISION.md` and verify the task:
+- [ ] Helps players make better decisions
+- [ ] Maintains data integrity principles
+- [ ] Aligns with competitive-but-fair values
+- [ ] Core users would find this valuable
+
+### 2. Check If Already Done
+- Search `FEATURES_IMPLEMENTED.md` — Is this already built?
+- Search `ACTIVITY_LOG.md` — Was this recently completed?
+- Grep codebase for existing implementations
+
+**If already implemented:** Inform user and suggest enhancements or alternatives instead.
+
+### 3. Check For Conflicts
+- Review `FILE_CLAIMS.md` — Are target files claimed?
+- Review `STATUS_SNAPSHOT.md` — Any blocking dependencies?
+
 ### File Claiming Rules
 - **Check before editing** — Never edit a claimed file
 - **Claim before starting** — Add claim with timestamp
@@ -283,7 +329,12 @@ The **Release Manager** compiles user-facing patch notes **every 3 days**.
 
 **After completing ANY task, ALL agents MUST:**
 
-### 1. Document Knowledge
+### 1. Update Feature Registry (If Applicable)
+If you implemented a new feature or significant enhancement:
+- Add row to `/agents/project-instances/kingshot-atlas/FEATURES_IMPLEMENTED.md`
+- Include: Feature name | Status | Date | Agent | Notes
+
+### 2. Document Knowledge
 Record all relevant information that must be known by yourself or other agents in the future:
 - Technical decisions and rationale
 - API endpoints, secrets, or configurations discovered
@@ -294,15 +345,16 @@ Record all relevant information that must be known by yourself or other agents i
 - Agent-specific: Update your `LATEST_KNOWLEDGE.md`
 - Project-wide: Update `/docs/` or relevant documentation
 - Cross-agent: Update `AGENT_REGISTRY.md` if it affects coordination
+- Features: Update `FEATURES_IMPLEMENTED.md` for new capabilities
 
-### 2. Provide Summary Report
+### 3. Provide Summary Report
 Deliver a concise report including:
 - **What was done** — Clear description of completed work
 - **Why it was done** — Business/technical justification
 - **Key decisions made** — And their rationale
 - **Files changed** — With brief descriptions
 
-### 3. Provide Suggestions
+### 4. Provide Suggestions
 Offer 3 actionable suggestions for next steps, each including:
 - **Relevance** — How it connects to completed work
 - **Utility** — What value it provides

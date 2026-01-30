@@ -160,13 +160,13 @@ Kingshot Atlas/
 ## Kingdom Profile Fields (Current)
 
 ### Stats Displayed
-- **Overall Score** - Weighted performance metric
-- **Atlas Score Rank** - Position among all kingdoms
+- **Atlas Score** - Bayesian-adjusted performance metric
+- **Atlas Score Rank** - Position among all kingdoms  
 - **Power Tier** (S/A/B/C) - Based on Atlas Score thresholds
 - **Total KvKs** - Battles participated
 - **Prep Win Rate + Streak**
 - **Battle Win Rate + Streak**
-- **High Kings / Invader Kings** - Recent wins/losses
+- **Dominations / Invasions** - Recent double wins/losses
 
 ### Current Status
 - Most Recent Kingdom Status: Currently shows "Unannounced" for all
@@ -185,13 +185,40 @@ Kingshot Atlas/
 
 ---
 
-## Overall Score (weighted)
-Overall Score is a weighted score that represents kingdom quality:
-- Prep phase weight = 1
-- Battle phase weight = 2
-- Ratio: **Prep : Battle = 1 : 2**
+## Atlas Score Formula
 
-Goal: Higher quality kingdoms should naturally rank higher.
+**Stop guessing. Start winning.** The Atlas Score uses Bayesian statistics to rank kingdoms by true skill, not luck.
+
+### How It Works
+
+We use **Bayesian averaging** with strong priors to penalize small sample sizes. This prevents lucky new kingdoms from outranking proven performers.
+
+#### Bayesian Win Rate Formula
+```
+Adjusted Win Rate = (wins + 50) / (wins + losses + 100)
+```
+
+**Examples:**
+- 2-0 record (100%) → 51.0% adjusted rate
+- 8-1 record (89%) → 53.2% adjusted rate  
+- 80-10 record (89%) → 68.4% adjusted rate
+
+#### Experience Scaling
+Experience matters. New kingdoms get scaled down:
+- 1 KvK: 40% of base score
+- 2 KvKs: 60% of base score
+- 3 KvKs: 75% of base score
+- 6+ KvKs: 100% of base score
+
+#### Score Components
+1. **Bayesian Win Rate** (70% weight) - Battle phase more important
+2. **Domination Bonus** - Extra credit for winning both phases
+3. **Recent Form** - Last 3 KvK performance
+4. **Experience Factor** - Scales based on total KvKs
+
+**Why Bayesian?** Used by top gaming communities (Hearthstone, LoR) to solve exactly this problem: separating skill from luck in small samples.
+
+**Real data. Real results. No spin.**
 
 ---
 
@@ -235,7 +262,7 @@ Premium features (Day 1 targets):
 ## MVP search + filters
 Directory must support:
 - Search by kingdom number
-- Sort by Overall Score / Overall Rank
+- Sort by Atlas Score / Atlas Score Rank
 - Filter by:
   - Win rates (prep/battle)
   - Most recent status

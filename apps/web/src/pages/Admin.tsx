@@ -40,7 +40,7 @@ interface DataCorrection {
   created_at: string;
 }
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:8000';
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 const CORRECTIONS_KEY = 'kingshot_data_corrections';
 
 const Admin: React.FC = () => {

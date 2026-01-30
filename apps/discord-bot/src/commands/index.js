@@ -97,6 +97,11 @@ const commands = [
   new SlashCommandBuilder()
     .setName('help')
     .setDescription('Show all Atlas bot commands'),
+
+  // /stats (admin only - for Discord Community Manager analysis)
+  new SlashCommandBuilder()
+    .setName('stats')
+    .setDescription('Show bot usage statistics (admin only)'),
 ];
 
 module.exports = commands.map(cmd => cmd.toJSON());
