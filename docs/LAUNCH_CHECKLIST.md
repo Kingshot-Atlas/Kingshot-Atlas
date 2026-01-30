@@ -39,7 +39,7 @@
 2. Click **New** → **Web Service**
 3. Connect your GitHub repo
 4. Configure:
-   - **Name**: `kingshot-atlas-api`
+   - **Name**: `kingshot-atlas`
    - **Root Directory**: `apps/api`
    - **Runtime**: Python
    - **Build Command**: `pip install -r requirements.txt`
@@ -50,7 +50,7 @@
    - `ALLOWED_ORIGINS`: `https://www.ks-atlas.com,https://ks-atlas.com`
    - `ENVIRONMENT`: `production`
 6. Click **Create Web Service**
-7. Wait for deploy → Copy your URL (e.g., `https://kingshot-atlas-api.onrender.com`)
+7. Wait for deploy → Copy your URL (e.g., `https://kingshot-atlas.onrender.com`)
 
 ### Step 3: Set Up Supabase Database (~10 min)
 1. Go to [supabase.com](https://supabase.com) → Create account
@@ -69,7 +69,7 @@
    - **Build command**: `npm run build`
    - **Publish directory**: `apps/web/build`
 5. Add Environment Variables:
-   - `REACT_APP_API_URL`: Your Render URL (e.g., `https://kingshot-atlas-api.onrender.com`)
+   - `REACT_APP_API_URL`: Your Render URL (e.g., `https://kingshot-atlas.onrender.com`)
    - `REACT_APP_ENVIRONMENT`: `production`
 6. Click **Deploy**
 

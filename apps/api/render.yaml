@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: kingshot-atlas-api
+    name: kingshot-atlas
     runtime: python
     plan: free
     rootDir: apps/api

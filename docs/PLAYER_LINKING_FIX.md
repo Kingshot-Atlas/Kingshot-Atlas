@@ -118,7 +118,7 @@ if ('serviceWorker' in navigator) {
 ## Deployment Notes
 
 - Frontend deployed to: https://ks-atlas.com
-- Backend API at: https://kingshot-atlas-api.onrender.com
+- Backend API at: https://kingshot-atlas.onrender.com
 - Database: Supabase (qdczmafwcvnwfvixxbwg.supabase.co)
 
 ## Future Improvements
