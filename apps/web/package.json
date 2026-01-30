@@ -14,7 +14,7 @@
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^13.5.0",
     "@types/jest": "^27.5.2",
-    "@types/node": "^16.18.126",
+    "@types/node": "^22.0.0",
     "@types/react": "^19.2.9",
     "@types/react-dom": "^19.2.3",
     "@types/react-router-dom": "^5.3.3",
@@ -22,31 +22,34 @@
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "react-router-dom": "^7.13.0",
-    "react-scripts": "5.0.1",
     "typescript": "4.9.5",
+    "vite": "^6.0.0",
     "web-vitals": "^2.1.4",
     "zod": "^3.23.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.41.0",
+    "@vitejs/plugin-react": "^4.3.0",
     "autoprefixer": "^10.4.23",
     "postcss": "^8.5.6",
     "source-map-explorer": "^2.5.3",
-    "tailwindcss": "^3.4.19"
+    "tailwindcss": "^3.4.19",
+    "vite-plugin-pwa": "^0.21.0",
+    "yaml": "^2.8.2"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
     "lint": "eslint src --ext .ts,.tsx --max-warnings 0",
     "lint:fix": "eslint src --ext .ts,.tsx --fix",
-    "analyze": "source-map-explorer 'build/static/js/*.js'",
+    "analyze": "source-map-explorer 'dist/static/js/*.js'",
     "sitemap": "node scripts/generate-sitemap.js",
-    "prebuild": "node scripts/generate-sitemap.js",
-    "eject": "react-scripts eject"
+    "prebuild": "node scripts/generate-sitemap.js"
   },
   "eslintConfig": {
     "extends": [
