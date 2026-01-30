@@ -135,7 +135,7 @@ class ReputationService {
   }
 
   recordSubmission(userId: string, username: string): UserReputation {
-    let rep = this.getReputation(userId) || this.initUser(userId, username);
+    const rep = this.getReputation(userId) || this.initUser(userId, username);
     
     rep.totalSubmissions++;
     rep.pendingSubmissions++;

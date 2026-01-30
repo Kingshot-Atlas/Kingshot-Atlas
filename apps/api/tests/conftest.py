@@ -150,7 +150,7 @@ def admin_user(db_session):
 def auth_headers(client, sample_user):
     """Get authentication headers for a test user."""
     response = client.post(
-        "/api/auth/token",
+        "/api/v1/auth/token",
         data={"username": "testuser", "password": "TestPass1"}
     )
     token = response.json()["access_token"]

@@ -21,6 +21,12 @@ const ScoreSimulator: React.FC<ScoreSimulatorProps> = ({ kingdom }) => {
   // Check if scoreSimulator feature is available
   const hasAccess = isPro || (features as any).scoreSimulator;
 
+  // Simulation results - must be called before early returns (hooks rules)
+  // Note: Returns valid result even for 0 KvKs; early return below handles that case
+  const simulation = useMemo(() => {
+    return simulateScore(kingdom, simulatedKvKs);
+  }, [kingdom, simulatedKvKs]);
+
   // Show teaser for non-Pro users
   if (!hasAccess) {
     return <ScoreSimulatorTeaser />;
@@ -59,11 +65,6 @@ const ScoreSimulator: React.FC<ScoreSimulatorProps> = ({ kingdom }) => {
       </div>
     );
   }
-
-  // Simulation results
-  const simulation = useMemo(() => {
-    return simulateScore(kingdom, simulatedKvKs);
-  }, [kingdom, simulatedKvKs]);
 
   const addKvK = () => {
     if (simulatedKvKs.length < 5) {

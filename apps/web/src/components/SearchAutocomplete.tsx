@@ -77,13 +77,14 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
         e.preventDefault();
         setHighlightedIndex(prev => prev > 0 ? prev - 1 : -1);
         break;
-      case 'Enter':
+      case 'Enter': {
         e.preventDefault();
         const selected = suggestions[highlightedIndex];
         if (highlightedIndex >= 0 && selected) {
           handleSelect(selected);
         }
         break;
+      }
       case 'Escape':
         setIsFocused(false);
         inputRef.current?.blur();

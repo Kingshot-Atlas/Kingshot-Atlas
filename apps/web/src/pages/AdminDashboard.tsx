@@ -833,7 +833,7 @@ const AdminDashboard: React.FC = () => {
               border: '1px solid #1a1a1f'
             }}>
               <iframe
-                plausible-embed="true"
+                data-plausible-embed="true"
                 src="https://plausible.io/share/ks-atlas.com?auth=YOUR_SHARED_LINK_AUTH&embed=true&theme=dark"
                 loading="lazy"
                 style={{ 

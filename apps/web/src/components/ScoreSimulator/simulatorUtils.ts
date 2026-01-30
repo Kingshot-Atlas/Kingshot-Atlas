@@ -329,8 +329,8 @@ export function simulateScore(
     currentStats.recentBattleRates
   );
   
-  // Clone stats for simulation
-  let simStats = { ...currentStats };
+  // Clone stats for simulation (object properties are mutated, not reassigned)
+  const simStats = { ...currentStats };
   
   // Track changes for breakdown
   const initialExpFactor = getExperienceFactor(simStats.totalKvks);

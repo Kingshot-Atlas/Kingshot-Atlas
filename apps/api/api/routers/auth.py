@@ -15,7 +15,7 @@ from schemas import UserCreate, User as UserSchema, Token
 router = APIRouter()
 limiter = Limiter(key_func=get_remote_address)
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/token")
 
 # Security configuration
 SECRET_KEY = os.getenv("SECRET_KEY")

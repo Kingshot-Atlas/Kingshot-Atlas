@@ -64,7 +64,7 @@ export const useMetaTags = (options: MetaTagsOptions) => {
       updateMeta('og:description', description);
       updateTwitterMeta('twitter:description', description);
       // Also update the main description meta
-      let descMeta = document.querySelector('meta[name="description"]') as HTMLMetaElement;
+      const descMeta = document.querySelector('meta[name="description"]') as HTMLMetaElement;
       if (descMeta) descMeta.content = description;
     }
 
@@ -76,7 +76,7 @@ export const useMetaTags = (options: MetaTagsOptions) => {
     if (url) {
       updateMeta('og:url', url);
       // Update canonical link
-      let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement;
+      const canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement;
       if (canonical) canonical.href = url;
     }
 

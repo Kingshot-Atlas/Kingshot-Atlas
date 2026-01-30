@@ -21,7 +21,7 @@ class TestKingdomEndpoints:
 
     def test_get_kingdoms_empty(self, client):
         """Test getting kingdoms when database is empty."""
-        response = client.get("/api/kingdoms")
+        response = client.get("/api/v1/kingdoms")
         assert response.status_code == 200
         data = response.json()
         assert "items" in data
@@ -29,14 +29,14 @@ class TestKingdomEndpoints:
 
     def test_get_kingdoms_with_data(self, client, sample_kingdom):
         """Test getting kingdoms with data in database."""
-        response = client.get("/api/kingdoms")
+        response = client.get("/api/v1/kingdoms")
         assert response.status_code == 200
         data = response.json()
         assert data["total"] >= 1
         
     def test_get_kingdom_by_number(self, client, sample_kingdom):
         """Test getting a specific kingdom by number."""
-        response = client.get(f"/api/kingdoms/{sample_kingdom.kingdom_number}")
+        response = client.get(f"/api/v1/kingdoms/{sample_kingdom.kingdom_number}")
         assert response.status_code == 200
         data = response.json()
         assert data["kingdom_number"] == sample_kingdom.kingdom_number
@@ -44,19 +44,19 @@ class TestKingdomEndpoints:
 
     def test_get_kingdom_not_found(self, client):
         """Test getting a non-existent kingdom returns 404."""
-        response = client.get("/api/kingdoms/99999")
+        response = client.get("/api/v1/kingdoms/99999")
         assert response.status_code == 404
 
     def test_get_kingdoms_with_search(self, client, sample_kingdom):
         """Test kingdom search functionality."""
-        response = client.get(f"/api/kingdoms?search={sample_kingdom.kingdom_number}")
+        response = client.get(f"/api/v1/kingdoms?search={sample_kingdom.kingdom_number}")
         assert response.status_code == 200
         data = response.json()
         assert data["total"] >= 1
 
     def test_get_kingdoms_pagination(self, client, sample_kingdom):
         """Test pagination parameters."""
-        response = client.get("/api/kingdoms?page=1&page_size=10")
+        response = client.get("/api/v1/kingdoms?page=1&page_size=10")
         assert response.status_code == 200
         data = response.json()
         assert "page" in data
@@ -65,7 +65,7 @@ class TestKingdomEndpoints:
 
     def test_get_kingdoms_sorting(self, client, sample_kingdom):
         """Test sorting parameters."""
-        response = client.get("/api/kingdoms?sort=overall_score&order=desc")
+        response = client.get("/api/v1/kingdoms?sort=overall_score&order=desc")
         assert response.status_code == 200
 
     def test_security_headers_present(self, client):
@@ -82,20 +82,20 @@ class TestLeaderboardEndpoints:
 
     def test_get_leaderboard_empty(self, client):
         """Test leaderboard when database is empty."""
-        response = client.get("/api/leaderboard")
+        response = client.get("/api/v1/leaderboard")
         assert response.status_code == 200
         assert isinstance(response.json(), list)
 
     def test_get_leaderboard_with_data(self, client, sample_kingdom):
         """Test leaderboard returns kingdoms sorted by score."""
-        response = client.get("/api/leaderboard")
+        response = client.get("/api/v1/leaderboard")
         assert response.status_code == 200
         data = response.json()
         assert len(data) >= 1
 
     def test_get_leaderboard_limit(self, client, sample_kingdom):
         """Test leaderboard respects limit parameter."""
-        response = client.get("/api/leaderboard?limit=5")
+        response = client.get("/api/v1/leaderboard?limit=5")
         assert response.status_code == 200
         data = response.json()
         assert len(data) <= 5
@@ -130,7 +130,7 @@ class TestCompareEndpoints:
         db_session.add(kingdom2)
         db_session.commit()
         
-        response = client.get(f"/api/compare?kingdoms={sample_kingdom.kingdom_number},{kingdom2.kingdom_number}")
+        response = client.get(f"/api/v1/compare?kingdoms={sample_kingdom.kingdom_number},{kingdom2.kingdom_number}")
         assert response.status_code == 200
         data = response.json()
         assert "kingdoms" in data
@@ -138,6 +138,6 @@ class TestCompareEndpoints:
 
     def test_compare_kingdom_not_found(self, client):
         """Test comparing with non-existent kingdom returns 404."""
-        response = client.get("/api/compare?kingdoms=99998,99999")
+        response = client.get("/api/v1/compare?kingdoms=99998,99999")
         assert response.status_code == 404
         assert "not found" in response.json()["detail"].lower()
