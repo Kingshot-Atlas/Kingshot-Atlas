@@ -1,12 +1,18 @@
 #!/usr/bin/env python3
 """
-Sync kingdoms.json data to API-compatible CSV format.
-Run this after regenerating kingdoms.json to update the API database.
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  ⚠️  DEPRECATED - NO LONGER NEEDED                                            ║
+║                                                                               ║
+║  The regenerate_kingdoms_with_atlas_score.py script now generates            ║
+║  CSV files directly to apps/api/data/                                        ║
+║                                                                               ║
+║  Just run: python3 regenerate_kingdoms_with_atlas_score.py                   ║
+║                                                                               ║
+║  See docs/DATA_ARCHITECTURE.md for details.                                   ║
+╚══════════════════════════════════════════════════════════════════════════════╝
 
-Usage:
-  python sync_to_api.py
-  
-Then deploy the API with the updated CSV files.
+DEPRECATED: Sync kingdoms.json data to API-compatible CSV format.
+This is now done automatically by regenerate_kingdoms_with_atlas_score.py
 """
 import json
 import csv

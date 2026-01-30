@@ -3,6 +3,9 @@ import { logger } from '../utils/logger';
 import { useAuth } from './AuthContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
+// Admin users get Recruiter tier automatically
+const ADMIN_USERS = ['gatreno'];
+
 // 4 tiers: anonymous (not logged in), free (logged in), pro, recruiter
 export type SubscriptionTier = 'anonymous' | 'free' | 'pro' | 'recruiter';
 
@@ -36,15 +39,15 @@ export interface PremiumFeatures {
 }
 
 const TIER_FEATURES: Record<SubscriptionTier, PremiumFeatures> = {
-  // Not logged in - can browse but limited
+  // Not logged in - can browse with full KvK history
   anonymous: {
-    fullKvkHistory: false,
-    kvkHistoryLimit: 3,
+    fullKvkHistory: true,
+    kvkHistoryLimit: 999,
     viewKingdomProfiles: true,
     viewDetailedStats: false,
     watchlistLimit: 0,
     advancedFilters: false,
-    multiCompare: 2,
+    multiCompare: 0, // Must log in to compare
     exportData: false,
     submitData: false,
     prioritySubmissions: false,
@@ -58,15 +61,15 @@ const TIER_FEATURES: Record<SubscriptionTier, PremiumFeatures> = {
     recruitInbox: false,
     apiAccess: false,
   },
-  // Logged in free user - more access
+  // Logged in free user - full KvK history access
   free: {
-    fullKvkHistory: false,
-    kvkHistoryLimit: 5,
+    fullKvkHistory: true,
+    kvkHistoryLimit: 999,
     viewKingdomProfiles: true,
     viewDetailedStats: true,
     watchlistLimit: 3,
     advancedFilters: false,
-    multiCompare: 3,
+    multiCompare: 2, // Free users can compare 2 kingdoms
     exportData: false,
     submitData: true,
     prioritySubmissions: false,
@@ -170,6 +173,16 @@ export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children })
       if (!user) {
         setTier('anonymous');
         localStorage.removeItem(PREMIUM_KEY);
+        setLoading(false);
+        return;
+      }
+
+      // Check if user is admin - admins get Recruiter tier
+      const isAdmin = user.user_metadata?.preferred_username && 
+        ADMIN_USERS.includes(user.user_metadata.preferred_username.toLowerCase());
+      
+      if (isAdmin) {
+        setTier('recruiter');
         setLoading(false);
         return;
       }

@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
 """
-Regenerate kingdoms.json from the processed CSV files with correct kvk_numbers.
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  ⚠️  DEPRECATED - DO NOT USE                                                  ║
+║                                                                               ║
+║  This script has been replaced by:                                            ║
+║    regenerate_kingdoms_with_atlas_score.py                                    ║
+║                                                                               ║
+║  See docs/DATA_ARCHITECTURE.md for details.                                   ║
+╚══════════════════════════════════════════════════════════════════════════════╝
 """
 import pandas as pd
 import json

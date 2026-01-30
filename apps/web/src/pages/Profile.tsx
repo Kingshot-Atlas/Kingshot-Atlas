@@ -131,10 +131,117 @@ interface EditForm {
   badge_style: string;
 }
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+
+interface KingdomData {
+  id: number;
+  atlas_score: number;
+  rank: number;
+  total_wins: number;
+  total_losses: number;
+  kvk_count: number;
+}
+
+const KingdomLeaderboardPosition: React.FC<{
+  kingdomId: number | null;
+  themeColor: string;
+  isMobile: boolean;
+}> = ({ kingdomId, themeColor, isMobile }) => {
+  const [kingdom, setKingdom] = useState<KingdomData | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!kingdomId) {
+      setKingdom(null);
+      return;
+    }
+    
+    setLoading(true);
+    fetch(`${API_BASE}/api/v1/kingdoms/${kingdomId}`)
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data) {
+          setKingdom({
+            id: data.id,
+            atlas_score: data.atlas_score,
+            rank: data.rank,
+            total_wins: data.total_wins,
+            total_losses: data.total_losses,
+            kvk_count: data.kvk_count,
+          });
+        }
+      })
+      .catch(() => setKingdom(null))
+      .finally(() => setLoading(false));
+  }, [kingdomId]);
+
+  if (!kingdomId) return null;
+  if (loading) return (
+    <div style={{
+      backgroundColor: '#111111',
+      borderRadius: '12px',
+      padding: '1rem',
+      marginBottom: '1.5rem',
+      border: '1px solid #2a2a2a',
+    }}>
+      <div style={{ color: '#6b7280', fontSize: '0.85rem' }}>Loading kingdom data...</div>
+    </div>
+  );
+  if (!kingdom) return null;
+
+  const winRate = kingdom.kvk_count > 0 ? ((kingdom.total_wins / kingdom.kvk_count) * 100).toFixed(0) : '0';
+
+  return (
+    <div style={{
+      backgroundColor: '#111111',
+      borderRadius: '12px',
+      padding: isMobile ? '1rem' : '1.25rem',
+      marginBottom: '1.5rem',
+      border: `1px solid ${themeColor}30`,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+        <span style={{ fontSize: '1.1rem' }}>🏆</span>
+        <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: '600', color: '#fff' }}>
+          Kingdom Leaderboard Position
+        </h3>
+      </div>
+      
+      <Link to={`/kingdom/${kingdom.id}`} style={{ textDecoration: 'none' }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
+          gap: '0.75rem',
+        }}>
+          <div style={{ padding: '0.75rem', backgroundColor: '#0a0a0a', borderRadius: '8px', textAlign: 'center' }}>
+            <div style={{ fontSize: '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Kingdom</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: '700', color: themeColor }}>{kingdom.id}</div>
+          </div>
+          <div style={{ padding: '0.75rem', backgroundColor: '#0a0a0a', borderRadius: '8px', textAlign: 'center' }}>
+            <div style={{ fontSize: '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Rank</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: '700', color: '#fff' }}>#{kingdom.rank}</div>
+          </div>
+          <div style={{ padding: '0.75rem', backgroundColor: '#0a0a0a', borderRadius: '8px', textAlign: 'center' }}>
+            <div style={{ fontSize: '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Atlas Score</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: '700', ...neonGlow(themeColor) }}>{kingdom.atlas_score.toFixed(1)}</div>
+          </div>
+          <div style={{ padding: '0.75rem', backgroundColor: '#0a0a0a', borderRadius: '8px', textAlign: 'center' }}>
+            <div style={{ fontSize: '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Win Rate</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: '700', color: parseInt(winRate) >= 50 ? '#22c55e' : '#ef4444' }}>{winRate}%</div>
+          </div>
+        </div>
+      </Link>
+      
+      <div style={{ marginTop: '0.75rem', fontSize: '0.75rem', color: '#6b7280', textAlign: 'center' }}>
+        {kingdom.total_wins}W - {kingdom.total_losses}L across {kingdom.kvk_count} KvKs • <Link to={`/kingdom/${kingdom.id}`} style={{ color: themeColor }}>View Details →</Link>
+      </div>
+    </div>
+  );
+};
+
 const Profile: React.FC = () => {
   const { userId } = useParams<{ userId?: string }>();
   useDocumentTitle(userId ? 'User Profile' : 'My Profile');
-  const { user, profile, loading, updateProfile } = useAuth();
+  const { user, profile, loading, updateProfile, refreshLinkedPlayer } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const isMobile = useIsMobile();
   const [viewedProfile, setViewedProfile] = useState<UserProfile | null>(null);
@@ -700,6 +807,13 @@ const Profile: React.FC = () => {
             )}
           </div>
         )}
+        {/* Kingdom Leaderboard Position - show if user has a linked kingdom or home kingdom */}
+        <KingdomLeaderboardPosition 
+          kingdomId={viewedProfile?.linked_kingdom || viewedProfile?.home_kingdom || null}
+          themeColor={themeColor}
+          isMobile={isMobile}
+        />
+
         {/* Link Kingshot Account - only show for own profile */}
         {!isViewingOther && (
           <div style={{ marginBottom: '2rem' }}>
@@ -714,6 +828,7 @@ const Profile: React.FC = () => {
                     linked_avatar_url: playerData.avatar_url,
                     linked_kingdom: playerData.kingdom,
                     linked_tc_level: playerData.town_center_level,
+                    linked_last_synced: new Date().toISOString(),
                   });
                 }
               }}
@@ -727,6 +842,7 @@ const Profile: React.FC = () => {
                     linked_avatar_url: undefined,
                     linked_kingdom: undefined,
                     linked_tc_level: undefined,
+                    linked_last_synced: undefined,
                   });
                 }
               }}
@@ -738,6 +854,8 @@ const Profile: React.FC = () => {
                 town_center_level: viewedProfile.linked_tc_level || 0,
                 verified: true,
               } : null}
+              lastSynced={viewedProfile?.linked_last_synced}
+              onRefresh={refreshLinkedPlayer}
             />
           </div>
         )}

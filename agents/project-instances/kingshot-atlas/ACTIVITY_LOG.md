@@ -9,6 +9,144 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-01-30 11:30 | Platform Engineer | COMPLETED
+Task: Stripe Checkout API Integration
+Changes:
+  - Created /api/v1/stripe/checkout endpoint for checkout sessions
+  - Created /api/v1/stripe/webhook endpoint for subscription events
+  - Created /api/v1/stripe/portal endpoint for customer portal
+  - Added stripe>=8.0.0 to requirements.txt
+  - Updated frontend to use API checkout (with payment link fallback)
+  - Configured price IDs: Pro $4.99/mo, $39.99/yr | Recruiter $14.99/mo, $119.99/yr
+Files Changed:
+  - apps/api/api/routers/stripe.py (NEW)
+  - apps/api/main.py - Added stripe router
+  - apps/api/requirements.txt - Added stripe SDK
+  - apps/web/src/lib/stripe.ts - Added createCheckoutSession, getCheckoutUrlAsync
+  - apps/web/src/pages/Upgrade.tsx - Uses async checkout
+Build: ✅ Success
+Env vars needed: STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET
+
+## 2026-01-30 11:15 | Ops Lead | DEPLOYED
+Task: Comparison table styling + production deployment
+Changes:
+  - Fixed table column widths (Feature 40%, Free/Pro/Recruiter 20% each)
+  - Added tableLayout: fixed and colgroup for consistent sizing
+  - Deployed to production: https://ks-atlas.com
+Deploy URL: https://697ccae082eba1281855a223--ks-atlas.netlify.app
+
+## 2026-01-30 11:10 | Product Engineer | COMPLETED
+Task: Admin Recruiter status, Quick Compare gating, UI text updates
+Changes:
+  - Admins now automatically get Recruiter tier (ADMIN_USERS in PremiumContext)
+  - Quick Compare (CompareTray) now properly gated with single source of truth
+  - Anonymous users see login prompt in CompareTray
+  - Changed "Upgrade To Pro" title to "Atlas Upgrade"
+  - Changed "Get Pro" button to "Upgrade" in header (desktop & mobile)
+Files Changed:
+  - apps/web/src/contexts/PremiumContext.tsx - Added admin auto-recruiter logic
+  - apps/web/src/components/CompareTray.tsx - Added usePremium gating
+  - apps/web/src/pages/Upgrade.tsx - Title change
+  - apps/web/src/components/Header.tsx - Button text changes
+Build: ✅ Success
+
+## 2026-01-30 10:55 | Product Engineer | COMPLETED
+Task: Compare Kingdoms gating update and Upgrade page polish
+Changes:
+  - Updated gating: Anonymous=0 (must log in), Free=2, Pro/Recruiter=5
+  - Added login prompt for anonymous users on Compare page
+  - Removed testimonials section (no reviews yet)
+  - Improved comparison table styling (gradients, alternating rows, better colors)
+  - Moved savings banner below Monthly/Yearly toggle
+Files Changed:
+  - apps/web/src/contexts/PremiumContext.tsx - Updated multiCompare limits
+  - apps/web/src/pages/CompareKingdoms.tsx - Added login gate, updated slot logic
+  - apps/web/src/pages/Upgrade.tsx - Table styling, removed testimonials, moved savings
+Build: ✅ Success
+
+## 2026-01-30 10:40 | Design Lead | COMPLETED
+Task: Pricing & Monetization enhancements for Upgrade page
+Changes:
+  - Added "Early Access" to Pro features list
+  - Created comparison table (Free vs Pro vs Recruiter limits)
+  - Added testimonials/social proof section with 3 player quotes
+  - Implemented yearly savings calculator (shows when yearly billing selected)
+Files Changed:
+  - apps/web/src/pages/Upgrade.tsx - Added comparisonData, savings calc, testimonials section
+Build: ✅ Success
+
+## 2026-01-30 10:22 | Design Lead | COMPLETED
+Task: Fix Upgrade page outdated copy and broken emojis
+Changes:
+  - Removed "Full KvK History" from Pro features (it's now free for all)
+  - Added accurate Pro features: Score Simulator, Advanced Filters, Ad-Free
+  - Fixed broken Discord role emoji for Recruiter (was corrupted character)
+  - Added "Recruiter Badge" feature to Recruiter tier
+  - Updated emojis for better visual consistency
+Files Changed:
+  - apps/web/src/pages/Upgrade.tsx - Updated proFeatures and recruiterFeatures arrays
+
+## 2026-01-30 10:08 | Security Specialist | COMPLETED
+Task: Comprehensive security audit + verification + production deployment
+Security Scan Results:
+  - npm audit: 6 moderate vulnerabilities (all dev dependencies - eslint, vitest)
+  - No critical/high production vulnerabilities
+  - Code analysis: No dangerous patterns found
+    - No dangerouslySetInnerHTML usage ✅
+    - No eval/exec in source code ✅
+    - No hardcoded credentials ✅
+  - Authentication: bcrypt password hashing via passlib ✅
+  - SQL Injection: SQLAlchemy ORM with parameterized queries ✅
+  - API Security: Rate limiting on all endpoints ✅
+  - Input validation: Pydantic schemas with field validators ✅
+  - Security headers: CSP, HSTS, X-Frame-Options, etc. ✅
+  - CORS: Restricted to known origins ✅
+  - Secrets: Properly using environment variables ✅
+Verification:
+  - Build: ✅ Success (dist/ generated)
+  - Tests: ✅ 53/53 passing
+Deployment:
+  - Frontend deployed to https://ks-atlas.com (Deploy ID: 697cbb7fd70d7743fa747a51)
+  - Site verified: https://ks-atlas.com
+
+## 2026-01-30 09:57 | Product Engineer | COMPLETED
+Task: Remove all content gating from KvK History
+Change: KvK History is now FREE for all users (anonymous, free, pro, recruiter)
+Files Changed:
+  - apps/web/src/contexts/PremiumContext.tsx - Set fullKvkHistory=true, kvkHistoryLimit=999 for all tiers
+  - apps/web/src/pages/KingdomProfile.tsx - Removed upgrade prompts, show all KvKs without limit
+  - apps/web/src/components/TrendChart.tsx - Removed gating logic and upgrade CTA
+  - docs/MONETIZATION_STRATEGY.md - Updated to reflect KvK History is now free
+  - agents/project-instances/kingshot-atlas/FEATURES_IMPLEMENTED.md - Documented ungating
+Results:
+  - All users can now view complete KvK history on kingdom profiles
+  - TrendChart shows all data points without limits
+  - No upgrade prompts for KvK History feature
+
+## 2026-01-30 09:17 | Product Engineer | COMPLETED
+Task: Fix missing dominations/defeats in Kingdom Profile API response
+Root Cause: Previous SWE 1.5 work on Atlas Score discrepancy added the data to DB but KingdomBase Pydantic schema was missing the fields
+Files Changed:
+  - apps/api/schemas.py - Added `dominations: int = 0` and `defeats: int = 0` to KingdomBase
+Results:
+  - API now returns dominations and defeats fields for all kingdom endpoints
+  - Kingdom 104 verified: dominations=0, defeats=6 now visible
+  - Local deployment tested and working
+
+## 2026-01-30 08:45 | Platform Engineer | COMPLETED
+Task: Fix "Failed to verify player" error in Link Kingshot Account
+Root Causes Identified:
+  1. Frontend called `/api/player-link/verify` but API mounted at `/api/v1/player-link/verify`
+  2. KINGSHOT_API_SALT environment variable missing from .env (defaulted to empty string)
+Files Changed:
+  - apps/web/src/components/LinkKingshotAccount.tsx - Fixed API URLs to use /api/v1/ prefix
+  - apps/api/.env - Added KINGSHOT_API_SALT environment variable
+  - apps/api/.env.example - Documented KINGSHOT_API_SALT for future deployments
+  - apps/api/api/routers/player_link.py - Added fallback salt value as default
+Results:
+  - Player verification tested and working (Player ID 32583393 → 『Gatreno』, Kingdom 172)
+  - Build: Success
+
 ## 2026-01-30 02:30 | Platform Engineer | COMPLETED
 Task: Fix CI pipeline failures (API Tests 404s, ESLint not found, Vitest missing)
 Root Causes Identified:

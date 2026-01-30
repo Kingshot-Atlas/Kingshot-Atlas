@@ -262,6 +262,96 @@ const neonGlow = (color: string) => ({
 - **Pro badge**: Cyan background with dark text, star icon (⭐)
 - **Recruiter badge**: Purple background with white text, crown icon (👑)
 
+### Pro Feature Unlock Buttons (SOURCE OF TRUTH)
+
+When showing buttons to unlock Pro features (e.g., Score Simulator, Multi-Compare), use this exact pattern:
+
+```tsx
+// ✅ CORRECT: Pro feature unlock button
+<Link
+  to="/upgrade"
+  style={{
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    padding: '0.6rem 1.25rem',
+    background: 'linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%)',
+    border: 'none',
+    borderRadius: '8px',
+    color: '#000',  // Dark text on cyan
+    fontSize: '0.85rem',
+    fontWeight: '600',
+    textDecoration: 'none',
+    boxShadow: '0 0 15px rgba(34, 211, 238, 0.3)',
+    transition: 'transform 0.2s, box-shadow 0.2s'
+  }}
+>
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+  </svg>
+  Unlock Feature
+</Link>
+
+// ❌ WRONG: Purple is for Recruiter, not Pro
+background: 'linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)'
+```
+
+### Pro Badge (Inline)
+
+For inline Pro badges next to feature names:
+
+```tsx
+<span style={{
+  padding: '0.15rem 0.4rem',
+  backgroundColor: '#22d3ee15',
+  border: '1px solid #22d3ee40',
+  borderRadius: '4px',
+  fontSize: '0.6rem',
+  color: '#22d3ee',
+  fontWeight: 'bold'
+}}>
+  PRO
+</span>
+```
+
+### Pro Upsell Banner
+
+For subtle "Go Pro" messaging:
+
+```tsx
+<div style={{
+  display: 'flex',
+  alignItems: 'center',
+  gap: '0.5rem',
+  padding: '0.5rem 0.75rem',
+  backgroundColor: '#22d3ee10',
+  border: '1px solid #22d3ee30',
+  borderRadius: '8px'
+}}>
+  <span style={{
+    padding: '0.2rem 0.5rem',
+    backgroundColor: '#22d3ee',
+    color: '#000',
+    borderRadius: '4px',
+    fontSize: '0.7rem',
+    fontWeight: 'bold'
+  }}>
+    ★ PRO
+  </span>
+  <span style={{ color: '#9ca3af', fontSize: '0.8rem' }}>
+    Go Pro to unlock this feature
+  </span>
+</div>
+```
+
+**Key Rules:**
+1. **Pro = Cyan (`#22d3ee`)** - Always use cyan for Pro features
+2. **Recruiter = Purple (`#a855f7`)** - Only use purple for Recruiter features
+3. **Text color on solid cyan buttons**: Always `#000` (black)
+4. **Text color on solid purple buttons**: Use `#fff` (white)
+5. **Star icon (★)**: Use for Pro badges
+6. **Crown icon (👑)**: Use for Recruiter badges
+
 ---
 
 ## Power Tier Colors
@@ -572,4 +662,4 @@ import ComparisonRadarChart from '../components/ComparisonRadarChart';
 
 ---
 
-*Last Updated: 2026-01-29 by Design Lead*
+*Last Updated: 2026-01-30 by Design Lead*

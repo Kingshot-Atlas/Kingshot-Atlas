@@ -80,18 +80,21 @@ const ReportDataModal: React.FC<ReportDataModalProps> = ({ kingdom, isOpen, onCl
       const CORRECTIONS_KEY = 'kingshot_data_corrections';
       const existing = JSON.parse(localStorage.getItem(CORRECTIONS_KEY) || '[]');
       
-      const submission = {
-        id: `corr_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      // Create a flat record for each correction (matches Admin dashboard expected format)
+      const newRecords = corrections.map((c, index) => ({
+        id: `corr_${Date.now()}_${index}_${Math.random().toString(36).substr(2, 9)}`,
         kingdom_number: kingdom.kingdom_number,
-        corrections,
-        notes,
-        submitted_by: user?.id || 'anonymous',
-        submitted_by_name: profile?.username || 'Anonymous',
-        submitted_at: new Date().toISOString(),
-        status: 'pending'
-      };
+        field: c.field,
+        current_value: c.currentValue,
+        suggested_value: c.suggestedValue,
+        reason: notes || '',
+        submitter_id: user?.id || 'anonymous',
+        submitter_name: profile?.username || 'Anonymous',
+        status: 'pending' as const,
+        created_at: new Date().toISOString()
+      }));
 
-      existing.push(submission);
+      existing.push(...newRecords);
       localStorage.setItem(CORRECTIONS_KEY, JSON.stringify(existing));
 
       showToast('Data correction submitted for review. Thank you!', 'success');

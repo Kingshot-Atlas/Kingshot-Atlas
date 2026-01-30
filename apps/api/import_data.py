@@ -17,16 +17,15 @@ def import_kingdoms_data():
         db.query(Kingdom).delete()
         db.commit()
         
-        # Import kingdoms summary (check both local and bundled paths)
-        data_paths = ["../../data/processed/", "./data/", "../data/processed/"]
-        kingdoms_path = None
-        for path in data_paths:
-            if os.path.exists(f"{path}kingdoms_summary.csv"):
-                kingdoms_path = path
-                break
-        
-        if not kingdoms_path:
-            raise FileNotFoundError("Could not find kingdoms_summary.csv in any expected location")
+        # Import kingdoms summary - ONLY use ./data/ which is synced from kingdoms.json
+        # This ensures single source of truth: regenerate_kingdoms_with_atlas_score.py → kingdoms.json → sync_to_api.py → ./data/
+        # DO NOT use ../../data/processed/ as that may have outdated formula
+        kingdoms_path = "./data/"
+        if not os.path.exists(f"{kingdoms_path}kingdoms_summary.csv"):
+            raise FileNotFoundError(
+                "Could not find kingdoms_summary.csv in ./data/. "
+                "Run 'python sync_to_api.py' from project root first."
+            )
         
         kingdoms_df = pd.read_csv(f"{kingdoms_path}kingdoms_summary.csv")
         

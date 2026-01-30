@@ -128,20 +128,46 @@ interface LinkedPlayerData {
   verified: boolean;
 }
 
+interface KingdomRankData {
+  atlas_score: number;
+  rank: number;
+}
+
 interface LinkKingshotAccountProps {
   onLink?: (playerData: LinkedPlayerData) => void;
   onUnlink?: () => void;
   linkedPlayer?: LinkedPlayerData | null;
   showRefresh?: boolean;
+  lastSynced?: string | null;
+  onRefresh?: () => void;
 }
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+
+// Format relative time for last synced
+const formatLastSynced = (dateString: string | null | undefined): string => {
+  if (!dateString) return 'Never';
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  
+  if (diffMins < 1) return 'Just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return date.toLocaleDateString();
+};
 
 export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
   onLink,
   onUnlink,
   linkedPlayer,
   showRefresh = true,
+  lastSynced,
+  onRefresh,
 }) => {
   const isMobile = useIsMobile();
   const { showToast } = useToast();
@@ -151,9 +177,26 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [previewData, setPreviewData] = useState<LinkedPlayerData | null>(null);
   const [showUnlinkConfirm, setShowUnlinkConfirm] = useState(false);
+  const [kingdomRank, setKingdomRank] = useState<KingdomRankData | null>(null);
+
+  // Fetch kingdom rank when linked player changes
+  useEffect(() => {
+    if (linkedPlayer?.kingdom) {
+      fetch(`${API_BASE}/api/v1/kingdoms/${linkedPlayer.kingdom}`)
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          if (data) {
+            setKingdomRank({ atlas_score: data.atlas_score, rank: data.rank });
+          }
+        })
+        .catch(() => setKingdomRank(null));
+    } else {
+      setKingdomRank(null);
+    }
+  }, [linkedPlayer?.kingdom]);
 
   const verifyPlayer = async (id: string): Promise<LinkedPlayerData> => {
-    const response = await fetch(`${API_BASE}/api/player-link/verify`, {
+    const response = await fetch(`${API_BASE}/api/v1/player-link/verify`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -170,7 +213,7 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
   };
 
   const refreshPlayer = async (id: string): Promise<LinkedPlayerData> => {
-    const response = await fetch(`${API_BASE}/api/player-link/refresh`, {
+    const response = await fetch(`${API_BASE}/api/v1/player-link/refresh`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -306,16 +349,39 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
                 fontSize: '1.1rem',
                 fontWeight: '700',
                 marginBottom: '0.25rem',
-                ...neonGlow(colors.primary),
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                flexWrap: 'wrap',
               }}
             >
-              {linkedPlayer.username}
+              <span style={neonGlow(colors.primary)}>{linkedPlayer.username}</span>
+              {kingdomRank && (
+                <span
+                  style={{
+                    fontSize: '0.7rem',
+                    padding: '0.15rem 0.4rem',
+                    borderRadius: '4px',
+                    backgroundColor: `${colors.primary}20`,
+                    color: colors.primary,
+                    fontWeight: '600',
+                  }}
+                >
+                  K{linkedPlayer.kingdom} #{kingdomRank.rank}
+                </span>
+              )}
             </div>
             <div style={{ fontSize: '0.8rem', color: colors.textSecondary }}>
               Kingdom {linkedPlayer.kingdom} • {formatTCLevel(linkedPlayer.town_center_level)}
+              {kingdomRank && (
+                <span style={{ marginLeft: '0.5rem', color: colors.primary }}>
+                  • Atlas: {kingdomRank.atlas_score.toFixed(1)}
+                </span>
+              )}
             </div>
-            <div style={{ fontSize: '0.7rem', color: colors.textMuted, marginTop: '0.25rem' }}>
-              ID: {linkedPlayer.player_id}
+            <div style={{ fontSize: '0.7rem', color: colors.textMuted, marginTop: '0.25rem', display: 'flex', gap: '0.75rem' }}>
+              <span>ID: {linkedPlayer.player_id}</span>
+              <span>Synced: {formatLastSynced(lastSynced)}</span>
             </div>
           </div>
         </div>

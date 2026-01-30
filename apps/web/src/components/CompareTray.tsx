@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { useIsMobile } from '../hooks/useMediaQuery';
+import { usePremium } from '../contexts/PremiumContext';
 
 interface CompareTrayProps {
   compareKingdom1: string;
@@ -28,6 +29,10 @@ const CompareTray: React.FC<CompareTrayProps> = ({
   const { trackFeature } = useAnalytics();
   const [showHistory, setShowHistory] = useState(false);
   const isMobile = useIsMobile();
+  const { features } = usePremium();
+  
+  // Check if user can compare (multiCompare > 0 means they can compare at least 2)
+  const canCompare = features.multiCompare >= 2;
 
   const handleCompare = () => {
     if (compareKingdom1 && compareKingdom2) {
@@ -91,6 +96,81 @@ const CompareTray: React.FC<CompareTrayProps> = ({
           }
         `}</style>
       </button>
+    );
+  }
+
+  // Anonymous users see login prompt instead of compare inputs
+  if (!canCompare) {
+    return (
+      <div 
+        role="region"
+        aria-label="Compare kingdoms panel"
+        style={{ 
+          position: 'fixed', 
+          bottom: 0, 
+          left: 0, 
+          right: 0, 
+          background: 'linear-gradient(180deg, #0d1117 0%, #111111 100%)', 
+          borderTop: '2px solid #22d3ee', 
+          padding: isMobile ? '1rem' : '1.25rem 2rem',
+          paddingBottom: isMobile ? 'max(1rem, env(safe-area-inset-bottom))' : '1.25rem',
+          boxShadow: '0 -8px 40px rgba(34, 211, 238, 0.25), 0 -2px 20px rgba(0, 0, 0, 0.5)', 
+          zIndex: 1000,
+          animation: 'traySlideUp 0.3s ease-out'
+        }}>
+        <style>{`
+          @keyframes traySlideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+          }
+        `}</style>
+        <div style={{ 
+          maxWidth: '900px', 
+          margin: '0 auto', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          gap: '1rem',
+          flexWrap: 'wrap'
+        }}>
+          <span style={{ color: '#9ca3af', fontSize: isMobile ? '0.85rem' : '0.95rem' }}>
+            🔒 Sign in to compare kingdoms
+          </span>
+          <Link
+            to="/profile"
+            style={{
+              padding: '0.5rem 1rem',
+              background: 'linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%)',
+              borderRadius: '6px',
+              color: '#000',
+              fontWeight: '600',
+              fontSize: '0.85rem',
+              textDecoration: 'none'
+            }}
+          >
+            Sign In
+          </Link>
+          <button 
+            onClick={() => setShowCompareTray(false)}
+            aria-label="Close compare panel"
+            style={{ 
+              padding: '0.5rem',
+              backgroundColor: 'transparent', 
+              border: '1px solid #3a3a3a', 
+              borderRadius: '6px', 
+              color: '#6b7280', 
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
     );
   }
 

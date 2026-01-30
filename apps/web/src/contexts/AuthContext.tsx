@@ -23,6 +23,7 @@ export interface UserProfile {
   linked_avatar_url?: string | null;
   linked_kingdom?: number;
   linked_tc_level?: number;
+  linked_last_synced?: string;
 }
 
 interface AuthContextType {
@@ -37,6 +38,7 @@ interface AuthContextType {
   signUpWithEmail: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
+  refreshLinkedPlayer: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -401,6 +403,49 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const refreshLinkedPlayer = async () => {
+    if (!profile?.linked_player_id) return;
+    
+    const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+    
+    try {
+      const response = await fetch(`${API_BASE}/api/v1/player-link/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ player_id: profile.linked_player_id }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const updates: Partial<UserProfile> = {
+          linked_username: data.username,
+          linked_avatar_url: data.avatar_url,
+          linked_kingdom: data.kingdom,
+          linked_tc_level: data.town_center_level,
+          linked_last_synced: new Date().toISOString(),
+        };
+        await updateProfile(updates);
+        logger.info('Auto-refreshed linked player data:', data.username);
+      }
+    } catch (err) {
+      logger.error('Failed to auto-refresh linked player:', err);
+    }
+  };
+
+  // Auto-refresh linked player data on login (if linked and stale)
+  useEffect(() => {
+    if (profile?.linked_player_id && user) {
+      const lastSynced = profile.linked_last_synced ? new Date(profile.linked_last_synced) : null;
+      const now = new Date();
+      const hoursSinceSync = lastSynced ? (now.getTime() - lastSynced.getTime()) / (1000 * 60 * 60) : Infinity;
+      
+      // Auto-refresh if never synced or last sync > 24 hours ago
+      if (hoursSinceSync > 24) {
+        refreshLinkedPlayer();
+      }
+    }
+  }, [profile?.linked_player_id, user]);
+
   const contextValue: AuthContextType = {
     user,
     session,
@@ -412,7 +457,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     signInWithEmail,
     signUpWithEmail,
     signOut,
-    updateProfile
+    updateProfile,
+    refreshLinkedPlayer
   };
 
   return (

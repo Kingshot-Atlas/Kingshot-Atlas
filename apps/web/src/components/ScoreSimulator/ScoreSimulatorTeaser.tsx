@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useIsMobile } from '../../hooks/useMediaQuery';
 import { usePremium } from '../../contexts/PremiumContext';
@@ -6,6 +6,7 @@ import { usePremium } from '../../contexts/PremiumContext';
 const ScoreSimulatorTeaser: React.FC = () => {
   const isMobile = useIsMobile();
   const { tier } = usePremium();
+  const [isExpanded, setIsExpanded] = useState(false);
 
   return (
     <div style={{
@@ -16,11 +17,18 @@ const ScoreSimulatorTeaser: React.FC = () => {
       overflow: 'hidden',
       position: 'relative'
     }}>
-      {/* Header */}
-      <div style={{
-        padding: isMobile ? '1rem' : '1.25rem',
-        borderBottom: '1px solid #2a2a2a'
-      }}>
+      {/* Header - Clickable to expand/collapse */}
+      <div 
+        onClick={() => setIsExpanded(!isExpanded)}
+        style={{
+          padding: isMobile ? '1rem' : '1.25rem',
+          borderBottom: isExpanded ? '1px solid #2a2a2a' : 'none',
+          cursor: 'pointer',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}
+      >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <span style={{ fontSize: '1.1rem' }}>🔮</span>
           <h3 style={{ color: '#fff', fontSize: isMobile ? '0.95rem' : '1.1rem', fontWeight: '600', margin: 0 }}>
@@ -28,6 +36,7 @@ const ScoreSimulatorTeaser: React.FC = () => {
           </h3>
           <Link
             to="/upgrade"
+            onClick={(e) => e.stopPropagation()}
             style={{
               padding: '0.15rem 0.4rem',
               backgroundColor: '#22d3ee15',
@@ -52,9 +61,31 @@ const ScoreSimulatorTeaser: React.FC = () => {
             PRO
           </Link>
         </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          {!isExpanded && (
+            <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>
+              "What if I win the next KvK?"
+            </span>
+          )}
+          <svg 
+            width="16" 
+            height="16" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="#6b7280" 
+            strokeWidth="2"
+            style={{ 
+              transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+              transition: 'transform 0.2s ease'
+            }}
+          >
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </div>
       </div>
 
-      {/* Blurred Preview */}
+      {/* Blurred Preview - Only shown when expanded */}
+      {isExpanded && (
       <div style={{
         padding: isMobile ? '1rem' : '1.25rem',
         position: 'relative',
@@ -129,7 +160,7 @@ const ScoreSimulatorTeaser: React.FC = () => {
             <div style={{ 
               fontSize: '2rem', 
               marginBottom: '0.75rem',
-              filter: 'drop-shadow(0 0 8px #a855f740)'
+              filter: 'drop-shadow(0 0 8px #22d3ee40)'
             }}>
               🔒
             </div>
@@ -173,7 +204,7 @@ const ScoreSimulatorTeaser: React.FC = () => {
               </div>
             </div>
 
-            {/* CTA Button */}
+            {/* CTA Button - Pro feature uses cyan color scheme */}
             <Link
               to={tier === 'anonymous' ? '/profile' : '/upgrade'}
               style={{
@@ -181,14 +212,14 @@ const ScoreSimulatorTeaser: React.FC = () => {
                 alignItems: 'center',
                 gap: '0.5rem',
                 padding: '0.6rem 1.25rem',
-                background: 'linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)',
+                background: 'linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%)',
                 border: 'none',
                 borderRadius: '8px',
-                color: '#fff',
+                color: '#000',
                 fontSize: '0.85rem',
                 fontWeight: '600',
                 textDecoration: 'none',
-                boxShadow: '0 0 15px rgba(168, 85, 247, 0.3)',
+                boxShadow: '0 0 15px rgba(34, 211, 238, 0.3)',
                 transition: 'transform 0.2s, box-shadow 0.2s'
               }}
             >
@@ -200,6 +231,7 @@ const ScoreSimulatorTeaser: React.FC = () => {
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 };

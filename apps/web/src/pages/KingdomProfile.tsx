@@ -6,6 +6,7 @@ import { statusService } from '../services/statusService';
 import KingdomReviews from '../components/KingdomReviews';
 import StatusSubmission from '../components/StatusSubmission';
 import ReportDataModal from '../components/ReportDataModal';
+import ReportKvKErrorModal from '../components/ReportKvKErrorModal';
 import TrendChart from '../components/TrendChart';
 import SimilarKingdoms from '../components/SimilarKingdoms';
 import ClaimKingdom from '../components/ClaimKingdom';
@@ -15,7 +16,6 @@ import { ScoreSimulator } from '../components/ScoreSimulator';
 import { getOutcome, OUTCOMES } from '../utils/outcomes';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useAuth } from '../contexts/AuthContext';
-import { usePremium } from '../contexts/PremiumContext';
 import { useToast } from '../components/Toast';
 import { neonGlow, getStatusColor, getTierColor } from '../utils/styles';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
@@ -26,7 +26,7 @@ const KingdomProfile: React.FC = () => {
   useDocumentTitle(kingdomNumber ? `Kingdom ${kingdomNumber}` : undefined);
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { tier, features, isPro } = usePremium();
+  // Premium context no longer needed - KvK History is now ungated for all users
   const { showToast } = useToast();
   const [kingdom, setKingdom] = useState<KingdomProfileType | null>(null);
   const [allKingdoms, setAllKingdoms] = useState<KingdomProfileType[]>([]);
@@ -37,6 +37,7 @@ const KingdomProfile: React.FC = () => {
   const [hasPendingSubmission, setHasPendingSubmission] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [showClaimModal, setShowClaimModal] = useState(false);
+  const [showKvKErrorModal, setShowKvKErrorModal] = useState(false);
 
   // Check for pending submissions
   useEffect(() => {
@@ -107,8 +108,11 @@ const KingdomProfile: React.FC = () => {
   const powerTier = kingdom ? (kingdom.power_tier ?? getPowerTier(kingdom.overall_score)) : 'D';
   const tierColor = getTierColor(powerTier);
   
-  // Calculate rank for meta tags
-  const sortedByScore = [...allKingdoms].sort((a, b) => b.overall_score - a.overall_score);
+  // Calculate rank for meta tags - ensure kingdom is included in ranking
+  const rankingList = kingdom && !allKingdoms.some(k => k.kingdom_number === kingdom.kingdom_number)
+    ? [...allKingdoms, kingdom as unknown as KingdomProfileType]
+    : allKingdoms;
+  const sortedByScore = [...rankingList].sort((a, b) => b.overall_score - a.overall_score);
   const rank = kingdom ? sortedByScore.findIndex(k => k.kingdom_number === kingdom.kingdom_number) + 1 : 0;
   
   // Update meta tags - must be called before any early returns
@@ -407,7 +411,7 @@ const KingdomProfile: React.FC = () => {
             </div>
             
             {/* Row 4: Total KvKs + Actions */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', marginTop: '0.5rem', flexWrap: 'wrap', position: 'relative', zIndex: 10 }}>
               <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>Total KvKs:</span>
               <span style={{ color: '#fff', fontSize: '0.9rem', fontWeight: 'bold' }}>{kingdom.total_kvks}</span>
               <span style={{ color: '#3a3a3a' }}>|</span>
@@ -478,8 +482,8 @@ const KingdomProfile: React.FC = () => {
         {/* Atlas Score Breakdown - Toggleable Radar Chart */}
         <AtlasScoreBreakdown 
           kingdom={kingdom} 
-          rank={allKingdoms.findIndex(k => k.kingdom_number === kingdom.kingdom_number) + 1 || undefined}
-          totalKingdoms={allKingdoms.length || undefined}
+          rank={rank > 0 ? rank : undefined}
+          totalKingdoms={rankingList.length || undefined}
         />
 
         {/* Score Simulator - Pro Feature */}
@@ -772,35 +776,42 @@ const KingdomProfile: React.FC = () => {
             marginBottom: isMobile ? '1.25rem' : '1.5rem',
             overflow: 'visible'
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
               <h3 style={{ color: '#fff', fontSize: isMobile ? '0.95rem' : '1.1rem', fontWeight: '600', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 📜 KvK History
               </h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <button
+                  onClick={() => setShowKvKErrorModal(true)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
+                    padding: '0.3rem 0.6rem',
+                    backgroundColor: '#ef444415',
+                    border: '1px solid #ef444430',
+                    borderRadius: '6px',
+                    color: '#ef4444',
+                    cursor: 'pointer',
+                    fontSize: '0.7rem',
+                    fontWeight: '500',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#ef444425';
+                    e.currentTarget.style.borderColor = '#ef444450';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = '#ef444415';
+                    e.currentTarget.style.borderColor = '#ef444430';
+                  }}
+                >
+                  🚩 Report Error
+                </button>
               <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>
-                Showing {Math.min(features.kvkHistoryLimit, allKvks.length)} of {kingdom.total_kvks} KvKs
-                {allKvks.length > features.kvkHistoryLimit && !isPro && (
-                  <>
-                    {' · '}
-                    <Link
-                      to={tier === 'anonymous' ? '/profile' : '/upgrade'}
-                      style={{
-                        color: '#22d3ee',
-                        textDecoration: 'none',
-                        fontWeight: '500',
-                        transition: 'opacity 0.15s'
-                      }}
-                      onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => {
-                        e.currentTarget.style.opacity = '0.8';
-                      }}
-                      onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => {
-                        e.currentTarget.style.opacity = '1';
-                      }}
-                    >
-                      {tier === 'anonymous' ? 'Sign in for more' : 'View full history with Pro'}
-                    </Link>
-                  </>
-                )}
+                {allKvks.length} of {kingdom.total_kvks} KvKs
               </span>
+              </div>
             </div>
             
             {/* KvK Table */}
@@ -816,7 +827,7 @@ const KingdomProfile: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {allKvks.slice(0, features.kvkHistoryLimit).map((kvk, index) => {
+                  {allKvks.map((kvk, index) => {
                     const outcomeStyle = getOutcomeStyle(kvk.prep_result, kvk.battle_result);
                     const isWin = (r: string) => r === 'Win' || r === 'W';
                     const outcomeLetter = getOutcomeLetter(kvk.prep_result, kvk.battle_result);
@@ -1037,6 +1048,16 @@ const KingdomProfile: React.FC = () => {
           kingdomNumber={kingdom.kingdom_number}
           isOpen={showClaimModal}
           onClose={() => setShowClaimModal(false)}
+        />
+      )}
+
+      {/* KvK Error Report Modal */}
+      {kingdom && (
+        <ReportKvKErrorModal
+          kingdomNumber={kingdom.kingdom_number}
+          kvkRecords={kingdom.recent_kvks || []}
+          isOpen={showKvKErrorModal}
+          onClose={() => setShowKvKErrorModal(false)}
         />
       )}
     </div>

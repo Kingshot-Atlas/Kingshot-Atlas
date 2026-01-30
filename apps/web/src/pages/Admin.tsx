@@ -54,6 +54,12 @@ const Admin: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('pending');
   const [importData, setImportData] = useState<string>('');
+  const [pendingCounts, setPendingCounts] = useState<{ submissions: number; claims: number; corrections: number }>({ submissions: 0, claims: 0, corrections: 0 });
+
+  // Fetch pending counts on mount
+  useEffect(() => {
+    fetchPendingCounts();
+  }, []);
 
   useEffect(() => {
     if (activeTab === 'submissions') {
@@ -65,6 +71,47 @@ const Admin: React.FC = () => {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, filter]);
+
+  const fetchPendingCounts = async () => {
+    // Fetch corrections count from localStorage
+    try {
+      const stored = localStorage.getItem(CORRECTIONS_KEY);
+      const all: DataCorrection[] = stored ? JSON.parse(stored) : [];
+      const pendingCorrections = all.filter(c => c.status === 'pending').length;
+      
+      // Fetch submissions and claims counts from API
+      let pendingSubmissions = 0;
+      let pendingClaims = 0;
+      
+      try {
+        const submissionsRes = await fetch(`${API_URL}/api/submissions?status=pending`, {
+          headers: { 'X-User-Id': user?.id || '' }
+        });
+        if (submissionsRes.ok) {
+          const data = await submissionsRes.json();
+          pendingSubmissions = Array.isArray(data) ? data.length : 0;
+        }
+      } catch { /* API might not be available */ }
+      
+      try {
+        const claimsRes = await fetch(`${API_URL}/api/claims?status=pending`, {
+          headers: { 'X-User-Id': user?.id || '' }
+        });
+        if (claimsRes.ok) {
+          const data = await claimsRes.json();
+          pendingClaims = Array.isArray(data) ? data.length : 0;
+        }
+      } catch { /* API might not be available */ }
+      
+      setPendingCounts({
+        submissions: pendingSubmissions,
+        claims: pendingClaims,
+        corrections: pendingCorrections
+      });
+    } catch (error) {
+      console.error('Failed to fetch pending counts:', error);
+    }
+  };
 
   const fetchCorrections = () => {
     setLoading(true);
@@ -87,6 +134,7 @@ const Admin: React.FC = () => {
     localStorage.setItem(CORRECTIONS_KEY, JSON.stringify(updated));
     showToast(`Correction ${status}`, 'success');
     fetchCorrections();
+    fetchPendingCounts(); // Update badge counts
   };
 
   const handleBulkImport = () => {
@@ -229,31 +277,48 @@ const Admin: React.FC = () => {
         flexWrap: 'wrap'
       }}>
         {[
-          { id: 'submissions', label: 'KvK Results', icon: '⚔️' },
-          { id: 'claims', label: 'Kingdom Claims', icon: '👑' },
-          { id: 'corrections', label: 'Data Corrections', icon: '📝' },
-          { id: 'import', label: 'Bulk Import', icon: '📤' }
-        ].map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id as typeof activeTab)}
-            style={{
-              padding: '0.5rem 1rem',
-              backgroundColor: activeTab === tab.id ? '#22d3ee' : 'transparent',
-              color: activeTab === tab.id ? '#0a0a0a' : '#9ca3af',
-              border: 'none',
-              borderRadius: '6px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-              fontSize: '0.9rem'
-            }}
-          >
-            <span>{tab.icon}</span> {tab.label}
-          </button>
-        ))}
+          { id: 'submissions', label: 'KvK Results', icon: '⚔️', countKey: 'submissions' as const },
+          { id: 'claims', label: 'Kingdom Claims', icon: '👑', countKey: 'claims' as const },
+          { id: 'corrections', label: 'Data Corrections', icon: '📝', countKey: 'corrections' as const },
+          { id: 'import', label: 'Bulk Import', icon: '📤', countKey: null }
+        ].map(tab => {
+          const count = tab.countKey ? pendingCounts[tab.countKey] : 0;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as typeof activeTab)}
+              style={{
+                padding: '0.5rem 1rem',
+                backgroundColor: activeTab === tab.id ? '#22d3ee' : 'transparent',
+                color: activeTab === tab.id ? '#0a0a0a' : '#9ca3af',
+                border: 'none',
+                borderRadius: '6px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                fontSize: '0.9rem'
+              }}
+            >
+              <span>{tab.icon}</span> {tab.label}
+              {count > 0 && (
+                <span style={{
+                  backgroundColor: activeTab === tab.id ? '#0a0a0a' : '#fbbf24',
+                  color: activeTab === tab.id ? '#22d3ee' : '#0a0a0a',
+                  fontSize: '0.7rem',
+                  fontWeight: 700,
+                  padding: '0.1rem 0.4rem',
+                  borderRadius: '9999px',
+                  minWidth: '1.2rem',
+                  textAlign: 'center'
+                }}>
+                  {count}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* Filter */}

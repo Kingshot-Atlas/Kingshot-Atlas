@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-from api.routers import kingdoms, auth, leaderboard, compare, submissions, agent, discord, player_link
+from api.routers import kingdoms, auth, leaderboard, compare, submissions, agent, discord, player_link, stripe
 from database import engine, SessionLocal
 from models import Base, Kingdom
 
@@ -88,6 +88,7 @@ app.include_router(submissions.router, prefix="/api/v1", tags=["submissions"])
 app.include_router(agent.router, prefix="/api/v1/agent", tags=["agent"])
 app.include_router(discord.router, prefix="/api/v1/discord", tags=["discord"])
 app.include_router(player_link.router, prefix="/api/v1/player-link", tags=["player-link"])
+app.include_router(stripe.router, prefix="/api/v1/stripe", tags=["stripe"])
 
 @app.get("/")
 def root():

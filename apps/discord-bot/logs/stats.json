@@ -1,19 +1,22 @@
 {
   "startedAt": "2026-01-30T03:21:28.304Z",
-  "lastUpdated": "2026-01-30T03:55:29.344Z",
-  "totalCommands": 9,
+  "lastUpdated": "2026-01-30T12:50:16.752Z",
+  "totalCommands": 14,
   "totalErrors": 3,
   "commandCounts": {
     "leaderboard": 4,
-    "kingdom": 4,
-    "compare": 1
+    "kingdom": 7,
+    "compare": 2,
+    "random": 1
   },
   "dailyActivity": {
     "2026-01-30": {
-      "commands": 9,
+      "commands": 14,
       "errors": 3,
       "uniqueUsers": [
-        "332218895765209089"
+        "332218895765209089",
+        "1374097322492821594",
+        "1365307844660039792"
       ]
     }
   },
@@ -23,9 +26,9 @@
   "guilds": {
     "1128775375477018775": {
       "name": "Kingshot Atlas",
-      "commands": 9,
+      "commands": 14,
       "firstSeen": "2026-01-30T03:26:24.972Z",
-      "lastActive": "2026-01-30T03:55:28.342Z"
+      "lastActive": "2026-01-30T12:50:15.752Z"
     }
   }
 }

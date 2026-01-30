@@ -1,0 +1,307 @@
+import React, { useState } from 'react';
+import { KVKRecord } from '../types';
+import { useAuth } from '../contexts/AuthContext';
+import { useToast } from './Toast';
+
+interface ReportKvKErrorModalProps {
+  kingdomNumber: number;
+  kvkRecords: KVKRecord[];
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const ERROR_TYPES = [
+  { key: 'wrong_opponent', label: 'Wrong Opponent Kingdom' },
+  { key: 'wrong_prep_result', label: 'Incorrect Prep Result' },
+  { key: 'wrong_battle_result', label: 'Incorrect Battle Result' },
+  { key: 'missing_kvk', label: 'Missing KvK (not in list)' },
+  { key: 'duplicate_kvk', label: 'Duplicate Entry' },
+  { key: 'other', label: 'Other Error' },
+];
+
+const ReportKvKErrorModal: React.FC<ReportKvKErrorModalProps> = ({ 
+  kingdomNumber, 
+  kvkRecords, 
+  isOpen, 
+  onClose 
+}) => {
+  const { user, profile } = useAuth();
+  const { showToast } = useToast();
+  const [selectedKvK, setSelectedKvK] = useState<number | null>(null);
+  const [errorType, setErrorType] = useState('');
+  const [description, setDescription] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  if (!isOpen) return null;
+
+  const sortedKvKs = [...kvkRecords].sort((a, b) => b.kvk_number - a.kvk_number);
+  const selectedKvKRecord = sortedKvKs.find(k => k.kvk_number === selectedKvK);
+
+  const handleSubmit = async () => {
+    if (!errorType) {
+      showToast('Please select an error type', 'error');
+      return;
+    }
+
+    if (errorType !== 'missing_kvk' && !selectedKvK) {
+      showToast('Please select which KvK has the error', 'error');
+      return;
+    }
+
+    if (!description.trim()) {
+      showToast('Please describe what is incorrect', 'error');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const KVK_ERRORS_KEY = 'kingshot_kvk_errors';
+      const existing = JSON.parse(localStorage.getItem(KVK_ERRORS_KEY) || '[]');
+      
+      const submission = {
+        id: `kvkerr_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        kingdom_number: kingdomNumber,
+        kvk_number: selectedKvK,
+        error_type: errorType,
+        error_type_label: ERROR_TYPES.find(e => e.key === errorType)?.label,
+        current_data: selectedKvKRecord ? {
+          opponent: selectedKvKRecord.opponent_kingdom,
+          prep_result: selectedKvKRecord.prep_result,
+          battle_result: selectedKvKRecord.battle_result
+        } : null,
+        description,
+        submitted_by: user?.id || 'anonymous',
+        submitted_by_name: profile?.username || 'Anonymous',
+        submitted_at: new Date().toISOString(),
+        status: 'pending'
+      };
+
+      existing.push(submission);
+      localStorage.setItem(KVK_ERRORS_KEY, JSON.stringify(existing));
+
+      showToast('KvK error reported. Thank you for helping improve our data!', 'success');
+      onClose();
+    } catch (err) {
+      showToast('Failed to submit report. Please try again.', 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1000,
+        padding: '1rem'
+      }}
+      onClick={onClose}
+    >
+      <div
+        style={{
+          backgroundColor: '#131318',
+          borderRadius: '16px',
+          border: '1px solid #2a2a2a',
+          padding: '1.5rem',
+          maxWidth: '450px',
+          width: '100%',
+          maxHeight: '90vh',
+          overflowY: 'auto'
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+          <div>
+            <h2 style={{ color: '#fff', fontSize: '1.1rem', fontWeight: '600', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span>🚩</span> Report KvK Data Error
+            </h2>
+            <p style={{ color: '#6b7280', fontSize: '0.8rem', margin: '0.25rem 0 0' }}>
+              Kingdom {kingdomNumber}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#6b7280',
+              cursor: 'pointer',
+              fontSize: '1.5rem',
+              lineHeight: 1
+            }}
+          >
+            ×
+          </button>
+        </div>
+
+        {/* Select KvK */}
+        <div style={{ marginBottom: '1rem' }}>
+          <label style={{ display: 'block', color: '#9ca3af', fontSize: '0.8rem', marginBottom: '0.5rem' }}>
+            Which KvK has incorrect data?
+          </label>
+          <select
+            value={selectedKvK || ''}
+            onChange={(e) => setSelectedKvK(e.target.value ? parseInt(e.target.value) : null)}
+            style={{
+              width: '100%',
+              padding: '0.65rem',
+              backgroundColor: '#0a0a0a',
+              border: '1px solid #2a2a2a',
+              borderRadius: '8px',
+              color: '#fff',
+              fontSize: '0.85rem'
+            }}
+          >
+            <option value="">-- Select KvK --</option>
+            {sortedKvKs.map(kvk => (
+              <option key={kvk.kvk_number} value={kvk.kvk_number}>
+                KvK #{kvk.kvk_number} vs Kingdom {kvk.opponent_kingdom} 
+                ({kvk.prep_result === 'Win' || kvk.prep_result === 'W' ? 'W' : 'L'}/
+                {kvk.battle_result === 'Win' || kvk.battle_result === 'W' ? 'W' : 'L'})
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Show current data if KvK selected */}
+        {selectedKvKRecord && (
+          <div style={{ 
+            marginBottom: '1rem',
+            padding: '0.75rem',
+            backgroundColor: '#0a0a0a',
+            borderRadius: '8px',
+            border: '1px solid #1f1f1f'
+          }}>
+            <div style={{ color: '#6b7280', fontSize: '0.7rem', marginBottom: '0.5rem' }}>CURRENT DATA</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', fontSize: '0.8rem' }}>
+              <div>
+                <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>Opponent</div>
+                <div style={{ color: '#22d3ee' }}>K{selectedKvKRecord.opponent_kingdom}</div>
+              </div>
+              <div>
+                <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>Prep</div>
+                <div style={{ color: selectedKvKRecord.prep_result === 'Win' || selectedKvKRecord.prep_result === 'W' ? '#22c55e' : '#ef4444' }}>
+                  {selectedKvKRecord.prep_result === 'Win' || selectedKvKRecord.prep_result === 'W' ? 'Win' : 'Loss'}
+                </div>
+              </div>
+              <div>
+                <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>Battle</div>
+                <div style={{ color: selectedKvKRecord.battle_result === 'Win' || selectedKvKRecord.battle_result === 'W' ? '#22c55e' : '#ef4444' }}>
+                  {selectedKvKRecord.battle_result === 'Win' || selectedKvKRecord.battle_result === 'W' ? 'Win' : 'Loss'}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Error Type */}
+        <div style={{ marginBottom: '1rem' }}>
+          <label style={{ display: 'block', color: '#9ca3af', fontSize: '0.8rem', marginBottom: '0.5rem' }}>
+            What's wrong?
+          </label>
+          <select
+            value={errorType}
+            onChange={(e) => setErrorType(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '0.65rem',
+              backgroundColor: '#0a0a0a',
+              border: '1px solid #2a2a2a',
+              borderRadius: '8px',
+              color: '#fff',
+              fontSize: '0.85rem'
+            }}
+          >
+            <option value="">-- Select error type --</option>
+            {ERROR_TYPES.map(et => (
+              <option key={et.key} value={et.key}>{et.label}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Description */}
+        <div style={{ marginBottom: '1rem' }}>
+          <label style={{ display: 'block', color: '#9ca3af', fontSize: '0.8rem', marginBottom: '0.5rem' }}>
+            Describe the correct data
+          </label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="e.g., 'The opponent was actually Kingdom 245' or 'We won the Battle phase, not lost'"
+            rows={3}
+            style={{
+              width: '100%',
+              padding: '0.65rem',
+              backgroundColor: '#0a0a0a',
+              border: '1px solid #2a2a2a',
+              borderRadius: '8px',
+              color: '#fff',
+              fontSize: '0.85rem',
+              resize: 'vertical'
+            }}
+          />
+        </div>
+
+        {/* Notice */}
+        <div style={{
+          padding: '0.65rem',
+          backgroundColor: '#22d3ee10',
+          border: '1px solid #22d3ee30',
+          borderRadius: '8px',
+          marginBottom: '1rem'
+        }}>
+          <div style={{ color: '#22d3ee', fontSize: '0.75rem', display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+            <span>ℹ️</span>
+            <span>Reports are reviewed by our team before updates are applied. Thank you for helping keep our data accurate!</span>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+          <button
+            onClick={onClose}
+            style={{
+              padding: '0.6rem 1rem',
+              backgroundColor: 'transparent',
+              border: '1px solid #3a3a3a',
+              borderRadius: '8px',
+              color: '#9ca3af',
+              cursor: 'pointer',
+              fontSize: '0.85rem'
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={submitting || !errorType || !description.trim()}
+            style={{
+              padding: '0.6rem 1rem',
+              backgroundColor: errorType && description.trim() ? '#ef4444' : '#1a1a1a',
+              border: 'none',
+              borderRadius: '8px',
+              color: errorType && description.trim() ? '#fff' : '#6b7280',
+              cursor: errorType && description.trim() ? 'pointer' : 'not-allowed',
+              fontSize: '0.85rem',
+              fontWeight: '600',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}
+          >
+            {submitting && <span className="loading-spinner" style={{ width: '14px', height: '14px' }} />}
+            🚩 Submit Report
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ReportKvKErrorModal;

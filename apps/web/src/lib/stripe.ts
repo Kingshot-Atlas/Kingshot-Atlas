@@ -1,23 +1,12 @@
 // Stripe configuration for subscription management
 // See /docs/STRIPE_QUICK_SETUP.md for setup instructions
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 export const STRIPE_CONFIG = {
   publishableKey: import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '',
   
-  // Price IDs from Stripe Dashboard
-  prices: {
-    pro: {
-      monthly: import.meta.env.VITE_STRIPE_PRO_MONTHLY || '',
-      yearly: import.meta.env.VITE_STRIPE_PRO_YEARLY || '',
-    },
-    recruiter: {
-      monthly: import.meta.env.VITE_STRIPE_RECRUITER_MONTHLY || '',
-      yearly: import.meta.env.VITE_STRIPE_RECRUITER_YEARLY || '',
-    },
-  },
-  
-  // Payment Link IDs (optional - alternative to price IDs)
-  // These are the full payment link URLs or IDs from Stripe Dashboard
+  // Payment Link IDs (direct links - no backend needed)
   paymentLinks: {
     pro: {
       monthly: import.meta.env.VITE_STRIPE_PRO_MONTHLY_LINK || '',
@@ -36,19 +25,47 @@ export const STRIPE_CONFIG = {
   kofiUrl: 'https://ko-fi.com/ksatlas',
 };
 
-// Check if Stripe is fully configured with at least one price
+// Check if Stripe is configured (has payment links or API is available)
 export const isStripeConfigured = Boolean(
-  STRIPE_CONFIG.publishableKey && 
-  (STRIPE_CONFIG.prices.pro.monthly || STRIPE_CONFIG.paymentLinks.pro.monthly)
+  STRIPE_CONFIG.paymentLinks.pro.monthly || STRIPE_CONFIG.paymentLinks.pro.yearly
 );
 
+// Create checkout session via API (preferred method)
+export const createCheckoutSession = async (
+  tier: 'pro' | 'recruiter',
+  billingCycle: 'monthly' | 'yearly',
+  userId: string,
+  userEmail?: string
+): Promise<{ checkout_url: string; session_id: string }> => {
+  const response = await fetch(`${API_BASE_URL}/api/v1/stripe/checkout`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      tier,
+      billing_cycle: billingCycle,
+      user_id: userId,
+      user_email: userEmail,
+    }),
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail?.error || 'Failed to create checkout session');
+  }
+  
+  return response.json();
+};
+
 // Get checkout URL for a specific tier and billing cycle
+// This function tries API first, then payment links, then Ko-fi fallback
 export const getCheckoutUrl = (
   tier: 'pro' | 'recruiter',
   billingCycle: 'monthly' | 'yearly',
   userId?: string
 ): string => {
-  // First try payment links (easiest setup, no backend needed)
+  // Try payment links first (no backend needed, instant redirect)
   const paymentLink = STRIPE_CONFIG.paymentLinks[tier][billingCycle];
   if (paymentLink) {
     const url = paymentLink.startsWith('http') 
@@ -57,16 +74,26 @@ export const getCheckoutUrl = (
     return userId ? `${url}?client_reference_id=${userId}` : url;
   }
   
-  // Then try price IDs (requires Stripe Checkout integration)
-  const priceId = STRIPE_CONFIG.prices[tier][billingCycle];
-  if (priceId && STRIPE_CONFIG.publishableKey) {
-    // For price IDs, we'd need Stripe Checkout - fallback to Ko-fi for now
-    // In production, this would create a Checkout Session via your backend
-    console.log('Price ID found but Payment Link not set. Using Ko-fi fallback.');
-  }
-  
   // Fallback to Ko-fi
   return STRIPE_CONFIG.kofiUrl;
+};
+
+// Async version that uses API checkout session
+export const getCheckoutUrlAsync = async (
+  tier: 'pro' | 'recruiter',
+  billingCycle: 'monthly' | 'yearly',
+  userId: string,
+  userEmail?: string
+): Promise<string> => {
+  try {
+    // Try API checkout session first
+    const { checkout_url } = await createCheckoutSession(tier, billingCycle, userId, userEmail);
+    return checkout_url;
+  } catch (error) {
+    console.warn('API checkout failed, falling back to payment link:', error);
+    // Fallback to direct payment link or Ko-fi
+    return getCheckoutUrl(tier, billingCycle, userId);
+  }
 };
 
 // Get customer portal URL for subscription management

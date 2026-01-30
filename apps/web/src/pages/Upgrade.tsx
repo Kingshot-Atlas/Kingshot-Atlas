@@ -5,10 +5,10 @@ import { neonGlow } from '../utils/styles';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useAuth } from '../contexts/AuthContext';
 import { usePremium } from '../contexts/PremiumContext';
-import { getCheckoutUrl } from '../lib/stripe';
+import { getCheckoutUrlAsync } from '../lib/stripe';
 
 const Upgrade: React.FC = () => {
-  useDocumentTitle('Upgrade to Pro');
+  useDocumentTitle('Atlas Upgrade');
   const isMobile = useIsMobile();
   const { user } = useAuth();
   const { tier } = usePremium();
@@ -16,7 +16,7 @@ const Upgrade: React.FC = () => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('yearly');
   const [isLoading, setIsLoading] = useState<'pro' | 'recruiter' | null>(null);
 
-  const handleUpgrade = (selectedTier: 'pro' | 'recruiter') => {
+  const handleUpgrade = async (selectedTier: 'pro' | 'recruiter') => {
     if (!user) {
       navigate('/profile');
       return;
@@ -24,35 +24,62 @@ const Upgrade: React.FC = () => {
     
     setIsLoading(selectedTier);
     
-    // Get checkout URL (Stripe Payment Link or Ko-fi fallback)
-    const checkoutUrl = getCheckoutUrl(selectedTier, billingCycle, user.id);
-    
-    // If it's Ko-fi, open in new tab; otherwise redirect
-    if (checkoutUrl.includes('ko-fi.com')) {
-      window.open(checkoutUrl, '_blank');
+    try {
+      // Get checkout URL via API (with fallback to payment links)
+      const checkoutUrl = await getCheckoutUrlAsync(
+        selectedTier, 
+        billingCycle, 
+        user.id,
+        user.email || undefined
+      );
+      
+      // If it's Ko-fi, open in new tab; otherwise redirect
+      if (checkoutUrl.includes('ko-fi.com')) {
+        window.open(checkoutUrl, '_blank');
+        setIsLoading(null);
+      } else {
+        window.location.href = checkoutUrl;
+      }
+    } catch (error) {
+      console.error('Checkout error:', error);
       setIsLoading(null);
-    } else {
-      window.location.href = checkoutUrl;
     }
   };
 
   const proFeatures = [
-    { icon: '📜', text: 'Full KvK History — Every match, every outcome' },
-    { icon: '📈', text: 'Score Timeline — Track performance over time' },
+    { icon: '🎯', text: 'Score Simulator — Predict future Atlas Scores' },
     { icon: '👀', text: 'Kingdom Watchlist — Monitor up to 20 rivals', comingSoon: true },
     { icon: '⚖️', text: 'Multi-Compare — Up to 5 kingdoms side-by-side' },
-    { icon: '⚡', text: 'Priority Support — Faster response times' },
+    { icon: '🔍', text: 'Advanced Filters — Power search tools' },
+    { icon: '⚡', text: 'Priority Submissions — Faster data processing' },
+    { icon: '🚫', text: 'Ad-Free — Clean, distraction-free experience' },
+    { icon: '🚀', text: 'Early Access — First to try new features' },
     { icon: '⭐', text: 'Pro Badge — Stand out in the community' },
-    { icon: '👾', text: 'Discord Role — Exclusive Pro role & badge' },
+    { icon: '💎', text: 'Discord Role — Exclusive Pro role & badge' },
+  ];
+
+  // Comparison table data
+  const comparisonData = [
+    { feature: 'KvK History', free: 'Full', pro: 'Full', recruiter: 'Full' },
+    { feature: 'Kingdom Profiles', free: '✓', pro: '✓', recruiter: '✓' },
+    { feature: 'Compare Kingdoms', free: '2', pro: '5', recruiter: '5' },
+    { feature: 'Watchlist Slots', free: '3', pro: '20', recruiter: '50' },
+    { feature: 'Score Simulator', free: '—', pro: '✓', recruiter: '✓' },
+    { feature: 'Advanced Filters', free: '—', pro: '✓', recruiter: '✓' },
+    { feature: 'Ad-Free', free: '—', pro: '✓', recruiter: '✓' },
+    { feature: 'Priority Support', free: '—', pro: '✓', recruiter: '✓' },
+    { feature: 'Claim Kingdom', free: '—', pro: '—', recruiter: '✓' },
+    { feature: 'Recruiter Tools', free: '—', pro: '—', recruiter: '✓' },
   ];
 
   const recruiterFeatures = [
     { icon: '✅', text: 'Everything in Pro, plus:' },
     { icon: '👑', text: 'Claim Kingdom — Official representative status', comingSoon: true },
-    { icon: '📈', text: 'Recruiter Dashboard — Track who\'s looking', comingSoon: true },
+    { icon: '📊', text: 'Recruiter Dashboard — Track who\'s looking', comingSoon: true },
     { icon: '🖼️', text: 'Custom Banner — Make your kingdom stand out', comingSoon: true },
     { icon: '📬', text: 'Recruit Inbox — Receive transfer interest', comingSoon: true },
-    { icon: '�', text: 'Discord Role — Exclusive Recruiter role & badge' },
+    { icon: '🏅', text: 'Recruiter Badge — Premium status in the community' },
+    { icon: '💜', text: 'Discord Role — Exclusive Recruiter role & badge' },
   ];
 
   const pricing = {
@@ -67,6 +94,10 @@ const Upgrade: React.FC = () => {
       yearlyMonthly: 9.99,
     },
   };
+
+  // Calculate savings
+  const proYearlySavings = (pricing.pro.monthly * 12) - pricing.pro.yearly;
+  const recruiterYearlySavings = (pricing.recruiter.monthly * 12) - pricing.recruiter.yearly;
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a' }}>
@@ -85,8 +116,8 @@ const Upgrade: React.FC = () => {
             marginBottom: '0.5rem',
             fontFamily: "'Cinzel', 'Times New Roman', serif"
           }}>
-            <span style={{ color: '#fff' }}>UPGRADE TO</span>
-            <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>PRO</span>
+            <span style={{ color: '#fff' }}>ATLAS</span>
+            <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>UPGRADE</span>
           </h1>
           <p style={{ color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.9rem', marginBottom: '0.75rem' }}>
             Stop guessing. Start winning.
@@ -172,6 +203,41 @@ const Upgrade: React.FC = () => {
             </button>
           </div>
         </div>
+
+        {/* Savings Banner - shows when yearly is selected */}
+        {billingCycle === 'yearly' && (
+          <div style={{ 
+            marginBottom: '1.5rem',
+            padding: '0.75rem 1rem',
+            background: 'linear-gradient(135deg, #22c55e15 0%, #22c55e08 100%)',
+            border: '1px solid #22c55e40',
+            borderRadius: '10px',
+            textAlign: 'center',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '1.5rem',
+            flexWrap: 'wrap'
+          }}>
+            <span style={{ fontSize: '0.85rem', color: '#9ca3af' }}>
+              💰 You're saving with yearly billing
+            </span>
+            <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
+              <span>
+                <span style={{ color: '#22d3ee', fontWeight: '600', fontSize: '0.85rem' }}>Pro: </span>
+                <span style={{ color: '#22c55e', fontWeight: '700', fontSize: '0.85rem' }}>
+                  Save ${proYearlySavings.toFixed(2)}/yr
+                </span>
+              </span>
+              <span>
+                <span style={{ color: '#a855f7', fontWeight: '600', fontSize: '0.85rem' }}>Recruiter: </span>
+                <span style={{ color: '#22c55e', fontWeight: '700', fontSize: '0.85rem' }}>
+                  Save ${recruiterYearlySavings.toFixed(2)}/yr
+                </span>
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Pricing Cards */}
         <div style={{ 
@@ -374,6 +440,129 @@ const Upgrade: React.FC = () => {
             </ul>
           </div>
         </div>
+
+        {/* Comparison Table */}
+        <section style={{ marginBottom: '2.5rem' }}>
+          <h2 style={{ 
+            fontSize: '1.1rem', 
+            fontWeight: 'bold', 
+            color: '#fff', 
+            marginBottom: '1rem',
+            textAlign: 'center'
+          }}>
+            Compare Plans
+          </h2>
+          <div style={{ 
+            overflowX: 'auto',
+            backgroundColor: '#0d0d0d',
+            borderRadius: '16px',
+            border: '1px solid #1f1f1f',
+            boxShadow: '0 4px 24px rgba(0,0,0,0.3)'
+          }}>
+            <table style={{ 
+              width: '100%', 
+              borderCollapse: 'separate',
+              borderSpacing: 0,
+              fontSize: isMobile ? '0.8rem' : '0.9rem',
+              tableLayout: 'fixed'
+            }}>
+              <colgroup>
+                <col style={{ width: isMobile ? '40%' : '40%' }} />
+                <col style={{ width: isMobile ? '20%' : '20%' }} />
+                <col style={{ width: isMobile ? '20%' : '20%' }} />
+                <col style={{ width: isMobile ? '20%' : '20%' }} />
+              </colgroup>
+              <thead>
+                <tr style={{ background: 'linear-gradient(180deg, #1a1a1a 0%, #141414 100%)' }}>
+                  <th style={{ 
+                    padding: '1rem 1.25rem', 
+                    textAlign: 'left', 
+                    color: '#6b7280', 
+                    fontWeight: '600',
+                    fontSize: '0.75rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    borderBottom: '1px solid #2a2a2a'
+                  }}>Feature</th>
+                  <th style={{ 
+                    padding: '1rem 0.5rem', 
+                    textAlign: 'center', 
+                    color: '#6b7280', 
+                    fontWeight: '600',
+                    fontSize: '0.75rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    borderBottom: '1px solid #2a2a2a'
+                  }}>Free</th>
+                  <th style={{ 
+                    padding: '1rem 0.5rem', 
+                    textAlign: 'center', 
+                    color: '#22d3ee', 
+                    fontWeight: '700',
+                    fontSize: '0.75rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    borderBottom: '2px solid #22d3ee40',
+                    background: 'linear-gradient(180deg, #22d3ee08 0%, transparent 100%)'
+                  }}>Pro</th>
+                  <th style={{ 
+                    padding: '1rem 0.5rem', 
+                    textAlign: 'center', 
+                    color: '#a855f7', 
+                    fontWeight: '700',
+                    fontSize: '0.75rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    borderBottom: '2px solid #a855f740',
+                    background: 'linear-gradient(180deg, #a855f708 0%, transparent 100%)'
+                  }}>Recruiter</th>
+                </tr>
+              </thead>
+              <tbody>
+                {comparisonData.map((row, i) => (
+                  <tr 
+                    key={i} 
+                    style={{ 
+                      backgroundColor: i % 2 === 0 ? 'transparent' : '#0a0a0a',
+                      transition: 'background-color 0.15s'
+                    }}
+                  >
+                    <td style={{ 
+                      padding: '0.85rem 1.25rem', 
+                      color: '#e5e7eb',
+                      fontWeight: '500',
+                      borderBottom: i < comparisonData.length - 1 ? '1px solid #1a1a1a' : 'none'
+                    }}>{row.feature}</td>
+                    <td style={{ 
+                      padding: '0.85rem 0.5rem', 
+                      textAlign: 'center', 
+                      color: row.free === '—' ? '#3f3f46' : '#9ca3af',
+                      fontWeight: row.free === '—' ? '400' : '600',
+                      borderBottom: i < comparisonData.length - 1 ? '1px solid #1a1a1a' : 'none'
+                    }}>{row.free}</td>
+                    <td style={{ 
+                      padding: '0.85rem 0.5rem', 
+                      textAlign: 'center', 
+                      color: row.pro === '✓' ? '#22d3ee' : row.pro === '—' ? '#3f3f46' : '#22d3ee',
+                      fontWeight: '600',
+                      background: 'linear-gradient(180deg, #22d3ee05 0%, transparent 100%)',
+                      borderBottom: i < comparisonData.length - 1 ? '1px solid #1a1a1a' : 'none'
+                    }}>{row.pro}</td>
+                    <td style={{ 
+                      padding: '0.85rem 0.5rem', 
+                      textAlign: 'center', 
+                      color: row.recruiter === '✓' ? '#a855f7' : row.recruiter === '—' ? '#3f3f46' : '#a855f7',
+                      fontWeight: '600',
+                      background: 'linear-gradient(180deg, #a855f705 0%, transparent 100%)',
+                      borderBottom: i < comparisonData.length - 1 ? '1px solid #1a1a1a' : 'none'
+                    }}>{row.recruiter}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
 
         {/* FAQ */}
         <section style={{ marginBottom: '2rem' }}>

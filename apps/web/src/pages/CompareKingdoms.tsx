@@ -265,7 +265,46 @@ const CompareKingdoms: React.FC = () => {
       </div>
 
       <div style={{ maxWidth: '600px', margin: '0 auto', padding: isMobile ? '1rem' : '1.5rem' }}>
-        {/* Input Section */}
+        {/* Login Required for Anonymous Users */}
+        {tier === 'anonymous' && (
+          <div style={{
+            textAlign: 'center',
+            padding: '2rem',
+            marginBottom: '1.5rem',
+            backgroundColor: '#111111',
+            borderRadius: '12px',
+            border: '1px solid #22d3ee30'
+          }}>
+            <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>🔒</div>
+            <h3 style={{ color: '#fff', fontSize: '1.1rem', marginBottom: '0.5rem' }}>
+              Sign in to Compare Kingdoms
+            </h3>
+            <p style={{ color: '#9ca3af', fontSize: '0.85rem', marginBottom: '1rem' }}>
+              Create a free account to compare up to 2 kingdoms side-by-side.
+            </p>
+            <Link
+              to="/profile"
+              style={{
+                display: 'inline-block',
+                padding: '0.6rem 1.5rem',
+                background: 'linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%)',
+                borderRadius: '8px',
+                color: '#000',
+                fontWeight: '600',
+                fontSize: '0.9rem',
+                textDecoration: 'none'
+              }}
+            >
+              Sign In / Register
+            </Link>
+            <p style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '1rem' }}>
+              Pro & Recruiter can compare up to 5 kingdoms
+            </p>
+          </div>
+        )}
+
+        {/* Input Section - Only show for logged-in users */}
+        {tier !== 'anonymous' && (
         <div style={{
           display: 'flex',
           flexDirection: 'column',
@@ -355,7 +394,7 @@ const CompareKingdoms: React.FC = () => {
             marginTop: '0.75rem',
             width: '100%'
           }}>
-            {/* Slot 3 - Free users get this */}
+            {/* Slot 3 - Pro/Recruiter only (Free users have limit of 2) */}
             {(() => {
               const slotIndex = 2;
               const isLocked = features.multiCompare < 3;
@@ -363,7 +402,7 @@ const CompareKingdoms: React.FC = () => {
               
               if (isLocked) {
                 return (
-                  <Link to={user ? '/upgrade' : '/profile'} style={{ textDecoration: 'none' }}>
+                  <Link to="/upgrade" style={{ textDecoration: 'none' }}>
                     <div style={{
                       width: isMobile ? '80px' : '100px',
                       height: isMobile ? '38px' : '42px',
@@ -474,7 +513,7 @@ const CompareKingdoms: React.FC = () => {
           
           {/* Upgrade Prompt - tier-aware messaging */}
           {features.multiCompare < MAX_COMPARE_SLOTS && (
-            <Link to={user ? '/upgrade' : '/profile'} style={{ textDecoration: 'none' }}>
+            <Link to="/upgrade" style={{ textDecoration: 'none' }}>
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -482,23 +521,21 @@ const CompareKingdoms: React.FC = () => {
                 gap: '0.5rem',
                 marginTop: '0.75rem',
                 padding: '0.5rem 0.75rem',
-                backgroundColor: tier === 'anonymous' ? '#ffffff08' : '#22d3ee10',
-                border: `1px solid ${tier === 'anonymous' ? '#ffffff20' : '#22d3ee30'}`,
+                backgroundColor: '#22d3ee10',
+                border: '1px solid #22d3ee30',
                 borderRadius: '6px',
                 cursor: 'pointer',
                 transition: 'all 0.2s'
               }}>
-                {tier !== 'anonymous' && <ProBadge size="sm" />}
+                <ProBadge size="sm" />
                 <span style={{ color: '#9ca3af', fontSize: '0.8rem' }}>
-                  {tier === 'anonymous' 
-                    ? 'Sign in to compare up to 3 kingdoms'
-                    : 'Go Pro to compare up to 5 kingdoms'
-                  }
+                  Go Pro to compare up to 5 kingdoms
                 </span>
               </div>
             </Link>
           )}
         </div>
+        )}
 
         {error && (
           <div style={{ textAlign: 'center', padding: '0.75rem', backgroundColor: '#1f1f1f', borderRadius: '8px', marginBottom: '1rem', color: '#ef4444', fontSize: '0.85rem' }}>

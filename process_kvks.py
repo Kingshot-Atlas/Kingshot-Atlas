@@ -1,3 +1,26 @@
+"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  ⚠️  DEPRECATED - DO NOT USE                                                  ║
+║                                                                               ║
+║  This script has been replaced by:                                            ║
+║    regenerate_kingdoms_with_atlas_score.py                                    ║
+║                                                                               ║
+║  The new script:                                                              ║
+║    - Uses the improved Bayesian Average formula                               ║
+║    - Generates BOTH JSON and CSV files in a single run                        ║
+║    - Ensures single source of truth for all Atlas Score data                  ║
+║                                                                               ║
+║  See docs/DATA_ARCHITECTURE.md for details.                                   ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+"""
+import warnings
+warnings.warn(
+    "process_kvks.py is DEPRECATED. Use regenerate_kingdoms_with_atlas_score.py instead. "
+    "See docs/DATA_ARCHITECTURE.md for details.",
+    DeprecationWarning,
+    stacklevel=2
+)
+
 import pandas as pd
 import numpy as np
 import math

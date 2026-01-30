@@ -16,6 +16,9 @@ psycopg2-binary>=2.9.9
 # Optional: Error monitoring (gracefully skipped if not installed)
 sentry-sdk>=2.0.0
 
+# Stripe payments
+stripe>=8.0.0
+
 # Optional: AI Agent (Anthropic Claude)
 anthropic>=0.40.0
 

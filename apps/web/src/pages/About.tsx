@@ -249,6 +249,26 @@ const About: React.FC = () => {
           <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.9rem' : '0.95rem', lineHeight: 1.7, marginBottom: '1rem' }}>
             Our data comes from community contributions and verified KvK results. We obsess over accuracy, but KvK is complex—edge cases exist. If you spot an error, let us know.
           </p>
+          <div style={{ 
+            backgroundColor: '#111111', 
+            padding: '1rem', 
+            borderRadius: '8px', 
+            border: '1px solid #2a2a2a',
+            marginBottom: '1rem'
+          }}>
+            <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.85rem' : '0.9rem', lineHeight: 1.6, margin: 0 }}>
+              <span style={{ color: '#22d3ee', fontWeight: '600' }}>Special thanks</span> to{' '}
+              <a 
+                href="https://www.reddit.com/r/KingShot/comments/1qc42ga/all_kvk_results_for_every_kingdom_rankings/"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: '#f97316', textDecoration: 'none' }}
+              >
+                Cosmos (u/CosmosSolitarus)
+              </a>
+              {' '}for compiling the original KvK History spreadsheet that made this project possible. Community effort at its finest.
+            </p>
+          </div>
           <p style={{ color: '#6b7280', fontSize: isMobile ? '0.85rem' : '0.9rem', lineHeight: 1.7 }}>
             Kingshot Atlas is an independent fan project. We're not affiliated with or endorsed by the developers of Kingshot. We're just players who love the game.
           </p>

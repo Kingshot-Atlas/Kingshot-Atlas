@@ -20,7 +20,7 @@ Kingshot Atlas should monetize through a **freemium model** with optional premiu
 |---------|----------|
 | Kingdom Directory | ✅ Full access |
 | Kingdom Profiles | ✅ Basic stats |
-| Last 5 KvK History | ✅ |
+| Full KvK History | ✅ All records |
 | Compare (2 kingdoms) | ✅ |
 | Leaderboards | ✅ Top 50 |
 | User Profile | ✅ Basic |
@@ -32,7 +32,7 @@ Kingshot Atlas should monetize through a **freemium model** with optional premiu
 
 | Feature | Value Proposition | Status |
 |---------|-------------------|--------|
-| **Full KvK History** | See all historical performance, not just last 5 | ✅ Live |
+| ~~Full KvK History~~ | *Now free for all users* | ✅ Free |
 | **Score Timeline** | Track performance over time | ✅ Live |
 | **Kingdom Watchlist** | Track up to 20 kingdoms with status change alerts | 🛠️ Coming Soon |
 | **Multi-Compare** | Compare up to 5 kingdoms side-by-side | ✅ Live |
@@ -159,7 +159,9 @@ npm install @stripe/stripe-js
 const isPro = user?.subscription_tier === 'pro' || user?.subscription_tier === 'recruiter';
 
 // In component
-{isPro ? <FullKvKHistory /> : <UpgradePrompt feature="Full KvK History" />}
+{isPro ? <PremiumFeature /> : <UpgradePrompt feature="Feature Name" />}
+
+// Note: KvK History is now FREE for all users - no gating required
 ```
 
 ---

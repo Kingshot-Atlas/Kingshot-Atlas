@@ -47,7 +47,7 @@
 | Radar Charts | ✅ Live | Product | `RadarChart.tsx`, `MiniRadarChart.tsx`, `CompareRadarChart.tsx` |
 | Kingdom Cards | ✅ Live | Product | `KingdomCard.tsx` with stats display |
 | Kingdom Table View | ✅ Live | Product | `KingdomTable.tsx` alternative view |
-| KvK History Display | ✅ Live | Product | Win/loss records with opponents |
+| KvK History Display | ✅ Live | Product | Win/loss records with opponents (FREE for all users - ungated 2026-01-30) |
 | Similar Kingdoms | ✅ Live | Product | `SimilarKingdoms.tsx` recommendations |
 | Quick Filter Chips | ✅ Live | Product | `QuickFilterChips.tsx` for fast filtering |
 | Filter Panel | ✅ Live | Product | `FilterPanel.tsx` (exists, needs integration) |

@@ -367,12 +367,58 @@ def main():
         'kvk_records': kvk_records
     }
     
+    # ═══════════════════════════════════════════════════════════════════════════
+    # SINGLE SOURCE OF TRUTH: All data outputs are generated from this script
+    # ═══════════════════════════════════════════════════════════════════════════
+    
+    # 1. Frontend JSON (primary source)
     output_path = base_path / 'apps/web/src/data/kingdoms.json'
     with open(output_path, 'w') as f:
         json.dump(data, f, indent=2)
+    print(f"\n✓ Generated {output_path}")
     
-    print(f"\nGenerated {output_path}")
-    print(f"Total kingdoms: {len(kingdoms)}")
+    # 2. API CSV files (derived from same data)
+    api_data_path = base_path / 'apps/api/data'
+    api_data_path.mkdir(exist_ok=True)
+    
+    # Write kingdoms_summary.csv for API
+    summary_path = api_data_path / 'kingdoms_summary.csv'
+    with open(summary_path, 'w', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow([
+            'kingdom_number', 'total_kvks', 'prep_wins', 'prep_losses',
+            'prep_win_rate', 'prep_win_streak', 'battle_wins', 'battle_losses',
+            'battle_win_rate', 'battle_win_streak', 'dominations', 'defeats',
+            'most_recent_status', 'overall_score'
+        ])
+        for k in kingdoms:
+            writer.writerow([
+                k['kingdom_number'], k['total_kvks'], k['prep_wins'], k['prep_losses'],
+                k['prep_win_rate'], k.get('prep_streak', 0), k['battle_wins'], k['battle_losses'],
+                k['battle_win_rate'], k.get('battle_streak', 0), k.get('dominations', 0),
+                k.get('defeats', 0), k.get('most_recent_status', 'Unannounced'), k['overall_score']
+            ])
+    print(f"✓ Generated {summary_path}")
+    
+    # Write kingdoms_all_kvks.csv for API
+    kvks_path = api_data_path / 'kingdoms_all_kvks.csv'
+    with open(kvks_path, 'w', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow([
+            'kingdom_number', 'kvk_number', 'opponent_kingdom',
+            'prep_result', 'battle_result', 'overall_result',
+            'kvk_date', 'order_index'
+        ])
+        for kvk in kvk_records:
+            date_str = kvk.get('date_or_order_index', '')
+            writer.writerow([
+                kvk['kingdom_number'], kvk['kvk_number'], kvk['opponent_kingdom'],
+                kvk['prep_result'], kvk['battle_result'], kvk['overall_result'],
+                date_str, kvk['kvk_number']
+            ])
+    print(f"✓ Generated {kvks_path}")
+    
+    print(f"\nTotal kingdoms: {len(kingdoms)}")
     print(f"Total KvK records: {len(kvk_records)}")
     
     # Show some sample scores

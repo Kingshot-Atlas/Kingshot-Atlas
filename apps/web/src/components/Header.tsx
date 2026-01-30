@@ -140,7 +140,7 @@ const Header: React.FC = () => {
               <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
               </svg>
-              Get Pro
+              Upgrade
             </Link>
             {/* Ko-fi Tip Button */}
             <a
@@ -418,7 +418,7 @@ const Header: React.FC = () => {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
             </svg>
-            Get Pro
+            Upgrade
           </Link>
           
           {/* Ko-fi Tip Button */}
@@ -813,7 +813,7 @@ const Header: React.FC = () => {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
             </svg>
-            Upgrade to Pro
+            Upgrade
           </Link>
           <div style={{ height: '1px', backgroundColor: '#1f1f1f', margin: '0.5rem 0' }} />
           <a

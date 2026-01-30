@@ -44,6 +44,30 @@ interface DataCorrection {
   submitter_name: string;
   status: 'pending' | 'approved' | 'rejected';
   created_at: string;
+  reviewed_by?: string;
+  reviewed_at?: string;
+  review_notes?: string;
+}
+
+interface KvKError {
+  id: string;
+  kingdom_number: number;
+  kvk_number: number | null;
+  error_type: string;
+  error_type_label: string;
+  current_data: {
+    opponent: number;
+    prep_result: string;
+    battle_result: string;
+  } | null;
+  description: string;
+  submitted_by: string;
+  submitted_by_name: string;
+  submitted_at: string;
+  status: 'pending' | 'approved' | 'rejected';
+  reviewed_by?: string;
+  reviewed_at?: string;
+  review_notes?: string;
 }
 
 interface AnalyticsData {
@@ -78,23 +102,35 @@ interface AnalyticsData {
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 const CORRECTIONS_KEY = 'kingshot_data_corrections';
+const KVK_ERRORS_KEY = 'kingshot_kvk_errors';
+const ADMIN_LOG_KEY = 'kingshot_admin_log';
 
 const AdminDashboard: React.FC = () => {
   const { user, profile } = useAuth();
   const { showToast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [activeTab, setActiveTab] = useState<'analytics' | 'submissions' | 'claims' | 'corrections' | 'import' | 'users' | 'plausible' | 'transfer-status'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'submissions' | 'claims' | 'corrections' | 'kvk-errors' | 'import' | 'users' | 'plausible' | 'transfer-status'>('analytics');
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [claims, setClaims] = useState<Claim[]>([]);
   const [transferSubmissions, setTransferSubmissions] = useState<StatusSubmission[]>([]);
   const [corrections, setCorrections] = useState<DataCorrection[]>([]);
+  const [kvkErrors, setKvkErrors] = useState<KvKError[]>([]);
+  const [rejectModalOpen, setRejectModalOpen] = useState<{ type: string; id: string } | null>(null);
+  const [rejectReason, setRejectReason] = useState('');
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('pending');
   const [importData, setImportData] = useState<string>('');
+  const [pendingCounts, setPendingCounts] = useState<{ submissions: number; claims: number; corrections: number; transfers: number; kvkErrors: number }>({ submissions: 0, claims: 0, corrections: 0, transfers: 0, kvkErrors: 0 });
 
   // Check if user is admin
   const isAdmin = profile?.username && ADMIN_USERS.includes(profile.username.toLowerCase());
+
+  // Fetch pending counts on mount
+  useEffect(() => {
+    if (isAdmin) fetchPendingCounts();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdmin]);
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -109,9 +145,64 @@ const AdminDashboard: React.FC = () => {
       fetchCorrections();
     } else if (activeTab === 'transfer-status') {
       fetchTransferSubmissions();
+    } else if (activeTab === 'kvk-errors') {
+      fetchKvkErrors();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, filter, isAdmin]);
+
+  const fetchPendingCounts = async () => {
+    try {
+      // Corrections from localStorage
+      const correctionsStored = localStorage.getItem(CORRECTIONS_KEY);
+      const allCorrections: DataCorrection[] = correctionsStored ? JSON.parse(correctionsStored) : [];
+      const pendingCorrections = allCorrections.filter(c => c.status === 'pending').length;
+      
+      // Transfer status from localStorage
+      const transfersStored = localStorage.getItem('kingshot_status_submissions');
+      const allTransfers: StatusSubmission[] = transfersStored ? JSON.parse(transfersStored) : [];
+      const pendingTransfers = allTransfers.filter(t => t.status === 'pending').length;
+      
+      // Submissions and claims from API
+      let pendingSubmissions = 0;
+      let pendingClaims = 0;
+      
+      try {
+        const submissionsRes = await fetch(`${API_URL}/api/submissions?status=pending`, {
+          headers: { 'X-User-Id': user?.id || '' }
+        });
+        if (submissionsRes.ok) {
+          const data = await submissionsRes.json();
+          pendingSubmissions = Array.isArray(data) ? data.length : 0;
+        }
+      } catch { /* API might not be available */ }
+      
+      try {
+        const claimsRes = await fetch(`${API_URL}/api/claims?status=pending`, {
+          headers: { 'X-User-Id': user?.id || '' }
+        });
+        if (claimsRes.ok) {
+          const data = await claimsRes.json();
+          pendingClaims = Array.isArray(data) ? data.length : 0;
+        }
+      } catch { /* API might not be available */ }
+      
+      // KvK errors from localStorage
+      const kvkErrorsStored = localStorage.getItem(KVK_ERRORS_KEY);
+      const allKvkErrors: KvKError[] = kvkErrorsStored ? JSON.parse(kvkErrorsStored) : [];
+      const pendingKvkErrors = allKvkErrors.filter(e => e.status === 'pending').length;
+      
+      setPendingCounts({
+        submissions: pendingSubmissions,
+        claims: pendingClaims,
+        corrections: pendingCorrections,
+        transfers: pendingTransfers,
+        kvkErrors: pendingKvkErrors
+      });
+    } catch (error) {
+      console.error('Failed to fetch pending counts:', error);
+    }
+  };
 
   const fetchAnalytics = async () => {
     setLoading(true);
@@ -193,13 +284,74 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  const reviewCorrection = (id: string, status: 'approved' | 'rejected') => {
+  const reviewCorrection = (id: string, status: 'approved' | 'rejected', notes?: string) => {
     const stored = localStorage.getItem(CORRECTIONS_KEY);
     const all: DataCorrection[] = stored ? JSON.parse(stored) : [];
-    const updated = all.map(c => c.id === id ? { ...c, status } : c);
+    const updated = all.map(c => c.id === id ? { 
+      ...c, 
+      status,
+      reviewed_by: profile?.username || 'admin',
+      reviewed_at: new Date().toISOString(),
+      review_notes: notes || ''
+    } : c);
     localStorage.setItem(CORRECTIONS_KEY, JSON.stringify(updated));
+    logAdminAction('correction', id, status, notes);
     showToast(`Correction ${status}`, 'success');
     fetchCorrections();
+    fetchPendingCounts();
+    setRejectModalOpen(null);
+    setRejectReason('');
+  };
+
+  const fetchKvkErrors = () => {
+    setLoading(true);
+    try {
+      const stored = localStorage.getItem(KVK_ERRORS_KEY);
+      const all: KvKError[] = stored ? JSON.parse(stored) : [];
+      const filtered = filter === 'all' ? all : all.filter(e => e.status === filter);
+      setKvkErrors(filtered);
+    } catch (error) {
+      console.error('Failed to fetch KvK errors:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const reviewKvkError = (id: string, status: 'approved' | 'rejected', notes?: string) => {
+    const stored = localStorage.getItem(KVK_ERRORS_KEY);
+    const all: KvKError[] = stored ? JSON.parse(stored) : [];
+    const updated = all.map(e => e.id === id ? { 
+      ...e, 
+      status,
+      reviewed_by: profile?.username || 'admin',
+      reviewed_at: new Date().toISOString(),
+      review_notes: notes || ''
+    } : e);
+    localStorage.setItem(KVK_ERRORS_KEY, JSON.stringify(updated));
+    logAdminAction('kvk-error', id, status, notes);
+    showToast(`KvK error report ${status}`, 'success');
+    fetchKvkErrors();
+    fetchPendingCounts();
+    setRejectModalOpen(null);
+    setRejectReason('');
+  };
+
+  const logAdminAction = (type: string, id: string, action: string, notes?: string) => {
+    try {
+      const stored = localStorage.getItem(ADMIN_LOG_KEY);
+      const log = stored ? JSON.parse(stored) : [];
+      log.unshift({
+        id: `log_${Date.now()}`,
+        type,
+        item_id: id,
+        action,
+        notes: notes || '',
+        admin: profile?.username || 'unknown',
+        timestamp: new Date().toISOString()
+      });
+      // Keep only last 100 entries
+      localStorage.setItem(ADMIN_LOG_KEY, JSON.stringify(log.slice(0, 100)));
+    } catch { /* ignore logging errors */ }
   };
 
   const handleBulkImport = () => {
@@ -287,6 +439,7 @@ const AdminDashboard: React.FC = () => {
       if (response.ok) {
         showToast(`Submission ${status}`, 'success');
         fetchSubmissions();
+        fetchPendingCounts();
       } else {
         showToast('Failed to review submission', 'error');
       }
@@ -304,6 +457,7 @@ const AdminDashboard: React.FC = () => {
       if (response.ok) {
         showToast('Claim verified', 'success');
         fetchClaims();
+        fetchPendingCounts();
       } else {
         showToast('Failed to verify claim', 'error');
       }
@@ -343,6 +497,7 @@ const AdminDashboard: React.FC = () => {
       apiService.reloadData();
       showToast(`Transfer status ${status}`, 'success');
       fetchTransferSubmissions();
+      fetchPendingCounts();
     } catch (error) {
       showToast('Error reviewing transfer submission', 'error');
     }
@@ -509,34 +664,52 @@ const AdminDashboard: React.FC = () => {
         flexWrap: 'wrap'
       }}>
         {[
-          { id: 'analytics', label: 'Analytics', icon: '📊' },
-          { id: 'submissions', label: 'KvK Results', icon: '⚔️' },
-          { id: 'claims', label: 'Kingdom Claims', icon: '👑' },
-          { id: 'transfer-status', label: 'Transfer Status', icon: '🔄' },
-          { id: 'corrections', label: 'Data Corrections', icon: '📝' },
-          { id: 'import', label: 'Bulk Import', icon: '📤' },
-          { id: 'plausible', label: 'Live Analytics', icon: '📈' }
-        ].map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id as typeof activeTab)}
-            style={{
-              padding: '0.5rem 1rem',
-              backgroundColor: activeTab === tab.id ? '#22d3ee' : 'transparent',
-              color: activeTab === tab.id ? '#0a0a0a' : '#9ca3af',
-              border: 'none',
-              borderRadius: '6px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-              fontSize: '0.9rem'
-            }}
-          >
-            <span>{tab.icon}</span> {tab.label}
-          </button>
-        ))}
+          { id: 'analytics', label: 'Analytics', icon: '📊', countKey: null },
+          { id: 'submissions', label: 'KvK Results', icon: '⚔️', countKey: 'submissions' as const },
+          { id: 'claims', label: 'Kingdom Claims', icon: '👑', countKey: 'claims' as const },
+          { id: 'transfer-status', label: 'Transfer Status', icon: '🔄', countKey: 'transfers' as const },
+          { id: 'corrections', label: 'Data Corrections', icon: '📝', countKey: 'corrections' as const },
+          { id: 'kvk-errors', label: 'KvK Errors', icon: '🚩', countKey: 'kvkErrors' as const },
+          { id: 'import', label: 'Bulk Import', icon: '📤', countKey: null },
+          { id: 'plausible', label: 'Live Analytics', icon: '📈', countKey: null }
+        ].map(tab => {
+          const count = tab.countKey ? pendingCounts[tab.countKey] : 0;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as typeof activeTab)}
+              style={{
+                padding: '0.5rem 1rem',
+                backgroundColor: activeTab === tab.id ? '#22d3ee' : 'transparent',
+                color: activeTab === tab.id ? '#0a0a0a' : '#9ca3af',
+                border: 'none',
+                borderRadius: '6px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                fontSize: '0.9rem'
+              }}
+            >
+              <span>{tab.icon}</span> {tab.label}
+              {count > 0 && (
+                <span style={{
+                  backgroundColor: activeTab === tab.id ? '#0a0a0a' : '#fbbf24',
+                  color: activeTab === tab.id ? '#22d3ee' : '#0a0a0a',
+                  fontSize: '0.7rem',
+                  fontWeight: 700,
+                  padding: '0.1rem 0.4rem',
+                  borderRadius: '9999px',
+                  minWidth: '1.2rem',
+                  textAlign: 'center'
+                }}>
+                  {count}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* Filter (not for analytics) */}
@@ -729,7 +902,100 @@ const AdminDashboard: React.FC = () => {
                       <button onClick={() => reviewCorrection(correction.id, 'approved')} style={{ padding: '0.5rem 1rem', backgroundColor: '#22c55e', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }}>
                         Approve
                       </button>
-                      <button onClick={() => reviewCorrection(correction.id, 'rejected')} style={{ padding: '0.5rem 1rem', backgroundColor: '#ef4444', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }}>
+                      <button onClick={() => setRejectModalOpen({ type: 'correction', id: correction.id })} style={{ padding: '0.5rem 1rem', backgroundColor: '#ef4444', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }}>
+                        Reject
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      ) : activeTab === 'kvk-errors' ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {kvkErrors.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
+              No {filter} KvK error reports
+            </div>
+          ) : (
+            kvkErrors.map((error) => (
+              <div key={error.id} style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', border: '1px solid #2a2a2a' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                  <div>
+                    <span style={{ color: '#22d3ee', fontWeight: 600 }}>K{error.kingdom_number}</span>
+                    {error.kvk_number && <span style={{ color: '#6b7280' }}> - KvK #{error.kvk_number}</span>}
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <span style={{ 
+                      padding: '0.2rem 0.5rem',
+                      backgroundColor: '#ef444420',
+                      color: '#ef4444',
+                      borderRadius: '4px',
+                      fontSize: '0.7rem',
+                      fontWeight: 600
+                    }}>
+                      {error.error_type_label}
+                    </span>
+                    <div style={{ 
+                      padding: '0.25rem 0.75rem',
+                      backgroundColor: error.status === 'pending' ? '#fbbf2420' : error.status === 'approved' ? '#22c55e20' : '#ef444420',
+                      color: error.status === 'pending' ? '#fbbf24' : error.status === 'approved' ? '#22c55e' : '#ef4444',
+                      borderRadius: '9999px',
+                      fontSize: '0.75rem',
+                      fontWeight: 600
+                    }}>
+                      {error.status.toUpperCase()}
+                    </div>
+                  </div>
+                </div>
+                
+                {error.current_data && (
+                  <div style={{ 
+                    marginBottom: '1rem',
+                    padding: '0.75rem',
+                    backgroundColor: '#0a0a0a',
+                    borderRadius: '8px',
+                    border: '1px solid #1f1f1f'
+                  }}>
+                    <div style={{ color: '#6b7280', fontSize: '0.7rem', marginBottom: '0.5rem' }}>REPORTED DATA</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', fontSize: '0.8rem' }}>
+                      <div>
+                        <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>Opponent</div>
+                        <div style={{ color: '#22d3ee' }}>K{error.current_data.opponent}</div>
+                      </div>
+                      <div>
+                        <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>Prep</div>
+                        <div style={{ color: error.current_data.prep_result === 'Win' ? '#22c55e' : '#ef4444' }}>
+                          {error.current_data.prep_result}
+                        </div>
+                      </div>
+                      <div>
+                        <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>Battle</div>
+                        <div style={{ color: error.current_data.battle_result === 'Win' ? '#22c55e' : '#ef4444' }}>
+                          {error.current_data.battle_result}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div style={{ color: '#fff', fontSize: '0.875rem', marginBottom: '1rem', padding: '0.75rem', backgroundColor: '#1a1a20', borderRadius: '6px' }}>
+                  <span style={{ color: '#6b7280' }}>Description: </span>
+                  {error.description}
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #2a2a2a', paddingTop: '1rem' }}>
+                  <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                    By {error.submitted_by_name} • {new Date(error.submitted_at).toLocaleDateString()}
+                  </div>
+                  
+                  {error.status === 'pending' && (
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button onClick={() => reviewKvkError(error.id, 'approved')} style={{ padding: '0.5rem 1rem', backgroundColor: '#22c55e', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }}>
+                        Approve
+                      </button>
+                      <button onClick={() => setRejectModalOpen({ type: 'kvk-error', id: error.id })} style={{ padding: '0.5rem 1rem', backgroundColor: '#ef4444', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }}>
                         Reject
                       </button>
                     </div>
@@ -1015,6 +1281,93 @@ const AdminDashboard: React.FC = () => {
           </button>
         </div>
       ) : null}
+
+      {/* Reject Modal with Reason */}
+      {rejectModalOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '1rem'
+          }}
+          onClick={() => { setRejectModalOpen(null); setRejectReason(''); }}
+        >
+          <div
+            style={{
+              backgroundColor: '#131318',
+              borderRadius: '16px',
+              border: '1px solid #2a2a2a',
+              padding: '1.5rem',
+              maxWidth: '400px',
+              width: '100%'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 style={{ color: '#fff', fontSize: '1.1rem', fontWeight: '600', marginBottom: '1rem' }}>
+              Reject with Reason
+            </h2>
+            <textarea
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              placeholder="Explain why this submission is being rejected..."
+              rows={4}
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                backgroundColor: '#0a0a0a',
+                border: '1px solid #2a2a2a',
+                borderRadius: '8px',
+                color: '#fff',
+                fontSize: '0.9rem',
+                resize: 'vertical',
+                marginBottom: '1rem'
+              }}
+            />
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => { setRejectModalOpen(null); setRejectReason(''); }}
+                style={{
+                  padding: '0.6rem 1rem',
+                  backgroundColor: 'transparent',
+                  border: '1px solid #3a3a3a',
+                  borderRadius: '8px',
+                  color: '#9ca3af',
+                  cursor: 'pointer',
+                  fontSize: '0.85rem'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (rejectModalOpen.type === 'kvk-error') {
+                    reviewKvkError(rejectModalOpen.id, 'rejected', rejectReason);
+                  } else if (rejectModalOpen.type === 'correction') {
+                    reviewCorrection(rejectModalOpen.id, 'rejected', rejectReason);
+                  }
+                }}
+                style={{
+                  padding: '0.6rem 1rem',
+                  backgroundColor: '#ef4444',
+                  border: 'none',
+                  borderRadius: '8px',
+                  color: '#fff',
+                  cursor: 'pointer',
+                  fontSize: '0.85rem',
+                  fontWeight: '600'
+                }}
+              >
+                Reject
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

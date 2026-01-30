@@ -113,9 +113,11 @@ const ScoreSimulator: React.FC<ScoreSimulatorProps> = ({ kingdom }) => {
           padding: isMobile ? '1rem' : '1.25rem',
           cursor: 'pointer',
           display: 'flex',
-          justifyContent: 'space-between',
+          flexDirection: 'column',
           alignItems: 'center',
-          borderBottom: isExpanded ? '1px solid #2a2a2a' : 'none'
+          gap: '0.35rem',
+          borderBottom: isExpanded ? '1px solid #2a2a2a' : 'none',
+          position: 'relative'
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -135,27 +137,28 @@ const ScoreSimulator: React.FC<ScoreSimulatorProps> = ({ kingdom }) => {
             PRO
           </span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          {!isExpanded && (
-            <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>
-              "What if I win the next KvK?"
-            </span>
-          )}
-          <svg 
-            width="16" 
-            height="16" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="#6b7280" 
-            strokeWidth="2"
-            style={{ 
-              transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
-              transition: 'transform 0.2s ease'
-            }}
-          >
-            <polyline points="6 9 12 15 18 9" />
-          </svg>
-        </div>
+        {!isExpanded && (
+          <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>
+            "What if I win the next KvK?"
+          </span>
+        )}
+        <svg 
+          width="16" 
+          height="16" 
+          viewBox="0 0 24 24" 
+          fill="none" 
+          stroke="#6b7280" 
+          strokeWidth="2"
+          style={{ 
+            position: 'absolute',
+            right: isMobile ? '1rem' : '1.25rem',
+            top: '50%',
+            transform: isExpanded ? 'translateY(-50%) rotate(180deg)' : 'translateY(-50%) rotate(0deg)',
+            transition: 'transform 0.2s ease'
+          }}
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
       </div>
 
       {/* Expandable Content */}
