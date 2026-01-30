@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { KVKRecord } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from './Toast';
+import { contributorService } from '../services/contributorService';
 
 interface ReportKvKErrorModalProps {
   kingdomNumber: number;
@@ -55,6 +56,18 @@ const ReportKvKErrorModal: React.FC<ReportKvKErrorModalProps> = ({
 
     setSubmitting(true);
     try {
+      // B4: Check for duplicate
+      const duplicate = contributorService.checkDuplicate('kvkError', {
+        kingdom_number: kingdomNumber,
+        kvk_number: selectedKvK,
+        error_type: errorType
+      });
+      if (duplicate.isDuplicate) {
+        showToast('A similar error report is already pending review', 'error');
+        setSubmitting(false);
+        return;
+      }
+
       const KVK_ERRORS_KEY = 'kingshot_kvk_errors';
       const existing = JSON.parse(localStorage.getItem(KVK_ERRORS_KEY) || '[]');
       
@@ -78,6 +91,11 @@ const ReportKvKErrorModal: React.FC<ReportKvKErrorModalProps> = ({
 
       existing.push(submission);
       localStorage.setItem(KVK_ERRORS_KEY, JSON.stringify(existing));
+
+      // B3: Track submission for contributor stats
+      if (user?.id) {
+        contributorService.trackNewSubmission(user.id, profile?.username || 'Anonymous', 'kvkError');
+      }
 
       showToast('KvK error reported. Thank you for helping improve our data!', 'success');
       onClose();

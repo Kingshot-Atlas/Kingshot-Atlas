@@ -12,6 +12,7 @@ import SimilarKingdoms from '../components/SimilarKingdoms';
 import ClaimKingdom from '../components/ClaimKingdom';
 import AtlasScoreBreakdown from '../components/AtlasScoreBreakdown';
 import ShareButton from '../components/ShareButton';
+import FollowKingdomButton from '../components/FollowKingdomButton';
 import { ScoreSimulator } from '../components/ScoreSimulator';
 import { getOutcome, OUTCOMES } from '../utils/outcomes';
 import { useIsMobile } from '../hooks/useMediaQuery';
@@ -415,6 +416,12 @@ const KingdomProfile: React.FC = () => {
               <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>Total KvKs:</span>
               <span style={{ color: '#fff', fontSize: '0.9rem', fontWeight: 'bold' }}>{kingdom.total_kvks}</span>
               <span style={{ color: '#3a3a3a' }}>|</span>
+              
+              {/* Follow Button */}
+              <FollowKingdomButton 
+                kingdomId={kingdom.kingdom_number} 
+                size="small"
+              />
               
               {/* Share Button */}
               <ShareButton

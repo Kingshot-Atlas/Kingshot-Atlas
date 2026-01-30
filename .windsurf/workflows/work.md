@@ -71,6 +71,7 @@ Add row with: Feature | Status | Date | Agent | Notes
 - Why it was done
 - Files changed
 - 3 suggestions for next steps (5 tasks each)
+  - **Each suggestion MUST include a short explanation of WHY it's suggested** (business value, user impact, or technical debt reduction)
 
 ## 7. Vision Alignment Check
 Before delivering, verify:

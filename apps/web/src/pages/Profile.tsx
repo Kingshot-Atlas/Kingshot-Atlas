@@ -2,10 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import ParticleEffect from '../components/ParticleEffect';
 import UserAchievements from '../components/UserAchievements';
+import SubmissionHistory from '../components/SubmissionHistory';
 import AuthModal from '../components/AuthModal';
 import ProfileFeatures from '../components/ProfileFeatures';
 import LinkKingshotAccount from '../components/LinkKingshotAccount';
+import PlayersFromMyKingdom from '../components/PlayersFromMyKingdom';
 import { useAuth, getCacheBustedAvatarUrl, UserProfile } from '../contexts/AuthContext';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { neonGlow } from '../utils/styles';
@@ -263,8 +266,27 @@ const Profile: React.FC = () => {
   useEffect(() => {
     if (userId) {
       // Viewing another user's profile
-      const loadOtherProfile = () => {
-        // Check demo users first
+      const loadOtherProfile = async () => {
+        // Try to fetch from Supabase first
+        if (isSupabaseConfigured && supabase) {
+          try {
+            const { data, error } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', userId)
+              .single();
+            
+            if (!error && data) {
+              setViewedProfile(data as UserProfile);
+              setIsViewingOther(true);
+              return;
+            }
+          } catch (err) {
+            console.error('Failed to fetch profile:', err);
+          }
+        }
+
+        // Fallback to demo users
         const demoUsers = [
           {
             id: 'demo1',
@@ -315,23 +337,6 @@ const Profile: React.FC = () => {
           setViewedProfile(demoUser);
           setIsViewingOther(true);
           return;
-        }
-        
-        // Try to find profile in localStorage (simulated database)
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key?.startsWith('kingshot_profile_')) {
-            try {
-              const userProfile = JSON.parse(localStorage.getItem(key) || '{}');
-              if (userProfile.id === userId) {
-                setViewedProfile(userProfile);
-                setIsViewingOther(true);
-                return;
-              }
-            } catch (e) {
-              // Skip invalid profiles
-            }
-          }
         }
       };
       
@@ -814,6 +819,11 @@ const Profile: React.FC = () => {
           isMobile={isMobile}
         />
 
+        {/* Players from My Kingdom - only show for own profile */}
+        {!isViewingOther && (
+          <PlayersFromMyKingdom themeColor={themeColor} />
+        )}
+
         {/* Link Kingshot Account - only show for own profile */}
         {!isViewingOther && (
           <div style={{ marginBottom: '2rem' }}>
@@ -864,6 +874,13 @@ const Profile: React.FC = () => {
         <div style={{ marginBottom: '2rem' }}>
           <UserAchievements />
         </div>
+
+        {/* C1: Submission History - only for logged in users viewing their own profile */}
+        {!isViewingOther && user && (
+          <div style={{ marginBottom: '2rem' }}>
+            <SubmissionHistory userId={user.id} themeColor={themeColor} />
+          </div>
+        )}
 
         {/* Profile Features - Favorites, Watchlist, Reviews, etc. */}
         <div>

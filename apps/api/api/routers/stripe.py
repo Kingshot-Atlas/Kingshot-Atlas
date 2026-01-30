@@ -13,6 +13,7 @@ from pydantic import BaseModel
 from typing import Optional
 from slowapi import Limiter
 from slowapi.util import get_remote_address
+from api.supabase_client import update_user_subscription, get_user_by_stripe_customer, get_user_profile
 
 router = APIRouter()
 limiter = Limiter(key_func=get_remote_address)
@@ -197,16 +198,18 @@ async def handle_checkout_completed(session: dict):
     
     print(f"Checkout completed: user={user_id}, tier={tier}, subscription={subscription_id}")
     
-    # TODO: Update user's subscription tier in Supabase
-    # This requires Supabase admin client - will be implemented when we have
-    # the Supabase service role key configured
-    #
-    # Example:
-    # supabase.from_("profiles").update({
-    #     "subscription_tier": tier,
-    #     "stripe_customer_id": customer_id,
-    #     "stripe_subscription_id": subscription_id,
-    # }).eq("id", user_id).execute()
+    # Update user's subscription tier in Supabase
+    success = update_user_subscription(
+        user_id=user_id,
+        tier=tier,
+        stripe_customer_id=customer_id,
+        stripe_subscription_id=subscription_id,
+    )
+    
+    if success:
+        print(f"Successfully updated subscription for user {user_id} to {tier}")
+    else:
+        print(f"Failed to update subscription for user {user_id}")
 
 
 async def handle_subscription_updated(subscription: dict):
@@ -221,7 +224,21 @@ async def handle_subscription_updated(subscription: dict):
     
     print(f"Subscription updated: id={subscription_id}, status={status}, tier={tier}, user={user_id}")
     
-    # TODO: Update user's subscription status in Supabase
+    # If subscription is active and we have a tier, update the user
+    if status == "active" and tier and user_id:
+        update_user_subscription(
+            user_id=user_id,
+            tier=tier,
+            stripe_subscription_id=subscription_id,
+        )
+    elif status in ("canceled", "unpaid", "past_due"):
+        # If subscription is no longer active, check if we should downgrade
+        if user_id:
+            # For past_due, we might want to give a grace period
+            # For now, only downgrade on explicit cancellation
+            if status == "canceled":
+                update_user_subscription(user_id=user_id, tier="free")
+                print(f"Downgraded user {user_id} to free tier due to cancellation")
 
 
 async def handle_subscription_deleted(subscription: dict):
@@ -229,23 +246,39 @@ async def handle_subscription_deleted(subscription: dict):
     Handle subscription cancellation - downgrade user to free tier.
     """
     subscription_id = subscription.get("id")
+    customer_id = subscription.get("customer")
     user_id = subscription.get("metadata", {}).get("user_id")
     
     print(f"Subscription deleted: id={subscription_id}, user={user_id}")
     
-    # TODO: Set user's tier back to 'free' in Supabase
+    # Try to find user by metadata first, then by Stripe customer ID
+    if user_id:
+        update_user_subscription(user_id=user_id, tier="free")
+        print(f"Downgraded user {user_id} to free tier")
+    elif customer_id:
+        # Look up user by Stripe customer ID
+        profile = get_user_by_stripe_customer(customer_id)
+        if profile:
+            update_user_subscription(user_id=profile["id"], tier="free")
+            print(f"Downgraded user {profile['id']} to free tier (found by customer ID)")
+        else:
+            print(f"Could not find user for Stripe customer {customer_id}")
 
 
 async def handle_payment_failed(invoice: dict):
     """
-    Handle failed payment - notify user and potentially suspend access.
+    Handle failed payment - log for now, could add notifications later.
     """
     subscription_id = invoice.get("subscription")
     customer_id = invoice.get("customer")
+    attempt_count = invoice.get("attempt_count", 0)
     
-    print(f"Payment failed: subscription={subscription_id}, customer={customer_id}")
+    print(f"Payment failed: subscription={subscription_id}, customer={customer_id}, attempt={attempt_count}")
     
-    # TODO: Send notification to user about failed payment
+    # After multiple failed attempts, Stripe will automatically cancel the subscription
+    # which will trigger handle_subscription_deleted
+    # For now, we just log the failure
+    # Future enhancement: Send email notification to user about failed payment
 
 
 @router.get("/subscription/{user_id}")
@@ -256,27 +289,58 @@ async def get_subscription_status(request: Request, user_id: str):
     
     Returns tier, status, and billing info if subscribed.
     """
-    if not STRIPE_SECRET_KEY:
-        raise HTTPException(
-            status_code=503,
-            detail={"error": "Payment service not configured", "code": "SERVICE_UNAVAILABLE"}
-        )
+    # Get user profile from Supabase
+    profile = get_user_profile(user_id)
     
-    # TODO: Look up user's Stripe customer ID from Supabase
-    # Then fetch their subscription from Stripe
+    if not profile:
+        return {
+            "user_id": user_id,
+            "tier": "free",
+            "status": "none",
+            "message": "User profile not found"
+        }
     
-    # For now, return a placeholder
-    return {
-        "user_id": user_id,
-        "tier": "free",
-        "status": "none",
-        "message": "Subscription lookup not yet implemented"
-    }
+    tier = profile.get("subscription_tier", "free")
+    stripe_subscription_id = profile.get("stripe_subscription_id")
+    
+    # If no Stripe subscription, return basic info
+    if not stripe_subscription_id or not STRIPE_SECRET_KEY:
+        return {
+            "user_id": user_id,
+            "tier": tier,
+            "status": "active" if tier != "free" else "none",
+            "stripe_connected": False
+        }
+    
+    # Fetch subscription details from Stripe
+    try:
+        subscription = stripe.Subscription.retrieve(stripe_subscription_id)
+        return {
+            "user_id": user_id,
+            "tier": tier,
+            "status": subscription.status,
+            "stripe_connected": True,
+            "current_period_end": subscription.current_period_end,
+            "cancel_at_period_end": subscription.cancel_at_period_end,
+        }
+    except stripe.error.StripeError as e:
+        return {
+            "user_id": user_id,
+            "tier": tier,
+            "status": "unknown",
+            "stripe_connected": True,
+            "error": str(e)
+        }
+
+
+class PortalRequest(BaseModel):
+    """Request body for creating a portal session."""
+    user_id: str
 
 
 @router.post("/portal")
 @limiter.limit("10/minute")
-async def create_portal_session(request: Request, user_id: str = None, customer_id: str = None):
+async def create_portal_session(request: Request, portal_request: PortalRequest):
     """
     Create a Stripe Customer Portal session for managing subscriptions.
     
@@ -291,11 +355,21 @@ async def create_portal_session(request: Request, user_id: str = None, customer_
             detail={"error": "Payment service not configured", "code": "SERVICE_UNAVAILABLE"}
         )
     
+    # Look up customer_id from Supabase using user_id
+    profile = get_user_profile(portal_request.user_id)
+    
+    if not profile:
+        raise HTTPException(
+            status_code=404,
+            detail={"error": "User profile not found", "code": "USER_NOT_FOUND"}
+        )
+    
+    customer_id = profile.get("stripe_customer_id")
+    
     if not customer_id:
-        # TODO: Look up customer_id from Supabase using user_id
         raise HTTPException(
             status_code=400,
-            detail={"error": "Customer ID required", "code": "MISSING_CUSTOMER_ID"}
+            detail={"error": "No Stripe customer found for this user", "code": "NO_STRIPE_CUSTOMER"}
         )
     
     try:

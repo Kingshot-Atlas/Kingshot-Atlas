@@ -4,6 +4,7 @@ import { useToast } from '../components/Toast';
 import { analyticsService } from '../services/analyticsService';
 import { statusService, type StatusSubmission } from '../services/statusService';
 import { apiService } from '../services/api';
+import { contributorService } from '../services/contributorService';
 
 // Admin users - Discord usernames that have admin access
 const ADMIN_USERS = ['gatreno'];
@@ -117,6 +118,8 @@ const AdminDashboard: React.FC = () => {
   const [kvkErrors, setKvkErrors] = useState<KvKError[]>([]);
   const [rejectModalOpen, setRejectModalOpen] = useState<{ type: string; id: string } | null>(null);
   const [rejectReason, setRejectReason] = useState('');
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [viewAsUser, setViewAsUser] = useState(false); // A4: View as user mode
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('pending');
@@ -287,6 +290,7 @@ const AdminDashboard: React.FC = () => {
   const reviewCorrection = (id: string, status: 'approved' | 'rejected', notes?: string) => {
     const stored = localStorage.getItem(CORRECTIONS_KEY);
     const all: DataCorrection[] = stored ? JSON.parse(stored) : [];
+    const correction = all.find(c => c.id === id);
     const updated = all.map(c => c.id === id ? { 
       ...c, 
       status,
@@ -296,6 +300,18 @@ const AdminDashboard: React.FC = () => {
     } : c);
     localStorage.setItem(CORRECTIONS_KEY, JSON.stringify(updated));
     logAdminAction('correction', id, status, notes);
+    
+    // C2: Send notification to submitter & B3: Update reputation
+    if (correction) {
+      contributorService.updateReputation(correction.submitter_id, correction.submitter_name, 'correction', status === 'approved');
+      contributorService.addNotification(correction.submitter_id, {
+        type: status === 'approved' ? 'correction_approved' : 'correction_rejected',
+        title: status === 'approved' ? 'Correction Approved!' : 'Correction Rejected',
+        message: `Your correction for K${correction.kingdom_number} (${correction.field}) was ${status}.${notes ? ` Reason: ${notes}` : ''}`,
+        itemId: id
+      });
+    }
+    
     showToast(`Correction ${status}`, 'success');
     fetchCorrections();
     fetchPendingCounts();
@@ -320,6 +336,7 @@ const AdminDashboard: React.FC = () => {
   const reviewKvkError = (id: string, status: 'approved' | 'rejected', notes?: string) => {
     const stored = localStorage.getItem(KVK_ERRORS_KEY);
     const all: KvKError[] = stored ? JSON.parse(stored) : [];
+    const kvkError = all.find(e => e.id === id);
     const updated = all.map(e => e.id === id ? { 
       ...e, 
       status,
@@ -329,6 +346,18 @@ const AdminDashboard: React.FC = () => {
     } : e);
     localStorage.setItem(KVK_ERRORS_KEY, JSON.stringify(updated));
     logAdminAction('kvk-error', id, status, notes);
+    
+    // C2: Send notification to submitter & B3: Update reputation
+    if (kvkError) {
+      contributorService.updateReputation(kvkError.submitted_by, kvkError.submitted_by_name, 'kvkError', status === 'approved');
+      contributorService.addNotification(kvkError.submitted_by, {
+        type: status === 'approved' ? 'submission_approved' : 'submission_rejected',
+        title: status === 'approved' ? 'KvK Error Report Approved!' : 'KvK Error Report Rejected',
+        message: `Your KvK error report for K${kvkError.kingdom_number} was ${status}.${notes ? ` Reason: ${notes}` : ''}`,
+        itemId: id
+      });
+    }
+    
     showToast(`KvK error report ${status}`, 'success');
     fetchKvkErrors();
     fetchPendingCounts();
@@ -352,6 +381,70 @@ const AdminDashboard: React.FC = () => {
       // Keep only last 100 entries
       localStorage.setItem(ADMIN_LOG_KEY, JSON.stringify(log.slice(0, 100)));
     } catch { /* ignore logging errors */ }
+  };
+
+  // A2: Bulk selection helpers
+  const toggleItemSelection = (id: string) => {
+    setSelectedItems(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+
+  const selectAllPending = (type: 'corrections' | 'kvk-errors' | 'transfers') => {
+    if (type === 'corrections') {
+      const pendingIds = corrections.filter(c => c.status === 'pending').map(c => c.id);
+      setSelectedItems(new Set(pendingIds));
+    } else if (type === 'kvk-errors') {
+      const pendingIds = kvkErrors.filter(e => e.status === 'pending').map(e => e.id);
+      setSelectedItems(new Set(pendingIds));
+    } else if (type === 'transfers') {
+      const pendingIds = transferSubmissions.filter(t => t.status === 'pending').map(t => t.id);
+      setSelectedItems(new Set(pendingIds));
+    }
+  };
+
+  const clearSelection = () => setSelectedItems(new Set());
+
+  const bulkReviewCorrections = (status: 'approved' | 'rejected') => {
+    if (selectedItems.size === 0) return;
+    const stored = localStorage.getItem(CORRECTIONS_KEY);
+    const all: DataCorrection[] = stored ? JSON.parse(stored) : [];
+    const updated = all.map(c => selectedItems.has(c.id) ? { 
+      ...c, 
+      status,
+      reviewed_by: profile?.username || 'admin',
+      reviewed_at: new Date().toISOString()
+    } : c);
+    localStorage.setItem(CORRECTIONS_KEY, JSON.stringify(updated));
+    selectedItems.forEach(id => logAdminAction('correction', id, status, 'Bulk action'));
+    showToast(`${selectedItems.size} corrections ${status}`, 'success');
+    setSelectedItems(new Set());
+    fetchCorrections();
+    fetchPendingCounts();
+  };
+
+  const bulkReviewKvkErrors = (status: 'approved' | 'rejected') => {
+    if (selectedItems.size === 0) return;
+    const stored = localStorage.getItem(KVK_ERRORS_KEY);
+    const all: KvKError[] = stored ? JSON.parse(stored) : [];
+    const updated = all.map(e => selectedItems.has(e.id) ? { 
+      ...e, 
+      status,
+      reviewed_by: profile?.username || 'admin',
+      reviewed_at: new Date().toISOString()
+    } : e);
+    localStorage.setItem(KVK_ERRORS_KEY, JSON.stringify(updated));
+    selectedItems.forEach(id => logAdminAction('kvk-error', id, status, 'Bulk action'));
+    showToast(`${selectedItems.size} KvK errors ${status}`, 'success');
+    setSelectedItems(new Set());
+    fetchKvkErrors();
+    fetchPendingCounts();
   };
 
   const handleBulkImport = () => {
@@ -639,18 +732,36 @@ const AdminDashboard: React.FC = () => {
     <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
         <h1 style={{ fontSize: '2rem', fontWeight: 700, color: '#ffffff' }}>
-          Admin Dashboard
+          Admin Dashboard {viewAsUser && <span style={{ fontSize: '0.9rem', color: '#fbbf24' }}>(Viewing as Free User)</span>}
         </h1>
-        <div style={{ 
-          padding: '0.35rem 0.75rem', 
-          backgroundColor: '#22c55e20', 
-          borderRadius: '6px',
-          border: '1px solid #22c55e50',
-          color: '#22c55e',
-          fontSize: '0.8rem',
-          fontWeight: '600'
-        }}>
-          ✓ Admin: {profile?.username}
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+          {/* A4: View as User Toggle */}
+          <button
+            onClick={() => setViewAsUser(!viewAsUser)}
+            style={{
+              padding: '0.35rem 0.75rem',
+              backgroundColor: viewAsUser ? '#fbbf2420' : '#3a3a3a20',
+              borderRadius: '6px',
+              border: viewAsUser ? '1px solid #fbbf2450' : '1px solid #3a3a3a',
+              color: viewAsUser ? '#fbbf24' : '#9ca3af',
+              fontSize: '0.8rem',
+              fontWeight: '500',
+              cursor: 'pointer'
+            }}
+          >
+            👁️ {viewAsUser ? 'Exit User View' : 'View as User'}
+          </button>
+          <div style={{ 
+            padding: '0.35rem 0.75rem', 
+            backgroundColor: '#22c55e20', 
+            borderRadius: '6px',
+            border: '1px solid #22c55e50',
+            color: '#22c55e',
+            fontSize: '0.8rem',
+            fontWeight: '600'
+          }}>
+            ✓ Admin: {profile?.username}
+          </div>
         </div>
       </div>
 
@@ -854,15 +965,42 @@ const AdminDashboard: React.FC = () => {
         </div>
       ) : activeTab === 'corrections' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {/* A2: Bulk Actions Toolbar */}
+          {filter === 'pending' && corrections.some(c => c.status === 'pending') && (
+            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', padding: '0.75rem', backgroundColor: '#111116', borderRadius: '8px', border: '1px solid #2a2a2a' }}>
+              <button onClick={() => selectAllPending('corrections')} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#22d3ee20', border: '1px solid #22d3ee50', borderRadius: '6px', color: '#22d3ee', fontSize: '0.8rem', cursor: 'pointer' }}>
+                Select All ({corrections.filter(c => c.status === 'pending').length})
+              </button>
+              {selectedItems.size > 0 && (
+                <>
+                  <span style={{ color: '#9ca3af', fontSize: '0.8rem' }}>{selectedItems.size} selected</span>
+                  <button onClick={() => bulkReviewCorrections('approved')} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#22c55e', border: 'none', borderRadius: '6px', color: '#fff', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>
+                    ✓ Approve All
+                  </button>
+                  <button onClick={() => bulkReviewCorrections('rejected')} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#ef4444', border: 'none', borderRadius: '6px', color: '#fff', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>
+                    ✗ Reject All
+                  </button>
+                  <button onClick={clearSelection} style={{ padding: '0.4rem 0.75rem', backgroundColor: 'transparent', border: '1px solid #3a3a3a', borderRadius: '6px', color: '#9ca3af', fontSize: '0.8rem', cursor: 'pointer' }}>
+                    Clear
+                  </button>
+                </>
+              )}
+            </div>
+          )}
           {corrections.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
               No {filter} data corrections
             </div>
           ) : (
             corrections.map((correction) => (
-              <div key={correction.id} style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', border: '1px solid #2a2a2a' }}>
+              <div key={correction.id} style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', border: selectedItems.has(correction.id) ? '2px solid #22d3ee' : '1px solid #2a2a2a' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                  <span style={{ color: '#22d3ee', fontWeight: 600 }}>K{correction.kingdom_number} - {correction.field}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    {correction.status === 'pending' && (
+                      <input type="checkbox" checked={selectedItems.has(correction.id)} onChange={() => toggleItemSelection(correction.id)} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
+                    )}
+                    <span style={{ color: '#22d3ee', fontWeight: 600 }}>K{correction.kingdom_number} - {correction.field}</span>
+                  </div>
                   <div style={{ 
                     padding: '0.25rem 0.75rem',
                     backgroundColor: correction.status === 'pending' ? '#fbbf2420' : correction.status === 'approved' ? '#22c55e20' : '#ef444420',
@@ -914,15 +1052,40 @@ const AdminDashboard: React.FC = () => {
         </div>
       ) : activeTab === 'kvk-errors' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {/* A2: Bulk Actions Toolbar for KvK Errors */}
+          {filter === 'pending' && kvkErrors.some(e => e.status === 'pending') && (
+            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', padding: '0.75rem', backgroundColor: '#111116', borderRadius: '8px', border: '1px solid #2a2a2a' }}>
+              <button onClick={() => selectAllPending('kvk-errors')} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#22d3ee20', border: '1px solid #22d3ee50', borderRadius: '6px', color: '#22d3ee', fontSize: '0.8rem', cursor: 'pointer' }}>
+                Select All ({kvkErrors.filter(e => e.status === 'pending').length})
+              </button>
+              {selectedItems.size > 0 && (
+                <>
+                  <span style={{ color: '#9ca3af', fontSize: '0.8rem' }}>{selectedItems.size} selected</span>
+                  <button onClick={() => bulkReviewKvkErrors('approved')} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#22c55e', border: 'none', borderRadius: '6px', color: '#fff', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>
+                    ✓ Approve All
+                  </button>
+                  <button onClick={() => bulkReviewKvkErrors('rejected')} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#ef4444', border: 'none', borderRadius: '6px', color: '#fff', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>
+                    ✗ Reject All
+                  </button>
+                  <button onClick={clearSelection} style={{ padding: '0.4rem 0.75rem', backgroundColor: 'transparent', border: '1px solid #3a3a3a', borderRadius: '6px', color: '#9ca3af', fontSize: '0.8rem', cursor: 'pointer' }}>
+                    Clear
+                  </button>
+                </>
+              )}
+            </div>
+          )}
           {kvkErrors.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
               No {filter} KvK error reports
             </div>
           ) : (
             kvkErrors.map((error) => (
-              <div key={error.id} style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', border: '1px solid #2a2a2a' }}>
+              <div key={error.id} style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', border: selectedItems.has(error.id) ? '2px solid #22d3ee' : '1px solid #2a2a2a' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                  <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    {error.status === 'pending' && (
+                      <input type="checkbox" checked={selectedItems.has(error.id)} onChange={() => toggleItemSelection(error.id)} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
+                    )}
                     <span style={{ color: '#22d3ee', fontWeight: 600 }}>K{error.kingdom_number}</span>
                     {error.kvk_number && <span style={{ color: '#6b7280' }}> - KvK #{error.kvk_number}</span>}
                   </div>

@@ -9,6 +9,27 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-01-30 11:40 | Platform Engineer | COMPLETED
+Task: Supabase Subscription Sync
+Changes:
+  - Created api/supabase_client.py with admin client (service role key)
+  - Implemented update_user_subscription() for tier changes
+  - Implemented get_user_by_stripe_customer() for webhook lookups
+  - Updated handle_checkout_completed() to sync tier to Supabase
+  - Updated handle_subscription_deleted() to downgrade users
+  - Updated handle_subscription_updated() with status handling
+  - Updated get_subscription_status() to fetch from Supabase + Stripe
+  - Updated portal endpoint to lookup customer ID from Supabase
+  - Added supabase>=2.0.0 to requirements.txt
+Files Changed:
+  - apps/api/api/supabase_client.py (NEW)
+  - apps/api/api/routers/stripe.py - Full webhook implementation
+  - apps/api/requirements.txt - Added supabase SDK
+  - apps/api/.env.example - Added SUPABASE_SERVICE_ROLE_KEY
+  - .windsurf/workflows/work.md - Added explanation requirement
+Build: ✅ Success
+Env vars needed: SUPABASE_SERVICE_ROLE_KEY
+
 ## 2026-01-30 11:30 | Platform Engineer | COMPLETED
 Task: Stripe Checkout API Integration
 Changes:

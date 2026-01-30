@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Kingdom } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from './Toast';
+import { contributorService } from '../services/contributorService';
 
 interface ReportDataModalProps {
   kingdom: Kingdom;
@@ -76,6 +77,20 @@ const ReportDataModal: React.FC<ReportDataModalProps> = ({ kingdom, isOpen, onCl
 
     setSubmitting(true);
     try {
+      // B4: Check for duplicates
+      for (const c of corrections) {
+        const duplicate = contributorService.checkDuplicate('correction', {
+          kingdom_number: kingdom.kingdom_number,
+          field: c.field,
+          suggested_value: c.suggestedValue
+        });
+        if (duplicate.isDuplicate) {
+          showToast(`A similar correction for ${c.field} is already pending review`, 'error');
+          setSubmitting(false);
+          return;
+        }
+      }
+
       // Store in localStorage for now (will be synced to Supabase when backend is ready)
       const CORRECTIONS_KEY = 'kingshot_data_corrections';
       const existing = JSON.parse(localStorage.getItem(CORRECTIONS_KEY) || '[]');
@@ -96,6 +111,11 @@ const ReportDataModal: React.FC<ReportDataModalProps> = ({ kingdom, isOpen, onCl
 
       existing.push(...newRecords);
       localStorage.setItem(CORRECTIONS_KEY, JSON.stringify(existing));
+
+      // B3: Track submission for contributor stats
+      if (user?.id) {
+        contributorService.trackNewSubmission(user.id, profile?.username || 'Anonymous', 'correction');
+      }
 
       showToast('Data correction submitted for review. Thank you!', 'success');
       onClose();
