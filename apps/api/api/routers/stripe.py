@@ -37,16 +37,6 @@ PRICE_IDS = {
 FRONTEND_URL = os.getenv("FRONTEND_URL", "https://ks-atlas.com")
 
 
-@router.get("/debug-config")
-async def debug_config():
-    """Temporary debug endpoint to check env vars (remove after testing)."""
-    return {
-        "stripe_configured": STRIPE_SECRET_KEY is not None,
-        "stripe_key_prefix": STRIPE_SECRET_KEY[:10] + "..." if STRIPE_SECRET_KEY else None,
-        "webhook_configured": STRIPE_WEBHOOK_SECRET is not None,
-    }
-
-
 class CheckoutRequest(BaseModel):
     """Request body for creating a checkout session."""
     tier: str  # "pro" or "recruiter"

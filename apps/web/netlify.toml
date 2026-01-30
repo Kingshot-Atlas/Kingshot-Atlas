@@ -5,7 +5,7 @@
 
 [build.environment]
   NODE_VERSION = "20"
-  VITE_API_URL = "https://kingshot-atlas-api.onrender.com"
+  VITE_API_URL = "https://kingshot-atlas.onrender.com"
 
 # Redirect old domain to new primary domain
 [[redirects]]

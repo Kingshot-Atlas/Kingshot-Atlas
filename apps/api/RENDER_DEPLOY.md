@@ -13,7 +13,7 @@ Go to [render.com](https://render.com) and sign up (free).
 ### 3. Configure Service
 | Setting | Value |
 |---------|-------|
-| **Name** | `kingshot-atlas-api` |
+| **Name** | `kingshot-atlas` |
 | **Root Directory** | `apps/api` |
 | **Runtime** | Python 3 |
 | **Build Command** | `pip install -r requirements.txt && python import_data.py` |
@@ -38,13 +38,13 @@ Click **Create Web Service** and wait for deployment (~3-5 minutes).
 ### 6. Get Your API URL
 After deployment, Render provides a URL like:
 ```
-https://kingshot-atlas-api.onrender.com
+https://kingshot-atlas.onrender.com
 ```
 
 ### 7. Update Discord Bot
 Edit `/apps/discord-bot/.env`:
 ```env
-API_URL=https://kingshot-atlas-api.onrender.com
+API_URL=https://kingshot-atlas.onrender.com
 ```
 
 Restart the bot:
@@ -71,7 +71,7 @@ The free tier uses ephemeral storage. For persistent data:
 To prevent sleep, set up a cron job to ping the health endpoint:
 ```bash
 # Every 14 minutes
-*/14 * * * * curl -s https://kingshot-atlas-api.onrender.com/health
+*/14 * * * * curl -s https://kingshot-atlas.onrender.com/health
 ```
 
 Or use [UptimeRobot](https://uptimerobot.com) (free) to ping every 5 minutes.
@@ -82,10 +82,10 @@ Or use [UptimeRobot](https://uptimerobot.com) (free) to ping every 5 minutes.
 
 Test the API:
 ```bash
-curl https://kingshot-atlas-api.onrender.com/health
+curl https://kingshot-atlas.onrender.com/health
 # Should return: {"status":"healthy"}
 
-curl "https://kingshot-atlas-api.onrender.com/api/leaderboard?limit=1"
+curl "https://kingshot-atlas.onrender.com/api/leaderboard?limit=1"
 # Should return kingdom data
 ```
 
@@ -94,7 +94,7 @@ curl "https://kingshot-atlas-api.onrender.com/api/leaderboard?limit=1"
 ## Production URL
 
 ```
-https://kingshot-atlas-api.onrender.com
+https://kingshot-atlas.onrender.com
 ```
 
 *Created: 2026-01-29*
