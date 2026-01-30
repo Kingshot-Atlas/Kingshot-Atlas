@@ -1,7 +1,7 @@
 module.exports = {
   ci: {
     collect: {
-      staticDistDir: './build',
+      staticDistDir: './dist',
       numberOfRuns: 3,
     },
     assert: {

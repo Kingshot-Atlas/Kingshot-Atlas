@@ -101,7 +101,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build
-          path: apps/web/build
+          path: apps/web/dist
           retention-days: 7
 
   lighthouse:
@@ -117,7 +117,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build
-          path: apps/web/build
+          path: apps/web/dist
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
