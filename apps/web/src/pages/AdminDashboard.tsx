@@ -213,44 +213,42 @@ const AdminDashboard: React.FC = () => {
       // Get real analytics from local tracking service
       const realAnalytics = analyticsService.getAnalyticsSummary();
       
-      // REAL DATA ONLY - no mock data
-      // User stats come from Supabase, revenue from Stripe
-      // For now, show only what we can actually measure
-      
       const realData: AnalyticsData = {
         // Real visit data from local tracking
         totalVisits: realAnalytics.totalEvents,
         uniqueVisitors: realAnalytics.uniqueSessions,
         pageViews: realAnalytics.pageViews,
-        bounceRate: 0, // Would need server-side tracking
-        visitDuration: 0, // Would need server-side tracking
-        topSources: [], // Would come from Plausible API
-        topCountries: [], // Would come from Plausible API
-        // User stats - will be fetched from Supabase
+        bounceRate: 0,
+        visitDuration: 0,
+        topSources: [],
+        topCountries: [],
         userStats: { total: 0, free: 0, pro: 0, recruiter: 0 },
-        // Submissions - will be fetched from API
         submissions: { pending: 0, approved: 0, rejected: 0 },
-        // Revenue - would come from Stripe API
         revenue: { monthly: 0, total: 0, subscriptions: [] },
-        // Real feature tracking
         featureUsage: realAnalytics.featureUsage,
         buttonClicks: realAnalytics.buttonClicks,
         eventsByDay: realAnalytics.eventsByDay,
       };
       
-      // Fetch real user count from Supabase
+      // Fetch real stats from admin API (Supabase + Stripe)
       try {
-        const { createClient } = await import('@supabase/supabase-js');
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-        const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-        if (supabaseUrl && supabaseKey) {
-          const supabase = createClient(supabaseUrl, supabaseKey);
-          const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
-          realData.userStats.total = count || 0;
-          realData.userStats.free = count || 0; // All users are free for now
+        const adminRes = await fetch(`${API_URL}/api/v1/admin/stats/overview`);
+        if (adminRes.ok) {
+          const adminData = await adminRes.json();
+          realData.userStats = {
+            total: adminData.users?.total || 0,
+            free: adminData.users?.free || 0,
+            pro: adminData.users?.pro || 0,
+            recruiter: adminData.users?.recruiter || 0,
+          };
+          realData.revenue = {
+            monthly: adminData.revenue?.mrr || 0,
+            total: adminData.revenue?.total || 0,
+            subscriptions: adminData.subscriptions || [],
+          };
         }
       } catch (e) {
-        console.log('Could not fetch user stats from Supabase');
+        console.log('Could not fetch admin stats from API');
       }
       
       // Fetch real submission counts from API
