@@ -13,7 +13,8 @@ from pydantic import BaseModel
 from typing import Optional
 from slowapi import Limiter
 from slowapi.util import get_remote_address
-from api.supabase_client import update_user_subscription, get_user_by_stripe_customer, get_user_profile
+from api.supabase_client import update_user_subscription, get_user_by_stripe_customer, get_user_profile, log_webhook_event
+import time
 
 router = APIRouter()
 limiter = Limiter(key_func=get_remote_address)
@@ -146,6 +147,8 @@ async def stripe_webhook(
     - customer.subscription.updated: Subscription changed (upgrade/downgrade)
     - customer.subscription.deleted: Subscription canceled
     - invoice.payment_failed: Payment failed
+    
+    All events are logged to the webhook_events table for monitoring.
     """
     if not STRIPE_WEBHOOK_SECRET:
         raise HTTPException(
@@ -164,18 +167,63 @@ async def stripe_webhook(
     except stripe.error.SignatureVerificationError:
         raise HTTPException(status_code=400, detail="Invalid signature")
     
+    event_id = event["id"]
     event_type = event["type"]
     data = event["data"]["object"]
     
-    # Handle different event types
-    if event_type == "checkout.session.completed":
-        await handle_checkout_completed(data)
-    elif event_type == "customer.subscription.updated":
-        await handle_subscription_updated(data)
-    elif event_type == "customer.subscription.deleted":
-        await handle_subscription_deleted(data)
-    elif event_type == "invoice.payment_failed":
-        await handle_payment_failed(data)
+    # Extract user and customer IDs for logging
+    user_id = data.get("client_reference_id") or data.get("metadata", {}).get("user_id")
+    customer_id = data.get("customer")
+    
+    # Log event as received
+    log_webhook_event(
+        event_id=event_id,
+        event_type=event_type,
+        status="received",
+        payload=dict(event),
+        user_id=user_id,
+        customer_id=customer_id,
+    )
+    
+    # Process the event with timing
+    start_time = time.time()
+    error_message = None
+    
+    try:
+        if event_type == "checkout.session.completed":
+            await handle_checkout_completed(data)
+        elif event_type == "customer.subscription.updated":
+            await handle_subscription_updated(data)
+        elif event_type == "customer.subscription.deleted":
+            await handle_subscription_deleted(data)
+        elif event_type == "invoice.payment_failed":
+            await handle_payment_failed(data)
+        
+        # Log successful processing
+        processing_time_ms = int((time.time() - start_time) * 1000)
+        log_webhook_event(
+            event_id=event_id,
+            event_type=event_type,
+            status="processed",
+            processing_time_ms=processing_time_ms,
+            user_id=user_id,
+            customer_id=customer_id,
+        )
+        
+    except Exception as e:
+        # Log failed processing
+        error_message = str(e)
+        processing_time_ms = int((time.time() - start_time) * 1000)
+        log_webhook_event(
+            event_id=event_id,
+            event_type=event_type,
+            status="failed",
+            error_message=error_message,
+            processing_time_ms=processing_time_ms,
+            user_id=user_id,
+            customer_id=customer_id,
+        )
+        print(f"Webhook processing failed for {event_id}: {error_message}")
     
     return {"received": True}
 

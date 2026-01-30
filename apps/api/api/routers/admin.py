@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 from collections import defaultdict
 import csv
 import io
-from api.supabase_client import get_supabase_admin
+from api.supabase_client import get_supabase_admin, get_webhook_events, get_webhook_stats
 
 router = APIRouter()
 
@@ -568,3 +568,38 @@ async def get_key_performance_indicators(x_admin_key: Optional[str] = Header(Non
         "net_growth": churn_stats.get("net_growth", 0),
         "active_subscriptions": active_subs
     }
+
+
+@router.get("/webhooks/events")
+async def get_webhook_events_list(
+    limit: int = 50,
+    event_type: Optional[str] = None,
+    status: Optional[str] = None,
+    x_admin_key: Optional[str] = Header(None)
+):
+    """
+    Get recent webhook events for monitoring.
+    
+    Args:
+        limit: Max events to return (default 50)
+        event_type: Filter by event type
+        status: Filter by status (received, processed, failed)
+    """
+    events = get_webhook_events(limit=limit, event_type=event_type, status=status)
+    return {"events": events, "count": len(events)}
+
+
+@router.get("/webhooks/stats")
+async def get_webhook_health_stats(x_admin_key: Optional[str] = Header(None)):
+    """
+    Get webhook health statistics for monitoring dashboard.
+    
+    Returns:
+        - Total events in last 24 hours
+        - Processed count
+        - Failed count
+        - Failure rate percentage
+        - Health status (healthy/warning/critical)
+    """
+    stats = get_webhook_stats()
+    return stats
