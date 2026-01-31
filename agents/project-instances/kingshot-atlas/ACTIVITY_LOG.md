@@ -23,6 +23,35 @@ Files Changed:
   - apps/discord-bot/src/config.js
 Result: Atlas bot will automatically post @everyone announcement at 18:00 UTC on KvK Saturdays prompting users to submit their KvK results
 
+## 2026-01-31 16:30 | Product Engineer | COMPLETED
+Task: Add Missing Data Registry page
+Features:
+  - New /missing-data route showing kingdoms with missing KvK history
+  - Stats cards: total gaps, missing KvK #10, critical (3+ missing)
+  - Filter tabs: All, Recent (KvK #10), Critical
+  - Contextual prompts for non-logged-in and unlinked users
+  - Submit button opens PostKvKSubmission with pre-filled kingdom
+  - Achievement preview for contributors (Scout, Hunter, Master, Legend)
+Files Changed:
+  - apps/web/src/pages/MissingDataRegistry.tsx (new)
+  - apps/web/src/App.tsx (route added)
+Result: Community data contribution hub enabling linked users to fill KvK data gaps
+
+## 2026-01-31 16:25 | Platform Engineer | COMPLETED
+Task: Fix CI lint errors and sync Atlas Score across pages
+Fixes:
+  - Escape characters in JSX (apostrophes, quotes)
+  - useEffect dependency warning in UserCorrectionStats
+  - Replace 'any' type with proper interface
+  - Add apiService.reloadWithSupabaseData() after approval
+Files Changed:
+  - apps/web/src/components/MissingKvKPrompt.tsx
+  - apps/web/src/components/UserCorrectionStats.tsx
+  - apps/web/src/components/SearchAutocomplete.tsx
+  - apps/web/src/components/ScoreSimulator/ScoreSimulatorTeaser.tsx
+  - apps/web/src/pages/AdminDashboard.tsx
+Result: CI passes, Atlas Score syncs across all pages after submission approval
+
 ## 2026-01-31 16:20 | Design Lead | COMPLETED
 Task: Redesign Performance Trend chart for visual clarity
 Problem: Orange Battle WR line completely blocked yellow Prep WR line when overlapping
