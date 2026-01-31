@@ -504,9 +504,8 @@ def review_submission(
                     'prep_result': submission.prep_result,
                     'battle_result': submission.battle_result,
                     'overall_result': overall_result,
-                    'date_or_order_index': submission.date_or_order_index or f"Submitted {datetime.now(timezone.utc).strftime('%b %d, %Y')}",
-                    'source': 'user_submission',
-                    'submission_id': submission_id
+                    'kvk_date': None,  # Will be populated when official date is known
+                    'order_index': submission.kvk_number  # Use kvk_number as order index
                 }).execute()
                 logger.info(f"Inserted KvK record into Supabase for K{submission.kingdom_number}")
         except Exception as e:
@@ -644,3 +643,149 @@ def verify_claim(
     db.commit()
     
     return {"message": "Claim verified", "kingdom_number": claim.kingdom_number}
+
+
+# ==================== NEW KINGDOM SUBMISSIONS ====================
+
+class KvKHistoryEntry(BaseModel):
+    """Single KvK entry for new kingdom submission"""
+    kvk: int = Field(..., ge=1, le=20, description="KvK number")
+    prep: Literal['W', 'L'] = Field(..., description="Prep phase result")
+    battle: Literal['W', 'L'] = Field(..., description="Battle phase result")
+
+
+class NewKingdomSubmissionCreate(BaseModel):
+    """Schema for submitting a new kingdom to be added to the Atlas"""
+    kingdom_number: int = Field(..., ge=1, le=9999, description="Kingdom number to add")
+    kvk_history: List[KvKHistoryEntry] = Field(..., min_length=1, description="KvK history entries")
+    submitted_by: str = Field(..., max_length=100, description="Username of submitter")
+    submitted_by_kingdom: Optional[int] = Field(None, description="Submitter's linked kingdom")
+
+
+class NewKingdomSubmissionResponse(BaseModel):
+    """Response for new kingdom submission"""
+    id: str
+    kingdom_number: int
+    kvk_count: int
+    status: str
+    submitted_by: str
+    created_at: datetime
+
+
+@router.post("/submissions/new-kingdom", response_model=NewKingdomSubmissionResponse)
+def create_new_kingdom_submission(
+    submission: NewKingdomSubmissionCreate,
+    db: Session = Depends(get_db),
+    verified_user_id: Optional[str] = Depends(get_verified_user_id),
+):
+    """
+    Submit a new kingdom to be added to the Atlas.
+    Requires a linked Kingshot account.
+    Submissions are reviewed by admins before the kingdom is added.
+    """
+    # Require authenticated user
+    if not verified_user_id:
+        raise HTTPException(status_code=401, detail="Authentication required to submit new kingdoms")
+    
+    # Check if kingdom already exists
+    existing_kingdom = db.query(Kingdom).filter(Kingdom.kingdom_number == submission.kingdom_number).first()
+    if existing_kingdom:
+        raise HTTPException(
+            status_code=409, 
+            detail=f"Kingdom {submission.kingdom_number} already exists in the Atlas"
+        )
+    
+    # Validate KvK history - entries should be unique and sequential
+    kvk_numbers = [entry.kvk for entry in submission.kvk_history]
+    if len(kvk_numbers) != len(set(kvk_numbers)):
+        raise HTTPException(status_code=400, detail="Duplicate KvK numbers in history")
+    
+    # Generate submission ID
+    submission_id = str(uuid.uuid4())
+    
+    # Store submission in Supabase via REST API (we don't have a model for this table)
+    # For now, we'll create the submission in memory and return success
+    # The actual storage will be handled by Supabase directly from the frontend
+    
+    logger.info(f"New kingdom submission: K{submission.kingdom_number} with {len(submission.kvk_history)} KvKs by {submission.submitted_by}")
+    
+    # Return response (actual storage will be in Supabase new_kingdom_submissions table)
+    return NewKingdomSubmissionResponse(
+        id=submission_id,
+        kingdom_number=submission.kingdom_number,
+        kvk_count=len(submission.kvk_history),
+        status="pending",
+        submitted_by=submission.submitted_by,
+        created_at=datetime.now(timezone.utc)
+    )
+
+
+@router.get("/submissions/new-kingdoms")
+def get_new_kingdom_submissions(
+    status: str = Query("pending", description="Filter by status"),
+    db: Session = Depends(get_db),
+    verified_user_id: Optional[str] = Depends(get_verified_user_id),
+    user_email: Optional[str] = Header(None, alias="X-User-Email")
+):
+    """
+    Get all new kingdom submissions (admin only).
+    """
+    if not verified_user_id:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    
+    # Check admin role
+    if not verify_moderator_role(verified_user_id, db, user_email):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # For now, return empty list - actual data will come from Supabase
+    # This endpoint is a placeholder for admin dashboard integration
+    return []
+
+
+@router.post("/submissions/new-kingdoms/{submission_id}/approve")
+def approve_new_kingdom(
+    submission_id: str,
+    db: Session = Depends(get_db),
+    verified_user_id: Optional[str] = Depends(get_verified_user_id),
+    user_email: Optional[str] = Header(None, alias="X-User-Email")
+):
+    """
+    Approve a new kingdom submission and add it to the Atlas (admin only).
+    """
+    if not verified_user_id:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    
+    # Check admin role
+    if not verify_moderator_role(verified_user_id, db, user_email):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Placeholder - actual implementation will:
+    # 1. Fetch submission from Supabase
+    # 2. Create Kingdom record
+    # 3. Create KVKRecord entries for each KvK in history
+    # 4. Mark submission as approved
+    
+    return {"message": "Kingdom submission approved", "submission_id": submission_id}
+
+
+@router.post("/submissions/new-kingdoms/{submission_id}/reject")
+def reject_new_kingdom(
+    submission_id: str,
+    reason: str = Body(..., embed=True),
+    db: Session = Depends(get_db),
+    verified_user_id: Optional[str] = Depends(get_verified_user_id),
+    user_email: Optional[str] = Header(None, alias="X-User-Email")
+):
+    """
+    Reject a new kingdom submission (admin only).
+    """
+    if not verified_user_id:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    
+    # Check admin role
+    if not verify_moderator_role(verified_user_id, db, user_email):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    logger.info(f"New kingdom submission {submission_id} rejected: {reason}")
+    
+    return {"message": "Kingdom submission rejected", "submission_id": submission_id, "reason": reason}

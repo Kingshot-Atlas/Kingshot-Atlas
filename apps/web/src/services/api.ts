@@ -92,24 +92,30 @@ const loadKingdomData = (): Kingdom[] => {
     });
   }
   
-  // Then, overlay Supabase data ONLY if it has MORE records for a kingdom
-  // This ensures we always show the most complete data
+  // Then, MERGE Supabase data - add any KvK records that don't exist in local JSON
+  // This ensures new submissions (like KvK #10) show up alongside existing data
   if (supabaseKvkData && supabaseKvkData.size > 0) {
     for (const [kNum, records] of supabaseKvkData) {
-      const localCount = kvksByKingdom[kNum]?.length ?? 0;
-      // Only use Supabase if it has more records than local JSON
-      if (records.length > localCount) {
-        kvksByKingdom[kNum] = records.map(r => ({
-          id: kNum * 100 + r.kvk_number,
-          kingdom_number: kNum,
-          kvk_number: r.kvk_number,
-          opponent_kingdom: r.opponent_kingdom || 0,
-          prep_result: r.prep_result === 'W' ? 'Win' : 'Loss',
-          battle_result: r.battle_result === 'W' ? 'Win' : 'Loss',
-          overall_result: r.overall_result,
-          date_or_order_index: r.kvk_date || String(r.order_index),
-          created_at: r.kvk_date || String(r.order_index)
-        }));
+      if (!kvksByKingdom[kNum]) kvksByKingdom[kNum] = [];
+      
+      // Get existing KvK numbers from local data
+      const existingKvkNumbers = new Set(kvksByKingdom[kNum]!.map(r => r.kvk_number));
+      
+      // Add Supabase records that don't exist in local JSON
+      for (const r of records) {
+        if (!existingKvkNumbers.has(r.kvk_number)) {
+          kvksByKingdom[kNum]!.push({
+            id: kNum * 100 + r.kvk_number,
+            kingdom_number: kNum,
+            kvk_number: r.kvk_number,
+            opponent_kingdom: r.opponent_kingdom || 0,
+            prep_result: r.prep_result === 'W' ? 'Win' : 'Loss',
+            battle_result: r.battle_result === 'W' ? 'Win' : 'Loss',
+            overall_result: r.overall_result,
+            date_or_order_index: r.kvk_date || String(r.order_index),
+            created_at: r.kvk_date || String(r.order_index)
+          });
+        }
       }
     }
   }
