@@ -9,6 +9,20 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-01-31 14:15 | Platform Engineer | COMPLETED
+Task: KvK #10 submission feature with mandatory screenshot + admin review
+Changes:
+  - PostKvKSubmission.tsx: Locked to KvK #10, single result, mandatory screenshot
+  - submissions.py: New /submissions/kvk10 endpoint with image validation
+  - Admin.tsx: Screenshot preview in submission review cards
+  - Security: Magic bytes validation, 5MB limit, path traversal prevention
+  - Supabase: Created 'submissions' storage bucket with RLS policies
+Files Changed:
+  - apps/web/src/components/PostKvKSubmission.tsx
+  - apps/api/api/routers/submissions.py
+  - apps/web/src/pages/Admin.tsx
+Result: Users can submit KvK #10 results with proof, admins can review with screenshots
+
 ## 2026-01-31 13:30 | Product Engineer | COMPLETED
 Task: Profile styling + KvK 10 submission CTA banner
 Changes:
