@@ -582,7 +582,12 @@ const AdminDashboard: React.FC = () => {
         body: JSON.stringify({ status })
       });
       if (response.ok) {
-        showToast(`Submission ${status}`, 'success');
+        const data = await response.json();
+        if (status === 'approved' && data.kingdom_number) {
+          showToast(`✅ Approved! KvK data added to Kingdom ${data.kingdom_number}`, 'success');
+        } else {
+          showToast(`Submission ${status}`, 'success');
+        }
         fetchSubmissions();
         fetchPendingCounts();
       } else {

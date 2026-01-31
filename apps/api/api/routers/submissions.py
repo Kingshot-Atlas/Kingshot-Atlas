@@ -470,6 +470,7 @@ def review_submission(
     submission.reviewed_at = datetime.now(timezone.utc)
     
     # If approved, create the actual KVK record and update kingdom stats
+    kingdom_number = submission.kingdom_number
     if review.status == "approved":
         # Calculate overall result - use W/L format to match existing data
         # W = won overall (battle win takes priority), L = lost overall
@@ -490,9 +491,34 @@ def review_submission(
         kingdom = db.query(Kingdom).filter(Kingdom.kingdom_number == submission.kingdom_number).first()
         if kingdom:
             _recalculate_kingdom_stats(kingdom, db)
+        
+        # Insert into Supabase kvk_history table for real-time updates
+        try:
+            from api.supabase_client import get_supabase_admin
+            supabase = get_supabase_admin()
+            if supabase:
+                supabase.table('kvk_history').insert({
+                    'kingdom_number': submission.kingdom_number,
+                    'kvk_number': submission.kvk_number,
+                    'opponent_kingdom': submission.opponent_kingdom,
+                    'prep_result': submission.prep_result,
+                    'battle_result': submission.battle_result,
+                    'overall_result': overall_result,
+                    'date_or_order_index': submission.date_or_order_index or f"Submitted {datetime.now(timezone.utc).strftime('%b %d, %Y')}",
+                    'source': 'user_submission',
+                    'submission_id': submission_id
+                }).execute()
+                logger.info(f"Inserted KvK record into Supabase for K{submission.kingdom_number}")
+        except Exception as e:
+            logger.error(f"Failed to insert into Supabase kvk_history: {e}")
+            # Don't fail the request - local DB is the source of truth
     
     db.commit()
-    return {"message": f"Submission {review.status}", "submission_id": submission_id}
+    return {
+        "message": f"Submission {review.status}", 
+        "submission_id": submission_id,
+        "kingdom_number": kingdom_number
+    }
 
 
 # ==================== KINGDOM CLAIMS ====================
