@@ -11,6 +11,7 @@ import { useAuth } from '../contexts/AuthContext';
 import ProBadge from '../components/ProBadge';
 import ComparisonRadarChart from '../components/ComparisonRadarChart';
 import ShareButton from '../components/ShareButton';
+import ShareComparisonScreenshot from '../components/ShareComparisonScreenshot';
 import { useMetaTags, getCompareMetaTags } from '../hooks/useMetaTags';
 
 // Max slots to show in UI (Pro limit)
@@ -876,8 +877,13 @@ const CompareKingdoms: React.FC = () => {
           {/* Radar Chart Comparison - supports multi-kingdom */}
           <MultiCompareRadarChart kingdoms={loadedKingdoms} colors={KINGDOM_COLORS} />
 
-          {/* Share Button */}
-          <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'center' }}>
+          {/* Share Buttons */}
+          <div style={{ marginTop: '1rem', display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '0.75rem', justifyContent: 'center', alignItems: 'center' }}>
+            <ShareComparisonScreenshot
+              targetRef={comparisonRef}
+              kingdomNumbers={loadedKingdoms.map(k => k.kingdom_number)}
+              winner={calculateWinner()}
+            />
             <ShareButton
               type="compare"
               compareData={{

@@ -243,3 +243,132 @@ export const outcomeColors = {
   prepWin: colors.warning,      // Prep phase win
   battleWin: colors.orange,     // Battle phase win
 } as const;
+
+/**
+ * Button styles - ALL buttons must be center/middle aligned
+ * Import and spread these styles for consistent buttons
+ */
+export const buttonStyles = {
+  // Base styles for ALL buttons - includes mandatory alignment
+  base: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '0.5rem',
+    padding: '0.6rem 1.25rem',
+    borderRadius: radius.md,
+    fontSize: '0.85rem',
+    fontWeight: 600,
+    cursor: 'pointer',
+    transition: transition.fast,
+    border: 'none',
+  } as React.CSSProperties,
+
+  // Primary variant (cyan)
+  primary: {
+    backgroundColor: colors.primary,
+    color: '#000',
+  } as React.CSSProperties,
+
+  // Secondary variant (outline)
+  secondary: {
+    backgroundColor: 'transparent',
+    color: colors.primary,
+    border: `1px solid ${colors.primary}40`,
+  } as React.CSSProperties,
+
+  // Danger variant (red outline)
+  danger: {
+    backgroundColor: 'transparent',
+    color: colors.error,
+    border: `1px solid ${colors.error}40`,
+  } as React.CSSProperties,
+
+  // Ghost variant (subtle)
+  ghost: {
+    backgroundColor: 'transparent',
+    color: colors.textSecondary,
+    border: `1px solid ${colors.border}`,
+  } as React.CSSProperties,
+
+  // Disabled state
+  disabled: {
+    opacity: 0.5,
+    cursor: 'not-allowed',
+  } as React.CSSProperties,
+} as const;
+
+/**
+ * Chip/tag styles - ALL chips must be center/middle aligned
+ */
+export const chipStyles = {
+  // Base styles for ALL chips - includes mandatory alignment
+  base: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '0.25rem',
+    padding: '0.2rem 0.5rem',
+    borderRadius: radius.sm,
+    fontSize: '0.7rem',
+    fontWeight: 600,
+    whiteSpace: 'nowrap',
+  } as React.CSSProperties,
+
+  // Primary chip (cyan)
+  primary: {
+    backgroundColor: `${colors.primary}15`,
+    color: colors.primary,
+    border: `1px solid ${colors.primary}40`,
+  } as React.CSSProperties,
+
+  // Success chip (green)
+  success: {
+    backgroundColor: `${colors.success}15`,
+    color: colors.success,
+    border: `1px solid ${colors.success}40`,
+  } as React.CSSProperties,
+
+  // Warning chip (yellow)
+  warning: {
+    backgroundColor: `${colors.warning}15`,
+    color: colors.warning,
+    border: `1px solid ${colors.warning}40`,
+  } as React.CSSProperties,
+
+  // Error chip (red)
+  error: {
+    backgroundColor: `${colors.error}15`,
+    color: colors.error,
+    border: `1px solid ${colors.error}40`,
+  } as React.CSSProperties,
+
+  // Neutral chip (gray)
+  neutral: {
+    backgroundColor: colors.surface,
+    color: colors.textSecondary,
+    border: `1px solid ${colors.border}`,
+  } as React.CSSProperties,
+} as const;
+
+/**
+ * Helper to get complete button styles
+ */
+export const getButtonStyles = (
+  variant: 'primary' | 'secondary' | 'danger' | 'ghost' = 'primary',
+  disabled = false
+): React.CSSProperties => ({
+  ...buttonStyles.base,
+  ...buttonStyles[variant],
+  ...(disabled ? buttonStyles.disabled : {}),
+});
+
+/**
+ * Helper to get complete chip styles
+ */
+export const getChipStyles = (
+  variant: 'primary' | 'success' | 'warning' | 'error' | 'neutral' = 'primary'
+): React.CSSProperties => ({
+  ...chipStyles.base,
+  ...chipStyles[variant],
+});

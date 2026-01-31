@@ -381,6 +381,20 @@ async def get_subscription_status(request: Request, user_id: str):
         }
 
 
+@router.get("/health")
+async def stripe_health_check():
+    """
+    Health check endpoint for Stripe configuration.
+    Returns status of all required configuration.
+    """
+    return {
+        "stripe_configured": bool(STRIPE_SECRET_KEY),
+        "webhook_configured": bool(STRIPE_WEBHOOK_SECRET),
+        "frontend_url": FRONTEND_URL,
+        "price_ids_configured": bool(PRICE_IDS.get("pro_monthly")),
+    }
+
+
 class PortalRequest(BaseModel):
     """Request body for creating a portal session."""
     user_id: str

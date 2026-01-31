@@ -38,16 +38,20 @@ const ScoreSimulatorTeaser: React.FC = () => {
             to="/upgrade"
             onClick={(e) => e.stopPropagation()}
             style={{
-              padding: '0.15rem 0.4rem',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '0.2rem 0.5rem',
               backgroundColor: '#22d3ee15',
               border: '1px solid #22d3ee40',
               borderRadius: '4px',
-              fontSize: '0.6rem',
+              fontSize: '0.65rem',
               color: '#22d3ee',
               fontWeight: 'bold',
               textDecoration: 'none',
               cursor: 'pointer',
-              transition: 'all 0.2s ease'
+              transition: 'all 0.2s ease',
+              lineHeight: 1
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.backgroundColor = '#22d3ee25';

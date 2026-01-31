@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useToast } from './Toast';
 import { colors, neonGlow, transition } from '../utils/styles';
+import { Button } from './shared';
 
 // Convert TC level to display string (TC 31+ becomes TG tiers)
 const formatTCLevel = (level: number): string => {
@@ -391,76 +392,34 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
 
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
           {showRefresh && (
-            <button
+            <Button
+              variant="secondary"
               onClick={handleRefresh}
               disabled={isRefreshing}
-              style={{
-                flex: 1,
-                minWidth: '120px',
-                padding: '0.6rem 1rem',
-                borderRadius: '8px',
-                border: `1px solid ${colors.primary}40`,
-                backgroundColor: 'transparent',
-                color: colors.primary,
-                fontSize: '0.85rem',
-                fontWeight: '600',
-                cursor: isRefreshing ? 'not-allowed' : 'pointer',
-                opacity: isRefreshing ? 0.6 : 1,
-                transition: transition.fast,
-              }}
+              loading={isRefreshing}
+              icon={!isRefreshing ? <span>🔄</span> : undefined}
+              style={{ flex: 1, minWidth: '120px' }}
             >
-              {isRefreshing ? '⏳ Refreshing...' : '🔄 Refresh Data'}
-            </button>
+              {isRefreshing ? 'Refreshing...' : 'Refresh Data'}
+            </Button>
           )}
 
           {!showUnlinkConfirm ? (
-            <button
-              onClick={() => setShowUnlinkConfirm(true)}
-              style={{
-                padding: '0.6rem 1rem',
-                borderRadius: '8px',
-                border: `1px solid ${colors.error}40`,
-                backgroundColor: 'transparent',
-                color: colors.error,
-                fontSize: '0.85rem',
-                fontWeight: '600',
-                cursor: 'pointer',
-                transition: transition.fast,
-              }}
-            >
+            <Button variant="danger" onClick={() => setShowUnlinkConfirm(true)}>
               Unlink
-            </button>
+            </Button>
           ) : (
             <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button
+              <Button
+                variant="danger"
                 onClick={handleUnlink}
-                style={{
-                  padding: '0.6rem 1rem',
-                  borderRadius: '8px',
-                  border: 'none',
-                  backgroundColor: colors.error,
-                  color: '#fff',
-                  fontSize: '0.85rem',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                }}
+                style={{ backgroundColor: colors.error, color: '#fff', border: 'none' }}
               >
                 Confirm
-              </button>
-              <button
-                onClick={() => setShowUnlinkConfirm(false)}
-                style={{
-                  padding: '0.6rem 1rem',
-                  borderRadius: '8px',
-                  border: `1px solid ${colors.border}`,
-                  backgroundColor: 'transparent',
-                  color: colors.textSecondary,
-                  fontSize: '0.85rem',
-                  cursor: 'pointer',
-                }}
-              >
+              </Button>
+              <Button variant="ghost" onClick={() => setShowUnlinkConfirm(false)}>
                 Cancel
-              </button>
+              </Button>
             </div>
           )}
         </div>
@@ -693,24 +652,16 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
         </div>
       )}
 
-      <button
+      <Button
+        variant="primary"
         onClick={handleVerify}
         disabled={isLoading || !playerId.trim()}
-        style={{
-          width: '100%',
-          padding: '0.75rem 1.5rem',
-          borderRadius: '8px',
-          border: 'none',
-          backgroundColor: isLoading || !playerId.trim() ? colors.border : colors.primary,
-          color: isLoading || !playerId.trim() ? colors.textMuted : '#000',
-          fontSize: '0.9rem',
-          fontWeight: '700',
-          cursor: isLoading || !playerId.trim() ? 'not-allowed' : 'pointer',
-          transition: transition.fast,
-        }}
+        loading={isLoading}
+        icon={!isLoading ? <span>🔍</span> : undefined}
+        fullWidth
       >
-        {isLoading ? '⏳ Verifying...' : '🔍 Verify Player ID'}
-      </button>
+        {isLoading ? 'Verifying...' : 'Verify Player ID'}
+      </Button>
     </div>
   );
 };

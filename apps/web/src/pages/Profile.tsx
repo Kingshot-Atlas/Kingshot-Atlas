@@ -11,7 +11,7 @@ import UserCorrectionStats from '../components/UserCorrectionStats';
 import { useAuth, getCacheBustedAvatarUrl, UserProfile } from '../contexts/AuthContext';
 import { usePremium } from '../contexts/PremiumContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
-import { getCustomerPortalUrl } from '../lib/stripe';
+import { getCustomerPortalUrl, createPortalSession } from '../lib/stripe';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { neonGlow } from '../utils/styles';
@@ -218,19 +218,19 @@ const KingdomLeaderboardPosition: React.FC<{
           gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
           gap: '0.75rem',
         }}>
-          <div style={{ padding: '0.75rem', backgroundColor: '#0a0a0a', borderRadius: '8px', textAlign: 'center' }}>
+          <div style={{ padding: '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <div style={{ fontSize: '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Kingdom</div>
             <div style={{ fontSize: '1.25rem', fontWeight: '700', color: themeColor }}>{kingdom.id}</div>
           </div>
-          <div style={{ padding: '0.75rem', backgroundColor: '#0a0a0a', borderRadius: '8px', textAlign: 'center' }}>
+          <div style={{ padding: '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <div style={{ fontSize: '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Rank</div>
             <div style={{ fontSize: '1.25rem', fontWeight: '700', color: '#fff' }}>#{kingdom.rank}</div>
           </div>
-          <div style={{ padding: '0.75rem', backgroundColor: '#0a0a0a', borderRadius: '8px', textAlign: 'center' }}>
+          <div style={{ padding: '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <div style={{ fontSize: '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Atlas Score</div>
             <div style={{ fontSize: '1.25rem', fontWeight: '700', ...neonGlow(themeColor) }}>{kingdom.atlas_score.toFixed(1)}</div>
           </div>
-          <div style={{ padding: '0.75rem', backgroundColor: '#0a0a0a', borderRadius: '8px', textAlign: 'center' }}>
+          <div style={{ padding: '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <div style={{ fontSize: '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Win Rate</div>
             <div style={{ fontSize: '1.25rem', fontWeight: '700', color: parseInt(winRate) >= 50 ? '#22c55e' : '#ef4444' }}>{winRate}%</div>
           </div>
@@ -930,14 +930,24 @@ const Profile: React.FC = () => {
               
               {isPro || isRecruiter ? (
                 <button
-                  onClick={() => {
-                    // Use direct portal URL if configured
-                    const directPortalUrl = getCustomerPortalUrl();
-                    if (directPortalUrl && directPortalUrl !== '/profile') {
-                      window.location.href = directPortalUrl;
-                    } else {
-                      // Portal not configured - show helpful message
-                      alert('Subscription management coming soon! For now, email support@ks-atlas.com to manage your subscription.');
+                  onClick={async () => {
+                    if (!user) return;
+                    setManagingSubscription(true);
+                    try {
+                      // Try API-based portal session first (links to user's actual Stripe account)
+                      const portalUrl = await createPortalSession(user.id);
+                      window.location.href = portalUrl;
+                    } catch (error) {
+                      console.warn('API portal failed, trying direct URL:', error);
+                      // Fallback to direct portal URL if configured
+                      const directPortalUrl = getCustomerPortalUrl();
+                      if (directPortalUrl && directPortalUrl !== '/profile') {
+                        window.location.href = directPortalUrl;
+                      } else {
+                        alert('Unable to open subscription management. Please email support@ks-atlas.com for assistance.');
+                      }
+                    } finally {
+                      setManagingSubscription(false);
                     }
                   }}
                   disabled={managingSubscription}
@@ -953,7 +963,7 @@ const Profile: React.FC = () => {
                     opacity: managingSubscription ? 0.7 : 1,
                   }}
                 >
-                  {managingSubscription ? 'Loading...' : 'Manage Subscription'}
+                  {managingSubscription ? 'Opening Portal...' : 'Manage Subscription'}
                 </button>
               ) : (
                 <Link

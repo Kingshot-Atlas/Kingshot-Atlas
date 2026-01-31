@@ -143,6 +143,7 @@ interface PremiumContextType {
   getFeatureLimit: (feature: keyof PremiumFeatures) => number;
   getUpgradeUrl: () => string;
   getUpgradeMessage: (feature: string) => { title: string; message: string; cta: string };
+  refreshSubscription: () => Promise<void>;
 }
 
 const TIER_NAMES: Record<SubscriptionTier, string> = {
@@ -169,8 +170,7 @@ export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [tier, setTier] = useState<SubscriptionTier>('anonymous');
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchSubscription = async () => {
+  const fetchSubscription = async () => {
       // Not logged in = anonymous
       if (!user) {
         setTier('anonymous');
@@ -236,11 +236,20 @@ export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children })
         }
       }
 
-      setLoading(false);
-    };
+    setLoading(false);
+  };
 
+  useEffect(() => {
     fetchSubscription();
   }, [user]);
+  
+  // Manual refresh function for after checkout completion
+  const refreshSubscription = async () => {
+    if (user) {
+      setLoading(true);
+      await fetchSubscription();
+    }
+  };
 
   const features = TIER_FEATURES[tier];
   const tierName = TIER_NAMES[tier];
@@ -304,6 +313,7 @@ export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children })
       getFeatureLimit,
       getUpgradeUrl,
       getUpgradeMessage,
+      refreshSubscription,
     }}>
       {children}
     </PremiumContext.Provider>

@@ -392,6 +392,54 @@ import { getCacheBustedAvatarUrl } from '../contexts/AuthContext';
 
 ---
 
+## Buttons & Chips (IMPORTANT)
+
+**All buttons and chips MUST be center and middle aligned.** This ensures consistent touch targets and visual balance across the entire app.
+
+### Required Alignment
+```tsx
+// ✅ CORRECT: Always include these alignment properties
+<button style={{
+  display: 'inline-flex',        // or 'flex' for full-width
+  alignItems: 'center',          // Vertical centering
+  justifyContent: 'center',      // Horizontal centering
+  gap: '0.5rem',                 // Space between icon and text
+  // ... other styles
+}}>
+  <Icon /> Button Text
+</button>
+
+// ❌ WRONG: Missing alignment
+<button style={{ padding: '0.5rem 1rem' }}>
+  <Icon /> Button Text
+</button>
+```
+
+### Use Shared Button Styles
+```tsx
+import { buttonStyles, chipStyles } from '../utils/styles';
+
+// Apply base button styles
+<button style={{ ...buttonStyles.base, ...buttonStyles.primary }}>
+  Action
+</button>
+
+// Apply chip styles
+<span style={chipStyles.base}>
+  Tag
+</span>
+```
+
+### Button Variants
+| Variant | Background | Text | Border |
+|---------|------------|------|--------|
+| **Primary** | `#22d3ee` | `#000` | none |
+| **Secondary** | transparent | `#22d3ee` | `1px solid #22d3ee40` |
+| **Danger** | transparent | `#ef4444` | `1px solid #ef444440` |
+| **Ghost** | transparent | `#9ca3af` | `1px solid #2a2a2a` |
+
+---
+
 ## Responsive Design
 
 - Use `useIsMobile()` hook from `../hooks/useMediaQuery`

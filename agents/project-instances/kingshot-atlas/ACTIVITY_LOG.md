@@ -9,6 +9,150 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-01-31 07:55 | Platform Engineer | COMPLETED
+Task: Complete KvK Data Migration to 100% + Option A (Data Quality & Verification)
+Summary:
+  - Migrated remaining 89 missing KvK records to Supabase (100% parity achieved)
+  - Created data validation script (scripts/validate-kvk-data.js)
+  - Created data sync script for future updates (scripts/sync-kvk-data.js)
+  - Added DataSourceStats component for admin dashboard
+  - Added "Data Sources" tab to AdminDashboard showing parity status
+Files Changed:
+  - scripts/find-missing-kvk.js (NEW) - Identifies missing records
+  - scripts/find-missing-kvk-v2.js (NEW) - Improved version with file-based comparison
+  - scripts/validate-kvk-data.js (NEW) - CSV data validation tests
+  - scripts/sync-kvk-data.js (NEW) - Future KvK data sync utility
+  - apps/web/src/components/DataSourceStats.tsx (NEW) - Admin data source stats
+  - apps/web/src/pages/AdminDashboard.tsx - Added Data Sources tab
+Data Migration:
+  - Supabase: 5,067 records (100%+ of CSV)
+  - CSV Source: 5,042 records
+  - Unique Kingdoms: 1,189 (K1-K1190)
+  - KvK Numbers: 1-9
+
+## 2026-01-31 11:45 | Platform Engineer | COMPLETED
+Task: Debug "Subscription Not Working" + "No Cancellation Method" User Report
+Root Cause Analysis:
+  - Render.yaml missing required Stripe/Supabase env var declarations
+  - Users couldn't find cancellation option (only buried in Profile)
+  - No health check endpoint to diagnose Stripe configuration
+  - Portal session fails if stripe_customer_id not stored (webhook issue)
+Fixes Applied:
+  - Added STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY to render.yaml
+  - Added explicit "Cancel Subscription" button on Upgrade page for subscribers
+  - Added "Manage Billing" button on Upgrade page
+  - Added /api/v1/stripe/health endpoint for configuration diagnostics
+  - Created comprehensive STRIPE_PRODUCTION_CHECKLIST.md documentation
+Files Changed:
+  - apps/api/render.yaml - Added required env vars
+  - apps/api/api/routers/stripe.py - Added health check endpoint
+  - apps/web/src/pages/Upgrade.tsx - Added cancel/manage buttons for subscribers
+  - docs/STRIPE_PRODUCTION_CHECKLIST.md (NEW) - Production setup guide
+Action Required: User must verify/set env vars in Render Dashboard
+Build Status: ✅ Passing
+
+## 2026-01-31 11:15 | Platform Engineer | COMPLETED
+Task: Analyze and Fix Pro/Recruiter Subscription Process
+Analysis Findings:
+  - Stripe checkout flow: ✅ Working (API creates sessions correctly)
+  - Webhook processing: ✅ Working (handles all subscription events)
+  - Supabase update: ✅ Working (update_user_subscription function)
+  - CRITICAL: No success state handling after checkout redirect
+  - CRITICAL: PremiumContext had no refresh function for post-checkout
+  - MISSING: webhook_events table migration not documented
+  - Profile page used static portal URL instead of API session
+Fixes Applied:
+  - Added success/canceled/error state handling to Upgrade.tsx
+  - Added refreshSubscription() function to PremiumContext
+  - Profile.tsx now uses API-based createPortalSession()
+  - Created webhook_events table migration documentation
+Files Changed:
+  - apps/web/src/pages/Upgrade.tsx - Success/error state handling
+  - apps/web/src/contexts/PremiumContext.tsx - Added refreshSubscription()
+  - apps/web/src/pages/Profile.tsx - API-based portal session
+  - docs/migrations/create_webhook_events.sql (NEW)
+Build Status: ✅ Passing
+
+## 2026-01-31 00:30 | Product Engineer | COMPLETED
+Task: Form Input Components + Component Documentation Page
+Changes:
+  - Created shared Input component with label, error, hint, icons, sizes
+  - Created shared TextArea component with char count, maxLength
+  - Created shared Select dropdown with custom chevron
+  - Created shared Toggle and Checkbox components with haptic feedback
+  - Built ComponentsDemo page at /components with live examples
+    - Button variants, sizes, states, icons
+    - Chip variants, TierChip, ProChip, RecruiterChip
+    - Input fields with all states
+    - TextArea with character count
+    - Select dropdown
+    - Toggle and Checkbox with labels
+    - Card component
+    - Import reference code blocks
+Files Changed:
+  - apps/web/src/components/shared/Input.tsx (NEW)
+  - apps/web/src/components/shared/TextArea.tsx (NEW)
+  - apps/web/src/components/shared/Select.tsx (NEW)
+  - apps/web/src/components/shared/Toggle.tsx (NEW - includes Checkbox)
+  - apps/web/src/components/shared/index.ts (exports added)
+  - apps/web/src/pages/ComponentsDemo.tsx (NEW)
+  - apps/web/src/App.tsx (route added)
+
+## 2026-01-31 00:15 | Product Engineer | COMPLETED
+Task: Reusable Button & Chip Components + Design System Alignment
+Changes:
+  - Created shared Button component with center/middle alignment
+    - Variants: primary, secondary, danger, ghost, success
+    - Sizes: sm, md, lg with mobile touch targets
+    - Loading state with spinner
+    - Icon support (left/right position)
+    - Haptic feedback on mobile
+  - Created shared Chip component with alignment
+    - Variants: primary, success, warning, error, neutral, purple, gold
+    - Sizes: sm, md
+    - Pre-built chips: TierChip, ProChip, RecruiterChip, VerifiedChip
+  - Added buttonStyles and chipStyles to styles.ts utility
+  - Updated STYLE_GUIDE.md with button/chip alignment rules
+  - Refactored ShareComparisonScreenshot to use Button
+  - Refactored LinkKingshotAccount to use Button
+Files Changed:
+  - apps/web/src/components/shared/Button.tsx (NEW)
+  - apps/web/src/components/shared/Chip.tsx (NEW)
+  - apps/web/src/components/shared/index.ts (exports added)
+  - apps/web/src/utils/styles.ts (buttonStyles, chipStyles added)
+  - apps/web/src/STYLE_GUIDE.md (alignment rules added)
+  - apps/web/src/components/ShareComparisonScreenshot.tsx (refactored)
+  - apps/web/src/components/LinkKingshotAccount.tsx (refactored)
+
+## 2026-01-31 00:00 | Product Engineer | COMPLETED
+Task: Mobile-First UX Polish + Share Screenshot Feature
+Changes:
+  - A1: Created useHaptic hook for haptic feedback on mobile taps
+    - Supports light/medium/heavy/success/warning/error patterns
+    - Uses Vibration API with graceful fallback
+  - A2: Increased Profile stat box touch targets to 48px minimum
+    - Added minHeight: '48px' and flexbox centering
+  - A3: Created useSwipeGesture hook for swipe navigation
+    - Supports left/right/up/down with configurable threshold
+  - A4: Created LazyImage component with IntersectionObserver
+    - Supports skeleton/blur/fade loading styles
+    - Loads images 100px before entering viewport
+  - A5: Created usePullToRefresh hook for mobile refresh
+    - Haptic feedback when crossing threshold
+    - Natural resistance feel
+  - B2: Added ShareComparisonScreenshot component
+    - Captures comparison table with html2canvas
+    - Preview modal with Share/Download/Copy Link options
+    - Web Share API with file support + clipboard fallback
+Files Changed:
+  - apps/web/src/hooks/useHaptic.ts (NEW)
+  - apps/web/src/hooks/usePullToRefresh.ts (NEW)
+  - apps/web/src/hooks/useSwipeGesture.ts (NEW)
+  - apps/web/src/components/LazyImage.tsx (NEW)
+  - apps/web/src/components/ShareComparisonScreenshot.tsx (NEW)
+  - apps/web/src/pages/CompareKingdoms.tsx (added screenshot share)
+  - apps/web/src/pages/Profile.tsx (touch target improvements)
+
 ## 2026-01-30 23:45 | Product Engineer | COMPLETED
 Task: Multi-kingdom comparison + Profile fixes + Mobile UX
 Changes:

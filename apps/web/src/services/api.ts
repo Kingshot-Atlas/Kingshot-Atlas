@@ -3,6 +3,7 @@ import { logger } from '../utils/logger';
 import { statusService } from './statusService';
 import { correctionService } from './correctionService';
 import { kvkCorrectionService } from './kvkCorrectionService';
+import { kvkHistoryService, KvKHistoryRecord } from './kvkHistoryService';
 import kingdomData from '../data/kingdoms.json';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
@@ -11,10 +12,27 @@ const CACHE_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
 const REQUEST_TIMEOUT_MS = 10000; // 10 second timeout
 const MAX_RETRIES = 2;
 
-// Preload KvK corrections from Supabase on module load
-kvkCorrectionService.fetchCorrectionsFromSupabase().catch(() => {
-  // Silent fail - will use localStorage fallback
-});
+// Cache for Supabase KvK data
+let supabaseKvkData: Map<number, KvKHistoryRecord[]> | null = null;
+
+// Preload KvK data from Supabase on module load
+const preloadSupabaseData = async () => {
+  try {
+    // Fetch corrections first
+    await kvkCorrectionService.fetchCorrectionsFromSupabase();
+    // Then fetch KvK history
+    supabaseKvkData = await kvkHistoryService.getAllRecords();
+    if (supabaseKvkData.size > 0) {
+      logger.info(`Loaded ${supabaseKvkData.size} kingdoms from Supabase`);
+    }
+  } catch (err) {
+    // Silent fail - will use local JSON fallback
+    logger.warn('Supabase preload failed, using local data');
+  }
+};
+
+// Start preloading immediately
+preloadSupabaseData();
 
 interface CacheData {
   kingdoms: Kingdom[];
@@ -32,16 +50,38 @@ const calculateOverallResult = (prepResult: string, battleResult: string): strin
   return 'Loss';                                  // Invasion
 };
 
-// Load real kingdom data from JSON
+// Load real kingdom data from JSON with Supabase KvK overlay
 const loadKingdomData = (): Kingdom[] => {
   const kvksByKingdom: Record<number, KVKRecord[]> = {};
   
-  // Get approved KvK corrections for applying to records
+  // Get approved KvK corrections for applying to records (localStorage fallback)
   const kvkCorrections = kvkCorrectionService.getAllAppliedCorrections();
   
-  // Group KvK records by kingdom and apply any corrections
+  // First, check if we have Supabase KvK data (preferred source)
+  if (supabaseKvkData && supabaseKvkData.size > 0) {
+    // Use Supabase data - corrections are already applied by kvkHistoryService
+    for (const [kNum, records] of supabaseKvkData) {
+      kvksByKingdom[kNum] = records.map(r => ({
+        id: kNum * 100 + r.kvk_number,
+        kingdom_number: kNum,
+        kvk_number: r.kvk_number,
+        opponent_kingdom: r.opponent_kingdom || 0,
+        prep_result: r.prep_result === 'W' ? 'Win' : 'Loss',
+        battle_result: r.battle_result === 'W' ? 'Win' : 'Loss',
+        overall_result: r.overall_result,
+        date_or_order_index: r.kvk_date || String(r.order_index),
+        created_at: r.kvk_date || String(r.order_index)
+      }));
+    }
+  }
+  
+  // Fallback/supplement: Load from local JSON for kingdoms not in Supabase
   for (const kvk of kingdomData.kvk_records) {
     const kNum = kvk.kingdom_number;
+    
+    // Skip if we already have this kingdom from Supabase
+    if (kvksByKingdom[kNum] && kvksByKingdom[kNum].length > 0) continue;
+    
     if (!kvksByKingdom[kNum]) kvksByKingdom[kNum] = [];
     
     // Check if there's a correction for this KvK record
@@ -168,6 +208,21 @@ class ApiService {
   reloadData(): void {
     realKingdoms = reloadKingdomData();
     this.clearCache();
+  }
+
+  /**
+   * Reload with fresh Supabase data
+   * Call this after KvK corrections are applied
+   */
+  async reloadWithSupabaseData(): Promise<void> {
+    try {
+      kvkHistoryService.invalidateCache();
+      supabaseKvkData = await kvkHistoryService.getAllRecords();
+      realKingdoms = reloadKingdomData();
+      this.clearCache();
+    } catch (err) {
+      logger.warn('Failed to reload Supabase data:', err);
+    }
   }
 
   private loadCache(): CacheData | null {

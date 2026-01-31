@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { neonGlow } from '../utils/styles';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
@@ -11,10 +11,42 @@ const Upgrade: React.FC = () => {
   useDocumentTitle('Atlas Upgrade');
   const isMobile = useIsMobile();
   const { user } = useAuth();
-  const { tier } = usePremium();
+  const { tier, refreshSubscription } = usePremium();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('yearly');
   const [isLoading, setIsLoading] = useState<'pro' | 'recruiter' | null>(null);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  
+  // Check for success/canceled states from Stripe redirect
+  const isSuccess = searchParams.get('success') === 'true';
+  const isCanceled = searchParams.get('canceled') === 'true';
+  const sessionId = searchParams.get('session_id');
+  
+  // Handle successful checkout - refresh subscription and clear URL params
+  useEffect(() => {
+    if (isSuccess && sessionId) {
+      // Refresh subscription status from Supabase
+      refreshSubscription?.();
+      
+      // Clear URL params after 5 seconds to clean up the URL
+      const timer = setTimeout(() => {
+        setSearchParams({});
+      }, 5000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isSuccess, sessionId, refreshSubscription, setSearchParams]);
+  
+  // Clear canceled state after showing message
+  useEffect(() => {
+    if (isCanceled) {
+      const timer = setTimeout(() => {
+        setSearchParams({});
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [isCanceled, setSearchParams]);
 
   const handleUpgrade = async (selectedTier: 'pro' | 'recruiter') => {
     if (!user) {
@@ -23,6 +55,7 @@ const Upgrade: React.FC = () => {
     }
     
     setIsLoading(selectedTier);
+    setCheckoutError(null);
     
     try {
       // Get checkout URL via API (with fallback to payment links)
@@ -42,6 +75,7 @@ const Upgrade: React.FC = () => {
       }
     } catch (error) {
       console.error('Checkout error:', error);
+      setCheckoutError(error instanceof Error ? error.message : 'Failed to start checkout. Please try again.');
       setIsLoading(null);
     }
   };
@@ -133,19 +167,161 @@ const Upgrade: React.FC = () => {
       </div>
 
       <div style={{ maxWidth: '1000px', margin: '0 auto', padding: isMobile ? '1.5rem 1rem' : '2rem' }}>
-        {/* Current Tier Badge - only show when logged in with paid tier */}
+        {/* Success Message */}
+        {isSuccess && (
+          <div style={{
+            marginBottom: '1.5rem',
+            padding: '1rem 1.25rem',
+            backgroundColor: '#22c55e15',
+            border: '1px solid #22c55e50',
+            borderRadius: '10px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem'
+          }}>
+            <span style={{ fontSize: '1.5rem' }}>🎉</span>
+            <div>
+              <div style={{ color: '#22c55e', fontWeight: '600', marginBottom: '0.25rem' }}>
+                Welcome to Atlas {tier === 'recruiter' ? 'Recruiter' : 'Pro'}!
+              </div>
+              <div style={{ color: '#9ca3af', fontSize: '0.85rem' }}>
+                Your subscription is now active. Enjoy your premium features!
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Canceled Message */}
+        {isCanceled && (
+          <div style={{
+            marginBottom: '1.5rem',
+            padding: '1rem 1.25rem',
+            backgroundColor: '#f59e0b15',
+            border: '1px solid #f59e0b50',
+            borderRadius: '10px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem'
+          }}>
+            <span style={{ fontSize: '1.25rem' }}>ℹ️</span>
+            <div style={{ color: '#f59e0b', fontSize: '0.9rem' }}>
+              Checkout canceled. No worries — you can upgrade anytime.
+            </div>
+          </div>
+        )}
+        
+        {/* Error Message */}
+        {checkoutError && (
+          <div style={{
+            marginBottom: '1.5rem',
+            padding: '1rem 1.25rem',
+            backgroundColor: '#ef444415',
+            border: '1px solid #ef444450',
+            borderRadius: '10px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem'
+          }}>
+            <span style={{ fontSize: '1.25rem' }}>⚠️</span>
+            <div>
+              <div style={{ color: '#ef4444', fontWeight: '600', marginBottom: '0.25rem' }}>
+                Checkout Error
+              </div>
+              <div style={{ color: '#9ca3af', fontSize: '0.85rem' }}>
+                {checkoutError}
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Current Tier Badge with Management Options - only show when logged in with paid tier */}
         {user && tier !== 'free' && tier !== 'anonymous' && (
           <div style={{
-            textAlign: 'center',
             marginBottom: '1.5rem',
-            padding: '0.75rem',
-            backgroundColor: tier === 'recruiter' ? '#a855f720' : '#22d3ee20',
-            border: `1px solid ${tier === 'recruiter' ? '#a855f750' : '#22d3ee50'}`,
-            borderRadius: '8px'
+            padding: '1rem 1.25rem',
+            backgroundColor: tier === 'recruiter' ? '#a855f715' : '#22d3ee15',
+            border: `1px solid ${tier === 'recruiter' ? '#a855f740' : '#22d3ee40'}`,
+            borderRadius: '10px'
           }}>
-            <span style={{ color: tier === 'recruiter' ? '#a855f7' : '#22d3ee', fontWeight: '600' }}>
-              ✓ You're currently on Atlas {tier === 'recruiter' ? 'Recruiter' : 'Pro'}
-            </span>
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '1rem'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <span style={{ fontSize: '1.25rem' }}>⭐</span>
+                <div>
+                  <div style={{ color: tier === 'recruiter' ? '#a855f7' : '#22d3ee', fontWeight: '600' }}>
+                    You're on Atlas {tier === 'recruiter' ? 'Recruiter' : 'Pro'}
+                  </div>
+                  <div style={{ color: '#6b7280', fontSize: '0.8rem', marginTop: '0.25rem' }}>
+                    Thank you for supporting Atlas!
+                  </div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                <button
+                  onClick={async () => {
+                    if (!user) return;
+                    setIsLoading('pro');
+                    try {
+                      const portalUrl = await import('../lib/stripe').then(m => m.createPortalSession(user.id));
+                      window.location.href = portalUrl;
+                    } catch (error) {
+                      console.error('Portal error:', error);
+                      setCheckoutError('Unable to open billing portal. Please try from your Profile page or email support@ks-atlas.com');
+                      setIsLoading(null);
+                    }
+                  }}
+                  disabled={isLoading !== null}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    backgroundColor: 'transparent',
+                    border: `1px solid ${tier === 'recruiter' ? '#a855f750' : '#22d3ee50'}`,
+                    borderRadius: '8px',
+                    color: tier === 'recruiter' ? '#a855f7' : '#22d3ee',
+                    fontSize: '0.85rem',
+                    fontWeight: '500',
+                    cursor: isLoading ? 'wait' : 'pointer',
+                    opacity: isLoading ? 0.7 : 1,
+                  }}
+                >
+                  {isLoading === 'pro' ? 'Opening...' : '⚙️ Manage Billing'}
+                </button>
+                <button
+                  onClick={async () => {
+                    if (!user) return;
+                    const confirmed = window.confirm('Are you sure you want to cancel? You can always resubscribe later.');
+                    if (!confirmed) return;
+                    setIsLoading('recruiter');
+                    try {
+                      const portalUrl = await import('../lib/stripe').then(m => m.createPortalSession(user.id));
+                      window.location.href = portalUrl;
+                    } catch (error) {
+                      console.error('Portal error:', error);
+                      setCheckoutError('Unable to open cancellation portal. Please email support@ks-atlas.com');
+                      setIsLoading(null);
+                    }
+                  }}
+                  disabled={isLoading !== null}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    backgroundColor: 'transparent',
+                    border: '1px solid #ef444450',
+                    borderRadius: '8px',
+                    color: '#ef4444',
+                    fontSize: '0.85rem',
+                    fontWeight: '500',
+                    cursor: isLoading ? 'wait' : 'pointer',
+                    opacity: isLoading ? 0.7 : 1,
+                  }}
+                >
+                  {isLoading === 'recruiter' ? 'Opening...' : 'Cancel Subscription'}
+                </button>
+              </div>
+            </div>
           </div>
         )}
 

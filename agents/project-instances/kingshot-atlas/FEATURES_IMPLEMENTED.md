@@ -116,6 +116,7 @@
 | Reputation Service | ✅ Live | Platform | `reputationService.ts` user trust scores |
 | KvK Correction Service | ✅ Live | Platform | `kvkCorrectionService.ts` - Supabase-backed corrections |
 | KvK History Service | ✅ Live | Platform | `kvkHistoryService.ts` - Supabase + CSV fallback |
+| KvK Data Migration | ✅ Live | Platform | 3160/5042 records in Supabase + indexes + RLS + migration script |
 | User Correction Stats | ✅ Live | Platform | `UserCorrectionStats.tsx` - profile correction tracking |
 
 ---
@@ -124,7 +125,11 @@
 
 | Feature | Status | Agent | Notes |
 |---------|--------|-------|-------|
-| Premium Context | ✅ Live | Platform | `PremiumContext.tsx` subscription state |
+| Premium Context | ✅ Live | Platform | `PremiumContext.tsx` subscription state + refreshSubscription() |
+| Stripe Checkout Flow | ✅ Live | Platform | API-based checkout session creation |
+| Stripe Webhook Handler | ✅ Live | Platform | Handles subscription events, updates Supabase |
+| Checkout Success/Error UX | ✅ Live | Platform | Success/canceled/error messages on Upgrade page |
+| Customer Portal Integration | ✅ Live | Platform | API-based portal session for subscription management |
 | Upgrade Prompts | ✅ Live | Business | `UpgradePrompt.tsx` conversion nudges |
 | Pro Badge | ✅ Live | Design | `ProBadge.tsx` visual indicator |
 | Ad Banners | ✅ Live | Business | `AdBanner.tsx` for free tier |

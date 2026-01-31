@@ -27,6 +27,7 @@ const UserDirectory = lazy(() => import('./pages/UserDirectory'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const Upgrade = lazy(() => import('./pages/Upgrade'));
 const Changelog = lazy(() => import('./pages/Changelog'));
+const ComponentsDemo = lazy(() => import('./pages/ComponentsDemo'));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -86,7 +87,8 @@ function AppContent() {
               <Route path="/upgrade" element={<ErrorBoundary><Upgrade /></ErrorBoundary>} />
               <Route path="/pro" element={<ErrorBoundary><Upgrade /></ErrorBoundary>} />
               <Route path="/changelog" element={<ErrorBoundary><Changelog /></ErrorBoundary>} />
-                          </Routes>
+              <Route path="/components" element={<ErrorBoundary><ComponentsDemo /></ErrorBoundary>} />
+            </Routes>
           </Suspense>
         </PageTransition>
       </main>

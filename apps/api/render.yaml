@@ -21,3 +21,15 @@ services:
         value: https://www.ks-atlas.com,https://ks-atlas.com
       - key: PYTHON_VERSION
         value: "3.11.0"
+      # Stripe Configuration (set manually in Render dashboard)
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: FRONTEND_URL
+        value: https://ks-atlas.com
+      # Supabase Configuration (set manually in Render dashboard)
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
