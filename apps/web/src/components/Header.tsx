@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth, getCacheBustedAvatarUrl } from '../contexts/AuthContext';
 import AuthModal from './AuthModal';
@@ -24,6 +24,28 @@ const Header: React.FC = () => {
   const [showCommunityMenu, setShowCommunityMenu] = useState(false);
   const [showMobileCommunityMenu, setShowMobileCommunityMenu] = useState(false);
   const isMobile = useIsMobile();
+  
+  // Timeout refs for dropdown close delay (prevents flickering when moving between trigger and menu)
+  const toolsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const communityTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  const handleToolsEnter = () => {
+    if (toolsTimeoutRef.current) clearTimeout(toolsTimeoutRef.current);
+    setShowToolsMenu(true);
+  };
+  
+  const handleToolsLeave = () => {
+    toolsTimeoutRef.current = setTimeout(() => setShowToolsMenu(false), 150);
+  };
+  
+  const handleCommunityEnter = () => {
+    if (communityTimeoutRef.current) clearTimeout(communityTimeoutRef.current);
+    setShowCommunityMenu(true);
+  };
+  
+  const handleCommunityLeave = () => {
+    communityTimeoutRef.current = setTimeout(() => setShowCommunityMenu(false), 150);
+  };
 
   useEffect(() => {
     setShowMobileMenu(false);
@@ -244,8 +266,8 @@ const Header: React.FC = () => {
           </Link>
           <div 
             style={{ position: 'relative' }}
-            onMouseEnter={() => setShowToolsMenu(true)}
-            onMouseLeave={() => setShowToolsMenu(false)}
+            onMouseEnter={handleToolsEnter}
+            onMouseLeave={handleToolsLeave}
           >
             <Link
               to="/tools"
@@ -273,7 +295,7 @@ const Header: React.FC = () => {
                 top: '100%',
                 left: '50%',
                 transform: 'translateX(-50%)',
-                marginTop: '0.5rem',
+                paddingTop: '0.5rem',
                 backgroundColor: '#111111',
                 border: '1px solid #2a2a2a',
                 borderRadius: '12px',
@@ -388,8 +410,8 @@ const Header: React.FC = () => {
           </div>
           <div 
             style={{ position: 'relative' }}
-            onMouseEnter={() => setShowCommunityMenu(true)}
-            onMouseLeave={() => setShowCommunityMenu(false)}
+            onMouseEnter={handleCommunityEnter}
+            onMouseLeave={handleCommunityLeave}
           >
             <button
               style={{
@@ -420,7 +442,7 @@ const Header: React.FC = () => {
                 top: '100%',
                 left: '50%',
                 transform: 'translateX(-50%)',
-                marginTop: '0.5rem',
+                paddingTop: '0.5rem',
                 backgroundColor: '#111111',
                 border: '1px solid #2a2a2a',
                 borderRadius: '12px',

@@ -114,6 +114,7 @@ const ComparisonRadarChart: React.FC<ComparisonRadarChartProps> = ({
         cancelAnimationFrame(animationRef.current);
       }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [datasets, shouldAnimate]);
   
   // Handle touch/click on data points (mobile-friendly)

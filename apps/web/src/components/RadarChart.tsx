@@ -103,6 +103,7 @@ const RadarChart: React.FC<RadarChartProps> = ({
         cancelAnimationFrame(animationRef.current);
       }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, shouldAnimate]);
   
   // Handle touch/click on data points (mobile-friendly)

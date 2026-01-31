@@ -221,7 +221,7 @@ const ReportKvKErrorModal: React.FC<ReportKvKErrorModalProps> = ({
         {/* Error Type */}
         <div style={{ marginBottom: '1rem' }}>
           <label style={{ display: 'block', color: '#9ca3af', fontSize: '0.8rem', marginBottom: '0.5rem' }}>
-            What's wrong?
+            What&apos;s wrong?
           </label>
           <select
             value={errorType}

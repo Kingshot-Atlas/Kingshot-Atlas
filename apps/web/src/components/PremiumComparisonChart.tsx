@@ -70,6 +70,7 @@ const PremiumComparisonChart: React.FC<PremiumComparisonChartProps> = ({
         color: color || '#22d3ee'
       };
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [kingdoms, availableSlots]);
   
   const handleToggle = useCallback(() => {

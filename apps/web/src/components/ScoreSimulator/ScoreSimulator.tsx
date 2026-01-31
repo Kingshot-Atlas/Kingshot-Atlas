@@ -19,7 +19,7 @@ const ScoreSimulator: React.FC<ScoreSimulatorProps> = ({ kingdom }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Check if scoreSimulator feature is available
-  const hasAccess = isPro || (features as any).scoreSimulator;
+  const hasAccess = isPro || (features as { scoreSimulator?: boolean }).scoreSimulator;
 
   // Simulation results - must be called before early returns (hooks rules)
   // Note: Returns valid result even for 0 KvKs; early return below handles that case
@@ -139,7 +139,7 @@ const ScoreSimulator: React.FC<ScoreSimulatorProps> = ({ kingdom }) => {
         </div>
         {!isExpanded && (
           <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>
-            "What if I win the next KvK?"
+            &quot;What if I win the next KvK?&quot;
           </span>
         )}
         <svg 

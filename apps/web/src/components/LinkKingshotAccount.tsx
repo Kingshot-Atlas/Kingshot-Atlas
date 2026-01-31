@@ -192,7 +192,6 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
   linkedPlayer,
   showRefresh = true,
   lastSynced,
-  onRefresh,
   subscriptionTier = 'free',
   isPublicView = false,
 }) => {
@@ -507,7 +506,7 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
         </div>
 
         <p style={{ fontSize: '0.85rem', color: colors.textSecondary, marginBottom: '1rem' }}>
-          Is this your account? Click "Link Account" to connect it to your Atlas profile.
+          Is this your account? Click &quot;Link Account&quot; to connect it to your Atlas profile.
         </p>
 
         <div style={{ display: 'flex', gap: '0.75rem' }}>
