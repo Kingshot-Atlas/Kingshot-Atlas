@@ -180,12 +180,21 @@ const Admin: React.FC = () => {
 
   const fetchSubmissions = async () => {
     setLoading(true);
+    console.log('[Admin] Fetching submissions with filter:', filter);
     try {
-      const response = await fetch(`${API_URL}/api/v1/submissions?status=${filter}`, {
+      const url = `${API_URL}/api/v1/submissions?status=${filter}`;
+      console.log('[Admin] Fetch URL:', url);
+      const response = await fetch(url, {
         headers: { 'X-User-Id': user?.id || '' }
       });
+      console.log('[Admin] Response status:', response.status, response.ok);
       if (response.ok) {
-        setSubmissions(await response.json());
+        const data = await response.json();
+        console.log('[Admin] Submissions received:', data.length, data);
+        setSubmissions(data);
+      } else {
+        const errorText = await response.text();
+        console.error('[Admin] Error response:', errorText);
       }
     } catch (error) {
       console.error('Failed to fetch submissions:', error);

@@ -414,7 +414,8 @@ def get_submissions(
     """Get submissions (for moderation queue)"""
     query = db.query(KVKSubmission)
     
-    if status:
+    # Skip status filter if 'all' is passed - return all submissions
+    if status and status != 'all':
         query = query.filter(KVKSubmission.status == status)
     if kingdom_number:
         query = query.filter(KVKSubmission.kingdom_number == kingdom_number)
