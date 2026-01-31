@@ -23,6 +23,20 @@ Files Changed:
   - apps/discord-bot/src/config.js
 Result: Atlas bot will automatically post @everyone announcement at 18:00 UTC on KvK Saturdays prompting users to submit their KvK results
 
+## 2026-01-31 16:20 | Design Lead | COMPLETED
+Task: Redesign Performance Trend chart for visual clarity
+Problem: Orange Battle WR line completely blocked yellow Prep WR line when overlapping
+Solution:
+  - Changed Prep WR to cyan (#22d3ee) with dashed line pattern
+  - Battle WR stays orange (#f97316) with solid line
+  - Prep uses diamond markers, Battle uses circle markers
+  - Added gradient area fills under each line for depth
+  - Added interactive hover with glow effect and value tooltip
+  - Updated legend with visual line samples matching styles
+Files Changed:
+  - apps/web/src/components/TrendChart.tsx
+Result: Both lines now clearly visible and distinguishable, even when values overlap
+
 ## 2026-01-31 16:15 | Platform Engineer | COMPLETED
 Task: Add real-time database update when submission approved
 Feature:
