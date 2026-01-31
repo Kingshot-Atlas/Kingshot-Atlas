@@ -9,6 +9,23 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-01-31 12:00 | Product Engineer | COMPLETED
+Task: Fix Admin Dashboard Kingshot Linked count + Player Directory bugs + /work workflow update
+Root Causes:
+  1. Kingshot Linked showing 0: RLS policy only allowed users to SELECT their own profile
+  2. Only 1 player showing: Same RLS policy issue - users couldn't see other linked profiles
+  3. /work workflow was giving 3 suggestions instead of 1
+Fixes Applied:
+  - Added RLS policy "Public can view linked profiles" for profiles with linked_username
+  - Updated Player Directory UI: Kingdom text with link below name, removed K chip, removed house emoji from TC
+  - Updated /work workflow: 1 suggestion instead of 3, emphasized ACTIVITY_LOG.md update requirement
+Files Changed:
+  - apps/web/src/pages/UserDirectory.tsx - UI changes (Kingdom link, removed chip/emoji)
+  - .windsurf/workflows/work.md - 1 suggestion, mandatory ACTIVITY_LOG.md update
+Database Changes:
+  - Added RLS policy: "Public can view linked profiles" ON profiles FOR SELECT
+Result: All 5 linked users should now appear in Player Directory, Kingshot Linked count should show 5
+
 ## 2026-01-31 12:27 | Platform Engineer | COMPLETED
 Task: Fix Stripe Webhook URL Configuration
 Root Cause: Webhook URL was pointing to non-existent `kingshot-atlas-api.onrender.com`

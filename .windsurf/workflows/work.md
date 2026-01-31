@@ -50,13 +50,17 @@ Work within that agent's scope and follow their workflows.
 ## 6. Post-Task Documentation (MANDATORY)
 After completing work:
 
+### Log to ACTIVITY_LOG.md (REQUIRED - enables patch note generation)
+Append new entry at the TOP of the log:
+```
+## YYYY-MM-DD HH:MM | [Agent] | COMPLETED
+Task: [Brief description]
+Files: [Paths affected]
+Result: [Outcome]
+```
+
 ### Update STATUS_SNAPSHOT.md
 - New project state
-
-### Log to ACTIVITY_LOG.md
-```
-[YYYY-MM-DD HH:MM] [AGENT] ACTION: Brief description
-```
 
 ### Update FEATURES_IMPLEMENTED.md (if new feature)
 Add row with: Feature | Status | Date | Agent | Notes
@@ -70,8 +74,8 @@ Add row with: Feature | Status | Date | Agent | Notes
 - What was done
 - Why it was done
 - Files changed
-- 3 suggestions for next steps (5 tasks each)
-  - **Each suggestion MUST include a short explanation of WHY it's suggested** (business value, user impact, or technical debt reduction)
+- **1 suggested next step** (the most impactful one, with 5 tasks)
+  - **MUST include a short explanation of WHY it's suggested** (business value, user impact, or technical debt reduction)
 
 ## 8. Recommended Next Steps Library
 

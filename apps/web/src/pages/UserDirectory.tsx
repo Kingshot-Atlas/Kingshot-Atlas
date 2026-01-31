@@ -512,20 +512,6 @@ const UserDirectory: React.FC = () => {
                             YOU
                           </span>
                         )}
-                        {/* Kingdom chip - like LinkKingshotAccount card */}
-                        {user.linked_kingdom && (
-                          <span style={{
-                            fontSize: '0.6rem',
-                            padding: '0.15rem 0.4rem',
-                            backgroundColor: '#22d3ee15',
-                            border: '1px solid #22d3ee40',
-                            borderRadius: '4px',
-                            color: '#22d3ee',
-                            fontWeight: '600',
-                          }}>
-                            K{user.linked_kingdom}
-                          </span>
-                        )}
                       </div>
                       {user.alliance_tag && (
                         <div style={{
@@ -544,14 +530,27 @@ const UserDirectory: React.FC = () => {
                   </div>
 
                   {/* Kingshot Account Info */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', marginBottom: '1rem' }}>
+                    {user.linked_kingdom && (
+                      <Link 
+                        to={`/kingdom/${user.linked_kingdom}`}
+                        style={{ 
+                          color: '#9ca3af', 
+                          fontSize: '0.85rem',
+                          textDecoration: 'none',
+                          transition: 'color 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.color = '#22d3ee'}
+                        onMouseLeave={(e) => e.currentTarget.style.color = '#9ca3af'}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Kingdom: {user.linked_kingdom}
+                      </Link>
+                    )}
                     {user.linked_tc_level && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <span style={{ color: '#6b7280', fontSize: '0.85rem' }}>🏠</span>
-                        <span style={{ color: '#fff', fontSize: '0.9rem' }}>
-                          Town Center: {formatTCLevel(user.linked_tc_level)}
-                        </span>
-                      </div>
+                      <span style={{ color: '#9ca3af', fontSize: '0.85rem' }}>
+                        Town Center: {formatTCLevel(user.linked_tc_level)}
+                      </span>
                     )}
                   </div>
 
