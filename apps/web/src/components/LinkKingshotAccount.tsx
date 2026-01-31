@@ -1,8 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useToast } from './Toast';
-import { colors, neonGlow, transition } from '../utils/styles';
+import { colors, neonGlow, transition, subscriptionColors } from '../utils/styles';
 import { Button } from './shared';
+
+// Get username color based on subscription tier
+const getUsernameColor = (tier: 'free' | 'pro' | 'recruiter'): string => {
+  switch (tier) {
+    case 'pro': return subscriptionColors.pro;
+    case 'recruiter': return subscriptionColors.recruiter;
+    default: return colors.text; // White for free users
+  }
+};
 
 // Convert TC level to display string (TC 31+ becomes TG tiers)
 const formatTCLevel = (level: number): string => {
@@ -141,6 +150,8 @@ interface LinkKingshotAccountProps {
   showRefresh?: boolean;
   lastSynced?: string | null;
   onRefresh?: () => void;
+  subscriptionTier?: 'free' | 'pro' | 'recruiter';
+  isPublicView?: boolean;
 }
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
@@ -169,6 +180,8 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
   showRefresh = true,
   lastSynced,
   onRefresh,
+  subscriptionTier = 'free',
+  isPublicView = false,
 }) => {
   const isMobile = useIsMobile();
   const { showToast } = useToast();
@@ -333,7 +346,6 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
         <div
           style={{
             display: 'flex',
-            alignItems: 'center',
             gap: '1rem',
             padding: '1rem',
             backgroundColor: colors.surface,
@@ -344,85 +356,106 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
           <KingshotAvatar 
             url={linkedPlayer.avatar_url} 
             size={56} 
-            borderColor={colors.primary} 
+            borderColor={getUsernameColor(subscriptionTier)} 
           />
 
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            {/* Row 1: Username + Kingdom Rank Badge */}
             <div
               style={{
-                fontSize: '1.1rem',
-                fontWeight: '700',
-                marginBottom: '0.25rem',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.5rem',
+                gap: '0.75rem',
                 flexWrap: 'wrap',
               }}
             >
-              <span style={neonGlow(colors.primary)}>{linkedPlayer.username}</span>
+              <span 
+                style={{ 
+                  fontSize: '1.1rem', 
+                  fontWeight: '700',
+                  color: getUsernameColor(subscriptionTier),
+                  ...(subscriptionTier !== 'free' ? neonGlow(getUsernameColor(subscriptionTier)) : {})
+                }}
+              >
+                {linkedPlayer.username}
+              </span>
               {kingdomRank && (
                 <span
                   style={{
-                    fontSize: '0.7rem',
-                    padding: '0.15rem 0.4rem',
+                    fontSize: '0.75rem',
+                    padding: '0.2rem 0.5rem',
                     borderRadius: '4px',
-                    backgroundColor: `${colors.primary}20`,
+                    backgroundColor: `${colors.primary}15`,
+                    border: `1px solid ${colors.primary}40`,
                     color: colors.primary,
                     fontWeight: '600',
                   }}
                 >
-                  K{linkedPlayer.kingdom} #{kingdomRank.rank}
+                  K-{linkedPlayer.kingdom} #{kingdomRank.rank}
                 </span>
               )}
             </div>
-            <div style={{ fontSize: '0.8rem', color: colors.textSecondary }}>
-              Kingdom {linkedPlayer.kingdom} • {formatTCLevel(linkedPlayer.town_center_level)}
-              {kingdomRank && (
-                <span style={{ marginLeft: '0.5rem', color: colors.primary }}>
-                  • Atlas: {kingdomRank.atlas_score.toFixed(1)}
-                </span>
-              )}
+
+            {/* Row 2: ID */}
+            <div style={{ fontSize: '0.85rem', color: colors.textSecondary }}>
+              <span style={{ color: colors.textMuted }}>ID:</span> {linkedPlayer.player_id}
             </div>
-            <div style={{ fontSize: '0.7rem', color: colors.textMuted, marginTop: '0.25rem', display: 'flex', gap: '0.75rem' }}>
-              <span>ID: {linkedPlayer.player_id}</span>
-              <span>Synced: {formatLastSynced(lastSynced)}</span>
+
+            {/* Row 3: Kingdom */}
+            <div style={{ fontSize: '0.85rem', color: colors.textSecondary }}>
+              <span style={{ color: colors.textMuted }}>Kingdom:</span> {linkedPlayer.kingdom}
             </div>
+
+            {/* Row 4: Town Center */}
+            <div style={{ fontSize: '0.85rem', color: colors.textSecondary }}>
+              <span style={{ color: colors.textMuted }}>Town Center:</span> {formatTCLevel(linkedPlayer.town_center_level)}
+            </div>
+
+            {/* Last synced - only show if not public view */}
+            {!isPublicView && (
+              <div style={{ fontSize: '0.7rem', color: colors.textMuted, marginTop: '0.25rem' }}>
+                Synced: {formatLastSynced(lastSynced)}
+              </div>
+            )}
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-          {showRefresh && (
-            <Button
-              variant="secondary"
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-              loading={isRefreshing}
-              icon={!isRefreshing ? <span>🔄</span> : undefined}
-              style={{ flex: 1, minWidth: '120px' }}
-            >
-              {isRefreshing ? 'Refreshing...' : 'Refresh Data'}
-            </Button>
-          )}
-
-          {!showUnlinkConfirm ? (
-            <Button variant="danger" onClick={() => setShowUnlinkConfirm(true)}>
-              Unlink
-            </Button>
-          ) : (
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
+        {/* Action buttons - only show for own profile (not public view) */}
+        {!isPublicView && (
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+            {showRefresh && (
               <Button
-                variant="danger"
-                onClick={handleUnlink}
-                style={{ backgroundColor: colors.error, color: '#fff', border: 'none' }}
+                variant="secondary"
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                loading={isRefreshing}
+                icon={!isRefreshing ? <span>🔄</span> : undefined}
+                style={{ flex: 1, minWidth: '120px' }}
               >
-                Confirm
+                {isRefreshing ? 'Refreshing...' : 'Refresh Data'}
               </Button>
-              <Button variant="ghost" onClick={() => setShowUnlinkConfirm(false)}>
-                Cancel
+            )}
+
+            {!showUnlinkConfirm ? (
+              <Button variant="danger" onClick={() => setShowUnlinkConfirm(true)}>
+                Unlink
               </Button>
-            </div>
-          )}
-        </div>
+            ) : (
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <Button
+                  variant="danger"
+                  onClick={handleUnlink}
+                  style={{ backgroundColor: colors.error, color: '#fff', border: 'none' }}
+                >
+                  Confirm
+                </Button>
+                <Button variant="ghost" onClick={() => setShowUnlinkConfirm(false)}>
+                  Cancel
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
 
         {error && (
           <div

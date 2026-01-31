@@ -87,20 +87,24 @@ export const tierColors = {
 } as const;
 
 /**
- * Subscription tier colors
+ * Subscription tier colors - SINGLE SOURCE OF TRUTH
+ * Import from constants.ts for the canonical definition
  */
 export const subscriptionColors = {
+  free: '#6b7280',      // Gray
   pro: '#22d3ee',       // Cyan - Atlas Pro
-  recruiter: '#a855f7', // Purple - Atlas Recruiter
+  recruiter: '#f97316', // Orange - Atlas Recruiter
+  admin: '#fbbf24',     // Golden - Admin (special status)
 } as const;
 
 /**
  * Get color for a subscription tier
  */
-export const getSubscriptionColor = (tier: 'pro' | 'recruiter' | 'free'): string => {
+export const getSubscriptionColor = (tier: 'pro' | 'recruiter' | 'admin' | 'free'): string => {
   switch (tier) {
     case 'pro': return subscriptionColors.pro;
     case 'recruiter': return subscriptionColors.recruiter;
+    case 'admin': return subscriptionColors.admin;
     default: return colors.textSecondary;
   }
 };

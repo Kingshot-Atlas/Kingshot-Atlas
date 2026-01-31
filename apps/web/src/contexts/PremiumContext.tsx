@@ -134,6 +134,7 @@ interface PremiumContextType {
   isLoggedIn: boolean;
   isPro: boolean;
   isRecruiter: boolean;
+  isAdmin: boolean; // True if user is admin (displays as Admin, not Recruiter)
   loading: boolean;
   checkFeature: (feature: keyof PremiumFeatures) => boolean;
   getFeatureLimit: (feature: keyof PremiumFeatures) => number;
@@ -148,6 +149,9 @@ const TIER_NAMES: Record<SubscriptionTier, string> = {
   pro: 'Atlas Pro',
   recruiter: 'Atlas Recruiter',
 };
+
+// Display name for admins (overrides tier name)
+const ADMIN_TIER_NAME = 'Admin';
 
 const PremiumContext = createContext<PremiumContextType | undefined>(undefined);
 
@@ -164,6 +168,7 @@ const PREMIUM_KEY = 'kingshot_premium_tier';
 export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const [tier, setTier] = useState<SubscriptionTier>('anonymous');
+  const [isAdminUser, setIsAdminUser] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const fetchSubscription = async () => {
@@ -193,10 +198,13 @@ export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children })
         ADMIN_USERNAMES.includes(userName || '');
       
       if (isAdmin) {
-        logger.info('Admin user detected, granting Recruiter tier:', user.email);
-        setTier('recruiter');
+        logger.info('Admin user detected, granting full access:', user.email);
+        setIsAdminUser(true);
+        setTier('recruiter'); // Full access
         setLoading(false);
         return;
+      } else {
+        setIsAdminUser(false);
       }
 
       // Logged in - default to free
@@ -248,10 +256,11 @@ export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children })
   };
 
   const features = TIER_FEATURES[tier];
-  const tierName = TIER_NAMES[tier];
+  const tierName = isAdminUser ? ADMIN_TIER_NAME : TIER_NAMES[tier];
   const isLoggedIn = tier !== 'anonymous';
   const isPro = tier === 'pro' || tier === 'recruiter';
   const isRecruiter = tier === 'recruiter';
+  const isAdmin = isAdminUser;
 
   const checkFeature = (feature: keyof PremiumFeatures): boolean => {
     const value = features[feature];
@@ -304,6 +313,7 @@ export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children })
       isLoggedIn,
       isPro,
       isRecruiter,
+      isAdmin,
       loading,
       checkFeature,
       getFeatureLimit,

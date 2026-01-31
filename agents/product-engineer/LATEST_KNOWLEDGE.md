@@ -489,4 +489,70 @@ This pattern ensures kingdom profiles work even when API database is out of sync
 
 ---
 
+## Service Worker + OAuth Gotcha (2026-01-31)
+
+**Problem:** Cached service workers from production builds interfere with OAuth redirects in development, causing:
+```
+FetchEvent resulted in a network error response: a redirected response was used for a request whose redirect mode is not "follow"
+```
+
+**Root Cause:** Workbox service worker precaches routes and handles fetch events with `redirect: 'manual'`, which breaks Supabase OAuth callbacks that include hash fragments (`#access_token=...`).
+
+**Solution:** Automatically unregister service workers in development mode:
+```typescript
+// main.tsx
+if (import.meta.env.DEV && 'serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(registrations => {
+    registrations.forEach(registration => {
+      registration.unregister();
+      console.log('[DEV] Service worker unregistered');
+    });
+  });
+}
+```
+
+**Quick Fix for Users:** Run in DevTools Console:
+```javascript
+navigator.serviceWorker.getRegistrations().then(r => r.forEach(reg => reg.unregister()));
+location.reload();
+```
+
+---
+
+## Subscription Tier Sync Issue (2026-01-31)
+
+**Problem:** User has active Stripe subscription but `subscription_tier` in database shows `free`.
+
+**Root Cause:** Stripe webhooks may fail silently or the initial subscription creation didn't properly update the `profiles` table.
+
+**Manual Fix:**
+```sql
+-- Check current tier
+SELECT id, username, subscription_tier FROM profiles WHERE username = 'USERNAME';
+
+-- Update to correct tier based on Stripe subscription
+UPDATE profiles SET subscription_tier = 'pro' WHERE id = 'USER_ID';
+```
+
+**Prevention:** Ensure webhook handler at `/api/webhooks/stripe` properly updates `subscription_tier` on:
+- `customer.subscription.created`
+- `customer.subscription.updated`
+- `customer.subscription.deleted`
+
+**TC Level to TG Tier Mapping (Source of Truth):**
+| Level Range | Display |
+|-------------|---------|
+| 1-30 | TC 1-30 |
+| 31-34 | TC 30 |
+| 35-39 | TG1 |
+| 40-44 | TG2 |
+| 45-49 | TG3 |
+| 50-54 | TG4 |
+| 55-59 | TG5 |
+| 60+ | TG6+ |
+
+Formula: `tgTier = Math.floor((level - 35) / 5) + 1`
+
+---
+
 *Updated by Product Engineer based on current React best practices.*

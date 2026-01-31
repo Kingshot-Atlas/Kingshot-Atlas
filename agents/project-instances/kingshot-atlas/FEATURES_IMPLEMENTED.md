@@ -1,6 +1,6 @@
 # Features Implemented
 
-**Last Updated:** 2026-01-29  
+**Last Updated:** 2026-01-31  
 **Purpose:** Prevent duplicate work by tracking what's already built.
 
 ---
@@ -64,6 +64,11 @@
 | Auth Modal | ✅ Live | Product | `AuthModal.tsx` login/signup flow |
 | User Profiles | ✅ Live | Product | Settings, preferences, linked accounts |
 | Kingshot Player Linking | ✅ Live | Product | `LinkKingshotAccount.tsx` - link to in-game ID |
+| Linked Account Card Redesign | ✅ Live | Product | Table layout with tier-based username colors (2026-01-31) |
+| Public Profile Tier Coloring | ✅ Live | Product | Tier-colored usernames on public profiles (2026-01-31) |
+| Kingdom Players Section | ✅ Live | Product | `KingdomPlayers.tsx` - Atlas users from kingdom on profile page (2026-01-31) |
+| User Directory Enhancement | ✅ Live | Product | Shows only linked Kingshot accounts with tier coloring, Kingdom, TC Level (2026-01-31) |
+| Navigation Reorganization | ✅ Live | Product | Community dropdown (Players, Discord, About), cleaner header (2026-01-31) |
 | User Achievements | ✅ Live | Product | `UserAchievements.tsx`, `AchievementBadges.tsx` |
 | User Directory | ✅ Live | Product | Browse and search Atlas users |
 

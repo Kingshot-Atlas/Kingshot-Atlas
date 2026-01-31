@@ -3,13 +3,14 @@ import { Link } from 'react-router-dom';
 import { useAuth, UserProfile } from '../contexts/AuthContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { colors, neonGlow as neonGlowUtil, subscriptionColors } from '../utils/styles';
-import { getEffectiveTier } from '../utils/constants';
+import { getDisplayTier, SubscriptionTier } from '../utils/constants';
 
-// Get username color based on subscription tier
-const getUsernameColor = (tier: 'free' | 'pro' | 'recruiter' | null | undefined): string => {
+// Get username color based on subscription tier (including admin)
+const getUsernameColor = (tier: SubscriptionTier | null | undefined): string => {
   switch (tier) {
     case 'pro': return subscriptionColors.pro;
     case 'recruiter': return subscriptionColors.recruiter;
+    case 'admin': return subscriptionColors.admin;
     default: return colors.text;
   }
 };
@@ -455,22 +456,35 @@ const UserDirectory: React.FC = () => {
                         marginBottom: '0.25rem',
                         flexWrap: 'wrap'
                       }}>
-                        {/* Use effective tier: admins are always recruiters */}
+                        {/* Use display tier: admins show as "admin" with golden badge */}
                         {(() => {
-                          const effectiveTier = getEffectiveTier(user.subscription_tier, user.username);
+                          const displayTier = getDisplayTier(user.subscription_tier, user.username);
                           return (
                             <>
                               <span style={{ 
                                 fontSize: '1.1rem', 
                                 fontWeight: 'bold', 
-                                color: getUsernameColor(effectiveTier),
-                                ...(effectiveTier === 'pro' || effectiveTier === 'recruiter' 
-                                  ? neonGlowUtil(getUsernameColor(effectiveTier)) 
+                                color: getUsernameColor(displayTier),
+                                ...(displayTier !== 'free' 
+                                  ? neonGlowUtil(getUsernameColor(displayTier)) 
                                   : {})
                               }}>
                                 {user.linked_username}
                               </span>
-                              {effectiveTier === 'pro' && (
+                              {displayTier === 'admin' && (
+                                <span style={{
+                                  fontSize: '0.6rem',
+                                  padding: '0.15rem 0.4rem',
+                                  backgroundColor: `${subscriptionColors.admin}15`,
+                                  border: `1px solid ${subscriptionColors.admin}40`,
+                                  borderRadius: '4px',
+                                  color: subscriptionColors.admin,
+                                  fontWeight: '600',
+                                }}>
+                                  ⚡ ADMIN
+                                </span>
+                              )}
+                              {displayTier === 'pro' && (
                                 <span style={{
                                   fontSize: '0.6rem',
                                   padding: '0.15rem 0.4rem',
@@ -483,7 +497,7 @@ const UserDirectory: React.FC = () => {
                                   ⭐ PRO
                                 </span>
                               )}
-                              {effectiveTier === 'recruiter' && (
+                              {displayTier === 'recruiter' && (
                                 <span style={{
                                   fontSize: '0.6rem',
                                   padding: '0.15rem 0.4rem',

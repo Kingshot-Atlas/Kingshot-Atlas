@@ -248,12 +248,13 @@ const Profile: React.FC = () => {
   const { userId } = useParams<{ userId?: string }>();
   useDocumentTitle(userId ? 'User Profile' : 'My Profile');
   const { user, profile, loading, updateProfile, refreshLinkedPlayer } = useAuth();
-  const { tierName, isPro, isRecruiter } = usePremium();
+  const { tierName, isPro, isRecruiter, isAdmin } = usePremium();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [managingSubscription, setManagingSubscription] = useState(false);
   const isMobile = useIsMobile();
   const [viewedProfile, setViewedProfile] = useState<UserProfile | null>(null);
   const [isViewingOther, setIsViewingOther] = useState(false);
+  const [viewedUserTier, setViewedUserTier] = useState<'free' | 'pro' | 'recruiter'>('free');
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState<EditForm>({
     username: '',
@@ -285,6 +286,9 @@ const Profile: React.FC = () => {
             if (!error && data) {
               setViewedProfile(data as UserProfile);
               setIsViewingOther(true);
+              // Set subscription tier from profile data
+              const tier = data.subscription_tier as 'free' | 'pro' | 'recruiter' | undefined;
+              setViewedUserTier(tier || 'free');
               return;
             }
           } catch (err) {
@@ -879,6 +883,26 @@ const Profile: React.FC = () => {
               } : null}
               lastSynced={viewedProfile?.linked_last_synced}
               onRefresh={refreshLinkedPlayer}
+              subscriptionTier={isRecruiter ? 'recruiter' : isPro ? 'pro' : 'free'}
+            />
+          </div>
+        )}
+
+        {/* Linked Kingshot Account - Public view for other profiles */}
+        {isViewingOther && viewedProfile?.linked_player_id && (
+          <div style={{ marginBottom: '1.5rem' }}>
+            <LinkKingshotAccount
+              linkedPlayer={{
+                player_id: viewedProfile.linked_player_id,
+                username: viewedProfile.linked_username || 'Unknown',
+                avatar_url: viewedProfile.linked_avatar_url || null,
+                kingdom: viewedProfile.linked_kingdom || 0,
+                town_center_level: viewedProfile.linked_tc_level || 0,
+                verified: true,
+              }}
+              subscriptionTier={viewedUserTier}
+              isPublicView={true}
+              showRefresh={false}
             />
           </div>
         )}
@@ -894,21 +918,23 @@ const Profile: React.FC = () => {
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ fontSize: '1.1rem' }}>{isPro || isRecruiter ? '⭐' : '👤'}</span>
+                <span style={{ fontSize: '1.1rem' }}>{isAdmin ? '⚡' : isPro || isRecruiter ? '⭐' : '👤'}</span>
                 <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: '600', color: '#fff' }}>
                   Subscription
                 </h3>
               </div>
               <div style={{
                 padding: '0.25rem 0.75rem',
-                backgroundColor: isPro || isRecruiter 
-                  ? (isRecruiter ? '#a855f720' : '#22d3ee20') 
+                backgroundColor: isAdmin ? '#fbbf2420' 
+                  : isRecruiter ? '#f9731620' 
+                  : isPro ? '#22d3ee20' 
                   : '#3a3a3a20',
                 borderRadius: '9999px',
                 fontSize: '0.75rem',
                 fontWeight: '600',
-                color: isPro || isRecruiter 
-                  ? (isRecruiter ? '#a855f7' : '#22d3ee') 
+                color: isAdmin ? '#fbbf24' 
+                  : isRecruiter ? '#f97316' 
+                  : isPro ? '#22d3ee' 
                   : '#9ca3af',
               }}>
                 {tierName}
@@ -923,7 +949,9 @@ const Profile: React.FC = () => {
               flexWrap: 'wrap'
             }}>
               <p style={{ color: '#6b7280', fontSize: '0.85rem', margin: 0 }}>
-                {isPro || isRecruiter 
+                {isAdmin 
+                  ? 'You have full admin access to all features.'
+                  : isPro || isRecruiter 
                   ? `You have full access to ${isRecruiter ? 'Recruiter' : 'Pro'} features.`
                   : 'Upgrade to unlock premium features and support the project.'}
               </p>

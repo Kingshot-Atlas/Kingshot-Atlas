@@ -9,6 +9,7 @@ import ReportDataModal from '../components/ReportDataModal';
 import ReportKvKErrorModal from '../components/ReportKvKErrorModal';
 import TrendChart from '../components/TrendChart';
 import SimilarKingdoms from '../components/SimilarKingdoms';
+import KingdomPlayers from '../components/KingdomPlayers';
 import ClaimKingdom from '../components/ClaimKingdom';
 import AtlasScoreBreakdown from '../components/AtlasScoreBreakdown';
 import ShareButton from '../components/ShareButton';
@@ -936,6 +937,9 @@ const KingdomProfile: React.FC = () => {
             </div>
           </div>
         )}
+
+        {/* Atlas Users from this Kingdom */}
+        <KingdomPlayers kingdomNumber={kingdom.kingdom_number} themeColor="#22d3ee" />
 
         {/* Reviews Section */}
         <div style={{ marginBottom: isMobile ? '1.25rem' : '1.5rem' }}>

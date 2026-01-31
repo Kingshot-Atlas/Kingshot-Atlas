@@ -834,8 +834,8 @@ const AdminDashboard: React.FC = () => {
                   <span style={{ color: '#fff' }}>{sub.username}</span>
                   <span style={{ 
                     padding: '0.15rem 0.5rem',
-                    backgroundColor: sub.tier === 'recruiter' ? '#a855f720' : '#22d3ee20',
-                    color: sub.tier === 'recruiter' ? '#a855f7' : '#22d3ee',
+                    backgroundColor: sub.tier === 'recruiter' ? '#f9731620' : '#22d3ee20',
+                    color: sub.tier === 'recruiter' ? '#f97316' : '#22d3ee',
                     borderRadius: '9999px',
                     fontSize: '0.7rem',
                     fontWeight: '600',

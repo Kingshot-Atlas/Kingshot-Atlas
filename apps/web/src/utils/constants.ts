@@ -5,10 +5,21 @@
  * Always import from here to ensure consistency.
  */
 
-// Admin users - usernames that have admin access and auto-Recruiter tier
-// SINGLE SOURCE OF TRUTH: Admins are automatically Recruiters everywhere
+// Subscription tier type - includes admin as a display tier
+export type SubscriptionTier = 'free' | 'pro' | 'recruiter' | 'admin';
+
+// Admin users - usernames that have admin access
+// SINGLE SOURCE OF TRUTH: Admins have full access but display as "Admin" (not Recruiter)
 export const ADMIN_USERNAMES: readonly string[] = ['gatreno'];
 export const ADMIN_EMAILS: readonly string[] = ['gatreno@gmail.com'];
+
+// Subscription colors - SINGLE SOURCE OF TRUTH for tier styling
+export const SUBSCRIPTION_COLORS = {
+  free: '#6b7280',      // Gray
+  pro: '#22d3ee',       // Cyan
+  recruiter: '#f97316', // Orange
+  admin: '#fbbf24',     // Golden/Amber
+} as const;
 
 // Helper function to check if a username is an admin
 export const isAdminUsername = (username: string | null | undefined): boolean => {
@@ -22,11 +33,23 @@ export const isAdminEmail = (email: string | null | undefined): boolean => {
   return ADMIN_EMAILS.includes(email.toLowerCase());
 };
 
-// Get effective subscription tier (admins are always recruiters)
-export const getEffectiveTier = (
+// Get effective tier for ACCESS purposes (admins get recruiter-level access)
+export const getAccessTier = (
   tier: 'free' | 'pro' | 'recruiter' | null | undefined,
   username: string | null | undefined
 ): 'free' | 'pro' | 'recruiter' => {
-  if (isAdminUsername(username)) return 'recruiter';
+  if (isAdminUsername(username)) return 'recruiter'; // Full access
   return tier || 'free';
 };
+
+// Get effective tier for DISPLAY purposes (admins show as "admin", not "recruiter")
+export const getDisplayTier = (
+  tier: 'free' | 'pro' | 'recruiter' | null | undefined,
+  username: string | null | undefined
+): SubscriptionTier => {
+  if (isAdminUsername(username)) return 'admin';
+  return tier || 'free';
+};
+
+// Legacy alias for backward compatibility (use getAccessTier for access, getDisplayTier for display)
+export const getEffectiveTier = getAccessTier;

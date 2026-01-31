@@ -86,7 +86,10 @@ async def get_subscription_stats(x_admin_key: Optional[str] = Header(None)):
             if profile.get("linked_username"):
                 kingshot_linked_count += 1
         
-        # Get recent subscribers (non-free, last 30 days)
+        # Admin usernames - exclude from recent subscribers (they're not paying)
+        admin_usernames = ['gatreno']
+        
+        # Get recent subscribers (non-free, non-admin, last 30 days)
         recent = [
             {
                 "username": p.get("username") or "Anonymous",
@@ -95,6 +98,7 @@ async def get_subscription_stats(x_admin_key: Optional[str] = Header(None)):
             }
             for p in profiles
             if p.get("subscription_tier") and p.get("subscription_tier") != "free"
+            and (p.get("username") or "").lower() not in admin_usernames
         ]
         recent.sort(key=lambda x: x.get("created_at", ""), reverse=True)
         

@@ -354,6 +354,52 @@ For subtle "Go Pro" messaging:
 
 ---
 
+## Username Color Standards (SOURCE OF TRUTH)
+
+When displaying usernames in public-facing contexts (e.g., Linked Kingshot Account cards, kingdom reviews, player directories), use subscription-tier-based coloring:
+
+| Tier | Color | Hex | Effect |
+|------|-------|-----|--------|
+| **Free** | White | `#ffffff` | Plain text, no glow |
+| **Pro** | Cyan | `#22d3ee` | With neon glow effect |
+| **Recruiter** | Purple | `#a855f7` | With neon glow effect |
+
+### Implementation
+
+```tsx
+import { colors, neonGlow, subscriptionColors } from '../utils/styles';
+
+// Get username color based on subscription tier
+const getUsernameColor = (tier: 'free' | 'pro' | 'recruiter'): string => {
+  switch (tier) {
+    case 'pro': return subscriptionColors.pro;      // #22d3ee
+    case 'recruiter': return subscriptionColors.recruiter; // #a855f7
+    default: return colors.text;                     // #ffffff
+  }
+};
+
+// Usage example
+<span 
+  style={{ 
+    fontSize: '1.1rem', 
+    fontWeight: '700',
+    color: getUsernameColor(subscriptionTier),
+    ...(subscriptionTier !== 'free' ? neonGlow(getUsernameColor(subscriptionTier)) : {})
+  }}
+>
+  {username}
+</span>
+```
+
+### Key Rules:
+1. **Free users** get white (`#ffffff`) usernames with no glow effect
+2. **Pro users** get cyan (`#22d3ee`) usernames with neon glow
+3. **Recruiter users** get purple (`#a855f7`) usernames with neon glow
+4. Avatar borders should match the username color for consistency
+5. This coloring applies to public-facing displays (viewable by other users)
+
+---
+
 ## Power Tier Colors
 
 | Tier | Color | Hex | Tailwind Class |
@@ -710,4 +756,4 @@ import ComparisonRadarChart from '../components/ComparisonRadarChart';
 
 ---
 
-*Last Updated: 2026-01-30 by Design Lead*
+*Last Updated: 2026-01-31 by Product Engineer*

@@ -9,6 +9,28 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-01-31 12:30 | Product Engineer | COMPLETED
+Task: Implement Admin tier as separate status from Recruiter with golden color
+Changes:
+  - Admin tier now displays as "Admin" with golden (#fbbf24) color, NOT "Recruiter"
+  - Admins still get full Recruiter-level ACCESS but different DISPLAY
+  - Added to constants.ts: SubscriptionTier type, SUBSCRIPTION_COLORS, getDisplayTier(), getAccessTier()
+  - Updated PremiumContext: isAdmin flag, tierName shows "Admin" for admins
+  - Updated API admin.py: Exclude admins from Recent Subscribers list (only show paying users)
+  - Updated styles.ts: subscriptionColors includes admin golden color
+  - Updated UserDirectory.tsx: Admin badge with golden ⚡ ADMIN
+  - Updated Profile.tsx: Admin badge styling with golden color
+  - Updated AdminDashboard.tsx: Recruiter color changed to orange (#f97316)
+Files Changed:
+  - apps/web/src/utils/constants.ts - Admin tier type, colors, getDisplayTier/getAccessTier
+  - apps/web/src/utils/styles.ts - subscriptionColors with admin
+  - apps/web/src/contexts/PremiumContext.tsx - isAdmin flag, tierName override
+  - apps/web/src/pages/UserDirectory.tsx - Admin badge display
+  - apps/web/src/pages/Profile.tsx - Admin subscription section styling
+  - apps/web/src/pages/AdminDashboard.tsx - Recruiter color fix
+  - apps/api/api/routers/admin.py - Exclude admins from recent_subscribers
+Result: Admins now display with golden "Admin" badge while retaining full access
+
 ## 2026-01-31 12:00 | Product Engineer | COMPLETED
 Task: Fix Admin Dashboard Kingshot Linked count + Player Directory bugs + /work workflow update
 Root Causes:

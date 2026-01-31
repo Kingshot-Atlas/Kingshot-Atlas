@@ -24,6 +24,7 @@ export interface UserProfile {
   linked_kingdom?: number;
   linked_tc_level?: number;
   linked_last_synced?: string;
+  subscription_tier?: 'free' | 'pro' | 'recruiter';
 }
 
 interface AuthContextType {
