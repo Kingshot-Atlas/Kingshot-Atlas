@@ -9,6 +9,22 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-01-30 23:45 | Product Engineer | COMPLETED
+Task: Multi-kingdom comparison + Profile fixes + Mobile UX
+Changes:
+  - Fixed multi-kingdom comparison table missing stat names
+    - Added label column on left side when comparing 3+ kingdoms
+    - Grid template now includes `minmax(70px, auto)` for stat labels
+  - Moved LinkKingshotAccount card to first position in Profile
+    - Now appears immediately after profile info card
+  - Fixed Kingdom Leaderboard Position Win Rate showing 171%
+    - Root cause: total_wins includes both prep+battle wins, divided by kvk_count
+    - Fix: Divide by (kvk_count * 2) to account for both phases
+  - Mobile UI already optimized (useIsMobile hooks in place)
+Files Changed:
+  - apps/web/src/pages/CompareKingdoms.tsx (ComparisonRow grid fix)
+  - apps/web/src/pages/Profile.tsx (card order + win rate calculation)
+
 ## 2026-01-30 17:25 | Product Engineer | COMPLETED
 Task: Profile page fix + K386 vs K391 data correction
 Changes:

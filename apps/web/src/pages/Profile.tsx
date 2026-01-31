@@ -7,6 +7,7 @@ import AuthModal from '../components/AuthModal';
 import ProfileFeatures from '../components/ProfileFeatures';
 import LinkKingshotAccount from '../components/LinkKingshotAccount';
 import PlayersFromMyKingdom from '../components/PlayersFromMyKingdom';
+import UserCorrectionStats from '../components/UserCorrectionStats';
 import { useAuth, getCacheBustedAvatarUrl, UserProfile } from '../contexts/AuthContext';
 import { usePremium } from '../contexts/PremiumContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
@@ -194,7 +195,7 @@ const KingdomLeaderboardPosition: React.FC<{
   );
   if (!kingdom) return null;
 
-  const winRate = kingdom.kvk_count > 0 ? ((kingdom.total_wins / kingdom.kvk_count) * 100).toFixed(0) : '0';
+  const winRate = kingdom.kvk_count > 0 ? ((kingdom.total_wins / (kingdom.kvk_count * 2)) * 100).toFixed(0) : '0';
 
   return (
     <div style={{
@@ -838,6 +839,50 @@ const Profile: React.FC = () => {
           </div>
         )}
 
+        {/* Link Kingshot Account - FIRST card after profile info, only show for own profile */}
+        {!isViewingOther && (
+          <div style={{ marginBottom: '1.5rem' }}>
+            <LinkKingshotAccount
+              onLink={(playerData) => {
+                if (updateProfile) {
+                  updateProfile({
+                    ...viewedProfile,
+                    linked_player_id: playerData.player_id,
+                    linked_username: playerData.username,
+                    linked_avatar_url: playerData.avatar_url,
+                    linked_kingdom: playerData.kingdom,
+                    linked_tc_level: playerData.town_center_level,
+                    linked_last_synced: new Date().toISOString(),
+                  });
+                }
+              }}
+              onUnlink={() => {
+                if (updateProfile) {
+                  updateProfile({
+                    ...viewedProfile,
+                    linked_player_id: undefined,
+                    linked_username: undefined,
+                    linked_avatar_url: undefined,
+                    linked_kingdom: undefined,
+                    linked_tc_level: undefined,
+                    linked_last_synced: undefined,
+                  });
+                }
+              }}
+              linkedPlayer={viewedProfile?.linked_player_id ? {
+                player_id: viewedProfile.linked_player_id,
+                username: viewedProfile.linked_username || 'Unknown',
+                avatar_url: viewedProfile.linked_avatar_url || null,
+                kingdom: viewedProfile.linked_kingdom || 0,
+                town_center_level: viewedProfile.linked_tc_level || 0,
+                verified: true,
+              } : null}
+              lastSynced={viewedProfile?.linked_last_synced}
+              onRefresh={refreshLinkedPlayer}
+            />
+          </div>
+        )}
+
         {/* Subscription Status - only show for own profile */}
         {!isViewingOther && user && (
           <div style={{
@@ -942,56 +987,23 @@ const Profile: React.FC = () => {
           <PlayersFromMyKingdom themeColor={themeColor} />
         )}
 
-        {/* Link Kingshot Account - only show for own profile */}
-        {!isViewingOther && (
-          <div style={{ marginBottom: '2rem' }}>
-            <LinkKingshotAccount
-              onLink={(playerData) => {
-                // Update profile with linked player data
-                if (updateProfile) {
-                  updateProfile({
-                    ...viewedProfile,
-                    linked_player_id: playerData.player_id,
-                    linked_username: playerData.username,
-                    linked_avatar_url: playerData.avatar_url,
-                    linked_kingdom: playerData.kingdom,
-                    linked_tc_level: playerData.town_center_level,
-                    linked_last_synced: new Date().toISOString(),
-                  });
-                }
-              }}
-              onUnlink={() => {
-                // Remove linked player data
-                if (updateProfile) {
-                  updateProfile({
-                    ...viewedProfile,
-                    linked_player_id: undefined,
-                    linked_username: undefined,
-                    linked_avatar_url: undefined,
-                    linked_kingdom: undefined,
-                    linked_tc_level: undefined,
-                    linked_last_synced: undefined,
-                  });
-                }
-              }}
-              linkedPlayer={viewedProfile?.linked_player_id ? {
-                player_id: viewedProfile.linked_player_id,
-                username: viewedProfile.linked_username || 'Unknown',
-                avatar_url: viewedProfile.linked_avatar_url || null,
-                kingdom: viewedProfile.linked_kingdom || 0,
-                town_center_level: viewedProfile.linked_tc_level || 0,
-                verified: true,
-              } : null}
-              lastSynced={viewedProfile?.linked_last_synced}
-              onRefresh={refreshLinkedPlayer}
-            />
-          </div>
-        )}
 
         {/* User Achievements */}
         <div style={{ marginBottom: '2rem' }}>
           <UserAchievements />
         </div>
+
+        {/* Data Contributions - KvK correction stats */}
+        {user && (
+          <div style={{ marginBottom: '2rem' }}>
+            <UserCorrectionStats 
+              userId={isViewingOther ? (viewedProfile?.id || '') : user.id}
+              username={isViewingOther ? viewedProfile?.username : profile?.username}
+              themeColor={themeColor}
+              isOwnProfile={!isViewingOther}
+            />
+          </div>
+        )}
 
         {/* C1: Submission History - only for logged in users viewing their own profile */}
         {!isViewingOther && user && (

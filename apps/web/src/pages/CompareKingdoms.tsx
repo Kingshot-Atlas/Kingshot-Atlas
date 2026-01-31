@@ -347,7 +347,7 @@ const CompareKingdoms: React.FC = () => {
     const columnCount = values.length;
     const gridColumns = columnCount === 2 
       ? '1fr auto 1fr' 
-      : `repeat(${columnCount}, 1fr)`;
+      : `minmax(${isMobile ? '70px' : '90px'}, auto) repeat(${columnCount}, 1fr)`;
 
     return (
       <div style={{
@@ -375,18 +375,28 @@ const CompareKingdoms: React.FC = () => {
             </div>
           </>
         ) : (
-          // Multi-kingdom layout - values in columns
-          values.map((val, i) => (
-            <div key={i} style={{ textAlign: 'center' }}>
-              <span style={{ 
-                fontSize: isMobile ? '0.8rem' : '0.9rem', 
-                fontWeight: 'bold', 
-                color: getColor(i) 
-              }}>
-                {formatVal(val)}
-              </span>
+          // Multi-kingdom layout - stat label on left, values in columns
+          <>
+            <div style={{ 
+              color: '#6b7280', 
+              fontSize: isMobile ? '0.65rem' : '0.75rem', 
+              textAlign: 'left',
+              paddingRight: '0.5rem'
+            }}>
+              {label}
             </div>
-          ))
+            {values.map((val, i) => (
+              <div key={i} style={{ textAlign: 'center' }}>
+                <span style={{ 
+                  fontSize: isMobile ? '0.8rem' : '0.9rem', 
+                  fontWeight: 'bold', 
+                  color: getColor(i) 
+                }}>
+                  {formatVal(val)}
+                </span>
+              </div>
+            ))}
+          </>
         )}
       </div>
     );
