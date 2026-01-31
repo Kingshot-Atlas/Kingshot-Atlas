@@ -23,6 +23,19 @@ Files Changed:
   - apps/discord-bot/src/config.js
 Result: Atlas bot will automatically post @everyone announcement at 18:00 UTC on KvK Saturdays prompting users to submit their KvK results
 
+## 2026-01-31 15:40 | Platform Engineer | COMPLETED
+Task: Fix Admin Dashboard not showing KvK submissions (root cause #2)
+Root Cause:
+  - AdminDashboard.tsx was using /api/submissions instead of /api/v1/submissions
+  - API returns 404 for non-versioned endpoints
+  - Same issue affected claims endpoints
+Fix:
+  - Changed all /api/submissions to /api/v1/submissions
+  - Changed all /api/claims to /api/v1/claims
+Files Changed:
+  - apps/web/src/pages/AdminDashboard.tsx (6 URL fixes)
+Result: Admin Dashboard now correctly fetches and displays pending KvK submissions
+
 ## 2026-01-31 15:30 | Ops Lead | COMPLETED
 Task: Add automated security scanning to CI pipeline
 Changes:
