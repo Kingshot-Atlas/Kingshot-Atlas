@@ -7,6 +7,7 @@ import KingdomReviews from '../components/KingdomReviews';
 import StatusSubmission from '../components/StatusSubmission';
 import ReportDataModal from '../components/ReportDataModal';
 import ReportKvKErrorModal from '../components/ReportKvKErrorModal';
+import MissingKvKPrompt from '../components/MissingKvKPrompt';
 import TrendChart from '../components/TrendChart';
 import SimilarKingdoms from '../components/SimilarKingdoms';
 import KingdomPlayers from '../components/KingdomPlayers';
@@ -821,6 +822,13 @@ const KingdomProfile: React.FC = () => {
               </span>
               </div>
             </div>
+            
+            {/* Missing KvK #10 Prompt */}
+            <MissingKvKPrompt
+              kingdomNumber={kingdom.kingdom_number}
+              kvkNumber={10}
+              existingKvkNumbers={allKvks.map(k => k.kvk_number)}
+            />
             
             {/* KvK Table */}
             <div style={{ overflowX: 'auto' }}>
