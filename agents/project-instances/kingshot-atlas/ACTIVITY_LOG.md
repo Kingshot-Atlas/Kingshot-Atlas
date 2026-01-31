@@ -23,6 +23,18 @@ Files Changed:
   - apps/discord-bot/src/config.js
 Result: Atlas bot will automatically post @everyone announcement at 18:00 UTC on KvK Saturdays prompting users to submit their KvK results
 
+## 2026-01-31 16:10 | Product Engineer | COMPLETED
+Task: Auto-populate kingdom field in submission modal
+Features:
+  - Added defaultKingdom and defaultKvkNumber props to PostKvKSubmission
+  - Pre-fills kingdom when opened from MissingKvKPrompt on kingdom profile
+  - Kingdom field becomes read-only when pre-filled (cyan highlight + checkmark)
+  - Auto-focuses opponent field when kingdom is pre-filled (saves a click)
+Files Changed:
+  - apps/web/src/components/PostKvKSubmission.tsx
+  - apps/web/src/components/MissingKvKPrompt.tsx
+Result: 50% friction reduction - users only need to enter opponent, not their own kingdom
+
 ## 2026-01-31 16:05 | Platform Engineer | COMPLETED
 Task: Fix Admin Dashboard 403 error on submission review
 Root Cause:
