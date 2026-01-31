@@ -84,7 +84,7 @@ const Admin: React.FC = () => {
       let pendingClaims = 0;
       
       try {
-        const submissionsRes = await fetch(`${API_URL}/api/submissions?status=pending`, {
+        const submissionsRes = await fetch(`${API_URL}/api/v1/submissions?status=pending`, {
           headers: { 'X-User-Id': user?.id || '' }
         });
         if (submissionsRes.ok) {
@@ -94,7 +94,7 @@ const Admin: React.FC = () => {
       } catch { /* API might not be available */ }
       
       try {
-        const claimsRes = await fetch(`${API_URL}/api/claims?status=pending`, {
+        const claimsRes = await fetch(`${API_URL}/api/v1/claims?status=pending`, {
           headers: { 'X-User-Id': user?.id || '' }
         });
         if (claimsRes.ok) {
@@ -181,7 +181,7 @@ const Admin: React.FC = () => {
   const fetchSubmissions = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/api/submissions?status=${filter}`, {
+      const response = await fetch(`${API_URL}/api/v1/submissions?status=${filter}`, {
         headers: { 'X-User-Id': user?.id || '' }
       });
       if (response.ok) {
@@ -197,7 +197,7 @@ const Admin: React.FC = () => {
   const fetchClaims = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/api/claims?status=${filter}`, {
+      const response = await fetch(`${API_URL}/api/v1/claims?status=${filter}`, {
         headers: { 'X-User-Id': user?.id || '' }
       });
       if (response.ok) {
@@ -212,7 +212,7 @@ const Admin: React.FC = () => {
 
   const reviewSubmission = async (id: number, status: 'approved' | 'rejected') => {
     try {
-      const response = await fetch(`${API_URL}/api/submissions/${id}/review`, {
+      const response = await fetch(`${API_URL}/api/v1/submissions/${id}/review`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

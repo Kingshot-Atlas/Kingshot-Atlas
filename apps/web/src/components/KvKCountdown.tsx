@@ -6,14 +6,18 @@ interface KvKCountdownProps {
   type?: 'kvk' | 'transfer';
 }
 
-// KvK Schedule: Every 4 weeks
+// KvK Schedule: Every 4 weeks (see EventCalendar.tsx for single source of truth)
 // - Preparation: Monday 00:00 UTC to Saturday 10:00 UTC
-// - Battle: Saturday 10:00 UTC to Saturday 22:00 UTC
+// - Battle Phase: Saturday 10:00 UTC to Saturday 22:00 UTC
+//   └─ Castle Battle: Saturday 12:00 UTC to Saturday 18:00 UTC (core competitive window)
+//      Winning Castle Battle = Winning the "Battle Phase"
 // Reference: KvK #10 started Monday, January 26, 2026 at 00:00 UTC
 const KVK_REFERENCE_DATE = new Date('2026-01-26T00:00:00Z');
 const KVK_CYCLE_MS = 28 * 24 * 60 * 60 * 1000;
-const KVK_PREP_DURATION_MS = 5 * 24 * 60 * 60 * 1000 + 10 * 60 * 60 * 1000; // 5 days 10 hours
-const KVK_BATTLE_DURATION_MS = 12 * 60 * 60 * 1000; // 12 hours
+const KVK_PREP_DURATION_MS = 5 * 24 * 60 * 60 * 1000 + 10 * 60 * 60 * 1000; // 5 days 10 hours (ends Saturday 10:00 UTC)
+const KVK_BATTLE_DURATION_MS = 12 * 60 * 60 * 1000; // 12 hours (10:00 - 22:00 UTC)
+const KVK_CASTLE_BATTLE_START_OFFSET_MS = 2 * 60 * 60 * 1000; // 2 hours after battle start (12:00 UTC)
+const KVK_CASTLE_BATTLE_DURATION_MS = 6 * 60 * 60 * 1000; // 6 hours (12:00 - 18:00 UTC)
 
 // Transfer Schedule: Every 8 weeks
 // - Pre-Transfer: Sunday 00:00 UTC to Wednesday 00:00 UTC (3 days)
@@ -34,7 +38,7 @@ interface TimeLeft {
   total: number;
 }
 
-type KvKPhase = 'countdown' | 'preparation' | 'battle';
+type KvKPhase = 'countdown' | 'preparation' | 'battle' | 'castle-battle';
 type TransferPhase = 'countdown' | 'pre-transfer' | 'invitational' | 'open';
 
 interface EventStatus {
@@ -77,16 +81,27 @@ const getKvKStatus = (): EventStatus => {
   let color: string;
   let icon: string;
   
+  // Castle Battle timing within Battle Phase
+  const castleBattleStart = prepEnd + KVK_CASTLE_BATTLE_START_OFFSET_MS; // 12:00 UTC
+  const castleBattleEnd = castleBattleStart + KVK_CASTLE_BATTLE_DURATION_MS; // 18:00 UTC
+  
   if (positionInCycle < prepEnd) {
     phase = 'preparation';
     phaseName = 'Prep Phase';
     timeLeftMs = prepEnd - positionInCycle;
     color = '#fbbf24'; // Yellow
     icon = '🛡️';
+  } else if (positionInCycle >= castleBattleStart && positionInCycle < castleBattleEnd) {
+    // Castle Battle is active (12:00 - 18:00 UTC) - this is the core competitive window
+    phase = 'castle-battle';
+    phaseName = 'Castle Battle';
+    timeLeftMs = castleBattleEnd - positionInCycle;
+    color = '#dc2626'; // Bright Red
+    icon = '🏰';
   } else if (positionInCycle < battleEnd) {
     phase = 'battle';
-    phaseName = 'Battle Phase';
-    timeLeftMs = battleEnd - positionInCycle;
+    phaseName = positionInCycle < castleBattleStart ? 'Battle Phase (Castle Soon)' : 'Battle Phase';
+    timeLeftMs = positionInCycle < castleBattleStart ? castleBattleStart - positionInCycle : battleEnd - positionInCycle;
     color = '#ef4444'; // Red
     icon = '⚔️';
   } else {

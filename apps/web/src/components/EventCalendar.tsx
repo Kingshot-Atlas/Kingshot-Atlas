@@ -11,16 +11,19 @@ interface GameEvent {
   color: string;
 }
 
-// Kingshot Game Schedule
+// ==================== KINGSHOT GAME SCHEDULE (SINGLE SOURCE OF TRUTH) ====================
 // KvK: Every 4 weeks
 //   - Preparation Phase: Monday 00:00 UTC to Saturday 10:00 UTC
 //   - Battle Phase: Saturday 10:00 UTC to Saturday 22:00 UTC
+//     └─ Castle Battle: Saturday 12:00 UTC to Saturday 18:00 UTC (core competitive window)
+//        Winning Castle Battle = Winning the "Battle Phase"
 //   - Reference: KvK #10 started Monday, January 26, 2026 at 00:00 UTC
 // Transfer Event: Every 8 weeks
 //   - Pre-Transfer Phase: Sunday 00:00 UTC to Wednesday 00:00 UTC
 //   - Invitational Transfer Phase: Wednesday 00:00 UTC to Friday 00:00 UTC
 //   - Open Transfer Phase: Friday 00:00 UTC to Sunday 00:00 UTC
 //   - Reference: Transfer Event #3 started Sunday, January 4, 2026 at 00:00 UTC
+// ========================================================================================
 
 const generateEvents = (): GameEvent[] => {
   const events: GameEvent[] = [];
