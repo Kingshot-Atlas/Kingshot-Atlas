@@ -57,31 +57,9 @@ const loadKingdomData = (): Kingdom[] => {
   // Get approved KvK corrections for applying to records (localStorage fallback)
   const kvkCorrections = kvkCorrectionService.getAllAppliedCorrections();
   
-  // First, check if we have Supabase KvK data (preferred source)
-  if (supabaseKvkData && supabaseKvkData.size > 0) {
-    // Use Supabase data - corrections are already applied by kvkHistoryService
-    for (const [kNum, records] of supabaseKvkData) {
-      kvksByKingdom[kNum] = records.map(r => ({
-        id: kNum * 100 + r.kvk_number,
-        kingdom_number: kNum,
-        kvk_number: r.kvk_number,
-        opponent_kingdom: r.opponent_kingdom || 0,
-        prep_result: r.prep_result === 'W' ? 'Win' : 'Loss',
-        battle_result: r.battle_result === 'W' ? 'Win' : 'Loss',
-        overall_result: r.overall_result,
-        date_or_order_index: r.kvk_date || String(r.order_index),
-        created_at: r.kvk_date || String(r.order_index)
-      }));
-    }
-  }
-  
-  // Fallback/supplement: Load from local JSON for kingdoms not in Supabase
+  // First, load ALL local JSON KvK records as baseline
   for (const kvk of kingdomData.kvk_records) {
     const kNum = kvk.kingdom_number;
-    
-    // Skip if we already have this kingdom from Supabase
-    if (kvksByKingdom[kNum] && kvksByKingdom[kNum].length > 0) continue;
-    
     if (!kvksByKingdom[kNum]) kvksByKingdom[kNum] = [];
     
     // Check if there's a correction for this KvK record
@@ -113,6 +91,29 @@ const loadKingdomData = (): Kingdom[] => {
       created_at: kvk.date_or_order_index
     });
   }
+  
+  // Then, overlay Supabase data ONLY if it has MORE records for a kingdom
+  // This ensures we always show the most complete data
+  if (supabaseKvkData && supabaseKvkData.size > 0) {
+    for (const [kNum, records] of supabaseKvkData) {
+      const localCount = kvksByKingdom[kNum]?.length ?? 0;
+      // Only use Supabase if it has more records than local JSON
+      if (records.length > localCount) {
+        kvksByKingdom[kNum] = records.map(r => ({
+          id: kNum * 100 + r.kvk_number,
+          kingdom_number: kNum,
+          kvk_number: r.kvk_number,
+          opponent_kingdom: r.opponent_kingdom || 0,
+          prep_result: r.prep_result === 'W' ? 'Win' : 'Loss',
+          battle_result: r.battle_result === 'W' ? 'Win' : 'Loss',
+          overall_result: r.overall_result,
+          date_or_order_index: r.kvk_date || String(r.order_index),
+          created_at: r.kvk_date || String(r.order_index)
+        }));
+      }
+    }
+  }
+  
   
   // Sort each kingdom's KvKs by kvk_number descending (most recent first)
   for (const kNum in kvksByKingdom) {

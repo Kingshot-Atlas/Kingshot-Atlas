@@ -9,6 +9,90 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-01-31 16:50 | Product Engineer | COMPLETED
+Task: Fix KvK history showing only 1 record instead of all records + Deploy to production
+Root Cause: Supabase data with partial records (only KvK #10) was overriding complete local JSON data (9 KvKs)
+Fix: Changed data loading priority - load local JSON first as baseline, then only overlay Supabase if it has MORE records
+Files Modified:
+  - apps/web/src/services/api.ts (lines 60-115)
+Result: Kingdoms now show full KvK history (9 records instead of 1)
+Deployed: https://ks-atlas.com (deploy ID: 697e6b33d71e7d0c36256f8b)
+
+## 2026-01-31 17:35 | Product Engineer + Design Lead | COMPLETED
+Task: Contribute Data page redesign + Fix missing KvK calculation
+Implementation:
+  - Renamed page from "Missing Data Registry" to "Contribute Data"
+  - "Data" styled in cyan (#22d3ee) with neon glow effect
+  - Added brand personality copy: community-driven, achievement-focused messaging
+  - CRITICAL FIX: Missing KvK calculation now accounts for kingdom eligibility
+    - A kingdom's first recorded KvK determines when it became eligible
+    - KvKs before that aren't "missing" - the kingdom didn't exist yet
+    - Example: Kingdom 172 with KvKs 3-9 only shows KvK #10 as missing (not 1 & 2)
+  - Added firstEligibleKvk tracking to MissingKingdom interface
+  - Updated card display to show "Eligible since KvK #X"
+  - Added useDocumentTitle for proper page title
+Files Modified:
+  - apps/web/src/pages/MissingDataRegistry.tsx
+Result: Accurate missing KvK counts, better UX, brand-aligned copy
+
+## 2026-01-31 17:30 | Product Engineer | COMPLETED
+Task: TypeScript Error Fixes + Console Log Cleanup (Option B)
+Implementation:
+  - Fixed 11 TypeScript errors causing red indicators in file explorer
+    - ComparisonRadarChart.tsx: 3 errors (object possibly undefined)
+    - RadarChart.tsx: 4 errors (object possibly undefined)
+    - Upgrade.tsx: 2 errors (not all code paths return value)
+    - api.ts: 1 error (object possibly undefined)
+    - serviceWorkerRegistration.ts: 1 error (argument type)
+  - Replaced console.log with logger utility in 4 files:
+    - Admin.tsx: 4 console.log → logger.log
+    - AdminDashboard.tsx: 2 console.log → logger.log
+    - PostKvKSubmission.tsx: 3 console.log → logger.log
+    - UserDirectory.tsx: 2 console.log → logger.log
+Result: Clean TypeScript build, production-safe logging, no red indicators
+
+## 2026-01-31 17:00 | Product Engineer | COMPLETED
+Task: Component Refactoring Sprint (Option A)
+Implementation:
+  - AdminDashboard.tsx: 1966 → 1462 lines (26% reduction)
+    - Extracted AnalyticsOverview, SubmissionsTab, NewKingdomsTab, ClaimsTab
+    - Created components/admin/ module with shared types
+  - ProfileFeatures.tsx: 1008 → 781 lines (22% reduction)
+    - Extracted MiniKingdomCard to components/profile-features/
+  - KingdomCard.tsx: Already well-refactored (360 lines with kingdom-card/ sub-components)
+Files Created:
+  - components/admin/types.ts
+  - components/admin/AnalyticsOverview.tsx
+  - components/admin/SubmissionsTab.tsx
+  - components/admin/NewKingdomsTab.tsx
+  - components/admin/ClaimsTab.tsx
+  - components/admin/index.ts
+  - components/profile-features/MiniKingdomCard.tsx
+  - components/profile-features/index.ts
+Result: Improved maintainability, ~500 lines extracted, better code organization
+
+## 2026-01-31 16:30 | Atlas Director | COMPLETED
+Task: Comprehensive codebase analysis and cleanup
+Analysis Performed:
+  - Scanned entire codebase for dead files, efficiency issues, security vulnerabilities
+  - Identified 8 files 100% safe to remove (debug/test artifacts)
+  - Identified 12 root-level docs to reorganize
+  - Generated specialist evaluations from all domains
+Files Removed:
+  - apps/web/src/test-auth.js (debug script)
+  - apps/web/src/components/AuthDebug.tsx (debug component)
+  - apps/web/src/components/AuthTest.tsx (test component)
+  - apps/web/public/avatar-test.html (test file)
+  - apps/web/public/env-test.html (test file)
+  - data/kingdoms.db (empty, 0 bytes)
+  - data/processed_DEPRECATED_DO_NOT_USE/ (deprecated directory)
+Files Reorganized:
+  - Moved 12 development artifacts from root to docs/development/
+  - Moved QUICKSTART.md to docs/
+Files Created:
+  - docs/CODE_AUDIT_2026-01-31.md (comprehensive audit report)
+Result: Cleaner codebase, better organization, documented specialist evaluations
+
 ## 2026-01-31 13:55 | Platform Engineer | COMPLETED
 Task: Add scheduled KvK Castle Battle end announcement at 18:00 UTC
 Changes:
@@ -22,6 +106,40 @@ Files Changed:
   - apps/discord-bot/src/utils/embeds.js
   - apps/discord-bot/src/config.js
 Result: Atlas bot will automatically post @everyone announcement at 18:00 UTC on KvK Saturdays prompting users to submit their KvK results
+
+## 2026-01-31 20:00 | Platform Engineer | COMPLETED
+Task: New Kingdom Submission backend + Supabase integration
+Implementation:
+  - Created `/api/v1/submissions/new-kingdom` POST endpoint for submissions
+  - Created `/api/v1/submissions/new-kingdoms` GET endpoint for admin listing
+  - Created approve/reject endpoints for admin review
+  - Added Supabase `new_kingdom_submissions` table with RLS policies
+  - Updated frontend AddKingdomModal to save directly to Supabase
+  - Integrated Admin Dashboard with fetch/approve/reject functionality
+  - Added proper KvK history JSON storage and display
+Files Changed:
+  - apps/api/api/routers/submissions.py (new endpoints)
+  - apps/web/src/pages/MissingDataRegistry.tsx (Supabase integration)
+  - apps/web/src/pages/AdminDashboard.tsx (new-kingdoms tab with CRUD)
+Result: Full end-to-end flow for users to submit new kingdoms and admins to review
+
+## 2026-01-31 19:00 | Product Engineer | COMPLETED
+Task: Missing Data Registry visual rework + Admin Dashboard organization
+Implementation:
+  - Reworked Missing Data Registry page with improved visual design
+  - Added search bar to filter kingdoms by number
+  - Sorted kingdoms in ascending order (was descending by missing count)
+  - Removed "Critical" filter (all kingdoms only missing KvK #10)
+  - Added KvK date tooltips (KvK #10 = Jan 31, 2026, every 4 weeks back)
+  - Added "Add New Kingdom" button for linked users
+  - Created AddKingdomModal for new kingdom submissions with KvK history
+  - Reorganized Admin Dashboard tabs into 3 groups: Analytics, Review, System
+  - Added New Kingdoms tab for reviewing kingdom submissions
+  - Updated stats cards to show: Tracked, Need data, Missing KvK #10, Not in Atlas
+Files Changed:
+  - apps/web/src/pages/MissingDataRegistry.tsx (major rework)
+  - apps/web/src/pages/AdminDashboard.tsx (tabs reorganization)
+Result: Cleaner UI, better user flow for adding new kingdoms, organized admin experience
 
 ## 2026-01-31 17:00 | Platform Engineer | COMPLETED
 Task: Fix Kingdom Card data sync + Discord OAuth2 integration
