@@ -23,6 +23,20 @@ Files Changed:
   - apps/discord-bot/src/config.js
 Result: Atlas bot will automatically post @everyone announcement at 18:00 UTC on KvK Saturdays prompting users to submit their KvK results
 
+## 2026-01-31 15:30 | Ops Lead | COMPLETED
+Task: Add automated security scanning to CI pipeline
+Changes:
+  - Added npm audit (--audit-level=high) to frontend CI job
+  - Added Bandit security linter to Python API CI job
+  - Created Dependabot configuration for automatic dependency updates
+    - Weekly scans for npm, pip, and GitHub Actions
+    - Groups minor/patch updates to reduce PR noise
+    - Separate configs for web, api, and discord-bot
+Files Changed:
+  - .github/workflows/ci.yml
+  - .github/dependabot.yml (new)
+Result: Security vulnerabilities now automatically detected on every PR and dependencies updated weekly
+
 ## 2026-01-31 15:20 | Platform Engineer | COMPLETED
 Task: Security assessment of Kingshot Atlas system
 Findings:
