@@ -23,6 +23,14 @@ Files Changed:
   - apps/discord-bot/src/config.js
 Result: Atlas bot will automatically post @everyone announcement at 18:00 UTC on KvK Saturdays prompting users to submit their KvK results
 
+## 2026-01-31 16:35 | Design Lead | COMPLETED
+Task: Fix TrendChart Prep color to yellow per brand style guide
+Problem: Prep line was cyan (#22d3ee) instead of brand-standard yellow
+Fix: Changed prepColor to #eab308 (yellow) while keeping dashed line pattern
+Files Changed:
+  - apps/web/src/components/TrendChart.tsx
+Result: Prep line now displays in yellow, Battle in orange - per brand guide
+
 ## 2026-01-31 16:30 | Product Engineer | COMPLETED
 Task: Add Missing Data Registry page
 Features:
