@@ -408,6 +408,49 @@ const Admin: React.FC = () => {
                   </div>
                 )}
 
+                {/* Screenshot Proof */}
+                {sub.screenshot_url && !sub.screenshot_url.startsWith('base64:') && !sub.screenshot_url.startsWith('pending_upload:') && (
+                  <div style={{ marginBottom: '1rem' }}>
+                    <div style={{ color: '#6b7280', fontSize: '0.75rem', marginBottom: '0.5rem' }}>📸 Screenshot Proof:</div>
+                    <a 
+                      href={sub.screenshot_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      style={{ display: 'block' }}
+                    >
+                      <img 
+                        src={sub.screenshot_url} 
+                        alt="KvK Result Screenshot"
+                        style={{
+                          maxWidth: '100%',
+                          maxHeight: '200px',
+                          borderRadius: '8px',
+                          border: '1px solid #2a2a2a',
+                          objectFit: 'contain',
+                          cursor: 'pointer'
+                        }}
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                    </a>
+                  </div>
+                )}
+                
+                {sub.screenshot_url && (sub.screenshot_url.startsWith('base64:') || sub.screenshot_url.startsWith('pending_upload:')) && (
+                  <div style={{ 
+                    marginBottom: '1rem', 
+                    padding: '0.5rem', 
+                    backgroundColor: '#fbbf2420', 
+                    border: '1px solid #fbbf24', 
+                    borderRadius: '6px',
+                    fontSize: '0.75rem',
+                    color: '#fbbf24'
+                  }}>
+                    ⚠️ Screenshot uploaded but storage pending. Contact admin if persists.
+                  </div>
+                )}
+
                 <div style={{ 
                   display: 'flex', 
                   justifyContent: 'space-between', 

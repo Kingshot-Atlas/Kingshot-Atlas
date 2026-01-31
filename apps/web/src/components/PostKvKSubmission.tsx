@@ -1,14 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from './Toast';
 
-interface KvKResult {
-  kingdomNumber: number;
-  opponentKingdom: number;
-  kvkNumber: number;
-  prepResult: 'Win' | 'Loss';
-  battleResult: 'Win' | 'Loss';
-}
+const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+const CURRENT_KVK = 10; // Locked to KvK #10
 
 interface PostKvKSubmissionProps {
   isOpen: boolean;
@@ -16,78 +11,132 @@ interface PostKvKSubmissionProps {
 }
 
 const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({ isOpen, onClose }) => {
-  const { user, profile } = useAuth();
+  const { user, session } = useAuth();
   const { showToast } = useToast();
-  const [results, setResults] = useState<KvKResult[]>([]);
-  const [currentResult, setCurrentResult] = useState<Partial<KvKResult>>({});
-  const [submitting, setSubmitting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const [kingdomNumber, setKingdomNumber] = useState<number | ''>('');
+  const [opponentKingdom, setOpponentKingdom] = useState<number | ''>('');
+  const [prepResult, setPrepResult] = useState<'W' | 'L' | null>(null);
+  const [battleResult, setBattleResult] = useState<'W' | 'L' | null>(null);
   const [notes, setNotes] = useState('');
+  const [screenshot, setScreenshot] = useState<File | null>(null);
+  const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleAddResult = () => {
-    if (!currentResult.kingdomNumber || !currentResult.opponentKingdom || 
-        !currentResult.kvkNumber || !currentResult.prepResult || !currentResult.battleResult) {
-      showToast('Please fill in all fields', 'error');
-      return;
+  const handleScreenshotChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        showToast('Please select an image file', 'error');
+        return;
+      }
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        showToast('Image must be under 5MB', 'error');
+        return;
+      }
+      setScreenshot(file);
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setScreenshotPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
-
-    setResults([...results, currentResult as KvKResult]);
-    setCurrentResult({});
   };
 
-  const handleRemoveResult = (index: number) => {
-    setResults(results.filter((_, i) => i !== index));
+  const clearScreenshot = () => {
+    setScreenshot(null);
+    setScreenshotPreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const isFormValid = () => {
+    return kingdomNumber && opponentKingdom && prepResult && battleResult && screenshot;
   };
 
   const handleSubmit = async () => {
-    if (results.length === 0) {
-      showToast('Please add at least one KvK result', 'error');
+    if (!isFormValid()) {
+      showToast('Please fill in all fields and upload a screenshot', 'error');
+      return;
+    }
+
+    if (kingdomNumber === opponentKingdom) {
+      showToast('Your kingdom cannot be the same as opponent', 'error');
       return;
     }
 
     setSubmitting(true);
     try {
-      const SUBMISSIONS_KEY = 'kingshot_kvk_submissions';
-      const existing = JSON.parse(localStorage.getItem(SUBMISSIONS_KEY) || '[]');
+      // Convert screenshot to base64
+      const reader = new FileReader();
+      const base64Promise = new Promise<string>((resolve) => {
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(screenshot!);
+      });
+      const screenshotBase64 = await base64Promise;
 
-      const submission = {
-        id: `kvk_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        results,
-        notes,
-        submitted_by: user?.id || 'anonymous',
-        submitted_by_name: profile?.username || 'Anonymous',
-        submitted_at: new Date().toISOString(),
-        status: 'pending'
-      };
+      const response = await fetch(`${API_BASE}/api/v1/submissions/kvk10`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': session?.access_token ? `Bearer ${session.access_token}` : '',
+          'X-User-Id': user?.id || ''
+        },
+        body: JSON.stringify({
+          kingdom_number: kingdomNumber,
+          opponent_kingdom: opponentKingdom,
+          kvk_number: CURRENT_KVK,
+          prep_result: prepResult,
+          battle_result: battleResult,
+          notes: notes || null,
+          screenshot_base64: screenshotBase64
+        })
+      });
 
-      existing.push(submission);
-      localStorage.setItem(SUBMISSIONS_KEY, JSON.stringify(existing));
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.detail || 'Failed to submit');
+      }
 
-      showToast(`${results.length} KvK result(s) submitted for review!`, 'success');
-      setResults([]);
+      showToast('KvK #10 result submitted for admin review!', 'success');
+      // Reset form
+      setKingdomNumber('');
+      setOpponentKingdom('');
+      setPrepResult(null);
+      setBattleResult(null);
       setNotes('');
+      clearScreenshot();
       onClose();
     } catch (err) {
-      showToast('Failed to submit KvK results. Please try again.', 'error');
+      showToast(err instanceof Error ? err.message : 'Failed to submit. Please try again.', 'error');
     } finally {
       setSubmitting(false);
     }
   };
 
-  const getOutcomeLabel = (prep: string, battle: string) => {
-    if (prep === 'Win' && battle === 'Win') return { label: 'Domination', color: '#22c55e' };
-    if (prep === 'Loss' && battle === 'Loss') return { label: 'Defeat', color: '#ef4444' };
-    if (prep === 'Win') return { label: 'Prep Win', color: '#eab308' };
+  const getOutcomeLabel = () => {
+    if (!prepResult || !battleResult) return null;
+    if (prepResult === 'W' && battleResult === 'W') return { label: 'Domination', color: '#22c55e' };
+    if (prepResult === 'L' && battleResult === 'L') return { label: 'Defeat', color: '#ef4444' };
+    if (prepResult === 'W') return { label: 'Prep Win', color: '#eab308' };
     return { label: 'Battle Win', color: '#f97316' };
   };
+
+  const outcome = getOutcomeLabel();
 
   return (
     <div
       style={{
         position: 'fixed',
         inset: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        backgroundColor: 'rgba(0, 0, 0, 0.85)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -102,7 +151,7 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({ isOpen, onClose }
           borderRadius: '16px',
           border: '1px solid #2a2a2a',
           padding: '1.5rem',
-          maxWidth: '550px',
+          maxWidth: '480px',
           width: '100%',
           maxHeight: '90vh',
           overflowY: 'auto'
@@ -110,31 +159,53 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({ isOpen, onClose }
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem' }}>
           <div>
-            <h2 style={{ color: '#fff', fontSize: '1.25rem', fontWeight: '600', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              ⚔️ Submit KvK Results
-            </h2>
-            <p style={{ color: '#6b7280', fontSize: '0.85rem', margin: '0.25rem 0 0' }}>
-              Help keep Kingshot Atlas accurate
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+              <span style={{ fontSize: '1.25rem' }}>⚔️</span>
+              <h2 style={{ color: '#fff', fontSize: '1.15rem', fontWeight: '600', margin: 0 }}>
+                Submit KvK #10 Result
+              </h2>
+            </div>
+            <p style={{ color: '#6b7280', fontSize: '0.8rem', margin: 0 }}>
+              One submission per match • Screenshot required
             </p>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '1.5rem' }}>×</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '1.5rem', lineHeight: 1 }}>×</button>
         </div>
 
-        {/* Add Result Form */}
-        <div style={{ marginBottom: '1.5rem', padding: '1rem', backgroundColor: '#1a1a20', borderRadius: '10px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+        {/* KvK Number Badge */}
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          marginBottom: '1.25rem',
+          padding: '0.5rem',
+          backgroundColor: '#22d3ee10',
+          border: '1px solid #22d3ee30',
+          borderRadius: '8px'
+        }}>
+          <span style={{ color: '#22d3ee', fontWeight: '600', fontSize: '0.9rem' }}>
+            📅 KvK #{CURRENT_KVK} — Battle Phase
+          </span>
+        </div>
+
+        {/* Form */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {/* Kingdom Numbers */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
             <div>
-              <label style={{ display: 'block', color: '#9ca3af', fontSize: '0.75rem', marginBottom: '0.35rem' }}>Your Kingdom</label>
+              <label style={{ display: 'block', color: '#9ca3af', fontSize: '0.75rem', marginBottom: '0.35rem' }}>Your Kingdom *</label>
               <input
                 type="number"
-                value={currentResult.kingdomNumber || ''}
-                onChange={(e) => setCurrentResult({ ...currentResult, kingdomNumber: parseInt(e.target.value) || undefined })}
-                placeholder="e.g., 1001"
+                value={kingdomNumber}
+                onChange={(e) => setKingdomNumber(e.target.value ? parseInt(e.target.value) : '')}
+                placeholder="e.g., 172"
+                min={1}
+                max={9999}
                 style={{
                   width: '100%',
-                  padding: '0.6rem',
+                  padding: '0.65rem',
                   backgroundColor: '#0a0a0a',
                   border: '1px solid #2a2a2a',
                   borderRadius: '6px',
@@ -144,15 +215,17 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({ isOpen, onClose }
               />
             </div>
             <div>
-              <label style={{ display: 'block', color: '#9ca3af', fontSize: '0.75rem', marginBottom: '0.35rem' }}>Opponent Kingdom</label>
+              <label style={{ display: 'block', color: '#9ca3af', fontSize: '0.75rem', marginBottom: '0.35rem' }}>Opponent Kingdom *</label>
               <input
                 type="number"
-                value={currentResult.opponentKingdom || ''}
-                onChange={(e) => setCurrentResult({ ...currentResult, opponentKingdom: parseInt(e.target.value) || undefined })}
-                placeholder="e.g., 1002"
+                value={opponentKingdom}
+                onChange={(e) => setOpponentKingdom(e.target.value ? parseInt(e.target.value) : '')}
+                placeholder="e.g., 189"
+                min={1}
+                max={9999}
                 style={{
                   width: '100%',
-                  padding: '0.6rem',
+                  padding: '0.65rem',
                   backgroundColor: '#0a0a0a',
                   border: '1px solid #2a2a2a',
                   borderRadius: '6px',
@@ -163,209 +236,236 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({ isOpen, onClose }
             </div>
           </div>
 
-          <div style={{ marginBottom: '0.75rem' }}>
-            <label style={{ display: 'block', color: '#9ca3af', fontSize: '0.75rem', marginBottom: '0.35rem' }}>KvK Number</label>
+          {/* Results */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+            <div>
+              <label style={{ display: 'block', color: '#eab308', fontSize: '0.75rem', marginBottom: '0.35rem' }}>Prep Phase *</label>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                {(['W', 'L'] as const).map(result => (
+                  <button
+                    key={result}
+                    type="button"
+                    onClick={() => setPrepResult(result)}
+                    style={{
+                      flex: 1,
+                      padding: '0.6rem',
+                      backgroundColor: prepResult === result 
+                        ? (result === 'W' ? '#22c55e20' : '#ef444420')
+                        : '#0a0a0a',
+                      border: `1px solid ${prepResult === result 
+                        ? (result === 'W' ? '#22c55e' : '#ef4444')
+                        : '#2a2a2a'}`,
+                      borderRadius: '6px',
+                      color: prepResult === result 
+                        ? (result === 'W' ? '#22c55e' : '#ef4444')
+                        : '#6b7280',
+                      cursor: 'pointer',
+                      fontWeight: '600',
+                      fontSize: '0.9rem'
+                    }}
+                  >
+                    {result === 'W' ? 'Win' : 'Loss'}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label style={{ display: 'block', color: '#f97316', fontSize: '0.75rem', marginBottom: '0.35rem' }}>Battle Phase *</label>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                {(['W', 'L'] as const).map(result => (
+                  <button
+                    key={result}
+                    type="button"
+                    onClick={() => setBattleResult(result)}
+                    style={{
+                      flex: 1,
+                      padding: '0.6rem',
+                      backgroundColor: battleResult === result 
+                        ? (result === 'W' ? '#22c55e20' : '#ef444420')
+                        : '#0a0a0a',
+                      border: `1px solid ${battleResult === result 
+                        ? (result === 'W' ? '#22c55e' : '#ef4444')
+                        : '#2a2a2a'}`,
+                      borderRadius: '6px',
+                      color: battleResult === result 
+                        ? (result === 'W' ? '#22c55e' : '#ef4444')
+                        : '#6b7280',
+                      cursor: 'pointer',
+                      fontWeight: '600',
+                      fontSize: '0.9rem'
+                    }}
+                  >
+                    {result === 'W' ? 'Win' : 'Loss'}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Outcome Preview */}
+          {outcome && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '0.5rem',
+              backgroundColor: `${outcome.color}15`,
+              border: `1px solid ${outcome.color}40`,
+              borderRadius: '6px'
+            }}>
+              <span style={{ color: outcome.color, fontWeight: '600', fontSize: '0.85rem' }}>
+                {kingdomNumber ? `K${kingdomNumber}` : 'Your Kingdom'} → {outcome.label}
+              </span>
+            </div>
+          )}
+
+          {/* Screenshot Upload */}
+          <div>
+            <label style={{ display: 'block', color: '#9ca3af', fontSize: '0.75rem', marginBottom: '0.35rem' }}>
+              Screenshot Proof * <span style={{ color: '#6b7280' }}>(Required for verification)</span>
+            </label>
+            
+            {!screenshotPreview ? (
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                style={{
+                  border: '2px dashed #3a3a3a',
+                  borderRadius: '8px',
+                  padding: '1.5rem',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  transition: 'border-color 0.2s',
+                  backgroundColor: '#0a0a0a'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.borderColor = '#22d3ee50'}
+                onMouseLeave={(e) => e.currentTarget.style.borderColor = '#3a3a3a'}
+              >
+                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📸</div>
+                <div style={{ color: '#9ca3af', fontSize: '0.85rem' }}>
+                  Click to upload screenshot
+                </div>
+                <div style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                  PNG, JPG up to 5MB
+                </div>
+              </div>
+            ) : (
+              <div style={{ position: 'relative' }}>
+                <img
+                  src={screenshotPreview}
+                  alt="Screenshot preview"
+                  style={{
+                    width: '100%',
+                    maxHeight: '200px',
+                    objectFit: 'contain',
+                    borderRadius: '8px',
+                    border: '1px solid #2a2a2a'
+                  }}
+                />
+                <button
+                  onClick={clearScreenshot}
+                  style={{
+                    position: 'absolute',
+                    top: '0.5rem',
+                    right: '0.5rem',
+                    background: 'rgba(0,0,0,0.8)',
+                    border: '1px solid #3a3a3a',
+                    borderRadius: '50%',
+                    width: '28px',
+                    height: '28px',
+                    color: '#fff',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '1rem'
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+            )}
             <input
-              type="number"
-              value={currentResult.kvkNumber || ''}
-              onChange={(e) => setCurrentResult({ ...currentResult, kvkNumber: parseInt(e.target.value) || undefined })}
-              placeholder="e.g., 5"
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleScreenshotChange}
+              style={{ display: 'none' }}
+            />
+          </div>
+
+          {/* Notes */}
+          <div>
+            <label style={{ display: 'block', color: '#9ca3af', fontSize: '0.75rem', marginBottom: '0.35rem' }}>
+              Additional Notes <span style={{ color: '#6b7280' }}>(optional)</span>
+            </label>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Any context for the admins..."
+              rows={2}
+              maxLength={500}
               style={{
                 width: '100%',
-                padding: '0.6rem',
+                padding: '0.65rem',
                 backgroundColor: '#0a0a0a',
                 border: '1px solid #2a2a2a',
                 borderRadius: '6px',
                 color: '#fff',
-                fontSize: '0.9rem'
+                fontSize: '0.85rem',
+                resize: 'vertical'
               }}
             />
           </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
-            <div>
-              <label style={{ display: 'block', color: '#eab308', fontSize: '0.75rem', marginBottom: '0.35rem' }}>Prep Phase Result</label>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                {['Win', 'Loss'].map(result => (
-                  <button
-                    key={result}
-                    onClick={() => setCurrentResult({ ...currentResult, prepResult: result as 'Win' | 'Loss' })}
-                    style={{
-                      flex: 1,
-                      padding: '0.5rem',
-                      backgroundColor: currentResult.prepResult === result 
-                        ? (result === 'Win' ? '#22c55e20' : '#ef444420')
-                        : '#0a0a0a',
-                      border: `1px solid ${currentResult.prepResult === result 
-                        ? (result === 'Win' ? '#22c55e' : '#ef4444')
-                        : '#2a2a2a'}`,
-                      borderRadius: '6px',
-                      color: currentResult.prepResult === result 
-                        ? (result === 'Win' ? '#22c55e' : '#ef4444')
-                        : '#6b7280',
-                      cursor: 'pointer',
-                      fontWeight: '500'
-                    }}
-                  >
-                    {result}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div>
-              <label style={{ display: 'block', color: '#f97316', fontSize: '0.75rem', marginBottom: '0.35rem' }}>Battle Phase Result</label>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                {['Win', 'Loss'].map(result => (
-                  <button
-                    key={result}
-                    onClick={() => setCurrentResult({ ...currentResult, battleResult: result as 'Win' | 'Loss' })}
-                    style={{
-                      flex: 1,
-                      padding: '0.5rem',
-                      backgroundColor: currentResult.battleResult === result 
-                        ? (result === 'Win' ? '#22c55e20' : '#ef444420')
-                        : '#0a0a0a',
-                      border: `1px solid ${currentResult.battleResult === result 
-                        ? (result === 'Win' ? '#22c55e' : '#ef4444')
-                        : '#2a2a2a'}`,
-                      borderRadius: '6px',
-                      color: currentResult.battleResult === result 
-                        ? (result === 'Win' ? '#22c55e' : '#ef4444')
-                        : '#6b7280',
-                      cursor: 'pointer',
-                      fontWeight: '500'
-                    }}
-                  >
-                    {result}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <button
-            onClick={handleAddResult}
-            style={{
-              width: '100%',
-              padding: '0.6rem',
-              backgroundColor: '#22d3ee20',
-              border: '1px solid #22d3ee50',
-              borderRadius: '6px',
-              color: '#22d3ee',
-              cursor: 'pointer',
-              fontWeight: '500'
-            }}
-          >
-            + Add Result
-          </button>
-        </div>
-
-        {/* Results List */}
-        {results.length > 0 && (
-          <div style={{ marginBottom: '1.5rem' }}>
-            <div style={{ color: '#9ca3af', fontSize: '0.85rem', marginBottom: '0.5rem' }}>
-              Results to Submit ({results.length})
-            </div>
-            {results.map((r, i) => {
-              const outcome = getOutcomeLabel(r.prepResult, r.battleResult);
-              return (
-                <div
-                  key={i}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '0.75rem',
-                    backgroundColor: '#1a1a20',
-                    borderRadius: '8px',
-                    marginBottom: '0.5rem'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <div style={{ fontSize: '0.9rem' }}>
-                      <span style={{ color: '#fff', fontWeight: '600' }}>K{r.kingdomNumber}</span>
-                      <span style={{ color: '#6b7280' }}> vs </span>
-                      <span style={{ color: '#fff', fontWeight: '600' }}>K{r.opponentKingdom}</span>
-                    </div>
-                    <div style={{
-                      padding: '0.2rem 0.5rem',
-                      backgroundColor: `${outcome.color}20`,
-                      borderRadius: '4px',
-                      fontSize: '0.7rem',
-                      color: outcome.color,
-                      fontWeight: '500'
-                    }}>
-                      {outcome.label}
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => handleRemoveResult(i)}
-                    style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer' }}
-                  >
-                    ×
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Notes */}
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', color: '#9ca3af', fontSize: '0.85rem', marginBottom: '0.5rem' }}>
-            Additional Notes (optional)
-          </label>
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Any additional context about the KvK..."
-            rows={2}
-            style={{
-              width: '100%',
-              padding: '0.75rem',
-              backgroundColor: '#0a0a0a',
-              border: '1px solid #2a2a2a',
-              borderRadius: '8px',
-              color: '#fff',
-              fontSize: '0.9rem',
-              resize: 'vertical'
-            }}
-          />
         </div>
 
         {/* Actions */}
-        <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+        <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
           <button
             onClick={onClose}
             style={{
-              padding: '0.75rem 1.25rem',
+              padding: '0.7rem 1.25rem',
               backgroundColor: 'transparent',
               border: '1px solid #3a3a3a',
               borderRadius: '8px',
               color: '#9ca3af',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              fontSize: '0.9rem'
             }}
           >
             Cancel
           </button>
           <button
             onClick={handleSubmit}
-            disabled={results.length === 0 || submitting}
+            disabled={!isFormValid() || submitting}
             style={{
-              padding: '0.75rem 1.25rem',
-              backgroundColor: results.length > 0 ? '#22d3ee' : '#1a1a1a',
+              padding: '0.7rem 1.5rem',
+              backgroundColor: isFormValid() ? '#22d3ee' : '#1a1a1a',
               border: 'none',
               borderRadius: '8px',
-              color: results.length > 0 ? '#000' : '#6b7280',
-              cursor: results.length > 0 ? 'pointer' : 'not-allowed',
+              color: isFormValid() ? '#000' : '#6b7280',
+              cursor: isFormValid() ? 'pointer' : 'not-allowed',
               fontWeight: '600',
+              fontSize: '0.9rem',
               display: 'flex',
               alignItems: 'center',
               gap: '0.5rem'
             }}
           >
-            {submitting && <span className="loading-spinner" style={{ width: '14px', height: '14px' }} />}
-            Submit Results
+            {submitting ? (
+              <>
+                <span style={{ 
+                  width: '14px', 
+                  height: '14px', 
+                  border: '2px solid transparent',
+                  borderTopColor: '#000',
+                  borderRadius: '50%',
+                  animation: 'spin 1s linear infinite'
+                }} />
+                Submitting...
+              </>
+            ) : (
+              'Submit for Review'
+            )}
           </button>
         </div>
       </div>

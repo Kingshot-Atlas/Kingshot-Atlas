@@ -1,12 +1,16 @@
 import os
 import logging
-from fastapi import APIRouter, Depends, HTTPException, Query, Header, Request
+import base64
+import uuid
+from fastapi import APIRouter, Depends, HTTPException, Query, Header, Request, Body
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from typing import Optional, List
 from datetime import datetime, timezone
 import secrets
 from jose import jwt, JWTError
+from pydantic import BaseModel, Field
+from typing import Literal
 
 logger = logging.getLogger(__name__)
 
@@ -241,6 +245,138 @@ def create_submission(
     db.add(db_submission)
     db.commit()
     db.refresh(db_submission)
+    return db_submission
+
+
+# Schema for KvK #10 submission with mandatory screenshot
+class KvK10SubmissionCreate(BaseModel):
+    kingdom_number: int = Field(..., ge=1, le=9999, description="Your kingdom number")
+    opponent_kingdom: int = Field(..., ge=1, le=9999, description="Opponent kingdom number")
+    kvk_number: int = Field(10, description="KvK number (locked to 10)")
+    prep_result: Literal['W', 'L'] = Field(..., description="Prep phase result")
+    battle_result: Literal['W', 'L'] = Field(..., description="Battle phase result")
+    notes: Optional[str] = Field(None, max_length=500)
+    screenshot_base64: str = Field(..., description="Base64 encoded screenshot image")
+
+
+@router.post("/submissions/kvk10", response_model=KVKSubmissionSchema)
+def create_kvk10_submission(
+    submission: KvK10SubmissionCreate,
+    db: Session = Depends(get_db),
+    verified_user_id: Optional[str] = Depends(get_verified_user_id),
+    user_name: Optional[str] = Header(None, alias="X-User-Name")
+):
+    """
+    Submit a KvK #10 result with mandatory screenshot proof.
+    Screenshot is stored in Supabase Storage and URL is saved with submission.
+    """
+    # Require authenticated user
+    if not verified_user_id:
+        raise HTTPException(status_code=401, detail="Authentication required to submit KvK results")
+    
+    # Validate KvK number is 10
+    if submission.kvk_number != 10:
+        raise HTTPException(status_code=400, detail="This endpoint only accepts KvK #10 submissions")
+    
+    # Validate kingdoms are different
+    if submission.kingdom_number == submission.opponent_kingdom:
+        raise HTTPException(status_code=400, detail="Your kingdom cannot be the same as opponent kingdom")
+    
+    # Validate screenshot is provided and is valid base64
+    if not submission.screenshot_base64:
+        raise HTTPException(status_code=400, detail="Screenshot proof is required")
+    
+    try:
+        # Parse base64 data URL
+        if ',' in submission.screenshot_base64:
+            header, base64_data = submission.screenshot_base64.split(',', 1)
+            # Extract mime type
+            if 'image/png' in header:
+                file_ext = 'png'
+            elif 'image/jpeg' in header or 'image/jpg' in header:
+                file_ext = 'jpg'
+            elif 'image/webp' in header:
+                file_ext = 'webp'
+            else:
+                file_ext = 'png'  # Default
+        else:
+            base64_data = submission.screenshot_base64
+            file_ext = 'png'
+        
+        # Decode and validate image
+        image_data = base64.b64decode(base64_data)
+        
+        # Check file size (max 5MB)
+        if len(image_data) > 5 * 1024 * 1024:
+            raise HTTPException(status_code=400, detail="Screenshot must be under 5MB")
+        
+        # SECURITY: Validate image magic bytes to prevent malicious uploads
+        PNG_MAGIC = b'\x89PNG\r\n\x1a\n'
+        JPEG_MAGIC = b'\xff\xd8\xff'
+        WEBP_MAGIC = b'RIFF'
+        
+        is_valid_image = (
+            image_data[:8] == PNG_MAGIC or
+            image_data[:3] == JPEG_MAGIC or
+            (image_data[:4] == WEBP_MAGIC and b'WEBP' in image_data[:12])
+        )
+        
+        if not is_valid_image:
+            logger.warning(f"Invalid image magic bytes from user {verified_user_id}")
+            raise HTTPException(status_code=400, detail="Invalid image format. Only PNG, JPEG, and WebP are allowed.")
+        
+        # Generate unique filename
+        filename = f"kvk10/{verified_user_id}_{submission.kingdom_number}_{uuid.uuid4().hex[:8]}.{file_ext}"
+        
+        # Try to upload to Supabase Storage
+        screenshot_url = None
+        try:
+            from api.supabase_client import get_supabase_client
+            supabase = get_supabase_client()
+            if supabase:
+                # Upload to 'submissions' bucket
+                result = supabase.storage.from_('submissions').upload(
+                    filename,
+                    image_data,
+                    {'content-type': f'image/{file_ext}'}
+                )
+                # Get public URL
+                screenshot_url = supabase.storage.from_('submissions').get_public_url(filename)
+                logger.info(f"Screenshot uploaded: {screenshot_url}")
+        except Exception as e:
+            logger.warning(f"Failed to upload to Supabase Storage: {e}")
+            # Store base64 as fallback (truncated for DB)
+            screenshot_url = f"base64:{submission.screenshot_base64[:100]}..."
+        
+        if not screenshot_url:
+            # Fallback: store a marker that screenshot was provided
+            screenshot_url = f"pending_upload:{filename}"
+        
+    except Exception as e:
+        logger.error(f"Screenshot processing error: {e}")
+        raise HTTPException(status_code=400, detail="Invalid screenshot format. Please upload a valid image.")
+    
+    # Create submission
+    db_submission = KVKSubmission(
+        submitter_id=verified_user_id,
+        submitter_name=user_name,
+        kingdom_number=submission.kingdom_number,
+        kvk_number=10,
+        opponent_kingdom=submission.opponent_kingdom,
+        prep_result=submission.prep_result,
+        battle_result=submission.battle_result,
+        date_or_order_index=f"KvK10_{datetime.now(timezone.utc).strftime('%Y%m%d')}",
+        screenshot_url=screenshot_url,
+        notes=submission.notes,
+        status="pending"
+    )
+    
+    db.add(db_submission)
+    db.commit()
+    db.refresh(db_submission)
+    
+    logger.info(f"KvK #10 submission created: K{submission.kingdom_number} vs K{submission.opponent_kingdom} by {verified_user_id}")
+    
     return db_submission
 
 
