@@ -47,6 +47,12 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Security scan (Bandit)
+        run: |
+          pip install bandit
+          bandit -r api/ -ll -ii --exclude ./api/tests,./venv -f txt || true
+        continue-on-error: true
+
       - name: Run tests
         run: pytest tests/ -v --tb=short
         env:
@@ -76,6 +82,10 @@ jobs:
 
       - name: Run ESLint
         run: npm run lint
+
+      - name: Security audit (npm)
+        run: npm audit --audit-level=high || true
+        continue-on-error: true
 
       - name: Run tests
         run: npm test -- --run --passWithNoTests
