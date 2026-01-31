@@ -9,6 +9,12 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-01-31 12:27 | Platform Engineer | COMPLETED
+Task: Fix Stripe Webhook URL Configuration
+Root Cause: Webhook URL was pointing to non-existent `kingshot-atlas-api.onrender.com`
+Fix: Changed to correct URL `kingshot-atlas.onrender.com/api/v1/stripe/webhook`
+Impact: Webhooks will now reach the API and auto-sync subscriptions to Supabase profiles
+
 ## 2026-01-31 12:30 | Platform Engineer | COMPLETED
 Task: Execute Subscription Sync via API
 Actions:
