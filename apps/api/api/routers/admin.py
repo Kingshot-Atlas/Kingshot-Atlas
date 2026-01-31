@@ -63,19 +63,28 @@ async def get_subscription_stats(x_admin_key: Optional[str] = Header(None)):
     try:
         # Get all profiles with subscription info
         result = client.table("profiles").select(
-            "id, username, email, subscription_tier, stripe_customer_id, created_at"
+            "id, username, email, subscription_tier, stripe_customer_id, created_at, linked_username, is_admin"
         ).execute()
         
         profiles = result.data or []
         
-        # Count by tier
+        # Count by tier and linked status
         tier_counts = {"free": 0, "pro": 0, "recruiter": 0}
+        kingshot_linked_count = 0
+        
         for profile in profiles:
             tier = profile.get("subscription_tier", "free") or "free"
+            # Admins are auto-recruiter (single source of truth)
+            if profile.get("is_admin"):
+                tier = "recruiter"
             if tier in tier_counts:
                 tier_counts[tier] += 1
             else:
                 tier_counts["free"] += 1
+            
+            # Count users with linked Kingshot accounts
+            if profile.get("linked_username"):
+                kingshot_linked_count += 1
         
         # Get recent subscribers (non-free, last 30 days)
         recent = [
@@ -92,6 +101,7 @@ async def get_subscription_stats(x_admin_key: Optional[str] = Header(None)):
         return {
             "total_users": len(profiles),
             "by_tier": tier_counts,
+            "kingshot_linked": kingshot_linked_count,
             "recent_subscribers": recent[:10],  # Last 10
             "paid_users": tier_counts["pro"] + tier_counts["recruiter"]
         }
@@ -231,6 +241,7 @@ async def get_admin_overview(x_admin_key: Optional[str] = Header(None)):
             "free": free_users,
             "pro": stripe_pro_count,
             "recruiter": stripe_recruiter_count,
+            "kingshot_linked": sub_stats.get("kingshot_linked", 0),
         },
         "revenue": {
             "mrr": rev_stats.get("mrr", 0),

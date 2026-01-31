@@ -4,6 +4,17 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
 
+/* Global dark background - prevents white flash and white edges */
+html, body {
+  background-color: #0a0a0a;
+  min-height: 100vh;
+}
+
+#root {
+  background-color: #0a0a0a;
+  min-height: 100vh;
+}
+
 /* Design Tokens */
 :root {
   /* Colors - Backgrounds */

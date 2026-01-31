@@ -1,6 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth, UserProfile } from '../contexts/AuthContext';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { colors, neonGlow as neonGlowUtil, subscriptionColors } from '../utils/styles';
+import { getEffectiveTier } from '../utils/constants';
+
+// Get username color based on subscription tier
+const getUsernameColor = (tier: 'free' | 'pro' | 'recruiter' | null | undefined): string => {
+  switch (tier) {
+    case 'pro': return subscriptionColors.pro;
+    case 'recruiter': return subscriptionColors.recruiter;
+    default: return colors.text;
+  }
+};
+
+// Convert TC level to display string (TC 31+ becomes TG tiers)
+// Source of truth: Level 35-39 = TG1, 40-44 = TG2, 45-49 = TG3, 50-54 = TG4, 55-59 = TG5, etc.
+const formatTCLevel = (level: number | null | undefined): string => {
+  if (!level) return '';
+  if (level <= 30) return `TC ${level}`;
+  if (level <= 34) return 'TC 30';
+  const tgTier = Math.floor((level - 35) / 5) + 1;
+  return `TG${tgTier}`;
+};
 
 const UserDirectory: React.FC = () => {
   const { user: currentUser } = useAuth();
@@ -9,6 +31,7 @@ const UserDirectory: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterBy, setFilterBy] = useState<'all' | 'alliance' | 'region' | 'kingdom'>('all');
   const [filterValue, setFilterValue] = useState('');
+  const [tierFilter, setTierFilter] = useState<'all' | 'pro' | 'recruiter'>('all');
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   useEffect(() => {
@@ -18,88 +41,125 @@ const UserDirectory: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Simulate loading users from profiles
-    // In real app, this would be an API call
-    const profilesKey = 'kingshot_profile';
-    const savedProfiles = localStorage.getItem(profilesKey);
-    
-    if (savedProfiles) {
-      // Get all profiles from localStorage (simulated user database)
-      const allProfiles: UserProfile[] = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key?.startsWith('kingshot_profile_')) {
-          try {
-            const profile = JSON.parse(localStorage.getItem(key) || '{}');
-            if (profile.username) allProfiles.push(profile);
-          } catch (e) {
-            // Skip invalid profiles
+    const fetchUsers = async () => {
+      setLoading(true);
+      
+      // Fetch from Supabase if configured
+      if (isSupabaseConfigured && supabase) {
+        try {
+          console.log('[PlayerDirectory] Fetching users from Supabase...');
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('id, username, email, avatar_url, home_kingdom, alliance_tag, language, region, bio, theme_color, badge_style, created_at, linked_username, linked_avatar_url, linked_kingdom, linked_tc_level, subscription_tier')
+            .neq('linked_username', '')
+            .not('linked_username', 'is', null)
+            .order('created_at', { ascending: false })
+            .limit(100);
+
+          console.log('[PlayerDirectory] Query result:', { data, error, count: data?.length });
+
+          if (error) {
+            console.error('[PlayerDirectory] Supabase error:', error);
           }
+
+          if (data && data.length > 0) {
+            // Sort: premium users first, then by created_at
+            const sorted = [...data].sort((a, b) => {
+              const tierOrder = { recruiter: 0, pro: 1, free: 2 };
+              const aTier = tierOrder[a.subscription_tier as keyof typeof tierOrder] ?? 2;
+              const bTier = tierOrder[b.subscription_tier as keyof typeof tierOrder] ?? 2;
+              if (aTier !== bTier) return aTier - bTier;
+              return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+            });
+            setUsers(sorted as UserProfile[]);
+            setLoading(false);
+            return;
+          }
+        } catch (err) {
+          console.error('[PlayerDirectory] Failed to fetch users:', err);
         }
       }
+
+      // Fallback to demo users with linked Kingshot accounts
+      const demoUsers: UserProfile[] = [
+        {
+          id: 'demo1',
+          username: 'demo1_discord',
+          email: 'demo1@example.com',
+          avatar_url: '',
+          home_kingdom: 42,
+          alliance_tag: 'DRG',
+          language: 'English',
+          region: 'Americas',
+          bio: 'Leading kingdoms to victory since KvK #1',
+          theme_color: '#ef4444',
+          badge_style: 'glow',
+          created_at: new Date().toISOString(),
+          subscription_tier: 'recruiter',
+          linked_username: 'DragonSlayer',
+          linked_avatar_url: '',
+          linked_kingdom: 42,
+          linked_tc_level: 35
+        },
+        {
+          id: 'demo2',
+          username: 'demo2_google',
+          email: 'demo2@example.com',
+          avatar_url: '',
+          home_kingdom: 17,
+          alliance_tag: 'PHX',
+          language: 'Spanish',
+          region: 'Europe',
+          bio: 'From ashes we rise. Building the strongest alliances.',
+          theme_color: '#f97316',
+          badge_style: 'gradient',
+          created_at: new Date().toISOString(),
+          subscription_tier: 'pro',
+          linked_username: 'PhoenixRising',
+          linked_avatar_url: '',
+          linked_kingdom: 17,
+          linked_tc_level: 32
+        },
+        {
+          id: 'demo3',
+          username: 'demo3_discord',
+          email: 'demo3@example.com',
+          avatar_url: '',
+          home_kingdom: 88,
+          alliance_tag: 'SHD',
+          language: 'English',
+          region: 'Asia',
+          bio: 'Master strategist. Victory through superior tactics.',
+          theme_color: '#8b5cf6',
+          badge_style: 'outline',
+          created_at: new Date().toISOString(),
+          subscription_tier: 'free',
+          linked_username: 'ShadowHunter',
+          linked_avatar_url: '',
+          linked_kingdom: 88,
+          linked_tc_level: 28
+        }
+      ];
       
-      // Add some demo users if no real users exist
-      if (allProfiles.length === 0) {
-        allProfiles.push(
-          {
-            id: 'demo1',
-            username: 'DragonSlayer',
-            email: 'demo1@example.com',
-            avatar_url: '',
-            home_kingdom: 42,
-            alliance_tag: 'DRG',
-            language: 'English',
-            region: 'Americas',
-            bio: 'Leading kingdoms to victory since KvK #1',
-            theme_color: '#ef4444',
-            badge_style: 'glow',
-            created_at: new Date().toISOString()
-          },
-          {
-            id: 'demo2',
-            username: 'PhoenixRising',
-            email: 'demo2@example.com',
-            avatar_url: '',
-            home_kingdom: 17,
-            alliance_tag: 'PHX',
-            language: 'Spanish',
-            region: 'Europe',
-            bio: 'From ashes we rise. Building the strongest alliances.',
-            theme_color: '#f97316',
-            badge_style: 'gradient',
-            created_at: new Date().toISOString()
-          },
-          {
-            id: 'demo3',
-            username: 'ShadowHunter',
-            email: 'demo3@example.com',
-            avatar_url: '',
-            home_kingdom: 88,
-            alliance_tag: 'SHD',
-            language: 'English',
-            region: 'Asia',
-            bio: 'Master strategist. Victory through superior tactics.',
-            theme_color: '#8b5cf6',
-            badge_style: 'outline',
-            created_at: new Date().toISOString()
-          }
-        );
-      }
-      
-      setUsers(allProfiles);
-    }
-    setLoading(false);
+      setUsers(demoUsers);
+      setLoading(false);
+    };
+
+    fetchUsers();
   }, []);
 
   const filteredUsers = users.filter(user => {
-    if (user.id === currentUser?.id) return false; // Don't show current user
-    
+    // Search by linked Kingshot username or alliance tag
     const matchesSearch = !searchQuery || 
-      user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.bio.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.alliance_tag.toLowerCase().includes(searchQuery.toLowerCase());
+      (user.linked_username && user.linked_username.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (user.alliance_tag && user.alliance_tag.toLowerCase().includes(searchQuery.toLowerCase()));
     
     if (!matchesSearch) return false;
+
+    // Tier filter
+    if (tierFilter !== 'all') {
+      if (user.subscription_tier !== tierFilter) return false;
+    }
     
     switch (filterBy) {
       case 'alliance':
@@ -107,7 +167,7 @@ const UserDirectory: React.FC = () => {
       case 'region':
         return !filterValue || user.region === filterValue;
       case 'kingdom':
-        return !filterValue || user.home_kingdom === parseInt(filterValue);
+        return !filterValue || user.linked_kingdom === parseInt(filterValue);
       default:
         return true;
     }
@@ -192,7 +252,7 @@ const UserDirectory: React.FC = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search players by name, bio, or alliance..."
+              placeholder="Search by Kingshot username or alliance..."
               style={{
                 width: '100%',
                 padding: '0.875rem 1rem',
@@ -272,6 +332,35 @@ const UserDirectory: React.FC = () => {
           </div>
         </div>
 
+        {/* Tier Filter Chips */}
+        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+          {(['all', 'pro', 'recruiter'] as const).map((tier) => {
+            const isActive = tierFilter === tier;
+            const chipColor = tier === 'pro' ? subscriptionColors.pro : tier === 'recruiter' ? subscriptionColors.recruiter : '#6b7280';
+            const label = tier === 'all' ? 'All Players' : tier === 'pro' ? '⭐ Pro' : '👑 Recruiter';
+            
+            return (
+              <button
+                key={tier}
+                onClick={() => setTierFilter(tier)}
+                style={{
+                  padding: '0.5rem 1rem',
+                  borderRadius: '20px',
+                  border: `1px solid ${isActive ? chipColor : '#2a2a2a'}`,
+                  backgroundColor: isActive ? `${chipColor}15` : 'transparent',
+                  color: isActive ? chipColor : '#6b7280',
+                  fontSize: '0.8rem',
+                  fontWeight: isActive ? '600' : '400',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+
         {/* Results Count */}
         <div style={{ marginBottom: '1.5rem' }}>
           <span style={{ color: '#6b7280', fontSize: '0.85rem' }}>
@@ -329,11 +418,11 @@ const UserDirectory: React.FC = () => {
                   e.currentTarget.style.borderColor = '#1f1f1f';
                 }}
                 >
-                  {/* User Header */}
+                  {/* Player Header - Kingshot Account Info */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-                    {user.avatar_url ? (
+                    {user.linked_avatar_url ? (
                       <img 
-                        src={user.avatar_url} 
+                        src={user.linked_avatar_url} 
                         alt=""
                         style={{
                           width: '48px',
@@ -355,17 +444,88 @@ const UserDirectory: React.FC = () => {
                         fontWeight: 'bold',
                         ...getBadgeStyle(user.badge_style, user.theme_color)
                       }}>
-                        {user.username?.[0]?.toUpperCase() ?? '?'}
+                        {user.linked_username?.[0]?.toUpperCase() ?? '?'}
                       </div>
                     )}
                     <div style={{ flex: 1 }}>
                       <div style={{ 
-                        fontSize: '1.1rem', 
-                        fontWeight: 'bold', 
-                        color: '#fff',
-                        marginBottom: '0.25rem'
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        marginBottom: '0.25rem',
+                        flexWrap: 'wrap'
                       }}>
-                        {user.username}
+                        {/* Use effective tier: admins are always recruiters */}
+                        {(() => {
+                          const effectiveTier = getEffectiveTier(user.subscription_tier, user.username);
+                          return (
+                            <>
+                              <span style={{ 
+                                fontSize: '1.1rem', 
+                                fontWeight: 'bold', 
+                                color: getUsernameColor(effectiveTier),
+                                ...(effectiveTier === 'pro' || effectiveTier === 'recruiter' 
+                                  ? neonGlowUtil(getUsernameColor(effectiveTier)) 
+                                  : {})
+                              }}>
+                                {user.linked_username}
+                              </span>
+                              {effectiveTier === 'pro' && (
+                                <span style={{
+                                  fontSize: '0.6rem',
+                                  padding: '0.15rem 0.4rem',
+                                  backgroundColor: `${subscriptionColors.pro}15`,
+                                  border: `1px solid ${subscriptionColors.pro}40`,
+                                  borderRadius: '4px',
+                                  color: subscriptionColors.pro,
+                                  fontWeight: '600',
+                                }}>
+                                  ⭐ PRO
+                                </span>
+                              )}
+                              {effectiveTier === 'recruiter' && (
+                                <span style={{
+                                  fontSize: '0.6rem',
+                                  padding: '0.15rem 0.4rem',
+                                  backgroundColor: `${subscriptionColors.recruiter}15`,
+                                  border: `1px solid ${subscriptionColors.recruiter}40`,
+                                  borderRadius: '4px',
+                                  color: subscriptionColors.recruiter,
+                                  fontWeight: '600',
+                                }}>
+                                  👑 RECRUITER
+                                </span>
+                              )}
+                            </>
+                          );
+                        })()}
+                        {user.id === currentUser?.id && (
+                          <span style={{
+                            fontSize: '0.6rem',
+                            padding: '0.15rem 0.4rem',
+                            backgroundColor: '#10b98115',
+                            border: '1px solid #10b98140',
+                            borderRadius: '4px',
+                            color: '#10b981',
+                            fontWeight: '600',
+                          }}>
+                            YOU
+                          </span>
+                        )}
+                        {/* Kingdom chip - like LinkKingshotAccount card */}
+                        {user.linked_kingdom && (
+                          <span style={{
+                            fontSize: '0.6rem',
+                            padding: '0.15rem 0.4rem',
+                            backgroundColor: '#22d3ee15',
+                            border: '1px solid #22d3ee40',
+                            borderRadius: '4px',
+                            color: '#22d3ee',
+                            fontWeight: '600',
+                          }}>
+                            K{user.linked_kingdom}
+                          </span>
+                        )}
                       </div>
                       {user.alliance_tag && (
                         <div style={{
@@ -383,26 +543,14 @@ const UserDirectory: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* User Info */}
+                  {/* Kingshot Account Info */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
-                    {user.home_kingdom && (
+                    {user.linked_tc_level && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <span style={{ color: '#6b7280', fontSize: '0.85rem' }}>🏠</span>
                         <span style={{ color: '#fff', fontSize: '0.9rem' }}>
-                          Home: Kingdom {user.home_kingdom}
+                          Town Center: {formatTCLevel(user.linked_tc_level)}
                         </span>
-                      </div>
-                    )}
-                    {user.region && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <span style={{ color: '#6b7280', fontSize: '0.85rem' }}>🌍</span>
-                        <span style={{ color: '#fff', fontSize: '0.9rem' }}>{user.region}</span>
-                      </div>
-                    )}
-                    {user.language && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <span style={{ color: '#6b7280', fontSize: '0.85rem' }}>💬</span>
-                        <span style={{ color: '#fff', fontSize: '0.9rem' }}>{user.language}</span>
                       </div>
                     )}
                   </div>

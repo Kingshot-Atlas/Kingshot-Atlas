@@ -2,11 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { logger } from '../utils/logger';
 import { useAuth } from './AuthContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
-
-// Admin users get Recruiter tier automatically (all features unlocked)
-// Check by: profile.is_admin, profile.username, or user email prefix
-const ADMIN_EMAILS = ['gatreno@gmail.com'];
-const ADMIN_USERNAMES = ['gatreno'];
+import { ADMIN_EMAILS, ADMIN_USERNAMES } from '../utils/constants';
 
 // 4 tiers: anonymous (not logged in), free (logged in), pro, recruiter
 export type SubscriptionTier = 'anonymous' | 'free' | 'pro' | 'recruiter';

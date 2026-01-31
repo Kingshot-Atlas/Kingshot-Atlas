@@ -11,9 +11,7 @@ import { AnalyticsDashboard } from '../components/AnalyticsCharts';
 import { EngagementDashboard } from '../components/EngagementDashboard';
 import { WebhookMonitor } from '../components/WebhookMonitor';
 import { DataSourceStats } from '../components/DataSourceStats';
-
-// Admin users - Discord usernames that have admin access
-const ADMIN_USERS = ['gatreno'];
+import { ADMIN_USERNAMES } from '../utils/constants';
 
 interface Submission {
   id: number;
@@ -90,6 +88,7 @@ interface AnalyticsData {
     free: number;
     pro: number;
     recruiter: number;
+    kingshot_linked: number;
   };
   submissions: {
     pending: number;
@@ -137,7 +136,7 @@ const AdminDashboard: React.FC = () => {
   const [syncingSubscriptions, setSyncingSubscriptions] = useState(false);
 
   // Check if user is admin
-  const isAdmin = profile?.username && ADMIN_USERS.includes(profile.username.toLowerCase());
+  const isAdmin = profile?.username && ADMIN_USERNAMES.includes(profile.username.toLowerCase());
 
   // Fetch pending counts on mount
   useEffect(() => {
@@ -232,7 +231,7 @@ const AdminDashboard: React.FC = () => {
         visitDuration: 0,
         topSources: [],
         topCountries: [],
-        userStats: { total: 0, free: 0, pro: 0, recruiter: 0 },
+        userStats: { total: 0, free: 0, pro: 0, recruiter: 0, kingshot_linked: 0 },
         submissions: { pending: 0, approved: 0, rejected: 0 },
         revenue: { monthly: 0, total: 0, subscriptions: [] },
         featureUsage: realAnalytics.featureUsage,
@@ -250,6 +249,7 @@ const AdminDashboard: React.FC = () => {
             free: adminData.users?.free || 0,
             pro: adminData.users?.pro || 0,
             recruiter: adminData.users?.recruiter || 0,
+            kingshot_linked: adminData.users?.kingshot_linked || 0,
           };
           realData.revenue = {
             monthly: adminData.revenue?.mrr || 0,
@@ -679,8 +679,8 @@ const AdminDashboard: React.FC = () => {
         {/* Key Metrics */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
           {[
-            { label: 'Total Visits', value: analytics.totalVisits.toLocaleString(), color: '#22d3ee', icon: '👁️' },
-            { label: 'Unique Visitors', value: analytics.uniqueVisitors.toLocaleString(), color: '#a855f7', icon: '👤' },
+            { label: 'Total Events', value: analytics.totalVisits.toLocaleString(), color: '#22d3ee', icon: '👁️' },
+            { label: 'Sessions (local)', value: analytics.uniqueVisitors.toLocaleString(), color: '#a855f7', icon: '👤' },
             { label: 'Total Users', value: analytics.userStats.total.toLocaleString(), color: '#22c55e', icon: '👥' },
             { label: 'Monthly Revenue', value: `$${analytics.revenue.monthly.toFixed(2)}`, color: '#fbbf24', icon: '💰' },
           ].map((metric, i) => (
@@ -724,9 +724,10 @@ const AdminDashboard: React.FC = () => {
               {syncingSubscriptions ? '⏳ Syncing...' : '🔄 Sync with Stripe'}
             </button>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '1rem' }}>
             {[
               { label: 'Free Users', value: analytics.userStats.free, color: '#6b7280' },
+              { label: 'Kingshot Linked', value: analytics.userStats.kingshot_linked, color: '#f59e0b' },
               { label: 'Atlas Pro', value: analytics.userStats.pro, color: '#22d3ee' },
               { label: 'Atlas Recruiter', value: analytics.userStats.recruiter, color: '#a855f7' },
             ].map((tier, i) => (
@@ -872,7 +873,7 @@ const AdminDashboard: React.FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '1.5rem', backgroundColor: '#0a0a0a', minHeight: '100vh' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
         <h1 style={{ fontSize: '2rem', fontWeight: 700, color: '#ffffff' }}>
           Admin Dashboard {viewAsUser && <span style={{ fontSize: '0.9rem', color: '#fbbf24' }}>(Viewing as Free User)</span>}

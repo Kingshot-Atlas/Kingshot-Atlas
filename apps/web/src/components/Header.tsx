@@ -6,8 +6,7 @@ import KvKCountdown from './KvKCountdown';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { neonGlow } from '../utils/styles';
-// Admin users list - must match AdminDashboard.tsx
-const ADMIN_USERS = ['gatreno'];
+import { ADMIN_USERNAMES } from '../utils/constants';
 
 // Discord invite link - configurable via environment variable
 const DISCORD_INVITE = import.meta.env.VITE_DISCORD_INVITE || 'https://discord.gg/aA3a7JGcHV';
@@ -16,12 +15,14 @@ const Header: React.FC = () => {
   const location = useLocation();
   const { user, profile, signOut } = useAuth();
   const { trackButton } = useAnalytics();
-  const isAdmin = profile?.username && ADMIN_USERS.includes(profile.username.toLowerCase());
+  const isAdmin = profile?.username && ADMIN_USERNAMES.includes(profile.username.toLowerCase());
   const [showLoginMenu, setShowLoginMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showToolsMenu, setShowToolsMenu] = useState(false);
   const [showMobileToolsMenu, setShowMobileToolsMenu] = useState(false);
+  const [showCommunityMenu, setShowCommunityMenu] = useState(false);
+  const [showMobileCommunityMenu, setShowMobileCommunityMenu] = useState(false);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -385,19 +386,123 @@ const Header: React.FC = () => {
               </div>
             )}
           </div>
-          <Link
-            to="/about"
-            style={{
-              color: isActive('/about') ? '#22d3ee' : '#9ca3af',
-              textDecoration: 'none',
-              fontSize: '0.9rem',
-              fontWeight: isActive('/about') ? '600' : '400',
-              transition: 'color 0.2s',
-              ...(isActive('/about') ? neonGlow('#22d3ee') : {})
-            }}
+          <div 
+            style={{ position: 'relative' }}
+            onMouseEnter={() => setShowCommunityMenu(true)}
+            onMouseLeave={() => setShowCommunityMenu(false)}
           >
-            About
-          </Link>
+            <button
+              style={{
+                color: (isActive('/players') || isActive('/about')) ? '#22d3ee' : '#9ca3af',
+                textDecoration: 'none',
+                fontSize: '0.9rem',
+                fontWeight: (isActive('/players') || isActive('/about')) ? '600' : '400',
+                transition: 'color 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.25rem',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: 0,
+                ...((isActive('/players') || isActive('/about')) ? neonGlow('#22d3ee') : {})
+              }}
+            >
+              Community
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ opacity: 0.6 }}>
+                <path d="M6 9l6 6 6-6"/>
+              </svg>
+            </button>
+            
+            {showCommunityMenu && (
+              <div style={{
+                position: 'absolute',
+                top: '100%',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                marginTop: '0.5rem',
+                backgroundColor: '#111111',
+                border: '1px solid #2a2a2a',
+                borderRadius: '12px',
+                padding: '0.5rem',
+                minWidth: '180px',
+                boxShadow: '0 10px 40px rgba(0, 0, 0, 0.6)',
+                zIndex: 1000
+              }}>
+                <Link
+                  to="/players"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    padding: '0.75rem 1rem',
+                    borderRadius: '8px',
+                    color: isActive('/players') ? '#22d3ee' : '#fff',
+                    textDecoration: 'none',
+                    fontSize: '0.85rem',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#22d3ee' }}>
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                  </svg>
+                  Player Directory
+                </Link>
+                <a
+                  href={DISCORD_INVITE}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    padding: '0.75rem 1rem',
+                    borderRadius: '8px',
+                    color: '#fff',
+                    textDecoration: 'none',
+                    fontSize: '0.85rem',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style={{ color: '#5865F2' }}>
+                    <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+                  </svg>
+                  Join Discord
+                </a>
+                <div style={{ height: '1px', backgroundColor: '#2a2a2a', margin: '0.25rem 0' }} />
+                <Link
+                  to="/about"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    padding: '0.75rem 1rem',
+                    borderRadius: '8px',
+                    color: isActive('/about') ? '#22d3ee' : '#fff',
+                    textDecoration: 'none',
+                    fontSize: '0.85rem',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#9ca3af' }}>
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="16" x2="12" y2="12"/>
+                    <line x1="12" y1="8" x2="12.01" y2="8"/>
+                  </svg>
+                  About Atlas
+                </Link>
+              </div>
+            )}
+          </div>
           <Link
             to="/upgrade"
             style={{
@@ -460,29 +565,6 @@ const Header: React.FC = () => {
           >
             Players
           </Link> */}
-          
-          <a
-            href={DISCORD_INVITE}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              padding: '0.4rem 0.75rem',
-              backgroundColor: '#5865F2',
-              borderRadius: '6px',
-              color: '#fff',
-              textDecoration: 'none',
-              fontSize: '0.85rem',
-              fontWeight: '500'
-            }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
-            </svg>
-            Join
-          </a>
           
           <div style={{ position: 'relative' }}>
             {user ? (
@@ -782,19 +864,74 @@ const Header: React.FC = () => {
               <span style={{ color: '#333' }}>└</span> Kingdom Comparison
             </Link>
           )}
-          <Link
-            to="/about"
+          <button
+            onClick={() => setShowMobileCommunityMenu(!showMobileCommunityMenu)}
             style={{
-              color: isActive('/about') ? '#22d3ee' : '#9ca3af',
+              color: (isActive('/players') || isActive('/about')) ? '#22d3ee' : '#9ca3af',
               textDecoration: 'none',
               fontSize: '1rem',
               padding: '0.75rem 1rem',
               borderRadius: '8px',
-              backgroundColor: isActive('/about') ? '#111' : 'transparent'
+              backgroundColor: (isActive('/players') || isActive('/about')) ? '#111' : 'transparent',
+              border: 'none',
+              width: '100%',
+              textAlign: 'left',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
             }}
           >
-            About
-          </Link>
+            Community
+            <svg 
+              width="12" 
+              height="12" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2"
+              style={{ 
+                transform: showMobileCommunityMenu ? 'rotate(180deg)' : 'rotate(0deg)',
+                transition: 'transform 0.2s'
+              }}
+            >
+              <path d="M6 9l6 6 6-6"/>
+            </svg>
+          </button>
+          {showMobileCommunityMenu && (
+            <>
+              <Link
+                to="/players"
+                style={{
+                  color: isActive('/players') ? '#22d3ee' : '#6b7280',
+                  textDecoration: 'none',
+                  fontSize: '0.9rem',
+                  padding: '0.5rem 1rem 0.5rem 1.5rem',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}
+              >
+                <span style={{ color: '#333' }}>└</span> Player Directory
+              </Link>
+              <Link
+                to="/about"
+                style={{
+                  color: isActive('/about') ? '#22d3ee' : '#6b7280',
+                  textDecoration: 'none',
+                  fontSize: '0.9rem',
+                  padding: '0.5rem 1rem 0.5rem 1.5rem',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}
+              >
+                <span style={{ color: '#333' }}>└</span> About Atlas
+              </Link>
+            </>
+          )}
           <Link
             to="/upgrade"
             style={{
