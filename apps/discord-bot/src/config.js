@@ -76,8 +76,10 @@ module.exports = {
     leaderboard: 'https://ks-atlas.com/leaderboard',
     changelog: 'https://ks-atlas.com/changelog',
     pro: 'https://ks-atlas.com/pro',
-    submit: 'https://ks-atlas.com/submit',
   },
+
+  // Bot avatar (hosted on ks-atlas.com)
+  botAvatarUrl: 'https://ks-atlas.com/AtlasBotAvatar.webp',
 
   // Premium conversion messaging
   premium: {

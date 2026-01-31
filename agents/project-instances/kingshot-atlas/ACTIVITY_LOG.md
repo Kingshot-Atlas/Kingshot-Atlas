@@ -23,6 +23,23 @@ Files Changed:
   - apps/discord-bot/src/config.js
 Result: Atlas bot will automatically post @everyone announcement at 18:00 UTC on KvK Saturdays prompting users to submit their KvK results
 
+## 2026-01-31 14:30 | Platform Engineer | COMPLETED
+Task: Fix KvK submission 500 errors - multiple root causes
+Root Causes Found & Fixed:
+  1. Missing model imports in main.py before Base.metadata.create_all()
+     - Tables weren't created on Render because models weren't imported
+  2. jwt.decode() TypeError - missing required 'key' argument
+     - Even with verify_signature=False, key argument is required
+  3. Lint errors blocking CI deployment
+     - Fixed 'any' types in ComparisonRadarChart.tsx
+     - Escaped apostrophes in ClaimKingdom.tsx
+     - Escaped quotes in AuthDebug.tsx
+Files Changed:
+  - apps/api/main.py - import all models
+  - apps/api/api/routers/submissions.py - fix jwt.decode + exception handling
+  - apps/web/src/components/*.tsx - lint fixes
+Result: KvK #10 submission endpoint now works correctly
+
 ## 2026-01-31 15:20 | Platform Engineer | COMPLETED
 Task: Fix 500 error on KvK submission - missing database table
 Root Cause: `kvk_submissions` table didn't exist in Supabase production database

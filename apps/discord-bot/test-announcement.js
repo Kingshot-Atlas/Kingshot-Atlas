@@ -27,7 +27,7 @@ async function testKvkBattleEndAnnouncement() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         username: 'Atlas',
-        avatar_url: 'https://ks-atlas.com/atlas-icon.png',
+        avatar_url: config.botAvatarUrl,
         content: '@everyone',
         embeds: [embed.toJSON()],
       }),

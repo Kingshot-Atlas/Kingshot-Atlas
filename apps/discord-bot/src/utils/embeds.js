@@ -528,14 +528,14 @@ function createDailyUpdateEmbed(content) {
  */
 function createKvkBattleEndEmbed(kvkNumber) {
   const embed = new EmbedBuilder()
-    .setColor(config.colors.success)
+    .setColor(config.colors.gold)
     .setTitle(`⚔️ KvK #${kvkNumber} Castle Battle is Over!`)
     .setDescription('**The dust has settled. Time to record history.**')
     .addFields(
       {
         name: '📊 Submit Your Results',
         value: [
-          `**[→ Submit Now](${config.urls.submit})**`,
+          `**[→ Submit Now](${config.urls.base})**`,
           '',
           'Report your Prep & Battle results so we can update the rankings.',
         ].join('\n'),
