@@ -23,6 +23,33 @@ Files Changed:
   - apps/discord-bot/src/config.js
 Result: Atlas bot will automatically post @everyone announcement at 18:00 UTC on KvK Saturdays prompting users to submit their KvK results
 
+## 2026-01-31 15:00 | Product Engineer | COMPLETED
+Task: Add comprehensive error logging to KvK submission
+Changes:
+  - PostKvKSubmission.tsx: Added console.log for debugging
+    - Logs submission attempt with payload details (excluding full base64)
+    - Logs response status and success/failure
+    - Logs full error body when API returns error
+    - Improved error message parsing for toasts
+Files Changed:
+  - apps/web/src/components/PostKvKSubmission.tsx
+Result: Developers can now see exactly what's happening when submissions fail via browser console
+
+## 2026-01-31 14:55 | Product Engineer | COMPLETED
+Task: Fix lint errors + improve header dropdown UX
+Changes:
+  - Fixed 10 lint warnings/errors blocking CI
+  - Added 150ms delay before closing header dropdowns
+Files Changed:
+  - apps/web/src/components/ScoreSimulator/ScoreSimulator.tsx
+  - apps/web/src/components/ReportKvKErrorModal.tsx
+  - apps/web/src/components/LinkKingshotAccount.tsx
+  - apps/web/src/components/RadarChart.tsx
+  - apps/web/src/components/ComparisonRadarChart.tsx
+  - apps/web/src/components/PremiumComparisonChart.tsx
+  - apps/web/src/components/Header.tsx
+Result: CI unblocked, dropdown menus easier to navigate
+
 ## 2026-01-31 14:50 | Product Engineer | COMPLETED
 Task: Add Castle Battle as distinct event + Discord announcements
 Changes:
