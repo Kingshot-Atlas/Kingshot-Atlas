@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth, UserProfile } from '../contexts/AuthContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { colors, neonGlow as neonGlowUtil, subscriptionColors } from '../utils/styles';
-import { getDisplayTier, SubscriptionTier } from '../utils/constants';
+import { getDisplayTier, getTierBorderColor, SubscriptionTier } from '../utils/constants';
 
 // Get username color based on subscription tier (including admin)
 const getUsernameColor = (tier: SubscriptionTier | null | undefined): string => {
@@ -392,7 +392,10 @@ const UserDirectory: React.FC = () => {
             gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(350px, 1fr))', 
             gap: '1.5rem' 
           }}>
-            {filteredUsers.map(user => (
+            {filteredUsers.map(user => {
+              const displayTier = getDisplayTier(user.subscription_tier, user.username);
+              const tierColor = getTierBorderColor(displayTier);
+              return (
               <Link
                 key={user.id}
                 to={`/profile/${user.id}`}
@@ -405,22 +408,24 @@ const UserDirectory: React.FC = () => {
                   backgroundColor: '#111116',
                   borderRadius: '12px',
                   padding: '1.5rem',
-                  border: '1px solid #2a2a2a',
-                  transition: 'transform 0.2s, border-color 0.2s',
+                  border: `2px solid ${tierColor}40`,
+                  transition: 'transform 0.2s, border-color 0.2s, box-shadow 0.2s',
                   cursor: 'pointer',
                   height: '100%'
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = 'translateY(-4px)';
-                  e.currentTarget.style.borderColor = user.theme_color + '40';
+                  e.currentTarget.style.borderColor = tierColor;
+                  e.currentTarget.style.boxShadow = `0 4px 20px ${tierColor}30`;
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.borderColor = '#1f1f1f';
+                  e.currentTarget.style.borderColor = `${tierColor}40`;
+                  e.currentTarget.style.boxShadow = 'none';
                 }}
                 >
-                  {/* Player Header - Kingshot Account Info */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+                  {/* Player Header - Avatar + Info */}
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', marginBottom: '1rem' }}>
                     {user.linked_avatar_url ? (
                       <img 
                         src={user.linked_avatar_url} 
@@ -449,70 +454,72 @@ const UserDirectory: React.FC = () => {
                       </div>
                     )}
                     <div style={{ flex: 1 }}>
+                      {/* Alliance tag + Username row */}
                       <div style={{ 
                         display: 'flex',
                         alignItems: 'center',
                         gap: '0.5rem',
-                        marginBottom: '0.25rem',
+                        marginBottom: '0.5rem',
                         flexWrap: 'wrap'
                       }}>
-                        {/* Use display tier: admins show as "admin" with golden badge */}
-                        {(() => {
-                          const displayTier = getDisplayTier(user.subscription_tier, user.username);
-                          return (
-                            <>
-                              <span style={{ 
-                                fontSize: '1.1rem', 
-                                fontWeight: 'bold', 
-                                color: getUsernameColor(displayTier),
-                                ...(displayTier !== 'free' 
-                                  ? neonGlowUtil(getUsernameColor(displayTier)) 
-                                  : {})
-                              }}>
-                                {user.linked_username}
-                              </span>
-                              {displayTier === 'admin' && (
-                                <span style={{
-                                  fontSize: '0.6rem',
-                                  padding: '0.15rem 0.4rem',
-                                  backgroundColor: `${subscriptionColors.admin}15`,
-                                  border: `1px solid ${subscriptionColors.admin}40`,
-                                  borderRadius: '4px',
-                                  color: subscriptionColors.admin,
-                                  fontWeight: '600',
-                                }}>
-                                  ⚡ ADMIN
-                                </span>
-                              )}
-                              {displayTier === 'pro' && (
-                                <span style={{
-                                  fontSize: '0.6rem',
-                                  padding: '0.15rem 0.4rem',
-                                  backgroundColor: `${subscriptionColors.pro}15`,
-                                  border: `1px solid ${subscriptionColors.pro}40`,
-                                  borderRadius: '4px',
-                                  color: subscriptionColors.pro,
-                                  fontWeight: '600',
-                                }}>
-                                  ⭐ PRO
-                                </span>
-                              )}
-                              {displayTier === 'recruiter' && (
-                                <span style={{
-                                  fontSize: '0.6rem',
-                                  padding: '0.15rem 0.4rem',
-                                  backgroundColor: `${subscriptionColors.recruiter}15`,
-                                  border: `1px solid ${subscriptionColors.recruiter}40`,
-                                  borderRadius: '4px',
-                                  color: subscriptionColors.recruiter,
-                                  fontWeight: '600',
-                                }}>
-                                  👑 RECRUITER
-                                </span>
-                              )}
-                            </>
-                          );
-                        })()}
+                        {user.alliance_tag && (
+                          <span style={{
+                            fontSize: '0.9rem',
+                            fontWeight: 'bold',
+                            color: '#9ca3af'
+                          }}>
+                            [{user.alliance_tag}]
+                          </span>
+                        )}
+                        <span style={{ 
+                          fontSize: '1.1rem', 
+                          fontWeight: 'bold', 
+                          color: getUsernameColor(displayTier),
+                          ...(displayTier !== 'free' 
+                            ? neonGlowUtil(getUsernameColor(displayTier)) 
+                            : {})
+                        }}>
+                          {user.linked_username}
+                        </span>
+                        {displayTier === 'admin' && (
+                          <span style={{
+                            fontSize: '0.6rem',
+                            padding: '0.15rem 0.4rem',
+                            backgroundColor: `${subscriptionColors.admin}15`,
+                            border: `1px solid ${subscriptionColors.admin}40`,
+                            borderRadius: '4px',
+                            color: subscriptionColors.admin,
+                            fontWeight: '600',
+                          }}>
+                            ⚡ ADMIN
+                          </span>
+                        )}
+                        {displayTier === 'pro' && (
+                          <span style={{
+                            fontSize: '0.6rem',
+                            padding: '0.15rem 0.4rem',
+                            backgroundColor: `${subscriptionColors.pro}15`,
+                            border: `1px solid ${subscriptionColors.pro}40`,
+                            borderRadius: '4px',
+                            color: subscriptionColors.pro,
+                            fontWeight: '600',
+                          }}>
+                            ⭐ PRO
+                          </span>
+                        )}
+                        {displayTier === 'recruiter' && (
+                          <span style={{
+                            fontSize: '0.6rem',
+                            padding: '0.15rem 0.4rem',
+                            backgroundColor: `${subscriptionColors.recruiter}15`,
+                            border: `1px solid ${subscriptionColors.recruiter}40`,
+                            borderRadius: '4px',
+                            color: subscriptionColors.recruiter,
+                            fontWeight: '600',
+                          }}>
+                            👑 RECRUITER
+                          </span>
+                        )}
                         {user.id === currentUser?.id && (
                           <span style={{
                             fontSize: '0.6rem',
@@ -527,45 +534,21 @@ const UserDirectory: React.FC = () => {
                           </span>
                         )}
                       </div>
-                      {user.alliance_tag && (
-                        <div style={{
-                          display: 'inline-block',
-                          padding: '0.2rem 0.5rem',
-                          borderRadius: '4px',
-                          fontSize: '0.7rem',
-                          fontWeight: 'bold',
-                          backgroundColor: `${user.theme_color}20`,
-                          color: user.theme_color
-                        }}>
-                          [{user.alliance_tag}]
+
+                      {/* Kingdom info */}
+                      {user.linked_kingdom && (
+                        <div style={{ color: '#9ca3af', fontSize: '0.85rem', marginBottom: '0.25rem' }}>
+                          Kingdom: {user.linked_kingdom}
+                        </div>
+                      )}
+
+                      {/* Town Center info */}
+                      {user.linked_tc_level && (
+                        <div style={{ color: '#9ca3af', fontSize: '0.85rem' }}>
+                          Town Center: {formatTCLevel(user.linked_tc_level)}
                         </div>
                       )}
                     </div>
-                  </div>
-
-                  {/* Kingshot Account Info */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', marginBottom: '1rem' }}>
-                    {user.linked_kingdom && (
-                      <Link 
-                        to={`/kingdom/${user.linked_kingdom}`}
-                        style={{ 
-                          color: '#9ca3af', 
-                          fontSize: '0.85rem',
-                          textDecoration: 'none',
-                          transition: 'color 0.2s'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.color = '#22d3ee'}
-                        onMouseLeave={(e) => e.currentTarget.style.color = '#9ca3af'}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        Kingdom: {user.linked_kingdom}
-                      </Link>
-                    )}
-                    {user.linked_tc_level && (
-                      <span style={{ color: '#9ca3af', fontSize: '0.85rem' }}>
-                        Town Center: {formatTCLevel(user.linked_tc_level)}
-                      </span>
-                    )}
                   </div>
 
                   {/* Bio */}
@@ -584,15 +567,15 @@ const UserDirectory: React.FC = () => {
                     </p>
                   )}
 
-                  {/* View Profile Button */}
+                  {/* View Profile Button - uses tier color */}
                   <div style={{ marginTop: '1rem', textAlign: 'center' }}>
                     <span style={{
                       display: 'inline-block',
                       padding: '0.5rem 1.5rem',
                       backgroundColor: 'transparent',
-                      border: `1px solid ${user.theme_color}`,
+                      border: `2px solid ${tierColor}`,
                       borderRadius: '6px',
-                      color: user.theme_color,
+                      color: tierColor,
                       fontSize: '0.85rem',
                       fontWeight: '500',
                       transition: 'all 0.2s'
@@ -602,7 +585,8 @@ const UserDirectory: React.FC = () => {
                   </div>
                 </div>
               </Link>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

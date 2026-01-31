@@ -9,6 +9,27 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-01-31 12:45 | Product Engineer | COMPLETED
+Task: Player card tier-based styling + Profile customization restriction + Linked avatar fix
+Changes:
+  - Player card borders and View Profile buttons now use tier colors:
+    - Free: White (#ffffff)
+    - Pro: Cyan (#22d3ee)
+    - Recruiter: Orange (#f97316)
+    - Admin: Golden (#fbbf24)
+  - Player card layout redesigned: [Alliance] Username, Kingdom, TC below avatar
+  - Border is now 2px and more noticeable with hover glow effect
+  - Profile customization (Edit Profile) restricted to paid users only
+  - Free users see "⭐ Upgrade to Customize" button linking to /upgrade
+  - Fixed linked avatar not showing: changed condition from linked_player_id to linked_username
+  - Added getTierBorderColor() to constants.ts as single source of truth
+Files Changed:
+  - apps/web/src/pages/UserDirectory.tsx - Tier-based card styling, layout redesign
+  - apps/web/src/pages/Profile.tsx - Restrict editing to paid users, fix linked avatar condition
+  - apps/web/src/utils/constants.ts - Added getTierBorderColor helper
+  - apps/web/src/contexts/AuthContext.tsx - Fixed hasLinkedPlayer logging
+Result: Player cards now visually indicate user tier, free users prompted to upgrade for customization
+
 ## 2026-01-31 12:30 | Product Engineer | COMPLETED
 Task: Implement Admin tier as separate status from Recruiter with golden color
 Changes:

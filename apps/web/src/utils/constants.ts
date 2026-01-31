@@ -53,3 +53,13 @@ export const getDisplayTier = (
 
 // Legacy alias for backward compatibility (use getAccessTier for access, getDisplayTier for display)
 export const getEffectiveTier = getAccessTier;
+
+// Get tier color for UI elements (borders, buttons) - white for free, colored for paid
+export const getTierBorderColor = (tier: SubscriptionTier | null | undefined): string => {
+  switch (tier) {
+    case 'pro': return SUBSCRIPTION_COLORS.pro;
+    case 'recruiter': return SUBSCRIPTION_COLORS.recruiter;
+    case 'admin': return SUBSCRIPTION_COLORS.admin;
+    default: return '#ffffff'; // White for free users
+  }
+};

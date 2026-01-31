@@ -308,7 +308,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const updatedProfile = { ...data, avatar_url: avatarUrl, ...linkedPlayerData };
         setProfile(updatedProfile);
         localStorage.setItem(PROFILE_KEY, JSON.stringify(updatedProfile));
-        logger.info('Profile loaded:', { hasAvatar: !!avatarUrl, hasLinkedPlayer: !!(linkedPlayerData as any).linked_player_id });
+        logger.info('Profile loaded:', { hasAvatar: !!avatarUrl, hasLinkedPlayer: !!(updatedProfile.linked_username) });
       }
     } catch (err) {
       logger.error('Error fetching profile:', err);

@@ -799,20 +799,39 @@ const Profile: React.FC = () => {
                 </div>
               </div>
               {!isViewingOther && (
-                <button
-                  onClick={() => setIsEditing(true)}
-                  style={{
-                    padding: '0.5rem 1rem',
-                    backgroundColor: 'transparent',
-                    border: '1px solid #3a3a3a',
-                    borderRadius: '8px',
-                    color: '#9ca3af',
-                    cursor: 'pointer',
-                    fontSize: '0.85rem'
-                  }}
-                >
-                  Edit Profile
-                </button>
+                isPro || isRecruiter || isAdmin ? (
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    style={{
+                      padding: '0.5rem 1rem',
+                      backgroundColor: 'transparent',
+                      border: '1px solid #3a3a3a',
+                      borderRadius: '8px',
+                      color: '#9ca3af',
+                      cursor: 'pointer',
+                      fontSize: '0.85rem'
+                    }}
+                  >
+                    Edit Profile
+                  </button>
+                ) : (
+                  <Link
+                    to="/upgrade"
+                    style={{
+                      padding: '0.5rem 1rem',
+                      backgroundColor: 'transparent',
+                      border: '1px solid #22d3ee40',
+                      borderRadius: '8px',
+                      color: '#22d3ee',
+                      cursor: 'pointer',
+                      fontSize: '0.85rem',
+                      textDecoration: 'none',
+                      display: 'inline-block'
+                    }}
+                  >
+                    ⭐ Upgrade to Customize
+                  </Link>
+                )
               )}
             </div>
 
@@ -873,9 +892,9 @@ const Profile: React.FC = () => {
                   });
                 }
               }}
-              linkedPlayer={viewedProfile?.linked_player_id ? {
-                player_id: viewedProfile.linked_player_id,
-                username: viewedProfile.linked_username || 'Unknown',
+              linkedPlayer={viewedProfile?.linked_username ? {
+                player_id: viewedProfile.linked_player_id || viewedProfile.linked_username,
+                username: viewedProfile.linked_username,
                 avatar_url: viewedProfile.linked_avatar_url || null,
                 kingdom: viewedProfile.linked_kingdom || 0,
                 town_center_level: viewedProfile.linked_tc_level || 0,
@@ -889,12 +908,12 @@ const Profile: React.FC = () => {
         )}
 
         {/* Linked Kingshot Account - Public view for other profiles */}
-        {isViewingOther && viewedProfile?.linked_player_id && (
+        {isViewingOther && viewedProfile?.linked_username && (
           <div style={{ marginBottom: '1.5rem' }}>
             <LinkKingshotAccount
               linkedPlayer={{
-                player_id: viewedProfile.linked_player_id,
-                username: viewedProfile.linked_username || 'Unknown',
+                player_id: viewedProfile.linked_player_id || viewedProfile.linked_username,
+                username: viewedProfile.linked_username,
                 avatar_url: viewedProfile.linked_avatar_url || null,
                 kingdom: viewedProfile.linked_kingdom || 0,
                 town_center_level: viewedProfile.linked_tc_level || 0,
