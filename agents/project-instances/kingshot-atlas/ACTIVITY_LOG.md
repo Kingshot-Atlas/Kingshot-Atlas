@@ -23,6 +23,22 @@ Files Changed:
   - apps/discord-bot/src/config.js
 Result: Atlas bot will automatically post @everyone announcement at 18:00 UTC on KvK Saturdays prompting users to submit their KvK results
 
+## 2026-01-31 14:45 | Product Engineer | COMPLETED
+Task: Fix Admin Dashboard KvK Results tab + Add Castle Battle timing
+Changes:
+  - Admin.tsx: Fixed API endpoints from /api to /api/v1
+    - fetchSubmissions, fetchClaims, reviewSubmission now use correct URLs
+  - KvKCountdown.tsx: Added Castle Battle phase detection (12:00-18:00 UTC)
+    - Shows "Castle Battle" with 🏰 icon during core competitive window
+    - Shows "Battle Phase (Castle Soon)" before castle battle starts
+    - Countdown targets Castle Battle start/end during battle day
+  - EventCalendar.tsx: Documented Castle Battle as single source of truth
+Files Changed:
+  - apps/web/src/pages/Admin.tsx
+  - apps/web/src/components/KvKCountdown.tsx
+  - apps/web/src/components/EventCalendar.tsx
+Result: Admin can now see KvK submissions, countdown shows Castle Battle phase
+
 ## 2026-01-31 14:30 | Platform Engineer | COMPLETED
 Task: Fix KvK submission 500 errors - multiple root causes
 Root Causes Found & Fixed:
