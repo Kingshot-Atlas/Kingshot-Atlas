@@ -9,6 +9,14 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-01-31 15:00 | Platform Engineer | COMPLETED
+Task: Fix CORS error on KvK #10 submission endpoint
+Root Cause: Incorrect import `get_supabase_client` (non-existent function)
+Fix: Changed to `get_supabase_admin` (correct function)
+Why CORS: Server crashed on import before CORS middleware could add headers
+Result: Endpoint now returns 401 (auth required) instead of CORS error
+Deployed: Frontend to Netlify, Backend auto-deployed on Render
+
 ## 2026-01-31 14:45 | Platform Engineer | COMPLETED
 Task: Duplicate submission prevention + production deployment
 Changes:
