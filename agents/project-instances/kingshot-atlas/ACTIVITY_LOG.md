@@ -23,6 +23,23 @@ Files Changed:
   - apps/discord-bot/src/config.js
 Result: Atlas bot will automatically post @everyone announcement at 18:00 UTC on KvK Saturdays prompting users to submit their KvK results
 
+## 2026-01-31 16:05 | Platform Engineer | COMPLETED
+Task: Fix Admin Dashboard 403 error on submission review
+Root Cause:
+  - verify_moderator_role checked against local User table (integer IDs)
+  - Supabase auth provides UUIDs, not integer IDs
+  - Function returned False for all Supabase users
+Fix:
+  - Added ADMIN_EMAILS list to backend
+  - Updated verify_moderator_role to accept user_email parameter
+  - Added X-User-Email header to frontend review request
+  - Added X-User-Email to CORS allowed headers
+Files Changed:
+  - apps/api/api/routers/submissions.py (verify_moderator_role, review_submission)
+  - apps/api/main.py (CORS headers)
+  - apps/web/src/pages/AdminDashboard.tsx (reviewSubmission headers)
+Result: Admin can now approve/reject KvK submissions
+
 ## 2026-01-31 15:55 | Product Engineer | COMPLETED
 Task: Add MissingKvKPrompt for KvK #10 data collection
 Feature:
