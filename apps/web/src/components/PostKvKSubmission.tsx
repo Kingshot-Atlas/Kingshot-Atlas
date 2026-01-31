@@ -82,6 +82,23 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({ isOpen, onClose }
       });
       const screenshotBase64 = await base64Promise;
 
+      // Debug: Log submission attempt
+      const payload = {
+        kingdom_number: kingdomNumber,
+        opponent_kingdom: opponentKingdom,
+        kvk_number: CURRENT_KVK,
+        prep_result: prepResult,
+        battle_result: battleResult,
+        notes: notes || null,
+        screenshot_base64: screenshotBase64.substring(0, 100) + '...' // Truncate for logging
+      };
+      console.log('[KvK Submit] Attempting submission:', {
+        url: `${API_BASE}/api/v1/submissions/kvk10`,
+        hasToken: !!session?.access_token,
+        userId: user?.id,
+        payload: { ...payload, screenshot_base64: `[${screenshotBase64.length} chars]` }
+      });
+
       const response = await fetch(`${API_BASE}/api/v1/submissions/kvk10`, {
         method: 'POST',
         headers: {
@@ -100,10 +117,24 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({ isOpen, onClose }
         })
       });
 
+      // Debug: Log response status
+      console.log('[KvK Submit] Response:', { status: response.status, ok: response.ok });
+
       if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        throw new Error(error.detail || 'Failed to submit');
+        const errorText = await response.text();
+        let errorDetail = 'Failed to submit';
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorDetail = errorJson.detail || errorText;
+        } catch {
+          errorDetail = errorText || `HTTP ${response.status}`;
+        }
+        console.error('[KvK Submit] Error response:', { status: response.status, body: errorText });
+        throw new Error(errorDetail);
       }
+
+      const result = await response.json();
+      console.log('[KvK Submit] Success:', result);
 
       showToast('KvK #10 result submitted for admin review!', 'success');
       // Reset form
@@ -115,7 +146,9 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({ isOpen, onClose }
       clearScreenshot();
       onClose();
     } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Failed to submit. Please try again.', 'error');
+      console.error('[KvK Submit] Caught error:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to submit. Please try again.';
+      showToast(errorMessage, 'error');
     } finally {
       setSubmitting(false);
     }
