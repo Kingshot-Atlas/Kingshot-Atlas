@@ -114,6 +114,9 @@
 | Report Data Modal | ✅ Live | Product | `ReportDataModal.tsx` flag inaccuracies |
 | Data Attribution | ✅ Live | Product | `DataAttribution.tsx` source credits |
 | Reputation Service | ✅ Live | Platform | `reputationService.ts` user trust scores |
+| KvK Correction Service | ✅ Live | Platform | `kvkCorrectionService.ts` - Supabase-backed corrections |
+| KvK History Service | ✅ Live | Platform | `kvkHistoryService.ts` - Supabase + CSV fallback |
+| User Correction Stats | ✅ Live | Platform | `UserCorrectionStats.tsx` - profile correction tracking |
 
 ---
 
