@@ -53,6 +53,22 @@ function initScheduler(client) {
 
   console.log('✅ Scheduled: KvK reminders (24h before)');
 
+  // KvK Castle Battle end announcement - 18:00 UTC on KvK Saturdays
+  // Battle phase ends at 22:00 UTC, but we post at 18:00 to catch people as battle winds down
+  cron.schedule('0 18 * * 6', async () => {
+    const kvkInfo = getCurrentKvkInfo();
+    
+    // Only post if we're in the KvK week (battle Saturday)
+    if (kvkInfo.isKvkSaturday) {
+      console.log(`⏰ [18:00 UTC Saturday] KvK #${kvkInfo.number} Castle Battle ending - sending data submission reminder`);
+      await postKvkBattleEndAnnouncement(client, kvkInfo.number);
+    }
+  }, {
+    timezone: 'UTC'
+  });
+
+  console.log('✅ Scheduled: KvK Battle end announcements (18:00 UTC Saturdays)');
+
   // Note: Immediate test runs on startup if webhook is configured
 }
 
@@ -129,6 +145,42 @@ async function postKvkReminder(client, kvkNumber, hoursUntil) {
 }
 
 /**
+ * Post KvK Castle Battle end announcement
+ * Tags @everyone and prompts users to submit their KvK data
+ * @param {Client} client - Discord.js client
+ * @param {number} kvkNumber - KvK event number
+ */
+async function postKvkBattleEndAnnouncement(client, kvkNumber) {
+  if (!config.patchNotesWebhook) {
+    console.warn('⚠️ No patch notes webhook configured for KvK battle end announcement');
+    return;
+  }
+
+  try {
+    const embed = embeds.createKvkBattleEndEmbed(kvkNumber);
+    
+    const response = await fetch(config.patchNotesWebhook, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: 'Atlas',
+        avatar_url: 'https://ks-atlas.com/atlas-icon.png',
+        content: '@everyone 📢 **KvK Castle Battle has ended!** Time to submit your results.',
+        embeds: [embed.toJSON()],
+      }),
+    });
+
+    if (response.ok) {
+      console.log(`✅ KvK #${kvkNumber} Castle Battle end announcement posted`);
+    } else {
+      console.error(`❌ Failed to post KvK battle end announcement: ${response.status}`);
+    }
+  } catch (error) {
+    console.error('❌ Error posting KvK battle end announcement:', error);
+  }
+}
+
+/**
  * Get next KvK info based on reference date
  */
 function getNextKvkInfo() {
@@ -148,6 +200,43 @@ function getNextKvkInfo() {
   return {
     number: kvkNumber,
     startDate: startDate,
+  };
+}
+
+/**
+ * Get current KvK info - checks if we're currently in a KvK week
+ * KvK runs Monday 00:00 UTC to Saturday 22:00 UTC
+ */
+function getCurrentKvkInfo() {
+  const { kvkReference } = config;
+  const now = new Date();
+  const msPerWeek = 7 * 24 * 60 * 60 * 1000;
+  const cycleMs = kvkReference.frequencyWeeks * msPerWeek;
+  
+  let kvkNumber = kvkReference.number;
+  let startDate = new Date(kvkReference.startDate);
+  
+  // Find the most recent KvK that has started
+  while (startDate.getTime() + cycleMs <= now.getTime()) {
+    startDate = new Date(startDate.getTime() + cycleMs);
+    kvkNumber++;
+  }
+  
+  // Check if we're currently in a KvK week
+  // KvK starts Monday 00:00 and ends Saturday 22:00
+  const kvkEndDate = new Date(startDate.getTime() + (5 * 24 + 22) * 60 * 60 * 1000); // Saturday 22:00
+  const isInKvkWeek = now >= startDate && now <= kvkEndDate;
+  
+  // Check if today is the KvK battle Saturday
+  const isSaturday = now.getUTCDay() === 6;
+  const isKvkSaturday = isInKvkWeek && isSaturday;
+  
+  return {
+    number: kvkNumber,
+    startDate: startDate,
+    endDate: kvkEndDate,
+    isInKvkWeek,
+    isKvkSaturday,
   };
 }
 
@@ -217,4 +306,6 @@ module.exports = {
   triggerDailyUpdate,
   postDailyUpdate,
   getNextKvkInfo,
+  getCurrentKvkInfo,
+  postKvkBattleEndAnnouncement,
 };

@@ -9,6 +9,18 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-01-31 15:10 | Product Engineer | COMPLETED
+Task: Auth gate for KvK submissions - require login + linked Kingshot account
+Changes:
+  - Added handleSubmitKvKClick handler in KingdomDirectory.tsx
+  - Check user login status, redirect to /login if not logged in
+  - Check profile.linked_username, redirect to /profile if not linked
+  - Toast messages explain what's needed
+  - Banner still visible to all users (drives engagement)
+Files Changed:
+  - apps/web/src/pages/KingdomDirectory.tsx
+Result: Only trusted users with linked accounts can submit KvK results
+
 ## 2026-01-31 15:00 | Platform Engineer | COMPLETED
 Task: Fix CORS error on KvK #10 submission endpoint
 Root Cause: Incorrect import `get_supabase_client` (non-existent function)

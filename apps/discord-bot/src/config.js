@@ -75,6 +75,7 @@ module.exports = {
     leaderboard: 'https://ks-atlas.com/leaderboard',
     changelog: 'https://ks-atlas.com/changelog',
     pro: 'https://ks-atlas.com/pro',
+    submit: 'https://ks-atlas.com/submit',
   },
 
   // Premium conversion messaging
