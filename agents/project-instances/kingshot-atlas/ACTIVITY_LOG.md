@@ -9,6 +9,20 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-01-31 13:15 | Product Engineer | COMPLETED
+Task: Profile page improvements - Edit button UX, Kingdom card redesign, public view cleanup
+Changes:
+  - Edit Profile button shows for all users; unlinked users get "Link your Kingshot account" prompt
+  - Alliance tag color changed to white (consistent with Language/Region)
+  - Kingdom Leaderboard Position redesigned: Kingdom (white), Atlas Score, Rank (cyan glow), Experience (# KvKs)
+  - Removed "12W - 2L across 7 KvKs • View Details →" footer
+  - ProfileFeatures (Browse Kingdoms, Leaderboards, Alliance Badge) hidden from public profiles
+  - Improved KingshotAvatar: 5s timeout fallback, objectFit: cover, loading indicator
+Files Changed:
+  - apps/web/src/pages/Profile.tsx - Edit button UX, Kingdom card, public view restrictions
+  - apps/web/src/components/LinkKingshotAccount.tsx - Avatar timeout and loading improvements
+Result: Cleaner public profiles, better UX for profile editing, consistent styling
+
 ## 2026-01-31 13:00 | Product Engineer | COMPLETED
 Task: Simplify profile editing - only linked players can edit, remove visual customization
 Changes:

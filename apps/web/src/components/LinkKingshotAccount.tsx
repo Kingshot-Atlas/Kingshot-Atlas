@@ -36,6 +36,18 @@ const KingshotAvatar: React.FC<{
     setImgLoaded(false);
   }, [url]);
 
+  // Timeout fallback - if image doesn't load in 5s, show fallback
+  useEffect(() => {
+    if (!url || imgLoaded || imgError) return;
+    const timeout = setTimeout(() => {
+      if (!imgLoaded) {
+        console.warn('Kingshot avatar timeout, showing fallback:', url);
+        setImgError(true);
+      }
+    }, 5000);
+    return () => clearTimeout(timeout);
+  }, [url, imgLoaded, imgError]);
+
   if (!url || imgError) {
     return (
       <div
@@ -67,9 +79,14 @@ const KingshotAvatar: React.FC<{
             borderRadius: '50%',
             backgroundColor: colors.card,
             border: `2px solid ${borderColor}`,
-            animation: 'pulse 1.5s ease-in-out infinite',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: `${size * 0.3}px`,
           }}
-        />
+        >
+          ⏳
+        </div>
       )}
       <img
         src={url}
@@ -79,6 +96,7 @@ const KingshotAvatar: React.FC<{
           height: `${size}px`,
           borderRadius: '50%',
           border: `2px solid ${borderColor}`,
+          objectFit: 'cover',
           opacity: imgLoaded ? 1 : 0,
           transition: 'opacity 0.2s ease-in-out',
         }}

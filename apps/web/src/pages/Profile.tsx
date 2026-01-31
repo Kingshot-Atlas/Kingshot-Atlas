@@ -169,24 +169,24 @@ const KingdomLeaderboardPosition: React.FC<{
   );
   if (!kingdom) return null;
 
-  const winRate = kingdom.kvk_count > 0 ? ((kingdom.total_wins / (kingdom.kvk_count * 2)) * 100).toFixed(0) : '0';
-
   return (
-    <div style={{
-      backgroundColor: '#111111',
-      borderRadius: '12px',
-      padding: isMobile ? '1rem' : '1.25rem',
-      marginBottom: '1.5rem',
-      border: `1px solid ${themeColor}30`,
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-        <span style={{ fontSize: '1.1rem' }}>🏆</span>
-        <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: '600', color: '#fff' }}>
-          Kingdom Leaderboard Position
-        </h3>
-      </div>
-      
-      <Link to={`/kingdom/${kingdom.id}`} style={{ textDecoration: 'none' }}>
+    <Link to={`/kingdom/${kingdom.id}`} style={{ textDecoration: 'none', display: 'block' }}>
+      <div style={{
+        backgroundColor: '#111111',
+        borderRadius: '12px',
+        padding: isMobile ? '1rem' : '1.25rem',
+        marginBottom: '1.5rem',
+        border: `1px solid ${themeColor}30`,
+        cursor: 'pointer',
+        transition: 'border-color 0.2s',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+          <span style={{ fontSize: '1.1rem' }}>🏆</span>
+          <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: '600', color: '#fff' }}>
+            Kingdom Leaderboard Position
+          </h3>
+        </div>
+        
         <div style={{
           display: 'grid',
           gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
@@ -194,27 +194,23 @@ const KingdomLeaderboardPosition: React.FC<{
         }}>
           <div style={{ padding: '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <div style={{ fontSize: '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Kingdom</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: '700', color: themeColor }}>{kingdom.id}</div>
-          </div>
-          <div style={{ padding: '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <div style={{ fontSize: '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Rank</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: '700', color: '#fff' }}>#{kingdom.rank}</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: '700', color: '#fff' }}>{kingdom.id}</div>
           </div>
           <div style={{ padding: '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <div style={{ fontSize: '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Atlas Score</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: '700', ...neonGlow(themeColor) }}>{kingdom.atlas_score.toFixed(1)}</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: '700', color: '#fff' }}>{kingdom.atlas_score.toFixed(1)}</div>
           </div>
           <div style={{ padding: '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <div style={{ fontSize: '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Win Rate</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: '700', color: parseInt(winRate) >= 50 ? '#22c55e' : '#ef4444' }}>{winRate}%</div>
+            <div style={{ fontSize: '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Rank</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: '700', ...neonGlow(themeColor) }}>#{kingdom.rank}</div>
+          </div>
+          <div style={{ padding: '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <div style={{ fontSize: '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Experience</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: '700', color: '#fff' }}>{kingdom.kvk_count} KvKs</div>
           </div>
         </div>
-      </Link>
-      
-      <div style={{ marginTop: '0.75rem', fontSize: '0.75rem', color: '#6b7280', textAlign: 'center' }}>
-        {kingdom.total_wins}W - {kingdom.total_losses}L across {kingdom.kvk_count} KvKs • <Link to={`/kingdom/${kingdom.id}`} style={{ color: themeColor }}>View Details →</Link>
       </div>
-    </div>
+    </Link>
   );
 };
 
@@ -624,9 +620,15 @@ const Profile: React.FC = () => {
                   )}
                 </div>
               </div>
-              {!isViewingOther && viewedProfile?.linked_username && (
+              {!isViewingOther && (
                 <button
-                  onClick={() => setIsEditing(true)}
+                  onClick={() => {
+                    if (viewedProfile?.linked_username) {
+                      setIsEditing(true);
+                    } else {
+                      alert('🔗 Link your Kingshot account to edit your profile.\n\nScroll down to find the "Link Kingshot Account" section.');
+                    }
+                  }}
                   style={{
                     padding: '0.5rem 1rem',
                     backgroundColor: 'transparent',
@@ -647,7 +649,7 @@ const Profile: React.FC = () => {
               {viewedProfile?.alliance_tag && (
                 <div style={{ padding: '0.75rem', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a' }}>
                   <div style={{ fontSize: '0.7rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Alliance</div>
-                  <div style={{ fontSize: '1.1rem', color: themeColor, fontWeight: 'bold', letterSpacing: '0.1em' }}>[{viewedProfile.alliance_tag}]</div>
+                  <div style={{ fontSize: '1.1rem', color: '#fff', fontWeight: 'bold', letterSpacing: '0.1em' }}>[{viewedProfile.alliance_tag}]</div>
                 </div>
               )}
               {viewedProfile?.language && (
@@ -911,12 +913,15 @@ const Profile: React.FC = () => {
           </div>
         )}
 
-        {/* Profile Features - Favorites, Watchlist, Reviews, etc. */}
-        <div>
-          <ProfileFeatures />
-          <div style={{ textAlign: 'center', marginTop: '2rem', paddingBottom: '1rem' }}>
-            <Link to="/" style={{ color: themeColor, textDecoration: 'none', fontSize: '0.8rem' }}>← Back to Home</Link>
+        {/* Profile Features - Favorites, Watchlist, Reviews, etc. - only show for own profile */}
+        {!isViewingOther && (
+          <div>
+            <ProfileFeatures />
           </div>
+        )}
+        
+        <div style={{ textAlign: 'center', marginTop: '2rem', paddingBottom: '1rem' }}>
+          <Link to="/" style={{ color: themeColor, textDecoration: 'none', fontSize: '0.8rem' }}>← Back to Home</Link>
         </div>
         </div>
       </div>
