@@ -282,6 +282,26 @@ def create_kvk10_submission(
     if submission.kingdom_number == submission.opponent_kingdom:
         raise HTTPException(status_code=400, detail="Your kingdom cannot be the same as opponent kingdom")
     
+    # Check for duplicate submission (same matchup, same KvK, pending or approved)
+    existing_submission = db.query(KVKSubmission).filter(
+        KVKSubmission.kvk_number == 10,
+        KVKSubmission.kingdom_number == submission.kingdom_number,
+        KVKSubmission.opponent_kingdom == submission.opponent_kingdom,
+        KVKSubmission.status.in_(['pending', 'approved'])
+    ).first()
+    
+    if existing_submission:
+        if existing_submission.status == 'approved':
+            raise HTTPException(
+                status_code=409, 
+                detail=f"KvK #10 results for K{submission.kingdom_number} vs K{submission.opponent_kingdom} have already been approved."
+            )
+        else:
+            raise HTTPException(
+                status_code=409, 
+                detail=f"You already have a pending submission for K{submission.kingdom_number} vs K{submission.opponent_kingdom}. Please wait for admin review."
+            )
+    
     # Validate screenshot is provided and is valid base64
     if not submission.screenshot_base64:
         raise HTTPException(status_code=400, detail="Screenshot proof is required")
