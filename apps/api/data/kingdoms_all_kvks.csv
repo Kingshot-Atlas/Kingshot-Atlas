@@ -2588,7 +2588,7 @@ kingdom_number,kvk_number,opponent_kingdom,prep_result,battle_result,overall_res
 385,8,400,W,L,Preparation,"Dec 6, 2025",8
 385,9,365,L,L,Loss,"Jan 3, 2026",9
 386,5,413,W,W,Win,"Sep 13, 2025",5
-386,6,391,L,W,Battle,"Oct 11, 2025",6
+386,6,391,W,W,Win,"Oct 11, 2025",6
 386,7,368,L,L,Loss,"Nov 8, 2025",7
 386,8,384,W,L,Preparation,"Dec 6, 2025",8
 386,9,409,W,L,Preparation,"Jan 3, 2026",9
@@ -2613,7 +2613,7 @@ kingdom_number,kvk_number,opponent_kingdom,prep_result,battle_result,overall_res
 390,8,315,L,L,Loss,"Dec 6, 2025",8
 390,9,331,W,W,Win,"Jan 3, 2026",9
 391,5,404,L,L,Loss,"Sep 13, 2025",5
-391,6,386,W,L,Preparation,"Oct 11, 2025",6
+391,6,386,L,L,Loss,"Oct 11, 2025",6
 391,7,378,W,W,Win,"Nov 8, 2025",7
 391,8,411,W,W,Win,"Dec 6, 2025",8
 391,9,402,L,L,Loss,"Jan 3, 2026",9
