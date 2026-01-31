@@ -9,6 +9,19 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-01-31 13:00 | Product Engineer | COMPLETED
+Task: Simplify profile editing - only linked players can edit, remove visual customization
+Changes:
+  - Removed Visual Customization section (theme color, badge style) from profile edit
+  - Removed username and kingdom editing (auto-determined by Kingshot link)
+  - Profile editing now restricted to linked players only (not just paid users)
+  - Unlinked users must link their Kingshot account first to edit profile
+  - Simplified EditForm interface: only alliance_tag, language, region, bio
+  - Cleaned up unused THEME_COLORS, BADGE_STYLES, getBadgeStyle
+Files Changed:
+  - apps/web/src/pages/Profile.tsx - Simplified edit form, removed visual customization
+Result: Profile editing streamlined; data integrity maintained via Kingshot linking
+
 ## 2026-01-31 12:45 | Product Engineer | COMPLETED
 Task: Player card tier-based styling + Profile customization restriction + Linked avatar fix
 Changes:

@@ -104,37 +104,11 @@ const LANGUAGES = [
 
 const REGIONS = ['Americas', 'Europe', 'Asia', 'Oceania'];
 
-const THEME_COLORS = [
-  { name: 'Cyan', value: '#22d3ee' },
-  { name: 'Purple', value: '#a855f7' },
-  { name: 'Green', value: '#22c55e' },
-  { name: 'Gold', value: '#fbbf24' },
-  { name: 'Red', value: '#ef4444' },
-  { name: 'Blue', value: '#3b82f6' },
-  { name: 'Pink', value: '#ec4899' },
-  { name: 'Orange', value: '#f97316' },
-  { name: 'Teal', value: '#14b8a6' },
-  { name: 'Indigo', value: '#6366f1' },
-  { name: 'Rose', value: '#f43f5e' },
-  { name: 'Lime', value: '#84cc16' }
-];
-
-const BADGE_STYLES = [
-  { name: 'Default', value: 'default', desc: 'Solid color badge' },
-  { name: 'Gradient', value: 'gradient', desc: 'Color gradient effect' },
-  { name: 'Outline', value: 'outline', desc: 'Outlined with transparent fill' },
-  { name: 'Glow', value: 'glow', desc: 'Glowing neon effect' }
-];
-
 interface EditForm {
-  username: string;
-  home_kingdom: number | null;
   alliance_tag: string;
   language: string;
   region: string;
   bio: string;
-  theme_color: string;
-  badge_style: string;
 }
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
@@ -257,14 +231,10 @@ const Profile: React.FC = () => {
   const [viewedUserTier, setViewedUserTier] = useState<'free' | 'pro' | 'recruiter'>('free');
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState<EditForm>({
-    username: '',
-    home_kingdom: null,
     alliance_tag: '',
     language: '',
     region: '',
-    bio: '',
-    theme_color: '#22d3ee',
-    badge_style: 'default'
+    bio: ''
   });
 
   const themeColor = viewedProfile?.theme_color || '#22d3ee';
@@ -364,14 +334,10 @@ const Profile: React.FC = () => {
   useEffect(() => {
     if (viewedProfile && !isViewingOther) {
       setEditForm({
-        username: viewedProfile.username || '',
-        home_kingdom: viewedProfile.home_kingdom,
         alliance_tag: viewedProfile.alliance_tag || '',
         language: viewedProfile.language || '',
         region: viewedProfile.region || '',
-        bio: viewedProfile.bio || '',
-        theme_color: viewedProfile.theme_color || '#22d3ee',
-        badge_style: viewedProfile.badge_style || 'default'
+        bio: viewedProfile.bio || ''
       });
     }
   }, [viewedProfile, isViewingOther]);
@@ -505,19 +471,6 @@ const Profile: React.FC = () => {
     fontSize: '1rem'
   };
 
-  const getBadgeStyle = (style: string, color: string) => {
-    switch (style) {
-      case 'gradient':
-        return { background: `linear-gradient(135deg, ${color} 0%, ${color}80 100%)` };
-      case 'outline':
-        return { backgroundColor: 'transparent', border: `2px solid ${color}` };
-      case 'glow':
-        return { backgroundColor: color, boxShadow: `0 0 20px ${color}60` };
-      default:
-        return { backgroundColor: color };
-    }
-  };
-
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a' }}>
       {/* Hero Section - matching About page style */}
@@ -563,39 +516,17 @@ const Profile: React.FC = () => {
         }}>
           {isEditing && !isViewingOther ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              {/* Alliance Tag */}
               <div>
-                <label style={{ color: '#9ca3af', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>Username</label>
+                <label style={{ color: '#9ca3af', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>Alliance Tag (3 chars)</label>
                 <input
                   type="text"
-                  value={editForm.username}
-                  onChange={(e) => setEditForm({ ...editForm, username: e.target.value })}
-                  placeholder="Enter your username"
-                  style={inputStyle}
+                  value={editForm.alliance_tag}
+                  onChange={(e) => handleAllianceTagChange(e.target.value)}
+                  placeholder="e.g. TWS"
+                  maxLength={3}
+                  style={{ ...inputStyle, textTransform: 'uppercase', letterSpacing: '0.1em', maxWidth: '150px' }}
                 />
-              </div>
-              
-              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '0.75rem' : '1rem' }}>
-                <div>
-                  <label style={{ color: '#9ca3af', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>Home Kingdom</label>
-                  <input
-                    type="number"
-                    value={editForm.home_kingdom || ''}
-                    onChange={(e) => setEditForm({ ...editForm, home_kingdom: e.target.value ? parseInt(e.target.value) : null })}
-                    placeholder="Kingdom number"
-                    style={inputStyle}
-                  />
-                </div>
-                <div>
-                  <label style={{ color: '#9ca3af', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>Alliance Tag (3 chars)</label>
-                  <input
-                    type="text"
-                    value={editForm.alliance_tag}
-                    onChange={(e) => handleAllianceTagChange(e.target.value)}
-                    placeholder="e.g. TWS"
-                    maxLength={3}
-                    style={{ ...inputStyle, textTransform: 'uppercase', letterSpacing: '0.1em' }}
-                  />
-                </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '0.75rem' : '1rem' }}>
@@ -639,111 +570,6 @@ const Profile: React.FC = () => {
                     resize: 'vertical'
                   }}
                 />
-              </div>
-
-              {/* Visual Customization */}
-              <div style={{ borderTop: '1px solid #2a2a2a', paddingTop: '1.5rem' }}>
-                <h3 style={{ color: '#fff', fontSize: '1rem', fontWeight: '600', marginBottom: '1rem' }}>Visual Customization</h3>
-                
-                {/* Theme Color */}
-                <div style={{ marginBottom: '1.25rem' }}>
-                  <label style={{ color: '#9ca3af', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>
-                    Theme Color
-                    <span style={{ color: '#6b7280', fontSize: '0.75rem', marginLeft: '0.5rem' }}>
-                      (affects your profile accent)
-                    </span>
-                  </label>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                    {THEME_COLORS.map(c => (
-                      <button
-                        key={c.value}
-                        onClick={() => setEditForm({ ...editForm, theme_color: c.value })}
-                        style={{
-                          width: '36px',
-                          height: '36px',
-                          borderRadius: '50%',
-                          backgroundColor: c.value,
-                          border: editForm.theme_color === c.value ? '3px solid #fff' : '2px solid transparent',
-                          cursor: 'pointer',
-                          transition: 'all 0.15s',
-                          boxShadow: editForm.theme_color === c.value ? `0 0 12px ${c.value}60` : 'none'
-                        }}
-                        aria-label={c.name}
-                        onMouseEnter={(e) => {
-                          if (editForm.theme_color !== c.value) {
-                            e.currentTarget.style.transform = 'scale(1.1)';
-                            e.currentTarget.style.boxShadow = `0 0 8px ${c.value}40`;
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (editForm.theme_color !== c.value) {
-                            e.currentTarget.style.transform = 'scale(1)';
-                            e.currentTarget.style.boxShadow = 'none';
-                          }
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                {/* Badge Style */}
-                <div style={{ marginBottom: '1.25rem' }}>
-                  <label style={{ color: '#9ca3af', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>
-                    Alliance Badge Style
-                    <span style={{ color: '#6b7280', fontSize: '0.75rem', marginLeft: '0.5rem' }}>
-                      (how your alliance tag appears)
-                    </span>
-                  </label>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
-                    {BADGE_STYLES.map(s => (
-                      <div key={s.value} style={{ position: 'relative' }}>
-                        <button
-                          onClick={() => setEditForm({ ...editForm, badge_style: s.value })}
-                          style={{
-                            padding: '0.5rem 1rem',
-                            borderRadius: '8px',
-                            fontSize: '0.8rem',
-                            cursor: 'pointer',
-                            color: s.value === 'outline' ? editForm.theme_color : '#000',
-                            fontWeight: '600',
-                            border: editForm.badge_style === s.value ? '2px solid #fff' : '2px solid transparent',
-                            transition: 'all 0.2s',
-                            ...getBadgeStyle(s.value, editForm.theme_color)
-                          }}
-                          aria-label={s.desc}
-                        >
-                          {s.name}
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Badge Preview */}
-                <div style={{ 
-                  padding: '1rem', 
-                  backgroundColor: '#0a0a0a', 
-                  borderRadius: '8px',
-                  border: '1px solid #2a2a2a'
-                }}>
-                  <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.5rem' }}>Preview</div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <div style={{
-                      padding: '0.5rem 1rem',
-                      borderRadius: '8px',
-                      ...getBadgeStyle(editForm.badge_style, editForm.theme_color),
-                      color: editForm.badge_style === 'outline' ? editForm.theme_color : '#000',
-                      fontSize: '1.1rem',
-                      fontWeight: 'bold',
-                      letterSpacing: '0.1em'
-                    }}>
-                      [{editForm.alliance_tag || 'TAG'}]
-                    </div>
-                    <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>
-                      K-{editForm.home_kingdom || '???'}
-                    </span>
-                  </div>
-                </div>
               </div>
 
               <div style={{ display: 'flex', gap: '1rem' }}>
@@ -798,40 +624,21 @@ const Profile: React.FC = () => {
                   )}
                 </div>
               </div>
-              {!isViewingOther && (
-                isPro || isRecruiter || isAdmin ? (
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    style={{
-                      padding: '0.5rem 1rem',
-                      backgroundColor: 'transparent',
-                      border: '1px solid #3a3a3a',
-                      borderRadius: '8px',
-                      color: '#9ca3af',
-                      cursor: 'pointer',
-                      fontSize: '0.85rem'
-                    }}
-                  >
-                    Edit Profile
-                  </button>
-                ) : (
-                  <Link
-                    to="/upgrade"
-                    style={{
-                      padding: '0.5rem 1rem',
-                      backgroundColor: 'transparent',
-                      border: '1px solid #22d3ee40',
-                      borderRadius: '8px',
-                      color: '#22d3ee',
-                      cursor: 'pointer',
-                      fontSize: '0.85rem',
-                      textDecoration: 'none',
-                      display: 'inline-block'
-                    }}
-                  >
-                    ⭐ Upgrade to Customize
-                  </Link>
-                )
+              {!isViewingOther && viewedProfile?.linked_username && (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    backgroundColor: 'transparent',
+                    border: '1px solid #3a3a3a',
+                    borderRadius: '8px',
+                    color: '#9ca3af',
+                    cursor: 'pointer',
+                    fontSize: '0.85rem'
+                  }}
+                >
+                  Edit Profile
+                </button>
               )}
             </div>
 
