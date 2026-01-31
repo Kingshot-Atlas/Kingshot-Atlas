@@ -116,7 +116,10 @@
 | Reputation Service | ✅ Live | Platform | `reputationService.ts` user trust scores |
 | KvK Correction Service | ✅ Live | Platform | `kvkCorrectionService.ts` - Supabase-backed corrections |
 | KvK History Service | ✅ Live | Platform | `kvkHistoryService.ts` - Supabase + CSV fallback |
-| KvK Data Migration | ✅ Live | Platform | 3160/5042 records in Supabase + indexes + RLS + migration script |
+| KvK Data Migration | ✅ Live | Platform | 5042/5042 records in Supabase (100% parity) + indexes + RLS |
+| KvK Data Validation | ✅ Live | Platform | `scripts/validate-kvk-data.js` - CSV integrity tests |
+| KvK Data Sync | ✅ Live | Platform | `scripts/sync-kvk-data.js` - Future update utility |
+| Data Source Stats | ✅ Live | Platform | `DataSourceStats.tsx` - Admin parity dashboard |
 | User Correction Stats | ✅ Live | Platform | `UserCorrectionStats.tsx` - profile correction tracking |
 
 ---

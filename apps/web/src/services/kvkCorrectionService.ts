@@ -16,8 +16,14 @@ export interface KvKCorrection {
   corrected_prep_result: string;
   corrected_battle_result: string;
   corrected_overall_result?: string;
+  status?: 'pending' | 'approved' | 'rejected';
+  submitted_by?: string;
+  submitted_by_name?: string;
+  submitted_at?: string;
   approved_at?: string;
   approved_by?: string;
+  reviewed_at?: string;
+  review_notes?: string;
 }
 
 const KVK_CORRECTIONS_KEY = 'kingshot_kvk_corrections_applied';
@@ -360,6 +366,212 @@ class KvKCorrectionService {
    */
   clearAll(): void {
     localStorage.removeItem(KVK_CORRECTIONS_KEY);
+  }
+
+  /**
+   * Submit a new correction for approval (pending status)
+   */
+  async submitCorrectionForApproval(correction: {
+    kingdom_number: number;
+    kvk_number: number;
+    opponent_kingdom: number;
+    original_prep_result: string;
+    original_battle_result: string;
+    corrected_prep_result: string;
+    corrected_battle_result: string;
+    submitted_by: string;
+    submitted_by_name: string;
+    notes?: string;
+  }): Promise<{ success: boolean; id?: number; error?: string }> {
+    if (!isSupabaseConfigured || !supabase) {
+      return { success: false, error: 'Supabase not configured' };
+    }
+
+    const overallResult = this.calculateOverallResult(
+      correction.corrected_prep_result,
+      correction.corrected_battle_result
+    );
+
+    try {
+      const { data, error } = await supabase
+        .from('kvk_corrections')
+        .insert({
+          kingdom_number: correction.kingdom_number,
+          kvk_number: correction.kvk_number,
+          opponent_kingdom: correction.opponent_kingdom,
+          original_prep_result: correction.original_prep_result,
+          original_battle_result: correction.original_battle_result,
+          corrected_prep_result: correction.corrected_prep_result,
+          corrected_battle_result: correction.corrected_battle_result,
+          corrected_overall_result: overallResult,
+          submitted_by: correction.submitted_by,
+          submitted_by_name: correction.submitted_by_name,
+          notes: correction.notes,
+          status: 'pending'
+        })
+        .select('id')
+        .single();
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      return { success: true, id: data?.id };
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
+    }
+  }
+
+  /**
+   * Get pending corrections for admin review
+   */
+  async getPendingCorrections(): Promise<KvKCorrection[]> {
+    if (!isSupabaseConfigured || !supabase) {
+      return [];
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('kvk_corrections')
+        .select('*')
+        .eq('status', 'pending')
+        .order('corrected_at', { ascending: false });
+
+      if (error) {
+        console.error('Failed to fetch pending corrections:', error);
+        return [];
+      }
+
+      return (data || []).map(c => ({
+        id: c.id,
+        kingdom_number: c.kingdom_number,
+        kvk_number: c.kvk_number,
+        opponent_kingdom: c.opponent_kingdom,
+        original_prep_result: c.original_prep_result,
+        original_battle_result: c.original_battle_result,
+        corrected_prep_result: c.corrected_prep_result,
+        corrected_battle_result: c.corrected_battle_result,
+        corrected_overall_result: c.corrected_overall_result,
+        status: c.status,
+        submitted_by: c.submitted_by,
+        submitted_by_name: c.submitted_by_name,
+        submitted_at: c.corrected_at,
+        approved_at: c.reviewed_at,
+        approved_by: c.corrected_by,
+        review_notes: c.review_notes
+      }));
+    } catch (err) {
+      console.error('Error fetching pending corrections:', err);
+      return [];
+    }
+  }
+
+  /**
+   * Approve a pending correction
+   */
+  async approveCorrection(
+    correctionId: number,
+    approvedBy: string,
+    notes?: string
+  ): Promise<{ success: boolean; error?: string }> {
+    if (!isSupabaseConfigured || !supabase) {
+      return { success: false, error: 'Supabase not configured' };
+    }
+
+    try {
+      // Update the correction status
+      const { error } = await supabase
+        .from('kvk_corrections')
+        .update({
+          status: 'approved',
+          corrected_by: approvedBy,
+          reviewed_at: new Date().toISOString(),
+          review_notes: notes
+        })
+        .eq('id', correctionId);
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      // Invalidate cache
+      this.correctionsCache = null;
+      this.lastFetchTime = 0;
+
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
+    }
+  }
+
+  /**
+   * Reject a pending correction
+   */
+  async rejectCorrection(
+    correctionId: number,
+    rejectedBy: string,
+    notes?: string
+  ): Promise<{ success: boolean; error?: string }> {
+    if (!isSupabaseConfigured || !supabase) {
+      return { success: false, error: 'Supabase not configured' };
+    }
+
+    try {
+      const { error } = await supabase
+        .from('kvk_corrections')
+        .update({
+          status: 'rejected',
+          corrected_by: rejectedBy,
+          reviewed_at: new Date().toISOString(),
+          review_notes: notes
+        })
+        .eq('id', correctionId);
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
+    }
+  }
+
+  /**
+   * Get correction stats for admin dashboard
+   */
+  async getCorrectionStats(): Promise<{
+    pending: number;
+    approved: number;
+    rejected: number;
+    total: number;
+  }> {
+    if (!isSupabaseConfigured || !supabase) {
+      return { pending: 0, approved: 0, rejected: 0, total: 0 };
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('kvk_corrections')
+        .select('status');
+
+      if (error) {
+        console.error('Failed to fetch correction stats:', error);
+        return { pending: 0, approved: 0, rejected: 0, total: 0 };
+      }
+
+      const stats = { pending: 0, approved: 0, rejected: 0, total: data?.length || 0 };
+      for (const row of data || []) {
+        if (row.status === 'pending') stats.pending++;
+        else if (row.status === 'approved') stats.approved++;
+        else if (row.status === 'rejected') stats.rejected++;
+      }
+
+      return stats;
+    } catch (err) {
+      console.error('Error fetching correction stats:', err);
+      return { pending: 0, approved: 0, rejected: 0, total: 0 };
+    }
   }
 }
 

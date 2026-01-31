@@ -33,3 +33,8 @@ services:
         sync: false
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
+      # Email Notifications (optional - set manually in Render dashboard)
+      - key: RESEND_API_KEY
+        sync: false
+      - key: FROM_EMAIL
+        value: Atlas <noreply@ks-atlas.com>

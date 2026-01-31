@@ -966,20 +966,55 @@ const Profile: React.FC = () => {
                   {managingSubscription ? 'Opening Portal...' : 'Manage Subscription'}
                 </button>
               ) : (
-                <Link
-                  to="/upgrade"
-                  style={{
-                    padding: '0.5rem 1rem',
-                    background: `linear-gradient(135deg, ${themeColor} 0%, ${themeColor}cc 100%)`,
-                    borderRadius: '8px',
-                    color: '#000',
-                    fontSize: '0.85rem',
-                    fontWeight: '600',
-                    textDecoration: 'none',
-                  }}
-                >
-                  Upgrade to Pro
-                </Link>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                  <Link
+                    to="/upgrade"
+                    style={{
+                      padding: '0.5rem 1rem',
+                      background: `linear-gradient(135deg, ${themeColor} 0%, ${themeColor}cc 100%)`,
+                      borderRadius: '8px',
+                      color: '#000',
+                      fontSize: '0.85rem',
+                      fontWeight: '600',
+                      textDecoration: 'none',
+                    }}
+                  >
+                    Upgrade to Pro
+                  </Link>
+                  <button
+                    onClick={async () => {
+                      if (!user) return;
+                      setManagingSubscription(true);
+                      try {
+                        const { syncSubscription } = await import('../lib/stripe');
+                        const result = await syncSubscription(user.id);
+                        if (result.synced && result.tier !== 'free') {
+                          alert(`✅ ${result.message}`);
+                          window.location.reload();
+                        } else {
+                          alert(result.message || 'No active subscription found.');
+                        }
+                      } catch (error) {
+                        console.error('Sync error:', error);
+                        alert('Unable to sync subscription. Please email support@ks-atlas.com');
+                      } finally {
+                        setManagingSubscription(false);
+                      }
+                    }}
+                    disabled={managingSubscription}
+                    style={{
+                      padding: '0.5rem 0.75rem',
+                      backgroundColor: 'transparent',
+                      border: 'none',
+                      color: '#6b7280',
+                      fontSize: '0.75rem',
+                      cursor: managingSubscription ? 'wait' : 'pointer',
+                      textDecoration: 'underline',
+                    }}
+                  >
+                    {managingSubscription ? 'Syncing...' : 'Subscription not showing?'}
+                  </button>
+                </div>
               )}
             </div>
           </div>

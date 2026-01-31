@@ -120,6 +120,28 @@ export const createPortalSession = async (userId: string): Promise<string> => {
   return data.portal_url;
 };
 
+// Sync subscription from Stripe (for recovery when webhook fails)
+export const syncSubscription = async (userId: string): Promise<{
+  synced: boolean;
+  tier: string;
+  message: string;
+}> => {
+  const response = await fetch(`${API_BASE_URL}/api/v1/stripe/sync`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ user_id: userId }),
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail?.error || 'Failed to sync subscription');
+  }
+  
+  return response.json();
+};
+
 // Check if user has an active subscription (client-side check)
 export const hasActiveSubscription = (
   tier: string | undefined,

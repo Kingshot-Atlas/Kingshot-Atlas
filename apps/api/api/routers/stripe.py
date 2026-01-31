@@ -14,6 +14,7 @@ from typing import Optional
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from api.supabase_client import update_user_subscription, get_user_by_stripe_customer, get_user_profile, log_webhook_event
+from api.email_service import send_welcome_email, send_cancellation_email, send_payment_failed_email
 import time
 
 router = APIRouter()
@@ -256,6 +257,14 @@ async def handle_checkout_completed(session: dict):
     
     if success:
         print(f"Successfully updated subscription for user {user_id} to {tier}")
+        # Send welcome email
+        profile = get_user_profile(user_id)
+        if profile and profile.get("email"):
+            await send_welcome_email(
+                email=profile["email"],
+                username=profile.get("username", "Champion"),
+                tier=tier
+            )
     else:
         print(f"Failed to update subscription for user {user_id}")
 
@@ -296,11 +305,15 @@ async def handle_subscription_deleted(subscription: dict):
     subscription_id = subscription.get("id")
     customer_id = subscription.get("customer")
     user_id = subscription.get("metadata", {}).get("user_id")
+    previous_tier = subscription.get("metadata", {}).get("tier", "pro")
     
     print(f"Subscription deleted: id={subscription_id}, user={user_id}")
     
+    profile = None
+    
     # Try to find user by metadata first, then by Stripe customer ID
     if user_id:
+        profile = get_user_profile(user_id)
         update_user_subscription(user_id=user_id, tier="free")
         print(f"Downgraded user {user_id} to free tier")
     elif customer_id:
@@ -311,11 +324,19 @@ async def handle_subscription_deleted(subscription: dict):
             print(f"Downgraded user {profile['id']} to free tier (found by customer ID)")
         else:
             print(f"Could not find user for Stripe customer {customer_id}")
+    
+    # Send cancellation email
+    if profile and profile.get("email"):
+        await send_cancellation_email(
+            email=profile["email"],
+            username=profile.get("username", "Champion"),
+            tier=previous_tier
+        )
 
 
 async def handle_payment_failed(invoice: dict):
     """
-    Handle failed payment - log for now, could add notifications later.
+    Handle failed payment - notify user to update payment method.
     """
     subscription_id = invoice.get("subscription")
     customer_id = invoice.get("customer")
@@ -323,10 +344,16 @@ async def handle_payment_failed(invoice: dict):
     
     print(f"Payment failed: subscription={subscription_id}, customer={customer_id}, attempt={attempt_count}")
     
-    # After multiple failed attempts, Stripe will automatically cancel the subscription
-    # which will trigger handle_subscription_deleted
-    # For now, we just log the failure
-    # Future enhancement: Send email notification to user about failed payment
+    # Send payment failed email on first attempt
+    if attempt_count == 1 and customer_id:
+        profile = get_user_by_stripe_customer(customer_id)
+        if profile and profile.get("email"):
+            tier = profile.get("subscription_tier", "pro")
+            await send_payment_failed_email(
+                email=profile["email"],
+                username=profile.get("username", "Champion"),
+                tier=tier
+            )
 
 
 @router.get("/subscription/{user_id}")
@@ -442,6 +469,114 @@ async def create_portal_session(request: Request, portal_request: PortalRequest)
         
         return {"portal_url": session.url}
         
+    except stripe.error.StripeError as e:
+        raise HTTPException(
+            status_code=400,
+            detail={"error": str(e), "code": "STRIPE_ERROR"}
+        )
+
+
+class SyncRequest(BaseModel):
+    """Request body for syncing subscription from Stripe."""
+    user_id: str
+
+
+@router.post("/sync")
+@limiter.limit("5/minute")
+async def sync_subscription(request: Request, sync_request: SyncRequest):
+    """
+    Sync a user's subscription status from Stripe.
+    
+    Use this when:
+    - Webhook failed to update subscription
+    - User reports subscription not showing
+    - Manual recovery needed
+    
+    Returns the synced subscription status.
+    """
+    if not STRIPE_SECRET_KEY:
+        raise HTTPException(
+            status_code=503,
+            detail={"error": "Payment service not configured", "code": "SERVICE_UNAVAILABLE"}
+        )
+    
+    profile = get_user_profile(sync_request.user_id)
+    
+    if not profile:
+        raise HTTPException(
+            status_code=404,
+            detail={"error": "User profile not found", "code": "USER_NOT_FOUND"}
+        )
+    
+    customer_id = profile.get("stripe_customer_id")
+    current_tier = profile.get("subscription_tier", "free")
+    
+    # If no customer_id, try to find by email
+    if not customer_id and profile.get("email"):
+        try:
+            customers = stripe.Customer.list(email=profile["email"], limit=1)
+            if customers.data:
+                customer_id = customers.data[0].id
+                # Store the customer ID for future use
+                update_user_subscription(
+                    user_id=sync_request.user_id,
+                    tier=current_tier,
+                    stripe_customer_id=customer_id
+                )
+        except stripe.error.StripeError:
+            pass
+    
+    if not customer_id:
+        return {
+            "user_id": sync_request.user_id,
+            "synced": False,
+            "tier": "free",
+            "message": "No Stripe customer found. User may not have subscribed yet."
+        }
+    
+    try:
+        # Get active subscriptions for this customer
+        subscriptions = stripe.Subscription.list(
+            customer=customer_id,
+            status="active",
+            limit=1
+        )
+        
+        if subscriptions.data:
+            sub = subscriptions.data[0]
+            # Determine tier from price metadata or default to pro
+            tier = sub.get("metadata", {}).get("tier", "pro")
+            
+            # Update the user's subscription in Supabase
+            update_user_subscription(
+                user_id=sync_request.user_id,
+                tier=tier,
+                stripe_customer_id=customer_id,
+                stripe_subscription_id=sub.id
+            )
+            
+            return {
+                "user_id": sync_request.user_id,
+                "synced": True,
+                "tier": tier,
+                "subscription_id": sub.id,
+                "status": sub.status,
+                "message": f"Subscription synced successfully. Tier updated to {tier}."
+            }
+        else:
+            # No active subscription - set to free
+            update_user_subscription(
+                user_id=sync_request.user_id,
+                tier="free"
+            )
+            
+            return {
+                "user_id": sync_request.user_id,
+                "synced": True,
+                "tier": "free",
+                "message": "No active subscription found. Tier set to free."
+            }
+            
     except stripe.error.StripeError as e:
         raise HTTPException(
             status_code=400,

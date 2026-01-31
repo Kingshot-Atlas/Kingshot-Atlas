@@ -9,6 +9,22 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-01-31 08:00 | Ops Lead | COMPLETED
+Task: Deploy Subscription Fixes to Production
+Actions:
+  - Pushed all changes to GitHub (triggers Render auto-deploy)
+  - Deployed frontend to Netlify (https://ks-atlas.com)
+  - Verified API health endpoint
+Deployment Status:
+  - Frontend: ✅ Live at https://ks-atlas.com
+  - API: 🔄 Render auto-deploying from GitHub push
+Environment Variables Configured:
+  - STRIPE_SECRET_KEY: ✅ Set in Render
+  - STRIPE_WEBHOOK_SECRET: ✅ Set in Render
+  - SUPABASE_URL: ✅ Set in Render
+  - SUPABASE_SERVICE_ROLE_KEY: ✅ Set in Render
+User Action: Verify webhook endpoint in Stripe Dashboard
+
 ## 2026-01-31 07:55 | Platform Engineer | COMPLETED
 Task: Complete KvK Data Migration to 100% + Option A (Data Quality & Verification)
 Summary:
