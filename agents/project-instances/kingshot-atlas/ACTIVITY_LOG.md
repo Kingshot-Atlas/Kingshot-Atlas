@@ -23,6 +23,18 @@ Files Changed:
   - apps/discord-bot/src/config.js
 Result: Atlas bot will automatically post @everyone announcement at 18:00 UTC on KvK Saturdays prompting users to submit their KvK results
 
+## 2026-01-31 16:15 | Platform Engineer | COMPLETED
+Task: Add real-time database update when submission approved
+Feature:
+  - When admin approves submission, KvK record inserted into Supabase kvk_history
+  - Backend returns kingdom_number in review response
+  - Frontend shows enhanced toast: "Approved! KvK data added to Kingdom X"
+  - Graceful fallback if Supabase insert fails (local DB is source of truth)
+Files Changed:
+  - apps/api/api/routers/submissions.py (review_submission function)
+  - apps/web/src/pages/AdminDashboard.tsx (reviewSubmission function)
+Result: Approved submissions now immediately update the database for real-time visibility
+
 ## 2026-01-31 16:10 | Product Engineer | COMPLETED
 Task: Auto-populate kingdom field in submission modal
 Features:
