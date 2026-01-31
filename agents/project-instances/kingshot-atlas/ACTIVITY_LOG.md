@@ -23,6 +23,27 @@ Files Changed:
   - apps/discord-bot/src/config.js
 Result: Atlas bot will automatically post @everyone announcement at 18:00 UTC on KvK Saturdays prompting users to submit their KvK results
 
+## 2026-01-31 17:00 | Platform Engineer | COMPLETED
+Task: Fix Kingdom Card data sync + Discord OAuth2 integration
+Implementation:
+  - Fixed aggregate stats (total_kvks, dominations, prep_wins) to recalculate from KvK records
+  - When Supabase has newer data, use it as source of truth for Kingdom Cards
+  - Added Discord columns to profiles table (discord_id, discord_username, discord_linked_at)
+  - Created contributor_stats and discord_role_sync_log tables
+  - Built discordService for OAuth2 flow
+  - Created DiscordCallback page and LinkDiscordAccount component
+  - Updated UserProfile type with Discord fields
+Files Changed:
+  - apps/web/src/services/api.ts (data sync fix)
+  - apps/web/src/services/discordService.ts (new)
+  - apps/web/src/pages/DiscordCallback.tsx (new)
+  - apps/web/src/components/LinkDiscordAccount.tsx (new)
+  - apps/web/src/contexts/AuthContext.tsx (UserProfile type)
+  - apps/web/src/pages/Profile.tsx (added Discord link)
+  - apps/web/src/App.tsx (added route)
+  - docs/DISCORD_INTEGRATION.md (architecture doc)
+Result: Kingdom Cards now show correct data after KvK approval, Discord linking UI ready
+
 ## 2026-01-31 16:50 | Platform Engineer | COMPLETED
 Task: Implement contributor achievement system and Discord integration architecture
 Implementation:
