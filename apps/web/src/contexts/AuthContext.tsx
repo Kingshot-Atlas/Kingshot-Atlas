@@ -387,18 +387,30 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return;
     }
 
-    // Send all updates to Supabase (linked player columns now exist in database)
-    if (Object.keys(updates).length > 0) {
+    // Send updates to Supabase, filtering out fields that don't exist in the database
+    const dbFields = [
+      'username', 'email', 'avatar_url', 'home_kingdom', 'alliance_tag',
+      'language', 'region', 'bio', 'theme_color', 'badge_style',
+      'linked_player_id', 'linked_username', 'linked_avatar_url',
+      'linked_kingdom', 'linked_tc_level', 'subscription_tier',
+      'stripe_customer_id', 'stripe_subscription_id'
+    ];
+    
+    const dbUpdates = Object.fromEntries(
+      Object.entries(updates).filter(([key]) => dbFields.includes(key))
+    );
+    
+    if (Object.keys(dbUpdates).length > 0) {
       const { error } = await supabase
         .from('profiles')
-        .update(updates)
+        .update(dbUpdates)
         .eq('id', user.id);
 
       if (error) {
-        console.error('Error updating profile in Supabase:', error);
+        logger.debug('Profile sync skipped:', error.message);
         // Local update already applied, so user sees changes
       } else {
-        logger.info('Profile updated in Supabase:', updates);
+        logger.info('Profile updated in Supabase:', dbUpdates);
       }
     }
   };

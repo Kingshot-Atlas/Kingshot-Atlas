@@ -313,6 +313,7 @@ const ScoreSimulator: React.FC<ScoreSimulatorProps> = ({ kingdom }) => {
                         <option value="W">W</option>
                         <option value="L">L</option>
                       </select>
+                      <span style={{ fontSize: '0.9rem', marginLeft: '0.25rem' }}>{outcome.emoji}</span>
                     </div>
 
                     {/* Outcome Badge */}

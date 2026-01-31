@@ -3,8 +3,10 @@ import { logger } from '../utils/logger';
 import { useAuth } from './AuthContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
-// Admin users get Recruiter tier automatically
-const ADMIN_USERS = ['gatreno'];
+// Admin users get Recruiter tier automatically (all features unlocked)
+// Check by: profile.is_admin, profile.username, or user email prefix
+const ADMIN_EMAILS = ['gatreno@gmail.com'];
+const ADMIN_USERNAMES = ['gatreno'];
 
 // 4 tiers: anonymous (not logged in), free (logged in), pro, recruiter
 export type SubscriptionTier = 'anonymous' | 'free' | 'pro' | 'recruiter';
@@ -177,11 +179,25 @@ export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children })
         return;
       }
 
-      // Check if user is admin - admins get Recruiter tier
-      const isAdmin = user.user_metadata?.preferred_username && 
-        ADMIN_USERS.includes(user.user_metadata.preferred_username.toLowerCase());
+      // Check if user is admin - admins get ALL features (Recruiter tier)
+      // Multiple checks for robustness:
+      // 1. Profile has is_admin flag
+      // 2. Email matches admin list
+      // 3. Username matches admin list (from profile, user_metadata, or email prefix)
+      const emailPrefix = user.email?.split('@')[0]?.toLowerCase();
+      const preferredUsername = user.user_metadata?.preferred_username?.toLowerCase();
+      const fullName = user.user_metadata?.full_name?.toLowerCase();
+      const userName = user.user_metadata?.name?.toLowerCase();
+      
+      const isAdmin = 
+        ADMIN_EMAILS.includes(user.email?.toLowerCase() || '') ||
+        ADMIN_USERNAMES.includes(emailPrefix || '') ||
+        ADMIN_USERNAMES.includes(preferredUsername || '') ||
+        ADMIN_USERNAMES.includes(fullName || '') ||
+        ADMIN_USERNAMES.includes(userName || '');
       
       if (isAdmin) {
+        logger.info('Admin user detected, granting Recruiter tier:', user.email);
         setTier('recruiter');
         setLoading(false);
         return;

@@ -186,7 +186,10 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
         .then(res => res.ok ? res.json() : null)
         .then(data => {
           if (data) {
-            setKingdomRank({ atlas_score: data.atlas_score, rank: data.rank });
+            setKingdomRank({ 
+              atlas_score: data.atlas_score ?? data.overall_score ?? 0, 
+              rank: data.rank ?? 0 
+            });
           }
         })
         .catch(() => setKingdomRank(null));

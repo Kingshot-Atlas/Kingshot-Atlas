@@ -209,6 +209,30 @@
 
 ---
 
+## Data Correction System
+
+| Feature | Status | Date | Agent | Notes |
+|---------|--------|------|-------|-------|
+| KvK Correction Service | ✅ Live | 2026-01-30 | Platform | `kvkCorrectionService.ts` - stores/applies KvK corrections |
+| KvK Correction Auto-Apply | ✅ Live | 2026-01-30 | Platform | Corrections apply when loading KvK records in `api.ts` |
+| Admin KvK Error Approval | ✅ Live | 2026-01-30 | Platform | AdminDashboard applies corrections on approval |
+| Opponent Correction Sync | ✅ Live | 2026-01-30 | Platform | Auto-applies inverse correction for opponent kingdom |
+| Correction Audit Trail | ✅ Live | 2026-01-30 | Platform | Tracks approved_at, approved_by for transparency |
+
+---
+
+## Multi-Kingdom Comparison
+
+| Feature | Status | Date | Agent | Notes |
+|---------|--------|------|-------|-------|
+| Multi-Kingdom Inputs | ✅ Live | 2026-01-30 | Product | Up to 5 kingdom input slots (Pro feature) |
+| Dynamic Comparison Table | ✅ Live | 2026-01-30 | Product | `ComparisonRow` supports 2-5 kingdoms with dynamic grid |
+| Multi-Kingdom Header | ✅ Live | 2026-01-30 | Product | Color-coded kingdom names with tier badges |
+| Multi-Kingdom Radar Chart | ✅ Live | 2026-01-30 | Product | `MultiCompareRadarChart` overlays up to 5 kingdoms |
+| Multi-Kingdom Winner Calc | ✅ Live | 2026-01-30 | Product | Scores kingdoms across 11 metrics, handles ties |
+
+---
+
 ## Planned / Not Yet Built
 
 | Feature | Status | Notes |
@@ -216,6 +240,7 @@
 | FilterPanel Integration | 🚧 Planned | Component exists, needs wiring to KingdomDirectory |
 | Mobile Responsive Pass | 🚧 Planned | Some pages need work |
 | Component Refactoring | 🚧 Planned | KingdomCard, ProfileFeatures too large |
+| Multi-Kingdom Share/Export | 🚧 Planned | ShareButton still uses 2-kingdom format |
 
 ---
 

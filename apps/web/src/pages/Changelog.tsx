@@ -14,6 +14,25 @@ interface ChangelogEntry {
 
 const changelogData: ChangelogEntry[] = [
   {
+    date: 'January 30, 2026',
+    version: '1.4.0',
+    new: [
+      '🆓 KvK History is now FREE — Full battle history for all users. No paywall.',
+      '💳 Stripe payments live — Upgrade to Pro or Recruiter with real checkout.',
+      '⚖️ Compare limits updated — Anonymous: login required | Free: 2 | Pro/Recruiter: 5',
+    ],
+    fixed: [
+      'Atlas Score accuracy — Fixed formula bug deflating scores by ~10%',
+      'Player verification — "Failed to verify" error resolved',
+      'Kingdom profiles — No more "Kingdom not found" for valid kingdoms',
+      'Profile page — Fixed race condition showing wrong error',
+    ],
+    improved: [
+      'Upgrade page redesign with accurate feature comparison',
+      'Tier thresholds unified across website and Discord bot',
+    ],
+  },
+  {
     date: 'January 29, 2026 (Night)',
     version: '1.3.0',
     new: [

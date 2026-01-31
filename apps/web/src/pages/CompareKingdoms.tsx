@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback, memo } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { KingdomProfile, Kingdom, getPowerTier } from '../types';
 import { apiService } from '../services/api';
@@ -9,12 +9,165 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { usePremium } from '../contexts/PremiumContext';
 import { useAuth } from '../contexts/AuthContext';
 import ProBadge from '../components/ProBadge';
-import CompareRadarChart from '../components/CompareRadarChart';
+import ComparisonRadarChart from '../components/ComparisonRadarChart';
 import ShareButton from '../components/ShareButton';
 import { useMetaTags, getCompareMetaTags } from '../hooks/useMetaTags';
 
 // Max slots to show in UI (Pro limit)
 const MAX_COMPARE_SLOTS = 5;
+
+// Colors for each kingdom in multi-compare (exported for radar chart)
+export const KINGDOM_COLORS = ['#22d3ee', '#a855f7', '#22c55e', '#f59e0b', '#ef4444'];
+
+// Helper to calculate radar data for a kingdom
+const calculateRadarData = (kingdom: KingdomProfile) => {
+  const totalKvks = kingdom.total_kvks || 1;
+  const prepWinRate = Math.round(kingdom.prep_win_rate * 100);
+  const battleWinRate = Math.round(kingdom.battle_win_rate * 100);
+  const dominationRate = Math.round(((kingdom.dominations ?? 0) / totalKvks) * 100);
+  const defeatRate = Math.round(((kingdom.defeats ?? 0) / totalKvks) * 100);
+  
+  const recentKvks = [...(kingdom.recent_kvks || [])].sort((a, b) => b.kvk_number - a.kvk_number).slice(0, 3);
+  const recentWins = recentKvks.filter(k => 
+    (k.prep_result === 'Win' || k.prep_result === 'W') && 
+    (k.battle_result === 'Win' || k.battle_result === 'W')
+  ).length;
+  const recentPerformance = recentKvks.length > 0 ? Math.round((recentWins / recentKvks.length) * 100) : 50;
+  const experienceFactor = Math.min(100, Math.round((totalKvks / 10) * 100));
+  
+  return [
+    { label: 'Prep Win', value: prepWinRate },
+    { label: 'Battle Win', value: battleWinRate },
+    { label: 'Domination', value: dominationRate },
+    { label: 'Recent', value: recentPerformance },
+    { label: 'Experience', value: experienceFactor },
+    { label: 'Resilience', value: Math.max(0, 100 - defeatRate) },
+  ];
+};
+
+// Multi-kingdom radar chart component
+interface MultiCompareRadarChartProps {
+  kingdoms: KingdomProfile[];
+  colors: string[];
+}
+
+const MultiCompareRadarChart: React.FC<MultiCompareRadarChartProps> = memo(({ kingdoms, colors }) => {
+  const [showChart, setShowChart] = useState(false);
+  const isMobile = useIsMobile();
+  const { trackFeature } = useAnalytics();
+  
+  const radarData = useMemo(() => 
+    kingdoms.map((kingdom, i) => ({
+      label: `K${kingdom.kingdom_number}`,
+      data: calculateRadarData(kingdom),
+      color: colors[i % colors.length] || '#22d3ee'
+    })),
+    [kingdoms, colors]
+  );
+  
+  const handleToggle = useCallback(() => {
+    const newState = !showChart;
+    setShowChart(newState);
+    if (newState) {
+      trackFeature('Compare Radar Opened', {
+        kingdomCount: kingdoms.length
+      });
+    }
+  }, [showChart, trackFeature, kingdoms.length]);
+
+  return (
+    <div style={{ marginTop: '1rem' }}>
+      <button
+        onClick={handleToggle}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '0.75rem',
+          width: '100%',
+          padding: '1rem 1.5rem',
+          background: showChart 
+            ? 'linear-gradient(135deg, #22d3ee20 0%, #a855f720 100%)' 
+            : 'linear-gradient(135deg, #1a1a2e 0%, #131318 100%)',
+          border: `2px solid ${showChart ? '#22d3ee' : '#22d3ee50'}`,
+          borderRadius: '12px',
+          color: showChart ? '#22d3ee' : '#fff',
+          fontSize: '1rem',
+          fontWeight: '600',
+          cursor: 'pointer',
+          transition: 'all 0.3s ease',
+          boxShadow: showChart 
+            ? '0 0 20px rgba(34, 211, 238, 0.3), 0 0 40px rgba(168, 85, 247, 0.2)' 
+            : '0 4px 15px rgba(34, 211, 238, 0.15)'
+        }}
+      >
+        <span style={{ fontSize: '1.25rem' }}>🎯</span>
+        <span>{showChart ? 'Hide Visual Comparison' : 'Show Overlapping Comparison'}</span>
+        <svg 
+          width="18" 
+          height="18" 
+          viewBox="0 0 24 24" 
+          fill="none" 
+          stroke="currentColor" 
+          strokeWidth="2.5"
+          style={{
+            transform: showChart ? 'rotate(180deg)' : 'rotate(0deg)',
+            transition: 'transform 0.3s ease'
+          }}
+        >
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
+      
+      {showChart && (
+        <div 
+          style={{
+            marginTop: '0.75rem',
+            padding: isMobile ? '1rem' : '1.25rem',
+            backgroundColor: '#131318',
+            borderRadius: '12px',
+            border: '1px solid #2a2a2a',
+            animation: 'fadeIn 0.3s ease-out'
+          }}
+        >
+          <h4 style={{ 
+            color: '#fff', 
+            fontSize: isMobile ? '0.85rem' : '0.95rem', 
+            fontWeight: '600', 
+            marginBottom: '0.5rem',
+            textAlign: 'center'
+          }}>
+            🎯 {kingdoms.length}-Kingdom Performance Comparison
+          </h4>
+          
+          <p style={{ 
+            color: '#6b7280', 
+            fontSize: '0.7rem', 
+            textAlign: 'center', 
+            marginBottom: '1rem',
+            lineHeight: 1.4
+          }}>
+            Direct visual comparison with overlapping metrics. Hover over datasets to highlight.
+          </p>
+          
+          <ComparisonRadarChart
+            datasets={radarData}
+            size={isMobile ? 280 : 340}
+            animated={true}
+            ariaLabel={`Performance comparison of ${kingdoms.map(k => `Kingdom ${k.kingdom_number}`).join(', ')}`}
+          />
+        </div>
+      )}
+      
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(-10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+    </div>
+  );
+});
 
 const CompareKingdoms: React.FC = () => {
   useDocumentTitle('Compare Kingdoms');
@@ -33,6 +186,9 @@ const CompareKingdoms: React.FC = () => {
   
   // Track if initial load from URL params has been done
   const initialLoadDone = useRef(false);
+  
+  // Get loaded kingdoms (non-null)
+  const loadedKingdoms = kingdoms.filter((k): k is KingdomProfile => k !== null);
   
   // Legacy compatibility for old state names
   const kingdom1Input = kingdomInputs[0] || '';
@@ -90,31 +246,41 @@ const CompareKingdoms: React.FC = () => {
   }, [searchParams]);
 
   const handleCompare = async (k1?: string, k2?: string) => {
-    const input1 = k1 || kingdom1Input;
-    const input2 = k2 || kingdom2Input;
+    // Gather all non-empty inputs
+    const allInputs = [k1 || kingdom1Input, k2 || kingdom2Input, ...kingdomInputs.slice(2)]
+      .filter(input => input && input.trim() !== '')
+      .slice(0, features.multiCompare); // Limit to user's allowed slots
     
-    if (!input1 || !input2) {
-      setError('Please enter both kingdom numbers');
+    if (allInputs.length < 2) {
+      setError('Please enter at least 2 kingdom numbers');
       return;
     }
 
-    trackFeature('Compare Kingdoms', { kingdom1: parseInt(input1), kingdom2: parseInt(input2) });
+    trackFeature('Compare Kingdoms', { 
+      kingdomCount: allInputs.length 
+    });
     setLoading(true);
     setError('');
 
     try {
-      const [data1, data2] = await Promise.all([
-        apiService.getKingdomProfile(parseInt(input1)),
-        apiService.getKingdomProfile(parseInt(input2))
-      ]);
+      // Load all kingdoms in parallel
+      const results = await Promise.all(
+        allInputs.map(input => apiService.getKingdomProfile(parseInt(input)))
+      );
 
-      if (!data1 || !data2) {
-        setError('One or both kingdoms not found. Please check the kingdom numbers and try again.');
+      const validResults = results.filter((k): k is KingdomProfile => k !== null);
+      
+      if (validResults.length < 2) {
+        setError('Not enough kingdoms found. Please check the kingdom numbers and try again.');
         return;
       }
 
-      setKingdom1(data1);
-      setKingdom2(data2);
+      // Pad array to maintain slot positions
+      const newKingdoms: (KingdomProfile | null)[] = Array(MAX_COMPARE_SLOTS).fill(null);
+      results.forEach((k, i) => {
+        newKingdoms[i] = k;
+      });
+      setKingdoms(newKingdoms);
     } catch (err) {
       setError('Failed to load kingdom data. Please try again later.');
     } finally {
@@ -150,11 +316,14 @@ const CompareKingdoms: React.FC = () => {
   const getDefeats = (k: KingdomProfile) => k.defeats ?? 0;
 
   
-  const ComparisonRow = ({ label, val1, val2, format = 'number', higherIsBetter = true }: { 
-    label: string; val1: number | string; val2: number | string; format?: string; higherIsBetter?: boolean 
+  // Multi-kingdom comparison row - supports 2-5 kingdoms
+  const ComparisonRow = ({ label, values, format = 'number', higherIsBetter = true }: { 
+    label: string; 
+    values: (number | string)[]; 
+    format?: string; 
+    higherIsBetter?: boolean 
   }) => {
-    const v1 = typeof val1 === 'number' ? val1 : parseFloat(String(val1)) || 0;
-    const v2 = typeof val2 === 'number' ? val2 : parseFloat(String(val2)) || 0;
+    const numericValues = values.map(v => typeof v === 'number' ? v : parseFloat(String(v)) || 0);
     
     const formatVal = (v: number | string) => {
       if (typeof v === 'string' && isNaN(parseFloat(v))) return v;
@@ -164,72 +333,104 @@ const CompareKingdoms: React.FC = () => {
       return num.toString();
     };
 
-    const leftBest = higherIsBetter ? v1 > v2 : v1 < v2;
-    const rightBest = higherIsBetter ? v2 > v1 : v2 < v1;
-    const tie = v1 === v2;
+    // Find best value
+    const bestValue = higherIsBetter 
+      ? Math.max(...numericValues) 
+      : Math.min(...numericValues);
+    const allSame = numericValues.every(v => v === numericValues[0]);
 
-    const getColor = (isBest: boolean, isTie: boolean) => {
-      if (isTie) return '#9ca3af';
-      return isBest ? '#22c55e' : '#ef4444';
+    const getColor = (idx: number) => {
+      if (allSame) return '#9ca3af';
+      return numericValues[idx] === bestValue ? '#22c55e' : '#ef4444';
     };
+
+    const columnCount = values.length;
+    const gridColumns = columnCount === 2 
+      ? '1fr auto 1fr' 
+      : `repeat(${columnCount}, 1fr)`;
 
     return (
       <div style={{
         display: 'grid',
-        gridTemplateColumns: '1fr auto 1fr',
+        gridTemplateColumns: gridColumns,
         alignItems: 'center',
-        padding: isMobile ? '0.6rem 0.75rem' : '0.75rem 1rem',
+        padding: isMobile ? '0.5rem 0.5rem' : '0.75rem 1rem',
         borderBottom: '1px solid #2a2a2a'
       }}>
-        <div style={{ textAlign: 'center' }}>
-          <span style={{ fontSize: isMobile ? '0.9rem' : '1rem', fontWeight: 'bold', color: getColor(leftBest, tie) }}>
-            {formatVal(val1)}
-          </span>
-        </div>
-        <div style={{ padding: '0 0.5rem', color: '#6b7280', fontSize: isMobile ? '0.7rem' : '0.75rem', textAlign: 'center', minWidth: isMobile ? '80px' : '110px' }}>
-          {label}
-        </div>
-        <div style={{ textAlign: 'center' }}>
-          <span style={{ fontSize: isMobile ? '0.9rem' : '1rem', fontWeight: 'bold', color: getColor(rightBest, tie) }}>
-            {formatVal(val2)}
-          </span>
-        </div>
+        {columnCount === 2 ? (
+          // Original 2-kingdom layout with label in middle
+          <>
+            <div style={{ textAlign: 'center' }}>
+              <span style={{ fontSize: isMobile ? '0.9rem' : '1rem', fontWeight: 'bold', color: getColor(0) }}>
+                {formatVal(values[0] ?? 0)}
+              </span>
+            </div>
+            <div style={{ padding: '0 0.5rem', color: '#6b7280', fontSize: isMobile ? '0.7rem' : '0.75rem', textAlign: 'center', minWidth: isMobile ? '80px' : '110px' }}>
+              {label}
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <span style={{ fontSize: isMobile ? '0.9rem' : '1rem', fontWeight: 'bold', color: getColor(1) }}>
+                {formatVal(values[1] ?? 0)}
+              </span>
+            </div>
+          </>
+        ) : (
+          // Multi-kingdom layout - values in columns
+          values.map((val, i) => (
+            <div key={i} style={{ textAlign: 'center' }}>
+              <span style={{ 
+                fontSize: isMobile ? '0.8rem' : '0.9rem', 
+                fontWeight: 'bold', 
+                color: getColor(i) 
+              }}>
+                {formatVal(val)}
+              </span>
+            </div>
+          ))
+        )}
       </div>
     );
   };
+
 
   const SectionDivider = () => (
     <div style={{ height: '1px', backgroundColor: '#333', margin: '0' }} />
   );
 
-  const calculateWinner = () => {
-    if (!kingdom1 || !kingdom2) return null;
+  // Multi-kingdom winner calculation
+  const calculateWinner = (): number | 'tie' | null => {
+    if (loadedKingdoms.length < 2) return null;
     
-    let k1Wins = 0;
-    let k2Wins = 0;
+    // Score each kingdom based on wins across metrics
+    const scores = loadedKingdoms.map(() => 0);
 
-    const compare = (v1: number, v2: number, higherBetter = true) => {
-      if (v1 === v2) return;
-      if (higherBetter ? v1 > v2 : v1 < v2) k1Wins++;
-      else k2Wins++;
+    const compareMetric = (getValue: (k: KingdomProfile) => number, higherBetter = true) => {
+      const vals = loadedKingdoms.map(getValue);
+      const bestVal = higherBetter ? Math.max(...vals) : Math.min(...vals);
+      vals.forEach((v, i) => {
+        if (v === bestVal && scores[i] !== undefined) scores[i]++;
+      });
     };
 
-    compare(kingdom1.overall_score, kingdom2.overall_score);
-    compare(getRank(kingdom1.kingdom_number), getRank(kingdom2.kingdom_number), false);
-    compare(kingdom1.total_kvks, kingdom2.total_kvks);
-    compare(getDominations(kingdom1), getDominations(kingdom2));
-    compare(getDefeats(kingdom1), getDefeats(kingdom2), false);
-    compare(kingdom1.prep_wins, kingdom2.prep_wins);
-    compare(kingdom1.prep_win_rate, kingdom2.prep_win_rate);
-    compare(getCurrentStreak(kingdom1, 'prep'), getCurrentStreak(kingdom2, 'prep'));
-    compare(kingdom1.battle_wins, kingdom2.battle_wins);
-    compare(kingdom1.battle_win_rate, kingdom2.battle_win_rate);
-    compare(getCurrentStreak(kingdom1, 'battle'), getCurrentStreak(kingdom2, 'battle'));
+    compareMetric(k => k.overall_score);
+    compareMetric(k => getRank(k.kingdom_number), false);
+    compareMetric(k => k.total_kvks);
+    compareMetric(k => getDominations(k));
+    compareMetric(k => getDefeats(k), false);
+    compareMetric(k => k.prep_wins);
+    compareMetric(k => k.prep_win_rate);
+    compareMetric(k => getCurrentStreak(k, 'prep'));
+    compareMetric(k => k.battle_wins);
+    compareMetric(k => k.battle_win_rate);
+    compareMetric(k => getCurrentStreak(k, 'battle'));
 
-    if (k1Wins > k2Wins) return kingdom1.kingdom_number;
-    if (k2Wins > k1Wins) return kingdom2.kingdom_number;
-    return 'tie';
+    const maxScore = Math.max(...scores);
+    const winners = loadedKingdoms.filter((_, i) => (scores[i] ?? 0) === maxScore);
+    
+    if (winners.length > 1) return 'tie';
+    return winners[0]?.kingdom_number ?? null;
   };
+
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a' }}>
@@ -543,76 +744,108 @@ const CompareKingdoms: React.FC = () => {
           </div>
         )}
 
-        {kingdom1 && kingdom2 && (
+        {loadedKingdoms.length >= 2 && (
           <>
           <div ref={comparisonRef} style={{ backgroundColor: '#111111', borderRadius: '12px', overflow: 'visible', border: '1px solid #2a2a2a' }}>
-            {/* Header with kingdom names and tiers - aligned with data columns */}
+            {/* Header with kingdom names and tiers - dynamic columns */}
             <div style={{
               display: 'grid',
-              gridTemplateColumns: '1fr auto 1fr',
+              gridTemplateColumns: loadedKingdoms.length === 2 
+                ? '1fr auto 1fr' 
+                : `repeat(${loadedKingdoms.length}, 1fr)`,
               padding: isMobile ? '1rem 0.75rem' : '1.25rem 1rem',
               borderBottom: '1px solid #2a2a2a',
-              backgroundColor: '#0a0a0a'
+              backgroundColor: '#0a0a0a',
+              gap: loadedKingdoms.length > 2 ? '0.5rem' : '0'
             }}>
-              <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                <Link to={`/kingdom/${kingdom1.kingdom_number}`} style={{ textDecoration: 'none' }}>
-                  <div style={{ fontSize: isMobile ? '1.1rem' : '1.25rem', fontWeight: 'bold', color: '#fff', fontFamily: "'Cinzel', serif" }}>
-                    Kingdom {kingdom1.kingdom_number}
+              {loadedKingdoms.length === 2 ? (
+                // Original 2-kingdom layout with vs in middle
+                <>
+                  <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                    <Link to={`/kingdom/${loadedKingdoms[0]!.kingdom_number}`} style={{ textDecoration: 'none' }}>
+                      <div style={{ fontSize: isMobile ? '1.1rem' : '1.25rem', fontWeight: 'bold', color: KINGDOM_COLORS[0], fontFamily: "'Cinzel', serif" }}>
+                        K{loadedKingdoms[0]!.kingdom_number}
+                      </div>
+                    </Link>
+                    <div style={{ 
+                      fontSize: isMobile ? '0.7rem' : '0.75rem', 
+                      fontWeight: 'bold', 
+                      color: getTierColor(loadedKingdoms[0]!.power_tier || getPowerTier(loadedKingdoms[0]!.overall_score)),
+                      marginTop: '0.25rem'
+                    }}>
+                      {loadedKingdoms[0]!.power_tier || getPowerTier(loadedKingdoms[0]!.overall_score)}-Tier
+                    </div>
                   </div>
-                </Link>
-                <div style={{ 
-                  fontSize: isMobile ? '0.7rem' : '0.75rem', 
-                  fontWeight: 'bold', 
-                  color: getTierColor(kingdom1.power_tier || getPowerTier(kingdom1.overall_score)),
-                  marginTop: '0.25rem'
-                }}>
-                  {kingdom1.power_tier || getPowerTier(kingdom1.overall_score)}-Tier
-                </div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: isMobile ? '80px' : '110px' }}>
-                <span style={{ color: '#6b7280', fontSize: isMobile ? '0.75rem' : '0.85rem' }}>vs</span>
-              </div>
-              <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                <Link to={`/kingdom/${kingdom2.kingdom_number}`} style={{ textDecoration: 'none' }}>
-                  <div style={{ fontSize: isMobile ? '1.1rem' : '1.25rem', fontWeight: 'bold', color: '#fff', fontFamily: "'Cinzel', serif" }}>
-                    Kingdom {kingdom2.kingdom_number}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: isMobile ? '80px' : '110px' }}>
+                    <span style={{ color: '#6b7280', fontSize: isMobile ? '0.75rem' : '0.85rem' }}>vs</span>
                   </div>
-                </Link>
-                <div style={{ 
-                  fontSize: isMobile ? '0.7rem' : '0.75rem', 
-                  fontWeight: 'bold', 
-                  color: getTierColor(kingdom2.power_tier || getPowerTier(kingdom2.overall_score)),
-                  marginTop: '0.25rem'
-                }}>
-                  {kingdom2.power_tier || getPowerTier(kingdom2.overall_score)}-Tier
-                </div>
-              </div>
+                  <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                    <Link to={`/kingdom/${loadedKingdoms[1]!.kingdom_number}`} style={{ textDecoration: 'none' }}>
+                      <div style={{ fontSize: isMobile ? '1.1rem' : '1.25rem', fontWeight: 'bold', color: KINGDOM_COLORS[1], fontFamily: "'Cinzel', serif" }}>
+                        K{loadedKingdoms[1]!.kingdom_number}
+                      </div>
+                    </Link>
+                    <div style={{ 
+                      fontSize: isMobile ? '0.7rem' : '0.75rem', 
+                      fontWeight: 'bold', 
+                      color: getTierColor(loadedKingdoms[1]!.power_tier || getPowerTier(loadedKingdoms[1]!.overall_score)),
+                      marginTop: '0.25rem'
+                    }}>
+                      {loadedKingdoms[1]!.power_tier || getPowerTier(loadedKingdoms[1]!.overall_score)}-Tier
+                    </div>
+                  </div>
+                </>
+              ) : (
+                // Multi-kingdom layout - all kingdoms in a row
+                loadedKingdoms.map((k, i) => (
+                  <div key={k.kingdom_number} style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                    <Link to={`/kingdom/${k.kingdom_number}`} style={{ textDecoration: 'none' }}>
+                      <div style={{ 
+                        fontSize: isMobile ? '0.9rem' : '1rem', 
+                        fontWeight: 'bold', 
+                        color: KINGDOM_COLORS[i % KINGDOM_COLORS.length], 
+                        fontFamily: "'Cinzel', serif" 
+                      }}>
+                        K{k.kingdom_number}
+                      </div>
+                    </Link>
+                    <div style={{ 
+                      fontSize: isMobile ? '0.6rem' : '0.65rem', 
+                      fontWeight: 'bold', 
+                      color: getTierColor(k.power_tier || getPowerTier(k.overall_score)),
+                      marginTop: '0.2rem'
+                    }}>
+                      {k.power_tier || getPowerTier(k.overall_score)}
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
 
             {/* Atlas Score & Rank */}
-            <ComparisonRow label="Atlas Score" val1={kingdom1.overall_score || 0} val2={kingdom2.overall_score || 0} format="decimal" />
-            <ComparisonRow label="Atlas Rank" val1={getRank(kingdom1.kingdom_number)} val2={getRank(kingdom2.kingdom_number)} higherIsBetter={false} />
+            <ComparisonRow label="Atlas Score" values={loadedKingdoms.map(k => k.overall_score || 0)} format="decimal" />
+            <ComparisonRow label="Atlas Rank" values={loadedKingdoms.map(k => getRank(k.kingdom_number))} higherIsBetter={false} />
             
             <SectionDivider />
 
             {/* KvK Stats */}
-            <ComparisonRow label="Total KvKs" val1={kingdom1.total_kvks} val2={kingdom2.total_kvks} />
-            <ComparisonRow label="Dominations" val1={getDominations(kingdom1)} val2={getDominations(kingdom2)} />
-            <ComparisonRow label="Invasions" val1={getDefeats(kingdom1)} val2={getDefeats(kingdom2)} higherIsBetter={false} />
+            <ComparisonRow label="Total KvKs" values={loadedKingdoms.map(k => k.total_kvks)} />
+            <ComparisonRow label="Dominations" values={loadedKingdoms.map(k => getDominations(k))} />
+            <ComparisonRow label="Invasions" values={loadedKingdoms.map(k => getDefeats(k))} higherIsBetter={false} />
             
             <SectionDivider />
 
             {/* Prep Stats */}
-            <ComparisonRow label="Prep Wins" val1={kingdom1.prep_wins} val2={kingdom2.prep_wins} />
-            <ComparisonRow label="Prep Win Rate" val1={kingdom1.prep_win_rate} val2={kingdom2.prep_win_rate} format="percent" />
-            <ComparisonRow label="Prep Streak" val1={getCurrentStreak(kingdom1, 'prep')} val2={getCurrentStreak(kingdom2, 'prep')} />
+            <ComparisonRow label="Prep Wins" values={loadedKingdoms.map(k => k.prep_wins)} />
+            <ComparisonRow label="Prep Win Rate" values={loadedKingdoms.map(k => k.prep_win_rate)} format="percent" />
+            <ComparisonRow label="Prep Streak" values={loadedKingdoms.map(k => getCurrentStreak(k, 'prep'))} />
             
             <SectionDivider />
 
             {/* Battle Stats */}
-            <ComparisonRow label="Battle Wins" val1={kingdom1.battle_wins} val2={kingdom2.battle_wins} />
-            <ComparisonRow label="Battle Win Rate" val1={kingdom1.battle_win_rate} val2={kingdom2.battle_win_rate} format="percent" />
-            <ComparisonRow label="Battle Streak" val1={getCurrentStreak(kingdom1, 'battle')} val2={getCurrentStreak(kingdom2, 'battle')} />
+            <ComparisonRow label="Battle Wins" values={loadedKingdoms.map(k => k.battle_wins)} />
+            <ComparisonRow label="Battle Win Rate" values={loadedKingdoms.map(k => k.battle_win_rate)} format="percent" />
+            <ComparisonRow label="Battle Streak" values={loadedKingdoms.map(k => getCurrentStreak(k, 'battle'))} />
 
             {/* Verdict */}
             <div style={{ padding: isMobile ? '1rem' : '1.25rem', backgroundColor: '#0a0a0a', textAlign: 'center', borderTop: '1px solid #2a2a2a' }}>
@@ -630,8 +863,8 @@ const CompareKingdoms: React.FC = () => {
             </div>
           </div>
 
-          {/* Radar Chart Comparison */}
-          <CompareRadarChart kingdom1={kingdom1} kingdom2={kingdom2} />
+          {/* Radar Chart Comparison - supports multi-kingdom */}
+          <MultiCompareRadarChart kingdoms={loadedKingdoms} colors={KINGDOM_COLORS} />
 
           {/* Share Button */}
           <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'center' }}>
@@ -639,24 +872,24 @@ const CompareKingdoms: React.FC = () => {
               type="compare"
               compareData={{
                 kingdom1: { 
-                  number: kingdom1.kingdom_number, 
-                  score: kingdom1.overall_score, 
-                  tier: kingdom1.power_tier ?? getPowerTier(kingdom1.overall_score) 
+                  number: loadedKingdoms[0]?.kingdom_number ?? 0, 
+                  score: loadedKingdoms[0]?.overall_score ?? 0, 
+                  tier: loadedKingdoms[0]?.power_tier ?? getPowerTier(loadedKingdoms[0]?.overall_score ?? 0) 
                 },
                 kingdom2: { 
-                  number: kingdom2.kingdom_number, 
-                  score: kingdom2.overall_score, 
-                  tier: kingdom2.power_tier ?? getPowerTier(kingdom2.overall_score) 
+                  number: loadedKingdoms[1]?.kingdom_number ?? 0, 
+                  score: loadedKingdoms[1]?.overall_score ?? 0, 
+                  tier: loadedKingdoms[1]?.power_tier ?? getPowerTier(loadedKingdoms[1]?.overall_score ?? 0) 
                 },
                 winner: calculateWinner() === 'tie' ? 'tie' : 
-                  calculateWinner() === kingdom1.kingdom_number ? 'kingdom1' : 'kingdom2'
+                  calculateWinner() === loadedKingdoms[0]?.kingdom_number ? 'kingdom1' : 'kingdom2'
               }}
             />
           </div>
           </>
         )}
 
-        {!kingdom1 && !kingdom2 && !loading && (
+        {loadedKingdoms.length === 0 && !loading && (
           <div style={{ textAlign: 'center', color: '#6b7280', marginTop: '-0.5rem' }}>
             <div style={{ fontSize: isMobile ? '0.8rem' : '0.85rem' }}>Pick your matchup. The numbers will tell the story.</div>
           </div>

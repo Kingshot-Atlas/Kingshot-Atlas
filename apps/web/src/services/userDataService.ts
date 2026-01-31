@@ -87,7 +87,8 @@ class UserDataService {
         this.saveLocalData(merged);
       }
     } catch (err) {
-      logger.warn('Failed to sync from cloud:', err);
+      // Silently fail - localStorage still works
+      logger.debug('Cloud sync from error:', err);
     }
   }
 
@@ -98,17 +99,24 @@ class UserDataService {
     try {
       const local = this.getLocalData();
       
-      await supabase
+      // Only sync columns that exist in the database
+      // compare_history and followed_kingdoms are localStorage-only for now
+      const { error } = await supabase
         .from('user_data')
         .upsert({
           user_id: this.userId,
           favorites: local.favorites,
           recently_viewed: local.recently_viewed,
-          compare_history: local.compare_history,
           updated_at: new Date().toISOString()
         }, { onConflict: 'user_id' });
+      
+      if (error) {
+        // Silently fail - localStorage still works
+        logger.debug('Cloud sync skipped:', error.message);
+      }
     } catch (err) {
-      logger.warn('Failed to sync to cloud:', err);
+      // Silently fail - localStorage still works
+      logger.debug('Cloud sync error:', err);
     }
   }
 

@@ -6,6 +6,7 @@ import { statusService, type StatusSubmission } from '../services/statusService'
 import { apiService } from '../services/api';
 import { contributorService } from '../services/contributorService';
 import { correctionService } from '../services/correctionService';
+import { kvkCorrectionService } from '../services/kvkCorrectionService';
 import { AnalyticsDashboard } from '../components/AnalyticsCharts';
 import { EngagementDashboard } from '../components/EngagementDashboard';
 import { WebhookMonitor } from '../components/WebhookMonitor';
@@ -347,7 +348,7 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  const reviewKvkError = (id: string, status: 'approved' | 'rejected', notes?: string) => {
+  const reviewKvkError = async (id: string, status: 'approved' | 'rejected', notes?: string) => {
     const stored = localStorage.getItem(KVK_ERRORS_KEY);
     const all: KvKError[] = stored ? JSON.parse(stored) : [];
     const kvkError = all.find(e => e.id === id);
@@ -370,6 +371,12 @@ const AdminDashboard: React.FC = () => {
         message: `Your KvK error report for K${kvkError.kingdom_number} was ${status}.${notes ? ` Reason: ${notes}` : ''}`,
         itemId: id
       });
+      
+      // Apply KvK correction to data if approved (writes to Supabase)
+      if (status === 'approved' && kvkError.current_data) {
+        await kvkCorrectionService.applyCorrectionAsync(kvkError, profile?.username || 'admin');
+        apiService.reloadData(); // Trigger data reload to pick up corrections
+      }
     }
     
     showToast(`KvK error report ${status}`, 'success');

@@ -2,6 +2,7 @@ import { Kingdom, KingdomProfile, KVKRecord, FilterOptions, SortOptions, getPowe
 import { logger } from '../utils/logger';
 import { statusService } from './statusService';
 import { correctionService } from './correctionService';
+import { kvkCorrectionService } from './kvkCorrectionService';
 import kingdomData from '../data/kingdoms.json';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
@@ -10,27 +11,64 @@ const CACHE_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
 const REQUEST_TIMEOUT_MS = 10000; // 10 second timeout
 const MAX_RETRIES = 2;
 
+// Preload KvK corrections from Supabase on module load
+kvkCorrectionService.fetchCorrectionsFromSupabase().catch(() => {
+  // Silent fail - will use localStorage fallback
+});
+
 interface CacheData {
   kingdoms: Kingdom[];
   timestamp: number;
 }
 
+// Helper to calculate overall result from prep and battle outcomes
+const calculateOverallResult = (prepResult: string, battleResult: string): string => {
+  const prepWin = prepResult === 'Win';
+  const battleWin = battleResult === 'Win';
+  
+  if (prepWin && battleWin) return 'Win';        // Domination
+  if (!prepWin && battleWin) return 'Battle';    // Comeback
+  if (prepWin && !battleWin) return 'Preparation'; // Reversal
+  return 'Loss';                                  // Invasion
+};
+
 // Load real kingdom data from JSON
 const loadKingdomData = (): Kingdom[] => {
   const kvksByKingdom: Record<number, KVKRecord[]> = {};
   
-  // Group KvK records by kingdom
+  // Get approved KvK corrections for applying to records
+  const kvkCorrections = kvkCorrectionService.getAllAppliedCorrections();
+  
+  // Group KvK records by kingdom and apply any corrections
   for (const kvk of kingdomData.kvk_records) {
     const kNum = kvk.kingdom_number;
     if (!kvksByKingdom[kNum]) kvksByKingdom[kNum] = [];
+    
+    // Check if there's a correction for this KvK record
+    const correctionKey = `${kNum}-${kvk.kvk_number}`;
+    const correction = kvkCorrections.get(correctionKey);
+    
+    // Apply correction if exists, otherwise use original data
+    const prepResult = correction 
+      ? (correction.corrected_prep_result === 'W' ? 'Win' : 'Loss')
+      : (kvk.prep_result === 'W' ? 'Win' : 'Loss');
+    const battleResult = correction
+      ? (correction.corrected_battle_result === 'W' ? 'Win' : 'Loss')
+      : (kvk.battle_result === 'W' ? 'Win' : 'Loss');
+    
+    // Calculate overall result based on (possibly corrected) prep/battle results
+    const overallResult = correction
+      ? calculateOverallResult(prepResult, battleResult)
+      : kvk.overall_result;
+    
     kvksByKingdom[kNum]!.push({
       id: kNum * 100 + kvk.kvk_number,
       kingdom_number: kNum,
       kvk_number: kvk.kvk_number,
       opponent_kingdom: kvk.opponent_kingdom || 0,
-      prep_result: kvk.prep_result === 'W' ? 'Win' : 'Loss',
-      battle_result: kvk.battle_result === 'W' ? 'Win' : 'Loss',
-      overall_result: kvk.overall_result,
+      prep_result: prepResult,
+      battle_result: battleResult,
+      overall_result: overallResult,
       date_or_order_index: kvk.date_or_order_index,
       created_at: kvk.date_or_order_index
     });

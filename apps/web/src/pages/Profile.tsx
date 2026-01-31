@@ -10,7 +10,7 @@ import PlayersFromMyKingdom from '../components/PlayersFromMyKingdom';
 import { useAuth, getCacheBustedAvatarUrl, UserProfile } from '../contexts/AuthContext';
 import { usePremium } from '../contexts/PremiumContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
-import { createPortalSession } from '../lib/stripe';
+import { getCustomerPortalUrl } from '../lib/stripe';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { neonGlow } from '../utils/styles';
@@ -167,12 +167,12 @@ const KingdomLeaderboardPosition: React.FC<{
       .then(data => {
         if (data) {
           setKingdom({
-            id: data.id,
-            atlas_score: data.atlas_score,
-            rank: data.rank,
-            total_wins: data.total_wins,
-            total_losses: data.total_losses,
-            kvk_count: data.kvk_count,
+            id: data.id ?? data.kingdom_number ?? kingdomId,
+            atlas_score: data.atlas_score ?? data.overall_score ?? 0,
+            rank: data.rank ?? 0,
+            total_wins: data.total_wins ?? (data.prep_wins ?? 0) + (data.battle_wins ?? 0),
+            total_losses: data.total_losses ?? (data.prep_losses ?? 0) + (data.battle_losses ?? 0),
+            kvk_count: data.kvk_count ?? data.total_kvks ?? 0,
           });
         }
       })
@@ -270,6 +270,7 @@ const Profile: React.FC = () => {
   useEffect(() => {
     if (userId) {
       // Viewing another user's profile
+      setViewedProfile(null); // Reset while loading
       const loadOtherProfile = async () => {
         // Try to fetch from Supabase first
         if (isSupabaseConfigured && supabase) {
@@ -346,8 +347,11 @@ const Profile: React.FC = () => {
       
       loadOtherProfile();
     } else {
-      // Viewing own profile
-      setViewedProfile(profile);
+      // Viewing own profile - only update viewedProfile if profile is loaded
+      // Don't set to null if profile hasn't loaded yet (prevents "Profile Not Found" flash)
+      if (profile) {
+        setViewedProfile(profile);
+      }
       setIsViewingOther(false);
     }
   }, [userId, profile]);
@@ -427,7 +431,24 @@ const Profile: React.FC = () => {
     );
   }
 
+  // User is logged in but profile is still loading (race condition fix)
+  if (user && !userId && !profile) {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ color: '#6b7280' }}>Loading profile...</div>
+      </div>
+    );
+  }
+
   if (!viewedProfile) {
+    // Race condition: viewing own profile, profile exists but useEffect hasn't set viewedProfile yet
+    if (!userId && profile) {
+      return (
+        <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ color: '#6b7280' }}>Loading profile...</div>
+        </div>
+      );
+    }
     return (
       <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a' }}>
         <ParticleEffect />
@@ -864,14 +885,14 @@ const Profile: React.FC = () => {
               
               {isPro || isRecruiter ? (
                 <button
-                  onClick={async () => {
-                    setManagingSubscription(true);
-                    try {
-                      const portalUrl = await createPortalSession(user.id);
-                      window.location.href = portalUrl;
-                    } catch (err) {
-                      console.error('Failed to open subscription portal:', err);
-                      setManagingSubscription(false);
+                  onClick={() => {
+                    // Use direct portal URL if configured
+                    const directPortalUrl = getCustomerPortalUrl();
+                    if (directPortalUrl && directPortalUrl !== '/profile') {
+                      window.location.href = directPortalUrl;
+                    } else {
+                      // Portal not configured - show helpful message
+                      alert('Subscription management coming soon! For now, email support@ks-atlas.com to manage your subscription.');
                     }
                   }}
                   disabled={managingSubscription}

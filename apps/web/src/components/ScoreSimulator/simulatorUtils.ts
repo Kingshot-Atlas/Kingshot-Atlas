@@ -532,15 +532,16 @@ export function getSimulatedOutcome(prep: 'W' | 'L', battle: 'W' | 'L'): {
   abbrev: string;
   color: string;
   bgColor: string;
+  emoji: string;
 } {
   if (prep === 'W' && battle === 'W') {
-    return { label: 'Domination', abbrev: 'D', color: '#22c55e', bgColor: '#22c55e15' };
+    return { label: 'Domination', abbrev: 'D', color: '#22c55e', bgColor: '#22c55e15', emoji: '👑' };
   }
   if (prep === 'L' && battle === 'W') {
-    return { label: 'Comeback', abbrev: 'C', color: '#3b82f6', bgColor: '#3b82f615' };
+    return { label: 'Comeback', abbrev: 'C', color: '#3b82f6', bgColor: '#3b82f615', emoji: '🔄' };
   }
   if (prep === 'W' && battle === 'L') {
-    return { label: 'Reversal', abbrev: 'R', color: '#a855f7', bgColor: '#a855f715' };
+    return { label: 'Reversal', abbrev: 'R', color: '#a855f7', bgColor: '#a855f715', emoji: '⚔️' };
   }
-  return { label: 'Invasion', abbrev: 'I', color: '#ef4444', bgColor: '#ef444415' };
+  return { label: 'Invasion', abbrev: 'I', color: '#ef4444', bgColor: '#ef444415', emoji: '💀' };
 }
