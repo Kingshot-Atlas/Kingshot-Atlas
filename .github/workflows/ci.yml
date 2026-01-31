@@ -3,10 +3,22 @@ name: CI
 on:
   pull_request:
     branches: [main]
+    paths:
+      - 'apps/web/**'
+      - 'apps/api/**'
+      - 'package*.json'
+      - '.github/workflows/ci.yml'
   push:
     branches: [main]
+    paths:
+      - 'apps/web/**'
+      - 'apps/api/**'
+      - 'package*.json'
+      - '.github/workflows/ci.yml'
 
 # Cancel in-progress runs for the same branch
+# Note: Cancelled runs still appear as "failed" in GitHub - configure notification settings
+# to exclude cancelled workflows: Settings > Notifications > Actions > uncheck "Send notifications for workflow runs"
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
