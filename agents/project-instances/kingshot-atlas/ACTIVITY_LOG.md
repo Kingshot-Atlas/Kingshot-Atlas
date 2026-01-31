@@ -23,6 +23,20 @@ Files Changed:
   - apps/discord-bot/src/config.js
 Result: Atlas bot will automatically post @everyone announcement at 18:00 UTC on KvK Saturdays prompting users to submit their KvK results
 
+## 2026-01-31 14:50 | Product Engineer | COMPLETED
+Task: Add Castle Battle as distinct event + Discord announcements
+Changes:
+  - EventCalendar.tsx: Add Castle Battle (12:00-18:00 UTC) as separate event
+    - Icon: 🏰, Color: #dc2626 (dark red)
+    - Shows nested within Battle Phase
+  - Discord bot scheduler.js: Add 12:00 UTC cron job for Castle Battle start
+  - Discord bot embeds.js: Add createCastleBattleStartEmbed
+Files Changed:
+  - apps/web/src/components/EventCalendar.tsx
+  - apps/discord-bot/src/scheduler.js
+  - apps/discord-bot/src/utils/embeds.js
+Result: Castle Battle now shown as distinct event, Discord announces at 12:00 and 18:00 UTC
+
 ## 2026-01-31 14:45 | Product Engineer | COMPLETED
 Task: Fix Admin Dashboard KvK Results tab + Add Castle Battle timing
 Changes:
