@@ -61,16 +61,18 @@ export interface DataQualityReport {
   };
 }
 
-// Badge definitions
+// Badge definitions - Tiers: Scout (1), Hunter (5), Master (10), Legend (25)
 const BADGES = {
-  first_contribution: { name: 'First Steps', description: 'Made your first contribution', icon: '🌱' },
-  ten_approved: { name: 'Data Scout', description: '10 approved submissions', icon: '🔍' },
-  fifty_approved: { name: 'Data Hunter', description: '50 approved submissions', icon: '🎯' },
-  hundred_approved: { name: 'Data Master', description: '100 approved submissions', icon: '👑' },
-  perfect_accuracy: { name: 'Sharp Eye', description: '10+ submissions with 100% approval', icon: '👁️' },
-  quick_responder: { name: 'Speed Demon', description: 'Submitted 5 corrections in one day', icon: '⚡' },
-  veteran: { name: 'Veteran', description: 'Contributing for 30+ days', icon: '🏆' },
-  screenshot_hero: { name: 'Evidence Expert', description: '10 submissions with screenshots', icon: '📸' },
+  // Data contribution tiers
+  data_scout: { name: 'Data Scout', description: '1 approved contribution', icon: '🥉', tier: 1 },
+  data_hunter: { name: 'Data Hunter', description: '5 approved contributions', icon: '🥈', tier: 2 },
+  data_master: { name: 'Data Master', description: '10 approved contributions', icon: '🥇', tier: 3 },
+  atlas_legend: { name: 'Atlas Legend', description: '25 approved contributions - Discord role eligible', icon: '�', tier: 4 },
+  // Special badges
+  perfect_accuracy: { name: 'Sharp Eye', description: '10+ submissions with 100% approval', icon: '👁️', tier: 0 },
+  quick_responder: { name: 'Speed Demon', description: 'Submitted 5 corrections in one day', icon: '⚡', tier: 0 },
+  veteran: { name: 'Veteran', description: 'Contributing for 30+ days', icon: '🏆', tier: 0 },
+  screenshot_hero: { name: 'Evidence Expert', description: '10 submissions with screenshots', icon: '📸', tier: 0 },
 };
 
 class ContributorService {
@@ -173,24 +175,24 @@ class ContributorService {
     const newBadges: string[] = [];
     const totalApproved = stats.submissions.approved + stats.corrections.approved + stats.kvkErrors.approved;
 
-    // First contribution
-    if (!stats.badges.includes('first_contribution') && totalApproved >= 1) {
-      newBadges.push('first_contribution');
+    // Data Scout - 1 approved
+    if (!stats.badges.includes('data_scout') && totalApproved >= 1) {
+      newBadges.push('data_scout');
     }
 
-    // 10 approved
-    if (!stats.badges.includes('ten_approved') && totalApproved >= 10) {
-      newBadges.push('ten_approved');
+    // Data Hunter - 5 approved
+    if (!stats.badges.includes('data_hunter') && totalApproved >= 5) {
+      newBadges.push('data_hunter');
     }
 
-    // 50 approved
-    if (!stats.badges.includes('fifty_approved') && totalApproved >= 50) {
-      newBadges.push('fifty_approved');
+    // Data Master - 10 approved
+    if (!stats.badges.includes('data_master') && totalApproved >= 10) {
+      newBadges.push('data_master');
     }
 
-    // 100 approved
-    if (!stats.badges.includes('hundred_approved') && totalApproved >= 100) {
-      newBadges.push('hundred_approved');
+    // Atlas Legend - 25 approved (Discord role eligible)
+    if (!stats.badges.includes('atlas_legend') && totalApproved >= 25) {
+      newBadges.push('atlas_legend');
     }
 
     // Perfect accuracy (10+ with 100% approval)

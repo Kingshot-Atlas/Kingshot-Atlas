@@ -29,6 +29,7 @@ const Upgrade = lazy(() => import('./pages/Upgrade'));
 const Changelog = lazy(() => import('./pages/Changelog'));
 const ComponentsDemo = lazy(() => import('./pages/ComponentsDemo'));
 const MissingDataRegistry = lazy(() => import('./pages/MissingDataRegistry'));
+const DiscordCallback = lazy(() => import('./pages/DiscordCallback'));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -90,6 +91,7 @@ function AppContent() {
               <Route path="/changelog" element={<ErrorBoundary><Changelog /></ErrorBoundary>} />
               <Route path="/components" element={<ErrorBoundary><ComponentsDemo /></ErrorBoundary>} />
               <Route path="/missing-data" element={<ErrorBoundary><MissingDataRegistry /></ErrorBoundary>} />
+              <Route path="/auth/discord/callback" element={<ErrorBoundary><DiscordCallback /></ErrorBoundary>} />
             </Routes>
           </Suspense>
         </PageTransition>

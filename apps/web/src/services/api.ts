@@ -134,37 +134,108 @@ const loadKingdomData = (): Kingdom[] => {
     // Get any approved corrections for this kingdom
     const corrections = dataCorrections.get(k.kingdom_number);
     
-    // Apply corrections to base values
-    const getValue = (field: string, defaultValue: number | string) => {
+    // Check if this kingdom has Supabase data - if so, recalculate stats from KvK records
+    const hasSupabaseData = supabaseKvkData && supabaseKvkData.has(k.kingdom_number) && supabaseKvkData.get(k.kingdom_number)!.length > 0;
+    
+    // Calculate stats from actual KvK records (source of truth when Supabase data exists)
+    let totalKvks = k.total_kvks;
+    let prepWins = k.prep_wins;
+    let prepLosses = k.prep_losses;
+    let battleWins = k.battle_wins;
+    let battleLosses = k.battle_losses;
+    let dominations = k.dominations ?? 0;
+    let defeats = k.defeats ?? 0;
+    
+    if (hasSupabaseData && recentKvks.length > 0) {
+      // Recalculate from actual KvK records
+      totalKvks = recentKvks.length;
+      prepWins = recentKvks.filter(r => r.prep_result === 'Win').length;
+      prepLosses = recentKvks.filter(r => r.prep_result === 'Loss').length;
+      battleWins = recentKvks.filter(r => r.battle_result === 'Win').length;
+      battleLosses = recentKvks.filter(r => r.battle_result === 'Loss').length;
+      // Domination = won both prep AND battle (overall Win)
+      dominations = recentKvks.filter(r => r.prep_result === 'Win' && r.battle_result === 'Win').length;
+      // Defeat/Invasion = lost both prep AND battle
+      defeats = recentKvks.filter(r => r.prep_result === 'Loss' && r.battle_result === 'Loss').length;
+    }
+    
+    // Calculate win rates
+    const prepWinRate = totalKvks > 0 ? prepWins / totalKvks : 0;
+    const battleWinRate = totalKvks > 0 ? battleWins / totalKvks : 0;
+    
+    // Calculate streaks from KvK records (sorted by kvk_number descending)
+    let prepStreak = 0;
+    let battleStreak = 0;
+    if (recentKvks.length > 0) {
+      // Prep streak - count consecutive wins from most recent
+      for (const kvk of recentKvks) {
+        if (kvk.prep_result === 'Win') prepStreak++;
+        else break;
+      }
+      // If no wins at start, count losses as negative streak
+      if (prepStreak === 0) {
+        for (const kvk of recentKvks) {
+          if (kvk.prep_result === 'Loss') prepStreak--;
+          else break;
+        }
+      }
+      // Battle streak
+      for (const kvk of recentKvks) {
+        if (kvk.battle_result === 'Win') battleStreak++;
+        else break;
+      }
+      if (battleStreak === 0) {
+        for (const kvk of recentKvks) {
+          if (kvk.battle_result === 'Loss') battleStreak--;
+          else break;
+        }
+      }
+    }
+    
+    // Calculate Atlas Score from actual performance
+    let overallScore = k.overall_score;
+    if (hasSupabaseData && totalKvks > 0) {
+      // Atlas Score formula: weighted combination of prep WR, battle WR, dominations, and experience
+      const prepWeight = 0.3;
+      const battleWeight = 0.4;
+      const domWeight = 0.2;
+      const expWeight = 0.1;
+      
+      const domRate = dominations / totalKvks;
+      const expFactor = Math.min(1, totalKvks / 10); // Caps at 10 KvKs
+      
+      overallScore = (prepWinRate * prepWeight + battleWinRate * battleWeight + domRate * domWeight + expFactor * expWeight) * 20;
+    }
+    
+    // Apply corrections to base values (override calculated values if correction exists)
+    const getValue = (field: string, calculatedValue: number | string) => {
       if (corrections?.has(field)) {
         const corrected = corrections.get(field)!;
-        // Try to parse as number if the default is a number
-        if (typeof defaultValue === 'number') {
+        if (typeof calculatedValue === 'number') {
           const parsed = parseFloat(corrected);
-          return isNaN(parsed) ? defaultValue : parsed;
+          return isNaN(parsed) ? calculatedValue : parsed;
         }
         return corrected;
       }
-      return defaultValue;
+      return calculatedValue;
     };
     
     return {
       kingdom_number: k.kingdom_number,
-      total_kvks: getValue('total_kvks', k.total_kvks) as number,
-      prep_wins: getValue('prep_wins', k.prep_wins) as number,
-      prep_losses: getValue('prep_losses', k.prep_losses) as number,
-      prep_win_rate: getValue('prep_win_rate', k.prep_win_rate) as number,
-      prep_streak: getValue('prep_streak', k.prep_streak) as number,
-      battle_wins: getValue('battle_wins', k.battle_wins) as number,
-      battle_losses: getValue('battle_losses', k.battle_losses) as number,
-      battle_win_rate: getValue('battle_win_rate', k.battle_win_rate) as number,
-      battle_streak: getValue('battle_streak', k.battle_streak) as number,
-      // Use full history values from JSON data
-      dominations: getValue('dominations', k.dominations ?? 0) as number,
-      defeats: getValue('defeats', k.defeats ?? 0) as number,
+      total_kvks: getValue('total_kvks', totalKvks) as number,
+      prep_wins: getValue('prep_wins', prepWins) as number,
+      prep_losses: getValue('prep_losses', prepLosses) as number,
+      prep_win_rate: getValue('prep_win_rate', prepWinRate) as number,
+      prep_streak: getValue('prep_streak', hasSupabaseData ? prepStreak : k.prep_streak) as number,
+      battle_wins: getValue('battle_wins', battleWins) as number,
+      battle_losses: getValue('battle_losses', battleLosses) as number,
+      battle_win_rate: getValue('battle_win_rate', battleWinRate) as number,
+      battle_streak: getValue('battle_streak', hasSupabaseData ? battleStreak : k.battle_streak) as number,
+      dominations: getValue('dominations', dominations) as number,
+      defeats: getValue('defeats', defeats) as number,
       most_recent_status: approvedStatus || 'Unannounced',
-      overall_score: getValue('overall_score', k.overall_score) as number,
-      power_tier: getPowerTier(getValue('overall_score', k.overall_score) as number),
+      overall_score: getValue('overall_score', overallScore) as number,
+      power_tier: getPowerTier(getValue('overall_score', overallScore) as number),
       last_updated: new Date().toISOString(),
       recent_kvks: recentKvks
     } as Kingdom;

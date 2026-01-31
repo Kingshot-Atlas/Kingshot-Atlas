@@ -6,6 +6,7 @@ import SubmissionHistory from '../components/SubmissionHistory';
 import AuthModal from '../components/AuthModal';
 import ProfileFeatures from '../components/ProfileFeatures';
 import LinkKingshotAccount from '../components/LinkKingshotAccount';
+import LinkDiscordAccount from '../components/LinkDiscordAccount';
 import PlayersFromMyKingdom from '../components/PlayersFromMyKingdom';
 import UserCorrectionStats from '../components/UserCorrectionStats';
 import { useAuth, getCacheBustedAvatarUrl, UserProfile } from '../contexts/AuthContext';
@@ -873,6 +874,25 @@ const Profile: React.FC = () => {
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {/* Discord Account Link - only show for own profile */}
+        {!isViewingOther && user && (
+          <div style={{ marginBottom: '1.5rem' }}>
+            <LinkDiscordAccount
+              discordId={profile?.discord_id}
+              discordUsername={profile?.discord_username}
+              onUnlink={() => {
+                if (updateProfile) {
+                  updateProfile({
+                    discord_id: null,
+                    discord_username: null,
+                    discord_linked_at: null,
+                  });
+                }
+              }}
+            />
           </div>
         )}
 
