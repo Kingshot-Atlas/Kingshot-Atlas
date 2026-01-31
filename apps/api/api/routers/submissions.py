@@ -351,8 +351,8 @@ def create_kvk10_submission(
         # Try to upload to Supabase Storage
         screenshot_url = None
         try:
-            from api.supabase_client import get_supabase_client
-            supabase = get_supabase_client()
+            from api.supabase_client import get_supabase_admin
+            supabase = get_supabase_admin()
             if supabase:
                 # Upload to 'submissions' bucket
                 result = supabase.storage.from_('submissions').upload(
