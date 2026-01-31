@@ -23,6 +23,18 @@ Files Changed:
   - apps/discord-bot/src/config.js
 Result: Atlas bot will automatically post @everyone announcement at 18:00 UTC on KvK Saturdays prompting users to submit their KvK results
 
+## 2026-01-31 15:10 | Platform Engineer | COMPLETED
+Task: Fix Admin Dashboard not showing KvK submissions
+Root Cause:
+  - API treated `status=all` as a literal filter looking for submissions with status='all'
+  - No submissions have status='all', so 0 results returned
+  - Frontend uses 'all' filter to show all submissions regardless of status
+Fix:
+  - Modified get_submissions endpoint to skip status filter when status='all'
+Files Changed:
+  - apps/api/api/routers/submissions.py (line 417-418)
+Result: Admin Dashboard now correctly displays all pending submissions
+
 ## 2026-01-31 15:00 | Product Engineer | COMPLETED
 Task: Add comprehensive error logging to KvK submission
 Changes:
