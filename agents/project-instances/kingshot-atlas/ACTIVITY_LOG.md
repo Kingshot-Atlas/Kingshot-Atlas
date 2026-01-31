@@ -9,6 +9,15 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-01-31 12:30 | Platform Engineer | COMPLETED
+Task: Execute Subscription Sync via API
+Actions:
+  - Deployed fix to Render (commit 285ff6b)
+  - Called POST /api/v1/admin/subscriptions/sync-all
+  - Synced user ctamarti: free → pro
+Result: User profile now has correct subscription_tier in Supabase
+Verified: /stats/overview now returns {"pro": 1} correctly
+
 ## 2026-01-31 12:10 | Platform Engineer | COMPLETED
 Task: Fix Admin Dashboard Subscription Count Bug
 Root Cause: User Breakdown showed 0 Pro users (from Supabase profiles.subscription_tier) while Revenue section correctly showed 1 Pro subscription (from Stripe API). Stripe webhooks weren't syncing profile data.
