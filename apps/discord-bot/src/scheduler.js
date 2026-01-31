@@ -53,8 +53,24 @@ function initScheduler(client) {
 
   console.log('✅ Scheduled: KvK reminders (24h before)');
 
-  // KvK Castle Battle end announcement - 18:00 UTC on KvK Saturdays
-  // Battle phase ends at 22:00 UTC, but we post at 18:00 to catch people as battle winds down
+  // KvK Castle Battle START announcement - 12:00 UTC on KvK Saturdays
+  // Castle Battle is the core competitive window (12:00-18:00 UTC)
+  cron.schedule('0 12 * * 6', async () => {
+    const kvkInfo = getCurrentKvkInfo();
+    
+    // Only post if we're in the KvK week (battle Saturday)
+    if (kvkInfo.isKvkSaturday) {
+      console.log(`⏰ [12:00 UTC Saturday] KvK #${kvkInfo.number} Castle Battle starting!`);
+      await postCastleBattleStartAnnouncement(client, kvkInfo.number);
+    }
+  }, {
+    timezone: 'UTC'
+  });
+
+  console.log('✅ Scheduled: Castle Battle start announcements (12:00 UTC Saturdays)');
+
+  // KvK Castle Battle END announcement - 18:00 UTC on KvK Saturdays
+  // Castle Battle ends, time to submit results
   cron.schedule('0 18 * * 6', async () => {
     const kvkInfo = getCurrentKvkInfo();
     
@@ -67,7 +83,7 @@ function initScheduler(client) {
     timezone: 'UTC'
   });
 
-  console.log('✅ Scheduled: KvK Battle end announcements (18:00 UTC Saturdays)');
+  console.log('✅ Scheduled: Castle Battle end announcements (18:00 UTC Saturdays)');
 
   // Note: Immediate test runs on startup if webhook is configured
 }
@@ -145,7 +161,43 @@ async function postKvkReminder(client, kvkNumber, hoursUntil) {
 }
 
 /**
- * Post KvK Castle Battle end announcement to #announcements
+ * Post Castle Battle START announcement to Discord
+ * Tags @everyone to alert that the core competitive window has begun
+ * @param {Client} client - Discord.js client
+ * @param {number} kvkNumber - KvK event number
+ */
+async function postCastleBattleStartAnnouncement(client, kvkNumber) {
+  if (!config.announcementsWebhook) {
+    console.warn('⚠️ No announcements webhook configured for Castle Battle start announcement');
+    return;
+  }
+
+  try {
+    const embed = embeds.createCastleBattleStartEmbed(kvkNumber);
+    
+    const response = await fetch(config.announcementsWebhook, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: 'Atlas',
+        avatar_url: config.botAvatarUrl,
+        content: '@everyone',
+        embeds: [embed.toJSON()],
+      }),
+    });
+
+    if (response.ok) {
+      console.log(`✅ KvK #${kvkNumber} Castle Battle START announcement posted`);
+    } else {
+      console.error(`❌ Failed to post Castle Battle start announcement: ${response.status}`);
+    }
+  } catch (error) {
+    console.error('❌ Error posting Castle Battle start announcement:', error);
+  }
+}
+
+/**
+ * Post KvK battle end announcement to Discord
  * Tags @everyone and prompts users to submit their KvK data
  * @param {Client} client - Discord.js client
  * @param {number} kvkNumber - KvK event number
@@ -307,5 +359,6 @@ module.exports = {
   postDailyUpdate,
   getNextKvkInfo,
   getCurrentKvkInfo,
+  postCastleBattleStartAnnouncement,
   postKvkBattleEndAnnouncement,
 };

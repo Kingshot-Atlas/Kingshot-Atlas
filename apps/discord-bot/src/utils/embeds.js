@@ -523,6 +523,36 @@ function createDailyUpdateEmbed(content) {
 }
 
 /**
+ * Create Castle Battle START embed
+ * Posted at 12:00 UTC on KvK Saturday when the core competitive window begins
+ */
+function createCastleBattleStartEmbed(kvkNumber) {
+  const embed = new EmbedBuilder()
+    .setColor(config.colors.red || '#dc2626')
+    .setTitle(`🏰 KvK #${kvkNumber} CASTLE BATTLE HAS BEGUN!`)
+    .setDescription('**The core competitive window is NOW LIVE!**')
+    .addFields(
+      {
+        name: '⏰ Castle Battle Window',
+        value: [
+          '**12:00 - 18:00 UTC** (6 hours)',
+          '',
+          'This is it! The kingdom that wins Castle Battle wins the KvK.',
+          'Rally your alliance and fight for victory!',
+        ].join('\n'),
+      },
+      {
+        name: '📊 Know Your Enemy',
+        value: `**[Check opponent stats →](${config.urls.base})**`,
+      }
+    )
+    .setFooter({ text: config.bot.footerText })
+    .setTimestamp();
+
+  return embed;
+}
+
+/**
  * Create KvK Castle Battle end embed
  * Posted at 18:00 UTC on KvK Saturday to prompt data submission
  */
@@ -717,6 +747,7 @@ module.exports = {
   createErrorEmbed,
   createCountdownEmbed,
   createKvkReminderEmbed,
+  createCastleBattleStartEmbed,
   createKvkBattleEndEmbed,
   createPremiumShowcaseEmbed,
   createWelcomeEmbed,

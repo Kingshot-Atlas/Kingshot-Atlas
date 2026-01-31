@@ -74,9 +74,27 @@ const generateEvents = (): GameEvent[] => {
       type: 'kvk',
       startDate: battleStart,
       endDate: battleEnd,
-      description: 'Battle Phase - Fight for victory',
+      description: 'Battle Phase - Fight for victory (10:00-22:00 UTC)',
       icon: '⚔️',
       color: '#f97316'
+    });
+
+    // Castle Battle: Saturday 12:00 UTC to Saturday 18:00 UTC (core competitive window)
+    // Winning Castle Battle = Winning the "Battle Phase"
+    const castleBattleStart = new Date(battleStart);
+    castleBattleStart.setHours(12, 0, 0, 0);
+    const castleBattleEnd = new Date(battleStart);
+    castleBattleEnd.setHours(18, 0, 0, 0);
+
+    events.push({
+      id: `kvk-castle-${kvkNumber}`,
+      name: `KvK #${kvkNumber} Castle`,
+      type: 'kvk',
+      startDate: castleBattleStart,
+      endDate: castleBattleEnd,
+      description: 'Castle Battle - Core competitive window! Winner takes the KvK.',
+      icon: '🏰',
+      color: '#dc2626'
     });
   }
 
