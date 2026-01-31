@@ -23,6 +23,18 @@ Files Changed:
   - apps/discord-bot/src/config.js
 Result: Atlas bot will automatically post @everyone announcement at 18:00 UTC on KvK Saturdays prompting users to submit their KvK results
 
+## 2026-01-31 16:40 | Product Engineer | COMPLETED
+Task: Add Contribute Data link to header navigation
+Implementation:
+  - Added to desktop Community dropdown (not cluttering main nav)
+  - Added to mobile Community submenu
+  - Orange file icon with plus symbol
+  - No emojis per user request
+  - Links to /missing-data page
+Files Changed:
+  - apps/web/src/components/Header.tsx
+Result: Missing Data Registry now discoverable via Community dropdown
+
 ## 2026-01-31 16:35 | Design Lead | COMPLETED
 Task: Fix TrendChart Prep color to yellow per brand style guide
 Problem: Prep line was cyan (#22d3ee) instead of brand-standard yellow
