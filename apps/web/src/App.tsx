@@ -28,6 +28,7 @@ const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const Upgrade = lazy(() => import('./pages/Upgrade'));
 const Changelog = lazy(() => import('./pages/Changelog'));
 const ComponentsDemo = lazy(() => import('./pages/ComponentsDemo'));
+const MissingDataRegistry = lazy(() => import('./pages/MissingDataRegistry'));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -88,6 +89,7 @@ function AppContent() {
               <Route path="/pro" element={<ErrorBoundary><Upgrade /></ErrorBoundary>} />
               <Route path="/changelog" element={<ErrorBoundary><Changelog /></ErrorBoundary>} />
               <Route path="/components" element={<ErrorBoundary><ComponentsDemo /></ErrorBoundary>} />
+              <Route path="/missing-data" element={<ErrorBoundary><MissingDataRegistry /></ErrorBoundary>} />
             </Routes>
           </Suspense>
         </PageTransition>
