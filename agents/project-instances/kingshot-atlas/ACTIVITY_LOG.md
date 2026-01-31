@@ -9,6 +9,26 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-01-31 13:55 | Platform Engineer | COMPLETED
+Task: Add scheduled KvK Castle Battle end announcement at 18:00 UTC
+Changes:
+  - scheduler.js: Added cron job for 18:00 UTC on Saturdays during KvK week
+  - scheduler.js: Added getCurrentKvkInfo() to detect KvK battle Saturday
+  - scheduler.js: Added postKvkBattleEndAnnouncement() function with @everyone tag
+  - embeds.js: Added createKvkBattleEndEmbed() for data submission prompt
+  - config.js: Added submit URL to urls config
+Files Changed:
+  - apps/discord-bot/src/scheduler.js
+  - apps/discord-bot/src/utils/embeds.js
+  - apps/discord-bot/src/config.js
+Result: Atlas bot will automatically post @everyone announcement at 18:00 UTC on KvK Saturdays prompting users to submit their KvK results
+
+## 2026-01-31 15:20 | Platform Engineer | COMPLETED
+Task: Fix 500 error on KvK submission - missing database table
+Root Cause: `kvk_submissions` table didn't exist in Supabase production database
+Fix: Created table via Supabase migration with all required columns and indexes
+Result: KvK submissions should now work correctly
+
 ## 2026-01-31 15:10 | Product Engineer | COMPLETED
 Task: Auth gate for KvK submissions - require login + linked Kingshot account
 Changes:

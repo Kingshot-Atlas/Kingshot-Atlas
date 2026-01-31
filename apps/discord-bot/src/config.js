@@ -17,6 +17,7 @@ module.exports = {
 
   // Webhooks
   patchNotesWebhook: process.env.DISCORD_PATCH_NOTES_WEBHOOK,
+  announcementsWebhook: process.env.DISCORD_ANNOUNCEMENTS_WEBHOOK,
 
   // API
   apiUrl: process.env.API_URL || 'https://ks-atlas.com',

@@ -145,33 +145,33 @@ async function postKvkReminder(client, kvkNumber, hoursUntil) {
 }
 
 /**
- * Post KvK Castle Battle end announcement
+ * Post KvK Castle Battle end announcement to #announcements
  * Tags @everyone and prompts users to submit their KvK data
  * @param {Client} client - Discord.js client
  * @param {number} kvkNumber - KvK event number
  */
 async function postKvkBattleEndAnnouncement(client, kvkNumber) {
-  if (!config.patchNotesWebhook) {
-    console.warn('⚠️ No patch notes webhook configured for KvK battle end announcement');
+  if (!config.announcementsWebhook) {
+    console.warn('⚠️ No announcements webhook configured for KvK battle end announcement');
     return;
   }
 
   try {
     const embed = embeds.createKvkBattleEndEmbed(kvkNumber);
     
-    const response = await fetch(config.patchNotesWebhook, {
+    const response = await fetch(config.announcementsWebhook, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         username: 'Atlas',
         avatar_url: 'https://ks-atlas.com/atlas-icon.png',
-        content: '@everyone 📢 **KvK Castle Battle has ended!** Time to submit your results.',
+        content: '@everyone',
         embeds: [embed.toJSON()],
       }),
     });
 
     if (response.ok) {
-      console.log(`✅ KvK #${kvkNumber} Castle Battle end announcement posted`);
+      console.log(`✅ KvK #${kvkNumber} Castle Battle end announcement posted to #announcements`);
     } else {
       console.error(`❌ Failed to post KvK battle end announcement: ${response.status}`);
     }
