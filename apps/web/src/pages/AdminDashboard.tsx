@@ -576,7 +576,8 @@ const AdminDashboard: React.FC = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-User-Id': user?.id || ''
+          'X-User-Id': user?.id || '',
+          'X-User-Email': user?.email || ''
         },
         body: JSON.stringify({ status })
       });

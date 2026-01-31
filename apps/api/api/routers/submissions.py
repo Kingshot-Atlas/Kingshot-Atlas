@@ -130,8 +130,14 @@ def verify_supabase_jwt(token: str) -> Optional[str]:
         return None
 
 
-def verify_moderator_role(user_id: str, db: Session) -> bool:
+ADMIN_EMAILS = ['gatreno@gmail.com', 'gatreno.investing@gmail.com']
+
+def verify_moderator_role(user_id: str, db: Session, user_email: str = None) -> bool:
     """Verify user has moderator or admin role. Returns True if authorized."""
+    # First check if email is in admin list (Supabase auth)
+    if user_email and user_email.lower() in [e.lower() for e in ADMIN_EMAILS]:
+        return True
+    
     if not user_id:
         return False
     
@@ -141,13 +147,8 @@ def verify_moderator_role(user_id: str, db: Session) -> bool:
         # Try as integer ID first (legacy support)
         if user_id.isdigit():
             user = db.query(User).filter(User.id == int(user_id)).first()
-        else:
-            # UUID from Supabase - would need profiles table lookup
-            # For now, return False as we can't verify UUID against local User table
-            return False
-        
-        if user and user.role in ['moderator', 'admin']:
-            return True
+            if user and user.role in ['moderator', 'admin']:
+                return True
     except Exception:
         pass
     
@@ -441,6 +442,7 @@ def get_my_submissions(
 def review_submission(
     submission_id: int,
     review: SubmissionReview,
+    request: Request,
     db: Session = Depends(get_db),
     verified_user_id: Optional[str] = Depends(get_verified_user_id)
 ):
@@ -448,8 +450,9 @@ def review_submission(
     if not verified_user_id:
         raise HTTPException(status_code=401, detail="Authentication required")
     reviewer_id = verified_user_id
+    user_email = request.headers.get("X-User-Email")
     # Authorization check - only moderators/admins can review
-    if not verify_moderator_role(reviewer_id, db):
+    if not verify_moderator_role(reviewer_id, db, user_email):
         raise HTTPException(
             status_code=403,
             detail="Moderator or admin role required to review submissions"
