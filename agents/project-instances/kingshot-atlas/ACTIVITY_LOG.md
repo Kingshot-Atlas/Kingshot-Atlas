@@ -9,6 +9,30 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-01-31 17:05 | Platform Engineer | COMPLETED
+Task: Fix critical Supabase security issues
+Issues Fixed:
+  - Enabled RLS on kvk_submissions table (was ERROR level)
+  - Fixed user_correction_stats view SECURITY DEFINER (was ERROR level)
+  - Fixed update_kvk_history_updated_at function search_path (was WARN level)
+  - Added proper RLS policies for kvk_submissions (select/insert/update/delete)
+Migrations Applied:
+  - enable_rls_kvk_submissions
+  - fix_security_definer_view_v2
+  - fix_function_search_path
+Result: 2 ERROR-level security issues resolved, database now passes critical security checks
+
+## 2026-01-31 17:00 | Product Engineer | COMPLETED
+Task: Fix KvK data merging so approved submissions (KvK #10) show on kingdom cards
+Root Cause: Previous fix chose between local JSON OR Supabase, but approved submissions go to Supabase while historical data is in local JSON
+Fix: Changed api.ts to MERGE both data sources - local JSON as baseline, then add any Supabase records not in local JSON
+Also Fixed: Supabase insert field names in submissions.py (kvk_date, order_index instead of date_or_order_index)
+Files Modified:
+  - apps/web/src/services/api.ts (lines 95-121)
+  - apps/api/api/routers/submissions.py (lines 500-509)
+Result: Kingdom 172 now shows 8 KvKs and 6 dominations (including approved KvK #10 result)
+Deployed: https://ks-atlas.com (deploy ID: 697e6ccdcb88ed1744233ec6)
+
 ## 2026-01-31 16:50 | Product Engineer | COMPLETED
 Task: Fix KvK history showing only 1 record instead of all records + Deploy to production
 Root Cause: Supabase data with partial records (only KvK #10) was overriding complete local JSON data (9 KvKs)
