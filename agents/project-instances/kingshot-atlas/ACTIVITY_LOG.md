@@ -9,6 +9,23 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-01-31 13:30 | Product Engineer | COMPLETED
+Task: Profile styling + KvK 10 submission CTA banner
+Changes:
+  - Atlas Score AND Rank now both use cyan neon glow on Kingdom Leaderboard Position card
+  - Removed "K-172 #10" chip from Linked Kingshot Account card (cleaner design)
+  - Removed unused kingdomRank state from LinkKingshotAccount component
+  - Added eye-catching KvK #10 submission CTA banner on home page
+    - Gradient background with shimmer animation
+    - LIVE badge with pulse animation
+    - Clear call-to-action: "Help us track results! Submit your kingdom's KvK outcome"
+    - Opens PostKvKSubmission modal on click
+Files Changed:
+  - apps/web/src/pages/Profile.tsx - Atlas Score cyan glow
+  - apps/web/src/components/LinkKingshotAccount.tsx - Removed kingdom rank chip
+  - apps/web/src/pages/KingdomDirectory.tsx - KvK 10 CTA banner
+Result: Consistent atlas color styling, cleaner profile cards, prominent KvK submission CTA
+
 ## 2026-01-31 13:15 | Product Engineer | COMPLETED
 Task: Profile page improvements - Edit button UX, Kingdom card redesign, public view cleanup
 Changes:

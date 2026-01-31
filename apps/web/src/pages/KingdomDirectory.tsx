@@ -317,6 +317,102 @@ const KingdomDirectory: React.FC = () => {
         </div>
       </div>
 
+      {/* KvK 10 Submission CTA Banner */}
+      <div style={{ 
+        maxWidth: '1200px', 
+        margin: '0 auto', 
+        padding: isMobile ? '0 0.75rem' : '0 2rem',
+        marginTop: isMobile ? '0.5rem' : '0.75rem'
+      }}>
+        <div 
+          onClick={() => setShowPostKvKModal(true)}
+          style={{ 
+            background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%)',
+            border: '1px solid #22d3ee40',
+            borderRadius: '12px',
+            padding: isMobile ? '1rem' : '1.25rem 1.5rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '1rem',
+            cursor: 'pointer',
+            transition: 'all 0.3s ease',
+            position: 'relative',
+            overflow: 'hidden'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = '#22d3ee';
+            e.currentTarget.style.boxShadow = '0 0 20px #22d3ee20';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = '#22d3ee40';
+            e.currentTarget.style.boxShadow = 'none';
+          }}
+        >
+          {/* Animated glow effect */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: '-100%',
+            width: '100%',
+            height: '100%',
+            background: 'linear-gradient(90deg, transparent, rgba(34, 211, 238, 0.1), transparent)',
+            animation: 'shimmer 3s infinite',
+          }} />
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '0.75rem' : '1rem', flex: 1, zIndex: 1 }}>
+            <div style={{ 
+              fontSize: isMobile ? '1.75rem' : '2rem',
+              filter: 'drop-shadow(0 0 8px #fbbf24)'
+            }}>⚔️</div>
+            <div>
+              <div style={{ 
+                fontSize: isMobile ? '0.95rem' : '1.1rem', 
+                fontWeight: '700', 
+                color: '#fff',
+                marginBottom: '0.25rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                flexWrap: 'wrap'
+              }}>
+                KvK #10 Battle Phase Ending Soon!
+                <span style={{
+                  fontSize: '0.65rem',
+                  padding: '0.15rem 0.5rem',
+                  backgroundColor: '#ef444420',
+                  border: '1px solid #ef4444',
+                  borderRadius: '4px',
+                  color: '#ef4444',
+                  fontWeight: '600',
+                  animation: 'pulse 2s infinite'
+                }}>LIVE</span>
+              </div>
+              <div style={{ fontSize: isMobile ? '0.75rem' : '0.85rem', color: '#9ca3af' }}>
+                Help us track results! Submit your kingdom's KvK outcome in seconds.
+              </div>
+            </div>
+          </div>
+          
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '0.5rem',
+            padding: isMobile ? '0.5rem 0.75rem' : '0.6rem 1rem',
+            backgroundColor: '#22d3ee',
+            borderRadius: '8px',
+            color: '#000',
+            fontWeight: '600',
+            fontSize: isMobile ? '0.8rem' : '0.9rem',
+            whiteSpace: 'nowrap',
+            zIndex: 1
+          }}>
+            Submit Results
+            <span>→</span>
+          </div>
+        </div>
+      </div>
+
       {/* Search and Controls - Sticky */}
       <div style={{ 
         position: 'sticky', 

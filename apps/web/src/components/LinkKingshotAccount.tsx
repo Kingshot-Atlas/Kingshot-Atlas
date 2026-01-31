@@ -156,11 +156,6 @@ interface LinkedPlayerData {
   verified: boolean;
 }
 
-interface KingdomRankData {
-  atlas_score: number;
-  rank: number;
-}
-
 interface LinkKingshotAccountProps {
   onLink?: (playerData: LinkedPlayerData) => void;
   onUnlink?: () => void;
@@ -209,26 +204,6 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [previewData, setPreviewData] = useState<LinkedPlayerData | null>(null);
   const [showUnlinkConfirm, setShowUnlinkConfirm] = useState(false);
-  const [kingdomRank, setKingdomRank] = useState<KingdomRankData | null>(null);
-
-  // Fetch kingdom rank when linked player changes
-  useEffect(() => {
-    if (linkedPlayer?.kingdom) {
-      fetch(`${API_BASE}/api/v1/kingdoms/${linkedPlayer.kingdom}`)
-        .then(res => res.ok ? res.json() : null)
-        .then(data => {
-          if (data) {
-            setKingdomRank({ 
-              atlas_score: data.atlas_score ?? data.overall_score ?? 0, 
-              rank: data.rank ?? 0 
-            });
-          }
-        })
-        .catch(() => setKingdomRank(null));
-    } else {
-      setKingdomRank(null);
-    }
-  }, [linkedPlayer?.kingdom]);
 
   const verifyPlayer = async (id: string): Promise<LinkedPlayerData> => {
     const response = await fetch(`${API_BASE}/api/v1/player-link/verify`, {
@@ -378,41 +353,17 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
           />
 
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            {/* Row 1: Username + Kingdom Rank Badge */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                flexWrap: 'wrap',
+            {/* Row 1: Username */}
+            <span 
+              style={{ 
+                fontSize: '1.1rem', 
+                fontWeight: '700',
+                color: getUsernameColor(subscriptionTier),
+                ...(subscriptionTier !== 'free' ? neonGlow(getUsernameColor(subscriptionTier)) : {})
               }}
             >
-              <span 
-                style={{ 
-                  fontSize: '1.1rem', 
-                  fontWeight: '700',
-                  color: getUsernameColor(subscriptionTier),
-                  ...(subscriptionTier !== 'free' ? neonGlow(getUsernameColor(subscriptionTier)) : {})
-                }}
-              >
-                {linkedPlayer.username}
-              </span>
-              {kingdomRank && (
-                <span
-                  style={{
-                    fontSize: '0.75rem',
-                    padding: '0.2rem 0.5rem',
-                    borderRadius: '4px',
-                    backgroundColor: `${colors.primary}15`,
-                    border: `1px solid ${colors.primary}40`,
-                    color: colors.primary,
-                    fontWeight: '600',
-                  }}
-                >
-                  K-{linkedPlayer.kingdom} #{kingdomRank.rank}
-                </span>
-              )}
-            </div>
+              {linkedPlayer.username}
+            </span>
 
             {/* Row 2: ID */}
             <div style={{ fontSize: '0.85rem', color: colors.textSecondary }}>
