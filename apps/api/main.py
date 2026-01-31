@@ -60,8 +60,8 @@ ALLOWED_ORIGINS = os.getenv(
 
 app = FastAPI(
     title="Kingshot Atlas API",
-    description="Backend API for Kingsshot Atlas kingdom data",
-    version="1.0.0"
+    description="Backend API for Kingshot Atlas kingdom data",
+    version="1.0.1"  # Force redeploy - fix submissions router
 )
 
 # Add rate limiter to app state
