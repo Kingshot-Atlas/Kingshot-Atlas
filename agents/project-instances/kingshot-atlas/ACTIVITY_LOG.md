@@ -9,6 +9,17 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-01-31 14:45 | Platform Engineer | COMPLETED
+Task: Duplicate submission prevention + production deployment
+Changes:
+  - Added duplicate check for KvK #10 submissions (pending/approved)
+  - Returns 409 Conflict with user-friendly message
+  - Deployed frontend to ks-atlas.com via Netlify CLI
+  - Backend auto-deploys on Render via git push
+Files Changed:
+  - apps/api/api/routers/submissions.py - duplicate check
+Result: Users cannot submit duplicate results for same KvK matchup
+
 ## 2026-01-31 14:15 | Platform Engineer | COMPLETED
 Task: KvK #10 submission feature with mandatory screenshot + admin review
 Changes:
