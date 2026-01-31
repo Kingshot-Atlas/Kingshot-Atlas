@@ -230,7 +230,7 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
           
           {value.trim() && suggestions.length === 0 && (
             <div style={{ padding: '1rem', textAlign: 'center', color: '#6b7280', fontSize: '0.85rem' }}>
-              No kingdoms match "{value}"
+              No kingdoms match &quot;{value}&quot;
             </div>
           )}
         </div>

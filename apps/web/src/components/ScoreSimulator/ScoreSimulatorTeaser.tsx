@@ -68,7 +68,7 @@ const ScoreSimulatorTeaser: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           {!isExpanded && (
             <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>
-              "What if I win the next KvK?"
+              &quot;What if I win the next KvK?&quot;
             </span>
           )}
           <svg 
@@ -183,7 +183,7 @@ const ScoreSimulatorTeaser: React.FC = () => {
               marginBottom: '1rem',
               lineHeight: 1.5
             }}>
-              "What if I win the next 3 KvKs?" See how your Atlas Score changes with different outcomes.
+              &quot;What if I win the next 3 KvKs?&quot; See how your Atlas Score changes with different outcomes.
             </p>
 
             {/* Benefits */}

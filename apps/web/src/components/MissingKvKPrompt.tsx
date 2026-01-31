@@ -60,7 +60,7 @@ const MissingKvKPrompt: React.FC<MissingKvKPromptProps> = ({
           ⚠️ KvK #{kvkNumber} data missing
         </div>
         <p style={{ color: '#9ca3af', fontSize: '0.8rem', marginBottom: '0.75rem' }}>
-          Help complete this kingdom's history! Sign in to submit results.
+          Help complete this kingdom&apos;s history! Sign in to submit results.
         </p>
         <Link to="/profile" style={{ textDecoration: 'none' }}>
           <button style={primaryButtonStyle}>

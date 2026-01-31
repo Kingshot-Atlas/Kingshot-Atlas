@@ -29,10 +29,6 @@ export function UserCorrectionStats({ userId, username: _username, themeColor = 
   const [stats, setStats] = useState<CorrectionStats | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchCorrectionStats();
-  }, [userId]);
-
   const fetchCorrectionStats = async () => {
     if (!isSupabaseConfigured || !supabase) {
       // Fall back to localStorage for correction history
@@ -99,10 +95,18 @@ export function UserCorrectionStats({ userId, username: _username, themeColor = 
       const stored = localStorage.getItem('kingshot_kvk_errors');
       if (!stored) return [];
       
-      const errors = JSON.parse(stored);
+      interface LocalStorageError {
+        submitted_by: string;
+        status: string;
+        kingdom_number: number;
+        kvk_number?: number;
+        submitted_at: string;
+      }
+      
+      const errors: LocalStorageError[] = JSON.parse(stored);
       return errors
-        .filter((e: any) => e.submitted_by === uid && e.status === 'pending')
-        .map((e: any) => ({
+        .filter((e) => e.submitted_by === uid && e.status === 'pending')
+        .map((e) => ({
           kingdom_number: e.kingdom_number,
           kvk_number: e.kvk_number || 0,
           status: 'pending' as const,
@@ -112,6 +116,10 @@ export function UserCorrectionStats({ userId, username: _username, themeColor = 
       return [];
     }
   };
+
+  useEffect(() => {
+    fetchCorrectionStats();
+  }, [userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading) {
     return (
