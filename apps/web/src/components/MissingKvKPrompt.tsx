@@ -114,6 +114,8 @@ const MissingKvKPrompt: React.FC<MissingKvKPromptProps> = ({
       <PostKvKSubmission
         isOpen={showSubmitModal}
         onClose={() => setShowSubmitModal(false)}
+        defaultKingdom={kingdomNumber}
+        defaultKvkNumber={kvkNumber}
       />
     </>
   );

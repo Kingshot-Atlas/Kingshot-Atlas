@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from './Toast';
 
@@ -8,14 +8,23 @@ const CURRENT_KVK = 10; // Locked to KvK #10
 interface PostKvKSubmissionProps {
   isOpen: boolean;
   onClose: () => void;
+  defaultKingdom?: number;
+  defaultKvkNumber?: number;
 }
 
-const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({ isOpen, onClose }) => {
+const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({ 
+  isOpen, 
+  onClose,
+  defaultKingdom,
+  defaultKvkNumber = CURRENT_KVK
+}) => {
   const { user, session } = useAuth();
   const { showToast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const opponentInputRef = useRef<HTMLInputElement>(null);
   
-  const [kingdomNumber, setKingdomNumber] = useState<number | ''>('');
+  // Pre-fill kingdom if provided
+  const [kingdomNumber, setKingdomNumber] = useState<number | ''>(defaultKingdom || '');
   const [opponentKingdom, setOpponentKingdom] = useState<number | ''>('');
   const [prepResult, setPrepResult] = useState<'W' | 'L' | null>(null);
   const [battleResult, setBattleResult] = useState<'W' | 'L' | null>(null);
@@ -23,6 +32,21 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({ isOpen, onClose }
   const [screenshot, setScreenshot] = useState<File | null>(null);
   const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // Sync kingdom when modal opens with new default and auto-focus opponent
+  useEffect(() => {
+    if (isOpen && defaultKingdom) {
+      setKingdomNumber(defaultKingdom);
+      // Auto-focus opponent field after a brief delay for modal animation
+      setTimeout(() => {
+        opponentInputRef.current?.focus();
+      }, 100);
+    }
+  }, [isOpen, defaultKingdom]);
+
+  // Use provided KvK number or default
+  const kvkNumber = defaultKvkNumber || CURRENT_KVK;
+  const isKingdomPreFilled = !!defaultKingdom;
 
   if (!isOpen) return null;
 
@@ -219,7 +243,7 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({ isOpen, onClose }
           borderRadius: '8px'
         }}>
           <span style={{ color: '#22d3ee', fontWeight: '600', fontSize: '0.9rem' }}>
-            📅 KvK #{CURRENT_KVK} — Battle Phase
+            📅 KvK #{kvkNumber} — Battle Phase
           </span>
         </div>
 
@@ -228,28 +252,33 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({ isOpen, onClose }
           {/* Kingdom Numbers */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
             <div>
-              <label style={{ display: 'block', color: '#9ca3af', fontSize: '0.75rem', marginBottom: '0.35rem' }}>Your Kingdom *</label>
+              <label style={{ display: 'block', color: '#9ca3af', fontSize: '0.75rem', marginBottom: '0.35rem' }}>
+                Your Kingdom * {isKingdomPreFilled && <span style={{ color: '#22d3ee' }}>✓</span>}
+              </label>
               <input
                 type="number"
                 value={kingdomNumber}
-                onChange={(e) => setKingdomNumber(e.target.value ? parseInt(e.target.value) : '')}
+                onChange={(e) => !isKingdomPreFilled && setKingdomNumber(e.target.value ? parseInt(e.target.value) : '')}
                 placeholder="e.g., 172"
                 min={1}
                 max={9999}
+                readOnly={isKingdomPreFilled}
                 style={{
                   width: '100%',
                   padding: '0.65rem',
-                  backgroundColor: '#0a0a0a',
-                  border: '1px solid #2a2a2a',
+                  backgroundColor: isKingdomPreFilled ? '#1a1a1f' : '#0a0a0a',
+                  border: `1px solid ${isKingdomPreFilled ? '#22d3ee30' : '#2a2a2a'}`,
                   borderRadius: '6px',
-                  color: '#fff',
-                  fontSize: '0.9rem'
+                  color: isKingdomPreFilled ? '#22d3ee' : '#fff',
+                  fontSize: '0.9rem',
+                  cursor: isKingdomPreFilled ? 'not-allowed' : 'text'
                 }}
               />
             </div>
             <div>
               <label style={{ display: 'block', color: '#9ca3af', fontSize: '0.75rem', marginBottom: '0.35rem' }}>Opponent Kingdom *</label>
               <input
+                ref={opponentInputRef}
                 type="number"
                 value={opponentKingdom}
                 onChange={(e) => setOpponentKingdom(e.target.value ? parseInt(e.target.value) : '')}
