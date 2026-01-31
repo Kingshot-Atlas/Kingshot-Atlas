@@ -125,6 +125,9 @@ def verify_supabase_jwt(token: str) -> Optional[str]:
     except JWTError as e:
         logger.warning(f"JWT validation failed: {e}")
         return None
+    except Exception as e:
+        logger.error(f"Unexpected error during JWT validation: {e}")
+        return None
 
 
 def verify_moderator_role(user_id: str, db: Session) -> bool:
