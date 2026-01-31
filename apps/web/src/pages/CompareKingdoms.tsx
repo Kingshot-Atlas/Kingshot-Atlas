@@ -52,7 +52,7 @@ interface MultiCompareRadarChartProps {
   colors: string[];
 }
 
-const MultiCompareRadarChart: React.FC<MultiCompareRadarChartProps> = memo(({ kingdoms, colors }) => {
+const MultiCompareRadarChart: React.FC<MultiCompareRadarChartProps> = memo(function MultiCompareRadarChart({ kingdoms, colors }) {
   const [showChart, setShowChart] = useState(false);
   const isMobile = useIsMobile();
   const { trackFeature } = useAnalytics();

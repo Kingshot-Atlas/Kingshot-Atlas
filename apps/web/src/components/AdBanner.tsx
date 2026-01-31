@@ -25,8 +25,8 @@ const AdBanner: React.FC<AdBannerProps> = ({ placement: _placement = 'directory'
     // Check if script already loaded
     if (document.querySelector('script[src*="ethicalads"]')) {
       // Trigger ad load for SPA navigation
-      if ((window as any).ethicalads?.load) {
-        (window as any).ethicalads.load();
+      if ((window as unknown as { ethicalads?: { load: () => void } }).ethicalads?.load) {
+        (window as unknown as { ethicalads: { load: () => void } }).ethicalads.load();
       }
       return;
     }

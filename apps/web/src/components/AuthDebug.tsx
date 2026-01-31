@@ -1,8 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
+interface DebugInfo {
+  environment?: { isLocalhost: boolean; origin: string; href: string };
+  supabase?: { configured: boolean; clientExists: boolean; url: string };
+  envVars?: { REACT_APP_SUPABASE_URL: string; REACT_APP_SUPABASE_ANON_KEY: string };
+  sessionTest?: { hasSession: boolean; error: string };
+}
+
 const AuthDebug: React.FC = () => {
-  const [debugInfo, setDebugInfo] = useState<any>({});
+  const [debugInfo, setDebugInfo] = useState<DebugInfo>({});
   
   useEffect(() => {
     const info = {
@@ -27,7 +34,7 @@ const AuthDebug: React.FC = () => {
     // Test Supabase connection
     if (supabase) {
       supabase.auth.getSession().then(({ data, error }) => {
-        setDebugInfo((prev: any) => ({
+        setDebugInfo((prev) => ({
           ...prev,
           sessionTest: {
             hasSession: !!data.session,
