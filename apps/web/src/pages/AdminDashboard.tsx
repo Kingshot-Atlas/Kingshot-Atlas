@@ -585,6 +585,8 @@ const AdminDashboard: React.FC = () => {
         const data = await response.json();
         if (status === 'approved' && data.kingdom_number) {
           showToast(`✅ Approved! KvK data added to Kingdom ${data.kingdom_number}`, 'success');
+          // Reload Supabase data to sync Atlas Scores across all pages
+          await apiService.reloadWithSupabaseData();
         } else {
           showToast(`Submission ${status}`, 'success');
         }
