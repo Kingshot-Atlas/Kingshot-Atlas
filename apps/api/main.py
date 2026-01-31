@@ -13,7 +13,7 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from api.routers import kingdoms, auth, leaderboard, compare, submissions, agent, discord, player_link, stripe, admin
 from database import engine, SessionLocal
-from models import Base, Kingdom
+from models import Base, Kingdom, KVKRecord, KVKSubmission, KingdomClaim, User
 
 # Initialize Sentry for error monitoring (only if available and DSN is configured)
 SENTRY_DSN = os.getenv("SENTRY_DSN")
