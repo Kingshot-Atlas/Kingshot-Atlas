@@ -291,8 +291,8 @@ const ComparisonRadarChart: React.FC<ComparisonRadarChartProps> = ({
                     onClick={() => {
                       handlePointInteraction(i);
                       // Track interaction analytics would go here
-                      if (typeof window !== 'undefined' && (window as any).analytics) {
-                        (window as any).analytics.track('Chart Point Clicked', {
+                      if (typeof window !== 'undefined' && (window as Window & { analytics?: { track: (event: string, data: object) => void } }).analytics) {
+                        (window as Window & { analytics?: { track: (event: string, data: object) => void } }).analytics?.track('Chart Point Clicked', {
                           chartType: 'ComparisonRadarChart',
                           dataset: dataset.label,
                           metric: dataPoint.label,
@@ -307,8 +307,8 @@ const ComparisonRadarChart: React.FC<ComparisonRadarChartProps> = ({
                     onMouseEnter={() => {
                       setHoveredDataset(datasetIndex);
                       // Track hover analytics would go here
-                      if (typeof window !== 'undefined' && (window as any).analytics) {
-                        (window as any).analytics.track('Chart Point Hovered', {
+                      if (typeof window !== 'undefined' && (window as Window & { analytics?: { track: (event: string, data: object) => void } }).analytics) {
+                        (window as Window & { analytics?: { track: (event: string, data: object) => void } }).analytics?.track('Chart Point Hovered', {
                           chartType: 'ComparisonRadarChart',
                           dataset: dataset.label,
                           metric: dataPoint.label,

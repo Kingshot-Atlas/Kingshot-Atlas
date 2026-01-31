@@ -132,7 +132,7 @@ const AuthDebug: React.FC = () => {
         <h2>Required Supabase Configuration</h2>
         <div style={{ backgroundColor: '#1a1a1a', padding: '1rem', borderRadius: '4px' }}>
           <h3>Redirect URLs (in Supabase Dashboard → Authentication → URL Configuration)</h3>
-          <p>Add these URLs to "Redirect URLs" and "Site URL":</p>
+          <p>Add these URLs to &quot;Redirect URLs&quot; and &quot;Site URL&quot;:</p>
           <ul>
             <li>http://localhost:3000 (development)</li>
             <li>https://ks-atlas.com (production)</li>

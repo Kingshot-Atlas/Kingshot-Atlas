@@ -73,8 +73,8 @@ const ClaimKingdom: React.FC<ClaimKingdomProps> = ({ kingdomNumber, isOpen, onCl
           lineHeight: 1.6,
           margin: '0 0 1.5rem'
         }}>
-          Soon you'll be able to <strong style={{ color: '#a855f7' }}>officially represent</strong> your kingdom. 
-          Verified leaders get a special badge, can customize their kingdom's profile banner, 
+          Soon you&apos;ll be able to <strong style={{ color: '#a855f7' }}>officially represent</strong> your kingdom. 
+          Verified leaders get a special badge, can customize their kingdom&apos;s profile banner, 
           and receive transfer interest from players looking to join.
         </p>
 
