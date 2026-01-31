@@ -523,6 +523,51 @@ function createDailyUpdateEmbed(content) {
 }
 
 /**
+ * Create KvK Castle Battle end embed
+ * Posted at 18:00 UTC on KvK Saturday to prompt data submission
+ */
+function createKvkBattleEndEmbed(kvkNumber) {
+  const embed = new EmbedBuilder()
+    .setColor(config.colors.success)
+    .setTitle(`⚔️ KvK #${kvkNumber} Castle Battle is Over!`)
+    .setDescription([
+      '**The dust has settled. Time to record history.**',
+      '',
+      'Submit your kingdom\'s KvK results now so we can update the rankings and keep our data accurate.',
+    ].join('\n'))
+    .addFields(
+      {
+        name: '📊 Submit Your Data',
+        value: [
+          `**[→ Submit KvK Results](${config.urls.base}/submit)**`,
+          '',
+          'Help the community by reporting:',
+          '• Your kingdom number',
+          '• Prep Phase result (W/L)',
+          '• Battle Phase result (W/L)',
+          '• Opponent kingdom number',
+        ].join('\n'),
+      },
+      {
+        name: '🏆 Why Submit?',
+        value: [
+          '• Keep Atlas Score rankings accurate',
+          '• Help others make informed decisions',
+          '• Track your kingdom\'s progress over time',
+        ].join('\n'),
+      },
+      {
+        name: '\u200b',
+        value: `**Real data. Real results. No spin.** [ks-atlas.com](${config.urls.base})`,
+      }
+    )
+    .setFooter({ text: config.bot.footerText })
+    .setTimestamp();
+
+  return embed;
+}
+
+/**
  * Create KvK reminder embed with premium CTA
  * Used for automated 24h pre-KvK announcements
  */
@@ -688,6 +733,7 @@ module.exports = {
   createErrorEmbed,
   createCountdownEmbed,
   createKvkReminderEmbed,
+  createKvkBattleEndEmbed,
   createPremiumShowcaseEmbed,
   createWelcomeEmbed,
   createDailyUpdateEmbed,

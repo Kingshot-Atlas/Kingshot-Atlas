@@ -29,7 +29,7 @@ const KingdomDirectory: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { showToast } = useToast();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { loadPreferences, savePreferences } = usePreferences();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
@@ -83,6 +83,21 @@ const KingdomDirectory: React.FC = () => {
   
   const [showPostKvKModal, setShowPostKvKModal] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false); // Closed by default
+
+  // Handler for KvK submission - requires login + linked Kingshot account
+  const handleSubmitKvKClick = () => {
+    if (!user) {
+      showToast('Please log in to submit KvK results', 'error');
+      navigate('/login?redirect=/');
+      return;
+    }
+    if (!profile?.linked_username) {
+      showToast('Please link your Kingshot account to submit results', 'error');
+      navigate('/profile');
+      return;
+    }
+    setShowPostKvKModal(true);
+  };
 
   // Scroll listener for back-to-top button
   useEffect(() => {
@@ -325,7 +340,7 @@ const KingdomDirectory: React.FC = () => {
         marginTop: isMobile ? '0.5rem' : '0.75rem'
       }}>
         <div 
-          onClick={() => setShowPostKvKModal(true)}
+          onClick={handleSubmitKvKClick}
           style={{ 
             background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%)',
             border: '1px solid #22d3ee40',
@@ -1073,7 +1088,7 @@ const KingdomDirectory: React.FC = () => {
           <EventCalendar />
           
           <button
-            onClick={() => setShowPostKvKModal(true)}
+            onClick={handleSubmitKvKClick}
             style={{
               width: '100%',
               marginTop: '1rem',
