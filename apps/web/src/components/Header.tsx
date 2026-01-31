@@ -415,10 +415,10 @@ const Header: React.FC = () => {
           >
             <button
               style={{
-                color: (isActive('/players') || isActive('/about')) ? '#22d3ee' : '#9ca3af',
+                color: (isActive('/players') || isActive('/about') || isActive('/missing-data')) ? '#22d3ee' : '#9ca3af',
                 textDecoration: 'none',
                 fontSize: '0.9rem',
-                fontWeight: (isActive('/players') || isActive('/about')) ? '600' : '400',
+                fontWeight: (isActive('/players') || isActive('/about') || isActive('/missing-data')) ? '600' : '400',
                 transition: 'color 0.2s',
                 display: 'flex',
                 alignItems: 'center',
@@ -427,7 +427,7 @@ const Header: React.FC = () => {
                 border: 'none',
                 cursor: 'pointer',
                 padding: 0,
-                ...((isActive('/players') || isActive('/about')) ? neonGlow('#22d3ee') : {})
+                ...((isActive('/players') || isActive('/about') || isActive('/missing-data')) ? neonGlow('#22d3ee') : {})
               }}
             >
               Community
@@ -474,6 +474,30 @@ const Header: React.FC = () => {
                     <path d="M16 3.13a4 4 0 0 1 0 7.75" />
                   </svg>
                   Player Directory
+                </Link>
+                <Link
+                  to="/missing-data"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    padding: '0.75rem 1rem',
+                    borderRadius: '8px',
+                    color: isActive('/missing-data') ? '#22d3ee' : '#fff',
+                    textDecoration: 'none',
+                    fontSize: '0.85rem',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#f97316' }}>
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="12" y1="18" x2="12" y2="12" />
+                    <line x1="9" y1="15" x2="15" y2="15" />
+                  </svg>
+                  Contribute Data
                 </Link>
                 <a
                   href={DISCORD_INVITE}
@@ -889,12 +913,12 @@ const Header: React.FC = () => {
           <button
             onClick={() => setShowMobileCommunityMenu(!showMobileCommunityMenu)}
             style={{
-              color: (isActive('/players') || isActive('/about')) ? '#22d3ee' : '#9ca3af',
+              color: (isActive('/players') || isActive('/about') || isActive('/missing-data')) ? '#22d3ee' : '#9ca3af',
               textDecoration: 'none',
               fontSize: '1rem',
               padding: '0.75rem 1rem',
               borderRadius: '8px',
-              backgroundColor: (isActive('/players') || isActive('/about')) ? '#111' : 'transparent',
+              backgroundColor: (isActive('/players') || isActive('/about') || isActive('/missing-data')) ? '#111' : 'transparent',
               border: 'none',
               width: '100%',
               textAlign: 'left',
@@ -936,6 +960,21 @@ const Header: React.FC = () => {
                 }}
               >
                 <span style={{ color: '#333' }}>└</span> Player Directory
+              </Link>
+              <Link
+                to="/missing-data"
+                style={{
+                  color: isActive('/missing-data') ? '#22d3ee' : '#6b7280',
+                  textDecoration: 'none',
+                  fontSize: '0.9rem',
+                  padding: '0.5rem 1rem 0.5rem 1.5rem',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}
+              >
+                <span style={{ color: '#333' }}>└</span> Contribute Data
               </Link>
               <Link
                 to="/about"
