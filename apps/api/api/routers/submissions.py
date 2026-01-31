@@ -114,7 +114,7 @@ def verify_supabase_jwt(token: str) -> Optional[str]:
         else:
             # Development fallback: Decode without verification (log warning)
             logger.warning("SUPABASE_JWT_SECRET not set - JWT signature not verified!")
-            payload = jwt.decode(token, options={"verify_signature": False})
+            payload = jwt.decode(token, key="", algorithms=["HS256"], options={"verify_signature": False})
         
         # Extract user ID from 'sub' claim
         user_id = payload.get("sub")
