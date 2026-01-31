@@ -23,6 +23,21 @@ Files Changed:
   - apps/discord-bot/src/config.js
 Result: Atlas bot will automatically post @everyone announcement at 18:00 UTC on KvK Saturdays prompting users to submit their KvK results
 
+## 2026-01-31 15:55 | Product Engineer | COMPLETED
+Task: Add MissingKvKPrompt for KvK #10 data collection
+Feature:
+  - New component shows contextual prompts in Kingdom Profile KvK History
+  - Prompt logic based on user state:
+    - Not logged in → "Sign In to Submit" button (links to /profile)
+    - Logged in, not linked → "Link Kingshot Account" button
+    - Logged in and linked → "Submit KvK #10 Result" button (opens submission modal)
+  - Only displays if KvK #10 is missing from kingdom's history
+  - Special messaging for users viewing their own kingdom
+Files Changed:
+  - apps/web/src/components/MissingKvKPrompt.tsx (new)
+  - apps/web/src/pages/KingdomProfile.tsx (import + usage)
+Result: Users are now prompted to contribute missing KvK #10 data
+
 ## 2026-01-31 15:40 | Platform Engineer | COMPLETED
 Task: Fix Admin Dashboard not showing KvK submissions (root cause #2)
 Root Cause:
