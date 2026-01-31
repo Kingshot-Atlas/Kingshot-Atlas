@@ -134,6 +134,7 @@ const AdminDashboard: React.FC = () => {
   const [filter, setFilter] = useState<string>('pending');
   const [importData, setImportData] = useState<string>('');
   const [pendingCounts, setPendingCounts] = useState<{ submissions: number; claims: number; corrections: number; transfers: number; kvkErrors: number }>({ submissions: 0, claims: 0, corrections: 0, transfers: 0, kvkErrors: 0 });
+  const [syncingSubscriptions, setSyncingSubscriptions] = useState(false);
 
   // Check if user is admin
   const isAdmin = profile?.username && ADMIN_USERS.includes(profile.username.toLowerCase());
@@ -280,6 +281,34 @@ const AdminDashboard: React.FC = () => {
       console.error('Failed to fetch analytics:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const syncSubscriptions = async () => {
+    setSyncingSubscriptions(true);
+    try {
+      const res = await fetch(`${API_URL}/api/v1/admin/subscriptions/sync-all`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.synced > 0) {
+          showToast(`Synced ${data.synced} subscription(s)`, 'success');
+          fetchAnalytics(); // Refresh the analytics
+        } else if (data.error) {
+          showToast(`Sync failed: ${data.error}`, 'error');
+        } else {
+          showToast('All subscriptions already in sync', 'success');
+        }
+      } else {
+        showToast('Failed to sync subscriptions', 'error');
+      }
+    } catch (error) {
+      console.error('Failed to sync subscriptions:', error);
+      showToast('Failed to sync subscriptions', 'error');
+    } finally {
+      setSyncingSubscriptions(false);
     }
   };
 
@@ -674,7 +703,27 @@ const AdminDashboard: React.FC = () => {
 
         {/* User Breakdown */}
         <div style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', border: '1px solid #2a2a2a' }}>
-          <h3 style={{ color: '#fff', marginBottom: '1rem', fontSize: '1rem' }}>👥 User Breakdown</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <h3 style={{ color: '#fff', fontSize: '1rem', margin: 0 }}>👥 User Breakdown</h3>
+            <button
+              onClick={syncSubscriptions}
+              disabled={syncingSubscriptions}
+              style={{
+                padding: '0.35rem 0.75rem',
+                backgroundColor: syncingSubscriptions ? '#374151' : '#22d3ee20',
+                color: syncingSubscriptions ? '#6b7280' : '#22d3ee',
+                border: '1px solid #22d3ee40',
+                borderRadius: '6px',
+                fontSize: '0.75rem',
+                cursor: syncingSubscriptions ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.35rem'
+              }}
+            >
+              {syncingSubscriptions ? '⏳ Syncing...' : '🔄 Sync with Stripe'}
+            </button>
+          </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem' }}>
             {[
               { label: 'Free Users', value: analytics.userStats.free, color: '#6b7280' },

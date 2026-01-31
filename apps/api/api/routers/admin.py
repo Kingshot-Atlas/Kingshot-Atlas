@@ -194,20 +194,43 @@ async def get_revenue_stats(x_admin_key: Optional[str] = Header(None)):
 async def get_admin_overview(x_admin_key: Optional[str] = Header(None)):
     """
     Get combined overview stats for admin dashboard.
+    
+    Uses Stripe as the source of truth for subscription counts to avoid
+    sync issues between Stripe webhooks and Supabase profile updates.
     """
     require_admin(x_admin_key)
-    # Get subscription stats
+    # Get subscription stats from Supabase
     sub_stats = await get_subscription_stats(x_admin_key)
     
-    # Get revenue stats
+    # Get revenue stats from Stripe (source of truth for subscriptions)
     rev_stats = await get_revenue_stats(x_admin_key)
+    
+    # Calculate actual paid user counts from Stripe (source of truth)
+    # This avoids discrepancies when webhooks fail to update profiles
+    stripe_pro_count = 0
+    stripe_recruiter_count = 0
+    
+    for tier_info in rev_stats.get("subscriptions_by_tier", []):
+        tier_name = tier_info.get("tier", "").lower()
+        count = tier_info.get("count", 0)
+        if "pro" in tier_name:
+            stripe_pro_count += count
+        elif "recruiter" in tier_name:
+            stripe_recruiter_count += count
+    
+    # Total users from Supabase, but paid counts from Stripe
+    total_users = sub_stats.get("total_users", 0)
+    paid_from_stripe = stripe_pro_count + stripe_recruiter_count
+    
+    # Free users = total users - paid users (from Stripe)
+    free_users = max(0, total_users - paid_from_stripe)
     
     return {
         "users": {
-            "total": sub_stats.get("total_users", 0),
-            "free": sub_stats.get("by_tier", {}).get("free", 0),
-            "pro": sub_stats.get("by_tier", {}).get("pro", 0),
-            "recruiter": sub_stats.get("by_tier", {}).get("recruiter", 0),
+            "total": total_users,
+            "free": free_users,
+            "pro": stripe_pro_count,
+            "recruiter": stripe_recruiter_count,
         },
         "revenue": {
             "mrr": rev_stats.get("mrr", 0),
@@ -624,3 +647,124 @@ async def get_webhook_health_stats(x_admin_key: Optional[str] = Header(None)):
     require_admin(x_admin_key)
     stats = get_webhook_stats()
     return stats
+
+
+@router.post("/subscriptions/sync-all")
+async def sync_all_subscriptions(x_admin_key: Optional[str] = Header(None)):
+    """
+    Sync all active Stripe subscriptions with Supabase profiles.
+    
+    Use this to fix discrepancies between Stripe (source of truth) and
+    Supabase profiles when webhooks fail to update profile subscription_tier.
+    
+    Returns:
+        - synced: Number of profiles successfully updated
+        - failed: Number of sync failures
+        - skipped: Number of subscriptions without matching profiles
+        - details: List of sync operations
+    """
+    require_admin(x_admin_key)
+    
+    if not STRIPE_SECRET_KEY:
+        return {"error": "Stripe not configured", "synced": 0, "failed": 0}
+    
+    client = get_supabase_admin()
+    if not client:
+        return {"error": "Supabase not configured", "synced": 0, "failed": 0}
+    
+    synced = 0
+    failed = 0
+    skipped = 0
+    details = []
+    
+    try:
+        # Get all active subscriptions from Stripe
+        subscriptions = stripe.Subscription.list(status="active", limit=100)
+        
+        for sub in subscriptions.data:
+            sub_id = sub.id
+            customer_id = sub.customer
+            tier = sub.get("metadata", {}).get("tier", "pro")
+            user_id = sub.get("metadata", {}).get("user_id")
+            
+            # Try to find user by metadata user_id first
+            profile = None
+            if user_id:
+                try:
+                    result = client.table("profiles").select("id, username, subscription_tier, stripe_customer_id").eq("id", user_id).single().execute()
+                    profile = result.data
+                except:
+                    pass
+            
+            # If no profile found by user_id, try by stripe_customer_id
+            if not profile and customer_id:
+                try:
+                    result = client.table("profiles").select("id, username, subscription_tier, stripe_customer_id").eq("stripe_customer_id", customer_id).single().execute()
+                    profile = result.data
+                except:
+                    pass
+            
+            # If still no profile, try to find by email from Stripe customer
+            if not profile and customer_id:
+                try:
+                    customer = stripe.Customer.retrieve(customer_id)
+                    if customer.email:
+                        result = client.table("profiles").select("id, username, subscription_tier, stripe_customer_id").eq("email", customer.email).single().execute()
+                        profile = result.data
+                except:
+                    pass
+            
+            if profile:
+                current_tier = profile.get("subscription_tier", "free")
+                if current_tier != tier:
+                    # Update the profile
+                    try:
+                        update_data = {
+                            "subscription_tier": tier,
+                            "stripe_subscription_id": sub_id,
+                        }
+                        if customer_id and not profile.get("stripe_customer_id"):
+                            update_data["stripe_customer_id"] = customer_id
+                        
+                        client.table("profiles").update(update_data).eq("id", profile["id"]).execute()
+                        synced += 1
+                        details.append({
+                            "user_id": profile["id"],
+                            "username": profile.get("username"),
+                            "action": "updated",
+                            "from_tier": current_tier,
+                            "to_tier": tier
+                        })
+                    except Exception as e:
+                        failed += 1
+                        details.append({
+                            "user_id": profile["id"],
+                            "action": "failed",
+                            "error": str(e)
+                        })
+                else:
+                    details.append({
+                        "user_id": profile["id"],
+                        "username": profile.get("username"),
+                        "action": "already_synced",
+                        "tier": tier
+                    })
+            else:
+                skipped += 1
+                details.append({
+                    "subscription_id": sub_id,
+                    "customer_id": customer_id,
+                    "action": "skipped",
+                    "reason": "No matching profile found"
+                })
+        
+        return {
+            "synced": synced,
+            "failed": failed,
+            "skipped": skipped,
+            "total_subscriptions": len(subscriptions.data),
+            "details": details
+        }
+        
+    except stripe.error.StripeError as e:
+        return {"error": str(e), "synced": synced, "failed": failed}

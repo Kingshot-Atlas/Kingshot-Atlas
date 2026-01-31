@@ -25,10 +25,89 @@ interface CachedKvKData {
 }
 
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const INDEXEDDB_CACHE_KEY = 'kvk_history_cache';
 let cachedData: CachedKvKData | null = null;
 
 class KvKHistoryService {
   private corrections: Map<string, KvKCorrection> | null = null;
+  private dbPromise: Promise<IDBDatabase> | null = null;
+
+  /**
+   * Initialize IndexedDB for persistent caching
+   */
+  private getDB(): Promise<IDBDatabase> {
+    if (this.dbPromise) return this.dbPromise;
+
+    this.dbPromise = new Promise((resolve, reject) => {
+      const request = indexedDB.open('KingshotAtlasKvK', 1);
+      
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve(request.result);
+      
+      request.onupgradeneeded = (event) => {
+        const db = (event.target as IDBOpenDBRequest).result;
+        if (!db.objectStoreNames.contains('cache')) {
+          db.createObjectStore('cache', { keyPath: 'key' });
+        }
+      };
+    });
+
+    return this.dbPromise;
+  }
+
+  /**
+   * Save cache to IndexedDB for offline support
+   */
+  private async saveToIndexedDB(data: CachedKvKData): Promise<void> {
+    try {
+      const db = await this.getDB();
+      const tx = db.transaction('cache', 'readwrite');
+      const store = tx.objectStore('cache');
+      
+      // Convert Map to array for storage
+      const serialized = {
+        key: INDEXEDDB_CACHE_KEY,
+        records: Array.from(data.records.entries()),
+        timestamp: data.timestamp,
+        source: data.source
+      };
+      
+      store.put(serialized);
+    } catch (err) {
+      console.warn('Failed to save to IndexedDB:', err);
+    }
+  }
+
+  /**
+   * Load cache from IndexedDB
+   */
+  private async loadFromIndexedDB(): Promise<CachedKvKData | null> {
+    try {
+      const db = await this.getDB();
+      return new Promise((resolve) => {
+        const tx = db.transaction('cache', 'readonly');
+        const store = tx.objectStore('cache');
+        const request = store.get(INDEXEDDB_CACHE_KEY);
+        
+        request.onsuccess = () => {
+          const data = request.result;
+          if (data && Date.now() - data.timestamp < CACHE_TTL_MS * 12) { // 1 hour for IndexedDB
+            resolve({
+              records: new Map(data.records),
+              timestamp: data.timestamp,
+              source: data.source
+            });
+          } else {
+            resolve(null);
+          }
+        };
+        
+        request.onerror = () => resolve(null);
+      });
+    } catch {
+      return null;
+    }
+  }
 
   /**
    * Get KvK history for a specific kingdom
@@ -42,9 +121,16 @@ class KvKHistoryService {
    * Get all KvK records grouped by kingdom
    */
   async getAllRecords(): Promise<Map<number, KvKHistoryRecord[]>> {
-    // Check cache
+    // Check memory cache first
     if (cachedData && Date.now() - cachedData.timestamp < CACHE_TTL_MS) {
       return cachedData.records;
+    }
+
+    // Try IndexedDB cache (for offline support)
+    const indexedDBCache = await this.loadFromIndexedDB();
+    if (indexedDBCache) {
+      cachedData = indexedDBCache;
+      return indexedDBCache.records;
     }
 
     // Load corrections first
@@ -63,6 +149,10 @@ class KvKHistoryService {
           // Supabase has sufficient data
           const records = this.processRecords(data);
           cachedData = { records, timestamp: Date.now(), source: 'supabase' };
+          
+          // Save to IndexedDB for offline support
+          await this.saveToIndexedDB(cachedData);
+          
           return records;
         }
       } catch (err) {
@@ -73,6 +163,65 @@ class KvKHistoryService {
     // Fallback: return empty (CSV data is loaded separately in api.ts)
     // This service is for Supabase data; CSV fallback happens in loadKingdomData
     return new Map();
+  }
+
+  /**
+   * Get paginated KvK records for a kingdom
+   */
+  async getKingdomHistoryPaginated(
+    kingdomNumber: number,
+    page: number = 1,
+    pageSize: number = 10
+  ): Promise<{ records: KvKHistoryRecord[]; total: number; hasMore: boolean }> {
+    const allRecords = await this.getKingdomHistory(kingdomNumber);
+    const total = allRecords.length;
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+    const records = allRecords.slice(start, end);
+    
+    return {
+      records,
+      total,
+      hasMore: end < total
+    };
+  }
+
+  /**
+   * Get paginated kingdoms with their KvK stats
+   */
+  async getKingdomsPaginated(
+    page: number = 1,
+    pageSize: number = 50,
+    sortBy: 'kingdom_number' | 'win_rate' = 'kingdom_number'
+  ): Promise<{ kingdoms: number[]; total: number; hasMore: boolean }> {
+    const allRecords = await this.getAllRecords();
+    const kingdomNumbers = Array.from(allRecords.keys());
+    
+    // Sort kingdoms
+    if (sortBy === 'win_rate') {
+      kingdomNumbers.sort((a, b) => {
+        const aRecords = allRecords.get(a) || [];
+        const bRecords = allRecords.get(b) || [];
+        const aWins = aRecords.filter(r => r.overall_result === 'Win').length;
+        const bWins = bRecords.filter(r => r.overall_result === 'Win').length;
+        const aRate = aRecords.length > 0 ? aWins / aRecords.length : 0;
+        const bRate = bRecords.length > 0 ? bWins / bRecords.length : 0;
+        return bRate - aRate;
+      });
+    } else {
+      kingdomNumbers.sort((a, b) => a - b);
+    }
+    
+    const total = kingdomNumbers.length;
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+    const kingdoms = kingdomNumbers.slice(start, end);
+    
+    return {
+      kingdoms,
+      total,
+      hasMore: end < total
+    };
   }
 
   /**

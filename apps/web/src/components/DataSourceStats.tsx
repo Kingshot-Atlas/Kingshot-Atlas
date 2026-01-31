@@ -6,6 +6,8 @@
 import React, { useState, useEffect } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { kvkHistoryService } from '../services/kvkHistoryService';
+import { dataFreshnessService, type DataFreshnessStatus, type FreshnessAlert } from '../services/dataFreshnessService';
+import { kvkCorrectionService } from '../services/kvkCorrectionService';
 
 interface DataStats {
   supabase: {
@@ -27,6 +29,14 @@ interface DataStats {
   parity: {
     percentage: number;
     status: 'complete' | 'partial' | 'missing';
+  };
+  freshness: DataFreshnessStatus | null;
+  alerts: FreshnessAlert[];
+  corrections: {
+    pending: number;
+    approved: number;
+    rejected: number;
+    total: number;
   };
 }
 
@@ -100,6 +110,13 @@ export const DataSourceStats: React.FC = () => {
         ? Math.round((supabaseCount / csvStats.totalRecords) * 100 * 10) / 10
         : 0;
 
+      // Get freshness status and alerts
+      const freshness = await dataFreshnessService.getKvKFreshnessStatus();
+      const alerts = await dataFreshnessService.getAlerts();
+
+      // Get correction stats
+      const corrections = await kvkCorrectionService.getCorrectionStats();
+
       setStats({
         supabase: supabaseStats,
         csv: csvStats,
@@ -108,6 +125,9 @@ export const DataSourceStats: React.FC = () => {
           percentage: Math.min(parityPercentage, 100),
           status: parityPercentage >= 100 ? 'complete' : parityPercentage >= 90 ? 'partial' : 'missing',
         },
+        freshness,
+        alerts,
+        corrections,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch stats');
@@ -268,7 +288,94 @@ export const DataSourceStats: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Corrections Stats */}
+        <div style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.25rem', border: '1px solid #2a2a2a' }}>
+          <h4 style={{ color: '#f59e0b', fontSize: '0.875rem', margin: '0 0 1rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span>📝</span> Corrections
+          </h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>Pending</span>
+              <span style={{ color: stats.corrections.pending > 0 ? '#f59e0b' : '#fff', fontWeight: '600' }}>
+                {stats.corrections.pending}
+              </span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>Approved</span>
+              <span style={{ color: '#22c55e', fontWeight: '600' }}>{stats.corrections.approved}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>Rejected</span>
+              <span style={{ color: '#ef4444', fontWeight: '600' }}>{stats.corrections.rejected}</span>
+            </div>
+          </div>
+        </div>
       </div>
+
+      {/* Freshness Status */}
+      {stats.freshness && (
+        <div style={{ 
+          backgroundColor: '#111116', 
+          borderRadius: '12px', 
+          padding: '1.25rem', 
+          border: `1px solid ${dataFreshnessService.getStalenessColor(stats.freshness.staleness)}40`
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+            <h4 style={{ color: '#fff', fontSize: '0.875rem', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span>🕐</span> Data Freshness
+            </h4>
+            <span style={{ 
+              padding: '0.2rem 0.5rem', 
+              backgroundColor: `${dataFreshnessService.getStalenessColor(stats.freshness.staleness)}20`,
+              color: dataFreshnessService.getStalenessColor(stats.freshness.staleness),
+              borderRadius: '4px',
+              fontSize: '0.7rem',
+              fontWeight: '600',
+              textTransform: 'uppercase'
+            }}>
+              {stats.freshness.staleness}
+            </span>
+          </div>
+          <p style={{ color: '#9ca3af', fontSize: '0.8rem', margin: '0 0 0.5rem 0' }}>{stats.freshness.message}</p>
+          {stats.freshness.lastUpdated && (
+            <p style={{ color: '#6b7280', fontSize: '0.75rem', margin: 0 }}>
+              Last updated: {new Date(stats.freshness.lastUpdated).toLocaleDateString()}
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Alerts */}
+      {stats.alerts.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          {stats.alerts.map(alert => (
+            <div 
+              key={alert.id}
+              style={{ 
+                backgroundColor: alert.type === 'error' ? '#ef444420' : alert.type === 'warning' ? '#f59e0b20' : '#22d3ee20',
+                borderRadius: '8px', 
+                padding: '1rem', 
+                border: `1px solid ${alert.type === 'error' ? '#ef4444' : alert.type === 'warning' ? '#f59e0b' : '#22d3ee'}40`
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                <span>{alert.type === 'error' ? '🚨' : alert.type === 'warning' ? '⚠️' : 'ℹ️'}</span>
+                <span style={{ 
+                  color: alert.type === 'error' ? '#ef4444' : alert.type === 'warning' ? '#f59e0b' : '#22d3ee',
+                  fontWeight: '600',
+                  fontSize: '0.875rem'
+                }}>
+                  {alert.message}
+                </span>
+              </div>
+              <p style={{ color: '#9ca3af', fontSize: '0.75rem', margin: 0 }}>
+                Action: {alert.actionRequired}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Refresh Button */}
       <div style={{ display: 'flex', justifyContent: 'flex-end' }}>

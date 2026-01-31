@@ -120,6 +120,10 @@
 | KvK Data Validation | ✅ Live | Platform | `scripts/validate-kvk-data.js` - CSV integrity tests |
 | KvK Data Sync | ✅ Live | Platform | `scripts/sync-kvk-data.js` - Future update utility |
 | Data Source Stats | ✅ Live | Platform | `DataSourceStats.tsx` - Admin parity dashboard |
+| Data Freshness Alerts | ✅ Live | Platform | `dataFreshnessService.ts` - Staleness tracking + alerts |
+| Correction Approval Workflow | ✅ Live | Platform | `kvkCorrectionService.ts` - Supabase-backed pending/approve/reject |
+| KvK History Pagination | ✅ Live | Platform | `kvkHistoryService.ts` - Paginated queries |
+| IndexedDB Caching | ✅ Live | Platform | `kvkHistoryService.ts` - Offline support with 1-hour TTL |
 | User Correction Stats | ✅ Live | Platform | `UserCorrectionStats.tsx` - profile correction tracking |
 
 ---
@@ -217,6 +221,16 @@
 | Coming Soon Page | ✅ Live | 2026-01-29 | Release Manager | `/docs/releases/coming-soon.md` |
 | Data Quality Audit | ✅ Live | 2026-01-29 | Platform | `data_quality_audit.py` |
 | Submission Validation | ✅ Live | 2026-01-29 | Platform | `validate_submission.py` |
+
+---
+
+## Admin Dashboard Enhancements
+
+| Feature | Status | Date | Agent | Notes |
+|---------|--------|------|-------|-------|
+| Stripe-Based Subscription Counts | ✅ Live | 2026-01-31 | Platform | Uses Stripe as source of truth for Pro/Recruiter counts |
+| Admin Subscription Sync | ✅ Live | 2026-01-31 | Platform | POST /api/v1/admin/subscriptions/sync-all |
+| Sync with Stripe Button | ✅ Live | 2026-01-31 | Platform | One-click reconciliation in User Breakdown section |
 
 ---
 

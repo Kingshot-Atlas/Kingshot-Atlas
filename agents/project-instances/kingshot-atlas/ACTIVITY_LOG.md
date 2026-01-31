@@ -9,6 +9,42 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-01-31 12:10 | Platform Engineer | COMPLETED
+Task: Fix Admin Dashboard Subscription Count Bug
+Root Cause: User Breakdown showed 0 Pro users (from Supabase profiles.subscription_tier) while Revenue section correctly showed 1 Pro subscription (from Stripe API). Stripe webhooks weren't syncing profile data.
+Solution:
+  1. Modified /api/v1/admin/stats/overview to use Stripe as source of truth for subscription counts
+  2. Added POST /api/v1/admin/subscriptions/sync-all endpoint to reconcile all subscriptions
+  3. Added "Sync with Stripe" button in User Breakdown section of Admin Dashboard
+Files Changed:
+  - apps/api/api/routers/admin.py - Use Stripe counts, add sync-all endpoint
+  - apps/web/src/pages/AdminDashboard.tsx - Add sync button + handler
+Impact: User Breakdown now accurately reflects active Stripe subscriptions
+
+## 2026-01-31 08:15 | Platform Engineer + Ops Lead | COMPLETED
+Task: Implement All 3 Subscription Enhancements
+Features Implemented:
+  A. Webhook Event Monitoring Dashboard - Already existed ✅
+  B. Subscription Sync Recovery Tool:
+     - POST /api/v1/stripe/sync - Resync subscription from Stripe
+     - syncSubscription() frontend function
+     - "Subscription not showing?" self-service button on Profile
+  C. Email Notifications (Resend):
+     - Welcome email on checkout completion
+     - Cancellation confirmation email
+     - Payment failed alert email
+     - email_service.py with 4 email templates
+Files Changed:
+  - apps/api/api/routers/stripe.py - Added sync endpoint + email triggers
+  - apps/api/api/email_service.py (NEW) - Resend email service
+  - apps/api/render.yaml - Added RESEND_API_KEY env var
+  - apps/web/src/lib/stripe.ts - Added syncSubscription()
+  - apps/web/src/pages/Profile.tsx - Added sync button
+Deployment:
+  - Frontend: ✅ https://ks-atlas.com
+  - API: ✅ Auto-deploying from GitHub push
+Setup Required: Set RESEND_API_KEY in Render for email notifications
+
 ## 2026-01-31 08:00 | Ops Lead | COMPLETED
 Task: Deploy Subscription Fixes to Production
 Actions:
@@ -24,6 +60,25 @@ Environment Variables Configured:
   - SUPABASE_URL: ✅ Set in Render
   - SUPABASE_SERVICE_ROLE_KEY: ✅ Set in Render
 User Action: Verify webhook endpoint in Stripe Dashboard
+
+## 2026-01-31 08:15 | Platform Engineer | COMPLETED
+Task: Option A (Data Quality) + Option D (Performance) Implementation
+Summary:
+  - Added correction approval workflow (pending/approved/rejected status)
+  - Built data freshness alerts system with staleness tracking
+  - Enhanced kvkHistoryService with IndexedDB caching for offline support
+  - Added pagination methods for large datasets
+  - Created KvK #10 sync documentation
+Files Changed:
+  - apps/web/src/services/kvkCorrectionService.ts - Added approval workflow methods
+  - apps/web/src/services/dataFreshnessService.ts (NEW) - Freshness tracking + alerts
+  - apps/web/src/services/kvkHistoryService.ts - Added IndexedDB caching + pagination
+  - apps/web/src/components/DataSourceStats.tsx - Added freshness + corrections UI
+  - docs/KVK_DATA_SYNC.md (NEW) - KvK #10 sync process documentation
+Database Changes:
+  - Added status, reviewed_at, review_notes columns to kvk_corrections
+  - Added indexes: idx_kvk_corrections_status, idx_kvk_corrections_submitted_by
+Note: KvK #10 data sync awaiting battle phase end (Saturday 22:00 UTC)
 
 ## 2026-01-31 07:55 | Platform Engineer | COMPLETED
 Task: Complete KvK Data Migration to 100% + Option A (Data Quality & Verification)
