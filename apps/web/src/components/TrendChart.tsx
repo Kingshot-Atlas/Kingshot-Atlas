@@ -93,8 +93,8 @@ const TrendChart: React.FC<TrendChartProps> = ({ kvkRecords, height = 220 }) => 
   const prepAreaPath = generateAreaPath(chartData.map(d => d.prepWR));
   const battleAreaPath = generateAreaPath(chartData.map(d => d.battleWR));
 
-  // Colors
-  const prepColor = '#22d3ee'; // Cyan for prep
+  // Colors (per brand style guide)
+  const prepColor = '#eab308'; // Yellow for prep (brand standard)
   const battleColor = '#f97316'; // Orange for battle
 
   return (
