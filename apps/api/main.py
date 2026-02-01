@@ -27,6 +27,23 @@ if SENTRY_AVAILABLE and SENTRY_DSN:
 
 Base.metadata.create_all(bind=engine)
 
+def run_migrations():
+    """Run any pending schema migrations for existing tables"""
+    from sqlalchemy import text
+    db = SessionLocal()
+    try:
+        # Add screenshot2_url column if it doesn't exist (added 2026-02-01)
+        try:
+            db.execute(text("ALTER TABLE kvk_submissions ADD COLUMN screenshot2_url TEXT"))
+            db.commit()
+            print("Migration: Added screenshot2_url column to kvk_submissions")
+        except Exception:
+            db.rollback()  # Column already exists, ignore
+    finally:
+        db.close()
+
+run_migrations()
+
 def ensure_data_loaded():
     """Check if database has data, import if empty (handles Render's ephemeral storage)"""
     db = SessionLocal()
