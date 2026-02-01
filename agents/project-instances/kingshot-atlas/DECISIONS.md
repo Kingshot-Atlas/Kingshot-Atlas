@@ -269,6 +269,52 @@ Add specialized sub-agents under high-load primary agents:
 
 ---
 
+## ADR-010: Supabase as Single Source of Truth for Kingdom Data
+
+**Date:** 2026-02-01  
+**Status:** ✅ Accepted  
+**Deciders:** Owner, Platform Engineer
+
+### Context
+The data layer had evolved into a multi-source hybrid system causing sync issues:
+- Static CSV/JSON files for original data
+- SQLite for API server-side storage
+- Supabase for real-time user submissions
+- Frontend using `kingdoms.json` for base stats, overlaying Supabase KvK records
+
+When users submitted KvK results, the Atlas Score displayed would be stale (from JSON) even though the KvK history was up-to-date (from Supabase).
+
+### Decision
+**Supabase `kingdoms` table is now the single source of truth** for all kingdom aggregate stats including Atlas Score.
+
+Implementation:
+1. Created `kingdoms` table in Supabase with all aggregate stats
+2. Created `calculate_atlas_score()` PostgreSQL function with Bayesian formula
+3. Created `recalculate_kingdom_stats()` function called by trigger
+4. Trigger auto-updates `kingdoms` table when `kvk_history` changes
+5. Frontend reads from Supabase `kingdoms` table via `kingdomsSupabaseService`
+6. Local JSON is fallback only when Supabase unavailable
+
+### Alternatives Considered
+- Keep SQLite as source of truth — Would require API to always be deployed
+- Frontend recalculation — Duplicated formula, increased complexity
+- Keep hybrid approach — Root cause of the sync problem
+
+### Consequences
+- ✅ Single source of truth eliminates sync issues
+- ✅ Automatic stat recalculation via database trigger
+- ✅ Real-time updates across all users
+- ✅ No manual regeneration needed after submissions
+- ⚠️ Dependent on Supabase availability
+- ⚠️ Atlas Score formula now lives in PostgreSQL (need to update both if formula changes)
+
+### Related Files
+- `/docs/migrations/create_kingdoms_table.sql` — Full migration
+- `/apps/web/src/services/kingdomsSupabaseService.ts` — Frontend service
+- `/apps/web/src/services/api.ts` — Updated to use Supabase as primary source
+
+---
+
 ## Template for New Decisions
 
 ```markdown

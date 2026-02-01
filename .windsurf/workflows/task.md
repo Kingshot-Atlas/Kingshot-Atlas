@@ -2,7 +2,7 @@
 description: Auto-route any Kingshot Atlas task to the appropriate agent
 ---
 
-# Auto-Router Workflow
+# /task Workflow
 
 When invoked, follow these steps:
 
@@ -20,7 +20,35 @@ Before starting work:
 - Grep codebase for existing implementations if building features
 - If already done, inform user and suggest alternatives
 
-## 3. Classify the Task
+## 3. Architecture Review (MANDATORY for data/API/storage changes)
+**Prevents architectural debt. Check BEFORE implementing.**
+
+### Trigger Conditions
+Run this check if task involves ANY of:
+- [ ] Adding a new data store (database, cache, file)
+- [ ] Changing how data flows between systems
+- [ ] Adding new API endpoints that write data
+- [ ] Modifying submission/approval workflows
+- [ ] Adding real-time or sync features
+
+### Architecture Check Steps
+1. **Read** `/docs/DATA_LAYER_ARCHITECTURE_ANALYSIS.md` — Current data flow
+2. **Read** `/agents/project-instances/kingshot-atlas/DECISIONS.md` — Existing ADRs
+3. **Ask these questions:**
+   - Where will this data live? (Supabase / SQLite / JSON / multiple?)
+   - How will it sync to other systems?
+   - Does this create a new source of truth or use an existing one?
+   - Will all pages that display this data get updated?
+4. **If adding a new data path:** Document in DECISIONS.md as a new ADR
+5. **If conflicting with existing architecture:** STOP and discuss with user
+
+### Red Flags (STOP and discuss)
+- ⛔ Task requires data in multiple stores without clear sync plan
+- ⛔ "Just make it work for now" shortcuts on data layer
+- ⛔ Frontend and backend using different data sources for same entity
+- ⛔ No clear answer to "what is the source of truth?"
+
+## 4. Classify the Task
 Route based on primary domain:
 
 | If task involves... | Route to |
@@ -33,7 +61,7 @@ Route based on primary domain:
 | Patch notes, changelog, user communications | **Release Manager** |
 | Multi-domain, strategic, unclear, or orchestration | **Atlas Director** |
 
-## 4. Adopt Agent Identity
+## 5. Adopt Agent Identity
 // turbo
 Read the selected agent's files:
 - `SPECIALIST.md` — Identity, competencies, boundaries
@@ -41,13 +69,13 @@ Read the selected agent's files:
 
 Work within that agent's scope and follow their workflows.
 
-## 5. Execute Task
+## 6. Execute Task
 - Claim files before editing (check `FILE_CLAIMS.md`)
 - Follow the agent's specific workflow for the task type
 - Stay within scope boundaries
 - Apply the Decision Filter from VISION.md
 
-## 6. Post-Task Documentation (MANDATORY)
+## 7. Post-Task Documentation (MANDATORY)
 After completing work:
 
 ### Log to ACTIVITY_LOG.md (REQUIRED - enables patch note generation)
@@ -77,7 +105,7 @@ Add row with: Feature | Status | Date | Agent | Notes
 - **1 suggested next step** (the most impactful one, with 5 tasks)
   - **MUST include a short explanation of WHY it's suggested** (business value, user impact, or technical debt reduction)
 
-## 8. Recommended Next Steps Library
+## 9. Recommended Next Steps Library
 
 ### A. Email Notification System
 **WHY:** Reduces churn by 15-25%. Users who receive timely emails have 3x higher retention. Critical for subscription businesses.
@@ -119,14 +147,14 @@ Add row with: Feature | Status | Date | Agent | Notes
 4. Add bug report submission flow
 5. Create feedback analytics dashboard
 
-## 7. Vision Alignment Check
+## 9. Vision Alignment Check
 Before delivering, verify:
 - [ ] Does this help players make better decisions?
 - [ ] Does this maintain data integrity principles?
 - [ ] Does this align with competitive-but-fair values?
 - [ ] Would core users find this valuable?
 
-## 8. MANDATORY: Commit & Deploy Check
+## 10. MANDATORY: Commit & Deploy Check
 **CRITICAL: Before ending ANY session, run this:**
 // turbo
 ```bash

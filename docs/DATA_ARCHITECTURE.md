@@ -2,11 +2,61 @@
 
 ## Overview
 
-All Atlas Score data flows from a **single source**: `regenerate_kingdoms_with_atlas_score.py`
+**Updated 2026-02-01:** The single source of truth is now the **Supabase `kingdoms` table**.
 
-This prevents discrepancies between different parts of the application showing different scores.
+All kingdom stats (including Atlas Score) are calculated via database triggers when `kvk_history` changes. The frontend reads directly from Supabase.
 
-## Data Flow
+## Current Data Flow (v2 - Supabase Source of Truth)
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│                 USER SUBMISSION FLOW                            │
+│           (Real-time, automatic recalculation)                 │
+└─────────────────────────┬──────────────────────────────────────┘
+                          │
+    User submits KvK → Admin approves
+                          │
+                          ▼
+┌────────────────────────────────────────────────────────────────┐
+│              SUPABASE kvk_history TABLE                        │
+│   API inserts record via submissions.py                        │
+└─────────────────────────┬──────────────────────────────────────┘
+                          │
+                   DATABASE TRIGGER
+                          │
+                          ▼
+┌────────────────────────────────────────────────────────────────┐
+│           recalculate_kingdom_stats() FUNCTION                 │
+│                                                                │
+│  • Counts prep/battle wins/losses from kvk_history            │
+│  • Calculates streaks (current and best)                      │
+│  • Calculates recent form (weighted 5 KvKs)                   │
+│  • Calls calculate_atlas_score() with Bayesian formula        │
+│  • Upserts to kingdoms table                                   │
+└─────────────────────────┬──────────────────────────────────────┘
+                          │
+                          ▼
+┌────────────────────────────────────────────────────────────────┐
+│        SUPABASE kingdoms TABLE (SOURCE OF TRUTH)              │
+│                                                                │
+│  • 1,189 kingdoms with all aggregate stats                    │
+│  • Atlas Score pre-calculated and updated automatically        │
+│  • RLS enabled: anyone can read                               │
+└─────────────────────────┬──────────────────────────────────────┘
+                          │
+                          ▼
+┌────────────────────────────────────────────────────────────────┐
+│              FRONTEND (kingdomsSupabaseService.ts)            │
+│                                                                │
+│  • Reads from Supabase kingdoms table                         │
+│  • Falls back to kingdoms.json if Supabase unavailable        │
+│  • All pages show consistent data                             │
+└────────────────────────────────────────────────────────────────┘
+```
+
+## Legacy Data Flow (Batch Updates)
+
+For bulk data imports or corrections, the original flow still works:
 
 ```
 ┌────────────────────────────────────────────────────────────────┐
@@ -16,45 +66,47 @@ This prevents discrepancies between different parts of the application showing d
                           │
                           ▼
 ┌────────────────────────────────────────────────────────────────┐
-│             SINGLE GENERATION SCRIPT                            │
+│             BATCH GENERATION SCRIPT                            │
 │        regenerate_kingdoms_with_atlas_score.py                 │
 │                                                                 │
 │  • Calculates Atlas Score using Bayesian Average formula       │
-│  • Generates ALL output files in a single run                  │
+│  • Generates kingdoms.json (fallback)                          │
+│  • NOTE: Supabase is still source of truth for live data       │
 └─────────────────────────┬──────────────────────────────────────┘
                           │
-          ┌───────────────┼───────────────┐
-          ▼               ▼               ▼
-┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
-│   FRONTEND      │ │   API CSV       │ │   API CSV       │
-│ kingdoms.json   │ │ kingdoms_       │ │ kingdoms_       │
-│                 │ │ summary.csv     │ │ all_kvks.csv    │
-│ apps/web/src/   │ │ apps/api/data/  │ │ apps/api/data/  │
-│ data/           │ │                 │ │                 │
-└────────┬────────┘ └────────┬────────┘ └────────┬────────┘
-         │                   │                   │
-         ▼                   └─────────┬─────────┘
-┌─────────────────┐                    ▼
-│   React App     │          ┌─────────────────┐
-│ (client-side)   │          │   import_data   │
-│                 │          │   .py           │
-│ Falls back to   │          │                 │
-│ kingdoms.json   │          │ Loads to SQLite │
-│ if API fails    │          └────────┬────────┘
-└─────────────────┘                   ▼
-                             ┌─────────────────┐
-                             │   FastAPI       │
-                             │   (server-side) │
-                             └─────────────────┘
+                          ▼
+┌────────────────────────────────────────────────────────────────┐
+│   LOCAL FALLBACK: apps/web/src/data/kingdoms.json             │
+│   Used only when Supabase is unavailable                       │
+└────────────────────────────────────────────────────────────────┘
 ```
 
 ## Key Files
 
+### Supabase (Source of Truth)
+| Table | Purpose | Updated By |
+|-------|---------|------------|
+| `kingdoms` | Kingdom aggregate stats + Atlas Score | Trigger on `kvk_history` changes |
+| `kvk_history` | Individual KvK match records | `submissions.py` on approval |
+
+### Frontend Services
+| File | Purpose |
+|------|---------|
+| `apps/web/src/services/kingdomsSupabaseService.ts` | Fetches from Supabase `kingdoms` table |
+| `apps/web/src/services/api.ts` | Orchestrates data loading, uses Supabase as primary |
+
+### Legacy/Fallback Files
 | File | Purpose | Generated By |
 |------|---------|--------------|
-| `apps/web/src/data/kingdoms.json` | Frontend data source | `regenerate_kingdoms_with_atlas_score.py` |
-| `apps/api/data/kingdoms_summary.csv` | API database import | `regenerate_kingdoms_with_atlas_score.py` |
-| `apps/api/data/kingdoms_all_kvks.csv` | API KvK records | `regenerate_kingdoms_with_atlas_score.py` |
+| `apps/web/src/data/kingdoms.json` | Fallback when Supabase unavailable | `regenerate_kingdoms_with_atlas_score.py` |
+| `apps/api/data/kingdoms_summary.csv` | Legacy API database import | `regenerate_kingdoms_with_atlas_score.py` |
+
+### Database Functions (Supabase)
+| Function | Purpose |
+|----------|---------|
+| `calculate_atlas_score()` | Bayesian Atlas Score formula |
+| `recalculate_kingdom_stats()` | Recalculates all stats for a kingdom |
+| `trigger_recalculate_kingdom()` | Trigger that fires on kvk_history changes |
 
 ## How to Update Data
 

@@ -4,6 +4,7 @@ import { statusService } from './statusService';
 import { correctionService } from './correctionService';
 import { kvkCorrectionService } from './kvkCorrectionService';
 import { kvkHistoryService, KvKHistoryRecord } from './kvkHistoryService';
+import { kingdomsSupabaseService } from './kingdomsSupabaseService';
 import kingdomData from '../data/kingdoms.json';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
@@ -15,21 +16,32 @@ const MAX_RETRIES = 2;
 // Cache for Supabase KvK data
 let supabaseKvkData: Map<number, KvKHistoryRecord[]> | null = null;
 
-// Preload KvK data from Supabase on module load
-let supabaseDataLoaded = false;
+// Preload data from Supabase on module load
+// These flags are used to check data source status
+export let supabaseDataLoaded = false;
+export let supabaseKingdomsLoaded = false;
 
 const preloadSupabaseData = async () => {
   try {
     // Fetch corrections first
     await kvkCorrectionService.fetchCorrectionsFromSupabase();
-    // Then fetch KvK history
-    supabaseKvkData = await kvkHistoryService.getAllRecords();
-    if (supabaseKvkData.size > 0) {
-      logger.info(`Loaded ${supabaseKvkData.size} kingdoms from Supabase`);
-      // CRITICAL: Rebuild realKingdoms now that Supabase data is available
-      realKingdoms = loadKingdomData();
-      supabaseDataLoaded = true;
-      logger.info('Rebuilt kingdom data with Supabase records');
+    
+    // PRIORITY 1: Load kingdoms from Supabase kingdoms table (SINGLE SOURCE OF TRUTH)
+    const supabaseKingdoms = await kingdomsSupabaseService.getAllKingdoms();
+    if (supabaseKingdoms.length > 0) {
+      realKingdoms = supabaseKingdoms;
+      supabaseKingdomsLoaded = true;
+      logger.info(`Loaded ${supabaseKingdoms.length} kingdoms from Supabase kingdoms table (SOURCE OF TRUTH)`);
+    } else {
+      // FALLBACK: Load from local JSON if Supabase is empty/unavailable
+      logger.warn('Supabase kingdoms table empty, falling back to local JSON');
+      supabaseKvkData = await kvkHistoryService.getAllRecords();
+      if (supabaseKvkData.size > 0) {
+        logger.info(`Loaded ${supabaseKvkData.size} kingdoms from Supabase kvk_history`);
+        realKingdoms = loadKingdomData();
+        supabaseDataLoaded = true;
+        logger.info('Rebuilt kingdom data with Supabase KvK records');
+      }
     }
   } catch (err) {
     // Silent fail - will use local JSON fallback
@@ -37,7 +49,7 @@ const preloadSupabaseData = async () => {
   }
 };
 
-// Start preloading immediately (will rebuild realKingdoms when done)
+// Start preloading immediately
 preloadSupabaseData();
 
 interface CacheData {
@@ -306,13 +318,24 @@ class ApiService {
 
   /**
    * Reload with fresh Supabase data
-   * Call this after KvK corrections are applied
+   * Call this after KvK submissions are approved or corrections are applied
    */
   async reloadWithSupabaseData(): Promise<void> {
     try {
+      // Invalidate all caches
       kvkHistoryService.invalidateCache();
-      supabaseKvkData = await kvkHistoryService.getAllRecords();
-      realKingdoms = reloadKingdomData();
+      kingdomsSupabaseService.invalidateCache();
+      
+      // Reload from Supabase kingdoms table (source of truth)
+      const supabaseKingdoms = await kingdomsSupabaseService.getAllKingdoms();
+      if (supabaseKingdoms.length > 0) {
+        realKingdoms = supabaseKingdoms;
+        logger.info(`Reloaded ${supabaseKingdoms.length} kingdoms from Supabase`);
+      } else {
+        // Fallback to kvk_history rebuild
+        supabaseKvkData = await kvkHistoryService.getAllRecords();
+        realKingdoms = reloadKingdomData();
+      }
       this.clearCache();
     } catch (err) {
       logger.warn('Failed to reload Supabase data:', err);
