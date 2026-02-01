@@ -125,3 +125,17 @@ Before delivering, verify:
 - [ ] Does this maintain data integrity principles?
 - [ ] Does this align with competitive-but-fair values?
 - [ ] Would core users find this valuable?
+
+## 8. MANDATORY: Commit & Deploy Check
+**CRITICAL: Before ending ANY session, run this:**
+// turbo
+```bash
+git status
+```
+
+If there are uncommitted changes:
+1. `git add -A`
+2. `git commit -m "descriptive message"`
+3. `git push origin main`
+
+**WHY THIS MATTERS:** Uncommitted changes are invisible to production. Work that isn't pushed doesn't exist to users. This step prevents the "it works locally but not in production" problem.

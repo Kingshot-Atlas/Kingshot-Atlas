@@ -408,25 +408,9 @@ class ApiService {
       params.append('sort', sort.sortBy);
       params.append('order', sort.order);
     }
-    // Fetch kingdoms (backend max is 100, local data supplements)
-    params.append('page_size', '100');
-    
-    const queryString = params.toString();
-    const endpoint = `/api/v1/kingdoms${queryString ? '?' + queryString : ''}`;
-    
-    try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`);
-      if (!response.ok) throw new Error(`API Error: ${response.status}`);
-      const data = await response.json();
-      // Handle both paginated and legacy array responses
-      const kingdoms = data.items || data;
-      const enriched = kingdoms.map((k: Kingdom) => this.enrichKingdom(k));
-      this.saveCache(enriched);
-      return enriched;
-    } catch (error) {
-      logger.warn(`API call failed for ${endpoint}, using local data:`, error);
-      return this.applyFiltersAndSort(realKingdoms, filters, sort);
-    }
+    // Use local JSON data as primary source (1190+ kingdoms)
+    // API is only for supplemental updates, not the main data source
+    return this.applyFiltersAndSort(realKingdoms, filters, sort);
   }
 
   async getKingdomsPaginated(
