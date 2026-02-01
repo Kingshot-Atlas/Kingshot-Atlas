@@ -174,8 +174,8 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
         headers: {
           'Content-Type': 'application/json',
           'Authorization': session?.access_token ? `Bearer ${session.access_token}` : '',
-          'X-User-Id': user?.id || '',
-          'X-User-Name': kingshotUsername || ''
+          'X-User-Id': user?.id || ''
+          // X-User-Name removed - backend fetches from Supabase profile (handles special chars)
         },
         body: JSON.stringify({
           kingdom_number: kingdomNumber,

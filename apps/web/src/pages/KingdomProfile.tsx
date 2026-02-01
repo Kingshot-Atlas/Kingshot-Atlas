@@ -77,8 +77,8 @@ const KingdomProfile: React.FC = () => {
       const data = await apiService.getKingdomProfile(id);
       setKingdom(data);
       
-      // Load all kingdoms for ranking (need all 1190+ kingdoms for accurate rank)
-      const all = await apiService.getLeaderboard(1500);
+      // Load all kingdoms for ranking (use getKingdoms which has local fallback)
+      const all = await apiService.getKingdoms();
       setAllKingdoms(all as unknown as KingdomProfileType[]);
       
       // Save to recently viewed
