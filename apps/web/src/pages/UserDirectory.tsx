@@ -4,6 +4,7 @@ import { useAuth, UserProfile } from '../contexts/AuthContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { colors, neonGlow as neonGlowUtil, subscriptionColors } from '../utils/styles';
 import { getDisplayTier, getTierBorderColor, SubscriptionTier } from '../utils/constants';
+import { logger } from '../utils/logger';
 
 // Get username color based on subscription tier (including admin)
 const getUsernameColor = (tier: SubscriptionTier | null | undefined): string => {
@@ -48,7 +49,7 @@ const UserDirectory: React.FC = () => {
       // Fetch from Supabase if configured
       if (isSupabaseConfigured && supabase) {
         try {
-          console.log('[PlayerDirectory] Fetching users from Supabase...');
+          logger.log('[PlayerDirectory] Fetching users from Supabase...');
           const { data, error } = await supabase
             .from('profiles')
             .select('id, username, email, avatar_url, home_kingdom, alliance_tag, language, region, bio, theme_color, badge_style, created_at, linked_username, linked_avatar_url, linked_kingdom, linked_tc_level, subscription_tier')
@@ -57,7 +58,7 @@ const UserDirectory: React.FC = () => {
             .order('created_at', { ascending: false })
             .limit(100);
 
-          console.log('[PlayerDirectory] Query result:', { data, error, count: data?.length });
+          logger.log('[PlayerDirectory] Query result:', { data, error, count: data?.length });
 
           if (error) {
             console.error('[PlayerDirectory] Supabase error:', error);

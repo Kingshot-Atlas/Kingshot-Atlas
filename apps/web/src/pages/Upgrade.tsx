@@ -36,6 +36,7 @@ const Upgrade: React.FC = () => {
       
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [isSuccess, sessionId, refreshSubscription, setSearchParams]);
   
   // Clear canceled state after showing message
@@ -46,6 +47,7 @@ const Upgrade: React.FC = () => {
       }, 5000);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [isCanceled, setSearchParams]);
 
   const handleUpgrade = async (selectedTier: 'pro' | 'recruiter') => {

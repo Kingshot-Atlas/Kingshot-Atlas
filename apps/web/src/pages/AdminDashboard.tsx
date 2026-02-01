@@ -12,102 +12,20 @@ import { EngagementDashboard } from '../components/EngagementDashboard';
 import { WebhookMonitor } from '../components/WebhookMonitor';
 import { DataSourceStats } from '../components/DataSourceStats';
 import { ADMIN_USERNAMES } from '../utils/constants';
-
-interface Submission {
-  id: number;
-  submitter_id: string;
-  submitter_name: string | null;
-  kingdom_number: number;
-  kvk_number: number;
-  opponent_kingdom: number;
-  prep_result: string;
-  battle_result: string;
-  date_or_order_index: string | null;
-  screenshot_url: string | null;
-  notes: string | null;
-  status: string;
-  created_at: string;
-}
-
-interface Claim {
-  id: number;
-  kingdom_number: number;
-  user_id: string;
-  status: string;
-  verification_code: string | null;
-  created_at: string;
-}
-
-interface DataCorrection {
-  id: string;
-  kingdom_number: number;
-  field: string;
-  current_value: string;
-  suggested_value: string;
-  reason: string;
-  submitter_id: string;
-  submitter_name: string;
-  status: 'pending' | 'approved' | 'rejected';
-  created_at: string;
-  reviewed_by?: string;
-  reviewed_at?: string;
-  review_notes?: string;
-}
-
-interface KvKError {
-  id: string;
-  kingdom_number: number;
-  kvk_number: number | null;
-  error_type: string;
-  error_type_label: string;
-  current_data: {
-    opponent: number;
-    prep_result: string;
-    battle_result: string;
-  } | null;
-  description: string;
-  submitted_by: string;
-  submitted_by_name: string;
-  submitted_at: string;
-  status: 'pending' | 'approved' | 'rejected';
-  reviewed_by?: string;
-  reviewed_at?: string;
-  review_notes?: string;
-}
-
-interface AnalyticsData {
-  totalVisits: number;
-  uniqueVisitors: number;
-  pageViews: { page: string; views: number }[];
-  bounceRate: number;
-  visitDuration: number;
-  topSources: { source: string; visitors: number }[];
-  topCountries: { country: string; visitors: number }[];
-  userStats: {
-    total: number;
-    free: number;
-    pro: number;
-    recruiter: number;
-    kingshot_linked: number;
-  };
-  submissions: {
-    pending: number;
-    approved: number;
-    rejected: number;
-  };
-  revenue: {
-    monthly: number;
-    total: number;
-    subscriptions: { tier: string; count: number }[];
-    activeSubscriptions?: number;
-    recentPayments?: { amount: number; currency: string; date: string; customer_email?: string }[];
-  };
-  recentSubscribers?: { username: string; tier: string; created_at: string }[];
-  // Real analytics from local tracking
-  featureUsage?: { feature: string; count: number; lastUsed: string }[];
-  buttonClicks?: { feature: string; count: number; lastUsed: string }[];
-  eventsByDay?: { date: string; count: number }[];
-}
+import { supabase } from '../lib/supabase';
+import { logger } from '../utils/logger';
+import { 
+  AnalyticsOverview, 
+  SubmissionsTab, 
+  NewKingdomsTab, 
+  ClaimsTab,
+  type Submission,
+  type Claim,
+  type DataCorrection,
+  type KvKError,
+  type NewKingdomSubmission,
+  type AnalyticsData
+} from '../components/admin';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 const CORRECTIONS_KEY = 'kingshot_data_corrections';
@@ -118,12 +36,13 @@ const AdminDashboard: React.FC = () => {
   const { user, profile } = useAuth();
   const { showToast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [activeTab, setActiveTab] = useState<'analytics' | 'saas-metrics' | 'engagement' | 'webhooks' | 'data-sources' | 'submissions' | 'claims' | 'corrections' | 'kvk-errors' | 'import' | 'users' | 'plausible' | 'transfer-status'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'saas-metrics' | 'engagement' | 'webhooks' | 'data-sources' | 'submissions' | 'new-kingdoms' | 'claims' | 'corrections' | 'kvk-errors' | 'import' | 'users' | 'plausible' | 'transfer-status'>('analytics');
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [claims, setClaims] = useState<Claim[]>([]);
   const [transferSubmissions, setTransferSubmissions] = useState<StatusSubmission[]>([]);
   const [corrections, setCorrections] = useState<DataCorrection[]>([]);
   const [kvkErrors, setKvkErrors] = useState<KvKError[]>([]);
+  const [newKingdomSubmissions, setNewKingdomSubmissions] = useState<NewKingdomSubmission[]>([]);
   const [rejectModalOpen, setRejectModalOpen] = useState<{ type: string; id: string } | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
@@ -159,9 +78,87 @@ const AdminDashboard: React.FC = () => {
       fetchTransferSubmissions();
     } else if (activeTab === 'kvk-errors') {
       fetchKvkErrors();
+    } else if (activeTab === 'new-kingdoms') {
+      fetchNewKingdomSubmissions();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, filter, isAdmin]);
+
+  const fetchNewKingdomSubmissions = async () => {
+    if (!supabase) return;
+    setLoading(true);
+    try {
+      let query = supabase
+        .from('new_kingdom_submissions')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (filter !== 'all') {
+        query = query.eq('status', filter);
+      }
+      
+      const { data, error } = await query;
+      
+      if (error) {
+        console.error('Error fetching new kingdom submissions:', error);
+        showToast('Failed to load submissions', 'error');
+      } else {
+        setNewKingdomSubmissions(data || []);
+      }
+    } catch (err) {
+      console.error('Error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApproveNewKingdom = async (submission: NewKingdomSubmission) => {
+    if (!supabase) return;
+    try {
+      // Update submission status
+      const { error } = await supabase
+        .from('new_kingdom_submissions')
+        .update({
+          status: 'approved',
+          reviewed_by: profile?.username || 'Admin',
+          reviewed_at: new Date().toISOString()
+        })
+        .eq('id', submission.id);
+      
+      if (error) throw error;
+      
+      showToast(`Kingdom ${submission.kingdom_number} approved! Add to database manually.`, 'success');
+      fetchNewKingdomSubmissions();
+    } catch (err) {
+      console.error('Approve error:', err);
+      showToast('Failed to approve submission', 'error');
+    }
+  };
+
+  const handleRejectNewKingdom = async (submissionId: string, reason: string) => {
+    if (!supabase) return;
+    try {
+      const { error } = await supabase
+        .from('new_kingdom_submissions')
+        .update({
+          status: 'rejected',
+          reviewed_by: profile?.username || 'Admin',
+          reviewed_at: new Date().toISOString(),
+          review_notes: reason
+        })
+        .eq('id', submissionId);
+      
+      if (error) throw error;
+      
+      showToast('Submission rejected', 'success');
+      setRejectModalOpen(null);
+      setRejectReason('');
+      fetchNewKingdomSubmissions();
+    } catch (err) {
+      console.error('Reject error:', err);
+      showToast('Failed to reject submission', 'error');
+    }
+  };
 
   const fetchPendingCounts = async () => {
     try {
@@ -261,7 +258,7 @@ const AdminDashboard: React.FC = () => {
           realData.recentSubscribers = adminData.recent_subscribers || [];
         }
       } catch (e) {
-        console.log('Could not fetch admin stats from API');
+        logger.log('Could not fetch admin stats from API');
       }
       
       // Fetch real submission counts from API
@@ -273,7 +270,7 @@ const AdminDashboard: React.FC = () => {
         if (approvedRes.ok) realData.submissions.approved = (await approvedRes.json()).length;
         if (rejectedRes.ok) realData.submissions.rejected = (await rejectedRes.json()).length;
       } catch (e) {
-        console.log('Could not fetch submission counts from API');
+        logger.log('Could not fetch submission counts from API');
       }
       
       setAnalytics(realData);
@@ -678,208 +675,6 @@ const AdminDashboard: React.FC = () => {
     );
   }
 
-  // Analytics Tab Content
-  const renderAnalytics = () => {
-    if (!analytics) return <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>Loading analytics...</div>;
-
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        {/* Key Metrics */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-          {[
-            { label: 'Total Events', value: analytics.totalVisits.toLocaleString(), color: '#22d3ee', icon: '👁️' },
-            { label: 'Sessions (local)', value: analytics.uniqueVisitors.toLocaleString(), color: '#a855f7', icon: '👤' },
-            { label: 'Total Users', value: analytics.userStats.total.toLocaleString(), color: '#22c55e', icon: '👥' },
-            { label: 'Monthly Revenue', value: `$${analytics.revenue.monthly.toFixed(2)}`, color: '#fbbf24', icon: '💰' },
-          ].map((metric, i) => (
-            <div key={i} style={{
-              backgroundColor: '#111116',
-              borderRadius: '12px',
-              padding: '1.25rem',
-              border: '1px solid #2a2a2a'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                <span>{metric.icon}</span>
-                <span style={{ color: '#6b7280', fontSize: '0.85rem' }}>{metric.label}</span>
-              </div>
-              <div style={{ fontSize: '1.75rem', fontWeight: '700', color: metric.color }}>
-                {metric.value}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* User Breakdown */}
-        <div style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', border: '1px solid #2a2a2a' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <h3 style={{ color: '#fff', fontSize: '1rem', margin: 0 }}>👥 User Breakdown</h3>
-            <button
-              onClick={syncSubscriptions}
-              disabled={syncingSubscriptions}
-              style={{
-                padding: '0.35rem 0.75rem',
-                backgroundColor: syncingSubscriptions ? '#374151' : '#22d3ee20',
-                color: syncingSubscriptions ? '#6b7280' : '#22d3ee',
-                border: '1px solid #22d3ee40',
-                borderRadius: '6px',
-                fontSize: '0.75rem',
-                cursor: syncingSubscriptions ? 'not-allowed' : 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.35rem'
-              }}
-            >
-              {syncingSubscriptions ? '⏳ Syncing...' : '🔄 Sync with Stripe'}
-            </button>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '1rem' }}>
-            {[
-              { label: 'Free Users', value: analytics.userStats.free, color: '#6b7280' },
-              { label: 'Kingshot Linked', value: analytics.userStats.kingshot_linked, color: '#f59e0b' },
-              { label: 'Atlas Pro', value: analytics.userStats.pro, color: '#22d3ee' },
-              { label: 'Atlas Recruiter', value: analytics.userStats.recruiter, color: '#a855f7' },
-            ].map((tier, i) => (
-              <div key={i} style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '1.5rem', fontWeight: '700', color: tier.color }}>{tier.value}</div>
-                <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>{tier.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Submissions Overview */}
-        <div style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', border: '1px solid #2a2a2a' }}>
-          <h3 style={{ color: '#fff', marginBottom: '1rem', fontSize: '1rem' }}>📝 Submissions</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
-            {[
-              { label: 'Pending', value: analytics.submissions.pending, color: '#fbbf24' },
-              { label: 'Approved', value: analytics.submissions.approved, color: '#22c55e' },
-              { label: 'Rejected', value: analytics.submissions.rejected, color: '#ef4444' },
-            ].map((stat, i) => (
-              <div key={i} style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '1.5rem', fontWeight: '700', color: stat.color }}>{stat.value}</div>
-                <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Revenue */}
-        <div style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', border: '1px solid #2a2a2a' }}>
-          <h3 style={{ color: '#fff', marginBottom: '1rem', fontSize: '1rem' }}>💰 Revenue & Subscriptions</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#22c55e' }}>${analytics.revenue.monthly.toFixed(2)}</div>
-              <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>MRR</div>
-            </div>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#fbbf24' }}>${analytics.revenue.total.toFixed(2)}</div>
-              <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>Total Revenue</div>
-            </div>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#a855f7' }}>{analytics.revenue.activeSubscriptions || 0}</div>
-              <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>Active Subs</div>
-            </div>
-          </div>
-          
-          {/* Subscription Breakdown */}
-          {analytics.revenue.subscriptions.length > 0 && (
-            <div style={{ borderTop: '1px solid #2a2a2a', paddingTop: '1rem', marginBottom: '1rem' }}>
-              <div style={{ fontSize: '0.85rem', color: '#9ca3af', marginBottom: '0.5rem' }}>By Tier:</div>
-              {analytics.revenue.subscriptions.map((sub, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.25rem' }}>
-                  <span style={{ color: '#fff' }}>{sub.tier}</span>
-                  <span style={{ color: '#22d3ee', fontWeight: '600' }}>{sub.count}</span>
-                </div>
-              ))}
-            </div>
-          )}
-          
-          {/* Recent Payments */}
-          <div style={{ borderTop: '1px solid #2a2a2a', paddingTop: '1rem' }}>
-            <div style={{ fontSize: '0.85rem', color: '#9ca3af', marginBottom: '0.5rem' }}>Recent Payments:</div>
-            {analytics.revenue.recentPayments && analytics.revenue.recentPayments.length > 0 ? (
-              analytics.revenue.recentPayments.slice(0, 5).map((payment, i) => (
-                <div key={i} style={{ 
-                  display: 'flex', 
-                  justifyContent: 'space-between', 
-                  alignItems: 'center',
-                  padding: '0.4rem 0',
-                  borderBottom: i < 4 ? '1px solid #1a1a1f' : 'none'
-                }}>
-                  <div>
-                    <span style={{ color: '#22c55e', fontWeight: '600' }}>${payment.amount.toFixed(2)}</span>
-                    <span style={{ color: '#6b7280', fontSize: '0.75rem', marginLeft: '0.5rem' }}>
-                      {new Date(payment.date).toLocaleDateString()}
-                    </span>
-                  </div>
-                  {payment.customer_email && (
-                    <span style={{ color: '#9ca3af', fontSize: '0.75rem' }}>
-                      {payment.customer_email.substring(0, 20)}...
-                    </span>
-                  )}
-                </div>
-              ))
-            ) : (
-              <div style={{ color: '#6b7280', fontSize: '0.85rem', fontStyle: 'italic' }}>No payments yet</div>
-            )}
-          </div>
-        </div>
-
-        {/* Recent Subscribers */}
-        {analytics.recentSubscribers && analytics.recentSubscribers.length > 0 && (
-          <div style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', border: '1px solid #2a2a2a' }}>
-            <h3 style={{ color: '#fff', marginBottom: '1rem', fontSize: '1rem' }}>🎉 Recent Subscribers</h3>
-            {analytics.recentSubscribers.slice(0, 5).map((sub, i) => (
-              <div key={i} style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center',
-                padding: '0.5rem 0',
-                borderBottom: i < 4 ? '1px solid #1a1a1f' : 'none'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span style={{ color: '#fff' }}>{sub.username}</span>
-                  <span style={{ 
-                    padding: '0.15rem 0.5rem',
-                    backgroundColor: sub.tier === 'recruiter' ? '#f9731620' : '#22d3ee20',
-                    color: sub.tier === 'recruiter' ? '#f97316' : '#22d3ee',
-                    borderRadius: '9999px',
-                    fontSize: '0.7rem',
-                    fontWeight: '600',
-                    textTransform: 'uppercase'
-                  }}>
-                    {sub.tier}
-                  </span>
-                </div>
-                <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>
-                  {new Date(sub.created_at).toLocaleDateString()}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Top Pages */}
-        <div style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', border: '1px solid #2a2a2a' }}>
-          <h3 style={{ color: '#fff', marginBottom: '1rem', fontSize: '1rem' }}>📊 Top Pages</h3>
-          {analytics.pageViews.map((page, i) => (
-            <div key={i} style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center',
-              padding: '0.5rem 0',
-              borderBottom: i < analytics.pageViews.length - 1 ? '1px solid #1a1a1f' : 'none'
-            }}>
-              <span style={{ color: '#fff' }}>{page.page}</span>
-              <span style={{ color: '#22d3ee', fontWeight: '600' }}>{page.views.toLocaleString()}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '1.5rem', backgroundColor: '#0a0a0a', minHeight: '100vh' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
@@ -917,66 +712,118 @@ const AdminDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Tabs */}
+      {/* Tabs - Organized into groups */}
       <div style={{ 
         display: 'flex', 
-        gap: '0.5rem', 
+        flexDirection: 'column',
+        gap: '0.75rem', 
         marginBottom: '1.5rem',
         borderBottom: '1px solid #2a2a2a',
-        paddingBottom: '0.5rem',
-        flexWrap: 'wrap'
+        paddingBottom: '0.75rem'
       }}>
-        {[
-          { id: 'analytics', label: 'Analytics', icon: '📊', countKey: null },
-          { id: 'saas-metrics', label: 'SaaS Metrics', icon: '💰', countKey: null },
-          { id: 'engagement', label: 'Engagement', icon: '👥', countKey: null },
-          { id: 'webhooks', label: 'Webhooks', icon: '🔗', countKey: null },
-          { id: 'data-sources', label: 'Data Sources', icon: '🗄️', countKey: null },
-          { id: 'submissions', label: 'KvK Results', icon: '⚔️', countKey: 'submissions' as const },
-          { id: 'claims', label: 'Kingdom Claims', icon: '👑', countKey: 'claims' as const },
-          { id: 'transfer-status', label: 'Transfer Status', icon: '🔄', countKey: 'transfers' as const },
-          { id: 'corrections', label: 'Data Corrections', icon: '📝', countKey: 'corrections' as const },
-          { id: 'kvk-errors', label: 'KvK Errors', icon: '🚩', countKey: 'kvkErrors' as const },
-          { id: 'import', label: 'Bulk Import', icon: '📤', countKey: null },
-          { id: 'plausible', label: 'Live Analytics', icon: '📈', countKey: null }
-        ].map(tab => {
-          const count = tab.countKey ? pendingCounts[tab.countKey] : 0;
-          return (
+        {/* Analytics Group */}
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+          <span style={{ color: '#6b7280', fontSize: '0.7rem', minWidth: '70px' }}>ANALYTICS</span>
+          {[
+            { id: 'analytics', label: 'Overview', icon: '📊', countKey: null },
+            { id: 'saas-metrics', label: 'Revenue', icon: '💰', countKey: null },
+            { id: 'engagement', label: 'Engagement', icon: '👥', countKey: null },
+            { id: 'plausible', label: 'Live', icon: '�', countKey: null }
+          ].map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as typeof activeTab)}
               style={{
-                padding: '0.5rem 1rem',
+                padding: '0.4rem 0.75rem',
                 backgroundColor: activeTab === tab.id ? '#22d3ee' : 'transparent',
                 color: activeTab === tab.id ? '#0a0a0a' : '#9ca3af',
                 border: 'none',
                 borderRadius: '6px',
-                fontWeight: 600,
+                fontWeight: 500,
                 cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.35rem',
-                fontSize: '0.9rem'
+                fontSize: '0.8rem'
               }}
             >
               <span>{tab.icon}</span> {tab.label}
-              {count > 0 && (
-                <span style={{
-                  backgroundColor: activeTab === tab.id ? '#0a0a0a' : '#fbbf24',
-                  color: activeTab === tab.id ? '#22d3ee' : '#0a0a0a',
-                  fontSize: '0.7rem',
-                  fontWeight: 700,
-                  padding: '0.1rem 0.4rem',
-                  borderRadius: '9999px',
-                  minWidth: '1.2rem',
-                  textAlign: 'center'
-                }}>
-                  {count}
-                </span>
-              )}
             </button>
-          );
-        })}
+          ))}
+        </div>
+
+        {/* Submissions Group */}
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+          <span style={{ color: '#6b7280', fontSize: '0.7rem', minWidth: '70px' }}>REVIEW</span>
+          {[
+            { id: 'submissions', label: 'KvK Results', icon: '⚔️', countKey: 'submissions' as const },
+            { id: 'new-kingdoms', label: 'New Kingdoms', icon: '🏰', countKey: null },
+            { id: 'claims', label: 'Claims', icon: '👑', countKey: 'claims' as const },
+            { id: 'transfer-status', label: 'Transfers', icon: '🔄', countKey: 'transfers' as const },
+            { id: 'corrections', label: 'Corrections', icon: '📝', countKey: 'corrections' as const },
+            { id: 'kvk-errors', label: 'Errors', icon: '🚩', countKey: 'kvkErrors' as const }
+          ].map(tab => {
+            const count = tab.countKey ? pendingCounts[tab.countKey] : 0;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as typeof activeTab)}
+                style={{
+                  padding: '0.4rem 0.75rem',
+                  backgroundColor: activeTab === tab.id ? '#22d3ee' : 'transparent',
+                  color: activeTab === tab.id ? '#0a0a0a' : '#9ca3af',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.3rem',
+                  fontSize: '0.8rem'
+                }}
+              >
+                <span>{tab.icon}</span> {tab.label}
+                {count > 0 && (
+                  <span style={{
+                    backgroundColor: activeTab === tab.id ? '#0a0a0a' : '#fbbf24',
+                    color: activeTab === tab.id ? '#22d3ee' : '#0a0a0a',
+                    fontSize: '0.65rem',
+                    fontWeight: 700,
+                    padding: '0.1rem 0.35rem',
+                    borderRadius: '9999px',
+                    marginLeft: '0.1rem'
+                  }}>
+                    {count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* System Group */}
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+          <span style={{ color: '#6b7280', fontSize: '0.7rem', minWidth: '70px' }}>SYSTEM</span>
+          {[
+            { id: 'webhooks', label: 'Webhooks', icon: '🔗', countKey: null },
+            { id: 'data-sources', label: 'Data Sources', icon: '🗄️', countKey: null },
+            { id: 'import', label: 'Bulk Import', icon: '📤', countKey: null }
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as typeof activeTab)}
+              style={{
+                padding: '0.4rem 0.75rem',
+                backgroundColor: activeTab === tab.id ? '#22d3ee' : 'transparent',
+                color: activeTab === tab.id ? '#0a0a0a' : '#9ca3af',
+                border: 'none',
+                borderRadius: '6px',
+                fontWeight: 500,
+                cursor: 'pointer',
+                fontSize: '0.8rem'
+              }}
+            >
+              <span>{tab.icon}</span> {tab.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Filter (not for analytics) */}
@@ -1007,7 +854,11 @@ const AdminDashboard: React.FC = () => {
           Loading...
         </div>
       ) : activeTab === 'analytics' ? (
-        renderAnalytics()
+        <AnalyticsOverview 
+          analytics={analytics} 
+          syncingSubscriptions={syncingSubscriptions}
+          onSyncSubscriptions={syncSubscriptions}
+        />
       ) : activeTab === 'saas-metrics' ? (
         <AnalyticsDashboard />
       ) : activeTab === 'engagement' ? (
@@ -1016,117 +867,25 @@ const AdminDashboard: React.FC = () => {
         <WebhookMonitor />
       ) : activeTab === 'data-sources' ? (
         <DataSourceStats />
+      ) : activeTab === 'new-kingdoms' ? (
+        <NewKingdomsTab
+          submissions={newKingdomSubmissions}
+          filter={filter}
+          onApprove={handleApproveNewKingdom}
+          onReject={(id) => setRejectModalOpen({ type: 'new-kingdom', id })}
+        />
       ) : activeTab === 'submissions' ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          {submissions.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
-              No {filter} submissions
-            </div>
-          ) : (
-            submissions.map((sub) => (
-              <div key={sub.id} style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', border: '1px solid #2a2a2a' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                  <div>
-                    <span style={{ color: '#22d3ee', fontWeight: 600 }}>K{sub.kingdom_number}</span>
-                    <span style={{ color: '#6b7280' }}> vs </span>
-                    <span style={{ color: '#f97316', fontWeight: 600 }}>K{sub.opponent_kingdom}</span>
-                    <span style={{ color: '#6b7280', marginLeft: '1rem' }}>KvK #{sub.kvk_number}</span>
-                  </div>
-                  <div style={{ 
-                    padding: '0.25rem 0.75rem',
-                    backgroundColor: sub.status === 'pending' ? '#fbbf2420' : sub.status === 'approved' ? '#22c55e20' : '#ef444420',
-                    color: sub.status === 'pending' ? '#fbbf24' : sub.status === 'approved' ? '#22c55e' : '#ef4444',
-                    borderRadius: '9999px',
-                    fontSize: '0.75rem',
-                    fontWeight: 600
-                  }}>
-                    {sub.status.toUpperCase()}
-                  </div>
-                </div>
-                
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
-                  <div>
-                    <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>Prep: </span>
-                    <span style={{ color: sub.prep_result === 'W' ? '#22c55e' : '#ef4444', fontWeight: 600 }}>
-                      {sub.prep_result === 'W' ? 'Win' : 'Loss'}
-                    </span>
-                  </div>
-                  <div>
-                    <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>Battle: </span>
-                    <span style={{ color: sub.battle_result === 'W' ? '#22c55e' : '#ef4444', fontWeight: 600 }}>
-                      {sub.battle_result === 'W' ? 'Win' : 'Loss'}
-                    </span>
-                  </div>
-                </div>
-
-                {sub.notes && (
-                  <div style={{ color: '#9ca3af', fontSize: '0.875rem', marginBottom: '1rem' }}>
-                    Notes: {sub.notes}
-                  </div>
-                )}
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #2a2a2a', paddingTop: '1rem', marginTop: '0.5rem' }}>
-                  <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>
-                    By {sub.submitter_name || 'Anonymous'} • {new Date(sub.created_at).toLocaleDateString()}
-                  </div>
-                  
-                  {sub.status === 'pending' && (
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button onClick={() => reviewSubmission(sub.id, 'approved')} style={{ padding: '0.5rem 1rem', backgroundColor: '#22c55e', color: '#ffffff', border: 'none', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }}>
-                        Approve
-                      </button>
-                      <button onClick={() => reviewSubmission(sub.id, 'rejected')} style={{ padding: '0.5rem 1rem', backgroundColor: '#ef4444', color: '#ffffff', border: 'none', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }}>
-                        Reject
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))
-          )}
-        </div>
+        <SubmissionsTab
+          submissions={submissions}
+          filter={filter}
+          onReview={reviewSubmission}
+        />
       ) : activeTab === 'claims' ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          {claims.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
-              No {filter} claims
-            </div>
-          ) : (
-            claims.map((claim) => (
-              <div key={claim.id} style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', border: '1px solid #2a2a2a' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                  <span style={{ color: '#22d3ee', fontWeight: 600, fontSize: '1.25rem' }}>Kingdom {claim.kingdom_number}</span>
-                  <div style={{ 
-                    padding: '0.25rem 0.75rem',
-                    backgroundColor: claim.status === 'pending' ? '#fbbf2420' : '#22c55e20',
-                    color: claim.status === 'pending' ? '#fbbf24' : '#22c55e',
-                    borderRadius: '9999px',
-                    fontSize: '0.75rem',
-                    fontWeight: 600
-                  }}>
-                    {claim.status.toUpperCase()}
-                  </div>
-                </div>
-                
-                <div style={{ color: '#6b7280', fontSize: '0.875rem', marginBottom: '1rem' }}>
-                  Verification Code: <code style={{ color: '#fbbf24', backgroundColor: '#1a1a1f', padding: '0.25rem 0.5rem', borderRadius: '4px' }}>{claim.verification_code}</code>
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #2a2a2a', paddingTop: '1rem' }}>
-                  <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>
-                    Claimed {new Date(claim.created_at).toLocaleDateString()}
-                  </div>
-                  
-                  {claim.status === 'pending' && (
-                    <button onClick={() => verifyClaim(claim.id)} style={{ padding: '0.5rem 1rem', backgroundColor: '#22c55e', color: '#ffffff', border: 'none', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }}>
-                      Verify Claim
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))
-          )}
-        </div>
+        <ClaimsTab
+          claims={claims}
+          filter={filter}
+          onVerify={verifyClaim}
+        />
       ) : activeTab === 'corrections' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {/* A2: Bulk Actions Toolbar */}
@@ -1676,6 +1435,8 @@ const AdminDashboard: React.FC = () => {
                     reviewKvkError(rejectModalOpen.id, 'rejected', rejectReason);
                   } else if (rejectModalOpen.type === 'correction') {
                     reviewCorrection(rejectModalOpen.id, 'rejected', rejectReason);
+                  } else if (rejectModalOpen.type === 'new-kingdom') {
+                    handleRejectNewKingdom(rejectModalOpen.id, rejectReason);
                   }
                 }}
                 style={{

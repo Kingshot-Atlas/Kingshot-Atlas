@@ -372,7 +372,7 @@ const ComparisonRadarChart: React.FC<ComparisonRadarChartProps> = ({
         })}
         
         {/* Tooltip layer - centered in the chart */}
-        {hoveredLabel !== null && labelPositions[hoveredLabel] && RADAR_TOOLTIPS[labelPositions[hoveredLabel].label] && (
+        {hoveredLabel !== null && labelPositions[hoveredLabel] && RADAR_TOOLTIPS[labelPositions[hoveredLabel]?.label ?? ''] && (
           <foreignObject
             x={center - 90}
             y={center - 20}
@@ -392,9 +392,9 @@ const ComparisonRadarChart: React.FC<ComparisonRadarChartProps> = ({
               lineHeight: 1.3
             }}>
               <div style={{ fontWeight: '600', color: '#22d3ee', marginBottom: '2px' }}>
-                {labelPositions[hoveredLabel].label}
+                {labelPositions[hoveredLabel]?.label}
               </div>
-              {RADAR_TOOLTIPS[labelPositions[hoveredLabel].label]}
+              {RADAR_TOOLTIPS[labelPositions[hoveredLabel]?.label ?? '']}
             </div>
           </foreignObject>
         )}

@@ -90,7 +90,7 @@ function AppContent() {
               <Route path="/pro" element={<ErrorBoundary><Upgrade /></ErrorBoundary>} />
               <Route path="/changelog" element={<ErrorBoundary><Changelog /></ErrorBoundary>} />
               <Route path="/components" element={<ErrorBoundary><ComponentsDemo /></ErrorBoundary>} />
-              <Route path="/missing-data" element={<ErrorBoundary><MissingDataRegistry /></ErrorBoundary>} />
+              <Route path="/contribute-data" element={<ErrorBoundary><MissingDataRegistry /></ErrorBoundary>} />
               <Route path="/auth/discord/callback" element={<ErrorBoundary><DiscordCallback /></ErrorBoundary>} />
             </Routes>
           </Suspense>

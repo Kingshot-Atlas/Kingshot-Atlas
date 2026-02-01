@@ -362,10 +362,10 @@ const RadarChart: React.FC<RadarChartProps> = ({
         })}
         
         {/* Tooltip layer - rendered last to be on top */}
-        {hoveredLabel !== null && labelPositions[hoveredLabel] && RADAR_TOOLTIPS[labelPositions[hoveredLabel].label] && (
+        {hoveredLabel !== null && labelPositions[hoveredLabel] && RADAR_TOOLTIPS[labelPositions[hoveredLabel]?.label ?? ''] && (
           <foreignObject
-            x={Math.max(10, Math.min(size - 190, labelPositions[hoveredLabel].x - 90))}
-            y={labelPositions[hoveredLabel].y + 18}
+            x={Math.max(10, Math.min(size - 190, (labelPositions[hoveredLabel]?.x ?? 0) - 90))}
+            y={(labelPositions[hoveredLabel]?.y ?? 0) + 18}
             width={180}
             height={50}
             style={{ overflow: 'visible', pointerEvents: 'none' }}
@@ -381,7 +381,7 @@ const RadarChart: React.FC<RadarChartProps> = ({
               color: '#d1d5db',
               lineHeight: 1.3
             }}>
-              {RADAR_TOOLTIPS[labelPositions[hoveredLabel]?.label]}
+              {RADAR_TOOLTIPS[labelPositions[hoveredLabel]?.label ?? '']}
             </div>
           </foreignObject>
         )}

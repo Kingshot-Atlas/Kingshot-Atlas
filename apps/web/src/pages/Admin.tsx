@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/Toast';
+import { logger } from '../utils/logger';
 
 interface Submission {
   id: number;
@@ -180,17 +181,17 @@ const Admin: React.FC = () => {
 
   const fetchSubmissions = async () => {
     setLoading(true);
-    console.log('[Admin] Fetching submissions with filter:', filter);
+    logger.log('[Admin] Fetching submissions with filter:', filter);
     try {
       const url = `${API_URL}/api/v1/submissions?status=${filter}`;
-      console.log('[Admin] Fetch URL:', url);
+      logger.log('[Admin] Fetch URL:', url);
       const response = await fetch(url, {
         headers: { 'X-User-Id': user?.id || '' }
       });
-      console.log('[Admin] Response status:', response.status, response.ok);
+      logger.log('[Admin] Response status:', response.status, response.ok);
       if (response.ok) {
         const data = await response.json();
-        console.log('[Admin] Submissions received:', data.length, data);
+        logger.log('[Admin] Submissions received:', data.length, data);
         setSubmissions(data);
       } else {
         const errorText = await response.text();

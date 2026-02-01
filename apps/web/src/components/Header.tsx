@@ -415,10 +415,10 @@ const Header: React.FC = () => {
           >
             <button
               style={{
-                color: (isActive('/players') || isActive('/about') || isActive('/missing-data')) ? '#22d3ee' : '#9ca3af',
+                color: (isActive('/players') || isActive('/about') || isActive('/contribute-data')) ? '#22d3ee' : '#9ca3af',
                 textDecoration: 'none',
                 fontSize: '0.9rem',
-                fontWeight: (isActive('/players') || isActive('/about') || isActive('/missing-data')) ? '600' : '400',
+                fontWeight: (isActive('/players') || isActive('/about') || isActive('/contribute-data')) ? '600' : '400',
                 transition: 'color 0.2s',
                 display: 'flex',
                 alignItems: 'center',
@@ -427,7 +427,7 @@ const Header: React.FC = () => {
                 border: 'none',
                 cursor: 'pointer',
                 padding: 0,
-                ...((isActive('/players') || isActive('/about') || isActive('/missing-data')) ? neonGlow('#22d3ee') : {})
+                ...((isActive('/players') || isActive('/about') || isActive('/contribute-data')) ? neonGlow('#22d3ee') : {})
               }}
             >
               Community
@@ -476,14 +476,14 @@ const Header: React.FC = () => {
                   Player Directory
                 </Link>
                 <Link
-                  to="/missing-data"
+                  to="/contribute-data"
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: '0.75rem',
                     padding: '0.75rem 1rem',
                     borderRadius: '8px',
-                    color: isActive('/missing-data') ? '#22d3ee' : '#fff',
+                    color: isActive('/contribute-data') ? '#22d3ee' : '#fff',
                     textDecoration: 'none',
                     fontSize: '0.85rem',
                     transition: 'background-color 0.2s'
@@ -913,12 +913,12 @@ const Header: React.FC = () => {
           <button
             onClick={() => setShowMobileCommunityMenu(!showMobileCommunityMenu)}
             style={{
-              color: (isActive('/players') || isActive('/about') || isActive('/missing-data')) ? '#22d3ee' : '#9ca3af',
+              color: (isActive('/players') || isActive('/about') || isActive('/contribute-data')) ? '#22d3ee' : '#9ca3af',
               textDecoration: 'none',
               fontSize: '1rem',
               padding: '0.75rem 1rem',
               borderRadius: '8px',
-              backgroundColor: (isActive('/players') || isActive('/about') || isActive('/missing-data')) ? '#111' : 'transparent',
+              backgroundColor: (isActive('/players') || isActive('/about') || isActive('/contribute-data')) ? '#111' : 'transparent',
               border: 'none',
               width: '100%',
               textAlign: 'left',
@@ -962,9 +962,9 @@ const Header: React.FC = () => {
                 <span style={{ color: '#333' }}>└</span> Player Directory
               </Link>
               <Link
-                to="/missing-data"
+                to="/contribute-data"
                 style={{
-                  color: isActive('/missing-data') ? '#22d3ee' : '#6b7280',
+                  color: isActive('/contribute-data') ? '#22d3ee' : '#6b7280',
                   textDecoration: 'none',
                   fontSize: '0.9rem',
                   padding: '0.5rem 1rem 0.5rem 1.5rem',
