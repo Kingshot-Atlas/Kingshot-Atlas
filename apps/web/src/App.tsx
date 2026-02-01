@@ -9,6 +9,7 @@ import { ToastProvider } from './components/Toast';
 import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
 import { useKeyboardShortcuts, useKeyboardHelp } from './hooks/useKeyboardShortcuts';
 import { usePageTracking } from './hooks/useAnalytics';
+import { useKingdomsRealtime } from './hooks/useKingdomsRealtime';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { PremiumProvider } from './contexts/PremiumContext';
@@ -67,6 +68,7 @@ function AppContent() {
   const { showHelp, openHelp, closeHelp } = useKeyboardHelp();
   useKeyboardShortcuts({ onShowHelp: openHelp });
   usePageTracking(); // Track page views for analytics
+  useKingdomsRealtime(); // Subscribe to real-time kingdom updates
 
   return (
     <div className="min-h-screen bg-bg">
