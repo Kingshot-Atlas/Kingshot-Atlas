@@ -5,6 +5,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './lib/queryClient';
 import Header from './components/Header';
 import ErrorBoundary from './components/ErrorBoundary';
+import RouteErrorBoundary from './components/RouteErrorBoundary';
 import { ToastProvider } from './components/Toast';
 import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
 import { useKeyboardShortcuts, useKeyboardHelp } from './hooks/useKeyboardShortcuts';
@@ -89,12 +90,12 @@ function AppContent() {
           <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/" element={<ErrorBoundary><KingdomDirectory /></ErrorBoundary>} />
-              <Route path="/kingdom/:kingdomNumber" element={<ErrorBoundary><KingdomProfile /></ErrorBoundary>} />
+              <Route path="/kingdom/:kingdomNumber" element={<RouteErrorBoundary><KingdomProfile /></RouteErrorBoundary>} />
               <Route path="/compare" element={<ErrorBoundary><CompareKingdoms /></ErrorBoundary>} />
               <Route path="/tools" element={<ErrorBoundary><Tools /></ErrorBoundary>} />
               <Route path="/leaderboards" element={<ErrorBoundary><Leaderboards /></ErrorBoundary>} />
               <Route path="/profile" element={<ErrorBoundary><Profile /></ErrorBoundary>} />
-              <Route path="/profile/:userId" element={<ErrorBoundary><Profile /></ErrorBoundary>} />
+              <Route path="/profile/:userId" element={<RouteErrorBoundary><Profile /></RouteErrorBoundary>} />
               <Route path="/players" element={<ErrorBoundary><UserDirectory /></ErrorBoundary>} />
               <Route path="/about" element={<ErrorBoundary><About /></ErrorBoundary>} />
               <Route path="/admin" element={<ErrorBoundary><AdminDashboard /></ErrorBoundary>} />

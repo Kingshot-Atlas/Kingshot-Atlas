@@ -1,10 +1,13 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
+import * as Sentry from '@sentry/react';
 import { COLORS } from '../constants';
 
 interface Props {
   children: ReactNode;
   fallback?: ReactNode;
   onError?: (error: Error, errorInfo: ErrorInfo) => void;
+  /** Additional context to include in error reports */
+  context?: Record<string, string | number | boolean>;
 }
 
 interface State {
@@ -24,6 +27,26 @@ class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     console.error('ErrorBoundary caught an error:', error, errorInfo);
+    
+    // Report to Sentry with additional context
+    Sentry.withScope((scope) => {
+      // Add component stack as extra context
+      scope.setExtra('componentStack', errorInfo.componentStack);
+      
+      // Add any custom context passed via props
+      if (this.props.context) {
+        Object.entries(this.props.context).forEach(([key, value]) => {
+          scope.setExtra(key, value);
+        });
+      }
+      
+      // Add current URL
+      scope.setExtra('url', window.location.href);
+      scope.setTag('error_boundary', 'true');
+      
+      Sentry.captureException(error);
+    });
+    
     this.props.onError?.(error, errorInfo);
   }
 

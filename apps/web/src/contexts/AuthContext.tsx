@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import * as Sentry from '@sentry/react';
 import { logger } from '../utils/logger';
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
@@ -121,6 +122,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Set Sentry user context when profile changes
+  useEffect(() => {
+    if (profile) {
+      Sentry.setUser({
+        id: profile.id,
+        username: profile.username,
+        email: profile.email,
+      });
+      // Add custom context for debugging
+      Sentry.setContext('user_profile', {
+        home_kingdom: profile.home_kingdom,
+        subscription_tier: profile.subscription_tier || 'free',
+        is_admin: profile.is_admin || false,
+        has_linked_player: !!profile.linked_player_id,
+      });
+    } else {
+      // Clear user context on logout
+      Sentry.setUser(null);
+    }
+  }, [profile]);
 
   const fetchOrCreateProfile = async (user: User) => {
     if (!supabase) {
