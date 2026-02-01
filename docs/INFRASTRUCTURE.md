@@ -1,6 +1,6 @@
 # Infrastructure Reference
 
-**Last Updated:** 2026-01-30  
+**Last Updated:** 2026-02-01  
 **Owner:** Ops Lead
 
 ---
@@ -11,7 +11,7 @@
 
 | Component | Platform | Service Name | URL |
 |-----------|----------|--------------|-----|
-| **Frontend** | Netlify | `ks-atlas` | https://ks-atlas.com |
+| **Frontend** | Cloudflare Pages | `ks-atlas` | https://ks-atlas.com |
 | **Backend API** | Render | `Kingshot-Atlas` | https://kingshot-atlas.onrender.com |
 | **Discord Bot** | Render | `Atlas-Discord-bot` | N/A (background service) |
 | **Database** | Supabase | `qdczmafwcvnwfvixxbwg` | https://qdczmafwcvnwfvixxbwg.supabase.co |
@@ -71,23 +71,53 @@
 
 ---
 
-## Netlify Site
+## Cloudflare Pages (Frontend)
 
-### ks-atlas (Frontend)
+### ks-atlas Project
 
 | Property | Value |
 |----------|-------|
-| **Site Name** | `ks-atlas` |
-| **Site ID** | `716ed1c2-eb00-4842-8781-c37fb2823eb8` |
-| **URL** | `https://ks-atlas.netlify.app` |
+| **Project Name** | `ks-atlas` |
+| **Production URL** | `https://ks-atlas.pages.dev` |
 | **Custom Domain** | `https://ks-atlas.com` |
-| **Build Directory** | `apps/web` |
-| **Publish Directory** | `build` |
+| **Framework Preset** | Vite |
+| **Build Command** | `npm run build` |
+| **Build Output Directory** | `dist` |
+| **Root Directory** | `apps/web` |
 
-⚠️ **WARNING:** There is an OLD duplicate site `kingshot-atlas` (ID: `48267beb-2840-44b1-bedb-39d6b2defcd4`) - **DO NOT deploy to this one!**
+### Environment Variables (set in Cloudflare Dashboard)
 
-**Build Environment Variables (in netlify.toml):**
-- `VITE_API_URL` - `https://kingshot-atlas.onrender.com`
+| Variable | Value |
+|----------|-------|
+| `NODE_VERSION` | `20` |
+| `VITE_API_URL` | `https://kingshot-atlas.onrender.com` |
+| `VITE_SUPABASE_URL` | `https://qdczmafwcvnwfvixxbwg.supabase.co` |
+| `VITE_SUPABASE_ANON_KEY` | *(copy from current .env)* |
+
+### Configuration Files
+
+- `apps/web/public/_headers` — Security headers (CSP, HSTS, etc.)
+- `apps/web/public/_redirects` — SPA routing fallback
+
+### Why Cloudflare Pages?
+
+Migrated from Netlify on 2026-02-01 for:
+- **Unlimited free deploys** (Netlify charges 15 credits/$0.15 per deploy)
+- **Unlimited bandwidth** (Netlify caps at 100GB)
+- **Faster global CDN** (300+ edge locations vs ~25)
+- **Enterprise-grade DDoS protection**
+
+---
+
+## Legacy: Netlify (DEPRECATED)
+
+⚠️ **DO NOT USE** — Kept for reference only.
+
+| Property | Value |
+|----------|-------|
+| **Old Site Name** | `ks-atlas` |
+| **Old Site ID** | `716ed1c2-eb00-4842-8781-c37fb2823eb8` |
+| **Config File** | `netlify.toml` (can be removed after migration verified)
 
 ---
 
@@ -97,7 +127,7 @@
 # Frontend
 https://ks-atlas.com                    # Primary (custom domain)
 https://www.ks-atlas.com                # Redirects to primary
-https://ks-atlas.netlify.app            # Netlify subdomain
+https://ks-atlas.pages.dev              # Cloudflare Pages subdomain
 
 # API
 https://kingshot-atlas.onrender.com     # Production API
@@ -138,7 +168,8 @@ Update these files when infrastructure changes:
 
 | File | Contains |
 |------|----------|
-| `apps/web/netlify.toml` | `VITE_API_URL` |
+| `apps/web/public/_headers` | Security headers (CSP, caching) |
+| `apps/web/public/_redirects` | SPA routing rules |
 | `apps/discord-bot/.env` | `API_URL` |
 | `apps/discord-bot/.env.example` | `API_URL` |
 | `apps/api/render.yaml` | Service name |
@@ -147,6 +178,11 @@ Update these files when infrastructure changes:
 | `docs/LAUNCH_CHECKLIST.md` | Setup instructions |
 | `docs/DISCORD_BOT.md` | API URL |
 | `apps/api/RENDER_DEPLOY.md` | Deploy instructions |
+
+### Legacy Files (can be removed after Cloudflare migration verified)
+| File | Notes |
+|------|-------|
+| `apps/web/netlify.toml` | Old Netlify config - keep until DNS fully migrated |
 
 ---
 

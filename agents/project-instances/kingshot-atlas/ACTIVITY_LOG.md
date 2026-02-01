@@ -9,6 +9,16 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-01 14:10 | Ops Lead | COMPLETED
+Task: Migrate frontend hosting from Netlify to Cloudflare Pages
+Reason: Netlify charges 15 credits ($0.15) per deploy; Cloudflare Pages = unlimited free deploys
+Files:
+  - apps/web/public/_headers (new - security headers for Cloudflare)
+  - apps/web/public/_redirects (new - SPA routing fallback)
+  - docs/INFRASTRUCTURE.md (updated with Cloudflare Pages config)
+Result: Config files created and tested. User must complete Cloudflare Pages setup manually.
+Next: User connects GitHub repo to Cloudflare Pages, configures DNS
+
 ## 2026-02-01 13:55 | Ops Lead | COMPLETED
 Task: Enhanced Sentry error monitoring with context
 Files:

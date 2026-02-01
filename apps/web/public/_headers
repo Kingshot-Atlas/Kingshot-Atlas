@@ -1,0 +1,29 @@
+# Cloudflare Pages Headers
+# Security headers for all pages
+
+/*
+  X-Frame-Options: DENY
+  X-XSS-Protection: 1; mode=block
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), camera=(), microphone=()
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.stripe.com https://plausible.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: blob: https://*.akamaized.net https://*.centurygame.com https://cdn.discordapp.com https://*.googleusercontent.com https://lh3.googleusercontent.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co https://*.sentry.io https://api.stripe.com https://plausible.io wss://*.supabase.co https://*.railway.app https://*.onrender.com https://kingshot-giftcode.centurygame.com; frame-src https://*.stripe.com https://plausible.io; frame-ancestors 'none'
+
+# index.html must NEVER be cached - contains references to hashed JS/CSS
+/index.html
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/
+  Cache-Control: no-cache, no-store, must-revalidate
+
+# Service worker must not be cached
+/service-worker.js
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/clear-sw.js
+  Cache-Control: no-cache, no-store, must-revalidate
+
+# Static assets with content hash can be cached forever
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
