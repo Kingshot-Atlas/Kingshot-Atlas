@@ -10,6 +10,7 @@ import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
 import { useKeyboardShortcuts, useKeyboardHelp } from './hooks/useKeyboardShortcuts';
 import { usePageTracking } from './hooks/useAnalytics';
 import { useKingdomsRealtime } from './hooks/useKingdomsRealtime';
+import { useToast } from './components/Toast';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { PremiumProvider } from './contexts/PremiumContext';
@@ -66,9 +67,18 @@ const PageTransition: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
 function AppContent() {
   const { showHelp, openHelp, closeHelp } = useKeyboardHelp();
+  const { showToast } = useToast();
   useKeyboardShortcuts({ onShowHelp: openHelp });
   usePageTracking(); // Track page views for analytics
-  useKingdomsRealtime(); // Subscribe to real-time kingdom updates
+  
+  // Subscribe to real-time kingdom updates with toast notifications
+  useKingdomsRealtime({
+    onKingdomUpdate: (kingdomNumber, eventType) => {
+      if (eventType === 'UPDATE') {
+        showToast(`🔄 Kingdom ${kingdomNumber} data updated`, 'info');
+      }
+    }
+  });
 
   return (
     <div className="min-h-screen bg-bg">

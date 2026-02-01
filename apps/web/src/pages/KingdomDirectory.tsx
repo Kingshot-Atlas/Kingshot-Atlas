@@ -20,6 +20,7 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useAuth } from '../contexts/AuthContext';
 import { neonGlow } from '../utils/styles';
 import { countActiveFilters, DEFAULT_FILTERS } from '../utils/kingdomStats';
+import { DataSyncIndicator } from '../components/DataSyncIndicator';
 
 const FAVORITES_KEY = 'kingshot_favorites';
 const COMPARE_HISTORY_KEY = 'kingshot_compare_history';
@@ -562,10 +563,13 @@ const KingdomDirectory: React.FC = () => {
 
         {/* Results Count + Quick Filter Chips - Below Search */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem', marginTop: '0.75rem' }}>
-          <span style={{ color: '#6b7280', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
-            Showing <span style={{ ...neonGlow('#22d3ee'), fontWeight: '600' }}>{displayedKingdoms.length}</span> of {filteredKingdoms.length} kingdoms
-            {showFavoritesOnly && <span style={{ color: '#22d3ee' }}> (Favorites)</span>}
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <span style={{ color: '#6b7280', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
+              Showing <span style={{ ...neonGlow('#22d3ee'), fontWeight: '600' }}>{displayedKingdoms.length}</span> of {filteredKingdoms.length} kingdoms
+              {showFavoritesOnly && <span style={{ color: '#22d3ee' }}> (Favorites)</span>}
+            </span>
+            <DataSyncIndicator compact />
+          </div>
           
           {/* Quick Filter Chips - Desktop only */}
           {!isMobile && (

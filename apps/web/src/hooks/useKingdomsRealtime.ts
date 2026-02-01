@@ -11,11 +11,15 @@ interface RealtimeState {
   updatedKingdoms: number[];
 }
 
+interface RealtimeOptions {
+  onKingdomUpdate?: (kingdomNumber: number, eventType: string) => void;
+}
+
 /**
  * Hook to subscribe to real-time updates from the kingdoms table.
  * Automatically invalidates React Query cache when kingdoms are updated.
  */
-export function useKingdomsRealtime() {
+export function useKingdomsRealtime(options?: RealtimeOptions) {
   const queryClient = useQueryClient();
   const [state, setState] = useState<RealtimeState>({
     isConnected: false,
@@ -24,6 +28,8 @@ export function useKingdomsRealtime() {
   });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const channelRef = useRef<any>(null);
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
 
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase) {
@@ -48,6 +54,11 @@ export function useKingdomsRealtime() {
                                (payload.old as { kingdom_number?: number })?.kingdom_number;
 
           logger.info(`Realtime: Kingdom ${kingdomNumber} ${payload.eventType}`);
+          
+          // Call the callback if provided
+          if (kingdomNumber && optionsRef.current?.onKingdomUpdate) {
+            optionsRef.current.onKingdomUpdate(kingdomNumber, payload.eventType);
+          }
 
           // Update state
           setState(prev => ({
