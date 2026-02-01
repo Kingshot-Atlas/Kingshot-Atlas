@@ -9,6 +9,15 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-01 03:15 | Platform Engineer | COMPLETED
+Task: Fix Anonymous submissions - fetch linked_username from Supabase profile
+Root Cause: Frontend sent X-User-Name header, but it was often empty/null. Relying on frontend headers is unreliable.
+Fix: Backend now fetches linked_username directly from Supabase profiles table using verified_user_id
+Logic: linked_username (Kingshot account) → username (Atlas account) → header fallback
+Files Modified:
+  - apps/api/api/routers/submissions.py (added profile lookup in create_kvk10_submission)
+Deployed: Pushed to GitHub (commit 76cfc09) - auto-deploys to Render
+
 ## 2026-02-01 03:00 | Product Engineer | COMPLETED
 Task: Admin dashboard submissions improvements + Production deployment
 Improvements:
