@@ -292,7 +292,7 @@ const Tools: React.FC = () => {
             color: '#6b7280',
             marginBottom: '1rem'
           }}>
-            We're building what the community needs. Drop your suggestions in Discord.
+            We&apos;re building what the community needs. Drop your suggestions in Discord.
           </p>
           <a
             href="https://discord.gg/aA3a7JGcHV"

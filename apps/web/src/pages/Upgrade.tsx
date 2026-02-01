@@ -256,7 +256,7 @@ const Upgrade: React.FC = () => {
                 <span style={{ fontSize: '1.25rem' }}>⭐</span>
                 <div>
                   <div style={{ color: tier === 'recruiter' ? '#a855f7' : '#22d3ee', fontWeight: '600' }}>
-                    You're on Atlas {tier === 'recruiter' ? 'Recruiter' : 'Pro'}
+                    You&apos;re on Atlas {tier === 'recruiter' ? 'Recruiter' : 'Pro'}
                   </div>
                   <div style={{ color: '#6b7280', fontSize: '0.8rem', marginTop: '0.25rem' }}>
                     Thank you for supporting Atlas!
@@ -398,7 +398,7 @@ const Upgrade: React.FC = () => {
             flexWrap: 'wrap'
           }}>
             <span style={{ fontSize: '0.85rem', color: '#9ca3af' }}>
-              💰 You're saving with yearly billing
+              💰 You&apos;re saving with yearly billing
             </span>
             <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
               <span>

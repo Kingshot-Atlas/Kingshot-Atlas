@@ -404,7 +404,7 @@ const KingdomDirectory: React.FC = () => {
                 }}>RESULTS OPEN</span>
               </div>
               <div style={{ fontSize: isMobile ? '0.75rem' : '0.85rem', color: '#9ca3af' }}>
-                Help us update the rankings! Submit your kingdom's KvK #10 outcome.
+                Help us update the rankings! Submit your kingdom&apos;s KvK #10 outcome.
               </div>
             </div>
           </div>
@@ -487,7 +487,7 @@ const KingdomDirectory: React.FC = () => {
                 </svg>
                 Filters{countActiveFilters(filters) > 0 && ` (${countActiveFilters(filters)})`}
               </button>
-              <select value={sort.sortBy} onChange={(e) => setSort({ ...sort, sortBy: e.target.value as any })} style={{ flex: 1.5, padding: '0.6rem 1.5rem 0.6rem 0.5rem', backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '8px', color: '#fff', fontSize: '0.8rem', cursor: 'pointer', appearance: 'none', backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.3rem center', backgroundSize: '0.8rem' }}>
+              <select value={sort.sortBy} onChange={(e) => setSort({ ...sort, sortBy: e.target.value as SortOptions['sortBy'] })} style={{ flex: 1.5, padding: '0.6rem 1.5rem 0.6rem 0.5rem', backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '8px', color: '#fff', fontSize: '0.8rem', cursor: 'pointer', appearance: 'none', backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.3rem center', backgroundSize: '0.8rem' }}>
                 <option value="overall_score">Atlas Score</option>
                 <option value="kingdom_number">Kingdom #</option>
                 <option value="prep_win_rate">Prep WR</option>
@@ -543,7 +543,7 @@ const KingdomDirectory: React.FC = () => {
           {/* Sort Dropdown */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span style={{ color: '#6b7280', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>Sort:</span>
-            <select value={sort.sortBy} onChange={(e) => setSort({ ...sort, sortBy: e.target.value as any })} style={{ padding: '0.75rem 2rem 0.75rem 1rem', backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '8px', color: '#fff', fontSize: '0.9rem', cursor: 'pointer', appearance: 'none', backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1rem' }}>
+            <select value={sort.sortBy} onChange={(e) => setSort({ ...sort, sortBy: e.target.value as SortOptions['sortBy'] })} style={{ padding: '0.75rem 2rem 0.75rem 1rem', backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '8px', color: '#fff', fontSize: '0.9rem', cursor: 'pointer', appearance: 'none', backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1rem' }}>
               <option value="overall_score">Atlas Score</option>
               <option value="kingdom_number">Kingdom Number</option>
               <option value="prep_win_rate">Prep Win Rate</option>

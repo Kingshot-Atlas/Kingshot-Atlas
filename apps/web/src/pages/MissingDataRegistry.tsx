@@ -810,7 +810,7 @@ const AddKingdomModal: React.FC<{
 
           {kvkData.length === 0 && (
             <div style={{ color: '#6b7280', fontSize: '0.8rem', textAlign: 'center', padding: '1rem' }}>
-              Click "+ Add KvK" to start adding history
+              Click &quot;+ Add KvK&quot; to start adding history
             </div>
           )}
 

@@ -255,6 +255,7 @@ class KvKHistoryService {
   /**
    * Process raw records and apply corrections
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private processRecords(data: any[]): Map<number, KvKHistoryRecord[]> {
     const result = new Map<number, KvKHistoryRecord[]>();
 

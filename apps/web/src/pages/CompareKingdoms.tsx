@@ -863,7 +863,7 @@ const CompareKingdoms: React.FC = () => {
               {(() => {
                 const winner = calculateWinner();
                 if (winner === 'tie') {
-                  return <div style={{ color: '#9ca3af', fontSize: isMobile ? '0.9rem' : '1rem', fontWeight: 'bold' }}>It's a tie!</div>;
+                  return <div style={{ color: '#9ca3af', fontSize: isMobile ? '0.9rem' : '1rem', fontWeight: 'bold' }}>It&apos;s a tie!</div>;
                 }
                 return (
                   <div style={{ color: '#22c55e', fontSize: isMobile ? '0.9rem' : '1rem', fontWeight: 'bold' }}>

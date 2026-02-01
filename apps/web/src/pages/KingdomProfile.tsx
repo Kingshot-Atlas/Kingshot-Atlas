@@ -137,7 +137,7 @@ const KingdomProfile: React.FC = () => {
       <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>❌</div>
-          <div style={{ color: '#ef4444', fontSize: '1.25rem', marginBottom: '1rem' }}>Kingdom not found. Either it doesn't exist, or we haven't tracked it yet.</div>
+          <div style={{ color: '#ef4444', fontSize: '1.25rem', marginBottom: '1rem' }}>Kingdom not found. Either it doesn&apos;t exist, or we haven&apos;t tracked it yet.</div>
           <Link to="/" style={{ color: '#22d3ee', textDecoration: 'none' }}>← Back to Home</Link>
         </div>
       </div>
