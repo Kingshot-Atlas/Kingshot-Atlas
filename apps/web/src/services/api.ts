@@ -512,6 +512,11 @@ class ApiService {
   }
 
   async getKingdomProfile(kingdomNumber: number): Promise<KingdomProfile | null> {
+    // Wait for initial Supabase data load to complete
+    if (preloadPromise) {
+      await preloadPromise;
+    }
+    
     const endpoint = `/api/v1/kingdoms/${kingdomNumber}`;
     
     try {
@@ -553,6 +558,10 @@ class ApiService {
   }
 
   async getLeaderboard(limit: number = 50): Promise<Kingdom[]> {
+    // Wait for initial Supabase data load to complete
+    if (preloadPromise) {
+      await preloadPromise;
+    }
     const sortedKingdoms = [...realKingdoms].sort((a, b) => b.overall_score - a.overall_score).slice(0, limit);
     return this.fetchWithFallback(`/api/v1/leaderboard?limit=${limit}`, sortedKingdoms);
   }
@@ -593,6 +602,11 @@ class ApiService {
   }
 
   async searchKingdoms(query: string): Promise<Kingdom[]> {
+    // Wait for initial Supabase data load to complete
+    if (preloadPromise) {
+      await preloadPromise;
+    }
+    
     // Use the main kingdoms endpoint with search parameter
     const endpoint = `/api/v1/kingdoms?search=${encodeURIComponent(query)}`;
     
