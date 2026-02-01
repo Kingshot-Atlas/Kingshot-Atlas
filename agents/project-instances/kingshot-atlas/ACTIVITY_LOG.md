@@ -9,6 +9,37 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-01 03:50 | Platform Engineer | COMPLETED
+Task: Fix kingdom card stats not updating after KvK submission approval
+Root Cause Analysis:
+  - `realKingdoms` was built synchronously at app startup
+  - `preloadSupabaseData()` was async and completed AFTER `loadKingdomData()` ran
+  - Result: Kingdom stats (KvKs, Dominations, Atlas Score) were calculated from stale local JSON
+  - KvK Profile pages showed correct data (they re-fetch) but Directory cards were stale
+Fixes Applied:
+  1. api.ts: Rebuild `realKingdoms` AFTER Supabase data loads (inside preloadSupabaseData)
+  2. SubmissionsTab.tsx: Show warning message when screenshot upload failed (fallback indicator)
+  3. Supabase: Added screenshot2_url column to kvk_submissions table
+  4. Backend: Added startup migration for screenshot2_url column in SQLite
+Files Modified:
+  - apps/web/src/services/api.ts (rebuild realKingdoms after Supabase loads)
+  - apps/web/src/components/admin/SubmissionsTab.tsx (screenshot upload failed warning)
+  - apps/api/main.py (SQLite migration for screenshot2_url)
+Result: Kingdom cards now show accurate stats after KvK submissions are approved
+Deployed: Commits 01f026d, 36d33b8 pushed - auto-deploys to Netlify + Render
+
+## 2026-02-01 03:30 | Ops Lead | COMPLETED
+Task: Prevent uncommitted changes from being forgotten
+Root Cause: 41 files of changes were never committed/pushed to production
+Fixes Applied:
+  1. Committed all pending changes (Admin tabs reorganization, component refactoring, cleanup)
+  2. Updated /work workflow with mandatory commit/deploy check section
+  3. Created /deploy-checklist workflow with verification steps
+Files Modified:
+  - .windsurf/workflows/work.md (added MANDATORY commit check)
+  - .windsurf/workflows/deploy-checklist.md (new workflow)
+Result: Workflow now requires git status check before ending any session
+
 ## 2026-02-01 03:15 | Platform Engineer | COMPLETED
 Task: Fix Anonymous submissions - fetch linked_username from Supabase profile
 Root Cause: Frontend sent X-User-Name header, but it was often empty/null. Relying on frontend headers is unreliable.
