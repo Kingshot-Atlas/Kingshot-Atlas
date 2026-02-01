@@ -9,6 +9,24 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-01 04:20 | Platform Engineer | COMPLETED
+Task: CRITICAL - Make Supabase primary data source for KvK records
+Root Cause:
+  - Local JSON was PRIMARY source, Supabase was only used to "merge" new records
+  - But merge logic only added records that didn't exist in local JSON
+  - Since local JSON had all KvK 1-9 data, Supabase KvK #10 was being added
+  - But if Supabase fetch failed or cached, data reverted to local JSON only
+  - Verified: Supabase HAS K172's 8 records (KvK 3-10 including #10 vs K138)
+Drastic Fix Applied:
+  1. api.ts: FLIPPED PRIORITY - Supabase is now PRIMARY source
+  2. api.ts: Local JSON only fills gaps for kingdoms NOT in Supabase
+  3. kvkHistoryService.ts: Cache reduced to 30 sec (memory) / 1 min (IndexedDB)
+Files Modified:
+  - apps/web/src/services/api.ts (Supabase first, JSON fallback)
+  - apps/web/src/services/kvkHistoryService.ts (aggressive cache invalidation)
+Result: New submissions now immediately reflected as Supabase is source of truth
+Deployed: Commit 2c54973 pushed - auto-deploys to Netlify
+
 ## 2026-02-01 04:10 | Platform Engineer | COMPLETED
 Task: Fix Kingdom stats not updating after KvK submission approval
 Root Cause:
