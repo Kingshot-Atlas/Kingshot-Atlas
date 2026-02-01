@@ -205,20 +205,10 @@ const loadKingdomData = (): Kingdom[] => {
       }
     }
     
-    // Calculate Atlas Score from actual performance
-    let overallScore = k.overall_score;
-    if (hasSupabaseData && totalKvks > 0) {
-      // Atlas Score formula: weighted combination of prep WR, battle WR, dominations, and experience
-      const prepWeight = 0.3;
-      const battleWeight = 0.4;
-      const domWeight = 0.2;
-      const expWeight = 0.1;
-      
-      const domRate = dominations / totalKvks;
-      const expFactor = Math.min(1, totalKvks / 10); // Caps at 10 KvKs
-      
-      overallScore = (prepWinRate * prepWeight + battleWinRate * battleWeight + domRate * domWeight + expFactor * expWeight) * 20;
-    }
+    // Atlas Score: Use pre-calculated Bayesian score from JSON (single source of truth)
+    // DO NOT recalculate here - the JSON scores use the comprehensive Bayesian formula
+    // from regenerate_kingdoms_with_atlas_score.py (Wilson Score, priors, experience scaling, etc.)
+    const overallScore = k.overall_score;
     
     // Apply corrections to base values (override calculated values if correction exists)
     const getValue = (field: string, calculatedValue: number | string) => {
