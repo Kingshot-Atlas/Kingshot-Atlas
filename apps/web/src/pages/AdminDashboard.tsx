@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/Toast';
+import { kingdomKeys } from '../hooks/useKingdoms';
 import { analyticsService } from '../services/analyticsService';
 import { statusService, type StatusSubmission } from '../services/statusService';
 import { apiService } from '../services/api';
@@ -35,6 +37,7 @@ const ADMIN_LOG_KEY = 'kingshot_admin_log';
 const AdminDashboard: React.FC = () => {
   const { user, profile } = useAuth();
   const { showToast } = useToast();
+  const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState<'analytics' | 'saas-metrics' | 'engagement' | 'webhooks' | 'data-sources' | 'submissions' | 'new-kingdoms' | 'claims' | 'corrections' | 'kvk-errors' | 'import' | 'users' | 'plausible' | 'transfer-status'>('analytics');
   const [submissions, setSubmissions] = useState<Submission[]>([]);
@@ -584,6 +587,8 @@ const AdminDashboard: React.FC = () => {
           showToast(`✅ Approved! KvK data added to Kingdom ${data.kingdom_number}`, 'success');
           // Reload Supabase data to sync Atlas Scores across all pages
           await apiService.reloadWithSupabaseData();
+          // Invalidate React Query cache so all components refetch
+          queryClient.invalidateQueries({ queryKey: kingdomKeys.all });
         } else {
           showToast(`Submission ${status}`, 'success');
         }

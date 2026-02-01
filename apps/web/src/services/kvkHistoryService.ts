@@ -139,13 +139,36 @@ class KvKHistoryService {
     // Try Supabase first
     if (isSupabaseConfigured && supabase) {
       try {
-        const { data, error } = await supabase
-          .from('kvk_history')
-          .select('*')
-          .order('kingdom_number')
-          .order('kvk_number', { ascending: false });
+        // Fetch all records with pagination (Supabase default limit is 1000)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const allData: any[] = [];
+        let offset = 0;
+        const batchSize = 1000;
+        
+        while (true) {
+          const { data: batch, error: batchError } = await supabase
+            .from('kvk_history')
+            .select('*')
+            .order('kingdom_number')
+            .order('kvk_number', { ascending: false })
+            .range(offset, offset + batchSize - 1);
+          
+          if (batchError) {
+            console.warn('Supabase KvK batch fetch failed:', batchError);
+            break;
+          }
+          
+          if (!batch || batch.length === 0) break;
+          
+          allData.push(...batch);
+          
+          if (batch.length < batchSize) break; // Last batch
+          offset += batchSize;
+        }
+        
+        const data = allData;
 
-        if (!error && data && data.length > 0) {
+        if (data && data.length > 0) {
           // Supabase has data - use it as source of truth
           const records = this.processRecords(data);
           cachedData = { records, timestamp: Date.now(), source: 'supabase' };

@@ -77,10 +77,33 @@ class KingdomsSupabaseService {
 
     try {
       // Fetch kingdom aggregate stats from Supabase
-      const { data: kingdomsData, error } = await supabase
-        .from('kingdoms')
-        .select('*')
-        .order('kingdom_number');
+      // Note: Supabase has a default limit of 1000, so we need to fetch in batches
+      const allKingdomsData: SupabaseKingdom[] = [];
+      let offset = 0;
+      const batchSize = 1000;
+      
+      while (true) {
+        const { data: batch, error: batchError } = await supabase
+          .from('kingdoms')
+          .select('*')
+          .order('kingdom_number')
+          .range(offset, offset + batchSize - 1);
+        
+        if (batchError) {
+          logger.error('Failed to fetch kingdoms batch from Supabase:', batchError);
+          break;
+        }
+        
+        if (!batch || batch.length === 0) break;
+        
+        allKingdomsData.push(...batch);
+        
+        if (batch.length < batchSize) break; // Last batch
+        offset += batchSize;
+      }
+      
+      const kingdomsData = allKingdomsData;
+      const error = null;
 
       if (error) {
         logger.error('Failed to fetch kingdoms from Supabase:', error);
