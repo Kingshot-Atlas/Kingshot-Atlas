@@ -24,7 +24,7 @@ interface CachedKvKData {
   source: 'supabase' | 'csv';
 }
 
-const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL_MS = 2 * 60 * 1000; // 2 minutes - keep short for data freshness
 const INDEXEDDB_CACHE_KEY = 'kvk_history_cache';
 let cachedData: CachedKvKData | null = null;
 
@@ -91,7 +91,7 @@ class KvKHistoryService {
         
         request.onsuccess = () => {
           const data = request.result;
-          if (data && Date.now() - data.timestamp < CACHE_TTL_MS * 12) { // 1 hour for IndexedDB
+          if (data && Date.now() - data.timestamp < CACHE_TTL_MS * 3) { // 6 minutes for IndexedDB
             resolve({
               records: new Map(data.records),
               timestamp: data.timestamp,

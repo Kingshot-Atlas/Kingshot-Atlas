@@ -147,29 +147,36 @@ const loadKingdomData = (): Kingdom[] => {
     // Get any approved corrections for this kingdom
     const corrections = dataCorrections.get(k.kingdom_number);
     
-    // Check if this kingdom has Supabase data - if so, recalculate stats from KvK records
-    const hasSupabaseData = supabaseKvkData && supabaseKvkData.has(k.kingdom_number) && supabaseKvkData.get(k.kingdom_number)!.length > 0;
+    // ALWAYS calculate stats from actual KvK records (merged local + Supabase data)
+    // recentKvks is the source of truth - it contains both local JSON and Supabase submissions
+    let totalKvks: number;
+    let prepWins: number;
+    let prepLosses: number;
+    let battleWins: number;
+    let battleLosses: number;
+    let dominations: number;
+    let defeats: number;
     
-    // Calculate stats from actual KvK records (source of truth when Supabase data exists)
-    let totalKvks = k.total_kvks;
-    let prepWins = k.prep_wins;
-    let prepLosses = k.prep_losses;
-    let battleWins = k.battle_wins;
-    let battleLosses = k.battle_losses;
-    let dominations = k.dominations ?? 0;
-    let defeats = k.defeats ?? 0;
-    
-    if (hasSupabaseData && recentKvks.length > 0) {
-      // Recalculate from actual KvK records
+    if (recentKvks.length > 0) {
+      // Calculate from actual KvK records (source of truth)
       totalKvks = recentKvks.length;
       prepWins = recentKvks.filter(r => r.prep_result === 'Win').length;
       prepLosses = recentKvks.filter(r => r.prep_result === 'Loss').length;
       battleWins = recentKvks.filter(r => r.battle_result === 'Win').length;
       battleLosses = recentKvks.filter(r => r.battle_result === 'Loss').length;
-      // Domination = won both prep AND battle (overall Win)
+      // Domination = won both prep AND battle
       dominations = recentKvks.filter(r => r.prep_result === 'Win' && r.battle_result === 'Win').length;
       // Defeat/Invasion = lost both prep AND battle
       defeats = recentKvks.filter(r => r.prep_result === 'Loss' && r.battle_result === 'Loss').length;
+    } else {
+      // Fallback to JSON values if no KvK records
+      totalKvks = k.total_kvks;
+      prepWins = k.prep_wins;
+      prepLosses = k.prep_losses;
+      battleWins = k.battle_wins;
+      battleLosses = k.battle_losses;
+      dominations = k.dominations ?? 0;
+      defeats = k.defeats ?? 0;
     }
     
     // Calculate win rates
@@ -229,11 +236,11 @@ const loadKingdomData = (): Kingdom[] => {
       prep_wins: getValue('prep_wins', prepWins) as number,
       prep_losses: getValue('prep_losses', prepLosses) as number,
       prep_win_rate: getValue('prep_win_rate', prepWinRate) as number,
-      prep_streak: getValue('prep_streak', hasSupabaseData ? prepStreak : k.prep_streak) as number,
+      prep_streak: getValue('prep_streak', recentKvks.length > 0 ? prepStreak : k.prep_streak) as number,
       battle_wins: getValue('battle_wins', battleWins) as number,
       battle_losses: getValue('battle_losses', battleLosses) as number,
       battle_win_rate: getValue('battle_win_rate', battleWinRate) as number,
-      battle_streak: getValue('battle_streak', hasSupabaseData ? battleStreak : k.battle_streak) as number,
+      battle_streak: getValue('battle_streak', recentKvks.length > 0 ? battleStreak : k.battle_streak) as number,
       dominations: getValue('dominations', dominations) as number,
       defeats: getValue('defeats', defeats) as number,
       most_recent_status: approvedStatus || 'Unannounced',
