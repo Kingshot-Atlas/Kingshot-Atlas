@@ -69,16 +69,19 @@ limiter = Limiter(key_func=get_remote_address)
 
 # Allowed origins for CORS - tightened security
 # Production: https://www.ks-atlas.com and https://ks-atlas.com only
-# Development: localhost variants
+# Development: localhost on any port
 ALLOWED_ORIGINS = os.getenv(
     "ALLOWED_ORIGINS",
-    "http://localhost:3000,http://127.0.0.1:3000,https://ks-atlas.com,https://www.ks-atlas.com"
+    "https://ks-atlas.com,https://www.ks-atlas.com"
 ).split(",")
+
+# Regex pattern to allow any localhost port for development
+LOCALHOST_ORIGIN_REGEX = r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$"
 
 app = FastAPI(
     title="Kingshot Atlas API",
     description="Backend API for Kingshot Atlas kingdom data",
-    version="1.0.2"  # Fix model imports + JWT exception handling
+    version="1.0.3"  # CORS fix for any localhost port
 )
 
 # Add rate limiter to app state
@@ -88,10 +91,11 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 # GZip compression for responses > 1KB
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
-# CORS - restricted to known origins
+# CORS - restricted to known origins + localhost regex for development
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
+    allow_origin_regex=LOCALHOST_ORIGIN_REGEX,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["Authorization", "Content-Type", "X-User-Id", "X-User-Name", "X-User-Email"],
