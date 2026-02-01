@@ -9,6 +9,30 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-01 04:35 | Platform Engineer | COMPLETED
+Task: Fix CI errors (1 Python test failure + 10 frontend lint warnings)
+Root Cause:
+  - submissions.py: Undefined variables in review_submission (existing_opponent_record, 
+    opponent_prep_result, opponent_battle_result, opponent_overall_result)
+  - Frontend: Unescaped apostrophes, missing useEffect deps, unused variable
+Fixes Applied:
+  1. submissions.py: Defined all variables before use, removed duplicate code block
+  2. About.tsx, UserCorrectionStats.tsx: Escaped apostrophes with &apos;
+  3. PostKvKSubmission.tsx: Prefixed unused var with underscore
+  4. PremiumContext/AuthContext/WebhookMonitor: Suppressed exhaustive-deps (intentional)
+  5. SearchAutocomplete.tsx: Wrapped suggestions in useMemo()
+Files Modified:
+  - apps/api/api/routers/submissions.py
+  - apps/web/src/pages/About.tsx
+  - apps/web/src/components/UserCorrectionStats.tsx
+  - apps/web/src/components/PostKvKSubmission.tsx
+  - apps/web/src/contexts/PremiumContext.tsx
+  - apps/web/src/contexts/AuthContext.tsx
+  - apps/web/src/components/WebhookMonitor.tsx
+  - apps/web/src/components/SearchAutocomplete.tsx
+Result: CI should now pass
+Deployed: Commit 53a99a8 pushed
+
 ## 2026-02-01 04:30 | Platform Engineer | COMPLETED
 Task: Improve screenshot storage error handling in admin dashboard
 Issue: "Image could not be stored" message showing for submissions with failed uploads
