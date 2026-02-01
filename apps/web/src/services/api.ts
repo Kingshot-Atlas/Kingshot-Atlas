@@ -21,6 +21,9 @@ let supabaseKvkData: Map<number, KvKHistoryRecord[]> | null = null;
 export let supabaseDataLoaded = false;
 export let supabaseKingdomsLoaded = false;
 
+// Promise that resolves when initial data load is complete
+let preloadPromise: Promise<void> | null = null;
+
 const preloadSupabaseData = async () => {
   try {
     // Fetch corrections first
@@ -49,8 +52,8 @@ const preloadSupabaseData = async () => {
   }
 };
 
-// Start preloading immediately
-preloadSupabaseData();
+// Start preloading immediately and store the promise
+preloadPromise = preloadSupabaseData();
 
 interface CacheData {
   kingdoms: Kingdom[];
@@ -426,29 +429,14 @@ class ApiService {
     }
   }
 
-  async getKingdoms(filters?: FilterOptions, sort?: SortOptions, useCache: boolean = true): Promise<Kingdom[]> {
-    // Check cache first
-    if (useCache) {
-      const cached = this.cache || this.loadCache();
-      if (cached) {
-        logger.log('Using cached kingdom data');
-        return this.applyFiltersAndSort(cached.kingdoms, filters, sort);
-      }
+  async getKingdoms(filters?: FilterOptions, sort?: SortOptions, _useCache: boolean = true): Promise<Kingdom[]> {
+    // Wait for initial Supabase data load to complete
+    // This ensures we always serve fresh data from Supabase, not stale local JSON
+    if (preloadPromise) {
+      await preloadPromise;
     }
-
-    const params = new URLSearchParams();
-    if (filters) {
-      if (filters.status && filters.status !== 'all') params.append('status', filters.status);
-      if (filters.minKvKs) params.append('min_kvks', filters.minKvKs.toString());
-      if (filters.minPrepWinRate) params.append('min_prep_win_rate', filters.minPrepWinRate.toString());
-      if (filters.minBattleWinRate) params.append('min_battle_win_rate', filters.minBattleWinRate.toString());
-    }
-    if (sort) {
-      params.append('sort', sort.sortBy);
-      params.append('order', sort.order);
-    }
-    // Use local JSON data as primary source (1190+ kingdoms)
-    // API is only for supplemental updates, not the main data source
+    
+    // Return data from Supabase (source of truth) with filters/sort applied
     return this.applyFiltersAndSort(realKingdoms, filters, sort);
   }
 

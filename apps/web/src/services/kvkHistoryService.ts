@@ -121,16 +121,9 @@ class KvKHistoryService {
    * Get all KvK records grouped by kingdom
    */
   async getAllRecords(): Promise<Map<number, KvKHistoryRecord[]>> {
-    // Check memory cache first
+    // Check memory cache first (very short TTL for freshness)
     if (cachedData && Date.now() - cachedData.timestamp < CACHE_TTL_MS) {
       return cachedData.records;
-    }
-
-    // Try IndexedDB cache (for offline support)
-    const indexedDBCache = await this.loadFromIndexedDB();
-    if (indexedDBCache) {
-      cachedData = indexedDBCache;
-      return indexedDBCache.records;
     }
 
     // Load corrections first
@@ -179,12 +172,17 @@ class KvKHistoryService {
           return records;
         }
       } catch (err) {
-        console.warn('Supabase KvK fetch failed, using CSV fallback:', err);
+        console.warn('Supabase KvK fetch failed, trying IndexedDB fallback:', err);
+        // Try IndexedDB as offline fallback only when Supabase fails
+        const indexedDBCache = await this.loadFromIndexedDB();
+        if (indexedDBCache) {
+          cachedData = indexedDBCache;
+          return indexedDBCache.records;
+        }
       }
     }
 
-    // Fallback: return empty (CSV data is loaded separately in api.ts)
-    // This service is for Supabase data; CSV fallback happens in loadKingdomData
+    // Final fallback: return empty (CSV data is loaded separately in api.ts)
     return new Map();
   }
 
