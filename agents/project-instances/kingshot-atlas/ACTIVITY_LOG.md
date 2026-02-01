@@ -9,6 +9,21 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-01 04:30 | Platform Engineer | COMPLETED
+Task: Improve screenshot storage error handling in admin dashboard
+Issue: "Image could not be stored" message showing for submissions with failed uploads
+Root Cause: When Supabase Storage upload fails, a `base64:{truncated}...` marker was stored
+Fixes Applied:
+  1. SubmissionsTab.tsx: Changed warning (yellow) to info message (blue)
+  2. SubmissionsTab.tsx: Clarified that submissions can still be reviewed without screenshot
+  3. submissions.py: More specific error markers (storage_unavailable, storage_error)
+  4. submissions.py: Better logging to diagnose upload failures
+Files Modified:
+  - apps/web/src/components/admin/SubmissionsTab.tsx
+  - apps/api/api/routers/submissions.py
+Result: Clearer UX - admin knows submission can be reviewed; better backend diagnostics
+Deployed: Commit 8a2d153 pushed
+
 ## 2026-02-01 04:20 | Platform Engineer | COMPLETED
 Task: CRITICAL - Make Supabase primary data source for KvK records
 Root Cause:
