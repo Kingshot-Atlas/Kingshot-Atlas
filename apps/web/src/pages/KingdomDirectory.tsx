@@ -391,20 +391,19 @@ const KingdomDirectory: React.FC = () => {
                 gap: '0.5rem',
                 flexWrap: 'wrap'
               }}>
-                KvK #10 Battle Phase Ending Soon!
+                KvK #10 Has Ended — Report Your Results!
                 <span style={{
                   fontSize: '0.65rem',
                   padding: '0.15rem 0.5rem',
-                  backgroundColor: '#ef444420',
-                  border: '1px solid #ef4444',
+                  backgroundColor: '#22c55e20',
+                  border: '1px solid #22c55e',
                   borderRadius: '4px',
-                  color: '#ef4444',
-                  fontWeight: '600',
-                  animation: 'pulse 2s infinite'
-                }}>LIVE</span>
+                  color: '#22c55e',
+                  fontWeight: '600'
+                }}>RESULTS OPEN</span>
               </div>
               <div style={{ fontSize: isMobile ? '0.75rem' : '0.85rem', color: '#9ca3af' }}>
-                Help us track results! Submit your kingdom's KvK outcome in seconds.
+                Help us update the rankings! Submit your kingdom's KvK #10 outcome.
               </div>
             </div>
           </div>

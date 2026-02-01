@@ -145,8 +145,8 @@ class KvKHistoryService {
           .order('kingdom_number')
           .order('kvk_number', { ascending: false });
 
-        if (!error && data && data.length > 100) {
-          // Supabase has sufficient data
+        if (!error && data && data.length > 0) {
+          // Supabase has data - use it as source of truth
           const records = this.processRecords(data);
           cachedData = { records, timestamp: Date.now(), source: 'supabase' };
           
@@ -309,11 +309,27 @@ class KvKHistoryService {
   }
 
   /**
-   * Invalidate cache (call after corrections are applied)
+   * Invalidate cache (call after corrections are applied or new data is added)
    */
   invalidateCache(): void {
     cachedData = null;
     this.corrections = null;
+    // Also clear IndexedDB cache to force fresh fetch
+    this.clearIndexedDBCache();
+  }
+
+  /**
+   * Clear IndexedDB cache
+   */
+  private async clearIndexedDBCache(): Promise<void> {
+    try {
+      const db = await this.getDB();
+      const tx = db.transaction('cache', 'readwrite');
+      const store = tx.objectStore('cache');
+      store.delete(INDEXEDDB_CACHE_KEY);
+    } catch (err) {
+      console.warn('Failed to clear IndexedDB cache:', err);
+    }
   }
 }
 

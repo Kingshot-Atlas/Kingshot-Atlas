@@ -9,6 +9,26 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-01 02:45 | Platform Engineer | COMPLETED
+Task: Fix KvK submission data persistence + Update KvK #10 banner copy
+Root Cause Analysis:
+  - kvkHistoryService.ts had threshold check `data.length > 100` - Supabase data ignored if <100 records
+  - Backend only inserted submitting kingdom's record, not opponent's inverse record
+  - IndexedDB cache wasn't being cleared on invalidation
+Fixes Applied:
+  1. Banner: Updated copy from "Battle Phase Ending Soon!" to "KvK #10 Has Ended — Report Your Results!"
+  2. Banner: Changed LIVE badge to RESULTS OPEN (green instead of red)
+  3. kvkHistoryService.ts: Changed threshold from >100 to >0 (use ANY Supabase data)
+  4. kvkHistoryService.ts: Added clearIndexedDBCache() to invalidateCache()
+  5. submissions.py: Now inserts BOTH kingdoms' records on approval (with duplicate protection)
+  6. submissions.py: Added duplicate checks for SQLite and Supabase inserts
+Files Modified:
+  - apps/web/src/pages/KingdomDirectory.tsx (banner copy)
+  - apps/web/src/services/kvkHistoryService.ts (threshold fix, IndexedDB cache clear)
+  - apps/api/api/routers/submissions.py (dual-sided record insertion)
+Result: Approved submissions now persist to Supabase and update both kingdoms' stats immediately
+Note: Backend changes require production deployment to take effect
+
 ## 2026-01-31 17:05 | Platform Engineer | COMPLETED
 Task: Fix critical Supabase security issues
 Issues Fixed:

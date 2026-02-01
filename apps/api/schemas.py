@@ -117,6 +117,7 @@ class KVKSubmission(BaseModel):
     battle_result: str
     date_or_order_index: Optional[str]
     screenshot_url: Optional[str]
+    screenshot2_url: Optional[str]
     notes: Optional[str]
     status: str
     reviewed_by: Optional[str]

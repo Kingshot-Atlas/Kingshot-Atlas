@@ -261,6 +261,7 @@ class KvK10SubmissionCreate(BaseModel):
     battle_result: Literal['W', 'L'] = Field(..., description="Battle phase result")
     notes: Optional[str] = Field(None, max_length=500)
     screenshot_base64: str = Field(..., description="Base64 encoded screenshot image")
+    screenshot2_base64: Optional[str] = Field(None, description="Optional second screenshot")
 
 
 @router.post("/submissions/kvk10", response_model=KVKSubmissionSchema)
@@ -380,6 +381,55 @@ def create_kvk10_submission(
         logger.error(f"Screenshot processing error: {e}")
         raise HTTPException(status_code=400, detail="Invalid screenshot format. Please upload a valid image.")
     
+    # Process second screenshot (optional)
+    screenshot2_url = None
+    if submission.screenshot2_base64:
+        try:
+            if ',' in submission.screenshot2_base64:
+                header2, base64_data2 = submission.screenshot2_base64.split(',', 1)
+                if 'image/png' in header2:
+                    file_ext2 = 'png'
+                elif 'image/jpeg' in header2 or 'image/jpg' in header2:
+                    file_ext2 = 'jpg'
+                elif 'image/webp' in header2:
+                    file_ext2 = 'webp'
+                else:
+                    file_ext2 = 'png'
+            else:
+                base64_data2 = submission.screenshot2_base64
+                file_ext2 = 'png'
+            
+            image_data2 = base64.b64decode(base64_data2)
+            
+            if len(image_data2) <= 5 * 1024 * 1024:
+                PNG_MAGIC = b'\x89PNG\r\n\x1a\n'
+                JPEG_MAGIC = b'\xff\xd8\xff'
+                WEBP_MAGIC = b'RIFF'
+                
+                is_valid_image2 = (
+                    image_data2[:8] == PNG_MAGIC or
+                    image_data2[:3] == JPEG_MAGIC or
+                    (image_data2[:4] == WEBP_MAGIC and b'WEBP' in image_data2[:12])
+                )
+                
+                if is_valid_image2:
+                    filename2 = f"kvk10/{verified_user_id}_{submission.kingdom_number}_{uuid.uuid4().hex[:8]}_2.{file_ext2}"
+                    try:
+                        from api.supabase_client import get_supabase_admin
+                        supabase = get_supabase_admin()
+                        if supabase:
+                            supabase.storage.from_('submissions').upload(
+                                filename2,
+                                image_data2,
+                                {'content-type': f'image/{file_ext2}'}
+                            )
+                            screenshot2_url = supabase.storage.from_('submissions').get_public_url(filename2)
+                            logger.info(f"Screenshot 2 uploaded: {screenshot2_url}")
+                    except Exception as e:
+                        logger.warning(f"Failed to upload screenshot 2: {e}")
+        except Exception as e:
+            logger.warning(f"Screenshot 2 processing error (non-fatal): {e}")
+    
     # Create submission
     db_submission = KVKSubmission(
         submitter_id=verified_user_id,
@@ -391,6 +441,7 @@ def create_kvk10_submission(
         battle_result=submission.battle_result,
         date_or_order_index=f"KvK10_{datetime.now(timezone.utc).strftime('%Y%m%d')}",
         screenshot_url=screenshot_url,
+        screenshot2_url=screenshot2_url,
         notes=submission.notes,
         status="pending"
     )
@@ -492,22 +543,76 @@ def review_submission(
         if kingdom:
             _recalculate_kingdom_stats(kingdom, db)
         
-        # Insert into Supabase kvk_history table for real-time updates
+        # Also create the opponent's inverse record (they fought the same KvK with opposite results)
+        # First check if opponent already has a record for this KvK (avoid duplicates)
+        existing_opponent_record = db.query(KVKRecord).filter(
+            KVKRecord.kingdom_number == submission.opponent_kingdom,
+            KVKRecord.kvk_number == submission.kvk_number
+        ).first()
+        
+        opponent_prep_result = "L" if submission.prep_result == "W" else "W"
+        opponent_battle_result = "L" if submission.battle_result == "W" else "W"
+        opponent_overall_result = "L" if overall_result == "W" else "W"
+        
+        if not existing_opponent_record:
+            opponent_kvk_record = KVKRecord(
+                kingdom_number=submission.opponent_kingdom,
+                kvk_number=submission.kvk_number,
+                opponent_kingdom=submission.kingdom_number,
+                prep_result=opponent_prep_result,
+                battle_result=opponent_battle_result,
+                overall_result=opponent_overall_result,
+                date_or_order_index=submission.date_or_order_index or f"Submitted {datetime.now(timezone.utc).strftime('%b %d, %Y')}"
+            )
+            db.add(opponent_kvk_record)
+        
+        # Recalculate opponent kingdom stats
+        opponent_kingdom = db.query(Kingdom).filter(Kingdom.kingdom_number == submission.opponent_kingdom).first()
+        if opponent_kingdom:
+            _recalculate_kingdom_stats(opponent_kingdom, db)
+        
+        # Insert into Supabase kvk_history table for real-time updates (both kingdoms)
         try:
             from api.supabase_client import get_supabase_admin
             supabase = get_supabase_admin()
             if supabase:
-                supabase.table('kvk_history').insert({
-                    'kingdom_number': submission.kingdom_number,
-                    'kvk_number': submission.kvk_number,
-                    'opponent_kingdom': submission.opponent_kingdom,
-                    'prep_result': submission.prep_result,
-                    'battle_result': submission.battle_result,
-                    'overall_result': overall_result,
-                    'kvk_date': None,  # Will be populated when official date is known
-                    'order_index': submission.kvk_number  # Use kvk_number as order index
-                }).execute()
-                logger.info(f"Inserted KvK record into Supabase for K{submission.kingdom_number}")
+                # Check if submitting kingdom's record already exists in Supabase
+                existing_sub = supabase.table('kvk_history').select('id').eq(
+                    'kingdom_number', submission.kingdom_number
+                ).eq('kvk_number', submission.kvk_number).execute()
+                
+                if not existing_sub.data:
+                    # Insert submitting kingdom's record
+                    supabase.table('kvk_history').insert({
+                        'kingdom_number': submission.kingdom_number,
+                        'kvk_number': submission.kvk_number,
+                        'opponent_kingdom': submission.opponent_kingdom,
+                        'prep_result': submission.prep_result,
+                        'battle_result': submission.battle_result,
+                        'overall_result': overall_result,
+                        'kvk_date': None,
+                        'order_index': submission.kvk_number
+                    }).execute()
+                    logger.info(f"Inserted KvK record into Supabase for K{submission.kingdom_number}")
+                
+                # Check if opponent kingdom's record already exists
+                existing_opp = supabase.table('kvk_history').select('id').eq(
+                    'kingdom_number', submission.opponent_kingdom
+                ).eq('kvk_number', submission.kvk_number).execute()
+                
+                if not existing_opp.data:
+                    # Insert opponent kingdom's inverse record
+                    supabase.table('kvk_history').insert({
+                        'kingdom_number': submission.opponent_kingdom,
+                        'kvk_number': submission.kvk_number,
+                        'opponent_kingdom': submission.kingdom_number,
+                        'prep_result': opponent_prep_result,
+                        'battle_result': opponent_battle_result,
+                        'overall_result': opponent_overall_result,
+                        'kvk_date': None,
+                        'order_index': submission.kvk_number
+                    }).execute()
+                    logger.info(f"Inserted inverse KvK record into Supabase for K{submission.opponent_kingdom}")
         except Exception as e:
             logger.error(f"Failed to insert into Supabase kvk_history: {e}")
             # Don't fail the request - local DB is the source of truth

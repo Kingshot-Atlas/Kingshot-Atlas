@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from './Toast';
+import { logger } from '../utils/logger';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 const CURRENT_KVK = 10; // Locked to KvK #10
@@ -18,9 +19,10 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
   defaultKingdom,
   defaultKvkNumber = CURRENT_KVK
 }) => {
-  const { user, session } = useAuth();
+  const { user, session, profile } = useAuth();
   const { showToast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef2 = useRef<HTMLInputElement>(null);
   const opponentInputRef = useRef<HTMLInputElement>(null);
   
   // Pre-fill kingdom if provided
@@ -31,6 +33,8 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
   const [notes, setNotes] = useState('');
   const [screenshot, setScreenshot] = useState<File | null>(null);
   const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
+  const [screenshot2, setScreenshot2] = useState<File | null>(null);
+  const [screenshotPreview2, setScreenshotPreview2] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   // Sync kingdom when modal opens with new default and auto-focus opponent
@@ -81,6 +85,34 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
     }
   };
 
+  const handleScreenshot2Change = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        showToast('Please select an image file', 'error');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        showToast('Image must be under 5MB', 'error');
+        return;
+      }
+      setScreenshot2(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setScreenshotPreview2(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const clearScreenshot2 = () => {
+    setScreenshot2(null);
+    setScreenshotPreview2(null);
+    if (fileInputRef2.current) {
+      fileInputRef2.current.value = '';
+    }
+  };
+
   const isFormValid = () => {
     return kingdomNumber && opponentKingdom && prepResult && battleResult && screenshot;
   };
@@ -98,13 +130,27 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
 
     setSubmitting(true);
     try {
-      // Convert screenshot to base64
+      // Convert screenshots to base64
       const reader = new FileReader();
       const base64Promise = new Promise<string>((resolve) => {
         reader.onloadend = () => resolve(reader.result as string);
         reader.readAsDataURL(screenshot!);
       });
       const screenshotBase64 = await base64Promise;
+
+      // Second screenshot (optional)
+      let screenshot2Base64: string | null = null;
+      if (screenshot2) {
+        const reader2 = new FileReader();
+        const base64Promise2 = new Promise<string>((resolve) => {
+          reader2.onloadend = () => resolve(reader2.result as string);
+          reader2.readAsDataURL(screenshot2);
+        });
+        screenshot2Base64 = await base64Promise2;
+      }
+
+      // Get Kingshot username for attribution
+      const kingshotUsername = profile?.linked_username || profile?.username || null;
 
       // Debug: Log submission attempt
       const payload = {
@@ -116,7 +162,7 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
         notes: notes || null,
         screenshot_base64: screenshotBase64.substring(0, 100) + '...' // Truncate for logging
       };
-      console.log('[KvK Submit] Attempting submission:', {
+      logger.log('[KvK Submit] Attempting submission:', {
         url: `${API_BASE}/api/v1/submissions/kvk10`,
         hasToken: !!session?.access_token,
         userId: user?.id,
@@ -128,7 +174,8 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
         headers: {
           'Content-Type': 'application/json',
           'Authorization': session?.access_token ? `Bearer ${session.access_token}` : '',
-          'X-User-Id': user?.id || ''
+          'X-User-Id': user?.id || '',
+          'X-User-Name': kingshotUsername || ''
         },
         body: JSON.stringify({
           kingdom_number: kingdomNumber,
@@ -137,12 +184,13 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
           prep_result: prepResult,
           battle_result: battleResult,
           notes: notes || null,
-          screenshot_base64: screenshotBase64
+          screenshot_base64: screenshotBase64,
+          screenshot2_base64: screenshot2Base64
         })
       });
 
       // Debug: Log response status
-      console.log('[KvK Submit] Response:', { status: response.status, ok: response.ok });
+      logger.log('[KvK Submit] Response:', { status: response.status, ok: response.ok });
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -158,7 +206,7 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
       }
 
       const result = await response.json();
-      console.log('[KvK Submit] Success:', result);
+      logger.log('[KvK Submit] Success:', result);
 
       showToast('KvK #10 result submitted for admin review!', 'success');
       // Reset form
@@ -168,6 +216,7 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
       setBattleResult(null);
       setNotes('');
       clearScreenshot();
+      clearScreenshot2();
       onClose();
     } catch (err) {
       console.error('[KvK Submit] Caught error:', err);
@@ -451,6 +500,77 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
               type="file"
               accept="image/*"
               onChange={handleScreenshotChange}
+              style={{ display: 'none' }}
+            />
+          </div>
+
+          {/* Second Screenshot Upload (Optional) */}
+          <div>
+            <label style={{ display: 'block', color: '#9ca3af', fontSize: '0.75rem', marginBottom: '0.35rem' }}>
+              Second Screenshot <span style={{ color: '#6b7280' }}>(Optional - e.g., battle results)</span>
+            </label>
+            
+            {!screenshotPreview2 ? (
+              <div
+                onClick={() => fileInputRef2.current?.click()}
+                style={{
+                  border: '2px dashed #3a3a3a',
+                  borderRadius: '8px',
+                  padding: '1rem',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  transition: 'border-color 0.2s',
+                  backgroundColor: '#0a0a0a'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.borderColor = '#22d3ee50'}
+                onMouseLeave={(e) => e.currentTarget.style.borderColor = '#3a3a3a'}
+              >
+                <div style={{ fontSize: '1.5rem', marginBottom: '0.25rem' }}>➕</div>
+                <div style={{ color: '#6b7280', fontSize: '0.8rem' }}>
+                  Add second screenshot
+                </div>
+              </div>
+            ) : (
+              <div style={{ position: 'relative' }}>
+                <img
+                  src={screenshotPreview2}
+                  alt="Screenshot 2 preview"
+                  style={{
+                    width: '100%',
+                    maxHeight: '150px',
+                    objectFit: 'contain',
+                    borderRadius: '8px',
+                    border: '1px solid #2a2a2a'
+                  }}
+                />
+                <button
+                  onClick={clearScreenshot2}
+                  style={{
+                    position: 'absolute',
+                    top: '0.5rem',
+                    right: '0.5rem',
+                    background: 'rgba(0,0,0,0.8)',
+                    border: '1px solid #3a3a3a',
+                    borderRadius: '50%',
+                    width: '28px',
+                    height: '28px',
+                    color: '#fff',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '1rem'
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+            )}
+            <input
+              ref={fileInputRef2}
+              type="file"
+              accept="image/*"
+              onChange={handleScreenshot2Change}
               style={{ display: 'none' }}
             />
           </div>

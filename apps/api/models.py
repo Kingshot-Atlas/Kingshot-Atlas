@@ -85,6 +85,7 @@ class KVKSubmission(Base):
     
     # Evidence
     screenshot_url = Column(String, nullable=True)
+    screenshot2_url = Column(String, nullable=True)
     notes = Column(Text, nullable=True)
     
     # Moderation
