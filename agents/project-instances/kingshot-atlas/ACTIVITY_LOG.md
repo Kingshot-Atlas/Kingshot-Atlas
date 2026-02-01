@@ -9,6 +9,22 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-01 13:55 | Ops Lead | COMPLETED
+Task: Enhanced Sentry error monitoring with context
+Files:
+  - apps/web/src/components/ErrorBoundary.tsx (enhanced with Sentry reporting)
+  - apps/web/src/components/RouteErrorBoundary.tsx (new - captures route params)
+  - apps/web/src/contexts/AuthContext.tsx (added user context to Sentry)
+  - apps/web/src/App.tsx (use RouteErrorBoundary for param routes)
+Result: Errors now include user info, kingdom numbers, URLs, and component stacks
+
+## 2026-02-01 10:05 | Platform Engineer | COMPLETED
+Task: Fix "Something went wrong" error when clicking kingdoms
+Root Cause: getKingdomProfile() used realKingdoms fallback before preload completed
+Fix: Added await preloadPromise to getKingdomProfile, getLeaderboard, searchKingdoms
+Files: apps/web/src/services/api.ts
+Result: Kingdom profile pages now load reliably
+
 ## 2026-02-01 04:35 | Platform Engineer | COMPLETED
 Task: Fix CI errors (1 Python test failure + 10 frontend lint warnings)
 Root Cause:
