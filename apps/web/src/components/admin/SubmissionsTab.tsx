@@ -69,10 +69,12 @@ export const SubmissionsTab: React.FC<SubmissionsTabProps> = ({
     );
   }
 
-  // Check if URL is a valid image URL (not base64 truncated or pending)
+  // Check if URL is a valid image URL (not a storage error marker)
   const isValidImageUrl = (url: string | null): boolean => {
     if (!url) return false;
-    if (url.startsWith('base64:') || url.startsWith('pending_upload:')) return false;
+    // Reject storage error markers
+    if (url.startsWith('base64:') || url.startsWith('pending_upload:') || 
+        url.startsWith('storage_unavailable:') || url.startsWith('storage_error:')) return false;
     return url.startsWith('http') || url.startsWith('data:image');
   };
 
@@ -118,18 +120,18 @@ export const SubmissionsTab: React.FC<SubmissionsTabProps> = ({
             </div>
 
             {/* Screenshot Previews */}
-            {/* Show fallback message if screenshot upload failed */}
+            {/* Show info message if screenshot upload failed - submission can still be reviewed */}
             {sub.screenshot_url && !isValidImageUrl(sub.screenshot_url) && (
               <div style={{ 
                 padding: '0.75rem', 
-                backgroundColor: '#fbbf2410', 
-                border: '1px solid #fbbf2430',
+                backgroundColor: '#3b82f610', 
+                border: '1px solid #3b82f630',
                 borderRadius: '8px',
                 marginBottom: '1rem',
-                color: '#fbbf24',
+                color: '#60a5fa',
                 fontSize: '0.8rem'
               }}>
-                ⚠️ Screenshot upload failed - image was provided but couldn't be stored
+                📷 Screenshot was submitted but storage was unavailable. You can still review this submission based on the KvK data provided.
               </div>
             )}
             {(isValidImageUrl(sub.screenshot_url) || isValidImageUrl(sub.screenshot2_url)) && (

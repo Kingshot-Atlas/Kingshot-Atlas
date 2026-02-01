@@ -381,15 +381,16 @@ def create_kvk10_submission(
                 )
                 # Get public URL
                 screenshot_url = supabase.storage.from_('submissions').get_public_url(filename)
-                logger.info(f"Screenshot uploaded: {screenshot_url}")
+                logger.info(f"Screenshot uploaded successfully: {screenshot_url}")
+            else:
+                logger.warning("Supabase client not available - check SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY env vars")
+                screenshot_url = "storage_unavailable:supabase_not_configured"
         except Exception as e:
-            logger.warning(f"Failed to upload to Supabase Storage: {e}")
-            # Store base64 as fallback (truncated for DB)
-            screenshot_url = f"base64:{submission.screenshot_base64[:100]}..."
+            logger.error(f"Failed to upload to Supabase Storage: {type(e).__name__}: {e}")
+            screenshot_url = f"storage_error:{type(e).__name__}"
         
         if not screenshot_url:
-            # Fallback: store a marker that screenshot was provided
-            screenshot_url = f"pending_upload:{filename}"
+            screenshot_url = "storage_unavailable:unknown"
         
     except Exception as e:
         logger.error(f"Screenshot processing error: {e}")
@@ -554,20 +555,23 @@ def review_submission(
         
         # CRITICAL: Recalculate kingdom aggregate stats after adding new KVK record
         kingdom = db.query(Kingdom).filter(Kingdom.kingdom_number == submission.kingdom_number).first()
-        if kingdom:
-            _recalculate_kingdom_stats(kingdom, db)
+        # Query opponent kingdom first (before trying to create FK-constrained record)
+        opponent_kingdom = db.query(Kingdom).filter(Kingdom.kingdom_number == submission.opponent_kingdom).first()
         
-        # Also create the opponent's inverse record (they fought the same KvK with opposite results)
-        # First check if opponent already has a record for this KvK (avoid duplicates)
-        existing_opponent_record = db.query(KVKRecord).filter(
-            KVKRecord.kingdom_number == submission.opponent_kingdom,
-            KVKRecord.kvk_number == submission.kvk_number
-        ).first()
+        # Only create opponent record if the kingdom exists in our database
+        if not existing_opponent_record and opponent_kingdom:
+            opponent_kvk_record = KVKRecord(
+                kingdom_number=submission.opponent_kingdom,
+                kvk_number=submission.kvk_number,
+                opponent_kingdom=submission.kingdom_number,
+                prep_result=opponent_prep_result,
+                battle_result=opponent_battle_result,
+                overall_result=opponent_overall_result,
+                date_or_order_index=submission.date_or_order_index or f"Submitted {datetime.now(timezone.utc).strftime('%b %d, %Y')}"
+            )
+            db.add(opponent_kvk_record)
         
-        opponent_prep_result = "L" if submission.prep_result == "W" else "W"
-        opponent_battle_result = "L" if submission.battle_result == "W" else "W"
-        opponent_overall_result = "L" if overall_result == "W" else "W"
-        
+        # Recalculate opponent kingdom stats
         if not existing_opponent_record:
             opponent_kvk_record = KVKRecord(
                 kingdom_number=submission.opponent_kingdom,
