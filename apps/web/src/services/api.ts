@@ -16,6 +16,8 @@ const MAX_RETRIES = 2;
 let supabaseKvkData: Map<number, KvKHistoryRecord[]> | null = null;
 
 // Preload KvK data from Supabase on module load
+let supabaseDataLoaded = false;
+
 const preloadSupabaseData = async () => {
   try {
     // Fetch corrections first
@@ -24,6 +26,10 @@ const preloadSupabaseData = async () => {
     supabaseKvkData = await kvkHistoryService.getAllRecords();
     if (supabaseKvkData.size > 0) {
       logger.info(`Loaded ${supabaseKvkData.size} kingdoms from Supabase`);
+      // CRITICAL: Rebuild realKingdoms now that Supabase data is available
+      realKingdoms = loadKingdomData();
+      supabaseDataLoaded = true;
+      logger.info('Rebuilt kingdom data with Supabase records');
     }
   } catch (err) {
     // Silent fail - will use local JSON fallback
@@ -31,7 +37,7 @@ const preloadSupabaseData = async () => {
   }
 };
 
-// Start preloading immediately
+// Start preloading immediately (will rebuild realKingdoms when done)
 preloadSupabaseData();
 
 interface CacheData {

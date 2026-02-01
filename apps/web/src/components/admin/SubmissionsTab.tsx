@@ -118,6 +118,20 @@ export const SubmissionsTab: React.FC<SubmissionsTabProps> = ({
             </div>
 
             {/* Screenshot Previews */}
+            {/* Show fallback message if screenshot upload failed */}
+            {sub.screenshot_url && !isValidImageUrl(sub.screenshot_url) && (
+              <div style={{ 
+                padding: '0.75rem', 
+                backgroundColor: '#fbbf2410', 
+                border: '1px solid #fbbf2430',
+                borderRadius: '8px',
+                marginBottom: '1rem',
+                color: '#fbbf24',
+                fontSize: '0.8rem'
+              }}>
+                ⚠️ Screenshot upload failed - image was provided but couldn't be stored
+              </div>
+            )}
             {(isValidImageUrl(sub.screenshot_url) || isValidImageUrl(sub.screenshot2_url)) && (
               <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
                 {isValidImageUrl(sub.screenshot_url) && (
