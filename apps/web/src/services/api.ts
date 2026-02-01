@@ -60,27 +60,68 @@ const calculateOverallResult = (prepResult: string, battleResult: string): strin
 const loadKingdomData = (): Kingdom[] => {
   const kvksByKingdom: Record<number, KVKRecord[]> = {};
   
-  // Get approved KvK corrections for applying to records (localStorage fallback)
+  // Get approved KvK corrections for applying to records
   const kvkCorrections = kvkCorrectionService.getAllAppliedCorrections();
   
-  // First, load ALL local JSON KvK records as baseline
+  // PRIORITY 1: Use Supabase data as PRIMARY source (most up-to-date)
+  // This ensures new submissions are immediately reflected
+  if (supabaseKvkData && supabaseKvkData.size > 0) {
+    logger.info(`Loading KvK data from Supabase (${supabaseKvkData.size} kingdoms)`);
+    for (const [kNum, records] of supabaseKvkData) {
+      if (!kvksByKingdom[kNum]) kvksByKingdom[kNum] = [];
+      
+      for (const r of records) {
+        // Check for corrections
+        const correctionKey = `${kNum}-${r.kvk_number}`;
+        const correction = kvkCorrections.get(correctionKey);
+        
+        const prepResult = correction 
+          ? (correction.corrected_prep_result === 'W' ? 'Win' : 'Loss')
+          : (r.prep_result === 'W' ? 'Win' : 'Loss');
+        const battleResult = correction
+          ? (correction.corrected_battle_result === 'W' ? 'Win' : 'Loss')
+          : (r.battle_result === 'W' ? 'Win' : 'Loss');
+        const overallResult = correction
+          ? calculateOverallResult(prepResult, battleResult)
+          : r.overall_result;
+        
+        kvksByKingdom[kNum]!.push({
+          id: kNum * 100 + r.kvk_number,
+          kingdom_number: kNum,
+          kvk_number: r.kvk_number,
+          opponent_kingdom: r.opponent_kingdom || 0,
+          prep_result: prepResult,
+          battle_result: battleResult,
+          overall_result: overallResult,
+          date_or_order_index: r.kvk_date || String(r.order_index),
+          created_at: r.kvk_date || String(r.order_index)
+        });
+      }
+    }
+  }
+  
+  // PRIORITY 2: Fill gaps with local JSON data (for kingdoms not in Supabase)
+  // This is fallback only - Supabase is source of truth
   for (const kvk of kingdomData.kvk_records) {
     const kNum = kvk.kingdom_number;
+    
+    // Skip if this kingdom already has Supabase data
+    if (kvksByKingdom[kNum] && kvksByKingdom[kNum].length > 0) {
+      continue;
+    }
+    
     if (!kvksByKingdom[kNum]) kvksByKingdom[kNum] = [];
     
     // Check if there's a correction for this KvK record
     const correctionKey = `${kNum}-${kvk.kvk_number}`;
     const correction = kvkCorrections.get(correctionKey);
     
-    // Apply correction if exists, otherwise use original data
     const prepResult = correction 
       ? (correction.corrected_prep_result === 'W' ? 'Win' : 'Loss')
       : (kvk.prep_result === 'W' ? 'Win' : 'Loss');
     const battleResult = correction
       ? (correction.corrected_battle_result === 'W' ? 'Win' : 'Loss')
       : (kvk.battle_result === 'W' ? 'Win' : 'Loss');
-    
-    // Calculate overall result based on (possibly corrected) prep/battle results
     const overallResult = correction
       ? calculateOverallResult(prepResult, battleResult)
       : kvk.overall_result;
@@ -96,34 +137,6 @@ const loadKingdomData = (): Kingdom[] => {
       date_or_order_index: kvk.date_or_order_index,
       created_at: kvk.date_or_order_index
     });
-  }
-  
-  // Then, MERGE Supabase data - add any KvK records that don't exist in local JSON
-  // This ensures new submissions (like KvK #10) show up alongside existing data
-  if (supabaseKvkData && supabaseKvkData.size > 0) {
-    for (const [kNum, records] of supabaseKvkData) {
-      if (!kvksByKingdom[kNum]) kvksByKingdom[kNum] = [];
-      
-      // Get existing KvK numbers from local data
-      const existingKvkNumbers = new Set(kvksByKingdom[kNum]!.map(r => r.kvk_number));
-      
-      // Add Supabase records that don't exist in local JSON
-      for (const r of records) {
-        if (!existingKvkNumbers.has(r.kvk_number)) {
-          kvksByKingdom[kNum]!.push({
-            id: kNum * 100 + r.kvk_number,
-            kingdom_number: kNum,
-            kvk_number: r.kvk_number,
-            opponent_kingdom: r.opponent_kingdom || 0,
-            prep_result: r.prep_result === 'W' ? 'Win' : 'Loss',
-            battle_result: r.battle_result === 'W' ? 'Win' : 'Loss',
-            overall_result: r.overall_result,
-            date_or_order_index: r.kvk_date || String(r.order_index),
-            created_at: r.kvk_date || String(r.order_index)
-          });
-        }
-      }
-    }
   }
   
   
