@@ -55,10 +55,10 @@ const About: React.FC = () => {
             Stop Guessing. Start Winning.
           </h2>
           <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.9rem' : '0.95rem', lineHeight: 1.7, marginBottom: '1rem' }}>
-            <span style={{ color: '#22d3ee' }}>Kingshot Atlas</span> is the only analytics platform built specifically for Kingshot players who refuse to leave victory to chance. We track every KvK result, analyze every kingdom's performance, and give you the intelligence you need to make decisions that actually matter.
+            <span style={{ color: '#22d3ee' }}>Kingshot Atlas</span> is the only analytics platform built specifically for Kingshot players who refuse to leave victory to chance. We track every KvK result, analyze every kingdom&apos;s performance, and give you the intelligence you need to make decisions that actually matter.
           </p>
           <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.9rem' : '0.95rem', lineHeight: 1.7, marginBottom: '1rem' }}>
-            Scouting your next KvK opponent? We've got their win rate, their streaks, and their weaknesses. Looking for a new home during Transfer? Find kingdoms that match your competitive level. Recruiting for your alliance? Show prospects exactly why your kingdom dominates.
+            Scouting your next KvK opponent? We&apos;ve got their win rate, their streaks, and their weaknesses. Looking for a new home during Transfer? Find kingdoms that match your competitive level. Recruiting for your alliance? Show prospects exactly why your kingdom dominates.
           </p>
           <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.9rem' : '0.95rem', lineHeight: 1.7 }}>
             No more guessing. No more blind migrations. No more surprises. Just <span style={{ color: '#22c55e' }}>data-driven dominance</span>.
@@ -116,7 +116,7 @@ const About: React.FC = () => {
             marginBottom: '1rem',
             fontFamily: "'Cinzel', serif"
           }}>
-            The Atlas Score: Your Kingdom's True Power Level
+            The Atlas Score: Your Kingdom&apos;s True Power Level
           </h2>
           <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.9rem' : '0.95rem', lineHeight: 1.7, marginBottom: '1rem' }}>
             Stop guessing. Start winning. The Atlas Score measures what actually matters: <span style={{ color: '#22d3ee' }}>consistent performance</span>. Our formula rewards experience, punishes lucky streaks, and shows who really dominates. Here's the breakdown:

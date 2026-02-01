@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Kingdom } from '../types';
 import { useIsMobile } from '../hooks/useMediaQuery';
@@ -27,12 +27,12 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
   const isMobile = useIsMobile();
   const { trackSearch, trackFeature } = useAnalytics();
 
-  const suggestions = value.trim()
+  const suggestions = useMemo(() => value.trim()
     ? kingdoms
         .filter(k => k.kingdom_number.toString().includes(value.trim()))
         .sort((a, b) => a.kingdom_number - b.kingdom_number)
         .slice(0, 8)
-    : [];
+    : [], [value, kingdoms]);
 
   const showDropdown = isFocused && suggestions.length > 0 && value.trim().length > 0;
 

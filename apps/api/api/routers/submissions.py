@@ -555,10 +555,24 @@ def review_submission(
         
         # CRITICAL: Recalculate kingdom aggregate stats after adding new KVK record
         kingdom = db.query(Kingdom).filter(Kingdom.kingdom_number == submission.kingdom_number).first()
-        # Query opponent kingdom first (before trying to create FK-constrained record)
+        if kingdom:
+            _recalculate_kingdom_stats(kingdom, db)
+        
+        # Calculate opponent's inverse results (their loss is our win, etc.)
+        opponent_prep_result = "L" if submission.prep_result == "W" else "W"
+        opponent_battle_result = "L" if submission.battle_result == "W" else "W"
+        opponent_overall_result = "L" if overall_result == "W" else "W"
+        
+        # Check if opponent already has a record for this KvK
+        existing_opponent_record = db.query(KVKRecord).filter(
+            KVKRecord.kingdom_number == submission.opponent_kingdom,
+            KVKRecord.kvk_number == submission.kvk_number
+        ).first()
+        
+        # Query opponent kingdom (before trying to create FK-constrained record)
         opponent_kingdom = db.query(Kingdom).filter(Kingdom.kingdom_number == submission.opponent_kingdom).first()
         
-        # Only create opponent record if the kingdom exists in our database
+        # Only create opponent record if kingdom exists and doesn't already have this KvK
         if not existing_opponent_record and opponent_kingdom:
             opponent_kvk_record = KVKRecord(
                 kingdom_number=submission.opponent_kingdom,
@@ -570,23 +584,6 @@ def review_submission(
                 date_or_order_index=submission.date_or_order_index or f"Submitted {datetime.now(timezone.utc).strftime('%b %d, %Y')}"
             )
             db.add(opponent_kvk_record)
-        
-        # Recalculate opponent kingdom stats
-        if not existing_opponent_record:
-            opponent_kvk_record = KVKRecord(
-                kingdom_number=submission.opponent_kingdom,
-                kvk_number=submission.kvk_number,
-                opponent_kingdom=submission.kingdom_number,
-                prep_result=opponent_prep_result,
-                battle_result=opponent_battle_result,
-                overall_result=opponent_overall_result,
-                date_or_order_index=submission.date_or_order_index or f"Submitted {datetime.now(timezone.utc).strftime('%b %d, %Y')}"
-            )
-            db.add(opponent_kvk_record)
-        
-        # Recalculate opponent kingdom stats
-        opponent_kingdom = db.query(Kingdom).filter(Kingdom.kingdom_number == submission.opponent_kingdom).first()
-        if opponent_kingdom:
             _recalculate_kingdom_stats(opponent_kingdom, db)
         
         # Insert into Supabase kvk_history table for real-time updates (both kingdoms)

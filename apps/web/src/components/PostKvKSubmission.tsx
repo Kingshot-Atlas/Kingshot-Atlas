@@ -149,8 +149,9 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
         screenshot2Base64 = await base64Promise2;
       }
 
-      // Get Kingshot username for attribution
-      const kingshotUsername = profile?.linked_username || profile?.username || null;
+      // Get Kingshot username for attribution (used for future features)
+      const _kingshotUsername = profile?.linked_username || profile?.username || null;
+      void _kingshotUsername; // Suppress unused variable warning
 
       // Debug: Log submission attempt
       const payload = {

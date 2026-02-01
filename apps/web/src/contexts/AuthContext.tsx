@@ -460,6 +460,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         refreshLinkedPlayer();
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile?.linked_player_id, user]);
 
   const contextValue: AuthContextType = {

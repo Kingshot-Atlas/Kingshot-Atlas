@@ -279,9 +279,9 @@ export function UserCorrectionStats({ userId, username: _username, themeColor = 
           color: '#6b7280',
           fontSize: '0.875rem',
         }}>
-          <p>You haven't submitted any KvK corrections yet.</p>
+          <p>You haven&apos;t submitted any KvK corrections yet.</p>
           <p style={{ marginTop: '0.5rem', fontSize: '0.8125rem' }}>
-            Found incorrect KvK data? Report it on a kingdom's profile page!
+            Found incorrect KvK data? Report it on a kingdom&apos;s profile page!
           </p>
         </div>
       )}

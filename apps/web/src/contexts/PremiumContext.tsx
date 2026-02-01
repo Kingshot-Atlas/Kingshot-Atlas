@@ -245,6 +245,7 @@ export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   useEffect(() => {
     fetchSubscription();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
   
   // Manual refresh function for after checkout completion

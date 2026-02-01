@@ -244,6 +244,7 @@ export const WebhookMonitor: React.FC = () => {
     loadData();
     const interval = setInterval(loadData, 30000); // Refresh every 30s
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter]);
 
   const loadData = async () => {
