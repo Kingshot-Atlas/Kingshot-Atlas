@@ -279,6 +279,20 @@ def create_kvk10_submission(
     if not verified_user_id:
         raise HTTPException(status_code=401, detail="Authentication required to submit KvK results")
     
+    # Fetch linked_username from Supabase profile (more reliable than header)
+    submitter_name = user_name  # Fallback to header
+    try:
+        from api.supabase_client import get_supabase_admin
+        supabase = get_supabase_admin()
+        if supabase:
+            profile_result = supabase.table('profiles').select('linked_username, username').eq('id', verified_user_id).single().execute()
+            if profile_result.data:
+                # Prefer linked_username (Kingshot account), fallback to Atlas username
+                submitter_name = profile_result.data.get('linked_username') or profile_result.data.get('username') or user_name
+                logger.info(f"Fetched submitter name from profile: {submitter_name}")
+    except Exception as e:
+        logger.warning(f"Could not fetch profile for submitter name: {e}")
+    
     # Validate KvK number is 10
     if submission.kvk_number != 10:
         raise HTTPException(status_code=400, detail="This endpoint only accepts KvK #10 submissions")
@@ -433,7 +447,7 @@ def create_kvk10_submission(
     # Create submission
     db_submission = KVKSubmission(
         submitter_id=verified_user_id,
-        submitter_name=user_name,
+        submitter_name=submitter_name,
         kingdom_number=submission.kingdom_number,
         kvk_number=10,
         opponent_kingdom=submission.opponent_kingdom,
