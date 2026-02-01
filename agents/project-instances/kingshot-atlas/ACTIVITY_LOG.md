@@ -9,6 +9,22 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-01 03:00 | Product Engineer | COMPLETED
+Task: Admin dashboard submissions improvements + Production deployment
+Improvements:
+  1. Show Kingshot username instead of "Anonymous" with link to player search
+  2. Enable 2 screenshot uploads per submission (second is optional)
+  3. Add image viewing modal in admin dashboard - click thumbnails to view full size
+  4. Backend: Added screenshot2_url column and processing
+Files Modified:
+  - apps/web/src/components/admin/SubmissionsTab.tsx (username link, image modal)
+  - apps/web/src/components/admin/types.ts (added screenshot2_url)
+  - apps/web/src/components/PostKvKSubmission.tsx (2 screenshot support)
+  - apps/api/api/routers/submissions.py (screenshot2 processing)
+  - apps/api/models.py (screenshot2_url column)
+  - apps/api/schemas.py (screenshot2_url field)
+Deployed: Pushed to GitHub (commit 75324dd) - auto-deploys to Netlify + Render
+
 ## 2026-02-01 02:45 | Platform Engineer | COMPLETED
 Task: Fix KvK submission data persistence + Update KvK #10 banner copy
 Root Cause Analysis:
