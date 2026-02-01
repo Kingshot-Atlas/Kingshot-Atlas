@@ -408,8 +408,8 @@ class ApiService {
       params.append('sort', sort.sortBy);
       params.append('order', sort.order);
     }
-    // Fetch all kingdoms (no pagination limit for full list)
-    params.append('page_size', '2000');
+    // Fetch kingdoms (backend max is 100, local data supplements)
+    params.append('page_size', '100');
     
     const queryString = params.toString();
     const endpoint = `/api/v1/kingdoms${queryString ? '?' + queryString : ''}`;
