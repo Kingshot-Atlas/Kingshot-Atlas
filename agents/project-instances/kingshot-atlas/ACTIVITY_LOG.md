@@ -9,6 +9,21 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-01 04:10 | Platform Engineer | COMPLETED
+Task: Fix Kingdom stats not updating after KvK submission approval
+Root Cause:
+  - Stats only recalculated when `hasSupabaseData` was true (checked Supabase data existence)
+  - Cache TTL was too long: 5 min memory, 1 hour IndexedDB
+  - Result: Kingdom 172 showed 7 KvKs instead of 8, 5 Dominations instead of 6
+Fixes Applied:
+  1. api.ts: ALWAYS calculate stats from `recentKvks` (merged local + Supabase data)
+  2. kvkHistoryService.ts: Reduced memory cache to 2 min, IndexedDB to 6 min
+Files Modified:
+  - apps/web/src/services/api.ts (always calculate from merged records)
+  - apps/web/src/services/kvkHistoryService.ts (reduced cache TTL)
+Result: Stats now update immediately after submissions are approved
+Deployed: Commit 299e6c0 pushed - auto-deploys to Netlify
+
 ## 2026-02-01 04:00 | Platform Engineer | COMPLETED
 Task: Fix incorrect Atlas Scores showing simple formula instead of Bayesian scores
 Root Cause:
