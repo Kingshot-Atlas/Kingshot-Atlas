@@ -9,6 +9,19 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-01 04:00 | Platform Engineer | COMPLETED
+Task: Fix incorrect Atlas Scores showing simple formula instead of Bayesian scores
+Root Cause:
+  - api.ts was recalculating Atlas Score using simple weighted average: (prepWR * 0.3 + battleWR * 0.4 + domRate * 0.2 + expFactor * 0.1) * 20
+  - This produced scores like 17.6 for Kingdom 3 instead of correct Bayesian score 10.63
+  - Per DATA_ARCHITECTURE.md: "All Atlas Score data flows from a single source - NO recalculation"
+  - The correct scores come from regenerate_kingdoms_with_atlas_score.py using Wilson Score, Bayesian priors, experience scaling, etc.
+Fix: Removed the simple formula recalculation - now uses k.overall_score from JSON (single source of truth)
+Files Modified:
+  - apps/web/src/services/api.ts (removed score recalculation, use JSON score)
+Result: Atlas Scores now display correct Bayesian values from pre-calculated JSON data
+Deployed: Commit 3e1170a pushed - auto-deploys to Netlify
+
 ## 2026-02-01 03:50 | Platform Engineer | COMPLETED
 Task: Fix kingdom card stats not updating after KvK submission approval
 Root Cause Analysis:
