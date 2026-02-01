@@ -60,6 +60,7 @@ const Admin: React.FC = () => {
   // Fetch pending counts on mount
   useEffect(() => {
     fetchPendingCounts();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

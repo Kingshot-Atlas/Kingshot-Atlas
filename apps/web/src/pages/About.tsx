@@ -119,7 +119,7 @@ const About: React.FC = () => {
             The Atlas Score: Your Kingdom&apos;s True Power Level
           </h2>
           <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.9rem' : '0.95rem', lineHeight: 1.7, marginBottom: '1rem' }}>
-            Stop guessing. Start winning. The Atlas Score measures what actually matters: <span style={{ color: '#22d3ee' }}>consistent performance</span>. Our formula rewards experience, punishes lucky streaks, and shows who really dominates. Here's the breakdown:
+            Stop guessing. Start winning. The Atlas Score measures what actually matters: <span style={{ color: '#22d3ee' }}>consistent performance</span>. Our formula rewards experience, punishes lucky streaks, and shows who really dominates. Here&apos;s the breakdown:
           </p>
           
           <div style={{ display: 'grid', gap: '0.75rem', marginBottom: '1.25rem' }}>
@@ -169,7 +169,7 @@ const About: React.FC = () => {
           </div>
 
           <p style={{ color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.85rem', lineHeight: 1.6 }}>
-            Real data. Real results. No spin. That's how you know who to fear and who to target.
+            Real data. Real results. No spin. That&apos;s how you know who to fear and who to target.
           </p>
         </section>
 
@@ -228,10 +228,10 @@ const About: React.FC = () => {
             Kingshot Atlas was born in <span style={{ color: '#22d3ee' }}>Kingdom 172</span>. The founder got tired of making transfer decisions based on rumors and Discord hearsay. Tired of walking into KvK blind. Tired of guessing.
           </p>
           <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.9rem' : '0.95rem', lineHeight: 1.7, marginBottom: '1rem' }}>
-            So he built the tool he wished existed: a place where every kingdom's track record is laid bare. Real data. Real results. No spin.
+            So he built the tool he wished existed: a place where every kingdom&apos;s track record is laid bare. Real data. Real results. No spin.
           </p>
           <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.9rem' : '0.95rem', lineHeight: 1.7 }}>
-            Today, Atlas is powered by the community—players contributing data, reporting results, and helping each other make smarter decisions. This isn't a corporate product. It's a passion project built by someone who plays the game and wants to see the community thrive.
+            Today, Atlas is powered by the community—players contributing data, reporting results, and helping each other make smarter decisions. This isn&apos;t a corporate product. It&apos;s a passion project built by someone who plays the game and wants to see the community thrive.
           </p>
         </section>
 
@@ -270,7 +270,7 @@ const About: React.FC = () => {
             </p>
           </div>
           <p style={{ color: '#6b7280', fontSize: isMobile ? '0.85rem' : '0.9rem', lineHeight: 1.7 }}>
-            Kingshot Atlas is an independent fan project. We're not affiliated with or endorsed by the developers of Kingshot. We're just players who love the game.
+            Kingshot Atlas is an independent fan project. We&apos;re not affiliated with or endorsed by the developers of Kingshot. We&apos;re just players who love the game.
           </p>
         </section>
 
@@ -338,7 +338,7 @@ const About: React.FC = () => {
             Join the Community
           </h2>
           <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.85rem' : '0.9rem', lineHeight: 1.6, marginBottom: '1rem' }}>
-            Got intel to share? Found a bug? Want to argue about tier rankings? Jump into our Discord. We're always looking for contributors, testers, and fellow data nerds.
+            Got intel to share? Found a bug? Want to argue about tier rankings? Jump into our Discord. We&apos;re always looking for contributors, testers, and fellow data nerds.
           </p>
           <a
             href="https://discord.gg/aA3a7JGcHV"

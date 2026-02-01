@@ -138,7 +138,8 @@ class KvKHistoryService {
         let offset = 0;
         const batchSize = 1000;
         
-        while (true) {
+        let hasMore = true;
+        while (hasMore) {
           const { data: batch, error: batchError } = await supabase
             .from('kvk_history')
             .select('*')
@@ -148,14 +149,20 @@ class KvKHistoryService {
           
           if (batchError) {
             console.warn('Supabase KvK batch fetch failed:', batchError);
-            break;
+            hasMore = false;
+            continue;
           }
           
-          if (!batch || batch.length === 0) break;
+          if (!batch || batch.length === 0) {
+            hasMore = false;
+            continue;
+          }
           
           allData.push(...batch);
           
-          if (batch.length < batchSize) break; // Last batch
+          if (batch.length < batchSize) {
+            hasMore = false; // Last batch
+          }
           offset += batchSize;
         }
         

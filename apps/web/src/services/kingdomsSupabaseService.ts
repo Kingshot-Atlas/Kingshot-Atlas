@@ -82,7 +82,8 @@ class KingdomsSupabaseService {
       let offset = 0;
       const batchSize = 1000;
       
-      while (true) {
+      let hasMore = true;
+      while (hasMore) {
         const { data: batch, error: batchError } = await supabase
           .from('kingdoms')
           .select('*')
@@ -91,14 +92,20 @@ class KingdomsSupabaseService {
         
         if (batchError) {
           logger.error('Failed to fetch kingdoms batch from Supabase:', batchError);
-          break;
+          hasMore = false;
+          continue;
         }
         
-        if (!batch || batch.length === 0) break;
+        if (!batch || batch.length === 0) {
+          hasMore = false;
+          continue;
+        }
         
         allKingdomsData.push(...batch);
         
-        if (batch.length < batchSize) break; // Last batch
+        if (batch.length < batchSize) {
+          hasMore = false; // Last batch
+        }
         offset += batchSize;
       }
       

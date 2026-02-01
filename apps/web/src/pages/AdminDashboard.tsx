@@ -672,7 +672,7 @@ const AdminDashboard: React.FC = () => {
     return (
       <div style={{ textAlign: 'center', padding: '4rem', color: '#6b7280' }}>
         <h2 style={{ color: '#ef4444', marginBottom: '1rem' }}>🚫 Access Denied</h2>
-        <p>You don't have permission to access the admin dashboard.</p>
+        <p>You don&apos;t have permission to access the admin dashboard.</p>
         <p style={{ fontSize: '0.8rem', marginTop: '1rem' }}>
           Logged in as: {profile?.username || 'Unknown'}
         </p>
