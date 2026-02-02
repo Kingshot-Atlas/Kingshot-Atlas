@@ -66,10 +66,13 @@ const UserDirectory: React.FC = () => {
 
           if (data && data.length > 0) {
             // Sort: by tier hierarchy (Admin > Recruiter > Pro > Free), then by created_at
+            // Use getDisplayTier to properly detect admins by username
             const sorted = [...data].sort((a, b) => {
               const tierOrder = { admin: 0, recruiter: 1, pro: 2, free: 3 };
-              const aTier = tierOrder[a.subscription_tier as keyof typeof tierOrder] ?? 3;
-              const bTier = tierOrder[b.subscription_tier as keyof typeof tierOrder] ?? 3;
+              const aDisplayTier = getDisplayTier(a.subscription_tier, a.username);
+              const bDisplayTier = getDisplayTier(b.subscription_tier, b.username);
+              const aTier = tierOrder[aDisplayTier as keyof typeof tierOrder] ?? 3;
+              const bTier = tierOrder[bDisplayTier as keyof typeof tierOrder] ?? 3;
               if (aTier !== bTier) return aTier - bTier;
               return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
             });

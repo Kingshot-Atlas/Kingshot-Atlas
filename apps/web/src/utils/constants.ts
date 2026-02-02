@@ -18,7 +18,7 @@ export const SUBSCRIPTION_COLORS = {
   free: '#6b7280',      // Gray
   pro: '#22d3ee',       // Cyan
   recruiter: '#f97316', // Orange
-  admin: '#fbbf24',     // Golden/Amber
+  admin: '#ef4444',     // Red
 } as const;
 
 // Helper function to check if a username is an admin

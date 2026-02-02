@@ -94,7 +94,7 @@ export const subscriptionColors = {
   free: '#6b7280',      // Gray
   pro: '#22d3ee',       // Cyan - Atlas Pro
   recruiter: '#f97316', // Orange - Atlas Recruiter
-  admin: '#fbbf24',     // Golden - Admin (special status)
+  admin: '#ef4444',     // Red - Admin (special status)
 } as const;
 
 /**
