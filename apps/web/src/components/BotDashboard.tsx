@@ -303,7 +303,7 @@ export const BotDashboard: React.FC = () => {
             }}>
               <h3 style={{ color: '#fff', margin: '0 0 1rem', fontSize: '1rem' }}>Top Commands</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {stats.top_commands.map((cmd, i) => (
+                {stats.top_commands.map((cmd, _i) => (
                   <div key={cmd.name} style={{
                     display: 'flex',
                     justifyContent: 'space-between',

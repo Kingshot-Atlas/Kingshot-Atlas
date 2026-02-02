@@ -1,9 +1,7 @@
 import React, { useMemo, memo, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { 
   KingdomProfile, 
-  getPowerTier, 
   TIER_COLORS,
   extractStatsFromProfile,
   calculateAtlasScore,
@@ -170,7 +168,7 @@ const ScorePrediction: React.FC<ScorePredictionProps> = ({ kingdom, opponent }) 
         gridTemplateColumns: 'repeat(2, 1fr)',
         gap: '0.5rem'
       }}>
-        {predictions.predictions.map((pred, i) => (
+        {predictions.predictions.map((pred, _i) => (
           <button
             key={pred.outcome}
             onClick={() => setSelectedOutcome(selectedOutcome === pred.outcome ? null : pred.outcome)}

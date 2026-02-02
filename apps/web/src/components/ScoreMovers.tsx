@@ -179,7 +179,7 @@ const ScoreMovers: React.FC<ScoreMoversProps> = ({ kingdoms, previousScores }) =
       
       {/* Movers List */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-        {displayedMovers.map((mover, i) => (
+        {displayedMovers.map((mover, _i) => (
           <Link
             key={mover.kingdom.kingdom_number}
             to={`/kingdom/${mover.kingdom.kingdom_number}`}

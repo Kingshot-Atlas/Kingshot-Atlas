@@ -2,7 +2,6 @@ import React, { useMemo, memo } from 'react';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { 
   KingdomProfile, 
-  getPowerTier, 
   POWER_TIER_THRESHOLDS, 
   TIER_COLORS,
   extractStatsFromProfile,

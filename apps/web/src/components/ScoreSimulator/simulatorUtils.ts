@@ -303,33 +303,6 @@ function extractKingdomStats(kingdom: KingdomProfile) {
   };
 }
 
-// Convert legacy stats to KingdomStats for centralized formula
-function convertToKingdomStats(stats: ReturnType<typeof extractKingdomStats>): KingdomStats {
-  // Convert D/W/L/F format to Domination/Comeback/Reversal/Invasion
-  const recentOutcomes = stats.recentResults.map(r => {
-    switch(r) {
-      case 'D': return 'Domination';
-      case 'W': return 'Comeback'; // Battle win = Comeback (LW)
-      case 'L': return 'Reversal'; // Battle loss with prep win = Reversal (WL)
-      case 'F': return 'Invasion'; // Double loss
-      default: return 'Invasion';
-    }
-  });
-  
-  return {
-    totalKvks: stats.totalKvks,
-    prepWins: stats.prepWins,
-    prepLosses: stats.prepLosses,
-    battleWins: stats.battleWins,
-    battleLosses: stats.battleLosses,
-    dominations: stats.dominations,
-    invasions: stats.invasions,
-    recentOutcomes,
-    currentPrepStreak: Math.max(0, stats.currentPrepStreak),
-    currentBattleStreak: Math.max(0, stats.currentBattleStreak),
-  };
-}
-
 // Main simulation function using centralized Atlas Score formula
 export function simulateScore(
   kingdom: KingdomProfile,

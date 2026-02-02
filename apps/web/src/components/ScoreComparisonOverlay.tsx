@@ -2,11 +2,9 @@ import React, { useMemo, memo } from 'react';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { 
   KingdomProfile, 
-  getPowerTier, 
   TIER_COLORS,
   extractStatsFromProfile,
-  calculateAtlasScore,
-  type PowerTier
+  calculateAtlasScore
 } from '../types';
 
 interface ScoreComparisonOverlayProps {

@@ -245,7 +245,7 @@ const ProfileFeatures: React.FC = () => {
     </div>
   );
 
-  const AllianceBadge = () => {
+  const _AllianceBadge = () => {
     if (!profile?.alliance_tag) return null;
     
     const getBadgeStyle = (style: string, color: string) => {
