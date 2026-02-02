@@ -551,7 +551,7 @@ def review_submission(
         # Insert into Supabase kvk_history table and recalculate kingdom stats
         # SQLite writes removed per ADR-011 to eliminate dual-write complexity
         try:
-            from api.supabase_client import get_supabase_admin, recalculate_kingdom_in_supabase
+            from api.supabase_client import get_supabase_admin
             supabase = get_supabase_admin()
             if not supabase:
                 raise HTTPException(status_code=503, detail="Database unavailable - please try again later")
@@ -594,11 +594,10 @@ def review_submission(
                 }).execute()
                 logger.info(f"Inserted inverse KvK record into Supabase for K{submission.opponent_kingdom}")
             
-            # CRITICAL: Recalculate kingdom stats in Supabase kingdoms table
-            # Database trigger handles this automatically, but we call explicitly for safety
-            recalculate_kingdom_in_supabase(submission.kingdom_number)
-            recalculate_kingdom_in_supabase(submission.opponent_kingdom)
-            logger.info(f"Recalculated Supabase kingdom stats for K{submission.kingdom_number} and K{submission.opponent_kingdom}")
+            # NOTE: Database trigger on kvk_history INSERT automatically recalculates
+            # kingdom stats - no manual call needed. Removed redundant calls that
+            # were causing duplicate realtime events and toast spam.
+            logger.info(f"KvK records inserted for K{submission.kingdom_number} and K{submission.opponent_kingdom} - trigger will recalculate stats")
         except HTTPException:
             raise  # Re-raise HTTP exceptions
         except Exception as e:
