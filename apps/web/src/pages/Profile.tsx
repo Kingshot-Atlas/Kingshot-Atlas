@@ -16,6 +16,26 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { neonGlow } from '../utils/styles';
 
+// Convert TC level to display string (TC 31+ becomes TG tiers)
+// Source of truth: /docs/TC_TG_NAMING.md
+const formatTCLevel = (level: number | null | undefined): string => {
+  if (!level) return '';
+  if (level <= 30) return `TC ${level}`;
+  if (level <= 34) return 'TC 30';
+  const tgTier = Math.floor((level - 35) / 5) + 1;
+  return `TG${tgTier}`;
+};
+
+// Get border color for avatar based on subscription tier
+const getTierBorderColor = (tier: 'free' | 'pro' | 'recruiter' | 'admin'): string => {
+  switch (tier) {
+    case 'admin': return '#ef4444';    // Red
+    case 'recruiter': return '#a855f7'; // Purple
+    case 'pro': return '#22d3ee';       // Cyan
+    default: return '#ffffff';          // White
+  }
+};
+
 // Avatar component with error handling and fallback
 const AvatarWithFallback: React.FC<{
   avatarUrl?: string;
@@ -225,7 +245,7 @@ const Profile: React.FC = () => {
   const isMobile = useIsMobile();
   const [viewedProfile, setViewedProfile] = useState<UserProfile | null>(null);
   const [isViewingOther, setIsViewingOther] = useState(false);
-  const [viewedUserTier, setViewedUserTier] = useState<'free' | 'pro' | 'recruiter'>('free');
+  const [viewedUserTier, setViewedUserTier] = useState<'free' | 'pro' | 'recruiter' | 'admin'>('free');
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState<EditForm>({
     display_name: '',
@@ -255,7 +275,7 @@ const Profile: React.FC = () => {
               setViewedProfile(data as UserProfile);
               setIsViewingOther(true);
               // Set subscription tier from profile data
-              const tier = data.subscription_tier as 'free' | 'pro' | 'recruiter' | undefined;
+              const tier = data.subscription_tier as 'free' | 'pro' | 'recruiter' | 'admin' | undefined;
               setViewedUserTier(tier || 'free');
               return;
             }
@@ -641,7 +661,7 @@ const Profile: React.FC = () => {
                   avatarUrl={isViewingOther ? viewedProfile?.linked_avatar_url : viewedProfile?.avatar_url}
                   username={isViewingOther ? viewedProfile?.linked_username : viewedProfile?.username}
                   size={isMobile ? 80 : 64}
-                  themeColor={themeColor}
+                  themeColor={isViewingOther ? getTierBorderColor(viewedUserTier) : themeColor}
                   badgeStyle={viewedProfile?.badge_style}
                 />
                 <div>
@@ -714,7 +734,7 @@ const Profile: React.FC = () => {
                   {viewedProfile?.linked_tc_level && (
                     <div style={{ padding: '0.75rem', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a' }}>
                       <div style={{ fontSize: '0.7rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Town Center</div>
-                      <div style={{ fontSize: '0.95rem', color: '#fff', fontWeight: '500' }}>TC{viewedProfile.linked_tc_level}</div>
+                      <div style={{ fontSize: '0.95rem', color: '#fff', fontWeight: '500' }}>{formatTCLevel(viewedProfile.linked_tc_level)}</div>
                     </div>
                   )}
                   {viewedProfile?.language && (

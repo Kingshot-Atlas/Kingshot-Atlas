@@ -412,6 +412,47 @@ const getUsernameColor = (tier: 'free' | 'pro' | 'recruiter'): string => {
 
 ---
 
+## Avatar Border Colors (SOURCE OF TRUTH)
+
+When displaying user avatars in public-facing contexts (e.g., public profiles, player directories, kingdom reviews), use subscription-tier-based border colors:
+
+| Tier | Color | Hex | Usage |
+|------|-------|-----|-------|
+| **Free** | White | `#ffffff` | Default border, no glow |
+| **Pro** | Cyan | `#22d3ee` | Cyan border with subtle glow |
+| **Recruiter** | Purple | `#a855f7` | Purple border with subtle glow |
+| **Admin** | Red | `#ef4444` | Red border with subtle glow |
+
+### Implementation
+
+```tsx
+// Get border color for avatar based on subscription tier
+const getTierBorderColor = (tier: 'free' | 'pro' | 'recruiter' | 'admin'): string => {
+  switch (tier) {
+    case 'admin': return '#ef4444';    // Red
+    case 'recruiter': return '#a855f7'; // Purple
+    case 'pro': return '#22d3ee';       // Cyan
+    default: return '#ffffff';          // White
+  }
+};
+
+// Usage in AvatarWithFallback
+<AvatarWithFallback 
+  avatarUrl={user.linked_avatar_url}
+  username={user.linked_username}
+  size={64}
+  themeColor={getTierBorderColor(user.subscription_tier)}
+/>
+```
+
+### Key Rules:
+1. **Public profiles** always use tier-based border colors (not user's custom theme color)
+2. **Own profile** can use user's custom theme color
+3. Border color should be visible (2px solid minimum)
+4. Consider adding subtle glow for paid tiers: `boxShadow: '0 0 10px ${color}40'`
+
+---
+
 ## Power Tier Colors
 
 | Tier | Color | Hex | Tailwind Class |
