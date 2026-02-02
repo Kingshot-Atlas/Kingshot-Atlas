@@ -5,13 +5,21 @@
 import { Kingdom, KingdomProfile, KVKRecord, FilterOptions, SortOptions, PaginatedResponse } from '../types';
 import { logger } from '../utils/logger';
 import { loadCache, saveCache, clearCache, CacheData } from './cache';
-import { loadKingdomData, enrichKingdom, toKingdomProfile } from './transformers';
+import { enrichKingdom, toKingdomProfile } from './transformers';
 import { applyFiltersAndSort, paginate } from './filters';
+import { kingdomsSupabaseService } from './kingdomsSupabaseService';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
-// Load local data once on module initialization
-const localKingdoms: Kingdom[] = loadKingdomData();
+// Get kingdoms from Supabase (single source of truth)
+const getSupabaseKingdoms = async (): Promise<Kingdom[]> => {
+  try {
+    return await kingdomsSupabaseService.getAllKingdoms();
+  } catch (err) {
+    logger.warn('Failed to get kingdoms from Supabase:', err);
+    return [];
+  }
+};
 
 class KingdomService {
   private cache: CacheData | null = null;
@@ -87,8 +95,9 @@ class KingdomService {
       this.cache = saveCache(enriched);
       return enriched;
     } catch (error) {
-      logger.warn(`API call failed for ${endpoint}, using local data:`, error);
-      return applyFiltersAndSort(localKingdoms, filters, sort);
+      logger.warn(`API call failed for ${endpoint}, using Supabase fallback:`, error);
+      const supabaseKingdoms = await getSupabaseKingdoms();
+      return applyFiltersAndSort(supabaseKingdoms, filters, sort);
     }
   }
 
@@ -127,8 +136,9 @@ class KingdomService {
         items: data.items.map((k: Kingdom) => enrichKingdom(k))
       };
     } catch (error) {
-      logger.warn(`API call failed for ${endpoint}, using local data:`, error);
-      const filtered = applyFiltersAndSort(localKingdoms, filters, sort);
+      logger.warn(`API call failed for ${endpoint}, using Supabase fallback:`, error);
+      const supabaseKingdoms = await getSupabaseKingdoms();
+      const filtered = applyFiltersAndSort(supabaseKingdoms, filters, sort);
       const { items, total, totalPages } = paginate(filtered, page, pageSize);
       return { items, total, page, page_size: pageSize, total_pages: totalPages };
     }
@@ -144,10 +154,11 @@ class KingdomService {
       const response = await fetch(`${API_BASE_URL}${endpoint}`);
       if (!response.ok) {
         if (response.status === 404) {
-          // API returned 404 - try local data fallback before giving up
-          const kingdom = localKingdoms.find(k => k.kingdom_number === kingdomNumber);
+          // API returned 404 - try Supabase fallback before giving up
+          const supabaseKingdoms = await getSupabaseKingdoms();
+          const kingdom = supabaseKingdoms.find(k => k.kingdom_number === kingdomNumber);
           if (kingdom) {
-            logger.log(`Kingdom ${kingdomNumber} not in API, using local data`);
+            logger.log(`Kingdom ${kingdomNumber} not in API, using Supabase`);
             return toKingdomProfile(kingdom);
           }
           return null;
@@ -156,8 +167,9 @@ class KingdomService {
       }
       return await response.json();
     } catch (error) {
-      logger.warn(`API call failed for ${endpoint}, using local data:`, error);
-      const kingdom = localKingdoms.find(k => k.kingdom_number === kingdomNumber);
+      logger.warn(`API call failed for ${endpoint}, using Supabase fallback:`, error);
+      const supabaseKingdoms = await getSupabaseKingdoms();
+      const kingdom = supabaseKingdoms.find(k => k.kingdom_number === kingdomNumber);
       if (!kingdom) return null;
       return toKingdomProfile(kingdom);
     }
@@ -167,7 +179,8 @@ class KingdomService {
    * Get leaderboard data.
    */
   async getLeaderboard(limit: number = 50): Promise<Kingdom[]> {
-    const sortedKingdoms = [...localKingdoms]
+    const supabaseKingdoms = await getSupabaseKingdoms();
+    const sortedKingdoms = [...supabaseKingdoms]
       .sort((a, b) => b.overall_score - a.overall_score)
       .slice(0, limit);
     return this.fetchWithFallback(`/api/v1/leaderboard?limit=${limit}`, sortedKingdoms);
@@ -223,8 +236,9 @@ class KingdomService {
       const data = await response.json();
       return data.items || data;
     } catch (error) {
-      logger.warn(`API call failed for ${endpoint}, using local data:`, error);
-      return localKingdoms.filter(k => 
+      logger.warn(`API call failed for ${endpoint}, using Supabase fallback:`, error);
+      const supabaseKingdoms = await getSupabaseKingdoms();
+      return supabaseKingdoms.filter(k => 
         k.kingdom_number.toString().includes(query)
       );
     }

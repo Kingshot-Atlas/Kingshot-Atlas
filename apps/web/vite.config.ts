@@ -23,13 +23,9 @@ export default defineConfig({
           },
           {
             urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
-            handler: 'NetworkFirst',
+            handler: 'NetworkOnly', // NEVER cache Supabase - always fetch fresh data
             options: {
-              cacheName: 'supabase-cache',
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 60 // 1 hour
-              }
+              cacheName: 'supabase-cache'
             }
           }
         ]
