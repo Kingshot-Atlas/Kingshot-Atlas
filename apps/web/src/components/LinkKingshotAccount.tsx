@@ -163,8 +163,8 @@ interface LinkKingshotAccountProps {
   linkedPlayer?: LinkedPlayerData | null;
   showRefresh?: boolean;
   lastSynced?: string | null;
-  onRefresh?: () => void; | 'admin'
-  subscriptionTier?: 'free' | 'pro' | 'recruiter';
+  onRefresh?: () => void;
+  subscriptionTier?: 'free' | 'pro' | 'recruiter' | 'admin';
   isPublicView?: boolean;
 }
 
