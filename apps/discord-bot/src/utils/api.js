@@ -1,16 +1,27 @@
 /**
  * API Client Utilities
  * Handles all communication with the Kingshot Atlas API
+ * 
+ * Note: Render's free tier services sleep after 15 min of inactivity.
+ * Cold starts can take 30-60 seconds, so we use a longer timeout
+ * and retry logic to handle this.
  */
 
 const config = require('../config');
 
-// Timeout wrapper for fetch requests (10 second timeout)
-const API_TIMEOUT = 10000;
+// Timeout for API requests - 60 seconds to handle Render cold starts
+const API_TIMEOUT = 60000;
 
-async function fetchWithTimeout(url, options = {}) {
+// Retry configuration
+const MAX_RETRIES = 2;
+const RETRY_DELAY_MS = 2000;
+
+/**
+ * Fetch with timeout wrapper
+ */
+async function fetchWithTimeout(url, options = {}, timeoutMs = API_TIMEOUT) {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), API_TIMEOUT);
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
   
   try {
     const response = await fetch(url, {
@@ -24,11 +35,41 @@ async function fetchWithTimeout(url, options = {}) {
 }
 
 /**
+ * Fetch with retry logic for handling cold starts
+ */
+async function fetchWithRetry(url, options = {}, retries = MAX_RETRIES) {
+  let lastError;
+  
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const response = await fetchWithTimeout(url, options);
+      return response;
+    } catch (error) {
+      lastError = error;
+      
+      // Don't retry if it's not a timeout/network error
+      if (error.name !== 'AbortError' && !error.message.includes('fetch')) {
+        throw error;
+      }
+      
+      // Log retry attempt
+      if (attempt < retries) {
+        const delay = RETRY_DELAY_MS * Math.pow(2, attempt);
+        console.log(`API retry ${attempt + 1}/${retries} for ${url} (waiting ${delay}ms)...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+  
+  throw lastError;
+}
+
+/**
  * Fetch kingdom data by number
  */
 async function fetchKingdom(number) {
   try {
-    const res = await fetchWithTimeout(`${config.apiUrl}/api/v1/kingdoms/${number}`);
+    const res = await fetchWithRetry(`${config.apiUrl}/api/v1/kingdoms/${number}`);
     if (!res.ok) return null;
     return await res.json();
   } catch (e) {
@@ -42,7 +83,7 @@ async function fetchKingdom(number) {
  */
 async function fetchLeaderboard(limit = 10, sortBy = 'overall_score') {
   try {
-    const res = await fetchWithTimeout(`${config.apiUrl}/api/v1/leaderboard?limit=${limit}&sort_by=${sortBy}`);
+    const res = await fetchWithRetry(`${config.apiUrl}/api/v1/leaderboard?limit=${limit}&sort_by=${sortBy}`);
     if (!res.ok) return [];
     return await res.json();
   } catch (e) {
@@ -56,7 +97,7 @@ async function fetchLeaderboard(limit = 10, sortBy = 'overall_score') {
  */
 async function fetchKingdomsByTier(tier) {
   try {
-    const res = await fetchWithTimeout(`${config.apiUrl}/api/v1/leaderboard?limit=100`);
+    const res = await fetchWithRetry(`${config.apiUrl}/api/v1/leaderboard?limit=100`);
     if (!res.ok) return [];
     const kingdoms = await res.json();
     
@@ -87,7 +128,7 @@ async function fetchKingdomsByTier(tier) {
  */
 async function fetchRandomKingdom() {
   try {
-    const res = await fetchWithTimeout(`${config.apiUrl}/api/v1/leaderboard?limit=100`);
+    const res = await fetchWithRetry(`${config.apiUrl}/api/v1/leaderboard?limit=100`);
     if (!res.ok) return null;
     const kingdoms = await res.json();
     if (kingdoms.length === 0) return null;
@@ -106,7 +147,7 @@ async function fetchRandomKingdom() {
 async function fetchTopByPhase(phase, limit = 10) {
   try {
     const sortBy = phase === 'prep' ? 'prep_win_rate' : 'battle_win_rate';
-    const res = await fetchWithTimeout(`${config.apiUrl}/api/v1/leaderboard?limit=${limit}&sort_by=${sortBy}`);
+    const res = await fetchWithRetry(`${config.apiUrl}/api/v1/leaderboard?limit=${limit}&sort_by=${sortBy}`);
     if (!res.ok) return [];
     return await res.json();
   } catch (e) {
