@@ -113,26 +113,30 @@ def get_kingdoms(
 
 @router.get("/kingdoms/{kingdom_number}")
 def get_kingdom_profile(kingdom_number: int, db: Session = Depends(get_db)):
-    # Try Supabase first (source of truth)
-    supabase_kingdom = get_kingdom_from_supabase(kingdom_number)
+    try:
+        # Try Supabase first (source of truth)
+        supabase_kingdom = get_kingdom_from_supabase(kingdom_number)
+        
+        if supabase_kingdom:
+            # Get KvK history from Supabase
+            recent_kvks = get_kvk_history_from_supabase(kingdom_number, limit=50)
+            
+            # Map atlas_score to overall_score for API compatibility
+            if 'atlas_score' in supabase_kingdom:
+                supabase_kingdom['overall_score'] = supabase_kingdom['atlas_score']
+            
+            # Ensure required fields exist
+            supabase_kingdom['rank'] = supabase_kingdom.get('rank', 0)
+            supabase_kingdom['recent_kvks'] = recent_kvks
+            supabase_kingdom.setdefault('last_updated', None)
+            supabase_kingdom.setdefault('most_recent_status', 'Unknown')
+            
+            return supabase_kingdom
+    except Exception as e:
+        print(f"Error fetching kingdom {kingdom_number} from Supabase: {e}")
+        # Fall through to SQLite fallback
     
-    if supabase_kingdom:
-        # Get KvK history from Supabase
-        recent_kvks = get_kvk_history_from_supabase(kingdom_number, limit=50)
-        
-        # Map atlas_score to overall_score for API compatibility
-        if 'atlas_score' in supabase_kingdom:
-            supabase_kingdom['overall_score'] = supabase_kingdom['atlas_score']
-        
-        # Ensure required fields exist
-        supabase_kingdom['rank'] = supabase_kingdom.get('rank', 0)
-        supabase_kingdom['recent_kvks'] = recent_kvks
-        supabase_kingdom.setdefault('last_updated', None)
-        supabase_kingdom.setdefault('most_recent_status', 'Unknown')
-        
-        return supabase_kingdom
-    
-    # Fallback to SQLite if Supabase unavailable
+    # Fallback to SQLite if Supabase unavailable or failed
     kingdom = db.query(Kingdom).filter(Kingdom.kingdom_number == kingdom_number).first()
     
     if not kingdom:
