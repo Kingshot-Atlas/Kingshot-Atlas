@@ -9,19 +9,20 @@
 
 <!-- Append new entries at the top -->
 
-## 2026-02-02 05:55 | Platform Engineer | IN PROGRESS
+## 2026-02-02 06:05 | Platform Engineer | COMPLETED
 Task: Fix Discord bot not responding to commands
 Files:
-  - apps/api/api/supabase_client.py (added get_kingdom_from_supabase, get_kingdoms_from_supabase, get_kvk_history_from_supabase)
+  - apps/api/api/supabase_client.py (added get_kingdom_from_supabase, get_kingdoms_from_supabase, get_kvk_history_from_supabase; fixed single() to limit(1))
   - apps/api/api/routers/leaderboard.py (use Supabase as source of truth, SQLite fallback)
-  - apps/api/api/routers/kingdoms.py (use Supabase as source of truth, SQLite fallback)
+  - apps/api/api/routers/kingdoms.py (use Supabase as source of truth, better error handling, removed strict response_model)
   - apps/discord-bot/package.json (changed start to use bash start.sh)
   - apps/discord-bot/src/bot.js (added startup logging, error handlers)
   - apps/discord-bot/src/utils/api.js (added 10s timeout wrapper for API calls)
 Result:
   - API now fetches from Supabase (source of truth) with SQLite fallback
   - Bot has better error handling and logging for diagnostics
-  - PENDING: User needs to resume suspended Discord bot service on Render
+  - Fixed internal server error on /kingdoms/{number} endpoint
+  - Discord bot resumed and working
 
 ## 2026-02-02 06:04 | Design Lead | COMPLETED
 Task: Apply red admin color app-wide, update STYLE_GUIDE.md
