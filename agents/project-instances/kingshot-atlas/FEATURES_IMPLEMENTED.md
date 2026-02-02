@@ -130,6 +130,7 @@
 | KvK History Pagination | ✅ Live | Platform | `kvkHistoryService.ts` - Paginated queries |
 | IndexedDB Caching | ✅ Live | Platform | `kvkHistoryService.ts` - Offline support with 1-hour TTL |
 | User Correction Stats | ✅ Live | Platform | `UserCorrectionStats.tsx` - profile correction tracking |
+| KvK Realtime Updates | ✅ Live | Platform | `useKingdomsRealtime.ts` - Supabase Realtime for instant kvk_history updates |
 
 ---
 

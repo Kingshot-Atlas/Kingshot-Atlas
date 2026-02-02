@@ -9,6 +9,14 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-01 22:50 | Platform Engineer | COMPLETED
+Task: Add Supabase Realtime for kvk_history instant updates
+Files:
+  - apps/web/src/hooks/useKingdomsRealtime.ts (added kvk_history subscription)
+  - apps/web/src/services/kvkCorrectionService.ts (added invalidateCache method)
+  - apps/web/src/App.tsx (added onKvkHistoryUpdate toast callbacks)
+Result: Users see corrections instantly without refresh. All caches invalidated on realtime events.
+
 ## 2026-02-01 22:35 | Platform Engineer | COMPLETED
 Task: Fix cache layers preventing correction updates + Add RLS security
 Files:
