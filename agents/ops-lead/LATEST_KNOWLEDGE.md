@@ -410,4 +410,52 @@ const apiUrl = import.meta.env.VITE_API_URL;
 
 ---
 
+## Discord Bot Health Architecture (2026-02-02)
+
+### Problem: Split Process Architecture
+**DON'T DO THIS:**
+```bash
+# start.sh - BAD PATTERN
+node health.js &  # Background health server
+node src/bot.js   # Main bot process
+```
+**Problem:** Health server returns 200 OK even when bot crashes, masking failures.
+
+### Solution: Unified Health Server
+**DO THIS:** Integrate health server directly into main application:
+```javascript
+// In bot.js - GOOD PATTERN
+const healthServer = http.createServer((req, res) => {
+  const wsStatus = client?.ws?.status ?? -1; // Null-safe
+  const isHealthy = botReady && wsStatus === 0;
+  res.writeHead(isHealthy ? 200 : 503, {...});
+});
+```
+
+### Key Patterns for Render Services
+
+| Pattern | Implementation |
+|---------|----------------|
+| **Null-safe client access** | `client?.ws?.status ?? -1` |
+| **Startup grace period** | 60s window returning 200 while Discord connects |
+| **Self-ping keepalive** | Every 10 min to prevent free tier spin-down |
+| **Reconnection handlers** | `shardReconnecting`, `shardResume`, `resumed` events |
+
+### Health Endpoint Response Structure
+```json
+{
+  "status": "healthy|unhealthy",
+  "discord": { "connected": true, "wsStatus": 0, "ping": 45 },
+  "process": { "uptime": 3600, "memory": "45MB", "inStartupGrace": false }
+}
+```
+
+### Render Discord Bot Service
+- **Service:** `Atlas-Discord-bot` (srv-d5too04r85hc73ej2b00)
+- **URL:** `https://atlas-discord-bot-trnf.onrender.com`
+- **Health:** `https://atlas-discord-bot-trnf.onrender.com/health`
+- **⚠️ NOT:** `atlas-discord-bot.onrender.com` (old/wrong URL)
+
+---
+
 *Updated by Ops Lead based on current DevOps best practices.*

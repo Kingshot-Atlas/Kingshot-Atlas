@@ -9,6 +9,25 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-02 16:45 | Ops Lead | COMPLETED
+Task: Fix Discord bot intermittent downtime (502/503 errors for 4+ days)
+Files:
+  - apps/discord-bot/src/bot.js (unified health server, null safety, startup grace period)
+  - apps/discord-bot/start.sh (simplified to single process)
+  - apps/discord-bot/health.js (deprecated)
+Root Causes Fixed:
+  1. Split process architecture - health.js ran separately, returned 200 even when bot crashed
+  2. Wrong monitoring URL - UptimeRobot was pinging non-existent old URL
+  3. Null safety bug - health endpoint crashed accessing client.ws before Discord connected
+  4. No startup grace period - health checks failed during deployment restarts
+Solution:
+  - Integrated health server into bot.js for accurate status reporting
+  - Health endpoint returns 503 when Discord disconnected (not masking failures)
+  - Added 60s startup grace period for deployment restarts
+  - Added self-ping keepalive every 10 minutes
+  - Added Discord reconnection event handlers
+Result: Bot should now have stable uptime with accurate health reporting
+
 ## 2026-02-02 17:00 | Platform Engineer | COMPLETED
 Task: ADR-011 Phase 2 - Clean up orphaned data sources and enforce Supabase SSOT
 Files:
