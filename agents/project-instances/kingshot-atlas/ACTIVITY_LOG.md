@@ -9,6 +9,14 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-01 23:15 | Platform Engineer | COMPLETED
+Task: Fix KvK correction approval to only flip reported field + enable mobile admin
+Files:
+  - apps/web/src/services/kvkCorrectionService.ts (respect error_type when flipping results)
+  - apps/web/src/pages/AdminDashboard.tsx (mobile-responsive header)
+Result: Corrections now only flip the field specified by error_type (e.g., wrong_battle_result only flips battle, not prep). Admin dashboard accessible on mobile.
+BUG FIX: Was flipping BOTH prep and battle when approving. Now only flips what user reported.
+
 ## 2026-02-01 23:10 | Platform Engineer | COMPLETED
 Task: Force immediate service worker activation on update
 Files:
