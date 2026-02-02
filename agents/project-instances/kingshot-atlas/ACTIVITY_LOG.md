@@ -9,6 +9,14 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-01 23:05 | Platform Engineer | COMPLETED
+Task: Enforce Supabase as single source of truth across all data paths
+Files:
+  - apps/web/vite.config.ts (ServiceWorker: NetworkOnly for Supabase)
+  - apps/web/src/services/kingdomService.ts (All fallbacks use Supabase)
+Result: Fixed inconsistent data across browsers. Service worker no longer caches Supabase (was 1 hour). All API fallbacks now use kingdomsSupabaseService.
+Root cause: Service worker cached Supabase responses for 1 hour, causing different browsers to show different data.
+
 ## 2026-02-01 22:50 | Platform Engineer | COMPLETED
 Task: Add Supabase Realtime for kvk_history instant updates
 Files:
