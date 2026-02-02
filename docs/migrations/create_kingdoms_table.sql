@@ -19,15 +19,17 @@ CREATE TABLE IF NOT EXISTS kingdoms (
   battle_loss_streak INTEGER DEFAULT 0,
   battle_best_streak INTEGER DEFAULT 0,
   dominations INTEGER DEFAULT 0,
-  defeats INTEGER DEFAULT 0,
-  overall_score NUMERIC(6,2) DEFAULT 0,
+  reversals INTEGER DEFAULT 0,
+  comebacks INTEGER DEFAULT 0,
+  invasions INTEGER DEFAULT 0,
+  atlas_score NUMERIC(6,2) DEFAULT 0,
   most_recent_status TEXT DEFAULT 'Unannounced',
   last_updated TIMESTAMPTZ DEFAULT NOW(),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- 2. Create indexes for common queries
-CREATE INDEX IF NOT EXISTS idx_kingdoms_overall_score ON kingdoms(overall_score DESC);
+CREATE INDEX IF NOT EXISTS idx_kingdoms_atlas_score ON kingdoms(atlas_score DESC);
 CREATE INDEX IF NOT EXISTS idx_kingdoms_status ON kingdoms(most_recent_status);
 CREATE INDEX IF NOT EXISTS idx_kingdoms_total_kvks ON kingdoms(total_kvks DESC);
 
@@ -52,7 +54,7 @@ DECLARE
   v_battle_wins INTEGER;
   v_battle_losses INTEGER;
   v_dominations INTEGER;
-  v_defeats INTEGER;
+  v_invasions INTEGER;
   v_prep_streak INTEGER := 0;
   v_battle_streak INTEGER := 0;
   v_prep_loss_streak INTEGER := 0;
@@ -61,7 +63,7 @@ DECLARE
   v_battle_best_streak INTEGER := 0;
   v_prep_win_rate NUMERIC;
   v_battle_win_rate NUMERIC;
-  v_overall_score NUMERIC;
+  v_atlas_score NUMERIC;
   v_record RECORD;
   v_counting_prep_win BOOLEAN := TRUE;
   v_counting_battle_win BOOLEAN := TRUE;
@@ -79,7 +81,7 @@ BEGIN
     COUNT(*) FILTER (WHERE battle_result = 'L'),
     COUNT(*) FILTER (WHERE prep_result = 'W' AND battle_result = 'W'),
     COUNT(*) FILTER (WHERE prep_result = 'L' AND battle_result = 'L')
-  INTO v_total_kvks, v_prep_wins, v_prep_losses, v_battle_wins, v_battle_losses, v_dominations, v_defeats
+  INTO v_total_kvks, v_prep_wins, v_prep_losses, v_battle_wins, v_battle_losses, v_dominations, v_invasions
   FROM kvk_history
   WHERE kingdom_number = p_kingdom_number;
 
@@ -161,9 +163,9 @@ BEGIN
   -- Calculate Atlas Score using Bayesian formula
   -- Base: weighted average of prep and battle (1:2 ratio)
   -- Then apply experience scaling and momentum
-  v_overall_score := calculate_atlas_score(
+  v_atlas_score := calculate_atlas_score(
     v_total_kvks, v_prep_wins, v_prep_losses, 
-    v_battle_wins, v_battle_losses, v_dominations, v_defeats
+    v_battle_wins, v_battle_losses, v_dominations, v_invasions
   );
 
   -- Upsert kingdom record
@@ -172,13 +174,13 @@ BEGIN
     prep_streak, prep_loss_streak, prep_best_streak,
     battle_wins, battle_losses, battle_win_rate,
     battle_streak, battle_loss_streak, battle_best_streak,
-    dominations, defeats, overall_score, last_updated
+    dominations, reversals, comebacks, invasions, atlas_score, last_updated
   ) VALUES (
     p_kingdom_number, v_total_kvks, v_prep_wins, v_prep_losses, v_prep_win_rate,
     v_prep_streak, v_prep_loss_streak, v_prep_best_streak,
     v_battle_wins, v_battle_losses, v_battle_win_rate,
     v_battle_streak, v_battle_loss_streak, v_battle_best_streak,
-    v_dominations, v_defeats, v_overall_score, NOW()
+    v_dominations, 0, 0, v_invasions, v_atlas_score, NOW()
   )
   ON CONFLICT (kingdom_number) DO UPDATE SET
     total_kvks = EXCLUDED.total_kvks,
@@ -195,8 +197,10 @@ BEGIN
     battle_loss_streak = EXCLUDED.battle_loss_streak,
     battle_best_streak = EXCLUDED.battle_best_streak,
     dominations = EXCLUDED.dominations,
-    defeats = EXCLUDED.defeats,
-    overall_score = EXCLUDED.overall_score,
+    invasions = EXCLUDED.invasions,
+    reversals = EXCLUDED.reversals,
+    comebacks = EXCLUDED.comebacks,
+    atlas_score = EXCLUDED.atlas_score,
     last_updated = NOW();
 END;
 $$ LANGUAGE plpgsql;
@@ -209,7 +213,7 @@ CREATE OR REPLACE FUNCTION calculate_atlas_score(
   p_battle_wins INTEGER,
   p_battle_losses INTEGER,
   p_dominations INTEGER,
-  p_defeats INTEGER
+  p_invasions INTEGER
 ) RETURNS NUMERIC AS $$
 DECLARE
   v_prep_win_rate NUMERIC;
@@ -217,7 +221,7 @@ DECLARE
   v_base_score NUMERIC;
   v_experience_factor NUMERIC;
   v_dominance_bonus NUMERIC;
-  v_defeat_penalty NUMERIC;
+  v_invasion_penalty NUMERIC;
   v_final_score NUMERIC;
   -- Bayesian prior parameters
   v_prior_mean NUMERIC := 0.5;
@@ -242,11 +246,11 @@ BEGIN
   -- Dominance bonus: reward complete victories (W+W)
   v_dominance_bonus := (p_dominations::NUMERIC / GREATEST(p_total_kvks, 1)) * 0.1;
 
-  -- Defeat penalty: penalize complete losses (L+L)
-  v_defeat_penalty := (p_defeats::NUMERIC / GREATEST(p_total_kvks, 1)) * 0.05;
+  -- Invasion penalty: penalize complete losses (L+L)
+  v_invasion_penalty := (p_invasions::NUMERIC / GREATEST(p_total_kvks, 1)) * 0.05;
 
   -- Final score: scale to 0-15 range
-  v_final_score := (v_base_score * v_experience_factor + v_dominance_bonus - v_defeat_penalty) * 15;
+  v_final_score := (v_base_score * v_experience_factor + v_dominance_bonus - v_invasion_penalty) * 15;
 
   -- Clamp to valid range
   RETURN GREATEST(0, LEAST(15, ROUND(v_final_score, 2)));
@@ -288,6 +292,6 @@ END $$;
 SELECT 
   'kingdoms' as table_name,
   COUNT(*) as row_count,
-  AVG(overall_score) as avg_score,
-  MAX(overall_score) as max_score
+  AVG(atlas_score) as avg_score,
+  MAX(atlas_score) as max_score
 FROM kingdoms;

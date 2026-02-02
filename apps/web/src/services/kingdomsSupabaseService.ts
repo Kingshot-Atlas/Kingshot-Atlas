@@ -26,8 +26,11 @@ export interface SupabaseKingdom {
   battle_loss_streak: number;
   battle_best_streak: number;
   dominations: number;
-  defeats: number;
-  overall_score: number;
+  reversals: number;
+  comebacks: number;
+  invasions: number;
+  atlas_score: number;
+  overall_score?: number; // deprecated, use atlas_score
   most_recent_status: string;
   last_updated: string;
 }
@@ -165,10 +168,12 @@ class KingdomsSupabaseService {
           battle_loss_streak: k.battle_loss_streak,
           battle_best_streak: k.battle_best_streak,
           dominations: k.dominations,
-          defeats: k.defeats,
-          overall_score: Number(k.overall_score),
+          reversals: k.reversals ?? 0,
+          comebacks: k.comebacks ?? 0,
+          invasions: k.invasions ?? 0,
+          overall_score: Number(k.atlas_score ?? k.overall_score ?? 0),
           most_recent_status: approvedStatus || k.most_recent_status || 'Unannounced',
-          power_tier: getPowerTier(Number(k.overall_score)),
+          power_tier: getPowerTier(Number(k.atlas_score ?? k.overall_score ?? 0)),
           last_updated: k.last_updated,
           recent_kvks: recentKvks
         } as Kingdom;

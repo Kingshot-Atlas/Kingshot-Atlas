@@ -49,7 +49,7 @@ describe('calculateOutcomeStats', () => {
   it('returns zeros for empty array', () => {
     const result = calculateOutcomeStats([]);
     expect(result.dominations).toBe(0);
-    expect(result.defeats).toBe(0);
+    expect(result.invasions).toBe(0);
     expect(result.comebacks).toBe(0);
     expect(result.reversals).toBe(0);
   });
@@ -62,12 +62,12 @@ describe('calculateOutcomeStats', () => {
     expect(result.dominations).toBe(1);
   });
 
-  it('counts defeats (lose both)', () => {
+  it('counts invasions (lose both)', () => {
     const records: KVKRecord[] = [
       { id: 1, kingdom_number: 1, kvk_number: 1, opponent_kingdom: 2, prep_result: 'loss', battle_result: 'loss', overall_result: 'L', date_or_order_index: '1', created_at: '1' },
     ];
     const result = calculateOutcomeStats(records);
-    expect(result.defeats).toBe(1);
+    expect(result.invasions).toBe(1);
   });
 
   it('counts comebacks (lose prep, win battle)', () => {

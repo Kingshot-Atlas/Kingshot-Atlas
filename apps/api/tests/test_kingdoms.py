@@ -122,7 +122,7 @@ class TestCompareEndpoints:
             battle_win_rate=0.75,
             battle_streak=2,
             dominations=4,
-            defeats=1,
+            invasions=1,
             most_recent_status="Unannounced",
             overall_score=82.0,
             last_updated=datetime.now(timezone.utc)

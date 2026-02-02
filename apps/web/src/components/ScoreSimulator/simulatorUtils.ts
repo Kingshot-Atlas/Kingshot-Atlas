@@ -6,6 +6,7 @@
  */
 
 import { KingdomProfile } from '../../types';
+import { calculateOutcome, getOutcomeDisplay } from '../../utils/outcomeUtils';
 
 export interface SimulatedKvK {
   prepResult: 'W' | 'L';
@@ -134,7 +135,7 @@ function calculateAtlasScoreComprehensive(
   battleWins: number,
   battleLosses: number,
   dominations: number,
-  defeats: number,
+  invasions: number,
   recentResults: string[],
   currentPrepStreak: number,
   currentBattleStreak: number,
@@ -165,21 +166,21 @@ function calculateAtlasScoreComprehensive(
   
   // COMPONENT 2: DOMINATION/INVASION PATTERN
   let domRate: number;
-  let defRate: number;
+  let invRate: number;
   
   if (totalKvks < 3) {
     // Fix: bayesianAdjustedWinRate expects (wins, losses), not (wins, total)
     domRate = totalKvks > 0 ? bayesianAdjustedWinRate(dominations, totalKvks - dominations, 10, 10) : 0;
-    defRate = totalKvks > 0 ? bayesianAdjustedWinRate(defeats, totalKvks - defeats, 10, 10) : 0;
+    invRate = totalKvks > 0 ? bayesianAdjustedWinRate(invasions, totalKvks - invasions, 10, 10) : 0;
   } else if (totalKvks < 8) {
     domRate = totalKvks > 0 ? enhancedWilsonScore(dominations, totalKvks, 0.85) : 0;
-    defRate = totalKvks > 0 ? enhancedWilsonScore(defeats, totalKvks, 0.85) : 0;
+    invRate = totalKvks > 0 ? enhancedWilsonScore(invasions, totalKvks, 0.85) : 0;
   } else {
     domRate = totalKvks > 0 ? wilsonScoreLowerBound(dominations, totalKvks, 0.90) : 0;
-    defRate = totalKvks > 0 ? wilsonScoreLowerBound(defeats, totalKvks, 0.90) : 0;
+    invRate = totalKvks > 0 ? wilsonScoreLowerBound(invasions, totalKvks, 0.90) : 0;
   }
   
-  const performanceModifier = (domRate * 0.8) - (defRate * 0.6);
+  const performanceModifier = (domRate * 0.8) - (invRate * 0.6);
   
   // COMPONENT 3: RECENT FORM (Last 3 KvKs)
   const weights = [1.0, 0.75, 0.5];
@@ -293,7 +294,7 @@ function extractKingdomStats(kingdom: KingdomProfile) {
     battleWins: kingdom.battle_wins,
     battleLosses: kingdom.battle_losses,
     dominations: kingdom.dominations ?? 0,
-    defeats: kingdom.defeats ?? 0,
+    invasions: kingdom.invasions ?? kingdom.defeats ?? 0,
     recentResults,
     currentPrepStreak,
     currentBattleStreak,
@@ -319,7 +320,7 @@ export function simulateScore(
     currentStats.battleWins,
     currentStats.battleLosses,
     currentStats.dominations,
-    currentStats.defeats,
+    currentStats.invasions,
     currentStats.recentResults,
     currentStats.currentPrepStreak,
     currentStats.currentBattleStreak,
@@ -371,7 +372,7 @@ export function simulateScore(
     if (kvk.prepResult === 'W' && kvk.battleResult === 'W') {
       simStats.dominations += 1;
     } else if (kvk.prepResult === 'L' && kvk.battleResult === 'L') {
-      simStats.defeats += 1;
+      simStats.invasions += 1;
     }
     
     // Update recent results
@@ -391,7 +392,7 @@ export function simulateScore(
     simStats.battleWins,
     simStats.battleLosses,
     simStats.dominations,
-    simStats.defeats,
+    simStats.invasions,
     simStats.recentResults,
     simStats.currentPrepStreak,
     simStats.currentBattleStreak,
@@ -515,7 +516,7 @@ function simulateScoreWithStats(stats: ReturnType<typeof extractKingdomStats>): 
     stats.battleWins,
     stats.battleLosses,
     stats.dominations,
-    stats.defeats,
+    stats.invasions,
     stats.recentResults,
     stats.currentPrepStreak,
     stats.currentBattleStreak,
@@ -534,14 +535,13 @@ export function getSimulatedOutcome(prep: 'W' | 'L', battle: 'W' | 'L'): {
   bgColor: string;
   emoji: string;
 } {
-  if (prep === 'W' && battle === 'W') {
-    return { label: 'Domination', abbrev: 'D', color: '#22c55e', bgColor: '#22c55e15', emoji: '👑' };
-  }
-  if (prep === 'L' && battle === 'W') {
-    return { label: 'Comeback', abbrev: 'C', color: '#3b82f6', bgColor: '#3b82f615', emoji: '🔄' };
-  }
-  if (prep === 'W' && battle === 'L') {
-    return { label: 'Reversal', abbrev: 'R', color: '#a855f7', bgColor: '#a855f715', emoji: '⚔️' };
-  }
-  return { label: 'Invasion', abbrev: 'I', color: '#ef4444', bgColor: '#ef444415', emoji: '💀' };
+  const outcome = calculateOutcome(prep, battle);
+  const display = getOutcomeDisplay(outcome);
+  return {
+    label: display.label,
+    abbrev: display.abbrev,
+    color: display.color,
+    bgColor: display.bgColor,
+    emoji: display.emoji
+  };
 }

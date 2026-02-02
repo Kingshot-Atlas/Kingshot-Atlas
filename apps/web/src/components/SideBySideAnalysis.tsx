@@ -38,7 +38,7 @@ const SideBySideAnalysis: React.FC<SideBySideAnalysisProps> = ({
           return recentKvks.length > 0 ? Math.round((recentWins / recentKvks.length) * 100) : 50;
         })() },
         { label: 'Experience', value: Math.min(100, Math.round((kingdom1.total_kvks / 10) * 100)) },
-        { label: 'Resilience', value: Math.max(0, 100 - Math.round(((kingdom1.defeats ?? 0) / (kingdom1.total_kvks || 1)) * 100)) },
+        { label: 'Resilience', value: Math.max(0, 100 - Math.round(((kingdom1.invasions ?? kingdom1.defeats ?? 0) / (kingdom1.total_kvks || 1)) * 100)) },
       ],
       color: '#22d3ee'
     },
@@ -57,7 +57,7 @@ const SideBySideAnalysis: React.FC<SideBySideAnalysisProps> = ({
           return recentKvks.length > 0 ? Math.round((recentWins / recentKvks.length) * 100) : 50;
         })() },
         { label: 'Experience', value: Math.min(100, Math.round((kingdom2.total_kvks / 10) * 100)) },
-        { label: 'Resilience', value: Math.max(0, 100 - Math.round(((kingdom2.defeats ?? 0) / (kingdom2.total_kvks || 1)) * 100)) },
+        { label: 'Resilience', value: Math.max(0, 100 - Math.round(((kingdom2.invasions ?? kingdom2.defeats ?? 0) / (kingdom2.total_kvks || 1)) * 100)) },
       ],
       color: '#a855f7'
     }
@@ -214,7 +214,7 @@ const SideBySideAnalysis: React.FC<SideBySideAnalysisProps> = ({
           </div>
           <div style={{ textAlign: 'center', padding: '0.5rem', backgroundColor: '#0a0a0a', borderRadius: '6px' }}>
             <div style={{ fontSize: '0.8rem', color: '#ef4444', fontWeight: 'bold' }}>
-              {kingdom.defeats || 0}
+              {kingdom.invasions ?? kingdom.defeats ?? 0}
             </div>
             <div style={{ fontSize: '0.6rem', color: '#6b7280' }}>Invasions</div>
           </div>
@@ -355,8 +355,8 @@ const SideBySideAnalysis: React.FC<SideBySideAnalysisProps> = ({
             />
             <StatCard 
               title="Invasions" 
-              value1={kingdom1.defeats || 0} 
-              value2={kingdom2.defeats || 0} 
+              value1={kingdom1.invasions ?? kingdom1.defeats ?? 0} 
+              value2={kingdom2.invasions ?? kingdom2.defeats ?? 0} 
               higherIsBetter={false} 
             />
           </div>
@@ -405,7 +405,7 @@ const SideBySideAnalysis: React.FC<SideBySideAnalysisProps> = ({
               compare(kingdom1.overall_score, kingdom2.overall_score);
               compare(kingdom1.total_kvks, kingdom2.total_kvks);
               compare(kingdom1.dominations || 0, kingdom2.dominations || 0);
-              compare(kingdom1.defeats || 0, kingdom2.defeats || 0, false);
+              compare(kingdom1.invasions ?? kingdom1.defeats ?? 0, kingdom2.invasions ?? kingdom2.defeats ?? 0, false);
               compare(kingdom1.prep_win_rate, kingdom2.prep_win_rate);
               compare(kingdom1.battle_win_rate, kingdom2.battle_win_rate);
               

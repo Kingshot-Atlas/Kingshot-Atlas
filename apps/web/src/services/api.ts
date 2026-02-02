@@ -5,6 +5,7 @@ import { correctionService } from './correctionService';
 import { kvkCorrectionService } from './kvkCorrectionService';
 import { kvkHistoryService, KvKHistoryRecord } from './kvkHistoryService';
 import { kingdomsSupabaseService } from './kingdomsSupabaseService';
+import { calculateOutcome } from '../utils/outcomeUtils';
 import kingdomData from '../data/kingdoms.json';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
@@ -61,14 +62,12 @@ interface CacheData {
 }
 
 // Helper to calculate overall result from prep and battle outcomes
+// Uses standardized naming: Domination, Reversal, Comeback, Invasion
 const calculateOverallResult = (prepResult: string, battleResult: string): string => {
-  const prepWin = prepResult === 'Win';
-  const battleWin = battleResult === 'Win';
-  
-  if (prepWin && battleWin) return 'Win';        // Domination
-  if (!prepWin && battleWin) return 'Battle';    // Comeback
-  if (prepWin && !battleWin) return 'Preparation'; // Reversal
-  return 'Loss';                                  // Invasion
+  // Convert 'Win'/'Loss' to 'W'/'L' for the utility function
+  const prep = prepResult === 'Win' ? 'W' : 'L';
+  const battle = battleResult === 'Win' ? 'W' : 'L';
+  return calculateOutcome(prep, battle);
 };
 
 // Load real kingdom data from JSON with Supabase KvK overlay
@@ -183,7 +182,7 @@ const loadKingdomData = (): Kingdom[] => {
     let battleWins: number;
     let battleLosses: number;
     let dominations: number;
-    let defeats: number;
+    let invasions: number;
     
     if (recentKvks.length > 0) {
       // Calculate from actual KvK records (source of truth)
@@ -194,8 +193,8 @@ const loadKingdomData = (): Kingdom[] => {
       battleLosses = recentKvks.filter(r => r.battle_result === 'Loss').length;
       // Domination = won both prep AND battle
       dominations = recentKvks.filter(r => r.prep_result === 'Win' && r.battle_result === 'Win').length;
-      // Defeat/Invasion = lost both prep AND battle
-      defeats = recentKvks.filter(r => r.prep_result === 'Loss' && r.battle_result === 'Loss').length;
+      // Invasion = lost both prep AND battle
+      invasions = recentKvks.filter(r => r.prep_result === 'Loss' && r.battle_result === 'Loss').length;
     } else {
       // Fallback to JSON values if no KvK records
       totalKvks = k.total_kvks;
@@ -204,7 +203,7 @@ const loadKingdomData = (): Kingdom[] => {
       battleWins = k.battle_wins;
       battleLosses = k.battle_losses;
       dominations = k.dominations ?? 0;
-      defeats = k.defeats ?? 0;
+      invasions = k.invasions ?? k.defeats ?? 0;
     }
     
     // Calculate win rates
@@ -270,7 +269,7 @@ const loadKingdomData = (): Kingdom[] => {
       battle_win_rate: getValue('battle_win_rate', battleWinRate) as number,
       battle_streak: getValue('battle_streak', recentKvks.length > 0 ? battleStreak : k.battle_streak) as number,
       dominations: getValue('dominations', dominations) as number,
-      defeats: getValue('defeats', defeats) as number,
+      invasions: getValue('invasions', invasions) as number,
       most_recent_status: approvedStatus || 'Unannounced',
       overall_score: getValue('overall_score', overallScore) as number,
       power_tier: getPowerTier(getValue('overall_score', overallScore) as number),
@@ -372,7 +371,7 @@ class ApiService {
 
   private enrichKingdom(kingdom: Kingdom): Kingdom {
     // Look up the authoritative data from realKingdoms (loaded from JSON)
-    // This ensures we always have correct dominations/defeats/streaks even if API doesn't provide them
+    // This ensures we always have correct dominations/invasions/streaks even if API doesn't provide them
     const localData = realKingdoms.find(k => k.kingdom_number === kingdom.kingdom_number);
     
     return {
@@ -380,7 +379,7 @@ class ApiService {
       power_tier: kingdom.power_tier || getPowerTier(kingdom.overall_score),
       // Use local data as source of truth for these calculated fields
       dominations: kingdom.dominations ?? localData?.dominations ?? 0,
-      defeats: kingdom.defeats ?? localData?.defeats ?? 0,
+      invasions: kingdom.invasions ?? localData?.invasions ?? localData?.defeats ?? 0,
       prep_streak: kingdom.prep_streak ?? localData?.prep_streak ?? 0,
       battle_streak: kingdom.battle_streak ?? localData?.battle_streak ?? 0
     };

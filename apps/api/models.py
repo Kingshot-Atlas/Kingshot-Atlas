@@ -39,7 +39,7 @@ class Kingdom(Base):
     battle_win_rate = Column(Float, nullable=False)
     battle_streak = Column(Integer, nullable=False)
     dominations = Column(Integer, nullable=False, default=0)
-    defeats = Column(Integer, nullable=False, default=0)
+    invasions = Column(Integer, nullable=False, default=0)
     most_recent_status = Column(String, nullable=False)
     overall_score = Column(Float, nullable=False)
     last_updated = Column(DateTime, default=utc_now)

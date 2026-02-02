@@ -5,6 +5,7 @@
  */
 
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { calculateOutcome, flipResult as flipResultUtil } from '../utils/outcomeUtils';
 
 export interface KvKCorrection {
   id: string | number;
@@ -287,13 +288,10 @@ class KvKCorrectionService {
 
   /**
    * Calculate overall result from prep and battle results
+   * Uses standardized outcome naming: Domination, Reversal, Comeback, Invasion
    */
   private calculateOverallResult(prep: string, battle: string): string {
-    if (prep === 'W' && battle === 'W') return 'Win';
-    if (prep === 'L' && battle === 'L') return 'Loss';
-    if (prep === 'W' && battle === 'L') return 'Preparation';
-    if (prep === 'L' && battle === 'W') return 'Battle';
-    return 'Unknown';
+    return calculateOutcome(prep, battle);
   }
 
   /**
@@ -393,9 +391,7 @@ class KvKCorrectionService {
    * Flip W to L or L to W
    */
   private flipResult(result: string): string {
-    if (result === 'W' || result === 'Win') return 'L';
-    if (result === 'L' || result === 'Loss') return 'W';
-    return result;
+    return flipResultUtil(result);
   }
 
   /**

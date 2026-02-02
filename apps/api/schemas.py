@@ -24,7 +24,7 @@ class KingdomBase(BaseModel):
     battle_win_rate: float
     battle_streak: int
     dominations: int = 0
-    defeats: int = 0
+    invasions: int = 0
     most_recent_status: str
     overall_score: float
     rank: Optional[int] = None

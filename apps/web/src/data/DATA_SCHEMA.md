@@ -37,7 +37,7 @@ This document defines the schema and calculation rules for `kingdoms.json`, the 
 | `battle_win_rate` | float | `battle_wins / total_kvks` |
 | `battle_streak` | int | **Current consecutive battle WIN streak** (see rules below) |
 | `dominations` | int | Count of KvKs where kingdom won BOTH prep and battle |
-| `defeats` | int | Count of KvKs where kingdom lost BOTH prep and battle |
+| `invasions` | int | Count of KvKs where kingdom lost BOTH prep and battle |
 | `overall_score` | float | Calculated Atlas Score |
 
 ---
@@ -84,7 +84,7 @@ This document defines the schema and calculation rules for `kingdoms.json`, the 
 | `opponent_kingdom` | int | Opposing kingdom number |
 | `prep_result` | string | `'W'` or `'L'` |
 | `battle_result` | string | `'W'` or `'L'` |
-| `overall_result` | string | `'Win'`, `'Loss'`, `'Preparation'`, or `'Battle'` |
+| `overall_result` | string | `'Domination'` (W+W), `'Reversal'` (W+L), `'Comeback'` (L+W), or `'Invasion'` (L+L) |
 | `date_or_order_index` | string | Date or ordering info |
 
 ---
@@ -129,10 +129,41 @@ print(f'Streak validation: {errors} errors found')
 
 ---
 
+## Outcome Naming Convention
+
+| Prep | Battle | Outcome | Description |
+|------|--------|---------|-------------|
+| W | W | **Domination** | Won both phases completely |
+| W | L | **Reversal** | Won prep but lost battle (opponent came back) |
+| L | W | **Comeback** | Lost prep but won battle (recovered) |
+| L | L | **Invasion** | Lost both phases completely |
+
+---
+
+## KvK Date Reference
+
+| KvK # | Date |
+|-------|------|
+| 1 | May 24, 2025 |
+| 2 | June 21, 2025 |
+| 3 | July 19, 2025 |
+| 4 | August 16, 2025 |
+| 5 | September 13, 2025 |
+| 6 | October 11, 2025 |
+| 7 | November 8, 2025 |
+| 8 | December 6, 2025 |
+| 9 | January 3, 2026 |
+| 10 | January 31, 2026 |
+
+*KvKs occur approximately every 28 days.*
+
+---
+
 ## Update History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-02-01 | Standardized outcome naming: Domination/Reversal/Comeback/Invasion; Added KvK date reference; Renamed `defeats` to `invasions` | Ops Analysis |
 | 2026-01-28 | Added `prep_loss_streak`, `prep_best_streak`, `battle_loss_streak`, `battle_best_streak` fields | Core Functionality Agent |
 | 2026-01-28 | Fixed 1009 kingdoms with incorrect streak values (was storing max historical streak instead of current win streak) | Core Functionality Agent |
 | 2026-01-28 | Created DATA_SCHEMA.md documentation | Core Functionality Agent |

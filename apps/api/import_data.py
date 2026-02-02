@@ -42,7 +42,7 @@ def import_kingdoms_data():
                 battle_win_rate=float(row['battle_win_rate']),
                 battle_streak=int(row['battle_win_streak']),
                 dominations=int(row['dominations']),
-                defeats=int(row['defeats']),
+                invasions=int(row.get('invasions', row.get('defeats', 0))),
                 most_recent_status=str(row['most_recent_status']),
                 overall_score=float(row['overall_score'])
             )

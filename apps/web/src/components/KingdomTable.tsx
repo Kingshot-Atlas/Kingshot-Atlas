@@ -33,11 +33,11 @@ const ALL_COLUMNS: TableColumn[] = [
     const battleLosses = k.battle_losses || (k.total_kvks - k.battle_wins);
     return Math.min(prepWins, battleLosses);
   }, align: 'center' },
-  { id: 'defeats', label: '💀 Invasions', color: '#ef4444', getValue: (k) => k.invader_kings || 0, align: 'center' },
+  { id: 'invasions', label: '💀 Invasions', color: '#ef4444', getValue: (k) => k.invasions ?? k.invader_kings ?? 0, align: 'center' },
   { id: 'status', label: 'Transfer Status', getValue: (k) => k.most_recent_status || 'Unannounced', align: 'center' }
 ];
 
-const DEFAULT_COLUMNS = ['kingdom', 'tier', 'atlas_score', 'rank', 'total_kvks', 'prep_wins', 'prep_wr', 'prep_streak', 'battle_wins', 'battle_wr', 'battle_streak', 'dominations', 'comebacks', 'reversals', 'defeats', 'status'];
+const DEFAULT_COLUMNS = ['kingdom', 'tier', 'atlas_score', 'rank', 'total_kvks', 'prep_wins', 'prep_wr', 'prep_streak', 'battle_wins', 'battle_wr', 'battle_streak', 'dominations', 'comebacks', 'reversals', 'invasions', 'status'];
 const TABLE_COLUMNS_KEY = 'kingshot_table_columns';
 
 interface KingdomTableProps {

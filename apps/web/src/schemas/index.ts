@@ -31,7 +31,8 @@ export const KingdomSchema = z.object({
   battle_loss_streak: z.number().optional(),
   battle_best_streak: z.number().optional(),
   dominations: z.number(),
-  defeats: z.number(),
+  invasions: z.number(),
+  defeats: z.number().optional(), // deprecated, use invasions
   most_recent_status: z.string(),
   overall_score: z.number(),
   rank: z.number().optional(),

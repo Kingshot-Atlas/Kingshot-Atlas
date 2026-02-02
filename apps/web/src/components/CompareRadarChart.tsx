@@ -15,7 +15,7 @@ const calculateRadarData = (kingdom: KingdomProfile) => {
   const prepWinRate = Math.round(kingdom.prep_win_rate * 100);
   const battleWinRate = Math.round(kingdom.battle_win_rate * 100);
   const dominationRate = Math.round(((kingdom.dominations ?? 0) / totalKvks) * 100);
-  const defeatRate = Math.round(((kingdom.defeats ?? 0) / totalKvks) * 100);
+  const invasionRate = Math.round(((kingdom.invasions ?? kingdom.defeats ?? 0) / totalKvks) * 100);
   
   const recentKvks = [...(kingdom.recent_kvks || [])].sort((a, b) => b.kvk_number - a.kvk_number).slice(0, 3);
   const recentWins = recentKvks.filter(k => 
@@ -31,7 +31,7 @@ const calculateRadarData = (kingdom: KingdomProfile) => {
     { label: 'Domination', value: dominationRate },
     { label: 'Recent', value: recentPerformance },
     { label: 'Experience', value: experienceFactor },
-    { label: 'Resilience', value: Math.max(0, 100 - defeatRate) },
+    { label: 'Resilience', value: Math.max(0, 100 - invasionRate) },
   ];
 };
 

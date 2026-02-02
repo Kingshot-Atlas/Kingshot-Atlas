@@ -6,6 +6,7 @@
 
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { kvkCorrectionService, KvKCorrection } from './kvkCorrectionService';
+import { normalizeOutcome } from '../utils/outcomeUtils';
 
 export interface KvKHistoryRecord {
   kingdom_number: number;
@@ -271,15 +272,17 @@ class KvKHistoryService {
       const correctionKey = `${kingdomNumber}-${row.kvk_number}`;
       const correction = this.corrections?.get(correctionKey);
 
+      const prepResult = correction ? correction.corrected_prep_result as 'W' | 'L' : row.prep_result;
+      const battleResult = correction ? correction.corrected_battle_result as 'W' | 'L' : row.battle_result;
+      
       const record: KvKHistoryRecord = {
         kingdom_number: kingdomNumber,
         kvk_number: row.kvk_number,
         opponent_kingdom: row.opponent_kingdom,
-        prep_result: correction ? correction.corrected_prep_result as 'W' | 'L' : row.prep_result,
-        battle_result: correction ? correction.corrected_battle_result as 'W' | 'L' : row.battle_result,
-        overall_result: correction 
-          ? this.calculateOverallResult(correction.corrected_prep_result, correction.corrected_battle_result)
-          : row.overall_result,
+        prep_result: prepResult,
+        battle_result: battleResult,
+        // Always normalize outcome to standard naming (Domination/Reversal/Comeback/Invasion)
+        overall_result: normalizeOutcome(row.overall_result, prepResult, battleResult),
         kvk_date: row.kvk_date,
         order_index: row.order_index,
       };
@@ -293,17 +296,6 @@ class KvKHistoryService {
     }
 
     return result;
-  }
-
-  /**
-   * Calculate overall result from prep and battle outcomes
-   */
-  private calculateOverallResult(prep: string, battle: string): string {
-    if (prep === 'W' && battle === 'W') return 'Win';
-    if (prep === 'L' && battle === 'L') return 'Loss';
-    if (prep === 'W' && battle === 'L') return 'Preparation';
-    if (prep === 'L' && battle === 'W') return 'Battle';
-    return 'Unknown';
   }
 
   /**

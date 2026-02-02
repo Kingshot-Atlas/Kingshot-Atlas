@@ -100,18 +100,18 @@ export const calculateStreaks = (kvkResults: KVKRecord[]): StreakData => {
 };
 
 /**
- * Count dominations, comebacks, reversals, and defeats
+ * Count dominations, comebacks, reversals, and invasions
  */
 export interface OutcomeStats {
   dominations: number;  // Won both prep and battle
   comebacks: number;    // Lost prep, won battle
   reversals: number;    // Won prep, lost battle
-  defeats: number;      // Lost both prep and battle
+  invasions: number;    // Lost both prep and battle
 }
 
 export const calculateOutcomeStats = (kvkResults: KVKRecord[]): OutcomeStats => {
   if (!kvkResults || kvkResults.length === 0) {
-    return { dominations: 0, comebacks: 0, reversals: 0, defeats: 0 };
+    return { dominations: 0, comebacks: 0, reversals: 0, invasions: 0 };
   }
 
   return kvkResults.reduce((acc, result) => {
@@ -121,10 +121,10 @@ export const calculateOutcomeStats = (kvkResults: KVKRecord[]): OutcomeStats => 
     if (prepWin && battleWin) acc.dominations++;
     else if (!prepWin && battleWin) acc.comebacks++;
     else if (prepWin && !battleWin) acc.reversals++;
-    else if (!prepWin && !battleWin) acc.defeats++;
+    else if (!prepWin && !battleWin) acc.invasions++;
 
     return acc;
-  }, { dominations: 0, comebacks: 0, reversals: 0, defeats: 0 });
+  }, { dominations: 0, comebacks: 0, reversals: 0, invasions: 0 });
 };
 
 /**

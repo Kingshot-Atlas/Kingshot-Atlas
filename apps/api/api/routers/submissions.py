@@ -77,9 +77,9 @@ def _recalculate_kingdom_stats(kingdom: Kingdom, db: Session) -> None:
             break
     kingdom.battle_streak = battle_streak
     
-    # Count dominations (W+W) and defeats (L+L)
+    # Count dominations (W+W) and invasions (L+L)
     kingdom.dominations = sum(1 for r in records if r.prep_result == 'W' and r.battle_result == 'W')
-    kingdom.defeats = sum(1 for r in records if r.prep_result == 'L' and r.battle_result == 'L')
+    kingdom.invasions = sum(1 for r in records if r.prep_result == 'L' and r.battle_result == 'L')
     
     # Recalculate overall score (prep:battle = 1:2 weighting)
     kingdom.overall_score = round((kingdom.prep_win_rate + 2 * kingdom.battle_win_rate) / 3 * 15, 2)

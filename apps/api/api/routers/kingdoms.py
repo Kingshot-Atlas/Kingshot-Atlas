@@ -16,7 +16,7 @@ limiter = Limiter(key_func=get_remote_address)
 # Whitelist of allowed sort fields to prevent information disclosure
 ALLOWED_SORT_FIELDS = {
     'kingdom_number', 'overall_score', 'prep_win_rate', 'battle_win_rate',
-    'total_kvks', 'prep_streak', 'battle_streak', 'dominations', 'defeats'
+    'total_kvks', 'prep_streak', 'battle_streak', 'dominations', 'invasions'
 }
 
 @router.get("/kingdoms", response_model=PaginatedResponse[KingdomSchema])

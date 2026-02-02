@@ -78,7 +78,7 @@ def sample_kingdom(db_session):
         battle_win_rate=0.7,
         battle_streak=3,
         dominations=5,
-        defeats=2,
+        invasions=2,
         most_recent_status="Unannounced",
         overall_score=85.5,
         last_updated=datetime.now(timezone.utc)

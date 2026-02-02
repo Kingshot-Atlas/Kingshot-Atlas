@@ -14,14 +14,17 @@ export interface Kingdom {
   battle_loss_streak?: number;
   battle_best_streak?: number;
   dominations: number;
-  defeats: number;
+  reversals?: number;
+  comebacks?: number;
+  invasions: number;
+  defeats?: number;  // deprecated, use invasions
   most_recent_status: string;
   overall_score: number;
   rank?: number;
   last_updated: string;
   recent_kvks?: KVKRecord[];
   high_kings?: number;  // deprecated, use dominations
-  invader_kings?: number;  // deprecated, use defeats
+  invader_kings?: number;  // deprecated, use invasions
   power_tier?: 'S' | 'A' | 'B' | 'C' | 'D';
   avg_rating?: number;
   review_count?: number;
@@ -145,7 +148,8 @@ export interface RawKingdomData {
   battle_loss_streak?: number;
   battle_best_streak?: number;
   dominations: number;
-  defeats: number;
+  invasions?: number;
+  defeats?: number;  // deprecated, use invasions
   most_recent_status: string;
   overall_score: number;
 }
@@ -170,7 +174,7 @@ export interface KingdomWithStats extends Kingdom {
   prepStreak: number;
   battleStreak: number;
   dominations: number;
-  defeats: number;
+  invasions: number;
   reversals: number;
   comebacks: number;
 }

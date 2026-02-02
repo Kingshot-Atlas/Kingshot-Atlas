@@ -17,7 +17,7 @@ const createMockKingdom = (overrides: Partial<KingdomProfile> = {}): KingdomProf
   battle_streak: 3,
   battle_best_streak: 5,
   dominations: 5,
-  defeats: 1,
+  invasions: 1,
   most_recent_status: 'Domination',
   overall_score: 8.5,
   last_updated: '2024-01-01',
@@ -89,7 +89,7 @@ describe('simulatorUtils', () => {
         battle_wins: 0,
         battle_losses: 0,
         dominations: 0,
-        defeats: 0,
+        invasions: 0,
         recent_kvks: [],
       });
       const simulatedKvKs: SimulatedKvK[] = [{ prepResult: 'W', battleResult: 'W' }];
@@ -136,7 +136,7 @@ describe('simulatorUtils', () => {
         battle_wins: 15,
         battle_losses: 1,
         dominations: 12,
-        defeats: 0,
+        invasions: 0,
         total_kvks: 16,
       });
       const simulatedKvKs: SimulatedKvK[] = [{ prepResult: 'W', battleResult: 'W' }];
@@ -154,7 +154,7 @@ describe('simulatorUtils', () => {
         battle_wins: 2,
         battle_losses: 8,
         dominations: 0,
-        defeats: 5,
+        invasions: 5,
         total_kvks: 10,
       });
       const simulatedKvKs: SimulatedKvK[] = [{ prepResult: 'L', battleResult: 'L' }];

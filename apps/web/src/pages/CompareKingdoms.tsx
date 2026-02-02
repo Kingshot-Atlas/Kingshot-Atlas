@@ -26,7 +26,7 @@ const calculateRadarData = (kingdom: KingdomProfile) => {
   const prepWinRate = Math.round(kingdom.prep_win_rate * 100);
   const battleWinRate = Math.round(kingdom.battle_win_rate * 100);
   const dominationRate = Math.round(((kingdom.dominations ?? 0) / totalKvks) * 100);
-  const defeatRate = Math.round(((kingdom.defeats ?? 0) / totalKvks) * 100);
+  const invasionRate = Math.round(((kingdom.invasions ?? kingdom.defeats ?? 0) / totalKvks) * 100);
   
   const recentKvks = [...(kingdom.recent_kvks || [])].sort((a, b) => b.kvk_number - a.kvk_number).slice(0, 3);
   const recentWins = recentKvks.filter(k => 
@@ -42,7 +42,7 @@ const calculateRadarData = (kingdom: KingdomProfile) => {
     { label: 'Domination', value: dominationRate },
     { label: 'Recent', value: recentPerformance },
     { label: 'Experience', value: experienceFactor },
-    { label: 'Resilience', value: Math.max(0, 100 - defeatRate) },
+    { label: 'Resilience', value: Math.max(0, 100 - invasionRate) },
   ];
 };
 
@@ -314,7 +314,7 @@ const CompareKingdoms: React.FC = () => {
 
   // Use full history data from kingdom object (not just recent_kvks)
   const getDominations = (k: KingdomProfile) => k.dominations ?? 0;
-  const getDefeats = (k: KingdomProfile) => k.defeats ?? 0;
+  const getInvasions = (k: KingdomProfile) => k.invasions ?? k.defeats ?? 0;
 
   
   // Multi-kingdom comparison row - supports 2-5 kingdoms
@@ -427,7 +427,7 @@ const CompareKingdoms: React.FC = () => {
     compareMetric(k => getRank(k.kingdom_number), false);
     compareMetric(k => k.total_kvks);
     compareMetric(k => getDominations(k));
-    compareMetric(k => getDefeats(k), false);
+    compareMetric(k => getInvasions(k), false);
     compareMetric(k => k.prep_wins);
     compareMetric(k => k.prep_win_rate);
     compareMetric(k => getCurrentStreak(k, 'prep'));
@@ -842,7 +842,7 @@ const CompareKingdoms: React.FC = () => {
             {/* KvK Stats */}
             <ComparisonRow label="Total KvKs" values={loadedKingdoms.map(k => k.total_kvks)} />
             <ComparisonRow label="Dominations" values={loadedKingdoms.map(k => getDominations(k))} />
-            <ComparisonRow label="Invasions" values={loadedKingdoms.map(k => getDefeats(k))} higherIsBetter={false} />
+            <ComparisonRow label="Invasions" values={loadedKingdoms.map(k => getInvasions(k))} higherIsBetter={false} />
             
             <SectionDivider />
 

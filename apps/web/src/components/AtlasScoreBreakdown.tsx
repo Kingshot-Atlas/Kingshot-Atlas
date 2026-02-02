@@ -68,14 +68,14 @@ const AtlasScoreBreakdown: React.FC<AtlasScoreBreakdownProps> = ({ kingdom, rank
     const prepWinRate = kingdom.prep_win_rate || 0;
     const battleWinRate = kingdom.battle_win_rate || 0;
     const dominationRate = totalKvks > 0 ? (kingdom.dominations ?? 0) / totalKvks : 0;
-    const defeatRate = totalKvks > 0 ? (kingdom.defeats ?? 0) / totalKvks : 0;
+    const invasionRate = totalKvks > 0 ? (kingdom.invasions ?? kingdom.defeats ?? 0) / totalKvks : 0;
     
     // Component 1: Hybrid Win Rate (60% weight) - Prep 30%, Battle 70%
     const baseWinRate = (prepWinRate * 0.3) + (battleWinRate * 0.7);
     const winRateScore = baseWinRate * 10; // Max 10 points
     
     // Component 2: Performance Pattern (25% weight) - Domination bonus, Invasion penalty
-    const performanceModifier = (dominationRate * 0.8) - (defeatRate * 0.6);
+    const performanceModifier = (dominationRate * 0.8) - (invasionRate * 0.6);
     const performanceScore = performanceModifier * 6; // Can be negative
     
     // Component 3: Recent Form (10% weight) - Last 3 KvKs
@@ -192,9 +192,9 @@ const AtlasScoreBreakdown: React.FC<AtlasScoreBreakdownProps> = ({ kingdom, rank
     // Experience (0-100%)
     const experiencePct = Math.min(100, Math.round((totalKvks / 7) * 100));
     
-    // Resilience (inverse of defeat rate)
-    const defeatRate = (kingdom.defeats ?? 0) / totalKvks;
-    const resilience = Math.round((1 - defeatRate) * 100);
+    // Resilience (inverse of invasion rate)
+    const invasionRate = (kingdom.invasions ?? kingdom.defeats ?? 0) / totalKvks;
+    const resilience = Math.round((1 - invasionRate) * 100);
     
     return [
       { label: 'Win Rate', value: winRateComposite },

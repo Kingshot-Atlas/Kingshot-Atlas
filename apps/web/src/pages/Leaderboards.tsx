@@ -73,7 +73,7 @@ const Leaderboards: React.FC = () => {
     
     // Use full history data from kingdom object (not just recent_kvks)
     const dominations = kingdom.dominations ?? 0;
-    const defeats = kingdom.defeats ?? 0;
+    const invasions = kingdom.invasions ?? kingdom.defeats ?? 0;
     
     // Reversals = prep wins that weren't dominations (won prep but lost battle)
     const reversals = kingdom.prep_wins - dominations;
@@ -81,7 +81,7 @@ const Leaderboards: React.FC = () => {
     // Comebacks = battle wins that weren't dominations (lost prep but won battle)
     const comebacks = kingdom.battle_wins - dominations;
     
-    return { prepStreak, battleStreak, dominations, defeats, reversals, comebacks };
+    return { prepStreak, battleStreak, dominations, invasions, reversals, comebacks };
   };
 
   // Rankings with stats (using filtered kingdoms)
@@ -110,8 +110,8 @@ const Leaderboards: React.FC = () => {
     [kingdomsWithStats, displayCount]
   );
 
-  const defeatsRanking = useMemo(() => 
-    [...kingdomsWithStats].sort((a, b) => b.defeats - a.defeats).slice(0, displayCount),
+  const invasionsRanking = useMemo(() => 
+    [...kingdomsWithStats].sort((a, b) => b.invasions - a.invasions).slice(0, displayCount),
     [kingdomsWithStats, displayCount]
   );
 
@@ -374,7 +374,7 @@ const Leaderboards: React.FC = () => {
     { title: 'Reversals', icon: '🔄', color: '#a855f7', data: reversalsRanking, getValue: (k: KingdomWithStats) => `${k.reversals}` },
   ];
   
-  const defeatRanking = { title: 'Invasions', icon: '💀', color: '#ef4444', data: defeatsRanking, getValue: (k: KingdomWithStats) => `${k.defeats}` };
+  const invasionRanking = { title: 'Invasions', icon: '💀', color: '#ef4444', data: invasionsRanking, getValue: (k: KingdomWithStats) => `${k.invasions}` };
 
   const kvkFilterOptions = [
     { value: 'all', label: 'All KvKs' },
@@ -624,11 +624,11 @@ const Leaderboards: React.FC = () => {
               }}>
                 <div style={{ width: isMobile ? '100%' : 'calc(33.333% - 0.67rem)' }}>
                   <LeaderboardCard
-                    title={defeatRanking.title}
-                    icon={defeatRanking.icon}
-                    color={defeatRanking.color}
-                    data={defeatRanking.data}
-                    getValue={defeatRanking.getValue}
+                    title={invasionRanking.title}
+                    icon={invasionRanking.icon}
+                    color={invasionRanking.color}
+                    data={invasionRanking.data}
+                    getValue={invasionRanking.getValue}
                   />
                 </div>
               </div>

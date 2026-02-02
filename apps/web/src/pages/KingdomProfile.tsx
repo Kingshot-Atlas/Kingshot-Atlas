@@ -159,7 +159,7 @@ const KingdomProfile: React.FC = () => {
 
   // Use full history values from kingdom data
   const highKings = kingdom.dominations ?? 0;
-  const invaderKings = kingdom.defeats ?? 0;
+  const invaderKings = kingdom.invasions ?? kingdom.defeats ?? 0;
   
   // All KvK records sorted by kvk_number descending (most recent first)
   const allKvks = [...(kingdom.recent_kvks || [])].sort((a, b) => b.kvk_number - a.kvk_number);

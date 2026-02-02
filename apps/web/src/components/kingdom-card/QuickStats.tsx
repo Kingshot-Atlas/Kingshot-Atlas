@@ -4,10 +4,10 @@ import { useIsMobile } from '../../hooks/useMediaQuery';
 interface QuickStatsProps {
   totalKvks: number;
   dominations: number;
-  defeats: number;
+  invasions: number;
 }
 
-const QuickStats: React.FC<QuickStatsProps> = ({ totalKvks, dominations, defeats }) => {
+const QuickStats: React.FC<QuickStatsProps> = ({ totalKvks, dominations, invasions }) => {
   const [showHKTooltip, setShowHKTooltip] = useState(false);
   const [showIKTooltip, setShowIKTooltip] = useState(false);
   const isMobile = useIsMobile();
@@ -85,7 +85,7 @@ const QuickStats: React.FC<QuickStatsProps> = ({ totalKvks, dominations, defeats
         onClick={() => isMobile && setShowIKTooltip(!showIKTooltip)}
       >
         <div style={{ fontSize: isMobile ? '0.95rem' : '1.1rem', fontWeight: '700', color: '#ef4444' }}>
-          {defeats} 💀
+          {invasions} 💀
         </div>
         <div style={{ fontSize: isMobile ? '0.6rem' : '0.65rem', color: '#ef444480', marginTop: '2px' }}>
           Invasions

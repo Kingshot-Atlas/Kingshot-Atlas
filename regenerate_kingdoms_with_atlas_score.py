@@ -10,6 +10,7 @@ import math
 from pathlib import Path
 
 # KvK dates mapping
+# Standard outcome naming: Domination (W+W), Reversal (W+L), Comeback (L+W), Invasion (L+L)
 KVK_DATES = {
     1: "May 24, 2025",
     2: "Jun 21, 2025",
@@ -19,7 +20,8 @@ KVK_DATES = {
     6: "Oct 11, 2025",
     7: "Nov 8, 2025",
     8: "Dec 6, 2025",
-    9: "Jan 3, 2026"
+    9: "Jan 3, 2026",
+    10: "Jan 31, 2026"
 }
 
 
@@ -267,36 +269,45 @@ def main():
         for match in matches:
             result = match['result']
             
-            if result == 'Win':
+            # Normalize legacy outcome names to standard naming
+            # Standard: Domination (W+W), Reversal (W+L), Comeback (L+W), Invasion (L+L)
+            if result in ['Win', 'Domination']:
                 prep_wins += 1
                 battle_wins += 1
                 dominations += 1
                 prep_results.append('W')
                 battle_results.append('W')
                 outcome_categories.append('D')
-            elif result == 'Loss':
+                outcome = 'Domination'
+            elif result in ['Loss', 'Invasion', 'Defeat']:
                 prep_losses += 1
                 battle_losses += 1
                 defeats += 1
                 prep_results.append('L')
                 battle_results.append('L')
                 outcome_categories.append('F')
-            elif result == 'Preparation':
+                outcome = 'Invasion'
+            elif result in ['Preparation', 'Reversal']:
                 prep_wins += 1
                 battle_losses += 1
                 prep_results.append('W')
                 battle_results.append('L')
                 outcome_categories.append('W')
-            elif result == 'Battle':
+                outcome = 'Reversal'
+            elif result in ['Battle', 'Comeback']:
                 prep_losses += 1
                 battle_wins += 1
                 prep_results.append('L')
                 battle_results.append('W')
                 outcome_categories.append('W')
+                outcome = 'Comeback'
+            else:
+                # Unknown result, skip
+                continue
             
-            # Build KvK record
-            prep = 'W' if result in ['Win', 'Preparation'] else 'L'
-            battle = 'W' if result in ['Win', 'Battle'] else 'L'
+            # Build KvK record with standardized outcome
+            prep = 'W' if result in ['Win', 'Domination', 'Preparation', 'Reversal'] else 'L'
+            battle = 'W' if result in ['Win', 'Domination', 'Battle', 'Comeback'] else 'L'
             
             kvk_records.append({
                 'kingdom_number': kingdom_num,
@@ -304,7 +315,7 @@ def main():
                 'opponent_kingdom': match['opponent_kingdom'],
                 'prep_result': prep,
                 'battle_result': battle,
-                'overall_result': result,
+                'overall_result': outcome,  # Use standardized outcome name
                 'date_or_order_index': KVK_DATES.get(match['kvk_number'], '')
             })
         

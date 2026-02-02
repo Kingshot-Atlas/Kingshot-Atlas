@@ -100,9 +100,9 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
       { label: 'Battle', value: Math.round(kingdom.battle_win_rate * 100) },
       { label: 'Dom', value: Math.round(((kingdom.dominations ?? 0) / totalKvks) * 100) },
       { label: 'Exp', value: Math.min(100, Math.round((totalKvks / 10) * 100)) },
-      { label: 'Resil', value: Math.max(0, 100 - Math.round(((kingdom.defeats ?? 0) / totalKvks) * 100)) },
+      { label: 'Resil', value: Math.max(0, 100 - Math.round(((kingdom.invasions ?? kingdom.defeats ?? 0) / totalKvks) * 100)) },
     ];
-  }, [kingdom.prep_win_rate, kingdom.battle_win_rate, kingdom.dominations, kingdom.defeats, kingdom.total_kvks]);
+  }, [kingdom.prep_win_rate, kingdom.battle_win_rate, kingdom.dominations, kingdom.invasions, kingdom.defeats, kingdom.total_kvks]);
 
   return (
     <div
@@ -299,7 +299,7 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
       <QuickStats 
         totalKvks={kingdom.total_kvks}
         dominations={kingdom.dominations ?? 0}
-        defeats={kingdom.defeats ?? 0}
+        invasions={kingdom.invasions ?? kingdom.defeats ?? 0}
       />
 
       {/* ═══════════════════ WIN RATES SECTION ═══════════════════ */}
