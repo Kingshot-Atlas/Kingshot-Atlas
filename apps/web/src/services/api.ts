@@ -516,6 +516,22 @@ class ApiService {
       await preloadPromise;
     }
     
+    // PRIORITY 1: Use Supabase data (single source of truth)
+    // realKingdoms is loaded from Supabase kingdoms table at startup
+    if (supabaseKingdomsLoaded) {
+      const kingdom = realKingdoms.find(k => k.kingdom_number === kingdomNumber);
+      if (kingdom) {
+        logger.log(`Kingdom ${kingdomNumber} loaded from Supabase (source of truth)`);
+        const profile: KingdomProfile = {
+          ...kingdom,
+          rank: kingdom.rank,
+          recent_kvks: kingdom.recent_kvks || []
+        };
+        return profile;
+      }
+    }
+    
+    // FALLBACK: Try API if Supabase data not available
     const endpoint = `/api/v1/kingdoms/${kingdomNumber}`;
     
     try {

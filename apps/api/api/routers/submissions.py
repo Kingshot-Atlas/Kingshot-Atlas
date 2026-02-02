@@ -587,8 +587,9 @@ def review_submission(
             _recalculate_kingdom_stats(opponent_kingdom, db)
         
         # Insert into Supabase kvk_history table for real-time updates (both kingdoms)
+        # Then recalculate kingdom stats in Supabase kingdoms table
         try:
-            from api.supabase_client import get_supabase_admin
+            from api.supabase_client import get_supabase_admin, recalculate_kingdom_in_supabase
             supabase = get_supabase_admin()
             if supabase:
                 # Check if submitting kingdom's record already exists in Supabase
@@ -628,8 +629,14 @@ def review_submission(
                         'order_index': submission.kvk_number
                     }).execute()
                     logger.info(f"Inserted inverse KvK record into Supabase for K{submission.opponent_kingdom}")
+                
+                # CRITICAL: Recalculate kingdom stats in Supabase kingdoms table
+                # This ensures the kingdoms table stays in sync with kvk_history
+                recalculate_kingdom_in_supabase(submission.kingdom_number)
+                recalculate_kingdom_in_supabase(submission.opponent_kingdom)
+                logger.info(f"Recalculated Supabase kingdom stats for K{submission.kingdom_number} and K{submission.opponent_kingdom}")
         except Exception as e:
-            logger.error(f"Failed to insert into Supabase kvk_history: {e}")
+            logger.error(f"Failed to sync with Supabase: {e}")
             # Don't fail the request - local DB is the source of truth
     
     db.commit()

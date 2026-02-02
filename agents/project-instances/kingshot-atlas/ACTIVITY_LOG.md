@@ -9,6 +9,18 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-02 01:15 | Platform Engineer | COMPLETED
+Task: Fix Kingdom 172 profile data out of sync with Supabase kingdoms table
+Files:
+  - apps/web/src/services/api.ts (prioritize Supabase over API for getKingdomProfile)
+  - apps/api/api/supabase_client.py (add recalculate_kingdom_in_supabase function)
+  - apps/api/api/routers/submissions.py (call recalculate on submission approval)
+Result:
+  - Root cause: Frontend was calling API (SQLite) first, falling back to Supabase
+  - Fix: Prioritize Supabase kingdoms table as single source of truth
+  - Backend now explicitly recalculates Supabase kingdoms stats on submission approval
+  - Fallback chain: Supabase → API → Local JSON
+
 ## 2026-02-02 00:59 | Platform Engineer + Ops Lead | COMPLETED
 Task: Security test and deployment - defeats→invasions standardization
 Files:

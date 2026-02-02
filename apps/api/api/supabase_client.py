@@ -226,6 +226,115 @@ def get_webhook_events(
         return []
 
 
+def recalculate_kingdom_in_supabase(kingdom_number: int) -> bool:
+    """
+    Trigger recalculation of kingdom stats in Supabase.
+    
+    This calls the recalculate_kingdom_stats() function that updates
+    the kingdoms table based on kvk_history data.
+    
+    Args:
+        kingdom_number: The kingdom to recalculate stats for
+        
+    Returns:
+        True if successful, False otherwise
+    """
+    client = get_supabase_admin()
+    if not client:
+        print(f"WARNING: Supabase not configured, cannot recalculate kingdom {kingdom_number}")
+        return False
+    
+    try:
+        # Call the RPC function to recalculate kingdom stats
+        result = client.rpc('recalculate_kingdom_stats', {'p_kingdom_number': kingdom_number}).execute()
+        print(f"Recalculated kingdom {kingdom_number} stats in Supabase")
+        return True
+    except Exception as e:
+        print(f"Error recalculating kingdom {kingdom_number} in Supabase: {e}")
+        # Fallback: Try to update directly if RPC fails
+        return _update_kingdom_stats_directly(client, kingdom_number)
+
+
+def _update_kingdom_stats_directly(client, kingdom_number: int) -> bool:
+    """
+    Fallback: Manually calculate and update kingdom stats if RPC is unavailable.
+    """
+    try:
+        # Fetch all KvK records for this kingdom
+        result = client.table('kvk_history').select('*').eq('kingdom_number', kingdom_number).execute()
+        records = result.data or []
+        
+        if not records:
+            return False
+        
+        total_kvks = len(records)
+        prep_wins = sum(1 for r in records if r.get('prep_result') == 'W')
+        prep_losses = sum(1 for r in records if r.get('prep_result') == 'L')
+        battle_wins = sum(1 for r in records if r.get('battle_result') == 'W')
+        battle_losses = sum(1 for r in records if r.get('battle_result') == 'L')
+        dominations = sum(1 for r in records if r.get('prep_result') == 'W' and r.get('battle_result') == 'W')
+        invasions = sum(1 for r in records if r.get('prep_result') == 'L' and r.get('battle_result') == 'L')
+        reversals = sum(1 for r in records if r.get('prep_result') == 'L' and r.get('battle_result') == 'W')
+        comebacks = sum(1 for r in records if r.get('prep_result') == 'W' and r.get('battle_result') == 'L')
+        
+        prep_win_rate = prep_wins / total_kvks if total_kvks > 0 else 0
+        battle_win_rate = battle_wins / total_kvks if total_kvks > 0 else 0
+        
+        # Calculate streaks (sorted by kvk_number desc)
+        sorted_records = sorted(records, key=lambda x: x.get('kvk_number', 0), reverse=True)
+        prep_streak = 0
+        battle_streak = 0
+        for r in sorted_records:
+            if r.get('prep_result') == 'W':
+                prep_streak += 1
+            else:
+                break
+        for r in sorted_records:
+            if r.get('battle_result') == 'W':
+                battle_streak += 1
+            else:
+                break
+        
+        # Calculate Atlas Score (simplified Bayesian formula)
+        prior_mean = 0.5
+        prior_strength = 3
+        adj_prep_rate = (prep_wins + prior_strength * prior_mean) / (total_kvks + prior_strength)
+        adj_battle_rate = (battle_wins + prior_strength * prior_mean) / (total_kvks + prior_strength)
+        base_score = (adj_prep_rate + 2 * adj_battle_rate) / 3
+        experience_factor = min(total_kvks, 9) / 9.0
+        dominance_bonus = (dominations / max(total_kvks, 1)) * 0.1
+        invasion_penalty = (invasions / max(total_kvks, 1)) * 0.05
+        atlas_score = round((base_score * experience_factor + dominance_bonus - invasion_penalty) * 15, 2)
+        atlas_score = max(0, min(15, atlas_score))
+        
+        # Upsert kingdom record
+        update_data = {
+            'kingdom_number': kingdom_number,
+            'total_kvks': total_kvks,
+            'prep_wins': prep_wins,
+            'prep_losses': prep_losses,
+            'prep_win_rate': round(prep_win_rate, 4),
+            'prep_streak': prep_streak,
+            'battle_wins': battle_wins,
+            'battle_losses': battle_losses,
+            'battle_win_rate': round(battle_win_rate, 4),
+            'battle_streak': battle_streak,
+            'dominations': dominations,
+            'reversals': reversals,
+            'comebacks': comebacks,
+            'invasions': invasions,
+            'atlas_score': atlas_score,
+        }
+        
+        client.table('kingdoms').upsert(update_data, on_conflict='kingdom_number').execute()
+        print(f"Directly updated kingdom {kingdom_number} in Supabase kingdoms table")
+        return True
+        
+    except Exception as e:
+        print(f"Error updating kingdom {kingdom_number} directly: {e}")
+        return False
+
+
 def get_webhook_stats() -> dict:
     """
     Get webhook health statistics for monitoring.
