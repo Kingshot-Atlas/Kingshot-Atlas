@@ -9,6 +9,20 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-02 14:30 | Platform Engineer | COMPLETED
+Task: Re-import corrected KvK history data after table corruption
+Root Cause: Previous migration corrupted kvk_history table data
+Process:
+  - Truncated corrupted kvk_history table
+  - Generated 51 SQL batch files from corrected CSV data
+  - Applied all batches (0-50) via Supabase migrations
+  - Recalculated kingdom stats for all 1200 kingdoms
+Result:
+  - 5042 KvK history records successfully imported
+  - 1200 kingdoms with recalculated stats
+  - Average Atlas Score: 5.50
+  - Database integrity verified
+
 ## 2026-02-02 11:55 | Product Engineer | COMPLETED
 Task: Add data issue notice banner to website
 Files: apps/web/src/App.tsx

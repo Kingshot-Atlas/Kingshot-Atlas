@@ -56,6 +56,8 @@
 | Property | Value |
 |----------|-------|
 | **Name** | `Atlas-Discord-bot` |
+| **Service ID** | `srv-d5too04r85hc73ej2b00` |
+| **URL** | `https://atlas-discord-bot-trnf.onrender.com` |
 | **Runtime** | Node |
 | **Region** | Virginia |
 | **Plan** | Free |
