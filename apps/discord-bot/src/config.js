@@ -19,8 +19,8 @@ module.exports = {
   patchNotesWebhook: process.env.DISCORD_PATCH_NOTES_WEBHOOK,
   announcementsWebhook: process.env.DISCORD_ANNOUNCEMENTS_WEBHOOK,
 
-  // API
-  apiUrl: process.env.API_URL || 'https://ks-atlas.com',
+  // API - MUST point to the backend API, not frontend
+  apiUrl: process.env.API_URL || 'https://kingshot-atlas.onrender.com',
 
   // Brand colors (from BRAND_GUIDE.md)
   colors: {

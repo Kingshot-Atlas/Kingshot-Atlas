@@ -68,12 +68,20 @@ async function fetchWithRetry(url, options = {}, retries = MAX_RETRIES) {
  * Fetch kingdom data by number
  */
 async function fetchKingdom(number) {
+  const url = `${config.apiUrl}/api/v1/kingdoms/${number}`;
+  console.log(`[API] Fetching kingdom from: ${url}`);
+  
   try {
-    const res = await fetchWithRetry(`${config.apiUrl}/api/v1/kingdoms/${number}`);
-    if (!res.ok) return null;
+    const res = await fetchWithRetry(url);
+    console.log(`[API] Kingdom ${number} response status: ${res.status}`);
+    
+    if (!res.ok) {
+      console.error(`[API] Kingdom ${number} failed with status ${res.status}`);
+      return null;
+    }
     return await res.json();
   } catch (e) {
-    console.error('API Error (fetchKingdom):', e.message);
+    console.error(`[API] Kingdom ${number} error: ${e.name} - ${e.message}`);
     return null;
   }
 }
@@ -82,12 +90,23 @@ async function fetchKingdom(number) {
  * Fetch leaderboard
  */
 async function fetchLeaderboard(limit = 10, sortBy = 'overall_score') {
+  const url = `${config.apiUrl}/api/v1/leaderboard?limit=${limit}&sort_by=${sortBy}`;
+  console.log(`[API] Fetching leaderboard from: ${url}`);
+  
   try {
-    const res = await fetchWithRetry(`${config.apiUrl}/api/v1/leaderboard?limit=${limit}&sort_by=${sortBy}`);
-    if (!res.ok) return [];
-    return await res.json();
+    const res = await fetchWithRetry(url);
+    console.log(`[API] Leaderboard response status: ${res.status}`);
+    
+    if (!res.ok) {
+      console.error(`[API] Leaderboard failed with status ${res.status}: ${res.statusText}`);
+      return [];
+    }
+    
+    const data = await res.json();
+    console.log(`[API] Leaderboard returned ${data.length} kingdoms`);
+    return data;
   } catch (e) {
-    console.error('API Error (fetchLeaderboard):', e.message);
+    console.error(`[API] Leaderboard error: ${e.name} - ${e.message}`);
     return [];
   }
 }
