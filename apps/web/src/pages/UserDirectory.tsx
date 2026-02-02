@@ -65,11 +65,11 @@ const UserDirectory: React.FC = () => {
           }
 
           if (data && data.length > 0) {
-            // Sort: premium users first, then by created_at
+            // Sort: by tier hierarchy (Admin > Recruiter > Pro > Free), then by created_at
             const sorted = [...data].sort((a, b) => {
-              const tierOrder = { recruiter: 0, pro: 1, free: 2 };
-              const aTier = tierOrder[a.subscription_tier as keyof typeof tierOrder] ?? 2;
-              const bTier = tierOrder[b.subscription_tier as keyof typeof tierOrder] ?? 2;
+              const tierOrder = { admin: 0, recruiter: 1, pro: 2, free: 3 };
+              const aTier = tierOrder[a.subscription_tier as keyof typeof tierOrder] ?? 3;
+              const bTier = tierOrder[b.subscription_tier as keyof typeof tierOrder] ?? 3;
               if (aTier !== bTier) return aTier - bTier;
               return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
             });

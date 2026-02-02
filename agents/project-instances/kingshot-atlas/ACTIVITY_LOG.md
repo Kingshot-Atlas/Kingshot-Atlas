@@ -9,6 +9,15 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-02 05:51 | Product Engineer | COMPLETED
+Task: Update Player Directory default sorting order
+Files:
+  - apps/web/src/pages/UserDirectory.tsx (tier sorting order updated)
+Result:
+  - Changed sort order from: Recruiter > Pro > Free
+  - New sort order: Admin > Recruiter > Pro > Free
+  - Admin users now appear first in the Player Directory
+
 ## 2026-02-02 01:30 | Platform Engineer | COMPLETED
 Task: Make invasion penalty equal to domination bonus in Atlas Score formula
 Files:
