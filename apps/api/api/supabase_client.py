@@ -335,6 +335,95 @@ def _update_kingdom_stats_directly(client, kingdom_number: int) -> bool:
         return False
 
 
+def get_kingdom_from_supabase(kingdom_number: int) -> Optional[dict]:
+    """
+    Fetch a kingdom's stats from Supabase (source of truth).
+    
+    Args:
+        kingdom_number: The kingdom number to fetch
+        
+    Returns:
+        Kingdom data dict or None
+    """
+    client = get_supabase_admin()
+    if not client:
+        return None
+    
+    try:
+        result = client.table('kingdoms').select('*').eq('kingdom_number', kingdom_number).single().execute()
+        return result.data
+    except Exception as e:
+        print(f"Error fetching kingdom {kingdom_number} from Supabase: {e}")
+        return None
+
+
+def get_kingdoms_from_supabase(
+    limit: int = 100,
+    sort_by: str = 'atlas_score',
+    order: str = 'desc'
+) -> list:
+    """
+    Fetch kingdoms from Supabase (source of truth).
+    
+    Args:
+        limit: Max kingdoms to return
+        sort_by: Field to sort by
+        order: 'asc' or 'desc'
+        
+    Returns:
+        List of kingdom dicts
+    """
+    client = get_supabase_admin()
+    if not client:
+        return []
+    
+    try:
+        query = client.table('kingdoms').select('*')
+        
+        # Map field names (frontend uses overall_score, Supabase uses atlas_score)
+        if sort_by == 'overall_score':
+            sort_by = 'atlas_score'
+        
+        query = query.order(sort_by, desc=(order == 'desc')).limit(limit)
+        result = query.execute()
+        
+        # Map atlas_score back to overall_score for API compatibility
+        kingdoms = result.data or []
+        for k in kingdoms:
+            if 'atlas_score' in k:
+                k['overall_score'] = k['atlas_score']
+        
+        return kingdoms
+    except Exception as e:
+        print(f"Error fetching kingdoms from Supabase: {e}")
+        return []
+
+
+def get_kvk_history_from_supabase(kingdom_number: int, limit: int = 10) -> list:
+    """
+    Fetch KvK history for a kingdom from Supabase.
+    
+    Args:
+        kingdom_number: The kingdom to fetch history for
+        limit: Max records to return
+        
+    Returns:
+        List of KvK records
+    """
+    client = get_supabase_admin()
+    if not client:
+        return []
+    
+    try:
+        result = client.table('kvk_history').select('*').eq(
+            'kingdom_number', kingdom_number
+        ).order('kvk_number', desc=True).limit(limit).execute()
+        return result.data or []
+    except Exception as e:
+        print(f"Error fetching KvK history for kingdom {kingdom_number}: {e}")
+        return []
+
+
 def get_webhook_stats() -> dict:
     """
     Get webhook health statistics for monitoring.

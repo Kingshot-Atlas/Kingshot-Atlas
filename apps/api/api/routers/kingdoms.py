@@ -8,6 +8,7 @@ from slowapi.util import get_remote_address
 from database import get_db
 from models import Kingdom, KVKRecord
 from schemas import Kingdom as KingdomSchema, KingdomProfile, PaginatedResponse
+from api.supabase_client import get_kingdom_from_supabase, get_kvk_history_from_supabase
 import math
 
 router = APIRouter()
@@ -112,6 +113,24 @@ def get_kingdoms(
 
 @router.get("/kingdoms/{kingdom_number}", response_model=KingdomProfile)
 def get_kingdom_profile(kingdom_number: int, db: Session = Depends(get_db)):
+    # Try Supabase first (source of truth)
+    supabase_kingdom = get_kingdom_from_supabase(kingdom_number)
+    
+    if supabase_kingdom:
+        # Get KvK history from Supabase
+        recent_kvks = get_kvk_history_from_supabase(kingdom_number, limit=50)
+        
+        # Map atlas_score to overall_score for API compatibility
+        if 'atlas_score' in supabase_kingdom:
+            supabase_kingdom['overall_score'] = supabase_kingdom['atlas_score']
+        
+        # Add rank (will be calculated by get_kingdoms_from_supabase sort order)
+        supabase_kingdom['rank'] = supabase_kingdom.get('rank', 0)
+        supabase_kingdom['recent_kvks'] = recent_kvks
+        
+        return supabase_kingdom
+    
+    # Fallback to SQLite if Supabase unavailable
     kingdom = db.query(Kingdom).filter(Kingdom.kingdom_number == kingdom_number).first()
     
     if not kingdom:
