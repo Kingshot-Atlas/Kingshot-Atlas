@@ -9,6 +9,20 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-02 15:10 | Platform Engineer | COMPLETED
+Task: Automated Atlas Score recalculation trigger
+Files:
+  - Supabase: score_updated_at column added to kingdoms
+  - Supabase: trigger_update_score_on_kvk_insert trigger
+  - Supabase: recalculate_all_kingdom_scores() function
+  - apps/web/src/components/ScoreFreshness.tsx (NEW)
+  - apps/web/src/types/index.ts (added score_updated_at)
+  - apps/web/src/pages/KingdomProfile.tsx (integrated freshness)
+Result:
+  - Scores auto-update when KvK data is added via trigger
+  - UI shows "Updated Xm ago" with color-coded freshness
+  - Nightly cron function available for catch-all recalculation
+
 ## 2026-02-02 15:00 | Platform Engineer | COMPLETED
 Task: Update Supabase atlas_score column with Atlas Score v2.0 formula
 Files: 
