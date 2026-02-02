@@ -9,6 +9,24 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-02 09:15 | Ops Lead | COMPLETED
+Task: Investigate and fix Discord bot not responding
+Root Cause:
+  - Bot code is 100% functional (confirmed with local test)
+  - Render free tier spins down after 15 minutes of inactivity
+  - No keep-alive monitoring was configured to prevent spin-down
+Fix Applied:
+  - Triggered Render redeploy via git push (commit 2240db6)
+  - Added keep-alive setup instructions to docs/INFRASTRUCTURE.md
+  - Updated health.js with UptimeRobot reminder comments
+Files Changed:
+  - apps/discord-bot/health.js (added keep-alive reminder + deploy trigger)
+  - docs/INFRASTRUCTURE.md (added UptimeRobot setup guide for bot)
+  - agents/project-instances/kingshot-atlas/STATUS_SNAPSHOT.md (updated status)
+Action Required:
+  - Set up UptimeRobot monitor for https://atlas-discord-bot.onrender.com/health
+  - This is CRITICAL to keep the bot online 24/7
+
 ## 2026-02-02 06:19 | Platform Engineer | COMPLETED
 Task: Fix Discord bot failing to fetch leaderboard data
 Files:
