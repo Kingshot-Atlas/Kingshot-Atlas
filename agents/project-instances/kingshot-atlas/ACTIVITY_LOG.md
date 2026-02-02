@@ -9,6 +9,22 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-02 15:00 | Platform Engineer | COMPLETED
+Task: Update Supabase atlas_score column with Atlas Score v2.0 formula
+Files: 
+  - docs/migrations/update_atlas_scores_v2.sql (NEW - reference SQL)
+  - scripts/recalculate_atlas_scores.py (NEW - standalone script)
+  - Supabase migrations applied: 5 SQL functions + UPDATE
+Process:
+  - Created bayesian_adjusted_rate(), get_experience_factor(), get_history_bonus()
+  - Created get_recent_form_multiplier(), get_streak_multiplier()
+  - Created calculate_atlas_score_v2() main function
+  - Applied UPDATE to all 1,200 kingdoms
+Result:
+  - K231: 14.00 → 12.05 (matches frontend Score Simulator)
+  - Distribution: Avg 4.62 | Min 1.25 | Max 12.05
+  - Frontend and Supabase now use consistent formula
+
 ## 2026-02-02 15:45 | Atlas Director | COMPLETED
 Task: Complete Atlas Score v2.0 - Backend, Frontend & Analytics (15 tasks across 3 options)
 Files Changed:
