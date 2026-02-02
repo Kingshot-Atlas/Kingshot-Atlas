@@ -119,21 +119,28 @@ def get_kingdom_profile(kingdom_number: int, db: Session = Depends(get_db)):
         
         if supabase_kingdom:
             # Get KvK history from Supabase
-            recent_kvks = get_kvk_history_from_supabase(kingdom_number, limit=50)
+            try:
+                recent_kvks = get_kvk_history_from_supabase(kingdom_number, limit=50)
+            except Exception as kvk_err:
+                print(f"KvK history error for {kingdom_number}: {kvk_err}")
+                recent_kvks = []
             
             # Map atlas_score to overall_score for API compatibility
             if 'atlas_score' in supabase_kingdom:
                 supabase_kingdom['overall_score'] = supabase_kingdom['atlas_score']
             
-            # Ensure required fields exist
+            # Ensure required fields exist with defaults
             supabase_kingdom['rank'] = supabase_kingdom.get('rank', 0)
             supabase_kingdom['recent_kvks'] = recent_kvks
-            supabase_kingdom.setdefault('last_updated', None)
-            supabase_kingdom.setdefault('most_recent_status', 'Unknown')
+            supabase_kingdom['last_updated'] = supabase_kingdom.get('last_updated') or supabase_kingdom.get('updated_at')
+            supabase_kingdom['most_recent_status'] = supabase_kingdom.get('most_recent_status', 'Unknown')
             
-            return supabase_kingdom
+            # Remove any None values that might cause serialization issues
+            return {k: v for k, v in supabase_kingdom.items() if v is not None or k in ['recent_kvks']}
     except Exception as e:
         print(f"Error fetching kingdom {kingdom_number} from Supabase: {e}")
+        import traceback
+        traceback.print_exc()
         # Fall through to SQLite fallback
     
     # Fallback to SQLite if Supabase unavailable or failed
