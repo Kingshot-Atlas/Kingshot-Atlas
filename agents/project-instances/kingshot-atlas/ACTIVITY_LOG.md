@@ -9,6 +9,13 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-01 23:10 | Platform Engineer | COMPLETED
+Task: Force immediate service worker activation on update
+Files:
+  - apps/web/vite.config.ts (added skipWaiting, clientsClaim, cleanupOutdatedCaches)
+Result: New service workers activate immediately without user action. Old caches auto-cleaned.
+WHY: More efficient than prompting users - zero friction, automatic fresh data.
+
 ## 2026-02-01 23:05 | Platform Engineer | COMPLETED
 Task: Enforce Supabase as single source of truth across all data paths
 Files:
