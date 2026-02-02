@@ -9,6 +9,21 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-02 00:59 | Platform Engineer + Ops Lead | COMPLETED
+Task: Security test and deployment - defeats→invasions standardization
+Files:
+  - apps/web/src/services/kingdomsSupabaseService.ts (atlas_score, reversals, comebacks)
+  - apps/web/src/types/index.ts (reversals, comebacks fields)
+  - apps/web/src/components/Header.tsx (mobile admin access)
+  - 35+ files renamed defeats→invasions
+  - docs/migrations/create_kingdoms_table.sql (atlas_score, reversals, comebacks)
+Result:
+  - Security Test: 12 moderate vulnerabilities (all dev-only: esbuild, eslint, vitest)
+  - Security Headers: ✅ CSP, HSTS, X-Frame-Options, X-XSS-Protection configured
+  - TypeScript: ✅ Minor warnings only (unused vars)
+  - Deployed: Commit 44029d1 pushed to main, Cloudflare Pages auto-deploys
+  - K86 data verified: 9 KvKs, 7 dominations, 1 reversal, 0 comebacks, 1 invasion, 12.12 atlas_score
+
 ## 2026-02-01 23:20 | Product Engineer | COMPLETED
 Task: Add Before → After preview for KvK corrections in admin dashboard
 Files:
