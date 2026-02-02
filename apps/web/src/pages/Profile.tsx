@@ -710,20 +710,20 @@ const Profile: React.FC = () => {
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: isMobile ? '0.5rem' : '1rem' }}>
                   {viewedProfile?.linked_kingdom && (
                     <Link to={`/kingdom/${viewedProfile.linked_kingdom}`} style={{ textDecoration: 'none' }}>
-                      <div style={{ padding: '0.75rem', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a', cursor: 'pointer', transition: 'border-color 0.2s' }}>
+                      <div style={{ padding: '0.75rem', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a', cursor: 'pointer', transition: 'border-color 0.2s', textAlign: 'center' }}>
                         <div style={{ fontSize: '0.7rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Kingdom</div>
                         <div style={{ fontSize: '0.95rem', color: themeColor, fontWeight: '500' }}>{viewedProfile.linked_kingdom}</div>
                       </div>
                     </Link>
                   )}
                   {viewedProfile?.alliance_tag && (
-                    <div style={{ padding: '0.75rem', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a' }}>
+                    <div style={{ padding: '0.75rem', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a', textAlign: 'center' }}>
                       <div style={{ fontSize: '0.7rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Alliance</div>
                       <div style={{ fontSize: '0.95rem', color: '#fff', fontWeight: '500' }}>[{viewedProfile.alliance_tag}]</div>
                     </div>
                   )}
                   {viewedProfile?.linked_player_id && (
-                    <div style={{ padding: '0.75rem', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a' }}>
+                    <div style={{ padding: '0.75rem', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a', textAlign: 'center' }}>
                       <div style={{ fontSize: '0.7rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Player ID</div>
                       <div style={{ fontSize: '0.95rem', color: '#fff', fontWeight: '500' }}>{viewedProfile.linked_player_id}</div>
                     </div>
@@ -732,19 +732,19 @@ const Profile: React.FC = () => {
                 {/* Row 2: TC Level, Language, Region */}
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: isMobile ? '0.5rem' : '1rem' }}>
                   {viewedProfile?.linked_tc_level && (
-                    <div style={{ padding: '0.75rem', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a' }}>
+                    <div style={{ padding: '0.75rem', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a', textAlign: 'center' }}>
                       <div style={{ fontSize: '0.7rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Town Center</div>
                       <div style={{ fontSize: '0.95rem', color: '#fff', fontWeight: '500' }}>{formatTCLevel(viewedProfile.linked_tc_level)}</div>
                     </div>
                   )}
                   {viewedProfile?.language && (
-                    <div style={{ padding: '0.75rem', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a' }}>
+                    <div style={{ padding: '0.75rem', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a', textAlign: 'center' }}>
                       <div style={{ fontSize: '0.7rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Language</div>
                       <div style={{ fontSize: '0.95rem', color: '#fff', fontWeight: '500' }}>{viewedProfile.language}</div>
                     </div>
                   )}
                   {viewedProfile?.region && (
-                    <div style={{ padding: '0.75rem', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a' }}>
+                    <div style={{ padding: '0.75rem', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a', textAlign: 'center' }}>
                       <div style={{ fontSize: '0.7rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Region</div>
                       <div style={{ fontSize: '0.95rem', color: '#fff', fontWeight: '500' }}>{viewedProfile.region}</div>
                     </div>
