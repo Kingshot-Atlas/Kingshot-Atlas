@@ -131,7 +131,7 @@ def calculate_atlas_score_comprehensive(total_kvks, prep_wins, prep_losses, batt
         prep_rate = bayesian_adjusted_win_rate(prep_wins, prep_losses, 50, 50)
         battle_rate = bayesian_adjusted_win_rate(battle_wins, battle_losses, 50, 50)
         statistical_method = "Bayesian (Heavy Penalty)"
-    elif total_kvks < 8:
+    elif total_kvks < 5:
         # Medium samples: Enhanced Wilson with variable confidence
         prep_rate = enhanced_wilson_score(prep_wins, total_matches, confidence=0.95, min_sample_penalty=0.8)
         battle_rate = enhanced_wilson_score(battle_wins, total_matches, confidence=0.95, min_sample_penalty=0.8)
@@ -152,7 +152,7 @@ def calculate_atlas_score_comprehensive(total_kvks, prep_wins, prep_losses, batt
         # Fix: bayesian_adjusted_win_rate expects (wins, losses), not (wins, total)
         dom_rate = bayesian_adjusted_win_rate(dominations, total_kvks - dominations, 10, 10) if total_kvks > 0 else 0
         def_rate = bayesian_adjusted_win_rate(defeats, total_kvks - defeats, 10, 10) if total_kvks > 0 else 0
-    elif total_kvks < 8:
+    elif total_kvks < 5:
         dom_rate = enhanced_wilson_score(dominations, total_kvks, confidence=0.90, min_sample_penalty=0.85) if total_kvks > 0 else 0
         def_rate = enhanced_wilson_score(defeats, total_kvks, confidence=0.90, min_sample_penalty=0.85) if total_kvks > 0 else 0
     else:
@@ -229,17 +229,13 @@ def calculate_atlas_score_comprehensive(total_kvks, prep_wins, prep_losses, batt
     elif total_kvks == 1:
         experience_factor = 0.4  # Heavy penalty for single KvK
     elif total_kvks == 2:
-        experience_factor = 0.55  # Still significant penalty
+        experience_factor = 0.6  # Significant penalty
     elif total_kvks == 3:
-        experience_factor = 0.7   # Approaching normal
+        experience_factor = 0.75 # Moderate penalty
     elif total_kvks == 4:
-        experience_factor = 0.8   # Near normal
-    elif total_kvks == 5:
-        experience_factor = 0.9   # Almost full
-    elif total_kvks == 6:
-        experience_factor = 0.95  # Nearly full
+        experience_factor = 0.9  # Near full
     else:
-        experience_factor = 1.0   # Full credit for veteran kingdoms
+        experience_factor = 1.0  # Full credit for 5+ KvKs (veteran threshold)
     
     # === FINAL SCORE CALCULATION ===
     

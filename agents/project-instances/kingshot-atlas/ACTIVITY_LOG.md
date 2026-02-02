@@ -23,6 +23,18 @@ Result:
   - Bot has better error handling and logging for diagnostics
   - PENDING: User needs to resume suspended Discord bot service on Render
 
+## 2026-02-02 05:58 | Product Engineer + Design Lead | COMPLETED
+Task: Fix admin sorting, change admin color to red, add admin filter chip
+Files:
+  - apps/web/src/pages/UserDirectory.tsx (sorting uses getDisplayTier, admin filter chip added)
+  - apps/web/src/utils/styles.ts (admin color: #fbbf24 → #ef4444)
+  - apps/web/src/utils/constants.ts (admin color: #fbbf24 → #ef4444)
+Result:
+  - Admins now correctly sorted first (using username-based detection via getDisplayTier)
+  - Admin color changed from golden to red across the app
+  - Added Admin filter chip to Player Directory tier filters
+  - Filter chip order: All | Admin | Recruiter | Pro
+
 ## 2026-02-02 05:51 | Product Engineer | COMPLETED
 Task: Update Player Directory default sorting order
 Files:

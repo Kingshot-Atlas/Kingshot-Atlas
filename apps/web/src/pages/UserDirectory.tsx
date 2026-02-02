@@ -33,7 +33,7 @@ const UserDirectory: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterBy, setFilterBy] = useState<'all' | 'alliance' | 'region' | 'kingdom'>('all');
   const [filterValue, setFilterValue] = useState('');
-  const [tierFilter, setTierFilter] = useState<'all' | 'pro' | 'recruiter'>('all');
+  const [tierFilter, setTierFilter] = useState<'all' | 'admin' | 'pro' | 'recruiter'>('all');
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   useEffect(() => {
@@ -161,9 +161,10 @@ const UserDirectory: React.FC = () => {
     
     if (!matchesSearch) return false;
 
-    // Tier filter
+    // Tier filter - use getDisplayTier to properly detect admins
     if (tierFilter !== 'all') {
-      if (user.subscription_tier !== tierFilter) return false;
+      const userDisplayTier = getDisplayTier(user.subscription_tier, user.username);
+      if (userDisplayTier !== tierFilter) return false;
     }
     
     switch (filterBy) {
@@ -339,10 +340,10 @@ const UserDirectory: React.FC = () => {
 
         {/* Tier Filter Chips */}
         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-          {(['all', 'pro', 'recruiter'] as const).map((tier) => {
+          {(['all', 'admin', 'recruiter', 'pro'] as const).map((tier) => {
             const isActive = tierFilter === tier;
-            const chipColor = tier === 'pro' ? subscriptionColors.pro : tier === 'recruiter' ? subscriptionColors.recruiter : '#6b7280';
-            const label = tier === 'all' ? 'All Players' : tier === 'pro' ? '⭐ Pro' : '👑 Recruiter';
+            const chipColor = tier === 'admin' ? subscriptionColors.admin : tier === 'pro' ? subscriptionColors.pro : tier === 'recruiter' ? subscriptionColors.recruiter : '#6b7280';
+            const label = tier === 'all' ? 'All Players' : tier === 'admin' ? '⚡ Admin' : tier === 'pro' ? '⭐ Pro' : '👑 Recruiter';
             
             return (
               <button

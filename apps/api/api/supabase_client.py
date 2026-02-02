@@ -301,7 +301,7 @@ def _update_kingdom_stats_directly(client, kingdom_number: int) -> bool:
         adj_prep_rate = (prep_wins + prior_strength * prior_mean) / (total_kvks + prior_strength)
         adj_battle_rate = (battle_wins + prior_strength * prior_mean) / (total_kvks + prior_strength)
         base_score = (adj_prep_rate + 2 * adj_battle_rate) / 3
-        experience_factor = min(total_kvks, 9) / 9.0
+        experience_factor = min(total_kvks, 5) / 5.0
         dominance_bonus = (dominations / max(total_kvks, 1)) * 0.1
         invasion_penalty = (invasions / max(total_kvks, 1)) * 0.1
         atlas_score = round((base_score * experience_factor + dominance_bonus - invasion_penalty) * 15, 2)

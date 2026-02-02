@@ -240,8 +240,8 @@ BEGIN
   -- Base score: weighted average (prep:battle = 1:2)
   v_base_score := (v_prep_win_rate + 2 * v_battle_win_rate) / 3;
 
-  -- Experience factor: confidence grows with more KvKs (caps at 9)
-  v_experience_factor := LEAST(p_total_kvks, 9) / 9.0;
+  -- Experience factor: confidence grows with more KvKs (caps at 5)
+  v_experience_factor := LEAST(p_total_kvks, 5) / 5.0;
 
   -- Dominance bonus: reward complete victories (W+W)
   v_dominance_bonus := (p_dominations::NUMERIC / GREATEST(p_total_kvks, 1)) * 0.1;
