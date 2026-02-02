@@ -9,6 +9,16 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-01 22:35 | Platform Engineer | COMPLETED
+Task: Fix cache layers preventing correction updates + Add RLS security
+Files:
+  - apps/web/src/services/kvkHistoryService.ts (5s cache TTL)
+  - apps/web/src/services/kvkCorrectionService.ts (30s cache TTL)
+  - apps/web/src/services/kingdomsSupabaseService.ts (5s cache TTL)
+  - Supabase migration: fix_kvk_history_rls_policies
+Result: Cache TTLs reduced to 5-30 seconds. Removed overly permissive RLS policies.
+Root cause: Multiple cache layers (5 min corrections, 30s kingdoms, 30s kvk) served stale data
+
 ## 2026-02-01 22:25 | Platform Engineer | COMPLETED
 Task: Fix K86 KvK#10 data directly in Supabase
 Files: Direct SQL update to kvk_history table
