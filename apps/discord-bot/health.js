@@ -1,5 +1,8 @@
 // Health check endpoint for Render
 // Required for Web Services on free tier
+// IMPORTANT: Set up UptimeRobot to ping /health every 5-10 minutes
+// to prevent Render free tier spin-down (15 min inactivity timeout)
+// Last deploy trigger: 2026-02-02
 
 const http = require('http');
 

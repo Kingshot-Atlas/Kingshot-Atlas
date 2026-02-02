@@ -146,7 +146,24 @@ If you see `-api` in any URL reference, it's wrong and should be fixed.
 
 Render free tier sleeps after 15 minutes of inactivity. First request after sleep takes ~30 seconds.
 
-**Solution:** Use UptimeRobot to ping `/health` every 5-14 minutes.
+**Solution:** Use UptimeRobot to ping health endpoints every 5-10 minutes:
+
+| Service | Health Endpoint | Monitor |
+|---------|-----------------|---------|
+| API | `https://kingshot-atlas.onrender.com/health` | Required |
+| Discord Bot | `https://atlas-discord-bot.onrender.com/health` | **CRITICAL** - Bot goes offline without this |
+
+### Setting Up UptimeRobot (Free)
+
+1. Go to https://uptimerobot.com and create free account
+2. Add New Monitor → HTTP(s)
+3. For Discord Bot:
+   - URL: `https://atlas-discord-bot.onrender.com/health`
+   - Interval: 5 minutes
+   - Alert contacts: Your email
+4. For API (optional but recommended):
+   - URL: `https://kingshot-atlas.onrender.com/health`
+   - Interval: 10 minutes
 
 ---
 
