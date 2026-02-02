@@ -244,10 +244,15 @@ const neonGlow = (color: string) => ({
 
 | Tier | Color | Hex | Usage |
 |------|-------|-----|-------|
-| **Admin** | Red | `#ef4444` | Admin badges, borders, role indicators |
+| **Admin** | Red | `#ef4444` | Admin badges, borders, **username colors**, avatar borders, role indicators |
 | **Atlas Recruiter** | Orange | `#f97316` | Recruiter buttons, badges, price text, role indicators |
 | **Atlas Pro** | Cyan | `#22d3ee` | Pro buttons, badges, price text, role indicators |
 | **Free** | Gray/White | `#6b7280` / `#ffffff` | Default text, no special styling |
+
+### Admin-Specific Rules
+- **No "Manage Subscription" button** - Admin is not a subscription tier, so the subscription management button should be hidden
+- **Username and avatar border** - Should use Admin red (`#ef4444`) with neon glow effect
+- Pass `subscriptionTier="admin"` to components that support tier-based coloring
 
 ### Usage Examples
 ```tsx
@@ -763,4 +768,22 @@ import ComparisonRadarChart from '../components/ComparisonRadarChart';
 
 ---
 
-*Last Updated: 2026-01-31 by Product Engineer*
+## Profile Page Restrictions
+
+**DO NOT add these elements to My Profile page:**
+
+| Element | Reason | Alternative Location |
+|---------|--------|---------------------|
+| Browse Kingdoms button | Redundant - in main nav | Homepage, Header |
+| Leaderboards button | Redundant - in main nav | Header nav |
+| Alliance Badge display | Redundant - alliance tag shown in profile card | Profile card only |
+| Data Contributions section | Redundant with My Contributions | Use SubmissionHistory component |
+
+**Profile card info boxes (Alliance, Language, Region) must have consistent styling:**
+- Font size: `0.95rem`
+- Font weight: `500`
+- Color: `#fff`
+
+---
+
+*Last Updated: 2026-02-02 by Product Engineer*

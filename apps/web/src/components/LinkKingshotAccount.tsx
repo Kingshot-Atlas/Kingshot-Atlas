@@ -4,9 +4,10 @@ import { useToast } from './Toast';
 import { colors, neonGlow, transition, subscriptionColors } from '../utils/styles';
 import { Button } from './shared';
 
-// Get username color based on subscription tier
-const getUsernameColor = (tier: 'free' | 'pro' | 'recruiter'): string => {
+// Get username color based on subscription tier (includes admin)
+const getUsernameColor = (tier: 'free' | 'pro' | 'recruiter' | 'admin'): string => {
   switch (tier) {
+    case 'admin': return '#ef4444'; // Admin = red
     case 'pro': return subscriptionColors.pro;
     case 'recruiter': return subscriptionColors.recruiter;
     default: return colors.text; // White for free users
@@ -162,7 +163,7 @@ interface LinkKingshotAccountProps {
   linkedPlayer?: LinkedPlayerData | null;
   showRefresh?: boolean;
   lastSynced?: string | null;
-  onRefresh?: () => void;
+  onRefresh?: () => void; | 'admin'
   subscriptionTier?: 'free' | 'pro' | 'recruiter';
   isPublicView?: boolean;
 }

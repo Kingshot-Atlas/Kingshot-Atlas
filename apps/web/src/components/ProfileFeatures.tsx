@@ -364,60 +364,6 @@ const ProfileFeatures: React.FC = () => {
           <span>Compare Favorites</span>
         </button>
       )}
-      <button
-        onClick={() => navigate('/')}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-          padding: '0.6rem 1rem',
-          backgroundColor: '#131318',
-          border: '1px solid #22c55e40',
-          borderRadius: '8px',
-          color: '#fff',
-          fontSize: '0.85rem',
-          cursor: 'pointer',
-          transition: 'all 0.2s'
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = '#22c55e15';
-          e.currentTarget.style.borderColor = '#22c55e';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = '#131318';
-          e.currentTarget.style.borderColor = '#22c55e40';
-        }}
-      >
-        <span>🔍</span>
-        <span>Browse Kingdoms</span>
-      </button>
-      <button
-        onClick={() => navigate('/leaderboards')}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-          padding: '0.6rem 1rem',
-          backgroundColor: '#131318',
-          border: '1px solid #fbbf2440',
-          borderRadius: '8px',
-          color: '#fff',
-          fontSize: '0.85rem',
-          cursor: 'pointer',
-          transition: 'all 0.2s'
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = '#fbbf2415';
-          e.currentTarget.style.borderColor = '#fbbf24';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = '#131318';
-          e.currentTarget.style.borderColor = '#fbbf2440';
-        }}
-      >
-        <span>🏆</span>
-        <span>Leaderboards</span>
-      </button>
     </div>
   );
 
@@ -441,8 +387,6 @@ const ProfileFeatures: React.FC = () => {
         </div>
       )}
 
-      {/* Alliance Badge */}
-      <AllianceBadge />
 
       {/* Favorite Kingdoms - Top 5 by Atlas Score */}
       {favoriteKingdoms.length > 0 && (

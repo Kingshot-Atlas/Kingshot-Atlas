@@ -8,7 +8,6 @@ import ProfileFeatures from '../components/ProfileFeatures';
 import LinkKingshotAccount from '../components/LinkKingshotAccount';
 import LinkDiscordAccount from '../components/LinkDiscordAccount';
 import PlayersFromMyKingdom from '../components/PlayersFromMyKingdom';
-import UserCorrectionStats from '../components/UserCorrectionStats';
 import { useAuth, getCacheBustedAvatarUrl, UserProfile, getDisplayName } from '../contexts/AuthContext';
 import { usePremium } from '../contexts/PremiumContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
@@ -672,7 +671,7 @@ const Profile: React.FC = () => {
               {viewedProfile?.alliance_tag && (
                 <div style={{ padding: '0.75rem', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a' }}>
                   <div style={{ fontSize: '0.7rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Alliance</div>
-                  <div style={{ fontSize: '1.1rem', color: '#fff', fontWeight: 'bold', letterSpacing: '0.1em' }}>[{viewedProfile.alliance_tag}]</div>
+                  <div style={{ fontSize: '0.95rem', color: '#fff', fontWeight: '500' }}>[{viewedProfile.alliance_tag}]</div>
                 </div>
               )}
               {viewedProfile?.language && (
@@ -734,7 +733,7 @@ const Profile: React.FC = () => {
               } : null}
               lastSynced={viewedProfile?.linked_last_synced}
               onRefresh={refreshLinkedPlayer}
-              subscriptionTier={isRecruiter ? 'recruiter' : isPro ? 'pro' : 'free'}
+              subscriptionTier={isAdmin ? 'admin' : isRecruiter ? 'recruiter' : isPro ? 'pro' : 'free'}
             />
           </div>
         )}
@@ -807,7 +806,7 @@ const Profile: React.FC = () => {
                   : 'Upgrade to unlock premium features and support the project.'}
               </p>
               
-              {isPro || isRecruiter ? (
+              {(isPro || isRecruiter) && !isAdmin ? (
                 <button
                   onClick={async () => {
                     if (!user) return;
@@ -844,7 +843,7 @@ const Profile: React.FC = () => {
                 >
                   {managingSubscription ? 'Opening Portal...' : 'Manage Subscription'}
                 </button>
-              ) : (
+              ) : !isAdmin ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
                   <Link
                     to="/upgrade"
@@ -894,7 +893,7 @@ const Profile: React.FC = () => {
                     {managingSubscription ? 'Syncing...' : 'Subscription not showing?'}
                   </button>
                 </div>
-              )}
+              ) : null}
             </div>
           </div>
         )}
@@ -935,18 +934,6 @@ const Profile: React.FC = () => {
         <div style={{ marginBottom: '2rem' }}>
           <UserAchievements />
         </div>
-
-        {/* Data Contributions - KvK correction stats */}
-        {user && (
-          <div style={{ marginBottom: '2rem' }}>
-            <UserCorrectionStats 
-              userId={isViewingOther ? (viewedProfile?.id || '') : user.id}
-              username={isViewingOther ? viewedProfile?.username : profile?.username}
-              themeColor={themeColor}
-              isOwnProfile={!isViewingOther}
-            />
-          </div>
-        )}
 
         {/* C1: Submission History - only for logged in users viewing their own profile */}
         {!isViewingOther && user && (
