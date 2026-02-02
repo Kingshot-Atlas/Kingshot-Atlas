@@ -151,6 +151,7 @@ class KvKCorrectionService {
     id: string;
     kingdom_number: number;
     kvk_number: number | null;
+    error_type?: string;
     current_data: {
       opponent: number;
       prep_result: string;
@@ -164,8 +165,28 @@ class KvKCorrectionService {
       return false;
     }
 
-    const correctedPrep = kvkError.corrected_prep || this.flipResult(kvkError.current_data.prep_result);
-    const correctedBattle = kvkError.corrected_battle || this.flipResult(kvkError.current_data.battle_result);
+    // Determine which fields to flip based on error_type
+    // Only flip the field that was reported as incorrect
+    let correctedPrep: string;
+    let correctedBattle: string;
+    
+    if (kvkError.corrected_prep) {
+      correctedPrep = kvkError.corrected_prep;
+    } else if (kvkError.error_type === 'wrong_prep_result') {
+      correctedPrep = this.flipResult(kvkError.current_data.prep_result);
+    } else {
+      correctedPrep = kvkError.current_data.prep_result; // Keep unchanged
+    }
+    
+    if (kvkError.corrected_battle) {
+      correctedBattle = kvkError.corrected_battle;
+    } else if (kvkError.error_type === 'wrong_battle_result') {
+      correctedBattle = this.flipResult(kvkError.current_data.battle_result);
+    } else {
+      correctedBattle = kvkError.current_data.battle_result; // Keep unchanged
+    }
+    
+    console.log(`Applying correction for K${kvkError.kingdom_number} KvK#${kvkError.kvk_number}: error_type=${kvkError.error_type}, prep ${kvkError.current_data.prep_result}→${correctedPrep}, battle ${kvkError.current_data.battle_result}→${correctedBattle}`);
     const overallResult = this.calculateOverallResult(correctedPrep, correctedBattle);
 
     // Try to write to Supabase first

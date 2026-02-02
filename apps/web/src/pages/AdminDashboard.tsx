@@ -692,12 +692,15 @@ const AdminDashboard: React.FC = () => {
   }
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '1.5rem', backgroundColor: '#0a0a0a', minHeight: '100vh' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-        <h1 style={{ fontSize: '2rem', fontWeight: 700, color: '#ffffff' }}>
-          Admin Dashboard {viewAsUser && <span style={{ fontSize: '0.9rem', color: '#fbbf24' }}>(Viewing as Free User)</span>}
-        </h1>
-        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '1rem', backgroundColor: '#0a0a0a', minHeight: '100vh' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#ffffff', margin: 0 }}>
+            Admin Dashboard
+          </h1>
+          {viewAsUser && <span style={{ fontSize: '0.8rem', color: '#fbbf24' }}>(Free User View)</span>}
+        </div>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
           {/* A4: View as User Toggle */}
           <button
             onClick={() => setViewAsUser(!viewAsUser)}
