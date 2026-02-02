@@ -9,6 +9,16 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-02 06:19 | Platform Engineer | COMPLETED
+Task: Fix Discord bot failing to fetch leaderboard data
+Files:
+  - apps/discord-bot/src/utils/api.js (increased timeout 10s→60s, added retry logic with exponential backoff)
+Result:
+  - Root cause: Render's free tier cold start (30-60s) exceeded bot's 10s timeout
+  - Increased API_TIMEOUT from 10000ms to 60000ms
+  - Added fetchWithRetry() with 2 retries and exponential backoff (2s, 4s delays)
+  - Deployed to production via git push (Render auto-deploy)
+
 ## 2026-02-02 06:05 | Platform Engineer | COMPLETED
 Task: Fix Discord bot not responding to commands
 Files:
