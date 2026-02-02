@@ -65,45 +65,47 @@ env:
 
 ---
 
-## Netlify Configuration
+## Cloudflare Pages (Current - Migrated 2026-02-01)
 
-### netlify.toml
-```toml
-[build]
-  base = "apps/web"
-  command = "npm run build"
-  publish = "build"
+### Project Configuration
+| Setting | Value |
+|---------|-------|
+| **Project Name** | `kingshot-atlas` |
+| **Production URL** | `https://kingshot-atlas.pages.dev` |
+| **Custom Domain** | `https://ks-atlas.com` |
+| **Framework Preset** | Vite |
+| **Build Command** | `npm run build` |
+| **Build Output** | `dist` |
+| **Root Directory** | `apps/web` |
 
-[build.environment]
-  NODE_VERSION = "20"
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Frame-Options = "DENY"
-    X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "strict-origin-when-cross-origin"
+### Environment Variables (Cloudflare Dashboard)
+```
+NODE_VERSION=20
+VITE_API_URL=https://kingshot-atlas.onrender.com
+VITE_SUPABASE_URL=https://qdczmafwcvnwfvixxbwg.supabase.co
+VITE_SUPABASE_ANON_KEY=(from .env)
 ```
 
-### Deploy Commands
-```bash
-# Check linked site
-npx netlify-cli status
+### Config Files
+- `apps/web/public/_headers` — Security headers (CSP, HSTS, caching)
+- `apps/web/public/_redirects` — SPA routing fallback (`/* /index.html 200`)
 
-# Deploy preview
-npx netlify-cli deploy --dir=build
+### Why Cloudflare Pages?
+- **Unlimited free deploys** (Netlify charges $0.15/deploy)
+- **Unlimited bandwidth** (Netlify caps at 100GB)
+- **300+ edge locations** (faster global CDN)
+- **Built-in DDoS protection**
 
-# Deploy production
-npx netlify-cli deploy --prod --dir=build
+### DNS Configuration
+- Nameservers: `santino.ns.cloudflare.com`, `vera.ns.cloudflare.com`
+- Registrar: Namecheap (DNS delegated to Cloudflare)
 
-# Link to specific site
-npx netlify-cli link --id 716ed1c2-eb00-4842-8781-c37fb2823eb8
-```
+---
+
+## Legacy: Netlify (DEPRECATED - DO NOT USE)
+
+Old site ID: `716ed1c2-eb00-4842-8781-c37fb2823eb8`
+Config file `netlify.toml` kept for reference only.
 
 ---
 
