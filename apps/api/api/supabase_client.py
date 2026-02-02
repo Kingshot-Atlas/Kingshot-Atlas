@@ -350,8 +350,11 @@ def get_kingdom_from_supabase(kingdom_number: int) -> Optional[dict]:
         return None
     
     try:
-        result = client.table('kingdoms').select('*').eq('kingdom_number', kingdom_number).single().execute()
-        return result.data
+        # Use limit(1) instead of single() to avoid exception when not found
+        result = client.table('kingdoms').select('*').eq('kingdom_number', kingdom_number).limit(1).execute()
+        if result.data and len(result.data) > 0:
+            return result.data[0]
+        return None
     except Exception as e:
         print(f"Error fetching kingdom {kingdom_number} from Supabase: {e}")
         return None

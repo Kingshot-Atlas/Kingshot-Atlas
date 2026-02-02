@@ -754,14 +754,14 @@ const Profile: React.FC = () => {
               </div>
               <div style={{
                 padding: '0.25rem 0.75rem',
-                backgroundColor: isAdmin ? '#fbbf2420' 
+                backgroundColor: isAdmin ? '#ef444420' 
                   : isRecruiter ? '#f9731620' 
                   : isPro ? '#22d3ee20' 
                   : '#3a3a3a20',
                 borderRadius: '9999px',
                 fontSize: '0.75rem',
                 fontWeight: '600',
-                color: isAdmin ? '#fbbf24' 
+                color: isAdmin ? '#ef4444' 
                   : isRecruiter ? '#f97316' 
                   : isPro ? '#22d3ee' 
                   : '#9ca3af',
