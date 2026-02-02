@@ -6,7 +6,9 @@ from database import SessionLocal, engine
 from models import Kingdom, KVKRecord, Base
 
 def import_kingdoms_data():
-    # Create tables
+    # Drop and recreate tables to ensure schema is up-to-date
+    # This is necessary when column names change (e.g., defeats → invasions)
+    Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     
     db = SessionLocal()

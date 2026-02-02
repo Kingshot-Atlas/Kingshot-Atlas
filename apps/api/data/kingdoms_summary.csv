@@ -1,4 +1,4 @@
-kingdom_number,total_kvks,prep_wins,prep_losses,prep_win_rate,prep_win_streak,battle_wins,battle_losses,battle_win_rate,battle_win_streak,dominations,defeats,most_recent_status,overall_score
+kingdom_number,total_kvks,prep_wins,prep_losses,prep_win_rate,prep_win_streak,battle_wins,battle_losses,battle_win_rate,battle_win_streak,dominations,invasions,most_recent_status,overall_score
 1,9,7,2,0.7777777777777778,6,3,6,0.3333333333333333,0,3,2,Unannounced,8.87
 2,9,2,7,0.2222222222222222,1,4,5,0.4444444444444444,0,1,4,Unannounced,6.23
 3,9,7,2,0.7777777777777778,0,9,0,1.0,9,7,0,Unannounced,10.63
