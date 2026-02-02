@@ -156,7 +156,9 @@
 | Accessibility Context | ✅ Live | Product | `AccessibilityContext.tsx` preferences |
 | High Contrast Mode | ✅ Live | Design | Toggle in accessibility settings |
 | Theme Context | ✅ Live | Design | `ThemeContext.tsx` dark/light modes |
-| Skeleton Loaders | ✅ Live | Product | `Skeleton.tsx`, `SkeletonCard.tsx` |
+| Skeleton Loaders | ✅ Live | Product | `Skeleton.tsx`, `SkeletonCard.tsx`, `LeaderboardSkeleton`, `KingdomProfileSkeleton`, `CompareCardSkeleton` |
+| Feedback Widget | ✅ Live | Product | `FeedbackWidget.tsx` - floating button for bug/feature/general feedback |
+| DataLoadError | ✅ Live | Product | `DataLoadError.tsx` - graceful error display with retry |
 | Toast Notifications | ✅ Live | Product | `Toast.tsx` feedback system |
 | Tooltips | ✅ Live | Product | `Tooltip.tsx` hover info |
 | Error Boundaries | ✅ Live | Product | `ErrorBoundary.tsx` graceful failures |
@@ -176,6 +178,7 @@
 | `/api/v1/agent` | ✅ Live | Platform | Agent system endpoints |
 | `/api/v1/discord` | ✅ Live | Platform | Discord bot integration |
 | `/api/v1/player-link` | ✅ Live | Platform | Kingshot account linking |
+| `/api/feedback` | ✅ Live | Platform | User feedback submission endpoint |
 
 ---
 
@@ -243,6 +246,17 @@
 | Stripe-Based Subscription Counts | ✅ Live | 2026-01-31 | Platform | Uses Stripe as source of truth for Pro/Recruiter counts |
 | Admin Subscription Sync | ✅ Live | 2026-01-31 | Platform | POST /api/v1/admin/subscriptions/sync-all |
 | Sync with Stripe Button | ✅ Live | 2026-01-31 | Platform | One-click reconciliation in User Breakdown section |
+| Feedback Tab | ✅ Live | 2026-02-02 | Product | View/manage user feedback with status workflow |
+
+---
+
+## CI/CD Pipeline
+
+| Feature | Status | Date | Agent | Notes |
+|---------|--------|------|-------|-------|
+| GitHub Actions CI | ✅ Live | 2026-01 | Ops | Lint, test, build pipeline |
+| Playwright E2E Tests | ✅ Live | 2026-02-02 | Product | E2E tests in CI with artifact uploads |
+| Lighthouse Audit | ✅ Live | 2026-01 | Ops | Performance monitoring |
 
 ---
 

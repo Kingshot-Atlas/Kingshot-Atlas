@@ -9,6 +9,28 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-02 17:15 | Product Engineer | COMPLETED
+Task: Add feedback system, E2E tests in CI, and loading skeletons
+Files:
+  - apps/web/src/components/FeedbackWidget.tsx (new - floating feedback button)
+  - apps/web/src/components/Skeleton.tsx (added LeaderboardSkeleton, KingdomProfileSkeleton, CompareCardSkeleton)
+  - apps/web/src/pages/AdminDashboard.tsx (added Feedback tab with status management)
+  - apps/web/src/pages/Leaderboards.tsx (integrated LeaderboardSkeleton)
+  - apps/web/src/pages/KingdomProfile.tsx (integrated KingdomProfileSkeleton)
+  - apps/web/src/pages/CompareKingdoms.tsx (integrated CompareCardSkeleton)
+  - apps/api/api/routers/feedback.py (new - /api/feedback endpoint)
+  - apps/api/main.py (registered feedback router)
+  - apps/web/e2e/loading-states.spec.ts (new - E2E tests for loading states)
+  - .github/workflows/ci.yml (added Playwright E2E test job)
+  - apps/web/playwright.config.ts (configured for CI)
+  - docs/migrations/create_feedback_table.sql (new - Supabase migration)
+Result:
+  - Users can submit feedback via floating button (bug/feature/general)
+  - Admins can view and manage feedback in dashboard
+  - Loading skeletons improve perceived performance
+  - E2E tests run automatically in CI pipeline
+  - Committed: 0aff926
+
 ## 2026-02-02 16:55 | Platform Engineer | COMPLETED
 Task: Fix /health endpoint returning 405 Method Not Allowed for UptimeRobot
 Files: apps/api/main.py
