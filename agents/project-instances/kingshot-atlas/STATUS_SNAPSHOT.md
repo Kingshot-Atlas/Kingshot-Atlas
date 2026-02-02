@@ -13,8 +13,8 @@
 | Frontend | ✅ Operational | React app builds successfully |
 | Backend | ✅ Operational | FastAPI running, all 1190 kingdoms loaded |
 | Tests | ✅ Passing | All API tests pass |
-| Deployment | 🔄 Migrating | Cloudflare Pages live, DNS propagating |
-| Hosting | ✅ Cloudflare Pages | Migrated from Netlify 2026-02-01 |
+| Deployment | ✅ Complete | Cloudflare Pages production |
+| Hosting | ✅ Cloudflare Pages | Netlify site deleted 2026-02-01 |
 | Agent System | ✅ Restructured | Professional 6-agent team established |
 | TypeScript | ✅ Clean | No type errors |
 | Accessibility | ✅ Enhanced | WCAG improvements, high contrast mode |
@@ -28,7 +28,7 @@
 
 | Task | Owner | Status |
 |------|-------|--------|
-| Cloudflare Pages DNS migration | Ops Lead | Waiting for nameserver propagation |
+| *No active tasks* | - | - |
 
 ---
 

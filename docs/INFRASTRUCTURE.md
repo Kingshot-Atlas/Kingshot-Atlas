@@ -109,18 +109,6 @@ Migrated from Netlify on 2026-02-01 for:
 
 ---
 
-## Legacy: Netlify (DEPRECATED)
-
-⚠️ **DO NOT USE** — Kept for reference only.
-
-| Property | Value |
-|----------|-------|
-| **Old Site Name** | `ks-atlas` |
-| **Old Site ID** | `716ed1c2-eb00-4842-8781-c37fb2823eb8` |
-| **Config File** | `netlify.toml` (can be removed after migration verified)
-
----
-
 ## URL Quick Reference
 
 ```bash
@@ -173,16 +161,10 @@ Update these files when infrastructure changes:
 | `apps/discord-bot/.env` | `API_URL` |
 | `apps/discord-bot/.env.example` | `API_URL` |
 | `apps/api/render.yaml` | Service name |
-| `apps/discord-bot/render.yaml` | `API_URL` |
 | `docs/DEPLOYMENT.md` | URLs table |
 | `docs/LAUNCH_CHECKLIST.md` | Setup instructions |
 | `docs/DISCORD_BOT.md` | API URL |
 | `apps/api/RENDER_DEPLOY.md` | Deploy instructions |
-
-### Legacy Files (can be removed after Cloudflare migration verified)
-| File | Notes |
-|------|-------|
-| `apps/web/netlify.toml` | Old Netlify config - keep until DNS fully migrated |
 
 ---
 
