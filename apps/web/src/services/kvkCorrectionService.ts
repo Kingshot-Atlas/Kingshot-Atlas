@@ -28,7 +28,7 @@ export interface KvKCorrection {
 
 const KVK_CORRECTIONS_KEY = 'kingshot_kvk_corrections_applied';
 const KVK_CORRECTIONS_CACHE_KEY = 'kingshot_kvk_corrections_cache';
-const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL_MS = 30 * 1000; // 30 seconds - short to ensure corrections are picked up quickly
 
 class KvKCorrectionService {
   private correctionsCache: Map<string, KvKCorrection> | null = null;

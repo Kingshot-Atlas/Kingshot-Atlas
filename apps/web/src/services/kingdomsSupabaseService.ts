@@ -37,7 +37,7 @@ interface CachedKingdomsData {
   timestamp: number;
 }
 
-const CACHE_TTL_MS = 30 * 1000; // 30 seconds - short for freshness
+const CACHE_TTL_MS = 5 * 1000; // 5 seconds - very short to ensure corrections are reflected
 let cachedKingdoms: CachedKingdomsData | null = null;
 let isLoading = false;
 let loadPromise: Promise<Kingdom[]> | null = null;

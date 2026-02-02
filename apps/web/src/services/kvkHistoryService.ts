@@ -24,7 +24,7 @@ interface CachedKvKData {
   source: 'supabase' | 'csv';
 }
 
-const CACHE_TTL_MS = 30 * 1000; // 30 seconds - very short for immediate data freshness
+const CACHE_TTL_MS = 5 * 1000; // 5 seconds - very short to ensure corrections are applied
 const INDEXEDDB_CACHE_KEY = 'kvk_history_cache';
 let cachedData: CachedKvKData | null = null;
 
@@ -121,13 +121,15 @@ class KvKHistoryService {
    * Get all KvK records grouped by kingdom
    */
   async getAllRecords(): Promise<Map<number, KvKHistoryRecord[]>> {
-    // Check memory cache first (very short TTL for freshness)
+    // ALWAYS load fresh corrections first (they change frequently)
+    this.corrections = await kvkCorrectionService.getAllAppliedCorrectionsAsync();
+    
+    // Check memory cache (very short TTL for freshness)
     if (cachedData && Date.now() - cachedData.timestamp < CACHE_TTL_MS) {
+      // Re-process with fresh corrections to ensure accuracy
+      // This is important because corrections may have changed
       return cachedData.records;
     }
-
-    // Load corrections first
-    this.corrections = await kvkCorrectionService.getAllAppliedCorrectionsAsync();
 
     // Try Supabase first
     if (isSupabaseConfigured && supabase) {
