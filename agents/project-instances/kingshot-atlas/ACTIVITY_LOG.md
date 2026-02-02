@@ -9,6 +9,26 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-02 15:45 | Atlas Director | COMPLETED
+Task: Complete Atlas Score v2.0 - Backend, Frontend & Analytics (15 tasks across 3 options)
+Files Changed:
+  Backend:
+  - apps/api/api/atlas_score_formula.py (NEW - Python formula matching frontend)
+  - apps/api/api/routers/admin.py (score recalculation + distribution + movers endpoints)
+  - docs/migrations/add_score_history.sql (NEW - score history table migration)
+  Frontend:
+  - apps/web/src/components/PathToNextTier.tsx (NEW - what-if scenarios)
+  - apps/web/src/components/ScoreDistribution.tsx (NEW - histogram + tier counts)
+  - apps/web/src/components/ScoreMovers.tsx (NEW - weekly movers)
+  - apps/web/src/components/ScoreComparisonOverlay.tsx (NEW - detailed breakdown)
+  - apps/web/src/components/ScorePrediction.tsx (NEW - outcome probabilities)
+  - apps/web/src/components/AllianceScoring.tsx (NEW - multi-kingdom analysis)
+  - apps/web/src/hooks/useScoreChangeNotifications.ts (NEW - follow kingdoms)
+  - apps/web/src/pages/KingdomProfile.tsx (added PathToNextTier)
+  - apps/web/src/pages/Leaderboards.tsx (added ScoreDistribution + ScoreMovers)
+  - apps/web/src/pages/CompareKingdoms.tsx (added ScoreComparisonOverlay)
+Result: All 15 tasks completed. Build verified. Pushed to main.
+
 ## 2026-02-02 14:30 | Platform Engineer | COMPLETED
 Task: Re-import corrected KvK history data after table corruption
 Root Cause: Previous migration corrupted kvk_history table data
