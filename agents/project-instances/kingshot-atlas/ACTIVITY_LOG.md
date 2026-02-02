@@ -23,6 +23,17 @@ Result:
   - Bot has better error handling and logging for diagnostics
   - PENDING: User needs to resume suspended Discord bot service on Render
 
+## 2026-02-02 06:04 | Design Lead | COMPLETED
+Task: Apply red admin color app-wide, update STYLE_GUIDE.md
+Files:
+  - apps/web/src/pages/Profile.tsx (admin subscription badge: #fbbf24 → #ef4444)
+  - apps/web/src/STYLE_GUIDE.md (documented admin color as red, updated tier table)
+Result:
+  - Profile subscription badge now shows red for admins
+  - STYLE_GUIDE.md updated with complete subscription tier color table
+  - Admin badge documentation added (red with ⚡ icon)
+  - Recruiter color corrected from purple to orange in docs
+
 ## 2026-02-02 05:58 | Product Engineer + Design Lead | COMPLETED
 Task: Fix admin sorting, change admin color to red, add admin filter chip
 Files:

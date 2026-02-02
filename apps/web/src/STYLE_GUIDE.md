@@ -244,23 +244,30 @@ const neonGlow = (color: string) => ({
 
 | Tier | Color | Hex | Usage |
 |------|-------|-----|-------|
+| **Admin** | Red | `#ef4444` | Admin badges, borders, role indicators |
+| **Atlas Recruiter** | Orange | `#f97316` | Recruiter buttons, badges, price text, role indicators |
 | **Atlas Pro** | Cyan | `#22d3ee` | Pro buttons, badges, price text, role indicators |
-| **Atlas Recruiter** | Purple | `#a855f7` | Recruiter buttons, badges, price text, role indicators |
+| **Free** | Gray/White | `#6b7280` / `#ffffff` | Default text, no special styling |
 
 ### Usage Examples
 ```tsx
+// Admin tier styling
+<span style={{ color: '#ef4444' }}>⚡ ADMIN</span>
+<div style={{ border: '1px solid #ef4444' }}>Admin card</div>
+
 // Pro tier styling
 <button style={{ backgroundColor: '#22d3ee', color: '#000' }}>Upgrade to Pro</button>
 <span style={{ color: '#22d3ee' }}>$3.33/month</span>
 
 // Recruiter tier styling
-<button style={{ backgroundColor: '#a855f7', color: '#fff' }}>Upgrade to Recruiter</button>
-<span style={{ color: '#a855f7' }}>$9.99/month</span>
+<button style={{ backgroundColor: '#f97316', color: '#fff' }}>Upgrade to Recruiter</button>
+<span style={{ color: '#f97316' }}>$9.99/month</span>
 ```
 
 ### Role Badges
+- **Admin badge**: Red background/border with lightning icon (⚡)
+- **Recruiter badge**: Orange background with white text, crown icon (👑)
 - **Pro badge**: Cyan background with dark text, star icon (⭐)
-- **Recruiter badge**: Purple background with white text, crown icon (👑)
 
 ### Pro Feature Unlock Buttons (SOURCE OF TRUTH)
 
