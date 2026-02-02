@@ -91,6 +91,25 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-bg">
       <Header />
+      {/* Data Issue Notice Banner */}
+      <div style={{
+        background: 'linear-gradient(90deg, #b91c1c 0%, #dc2626 50%, #b91c1c 100%)',
+        color: 'white',
+        padding: '12px 16px',
+        textAlign: 'center',
+        fontWeight: 500,
+        fontSize: '14px',
+        borderBottom: '1px solid #991b1b',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '8px'
+      }}>
+        <span style={{ fontSize: '18px' }}>⚠️</span>
+        <span>
+          <strong>Data Notice:</strong> Some kingdom data is currently incorrect. We're working on a fix. Thank you for your patience.
+        </span>
+      </div>
       <KeyboardShortcutsModal isOpen={showHelp} onClose={closeHelp} />
       <main className="container mx-auto px-4 py-8">
         <PageTransition>
