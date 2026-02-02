@@ -9,6 +9,16 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-02 19:15 | Product Engineer | COMPLETED
+Task: Add tier-based avatar border colors and fix TC level display
+Files:
+  - apps/web/src/pages/Profile.tsx (added getTierBorderColor, formatTCLevel)
+  - apps/web/src/STYLE_GUIDE.md (added Avatar Border Colors section)
+Result:
+  - Avatar border now reflects subscription tier: Free=white, Pro=cyan, Recruiter=purple, Admin=red
+  - TC level displays as TG format for levels 35+ (TC55 → TG5)
+  - Documented in STYLE_GUIDE.md as SOURCE OF TRUTH
+
 ## 2026-02-02 19:10 | Product Engineer | COMPLETED
 Task: Redesign public profile page for cleaner display
 Files:
