@@ -488,8 +488,8 @@ const Profile: React.FC = () => {
             marginBottom: '0.5rem',
             fontFamily: "'Cinzel', 'Times New Roman', serif"
           }}>
-            <span style={{ color: '#fff' }}>{isViewingOther ? getDisplayName(viewedProfile).toUpperCase() : 'MY'}</span>
-            <span style={{ ...neonGlow(themeColor), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>PROFILE</span>
+            <span style={{ color: '#fff' }}>{isViewingOther ? 'PUBLIC' : 'MY'}</span>
+            <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>PROFILE</span>
           </h1>
           <p style={{ color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.9rem', marginBottom: '0.75rem' }}>
             {isViewingOther ? viewedProfile?.bio : 'Your command center for kingdom intel'}
@@ -638,17 +638,17 @@ const Profile: React.FC = () => {
                 textAlign: isMobile ? 'center' : 'left'
               }}>
                 <AvatarWithFallback 
-                  avatarUrl={viewedProfile?.avatar_url}
-                  username={viewedProfile?.username}
+                  avatarUrl={isViewingOther ? viewedProfile?.linked_avatar_url : viewedProfile?.avatar_url}
+                  username={isViewingOther ? viewedProfile?.linked_username : viewedProfile?.username}
                   size={isMobile ? 80 : 64}
                   themeColor={themeColor}
                   badgeStyle={viewedProfile?.badge_style}
                 />
                 <div>
                   <div style={{ fontSize: isMobile ? '1.35rem' : '1.5rem', fontWeight: 'bold', color: '#fff' }}>
-                    {getDisplayName(viewedProfile)}
+                    {isViewingOther ? (viewedProfile?.linked_username || getDisplayName(viewedProfile)) : getDisplayName(viewedProfile)}
                   </div>
-                  {viewedProfile?.home_kingdom && (
+                  {!isViewingOther && viewedProfile?.home_kingdom && (
                     <Link to={`/kingdom/${viewedProfile.home_kingdom}`} style={{ color: themeColor, textDecoration: 'none', fontSize: isMobile ? '0.85rem' : '0.9rem' }}>
                       Home: Kingdom {viewedProfile.home_kingdom}
                     </Link>
@@ -682,27 +682,78 @@ const Profile: React.FC = () => {
               )}
             </div>
 
-            {/* Profile Details */}
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: isMobile ? '0.5rem' : '1rem', marginBottom: isMobile ? '1rem' : '1.5rem' }}>
-              {viewedProfile?.alliance_tag && (
-                <div style={{ padding: '0.75rem', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a' }}>
-                  <div style={{ fontSize: '0.7rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Alliance</div>
-                  <div style={{ fontSize: '0.95rem', color: '#fff', fontWeight: '500' }}>[{viewedProfile.alliance_tag}]</div>
+            {/* Profile Details - Different layout for public vs own profile */}
+            {isViewingOther ? (
+              // Public profile: Kingdom, Alliance, Player ID | TC level, Language, Region
+              <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '0.5rem' : '0.75rem', marginBottom: isMobile ? '1rem' : '1.5rem' }}>
+                {/* Row 1: Kingdom, Alliance, Player ID */}
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: isMobile ? '0.5rem' : '1rem' }}>
+                  {viewedProfile?.linked_kingdom && (
+                    <Link to={`/kingdom/${viewedProfile.linked_kingdom}`} style={{ textDecoration: 'none' }}>
+                      <div style={{ padding: '0.75rem', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a', cursor: 'pointer', transition: 'border-color 0.2s' }}>
+                        <div style={{ fontSize: '0.7rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Kingdom</div>
+                        <div style={{ fontSize: '0.95rem', color: themeColor, fontWeight: '500' }}>{viewedProfile.linked_kingdom}</div>
+                      </div>
+                    </Link>
+                  )}
+                  {viewedProfile?.alliance_tag && (
+                    <div style={{ padding: '0.75rem', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a' }}>
+                      <div style={{ fontSize: '0.7rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Alliance</div>
+                      <div style={{ fontSize: '0.95rem', color: '#fff', fontWeight: '500' }}>[{viewedProfile.alliance_tag}]</div>
+                    </div>
+                  )}
+                  {viewedProfile?.linked_player_id && (
+                    <div style={{ padding: '0.75rem', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a' }}>
+                      <div style={{ fontSize: '0.7rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Player ID</div>
+                      <div style={{ fontSize: '0.95rem', color: '#fff', fontWeight: '500' }}>{viewedProfile.linked_player_id}</div>
+                    </div>
+                  )}
                 </div>
-              )}
-              {viewedProfile?.language && (
-                <div style={{ padding: '0.75rem', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a' }}>
-                  <div style={{ fontSize: '0.7rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Language</div>
-                  <div style={{ fontSize: '0.95rem', color: '#fff', fontWeight: '500' }}>{viewedProfile.language}</div>
+                {/* Row 2: TC Level, Language, Region */}
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: isMobile ? '0.5rem' : '1rem' }}>
+                  {viewedProfile?.linked_tc_level && (
+                    <div style={{ padding: '0.75rem', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a' }}>
+                      <div style={{ fontSize: '0.7rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Town Center</div>
+                      <div style={{ fontSize: '0.95rem', color: '#fff', fontWeight: '500' }}>TC{viewedProfile.linked_tc_level}</div>
+                    </div>
+                  )}
+                  {viewedProfile?.language && (
+                    <div style={{ padding: '0.75rem', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a' }}>
+                      <div style={{ fontSize: '0.7rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Language</div>
+                      <div style={{ fontSize: '0.95rem', color: '#fff', fontWeight: '500' }}>{viewedProfile.language}</div>
+                    </div>
+                  )}
+                  {viewedProfile?.region && (
+                    <div style={{ padding: '0.75rem', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a' }}>
+                      <div style={{ fontSize: '0.7rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Region</div>
+                      <div style={{ fontSize: '0.95rem', color: '#fff', fontWeight: '500' }}>{viewedProfile.region}</div>
+                    </div>
+                  )}
                 </div>
-              )}
-              {viewedProfile?.region && (
-                <div style={{ padding: '0.75rem', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a' }}>
-                  <div style={{ fontSize: '0.7rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Region</div>
-                  <div style={{ fontSize: '0.95rem', color: '#fff', fontWeight: '500' }}>{viewedProfile.region}</div>
-                </div>
-              )}
-            </div>
+              </div>
+            ) : (
+              // Own profile: Alliance, Language, Region
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: isMobile ? '0.5rem' : '1rem', marginBottom: isMobile ? '1rem' : '1.5rem' }}>
+                {viewedProfile?.alliance_tag && (
+                  <div style={{ padding: '0.75rem', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a' }}>
+                    <div style={{ fontSize: '0.7rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Alliance</div>
+                    <div style={{ fontSize: '0.95rem', color: '#fff', fontWeight: '500' }}>[{viewedProfile.alliance_tag}]</div>
+                  </div>
+                )}
+                {viewedProfile?.language && (
+                  <div style={{ padding: '0.75rem', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a' }}>
+                    <div style={{ fontSize: '0.7rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Language</div>
+                    <div style={{ fontSize: '0.95rem', color: '#fff', fontWeight: '500' }}>{viewedProfile.language}</div>
+                  </div>
+                )}
+                {viewedProfile?.region && (
+                  <div style={{ padding: '0.75rem', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a' }}>
+                    <div style={{ fontSize: '0.7rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Region</div>
+                    <div style={{ fontSize: '0.95rem', color: '#fff', fontWeight: '500' }}>{viewedProfile.region}</div>
+                  </div>
+                )}
+              </div>
+            )}
             {viewedProfile?.bio && (
               <p style={{ 
                 color: '#9ca3af', 
@@ -755,25 +806,6 @@ const Profile: React.FC = () => {
               lastSynced={viewedProfile?.linked_last_synced}
               onRefresh={refreshLinkedPlayer}
               subscriptionTier={isAdmin ? 'admin' : isRecruiter ? 'recruiter' : isPro ? 'pro' : 'free'}
-            />
-          </div>
-        )}
-
-        {/* Linked Kingshot Account - Public view for other profiles */}
-        {isViewingOther && viewedProfile?.linked_username && (
-          <div style={{ marginBottom: '1.5rem' }}>
-            <LinkKingshotAccount
-              linkedPlayer={{
-                player_id: viewedProfile.linked_player_id || viewedProfile.linked_username,
-                username: viewedProfile.linked_username,
-                avatar_url: viewedProfile.linked_avatar_url || null,
-                kingdom: viewedProfile.linked_kingdom || 0,
-                town_center_level: viewedProfile.linked_tc_level || 0,
-                verified: true,
-              }}
-              subscriptionTier={viewedUserTier}
-              isPublicView={true}
-              showRefresh={false}
             />
           </div>
         )}
