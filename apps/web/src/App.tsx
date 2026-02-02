@@ -72,11 +72,18 @@ function AppContent() {
   useKeyboardShortcuts({ onShowHelp: openHelp });
   usePageTracking(); // Track page views for analytics
   
-  // Subscribe to real-time kingdom updates with toast notifications
+  // Subscribe to real-time kingdom and KvK history updates with toast notifications
   useKingdomsRealtime({
     onKingdomUpdate: (kingdomNumber, eventType) => {
       if (eventType === 'UPDATE') {
         showToast(`🔄 Kingdom ${kingdomNumber} data updated`, 'info');
+      }
+    },
+    onKvkHistoryUpdate: (kingdomNumber, kvkNumber, eventType) => {
+      if (eventType === 'UPDATE') {
+        showToast(`📊 K${kingdomNumber} KvK #${kvkNumber} data corrected`, 'success');
+      } else if (eventType === 'INSERT') {
+        showToast(`✨ New KvK record for Kingdom ${kingdomNumber}`, 'info');
       }
     }
   });

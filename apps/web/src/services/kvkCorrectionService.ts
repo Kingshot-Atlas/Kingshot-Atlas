@@ -128,6 +128,14 @@ class KvKCorrectionService {
   }
 
   /**
+   * Invalidate corrections cache (call when realtime updates arrive)
+   */
+  invalidateCache(): void {
+    this.correctionsCache = null;
+    this.lastFetchTime = 0;
+  }
+
+  /**
    * Get correction for a specific KvK record
    */
   getCorrection(kingdomNumber: number, kvkNumber: number): KvKCorrection | null {
