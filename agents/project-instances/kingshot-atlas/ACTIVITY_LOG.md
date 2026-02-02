@@ -9,6 +9,17 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-02 19:10 | Product Engineer | COMPLETED
+Task: Redesign public profile page for cleaner display
+Files:
+  - apps/web/src/pages/Profile.tsx
+Result:
+  - Title always shows "PUBLIC PROFILE" with cyan styling (not user's name)
+  - Avatar/username now use Kingshot account data instead of Discord
+  - Info boxes reorganized: Kingdom, Alliance, Player ID | TC level, Language, Region
+  - Removed redundant "Linked Kingshot Account" card from public profiles
+  - Kingdom clickable to navigate to kingdom page
+
 ## 2026-02-02 22:35 | Product Engineer | COMPLETED
 Task: Top-tier mobile UX polish for Profile page
 Files:
