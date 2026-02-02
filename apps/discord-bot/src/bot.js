@@ -43,7 +43,9 @@ let lastHeartbeat = Date.now();
 
 const healthServer = http.createServer((req, res) => {
   if (req.url === '/health') {
-    const isHealthy = botReady && client.ws.status === 0; // 0 = READY
+    // Null-safe access to Discord client state (client may not be initialized yet)
+    const wsStatus = client?.ws?.status ?? -1; // -1 = not connected
+    const isHealthy = botReady && wsStatus === 0; // 0 = READY
     const uptime = process.uptime();
     const memUsage = process.memoryUsage();
     
@@ -51,10 +53,10 @@ const healthServer = http.createServer((req, res) => {
       status: isHealthy ? 'healthy' : 'unhealthy',
       service: 'atlas-discord-bot',
       discord: {
-        connected: client.ws.status === 0,
-        wsStatus: client.ws.status,
-        guilds: client.guilds?.cache?.size || 0,
-        ping: client.ws.ping,
+        connected: wsStatus === 0,
+        wsStatus: wsStatus,
+        guilds: client?.guilds?.cache?.size || 0,
+        ping: client?.ws?.ping ?? -1,
       },
       process: {
         uptime: Math.floor(uptime),

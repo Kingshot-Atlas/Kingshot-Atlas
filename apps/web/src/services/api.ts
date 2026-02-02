@@ -10,7 +10,6 @@ import { kingdomsSupabaseService } from './kingdomsSupabaseService';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 const CACHE_KEY = 'kingshot_kingdom_cache';
-const CACHE_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
 const REQUEST_TIMEOUT_MS = 10000; // 10 second timeout
 const MAX_RETRIES = 2;
 
@@ -51,26 +50,18 @@ const preloadSupabaseData = async () => {
 // Start preloading immediately and store the promise
 preloadPromise = preloadSupabaseData();
 
-interface CacheData {
-  kingdoms: Kingdom[];
-  timestamp: number;
-}
-
 // ADR-011: Kingdom data comes exclusively from Supabase
 // This array is populated by preloadSupabaseData() on module load
 let realKingdoms: Kingdom[] = [];
 
 class ApiService {
-  private cache: CacheData | null = null;
-
   constructor() {
-    // Clear stale cache on initialization to fix any corrupted data
+    // Clear stale cache on initialization
     this.clearCache();
   }
 
   clearCache(): void {
     localStorage.removeItem(CACHE_KEY);
-    this.cache = null;
   }
 
   /**
@@ -109,31 +100,6 @@ class ApiService {
     } catch (err) {
       dataLoadError = 'Failed to reload kingdom data.';
       logger.error('Failed to reload Supabase data:', err);
-    }
-  }
-
-  private loadCache(): CacheData | null {
-    try {
-      const cached = localStorage.getItem(CACHE_KEY);
-      if (cached) {
-        const data = JSON.parse(cached) as CacheData;
-        if (Date.now() - data.timestamp < CACHE_EXPIRY_MS) {
-          return data;
-        }
-      }
-    } catch (e) {
-      logger.warn('Failed to load cache:', e);
-    }
-    return null;
-  }
-
-  private saveCache(kingdoms: Kingdom[]): void {
-    try {
-      const data: CacheData = { kingdoms, timestamp: Date.now() };
-      localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-      this.cache = data;
-    } catch (e) {
-      logger.warn('Failed to save cache:', e);
     }
   }
 
@@ -329,7 +295,7 @@ class ApiService {
       const kingdom = realKingdoms.find(k => k.kingdom_number === kingdomNumber);
       if (!kingdom) return null;
       
-      // realKingdoms already has all fields from loadKingdomData
+      // realKingdoms already has all fields from Supabase
       const profile: KingdomProfile = {
         ...kingdom,
         rank: kingdom.rank,

@@ -9,6 +9,23 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-02 17:00 | Platform Engineer | COMPLETED
+Task: ADR-011 Phase 2 - Clean up orphaned data sources and enforce Supabase SSOT
+Files:
+  - apps/web/src/data/kingdoms.json (DELETED - 1.7MB)
+  - apps/web/src/data/kingdoms.csv (DELETED)
+  - apps/web/src/data/kingdoms_all_kvks.csv (DELETED)
+  - apps/web/src/data/kingdoms_last5_kvks.csv (DELETED)
+  - apps/web/src/services/transformers.ts (removed loadKingdomData, JSON import)
+  - apps/web/src/services/api.ts (cleaned up unused cache functions)
+  - apps/api/api/routers/kingdoms.py (updated to use Supabase as primary source)
+  - apps/web/src/components/DataLoadError.tsx (NEW - error UI component)
+Result:
+  - Removed ~2MB of stale data files from frontend bundle
+  - API now queries Supabase first, SQLite only as fallback
+  - DataLoadError component for clear error states when data unavailable
+  - Build verified successfully
+
 ## 2026-02-02 16:30 | Platform Engineer | COMPLETED
 Task: ADR-011 - Remove redundant data sources (SQLite writes & JSON fallback)
 Files:

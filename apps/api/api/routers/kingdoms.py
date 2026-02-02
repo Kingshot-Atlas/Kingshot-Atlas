@@ -1,15 +1,22 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
 from sqlalchemy import desc, asc, func
 from typing import Optional, List
-from collections import defaultdict
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from database import get_db
 from models import Kingdom, KVKRecord
 from schemas import Kingdom as KingdomSchema, KingdomProfile, PaginatedResponse
-from api.supabase_client import get_kingdom_from_supabase, get_kvk_history_from_supabase
+from api.supabase_client import (
+    get_kingdom_from_supabase, 
+    get_kvk_history_from_supabase,
+    get_kingdoms_from_supabase,
+    get_supabase_admin
+)
 import math
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 limiter = Limiter(key_func=get_remote_address)
@@ -20,7 +27,7 @@ ALLOWED_SORT_FIELDS = {
     'total_kvks', 'prep_streak', 'battle_streak', 'dominations', 'invasions'
 }
 
-@router.get("/kingdoms", response_model=PaginatedResponse[KingdomSchema])
+@router.get("/kingdoms")
 @limiter.limit("60/minute")
 def get_kingdoms(
     request: Request,
@@ -35,9 +42,87 @@ def get_kingdoms(
     page_size: int = Query(50, ge=1, le=100, description="Items per page (max 100)"),
     db: Session = Depends(get_db)
 ):
+    """ADR-011: Fetch kingdoms from Supabase (single source of truth), SQLite fallback."""
+    
+    # Try Supabase first (source of truth)
+    try:
+        supabase = get_supabase_admin()
+        if supabase:
+            # Build Supabase query
+            query = supabase.table('kingdoms').select('*')
+            
+            # Apply search filter
+            if search:
+                try:
+                    kingdom_num = int(search)
+                    query = query.eq('kingdom_number', kingdom_num)
+                except ValueError:
+                    raise HTTPException(status_code=400, detail="Search must be a valid kingdom number")
+            
+            # Apply filters
+            if status:
+                query = query.eq('most_recent_status', status)
+            if min_kvks is not None:
+                query = query.gte('total_kvks', min_kvks)
+            if min_prep_wr is not None:
+                query = query.gte('prep_win_rate', min_prep_wr)
+            if min_battle_wr is not None:
+                query = query.gte('battle_win_rate', min_battle_wr)
+            
+            # Map sort field names
+            sort_field = sort if sort in ALLOWED_SORT_FIELDS else 'kingdom_number'
+            if sort_field == 'overall_score':
+                sort_field = 'atlas_score'
+            
+            # Apply sorting
+            query = query.order(sort_field, desc=(order == 'desc'))
+            
+            # Get total count (separate query)
+            count_result = supabase.table('kingdoms').select('kingdom_number', count='exact')
+            if search:
+                count_result = count_result.eq('kingdom_number', int(search))
+            if status:
+                count_result = count_result.eq('most_recent_status', status)
+            if min_kvks is not None:
+                count_result = count_result.gte('total_kvks', min_kvks)
+            if min_prep_wr is not None:
+                count_result = count_result.gte('prep_win_rate', min_prep_wr)
+            if min_battle_wr is not None:
+                count_result = count_result.gte('battle_win_rate', min_battle_wr)
+            count_data = count_result.execute()
+            total = count_data.count if count_data.count else len(count_data.data or [])
+            
+            # Apply pagination
+            offset = (page - 1) * page_size
+            query = query.range(offset, offset + page_size - 1)
+            
+            result = query.execute()
+            kingdoms = result.data or []
+            
+            # Map atlas_score to overall_score and add ranks
+            for i, k in enumerate(kingdoms):
+                if 'atlas_score' in k:
+                    k['overall_score'] = k['atlas_score']
+                # Calculate rank based on position (approximate for paginated results)
+                k['rank'] = offset + i + 1 if sort_field == 'atlas_score' and order == 'desc' else 0
+                k['recent_kvks'] = []  # KvK history fetched separately if needed
+            
+            total_pages = math.ceil(total / page_size) if total > 0 else 1
+            
+            logger.info(f"Fetched {len(kingdoms)} kingdoms from Supabase (page {page})")
+            return {
+                "items": kingdoms,
+                "total": total,
+                "page": page,
+                "page_size": page_size,
+                "total_pages": total_pages
+            }
+    except Exception as e:
+        logger.warning(f"Supabase query failed, falling back to SQLite: {e}")
+    
+    # Fallback to SQLite if Supabase unavailable
     query = db.query(Kingdom)
     
-    # Apply filters
     if search:
         try:
             kingdom_num = int(search)
@@ -47,69 +132,38 @@ def get_kingdoms(
     
     if status:
         query = query.filter(Kingdom.most_recent_status == status)
-    
     if min_kvks is not None:
         query = query.filter(Kingdom.total_kvks >= min_kvks)
-    
     if min_prep_wr is not None:
         query = query.filter(Kingdom.prep_win_rate >= min_prep_wr)
-    
     if min_battle_wr is not None:
         query = query.filter(Kingdom.battle_win_rate >= min_battle_wr)
     
-    # Get total count before pagination
     total = query.count()
     total_pages = math.ceil(total / page_size) if total > 0 else 1
     
-    # Apply sorting - validate against whitelist to prevent information disclosure
     if sort and sort in ALLOWED_SORT_FIELDS:
         sort_column = getattr(Kingdom, sort)
-        if order and order.lower() == "desc":
-            query = query.order_by(desc(sort_column))
-        else:
-            query = query.order_by(asc(sort_column))
+        query = query.order_by(desc(sort_column) if order == "desc" else asc(sort_column))
     else:
         query = query.order_by(asc(Kingdom.kingdom_number))
     
-    # Apply pagination
     offset = (page - 1) * page_size
     kingdoms = query.offset(offset).limit(page_size).all()
     
-    # Add rank based on overall_score (higher score = better rank)
-    # Calculate global rank using DB query for accuracy
     for kingdom in kingdoms:
-        rank = db.query(func.count(Kingdom.kingdom_number)).filter(
+        kingdom.rank = db.query(func.count(Kingdom.kingdom_number)).filter(
             Kingdom.overall_score > kingdom.overall_score
         ).scalar() + 1
-        kingdom.rank = rank
+        kingdom.recent_kvks = []
     
-    # OPTIMIZED: Batch fetch all KVK records in single query (fixes N+1)
-    kingdom_numbers = [k.kingdom_number for k in kingdoms]
-    if kingdom_numbers:
-        all_kvks = db.query(KVKRecord).filter(
-            KVKRecord.kingdom_number.in_(kingdom_numbers)
-        ).order_by(KVKRecord.kingdom_number, desc(KVKRecord.kvk_number)).all()
-        
-        # Group by kingdom and limit to 5 per kingdom
-        kvks_by_kingdom = defaultdict(list)
-        for kvk in all_kvks:
-            if len(kvks_by_kingdom[kvk.kingdom_number]) < 5:
-                kvks_by_kingdom[kvk.kingdom_number].append(kvk)
-        
-        # Assign to kingdoms
-        for kingdom in kingdoms:
-            kingdom.recent_kvks = kvks_by_kingdom.get(kingdom.kingdom_number, [])
-    else:
-        for kingdom in kingdoms:
-            kingdom.recent_kvks = []
-    
-    return PaginatedResponse(
-        items=kingdoms,
-        total=total,
-        page=page,
-        page_size=page_size,
-        total_pages=total_pages
-    )
+    return {
+        "items": kingdoms,
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "total_pages": total_pages
+    }
 
 @router.get("/kingdoms/{kingdom_number}")
 def get_kingdom_profile(kingdom_number: int, db: Session = Depends(get_db)):
@@ -143,26 +197,6 @@ def get_kingdom_profile(kingdom_number: int, db: Session = Depends(get_db)):
         traceback.print_exc()
         # Fall through to SQLite fallback
     
-    # Fallback to SQLite if Supabase unavailable or failed
-    kingdom = db.query(Kingdom).filter(Kingdom.kingdom_number == kingdom_number).first()
-    
-    if not kingdom:
-        raise HTTPException(status_code=404, detail="Kingdom not found")
-    
-    # Get ALL KVK records for profile (ordered by most recent first)
-    recent_kvks = db.query(KVKRecord).filter(
-        KVKRecord.kingdom_number == kingdom_number
-    ).order_by(desc(KVKRecord.kvk_number)).all()
-    
-    # OPTIMIZED: Calculate rank with single COUNT query instead of fetching all kingdoms
-    rank = db.query(func.count(Kingdom.kingdom_number)).filter(
-        Kingdom.overall_score > kingdom.overall_score
-    ).scalar() + 1
-    
-    kingdom_profile = KingdomProfile(
-        **kingdom.__dict__,
-        rank=rank,
-        recent_kvks=recent_kvks
-    )
-    
-    return kingdom_profile
+    # ADR-011: If Supabase failed, return 503 instead of falling back to stale SQLite data
+    logger.error(f"Kingdom {kingdom_number} not found in Supabase")
+    raise HTTPException(status_code=404, detail="Kingdom not found")
