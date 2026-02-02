@@ -14,6 +14,7 @@ import { AnalyticsDashboard } from '../components/AnalyticsCharts';
 import { EngagementDashboard } from '../components/EngagementDashboard';
 import { WebhookMonitor } from '../components/WebhookMonitor';
 import { DataSourceStats } from '../components/DataSourceStats';
+import { BotDashboard } from '../components/BotDashboard';
 import { ADMIN_USERNAMES } from '../utils/constants';
 import { supabase } from '../lib/supabase';
 import { logger } from '../utils/logger';
@@ -40,7 +41,7 @@ const AdminDashboard: React.FC = () => {
   const { showToast } = useToast();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [activeTab, setActiveTab] = useState<'analytics' | 'saas-metrics' | 'engagement' | 'webhooks' | 'data-sources' | 'submissions' | 'new-kingdoms' | 'claims' | 'corrections' | 'kvk-errors' | 'import' | 'users' | 'plausible' | 'transfer-status'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'saas-metrics' | 'engagement' | 'webhooks' | 'data-sources' | 'discord-bot' | 'submissions' | 'new-kingdoms' | 'claims' | 'corrections' | 'kvk-errors' | 'import' | 'users' | 'plausible' | 'transfer-status'>('analytics');
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [claims, setClaims] = useState<Claim[]>([]);
   const [transferSubmissions, setTransferSubmissions] = useState<StatusSubmission[]>([]);
@@ -119,8 +120,53 @@ const AdminDashboard: React.FC = () => {
   const handleApproveNewKingdom = async (submission: NewKingdomSubmission) => {
     if (!supabase) return;
     try {
-      // Update submission status
-      const { error } = await supabase
+      // 1. Create the kingdom record in Supabase kingdoms table
+      const { error: kingdomError } = await supabase
+        .from('kingdoms')
+        .insert({
+          kingdom_number: submission.kingdom_number,
+          first_kvk_id: submission.first_kvk_id,
+          total_kvks: 0,
+          prep_wins: 0,
+          prep_losses: 0,
+          battle_wins: 0,
+          battle_losses: 0,
+          dominations: 0,
+          invasions: 0,
+          atlas_score: 0,
+          most_recent_status: 'Unannounced'
+        });
+      
+      if (kingdomError) {
+        // Check if kingdom already exists (might have been created via another path)
+        if (kingdomError.code !== '23505') { // Not a duplicate key error
+          throw kingdomError;
+        }
+      }
+      
+      // 2. Insert KvK history records (if kingdom had their first KvK)
+      if (submission.first_kvk_id !== null && submission.kvk_history.length > 0) {
+        const kvkRecords = submission.kvk_history.map(kvk => ({
+          kingdom_number: submission.kingdom_number,
+          kvk_number: kvk.kvk,
+          prep_result: kvk.prep,
+          battle_result: kvk.battle,
+          overall_result: kvk.battle, // Battle result determines overall
+          order_index: kvk.kvk
+        }));
+        
+        const { error: kvkError } = await supabase
+          .from('kvk_history')
+          .insert(kvkRecords);
+        
+        if (kvkError) {
+          console.error('KvK history insert error:', kvkError);
+          // Don't fail the whole approval - kingdom was created
+        }
+      }
+      
+      // 3. Update submission status to approved
+      const { error: updateError } = await supabase
         .from('new_kingdom_submissions')
         .update({
           status: 'approved',
@@ -129,9 +175,12 @@ const AdminDashboard: React.FC = () => {
         })
         .eq('id', submission.id);
       
-      if (error) throw error;
+      if (updateError) throw updateError;
       
-      showToast(`Kingdom ${submission.kingdom_number} approved! Add to database manually.`, 'success');
+      const kvkMsg = submission.first_kvk_id === null 
+        ? '(no KvK history yet)' 
+        : `with ${submission.kvk_history.length} KvK record(s)`;
+      showToast(`Kingdom ${submission.kingdom_number} created ${kvkMsg}`, 'success');
       fetchNewKingdomSubmissions();
     } catch (err) {
       console.error('Approve error:', err);
@@ -821,6 +870,7 @@ const AdminDashboard: React.FC = () => {
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
           <span style={{ color: '#6b7280', fontSize: '0.7rem', minWidth: '70px' }}>SYSTEM</span>
           {[
+            { id: 'discord-bot', label: 'Discord Bot', icon: '🤖', countKey: null },
             { id: 'webhooks', label: 'Webhooks', icon: '🔗', countKey: null },
             { id: 'data-sources', label: 'Data Sources', icon: '🗄️', countKey: null },
             { id: 'import', label: 'Bulk Import', icon: '📤', countKey: null }
@@ -886,6 +936,8 @@ const AdminDashboard: React.FC = () => {
         <WebhookMonitor />
       ) : activeTab === 'data-sources' ? (
         <DataSourceStats />
+      ) : activeTab === 'discord-bot' ? (
+        <BotDashboard />
       ) : activeTab === 'new-kingdoms' ? (
         <NewKingdomsTab
           submissions={newKingdomSubmissions}

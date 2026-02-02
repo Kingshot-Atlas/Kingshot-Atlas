@@ -147,6 +147,9 @@ client.on('interactionCreate', async (interaction) => {
     // Log successful command
     const responseTime = Date.now() - startTime;
     logger.logCommand(interaction, responseTime, true);
+    
+    // Sync to API for dashboard tracking (non-blocking)
+    logger.syncToApi(commandName, interaction.guildId || 'DM', interaction.user.id);
   } catch (error) {
     console.error(`Command error (${commandName}):`, error);
     logger.logError(commandName, error, interaction);
@@ -206,22 +209,22 @@ async function main() {
   const rest = new REST({ version: '10' }).setToken(config.token);
 
   try {
-    console.log('🔄 Registering slash commands...');
+    console.log('🔄 Registering slash commands globally...');
 
+    // Always register commands globally so they work in ALL servers
+    await rest.put(
+      Routes.applicationCommands(config.clientId),
+      { body: commands }
+    );
+    console.log('✅ Global commands registered (may take up to 1 hour to appear in new servers)');
+
+    // Also register to primary guild for instant availability there
     if (config.guildId) {
-      // Guild-specific registration (faster for development)
       await rest.put(
         Routes.applicationGuildCommands(config.clientId, config.guildId),
         { body: commands }
       );
-      console.log(`✅ Commands registered for guild ${config.guildId}`);
-    } else {
-      // Global registration (takes up to 1 hour to propagate)
-      await rest.put(
-        Routes.applicationCommands(config.clientId),
-        { body: commands }
-      );
-      console.log('✅ Global commands registered (may take up to 1 hour to appear)');
+      console.log(`✅ Commands also registered instantly for primary guild ${config.guildId}`);
     }
   } catch (error) {
     console.error('❌ Failed to register commands:', error);

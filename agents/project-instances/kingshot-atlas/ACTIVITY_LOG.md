@@ -9,6 +9,26 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-02 10:18 | Platform Engineer | COMPLETED
+Task: Implement Add Kingdom feature with First KvK selection
+Requirements:
+  - User must be logged in with Kingshot account linked
+  - User selects first KvK (with dates to help) - determines relevant KvK history
+  - Option to select "Has not had first KvK yet"
+  - On approval, creates kingdom in Supabase with first_kvk_id and KvK history
+Files Changed:
+  - docs/migrations/add_first_kvk_id.sql (new - migration for first_kvk_id column)
+  - apps/web/src/pages/MissingDataRegistry.tsx (AddKingdomModal with First KvK dropdown)
+  - apps/web/src/components/admin/types.ts (added first_kvk_id to NewKingdomSubmission)
+  - apps/web/src/components/admin/NewKingdomsTab.tsx (display first_kvk_id and "No KvK yet" indicator)
+  - apps/web/src/pages/AdminDashboard.tsx (approval flow creates kingdom in Supabase)
+Result:
+  - Users can now submit new kingdoms with proper first KvK selection
+  - KvK dates shown to help users identify correct first KvK
+  - Kingdoms without KvKs supported ("Has not had first KvK yet")
+  - Admin approval creates kingdom + KvK history in Supabase automatically
+  - Database trigger recalculates stats after KvK history insert
+
 ## 2026-02-02 09:22 | Platform Engineer | COMPLETED
 Task: Fix Discord bot /leaderboard command returning error
 Root Cause:

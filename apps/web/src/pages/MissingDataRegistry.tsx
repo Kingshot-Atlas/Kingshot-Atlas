@@ -647,15 +647,30 @@ const AddKingdomModal: React.FC<{
   onClose: () => void;
   onSuccess: () => void;
 }> = ({ onClose, onSuccess }) => {
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
   const { showToast } = useToast();
   const [kingdomNumber, setKingdomNumber] = useState('');
+  const [firstKvkId, setFirstKvkId] = useState<number | null>(null); // null = hasn't had first KvK yet
   const [kvkData, setKvkData] = useState<Array<{ kvk: number; prep: 'W' | 'L'; battle: 'W' | 'L' }>>([]);
   const [submitting, setSubmitting] = useState(false);
 
+  // When first KvK changes, reset KvK data to only include valid entries
+  const handleFirstKvkChange = (value: string) => {
+    if (value === 'none') {
+      setFirstKvkId(null);
+      setKvkData([]); // No KvK history if kingdom hasn't had first KvK
+    } else {
+      const kvkNum = parseInt(value);
+      setFirstKvkId(kvkNum);
+      // Filter out any KvK entries before the first KvK
+      setKvkData(prev => prev.filter(k => k.kvk >= kvkNum));
+    }
+  };
+
   const addKvkEntry = () => {
-    const nextKvk = kvkData.length > 0 ? Math.max(...kvkData.map(k => k.kvk)) + 1 : 1;
-    if (nextKvk <= CURRENT_KVK) {
+    const startKvk = firstKvkId || 1;
+    const nextKvk = kvkData.length > 0 ? Math.max(...kvkData.map(k => k.kvk)) + 1 : startKvk;
+    if (nextKvk <= CURRENT_KVK && (firstKvkId === null || nextKvk >= firstKvkId)) {
       setKvkData([...kvkData, { kvk: nextKvk, prep: 'W', battle: 'W' }]);
     }
   };
@@ -671,15 +686,26 @@ const AddKingdomModal: React.FC<{
   };
 
   const handleSubmit = async () => {
-    if (!kingdomNumber || kvkData.length === 0) {
-      showToast('Please enter kingdom number and at least one KvK', 'error');
+    // Validate kingdom number
+    const kNum = parseInt(kingdomNumber);
+    if (!kingdomNumber || isNaN(kNum) || kNum < 1 || kNum > 9999) {
+      showToast('Please enter a valid kingdom number (1-9999)', 'error');
       return;
     }
 
-    const kNum = parseInt(kingdomNumber);
-    if (isNaN(kNum) || kNum < 1 || kNum > 9999) {
-      showToast('Invalid kingdom number', 'error');
+    // If kingdom has had their first KvK, require at least one KvK entry
+    if (firstKvkId !== null && kvkData.length === 0) {
+      showToast('Please add at least one KvK result', 'error');
       return;
+    }
+
+    // Validate that KvK entries start from first KvK
+    if (firstKvkId !== null && kvkData.length > 0) {
+      const minKvk = Math.min(...kvkData.map(k => k.kvk));
+      if (minKvk < firstKvkId) {
+        showToast(`KvK history cannot include entries before first KvK #${firstKvkId}`, 'error');
+        return;
+      }
     }
 
     if (!supabase) {
@@ -689,14 +715,12 @@ const AddKingdomModal: React.FC<{
 
     setSubmitting(true);
     try {
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      // Insert directly to Supabase
+      // Insert directly to Supabase with first_kvk_id
       const { error } = await supabase
         .from('new_kingdom_submissions')
         .insert({
           kingdom_number: kNum,
+          first_kvk_id: firstKvkId, // null if hasn't had first KvK yet
           kvk_history: kvkData,
           submitted_by: profile?.username || 'Anonymous',
           submitted_by_user_id: user?.id,
@@ -759,7 +783,7 @@ const AddKingdomModal: React.FC<{
         </div>
 
         <p style={{ color: '#9ca3af', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
-          Submit a new kingdom not yet tracked in the Atlas. Include its KvK history for verification.
+          Submit a new kingdom not yet tracked in the Atlas. Select their first KvK to determine relevant history.
         </p>
 
         {/* Kingdom Number Input */}
@@ -784,15 +808,63 @@ const AddKingdomModal: React.FC<{
           />
         </div>
 
-        {/* KvK History */}
+        {/* First KvK Selection - CRITICAL for determining relevant history */}
+        <div style={{ marginBottom: '1.25rem' }}>
+          <label style={{ display: 'block', color: '#9ca3af', fontSize: '0.8rem', marginBottom: '0.5rem' }}>
+            First KvK <span style={{ color: '#22d3ee' }}>*</span>
+          </label>
+          <p style={{ color: '#6b7280', fontSize: '0.75rem', marginBottom: '0.5rem' }}>
+            When did this kingdom have their first KvK? Earlier KvKs won&apos;t appear in their history.
+          </p>
+          <select
+            value={firstKvkId === null ? 'none' : firstKvkId.toString()}
+            onChange={e => handleFirstKvkChange(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '0.75rem',
+              backgroundColor: '#1a1a1f',
+              border: '1px solid #2a2a2a',
+              borderRadius: '8px',
+              color: '#fff',
+              fontSize: '0.9rem',
+              cursor: 'pointer'
+            }}
+          >
+            <option value="" disabled>Select first KvK...</option>
+            <option value="none" style={{ color: '#fbbf24' }}>
+              Has not had first KvK yet
+            </option>
+            {Array.from({ length: CURRENT_KVK }, (_, i) => i + 1).map(kvk => (
+              <option key={kvk} value={kvk}>
+                KvK #{kvk} — {KVK_DATES[kvk] || 'Unknown date'}
+              </option>
+            ))}
+          </select>
+          {firstKvkId === null && (
+            <div style={{ 
+              marginTop: '0.5rem', 
+              padding: '0.5rem 0.75rem',
+              backgroundColor: '#fbbf2410',
+              border: '1px solid #fbbf2430',
+              borderRadius: '6px',
+              fontSize: '0.75rem',
+              color: '#fbbf24'
+            }}>
+              This kingdom will be added with no KvK history. Once they participate in a KvK, you can submit their results.
+            </div>
+          )}
+        </div>
+
+        {/* KvK History - Only show if kingdom has had their first KvK */}
+        {firstKvkId !== null && (
         <div style={{ marginBottom: '1.25rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
             <label style={{ color: '#9ca3af', fontSize: '0.8rem' }}>
-              KvK History
+              KvK History (from KvK #{firstKvkId})
             </label>
             <button
               onClick={addKvkEntry}
-              disabled={kvkData.length >= CURRENT_KVK}
+              disabled={kvkData.length >= (CURRENT_KVK - firstKvkId + 1)}
               style={{
                 backgroundColor: '#22d3ee20',
                 color: '#22d3ee',
@@ -800,8 +872,8 @@ const AddKingdomModal: React.FC<{
                 borderRadius: '6px',
                 padding: '0.35rem 0.75rem',
                 fontSize: '0.75rem',
-                cursor: kvkData.length >= CURRENT_KVK ? 'not-allowed' : 'pointer',
-                opacity: kvkData.length >= CURRENT_KVK ? 0.5 : 1
+                cursor: kvkData.length >= (CURRENT_KVK - firstKvkId + 1) ? 'not-allowed' : 'pointer',
+                opacity: kvkData.length >= (CURRENT_KVK - firstKvkId + 1) ? 0.5 : 1
               }}
             >
               + Add KvK
@@ -810,7 +882,7 @@ const AddKingdomModal: React.FC<{
 
           {kvkData.length === 0 && (
             <div style={{ color: '#6b7280', fontSize: '0.8rem', textAlign: 'center', padding: '1rem' }}>
-              Click &quot;+ Add KvK&quot; to start adding history
+              Click &quot;+ Add KvK&quot; to add results starting from KvK #{firstKvkId}
             </div>
           )}
 
@@ -877,11 +949,12 @@ const AddKingdomModal: React.FC<{
             </div>
           ))}
         </div>
+        )}
 
         {/* Submit Button */}
         <button
           onClick={handleSubmit}
-          disabled={submitting || !kingdomNumber || kvkData.length === 0}
+          disabled={submitting || !kingdomNumber || (firstKvkId !== null && kvkData.length === 0)}
           style={{
             width: '100%',
             padding: '0.75rem',
@@ -892,10 +965,10 @@ const AddKingdomModal: React.FC<{
             fontSize: '0.9rem',
             fontWeight: '600',
             cursor: submitting ? 'wait' : 'pointer',
-            opacity: submitting || !kingdomNumber || kvkData.length === 0 ? 0.6 : 1
+            opacity: submitting || !kingdomNumber || (firstKvkId !== null && kvkData.length === 0) ? 0.6 : 1
           }}
         >
-          {submitting ? 'Submitting...' : 'Submit for Review'}
+          {submitting ? 'Submitting...' : firstKvkId === null ? 'Submit Kingdom (No KvK Yet)' : 'Submit for Review'}
         </button>
 
         <p style={{ color: '#6b7280', fontSize: '0.75rem', textAlign: 'center', marginTop: '1rem' }}>

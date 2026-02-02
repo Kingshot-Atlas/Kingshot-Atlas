@@ -66,8 +66,10 @@ export interface KvKError {
 export interface NewKingdomSubmission {
   id: string;
   kingdom_number: number;
+  first_kvk_id: number | null; // null = hasn't had first KvK yet
   kvk_history: Array<{ kvk: number; prep: 'W' | 'L'; battle: 'W' | 'L' }>;
   submitted_by: string;
+  submitted_by_user_id?: string;
   submitted_by_kingdom: number | null;
   status: 'pending' | 'approved' | 'rejected';
   reviewed_by?: string;

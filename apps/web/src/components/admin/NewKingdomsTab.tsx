@@ -45,7 +45,10 @@ export const NewKingdomsTab: React.FC<NewKingdomsTabProps> = ({
             <div>
               <span style={{ color: '#22d3ee', fontWeight: 600, fontSize: '1.1rem' }}>Kingdom {sub.kingdom_number}</span>
               <span style={{ color: '#6b7280', marginLeft: '0.75rem', fontSize: '0.85rem' }}>
-                {sub.kvk_history.length} KvK{sub.kvk_history.length !== 1 ? 's' : ''} submitted
+                {sub.first_kvk_id === null 
+                  ? 'No KvK yet' 
+                  : `First KvK: #${sub.first_kvk_id} • ${sub.kvk_history.length} KvK${sub.kvk_history.length !== 1 ? 's' : ''} submitted`
+                }
               </span>
             </div>
             <div style={{ 
@@ -60,27 +63,44 @@ export const NewKingdomsTab: React.FC<NewKingdomsTabProps> = ({
             </div>
           </div>
 
-          {/* KvK History */}
+          {/* KvK History or No KvK Yet indicator */}
           <div style={{ marginBottom: '1rem' }}>
-            <div style={{ color: '#9ca3af', fontSize: '0.75rem', marginBottom: '0.5rem' }}>KvK HISTORY</div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-              {sub.kvk_history.map((kvk, idx) => (
-                <div key={idx} style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.25rem',
-                  padding: '0.25rem 0.5rem',
-                  backgroundColor: '#1a1a1f',
-                  borderRadius: '6px',
-                  fontSize: '0.8rem'
-                }}>
-                  <span style={{ color: '#22d3ee' }}>#{kvk.kvk}</span>
-                  <span style={{ color: kvk.prep === 'W' ? '#22c55e' : '#ef4444' }}>{kvk.prep}</span>
-                  <span style={{ color: '#4a4a4a' }}>/</span>
-                  <span style={{ color: kvk.battle === 'W' ? '#22c55e' : '#ef4444' }}>{kvk.battle}</span>
+            {sub.first_kvk_id === null ? (
+              <div style={{ 
+                padding: '0.75rem 1rem',
+                backgroundColor: '#fbbf2410',
+                border: '1px solid #fbbf2430',
+                borderRadius: '8px',
+                fontSize: '0.85rem',
+                color: '#fbbf24'
+              }}>
+                This kingdom has not had their first KvK yet. They will be added with no history.
+              </div>
+            ) : (
+              <>
+                <div style={{ color: '#9ca3af', fontSize: '0.75rem', marginBottom: '0.5rem' }}>
+                  KvK HISTORY (from #{sub.first_kvk_id})
                 </div>
-              ))}
-            </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  {sub.kvk_history.map((kvk, idx) => (
+                    <div key={idx} style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.25rem',
+                      padding: '0.25rem 0.5rem',
+                      backgroundColor: '#1a1a1f',
+                      borderRadius: '6px',
+                      fontSize: '0.8rem'
+                    }}>
+                      <span style={{ color: '#22d3ee' }}>#{kvk.kvk}</span>
+                      <span style={{ color: kvk.prep === 'W' ? '#22c55e' : '#ef4444' }}>{kvk.prep}</span>
+                      <span style={{ color: '#4a4a4a' }}>/</span>
+                      <span style={{ color: kvk.battle === 'W' ? '#22c55e' : '#ef4444' }}>{kvk.battle}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #2a2a2a', paddingTop: '1rem' }}>

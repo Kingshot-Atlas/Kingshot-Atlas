@@ -202,10 +202,16 @@
 
 ## Discord Bot
 
-| Feature | Status | Agent | Notes |
-|---------|--------|-------|-------|
-| Bot Infrastructure | ✅ Live | Platform | `/apps/discord-bot/` |
-| Webhook Integration | ✅ Live | Platform | Patch notes posting |
+| Feature | Status | Date | Agent | Notes |
+|---------|--------|------|-------|-------|
+| Bot Infrastructure | ✅ Live | 2026-01 | Platform | `/apps/discord-bot/` |
+| Webhook Integration | ✅ Live | 2026-01 | Platform | Patch notes posting |
+| Public Bot Invite | ✅ Live | 2026-02-02 | Platform | Invite link on About page |
+| Bot Admin Dashboard | ✅ Live | 2026-02-02 | Platform | `BotDashboard.tsx` in Admin panel |
+| Bot API Endpoints | ✅ Live | 2026-02-02 | Platform | `/api/v1/bot/*` - status, servers, send-message |
+| Server Browser | ✅ Live | 2026-02-02 | Platform | View/manage connected Discord servers |
+| Message Sender | ✅ Live | 2026-02-02 | Platform | Send messages/embeds to any channel |
+| Command Usage Logging | ✅ Live | 2026-02-02 | Platform | API sync for dashboard stats |
 
 ---
 
@@ -261,6 +267,19 @@
 | Multi-Kingdom Header | ✅ Live | 2026-01-30 | Product | Color-coded kingdom names with tier badges |
 | Multi-Kingdom Radar Chart | ✅ Live | 2026-01-30 | Product | `MultiCompareRadarChart` overlays up to 5 kingdoms |
 | Multi-Kingdom Winner Calc | ✅ Live | 2026-01-30 | Product | Scores kingdoms across 11 metrics, handles ties |
+
+---
+
+## New Kingdom Submission System
+
+| Feature | Status | Date | Agent | Notes |
+|---------|--------|------|-------|-------|
+| Add Kingdom Modal | ✅ Live | 2026-01-31 | Product | Submit new kingdoms not tracked in Atlas |
+| First KvK Selection | ✅ Live | 2026-02-02 | Platform | Select first KvK to determine relevant history |
+| "No KvK Yet" Option | ✅ Live | 2026-02-02 | Platform | Support kingdoms that haven't had their first KvK |
+| KvK Date Helper | ✅ Live | 2026-02-02 | Platform | Dates shown in dropdown to help identify correct KvK |
+| Admin Auto-Creation | ✅ Live | 2026-02-02 | Platform | Approval creates kingdom + KvK history in Supabase |
+| first_kvk_id Column | ✅ Live | 2026-02-02 | Platform | Migration: docs/migrations/add_first_kvk_id.sql |
 
 ---
 

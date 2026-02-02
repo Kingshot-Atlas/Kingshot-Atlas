@@ -12,6 +12,11 @@
 
 const fs = require('fs');
 const path = require('path');
+const config = require('../config');
+
+// API sync configuration
+const API_SYNC_ENABLED = process.env.BOT_API_SYNC !== 'false';
+const API_SYNC_INTERVAL = 60000; // Sync every 60 seconds
 
 // Ensure logs directory exists
 const logsDir = path.join(__dirname, '../../logs');
@@ -241,10 +246,33 @@ function getFormattedStats() {
   ].join('\n');
 }
 
+/**
+ * Sync command usage to API for dashboard tracking
+ * @param {string} command - Command name
+ * @param {string} guildId - Guild ID
+ * @param {string} userId - User ID
+ */
+async function syncToApi(command, guildId, userId) {
+  if (!API_SYNC_ENABLED || !config.apiUrl) return;
+  
+  try {
+    await fetch(`${config.apiUrl}/api/v1/bot/log-command?command=${encodeURIComponent(command)}&guild_id=${encodeURIComponent(guildId)}&user_id=${encodeURIComponent(userId)}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Key': process.env.DISCORD_API_KEY || ''
+      }
+    });
+  } catch (error) {
+    // Silent fail - don't disrupt bot operation for API sync issues
+  }
+}
+
 module.exports = {
   logCommand,
   logError,
   logGuildEvent,
   getStats,
   getFormattedStats,
+  syncToApi,
 };
