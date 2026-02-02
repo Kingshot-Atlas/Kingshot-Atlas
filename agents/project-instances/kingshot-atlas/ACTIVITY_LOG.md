@@ -9,6 +9,19 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-02 17:37 | Product Engineer | COMPLETED
+Task: Remove sticky Compare button from home page (desktop and mobile)
+Files:
+  - apps/web/src/pages/KingdomDirectory.tsx (removed CompareTray, compare state, onAddToCompare)
+  - apps/web/src/components/KingdomTable.tsx (removed Actions column and Compare button)
+Result: Cleaner home page UI, less visual clutter. Compare feature still accessible via /compare page.
+
+## 2026-02-02 17:35 | Platform Engineer | COMPLETED
+Task: Fix duplicate toast notifications on KvK approval
+Files:
+  - apps/api/api/routers/submissions.py (removed redundant recalculate calls)
+Result: Approving 1 submission now shows 2 toasts (one per kingdom) instead of 4+ duplicates.
+
 ## 2026-02-02 17:15 | Product Engineer | COMPLETED
 Task: Add feedback system, E2E tests in CI, and loading skeletons
 Files:
