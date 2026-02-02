@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Kingdom, KingdomWithStats } from '../types';
-import { apiService } from '../services/api';
+import { apiService, dataLoadError } from '../services/api';
+import { DataLoadError } from '../components/DataLoadError';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { usePremium } from '../contexts/PremiumContext';
@@ -499,6 +500,12 @@ const Leaderboards: React.FC = () => {
               <div className="loading-spinner-sm" style={{ margin: '0 auto 1rem' }} />
               <div style={{ color: '#9ca3af', fontSize: '0.9rem' }}>Loading rankings...</div>
             </div>
+          </div>
+        ) : dataLoadError ? (
+          <DataLoadError onRetry={loadLeaderboard} />
+        ) : kingdoms.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '4rem 0', color: '#6b7280' }}>
+            <p>No kingdom data available.</p>
           </div>
         ) : (
           <>

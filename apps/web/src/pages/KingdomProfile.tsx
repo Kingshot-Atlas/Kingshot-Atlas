@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { KingdomProfile as KingdomProfileType, getPowerTier, getTierDescription as getCentralizedTierDescription, type PowerTier } from '../types';
 import { extractStatsFromProfile, calculateAtlasScore } from '../utils/atlasScoreFormula';
-import { apiService } from '../services/api';
+import { apiService, dataLoadError } from '../services/api';
+import { DataLoadError } from '../components/DataLoadError';
 import { statusService } from '../services/statusService';
 import KingdomReviews from '../components/KingdomReviews';
 import StatusSubmission from '../components/StatusSubmission';
@@ -139,6 +140,14 @@ const KingdomProfile: React.FC = () => {
   }
 
   if (!kingdom) {
+    // Show data load error if Supabase failed
+    if (dataLoadError) {
+      return (
+        <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <DataLoadError onRetry={() => window.location.reload()} />
+        </div>
+      );
+    }
     return (
       <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         <div style={{ textAlign: 'center' }}>

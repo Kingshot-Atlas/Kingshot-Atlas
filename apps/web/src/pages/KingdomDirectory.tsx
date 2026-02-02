@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Kingdom, FilterOptions, SortOptions, getPowerTier } from '../types';
 import { addRanksToKingdoms } from '../utils/rankCalculation';
-import { apiService } from '../services/api';
+import { apiService, dataLoadError } from '../services/api';
+import { DataLoadError } from '../components/DataLoadError';
 import KingdomCard from '../components/KingdomCard';
 import ParticleEffect from '../components/ParticleEffect';
 import LazyCard from '../components/LazyCard';
@@ -878,6 +879,8 @@ const KingdomDirectory: React.FC = () => {
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(300px, 1fr))', gap: isMobile ? '1rem' : '1.5rem' }}>
             {[1,2,3,4,5,6].map(i => <SkeletonCard key={i} />)}
           </div>
+        ) : dataLoadError ? (
+          <DataLoadError onRetry={() => window.location.reload()} />
         ) : filteredKingdoms.length === 0 ? (
           <div style={{ 
             textAlign: 'center', 

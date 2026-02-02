@@ -3,7 +3,6 @@
  * ADR-011: Displays error state when Supabase data fails to load
  * Shows clear messaging instead of silently showing stale/no data
  */
-import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { dataLoadError } from '../services/api';
 
 interface DataLoadErrorProps {
@@ -15,25 +14,57 @@ export function DataLoadError({ onRetry, className = '' }: DataLoadErrorProps) {
   if (!dataLoadError) return null;
 
   return (
-    <div className={`flex flex-col items-center justify-center p-8 text-center ${className}`}>
-      <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-6 max-w-md">
-        <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-red-400 mb-2">
+    <div className={className} style={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      padding: '2rem', 
+      textAlign: 'center' 
+    }}>
+      <div style={{
+        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+        border: '1px solid rgba(239, 68, 68, 0.3)',
+        borderRadius: '12px',
+        padding: '1.5rem',
+        maxWidth: '400px'
+      }}>
+        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚠️</div>
+        <h3 style={{ 
+          fontSize: '1.125rem', 
+          fontWeight: '600', 
+          color: '#f87171', 
+          marginBottom: '0.5rem' 
+        }}>
           Data Unavailable
         </h3>
-        <p className="text-gray-400 mb-4">
+        <p style={{ color: '#9ca3af', marginBottom: '1rem' }}>
           {dataLoadError}
         </p>
         {onRetry && (
           <button
             onClick={onRetry}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg transition-colors"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              padding: '0.5rem 1rem',
+              backgroundColor: '#d97706',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '0.875rem',
+              fontWeight: '500',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#b45309'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#d97706'}
           >
-            <RefreshCw className="w-4 h-4" />
-            Try Again
+            🔄 Try Again
           </button>
         )}
-        <p className="text-xs text-gray-500 mt-4">
+        <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '1rem' }}>
           Kingdom data is fetched from our database. If this persists, please try again later.
         </p>
       </div>

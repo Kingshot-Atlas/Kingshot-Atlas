@@ -28,6 +28,18 @@ Solution:
   - Added Discord reconnection event handlers
 Result: Bot should now have stable uptime with accurate health reporting
 
+## 2026-02-02 17:15 | Platform Engineer | COMPLETED
+Task: Integrate DataLoadError component into key pages
+Files:
+  - apps/web/src/components/DataLoadError.tsx (fixed - removed lucide-react dependency)
+  - apps/web/src/pages/Leaderboards.tsx (added DataLoadError integration)
+  - apps/web/src/pages/KingdomDirectory.tsx (added DataLoadError integration)
+  - apps/web/src/pages/KingdomProfile.tsx (added DataLoadError integration)
+Result:
+  - Users now see clear error messages when Supabase data fails to load
+  - Retry buttons allow self-recovery
+  - Build verified successfully
+
 ## 2026-02-02 17:00 | Platform Engineer | COMPLETED
 Task: ADR-011 Phase 2 - Clean up orphaned data sources and enforce Supabase SSOT
 Files:
