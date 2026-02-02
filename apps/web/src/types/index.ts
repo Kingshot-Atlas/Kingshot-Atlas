@@ -22,6 +22,7 @@ export interface Kingdom {
   overall_score: number;
   rank?: number;
   last_updated: string;
+  score_updated_at?: string;  // When atlas_score was last calculated
   recent_kvks?: KVKRecord[];
   high_kings?: number;  // deprecated, use dominations
   invader_kings?: number;  // deprecated, use invasions

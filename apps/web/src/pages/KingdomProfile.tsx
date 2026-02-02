@@ -18,6 +18,7 @@ import PathToNextTier from '../components/PathToNextTier';
 import ShareButton from '../components/ShareButton';
 import FollowKingdomButton from '../components/FollowKingdomButton';
 import { ScoreSimulator } from '../components/ScoreSimulator';
+import ScoreFreshness from '../components/ScoreFreshness';
 import { getOutcome, OUTCOMES } from '../utils/outcomes';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useAuth } from '../contexts/AuthContext';
@@ -295,6 +296,9 @@ const KingdomProfile: React.FC = () => {
               </span>
               {rank > 0 && (
                 <span style={{ color: '#22d3ee', fontSize: '0.85rem', fontWeight: 'normal' }}>(#{rank})</span>
+              )}
+              {kingdom.score_updated_at && (
+                <ScoreFreshness updatedAt={kingdom.score_updated_at} style={{ marginLeft: '0.5rem' }} />
               )}
               {/* Achievement badges */}
               {achievements.map((a, i) => (
