@@ -9,6 +9,22 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-02 09:22 | Platform Engineer | COMPLETED
+Task: Fix Discord bot /leaderboard command returning error
+Root Cause:
+  - Bot WAS online (responded with error embed)
+  - API /leaderboard endpoint works fine (verified with curl - HTTP 200)
+  - config.js had wrong fallback: `https://ks-atlas.com` (frontend) instead of API
+  - If API_URL env var not set on Render, bot would call frontend instead of backend
+Fix Applied:
+  - Fixed API URL fallback in config.js: `https://kingshot-atlas.onrender.com`
+  - Added detailed logging to api.js (fetchKingdom, fetchLeaderboard)
+  - Verified fix locally - leaderboard returns 5 kingdoms correctly
+Files Changed:
+  - apps/discord-bot/src/config.js (fixed apiUrl fallback)
+  - apps/discord-bot/src/utils/api.js (added diagnostic logging)
+Deployed: Commit 4ed337d pushed - auto-deploys to Render
+
 ## 2026-02-02 09:15 | Ops Lead | COMPLETED
 Task: Investigate and fix Discord bot not responding
 Root Cause:
