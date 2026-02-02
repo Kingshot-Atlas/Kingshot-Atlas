@@ -9,6 +9,16 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-02 17:55 | Product Engineer | COMPLETED
+Task: Update Discord bot embed styling - Pro color, website CTAs, rank display
+Files:
+  - apps/discord-bot/src/utils/embeds.js (gold color, website links, rank in description)
+  - apps/api/api/routers/kingdoms.py (calculate actual rank from atlas_score)
+Result:
+  - Embed border now uses Pro gold color (#fbbf24) instead of tier colors
+  - CTAs changed from "Unlock Atlas Pro" to "View on ks-atlas.com" links
+  - Atlas Score now shows rank: "Atlas Score: **12.7** (Rank #3)"
+
 ## 2026-02-02 21:45 | Platform Engineer | COMPLETED
 Task: Fix Atlas Score discrepancy (Kingdom 3 showing 11.3 instead of 13.7)
 Files: apps/web/src/pages/KingdomProfile.tsx
