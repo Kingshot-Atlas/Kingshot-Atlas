@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo, useCallback, memo } from '
 import { useSearchParams, Link } from 'react-router-dom';
 import { KingdomProfile, Kingdom, getPowerTier } from '../types';
 import { apiService } from '../services/api';
+import { CompareCardSkeleton } from '../components/Skeleton';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { neonGlow, getTierColor } from '../utils/styles';
@@ -753,6 +754,13 @@ const CompareKingdoms: React.FC = () => {
         {error && (
           <div style={{ textAlign: 'center', padding: '0.75rem', backgroundColor: '#1f1f1f', borderRadius: '8px', marginBottom: '1rem', color: '#ef4444', fontSize: '0.85rem' }}>
             {error}
+          </div>
+        )}
+
+        {loading && loadedKingdoms.length === 0 && (
+          <div style={{ display: 'flex', gap: '1rem', flexDirection: isMobile ? 'column' : 'row' }}>
+            <CompareCardSkeleton />
+            <CompareCardSkeleton />
           </div>
         )}
 

@@ -4,6 +4,7 @@ import { KingdomProfile as KingdomProfileType, getPowerTier, getTierDescription 
 import { extractStatsFromProfile, calculateAtlasScore } from '../utils/atlasScoreFormula';
 import { apiService, dataLoadError } from '../services/api';
 import { DataLoadError } from '../components/DataLoadError';
+import { KingdomProfileSkeleton } from '../components/Skeleton';
 import { statusService } from '../services/statusService';
 import KingdomReviews from '../components/KingdomReviews';
 import StatusSubmission from '../components/StatusSubmission';
@@ -129,14 +130,7 @@ const KingdomProfile: React.FC = () => {
   useMetaTags(kingdom ? getKingdomMetaTags(kingdom.kingdom_number, calculatedScore, powerTier, rank > 0 ? rank : undefined) : {});
 
   if (loading) {
-    return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        <div style={{ textAlign: 'center' }}>
-          <div className="loading-spinner" style={{ margin: '0 auto 1rem' }} />
-          <div style={{ color: '#9ca3af' }}>Loading kingdom profile...</div>
-        </div>
-      </div>
-    );
+    return <KingdomProfileSkeleton />;
   }
 
   if (!kingdom) {

@@ -137,4 +137,103 @@ export const TableSkeleton: React.FC<{ rows?: number; columns?: number }> = ({
   </table>
 );
 
+export const LeaderboardRowSkeleton: React.FC = () => (
+  <div style={{
+    display: 'flex',
+    alignItems: 'center',
+    padding: '0.75rem 1rem',
+    backgroundColor: COLORS.BG_SECONDARY,
+    borderRadius: '8px',
+    marginBottom: '0.5rem',
+    gap: '1rem'
+  }}>
+    <Skeleton width="30px" height="1.5rem" borderRadius="4px" />
+    <Skeleton width="70px" height="1.75rem" borderRadius="6px" />
+    <div style={{ flex: 1 }}>
+      <Skeleton width="60%" height="1rem" />
+    </div>
+    <Skeleton width="50px" height="1.25rem" borderRadius="4px" />
+    <Skeleton width="50px" height="1.25rem" borderRadius="4px" />
+  </div>
+);
+
+export const LeaderboardSkeleton: React.FC<{ rows?: number }> = ({ rows = 10 }) => (
+  <div data-testid="leaderboard-skeleton">
+    {Array.from({ length: rows }).map((_, i) => (
+      <LeaderboardRowSkeleton key={i} />
+    ))}
+    <style>{`
+      @keyframes skeleton-pulse {
+        0%, 100% { opacity: 0.4; }
+        50% { opacity: 0.7; }
+      }
+    `}</style>
+  </div>
+);
+
+export const CompareCardSkeleton: React.FC = () => (
+  <div data-testid="compare-skeleton" style={{
+    backgroundColor: COLORS.BG_SECONDARY,
+    borderRadius: '12px',
+    border: `1px solid ${COLORS.BORDER_DEFAULT}`,
+    padding: '1.5rem',
+    minWidth: '280px',
+    flex: 1
+  }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+      <Skeleton width="100px" height="2rem" borderRadius="8px" />
+      <Skeleton width="60px" height="1.5rem" borderRadius="6px" />
+    </div>
+    <Skeleton width="80%" height="1rem" borderRadius="4px" />
+    <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      <Skeleton height="2.5rem" borderRadius="8px" />
+      <Skeleton height="2.5rem" borderRadius="8px" />
+      <Skeleton height="2.5rem" borderRadius="8px" />
+    </div>
+    <style>{`
+      @keyframes skeleton-pulse {
+        0%, 100% { opacity: 0.4; }
+        50% { opacity: 0.7; }
+      }
+    `}</style>
+  </div>
+);
+
+export const KingdomProfileSkeleton: React.FC = () => (
+  <div data-testid="profile-skeleton" style={{ 
+    minHeight: '100vh', 
+    backgroundColor: '#0a0a0a', 
+    padding: '2rem',
+    maxWidth: '1200px',
+    margin: '0 auto'
+  }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginBottom: '2rem' }}>
+      <Skeleton width="120px" height="120px" borderRadius="12px" />
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <Skeleton width="200px" height="2.5rem" />
+        <Skeleton width="150px" height="1.5rem" />
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <Skeleton width="80px" height="1.25rem" borderRadius="20px" />
+          <Skeleton width="80px" height="1.25rem" borderRadius="20px" />
+        </div>
+      </div>
+    </div>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+      {[1, 2, 3, 4].map(i => (
+        <div key={i} style={{ backgroundColor: COLORS.BG_SECONDARY, borderRadius: '12px', padding: '1rem' }}>
+          <Skeleton width="60%" height="0.875rem" />
+          <Skeleton width="80%" height="1.5rem" borderRadius="4px" />
+        </div>
+      ))}
+    </div>
+    <Skeleton height="300px" borderRadius="12px" />
+    <style>{`
+      @keyframes skeleton-pulse {
+        0%, 100% { opacity: 0.4; }
+        50% { opacity: 0.7; }
+      }
+    `}</style>
+  </div>
+);
+
 export default Skeleton;

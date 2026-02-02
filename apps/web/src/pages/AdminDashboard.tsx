@@ -41,7 +41,7 @@ const AdminDashboard: React.FC = () => {
   const { showToast } = useToast();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [activeTab, setActiveTab] = useState<'analytics' | 'saas-metrics' | 'engagement' | 'webhooks' | 'data-sources' | 'discord-bot' | 'submissions' | 'new-kingdoms' | 'claims' | 'corrections' | 'kvk-errors' | 'import' | 'users' | 'plausible' | 'transfer-status'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'saas-metrics' | 'engagement' | 'webhooks' | 'data-sources' | 'discord-bot' | 'submissions' | 'new-kingdoms' | 'claims' | 'corrections' | 'kvk-errors' | 'import' | 'users' | 'plausible' | 'transfer-status' | 'feedback'>('analytics');
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [claims, setClaims] = useState<Claim[]>([]);
   const [transferSubmissions, setTransferSubmissions] = useState<StatusSubmission[]>([]);
@@ -56,7 +56,8 @@ const AdminDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('pending');
   const [importData, setImportData] = useState<string>('');
-  const [pendingCounts, setPendingCounts] = useState<{ submissions: number; claims: number; corrections: number; transfers: number; kvkErrors: number }>({ submissions: 0, claims: 0, corrections: 0, transfers: 0, kvkErrors: 0 });
+  const [pendingCounts, setPendingCounts] = useState<{ submissions: number; claims: number; corrections: number; transfers: number; kvkErrors: number; feedback: number }>({ submissions: 0, claims: 0, corrections: 0, transfers: 0, kvkErrors: 0, feedback: 0 });
+  const [feedbackItems, setFeedbackItems] = useState<Array<{ id: string; type: string; message: string; email: string | null; status: string; page_url: string | null; created_at: string; admin_notes: string | null }>>([]);
   const [syncingSubscriptions, setSyncingSubscriptions] = useState(false);
 
   // Check if user is admin
@@ -85,6 +86,8 @@ const AdminDashboard: React.FC = () => {
       fetchKvkErrors();
     } else if (activeTab === 'new-kingdoms') {
       fetchNewKingdomSubmissions();
+    } else if (activeTab === 'feedback') {
+      fetchFeedback();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, filter, isAdmin]);
@@ -254,15 +257,78 @@ const AdminDashboard: React.FC = () => {
       const allKvkErrors: KvKError[] = kvkErrorsStored ? JSON.parse(kvkErrorsStored) : [];
       const pendingKvkErrors = allKvkErrors.filter(e => e.status === 'pending').length;
       
+      // Feedback count from Supabase
+      let pendingFeedback = 0;
+      if (supabase) {
+        try {
+          const { count } = await supabase
+            .from('feedback')
+            .select('*', { count: 'exact', head: true })
+            .eq('status', 'new');
+          pendingFeedback = count || 0;
+        } catch { /* Table might not exist yet */ }
+      }
+
       setPendingCounts({
         submissions: pendingSubmissions,
         claims: pendingClaims,
         corrections: pendingCorrections,
         transfers: pendingTransfers,
-        kvkErrors: pendingKvkErrors
+        kvkErrors: pendingKvkErrors,
+        feedback: pendingFeedback
       });
     } catch (error) {
       console.error('Failed to fetch pending counts:', error);
+    }
+  };
+
+  const fetchFeedback = async () => {
+    if (!supabase) return;
+    setLoading(true);
+    try {
+      let query = supabase
+        .from('feedback')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (filter === 'pending') {
+        query = query.eq('status', 'new');
+      } else if (filter !== 'all') {
+        query = query.eq('status', filter);
+      }
+      
+      const { data, error } = await query.limit(100);
+      if (error) throw error;
+      setFeedbackItems(data || []);
+    } catch (error) {
+      logger.error('Failed to fetch feedback:', error);
+      showToast('Failed to load feedback', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateFeedbackStatus = async (id: string, status: string, adminNotes?: string) => {
+    if (!supabase) return;
+    try {
+      const updateData: { status: string; admin_notes?: string } = { status };
+      if (adminNotes !== undefined) {
+        updateData.admin_notes = adminNotes;
+      }
+      
+      const { error } = await supabase
+        .from('feedback')
+        .update(updateData)
+        .eq('id', id);
+      
+      if (error) throw error;
+      
+      showToast('Feedback updated', 'success');
+      fetchFeedback();
+      fetchPendingCounts();
+    } catch (error) {
+      logger.error('Failed to update feedback:', error);
+      showToast('Failed to update feedback', 'error');
     }
   };
 
@@ -870,6 +936,7 @@ const AdminDashboard: React.FC = () => {
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
           <span style={{ color: '#6b7280', fontSize: '0.7rem', minWidth: '70px' }}>SYSTEM</span>
           {[
+            { id: 'feedback', label: 'Feedback', icon: '💬', countKey: 'feedback' as const },
             { id: 'discord-bot', label: 'Discord Bot', icon: '🤖', countKey: null },
             { id: 'webhooks', label: 'Webhooks', icon: '🔗', countKey: null },
             { id: 'data-sources', label: 'Data Sources', icon: '🗄️', countKey: null },
@@ -1480,6 +1547,99 @@ const AdminDashboard: React.FC = () => {
                 })}
               </div>
             </div>
+          )}
+        </div>
+      ) : activeTab === 'feedback' ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {/* Feedback Stats */}
+          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
+            {['new', 'reviewed', 'in_progress', 'resolved', 'closed'].map(status => {
+              const count = feedbackItems.filter(f => f.status === status).length;
+              const colors: Record<string, string> = { new: '#fbbf24', reviewed: '#22d3ee', in_progress: '#a855f7', resolved: '#22c55e', closed: '#6b7280' };
+              return (
+                <div key={status} style={{ backgroundColor: '#111116', padding: '0.75rem 1rem', borderRadius: '8px', border: '1px solid #2a2a2a', minWidth: '80px', textAlign: 'center' }}>
+                  <div style={{ color: colors[status], fontWeight: 700, fontSize: '1.25rem' }}>{count}</div>
+                  <div style={{ color: '#6b7280', fontSize: '0.7rem', textTransform: 'capitalize' }}>{status.replace('_', ' ')}</div>
+                </div>
+              );
+            })}
+          </div>
+
+          {feedbackItems.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
+              No feedback found
+            </div>
+          ) : (
+            feedbackItems.map((item) => (
+              <div key={item.id} style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1rem', border: '1px solid #2a2a2a' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <span style={{ fontSize: '1.25rem' }}>
+                      {item.type === 'bug' ? '🐛' : item.type === 'feature' ? '✨' : '💭'}
+                    </span>
+                    <span style={{ color: '#fff', fontWeight: 600, textTransform: 'capitalize' }}>{item.type}</span>
+                    <span style={{ 
+                      padding: '0.2rem 0.5rem', 
+                      borderRadius: '4px', 
+                      fontSize: '0.7rem', 
+                      fontWeight: 600,
+                      backgroundColor: item.status === 'new' ? '#fbbf2420' : item.status === 'resolved' ? '#22c55e20' : '#22d3ee20',
+                      color: item.status === 'new' ? '#fbbf24' : item.status === 'resolved' ? '#22c55e' : '#22d3ee'
+                    }}>
+                      {item.status.replace('_', ' ')}
+                    </span>
+                  </div>
+                  <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                    {new Date(item.created_at).toLocaleDateString()} {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+                
+                <p style={{ color: '#e5e7eb', fontSize: '0.9rem', marginBottom: '0.75rem', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
+                  {item.message}
+                </p>
+                
+                {item.email && (
+                  <div style={{ fontSize: '0.75rem', color: '#9ca3af', marginBottom: '0.5rem' }}>
+                    📧 <a href={`mailto:${item.email}`} style={{ color: '#22d3ee' }}>{item.email}</a>
+                  </div>
+                )}
+                
+                {item.page_url && (
+                  <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.5rem' }}>
+                    📍 {item.page_url.replace(window.location.origin, '')}
+                  </div>
+                )}
+
+                {item.admin_notes && (
+                  <div style={{ backgroundColor: '#0a0a0a', padding: '0.5rem 0.75rem', borderRadius: '6px', marginBottom: '0.75rem', fontSize: '0.8rem' }}>
+                    <span style={{ color: '#6b7280' }}>Admin notes:</span> <span style={{ color: '#9ca3af' }}>{item.admin_notes}</span>
+                  </div>
+                )}
+                
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  {item.status === 'new' && (
+                    <button onClick={() => updateFeedbackStatus(item.id, 'reviewed')} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#22d3ee20', border: '1px solid #22d3ee50', borderRadius: '6px', color: '#22d3ee', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 500 }}>
+                      ✓ Mark Reviewed
+                    </button>
+                  )}
+                  {(item.status === 'new' || item.status === 'reviewed') && (
+                    <button onClick={() => updateFeedbackStatus(item.id, 'in_progress')} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#a855f720', border: '1px solid #a855f750', borderRadius: '6px', color: '#a855f7', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 500 }}>
+                      🔧 In Progress
+                    </button>
+                  )}
+                  {item.status !== 'resolved' && item.status !== 'closed' && (
+                    <button onClick={() => updateFeedbackStatus(item.id, 'resolved')} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#22c55e20', border: '1px solid #22c55e50', borderRadius: '6px', color: '#22c55e', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 500 }}>
+                      ✅ Resolved
+                    </button>
+                  )}
+                  {item.status !== 'closed' && (
+                    <button onClick={() => updateFeedbackStatus(item.id, 'closed')} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#6b728020', border: '1px solid #6b728050', borderRadius: '6px', color: '#6b7280', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 500 }}>
+                      ✕ Close
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))
           )}
         </div>
       ) : activeTab === 'import' ? (

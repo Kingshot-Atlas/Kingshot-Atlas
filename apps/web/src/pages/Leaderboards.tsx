@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Kingdom, KingdomWithStats } from '../types';
 import { apiService, dataLoadError } from '../services/api';
 import { DataLoadError } from '../components/DataLoadError';
+import { LeaderboardSkeleton } from '../components/Skeleton';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { usePremium } from '../contexts/PremiumContext';
@@ -495,12 +496,7 @@ const Leaderboards: React.FC = () => {
         </div>
 
         {loading ? (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem 0' }}>
-            <div style={{ textAlign: 'center' }}>
-              <div className="loading-spinner-sm" style={{ margin: '0 auto 1rem' }} />
-              <div style={{ color: '#9ca3af', fontSize: '0.9rem' }}>Loading rankings...</div>
-            </div>
-          </div>
+          <LeaderboardSkeleton rows={10} />
         ) : dataLoadError ? (
           <DataLoadError onRetry={loadLeaderboard} />
         ) : kingdoms.length === 0 ? (

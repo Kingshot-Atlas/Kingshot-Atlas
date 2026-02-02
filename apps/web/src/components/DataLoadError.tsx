@@ -14,7 +14,7 @@ export function DataLoadError({ onRetry, className = '' }: DataLoadErrorProps) {
   if (!dataLoadError) return null;
 
   return (
-    <div className={className} style={{ 
+    <div data-testid="data-load-error" className={className} style={{ 
       display: 'flex', 
       flexDirection: 'column', 
       alignItems: 'center', 

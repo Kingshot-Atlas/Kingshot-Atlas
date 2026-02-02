@@ -8,6 +8,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import RouteErrorBoundary from './components/RouteErrorBoundary';
 import { ToastProvider } from './components/Toast';
 import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
+import FeedbackWidget from './components/FeedbackWidget';
 import { useKeyboardShortcuts, useKeyboardHelp } from './hooks/useKeyboardShortcuts';
 import { usePageTracking } from './hooks/useAnalytics';
 import { useKingdomsRealtime } from './hooks/useKingdomsRealtime';
@@ -116,6 +117,7 @@ function AppContent() {
           </Suspense>
         </PageTransition>
       </main>
+      <FeedbackWidget />
     </div>
   );
 }
