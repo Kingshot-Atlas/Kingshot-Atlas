@@ -10,6 +10,7 @@ import { usePremium } from '../contexts/PremiumContext';
 import { useAuth } from '../contexts/AuthContext';
 import ProBadge from '../components/ProBadge';
 import ComparisonRadarChart from '../components/ComparisonRadarChart';
+import ScoreComparisonOverlay from '../components/ScoreComparisonOverlay';
 import ShareButton from '../components/ShareButton';
 import ShareComparisonScreenshot from '../components/ShareComparisonScreenshot';
 import { useMetaTags, getCompareMetaTags } from '../hooks/useMetaTags';
@@ -876,6 +877,11 @@ const CompareKingdoms: React.FC = () => {
 
           {/* Radar Chart Comparison - supports multi-kingdom */}
           <MultiCompareRadarChart kingdoms={loadedKingdoms} colors={KINGDOM_COLORS} />
+
+          {/* Score Comparison Overlay - detailed breakdown for 2 kingdoms */}
+          {loadedKingdoms.length === 2 && loadedKingdoms[0] && loadedKingdoms[1] && (
+            <ScoreComparisonOverlay kingdom1={loadedKingdoms[0]} kingdom2={loadedKingdoms[1]} />
+          )}
 
           {/* Share Buttons */}
           <div style={{ marginTop: '1rem', display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '0.75rem', justifyContent: 'center', alignItems: 'center' }}>

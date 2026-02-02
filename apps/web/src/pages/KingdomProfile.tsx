@@ -13,6 +13,7 @@ import SimilarKingdoms from '../components/SimilarKingdoms';
 import KingdomPlayers from '../components/KingdomPlayers';
 import ClaimKingdom from '../components/ClaimKingdom';
 import AtlasScoreBreakdown from '../components/AtlasScoreBreakdown';
+import PathToNextTier from '../components/PathToNextTier';
 import ShareButton from '../components/ShareButton';
 import FollowKingdomButton from '../components/FollowKingdomButton';
 import { ScoreSimulator } from '../components/ScoreSimulator';
@@ -488,6 +489,9 @@ const KingdomProfile: React.FC = () => {
           rank={rank > 0 ? rank : undefined}
           totalKingdoms={rankingList.length || undefined}
         />
+
+        {/* Path to Next Tier - What-If Scenarios */}
+        <PathToNextTier kingdom={kingdom} />
 
         {/* Score Simulator - Pro Feature */}
         <ScoreSimulator kingdom={kingdom} />

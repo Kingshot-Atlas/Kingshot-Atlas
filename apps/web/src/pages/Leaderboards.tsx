@@ -7,6 +7,8 @@ import { useAnalytics } from '../hooks/useAnalytics';
 import { usePremium } from '../contexts/PremiumContext';
 import { neonGlow } from '../utils/styles';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import ScoreDistribution from '../components/ScoreDistribution';
+import ScoreMovers from '../components/ScoreMovers';
 
 const Leaderboards: React.FC = () => {
   useDocumentTitle('Kingdom Rankings');
@@ -419,6 +421,17 @@ const Leaderboards: React.FC = () => {
 
       {/* Content */}
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: isMobile ? '1rem' : '1.5rem 2rem' }}>
+        {/* Score Distribution & Movers Row */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+          gap: '1rem',
+          marginBottom: '1.5rem'
+        }}>
+          <ScoreDistribution kingdoms={filteredKingdoms} />
+          <ScoreMovers kingdoms={filteredKingdoms} />
+        </div>
+
         {/* Controls row */}
         <div style={{ 
           display: 'flex', 
