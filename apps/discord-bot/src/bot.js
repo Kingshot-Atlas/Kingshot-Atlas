@@ -60,7 +60,7 @@ const client = new Client({
 });
 
 // Event: Ready
-client.once('ready', () => {
+client.once('ready', async () => {
   console.log(`\n✅ Atlas is online as ${client.user.tag}`);
   console.log(`📊 Serving ${client.guilds.cache.size} server(s)`);
   console.log(`🔗 API: ${config.apiUrl}`);
@@ -77,6 +77,26 @@ client.once('ready', () => {
 
   // Initialize scheduled tasks (daily updates at 02:00 UTC)
   scheduler.initScheduler(client);
+  
+  // Startup API connectivity test
+  console.log('🧪 Testing API connectivity...');
+  try {
+    const testUrl = `${config.apiUrl}/api/v1/leaderboard?limit=1`;
+    console.log(`[TEST] Fetching: ${testUrl}`);
+    const response = await fetch(testUrl);
+    console.log(`[TEST] Response status: ${response.status}`);
+    if (response.ok) {
+      const data = await response.json();
+      console.log(`[TEST] ✅ API connected! Got ${data.length} kingdom(s)`);
+      if (data.length > 0) {
+        console.log(`[TEST] Sample: K${data[0].kingdom_number} score=${data[0].overall_score}`);
+      }
+    } else {
+      console.error(`[TEST] ❌ API returned ${response.status}: ${response.statusText}`);
+    }
+  } catch (e) {
+    console.error(`[TEST] ❌ API connection failed: ${e.name} - ${e.message}`);
+  }
 });
 
 // Event: Interaction (slash commands)

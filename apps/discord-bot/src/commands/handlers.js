@@ -69,12 +69,19 @@ async function handleCompare(interaction) {
 async function handleLeaderboard(interaction) {
   await interaction.deferReply();
 
-  const kingdoms = await api.fetchLeaderboard(10);
+  const result = await api.fetchLeaderboard(10);
+  
+  // Handle new structured response format
+  const kingdoms = result.data || result;
+  const error = result.error || null;
 
-  if (kingdoms.length === 0) {
+  if (!kingdoms || kingdoms.length === 0) {
+    const errorDetails = error 
+      ? `Error: ${error}` 
+      : 'No kingdoms returned from API.';
     const errorEmbed = embeds.createErrorEmbed(
       'Failed to fetch leaderboard.',
-      'Please try again later.'
+      errorDetails
     );
     return interaction.editReply({ embeds: [errorEmbed] });
   }
