@@ -9,6 +9,22 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-02 22:15 | Product Engineer | COMPLETED
+Task: Fix 3 mobile UX bugs - clipboard, logout, username privacy
+Files:
+  - apps/web/src/utils/sharing.ts (mobile clipboard: Web Share API with file support)
+  - apps/web/src/components/ShareButton.tsx (mobile-aware image sharing UX)
+  - apps/web/src/components/Header.tsx (added Sign Out button to mobile menu - was missing!)
+  - apps/web/src/contexts/AuthContext.tsx (added display_name field + getDisplayName helper)
+  - apps/web/src/pages/Profile.tsx (display_name editing, uses getDisplayName for public profiles)
+  - apps/web/src/components/AuthModal.tsx (mobile Discord login guidance message)
+  - docs/migrations/add_display_name.sql (new migration for display_name column)
+Result:
+  - Mobile "Copy Image" now uses Web Share API (opens share sheet instead of download)
+  - Mobile menu now has Sign Out button (red, at bottom)
+  - Users can set display_name to hide Google/Discord username on public profiles
+  - Mobile Discord login shows helpful guidance about web login
+
 ## 2026-02-02 17:55 | Product Engineer | COMPLETED
 Task: Update Discord bot embed styling - Pro color, website CTAs, rank display
 Files:

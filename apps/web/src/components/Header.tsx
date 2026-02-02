@@ -1082,6 +1082,35 @@ const Header: React.FC = () => {
             </svg>
             Join Discord
           </a>
+          {/* Sign Out Button - Mobile Menu */}
+          {user && (
+            <>
+              <div style={{ height: '1px', backgroundColor: '#1f1f1f', margin: '0.5rem 0' }} />
+              <button
+                onClick={() => { signOut(); setShowMobileMenu(false); }}
+                style={{
+                  color: '#ef4444',
+                  textDecoration: 'none',
+                  fontSize: '1rem',
+                  padding: '0.75rem 1rem',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  backgroundColor: '#ef444415',
+                  border: '1px solid #ef444440',
+                  width: '100%',
+                  cursor: 'pointer',
+                  textAlign: 'left'
+                }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                Sign Out
+              </button>
+            </>
+          )}
           <div style={{ height: '1px', backgroundColor: '#1f1f1f', margin: '0.5rem 0' }} />
           {/* <Link
             to="/players"

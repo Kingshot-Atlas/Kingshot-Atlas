@@ -98,6 +98,9 @@ const ShareButton: React.FC<ShareButtonProps> = ({ type, kingdomData, compareDat
   const handleCopyImage = useCallback(async () => {
     try {
       let blob: Blob;
+      const filename = type === 'kingdom' && kingdomData
+        ? `kingdom-${kingdomData.number}.png`
+        : 'comparison.png';
       
       if (type === 'kingdom' && kingdomData) {
         blob = await generateKingdomCard(
@@ -119,15 +122,14 @@ const ShareButton: React.FC<ShareButtonProps> = ({ type, kingdomData, compareDat
         return;
       }
 
-      const success = await copyImageToClipboard(blob);
+      // Pass filename to copyImageToClipboard for mobile share
+      const success = await copyImageToClipboard(blob, filename);
       if (success) {
-        showFeedback('image');
-        trackFeature('Share Image Copied', { type });
+        // On mobile, Web Share API was used (shows share sheet)
+        showFeedback(isMobile ? 'shared' : 'image');
+        trackFeature(isMobile ? 'Share Image Shared' : 'Share Image Copied', { type });
       } else {
-        // Fallback to download if clipboard not supported
-        const filename = type === 'kingdom' && kingdomData
-          ? `kingdom-${kingdomData.number}.png`
-          : 'comparison.png';
+        // Fallback to download if clipboard/share not supported
         downloadBlob(blob, filename);
         showFeedback('downloaded');
         trackFeature('Share Image Downloaded', { type });
@@ -135,7 +137,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({ type, kingdomData, compareDat
     } catch (err) {
       console.error('Failed to generate image:', err);
     }
-  }, [type, kingdomData, compareData, showFeedback, trackFeature]);
+  }, [type, kingdomData, compareData, showFeedback, trackFeature, isMobile]);
 
   const handleDownloadImage = useCallback(async () => {
     try {
@@ -225,10 +227,10 @@ const ShareButton: React.FC<ShareButtonProps> = ({ type, kingdomData, compareDat
     }] : []),
     {
       icon: '📷',
-      label: 'Copy as Image',
+      label: isMobile ? 'Share Image' : 'Copy as Image',
       action: handleCopyImage,
-      feedback: 'image',
-      feedbackText: 'Image copied!'
+      feedback: isMobile ? 'shared' : 'image',
+      feedbackText: isMobile ? 'Sharing...' : 'Image copied!'
     },
     {
       icon: '⬇️',

@@ -8,6 +8,7 @@ import { userDataService } from '../services/userDataService';
 export interface UserProfile {
   id: string;
   username: string;
+  display_name?: string | null; // Custom display name (shown publicly instead of OAuth username)
   email: string;
   avatar_url: string;
   home_kingdom: number | null;
@@ -30,6 +31,14 @@ export interface UserProfile {
   discord_username?: string | null;
   discord_linked_at?: string | null;
 }
+
+/**
+ * Get the display name for a user (prefers display_name over OAuth username)
+ */
+export const getDisplayName = (profile: UserProfile | null): string => {
+  if (!profile) return 'User';
+  return profile.display_name || profile.username || 'User';
+};
 
 interface AuthContextType {
   user: User | null;
@@ -415,7 +424,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     // Send updates to Supabase, filtering out fields that don't exist in the database
     const dbFields = [
-      'username', 'email', 'avatar_url', 'home_kingdom', 'alliance_tag',
+      'username', 'display_name', 'email', 'avatar_url', 'home_kingdom', 'alliance_tag',
       'language', 'region', 'bio', 'theme_color', 'badge_style',
       'linked_player_id', 'linked_username', 'linked_avatar_url',
       'linked_kingdom', 'linked_tc_level', 'subscription_tier',

@@ -35,21 +35,77 @@ export const copyToClipboard = async (text: string): Promise<boolean> => {
 };
 
 /**
- * Copy image to clipboard (for PNG export)
+ * Check if device is mobile
  */
-export const copyImageToClipboard = async (blob: Blob): Promise<boolean> => {
+export const isMobileDevice = (): boolean => {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+};
+
+/**
+ * Copy image to clipboard (for PNG export)
+ * On mobile, uses Web Share API with file if available
+ * Returns: { success: boolean, method: 'clipboard' | 'share' | 'none' }
+ */
+export const copyImageToClipboard = async (blob: Blob, filename?: string): Promise<boolean> => {
+  // Try clipboard API first (works on desktop browsers)
   try {
-    if (navigator.clipboard && 'write' in navigator.clipboard) {
+    if (navigator.clipboard && 'write' in navigator.clipboard && !isMobileDevice()) {
       await navigator.clipboard.write([
         new ClipboardItem({ 'image/png': blob })
       ]);
       return true;
     }
-    return false;
   } catch (err) {
-    console.error('Failed to copy image:', err);
+    console.log('Clipboard API not available, trying alternatives:', err);
+  }
+
+  // On mobile, try Web Share API with file support
+  if (isMobileDevice() && navigator.share && navigator.canShare) {
+    try {
+      const file = new File([blob], filename || 'image.png', { type: 'image/png' });
+      const shareData = { files: [file] };
+      
+      if (navigator.canShare(shareData)) {
+        await navigator.share(shareData);
+        return true;
+      }
+    } catch (err) {
+      // User cancelled or share failed - this is expected sometimes
+      if ((err as Error).name !== 'AbortError') {
+        console.log('Web Share with file not available:', err);
+      }
+    }
+  }
+
+  return false;
+};
+
+/**
+ * Share image on mobile using Web Share API
+ * Returns true if share was initiated, false if not supported
+ */
+export const shareImageOnMobile = async (blob: Blob, filename: string, title?: string): Promise<boolean> => {
+  if (!navigator.share || !navigator.canShare) {
     return false;
   }
+
+  try {
+    const file = new File([blob], filename, { type: 'image/png' });
+    const shareData = {
+      files: [file],
+      title: title || 'Kingshot Atlas',
+    };
+
+    if (navigator.canShare(shareData)) {
+      await navigator.share(shareData);
+      return true;
+    }
+  } catch (err) {
+    if ((err as Error).name !== 'AbortError') {
+      console.error('Share failed:', err);
+    }
+  }
+  return false;
 };
 
 /**

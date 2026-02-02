@@ -9,7 +9,7 @@ import LinkKingshotAccount from '../components/LinkKingshotAccount';
 import LinkDiscordAccount from '../components/LinkDiscordAccount';
 import PlayersFromMyKingdom from '../components/PlayersFromMyKingdom';
 import UserCorrectionStats from '../components/UserCorrectionStats';
-import { useAuth, getCacheBustedAvatarUrl, UserProfile } from '../contexts/AuthContext';
+import { useAuth, getCacheBustedAvatarUrl, UserProfile, getDisplayName } from '../contexts/AuthContext';
 import { usePremium } from '../contexts/PremiumContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { getCustomerPortalUrl, createPortalSession } from '../lib/stripe';
@@ -106,6 +106,7 @@ const LANGUAGES = [
 const REGIONS = ['Americas', 'Europe', 'Asia', 'Oceania'];
 
 interface EditForm {
+  display_name: string;
   alliance_tag: string;
   language: string;
   region: string;
@@ -228,6 +229,7 @@ const Profile: React.FC = () => {
   const [viewedUserTier, setViewedUserTier] = useState<'free' | 'pro' | 'recruiter'>('free');
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState<EditForm>({
+    display_name: '',
     alliance_tag: '',
     language: '',
     region: '',
@@ -331,6 +333,7 @@ const Profile: React.FC = () => {
   useEffect(() => {
     if (viewedProfile && !isViewingOther) {
       setEditForm({
+        display_name: viewedProfile.display_name || '',
         alliance_tag: viewedProfile.alliance_tag || '',
         language: viewedProfile.language || '',
         region: viewedProfile.region || '',
@@ -486,7 +489,7 @@ const Profile: React.FC = () => {
             marginBottom: '0.5rem',
             fontFamily: "'Cinzel', 'Times New Roman', serif"
           }}>
-            <span style={{ color: '#fff' }}>{isViewingOther ? viewedProfile?.username?.toUpperCase() : 'MY'}</span>
+            <span style={{ color: '#fff' }}>{isViewingOther ? getDisplayName(viewedProfile).toUpperCase() : 'MY'}</span>
             <span style={{ ...neonGlow(themeColor), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>PROFILE</span>
           </h1>
           <p style={{ color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.9rem', marginBottom: '0.75rem' }}>
@@ -513,6 +516,25 @@ const Profile: React.FC = () => {
         }}>
           {isEditing && !isViewingOther ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              {/* Display Name - Custom public name */}
+              <div>
+                <label style={{ color: '#9ca3af', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>
+                  Display Name
+                  <span style={{ color: '#6b7280', fontSize: '0.75rem', marginLeft: '0.5rem' }}>(shown publicly instead of Google/Discord name)</span>
+                </label>
+                <input
+                  type="text"
+                  value={editForm.display_name}
+                  onChange={(e) => setEditForm({ ...editForm, display_name: e.target.value })}
+                  placeholder={viewedProfile?.username || 'Enter a display name'}
+                  maxLength={30}
+                  style={{ ...inputStyle, maxWidth: '300px' }}
+                />
+                <p style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                  Leave empty to use your {viewedProfile?.username?.includes('@') ? 'account' : 'Google/Discord'} name
+                </p>
+              </div>
+
               {/* Alliance Tag */}
               <div>
                 <label style={{ color: '#9ca3af', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>Alliance Tag (3 chars)</label>
@@ -612,7 +634,7 @@ const Profile: React.FC = () => {
                 />
                 <div>
                   <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#fff' }}>
-                    {viewedProfile?.username || 'Anonymous User'}
+                    {getDisplayName(viewedProfile)}
                   </div>
                   {viewedProfile?.home_kingdom && (
                     <Link to={`/kingdom/${viewedProfile.home_kingdom}`} style={{ color: themeColor, textDecoration: 'none', fontSize: '0.9rem' }}>
