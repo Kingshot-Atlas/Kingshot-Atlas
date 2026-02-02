@@ -10,7 +10,6 @@ import LazyCard from '../components/LazyCard';
 import { useToast } from '../components/Toast';
 import SkeletonCard from '../components/SkeletonCard';
 import KingdomTable from '../components/KingdomTable';
-import CompareTray from '../components/CompareTray';
 import SearchAutocomplete from '../components/SearchAutocomplete';
 import EventCalendar from '../components/EventCalendar';
 import PostKvKSubmission from '../components/PostKvKSubmission';
@@ -24,7 +23,6 @@ import { countActiveFilters, DEFAULT_FILTERS } from '../utils/kingdomStats';
 import { DataSyncIndicator } from '../components/DataSyncIndicator';
 
 const FAVORITES_KEY = 'kingshot_favorites';
-const COMPARE_HISTORY_KEY = 'kingshot_compare_history';
 
 const KingdomDirectory: React.FC = () => {
   useDocumentTitle('Kingdom Directory');
@@ -61,9 +59,6 @@ const KingdomDirectory: React.FC = () => {
     order: 'desc'
   });
   
-  const [compareKingdom1, setCompareKingdom1] = useState('');
-  const [compareKingdom2, setCompareKingdom2] = useState('');
-  const [showCompareTray, setShowCompareTray] = useState(window.innerWidth >= 768);
   
   const [favorites, setFavorites] = useState<number[]>(() => {
     const saved = localStorage.getItem(FAVORITES_KEY);
@@ -78,10 +73,6 @@ const KingdomDirectory: React.FC = () => {
     return saved ? JSON.parse(saved) : [];
   });
   
-  const [compareHistory, setCompareHistory] = useState<{k1: number; k2: number}[]>(() => {
-    const saved = localStorage.getItem(COMPARE_HISTORY_KEY);
-    return saved ? JSON.parse(saved) : [];
-  });
   
   const [showPostKvKModal, setShowPostKvKModal] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false); // Closed by default
@@ -177,10 +168,6 @@ const KingdomDirectory: React.FC = () => {
     }, 300);
     return () => clearTimeout(timer);
   }, [searchQuery]);
-
-  useEffect(() => {
-    localStorage.setItem(COMPARE_HISTORY_KEY, JSON.stringify(compareHistory));
-  }, [compareHistory]);
 
   // Save view mode preference
   useEffect(() => {
@@ -283,21 +270,6 @@ const KingdomDirectory: React.FC = () => {
       setLoadingMore(false);
     }, 300);
   };
-
-  // Handle adding a kingdom to compare slots
-  const handleAddToCompare = useCallback((kingdomNumber: number) => {
-    if (!compareKingdom1) {
-      setCompareKingdom1(kingdomNumber.toString());
-      showToast(`K-${kingdomNumber} added to compare slot 1`, 'info');
-    } else if (!compareKingdom2 && compareKingdom1 !== kingdomNumber.toString()) {
-      setCompareKingdom2(kingdomNumber.toString());
-      showToast(`K-${kingdomNumber} added to compare slot 2`, 'info');
-    } else if (compareKingdom1 === kingdomNumber.toString()) {
-      showToast(`K-${kingdomNumber} already in slot 1`, 'info');
-    } else {
-      showToast('Both compare slots are full. Clear one first.', 'info');
-    }
-  }, [compareKingdom1, compareKingdom2, showToast]);
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a', paddingBottom: '100px' }}>
@@ -937,7 +909,6 @@ const KingdomDirectory: React.FC = () => {
                     isFavorite={favorites.includes(kingdom.kingdom_number)}
                     onToggleFavorite={() => toggleFavorite(kingdom.kingdom_number)}
                     onCopyLink={() => showToast('Link copied to clipboard!', 'success')}
-                    onAddToCompare={handleAddToCompare}
                   />
                 </LazyCard>
               </div>
@@ -948,7 +919,6 @@ const KingdomDirectory: React.FC = () => {
             kingdoms={displayedKingdoms}
             favorites={favorites}
             toggleFavorite={toggleFavorite}
-            onAddToCompare={handleAddToCompare}
           />
         )}
 
@@ -999,25 +969,13 @@ const KingdomDirectory: React.FC = () => {
         )}
       </div>
 
-      {/* Floating Compare Tray */}
-      <CompareTray
-        compareKingdom1={compareKingdom1}
-        compareKingdom2={compareKingdom2}
-        setCompareKingdom1={setCompareKingdom1}
-        setCompareKingdom2={setCompareKingdom2}
-        compareHistory={compareHistory}
-        setCompareHistory={setCompareHistory}
-        showCompareTray={showCompareTray}
-        setShowCompareTray={setShowCompareTray}
-      />
-
       {/* Back to Top Button */}
       {showBackToTop && (
         <button
           onClick={scrollToTop}
           style={{
             position: 'fixed',
-            bottom: showCompareTray ? '5rem' : '1rem',
+            bottom: '1rem',
             left: '1rem',
             padding: '0.75rem',
             backgroundColor: '#111111',

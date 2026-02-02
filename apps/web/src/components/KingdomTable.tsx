@@ -44,7 +44,7 @@ interface KingdomTableProps {
   kingdoms: (Kingdom & { rank?: number })[];
   favorites: number[];
   toggleFavorite: (kingdomNumber: number) => void;
-  onAddToCompare: (kingdomNumber: number) => void;
+  onAddToCompare?: (kingdomNumber: number) => void;
 }
 
 const neonGlow = (color: string) => ({
@@ -64,8 +64,7 @@ const getStatusColor = (status: string) => {
 const KingdomTable: React.FC<KingdomTableProps> = ({ 
   kingdoms, 
   favorites, 
-  toggleFavorite, 
-  onAddToCompare 
+  toggleFavorite
 }) => {
   const navigate = useNavigate();
   const [showColumnSelector, setShowColumnSelector] = useState(false);
@@ -163,7 +162,6 @@ const KingdomTable: React.FC<KingdomTableProps> = ({
                   </th>
                 );
               })}
-              <th style={{ padding: '0.75rem 0.5rem', textAlign: 'center', color: '#6b7280', fontSize: '0.75rem', fontWeight: '600' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -215,14 +213,6 @@ const KingdomTable: React.FC<KingdomTableProps> = ({
                       </td>
                     );
                   })}
-                  <td style={{ padding: '0.6rem 0.5rem', textAlign: 'center' }}>
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); onAddToCompare(kingdom.kingdom_number); }} 
-                      style={{ padding: '0.3rem 0.6rem', backgroundColor: 'transparent', border: '1px solid #3a3a3a', borderRadius: '4px', color: '#9ca3af', fontSize: '0.7rem', cursor: 'pointer' }}
-                    >
-                      + Compare
-                    </button>
-                  </td>
                 </tr>
               );
             })}
