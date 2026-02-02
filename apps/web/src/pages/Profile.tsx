@@ -622,21 +622,34 @@ const Profile: React.FC = () => {
             </div>
         ) : (
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: isMobile ? 'column' : 'row',
+              justifyContent: 'space-between', 
+              alignItems: isMobile ? 'center' : 'flex-start', 
+              gap: isMobile ? '1rem' : 0,
+              marginBottom: isMobile ? '1.25rem' : '1.5rem' 
+            }}>
+              <div style={{ 
+                display: 'flex', 
+                flexDirection: isMobile ? 'column' : 'row',
+                alignItems: 'center', 
+                gap: isMobile ? '0.75rem' : '1rem',
+                textAlign: isMobile ? 'center' : 'left'
+              }}>
                 <AvatarWithFallback 
                   avatarUrl={viewedProfile?.avatar_url}
                   username={viewedProfile?.username}
-                  size={64}
+                  size={isMobile ? 80 : 64}
                   themeColor={themeColor}
                   badgeStyle={viewedProfile?.badge_style}
                 />
                 <div>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#fff' }}>
+                  <div style={{ fontSize: isMobile ? '1.35rem' : '1.5rem', fontWeight: 'bold', color: '#fff' }}>
                     {getDisplayName(viewedProfile)}
                   </div>
                   {viewedProfile?.home_kingdom && (
-                    <Link to={`/kingdom/${viewedProfile.home_kingdom}`} style={{ color: themeColor, textDecoration: 'none', fontSize: '0.9rem' }}>
+                    <Link to={`/kingdom/${viewedProfile.home_kingdom}`} style={{ color: themeColor, textDecoration: 'none', fontSize: isMobile ? '0.85rem' : '0.9rem' }}>
                       Home: Kingdom {viewedProfile.home_kingdom}
                     </Link>
                   )}
@@ -652,13 +665,16 @@ const Profile: React.FC = () => {
                     }
                   }}
                   style={{
-                    padding: '0.5rem 1rem',
+                    padding: isMobile ? '0.625rem 1.25rem' : '0.5rem 1rem',
+                    minHeight: isMobile ? '44px' : 'auto',
+                    width: isMobile ? '100%' : 'auto',
                     backgroundColor: 'transparent',
                     border: '1px solid #3a3a3a',
-                    borderRadius: '8px',
+                    borderRadius: '10px',
                     color: '#9ca3af',
                     cursor: 'pointer',
-                    fontSize: '0.85rem'
+                    fontSize: isMobile ? '0.9rem' : '0.85rem',
+                    WebkitTapHighlightColor: 'transparent'
                   }}
                 >
                   Edit Profile
@@ -688,7 +704,12 @@ const Profile: React.FC = () => {
               )}
             </div>
             {viewedProfile?.bio && (
-              <p style={{ color: '#9ca3af', lineHeight: 1.6 }}>{viewedProfile.bio}</p>
+              <p style={{ 
+                color: '#9ca3af', 
+                lineHeight: 1.6, 
+                fontSize: isMobile ? '0.9rem' : '1rem',
+                textAlign: isMobile ? 'center' : 'left'
+              }}>{viewedProfile.bio}</p>
             )}
           </div>
         )}
@@ -793,12 +814,13 @@ const Profile: React.FC = () => {
             
             <div style={{ 
               display: 'flex', 
-              alignItems: 'center', 
+              flexDirection: isMobile ? 'column' : 'row',
+              alignItems: isMobile ? 'stretch' : 'center', 
               justifyContent: 'space-between',
-              gap: '1rem',
+              gap: isMobile ? '0.75rem' : '1rem',
               flexWrap: 'wrap'
             }}>
-              <p style={{ color: '#6b7280', fontSize: '0.85rem', margin: 0 }}>
+              <p style={{ color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.85rem', margin: 0, lineHeight: 1.5 }}>
                 {isAdmin 
                   ? 'You have full admin access to all features.'
                   : isPro || isRecruiter 
@@ -830,31 +852,45 @@ const Profile: React.FC = () => {
                   }}
                   disabled={managingSubscription}
                   style={{
-                    padding: '0.5rem 1rem',
+                    padding: isMobile ? '0.75rem 1rem' : '0.5rem 1rem',
+                    minHeight: isMobile ? '48px' : 'auto',
+                    width: isMobile ? '100%' : 'auto',
                     backgroundColor: 'transparent',
                     border: `1px solid ${themeColor}50`,
-                    borderRadius: '8px',
+                    borderRadius: '10px',
                     color: themeColor,
-                    fontSize: '0.85rem',
+                    fontSize: isMobile ? '0.9rem' : '0.85rem',
                     fontWeight: '500',
                     cursor: managingSubscription ? 'wait' : 'pointer',
                     opacity: managingSubscription ? 0.7 : 1,
+                    WebkitTapHighlightColor: 'transparent'
                   }}
                 >
                   {managingSubscription ? 'Opening Portal...' : 'Manage Subscription'}
                 </button>
               ) : !isAdmin ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                <div style={{ 
+                  display: 'flex', 
+                  flexDirection: isMobile ? 'column' : 'row',
+                  alignItems: isMobile ? 'stretch' : 'center', 
+                  gap: isMobile ? '0.5rem' : '1rem', 
+                  width: isMobile ? '100%' : 'auto'
+                }}>
                   <Link
                     to="/upgrade"
                     style={{
-                      padding: '0.5rem 1rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: isMobile ? '0.75rem 1rem' : '0.5rem 1rem',
+                      minHeight: isMobile ? '48px' : 'auto',
                       background: `linear-gradient(135deg, ${themeColor} 0%, ${themeColor}cc 100%)`,
-                      borderRadius: '8px',
+                      borderRadius: '10px',
                       color: '#000',
-                      fontSize: '0.85rem',
+                      fontSize: isMobile ? '0.9rem' : '0.85rem',
                       fontWeight: '600',
                       textDecoration: 'none',
+                      WebkitTapHighlightColor: 'transparent'
                     }}
                   >
                     Upgrade to Pro
@@ -881,13 +917,15 @@ const Profile: React.FC = () => {
                     }}
                     disabled={managingSubscription}
                     style={{
-                      padding: '0.5rem 0.75rem',
+                      padding: isMobile ? '0.625rem 0.75rem' : '0.5rem 0.75rem',
+                      minHeight: isMobile ? '44px' : 'auto',
                       backgroundColor: 'transparent',
                       border: 'none',
                       color: '#6b7280',
-                      fontSize: '0.75rem',
+                      fontSize: isMobile ? '0.8rem' : '0.75rem',
                       cursor: managingSubscription ? 'wait' : 'pointer',
                       textDecoration: 'underline',
+                      WebkitTapHighlightColor: 'transparent'
                     }}
                   >
                     {managingSubscription ? 'Syncing...' : 'Subscription not showing?'}

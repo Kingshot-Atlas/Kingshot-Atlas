@@ -339,8 +339,8 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
         <div
           style={{
             display: 'flex',
-            gap: '1rem',
-            padding: '1rem',
+            gap: isMobile ? '0.875rem' : '1rem',
+            padding: isMobile ? '0.875rem' : '1rem',
             backgroundColor: colors.surface,
             borderRadius: '12px',
             marginBottom: '1rem',
@@ -348,7 +348,7 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
         >
           <KingshotAvatar 
             url={linkedPlayer.avatar_url} 
-            size={56} 
+            size={isMobile ? 64 : 56} 
             borderColor={getUsernameColor(subscriptionTier)} 
           />
 
@@ -391,7 +391,12 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
 
         {/* Action buttons - only show for own profile (not public view) */}
         {!isPublicView && (
-          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: isMobile ? 'column' : 'row',
+            gap: isMobile ? '0.5rem' : '0.75rem', 
+            flexWrap: 'wrap' 
+          }}>
             {showRefresh && (
               <Button
                 variant="secondary"
@@ -399,26 +404,55 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
                 disabled={isRefreshing}
                 loading={isRefreshing}
                 icon={!isRefreshing ? <span>🔄</span> : undefined}
-                style={{ flex: 1, minWidth: '120px' }}
+                style={{ 
+                  flex: 1, 
+                  minWidth: '120px',
+                  minHeight: isMobile ? '48px' : 'auto',
+                  fontSize: isMobile ? '0.9rem' : undefined
+                }}
               >
                 {isRefreshing ? 'Refreshing...' : 'Refresh Data'}
               </Button>
             )}
 
             {!showUnlinkConfirm ? (
-              <Button variant="danger" onClick={() => setShowUnlinkConfirm(true)}>
+              <Button 
+                variant="danger" 
+                onClick={() => setShowUnlinkConfirm(true)}
+                style={{ 
+                  minHeight: isMobile ? '48px' : 'auto',
+                  width: isMobile ? '100%' : 'auto'
+                }}
+              >
                 Unlink
               </Button>
             ) : (
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <div style={{ 
+                display: 'flex', 
+                gap: '0.5rem',
+                width: isMobile ? '100%' : 'auto'
+              }}>
                 <Button
                   variant="danger"
                   onClick={handleUnlink}
-                  style={{ backgroundColor: colors.error, color: '#fff', border: 'none' }}
+                  style={{ 
+                    backgroundColor: colors.error, 
+                    color: '#fff', 
+                    border: 'none',
+                    minHeight: isMobile ? '48px' : 'auto',
+                    flex: isMobile ? 1 : 'none'
+                  }}
                 >
                   Confirm
                 </Button>
-                <Button variant="ghost" onClick={() => setShowUnlinkConfirm(false)}>
+                <Button 
+                  variant="ghost" 
+                  onClick={() => setShowUnlinkConfirm(false)}
+                  style={{ 
+                    minHeight: isMobile ? '48px' : 'auto',
+                    flex: isMobile ? 1 : 'none'
+                  }}
+                >
                   Cancel
                 </Button>
               </div>

@@ -295,13 +295,14 @@ const ProfileFeatures: React.FC = () => {
     );
   };
 
-  // Quick Actions Bar
+  // Quick Actions Bar - mobile optimized with proper touch targets
   const QuickActionsBar = () => (
     <div style={{
       display: 'flex',
+      flexDirection: isMobile ? 'column' : 'row',
       flexWrap: 'wrap',
-      gap: '0.75rem',
-      marginBottom: '1.5rem'
+      gap: isMobile ? '0.5rem' : '0.75rem',
+      marginBottom: isMobile ? '1rem' : '1.5rem'
     }}>
       {profile?.home_kingdom && (
         <button
@@ -309,23 +310,32 @@ const ProfileFeatures: React.FC = () => {
           style={{
             display: 'flex',
             alignItems: 'center',
+            justifyContent: isMobile ? 'center' : 'flex-start',
             gap: '0.5rem',
-            padding: '0.6rem 1rem',
+            padding: isMobile ? '0.875rem 1rem' : '0.6rem 1rem',
+            minHeight: isMobile ? '48px' : 'auto',
+            width: isMobile ? '100%' : 'auto',
             backgroundColor: '#131318',
             border: `1px solid ${themeColor}40`,
-            borderRadius: '8px',
+            borderRadius: '10px',
             color: '#fff',
-            fontSize: '0.85rem',
+            fontSize: isMobile ? '0.9rem' : '0.85rem',
+            fontWeight: '500',
             cursor: 'pointer',
-            transition: 'all 0.2s'
+            transition: 'all 0.2s',
+            WebkitTapHighlightColor: 'transparent'
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = `${themeColor}15`;
-            e.currentTarget.style.borderColor = themeColor;
+            if (!isMobile) {
+              e.currentTarget.style.backgroundColor = `${themeColor}15`;
+              e.currentTarget.style.borderColor = themeColor;
+            }
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = '#131318';
-            e.currentTarget.style.borderColor = `${themeColor}40`;
+            if (!isMobile) {
+              e.currentTarget.style.backgroundColor = '#131318';
+              e.currentTarget.style.borderColor = `${themeColor}40`;
+            }
           }}
         >
           <span>🏠</span>
@@ -341,23 +351,32 @@ const ProfileFeatures: React.FC = () => {
           style={{
             display: 'flex',
             alignItems: 'center',
+            justifyContent: isMobile ? 'center' : 'flex-start',
             gap: '0.5rem',
-            padding: '0.6rem 1rem',
+            padding: isMobile ? '0.875rem 1rem' : '0.6rem 1rem',
+            minHeight: isMobile ? '48px' : 'auto',
+            width: isMobile ? '100%' : 'auto',
             backgroundColor: '#131318',
             border: '1px solid #3b82f640',
-            borderRadius: '8px',
+            borderRadius: '10px',
             color: '#fff',
-            fontSize: '0.85rem',
+            fontSize: isMobile ? '0.9rem' : '0.85rem',
+            fontWeight: '500',
             cursor: 'pointer',
-            transition: 'all 0.2s'
+            transition: 'all 0.2s',
+            WebkitTapHighlightColor: 'transparent'
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#3b82f615';
-            e.currentTarget.style.borderColor = '#3b82f6';
+            if (!isMobile) {
+              e.currentTarget.style.backgroundColor = '#3b82f615';
+              e.currentTarget.style.borderColor = '#3b82f6';
+            }
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = '#131318';
-            e.currentTarget.style.borderColor = '#3b82f640';
+            if (!isMobile) {
+              e.currentTarget.style.backgroundColor = '#131318';
+              e.currentTarget.style.borderColor = '#3b82f640';
+            }
           }}
         >
           <span>⚖️</span>
@@ -523,42 +542,62 @@ const ProfileFeatures: React.FC = () => {
         </div>
       )}
 
-      {/* Empty State */}
+      {/* Empty State - mobile optimized */}
       {favorites.length === 0 && watchlist.length === 0 && reviews.length === 0 && !homeKingdomData && (
         <div style={{
           backgroundColor: '#111116',
-          borderRadius: '12px',
-          padding: '3rem 2rem',
+          borderRadius: isMobile ? '10px' : '12px',
+          padding: isMobile ? '2rem 1.25rem' : '3rem 2rem',
           border: '1px solid #2a2a2a',
           textAlign: 'center'
         }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎯</div>
-          <h3 style={{ color: '#fff', fontSize: '1.25rem', fontWeight: '600', marginBottom: '0.75rem' }}>
+          <div style={{ fontSize: isMobile ? '2.5rem' : '3rem', marginBottom: isMobile ? '0.75rem' : '1rem' }}>🎯</div>
+          <h3 style={{ 
+            color: '#fff', 
+            fontSize: isMobile ? '1.1rem' : '1.25rem', 
+            fontWeight: '600', 
+            marginBottom: '0.75rem' 
+          }}>
             Start Building Your Profile
           </h3>
-          <p style={{ color: '#6b7280', fontSize: '0.95rem', marginBottom: '1.5rem', lineHeight: 1.6 }}>
-            Add kingdoms to your favorites, create a watchlist, write reviews, and set your home kingdom to personalize your profile.
+          <p style={{ 
+            color: '#6b7280', 
+            fontSize: isMobile ? '0.875rem' : '0.95rem', 
+            marginBottom: isMobile ? '1.25rem' : '1.5rem', 
+            lineHeight: 1.6,
+            padding: isMobile ? '0 0.5rem' : 0
+          }}>
+            Add kingdoms to your favorites, create a watchlist, and write reviews to personalize your profile.
           </p>
           <Link 
             to="/"
             style={{
-              display: 'inline-block',
-              padding: '0.75rem 2rem',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: isMobile ? '0.875rem 2rem' : '0.75rem 2rem',
+              minHeight: isMobile ? '48px' : 'auto',
               background: `linear-gradient(135deg, ${themeColor} 0%, ${themeColor}80 100%)`,
               border: 'none',
-              borderRadius: '8px',
-              color: '#fff',
+              borderRadius: '10px',
+              color: '#000',
               fontWeight: 'bold',
+              fontSize: isMobile ? '0.95rem' : '1rem',
               textDecoration: 'none',
-              transition: 'transform 0.2s, box-shadow 0.2s'
+              transition: 'transform 0.2s, box-shadow 0.2s',
+              WebkitTapHighlightColor: 'transparent'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = `0 4px 20px ${themeColor}40`;
+              if (!isMobile) {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = `0 4px 20px ${themeColor}40`;
+              }
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = 'none';
+              if (!isMobile) {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'none';
+              }
             }}
           >
             Browse Kingdoms
