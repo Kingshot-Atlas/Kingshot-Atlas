@@ -183,8 +183,18 @@ def get_kingdom_profile(kingdom_number: int, db: Session = Depends(get_db)):
             if 'atlas_score' in supabase_kingdom:
                 supabase_kingdom['overall_score'] = supabase_kingdom['atlas_score']
             
-            # Ensure required fields exist with defaults
-            supabase_kingdom['rank'] = supabase_kingdom.get('rank', 0)
+            # Calculate actual rank based on atlas_score
+            try:
+                supabase = get_supabase_admin()
+                if supabase and supabase_kingdom.get('atlas_score'):
+                    # Count kingdoms with higher score
+                    count_result = supabase.table('kingdoms').select('kingdom_number', count='exact').gt('atlas_score', supabase_kingdom['atlas_score']).execute()
+                    supabase_kingdom['rank'] = (count_result.count or 0) + 1
+                else:
+                    supabase_kingdom['rank'] = 0
+            except Exception as rank_err:
+                print(f"Rank calculation error for {kingdom_number}: {rank_err}")
+                supabase_kingdom['rank'] = 0
             supabase_kingdom['recent_kvks'] = recent_kvks
             supabase_kingdom['last_updated'] = supabase_kingdom.get('last_updated') or supabase_kingdom.get('updated_at')
             supabase_kingdom['most_recent_status'] = supabase_kingdom.get('most_recent_status', 'Unknown')

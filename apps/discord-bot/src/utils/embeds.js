@@ -81,12 +81,13 @@ function createKingdomEmbed(kingdom) {
   const tier = getTier(kingdom.overall_score);
   const tierEmoji = getTierEmoji(tier);
   const dominations = calculateDominations(kingdom.recent_kvks);
+  const rankDisplay = kingdom.rank ? ` (Rank #${kingdom.rank})` : '';
 
   const embed = new EmbedBuilder()
-    .setColor(getTierColor(tier))
+    .setColor(config.colors.gold)
     .setTitle(`🏰 Kingdom ${kingdom.kingdom_number}`)
     .setURL(config.urls.kingdom(kingdom.kingdom_number))
-    .setDescription(`${tierEmoji} **Tier ${tier}** • Atlas Score: **${kingdom.overall_score.toFixed(1)}**`)
+    .setDescription(`${tierEmoji} **Tier ${tier}** • Atlas Score: **${kingdom.overall_score.toFixed(1)}**${rankDisplay}`)
     .addFields(
       {
         name: '📊 Overall Stats',
@@ -118,7 +119,7 @@ function createKingdomEmbed(kingdom) {
     )
     .addFields({
       name: '\u200b',
-      value: `[${config.premium.ctaShort}](${config.premium.ctaUrl})`,
+      value: `[📊 View full stats on ks-atlas.com](${config.urls.kingdom(kingdom.kingdom_number)})`,
     })
     .setFooter({ text: config.bot.footerText })
     .setTimestamp();
@@ -176,7 +177,7 @@ function createCompareEmbed(k1, k2) {
     )
     .addFields({
       name: '\u200b',
-      value: `[🔓 Get matchup predictions with Atlas Pro](${config.premium.ctaUrl})`,
+      value: `[� Compare more kingdoms on ks-atlas.com](${config.urls.compare(k1.kingdom_number, k2.kingdom_number)})`,
     })
     .setFooter({ text: `${config.bot.footerText} • ✅ = Better` })
     .setTimestamp();
@@ -203,7 +204,7 @@ function createLeaderboardEmbed(kingdoms, title = '🏆 Atlas Leaderboard') {
     .setDescription(leaderboardText || 'No kingdoms found.')
     .addFields({
       name: '\u200b',
-      value: `[🔓 Track historical rankings with Atlas Pro](${config.premium.ctaUrl})`,
+      value: `[� View full leaderboard on ks-atlas.com](${config.urls.leaderboard})`,
     })
     .setFooter({ text: `${config.bot.footerText} • Based on Atlas Score` })
     .setTimestamp();
