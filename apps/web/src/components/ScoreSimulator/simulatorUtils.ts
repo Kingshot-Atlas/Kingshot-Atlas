@@ -1,12 +1,19 @@
 /**
  * Score Simulator Utilities
  * 
- * TypeScript port of the comprehensive Atlas Score formula from enhanced_atlas_formulas.py
- * Used for frontend-only score projection simulations.
+ * Uses the centralized Atlas Score formula from atlasScoreFormula.ts
+ * for frontend score projection simulations.
  */
 
 import { KingdomProfile } from '../../types';
 import { calculateOutcome, getOutcomeDisplay } from '../../utils/outcomeUtils';
+import {
+  calculateAtlasScore,
+  extractStatsFromProfile,
+  getKvKOutcome,
+  getPowerTier,
+  type KingdomStats,
+} from '../../utils/atlasScoreFormula';
 
 export interface SimulatedKvK {
   prepResult: 'W' | 'L';
@@ -116,14 +123,7 @@ function getExperienceFactor(totalKvks: number): number {
   return 1.0; // Full credit at 5+ KvKs
 }
 
-// Get power tier from score
-function getPowerTier(score: number): 'S' | 'A' | 'B' | 'C' | 'D' {
-  if (score >= 8.90) return 'S';
-  if (score >= 7.79) return 'A';
-  if (score >= 6.42) return 'B';
-  if (score >= 4.72) return 'C';
-  return 'D';
-}
+// Re-export getPowerTier from centralized module (already imported above)
 
 // Comprehensive Atlas Score calculation
 function calculateAtlasScoreComprehensive(
@@ -303,36 +303,48 @@ function extractKingdomStats(kingdom: KingdomProfile) {
   };
 }
 
-// Main simulation function
+// Convert legacy stats to KingdomStats for centralized formula
+function convertToKingdomStats(stats: ReturnType<typeof extractKingdomStats>): KingdomStats {
+  // Convert D/W/L/F format to Domination/Comeback/Reversal/Invasion
+  const recentOutcomes = stats.recentResults.map(r => {
+    switch(r) {
+      case 'D': return 'Domination';
+      case 'W': return 'Comeback'; // Battle win = Comeback (LW)
+      case 'L': return 'Reversal'; // Battle loss with prep win = Reversal (WL)
+      case 'F': return 'Invasion'; // Double loss
+      default: return 'Invasion';
+    }
+  });
+  
+  return {
+    totalKvks: stats.totalKvks,
+    prepWins: stats.prepWins,
+    prepLosses: stats.prepLosses,
+    battleWins: stats.battleWins,
+    battleLosses: stats.battleLosses,
+    dominations: stats.dominations,
+    invasions: stats.invasions,
+    recentOutcomes,
+    currentPrepStreak: Math.max(0, stats.currentPrepStreak),
+    currentBattleStreak: Math.max(0, stats.currentBattleStreak),
+  };
+}
+
+// Main simulation function using centralized Atlas Score formula
 export function simulateScore(
   kingdom: KingdomProfile,
   simulatedKvKs: SimulatedKvK[]
 ): SimulationResult {
-  const currentStats = extractKingdomStats(kingdom);
+  // Use centralized extraction for current stats
+  const currentKingdomStats = extractStatsFromProfile(kingdom);
+  const currentBreakdown = calculateAtlasScore(currentKingdomStats);
+  const currentScore = currentBreakdown.finalScore;
   
-  // Calculate current score for comparison
-  const currentScore = calculateAtlasScoreComprehensive(
-    currentStats.totalKvks,
-    currentStats.prepWins,
-    currentStats.prepLosses,
-    currentStats.battleWins,
-    currentStats.battleLosses,
-    currentStats.dominations,
-    currentStats.invasions,
-    currentStats.recentResults,
-    currentStats.currentPrepStreak,
-    currentStats.currentBattleStreak,
-    currentStats.overallPrepStreak,
-    currentStats.overallBattleStreak,
-    currentStats.recentPrepRates,
-    currentStats.recentBattleRates
-  );
+  // Clone stats for simulation
+  const simStats: KingdomStats = { ...currentKingdomStats };
   
-  // Clone stats for simulation (object properties are mutated, not reassigned)
-  const simStats = { ...currentStats };
-  
-  // Track changes for breakdown
-  const initialExpFactor = getExperienceFactor(simStats.totalKvks);
+  // Track initial experience factor
+  const initialExpFactor = currentBreakdown.experienceFactor;
   
   // Apply each simulated KvK
   for (const kvk of simulatedKvKs) {
@@ -344,12 +356,9 @@ export function simulateScore(
       simStats.currentPrepStreak = simStats.currentPrepStreak > 0 
         ? simStats.currentPrepStreak + 1 
         : 1;
-      simStats.overallPrepStreak = Math.max(simStats.overallPrepStreak, simStats.currentPrepStreak);
     } else {
       simStats.prepLosses += 1;
-      simStats.currentPrepStreak = simStats.currentPrepStreak < 0 
-        ? simStats.currentPrepStreak - 1 
-        : -1;
+      simStats.currentPrepStreak = 0; // Reset on loss
     }
     
     // Update battle stats
@@ -358,67 +367,60 @@ export function simulateScore(
       simStats.currentBattleStreak = simStats.currentBattleStreak > 0 
         ? simStats.currentBattleStreak + 1 
         : 1;
-      simStats.overallBattleStreak = Math.max(simStats.overallBattleStreak, simStats.currentBattleStreak);
     } else {
       simStats.battleLosses += 1;
-      simStats.currentBattleStreak = simStats.currentBattleStreak < 0 
-        ? simStats.currentBattleStreak - 1 
-        : -1;
+      simStats.currentBattleStreak = 0; // Reset on loss
     }
     
-    // Update domination/defeat counts
+    // Update domination/invasion counts
     if (kvk.prepResult === 'W' && kvk.battleResult === 'W') {
       simStats.dominations += 1;
     } else if (kvk.prepResult === 'L' && kvk.battleResult === 'L') {
       simStats.invasions += 1;
     }
     
-    // Update recent results
-    const newResult = kvk.prepResult === 'W' && kvk.battleResult === 'W' ? 'D' :
-                     kvk.battleResult === 'W' ? 'W' :
-                     kvk.prepResult === 'L' && kvk.battleResult === 'L' ? 'F' : 'L';
-    simStats.recentResults = [newResult, ...simStats.recentResults.slice(0, 4)];
-    simStats.recentPrepRates = [kvk.prepResult === 'W' ? 1 : 0, ...simStats.recentPrepRates.slice(0, 4)];
-    simStats.recentBattleRates = [kvk.battleResult === 'W' ? 1 : 0, ...simStats.recentBattleRates.slice(0, 4)];
+    // Update recent outcomes using centralized function
+    const newOutcome = getKvKOutcome(kvk.prepResult, kvk.battleResult);
+    simStats.recentOutcomes = [newOutcome, ...simStats.recentOutcomes.slice(0, 4)];
   }
   
-  // Calculate projected score
-  const projectedScore = calculateAtlasScoreComprehensive(
-    simStats.totalKvks,
-    simStats.prepWins,
-    simStats.prepLosses,
-    simStats.battleWins,
-    simStats.battleLosses,
-    simStats.dominations,
-    simStats.invasions,
-    simStats.recentResults,
-    simStats.currentPrepStreak,
-    simStats.currentBattleStreak,
-    simStats.overallPrepStreak,
-    simStats.overallBattleStreak,
-    simStats.recentPrepRates,
-    simStats.recentBattleRates
-  );
+  // Calculate projected score using centralized formula
+  const projectedBreakdown = calculateAtlasScore(simStats);
+  const projectedScore = projectedBreakdown.finalScore;
   
   const scoreChange = projectedScore - currentScore;
   const percentageChange = currentScore > 0 ? (scoreChange / currentScore) * 100 : 0;
   
-  // Calculate breakdown components
-  const finalExpFactor = getExperienceFactor(simStats.totalKvks);
-  const experienceGain = (finalExpFactor - initialExpFactor) * 10;
+  // Calculate breakdown components from centralized results
+  const experienceGain = (projectedBreakdown.experienceFactor - initialExpFactor) * 10;
+  const streakImpact = (projectedBreakdown.streakMultiplier - currentBreakdown.streakMultiplier) * currentBreakdown.baseScore;
+  const formBonus = (projectedBreakdown.recentFormMultiplier - currentBreakdown.recentFormMultiplier) * currentBreakdown.baseScore;
+  const baseScoreChange = scoreChange - experienceGain - streakImpact - formBonus;
   
-  // Calculate streak impact
-  const initialStreakBonus = calculateStreakBonus(currentStats.currentPrepStreak, true) * 0.15 +
-                            calculateStreakBonus(currentStats.currentBattleStreak, true) * 0.25;
-  const finalStreakBonus = calculateStreakBonus(simStats.currentPrepStreak, true) * 0.15 +
-                          calculateStreakBonus(simStats.currentBattleStreak, true) * 0.25;
-  const streakImpact = (finalStreakBonus - initialStreakBonus) * 3;
-  
-  // Base score change (approximation)
-  const baseScoreChange = scoreChange - experienceGain - streakImpact;
-  
-  // Generate insights
-  const insights = generateInsights(currentStats, simStats, simulatedKvKs, scoreChange);
+  // Generate insights using legacy format for compatibility
+  const legacyCurrentStats = extractKingdomStats(kingdom);
+  const legacySimStats = {
+    ...legacyCurrentStats,
+    totalKvks: simStats.totalKvks,
+    prepWins: simStats.prepWins,
+    prepLosses: simStats.prepLosses,
+    battleWins: simStats.battleWins,
+    battleLosses: simStats.battleLosses,
+    dominations: simStats.dominations,
+    invasions: simStats.invasions,
+    currentPrepStreak: simStats.currentPrepStreak,
+    currentBattleStreak: simStats.currentBattleStreak,
+    recentResults: simStats.recentOutcomes.map(o => {
+      switch(o) {
+        case 'Domination': return 'D';
+        case 'Comeback': return 'W';
+        case 'Reversal': return 'L';
+        case 'Invasion': return 'F';
+        default: return 'F';
+      }
+    }),
+  };
+  const insights = generateInsights(legacyCurrentStats, legacySimStats, simulatedKvKs, scoreChange);
   
   return {
     currentScore,

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { KingdomProfile as KingdomProfileType, getPowerTier } from '../types';
+import { KingdomProfile as KingdomProfileType, getPowerTier, getTierDescription as getCentralizedTierDescription, type PowerTier } from '../types';
 import { apiService } from '../services/api';
 import { statusService } from '../services/statusService';
 import KingdomReviews from '../components/KingdomReviews';
@@ -164,15 +164,9 @@ const KingdomProfile: React.FC = () => {
   // All KvK records sorted by kvk_number descending (most recent first)
   const allKvks = [...(kingdom.recent_kvks || [])].sort((a, b) => b.kvk_number - a.kvk_number);
   
-  // Tooltip descriptions - aligned with POWER_TIER_THRESHOLDS
+  // Use centralized tier description from atlasScoreFormula.ts
   const getTierDescription = (tier: string) => {
-    switch (tier) {
-      case 'S': return 'S-Tier: Elite kingdom (Top 3%) with Atlas Score 8.9+';
-      case 'A': return 'A-Tier: Strong kingdom (Top 10%) with Atlas Score 7.8-8.9';
-      case 'B': return 'B-Tier: Competitive kingdom (Top 25%) with Atlas Score 6.4-7.8';
-      case 'C': return 'C-Tier: Developing kingdom (Top 50%) with Atlas Score 4.7-6.4';
-      default: return 'D-Tier: Rebuilding kingdom (Bottom 50%) with Atlas Score below 4.7';
-    }
+    return getCentralizedTierDescription(tier as PowerTier);
   };
   
   const getStatusDescription = (status: string) => {

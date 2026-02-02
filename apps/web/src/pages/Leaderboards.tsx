@@ -176,7 +176,7 @@ const Leaderboards: React.FC = () => {
   const [hoveredRanking, setHoveredRanking] = useState<string | null>(null);
 
   const rankingTooltips: Record<string, string> = {
-    'Atlas Score': 'Rewards experience and consistency over lucky streaks',
+    'Atlas Score': 'Bayesian-adjusted rating combining win rates, dominations, recent form, and streaks. Rewards consistency over luck.',
     'Prep Win Rate': 'Highest Preparation Phase win percentage (3+ KvKs)',
     'Battle Win Rate': 'Highest Battle Phase win percentage (3+ KvKs)',
     'Prep Win Streak': 'Current consecutive Prep Phase wins',

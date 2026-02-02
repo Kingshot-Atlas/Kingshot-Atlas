@@ -61,41 +61,30 @@ export interface SortOptions {
   order: 'asc' | 'desc';
 }
 
-// Enhanced experience scaling - rewards proven veterans
-// S: Top 3% (Elite kingdoms)
-// A: Top 10% (Strong kingdoms) 
-// B: Top 25% (Above average)
-// C: Top 50% (Average kingdoms)
-// D: Bottom 50% (Below average)
-export type PowerTier = 'S' | 'A' | 'B' | 'C' | 'D';
+// Re-export Atlas Score formula types and functions from centralized module
+// This ensures a single source of truth for all score calculations
+export {
+  type PowerTier,
+  TIER_THRESHOLDS as POWER_TIER_THRESHOLDS,
+  TIER_COLORS,
+  TIER_PERCENTILES,
+  getPowerTier,
+  getTierColorFromScore,
+  getTierDescription,
+  calculateAtlasScore,
+  calculateAtlasScoreSimple,
+  extractStatsFromProfile,
+  getScoreComponents,
+  getKvKOutcome,
+  KVK_OUTCOME_SCORES,
+  SCORE_TOOLTIPS,
+  type ScoreBreakdown,
+  type ScoreComponents,
+  type KingdomStats,
+} from '../utils/atlasScoreFormula';
 
-// Score-based thresholds aligned with percentiles
-// Enhanced experience scaling - rewards proven veterans
-export const POWER_TIER_THRESHOLDS = {
-  S: 8.90,   // Top 3%: Elite kingdoms (8.90+)
-  A: 7.79,   // Top 10%: Strong kingdoms (7.79-8.89)
-  B: 6.42,   // Top 25%: Above average (6.42-7.78)
-  C: 4.72,   // Top 50%: Average kingdoms (4.72-6.41)
-  D: 0,      // Bottom 50%: Below average (0-4.71)
-} as const;
-
-export const getPowerTier = (score: number): PowerTier => {
-  if (score >= POWER_TIER_THRESHOLDS.S) return 'S';
-  if (score >= POWER_TIER_THRESHOLDS.A) return 'A';
-  if (score >= POWER_TIER_THRESHOLDS.B) return 'B';
-  if (score >= POWER_TIER_THRESHOLDS.C) return 'C';
-  return 'D';
-};
-
-export const TIER_COLORS: Record<PowerTier, string> = {
-  S: '#fbbf24',  // Gold
-  A: '#22c55e',  // Green
-  B: '#3b82f6',  // Blue
-  C: '#f97316',  // Orange
-  D: '#ef4444',  // Red
-};
-
-export const TIER_DESCRIPTIONS: Record<PowerTier, string> = {
+// Legacy tier descriptions for backward compatibility
+export const TIER_DESCRIPTIONS: Record<'S' | 'A' | 'B' | 'C' | 'D', string> = {
   S: 'Elite (Top 3%)',
   A: 'Strong (Top 10%)',
   B: 'Above Average (Top 25%)',

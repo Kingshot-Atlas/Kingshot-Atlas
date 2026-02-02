@@ -124,10 +124,10 @@ const About: React.FC = () => {
           
           <div style={{ display: 'grid', gap: '0.75rem', marginBottom: '1.25rem' }}>
             {[
-              { icon: '⚔️', title: 'Win Rate (60%)', desc: 'Overall wins with experience scaling. Veterans get full credit—new kingdoms prove themselves first.', color: '#f97316' },
-              { icon: '👑', title: 'Domination Pattern (25%)', desc: 'Win both phases consistently? That\'s dominance. Double wins boost your score, double losses hurt it.', color: '#22c55e' },
-              { icon: '🔥', title: 'Recent Form (10%)', desc: 'Your last 3 KvKs matter. Hot streaks help, but consistency beats luck every time.', color: '#eab308' },
-              { icon: '⚡', title: 'Streak Momentum (15%)', desc: 'Current win streaks and best-ever records. Battle streaks count more—that\'s when KvKs are won.', color: '#a855f7' },
+              { icon: '⚔️', title: 'Base Score (60%)', desc: 'Combined Prep (40%) + Battle (60%) win rates with Bayesian adjustment. No inflated scores from lucky starts.', color: '#22d3ee' },
+              { icon: '👑', title: 'Domination/Invasion (15%)', desc: 'Dominations boost your score up to +15%. Invasions hurt equally. Rewards consistent double-phase performance.', color: '#22c55e' },
+              { icon: '🔥', title: 'Recent Form (15%)', desc: 'Last 5 KvKs weighted by recency. Domination=1.0, Comeback=0.75, Reversal=0.6, Invasion=0.', color: '#eab308' },
+              { icon: '⚡', title: 'Streak Bonus (10%)', desc: 'Current win streaks provide a small boost. Battle streaks count 50% more than prep streaks.', color: '#a855f7' },
             ].map((item, i) => (
               <div key={i} style={{ 
                 display: 'flex', 
@@ -158,13 +158,13 @@ const About: React.FC = () => {
               Why It Works
             </div>
             <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.8rem' : '0.85rem', lineHeight: 1.6, margin: '0 0 0.5rem 0' }}>
-              • <strong>Experience matters:</strong> Kingdoms with 5+ KvKs get full scoring power
+              • <strong>Bayesian adjustment:</strong> Pulls extreme rates toward 50% until you prove yourself
             </p>
             <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.8rem' : '0.85rem', lineHeight: 1.6, margin: '0 0 0.5rem 0' }}>
-              • <strong>Consistency over luck:</strong> No inflated scores from lucky 2-0 starts
+              • <strong>Experience scaling:</strong> Full credit at 5+ KvKs—no shortcuts for newcomers
             </p>
             <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.8rem' : '0.85rem', lineHeight: 1.6, margin: 0 }}>
-              • <strong>All performance counts:</strong> Streaks, recent trends, and domination patterns
+              • <strong>Multiplier stacking:</strong> Dominations, form, and streaks compound your base score
             </p>
           </div>
 

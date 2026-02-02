@@ -4,6 +4,11 @@ import { useIsMobile } from '../hooks/useMediaQuery';
 import { KingdomProfile } from '../types';
 import { useAnalytics } from '../hooks/useAnalytics';
 import DonutChart from './DonutChart';
+import {
+  calculateAtlasScore,
+  extractStatsFromProfile,
+  KVK_OUTCOME_SCORES,
+} from '../utils/atlasScoreFormula';
 
 // Lazy load RadarChart - only loaded when user expands the breakdown
 const RadarChart = lazy(() => import('./RadarChart'));
@@ -14,14 +19,13 @@ interface AtlasScoreBreakdownProps {
   totalKingdoms?: number;
 }
 
-// Tooltip descriptions for score components
+// Tooltip descriptions for score components (using centralized + UI-specific)
 const SCORE_TOOLTIPS: Record<string, string> = {
-  'Win Rate': 'Combined win rate weighted 30% Prep Phase and 70% Battle Phase. Battle wins matter more for competitive ranking.',
-  'Performance': 'Bonus for dominations (both phases won) minus penalty for invasions (both phases lost). Rewards decisive victories.',
-  'Recent Form': 'Performance in your last 3 KvKs, with more recent matches weighted higher. Shows current momentum.',
-  'Streaks': 'Current winning/losing streaks plus historical best streaks. Consistency is rewarded.',
-  'Trend': 'Overall trajectory over last 5 KvKs. Are you improving or declining?',
-  'Experience Multiplier': 'New kingdoms (fewer KvKs) receive a penalty. Full credit requires 7+ KvKs to prevent lucky streaks inflating scores.'
+  'Base Score': 'Combined win rate: Prep (40%) + Battle (60%) with Bayesian adjustment to prevent small sample bias.',
+  'Dom/Inv': 'Dominations boost your score; Invasions hurt it equally. Rewards consistent double-phase performance.',
+  'Recent Form': `Performance in your last 5 KvKs. Domination=${KVK_OUTCOME_SCORES.Domination}, Comeback=${KVK_OUTCOME_SCORES.Comeback}, Reversal=${KVK_OUTCOME_SCORES.Reversal}, Invasion=${KVK_OUTCOME_SCORES.Invasion}.`,
+  'Streaks': 'Current win streaks provide a small boost. Battle streaks count 50% more than prep streaks.',
+  'Experience Multiplier': 'Kingdoms with 5+ KvKs get full credit. Newer kingdoms face a small penalty until they prove themselves.',
 };
 
 const AtlasScoreBreakdown: React.FC<AtlasScoreBreakdownProps> = ({ kingdom, rank, totalKingdoms }) => {
@@ -62,101 +66,27 @@ const AtlasScoreBreakdown: React.FC<AtlasScoreBreakdownProps> = ({ kingdom, rank
     }
   }, [showChart, trackFeature, kingdom.kingdom_number, kingdom.overall_score, kingdom.power_tier]);
   
-  // Calculate score components based on actual Atlas Score formula
+  // Calculate score components using centralized Atlas Score formula
   const scoreComponents = useMemo(() => {
-    const totalKvks = kingdom.total_kvks || 0;
-    const prepWinRate = kingdom.prep_win_rate || 0;
-    const battleWinRate = kingdom.battle_win_rate || 0;
-    const dominationRate = totalKvks > 0 ? (kingdom.dominations ?? 0) / totalKvks : 0;
-    const invasionRate = totalKvks > 0 ? (kingdom.invasions ?? kingdom.defeats ?? 0) / totalKvks : 0;
+    const stats = extractStatsFromProfile(kingdom);
+    const breakdown = calculateAtlasScore(stats);
     
-    // Component 1: Hybrid Win Rate (60% weight) - Prep 30%, Battle 70%
-    const baseWinRate = (prepWinRate * 0.3) + (battleWinRate * 0.7);
-    const winRateScore = baseWinRate * 10; // Max 10 points
-    
-    // Component 2: Performance Pattern (25% weight) - Domination bonus, Invasion penalty
-    const performanceModifier = (dominationRate * 0.8) - (invasionRate * 0.6);
-    const performanceScore = performanceModifier * 6; // Can be negative
-    
-    // Component 3: Recent Form (10% weight) - Last 3 KvKs
-    const recentKvks = [...(kingdom.recent_kvks || [])].sort((a, b) => b.kvk_number - a.kvk_number).slice(0, 3);
-    const weights = [1.0, 0.75, 0.5];
-    let recentScore = 0;
-    let totalWeight = 0;
-    recentKvks.forEach((kvk, i) => {
-      const prepWin = kvk.prep_result === 'Win' || kvk.prep_result === 'W';
-      const battleWin = kvk.battle_result === 'Win' || kvk.battle_result === 'W';
-      const weight = weights[i] || 0.3;
-      if (prepWin && battleWin) recentScore += 1.0 * weight; // Domination
-      else if (battleWin) recentScore += 0.5 * weight; // Win
-      else if (!prepWin && !battleWin) recentScore -= 0.25 * weight; // Invasion
-      totalWeight += weight;
-    });
-    const recentForm = totalWeight > 0 ? recentScore / totalWeight : 0;
-    const formScore = recentForm * 4; // Max ~4 points
-    
-    // Component 4: Streak Analysis (15% weight)
-    const currentPrepStreak = kingdom.prep_streak ?? 0;
-    const currentBattleStreak = kingdom.battle_streak ?? 0;
-    const bestPrepStreak = kingdom.prep_best_streak ?? 0;
-    const bestBattleStreak = kingdom.battle_best_streak ?? 0;
-    const getStreakBonus = (streak: number, isCurrent: boolean) => {
-      if (streak === 0) return 0;
-      if (isCurrent && streak < 0) {
-        const loss = Math.abs(streak);
-        if (loss >= 5) return -0.8;
-        if (loss >= 3) return -0.5;
-        if (loss >= 2) return -0.3;
-        return -0.1;
-      }
-      const win = Math.abs(streak);
-      if (win >= 8) return 1.0;
-      if (win >= 5) return 0.7;
-      if (win >= 3) return 0.4;
-      if (win >= 2) return 0.2;
-      return 0.1;
-    };
-    const streakBonus = (getStreakBonus(currentPrepStreak, true) * 0.15) +
-                        (getStreakBonus(currentBattleStreak, true) * 0.25) +
-                        (getStreakBonus(bestPrepStreak, false) * 0.20) +
-                        (getStreakBonus(bestBattleStreak, false) * 0.40);
-    const streakScore = streakBonus * 3; // Max ~3 points
-    
-    // Component 5: Recent Trend (10% weight) - Last 5 KvKs performance
-    const last5Kvks = [...(kingdom.recent_kvks || [])].sort((a, b) => b.kvk_number - a.kvk_number).slice(0, 5);
-    const recentPrepWins = last5Kvks.filter(k => k.prep_result === 'Win' || k.prep_result === 'W').length;
-    const recentBattleWins = last5Kvks.filter(k => k.battle_result === 'Win' || k.battle_result === 'W').length;
-    const avgRecentPrep = last5Kvks.length > 0 ? recentPrepWins / last5Kvks.length : 0;
-    const avgRecentBattle = last5Kvks.length > 0 ? recentBattleWins / last5Kvks.length : 0;
-    const recentPerformance = (avgRecentPrep * 0.3) + (avgRecentBattle * 0.7);
-    const trendScaling = last5Kvks.length >= 5 ? 1.0 : last5Kvks.length >= 3 ? 0.8 : last5Kvks.length >= 1 ? 0.5 : 0;
-    const trendScore = recentPerformance * trendScaling * 2; // Max 2 points
-    
-    // Experience Factor (multiplicative)
-    const getExpFactor = (kvks: number) => {
-      if (kvks === 0) return 0;
-      if (kvks === 1) return 0.4;
-      if (kvks === 2) return 0.55;
-      if (kvks === 3) return 0.7;
-      if (kvks === 4) return 0.8;
-      if (kvks === 5) return 0.9;
-      if (kvks === 6) return 0.95;
-      return 1.0;
-    };
-    const expFactor = getExpFactor(totalKvks);
-    
-    // Raw score before experience
-    const rawScore = winRateScore + performanceScore + formScore + streakScore + trendScore;
+    // Convert to display format for the donut charts
+    // Base score is on a 0-10 scale, multipliers are around 1.0
+    const baseScoreNormalized = breakdown.baseScore; // Already 0-10
+    const domInvBonus = (breakdown.domInvMultiplier - 1) * 100; // Convert to percentage points
+    const formBonus = (breakdown.recentFormMultiplier - 1) * 100;
+    const streakBonus = (breakdown.streakMultiplier - 1) * 100;
     
     return {
-      winRate: { value: winRateScore, weight: 60, maxPoints: 10 },
-      performance: { value: performanceScore, weight: 25, maxPoints: 6 },
-      recentForm: { value: formScore, weight: 10, maxPoints: 4 },
-      streaks: { value: streakScore, weight: 15, maxPoints: 3 },
-      trend: { value: trendScore, weight: 10, maxPoints: 2 },
-      expFactor,
-      rawScore,
-      finalScore: Math.max(0, Math.min(20, rawScore * expFactor))
+      baseScore: { value: baseScoreNormalized, weight: 60, maxPoints: 10 },
+      domInv: { value: domInvBonus, weight: 15, maxPoints: 15 },
+      recentForm: { value: formBonus, weight: 15, maxPoints: 15 },
+      streaks: { value: streakBonus, weight: 10, maxPoints: 15 },
+      expFactor: breakdown.experienceFactor,
+      historyBonus: breakdown.historyBonus,
+      rawScore: breakdown.baseScore * breakdown.domInvMultiplier * breakdown.recentFormMultiplier * breakdown.streakMultiplier,
+      finalScore: breakdown.finalScore
     };
   }, [kingdom]);
   
@@ -382,49 +312,46 @@ const AtlasScoreBreakdown: React.FC<AtlasScoreBreakdownProps> = ({ kingdom, rank
             {/* Score Component Donut Charts */}
             <div style={{
               display: 'grid',
-              gridTemplateColumns: isMobile ? 'repeat(3, 1fr)' : 'repeat(5, 1fr)',
+              gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
               gap: isMobile ? '0.75rem' : '1rem',
               justifyItems: 'center',
               marginBottom: '0.5rem'
             }}>
               {[
                 { 
-                  label: 'Win Rate', 
-                  sublabel: `${scoreComponents.winRate.weight}%`,
-                  points: scoreComponents.winRate.value, 
-                  maxPoints: scoreComponents.winRate.maxPoints,
-                  color: '#22d3ee' 
+                  label: 'Base Score', 
+                  sublabel: `${scoreComponents.baseScore.weight}%`,
+                  points: scoreComponents.baseScore.value, 
+                  maxPoints: scoreComponents.baseScore.maxPoints,
+                  color: '#22d3ee',
+                  tooltipKey: 'Base Score'
                 },
                 { 
-                  label: 'Performance', 
-                  sublabel: `${scoreComponents.performance.weight}%`,
-                  points: scoreComponents.performance.value, 
-                  maxPoints: scoreComponents.performance.maxPoints,
-                  color: '#22c55e'
+                  label: 'Dom/Inv', 
+                  sublabel: `${scoreComponents.domInv.weight}%`,
+                  points: scoreComponents.domInv.value, 
+                  maxPoints: scoreComponents.domInv.maxPoints,
+                  color: '#22c55e',
+                  tooltipKey: 'Dom/Inv'
                 },
                 { 
                   label: 'Form', 
                   sublabel: `${scoreComponents.recentForm.weight}%`,
                   points: scoreComponents.recentForm.value, 
                   maxPoints: scoreComponents.recentForm.maxPoints,
-                  color: '#eab308' 
+                  color: '#eab308',
+                  tooltipKey: 'Recent Form'
                 },
                 { 
                   label: 'Streaks', 
                   sublabel: `${scoreComponents.streaks.weight}%`,
                   points: scoreComponents.streaks.value, 
                   maxPoints: scoreComponents.streaks.maxPoints,
-                  color: '#a855f7' 
-                },
-                { 
-                  label: 'Trend', 
-                  sublabel: `${scoreComponents.trend.weight}%`,
-                  points: scoreComponents.trend.value, 
-                  maxPoints: scoreComponents.trend.maxPoints,
-                  color: '#f97316' 
+                  color: '#a855f7',
+                  tooltipKey: 'Streaks'
                 },
               ].map((item, i) => {
-                const tooltipText = SCORE_TOOLTIPS[item.label === 'Form' ? 'Recent Form' : item.label];
+                const tooltipText = SCORE_TOOLTIPS[item.tooltipKey];
                 const isNegative = item.points < 0;
                 return (
                   <div 
