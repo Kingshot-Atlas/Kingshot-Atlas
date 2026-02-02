@@ -9,6 +9,13 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-02 16:55 | Platform Engineer | COMPLETED
+Task: Fix /health endpoint returning 405 Method Not Allowed for UptimeRobot
+Files: apps/api/main.py
+Root Cause: UptimeRobot uses HEAD requests by default, but FastAPI @app.get() only handles GET
+Fix: Added @app.head("/health") decorator alongside @app.get("/health")
+Result: Health endpoint now responds 200 to both GET and HEAD requests
+
 ## 2026-02-02 16:45 | Ops Lead | COMPLETED
 Task: Fix Discord bot intermittent downtime (502/503 errors for 4+ days)
 Files:
