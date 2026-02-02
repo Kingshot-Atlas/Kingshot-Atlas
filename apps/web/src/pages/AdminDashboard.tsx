@@ -1055,35 +1055,110 @@ const AdminDashboard: React.FC = () => {
                   </div>
                 </div>
                 
-                {error.current_data && (
-                  <div style={{ 
-                    marginBottom: '1rem',
-                    padding: '0.75rem',
-                    backgroundColor: '#0a0a0a',
-                    borderRadius: '8px',
-                    border: '1px solid #1f1f1f'
-                  }}>
-                    <div style={{ color: '#6b7280', fontSize: '0.7rem', marginBottom: '0.5rem' }}>REPORTED DATA</div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', fontSize: '0.8rem' }}>
-                      <div>
-                        <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>Opponent</div>
-                        <div style={{ color: '#22d3ee' }}>K{error.current_data.opponent}</div>
-                      </div>
-                      <div>
-                        <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>Prep</div>
-                        <div style={{ color: error.current_data.prep_result === 'Win' ? '#22c55e' : '#ef4444' }}>
-                          {error.current_data.prep_result}
+                {error.current_data && (() => {
+                  // Calculate what will change based on error_type
+                  const willFlipPrep = error.error_type === 'wrong_prep_result';
+                  const willFlipBattle = error.error_type === 'wrong_battle_result';
+                  const newPrep = willFlipPrep 
+                    ? (error.current_data.prep_result === 'Win' ? 'Loss' : 'Win')
+                    : error.current_data.prep_result;
+                  const newBattle = willFlipBattle
+                    ? (error.current_data.battle_result === 'Win' ? 'Loss' : 'Win')
+                    : error.current_data.battle_result;
+                  // Calculate overall result
+                  const prepWin = newPrep === 'Win';
+                  const battleWin = newBattle === 'Win';
+                  const newOverall = prepWin && battleWin ? 'Domination' 
+                    : !prepWin && battleWin ? 'Comeback'
+                    : prepWin && !battleWin ? 'Prep Only'
+                    : 'Invasion';
+                  
+                  return (
+                    <div style={{ 
+                      marginBottom: '1rem',
+                      padding: '0.75rem',
+                      backgroundColor: '#0a0a0a',
+                      borderRadius: '8px',
+                      border: '1px solid #1f1f1f'
+                    }}>
+                      {/* Before → After Preview */}
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: '0.75rem', alignItems: 'center' }}>
+                        {/* BEFORE */}
+                        <div>
+                          <div style={{ color: '#ef4444', fontSize: '0.7rem', marginBottom: '0.5rem', fontWeight: 600 }}>❌ CURRENT (WRONG)</div>
+                          <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem' }}>
+                            <div>
+                              <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>Prep</div>
+                              <div style={{ 
+                                color: error.current_data.prep_result === 'Win' ? '#22c55e' : '#ef4444',
+                                textDecoration: willFlipPrep ? 'line-through' : 'none',
+                                opacity: willFlipPrep ? 0.5 : 1
+                              }}>
+                                {error.current_data.prep_result === 'Win' ? 'W' : 'L'}
+                              </div>
+                            </div>
+                            <div>
+                              <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>Battle</div>
+                              <div style={{ 
+                                color: error.current_data.battle_result === 'Win' ? '#22c55e' : '#ef4444',
+                                textDecoration: willFlipBattle ? 'line-through' : 'none',
+                                opacity: willFlipBattle ? 0.5 : 1
+                              }}>
+                                {error.current_data.battle_result === 'Win' ? 'W' : 'L'}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Arrow */}
+                        <div style={{ color: '#22d3ee', fontSize: '1.5rem', fontWeight: 700 }}>→</div>
+                        
+                        {/* AFTER */}
+                        <div>
+                          <div style={{ color: '#22c55e', fontSize: '0.7rem', marginBottom: '0.5rem', fontWeight: 600 }}>✓ AFTER APPROVAL</div>
+                          <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem' }}>
+                            <div>
+                              <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>Prep</div>
+                              <div style={{ 
+                                color: newPrep === 'Win' ? '#22c55e' : '#ef4444',
+                                fontWeight: willFlipPrep ? 700 : 400
+                              }}>
+                                {newPrep === 'Win' ? 'W' : 'L'}
+                                {willFlipPrep && <span style={{ color: '#fbbf24', marginLeft: '0.25rem' }}>⚡</span>}
+                              </div>
+                            </div>
+                            <div>
+                              <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>Battle</div>
+                              <div style={{ 
+                                color: newBattle === 'Win' ? '#22c55e' : '#ef4444',
+                                fontWeight: willFlipBattle ? 700 : 400
+                              }}>
+                                {newBattle === 'Win' ? 'W' : 'L'}
+                                {willFlipBattle && <span style={{ color: '#fbbf24', marginLeft: '0.25rem' }}>⚡</span>}
+                              </div>
+                            </div>
+                            <div>
+                              <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>Result</div>
+                              <div style={{ 
+                                color: newOverall === 'Domination' ? '#22c55e' : newOverall === 'Invasion' ? '#ef4444' : '#fbbf24',
+                                fontWeight: 600,
+                                fontSize: '0.75rem'
+                              }}>
+                                {newOverall}
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                      <div>
-                        <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>Battle</div>
-                        <div style={{ color: error.current_data.battle_result === 'Win' ? '#22c55e' : '#ef4444' }}>
-                          {error.current_data.battle_result}
-                        </div>
+                      
+                      {/* Opponent info */}
+                      <div style={{ marginTop: '0.75rem', paddingTop: '0.5rem', borderTop: '1px solid #1f1f1f', color: '#6b7280', fontSize: '0.75rem' }}>
+                        vs <span style={{ color: '#22d3ee' }}>K{error.current_data.opponent}</span>
+                        {' '}• Also updates K{error.current_data.opponent}&apos;s record (inverse)
                       </div>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
 
                 <div style={{ color: '#fff', fontSize: '0.875rem', marginBottom: '1rem', padding: '0.75rem', backgroundColor: '#1a1a20', borderRadius: '6px' }}>
                   <span style={{ color: '#6b7280' }}>Description: </span>
