@@ -9,6 +9,21 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-02 22:20 | Product Engineer | COMPLETED
+Task: Profile page UI fixes - 5 items from user screenshots
+Files:
+  - apps/web/src/pages/Profile.tsx (alliance text styling, admin subscription handling, removed Data Contributions)
+  - apps/web/src/components/LinkKingshotAccount.tsx (added Admin tier support for username/border colors)
+  - apps/web/src/components/ProfileFeatures.tsx (removed Browse Kingdoms, Leaderboards, Alliance Badge)
+  - apps/web/src/STYLE_GUIDE.md (documented Admin tier rules, profile page restrictions)
+Result:
+  - Alliance tag [TWS] now matches Language/Region styling (0.95rem, weight 500)
+  - Admin users see red username and avatar border (#ef4444) in Linked Kingshot Account
+  - Admin users no longer see "Manage Subscription" button (Admin is not a subscription)
+  - Removed redundant "Data Contributions" section (My Contributions covers this)
+  - Removed Browse Kingdoms, Leaderboards buttons and Alliance Badge from ProfileFeatures
+  - Documented restrictions in STYLE_GUIDE.md to prevent reappearance
+
 ## 2026-02-02 22:15 | Product Engineer | COMPLETED
 Task: Fix 3 mobile UX bugs - clipboard, logout, username privacy
 Files:
