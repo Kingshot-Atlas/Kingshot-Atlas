@@ -84,7 +84,7 @@ function createKingdomEmbed(kingdom) {
   const rankDisplay = kingdom.rank ? ` (Rank #${kingdom.rank})` : '';
 
   const embed = new EmbedBuilder()
-    .setColor(config.colors.gold)
+    .setColor(config.colors.primary)
     .setTitle(`🏰 Kingdom ${kingdom.kingdom_number}`)
     .setURL(config.urls.kingdom(kingdom.kingdom_number))
     .setDescription(`${tierEmoji} **Tier ${tier}** • Atlas Score: **${kingdom.overall_score.toFixed(1)}**${rankDisplay}`)
