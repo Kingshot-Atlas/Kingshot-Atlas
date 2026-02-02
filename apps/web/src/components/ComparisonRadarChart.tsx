@@ -14,7 +14,7 @@ const RADAR_TOOLTIPS: Record<string, string> = {
   'Domination': 'Percentage of KvKs where both phases were won.',
   'Form': 'Recent performance trend based on last 3 KvKs.',
   'Streaks': 'Strength of winning streaks (current + best).',
-  'Experience': 'KvK participation (7+ for full credit).',
+  'Experience': 'KvK participation (5+ for full credit).',
   'Resilience': 'Ability to avoid double-losses.',
   'Prep Win': 'Preparation Phase win rate.',
   'Battle Win': 'Battle Phase win rate.',

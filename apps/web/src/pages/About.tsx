@@ -158,7 +158,7 @@ const About: React.FC = () => {
               Why It Works
             </div>
             <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.8rem' : '0.85rem', lineHeight: 1.6, margin: '0 0 0.5rem 0' }}>
-              • <strong>Experience matters:</strong> Kingdoms with 6+ KvKs get full scoring power
+              • <strong>Experience matters:</strong> Kingdoms with 5+ KvKs get full scoring power
             </p>
             <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.8rem' : '0.85rem', lineHeight: 1.6, margin: '0 0 0.5rem 0' }}>
               • <strong>Consistency over luck:</strong> No inflated scores from lucky 2-0 starts

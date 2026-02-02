@@ -106,16 +106,14 @@ function calculateStreakBonus(streak: number, isCurrent: boolean = true): number
   }
 }
 
-// Get experience factor based on total KvKs
+// Get experience factor based on total KvKs (veteran threshold = 5)
 function getExperienceFactor(totalKvks: number): number {
   if (totalKvks === 0) return 0.0;
   if (totalKvks === 1) return 0.4;
-  if (totalKvks === 2) return 0.55;
-  if (totalKvks === 3) return 0.7;
-  if (totalKvks === 4) return 0.8;
-  if (totalKvks === 5) return 0.9;
-  if (totalKvks === 6) return 0.95;
-  return 1.0;
+  if (totalKvks === 2) return 0.6;
+  if (totalKvks === 3) return 0.75;
+  if (totalKvks === 4) return 0.9;
+  return 1.0; // Full credit at 5+ KvKs
 }
 
 // Get power tier from score
@@ -463,11 +461,8 @@ function generateInsights(
   }
   
   // Experience insights
-  if (currentStats.totalKvks < 7 && simStats.totalKvks >= 7) {
-    insights.push("You'll reach veteran status (7+ KvKs) - full experience bonus unlocked!");
-  }
   if (currentStats.totalKvks < 5 && simStats.totalKvks >= 5) {
-    insights.push("Reaching 5 KvKs will significantly reduce your newcomer penalty.");
+    insights.push("You'll reach veteran status (5+ KvKs) - full experience bonus unlocked!");
   }
   
   // Domination insights
