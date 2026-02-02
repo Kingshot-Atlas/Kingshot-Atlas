@@ -9,6 +9,15 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-01 22:20 | Platform Engineer | COMPLETED
+Task: Fix KvK count display bug and corrections not updating data
+Files:
+  - apps/web/src/pages/KingdomProfile.tsx (fix "9 of 8 KvKs" display)
+  - apps/web/src/services/kvkCorrectionService.ts (update kvk_history directly)
+  - apps/web/src/pages/AdminDashboard.tsx (add cache invalidation + toast)
+Result: KvK count now shows actual record count. Corrections update source of truth instantly.
+Root cause: total_kvks was from static JSON, not actual records. Corrections wrote to separate table, not kvk_history.
+
 ## 2026-02-01 14:10 | Ops Lead | COMPLETED
 Task: Migrate frontend hosting from Netlify to Cloudflare Pages
 Reason: Netlify charges 15 credits ($0.15) per deploy; Cloudflare Pages = unlimited free deploys
