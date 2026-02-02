@@ -180,7 +180,7 @@ function calculateAtlasScoreComprehensive(
     invRate = totalKvks > 0 ? wilsonScoreLowerBound(invasions, totalKvks, 0.90) : 0;
   }
   
-  const performanceModifier = (domRate * 0.8) - (invRate * 0.6);
+  const performanceModifier = (domRate * 0.8) - (invRate * 0.8);
   
   // COMPONENT 3: RECENT FORM (Last 3 KvKs)
   const weights = [1.0, 0.75, 0.5];

@@ -101,8 +101,8 @@ def calculate_atlas_score(total_kvks, prep_wins, prep_losses, battle_wins, battl
     dom_bayesian = bayesian_adjusted_win_rate(dominations, total_kvks - dominations, 10, 10) if total_kvks > 0 else 0
     def_bayesian = bayesian_adjusted_win_rate(defeats, total_kvks - defeats, 10, 10) if total_kvks > 0 else 0
     
-    # Increased weight for domination/defeat pattern
-    dominance_modifier = (dom_bayesian * 0.8) - (def_bayesian * 0.6)
+    # Equal weight for domination/defeat pattern
+    dominance_modifier = (dom_bayesian * 0.8) - (def_bayesian * 0.8)
     
     # === COMPONENT 3: Recent Form (expanded to 5 KvKs) ===
     weights = [1.0, 0.9, 0.8, 0.7, 0.6]

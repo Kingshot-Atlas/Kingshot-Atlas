@@ -172,8 +172,8 @@ def calculate_atlas_score(total_kvks, prep_wins, prep_losses, battle_wins, battl
     dom_wilson = wilson_score_lower_bound(dominations, total_kvks, confidence=0.90) if total_kvks > 0 else 0
     def_wilson = wilson_score_lower_bound(defeats, total_kvks, confidence=0.90) if total_kvks > 0 else 0
     
-    # Bonus for domination-heavy kingdoms, penalty for defeat-heavy
-    dominance_modifier = (dom_wilson * 0.6) - (def_wilson * 0.4)  # Range: -0.4 to +0.6
+    # Equal bonus for dominations, penalty for invasions
+    dominance_modifier = (dom_wilson * 0.8) - (def_wilson * 0.8)  # Range: -0.8 to +0.8
     
     # === COMPONENT 3: Recent Form (last 3 KvKs) ===
     weights = [1.0, 0.75, 0.5]  # Most recent first

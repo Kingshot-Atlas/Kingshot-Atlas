@@ -553,7 +553,7 @@ def calculate_atlas_score(total_kvks, prep_wins, prep_losses, battle_wins, battl
     
     dom_wilson = wilson_score_lower_bound(dominations, total_kvks, confidence=0.90) if total_kvks > 0 else 0
     def_wilson = wilson_score_lower_bound(defeats, total_kvks, confidence=0.90) if total_kvks > 0 else 0
-    dominance_modifier = (dom_wilson * 0.6) - (def_wilson * 0.4)
+    dominance_modifier = (dom_wilson * 0.8) - (def_wilson * 0.8)
     
     weights = [1.0, 0.75, 0.5]
     recent_score = 0

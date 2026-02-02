@@ -9,6 +9,23 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-02 01:30 | Platform Engineer | COMPLETED
+Task: Make invasion penalty equal to domination bonus in Atlas Score formula
+Files:
+  - enhanced_atlas_formulas.py (4 formula variants updated: 0.6→0.8 invasion weight)
+  - regenerate_kingdoms_with_atlas_score.py (0.6→0.8 invasion weight)
+  - process_kvks.py (0.4→0.8 invasion weight - deprecated but kept consistent)
+  - apps/web/src/components/ScoreSimulator/simulatorUtils.ts (0.6→0.8 invasion weight)
+  - apps/api/api/supabase_client.py (0.05→0.1 invasion penalty in fallback formula)
+  - apps/web/src/data/kingdoms.json (regenerated with new scores)
+  - apps/api/data/kingdoms_summary.csv (regenerated with new scores)
+  - apps/api/data/kingdoms_all_kvks.csv (regenerated)
+Result:
+  - Invasions now have equal negative weight as dominations have positive weight
+  - All formula locations updated for consistency
+  - 1190 kingdom scores regenerated with updated formula
+  - Kingdom 8 (example with 3 invasions) will now have lower score
+
 ## 2026-02-02 01:15 | Platform Engineer | COMPLETED
 Task: Fix Kingdom 172 profile data out of sync with Supabase kingdoms table
 Files:
