@@ -1,10 +1,7 @@
 #!/bin/bash
 
-# Start health server in background
-node health.js &
+# Atlas Discord Bot Startup
+# Health server is now integrated into bot.js for accurate health reporting
+# This ensures the /health endpoint reflects actual Discord connection status
 
-# Wait a moment for health server to start
-sleep 2
-
-# Start the bot (this will be the main process)
-node src/bot.js
+exec node src/bot.js

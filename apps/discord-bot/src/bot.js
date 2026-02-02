@@ -27,12 +27,81 @@
  */
 
 require('dotenv').config();
+const http = require('http');
 const { Client, GatewayIntentBits, REST, Routes, ActivityType } = require('discord.js');
 const config = require('./config');
 const commands = require('./commands');
 const handlers = require('./commands/handlers');
 const logger = require('./utils/logger');
 const scheduler = require('./scheduler');
+
+// ============================================================================
+// HEALTH SERVER - Unified with bot for accurate health reporting
+// ============================================================================
+let botReady = false;
+let lastHeartbeat = Date.now();
+
+const healthServer = http.createServer((req, res) => {
+  if (req.url === '/health') {
+    const isHealthy = botReady && client.ws.status === 0; // 0 = READY
+    const uptime = process.uptime();
+    const memUsage = process.memoryUsage();
+    
+    const healthData = {
+      status: isHealthy ? 'healthy' : 'unhealthy',
+      service: 'atlas-discord-bot',
+      discord: {
+        connected: client.ws.status === 0,
+        wsStatus: client.ws.status,
+        guilds: client.guilds?.cache?.size || 0,
+        ping: client.ws.ping,
+      },
+      process: {
+        uptime: Math.floor(uptime),
+        memory: Math.floor(memUsage.heapUsed / 1024 / 1024) + 'MB',
+        lastHeartbeat: new Date(lastHeartbeat).toISOString(),
+      },
+      timestamp: new Date().toISOString(),
+    };
+    
+    res.writeHead(isHealthy ? 200 : 503, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(healthData));
+  } else if (req.url === '/') {
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.end('Atlas Discord Bot - Use /health for status');
+  } else {
+    res.writeHead(404);
+    res.end();
+  }
+});
+
+const HEALTH_PORT = process.env.PORT || 10000;
+healthServer.listen(HEALTH_PORT, () => {
+  console.log(`🏥 Health server running on port ${HEALTH_PORT}`);
+});
+
+// Self-ping keepalive to prevent Render free tier spin-down
+const SELF_PING_INTERVAL = 10 * 60 * 1000; // 10 minutes
+let selfPingTimer = null;
+
+function startSelfPing() {
+  const selfUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${HEALTH_PORT}`;
+  
+  selfPingTimer = setInterval(async () => {
+    try {
+      const res = await fetch(`${selfUrl}/health`);
+      const data = await res.json();
+      console.log(`🏓 Self-ping: ${data.status} (ws: ${data.discord?.wsStatus}, ping: ${data.discord?.ping}ms)`);
+      lastHeartbeat = Date.now();
+    } catch (e) {
+      console.error('❌ Self-ping failed:', e.message);
+    }
+  }, SELF_PING_INTERVAL);
+  
+  console.log(`🏓 Self-ping started (every ${SELF_PING_INTERVAL / 60000} minutes)`);
+}
+
+// ============================================================================
 
 // Startup logging
 console.log('🚀 Atlas Discord Bot starting...');
@@ -61,10 +130,16 @@ const client = new Client({
 
 // Event: Ready
 client.once('ready', async () => {
+  botReady = true;
+  lastHeartbeat = Date.now();
+  
   console.log(`\n✅ Atlas is online as ${client.user.tag}`);
   console.log(`📊 Serving ${client.guilds.cache.size} server(s)`);
   console.log(`🔗 API: ${config.apiUrl}`);
   console.log(`\n"${config.bot.tagline}"\n`);
+  
+  // Start self-ping keepalive
+  startSelfPing();
 
   // Set bot presence
   client.user.setPresence({
@@ -78,7 +153,47 @@ client.once('ready', async () => {
   // Initialize scheduled tasks (daily updates at 02:00 UTC)
   scheduler.initScheduler(client);
   
-  // Startup API connectivity test
+  // Test API connectivity
+  testApiConnectivity();
+  
+});
+
+// Event: Resumed (reconnected after disconnect)
+client.on('resumed', () => {
+  console.log('🔄 Discord connection resumed');
+  lastHeartbeat = Date.now();
+});
+
+// Event: Disconnect
+client.on('disconnect', () => {
+  console.warn('⚠️ Discord disconnected');
+  botReady = false;
+});
+
+// Event: Error
+client.on('error', (error) => {
+  console.error('❌ Discord client error:', error);
+});
+
+// Event: Warn
+client.on('warn', (info) => {
+  console.warn('⚠️ Discord warning:', info);
+});
+
+// Event: Shard reconnecting
+client.on('shardReconnecting', (id) => {
+  console.log(`🔄 Shard ${id} reconnecting...`);
+});
+
+// Event: Shard resumed
+client.on('shardResume', (id, replayedEvents) => {
+  console.log(`✅ Shard ${id} resumed (${replayedEvents} events replayed)`);
+  botReady = true;
+  lastHeartbeat = Date.now();
+});
+
+// Startup API connectivity test (runs once after client ready)
+async function testApiConnectivity() {
   console.log('🧪 Testing API connectivity...');
   try {
     const testUrl = `${config.apiUrl}/api/v1/leaderboard?limit=1`;
@@ -97,7 +212,7 @@ client.once('ready', async () => {
   } catch (e) {
     console.error(`[TEST] ❌ API connection failed: ${e.name} - ${e.message}`);
   }
-});
+}
 
 // Event: Interaction (slash commands)
 client.on('interactionCreate', async (interaction) => {
@@ -235,17 +350,27 @@ async function main() {
 }
 
 // Handle graceful shutdown
-process.on('SIGINT', () => {
-  console.log('\n👋 Shutting down Atlas...');
+function gracefulShutdown(signal) {
+  console.log(`\n👋 Shutting down Atlas (${signal})...`);
+  botReady = false;
+  
+  if (selfPingTimer) {
+    clearInterval(selfPingTimer);
+  }
+  
+  healthServer.close(() => {
+    console.log('🏥 Health server closed');
+  });
+  
   client.destroy();
-  process.exit(0);
-});
+  
+  setTimeout(() => {
+    process.exit(0);
+  }, 1000);
+}
 
-process.on('SIGTERM', () => {
-  console.log('\n👋 Shutting down Atlas...');
-  client.destroy();
-  process.exit(0);
-});
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 
 // Handle uncaught errors to prevent silent crashes
 process.on('uncaughtException', (error) => {
