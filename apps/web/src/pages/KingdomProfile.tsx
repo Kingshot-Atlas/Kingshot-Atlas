@@ -818,7 +818,7 @@ const KingdomProfile: React.FC = () => {
                   🚩 Report Error
                 </button>
               <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>
-                {allKvks.length} of {kingdom.total_kvks} KvKs
+                {allKvks.length} of {allKvks.length} KvKs
               </span>
               </div>
             </div>

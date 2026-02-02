@@ -137,7 +137,7 @@ class KvKCorrectionService {
 
   /**
    * Apply a KvK error correction (called when admin approves)
-   * Writes to Supabase for persistence, falls back to localStorage
+   * Updates kvk_history table directly (source of truth) AND stores correction record
    */
   async applyCorrectionAsync(kvkError: {
     id: string;
@@ -163,7 +163,46 @@ class KvKCorrectionService {
     // Try to write to Supabase first
     if (isSupabaseConfigured && supabase) {
       try {
-        // Insert main correction
+        // CRITICAL: Update kvk_history table directly (source of truth)
+        // This ensures the correction is immediately visible everywhere
+        const { error: historyError } = await supabase
+          .from('kvk_history')
+          .update({
+            prep_result: correctedPrep,
+            battle_result: correctedBattle,
+            overall_result: overallResult
+          })
+          .eq('kingdom_number', kvkError.kingdom_number)
+          .eq('kvk_number', kvkError.kvk_number);
+
+        if (historyError) {
+          console.error('Failed to update kvk_history:', historyError);
+        } else {
+          console.log(`✅ Updated kvk_history for K${kvkError.kingdom_number} KvK#${kvkError.kvk_number}`);
+        }
+
+        // Also update opponent's record (inverse results)
+        const oppPrep = this.flipResult(correctedPrep);
+        const oppBattle = this.flipResult(correctedBattle);
+        const oppOverall = this.calculateOverallResult(oppPrep, oppBattle);
+
+        const { error: oppHistoryError } = await supabase
+          .from('kvk_history')
+          .update({
+            prep_result: oppPrep,
+            battle_result: oppBattle,
+            overall_result: oppOverall
+          })
+          .eq('kingdom_number', kvkError.current_data.opponent)
+          .eq('kvk_number', kvkError.kvk_number);
+
+        if (oppHistoryError) {
+          console.error('Failed to update opponent kvk_history:', oppHistoryError);
+        } else {
+          console.log(`✅ Updated opponent kvk_history for K${kvkError.current_data.opponent} KvK#${kvkError.kvk_number}`);
+        }
+
+        // Store correction record for audit trail
         const { error: mainError } = await supabase
           .from('kvk_corrections')
           .upsert({
@@ -175,37 +214,39 @@ class KvKCorrectionService {
             corrected_prep_result: correctedPrep,
             corrected_battle_result: correctedBattle,
             corrected_overall_result: overallResult,
+            status: 'approved',
+            corrected_by: approvedBy,
+            reviewed_at: new Date().toISOString(),
             notes: `Correction approved from error report ${kvkError.id}`
           }, { onConflict: 'kingdom_number,kvk_number' });
 
         if (mainError) {
-          console.error('Failed to save correction to Supabase:', mainError);
-        } else {
-          // Insert opponent inverse correction
-          const oppPrep = this.flipResult(correctedPrep);
-          const oppBattle = this.flipResult(correctedBattle);
-          const oppOverall = this.calculateOverallResult(oppPrep, oppBattle);
-
-          await supabase
-            .from('kvk_corrections')
-            .upsert({
-              kingdom_number: kvkError.current_data.opponent,
-              kvk_number: kvkError.kvk_number,
-              opponent_kingdom: kvkError.kingdom_number,
-              original_prep_result: this.flipResult(kvkError.current_data.prep_result),
-              original_battle_result: this.flipResult(kvkError.current_data.battle_result),
-              corrected_prep_result: oppPrep,
-              corrected_battle_result: oppBattle,
-              corrected_overall_result: oppOverall,
-              notes: `Inverse correction for K${kvkError.kingdom_number}`
-            }, { onConflict: 'kingdom_number,kvk_number' });
-
-          // Invalidate cache to pick up new corrections
-          this.correctionsCache = null;
-          this.lastFetchTime = 0;
-          
-          return true;
+          console.error('Failed to save correction record:', mainError);
         }
+
+        // Store opponent's correction record
+        await supabase
+          .from('kvk_corrections')
+          .upsert({
+            kingdom_number: kvkError.current_data.opponent,
+            kvk_number: kvkError.kvk_number,
+            opponent_kingdom: kvkError.kingdom_number,
+            original_prep_result: this.flipResult(kvkError.current_data.prep_result),
+            original_battle_result: this.flipResult(kvkError.current_data.battle_result),
+            corrected_prep_result: oppPrep,
+            corrected_battle_result: oppBattle,
+            corrected_overall_result: oppOverall,
+            status: 'approved',
+            corrected_by: approvedBy,
+            reviewed_at: new Date().toISOString(),
+            notes: `Inverse correction for K${kvkError.kingdom_number}`
+          }, { onConflict: 'kingdom_number,kvk_number' });
+
+        // Invalidate all caches to pick up changes immediately
+        this.correctionsCache = null;
+        this.lastFetchTime = 0;
+        
+        return true;
       } catch (err) {
         console.error('Supabase correction error:', err);
       }

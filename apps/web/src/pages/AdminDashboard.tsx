@@ -9,6 +9,7 @@ import { apiService } from '../services/api';
 import { contributorService } from '../services/contributorService';
 import { correctionService } from '../services/correctionService';
 import { kvkCorrectionService } from '../services/kvkCorrectionService';
+import { kvkHistoryService } from '../services/kvkHistoryService';
 import { AnalyticsDashboard } from '../components/AnalyticsCharts';
 import { EngagementDashboard } from '../components/EngagementDashboard';
 import { WebhookMonitor } from '../components/WebhookMonitor';
@@ -402,14 +403,24 @@ const AdminDashboard: React.FC = () => {
         itemId: id
       });
       
-      // Apply KvK correction to data if approved (writes to Supabase)
+      // Apply KvK correction to data if approved (writes to Supabase kvk_history)
       if (status === 'approved' && kvkError.current_data) {
-        await kvkCorrectionService.applyCorrectionAsync(kvkError, profile?.username || 'admin');
-        apiService.reloadData(); // Trigger data reload to pick up corrections
+        const success = await kvkCorrectionService.applyCorrectionAsync(kvkError, profile?.username || 'admin');
+        if (success) {
+          // Invalidate all caches to ensure fresh data everywhere
+          kvkHistoryService.invalidateCache();
+          apiService.reloadData();
+          // Invalidate React Query cache for this kingdom
+          queryClient.invalidateQueries({ queryKey: kingdomKeys.detail(kvkError.kingdom_number) });
+          queryClient.invalidateQueries({ queryKey: kingdomKeys.lists() });
+        }
       }
     }
     
-    showToast(`KvK error report ${status}`, 'success');
+    const toastMsg = status === 'approved' 
+      ? `✅ KvK #${kvkError?.kvk_number} correction applied! Data updated for K${kvkError?.kingdom_number} and K${kvkError?.current_data?.opponent}`
+      : `KvK error report rejected`;
+    showToast(toastMsg, 'success');
     fetchKvkErrors();
     fetchPendingCounts();
     setRejectModalOpen(null);
