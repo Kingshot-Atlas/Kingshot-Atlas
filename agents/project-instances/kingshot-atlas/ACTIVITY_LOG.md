@@ -9,6 +9,13 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-02 21:45 | Platform Engineer | COMPLETED
+Task: Fix Atlas Score discrepancy (Kingdom 3 showing 11.3 instead of 13.7)
+Files: apps/web/src/pages/KingdomProfile.tsx
+Root Cause: Frontend was recalculating Atlas Score client-side using calculateAtlasScore() instead of using kingdom.overall_score from Supabase (single source of truth).
+Fix: Changed line 118 to use `kingdom?.overall_score ?? 0` instead of recalculating.
+Result: Kingdom profiles now display the correct atlas_score from Supabase.
+
 ## 2026-02-02 17:37 | Product Engineer | COMPLETED
 Task: Remove sticky Compare button from home page (desktop and mobile)
 Files:
