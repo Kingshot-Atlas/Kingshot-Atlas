@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { KingdomProfile as KingdomProfileType, getPowerTier, getTierDescription as getCentralizedTierDescription, type PowerTier } from '../types';
-import { extractStatsFromProfile, calculateAtlasScore } from '../utils/atlasScoreFormula';
+// Note: Atlas Score comes from Supabase (kingdom.overall_score) - DO NOT recalculate client-side
 import { apiService, dataLoadError } from '../services/api';
 import { DataLoadError } from '../components/DataLoadError';
 import { KingdomProfileSkeleton } from '../components/Skeleton';
@@ -114,9 +114,9 @@ const KingdomProfile: React.FC = () => {
   // Calculate derived values (needed for hooks that must be called unconditionally)
   const status = kingdom?.most_recent_status || 'Unannounced';
   
-  // Calculate Atlas Score using centralized formula (single source of truth)
-  const calculatedScore = kingdom ? calculateAtlasScore(extractStatsFromProfile(kingdom)).finalScore : 0;
-  const powerTier = kingdom ? getPowerTier(calculatedScore) : 'D';
+  // Use Atlas Score from Supabase (single source of truth) - DO NOT recalculate client-side
+  const atlasScore = kingdom?.overall_score ?? 0;
+  const powerTier = kingdom ? getPowerTier(atlasScore) : 'D';
   const tierColor = getTierColor(powerTier);
   
   // Calculate rank for meta tags - ensure kingdom is included in ranking
@@ -127,7 +127,7 @@ const KingdomProfile: React.FC = () => {
   const rank = kingdom ? sortedByScore.findIndex(k => k.kingdom_number === kingdom.kingdom_number) + 1 : 0;
   
   // Update meta tags - must be called before any early returns
-  useMetaTags(kingdom ? getKingdomMetaTags(kingdom.kingdom_number, calculatedScore, powerTier, rank > 0 ? rank : undefined) : {});
+  useMetaTags(kingdom ? getKingdomMetaTags(kingdom.kingdom_number, atlasScore, powerTier, rank > 0 ? rank : undefined) : {});
 
   if (loading) {
     return <KingdomProfileSkeleton />;
@@ -274,7 +274,7 @@ const KingdomProfile: React.FC = () => {
                   lineHeight: 1
                 }}
               >
-                {calculatedScore.toFixed(1)}
+                {atlasScore.toFixed(1)}
                 {activeTooltip === 'score' && (
                   <div style={{
                     position: 'absolute',
