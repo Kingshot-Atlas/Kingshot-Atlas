@@ -9,6 +9,12 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-01 22:25 | Platform Engineer | COMPLETED
+Task: Fix K86 KvK#10 data directly in Supabase
+Files: Direct SQL update to kvk_history table
+Result: K86 KvK#10 now shows Prep W, Battle L (was incorrectly W/W)
+Note: Code fix from 22:20 wasn't deployed yet when admin approved correction
+
 ## 2026-02-01 22:20 | Platform Engineer | COMPLETED
 Task: Fix KvK count display bug and corrections not updating data
 Files:
