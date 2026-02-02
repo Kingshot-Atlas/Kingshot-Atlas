@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { KingdomProfile as KingdomProfileType, getPowerTier, getTierDescription as getCentralizedTierDescription, type PowerTier } from '../types';
+import { extractStatsFromProfile, calculateAtlasScore } from '../utils/atlasScoreFormula';
 import { apiService } from '../services/api';
 import { statusService } from '../services/statusService';
 import KingdomReviews from '../components/KingdomReviews';
@@ -109,7 +110,10 @@ const KingdomProfile: React.FC = () => {
 
   // Calculate derived values (needed for hooks that must be called unconditionally)
   const status = kingdom?.most_recent_status || 'Unannounced';
-  const powerTier = kingdom ? (kingdom.power_tier ?? getPowerTier(kingdom.overall_score)) : 'D';
+  
+  // Calculate Atlas Score using centralized formula (single source of truth)
+  const calculatedScore = kingdom ? calculateAtlasScore(extractStatsFromProfile(kingdom)).finalScore : 0;
+  const powerTier = kingdom ? getPowerTier(calculatedScore) : 'D';
   const tierColor = getTierColor(powerTier);
   
   // Calculate rank for meta tags - ensure kingdom is included in ranking
@@ -120,7 +124,7 @@ const KingdomProfile: React.FC = () => {
   const rank = kingdom ? sortedByScore.findIndex(k => k.kingdom_number === kingdom.kingdom_number) + 1 : 0;
   
   // Update meta tags - must be called before any early returns
-  useMetaTags(kingdom ? getKingdomMetaTags(kingdom.kingdom_number, kingdom.overall_score, powerTier, rank > 0 ? rank : undefined) : {});
+  useMetaTags(kingdom ? getKingdomMetaTags(kingdom.kingdom_number, calculatedScore, powerTier, rank > 0 ? rank : undefined) : {});
 
   if (loading) {
     return (
@@ -266,7 +270,7 @@ const KingdomProfile: React.FC = () => {
                   lineHeight: 1
                 }}
               >
-                {kingdom.overall_score.toFixed(1)}
+                {calculatedScore.toFixed(1)}
                 {activeTooltip === 'score' && (
                   <div style={{
                     position: 'absolute',
