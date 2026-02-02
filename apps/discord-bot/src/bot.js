@@ -336,20 +336,21 @@ async function main() {
   try {
     console.log('🔄 Registering slash commands globally...');
 
-    // Always register commands globally so they work in ALL servers
+    // Register commands globally - works in ALL servers
+    // Note: Global commands can take up to 1 hour to propagate
     await rest.put(
       Routes.applicationCommands(config.clientId),
       { body: commands }
     );
-    console.log('✅ Global commands registered (may take up to 1 hour to appear in new servers)');
+    console.log('✅ Global commands registered');
 
-    // Also register to primary guild for instant availability there
+    // Clear any guild-specific commands to avoid duplicates
     if (config.guildId) {
       await rest.put(
         Routes.applicationGuildCommands(config.clientId, config.guildId),
-        { body: commands }
+        { body: [] }  // Empty array removes guild commands
       );
-      console.log(`✅ Commands also registered instantly for primary guild ${config.guildId}`);
+      console.log(`✅ Cleared guild-specific commands from ${config.guildId} (using global only)`);
     }
   } catch (error) {
     console.error('❌ Failed to register commands:', error);
