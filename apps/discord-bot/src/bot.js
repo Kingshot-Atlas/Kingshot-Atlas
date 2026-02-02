@@ -34,19 +34,22 @@ const handlers = require('./commands/handlers');
 const logger = require('./utils/logger');
 const scheduler = require('./scheduler');
 
+// Startup logging
+console.log('🚀 Atlas Discord Bot starting...');
+console.log(`� ${new Date().toISOString()}`);
+console.log(`🔧 Node ${process.version}`);
+console.log(`🌐 API URL: ${config.apiUrl || 'NOT SET'}`);
+
 // Validate configuration
 if (!config.token || !config.clientId) {
-  console.error('❌ Missing DISCORD_TOKEN or DISCORD_CLIENT_ID in .env');
-  console.log('\n📋 Setup instructions:');
-  console.log('1. Create app at https://discord.com/developers/applications');
-  console.log('2. Go to Bot section and create a bot');
-  console.log('3. Copy the bot token');
-  console.log('4. Copy .env.example to .env');
-  console.log('5. Fill in DISCORD_TOKEN and DISCORD_CLIENT_ID');
-  console.log('6. Run: npm run register');
-  console.log('7. Run: npm start');
+  console.error('❌ Missing DISCORD_TOKEN or DISCORD_CLIENT_ID');
+  console.log('Token present:', !!config.token);
+  console.log('Client ID present:', !!config.clientId);
+  console.log('Guild ID present:', !!config.guildId);
   process.exit(1);
 }
+
+console.log('✅ Configuration validated');
 
 // Initialize Discord client
 // Note: GuildMembers intent removed - requires privileged intent in Discord Developer Portal
@@ -81,6 +84,7 @@ client.on('interactionCreate', async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
 
   const { commandName } = interaction;
+  console.log(`📥 Command received: /${commandName} from ${interaction.user.tag}`);
 
   const startTime = Date.now();
   
@@ -220,5 +224,17 @@ process.on('SIGTERM', () => {
   process.exit(0);
 });
 
+// Handle uncaught errors to prevent silent crashes
+process.on('uncaughtException', (error) => {
+  console.error('❌ Uncaught Exception:', error);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
 // Start the bot
-main().catch(console.error);
+main().catch((error) => {
+  console.error('❌ Failed to start bot:', error);
+  process.exit(1);
+});

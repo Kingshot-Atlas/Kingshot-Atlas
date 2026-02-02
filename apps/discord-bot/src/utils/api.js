@@ -5,12 +5,30 @@
 
 const config = require('../config');
 
+// Timeout wrapper for fetch requests (10 second timeout)
+const API_TIMEOUT = 10000;
+
+async function fetchWithTimeout(url, options = {}) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), API_TIMEOUT);
+  
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    return response;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 /**
  * Fetch kingdom data by number
  */
 async function fetchKingdom(number) {
   try {
-    const res = await fetch(`${config.apiUrl}/api/v1/kingdoms/${number}`);
+    const res = await fetchWithTimeout(`${config.apiUrl}/api/v1/kingdoms/${number}`);
     if (!res.ok) return null;
     return await res.json();
   } catch (e) {
@@ -24,7 +42,7 @@ async function fetchKingdom(number) {
  */
 async function fetchLeaderboard(limit = 10, sortBy = 'overall_score') {
   try {
-    const res = await fetch(`${config.apiUrl}/api/v1/leaderboard?limit=${limit}&sort_by=${sortBy}`);
+    const res = await fetchWithTimeout(`${config.apiUrl}/api/v1/leaderboard?limit=${limit}&sort_by=${sortBy}`);
     if (!res.ok) return [];
     return await res.json();
   } catch (e) {
@@ -38,7 +56,7 @@ async function fetchLeaderboard(limit = 10, sortBy = 'overall_score') {
  */
 async function fetchKingdomsByTier(tier) {
   try {
-    const res = await fetch(`${config.apiUrl}/api/v1/leaderboard?limit=100`);
+    const res = await fetchWithTimeout(`${config.apiUrl}/api/v1/leaderboard?limit=100`);
     if (!res.ok) return [];
     const kingdoms = await res.json();
     
@@ -69,7 +87,7 @@ async function fetchKingdomsByTier(tier) {
  */
 async function fetchRandomKingdom() {
   try {
-    const res = await fetch(`${config.apiUrl}/api/v1/leaderboard?limit=100`);
+    const res = await fetchWithTimeout(`${config.apiUrl}/api/v1/leaderboard?limit=100`);
     if (!res.ok) return null;
     const kingdoms = await res.json();
     if (kingdoms.length === 0) return null;
@@ -88,7 +106,7 @@ async function fetchRandomKingdom() {
 async function fetchTopByPhase(phase, limit = 10) {
   try {
     const sortBy = phase === 'prep' ? 'prep_win_rate' : 'battle_win_rate';
-    const res = await fetch(`${config.apiUrl}/api/v1/leaderboard?limit=${limit}&sort_by=${sortBy}`);
+    const res = await fetchWithTimeout(`${config.apiUrl}/api/v1/leaderboard?limit=${limit}&sort_by=${sortBy}`);
     if (!res.ok) return [];
     return await res.json();
   } catch (e) {
