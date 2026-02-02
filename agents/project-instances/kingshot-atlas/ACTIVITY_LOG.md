@@ -9,6 +9,16 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-01 23:20 | Product Engineer | COMPLETED
+Task: Add Before → After preview for KvK corrections in admin dashboard
+Files:
+  - apps/web/src/pages/AdminDashboard.tsx (added correction preview UI)
+Result: Admins now see exactly what will change before approving corrections:
+  - Visual Before → After comparison
+  - Strike-through on changing fields, ⚡ on new values
+  - Calculated overall result (Domination/Comeback/Prep Only/Invasion)
+  - Note about opponent record also being updated
+
 ## 2026-02-01 23:15 | Platform Engineer | COMPLETED
 Task: Fix KvK correction approval to only flip reported field + enable mobile admin
 Files:
