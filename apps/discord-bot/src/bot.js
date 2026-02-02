@@ -40,12 +40,19 @@ const scheduler = require('./scheduler');
 // ============================================================================
 let botReady = false;
 let lastHeartbeat = Date.now();
+const startupTime = Date.now();
+const STARTUP_GRACE_PERIOD = 60000; // 60 seconds grace period for Discord to connect
 
 const healthServer = http.createServer((req, res) => {
   if (req.url === '/health') {
     // Null-safe access to Discord client state (client may not be initialized yet)
     const wsStatus = client?.ws?.status ?? -1; // -1 = not connected
-    const isHealthy = botReady && wsStatus === 0; // 0 = READY
+    const timeSinceStartup = Date.now() - startupTime;
+    const inStartupGrace = timeSinceStartup < STARTUP_GRACE_PERIOD;
+    
+    // During startup grace period, return 200 to pass health checks while Discord connects
+    // After grace period, require actual Discord connection
+    const isHealthy = inStartupGrace || (botReady && wsStatus === 0); // 0 = READY
     const uptime = process.uptime();
     const memUsage = process.memoryUsage();
     
@@ -62,6 +69,7 @@ const healthServer = http.createServer((req, res) => {
         uptime: Math.floor(uptime),
         memory: Math.floor(memUsage.heapUsed / 1024 / 1024) + 'MB',
         lastHeartbeat: new Date(lastHeartbeat).toISOString(),
+        inStartupGrace: inStartupGrace,
       },
       timestamp: new Date().toISOString(),
     };
