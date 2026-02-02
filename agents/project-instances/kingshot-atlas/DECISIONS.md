@@ -315,6 +315,55 @@ Implementation:
 
 ---
 
+## ADR-011: Remove Redundant Data Sources (SQLite Writes & JSON Fallback)
+
+**Date:** 2026-02-02  
+**Status:** ✅ Accepted  
+**Deciders:** Platform Engineer  
+**Builds On:** ADR-010
+
+### Context
+Following ADR-010's establishment of Supabase as the single source of truth, the codebase still contained:
+1. **Redundant SQLite writes** in `submissions.py` — KvK records were written to both SQLite AND Supabase
+2. **JSON fallback** in `api.ts` — When Supabase was unavailable, the frontend silently fell back to stale `kingdoms.json` data
+
+These redundancies created potential for data drift and contradicted the single source of truth principle.
+
+### Decision
+**Remove all redundant data sources:**
+
+1. **Backend (`submissions.py`):**
+   - Remove SQLite KVKRecord creation on submission approval
+   - Remove `_recalculate_kingdom_stats()` calls for SQLite
+   - Keep only Supabase writes
+   - Fail explicitly (HTTP 503) if Supabase is unavailable instead of silently succeeding
+
+2. **Frontend (`api.ts`):**
+   - Remove `kingdoms.json` import and all JSON fallback logic
+   - Remove `loadKingdomData()` function that rebuilt data from JSON
+   - Add `dataLoadError` export for components to show error state
+   - If Supabase is unavailable, show clear error instead of stale data
+
+### Alternatives Considered
+- **Keep JSON as offline fallback** — Rejected: Contradicts user's explicit requirement that "all data should come from the source of truth"
+- **Keep SQLite as backup** — Rejected: Dual-write complexity causes more problems than it solves
+- **Gradual deprecation** — Rejected: Clean break is simpler and prevents confusion
+
+### Consequences
+- ✅ True single source of truth — no data can come from stale sources
+- ✅ Simpler codebase — removed ~150 lines of fallback logic
+- ✅ Explicit errors — users see clear error states instead of wrong data
+- ✅ Reduced bundle size — ~69KB JSON file no longer imported
+- ⚠️ No offline resilience — app requires Supabase connectivity
+- ⚠️ SQLite tables become orphaned (can be cleaned up later)
+
+### Related Files
+- `/apps/api/api/routers/submissions.py` — Removed SQLite writes
+- `/apps/web/src/services/api.ts` — Removed JSON fallback
+- `/apps/web/src/data/kingdoms.json` — Can be deleted (no longer imported)
+
+---
+
 ## Template for New Decisions
 
 ```markdown

@@ -542,102 +542,68 @@ def review_submission(
         # W = won overall (battle win takes priority), L = lost overall
         overall_result = "W" if submission.battle_result == "W" else "L"
         
-        kvk_record = KVKRecord(
-            kingdom_number=submission.kingdom_number,
-            kvk_number=submission.kvk_number,
-            opponent_kingdom=submission.opponent_kingdom,
-            prep_result=submission.prep_result,
-            battle_result=submission.battle_result,
-            overall_result=overall_result,
-            date_or_order_index=submission.date_or_order_index or f"Submitted {datetime.now(timezone.utc).strftime('%b %d, %Y')}"
-        )
-        db.add(kvk_record)
-        
-        # CRITICAL: Recalculate kingdom aggregate stats after adding new KVK record
-        kingdom = db.query(Kingdom).filter(Kingdom.kingdom_number == submission.kingdom_number).first()
-        if kingdom:
-            _recalculate_kingdom_stats(kingdom, db)
-        
         # Calculate opponent's inverse results (their loss is our win, etc.)
         opponent_prep_result = "L" if submission.prep_result == "W" else "W"
         opponent_battle_result = "L" if submission.battle_result == "W" else "W"
         opponent_overall_result = "L" if overall_result == "W" else "W"
         
-        # Check if opponent already has a record for this KvK
-        existing_opponent_record = db.query(KVKRecord).filter(
-            KVKRecord.kingdom_number == submission.opponent_kingdom,
-            KVKRecord.kvk_number == submission.kvk_number
-        ).first()
-        
-        # Query opponent kingdom (before trying to create FK-constrained record)
-        opponent_kingdom = db.query(Kingdom).filter(Kingdom.kingdom_number == submission.opponent_kingdom).first()
-        
-        # Only create opponent record if kingdom exists and doesn't already have this KvK
-        if not existing_opponent_record and opponent_kingdom:
-            opponent_kvk_record = KVKRecord(
-                kingdom_number=submission.opponent_kingdom,
-                kvk_number=submission.kvk_number,
-                opponent_kingdom=submission.kingdom_number,
-                prep_result=opponent_prep_result,
-                battle_result=opponent_battle_result,
-                overall_result=opponent_overall_result,
-                date_or_order_index=submission.date_or_order_index or f"Submitted {datetime.now(timezone.utc).strftime('%b %d, %Y')}"
-            )
-            db.add(opponent_kvk_record)
-            _recalculate_kingdom_stats(opponent_kingdom, db)
-        
-        # Insert into Supabase kvk_history table for real-time updates (both kingdoms)
-        # Then recalculate kingdom stats in Supabase kingdoms table
+        # ADR-011: Supabase is the SINGLE SOURCE OF TRUTH for kingdom data
+        # Insert into Supabase kvk_history table and recalculate kingdom stats
+        # SQLite writes removed per ADR-011 to eliminate dual-write complexity
         try:
             from api.supabase_client import get_supabase_admin, recalculate_kingdom_in_supabase
             supabase = get_supabase_admin()
-            if supabase:
-                # Check if submitting kingdom's record already exists in Supabase
-                existing_sub = supabase.table('kvk_history').select('id').eq(
-                    'kingdom_number', submission.kingdom_number
-                ).eq('kvk_number', submission.kvk_number).execute()
-                
-                if not existing_sub.data:
-                    # Insert submitting kingdom's record
-                    supabase.table('kvk_history').insert({
-                        'kingdom_number': submission.kingdom_number,
-                        'kvk_number': submission.kvk_number,
-                        'opponent_kingdom': submission.opponent_kingdom,
-                        'prep_result': submission.prep_result,
-                        'battle_result': submission.battle_result,
-                        'overall_result': overall_result,
-                        'kvk_date': None,
-                        'order_index': submission.kvk_number
-                    }).execute()
-                    logger.info(f"Inserted KvK record into Supabase for K{submission.kingdom_number}")
-                
-                # Check if opponent kingdom's record already exists
-                existing_opp = supabase.table('kvk_history').select('id').eq(
-                    'kingdom_number', submission.opponent_kingdom
-                ).eq('kvk_number', submission.kvk_number).execute()
-                
-                if not existing_opp.data:
-                    # Insert opponent kingdom's inverse record
-                    supabase.table('kvk_history').insert({
-                        'kingdom_number': submission.opponent_kingdom,
-                        'kvk_number': submission.kvk_number,
-                        'opponent_kingdom': submission.kingdom_number,
-                        'prep_result': opponent_prep_result,
-                        'battle_result': opponent_battle_result,
-                        'overall_result': opponent_overall_result,
-                        'kvk_date': None,
-                        'order_index': submission.kvk_number
-                    }).execute()
-                    logger.info(f"Inserted inverse KvK record into Supabase for K{submission.opponent_kingdom}")
-                
-                # CRITICAL: Recalculate kingdom stats in Supabase kingdoms table
-                # This ensures the kingdoms table stays in sync with kvk_history
-                recalculate_kingdom_in_supabase(submission.kingdom_number)
-                recalculate_kingdom_in_supabase(submission.opponent_kingdom)
-                logger.info(f"Recalculated Supabase kingdom stats for K{submission.kingdom_number} and K{submission.opponent_kingdom}")
+            if not supabase:
+                raise HTTPException(status_code=503, detail="Database unavailable - please try again later")
+            
+            # Check if submitting kingdom's record already exists in Supabase
+            existing_sub = supabase.table('kvk_history').select('id').eq(
+                'kingdom_number', submission.kingdom_number
+            ).eq('kvk_number', submission.kvk_number).execute()
+            
+            if not existing_sub.data:
+                # Insert submitting kingdom's record
+                supabase.table('kvk_history').insert({
+                    'kingdom_number': submission.kingdom_number,
+                    'kvk_number': submission.kvk_number,
+                    'opponent_kingdom': submission.opponent_kingdom,
+                    'prep_result': submission.prep_result,
+                    'battle_result': submission.battle_result,
+                    'overall_result': overall_result,
+                    'kvk_date': None,
+                    'order_index': submission.kvk_number
+                }).execute()
+                logger.info(f"Inserted KvK record into Supabase for K{submission.kingdom_number}")
+            
+            # Check if opponent kingdom's record already exists
+            existing_opp = supabase.table('kvk_history').select('id').eq(
+                'kingdom_number', submission.opponent_kingdom
+            ).eq('kvk_number', submission.kvk_number).execute()
+            
+            if not existing_opp.data:
+                # Insert opponent kingdom's inverse record
+                supabase.table('kvk_history').insert({
+                    'kingdom_number': submission.opponent_kingdom,
+                    'kvk_number': submission.kvk_number,
+                    'opponent_kingdom': submission.kingdom_number,
+                    'prep_result': opponent_prep_result,
+                    'battle_result': opponent_battle_result,
+                    'overall_result': opponent_overall_result,
+                    'kvk_date': None,
+                    'order_index': submission.kvk_number
+                }).execute()
+                logger.info(f"Inserted inverse KvK record into Supabase for K{submission.opponent_kingdom}")
+            
+            # CRITICAL: Recalculate kingdom stats in Supabase kingdoms table
+            # Database trigger handles this automatically, but we call explicitly for safety
+            recalculate_kingdom_in_supabase(submission.kingdom_number)
+            recalculate_kingdom_in_supabase(submission.opponent_kingdom)
+            logger.info(f"Recalculated Supabase kingdom stats for K{submission.kingdom_number} and K{submission.opponent_kingdom}")
+        except HTTPException:
+            raise  # Re-raise HTTP exceptions
         except Exception as e:
-            logger.error(f"Failed to sync with Supabase: {e}")
-            # Don't fail the request - local DB is the source of truth
+            logger.error(f"Failed to write to Supabase: {e}")
+            raise HTTPException(status_code=503, detail="Database write failed - please try again later")
     
     db.commit()
     return {

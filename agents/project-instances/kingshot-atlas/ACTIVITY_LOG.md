@@ -9,6 +9,19 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-02 16:30 | Platform Engineer | COMPLETED
+Task: ADR-011 - Remove redundant data sources (SQLite writes & JSON fallback)
+Files:
+  - apps/api/api/routers/submissions.py (removed SQLite KVKRecord writes)
+  - apps/web/src/services/api.ts (removed JSON fallback, added dataLoadError export)
+  - agents/project-instances/kingshot-atlas/DECISIONS.md (added ADR-011)
+Result:
+  - Supabase is now the TRUE single source of truth
+  - No stale data can be displayed from JSON fallback
+  - Explicit error states instead of silent fallbacks
+  - Reduced frontend bundle by ~69KB
+  - Build verified successfully
+
 ## 2026-02-02 15:10 | Platform Engineer | COMPLETED
 Task: Automated Atlas Score recalculation trigger
 Files:
