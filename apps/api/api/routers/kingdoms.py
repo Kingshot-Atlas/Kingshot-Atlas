@@ -111,7 +111,7 @@ def get_kingdoms(
         total_pages=total_pages
     )
 
-@router.get("/kingdoms/{kingdom_number}", response_model=KingdomProfile)
+@router.get("/kingdoms/{kingdom_number}")
 def get_kingdom_profile(kingdom_number: int, db: Session = Depends(get_db)):
     # Try Supabase first (source of truth)
     supabase_kingdom = get_kingdom_from_supabase(kingdom_number)
@@ -124,9 +124,11 @@ def get_kingdom_profile(kingdom_number: int, db: Session = Depends(get_db)):
         if 'atlas_score' in supabase_kingdom:
             supabase_kingdom['overall_score'] = supabase_kingdom['atlas_score']
         
-        # Add rank (will be calculated by get_kingdoms_from_supabase sort order)
+        # Ensure required fields exist
         supabase_kingdom['rank'] = supabase_kingdom.get('rank', 0)
         supabase_kingdom['recent_kvks'] = recent_kvks
+        supabase_kingdom.setdefault('last_updated', None)
+        supabase_kingdom.setdefault('most_recent_status', 'Unknown')
         
         return supabase_kingdom
     
