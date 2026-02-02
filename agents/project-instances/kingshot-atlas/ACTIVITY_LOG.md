@@ -9,6 +9,11 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-02 11:55 | Product Engineer | COMPLETED
+Task: Add data issue notice banner to website
+Files: apps/web/src/App.tsx
+Result: Red warning banner added below header on all pages notifying users that some kingdom data is incorrect and a fix is in progress. Deployed to production via Cloudflare Pages.
+
 ## 2026-02-02 10:18 | Platform Engineer | COMPLETED
 Task: Implement Add Kingdom feature with First KvK selection
 Requirements:
