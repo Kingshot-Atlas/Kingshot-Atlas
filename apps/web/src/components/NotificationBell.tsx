@@ -169,11 +169,12 @@ const NotificationBell: React.FC = () => {
         <div
           ref={panelRef}
           style={{
-            position: 'absolute',
-            top: '100%',
-            right: 0,
-            marginTop: '0.5rem',
-            width: isMobile ? 'calc(100vw - 2rem)' : '360px',
+            position: isMobile ? 'fixed' : 'absolute',
+            top: isMobile ? '60px' : '100%',
+            right: isMobile ? '1rem' : 0,
+            left: isMobile ? '1rem' : 'auto',
+            marginTop: isMobile ? 0 : '0.5rem',
+            width: isMobile ? 'auto' : '360px',
             maxWidth: '400px',
             backgroundColor: '#111111',
             border: '1px solid #2a2a2a',
