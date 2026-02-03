@@ -50,8 +50,10 @@ jobs:
       - name: Security scan (Bandit)
         run: |
           pip install bandit
-          bandit -r api/ -ll -ii --exclude ./api/tests,./venv -f txt || true
-        continue-on-error: true
+          # Fail on high-severity issues (-ll = medium+high, -ii = medium+high confidence)
+          # Exit code 1 = issues found, 0 = clean
+          bandit -r api/ -ll -ii --exclude ./api/tests,./venv -f txt
+          echo "✅ Bandit security scan passed"
 
       - name: Run tests
         run: pytest tests/ -v --tb=short

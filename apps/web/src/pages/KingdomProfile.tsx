@@ -534,8 +534,8 @@ const KingdomProfile: React.FC = () => {
             const comebacks = kingdom.battle_wins - highKings;
             const stats = [
               { label: 'Dominations', value: highKings, color: '#22c55e', icon: '👑', tooltip: 'Won both Prep and Battle', percent: Math.round((highKings / totalKvks) * 100) },
-              { label: 'Comebacks', value: comebacks, color: '#3b82f6', icon: '�', tooltip: 'Lost Prep but won Battle', percent: Math.round((comebacks / totalKvks) * 100) },
-              { label: 'Reversals', value: reversals, color: '#a855f7', icon: '�', tooltip: 'Won Prep but lost Battle', percent: Math.round((reversals / totalKvks) * 100) },
+              { label: 'Comebacks', value: comebacks, color: '#3b82f6', icon: '💪', tooltip: 'Lost Prep but won Battle', percent: Math.round((comebacks / totalKvks) * 100) },
+              { label: 'Reversals', value: reversals, color: '#a855f7', icon: '🔄', tooltip: 'Won Prep but lost Battle', percent: Math.round((reversals / totalKvks) * 100) },
               { label: 'Invasions', value: invaderKings, color: '#ef4444', icon: '💀', tooltip: 'Lost both Prep and Battle', percent: Math.round((invaderKings / totalKvks) * 100) },
             ];
             return stats.map((stat, i) => (

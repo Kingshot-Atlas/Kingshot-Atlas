@@ -33,6 +33,7 @@ const KingdomDirectory: React.FC = () => {
   const { loadPreferences, savePreferences } = usePreferences();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
   const [allKingdoms, setAllKingdoms] = useState<Kingdom[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get('q') || '');
@@ -254,22 +255,64 @@ const KingdomDirectory: React.FC = () => {
     return result;
   }, [allKingdoms, debouncedSearch, filters, showFavoritesOnly, favorites]);
 
+  // Helper to get calculated outcome stats for sorting
+  const getOutcomeValue = (k: Kingdom, field: string): number => {
+    const dominations = k.dominations ?? 0;
+    if (field === 'dominations') return dominations;
+    if (field === 'invasions') return k.invasions ?? 0;
+    if (field === 'comebacks') return Math.max(0, k.battle_wins - dominations);
+    if (field === 'reversals') return Math.max(0, k.prep_wins - dominations);
+    return 0;
+  };
+
   // Add rank based on overall_score order (all kingdoms, not just filtered)
+  // Also apply frontend sorting for calculated fields
   const rankedKingdoms = useMemo(() => {
-    return addRanksToKingdoms(filteredKingdoms, allKingdoms);
-  }, [allKingdoms, filteredKingdoms]);
+    const ranked = addRanksToKingdoms(filteredKingdoms, allKingdoms);
+    
+    // For calculated fields (comebacks, reversals), sort in frontend
+    if (['comebacks', 'reversals', 'dominations', 'invasions'].includes(sort.sortBy)) {
+      return [...ranked].sort((a, b) => {
+        const aVal = getOutcomeValue(a, sort.sortBy);
+        const bVal = getOutcomeValue(b, sort.sortBy);
+        return sort.order === 'desc' ? bVal - aVal : aVal - bVal;
+      });
+    }
+    
+    return ranked;
+  }, [allKingdoms, filteredKingdoms, sort.sortBy, sort.order]);
 
   const displayedKingdoms = rankedKingdoms.slice(0, displayCount);
 
   // Load more function with loading feedback
-  const handleLoadMore = () => {
+  const handleLoadMore = useCallback(() => {
+    if (loadingMore) return;
     setLoadingMore(true);
     // Brief delay for visual feedback
     setTimeout(() => {
       setDisplayCount(prev => Math.min(prev + 15, filteredKingdoms.length));
       setLoadingMore(false);
     }, 300);
-  };
+  }, [loadingMore, filteredKingdoms.length]);
+
+  // Infinite scroll using IntersectionObserver
+  useEffect(() => {
+    const sentinel = loadMoreRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry?.isIntersecting && displayCount < filteredKingdoms.length && !loading && !loadingMore) {
+          handleLoadMore();
+        }
+      },
+      { rootMargin: '200px', threshold: 0 }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [displayCount, filteredKingdoms.length, loading, loadingMore, handleLoadMore]);
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a', paddingBottom: '100px' }}>
@@ -372,6 +415,10 @@ const KingdomDirectory: React.FC = () => {
                 <option value="prep_win_rate">Prep WR</option>
                 <option value="battle_win_rate">Battle WR</option>
                 <option value="total_kvks">Total KvKs</option>
+                <option value="dominations">Dominations</option>
+                <option value="comebacks">Comebacks</option>
+                <option value="reversals">Reversals</option>
+                <option value="invasions">Invasions</option>
               </select>
             </div>
           ) : (
@@ -428,6 +475,10 @@ const KingdomDirectory: React.FC = () => {
               <option value="prep_win_rate">Prep Win Rate</option>
               <option value="battle_win_rate">Battle Win Rate</option>
               <option value="total_kvks">Total KvKs</option>
+              <option value="dominations">👑 Dominations</option>
+              <option value="comebacks">💪 Comebacks</option>
+              <option value="reversals">🔄 Reversals</option>
+              <option value="invasions">💀 Invasions</option>
             </select>
             <button onClick={() => setSort({ ...sort, order: sort.order === 'desc' ? 'asc' : 'desc' })} style={{ padding: '0.75rem', backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'transform 0.2s', gap: '0.25rem' }}>
               <svg style={{ width: '16px', height: '16px', color: '#6b7280', transform: sort.order === 'asc' ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -825,52 +876,35 @@ const KingdomDirectory: React.FC = () => {
             kingdoms={displayedKingdoms}
             favorites={favorites}
             toggleFavorite={toggleFavorite}
+            sortBy={sort.sortBy}
+            sortOrder={sort.order}
+            onSort={(newSortBy) => {
+              if (sort.sortBy === newSortBy) {
+                setSort({ ...sort, order: sort.order === 'desc' ? 'asc' : 'desc' });
+              } else {
+                setSort({ sortBy: newSortBy as SortOptions['sortBy'], order: 'desc' });
+              }
+            }}
           />
         )}
 
-        {/* Load More Button */}
-        {displayCount < filteredKingdoms.length && !loading && (
+        {/* Infinite Scroll Sentinel */}
+        <div ref={loadMoreRef} style={{ height: '1px', marginTop: '-1px' }} />
+        
+        {/* Loading indicator for infinite scroll */}
+        {loadingMore && displayCount < filteredKingdoms.length && (
           <div style={{ textAlign: 'center', padding: '2rem' }}>
-            <button
-              onClick={handleLoadMore}
-              disabled={loadingMore}
-              style={{
-                padding: '0.875rem 2.5rem',
-                background: loadingMore 
-                  ? 'linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%)' 
-                  : 'linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%)',
-                border: 'none',
-                borderRadius: '8px',
-                color: loadingMore ? '#6b7280' : '#000',
-                fontWeight: 'bold',
-                fontSize: '0.95rem',
-                cursor: loadingMore ? 'not-allowed' : 'pointer',
-                boxShadow: loadingMore ? 'none' : '0 4px 15px rgba(34, 211, 238, 0.3)',
-                transition: 'all 0.2s ease',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.5rem'
-              }}
-              onMouseEnter={(e) => {
-                if (!loadingMore) {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(34, 211, 238, 0.4)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = loadingMore ? 'none' : '0 4px 15px rgba(34, 211, 238, 0.3)';
-              }}
-            >
-              {loadingMore ? (
-                <>
-                  <span className="loading-spinner" style={{ width: '16px', height: '16px', borderWidth: '2px' }} />
-                  Loading...
-                </>
-              ) : (
-                `Load More (${filteredKingdoms.length - displayCount} remaining)`
-              )}
-            </button>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: '#6b7280' }}>
+              <span className="loading-spinner" style={{ width: '20px', height: '20px', borderWidth: '2px' }} />
+              <span>Loading more kingdoms...</span>
+            </div>
+          </div>
+        )}
+        
+        {/* End of list indicator */}
+        {displayCount >= filteredKingdoms.length && filteredKingdoms.length > 0 && !loading && (
+          <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280', fontSize: '0.9rem' }}>
+            Showing all {filteredKingdoms.length} kingdoms
           </div>
         )}
       </div>

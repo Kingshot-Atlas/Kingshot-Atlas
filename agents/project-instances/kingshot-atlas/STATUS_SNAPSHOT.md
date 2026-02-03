@@ -53,19 +53,18 @@
 
 | Issue | Severity | Owner | Notes |
 |-------|----------|-------|-------|
-| ESLint-disable comments | Low | Product Engineer | 5 files have eslint-disable comments |
-| Large components | Medium | Product Engineer | KingdomCard (946 lines), ProfileFeatures (1008 lines) |
+| ESLint-disable comments | Low | Product Engineer | Reduced from 15 to 11 (proper typing added) |
 | FilterPanel not integrated | Medium | Product Engineer | Component exists, needs wiring |
+
+**Note:** Large components issue RESOLVED - KingdomCard (379 lines) and ProfileFeatures (765 lines) are already well-refactored with sub-components in `kingdom-card/` and `profile-features/` directories.
 
 ---
 
 ## Next Priorities
 
 1. **Integrate FilterPanel** into KingdomDirectory
-2. **Refactor large components** - Split KingdomCard and ProfileFeatures
-3. **Mobile responsive pass** on all pages
-4. **Clear ESLint warnings** and remove eslint-disable comments
-5. **First patch notes** due 2026-01-31 (Release Manager)
+2. **Mobile responsive pass** on all pages
+3. **Clear remaining ESLint warnings** - 11 eslint-disable comments remain
 
 ---
 

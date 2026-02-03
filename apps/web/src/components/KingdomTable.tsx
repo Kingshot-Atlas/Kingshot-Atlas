@@ -10,11 +10,23 @@ interface TableColumn {
   align?: 'left' | 'center' | 'right';
 }
 
+// Calculate outcome stats - same method as KingdomProfile
+// Comebacks = Lost prep but won battle = battle_wins - dominations
+// Reversals = Won prep but lost battle = prep_wins - dominations
+const getOutcomeStats = (k: Kingdom) => {
+  const dominations = k.dominations ?? 0;
+  const invasions = k.invasions ?? 0;
+  const comebacks = Math.max(0, k.battle_wins - dominations);
+  const reversals = Math.max(0, k.prep_wins - dominations);
+  return { dominations, invasions, comebacks, reversals };
+};
+
 const ALL_COLUMNS: TableColumn[] = [
+  { id: 'favorite', label: '★', getValue: () => '', align: 'center' },
   { id: 'kingdom', label: 'Kingdom', getValue: (k) => `Kingdom ${k.kingdom_number}`, align: 'left' },
   { id: 'tier', label: 'Tier', color: '#fbbf24', getValue: (k) => k.power_tier || getPowerTier(k.overall_score), align: 'center' },
   { id: 'atlas_score', label: 'Atlas Score', color: '#22d3ee', getValue: (k) => k.overall_score.toFixed(1), align: 'center' },
-  { id: 'rank', label: 'Rank', color: '#a855f7', getValue: (_k, rank) => rank ? `#${rank}` : '-', align: 'center' },
+  { id: 'rank', label: 'Rank', color: '#22d3ee', getValue: (_k, rank) => rank ? `#${rank}` : '-', align: 'center' },
   { id: 'total_kvks', label: 'KvKs', getValue: (k) => k.total_kvks, align: 'center' },
   { id: 'prep_wins', label: 'Prep W', color: '#eab308', getValue: (k) => k.prep_wins, align: 'center' },
   { id: 'prep_wr', label: 'Prep WR', color: '#eab308', getValue: (k) => `${Math.round(k.prep_win_rate * 100)}%`, align: 'center' },
@@ -22,22 +34,30 @@ const ALL_COLUMNS: TableColumn[] = [
   { id: 'battle_wins', label: 'Battle W', color: '#f97316', getValue: (k) => k.battle_wins, align: 'center' },
   { id: 'battle_wr', label: 'Battle WR', color: '#f97316', getValue: (k) => `${Math.round(k.battle_win_rate * 100)}%`, align: 'center' },
   { id: 'battle_streak', label: 'Battle Streak', color: '#f97316', getValue: (k) => k.battle_streak > 0 ? `${k.battle_streak}W` : `${Math.abs(k.battle_streak)}L`, align: 'center' },
-  { id: 'dominations', label: '👑 Dominations', color: '#22c55e', getValue: (k) => k.high_kings || 0, align: 'center' },
-  { id: 'comebacks', label: '💪 Comebacks', color: '#3b82f6', getValue: (k) => {
-    const prepLosses = k.prep_losses || (k.total_kvks - k.prep_wins);
-    const battleWins = k.battle_wins;
-    return Math.min(prepLosses, battleWins);
-  }, align: 'center' },
-  { id: 'reversals', label: '🔄 Reversals', color: '#a855f7', getValue: (k) => {
-    const prepWins = k.prep_wins;
-    const battleLosses = k.battle_losses || (k.total_kvks - k.battle_wins);
-    return Math.min(prepWins, battleLosses);
-  }, align: 'center' },
-  { id: 'invasions', label: '💀 Invasions', color: '#ef4444', getValue: (k) => k.invasions ?? k.invader_kings ?? 0, align: 'center' },
+  { id: 'dominations', label: '👑 Dominations', color: '#22c55e', getValue: (k) => getOutcomeStats(k).dominations, align: 'center' },
+  { id: 'comebacks', label: '💪 Comebacks', color: '#3b82f6', getValue: (k) => getOutcomeStats(k).comebacks, align: 'center' },
+  { id: 'reversals', label: '🔄 Reversals', color: '#a855f7', getValue: (k) => getOutcomeStats(k).reversals, align: 'center' },
+  { id: 'invasions', label: '💀 Invasions', color: '#ef4444', getValue: (k) => getOutcomeStats(k).invasions, align: 'center' },
   { id: 'status', label: 'Transfer Status', getValue: (k) => k.most_recent_status || 'Unannounced', align: 'center' }
 ];
 
-const DEFAULT_COLUMNS = ['kingdom', 'tier', 'atlas_score', 'rank', 'total_kvks', 'prep_wins', 'prep_wr', 'prep_streak', 'battle_wins', 'battle_wr', 'battle_streak', 'dominations', 'comebacks', 'reversals', 'invasions', 'status'];
+const DEFAULT_COLUMNS = ['kingdom', 'favorite', 'tier', 'atlas_score', 'rank', 'total_kvks', 'dominations', 'comebacks', 'reversals', 'invasions', 'status'];
+
+// Map column IDs to sortBy keys
+const SORTABLE_COLUMNS: Record<string, string> = {
+  'kingdom': 'kingdom_number',
+  'atlas_score': 'overall_score',
+  'rank': 'overall_score',
+  'total_kvks': 'total_kvks',
+  'prep_wins': 'prep_wins',
+  'prep_wr': 'prep_win_rate',
+  'battle_wins': 'battle_wins',
+  'battle_wr': 'battle_win_rate',
+  'dominations': 'dominations',
+  'comebacks': 'comebacks',
+  'reversals': 'reversals',
+  'invasions': 'invasions',
+};
 const TABLE_COLUMNS_KEY = 'kingshot_table_columns';
 
 interface KingdomTableProps {
@@ -45,6 +65,9 @@ interface KingdomTableProps {
   favorites: number[];
   toggleFavorite: (kingdomNumber: number) => void;
   onAddToCompare?: (kingdomNumber: number) => void;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+  onSort?: (sortBy: string) => void;
 }
 
 const neonGlow = (color: string) => ({
@@ -54,17 +77,20 @@ const neonGlow = (color: string) => ({
 
 const getStatusColor = (status: string) => {
   switch (status) {
-    case 'Leading': return '#fbbf24';
-    case 'Ordinary': return '#9ca3af';
-    case 'Unannounced': return '#ef4444';
-    default: return '#ef4444';
+    case 'Leading': return '#fbbf24'; // Gold
+    case 'Ordinary': return '#c0c0c0'; // Silver
+    case 'Unannounced': return '#6b7280'; // Grey (missing data)
+    default: return '#6b7280';
   }
 };
 
 const KingdomTable: React.FC<KingdomTableProps> = ({ 
   kingdoms, 
   favorites, 
-  toggleFavorite
+  toggleFavorite,
+  sortBy,
+  sortOrder,
+  onSort
 }) => {
   const navigate = useNavigate();
   const [showColumnSelector, setShowColumnSelector] = useState(false);
@@ -148,17 +174,49 @@ const KingdomTable: React.FC<KingdomTableProps> = ({
         )}
       </div>
 
-      <div style={{ backgroundColor: '#111111', borderRadius: '12px', overflow: 'auto', border: '1px solid #2a2a2a' }}>
+      <div style={{ backgroundColor: '#111111', borderRadius: '12px', overflow: 'auto', border: '1px solid #2a2a2a', position: 'relative' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: `${visibleColumns.length * 80 + 120}px` }}>
           <thead>
             <tr style={{ backgroundColor: '#0a0a0a' }}>
-              <th style={{ padding: '0.75rem 0.5rem', textAlign: 'center', color: '#6b7280', fontSize: '0.75rem', fontWeight: '600', width: '40px', position: 'sticky', left: 0, backgroundColor: '#0a0a0a', zIndex: 1 }}>★</th>
-              {visibleColumns.map(colId => {
+              {visibleColumns.map((colId, idx) => {
                 const col = ALL_COLUMNS.find(c => c.id === colId);
                 if (!col) return null;
+                const isKingdom = colId === 'kingdom';
+                const isFirst = idx === 0;
+                const isSortable = !!SORTABLE_COLUMNS[colId];
+                const isCurrentSort = sortBy === SORTABLE_COLUMNS[colId];
+                
                 return (
-                  <th key={col.id} style={{ padding: '0.75rem 0.5rem', textAlign: col.align || 'center', color: col.color || '#6b7280', fontSize: '0.75rem', fontWeight: '600', whiteSpace: 'nowrap' }}>
-                    {col.label}
+                  <th 
+                    key={col.id} 
+                    onClick={() => isSortable && onSort && SORTABLE_COLUMNS[colId] && onSort(SORTABLE_COLUMNS[colId]!)}
+                    style={{ 
+                      padding: '0.75rem 0.5rem', 
+                      textAlign: col.align || 'center', 
+                      color: isCurrentSort ? '#22d3ee' : (col.color || '#6b7280'), 
+                      fontSize: '0.75rem', 
+                      fontWeight: '600', 
+                      whiteSpace: 'nowrap',
+                      borderLeft: isFirst ? 'none' : '1px solid #2a2a2a',
+                      cursor: isSortable ? 'pointer' : 'default',
+                      userSelect: 'none',
+                      position: isKingdom ? 'sticky' : 'static',
+                      left: isKingdom ? 0 : 'auto',
+                      backgroundColor: '#0a0a0a',
+                      zIndex: isKingdom ? 2 : 1,
+                      transition: 'color 0.2s'
+                    }}
+                    onMouseEnter={(e) => isSortable && (e.currentTarget.style.color = '#22d3ee')}
+                    onMouseLeave={(e) => isSortable && !isCurrentSort && (e.currentTarget.style.color = col.color || '#6b7280')}
+                  >
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                      {col.label}
+                      {isCurrentSort && (
+                        <svg style={{ width: '12px', height: '12px', transform: sortOrder === 'asc' ? 'rotate(180deg)' : 'none' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      )}
+                    </span>
                   </th>
                 );
               })}
@@ -180,23 +238,35 @@ const KingdomTable: React.FC<KingdomTableProps> = ({
                   onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'} 
                   onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 >
-                  <td style={{ padding: '0.6rem 0.5rem', textAlign: 'center', position: 'sticky', left: 0, backgroundColor: 'inherit', zIndex: 1 }}>
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); toggleFavorite(kingdom.kingdom_number); }} 
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', color: isFav ? '#fbbf24' : '#4a4a4a' }}
-                    >
-                      {isFav ? '★' : '☆'}
-                    </button>
-                  </td>
-                  {visibleColumns.map(colId => {
+                  {visibleColumns.map((colId, idx) => {
                     const col = ALL_COLUMNS.find(c => c.id === colId);
                     if (!col) return null;
                     const value = col.getValue(kingdom, kingdom.rank);
                     const isStatus = colId === 'status';
                     const isTier = colId === 'tier';
+                    const isFavorite = colId === 'favorite';
+                    const isKingdom = colId === 'kingdom';
+                    const isFirst = idx === 0;
+                    
                     return (
-                      <td key={col.id} style={{ padding: '0.6rem 0.5rem', textAlign: col.align || 'center', whiteSpace: 'nowrap' }}>
-                        {isStatus ? (
+                      <td key={col.id} style={{ 
+                        padding: '0.6rem 0.5rem', 
+                        textAlign: col.align || 'center', 
+                        whiteSpace: 'nowrap',
+                        borderLeft: isFirst ? 'none' : '1px solid #2a2a2a',
+                        position: isKingdom ? 'sticky' : 'static',
+                        left: isKingdom ? 0 : 'auto',
+                        backgroundColor: isKingdom ? '#111111' : 'transparent',
+                        zIndex: isKingdom ? 1 : 0
+                      }}>
+                        {isFavorite ? (
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); toggleFavorite(kingdom.kingdom_number); }} 
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', color: isFav ? '#fbbf24' : '#4a4a4a' }}
+                          >
+                            {isFav ? '★' : '☆'}
+                          </button>
+                        ) : isStatus ? (
                           <span style={{ ...neonGlow(getStatusColor(value.toString())), fontSize: '0.75rem', fontWeight: 'bold' }}>{value.toString().toUpperCase()}</span>
                         ) : isTier ? (
                           <span style={{ 

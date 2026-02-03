@@ -19,6 +19,21 @@ export interface KvKHistoryRecord {
   order_index: number;
 }
 
+/** Raw KvK history row from Supabase */
+interface RawKvKHistoryRow {
+  id?: number;
+  kingdom_number: number;
+  kvk_number: number;
+  opponent_kingdom: number;
+  prep_result: string | null;
+  battle_result: string | null;
+  overall_result: string | null;
+  kvk_date: string | null;
+  order_index: number | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
 interface CachedKvKData {
   records: Map<number, KvKHistoryRecord[]>;
   timestamp: number;
@@ -136,8 +151,7 @@ class KvKHistoryService {
     if (isSupabaseConfigured && supabase) {
       try {
         // Fetch all records with pagination (Supabase default limit is 1000)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const allData: any[] = [];
+        const allData: RawKvKHistoryRow[] = [];
         let offset = 0;
         const batchSize = 1000;
         
@@ -258,8 +272,7 @@ class KvKHistoryService {
   /**
    * Process raw records and apply corrections
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private processRecords(data: any[]): Map<number, KvKHistoryRecord[]> {
+  private processRecords(data: RawKvKHistoryRow[]): Map<number, KvKHistoryRecord[]> {
     const result = new Map<number, KvKHistoryRecord[]>();
 
     for (const row of data) {
@@ -272,8 +285,14 @@ class KvKHistoryService {
       const correctionKey = `${kingdomNumber}-${row.kvk_number}`;
       const correction = this.corrections?.get(correctionKey);
 
-      const prepResult = correction ? correction.corrected_prep_result as 'W' | 'L' | 'B' : row.prep_result;
-      const battleResult = correction ? correction.corrected_battle_result as 'W' | 'L' | 'B' : row.battle_result;
+      const rawPrepResult = row.prep_result as 'W' | 'L' | 'B' | null;
+      const rawBattleResult = row.battle_result as 'W' | 'L' | 'B' | null;
+      const prepResult: 'W' | 'L' | 'B' = correction 
+        ? correction.corrected_prep_result as 'W' | 'L' | 'B' 
+        : (rawPrepResult ?? 'L');
+      const battleResult: 'W' | 'L' | 'B' = correction 
+        ? correction.corrected_battle_result as 'W' | 'L' | 'B' 
+        : (rawBattleResult ?? 'L');
       
       // Check for Bye BEFORE normalizing - Bye records have prep/battle='B' or overall_result='Bye'
       const isBye = prepResult === 'B' || battleResult === 'B' || 
@@ -287,9 +306,9 @@ class KvKHistoryService {
         prep_result: prepResult,
         battle_result: battleResult,
         // For Bye, preserve 'Bye' as overall_result; otherwise normalize
-        overall_result: isBye ? 'Bye' : normalizeOutcome(row.overall_result, prepResult, battleResult),
+        overall_result: isBye ? 'Bye' : normalizeOutcome(row.overall_result ?? undefined, prepResult, battleResult),
         kvk_date: row.kvk_date,
-        order_index: row.order_index,
+        order_index: row.order_index ?? row.kvk_number,
       };
 
       result.get(kingdomNumber)!.push(record);

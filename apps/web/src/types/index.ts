@@ -58,7 +58,7 @@ export interface FilterOptions {
 }
 
 export interface SortOptions {
-  sortBy: 'overall_score' | 'overall_rank' | 'kingdom_number' | 'prep_win_rate' | 'battle_win_rate' | 'total_kvks';
+  sortBy: 'overall_score' | 'overall_rank' | 'kingdom_number' | 'prep_win_rate' | 'battle_win_rate' | 'total_kvks' | 'dominations' | 'comebacks' | 'reversals' | 'invasions' | 'prep_wins' | 'battle_wins';
   order: 'asc' | 'desc';
 }
 

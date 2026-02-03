@@ -25,16 +25,19 @@ CREATE INDEX IF NOT EXISTS idx_feedback_user_id ON feedback(user_id);
 ALTER TABLE feedback ENABLE ROW LEVEL SECURITY;
 
 -- Policy: Anyone can insert feedback (even anonymous users)
+DROP POLICY IF EXISTS "Anyone can submit feedback" ON feedback;
 CREATE POLICY "Anyone can submit feedback" ON feedback
     FOR INSERT
     WITH CHECK (true);
 
 -- Policy: Only authenticated users can view their own feedback
+DROP POLICY IF EXISTS "Users can view their own feedback" ON feedback;
 CREATE POLICY "Users can view their own feedback" ON feedback
     FOR SELECT
     USING (auth.uid() = user_id);
 
 -- Policy: Service role can do anything (for admin dashboard)
+DROP POLICY IF EXISTS "Service role has full access" ON feedback;
 CREATE POLICY "Service role has full access" ON feedback
     FOR ALL
     USING (auth.role() = 'service_role');

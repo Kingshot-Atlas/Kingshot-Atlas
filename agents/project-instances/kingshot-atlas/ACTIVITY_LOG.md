@@ -9,6 +9,45 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-03 22:55 | Platform Engineer | COMPLETED
+Task: Code quality hardening - proper typing, pre-commit hooks, CI security
+Context: Follow-up to security review - strengthen automated quality gates
+Changes Made:
+  - Fixed 4 eslint-disable comments by adding proper TypeScript types
+    - useKingdomsRealtime.ts: RealtimeChannel type for Supabase channel refs
+    - kvkHistoryService.ts: RawKvKHistoryRow interface for Supabase data
+  - Created .pre-commit-config.yaml with:
+    - Bandit (Python security)
+    - Black (Python formatting)
+    - isort (import sorting)
+    - pyupgrade (Python 3.12+ patterns)
+    - ESLint (TypeScript/JavaScript)
+    - detect-private-key, trailing-whitespace, etc.
+  - Enhanced CI: Bandit now fails build on high-severity issues (was continue-on-error)
+Files Changed:
+  - apps/web/src/hooks/useKingdomsRealtime.ts
+  - apps/web/src/services/kvkHistoryService.ts
+  - .pre-commit-config.yaml (new)
+  - .github/workflows/ci.yml
+Result: Build verified locally. Ready for commit.
+
+## 2026-02-03 22:40 | Platform Engineer | COMPLETED
+Task: Code review for errors and vulnerabilities
+Context: Comprehensive scan of codebase for security issues and deprecated patterns
+Issues Found & Fixed:
+  - datetime.utcnow() deprecated (Python 3.12+) → replaced with datetime.now(timezone.utc) in 6 files
+  - Bare except: clauses → replaced with except Exception: in admin.py (3 occurrences)
+  - eslint-disable comments: 15 occurrences (low priority, legitimate use cases)
+  - console.log/print statements: acceptable for debugging/error logging
+Files Changed:
+  - apps/api/api/supabase_client.py (2 datetime fixes)
+  - apps/api/api/routers/bot.py (3 datetime fixes)
+  - apps/api/api/routers/discord.py (4 datetime fixes)
+  - apps/api/api/routers/admin.py (3 bare except fixes)
+  - apps/api/scripts/validate_submission.py (1 datetime fix)
+  - apps/api/scripts/data_quality_audit.py (2 datetime fixes)
+Result: Deployed to production via git push (commit 538dac0)
+
 ## 2026-02-03 22:30 | Platform Engineer | COMPLETED
 Task: Security hardening - achieve maximum security score
 Context: Security test showed 27 issues (1 ERROR, 26 WARN)

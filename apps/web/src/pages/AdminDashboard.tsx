@@ -1173,7 +1173,7 @@ const AdminDashboard: React.FC = () => {
       }}>
         {[
           { id: 'analytics', label: 'Analytics', icon: '📊' },
-          { id: 'review', label: 'Review', icon: '�', count: pendingCounts.submissions + pendingCounts.claims + pendingCounts.corrections + pendingCounts.transfers + pendingCounts.kvkErrors },
+          { id: 'review', label: 'Review', icon: '📋', count: pendingCounts.submissions + pendingCounts.claims + pendingCounts.corrections + pendingCounts.transfers + pendingCounts.kvkErrors },
           { id: 'system', label: 'System', icon: '⚙️', count: pendingCounts.feedback }
         ].map(cat => (
           <button
@@ -1198,7 +1198,7 @@ const AdminDashboard: React.FC = () => {
             }}
           >
             {cat.label}
-            {cat.count && cat.count > 0 && (
+            {(cat.count ?? 0) > 0 && (
               <span style={{
                 backgroundColor: activeCategory === cat.id ? '#0a0a0a' : '#fbbf24',
                 color: activeCategory === cat.id ? '#22d3ee' : '#0a0a0a',
@@ -1250,7 +1250,7 @@ const AdminDashboard: React.FC = () => {
           { id: 'submissions', label: 'KvK Results', count: pendingCounts.submissions },
           { id: 'new-kingdoms', label: 'New Kingdoms', count: 0 },
           { id: 'claims', label: 'Claims', count: pendingCounts.claims },
-          { id: 'transfer-status', label: 'Transfers', count: pendingCounts.transfers },
+          { id: 'transfer-status', label: 'Transfer Status', count: pendingCounts.transfers },
           { id: 'corrections', label: 'Corrections', count: pendingCounts.corrections },
           { id: 'kvk-errors', label: 'KvK Errors', count: pendingCounts.kvkErrors }
         ].map(tab => (

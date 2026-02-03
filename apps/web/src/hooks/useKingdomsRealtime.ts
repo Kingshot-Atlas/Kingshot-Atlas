@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { kingdomKeys } from './useKingdoms';
 import { kingdomsSupabaseService } from '../services/kingdomsSupabaseService';
@@ -32,10 +33,8 @@ export function useKingdomsRealtime(options?: RealtimeOptions) {
     updatedKingdoms: [],
     lastKvkUpdate: null,
   });
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const channelRef = useRef<any>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const kvkChannelRef = useRef<any>(null);
+  const channelRef = useRef<RealtimeChannel | null>(null);
+  const kvkChannelRef = useRef<RealtimeChannel | null>(null);
   const optionsRef = useRef(options);
   optionsRef.current = options;
 
