@@ -9,6 +9,15 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-03 02:22 | Product Engineer | COMPLETED
+Task: Fix missing KvK chip not showing on Kingdom Cards
+Files:
+  - apps/web/src/components/KingdomCard.tsx
+Result:
+  - Removed `!isMobile` condition that was hiding the chip on mobile devices
+  - Chip now shows on both desktop and mobile for kingdoms missing KvK #10 data
+  - Clicking chip opens PostKvKSubmission modal pre-filled with kingdom number
+
 ## 2026-02-03 02:17 | Platform Engineer | COMPLETED
 Task: Admin KvK Increment Tool - API + UI
 Files:
