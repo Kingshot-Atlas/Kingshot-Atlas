@@ -1,7 +1,9 @@
 /**
  * Service for handling kingdom status submissions
  * Manages user-submitted status updates with moderation queue
- * Supports both localStorage (offline) and Supabase (cloud) backends
+ * 
+ * IMPORTANT: Supabase is the SINGLE SOURCE OF TRUTH (ADR-010, ADR-011)
+ * No localStorage fallbacks - if Supabase is unavailable, operations fail explicitly
  */
 
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
@@ -21,21 +23,11 @@ export interface StatusSubmission {
   review_notes?: string;
 }
 
-const SUBMISSIONS_KEY = 'kingshot_status_submissions';
-const PENDING_KEY = 'kingshot_pending_submissions';
-
 class StatusService {
-  private getSubmissions(): StatusSubmission[] {
-    try {
-      const data = localStorage.getItem(SUBMISSIONS_KEY);
-      return data ? JSON.parse(data) : [];
-    } catch {
-      return [];
+  private ensureSupabase(): void {
+    if (!isSupabaseConfigured || !supabase) {
+      throw new Error('Database unavailable - Supabase is required for status submissions');
     }
-  }
-
-  private saveSubmissions(submissions: StatusSubmission[]): void {
-    localStorage.setItem(SUBMISSIONS_KEY, JSON.stringify(submissions));
   }
 
   async submitStatusUpdate(
@@ -45,271 +37,249 @@ class StatusService {
     notes: string,
     userId: string
   ): Promise<StatusSubmission> {
-    // Always try Supabase first - this is the source of truth
-    if (isSupabaseConfigured && supabase) {
-      try {
-        const { data, error } = await supabase
-          .from('status_submissions')
-          .insert({
-            kingdom_number: kingdomNumber,
-            old_status: oldStatus,
-            new_status: newStatus,
-            notes,
-            submitted_by: userId
-          })
-          .select()
-          .single();
+    this.ensureSupabase();
 
-        if (error) {
-          logger.error('Supabase status submission failed:', error.message);
-          throw new Error(`Failed to submit: ${error.message}`);
-        }
+    const { data, error } = await supabase!
+      .from('status_submissions')
+      .insert({
+        kingdom_number: kingdomNumber,
+        old_status: oldStatus,
+        new_status: newStatus,
+        notes,
+        submitted_by: userId
+      })
+      .select()
+      .single();
 
-        if (data) {
-          logger.info(`Status submission created in Supabase for K${kingdomNumber}`);
-          return {
-            id: data.id,
-            kingdom_number: data.kingdom_number,
-            old_status: data.old_status,
-            new_status: data.new_status,
-            notes: data.notes || '',
-            submitted_by: data.submitted_by,
-            submitted_at: data.submitted_at,
-            status: data.status
-          };
-        }
-      } catch (err) {
-        logger.error('Supabase submission error:', err);
-        throw err; // Re-throw to surface error to user
-      }
+    if (error) {
+      logger.error('Supabase status submission failed:', error.message);
+      throw new Error(`Failed to submit: ${error.message}`);
     }
 
-    // Fallback to localStorage only if Supabase is not configured
-    logger.warn('Supabase not configured - using localStorage (submissions will be local only)');
-    const submission: StatusSubmission = {
-      id: `sub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      kingdom_number: kingdomNumber,
-      old_status: oldStatus,
-      new_status: newStatus,
-      notes,
-      submitted_by: userId,
-      submitted_at: new Date().toISOString(),
-      status: 'pending'
+    if (!data) {
+      throw new Error('Failed to submit: No data returned');
+    }
+
+    logger.info(`Status submission created in Supabase for K${kingdomNumber}`);
+    return {
+      id: data.id,
+      kingdom_number: data.kingdom_number,
+      old_status: data.old_status,
+      new_status: data.new_status,
+      notes: data.notes || '',
+      submitted_by: data.submitted_by,
+      submitted_at: data.submitted_at,
+      status: data.status
     };
-
-    const submissions = this.getSubmissions();
-    submissions.push(submission);
-    this.saveSubmissions(submissions);
-
-    // Track pending submissions per user
-    this.addPendingSubmission(userId, submission.id);
-
-    return submission;
   }
 
-  private addPendingSubmission(userId: string, submissionId: string): void {
-    try {
-      const data = localStorage.getItem(PENDING_KEY);
-      const pending: Record<string, string[]> = data ? JSON.parse(data) : {};
-      
-      if (!pending[userId]) {
-        pending[userId] = [];
-      }
-      const userPending = pending[userId];
-      if (userPending) {
-        userPending.push(submissionId);
-      }
-      
-      localStorage.setItem(PENDING_KEY, JSON.stringify(pending));
-    } catch {
-      // Ignore storage errors
+  async getUserPendingSubmissions(userId: string): Promise<StatusSubmission[]> {
+    this.ensureSupabase();
+
+    const { data, error } = await supabase!
+      .from('status_submissions')
+      .select('*')
+      .eq('submitted_by', userId)
+      .eq('status', 'pending')
+      .order('submitted_at', { ascending: false });
+
+    if (error) {
+      logger.error('Failed to fetch user pending submissions:', error.message);
+      throw new Error(`Failed to fetch: ${error.message}`);
     }
+
+    return (data || []).map(d => this.mapSubmission(d));
   }
 
-  getUserPendingSubmissions(userId: string): StatusSubmission[] {
-    const submissions = this.getSubmissions();
-    return submissions.filter(s => s.submitted_by === userId && s.status === 'pending');
+  async getKingdomPendingSubmissions(kingdomNumber: number): Promise<StatusSubmission[]> {
+    this.ensureSupabase();
+
+    const { data, error } = await supabase!
+      .from('status_submissions')
+      .select('*')
+      .eq('kingdom_number', kingdomNumber)
+      .eq('status', 'pending')
+      .order('submitted_at', { ascending: false });
+
+    if (error) {
+      logger.error('Failed to fetch kingdom pending submissions:', error.message);
+      throw new Error(`Failed to fetch: ${error.message}`);
+    }
+
+    return (data || []).map(d => this.mapSubmission(d));
   }
 
-  getKingdomPendingSubmissions(kingdomNumber: number): StatusSubmission[] {
-    const submissions = this.getSubmissions();
-    return submissions.filter(s => s.kingdom_number === kingdomNumber && s.status === 'pending');
-  }
+  async hasUserSubmittedRecently(userId: string, kingdomNumber: number, hoursAgo: number = 24): Promise<boolean> {
+    this.ensureSupabase();
 
-  hasUserSubmittedRecently(userId: string, kingdomNumber: number, hoursAgo: number = 24): boolean {
-    const submissions = this.getSubmissions();
     const cutoff = new Date(Date.now() - hoursAgo * 60 * 60 * 1000).toISOString();
-    
-    return submissions.some(s => 
-      s.submitted_by === userId && 
-      s.kingdom_number === kingdomNumber && 
-      s.submitted_at > cutoff
-    );
-  }
 
-  // Admin functions - use Supabase as source of truth
-  async approveSubmission(submissionId: string, reviewerId: string, reviewNotes?: string): Promise<void> {
-    if (isSupabaseConfigured && supabase) {
-      const { error } = await supabase
-        .from('status_submissions')
-        .update({
-          status: 'approved',
-          reviewed_by: reviewerId,
-          reviewed_at: new Date().toISOString(),
-          review_notes: reviewNotes
-        })
-        .eq('id', submissionId);
+    const { data, error } = await supabase!
+      .from('status_submissions')
+      .select('id')
+      .eq('submitted_by', userId)
+      .eq('kingdom_number', kingdomNumber)
+      .gte('submitted_at', cutoff)
+      .limit(1);
 
-      if (error) {
-        logger.error('Failed to approve submission in Supabase:', error.message);
-        throw new Error(`Failed to approve: ${error.message}`);
-      }
-      logger.info(`Status submission ${submissionId} approved`);
-      return;
+    if (error) {
+      logger.error('Failed to check recent submissions:', error.message);
+      return false; // Fail open for rate limiting check
     }
 
-    // Fallback to localStorage
-    const submissions = this.getSubmissions();
-    const index = submissions.findIndex(s => s.id === submissionId);
-    
-    const existing = submissions[index];
-    if (existing) {
-      submissions[index] = {
-        ...existing,
-        status: 'approved' as const,
+    return (data?.length || 0) > 0;
+  }
+
+  async approveSubmission(submissionId: string, reviewerId: string, reviewNotes?: string): Promise<void> {
+    this.ensureSupabase();
+
+    const { error } = await supabase!
+      .from('status_submissions')
+      .update({
+        status: 'approved',
         reviewed_by: reviewerId,
         reviewed_at: new Date().toISOString(),
         review_notes: reviewNotes
-      };
-      this.saveSubmissions(submissions);
+      })
+      .eq('id', submissionId);
+
+    if (error) {
+      logger.error('Failed to approve submission in Supabase:', error.message);
+      throw new Error(`Failed to approve: ${error.message}`);
     }
+    logger.info(`Status submission ${submissionId} approved`);
   }
 
   async rejectSubmission(submissionId: string, reviewerId: string, reviewNotes?: string): Promise<void> {
-    if (isSupabaseConfigured && supabase) {
-      const { error } = await supabase
-        .from('status_submissions')
-        .update({
-          status: 'rejected',
-          reviewed_by: reviewerId,
-          reviewed_at: new Date().toISOString(),
-          review_notes: reviewNotes
-        })
-        .eq('id', submissionId);
+    this.ensureSupabase();
 
-      if (error) {
-        logger.error('Failed to reject submission in Supabase:', error.message);
-        throw new Error(`Failed to reject: ${error.message}`);
-      }
-      logger.info(`Status submission ${submissionId} rejected`);
-      return;
-    }
-
-    // Fallback to localStorage
-    const submissions = this.getSubmissions();
-    const index = submissions.findIndex(s => s.id === submissionId);
-    
-    const existing = submissions[index];
-    if (existing) {
-      submissions[index] = {
-        ...existing,
-        status: 'rejected' as const,
+    const { error } = await supabase!
+      .from('status_submissions')
+      .update({
+        status: 'rejected',
         reviewed_by: reviewerId,
         reviewed_at: new Date().toISOString(),
         review_notes: reviewNotes
-      };
-      this.saveSubmissions(submissions);
+      })
+      .eq('id', submissionId);
+
+    if (error) {
+      logger.error('Failed to reject submission in Supabase:', error.message);
+      throw new Error(`Failed to reject: ${error.message}`);
     }
+    logger.info(`Status submission ${submissionId} rejected`);
   }
 
-  /**
-   * Fetch all submissions from Supabase (admin only)
-   * Falls back to localStorage if Supabase is not configured
-   */
   async fetchAllSubmissions(statusFilter?: 'pending' | 'approved' | 'rejected' | 'all'): Promise<StatusSubmission[]> {
-    if (isSupabaseConfigured && supabase) {
-      try {
-        let query = supabase
-          .from('status_submissions')
-          .select('*')
-          .order('submitted_at', { ascending: false });
+    this.ensureSupabase();
 
-        if (statusFilter && statusFilter !== 'all') {
-          query = query.eq('status', statusFilter);
-        }
+    let query = supabase!
+      .from('status_submissions')
+      .select('*')
+      .order('submitted_at', { ascending: false });
 
-        const { data, error } = await query;
-
-        if (error) {
-          logger.error('Failed to fetch submissions from Supabase:', error.message);
-          throw new Error(`Failed to fetch: ${error.message}`);
-        }
-
-        return (data || []).map(d => ({
-          id: d.id,
-          kingdom_number: d.kingdom_number,
-          old_status: d.old_status,
-          new_status: d.new_status,
-          notes: d.notes || '',
-          submitted_by: d.submitted_by,
-          submitted_at: d.submitted_at,
-          status: d.status,
-          reviewed_by: d.reviewed_by,
-          reviewed_at: d.reviewed_at,
-          review_notes: d.review_notes
-        }));
-      } catch (err) {
-        logger.error('Error fetching submissions:', err);
-        throw err;
-      }
-    }
-
-    // Fallback to localStorage
-    const all = this.getSubmissions();
     if (statusFilter && statusFilter !== 'all') {
-      return all.filter(s => s.status === statusFilter);
+      query = query.eq('status', statusFilter);
     }
-    return all;
+
+    const { data, error } = await query;
+
+    if (error) {
+      logger.error('Failed to fetch submissions from Supabase:', error.message);
+      throw new Error(`Failed to fetch: ${error.message}`);
+    }
+
+    return (data || []).map(d => this.mapSubmission(d));
   }
 
-  getAllPendingSubmissions(): StatusSubmission[] {
-    return this.getSubmissions().filter(s => s.status === 'pending');
+  async getAllPendingSubmissions(): Promise<StatusSubmission[]> {
+    return this.fetchAllSubmissions('pending');
   }
 
-  getSubmissionHistory(kingdomNumber: number): StatusSubmission[] {
-    return this.getSubmissions()
-      .filter(s => s.kingdom_number === kingdomNumber)
-      .sort((a, b) => new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime());
+  async getSubmissionHistory(kingdomNumber: number): Promise<StatusSubmission[]> {
+    this.ensureSupabase();
+
+    const { data, error } = await supabase!
+      .from('status_submissions')
+      .select('*')
+      .eq('kingdom_number', kingdomNumber)
+      .order('submitted_at', { ascending: false });
+
+    if (error) {
+      logger.error('Failed to fetch submission history:', error.message);
+      throw new Error(`Failed to fetch: ${error.message}`);
+    }
+
+    return (data || []).map(d => this.mapSubmission(d));
   }
 
-  /**
-   * Get the most recent approved status for a kingdom
-   * Returns the new_status from the most recently approved submission
-   */
-  getApprovedStatus(kingdomNumber: number): string | null {
-    const submissions = this.getSubmissions()
-      .filter(s => s.kingdom_number === kingdomNumber && s.status === 'approved')
-      .sort((a, b) => new Date(b.reviewed_at || b.submitted_at).getTime() - new Date(a.reviewed_at || a.submitted_at).getTime());
-    
-    return submissions[0]?.new_status || null;
+  async getApprovedStatus(kingdomNumber: number): Promise<string | null> {
+    this.ensureSupabase();
+
+    const { data, error } = await supabase!
+      .from('status_submissions')
+      .select('new_status')
+      .eq('kingdom_number', kingdomNumber)
+      .eq('status', 'approved')
+      .order('reviewed_at', { ascending: false, nullsFirst: false })
+      .limit(1);
+
+    if (error) {
+      logger.error('Failed to fetch approved status:', error.message);
+      return null;
+    }
+
+    return data?.[0]?.new_status || null;
   }
 
-  /**
-   * Get all approved status overrides as a map of kingdom_number -> new_status
-   * Used by api.ts to apply approved statuses when loading kingdom data
-   */
-  getAllApprovedStatusOverrides(): Map<number, string> {
+  async getAllApprovedStatusOverridesAsync(): Promise<Map<number, string>> {
     const overrides = new Map<number, string>();
-    const submissions = this.getSubmissions()
-      .filter(s => s.status === 'approved')
-      .sort((a, b) => new Date(a.reviewed_at || a.submitted_at).getTime() - new Date(b.reviewed_at || b.submitted_at).getTime());
     
-    // Later approvals override earlier ones for the same kingdom
-    for (const sub of submissions) {
-      overrides.set(sub.kingdom_number, sub.new_status);
+    if (!isSupabaseConfigured || !supabase) {
+      logger.warn('Supabase not configured - no status overrides available');
+      return overrides;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('status_submissions')
+        .select('kingdom_number, new_status, reviewed_at, submitted_at')
+        .eq('status', 'approved')
+        .order('reviewed_at', { ascending: true, nullsFirst: true });
+
+      if (error) {
+        logger.error('Failed to fetch approved status overrides from Supabase:', error.message);
+        return overrides;
+      }
+
+      if (data) {
+        // Later approvals override earlier ones for the same kingdom
+        for (const sub of data) {
+          overrides.set(sub.kingdom_number, sub.new_status);
+        }
+        logger.info(`Loaded ${overrides.size} approved status overrides from Supabase`);
+      }
+    } catch (err) {
+      logger.error('Error fetching status overrides:', err);
     }
     
     return overrides;
+  }
+
+  private mapSubmission(d: Record<string, unknown>): StatusSubmission {
+    return {
+      id: d.id as string,
+      kingdom_number: d.kingdom_number as number,
+      old_status: d.old_status as string,
+      new_status: d.new_status as string,
+      notes: (d.notes as string) || '',
+      submitted_by: d.submitted_by as string,
+      submitted_at: d.submitted_at as string,
+      status: d.status as 'pending' | 'approved' | 'rejected',
+      reviewed_by: d.reviewed_by as string | undefined,
+      reviewed_at: d.reviewed_at as string | undefined,
+      review_notes: d.review_notes as string | undefined
+    };
   }
 }
 

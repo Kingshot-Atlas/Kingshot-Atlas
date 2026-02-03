@@ -31,8 +31,8 @@ export function UserCorrectionStats({ userId, username: _username, themeColor = 
 
   const fetchCorrectionStats = async () => {
     if (!isSupabaseConfigured || !supabase) {
-      // Fall back to localStorage for correction history
-      loadLocalStats();
+      setStats({ totalSubmitted: 0, totalApproved: 0, pendingReview: 0, recentCorrections: [] });
+      setLoading(false);
       return;
     }
 
@@ -45,12 +45,24 @@ export function UserCorrectionStats({ userId, username: _username, themeColor = 
 
       if (approvedError) {
         console.warn('Failed to fetch correction stats:', approvedError);
-        loadLocalStats();
+        setStats({ totalSubmitted: 0, totalApproved: 0, pendingReview: 0, recentCorrections: [] });
+        setLoading(false);
         return;
       }
 
-      // Also check localStorage for pending submissions
-      const pendingCorrections = getPendingFromLocalStorage(userId);
+      // Fetch pending KvK errors from Supabase
+      const { data: pendingData } = await supabase
+        .from('kvk_errors')
+        .select('kingdom_number, kvk_number, submitted_at, status')
+        .eq('submitted_by', userId)
+        .eq('status', 'pending');
+
+      const pendingCorrections = (pendingData || []).map(e => ({
+        kingdom_number: e.kingdom_number,
+        kvk_number: e.kvk_number || 0,
+        status: 'pending' as const,
+        submitted_at: e.submitted_at,
+      }));
 
       setStats({
         totalSubmitted: (approvedData?.length || 0) + pendingCorrections.length,
@@ -68,52 +80,14 @@ export function UserCorrectionStats({ userId, username: _username, themeColor = 
       });
     } catch (err) {
       console.warn('Error fetching correction stats:', err);
-      loadLocalStats();
+      setStats({
+        totalSubmitted: 0,
+        totalApproved: 0,
+        pendingReview: 0,
+        recentCorrections: [],
+      });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const loadLocalStats = () => {
-    const pendingCorrections = getPendingFromLocalStorage(userId);
-    setStats({
-      totalSubmitted: pendingCorrections.length,
-      totalApproved: 0,
-      pendingReview: pendingCorrections.length,
-      recentCorrections: pendingCorrections.slice(0, 5),
-    });
-    setLoading(false);
-  };
-
-  const getPendingFromLocalStorage = (uid: string): Array<{
-    kingdom_number: number;
-    kvk_number: number;
-    status: 'pending';
-    submitted_at: string;
-  }> => {
-    try {
-      const stored = localStorage.getItem('kingshot_kvk_errors');
-      if (!stored) return [];
-      
-      interface LocalStorageError {
-        submitted_by: string;
-        status: string;
-        kingdom_number: number;
-        kvk_number?: number;
-        submitted_at: string;
-      }
-      
-      const errors: LocalStorageError[] = JSON.parse(stored);
-      return errors
-        .filter((e) => e.submitted_by === uid && e.status === 'pending')
-        .map((e) => ({
-          kingdom_number: e.kingdom_number,
-          kvk_number: e.kvk_number || 0,
-          status: 'pending' as const,
-          submitted_at: e.submitted_at,
-        }));
-    } catch {
-      return [];
     }
   };
 

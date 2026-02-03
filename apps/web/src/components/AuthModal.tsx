@@ -215,15 +215,34 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
               {loading ? 'Signing in...' : 'Continue with Discord'}
             </button>
             {isMobile && (
-              <p style={{ 
-                color: '#6b7280', 
-                fontSize: '0.7rem', 
-                textAlign: 'center', 
-                marginTop: '0.5rem',
-                lineHeight: 1.4
+              <div style={{ 
+                backgroundColor: 'rgba(88, 101, 242, 0.1)',
+                border: '1px solid rgba(88, 101, 242, 0.3)',
+                borderRadius: '8px',
+                padding: '0.75rem',
+                marginTop: '0.75rem'
               }}>
-                Opens Discord web login. Use your email/password or scan QR code.
-              </p>
+                <p style={{ 
+                  color: '#a5b4fc', 
+                  fontSize: '0.8rem', 
+                  textAlign: 'center', 
+                  margin: 0,
+                  lineHeight: 1.5,
+                  fontWeight: 500
+                }}>
+                  📱 Opens Discord in your browser
+                </p>
+                <p style={{ 
+                  color: '#9ca3af', 
+                  fontSize: '0.7rem', 
+                  textAlign: 'center', 
+                  marginTop: '0.35rem',
+                  marginBottom: 0,
+                  lineHeight: 1.4
+                }}>
+                  Discord requires browser login for security. Check "Remember me" for faster future logins. You'll be redirected back automatically.
+                </p>
+              </div>
             )}
           </div>
         </div>

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { contributorService, type ContributorStats, type UserNotification } from '../services/contributorService';
 import { useToast } from './Toast';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 interface DataCorrection {
   id: string;
@@ -33,7 +34,7 @@ interface KvKError {
 }
 
 const SubmissionHistory: React.FC<{ userId?: string; themeColor?: string }> = ({ userId, themeColor = '#22d3ee' }) => {
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<'submissions' | 'notifications' | 'badges'>('submissions');
   const [corrections, setCorrections] = useState<DataCorrection[]>([]);
@@ -48,64 +49,94 @@ const SubmissionHistory: React.FC<{ userId?: string; themeColor?: string }> = ({
   useEffect(() => {
     if (!targetUserId) return;
 
-    // Load user's submissions
-    const loadSubmissions = () => {
-      const correctionsStored = localStorage.getItem('kingshot_data_corrections');
-      const allCorrections: DataCorrection[] = correctionsStored ? JSON.parse(correctionsStored) : [];
-      setCorrections(allCorrections.filter(c => c.submitter_id === targetUserId));
+    // Load all data from Supabase (single source of truth)
+    const loadAllData = async () => {
+      if (!isSupabaseConfigured || !supabase) {
+        setCorrections([]);
+        setKvkErrors([]);
+        setNotifications([]);
+        setStats(null);
+        return;
+      }
 
-      const kvkErrorsStored = localStorage.getItem('kingshot_kvk_errors');
-      const allKvkErrors: KvKError[] = kvkErrorsStored ? JSON.parse(kvkErrorsStored) : [];
-      setKvkErrors(allKvkErrors.filter(e => e.submitted_by === targetUserId));
+      try {
+        // Fetch data corrections from Supabase
+        const { data: correctionsData } = await supabase
+          .from('data_corrections')
+          .select('*')
+          .eq('submitted_by', targetUserId)
+          .order('created_at', { ascending: false });
+
+        if (correctionsData) {
+          setCorrections(correctionsData.map(c => ({
+            id: c.id,
+            kingdom_number: c.kingdom_number,
+            field: c.field,
+            current_value: c.current_value,
+            suggested_value: c.suggested_value,
+            reason: c.reason || '',
+            submitter_id: c.submitted_by,
+            status: c.status,
+            created_at: c.created_at,
+            review_notes: c.review_notes
+          })));
+        }
+
+        // Fetch KvK errors from Supabase
+        const { data: kvkErrorsData } = await supabase
+          .from('kvk_errors')
+          .select('*')
+          .eq('submitted_by', targetUserId)
+          .order('created_at', { ascending: false });
+
+        if (kvkErrorsData) {
+          setKvkErrors(kvkErrorsData.map(e => ({
+            id: e.id,
+            kingdom_number: e.kingdom_number,
+            kvk_number: e.kvk_number,
+            error_type_label: e.error_type_label,
+            description: e.description,
+            submitted_by: e.submitted_by,
+            submitted_at: e.submitted_at || e.created_at,
+            status: e.status,
+            review_notes: e.review_notes
+          })));
+        }
+
+        // Fetch notifications and stats
+        const [notifs, userStats] = await Promise.all([
+          contributorService.getNotifications(targetUserId),
+          contributorService.getContributorStats(targetUserId)
+        ]);
+        setNotifications(notifs);
+        setStats(userStats);
+      } catch {
+        setCorrections([]);
+        setKvkErrors([]);
+        setNotifications([]);
+        setStats(null);
+      }
     };
 
-    // Load notifications
-    const loadNotifications = () => {
-      setNotifications(contributorService.getNotifications(targetUserId));
-    };
+    loadAllData();
+  }, [targetUserId]);
 
-    // Load stats
-    const username = profile?.username || 'User';
-    setStats(contributorService.getContributorStats(targetUserId, username));
-
-    loadSubmissions();
-    loadNotifications();
-  }, [targetUserId, profile?.username]);
-
-  // C3: Submit appeal
+  // C3: Submit appeal (Note: appeals not yet supported in Supabase schema - would need appeal column)
+  // For now, show message that appeals should be submitted via Discord
   const submitAppeal = () => {
     if (!appealModal || !appealReason.trim()) {
       showToast('Please provide a reason for your appeal', 'error');
       return;
     }
 
-    if (appealModal.type === 'correction') {
-      const stored = localStorage.getItem('kingshot_data_corrections');
-      const all: DataCorrection[] = stored ? JSON.parse(stored) : [];
-      const updated = all.map(c => c.id === appealModal.id ? {
-        ...c,
-        appeal: { reason: appealReason, submitted_at: new Date().toISOString() }
-      } : c);
-      localStorage.setItem('kingshot_data_corrections', JSON.stringify(updated));
-      setCorrections(updated.filter(c => c.submitter_id === targetUserId));
-    } else {
-      const stored = localStorage.getItem('kingshot_kvk_errors');
-      const all: KvKError[] = stored ? JSON.parse(stored) : [];
-      const updated = all.map(e => e.id === appealModal.id ? {
-        ...e,
-        appeal: { reason: appealReason, submitted_at: new Date().toISOString() }
-      } : e);
-      localStorage.setItem('kingshot_kvk_errors', JSON.stringify(updated));
-      setKvkErrors(updated.filter(e => e.submitted_by === targetUserId));
-    }
-
-    showToast('Appeal submitted successfully', 'success');
+    // Appeals require direct admin contact for now
+    showToast('Appeal noted. Please contact an admin on Discord for faster resolution.', 'info');
     setAppealModal(null);
     setAppealReason('');
   };
 
-  const markAllRead = () => {
-    notifications.forEach(n => contributorService.markNotificationRead(n.id));
+  const markAllRead = async () => {
+    await Promise.all(notifications.map(n => contributorService.markNotificationRead(n.id)));
     setNotifications(notifications.map(n => ({ ...n, read: true })));
   };
 
@@ -132,13 +163,13 @@ const SubmissionHistory: React.FC<{ userId?: string; themeColor?: string }> = ({
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem', marginBottom: '1rem' }}>
           <div style={{ padding: '0.5rem', backgroundColor: '#0a0a0a', borderRadius: '8px', textAlign: 'center' }}>
             <div style={{ fontSize: '1.25rem', fontWeight: '700', color: themeColor }}>
-              {stats.submissions.approved + stats.corrections.approved + stats.kvkErrors.approved}
+              {stats.totals.approved}
             </div>
             <div style={{ fontSize: '0.65rem', color: '#6b7280' }}>Approved</div>
           </div>
           <div style={{ padding: '0.5rem', backgroundColor: '#0a0a0a', borderRadius: '8px', textAlign: 'center' }}>
             <div style={{ fontSize: '1.25rem', fontWeight: '700', color: '#fbbf24' }}>
-              {stats.submissions.pending + stats.corrections.pending + stats.kvkErrors.pending}
+              {stats.totals.pending}
             </div>
             <div style={{ fontSize: '0.65rem', color: '#6b7280' }}>Pending</div>
           </div>
@@ -282,7 +313,7 @@ const SubmissionHistory: React.FC<{ userId?: string; themeColor?: string }> = ({
             notifications.map((notif) => (
               <div
                 key={notif.id}
-                onClick={() => contributorService.markNotificationRead(notif.id)}
+                onClick={() => { contributorService.markNotificationRead(notif.id); }}
                 style={{
                   padding: '0.75rem',
                   backgroundColor: notif.read ? '#0a0a0a' : '#0a0a0a',

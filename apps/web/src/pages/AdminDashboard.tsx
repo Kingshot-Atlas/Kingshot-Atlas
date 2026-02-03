@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/Toast';
@@ -6,15 +6,15 @@ import { kingdomKeys } from '../hooks/useKingdoms';
 import { analyticsService } from '../services/analyticsService';
 import { statusService, type StatusSubmission } from '../services/statusService';
 import { apiService } from '../services/api';
-import { contributorService } from '../services/contributorService';
 import { correctionService } from '../services/correctionService';
 import { kvkCorrectionService } from '../services/kvkCorrectionService';
 import { kvkHistoryService } from '../services/kvkHistoryService';
-import { AnalyticsDashboard } from '../components/AnalyticsCharts';
-import { EngagementDashboard } from '../components/EngagementDashboard';
-import { WebhookMonitor } from '../components/WebhookMonitor';
-import { DataSourceStats } from '../components/DataSourceStats';
-import { BotDashboard } from '../components/BotDashboard';
+// Lazy load heavy dashboard components for code splitting
+const AnalyticsDashboard = lazy(() => import('../components/AnalyticsCharts').then(m => ({ default: m.AnalyticsDashboard })));
+const EngagementDashboard = lazy(() => import('../components/EngagementDashboard').then(m => ({ default: m.EngagementDashboard })));
+const WebhookMonitor = lazy(() => import('../components/WebhookMonitor').then(m => ({ default: m.WebhookMonitor })));
+const DataSourceStats = lazy(() => import('../components/DataSourceStats').then(m => ({ default: m.DataSourceStats })));
+const BotDashboard = lazy(() => import('../components/BotDashboard').then(m => ({ default: m.BotDashboard })));
 import { ADMIN_USERNAMES } from '../utils/constants';
 import { supabase } from '../lib/supabase';
 import { logger } from '../utils/logger';
@@ -34,8 +34,6 @@ import {
 } from '../components/admin';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
-const CORRECTIONS_KEY = 'kingshot_data_corrections';
-const KVK_ERRORS_KEY = 'kingshot_kvk_errors';
 const ADMIN_LOG_KEY = 'kingshot_admin_log';
 
 const AdminDashboard: React.FC = () => {
@@ -229,10 +227,15 @@ const AdminDashboard: React.FC = () => {
 
   const fetchPendingCounts = async () => {
     try {
-      // Corrections from localStorage
-      const correctionsStored = localStorage.getItem(CORRECTIONS_KEY);
-      const allCorrections: DataCorrection[] = correctionsStored ? JSON.parse(correctionsStored) : [];
-      const pendingCorrections = allCorrections.filter(c => c.status === 'pending').length;
+      // Corrections from Supabase
+      let pendingCorrections = 0;
+      if (supabase) {
+        const { count } = await supabase
+          .from('data_corrections')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'pending');
+        pendingCorrections = count || 0;
+      }
       
       // Transfer status from Supabase (source of truth)
       let pendingTransfers = 0;
@@ -265,10 +268,15 @@ const AdminDashboard: React.FC = () => {
         }
       } catch { /* API might not be available */ }
       
-      // KvK errors from localStorage
-      const kvkErrorsStored = localStorage.getItem(KVK_ERRORS_KEY);
-      const allKvkErrors: KvKError[] = kvkErrorsStored ? JSON.parse(kvkErrorsStored) : [];
-      const pendingKvkErrors = allKvkErrors.filter(e => e.status === 'pending').length;
+      // KvK errors from Supabase
+      let pendingKvkErrors = 0;
+      if (supabase) {
+        const { count } = await supabase
+          .from('kvk_errors')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'pending');
+        pendingKvkErrors = count || 0;
+      }
       
       // Feedback count from Supabase
       let pendingFeedback = 0;
@@ -459,49 +467,92 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  const fetchCorrections = () => {
+  const fetchCorrections = async () => {
     setLoading(true);
     try {
-      const stored = localStorage.getItem(CORRECTIONS_KEY);
-      const all: DataCorrection[] = stored ? JSON.parse(stored) : [];
-      const filtered = filter === 'all' ? all : all.filter(c => c.status === filter);
-      setCorrections(filtered);
+      if (!supabase) {
+        setCorrections([]);
+        return;
+      }
+      
+      let query = supabase
+        .from('data_corrections')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (filter !== 'all') {
+        query = query.eq('status', filter);
+      }
+      
+      const { data, error } = await query;
+      
+      if (error) {
+        console.error('Failed to fetch corrections:', error);
+        setCorrections([]);
+      } else {
+        setCorrections((data || []).map(c => ({
+          id: c.id,
+          kingdom_number: c.kingdom_number,
+          field: c.field,
+          current_value: c.current_value,
+          suggested_value: c.suggested_value,
+          reason: c.reason || '',
+          submitter_id: c.submitted_by,
+          submitter_name: c.submitted_by_name || 'Anonymous',
+          status: c.status,
+          created_at: c.created_at,
+          reviewed_by: c.reviewed_by_name,
+          reviewed_at: c.reviewed_at,
+          review_notes: c.review_notes
+        })));
+      }
     } catch (error) {
       console.error('Failed to fetch corrections:', error);
+      setCorrections([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const reviewCorrection = (id: string, status: 'approved' | 'rejected', notes?: string) => {
-    const stored = localStorage.getItem(CORRECTIONS_KEY);
-    const all: DataCorrection[] = stored ? JSON.parse(stored) : [];
-    const correction = all.find(c => c.id === id);
-    const updated = all.map(c => c.id === id ? { 
-      ...c, 
-      status,
-      reviewed_by: profile?.username || 'admin',
-      reviewed_at: new Date().toISOString(),
-      review_notes: notes || ''
-    } : c);
-    localStorage.setItem(CORRECTIONS_KEY, JSON.stringify(updated));
+  const reviewCorrection = async (id: string, status: 'approved' | 'rejected', notes?: string) => {
+    if (!supabase) {
+      showToast('Database unavailable', 'error');
+      return;
+    }
+
+    // Get the correction first for notification
+    const { data: correction } = await supabase
+      .from('data_corrections')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    // Update the correction in Supabase
+    const { error } = await supabase
+      .from('data_corrections')
+      .update({
+        status,
+        reviewed_by: user?.id,
+        reviewed_by_name: profile?.username || 'admin',
+        reviewed_at: new Date().toISOString(),
+        review_notes: notes || ''
+      })
+      .eq('id', id);
+
+    if (error) {
+      showToast(`Failed to ${status} correction: ${error.message}`, 'error');
+      return;
+    }
+
     logAdminAction('correction', id, status, notes);
     
-    // C2: Send notification to submitter & B3: Update reputation
-    if (correction) {
-      contributorService.updateReputation(correction.submitter_id, correction.submitter_name, 'correction', status === 'approved');
-      contributorService.addNotification(correction.submitter_id, {
-        type: status === 'approved' ? 'correction_approved' : 'correction_rejected',
-        title: status === 'approved' ? 'Correction Approved!' : 'Correction Rejected',
-        message: `Your correction for K${correction.kingdom_number} (${correction.field}) was ${status}.${notes ? ` Reason: ${notes}` : ''}`,
-        itemId: id
-      });
-    }
+    // Note: Notification is now sent automatically via database trigger
+    // The trigger notify_user_on_data_correction_review handles this
     
     showToast(`Correction ${status}`, 'success');
     
     // Apply corrections to kingdom data immediately if approved
-    if (status === 'approved') {
+    if (status === 'approved' && correction) {
       correctionService.applyCorrectionsAndReload();
     }
     
@@ -511,55 +562,99 @@ const AdminDashboard: React.FC = () => {
     setRejectReason('');
   };
 
-  const fetchKvkErrors = () => {
+  const fetchKvkErrors = async () => {
     setLoading(true);
     try {
-      const stored = localStorage.getItem(KVK_ERRORS_KEY);
-      const all: KvKError[] = stored ? JSON.parse(stored) : [];
-      const filtered = filter === 'all' ? all : all.filter(e => e.status === filter);
-      setKvkErrors(filtered);
+      if (!supabase) {
+        setKvkErrors([]);
+        return;
+      }
+      
+      let query = supabase
+        .from('kvk_errors')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (filter !== 'all') {
+        query = query.eq('status', filter);
+      }
+      
+      const { data, error } = await query;
+      
+      if (error) {
+        console.error('Failed to fetch KvK errors:', error);
+        setKvkErrors([]);
+      } else {
+        setKvkErrors((data || []).map(e => ({
+          id: e.id,
+          kingdom_number: e.kingdom_number,
+          kvk_number: e.kvk_number,
+          error_type: e.error_type,
+          error_type_label: e.error_type_label,
+          current_data: e.current_data,
+          description: e.description,
+          submitted_by: e.submitted_by,
+          submitted_by_name: e.submitted_by_name || 'Anonymous',
+          submitted_at: e.submitted_at || e.created_at,
+          status: e.status,
+          reviewed_by: e.reviewed_by_name,
+          reviewed_at: e.reviewed_at,
+          review_notes: e.review_notes
+        })));
+      }
     } catch (error) {
       console.error('Failed to fetch KvK errors:', error);
+      setKvkErrors([]);
     } finally {
       setLoading(false);
     }
   };
 
   const reviewKvkError = async (id: string, status: 'approved' | 'rejected', notes?: string) => {
-    const stored = localStorage.getItem(KVK_ERRORS_KEY);
-    const all: KvKError[] = stored ? JSON.parse(stored) : [];
-    const kvkError = all.find(e => e.id === id);
-    const updated = all.map(e => e.id === id ? { 
-      ...e, 
-      status,
-      reviewed_by: profile?.username || 'admin',
-      reviewed_at: new Date().toISOString(),
-      review_notes: notes || ''
-    } : e);
-    localStorage.setItem(KVK_ERRORS_KEY, JSON.stringify(updated));
+    if (!supabase) {
+      showToast('Database unavailable', 'error');
+      return;
+    }
+
+    // Get the error first for processing
+    const { data: kvkError } = await supabase
+      .from('kvk_errors')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    // Update the error in Supabase
+    const { error } = await supabase
+      .from('kvk_errors')
+      .update({
+        status,
+        reviewed_by: user?.id,
+        reviewed_by_name: profile?.username || 'admin',
+        reviewed_at: new Date().toISOString(),
+        review_notes: notes || ''
+      })
+      .eq('id', id);
+
+    if (error) {
+      showToast(`Failed to ${status} error: ${error.message}`, 'error');
+      return;
+    }
+
     logAdminAction('kvk-error', id, status, notes);
     
-    // C2: Send notification to submitter & B3: Update reputation
-    if (kvkError) {
-      contributorService.updateReputation(kvkError.submitted_by, kvkError.submitted_by_name, 'kvkError', status === 'approved');
-      contributorService.addNotification(kvkError.submitted_by, {
-        type: status === 'approved' ? 'submission_approved' : 'submission_rejected',
-        title: status === 'approved' ? 'KvK Error Report Approved!' : 'KvK Error Report Rejected',
-        message: `Your KvK error report for K${kvkError.kingdom_number} was ${status}.${notes ? ` Reason: ${notes}` : ''}`,
-        itemId: id
-      });
-      
-      // Apply KvK correction to data if approved (writes to Supabase kvk_history)
-      if (status === 'approved' && kvkError.current_data) {
-        const success = await kvkCorrectionService.applyCorrectionAsync(kvkError, profile?.username || 'admin');
-        if (success) {
-          // Invalidate all caches to ensure fresh data everywhere
-          kvkHistoryService.invalidateCache();
-          apiService.reloadData();
-          // Invalidate React Query cache for this kingdom
-          queryClient.invalidateQueries({ queryKey: kingdomKeys.detail(kvkError.kingdom_number) });
-          queryClient.invalidateQueries({ queryKey: kingdomKeys.lists() });
-        }
+    // Note: Notification is now sent automatically via database trigger
+    // The trigger notify_user_on_kvk_error_review handles this
+    
+    // Apply KvK correction to data if approved (writes to Supabase kvk_history)
+    if (status === 'approved' && kvkError?.current_data) {
+      const success = await kvkCorrectionService.applyCorrectionAsync(kvkError, profile?.username || 'admin');
+      if (success) {
+        // Invalidate all caches to ensure fresh data everywhere
+        kvkHistoryService.invalidateCache();
+        apiService.reloadData();
+        // Invalidate React Query cache for this kingdom
+        queryClient.invalidateQueries({ queryKey: kingdomKeys.detail(kvkError.kingdom_number) });
+        queryClient.invalidateQueries({ queryKey: kingdomKeys.lists() });
       }
     }
     
@@ -619,36 +714,52 @@ const AdminDashboard: React.FC = () => {
 
   const clearSelection = () => setSelectedItems(new Set());
 
-  const bulkReviewCorrections = (status: 'approved' | 'rejected') => {
-    if (selectedItems.size === 0) return;
-    const stored = localStorage.getItem(CORRECTIONS_KEY);
-    const all: DataCorrection[] = stored ? JSON.parse(stored) : [];
-    const updated = all.map(c => selectedItems.has(c.id) ? { 
-      ...c, 
-      status,
-      reviewed_by: profile?.username || 'admin',
-      reviewed_at: new Date().toISOString()
-    } : c);
-    localStorage.setItem(CORRECTIONS_KEY, JSON.stringify(updated));
-    selectedItems.forEach(id => logAdminAction('correction', id, status, 'Bulk action'));
+  const bulkReviewCorrections = async (status: 'approved' | 'rejected') => {
+    if (selectedItems.size === 0 || !supabase) return;
+    
+    const ids = Array.from(selectedItems);
+    const { error } = await supabase
+      .from('data_corrections')
+      .update({
+        status,
+        reviewed_by: user?.id,
+        reviewed_by_name: profile?.username || 'admin',
+        reviewed_at: new Date().toISOString()
+      })
+      .in('id', ids);
+
+    if (error) {
+      showToast(`Failed to bulk ${status} corrections: ${error.message}`, 'error');
+      return;
+    }
+
+    ids.forEach(id => logAdminAction('correction', id, status, 'Bulk action'));
     showToast(`${selectedItems.size} corrections ${status}`, 'success');
     setSelectedItems(new Set());
     fetchCorrections();
     fetchPendingCounts();
   };
 
-  const bulkReviewKvkErrors = (status: 'approved' | 'rejected') => {
-    if (selectedItems.size === 0) return;
-    const stored = localStorage.getItem(KVK_ERRORS_KEY);
-    const all: KvKError[] = stored ? JSON.parse(stored) : [];
-    const updated = all.map(e => selectedItems.has(e.id) ? { 
-      ...e, 
-      status,
-      reviewed_by: profile?.username || 'admin',
-      reviewed_at: new Date().toISOString()
-    } : e);
-    localStorage.setItem(KVK_ERRORS_KEY, JSON.stringify(updated));
-    selectedItems.forEach(id => logAdminAction('kvk-error', id, status, 'Bulk action'));
+  const bulkReviewKvkErrors = async (status: 'approved' | 'rejected') => {
+    if (selectedItems.size === 0 || !supabase) return;
+    
+    const ids = Array.from(selectedItems);
+    const { error } = await supabase
+      .from('kvk_errors')
+      .update({
+        status,
+        reviewed_by: user?.id,
+        reviewed_by_name: profile?.username || 'admin',
+        reviewed_at: new Date().toISOString()
+      })
+      .in('id', ids);
+
+    if (error) {
+      showToast(`Failed to bulk ${status} KvK errors: ${error.message}`, 'error');
+      return;
+    }
+
+    ids.forEach(id => logAdminAction('kvk-error', id, status, 'Bulk action'));
     showToast(`${selectedItems.size} KvK errors ${status}`, 'success');
     setSelectedItems(new Set());
     fetchKvkErrors();
@@ -992,160 +1103,228 @@ const AdminDashboard: React.FC = () => {
     );
   }
 
+  // Determine active category based on current tab
+  const getActiveCategory = () => {
+    if (['analytics', 'saas-metrics', 'engagement', 'plausible'].includes(activeTab)) return 'analytics';
+    if (['submissions', 'new-kingdoms', 'claims', 'transfer-status', 'corrections', 'kvk-errors'].includes(activeTab)) return 'review';
+    return 'system';
+  };
+  const activeCategory = getActiveCategory();
+  const totalPending = pendingCounts.submissions + pendingCounts.claims + pendingCounts.corrections + pendingCounts.transfers + pendingCounts.kvkErrors + pendingCounts.feedback;
+
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '1rem', backgroundColor: '#0a0a0a', minHeight: '100vh' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#ffffff', margin: 0 }}>
-            Admin Dashboard
-          </h1>
-          {viewAsUser && <span style={{ fontSize: '0.8rem', color: '#fbbf24' }}>(Free User View)</span>}
+      {/* Compact Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <h1 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#ffffff', margin: 0 }}>Admin</h1>
+          {totalPending > 0 && (
+            <div style={{ 
+              padding: '0.2rem 0.6rem', 
+              backgroundColor: '#fbbf2420', 
+              borderRadius: '12px',
+              border: '1px solid #fbbf2450',
+              color: '#fbbf24',
+              fontSize: '0.75rem',
+              fontWeight: 600
+            }}>
+              {totalPending} pending
+            </div>
+          )}
+          {viewAsUser && <span style={{ fontSize: '0.75rem', color: '#fbbf24', fontStyle: 'italic' }}>(User View)</span>}
         </div>
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-          {/* A4: View as User Toggle */}
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           <button
             onClick={() => setViewAsUser(!viewAsUser)}
             style={{
-              padding: '0.35rem 0.75rem',
-              backgroundColor: viewAsUser ? '#fbbf2420' : '#3a3a3a20',
+              padding: '0.3rem 0.6rem',
+              backgroundColor: viewAsUser ? '#fbbf2420' : 'transparent',
               borderRadius: '6px',
               border: viewAsUser ? '1px solid #fbbf2450' : '1px solid #3a3a3a',
-              color: viewAsUser ? '#fbbf24' : '#9ca3af',
-              fontSize: '0.8rem',
-              fontWeight: '500',
+              color: viewAsUser ? '#fbbf24' : '#6b7280',
+              fontSize: '0.75rem',
               cursor: 'pointer'
             }}
           >
-            👁️ {viewAsUser ? 'Exit User View' : 'View as User'}
+            👁️ {viewAsUser ? 'Exit' : 'User View'}
           </button>
           <div style={{ 
-            padding: '0.35rem 0.75rem', 
-            backgroundColor: '#22c55e20', 
+            padding: '0.3rem 0.6rem', 
+            backgroundColor: '#22c55e15', 
             borderRadius: '6px',
-            border: '1px solid #22c55e50',
             color: '#22c55e',
-            fontSize: '0.8rem',
-            fontWeight: '600'
+            fontSize: '0.75rem',
+            fontWeight: 500
           }}>
-            ✓ Admin: {profile?.username}
+            ✓ {profile?.username}
           </div>
         </div>
       </div>
 
-      {/* Tabs - Organized into groups */}
+      {/* Primary Category Tabs */}
       <div style={{ 
         display: 'flex', 
-        flexDirection: 'column',
-        gap: '0.75rem', 
-        marginBottom: '1.5rem',
-        borderBottom: '1px solid #2a2a2a',
-        paddingBottom: '0.75rem'
+        gap: '0.25rem', 
+        marginBottom: '0.75rem',
+        backgroundColor: '#111116',
+        padding: '0.25rem',
+        borderRadius: '8px',
+        width: 'fit-content'
       }}>
-        {/* Analytics Group */}
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-          <span style={{ color: '#6b7280', fontSize: '0.7rem', minWidth: '70px' }}>ANALYTICS</span>
-          {[
-            { id: 'analytics', label: 'Overview', icon: '📊', countKey: null },
-            { id: 'saas-metrics', label: 'Revenue', icon: '💰', countKey: null },
-            { id: 'engagement', label: 'Engagement', icon: '👥', countKey: null },
-            { id: 'plausible', label: 'Live', icon: '�', countKey: null }
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as typeof activeTab)}
-              style={{
-                padding: '0.4rem 0.75rem',
-                backgroundColor: activeTab === tab.id ? '#22d3ee' : 'transparent',
-                color: activeTab === tab.id ? '#0a0a0a' : '#9ca3af',
-                border: 'none',
-                borderRadius: '6px',
-                fontWeight: 500,
-                cursor: 'pointer',
-                fontSize: '0.8rem'
-              }}
-            >
-              <span>{tab.icon}</span> {tab.label}
-            </button>
-          ))}
-        </div>
+        {[
+          { id: 'analytics', label: 'Analytics', icon: '📊' },
+          { id: 'review', label: 'Review', icon: '�', count: pendingCounts.submissions + pendingCounts.claims + pendingCounts.corrections + pendingCounts.transfers + pendingCounts.kvkErrors },
+          { id: 'system', label: 'System', icon: '⚙️', count: pendingCounts.feedback }
+        ].map(cat => (
+          <button
+            key={cat.id}
+            onClick={() => {
+              if (cat.id === 'analytics') setActiveTab('analytics');
+              else if (cat.id === 'review') setActiveTab('submissions');
+              else setActiveTab('feedback');
+            }}
+            style={{
+              padding: '0.5rem 1rem',
+              backgroundColor: activeCategory === cat.id ? '#22d3ee' : 'transparent',
+              color: activeCategory === cat.id ? '#0a0a0a' : '#9ca3af',
+              border: 'none',
+              borderRadius: '6px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              fontSize: '0.85rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem'
+            }}
+          >
+            {cat.label}
+            {cat.count && cat.count > 0 && (
+              <span style={{
+                backgroundColor: activeCategory === cat.id ? '#0a0a0a' : '#fbbf24',
+                color: activeCategory === cat.id ? '#22d3ee' : '#0a0a0a',
+                fontSize: '0.65rem',
+                fontWeight: 700,
+                padding: '0.15rem 0.4rem',
+                borderRadius: '9999px'
+              }}>
+                {cat.count}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
 
-        {/* Submissions Group */}
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-          <span style={{ color: '#6b7280', fontSize: '0.7rem', minWidth: '70px' }}>REVIEW</span>
-          {[
-            { id: 'submissions', label: 'KvK Results', icon: '⚔️', countKey: 'submissions' as const },
-            { id: 'new-kingdoms', label: 'New Kingdoms', icon: '🏰', countKey: null },
-            { id: 'claims', label: 'Claims', icon: '👑', countKey: 'claims' as const },
-            { id: 'transfer-status', label: 'Transfers', icon: '🔄', countKey: 'transfers' as const },
-            { id: 'corrections', label: 'Corrections', icon: '📝', countKey: 'corrections' as const },
-            { id: 'kvk-errors', label: 'Errors', icon: '🚩', countKey: 'kvkErrors' as const }
-          ].map(tab => {
-            const count = tab.countKey ? pendingCounts[tab.countKey] : 0;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                style={{
-                  padding: '0.4rem 0.75rem',
-                  backgroundColor: activeTab === tab.id ? '#22d3ee' : 'transparent',
-                  color: activeTab === tab.id ? '#0a0a0a' : '#9ca3af',
-                  border: 'none',
-                  borderRadius: '6px',
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.3rem',
-                  fontSize: '0.8rem'
-                }}
-              >
-                <span>{tab.icon}</span> {tab.label}
-                {count > 0 && (
-                  <span style={{
-                    backgroundColor: activeTab === tab.id ? '#0a0a0a' : '#fbbf24',
-                    color: activeTab === tab.id ? '#22d3ee' : '#0a0a0a',
-                    fontSize: '0.65rem',
-                    fontWeight: 700,
-                    padding: '0.1rem 0.35rem',
-                    borderRadius: '9999px',
-                    marginLeft: '0.1rem'
-                  }}>
-                    {count}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* System Group */}
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-          <span style={{ color: '#6b7280', fontSize: '0.7rem', minWidth: '70px' }}>SYSTEM</span>
-          {[
-            { id: 'feedback', label: 'Feedback', icon: '💬', countKey: 'feedback' as const },
-            { id: 'discord-bot', label: 'Discord Bot', icon: '🤖', countKey: null },
-            { id: 'webhooks', label: 'Webhooks', icon: '🔗', countKey: null },
-            { id: 'data-sources', label: 'Data Sources', icon: '🗄️', countKey: null },
-            { id: 'import', label: 'Bulk Import', icon: '📤', countKey: null }
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as typeof activeTab)}
-              style={{
-                padding: '0.4rem 0.75rem',
-                backgroundColor: activeTab === tab.id ? '#22d3ee' : 'transparent',
-                color: activeTab === tab.id ? '#0a0a0a' : '#9ca3af',
-                border: 'none',
-                borderRadius: '6px',
-                fontWeight: 500,
-                cursor: 'pointer',
-                fontSize: '0.8rem'
-              }}
-            >
-              <span>{tab.icon}</span> {tab.label}
-            </button>
-          ))}
-        </div>
+      {/* Secondary Sub-tabs based on category */}
+      <div style={{ 
+        display: 'flex', 
+        gap: '0.35rem', 
+        marginBottom: '1rem',
+        flexWrap: 'wrap',
+        paddingBottom: '0.75rem',
+        borderBottom: '1px solid #1a1a1a'
+      }}>
+        {activeCategory === 'analytics' && [
+          { id: 'analytics', label: 'Overview' },
+          { id: 'saas-metrics', label: 'Revenue' },
+          { id: 'engagement', label: 'Engagement' },
+          { id: 'plausible', label: 'Live Traffic' }
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as typeof activeTab)}
+            style={{
+              padding: '0.35rem 0.7rem',
+              backgroundColor: activeTab === tab.id ? '#22d3ee20' : 'transparent',
+              color: activeTab === tab.id ? '#22d3ee' : '#6b7280',
+              border: activeTab === tab.id ? '1px solid #22d3ee40' : '1px solid transparent',
+              borderRadius: '6px',
+              fontWeight: 500,
+              cursor: 'pointer',
+              fontSize: '0.8rem'
+            }}
+          >
+            {tab.label}
+          </button>
+        ))}
+        {activeCategory === 'review' && [
+          { id: 'submissions', label: 'KvK Results', count: pendingCounts.submissions },
+          { id: 'new-kingdoms', label: 'New Kingdoms', count: 0 },
+          { id: 'claims', label: 'Claims', count: pendingCounts.claims },
+          { id: 'transfer-status', label: 'Transfers', count: pendingCounts.transfers },
+          { id: 'corrections', label: 'Corrections', count: pendingCounts.corrections },
+          { id: 'kvk-errors', label: 'KvK Errors', count: pendingCounts.kvkErrors }
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as typeof activeTab)}
+            style={{
+              padding: '0.35rem 0.7rem',
+              backgroundColor: activeTab === tab.id ? '#22d3ee20' : 'transparent',
+              color: activeTab === tab.id ? '#22d3ee' : '#6b7280',
+              border: activeTab === tab.id ? '1px solid #22d3ee40' : '1px solid transparent',
+              borderRadius: '6px',
+              fontWeight: 500,
+              cursor: 'pointer',
+              fontSize: '0.8rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.3rem'
+            }}
+          >
+            {tab.label}
+            {tab.count > 0 && (
+              <span style={{
+                backgroundColor: activeTab === tab.id ? '#22d3ee' : '#fbbf24',
+                color: '#0a0a0a',
+                fontSize: '0.6rem',
+                fontWeight: 700,
+                padding: '0.1rem 0.3rem',
+                borderRadius: '9999px'
+              }}>
+                {tab.count}
+              </span>
+            )}
+          </button>
+        ))}
+        {activeCategory === 'system' && [
+          { id: 'feedback', label: 'Feedback', count: pendingCounts.feedback },
+          { id: 'discord-bot', label: 'Discord Bot', count: 0 },
+          { id: 'webhooks', label: 'Webhooks', count: 0 },
+          { id: 'data-sources', label: 'Data Sources', count: 0 },
+          { id: 'import', label: 'Import', count: 0 }
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as typeof activeTab)}
+            style={{
+              padding: '0.35rem 0.7rem',
+              backgroundColor: activeTab === tab.id ? '#22d3ee20' : 'transparent',
+              color: activeTab === tab.id ? '#22d3ee' : '#6b7280',
+              border: activeTab === tab.id ? '1px solid #22d3ee40' : '1px solid transparent',
+              borderRadius: '6px',
+              fontWeight: 500,
+              cursor: 'pointer',
+              fontSize: '0.8rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.3rem'
+            }}
+          >
+            {tab.label}
+            {tab.count > 0 && (
+              <span style={{
+                backgroundColor: activeTab === tab.id ? '#22d3ee' : '#fbbf24',
+                color: '#0a0a0a',
+                fontSize: '0.6rem',
+                fontWeight: 700,
+                padding: '0.1rem 0.3rem',
+                borderRadius: '9999px'
+              }}>
+                {tab.count}
+              </span>
+            )}
+          </button>
+        ))}
       </div>
 
       {/* Filter (not for analytics) */}
@@ -1185,15 +1364,25 @@ const AdminDashboard: React.FC = () => {
           onIncrementKvK={handleIncrementKvK}
         />
       ) : activeTab === 'saas-metrics' ? (
-        <AnalyticsDashboard />
+        <Suspense fallback={<div style={{ padding: '2rem', color: '#6b7280' }}>Loading analytics...</div>}>
+          <AnalyticsDashboard />
+        </Suspense>
       ) : activeTab === 'engagement' ? (
-        <EngagementDashboard />
+        <Suspense fallback={<div style={{ padding: '2rem', color: '#6b7280' }}>Loading engagement...</div>}>
+          <EngagementDashboard />
+        </Suspense>
       ) : activeTab === 'webhooks' ? (
-        <WebhookMonitor />
+        <Suspense fallback={<div style={{ padding: '2rem', color: '#6b7280' }}>Loading webhooks...</div>}>
+          <WebhookMonitor />
+        </Suspense>
       ) : activeTab === 'data-sources' ? (
-        <DataSourceStats />
+        <Suspense fallback={<div style={{ padding: '2rem', color: '#6b7280' }}>Loading data sources...</div>}>
+          <DataSourceStats />
+        </Suspense>
       ) : activeTab === 'discord-bot' ? (
-        <BotDashboard />
+        <Suspense fallback={<div style={{ padding: '2rem', color: '#6b7280' }}>Loading bot dashboard...</div>}>
+          <BotDashboard />
+        </Suspense>
       ) : activeTab === 'new-kingdoms' ? (
         <NewKingdomsTab
           submissions={newKingdomSubmissions}

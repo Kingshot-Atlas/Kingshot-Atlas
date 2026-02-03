@@ -255,6 +255,10 @@
 | Admin Subscription Sync | ✅ Live | 2026-01-31 | Platform | POST /api/v1/admin/subscriptions/sync-all |
 | Sync with Stripe Button | ✅ Live | 2026-01-31 | Platform | One-click reconciliation in User Breakdown section |
 | Feedback Tab | ✅ Live | 2026-02-02 | Product | View/manage user feedback with status workflow |
+| 2-Tier Navigation | ✅ Live | 2026-02-03 | Product | Primary categories (Analytics/Review/System) + contextual sub-tabs |
+| Compact Header | ✅ Live | 2026-02-03 | Product | Reduced header, total pending badge, 40% vertical space reduction |
+| Lazy-Loaded Sub-Components | ✅ Live | 2026-02-03 | Product | AnalyticsDashboard, EngagementDashboard, BotDashboard, DataSourceStats, WebhookMonitor |
+| Performance Optimization | ✅ Live | 2026-02-03 | Product | Chunk size reduced from 528KB to 74KB (86% reduction) |
 
 ---
 

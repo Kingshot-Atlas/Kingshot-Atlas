@@ -540,19 +540,38 @@ const UserDirectory: React.FC = () => {
                         )}
                       </div>
 
-                      {/* Kingdom info */}
-                      {user.linked_kingdom && (
-                        <div style={{ color: '#9ca3af', fontSize: '0.85rem', marginBottom: '0.25rem' }}>
-                          Kingdom: {user.linked_kingdom}
+                      {/* 2x2 Info Grid */}
+                      <div style={{ 
+                        display: 'grid', 
+                        gridTemplateColumns: '1fr 1fr', 
+                        gap: '0.25rem 1rem',
+                        fontSize: '0.85rem'
+                      }}>
+                        <div>
+                          <span style={{ color: '#6b7280' }}>Kingdom: </span>
+                          <span style={{ color: '#fff', fontWeight: '600' }}>
+                            {user.linked_kingdom || '—'}
+                          </span>
                         </div>
-                      )}
-
-                      {/* Town Center info */}
-                      {user.linked_tc_level && (
-                        <div style={{ color: '#9ca3af', fontSize: '0.85rem' }}>
-                          Town Center: {formatTCLevel(user.linked_tc_level)}
+                        <div>
+                          <span style={{ color: '#6b7280' }}>Language: </span>
+                          <span style={{ color: '#fff', fontWeight: '600' }}>
+                            {user.language || '—'}
+                          </span>
                         </div>
-                      )}
+                        <div>
+                          <span style={{ color: '#6b7280' }}>Town Center: </span>
+                          <span style={{ color: '#fff', fontWeight: '600' }}>
+                            {user.linked_tc_level ? formatTCLevel(user.linked_tc_level) : '—'}
+                          </span>
+                        </div>
+                        <div>
+                          <span style={{ color: '#6b7280' }}>Region: </span>
+                          <span style={{ color: '#fff', fontWeight: '600' }}>
+                            {user.region || '—'}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
 

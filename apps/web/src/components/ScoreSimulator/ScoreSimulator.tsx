@@ -4,33 +4,36 @@ import { usePremium } from '../../contexts/PremiumContext';
 import { useIsMobile } from '../../hooks/useMediaQuery';
 import { simulateScore, SimulatedKvK, getSimulatedOutcome } from './simulatorUtils';
 import { neonGlow, getTierColor } from '../../utils/styles';
-import ScoreSimulatorTeaser from './ScoreSimulatorTeaser';
 
 interface ScoreSimulatorProps {
   kingdom: KingdomProfile;
+  isExpanded?: boolean;
+  onToggle?: (expanded: boolean) => void;
 }
 
-const ScoreSimulator: React.FC<ScoreSimulatorProps> = ({ kingdom }) => {
-  const { isPro, features } = usePremium();
+const ScoreSimulator: React.FC<ScoreSimulatorProps> = ({ kingdom, isExpanded: externalExpanded, onToggle }) => {
+  usePremium(); // Keep hook call for potential future use
   const isMobile = useIsMobile();
   const [simulatedKvKs, setSimulatedKvKs] = useState<SimulatedKvK[]>([
     { prepResult: 'W', battleResult: 'W' }
   ]);
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  // Check if scoreSimulator feature is available
-  const hasAccess = isPro || (features as { scoreSimulator?: boolean }).scoreSimulator;
+  const [internalExpanded, setInternalExpanded] = useState(false);
+  
+  // Use external control if provided, otherwise internal state
+  const isExpanded = externalExpanded !== undefined ? externalExpanded : internalExpanded;
+  const setIsExpanded = (value: boolean) => {
+    if (onToggle) {
+      onToggle(value);
+    } else {
+      setInternalExpanded(value);
+    }
+  };
 
   // Simulation results - must be called before early returns (hooks rules)
   // Note: Returns valid result even for 0 KvKs; early return below handles that case
   const simulation = useMemo(() => {
     return simulateScore(kingdom, simulatedKvKs);
   }, [kingdom, simulatedKvKs]);
-
-  // Show teaser for non-Pro users
-  if (!hasAccess) {
-    return <ScoreSimulatorTeaser />;
-  }
 
   // Handle edge case: new kingdom with 0 KvKs
   if (kingdom.total_kvks === 0) {
@@ -45,19 +48,8 @@ const ScoreSimulator: React.FC<ScoreSimulatorProps> = ({ kingdom }) => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
           <span style={{ fontSize: '1.1rem' }}>🔮</span>
           <h3 style={{ color: '#fff', fontSize: isMobile ? '0.95rem' : '1.1rem', fontWeight: '600', margin: 0 }}>
-            Score Simulator
+            Atlas Score Simulator
           </h3>
-          <span style={{
-            padding: '0.15rem 0.4rem',
-            backgroundColor: '#22d3ee15',
-            border: '1px solid #22d3ee40',
-            borderRadius: '4px',
-            fontSize: '0.6rem',
-            color: '#22d3ee',
-            fontWeight: 'bold'
-          }}>
-            PRO
-          </span>
         </div>
         <div style={{ color: '#6b7280', fontSize: '0.85rem', textAlign: 'center', padding: '1rem' }}>
           Play your first KvK to unlock score projections!
@@ -109,6 +101,11 @@ const ScoreSimulator: React.FC<ScoreSimulatorProps> = ({ kingdom }) => {
       {/* Header - Always visible */}
       <div 
         onClick={() => setIsExpanded(!isExpanded)}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIsExpanded(!isExpanded); } }}
+        tabIndex={0}
+        role="button"
+        aria-expanded={isExpanded}
+        aria-label="Toggle Atlas Score Simulator"
         style={{
           padding: isMobile ? '1rem' : '1.25rem',
           cursor: 'pointer',
@@ -123,19 +120,8 @@ const ScoreSimulator: React.FC<ScoreSimulatorProps> = ({ kingdom }) => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <span style={{ fontSize: '1.1rem' }}>🔮</span>
           <h3 style={{ color: '#fff', fontSize: isMobile ? '0.95rem' : '1.1rem', fontWeight: '600', margin: 0 }}>
-            Score Simulator
+            Atlas Score Simulator
           </h3>
-          <span style={{
-            padding: '0.15rem 0.4rem',
-            backgroundColor: '#22d3ee15',
-            border: '1px solid #22d3ee40',
-            borderRadius: '4px',
-            fontSize: '0.6rem',
-            color: '#22d3ee',
-            fontWeight: 'bold'
-          }}>
-            PRO
-          </span>
         </div>
         {!isExpanded && (
           <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>

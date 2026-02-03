@@ -3,6 +3,8 @@ import { Kingdom } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from './Toast';
 import { contributorService } from '../services/contributorService';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { logger } from '../utils/logger';
 
 interface ReportDataModalProps {
   kingdom: Kingdom;
@@ -79,7 +81,7 @@ const ReportDataModal: React.FC<ReportDataModalProps> = ({ kingdom, isOpen, onCl
     try {
       // B4: Check for duplicates
       for (const c of corrections) {
-        const duplicate = contributorService.checkDuplicate('correction', {
+        const duplicate = await contributorService.checkDuplicate('correction', {
           kingdom_number: kingdom.kingdom_number,
           field: c.field,
           suggested_value: c.suggestedValue
@@ -91,30 +93,30 @@ const ReportDataModal: React.FC<ReportDataModalProps> = ({ kingdom, isOpen, onCl
         }
       }
 
-      // Store in localStorage for now (will be synced to Supabase when backend is ready)
-      const CORRECTIONS_KEY = 'kingshot_data_corrections';
-      const existing = JSON.parse(localStorage.getItem(CORRECTIONS_KEY) || '[]');
-      
-      // Create a flat record for each correction (matches Admin dashboard expected format)
-      const newRecords = corrections.map((c, index) => ({
-        id: `corr_${Date.now()}_${index}_${Math.random().toString(36).substr(2, 9)}`,
-        kingdom_number: kingdom.kingdom_number,
-        field: c.field,
-        current_value: c.currentValue,
-        suggested_value: c.suggestedValue,
-        reason: notes || '',
-        submitter_id: user?.id || 'anonymous',
-        submitter_name: profile?.username || 'Anonymous',
-        status: 'pending' as const,
-        created_at: new Date().toISOString()
-      }));
+      // Store in Supabase - single source of truth (ADR-010)
+      if (!isSupabaseConfigured || !supabase) {
+        throw new Error('Database unavailable');
+      }
 
-      existing.push(...newRecords);
-      localStorage.setItem(CORRECTIONS_KEY, JSON.stringify(existing));
+      // Insert each correction into Supabase
+      for (const c of corrections) {
+        const { error } = await supabase
+          .from('data_corrections')
+          .insert({
+            kingdom_number: kingdom.kingdom_number,
+            field: c.field,
+            current_value: c.currentValue,
+            suggested_value: c.suggestedValue,
+            reason: notes || '',
+            submitted_by: user?.id,
+            submitted_by_name: profile?.username || 'Anonymous',
+            status: 'pending'
+          });
 
-      // B3: Track submission for contributor stats
-      if (user?.id) {
-        contributorService.trackNewSubmission(user.id, profile?.username || 'Anonymous', 'correction');
+        if (error) {
+          logger.error('Failed to submit data correction:', error.message);
+          throw new Error(`Failed to submit: ${error.message}`);
+        }
       }
 
       showToast('Data correction submitted for review. Thank you!', 'success');

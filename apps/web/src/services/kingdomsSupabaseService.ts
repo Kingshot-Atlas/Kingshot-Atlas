@@ -128,8 +128,8 @@ class KingdomsSupabaseService {
       // Fetch KvK history for recent_kvks
       const kvkData = await kvkHistoryService.getAllRecords();
       
-      // Get status overrides
-      const statusOverrides = statusService.getAllApprovedStatusOverrides();
+      // Get status overrides from Supabase (source of truth)
+      const statusOverrides = await statusService.getAllApprovedStatusOverridesAsync();
 
       // Transform to Kingdom objects
       const kingdoms: Kingdom[] = kingdomsData.map((k: SupabaseKingdom) => {

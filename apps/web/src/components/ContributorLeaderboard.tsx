@@ -1,7 +1,7 @@
 // C4: Leaderboard for top data contributors
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { contributorService } from '../services/contributorService';
+import { contributorService, ContributorStats } from '../services/contributorService';
 
 interface ContributorLeaderboardProps {
   limit?: number;
@@ -14,7 +14,36 @@ const ContributorLeaderboard: React.FC<ContributorLeaderboardProps> = ({
   showBadges = true,
   themeColor = '#22d3ee'
 }) => {
-  const leaderboard = contributorService.getLeaderboard(limit);
+  const [leaderboard, setLeaderboard] = useState<ContributorStats[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadLeaderboard = async () => {
+      try {
+        const data = await contributorService.getLeaderboard(limit);
+        setLeaderboard(data);
+      } catch {
+        setLeaderboard([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadLeaderboard();
+  }, [limit]);
+
+  if (loading) {
+    return (
+      <div style={{
+        backgroundColor: '#111116',
+        borderRadius: '16px',
+        padding: '1.5rem',
+        border: '1px solid #2a2a2a',
+        textAlign: 'center'
+      }}>
+        <p style={{ color: '#6b7280', fontSize: '0.85rem' }}>Loading contributors...</p>
+      </div>
+    );
+  }
 
   if (leaderboard.length === 0) {
     return (
@@ -55,7 +84,7 @@ const ContributorLeaderboard: React.FC<ContributorLeaderboardProps> = ({
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         {leaderboard.map((contributor, index) => {
-          const totalApproved = contributor.submissions.approved + contributor.corrections.approved + contributor.kvkErrors.approved;
+          const totalApproved = contributor.totals.approved;
           const rank = index + 1;
           const isTopThree = rank <= 3;
 

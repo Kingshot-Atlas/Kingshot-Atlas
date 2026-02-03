@@ -3,6 +3,7 @@ import { KVKRecord } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from './Toast';
 import { contributorService } from '../services/contributorService';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 interface ReportKvKErrorModalProps {
   kingdomNumber: number;
@@ -57,7 +58,7 @@ const ReportKvKErrorModal: React.FC<ReportKvKErrorModalProps> = ({
     setSubmitting(true);
     try {
       // B4: Check for duplicate
-      const duplicate = contributorService.checkDuplicate('kvkError', {
+      const duplicate = await contributorService.checkDuplicate('kvkError', {
         kingdom_number: kingdomNumber,
         kvk_number: selectedKvK,
         error_type: errorType
@@ -68,29 +69,33 @@ const ReportKvKErrorModal: React.FC<ReportKvKErrorModalProps> = ({
         return;
       }
 
-      const KVK_ERRORS_KEY = 'kingshot_kvk_errors';
-      const existing = JSON.parse(localStorage.getItem(KVK_ERRORS_KEY) || '[]');
-      
-      const submission = {
-        id: `kvkerr_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        kingdom_number: kingdomNumber,
-        kvk_number: selectedKvK,
-        error_type: errorType,
-        error_type_label: ERROR_TYPES.find(e => e.key === errorType)?.label,
-        current_data: selectedKvKRecord ? {
-          opponent: selectedKvKRecord.opponent_kingdom,
-          prep_result: selectedKvKRecord.prep_result,
-          battle_result: selectedKvKRecord.battle_result
-        } : null,
-        description,
-        submitted_by: user?.id || 'anonymous',
-        submitted_by_name: profile?.username || 'Anonymous',
-        submitted_at: new Date().toISOString(),
-        status: 'pending'
-      };
+      // Store in Supabase - single source of truth (ADR-010)
+      if (!isSupabaseConfigured || !supabase) {
+        throw new Error('Database unavailable');
+      }
 
-      existing.push(submission);
-      localStorage.setItem(KVK_ERRORS_KEY, JSON.stringify(existing));
+      const { error } = await supabase
+        .from('kvk_errors')
+        .insert({
+          kingdom_number: kingdomNumber,
+          kvk_number: selectedKvK,
+          error_type: errorType,
+          error_type_label: ERROR_TYPES.find(e => e.key === errorType)?.label || errorType,
+          current_data: selectedKvKRecord ? {
+            opponent: selectedKvKRecord.opponent_kingdom,
+            prep_result: selectedKvKRecord.prep_result,
+            battle_result: selectedKvKRecord.battle_result
+          } : null,
+          description,
+          submitted_by: user?.id,
+          submitted_by_name: profile?.username || 'Anonymous',
+          status: 'pending'
+        });
+
+      if (error) {
+        console.error('Failed to submit KvK error:', error.message);
+        throw new Error(`Failed to submit: ${error.message}`);
+      }
 
       // B3: Track submission for contributor stats
       if (user?.id) {

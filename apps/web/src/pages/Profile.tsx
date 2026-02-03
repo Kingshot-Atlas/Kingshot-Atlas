@@ -81,6 +81,7 @@ const AvatarWithFallback: React.FC<{
 }> = ({ avatarUrl, username, size, themeColor, badgeStyle = 'default', showGlobeDefault = false, onClick }) => {
   const [imgError, setImgError] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
   const getBadgeStyle = (style: string, color: string) => {
     switch (style) {
@@ -101,6 +102,8 @@ const AvatarWithFallback: React.FC<{
       <div style={{ position: 'relative' }}>
         <div 
           onClick={onClick}
+          onMouseEnter={() => onClick && setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
           style={{
             width: `${size}px`,
             height: `${size}px`,
@@ -114,6 +117,9 @@ const AvatarWithFallback: React.FC<{
             cursor: onClick ? 'pointer' : 'default',
             backgroundColor: showGlobeDefault ? '#0a0a0a' : undefined,
             border: showGlobeDefault ? '2px solid #22d3ee' : undefined,
+            transform: isHovered && onClick ? 'scale(1.05)' : 'scale(1)',
+            boxShadow: isHovered && onClick ? '0 0 20px rgba(34, 211, 238, 0.5)' : 'none',
+            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
             ...(!showGlobeDefault ? getBadgeStyle(badgeStyle, themeColor) : {})
           }}>
           {showGlobeDefault ? <GlobeIcon size={size} pulse={true} /> : (username?.[0]?.toUpperCase() ?? '?')}
@@ -433,11 +439,19 @@ const Profile: React.FC = () => {
     }
   }, [profile, userId, hasShownWelcome, showToast]);
   
-  // Scroll to link section helper
+  // Scroll to link section helper with highlight animation
   const scrollToLinkSection = useCallback(() => {
     const linkSection = document.getElementById('link-kingshot-section');
     if (linkSection) {
       linkSection.scrollIntoView({ behavior: 'smooth' });
+      // Add highlight animation after scroll completes
+      setTimeout(() => {
+        linkSection.style.transition = 'box-shadow 0.3s ease';
+        linkSection.style.boxShadow = '0 0 0 2px #22d3ee, 0 0 20px rgba(34, 211, 238, 0.4)';
+        setTimeout(() => {
+          linkSection.style.boxShadow = 'none';
+        }, 1500);
+      }, 500);
     }
   }, []);
 
@@ -719,6 +733,54 @@ const Profile: React.FC = () => {
       </div>
 
       <div style={{ maxWidth: '800px', margin: '0 auto', padding: isMobile ? '1rem' : '2rem' }}>
+        {/* Link Account Banner - persistent reminder for unlinked users */}
+        {!isViewingOther && !viewedProfile?.linked_username && (
+          <div 
+            onClick={scrollToLinkSection}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '1rem',
+              padding: isMobile ? '0.875rem 1rem' : '0.75rem 1.25rem',
+              marginBottom: '1rem',
+              backgroundColor: '#22d3ee10',
+              border: '1px solid #22d3ee30',
+              borderRadius: '10px',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              minHeight: '48px'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#22d3ee20';
+              e.currentTarget.style.borderColor = '#22d3ee50';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#22d3ee10';
+              e.currentTarget.style.borderColor = '#22d3ee30';
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <span style={{ fontSize: '1.25rem' }}>🔗</span>
+              <div>
+                <div style={{ fontSize: isMobile ? '0.85rem' : '0.9rem', fontWeight: '600', color: '#fff' }}>
+                  Link your Kingshot account
+                </div>
+                <div style={{ fontSize: isMobile ? '0.7rem' : '0.75rem', color: '#9ca3af' }}>
+                  Unlock profile editing and show your in-game stats
+                </div>
+              </div>
+            </div>
+            <div style={{ 
+              color: '#22d3ee', 
+              fontSize: '1.25rem',
+              flexShrink: 0
+            }}>
+              →
+            </div>
+          </div>
+        )}
+
         {/* Profile Card */}
         <div style={{
           backgroundColor: '#111111',
@@ -862,16 +924,20 @@ const Profile: React.FC = () => {
                       }
                     }}
                     style={{
-                      padding: isMobile ? '0.5rem 0.75rem' : '0.5rem 1rem',
+                      padding: isMobile ? '0.625rem 0.875rem' : '0.5rem 1rem',
                       minWidth: isMobile ? '100px' : '120px',
+                      minHeight: isMobile ? '44px' : 'auto',
                       backgroundColor: 'transparent',
                       border: '1px solid #3a3a3a',
                       borderRadius: '8px',
                       color: '#9ca3af',
                       cursor: 'pointer',
-                      fontSize: isMobile ? '0.75rem' : '0.8rem',
+                      fontSize: isMobile ? '0.8rem' : '0.8rem',
                       WebkitTapHighlightColor: 'transparent',
-                      transition: 'border-color 0.2s'
+                      transition: 'border-color 0.2s',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
                     }}
                   >
                     ✏️ Edit Profile
@@ -914,7 +980,22 @@ const Profile: React.FC = () => {
                       fontSize: isMobile ? '1.5rem' : '1.75rem', 
                       fontWeight: 'bold', 
                       color: '#fff',
-                      cursor: !viewedProfile?.linked_username ? 'pointer' : 'default'
+                      cursor: !viewedProfile?.linked_username ? 'pointer' : 'default',
+                      padding: !viewedProfile?.linked_username ? '0.5rem 1rem' : '0',
+                      minHeight: !viewedProfile?.linked_username && isMobile ? '44px' : 'auto',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: '8px',
+                      transition: 'background-color 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!viewedProfile?.linked_username) {
+                        e.currentTarget.style.backgroundColor = '#22d3ee10';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
                     }}
                   >
                     {viewedProfile?.linked_username || getDisplayName(viewedProfile)}

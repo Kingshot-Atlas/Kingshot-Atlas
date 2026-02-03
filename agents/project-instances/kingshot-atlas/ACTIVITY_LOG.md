@@ -9,6 +9,96 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-03 21:45 | Platform Engineer | COMPLETED
+Task: Investigate mobile Discord login opening browser instead of Discord app
+Root Cause: Discord intentionally does NOT support OAuth deep linking to mobile app (official Discord policy - security reasons)
+Research: Discord maintainer confirmed OAuth flows can't deep link because they can't reliably return users to the correct browser tab after authorization
+Solution: Enhanced mobile UX in AuthModal with clearer guidance
+Files:
+  - apps/web/src/components/AuthModal.tsx (improved mobile Discord login info box)
+Result:
+  - Mobile users now see a prominent info box explaining browser login is required
+  - Suggests checking "Remember me" for faster future logins
+  - Reassures users they'll be redirected back automatically
+Note: This is a Discord platform limitation, not a bug - cannot be fully solved without Discord changing their OAuth policy
+
+## 2026-02-03 21:30 | Platform Engineer | COMPLETED
+Task: Migrate KvK errors from localStorage to Supabase
+Context: Per ADR-010/ADR-011, KvK error reports were stored in localStorage causing cross-device sync issues
+Database:
+  - Created kvk_errors table with RLS policies
+  - Added notification triggers for admin alerts and user review notifications
+  - Added indexes for efficient querying
+Files:
+  - docs/migrations/create_kvk_errors.sql (new migration)
+  - apps/web/src/components/ReportKvKErrorModal.tsx (write to Supabase)
+  - apps/web/src/components/SubmissionHistory.tsx (fetch from Supabase)
+  - apps/web/src/pages/AdminDashboard.tsx (review in Supabase)
+  - apps/web/src/components/UserCorrectionStats.tsx (fetch from Supabase)
+Result: KvK error reports now sync across devices, admins see all submissions, notifications automatic via DB triggers
+Note: Appeals simplified to redirect to Discord (schema enhancement needed for full appeal support)
+
+## 2026-02-03 21:15 | Platform Engineer | COMPLETED
+Task: Migrate data corrections from localStorage to Supabase
+Context: Per ADR-010/ADR-011, data corrections were stored in localStorage causing cross-device sync issues
+Database:
+  - Created data_corrections table with RLS policies
+  - Added notification triggers for admin alerts and user review notifications
+  - Added indexes for efficient querying
+Files:
+  - docs/migrations/create_data_corrections.sql (new migration)
+  - apps/web/src/components/ReportDataModal.tsx (write to Supabase)
+  - apps/web/src/components/SubmissionHistory.tsx (fetch from Supabase)
+  - apps/web/src/pages/AdminDashboard.tsx (review in Supabase)
+Result: Data corrections now sync across devices, admins see all submissions, notifications automatic via DB triggers
+Remaining: KvK errors still use localStorage (separate migration)
+
+## 2026-02-03 16:45 | Product Engineer | COMPLETED
+Task: Admin Dashboard Performance Optimization
+Context: AdminDashboard.tsx was 528KB - the largest chunk in the build, causing slow initial load
+Files:
+  - apps/web/src/pages/AdminDashboard.tsx (lazy-load 5 heavy components with Suspense)
+Result: AdminDashboard chunk reduced from 528KB to 74KB (86% reduction)
+New chunks created: AnalyticsCharts (34KB), EngagementDashboard (25KB), BotDashboard (12KB), DataSourceStats (14KB), WebhookMonitor (8KB)
+Build now under 500KB warning threshold
+
+## 2026-02-03 16:30 | Product Engineer | COMPLETED
+Task: Admin Dashboard UI/UX Declutter
+Context: Navigation was cluttered with 15 visible tabs across 3 labeled rows
+Files:
+  - apps/web/src/pages/AdminDashboard.tsx (redesigned navigation, compact header)
+Result: 2-tier navigation (3 primary categories + contextual sub-tabs), compact header with total pending badge, 40% vertical space reduction
+
+## 2026-02-03 20:50 | Platform Engineer | COMPLETED
+Task: Audit and migrate localStorage to Supabase across all services
+Context: Per ADR-010/ADR-011, localStorage should not store data - Supabase is single source of truth
+Files:
+  - apps/web/src/services/contributorService.ts (complete rewrite - stats computed from submission tables, notifications use Supabase)
+  - apps/web/src/components/ContributorLeaderboard.tsx (use async getLeaderboard)
+  - apps/web/src/components/SubmissionHistory.tsx (use async getNotifications, getContributorStats)
+  - apps/web/src/components/ReportDataModal.tsx (use async checkDuplicate)
+  - apps/web/src/components/ReportKvKErrorModal.tsx (use async checkDuplicate)
+  - apps/web/src/pages/AdminDashboard.tsx (use async addNotification)
+Result: contributorService now fully uses Supabase - notifications table, stats computed from submission tables
+Remaining: SubmissionHistory still loads corrections/kvkErrors from localStorage (separate migration needed)
+
+## 2026-02-03 20:35 | Platform Engineer | COMPLETED
+Task: Remove all localStorage from statusService - Supabase as single source of truth
+Context: Per ADR-010/ADR-011, localStorage fallbacks were legacy code contradicting architecture
+Files:
+  - apps/web/src/services/statusService.ts (removed all localStorage, made all methods async, require Supabase)
+  - apps/web/src/pages/KingdomProfile.tsx (updated to handle async getKingdomPendingSubmissions)
+Result: Status submissions now always use Supabase - no stale localStorage data possible
+Lines removed: ~75 lines of localStorage code
+
+## 2026-02-03 20:25 | Platform Engineer | COMPLETED
+Task: Fix transfer status submissions not updating kingdom profile/card after approval
+Root Cause: `getAllApprovedStatusOverrides()` was reading from localStorage, but `approveSubmission()` writes to Supabase. The approved status existed in Supabase but was never fetched.
+Files:
+  - apps/web/src/services/statusService.ts (added async `getAllApprovedStatusOverridesAsync()` that fetches from Supabase)
+  - apps/web/src/services/kingdomsSupabaseService.ts (updated to use async method)
+Result: Approved transfer status submissions now correctly display on kingdom profiles and cards
+
 ## 2026-02-03 17:15 | Platform Engineer | COMPLETED
 Task: Implement Bye outcome support for KvK History
 Files:

@@ -17,6 +17,8 @@ interface AtlasScoreBreakdownProps {
   kingdom: KingdomProfile;
   rank?: number;
   totalKingdoms?: number;
+  isExpanded?: boolean;
+  onToggle?: (expanded: boolean) => void;
 }
 
 // Tooltip descriptions for score components (using centralized + UI-specific)
@@ -28,7 +30,7 @@ const SCORE_TOOLTIPS: Record<string, string> = {
   'Experience Multiplier': 'Kingdoms with 5+ KvKs get full credit. Newer kingdoms face a small penalty until they prove themselves.',
 };
 
-const AtlasScoreBreakdown: React.FC<AtlasScoreBreakdownProps> = ({ kingdom, rank, totalKingdoms }) => {
+const AtlasScoreBreakdown: React.FC<AtlasScoreBreakdownProps> = ({ kingdom, rank, totalKingdoms, isExpanded: externalExpanded, onToggle }) => {
   const location = useLocation();
   const breakdownRef = useRef<HTMLDivElement>(null);
   
@@ -37,7 +39,18 @@ const AtlasScoreBreakdown: React.FC<AtlasScoreBreakdownProps> = ({ kingdom, rank
     if (!rank || !totalKingdoms || totalKingdoms === 0) return null;
     return Math.round(((totalKingdoms - rank) / totalKingdoms) * 100);
   }, [rank, totalKingdoms]);
-  const [showChart, setShowChart] = useState(false);
+  const [internalExpanded, setInternalExpanded] = useState(false);
+  
+  // Use external control if provided, otherwise internal state
+  const showChart = externalExpanded !== undefined ? externalExpanded : internalExpanded;
+  const setShowChart = useCallback((value: boolean) => {
+    if (onToggle) {
+      onToggle(value);
+    } else {
+      setInternalExpanded(value);
+    }
+  }, [onToggle]);
+  
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
   const isMobile = useIsMobile();
   const { trackFeature } = useAnalytics();
@@ -137,88 +150,74 @@ const AtlasScoreBreakdown: React.FC<AtlasScoreBreakdownProps> = ({ kingdom, rank
   }, [kingdom]);
 
   return (
-    <div ref={breakdownRef} id="atlas-breakdown" style={{ marginBottom: isMobile ? '1rem' : '1.25rem' }}>
-      {/* Toggle Button */}
-      <button
+    <div 
+      ref={breakdownRef} 
+      id="atlas-breakdown" 
+      style={{ 
+        backgroundColor: '#131318',
+        borderRadius: '12px',
+        border: '1px solid #2a2a2a',
+        marginBottom: isMobile ? '1.25rem' : '1.5rem',
+        overflow: 'hidden'
+      }}
+    >
+      {/* Header - Always visible, clickable to toggle */}
+      <div 
         onClick={handleToggle}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleToggle(); } }}
+        tabIndex={0}
+        role="button"
+        aria-expanded={showChart}
+        aria-label="Toggle Atlas Score Breakdown"
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '0.5rem',
-          width: '100%',
-          padding: '0.6rem 1rem',
-          backgroundColor: showChart ? '#22d3ee15' : '#131318',
-          border: `1px solid ${showChart ? '#22d3ee40' : '#2a2a2a'}`,
-          borderRadius: '8px',
-          color: showChart ? '#22d3ee' : '#9ca3af',
-          fontSize: '0.8rem',
-          fontWeight: '500',
+          padding: isMobile ? '1rem' : '1.25rem',
           cursor: 'pointer',
-          transition: 'all 0.2s'
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '0.35rem',
+          borderBottom: showChart ? '1px solid #2a2a2a' : 'none',
+          position: 'relative'
         }}
       >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span style={{ fontSize: '1.1rem' }}>📊</span>
+          <h3 style={{ color: '#fff', fontSize: isMobile ? '0.95rem' : '1.1rem', fontWeight: '600', margin: 0 }}>
+            Atlas Score Breakdown
+          </h3>
+        </div>
+        {!showChart && (
+          <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>
+            &quot;Why is my score what it is?&quot;
+          </span>
+        )}
         <svg 
-          width="14" 
-          height="14" 
+          width="16" 
+          height="16" 
           viewBox="0 0 24 24" 
           fill="none" 
-          stroke="currentColor" 
+          stroke="#6b7280" 
           strokeWidth="2"
-          style={{
-            transform: showChart ? 'rotate(180deg)' : 'rotate(0deg)',
-            transition: 'transform 0.2s'
+          style={{ 
+            position: 'absolute',
+            right: isMobile ? '1rem' : '1.25rem',
+            top: '50%',
+            transform: showChart ? 'translateY(-50%) rotate(180deg)' : 'translateY(-50%) rotate(0deg)',
+            transition: 'transform 0.2s ease'
           }}
         >
-          <path d="M6 9l6 6 6-6" />
+          <polyline points="6 9 12 15 18 9" />
         </svg>
-        {showChart ? 'Hide Score Breakdown' : 'Show Score Breakdown'}
-        <span style={{ 
-          fontSize: '0.65rem', 
-          padding: '0.15rem 0.4rem', 
-          backgroundColor: '#22d3ee20', 
-          borderRadius: '4px',
-          color: '#22d3ee'
-        }}>
-          📊
-        </span>
-      </button>
+      </div>
       
       {/* Expandable Chart Section */}
       {showChart && (
         <div 
           style={{
-            marginTop: '0.75rem',
             padding: isMobile ? '1rem' : '1.25rem',
-            backgroundColor: '#131318',
-            borderRadius: '12px',
-            border: '1px solid #2a2a2a',
             animation: 'fadeIn 0.3s ease-out'
           }}
         >
-          <h4 style={{ 
-            color: '#fff', 
-            fontSize: isMobile ? '0.85rem' : '0.95rem', 
-            fontWeight: '600', 
-            marginBottom: '0.75rem',
-            textAlign: 'center',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '0.5rem'
-          }}>
-            📊 Atlas Score Breakdown
-          </h4>
-          
-          <p style={{ 
-            color: '#6b7280', 
-            fontSize: '0.7rem', 
-            textAlign: 'center', 
-            marginBottom: '1rem',
-            lineHeight: 1.4
-          }}>
-            Visual representation of performance metrics contributing to the Atlas Score
-          </p>
           
           {/* Score Components Breakdown */}
           <div style={{
@@ -448,13 +447,6 @@ const AtlasScoreBreakdown: React.FC<AtlasScoreBreakdownProps> = ({ kingdom, rank
           </div>
         </div>
       )}
-      
-      <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(-10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
     </div>
   );
 };

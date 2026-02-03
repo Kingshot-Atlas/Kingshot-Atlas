@@ -83,10 +83,8 @@ const Upgrade: React.FC = () => {
   };
 
   const proFeatures = [
-    { icon: '🎯', text: 'Score Simulator — Predict future Atlas Scores' },
     { icon: '👀', text: 'Kingdom Watchlist — Monitor up to 20 rivals', comingSoon: true },
     { icon: '⚖️', text: 'Multi-Compare — Up to 5 kingdoms side-by-side' },
-    { icon: '🔍', text: 'Advanced Filters — Power search tools' },
     { icon: '⚡', text: 'Priority Submissions — Faster data processing' },
     { icon: '🚫', text: 'Ad-Free — Clean, distraction-free experience' },
     { icon: '🚀', text: 'Early Access — First to try new features' },
@@ -98,10 +96,9 @@ const Upgrade: React.FC = () => {
   const comparisonData = [
     { feature: 'KvK History', free: 'Full', pro: 'Full', recruiter: 'Full' },
     { feature: 'Kingdom Profiles', free: '✓', pro: '✓', recruiter: '✓' },
+    { feature: 'Score Simulator', free: '✓', pro: '✓', recruiter: '✓' },
     { feature: 'Compare Kingdoms', free: '2', pro: '5', recruiter: '5' },
     { feature: 'Watchlist Slots', free: '3', pro: '20', recruiter: '50' },
-    { feature: 'Score Simulator', free: '—', pro: '✓', recruiter: '✓' },
-    { feature: 'Advanced Filters', free: '—', pro: '✓', recruiter: '✓' },
     { feature: 'Ad-Free', free: '—', pro: '✓', recruiter: '✓' },
     { feature: 'Priority Support', free: '—', pro: '✓', recruiter: '✓' },
     { feature: 'Claim Kingdom', free: '—', pro: '—', recruiter: '✓' },

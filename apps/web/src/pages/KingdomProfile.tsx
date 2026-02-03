@@ -48,13 +48,34 @@ const KingdomProfile: React.FC = () => {
   const [showReportModal, setShowReportModal] = useState(false);
   const [showClaimModal, setShowClaimModal] = useState(false);
   const [showKvKErrorModal, setShowKvKErrorModal] = useState(false);
+  
+  // Expand/collapse all state for collapsible sections
+  const [breakdownExpanded, setBreakdownExpanded] = useState(false);
+  const [simulatorExpanded, setSimulatorExpanded] = useState(false);
+  const [pathExpanded, setPathExpanded] = useState(false);
+  
+  const allExpanded = breakdownExpanded && simulatorExpanded && pathExpanded;
+  const toggleAllSections = () => {
+    const newState = !allExpanded;
+    setBreakdownExpanded(newState);
+    setSimulatorExpanded(newState);
+    setPathExpanded(newState);
+  };
 
   // Check for pending submissions
   useEffect(() => {
-    if (kingdomNumber) {
-      const pending = statusService.getKingdomPendingSubmissions(parseInt(kingdomNumber));
-      setHasPendingSubmission(pending.length > 0);
-    }
+    const checkPending = async () => {
+      if (kingdomNumber) {
+        try {
+          const pending = await statusService.getKingdomPendingSubmissions(parseInt(kingdomNumber));
+          setHasPendingSubmission(pending.length > 0);
+        } catch {
+          // If check fails, assume no pending (fail open)
+          setHasPendingSubmission(false);
+        }
+      }
+    };
+    checkPending();
   }, [kingdomNumber]);
 
   const handleStatusSubmit = async (newStatus: string, notes: string) => {
@@ -500,25 +521,12 @@ const KingdomProfile: React.FC = () => {
       <div style={{ maxWidth: '1000px', margin: '0 auto', padding: isMobile ? '1rem' : '1.5rem 2rem' }}>
         {/* Ad Banner removed per user request */}
         
-        {/* Atlas Score Breakdown - Toggleable Radar Chart */}
-        <AtlasScoreBreakdown 
-          kingdom={kingdom} 
-          rank={rank > 0 ? rank : undefined}
-          totalKingdoms={rankingList.length || undefined}
-        />
-
-        {/* Path to Next Tier - What-If Scenarios */}
-        <PathToNextTier kingdom={kingdom} />
-
-        {/* Score Simulator - Pro Feature */}
-        <ScoreSimulator kingdom={kingdom} />
-
         {/* Quick Stats Grid - 4 columns on desktop, 2x2 on mobile */}
         <div style={{ 
           display: 'grid', 
           gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', 
           gap: isMobile ? '0.5rem' : '0.75rem', 
-          marginBottom: isMobile ? '1rem' : '1.25rem' 
+          marginBottom: isMobile ? '1.25rem' : '1.5rem' 
         }}>
           {(() => {
             const totalKvks = kingdom.total_kvks || 1;
@@ -526,8 +534,8 @@ const KingdomProfile: React.FC = () => {
             const comebacks = kingdom.battle_wins - highKings;
             const stats = [
               { label: 'Dominations', value: highKings, color: '#22c55e', icon: '👑', tooltip: 'Won both Prep and Battle', percent: Math.round((highKings / totalKvks) * 100) },
-              { label: 'Reversals', value: reversals, color: '#a855f7', icon: '🔄', tooltip: 'Won Prep but lost Battle', percent: Math.round((reversals / totalKvks) * 100) },
-              { label: 'Comebacks', value: comebacks, color: '#3b82f6', icon: '💪', tooltip: 'Lost Prep but won Battle', percent: Math.round((comebacks / totalKvks) * 100) },
+              { label: 'Comebacks', value: comebacks, color: '#3b82f6', icon: '�', tooltip: 'Lost Prep but won Battle', percent: Math.round((comebacks / totalKvks) * 100) },
+              { label: 'Reversals', value: reversals, color: '#a855f7', icon: '�', tooltip: 'Won Prep but lost Battle', percent: Math.round((reversals / totalKvks) * 100) },
               { label: 'Invasions', value: invaderKings, color: '#ef4444', icon: '💀', tooltip: 'Lost both Prep and Battle', percent: Math.round((invaderKings / totalKvks) * 100) },
             ];
             return stats.map((stat, i) => (
@@ -795,7 +803,79 @@ const KingdomProfile: React.FC = () => {
           })()}
         </div>
 
-        {/* Trend Chart */}
+        {/* Expand/Collapse All Button */}
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'flex-end', 
+          marginBottom: '0.75rem'
+        }}>
+          <button
+            onClick={toggleAllSections}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleAllSections(); } }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              padding: '0.4rem 0.75rem',
+              backgroundColor: '#131318',
+              border: '1px solid #2a2a2a',
+              borderRadius: '6px',
+              color: '#6b7280',
+              fontSize: '0.75rem',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = '#22d3ee40';
+              e.currentTarget.style.color = '#22d3ee';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = '#2a2a2a';
+              e.currentTarget.style.color = '#6b7280';
+            }}
+          >
+            <svg 
+              width="12" 
+              height="12" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2"
+              style={{ 
+                transform: allExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                transition: 'transform 0.2s ease'
+              }}
+            >
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+            {allExpanded ? 'Collapse All' : 'Expand All'}
+          </button>
+        </div>
+
+        {/* Atlas Score Breakdown - Toggleable Radar Chart */}
+        <AtlasScoreBreakdown 
+          kingdom={kingdom} 
+          rank={rank > 0 ? rank : undefined}
+          totalKingdoms={rankingList.length || undefined}
+          isExpanded={breakdownExpanded}
+          onToggle={setBreakdownExpanded}
+        />
+
+        {/* Atlas Score Simulator - Pro Feature */}
+        <ScoreSimulator 
+          kingdom={kingdom} 
+          isExpanded={simulatorExpanded}
+          onToggle={setSimulatorExpanded}
+        />
+
+        {/* Path to Next Tier - What-If Scenarios */}
+        <PathToNextTier 
+          kingdom={kingdom} 
+          isExpanded={pathExpanded}
+          onToggle={setPathExpanded}
+        />
+
+        {/* Performance Trend Chart */}
         {kingdom.recent_kvks && kingdom.recent_kvks.length >= 2 && (
           <div style={{ marginBottom: isMobile ? '1.25rem' : '1.5rem' }}>
             <TrendChart kvkRecords={kingdom.recent_kvks} />
