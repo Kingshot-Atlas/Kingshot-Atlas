@@ -1167,14 +1167,38 @@ const Profile: React.FC = () => {
                 </div>
               </div>
             )}
-            {viewedProfile?.bio && (
-              <p style={{ 
-                color: '#9ca3af', 
-                lineHeight: 1.6, 
-                fontSize: isMobile ? '0.9rem' : '1rem',
-                textAlign: isMobile ? 'center' : 'left'
-              }}>{viewedProfile.bio}</p>
-            )}
+          </div>
+        )}
+
+        {/* Bio Section - separate from profile card */}
+        {viewedProfile?.bio && (
+          <div style={{
+            marginBottom: '1.5rem',
+            padding: isMobile ? '1rem' : '1.25rem',
+            backgroundColor: '#111111',
+            borderRadius: '12px',
+            border: '1px solid #2a2a2a'
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              marginBottom: '0.75rem'
+            }}>
+              <span style={{ fontSize: '1rem' }}>📝</span>
+              <span style={{ 
+                fontSize: '0.95rem', 
+                color: '#fff', 
+                fontWeight: '600'
+              }}>About Me:</span>
+            </div>
+            <p style={{ 
+              color: '#d1d5db', 
+              lineHeight: 1.6, 
+              fontSize: isMobile ? '0.9rem' : '0.95rem',
+              margin: 0,
+              fontStyle: 'italic'
+            }}>"{viewedProfile.bio}"</p>
           </div>
         )}
 
