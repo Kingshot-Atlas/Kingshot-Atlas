@@ -27,7 +27,8 @@ const STORAGE_KEY = 'kingshot_score_notifications';
 const FOLLOWED_KEY = 'kingshot_followed_kingdoms';
 
 export function useScoreChangeNotifications() {
-  const { user: _user } = useAuth();
+  // Auth context available for future user-specific notifications
+  useAuth();
   const [notifications, setNotifications] = useState<ScoreChangeNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   
