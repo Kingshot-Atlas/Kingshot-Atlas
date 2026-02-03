@@ -1,4 +1,4 @@
-import React, { useMemo, memo } from 'react';
+import React, { useMemo, memo, useState } from 'react';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { 
   KingdomProfile, 
@@ -23,6 +23,7 @@ interface TierRequirement {
 
 const PathToNextTier: React.FC<PathToNextTierProps> = ({ kingdom }) => {
   const isMobile = useIsMobile();
+  const [isExpanded, setIsExpanded] = useState(false);
   
   const analysis = useMemo(() => {
     const stats = extractStatsFromProfile(kingdom);
@@ -168,23 +169,60 @@ const PathToNextTier: React.FC<PathToNextTierProps> = ({ kingdom }) => {
   
   return (
     <div style={{
-      padding: isMobile ? '1rem' : '1.25rem',
       backgroundColor: '#131318',
       borderRadius: '12px',
-      border: '1px solid #2a2a2a'
+      border: '1px solid #2a2a2a',
+      overflow: 'hidden'
     }}>
-      <h4 style={{
-        color: '#fff',
-        fontSize: isMobile ? '0.9rem' : '0.95rem',
-        fontWeight: '600',
-        marginBottom: '1rem',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.5rem'
-      }}>
-        📈 Path to Next Tier
-      </h4>
-      
+      {/* Header - Clickable to expand/collapse */}
+      <div 
+        onClick={() => setIsExpanded(!isExpanded)}
+        style={{
+          padding: isMobile ? '1rem' : '1.25rem',
+          borderBottom: isExpanded ? '1px solid #2a2a2a' : 'none',
+          cursor: 'pointer',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span style={{ fontSize: '1.1rem' }}>📈</span>
+          <h4 style={{ 
+            color: '#fff', 
+            fontSize: isMobile ? '0.9rem' : '0.95rem', 
+            fontWeight: '600', 
+            margin: 0 
+          }}>
+            Path to Next Tier
+          </h4>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          {!isExpanded && analysis.requirements.length > 0 && (
+            <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>
+              +{analysis.requirements[0].pointsNeeded.toFixed(1)} to {analysis.requirements[0].tier}-Tier
+            </span>
+          )}
+          <svg 
+            width="16" 
+            height="16" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="#6b7280" 
+            strokeWidth="2"
+            style={{ 
+              transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+              transition: 'transform 0.2s ease'
+            }}
+          >
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </div>
+      </div>
+
+      {/* Expandable Content */}
+      {isExpanded && (
+      <div style={{ padding: isMobile ? '1rem' : '1.25rem', paddingTop: 0 }}>
       {/* Current Status */}
       <div style={{
         display: 'flex',
@@ -211,7 +249,7 @@ const PathToNextTier: React.FC<PathToNextTierProps> = ({ kingdom }) => {
         </div>
         <div>
           <div style={{ color: '#fff', fontSize: '0.85rem', fontWeight: '500' }}>
-            Current: {analysis.currentScore.toFixed(2)}
+            Current: {analysis.currentScore.toFixed(1)}
           </div>
           <div style={{ color: '#6b7280', fontSize: '0.7rem' }}>
             {analysis.currentTier}-Tier Kingdom
@@ -314,10 +352,10 @@ const PathToNextTier: React.FC<PathToNextTierProps> = ({ kingdom }) => {
                 fontSize: '0.8rem',
                 fontWeight: '600'
               }}>
-                {proj.change >= 0 ? '+' : ''}{proj.change.toFixed(2)}
+                {proj.change >= 0 ? '+' : ''}{proj.change.toFixed(1)}
               </div>
               <div style={{ color: '#6b7280', fontSize: '0.6rem' }}>
-                → {proj.projectedScore.toFixed(2)}
+                → {proj.projectedScore.toFixed(1)}
               </div>
             </div>
           ))}
@@ -354,12 +392,14 @@ const PathToNextTier: React.FC<PathToNextTierProps> = ({ kingdom }) => {
                   {req.tier}
                 </div>
                 <div style={{ color: '#6b7280', fontSize: '0.6rem' }}>
-                  +{req.pointsNeeded} pts
+                  +{req.pointsNeeded.toFixed(1)} pts
                 </div>
               </div>
             ))}
           </div>
         </div>
+      )}
+      </div>
       )}
     </div>
   );
