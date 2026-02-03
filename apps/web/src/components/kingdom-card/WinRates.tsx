@@ -54,24 +54,22 @@ const WinRates: React.FC<WinRatesProps> = ({
             {Math.round(prepWinRate * 100)}%
           </span>
         </div>
-        <div style={{ fontSize: '0.8rem', color: '#fff', marginBottom: '0.4rem' }}>
+        <div style={{ fontSize: '0.8rem', color: '#fff', marginBottom: '0.25rem' }}>
           {prepWins}W – {prepLosses}L
-          {prepStreak >= 2 && (
-            <span style={{ color: '#22c55e', marginLeft: '0.4rem', fontSize: '0.7rem' }}>
-              ({prepStreak}W Streak)
-            </span>
-          )}
-          {prepStreak < 2 && prepLossStreak >= 2 && (
-            <span style={{ color: '#ef4444', marginLeft: '0.4rem', fontSize: '0.7rem' }}>
-              ({prepLossStreak}L Streak)
-            </span>
-          )}
         </div>
-        {prepBestStreak >= 3 && (
-          <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.3rem' }}>
-            Best: {prepBestStreak}W
+        {prepStreak >= 2 && (
+          <div style={{ fontSize: '0.7rem', color: '#eab308', marginBottom: '0.25rem' }}>
+            Current Streak: {prepStreak}W
           </div>
         )}
+        {prepStreak < 2 && prepLossStreak >= 2 && (
+          <div style={{ fontSize: '0.7rem', color: '#ef4444', marginBottom: '0.25rem' }}>
+            Current Streak: {prepLossStreak}L
+          </div>
+        )}
+        <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.3rem' }}>
+          Best Streak: {prepBestStreak}W
+        </div>
         <div style={{ height: '4px', backgroundColor: '#2a2a30', borderRadius: '2px', overflow: 'hidden' }}>
           <div style={{
             height: '100%',
@@ -101,24 +99,22 @@ const WinRates: React.FC<WinRatesProps> = ({
             {Math.round(battleWinRate * 100)}%
           </span>
         </div>
-        <div style={{ fontSize: '0.8rem', color: '#fff', marginBottom: '0.4rem' }}>
+        <div style={{ fontSize: '0.8rem', color: '#fff', marginBottom: '0.25rem' }}>
           {battleWins}W – {battleLosses}L
-          {battleStreak >= 2 && (
-            <span style={{ color: '#22c55e', marginLeft: '0.4rem', fontSize: '0.7rem' }}>
-              ({battleStreak}W Streak)
-            </span>
-          )}
-          {battleStreak < 2 && battleLossStreak >= 2 && (
-            <span style={{ color: '#ef4444', marginLeft: '0.4rem', fontSize: '0.7rem' }}>
-              ({battleLossStreak}L Streak)
-            </span>
-          )}
         </div>
-        {battleBestStreak >= 3 && (
-          <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.3rem' }}>
-            Best: {battleBestStreak}W
+        {battleStreak >= 2 && (
+          <div style={{ fontSize: '0.7rem', color: '#f97316', marginBottom: '0.25rem' }}>
+            Current Streak: {battleStreak}W
           </div>
         )}
+        {battleStreak < 2 && battleLossStreak >= 2 && (
+          <div style={{ fontSize: '0.7rem', color: '#ef4444', marginBottom: '0.25rem' }}>
+            Current Streak: {battleLossStreak}L
+          </div>
+        )}
+        <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.3rem' }}>
+          Best Streak: {battleBestStreak}W
+        </div>
         <div style={{ height: '4px', backgroundColor: '#2a2a30', borderRadius: '2px', overflow: 'hidden' }}>
           <div style={{
             height: '100%',
