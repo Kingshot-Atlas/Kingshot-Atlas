@@ -263,7 +263,7 @@ const KingdomLeaderboardPosition: React.FC<{
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
           <span style={{ fontSize: '1.1rem' }}>🏆</span>
           <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: '600', color: '#fff' }}>
-            User's Kingdom Rankings
+            User&apos;s Kingdom Rankings
           </h3>
         </div>
         
@@ -406,7 +406,7 @@ const ProfileCompletionProgress: React.FC<{
 };
 
 // Get auth provider from user metadata
-const getAuthProvider = (user: any): 'discord' | 'google' | 'email' | null => {
+const getAuthProvider = (user: { app_metadata?: { provider?: string; providers?: string[] } } | null): 'discord' | 'google' | 'email' | null => {
   if (!user) return null;
   const provider = user.app_metadata?.provider || user.app_metadata?.providers?.[0];
   if (provider === 'discord') return 'discord';

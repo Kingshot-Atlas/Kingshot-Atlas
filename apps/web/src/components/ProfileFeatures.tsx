@@ -245,7 +245,8 @@ const ProfileFeatures: React.FC = () => {
     </div>
   );
 
-  const _AllianceBadge = () => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _AllianceBadge = React.useCallback(() => {
     if (!profile?.alliance_tag) return null;
     
     const getBadgeStyle = (style: string, color: string) => {
@@ -293,7 +294,7 @@ const ProfileFeatures: React.FC = () => {
         </div>
       </div>
     );
-  };
+  }, [profile?.alliance_tag, profile?.badge_style, profile?.home_kingdom, themeColor]);
 
   // Quick Actions Bar - mobile optimized with proper touch targets
   const QuickActionsBar = () => (

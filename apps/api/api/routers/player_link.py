@@ -80,7 +80,7 @@ def generate_signature(params: dict) -> str:
         )
     sorted_keys = sorted(params.keys())
     param_string = "&".join(f"{k}={params[k]}" for k in sorted_keys)
-    return hashlib.md5((param_string + KINGSHOT_API_SALT).encode()).hexdigest()
+    return hashlib.md5((param_string + KINGSHOT_API_SALT).encode(), usedforsecurity=False).hexdigest()
 
 
 async def fetch_player_from_century_games(player_id: str) -> dict:
