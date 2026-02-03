@@ -743,24 +743,34 @@ const AdminDashboard: React.FC = () => {
         }
       }
       
-      // Helper to normalize result to single char (W/L/D)
-      const normalizeResult = (val: string | undefined): string | null => {
+      // Helper to normalize W/L result to single char (for prep_result & battle_result)
+      const normalizeWL = (val: string | undefined): string | null => {
         if (!val) return null;
         const v = val.trim().toUpperCase();
+        if (v === 'N/A' || v === 'NA' || v === '-' || v === '') return null;
         if (v === 'W' || v === 'WIN') return 'W';
         if (v === 'L' || v === 'LOSS' || v === 'LOSE') return 'L';
         if (v === 'D' || v === 'DRAW' || v === 'TIE') return 'D';
-        return v.charAt(0) || null; // Fallback to first char
+        return v.charAt(0) || null;
+      };
+      
+      // Helper to handle N/A values
+      const parseIntOrNull = (val: string | undefined): number | null => {
+        if (!val) return null;
+        const v = val.trim().toUpperCase();
+        if (v === 'N/A' || v === 'NA' || v === '-' || v === '') return null;
+        const num = parseInt(v, 10);
+        return isNaN(num) ? null : num;
       };
       
       // Transform to kvk_history format
       const kvkRecords = records.map(r => ({
         kingdom_number: parseInt(r.kingdom_number || '0', 10),
         kvk_number: parseInt(r.kvk_number || '0', 10),
-        opponent_kingdom: parseInt(r.opponent_kingdom || '0', 10),
-        prep_result: normalizeResult(r.prep_result),
-        battle_result: normalizeResult(r.battle_result),
-        overall_result: normalizeResult(r.overall_result),
+        opponent_kingdom: parseIntOrNull(r.opponent_kingdom),
+        prep_result: normalizeWL(r.prep_result),
+        battle_result: normalizeWL(r.battle_result),
+        overall_result: r.overall_result?.trim() || null, // Keep full word: Domination, Invasion, etc.
         kvk_date: r.kvk_date || null,
         order_index: parseInt(r.kvk_number || '0', 10)
       }));
