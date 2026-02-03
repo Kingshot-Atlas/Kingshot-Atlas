@@ -36,6 +36,11 @@ Coverage:
   - KvK corrections: Database triggers notify admins on new, user on approve/reject
 Action Required: Run `docs/migrations/add_correction_notification_triggers.sql` in Supabase
 
+## 2026-02-03 14:21 | Platform Engineer | COMPLETED
+Task: Fixed Profile Bio edit error - added missing display_name column to Supabase
+Files: Database migration applied via MCP
+Result: Users can now edit their Bio and display name on the Profile page
+
 ## 2026-02-03 14:15 | Product Engineer | COMPLETED
 Task: Profile button polish - hover states, loading spinner, unlink toast, last synced display
 Files: apps/web/src/pages/Profile.tsx, docs/MONITORING.md
