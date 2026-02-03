@@ -210,8 +210,8 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
           )}
         </div>
         
-        {/* Missing KvK Data Chip - shows only when kingdom is missing latest KvK data */}
-        {!isMobile && isMissingLatestKvK && (
+        {/* Missing KvK Data Chip - shows when kingdom is missing latest KvK data */}
+        {isMissingLatestKvK && (
           <div 
             style={{ marginLeft: 'auto', position: 'relative' }}
             onMouseEnter={() => setShowMissingDataTooltip(true)}

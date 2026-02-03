@@ -9,6 +9,22 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-03 02:17 | Platform Engineer | COMPLETED
+Task: Admin KvK Increment Tool - API + UI
+Files:
+  - apps/api/api/routers/admin.py (added 3 endpoints)
+  - apps/web/src/services/configService.ts (new file)
+  - apps/web/src/components/admin/AnalyticsOverview.tsx (KvK management UI)
+  - apps/web/src/pages/AdminDashboard.tsx (state + handler)
+Result:
+  - GET /api/v1/admin/config/current-kvk - Fetch current KvK (public, for all users)
+  - POST /api/v1/admin/config/current-kvk - Set KvK number (admin only)
+  - POST /api/v1/admin/config/increment-kvk - Increment by 1 (admin only)
+  - Frontend service with 5-min cache and fallback to constant
+  - Admin dashboard shows violet "⚔️ KvK Management" card with increment button
+  - Falls back to CURRENT_KVK constant if Supabase app_config table missing
+Note: Create app_config table in Supabase: key (text, PK), value (text), updated_at (timestamptz)
+
 ## 2026-02-03 02:11 | Platform Engineer | COMPLETED
 Task: Centralize CURRENT_KVK constant as single source of truth
 Files:
