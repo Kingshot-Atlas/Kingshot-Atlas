@@ -57,7 +57,8 @@ const AdminDashboard: React.FC = () => {
   const [filter, setFilter] = useState<string>('pending');
   const [importData, setImportData] = useState<string>('');
   const [pendingCounts, setPendingCounts] = useState<{ submissions: number; claims: number; corrections: number; transfers: number; kvkErrors: number; feedback: number }>({ submissions: 0, claims: 0, corrections: 0, transfers: 0, kvkErrors: 0, feedback: 0 });
-  const [feedbackItems, setFeedbackItems] = useState<Array<{ id: string; type: string; message: string; email: string | null; status: string; page_url: string | null; created_at: string; admin_notes: string | null }>>([]);
+  const [feedbackItems, setFeedbackItems] = useState<Array<{ id: string; type: string; message: string; email: string | null; status: string; page_url: string | null; created_at: string; admin_notes: string | null }>>([]); 
+  const [feedbackCounts, setFeedbackCounts] = useState<{ new: number; reviewed: number; in_progress: number; resolved: number; closed: number }>({ new: 0, reviewed: 0, in_progress: 0, resolved: 0, closed: 0 });
   const [syncingSubscriptions, setSyncingSubscriptions] = useState(false);
   const [currentKvK, setCurrentKvK] = useState<number>(CURRENT_KVK);
   const [incrementingKvK, setIncrementingKvK] = useState(false);
@@ -97,6 +98,7 @@ const AdminDashboard: React.FC = () => {
       fetchNewKingdomSubmissions();
     } else if (activeTab === 'feedback') {
       fetchFeedback();
+      fetchFeedbackCounts();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, filter, isAdmin]);
@@ -329,6 +331,29 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+  const fetchFeedbackCounts = async () => {
+    if (!supabase) return;
+    try {
+      // Fetch all feedback to count by status (independent of filter)
+      const { data, error } = await supabase
+        .from('feedback')
+        .select('status');
+      
+      if (error) throw error;
+      
+      const counts = { new: 0, reviewed: 0, in_progress: 0, resolved: 0, closed: 0 };
+      (data || []).forEach(item => {
+        const status = item.status as keyof typeof counts;
+        if (status in counts) {
+          counts[status]++;
+        }
+      });
+      setFeedbackCounts(counts);
+    } catch (error) {
+      logger.error('Failed to fetch feedback counts:', error);
+    }
+  };
+
   const updateFeedbackStatus = async (id: string, status: string, adminNotes?: string) => {
     if (!supabase) return;
     try {
@@ -346,6 +371,7 @@ const AdminDashboard: React.FC = () => {
       
       showToast('Feedback updated', 'success');
       fetchFeedback();
+      fetchFeedbackCounts();
       fetchPendingCounts();
     } catch (error) {
       logger.error('Failed to update feedback:', error);
@@ -1931,8 +1957,8 @@ const AdminDashboard: React.FC = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {/* Feedback Stats */}
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
-            {['new', 'reviewed', 'in_progress', 'resolved', 'closed'].map(status => {
-              const count = feedbackItems.filter(f => f.status === status).length;
+            {(['new', 'reviewed', 'in_progress', 'resolved', 'closed'] as const).map(status => {
+              const count = feedbackCounts[status];
               const colors: Record<string, string> = { new: '#fbbf24', reviewed: '#22d3ee', in_progress: '#a855f7', resolved: '#22c55e', closed: '#6b7280' };
               return (
                 <div key={status} style={{ backgroundColor: '#111116', padding: '0.75rem 1rem', borderRadius: '8px', border: '1px solid #2a2a2a', minWidth: '80px', textAlign: 'center' }}>
