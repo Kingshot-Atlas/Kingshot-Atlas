@@ -9,6 +9,18 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-03 02:03 | Product Engineer | COMPLETED
+Task: Kingdom Card UI refinements - streaks, transfer status, missing data chip
+Files:
+  - apps/web/src/components/kingdom-card/WinRates.tsx
+  - apps/web/src/utils/styles.ts
+  - apps/web/src/components/KingdomCard.tsx
+Result:
+  - Winning streak colors reverted to green (#22c55e) for both Prep and Battle
+  - Transfer status: Ordinary now silver (#c0c0c0), Leading now golden (#fbbf24)
+  - Replaced mini radar chart with "⏳ Awaiting KvK 10" chip with tooltip
+  - Removed MiniRadarChart component usage and unused imports
+
 ## 2026-02-03 01:46 | Product Engineer | COMPLETED
 Task: Update streak colors and fix CI artifact warnings
 Files:

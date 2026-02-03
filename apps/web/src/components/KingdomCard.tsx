@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, memo } from 'react';
+import React, { useState, useEffect, useRef, memo, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Kingdom, getPowerTier } from '../types';
 import { neonGlow, colors, radius, shadows, transition } from '../utils/styles';
@@ -13,7 +13,9 @@ import {
   CardActions, 
   TransferStatus 
 } from './kingdom-card';
-// MiniRadarChart removed - replaced with missing data chip
+import PostKvKSubmission from './PostKvKSubmission';
+
+const CURRENT_KVK = 10; // Must match PostKvKSubmission
 
 interface KingdomCardProps {
   kingdom: Kingdom;
@@ -39,6 +41,7 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
   const [isHovered, setIsHovered] = useState(false);
   const [showAtlasTooltip, setShowAtlasTooltip] = useState(false);
   const [showMissingDataTooltip, setShowMissingDataTooltip] = useState(false);
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [animatedScore, setAnimatedScore] = useState(0);
   const [hasAnimated, setHasAnimated] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -91,6 +94,16 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
 
   // Check if any tooltip is showing for z-index
   const hasActiveTooltip = showAtlasTooltip || showMissingDataTooltip;
+
+  // Check if kingdom is missing latest KvK data
+  const isMissingLatestKvK = useMemo(() => {
+    if (!kingdom.recent_kvks || kingdom.recent_kvks.length === 0) return true;
+    const hasLatestKvK = kingdom.recent_kvks.some(kvk => kvk.kvk_number === CURRENT_KVK);
+    return !hasLatestKvK;
+  }, [kingdom.recent_kvks]);
+
+  // Unique color for missing data chip (violet)
+  const missingDataColor = '#8b5cf6';
 
   return (
     <div
@@ -198,29 +211,43 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
           )}
         </div>
         
-        {/* Missing KvK Data Chip - shows when latest KvK data is not yet available */}
-        {!isMobile && (
+        {/* Missing KvK Data Chip - shows only when kingdom is missing latest KvK data */}
+        {!isMobile && isMissingLatestKvK && (
           <div 
             style={{ marginLeft: 'auto', position: 'relative' }}
             onMouseEnter={() => setShowMissingDataTooltip(true)}
             onMouseLeave={() => setShowMissingDataTooltip(false)}
           >
             <div 
+              onClick={(e) => {
+                e.stopPropagation();
+                trackFeature('Missing KvK Chip Click', { kingdom: kingdom.kingdom_number });
+                setShowSubmitModal(true);
+              }}
               style={{ 
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '0.25rem',
                 padding: '0.2rem 0.5rem',
                 borderRadius: '4px',
-                backgroundColor: `${colors.warning}15`,
-                border: `1px solid ${colors.warning}40`,
+                backgroundColor: `${missingDataColor}15`,
+                border: `1px solid ${missingDataColor}40`,
                 fontSize: '0.6rem',
                 fontWeight: 500,
-                color: colors.warning,
-                cursor: 'default'
+                color: missingDataColor,
+                cursor: 'pointer',
+                transition: transition.fast
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = `${missingDataColor}25`;
+                e.currentTarget.style.borderColor = missingDataColor;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = `${missingDataColor}15`;
+                e.currentTarget.style.borderColor = `${missingDataColor}40`;
               }}
             >
-              ⏳ Awaiting KvK 10
+              📊 Submit KvK {CURRENT_KVK}
             </div>
             
             {showMissingDataTooltip && (
@@ -231,7 +258,7 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
                   right: 0,
                   marginBottom: '0.5rem',
                   backgroundColor: colors.bg,
-                  border: `1px solid ${colors.warning}`,
+                  border: `1px solid ${missingDataColor}`,
                   borderRadius: '6px',
                   padding: '0.5rem 0.75rem',
                   boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
@@ -241,11 +268,11 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
                   color: colors.textSecondary
                 }}
               >
-                <div style={{ fontWeight: '600', color: colors.warning, marginBottom: '0.25rem' }}>
-                  Missing Latest KvK Data
+                <div style={{ fontWeight: '600', color: missingDataColor, marginBottom: '0.25rem' }}>
+                  Missing KvK #{CURRENT_KVK} Data
                 </div>
                 <div style={{ color: colors.textMuted }}>
-                  Results from the latest KvK have not been submitted yet
+                  Click to submit results for this kingdom
                 </div>
               </div>
             )}
@@ -333,8 +360,21 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
           to { opacity: 1; transform: translateX(-50%) translateY(0); }
         }
       `}</style>
+
+      {/* PostKvKSubmission Modal */}
+      <PostKvKSubmission
+        isOpen={showSubmitModal}
+        onClose={() => setShowSubmitModal(false)}
+        defaultKingdom={kingdom.kingdom_number}
+        defaultKvkNumber={CURRENT_KVK}
+      />
     </div>
   );
 };
 
 export default memo(KingdomCard);
+
+// PostKvKSubmission modal wrapper - rendered outside the card
+export const KingdomCardWithModal: React.FC<KingdomCardProps & { showModal?: boolean; onCloseModal?: () => void }> = (props) => {
+  return <KingdomCard {...props} />;
+};
