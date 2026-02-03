@@ -17,7 +17,7 @@ Or import and use programmatically:
 
 import json
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Tuple
 from pydantic import BaseModel, Field, validator, ValidationError
@@ -113,7 +113,7 @@ class SubmissionValidator:
         
         # Prepare sanitized data
         sanitized = submission.dict(exclude_none=True)
-        sanitized["validated_at"] = datetime.utcnow().isoformat()
+        sanitized["validated_at"] = datetime.now(timezone.utc).isoformat()
         
         return ValidationResult(
             valid=len(self.errors) == 0,

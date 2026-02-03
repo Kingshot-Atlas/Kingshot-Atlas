@@ -179,8 +179,8 @@ def log_webhook_event(
         if customer_id:
             data["customer_id"] = customer_id
         if status == "processed":
-            from datetime import datetime
-            data["processed_at"] = datetime.utcnow().isoformat()
+            from datetime import datetime, timezone
+            data["processed_at"] = datetime.now(timezone.utc).isoformat()
         
         result = client.table("webhook_events").upsert(data, on_conflict="event_id").execute()
         return bool(result.data)
@@ -549,8 +549,8 @@ def get_webhook_stats() -> dict:
     
     try:
         # Get all events from last 24 hours
-        from datetime import datetime, timedelta
-        since = (datetime.utcnow() - timedelta(hours=24)).isoformat()
+        from datetime import datetime, timedelta, timezone
+        since = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
         
         result = client.table("webhook_events").select("status").gte("created_at", since).execute()
         events = result.data or []

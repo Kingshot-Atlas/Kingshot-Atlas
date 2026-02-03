@@ -5,7 +5,7 @@ Endpoints for managing the Atlas Discord bot from the admin dashboard
 
 import os
 import httpx
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, HTTPException, Depends, Header
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
@@ -243,7 +243,7 @@ async def send_message(data: SendMessageRequest, _: bool = Depends(verify_api_ke
             if "footer" not in embed:
                 embed["footer"] = {"text": "Kingshot Atlas • ks-atlas.com"}
             if "timestamp" not in embed:
-                embed["timestamp"] = datetime.utcnow().isoformat()
+                embed["timestamp"] = datetime.now(timezone.utc).isoformat()
             payload["embeds"] = [embed]
         
         async with httpx.AsyncClient() as client:
@@ -300,7 +300,7 @@ async def get_bot_stats(_: bool = Depends(verify_api_key)):
             server_count = len(guilds_response.json()) if guilds_response.status_code == 200 else 0
         
         # Calculate command stats from in-memory tracking
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         day_ago = now - timedelta(days=1)
         week_ago = now - timedelta(days=7)
         
@@ -337,11 +337,16 @@ async def get_bot_stats(_: bool = Depends(verify_api_key)):
         }
 
 
+class LogCommandRequest(BaseModel):
+    """Request model for logging a command usage event"""
+    command: str = Field(..., description="Command name that was executed")
+    guild_id: str = Field(..., description="Discord guild/server ID")
+    user_id: str = Field(..., description="Discord user ID who executed the command")
+
+
 @router.post("/log-command")
 async def log_command(
-    command: str,
-    guild_id: str,
-    user_id: str,
+    data: LogCommandRequest,
     _: bool = Depends(verify_api_key)
 ):
     """
@@ -352,7 +357,7 @@ async def log_command(
         "command": command,
         "guild_id": guild_id,
         "user_id": user_id,
-        "timestamp": datetime.utcnow()
+        "timestamp": datetime.now(timezone.utc)
     })
     
     # Keep only last 10000 entries to prevent memory issues

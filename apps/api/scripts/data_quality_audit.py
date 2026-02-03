@@ -13,7 +13,7 @@ Usage:
 import sqlite3
 import json
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Any, Tuple
 
@@ -54,7 +54,7 @@ class DataQualityAuditor:
             "severity": severity,
             "description": description,
             "field": field,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         })
         self.stats["issues_found"] += 1
         if severity == "critical":
@@ -225,7 +225,7 @@ class DataQualityAuditor:
     def generate_report(self) -> Dict[str, Any]:
         """Generate the audit report."""
         report = {
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
             "database": str(self.db_path),
             "stats": self.stats,
             "issues_by_type": self._group_issues_by_type(),

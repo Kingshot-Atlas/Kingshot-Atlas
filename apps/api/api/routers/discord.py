@@ -5,7 +5,7 @@ Endpoints for triggering Discord webhooks (patch notes, announcements, etc.)
 
 import os
 import httpx
-from datetime import datetime
+from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, Depends, Header
 from pydantic import BaseModel, Field
 from typing import List, Optional
@@ -74,7 +74,7 @@ def build_patch_notes_embed(data: PatchNotesRequest) -> dict:
         "color": COLORS["primary"],
         "fields": [],
         "footer": {"text": "Kingshot Atlas • ks-atlas.com"},
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
     if data.new:
@@ -159,7 +159,7 @@ async def post_major_release(
         "color": COLORS["gold"],
         "fields": [],
         "footer": {"text": "Kingshot Atlas • ks-atlas.com"},
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
     if data.highlights:
@@ -213,7 +213,7 @@ async def post_maintenance(
             {"name": "⏱️ Duration", "value": data.duration, "inline": True},
         ],
         "footer": {"text": "Kingshot Atlas • ks-atlas.com"},
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
     if data.reason:
@@ -263,7 +263,7 @@ async def post_status(
         "color": COLORS["error"] if is_outage else COLORS["success"],
         "fields": [],
         "footer": {"text": "Kingshot Atlas • ks-atlas.com"},
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
     if data.feature:

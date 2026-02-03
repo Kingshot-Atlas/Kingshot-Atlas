@@ -718,7 +718,7 @@ async def sync_all_subscriptions(x_admin_key: Optional[str] = Header(None)):
                 try:
                     result = client.table("profiles").select("id, username, subscription_tier, stripe_customer_id").eq("id", user_id).single().execute()
                     profile = result.data
-                except:
+                except Exception:
                     pass
             
             # If no profile found by user_id, try by stripe_customer_id
@@ -726,7 +726,7 @@ async def sync_all_subscriptions(x_admin_key: Optional[str] = Header(None)):
                 try:
                     result = client.table("profiles").select("id, username, subscription_tier, stripe_customer_id").eq("stripe_customer_id", customer_id).single().execute()
                     profile = result.data
-                except:
+                except Exception:
                     pass
             
             # If still no profile, try to find by email from Stripe customer
@@ -736,7 +736,7 @@ async def sync_all_subscriptions(x_admin_key: Optional[str] = Header(None)):
                     if customer.email:
                         result = client.table("profiles").select("id, username, subscription_tier, stripe_customer_id").eq("email", customer.email).single().execute()
                         profile = result.data
-                except:
+                except Exception:
                     pass
             
             if profile:
