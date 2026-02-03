@@ -8,9 +8,9 @@ import { useToast } from '../components/Toast';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { supabase } from '../lib/supabase';
+import { CURRENT_KVK, KVK_CONFIG } from '../constants';
 
-const CURRENT_KVK = 10;
-const TOTAL_KINGDOMS = 1621;
+const TOTAL_KINGDOMS = KVK_CONFIG.TOTAL_KINGDOMS;
 
 // KvK dates calculated from KvK #10 = Jan 31, 2026 (every 4 weeks)
 const KVK_DATES: Record<number, string> = {

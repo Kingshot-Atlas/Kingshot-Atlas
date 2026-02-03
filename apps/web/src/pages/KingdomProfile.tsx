@@ -29,6 +29,7 @@ import { useToast } from '../components/Toast';
 import { neonGlow, getStatusColor, getTierColor } from '../utils/styles';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, getKingdomMetaTags } from '../hooks/useMetaTags';
+import { CURRENT_KVK } from '../constants';
 
 const KingdomProfile: React.FC = () => {
   const { kingdomNumber } = useParams<{ kingdomNumber: string }>();
@@ -837,10 +838,10 @@ const KingdomProfile: React.FC = () => {
               </div>
             </div>
             
-            {/* Missing KvK #10 Prompt */}
+            {/* Missing Latest KvK Prompt */}
             <MissingKvKPrompt
               kingdomNumber={kingdom.kingdom_number}
-              kvkNumber={10}
+              kvkNumber={CURRENT_KVK}
               existingKvkNumbers={allKvks.map(k => k.kvk_number)}
             />
             

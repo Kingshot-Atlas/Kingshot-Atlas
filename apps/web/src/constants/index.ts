@@ -62,3 +62,26 @@ export const ANIMATIONS = {
   NORMAL: 300,
   SLOW: 500,
 } as const;
+
+/**
+ * KvK Configuration - SINGLE SOURCE OF TRUTH
+ * Update CURRENT_KVK after each KvK battle phase ends
+ * 
+ * KvK Schedule: Every 4 weeks
+ * - Prep Phase: Monday 00:00 UTC to Saturday 10:00 UTC
+ * - Battle Phase: Saturday 10:00 UTC to Saturday 22:00 UTC
+ * - Reference: KvK #10 started Monday, January 26, 2026 at 00:00 UTC
+ */
+export const KVK_CONFIG = {
+  /** Current KvK number - UPDATE THIS AFTER EACH KVK */
+  CURRENT_KVK: 10,
+  /** Reference date for KvK #10 (used for calculations) */
+  KVK_10_START: '2026-01-26T00:00:00Z',
+  /** Days between KvK cycles */
+  CYCLE_DAYS: 28,
+  /** Total known kingdoms in the game */
+  TOTAL_KINGDOMS: 1621,
+} as const;
+
+// Convenience export for direct import
+export const CURRENT_KVK = KVK_CONFIG.CURRENT_KVK;

@@ -9,6 +9,17 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-03 02:08 | Product Engineer | COMPLETED
+Task: Dynamic missing KvK chip with submission modal
+Files:
+  - apps/web/src/components/KingdomCard.tsx
+Result:
+  - Chip now only shows when kingdom is missing KvK #10 data (checks recent_kvks)
+  - Clicking chip opens PostKvKSubmission modal with kingdom pre-filled
+  - Unique violet color (#8b5cf6) distinguishes from other chips
+  - Hover effect enhances interactivity
+  - Tooltip explains "Click to submit results for this kingdom"
+
 ## 2026-02-03 02:03 | Product Engineer | COMPLETED
 Task: Kingdom Card UI refinements - streaks, transfer status, missing data chip
 Files:

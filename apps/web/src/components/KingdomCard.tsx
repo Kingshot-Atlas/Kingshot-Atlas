@@ -14,8 +14,7 @@ import {
   TransferStatus 
 } from './kingdom-card';
 import PostKvKSubmission from './PostKvKSubmission';
-
-const CURRENT_KVK = 10; // Must match PostKvKSubmission
+import { CURRENT_KVK } from '../constants';
 
 interface KingdomCardProps {
   kingdom: Kingdom;

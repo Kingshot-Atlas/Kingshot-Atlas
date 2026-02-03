@@ -2,9 +2,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from './Toast';
 import { logger } from '../utils/logger';
+import { CURRENT_KVK } from '../constants';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
-const CURRENT_KVK = 10; // Locked to KvK #10
 
 interface PostKvKSubmissionProps {
   isOpen: boolean;
