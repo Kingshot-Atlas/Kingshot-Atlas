@@ -696,7 +696,7 @@ const AdminDashboard: React.FC = () => {
       const headers = lines[0]?.split(',').map(h => h.trim().toLowerCase()) || [];
       
       // Validate required columns
-      const requiredCols = ['kingdom_number', 'kvk_number', 'opponent_number', 'prep_result', 'battle_result', 'overall_result', 'kvk_date'];
+      const requiredCols = ['kingdom_number', 'kvk_number', 'opponent_kingdom', 'prep_result', 'battle_result', 'overall_result', 'kvk_date'];
       const missingCols = requiredCols.filter(col => !headers.includes(col));
       if (missingCols.length > 0) {
         showToast(`Missing columns: ${missingCols.join(', ')}`, 'error');
@@ -714,7 +714,7 @@ const AdminDashboard: React.FC = () => {
       const allKingdomNumbers = new Set<number>();
       records.forEach(r => {
         const kn = parseInt(r.kingdom_number || '0', 10);
-        const on = parseInt(r.opponent_number || '0', 10);
+        const on = parseInt(r.opponent_kingdom || '0', 10);
         if (kn > 0) allKingdomNumbers.add(kn);
         if (on > 0) allKingdomNumbers.add(on);
       });
@@ -747,7 +747,7 @@ const AdminDashboard: React.FC = () => {
       const kvkRecords = records.map(r => ({
         kingdom_number: parseInt(r.kingdom_number || '0', 10),
         kvk_number: parseInt(r.kvk_number || '0', 10),
-        opponent_number: parseInt(r.opponent_number || '0', 10),
+        opponent_kingdom: parseInt(r.opponent_kingdom || '0', 10),
         prep_result: r.prep_result?.toUpperCase() || null,
         battle_result: r.battle_result?.toUpperCase() || null,
         overall_result: r.overall_result?.toUpperCase() || null,
@@ -1837,7 +1837,7 @@ const AdminDashboard: React.FC = () => {
         <div style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', border: '1px solid #2a2a2a' }}>
           <h3 style={{ color: '#fff', marginBottom: '1rem' }}>Bulk Import KvK Results</h3>
           <p style={{ color: '#6b7280', fontSize: '0.875rem', marginBottom: '1rem' }}>
-            Upload a CSV file or paste data directly. Required columns: <code style={{ color: '#22d3ee' }}>kingdom_number, kvk_number, opponent_number, prep_result, battle_result, overall_result, kvk_date</code>
+            Upload a CSV file or paste data directly. Required columns: <code style={{ color: '#22d3ee' }}>kingdom_number, kvk_number, opponent_kingdom, prep_result, battle_result, overall_result, kvk_date</code>
           </p>
           <p style={{ color: '#4b5563', fontSize: '0.75rem', marginBottom: '1rem' }}>
             Results should be W/L/D. Date format: YYYY-MM-DD. Data will be inserted directly into the kvk_history table.
@@ -1857,7 +1857,7 @@ const AdminDashboard: React.FC = () => {
             <textarea
               value={importData}
               onChange={(e) => setImportData(e.target.value)}
-              placeholder="kingdom_number,kvk_number,opponent_number,prep_result,battle_result,overall_result,kvk_date&#10;172,10,245,W,L,L,2026-02-01&#10;172,11,301,W,W,W,2026-02-22"
+              placeholder="kingdom_number,kvk_number,opponent_kingdom,prep_result,battle_result,overall_result,kvk_date&#10;172,10,245,W,L,L,2026-02-01&#10;172,11,301,W,W,W,2026-02-22"
               style={{ width: '100%', height: '200px', padding: '1rem', backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '8px', color: '#fff', fontFamily: 'monospace', fontSize: '0.85rem', resize: 'vertical' }}
             />
           </div>
