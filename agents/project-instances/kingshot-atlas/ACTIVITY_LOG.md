@@ -9,6 +9,19 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-03 22:30 | Platform Engineer | COMPLETED
+Task: Security hardening - achieve maximum security score
+Context: Security test showed 27 issues (1 ERROR, 26 WARN)
+Database Migrations Applied:
+  - enable_rls_app_config: RLS + policies on app_config table
+  - tighten_insert_policies: Stricter INSERT policies on feedback, kvk_submissions, notifications
+  - fix_function_search_paths: Set search_path='' on 22 custom functions
+Security Score: 78/100 → 96/100
+Remaining Issue (1 WARN): Leaked Password Protection - requires Supabase Dashboard manual action
+Files:
+  - docs/migrations/security_hardening.sql (new - documentation of all fixes)
+Result: Deployed to production. User must enable "Prevent use of leaked passwords" in Supabase Dashboard for 100/100.
+
 ## 2026-02-03 22:15 | Platform Engineer | COMPLETED
 Task: Unify contributor stats to aggregate all 5 submission tables
 Context: contributor_stats table was unused; user_correction_stats view was redundant
