@@ -653,6 +653,31 @@ const AdminDashboard: React.FC = () => {
     fetchPendingCounts();
   };
 
+  // Helper to create empty kingdom records
+  const createEmptyKingdom = (kingdomNumber: number) => ({
+    kingdom_number: kingdomNumber,
+    total_kvks: 0,
+    prep_wins: 0,
+    prep_losses: 0,
+    prep_win_rate: 0,
+    prep_streak: 0,
+    prep_loss_streak: 0,
+    prep_best_streak: 0,
+    battle_wins: 0,
+    battle_losses: 0,
+    battle_win_rate: 0,
+    battle_streak: 0,
+    battle_loss_streak: 0,
+    battle_best_streak: 0,
+    dominations: 0,
+    reversals: 0,
+    comebacks: 0,
+    invasions: 0,
+    atlas_score: 50.0,
+    most_recent_status: 'Unannounced',
+    last_updated: new Date().toISOString()
+  });
+
   const handleBulkImport = async () => {
     if (!importData.trim()) {
       showToast('Please paste CSV data', 'error');
@@ -685,6 +710,39 @@ const AdminDashboard: React.FC = () => {
         return record;
       });
       
+      // Collect all unique kingdom numbers (both kingdom and opponent)
+      const allKingdomNumbers = new Set<number>();
+      records.forEach(r => {
+        const kn = parseInt(r.kingdom_number || '0', 10);
+        const on = parseInt(r.opponent_number || '0', 10);
+        if (kn > 0) allKingdomNumbers.add(kn);
+        if (on > 0) allKingdomNumbers.add(on);
+      });
+      
+      // Check which kingdoms already exist
+      const { data: existingKingdoms } = await supabase
+        .from('kingdoms')
+        .select('kingdom_number')
+        .in('kingdom_number', Array.from(allKingdomNumbers));
+      
+      const existingSet = new Set((existingKingdoms || []).map(k => k.kingdom_number));
+      const missingKingdoms = Array.from(allKingdomNumbers).filter(kn => !existingSet.has(kn));
+      
+      // Auto-create missing kingdoms with empty data
+      if (missingKingdoms.length > 0) {
+        const newKingdoms = missingKingdoms.map(kn => createEmptyKingdom(kn));
+        const { error: createError } = await supabase
+          .from('kingdoms')
+          .upsert(newKingdoms, { onConflict: 'kingdom_number' });
+        
+        if (createError) {
+          console.error('Failed to create missing kingdoms:', createError);
+          showToast(`Warning: Could not create ${missingKingdoms.length} missing kingdoms`, 'error');
+        } else {
+          console.log(`Auto-created ${missingKingdoms.length} kingdoms: ${missingKingdoms.join(', ')}`);
+        }
+      }
+      
       // Transform to kvk_history format
       const kvkRecords = records.map(r => ({
         kingdom_number: parseInt(r.kingdom_number || '0', 10),
@@ -716,11 +774,71 @@ const AdminDashboard: React.FC = () => {
       apiService.reloadData();
       queryClient.invalidateQueries({ queryKey: kingdomKeys.all });
       
-      showToast(`✅ Imported ${records.length} KvK records to database`, 'success');
+      const createdMsg = missingKingdoms.length > 0 ? ` (created ${missingKingdoms.length} new kingdoms)` : '';
+      showToast(`✅ Imported ${records.length} KvK records to database${createdMsg}`, 'success');
       setImportData('');
     } catch (error) {
       console.error('Bulk import error:', error);
       showToast('Invalid CSV format or data', 'error');
+    }
+  };
+
+  // Bulk create empty kingdoms (for admin use)
+  const handleBulkCreateKingdoms = async (startNum: number, endNum: number) => {
+    if (!supabase) {
+      showToast('Supabase not available', 'error');
+      return;
+    }
+    
+    try {
+      // Check which kingdoms already exist
+      const { data: existingKingdoms } = await supabase
+        .from('kingdoms')
+        .select('kingdom_number')
+        .gte('kingdom_number', startNum)
+        .lte('kingdom_number', endNum);
+      
+      const existingSet = new Set((existingKingdoms || []).map(k => k.kingdom_number));
+      
+      // Create list of kingdoms to add
+      const kingdomsToCreate: ReturnType<typeof createEmptyKingdom>[] = [];
+      for (let kn = startNum; kn <= endNum; kn++) {
+        if (!existingSet.has(kn)) {
+          kingdomsToCreate.push(createEmptyKingdom(kn));
+        }
+      }
+      
+      if (kingdomsToCreate.length === 0) {
+        showToast(`All kingdoms ${startNum}-${endNum} already exist`, 'info');
+        return;
+      }
+      
+      // Insert in batches of 500 to avoid timeouts
+      const batchSize = 500;
+      let created = 0;
+      for (let i = 0; i < kingdomsToCreate.length; i += batchSize) {
+        const batch = kingdomsToCreate.slice(i, i + batchSize);
+        const { error } = await supabase
+          .from('kingdoms')
+          .upsert(batch, { onConflict: 'kingdom_number' });
+        
+        if (error) {
+          console.error('Batch insert error:', error);
+          showToast(`Error creating kingdoms: ${error.message}`, 'error');
+          return;
+        }
+        created += batch.length;
+      }
+      
+      // Refresh caches
+      kvkHistoryService.invalidateCache();
+      apiService.reloadData();
+      queryClient.invalidateQueries({ queryKey: kingdomKeys.all });
+      
+      showToast(`✅ Created ${created} empty kingdom profiles (${startNum}-${endNum})`, 'success');
+    } catch (error) {
+      console.error('Bulk create kingdoms error:', error);
+      showToast('Failed to create kingdoms', 'error');
     }
   };
 
@@ -1747,6 +1865,27 @@ const AdminDashboard: React.FC = () => {
           <button onClick={handleBulkImport} style={{ padding: '0.75rem 2rem', backgroundColor: '#22c55e', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: 600, cursor: 'pointer' }}>
             Import Data
           </button>
+
+          <div style={{ marginTop: '2rem', paddingTop: '2rem', borderTop: '1px solid #2a2a2a' }}>
+            <h4 style={{ color: '#fff', marginBottom: '0.75rem' }}>Bulk Create Empty Kingdoms</h4>
+            <p style={{ color: '#6b7280', fontSize: '0.8rem', marginBottom: '1rem' }}>
+              Create placeholder kingdom profiles with no KvK data. Useful for adding all kingdoms that participated in a KvK.
+            </p>
+            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+              <button 
+                onClick={() => handleBulkCreateKingdoms(1, 1304)} 
+                style={{ padding: '0.6rem 1.25rem', backgroundColor: '#a855f720', border: '1px solid #a855f750', borderRadius: '8px', color: '#a855f7', cursor: 'pointer', fontWeight: 500, fontSize: '0.85rem' }}
+              >
+                Create Kingdoms 1-1304
+              </button>
+              <button 
+                onClick={() => handleBulkCreateKingdoms(1305, 1500)} 
+                style={{ padding: '0.6rem 1.25rem', backgroundColor: '#6b728020', border: '1px solid #6b728050', borderRadius: '8px', color: '#9ca3af', cursor: 'pointer', fontWeight: 500, fontSize: '0.85rem' }}
+              >
+                Create 1305-1500
+              </button>
+            </div>
+          </div>
         </div>
       ) : null}
 
