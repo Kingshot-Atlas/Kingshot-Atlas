@@ -9,6 +9,90 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-03 17:15 | Platform Engineer | COMPLETED
+Task: Implement Bye outcome support for KvK History
+Files:
+  - regenerate_kingdoms_with_atlas_score.py (handle Bye in data generation)
+  - apps/api/api/atlas_score_formula.py (skip Byes in Atlas Score calculation)
+  - apps/web/src/utils/atlasScoreFormula.ts (skip Byes in frontend calculation)
+  - apps/web/src/utils/outcomes.ts (already had Bye defined)
+  - apps/web/src/components/kingdom-card/RecentKvKs.tsx (display Bye with gray "-")
+  - apps/web/src/pages/KingdomProfile.tsx (display Bye in history table + skip in streaks)
+  - docs/migrations/add_kingdom17_bye_kvk10.sql (NEW - test data for Kingdom 17)
+Result:
+  - Bye outcomes now display properly: gray "-" for Prep/Battle, "No match" for opponent
+  - Byes don't affect Atlas Score, streaks, or recent form calculations
+  - Kingdom 17 can be used for testing after running migration
+
+## 2026-02-03 14:30 | Platform Engineer | COMPLETED
+Task: Extend notification system to all submission types (KvK, claims, corrections)
+Files:
+  - apps/api/api/supabase_client.py (added create_notification, notify_admins helpers)
+  - apps/api/api/routers/submissions.py (added notifications for KvK submissions, claims)
+  - docs/migrations/add_correction_notification_triggers.sql (NEW - triggers for kvk_corrections)
+Coverage:
+  - KvK submissions: Admin notified on new submission, user notified on approve/reject
+  - Kingdom claims: Admin notified on new claim, user notified on verification
+  - KvK corrections: Database triggers notify admins on new, user on approve/reject
+Action Required: Run `docs/migrations/add_correction_notification_triggers.sql` in Supabase
+
+## 2026-02-03 14:15 | Product Engineer | COMPLETED
+Task: Profile button polish - hover states, loading spinner, unlink toast, last synced display
+Files: apps/web/src/pages/Profile.tsx, docs/MONITORING.md
+Result: Enhanced Unlink/Refresh buttons with visual feedback and timestamps. Fixed UptimeRobot doc URL.
+
+## 2026-02-03 14:05 | Product Engineer | COMPLETED
+Task: Relocated Unlink/Refresh Kingshot buttons below Discord chip on Profile page
+Files: apps/web/src/pages/Profile.tsx
+Result: Buttons now display in a row below "Signed in with Discord" chip with matching pill/chip styling
+
+## 2026-02-03 14:00 | Product Engineer | COMPLETED
+Task: Fixed Bye outcome display showing as Invasion instead of Bye badge
+Files: apps/web/src/pages/KingdomProfile.tsx, apps/web/src/components/kingdom-card/RecentKvKs.tsx, apps/web/src/services/kvkHistoryService.ts, apps/web/src/utils/outcomeUtils.ts
+Result: Bye outcomes now correctly show ⏸️ badge with "No match" opponent and gray "-" for prep/battle
+
+## 2026-02-03 13:00 | Product Engineer | COMPLETED
+Task: Implement in-app notification system with real-time updates
+Files:
+  - apps/web/src/components/notifications/NotificationBell.tsx (NEW)
+  - apps/web/src/components/Header.tsx (integrated NotificationBell)
+Features:
+  - Bell icon in header (desktop + mobile) with unread count badge
+  - Dropdown panel showing recent notifications
+  - Real-time updates via Supabase subscriptions
+  - Database triggers auto-create notifications on:
+    - New transfer status submissions → admins notified
+    - Submission approved/rejected → submitter notified
+  - Mark as read, mark all read, clear all functionality
+Action Required: Run `docs/migrations/create_notifications.sql` in Supabase Dashboard SQL Editor
+
+## 2026-02-03 13:15 | Platform Engineer | COMPLETED
+Task: Fix transfer status submissions not appearing in admin dashboard
+Root Cause: `status_submissions` table didn't exist in Supabase. Submissions were falling back to localStorage silently, meaning user submissions were browser-local only and invisible to admin.
+Files:
+  - docs/migrations/create_status_submissions.sql (NEW - migration to create table)
+  - apps/web/src/services/statusService.ts (Supabase-first with proper error handling)
+  - apps/web/src/pages/AdminDashboard.tsx (fetch from Supabase instead of localStorage)
+Fix:
+  - Created migration for `status_submissions` table with RLS policies
+  - Updated statusService to throw errors instead of silent fallback
+  - Added fetchAllSubmissions() method for admin dashboard
+  - AdminDashboard now fetches transfer submissions from Supabase
+Action Required: Run `docs/migrations/create_status_submissions.sql` in Supabase Dashboard SQL Editor
+
+## 2026-02-03 12:50 | Platform Engineer | COMPLETED
+Task: Fix profile data not persisting after refresh + Remove KvK #10 banner
+Files:
+  - apps/web/src/contexts/AuthContext.tsx (updateProfile error handling)
+  - apps/web/src/pages/Profile.tsx (handleSave with toast feedback)
+  - apps/web/src/pages/KingdomDirectory.tsx (removed KvK #10 banner)
+Root Cause: updateProfile() was silently ignoring Supabase errors (logged as debug). On refresh, old DB data overwrote localStorage.
+Fix:
+  - updateProfile() now returns { success, error } status
+  - On failure: reverts optimistic update, logs error properly
+  - Profile.tsx shows toast on success/failure, keeps form open on failure
+  - Removed "KvK #10 Has Ended — Report Your Results!" banner from home page
+
 ## 2026-02-03 02:22 | Product Engineer | COMPLETED
 Task: Fix missing KvK chip not showing on Kingdom Cards
 Files:

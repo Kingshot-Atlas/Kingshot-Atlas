@@ -233,7 +233,16 @@ def main():
             opponent = row[opp_col_idx].strip() if row[opp_col_idx] else ''
             result = row[result_col_idx].strip() if row[result_col_idx] else ''
             
-            if not opponent or opponent == 'N/A' or not result or result == 'N/A' or result == 'Bye':
+            if not opponent or opponent == 'N/A' or not result or result == 'N/A':
+                continue
+            
+            # Handle Bye separately - no opponent, no win/loss
+            if result == 'Bye':
+                kingdom_matches[kingdom_num].append({
+                    'kvk_number': kvk_num,
+                    'opponent_kingdom': None,  # No opponent for Bye
+                    'result': 'Bye'
+                })
                 continue
             
             try:
@@ -268,6 +277,20 @@ def main():
         
         for match in matches:
             result = match['result']
+            
+            # Handle Bye - no stats impact, just record the KvK
+            if result == 'Bye':
+                # Bye doesn't affect any stats or streaks
+                kvk_records.append({
+                    'kingdom_number': kingdom_num,
+                    'kvk_number': match['kvk_number'],
+                    'opponent_kingdom': None,
+                    'prep_result': 'Bye',
+                    'battle_result': 'Bye',
+                    'overall_result': 'Bye',
+                    'date_or_order_index': KVK_DATES.get(match['kvk_number'], '')
+                })
+                continue
             
             # Normalize legacy outcome names to standard naming
             # Standard: Domination (W+W), Reversal (W+L), Comeback (L+W), Invasion (L+L)

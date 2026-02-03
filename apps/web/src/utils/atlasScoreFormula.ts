@@ -328,11 +328,22 @@ export function getKvKOutcome(prepResult: 'W' | 'L', battleResult: 'W' | 'L'): s
 export function extractStatsFromProfile(kingdom: KingdomProfile): KingdomStats {
   const sortedKvks = [...(kingdom.recent_kvks || [])].sort((a, b) => b.kvk_number - a.kvk_number);
   
-  // Calculate current streaks
+  // Filter out Bye results for calculations - Byes don't affect Atlas Score
+  // Bye records have: NULL results, 'B' results, overall_result='Bye', or opponent_kingdom=0
+  const nonByeKvks = sortedKvks.filter(kvk => 
+    kvk.prep_result !== null && 
+    kvk.battle_result !== null && 
+    kvk.prep_result !== 'B' &&
+    kvk.battle_result !== 'B' &&
+    kvk.overall_result?.toLowerCase() !== 'bye' &&
+    kvk.opponent_kingdom !== 0
+  );
+  
+  // Calculate current streaks (skip Byes - they don't break streaks)
   let currentPrepStreak = 0;
   let currentBattleStreak = 0;
   
-  for (const kvk of sortedKvks) {
+  for (const kvk of nonByeKvks) {
     const prepWin = kvk.prep_result === 'Win' || kvk.prep_result === 'W';
     if (currentPrepStreak === 0) {
       currentPrepStreak = prepWin ? 1 : -1;
@@ -344,7 +355,7 @@ export function extractStatsFromProfile(kingdom: KingdomProfile): KingdomStats {
   }
   
   // Reset for battle streak calculation
-  for (const kvk of sortedKvks) {
+  for (const kvk of nonByeKvks) {
     const battleWin = kvk.battle_result === 'Win' || kvk.battle_result === 'W';
     if (currentBattleStreak === 0) {
       currentBattleStreak = battleWin ? 1 : -1;
@@ -355,8 +366,8 @@ export function extractStatsFromProfile(kingdom: KingdomProfile): KingdomStats {
     }
   }
   
-  // Get recent outcomes (most recent first)
-  const recentOutcomes: string[] = sortedKvks.slice(0, 5).map(kvk => {
+  // Get recent outcomes (most recent first, excluding Byes)
+  const recentOutcomes: string[] = nonByeKvks.slice(0, 5).map(kvk => {
     const prepWin = kvk.prep_result === 'Win' || kvk.prep_result === 'W';
     const battleWin = kvk.battle_result === 'Win' || kvk.battle_result === 'W';
     return getKvKOutcome(prepWin ? 'W' : 'L', battleWin ? 'W' : 'L');

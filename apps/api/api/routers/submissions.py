@@ -467,6 +467,24 @@ def create_kvk10_submission(
     
     logger.info(f"KvK #10 submission created: K{submission.kingdom_number} vs K{submission.opponent_kingdom} by {verified_user_id}")
     
+    # Notify admins of new submission
+    try:
+        from api.supabase_client import notify_admins
+        notify_admins(
+            notification_type="admin_new_submission",
+            title="New KvK Submission",
+            message=f"K{submission.kingdom_number} vs K{submission.opponent_kingdom} - awaiting review",
+            link="/admin?tab=kvk-submissions",
+            metadata={
+                "submission_id": db_submission.id,
+                "kingdom_number": submission.kingdom_number,
+                "opponent_kingdom": submission.opponent_kingdom,
+                "submitter_name": submitter_name,
+            }
+        )
+    except Exception as e:
+        logger.warning(f"Failed to notify admins: {e}")
+    
     return db_submission
 
 
@@ -605,6 +623,39 @@ def review_submission(
             raise HTTPException(status_code=503, detail="Database write failed - please try again later")
     
     db.commit()
+    
+    # Notify submitter of review result
+    try:
+        from api.supabase_client import create_notification
+        if review.status == "approved":
+            create_notification(
+                user_id=submission.submitter_id,
+                notification_type="submission_approved",
+                title="KvK Submission Approved!",
+                message=f"Your KvK result for K{submission.kingdom_number} vs K{submission.opponent_kingdom} has been approved and added to the Atlas.",
+                link=f"/kingdom/{submission.kingdom_number}",
+                metadata={
+                    "submission_id": submission_id,
+                    "kingdom_number": submission.kingdom_number,
+                    "opponent_kingdom": submission.opponent_kingdom,
+                }
+            )
+        else:
+            create_notification(
+                user_id=submission.submitter_id,
+                notification_type="submission_rejected",
+                title="KvK Submission Rejected",
+                message=f"Your KvK result for K{submission.kingdom_number} was not approved. {review.review_notes or 'Please check the data and try again.'}",
+                link="/submit-result",
+                metadata={
+                    "submission_id": submission_id,
+                    "kingdom_number": submission.kingdom_number,
+                    "review_notes": review.review_notes,
+                }
+            )
+    except Exception as e:
+        logger.warning(f"Failed to notify submitter: {e}")
+    
     return {
         "message": f"Submission {review.status}", 
         "submission_id": submission_id,
@@ -651,6 +702,25 @@ def create_claim(
     db.add(db_claim)
     db.commit()
     db.refresh(db_claim)
+    
+    # Notify admins of new claim
+    try:
+        from api.supabase_client import notify_admins
+        notify_admins(
+            notification_type="admin_new_claim",
+            title="New Kingdom Claim",
+            message=f"Kingdom {claim.kingdom_number} claim submitted - awaiting verification",
+            link="/admin?tab=claims",
+            metadata={
+                "claim_id": db_claim.id,
+                "kingdom_number": claim.kingdom_number,
+                "user_id": user_id,
+                "verification_code": verification_code,
+            }
+        )
+    except Exception as e:
+        logger.warning(f"Failed to notify admins of claim: {e}")
+    
     return db_claim
 
 
@@ -733,6 +803,23 @@ def verify_claim(
     claim.status = "verified"
     claim.verified_at = datetime.now(timezone.utc)
     db.commit()
+    
+    # Notify user their claim was verified
+    try:
+        from api.supabase_client import create_notification
+        create_notification(
+            user_id=claim.user_id,
+            notification_type="claim_verified",
+            title="Kingdom Claim Verified!",
+            message=f"Your claim for Kingdom {claim.kingdom_number} has been verified. You can now customize your kingdom page.",
+            link=f"/kingdom/{claim.kingdom_number}",
+            metadata={
+                "claim_id": claim.id,
+                "kingdom_number": claim.kingdom_number,
+            }
+        )
+    except Exception as e:
+        logger.warning(f"Failed to notify user of verified claim: {e}")
     
     return {"message": "Claim verified", "kingdom_number": claim.kingdom_number}
 

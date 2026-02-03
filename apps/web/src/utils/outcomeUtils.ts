@@ -9,9 +9,9 @@
  * - Invasion: L+L (lost both phases)
  */
 
-export type StandardOutcome = 'Domination' | 'Reversal' | 'Comeback' | 'Invasion';
-export type PrepResult = 'W' | 'L';
-export type BattleResult = 'W' | 'L';
+export type StandardOutcome = 'Domination' | 'Reversal' | 'Comeback' | 'Invasion' | 'Bye';
+export type PrepResult = 'W' | 'L' | 'B';
+export type BattleResult = 'W' | 'L' | 'B';
 
 /**
  * KvK Date reference - all KvK events with their dates
@@ -40,6 +40,9 @@ export function getKvKDate(kvkNumber: number): string | null {
  * Calculate the standard outcome from prep and battle results
  */
 export function calculateOutcome(prep: string, battle: string): StandardOutcome {
+  // Check for Bye first ('B' indicates no opponent)
+  if (prep === 'B' || battle === 'B') return 'Bye';
+  
   const prepWin = prep === 'W' || prep === 'Win';
   const battleWin = battle === 'W' || battle === 'Win';
   

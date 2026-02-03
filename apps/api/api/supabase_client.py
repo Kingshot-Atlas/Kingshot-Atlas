@@ -427,6 +427,115 @@ def get_kvk_history_from_supabase(kingdom_number: int, limit: int = 10) -> list:
         return []
 
 
+def create_notification(
+    user_id: str,
+    notification_type: str,
+    title: str,
+    message: str,
+    link: Optional[str] = None,
+    metadata: Optional[dict] = None,
+) -> bool:
+    """
+    Create a notification for a user.
+    
+    Args:
+        user_id: Supabase user ID to notify
+        notification_type: Type of notification (admin_new_submission, submission_approved, etc.)
+        title: Notification title
+        message: Notification message
+        link: Optional link to navigate to when clicked
+        metadata: Optional additional data
+        
+    Returns:
+        True if successful, False otherwise
+    """
+    client = get_supabase_admin()
+    if not client:
+        print(f"WARNING: Supabase not configured, cannot create notification for {user_id}")
+        return False
+    
+    try:
+        data = {
+            "user_id": user_id,
+            "type": notification_type,
+            "title": title,
+            "message": message,
+            "read": False,
+        }
+        
+        if link:
+            data["link"] = link
+        if metadata:
+            data["metadata"] = metadata
+        
+        result = client.table("notifications").insert(data).execute()
+        return bool(result.data)
+        
+    except Exception as e:
+        print(f"Error creating notification for {user_id}: {e}")
+        return False
+
+
+def notify_admins(
+    notification_type: str,
+    title: str,
+    message: str,
+    link: Optional[str] = None,
+    metadata: Optional[dict] = None,
+) -> int:
+    """
+    Create notifications for all admin users.
+    
+    Args:
+        notification_type: Type of notification
+        title: Notification title
+        message: Notification message
+        link: Optional link to navigate to
+        metadata: Optional additional data
+        
+    Returns:
+        Number of admins notified
+    """
+    client = get_supabase_admin()
+    if not client:
+        print("WARNING: Supabase not configured, cannot notify admins")
+        return 0
+    
+    try:
+        # Get all admin user IDs
+        result = client.table("profiles").select("id").eq("is_admin", True).execute()
+        admin_ids = [row["id"] for row in (result.data or [])]
+        
+        if not admin_ids:
+            print("No admins found to notify")
+            return 0
+        
+        # Create notification for each admin
+        notifications = []
+        for admin_id in admin_ids:
+            notif = {
+                "user_id": admin_id,
+                "type": notification_type,
+                "title": title,
+                "message": message,
+                "read": False,
+            }
+            if link:
+                notif["link"] = link
+            if metadata:
+                notif["metadata"] = metadata
+            notifications.append(notif)
+        
+        # Batch insert
+        client.table("notifications").insert(notifications).execute()
+        print(f"Notified {len(admin_ids)} admins: {title}")
+        return len(admin_ids)
+        
+    except Exception as e:
+        print(f"Error notifying admins: {e}")
+        return 0
+
+
 def get_webhook_stats() -> dict:
     """
     Get webhook health statistics for monitoring.

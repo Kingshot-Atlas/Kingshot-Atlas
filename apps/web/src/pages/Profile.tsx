@@ -568,8 +568,14 @@ const Profile: React.FC = () => {
   }, [viewedProfile, isViewingOther]);
 
   const handleSave = async () => {
-    await updateProfile(editForm);
-    setIsEditing(false);
+    const result = await updateProfile(editForm);
+    if (result.success) {
+      setIsEditing(false);
+      showToast('Profile saved successfully!', 'success');
+    } else {
+      showToast(`Failed to save profile: ${result.error || 'Unknown error'}`, 'error');
+      // Keep edit form open so user can retry
+    }
   };
 
   const handleAllianceTagChange = (value: string) => {
@@ -887,57 +893,6 @@ const Profile: React.FC = () => {
                   >
                     ✏️ Edit Profile
                   </button>
-                  {viewedProfile?.linked_username ? (
-                    <button
-                      onClick={() => {
-                        if (confirm('Are you sure you want to unlink your Kingshot account?')) {
-                          if (updateProfile) {
-                            updateProfile({
-                              ...viewedProfile,
-                              linked_player_id: undefined,
-                              linked_username: undefined,
-                              linked_avatar_url: undefined,
-                              linked_kingdom: undefined,
-                              linked_tc_level: undefined,
-                              linked_last_synced: undefined,
-                            });
-                          }
-                        }
-                      }}
-                      style={{
-                        padding: isMobile ? '0.5rem 0.75rem' : '0.5rem 1rem',
-                        minWidth: isMobile ? '100px' : '120px',
-                        backgroundColor: 'transparent',
-                        border: '1px solid #ef444450',
-                        borderRadius: '8px',
-                        color: '#ef4444',
-                        cursor: 'pointer',
-                        fontSize: isMobile ? '0.75rem' : '0.8rem',
-                        WebkitTapHighlightColor: 'transparent',
-                        transition: 'border-color 0.2s'
-                      }}
-                    >
-                      🔓 Unlink Kingshot
-                    </button>
-                  ) : (
-                    <button
-                      onClick={scrollToLinkSection}
-                      style={{
-                        padding: isMobile ? '0.5rem 0.75rem' : '0.5rem 1rem',
-                        minWidth: isMobile ? '100px' : '120px',
-                        backgroundColor: '#22d3ee15',
-                        border: '1px solid #22d3ee50',
-                        borderRadius: '8px',
-                        color: '#22d3ee',
-                        cursor: 'pointer',
-                        fontSize: isMobile ? '0.75rem' : '0.8rem',
-                        WebkitTapHighlightColor: 'transparent',
-                        transition: 'border-color 0.2s'
-                      }}
-                    >
-                      🔗 Link Account
-                    </button>
-                  )}
                 </div>
                 
                 {/* Centered avatar and username - matching public profile */}
@@ -949,51 +904,15 @@ const Profile: React.FC = () => {
                   textAlign: 'center',
                   paddingTop: isMobile ? '0' : '0'
                 }}>
-                  <div style={{ position: 'relative' }}>
-                    <AvatarWithFallback 
-                      avatarUrl={viewedProfile?.linked_username ? viewedProfile?.linked_avatar_url || undefined : undefined}
-                      username={viewedProfile?.linked_username}
-                      size={isMobile ? 96 : 80}
-                      themeColor={getTierBorderColor(isAdmin ? 'admin' : isRecruiter ? 'recruiter' : isPro ? 'pro' : 'free')}
-                      badgeStyle={viewedProfile?.badge_style}
-                      showGlobeDefault={!viewedProfile?.linked_username}
-                      onClick={!viewedProfile?.linked_username ? scrollToLinkSection : undefined}
-                    />
-                    {/* Refresh data button for linked users */}
-                    {viewedProfile?.linked_username && refreshLinkedPlayer && (
-                      <button
-                        onClick={async () => {
-                          const btn = document.getElementById('refresh-sync-btn');
-                          if (btn) btn.style.animation = 'spin 1s linear infinite';
-                          await refreshLinkedPlayer();
-                          if (btn) btn.style.animation = 'none';
-                          showToast('Player data synced!', 'success');
-                        }}
-                        id="refresh-sync-btn"
-                        title={viewedProfile?.linked_last_synced ? `Last synced: ${new Date(viewedProfile.linked_last_synced).toLocaleString()}` : 'Sync data'}
-                        style={{
-                          position: 'absolute',
-                          bottom: isMobile ? '-4px' : '-2px',
-                          right: isMobile ? '-4px' : '-2px',
-                          width: isMobile ? '28px' : '24px',
-                          height: isMobile ? '28px' : '24px',
-                          borderRadius: '50%',
-                          backgroundColor: '#0a0a0a',
-                          border: '2px solid #22d3ee',
-                          color: '#22d3ee',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          cursor: 'pointer',
-                          fontSize: isMobile ? '0.8rem' : '0.7rem',
-                          padding: 0,
-                          transition: 'all 0.2s'
-                        }}
-                      >
-                        🔄
-                      </button>
-                    )}
-                  </div>
+                  <AvatarWithFallback 
+                    avatarUrl={viewedProfile?.linked_username ? viewedProfile?.linked_avatar_url || undefined : undefined}
+                    username={viewedProfile?.linked_username}
+                    size={isMobile ? 96 : 80}
+                    themeColor={getTierBorderColor(isAdmin ? 'admin' : isRecruiter ? 'recruiter' : isPro ? 'pro' : 'free')}
+                    badgeStyle={viewedProfile?.badge_style}
+                    showGlobeDefault={!viewedProfile?.linked_username}
+                    onClick={!viewedProfile?.linked_username ? scrollToLinkSection : undefined}
+                  />
                   <style>{`
                     @keyframes spin {
                       from { transform: rotate(0deg); }
@@ -1034,6 +953,114 @@ const Profile: React.FC = () => {
                       }}>
                         Signed in with {getAuthProvider(user) === 'discord' ? 'Discord' : 'Google'}
                       </span>
+                    </div>
+                  )}
+                  
+                  {/* Unlink & Refresh buttons - below auth chip */}
+                  {viewedProfile?.linked_username && (
+                    <div style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      marginTop: '0.5rem'
+                    }}>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        {/* Unlink button */}
+                        <button
+                          onClick={async () => {
+                            if (confirm('Are you sure you want to unlink your Kingshot account?')) {
+                              if (updateProfile) {
+                                await updateProfile({
+                                  ...viewedProfile,
+                                  linked_player_id: undefined,
+                                  linked_username: undefined,
+                                  linked_avatar_url: undefined,
+                                  linked_kingdom: undefined,
+                                  linked_tc_level: undefined,
+                                  linked_last_synced: undefined,
+                                });
+                                showToast('Kingshot account unlinked', 'success');
+                              }
+                            }
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = '#ef444430';
+                            e.currentTarget.style.borderColor = '#ef444480';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = '#ef444415';
+                            e.currentTarget.style.borderColor = '#ef444440';
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.4rem',
+                            padding: '0.35rem 0.75rem',
+                            backgroundColor: '#ef444415',
+                            border: '1px solid #ef444440',
+                            borderRadius: '20px',
+                            color: '#ef4444',
+                            cursor: 'pointer',
+                            fontSize: '0.75rem',
+                            fontWeight: '500',
+                            transition: 'all 0.2s'
+                          }}
+                        >
+                          🔓 Unlink Kingshot
+                        </button>
+                        
+                        {/* Refresh button */}
+                        {refreshLinkedPlayer && (
+                          <button
+                            onClick={async () => {
+                              const btn = document.getElementById('refresh-sync-btn');
+                              const icon = document.getElementById('refresh-icon');
+                              if (btn) btn.setAttribute('disabled', 'true');
+                              if (icon) icon.style.animation = 'spin 1s linear infinite';
+                              await refreshLinkedPlayer();
+                              if (icon) icon.style.animation = 'none';
+                              if (btn) btn.removeAttribute('disabled');
+                              showToast('Player data synced!', 'success');
+                            }}
+                            id="refresh-sync-btn"
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = '#22d3ee30';
+                              e.currentTarget.style.borderColor = '#22d3ee80';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = '#22d3ee15';
+                              e.currentTarget.style.borderColor = '#22d3ee40';
+                            }}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.4rem',
+                              padding: '0.35rem 0.75rem',
+                              backgroundColor: '#22d3ee15',
+                              border: '1px solid #22d3ee40',
+                              borderRadius: '20px',
+                              color: '#22d3ee',
+                              cursor: 'pointer',
+                              fontSize: '0.75rem',
+                              fontWeight: '500',
+                              transition: 'all 0.2s'
+                            }}
+                          >
+                            <span id="refresh-icon">🔄</span> Refresh Kingshot
+                          </button>
+                        )}
+                      </div>
+                      {/* Last synced timestamp */}
+                      {viewedProfile?.linked_last_synced && (
+                        <span style={{
+                          fontSize: '0.65rem',
+                          color: '#6b7280',
+                          fontStyle: 'italic'
+                        }}>
+                          Last synced: {new Date(viewedProfile.linked_last_synced).toLocaleString()}
+                        </span>
+                      )}
                     </div>
                   )}
                 </div>

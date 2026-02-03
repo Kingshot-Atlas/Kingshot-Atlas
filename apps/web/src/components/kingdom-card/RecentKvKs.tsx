@@ -27,10 +27,15 @@ const RecentKvKs: React.FC<RecentKvKsProps> = ({ recentKvks }) => {
   return (
     <div style={{ display: 'flex', gap: '4px' }}>
       {recentResults.map((kvk, index) => {
-        const outcome = getOutcome(kvk.prep_result, kvk.battle_result);
-        const outcomeInfo = OUTCOMES[outcome];
-        const prepDisplay = isWinResult(kvk.prep_result) ? 'W' : 'L';
-        const battleDisplay = isWinResult(kvk.battle_result) ? 'W' : 'L';
+        const isByeResult = kvk.overall_result?.toLowerCase() === 'bye' || kvk.prep_result === null || kvk.battle_result === null || kvk.opponent_kingdom === 0 || kvk.prep_result === 'B' || kvk.battle_result === 'B';
+        
+        // Override outcome info for Bye results
+        const byeInfo = { name: 'Bye', abbrev: '⏸️', color: '#6b7280', bgColor: '#6b728020', description: 'No opponent this round' };
+        const outcome = isByeResult ? 'Bye' : getOutcome(kvk.prep_result, kvk.battle_result);
+        const outcomeInfo = isByeResult ? byeInfo : OUTCOMES[outcome];
+        
+        const prepDisplay = isByeResult ? '-' : (isWinResult(kvk.prep_result) ? 'W' : 'L');
+        const battleDisplay = isByeResult ? '-' : (isWinResult(kvk.battle_result) ? 'W' : 'L');
         
         return (
           <div
@@ -76,18 +81,24 @@ const RecentKvKs: React.FC<RecentKvKsProps> = ({ recentKvks }) => {
                 animation: 'fadeIn 0.15s ease'
               }}>
                 <div style={{ fontSize: '0.8rem', color: '#fff', fontWeight: 'bold', marginBottom: '0.5rem', textAlign: 'center' }}>
-                  KvK #{kvk.kvk_number} vs K{kvk.opponent_kingdom}
+                  KvK #{kvk.kvk_number} {isByeResult ? '' : `vs K${kvk.opponent_kingdom}`}
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-around', marginBottom: '0.4rem' }}>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '2px' }}>Prep</div>
-                    <div style={{ fontWeight: 'bold', color: isWinResult(kvk.prep_result) ? '#22c55e' : '#ef4444' }}>{prepDisplay}</div>
+                {isByeResult ? (
+                  <div style={{ textAlign: 'center', color: '#6b7280', fontSize: '0.75rem', marginBottom: '0.4rem' }}>
+                    No match
                   </div>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '2px' }}>Battle</div>
-                    <div style={{ fontWeight: 'bold', color: isWinResult(kvk.battle_result) ? '#22c55e' : '#ef4444' }}>{battleDisplay}</div>
+                ) : (
+                  <div style={{ display: 'flex', justifyContent: 'space-around', marginBottom: '0.4rem' }}>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '2px' }}>Prep</div>
+                      <div style={{ fontWeight: 'bold', color: isWinResult(kvk.prep_result) ? '#22c55e' : '#ef4444' }}>{prepDisplay}</div>
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '2px' }}>Battle</div>
+                      <div style={{ fontWeight: 'bold', color: isWinResult(kvk.battle_result) ? '#22c55e' : '#ef4444' }}>{battleDisplay}</div>
+                    </div>
                   </div>
-                </div>
+                )}
                 <div style={{ 
                   textAlign: 'center', 
                   paddingTop: '0.4rem', 

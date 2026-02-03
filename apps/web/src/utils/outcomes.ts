@@ -46,13 +46,17 @@ export const OUTCOMES: Record<OutcomeType, OutcomeInfo> = {
   }
 };
 
-export const getOutcome = (prepResult: string, battleResult: string): OutcomeType => {
+export const getOutcome = (prepResult: string | null, battleResult: string | null): OutcomeType => {
+  // Handle NULL values (Bye records may have NULL prep/battle results)
+  if (prepResult === null || battleResult === null) return 'Bye';
+  
   const prep = prepResult.toLowerCase();
   const battle = battleResult.toLowerCase();
   const prepWin = prep === 'win' || prep === 'w';
   const battleWin = battle === 'win' || battle === 'w';
   
-  if (prep === 'bye' || battle === 'bye') return 'Bye';
+  // 'B' or 'bye' indicates a Bye
+  if (prep === 'bye' || battle === 'bye' || prep === 'b' || battle === 'b') return 'Bye';
   if (prepWin && battleWin) return 'Domination';
   if (prepWin && !battleWin) return 'Reversal';
   if (!prepWin && battleWin) return 'Comeback';

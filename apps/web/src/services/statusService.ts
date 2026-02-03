@@ -45,7 +45,7 @@ class StatusService {
     notes: string,
     userId: string
   ): Promise<StatusSubmission> {
-    // Try Supabase first if configured
+    // Always try Supabase first - this is the source of truth
     if (isSupabaseConfigured && supabase) {
       try {
         const { data, error } = await supabase
@@ -60,7 +60,13 @@ class StatusService {
           .select()
           .single();
 
-        if (!error && data) {
+        if (error) {
+          logger.error('Supabase status submission failed:', error.message);
+          throw new Error(`Failed to submit: ${error.message}`);
+        }
+
+        if (data) {
+          logger.info(`Status submission created in Supabase for K${kingdomNumber}`);
           return {
             id: data.id,
             kingdom_number: data.kingdom_number,
@@ -72,14 +78,14 @@ class StatusService {
             status: data.status
           };
         }
-        // Fall through to localStorage if Supabase fails
-        logger.warn('Supabase submission failed, using localStorage:', error);
       } catch (err) {
-        logger.warn('Supabase submission error, using localStorage:', err);
+        logger.error('Supabase submission error:', err);
+        throw err; // Re-throw to surface error to user
       }
     }
 
-    // Fallback to localStorage
+    // Fallback to localStorage only if Supabase is not configured
+    logger.warn('Supabase not configured - using localStorage (submissions will be local only)');
     const submission: StatusSubmission = {
       id: `sub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       kingdom_number: kingdomNumber,
@@ -141,8 +147,28 @@ class StatusService {
     );
   }
 
-  // Admin functions (for future implementation)
+  // Admin functions - use Supabase as source of truth
   async approveSubmission(submissionId: string, reviewerId: string, reviewNotes?: string): Promise<void> {
+    if (isSupabaseConfigured && supabase) {
+      const { error } = await supabase
+        .from('status_submissions')
+        .update({
+          status: 'approved',
+          reviewed_by: reviewerId,
+          reviewed_at: new Date().toISOString(),
+          review_notes: reviewNotes
+        })
+        .eq('id', submissionId);
+
+      if (error) {
+        logger.error('Failed to approve submission in Supabase:', error.message);
+        throw new Error(`Failed to approve: ${error.message}`);
+      }
+      logger.info(`Status submission ${submissionId} approved`);
+      return;
+    }
+
+    // Fallback to localStorage
     const submissions = this.getSubmissions();
     const index = submissions.findIndex(s => s.id === submissionId);
     
@@ -160,6 +186,26 @@ class StatusService {
   }
 
   async rejectSubmission(submissionId: string, reviewerId: string, reviewNotes?: string): Promise<void> {
+    if (isSupabaseConfigured && supabase) {
+      const { error } = await supabase
+        .from('status_submissions')
+        .update({
+          status: 'rejected',
+          reviewed_by: reviewerId,
+          reviewed_at: new Date().toISOString(),
+          review_notes: reviewNotes
+        })
+        .eq('id', submissionId);
+
+      if (error) {
+        logger.error('Failed to reject submission in Supabase:', error.message);
+        throw new Error(`Failed to reject: ${error.message}`);
+      }
+      logger.info(`Status submission ${submissionId} rejected`);
+      return;
+    }
+
+    // Fallback to localStorage
     const submissions = this.getSubmissions();
     const index = submissions.findIndex(s => s.id === submissionId);
     
@@ -174,6 +220,56 @@ class StatusService {
       };
       this.saveSubmissions(submissions);
     }
+  }
+
+  /**
+   * Fetch all submissions from Supabase (admin only)
+   * Falls back to localStorage if Supabase is not configured
+   */
+  async fetchAllSubmissions(statusFilter?: 'pending' | 'approved' | 'rejected' | 'all'): Promise<StatusSubmission[]> {
+    if (isSupabaseConfigured && supabase) {
+      try {
+        let query = supabase
+          .from('status_submissions')
+          .select('*')
+          .order('submitted_at', { ascending: false });
+
+        if (statusFilter && statusFilter !== 'all') {
+          query = query.eq('status', statusFilter);
+        }
+
+        const { data, error } = await query;
+
+        if (error) {
+          logger.error('Failed to fetch submissions from Supabase:', error.message);
+          throw new Error(`Failed to fetch: ${error.message}`);
+        }
+
+        return (data || []).map(d => ({
+          id: d.id,
+          kingdom_number: d.kingdom_number,
+          old_status: d.old_status,
+          new_status: d.new_status,
+          notes: d.notes || '',
+          submitted_by: d.submitted_by,
+          submitted_at: d.submitted_at,
+          status: d.status,
+          reviewed_by: d.reviewed_by,
+          reviewed_at: d.reviewed_at,
+          review_notes: d.review_notes
+        }));
+      } catch (err) {
+        logger.error('Error fetching submissions:', err);
+        throw err;
+      }
+    }
+
+    // Fallback to localStorage
+    const all = this.getSubmissions();
+    if (statusFilter && statusFilter !== 'all') {
+      return all.filter(s => s.status === statusFilter);
+    }
+    return all;
   }
 
   getAllPendingSubmissions(): StatusSubmission[] {

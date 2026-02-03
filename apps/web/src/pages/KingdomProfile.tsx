@@ -591,9 +591,15 @@ const KingdomProfile: React.FC = () => {
           {/* Prep Phase Card */}
           {(() => {
             const sortedKvks = [...(kingdom.recent_kvks || [])].sort((a, b) => b.kvk_number - a.kvk_number);
+            // Filter out Byes - they don't affect streaks
+            const isByeResult = (kvk: typeof sortedKvks[0]) => 
+              kvk.prep_result?.toLowerCase() === 'bye' || 
+              kvk.battle_result?.toLowerCase() === 'bye' || 
+              kvk.overall_result?.toLowerCase() === 'bye';
+            const nonByeKvks = sortedKvks.filter(kvk => !isByeResult(kvk));
             let prepStreak = 0;
             let prepStreakType = '';
-            for (const kvk of sortedKvks) {
+            for (const kvk of nonByeKvks) {
               const isWin = kvk.prep_result === 'Win' || kvk.prep_result === 'W';
               if (prepStreak === 0) { prepStreakType = isWin ? 'W' : 'L'; prepStreak = 1; }
               else if ((isWin && prepStreakType === 'W') || (!isWin && prepStreakType === 'L')) { prepStreak++; }
@@ -688,9 +694,15 @@ const KingdomProfile: React.FC = () => {
           {/* Battle Phase Card */}
           {(() => {
             const sortedKvks = [...(kingdom.recent_kvks || [])].sort((a, b) => b.kvk_number - a.kvk_number);
+            // Filter out Byes - they don't affect streaks
+            const isByeResult = (kvk: typeof sortedKvks[0]) => 
+              kvk.prep_result?.toLowerCase() === 'bye' || 
+              kvk.battle_result?.toLowerCase() === 'bye' || 
+              kvk.overall_result?.toLowerCase() === 'bye';
+            const nonByeKvks = sortedKvks.filter(kvk => !isByeResult(kvk));
             let battleStreak = 0;
             let battleStreakType = '';
-            for (const kvk of sortedKvks) {
+            for (const kvk of nonByeKvks) {
               const isWin = kvk.battle_result === 'Win' || kvk.battle_result === 'W';
               if (battleStreak === 0) { battleStreakType = isWin ? 'W' : 'L'; battleStreak = 1; }
               else if ((isWin && battleStreakType === 'W') || (!isWin && battleStreakType === 'L')) { battleStreak++; }
@@ -859,9 +871,13 @@ const KingdomProfile: React.FC = () => {
                 </thead>
                 <tbody>
                   {allKvks.map((kvk, index) => {
-                    const outcomeStyle = getOutcomeStyle(kvk.prep_result, kvk.battle_result);
                     const isWin = (r: string) => r === 'Win' || r === 'W';
-                    const outcomeLetter = getOutcomeLetter(kvk.prep_result, kvk.battle_result);
+                    const isByeResult = kvk.overall_result?.toLowerCase() === 'bye' || kvk.prep_result === null || kvk.battle_result === null || kvk.opponent_kingdom === 0 || kvk.prep_result === 'B' || kvk.battle_result === 'B';
+                    
+                    // Override outcome style and letter for Bye results
+                    const byeStyle = { bg: '#6b728020', text: '#6b7280', label: 'Bye', description: 'No opponent this round' };
+                    const outcomeStyle = isByeResult ? byeStyle : getOutcomeStyle(kvk.prep_result, kvk.battle_result);
+                    const outcomeLetter = isByeResult ? '⏸️' : getOutcomeLetter(kvk.prep_result, kvk.battle_result);
                     
                     return (
                       <tr 
@@ -877,36 +893,46 @@ const KingdomProfile: React.FC = () => {
                           {kvk.kvk_number}
                         </td>
                         <td style={{ padding: isMobile ? '0.5rem 0.35rem' : '0.65rem 0.5rem' }}>
-                          <span 
-                            onClick={() => navigate(`/kingdom/${kvk.opponent_kingdom}`)}
-                            style={{ 
-                              color: '#22d3ee', 
-                              cursor: 'pointer',
+                          {isByeResult ? (
+                            <span style={{ 
+                              color: '#6b7280', 
                               fontSize: isMobile ? '0.75rem' : '0.85rem',
-                              textDecoration: 'none'
-                            }}
-                            onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
-                            onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
-                          >
-                            {`Kingdom ${kvk.opponent_kingdom}`}
+                              fontStyle: 'italic'
+                            }}>
+                              No match
+                            </span>
+                          ) : (
+                            <span 
+                              onClick={() => navigate(`/kingdom/${kvk.opponent_kingdom}`)}
+                              style={{ 
+                                color: '#22d3ee', 
+                                cursor: 'pointer',
+                                fontSize: isMobile ? '0.75rem' : '0.85rem',
+                                textDecoration: 'none'
+                              }}
+                              onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
+                              onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
+                            >
+                              {`Kingdom ${kvk.opponent_kingdom}`}
+                            </span>
+                          )}
+                        </td>
+                        <td style={{ padding: isMobile ? '0.5rem 0.35rem' : '0.65rem 0.5rem', textAlign: 'center' }}>
+                          <span style={{ 
+                            color: isByeResult ? '#6b7280' : (isWin(kvk.prep_result) ? '#22c55e' : '#ef4444'), 
+                            fontWeight: '600',
+                            fontSize: isMobile ? '0.75rem' : '0.85rem'
+                          }}>
+                            {isByeResult ? '-' : (isWin(kvk.prep_result) ? 'W' : 'L')}
                           </span>
                         </td>
                         <td style={{ padding: isMobile ? '0.5rem 0.35rem' : '0.65rem 0.5rem', textAlign: 'center' }}>
                           <span style={{ 
-                            color: isWin(kvk.prep_result) ? '#22c55e' : '#ef4444', 
+                            color: isByeResult ? '#6b7280' : (isWin(kvk.battle_result) ? '#22c55e' : '#ef4444'), 
                             fontWeight: '600',
                             fontSize: isMobile ? '0.75rem' : '0.85rem'
                           }}>
-                            {isWin(kvk.prep_result) ? 'W' : 'L'}
-                          </span>
-                        </td>
-                        <td style={{ padding: isMobile ? '0.5rem 0.35rem' : '0.65rem 0.5rem', textAlign: 'center' }}>
-                          <span style={{ 
-                            color: isWin(kvk.battle_result) ? '#22c55e' : '#ef4444', 
-                            fontWeight: '600',
-                            fontSize: isMobile ? '0.75rem' : '0.85rem'
-                          }}>
-                            {isWin(kvk.battle_result) ? 'W' : 'L'}
+                            {isByeResult ? '-' : (isWin(kvk.battle_result) ? 'W' : 'L')}
                           </span>
                         </td>
                         <td style={{ padding: isMobile ? '0.5rem 0.35rem' : '0.65rem 0.5rem', textAlign: 'center' }}>

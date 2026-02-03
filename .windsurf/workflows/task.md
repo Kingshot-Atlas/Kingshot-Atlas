@@ -102,50 +102,36 @@ Add row with: Feature | Status | Date | Agent | Notes
 - What was done
 - Why it was done
 - Files changed
-- **1 suggested next step** (the most impactful one, with 5 tasks)
-  - **MUST include a short explanation of WHY it's suggested** (business value, user impact, or technical debt reduction)
 
-## 9. Recommended Next Steps Library
+## 8. Generate Dynamic Suggestions
+Based on the completed task, generate **1 suggested next step** with 5 sub-tasks.
 
-### A. Email Notification System
-**WHY:** Reduces churn by 15-25%. Users who receive timely emails have 3x higher retention. Critical for subscription businesses.
-1. Set up transactional email service (Resend/SendGrid)
-2. Send welcome email on subscription start
-3. Send renewal reminder 3 days before billing
-4. Send cancellation confirmation with win-back offer
-5. Add email templates to codebase
+### Rules for Suggestions
+- **Must be contextually related** to what was just completed
+- **Must include WHY** — business value, user impact, or tech debt reduction
+- **Prioritize by impact:** Revenue > User Experience > Technical Debt > Nice-to-Have
 
-### B. Webhook Event Logging & Monitoring
-**WHY:** Without webhook visibility, you're blind to payment failures. 5-10% of payments fail silently without proper monitoring.
-1. Log all Stripe webhook events to database
-2. Create webhook events tab in admin dashboard
-3. Add retry queue for failed webhook deliveries
-4. Add event filtering and search
-5. Add webhook health status indicator
+### Suggestion Categories (pick the most relevant)
+| Just Completed | Suggest Next |
+|----------------|---------------|
+| New feature | Polish, testing, or analytics for that feature |
+| Bug fix | Related hardening, monitoring, or similar bug class fixes |
+| API work | Client integration, error handling, or documentation |
+| UI component | Accessibility, responsive design, or related components |
+| Database change | Data validation, migration testing, or backup strategy |
+| Security fix | Audit related areas, add tests, or monitoring |
+| Performance | Measure impact, extend to similar areas, or add benchmarks |
 
-### C. A/B Testing Framework
-**WHY:** Enables data-driven decisions. Companies with A/B testing grow 2x faster because they validate changes before full rollout.
-1. Create feature flag system in PremiumContext
-2. Add A/B test assignment and tracking
-3. Build experiment dashboard in admin
-4. Add statistical significance calculator
-5. Create variant performance comparison view
-
-### D. Advanced Revenue Analytics
-**WHY:** Understanding revenue patterns predicts problems before they happen. MRR trends, expansion revenue, and contraction signal business health.
-1. Add expansion/contraction MRR tracking
-2. Build revenue cohort analysis
-3. Add trial-to-paid conversion tracking
-4. Create revenue attribution by source
-5. Add revenue alerts (anomaly detection)
-
-### E. User Feedback Collection
-**WHY:** Direct user feedback has 10x more signal than analytics. NPS scores predict churn 6 months in advance.
-1. Add in-app feedback widget
-2. Create NPS survey system
-3. Build feature request voting board
-4. Add bug report submission flow
-5. Create feedback analytics dashboard
+### Format
+```
+**Suggested Next: [Title]**
+WHY: [1-2 sentences on business/user impact]
+1. [Task 1]
+2. [Task 2]
+3. [Task 3]
+4. [Task 4]
+5. [Task 5]
+```
 
 ## 9. Vision Alignment Check
 Before delivering, verify:
@@ -154,16 +140,32 @@ Before delivering, verify:
 - [ ] Does this align with competitive-but-fair values?
 - [ ] Would core users find this valuable?
 
-## 10. MANDATORY: Commit & Deploy Check
-**CRITICAL: Before ending ANY session, run this:**
+## 10. MANDATORY: Local Build Verification
+**CRITICAL: Before ending ANY task, verify the build works locally.**
+
 // turbo
 ```bash
-git status
+cd /Users/giovanni/projects/ai/Kingshot\ Atlas/apps/web && npm run build
 ```
 
-If there are uncommitted changes:
-1. `git add -A`
-2. `git commit -m "descriptive message"`
-3. `git push origin main`
+### If build fails:
+1. Fix errors before marking task complete
+2. Re-run build to verify fix
+3. Document any gotchas in `LATEST_KNOWLEDGE.md`
 
-**WHY THIS MATTERS:** Uncommitted changes are invisible to production. Work that isn't pushed doesn't exist to users. This step prevents the "it works locally but not in production" problem.
+### If build succeeds:
+- Task is complete
+- Changes remain local (uncommitted)
+- Ready for user review
+
+## 11. Commit & Deploy (ONLY WHEN EXPLICITLY REQUESTED)
+**DO NOT run this automatically. Only when user says "commit", "deploy", or "ship".**
+
+```bash
+git status
+git add -A
+git commit -m "descriptive message"
+git push origin main
+```
+
+**Note:** Production deployment happens via CI/CD after push to main.

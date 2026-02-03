@@ -18,8 +18,10 @@ This document outlines the monitoring setup for Kingshot Atlas, including uptime
 | Monitor Name | URL | Check Interval | Alert Threshold |
 |--------------|-----|----------------|-----------------|
 | KS Atlas - Homepage | `https://ks-atlas.com/` | 5 min | 2 failures |
-| KS Atlas - API Health | `https://api.ks-atlas.com/health` | 5 min | 2 failures |
-| KS Atlas - Kingdoms API | `https://api.ks-atlas.com/api/kingdoms?page_size=1` | 5 min | 3 failures |
+| KS Atlas - API Health | `https://kingshot-atlas.onrender.com/health` | 5 min | 2 failures |
+| KS Atlas - Kingdoms API | `https://kingshot-atlas.onrender.com/api/kingdoms?page_size=1` | 5 min | 3 failures |
+
+> ⚠️ **IMPORTANT:** The API URL is `kingshot-atlas.onrender.com` (NOT `kingshot-atlas-api`)
 
 ### Setup Instructions
 

@@ -138,6 +138,7 @@
 | IndexedDB Caching | ✅ Live | Platform | `kvkHistoryService.ts` - Offline support with 1-hour TTL |
 | User Correction Stats | ✅ Live | Platform | `UserCorrectionStats.tsx` - profile correction tracking |
 | KvK Realtime Updates | ✅ Live | Platform | `useKingdomsRealtime.ts` - Supabase Realtime for instant kvk_history updates |
+| KvK Bye Outcome Support | ✅ Live | Platform | Bye outcomes display with gray "-" for Prep/Battle, "No match" for opponent, zero Atlas Score impact (2026-02-03) |
 
 ---
 

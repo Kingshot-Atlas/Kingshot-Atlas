@@ -12,8 +12,8 @@ export interface KvKHistoryRecord {
   kingdom_number: number;
   kvk_number: number;
   opponent_kingdom: number;
-  prep_result: 'W' | 'L';
-  battle_result: 'W' | 'L';
+  prep_result: 'W' | 'L' | 'B';
+  battle_result: 'W' | 'L' | 'B';
   overall_result: string;
   kvk_date: string | null;
   order_index: number;
@@ -272,8 +272,13 @@ class KvKHistoryService {
       const correctionKey = `${kingdomNumber}-${row.kvk_number}`;
       const correction = this.corrections?.get(correctionKey);
 
-      const prepResult = correction ? correction.corrected_prep_result as 'W' | 'L' : row.prep_result;
-      const battleResult = correction ? correction.corrected_battle_result as 'W' | 'L' : row.battle_result;
+      const prepResult = correction ? correction.corrected_prep_result as 'W' | 'L' | 'B' : row.prep_result;
+      const battleResult = correction ? correction.corrected_battle_result as 'W' | 'L' | 'B' : row.battle_result;
+      
+      // Check for Bye BEFORE normalizing - Bye records have prep/battle='B' or overall_result='Bye'
+      const isBye = prepResult === 'B' || battleResult === 'B' || 
+                    row.overall_result?.toLowerCase() === 'bye' || 
+                    row.opponent_kingdom === 0;
       
       const record: KvKHistoryRecord = {
         kingdom_number: kingdomNumber,
@@ -281,8 +286,8 @@ class KvKHistoryService {
         opponent_kingdom: row.opponent_kingdom,
         prep_result: prepResult,
         battle_result: battleResult,
-        // Always normalize outcome to standard naming (Domination/Reversal/Comeback/Invasion)
-        overall_result: normalizeOutcome(row.overall_result, prepResult, battleResult),
+        // For Bye, preserve 'Bye' as overall_result; otherwise normalize
+        overall_result: isBye ? 'Bye' : normalizeOutcome(row.overall_result, prepResult, battleResult),
         kvk_date: row.kvk_date,
         order_index: row.order_index,
       };

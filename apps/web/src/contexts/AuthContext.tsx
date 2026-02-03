@@ -52,7 +52,7 @@ interface AuthContextType {
   signInWithEmail: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signUpWithEmail: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
-  updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
+  updateProfile: (updates: Partial<UserProfile>) => Promise<{ success: boolean; error?: string }>;
   refreshLinkedPlayer: () => Promise<void>;
 }
 
@@ -401,8 +401,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.removeItem(PROFILE_KEY);
   };
 
-  const updateProfile = async (updates: Partial<UserProfile>) => {
-    if (!user) return;
+  const updateProfile = async (updates: Partial<UserProfile>): Promise<{ success: boolean; error?: string }> => {
+    if (!user) return { success: false, error: 'Not logged in' };
 
     if (updates.alliance_tag) {
       updates.alliance_tag = updates.alliance_tag.slice(0, 3).toUpperCase();
@@ -414,7 +414,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.setItem(PROFILE_KEY, JSON.stringify(localUpdate));
 
     if (!supabase) {
-      return;
+      return { success: true }; // Local-only mode
     }
 
     // Send updates to Supabase, filtering out fields that don't exist in the database
@@ -437,12 +437,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         .eq('id', user.id);
 
       if (error) {
-        logger.debug('Profile sync skipped:', error.message);
-        // Local update already applied, so user sees changes
+        logger.error('Profile update failed:', error.message);
+        // Revert optimistic update on failure
+        if (profile) {
+          setProfile(profile);
+          localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+        }
+        return { success: false, error: error.message };
       } else {
         logger.info('Profile updated in Supabase:', dbUpdates);
+        return { success: true };
       }
     }
+    
+    return { success: true };
   };
 
   const refreshLinkedPlayer = async () => {

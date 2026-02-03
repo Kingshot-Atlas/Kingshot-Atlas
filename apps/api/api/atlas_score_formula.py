@@ -357,11 +357,23 @@ def extract_stats_from_kingdom(kingdom_data: dict, kvk_records: List[dict] = Non
     # Sort KvK records by kvk_number descending (most recent first)
     sorted_kvks = sorted(kvk_records or [], key=lambda x: x.get('kvk_number', 0), reverse=True)
     
-    # Calculate current streaks from recent KvKs
+    # Helper to check if a result is a Bye (doesn't affect stats)
+    def is_bye(result: str) -> bool:
+        return result and result.lower() == 'bye'
+    
+    # Filter out Bye results for calculations - Byes don't affect Atlas Score
+    non_bye_kvks = [
+        kvk for kvk in sorted_kvks
+        if not is_bye(kvk.get('prep_result', '')) 
+        and not is_bye(kvk.get('battle_result', ''))
+        and not is_bye(kvk.get('overall_result', ''))
+    ]
+    
+    # Calculate current streaks from recent KvKs (skip Byes - they don't break streaks)
     current_prep_streak = 0
     current_battle_streak = 0
     
-    for kvk in sorted_kvks:
+    for kvk in non_bye_kvks:
         prep_win = kvk.get('prep_result', '').upper() in ('W', 'WIN')
         if current_prep_streak == 0:
             current_prep_streak = 1 if prep_win else -1
@@ -371,7 +383,7 @@ def extract_stats_from_kingdom(kingdom_data: dict, kvk_records: List[dict] = Non
             break
     
     # Reset for battle streak
-    for kvk in sorted_kvks:
+    for kvk in non_bye_kvks:
         battle_win = kvk.get('battle_result', '').upper() in ('W', 'WIN')
         if current_battle_streak == 0:
             current_battle_streak = 1 if battle_win else -1
@@ -380,9 +392,9 @@ def extract_stats_from_kingdom(kingdom_data: dict, kvk_records: List[dict] = Non
         else:
             break
     
-    # Get recent outcomes (most recent first)
+    # Get recent outcomes (most recent first, excluding Byes)
     recent_outcomes = []
-    for kvk in sorted_kvks[:5]:
+    for kvk in non_bye_kvks[:5]:
         prep_result = kvk.get('prep_result', 'L')
         battle_result = kvk.get('battle_result', 'L')
         recent_outcomes.append(get_kvk_outcome(prep_result, battle_result))
