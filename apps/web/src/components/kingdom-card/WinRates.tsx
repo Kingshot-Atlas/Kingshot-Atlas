@@ -58,7 +58,7 @@ const WinRates: React.FC<WinRatesProps> = ({
           {prepWins}W – {prepLosses}L
         </div>
         {prepStreak >= 2 && (
-          <div style={{ fontSize: '0.7rem', color: '#eab308', marginBottom: '0.25rem' }}>
+          <div style={{ fontSize: '0.7rem', color: '#22c55e', marginBottom: '0.25rem' }}>
             Current Streak: {prepStreak}W
           </div>
         )}
@@ -103,7 +103,7 @@ const WinRates: React.FC<WinRatesProps> = ({
           {battleWins}W – {battleLosses}L
         </div>
         {battleStreak >= 2 && (
-          <div style={{ fontSize: '0.7rem', color: '#f97316', marginBottom: '0.25rem' }}>
+          <div style={{ fontSize: '0.7rem', color: '#22c55e', marginBottom: '0.25rem' }}>
             Current Streak: {battleStreak}W
           </div>
         )}

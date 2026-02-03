@@ -121,8 +121,8 @@ export const getTierColor = (tier: 'S' | 'A' | 'B' | 'C' | 'D' | string): string
  */
 export const getStatusColor = (status: string): string => {
   switch (status) {
-    case 'Leading': return colors.gold;
-    case 'Ordinary': return colors.textSecondary;
+    case 'Leading': return '#fbbf24';  // Golden
+    case 'Ordinary': return '#c0c0c0'; // Silver
     case 'Unannounced': return colors.error;
     default: return colors.error;
   }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, memo, useMemo } from 'react';
+import React, { useState, useEffect, useRef, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Kingdom, getPowerTier } from '../types';
 import { neonGlow, colors, radius, shadows, transition } from '../utils/styles';
@@ -13,7 +13,7 @@ import {
   CardActions, 
   TransferStatus 
 } from './kingdom-card';
-import MiniRadarChart from './MiniRadarChart';
+// MiniRadarChart removed - replaced with missing data chip
 
 interface KingdomCardProps {
   kingdom: Kingdom;
@@ -38,7 +38,7 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
   const { trackFeature } = useAnalytics();
   const [isHovered, setIsHovered] = useState(false);
   const [showAtlasTooltip, setShowAtlasTooltip] = useState(false);
-  const [showMiniRadar, setShowMiniRadar] = useState(false);
+  const [showMissingDataTooltip, setShowMissingDataTooltip] = useState(false);
   const [animatedScore, setAnimatedScore] = useState(0);
   const [hasAnimated, setHasAnimated] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -90,19 +90,7 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
   const powerTier = kingdom.power_tier ?? getPowerTier(kingdom.overall_score);
 
   // Check if any tooltip is showing for z-index
-  const hasActiveTooltip = showAtlasTooltip || showMiniRadar;
-  
-  // Mini radar data - memoized
-  const miniRadarData = useMemo(() => {
-    const totalKvks = kingdom.total_kvks || 1;
-    return [
-      { label: 'Prep', value: Math.round(kingdom.prep_win_rate * 100) },
-      { label: 'Battle', value: Math.round(kingdom.battle_win_rate * 100) },
-      { label: 'Dom', value: Math.round(((kingdom.dominations ?? 0) / totalKvks) * 100) },
-      { label: 'Exp', value: Math.min(100, Math.round((totalKvks / 10) * 100)) },
-      { label: 'Resil', value: Math.max(0, 100 - Math.round(((kingdom.invasions ?? kingdom.defeats ?? 0) / totalKvks) * 100)) },
-    ];
-  }, [kingdom.prep_win_rate, kingdom.battle_win_rate, kingdom.dominations, kingdom.invasions, kingdom.defeats, kingdom.total_kvks]);
+  const hasActiveTooltip = showAtlasTooltip || showMissingDataTooltip;
 
   return (
     <div
@@ -210,62 +198,55 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
           )}
         </div>
         
-        {/* Mini Radar Chart - shows on hover, clickable to profile */}
+        {/* Missing KvK Data Chip - shows when latest KvK data is not yet available */}
         {!isMobile && (
           <div 
             style={{ marginLeft: 'auto', position: 'relative' }}
-            onMouseEnter={() => setShowMiniRadar(true)}
-            onMouseLeave={() => setShowMiniRadar(false)}
+            onMouseEnter={() => setShowMissingDataTooltip(true)}
+            onMouseLeave={() => setShowMissingDataTooltip(false)}
           >
             <div 
-              onClick={(e) => {
-                e.stopPropagation();
-                trackFeature('Quick Insights Click', { kingdom: kingdom.kingdom_number });
-                navigate(`/kingdom/${kingdom.kingdom_number}#performance`);
-              }}
               style={{ 
-                cursor: 'pointer',
-                opacity: isHovered ? 1 : 0.5,
-                transition: transition.fast
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.25rem',
+                padding: '0.2rem 0.5rem',
+                borderRadius: '4px',
+                backgroundColor: `${colors.warning}15`,
+                border: `1px solid ${colors.warning}40`,
+                fontSize: '0.6rem',
+                fontWeight: 500,
+                color: colors.warning,
+                cursor: 'default'
               }}
-              title=""
             >
-              <MiniRadarChart data={miniRadarData} size={50} accentColor={colors.primary} />
+              ⏳ Awaiting KvK 10
             </div>
             
-            {showMiniRadar && (
+            {showMissingDataTooltip && (
               <div 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigate(`/kingdom/${kingdom.kingdom_number}#performance`);
-                }}
                 style={{
                   position: 'absolute',
                   bottom: '100%',
                   right: 0,
                   marginBottom: '0.5rem',
                   backgroundColor: colors.bg,
-                  border: `1px solid ${colors.primary}`,
+                  border: `1px solid ${colors.warning}`,
                   borderRadius: '6px',
                   padding: '0.5rem 0.75rem',
                   boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
                   zIndex: 1000,
                   whiteSpace: 'nowrap',
                   fontSize: '0.65rem',
-                  color: colors.textSecondary,
-                  cursor: 'pointer'
+                  color: colors.textSecondary
                 }}
               >
-                <div style={{ fontWeight: '600', color: colors.primary, marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  Quick Insights
-                  <span style={{ fontSize: '0.6rem', color: colors.textMuted }}>→ View Full</span>
+                <div style={{ fontWeight: '600', color: colors.warning, marginBottom: '0.25rem' }}>
+                  Missing Latest KvK Data
                 </div>
-                {miniRadarData.map((d, i) => (
-                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>
-                    <span>{d.label}:</span>
-                    <span style={{ color: colors.text, fontWeight: '500' }}>{d.value}%</span>
-                  </div>
-                ))}
+                <div style={{ color: colors.textMuted }}>
+                  Results from the latest KvK have not been submitted yet
+                </div>
               </div>
             )}
           </div>

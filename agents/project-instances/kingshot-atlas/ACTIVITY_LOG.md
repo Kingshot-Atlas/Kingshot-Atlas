@@ -9,6 +9,17 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-03 01:46 | Product Engineer | COMPLETED
+Task: Update streak colors and fix CI artifact warnings
+Files:
+  - apps/web/src/components/kingdom-card/WinRates.tsx
+  - .github/workflows/ci.yml
+Result:
+  - Prep streak now shows in yellow (#eab308) instead of green
+  - Battle streak now shows in orange (#f97316) instead of green
+  - Reformatted display: "Current Streak: XW" on separate line, always show "Best Streak: XW"
+  - CI fix: Added !cancelled() conditions and if-no-files-found: ignore for artifact uploads
+
 ## 2026-02-02 21:15 | Product Engineer | COMPLETED
 Task: Add refresh button, wire up achievement tracking system
 Files:
