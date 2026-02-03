@@ -9,6 +9,29 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-03 22:15 | Platform Engineer | COMPLETED
+Task: Unify contributor stats to aggregate all 5 submission tables
+Context: contributor_stats table was unused; user_correction_stats view was redundant
+Changes:
+  - Updated ContributorStats interface with SubmissionCounts type and totals aggregate
+  - getContributorStats now queries all 5 tables in parallel: status_submissions, kvk_corrections, kvk_submissions, data_corrections, kvk_errors
+  - Updated getLeaderboard to count approvals from all 5 tables
+  - Fixed SubmissionHistory.tsx and ContributorLeaderboard.tsx to use new totals property
+  - Dropped user_correction_stats view in Supabase (redundant with computed stats)
+Database:
+  - Applied migration: drop_user_correction_stats_view
+Security:
+  - Ran security test: 78/100 score
+  - Pre-existing issues: RLS disabled on app_config, 22 functions missing search_path
+  - No new vulnerabilities introduced
+Files:
+  - apps/web/src/services/contributorService.ts (major refactor)
+  - apps/web/src/components/SubmissionHistory.tsx (use totals)
+  - apps/web/src/components/ContributorLeaderboard.tsx (use totals)
+  - docs/migrations/create_data_corrections.sql (new)
+  - docs/migrations/create_kvk_errors.sql (new)
+Result: Deployed to production via git push
+
 ## 2026-02-03 21:45 | Platform Engineer | COMPLETED
 Task: Investigate mobile Discord login opening browser instead of Discord app
 Root Cause: Discord intentionally does NOT support OAuth deep linking to mobile app (official Discord policy - security reasons)
