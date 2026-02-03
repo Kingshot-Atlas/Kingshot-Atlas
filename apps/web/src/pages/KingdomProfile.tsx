@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { KingdomProfile as KingdomProfileType, getPowerTier, getTierDescription as getCentralizedTierDescription, type PowerTier } from '../types';
+import { incrementStat } from '../components/UserAchievements';
 // Note: Atlas Score comes from Supabase (kingdom.overall_score) - DO NOT recalculate client-side
 import { apiService, dataLoadError } from '../services/api';
 import { DataLoadError } from '../components/DataLoadError';
@@ -86,10 +87,14 @@ const KingdomProfile: React.FC = () => {
       const all = await apiService.getKingdoms();
       setAllKingdoms(all as unknown as KingdomProfileType[]);
       
-      // Save to recently viewed
+      // Save to recently viewed and track achievement
       const recentKey = 'kingshot_recently_viewed';
       const saved = localStorage.getItem(recentKey);
       let recent: number[] = saved ? JSON.parse(saved) : [];
+      // Only increment stat if this is a new kingdom view
+      if (!recent.includes(id)) {
+        incrementStat('kingdomsViewed');
+      }
       recent = [id, ...recent.filter(k => k !== id)].slice(0, 10);
       localStorage.setItem(recentKey, JSON.stringify(recent));
     } catch (error) {

@@ -9,6 +9,57 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-02 21:15 | Product Engineer | COMPLETED
+Task: Add refresh button, wire up achievement tracking system
+Files:
+  - apps/web/src/pages/Profile.tsx (refresh data button on avatar)
+  - apps/web/src/components/ShareButton.tsx (track linksShared)
+  - apps/web/src/pages/KingdomProfile.tsx (track kingdomsViewed)
+  - apps/web/src/pages/CompareKingdoms.tsx (track kingdomsCompared)
+  - apps/web/src/pages/Leaderboards.tsx (track leaderboardViews)
+Result:
+  - Refresh button (🔄) appears on avatar for linked users
+  - Achievement tracking now active for: kingdom views, comparisons, link shares, leaderboard views
+  - UserAchievements component already displayed on profile page
+  - Stats persist in localStorage and update in real-time
+
+## 2026-02-02 20:55 | Product Engineer | COMPLETED
+Task: Clean up My Profile layout - remove redundant elements
+Files:
+  - apps/web/src/pages/Profile.tsx
+Result:
+  - Removed "Kingdom 172" link below avatar (data already in 2x3 grid)
+  - Removed redundant Linked Kingshot Account card for linked users
+  - Avatar border now uses tier colors: white=free, cyan=Pro, purple=Recruiter, red=Admin
+  - Unlink button now directly unlinks with confirmation (no scroll needed)
+  - LinkKingshotAccount card only shows for non-linked users
+
+## 2026-02-02 20:45 | Product Engineer | COMPLETED
+Task: Redesign My Profile page header to match Public Profile layout
+Files:
+  - apps/web/src/pages/Profile.tsx (header layout, action buttons, 2x3 info grid)
+Result:
+  - Centered avatar and username matching Public Profile style
+  - Action buttons (Edit Profile, Link/Unlink Account) in top-right corner
+  - 2x3 info grid: Kingdom, Alliance, Player ID / Town Center, Language, Region
+  - Responsive design for mobile and desktop
+  - Link Account button (cyan) for unlinked users, Unlink button (red) for linked users
+
+## 2026-02-02 20:30 | Product Engineer | COMPLETED
+Task: Implement onboarding flow polish and profile completion gamification
+Files:
+  - apps/web/src/pages/Profile.tsx (GlobeIcon pulse animation, tooltip, welcome toast, ProfileCompletionProgress component)
+  - apps/web/src/utils/randomUsername.ts (created - random username generator)
+  - apps/web/src/contexts/AuthContext.tsx (integrated random username for new users)
+Result:
+  - New users get random non-binary usernames (AdjectiveNoun123 pattern)
+  - Globe icon as default avatar for unlinked users with pulse animation
+  - "Tap to link account" tooltip on avatar
+  - Welcome toast on first login: "Welcome to Atlas, [username]! 🌍"
+  - Profile Completion Progress card with 5-item checklist and progress bar
+  - Click-to-link flow: avatar/username scrolls to Link Kingshot Account section
+  - Once linked, Kingshot avatar/username replace defaults
+
 ## 2026-02-02 19:15 | Product Engineer | COMPLETED
 Task: Add tier-based avatar border colors and fix TC level display
 Files:

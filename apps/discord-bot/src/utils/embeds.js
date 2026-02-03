@@ -85,9 +85,9 @@ function createKingdomEmbed(kingdom) {
 
   const embed = new EmbedBuilder()
     .setColor(config.colors.primary)
-    .setTitle(`🏰 Kingdom ${kingdom.kingdom_number}`)
+    .setTitle(`🏰 Kingdom ${kingdom.kingdom_number}${rankDisplay}`)
     .setURL(config.urls.kingdom(kingdom.kingdom_number))
-    .setDescription(`${tierEmoji} **Tier ${tier}** • Atlas Score: **${kingdom.overall_score.toFixed(1)}**${rankDisplay}`)
+    .setDescription(`${tierEmoji} **Tier ${tier}** • Atlas Score: **${kingdom.overall_score.toFixed(1)}**`)
     .addFields(
       {
         name: '📊 Overall Stats',

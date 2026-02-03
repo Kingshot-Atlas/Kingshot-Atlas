@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback, lazy, Suspense } from 'react';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { useIsMobile } from '../hooks/useMediaQuery';
+import { incrementStat } from './UserAchievements';
 import {
   copyToClipboard,
   copyImageToClipboard,
@@ -76,6 +77,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({ type, kingdomData, compareDat
     if (success) {
       showFeedback('link');
       trackFeature('Share Link Copied', { type });
+      incrementStat('linksShared');
     }
   }, [type, kingdomData, compareData, showFeedback, trackFeature]);
 

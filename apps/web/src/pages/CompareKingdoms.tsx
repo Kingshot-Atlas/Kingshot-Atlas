@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo, useCallback, memo } from '
 import { useSearchParams, Link } from 'react-router-dom';
 import { KingdomProfile, Kingdom, getPowerTier } from '../types';
 import { apiService } from '../services/api';
+import { incrementStat } from '../components/UserAchievements';
 import { CompareCardSkeleton } from '../components/Skeleton';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useAnalytics } from '../hooks/useAnalytics';
@@ -277,6 +278,9 @@ const CompareKingdoms: React.FC = () => {
         setError('Not enough kingdoms found. Please check the kingdom numbers and try again.');
         return;
       }
+
+      // Track achievement for successful comparison
+      incrementStat('kingdomsCompared');
 
       // Pad array to maintain slot positions
       const newKingdoms: (KingdomProfile | null)[] = Array(MAX_COMPARE_SLOTS).fill(null);

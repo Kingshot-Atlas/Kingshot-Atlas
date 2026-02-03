@@ -653,14 +653,14 @@ const Header: React.FC = () => {
                   fontSize: '0.85rem'
                 }}
               >
-                {profile?.avatar_url ? (
-                  <img src={getCacheBustedAvatarUrl(profile.avatar_url)} alt="" style={{ width: '28px', height: '28px', borderRadius: '50%' }} />
+                {(profile?.linked_avatar_url || profile?.avatar_url) ? (
+                  <img src={getCacheBustedAvatarUrl(profile?.linked_avatar_url || profile?.avatar_url)} alt="" style={{ width: '28px', height: '28px', borderRadius: '50%' }} />
                 ) : (
                   <div style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: profile?.theme_color || '#22d3ee', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 'bold', color: '#000' }}>
-                    {profile?.username?.[0]?.toUpperCase() || '?'}
+                    {(profile?.linked_username || profile?.username)?.[0]?.toUpperCase() || '?'}
                   </div>
                 )}
-                {profile?.username || 'User'}
+                {profile?.linked_username || profile?.username || 'User'}
               </button>
             ) : (
               <button

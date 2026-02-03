@@ -4,6 +4,7 @@ import { logger } from '../utils/logger';
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { userDataService } from '../services/userDataService';
+import { generateRandomUsername } from '../utils/randomUsername';
 
 export interface UserProfile {
   id: string;
@@ -160,11 +161,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         user.user_metadata?.avatar_url || 
         user.user_metadata?.picture
       );
-      const username = user.user_metadata?.full_name || 
-                       user.user_metadata?.name || 
-                       user.user_metadata?.preferred_username ||
-                       user.email?.split('@')[0] || 
-                       'User';
+      // Generate random username for new users (will be replaced when they link Kingshot account)
+      const username = generateRandomUsername();
       const localProfile: UserProfile = {
         id: user.id,
         username,
@@ -199,11 +197,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           user.user_metadata?.avatar_url || 
           user.user_metadata?.picture
         );
-        const username = user.user_metadata?.full_name || 
-                         user.user_metadata?.name || 
-                         user.user_metadata?.preferred_username ||
-                         user.email?.split('@')[0] || 
-                         'User';
+        // Generate random username for new users (will be replaced when they link Kingshot account)
+        const username = generateRandomUsername();
 
         const newProfile: UserProfile = {
           id: user.id,

@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Kingdom, KingdomWithStats } from '../types';
 import { apiService, dataLoadError } from '../services/api';
+import { incrementStat } from '../components/UserAchievements';
 import { DataLoadError } from '../components/DataLoadError';
 import { LeaderboardSkeleton } from '../components/Skeleton';
 import { useIsMobile } from '../hooks/useMediaQuery';
@@ -25,8 +26,15 @@ const Leaderboards: React.FC = () => {
   // Tier-based leaderboard limits: anonymous=10, free=25, pro=unlimited
   const leaderboardLimit = isPro ? 999 : (tier === 'free' ? 25 : 10);
 
+  const hasTrackedView = useRef(false);
+  
   useEffect(() => {
     loadLeaderboard();
+    // Track leaderboard view for achievements (only once per session)
+    if (!hasTrackedView.current) {
+      incrementStat('leaderboardViews');
+      hasTrackedView.current = true;
+    }
   }, []);
 
   const loadLeaderboard = async () => {

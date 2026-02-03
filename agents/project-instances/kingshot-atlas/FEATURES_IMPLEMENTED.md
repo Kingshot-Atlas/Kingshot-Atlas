@@ -71,6 +71,13 @@
 | Navigation Reorganization | ✅ Live | Product | Community dropdown (Players, Discord, About), cleaner header (2026-01-31) |
 | User Achievements | ✅ Live | Product | `UserAchievements.tsx`, `AchievementBadges.tsx` |
 | User Directory | ✅ Live | Product | Browse and search Atlas users |
+| Random Username Generator | ✅ Live | Product | `randomUsername.ts` - AdjectiveNoun123 pattern for new users (2026-02-02) |
+| Globe Icon Default Avatar | ✅ Live | Product | Pulse animation, tooltip for unlinked users (2026-02-02) |
+| Welcome Toast | ✅ Live | Product | "Welcome to Atlas, [username]!" on first login (2026-02-02) |
+| Profile Completion Progress | ✅ Live | Product | 5-item checklist with progress bar, auto-hides at 100% (2026-02-02) |
+| Click-to-Link Flow | ✅ Live | Product | Avatar/username click scrolls to Link Kingshot section (2026-02-02) |
+| My Profile Layout Redesign | ✅ Live | Product | Centered avatar/username matching Public Profile, 2x3 info grid (2026-02-02) |
+| Profile Action Buttons | ✅ Live | Product | Edit Profile + Link/Unlink buttons in top-right corner (2026-02-02) |
 
 ---
 
