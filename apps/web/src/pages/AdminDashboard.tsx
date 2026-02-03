@@ -18,6 +18,8 @@ import { BotDashboard } from '../components/BotDashboard';
 import { ADMIN_USERNAMES } from '../utils/constants';
 import { supabase } from '../lib/supabase';
 import { logger } from '../utils/logger';
+import { getCurrentKvK, incrementKvK } from '../services/configService';
+import { CURRENT_KVK } from '../constants';
 import { 
   AnalyticsOverview, 
   SubmissionsTab, 
@@ -59,6 +61,8 @@ const AdminDashboard: React.FC = () => {
   const [pendingCounts, setPendingCounts] = useState<{ submissions: number; claims: number; corrections: number; transfers: number; kvkErrors: number; feedback: number }>({ submissions: 0, claims: 0, corrections: 0, transfers: 0, kvkErrors: 0, feedback: 0 });
   const [feedbackItems, setFeedbackItems] = useState<Array<{ id: string; type: string; message: string; email: string | null; status: string; page_url: string | null; created_at: string; admin_notes: string | null }>>([]);
   const [syncingSubscriptions, setSyncingSubscriptions] = useState(false);
+  const [currentKvK, setCurrentKvK] = useState<number>(CURRENT_KVK);
+  const [incrementingKvK, setIncrementingKvK] = useState(false);
 
   // Check if user is admin
   const isAdmin = profile?.username && ADMIN_USERNAMES.includes(profile.username.toLowerCase());
@@ -67,6 +71,13 @@ const AdminDashboard: React.FC = () => {
   useEffect(() => {
     if (isAdmin) fetchPendingCounts();
   // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdmin]);
+
+  // Fetch current KvK from API on mount
+  useEffect(() => {
+    if (isAdmin) {
+      getCurrentKvK().then(kvk => setCurrentKvK(kvk));
+    }
   }, [isAdmin]);
 
   useEffect(() => {
@@ -397,6 +408,24 @@ const AdminDashboard: React.FC = () => {
       console.error('Failed to fetch analytics:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleIncrementKvK = async () => {
+    setIncrementingKvK(true);
+    try {
+      const result = await incrementKvK();
+      if (result.success && result.new_kvk) {
+        setCurrentKvK(result.new_kvk);
+        showToast(`KvK incremented to #${result.new_kvk}!`, 'success');
+      } else {
+        showToast(result.error || 'Failed to increment KvK', 'error');
+      }
+    } catch (error) {
+      console.error('Failed to increment KvK:', error);
+      showToast('Failed to increment KvK', 'error');
+    } finally {
+      setIncrementingKvK(false);
     }
   };
 
@@ -994,6 +1023,9 @@ const AdminDashboard: React.FC = () => {
           analytics={analytics} 
           syncingSubscriptions={syncingSubscriptions}
           onSyncSubscriptions={syncSubscriptions}
+          currentKvK={currentKvK}
+          incrementingKvK={incrementingKvK}
+          onIncrementKvK={handleIncrementKvK}
         />
       ) : activeTab === 'saas-metrics' ? (
         <AnalyticsDashboard />

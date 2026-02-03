@@ -9,6 +9,20 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-03 02:11 | Platform Engineer | COMPLETED
+Task: Centralize CURRENT_KVK constant as single source of truth
+Files:
+  - apps/web/src/constants/index.ts (added KVK_CONFIG)
+  - apps/web/src/components/PostKvKSubmission.tsx
+  - apps/web/src/components/KingdomCard.tsx
+  - apps/web/src/pages/MissingDataRegistry.tsx
+  - apps/web/src/pages/KingdomProfile.tsx
+Result:
+  - Created KVK_CONFIG in constants/index.ts with CURRENT_KVK, KVK_10_START, CYCLE_DAYS, TOTAL_KINGDOMS
+  - All 4 files now import CURRENT_KVK from centralized constants
+  - Clear documentation: "Update CURRENT_KVK after each KvK battle phase ends"
+  - When KvK 11 arrives, only one file needs updating
+
 ## 2026-02-03 02:08 | Product Engineer | COMPLETED
 Task: Dynamic missing KvK chip with submission modal
 Files:

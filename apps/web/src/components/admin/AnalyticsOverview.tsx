@@ -5,12 +5,18 @@ interface AnalyticsOverviewProps {
   analytics: AnalyticsData | null;
   syncingSubscriptions: boolean;
   onSyncSubscriptions: () => void;
+  currentKvK: number;
+  incrementingKvK: boolean;
+  onIncrementKvK: () => void;
 }
 
 export const AnalyticsOverview: React.FC<AnalyticsOverviewProps> = ({
   analytics,
   syncingSubscriptions,
-  onSyncSubscriptions
+  onSyncSubscriptions,
+  currentKvK,
+  incrementingKvK,
+  onIncrementKvK
 }) => {
   if (!analytics) {
     return <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>Loading analytics...</div>;
@@ -79,6 +85,48 @@ export const AnalyticsOverview: React.FC<AnalyticsOverviewProps> = ({
             </div>
           ))}
         </div>
+      </div>
+
+      {/* KvK Management */}
+      <div style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', border: '1px solid #8b5cf640' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <h3 style={{ color: '#fff', fontSize: '1rem', margin: 0 }}>⚔️ KvK Management</h3>
+          <div style={{ 
+            padding: '0.25rem 0.75rem', 
+            backgroundColor: '#8b5cf620', 
+            borderRadius: '6px',
+            border: '1px solid #8b5cf640'
+          }}>
+            <span style={{ color: '#8b5cf6', fontWeight: '600', fontSize: '0.9rem' }}>Current: KvK #{currentKvK}</span>
+          </div>
+        </div>
+        <p style={{ color: '#9ca3af', fontSize: '0.8rem', marginBottom: '1rem' }}>
+          After each KvK battle phase ends, increment the KvK number to update submission forms and missing data tracking across the app.
+        </p>
+        <button
+          onClick={onIncrementKvK}
+          disabled={incrementingKvK}
+          style={{
+            padding: '0.6rem 1.25rem',
+            backgroundColor: incrementingKvK ? '#374151' : '#8b5cf620',
+            color: incrementingKvK ? '#6b7280' : '#8b5cf6',
+            border: '1px solid #8b5cf6',
+            borderRadius: '8px',
+            fontSize: '0.85rem',
+            fontWeight: '600',
+            cursor: incrementingKvK ? 'not-allowed' : 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            transition: 'all 0.2s'
+          }}
+        >
+          {incrementingKvK ? (
+            <>⏳ Incrementing...</>
+          ) : (
+            <>📈 Increment to KvK #{currentKvK + 1}</>
+          )}
+        </button>
       </div>
 
       {/* Submissions Overview */}
