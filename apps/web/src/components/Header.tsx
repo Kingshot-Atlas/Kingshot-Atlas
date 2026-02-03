@@ -7,7 +7,7 @@ import NotificationBell from './NotificationBell';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { neonGlow } from '../utils/styles';
-import { ADMIN_USERNAMES } from '../utils/constants';
+import { ADMIN_USERNAMES, getDisplayTier, SUBSCRIPTION_COLORS } from '../utils/constants';
 
 // Discord invite link - configurable via environment variable
 const DISCORD_INVITE = import.meta.env.VITE_DISCORD_INVITE || 'https://discord.gg/aA3a7JGcHV';
@@ -765,31 +765,39 @@ const Header: React.FC = () => {
           gap: '0.5rem',
           zIndex: 99
         }}>
-          {/* Sign In / Profile - First Item */}
+          {/* Sign In / Profile - First Item - Show Kingshot account if linked */}
           {user ? (
-            <Link
-              to="/profile"
-              style={{
-                color: '#22d3ee',
-                textDecoration: 'none',
-                fontSize: '1rem',
-                padding: '0.75rem 1rem',
-                borderRadius: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                backgroundColor: '#111'
-              }}
-            >
-              {profile?.avatar_url ? (
-                <img src={getCacheBustedAvatarUrl(profile.avatar_url)} alt="" style={{ width: '24px', height: '24px', borderRadius: '50%' }} />
-              ) : (
-                <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: profile?.theme_color || '#22d3ee', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 'bold', color: '#000' }}>
-                  {profile?.username?.[0]?.toUpperCase() || '?'}
-                </div>
-              )}
-              {profile?.username || 'My Profile'}
-            </Link>
+            (() => {
+              const displayTier = getDisplayTier(profile?.subscription_tier as 'free' | 'pro' | 'recruiter' | null, profile?.username);
+              const usernameColor = SUBSCRIPTION_COLORS[displayTier as keyof typeof SUBSCRIPTION_COLORS] || '#ffffff';
+              const displayName = profile?.linked_username || profile?.username || 'My Profile';
+              const displayAvatar = profile?.linked_avatar_url || profile?.avatar_url;
+              return (
+                <Link
+                  to="/profile"
+                  style={{
+                    color: usernameColor,
+                    textDecoration: 'none',
+                    fontSize: '1rem',
+                    padding: '0.75rem 1rem',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    backgroundColor: '#111'
+                  }}
+                >
+                  {displayAvatar ? (
+                    <img src={getCacheBustedAvatarUrl(displayAvatar)} alt="" style={{ width: '24px', height: '24px', borderRadius: '50%' }} referrerPolicy="no-referrer" />
+                  ) : (
+                    <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: profile?.theme_color || '#22d3ee', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 'bold', color: '#000' }}>
+                      {displayName?.[0]?.toUpperCase() || '?'}
+                    </div>
+                  )}
+                  {displayName}
+                </Link>
+              );
+            })()
           ) : (
             <button
               onClick={() => { setShowAuthModal(true); setShowMobileMenu(false); }}
