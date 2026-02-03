@@ -118,24 +118,6 @@ const AvatarWithFallback: React.FC<{
           }}>
           {showGlobeDefault ? <GlobeIcon size={size} pulse={true} /> : (username?.[0]?.toUpperCase() ?? '?')}
         </div>
-        {showGlobeDefault && onClick && (
-          <div style={{
-            position: 'absolute',
-            bottom: '-28px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            backgroundColor: '#1a1a1a',
-            border: '1px solid #22d3ee',
-            borderRadius: '6px',
-            padding: '4px 8px',
-            fontSize: '0.7rem',
-            color: '#22d3ee',
-            whiteSpace: 'nowrap',
-            pointerEvents: 'none'
-          }}>
-            Tap to link account
-          </div>
-        )}
       </div>
     );
   }
@@ -724,7 +706,7 @@ const Profile: React.FC = () => {
             <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>PROFILE</span>
           </h1>
           <p style={{ color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.9rem', marginBottom: '0.75rem' }}>
-            {isViewingOther ? viewedProfile?.bio : 'Your command center for kingdom intel'}
+            {isViewingOther ? 'Developing Atlas...' : 'Your command center for kingdom intel'}
           </p>
           {!isMobile && (
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
@@ -875,6 +857,7 @@ const Profile: React.FC = () => {
                       if (viewedProfile?.linked_username) {
                         setIsEditing(true);
                       } else {
+                        showToast('Link your Kingshot account to unlock profile editing', 'info');
                         scrollToLinkSection();
                       }
                     }}
@@ -911,7 +894,10 @@ const Profile: React.FC = () => {
                     themeColor={getTierBorderColor(isAdmin ? 'admin' : isRecruiter ? 'recruiter' : isPro ? 'pro' : 'free')}
                     badgeStyle={viewedProfile?.badge_style}
                     showGlobeDefault={!viewedProfile?.linked_username}
-                    onClick={!viewedProfile?.linked_username ? scrollToLinkSection : undefined}
+                    onClick={!viewedProfile?.linked_username ? () => {
+                      showToast('Link your Kingshot account to unlock profile editing', 'info');
+                      scrollToLinkSection();
+                    } : undefined}
                   />
                   <style>{`
                     @keyframes spin {
@@ -919,7 +905,18 @@ const Profile: React.FC = () => {
                       to { transform: rotate(360deg); }
                     }
                   `}</style>
-                  <div style={{ fontSize: isMobile ? '1.5rem' : '1.75rem', fontWeight: 'bold', color: '#fff' }}>
+                  <div 
+                    onClick={!viewedProfile?.linked_username ? () => {
+                      showToast('Link your Kingshot account to unlock profile editing', 'info');
+                      scrollToLinkSection();
+                    } : undefined}
+                    style={{ 
+                      fontSize: isMobile ? '1.5rem' : '1.75rem', 
+                      fontWeight: 'bold', 
+                      color: '#fff',
+                      cursor: !viewedProfile?.linked_username ? 'pointer' : 'default'
+                    }}
+                  >
                     {viewedProfile?.linked_username || getDisplayName(viewedProfile)}
                   </div>
                   {/* Auth Provider Badge */}
