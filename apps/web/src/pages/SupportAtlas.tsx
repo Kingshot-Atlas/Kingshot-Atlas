@@ -6,7 +6,7 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useAuth } from '../contexts/AuthContext';
 import { usePremium } from '../contexts/PremiumContext';
 import SupportButton from '../components/SupportButton';
-import { getCheckoutUrl, isStripeConfigured } from '../lib/stripe';
+import { getCheckoutUrl } from '../lib/stripe';
 
 const SupportAtlas: React.FC = () => {
   useDocumentTitle('Support Atlas');
@@ -258,33 +258,69 @@ const SupportAtlas: React.FC = () => {
             Get the Supporter Badge, Discord role, ad-free experience, and help fund Atlas development.
           </p>
           
-          {isStripeConfigured ? (
+          {isSupporter ? (
             <button
-              onClick={handleStripeCheckout}
-              disabled={isLoading || isSupporter}
+              disabled
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '0.5rem',
                 padding: '0.75rem 2rem',
-                background: isSupporter ? '#22c55e' : 'linear-gradient(135deg, #FF6B8A 0%, #ff8fa8 100%)',
+                background: '#22c55e',
                 border: 'none',
                 borderRadius: '10px',
                 color: '#000',
                 fontSize: '1rem',
                 fontWeight: '700',
-                cursor: isSupporter ? 'default' : 'pointer',
-                boxShadow: isSupporter ? 'none' : '0 4px 15px rgba(255, 107, 138, 0.4)',
+                cursor: 'default',
+              }}
+            >
+              ✓ You're a Supporter!
+            </button>
+          ) : user ? (
+            <button
+              onClick={handleStripeCheckout}
+              disabled={isLoading}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.75rem 2rem',
+                background: 'linear-gradient(135deg, #FF6B8A 0%, #ff8fa8 100%)',
+                border: 'none',
+                borderRadius: '10px',
+                color: '#000',
+                fontSize: '1rem',
+                fontWeight: '700',
+                cursor: 'pointer',
+                boxShadow: '0 4px 15px rgba(255, 107, 138, 0.4)',
                 transition: 'transform 0.2s, box-shadow 0.2s',
                 opacity: isLoading ? 0.7 : 1
               }}
             >
-              {isSupporter ? '✓ You\'re a Supporter!' : '⭐ Become a Supporter'}
+              💖 Become a Supporter
             </button>
           ) : (
-            <p style={{ color: '#f59e0b', fontSize: '0.85rem' }}>
-              Stripe payments coming soon. Use Ko-fi below for now!
-            </p>
+            <Link
+              to="/login?redirect=/support"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.75rem 2rem',
+                background: 'linear-gradient(135deg, #FF6B8A 0%, #ff8fa8 100%)',
+                border: 'none',
+                borderRadius: '10px',
+                color: '#000',
+                fontSize: '1rem',
+                fontWeight: '700',
+                cursor: 'pointer',
+                boxShadow: '0 4px 15px rgba(255, 107, 138, 0.4)',
+                textDecoration: 'none',
+              }}
+            >
+              🔐 Sign In to Subscribe
+            </Link>
           )}
           
           <p style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '1rem' }}>
