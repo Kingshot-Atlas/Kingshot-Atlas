@@ -1,0 +1,174 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - link "KA KINGSHOT ATLAS" [ref=e6] [cursor=pointer]:
+          - /url: /
+          - img "KA" [ref=e7]
+          - generic [ref=e8]:
+            - generic [ref=e9]: KINGSHOT
+            - generic [ref=e10]: ATLAS
+        - generic [ref=e11]:
+          - generic [ref=e12]:
+            - generic [ref=e13]: ⚔️
+            - generic [ref=e14]:
+              - generic [ref=e15]: Next KvK
+              - generic [ref=e16]: 18d 20h 28m 06s
+          - generic [ref=e17]:
+            - generic [ref=e18]: 🚀
+            - generic [ref=e19]:
+              - generic [ref=e20]: Next Transfer
+              - generic [ref=e21]: 24d 20h 28m 06s
+        - navigation [ref=e22]:
+          - link "Home" [ref=e23] [cursor=pointer]:
+            - /url: /
+          - link "Rankings" [ref=e24] [cursor=pointer]:
+            - /url: /leaderboards
+          - link "Tools" [ref=e26] [cursor=pointer]:
+            - /url: /tools
+            - text: Tools
+            - img [ref=e27]
+          - button "Community" [ref=e30] [cursor=pointer]:
+            - text: Community
+            - img [ref=e31]
+          - link "Support Us" [ref=e33] [cursor=pointer]:
+            - /url: /support
+            - img [ref=e34]
+            - text: Support Us
+          - button "Sign In" [ref=e37] [cursor=pointer]:
+            - img [ref=e38]
+            - text: Sign In
+    - main [ref=e40]:
+      - generic [ref=e42]:
+        - generic [ref=e44]:
+          - heading "KINGDOMCOMPARISON" [level=1] [ref=e45]
+          - paragraph [ref=e46]: Put any kingdoms in the ring. Let the stats decide.
+        - generic [ref=e51]:
+          - generic [ref=e52]:
+            - generic [ref=e53]: 🔒
+            - heading "Sign in to Compare Kingdoms" [level=3] [ref=e54]
+            - paragraph [ref=e55]: Create a free account to compare up to 2 kingdoms side-by-side.
+            - link "Sign In / Register" [ref=e56] [cursor=pointer]:
+              - /url: /profile
+            - paragraph [ref=e57]: Pro & Recruiter can compare up to 5 kingdoms
+          - generic [ref=e58]:
+            - generic [ref=e59]:
+              - generic [ref=e60]:
+                - link "K100" [ref=e61] [cursor=pointer]:
+                  - /url: /kingdom/100
+                  - generic [ref=e62]: K100
+                - generic [ref=e63]: C-Tier
+              - generic [ref=e65]: vs
+              - generic [ref=e66]:
+                - link "K101" [ref=e67] [cursor=pointer]:
+                  - /url: /kingdom/101
+                  - generic [ref=e68]: K101
+                - generic [ref=e69]: C-Tier
+            - generic [ref=e70]:
+              - generic [ref=e71]: "4.8"
+              - generic [ref=e72]: Atlas Score
+              - generic [ref=e73]: "5.7"
+            - generic [ref=e74]:
+              - generic [ref=e75]: "540"
+              - generic [ref=e76]: Atlas Rank
+              - generic [ref=e77]: "323"
+            - generic [ref=e79]:
+              - generic [ref=e80]: "8"
+              - generic [ref=e81]: Total KvKs
+              - generic [ref=e82]: "8"
+            - generic [ref=e83]:
+              - generic [ref=e84]: "2"
+              - generic [ref=e85]: Dominations
+              - generic [ref=e86]: "3"
+            - generic [ref=e87]:
+              - generic [ref=e88]: "4"
+              - generic [ref=e89]: Invasions
+              - generic [ref=e90]: "2"
+            - generic [ref=e92]:
+              - generic [ref=e93]: "2"
+              - generic [ref=e94]: Prep Wins
+              - generic [ref=e95]: "4"
+            - generic [ref=e96]:
+              - generic [ref=e97]: 25%
+              - generic [ref=e98]: Prep Win Rate
+              - generic [ref=e99]: 50%
+            - generic [ref=e100]:
+              - generic [ref=e101]: "1"
+              - generic [ref=e102]: Prep Streak
+              - generic [ref=e103]: "0"
+            - generic [ref=e105]:
+              - generic [ref=e106]: "4"
+              - generic [ref=e107]: Battle Wins
+              - generic [ref=e108]: "5"
+            - generic [ref=e109]:
+              - generic [ref=e110]: 50%
+              - generic [ref=e111]: Battle Win Rate
+              - generic [ref=e112]: 63%
+            - generic [ref=e113]:
+              - generic [ref=e114]: "1"
+              - generic [ref=e115]: Battle Streak
+              - generic [ref=e116]: "0"
+            - generic [ref=e118]: 🏆 Kingdom 101 wins the comparison
+          - button "🎯 Show Overlapping Comparison" [ref=e120] [cursor=pointer]:
+            - generic [ref=e121]: 🎯
+            - generic [ref=e122]: Show Overlapping Comparison
+            - img [ref=e123]
+          - generic [ref=e125]:
+            - heading "⚔️ Score Comparison" [level=4] [ref=e126]
+            - generic [ref=e127]:
+              - generic [ref=e128]:
+                - generic [ref=e129]: K100
+                - generic [ref=e130]: "4.77"
+                - generic [ref=e131]: C-Tier
+              - generic [ref=e132]:
+                - generic [ref=e133]: VS
+                - generic [ref=e134]: "-0.94"
+              - generic [ref=e135]:
+                - generic [ref=e136]: K101
+                - generic [ref=e137]: "5.71"
+                - generic [ref=e138]: C-Tier
+            - generic [ref=e139]:
+              - generic [ref=e140]:
+                - generic [ref=e141]: "4.38"
+                - generic [ref=e142]: Base Score
+                - generic [ref=e143]: ✓5.46
+              - generic [ref=e144]:
+                - generic [ref=e145]: ×0.96
+                - generic [ref=e146]: Dom/Inv
+                - generic [ref=e147]: ✓×1.02
+              - generic [ref=e148]:
+                - generic [ref=e149]: ×1.01✓
+                - generic [ref=e150]: Recent Form
+                - generic [ref=e151]: ×0.95
+              - generic [ref=e152]:
+                - generic [ref=e153]: ×1.02✓
+                - generic [ref=e154]: Streaks
+                - generic [ref=e155]: ×1.00
+              - generic [ref=e156]:
+                - generic [ref=e157]: ×1.00
+                - generic [ref=e158]: Experience
+                - generic [ref=e159]: ×1.00
+            - generic [ref=e160]:
+              - generic [ref=e161]: Component Advantages
+              - generic [ref=e162]:
+                - generic [ref=e163]:
+                  - text: "K100:"
+                  - strong [ref=e164]: "2"
+                - generic [ref=e165]:
+                  - text: "K101:"
+                  - strong [ref=e166]: "2"
+          - generic [ref=e167]:
+            - button "📸 Share Screenshot" [ref=e168] [cursor=pointer]:
+              - generic [ref=e169]: 📸
+              - text: Share Screenshot
+            - button "Share options" [ref=e171] [cursor=pointer]:
+              - img [ref=e172]
+              - text: Share
+          - link "← Back to Home" [ref=e179] [cursor=pointer]:
+            - /url: /
+    - button "💬 Feedback" [ref=e180] [cursor=pointer]
+  - region "Notifications"
+```

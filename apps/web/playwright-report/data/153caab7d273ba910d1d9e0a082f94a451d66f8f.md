@@ -16,12 +16,12 @@
             - generic [ref=e13]: ⚔️
             - generic [ref=e14]:
               - generic [ref=e15]: Next KvK
-              - generic [ref=e16]: 18d 20h 28m 12s
+              - generic [ref=e16]: 18d 20h 28m 07s
           - generic [ref=e17]:
             - generic [ref=e18]: 🚀
             - generic [ref=e19]:
               - generic [ref=e20]: Next Transfer
-              - generic [ref=e21]: 24d 20h 28m 12s
+              - generic [ref=e21]: 24d 20h 28m 07s
         - navigation [ref=e22]:
           - link "Home" [ref=e23] [cursor=pointer]:
             - /url: /
@@ -42,7 +42,21 @@
             - img [ref=e38]
             - text: Sign In
     - main [ref=e40]:
-      - generic [ref=e42]: Loading...
-    - button "💬 Feedback" [ref=e43] [cursor=pointer]
+      - generic [ref=e42]:
+        - generic [ref=e44]:
+          - heading "KINGDOMCOMPARISON" [level=1] [ref=e45]
+          - paragraph [ref=e46]: Put any kingdoms in the ring. Let the stats decide.
+        - generic [ref=e51]:
+          - generic [ref=e52]:
+            - generic [ref=e53]: 🔒
+            - heading "Sign in to Compare Kingdoms" [level=3] [ref=e54]
+            - paragraph [ref=e55]: Create a free account to compare up to 2 kingdoms side-by-side.
+            - link "Sign In / Register" [ref=e56] [cursor=pointer]:
+              - /url: /profile
+            - paragraph [ref=e57]: Pro & Recruiter can compare up to 5 kingdoms
+          - generic [ref=e59]: Pick your matchup. The numbers will tell the story.
+          - link "← Back to Home" [ref=e61] [cursor=pointer]:
+            - /url: /
+    - button "💬 Feedback" [ref=e62] [cursor=pointer]
   - region "Notifications"
 ```

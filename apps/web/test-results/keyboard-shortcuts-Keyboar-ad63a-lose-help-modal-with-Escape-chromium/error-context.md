@@ -5,435 +5,415 @@
   - generic [ref=e3]:
     - banner [ref=e4]:
       - generic [ref=e5]:
-        - generic [ref=e6]:
-          - link "KA KINGSHOT ATLAS" [ref=e7] [cursor=pointer]:
-            - /url: /
-            - img "KA" [ref=e8]
-            - generic [ref=e9]:
-              - generic [ref=e10]: KINGSHOT
-              - generic [ref=e11]: ATLAS
+        - link "KA KINGSHOT ATLAS" [ref=e6] [cursor=pointer]:
+          - /url: /
+          - img "KA" [ref=e7]
+          - generic [ref=e8]:
+            - generic [ref=e9]: KINGSHOT
+            - generic [ref=e10]: ATLAS
+        - generic [ref=e11]:
           - generic [ref=e12]:
-            - generic [ref=e13]:
-              - generic [ref=e14]: 🛡️
-              - generic [ref=e15]:
-                - generic [ref=e16]: Prep Phase
-                - generic [ref=e17]: ●1d 09h 43m 39s
-            - generic [ref=e18]:
-              - generic [ref=e19]: 🚀
-              - generic [ref=e20]:
-                - generic [ref=e21]: Next Transfer
-                - generic [ref=e22]: 29d 23h 43m 39s
-        - navigation [ref=e23]:
-          - link "Home" [ref=e24] [cursor=pointer]:
+            - generic [ref=e13]: ⚔️
+            - generic [ref=e14]:
+              - generic [ref=e15]: Next KvK
+              - generic [ref=e16]: 18d 20h 28m 18s
+          - generic [ref=e17]:
+            - generic [ref=e18]: 🚀
+            - generic [ref=e19]:
+              - generic [ref=e20]: Next Transfer
+              - generic [ref=e21]: 24d 20h 28m 18s
+        - navigation [ref=e22]:
+          - link "Home" [ref=e23] [cursor=pointer]:
             - /url: /
-          - link "Rankings" [ref=e25] [cursor=pointer]:
+          - link "Rankings" [ref=e24] [cursor=pointer]:
             - /url: /leaderboards
-          - link "Tools" [ref=e27] [cursor=pointer]:
+          - link "Tools" [ref=e26] [cursor=pointer]:
             - /url: /tools
             - text: Tools
-            - img [ref=e28]
-          - link "About" [ref=e30] [cursor=pointer]:
-            - /url: /about
-          - link "Pro" [ref=e31] [cursor=pointer]:
-            - /url: /upgrade
-            - img [ref=e32]
-            - text: Pro
-          - button "Enable high contrast mode" [ref=e34] [cursor=pointer]:
-            - img [ref=e35]
-          - link "Discord" [ref=e38] [cursor=pointer]:
-            - /url: https://discord.gg/aA3a7JGcHV
-            - img [ref=e39]
-            - text: Discord
-          - button "Sign In" [ref=e42] [cursor=pointer]:
-            - img [ref=e43]
+            - img [ref=e27]
+          - button "Community" [ref=e30] [cursor=pointer]:
+            - text: Community
+            - img [ref=e31]
+          - link "Support Us" [ref=e33] [cursor=pointer]:
+            - /url: /support
+            - img [ref=e34]
+            - text: Support Us
+          - button "Sign In" [ref=e37] [cursor=pointer]:
+            - img [ref=e38]
             - text: Sign In
-    - main [ref=e45]:
-      - generic [ref=e47]:
-        - generic [ref=e49]:
-          - heading "KINGSHOTATLAS" [level=1] [ref=e50]
-          - paragraph [ref=e51]: Scout your enemy. Choose your allies. Dominate Kingshot.
-        - generic [ref=e57]:
-          - generic [ref=e58]:
-            - generic [ref=e59]:
-              - img [ref=e60]
-              - textbox "Search by kingdom number (e.g., 1001)..." [active] [ref=e62]
+    - main [ref=e40]:
+      - generic [ref=e42]:
+        - generic [ref=e44]:
+          - heading "KINGSHOTATLAS" [level=1] [ref=e45]
+          - paragraph [ref=e46]: Scout your enemy. Choose your allies. Dominate Kingshot.
+        - generic [ref=e52]:
+          - generic [ref=e53]:
+            - generic [ref=e54]:
+              - img [ref=e55]
+              - textbox "Search by kingdom number (e.g., 1001)..." [active] [ref=e57]
               - generic: /
-            - button "☆ Favorites" [ref=e63] [cursor=pointer]:
-              - generic [ref=e64]: ☆
+            - button "☆ Favorites" [ref=e58] [cursor=pointer]:
+              - generic [ref=e59]: ☆
               - text: Favorites
-            - generic [ref=e65]:
-              - button [ref=e66] [cursor=pointer]:
-                - img [ref=e67]
-              - button [ref=e69] [cursor=pointer]:
-                - img [ref=e70]
-            - button "Filters" [ref=e72] [cursor=pointer]:
-              - img [ref=e73]
+            - generic [ref=e60]:
+              - button [ref=e61] [cursor=pointer]:
+                - img [ref=e62]
+              - button [ref=e64] [cursor=pointer]:
+                - img [ref=e65]
+            - button "Filters" [ref=e67] [cursor=pointer]:
+              - img [ref=e68]
               - text: Filters
-            - generic [ref=e75]:
-              - generic [ref=e76]: "Sort:"
-              - combobox [ref=e77] [cursor=pointer]:
+            - generic [ref=e70]:
+              - generic [ref=e71]: "Sort:"
+              - combobox [ref=e72] [cursor=pointer]:
                 - option "Atlas Score" [selected]
                 - option "Kingdom Number"
                 - option "Prep Win Rate"
                 - option "Battle Win Rate"
                 - option "Total KvKs"
-              - button "↓" [ref=e78] [cursor=pointer]:
-                - img [ref=e79]
-                - generic [ref=e81]: ↓
-          - generic [ref=e82]:
-            - generic [ref=e83]: Showing 15 of 1190 kingdoms
-            - generic [ref=e84]:
-              - button "S-Tier" [ref=e85] [cursor=pointer]
-              - button "A-Tier" [ref=e86] [cursor=pointer]
-              - generic [ref=e87]: "|"
-              - button "100% Prep" [ref=e88] [cursor=pointer]
-              - button "80%+ Prep" [ref=e89] [cursor=pointer]
-              - button "100% Battle" [ref=e90] [cursor=pointer]
-              - button "80%+ Battle" [ref=e91] [cursor=pointer]
-              - generic [ref=e92]: "|"
-              - button "1-3 KvKs" [ref=e93] [cursor=pointer]
-              - button "4-6 KvKs" [ref=e94] [cursor=pointer]
-              - button "7-9 KvKs" [ref=e95] [cursor=pointer]
-        - generic [ref=e96]:
-          - generic [ref=e97]:
-            - generic [ref=e98]:
-              - img [ref=e100]
-              - generic [ref=e102]:
-                - generic [ref=e103]: Sign in for more features
-                - generic [ref=e104]: Create a free account to unlock watchlists, submissions, and more
-            - link "Sign In" [ref=e105] [cursor=pointer]:
-              - /url: /profile
-              - img [ref=e106]
-              - text: Sign In
-          - generic [ref=e109]:
-            - generic [ref=e113]:
-              - generic [ref=e114]:
-                - generic [ref=e115]:
-                  - generic [ref=e116] [cursor=pointer]: Kingdom 12
-                  - generic [ref=e117]: S
-                  - generic [ref=e119]: 🛡️
-                - button "☆" [ref=e120] [cursor=pointer]
-              - generic [ref=e121]:
-                - generic [ref=e122]:
-                  - generic [ref=e123]: Atlas
-                  - generic [ref=e124]: Score
-                - generic [ref=e125]:
-                  - generic [ref=e126]: "10.2"
-                  - generic [ref=e127]: (#1)
-                - img [ref=e130] [cursor=pointer]
-              - generic [ref=e133]:
-                - generic [ref=e134]:
-                  - generic [ref=e135]: "9"
-                  - generic [ref=e136]: KvKs
-                - generic [ref=e137]:
-                  - generic [ref=e138]: 6 👑
-                  - generic [ref=e139]: Dominations
-                - generic [ref=e140]:
-                  - generic [ref=e141]: 0 💀
-                  - generic [ref=e142]: Invasions
-              - generic [ref=e143]:
-                - generic [ref=e144]:
-                  - generic [ref=e145]:
-                    - generic [ref=e146]: Prep
-                    - generic [ref=e147]: 100%
-                  - generic [ref=e148]:
-                    - text: 9W – 0L
-                    - generic [ref=e149]: (9W Streak)
-                - generic [ref=e152]:
-                  - generic [ref=e153]:
-                    - generic [ref=e154]: Battle
-                    - generic [ref=e155]: 67%
-                  - generic [ref=e156]: 6W – 3L
-              - generic [ref=e159]:
-                - generic [ref=e160]: Recent Performance
-                - generic [ref=e161]:
-                  - generic [ref=e163] [cursor=pointer]: 👑
-                  - generic [ref=e165] [cursor=pointer]: 👑
-                  - generic [ref=e167] [cursor=pointer]: 👑
-                  - generic [ref=e169] [cursor=pointer]: 👑
-                  - generic [ref=e171] [cursor=pointer]: 🔄
-              - generic [ref=e172]:
-                - generic [ref=e173]: Transfer Status:Unannounced
-                - button "Actions for Kingdom 12" [ref=e175] [cursor=pointer]:
-                  - text: Actions
-                  - img [ref=e176]
-            - generic [ref=e181]:
-              - generic [ref=e182]:
-                - generic [ref=e183]:
-                  - generic [ref=e184] [cursor=pointer]: Kingdom 163
-                  - generic [ref=e185]: S
-                - button "☆" [ref=e186] [cursor=pointer]
-              - generic [ref=e187]:
-                - generic [ref=e188]:
-                  - generic [ref=e189]: Atlas
-                  - generic [ref=e190]: Score
-                - generic [ref=e191]:
-                  - generic [ref=e192]: "10.0"
-                  - generic [ref=e193]: (#2)
-                - img [ref=e196] [cursor=pointer]
-              - generic [ref=e199]:
-                - generic [ref=e200]:
-                  - generic [ref=e201]: "7"
-                  - generic [ref=e202]: KvKs
-                - generic [ref=e203]:
-                  - generic [ref=e204]: 6 👑
-                  - generic [ref=e205]: Dominations
-                - generic [ref=e206]:
-                  - generic [ref=e207]: 1 💀
-                  - generic [ref=e208]: Invasions
-              - generic [ref=e209]:
-                - generic [ref=e210]:
-                  - generic [ref=e211]:
-                    - generic [ref=e212]: Prep
-                    - generic [ref=e213]: 86%
-                  - generic [ref=e214]:
-                    - text: 6W – 1L
-                    - generic [ref=e215]: (3W Streak)
-                - generic [ref=e218]:
-                  - generic [ref=e219]:
-                    - generic [ref=e220]: Battle
-                    - generic [ref=e221]: 86%
-                  - generic [ref=e222]:
-                    - text: 6W – 1L
-                    - generic [ref=e223]: (3W Streak)
-              - generic [ref=e226]:
-                - generic [ref=e227]: Recent Performance
-                - generic [ref=e228]:
-                  - generic [ref=e230] [cursor=pointer]: 👑
-                  - generic [ref=e232] [cursor=pointer]: 💀
-                  - generic [ref=e234] [cursor=pointer]: 👑
-                  - generic [ref=e236] [cursor=pointer]: 👑
-                  - generic [ref=e238] [cursor=pointer]: 👑
-              - generic [ref=e239]:
-                - generic [ref=e240]: Transfer Status:Unannounced
-                - button "Actions for Kingdom 163" [ref=e242] [cursor=pointer]:
-                  - text: Actions
-                  - img [ref=e243]
+                - option "👑 Dominations"
+                - option "💪 Comebacks"
+                - option "🔄 Reversals"
+                - option "💀 Invasions"
+              - button "↓" [ref=e73] [cursor=pointer]:
+                - img [ref=e74]
+                - generic [ref=e76]: ↓
+          - generic [ref=e77]:
+            - generic [ref=e78]:
+              - generic [ref=e79]: Showing 15 of 1204 kingdoms
+              - generic "1204 kingdoms • Updated Just now" [ref=e80]
+            - generic [ref=e82]:
+              - button "S-Tier" [ref=e83] [cursor=pointer]
+              - button "A-Tier" [ref=e84] [cursor=pointer]
+              - generic [ref=e85]: "|"
+              - button "100% Prep" [ref=e86] [cursor=pointer]
+              - button "80%+ Prep" [ref=e87] [cursor=pointer]
+              - button "100% Battle" [ref=e88] [cursor=pointer]
+              - button "80%+ Battle" [ref=e89] [cursor=pointer]
+              - generic [ref=e90]: "|"
+              - button "1-3 KvKs" [ref=e91] [cursor=pointer]
+              - button "4-6 KvKs" [ref=e92] [cursor=pointer]
+              - button "7-9 KvKs" [ref=e93] [cursor=pointer]
+        - generic [ref=e95]:
+          - generic [ref=e99]:
+            - generic [ref=e100]:
+              - generic [ref=e101]:
+                - generic [ref=e102] [cursor=pointer]: Kingdom 231
+                - generic [ref=e103]: S
+                - generic [ref=e104]:
+                  - generic [ref=e105]: 👑
+                  - generic [ref=e106]: ⚡
+              - button "☆" [ref=e107] [cursor=pointer]
+            - generic [ref=e108]:
+              - generic [ref=e109]:
+                - generic [ref=e110]: Atlas
+                - generic [ref=e111]: Score
+              - generic [ref=e112]:
+                - generic [ref=e113]: "12.4"
+                - generic [ref=e114]: (#1)
+            - generic [ref=e115]:
+              - generic [ref=e116]:
+                - generic [ref=e117]: "7"
+                - generic [ref=e118]: KvKs
+              - generic [ref=e119]:
+                - generic [ref=e120]: 7 👑
+                - generic [ref=e121]: Dominations
+              - generic [ref=e122]:
+                - generic [ref=e123]: 0 💀
+                - generic [ref=e124]: Invasions
+            - generic [ref=e125]:
+              - generic [ref=e126]:
+                - generic [ref=e127]:
+                  - generic [ref=e128]: Prep
+                  - generic [ref=e129]: 100%
+                - generic [ref=e130]: 7W – 0L
+                - generic [ref=e131]: "Current Streak: 7W"
+                - generic [ref=e132]: "Best Streak: 7W"
+              - generic [ref=e135]:
+                - generic [ref=e136]:
+                  - generic [ref=e137]: Battle
+                  - generic [ref=e138]: 100%
+                - generic [ref=e139]: 7W – 0L
+                - generic [ref=e140]: "Current Streak: 7W"
+                - generic [ref=e141]: "Best Streak: 7W"
+            - generic [ref=e144]:
+              - generic [ref=e145]: Recent Performance
+              - generic [ref=e146]:
+                - generic [ref=e148] [cursor=pointer]: 👑
+                - generic [ref=e150] [cursor=pointer]: 👑
+                - generic [ref=e152] [cursor=pointer]: 👑
+                - generic [ref=e154] [cursor=pointer]: 👑
+                - generic [ref=e156] [cursor=pointer]: 👑
+            - generic [ref=e157]:
+              - generic [ref=e158]: Transfer Status:Unannounced
+              - button "Actions for Kingdom 231" [ref=e160] [cursor=pointer]:
+                - text: Actions
+                - img [ref=e161]
+          - generic [ref=e166]:
+            - generic [ref=e167]:
+              - generic [ref=e168]:
+                - generic [ref=e169] [cursor=pointer]: Kingdom 3
+                - generic [ref=e170]: S
+                - generic [ref=e171]:
+                  - generic [ref=e172]: ⚔️
+                  - generic [ref=e173]: 🔥
+              - button "☆" [ref=e174] [cursor=pointer]
+            - generic [ref=e175]:
+              - generic [ref=e176]:
+                - generic [ref=e177]: Atlas
+                - generic [ref=e178]: Score
+              - generic [ref=e179]:
+                - generic [ref=e180]: "11.3"
+                - generic [ref=e181]: (#2)
+            - generic [ref=e182]:
+              - generic [ref=e183]:
+                - generic [ref=e184]: "10"
+                - generic [ref=e185]: KvKs
+              - generic [ref=e186]:
+                - generic [ref=e187]: 8 👑
+                - generic [ref=e188]: Dominations
+              - generic [ref=e189]:
+                - generic [ref=e190]: 0 💀
+                - generic [ref=e191]: Invasions
+            - generic [ref=e192]:
+              - generic [ref=e193]:
+                - generic [ref=e194]:
+                  - generic [ref=e195]: Prep
+                  - generic [ref=e196]: 80%
+                - generic [ref=e197]: 8W – 2L
+                - generic [ref=e198]: "Best Streak: 6W"
+              - generic [ref=e201]:
+                - generic [ref=e202]:
+                  - generic [ref=e203]: Battle
+                  - generic [ref=e204]: 100%
+                - generic [ref=e205]: 10W – 0L
+                - generic [ref=e206]: "Current Streak: 10W"
+                - generic [ref=e207]: "Best Streak: 10W"
+            - generic [ref=e210]:
+              - generic [ref=e211]: Recent Performance
+              - generic [ref=e212]:
+                - generic [ref=e214] [cursor=pointer]: 👑
+                - generic [ref=e216] [cursor=pointer]: 💪
+                - generic [ref=e218] [cursor=pointer]: 👑
+                - generic [ref=e220] [cursor=pointer]: 💪
+                - generic [ref=e222] [cursor=pointer]: 👑
+            - generic [ref=e223]:
+              - generic [ref=e224]: Transfer Status:Unannounced
+              - button "Actions for Kingdom 3" [ref=e226] [cursor=pointer]:
+                - text: Actions
+                - img [ref=e227]
+          - generic [ref=e232]:
+            - generic [ref=e233]:
+              - generic [ref=e234]:
+                - generic [ref=e235] [cursor=pointer]: Kingdom 401
+                - generic [ref=e236]: S
+                - generic [ref=e237]:
+                  - generic [ref=e238]: 🛡️
+                  - generic [ref=e239]: 💪
+              - button "☆" [ref=e240] [cursor=pointer]
+            - generic [ref=e241]:
+              - generic [ref=e242]:
+                - generic [ref=e243]: Atlas
+                - generic [ref=e244]: Score
+              - generic [ref=e245]:
+                - generic [ref=e246]: "10.6"
+                - generic [ref=e247]: (#3)
             - generic [ref=e248]:
               - generic [ref=e249]:
-                - generic [ref=e250]:
-                  - generic [ref=e251] [cursor=pointer]: Kingdom 123
-                  - generic [ref=e252]: S
-                  - generic [ref=e254]: 🛡️
-                - button "☆" [ref=e255] [cursor=pointer]
-              - generic [ref=e256]:
-                - generic [ref=e257]:
-                  - generic [ref=e258]: Atlas
-                  - generic [ref=e259]: Score
+                - generic [ref=e250]: "6"
+                - generic [ref=e251]: KvKs
+              - generic [ref=e252]:
+                - generic [ref=e253]: 5 👑
+                - generic [ref=e254]: Dominations
+              - generic [ref=e255]:
+                - generic [ref=e256]: 0 💀
+                - generic [ref=e257]: Invasions
+            - generic [ref=e258]:
+              - generic [ref=e259]:
                 - generic [ref=e260]:
-                  - generic [ref=e261]: "9.9"
-                  - generic [ref=e262]: (#3)
-                - img [ref=e265] [cursor=pointer]
+                  - generic [ref=e261]: Prep
+                  - generic [ref=e262]: 100%
+                - generic [ref=e263]: 6W – 0L
+                - generic [ref=e264]: "Current Streak: 6W"
+                - generic [ref=e265]: "Best Streak: 6W"
               - generic [ref=e268]:
                 - generic [ref=e269]:
-                  - generic [ref=e270]: "7"
-                  - generic [ref=e271]: KvKs
-                - generic [ref=e272]:
-                  - generic [ref=e273]: 5 👑
-                  - generic [ref=e274]: Dominations
-                - generic [ref=e275]:
-                  - generic [ref=e276]: 0 💀
-                  - generic [ref=e277]: Invasions
-              - generic [ref=e278]:
-                - generic [ref=e279]:
-                  - generic [ref=e280]:
-                    - generic [ref=e281]: Prep
-                    - generic [ref=e282]: 100%
-                  - generic [ref=e283]:
-                    - text: 7W – 0L
-                    - generic [ref=e284]: (7W Streak)
-                - generic [ref=e287]:
-                  - generic [ref=e288]:
-                    - generic [ref=e289]: Battle
-                    - generic [ref=e290]: 71%
-                  - generic [ref=e291]:
-                    - text: 5W – 2L
-                    - generic [ref=e292]: (3W Streak)
-              - generic [ref=e295]:
-                - generic [ref=e296]: Recent Performance
-                - generic [ref=e297]:
-                  - generic [ref=e299] [cursor=pointer]: 👑
-                  - generic [ref=e301] [cursor=pointer]: 🔄
-                  - generic [ref=e303] [cursor=pointer]: 👑
-                  - generic [ref=e305] [cursor=pointer]: 👑
-                  - generic [ref=e307] [cursor=pointer]: 👑
-              - generic [ref=e308]:
-                - generic [ref=e309]: Transfer Status:Unannounced
-                - button "Actions for Kingdom 123" [ref=e311] [cursor=pointer]:
-                  - text: Actions
-                  - img [ref=e312]
-            - generic [ref=e317]:
-              - generic [ref=e318]:
-                - generic [ref=e319]:
-                  - generic [ref=e320] [cursor=pointer]: Kingdom 3
-                  - generic [ref=e321]: S
-                  - generic [ref=e323]: ⚔️
-                - button "☆" [ref=e324] [cursor=pointer]
-              - generic [ref=e325]:
-                - generic [ref=e326]:
-                  - generic [ref=e327]: Atlas
-                  - generic [ref=e328]: Score
-                - generic [ref=e329]:
-                  - generic [ref=e330]: "0.0"
-                  - generic [ref=e331]: (#4)
-                - img [ref=e334] [cursor=pointer]
-              - generic [ref=e337]:
-                - generic [ref=e338]:
-                  - generic [ref=e339]: "9"
-                  - generic [ref=e340]: KvKs
-                - generic [ref=e341]:
-                  - generic [ref=e342]: 7 👑
-                  - generic [ref=e343]: Dominations
-                - generic [ref=e344]:
-                  - generic [ref=e345]: 0 💀
-                  - generic [ref=e346]: Invasions
-              - generic [ref=e347]:
-                - generic [ref=e348]:
-                  - generic [ref=e349]:
-                    - generic [ref=e350]: Prep
-                    - generic [ref=e351]: 78%
-                  - generic [ref=e352]: 7W – 2L
-                - generic [ref=e355]:
-                  - generic [ref=e356]:
-                    - generic [ref=e357]: Battle
-                    - generic [ref=e358]: 100%
-                  - generic [ref=e359]:
-                    - text: 9W – 0L
-                    - generic [ref=e360]: (9W Streak)
-              - generic [ref=e363]:
-                - generic [ref=e364]: Recent Performance
-                - generic [ref=e365]:
-                  - generic [ref=e367] [cursor=pointer]: 👑
-                  - generic [ref=e369] [cursor=pointer]: 👑
-                  - generic [ref=e371] [cursor=pointer]: 💪
-                  - generic [ref=e373] [cursor=pointer]: 👑
-                  - generic [ref=e375] [cursor=pointer]: 💪
-              - generic [ref=e376]:
-                - generic [ref=e377]: Transfer Status:Unannounced
-                - button "Actions for Kingdom 3" [ref=e379] [cursor=pointer]:
-                  - text: Actions
-                  - img [ref=e380]
-            - generic [ref=e385]:
-              - generic [ref=e386]:
-                - generic [ref=e387]:
-                  - generic [ref=e388] [cursor=pointer]: Kingdom 61
-                  - generic [ref=e389]: S
-                  - generic [ref=e391]: 🛡️
-                - button "☆" [ref=e392] [cursor=pointer]
-              - generic [ref=e393]:
-                - generic [ref=e394]:
-                  - generic [ref=e395]: Atlas
-                  - generic [ref=e396]: Score
+                  - generic [ref=e270]: Battle
+                  - generic [ref=e271]: 83%
+                - generic [ref=e272]: 5W – 1L
+                - generic [ref=e273]: "Current Streak: 4W"
+                - generic [ref=e274]: "Best Streak: 4W"
+            - generic [ref=e277]:
+              - generic [ref=e278]: Recent Performance
+              - generic [ref=e279]:
+                - generic [ref=e281] [cursor=pointer]: 🔄
+                - generic [ref=e283] [cursor=pointer]: 👑
+                - generic [ref=e285] [cursor=pointer]: 👑
+                - generic [ref=e287] [cursor=pointer]: 👑
+                - generic [ref=e289] [cursor=pointer]: 👑
+            - generic [ref=e290]:
+              - generic [ref=e291]: Transfer Status:Unannounced
+              - button "Actions for Kingdom 401" [ref=e293] [cursor=pointer]:
+                - text: Actions
+                - img [ref=e294]
+          - generic [ref=e299]:
+            - generic [ref=e300]:
+              - generic [ref=e301]:
+                - generic [ref=e302] [cursor=pointer]: Kingdom 163
+                - generic [ref=e303]: S
+              - button "☆" [ref=e304] [cursor=pointer]
+            - generic [ref=e305]:
+              - generic [ref=e306]:
+                - generic [ref=e307]: Atlas
+                - generic [ref=e308]: Score
+              - generic [ref=e309]:
+                - generic [ref=e310]: "0.0"
+                - generic [ref=e311]: (#4)
+            - generic [ref=e312]:
+              - generic [ref=e313]:
+                - generic [ref=e314]: "8"
+                - generic [ref=e315]: KvKs
+              - generic [ref=e316]:
+                - generic [ref=e317]: 7 👑
+                - generic [ref=e318]: Dominations
+              - generic [ref=e319]:
+                - generic [ref=e320]: 1 💀
+                - generic [ref=e321]: Invasions
+            - generic [ref=e322]:
+              - generic [ref=e323]:
+                - generic [ref=e324]:
+                  - generic [ref=e325]: Prep
+                  - generic [ref=e326]: 88%
+                - generic [ref=e327]: 7W – 1L
+                - generic [ref=e328]: "Current Streak: 4W"
+                - generic [ref=e329]: "Best Streak: 4W"
+              - generic [ref=e332]:
+                - generic [ref=e333]:
+                  - generic [ref=e334]: Battle
+                  - generic [ref=e335]: 88%
+                - generic [ref=e336]: 7W – 1L
+                - generic [ref=e337]: "Current Streak: 4W"
+                - generic [ref=e338]: "Best Streak: 4W"
+            - generic [ref=e341]:
+              - generic [ref=e342]: Recent Performance
+              - generic [ref=e343]:
+                - generic [ref=e345] [cursor=pointer]: 💀
+                - generic [ref=e347] [cursor=pointer]: 👑
+                - generic [ref=e349] [cursor=pointer]: 👑
+                - generic [ref=e351] [cursor=pointer]: 👑
+                - generic [ref=e353] [cursor=pointer]: 👑
+            - generic [ref=e354]:
+              - generic [ref=e355]: Transfer Status:Unannounced
+              - button "Actions for Kingdom 163" [ref=e357] [cursor=pointer]:
+                - text: Actions
+                - img [ref=e358]
+          - generic [ref=e363]:
+            - generic [ref=e364]:
+              - generic [ref=e365]:
+                - generic [ref=e366] [cursor=pointer]: Kingdom 172
+                - generic [ref=e367]: S
+              - button "☆" [ref=e368] [cursor=pointer]
+            - generic [ref=e369]:
+              - generic [ref=e370]:
+                - generic [ref=e371]: Atlas
+                - generic [ref=e372]: Score
+              - generic [ref=e373]:
+                - generic [ref=e374]: "0.0"
+                - generic [ref=e375]: (#5)
+            - generic [ref=e376]:
+              - generic [ref=e377]:
+                - generic [ref=e378]: "8"
+                - generic [ref=e379]: KvKs
+              - generic [ref=e380]:
+                - generic [ref=e381]: 6 👑
+                - generic [ref=e382]: Dominations
+              - generic [ref=e383]:
+                - generic [ref=e384]: 0 💀
+                - generic [ref=e385]: Invasions
+            - generic [ref=e386]:
+              - generic [ref=e387]:
+                - generic [ref=e388]:
+                  - generic [ref=e389]: Prep
+                  - generic [ref=e390]: 88%
+                - generic [ref=e391]: 7W – 1L
+                - generic [ref=e392]: "Current Streak: 3W"
+                - generic [ref=e393]: "Best Streak: 4W"
+              - generic [ref=e396]:
                 - generic [ref=e397]:
-                  - generic [ref=e398]: "0.0"
-                  - generic [ref=e399]: (#5)
-                - img [ref=e402] [cursor=pointer]
-              - generic [ref=e405]:
-                - generic [ref=e406]:
-                  - generic [ref=e407]: "8"
-                  - generic [ref=e408]: KvKs
-                - generic [ref=e409]:
-                  - generic [ref=e410]: 6 👑
-                  - generic [ref=e411]: Dominations
-                - generic [ref=e412]:
-                  - generic [ref=e413]: 0 💀
-                  - generic [ref=e414]: Invasions
-              - generic [ref=e415]:
-                - generic [ref=e416]:
-                  - generic [ref=e417]:
-                    - generic [ref=e418]: Prep
-                    - generic [ref=e419]: 100%
-                  - generic [ref=e420]:
-                    - text: 8W – 0L
-                    - generic [ref=e421]: (8W Streak)
-                - generic [ref=e424]:
-                  - generic [ref=e425]:
-                    - generic [ref=e426]: Battle
-                    - generic [ref=e427]: 75%
-                  - generic [ref=e428]: 6W – 2L
-              - generic [ref=e431]:
-                - generic [ref=e432]: Recent Performance
-                - generic [ref=e433]:
-                  - generic [ref=e435] [cursor=pointer]: 👑
-                  - generic [ref=e437] [cursor=pointer]: 👑
-                  - generic [ref=e439] [cursor=pointer]: 👑
-                  - generic [ref=e441] [cursor=pointer]: 👑
-                  - generic [ref=e443] [cursor=pointer]: 🔄
+                  - generic [ref=e398]: Battle
+                  - generic [ref=e399]: 88%
+                - generic [ref=e400]: 7W – 1L
+                - generic [ref=e401]: "Current Streak: 4W"
+                - generic [ref=e402]: "Best Streak: 4W"
+            - generic [ref=e405]:
+              - generic [ref=e406]: Recent Performance
+              - generic [ref=e407]:
+                - generic [ref=e409] [cursor=pointer]: 🔄
+                - generic [ref=e411] [cursor=pointer]: 💪
+                - generic [ref=e413] [cursor=pointer]: 👑
+                - generic [ref=e415] [cursor=pointer]: 👑
+                - generic [ref=e417] [cursor=pointer]: 👑
+            - generic [ref=e418]:
+              - generic [ref=e419]: Transfer Status:Unannounced
+              - button "Actions for Kingdom 172" [ref=e421] [cursor=pointer]:
+                - text: Actions
+                - img [ref=e422]
+          - generic [ref=e427]:
+            - generic [ref=e428]:
+              - generic [ref=e429]:
+                - generic [ref=e430] [cursor=pointer]: Kingdom 321
+                - generic [ref=e431]: S
+                - generic [ref=e432]:
+                  - generic [ref=e433]: ⚔️
+                  - generic [ref=e434]: ⚡
+              - button "☆" [ref=e435] [cursor=pointer]
+            - generic [ref=e436]:
+              - generic [ref=e437]:
+                - generic [ref=e438]: Atlas
+                - generic [ref=e439]: Score
+              - generic [ref=e440]:
+                - generic [ref=e441]: "0.0"
+                - generic [ref=e442]: (#6)
+            - generic [ref=e443]:
               - generic [ref=e444]:
-                - generic [ref=e445]: Transfer Status:Unannounced
-                - button "Actions for Kingdom 61" [ref=e447] [cursor=pointer]:
-                  - text: Actions
-                  - img [ref=e448]
+                - generic [ref=e445]: "7"
+                - generic [ref=e446]: KvKs
+              - generic [ref=e447]:
+                - generic [ref=e448]: 5 👑
+                - generic [ref=e449]: Dominations
+              - generic [ref=e450]:
+                - generic [ref=e451]: 0 💀
+                - generic [ref=e452]: Invasions
             - generic [ref=e453]:
               - generic [ref=e454]:
                 - generic [ref=e455]:
-                  - generic [ref=e456] [cursor=pointer]: Kingdom 88
-                  - generic [ref=e457]: S
-                - button "☆" [ref=e458] [cursor=pointer]
-              - generic [ref=e459]:
-                - generic [ref=e460]:
-                  - generic [ref=e461]: Atlas
-                  - generic [ref=e462]: Score
-                - generic [ref=e463]:
-                  - generic [ref=e464]: "0.0"
-                  - generic [ref=e465]: (#6)
-                - img [ref=e468] [cursor=pointer]
-              - generic [ref=e471]:
-                - generic [ref=e472]:
-                  - generic [ref=e473]: "8"
-                  - generic [ref=e474]: KvKs
-                - generic [ref=e475]:
-                  - generic [ref=e476]: 4 👑
-                  - generic [ref=e477]: Dominations
-                - generic [ref=e478]:
-                  - generic [ref=e479]: 0 💀
-                  - generic [ref=e480]: Invasions
-              - generic [ref=e481]:
-                - generic [ref=e482]:
-                  - generic [ref=e483]:
-                    - generic [ref=e484]: Prep
-                    - generic [ref=e485]: 75%
-                  - generic [ref=e486]:
-                    - text: 6W – 2L
-                    - generic [ref=e487]: (5W Streak)
-                - generic [ref=e490]:
-                  - generic [ref=e491]:
-                    - generic [ref=e492]: Battle
-                    - generic [ref=e493]: 75%
-                  - generic [ref=e494]:
-                    - text: 6W – 2L
-                    - generic [ref=e495]: (2W Streak)
-              - generic [ref=e498]:
-                - generic [ref=e499]: Recent Performance
-                - generic [ref=e500]:
-                  - generic [ref=e502] [cursor=pointer]: 🔄
-                  - generic [ref=e504] [cursor=pointer]: 👑
-                  - generic [ref=e506] [cursor=pointer]: 🔄
-                  - generic [ref=e508] [cursor=pointer]: 👑
-                  - generic [ref=e510] [cursor=pointer]: 👑
-              - generic [ref=e511]:
-                - generic [ref=e512]: Transfer Status:Unannounced
-                - button "Actions for Kingdom 88" [ref=e514] [cursor=pointer]:
-                  - text: Actions
-                  - img [ref=e515]
-          - button "Load More (1175 remaining)" [ref=e554] [cursor=pointer]
-        - region "Compare kingdoms panel" [ref=e555]:
-          - generic [ref=e556]:
-            - generic [ref=e557]:
-              - generic [ref=e558]: ⚖️
-              - text: "Quick Compare:"
-            - generic [ref=e559]:
-              - textbox "First kingdom number to compare" [ref=e560]:
-                - /placeholder: Kingdom A
-              - generic [ref=e561]: vs
-              - textbox "Second kingdom number to compare" [ref=e562]:
-                - /placeholder: Kingdom B
-            - generic [ref=e563]:
-              - button "Compare" [disabled] [ref=e564]
-              - button "Clear comparison inputs" [ref=e565] [cursor=pointer]: Clear
-              - button "Close compare panel" [ref=e566] [cursor=pointer]:
-                - img [ref=e567]
-        - button [ref=e569] [cursor=pointer]:
-          - img [ref=e570]
+                  - generic [ref=e456]: Prep
+                  - generic [ref=e457]: 71%
+                - generic [ref=e458]: 5W – 2L
+                - generic [ref=e459]: "Current Streak: 2W"
+                - generic [ref=e460]: "Best Streak: 2W"
+              - generic [ref=e463]:
+                - generic [ref=e464]:
+                  - generic [ref=e465]: Battle
+                  - generic [ref=e466]: 100%
+                - generic [ref=e467]: 7W – 0L
+                - generic [ref=e468]: "Current Streak: 7W"
+                - generic [ref=e469]: "Best Streak: 7W"
+            - generic [ref=e472]:
+              - generic [ref=e473]: Recent Performance
+              - generic [ref=e474]:
+                - generic [ref=e476] [cursor=pointer]: 💪
+                - generic [ref=e478] [cursor=pointer]: 👑
+                - generic [ref=e480] [cursor=pointer]: 💪
+                - generic [ref=e482] [cursor=pointer]: 👑
+                - generic [ref=e484] [cursor=pointer]: 👑
+            - generic [ref=e485]:
+              - generic [ref=e486]: Transfer Status:Unannounced
+              - button "Actions for Kingdom 321" [ref=e488] [cursor=pointer]:
+                - text: Actions
+                - img [ref=e489]
+        - button [ref=e528] [cursor=pointer]:
+          - img [ref=e529]
+    - button "💬 Feedback" [ref=e531] [cursor=pointer]
   - region "Notifications"
 ```

@@ -1,0 +1,903 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - link "KA KINGSHOT ATLAS" [ref=e6] [cursor=pointer]:
+          - /url: /
+          - img "KA" [ref=e7]
+          - generic [ref=e8]:
+            - generic [ref=e9]: KINGSHOT
+            - generic [ref=e10]: ATLAS
+        - generic [ref=e11]:
+          - generic [ref=e12]:
+            - generic [ref=e13]: ⚔️
+            - generic [ref=e14]:
+              - generic [ref=e15]: Next KvK
+              - generic [ref=e16]: 18d 20h 28m 08s
+          - generic [ref=e17]:
+            - generic [ref=e18]: 🚀
+            - generic [ref=e19]:
+              - generic [ref=e20]: Next Transfer
+              - generic [ref=e21]: 24d 20h 28m 08s
+        - navigation [ref=e22]:
+          - link "Home" [ref=e23] [cursor=pointer]:
+            - /url: /
+          - link "Rankings" [ref=e24] [cursor=pointer]:
+            - /url: /leaderboards
+          - link "Tools" [ref=e26] [cursor=pointer]:
+            - /url: /tools
+            - text: Tools
+            - img [ref=e27]
+          - button "Community" [ref=e30] [cursor=pointer]:
+            - text: Community
+            - img [ref=e31]
+          - link "Support Us" [ref=e33] [cursor=pointer]:
+            - /url: /support
+            - img [ref=e34]
+            - text: Support Us
+          - button "Sign In" [ref=e37] [cursor=pointer]:
+            - img [ref=e38]
+            - text: Sign In
+    - main [ref=e40]:
+      - generic [ref=e42]:
+        - generic [ref=e44]:
+          - heading "KINGDOMRANKINGS" [level=1] [ref=e45]
+          - paragraph [ref=e46]: Who's dominating? The data doesn't lie.
+        - generic [ref=e51]:
+          - generic [ref=e52]:
+            - generic [ref=e53]:
+              - button "📊 Score Distribution (1204 kingdoms)" [ref=e54] [cursor=pointer]:
+                - generic [ref=e55]:
+                  - generic [ref=e56]: 📊
+                  - generic [ref=e57]: Score Distribution
+                  - generic [ref=e58]: (1204 kingdoms)
+                - img [ref=e59]
+              - generic [ref=e61]:
+                - generic [ref=e62]:
+                  - generic [ref=e63]: S
+                  - generic [ref=e64]: "33"
+                  - generic [ref=e65]: (3%)
+                - generic [ref=e66]:
+                  - generic [ref=e67]: A
+                  - generic [ref=e68]: "40"
+                  - generic [ref=e69]: (3%)
+                - generic [ref=e70]:
+                  - generic [ref=e71]: B
+                  - generic [ref=e72]: "136"
+                  - generic [ref=e73]: (11%)
+                - generic [ref=e74]:
+                  - generic [ref=e75]: C
+                  - generic [ref=e76]: "345"
+                  - generic [ref=e77]: (29%)
+                - generic [ref=e78]:
+                  - generic [ref=e79]: D
+                  - generic [ref=e80]: "650"
+                  - generic [ref=e81]: (54%)
+            - generic [ref=e82]:
+              - generic [ref=e83]:
+                - generic [ref=e84]:
+                  - generic [ref=e85]: 📈
+                  - heading "Score Movers" [level=3] [ref=e86]
+                  - generic [ref=e87]: This Week
+                - generic [ref=e88]:
+                  - button "All" [ref=e89] [cursor=pointer]
+                  - button "↑" [ref=e90] [cursor=pointer]
+                  - button "↓" [ref=e91] [cursor=pointer]
+                  - button "⭐" [ref=e92] [cursor=pointer]
+              - generic [ref=e93]:
+                - link "↑ Kingdom 172 S-Tier +0.39 10.0 → 10.4" [ref=e94] [cursor=pointer]:
+                  - /url: /kingdom/172
+                  - generic [ref=e95]:
+                    - generic [ref=e96]: ↑
+                    - generic [ref=e97]:
+                      - generic [ref=e98]: Kingdom 172
+                      - generic [ref=e100]: S-Tier
+                  - generic [ref=e101]:
+                    - generic [ref=e102]: "+0.39"
+                    - generic [ref=e103]: 10.0 → 10.4
+                - link "↑ Kingdom 231 S-Tier +0.28 12.1 → 12.4" [ref=e104] [cursor=pointer]:
+                  - /url: /kingdom/231
+                  - generic [ref=e105]:
+                    - generic [ref=e106]: ↑
+                    - generic [ref=e107]:
+                      - generic [ref=e108]: Kingdom 231
+                      - generic [ref=e110]: S-Tier
+                  - generic [ref=e111]:
+                    - generic [ref=e112]: "+0.28"
+                    - generic [ref=e113]: 12.1 → 12.4
+                - link "↑ Kingdom 163 S-Tier +0.27 10.2 → 10.5" [ref=e114] [cursor=pointer]:
+                  - /url: /kingdom/163
+                  - generic [ref=e115]:
+                    - generic [ref=e116]: ↑
+                    - generic [ref=e117]:
+                      - generic [ref=e118]: Kingdom 163
+                      - generic [ref=e120]: S-Tier
+                  - generic [ref=e121]:
+                    - generic [ref=e122]: "+0.27"
+                    - generic [ref=e123]: 10.2 → 10.5
+                - link "↑ Kingdom 3 S-Tier +0.26 11.0 → 11.3" [ref=e124] [cursor=pointer]:
+                  - /url: /kingdom/3
+                  - generic [ref=e125]:
+                    - generic [ref=e126]: ↑
+                    - generic [ref=e127]:
+                      - generic [ref=e128]: Kingdom 3
+                      - generic [ref=e130]: S-Tier
+                  - generic [ref=e131]:
+                    - generic [ref=e132]: "+0.26"
+                    - generic [ref=e133]: 11.0 → 11.3
+                - link "↓ Kingdom 886 D-Tier -0.24 2.1 → 1.8" [ref=e134] [cursor=pointer]:
+                  - /url: /kingdom/886
+                  - generic [ref=e135]:
+                    - generic [ref=e136]: ↓
+                    - generic [ref=e137]:
+                      - generic [ref=e138]: Kingdom 886
+                      - generic [ref=e140]: D-Tier
+                  - generic [ref=e141]:
+                    - generic [ref=e142]: "-0.24"
+                    - generic [ref=e143]: 2.1 → 1.8
+              - button "Show 5 More" [ref=e144] [cursor=pointer]
+              - generic [ref=e145]:
+                - generic [ref=e146]: ↑ 5
+                - generic [ref=e147]: ↓ 5
+                - generic [ref=e148]: ⭐ 0 tier changes
+          - generic [ref=e149]:
+            - generic [ref=e150]:
+              - button "Top 10" [ref=e151] [cursor=pointer]
+              - button "Top 20" [ref=e152] [cursor=pointer]
+              - button "Top 50" [ref=e153] [cursor=pointer]
+            - generic [ref=e154]:
+              - generic [ref=e155]: "Experience:"
+              - combobox [ref=e156] [cursor=pointer]:
+                - option "All KvKs" [selected]
+                - option "1-3 KvKs"
+                - option "4-6 KvKs"
+                - option "7-9 KvKs"
+                - option "10+ KvKs"
+          - generic [ref=e157]:
+            - heading "📊 Performance Rankings" [level=2] [ref=e158]
+            - generic [ref=e159]:
+              - generic [ref=e160]:
+                - generic [ref=e161]:
+                  - generic [ref=e162]: 🏆
+                  - heading "Atlas Score" [level=3] [ref=e163]
+                  - generic [ref=e164]: 🏆
+                - generic [ref=e165]:
+                  - link "🥇 Kingdom 231 12.4" [ref=e166] [cursor=pointer]:
+                    - /url: /kingdom/231
+                    - generic [ref=e167]:
+                      - generic [ref=e168]: 🥇
+                      - generic [ref=e169]: Kingdom 231
+                    - generic [ref=e170]: "12.4"
+                  - link "🥈 Kingdom 3 11.3" [ref=e171] [cursor=pointer]:
+                    - /url: /kingdom/3
+                    - generic [ref=e172]:
+                      - generic [ref=e173]: 🥈
+                      - generic [ref=e174]: Kingdom 3
+                    - generic [ref=e175]: "11.3"
+                  - link "🥉 Kingdom 401 10.6" [ref=e176] [cursor=pointer]:
+                    - /url: /kingdom/401
+                    - generic [ref=e177]:
+                      - generic [ref=e178]: 🥉
+                      - generic [ref=e179]: Kingdom 401
+                    - generic [ref=e180]: "10.6"
+                  - link "#4 Kingdom 163 10.5" [ref=e181] [cursor=pointer]:
+                    - /url: /kingdom/163
+                    - generic [ref=e182]:
+                      - generic [ref=e183]: "#4"
+                      - generic [ref=e184]: Kingdom 163
+                    - generic [ref=e185]: "10.5"
+                  - link "#5 Kingdom 172 10.4" [ref=e186] [cursor=pointer]:
+                    - /url: /kingdom/172
+                    - generic [ref=e187]:
+                      - generic [ref=e188]: "#5"
+                      - generic [ref=e189]: Kingdom 172
+                    - generic [ref=e190]: "10.4"
+                  - link "#6 Kingdom 321 10.4" [ref=e191] [cursor=pointer]:
+                    - /url: /kingdom/321
+                    - generic [ref=e192]:
+                      - generic [ref=e193]: "#6"
+                      - generic [ref=e194]: Kingdom 321
+                    - generic [ref=e195]: "10.4"
+                  - link "#7 Kingdom 61 10.3" [ref=e196] [cursor=pointer]:
+                    - /url: /kingdom/61
+                    - generic [ref=e197]:
+                      - generic [ref=e198]: "#7"
+                      - generic [ref=e199]: Kingdom 61
+                    - generic [ref=e200]: "10.3"
+                  - link "#8 Kingdom 417 10.0" [ref=e201] [cursor=pointer]:
+                    - /url: /kingdom/417
+                    - generic [ref=e202]:
+                      - generic [ref=e203]: "#8"
+                      - generic [ref=e204]: Kingdom 417
+                    - generic [ref=e205]: "10.0"
+                  - link "#9 Kingdom 12 10.0" [ref=e206] [cursor=pointer]:
+                    - /url: /kingdom/12
+                    - generic [ref=e207]:
+                      - generic [ref=e208]: "#9"
+                      - generic [ref=e209]: Kingdom 12
+                    - generic [ref=e210]: "10.0"
+                  - link "#10 Kingdom 535 9.9" [ref=e211] [cursor=pointer]:
+                    - /url: /kingdom/535
+                    - generic [ref=e212]:
+                      - generic [ref=e213]: "#10"
+                      - generic [ref=e214]: Kingdom 535
+                    - generic [ref=e215]: "9.9"
+              - generic [ref=e216]:
+                - generic [ref=e217]:
+                  - generic [ref=e218]: 📊
+                  - heading "Prep Win Rate" [level=3] [ref=e219]
+                  - generic [ref=e220]: 📊
+                - generic [ref=e221]:
+                  - link "🥇 Kingdom 12 100%" [ref=e222] [cursor=pointer]:
+                    - /url: /kingdom/12
+                    - generic [ref=e223]:
+                      - generic [ref=e224]: 🥇
+                      - generic [ref=e225]: Kingdom 12
+                    - generic [ref=e226]: 100%
+                  - link "🥈 Kingdom 39 100%" [ref=e227] [cursor=pointer]:
+                    - /url: /kingdom/39
+                    - generic [ref=e228]:
+                      - generic [ref=e229]: 🥈
+                      - generic [ref=e230]: Kingdom 39
+                    - generic [ref=e231]: 100%
+                  - link "🥉 Kingdom 61 100%" [ref=e232] [cursor=pointer]:
+                    - /url: /kingdom/61
+                    - generic [ref=e233]:
+                      - generic [ref=e234]: 🥉
+                      - generic [ref=e235]: Kingdom 61
+                    - generic [ref=e236]: 100%
+                  - link "#4 Kingdom 123 100%" [ref=e237] [cursor=pointer]:
+                    - /url: /kingdom/123
+                    - generic [ref=e238]:
+                      - generic [ref=e239]: "#4"
+                      - generic [ref=e240]: Kingdom 123
+                    - generic [ref=e241]: 100%
+                  - link "#5 Kingdom 200 100%" [ref=e242] [cursor=pointer]:
+                    - /url: /kingdom/200
+                    - generic [ref=e243]:
+                      - generic [ref=e244]: "#5"
+                      - generic [ref=e245]: Kingdom 200
+                    - generic [ref=e246]: 100%
+                  - link "#6 Kingdom 203 100%" [ref=e247] [cursor=pointer]:
+                    - /url: /kingdom/203
+                    - generic [ref=e248]:
+                      - generic [ref=e249]: "#6"
+                      - generic [ref=e250]: Kingdom 203
+                    - generic [ref=e251]: 100%
+                  - link "#7 Kingdom 231 100%" [ref=e252] [cursor=pointer]:
+                    - /url: /kingdom/231
+                    - generic [ref=e253]:
+                      - generic [ref=e254]: "#7"
+                      - generic [ref=e255]: Kingdom 231
+                    - generic [ref=e256]: 100%
+                  - link "#8 Kingdom 271 100%" [ref=e257] [cursor=pointer]:
+                    - /url: /kingdom/271
+                    - generic [ref=e258]:
+                      - generic [ref=e259]: "#8"
+                      - generic [ref=e260]: Kingdom 271
+                    - generic [ref=e261]: 100%
+                  - link "#9 Kingdom 273 100%" [ref=e262] [cursor=pointer]:
+                    - /url: /kingdom/273
+                    - generic [ref=e263]:
+                      - generic [ref=e264]: "#9"
+                      - generic [ref=e265]: Kingdom 273
+                    - generic [ref=e266]: 100%
+                  - link "#10 Kingdom 276 100%" [ref=e267] [cursor=pointer]:
+                    - /url: /kingdom/276
+                    - generic [ref=e268]:
+                      - generic [ref=e269]: "#10"
+                      - generic [ref=e270]: Kingdom 276
+                    - generic [ref=e271]: 100%
+              - generic [ref=e272]:
+                - generic [ref=e273]:
+                  - generic [ref=e274]: 📈
+                  - heading "Battle Win Rate" [level=3] [ref=e275]
+                  - generic [ref=e276]: 📈
+                - generic [ref=e277]:
+                  - link "🥇 Kingdom 3 100%" [ref=e278] [cursor=pointer]:
+                    - /url: /kingdom/3
+                    - generic [ref=e279]:
+                      - generic [ref=e280]: 🥇
+                      - generic [ref=e281]: Kingdom 3
+                    - generic [ref=e282]: 100%
+                  - link "🥈 Kingdom 231 100%" [ref=e283] [cursor=pointer]:
+                    - /url: /kingdom/231
+                    - generic [ref=e284]:
+                      - generic [ref=e285]: 🥈
+                      - generic [ref=e286]: Kingdom 231
+                    - generic [ref=e287]: 100%
+                  - link "🥉 Kingdom 321 100%" [ref=e288] [cursor=pointer]:
+                    - /url: /kingdom/321
+                    - generic [ref=e289]:
+                      - generic [ref=e290]: 🥉
+                      - generic [ref=e291]: Kingdom 321
+                    - generic [ref=e292]: 100%
+                  - link "#4 Kingdom 535 100%" [ref=e293] [cursor=pointer]:
+                    - /url: /kingdom/535
+                    - generic [ref=e294]:
+                      - generic [ref=e295]: "#4"
+                      - generic [ref=e296]: Kingdom 535
+                    - generic [ref=e297]: 100%
+                  - link "#5 Kingdom 606 100%" [ref=e298] [cursor=pointer]:
+                    - /url: /kingdom/606
+                    - generic [ref=e299]:
+                      - generic [ref=e300]: "#5"
+                      - generic [ref=e301]: Kingdom 606
+                    - generic [ref=e302]: 100%
+                  - link "#6 Kingdom 623 100%" [ref=e303] [cursor=pointer]:
+                    - /url: /kingdom/623
+                    - generic [ref=e304]:
+                      - generic [ref=e305]: "#6"
+                      - generic [ref=e306]: Kingdom 623
+                    - generic [ref=e307]: 100%
+                  - link "#7 Kingdom 652 100%" [ref=e308] [cursor=pointer]:
+                    - /url: /kingdom/652
+                    - generic [ref=e309]:
+                      - generic [ref=e310]: "#7"
+                      - generic [ref=e311]: Kingdom 652
+                    - generic [ref=e312]: 100%
+                  - link "#8 Kingdom 685 100%" [ref=e313] [cursor=pointer]:
+                    - /url: /kingdom/685
+                    - generic [ref=e314]:
+                      - generic [ref=e315]: "#8"
+                      - generic [ref=e316]: Kingdom 685
+                    - generic [ref=e317]: 100%
+                  - link "#9 Kingdom 709 100%" [ref=e318] [cursor=pointer]:
+                    - /url: /kingdom/709
+                    - generic [ref=e319]:
+                      - generic [ref=e320]: "#9"
+                      - generic [ref=e321]: Kingdom 709
+                    - generic [ref=e322]: 100%
+                  - link "#10 Kingdom 710 100%" [ref=e323] [cursor=pointer]:
+                    - /url: /kingdom/710
+                    - generic [ref=e324]:
+                      - generic [ref=e325]: "#10"
+                      - generic [ref=e326]: Kingdom 710
+                    - generic [ref=e327]: 100%
+          - generic [ref=e328]:
+            - heading "🔥 Current Momentum" [level=2] [ref=e329]
+            - generic [ref=e330]:
+              - generic [ref=e331]:
+                - generic [ref=e332]:
+                  - generic [ref=e333]: 🛡️
+                  - heading "Prep Win Streak" [level=3] [ref=e334]
+                  - generic [ref=e335]: 🛡️
+                - generic [ref=e336]:
+                  - link "🥇 Kingdom 12 10W" [ref=e337] [cursor=pointer]:
+                    - /url: /kingdom/12
+                    - generic [ref=e338]:
+                      - generic [ref=e339]: 🥇
+                      - generic [ref=e340]: Kingdom 12
+                    - generic [ref=e341]: 10W
+                  - link "🥈 Kingdom 39 9W" [ref=e342] [cursor=pointer]:
+                    - /url: /kingdom/39
+                    - generic [ref=e343]:
+                      - generic [ref=e344]: 🥈
+                      - generic [ref=e345]: Kingdom 39
+                    - generic [ref=e346]: 9W
+                  - link "🥉 Kingdom 61 9W" [ref=e347] [cursor=pointer]:
+                    - /url: /kingdom/61
+                    - generic [ref=e348]:
+                      - generic [ref=e349]: 🥉
+                      - generic [ref=e350]: Kingdom 61
+                    - generic [ref=e351]: 9W
+                  - link "#4 Kingdom 123 8W" [ref=e352] [cursor=pointer]:
+                    - /url: /kingdom/123
+                    - generic [ref=e353]:
+                      - generic [ref=e354]: "#4"
+                      - generic [ref=e355]: Kingdom 123
+                    - generic [ref=e356]: 8W
+                  - link "#5 Kingdom 200 8W" [ref=e357] [cursor=pointer]:
+                    - /url: /kingdom/200
+                    - generic [ref=e358]:
+                      - generic [ref=e359]: "#5"
+                      - generic [ref=e360]: Kingdom 200
+                    - generic [ref=e361]: 8W
+                  - link "#6 Kingdom 203 8W" [ref=e362] [cursor=pointer]:
+                    - /url: /kingdom/203
+                    - generic [ref=e363]:
+                      - generic [ref=e364]: "#6"
+                      - generic [ref=e365]: Kingdom 203
+                    - generic [ref=e366]: 8W
+                  - link "#7 Kingdom 1 7W" [ref=e367] [cursor=pointer]:
+                    - /url: /kingdom/1
+                    - generic [ref=e368]:
+                      - generic [ref=e369]: "#7"
+                      - generic [ref=e370]: Kingdom 1
+                    - generic [ref=e371]: 7W
+                  - link "#8 Kingdom 33 7W" [ref=e372] [cursor=pointer]:
+                    - /url: /kingdom/33
+                    - generic [ref=e373]:
+                      - generic [ref=e374]: "#8"
+                      - generic [ref=e375]: Kingdom 33
+                    - generic [ref=e376]: 7W
+                  - link "#9 Kingdom 78 7W" [ref=e377] [cursor=pointer]:
+                    - /url: /kingdom/78
+                    - generic [ref=e378]:
+                      - generic [ref=e379]: "#9"
+                      - generic [ref=e380]: Kingdom 78
+                    - generic [ref=e381]: 7W
+                  - link "#10 Kingdom 199 7W" [ref=e382] [cursor=pointer]:
+                    - /url: /kingdom/199
+                    - generic [ref=e383]:
+                      - generic [ref=e384]: "#10"
+                      - generic [ref=e385]: Kingdom 199
+                    - generic [ref=e386]: 7W
+              - generic [ref=e387]:
+                - generic [ref=e388]:
+                  - generic [ref=e389]: ⚔️
+                  - heading "Battle Win Streak" [level=3] [ref=e390]
+                  - generic [ref=e391]: ⚔️
+                - generic [ref=e392]:
+                  - link "🥇 Kingdom 3 10W" [ref=e393] [cursor=pointer]:
+                    - /url: /kingdom/3
+                    - generic [ref=e394]:
+                      - generic [ref=e395]: 🥇
+                      - generic [ref=e396]: Kingdom 3
+                    - generic [ref=e397]: 10W
+                  - link "🥈 Kingdom 231 7W" [ref=e398] [cursor=pointer]:
+                    - /url: /kingdom/231
+                    - generic [ref=e399]:
+                      - generic [ref=e400]: 🥈
+                      - generic [ref=e401]: Kingdom 231
+                    - generic [ref=e402]: 7W
+                  - link "🥉 Kingdom 321 7W" [ref=e403] [cursor=pointer]:
+                    - /url: /kingdom/321
+                    - generic [ref=e404]:
+                      - generic [ref=e405]: 🥉
+                      - generic [ref=e406]: Kingdom 321
+                    - generic [ref=e407]: 7W
+                  - link "#4 Kingdom 239 5W" [ref=e408] [cursor=pointer]:
+                    - /url: /kingdom/239
+                    - generic [ref=e409]:
+                      - generic [ref=e410]: "#4"
+                      - generic [ref=e411]: Kingdom 239
+                    - generic [ref=e412]: 5W
+                  - link "#5 Kingdom 303 5W" [ref=e413] [cursor=pointer]:
+                    - /url: /kingdom/303
+                    - generic [ref=e414]:
+                      - generic [ref=e415]: "#5"
+                      - generic [ref=e416]: Kingdom 303
+                    - generic [ref=e417]: 5W
+                  - link "#6 Kingdom 535 5W" [ref=e418] [cursor=pointer]:
+                    - /url: /kingdom/535
+                    - generic [ref=e419]:
+                      - generic [ref=e420]: "#6"
+                      - generic [ref=e421]: Kingdom 535
+                    - generic [ref=e422]: 5W
+                  - link "#7 Kingdom 60 4W" [ref=e423] [cursor=pointer]:
+                    - /url: /kingdom/60
+                    - generic [ref=e424]:
+                      - generic [ref=e425]: "#7"
+                      - generic [ref=e426]: Kingdom 60
+                    - generic [ref=e427]: 4W
+                  - link "#8 Kingdom 73 4W" [ref=e428] [cursor=pointer]:
+                    - /url: /kingdom/73
+                    - generic [ref=e429]:
+                      - generic [ref=e430]: "#8"
+                      - generic [ref=e431]: Kingdom 73
+                    - generic [ref=e432]: 4W
+                  - link "#9 Kingdom 75 4W" [ref=e433] [cursor=pointer]:
+                    - /url: /kingdom/75
+                    - generic [ref=e434]:
+                      - generic [ref=e435]: "#9"
+                      - generic [ref=e436]: Kingdom 75
+                    - generic [ref=e437]: 4W
+                  - link "#10 Kingdom 140 4W" [ref=e438] [cursor=pointer]:
+                    - /url: /kingdom/140
+                    - generic [ref=e439]:
+                      - generic [ref=e440]: "#10"
+                      - generic [ref=e441]: Kingdom 140
+                    - generic [ref=e442]: 4W
+          - generic [ref=e443]:
+            - heading "🏅 All-Time Records" [level=2] [ref=e444]
+            - generic [ref=e445]:
+              - generic [ref=e446]:
+                - generic [ref=e447]:
+                  - generic [ref=e448]: 🏅
+                  - heading "Prep Streak Record" [level=3] [ref=e449]
+                  - generic [ref=e450]: 🏅
+                - generic [ref=e451]:
+                  - link "🥇 Kingdom 12 10W" [ref=e452] [cursor=pointer]:
+                    - /url: /kingdom/12
+                    - generic [ref=e453]:
+                      - generic [ref=e454]: 🥇
+                      - generic [ref=e455]: Kingdom 12
+                    - generic [ref=e456]: 10W
+                  - link "🥈 Kingdom 39 9W" [ref=e457] [cursor=pointer]:
+                    - /url: /kingdom/39
+                    - generic [ref=e458]:
+                      - generic [ref=e459]: 🥈
+                      - generic [ref=e460]: Kingdom 39
+                    - generic [ref=e461]: 9W
+                  - link "🥉 Kingdom 61 9W" [ref=e462] [cursor=pointer]:
+                    - /url: /kingdom/61
+                    - generic [ref=e463]:
+                      - generic [ref=e464]: 🥉
+                      - generic [ref=e465]: Kingdom 61
+                    - generic [ref=e466]: 9W
+                  - link "#4 Kingdom 123 8W" [ref=e467] [cursor=pointer]:
+                    - /url: /kingdom/123
+                    - generic [ref=e468]:
+                      - generic [ref=e469]: "#4"
+                      - generic [ref=e470]: Kingdom 123
+                    - generic [ref=e471]: 8W
+                  - link "#5 Kingdom 200 8W" [ref=e472] [cursor=pointer]:
+                    - /url: /kingdom/200
+                    - generic [ref=e473]:
+                      - generic [ref=e474]: "#5"
+                      - generic [ref=e475]: Kingdom 200
+                    - generic [ref=e476]: 8W
+                  - link "#6 Kingdom 203 8W" [ref=e477] [cursor=pointer]:
+                    - /url: /kingdom/203
+                    - generic [ref=e478]:
+                      - generic [ref=e479]: "#6"
+                      - generic [ref=e480]: Kingdom 203
+                    - generic [ref=e481]: 8W
+                  - link "#7 Kingdom 1 7W" [ref=e482] [cursor=pointer]:
+                    - /url: /kingdom/1
+                    - generic [ref=e483]:
+                      - generic [ref=e484]: "#7"
+                      - generic [ref=e485]: Kingdom 1
+                    - generic [ref=e486]: 7W
+                  - link "#8 Kingdom 33 7W" [ref=e487] [cursor=pointer]:
+                    - /url: /kingdom/33
+                    - generic [ref=e488]:
+                      - generic [ref=e489]: "#8"
+                      - generic [ref=e490]: Kingdom 33
+                    - generic [ref=e491]: 7W
+                  - link "#9 Kingdom 78 7W" [ref=e492] [cursor=pointer]:
+                    - /url: /kingdom/78
+                    - generic [ref=e493]:
+                      - generic [ref=e494]: "#9"
+                      - generic [ref=e495]: Kingdom 78
+                    - generic [ref=e496]: 7W
+                  - link "#10 Kingdom 199 7W" [ref=e497] [cursor=pointer]:
+                    - /url: /kingdom/199
+                    - generic [ref=e498]:
+                      - generic [ref=e499]: "#10"
+                      - generic [ref=e500]: Kingdom 199
+                    - generic [ref=e501]: 7W
+              - generic [ref=e502]:
+                - generic [ref=e503]:
+                  - generic [ref=e504]: 🎖️
+                  - heading "Battle Streak Record" [level=3] [ref=e505]
+                  - generic [ref=e506]: 🎖️
+                - generic [ref=e507]:
+                  - link "🥇 Kingdom 3 10W" [ref=e508] [cursor=pointer]:
+                    - /url: /kingdom/3
+                    - generic [ref=e509]:
+                      - generic [ref=e510]: 🥇
+                      - generic [ref=e511]: Kingdom 3
+                    - generic [ref=e512]: 10W
+                  - link "🥈 Kingdom 162 7W" [ref=e513] [cursor=pointer]:
+                    - /url: /kingdom/162
+                    - generic [ref=e514]:
+                      - generic [ref=e515]: 🥈
+                      - generic [ref=e516]: Kingdom 162
+                    - generic [ref=e517]: 7W
+                  - link "🥉 Kingdom 231 7W" [ref=e518] [cursor=pointer]:
+                    - /url: /kingdom/231
+                    - generic [ref=e519]:
+                      - generic [ref=e520]: 🥉
+                      - generic [ref=e521]: Kingdom 231
+                    - generic [ref=e522]: 7W
+                  - link "#4 Kingdom 321 7W" [ref=e523] [cursor=pointer]:
+                    - /url: /kingdom/321
+                    - generic [ref=e524]:
+                      - generic [ref=e525]: "#4"
+                      - generic [ref=e526]: Kingdom 321
+                    - generic [ref=e527]: 7W
+                  - link "#5 Kingdom 61 6W" [ref=e528] [cursor=pointer]:
+                    - /url: /kingdom/61
+                    - generic [ref=e529]:
+                      - generic [ref=e530]: "#5"
+                      - generic [ref=e531]: Kingdom 61
+                    - generic [ref=e532]: 6W
+                  - link "#6 Kingdom 45 5W" [ref=e533] [cursor=pointer]:
+                    - /url: /kingdom/45
+                    - generic [ref=e534]:
+                      - generic [ref=e535]: "#6"
+                      - generic [ref=e536]: Kingdom 45
+                    - generic [ref=e537]: 5W
+                  - link "#7 Kingdom 46 5W" [ref=e538] [cursor=pointer]:
+                    - /url: /kingdom/46
+                    - generic [ref=e539]:
+                      - generic [ref=e540]: "#7"
+                      - generic [ref=e541]: Kingdom 46
+                    - generic [ref=e542]: 5W
+                  - link "#8 Kingdom 66 5W" [ref=e543] [cursor=pointer]:
+                    - /url: /kingdom/66
+                    - generic [ref=e544]:
+                      - generic [ref=e545]: "#8"
+                      - generic [ref=e546]: Kingdom 66
+                    - generic [ref=e547]: 5W
+                  - link "#9 Kingdom 86 5W" [ref=e548] [cursor=pointer]:
+                    - /url: /kingdom/86
+                    - generic [ref=e549]:
+                      - generic [ref=e550]: "#9"
+                      - generic [ref=e551]: Kingdom 86
+                    - generic [ref=e552]: 5W
+                  - link "#10 Kingdom 90 5W" [ref=e553] [cursor=pointer]:
+                    - /url: /kingdom/90
+                    - generic [ref=e554]:
+                      - generic [ref=e555]: "#10"
+                      - generic [ref=e556]: Kingdom 90
+                    - generic [ref=e557]: 5W
+          - generic [ref=e558]:
+            - heading "📈 Match Outcomes" [level=2] [ref=e559]
+            - generic [ref=e560]:
+              - generic [ref=e561]:
+                - generic [ref=e562]:
+                  - generic [ref=e563]: 👑
+                  - heading "Dominations" [level=3] [ref=e564]
+                  - generic [ref=e565]: 👑
+                - generic [ref=e566]:
+                  - link "🥇 Kingdom 3 8" [ref=e567] [cursor=pointer]:
+                    - /url: /kingdom/3
+                    - generic [ref=e568]:
+                      - generic [ref=e569]: 🥇
+                      - generic [ref=e570]: Kingdom 3
+                    - generic [ref=e571]: "8"
+                  - link "🥈 Kingdom 12 7" [ref=e572] [cursor=pointer]:
+                    - /url: /kingdom/12
+                    - generic [ref=e573]:
+                      - generic [ref=e574]: 🥈
+                      - generic [ref=e575]: Kingdom 12
+                    - generic [ref=e576]: "7"
+                  - link "🥉 Kingdom 61 7" [ref=e577] [cursor=pointer]:
+                    - /url: /kingdom/61
+                    - generic [ref=e578]:
+                      - generic [ref=e579]: 🥉
+                      - generic [ref=e580]: Kingdom 61
+                    - generic [ref=e581]: "7"
+                  - link "#4 Kingdom 86 7" [ref=e582] [cursor=pointer]:
+                    - /url: /kingdom/86
+                    - generic [ref=e583]:
+                      - generic [ref=e584]: "#4"
+                      - generic [ref=e585]: Kingdom 86
+                    - generic [ref=e586]: "7"
+                  - link "#5 Kingdom 163 7" [ref=e587] [cursor=pointer]:
+                    - /url: /kingdom/163
+                    - generic [ref=e588]:
+                      - generic [ref=e589]: "#5"
+                      - generic [ref=e590]: Kingdom 163
+                    - generic [ref=e591]: "7"
+                  - link "#6 Kingdom 231 7" [ref=e592] [cursor=pointer]:
+                    - /url: /kingdom/231
+                    - generic [ref=e593]:
+                      - generic [ref=e594]: "#6"
+                      - generic [ref=e595]: Kingdom 231
+                    - generic [ref=e596]: "7"
+                  - link "#7 Kingdom 90 6" [ref=e597] [cursor=pointer]:
+                    - /url: /kingdom/90
+                    - generic [ref=e598]:
+                      - generic [ref=e599]: "#7"
+                      - generic [ref=e600]: Kingdom 90
+                    - generic [ref=e601]: "6"
+                  - link "#8 Kingdom 169 6" [ref=e602] [cursor=pointer]:
+                    - /url: /kingdom/169
+                    - generic [ref=e603]:
+                      - generic [ref=e604]: "#8"
+                      - generic [ref=e605]: Kingdom 169
+                    - generic [ref=e606]: "6"
+                  - link "#9 Kingdom 172 6" [ref=e607] [cursor=pointer]:
+                    - /url: /kingdom/172
+                    - generic [ref=e608]:
+                      - generic [ref=e609]: "#9"
+                      - generic [ref=e610]: Kingdom 172
+                    - generic [ref=e611]: "6"
+                  - link "#10 Kingdom 33 5" [ref=e612] [cursor=pointer]:
+                    - /url: /kingdom/33
+                    - generic [ref=e613]:
+                      - generic [ref=e614]: "#10"
+                      - generic [ref=e615]: Kingdom 33
+                    - generic [ref=e616]: "5"
+              - generic [ref=e617]:
+                - generic [ref=e618]:
+                  - generic [ref=e619]: 💪
+                  - heading "Comebacks" [level=3] [ref=e620]
+                  - generic [ref=e621]: 💪
+                - generic [ref=e622]:
+                  - link "🥇 Kingdom 18 5" [ref=e623] [cursor=pointer]:
+                    - /url: /kingdom/18
+                    - generic [ref=e624]:
+                      - generic [ref=e625]: 🥇
+                      - generic [ref=e626]: Kingdom 18
+                    - generic [ref=e627]: "5"
+                  - link "🥈 Kingdom 38 5" [ref=e628] [cursor=pointer]:
+                    - /url: /kingdom/38
+                    - generic [ref=e629]:
+                      - generic [ref=e630]: 🥈
+                      - generic [ref=e631]: Kingdom 38
+                    - generic [ref=e632]: "5"
+                  - link "🥉 Kingdom 128 5" [ref=e633] [cursor=pointer]:
+                    - /url: /kingdom/128
+                    - generic [ref=e634]:
+                      - generic [ref=e635]: 🥉
+                      - generic [ref=e636]: Kingdom 128
+                    - generic [ref=e637]: "5"
+                  - link "#4 Kingdom 185 5" [ref=e638] [cursor=pointer]:
+                    - /url: /kingdom/185
+                    - generic [ref=e639]:
+                      - generic [ref=e640]: "#4"
+                      - generic [ref=e641]: Kingdom 185
+                    - generic [ref=e642]: "5"
+                  - link "#5 Kingdom 197 5" [ref=e643] [cursor=pointer]:
+                    - /url: /kingdom/197
+                    - generic [ref=e644]:
+                      - generic [ref=e645]: "#5"
+                      - generic [ref=e646]: Kingdom 197
+                    - generic [ref=e647]: "5"
+                  - link "#6 Kingdom 341 5" [ref=e648] [cursor=pointer]:
+                    - /url: /kingdom/341
+                    - generic [ref=e649]:
+                      - generic [ref=e650]: "#6"
+                      - generic [ref=e651]: Kingdom 341
+                    - generic [ref=e652]: "5"
+                  - link "#7 Kingdom 343 5" [ref=e653] [cursor=pointer]:
+                    - /url: /kingdom/343
+                    - generic [ref=e654]:
+                      - generic [ref=e655]: "#7"
+                      - generic [ref=e656]: Kingdom 343
+                    - generic [ref=e657]: "5"
+                  - link "#8 Kingdom 10 4" [ref=e658] [cursor=pointer]:
+                    - /url: /kingdom/10
+                    - generic [ref=e659]:
+                      - generic [ref=e660]: "#8"
+                      - generic [ref=e661]: Kingdom 10
+                    - generic [ref=e662]: "4"
+                  - link "#9 Kingdom 45 4" [ref=e663] [cursor=pointer]:
+                    - /url: /kingdom/45
+                    - generic [ref=e664]:
+                      - generic [ref=e665]: "#9"
+                      - generic [ref=e666]: Kingdom 45
+                    - generic [ref=e667]: "4"
+                  - link "#10 Kingdom 157 4" [ref=e668] [cursor=pointer]:
+                    - /url: /kingdom/157
+                    - generic [ref=e669]:
+                      - generic [ref=e670]: "#10"
+                      - generic [ref=e671]: Kingdom 157
+                    - generic [ref=e672]: "4"
+              - generic [ref=e673]:
+                - generic [ref=e674]:
+                  - generic [ref=e675]: 🔄
+                  - heading "Reversals" [level=3] [ref=e676]
+                  - generic [ref=e677]: 🔄
+                - generic [ref=e678]:
+                  - link "🥇 Kingdom 1 5" [ref=e679] [cursor=pointer]:
+                    - /url: /kingdom/1
+                    - generic [ref=e680]:
+                      - generic [ref=e681]: 🥇
+                      - generic [ref=e682]: Kingdom 1
+                    - generic [ref=e683]: "5"
+                  - link "🥈 Kingdom 39 5" [ref=e684] [cursor=pointer]:
+                    - /url: /kingdom/39
+                    - generic [ref=e685]:
+                      - generic [ref=e686]: 🥈
+                      - generic [ref=e687]: Kingdom 39
+                    - generic [ref=e688]: "5"
+                  - link "🥉 Kingdom 29 4" [ref=e689] [cursor=pointer]:
+                    - /url: /kingdom/29
+                    - generic [ref=e690]:
+                      - generic [ref=e691]: 🥉
+                      - generic [ref=e692]: Kingdom 29
+                    - generic [ref=e693]: "4"
+                  - link "#4 Kingdom 42 4" [ref=e694] [cursor=pointer]:
+                    - /url: /kingdom/42
+                    - generic [ref=e695]:
+                      - generic [ref=e696]: "#4"
+                      - generic [ref=e697]: Kingdom 42
+                    - generic [ref=e698]: "4"
+                  - link "#5 Kingdom 54 4" [ref=e699] [cursor=pointer]:
+                    - /url: /kingdom/54
+                    - generic [ref=e700]:
+                      - generic [ref=e701]: "#5"
+                      - generic [ref=e702]: Kingdom 54
+                    - generic [ref=e703]: "4"
+                  - link "#6 Kingdom 62 4" [ref=e704] [cursor=pointer]:
+                    - /url: /kingdom/62
+                    - generic [ref=e705]:
+                      - generic [ref=e706]: "#6"
+                      - generic [ref=e707]: Kingdom 62
+                    - generic [ref=e708]: "4"
+                  - link "#7 Kingdom 78 4" [ref=e709] [cursor=pointer]:
+                    - /url: /kingdom/78
+                    - generic [ref=e710]:
+                      - generic [ref=e711]: "#7"
+                      - generic [ref=e712]: Kingdom 78
+                    - generic [ref=e713]: "4"
+                  - link "#8 Kingdom 111 4" [ref=e714] [cursor=pointer]:
+                    - /url: /kingdom/111
+                    - generic [ref=e715]:
+                      - generic [ref=e716]: "#8"
+                      - generic [ref=e717]: Kingdom 111
+                    - generic [ref=e718]: "4"
+                  - link "#9 Kingdom 118 4" [ref=e719] [cursor=pointer]:
+                    - /url: /kingdom/118
+                    - generic [ref=e720]:
+                      - generic [ref=e721]: "#9"
+                      - generic [ref=e722]: Kingdom 118
+                    - generic [ref=e723]: "4"
+                  - link "#10 Kingdom 155 4" [ref=e724] [cursor=pointer]:
+                    - /url: /kingdom/155
+                    - generic [ref=e725]:
+                      - generic [ref=e726]: "#10"
+                      - generic [ref=e727]: Kingdom 155
+                    - generic [ref=e728]: "4"
+          - generic [ref=e729]:
+            - heading "⚠️ Hall of Infamy" [level=2] [ref=e730]
+            - generic [ref=e733]:
+              - generic [ref=e734]:
+                - generic [ref=e735]: 💀
+                - heading "Invasions" [level=3] [ref=e736]
+                - generic [ref=e737]: 💀
+              - generic [ref=e738]:
+                - link "🥇 Kingdom 5 6" [ref=e739] [cursor=pointer]:
+                  - /url: /kingdom/5
+                  - generic [ref=e740]:
+                    - generic [ref=e741]: 🥇
+                    - generic [ref=e742]: Kingdom 5
+                  - generic [ref=e743]: "6"
+                - link "🥈 Kingdom 8 6" [ref=e744] [cursor=pointer]:
+                  - /url: /kingdom/8
+                  - generic [ref=e745]:
+                    - generic [ref=e746]: 🥈
+                    - generic [ref=e747]: Kingdom 8
+                  - generic [ref=e748]: "6"
+                - link "🥉 Kingdom 51 6" [ref=e749] [cursor=pointer]:
+                  - /url: /kingdom/51
+                  - generic [ref=e750]:
+                    - generic [ref=e751]: 🥉
+                    - generic [ref=e752]: Kingdom 51
+                  - generic [ref=e753]: "6"
+                - link "#4 Kingdom 71 6" [ref=e754] [cursor=pointer]:
+                  - /url: /kingdom/71
+                  - generic [ref=e755]:
+                    - generic [ref=e756]: "#4"
+                    - generic [ref=e757]: Kingdom 71
+                  - generic [ref=e758]: "6"
+                - link "#5 Kingdom 102 6" [ref=e759] [cursor=pointer]:
+                  - /url: /kingdom/102
+                  - generic [ref=e760]:
+                    - generic [ref=e761]: "#5"
+                    - generic [ref=e762]: Kingdom 102
+                  - generic [ref=e763]: "6"
+                - link "#6 Kingdom 104 6" [ref=e764] [cursor=pointer]:
+                  - /url: /kingdom/104
+                  - generic [ref=e765]:
+                    - generic [ref=e766]: "#6"
+                    - generic [ref=e767]: Kingdom 104
+                  - generic [ref=e768]: "6"
+                - link "#7 Kingdom 110 6" [ref=e769] [cursor=pointer]:
+                  - /url: /kingdom/110
+                  - generic [ref=e770]:
+                    - generic [ref=e771]: "#7"
+                    - generic [ref=e772]: Kingdom 110
+                  - generic [ref=e773]: "6"
+                - link "#8 Kingdom 120 6" [ref=e774] [cursor=pointer]:
+                  - /url: /kingdom/120
+                  - generic [ref=e775]:
+                    - generic [ref=e776]: "#8"
+                    - generic [ref=e777]: Kingdom 120
+                  - generic [ref=e778]: "6"
+                - link "#9 Kingdom 178 6" [ref=e779] [cursor=pointer]:
+                  - /url: /kingdom/178
+                  - generic [ref=e780]:
+                    - generic [ref=e781]: "#9"
+                    - generic [ref=e782]: Kingdom 178
+                  - generic [ref=e783]: "6"
+                - link "#10 Kingdom 192 6" [ref=e784] [cursor=pointer]:
+                  - /url: /kingdom/192
+                  - generic [ref=e785]:
+                    - generic [ref=e786]: "#10"
+                    - generic [ref=e787]: Kingdom 192
+                  - generic [ref=e788]: "6"
+          - link "← Back to Home" [ref=e790] [cursor=pointer]:
+            - /url: /
+    - button "💬 Feedback" [ref=e791] [cursor=pointer]
+  - region "Notifications"
+```

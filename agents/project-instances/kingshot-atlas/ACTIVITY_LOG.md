@@ -9,6 +9,18 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-04 12:45 | Platform Engineer | COMPLETED
+Task: Fix Transfer Status Submission - Missing profiles table
+Files:
+  - apps/web/src/services/statusService.ts (improved error messages for missing table)
+  - docs/migrations/URGENT_fix_status_submissions.sql (new combined migration)
+Result:
+  - ROOT CAUSE: profiles table didn't exist, causing RLS policy check to fail
+  - Created combined migration that creates profiles + status_submissions tables
+  - Added clearer error messages for "relation does not exist" errors
+  - User ran migration in Supabase, set themselves as admin
+  - Feature now functional
+
 ## 2026-02-04 12:07 | Platform Engineer | COMPLETED
 Task: Harden Status Submission Flow
 Files:

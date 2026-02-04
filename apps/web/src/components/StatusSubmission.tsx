@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { neonGlow } from '../utils/styles';
+import { SessionExpiredError, DuplicateSubmissionError } from '../services/statusService';
 
 interface StatusSubmissionProps {
   kingdomNumber: number;
@@ -22,12 +23,13 @@ const StatusSubmission: React.FC<StatusSubmissionProps> = ({
   onSubmit,
   onClose
 }) => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const isMobile = useIsMobile();
   const [selectedStatus, setSelectedStatus] = useState(currentStatus);
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [errorType, setErrorType] = useState<'session' | 'duplicate' | 'general' | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,7 +51,18 @@ const StatusSubmission: React.FC<StatusSubmissionProps> = ({
       await onSubmit(selectedStatus, notes);
       onClose();
     } catch (err) {
-      setError('Failed to submit status update. Please check your connection and try again.');
+      console.error('Status submission error:', err);
+      
+      if (err instanceof SessionExpiredError) {
+        setErrorType('session');
+        setError(err.message);
+      } else if (err instanceof DuplicateSubmissionError) {
+        setErrorType('duplicate');
+        setError(err.message);
+      } else {
+        setErrorType('general');
+        setError(err instanceof Error ? err.message : 'Unknown error');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -227,14 +240,41 @@ const StatusSubmission: React.FC<StatusSubmissionProps> = ({
           {error && (
             <div style={{
               padding: '0.75rem',
-              backgroundColor: '#ef444420',
-              border: '1px solid #ef4444',
+              backgroundColor: errorType === 'duplicate' ? '#f59e0b20' : '#ef444420',
+              border: `1px solid ${errorType === 'duplicate' ? '#f59e0b' : '#ef4444'}`,
               borderRadius: '8px',
-              color: '#ef4444',
-              fontSize: '0.85rem',
               marginBottom: '1rem'
             }}>
-              {error}
+              <div style={{ 
+                color: errorType === 'duplicate' ? '#f59e0b' : '#ef4444',
+                fontSize: '0.85rem',
+                marginBottom: errorType === 'session' ? '0.5rem' : 0
+              }}>
+                {error}
+              </div>
+              {errorType === 'session' && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await signOut();
+                    onClose();
+                  }}
+                  style={{
+                    marginTop: '0.5rem',
+                    padding: '0.5rem 1rem',
+                    backgroundColor: '#22d3ee',
+                    border: 'none',
+                    borderRadius: '6px',
+                    color: '#000',
+                    fontSize: '0.8rem',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    width: '100%'
+                  }}
+                >
+                  Sign Out & Sign In Again
+                </button>
+              )}
             </div>
           )}
 

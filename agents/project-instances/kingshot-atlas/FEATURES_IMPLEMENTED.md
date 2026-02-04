@@ -123,6 +123,7 @@
 |---------|--------|-------|-------|
 | Post-KvK Submission | ✅ Live | Product | `PostKvKSubmission.tsx` report results |
 | Status Submission | ✅ Live | Product | `StatusSubmission.tsx` kingdom updates |
+| Status Submission Hardening | ✅ Live | Platform | Retry logic, duplicate prevention, session error handling, admin notifications (2026-02-04) |
 | Report Data Modal | ✅ Live | Product | `ReportDataModal.tsx` flag inaccuracies |
 | Data Attribution | ✅ Live | Product | `DataAttribution.tsx` source credits |
 | Reputation Service | ✅ Live | Platform | `reputationService.ts` user trust scores |
