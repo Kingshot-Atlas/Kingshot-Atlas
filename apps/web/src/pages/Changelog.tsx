@@ -14,6 +14,29 @@ interface ChangelogEntry {
 
 const changelogData: ChangelogEntry[] = [
   {
+    date: 'February 3, 2026',
+    version: '1.5.0',
+    new: [
+      '💛 Atlas Supporter — Atlas Pro rebranded. Same features, clearer name. Support at ks-atlas.com/support',
+      '🔔 In-app notifications — Real-time alerts when your submissions are approved or need attention',
+      '🤖 Atlas Discord bot — Use /kingdom and /compare commands right in your server',
+      '💬 Feedback widget — Report bugs or request features from any page',
+    ],
+    fixed: [
+      'Discord bot stability — Fixed 4+ days of intermittent 502/503 errors',
+      'Profile bio saves correctly — No more changes lost after refresh',
+      'Mobile Discord login — Clear guidance that OAuth opens in browser',
+      'Missing KvK chip — Now shows on both desktop and mobile',
+    ],
+    improved: [
+      '👤 My Profile redesign — Centered avatar, tier-colored borders, bio section, display name privacy',
+      '👁️ Public profiles — Cleaner display with Kingshot avatar/username',
+      '🏰 Kingdom profiles — Bye outcome support, score freshness indicator',
+      '📊 Contribute data — Submissions now sync across all your devices',
+      '⚡ Faster page loads — Removed ~2MB of legacy data, added skeleton loaders',
+    ],
+  },
+  {
     date: 'January 30, 2026',
     version: '1.4.0',
     new: [
