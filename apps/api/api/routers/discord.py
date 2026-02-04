@@ -217,7 +217,12 @@ async def discord_oauth_callback(
         }).eq("id", user_id).execute()
         
         if not result.data:
-            print(f"Profile update returned no data for user {user_id}")
+            print(f"Profile update returned no data for user {user_id} - profile may not exist")
+            log_discord_link_attempt(supabase, user_id, discord_id, discord_username, "failed",
+                                      "profile_not_found", f"No profile found for user {user_id}", ip_address, user_agent)
+            raise HTTPException(status_code=404, detail="Profile not found - please sign out and sign in again")
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"Failed to update profile: {e}")
         log_discord_link_attempt(supabase, user_id, discord_id, discord_username, "failed",

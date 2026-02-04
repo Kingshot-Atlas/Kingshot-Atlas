@@ -25,6 +25,16 @@ Result:
   - Database trigger notifies all admins via notifications table when new submissions arrive
   - Admins see notification bell icon update with pending review count
 
+## 2026-02-04 12:20 | Platform Engineer | COMPLETED
+Task: Fix Discord callback silent failure bug
+Files:
+  - apps/api/api/routers/discord.py
+Result:
+  - BUG: When profile update returned no data, endpoint still returned success
+  - FIX: Now raises HTTPException(404) with "Profile not found" message
+  - Logs failure to discord_link_attempts table with error_code "profile_not_found"
+  - Added except HTTPException block to re-raise properly
+
 ## 2026-02-04 12:15 | Platform Engineer | COMPLETED
 Task: Add Discord OAuth error logging, admin view, and analytics
 Files:
