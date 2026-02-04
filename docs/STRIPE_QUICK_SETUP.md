@@ -15,12 +15,12 @@
 
 Go to [Stripe Dashboard → Products](https://dashboard.stripe.com/products)
 
-### Create "Atlas Pro" Product
+### Create "Atlas Supporter" Product
 
 1. Click **+ Add product**
 2. Fill in:
-   - **Name:** Atlas Pro
-   - **Description:** Full access to Kingshot Atlas premium features
+   - **Name:** Atlas Supporter
+   - **Description:** Support Kingshot Atlas and get premium perks
    - **Image:** Upload your logo (optional)
 
 3. Add **Monthly Price:**
@@ -30,13 +30,6 @@ Go to [Stripe Dashboard → Products](https://dashboard.stripe.com/products)
    - Click **Save**
    - Copy the Price ID (e.g., `price_1ABC123...`)
 
-4. Add **Yearly Price:**
-   - Click **Add another price**
-   - Amount: **$39.99**
-   - Billing period: **Yearly**
-   - Click **Save**
-   - Copy the Price ID
-
 ### Create "Atlas Recruiter" Product
 
 1. Click **+ Add product**
@@ -44,18 +37,20 @@ Go to [Stripe Dashboard → Products](https://dashboard.stripe.com/products)
    - **Name:** Atlas Recruiter
    - **Description:** Alliance recruiter tools for Kingshot Atlas
 
-3. Add **Monthly Price:** **$14.99** → Copy Price ID
-4. Add **Yearly Price:** **$119.99** → Copy Price ID
+3. Add **Monthly Price:** **$19.99** → Copy Price ID
+4. Add **Yearly Price:** **$159.99** → Copy Price ID
 
 ---
 
-## Step 3: Add Price IDs to .env (1 min)
+## Step 3: Add Payment Links to .env (1 min)
 
 ```env
-REACT_APP_STRIPE_PRO_MONTHLY=price_xxxxx      # Pro $4.99/mo
-REACT_APP_STRIPE_PRO_YEARLY=price_xxxxx       # Pro $39.99/yr
-REACT_APP_STRIPE_RECRUITER_MONTHLY=price_xxxxx # Recruiter $14.99/mo
-REACT_APP_STRIPE_RECRUITER_YEARLY=price_xxxxx  # Recruiter $119.99/yr
+# Atlas Supporter: $4.99/month
+VITE_STRIPE_PRO_MONTHLY_LINK=https://buy.stripe.com/dRm8wQ2Fe2ye7dC3n9eZ206
+VITE_STRIPE_PRO_YEARLY_LINK=
+# Atlas Recruiter: $19.99/month, $159.99/year
+VITE_STRIPE_RECRUITER_MONTHLY_LINK=https://buy.stripe.com/eVqaEY93C8WC2Xm3n9eZ204
+VITE_STRIPE_RECRUITER_YEARLY_LINK=https://buy.stripe.com/bJebJ23Ji0q62Xm8HteZ205
 ```
 
 ---
@@ -155,6 +150,6 @@ This will automatically update user tiers when they subscribe/cancel.
 
 | Tier | Monthly | Yearly | Features |
 |------|---------|--------|----------|
-| Free | $0 | $0 | 2 compare, 3 watchlist, last 5 KvKs |
-| Pro | $4.99 | $39.99 | 4 compare, 20 watchlist, full history, export |
-| Recruiter | $14.99 | $119.99 | 10 compare, claim kingdom, recruiter dashboard |
+| Free | $0 | $0 | 2 compare, full history, basic features |
+| Supporter | $4.99 | — | Supporter badge, Discord role, ad-free, early access |
+| Recruiter | $19.99 | $159.99 | All Supporter perks + claim kingdom, recruiter dashboard |

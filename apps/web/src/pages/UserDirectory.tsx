@@ -343,7 +343,7 @@ const UserDirectory: React.FC = () => {
           {(['all', 'admin', 'recruiter', 'pro'] as const).map((tier) => {
             const isActive = tierFilter === tier;
             const chipColor = tier === 'admin' ? subscriptionColors.admin : tier === 'pro' ? subscriptionColors.pro : tier === 'recruiter' ? subscriptionColors.recruiter : '#6b7280';
-            const label = tier === 'all' ? 'All Players' : tier === 'admin' ? '⚡ Admin' : tier === 'pro' ? '⭐ Pro' : '👑 Recruiter';
+            const label = tier === 'all' ? 'All Players' : tier === 'admin' ? '👑 Admin' : tier === 'pro' ? '💖 Supporter' : '� Recruiter';
             
             return (
               <button
@@ -416,7 +416,9 @@ const UserDirectory: React.FC = () => {
                   border: `2px solid ${tierColor}40`,
                   transition: 'transform 0.2s, border-color 0.2s, box-shadow 0.2s',
                   cursor: 'pointer',
-                  height: '100%'
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column'
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = 'translateY(-4px)';
@@ -496,7 +498,7 @@ const UserDirectory: React.FC = () => {
                             color: subscriptionColors.admin,
                             fontWeight: '600',
                           }}>
-                            ⚡ ADMIN
+                            👑 ADMIN
                           </span>
                         )}
                         {displayTier === 'pro' && (
@@ -509,7 +511,7 @@ const UserDirectory: React.FC = () => {
                             color: subscriptionColors.pro,
                             fontWeight: '600',
                           }}>
-                            ⭐ PRO
+                            💖 SUPPORTER
                           </span>
                         )}
                         {displayTier === 'recruiter' && (
@@ -522,7 +524,7 @@ const UserDirectory: React.FC = () => {
                             color: subscriptionColors.recruiter,
                             fontWeight: '600',
                           }}>
-                            👑 RECRUITER
+                            � RECRUITER
                           </span>
                         )}
                         {user.id === currentUser?.id && (
@@ -575,24 +577,29 @@ const UserDirectory: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Bio */}
-                  {user.bio && (
-                    <p style={{ 
-                      color: '#9ca3af', 
-                      fontSize: '0.85rem', 
-                      lineHeight: 1.5,
-                      margin: 0,
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden'
-                    }}>
-                      {user.bio}
-                    </p>
-                  )}
+                  {/* Bio - fixed height container for consistent layout */}
+                  <div style={{ 
+                    minHeight: '2.5rem',
+                    marginBottom: '0.5rem'
+                  }}>
+                    {user.bio && (
+                      <p style={{ 
+                        color: '#9ca3af', 
+                        fontSize: '0.85rem', 
+                        lineHeight: 1.5,
+                        margin: 0,
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden'
+                      }}>
+                        {user.bio}
+                      </p>
+                    )}
+                  </div>
 
-                  {/* View Profile Button - uses tier color */}
-                  <div style={{ marginTop: '1rem', textAlign: 'center' }}>
+                  {/* View Profile Button - uses tier color, always at bottom */}
+                  <div style={{ marginTop: 'auto', textAlign: 'center' }}>
                     <span style={{
                       display: 'inline-block',
                       padding: '0.5rem 1.5rem',

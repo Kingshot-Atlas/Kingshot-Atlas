@@ -7,7 +7,13 @@ export const STRIPE_CONFIG = {
   publishableKey: import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '',
   
   // Payment Link IDs (direct links - no backend needed)
+  // Note: "pro" tier is now displayed as "Atlas Supporter" to users
   paymentLinks: {
+    supporter: {
+      monthly: import.meta.env.VITE_STRIPE_PRO_MONTHLY_LINK || '',
+      yearly: import.meta.env.VITE_STRIPE_PRO_YEARLY_LINK || '',
+    },
+    // Legacy alias for backwards compatibility
     pro: {
       monthly: import.meta.env.VITE_STRIPE_PRO_MONTHLY_LINK || '',
       yearly: import.meta.env.VITE_STRIPE_PRO_YEARLY_LINK || '',
@@ -27,7 +33,7 @@ export const STRIPE_CONFIG = {
 
 // Check if Stripe is configured (has payment links or API is available)
 export const isStripeConfigured = Boolean(
-  STRIPE_CONFIG.paymentLinks.pro.monthly || STRIPE_CONFIG.paymentLinks.pro.yearly
+  STRIPE_CONFIG.paymentLinks.supporter.monthly || STRIPE_CONFIG.paymentLinks.supporter.yearly
 );
 
 // Create checkout session via API (preferred method)

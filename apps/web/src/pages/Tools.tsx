@@ -393,7 +393,7 @@ const Tools: React.FC = () => {
             We&apos;re building what the community needs. Drop your suggestions in Discord.
           </p>
           <a
-            href="https://discord.gg/aA3a7JGcHV"
+            href="https://discord.gg/cajcacDzGd"
             target="_blank"
             rel="noopener noreferrer"
             style={{

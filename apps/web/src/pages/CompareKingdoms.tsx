@@ -747,7 +747,7 @@ const CompareKingdoms: React.FC = () => {
               }}>
                 <ProBadge size="sm" />
                 <span style={{ color: '#9ca3af', fontSize: '0.8rem' }}>
-                  Go Pro to compare up to 5 kingdoms
+                  Become a Supporter to compare up to 5 kingdoms
                 </span>
               </div>
             </Link>

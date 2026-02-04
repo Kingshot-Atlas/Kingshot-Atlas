@@ -341,7 +341,7 @@ const About: React.FC = () => {
             Got intel to share? Found a bug? Want to argue about tier rankings? Jump into our Discord. We&apos;re always looking for contributors, testers, and fellow data nerds.
           </p>
           <a
-            href="https://discord.gg/aA3a7JGcHV"
+            href="https://discord.gg/cajcacDzGd"
             target="_blank"
             rel="noopener noreferrer"
             style={{

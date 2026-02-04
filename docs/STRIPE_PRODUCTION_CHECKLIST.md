@@ -124,13 +124,12 @@ stripe trigger checkout.session.completed
 
 ---
 
-## Price IDs Reference
+## Payment Links Reference (Updated Feb 3, 2026)
 
-| Tier | Cycle | Price ID |
-|------|-------|----------|
-| Pro | Monthly | `price_1SuX3zL7R9uCnPH3m4PyIrNI` |
-| Pro | Yearly | `price_1SuX4HL7R9uCnPH3HgVWRN51` |
-| Recruiter | Monthly | `price_1SuX57L7R9uCnPH30D6ar75H` |
-| Recruiter | Yearly | `price_1SuX5OL7R9uCnPH3QJBqlFNh` |
+| Tier | Cycle | Price | Payment Link |
+|------|-------|-------|-------------|
+| Supporter | Monthly | $4.99 | `https://buy.stripe.com/dRm8wQ2Fe2ye7dC3n9eZ206` |
+| Recruiter | Monthly | $19.99 | `https://buy.stripe.com/eVqaEY93C8WC2Xm3n9eZ204` |
+| Recruiter | Yearly | $159.99 | `https://buy.stripe.com/bJebJ23Ji0q62Xm8HteZ205` |
 
-These are hardcoded in `/apps/api/api/routers/stripe.py`.
+Payment links are configured in `.env` and used by `/apps/web/src/lib/stripe.ts`.

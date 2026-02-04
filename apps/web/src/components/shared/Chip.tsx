@@ -137,14 +137,29 @@ export const TierChip: React.FC<{ tier: 'S' | 'A' | 'B' | 'C' | 'D'; size?: Chip
   );
 };
 
+// SupporterChip - Pink color for Atlas Supporter tier
 export const ProChip: React.FC<{ size?: ChipSize }> = ({ size = 'sm' }) => (
-  <Chip variant="primary" size={size} icon={<span>★</span>}>
-    PRO
+  <Chip 
+    variant="primary" 
+    size={size} 
+    icon={<span>💖</span>}
+    style={{ backgroundColor: '#FF6B8A15', color: '#FF6B8A', border: '1px solid #FF6B8A40' }}
+  >
+    SUPPORTER
   </Chip>
 );
 
+// Alias for backwards compatibility
+export const SupporterChip = ProChip;
+
+// RecruiterChip - Purple color for Atlas Recruiter tier
 export const RecruiterChip: React.FC<{ size?: ChipSize }> = ({ size = 'sm' }) => (
-  <Chip variant="purple" size={size} icon={<span>👑</span>}>
+  <Chip 
+    variant="purple" 
+    size={size} 
+    icon={<span>�</span>}
+    style={{ backgroundColor: '#a855f715', color: '#a855f7', border: '1px solid #a855f740' }}
+  >
     RECRUITER
   </Chip>
 );

@@ -49,7 +49,7 @@ const TIER_FEATURES: Record<SubscriptionTier, PremiumFeatures> = {
     exportData: false,
     submitData: false,
     prioritySubmissions: false,
-    scoreSimulator: false,
+    scoreSimulator: true, // Now free for everyone
     adFree: false,
     proBadge: false,
     earlyAccess: false,
@@ -71,7 +71,7 @@ const TIER_FEATURES: Record<SubscriptionTier, PremiumFeatures> = {
     exportData: false,
     submitData: true,
     prioritySubmissions: false,
-    scoreSimulator: false,
+    scoreSimulator: true, // Now free for everyone
     adFree: false,
     proBadge: false,
     earlyAccess: false,
@@ -81,7 +81,7 @@ const TIER_FEATURES: Record<SubscriptionTier, PremiumFeatures> = {
     recruitInbox: false,
     apiAccess: false,
   },
-  // Atlas Pro - power users
+  // Atlas Supporter - power users
   pro: {
     fullKvkHistory: true,
     kvkHistoryLimit: 999,
@@ -146,7 +146,7 @@ interface PremiumContextType {
 const TIER_NAMES: Record<SubscriptionTier, string> = {
   anonymous: 'Guest',
   free: 'Free',
-  pro: 'Atlas Pro',
+  pro: 'Atlas Supporter',
   recruiter: 'Atlas Recruiter',
 };
 
@@ -277,7 +277,7 @@ export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children })
   };
 
   const getUpgradeUrl = (): string => {
-    return '/upgrade';
+    return '/support';
   };
 
   // Gentle, non-aggressive upgrade messaging
@@ -291,9 +291,9 @@ export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
     if (tier === 'free') {
       return {
-        title: 'Upgrade to Atlas Pro',
-        message: `Get full access to ${feature} with Atlas Pro. Support the project and unlock premium features.`,
-        cta: 'Learn More',
+        title: 'Become a Supporter',
+        message: `Support Atlas and get access to ${feature} plus exclusive perks.`,
+        cta: 'Support Atlas',
       };
     }
     if (tier === 'pro') {

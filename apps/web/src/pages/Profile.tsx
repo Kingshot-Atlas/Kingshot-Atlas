@@ -29,11 +29,12 @@ const formatTCLevel = (level: number | null | undefined): string => {
 };
 
 // Get border color for avatar based on subscription tier
+// Supporter = Pink, Recruiter = Purple, Admin = Gold
 const getTierBorderColor = (tier: 'free' | 'pro' | 'recruiter' | 'admin'): string => {
   switch (tier) {
-    case 'admin': return '#ef4444';    // Red
-    case 'recruiter': return '#a855f7'; // Purple
-    case 'pro': return '#22d3ee';       // Cyan
+    case 'admin': return '#f59e0b';    // Gold - Admin
+    case 'recruiter': return '#a855f7'; // Purple - Atlas Recruiter
+    case 'pro': return '#FF6B8A';       // Pink - Atlas Supporter
     default: return '#ffffff';          // White
   }
 };

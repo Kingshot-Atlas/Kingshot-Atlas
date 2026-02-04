@@ -14,11 +14,12 @@ export const ADMIN_USERNAMES: readonly string[] = ['gatreno'];
 export const ADMIN_EMAILS: readonly string[] = ['gatreno@gmail.com'];
 
 // Subscription colors - SINGLE SOURCE OF TRUTH for tier styling
+// Supporter = Pink, Recruiter = Purple, Admin = Gold
 export const SUBSCRIPTION_COLORS = {
   free: '#6b7280',      // Gray
-  pro: '#22d3ee',       // Cyan
-  recruiter: '#f97316', // Orange
-  admin: '#ef4444',     // Red
+  pro: '#FF6B8A',       // Pink - Atlas Supporter
+  recruiter: '#a855f7', // Purple - Atlas Recruiter
+  admin: '#f59e0b',     // Gold - Admin
 } as const;
 
 // Helper function to check if a username is an admin
@@ -55,11 +56,12 @@ export const getDisplayTier = (
 export const getEffectiveTier = getAccessTier;
 
 // Get tier color for UI elements (borders, buttons) - white for free, colored for paid
+// Supporter = Pink, Recruiter = Purple, Admin = Gold
 export const getTierBorderColor = (tier: SubscriptionTier | null | undefined): string => {
   switch (tier) {
-    case 'pro': return SUBSCRIPTION_COLORS.pro;
-    case 'recruiter': return SUBSCRIPTION_COLORS.recruiter;
-    case 'admin': return SUBSCRIPTION_COLORS.admin;
+    case 'pro': return SUBSCRIPTION_COLORS.pro;       // Pink
+    case 'recruiter': return SUBSCRIPTION_COLORS.recruiter; // Purple
+    case 'admin': return SUBSCRIPTION_COLORS.admin;   // Gold
     default: return '#ffffff'; // White for free users
   }
 };

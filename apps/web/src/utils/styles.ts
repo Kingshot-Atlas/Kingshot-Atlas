@@ -92,9 +92,9 @@ export const tierColors = {
  */
 export const subscriptionColors = {
   free: '#6b7280',      // Gray
-  pro: '#22d3ee',       // Cyan - Atlas Pro
-  recruiter: '#f97316', // Orange - Atlas Recruiter
-  admin: '#ef4444',     // Red - Admin (special status)
+  pro: '#FF6B8A',       // Pink - Atlas Supporter
+  recruiter: '#a855f7', // Purple - Atlas Recruiter
+  admin: '#f59e0b',     // Gold - Admin
 } as const;
 
 /**

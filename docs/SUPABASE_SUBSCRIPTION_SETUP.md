@@ -35,13 +35,12 @@ CREATE POLICY "Service role can update subscriptions" ON profiles
 
 In your Stripe Dashboard, create the following products:
 
-### Atlas Pro
-- **Monthly:** $4.99/month (save the price ID as `REACT_APP_STRIPE_PRO_MONTHLY`)
-- **Yearly:** $39.99/year (save the price ID as `REACT_APP_STRIPE_PRO_YEARLY`)
+### Atlas Supporter
+- **Monthly:** $4.99/month (payment link in `VITE_STRIPE_PRO_MONTHLY_LINK`)
 
 ### Atlas Recruiter  
-- **Monthly:** $14.99/month (save the price ID as `REACT_APP_STRIPE_RECRUITER_MONTHLY`)
-- **Yearly:** $119.99/year (save the price ID as `REACT_APP_STRIPE_RECRUITER_YEARLY`)
+- **Monthly:** $19.99/month (payment link in `VITE_STRIPE_RECRUITER_MONTHLY_LINK`)
+- **Yearly:** $159.99/year (payment link in `VITE_STRIPE_RECRUITER_YEARLY_LINK`)
 
 ## 4. Environment Variables
 

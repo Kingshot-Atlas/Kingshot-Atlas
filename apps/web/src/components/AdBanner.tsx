@@ -104,7 +104,7 @@ const SelfPromoAd: React.FC<{ tier: string; isMobile: boolean }> = ({ tier, isMo
       </div>
       <div>
         <div style={{ color: '#fff', fontSize: isMobile ? '0.85rem' : '0.9rem', fontWeight: '600' }}>
-          {tier === 'anonymous' ? 'Sign in for more features' : 'Upgrade to Atlas Pro'}
+          {tier === 'anonymous' ? 'Sign in for more features' : 'Become an Atlas Supporter'}
         </div>
         <div style={{ color: '#6b7280', fontSize: isMobile ? '0.75rem' : '0.8rem' }}>
           {tier === 'anonymous' 

@@ -27,30 +27,28 @@ Kingshot Atlas should monetize through a **freemium model** with optional premiu
 | Status Submissions | ✅ |
 | Reviews | ✅ Read & write |
 
-### Premium Tier — **Atlas Pro** ($4.99/month or $39.99/year)
-*Goal: Serious players and recruiters*
+### Premium Tier — **Atlas Supporter** ($4.99/month)
+*Goal: Community supporters who want to help fund Atlas*
 
 | Feature | Value Proposition | Status |
 |---------|-------------------|--------|
-| ~~Full KvK History~~ | *Now free for all users* | ✅ Free |
-| **Score Timeline** | Track performance over time | ✅ Live |
-| **Kingdom Watchlist** | Track up to 20 kingdoms with status change alerts | 🛠️ Coming Soon |
-| **Multi-Compare** | Compare up to 5 kingdoms side-by-side | ✅ Live |
-| **Priority Support** | Faster response times | ✅ Live |
-| **Pro Badge** | Visible on profile and reviews | ✅ Live |
-| **Discord Role** | Exclusive Pro role & badge in Discord | ✅ Live |
+| **Supporter Badge** | Pink badge visible on profile | ✅ Live |
+| **Discord Supporter Role** | Exclusive pink role in Discord | ✅ Live |
+| **Exclusive Discord Channel** | Access to supporter-only discussions | ✅ Live |
+| **Early Access** | Be first to try new features | ✅ Live |
+| **Ad-Free Experience** | Clean, distraction-free browsing | ✅ Live |
 
-### Recruiter Tier — **Atlas Recruiter** ($14.99/month)
+### Recruiter Tier — **Atlas Recruiter** ($19.99/month or $159.99/year)
 *Goal: Alliance recruiters and kingdom managers*
 
 | Feature | Value Proposition | Status |
 |---------|-------------------|--------|
-| All Pro features | ✅ | ✅ Live |
+| All Supporter features | ✅ | ✅ Live |
 | **Claim Kingdom** | Official kingdom representative badge | ✅ Live |
 | **Recruiter Dashboard** | Track kingdom views, profile engagement | 🛠️ Coming Soon |
 | **Custom Kingdom Banner** | Upload alliance banner for profile | 🛠️ Coming Soon |
 | **Recruit Inbox** | Receive transfer interest from players | 🛠️ Coming Soon |
-| **Discord Role** | Exclusive Recruiter role & badge in Discord | ✅ Live |
+| **Discord Recruiter Role** | Exclusive cyan role & badge in Discord | ✅ Live |
 
 ---
 
@@ -98,15 +96,16 @@ Kingshot Atlas should monetize through a **freemium model** with optional premiu
 
 ## Pricing Psychology
 
-### Why $4.99/month
+### Why $4.99/month for Supporters
 - **Coffee test:** "Less than a coffee per week"
-- **Yearly discount:** 33% off encourages commitment
+- **Community-focused:** Support the project, get recognition
 - **Low barrier:** Easy impulse decision for gamers
 
-### Why $14.99/month for Recruiters
+### Why $19.99/month for Recruiters
 - **B2B pricing:** Business expense for alliance leaders
 - **Exclusive features:** Kingdom claiming is high-value
 - **Social proof:** Recruiter badge builds trust
+- **Yearly option:** $159.99/year (33% savings)
 
 ---
 
@@ -114,17 +113,17 @@ Kingshot Atlas should monetize through a **freemium model** with optional premiu
 
 Assuming 1,000 monthly active users after 3 months:
 
-| Scenario | Pro (3% convert) | Recruiter (0.5% convert) | Monthly Revenue |
-|----------|------------------|--------------------------|-----------------|
-| Conservative | 30 × $4.99 | 5 × $14.99 | $225/month |
-| Moderate | 50 × $4.99 | 10 × $14.99 | $400/month |
-| Optimistic | 100 × $4.99 | 20 × $14.99 | $800/month |
+| Scenario | Supporter (3% convert) | Recruiter (0.5% convert) | Monthly Revenue |
+|----------|------------------------|--------------------------|------------------|
+| Conservative | 30 × $4.99 | 5 × $19.99 | $250/month |
+| Moderate | 50 × $4.99 | 10 × $19.99 | $450/month |
+| Optimistic | 100 × $4.99 | 20 × $19.99 | $900/month |
 
 ---
 
 ## User-Friendly Practices
 
-### DO ✅
+### DO 
 - **Generous free tier** — Most users should never need to pay
 - **No paywall for core data** — Kingdom stats should be free
 - **Clear value proposition** — Premium features are genuinely useful
@@ -155,8 +154,8 @@ npm install @stripe/stripe-js
 
 ### Premium Feature Gates
 ```typescript
-// Example: Check premium status
-const isPro = user?.subscription_tier === 'pro' || user?.subscription_tier === 'recruiter';
+// Example: Check premium status (Supporter or Recruiter)
+const isSupporter = user?.subscription_tier === 'pro' || user?.subscription_tier === 'recruiter';
 
 // In component
 {isPro ? <PremiumFeature /> : <UpgradePrompt feature="Feature Name" />}

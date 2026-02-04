@@ -1,5 +1,5 @@
 """
-Stripe payment router for Atlas Pro/Recruiter subscriptions.
+Stripe payment router for Atlas Supporter/Recruiter subscriptions.
 
 Handles:
 - Checkout session creation
@@ -15,6 +15,7 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 from api.supabase_client import update_user_subscription, get_user_by_stripe_customer, get_user_profile, log_webhook_event
 from api.email_service import send_welcome_email, send_cancellation_email, send_payment_failed_email
+from api.discord_role_sync import sync_user_discord_role, is_discord_sync_configured
 import time
 
 router = APIRouter()
@@ -28,11 +29,15 @@ if STRIPE_SECRET_KEY:
     stripe.api_key = STRIPE_SECRET_KEY
 
 # Price IDs for each tier/billing cycle (live mode)
+# Updated Feb 3, 2026 - new payment links
+# Note: These should be set via environment variables in production (Render)
+# Atlas Supporter: $4.99/month (no yearly option)
+# Atlas Recruiter: $19.99/month or $159.99/year
 PRICE_IDS = {
-    "pro_monthly": "price_1SuX3zL7R9uCnPH3m4PyIrNI",
-    "pro_yearly": "price_1SuX4HL7R9uCnPH3HgVWRN51",
-    "recruiter_monthly": "price_1SuX57L7R9uCnPH30D6ar75H",
-    "recruiter_yearly": "price_1SuX5OL7R9uCnPH3QJBqlFNh",
+    "pro_monthly": os.getenv("STRIPE_SUPPORTER_MONTHLY_PRICE", "price_1SuX3zL7R9uCnPH3m4PyIrNI"),
+    "pro_yearly": os.getenv("STRIPE_SUPPORTER_YEARLY_PRICE", ""),  # No yearly option for Supporter
+    "recruiter_monthly": os.getenv("STRIPE_RECRUITER_MONTHLY_PRICE", "price_1SuX57L7R9uCnPH30D6ar75H"),
+    "recruiter_yearly": os.getenv("STRIPE_RECRUITER_YEARLY_PRICE", "price_1SuX5OL7R9uCnPH3QJBqlFNh"),
 }
 
 # Frontend URLs
@@ -105,8 +110,8 @@ async def create_checkout_session(request: Request, checkout: CheckoutRequest):
                 "price": price_id,
                 "quantity": 1,
             }],
-            success_url=f"{FRONTEND_URL}/upgrade?success=true&session_id={{CHECKOUT_SESSION_ID}}",
-            cancel_url=f"{FRONTEND_URL}/upgrade?canceled=true",
+            success_url=f"{FRONTEND_URL}/support?success=true&session_id={{CHECKOUT_SESSION_ID}}",
+            cancel_url=f"{FRONTEND_URL}/support?canceled=true",
             client_reference_id=checkout.user_id,
             customer_email=checkout.user_email,
             metadata={
@@ -257,6 +262,15 @@ async def handle_checkout_completed(session: dict):
     
     if success:
         print(f"Successfully updated subscription for user {user_id} to {tier}")
+        
+        # Sync Discord role (non-blocking, best effort)
+        if is_discord_sync_configured():
+            try:
+                discord_result = await sync_user_discord_role(user_id, tier)
+                print(f"Discord role sync result: {discord_result}")
+            except Exception as e:
+                print(f"Discord role sync failed (non-blocking): {e}")
+        
         # Send welcome email
         profile = get_user_profile(user_id)
         if profile and profile.get("email"):
@@ -288,6 +302,13 @@ async def handle_subscription_updated(subscription: dict):
             tier=tier,
             stripe_subscription_id=subscription_id,
         )
+        # Sync Discord role
+        if is_discord_sync_configured():
+            try:
+                discord_result = await sync_user_discord_role(user_id, tier)
+                print(f"Discord role sync result: {discord_result}")
+            except Exception as e:
+                print(f"Discord role sync failed (non-blocking): {e}")
     elif status in ("canceled", "unpaid", "past_due"):
         # If subscription is no longer active, check if we should downgrade
         if user_id:
@@ -296,6 +317,13 @@ async def handle_subscription_updated(subscription: dict):
             if status == "canceled":
                 update_user_subscription(user_id=user_id, tier="free")
                 print(f"Downgraded user {user_id} to free tier due to cancellation")
+                # Remove Discord roles
+                if is_discord_sync_configured():
+                    try:
+                        discord_result = await sync_user_discord_role(user_id, "free", tier)
+                        print(f"Discord role sync (removal) result: {discord_result}")
+                    except Exception as e:
+                        print(f"Discord role sync failed (non-blocking): {e}")
 
 
 async def handle_subscription_deleted(subscription: dict):
@@ -316,12 +344,26 @@ async def handle_subscription_deleted(subscription: dict):
         profile = get_user_profile(user_id)
         update_user_subscription(user_id=user_id, tier="free")
         print(f"Downgraded user {user_id} to free tier")
+        # Remove Discord roles
+        if is_discord_sync_configured():
+            try:
+                discord_result = await sync_user_discord_role(user_id, "free", previous_tier)
+                print(f"Discord role sync (removal) result: {discord_result}")
+            except Exception as e:
+                print(f"Discord role sync failed (non-blocking): {e}")
     elif customer_id:
         # Look up user by Stripe customer ID
         profile = get_user_by_stripe_customer(customer_id)
         if profile:
             update_user_subscription(user_id=profile["id"], tier="free")
             print(f"Downgraded user {profile['id']} to free tier (found by customer ID)")
+            # Remove Discord roles
+            if is_discord_sync_configured():
+                try:
+                    discord_result = await sync_user_discord_role(profile["id"], "free", previous_tier)
+                    print(f"Discord role sync (removal) result: {discord_result}")
+                except Exception as e:
+                    print(f"Discord role sync failed (non-blocking): {e}")
         else:
             print(f"Could not find user for Stripe customer {customer_id}")
     

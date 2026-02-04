@@ -32,7 +32,7 @@
 | Player Directory | `/players` | ✅ Live | Product | Browse Atlas users |
 | About Page | `/about` | ✅ Live | Design | Mission, FAQ, team info |
 | Admin Dashboard | `/admin` | ✅ Live | Platform | Data management, submissions review |
-| Upgrade/Pro | `/upgrade`, `/pro` | ✅ Live | Business | Premium subscription page |
+| Support Atlas | `/support`, `/upgrade`, `/pro` | ✅ Live | Business | Community support page (formerly Upgrade) |
 | Changelog | `/changelog` | ✅ Live | Release | Version history and updates |
 
 ---
@@ -151,8 +151,8 @@
 | Stripe Webhook Handler | ✅ Live | Platform | Handles subscription events, updates Supabase |
 | Checkout Success/Error UX | ✅ Live | Platform | Success/canceled/error messages on Upgrade page |
 | Customer Portal Integration | ✅ Live | Platform | API-based portal session for subscription management |
-| Upgrade Prompts | ✅ Live | Business | `UpgradePrompt.tsx` conversion nudges |
-| Pro Badge | ✅ Live | Design | `ProBadge.tsx` visual indicator |
+| Support Prompts | ✅ Live | Business | `UpgradePrompt.tsx` gentle support nudges |
+| Supporter Badge | ✅ Live | Design | `ProBadge.tsx` visual indicator (renamed to Supporter) |
 | Ad Banners | ✅ Live | Business | `AdBanner.tsx` for free tier |
 
 ---

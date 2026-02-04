@@ -368,7 +368,7 @@ const Changelog: React.FC = () => {
             Join our Discord to get patch notes delivered automatically.
           </p>
           <a
-            href="https://discord.gg/aA3a7JGcHV"
+            href="https://discord.gg/cajcacDzGd"
             target="_blank"
             rel="noopener noreferrer"
             style={{

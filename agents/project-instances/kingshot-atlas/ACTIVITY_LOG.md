@@ -9,6 +9,102 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-04 02:10 | Platform Engineer | COMPLETED
+Task: Implement Discord Role Sync for Subscription Tiers
+Context: Automatically sync Discord roles when users subscribe/unsubscribe
+Changes Made:
+  - **New file: `apps/api/api/discord_role_sync.py`**:
+    - Discord Bot API integration for role management
+    - `sync_subscription_role()` - Adds/removes roles based on tier
+    - `sync_user_discord_role()` - High-level function that fetches user profile and syncs
+    - Supports Supporter (pink) and Recruiter (purple) roles
+    - Recruiters get both roles (Recruiter + Supporter perks)
+  - **Updated: `apps/api/api/routers/stripe.py`**:
+    - Added Discord role sync calls to `handle_checkout_completed`
+    - Added Discord role sync calls to `handle_subscription_updated`
+    - Added Discord role sync calls to `handle_subscription_deleted`
+    - Role sync is non-blocking (best effort, won't fail webhook)
+  - **Updated: `apps/api/.env.example`**:
+    - Added DISCORD_BOT_TOKEN, DISCORD_GUILD_ID
+    - Added DISCORD_SUPPORTER_ROLE_ID, DISCORD_RECRUITER_ROLE_ID
+  - **Updated: `apps/discord-bot/.env.example`**:
+    - Added role sync configuration section
+Files: apps/api/api/discord_role_sync.py, apps/api/api/routers/stripe.py, apps/api/.env.example, apps/discord-bot/.env.example
+Build: ✅ Passed
+Manual Steps Required: See user instructions for Discord Developer Portal and Render setup
+
+## 2026-02-04 01:55 | Product Engineer | COMPLETED
+Task: Fix user card layout in Player Directory
+Context: View Profile button was misaligned between users with/without bio
+Changes Made:
+  - Added `display: flex` and `flexDirection: column` to card container
+  - Added fixed-height bio container (`minHeight: 2.5rem`) for consistent layout
+  - Changed View Profile button to use `marginTop: 'auto'` to push to bottom
+Files: apps/web/src/pages/UserDirectory.tsx
+Build: ✅ Passed
+
+## 2026-02-04 01:45 | Design Lead | COMPLETED
+Task: Tier color scheme overhaul + UI refinements
+Context: User requested pink heart icon, optimized supporter section, purple Recruiter, gold Admin
+Changes Made:
+  - **SupportAtlas.tsx**:
+    - Changed icon above "Atlas Supporter" from star SVG to pink heart SVG
+    - Optimized redundant supporter status section (more compact, single line)
+  - **Color Scheme (SINGLE SOURCE OF TRUTH)**:
+    - Supporter: Pink `#FF6B8A` with 💖 icon
+    - Recruiter: Purple `#a855f7` with 💜 icon (was cyan)
+    - Admin: Gold `#f59e0b` with 👑 icon (was red)
+  - **Files Updated**:
+    - `constants.ts` - SUBSCRIPTION_COLORS updated
+    - `styles.ts` - subscriptionColors updated
+    - `Profile.tsx` - getTierBorderColor updated
+    - `UserDirectory.tsx` - Badge and filter chip icons/labels updated
+    - `AnalyticsOverview.tsx` - Recruiter color updated to purple
+    - `Chip.tsx` - ProChip and RecruiterChip icons/colors updated
+    - `ProBadge.tsx` - Recruiter=purple, heart emoji icons
+    - `STYLE_GUIDE.md` - Full documentation update
+Files: apps/web/src/pages/SupportAtlas.tsx, apps/web/src/utils/constants.ts, apps/web/src/utils/styles.ts, apps/web/src/pages/Profile.tsx, apps/web/src/pages/UserDirectory.tsx, apps/web/src/components/admin/AnalyticsOverview.tsx, apps/web/src/components/shared/Chip.tsx, apps/web/src/components/ProBadge.tsx, apps/web/src/STYLE_GUIDE.md
+Build: ✅ Passed
+
+## 2026-02-04 01:29 | Platform Engineer + Design Lead | COMPLETED
+Task: Atlas Pro → Atlas Supporter badge/color updates + Backend price ID config
+Context: Catarina's badge/border needed updating from Pro (cyan) to Supporter (pink)
+Changes Made:
+  - **Backend API** (`stripe.py`):
+    - Price IDs now configurable via env vars (STRIPE_SUPPORTER_MONTHLY_PRICE, etc.)
+    - Updated success/cancel URLs to /support instead of /upgrade
+  - **Frontend Badge Updates**:
+    - Chip.tsx: ProChip now shows "SUPPORTER" with pink color (#FF6B8A)
+    - UserDirectory.tsx: Badge shows "⭐ SUPPORTER" (was "⭐ PRO")
+    - UserDirectory.tsx: Filter chip shows "⭐ Supporter" (was "⭐ Pro")
+    - AnalyticsOverview.tsx: Recent Subscribers shows "SUPPORTER" with pink
+  - **Avatar Border Colors**:
+    - Profile.tsx: Supporter (pro) tier now gets pink border (#FF6B8A)
+    - Recruiter tier now gets cyan border (#22d3ee)
+  - Subscription expiry already handled by existing webhook system
+Files: apps/api/api/routers/stripe.py, apps/web/src/components/shared/Chip.tsx, apps/web/src/pages/UserDirectory.tsx, apps/web/src/pages/Profile.tsx, apps/web/src/components/admin/AnalyticsOverview.tsx
+Build: ✅ Passed
+
+## 2026-02-04 01:22 | Business Lead | COMPLETED
+Task: Update pricing documentation with new Stripe payment links
+Context: Monetization restructure - Atlas Pro → Atlas Supporter, new pricing
+Changes Made:
+  - Updated `.env` with new payment links:
+    - Atlas Supporter: $4.99/month → https://buy.stripe.com/dRm8wQ2Fe2ye7dC3n9eZ206
+    - Atlas Recruiter: $19.99/month → https://buy.stripe.com/eVqaEY93C8WC2Xm3n9eZ204
+    - Atlas Recruiter Yearly: $159.99/year → https://buy.stripe.com/bJebJ23Ji0q62Xm8HteZ205
+  - Updated documentation files:
+    - CREDENTIALS.md - new pricing table
+    - STRIPE_QUICK_SETUP.md - new setup instructions
+    - MONETIZATION_STRATEGY.md - tier structure and revenue projections
+    - SUPABASE_SUBSCRIPTION_SETUP.md - env var references
+    - STRIPE_PRODUCTION_CHECKLIST.md - payment links reference
+  - Updated .env.example with new payment link format
+  - Updated UpgradePrompt.tsx: Recruiter pricing $14.99 → $19.99
+  - Removed old payment links (9B6fZi0x60q6apO, cNi5kE2Fegp4btS, etc.)
+Files: apps/web/.env, docs/CREDENTIALS.md, docs/STRIPE_QUICK_SETUP.md, docs/MONETIZATION_STRATEGY.md, docs/SUPABASE_SUBSCRIPTION_SETUP.md, docs/STRIPE_PRODUCTION_CHECKLIST.md, apps/web/.env.example, apps/web/src/components/UpgradePrompt.tsx
+Build: ✅ Passed
+
 ## 2026-02-03 23:00 | Platform Engineer | DEPLOYED
 Task: Code quality hardening - deployed to production
 Context: Security review + code quality improvements deployed to ks-atlas.com

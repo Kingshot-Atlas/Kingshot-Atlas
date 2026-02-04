@@ -5,7 +5,7 @@ export { default as StatBox } from './StatBox';
 export { default as Card } from './Card';
 export { Button } from './Button';
 export type { ButtonProps, ButtonVariant, ButtonSize } from './Button';
-export { Chip, TierChip, ProChip, RecruiterChip, VerifiedChip } from './Chip';
+export { Chip, TierChip, ProChip, SupporterChip, RecruiterChip, VerifiedChip } from './Chip';
 export type { ChipProps, ChipVariant, ChipSize } from './Chip';
 export { Input } from './Input';
 export type { InputProps } from './Input';

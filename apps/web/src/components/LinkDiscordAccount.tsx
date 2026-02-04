@@ -130,7 +130,7 @@ const LinkDiscordAccount: React.FC<LinkDiscordAccountProps> = ({
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#6b7280', fontSize: '0.8rem' }}>
-              <span style={{ color: '#22d3ee' }}>*</span> Atlas Pro role for subscribers
+              <span style={{ color: '#FF6B8A' }}>*</span> Atlas Supporter role for subscribers
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#6b7280', fontSize: '0.8rem' }}>
               <span style={{ color: '#a855f7' }}>*</span> Atlas Recruiter role for affiliates

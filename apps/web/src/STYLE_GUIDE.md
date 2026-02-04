@@ -156,7 +156,7 @@ const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
 ### Usage
 ```tsx
 // Page titles - use Cinzel
-<h1 style={{ fontFamily: "'Cinzel', 'Times New Roman', serif" }}>UPGRADE TO PRO</h1>
+<h1 style={{ fontFamily: "'Cinzel', 'Times New Roman', serif" }}>SUPPORT ATLAS</h1>
 
 // Or use CSS variable
 <h1 style={{ fontFamily: 'var(--font-display)' }}>Page Title</h1>
@@ -242,44 +242,44 @@ const neonGlow = (color: string) => ({
 
 ## Subscription Tier Colors
 
-| Tier | Color | Hex | Usage |
-|------|-------|-----|-------|
-| **Admin** | Red | `#ef4444` | Admin badges, borders, **username colors**, avatar borders, role indicators |
-| **Atlas Recruiter** | Orange | `#f97316` | Recruiter buttons, badges, price text, role indicators |
-| **Atlas Pro** | Cyan | `#22d3ee` | Pro buttons, badges, price text, role indicators |
-| **Free** | Gray/White | `#6b7280` / `#ffffff` | Default text, no special styling |
+| Tier | Color | Hex | Icon | Usage |
+|------|-------|-----|------|-------|
+| **Admin** | Gold | `#f59e0b` | 👑 | Admin badges, borders, **username colors**, avatar borders, role indicators |
+| **Atlas Recruiter** | Purple | `#a855f7` | 💜 | Recruiter buttons, badges, price text, role indicators |
+| **Atlas Supporter** | Pink | `#FF6B8A` | 💖 | Supporter buttons, badges, price text, role indicators |
+| **Free** | Gray/White | `#6b7280` / `#ffffff` | - | Default text, no special styling |
 
 ### Admin-Specific Rules
 - **No "Manage Subscription" button** - Admin is not a subscription tier, so the subscription management button should be hidden
-- **Username and avatar border** - Should use Admin red (`#ef4444`) with neon glow effect
+- **Username and avatar border** - Should use Admin gold (`#f59e0b`) with neon glow effect
 - Pass `subscriptionTier="admin"` to components that support tier-based coloring
 
 ### Usage Examples
 ```tsx
-// Admin tier styling
-<span style={{ color: '#ef4444' }}>⚡ ADMIN</span>
-<div style={{ border: '1px solid #ef4444' }}>Admin card</div>
+// Admin tier styling (Gold)
+<span style={{ color: '#f59e0b' }}>👑 ADMIN</span>
+<div style={{ border: '1px solid #f59e0b' }}>Admin card</div>
 
-// Pro tier styling
-<button style={{ backgroundColor: '#22d3ee', color: '#000' }}>Upgrade to Pro</button>
-<span style={{ color: '#22d3ee' }}>$3.33/month</span>
+// Supporter tier styling (Pink)
+<button style={{ backgroundColor: '#FF6B8A', color: '#000' }}>Become a Supporter</button>
+<span style={{ color: '#FF6B8A' }}>$4.99/month</span>
 
-// Recruiter tier styling
-<button style={{ backgroundColor: '#f97316', color: '#fff' }}>Upgrade to Recruiter</button>
-<span style={{ color: '#f97316' }}>$9.99/month</span>
+// Recruiter tier styling (Purple)
+<button style={{ backgroundColor: '#a855f7', color: '#000' }}>Upgrade to Recruiter</button>
+<span style={{ color: '#a855f7' }}>$19.99/month</span>
 ```
 
 ### Role Badges
-- **Admin badge**: Red background/border with lightning icon (⚡)
-- **Recruiter badge**: Orange background with white text, crown icon (👑)
-- **Pro badge**: Cyan background with dark text, star icon (⭐)
+- **Admin badge**: Gold background/border with crown icon (👑)
+- **Recruiter badge**: Purple background with dark text, purple heart icon (�)
+- **Supporter badge**: Pink background with dark text, pink heart icon (💖)
 
-### Pro Feature Unlock Buttons (SOURCE OF TRUTH)
+### Supporter Feature Unlock Buttons (SOURCE OF TRUTH)
 
-When showing buttons to unlock Pro features (e.g., Score Simulator, Multi-Compare), use this exact pattern:
+When showing buttons to unlock Supporter features (e.g., Multi-Compare), use this exact pattern:
 
 ```tsx
-// ✅ CORRECT: Pro feature unlock button
+// ✅ CORRECT: Supporter feature unlock button
 <Link
   to="/upgrade"
   style={{
@@ -304,13 +304,13 @@ When showing buttons to unlock Pro features (e.g., Score Simulator, Multi-Compar
   Unlock Feature
 </Link>
 
-// ❌ WRONG: Purple is for Recruiter, not Pro
-background: 'linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)'
+// ❌ WRONG: Cyan is for Recruiter, not Supporter
+background: 'linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%)'
 ```
 
-### Pro Badge (Inline)
+### Supporter Badge (Inline)
 
-For inline Pro badges next to feature names:
+For inline Supporter badges next to feature names:
 
 ```tsx
 <span style={{
@@ -319,16 +319,16 @@ For inline Pro badges next to feature names:
   border: '1px solid #22d3ee40',
   borderRadius: '4px',
   fontSize: '0.6rem',
-  color: '#22d3ee',
+  color: '#FF6B8A',
   fontWeight: 'bold'
 }}>
-  PRO
+  SUPPORTER
 </span>
 ```
 
-### Pro Upsell Banner
+### Supporter Upsell Banner
 
-For subtle "Go Pro" messaging:
+For subtle "Become a Supporter" messaging:
 
 ```tsx
 <div style={{
@@ -348,20 +348,20 @@ For subtle "Go Pro" messaging:
     fontSize: '0.7rem',
     fontWeight: 'bold'
   }}>
-    ★ PRO
+    ★ SUPPORTER
   </span>
   <span style={{ color: '#9ca3af', fontSize: '0.8rem' }}>
-    Go Pro to unlock this feature
+    Become a Supporter to unlock this feature
   </span>
 </div>
 ```
 
 **Key Rules:**
-1. **Pro = Cyan (`#22d3ee`)** - Always use cyan for Pro features
-2. **Recruiter = Purple (`#a855f7`)** - Only use purple for Recruiter features
-3. **Text color on solid cyan buttons**: Always `#000` (black)
-4. **Text color on solid purple buttons**: Use `#fff` (white)
-5. **Star icon (★)**: Use for Pro badges
+1. **Supporter = Pink (`#FF6B8A`)** - Always use pink for Supporter features
+2. **Recruiter = Cyan (`#22d3ee`)** - Always use cyan for Recruiter features
+3. **Text color on solid pink buttons**: Always `#000` (black)
+4. **Text color on solid cyan buttons**: Use `#000` (black)
+5. **Star icon (★)**: Use for Supporter badges
 6. **Crown icon (👑)**: Use for Recruiter badges
 
 ---
@@ -373,8 +373,9 @@ When displaying usernames in public-facing contexts (e.g., Linked Kingshot Accou
 | Tier | Color | Hex | Effect |
 |------|-------|-----|--------|
 | **Free** | White | `#ffffff` | Plain text, no glow |
-| **Pro** | Cyan | `#22d3ee` | With neon glow effect |
+| **Supporter** | Pink | `#FF6B8A` | With neon glow effect |
 | **Recruiter** | Purple | `#a855f7` | With neon glow effect |
+| **Admin** | Gold | `#f59e0b` | With neon glow effect |
 
 ### Implementation
 
@@ -384,8 +385,8 @@ import { colors, neonGlow, subscriptionColors } from '../utils/styles';
 // Get username color based on subscription tier
 const getUsernameColor = (tier: 'free' | 'pro' | 'recruiter'): string => {
   switch (tier) {
-    case 'pro': return subscriptionColors.pro;      // #22d3ee
-    case 'recruiter': return subscriptionColors.recruiter; // #a855f7
+    case 'pro': return subscriptionColors.pro;      // #FF6B8A (Supporter)
+    case 'recruiter': return subscriptionColors.recruiter; // #22d3ee
     default: return colors.text;                     // #ffffff
   }
 };
@@ -405,8 +406,8 @@ const getUsernameColor = (tier: 'free' | 'pro' | 'recruiter'): string => {
 
 ### Key Rules:
 1. **Free users** get white (`#ffffff`) usernames with no glow effect
-2. **Pro users** get cyan (`#22d3ee`) usernames with neon glow
-3. **Recruiter users** get purple (`#a855f7`) usernames with neon glow
+2. **Supporter users** get pink (`#FF6B8A`) usernames with neon glow
+3. **Recruiter users** get cyan (`#22d3ee`) usernames with neon glow
 4. Avatar borders should match the username color for consistency
 5. This coloring applies to public-facing displays (viewable by other users)
 
@@ -419,19 +420,20 @@ When displaying user avatars in public-facing contexts (e.g., public profiles, p
 | Tier | Color | Hex | Usage |
 |------|-------|-----|-------|
 | **Free** | White | `#ffffff` | Default border, no glow |
-| **Pro** | Cyan | `#22d3ee` | Cyan border with subtle glow |
+| **Supporter** | Pink | `#FF6B8A` | Pink border with subtle glow |
 | **Recruiter** | Purple | `#a855f7` | Purple border with subtle glow |
-| **Admin** | Red | `#ef4444` | Red border with subtle glow |
+| **Admin** | Gold | `#f59e0b` | Gold border with subtle glow |
 
 ### Implementation
 
 ```tsx
 // Get border color for avatar based on subscription tier
+// Supporter = Pink, Recruiter = Purple, Admin = Gold
 const getTierBorderColor = (tier: 'free' | 'pro' | 'recruiter' | 'admin'): string => {
   switch (tier) {
-    case 'admin': return '#ef4444';    // Red
+    case 'admin': return '#f59e0b';    // Gold
     case 'recruiter': return '#a855f7'; // Purple
-    case 'pro': return '#22d3ee';       // Cyan
+    case 'pro': return '#FF6B8A';       // Pink (Supporter)
     default: return '#ffffff';          // White
   }
 };

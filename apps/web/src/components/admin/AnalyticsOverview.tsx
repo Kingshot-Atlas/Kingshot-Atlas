@@ -76,8 +76,8 @@ export const AnalyticsOverview: React.FC<AnalyticsOverviewProps> = ({
           {[
             { label: 'Free Users', value: analytics.userStats.free, color: '#6b7280' },
             { label: 'Kingshot Linked', value: analytics.userStats.kingshot_linked, color: '#f59e0b' },
-            { label: 'Atlas Pro', value: analytics.userStats.pro, color: '#22d3ee' },
-            { label: 'Atlas Recruiter', value: analytics.userStats.recruiter, color: '#a855f7' },
+            { label: 'Atlas Supporter', value: analytics.userStats.pro, color: '#FF6B8A' },
+            { label: 'Atlas Recruiter', value: analytics.userStats.recruiter, color: '#22d3ee' },
           ].map((tier, i) => (
             <div key={i} style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '1.5rem', fontWeight: '700', color: tier.color }}>{tier.value}</div>
@@ -224,14 +224,14 @@ export const AnalyticsOverview: React.FC<AnalyticsOverviewProps> = ({
                 <span style={{ color: '#fff' }}>{sub.username}</span>
                 <span style={{ 
                   padding: '0.15rem 0.5rem',
-                  backgroundColor: sub.tier === 'recruiter' ? '#f9731620' : '#22d3ee20',
-                  color: sub.tier === 'recruiter' ? '#f97316' : '#22d3ee',
+                  backgroundColor: sub.tier === 'recruiter' ? '#a855f720' : '#FF6B8A20',
+                  color: sub.tier === 'recruiter' ? '#a855f7' : '#FF6B8A',
                   borderRadius: '9999px',
                   fontSize: '0.7rem',
                   fontWeight: '600',
                   textTransform: 'uppercase'
                 }}>
-                  {sub.tier}
+                  {sub.tier === 'pro' ? 'SUPPORTER' : sub.tier}
                 </span>
               </div>
               <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>

@@ -29,7 +29,7 @@ const Profile = lazy(() => import('./pages/Profile'));
 const About = lazy(() => import('./pages/About'));
 const UserDirectory = lazy(() => import('./pages/UserDirectory'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
-const Upgrade = lazy(() => import('./pages/Upgrade'));
+const SupportAtlas = lazy(() => import('./pages/SupportAtlas'));
 const Changelog = lazy(() => import('./pages/Changelog'));
 const ComponentsDemo = lazy(() => import('./pages/ComponentsDemo'));
 const MissingDataRegistry = lazy(() => import('./pages/MissingDataRegistry'));
@@ -107,8 +107,9 @@ function AppContent() {
               <Route path="/players" element={<ErrorBoundary><UserDirectory /></ErrorBoundary>} />
               <Route path="/about" element={<ErrorBoundary><About /></ErrorBoundary>} />
               <Route path="/admin" element={<ErrorBoundary><AdminDashboard /></ErrorBoundary>} />
-              <Route path="/upgrade" element={<ErrorBoundary><Upgrade /></ErrorBoundary>} />
-              <Route path="/pro" element={<ErrorBoundary><Upgrade /></ErrorBoundary>} />
+              <Route path="/support" element={<ErrorBoundary><SupportAtlas /></ErrorBoundary>} />
+              <Route path="/upgrade" element={<ErrorBoundary><SupportAtlas /></ErrorBoundary>} />
+              <Route path="/pro" element={<ErrorBoundary><SupportAtlas /></ErrorBoundary>} />
               <Route path="/changelog" element={<ErrorBoundary><Changelog /></ErrorBoundary>} />
               <Route path="/components" element={<ErrorBoundary><ComponentsDemo /></ErrorBoundary>} />
               <Route path="/contribute-data" element={<ErrorBoundary><MissingDataRegistry /></ErrorBoundary>} />

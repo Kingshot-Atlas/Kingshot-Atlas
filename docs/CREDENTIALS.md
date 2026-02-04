@@ -9,14 +9,13 @@
 ## Stripe (Live Mode)
 - **Dashboard:** https://dashboard.stripe.com
 
-### Products Created (Jan 28, 2026)
+### Products (Updated Feb 3, 2026)
 
 | Product | Price | Billing | Payment Link |
 |---------|-------|---------|--------------|
-| Atlas Pro | $4.99 | Monthly | https://buy.stripe.com/9B6fZi0x60q6apO3n9eZ200 |
-| Atlas Pro | $39.99 | Yearly | https://buy.stripe.com/cNi5kE2Fegp4btS3n9eZ201 |
-| Atlas Recruiter | $14.99 | Monthly | https://buy.stripe.com/aFaaEY1BaegW7dCbTFeZ202 |
-| Atlas Recruiter | $119.99 | Yearly | https://buy.stripe.com/00weVea7G8WC69y3n9eZ203 |
+| Atlas Supporter | $4.99 | Monthly | https://buy.stripe.com/dRm8wQ2Fe2ye7dC3n9eZ206 |
+| Atlas Recruiter | $19.99 | Monthly | https://buy.stripe.com/eVqaEY93C8WC2Xm3n9eZ204 |
+| Atlas Recruiter | $159.99 | Yearly | https://buy.stripe.com/bJebJ23Ji0q62Xm8HteZ205 |
 
 ## GitHub
 - **Repo:** https://github.com/Kingshot-Atlas/Kingshot-Atlas

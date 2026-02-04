@@ -185,7 +185,7 @@ const UpgradePrompt: React.FC<UpgradePromptProps> = ({
         fontSize: '0.75rem', 
         marginTop: '0.75rem' 
       }}>
-        {requiredTier === 'pro' ? 'Starting at $4.99/month' : 'Starting at $14.99/month'}
+        {requiredTier === 'pro' ? 'Starting at $4.99/month' : 'Starting at $19.99/month'}
       </p>
     </div>
   );

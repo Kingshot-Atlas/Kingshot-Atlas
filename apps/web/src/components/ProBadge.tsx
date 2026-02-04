@@ -8,8 +8,9 @@ interface ProBadgeProps {
 
 const ProBadge: React.FC<ProBadgeProps> = ({ tier = 'pro', size = 'sm' }) => {
   const isRecruiter = tier === 'recruiter';
-  const color = isRecruiter ? '#a855f7' : '#22d3ee';
-  const label = isRecruiter ? 'RECRUITER' : 'PRO';
+  const color = isRecruiter ? '#a855f7' : '#FF6B8A'; // Recruiter=Purple, Supporter=Pink
+  const label = isRecruiter ? 'RECRUITER' : 'SUPPORTER';
+  const icon = isRecruiter ? '💜' : '💖'; // Purple heart for Recruiter, Pink heart for Supporter
   
   const sizes = {
     sm: { padding: '0.15rem 0.4rem', fontSize: '0.65rem', iconSize: 8, gap: '0.2rem' },
@@ -34,9 +35,7 @@ const ProBadge: React.FC<ProBadgeProps> = ({ tier = 'pro', size = 'sm' }) => {
       letterSpacing: '0.5px',
       textTransform: 'uppercase'
     }}>
-      <svg width={s.iconSize} height={s.iconSize} viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
-      </svg>
+      <span style={{ fontSize: s.iconSize * 1.2 }}>{icon}</span>
       {label}
     </span>
   );
