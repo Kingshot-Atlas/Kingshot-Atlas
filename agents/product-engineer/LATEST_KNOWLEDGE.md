@@ -555,4 +555,84 @@ Formula: `tgTier = Math.floor((level - 35) / 5) + 1`
 
 ---
 
+## User Display Pattern (2026-02-04)
+
+**Rule:** Wherever user profiles are displayed, prioritize Kingshot account data over OAuth provider data.
+
+### Data Priority
+```typescript
+// Avatar: Use linked Kingshot avatar, fallback to OAuth avatar
+const displayAvatar = profile.linked_avatar_url || profile.avatar_url;
+
+// Username: Use linked Kingshot username, fallback to OAuth username
+const displayName = profile.linked_username || profile.username || 'Anonymous';
+```
+
+### Tier-Based Styling
+```typescript
+import { getDisplayTier, SUBSCRIPTION_COLORS, SubscriptionTier } from '../utils/constants';
+import { neonGlow } from '../utils/styles';
+
+// Determine display tier (handles admin detection via ADMIN_USERNAMES)
+const displayTier = getDisplayTier(profile.subscription_tier, profile.linked_username || profile.username);
+
+// Get username color based on tier
+const getUsernameColor = (tier: SubscriptionTier): string => {
+  switch (tier) {
+    case 'admin': return SUBSCRIPTION_COLORS.admin;     // #f59e0b (Gold)
+    case 'recruiter': return SUBSCRIPTION_COLORS.recruiter; // #a855f7 (Purple)
+    case 'pro': return SUBSCRIPTION_COLORS.pro;         // #FF6B8A (Pink)
+    default: return '#ffffff';                          // White for free
+  }
+};
+
+// Apply neon glow for paid tiers and admins
+const isPaidOrAdmin = displayTier === 'pro' || displayTier === 'recruiter' || displayTier === 'admin';
+const usernameStyle = {
+  color: getUsernameColor(displayTier),
+  ...(isPaidOrAdmin ? neonGlow(getUsernameColor(displayTier)) : {})
+};
+```
+
+### Tier Badges
+```typescript
+// Render appropriate badge based on displayTier
+{displayTier === 'admin' && (
+  <span style={{
+    fontSize: '0.6rem',
+    padding: '0.1rem 0.3rem',
+    backgroundColor: `${SUBSCRIPTION_COLORS.admin}15`,
+    border: `1px solid ${SUBSCRIPTION_COLORS.admin}40`,
+    borderRadius: '3px',
+    color: SUBSCRIPTION_COLORS.admin,
+    fontWeight: '600',
+  }}>ADMIN</span>
+)}
+// Similar for 'pro' (SUPPORTER) and 'recruiter' (RECRUITER)
+```
+
+### Components Using This Pattern
+| Component | Status |
+|-----------|--------|
+| `UserDirectory.tsx` | ✅ Correct |
+| `Header.tsx` | ✅ Correct |
+| `Profile.tsx` | ✅ Correct |
+| `PlayersFromMyKingdom.tsx` | ✅ Fixed 2026-02-04 |
+| `KingdomPlayers.tsx` | ✅ Fixed 2026-02-04 |
+
+### Avatar Image Best Practice
+```typescript
+// Always add referrerPolicy for external avatar URLs (Akamai CDN compatibility)
+<img 
+  src={displayAvatar} 
+  alt={displayName}
+  referrerPolicy="no-referrer"
+  onError={(e) => {
+    (e.target as HTMLImageElement).style.display = 'none';
+  }}
+/>
+```
+
+---
+
 *Updated by Product Engineer based on current React best practices.*

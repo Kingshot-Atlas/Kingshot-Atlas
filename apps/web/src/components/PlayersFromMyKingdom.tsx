@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { useIsMobile } from '../hooks/useMediaQuery';
+import { getDisplayTier, SUBSCRIPTION_COLORS, SubscriptionTier } from '../utils/constants';
+import { neonGlow } from '../utils/styles';
 
 interface PlayerProfile {
   id: string;
@@ -11,9 +13,31 @@ interface PlayerProfile {
   home_kingdom: number | null;
   linked_kingdom: number | null;
   linked_username: string | null;
+  linked_avatar_url: string | null;
+  linked_tc_level: number | null;
   alliance_tag: string | null;
   theme_color: string;
+  subscription_tier: 'free' | 'pro' | 'recruiter' | null;
 }
+
+// Get username color based on display tier
+const getUsernameColor = (tier: SubscriptionTier): string => {
+  switch (tier) {
+    case 'admin': return SUBSCRIPTION_COLORS.admin;
+    case 'recruiter': return SUBSCRIPTION_COLORS.recruiter;
+    case 'pro': return SUBSCRIPTION_COLORS.pro;
+    default: return '#ffffff'; // White for free users
+  }
+};
+
+// Convert TC level to display string
+const formatTCLevel = (level: number | null): string => {
+  if (!level) return '';
+  if (level <= 30) return `TC ${level}`;
+  if (level <= 34) return 'TC 30';
+  const tgTier = Math.floor((level - 35) / 5) + 1;
+  return `TG${tgTier}`;
+};
 
 interface PlayersFromMyKingdomProps {
   themeColor?: string;
@@ -43,7 +67,7 @@ const PlayersFromMyKingdom: React.FC<PlayersFromMyKingdomProps> = ({
       try {
         const { data, error: fetchError } = await supabase!
           .from('profiles')
-          .select('id, username, avatar_url, home_kingdom, linked_kingdom, linked_username, alliance_tag, theme_color')
+          .select('id, username, avatar_url, home_kingdom, linked_kingdom, linked_username, linked_avatar_url, linked_tc_level, alliance_tag, theme_color, subscription_tier')
           .or(`home_kingdom.eq.${myKingdom},linked_kingdom.eq.${myKingdom}`)
           .neq('id', user?.id || '')
           .limit(20);
@@ -124,7 +148,16 @@ const PlayersFromMyKingdom: React.FC<PlayersFromMyKingdomProps> = ({
           gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
           gap: '0.75rem',
         }}>
-          {players.map((player) => (
+          {players.map((player) => {
+          // Use linked_username for admin check since that's the Kingshot identity
+          const displayTier = getDisplayTier(player.subscription_tier, player.linked_username || player.username);
+          const usernameColor = getUsernameColor(displayTier);
+          const isPaidOrAdmin = displayTier === 'pro' || displayTier === 'recruiter' || displayTier === 'admin';
+          // Use Kingshot account data if available, fallback to OAuth data
+          const displayName = player.linked_username || player.username || 'Anonymous';
+          const displayAvatar = player.linked_avatar_url || player.avatar_url;
+          
+          return (
             <Link 
               key={player.id}
               to={`/profile/${player.id}`}
@@ -141,7 +174,7 @@ const PlayersFromMyKingdom: React.FC<PlayersFromMyKingdomProps> = ({
                 transition: 'all 0.2s ease',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = player.theme_color || themeColor;
+                e.currentTarget.style.borderColor = usernameColor + '50';
                 e.currentTarget.style.backgroundColor = '#111111';
               }}
               onMouseLeave={(e) => {
@@ -149,46 +182,48 @@ const PlayersFromMyKingdom: React.FC<PlayersFromMyKingdomProps> = ({
                 e.currentTarget.style.backgroundColor = '#0a0a0a';
               }}
               >
-                {/* Avatar */}
+                {/* Avatar - Use Kingshot avatar if available */}
                 <div style={{
                   width: '40px',
                   height: '40px',
                   borderRadius: '50%',
                   backgroundColor: '#1a1a1a',
-                  border: `2px solid ${player.theme_color || themeColor}40`,
+                  border: `2px solid ${usernameColor}40`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   overflow: 'hidden',
                   flexShrink: 0,
                 }}>
-                  {player.avatar_url ? (
+                  {displayAvatar ? (
                     <img 
-                      src={player.avatar_url} 
-                      alt={player.username}
+                      src={displayAvatar} 
+                      alt={displayName}
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      referrerPolicy="no-referrer"
                       onError={(e) => {
                         (e.target as HTMLImageElement).style.display = 'none';
                       }}
                     />
                   ) : (
-                    <span style={{ fontSize: '1rem', color: player.theme_color || themeColor }}>
-                      {(player.username || 'U').charAt(0).toUpperCase()}
+                    <span style={{ fontSize: '1rem', color: usernameColor }}>
+                      {displayName.charAt(0).toUpperCase()}
                     </span>
                   )}
                 </div>
 
-                {/* Info */}
+                {/* Info - Use Kingshot username with tier coloring */}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ 
                     fontSize: '0.9rem', 
                     fontWeight: '600', 
-                    color: '#fff',
+                    color: usernameColor,
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
+                    ...(isPaidOrAdmin ? neonGlow(usernameColor) : {})
                   }}>
-                    {player.username || 'Anonymous'}
+                    {displayName}
                   </div>
                   <div style={{ 
                     fontSize: '0.75rem', 
@@ -196,6 +231,7 @@ const PlayersFromMyKingdom: React.FC<PlayersFromMyKingdomProps> = ({
                     display: 'flex',
                     alignItems: 'center',
                     gap: '0.5rem',
+                    flexWrap: 'wrap',
                   }}>
                     {player.alliance_tag && (
                       <span style={{ 
@@ -205,14 +241,54 @@ const PlayersFromMyKingdom: React.FC<PlayersFromMyKingdomProps> = ({
                         [{player.alliance_tag}]
                       </span>
                     )}
-                    {player.linked_username && (
-                      <span>🎮 {player.linked_username}</span>
+                    {player.linked_tc_level && (
+                      <span>{formatTCLevel(player.linked_tc_level)}</span>
+                    )}
+                    {displayTier === 'admin' && (
+                      <span style={{
+                        fontSize: '0.6rem',
+                        padding: '0.1rem 0.3rem',
+                        backgroundColor: `${SUBSCRIPTION_COLORS.admin}15`,
+                        border: `1px solid ${SUBSCRIPTION_COLORS.admin}40`,
+                        borderRadius: '3px',
+                        color: SUBSCRIPTION_COLORS.admin,
+                        fontWeight: '600',
+                      }}>
+                        ADMIN
+                      </span>
+                    )}
+                    {displayTier === 'pro' && (
+                      <span style={{
+                        fontSize: '0.6rem',
+                        padding: '0.1rem 0.3rem',
+                        backgroundColor: `${SUBSCRIPTION_COLORS.pro}15`,
+                        border: `1px solid ${SUBSCRIPTION_COLORS.pro}40`,
+                        borderRadius: '3px',
+                        color: SUBSCRIPTION_COLORS.pro,
+                        fontWeight: '600',
+                      }}>
+                        PRO
+                      </span>
+                    )}
+                    {displayTier === 'recruiter' && (
+                      <span style={{
+                        fontSize: '0.6rem',
+                        padding: '0.1rem 0.3rem',
+                        backgroundColor: `${SUBSCRIPTION_COLORS.recruiter}15`,
+                        border: `1px solid ${SUBSCRIPTION_COLORS.recruiter}40`,
+                        borderRadius: '3px',
+                        color: SUBSCRIPTION_COLORS.recruiter,
+                        fontWeight: '600',
+                      }}>
+                        RECRUITER
+                      </span>
                     )}
                   </div>
                 </div>
               </div>
             </Link>
-          ))}
+          );
+        })}
         </div>
       )}
 

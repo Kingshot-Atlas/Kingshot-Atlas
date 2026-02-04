@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { useIsMobile } from '../hooks/useMediaQuery';
-import { colors, neonGlow, subscriptionColors } from '../utils/styles';
+import { colors, neonGlow } from '../utils/styles';
+import { getDisplayTier, SUBSCRIPTION_COLORS, SubscriptionTier } from '../utils/constants';
 
 interface PlayerProfile {
   id: string;
@@ -21,11 +22,12 @@ interface KingdomPlayersProps {
   themeColor?: string;
 }
 
-// Get username color based on subscription tier
-const getUsernameColor = (tier: 'free' | 'pro' | 'recruiter' | null): string => {
+// Get username color based on display tier (includes admin)
+const getUsernameColor = (tier: SubscriptionTier): string => {
   switch (tier) {
-    case 'pro': return subscriptionColors.pro;
-    case 'recruiter': return subscriptionColors.recruiter;
+    case 'admin': return SUBSCRIPTION_COLORS.admin;
+    case 'recruiter': return SUBSCRIPTION_COLORS.recruiter;
+    case 'pro': return SUBSCRIPTION_COLORS.pro;
     default: return colors.text;
   }
 };
@@ -125,8 +127,10 @@ const KingdomPlayers: React.FC<KingdomPlayersProps> = ({
         gap: '0.75rem',
       }}>
         {players.map((player) => {
-          const usernameColor = getUsernameColor(player.subscription_tier);
-          const isPaid = player.subscription_tier === 'pro' || player.subscription_tier === 'recruiter';
+          // Use linked_username for admin check since that's the Kingshot identity
+          const displayTier = getDisplayTier(player.subscription_tier, player.linked_username || player.username);
+          const usernameColor = getUsernameColor(displayTier);
+          const isPaidOrAdmin = displayTier === 'pro' || displayTier === 'recruiter' || displayTier === 'admin';
           
           return (
             <Link 
@@ -191,7 +195,7 @@ const KingdomPlayers: React.FC<KingdomPlayersProps> = ({
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
-                    ...(isPaid ? neonGlow(usernameColor) : {})
+                    ...(isPaidOrAdmin ? neonGlow(usernameColor) : {})
                   }}>
                     {player.linked_username || player.username || 'Anonymous'}
                   </div>
@@ -214,27 +218,40 @@ const KingdomPlayers: React.FC<KingdomPlayersProps> = ({
                     {player.linked_tc_level && (
                       <span>{formatTCLevel(player.linked_tc_level)}</span>
                     )}
-                    {player.subscription_tier === 'pro' && (
+                    {displayTier === 'admin' && (
                       <span style={{
                         fontSize: '0.6rem',
                         padding: '0.1rem 0.3rem',
-                        backgroundColor: `${subscriptionColors.pro}15`,
-                        border: `1px solid ${subscriptionColors.pro}40`,
+                        backgroundColor: `${SUBSCRIPTION_COLORS.admin}15`,
+                        border: `1px solid ${SUBSCRIPTION_COLORS.admin}40`,
                         borderRadius: '3px',
-                        color: subscriptionColors.pro,
+                        color: SUBSCRIPTION_COLORS.admin,
+                        fontWeight: '600',
+                      }}>
+                        ADMIN
+                      </span>
+                    )}
+                    {displayTier === 'pro' && (
+                      <span style={{
+                        fontSize: '0.6rem',
+                        padding: '0.1rem 0.3rem',
+                        backgroundColor: `${SUBSCRIPTION_COLORS.pro}15`,
+                        border: `1px solid ${SUBSCRIPTION_COLORS.pro}40`,
+                        borderRadius: '3px',
+                        color: SUBSCRIPTION_COLORS.pro,
                         fontWeight: '600',
                       }}>
                         PRO
                       </span>
                     )}
-                    {player.subscription_tier === 'recruiter' && (
+                    {displayTier === 'recruiter' && (
                       <span style={{
                         fontSize: '0.6rem',
                         padding: '0.1rem 0.3rem',
-                        backgroundColor: `${subscriptionColors.recruiter}15`,
-                        border: `1px solid ${subscriptionColors.recruiter}40`,
+                        backgroundColor: `${SUBSCRIPTION_COLORS.recruiter}15`,
+                        border: `1px solid ${SUBSCRIPTION_COLORS.recruiter}40`,
                         borderRadius: '3px',
-                        color: subscriptionColors.recruiter,
+                        color: SUBSCRIPTION_COLORS.recruiter,
                         fontWeight: '600',
                       }}>
                         RECRUITER

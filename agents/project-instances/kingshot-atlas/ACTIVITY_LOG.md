@@ -9,6 +9,19 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-04 08:55 | Product Engineer | COMPLETED
+Task: Fix user profile display to use Kingshot account data instead of OAuth data
+Files:
+  - apps/web/src/components/PlayersFromMyKingdom.tsx (major refactor - use linked_* data, add tier colors/badges)
+  - apps/web/src/components/KingdomPlayers.tsx (add admin tier detection and ADMIN badge)
+Result:
+  - PlayersFromMyKingdom now shows linked_username/linked_avatar_url instead of OAuth username/avatar_url
+  - Both components now use getDisplayTier() to properly detect admin users
+  - Username colors: free=white, pro=pink, recruiter=purple, admin=gold
+  - Added ADMIN badge alongside PRO/RECRUITER badges
+  - Added neon glow effect for paid tiers and admins
+  - Added linked_tc_level display and referrerPolicy="no-referrer" for Akamai CDN images
+
 ## 2026-02-04 12:45 | Platform Engineer | COMPLETED
 Task: Fix Transfer Status Submission - Missing profiles table
 Files:
