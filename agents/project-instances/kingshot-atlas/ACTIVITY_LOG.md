@@ -9,6 +9,17 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-04 09:10 | Product Engineer | COMPLETED
+Task: User Profile Display Consistency Audit + Documentation
+Files:
+  - agents/product-engineer/LATEST_KNOWLEDGE.md (documented User Display Pattern)
+Result:
+  - Audited UserDirectory.tsx, Header.tsx, Profile.tsx - all already using correct pattern
+  - Confirmed PlayersFromMyKingdom.tsx and KingdomPlayers.tsx fixes from previous session are working
+  - Documented the canonical User Display Pattern with code examples
+  - Pattern covers: data priority (linked_* > OAuth), tier colors, badges, neon glow, avatar referrerPolicy
+  - Committed and deployed to production (31beccf)
+
 ## 2026-02-04 08:55 | Product Engineer | COMPLETED
 Task: Fix user profile display to use Kingshot account data instead of OAuth data
 Files:
