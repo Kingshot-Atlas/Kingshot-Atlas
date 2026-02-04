@@ -9,6 +9,46 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-04 12:07 | Platform Engineer | COMPLETED
+Task: Harden Status Submission Flow
+Files:
+  - apps/web/src/services/statusService.ts (retry logic, duplicate prevention, custom error types)
+  - apps/web/src/components/StatusSubmission.tsx (session expired UI, error type handling)
+  - docs/migrations/notify_admins_on_status_submission.sql (admin notification trigger)
+Result:
+  - Added retry with exponential backoff (3 attempts, 1-10s delay)
+  - Added in-flight duplicate prevention (Set tracking)
+  - Added 1-hour cooldown per user/kingdom pair
+  - Custom error types: SessionExpiredError, DuplicateSubmissionError, NetworkError
+  - Session expired: Shows "Sign Out & Sign In Again" button
+  - Duplicate submission: Shows warning-colored message
+  - Database trigger notifies all admins via notifications table when new submissions arrive
+  - Admins see notification bell icon update with pending review count
+
+## 2026-02-04 12:15 | Platform Engineer | COMPLETED
+Task: Add Discord OAuth error logging, admin view, and analytics
+Files:
+  - apps/api/api/routers/discord.py (added logging function, link-attempts endpoint)
+  - apps/web/src/pages/DiscordCallback.tsx (added analytics tracking)
+  - docs/migrations/create_discord_link_attempts.sql (new table)
+Result:
+  - Every Discord link attempt now logged to database with status, error codes
+  - New GET /api/v1/discord/link-attempts admin endpoint with success rate stats
+  - Frontend tracks discord_link_success and discord_link_failed events
+
+## 2026-02-04 11:55 | Platform Engineer | COMPLETED
+Task: Fix Transfer Status submission failure and data persistence
+Files:
+  - apps/web/src/services/statusService.ts (added session verification, improved error logging)
+  - apps/web/src/components/StatusSubmission.tsx (show actual error messages)
+  - docs/migrations/sync_status_to_kingdoms.sql (new trigger to sync approved status)
+Result:
+  - ROOT CAUSE 1 (Submission): RLS policy requires auth session, added pre-flight session check
+  - ROOT CAUSE 2 (Persistence): Approved status wasn't synced to kingdoms.most_recent_status
+  - Created database trigger `sync_status_to_kingdom()` that auto-updates kingdoms table when status approved
+  - Backfilled existing approved submissions (K208 now shows "Ordinary" instead of "Unannounced")
+  - Better error messages help users understand session issues
+
 ## 2026-02-04 08:00 | Platform Engineer | COMPLETED
 Task: Fix Discord linking - Missing callback endpoint
 Files:

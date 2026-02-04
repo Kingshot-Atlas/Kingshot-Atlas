@@ -6,7 +6,7 @@ Endpoints for Discord OAuth, webhooks (patch notes, announcements, etc.)
 import os
 import httpx
 from datetime import datetime, timezone
-from fastapi import APIRouter, HTTPException, Depends, Header
+from fastapi import APIRouter, HTTPException, Depends, Header, Request
 from pydantic import BaseModel, Field
 from typing import List, Optional
 
@@ -77,29 +77,66 @@ def verify_api_key(x_api_key: str = Header(None)):
     return True
 
 
+def log_discord_link_attempt(
+    supabase,
+    user_id: Optional[str],
+    discord_id: Optional[str],
+    discord_username: Optional[str],
+    status: str,
+    error_code: Optional[str] = None,
+    error_message: Optional[str] = None,
+    ip_address: Optional[str] = None,
+    user_agent: Optional[str] = None
+):
+    """Log a Discord link attempt to the database for monitoring."""
+    try:
+        supabase.table("discord_link_attempts").insert({
+            "user_id": user_id,
+            "discord_id": discord_id,
+            "discord_username": discord_username,
+            "status": status,
+            "error_code": error_code,
+            "error_message": error_message,
+            "ip_address": ip_address,
+            "user_agent": user_agent
+        }).execute()
+    except Exception as e:
+        print(f"Failed to log Discord link attempt: {e}")
+
+
 @router.post("/callback")
-async def discord_oauth_callback(data: DiscordCallbackRequest, authorization: str = Header(None)):
+async def discord_oauth_callback(
+    data: DiscordCallbackRequest,
+    request: Request,
+    authorization: str = Header(None)
+):
     """
     Handle Discord OAuth callback.
     Exchange the authorization code for user info and save to profile.
     
     This endpoint requires a valid Supabase JWT token in the Authorization header.
     """
+    from api.supabase_client import get_supabase_admin
+    supabase = get_supabase_admin()
+    
+    # Get request metadata for logging
+    ip_address = request.client.host if request.client else None
+    user_agent = request.headers.get("user-agent")
+    user_id = None
+    
     if not DISCORD_CLIENT_ID or not DISCORD_CLIENT_SECRET:
-        raise HTTPException(
-            status_code=503,
-            detail="Discord OAuth not configured"
-        )
+        log_discord_link_attempt(supabase, None, None, None, "failed", 
+                                  "config_error", "Discord OAuth not configured", ip_address, user_agent)
+        raise HTTPException(status_code=503, detail="Discord OAuth not configured")
     
     # Verify Supabase JWT and get user
     if not authorization or not authorization.startswith("Bearer "):
+        log_discord_link_attempt(supabase, None, None, None, "failed",
+                                  "auth_missing", "Authorization header required", ip_address, user_agent)
         raise HTTPException(status_code=401, detail="Authorization header required")
     
     token = authorization.replace("Bearer ", "")
     
-    # Get user from Supabase
-    from api.supabase_client import get_supabase_admin
-    supabase = get_supabase_admin()
     if not supabase:
         raise HTTPException(status_code=503, detail="Supabase not configured")
     
@@ -107,10 +144,16 @@ async def discord_oauth_callback(data: DiscordCallbackRequest, authorization: st
         # Verify the JWT and get user
         user_response = supabase.auth.get_user(token)
         if not user_response or not user_response.user:
+            log_discord_link_attempt(supabase, None, None, None, "failed",
+                                      "invalid_token", "Invalid Supabase token", ip_address, user_agent)
             raise HTTPException(status_code=401, detail="Invalid token")
-        user_id = user_response.user.id
+        user_id = str(user_response.user.id)
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"Auth error: {e}")
+        log_discord_link_attempt(supabase, None, None, None, "failed",
+                                  "auth_error", str(e), ip_address, user_agent)
         raise HTTPException(status_code=401, detail="Invalid token")
     
     # Exchange code for access token with Discord
@@ -128,16 +171,18 @@ async def discord_oauth_callback(data: DiscordCallbackRequest, authorization: st
         )
         
         if token_response.status_code != 200:
-            print(f"Discord token exchange failed: {token_response.text}")
-            raise HTTPException(
-                status_code=400,
-                detail="Failed to exchange Discord code"
-            )
+            error_text = token_response.text
+            print(f"Discord token exchange failed: {error_text}")
+            log_discord_link_attempt(supabase, user_id, None, None, "failed",
+                                      "token_exchange_failed", error_text[:500], ip_address, user_agent)
+            raise HTTPException(status_code=400, detail="Failed to exchange Discord code")
         
         token_data = token_response.json()
         access_token = token_data.get("access_token")
         
         if not access_token:
+            log_discord_link_attempt(supabase, user_id, None, None, "failed",
+                                      "no_access_token", "Discord returned no access token", ip_address, user_agent)
             raise HTTPException(status_code=400, detail="No access token received")
         
         # Get Discord user info
@@ -147,11 +192,11 @@ async def discord_oauth_callback(data: DiscordCallbackRequest, authorization: st
         )
         
         if user_response.status_code != 200:
-            print(f"Discord user fetch failed: {user_response.text}")
-            raise HTTPException(
-                status_code=400,
-                detail="Failed to get Discord user info"
-            )
+            error_text = user_response.text
+            print(f"Discord user fetch failed: {error_text}")
+            log_discord_link_attempt(supabase, user_id, None, None, "failed",
+                                      "user_fetch_failed", error_text[:500], ip_address, user_agent)
+            raise HTTPException(status_code=400, detail="Failed to get Discord user info")
         
         discord_user = user_response.json()
     
@@ -159,6 +204,8 @@ async def discord_oauth_callback(data: DiscordCallbackRequest, authorization: st
     discord_username = discord_user.get("global_name") or discord_user.get("username")
     
     if not discord_id:
+        log_discord_link_attempt(supabase, user_id, None, None, "failed",
+                                  "no_discord_id", "Discord API returned no user ID", ip_address, user_agent)
         raise HTTPException(status_code=400, detail="Discord user ID not found")
     
     # Save to Supabase profile
@@ -173,7 +220,13 @@ async def discord_oauth_callback(data: DiscordCallbackRequest, authorization: st
             print(f"Profile update returned no data for user {user_id}")
     except Exception as e:
         print(f"Failed to update profile: {e}")
+        log_discord_link_attempt(supabase, user_id, discord_id, discord_username, "failed",
+                                  "profile_update_failed", str(e), ip_address, user_agent)
         raise HTTPException(status_code=500, detail="Failed to save Discord info")
+    
+    # Log successful link
+    log_discord_link_attempt(supabase, user_id, discord_id, discord_username, "success",
+                              None, None, ip_address, user_agent)
     
     print(f"Discord linked: user={user_id}, discord_id={discord_id}, username={discord_username}")
     
@@ -182,6 +235,50 @@ async def discord_oauth_callback(data: DiscordCallbackRequest, authorization: st
         "discord_id": discord_id,
         "discord_username": discord_username
     }
+
+
+@router.get("/link-attempts")
+async def get_discord_link_attempts(
+    limit: int = 50,
+    status_filter: Optional[str] = None,
+    _: bool = Depends(verify_api_key)
+):
+    """
+    Get recent Discord link attempts for admin monitoring.
+    Requires API key authentication.
+    """
+    from api.supabase_client import get_supabase_admin
+    supabase = get_supabase_admin()
+    
+    if not supabase:
+        raise HTTPException(status_code=503, detail="Supabase not configured")
+    
+    try:
+        query = supabase.table("discord_link_attempts").select(
+            "id, user_id, discord_id, discord_username, status, error_code, error_message, created_at"
+        ).order("created_at", desc=True).limit(limit)
+        
+        if status_filter in ("success", "failed"):
+            query = query.eq("status", status_filter)
+        
+        result = query.execute()
+        
+        attempts = result.data or []
+        
+        # Calculate stats
+        success_count = sum(1 for a in attempts if a.get("status") == "success")
+        failed_count = len(attempts) - success_count
+        
+        return {
+            "attempts": attempts,
+            "total": len(attempts),
+            "success_count": success_count,
+            "failed_count": failed_count,
+            "success_rate": round(success_count / len(attempts) * 100, 1) if attempts else 0
+        }
+    except Exception as e:
+        print(f"Failed to fetch link attempts: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch link attempts")
 
 
 def build_patch_notes_embed(data: PatchNotesRequest) -> dict:

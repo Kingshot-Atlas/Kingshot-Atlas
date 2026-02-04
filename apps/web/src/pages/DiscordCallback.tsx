@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { discordService } from '../services/discordService';
+import { useAnalytics } from '../hooks/useAnalytics';
 
 const DiscordCallback: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [status, setStatus] = useState<'processing' | 'success' | 'error'>('processing');
   const [error, setError] = useState<string>('');
+  const { trackFeature } = useAnalytics();
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -15,13 +17,16 @@ const DiscordCallback: React.FC = () => {
 
       if (errorParam) {
         setStatus('error');
-        setError(errorParam === 'access_denied' ? 'Discord authorization was cancelled' : errorParam);
+        const errorMessage = errorParam === 'access_denied' ? 'Discord authorization was cancelled' : errorParam;
+        setError(errorMessage);
+        trackFeature('discord_link_failed', { error_code: errorParam, error_message: errorMessage });
         return;
       }
 
       if (!code) {
         setStatus('error');
         setError('No authorization code received');
+        trackFeature('discord_link_failed', { error_code: 'no_code', error_message: 'No authorization code received' });
         return;
       }
 
@@ -29,16 +34,19 @@ const DiscordCallback: React.FC = () => {
       
       if (result.success) {
         setStatus('success');
+        trackFeature('discord_link_success', {});
         // Redirect to profile after short delay
         setTimeout(() => navigate('/profile?discord=linked'), 1500);
       } else {
         setStatus('error');
-        setError(result.error || 'Failed to link Discord account');
+        const errorMessage = result.error || 'Failed to link Discord account';
+        setError(errorMessage);
+        trackFeature('discord_link_failed', { error_code: 'api_error', error_message: errorMessage });
       }
     };
 
     handleCallback();
-  }, [searchParams, navigate]);
+  }, [searchParams, navigate, trackFeature]);
 
   return (
     <div style={{
