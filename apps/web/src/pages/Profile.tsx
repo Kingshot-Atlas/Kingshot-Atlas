@@ -13,6 +13,7 @@ import { usePremium } from '../contexts/PremiumContext';
 import { useToast } from '../components/Toast';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { getCustomerPortalUrl, createPortalSession } from '../lib/stripe';
+import { discordService } from '../services/discordService';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { neonGlow } from '../utils/styles';
@@ -892,11 +893,11 @@ const Profile: React.FC = () => {
                 textAlign: 'center'
               }}>
                 <AvatarWithFallback 
-                  avatarUrl={viewedProfile?.linked_avatar_url}
-                  username={viewedProfile?.linked_username}
+                  avatarUrl={viewedProfile?.linked_avatar_url ?? undefined}
+                  username={viewedProfile?.linked_username ?? undefined}
                   size={isMobile ? 96 : 80}
                   themeColor={getTierBorderColor(viewedUserTier)}
-                  badgeStyle={viewedProfile?.badge_style}
+                  badgeStyle={viewedProfile?.badge_style ?? undefined}
                 />
                 <div style={{ fontSize: isMobile ? '1.5rem' : '1.75rem', fontWeight: 'bold', color: '#fff' }}>
                   {viewedProfile?.linked_username || getDisplayName(viewedProfile)}
@@ -1049,7 +1050,7 @@ const Profile: React.FC = () => {
                         <button
                           onClick={async () => {
                             if (confirm('Are you sure you want to unlink your Kingshot account?')) {
-                              if (updateProfile) {
+                              if (updateProfile && user) {
                                 await updateProfile({
                                   ...viewedProfile,
                                   linked_player_id: undefined,
@@ -1060,6 +1061,8 @@ const Profile: React.FC = () => {
                                   linked_last_synced: undefined,
                                 });
                                 showToast('Kingshot account unlinked', 'success');
+                                // Remove Settler role from Discord (fire and forget)
+                                discordService.syncSettlerRole(user.id, false).catch(() => {});
                               }
                             }
                           }}
@@ -1277,7 +1280,7 @@ const Profile: React.FC = () => {
               fontSize: isMobile ? '0.9rem' : '0.95rem',
               margin: 0,
               fontStyle: 'italic'
-            }}>"{viewedProfile.bio}"</p>
+            }}>&quot;{viewedProfile.bio}&quot;</p>
           </div>
         )}
 
@@ -1294,9 +1297,9 @@ const Profile: React.FC = () => {
         {!isViewingOther && !viewedProfile?.linked_username && (
           <div id="link-kingshot-section" style={{ marginBottom: '1.5rem' }}>
             <LinkKingshotAccount
-              onLink={(playerData) => {
-                if (updateProfile) {
-                  updateProfile({
+              onLink={async (playerData) => {
+                if (updateProfile && user) {
+                  await updateProfile({
                     ...viewedProfile,
                     linked_player_id: playerData.player_id,
                     linked_username: playerData.username,
@@ -1305,6 +1308,8 @@ const Profile: React.FC = () => {
                     linked_tc_level: playerData.town_center_level,
                     linked_last_synced: new Date().toISOString(),
                   });
+                  // Assign Settler role in Discord (fire and forget)
+                  discordService.syncSettlerRole(user.id, true).catch(() => {});
                 }
               }}
               onUnlink={() => {}}

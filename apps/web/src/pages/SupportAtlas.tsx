@@ -275,7 +275,7 @@ const SupportAtlas: React.FC = () => {
                 cursor: 'default',
               }}
             >
-              ✓ You're a Supporter!
+              ✓ You&apos;re a Supporter!
             </button>
           ) : user ? (
             <button

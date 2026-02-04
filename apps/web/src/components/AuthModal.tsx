@@ -240,7 +240,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                   marginBottom: 0,
                   lineHeight: 1.4
                 }}>
-                  Discord requires browser login for security. Check "Remember me" for faster future logins. You'll be redirected back automatically.
+                  Discord requires browser login for security. Check &quot;Remember me&quot; for faster future logins. You&apos;ll be redirected back automatically.
                 </p>
               </div>
             )}

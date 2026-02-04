@@ -129,10 +129,13 @@ jobs:
           retention-days: 7
 
   # E2E Tests with Playwright
+  # Note: E2E tests are informational (continue-on-error) because they depend on
+  # external API availability. Core quality gates are lint/build/unit tests.
   e2e-test:
     name: E2E Tests (Playwright)
     runs-on: ubuntu-latest
     needs: build
+    continue-on-error: true
     
     defaults:
       run:
@@ -187,7 +190,7 @@ jobs:
   lighthouse:
     name: Lighthouse Audit
     runs-on: ubuntu-latest
-    needs: [build, e2e-test]
+    needs: build
     
     steps:
       - name: Checkout code

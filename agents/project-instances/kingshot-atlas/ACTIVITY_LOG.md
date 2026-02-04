@@ -9,6 +9,20 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-04 03:45 | Platform Engineer | COMPLETED
+Task: Implement Settler Discord Role Auto-Assignment + Backfill
+Files:
+  - apps/api/api/discord_role_sync.py (added Settler role functions)
+  - apps/api/api/routers/bot.py (added sync-settler-role + backfill endpoints)
+  - apps/api/api/supabase_client.py (added get_users_with_linked_kingshot_and_discord)
+  - apps/web/src/services/discordService.ts (added syncSettlerRole function)
+  - apps/web/src/pages/Profile.tsx (integrated role sync on link/unlink)
+Result:
+  - Settler role (ID: 1466442878585934102) auto-assigned when user links Kingshot account
+  - Settler role removed when user unlinks Kingshot account
+  - Admin backfill endpoint to catch up existing linked users
+  - Role sync is fire-and-forget (doesn't block account linking)
+
 ## 2026-02-04 02:40 | Release Manager | COMPLETED
 Task: Publish February 3, 2026 Patch Notes
 Files:

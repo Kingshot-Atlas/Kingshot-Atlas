@@ -125,6 +125,48 @@ class DiscordService {
   isConfigured(): boolean {
     return !!DISCORD_CLIENT_ID;
   }
+
+  /**
+   * Sync Settler Discord role when Kingshot account is linked/unlinked
+   * This assigns the "Settler" role to users who have linked their Kingshot account
+   */
+  async syncSettlerRole(userId: string, isLinking: boolean = true): Promise<{ success: boolean; error?: string; skipped?: boolean }> {
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'https://kingshot-atlas.onrender.com';
+      
+      const response = await fetch(`${API_URL}/api/v1/bot/sync-settler-role`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          user_id: userId, 
+          is_linking: isLinking 
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        console.warn('Settler role sync failed:', error);
+        // Don't fail the linking process if role sync fails
+        return { success: false, error: error.detail || 'Failed to sync Discord role' };
+      }
+
+      const result = await response.json();
+      
+      if (result.skipped) {
+        console.info('Settler role sync skipped:', result.reason);
+        return { success: true, skipped: true };
+      }
+
+      console.info('Settler role synced:', result);
+      return { success: result.success };
+    } catch (error) {
+      console.error('Settler role sync error:', error);
+      // Don't fail the linking process if role sync fails
+      return { success: false, error: 'Failed to sync Discord role' };
+    }
+  }
 }
 
 export const discordService = new DiscordService();

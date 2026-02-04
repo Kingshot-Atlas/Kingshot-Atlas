@@ -223,6 +223,8 @@
 | Server Browser | ✅ Live | 2026-02-02 | Platform | View/manage connected Discord servers |
 | Message Sender | ✅ Live | 2026-02-02 | Platform | Send messages/embeds to any channel |
 | Command Usage Logging | ✅ Live | 2026-02-02 | Platform | API sync for dashboard stats |
+| Settler Role Auto-Assign | ✅ Live | 2026-02-04 | Platform | Auto-assigns "Settler" Discord role when user links Kingshot account |
+| Settler Role Backfill | ✅ Live | 2026-02-04 | Platform | Admin endpoint to backfill Settler roles for existing linked users |
 
 ---
 

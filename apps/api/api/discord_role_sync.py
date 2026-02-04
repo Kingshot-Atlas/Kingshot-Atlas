@@ -26,6 +26,8 @@ DISCORD_GUILD_ID = os.getenv("DISCORD_GUILD_ID")
 # Role IDs for each subscription tier (set these in Render environment)
 DISCORD_SUPPORTER_ROLE_ID = os.getenv("DISCORD_SUPPORTER_ROLE_ID")
 DISCORD_RECRUITER_ROLE_ID = os.getenv("DISCORD_RECRUITER_ROLE_ID")
+# Settler role - given to users who link their Kingshot account
+DISCORD_SETTLER_ROLE_ID = os.getenv("DISCORD_SETTLER_ROLE_ID", "1466442878585934102")
 
 # Discord API base URL
 DISCORD_API_BASE = "https://discord.com/api/v10"
@@ -227,6 +229,132 @@ async def sync_subscription_role(
         results["error"] = f"Some role actions failed: {failed_actions}"
     
     return results
+
+
+async def assign_settler_role(discord_user_id: str) -> dict:
+    """
+    Assign the Settler role to a Discord user when they link their Kingshot account.
+    
+    Args:
+        discord_user_id: Discord user ID
+        
+    Returns:
+        Dict with success status and details
+    """
+    if not DISCORD_BOT_TOKEN or not DISCORD_GUILD_ID:
+        return {
+            "success": False,
+            "error": "Discord role sync not configured",
+            "configured": False,
+        }
+    
+    if not discord_user_id:
+        return {
+            "success": False,
+            "error": "No Discord account linked",
+            "configured": True,
+        }
+    
+    if not DISCORD_SETTLER_ROLE_ID:
+        return {
+            "success": False,
+            "error": "Settler role ID not configured",
+            "configured": True,
+        }
+    
+    success = await add_role_to_member(discord_user_id, DISCORD_SETTLER_ROLE_ID)
+    
+    return {
+        "success": success,
+        "configured": True,
+        "discord_user_id": discord_user_id,
+        "role": "Settler",
+        "role_id": DISCORD_SETTLER_ROLE_ID,
+    }
+
+
+async def remove_settler_role(discord_user_id: str) -> dict:
+    """
+    Remove the Settler role from a Discord user when they unlink their Kingshot account.
+    
+    Args:
+        discord_user_id: Discord user ID
+        
+    Returns:
+        Dict with success status and details
+    """
+    if not DISCORD_BOT_TOKEN or not DISCORD_GUILD_ID:
+        return {
+            "success": False,
+            "error": "Discord role sync not configured",
+            "configured": False,
+        }
+    
+    if not discord_user_id:
+        return {
+            "success": False,
+            "error": "No Discord account linked",
+            "configured": True,
+        }
+    
+    if not DISCORD_SETTLER_ROLE_ID:
+        return {
+            "success": False,
+            "error": "Settler role ID not configured",
+            "configured": True,
+        }
+    
+    success = await remove_role_from_member(discord_user_id, DISCORD_SETTLER_ROLE_ID)
+    
+    return {
+        "success": success,
+        "configured": True,
+        "discord_user_id": discord_user_id,
+        "role": "Settler",
+        "role_id": DISCORD_SETTLER_ROLE_ID,
+    }
+
+
+async def sync_settler_role_for_user(user_id: str, is_linking: bool = True) -> dict:
+    """
+    Sync Settler role for a Supabase user when they link/unlink their Kingshot account.
+    
+    Args:
+        user_id: Supabase user ID
+        is_linking: True if linking account, False if unlinking
+        
+    Returns:
+        Dict with sync result
+    """
+    from api.supabase_client import get_user_profile
+    
+    # Get user's Discord ID from profile
+    profile = get_user_profile(user_id)
+    if not profile:
+        return {
+            "success": False,
+            "error": f"User profile not found: {user_id}",
+        }
+    
+    discord_id = profile.get("discord_id")
+    if not discord_id:
+        return {
+            "success": True,
+            "skipped": True,
+            "reason": "No Discord account linked to this user",
+        }
+    
+    # Assign or remove the Settler role
+    if is_linking:
+        result = await assign_settler_role(discord_id)
+    else:
+        result = await remove_settler_role(discord_id)
+    
+    # Log the sync attempt
+    action = "link" if is_linking else "unlink"
+    print(f"Settler role sync ({action}) for user {user_id}: {result}")
+    
+    return result
 
 
 async def sync_user_discord_role(user_id: str, new_tier: str, old_tier: Optional[str] = None) -> dict:

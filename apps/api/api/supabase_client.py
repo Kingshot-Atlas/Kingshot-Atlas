@@ -570,3 +570,29 @@ def get_webhook_stats() -> dict:
     except Exception as e:
         print(f"Error fetching webhook stats: {e}")
         return {"total_24h": 0, "processed": 0, "failed": 0, "failure_rate": 0, "health": "unknown"}
+
+
+def get_users_with_linked_kingshot_and_discord() -> list:
+    """
+    Get all users who have both a linked Kingshot account AND a Discord account.
+    These are eligible for the Settler role backfill.
+    
+    Returns:
+        List of user profiles with id, discord_id, linked_player_id, linked_username
+    """
+    client = get_supabase_admin()
+    if not client:
+        print("WARNING: Supabase not configured")
+        return []
+    
+    try:
+        # Query for users with both linked_player_id and discord_id not null
+        result = client.table("profiles").select(
+            "id, discord_id, linked_player_id, linked_username, username"
+        ).not_.is_("linked_player_id", "null").not_.is_("discord_id", "null").execute()
+        
+        return result.data or []
+        
+    except Exception as e:
+        print(f"Error fetching linked users: {e}")
+        return []

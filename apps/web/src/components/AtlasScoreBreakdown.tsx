@@ -64,7 +64,7 @@ const AtlasScoreBreakdown: React.FC<AtlasScoreBreakdownProps> = ({ kingdom, rank
         breakdownRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 100);
     }
-  }, [location.hash]);
+  }, [location.hash, setShowChart]);
   
   // Track radar chart toggle with analytics
   const handleToggle = useCallback(() => {
@@ -77,7 +77,7 @@ const AtlasScoreBreakdown: React.FC<AtlasScoreBreakdownProps> = ({ kingdom, rank
         tier: kingdom.power_tier || 'Unknown'
       });
     }
-  }, [showChart, trackFeature, kingdom.kingdom_number, kingdom.overall_score, kingdom.power_tier]);
+  }, [showChart, setShowChart, trackFeature, kingdom.kingdom_number, kingdom.overall_score, kingdom.power_tier]);
   
   // Calculate score components using centralized Atlas Score formula
   const scoreComponents = useMemo(() => {

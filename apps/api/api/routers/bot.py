@@ -344,6 +344,12 @@ class LogCommandRequest(BaseModel):
     user_id: str = Field(..., description="Discord user ID who executed the command")
 
 
+class SyncSettlerRoleRequest(BaseModel):
+    """Request model for syncing Settler role when Kingshot account is linked/unlinked"""
+    user_id: str = Field(..., description="Supabase user ID")
+    is_linking: bool = Field(True, description="True if linking, False if unlinking")
+
+
 @router.post("/log-command")
 async def log_command(
     data: LogCommandRequest,
@@ -365,6 +371,111 @@ async def log_command(
         command_usage.pop(0)
     
     return {"success": True}
+
+
+@router.post("/sync-settler-role")
+async def sync_settler_role(
+    data: SyncSettlerRoleRequest,
+    _: bool = Depends(verify_api_key)
+):
+    """
+    Sync the Settler Discord role when a user links/unlinks their Kingshot account.
+    
+    - Assigns Settler role when user links their Kingshot account (is_linking=True)
+    - Removes Settler role when user unlinks their Kingshot account (is_linking=False)
+    
+    Requirements:
+    - User must have a Discord account linked to their Atlas profile
+    - User must be a member of the Kingshot Atlas Discord server
+    - Bot must have "Manage Roles" permission
+    """
+    from api.discord_role_sync import sync_settler_role_for_user
+    
+    result = await sync_settler_role_for_user(
+        user_id=data.user_id,
+        is_linking=data.is_linking
+    )
+    
+    return result
+
+
+@router.post("/backfill-settler-roles")
+async def backfill_settler_roles(_: bool = Depends(verify_api_key)):
+    """
+    Backfill Settler Discord role for all users who have both:
+    - A linked Kingshot account (linked_player_id)
+    - A linked Discord account (discord_id)
+    
+    This is an admin-only endpoint to catch up users who linked before
+    the auto-assign feature was implemented.
+    """
+    from api.supabase_client import get_users_with_linked_kingshot_and_discord
+    from api.discord_role_sync import assign_settler_role
+    
+    # Get all eligible users
+    users = get_users_with_linked_kingshot_and_discord()
+    
+    if not users:
+        return {
+            "success": True,
+            "message": "No eligible users found for backfill",
+            "total": 0,
+            "assigned": 0,
+            "skipped": 0,
+            "failed": 0,
+        }
+    
+    results = {
+        "total": len(users),
+        "assigned": 0,
+        "skipped": 0,
+        "failed": 0,
+        "details": [],
+    }
+    
+    for user in users:
+        discord_id = user.get("discord_id")
+        user_id = user.get("id")
+        username = user.get("linked_username") or user.get("username") or "Unknown"
+        
+        if not discord_id:
+            results["skipped"] += 1
+            continue
+        
+        try:
+            result = await assign_settler_role(discord_id)
+            
+            if result.get("success"):
+                results["assigned"] += 1
+                results["details"].append({
+                    "user_id": user_id,
+                    "username": username,
+                    "status": "assigned",
+                })
+            else:
+                # User might not be in the Discord server
+                results["skipped"] += 1
+                results["details"].append({
+                    "user_id": user_id,
+                    "username": username,
+                    "status": "skipped",
+                    "reason": result.get("error", "Unknown"),
+                })
+        except Exception as e:
+            results["failed"] += 1
+            results["details"].append({
+                "user_id": user_id,
+                "username": username,
+                "status": "failed",
+                "error": str(e),
+            })
+    
+    results["success"] = results["failed"] == 0
+    results["message"] = f"Backfill complete: {results['assigned']} assigned, {results['skipped']} skipped, {results['failed']} failed"
+    
+    print(f"Settler role backfill: {results['message']}")
+    
+    return results
 
 
 @router.post("/leave-server/{server_id}")
