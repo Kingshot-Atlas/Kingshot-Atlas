@@ -9,6 +9,18 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-04 04:00 | Platform Engineer | COMPLETED
+Task: Fix Settler role backfill query + Add Discord Roles Admin Dashboard
+Files:
+  - apps/api/api/supabase_client.py (fixed query syntax: .neq instead of .not_.is_)
+  - apps/api/api/routers/bot.py (added GET /linked-users endpoint)
+  - apps/web/src/components/DiscordRolesDashboard.tsx (new component)
+  - apps/web/src/pages/AdminDashboard.tsx (added Discord Roles tab)
+Result:
+  - Fixed Supabase query for finding linked users (was returning 0 due to incorrect syntax)
+  - New Admin Dashboard tab to view linked users and manage Discord roles
+  - Manual sync and backfill UI for role management
+
 ## 2026-02-04 03:45 | Platform Engineer | COMPLETED
 Task: Implement Settler Discord Role Auto-Assignment + Backfill
 Files:

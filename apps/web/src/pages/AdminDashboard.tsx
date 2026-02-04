@@ -15,6 +15,7 @@ const EngagementDashboard = lazy(() => import('../components/EngagementDashboard
 const WebhookMonitor = lazy(() => import('../components/WebhookMonitor').then(m => ({ default: m.WebhookMonitor })));
 const DataSourceStats = lazy(() => import('../components/DataSourceStats').then(m => ({ default: m.DataSourceStats })));
 const BotDashboard = lazy(() => import('../components/BotDashboard').then(m => ({ default: m.BotDashboard })));
+const DiscordRolesDashboard = lazy(() => import('../components/DiscordRolesDashboard').then(m => ({ default: m.DiscordRolesDashboard })));
 import { ADMIN_USERNAMES } from '../utils/constants';
 import { supabase } from '../lib/supabase';
 import { logger } from '../utils/logger';
@@ -41,7 +42,7 @@ const AdminDashboard: React.FC = () => {
   const { showToast } = useToast();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [activeTab, setActiveTab] = useState<'analytics' | 'saas-metrics' | 'engagement' | 'webhooks' | 'data-sources' | 'discord-bot' | 'submissions' | 'new-kingdoms' | 'claims' | 'corrections' | 'kvk-errors' | 'import' | 'users' | 'plausible' | 'transfer-status' | 'feedback'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'saas-metrics' | 'engagement' | 'webhooks' | 'data-sources' | 'discord-bot' | 'discord-roles' | 'submissions' | 'new-kingdoms' | 'claims' | 'corrections' | 'kvk-errors' | 'import' | 'users' | 'plausible' | 'transfer-status' | 'feedback'>('analytics');
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [claims, setClaims] = useState<Claim[]>([]);
   const [transferSubmissions, setTransferSubmissions] = useState<StatusSubmission[]>([]);
@@ -1315,6 +1316,7 @@ const AdminDashboard: React.FC = () => {
         {activeCategory === 'system' && [
           { id: 'feedback', label: 'Feedback', count: pendingCounts.feedback },
           { id: 'discord-bot', label: 'Discord Bot', count: 0 },
+          { id: 'discord-roles', label: 'Discord Roles', count: 0 },
           { id: 'webhooks', label: 'Webhooks', count: 0 },
           { id: 'data-sources', label: 'Data Sources', count: 0 },
           { id: 'import', label: 'Import', count: 0 }
@@ -1408,6 +1410,10 @@ const AdminDashboard: React.FC = () => {
       ) : activeTab === 'discord-bot' ? (
         <Suspense fallback={<div style={{ padding: '2rem', color: '#6b7280' }}>Loading bot dashboard...</div>}>
           <BotDashboard />
+        </Suspense>
+      ) : activeTab === 'discord-roles' ? (
+        <Suspense fallback={<div style={{ padding: '2rem', color: '#6b7280' }}>Loading roles dashboard...</div>}>
+          <DiscordRolesDashboard />
         </Suspense>
       ) : activeTab === 'new-kingdoms' ? (
         <NewKingdomsTab

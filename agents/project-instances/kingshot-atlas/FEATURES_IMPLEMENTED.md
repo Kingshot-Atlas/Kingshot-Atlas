@@ -225,6 +225,7 @@
 | Command Usage Logging | ✅ Live | 2026-02-02 | Platform | API sync for dashboard stats |
 | Settler Role Auto-Assign | ✅ Live | 2026-02-04 | Platform | Auto-assigns "Settler" Discord role when user links Kingshot account |
 | Settler Role Backfill | ✅ Live | 2026-02-04 | Platform | Admin endpoint to backfill Settler roles for existing linked users |
+| Discord Roles Dashboard | ✅ Live | 2026-02-04 | Platform | Admin UI to view linked users and manage Discord role assignments |
 
 ---
 

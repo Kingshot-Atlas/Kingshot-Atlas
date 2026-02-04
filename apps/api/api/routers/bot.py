@@ -399,6 +399,22 @@ async def sync_settler_role(
     return result
 
 
+@router.get("/linked-users")
+async def get_linked_users(_: bool = Depends(verify_api_key)):
+    """
+    Get all users who have both a linked Kingshot account AND a Discord account.
+    These are eligible for the Settler role.
+    """
+    from api.supabase_client import get_users_with_linked_kingshot_and_discord
+    
+    users = get_users_with_linked_kingshot_and_discord()
+    
+    return {
+        "users": users,
+        "total": len(users)
+    }
+
+
 @router.post("/backfill-settler-roles")
 async def backfill_settler_roles(_: bool = Depends(verify_api_key)):
     """

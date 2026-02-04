@@ -587,11 +587,14 @@ def get_users_with_linked_kingshot_and_discord() -> list:
     
     try:
         # Query for users with both linked_player_id and discord_id not null
+        # Using neq filter - neq(column, None) matches "IS NOT NULL"
         result = client.table("profiles").select(
             "id, discord_id, linked_player_id, linked_username, username"
-        ).not_.is_("linked_player_id", "null").not_.is_("discord_id", "null").execute()
+        ).neq("linked_player_id", "null").neq("discord_id", "null").execute()
         
-        return result.data or []
+        users = result.data or []
+        print(f"Found {len(users)} users with linked Kingshot and Discord accounts")
+        return users
         
     except Exception as e:
         print(f"Error fetching linked users: {e}")
