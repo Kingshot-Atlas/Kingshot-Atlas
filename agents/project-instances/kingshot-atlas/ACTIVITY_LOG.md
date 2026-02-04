@@ -9,6 +9,19 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-04 08:00 | Platform Engineer | COMPLETED
+Task: Fix Discord linking - Missing callback endpoint
+Files:
+  - apps/api/api/routers/discord.py (added /callback endpoint)
+Result:
+  - ROOT CAUSE: Discord OAuth callback endpoint didn't exist
+  - Users could not link Discord accounts - the API endpoint was never created
+  - Created POST /api/v1/discord/callback to:
+    - Exchange OAuth code for Discord access token
+    - Get Discord user info (id, username)
+    - Save discord_id/discord_username to Supabase profile
+  - After deploy: Users can link Discord, backfill will find eligible users
+
 ## 2026-02-04 04:00 | Platform Engineer | COMPLETED
 Task: Fix Settler role backfill query + Add Discord Roles Admin Dashboard
 Files:

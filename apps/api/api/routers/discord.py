@@ -1,6 +1,6 @@
 """
 Discord Integration Router
-Endpoints for triggering Discord webhooks (patch notes, announcements, etc.)
+Endpoints for Discord OAuth, webhooks (patch notes, announcements, etc.)
 """
 
 import os
@@ -11,6 +11,10 @@ from pydantic import BaseModel, Field
 from typing import List, Optional
 
 router = APIRouter()
+
+# Discord OAuth2 configuration
+DISCORD_CLIENT_ID = os.getenv("DISCORD_CLIENT_ID", "")
+DISCORD_CLIENT_SECRET = os.getenv("DISCORD_CLIENT_SECRET", "")
 
 # Webhook URL from environment
 DISCORD_WEBHOOK_URL = os.getenv("DISCORD_PATCH_NOTES_WEBHOOK")
@@ -24,6 +28,12 @@ COLORS = {
     "warning": 0xeab308,
     "error": 0xef4444,
 }
+
+
+class DiscordCallbackRequest(BaseModel):
+    """Request model for Discord OAuth callback"""
+    code: str = Field(..., description="Authorization code from Discord OAuth")
+    redirect_uri: str = Field(..., description="Redirect URI used in the OAuth flow")
 
 
 class PatchNotesRequest(BaseModel):
@@ -65,6 +75,113 @@ def verify_api_key(x_api_key: str = Header(None)):
     if x_api_key != DISCORD_API_KEY:
         raise HTTPException(status_code=401, detail="Invalid API key")
     return True
+
+
+@router.post("/callback")
+async def discord_oauth_callback(data: DiscordCallbackRequest, authorization: str = Header(None)):
+    """
+    Handle Discord OAuth callback.
+    Exchange the authorization code for user info and save to profile.
+    
+    This endpoint requires a valid Supabase JWT token in the Authorization header.
+    """
+    if not DISCORD_CLIENT_ID or not DISCORD_CLIENT_SECRET:
+        raise HTTPException(
+            status_code=503,
+            detail="Discord OAuth not configured"
+        )
+    
+    # Verify Supabase JWT and get user
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Authorization header required")
+    
+    token = authorization.replace("Bearer ", "")
+    
+    # Get user from Supabase
+    from api.supabase_client import get_supabase_admin
+    supabase = get_supabase_admin()
+    if not supabase:
+        raise HTTPException(status_code=503, detail="Supabase not configured")
+    
+    try:
+        # Verify the JWT and get user
+        user_response = supabase.auth.get_user(token)
+        if not user_response or not user_response.user:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        user_id = user_response.user.id
+    except Exception as e:
+        print(f"Auth error: {e}")
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
+    # Exchange code for access token with Discord
+    async with httpx.AsyncClient() as client:
+        token_response = await client.post(
+            "https://discord.com/api/oauth2/token",
+            data={
+                "client_id": DISCORD_CLIENT_ID,
+                "client_secret": DISCORD_CLIENT_SECRET,
+                "grant_type": "authorization_code",
+                "code": data.code,
+                "redirect_uri": data.redirect_uri,
+            },
+            headers={"Content-Type": "application/x-www-form-urlencoded"}
+        )
+        
+        if token_response.status_code != 200:
+            print(f"Discord token exchange failed: {token_response.text}")
+            raise HTTPException(
+                status_code=400,
+                detail="Failed to exchange Discord code"
+            )
+        
+        token_data = token_response.json()
+        access_token = token_data.get("access_token")
+        
+        if not access_token:
+            raise HTTPException(status_code=400, detail="No access token received")
+        
+        # Get Discord user info
+        user_response = await client.get(
+            "https://discord.com/api/users/@me",
+            headers={"Authorization": f"Bearer {access_token}"}
+        )
+        
+        if user_response.status_code != 200:
+            print(f"Discord user fetch failed: {user_response.text}")
+            raise HTTPException(
+                status_code=400,
+                detail="Failed to get Discord user info"
+            )
+        
+        discord_user = user_response.json()
+    
+    discord_id = discord_user.get("id")
+    discord_username = discord_user.get("global_name") or discord_user.get("username")
+    
+    if not discord_id:
+        raise HTTPException(status_code=400, detail="Discord user ID not found")
+    
+    # Save to Supabase profile
+    try:
+        result = supabase.table("profiles").update({
+            "discord_id": discord_id,
+            "discord_username": discord_username,
+            "discord_linked_at": datetime.now(timezone.utc).isoformat()
+        }).eq("id", user_id).execute()
+        
+        if not result.data:
+            print(f"Profile update returned no data for user {user_id}")
+    except Exception as e:
+        print(f"Failed to update profile: {e}")
+        raise HTTPException(status_code=500, detail="Failed to save Discord info")
+    
+    print(f"Discord linked: user={user_id}, discord_id={discord_id}, username={discord_username}")
+    
+    return {
+        "success": True,
+        "discord_id": discord_id,
+        "discord_username": discord_username
+    }
 
 
 def build_patch_notes_embed(data: PatchNotesRequest) -> dict:
