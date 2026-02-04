@@ -32,6 +32,7 @@ class PatchNotesRequest(BaseModel):
     new: List[str] = Field(default=[], description="List of new features")
     fixed: List[str] = Field(default=[], description="List of bug fixes")
     improved: List[str] = Field(default=[], description="List of improvements")
+    role_id: Optional[str] = Field(None, description="Discord role ID to mention")
 
 
 class MajorReleaseRequest(BaseModel):
@@ -130,6 +131,11 @@ async def post_patch_notes(
         "avatar_url": "https://ks-atlas.com/AtlasBotAvatar.webp",
         "embeds": [embed],
     }
+    
+    # Add role mention if provided
+    if data.role_id:
+        payload["content"] = f"<@&{data.role_id}>"
+        payload["allowed_mentions"] = {"roles": [data.role_id]}
 
     async with httpx.AsyncClient() as client:
         response = await client.post(DISCORD_WEBHOOK_URL, json=payload)
