@@ -41,7 +41,7 @@ const scheduler = require('./scheduler');
 let botReady = false;
 let lastHeartbeat = Date.now();
 const startupTime = Date.now();
-const STARTUP_GRACE_PERIOD = 120000; // 120 seconds grace period for Discord to connect (Render free tier cold starts)
+const STARTUP_GRACE_PERIOD = 300000; // 5 minutes grace period - Discord may rate limit after repeated restarts
 
 const healthServer = http.createServer((req, res) => {
   if (req.url === '/health') {
