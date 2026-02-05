@@ -27,7 +27,8 @@ const SCORE_TOOLTIPS: Record<string, string> = {
   'Dom/Inv': 'Dominations boost your score; Invasions hurt it equally. Rewards consistent double-phase performance.',
   'Recent Form': 'Performance trend in your last 5 KvKs. Recent results weigh more heavily.',
   'Streaks': 'Current win streaks provide a small boost. Battle streaks count 50% more than prep streaks.',
-  'Experience': 'Kingdoms with 5+ KvKs get full credit. Newer kingdoms face a small penalty until they prove themselves.',
+  'Experience': 'Full experience credit achieved—no penalty applied.',
+  'Experience Penalty': 'Kingdoms with 5+ KvKs get full credit. Newer kingdoms face a small penalty until they prove themselves.',
   'History': 'Bonus for extensive track record. Grows with each KvK completed.',
 };
 
@@ -290,47 +291,53 @@ const AtlasScoreBreakdown: React.FC<AtlasScoreBreakdownProps> = ({ kingdom, rank
                   sublabel: 'win rates',
                   points: scoreComponents.baseScore.value, 
                   maxPoints: scoreComponents.baseScore.maxPoints,
-                  tooltipKey: 'Base Score'
+                  tooltipKey: 'Base Score',
+                  isFullCredit: false
                 },
                 { 
                   label: 'Dom/Inv', 
                   sublabel: 'impact',
                   points: scoreComponents.domInv.value, 
                   maxPoints: scoreComponents.domInv.maxPoints,
-                  tooltipKey: 'Dom/Inv'
+                  tooltipKey: 'Dom/Inv',
+                  isFullCredit: false
                 },
                 { 
                   label: 'Form', 
                   sublabel: 'last 5',
                   points: scoreComponents.recentForm.value, 
                   maxPoints: scoreComponents.recentForm.maxPoints,
-                  tooltipKey: 'Recent Form'
+                  tooltipKey: 'Recent Form',
+                  isFullCredit: false
                 },
                 { 
                   label: 'Streaks', 
                   sublabel: 'bonus',
                   points: scoreComponents.streaks.value, 
                   maxPoints: scoreComponents.streaks.maxPoints,
-                  tooltipKey: 'Streaks'
-                },
-                { 
-                  label: 'Experience', 
-                  sublabel: `${kingdom.total_kvks || 0} KvKs`,
-                  points: scoreComponents.expContribution, 
-                  maxPoints: 1.0,
-                  tooltipKey: 'Experience'
+                  tooltipKey: 'Streaks',
+                  isFullCredit: false
                 },
                 { 
                   label: 'History', 
                   sublabel: 'bonus',
                   points: scoreComponents.historyBonus, 
                   maxPoints: 1.5,
-                  tooltipKey: 'History'
+                  tooltipKey: 'History',
+                  isFullCredit: false
+                },
+                { 
+                  label: 'Experience', 
+                  sublabel: (kingdom.total_kvks || 0) >= 5 ? 'No Penalty' : `${kingdom.total_kvks || 0} KvKs`,
+                  points: (kingdom.total_kvks || 0) >= 5 ? 1.0 : scoreComponents.expContribution, 
+                  maxPoints: 1.0,
+                  tooltipKey: (kingdom.total_kvks || 0) >= 5 ? 'Experience' : 'Experience Penalty',
+                  isFullCredit: (kingdom.total_kvks || 0) >= 5
                 },
               ].map((item, i) => {
                 const tooltipText = SCORE_TOOLTIPS[item.tooltipKey];
-                const isNegative = item.points < 0;
-                // Green for positive, red for negative contributions
+                const isNegative = item.points < 0 && !item.isFullCredit;
+                // Green for positive/full credit, red for negative contributions
                 const displayColor = isNegative ? '#ef4444' : '#22c55e';
                 return (
                   <div 
@@ -375,6 +382,7 @@ const AtlasScoreBreakdown: React.FC<AtlasScoreBreakdownProps> = ({ kingdom, rank
                       label={item.label}
                       sublabel={item.sublabel}
                       isNegative={isNegative}
+                      showCheckmark={item.isFullCredit}
                     />
                   </div>
                 );

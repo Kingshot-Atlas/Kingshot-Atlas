@@ -10,6 +10,7 @@ interface DonutChartProps {
   sublabel?: string;
   showValue?: boolean;
   isNegative?: boolean;
+  showCheckmark?: boolean; // Show checkmark instead of value (for full credit states)
 }
 
 const DonutChart: React.FC<DonutChartProps> = ({
@@ -21,7 +22,8 @@ const DonutChart: React.FC<DonutChartProps> = ({
   label,
   sublabel,
   showValue = true,
-  isNegative = false
+  isNegative = false,
+  showCheckmark = false
 }) => {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -74,21 +76,34 @@ const DonutChart: React.FC<DonutChartProps> = ({
             transform: 'translate(-50%, -50%)',
             textAlign: 'center'
           }}>
-            <div style={{
-              fontSize: size > 70 ? '0.75rem' : '0.6rem',
-              fontWeight: '700',
-              color: isNegative ? '#ef4444' : color,
-              lineHeight: 1
-            }}>
-              {value >= 0 ? '+' : ''}{value.toFixed(2)}
-            </div>
-            <div style={{
-              fontSize: '0.5rem',
-              color: '#4a4a4a',
-              marginTop: '0.1rem'
-            }}>
-              pts
-            </div>
+            {showCheckmark ? (
+              <div style={{
+                fontSize: size > 70 ? '1.2rem' : '1rem',
+                fontWeight: '700',
+                color: color,
+                lineHeight: 1
+              }}>
+                ✓
+              </div>
+            ) : (
+              <>
+                <div style={{
+                  fontSize: size > 70 ? '0.75rem' : '0.6rem',
+                  fontWeight: '700',
+                  color: isNegative ? '#ef4444' : color,
+                  lineHeight: 1
+                }}>
+                  {value >= 0 ? '+' : ''}{value.toFixed(2)}
+                </div>
+                <div style={{
+                  fontSize: '0.5rem',
+                  color: '#4a4a4a',
+                  marginTop: '0.1rem'
+                }}>
+                  pts
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>
