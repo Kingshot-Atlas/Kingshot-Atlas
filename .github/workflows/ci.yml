@@ -86,8 +86,13 @@ jobs:
         run: npm run lint
 
       - name: Security audit (npm)
-        run: npm audit --audit-level=high || true
-        continue-on-error: true
+        run: |
+          # Fail build on critical/high vulnerabilities in production dependencies
+          npm audit --audit-level=high --omit=dev || {
+            echo "⚠️ High/critical vulnerabilities found in production dependencies"
+            echo "Run 'npm audit' locally and 'npm audit fix' to resolve"
+            exit 1
+          }
 
       - name: Run tests
         run: npm test -- --run --passWithNoTests

@@ -1,6 +1,6 @@
 # Atlas Director Team Evaluation Report
 
-**Date:** 2026-01-28  
+**Date:** 2026-01-28 (Updated: 2026-02-05)  
 **Conducted By:** Atlas Director  
 **Project Status:** DEPLOYED - Live at https://ks-atlas.com
 
@@ -8,14 +8,15 @@
 
 ## Executive Summary
 
-All 5 specialist agents have evaluated the current state of Kingshot Atlas. The project is **healthy and functional** with all tests passing (16/16) and build successful. However, several improvements and fixes have been identified across all domains.
+All 5 specialist agents have evaluated the current state of Kingshot Atlas. The project is **healthy and functional** with all tests passing and build successful. **Major architecture improvements completed** since initial evaluation.
 
 **Current Health:**
 - ✅ Build: Compiles successfully
-- ✅ Tests: 16 passed, 0 failed
-- ✅ Production: Live at ks-atlas.com
-- ⚠️ TypeScript: 12 `any` types identified
-- ⚠️ Bundle size: 160.6 kB main chunk (acceptable but could optimize)
+- ✅ Tests: All passing
+- ✅ Production: Live at ks-atlas.com (Cloudflare Pages)
+- ✅ Architecture: Single source of truth established (ADR-010, 011, 012, 013)
+- ✅ TypeScript: Reduced from 12 to 0 type errors
+- ⚠️ Bundle size: Some chunks >500KB (optimization opportunity)
 
 ---
 
@@ -50,30 +51,55 @@ The frontend is well-structured with clear component separation. Recent work ext
 
 ## 🏗️ Platform Engineer Evaluation
 
-**Domain:** API, Security, Performance, Architecture
+**Domain:** API, Database, Security, Performance, Architecture
 
 ### Current State Assessment
-The API is well-structured with FastAPI, proper CORS configuration, rate limiting, and security headers. Sentry integration is conditional. The architecture follows clean separation between routers, models, and schemas.
 
-### 5 Things to Fix
+- ✅ **Strengths:** Supabase RLS implemented, FastAPI backend, proper JWT auth, rate limiting, data integrity rules enforced
+- ⚠️ **Concerns:** Some bundle chunks >500KB, no formal API versioning
 
-| # | Issue | Reasoning | Relevance |
-|---|-------|-----------|-----------|
-| 1 | **STATE_PACKET references wrong Netlify Site ID** | `48267beb...` is the OLD site, correct is `716ed1c2...` | **CRITICAL** - Deploy confusion risk |
-| 2 | **Missing Netlify origin in CORS** | `https://ks-atlas.netlify.app` not in default ALLOWED_ORIGINS | HIGH - May cause CORS errors |
-| 3 | **No API versioning** | Future breaking changes will be disruptive | MEDIUM - Scalability |
-| 4 | **TypeScript strict mode not enforced** | `any` types slip through | MEDIUM - Code quality |
-| 5 | **No database backup strategy documented** | SQLite file at risk | MEDIUM - Data safety |
+### Subspecialties:
 
-### 5 Things to Develop
+| Area | Grade | Notes |
+|------|-------|-------|
+| API Design | B+ | RESTful, but needs OpenAPI docs |
+| Database | A- | RLS, proper indexes, score_history well-designed |
+| Security | B+ | Auth solid, needs dependency audit |
+| Performance | B | Large bundles, N+1 risk in some queries |
+| Architecture | A- | ✅ Single source of truth established (was B) |
+
+### ✅ #1 Improvement COMPLETED: Consolidate Data Layer to Supabase
+
+**Status:** ✅ DONE (ADR-010, 011, 012, 013)
+
+**What was fixed:**
+- Supabase `kingdoms` table is now the single source of truth
+- Database trigger auto-recalculates stats when `kvk_history` changes
+- PostgreSQL `calculate_atlas_score()` function is the ONLY place the formula lives
+- Removed redundant SQLite writes and JSON fallback
+- Created `score_history` table for historical Atlas Score snapshots
+
+**Impact:** Eliminated entire class of data sync bugs.
+
+### 5 Things to Fix (Updated)
+
+| # | Issue | Reasoning | Status |
+|---|-------|-----------|--------|
+| 1 | ~~STATE_PACKET wrong Site ID~~ | Fixed | ✅ DONE |
+| 2 | ~~Missing Netlify origin in CORS~~ | Migrated to Cloudflare | ✅ N/A |
+| 3 | **No API versioning** | Future breaking changes will be disruptive | MEDIUM |
+| 4 | ~~TypeScript `any` types~~ | Reduced to 0 | ✅ DONE |
+| 5 | ~~No database backup strategy~~ | Supabase handles this | ✅ RESOLVED |
+
+### 5 Things to Develop (Updated)
 
 | # | Feature | Reasoning | Utility |
-|---|---------|-----------|---------|
-| 1 | **API pagination endpoints** | Required for frontend pagination | HIGH - Enables scalability |
-| 2 | **Database migration to PostgreSQL** | SQLite won't scale for multi-user writes | HIGH - Production readiness |
-| 3 | **API response caching layer** | Redis/memory cache for hot paths | MEDIUM - Performance |
-| 4 | **Webhook system for Discord bot** | Current bot setup incomplete | MEDIUM - Community features |
-| 5 | **Health check dashboard** | Better monitoring than basic `/health` | LOW - Operational improvement |
+|---|---------|-----------|--------|
+| 1 | **API pagination endpoints** | Required for frontend pagination | HIGH |
+| 2 | ~~Database migration to PostgreSQL~~ | Supabase IS PostgreSQL | ✅ DONE |
+| 3 | **API response caching layer** | Redis/memory cache for hot paths | MEDIUM |
+| 4 | ~~Webhook system for Discord bot~~ | Bot deployed on Render | ✅ DONE |
+| 5 | **OpenAPI documentation** | Better developer experience | LOW |
 
 ---
 
@@ -111,27 +137,27 @@ The design system is well-documented in `STYLE_GUIDE.md` with clear tokens, tool
 **Domain:** CI/CD, Deployment, SEO, Analytics, Infrastructure
 
 ### Current State Assessment
-CI/CD pipeline exists with lint, test, build, and Lighthouse jobs. Netlify deployment is configured. SEO meta tags and structured data are present. Missing real analytics integration.
+CI/CD pipeline exists with lint, test, build, and Lighthouse jobs. **Cloudflare Pages** deployment is configured (migrated from Netlify 2026-02-01). SEO meta tags and structured data are present. Sentry error monitoring enhanced.
 
-### 5 Things to Fix
+### 5 Things to Fix (Updated)
 
-| # | Issue | Reasoning | Relevance |
-|---|-------|-----------|-----------|
-| 1 | **No sitemap.xml** | Search engines can't discover all pages | HIGH - SEO critical |
-| 2 | **No robots.txt** | Missing crawl directives | HIGH - SEO critical |
-| 3 | **Analytics not connected** | No real user tracking (placeholder only) | HIGH - Business insight |
-| 4 | **Missing error monitoring in frontend** | Sentry SDK imported but config incomplete | MEDIUM - Reliability |
-| 5 | **No uptime monitoring** | Won't know if site goes down | MEDIUM - Reliability |
+| # | Issue | Reasoning | Status |
+|---|-------|-----------|--------|
+| 1 | **No sitemap.xml** | Search engines can't discover all pages | HIGH - Pending |
+| 2 | **No robots.txt** | Missing crawl directives | HIGH - Pending |
+| 3 | **Analytics not connected** | No real user tracking | HIGH - Pending |
+| 4 | ~~Missing error monitoring~~ | Sentry enhanced with RouteErrorBoundary | ✅ DONE |
+| 5 | **No uptime monitoring** | Won't know if site goes down | MEDIUM - Pending |
 
-### 5 Things to Develop
+### 5 Things to Develop (Updated)
 
 | # | Feature | Reasoning | Utility |
-|---|---------|-----------|---------|
+|---|---------|-----------|--------|
 | 1 | **Generate dynamic sitemap** | Auto-generate from kingdom data | HIGH - SEO |
 | 2 | **Add Plausible/GA4 analytics** | Privacy-friendly user insights | HIGH - Growth tracking |
-| 3 | **Deployment preview for PRs** | Test changes before merge | MEDIUM - Quality assurance |
+| 3 | ~~Deployment preview for PRs~~ | Cloudflare Pages has this | ✅ DONE |
 | 4 | **Performance budgets in CI** | Prevent regression | MEDIUM - Performance |
-| 5 | **Automated dependency updates** | Dependabot/Renovate setup | LOW - Maintenance |
+| 5 | ~~Automated dependency updates~~ | Dependabot configured | ✅ DONE |
 
 ---
 
@@ -164,45 +190,55 @@ Releases directory structure exists but no patch notes have been published yet. 
 
 ---
 
-## 🚨 Immediate Fixes Applied
+## 🚨 Major Changes Since Initial Evaluation
 
-The following critical issues were fixed immediately:
+### Infrastructure Migration (2026-02-01)
+- **Frontend:** Migrated from Netlify → Cloudflare Pages
+- **Production URL:** https://ks-atlas.com (unchanged)
+- **Config:** `_headers`, `_redirects` in `apps/web/public/`
 
-### Fix 1: STATE_PACKET.md Wrong Netlify Site ID
-**Issue:** Referenced old site `48267beb-2840-44b1-bedb-39d6b2defcd4`  
-**Fixed:** Updated to correct site `716ed1c2-eb00-4842-8781-c37fb2823eb8`
+### Architecture Overhaul (2026-02-01 to 2026-02-04)
+| ADR | Decision | Impact |
+|-----|----------|--------|
+| ADR-010 | Supabase as single source of truth | Eliminated data sync bugs |
+| ADR-011 | Remove SQLite writes & JSON fallback | Simplified data flow |
+| ADR-012 | Atlas Scores from Supabase only | Consistent scores everywhere |
+| ADR-013 | Score history table | Enables historical charts |
 
-### Fix 2: CORS Missing Netlify Origin  
-**Issue:** `https://ks-atlas.netlify.app` not in default origins  
-**Fixed:** Added to ALLOWED_ORIGINS in main.py
+### Error Monitoring Enhancement (2026-02-01)
+- Added `RouteErrorBoundary.tsx` for route-level error handling
+- Enhanced Sentry integration
 
-### Fix 3: Canonical URL Consistency
-**Issue:** index.html used `www.ks-atlas.com`, should be `ks-atlas.com` (primary)
-**Fixed:** Updated canonical and OG URLs to non-www version
+### Discord Bot Deployment (2026-02-02)
+- Bot deployed on Render: `Atlas-Discord-bot`
+- Service ID: `srv-d5too04r85hc73ej2b00`
 
 ---
 
-## Priority Matrix
+## Priority Matrix (Updated)
 
 | Priority | Issues to Fix | Features to Develop |
 |----------|---------------|---------------------|
-| **P0 - Now** | Site ID in docs, CORS, Canonical URL | - |
-| **P1 - This Week** | OG image, sitemap.xml, robots.txt, analytics | API pagination, patch notes |
-| **P2 - Next Sprint** | TypeScript `any` cleanup, error boundaries | PostgreSQL migration, comparison modal |
-| **P3 - Backlog** | Filter integration, focus indicators | Dark mode, storybook, PWA |
+| **P0 - Now** | ✅ All P0 items DONE | - |
+| **P1 - This Week** | sitemap.xml, robots.txt, analytics | API pagination, patch notes |
+| **P2 - Next Sprint** | Bundle size optimization | Kingdom reviews system |
+| **P3 - Backlog** | Filter integration, API versioning | Dark mode, storybook, PWA |
 
 ---
 
-## Director's Recommendation
+## Director's Recommendation (Updated)
 
-**Immediate priority:** Fix P0 items (done), then focus on:
+**Architecture is now solid.** The data layer consolidation (ADR-010 through 013) was the highest-impact improvement and is complete.
+
+**Next priorities:**
 1. **SEO fundamentals** (sitemap, robots.txt) - high ROI, low effort
-2. **API pagination** - enables scale, improves performance
-3. **First patch notes** - communicate value to users
+2. **Analytics integration** - understand user behavior
+3. **Mobile UX pass** - growing mobile usage
 
-The project is in good health. Technical debt is manageable. Focus on user-facing polish and growth enablers.
+The project has evolved from "functional but complex" to "well-architected and maintainable."
 
 ---
 
 *Report compiled by Atlas Director*  
-*Next review scheduled: 2026-02-04*
+*Initial review: 2026-01-28*  
+*Updated: 2026-02-05*

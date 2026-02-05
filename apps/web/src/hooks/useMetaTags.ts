@@ -100,21 +100,22 @@ export const useMetaTags = (options: MetaTagsOptions) => {
 /**
  * Generate meta tags for a kingdom profile
  */
-export const getKingdomMetaTags = (
+export function getKingdomMetaTags(
   kingdomNumber: number,
-  atlasScore: number,
-  tier: string,
-  rank?: number
-): MetaTagsOptions => {
-  const title = `Kingdom #${kingdomNumber} - Kingshot Atlas`;
-  const description = `Kingdom #${kingdomNumber} | Atlas Score: ${atlasScore.toFixed(2)} | ${tier}-Tier${rank ? ` | Rank #${rank}` : ''} - View detailed KvK stats, win rates, and performance history.`;
+  kingdomName?: string,
+  tier?: string,
+  winRate?: number
+): MetaTagsOptions {
+  const name = kingdomName || `Kingdom ${kingdomNumber}`;
+  const tierInfo = tier ? ` (${tier} Tier)` : '';
+  const winRateInfo = winRate !== undefined ? ` | ${(winRate * 100).toFixed(0)}% KvK Win Rate` : '';
   
   return {
-    title,
-    description,
+    title: `${name}${tierInfo} Stats & KvK History - Kingshot Kingdom Rankings`,
+    description: `${name} Kingdom Rankings & Transfer Info.${winRateInfo} View KvK Event history, tier ranking, and stats. Scout before Kingshot Transfer Events.`,
     url: `https://ks-atlas.com/kingdom/${kingdomNumber}`,
-    type: 'website',
-    image: 'https://ks-atlas.com/Atlas%20Favicon.png'
+    image: 'https://ks-atlas.com/Atlas%20Logo.png',
+    type: 'article'
   };
 };
 
@@ -142,5 +143,65 @@ export const getCompareMetaTags = (
     type: 'website'
   };
 };
+
+/**
+ * Pre-defined meta tags for static pages
+ */
+export const PAGE_META_TAGS = {
+  home: {
+    title: 'Kingshot Atlas - Kingdom Rankings, Transfer Events & KvK Results',
+    description: 'The #1 database for Kingshot Transfer Events & Kingdom Rankings. Scout 1190+ kingdoms before transfer, track KvK results, compare tier lists. Essential for competitive players.',
+    url: 'https://ks-atlas.com/',
+    type: 'website'
+  },
+  leaderboards: {
+    title: 'Kingshot Kingdom Rankings & Tier List 2026 - Best Kingdoms to Join',
+    description: 'Official Kingshot Kingdom Rankings - S-Tier to F-Tier. Find the best kingdoms before Transfer Events. Updated weekly with KvK results. See which kingdoms dominate.',
+    url: 'https://ks-atlas.com/leaderboards',
+    type: 'website'
+  },
+  tools: {
+    title: 'Kingshot Tools - KvK Event Calendar, Score Simulator & More',
+    description: 'Free tools for Kingshot Transfer Events & KvK. Event calendar, countdown timer, Atlas Score simulator. Plan your transfer with real data.',
+    url: 'https://ks-atlas.com/tools',
+    type: 'website'
+  },
+  about: {
+    title: 'About Kingshot Atlas - The #1 Transfer Event & Kingdom Intelligence Platform',
+    description: 'Stop guessing before Kingshot Transfer Events. Kingshot Atlas provides Kingdom Rankings and KvK data for informed transfers. Built by players, for players.',
+    url: 'https://ks-atlas.com/about',
+    type: 'website'
+  },
+  players: {
+    title: 'Kingshot Player Directory - Find Players & Recruiters for Transfer',
+    description: 'Browse Kingshot Atlas users. Find players from any kingdom, connect with recruiters before Transfer Events, discover active alliances.',
+    url: 'https://ks-atlas.com/players',
+    type: 'website'
+  },
+  changelog: {
+    title: 'Kingshot Atlas Changelog - Latest Updates & Features',
+    description: 'See what\'s new in Kingshot Atlas. Latest features for Transfer Events, Kingdom Rankings, and KvK tracking. We ship fast for the Kingshot community.',
+    url: 'https://ks-atlas.com/changelog',
+    type: 'website'
+  },
+  support: {
+    title: 'Support Kingshot Atlas - Help Build the Best Kingdom Rankings Database',
+    description: 'Support Kingshot Atlas development. Get premium features, early access, and help us build the ultimate Transfer Event and KvK intelligence platform.',
+    url: 'https://ks-atlas.com/support',
+    type: 'website'
+  },
+  kvkSeasons: {
+    title: 'Kingshot KvK Event History & Season Results - All KvK Data',
+    description: 'Complete Kingshot KvK Event history for all seasons. Track kingdom performance across every KvK, view win rates and rankings. Essential before Transfer Events.',
+    url: 'https://ks-atlas.com/seasons',
+    type: 'website'
+  },
+  compare: {
+    title: 'Compare Kingshot Kingdoms Before Transfer - Head-to-Head Analysis',
+    description: 'Compare Kingshot kingdoms side-by-side before Transfer Events. Analyze KvK stats, Kingdom Rankings, win rates. Make informed transfer decisions.',
+    url: 'https://ks-atlas.com/compare',
+    type: 'website'
+  }
+} as const satisfies Record<string, MetaTagsOptions>;
 
 export default useMetaTags;

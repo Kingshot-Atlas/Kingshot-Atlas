@@ -165,13 +165,14 @@ const Header: React.FC = () => {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '0.25rem',
-                padding: '0.4rem 0.6rem',
+                padding: '0.5rem 0.75rem',
+                minHeight: '44px',
                 backgroundColor: '#ff6b8a15',
                 border: '1px solid #ff6b8a40',
                 borderRadius: '8px',
                 color: '#ff6b8a',
                 textDecoration: 'none',
-                fontSize: '0.7rem',
+                fontSize: '0.75rem',
                 fontWeight: '600'
               }}
             >
@@ -208,10 +209,15 @@ const Header: React.FC = () => {
               onClick={() => setShowMobileMenu(!showMobileMenu)}
               style={{
                 padding: '0.5rem',
+                minWidth: '44px',
+                minHeight: '44px',
                 backgroundColor: 'transparent',
                 border: 'none',
                 color: '#9ca3af',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
               }}
             >
               {showMobileMenu ? (

@@ -4,8 +4,9 @@ import { useAuth, getCacheBustedAvatarUrl } from '../contexts/AuthContext';
 import AuthModal from './AuthModal';
 import { getDisplayTier, SUBSCRIPTION_COLORS, SubscriptionTier } from '../utils/constants';
 import { colors, neonGlow } from '../utils/styles';
-import { reviewService, ReviewWithVoteStatus } from '../services/reviewService';
+import { reviewService, ReviewWithVoteStatus, ReviewReply, Review } from '../services/reviewService';
 import { isSupabaseConfigured } from '../lib/supabase';
+import { useIsMobile } from '../hooks/useMediaQuery';
 
 interface KingdomReviewsProps {
   kingdomNumber: number;
@@ -36,7 +37,10 @@ const getAvatarBorderColor = (tier: SubscriptionTier): string => {
   }
 };
 
+type SortOption = 'newest' | 'helpful' | 'highest' | 'lowest';
+
 const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact = false }) => {
+  const isMobile = useIsMobile();
   const { user, profile } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [reviews, setReviews] = useState<ReviewWithVoteStatus[]>([]);
@@ -48,6 +52,17 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
   const [editingReviewId, setEditingReviewId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({ rating: 5, comment: '' });
   const [hasExistingReview, setHasExistingReview] = useState(false);
+  const [sortBy, setSortBy] = useState<SortOption>('newest');
+  const [reviewStats, setReviewStats] = useState<{
+    totalReviews: number;
+    avgRating: number;
+    ratingBreakdown: { [key: number]: number };
+  } | null>(null);
+  const [featuredReview, setFeaturedReview] = useState<Review | null>(null);
+  const [replyingToId, setReplyingToId] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState('');
+  const [submittingReply, setSubmittingReply] = useState(false);
+  const [reviewReplies, setReviewReplies] = useState<{ [reviewId: string]: ReviewReply[] }>({});
 
   // Load reviews from Supabase
   const loadReviews = useCallback(async () => {
@@ -57,8 +72,14 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
     }
     
     try {
-      const data = await reviewService.getReviewsForKingdom(kingdomNumber, user?.id);
+      const [data, stats, featured] = await Promise.all([
+        reviewService.getReviewsForKingdom(kingdomNumber, user?.id),
+        reviewService.getReviewStats(kingdomNumber),
+        reviewService.getFeaturedReview(kingdomNumber)
+      ]);
       setReviews(data);
+      setReviewStats(stats);
+      setFeaturedReview(featured);
       
       // Check if current user has already reviewed
       if (user?.id) {
@@ -75,6 +96,21 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
   useEffect(() => {
     loadReviews();
   }, [loadReviews]);
+
+  // Sort reviews based on selected option
+  const sortedReviews = [...reviews].sort((a, b) => {
+    switch (sortBy) {
+      case 'helpful':
+        return b.helpful_count - a.helpful_count;
+      case 'highest':
+        return b.rating - a.rating;
+      case 'lowest':
+        return a.rating - b.rating;
+      case 'newest':
+      default:
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    }
+  });
 
   // Check if user can leave a review
   const { canReview } = reviewService.canUserReview(profile);
@@ -185,6 +221,45 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
     setEditingReviewId(review.id);
     setEditForm({ rating: review.rating, comment: review.comment });
     setError(null);
+  };
+
+  const handleSubmitReply = async (reviewId: string) => {
+    if (!user || !profile || !replyText.trim()) return;
+    
+    setSubmittingReply(true);
+    setError(null);
+    
+    // Check if user is a recruiter for this kingdom (has linked_kingdom matching)
+    const isRecruiter = profile.subscription_tier === 'recruiter' && profile.linked_kingdom === kingdomNumber;
+    
+    const result = await reviewService.createReply(
+      reviewId,
+      kingdomNumber,
+      replyText,
+      profile,
+      user.id,
+      isRecruiter // Mark as official if recruiter
+    );
+    
+    setSubmittingReply(false);
+    
+    if (result.success && result.reply) {
+      setReviewReplies(prev => ({
+        ...prev,
+        [reviewId]: [...(prev[reviewId] || []), result.reply!]
+      }));
+      setReplyText('');
+      setReplyingToId(null);
+    } else {
+      setError(result.error || 'Failed to submit reply');
+    }
+  };
+
+  const loadRepliesForReview = async (reviewId: string) => {
+    if (reviewReplies[reviewId]) return; // Already loaded
+    
+    const replies = await reviewService.getRepliesForReview(reviewId);
+    setReviewReplies(prev => ({ ...prev, [reviewId]: replies }));
   };
 
   const avgRating = reviews.length > 0 
@@ -442,7 +517,10 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',
-                  fontSize: '1.25rem',
+                  fontSize: isMobile ? '1.5rem' : '1.25rem',
+                  padding: isMobile ? '0.5rem' : '0.25rem',
+                  minWidth: isMobile ? '44px' : 'auto',
+                  minHeight: isMobile ? '44px' : 'auto',
                   color: n <= newReview.rating ? '#fbbf24' : '#4a4a4a'
                 }}
               >★</button>
@@ -470,13 +548,14 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
               onClick={handleSubmitReview}
               disabled={!newReview.comment.trim() || newReview.comment.length < MIN_COMMENT_LENGTH || submitting}
               style={{
-                padding: '0.5rem 1.5rem',
+                padding: isMobile ? '0.75rem 1.5rem' : '0.5rem 1.5rem',
+                minHeight: isMobile ? '44px' : 'auto',
                 backgroundColor: newReview.comment.trim() && newReview.comment.length >= MIN_COMMENT_LENGTH && !submitting ? '#22d3ee' : '#2a2a2a',
                 border: 'none',
                 borderRadius: '6px',
                 color: '#fff',
                 cursor: newReview.comment.trim() && newReview.comment.length >= MIN_COMMENT_LENGTH && !submitting ? 'pointer' : 'not-allowed',
-                fontSize: '0.85rem'
+                fontSize: isMobile ? '0.9rem' : '0.85rem'
               }}
             >
               {submitting ? 'Submitting...' : 'Submit Review'}
@@ -495,15 +574,150 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
         </div>
       )}
 
+      {/* Rating breakdown stats */}
+      {!loading && reviewStats && reviewStats.totalReviews > 0 && (
+        <div style={{ 
+          backgroundColor: '#0a0a0a', 
+          borderRadius: '8px', 
+          padding: '0.75rem', 
+          marginBottom: '0.75rem',
+          border: '1px solid #2a2a2a'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+            {/* Average rating */}
+            <div style={{ textAlign: 'center', minWidth: '60px' }}>
+              <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#fbbf24' }}>
+                {reviewStats.avgRating.toFixed(1)}
+              </div>
+              <div style={{ fontSize: '0.7rem', color: '#6b7280' }}>
+                {reviewStats.totalReviews} review{reviewStats.totalReviews !== 1 ? 's' : ''}
+              </div>
+            </div>
+            
+            {/* Rating bars */}
+            <div style={{ flex: 1, minWidth: '150px' }}>
+              {[5, 4, 3, 2, 1].map(rating => {
+                const count = reviewStats.ratingBreakdown[rating] || 0;
+                const percentage = reviewStats.totalReviews > 0 
+                  ? (count / reviewStats.totalReviews) * 100 
+                  : 0;
+                return (
+                  <div key={rating} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.15rem' }}>
+                    <span style={{ fontSize: '0.65rem', color: '#6b7280', width: '12px' }}>{rating}</span>
+                    <div style={{ 
+                      flex: 1, 
+                      height: '6px', 
+                      backgroundColor: '#2a2a2a', 
+                      borderRadius: '3px',
+                      overflow: 'hidden'
+                    }}>
+                      <div style={{ 
+                        width: `${percentage}%`, 
+                        height: '100%', 
+                        backgroundColor: '#fbbf24',
+                        borderRadius: '3px'
+                      }} />
+                    </div>
+                    <span style={{ fontSize: '0.6rem', color: '#4a4a4a', width: '20px' }}>{count}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Featured Review - Most helpful review highlighted */}
+      {!loading && featuredReview && featuredReview.helpful_count >= 2 && (
+        <div style={{ 
+          backgroundColor: '#0a0a0a', 
+          borderRadius: '8px', 
+          padding: '0.75rem', 
+          marginBottom: '0.75rem',
+          border: '1px solid #fbbf2440',
+          position: 'relative'
+        }}>
+          <div style={{
+            position: 'absolute',
+            top: '-0.5rem',
+            left: '0.75rem',
+            backgroundColor: '#111111',
+            padding: '0 0.5rem',
+            fontSize: '0.6rem',
+            fontWeight: '600',
+            color: '#fbbf24',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.25rem'
+          }}>
+            ⭐ FEATURED REVIEW
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: '0.25rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ fontSize: '0.8rem', fontWeight: '600', color: colors.text }}>
+                {featuredReview.author_linked_username}
+              </span>
+              <span style={{ color: '#fbbf24', fontSize: '0.75rem' }}>
+                {'★'.repeat(featuredReview.rating)}{'☆'.repeat(5 - featuredReview.rating)}
+              </span>
+              <span style={{ fontSize: '0.65rem', color: '#22d3ee' }}>
+                👍 {featuredReview.helpful_count}
+              </span>
+            </div>
+          </div>
+          <p style={{ color: '#9ca3af', fontSize: '0.8rem', lineHeight: 1.5, margin: '0.5rem 0 0' }}>
+            {featuredReview.comment.length > 200 
+              ? featuredReview.comment.substring(0, 200) + '...' 
+              : featuredReview.comment}
+          </p>
+        </div>
+      )}
+
+      {/* Sort controls */}
+      {!loading && reviews.length > 1 && (
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '0.5rem', 
+          marginBottom: '0.75rem',
+          flexWrap: 'wrap'
+        }}>
+          <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>Sort by:</span>
+          {([
+            { value: 'newest', label: 'Newest' },
+            { value: 'helpful', label: 'Most Helpful' },
+            { value: 'highest', label: 'Highest Rated' },
+            { value: 'lowest', label: 'Lowest Rated' }
+          ] as { value: SortOption; label: string }[]).map(option => (
+            <button
+              key={option.value}
+              onClick={() => setSortBy(option.value)}
+              style={{
+                padding: isMobile ? '0.5rem 0.75rem' : '0.25rem 0.5rem',
+                minHeight: isMobile ? '44px' : 'auto',
+                fontSize: isMobile ? '0.75rem' : '0.7rem',
+                backgroundColor: sortBy === option.value ? '#22d3ee20' : 'transparent',
+                border: sortBy === option.value ? '1px solid #22d3ee' : '1px solid #3a3a3a',
+                borderRadius: '4px',
+                color: sortBy === option.value ? '#22d3ee' : '#9ca3af',
+                cursor: 'pointer'
+              }}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Reviews list */}
       {!loading && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          {reviews.length === 0 ? (
+          {sortedReviews.length === 0 ? (
             <div style={{ color: '#6b7280', fontSize: '0.85rem', textAlign: 'center', padding: '1rem' }}>
               No reviews yet. Be the first to share your experience!
             </div>
           ) : (
-            reviews.slice(0, 10).map(review => {
+            sortedReviews.slice(0, 10).map(review => {
               // Get tier for display - use linked username for admin check
               const displayTier = getDisplayTier(review.author_subscription_tier, review.author_linked_username);
               const usernameColor = getUsernameColor(displayTier);
@@ -512,6 +726,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
               const isOwnReview = user?.id === review.user_id;
               const isAdmin = profile?.is_admin;
               const isEditing = editingReviewId === review.id;
+              const isVerifiedReviewer = review.author_linked_kingdom === kingdomNumber;
               
               return (
                 <div key={review.id} style={{
@@ -560,12 +775,13 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                           onClick={() => handleUpdateReview(review.id)}
                           disabled={submitting || editForm.comment.length < MIN_COMMENT_LENGTH}
                           style={{
-                            padding: '0.3rem 0.75rem',
+                            padding: isMobile ? '0.5rem 1rem' : '0.3rem 0.75rem',
+                            minHeight: isMobile ? '44px' : 'auto',
                             backgroundColor: '#22d3ee',
                             border: 'none',
                             borderRadius: '4px',
                             color: '#fff',
-                            fontSize: '0.75rem',
+                            fontSize: isMobile ? '0.8rem' : '0.75rem',
                             cursor: 'pointer'
                           }}
                         >
@@ -574,12 +790,13 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                         <button
                           onClick={() => setEditingReviewId(null)}
                           style={{
-                            padding: '0.3rem 0.75rem',
+                            padding: isMobile ? '0.5rem 1rem' : '0.3rem 0.75rem',
+                            minHeight: isMobile ? '44px' : 'auto',
                             backgroundColor: '#2a2a2a',
                             border: 'none',
                             borderRadius: '4px',
                             color: '#9ca3af',
-                            fontSize: '0.75rem',
+                            fontSize: isMobile ? '0.8rem' : '0.75rem',
                             cursor: 'pointer'
                           }}
                         >
@@ -651,6 +868,24 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                               color: '#6b7280',
                             }}>
                               K{review.author_linked_kingdom}
+                            </span>
+                          )}
+                          
+                          {/* Verified Reviewer badge - shown when reviewer's home kingdom matches */}
+                          {isVerifiedReviewer && (
+                            <span style={{
+                              fontSize: '0.55rem',
+                              padding: '0.15rem 0.35rem',
+                              backgroundColor: '#22c55e15',
+                              border: '1px solid #22c55e40',
+                              borderRadius: '3px',
+                              color: '#22c55e',
+                              fontWeight: '600',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.2rem'
+                            }}>
+                              ✓ VERIFIED
                             </span>
                           )}
                           
@@ -743,6 +978,26 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                           </button>
                         </div>
                         
+                        {/* Reply button (for recruiters and logged-in users) */}
+                        {user && !isOwnReview && (
+                          <button
+                            onClick={() => {
+                              setReplyingToId(replyingToId === review.id ? null : review.id);
+                              loadRepliesForReview(review.id);
+                            }}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              color: '#6b7280',
+                              fontSize: '0.7rem',
+                              cursor: 'pointer',
+                              padding: '0.2rem 0.4rem'
+                            }}
+                          >
+                            💬 Reply
+                          </button>
+                        )}
+
                         {/* Edit/Delete buttons for own reviews or admin */}
                         {(isOwnReview || isAdmin) && (
                           <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -777,6 +1032,99 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                           </div>
                         )}
                       </div>
+
+                      {/* Replies section */}
+                      {(reviewReplies[review.id]?.length ?? 0) > 0 && (
+                        <div style={{ marginTop: '0.75rem', paddingLeft: '1rem', borderLeft: '2px solid #2a2a2a' }}>
+                          {(reviewReplies[review.id] || []).map(reply => (
+                            <div key={reply.id} style={{ 
+                              marginBottom: '0.5rem',
+                              padding: '0.5rem',
+                              backgroundColor: '#151515',
+                              borderRadius: '6px'
+                            }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                                <span style={{ fontSize: '0.75rem', fontWeight: '600', color: colors.text }}>
+                                  {reply.author_linked_username}
+                                </span>
+                                {reply.is_official_reply && (
+                                  <span style={{
+                                    fontSize: '0.5rem',
+                                    padding: '0.1rem 0.25rem',
+                                    backgroundColor: '#22c55e15',
+                                    border: '1px solid #22c55e40',
+                                    borderRadius: '3px',
+                                    color: '#22c55e',
+                                    fontWeight: '600'
+                                  }}>
+                                    OFFICIAL
+                                  </span>
+                                )}
+                                <span style={{ fontSize: '0.6rem', color: '#4a4a4a' }}>
+                                  {new Date(reply.created_at).toLocaleDateString()}
+                                </span>
+                              </div>
+                              <p style={{ color: '#9ca3af', fontSize: '0.75rem', lineHeight: 1.4, margin: 0 }}>
+                                {reply.reply_text}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Reply form */}
+                      {replyingToId === review.id && (
+                        <div style={{ marginTop: '0.75rem', paddingLeft: '1rem', borderLeft: '2px solid #22d3ee40' }}>
+                          <textarea
+                            value={replyText}
+                            onChange={(e) => setReplyText(e.target.value)}
+                            placeholder="Write a reply..."
+                            style={{
+                              width: '100%',
+                              padding: '0.5rem',
+                              backgroundColor: '#151515',
+                              border: '1px solid #2a2a2a',
+                              borderRadius: '6px',
+                              color: '#fff',
+                              minHeight: '50px',
+                              resize: 'vertical',
+                              fontSize: '0.75rem',
+                              marginBottom: '0.5rem'
+                            }}
+                          />
+                          <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                            <button
+                              onClick={() => { setReplyingToId(null); setReplyText(''); }}
+                              style={{
+                                padding: '0.3rem 0.6rem',
+                                backgroundColor: '#2a2a2a',
+                                border: 'none',
+                                borderRadius: '4px',
+                                color: '#9ca3af',
+                                fontSize: '0.7rem',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              onClick={() => handleSubmitReply(review.id)}
+                              disabled={submittingReply || replyText.length < 5}
+                              style={{
+                                padding: '0.3rem 0.6rem',
+                                backgroundColor: replyText.length >= 5 ? '#22d3ee' : '#2a2a2a',
+                                border: 'none',
+                                borderRadius: '4px',
+                                color: '#fff',
+                                fontSize: '0.7rem',
+                                cursor: replyText.length >= 5 ? 'pointer' : 'not-allowed'
+                              }}
+                            >
+                              {submittingReply ? 'Sending...' : 'Reply'}
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </>
                   )}
                 </div>

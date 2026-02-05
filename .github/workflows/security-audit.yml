@@ -1,0 +1,168 @@
+name: Security Audit
+
+on:
+  # Run weekly on Mondays at 9:00 UTC
+  schedule:
+    - cron: '0 9 * * 1'
+  # Run on PRs that change dependencies
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/web/package*.json'
+      - 'apps/api/requirements.txt'
+  # Allow manual trigger
+  workflow_dispatch:
+
+jobs:
+  npm-audit:
+    name: npm Audit (Frontend)
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: apps/web
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        id: npm-audit
+        run: |
+          echo "## npm Audit Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Run audit and capture output
+          npm audit --json > audit-results.json 2>&1 || true
+          
+          # Parse results
+          CRITICAL=$(cat audit-results.json | jq '.metadata.vulnerabilities.critical // 0')
+          HIGH=$(cat audit-results.json | jq '.metadata.vulnerabilities.high // 0')
+          MODERATE=$(cat audit-results.json | jq '.metadata.vulnerabilities.moderate // 0')
+          LOW=$(cat audit-results.json | jq '.metadata.vulnerabilities.low // 0')
+          TOTAL=$(cat audit-results.json | jq '.metadata.vulnerabilities.total // 0')
+          
+          echo "| Severity | Count |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Critical | $CRITICAL |" >> $GITHUB_STEP_SUMMARY
+          echo "| High | $HIGH |" >> $GITHUB_STEP_SUMMARY
+          echo "| Moderate | $MODERATE |" >> $GITHUB_STEP_SUMMARY
+          echo "| Low | $LOW |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Total** | **$TOTAL** |" >> $GITHUB_STEP_SUMMARY
+          
+          # Export for use in other steps
+          echo "critical=$CRITICAL" >> $GITHUB_OUTPUT
+          echo "high=$HIGH" >> $GITHUB_OUTPUT
+          echo "total=$TOTAL" >> $GITHUB_OUTPUT
+          
+          # Fail on critical or high vulnerabilities
+          if [ "$CRITICAL" -gt 0 ] || [ "$HIGH" -gt 0 ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "❌ **FAILED:** Found $CRITICAL critical and $HIGH high severity vulnerabilities" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Run \`npm audit\` locally for details and \`npm audit fix\` to attempt automatic fixes." >> $GITHUB_STEP_SUMMARY
+            exit 1
+          else
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "✅ **PASSED:** No critical or high severity vulnerabilities found" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload audit results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: npm-audit-results
+          path: apps/web/audit-results.json
+          retention-days: 30
+
+  pip-audit:
+    name: pip-audit (API)
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: apps/api
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+          cache-dependency-path: apps/api/requirements.txt
+
+      - name: Install pip-audit
+        run: pip install pip-audit
+
+      - name: Run pip-audit
+        id: pip-audit
+        run: |
+          echo "## pip-audit Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Run audit and capture output
+          pip-audit -r requirements.txt --format json > audit-results.json 2>&1 || true
+          
+          # Count vulnerabilities
+          VULN_COUNT=$(cat audit-results.json | jq '[.dependencies[].vulns | length] | add // 0')
+          
+          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Total Vulnerabilities | $VULN_COUNT |" >> $GITHUB_STEP_SUMMARY
+          
+          # List affected packages
+          if [ "$VULN_COUNT" -gt 0 ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Affected Packages" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            cat audit-results.json | jq -r '.dependencies[] | select(.vulns | length > 0) | "- **\(.name)** (\(.version)): \(.vulns | length) vulnerability(ies)"' >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "vuln_count=$VULN_COUNT" >> $GITHUB_OUTPUT
+          
+          # Note: We don't fail on pip-audit because some vulns (like ecdsa timing attack)
+          # have no fix available. Log for visibility but don't block.
+          if [ "$VULN_COUNT" -gt 0 ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ **WARNING:** Found $VULN_COUNT vulnerabilities. Review for fixable issues." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "✅ **PASSED:** No known vulnerabilities found" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload audit results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pip-audit-results
+          path: apps/api/audit-results.json
+          retention-days: 30
+
+  summary:
+    name: Security Summary
+    runs-on: ubuntu-latest
+    needs: [npm-audit, pip-audit]
+    if: always()
+    
+    steps:
+      - name: Generate summary
+        run: |
+          echo "# 🔒 Security Audit Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Component | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend (npm) | ${{ needs.npm-audit.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| API (pip) | ${{ needs.pip-audit.result == 'success' && '✅ Passed' || '⚠️ Review' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "See individual job summaries for details." >> $GITHUB_STEP_SUMMARY

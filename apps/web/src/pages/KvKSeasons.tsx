@@ -4,6 +4,7 @@ import { scoreHistoryService, MatchupWithScores } from '../services/scoreHistory
 import { neonGlow } from '../utils/styles';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 
 interface SeasonStats {
   totalMatchups: number;
@@ -15,6 +16,7 @@ interface SeasonStats {
 }
 
 const KvKSeasons: React.FC = () => {
+  useMetaTags(PAGE_META_TAGS.kvkSeasons);
   const { seasonNumber } = useParams<{ seasonNumber?: string }>();
   const navigate = useNavigate();
   const isMobile = useIsMobile();

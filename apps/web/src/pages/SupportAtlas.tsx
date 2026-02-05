@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { useAuth } from '../contexts/AuthContext';
 import { usePremium } from '../contexts/PremiumContext';
 import SupportButton from '../components/SupportButton';
@@ -10,6 +11,7 @@ import { getCheckoutUrl } from '../lib/stripe';
 
 const SupportAtlas: React.FC = () => {
   useDocumentTitle('Support Atlas');
+  useMetaTags(PAGE_META_TAGS.support);
   const isMobile = useIsMobile();
   const { user } = useAuth();
   const { tier, refreshSubscription } = usePremium();
@@ -176,12 +178,13 @@ const SupportAtlas: React.FC = () => {
               }}
               disabled={isLoading}
               style={{
-                padding: '0.35rem 0.75rem',
+                padding: isMobile ? '0.5rem 1rem' : '0.35rem 0.75rem',
+                minHeight: isMobile ? '44px' : 'auto',
                 backgroundColor: 'transparent',
                 border: '1px solid #FF6B8A40',
                 borderRadius: '6px',
                 color: '#FF6B8A',
-                fontSize: '0.8rem',
+                fontSize: isMobile ? '0.85rem' : '0.8rem',
                 fontWeight: '500',
                 cursor: isLoading ? 'wait' : 'pointer',
                 opacity: isLoading ? 0.7 : 1,
@@ -509,6 +512,7 @@ const SupportAtlas: React.FC = () => {
               alignItems: 'center',
               gap: '0.4rem',
               padding: '0.5rem 1rem',
+              minHeight: isMobile ? '44px' : 'auto',
               backgroundColor: '#f9731620',
               border: '1px solid #f9731640',
               borderRadius: '8px',
@@ -524,6 +528,7 @@ const SupportAtlas: React.FC = () => {
               alignItems: 'center',
               gap: '0.4rem',
               padding: '0.5rem 1rem',
+              minHeight: isMobile ? '44px' : 'auto',
               backgroundColor: '#5865F220',
               border: '1px solid #5865F240',
               borderRadius: '8px',
@@ -545,6 +550,7 @@ const SupportAtlas: React.FC = () => {
               alignItems: 'center',
               gap: '0.4rem',
               padding: '0.5rem 1rem',
+              minHeight: isMobile ? '44px' : 'auto',
               backgroundColor: '#22d3ee20',
               border: '1px solid #22d3ee40',
               borderRadius: '8px',

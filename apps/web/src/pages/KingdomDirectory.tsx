@@ -17,6 +17,7 @@ import HotRightNow from '../components/HotRightNow';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { usePreferences } from '../hooks/useUrlState';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { useAuth } from '../contexts/AuthContext';
 import { neonGlow } from '../utils/styles';
 import { countActiveFilters, DEFAULT_FILTERS } from '../utils/kingdomStats';
@@ -26,6 +27,7 @@ const FAVORITES_KEY = 'kingshot_favorites';
 
 const KingdomDirectory: React.FC = () => {
   useDocumentTitle('Kingdom Directory');
+  useMetaTags(PAGE_META_TAGS.home);
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { showToast } = useToast();

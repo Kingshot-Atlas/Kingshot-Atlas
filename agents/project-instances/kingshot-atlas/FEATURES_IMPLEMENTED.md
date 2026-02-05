@@ -144,6 +144,8 @@
 | KvK Seasons Enhanced UI | ✅ Live | Product | Prep Win/Battle Win columns, historical prep/battle records, rank display per mockup (2026-02-04) |
 | Community Reviews Enhancement | ✅ Live | Product | Linked Kingshot account profile display with tier-colored usernames, TC Level 20+ requirement to prevent spam (2026-02-05) |
 | Community Reviews v2 (Supabase) | ✅ Live | Product | Migrated to Supabase for persistence, edit/delete own reviews, helpful voting, reviewer's kingdom badge, admin moderation (delete only, no pre-approval) (2026-02-05) |
+| Community Reviews v3 (Enhanced) | ✅ Live | Product | Sort by Most Helpful, rating breakdown stats, Top Reviewer badge (5+ helpful), review activity on Profile page (2026-02-05) |
+| Community Reviews v4 (Social) | ✅ Live | Product | Verified Reviewer badge (home kingdom), Featured Review display (most helpful highlighted), reply functionality with Official badge for recruiters, notifications for helpful votes/replies (2026-02-05) |
 | Kingdom Ranking History | ✅ Live | Product | Collapsible chart showing rank over time from score_history, purple color scheme, inverted Y-axis (2026-02-05) |
 
 ---
@@ -215,6 +217,15 @@
 | IndexedDB Cache | ✅ Live | Product | `indexedDBCache.ts` offline support |
 | Code Splitting | ✅ Live | Product | Lazy-loaded routes |
 | Analytics | ✅ Live | Ops | `analyticsService.ts`, Plausible |
+| Dynamic Meta Tags | ✅ Live | Ops | `useMetaTags.ts` - PAGE_META_TAGS for all pages with SEO keywords (2026-02-05) |
+| Structured Data | ✅ Live | Ops | `useStructuredData.ts` - JSON-LD for FAQ, Breadcrumbs (2026-02-05) |
+| Expanded Sitemap | ✅ Live | Ops | 1211 URLs in sitemap.xml (1190 kingdoms + 11 seasons + 10 static) (2026-02-05) |
+| SEO Schema Markup | ✅ Live | Ops | WebApplication, Organization, WebSite w/ SearchAction in index.html (2026-02-05) |
+| SEO Keyword Optimization | ✅ Live | Ops | Title tags, meta descriptions optimized for "Kingshot mobile game" (2026-02-05) |
+| Prerendering Strategy | 📄 Documented | Ops | `/docs/SEO_PRERENDERING_STRATEGY.md` - Cloudflare Workers roadmap (2026-02-05) |
+| Cloudflare Prerender Middleware | ✅ Ready | Ops | `functions/_middleware.ts` - Bot detection for prerender.io (2026-02-05) |
+| Google Search Console Guide | 📄 Documented | Ops | `/docs/GOOGLE_SEARCH_CONSOLE_SETUP.md` - GSC verification + sitemap submission (2026-02-05) |
+| Primary Use Case SEO | ✅ Live | Ops | Keywords: Transfer Events, Kingdom Rankings, KvK Event (2026-02-05) |
 
 ---
 
@@ -324,7 +335,7 @@
 | Feature | Status | Notes |
 |---------|--------|-------|
 | FilterPanel Integration | 🚧 Planned | Component exists, needs wiring to KingdomDirectory |
-| Mobile Responsive Pass | 🚧 Planned | Some pages need work |
+| Mobile Responsive Pass | ✅ Live | 2026-02-05 - Touch targets fixed to 44px min on Header, KingdomProfile, CompareKingdoms, Leaderboards, KingdomCard, KingdomReviews, KvKHistoryTable, SupportAtlas, Profile |
 | Component Refactoring | 🚧 Planned | KingdomCard, ProfileFeatures too large |
 | Multi-Kingdom Share/Export | 🚧 Planned | ShareButton still uses 2-kingdom format |
 

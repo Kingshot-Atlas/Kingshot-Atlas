@@ -167,7 +167,12 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
               cursor: 'pointer', 
               fontSize: '1.3rem', 
               color: isFavorite ? colors.gold : colors.borderStrong, 
-              padding: '0.2rem',
+              padding: isMobile ? '0.5rem' : '0.2rem',
+              minWidth: isMobile ? '44px' : 'auto',
+              minHeight: isMobile ? '44px' : 'auto',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
               transition: transition.fast
             }}
             onMouseEnter={(e) => { if (!isFavorite) e.currentTarget.style.color = colors.textMuted; }}

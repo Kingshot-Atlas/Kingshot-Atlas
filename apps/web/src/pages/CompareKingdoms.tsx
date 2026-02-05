@@ -588,7 +588,7 @@ const CompareKingdoms: React.FC = () => {
                   <Link to="/upgrade" style={{ textDecoration: 'none' }}>
                     <div style={{
                       width: isMobile ? '80px' : '100px',
-                      height: isMobile ? '38px' : '42px',
+                      height: '44px',
                       backgroundColor: '#0a0a0a',
                       border: '1px dashed #333',
                       borderRadius: '8px',
@@ -621,6 +621,7 @@ const CompareKingdoms: React.FC = () => {
                   className="input-glow"
                   style={{
                     width: isMobile ? '80px' : '100px',
+                    height: '44px',
                     padding: isMobile ? '0.6rem' : '0.7rem',
                     backgroundColor: '#0a0a0a',
                     border: '1px solid #3a3a3a',
@@ -645,7 +646,7 @@ const CompareKingdoms: React.FC = () => {
                   <Link key={slotIndex} to={user ? '/upgrade' : '/profile'} style={{ textDecoration: 'none' }}>
                     <div style={{
                       width: isMobile ? '80px' : '100px',
-                      height: isMobile ? '38px' : '42px',
+                      height: '44px',
                       backgroundColor: '#0a0a0a',
                       border: '1px dashed #22d3ee30',
                       borderRadius: '8px',
@@ -679,6 +680,7 @@ const CompareKingdoms: React.FC = () => {
                   className="input-glow"
                   style={{
                     width: isMobile ? '80px' : '100px',
+                    height: '44px',
                     padding: isMobile ? '0.6rem' : '0.7rem',
                     backgroundColor: '#0a0a0a',
                     border: '1px solid #3a3a3a',

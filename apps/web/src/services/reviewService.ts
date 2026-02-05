@@ -24,8 +24,35 @@ export interface Review {
   updated_at: string;
 }
 
+export interface ReviewReply {
+  id: string;
+  review_id: string;
+  user_id: string;
+  kingdom_number: number;
+  reply_text: string;
+  author_linked_username: string;
+  author_linked_avatar_url: string | null;
+  author_subscription_tier: 'free' | 'pro' | 'recruiter' | null;
+  is_official_reply: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ReviewNotification {
+  id: string;
+  user_id: string;
+  notification_type: 'helpful_vote' | 'reply';
+  review_id: string | null;
+  reply_id: string | null;
+  title: string;
+  message: string;
+  is_read: boolean;
+  created_at: string;
+}
+
 export interface ReviewWithVoteStatus extends Review {
   user_has_voted: boolean;
+  replies?: ReviewReply[];
 }
 
 const MIN_TC_LEVEL = 20;
@@ -269,5 +296,253 @@ export const reviewService = {
     }
 
     return data || [];
+  },
+
+  /**
+   * Get review summary stats for a kingdom (rating breakdown)
+   */
+  async getReviewStats(kingdomNumber: number): Promise<{
+    totalReviews: number;
+    avgRating: number;
+    ratingBreakdown: { [key: number]: number };
+  }> {
+    const { data: reviews, error } = await getSupabase()
+      .from('kingdom_reviews')
+      .select('rating')
+      .eq('kingdom_number', kingdomNumber);
+
+    if (error || !reviews) {
+      return { totalReviews: 0, avgRating: 0, ratingBreakdown: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } };
+    }
+
+    const totalReviews = reviews.length;
+    if (totalReviews === 0) {
+      return { totalReviews: 0, avgRating: 0, ratingBreakdown: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } };
+    }
+
+    const avgRating = reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews;
+    const ratingBreakdown: { [key: number]: number } = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    reviews.forEach(r => {
+      ratingBreakdown[r.rating] = (ratingBreakdown[r.rating] || 0) + 1;
+    });
+
+    return { totalReviews, avgRating, ratingBreakdown };
+  },
+
+  /**
+   * Get user's review activity (reviews they've written)
+   */
+  async getUserReviews(userId: string): Promise<Review[]> {
+    const { data, error } = await getSupabase()
+      .from('kingdom_reviews')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching user reviews:', error);
+      return [];
+    }
+
+    return data || [];
+  },
+
+  /**
+   * Get user's total helpful votes received across all reviews
+   */
+  async getUserHelpfulCount(userId: string): Promise<number> {
+    const { data, error } = await getSupabase()
+      .from('kingdom_reviews')
+      .select('helpful_count')
+      .eq('user_id', userId);
+
+    if (error || !data) {
+      return 0;
+    }
+
+    return data.reduce((sum, r) => sum + (r.helpful_count || 0), 0);
+  },
+
+  /**
+   * Check if user is a "Top Reviewer" (5+ helpful votes received)
+   */
+  async isTopReviewer(userId: string): Promise<boolean> {
+    const helpfulCount = await this.getUserHelpfulCount(userId);
+    return helpfulCount >= 5;
+  },
+
+  /**
+   * Get replies for a review
+   */
+  async getRepliesForReview(reviewId: string): Promise<ReviewReply[]> {
+    const { data, error } = await getSupabase()
+      .from('review_replies')
+      .select('*')
+      .eq('review_id', reviewId)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching replies:', error);
+      return [];
+    }
+
+    return data || [];
+  },
+
+  /**
+   * Create a reply to a review
+   */
+  async createReply(
+    reviewId: string,
+    kingdomNumber: number,
+    replyText: string,
+    profile: UserProfile,
+    userId: string,
+    isOfficial: boolean = false
+  ): Promise<{ success: boolean; error?: string; reply?: ReviewReply }> {
+    if (replyText.length < 5) {
+      return { success: false, error: 'Reply must be at least 5 characters' };
+    }
+    if (replyText.length > 500) {
+      return { success: false, error: 'Reply must be under 500 characters' };
+    }
+
+    const { data, error } = await getSupabase()
+      .from('review_replies')
+      .insert({
+        review_id: reviewId,
+        user_id: userId,
+        kingdom_number: kingdomNumber,
+        reply_text: replyText.trim(),
+        author_linked_username: profile.linked_username || profile.username || 'Anonymous',
+        author_linked_avatar_url: profile.linked_avatar_url || null,
+        author_subscription_tier: profile.subscription_tier || 'free',
+        is_official_reply: isOfficial
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating reply:', error);
+      return { success: false, error: 'Failed to submit reply' };
+    }
+
+    return { success: true, reply: data };
+  },
+
+  /**
+   * Delete a reply
+   */
+  async deleteReply(replyId: string): Promise<{ success: boolean; error?: string }> {
+    const { error } = await getSupabase()
+      .from('review_replies')
+      .delete()
+      .eq('id', replyId);
+
+    if (error) {
+      console.error('Error deleting reply:', error);
+      return { success: false, error: 'Failed to delete reply' };
+    }
+
+    return { success: true };
+  },
+
+  /**
+   * Get user's notifications
+   */
+  async getUserNotifications(userId: string, unreadOnly: boolean = false): Promise<ReviewNotification[]> {
+    let query = getSupabase()
+      .from('review_notifications')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(50);
+
+    if (unreadOnly) {
+      query = query.eq('is_read', false);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Error fetching notifications:', error);
+      return [];
+    }
+
+    return data || [];
+  },
+
+  /**
+   * Mark notification as read
+   */
+  async markNotificationRead(notificationId: string): Promise<{ success: boolean }> {
+    const { error } = await getSupabase()
+      .from('review_notifications')
+      .update({ is_read: true })
+      .eq('id', notificationId);
+
+    if (error) {
+      console.error('Error marking notification read:', error);
+      return { success: false };
+    }
+
+    return { success: true };
+  },
+
+  /**
+   * Mark all notifications as read
+   */
+  async markAllNotificationsRead(userId: string): Promise<{ success: boolean }> {
+    const { error } = await getSupabase()
+      .from('review_notifications')
+      .update({ is_read: true })
+      .eq('user_id', userId)
+      .eq('is_read', false);
+
+    if (error) {
+      console.error('Error marking all notifications read:', error);
+      return { success: false };
+    }
+
+    return { success: true };
+  },
+
+  /**
+   * Get unread notification count
+   */
+  async getUnreadNotificationCount(userId: string): Promise<number> {
+    const { count, error } = await getSupabase()
+      .from('review_notifications')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('is_read', false);
+
+    if (error) {
+      console.error('Error fetching notification count:', error);
+      return 0;
+    }
+
+    return count || 0;
+  },
+
+  /**
+   * Get the featured (most helpful) review for a kingdom
+   */
+  async getFeaturedReview(kingdomNumber: number): Promise<Review | null> {
+    const { data, error } = await getSupabase()
+      .from('kingdom_reviews')
+      .select('*')
+      .eq('kingdom_number', kingdomNumber)
+      .gt('helpful_count', 0)
+      .order('helpful_count', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (error) {
+      // No featured review found (likely no reviews with helpful votes)
+      return null;
+    }
+
+    return data;
   }
 };

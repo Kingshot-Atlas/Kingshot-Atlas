@@ -1809,7 +1809,7 @@ const AdminDashboard: React.FC = () => {
             }}>
               <iframe
                 data-plausible-embed="true"
-                src="https://plausible.io/share/ks-atlas.com?auth=YOUR_SHARED_LINK_AUTH&embed=true&theme=dark"
+                src="https://plausible.io/share/ks-atlas.com?auth=C7E_v7N68QzEmvXVyTiHj&embed=true&theme=dark"
                 loading="lazy"
                 style={{ 
                   width: '100%', 
@@ -1821,7 +1821,7 @@ const AdminDashboard: React.FC = () => {
               />
             </div>
             <p style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '1rem', fontStyle: 'italic' }}>
-              Note: To enable the embedded dashboard, create a shared link in Plausible settings and replace YOUR_SHARED_LINK_AUTH with your auth token.
+              Tip: Click "Full Dashboard" to see detailed breakdowns, goals, and custom reports.
             </p>
           </div>
 

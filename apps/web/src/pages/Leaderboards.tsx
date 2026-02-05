@@ -10,11 +10,13 @@ import { useAnalytics } from '../hooks/useAnalytics';
 import { usePremium } from '../contexts/PremiumContext';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import ScoreDistribution from '../components/ScoreDistribution';
 import ScoreMovers from '../components/ScoreMovers';
 
 const Leaderboards: React.FC = () => {
   useDocumentTitle('Kingdom Rankings');
+  useMetaTags(PAGE_META_TAGS.leaderboards);
   const [kingdoms, setKingdoms] = useState<Kingdom[]>([]);
   const [loading, setLoading] = useState(true);
   const [displayCount, setDisplayCount] = useState<10 | 20 | 50>(10);
@@ -331,12 +333,13 @@ const Leaderboards: React.FC = () => {
             <Link
               to={tier === 'anonymous' ? '/profile' : '/upgrade'}
               style={{
-                padding: '0.4rem 0.75rem',
+                padding: isMobile ? '0.5rem 1rem' : '0.4rem 0.75rem',
+                minHeight: isMobile ? '44px' : 'auto',
                 backgroundColor: '#22d3ee15',
                 border: '1px solid #22d3ee40',
                 borderRadius: '6px',
                 color: '#22d3ee',
-                fontSize: '0.7rem',
+                fontSize: isMobile ? '0.75rem' : '0.7rem',
                 textDecoration: 'none',
                 display: 'flex',
                 alignItems: 'center',
@@ -464,13 +467,14 @@ const Leaderboards: React.FC = () => {
                 key={count}
                 onClick={() => { trackFeature('Leaderboard Display Count', { count }); setDisplayCount(count); }}
                 style={{
-                  padding: isMobile ? '0.45rem 0.9rem' : '0.5rem 1.25rem',
+                  padding: isMobile ? '0.6rem 1rem' : '0.5rem 1.25rem',
+                  minHeight: isMobile ? '44px' : 'auto',
                   backgroundColor: displayCount === count ? '#22d3ee' : 'transparent',
                   border: 'none',
                   color: displayCount === count ? '#000' : '#6b7280',
                   cursor: 'pointer',
                   fontWeight: displayCount === count ? '600' : '400',
-                  fontSize: isMobile ? '0.75rem' : '0.85rem',
+                  fontSize: isMobile ? '0.8rem' : '0.85rem',
                   transition: 'all 0.2s'
                 }}
               >
@@ -486,12 +490,13 @@ const Leaderboards: React.FC = () => {
               value={kvkFilter}
               onChange={(e) => setKvkFilter(e.target.value)}
               style={{
-                padding: isMobile ? '0.45rem 0.6rem' : '0.5rem 0.75rem',
+                padding: isMobile ? '0.6rem 0.75rem' : '0.5rem 0.75rem',
+                minHeight: isMobile ? '44px' : 'auto',
                 backgroundColor: '#131318',
                 border: '1px solid #2a2a2a',
                 borderRadius: '6px',
                 color: '#fff',
-                fontSize: isMobile ? '0.75rem' : '0.85rem',
+                fontSize: isMobile ? '0.8rem' : '0.85rem',
                 cursor: 'pointer',
                 outline: 'none'
               }}

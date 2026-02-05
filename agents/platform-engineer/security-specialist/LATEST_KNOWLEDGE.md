@@ -1,7 +1,28 @@
 # Security Specialist — Latest Knowledge
 
-**Last Updated:** 2026-01-29  
+**Last Updated:** 2026-02-05  
 **Purpose:** Current threats, vulnerabilities, and security best practices
+
+---
+
+## Latest Audit Results (2026-02-05)
+
+### npm (Frontend)
+- **Status:** ✅ Clean (0 vulnerabilities)
+- **Action Taken:** Updated vitest ^2.0.0 → ^4.0.18 to fix 6 moderate vulnerabilities
+- **Automated:** Weekly audit via `.github/workflows/security-audit.yml`
+
+### pip (API)
+- **Status:** ⚠️ 1 low-risk vulnerability (accepted)
+- **Issue:** `ecdsa 0.19.1` - CVE-2024-23342 (Minerva timing attack)
+- **Risk Assessment:** LOW - requires precise local timing measurements, not exploitable over network
+- **Fix Available:** No - maintainers consider timing attacks out of scope
+- **Decision:** Accept risk - this is a transitive dependency of `python-jose` used for JWT
+
+### CI/CD Security
+- **Weekly Audit:** Runs every Monday 9:00 UTC
+- **PR Checks:** Fails on high/critical vulnerabilities in production deps
+- **Workflow:** `.github/workflows/security-audit.yml`
 
 ---
 
@@ -11,7 +32,7 @@
 - **Frontend:** React 19, TypeScript, Vite
 - **Backend:** FastAPI (Python), SQLAlchemy
 - **Auth:** Supabase
-- **Hosting:** Netlify (frontend), Railway/Render (API)
+- **Hosting:** Cloudflare Pages (frontend), Render (API)
 - **Monitoring:** Sentry
 
 ### Security Measures Already in Place

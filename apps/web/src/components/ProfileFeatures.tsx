@@ -4,15 +4,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { apiService } from '../services/api';
 import { Kingdom, getPowerTier, TIER_COLORS } from '../types';
 import { MiniKingdomCard } from './profile-features';
-
-interface Review {
-  id: string;
-  kingdomNumber: number;
-  author: string;
-  rating: number;
-  comment: string;
-  timestamp: number;
-}
+import { reviewService, Review } from '../services/reviewService';
+import { isSupabaseConfigured } from '../lib/supabase';
 
 const ProfileFeatures: React.FC = () => {
   const { user, profile } = useAuth();
@@ -25,11 +18,15 @@ const ProfileFeatures: React.FC = () => {
   const [showAllFavorites, setShowAllFavorites] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [favoriteKingdoms, setFavoriteKingdoms] = useState<Kingdom[]>([]);
+  const [totalHelpfulCount, setTotalHelpfulCount] = useState(0);
+  const [isTopReviewer, setIsTopReviewer] = useState(false);
 
   const themeColor = profile?.theme_color || '#22d3ee';
   
-  // Sort reviews by timestamp (most recent first)
-  const sortedReviews = [...reviews].sort((a, b) => b.timestamp - a.timestamp);
+  // Sort reviews by created_at (most recent first)
+  const sortedReviews = [...reviews].sort((a, b) => 
+    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
 
   const neonGlow = (color: string) => ({
     color: color,
@@ -53,17 +50,17 @@ const ProfileFeatures: React.FC = () => {
     const savedWatch = localStorage.getItem(watchKey);
     if (savedWatch) setWatchlist(JSON.parse(savedWatch));
 
-    // Load user's reviews
-    const reviewsKey = 'kingshot_kingdom_reviews';
-    const savedReviews = localStorage.getItem(reviewsKey);
-    if (savedReviews) {
-      const allReviews = JSON.parse(savedReviews) as Review[];
-      const userReviews = allReviews.filter(r => 
-        r.author === profile?.username || r.author === user?.email?.split('@')[0]
-      );
-      setReviews(userReviews);
+    // Load user's reviews from Supabase
+    if (user?.id && isSupabaseConfigured) {
+      reviewService.getUserReviews(user.id).then(userReviews => {
+        setReviews(userReviews);
+        // Calculate total helpful count
+        const totalHelpful = userReviews.reduce((sum, r) => sum + (r.helpful_count || 0), 0);
+        setTotalHelpfulCount(totalHelpful);
+        setIsTopReviewer(totalHelpful >= 5);
+      });
     }
-  }, [profile, user]);
+  }, [user?.id]);
 
   useEffect(() => {
     // Load home kingdom data
@@ -209,7 +206,7 @@ const ProfileFeatures: React.FC = () => {
       cursor: 'pointer',
       transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)'
     }}
-    onClick={() => navigate(`/kingdom/${review.kingdomNumber}`)}
+    onClick={() => navigate(`/kingdom/${review.kingdom_number}`)}
     onMouseEnter={(e) => {
       e.currentTarget.style.transform = 'translateY(-2px)';
       e.currentTarget.style.borderColor = themeColor + '50';
@@ -221,22 +218,33 @@ const ProfileFeatures: React.FC = () => {
       e.currentTarget.style.boxShadow = 'none';
     }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
           <span style={{ 
             color: '#fff', 
             fontSize: '1.1rem', 
             fontWeight: '700',
             fontFamily: "'Cinzel', 'Times New Roman', serif"
           }}>
-            Kingdom {review.kingdomNumber}
+            Kingdom {review.kingdom_number}
           </span>
           <span style={{ color: '#fbbf24', fontSize: '0.9rem' }}>
             {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
           </span>
+          {review.helpful_count > 0 && (
+            <span style={{ 
+              fontSize: '0.75rem', 
+              color: '#22d3ee',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.25rem'
+            }}>
+              👍 {review.helpful_count}
+            </span>
+          )}
         </div>
         <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>
-          {new Date(review.timestamp).toLocaleDateString()}
+          {new Date(review.created_at).toLocaleDateString()}
         </span>
       </div>
       <p style={{ color: '#9ca3af', fontSize: '0.9rem', lineHeight: 1.6, margin: 0 }}>
@@ -497,12 +505,35 @@ const ProfileFeatures: React.FC = () => {
           padding: isMobile ? '1.25rem' : '1.5rem',
           border: '1px solid #2a2a2a'
         }}>
-          <h3 style={{ color: '#fff', fontSize: '1.1rem', fontWeight: '600', marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <h3 style={{ color: '#fff', fontSize: '1.1rem', fontWeight: '600', marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
               📝 Review History
               <span style={{ fontSize: '0.8rem', color: '#6b7280', fontWeight: 'normal' }}>
                 ({reviews.length})
               </span>
+              {/* Top Reviewer Badge */}
+              {isTopReviewer && (
+                <span style={{
+                  fontSize: '0.65rem',
+                  padding: '0.2rem 0.5rem',
+                  backgroundColor: '#22d3ee15',
+                  border: '1px solid #22d3ee40',
+                  borderRadius: '4px',
+                  color: '#22d3ee',
+                  fontWeight: '600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.25rem'
+                }}>
+                  ⭐ TOP REVIEWER
+                </span>
+              )}
+              {/* Helpful count */}
+              {totalHelpfulCount > 0 && (
+                <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 'normal' }}>
+                  • 👍 {totalHelpfulCount} helpful
+                </span>
+              )}
             </span>
             <span style={{ fontSize: '0.7rem', color: '#6b7280', fontWeight: 'normal' }}>
               Most Recent First

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 
 interface ChangelogEntry {
   date: string;
@@ -143,6 +144,7 @@ const changelogData: ChangelogEntry[] = [
 
 const Changelog: React.FC = () => {
   useDocumentTitle('Changelog');
+  useMetaTags(PAGE_META_TAGS.changelog);
   const isMobile = useIsMobile();
 
   const getCategoryIcon = (category: string) => {

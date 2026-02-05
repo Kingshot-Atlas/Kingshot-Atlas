@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth, UserProfile } from '../contexts/AuthContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { colors, neonGlow as neonGlowUtil, subscriptionColors, FONT_DISPLAY } from '../utils/styles';
 import { getDisplayTier, getTierBorderColor, SubscriptionTier } from '../utils/constants';
 import { logger } from '../utils/logger';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 
 // Get username color based on subscription tier (including admin)
 const getUsernameColor = (tier: SubscriptionTier | null | undefined): string => {
@@ -27,19 +29,53 @@ const formatTCLevel = (level: number | null | undefined): string => {
 };
 
 const UserDirectory: React.FC = () => {
+  useDocumentTitle('Player Directory');
+  useMetaTags(PAGE_META_TAGS.players);
   const { user: currentUser } = useAuth();
+  const [searchParams] = useSearchParams();
   const [users, setUsers] = useState<UserProfile[]>([]);
+  const [allKingdoms, setAllKingdoms] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterBy, setFilterBy] = useState<'all' | 'alliance' | 'region' | 'kingdom'>('all');
-  const [filterValue, setFilterValue] = useState('');
-  const [tierFilter, setTierFilter] = useState<'all' | 'admin' | 'pro' | 'recruiter'>('all');
+  
+  // Initialize filters from URL params
+  const urlKingdom = searchParams.get('kingdom');
+  const [filterBy, setFilterBy] = useState<'all' | 'alliance' | 'region' | 'kingdom'>(urlKingdom ? 'kingdom' : 'all');
+  const [filterValue, setFilterValue] = useState(urlKingdom || '');
+  const [tierFilter, setTierFilter] = useState<'all' | 'admin' | 'pro'>('all');
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  
+  // Searchable kingdom filter state
+  const [kingdomSearchInput, setKingdomSearchInput] = useState(urlKingdom ? `Kingdom ${urlKingdom}` : '');
+  const [showKingdomDropdown, setShowKingdomDropdown] = useState(false);
+  const kingdomInputRef = React.useRef<HTMLInputElement>(null);
+  const kingdomDropdownRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Fetch all kingdoms for the dropdown
+  useEffect(() => {
+    const fetchKingdoms = async () => {
+      if (isSupabaseConfigured && supabase) {
+        try {
+          const { data } = await supabase
+            .from('kingdoms')
+            .select('kingdom_number')
+            .order('kingdom_number', { ascending: true });
+          
+          if (data) {
+            setAllKingdoms(data.map(k => k.kingdom_number));
+          }
+        } catch (err) {
+          console.error('[PlayerDirectory] Failed to fetch kingdoms:', err);
+        }
+      }
+    };
+    fetchKingdoms();
   }, []);
 
   useEffect(() => {
@@ -186,7 +222,55 @@ const UserDirectory: React.FC = () => {
 
   const uniqueAlliances = Array.from(new Set(users.map(u => u.alliance_tag).filter(Boolean)));
   const uniqueRegions = Array.from(new Set(users.map(u => u.region).filter(Boolean)));
-  const uniqueKingdoms = Array.from(new Set(users.map(u => u.home_kingdom).filter(Boolean)));
+  // Use all kingdoms from DB, not just those with users
+  const uniqueKingdoms = allKingdoms.length > 0 ? allKingdoms : Array.from(new Set(users.map(u => u.home_kingdom).filter(Boolean)));
+  
+  // Calculate player counts per kingdom
+  const kingdomPlayerCounts = React.useMemo(() => {
+    const counts: Record<number, number> = {};
+    users.forEach(u => {
+      if (u.linked_kingdom) {
+        counts[u.linked_kingdom] = (counts[u.linked_kingdom] || 0) + 1;
+      }
+    });
+    return counts;
+  }, [users]);
+  
+  // Calculate player counts per alliance
+  const alliancePlayerCounts = React.useMemo(() => {
+    const counts: Record<string, number> = {};
+    users.forEach(u => {
+      if (u.alliance_tag) {
+        counts[u.alliance_tag] = (counts[u.alliance_tag] || 0) + 1;
+      }
+    });
+    return counts;
+  }, [users]);
+  
+  // Filter kingdoms based on search input
+  const filteredKingdomOptions = React.useMemo(() => {
+    const searchNum = kingdomSearchInput.replace(/\D/g, '');
+    return [...uniqueKingdoms].sort((a, b) => (a || 0) - (b || 0)).filter(k => {
+      if (!kingdomSearchInput) return true;
+      return k?.toString().includes(searchNum);
+    });
+  }, [uniqueKingdoms, kingdomSearchInput]);
+  
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        kingdomDropdownRef.current && 
+        !kingdomDropdownRef.current.contains(e.target as Node) &&
+        kingdomInputRef.current &&
+        !kingdomInputRef.current.contains(e.target as Node)
+      ) {
+        setShowKingdomDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   if (loading) {
     return (
@@ -271,7 +355,7 @@ const UserDirectory: React.FC = () => {
                 setFilterValue('');
               }}
               style={{
-                padding: '0.875rem 1rem',
+                padding: '0.875rem 2.5rem 0.875rem 1rem',
                 backgroundColor: '#111116',
                 border: '1px solid #2a2a2a',
                 borderRadius: '8px',
@@ -282,7 +366,8 @@ const UserDirectory: React.FC = () => {
                 backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
                 backgroundRepeat: 'no-repeat',
                 backgroundPosition: 'right 0.75rem center',
-                backgroundSize: '1rem'
+                backgroundSize: '1rem',
+                minWidth: '130px'
               }}
             >
               <option value="all">All Players</option>
@@ -291,12 +376,12 @@ const UserDirectory: React.FC = () => {
               <option value="kingdom">By Kingdom</option>
             </select>
 
-            {filterBy !== 'all' && (
+            {filterBy === 'alliance' && (
               <select
                 value={filterValue}
                 onChange={(e) => setFilterValue(e.target.value)}
                 style={{
-                  padding: '0.875rem 1rem',
+                  padding: '0.875rem 2.5rem 0.875rem 1rem',
                   backgroundColor: '#111116',
                   border: '1px solid #2a2a2a',
                   borderRadius: '8px',
@@ -307,30 +392,165 @@ const UserDirectory: React.FC = () => {
                   backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
                   backgroundRepeat: 'no-repeat',
                   backgroundPosition: 'right 0.75rem center',
-                  backgroundSize: '1rem'
+                  backgroundSize: '1rem',
+                  minWidth: '160px'
                 }}
               >
-                <option value="">All</option>
-                {filterBy === 'alliance' && uniqueAlliances.map(tag => (
-                  <option key={tag} value={tag}>[{tag}]</option>
-                ))}
-                {filterBy === 'region' && uniqueRegions.map(region => (
-                  <option key={region} value={region}>{region}</option>
-                ))}
-                {filterBy === 'kingdom' && [...uniqueKingdoms].sort((a, b) => (a || 0) - (b || 0)).map(kingdom => (
-                  <option key={kingdom} value={kingdom?.toString()}>Kingdom {kingdom}</option>
+                <option value="">All Alliances</option>
+                {uniqueAlliances.sort().map(tag => (
+                  <option key={tag} value={tag}>[{tag}] · {alliancePlayerCounts[tag as string] || 0} players</option>
                 ))}
               </select>
+            )}
+            
+            {filterBy === 'region' && (
+              <select
+                value={filterValue}
+                onChange={(e) => setFilterValue(e.target.value)}
+                style={{
+                  padding: '0.875rem 2.5rem 0.875rem 1rem',
+                  backgroundColor: '#111116',
+                  border: '1px solid #2a2a2a',
+                  borderRadius: '8px',
+                  color: '#fff',
+                  fontSize: '0.95rem',
+                  cursor: 'pointer',
+                  appearance: 'none',
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'right 0.75rem center',
+                  backgroundSize: '1rem',
+                  minWidth: '140px'
+                }}
+              >
+                <option value="">All Regions</option>
+                {uniqueRegions.map(region => (
+                  <option key={region} value={region}>{region}</option>
+                ))}
+              </select>
+            )}
+            
+            {filterBy === 'kingdom' && (
+              <div style={{ position: 'relative' }}>
+                <input
+                  ref={kingdomInputRef}
+                  type="text"
+                  value={kingdomSearchInput}
+                  onChange={(e) => {
+                    setKingdomSearchInput(e.target.value);
+                    setShowKingdomDropdown(true);
+                    // Clear filter if input is cleared
+                    if (!e.target.value) {
+                      setFilterValue('');
+                    }
+                  }}
+                  onFocus={() => setShowKingdomDropdown(true)}
+                  placeholder="Type kingdom #..."
+                  style={{
+                    padding: '0.875rem 2.5rem 0.875rem 1rem',
+                    backgroundColor: '#111116',
+                    border: '1px solid #2a2a2a',
+                    borderRadius: '8px',
+                    color: '#fff',
+                    fontSize: '0.95rem',
+                    outline: 'none',
+                    minWidth: '160px',
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'right 0.75rem center',
+                    backgroundSize: '1rem',
+                  }}
+                />
+                {showKingdomDropdown && (
+                  <div
+                    ref={kingdomDropdownRef}
+                    style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: 0,
+                      right: 0,
+                      marginTop: '4px',
+                      backgroundColor: '#111116',
+                      border: '1px solid #2a2a2a',
+                      borderRadius: '8px',
+                      maxHeight: '200px',
+                      overflowY: 'auto',
+                      zIndex: 50,
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.4)'
+                    }}
+                  >
+                    <div
+                      onClick={() => {
+                        setFilterValue('');
+                        setKingdomSearchInput('');
+                        setShowKingdomDropdown(false);
+                      }}
+                      style={{
+                        padding: '0.75rem 1rem',
+                        cursor: 'pointer',
+                        color: !filterValue ? '#22d3ee' : '#9ca3af',
+                        fontSize: '0.9rem',
+                        borderBottom: '1px solid #2a2a2a',
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                      All Kingdoms
+                    </div>
+                    {filteredKingdomOptions.map(kingdom => {
+                      const count = kingdomPlayerCounts[kingdom as number] || 0;
+                      const isSelected = filterValue === kingdom?.toString();
+                      return (
+                        <div
+                          key={kingdom}
+                          onClick={() => {
+                            setFilterValue(kingdom?.toString() || '');
+                            setKingdomSearchInput(`Kingdom ${kingdom}`);
+                            setShowKingdomDropdown(false);
+                          }}
+                          style={{
+                            padding: '0.75rem 1rem',
+                            cursor: 'pointer',
+                            color: isSelected ? '#22d3ee' : '#fff',
+                            fontSize: '0.9rem',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                        >
+                          <span>Kingdom {kingdom}</span>
+                          {count > 0 && (
+                            <span style={{ 
+                              color: '#6b7280', 
+                              fontSize: '0.75rem',
+                              fontStyle: 'italic'
+                            }}>
+                              {count} player{count !== 1 ? 's' : ''}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                    {filteredKingdomOptions.length === 0 && (
+                      <div style={{ padding: '0.75rem 1rem', color: '#6b7280', fontSize: '0.85rem' }}>
+                        No kingdoms found
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </div>
 
         {/* Tier Filter Chips */}
         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-          {(['all', 'admin', 'recruiter', 'pro'] as const).map((tier) => {
+          {(['all', 'admin', 'pro'] as const).map((tier) => {
             const isActive = tierFilter === tier;
-            const chipColor = tier === 'admin' ? subscriptionColors.admin : tier === 'pro' ? subscriptionColors.pro : tier === 'recruiter' ? subscriptionColors.recruiter : '#6b7280';
-            const label = tier === 'all' ? 'All Players' : tier === 'admin' ? '👑 Admin' : tier === 'pro' ? '💖 Supporter' : '� Recruiter';
+            const chipColor = tier === 'admin' ? subscriptionColors.admin : tier === 'pro' ? subscriptionColors.pro : '#6b7280';
+            const label = tier === 'all' ? 'All Players' : tier === 'admin' ? '👑 Admin' : '💖 Supporter';
             
             return (
               <button
@@ -510,19 +730,6 @@ const UserDirectory: React.FC = () => {
                             fontWeight: '600',
                           }}>
                             💖 SUPPORTER
-                          </span>
-                        )}
-                        {displayTier === 'recruiter' && (
-                          <span style={{
-                            fontSize: '0.6rem',
-                            padding: '0.15rem 0.4rem',
-                            backgroundColor: `${subscriptionColors.recruiter}15`,
-                            border: `1px solid ${subscriptionColors.recruiter}40`,
-                            borderRadius: '4px',
-                            color: subscriptionColors.recruiter,
-                            fontWeight: '600',
-                          }}>
-                            � RECRUITER
                           </span>
                         )}
                         {user.id === currentUser?.id && (

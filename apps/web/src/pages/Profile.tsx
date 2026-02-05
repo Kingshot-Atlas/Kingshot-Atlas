@@ -351,7 +351,7 @@ const ProfileCompletionProgress: React.FC<{
       </div>
       
       {/* Checklist */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
         {items.map((item, idx) => (
           <div 
             key={idx}
@@ -360,9 +360,15 @@ const ProfileCompletionProgress: React.FC<{
               display: 'flex', 
               alignItems: 'center', 
               gap: '0.5rem',
+              padding: '0.5rem 0.25rem',
+              minHeight: '44px',
               cursor: item.action ? 'pointer' : 'default',
-              opacity: item.done ? 0.6 : 1
+              opacity: item.done ? 0.6 : 1,
+              borderRadius: '6px',
+              transition: 'background-color 0.15s'
             }}
+            onMouseEnter={(e) => item.action && (e.currentTarget.style.backgroundColor = '#ffffff08')}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           >
             <span style={{ 
               width: '18px', 
@@ -374,7 +380,8 @@ const ProfileCompletionProgress: React.FC<{
               alignItems: 'center',
               justifyContent: 'center',
               fontSize: '0.7rem',
-              color: '#fff'
+              color: '#fff',
+              flexShrink: 0
             }}>
               {item.done && '✓'}
             </span>
