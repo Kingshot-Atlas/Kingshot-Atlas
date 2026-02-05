@@ -9,6 +9,71 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-05 18:10 | Product Engineer | COMPLETED
+Task: Fix Atlas Score History Y-axis to start from 0
+Files:
+  - apps/web/src/components/ScoreHistoryChart.tsx
+Changes:
+  - Y-axis now fixed from 0 to max score (capped at 15)
+  - Changed minScore from dynamic to fixed 0
+  - Reduced padding above max from +1 to +0.5 for cleaner look
+Result: Build successful. Chart now shows full score range from 0.
+
+## 2026-02-05 18:05 | Design Lead | COMPLETED
+Task: Unify chart styling across all Kingdom Profile charts
+Files:
+  - apps/web/src/constants/chartConstants.ts (new)
+  - apps/web/src/components/ScoreHistoryChart.tsx
+  - apps/web/src/components/RankingHistoryChart.tsx
+  - apps/web/src/components/TrendChart.tsx
+Changes:
+  - Created shared chartConstants.ts with unified padding, fonts, colors, point sizes
+  - X-axis simplified: just numbers + "KvKs" title on all 3 charts
+  - Y-axis: 5 evenly spaced grid lines (same as Performance Trend pattern)
+  - All charts now use CHART_PADDING { top: 30, right: 30, bottom: 55, left: 50 }
+  - Consistent point sizes via POINT_SIZES constant
+  - Colors centralized: scoreHistory (#22d3ee), rankingHistory (#a855f7), etc.
+Result: Build successful. Charts now have consistent, scalable styling.
+
+## 2026-02-05 17:50 | Product Engineer | COMPLETED
+Task: Polish Kingdom Ranking History chart axes
+Files:
+  - apps/web/src/components/RankingHistoryChart.tsx
+Changes:
+  - Fixed Y-axis to always show #1 at top (minRank = 1)
+  - Added "KvKs" X-axis title centered below chart
+  - Simplified X-axis labels from "KvK 1" to just "1"
+  - Increased bottom padding to accommodate X-axis title
+Result: Build successful. Chart now cleaner and more scalable for future KvKs.
+
+## 2026-02-05 17:15 | Product Engineer | COMPLETED
+Task: Add Kingdom Ranking History collapsible section to Kingdom Profile
+Files:
+  - apps/web/src/components/RankingHistoryChart.tsx (new)
+  - apps/web/src/pages/KingdomProfile.tsx
+Changes:
+  - Created RankingHistoryChart component with purple color scheme (#a855f7)
+  - Y-axis inverted: lower rank (better) at top of chart
+  - Data from score_history.rank_at_time field
+  - Shows ranking change between KvKs when expanded (e.g., "▲3 ranks")
+  - Collapsed question: "Am I climbing or slipping?"
+  - Added rankingHistoryExpanded state for Expand All / Collapse All
+  - Reordered sections: Breakdown → Simulator → Score History → Ranking History → Path → Trend
+Result: Build successful. Kingdom Ranking History now visible on Kingdom Profile page.
+
+## 2026-02-05 16:45 | Product Engineer | COMPLETED
+Task: UX improvement - Experience donut shows full credit state intuitively
+Files:
+  - apps/web/src/components/AtlasScoreBreakdown.tsx
+  - apps/web/src/components/DonutChart.tsx
+Changes:
+  - Experience donut now shows 100% filled green ring with ✓ when 5+ KvKs (full credit)
+  - Sublabel shows "No Penalty" instead of "7 KvKs" for veteran kingdoms
+  - Tooltip updated: "Full experience credit achieved—no penalty applied"
+  - Moved Experience to last position (after History donut)
+  - Added showCheckmark prop to DonutChart component
+Result: Deployed to production. More intuitive UX - full ring = good, empty = penalty.
+
 ## 2026-02-05 16:30 | Product Engineer | COMPLETED
 Task: Audit Atlas Score consistency across all components
 Files:

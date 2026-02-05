@@ -15,6 +15,7 @@ import ReportKvKErrorModal from '../components/ReportKvKErrorModal';
 import MissingKvKPrompt from '../components/MissingKvKPrompt';
 import TrendChart from '../components/TrendChart';
 import ScoreHistoryChart from '../components/ScoreHistoryChart';
+import RankingHistoryChart from '../components/RankingHistoryChart';
 import SimilarKingdoms from '../components/SimilarKingdoms';
 import KingdomPlayers from '../components/KingdomPlayers';
 import ClaimKingdom from '../components/ClaimKingdom';
@@ -67,15 +68,17 @@ const KingdomProfile: React.FC = () => {
   // Expand/collapse all state for collapsible sections
   const [breakdownExpanded, setBreakdownExpanded] = useState(false);
   const [scoreHistoryExpanded, setScoreHistoryExpanded] = useState(false);
+  const [rankingHistoryExpanded, setRankingHistoryExpanded] = useState(false);
   const [simulatorExpanded, setSimulatorExpanded] = useState(false);
   const [pathExpanded, setPathExpanded] = useState(false);
   const [trendExpanded, setTrendExpanded] = useState(false);
   
-  const allExpanded = breakdownExpanded && scoreHistoryExpanded && simulatorExpanded && pathExpanded && trendExpanded;
+  const allExpanded = breakdownExpanded && scoreHistoryExpanded && rankingHistoryExpanded && simulatorExpanded && pathExpanded && trendExpanded;
   const toggleAllSections = () => {
     const newState = !allExpanded;
     setBreakdownExpanded(newState);
     setScoreHistoryExpanded(newState);
+    setRankingHistoryExpanded(newState);
     setSimulatorExpanded(newState);
     setPathExpanded(newState);
     setTrendExpanded(newState);
@@ -1067,6 +1070,13 @@ const KingdomProfile: React.FC = () => {
           onToggle={setBreakdownExpanded}
         />
 
+        {/* Atlas Score Simulator - Pro Feature */}
+        <ScoreSimulator 
+          kingdom={kingdom} 
+          isExpanded={simulatorExpanded}
+          onToggle={setSimulatorExpanded}
+        />
+
         {/* Atlas Score History Chart */}
         <div style={{ marginBottom: isMobile ? '1.25rem' : '1.5rem' }}>
           <ScoreHistoryChart 
@@ -1076,12 +1086,14 @@ const KingdomProfile: React.FC = () => {
           />
         </div>
 
-        {/* Atlas Score Simulator - Pro Feature */}
-        <ScoreSimulator 
-          kingdom={kingdom} 
-          isExpanded={simulatorExpanded}
-          onToggle={setSimulatorExpanded}
-        />
+        {/* Kingdom Ranking History Chart */}
+        <div style={{ marginBottom: isMobile ? '1.25rem' : '1.5rem' }}>
+          <RankingHistoryChart 
+            kingdomNumber={kingdom.kingdom_number} 
+            isExpanded={rankingHistoryExpanded}
+            onToggle={setRankingHistoryExpanded}
+          />
+        </div>
 
         {/* Path to Next Tier - What-If Scenarios */}
         <PathToNextTier 

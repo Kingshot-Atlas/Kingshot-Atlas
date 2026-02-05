@@ -3,7 +3,7 @@ import { scoreHistoryService, ScoreHistoryRecord } from '../services/scoreHistor
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { CHART_WIDTH, CHART_PADDING, CHART_FONTS, CHART_COLORS, POINT_SIZES, X_AXIS_LABEL_OFFSET, X_AXIS_TITLE_OFFSET, Y_AXIS_GRID_COUNT } from '../constants/chartConstants';
 
-interface ScoreHistoryChartProps {
+interface RankingHistoryChartProps {
   kingdomNumber: number;
   height?: number;
   isExpanded?: boolean;
@@ -12,13 +12,12 @@ interface ScoreHistoryChartProps {
 
 interface ChartDataPoint {
   kvk: number;
+  rank: number;
   score: number;
   tier: string;
-  rank: number | null;
-  percentile: number | null;
 }
 
-const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({ 
+const RankingHistoryChart: React.FC<RankingHistoryChartProps> = ({ 
   kingdomNumber, 
   height = 300,
   isExpanded: externalExpanded,
@@ -29,9 +28,8 @@ const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
   const [hoveredPoint, setHoveredPoint] = useState<number | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
   const [internalExpanded, setInternalExpanded] = useState(false);
-  const [pinnedPoint, setPinnedPoint] = useState<number | null>(null); // For mobile tap-to-pin
+  const [pinnedPoint, setPinnedPoint] = useState<number | null>(null);
   
-  // Use external control if provided, otherwise use internal state
   const isExpanded = externalExpanded !== undefined ? externalExpanded : internalExpanded;
   const handleToggle = () => {
     const newState = !isExpanded;
@@ -45,6 +43,9 @@ const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
 
+  // Purple color scheme for ranking
+  const accentColor = CHART_COLORS.rankingHistory;
+
   useEffect(() => {
     const loadHistory = async () => {
       setLoading(true);
@@ -56,20 +57,21 @@ const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
   }, [kingdomNumber]);
 
   const chartData = useMemo((): ChartDataPoint[] => {
-    return history.map((record) => ({
-      kvk: record.kvk_number,
-      score: record.score,
-      tier: record.tier,
-      rank: record.rank_at_time,
-      percentile: record.percentile_rank
-    }));
+    return history
+      .filter((record) => record.rank_at_time !== null)
+      .map((record) => ({
+        kvk: record.kvk_number,
+        rank: record.rank_at_time as number,
+        score: record.score,
+        tier: record.tier
+      }));
   }, [history]);
 
   if (loading) {
     return (
       <div style={{ backgroundColor: '#1a1a20', borderRadius: '12px', padding: '1rem', marginBottom: isMobile ? '1.25rem' : '1.5rem' }}>
         <h4 style={{ margin: '0 0 0.75rem 0', color: '#fff', fontSize: '0.9rem', fontWeight: '600', textAlign: 'center' }}>
-          Atlas Score History
+          Kingdom Ranking History
         </h4>
         <div style={{
           height: height - 60,
@@ -79,7 +81,7 @@ const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
           color: '#6b7280',
           fontSize: '0.85rem'
         }}>
-          Loading score history...
+          Loading ranking history...
         </div>
       </div>
     );
@@ -89,7 +91,7 @@ const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
     return (
       <div style={{ backgroundColor: '#1a1a20', borderRadius: '12px', padding: '1rem', marginBottom: isMobile ? '1.25rem' : '1.5rem' }}>
         <h4 style={{ margin: '0 0 0.75rem 0', color: '#fff', fontSize: '0.9rem', fontWeight: '600', textAlign: 'center' }}>
-          Atlas Score History
+          Kingdom Ranking History
         </h4>
         <div style={{
           height: height - 60,
@@ -100,7 +102,7 @@ const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
           fontSize: '0.85rem'
         }}>
           {chartData.length === 0 
-            ? 'No score history available yet' 
+            ? 'No ranking history available yet' 
             : 'Need at least 2 KvKs for trend data'}
         </div>
       </div>
@@ -112,31 +114,32 @@ const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
   const chartWidth = width - padding.left - padding.right;
   const chartHeight = height - padding.top - padding.bottom;
 
-  // Fixed Y-axis range: 0 to 15 (max possible Atlas Score)
-  const minScore = 0;
-  const maxScore = 15;
-  const scoreRange = maxScore - minScore;
+  // Calculate rank range - always start at #1 (top of chart)
+  // Lower rank number = better, so rank 1 is at TOP
+  const ranks = chartData.map(d => d.rank);
+  const minRank = 1; // Always fixed at #1
+  const maxRank = Math.max(...ranks) + 3; // Some padding below worst rank
+  const rankRange = maxRank - minRank;
 
   const xScale = (index: number) => 
     padding.left + (chartData.length > 1 ? (index / (chartData.length - 1)) * chartWidth : chartWidth / 2);
   
-  const yScale = (score: number) => 
-    padding.top + ((maxScore - score) / scoreRange) * chartHeight;
+  // Y-axis inverted: lower rank (better) = higher on chart
+  const yScale = (rank: number) => 
+    padding.top + ((rank - minRank) / rankRange) * chartHeight;
 
-  // Generate path for line
   const generatePath = () => {
     return chartData.map((d, i) => {
       const x = xScale(i);
-      const y = yScale(d.score);
+      const y = yScale(d.rank);
       return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
     }).join(' ');
   };
 
-  // Generate area path for gradient fill
   const generateAreaPath = () => {
     const linePath = chartData.map((d, i) => {
       const x = xScale(i);
-      const y = yScale(d.score);
+      const y = yScale(d.rank);
       return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
     }).join(' ');
     
@@ -147,51 +150,43 @@ const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
     return `${linePath} L ${lastX} ${bottom} L ${firstX} ${bottom} Z`;
   };
 
-  // Calculate change from previous KvK to last KvK (not overall change)
-  const prevScore = chartData.length >= 2 ? chartData[chartData.length - 2]?.score ?? 0 : 0;
-  const lastScore = chartData[chartData.length - 1]?.score ?? 0;
-  const lastKvkChange = lastScore - prevScore;
+  // Calculate change from previous KvK to last KvK
+  const prevRank = chartData.length >= 2 ? chartData[chartData.length - 2]?.rank ?? 0 : 0;
+  const lastRank = chartData[chartData.length - 1]?.rank ?? 0;
+  const lastKvkChange = prevRank - lastRank; // Positive = improved (moved up in ranking)
   const prevKvk = chartData.length >= 2 ? chartData[chartData.length - 2]?.kvk : null;
   const lastKvk = chartData[chartData.length - 1]?.kvk;
+  // Green if improved (positive change), red if declined, gray if same
   const trendColor = lastKvkChange > 0 ? '#22c55e' : lastKvkChange < 0 ? '#ef4444' : '#6b7280';
 
-  // Get active point (pinned on mobile, hovered on desktop)
   const activePoint = isMobile ? pinnedPoint : hoveredPoint;
   const activeData = activePoint !== null ? chartData[activePoint] : null;
 
-  // Handle mobile tap on data point
   const handlePointTap = (index: number) => {
     if (pinnedPoint === index) {
-      // Tapping same point dismisses tooltip
       setPinnedPoint(null);
       setTooltipPos(null);
     } else {
-      // Pin new point
       setPinnedPoint(index);
       setTooltipPos(getTooltipPosition(index));
     }
   };
 
-  // Handle tap outside chart area to dismiss tooltip on mobile
   const handleChartAreaClick = (e: React.MouseEvent) => {
-    // Only dismiss if clicking on the chart area itself, not on a data point
     if ((e.target as SVGElement).tagName === 'svg') {
       setPinnedPoint(null);
       setTooltipPos(null);
     }
   };
 
-  // Calculate tooltip position in screen coordinates
   const getTooltipPosition = (index: number) => {
     if (!svgRef.current) return { x: 0, y: 0 };
     const svgRect = svgRef.current.getBoundingClientRect();
     
-    // SVG viewBox coordinates
     const svgX = padding.left + (chartData.length > 1 ? (index / (chartData.length - 1)) * chartWidth : chartWidth / 2);
-    const score = chartData[index]?.score ?? 0;
-    const svgY = padding.top + ((maxScore - score) / scoreRange) * chartHeight;
+    const rank = chartData[index]?.rank ?? 0;
+    const svgY = padding.top + ((rank - minRank) / rankRange) * chartHeight;
     
-    // Convert SVG coordinates to actual rendered pixel coordinates relative to SVG element
     const scaleX = svgRect.width / width;
     const scaleY = svgRect.height / height;
     
@@ -218,11 +213,11 @@ const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
         }}
       >
         <h4 style={{ margin: 0, color: '#fff', fontSize: '0.9rem', fontWeight: '600', textAlign: 'center' }}>
-          Atlas Score History
+          Kingdom Ranking History
         </h4>
         {!isExpanded && (
           <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>
-            &quot;How has my score evolved?&quot;
+            &quot;Am I climbing or slipping?&quot;
           </span>
         )}
         {isExpanded && chartData.length >= 2 && prevKvk && lastKvk && (
@@ -241,7 +236,7 @@ const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
               gap: '0.25rem'
             }}>
               {lastKvkChange > 0 ? '▲' : lastKvkChange < 0 ? '▼' : '—'}
-              {Math.abs(lastKvkChange).toFixed(2)}
+              {Math.abs(lastKvkChange)} {Math.abs(lastKvkChange) === 1 ? 'rank' : 'ranks'}
             </span>
           </div>
         )}
@@ -268,129 +263,126 @@ const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
       {isExpanded && (
         <div style={{ padding: isMobile ? '1rem' : '1.25rem', position: 'relative' }}>
           <svg 
-        ref={svgRef}
-        viewBox={`0 0 ${width} ${height}`} 
-        style={{ width: '100%', height: 'auto' }}
-        preserveAspectRatio="xMidYMid meet"
-        onClick={isMobile ? handleChartAreaClick : undefined}
-      >
-          <defs>
-            <linearGradient id={`scoreGradient-${kingdomNumber}`} x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#22d3ee" stopOpacity="0.3" />
-              <stop offset="100%" stopColor="#22d3ee" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-
-          {/* Grid lines - 5 evenly spaced */}
-          {Array.from({ length: Y_AXIS_GRID_COUNT }, (_, i) => i / (Y_AXIS_GRID_COUNT - 1)).map((pct, i) => {
-            const y = padding.top + chartHeight * pct;
-            const score = maxScore - scoreRange * pct;
-            return (
-              <g key={i}>
-                <line
-                  x1={padding.left}
-                  y1={y}
-                  x2={padding.left + chartWidth}
-                  y2={y}
-                  stroke={CHART_COLORS.gridLine}
-                  strokeDasharray="3,3"
-                />
-                <text
-                  x={padding.left - 10}
-                  y={y + 4}
-                  fill={CHART_COLORS.axisLabel}
-                  fontSize={CHART_FONTS.axisLabel}
-                  textAnchor="end"
-                >
-                  {score.toFixed(1)}
-                </text>
-              </g>
-            );
-          })}
-
-          {/* Area fill */}
-          <path
-            d={generateAreaPath()}
-            fill={`url(#scoreGradient-${kingdomNumber})`}
-          />
-
-          {/* Line */}
-          <path
-            d={generatePath()}
-            fill="none"
-            stroke={CHART_COLORS.scoreHistory}
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-
-          {/* X-axis title */}
-          <text
-            x={padding.left + chartWidth / 2}
-            y={padding.top + chartHeight + X_AXIS_TITLE_OFFSET}
-            fill={CHART_COLORS.axisTitle}
-            fontSize={CHART_FONTS.axisTitle}
-            textAnchor="middle"
+            ref={svgRef}
+            viewBox={`0 0 ${width} ${height}`} 
+            style={{ width: '100%', height: 'auto' }}
+            preserveAspectRatio="xMidYMid meet"
+            onClick={isMobile ? handleChartAreaClick : undefined}
           >
-            KvKs
-          </text>
+            <defs>
+              <linearGradient id={`rankGradient-${kingdomNumber}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor={accentColor} stopOpacity="0.3" />
+                <stop offset="100%" stopColor={accentColor} stopOpacity="0" />
+              </linearGradient>
+            </defs>
 
-          {/* Data points */}
-          {chartData.map((d, i) => {
-            const x = xScale(i);
-            const y = yScale(d.score);
-            const isActive = activePoint === i;
-            const sizes = isMobile ? POINT_SIZES.mobile : POINT_SIZES.desktop;
-            const hitAreaRadius = sizes.hitArea;
-            const pointRadius = isActive ? sizes.active : sizes.normal;
+            {/* Grid lines - 5 evenly spaced */}
+            {Array.from({ length: Y_AXIS_GRID_COUNT }, (_, i) => i / (Y_AXIS_GRID_COUNT - 1)).map((pct, i) => {
+              const y = padding.top + chartHeight * pct;
+              const rank = Math.round(minRank + rankRange * pct);
+              return (
+                <g key={i}>
+                  <line
+                    x1={padding.left}
+                    y1={y}
+                    x2={padding.left + chartWidth}
+                    y2={y}
+                    stroke={CHART_COLORS.gridLine}
+                    strokeDasharray="3,3"
+                  />
+                  <text
+                    x={padding.left - 10}
+                    y={y + 4}
+                    fill={CHART_COLORS.axisLabel}
+                    fontSize={CHART_FONTS.axisLabel}
+                    textAnchor="end"
+                  >
+                    #{rank}
+                  </text>
+                </g>
+              );
+            })}
 
-            return (
-              <g key={i}>
-                {/* Touch/hover area - larger on mobile for easier tapping */}
-                <circle
-                  cx={x}
-                  cy={y}
-                  r={hitAreaRadius}
-                  fill="transparent"
-                  style={{ cursor: 'pointer' }}
-                  onClick={isMobile ? () => handlePointTap(i) : undefined}
-                  onMouseEnter={!isMobile ? () => {
-                    setHoveredPoint(i);
-                    setTooltipPos(getTooltipPosition(i));
-                  } : undefined}
-                  onMouseLeave={!isMobile ? () => {
-                    setHoveredPoint(null);
-                    setTooltipPos(null);
-                  } : undefined}
-                />
-                
-                {/* Visible point */}
-                <circle
-                  cx={x}
-                  cy={y}
-                  r={pointRadius}
-                  fill={CHART_COLORS.scoreHistory}
-                  stroke="#0a0a0a"
-                  strokeWidth="2"
-                  style={{ transition: 'r 0.15s ease', pointerEvents: 'none' }}
-                />
+            {/* Area fill */}
+            <path
+              d={generateAreaPath()}
+              fill={`url(#rankGradient-${kingdomNumber})`}
+            />
 
-                {/* X-axis label - just the number */}
-                <text
-                  x={x}
-                  y={padding.top + chartHeight + X_AXIS_LABEL_OFFSET}
-                  fill={CHART_COLORS.axisLabel}
-                  fontSize={CHART_FONTS.axisLabel}
-                  textAnchor="middle"
-                >
-                  {d.kvk}
-                </text>
-              </g>
-            );
-          })}
+            {/* Line */}
+            <path
+              d={generatePath()}
+              fill="none"
+              stroke={accentColor}
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+
+            {/* X-axis title */}
+            <text
+              x={padding.left + chartWidth / 2}
+              y={padding.top + chartHeight + X_AXIS_TITLE_OFFSET}
+              fill={CHART_COLORS.axisTitle}
+              fontSize={CHART_FONTS.axisTitle}
+              textAnchor="middle"
+            >
+              KvKs
+            </text>
+
+            {/* Data points */}
+            {chartData.map((d, i) => {
+              const x = xScale(i);
+              const y = yScale(d.rank);
+              const isActive = activePoint === i;
+              const sizes = isMobile ? POINT_SIZES.mobile : POINT_SIZES.desktop;
+              const hitAreaRadius = sizes.hitArea;
+              const pointRadius = isActive ? sizes.active : sizes.normal;
+
+              return (
+                <g key={i}>
+                  <circle
+                    cx={x}
+                    cy={y}
+                    r={hitAreaRadius}
+                    fill="transparent"
+                    style={{ cursor: 'pointer' }}
+                    onClick={isMobile ? () => handlePointTap(i) : undefined}
+                    onMouseEnter={!isMobile ? () => {
+                      setHoveredPoint(i);
+                      setTooltipPos(getTooltipPosition(i));
+                    } : undefined}
+                    onMouseLeave={!isMobile ? () => {
+                      setHoveredPoint(null);
+                      setTooltipPos(null);
+                    } : undefined}
+                  />
+                  
+                  <circle
+                    cx={x}
+                    cy={y}
+                    r={pointRadius}
+                    fill={accentColor}
+                    stroke="#0a0a0a"
+                    strokeWidth="2"
+                    style={{ transition: 'r 0.15s ease', pointerEvents: 'none' }}
+                  />
+
+                  <text
+                    x={x}
+                    y={padding.top + chartHeight + X_AXIS_LABEL_OFFSET}
+                    fill={CHART_COLORS.axisLabel}
+                    fontSize={CHART_FONTS.axisLabel}
+                    textAnchor="middle"
+                  >
+                    {d.kvk}
+                  </text>
+                </g>
+              );
+            })}
           </svg>
 
-          {/* HTML Tooltip - rendered outside SVG to prevent clipping */}
+          {/* HTML Tooltip */}
           {activePoint !== null && activeData && tooltipPos && (
             <div
               style={{
@@ -399,7 +391,7 @@ const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
                 top: tooltipPos.y,
                 transform: 'translate(-50%, calc(-100% - 12px))',
                 backgroundColor: '#0a0a0a',
-                border: `1px solid ${CHART_COLORS.scoreHistory}`,
+                border: `1px solid ${accentColor}`,
                 borderRadius: '6px',
                 padding: isMobile ? '10px 14px' : '8px 12px',
                 zIndex: 1000,
@@ -410,11 +402,10 @@ const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
               onClick={isMobile ? (e) => e.stopPropagation() : undefined}
             >
               <div style={{ color: '#fff', fontSize: isMobile ? '12px' : '11px', fontWeight: '600', textAlign: 'center' }}>
-                {activeData.score.toFixed(2)}
+                Rank #{activeData.rank}
               </div>
               <div style={{ color: '#6b7280', fontSize: isMobile ? '11px' : '10px', textAlign: 'center' }}>
-                After KvK {activeData.kvk}
-                {activeData.percentile !== null && ` • Top ${(100 - activeData.percentile).toFixed(1)}%`}
+                After KvK {activeData.kvk} • Score: {activeData.score.toFixed(2)}
               </div>
               {isMobile && (
                 <div style={{ color: '#4b5563', fontSize: '9px', textAlign: 'center', marginTop: '4px' }}>
@@ -429,4 +420,4 @@ const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
   );
 };
 
-export default ScoreHistoryChart;
+export default RankingHistoryChart;

@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { KVKRecord } from '../types';
 import { useIsMobile } from '../hooks/useMediaQuery';
+import { CHART_WIDTH, CHART_PADDING, CHART_FONTS, CHART_COLORS, X_AXIS_LABEL_OFFSET, X_AXIS_TITLE_OFFSET, Y_AXIS_GRID_COUNT } from '../constants/chartConstants';
 
 interface TrendChartProps {
   kvkRecords: KVKRecord[];
@@ -74,8 +75,8 @@ const TrendChart: React.FC<TrendChartProps> = ({
     );
   }
 
-  const width = 400;
-  const padding = { top: 30, right: 30, bottom: 40, left: 50 };
+  const width = CHART_WIDTH;
+  const padding = CHART_PADDING;
   const chartWidth = width - padding.left - padding.right;
   const chartHeight = height - padding.top - padding.bottom;
 
@@ -206,23 +207,23 @@ const TrendChart: React.FC<TrendChartProps> = ({
           </filter>
         </defs>
 
-        {/* Grid lines */}
-        {[0, 25, 50, 75, 100].map(val => (
+        {/* Grid lines - 5 evenly spaced */}
+        {Array.from({ length: Y_AXIS_GRID_COUNT }, (_, i) => i * (100 / (Y_AXIS_GRID_COUNT - 1))).map(val => (
           <g key={val}>
             <line
               x1={padding.left}
               y1={yScale(val)}
               x2={width - padding.right}
               y2={yScale(val)}
-              stroke="#2a2a35"
+              stroke={CHART_COLORS.gridLine}
               strokeWidth="0.5"
               strokeDasharray={val === 50 ? "none" : "2,4"}
             />
             <text
               x={padding.left - 10}
               y={yScale(val)}
-              fill="#6b7280"
-              fontSize="10"
+              fill={CHART_COLORS.axisLabel}
+              fontSize={CHART_FONTS.axisLabel}
               textAnchor="end"
               dominantBaseline="middle"
             >
@@ -231,18 +232,29 @@ const TrendChart: React.FC<TrendChartProps> = ({
           </g>
         ))}
 
-        {/* X-axis labels */}
+        {/* X-axis title */}
+        <text
+          x={padding.left + chartWidth / 2}
+          y={padding.top + chartHeight + X_AXIS_TITLE_OFFSET}
+          fill={CHART_COLORS.axisTitle}
+          fontSize={CHART_FONTS.axisTitle}
+          textAnchor="middle"
+        >
+          KvKs
+        </text>
+
+        {/* X-axis labels - just numbers */}
         {chartData.map((d, i) => (
           <text
             key={i}
             x={xScale(i)}
-            y={height - 10}
-            fill="#6b7280"
-            fontSize="10"
+            y={padding.top + chartHeight + X_AXIS_LABEL_OFFSET}
+            fill={CHART_COLORS.axisLabel}
+            fontSize={CHART_FONTS.axisLabel}
             textAnchor="middle"
             fontWeight="500"
           >
-            KvK{d.kvk}
+            {d.kvk}
           </text>
         ))}
 
