@@ -520,3 +520,152 @@ async def leave_server(server_id: str, _: bool = Depends(verify_api_key)):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/discord-diagnostic")
+async def discord_diagnostic(_: bool = Depends(verify_api_key)):
+    """
+    Diagnostic endpoint to debug Discord API connectivity issues.
+    Tests bot token, guild membership, and role management permissions.
+    """
+    from api.discord_role_sync import DISCORD_GUILD_ID, DISCORD_SETTLER_ROLE_ID
+    
+    results = {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "config": {
+            "bot_token_set": bool(DISCORD_BOT_TOKEN),
+            "bot_token_length": len(DISCORD_BOT_TOKEN) if DISCORD_BOT_TOKEN else 0,
+            "guild_id": DISCORD_GUILD_ID,
+            "settler_role_id": DISCORD_SETTLER_ROLE_ID,
+        },
+        "tests": {},
+    }
+    
+    if not DISCORD_BOT_TOKEN:
+        results["tests"]["token"] = {"status": "FAIL", "error": "DISCORD_BOT_TOKEN not set"}
+        return results
+    
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            # Test 1: Verify bot token by getting bot user
+            bot_response = await client.get(
+                "https://discord.com/api/v10/users/@me",
+                headers={"Authorization": f"Bot {DISCORD_BOT_TOKEN}"}
+            )
+            
+            if bot_response.status_code == 200:
+                bot_data = bot_response.json()
+                results["tests"]["bot_token"] = {
+                    "status": "PASS",
+                    "bot_name": bot_data.get("username"),
+                    "bot_id": bot_data.get("id"),
+                }
+            elif bot_response.status_code == 401:
+                results["tests"]["bot_token"] = {
+                    "status": "FAIL",
+                    "error": "Invalid token (401 Unauthorized)",
+                    "hint": "Token may be revoked or incorrect"
+                }
+                return results
+            elif bot_response.status_code == 429:
+                results["tests"]["bot_token"] = {
+                    "status": "RATE_LIMITED",
+                    "error": f"Rate limited (429)",
+                    "retry_after": bot_response.headers.get("Retry-After", "unknown")
+                }
+                return results
+            else:
+                results["tests"]["bot_token"] = {
+                    "status": "FAIL",
+                    "error": f"HTTP {bot_response.status_code}: {bot_response.text[:200]}"
+                }
+                return results
+            
+            # Test 2: Check if bot is in the target guild
+            if DISCORD_GUILD_ID:
+                guild_response = await client.get(
+                    f"https://discord.com/api/v10/guilds/{DISCORD_GUILD_ID}",
+                    headers={"Authorization": f"Bot {DISCORD_BOT_TOKEN}"}
+                )
+                
+                if guild_response.status_code == 200:
+                    guild_data = guild_response.json()
+                    results["tests"]["guild_membership"] = {
+                        "status": "PASS",
+                        "guild_name": guild_data.get("name"),
+                        "member_count": guild_data.get("approximate_member_count"),
+                    }
+                elif guild_response.status_code == 403:
+                    results["tests"]["guild_membership"] = {
+                        "status": "FAIL",
+                        "error": "Bot not in guild or lacks access (403)"
+                    }
+                else:
+                    results["tests"]["guild_membership"] = {
+                        "status": "FAIL",
+                        "error": f"HTTP {guild_response.status_code}"
+                    }
+            
+            # Test 3: Check bot's roles in guild (to verify Manage Roles permission)
+            if DISCORD_GUILD_ID:
+                bot_id = results["tests"].get("bot_token", {}).get("bot_id")
+                if bot_id:
+                    member_response = await client.get(
+                        f"https://discord.com/api/v10/guilds/{DISCORD_GUILD_ID}/members/{bot_id}",
+                        headers={"Authorization": f"Bot {DISCORD_BOT_TOKEN}"}
+                    )
+                    
+                    if member_response.status_code == 200:
+                        member_data = member_response.json()
+                        results["tests"]["bot_guild_roles"] = {
+                            "status": "PASS",
+                            "role_count": len(member_data.get("roles", [])),
+                            "role_ids": member_data.get("roles", [])[:5],  # First 5 roles
+                        }
+                    else:
+                        results["tests"]["bot_guild_roles"] = {
+                            "status": "FAIL",
+                            "error": f"HTTP {member_response.status_code}"
+                        }
+            
+            # Test 4: Check if Settler role exists
+            if DISCORD_GUILD_ID and DISCORD_SETTLER_ROLE_ID:
+                roles_response = await client.get(
+                    f"https://discord.com/api/v10/guilds/{DISCORD_GUILD_ID}/roles",
+                    headers={"Authorization": f"Bot {DISCORD_BOT_TOKEN}"}
+                )
+                
+                if roles_response.status_code == 200:
+                    roles = roles_response.json()
+                    settler_role = next((r for r in roles if r["id"] == DISCORD_SETTLER_ROLE_ID), None)
+                    if settler_role:
+                        results["tests"]["settler_role"] = {
+                            "status": "PASS",
+                            "role_name": settler_role.get("name"),
+                            "role_position": settler_role.get("position"),
+                        }
+                    else:
+                        results["tests"]["settler_role"] = {
+                            "status": "FAIL",
+                            "error": f"Role {DISCORD_SETTLER_ROLE_ID} not found in guild"
+                        }
+                else:
+                    results["tests"]["settler_role"] = {
+                        "status": "FAIL",
+                        "error": f"HTTP {roles_response.status_code}"
+                    }
+                    
+    except Exception as e:
+        results["tests"]["connection"] = {
+            "status": "FAIL",
+            "error": str(e)
+        }
+    
+    # Overall status
+    all_pass = all(
+        t.get("status") == "PASS" 
+        for t in results["tests"].values()
+    )
+    results["overall"] = "HEALTHY" if all_pass else "ISSUES_DETECTED"
+    
+    return results
