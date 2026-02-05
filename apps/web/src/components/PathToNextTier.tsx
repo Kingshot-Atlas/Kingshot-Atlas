@@ -72,7 +72,9 @@ const PathToNextTier: React.FC<PathToNextTierProps> = ({ kingdom, isExpanded: ex
   const analysis = useMemo(() => {
     const stats = extractStatsFromProfile(kingdom);
     const breakdown = calculateAtlasScore(stats);
-    const currentScore = breakdown.finalScore;
+    // Use Supabase score if available, otherwise fall back to calculated score
+    // This ensures pointsNeeded calculation matches the displayed score
+    const currentScore = kingdom.overall_score ?? breakdown.finalScore;
     const currentTier = breakdown.tier;
     
     // Get tiers above current

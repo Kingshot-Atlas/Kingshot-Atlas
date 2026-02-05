@@ -9,6 +9,27 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-05 16:20 | Release Manager | COMPLETED
+Task: Publish February 5, 2026 Patch Notes
+Files:
+  - docs/releases/PATCH_NOTES_2026-02-05.md (new)
+  - docs/CHANGELOG.md (updated)
+Changes:
+  - Documented KvK Seasons page (new feature)
+  - Documented Kingdom Profile overhaul (Score History, Breakdown, Simulator, Path to Next Tier)
+  - Documented Atlas Score 2 decimal places precision
+  - Documented bug fixes (phase winners, score history accuracy, corrections)
+  - Documented security improvements
+Note: Discord #patch-notes posting skipped (Atlas Bot currently down)
+Result: Changelog updated on website
+
+## 2026-02-05 16:17 | Product Engineer | COMPLETED
+Task: Fix Path to Next Tier pointsNeeded calculation mismatch
+Files:
+  - apps/web/src/components/PathToNextTier.tsx - Use kingdom.overall_score for pointsNeeded calculation
+Root Cause: Component calculated pointsNeeded using locally-computed score (breakdown.finalScore) but displayed kingdom.overall_score from Supabase. When these differed, the math didn't visually add up (showed +0.44 pts when 0.72 pts was correct).
+Result: Now uses consistent score source. Build verified locally.
+
 ## 2026-02-05 12:45 | Platform Engineer | COMPLETED
 Task: Fix Discord Settler role sync not assigning roles
 Files:
