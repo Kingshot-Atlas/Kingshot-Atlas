@@ -127,7 +127,7 @@ jobs:
           REACT_APP_API_URL: ${{ vars.REACT_APP_API_URL || 'https://api.ks-atlas.com' }}
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: build
           path: apps/web/dist
@@ -175,7 +175,7 @@ jobs:
           CI: true
 
       - name: Upload Playwright report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: ${{ !cancelled() }}
         with:
           name: playwright-report
@@ -184,7 +184,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: ${{ failure() && !cancelled() }}
         with:
           name: playwright-results
