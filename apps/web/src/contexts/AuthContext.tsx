@@ -93,6 +93,28 @@ export const getCacheBustedAvatarUrl = (url: string | undefined): string => {
   }
 };
 
+// Extract Discord ID and username from Supabase auth metadata for Discord-authenticated users
+const getDiscordInfoFromAuth = (user: User): { discordId: string | null; discordUsername: string | null } => {
+  // Check if user logged in via Discord
+  const provider = user.app_metadata?.provider || user.app_metadata?.providers?.[0];
+  if (provider !== 'discord') {
+    return { discordId: null, discordUsername: null };
+  }
+  
+  // Extract Discord ID from avatar URL: https://cdn.discordapp.com/avatars/332218895765209089/...
+  const avatarUrl = user.user_metadata?.avatar_url || '';
+  const discordAvatarMatch = avatarUrl.match(/cdn\.discordapp\.com\/avatars\/(\d+)\//);
+  const discordId = discordAvatarMatch?.[1] || null;
+  
+  // Get username from metadata
+  const discordUsername = user.user_metadata?.full_name || 
+                          user.user_metadata?.name || 
+                          user.user_metadata?.custom_claims?.global_name ||
+                          null;
+  
+  return { discordId, discordUsername };
+};
+
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -199,6 +221,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         );
         // Generate random username for new users (will be replaced when they link Kingshot account)
         const username = generateRandomUsername();
+        
+        // Auto-populate Discord info if user logged in via Discord
+        const { discordId, discordUsername } = getDiscordInfoFromAuth(user);
 
         const newProfile: UserProfile = {
           id: user.id,
@@ -213,7 +238,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           theme_color: '#22d3ee',
           badge_style: 'default',
           created_at: new Date().toISOString(),
-          is_admin: false
+          is_admin: false,
+          discord_id: discordId,
+          discord_username: discordUsername,
+          discord_linked_at: discordId ? new Date().toISOString() : null
         };
 
         const { data: created, error: createError } = await supabase
@@ -312,6 +340,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         
         logger.info('Final avatar URL:', avatarUrl);
         
+        // Auto-populate Discord info for Discord-authenticated users who don't have it set
+        let discordData: { discord_id?: string | null; discord_username?: string | null; discord_linked_at?: string | null } = {};
+        if (!data.discord_id) {
+          const { discordId, discordUsername } = getDiscordInfoFromAuth(user);
+          if (discordId) {
+            discordData = {
+              discord_id: discordId,
+              discord_username: discordUsername,
+              discord_linked_at: new Date().toISOString()
+            };
+            logger.info('Auto-populated Discord info from auth:', discordData);
+            // Update the database with Discord info
+            supabase.from('profiles').update(discordData).eq('id', user.id).then(({ error: updateError }) => {
+              if (updateError) logger.error('Failed to save Discord info:', updateError);
+            });
+          }
+        }
+        
         // Merge with cached linked player data (prioritize cache over null DB values)
         const cached = localStorage.getItem(PROFILE_KEY);
         let linkedPlayerData = {};
@@ -334,10 +380,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           }
         }
         
-        const updatedProfile = { ...data, avatar_url: avatarUrl, ...linkedPlayerData };
+        const updatedProfile = { ...data, avatar_url: avatarUrl, ...linkedPlayerData, ...discordData };
         setProfile(updatedProfile);
         localStorage.setItem(PROFILE_KEY, JSON.stringify(updatedProfile));
-        logger.info('Profile loaded:', { hasAvatar: !!avatarUrl, hasLinkedPlayer: !!(updatedProfile.linked_username) });
+        logger.info('Profile loaded:', { hasAvatar: !!avatarUrl, hasLinkedPlayer: !!(updatedProfile.linked_username), hasDiscord: !!(updatedProfile.discord_id) });
       }
     } catch (err) {
       logger.error('Error fetching profile:', err);

@@ -73,8 +73,13 @@ async def add_role_to_member(discord_user_id: str, role_id: str) -> bool:
         elif response.status_code == 404:
             print(f"⚠️ Discord user {discord_user_id} not found in guild {DISCORD_GUILD_ID}")
             return False
+        elif response.status_code == 403:
+            print(f"❌ Bot lacks permission to manage roles. Status: 403 - {response.text}")
+            print(f"   Guild: {DISCORD_GUILD_ID}, User: {discord_user_id}, Role: {role_id}")
+            return False
         else:
             print(f"❌ Failed to add role: {response.status_code} - {response.text}")
+            print(f"   URL: {url}")
             return False
             
     except Exception as e:
@@ -264,13 +269,18 @@ async def assign_settler_role(discord_user_id: str) -> dict:
     
     success = await add_role_to_member(discord_user_id, DISCORD_SETTLER_ROLE_ID)
     
-    return {
+    result = {
         "success": success,
         "configured": True,
         "discord_user_id": discord_user_id,
         "role": "Settler",
         "role_id": DISCORD_SETTLER_ROLE_ID,
     }
+    
+    if not success:
+        result["error"] = "Discord API call failed - user may not be in server or bot lacks permissions"
+    
+    return result
 
 
 async def remove_settler_role(discord_user_id: str) -> dict:

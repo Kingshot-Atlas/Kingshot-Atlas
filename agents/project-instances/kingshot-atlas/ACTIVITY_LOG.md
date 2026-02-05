@@ -9,6 +9,37 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-05 12:45 | Platform Engineer | COMPLETED
+Task: Fix Discord Settler role sync not assigning roles
+Files:
+  - apps/api/api/supabase_client.py - Fixed query to use not_.is_("column", "null") instead of neq("column", "null")
+  - apps/api/api/discord_role_sync.py - Added error message when role assignment fails, improved 403 logging
+  - apps/web/src/contexts/AuthContext.tsx - Auto-populate discord_id from Supabase auth metadata for Discord-auth users
+Root Cause: 
+  1. Supabase query used neq("discord_id", "null") which checks string "null", not SQL NULL
+  2. discord_id wasn't being auto-populated for users who logged in via Discord OAuth
+  3. Missing DISCORD_BOT_TOKEN and DISCORD_GUILD_ID in Render API env vars (user added these)
+  4. Atlas bot role lacked "Manage Roles" permission (user enabled this)
+Result: Code fixes complete. Requires commit+push to deploy API changes to Render.
+
+## 2026-02-05 12:10 | Platform Engineer | COMPLETED
+Task: Fix Discord role sync "not configured" error
+Files:
+  - apps/web/.env - Added VITE_DISCORD_CLIENT_ID=1465531618965061672
+  - apps/web/.env.example - Documented VITE_DISCORD_CLIENT_ID variable
+Root Cause: discordService.isConfigured() returned false because VITE_DISCORD_CLIENT_ID env var was missing from web app .env file (existed in discord-bot .env but not web app)
+Result: Build successful. Discord OAuth link button now initiates OAuth flow instead of showing error toast.
+
+## 2026-02-05 11:55 | Product Engineer | COMPLETED
+Task: Fix KvK outcome labels in submission form
+Files:
+  - apps/web/src/components/PostKvKSubmission.tsx
+Changes:
+  - L/L → "Invasion" (was "Defeat")
+  - W/L → "Reversal" (was "Prep Win")  
+  - L/W → "Comeback" (was "Battle Win")
+Result: Committed and pushed to GitHub. CI/CD will deploy to ks-atlas.com
+
 ## 2026-02-05 11:45 | Platform Engineer | COMPLETED
 Task: Security Assessment Implementation - All 3 Options (Safe Tasks Only)
 Files:
