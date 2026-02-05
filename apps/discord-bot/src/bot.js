@@ -115,20 +115,29 @@ function startSelfPing() {
 
 // Startup logging
 console.log('🚀 Atlas Discord Bot starting...');
-console.log(`� ${new Date().toISOString()}`);
+console.log(`📅 ${new Date().toISOString()}`);
 console.log(`🔧 Node ${process.version}`);
 console.log(`🌐 API URL: ${config.apiUrl || 'NOT SET'}`);
 
+// Log which token env var is being used (for debugging)
+const tokenSource = process.env.DISCORD_TOKEN ? 'DISCORD_TOKEN' : 
+                    process.env.DISCORD_BOT_TOKEN ? 'DISCORD_BOT_TOKEN' : 'NONE';
+console.log(`🔑 Token source: ${tokenSource}`);
+
 // Validate configuration
 if (!config.token || !config.clientId) {
-  console.error('❌ Missing DISCORD_TOKEN or DISCORD_CLIENT_ID');
-  console.log('Token present:', !!config.token);
-  console.log('Client ID present:', !!config.clientId);
-  console.log('Guild ID present:', !!config.guildId);
+  console.error('❌ Missing Discord credentials');
+  console.log('   DISCORD_TOKEN present:', !!process.env.DISCORD_TOKEN);
+  console.log('   DISCORD_BOT_TOKEN present:', !!process.env.DISCORD_BOT_TOKEN);
+  console.log('   DISCORD_CLIENT_ID present:', !!config.clientId);
+  console.log('   DISCORD_GUILD_ID present:', !!config.guildId);
+  console.log('');
+  console.log('   Please set either DISCORD_TOKEN or DISCORD_BOT_TOKEN in environment');
   process.exit(1);
 }
 
 console.log('✅ Configuration validated');
+console.log(`   Token length: ${config.token.length} chars`);
 
 // Initialize Discord client
 // Note: GuildMembers intent removed - requires privileged intent in Discord Developer Portal
@@ -200,6 +209,24 @@ client.on('shardResume', (id, replayedEvents) => {
   console.log(`✅ Shard ${id} resumed (${replayedEvents} events replayed)`);
   botReady = true;
   lastHeartbeat = Date.now();
+});
+
+// Event: Shard error - critical for diagnosing connection issues
+client.on('shardError', (error, shardId) => {
+  console.error(`❌ Shard ${shardId} error:`, error.message);
+  console.error('   Code:', error.code);
+});
+
+// Event: Shard disconnect
+client.on('shardDisconnect', (event, shardId) => {
+  console.warn(`⚠️ Shard ${shardId} disconnected. Code: ${event.code}, Clean: ${event.wasClean}`);
+  botReady = false;
+});
+
+// Event: Invalidated session - token may be invalid
+client.on('invalidated', () => {
+  console.error('❌ Session invalidated - token may be invalid or revoked');
+  botReady = false;
 });
 
 // Startup API connectivity test (runs once after client ready)
@@ -364,6 +391,28 @@ async function main() {
   } catch (loginError) {
     console.error('❌ Discord login failed:', loginError.message);
     console.error('   Code:', loginError.code);
+    
+    // Provide helpful error messages for common issues
+    if (loginError.code === 'TOKEN_INVALID' || loginError.message.includes('invalid token')) {
+      console.error('');
+      console.error('   🔧 TOKEN INVALID - Common causes:');
+      console.error('   1. Token was reset in Discord Developer Portal');
+      console.error('   2. Wrong token copied (use Bot token, not Client Secret)');
+      console.error('   3. Token has extra whitespace or newlines');
+      console.error('   4. Environment variable not properly set in Render');
+      console.error('');
+      console.error('   To fix: Go to Discord Developer Portal > Your App > Bot > Reset Token');
+      console.error('   Then update DISCORD_TOKEN or DISCORD_BOT_TOKEN in Render');
+    } else if (loginError.code === 'DISALLOWED_INTENTS') {
+      console.error('');
+      console.error('   🔧 DISALLOWED INTENTS - Enable in Discord Developer Portal:');
+      console.error('   Settings > Bot > Privileged Gateway Intents');
+    } else if (loginError.message.includes('rate limit')) {
+      console.error('');
+      console.error('   🔧 RATE LIMITED - Too many login attempts');
+      console.error('   Wait 5-15 minutes before restarting');
+    }
+    
     throw loginError;
   }
 }

@@ -7,7 +7,8 @@ require('dotenv').config();
 
 module.exports = {
   // Discord credentials
-  token: process.env.DISCORD_TOKEN,
+  // Support both DISCORD_TOKEN and DISCORD_BOT_TOKEN for flexibility
+  token: process.env.DISCORD_TOKEN || process.env.DISCORD_BOT_TOKEN,
   clientId: process.env.DISCORD_CLIENT_ID,
   guildId: process.env.DISCORD_GUILD_ID,
 
