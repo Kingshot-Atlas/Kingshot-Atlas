@@ -259,13 +259,21 @@ class ContributorService {
       }
 
       if (type === 'kvkError') {
-        const { data: existing } = await supabase
-          .from('kvk_submissions')
+        // Check kvk_errors table (not kvk_submissions) for duplicate error reports
+        const { data: existing, error } = await supabase
+          .from('kvk_errors')
           .select('id')
           .eq('kingdom_number', data.kingdom_number as number)
           .eq('kvk_number', data.kvk_number as number)
+          .eq('error_type', data.error_type as string)
           .eq('status', 'pending')
           .limit(1);
+
+        if (error) {
+          logger.error('checkDuplicate kvkError query failed:', error.message, error.code, error.hint);
+          // Re-throw to surface the actual error
+          throw new Error(`Duplicate check failed: ${error.message}`);
+        }
 
         return { 
           isDuplicate: (existing?.length || 0) > 0, 
@@ -276,7 +284,7 @@ class ContributorService {
       return { isDuplicate: false };
     } catch (err) {
       logger.error('Failed to check duplicate:', err);
-      return { isDuplicate: false };
+      throw err; // Re-throw so caller sees the actual error
     }
   }
 

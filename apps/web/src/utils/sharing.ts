@@ -253,7 +253,7 @@ export const generateKingdomCard = async (
   ctx.fillText('Atlas Score', 24, 200);
   ctx.fillStyle = '#22d3ee';
   ctx.font = 'bold 36px system-ui, -apple-system, sans-serif';
-  ctx.fillText(atlasScore.toFixed(1), 24, 240);
+  ctx.fillText(atlasScore.toFixed(2), 24, 240);
   
   // Rank
   ctx.fillStyle = '#6b7280';
@@ -358,7 +358,7 @@ export const generateComparisonCard = async (
   
   ctx.fillStyle = '#22d3ee';
   ctx.font = 'bold 32px system-ui, -apple-system, sans-serif';
-  ctx.fillText(kingdom1.score.toFixed(1), 150, 180);
+  ctx.fillText(kingdom1.score.toFixed(2), 150, 180);
   
   ctx.fillStyle = '#6b7280';
   ctx.font = '14px system-ui, -apple-system, sans-serif';
@@ -378,7 +378,7 @@ export const generateComparisonCard = async (
   
   ctx.fillStyle = '#22d3ee';
   ctx.font = 'bold 32px system-ui, -apple-system, sans-serif';
-  ctx.fillText(kingdom2.score.toFixed(1), 450, 180);
+  ctx.fillText(kingdom2.score.toFixed(2), 450, 180);
   
   ctx.fillStyle = '#6b7280';
   ctx.font = '14px system-ui, -apple-system, sans-serif';
@@ -450,7 +450,7 @@ export const generateDiscordMessage = (
   tier: string,
   rank: number
 ): string => {
-  return `**Kingdom #${kingdomNumber}** | Atlas Score: **${atlasScore.toFixed(1)}** | ${tier} | Rank #${rank}
+  return `**Kingdom #${kingdomNumber}** | Atlas Score: **${atlasScore.toFixed(2)}** | ${tier} | Rank #${rank}
 🔗 https://ks-atlas.com/kingdom/${kingdomNumber}`;
 };
 

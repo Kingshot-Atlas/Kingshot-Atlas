@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useIsMobile } from '../hooks/useMediaQuery';
-import { neonGlow } from '../utils/styles';
+import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 interface ChangelogEntry {
@@ -164,7 +164,7 @@ const Changelog: React.FC = () => {
             fontSize: isMobile ? '1.5rem' : '2rem', 
             fontWeight: 'bold', 
             marginBottom: '0.5rem',
-            fontFamily: "'Cinzel', 'Times New Roman', serif"
+            fontFamily: FONT_DISPLAY
           }}>
             <span style={{ color: '#fff' }}>CHANGE</span>
             <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>LOG</span>

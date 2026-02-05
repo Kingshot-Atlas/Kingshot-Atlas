@@ -80,7 +80,7 @@ const DonutChart: React.FC<DonutChartProps> = ({
               color: isNegative ? '#ef4444' : color,
               lineHeight: 1
             }}>
-              {value >= 0 ? '+' : ''}{value.toFixed(1)}
+              {value >= 0 ? '+' : ''}{value.toFixed(2)}
             </div>
             <div style={{
               fontSize: '0.5rem',

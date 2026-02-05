@@ -364,6 +364,95 @@ These redundancies created potential for data drift and contradicted the single 
 
 ---
 
+## ADR-012: Atlas Scores Must Come From Supabase Tables (CRITICAL)
+
+**Date:** 2026-02-04  
+**Status:** ✅ Accepted  
+**Deciders:** Owner  
+**Priority:** 🔴 CRITICAL — READ THIS BEFORE ANY ATLAS SCORE WORK
+
+### Context
+Atlas Scores have been repeatedly calculated using outdated formulas in frontend code, causing incorrect displays across multiple pages. This has required multiple corrections.
+
+### Decision
+**USE SUPABASE TABLES AS THE ONE SOURCE OF TRUTH FOR ATLAS SCORES.**
+
+Specifically:
+1. **NEVER calculate Atlas Scores in frontend code**
+2. **ALWAYS read pre-calculated `atlas_score` from Supabase `kingdoms` table**
+3. **ALWAYS read historical scores from Supabase `kvk_history.kingdom_score`**
+4. **The PostgreSQL `calculate_atlas_score()` function is the ONLY place where the formula lives**
+
+### For New Pages/Features Displaying Atlas Scores
+When building any page or feature that shows Atlas Scores:
+1. ✅ DO: Fetch from `supabase.from('kingdoms').select('atlas_score')`
+2. ✅ DO: Fetch from `supabase.from('kvk_history').select('kingdom_score')`
+3. ❌ DON'T: Calculate scores using `enhanced_atlas_formulas.py` or any frontend formula
+4. ❌ DON'T: Use hardcoded tier thresholds that may be outdated
+5. ❌ DON'T: Re-implement the Bayesian formula anywhere
+
+### Pre-Calculated Fields Available in Supabase
+```sql
+-- kingdoms table
+atlas_score         -- The Atlas Score (use this!)
+total_kvks          -- Total KvK count
+prep_wins, prep_losses, prep_win_rate
+battle_wins, battle_losses, battle_win_rate
+
+-- kvk_history table  
+kingdom_score       -- Historical score at time of this KvK
+```
+
+### Consequences
+- ✅ Consistent scores across all pages
+- ✅ Formula changes only need to happen in one place (PostgreSQL)
+- ✅ No frontend drift or outdated calculations
+- ⚠️ Requires Supabase connectivity for any score display
+
+### Related ADRs
+- ADR-010: Supabase as Single Source of Truth for Kingdom Data
+- ADR-011: Remove Redundant Data Sources
+
+---
+
+## ADR-013: Score History Table for Historical Atlas Score Snapshots
+
+**Date:** 2026-02-04  
+**Status:** ✅ Accepted  
+**Deciders:** Owner
+
+### Context
+To display Atlas Score progression over time (charts, KvK Seasons page), we need historical snapshots of each kingdom's score after each KvK they participated in. The formula may change over time, so the design must support recalculation.
+
+### Decision
+**Use `score_history` table to store point-in-time Atlas Score snapshots.**
+
+Schema:
+- `kingdom_number`, `kvk_number` — Composite unique key
+- `score` — Atlas Score at that point (0-15)
+- `tier` — Tier at that point (S/A/B/C/D)
+- `rank_at_time` — Rank compared to other kingdoms at same KvK
+- `prep_wins`, `prep_losses`, `battle_wins`, `battle_losses` — Cumulative stats at that point
+- `formula_version` — Tracks which formula was used (e.g., 'v2.0')
+- `recorded_at` — Timestamp
+
+Key functions:
+- `calculate_atlas_score_at_kvk(kingdom_number, max_kvk_number)` — Returns score + stats up to a specific KvK
+- `get_tier_from_score(score)` — Returns tier based on current thresholds
+- `trg_create_score_history` — Trigger that auto-creates entries on new KvK inserts
+
+### Consequences
+- ✅ Enables Atlas Score History charts on kingdom profiles
+- ✅ Enables KvK Seasons to show historical scores at time of matchup
+- ✅ Formula changes can be re-applied by updating `formula_version` and regenerating
+- ✅ Automatic population via trigger for future KvKs
+- ⚠️ Initial population requires migration (done: 5,558 records for 1,198 kingdoms)
+
+### Related ADRs
+- ADR-012: Atlas Scores Must Come From Supabase Tables
+
+---
+
 ## Template for New Decisions
 
 ```markdown

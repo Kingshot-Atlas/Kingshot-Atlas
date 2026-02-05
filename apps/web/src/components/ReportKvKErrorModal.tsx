@@ -16,6 +16,7 @@ const ERROR_TYPES = [
   { key: 'wrong_opponent', label: 'Wrong Opponent Kingdom' },
   { key: 'wrong_prep_result', label: 'Incorrect Prep Result' },
   { key: 'wrong_battle_result', label: 'Incorrect Battle Result' },
+  { key: 'wrong_both_results', label: 'Incorrect Prep & Battle Results' },
   { key: 'missing_kvk', label: 'Missing KvK (not in list)' },
   { key: 'duplicate_kvk', label: 'Duplicate Entry' },
   { key: 'other', label: 'Other Error' },
@@ -40,6 +41,12 @@ const ReportKvKErrorModal: React.FC<ReportKvKErrorModalProps> = ({
   const selectedKvKRecord = sortedKvKs.find(k => k.kvk_number === selectedKvK);
 
   const handleSubmit = async () => {
+    // Must be authenticated to submit (RLS requires submitted_by = auth.uid())
+    if (!user?.id) {
+      showToast('Please sign in to submit error reports', 'error');
+      return;
+    }
+
     if (!errorType) {
       showToast('Please select an error type', 'error');
       return;
@@ -93,7 +100,7 @@ const ReportKvKErrorModal: React.FC<ReportKvKErrorModalProps> = ({
         });
 
       if (error) {
-        console.error('Failed to submit KvK error:', error.message);
+        console.error('Failed to submit KvK error:', error.message, error.code, error.details, error.hint);
         throw new Error(`Failed to submit: ${error.message}`);
       }
 
@@ -104,7 +111,9 @@ const ReportKvKErrorModal: React.FC<ReportKvKErrorModalProps> = ({
 
       showToast('KvK error reported. Thank you for helping improve our data!', 'success');
       onClose();
-    } catch (err) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      console.error('KvK error submission failed:', errorMessage, err);
       showToast('Failed to submit report. Please try again.', 'error');
     } finally {
       setSubmitting(false);

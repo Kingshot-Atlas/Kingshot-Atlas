@@ -14,7 +14,7 @@ const ShareableCard: React.FC<ShareableCardProps> = ({ kingdom, onClose }) => {
 
   const handleCopyAsText = () => {
     const text = `K-${kingdom.kingdom_number} | Tier ${tier}
-Atlas Score: ${kingdom.overall_score.toFixed(1)}
+Atlas Score: ${kingdom.overall_score.toFixed(2)}
 Prep: ${kingdom.prep_wins}-${kingdom.prep_losses} (${Math.round(kingdom.prep_win_rate * 100)}%)
 Battle: ${kingdom.battle_wins}-${kingdom.battle_losses} (${Math.round(kingdom.battle_win_rate * 100)}%)
 Total KvKs: ${kingdom.total_kvks}
@@ -77,7 +77,7 @@ ${window.location.origin}/kingdom/${kingdom.kingdom_number}`;
                 border: `1px solid ${tierColor}40`
               }}>{tier}</span>
             </div>
-            <span style={{ color: '#22d3ee', fontWeight: 'bold', fontSize: '1.1rem' }}>{kingdom.overall_score.toFixed(1)}</span>
+            <span style={{ color: '#22d3ee', fontWeight: 'bold', fontSize: '1.1rem' }}>{kingdom.overall_score.toFixed(2)}</span>
           </div>
           
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.8rem' }}>

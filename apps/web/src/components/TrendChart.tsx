@@ -1,13 +1,34 @@
 import React, { useMemo, useState } from 'react';
 import { KVKRecord } from '../types';
+import { useIsMobile } from '../hooks/useMediaQuery';
 
 interface TrendChartProps {
   kvkRecords: KVKRecord[];
   height?: number;
+  isExpanded?: boolean;
+  onToggle?: (expanded: boolean) => void;
 }
 
-const TrendChart: React.FC<TrendChartProps> = ({ kvkRecords, height = 220 }) => {
+const TrendChart: React.FC<TrendChartProps> = ({ 
+  kvkRecords, 
+  height = 220,
+  isExpanded: externalExpanded,
+  onToggle
+}) => {
   const [hoveredPoint, setHoveredPoint] = useState<{ index: number; type: 'prep' | 'battle' } | null>(null);
+  const [internalExpanded, setInternalExpanded] = useState(false);
+  const isMobile = useIsMobile();
+  
+  // Use external control if provided, otherwise use internal state
+  const isExpanded = externalExpanded !== undefined ? externalExpanded : internalExpanded;
+  const handleToggle = () => {
+    const newState = !isExpanded;
+    if (onToggle) {
+      onToggle(newState);
+    } else {
+      setInternalExpanded(newState);
+    }
+  };
 
   const chartData = useMemo(() => {
     // Sort by KvK number ascending (oldest first)
@@ -98,33 +119,68 @@ const TrendChart: React.FC<TrendChartProps> = ({ kvkRecords, height = 220 }) => 
   const battleColor = '#f97316'; // Orange for battle
 
   return (
-    <div style={{ backgroundColor: '#1a1a20', borderRadius: '12px', padding: '1rem' }}>
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        marginBottom: '0.75rem'
-      }}>
-        <h4 style={{ margin: 0, color: '#fff', fontSize: '0.9rem', fontWeight: '600' }}>
-          📈 Performance Trend
+    <div style={{ backgroundColor: '#1a1a20', borderRadius: '12px' }}>
+      {/* Collapsible Header */}
+      <div 
+        onClick={handleToggle}
+        style={{ 
+          padding: isMobile ? '1rem' : '1.25rem',
+          cursor: 'pointer',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '0.35rem',
+          borderBottom: isExpanded ? '1px solid #2a2a2a' : 'none',
+          position: 'relative'
+        }}
+      >
+        <h4 style={{ margin: 0, color: '#fff', fontSize: '0.9rem', fontWeight: '600', textAlign: 'center' }}>
+          Performance Trend
         </h4>
-        <div style={{ display: 'flex', gap: '1.25rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <svg width="16" height="8">
-              <line x1="0" y1="4" x2="16" y2="4" stroke={prepColor} strokeWidth="2" strokeDasharray="4,2" />
-            </svg>
-            <span style={{ color: '#9ca3af', fontSize: '0.72rem', fontWeight: '500' }}>Prep WR</span>
+        {!isExpanded && (
+          <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>
+            &quot;What&apos;s my win rate trend?&quot;
+          </span>
+        )}
+        {isExpanded && (
+          <div style={{ display: 'flex', gap: '1.25rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <svg width="16" height="8">
+                <line x1="0" y1="4" x2="16" y2="4" stroke={prepColor} strokeWidth="2" strokeDasharray="4,2" />
+              </svg>
+              <span style={{ color: '#9ca3af', fontSize: '0.72rem', fontWeight: '500' }}>Prep WR</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <svg width="16" height="8">
+                <line x1="0" y1="4" x2="16" y2="4" stroke={battleColor} strokeWidth="2" />
+              </svg>
+              <span style={{ color: '#9ca3af', fontSize: '0.72rem', fontWeight: '500' }}>Battle WR</span>
+            </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <svg width="16" height="8">
-              <line x1="0" y1="4" x2="16" y2="4" stroke={battleColor} strokeWidth="2" />
-            </svg>
-            <span style={{ color: '#9ca3af', fontSize: '0.72rem', fontWeight: '500' }}>Battle WR</span>
-          </div>
-        </div>
+        )}
+        <svg 
+          width="16" 
+          height="16" 
+          viewBox="0 0 24 24" 
+          fill="none" 
+          stroke="#6b7280" 
+          strokeWidth="2"
+          style={{ 
+            position: 'absolute',
+            right: isMobile ? '1rem' : '1.25rem',
+            top: '50%',
+            transform: isExpanded ? 'translateY(-50%) rotate(180deg)' : 'translateY(-50%) rotate(0deg)',
+            transition: 'transform 0.2s ease'
+          }}
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
       </div>
 
-      <svg 
+      {/* Expandable Chart Section */}
+      {isExpanded && (
+        <div style={{ padding: isMobile ? '1rem' : '1.25rem' }}>
+          <svg 
         viewBox={`0 0 ${width} ${height}`} 
         style={{ width: '100%', height: 'auto' }}
         preserveAspectRatio="xMidYMid meet"
@@ -290,7 +346,9 @@ const TrendChart: React.FC<TrendChartProps> = ({ kvkRecords, height = 220 }) => 
             </g>
           );
         })}
-      </svg>
+          </svg>
+        </div>
+      )}
     </div>
   );
 };

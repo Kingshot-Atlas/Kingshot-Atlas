@@ -37,7 +37,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({ filters, setFilters, isMobile
         <select 
           value={filters.tier || 'all'} 
           onChange={(e) => setFilters({ ...filters, tier: e.target.value })} 
-          style={{ width: '100%', padding: '0.6rem', backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '6px', color: '#fff', fontSize: '0.85rem' }}
+          style={{ width: '100%', padding: isMobile ? '0.75rem' : '0.6rem', minHeight: '44px', backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '6px', color: '#fff', fontSize: '1rem' }}
         >
           <option value="all">All Tiers</option>
           <option value="S">S Tier - Elite (Top 10%)</option>
@@ -54,7 +54,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({ filters, setFilters, isMobile
         <select 
           value={filters.status || 'all'} 
           onChange={(e) => setFilters({ ...filters, status: e.target.value })} 
-          style={{ width: '100%', padding: '0.6rem', backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '6px', color: '#fff', fontSize: '0.85rem' }}
+          style={{ width: '100%', padding: isMobile ? '0.75rem' : '0.6rem', minHeight: '44px', backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '6px', color: '#fff', fontSize: '1rem' }}
         >
           <option value="all">All Statuses</option>
           <option value="Leading">Leading</option>
@@ -74,7 +74,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({ filters, setFilters, isMobile
             value={filters.minKvKs || 0} 
             onChange={(e) => setFilters({ ...filters, minKvKs: parseInt(e.target.value) || 0 })} 
             placeholder="Min"
-            style={{ width: '100%', padding: '0.6rem', backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '6px', color: '#fff', fontSize: '0.85rem', textAlign: 'center' }} 
+            style={{ width: '100%', padding: isMobile ? '0.75rem' : '0.6rem', minHeight: '44px', backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '6px', color: '#fff', fontSize: '1rem', textAlign: 'center' }} 
           />
           <span style={{ color: '#6b7280', fontSize: '0.85rem' }}>to</span>
           <input 
@@ -84,7 +84,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({ filters, setFilters, isMobile
             value={filters.maxKvKs === 99 ? '' : filters.maxKvKs} 
             onChange={(e) => setFilters({ ...filters, maxKvKs: parseInt(e.target.value) || 99 })} 
             placeholder="Max"
-            style={{ width: '100%', padding: '0.6rem', backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '6px', color: '#fff', fontSize: '0.85rem', textAlign: 'center' }} 
+            style={{ width: '100%', padding: isMobile ? '0.75rem' : '0.6rem', minHeight: '44px', backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '6px', color: '#fff', fontSize: '1rem', textAlign: 'center' }} 
           />
         </div>
       </div>
@@ -126,13 +126,14 @@ const FilterPanel: React.FC<FilterPanelProps> = ({ filters, setFilters, isMobile
         <button 
           onClick={handleClearAll} 
           style={{ 
-            padding: '0.6rem 1.25rem', 
+            padding: isMobile ? '0.75rem 1.25rem' : '0.6rem 1.25rem', 
+            minHeight: '44px',
             backgroundColor: activeCount > 0 ? '#ef444420' : 'transparent', 
             border: `1px solid ${activeCount > 0 ? '#ef4444' : '#3a3a3a'}`, 
             borderRadius: '6px', 
             color: activeCount > 0 ? '#ef4444' : '#9ca3af', 
             cursor: 'pointer', 
-            fontSize: '0.85rem',
+            fontSize: '0.9rem',
             fontWeight: activeCount > 0 ? '500' : 'normal',
             transition: 'all 0.2s'
           }}

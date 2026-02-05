@@ -44,9 +44,11 @@ class KvKCorrectionService {
     }
 
     try {
+      // CRITICAL: Only fetch APPROVED corrections - pending/rejected should NOT be applied
       const { data, error } = await supabase
         .from('kvk_corrections')
-        .select('*');
+        .select('*')
+        .eq('status', 'approved');
 
       if (error) {
         console.warn('Failed to fetch corrections from Supabase:', error.message);
@@ -173,7 +175,7 @@ class KvKCorrectionService {
     
     if (kvkError.corrected_prep) {
       correctedPrep = kvkError.corrected_prep;
-    } else if (kvkError.error_type === 'wrong_prep_result') {
+    } else if (kvkError.error_type === 'wrong_prep_result' || kvkError.error_type === 'wrong_both_results') {
       correctedPrep = this.flipResult(kvkError.current_data.prep_result);
     } else {
       correctedPrep = kvkError.current_data.prep_result; // Keep unchanged
@@ -181,7 +183,7 @@ class KvKCorrectionService {
     
     if (kvkError.corrected_battle) {
       correctedBattle = kvkError.corrected_battle;
-    } else if (kvkError.error_type === 'wrong_battle_result') {
+    } else if (kvkError.error_type === 'wrong_battle_result' || kvkError.error_type === 'wrong_both_results') {
       correctedBattle = this.flipResult(kvkError.current_data.battle_result);
     } else {
       correctedBattle = kvkError.current_data.battle_result; // Keep unchanged

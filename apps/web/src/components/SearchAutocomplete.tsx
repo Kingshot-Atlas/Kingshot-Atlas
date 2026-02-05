@@ -221,7 +221,7 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
                 </span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: '#6b7280', marginLeft: 'auto' }}>
-                <span style={{ textAlign: 'left' }}>Atlas Score: <span style={{ color: '#22d3ee', fontWeight: 'bold' }}>{kingdom.overall_score.toFixed(1)}</span></span>
+                <span style={{ textAlign: 'left' }}>Atlas Score: <span style={{ color: '#22d3ee', fontWeight: 'bold' }}>{kingdom.overall_score.toFixed(2)}</span></span>
                 <span style={{ color: '#4a4a4a' }}>|</span>
                 <span>{kingdom.total_kvks} KvKs</span>
               </div>

@@ -6,14 +6,12 @@ import { incrementStat } from '../components/UserAchievements';
 import { CompareCardSkeleton } from '../components/Skeleton';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useAnalytics } from '../hooks/useAnalytics';
-import { neonGlow, getTierColor } from '../utils/styles';
+import { neonGlow, getTierColor, FONT_DISPLAY } from '../utils/styles';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { usePremium } from '../contexts/PremiumContext';
 import { useAuth } from '../contexts/AuthContext';
 import ProBadge from '../components/ProBadge';
 import ComparisonRadarChart from '../components/ComparisonRadarChart';
-import ScoreComparisonOverlay from '../components/ScoreComparisonOverlay';
-import ShareButton from '../components/ShareButton';
 import ShareComparisonScreenshot from '../components/ShareComparisonScreenshot';
 import { useMetaTags, getCompareMetaTags } from '../hooks/useMetaTags';
 
@@ -336,7 +334,7 @@ const CompareKingdoms: React.FC = () => {
       if (typeof v === 'string' && isNaN(parseFloat(v))) return v;
       const num = typeof v === 'number' ? v : parseFloat(String(v));
       if (format === 'percent') return Math.round(num * 100) + '%';
-      if (format === 'decimal') return num.toFixed(1);
+      if (format === 'decimal') return num.toFixed(2);
       return num.toString();
     };
 
@@ -414,39 +412,6 @@ const CompareKingdoms: React.FC = () => {
     <div style={{ height: '1px', backgroundColor: '#333', margin: '0' }} />
   );
 
-  // Multi-kingdom winner calculation
-  const calculateWinner = (): number | 'tie' | null => {
-    if (loadedKingdoms.length < 2) return null;
-    
-    // Score each kingdom based on wins across metrics
-    const scores = loadedKingdoms.map(() => 0);
-
-    const compareMetric = (getValue: (k: KingdomProfile) => number, higherBetter = true) => {
-      const vals = loadedKingdoms.map(getValue);
-      const bestVal = higherBetter ? Math.max(...vals) : Math.min(...vals);
-      vals.forEach((v, i) => {
-        if (v === bestVal && scores[i] !== undefined) scores[i]++;
-      });
-    };
-
-    compareMetric(k => k.overall_score);
-    compareMetric(k => getRank(k.kingdom_number), false);
-    compareMetric(k => k.total_kvks);
-    compareMetric(k => getDominations(k));
-    compareMetric(k => getInvasions(k), false);
-    compareMetric(k => k.prep_wins);
-    compareMetric(k => k.prep_win_rate);
-    compareMetric(k => getCurrentStreak(k, 'prep'));
-    compareMetric(k => k.battle_wins);
-    compareMetric(k => k.battle_win_rate);
-    compareMetric(k => getCurrentStreak(k, 'battle'));
-
-    const maxScore = Math.max(...scores);
-    const winners = loadedKingdoms.filter((_, i) => (scores[i] ?? 0) === maxScore);
-    
-    if (winners.length > 1) return 'tie';
-    return winners[0]?.kingdom_number ?? null;
-  };
 
 
   return (
@@ -464,7 +429,7 @@ const CompareKingdoms: React.FC = () => {
             fontSize: isMobile ? '1.5rem' : '2rem', 
             fontWeight: 'bold', 
             marginBottom: '0.5rem',
-            fontFamily: "'Cinzel', 'Times New Roman', serif"
+            fontFamily: FONT_DISPLAY
           }}>
             <span style={{ color: '#fff' }}>KINGDOM</span>
             <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>COMPARISON</span>
@@ -776,7 +741,7 @@ const CompareKingdoms: React.FC = () => {
               display: 'grid',
               gridTemplateColumns: loadedKingdoms.length === 2 
                 ? '1fr auto 1fr' 
-                : `repeat(${loadedKingdoms.length}, 1fr)`,
+                : `minmax(${isMobile ? '70px' : '90px'}, auto) repeat(${loadedKingdoms.length}, 1fr)`,
               padding: isMobile ? '1rem 0.75rem' : '1.25rem 1rem',
               borderBottom: '1px solid #2a2a2a',
               backgroundColor: '#0a0a0a',
@@ -787,8 +752,8 @@ const CompareKingdoms: React.FC = () => {
                 <>
                   <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                     <Link to={`/kingdom/${loadedKingdoms[0]!.kingdom_number}`} style={{ textDecoration: 'none' }}>
-                      <div style={{ fontSize: isMobile ? '1.1rem' : '1.25rem', fontWeight: 'bold', color: KINGDOM_COLORS[0], fontFamily: "'Cinzel', serif" }}>
-                        K{loadedKingdoms[0]!.kingdom_number}
+                      <div style={{ fontSize: isMobile ? '1rem' : '1.15rem', fontWeight: 'bold', color: KINGDOM_COLORS[0], fontFamily: FONT_DISPLAY }}>
+                        Kingdom {loadedKingdoms[0]!.kingdom_number}
                       </div>
                     </Link>
                     <div style={{ 
@@ -805,8 +770,8 @@ const CompareKingdoms: React.FC = () => {
                   </div>
                   <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                     <Link to={`/kingdom/${loadedKingdoms[1]!.kingdom_number}`} style={{ textDecoration: 'none' }}>
-                      <div style={{ fontSize: isMobile ? '1.1rem' : '1.25rem', fontWeight: 'bold', color: KINGDOM_COLORS[1], fontFamily: "'Cinzel', serif" }}>
-                        K{loadedKingdoms[1]!.kingdom_number}
+                      <div style={{ fontSize: isMobile ? '1rem' : '1.15rem', fontWeight: 'bold', color: KINGDOM_COLORS[1], fontFamily: FONT_DISPLAY }}>
+                        Kingdom {loadedKingdoms[1]!.kingdom_number}
                       </div>
                     </Link>
                     <div style={{ 
@@ -820,30 +785,32 @@ const CompareKingdoms: React.FC = () => {
                   </div>
                 </>
               ) : (
-                // Multi-kingdom layout - all kingdoms in a row
-                loadedKingdoms.map((k, i) => (
-                  <div key={k.kingdom_number} style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                    <Link to={`/kingdom/${k.kingdom_number}`} style={{ textDecoration: 'none' }}>
+                // Multi-kingdom layout - empty first cell + kingdoms in columns
+                <>
+                  <div />  {/* Empty first column to align with data rows */}
+                  {loadedKingdoms.map((k, i) => (
+                    <div key={k.kingdom_number} style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                      <Link to={`/kingdom/${k.kingdom_number}`} style={{ textDecoration: 'none' }}>
+                        <div style={{ 
+                          fontSize: isMobile ? '0.75rem' : '0.85rem', 
+                          fontWeight: 'bold', 
+                          color: KINGDOM_COLORS[i % KINGDOM_COLORS.length], 
+                          fontFamily: FONT_DISPLAY 
+                        }}>
+                          Kingdom {k.kingdom_number}
+                        </div>
+                      </Link>
                       <div style={{ 
-                        fontSize: isMobile ? '0.9rem' : '1rem', 
+                        fontSize: isMobile ? '0.6rem' : '0.65rem', 
                         fontWeight: 'bold', 
-                        color: KINGDOM_COLORS[i % KINGDOM_COLORS.length], 
-                        fontFamily: "'Cinzel', serif" 
+                        color: getTierColor(k.power_tier || getPowerTier(k.overall_score)),
+                        marginTop: '0.2rem'
                       }}>
-                        K{k.kingdom_number}
+                        {k.power_tier || getPowerTier(k.overall_score)}
                       </div>
-                    </Link>
-                    <div style={{ 
-                      fontSize: isMobile ? '0.6rem' : '0.65rem', 
-                      fontWeight: 'bold', 
-                      color: getTierColor(k.power_tier || getPowerTier(k.overall_score)),
-                      marginTop: '0.2rem'
-                    }}>
-                      {k.power_tier || getPowerTier(k.overall_score)}
                     </div>
-                  </div>
-                ))
-              )}
+                  ))}
+                </>              )}
             </div>
 
             {/* Atlas Score & Rank */}
@@ -871,53 +838,17 @@ const CompareKingdoms: React.FC = () => {
             <ComparisonRow label="Battle Win Rate" values={loadedKingdoms.map(k => k.battle_win_rate)} format="percent" />
             <ComparisonRow label="Battle Streak" values={loadedKingdoms.map(k => getCurrentStreak(k, 'battle'))} />
 
-            {/* Verdict */}
-            <div style={{ padding: isMobile ? '1rem' : '1.25rem', backgroundColor: '#0a0a0a', textAlign: 'center', borderTop: '1px solid #2a2a2a' }}>
-              {(() => {
-                const winner = calculateWinner();
-                if (winner === 'tie') {
-                  return <div style={{ color: '#9ca3af', fontSize: isMobile ? '0.9rem' : '1rem', fontWeight: 'bold' }}>It&apos;s a tie!</div>;
-                }
-                return (
-                  <div style={{ color: '#22c55e', fontSize: isMobile ? '0.9rem' : '1rem', fontWeight: 'bold' }}>
-                    🏆 Kingdom {winner} wins the comparison
-                  </div>
-                );
-              })()}
-            </div>
           </div>
 
           {/* Radar Chart Comparison - supports multi-kingdom */}
           <MultiCompareRadarChart kingdoms={loadedKingdoms} colors={KINGDOM_COLORS} />
 
-          {/* Score Comparison Overlay - detailed breakdown for 2 kingdoms */}
-          {loadedKingdoms.length === 2 && loadedKingdoms[0] && loadedKingdoms[1] && (
-            <ScoreComparisonOverlay kingdom1={loadedKingdoms[0]} kingdom2={loadedKingdoms[1]} />
-          )}
 
-          {/* Share Buttons */}
-          <div style={{ marginTop: '1rem', display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '0.75rem', justifyContent: 'center', alignItems: 'center' }}>
+          {/* Share Button */}
+          <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
             <ShareComparisonScreenshot
               targetRef={comparisonRef}
               kingdomNumbers={loadedKingdoms.map(k => k.kingdom_number)}
-              winner={calculateWinner()}
-            />
-            <ShareButton
-              type="compare"
-              compareData={{
-                kingdom1: { 
-                  number: loadedKingdoms[0]?.kingdom_number ?? 0, 
-                  score: loadedKingdoms[0]?.overall_score ?? 0, 
-                  tier: loadedKingdoms[0]?.power_tier ?? getPowerTier(loadedKingdoms[0]?.overall_score ?? 0) 
-                },
-                kingdom2: { 
-                  number: loadedKingdoms[1]?.kingdom_number ?? 0, 
-                  score: loadedKingdoms[1]?.overall_score ?? 0, 
-                  tier: loadedKingdoms[1]?.power_tier ?? getPowerTier(loadedKingdoms[1]?.overall_score ?? 0) 
-                },
-                winner: calculateWinner() === 'tie' ? 'tie' : 
-                  calculateWinner() === loadedKingdoms[0]?.kingdom_number ? 'kingdom1' : 'kingdom2'
-              }}
             />
           </div>
           </>

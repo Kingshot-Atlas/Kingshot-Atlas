@@ -9,6 +9,7 @@ import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { supabase } from '../lib/supabase';
 import { CURRENT_KVK, KVK_CONFIG } from '../constants';
+import { FONT_DISPLAY } from '../utils/styles';
 
 const TOTAL_KINGDOMS = KVK_CONFIG.TOTAL_KINGDOMS;
 
@@ -221,7 +222,7 @@ const MissingDataRegistry: React.FC = () => {
           alignItems: 'center',
           justifyContent: 'center',
           gap: '0.5rem',
-          fontFamily: "'Cinzel', 'Times New Roman', serif"
+          fontFamily: FONT_DISPLAY
         }}>
           CONTRIBUTE <span style={{ color: '#22d3ee', textShadow: '0 0 8px #22d3ee40, 0 0 12px #22d3ee20' }}>DATA</span>
         </h1>
@@ -581,7 +582,7 @@ const MissingDataRegistry: React.FC = () => {
         padding: '1.5rem',
         border: '1px solid #2a2a2a'
       }}>
-        <h3 style={{ color: '#fff', fontSize: '1.1rem', fontWeight: '600', marginBottom: '1rem', fontFamily: "'Cinzel', serif" }}>
+        <h3 style={{ color: '#fff', fontSize: '1.1rem', fontWeight: '600', marginBottom: '1rem', fontFamily: FONT_DISPLAY }}>
           Contributor Ranks
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>

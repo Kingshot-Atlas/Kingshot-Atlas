@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth, UserProfile } from '../contexts/AuthContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
-import { colors, neonGlow as neonGlowUtil, subscriptionColors } from '../utils/styles';
+import { colors, neonGlow as neonGlowUtil, subscriptionColors, FONT_DISPLAY } from '../utils/styles';
 import { getDisplayTier, getTierBorderColor, SubscriptionTier } from '../utils/constants';
 import { logger } from '../utils/logger';
 
@@ -69,8 +69,8 @@ const UserDirectory: React.FC = () => {
             // Use getDisplayTier to properly detect admins by username
             const sorted = [...data].sort((a, b) => {
               const tierOrder = { admin: 0, recruiter: 1, pro: 2, free: 3 };
-              const aDisplayTier = getDisplayTier(a.subscription_tier, a.username);
-              const bDisplayTier = getDisplayTier(b.subscription_tier, b.username);
+              const aDisplayTier = getDisplayTier(a.subscription_tier, a.linked_username || a.username);
+              const bDisplayTier = getDisplayTier(b.subscription_tier, b.linked_username || b.username);
               const aTier = tierOrder[aDisplayTier as keyof typeof tierOrder] ?? 3;
               const bTier = tierOrder[bDisplayTier as keyof typeof tierOrder] ?? 3;
               if (aTier !== bTier) return aTier - bTier;
@@ -163,7 +163,7 @@ const UserDirectory: React.FC = () => {
 
     // Tier filter - use getDisplayTier to properly detect admins
     if (tierFilter !== 'all') {
-      const userDisplayTier = getDisplayTier(user.subscription_tier, user.username);
+      const userDisplayTier = getDisplayTier(user.subscription_tier, user.linked_username || user.username);
       if (userDisplayTier !== tierFilter) return false;
     }
     
@@ -183,19 +183,6 @@ const UserDirectory: React.FC = () => {
     color: color,
     textShadow: `0 0 8px ${color}40, 0 0 12px ${color}20`
   });
-
-  const getBadgeStyle = (style: string, color: string) => {
-    switch (style) {
-      case 'gradient':
-        return { background: `linear-gradient(135deg, ${color} 0%, ${color}80 100%)` };
-      case 'outline':
-        return { backgroundColor: 'transparent', border: `2px solid ${color}` };
-      case 'glow':
-        return { backgroundColor: color, boxShadow: `0 0 20px ${color}60` };
-      default:
-        return { backgroundColor: color };
-    }
-  };
 
   const uniqueAlliances = Array.from(new Set(users.map(u => u.alliance_tag).filter(Boolean)));
   const uniqueRegions = Array.from(new Set(users.map(u => u.region).filter(Boolean)));
@@ -224,7 +211,7 @@ const UserDirectory: React.FC = () => {
             fontSize: isMobile ? '1.5rem' : '2rem', 
             fontWeight: 'bold', 
             marginBottom: '0.5rem',
-            fontFamily: "'Cinzel', 'Times New Roman', serif"
+            fontFamily: FONT_DISPLAY
           }}>
             <span style={{ color: '#fff' }}>PLAYER</span>
             <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>DIRECTORY</span>
@@ -398,7 +385,7 @@ const UserDirectory: React.FC = () => {
             gap: '1.5rem' 
           }}>
             {filteredUsers.map(user => {
-              const displayTier = getDisplayTier(user.subscription_tier, user.username);
+              const displayTier = getDisplayTier(user.subscription_tier, user.linked_username || user.username);
               const tierColor = getTierBorderColor(displayTier);
               return (
               <Link
@@ -434,28 +421,39 @@ const UserDirectory: React.FC = () => {
                   {/* Player Header - Avatar + Info */}
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', marginBottom: '1rem' }}>
                     {user.linked_avatar_url ? (
-                      <img 
-                        src={user.linked_avatar_url} 
-                        alt=""
-                        style={{
-                          width: '48px',
-                          height: '48px',
-                          borderRadius: '50%',
-                          objectFit: 'cover'
-                        }}
-                      />
+                      <div style={{
+                        width: '52px',
+                        height: '52px',
+                        borderRadius: '50%',
+                        border: `2px solid ${tierColor}`,
+                        overflow: 'hidden',
+                        flexShrink: 0,
+                        ...(displayTier !== 'free' ? { boxShadow: `0 0 8px ${tierColor}40` } : {})
+                      }}>
+                        <img 
+                          src={user.linked_avatar_url} 
+                          alt=""
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover'
+                          }}
+                        />
+                      </div>
                     ) : (
                       <div style={{
-                        width: '48px',
-                        height: '48px',
+                        width: '52px',
+                        height: '52px',
                         borderRadius: '50%',
+                        border: `2px solid ${tierColor}`,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         fontSize: '1.25rem',
                         color: '#fff',
                         fontWeight: 'bold',
-                        ...getBadgeStyle(user.badge_style, user.theme_color)
+                        backgroundColor: '#1a1a1a',
+                        ...(displayTier !== 'free' ? { boxShadow: `0 0 8px ${tierColor}40` } : {})
                       }}>
                         {user.linked_username?.[0]?.toUpperCase() ?? '?'}
                       </div>

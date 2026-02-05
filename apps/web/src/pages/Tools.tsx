@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
-import { neonGlow } from '../utils/styles';
+import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 
 interface ToolCardProps {
   title: string;
@@ -91,7 +91,7 @@ const ToolCard: React.FC<ToolCardProps> = ({
         fontWeight: 'bold',
         color: comingSoon ? '#6b7280' : '#fff',
         marginBottom: '0.5rem',
-        fontFamily: "'Cinzel', serif"
+        fontFamily: FONT_DISPLAY
       }}>
         {title}
       </h3>
@@ -229,7 +229,7 @@ const Tools: React.FC = () => {
             fontSize: isMobile ? '1.75rem' : '2.5rem', 
             fontWeight: 'bold', 
             marginBottom: '0.75rem',
-            fontFamily: "'Cinzel', 'Times New Roman', serif"
+            fontFamily: FONT_DISPLAY
           }}>
             <span style={{ color: '#fff' }}>DOMINATION</span>
             <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.5rem', fontSize: isMobile ? '1.85rem' : '2.75rem' }}>TOOLS</span>
@@ -298,7 +298,7 @@ const Tools: React.FC = () => {
             fontWeight: 'bold',
             color: '#fff',
             marginBottom: '0.75rem',
-            fontFamily: "'Cinzel', serif"
+            fontFamily: FONT_DISPLAY
           }}>
             Atlas Discord Bot
           </h3>

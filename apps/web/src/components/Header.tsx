@@ -6,7 +6,7 @@ import KvKCountdown from './KvKCountdown';
 import NotificationBell from './NotificationBell';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useAnalytics } from '../hooks/useAnalytics';
-import { neonGlow } from '../utils/styles';
+import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { ADMIN_USERNAMES, getDisplayTier, SUBSCRIPTION_COLORS } from '../utils/constants';
 
 // Discord invite link - configurable via environment variable
@@ -24,11 +24,14 @@ const Header: React.FC = () => {
   const [showMobileToolsMenu, setShowMobileToolsMenu] = useState(false);
   const [showCommunityMenu, setShowCommunityMenu] = useState(false);
   const [showMobileCommunityMenu, setShowMobileCommunityMenu] = useState(false);
+  const [showRankingsMenu, setShowRankingsMenu] = useState(false);
+  const [showMobileRankingsMenu, setShowMobileRankingsMenu] = useState(false);
   const isMobile = useIsMobile();
   
   // Timeout refs for dropdown close delay (prevents flickering when moving between trigger and menu)
   const toolsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const communityTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const rankingsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const handleToolsEnter = () => {
     if (toolsTimeoutRef.current) clearTimeout(toolsTimeoutRef.current);
@@ -47,11 +50,22 @@ const Header: React.FC = () => {
   const handleCommunityLeave = () => {
     communityTimeoutRef.current = setTimeout(() => setShowCommunityMenu(false), 150);
   };
+  
+  const handleRankingsEnter = () => {
+    if (rankingsTimeoutRef.current) clearTimeout(rankingsTimeoutRef.current);
+    setShowRankingsMenu(true);
+  };
+  
+  const handleRankingsLeave = () => {
+    rankingsTimeoutRef.current = setTimeout(() => setShowRankingsMenu(false), 150);
+  };
 
   useEffect(() => {
     setShowMobileMenu(false);
     setShowLoginMenu(false);
     setShowToolsMenu(false);
+    setShowRankingsMenu(false);
+    setShowMobileRankingsMenu(false);
   }, [location.pathname]);
   
   const isActive = (path: string) => location.pathname === path;
@@ -90,7 +104,7 @@ const Header: React.FC = () => {
                 color: '#fff', 
                 fontSize: '1rem', 
                 fontWeight: 'bold', 
-                fontFamily: "'Cinzel', 'Times New Roman', serif",
+                fontFamily: FONT_DISPLAY,
                 lineHeight: 1
               }}>
                 KINGSHOT
@@ -99,7 +113,7 @@ const Header: React.FC = () => {
                 ...neonGlow('#22d3ee'), 
                 fontSize: '1.4rem', 
                 fontWeight: 'bold', 
-                fontFamily: "'Cinzel', 'Times New Roman', serif",
+                fontFamily: FONT_DISPLAY,
                 lineHeight: 1
               }}>
                 ATLAS
@@ -112,7 +126,7 @@ const Header: React.FC = () => {
                 color: '#fff', 
                 fontSize: '0.65rem', 
                 fontWeight: 'bold', 
-                fontFamily: "'Cinzel', 'Times New Roman', serif",
+                fontFamily: FONT_DISPLAY,
                 lineHeight: 1.1,
                 letterSpacing: '0.02em'
               }}>
@@ -122,7 +136,7 @@ const Header: React.FC = () => {
                 ...neonGlow('#22d3ee'), 
                 fontSize: '0.95rem', 
                 fontWeight: 'bold', 
-                fontFamily: "'Cinzel', 'Times New Roman', serif",
+                fontFamily: FONT_DISPLAY,
                 lineHeight: 1,
                 letterSpacing: '0.02em'
               }}>
@@ -229,19 +243,94 @@ const Header: React.FC = () => {
           >
             Home
           </Link>
-          <Link
-            to="/leaderboards"
-            style={{
-              color: isActive('/leaderboards') ? '#22d3ee' : '#9ca3af',
-              textDecoration: 'none',
-              fontSize: '0.9rem',
-              fontWeight: isActive('/leaderboards') ? '600' : '400',
-              transition: 'color 0.2s',
-              ...(isActive('/leaderboards') ? neonGlow('#22d3ee') : {})
-            }}
+          <div 
+            style={{ position: 'relative' }}
+            onMouseEnter={handleRankingsEnter}
+            onMouseLeave={handleRankingsLeave}
           >
-            Rankings
-          </Link>
+            <Link
+              to="/leaderboards"
+              style={{
+                color: (isActive('/leaderboards') || isActive('/seasons') || location.pathname.startsWith('/seasons/')) ? '#22d3ee' : '#9ca3af',
+                textDecoration: 'none',
+                fontSize: '0.9rem',
+                fontWeight: (isActive('/leaderboards') || isActive('/seasons') || location.pathname.startsWith('/seasons/')) ? '600' : '400',
+                transition: 'color 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.25rem',
+                ...((isActive('/leaderboards') || isActive('/seasons') || location.pathname.startsWith('/seasons/')) ? neonGlow('#22d3ee') : {})
+              }}
+            >
+              Rankings
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ opacity: 0.6 }}>
+                <path d="M6 9l6 6 6-6"/>
+              </svg>
+            </Link>
+            
+            {showRankingsMenu && (
+              <div style={{
+                position: 'absolute',
+                top: '100%',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                paddingTop: '0.5rem',
+                backgroundColor: '#111111',
+                border: '1px solid #2a2a2a',
+                borderRadius: '12px',
+                padding: '0.5rem',
+                minWidth: '200px',
+                boxShadow: '0 10px 40px rgba(0, 0, 0, 0.6)',
+                zIndex: 1000
+              }}>
+                <Link
+                  to="/leaderboards"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    padding: '0.75rem 1rem',
+                    borderRadius: '8px',
+                    color: isActive('/leaderboards') ? '#22d3ee' : '#fff',
+                    textDecoration: 'none',
+                    fontSize: '0.85rem',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#22d3ee' }}>
+                    <path d="M12 20V10M18 20V4M6 20v-4"/>
+                  </svg>
+                  Kingdom Rankings
+                </Link>
+                <Link
+                  to="/seasons"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    padding: '0.75rem 1rem',
+                    borderRadius: '8px',
+                    color: (isActive('/seasons') || location.pathname.startsWith('/seasons/')) ? '#22d3ee' : '#fff',
+                    textDecoration: 'none',
+                    fontSize: '0.85rem',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#f97316' }}>
+                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                  </svg>
+                  KvK Seasons
+                </Link>
+              </div>
+            )}
+          </div>
           <div 
             style={{ position: 'relative' }}
             onMouseEnter={handleToolsEnter}
@@ -833,19 +922,74 @@ const Header: React.FC = () => {
           >
             Home
           </Link>
-          <Link
-            to="/leaderboards"
+          <button
+            onClick={() => setShowMobileRankingsMenu(!showMobileRankingsMenu)}
             style={{
-              color: isActive('/leaderboards') ? '#22d3ee' : '#9ca3af',
+              color: (isActive('/leaderboards') || isActive('/seasons') || location.pathname.startsWith('/seasons/')) ? '#22d3ee' : '#9ca3af',
               textDecoration: 'none',
               fontSize: '1rem',
               padding: '0.75rem 1rem',
               borderRadius: '8px',
-              backgroundColor: isActive('/leaderboards') ? '#111' : 'transparent'
+              backgroundColor: (isActive('/leaderboards') || isActive('/seasons') || location.pathname.startsWith('/seasons/')) ? '#111' : 'transparent',
+              border: 'none',
+              width: '100%',
+              textAlign: 'left',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
             }}
           >
             Rankings
-          </Link>
+            <svg 
+              width="12" 
+              height="12" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2"
+              style={{ 
+                transform: showMobileRankingsMenu ? 'rotate(180deg)' : 'rotate(0deg)',
+                transition: 'transform 0.2s'
+              }}
+            >
+              <path d="M6 9l6 6 6-6"/>
+            </svg>
+          </button>
+          {showMobileRankingsMenu && (
+            <>
+              <Link
+                to="/leaderboards"
+                style={{
+                  color: isActive('/leaderboards') ? '#22d3ee' : '#6b7280',
+                  textDecoration: 'none',
+                  fontSize: '0.9rem',
+                  padding: '0.5rem 1rem 0.5rem 1.5rem',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}
+              >
+                <span style={{ color: '#333' }}>└</span> Kingdom Rankings
+              </Link>
+              <Link
+                to="/seasons"
+                style={{
+                  color: (isActive('/seasons') || location.pathname.startsWith('/seasons/')) ? '#22d3ee' : '#6b7280',
+                  textDecoration: 'none',
+                  fontSize: '0.9rem',
+                  padding: '0.5rem 1rem 0.5rem 1.5rem',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}
+              >
+                <span style={{ color: '#333' }}>└</span> KvK Seasons
+              </Link>
+            </>
+          )}
           <button
             onClick={() => setShowMobileToolsMenu(!showMobileToolsMenu)}
             style={{

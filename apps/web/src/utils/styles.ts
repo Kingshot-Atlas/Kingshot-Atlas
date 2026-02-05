@@ -6,6 +6,20 @@ import React from 'react';
  */
 
 /**
+ * Display font family - Trajan Pro with Cinzel fallback
+ * Use for: Page titles, kingdom names, logo, headers
+ */
+export const FONT_DISPLAY = "'Trajan Pro', 'Cinzel', 'Times New Roman', serif";
+
+/**
+ * Accent colors for page titles
+ */
+export const PAGE_TITLE_COLORS = {
+  default: '#22d3ee',  // Cyan - most pages
+  support: '#ff6b8a',  // Pink - Support Atlas page
+} as const;
+
+/**
  * Creates a neon glow text effect
  * @param color - The color for the glow effect (hex format)
  * @returns CSS properties for text-shadow glow

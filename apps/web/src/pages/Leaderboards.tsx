@@ -8,7 +8,7 @@ import { LeaderboardSkeleton } from '../components/Skeleton';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { usePremium } from '../contexts/PremiumContext';
-import { neonGlow } from '../utils/styles';
+import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import ScoreDistribution from '../components/ScoreDistribution';
 import ScoreMovers from '../components/ScoreMovers';
@@ -362,7 +362,7 @@ const Leaderboards: React.FC = () => {
   
   // Performance Rankings (Overall & Win Rates)
   const performanceRankings = [
-    { title: 'Atlas Score', icon: '🏆', color: '#22d3ee', data: atlasScoreRanking, getValue: (k: KingdomWithStats) => k.overall_score.toFixed(1) },
+    { title: 'Atlas Score', icon: '🏆', color: '#22d3ee', data: atlasScoreRanking, getValue: (k: KingdomWithStats) => k.overall_score.toFixed(2) },
     { title: 'Prep Win Rate', icon: '📊', color: '#10b981', data: prepWinRateRanking, getValue: (k: KingdomWithStats) => `${(k.prep_win_rate * 100).toFixed(0)}%` },
     { title: 'Battle Win Rate', icon: '📈', color: '#8b5cf6', data: battleWinRateRanking, getValue: (k: KingdomWithStats) => `${(k.battle_win_rate * 100).toFixed(0)}%` },
   ];
@@ -411,7 +411,7 @@ const Leaderboards: React.FC = () => {
             fontSize: isMobile ? '1.5rem' : '2rem', 
             fontWeight: 'bold', 
             marginBottom: '0.5rem',
-            fontFamily: "'Cinzel', 'Times New Roman', serif"
+            fontFamily: FONT_DISPLAY
           }}>
             <span style={{ color: '#fff' }}>KINGDOM</span>
             <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>RANKINGS</span>

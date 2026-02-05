@@ -231,9 +231,9 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
   const getOutcomeLabel = () => {
     if (!prepResult || !battleResult) return null;
     if (prepResult === 'W' && battleResult === 'W') return { label: 'Domination', color: '#22c55e' };
-    if (prepResult === 'L' && battleResult === 'L') return { label: 'Defeat', color: '#ef4444' };
-    if (prepResult === 'W') return { label: 'Prep Win', color: '#eab308' };
-    return { label: 'Battle Win', color: '#f97316' };
+    if (prepResult === 'L' && battleResult === 'L') return { label: 'Invasion', color: '#ef4444' };
+    if (prepResult === 'W') return { label: 'Reversal', color: '#eab308' };
+    return { label: 'Comeback', color: '#f97316' };
   };
 
   const outcome = getOutcomeLabel();

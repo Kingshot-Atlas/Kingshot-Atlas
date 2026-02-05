@@ -127,7 +127,7 @@ export function getOutcomeDisplay(outcome: StandardOutcome): {
         abbrev: 'R',
         color: '#a855f7',
         bgColor: '#a855f715',
-        emoji: '⚔️',
+        emoji: '🔄',
         description: 'Won Prep but lost Battle phase'
       };
     case 'Comeback':
@@ -136,7 +136,7 @@ export function getOutcomeDisplay(outcome: StandardOutcome): {
         abbrev: 'C',
         color: '#3b82f6',
         bgColor: '#3b82f615',
-        emoji: '🔄',
+        emoji: '�',
         description: 'Lost Prep but won Battle phase'
       };
     case 'Invasion':

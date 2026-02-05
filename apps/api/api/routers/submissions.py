@@ -130,7 +130,9 @@ def verify_supabase_jwt(token: str) -> Optional[str]:
         return None
 
 
-ADMIN_EMAILS = ['gatreno@gmail.com', 'gatreno.investing@gmail.com']
+# Admin emails from environment variable (comma-separated) or fallback to defaults
+_default_admin_emails = 'gatreno@gmail.com,gatreno.investing@gmail.com'
+ADMIN_EMAILS = [e.strip() for e in os.getenv("ADMIN_EMAILS", _default_admin_emails).split(',') if e.strip()]
 
 def verify_moderator_role(user_id: str, db: Session, user_email: str = None) -> bool:
     """Verify user has moderator or admin role. Returns True if authorized."""
@@ -193,15 +195,17 @@ def get_verified_user_id(
         if jwt_user_id:
             return jwt_user_id
     
-    # Fallback to X-User-Id header (less secure, for development)
+    # Fallback to X-User-Id header (less secure, for development only)
     if x_user_id:
-        if SUPABASE_JWT_SECRET:
-            # In production (secret is set), don't trust unverified headers
-            logger.warning("X-User-Id header rejected - use Authorization with valid JWT")
+        # Check if we're in production environment
+        is_production = os.getenv("RENDER") or os.getenv("PRODUCTION") or SUPABASE_JWT_SECRET
+        if is_production:
+            # In production, don't trust unverified headers
+            logger.warning("SECURITY: X-User-Id header rejected - use Authorization with valid JWT")
             return None
         else:
-            # Development mode - allow but log warning
-            logger.warning("Using unverified X-User-Id header - development mode only!")
+            # Development mode only - allow but log warning
+            logger.warning("SECURITY: Using unverified X-User-Id header - development mode only!")
             return x_user_id
     
     return None

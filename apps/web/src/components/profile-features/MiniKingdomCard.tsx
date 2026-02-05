@@ -162,7 +162,7 @@ export const MiniKingdomCard: React.FC<MiniKingdomCardProps> = ({
           fontFamily: 'system-ui',
           lineHeight: 1
         }}>
-          {kingdom.overall_score.toFixed(1)}
+          {kingdom.overall_score.toFixed(2)}
         </span>
         <span style={{ 
           fontSize: '1rem', 

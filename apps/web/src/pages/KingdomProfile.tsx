@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { KingdomProfile as KingdomProfileType, getPowerTier, getTierDescription as getCentralizedTierDescription, type PowerTier } from '../types';
 import { incrementStat } from '../components/UserAchievements';
@@ -7,12 +7,14 @@ import { apiService, dataLoadError } from '../services/api';
 import { DataLoadError } from '../components/DataLoadError';
 import { KingdomProfileSkeleton } from '../components/Skeleton';
 import { statusService } from '../services/statusService';
+import { useKingdomsRealtime } from '../hooks/useKingdomsRealtime';
 import KingdomReviews from '../components/KingdomReviews';
 import StatusSubmission from '../components/StatusSubmission';
 import ReportDataModal from '../components/ReportDataModal';
 import ReportKvKErrorModal from '../components/ReportKvKErrorModal';
 import MissingKvKPrompt from '../components/MissingKvKPrompt';
 import TrendChart from '../components/TrendChart';
+import ScoreHistoryChart from '../components/ScoreHistoryChart';
 import SimilarKingdoms from '../components/SimilarKingdoms';
 import KingdomPlayers from '../components/KingdomPlayers';
 import ClaimKingdom from '../components/ClaimKingdom';
@@ -26,7 +28,7 @@ import { getOutcome, OUTCOMES } from '../utils/outcomes';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/Toast';
-import { neonGlow, getStatusColor, getTierColor } from '../utils/styles';
+import { neonGlow, getStatusColor, getTierColor, FONT_DISPLAY } from '../utils/styles';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, getKingdomMetaTags } from '../hooks/useMetaTags';
 import { CURRENT_KVK } from '../constants';
@@ -42,6 +44,19 @@ const KingdomProfile: React.FC = () => {
   const [allKingdoms, setAllKingdoms] = useState<KingdomProfileType[]>([]);
   const [loading, setLoading] = useState(true);
   const isMobile = useIsMobile();
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // Auto-refresh when KvK history changes for this kingdom via realtime
+  const handleKvkHistoryUpdate = useCallback((updatedKingdom: number, kvkNumber: number) => {
+    if (kingdomNumber && updatedKingdom === parseInt(kingdomNumber)) {
+      console.log(`Realtime: KvK history updated for K${updatedKingdom} #${kvkNumber}, refreshing...`);
+      setRefreshKey(prev => prev + 1);
+    }
+  }, [kingdomNumber]);
+
+  useKingdomsRealtime({
+    onKvkHistoryUpdate: handleKvkHistoryUpdate,
+  });
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [hasPendingSubmission, setHasPendingSubmission] = useState(false);
@@ -51,15 +66,19 @@ const KingdomProfile: React.FC = () => {
   
   // Expand/collapse all state for collapsible sections
   const [breakdownExpanded, setBreakdownExpanded] = useState(false);
+  const [scoreHistoryExpanded, setScoreHistoryExpanded] = useState(false);
   const [simulatorExpanded, setSimulatorExpanded] = useState(false);
   const [pathExpanded, setPathExpanded] = useState(false);
+  const [trendExpanded, setTrendExpanded] = useState(false);
   
-  const allExpanded = breakdownExpanded && simulatorExpanded && pathExpanded;
+  const allExpanded = breakdownExpanded && scoreHistoryExpanded && simulatorExpanded && pathExpanded && trendExpanded;
   const toggleAllSections = () => {
     const newState = !allExpanded;
     setBreakdownExpanded(newState);
+    setScoreHistoryExpanded(newState);
     setSimulatorExpanded(newState);
     setPathExpanded(newState);
+    setTrendExpanded(newState);
   };
 
   // Check for pending submissions
@@ -97,7 +116,7 @@ const KingdomProfile: React.FC = () => {
     if (kingdomNumber) {
       loadKingdomProfile(parseInt(kingdomNumber));
     }
-  }, [kingdomNumber]);
+  }, [kingdomNumber, refreshKey]);
 
   const loadKingdomProfile = async (id: number) => {
     setLoading(true);
@@ -237,7 +256,7 @@ const KingdomProfile: React.FC = () => {
                 fontSize: isMobile ? '1.5rem' : '2.25rem', 
                 fontWeight: 'bold', 
                 color: '#ffffff',
-                fontFamily: "'Cinzel', serif", 
+                fontFamily: FONT_DISPLAY, 
                 letterSpacing: '0.02em',
                 margin: 0
               }}>
@@ -301,7 +320,7 @@ const KingdomProfile: React.FC = () => {
                   lineHeight: 1
                 }}
               >
-                {atlasScore.toFixed(1)}
+                {atlasScore.toFixed(2)}
                 {activeTooltip === 'score' && (
                   <div style={{
                     position: 'absolute',
@@ -803,85 +822,6 @@ const KingdomProfile: React.FC = () => {
           })()}
         </div>
 
-        {/* Expand/Collapse All Button */}
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'flex-end', 
-          marginBottom: '0.75rem'
-        }}>
-          <button
-            onClick={toggleAllSections}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleAllSections(); } }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-              padding: '0.4rem 0.75rem',
-              backgroundColor: '#131318',
-              border: '1px solid #2a2a2a',
-              borderRadius: '6px',
-              color: '#6b7280',
-              fontSize: '0.75rem',
-              cursor: 'pointer',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = '#22d3ee40';
-              e.currentTarget.style.color = '#22d3ee';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = '#2a2a2a';
-              e.currentTarget.style.color = '#6b7280';
-            }}
-          >
-            <svg 
-              width="12" 
-              height="12" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="2"
-              style={{ 
-                transform: allExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
-                transition: 'transform 0.2s ease'
-              }}
-            >
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
-            {allExpanded ? 'Collapse All' : 'Expand All'}
-          </button>
-        </div>
-
-        {/* Atlas Score Breakdown - Toggleable Radar Chart */}
-        <AtlasScoreBreakdown 
-          kingdom={kingdom} 
-          rank={rank > 0 ? rank : undefined}
-          totalKingdoms={rankingList.length || undefined}
-          isExpanded={breakdownExpanded}
-          onToggle={setBreakdownExpanded}
-        />
-
-        {/* Atlas Score Simulator - Pro Feature */}
-        <ScoreSimulator 
-          kingdom={kingdom} 
-          isExpanded={simulatorExpanded}
-          onToggle={setSimulatorExpanded}
-        />
-
-        {/* Path to Next Tier - What-If Scenarios */}
-        <PathToNextTier 
-          kingdom={kingdom} 
-          isExpanded={pathExpanded}
-          onToggle={setPathExpanded}
-        />
-
-        {/* Performance Trend Chart */}
-        {kingdom.recent_kvks && kingdom.recent_kvks.length >= 2 && (
-          <div style={{ marginBottom: isMobile ? '1.25rem' : '1.5rem' }}>
-            <TrendChart kvkRecords={kingdom.recent_kvks} />
-          </div>
-        )}
-
         {/* KvK History Section */}
         {allKvks.length > 0 && (
           <div style={{ 
@@ -890,44 +830,40 @@ const KingdomProfile: React.FC = () => {
             padding: isMobile ? '1rem' : '1.25rem', 
             border: '1px solid #2a2a2a',
             marginBottom: isMobile ? '1.25rem' : '1.5rem',
-            overflow: 'visible'
+            overflow: 'visible',
+            position: 'relative'
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-              <h3 style={{ color: '#fff', fontSize: isMobile ? '0.95rem' : '1.1rem', fontWeight: '600', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                📜 KvK History
-              </h3>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <button
-                  onClick={() => setShowKvKErrorModal(true)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.35rem',
-                    padding: '0.3rem 0.6rem',
-                    backgroundColor: '#ef444415',
-                    border: '1px solid #ef444430',
-                    borderRadius: '6px',
-                    color: '#ef4444',
-                    cursor: 'pointer',
-                    fontSize: '0.7rem',
-                    fontWeight: '500',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#ef444425';
-                    e.currentTarget.style.borderColor = '#ef444450';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '#ef444415';
-                    e.currentTarget.style.borderColor = '#ef444430';
-                  }}
-                >
-                  🚩 Report Error
-                </button>
-              <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>
-                {allKvks.length} of {allKvks.length} KvKs
-              </span>
-              </div>
+            <h3 style={{ color: '#fff', fontSize: isMobile ? '0.95rem' : '1.1rem', fontWeight: '600', margin: '0 0 0.5rem 0', textAlign: 'center' }}>
+              KvK History
+            </h3>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+              <button
+                onClick={() => setShowKvKErrorModal(true)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
+                  padding: '0.3rem 0.6rem',
+                  backgroundColor: '#ef444415',
+                  border: '1px solid #ef444430',
+                  borderRadius: '6px',
+                  color: '#ef4444',
+                  cursor: 'pointer',
+                  fontSize: '0.7rem',
+                  fontWeight: '500',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#ef444425';
+                  e.currentTarget.style.borderColor = '#ef444450';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#ef444415';
+                  e.currentTarget.style.borderColor = '#ef444430';
+                }}
+              >
+                Report Error
+              </button>
             </div>
             
             {/* Missing Latest KvK Prompt */}
@@ -942,8 +878,8 @@ const KingdomProfile: React.FC = () => {
               <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 'auto' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid #2a2a2a' }}>
-                    <th style={{ padding: isMobile ? '0.4rem 0.3rem' : '0.5rem', textAlign: 'left', color: '#6b7280', fontSize: isMobile ? '0.7rem' : '0.75rem', fontWeight: '500' }}>KvK #</th>
-                    <th style={{ padding: isMobile ? '0.4rem 0.3rem' : '0.5rem', textAlign: 'left', color: '#6b7280', fontSize: isMobile ? '0.7rem' : '0.75rem', fontWeight: '500' }}>Opponent</th>
+                    <th style={{ padding: isMobile ? '0.4rem 0.3rem' : '0.5rem', textAlign: 'center', color: '#6b7280', fontSize: isMobile ? '0.7rem' : '0.75rem', fontWeight: '500' }}>KvK #</th>
+                    <th style={{ padding: isMobile ? '0.4rem 0.3rem' : '0.5rem', textAlign: 'center', color: '#6b7280', fontSize: isMobile ? '0.7rem' : '0.75rem', fontWeight: '500' }}>Opponent</th>
                     <th style={{ padding: isMobile ? '0.4rem 0.3rem' : '0.5rem', textAlign: 'center', color: '#6b7280', fontSize: isMobile ? '0.7rem' : '0.75rem', fontWeight: '500' }}>Prep</th>
                     <th style={{ padding: isMobile ? '0.4rem 0.3rem' : '0.5rem', textAlign: 'center', color: '#6b7280', fontSize: isMobile ? '0.7rem' : '0.75rem', fontWeight: '500' }}>Battle</th>
                     <th style={{ padding: isMobile ? '0.4rem 0.3rem' : '0.5rem', textAlign: 'center', color: '#6b7280', fontSize: isMobile ? '0.7rem' : '0.75rem', fontWeight: '500' }}>Result</th>
@@ -969,10 +905,10 @@ const KingdomProfile: React.FC = () => {
                         onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#151520'}
                         onMouseLeave={(e) => e.currentTarget.style.backgroundColor = index % 2 === 0 ? '#0a0a0a' : 'transparent'}
                       >
-                        <td style={{ padding: isMobile ? '0.5rem 0.35rem' : '0.65rem 0.5rem', color: '#9ca3af', fontSize: isMobile ? '0.75rem' : '0.85rem' }}>
+                        <td style={{ padding: isMobile ? '0.5rem 0.35rem' : '0.65rem 0.5rem', color: '#9ca3af', fontSize: isMobile ? '0.75rem' : '0.85rem', textAlign: 'center' }}>
                           {kvk.kvk_number}
                         </td>
-                        <td style={{ padding: isMobile ? '0.5rem 0.35rem' : '0.65rem 0.5rem' }}>
+                        <td style={{ padding: isMobile ? '0.5rem 0.35rem' : '0.65rem 0.5rem', textAlign: 'center' }}>
                           {isByeResult ? (
                             <span style={{ 
                               color: '#6b7280', 
@@ -1064,6 +1000,104 @@ const KingdomProfile: React.FC = () => {
                 </tbody>
               </table>
             </div>
+            {/* Showing count at bottom right */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.75rem' }}>
+              <span style={{ color: '#6b7280', fontSize: '0.7rem' }}>
+                Showing {allKvks.length} of {allKvks.length} KvKs
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Expand/Collapse All Button */}
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'flex-end', 
+          marginBottom: '0.75rem'
+        }}>
+          <button
+            onClick={toggleAllSections}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleAllSections(); } }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              padding: '0.4rem 0.75rem',
+              backgroundColor: '#131318',
+              border: '1px solid #2a2a2a',
+              borderRadius: '6px',
+              color: '#6b7280',
+              fontSize: '0.75rem',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = '#22d3ee40';
+              e.currentTarget.style.color = '#22d3ee';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = '#2a2a2a';
+              e.currentTarget.style.color = '#6b7280';
+            }}
+          >
+            <svg 
+              width="12" 
+              height="12" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2"
+              style={{ 
+                transform: allExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                transition: 'transform 0.2s ease'
+              }}
+            >
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+            {allExpanded ? 'Collapse All' : 'Expand All'}
+          </button>
+        </div>
+
+        {/* Atlas Score Breakdown - Toggleable Radar Chart */}
+        <AtlasScoreBreakdown 
+          kingdom={kingdom} 
+          rank={rank > 0 ? rank : undefined}
+          totalKingdoms={rankingList.length || undefined}
+          isExpanded={breakdownExpanded}
+          onToggle={setBreakdownExpanded}
+        />
+
+        {/* Atlas Score History Chart */}
+        <div style={{ marginBottom: isMobile ? '1.25rem' : '1.5rem' }}>
+          <ScoreHistoryChart 
+            kingdomNumber={kingdom.kingdom_number} 
+            isExpanded={scoreHistoryExpanded}
+            onToggle={setScoreHistoryExpanded}
+          />
+        </div>
+
+        {/* Atlas Score Simulator - Pro Feature */}
+        <ScoreSimulator 
+          kingdom={kingdom} 
+          isExpanded={simulatorExpanded}
+          onToggle={setSimulatorExpanded}
+        />
+
+        {/* Path to Next Tier - What-If Scenarios */}
+        <PathToNextTier 
+          kingdom={kingdom} 
+          isExpanded={pathExpanded}
+          onToggle={setPathExpanded}
+        />
+
+        {/* Performance Trend Chart */}
+        {kingdom.recent_kvks && kingdom.recent_kvks.length >= 2 && (
+          <div style={{ marginBottom: isMobile ? '1.25rem' : '1.5rem' }}>
+            <TrendChart 
+              kvkRecords={kingdom.recent_kvks} 
+              isExpanded={trendExpanded}
+              onToggle={setTrendExpanded}
+            />
           </div>
         )}
 

@@ -7,7 +7,7 @@ import DonutChart from './DonutChart';
 import {
   calculateAtlasScore,
   extractStatsFromProfile,
-  KVK_OUTCOME_SCORES,
+  TIER_COLORS,
 } from '../utils/atlasScoreFormula';
 
 // Lazy load RadarChart - only loaded when user expands the breakdown
@@ -21,13 +21,14 @@ interface AtlasScoreBreakdownProps {
   onToggle?: (expanded: boolean) => void;
 }
 
-// Tooltip descriptions for score components (using centralized + UI-specific)
+// Tooltip descriptions for score components
 const SCORE_TOOLTIPS: Record<string, string> = {
   'Base Score': 'Combined win rate: Prep (40%) + Battle (60%) with Bayesian adjustment to prevent small sample bias.',
   'Dom/Inv': 'Dominations boost your score; Invasions hurt it equally. Rewards consistent double-phase performance.',
-  'Recent Form': `Performance in your last 5 KvKs. Domination=${KVK_OUTCOME_SCORES.Domination}, Comeback=${KVK_OUTCOME_SCORES.Comeback}, Reversal=${KVK_OUTCOME_SCORES.Reversal}, Invasion=${KVK_OUTCOME_SCORES.Invasion}.`,
+  'Recent Form': 'Performance trend in your last 5 KvKs. Recent results weigh more heavily.',
   'Streaks': 'Current win streaks provide a small boost. Battle streaks count 50% more than prep streaks.',
-  'Experience Multiplier': 'Kingdoms with 5+ KvKs get full credit. Newer kingdoms face a small penalty until they prove themselves.',
+  'Experience': 'Kingdoms with 5+ KvKs get full credit. Newer kingdoms face a small penalty until they prove themselves.',
+  'History': 'Bonus for extensive track record. Grows with each KvK completed.',
 };
 
 const AtlasScoreBreakdown: React.FC<AtlasScoreBreakdownProps> = ({ kingdom, rank, totalKingdoms, isExpanded: externalExpanded, onToggle }) => {
@@ -80,25 +81,45 @@ const AtlasScoreBreakdown: React.FC<AtlasScoreBreakdownProps> = ({ kingdom, rank
   }, [showChart, setShowChart, trackFeature, kingdom.kingdom_number, kingdom.overall_score, kingdom.power_tier]);
   
   // Calculate score components using centralized Atlas Score formula
+  // Option B: Convert multipliers to sequential point contributions so numbers ADD UP
   const scoreComponents = useMemo(() => {
     const stats = extractStatsFromProfile(kingdom);
     const breakdown = calculateAtlasScore(stats);
     
-    // Convert to display format for the donut charts
-    // Base score is on a 0-10 scale, multipliers are around 1.0
-    const baseScoreNormalized = breakdown.baseScore; // Already 0-10
-    const domInvBonus = (breakdown.domInvMultiplier - 1) * 100; // Convert to percentage points
-    const formBonus = (breakdown.recentFormMultiplier - 1) * 100;
-    const streakBonus = (breakdown.streakMultiplier - 1) * 100;
+    // Calculate sequential point contributions (so users can add them up)
+    const base = breakdown.baseScore;
     
+    // Step 1: Apply Dom/Inv multiplier
+    const afterDomInv = base * breakdown.domInvMultiplier;
+    const domInvContribution = afterDomInv - base;
+    
+    // Step 2: Apply Form multiplier
+    const afterForm = afterDomInv * breakdown.recentFormMultiplier;
+    const formContribution = afterForm - afterDomInv;
+    
+    // Step 3: Apply Streak multiplier
+    const afterStreaks = afterForm * breakdown.streakMultiplier;
+    const streakContribution = afterStreaks - afterForm;
+    
+    // Step 4: Apply Experience factor
+    const afterExp = afterStreaks * breakdown.experienceFactor;
+    const expContribution = afterExp - afterStreaks;
+    
+    // Step 5: History bonus is additive
+    // Final = afterExp + historyBonus
+    
+    // For donut charts, show contributions as points (can be negative)
+    // Max values for visualization (approximate ranges based on formula)
     return {
-      baseScore: { value: baseScoreNormalized, weight: 60, maxPoints: 10 },
-      domInv: { value: domInvBonus, weight: 15, maxPoints: 15 },
-      recentForm: { value: formBonus, weight: 15, maxPoints: 15 },
-      streaks: { value: streakBonus, weight: 10, maxPoints: 15 },
+      baseScore: { value: base, maxPoints: 10 },
+      domInv: { value: domInvContribution, maxPoints: 1.5 }, // ±15% of ~10 = ±1.5
+      recentForm: { value: formContribution, maxPoints: 1.5 },
+      streaks: { value: streakContribution, maxPoints: 1.5 },
       expFactor: breakdown.experienceFactor,
+      expContribution: expContribution,
       historyBonus: breakdown.historyBonus,
-      rawScore: breakdown.baseScore * breakdown.domInvMultiplier * breakdown.recentFormMultiplier * breakdown.streakMultiplier,
+      // Verify the math adds up
+      calculatedTotal: base + domInvContribution + formContribution + streakContribution + expContribution + breakdown.historyBonus,
       finalScore: breakdown.finalScore
     };
   }, [kingdom]);
@@ -180,12 +201,9 @@ const AtlasScoreBreakdown: React.FC<AtlasScoreBreakdownProps> = ({ kingdom, rank
           position: 'relative'
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span style={{ fontSize: '1.1rem' }}>📊</span>
-          <h3 style={{ color: '#fff', fontSize: isMobile ? '0.95rem' : '1.1rem', fontWeight: '600', margin: 0 }}>
-            Atlas Score Breakdown
-          </h3>
-        </div>
+        <h4 style={{ color: '#fff', fontSize: '0.9rem', fontWeight: '600', margin: 0, textAlign: 'center' }}>
+          Atlas Score Breakdown
+        </h4>
         {!showChart && (
           <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>
             &quot;Why is my score what it is?&quot;
@@ -230,132 +248,94 @@ const AtlasScoreBreakdown: React.FC<AtlasScoreBreakdownProps> = ({ kingdom, rank
             borderRadius: '10px',
             border: '1px solid #1a1a1a'
           }}>
-            {/* Header with Final Score */}
+            {/* Header - Centered title with Atlas Score below */}
             <div style={{ 
               display: 'flex', 
-              justifyContent: 'space-between', 
+              flexDirection: 'column',
               alignItems: 'center',
               marginBottom: '0.5rem',
               paddingBottom: '0.5rem',
               borderBottom: '1px solid #2a2a2a'
             }}>
-              <span style={{ fontSize: '0.75rem', color: '#fff', fontWeight: '600' }}>
+              <span style={{ fontSize: '0.75rem', color: '#fff', fontWeight: '600', marginBottom: '0.25rem' }}>
                 Score Components
               </span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                {/* Experience Multiplier - moved here */}
-                <div 
-                  style={{ 
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'flex-end',
-                    position: 'relative',
-                    cursor: 'help'
-                  }}
-                  onMouseEnter={() => !isMobile && setActiveTooltip('Experience Multiplier')}
-                  onMouseLeave={() => !isMobile && setActiveTooltip(null)}
-                  onClick={() => isMobile && setActiveTooltip(activeTooltip === 'Experience Multiplier' ? null : 'Experience Multiplier')}
-                >
-                  {/* Tooltip */}
-                  {activeTooltip === 'Experience Multiplier' && (
-                    <div style={{
-                      position: 'absolute',
-                      bottom: '100%',
-                      right: 0,
-                      marginBottom: '0.5rem',
-                      backgroundColor: '#0a0a0a',
-                      border: `1px solid ${scoreComponents.expFactor >= 1 ? '#22c55e' : '#eab308'}`,
-                      borderRadius: '6px',
-                      padding: '0.5rem 0.75rem',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
-                      zIndex: 1000,
-                      width: 'max-content',
-                      maxWidth: '250px',
-                      fontSize: '0.65rem',
-                      color: '#d1d5db',
-                      lineHeight: 1.4,
-                      textAlign: 'left'
-                    }}>
-                      <div style={{ fontWeight: '600', color: scoreComponents.expFactor >= 1 ? '#22c55e' : '#eab308', marginBottom: '0.25rem' }}>
-                        Experience Multiplier
-                      </div>
-                      {SCORE_TOOLTIPS['Experience Multiplier']}
-                    </div>
-                  )}
-                  <div style={{ fontSize: '0.5rem', color: '#6b7280' }}>
-                    {kingdom.total_kvks || 0} KvKs • {scoreComponents.expFactor < 1 ? 'Penalty' : 'Full credit'}
-                  </div>
-                  <span style={{ 
-                    fontSize: '0.85rem', 
-                    fontWeight: '700',
-                    color: scoreComponents.expFactor >= 1 ? '#22c55e' : scoreComponents.expFactor >= 0.7 ? '#eab308' : '#ef4444'
-                  }}>
-                    ×{scoreComponents.expFactor.toFixed(2)}
-                  </span>
-                </div>
-                {/* Atlas Score */}
-                <div style={{ textAlign: 'right' }}>
-                  <span style={{ fontSize: '0.65rem', color: '#6b7280' }}>Atlas Score </span>
-                  <span style={{ 
-                    fontSize: '1.1rem', 
-                    fontWeight: '700', 
-                    color: '#22d3ee',
-                    textShadow: '0 0 10px #22d3ee40'
-                  }}>
-                    {kingdom.overall_score?.toFixed(1) || '0.0'}
-                  </span>
-                </div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.35rem' }}>
+                <span style={{ fontSize: '0.65rem', color: '#6b7280' }}>Atlas Score</span>
+                <span style={{ 
+                  fontSize: '1.1rem', 
+                  fontWeight: '700', 
+                  color: '#22d3ee',
+                  textShadow: '0 0 10px #22d3ee40'
+                }}>
+                  {kingdom.overall_score?.toFixed(2) || '0.00'}
+                </span>
               </div>
+              <span style={{ fontSize: '0.5rem', color: '#4a4a4a', marginTop: '0.15rem' }}>
+                (breakdown is approximate)
+              </span>
             </div>
             
-            {/* Score Component Donut Charts */}
+            {/* Score Component Donut Charts - 6 charts in grid */}
             <div style={{
               display: 'grid',
-              gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
-              gap: isMobile ? '0.75rem' : '1rem',
+              gridTemplateColumns: isMobile ? 'repeat(3, 1fr)' : 'repeat(6, 1fr)',
+              gap: isMobile ? '0.5rem' : '0.75rem',
               justifyItems: 'center',
               marginBottom: '0.5rem'
             }}>
               {[
                 { 
                   label: 'Base Score', 
-                  sublabel: `${scoreComponents.baseScore.weight}%`,
+                  sublabel: 'win rates',
                   points: scoreComponents.baseScore.value, 
                   maxPoints: scoreComponents.baseScore.maxPoints,
-                  color: '#22d3ee',
                   tooltipKey: 'Base Score'
                 },
                 { 
                   label: 'Dom/Inv', 
-                  sublabel: `${scoreComponents.domInv.weight}%`,
+                  sublabel: 'impact',
                   points: scoreComponents.domInv.value, 
                   maxPoints: scoreComponents.domInv.maxPoints,
-                  color: '#22c55e',
                   tooltipKey: 'Dom/Inv'
                 },
                 { 
                   label: 'Form', 
-                  sublabel: `${scoreComponents.recentForm.weight}%`,
+                  sublabel: 'last 5',
                   points: scoreComponents.recentForm.value, 
                   maxPoints: scoreComponents.recentForm.maxPoints,
-                  color: '#eab308',
                   tooltipKey: 'Recent Form'
                 },
                 { 
                   label: 'Streaks', 
-                  sublabel: `${scoreComponents.streaks.weight}%`,
+                  sublabel: 'bonus',
                   points: scoreComponents.streaks.value, 
                   maxPoints: scoreComponents.streaks.maxPoints,
-                  color: '#a855f7',
                   tooltipKey: 'Streaks'
+                },
+                { 
+                  label: 'Experience', 
+                  sublabel: `${kingdom.total_kvks || 0} KvKs`,
+                  points: scoreComponents.expContribution, 
+                  maxPoints: 1.0,
+                  tooltipKey: 'Experience'
+                },
+                { 
+                  label: 'History', 
+                  sublabel: 'bonus',
+                  points: scoreComponents.historyBonus, 
+                  maxPoints: 1.5,
+                  tooltipKey: 'History'
                 },
               ].map((item, i) => {
                 const tooltipText = SCORE_TOOLTIPS[item.tooltipKey];
                 const isNegative = item.points < 0;
+                // Green for positive, red for negative contributions
+                const displayColor = isNegative ? '#ef4444' : '#22c55e';
                 return (
                   <div 
                     key={i}
-                    style={{ position: 'relative', cursor: 'help' }}
+                    style={{ position: 'relative' }}
                     onMouseEnter={() => !isMobile && setActiveTooltip(item.label)}
                     onMouseLeave={() => !isMobile && setActiveTooltip(null)}
                     onClick={() => isMobile && setActiveTooltip(activeTooltip === item.label ? null : item.label)}
@@ -368,7 +348,7 @@ const AtlasScoreBreakdown: React.FC<AtlasScoreBreakdownProps> = ({ kingdom, rank
                         transform: 'translateX(-50%)',
                         marginBottom: '0.5rem',
                         backgroundColor: '#0a0a0a',
-                        border: `1px solid ${item.color}`,
+                        border: `1px solid ${displayColor}`,
                         borderRadius: '6px',
                         padding: '0.5rem 0.75rem',
                         boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
@@ -380,7 +360,7 @@ const AtlasScoreBreakdown: React.FC<AtlasScoreBreakdownProps> = ({ kingdom, rank
                         lineHeight: 1.4,
                         textAlign: 'center'
                       }}>
-                        <div style={{ fontWeight: '600', color: item.color, marginBottom: '0.25rem' }}>
+                        <div style={{ fontWeight: '600', color: displayColor, marginBottom: '0.25rem' }}>
                           {item.label}
                         </div>
                         {tooltipText}
@@ -389,9 +369,9 @@ const AtlasScoreBreakdown: React.FC<AtlasScoreBreakdownProps> = ({ kingdom, rank
                     <DonutChart
                       value={item.points}
                       maxValue={item.maxPoints}
-                      size={isMobile ? 70 : 80}
-                      strokeWidth={isMobile ? 6 : 8}
-                      color={item.color}
+                      size={isMobile ? 60 : 70}
+                      strokeWidth={isMobile ? 5 : 6}
+                      color={displayColor}
                       label={item.label}
                       sublabel={item.sublabel}
                       isNegative={isNegative}
@@ -401,22 +381,20 @@ const AtlasScoreBreakdown: React.FC<AtlasScoreBreakdownProps> = ({ kingdom, rank
               })}
             </div>
             
-            
-            {/* Percentile */}
+            {/* Percentile - color matches kingdom tier */}
             {percentile !== null && (
               <div style={{ 
-                marginTop: '0.5rem',
+                marginTop: '0.25rem',
                 padding: '0.5rem',
-                backgroundColor: percentile >= 75 ? '#22c55e10' : percentile >= 50 ? '#eab30810' : '#1a1a1a',
+                backgroundColor: `${TIER_COLORS[kingdom.power_tier || 'D']}10`,
                 borderRadius: '6px',
                 textAlign: 'center',
-                border: `1px solid ${percentile >= 75 ? '#22c55e30' : percentile >= 50 ? '#eab30830' : '#2a2a2a'}`
+                border: `1px solid ${TIER_COLORS[kingdom.power_tier || 'D']}30`
               }}>
                 <span style={{ 
                   fontSize: '0.65rem', 
-                  color: percentile >= 75 ? '#22c55e' : percentile >= 50 ? '#eab308' : '#9ca3af'
+                  color: TIER_COLORS[kingdom.power_tier || 'D']
                 }}>
-                  {percentile >= 90 ? '🏆 ' : percentile >= 75 ? '⭐ ' : percentile >= 50 ? '📈 ' : ''}
                   Ranks better than <strong>{percentile}%</strong> of all kingdoms
                 </span>
               </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useIsMobile } from '../hooks/useMediaQuery';
-import { neonGlow } from '../utils/styles';
+import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useAuth } from '../contexts/AuthContext';
 import { usePremium } from '../contexts/PremiumContext';
@@ -80,7 +80,7 @@ const SupportAtlas: React.FC = () => {
             fontSize: isMobile ? '1.5rem' : '2rem', 
             fontWeight: 'bold', 
             marginBottom: '0.5rem',
-            fontFamily: "'Cinzel', 'Times New Roman', serif"
+            fontFamily: FONT_DISPLAY
           }}>
             <span style={{ color: '#fff' }}>SUPPORT</span>
             <span style={{ ...neonGlow('#FF6B8A'), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>ATLAS</span>
@@ -239,7 +239,7 @@ const SupportAtlas: React.FC = () => {
             fontWeight: 'bold', 
             color: '#fff', 
             marginBottom: '0.5rem',
-            fontFamily: "'Cinzel', serif"
+            fontFamily: FONT_DISPLAY
           }}>
             Atlas Supporter
           </h2>
@@ -359,7 +359,7 @@ const SupportAtlas: React.FC = () => {
             fontWeight: 'bold', 
             color: '#fff', 
             marginBottom: '0.5rem',
-            fontFamily: "'Cinzel', serif",
+            fontFamily: FONT_DISPLAY,
             textAlign: 'center'
           }}>
             Supporter Perks
@@ -397,7 +397,7 @@ const SupportAtlas: React.FC = () => {
             fontWeight: 'bold', 
             color: '#fff', 
             marginBottom: '0.5rem',
-            fontFamily: "'Cinzel', serif",
+            fontFamily: FONT_DISPLAY,
             textAlign: 'center'
           }}>
             What Everyone Gets — Free
@@ -455,7 +455,7 @@ const SupportAtlas: React.FC = () => {
             fontWeight: 'bold', 
             color: '#fff', 
             marginBottom: '1rem',
-            fontFamily: "'Cinzel', serif",
+            fontFamily: FONT_DISPLAY,
             textAlign: 'center'
           }}>
             Why Support Atlas?

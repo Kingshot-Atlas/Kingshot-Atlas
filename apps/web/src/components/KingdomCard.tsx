@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, memo, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Kingdom, getPowerTier } from '../types';
-import { neonGlow, colors, radius, shadows, transition } from '../utils/styles';
+import { neonGlow, colors, radius, shadows, transition, FONT_DISPLAY } from '../utils/styles';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { TierBadge } from './shared';
@@ -143,7 +143,7 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
               fontSize: isMobile ? '1.15rem' : '1.4rem', 
               fontWeight: '700', 
               color: colors.text, 
-              fontFamily: "'Cinzel', serif", 
+              fontFamily: FONT_DISPLAY, 
               letterSpacing: '0.02em',
               cursor: 'pointer',
               transition: transition.fast
@@ -201,7 +201,7 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
             onMouseEnter={() => setShowAtlasTooltip(true)}
             onMouseLeave={() => setShowAtlasTooltip(false)}
           >
-            {animatedScore.toFixed(1)}
+            {animatedScore.toFixed(2)}
           </span>
           {rank && (
             <span style={{ fontSize: '0.85rem', color: colors.primary, fontWeight: 'normal' }}>
@@ -262,7 +262,7 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
                   padding: '0.5rem 0.75rem',
                   boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
                   zIndex: 1000,
-                  whiteSpace: 'nowrap',
+                  maxWidth: isMobile ? '180px' : '220px',
                   fontSize: '0.65rem',
                   color: colors.textSecondary
                 }}
@@ -290,7 +290,7 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
             padding: '0.6rem 0.8rem',
             boxShadow: shadows.tooltip,
             zIndex: 1000,
-            whiteSpace: 'nowrap'
+            maxWidth: isMobile ? '200px' : '280px'
           }}>
             <div style={{ fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '3px', color: colors.primary }}>
               Atlas Score

@@ -89,8 +89,8 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
       padding: '1.25rem', 
       border: '1px solid #2a2a2a' 
     }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <h3 style={{ color: '#fff', fontSize: '1rem', fontWeight: '600' }}>
+      <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+        <h3 style={{ color: '#fff', fontSize: '1rem', fontWeight: '600', margin: 0 }}>
           Community Reviews
           {avgRating && (
             <span style={{ marginLeft: '0.75rem', fontSize: '0.85rem', color: '#fbbf24' }}>
@@ -102,6 +102,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
           <button
             onClick={() => setShowForm(!showForm)}
             style={{
+              marginTop: '0.75rem',
               padding: '0.5rem 1rem',
               backgroundColor: showForm ? '#2a2a2a' : '#22d3ee',
               border: 'none',
@@ -117,6 +118,8 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
           <span 
             onClick={() => setShowAuthModal(true)}
             style={{ 
+              display: 'block',
+              marginTop: '0.5rem',
               color: '#22d3ee', 
               fontSize: '0.75rem', 
               fontStyle: 'italic', 

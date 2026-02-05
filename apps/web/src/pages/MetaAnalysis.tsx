@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Kingdom, getPowerTier, TIER_DESCRIPTIONS } from '../types';
 import { apiService } from '../services/api';
-import { getTierColor, neonGlow } from '../utils/styles';
+import { getTierColor, neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { useIsMobile } from '../hooks/useMediaQuery';
 
 const MetaAnalysis: React.FC = () => {
@@ -97,7 +97,7 @@ const MetaAnalysis: React.FC = () => {
         <h1 style={{ 
           fontSize: isMobile ? '1.5rem' : '2rem', 
           fontWeight: 'bold',
-          fontFamily: "'Cinzel', serif",
+          fontFamily: FONT_DISPLAY,
           marginBottom: '0.5rem'
         }}>
           <span style={{ color: '#fff' }}>META</span>
@@ -117,7 +117,7 @@ const MetaAnalysis: React.FC = () => {
           marginBottom: '2rem'
         }}>
           {[
-            { label: 'Avg Atlas Score', value: stats.avgScore.toFixed(1), color: '#22d3ee' },
+            { label: 'Avg Atlas Score', value: stats.avgScore.toFixed(2), color: '#22d3ee' },
             { label: 'Avg Prep WR', value: `${Math.round(stats.avgPrepWR * 100)}%`, color: '#eab308' },
             { label: 'Avg Battle WR', value: `${Math.round(stats.avgBattleWR * 100)}%`, color: '#f97316' },
             { label: 'Avg KvKs', value: stats.avgKvks.toFixed(1), color: '#a855f7' }
@@ -153,9 +153,9 @@ const MetaAnalysis: React.FC = () => {
               const color = getTierColor(tier);
               
               return (
-                <div key={tier} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div key={tier} style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '0.5rem' : '1rem' }}>
                   <div style={{ 
-                    width: '80px', 
+                    minWidth: isMobile ? '50px' : '80px', 
                     display: 'flex', 
                     alignItems: 'center', 
                     gap: '0.5rem' 
@@ -166,7 +166,7 @@ const MetaAnalysis: React.FC = () => {
                       color, 
                       fontWeight: '600',
                       borderRadius: '4px',
-                      fontSize: '0.8rem'
+                      fontSize: isMobile ? '0.7rem' : '0.8rem'
                     }}>
                       {tier}-Tier
                     </span>
@@ -179,9 +179,9 @@ const MetaAnalysis: React.FC = () => {
                       transition: 'width 0.5s ease'
                     }} />
                   </div>
-                  <div style={{ width: '100px', textAlign: 'right' }}>
-                    <span style={{ color: '#fff', fontWeight: '600' }}>{count}</span>
-                    <span style={{ color: '#6b7280', fontSize: '0.8rem', marginLeft: '0.5rem' }}>({pct.toFixed(1)}%)</span>
+                  <div style={{ minWidth: isMobile ? '70px' : '100px', textAlign: 'right' }}>
+                    <span style={{ color: '#fff', fontWeight: '600', fontSize: isMobile ? '0.85rem' : '1rem' }}>{count}</span>
+                    <span style={{ color: '#6b7280', fontSize: isMobile ? '0.7rem' : '0.8rem', marginLeft: '0.35rem' }}>({pct.toFixed(1)}%)</span>
                   </div>
                 </div>
               );
@@ -213,7 +213,7 @@ const MetaAnalysis: React.FC = () => {
           marginBottom: '2rem'
         }}>
           {[
-            { title: 'Top by Atlas Score', data: stats.topByScore, getValue: (k: Kingdom) => k.overall_score, format: (v: number) => v.toFixed(1) },
+            { title: 'Top by Atlas Score', data: stats.topByScore, getValue: (k: Kingdom) => k.overall_score, format: (v: number) => v.toFixed(2) },
             { title: 'Top Prep Win Rate', data: stats.topByPrepWR, getValue: (k: Kingdom) => k.prep_win_rate, format: (v: number) => `${Math.round(v * 100)}%` },
             { title: 'Top Battle Win Rate', data: stats.topByBattleWR, getValue: (k: Kingdom) => k.battle_win_rate, format: (v: number) => `${Math.round(v * 100)}%` }
           ].map((section, i) => (

@@ -17,6 +17,26 @@ interface PlayerProfile {
   subscription_tier: 'free' | 'pro' | 'recruiter' | null;
 }
 
+// Get tier sort priority (admin=0, recruiter=1, pro=2, free=3)
+const getTierSortPriority = (tier: SubscriptionTier): number => {
+  switch (tier) {
+    case 'admin': return 0;
+    case 'recruiter': return 1;
+    case 'pro': return 2;
+    default: return 3;
+  }
+};
+
+// Get avatar border color (full color, not opacity)
+const getAvatarBorderColor = (tier: SubscriptionTier): string => {
+  switch (tier) {
+    case 'admin': return SUBSCRIPTION_COLORS.admin;    // Gold
+    case 'recruiter': return SUBSCRIPTION_COLORS.recruiter; // Purple
+    case 'pro': return SUBSCRIPTION_COLORS.pro;       // Pink
+    default: return '#ffffff';                         // White
+  }
+};
+
 interface KingdomPlayersProps {
   kingdomNumber: number;
   themeColor?: string;
@@ -32,21 +52,13 @@ const getUsernameColor = (tier: SubscriptionTier): string => {
   }
 };
 
-// Convert TC level to display string
-const formatTCLevel = (level: number | null): string => {
-  if (!level) return '';
-  if (level <= 30) return `TC ${level}`;
-  if (level <= 34) return 'TC 30';
-  const tgTier = Math.floor((level - 35) / 5) + 1;
-  return `TG${tgTier}`;
-};
-
 const KingdomPlayers: React.FC<KingdomPlayersProps> = ({ 
   kingdomNumber,
   themeColor = colors.primary
 }) => {
   const isMobile = useIsMobile();
   const [players, setPlayers] = useState<PlayerProfile[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -61,17 +73,37 @@ const KingdomPlayers: React.FC<KingdomPlayersProps> = ({
       setError(null);
 
       try {
+        // First get total count
+        const { count } = await supabase!
+          .from('profiles')
+          .select('id', { count: 'exact', head: true })
+          .or(`home_kingdom.eq.${kingdomNumber},linked_kingdom.eq.${kingdomNumber}`);
+        
+        setTotalCount(count || 0);
+        
+        // Then get all users to sort them properly
         const { data, error: fetchError } = await supabase!
           .from('profiles')
           .select('id, username, avatar_url, linked_username, linked_avatar_url, linked_tc_level, alliance_tag, theme_color, subscription_tier')
-          .or(`home_kingdom.eq.${kingdomNumber},linked_kingdom.eq.${kingdomNumber}`)
-          .limit(20);
+          .or(`home_kingdom.eq.${kingdomNumber},linked_kingdom.eq.${kingdomNumber}`);
 
         if (fetchError) {
           throw fetchError;
         }
 
-        setPlayers(data || []);
+        // Sort by tier (admin > recruiter > pro > free) then alphabetically
+        const sortedPlayers = (data || []).map(player => ({
+          ...player,
+          displayTier: getDisplayTier(player.subscription_tier, player.linked_username || player.username)
+        })).sort((a, b) => {
+          const tierDiff = getTierSortPriority(a.displayTier) - getTierSortPriority(b.displayTier);
+          if (tierDiff !== 0) return tierDiff;
+          const nameA = (a.linked_username || a.username || '').toLowerCase();
+          const nameB = (b.linked_username || b.username || '').toLowerCase();
+          return nameA.localeCompare(nameB);
+        }).slice(0, 10); // Limit to 10 users
+
+        setPlayers(sortedPlayers);
       } catch (err) {
         console.error('Failed to fetch kingdom players:', err);
         setError('Failed to load players');
@@ -109,17 +141,16 @@ const KingdomPlayers: React.FC<KingdomPlayersProps> = ({
       marginBottom: '1.5rem',
       border: `1px solid ${themeColor}30`,
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span style={{ fontSize: '1.1rem' }}>👥</span>
-          <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: '600', color: colors.text }}>
-            Atlas Users from K-{kingdomNumber}
-          </h3>
-        </div>
-        <span style={{ fontSize: '0.75rem', color: colors.textMuted }}>
-          {players.length} {players.length === 1 ? 'player' : 'players'}
-        </span>
-      </div>
+      <h3 style={{ 
+        margin: 0, 
+        marginBottom: '1rem',
+        fontSize: '0.9rem', 
+        fontWeight: '600', 
+        color: colors.text,
+        textAlign: 'center'
+      }}>
+        Atlas Users from Kingdom {kingdomNumber}
+      </h3>
 
       <div style={{
         display: 'grid',
@@ -157,18 +188,19 @@ const KingdomPlayers: React.FC<KingdomPlayersProps> = ({
                 e.currentTarget.style.backgroundColor = colors.bg;
               }}
               >
-                {/* Avatar */}
+                {/* Avatar with tier-colored border */}
                 <div style={{
                   width: '44px',
                   height: '44px',
                   borderRadius: '50%',
                   backgroundColor: colors.card,
-                  border: `2px solid ${usernameColor}40`,
+                  border: `2px solid ${getAvatarBorderColor(displayTier)}`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   overflow: 'hidden',
                   flexShrink: 0,
+                  ...(displayTier !== 'free' ? { boxShadow: `0 0 8px ${getAvatarBorderColor(displayTier)}40` } : {})
                 }}>
                   {player.linked_avatar_url || player.avatar_url ? (
                     <img 
@@ -186,9 +218,25 @@ const KingdomPlayers: React.FC<KingdomPlayersProps> = ({
                   )}
                 </div>
 
-                {/* Info */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ 
+                {/* Info: [alliance] username (badge) */}
+                <div style={{ 
+                  flex: 1, 
+                  minWidth: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  flexWrap: 'wrap'
+                }}>
+                  {player.alliance_tag && (
+                    <span style={{ 
+                      color: '#9ca3af',
+                      fontWeight: '600',
+                      fontSize: '0.85rem',
+                    }}>
+                      [{player.alliance_tag}]
+                    </span>
+                  )}
+                  <span style={{ 
                     fontSize: '0.9rem', 
                     fontWeight: '600', 
                     color: usernameColor,
@@ -198,66 +246,46 @@ const KingdomPlayers: React.FC<KingdomPlayersProps> = ({
                     ...(isPaidOrAdmin ? neonGlow(usernameColor) : {})
                   }}>
                     {player.linked_username || player.username || 'Anonymous'}
-                  </div>
-                  <div style={{ 
-                    fontSize: '0.75rem', 
-                    color: colors.textMuted,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    flexWrap: 'wrap',
-                  }}>
-                    {player.alliance_tag && (
-                      <span style={{ 
-                        color: player.theme_color || themeColor,
-                        fontWeight: '600',
-                      }}>
-                        [{player.alliance_tag}]
-                      </span>
-                    )}
-                    {player.linked_tc_level && (
-                      <span>{formatTCLevel(player.linked_tc_level)}</span>
-                    )}
-                    {displayTier === 'admin' && (
-                      <span style={{
-                        fontSize: '0.6rem',
-                        padding: '0.1rem 0.3rem',
-                        backgroundColor: `${SUBSCRIPTION_COLORS.admin}15`,
-                        border: `1px solid ${SUBSCRIPTION_COLORS.admin}40`,
-                        borderRadius: '3px',
-                        color: SUBSCRIPTION_COLORS.admin,
-                        fontWeight: '600',
-                      }}>
-                        ADMIN
-                      </span>
-                    )}
-                    {displayTier === 'pro' && (
-                      <span style={{
-                        fontSize: '0.6rem',
-                        padding: '0.1rem 0.3rem',
-                        backgroundColor: `${SUBSCRIPTION_COLORS.pro}15`,
-                        border: `1px solid ${SUBSCRIPTION_COLORS.pro}40`,
-                        borderRadius: '3px',
-                        color: SUBSCRIPTION_COLORS.pro,
-                        fontWeight: '600',
-                      }}>
-                        PRO
-                      </span>
-                    )}
-                    {displayTier === 'recruiter' && (
-                      <span style={{
-                        fontSize: '0.6rem',
-                        padding: '0.1rem 0.3rem',
-                        backgroundColor: `${SUBSCRIPTION_COLORS.recruiter}15`,
-                        border: `1px solid ${SUBSCRIPTION_COLORS.recruiter}40`,
-                        borderRadius: '3px',
-                        color: SUBSCRIPTION_COLORS.recruiter,
-                        fontWeight: '600',
-                      }}>
-                        RECRUITER
-                      </span>
-                    )}
-                  </div>
+                  </span>
+                  {displayTier === 'admin' && (
+                    <span style={{
+                      fontSize: '0.6rem',
+                      padding: '0.1rem 0.3rem',
+                      backgroundColor: `${SUBSCRIPTION_COLORS.admin}15`,
+                      border: `1px solid ${SUBSCRIPTION_COLORS.admin}40`,
+                      borderRadius: '3px',
+                      color: SUBSCRIPTION_COLORS.admin,
+                      fontWeight: '600',
+                    }}>
+                      ADMIN
+                    </span>
+                  )}
+                  {displayTier === 'pro' && (
+                    <span style={{
+                      fontSize: '0.6rem',
+                      padding: '0.1rem 0.3rem',
+                      backgroundColor: `${SUBSCRIPTION_COLORS.pro}15`,
+                      border: `1px solid ${SUBSCRIPTION_COLORS.pro}40`,
+                      borderRadius: '3px',
+                      color: SUBSCRIPTION_COLORS.pro,
+                      fontWeight: '600',
+                    }}>
+                      SUPPORTER
+                    </span>
+                  )}
+                  {displayTier === 'recruiter' && (
+                    <span style={{
+                      fontSize: '0.6rem',
+                      padding: '0.1rem 0.3rem',
+                      backgroundColor: `${SUBSCRIPTION_COLORS.recruiter}15`,
+                      border: `1px solid ${SUBSCRIPTION_COLORS.recruiter}40`,
+                      borderRadius: '3px',
+                      color: SUBSCRIPTION_COLORS.recruiter,
+                      fontWeight: '600',
+                    }}>
+                      RECRUITER
+                    </span>
+                  )}
                 </div>
               </div>
             </Link>
@@ -265,17 +293,25 @@ const KingdomPlayers: React.FC<KingdomPlayersProps> = ({
         })}
       </div>
 
-      <div style={{ marginTop: '1rem', textAlign: 'center' }}>
+      <div style={{ 
+        marginTop: '1rem', 
+        display: 'flex', 
+        justifyContent: 'space-between',
+        alignItems: 'center'
+      }}>
         <Link 
-          to="/players"
+          to={`/players?kingdom=${kingdomNumber}`}
           style={{ 
             color: themeColor, 
             fontSize: '0.75rem',
             textDecoration: 'none',
           }}
         >
-          Browse All Players →
+          Browse all Kingdom {kingdomNumber} players →
         </Link>
+        <span style={{ fontSize: '0.7rem', color: colors.textMuted }}>
+          Showing {players.length} of {totalCount} players
+        </span>
       </div>
     </div>
   );

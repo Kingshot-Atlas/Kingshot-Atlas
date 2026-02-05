@@ -14,18 +14,39 @@ export const ADMIN_USERNAMES: readonly string[] = ['gatreno'];
 export const ADMIN_EMAILS: readonly string[] = ['gatreno@gmail.com'];
 
 // Subscription colors - SINGLE SOURCE OF TRUTH for tier styling
+// IMPORTANT: 'pro' is the internal tier name, but displays as "SUPPORTER" (not "PRO") to users
 // Supporter = Pink, Recruiter = Purple, Admin = Gold
 export const SUBSCRIPTION_COLORS = {
   free: '#6b7280',      // Gray
-  pro: '#FF6B8A',       // Pink - Atlas Supporter
+  pro: '#FF6B8A',       // Pink - Atlas Supporter (display as "SUPPORTER", NOT "PRO")
   recruiter: '#a855f7', // Purple - Atlas Recruiter
   admin: '#f59e0b',     // Gold - Admin
 } as const;
 
+// BADGE DISPLAY NAMES - Use these for user-facing badge text
+// Internal tier 'pro' should display as "SUPPORTER" in all badges
+export const TIER_DISPLAY_NAMES = {
+  free: null,           // No badge for free users
+  pro: 'SUPPORTER',     // NOT "PRO" - rebranded as of v1.5.0
+  recruiter: 'RECRUITER',
+  admin: 'ADMIN',
+} as const;
+
+// Strip decorative characters from username for matching
+// Handles fancy brackets like 『』「」【】, quotes, and other decorations
+const stripDecorations = (username: string): string => {
+  return username
+    .replace(/[『』「」【】「」〖〗《》〈〉⟨⟩｢｣\[\](){}]/g, '')
+    .trim()
+    .toLowerCase();
+};
+
 // Helper function to check if a username is an admin
+// Handles decorated names like 『Gatreno』 → gatreno
 export const isAdminUsername = (username: string | null | undefined): boolean => {
   if (!username) return false;
-  return ADMIN_USERNAMES.includes(username.toLowerCase());
+  const cleanName = stripDecorations(username);
+  return ADMIN_USERNAMES.includes(cleanName);
 };
 
 // Helper function to check if an email is an admin

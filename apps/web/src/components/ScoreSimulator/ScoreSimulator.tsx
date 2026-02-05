@@ -45,12 +45,9 @@ const ScoreSimulator: React.FC<ScoreSimulatorProps> = ({ kingdom, isExpanded: ex
         border: '1px solid #2a2a2a',
         marginBottom: isMobile ? '1.25rem' : '1.5rem'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-          <span style={{ fontSize: '1.1rem' }}>🔮</span>
-          <h3 style={{ color: '#fff', fontSize: isMobile ? '0.95rem' : '1.1rem', fontWeight: '600', margin: 0 }}>
-            Atlas Score Simulator
-          </h3>
-        </div>
+        <h4 style={{ color: '#fff', fontSize: '0.9rem', fontWeight: '600', margin: '0 0 0.75rem 0', textAlign: 'center' }}>
+          Atlas Score Simulator
+        </h4>
         <div style={{ color: '#6b7280', fontSize: '0.85rem', textAlign: 'center', padding: '1rem' }}>
           Play your first KvK to unlock score projections!
         </div>
@@ -81,11 +78,6 @@ const ScoreSimulator: React.FC<ScoreSimulatorProps> = ({ kingdom, isExpanded: ex
     setSimulatedKvKs([{ prepResult: 'W', battleResult: 'W' }]);
   };
 
-  const setDomination = (index: number) => {
-    const updated = [...simulatedKvKs];
-    updated[index] = { prepResult: 'W', battleResult: 'W' };
-    setSimulatedKvKs(updated);
-  };
 
   const scoreChangeColor = simulation.scoreChange >= 0 ? '#22c55e' : '#ef4444';
   const tierChanged = simulation.currentTier !== simulation.projectedTier;
@@ -117,12 +109,9 @@ const ScoreSimulator: React.FC<ScoreSimulatorProps> = ({ kingdom, isExpanded: ex
           position: 'relative'
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span style={{ fontSize: '1.1rem' }}>🔮</span>
-          <h3 style={{ color: '#fff', fontSize: isMobile ? '0.95rem' : '1.1rem', fontWeight: '600', margin: 0 }}>
-            Atlas Score Simulator
-          </h3>
-        </div>
+        <h4 style={{ color: '#fff', fontSize: '0.9rem', fontWeight: '600', margin: 0, textAlign: 'center' }}>
+          Atlas Score Simulator
+        </h4>
         {!isExpanded && (
           <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>
             &quot;What if I win the next KvK?&quot;
@@ -166,7 +155,7 @@ const ScoreSimulator: React.FC<ScoreSimulatorProps> = ({ kingdom, isExpanded: ex
                 fontWeight: 'bold', 
                 ...neonGlow('#22d3ee')
               }}>
-                {simulation.currentScore.toFixed(1)}
+                {(kingdom.overall_score ?? 0).toFixed(2)}
               </span>
               <span style={{
                 padding: '0.15rem 0.35rem',
@@ -299,10 +288,9 @@ const ScoreSimulator: React.FC<ScoreSimulatorProps> = ({ kingdom, isExpanded: ex
                         <option value="W">W</option>
                         <option value="L">L</option>
                       </select>
-                      <span style={{ fontSize: '0.9rem', marginLeft: '0.25rem' }}>{outcome.emoji}</span>
-                    </div>
+                      </div>
 
-                    {/* Outcome Badge */}
+                    {/* Outcome Badge with emoji */}
                     <span style={{
                       padding: '0.2rem 0.4rem',
                       backgroundColor: outcome.bgColor,
@@ -311,29 +299,13 @@ const ScoreSimulator: React.FC<ScoreSimulatorProps> = ({ kingdom, isExpanded: ex
                       color: outcome.color,
                       fontSize: '0.65rem',
                       fontWeight: 'bold',
-                      marginLeft: 'auto'
+                      marginLeft: 'auto',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.2rem'
                     }}>
-                      {outcome.abbrev}
+                      {outcome.emoji} {outcome.label}
                     </span>
-
-                    {/* Quick Domination Button */}
-                    {(kvk.prepResult !== 'W' || kvk.battleResult !== 'W') && (
-                      <button
-                        onClick={() => setDomination(index)}
-                        style={{
-                          padding: '0.15rem 0.35rem',
-                          backgroundColor: 'transparent',
-                          border: '1px solid #22c55e30',
-                          borderRadius: '4px',
-                          color: '#22c55e',
-                          fontSize: '0.6rem',
-                          cursor: 'pointer'
-                        }}
-                        title="Set to Domination"
-                      >
-                        👑
-                      </button>
-                    )}
 
                     {/* Remove Button */}
                     {simulatedKvKs.length > 1 && (
@@ -382,7 +354,7 @@ const ScoreSimulator: React.FC<ScoreSimulatorProps> = ({ kingdom, isExpanded: ex
                     fontWeight: 'bold', 
                     ...neonGlow(scoreChangeColor)
                   }}>
-                    {simulation.projectedScore.toFixed(1)}
+                    {simulation.projectedScore.toFixed(2)}
                   </span>
                   {tierChanged && (
                     <span style={{
@@ -468,37 +440,6 @@ const ScoreSimulator: React.FC<ScoreSimulatorProps> = ({ kingdom, isExpanded: ex
             </div>
           </div>
 
-          {/* Insights */}
-          {simulation.insights.length > 0 && (
-            <div style={{
-              padding: '0.75rem',
-              backgroundColor: '#fbbf2410',
-              borderRadius: '8px',
-              border: '1px solid #fbbf2430'
-            }}>
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'flex-start', 
-                gap: '0.5rem'
-              }}>
-                <span style={{ fontSize: '0.9rem' }}>💡</span>
-                <div>
-                  {simulation.insights.map((insight, i) => (
-                    <div 
-                      key={i}
-                      style={{ 
-                        color: '#9ca3af', 
-                        fontSize: '0.8rem',
-                        marginBottom: i < simulation.insights.length - 1 ? '0.35rem' : 0
-                      }}
-                    >
-                      {insight}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       )}
     </div>

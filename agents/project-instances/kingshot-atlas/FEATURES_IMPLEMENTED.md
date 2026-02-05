@@ -140,6 +140,8 @@
 | User Correction Stats | ✅ Live | Platform | `UserCorrectionStats.tsx` - profile correction tracking |
 | KvK Realtime Updates | ✅ Live | Platform | `useKingdomsRealtime.ts` - Supabase Realtime for instant kvk_history updates |
 | KvK Bye Outcome Support | ✅ Live | Platform | Bye outcomes display with gray "-" for Prep/Battle, "No match" for opponent, zero Atlas Score impact (2026-02-03) |
+| Historical Atlas Scores | ✅ Live | Platform | `kingdom_score` column in kvk_history stores Atlas Score at time of each KvK (2026-02-04) |
+| KvK Seasons Enhanced UI | ✅ Live | Product | Prep Win/Battle Win columns, historical prep/battle records, rank display per mockup (2026-02-04) |
 
 ---
 
@@ -165,6 +167,7 @@
 | Accessibility Context | ✅ Live | Product | `AccessibilityContext.tsx` preferences |
 | High Contrast Mode | ✅ Live | Design | Toggle in accessibility settings |
 | Theme Context | ✅ Live | Design | `ThemeContext.tsx` dark/light modes |
+| Trajan Pro Font System | ✅ Live | Design | Premium display font for headers, titles, kingdom names, logo. Two-tone styling (white/cyan, pink for Support). `FONT_DISPLAY` constant, `PageTitle` component (2026-02-04) |
 | Skeleton Loaders | ✅ Live | Product | `Skeleton.tsx`, `SkeletonCard.tsx`, `LeaderboardSkeleton`, `KingdomProfileSkeleton`, `CompareCardSkeleton` |
 | Feedback Widget | ✅ Live | Product | `FeedbackWidget.tsx` - floating button for bug/feature/general feedback |
 | DataLoadError | ✅ Live | Product | `DataLoadError.tsx` - graceful error display with retry |

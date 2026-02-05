@@ -8,6 +8,7 @@ import {
   calculateAtlasScore,
   type PowerTier
 } from '../types';
+import { getTierRange, TIER_PERCENTILES } from '../utils/atlasScoreFormula';
 
 interface PathToNextTierProps {
   kingdom: KingdomProfile;
@@ -78,6 +79,18 @@ const PathToNextTier: React.FC<PathToNextTierProps> = ({ kingdom, isExpanded: ex
     const tierOrder: PowerTier[] = ['D', 'C', 'B', 'A', 'S'];
     const currentIndex = tierOrder.indexOf(currentTier);
     
+    // First, calculate a single domination simulation to get actual score gain
+    const domSimStats = { ...stats };
+    domSimStats.totalKvks += 1;
+    domSimStats.prepWins += 1;
+    domSimStats.battleWins += 1;
+    domSimStats.dominations += 1;
+    domSimStats.currentPrepStreak = Math.max(1, domSimStats.currentPrepStreak + 1);
+    domSimStats.currentBattleStreak = Math.max(1, domSimStats.currentBattleStreak + 1);
+    domSimStats.recentOutcomes = ['Domination', ...domSimStats.recentOutcomes.slice(0, 4)];
+    const singleDomScore = calculateAtlasScore(domSimStats).finalScore;
+    const actualScorePerDomination = Math.max(0.1, singleDomScore - currentScore);
+    
     // Calculate requirements for each higher tier
     const requirements: TierRequirement[] = [];
     
@@ -86,10 +99,8 @@ const PathToNextTier: React.FC<PathToNextTierProps> = ({ kingdom, isExpanded: ex
       const threshold = POWER_TIER_THRESHOLDS[targetTier];
       const pointsNeeded = Math.max(0, threshold - currentScore);
       
-      // Estimate KvKs needed based on average score gain per domination
-      // Assuming each domination adds ~0.3-0.5 points on average
-      const avgScorePerDomination = 0.35;
-      const kvksNeeded = Math.ceil(pointsNeeded / avgScorePerDomination);
+      // Use actual simulated score gain for more accurate estimation
+      const kvksNeeded = Math.ceil(pointsNeeded / actualScorePerDomination);
       
       const descriptions: Record<PowerTier, string> = {
         S: 'Elite status - Top 3% of all kingdoms',
@@ -129,7 +140,7 @@ const PathToNextTier: React.FC<PathToNextTierProps> = ({ kingdom, isExpanded: ex
       {
         name: 'Comeback',
         description: 'Lose Prep, Win Battle',
-        icon: '🔄',
+        icon: '💪',
         simulate: () => {
           const simStats = { ...stats };
           simStats.totalKvks += 1;
@@ -144,7 +155,7 @@ const PathToNextTier: React.FC<PathToNextTierProps> = ({ kingdom, isExpanded: ex
       {
         name: 'Reversal',
         description: 'Win Prep, Lose Battle',
-        icon: '↩️',
+        icon: '🔄',
         simulate: () => {
           const simStats = { ...stats };
           simStats.totalKvks += 1;
@@ -266,17 +277,9 @@ const PathToNextTier: React.FC<PathToNextTierProps> = ({ kingdom, isExpanded: ex
           position: 'relative'
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span style={{ fontSize: '1.1rem' }}>📈</span>
-          <h4 style={{ 
-            color: '#fff', 
-            fontSize: isMobile ? '0.95rem' : '1.1rem', 
-            fontWeight: '600', 
-            margin: 0 
-          }}>
-            Path to Next Tier
-          </h4>
-        </div>
+        <h4 style={{ color: '#fff', fontSize: '0.9rem', fontWeight: '600', margin: 0, textAlign: 'center' }}>
+          Path to Next Tier
+        </h4>
         {!isExpanded && (
           <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>
             &quot;How do I reach the next tier?&quot;
@@ -303,7 +306,7 @@ const PathToNextTier: React.FC<PathToNextTierProps> = ({ kingdom, isExpanded: ex
 
       {/* Expandable Content */}
       {isExpanded && (
-      <div style={{ padding: isMobile ? '1rem' : '1.25rem', paddingTop: 0 }}>
+      <div style={{ padding: isMobile ? '1rem' : '1.25rem', paddingTop: '1rem' }}>
       
       {/* Confetti CSS Animation */}
       <style>{`
@@ -344,59 +347,17 @@ const PathToNextTier: React.FC<PathToNextTierProps> = ({ kingdom, isExpanded: ex
             Already S-Tier!
           </div>
           
-          {/* S-Tier Since Badge */}
-          {analysis.sTierSinceKvK && (
-            <div style={{ 
-              display: 'inline-block',
-              padding: '0.25rem 0.75rem',
-              backgroundColor: '#fbbf2415',
-              borderRadius: '20px',
-              border: '1px solid #fbbf2430',
-              color: '#fbbf24',
-              fontSize: '0.75rem',
-              fontWeight: '500',
-              marginBottom: '1rem'
-            }}>
-              ⭐ S-Tier since KvK #{analysis.sTierSinceKvK}
-            </div>
-          )}
-          
-          {/* Maintenance Tips */}
+          {/* Motivational Message */}
           <div style={{ 
-            marginTop: '1rem',
-            padding: '0.75rem',
-            backgroundColor: '#131318',
-            borderRadius: '8px',
-            border: '1px solid #2a2a2a'
+            color: '#9ca3af',
+            fontSize: '0.85rem',
+            fontStyle: 'italic',
+            marginBottom: '1rem',
+            maxWidth: '280px',
+            marginLeft: 'auto',
+            marginRight: 'auto'
           }}>
-            <div style={{ 
-              color: '#9ca3af', 
-              fontSize: '0.7rem', 
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px',
-              marginBottom: '0.5rem'
-            }}>
-              Elite Status Buffer
-            </div>
-            <div style={{ 
-              color: analysis.sTierBuffer >= 2 ? '#22c55e' : analysis.sTierBuffer >= 1 ? '#eab308' : '#ef4444',
-              fontSize: '1.1rem',
-              fontWeight: '600',
-              marginBottom: '0.25rem'
-            }}>
-              {analysis.sTierBuffer === 0 
-                ? '⚠️ On the edge!' 
-                : `${analysis.sTierBuffer} invasion${analysis.sTierBuffer !== 1 ? 's' : ''} before A-Tier`
-              }
-            </div>
-            <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>
-              {analysis.sTierBuffer >= 3 
-                ? 'Comfortable buffer — keep dominating!' 
-                : analysis.sTierBuffer >= 1 
-                  ? 'Stay sharp — avoid consecutive losses'
-                  : 'Critical! Next invasion drops you to A-Tier'
-              }
-            </div>
+            The top 3% fear no matchup. Keep dominating.
           </div>
           
           {/* Current Score Display */}
@@ -405,113 +366,184 @@ const PathToNextTier: React.FC<PathToNextTierProps> = ({ kingdom, isExpanded: ex
             color: '#6b7280', 
             fontSize: '0.8rem' 
           }}>
-            Current Score: <span style={{ color: '#fbbf24', fontWeight: '600' }}>{analysis.currentScore.toFixed(2)}</span>
+            Current Score: <span style={{ color: '#fbbf24', fontWeight: '600' }}>{(kingdom.overall_score ?? analysis.currentScore).toFixed(2)}</span>
             <span style={{ color: '#4b5563' }}> / {POWER_TIER_THRESHOLDS.S} threshold</span>
           </div>
         </div>
       ) : (
       <>
-      {/* Current Status */}
+      {/* Current Tier and Next Tier - 2 Column Layout */}
       <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '1rem',
-        marginBottom: '1rem',
-        padding: '0.75rem',
-        backgroundColor: '#0a0a0a',
-        borderRadius: '8px'
+        display: 'grid',
+        gridTemplateColumns: 'repeat(2, 1fr)',
+        gap: '0.75rem',
+        marginBottom: '1rem'
       }}>
-        <div style={{
-          width: '40px',
-          height: '40px',
-          borderRadius: '8px',
-          backgroundColor: `${TIER_COLORS[analysis.currentTier]}20`,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: TIER_COLORS[analysis.currentTier],
-          fontWeight: '700',
-          fontSize: '1.1rem'
-        }}>
-          {analysis.currentTier}
-        </div>
-        <div>
-          <div style={{ color: '#fff', fontSize: '0.85rem', fontWeight: '500' }}>
-            Current: {analysis.currentScore.toFixed(1)}
-          </div>
-          <div style={{ color: '#6b7280', fontSize: '0.7rem' }}>
-            {analysis.currentTier}-Tier Kingdom
-          </div>
-        </div>
-      </div>
-      
-      {/* Next Tier Target */}
-      {analysis.requirements.length > 0 && (
-        <div style={{
-          marginBottom: '1rem',
-          padding: '0.75rem',
-          backgroundColor: '#0a0a0a',
-          borderRadius: '8px',
-          border: `1px solid ${TIER_COLORS[analysis.requirements[0].tier]}30`
-        }}>
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '0.5rem'
-          }}>
-            <span style={{ color: '#fff', fontSize: '0.8rem', fontWeight: '500' }}>
-              Next: {analysis.requirements[0].tier}-Tier ({analysis.requirements[0].threshold}+)
-            </span>
-            <span style={{ 
-              color: TIER_COLORS[analysis.requirements[0].tier], 
-              fontSize: '0.8rem',
-              fontWeight: '600'
-            }}>
-              +{analysis.requirements[0].pointsNeeded} pts
-            </span>
-          </div>
-          
-          {/* Progress bar */}
-          <div style={{
-            height: '6px',
-            backgroundColor: '#1a1a1a',
-            borderRadius: '3px',
-            overflow: 'hidden'
-          }}>
-            <div style={{
-              height: '100%',
-              width: `${Math.min(100, (analysis.currentScore / analysis.requirements[0].threshold) * 100)}%`,
-              backgroundColor: TIER_COLORS[analysis.requirements[0].tier],
-              borderRadius: '3px',
-              transition: 'width 0.3s ease'
-            }} />
-          </div>
-          
+        {/* Current Tier Box */}
+        <div 
+          style={{
+            padding: '0.75rem',
+            backgroundColor: '#0a0a0a',
+            borderRadius: '8px',
+            border: `1px solid ${TIER_COLORS[analysis.currentTier]}30`,
+            textAlign: 'center',
+            cursor: 'help'
+          }}
+          title={`${TIER_PERCENTILES[analysis.currentTier].description} (${TIER_PERCENTILES[analysis.currentTier].label}) • Score Range: ${getTierRange(analysis.currentTier)}`}
+        >
           <div style={{ 
             color: '#6b7280', 
             fontSize: '0.65rem', 
-            marginTop: '0.5rem',
-            textAlign: 'center'
+            marginBottom: '0.5rem',
+            fontWeight: '500',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px'
           }}>
-            ~{analysis.requirements[0].kvksNeeded} dominations needed (estimated)
+            Current Tier
+          </div>
+          <div style={{
+            width: '36px',
+            height: '36px',
+            borderRadius: '8px',
+            backgroundColor: `${TIER_COLORS[analysis.currentTier]}20`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: TIER_COLORS[analysis.currentTier],
+            fontWeight: '700',
+            fontSize: '1.1rem',
+            margin: '0 auto 0.5rem'
+          }}>
+            {analysis.currentTier}
+          </div>
+          <div style={{ 
+            color: '#22d3ee', 
+            fontSize: '1rem', 
+            fontWeight: '600',
+            textShadow: '0 0 8px #22d3ee40'
+          }}>
+            {(kingdom.overall_score ?? analysis.currentScore).toFixed(2)}
           </div>
         </div>
-      )}
+        
+        {/* Next Tier Box */}
+        {analysis.requirements.length > 0 && (() => {
+          const nextTier = analysis.requirements[0];
+          return (
+            <div 
+              style={{
+                padding: '0.75rem',
+                backgroundColor: '#0a0a0a',
+                borderRadius: '8px',
+                border: `1px solid ${TIER_COLORS[nextTier.tier]}30`,
+                textAlign: 'center',
+                cursor: 'help'
+              }}
+              title={`${TIER_PERCENTILES[nextTier.tier].description} (${TIER_PERCENTILES[nextTier.tier].label}) • Score Range: ${getTierRange(nextTier.tier)}`}
+            >
+              <div style={{ 
+                color: '#6b7280', 
+                fontSize: '0.65rem', 
+                marginBottom: '0.5rem',
+                fontWeight: '500',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}>
+                Next Tier
+              </div>
+              <div style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '8px',
+                backgroundColor: `${TIER_COLORS[nextTier.tier]}20`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: TIER_COLORS[nextTier.tier],
+                fontWeight: '700',
+                fontSize: '1.1rem',
+                margin: '0 auto 0.5rem'
+              }}>
+                {nextTier.tier}
+              </div>
+              <div style={{ 
+                color: '#22d3ee', 
+                fontSize: '0.85rem',
+                fontWeight: '600'
+              }}>
+                {nextTier.threshold}+ <span style={{ color: '#6b7280', fontSize: '0.7rem', fontWeight: '400' }}>(+{nextTier.pointsNeeded.toFixed(2)} pts)</span>
+              </div>
+            </div>
+          );
+        })()}
+      </div>
       
-      {/* What-If Scenarios */}
-      <div style={{ marginBottom: '0.5rem' }}>
+      {/* Progress to Next Tier */}
+      {analysis.requirements.length > 0 && (() => {
+        const nextReq = analysis.requirements[0];
+        return (
+          <div style={{
+            marginBottom: '1rem',
+            padding: '0.75rem',
+            backgroundColor: '#0a0a0a',
+            borderRadius: '8px'
+          }}>
+            <div style={{ 
+              color: '#6b7280', 
+              fontSize: '0.65rem', 
+              marginBottom: '0.5rem',
+              fontWeight: '500',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              textAlign: 'center'
+            }}>
+              Progress to {nextReq.tier}-Tier
+            </div>
+            
+            {/* Progress bar */}
+            <div style={{
+              height: '8px',
+              backgroundColor: '#1a1a1a',
+              borderRadius: '4px',
+              overflow: 'hidden'
+            }}>
+              <div style={{
+                height: '100%',
+                width: `${Math.min(100, ((kingdom.overall_score ?? analysis.currentScore) / nextReq.threshold) * 100)}%`,
+                backgroundColor: TIER_COLORS[nextReq.tier],
+                borderRadius: '4px',
+                transition: 'width 0.3s ease'
+              }} />
+            </div>
+            
+            <div style={{ 
+              color: '#6b7280', 
+              fontSize: '0.7rem', 
+              marginTop: '0.5rem',
+              textAlign: 'center'
+            }}>
+              ~{nextReq.kvksNeeded} domination{nextReq.kvksNeeded !== 1 ? 's' : ''} needed (estimated)
+            </div>
+          </div>
+        );
+      })()}
+      
+      {/* Next KvK Impact - 4 Column Layout */}
+      <div>
         <div style={{ 
-          color: '#9ca3af', 
-          fontSize: '0.7rem', 
+          color: '#6b7280', 
+          fontSize: '0.65rem', 
           marginBottom: '0.5rem',
-          fontWeight: '500'
+          fontWeight: '500',
+          textTransform: 'uppercase',
+          letterSpacing: '0.5px',
+          textAlign: 'center'
         }}>
           Next KvK Impact
         </div>
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(2, 1fr)',
+          gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
           gap: '0.5rem'
         }}>
           {analysis.projections.map((proj, i) => (
@@ -521,72 +553,46 @@ const PathToNextTier: React.FC<PathToNextTierProps> = ({ kingdom, isExpanded: ex
                 padding: '0.5rem',
                 backgroundColor: '#0a0a0a',
                 borderRadius: '6px',
-                border: `1px solid ${proj.change >= 0 ? '#22c55e20' : '#ef444420'}`
+                border: `1px solid ${proj.change >= 0 ? '#22c55e20' : '#ef444420'}`,
+                textAlign: 'center'
               }}
             >
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.35rem',
-                marginBottom: '0.25rem'
+                justifyContent: 'center',
+                gap: '0.25rem',
+                marginBottom: '0.35rem'
               }}>
-                <span style={{ fontSize: '0.9rem' }}>{proj.icon}</span>
-                <span style={{ color: '#fff', fontSize: '0.7rem', fontWeight: '500' }}>
+                <span style={{ fontSize: '0.85rem' }}>{proj.icon}</span>
+                <span style={{ color: '#fff', fontSize: '0.65rem', fontWeight: '500' }}>
                   {proj.name}
                 </span>
               </div>
               <div style={{
-                color: proj.change >= 0 ? '#22c55e' : '#ef4444',
-                fontSize: '0.8rem',
-                fontWeight: '600'
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.35rem'
               }}>
-                {proj.change >= 0 ? '+' : ''}{proj.change.toFixed(1)}
-              </div>
-              <div style={{ color: '#6b7280', fontSize: '0.6rem' }}>
-                → {proj.projectedScore.toFixed(1)}
+                <span style={{
+                  color: proj.change >= 0 ? '#22c55e' : '#ef4444',
+                  fontSize: '0.85rem',
+                  fontWeight: '700'
+                }}>
+                  {proj.change >= 0 ? '+' : ''}{proj.change.toFixed(2)}
+                </span>
+                <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>
+                  →
+                </span>
+                <span style={{ color: '#22d3ee', fontSize: '0.85rem', fontWeight: '600' }}>
+                  {proj.projectedScore.toFixed(2)}
+                </span>
               </div>
             </div>
           ))}
         </div>
       </div>
-      
-      {/* Higher tiers preview */}
-      {analysis.requirements.length > 1 && (
-        <div style={{ marginTop: '1rem' }}>
-          <div style={{ 
-            color: '#6b7280', 
-            fontSize: '0.65rem', 
-            marginBottom: '0.5rem' 
-          }}>
-            Higher Tier Goals
-          </div>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            {analysis.requirements.slice(1).map((req, i) => (
-              <div
-                key={i}
-                style={{
-                  flex: 1,
-                  padding: '0.5rem',
-                  backgroundColor: '#0a0a0a',
-                  borderRadius: '6px',
-                  textAlign: 'center'
-                }}
-              >
-                <div style={{
-                  color: TIER_COLORS[req.tier],
-                  fontWeight: '700',
-                  fontSize: '0.9rem'
-                }}>
-                  {req.tier}
-                </div>
-                <div style={{ color: '#6b7280', fontSize: '0.6rem' }}>
-                  +{req.pointsNeeded.toFixed(1)} pts
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
       </>
       )}
       </div>

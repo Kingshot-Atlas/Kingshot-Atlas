@@ -174,6 +174,18 @@ async def add_headers(request: Request, call_next):
     
     return response
 
+@app.post("/api/csp-report")
+async def csp_report(request: Request):
+    """Receive CSP violation reports for security monitoring."""
+    try:
+        body = await request.json()
+        # Log CSP violations for monitoring (don't store sensitive data)
+        violation = body.get("csp-report", {})
+        print(f"CSP Violation: {violation.get('violated-directive')} on {violation.get('document-uri')}")
+    except Exception:
+        pass  # Silently ignore malformed reports
+    return {"status": "received"}
+
 @app.exception_handler(404)
 async def not_found_handler(request, exc):
     return JSONResponse(

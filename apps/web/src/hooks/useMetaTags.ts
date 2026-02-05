@@ -107,7 +107,7 @@ export const getKingdomMetaTags = (
   rank?: number
 ): MetaTagsOptions => {
   const title = `Kingdom #${kingdomNumber} - Kingshot Atlas`;
-  const description = `Kingdom #${kingdomNumber} | Atlas Score: ${atlasScore.toFixed(1)} | ${tier}-Tier${rank ? ` | Rank #${rank}` : ''} - View detailed KvK stats, win rates, and performance history.`;
+  const description = `Kingdom #${kingdomNumber} | Atlas Score: ${atlasScore.toFixed(2)} | ${tier}-Tier${rank ? ` | Rank #${rank}` : ''} - View detailed KvK stats, win rates, and performance history.`;
   
   return {
     title,

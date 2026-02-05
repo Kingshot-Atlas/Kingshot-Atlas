@@ -1,7 +1,8 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Kingdom, getPowerTier } from '../types';
-import { getTierColor } from '../utils/styles';
+import { getTierColor, colors } from '../utils/styles';
+import { useIsMobile } from '../hooks/useMediaQuery';
 
 interface SimilarKingdomsProps {
   currentKingdom: Kingdom;
@@ -14,12 +15,21 @@ const SimilarKingdoms: React.FC<SimilarKingdomsProps> = ({
   allKingdoms, 
   limit = 5 
 }) => {
+  const isMobile = useIsMobile();
+  const [showTooltip, setShowTooltip] = useState(false);
+  
   const similarKingdoms = useMemo(() => {
     const currentTier = getPowerTier(currentKingdom.overall_score);
+    const currentNum = currentKingdom.kingdom_number;
+    
+    // Only compare with kingdoms within ±50 range
+    const minKingdom = currentNum - 50;
+    const maxKingdom = currentNum + 50;
     
     // Calculate similarity as a percentage (100% = identical)
     const scored = allKingdoms
       .filter(k => k.kingdom_number !== currentKingdom.kingdom_number)
+      .filter(k => k.kingdom_number >= minKingdom && k.kingdom_number <= maxKingdom)
       .map(k => {
         // Weighted similarity calculation
         // Atlas Score similarity (max 15 point difference in data, weight: 40%)
@@ -61,19 +71,50 @@ const SimilarKingdoms: React.FC<SimilarKingdomsProps> = ({
       padding: '1rem',
       marginBottom: '1rem'
     }}>
-      <h3 style={{ 
-        color: '#fff', 
-        fontSize: '0.95rem', 
-        fontWeight: '600', 
-        margin: 0,
-        marginBottom: '0.75rem',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.5rem'
-      }}>
-        <span style={{ fontSize: '1rem' }}>🎯</span>
-        Kingdoms Like This
-      </h3>
+      <div 
+        style={{ 
+          position: 'relative',
+          textAlign: 'center',
+          marginBottom: '0.75rem',
+          cursor: 'help'
+        }}
+        onMouseEnter={() => !isMobile && setShowTooltip(true)}
+        onMouseLeave={() => !isMobile && setShowTooltip(false)}
+        onClick={() => isMobile && setShowTooltip(!showTooltip)}
+      >
+        <h3 style={{ 
+          color: '#fff', 
+          fontSize: '0.95rem', 
+          fontWeight: '600', 
+          margin: 0,
+        }}>
+          Nearby Kingdoms
+        </h3>
+        
+        {showTooltip && (
+          <div style={{
+            position: 'absolute',
+            bottom: '100%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            marginBottom: '6px',
+            backgroundColor: '#0a0a0a',
+            border: `1px solid ${colors.primary}`,
+            borderRadius: '6px',
+            padding: '0.5rem 0.75rem',
+            fontSize: '0.7rem',
+            color: '#fff',
+            whiteSpace: 'nowrap',
+            zIndex: 100,
+            boxShadow: '0 4px 12px rgba(0,0,0,0.4)'
+          }}>
+            <div style={{ color: colors.primary, fontWeight: 'bold', marginBottom: '2px' }}>How it works</div>
+            <div style={{ color: '#9ca3af', fontSize: '0.65rem', whiteSpace: 'normal', maxWidth: '200px', textAlign: 'left' }}>
+              Shows kingdoms with similar Atlas Score, win rates, and tier within ±50 of K-{currentKingdom.kingdom_number}
+            </div>
+          </div>
+        )}
+      </div>
       
       {/* Table Header */}
       <div style={{
@@ -150,7 +191,7 @@ const SimilarKingdoms: React.FC<SimilarKingdomsProps> = ({
                 textAlign: 'center',
                 whiteSpace: 'nowrap'
               }}>
-                {kingdom.overall_score.toFixed(1)}
+                {kingdom.overall_score.toFixed(2)}
                 <span style={{ 
                   color: '#22d3ee', 
                   fontWeight: '400',

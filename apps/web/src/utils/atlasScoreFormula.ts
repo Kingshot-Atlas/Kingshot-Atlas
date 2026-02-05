@@ -1,8 +1,17 @@
 /**
- * Atlas Score Formula v2.0 - Single Source of Truth
+ * Atlas Score Formula v2.1 - Single Source of Truth (Frontend)
  * 
- * This module contains the centralized Atlas Score calculation used across
- * the entire application. All score calculations should use this module.
+ * ⚠️  SYNC WARNING: This frontend formula must stay in sync with the PostgreSQL
+ *     calculate_atlas_score() function. If you change this file, update the
+ *     PostgreSQL function as well, and increment FORMULA_VERSION.
+ * 
+ * See: /docs/DECISIONS.md (ADR-012) for architecture details.
+ * 
+ * This module is used for:
+ * - Simulations (what-if scenarios)
+ * - Score breakdown displays (explaining how scores are calculated)
+ * 
+ * Actual scores are READ from Supabase `kingdoms.overall_score` - never calculated here.
  * 
  * Formula Design Principles:
  * - Considers full kingdom history without excessive inflation
@@ -18,6 +27,10 @@
  * 5. Experience Factor (logarithmic scaling, veterans get full credit at 5+ KvKs)
  * 6. History Depth Bonus (small bonus for extensive track record)
  */
+
+// Formula version - increment when formula changes to detect sync issues
+export const FORMULA_VERSION = '2.1.0';
+export const FORMULA_LAST_UPDATED = '2026-02-05';
 
 import { KingdomProfile } from '../types';
 
@@ -53,6 +66,34 @@ const MAX_HISTORY_BONUS = 1.5;
 const HISTORY_BONUS_PER_KVK = 0.05;
 
 // ============================================================================
+// SCORE FORMATTING - Single source of truth for display
+// ============================================================================
+
+/**
+ * Format an Atlas Score for display with exactly 2 decimal places
+ * Use this everywhere a score is displayed to ensure consistency
+ * Example: 10.43, 7.80, 12.00
+ */
+export function formatScore(score: number | null | undefined): string {
+  if (score === null || score === undefined || isNaN(score)) {
+    return '0.00';
+  }
+  return score.toFixed(2);
+}
+
+/**
+ * Format a score change with sign prefix
+ * Example: +1.25, -0.50, +0.00
+ */
+export function formatScoreChange(change: number | null | undefined): string {
+  if (change === null || change === undefined || isNaN(change)) {
+    return '+0.00';
+  }
+  const prefix = change >= 0 ? '+' : '';
+  return `${prefix}${change.toFixed(2)}`;
+}
+
+// ============================================================================
 // TIER SYSTEM
 // ============================================================================
 
@@ -63,19 +104,19 @@ export type PowerTier = 'S' | 'A' | 'B' | 'C' | 'D';
  * These should be recalculated periodically based on actual score distribution
  */
 export const TIER_THRESHOLDS = {
-  S: 8.90,  // Top 3% - Elite kingdoms
-  A: 7.79,  // Top 10% - Strong kingdoms
-  B: 6.42,  // Top 25% - Above average
-  C: 4.72,  // Top 50% - Average kingdoms
-  D: 0,     // Bottom 50% - Below average
+  S: 8.9,   // Top 3% - Elite kingdoms
+  A: 7.8,   // Top 10% - Formidable kingdoms
+  B: 6.4,   // Top 25% - Competitive kingdoms
+  C: 4.7,   // Top 50% - Developing kingdoms
+  D: 0,     // Bottom 50% - Struggling kingdoms
 } as const;
 
 export const TIER_PERCENTILES = {
-  S: { min: 97, label: 'Top 3%', description: 'Elite' },
-  A: { min: 90, label: 'Top 10%', description: 'Formidable' },
-  B: { min: 75, label: 'Top 25%', description: 'Competitive' },
-  C: { min: 50, label: 'Top 50%', description: 'Developing' },
-  D: { min: 0, label: 'Bottom 50%', description: 'Rebuilding' },
+  S: { min: 97, label: 'Top 3%', description: 'Elite', detail: 'Apex predators' },
+  A: { min: 90, label: 'Top 10%', description: 'Formidable', detail: 'Serious contenders' },
+  B: { min: 75, label: 'Top 25%', description: 'Competitive', detail: 'Solid performers' },
+  C: { min: 50, label: 'Top 50%', description: 'Developing', detail: 'Room to grow' },
+  D: { min: 0, label: 'Bottom 50%', description: 'Struggling', detail: 'Rebuilding' },
 } as const;
 
 export const TIER_COLORS: Record<PowerTier, string> = {
@@ -433,9 +474,19 @@ export const SCORE_TOOLTIPS = {
  */
 export function getTierDescription(tier: PowerTier): string {
   const info = TIER_PERCENTILES[tier];
-  const threshold = tier === 'D' ? '0-4.7' : 
-                    tier === 'C' ? '4.7-6.4' :
-                    tier === 'B' ? '6.4-7.8' :
-                    tier === 'A' ? '7.8-8.9' : '8.9+';
-  return `${tier}-Tier: ${info.description} kingdom (${info.label}) with Atlas Score ${threshold}`;
+  const range = getTierRange(tier);
+  return `${tier}-Tier: ${info.description} kingdom (${info.label}) with Atlas Score ${range}`;
+}
+
+/**
+ * Get the score range for a tier as a string
+ */
+export function getTierRange(tier: PowerTier): string {
+  switch (tier) {
+    case 'S': return '8.9+';
+    case 'A': return '7.8-8.9';
+    case 'B': return '6.4-7.8';
+    case 'C': return '4.7-6.4';
+    case 'D': return '0-4.7';
+  }
 }

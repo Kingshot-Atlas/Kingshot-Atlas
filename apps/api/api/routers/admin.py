@@ -5,8 +5,11 @@ Provides subscription stats, revenue data, user metrics, and advanced analytics.
 Industry-grade analytics for SaaS subscription tracking.
 """
 import os
+import logging
 import stripe
 from fastapi import APIRouter, HTTPException, Request, Header, Depends
+
+logger = logging.getLogger(__name__)
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from typing import Optional, List, Dict, Any
@@ -37,9 +40,14 @@ ADMIN_API_KEY = os.getenv("ADMIN_API_KEY", "")
 
 
 def verify_admin(api_key: Optional[str]) -> bool:
-    """Verify admin API key or allow if not configured (dev mode)."""
+    """Verify admin API key. Requires key in production, warns in dev mode."""
     if not ADMIN_API_KEY:
-        return True  # Dev mode - no auth required
+        # Check if we're in production (Render sets this)
+        if os.getenv("RENDER") or os.getenv("PRODUCTION"):
+            logger.error("SECURITY: ADMIN_API_KEY not set in production! Denying access.")
+            return False
+        logger.warning("SECURITY: ADMIN_API_KEY not set - dev mode, allowing access")
+        return True  # Dev mode only
     return api_key == ADMIN_API_KEY
 
 

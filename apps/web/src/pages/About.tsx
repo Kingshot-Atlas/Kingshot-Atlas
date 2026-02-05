@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useIsMobile } from '../hooks/useMediaQuery';
-import { neonGlow } from '../utils/styles';
+import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import SupportButton from '../components/SupportButton';
 
@@ -24,7 +24,7 @@ const About: React.FC = () => {
             fontSize: isMobile ? '1.5rem' : '2rem', 
             fontWeight: 'bold', 
             marginBottom: '0.5rem',
-            fontFamily: "'Cinzel', 'Times New Roman', serif"
+            fontFamily: FONT_DISPLAY
           }}>
             <span style={{ color: '#fff' }}>ABOUT</span>
             <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>US</span>
@@ -50,7 +50,7 @@ const About: React.FC = () => {
             fontWeight: 'bold', 
             color: '#fff', 
             marginBottom: '1rem',
-            fontFamily: "'Cinzel', serif"
+            fontFamily: FONT_DISPLAY
           }}>
             Stop Guessing. Start Winning.
           </h2>
@@ -72,7 +72,7 @@ const About: React.FC = () => {
             fontWeight: 'bold', 
             color: '#fff', 
             marginBottom: '1rem',
-            fontFamily: "'Cinzel', serif"
+            fontFamily: FONT_DISPLAY
           }}>
             Your Competitive Edge
           </h2>
@@ -114,7 +114,7 @@ const About: React.FC = () => {
             fontWeight: 'bold', 
             color: '#fff', 
             marginBottom: '1rem',
-            fontFamily: "'Cinzel', serif"
+            fontFamily: FONT_DISPLAY
           }}>
             The Atlas Score: Your Kingdom&apos;s True Power Level
           </h2>
@@ -180,7 +180,7 @@ const About: React.FC = () => {
             fontWeight: 'bold', 
             color: '#fff', 
             marginBottom: '1rem',
-            fontFamily: "'Cinzel', serif"
+            fontFamily: FONT_DISPLAY
           }}>
             The Tier System: Where Does Your Kingdom Rank?
           </h2>
@@ -220,7 +220,7 @@ const About: React.FC = () => {
             fontWeight: 'bold', 
             color: '#fff', 
             marginBottom: '1rem',
-            fontFamily: "'Cinzel', serif"
+            fontFamily: FONT_DISPLAY
           }}>
             Built by a Player, For Players
           </h2>
@@ -242,7 +242,7 @@ const About: React.FC = () => {
             fontWeight: 'bold', 
             color: '#fff', 
             marginBottom: '1rem',
-            fontFamily: "'Cinzel', serif"
+            fontFamily: FONT_DISPLAY
           }}>
             The Fine Print
           </h2>
@@ -303,7 +303,7 @@ const About: React.FC = () => {
             fontWeight: 'bold', 
             color: '#fff', 
             marginBottom: '0.75rem',
-            fontFamily: "'Cinzel', serif"
+            fontFamily: FONT_DISPLAY
           }}>
             Fuel the Atlas
           </h2>
@@ -333,7 +333,7 @@ const About: React.FC = () => {
             fontWeight: 'bold', 
             color: '#fff', 
             marginBottom: '0.75rem',
-            fontFamily: "'Cinzel', serif"
+            fontFamily: FONT_DISPLAY
           }}>
             Join the Community
           </h2>

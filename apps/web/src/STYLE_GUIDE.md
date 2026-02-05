@@ -150,16 +150,61 @@ const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
 | Token | Font | Usage |
 |-------|------|-------|
 | `--font-sans` | Inter | Body text, UI elements |
-| `--font-display` | Cinzel | Page titles, hero headings, brand elements |
+| `--font-display` | **Trajan Pro** (Cinzel fallback) | Page titles, hero headings, brand elements, kingdom names, logo |
 | `--font-mono` | Orbitron | Numbers, stats, technical data |
 
-### Usage
-```tsx
-// Page titles - use Cinzel
-<h1 style={{ fontFamily: "'Cinzel', 'Times New Roman', serif" }}>SUPPORT ATLAS</h1>
+### Trajan Pro Font Setup
+Trajan Pro is the primary display font for premium branding. Setup options:
 
-// Or use CSS variable
-<h1 style={{ fontFamily: 'var(--font-display)' }}>Page Title</h1>
+1. **Self-hosted** (recommended): Add font files to `/public/fonts/` and uncomment `@font-face` in `index.css`
+2. **Adobe Fonts**: Add your Typekit kit ID to `index.css`
+3. **Fallback**: Cinzel (Google Fonts) loads automatically if Trajan Pro unavailable
+
+### Two-Tone Page Title Standard
+All page headers use a **two-tone color scheme**:
+- **First word**: White (`#ffffff`)
+- **Second word**: Cyan neon glow (`#22d3ee`) - or **Pink (`#FF6B8A`)** for Support page
+
+```tsx
+// Standard page title
+<h1 style={{ fontFamily: FONT_DISPLAY }}>
+  <span style={{ color: '#fff' }}>KINGDOM</span>
+  <span style={{ ...neonGlow('#22d3ee') }}>RANKINGS</span>
+</h1>
+
+// Support page (pink accent)
+<h1 style={{ fontFamily: FONT_DISPLAY }}>
+  <span style={{ color: '#fff' }}>SUPPORT</span>
+  <span style={{ ...neonGlow('#FF6B8A') }}>ATLAS</span>
+</h1>
+```
+
+### FONT_DISPLAY Utility
+Always import and use the `FONT_DISPLAY` constant from `utils/styles.ts`:
+
+```tsx
+import { FONT_DISPLAY, neonGlow } from '../utils/styles';
+
+// Kingdom names in cards/profiles
+<div style={{ fontFamily: FONT_DISPLAY }}>Kingdom 172</div>
+
+// Logo text
+<span style={{ fontFamily: FONT_DISPLAY }}>KINGSHOT</span>
+<span style={{ fontFamily: FONT_DISPLAY, ...neonGlow('#22d3ee') }}>ATLAS</span>
+```
+
+### Usage Examples
+```tsx
+import { FONT_DISPLAY, neonGlow } from '../utils/styles';
+
+// Page titles - use FONT_DISPLAY constant
+<h1 style={{ fontFamily: FONT_DISPLAY }}>
+  <span style={{ color: '#fff' }}>PAGE</span>
+  <span style={{ ...neonGlow('#22d3ee') }}>TITLE</span>
+</h1>
+
+// Kingdom names - always use FONT_DISPLAY
+<div style={{ fontFamily: FONT_DISPLAY }}>Kingdom 172</div>
 
 // Body text - Inter (default, no need to specify)
 <p>Regular content</p>
@@ -169,9 +214,26 @@ const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
 ```
 
 ### Font Weight Guidelines
-- **Page titles (Cinzel)**: 700-900 (bold to black)
+- **Page titles (Trajan Pro)**: 700 (bold)
+- **Kingdom names**: 700 (bold)
 - **Body text (Inter)**: 400-600 (normal to semibold)
 - **Stats (Orbitron)**: 500-700 (medium to bold)
+
+### PageTitle Component (Optional)
+A reusable `PageTitle` component is available at `components/PageTitle.tsx`:
+
+```tsx
+import PageTitle from '../components/PageTitle';
+
+// Standard usage - auto-splits first word white, rest cyan
+<PageTitle>KINGDOM RANKINGS</PageTitle>
+
+// Support page with pink accent
+<PageTitle accentColor="#FF6B8A">SUPPORT ATLAS</PageTitle>
+
+// With tagline
+<PageTitle tagline="Who's dominating? The data doesn't lie.">KINGDOM RANKINGS</PageTitle>
+```
 
 ---
 
@@ -271,8 +333,22 @@ const neonGlow = (color: string) => ({
 
 ### Role Badges
 - **Admin badge**: Gold background/border with crown icon (👑)
-- **Recruiter badge**: Purple background with dark text, purple heart icon (�)
+- **Recruiter badge**: Purple background with dark text, purple heart icon (💜)
 - **Supporter badge**: Pink background with dark text, pink heart icon (💖)
+
+### ⚠️ IMPORTANT: Badge Display Names (Internal vs Display)
+The internal tier name `'pro'` should ALWAYS display as **"SUPPORTER"** in user-facing badges.
+
+| Internal Tier | Display Name | Badge Text |
+|---------------|--------------|------------|
+| `'admin'` | Admin | `ADMIN` or `👑 ADMIN` |
+| `'recruiter'` | Recruiter | `RECRUITER` or `💜 RECRUITER` |
+| `'pro'` | **Supporter** | `SUPPORTER` or `💖 SUPPORTER` (NOT "PRO") |
+| `'free'` | - | No badge |
+
+**Why?** "Pro" was rebranded to "Supporter" in v1.5.0. The internal tier name remains `'pro'` for backward compatibility, but all user-facing text must say "SUPPORTER".
+
+Use `TIER_DISPLAY_NAMES` from `utils/constants.ts` for badge text.
 
 ### Supporter Feature Unlock Buttons (SOURCE OF TRUTH)
 

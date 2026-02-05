@@ -1,11 +1,11 @@
 /**
  * KvK History Service
  * Provides KvK data from Supabase (primary) with CSV fallback
- * Applies corrections from kvk_corrections table
+ * NOTE: kvk_history is the source of truth - corrections are applied directly there
  */
 
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
-import { kvkCorrectionService, KvKCorrection } from './kvkCorrectionService';
+import type { KvKCorrection } from './kvkCorrectionService';
 import { normalizeOutcome } from '../utils/outcomeUtils';
 
 export interface KvKHistoryRecord {
@@ -135,15 +135,16 @@ class KvKHistoryService {
 
   /**
    * Get all KvK records grouped by kingdom
+   * NOTE: kvk_history is the source of truth. Corrections are applied directly to kvk_history
+   * when approved, so we no longer need to apply corrections at display time.
    */
   async getAllRecords(): Promise<Map<number, KvKHistoryRecord[]>> {
-    // ALWAYS load fresh corrections first (they change frequently)
-    this.corrections = await kvkCorrectionService.getAllAppliedCorrectionsAsync();
+    // No longer loading corrections - kvk_history IS the source of truth
+    // Corrections are applied directly to kvk_history when approved
+    this.corrections = null;
     
     // Check memory cache (very short TTL for freshness)
     if (cachedData && Date.now() - cachedData.timestamp < CACHE_TTL_MS) {
-      // Re-process with fresh corrections to ensure accuracy
-      // This is important because corrections may have changed
       return cachedData.records;
     }
 

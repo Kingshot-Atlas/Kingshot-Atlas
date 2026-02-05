@@ -188,12 +188,13 @@ const PlayersFromMyKingdom: React.FC<PlayersFromMyKingdomProps> = ({
                   height: '40px',
                   borderRadius: '50%',
                   backgroundColor: '#1a1a1a',
-                  border: `2px solid ${usernameColor}40`,
+                  border: `2px solid ${usernameColor}`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   overflow: 'hidden',
                   flexShrink: 0,
+                  ...(displayTier !== 'free' ? { boxShadow: `0 0 8px ${usernameColor}40` } : {})
                 }}>
                   {displayAvatar ? (
                     <img 
@@ -235,7 +236,7 @@ const PlayersFromMyKingdom: React.FC<PlayersFromMyKingdomProps> = ({
                   }}>
                     {player.alliance_tag && (
                       <span style={{ 
-                        color: player.theme_color || themeColor,
+                        color: '#9ca3af',
                         fontWeight: '600',
                       }}>
                         [{player.alliance_tag}]
@@ -267,7 +268,7 @@ const PlayersFromMyKingdom: React.FC<PlayersFromMyKingdomProps> = ({
                         color: SUBSCRIPTION_COLORS.pro,
                         fontWeight: '600',
                       }}>
-                        PRO
+                        SUPPORTER
                       </span>
                     )}
                     {displayTier === 'recruiter' && (

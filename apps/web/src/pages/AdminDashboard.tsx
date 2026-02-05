@@ -1586,8 +1586,8 @@ const AdminDashboard: React.FC = () => {
                 
                 {error.current_data && (() => {
                   // Calculate what will change based on error_type
-                  const willFlipPrep = error.error_type === 'wrong_prep_result';
-                  const willFlipBattle = error.error_type === 'wrong_battle_result';
+                  const willFlipPrep = error.error_type === 'wrong_prep_result' || error.error_type === 'wrong_both_results';
+                  const willFlipBattle = error.error_type === 'wrong_battle_result' || error.error_type === 'wrong_both_results';
                   const newPrep = willFlipPrep 
                     ? (error.current_data.prep_result === 'Win' ? 'Loss' : 'Win')
                     : error.current_data.prep_result;

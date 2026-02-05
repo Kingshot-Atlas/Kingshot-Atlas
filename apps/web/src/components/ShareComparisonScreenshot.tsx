@@ -122,14 +122,15 @@ const ShareComparisonScreenshot: React.FC<ShareComparisonScreenshotProps> = ({
       // Fallback: Copy to clipboard if available
       if (navigator.clipboard && 'write' in navigator.clipboard) {
         try {
-          await navigator.clipboard.write([
-            new ClipboardItem({
-              'image/png': blob,
-            }),
-          ]);
+          // Create a single ClipboardItem with just the image
+          const clipboardItem = new ClipboardItem({
+            'image/png': blob,
+          });
+          await navigator.clipboard.write([clipboardItem]);
           alert('Screenshot copied to clipboard!');
           setShowOptions(false);
           setPreviewUrl(null);
+          canvasRef.current = null; // Clear the canvas ref to prevent duplicate references
           return;
         } catch (err) {
           console.error('Clipboard write failed:', err);

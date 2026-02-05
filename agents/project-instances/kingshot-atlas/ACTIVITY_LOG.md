@@ -9,6 +9,400 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-05 11:45 | Platform Engineer | COMPLETED
+Task: Security Assessment Implementation - All 3 Options (Safe Tasks Only)
+Files:
+  - docs/SECURITY_REPORT_2026-02-05.md (NEW) - Comprehensive security report
+  - docs/migrations/security_fixes_2026-02-05.sql (NEW) - Database security fixes
+  - apps/api/api/routers/admin.py - Added production env check to verify_admin()
+  - apps/api/api/routers/submissions.py - Moved admin emails to env var, hardened auth bypass
+  - apps/api/main.py - Added CSP report endpoint
+  - apps/web/public/_headers - Added CSP report-uri
+Changes:
+  Option A (Critical Security):
+  1. Fixed dev-mode auth bypass in verify_admin() - now checks RENDER/PRODUCTION env
+  2. Fixed X-User-Id header fallback - now properly checks production environment
+  3. Moved ADMIN_EMAILS to environment variable with fallback
+  4. Ran npm audit fix (6 moderate severity remaining in dev deps)
+  Option B (Database Security):
+  5. Created SQL migration for score_history RLS fix (service_role only)
+  6. Added SET search_path to 8 PostgreSQL functions
+  7. Created indexes for 8 unindexed foreign keys
+  8. Drop duplicate indexes on kvk_corrections and kvk_history
+  Option C (Frontend Security):
+  9. Added CSP report-uri to _headers
+  10. Created /api/csp-report endpoint for violation logging
+Data Flow Verified: ✅ Supabase remains single source of truth per ADR-010/011/012
+Result: Build successful. Security posture improved from 78/100 baseline.
+
+## 2026-02-05 11:30 | Product Engineer | COMPLETED
+Task: Atlas Score Breakdown UI refinements per user feedback
+Files:
+  - apps/web/src/components/AtlasScoreBreakdown.tsx
+  - apps/web/src/components/DonutChart.tsx
+Changes:
+  1. Removed calculation summary row ("5.62 base +0.21 dom..." line)
+  2. Changed all donut values to 2 decimal places
+  3. Removed cursor: 'help' (question mark cursor) on hover
+  4. Simplified Form tooltip - removed outcome weight numbers
+  5. Added Experience as 5th donut chart, History as 6th donut chart
+  6. Centered "Score Components" title with Atlas Score below it
+  7. Added "(breakdown is approximate)" disclaimer
+  8. All donut colors now green (#22c55e) for positive, red (#ef4444) for negative
+  9. Ranks row: removed emoji, color now matches kingdom's current tier
+  10. Grid layout: 3 columns mobile, 6 columns desktop
+Result: Build successful. Cleaner, more intuitive breakdown display.
+
+## 2026-02-05 11:15 | Product Engineer | COMPLETED
+Task: Fix Atlas Score Breakdown display so numbers add up correctly
+Files:
+  - apps/web/src/components/AtlasScoreBreakdown.tsx
+  - apps/web/src/utils/atlasScoreFormula.ts
+Changes:
+  1. Converted multiplier percentages to sequential point contributions (Option B)
+  2. Users can now add up: Base + Dom/Inv + Form + Streaks + History = Final Score
+  3. Added calculation summary row showing the math: "5.60 base +0.21 dom -0.27 form +0.00 streak +0.35 hist = 5.89"
+  4. Updated sublabels from weight percentages to descriptive text
+  5. Added FORMULA_VERSION (2.1.0) and sync warning to atlasScoreFormula.ts
+  6. All 7 files using formula already import from centralized atlasScoreFormula.ts
+Result: Build successful. Score breakdown now displays intuitive point contributions that add up to the final Atlas Score.
+
+## 2026-02-05 09:26 | Product Engineer | COMPLETED
+Task: Mobile UX improvements for Atlas Score History chart
+Files:
+  - apps/web/src/components/ScoreHistoryChart.tsx
+Changes:
+  1. Increased data point touch targets on mobile (hit area: 8→16px radius, visible point: 4/6→6/8px)
+  2. Added tap-to-toggle tooltip behavior for mobile (tap point to show, tap again to dismiss)
+  3. Added tap-outside-chart to dismiss tooltip on mobile
+  4. Increased tooltip padding and font size on mobile for better readability
+  5. Added "Tap point again to dismiss" hint text in tooltip on mobile
+Result: Build successful. Mobile users can now easily tap chart data points with larger targets and fixed tooltips.
+
+## 2026-02-05 09:15 | Product Engineer | COMPLETED
+Task: KvK Seasons Card Layout Refinements + Mobile Responsive Polish
+Files:
+  - apps/web/src/pages/KvKSeasons.tsx
+Changes:
+  1. Aligned Prep/Battle columns center with fixed widths (28px mobile, 32px desktop) for consistent alignment across all cards
+  2. Added • separator between prep and battle records in kingdom info line
+  3. Made Atlas Rank cyan colored (#22d3ee) to match Atlas Score
+  4. Added gold/silver/bronze borders for top 3 cards with subtle glow effects
+  5. Added CSS hover states: card lift effect, enhanced glow on top 3, row highlight
+  6. Mobile responsive: smaller fonts, compact spacing, abbreviated outcome badges (Dom/Com/Rev/Inv)
+  7. Added touch feedback via :active states for mobile
+  8. Outcome badges scale appropriately on mobile to prevent overflow
+Result: Build successful. Cards now have visual hierarchy for top 3, better column alignment, and polished hover/touch interactions.
+
+## 2026-02-05 08:25 | Product Engineer | COMPLETED
+Task: Add "Incorrect Prep & Battle Results" error type for KvK error reports
+Files:
+  - apps/web/src/components/ReportKvKErrorModal.tsx (added wrong_both_results option)
+  - apps/web/src/pages/AdminDashboard.tsx (updated UI to show both phases will flip)
+  - apps/web/src/services/kvkCorrectionService.ts (updated to flip both results on approval)
+Changes:
+  1. Added new error type option `wrong_both_results` with label "Incorrect Prep & Battle Results"
+  2. Admin approval UI now shows ⚡ indicators on BOTH Prep and Battle when this type is selected
+  3. kvkCorrectionService.applyCorrectionAsync() now flips both prep_result and battle_result in kvk_history table
+  4. Both kingdoms' records updated (original + opponent with inverse results)
+Result: Build successful. Users can now report when BOTH phases have incorrect results in a single submission.
+
+## 2026-02-05 07:58 | Platform Engineer | COMPLETED
+Task: Fix KvK Seasons Phase Winner Display Bug
+Files:
+  - apps/web/src/services/scoreHistoryService.ts
+Root Cause: When matchups are reordered to put higher-scoring kingdom as kingdom1, the prep_result and battle_result fields were NOT adjusted to match kingdom1's perspective. Results stayed from the original record's perspective, causing phase winners to display incorrectly (e.g., K172 vs K138 showed K138 as prep/battle winner when K172 actually won both).
+Fix Applied: Added flipResult() logic in both getSeasonMatchups() and getAllTimeTopMatchups() to adjust prep_result and battle_result when kingdoms are reordered. If the record was fetched from the lower-scoring kingdom's perspective, W↔L are flipped.
+Result: Build successful. Phase winners now correctly display the actual winners.
+
+## 2026-02-05 03:22 | Platform Engineer | COMPLETED
+Task: Atlas Score 2 Decimal Places + Score History Table Redesign
+Files:
+  - apps/web/src/components/KingdomCard.tsx
+  - apps/web/src/components/KingdomTable.tsx
+  - apps/web/src/pages/KingdomProfile.tsx
+  - apps/web/src/pages/Leaderboards.tsx
+  - apps/web/src/pages/KvKSeasons.tsx
+  - apps/web/src/pages/MetaAnalysis.tsx
+  - apps/web/src/pages/CompareKingdoms.tsx
+  - apps/web/src/pages/Profile.tsx
+  - apps/web/src/components/ShareableCard.tsx
+  - apps/web/src/components/SearchAutocomplete.tsx
+  - apps/web/src/components/profile-features/MiniKingdomCard.tsx
+  - apps/web/src/components/profile/MiniKingdomCard.tsx
+  - apps/web/src/hooks/useMetaTags.ts
+  - apps/web/src/utils/sharing.ts
+  - apps/web/src/utils/atlasScoreFormula.ts
+  - agents/project-instances/kingshot-atlas/DECISIONS.md
+Database Changes:
+  1. Updated score_history schema: removed unused columns (base_score, dom_inv_multiplier, etc.), added cumulative stats columns (prep_wins/losses, battle_wins/losses, formula_version)
+  2. Created calculate_atlas_score_at_kvk() function for historical score calculation
+  3. Created helper functions: get_recent_form_multiplier_at_kvk(), get_streak_multiplier_at_kvk(), get_tier_from_score()
+  4. Wiped and regenerated score_history: 5,558 records for 1,198 kingdoms
+  5. Created trg_create_score_history trigger for auto-population on new KvK inserts
+  6. Recalibrated tier thresholds: S=8.82, A=7.02, B=5.72, C=4.39
+Frontend Changes:
+  - Changed all Atlas Score displays from .toFixed(1) to .toFixed(2)
+Result: Build successful. K172 shows 10.43 (example). Score history now correctly tracks progression per KvK with cumulative stats.
+
+## 2026-02-05 01:45 | Platform Engineer | COMPLETED
+Task: Fix KvK History Correction Display Bug & Submission Failure
+Files:
+  - apps/web/src/services/kvkCorrectionService.ts
+  - apps/web/src/services/contributorService.ts
+Root Causes Found:
+  1. Display bug (K45 showing W/W instead of L/W): kvkCorrectionService.fetchCorrectionsFromSupabase() was fetching ALL corrections without filtering by status='approved', causing pending/rejected corrections to incorrectly override kvk_history data
+  2. Submission failure: contributorService.checkDuplicate() for 'kvkError' type was querying wrong table (kvk_submissions instead of kvk_errors)
+Fixes Applied:
+  1. Added .eq('status', 'approved') filter to corrections fetch query
+  2. Fixed checkDuplicate to query kvk_errors table and match on error_type
+Result: Build successful. KvK corrections now only apply when approved; error submissions check correct table for duplicates
+
+## 2026-02-04 18:45 | Product Engineer | COMPLETED
+Task: KvK Seasons Page UI Styling Updates
+Files:
+  - apps/web/src/pages/KvKSeasons.tsx
+Changes:
+  1. Kingdom names in matchup column now white text
+  2. "Atlas:" → "Atlas Score:" with cyan text (#22d3ee)
+  3. Prep info now has yellow text (#fbbf24)
+  4. Battle info now has orange text (#f97316)
+  5. Prep/Battle records now show "0-0" default for non-first-KvK kingdoms
+  6. Prep Win column: yellow text, full kingdom name, wider (120px)
+  7. Battle Win column: orange text, full kingdom name, wider (120px)
+  8. Outcome column: 2-row format with kingdom name on top, outcome type below
+  9. Outcome only shows Domination or Comeback (with who did it)
+  10. Removed unused getTierColor import and getOutcomeStyle function
+Result: KvK Seasons page now matches the mockup styling requirements
+
+## 2026-02-04 18:30 | Platform Engineer | COMPLETED
+Task: Fix Zero Atlas Scores on KvK Seasons Page
+Files:
+  - docs/migrations/add_historical_atlas_scores.sql (new migration)
+  - apps/web/src/services/scoreHistoryService.ts (major refactor)
+  - apps/web/src/pages/KvKSeasons.tsx (UI update)
+Changes:
+  1. Created migration to add `kingdom_score` column to kvk_history table
+  2. Created `calculate_historical_atlas_score()` PostgreSQL function
+  3. Added trigger to auto-calculate score on new kvk_history inserts
+  4. Updated `getSeasonMatchups()` to use historical kingdom_score from kvk_history
+  5. Updated `getAllTimeTopMatchups()` to use historical kingdom_score
+  6. Added historical prep/battle records to matchup data
+  7. Updated KvKSeasons UI: Added Prep Win/Battle Win columns, rank display, prep/battle records
+  8. Compliant with ADR-012: Atlas Scores come from Supabase, not calculated in frontend
+Result: KvK Seasons page now shows historical Atlas Scores per mockup. KvK #1 shows "First KvK" for all kingdoms.
+Note: User must run add_historical_atlas_scores.sql migration in Supabase to backfill historical scores.
+
+## 2026-02-04 17:40 | Product Engineer | COMPLETED
+Task: Fix KvK Seasons "No matchup data" error + Add Kingdom 9 Bye for KvK #1
+Files:
+  - apps/web/src/services/scoreHistoryService.ts (fixed query)
+  - docs/migrations/add_kingdom9_bye_kvk1.sql (new migration)
+Changes:
+  1. Fixed getSeasonMatchups() - was trying to select non-existent fields (kingdom1_score, etc.)
+  2. Fixed getAllTimeTopMatchups() - same issue
+  3. Now fetches only existing kvk_history fields + gets scores from kingdoms table
+  4. Created migration to add Kingdom 9 Bye for KvK #1
+Result: KvK Seasons page will now load matchup data correctly
+
+## 2026-02-04 17:35 | Product Engineer | COMPLETED
+Task: Fix KvK Seasons Atlas Scores using wrong data source (ADR-012 violation)
+Files:
+  - apps/web/src/services/scoreHistoryService.ts
+Changes:
+  1. Fixed getSeasonMatchups() to read pre-calculated scores from kvk_history table
+  2. Fixed getAllTimeTopMatchups() to read pre-calculated scores from kvk_history table
+  3. Removed dependency on score_history table (which had outdated calculated scores)
+  4. Now correctly fetches: kingdom1_score, kingdom2_score, kingdom1_tier, kingdom2_tier, combined_score
+Result: Kingdom 172 will now show correct 10.4 score instead of wrong 11.9
+
+## 2026-02-04 17:45 | Product Engineer | COMPLETED
+Task: KvK Seasons page UI cleanup and Atlas Score documentation
+Files:
+  - apps/web/src/pages/KvKSeasons.tsx (UI restructure)
+  - agents/project-instances/kingshot-atlas/DECISIONS.md (ADR-012)
+Changes:
+  1. Centralized Browse by Season and All-Time Greatest buttons in same row
+  2. Replaced season buttons with a dropdown selector ("Select Season" + dropdown)
+  3. Removed stats info boxes (Total Battles, Dominations, Comebacks, Avg Power Level)
+  4. Added ADR-012: Atlas Scores Must Come From Supabase Tables (CRITICAL)
+  5. Created memory for Atlas Score source of truth rule
+
+## 2026-02-04 17:30 | Product Engineer | COMPLETED
+Task: Multiple UI fixes across Compare, Profile, and KvK Seasons pages
+Files:
+  - apps/web/src/pages/CompareKingdoms.tsx (table alignment fix)
+  - apps/web/src/pages/Profile.tsx (removed "Developing Atlas..." from public profiles)
+  - apps/web/src/pages/KvKSeasons.tsx (title styling, table UI improvements)
+  - apps/web/src/components/ShareComparisonScreenshot.tsx (clipboard fix)
+Changes:
+  1. Compare page: Fixed multi-kingdom table alignment - added empty first column to header row to align with data rows
+  2. Public Profile: Removed "Developing Atlas..." subtitle that appeared on all public profiles
+  3. KvK Seasons: Centered title with "KvK" white and "SEASONS" cyan, centered subtitle, added decorative divider
+  4. KvK Seasons: Improved table UI with better hover effects, shadow, and visual hierarchy
+  5. Share Screenshot: Added canvas ref cleanup after clipboard write to prevent potential duplicate images
+
+## 2026-02-04 17:05 | Product Engineer | COMPLETED
+Task: UI cleanup - Remove redundant elements from Compare page and navigation
+Files:
+  - apps/web/src/components/Header.tsx (removed "New" badge from KvK Seasons nav item)
+  - apps/web/src/pages/CompareKingdoms.tsx (multiple changes)
+Changes:
+  1. Removed "New" badge from KvK Seasons in Rankings dropdown menu
+  2. Removed Score Comparison section (ScoreComparisonOverlay component)
+  3. Consolidated share buttons - kept ShareComparisonScreenshot, removed duplicate ShareButton
+  4. Removed "Kingdom X wins the comparison" verdict message
+  5. Changed kingdom names from abbreviated "K200" to full "Kingdom 200"
+  6. Cleaned up unused imports and functions (ScoreComparisonOverlay, ShareButton, calculateWinner)
+
+## 2026-02-04 14:00 | Product Engineer | COMPLETED
+Task: Fix tooltip hover detection, positioning, and reorganize Kingdom Profile sections
+Files:
+  - apps/web/src/components/ScoreHistoryChart.tsx (hover fix, tooltip positioning, external expand control)
+  - apps/web/src/components/TrendChart.tsx (external expand control)
+  - apps/web/src/pages/KingdomProfile.tsx (section reorganization, KvK History updates)
+Changes:
+  1. Hover detection: Added `pointerEvents: 'none'` to visible point so hover area receives events
+  2. Tooltip positioning: Fixed SVG-to-pixel coordinate conversion using actual SVG bounding rect
+  3. Tooltip now appears 8px above data point using `transform: 'translate(-50%, calc(-100% - 8px))'`
+  4. Added external expand control to ScoreHistoryChart and TrendChart (isExpanded/onToggle props)
+  5. Section order now: Stats → Phases → KvK History → Expand All → Breakdown → Score History → Simulator → Path → Trend
+  6. KvK History: Removed emoji, centered title, Report Error below title, "Showing X of Y KvKs" at bottom right
+  7. Expand/Collapse All now controls 5 sections: Breakdown, Score History, Simulator, Path, Trend
+
+## 2026-02-04 13:00 | Platform Engineer + Product Engineer | COMPLETED
+Task: Fix Atlas Score History chart - wrong scores, wrong tier thresholds, and tooltip positioning
+Files:
+  - apps/web/src/services/scoreHistoryService.ts (complete refactor to use centralized formula)
+  - apps/web/src/components/ScoreHistoryChart.tsx (tooltip positioning fix)
+Root Cause Analysis:
+  - scoreHistoryService had DUPLICATE formula implementation with WRONG tier thresholds (12/10/7/5/3 instead of 8.90/7.79/6.42/4.72)
+  - This caused K172's score to show 11.73 (A-Tier) when database has 10.43 (S-Tier)
+  - Tooltip positioning used arbitrary offset pushing it too far from data point
+Solution:
+  - Removed all custom formula code from scoreHistoryService
+  - Now imports and uses centralized calculateAtlasScore() from atlasScoreFormula.ts
+  - Uses KingdomStats interface and gets ScoreBreakdown with correct tier
+  - Fixed tooltip: `transform: 'translate(-50%, calc(-100% - 8px))'` for proper positioning
+Key Lesson:
+  - NEVER duplicate formula logic - always use centralized atlasScoreFormula.ts
+  - Tier thresholds: S >= 8.90, A >= 7.79, B >= 6.42, C >= 4.72, D >= 0
+
+## 2026-02-04 12:30 | Platform Engineer + Product Engineer | COMPLETED
+Task: Update scoreHistoryService to use correct v2 Atlas Score formula and remove misleading UI
+Files:
+  - apps/web/src/services/scoreHistoryService.ts (complete formula rewrite to v2)
+  - apps/web/src/components/PathToNextTier.tsx (removed Elite Status Buffer section)
+Formula Changes (v2):
+  - Bayesian adjusted win rates: (wins + 2.5) / (total + 5)
+  - Base score: Prep 40% + Battle 60% (not 30/70)
+  - Multiplicative modifiers: DomInv × RecentForm × Streak (not additive)
+  - DomInv multiplier: 0.85-1.15 range based on dom/inv rates
+  - RecentForm multiplier: Last 5 KvKs weighted by recency, 0.85-1.15 range
+  - Streak multiplier: Based on current prep/battle streaks, 0.91-1.15 range
+  - Experience factor: 0.4 (1 KvK) to 1.0+ (5+ KvKs)
+  - History bonus: min(1.5, totalKvks × 0.05) added at end
+  - Final: (Base × DomInv × RecentForm × Streak × Experience) + HistoryBonus, capped 0-15
+UI Changes:
+  - Removed "Elite Status Buffer" section from PathToNextTier (misleading about invasion tolerance)
+Source: docs/migrations/update_atlas_scores_v2.sql (authoritative formula reference)
+
+## 2026-02-04 12:00 | Platform Engineer + Product Engineer | COMPLETED
+Task: Fix Atlas Score History chart data accuracy, tooltip positioning, and hover detection
+Files:
+  - apps/web/src/components/ScoreHistoryChart.tsx (tooltip positioning, hover area radius)
+  - apps/web/src/services/scoreHistoryService.ts (complete rewrite to calculate from kvk_history)
+  - Supabase: created kingdom_kvk_snapshots table, calculate_atlas_score_v3 function
+Database Changes:
+  - Created `kingdom_kvk_snapshots` table for storing cumulative stats after each KvK
+  - Created `calculate_atlas_score_v3` PostgreSQL function with Wilson Score formula
+  - Note: Table population timed out - scores now calculated client-side from kvk_history
+Frontend Changes:
+  - Reduced hover detection radius from 15 to 8 pixels (tooltip only shows when near point)
+  - Fixed tooltip positioning: now appears directly above data point using translate(-50%, -100%)
+  - scoreHistoryService now calculates Atlas Scores from kvk_history using TypeScript Wilson Score formula
+  - Formula matches enhanced_atlas_formulas.py: prep/battle weighted win rates, domination/invasion modifier, recent form, experience factor
+Result:
+  - Tooltips now appear precisely above data points
+  - Hover detection requires pointer to be close to actual data point
+  - Scores calculated correctly using the same formula as the main Atlas Score
+  - K172 example: After KvK #10 with 7W-1L prep, 7W-1L battle, 6 doms → ~10.4 score
+
+## 2026-02-04 11:30 | Product Engineer + Platform Engineer | COMPLETED
+Task: Make Atlas Score History and Performance Trend sections collapsible with proper padding
+Files:
+  - apps/web/src/components/ScoreHistoryChart.tsx (collapsible, question prompt, fixed X-axis labels)
+  - apps/web/src/components/TrendChart.tsx (collapsible, question prompt, legend shown when expanded)
+  - apps/web/src/pages/KingdomProfile.tsx (added margin wrapper for ScoreHistoryChart)
+  - Supabase migrations: fix_score_history_after_kvk, update_percentile_ranks_after_kvk
+Database Changes:
+  - Recalculated all score_history entries to show scores AFTER each KvK ended (inclusive)
+  - K231 now shows: KvK 4: 9.25, KvK 5: 9.40, KvK 6: 11.50, ... KvK 10: 14.05
+  - No more "starting point" with 0 score
+Result:
+  - Both sections initially collapsed with relevant questions:
+    - Atlas Score History: "How has my score evolved?"
+    - Performance Trend: "What's my win rate trend?"
+  - Score increase (KvK X → Y) shown only when Atlas Score History is expanded
+  - Legend (Prep WR, Battle WR) shown only when Performance Trend is expanded
+  - X-axis now shows actual KvK numbers (KvK 4, KvK 5, etc.) instead of "Start"
+  - Proper 1.25rem/1.5rem margin between sections
+
+## 2026-02-04 11:15 | Platform Engineer + Design Lead | COMPLETED
+Task: Fix Atlas Score History chart accuracy, sizing, and percentile-based tiers
+Files:
+  - apps/web/src/components/ScoreHistoryChart.tsx (major refactor: sizing, tooltips, KvK labels)
+  - apps/web/src/services/scoreHistoryService.ts (added percentile_rank to interface)
+  - docs/TIER_SYSTEM.md (updated with percentile-based tier system)
+  - Supabase migrations: add_percentile_tier_function, recalculate_percentiles_and_tiers, add_current_scores_to_history
+Database Changes:
+  - Added `percentile_rank` column to score_history table
+  - Created `get_tier_from_percentile()` function (S=Top3%, A=Top10%, B=Top25%, C=Top50%, D=Bottom50%)
+  - Recalculated all historical tiers based on percentile distribution at each KvK
+  - Added current scores (after latest KvK) for all kingdoms
+Result:
+  - Chart now fills section like Performance Trend (removed wrapper, matched SVG styling)
+  - Replaced "Overall Change" with last KvK change (e.g., "KvK 9 → 10: ▲0.98")
+  - First data point shows "Starting Point" tooltip with "No prior KvK data"
+  - Fixed tooltip z-index by rendering as HTML overlay outside SVG
+  - K231 now correctly shows 12.39 for current score (was showing 12.05)
+  - Tiers now reflect percentile ranking at time of each KvK
+
+## 2026-02-04 10:45 | Design Lead | COMPLETED
+Task: Fix Kingdom Profile chart styling and Atlas Score History accuracy
+Files:
+  - apps/web/src/components/ScoreHistoryChart.tsx (increased height to 300, removed emoji, centralized title)
+  - apps/web/src/components/TrendChart.tsx (removed emoji, centralized title, legend below)
+  - apps/web/src/components/AtlasScoreBreakdown.tsx (removed emoji, centralized title)
+  - apps/web/src/components/ScoreSimulator/ScoreSimulator.tsx (removed emoji, centralized title)
+  - apps/web/src/components/PathToNextTier.tsx (removed emoji, centralized title)
+  - Supabase: fix_score_history_match_source_of_truth migration
+Result:
+  - Atlas Score History chart now matches Performance Trend size (height=300)
+  - All section titles now use consistent h4 styling (0.9rem, centered, no emojis)
+  - Performance Trend legend moved below title for consistency
+  - Fixed score_history calculation to match actual source of truth (calculate_atlas_score_v2):
+    - Uses Bayesian adjusted rates: (wins + 2.5) / (total + 5.0)
+    - Proper experience factors: 1 KvK=0.4, 2=0.6, 3=0.75, 4=0.9, 5+=1.0
+    - History bonus: min(1.5, total_kvks * 0.05)
+  - Kingdom 172 scores now show realistic progression: 0→3.21→5.46→7.48→7.76→8.11→8.93→9.70
+
+## 2026-02-04 10:15 | Atlas Director + Design Lead | COMPLETED
+Task: Fix Atlas Score History data + Style KvK Seasons page
+Files:
+  - docs/migrations/fix_score_history_progressive.sql (new Supabase function + backfill)
+  - apps/web/src/pages/KvKSeasons.tsx (complete restyling with brand voice)
+  - apps/web/src/components/Header.tsx (added Rankings dropdown with KvK Seasons link)
+Result:
+  - Created calculate_atlas_score_at_kvk() PostgreSQL function for progressive score calculation
+  - First KvK for each kingdom now correctly shows Atlas Score = 0 (no prior history)
+  - Backfilled 5,564 records across 1,198 kingdoms with progressive scores
+  - Combined scores for matchups now use scores BEFORE the battle (previous KvK's scores)
+  - Applied Design Lead style guide: Cinzel font for title, Orbitron for stats, brand voice copy
+  - Added mobile touch targets (44px min), proper button alignment, neon glow effects
+  - Improved copy: "Relive the battles", "Power Level", "This is how legends are made"
+  - Added medal emojis for top 3 rankings, gold styling for All-Time Greatest view
+
 ## 2026-02-04 09:10 | Product Engineer | COMPLETED
 Task: User Profile Display Consistency Audit + Documentation
 Files:
