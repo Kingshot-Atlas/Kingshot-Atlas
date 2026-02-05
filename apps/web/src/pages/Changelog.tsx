@@ -14,6 +14,29 @@ interface ChangelogEntry {
 
 const changelogData: ChangelogEntry[] = [
   {
+    date: 'February 5, 2026',
+    version: '1.6.0',
+    new: [
+      '⚔️ KvK Seasons page — Browse matchups by season, Combined Score rankings, All-Time Greatest battles',
+      '📈 Atlas Score History — Interactive chart showing how any kingdom\'s score evolved across every KvK',
+    ],
+    fixed: [
+      'KvK Seasons phase winners — Now correctly shows who won Prep and Battle phases',
+      'Score history accuracy — Charts use correct formula matching database',
+      'KvK corrections — Only approved corrections apply to displayed data',
+      'Duplicate submission check — Fixed query that was checking wrong table',
+    ],
+    improved: [
+      '🏰 Kingdom Profile layout — Reorganized sections with Expand/Collapse All button',
+      '📊 Atlas Score Breakdown — 6 donut charts with point contributions that add up',
+      '🎮 Atlas Score Simulator — Cleaner interface for "what if" scenarios',
+      '🎯 Path to Next Tier — Clearer requirements, removed misleading buffer section',
+      '🔢 Atlas Score precision — Now shows 2 decimal places everywhere (10.43 vs 10.4)',
+      '📝 KvK outcome labels — Domination, Invasion, Reversal, Comeback',
+      '🔒 Security hardening — Admin auth, database RLS, CSP reporting',
+    ],
+  },
+  {
     date: 'February 3, 2026',
     version: '1.5.0',
     new: [

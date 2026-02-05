@@ -9,6 +9,27 @@
 
 <!-- Append new entries at the top -->
 
+## 2026-02-05 16:30 | Product Engineer | COMPLETED
+Task: Audit Atlas Score consistency across all components
+Files:
+  - agents/product-engineer/LATEST_KNOWLEDGE.md - Added "Atlas Score Consistency Pattern" section
+Findings:
+  - ✅ All actively used components correctly use `kingdom.overall_score` from Supabase
+  - ✅ KingdomProfile, Leaderboards, CompareKingdoms, AtlasScoreBreakdown all correct
+  - ✅ PathToNextTier fixed in previous task
+  - ⚠️ ScoreComparisonOverlay.tsx and ScorePrediction.tsx are UNUSED dead code (no imports found)
+  - Documented the pattern in LATEST_KNOWLEDGE.md for future reference
+Result: No additional fixes needed. All active components consistent.
+
+## 2026-02-05 16:22 | Release Manager | COMPLETED
+Task: Add February 5 patch notes to /changelog page
+Files:
+  - apps/web/src/pages/Changelog.tsx
+Changes:
+  - Added v1.6.0 entry with KvK Seasons, Atlas Score History, Kingdom Profile improvements
+  - Includes new features, bug fixes, improvements, and security updates
+Result: Build successful. Changelog page now displays February 5 patch notes.
+
 ## 2026-02-05 16:20 | Release Manager | COMPLETED
 Task: Publish February 5, 2026 Patch Notes
 Files:

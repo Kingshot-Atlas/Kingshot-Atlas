@@ -635,4 +635,57 @@ const usernameStyle = {
 
 ---
 
+## Atlas Score Consistency Pattern (CRITICAL)
+
+**Rule:** Atlas Score display must ALWAYS use `kingdom.overall_score` from Supabase, NEVER locally-calculated values.
+
+### Why This Matters
+The `calculateAtlasScore()` function is for:
+- Understanding score breakdown components
+- Simulating future scenarios (what-if)
+- Calculating deltas/changes
+
+But the **displayed score** must come from Supabase because:
+1. The database is the single source of truth
+2. Calculated scores can drift from stored values
+3. Users see inconsistent numbers if mixed (e.g., "5.68 score needs +0.44 pts to reach 6.4" doesn't add up)
+
+### Correct Patterns
+```typescript
+// ✅ CORRECT: Display from Supabase
+const atlasScore = kingdom.overall_score ?? 0;
+
+// ✅ CORRECT: Calculate breakdown for educational display
+const breakdown = calculateAtlasScore(extractStatsFromProfile(kingdom));
+// But show disclaimer: "(breakdown is approximate)"
+
+// ✅ CORRECT: For simulations, use overall_score as baseline
+const currentScore = kingdom.overall_score ?? breakdown.finalScore;
+const pointsNeeded = threshold - currentScore;
+```
+
+### Anti-Patterns
+```typescript
+// ❌ WRONG: Displaying calculated score as the "real" score
+const score = calculateAtlasScore(stats).finalScore;
+<div>{score.toFixed(2)}</div>  // May differ from overall_score!
+
+// ❌ WRONG: Mixing sources in same calculation
+const pointsNeeded = threshold - calculateAtlasScore(stats).finalScore;
+// But displaying kingdom.overall_score elsewhere
+```
+
+### Audited Components (2026-02-05)
+| Component | Status | Notes |
+|-----------|--------|-------|
+| `KingdomProfile.tsx` | ✅ Correct | Uses `overall_score` with comment |
+| `AtlasScoreBreakdown.tsx` | ✅ Correct | Displays `overall_score`, shows disclaimer |
+| `PathToNextTier.tsx` | ✅ Fixed | Now uses `overall_score` for pointsNeeded |
+| `Leaderboards.tsx` | ✅ Correct | Sorts/displays by `overall_score` |
+| `CompareKingdoms.tsx` | ✅ Correct | Uses `overall_score` |
+| `ScoreComparisonOverlay.tsx` | ⚠️ Unused | Dead code, uses calculated |
+| `ScorePrediction.tsx` | ⚠️ Unused | Dead code, uses calculated |
+
+---
+
 *Updated by Product Engineer based on current React best practices.*
