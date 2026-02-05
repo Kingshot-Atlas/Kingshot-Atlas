@@ -41,7 +41,7 @@ const scheduler = require('./scheduler');
 let botReady = false;
 let lastHeartbeat = Date.now();
 const startupTime = Date.now();
-const STARTUP_GRACE_PERIOD = 60000; // 60 seconds grace period for Discord to connect
+const STARTUP_GRACE_PERIOD = 120000; // 120 seconds grace period for Discord to connect (Render free tier cold starts)
 
 const healthServer = http.createServer((req, res) => {
   if (req.url === '/health') {
@@ -357,7 +357,15 @@ async function main() {
   }
 
   // Login to Discord
-  await client.login(config.token);
+  console.log('🔐 Attempting Discord login...');
+  try {
+    await client.login(config.token);
+    console.log('✅ Discord login call completed');
+  } catch (loginError) {
+    console.error('❌ Discord login failed:', loginError.message);
+    console.error('   Code:', loginError.code);
+    throw loginError;
+  }
 }
 
 // Handle graceful shutdown
