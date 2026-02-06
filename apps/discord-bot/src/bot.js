@@ -593,37 +593,18 @@ async function validateToken(token) {
   }
 }
 
-// Start bot - validate token, then login
+// Start bot - login directly (skip validateToken to minimize API calls)
 async function main() {
   console.log('🔐 Starting Discord login sequence...');
   console.log(`   Token: ${config.token ? config.token.substring(0, 10) + '...' + config.token.substring(config.token.length - 5) : 'MISSING'} (${config.token?.length || 0} chars)`);
   
-  // Step 1: Validate token with raw HTTP (fast, bypasses discord.js)
-  const tokenCheck = await validateToken(config.token);
-  tokenValidationResult = tokenCheck;
+  // Go straight to login — validateToken made 2 extra API calls that contributed
+  // to rate limiting. client.login() only calls GET /gateway/bot internally.
+  // Token validation is still used in retries to check rate-limit status.
   loginAttemptCount = 1;
   
-  if (tokenCheck.valid === false) {
-    // Token is definitely invalid - don't even try to login
-    loginLastResult = `token_invalid: ${tokenCheck.error}`;
-    lastError = `Token invalid (HTTP ${tokenCheck.status}). Reset token in Discord Developer Portal > Bot > Reset Token, then update DISCORD_TOKEN on Render.`;
-    console.error('❌ ABORTING LOGIN: Token is invalid.');
-    console.error('   1. Go to https://discord.com/developers/applications/' + config.clientId + '/bot');
-    console.error('   2. Click "Reset Token" and copy the new token');
-    console.error('   3. Update DISCORD_TOKEN on Render dashboard');
-    console.error('   Health server remains running for diagnostics.');
-    return; // Don't attempt login with known-bad token
-  }
-  
-  if (tokenCheck.valid === null) {
-    // Couldn't validate (network issue or rate limit) - try login anyway
-    loginLastResult = `validation_inconclusive: ${tokenCheck.error}`;
-    lastError = `Token validation inconclusive: ${tokenCheck.error}. Attempting login anyway.`;
-    console.warn('⚠️ Token validation inconclusive, attempting login anyway...');
-  }
-  
-  // Step 2: Login to Discord with timeout protection
-  const LOGIN_TIMEOUT = 30_000; // 30 seconds (reduced since we validated token)
+  // Login to Discord with timeout protection
+  const LOGIN_TIMEOUT = 30_000; // 30 seconds
   
   try {
     const loginPromise = client.login(config.token);
@@ -680,8 +661,15 @@ function scheduleLoginRetry() {
     console.log(`🔐 Login retry ${loginRetryCount}/${MAX_LOGIN_RETRIES} starting...`);
     loginAttemptCount = loginRetryCount + 1;
     
+    // Guard: if a background login already succeeded, don't retry
+    if (client?.ws?.status === 0) {
+      console.log('   ✅ Client already connected (background login succeeded), skipping retry');
+      loginRetryCount = 0;
+      return;
+    }
+    
     try {
-      // Re-validate token first (skip if rate-limited)
+      // Quick check if still rate-limited (lightweight /users/@me call)
       const tokenCheck = await validateToken(config.token);
       if (tokenCheck.valid === false) {
         loginLastResult = `token_invalid: ${tokenCheck.error}`;
