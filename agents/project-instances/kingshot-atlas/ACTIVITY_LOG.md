@@ -7,6 +7,23 @@
 
 ## Log Entries
 
+## 2026-02-06 08:15 | Product Engineer | COMPLETED
+Task: Rankings page polish + header cleanup
+Changes:
+  Header:
+  - `Header.tsx` — Removed FavoritesBadge (heart button) from both desktop and mobile headers. Import removed.
+  Rankings Page (`Leaderboards.tsx`):
+  - Fixed corrupted emoji in "Rank Movers" section header.
+  - Changed kingdom names from abbreviated "K1181" to full "Kingdom 1181" in Biggest Climbers & Fallers.
+  - Moved Top 10/20/50 and Experience filter controls below Rank Movers section (they don't affect movers).
+  - Changed Current Momentum and All-Time Records from vertical column stacking to horizontal row layout (3 cards side-by-side on desktop).
+  - Added "Domination Streak" (current consecutive dominations) to Current Momentum section.
+  - Added "Domination Streak Record" (all-time best) to All-Time Records section.
+  - Both sections now have 3 cards each: Prep, Battle, and Domination streaks.
+  Types (`types/index.ts`):
+  - Added `dominationStreak` and `bestDominationStreak` to `KingdomWithStats` interface.
+Result: Build passes ✅. Rankings page is cleaner with proper kingdom names, correct section ordering, and domination streak rankings.
+
 ## 2026-02-06 06:30 | Product Engineer | COMPLETED
 Task: Enhance Kingdom Rankings page & profile header UI
 Changes:

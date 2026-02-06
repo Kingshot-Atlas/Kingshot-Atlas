@@ -89,6 +89,31 @@ const Leaderboards: React.FC = () => {
       else break;
     }
     
+    // Domination streak (current consecutive dominations = both prep & battle wins)
+    let dominationStreak = 0;
+    for (const kvk of recentKvks) {
+      const prepWin = kvk.prep_result === 'Win' || kvk.prep_result === 'W';
+      const battleWin = kvk.battle_result === 'Win' || kvk.battle_result === 'W';
+      if (prepWin && battleWin) dominationStreak++;
+      else break;
+    }
+
+    // Best domination streak (all-time longest consecutive dominations)
+    let bestDominationStreak = 0;
+    let currentDomStreak = 0;
+    // Sort oldest-first for correct streak calculation
+    const chronological = [...(kingdom.recent_kvks || [])].sort((a, b) => a.kvk_number - b.kvk_number);
+    for (const kvk of chronological) {
+      const prepWin = kvk.prep_result === 'Win' || kvk.prep_result === 'W';
+      const battleWin = kvk.battle_result === 'Win' || kvk.battle_result === 'W';
+      if (prepWin && battleWin) {
+        currentDomStreak++;
+        if (currentDomStreak > bestDominationStreak) bestDominationStreak = currentDomStreak;
+      } else {
+        currentDomStreak = 0;
+      }
+    }
+
     // Use full history data from kingdom object (not just recent_kvks)
     const dominations = kingdom.dominations ?? 0;
     const invasions = kingdom.invasions ?? kingdom.defeats ?? 0;
@@ -99,7 +124,7 @@ const Leaderboards: React.FC = () => {
     // Comebacks = battle wins that weren't dominations (lost prep but won battle)
     const comebacks = kingdom.battle_wins - dominations;
     
-    return { prepStreak, battleStreak, dominations, invasions, reversals, comebacks };
+    return { prepStreak, battleStreak, dominationStreak, bestDominationStreak, dominations, invasions, reversals, comebacks };
   };
 
   // Rankings with stats (using filtered kingdoms)
@@ -140,6 +165,22 @@ const Leaderboards: React.FC = () => {
 
   const battleStreakRanking = useMemo(() => 
     [...kingdomsWithStats].sort((a, b) => b.battleStreak - a.battleStreak).slice(0, displayCount),
+    [kingdomsWithStats, displayCount]
+  );
+
+  const dominationStreakRanking = useMemo(() => 
+    [...kingdomsWithStats]
+      .filter(k => k.dominationStreak > 0)
+      .sort((a, b) => b.dominationStreak - a.dominationStreak)
+      .slice(0, displayCount),
+    [kingdomsWithStats, displayCount]
+  );
+
+  const bestDominationStreakRanking = useMemo(() => 
+    [...kingdomsWithStats]
+      .filter(k => k.bestDominationStreak > 0)
+      .sort((a, b) => b.bestDominationStreak - a.bestDominationStreak)
+      .slice(0, displayCount),
     [kingdomsWithStats, displayCount]
   );
 
@@ -199,8 +240,10 @@ const Leaderboards: React.FC = () => {
     'Battle Win Rate': 'Highest Battle Phase win percentage (3+ KvKs)',
     'Prep Win Streak': 'Current consecutive Prep Phase wins',
     'Battle Win Streak': 'Current consecutive Battle Phase wins',
+    'Domination Streak': 'Current consecutive Dominations (won both Prep and Battle)',
     'Prep Streak Record': 'All-time best Prep Phase win streak',
     'Battle Streak Record': 'All-time best Battle Phase win streak',
+    'Domination Streak Record': 'All-time best consecutive Domination streak',
     'Dominations': 'Won both Prep and Battle phases',
     'Comebacks': 'Lost Prep but won Battle',
     'Reversals': 'Won Prep but lost Battle',
@@ -378,12 +421,14 @@ const Leaderboards: React.FC = () => {
   const momentumRankings = [
     { title: 'Prep Win Streak', icon: '🛡️', color: '#eab308', data: prepStreakRanking, getValue: (k: KingdomWithStats) => `${k.prepStreak}W` },
     { title: 'Battle Win Streak', icon: '⚔️', color: '#f97316', data: battleStreakRanking, getValue: (k: KingdomWithStats) => `${k.battleStreak}W` },
+    { title: 'Domination Streak', icon: '👑', color: '#a855f7', data: dominationStreakRanking, getValue: (k: KingdomWithStats) => `${k.dominationStreak}W` },
   ];
   
   // Record Rankings (All-Time Best Streaks)
   const recordRankings = [
     { title: 'Prep Streak Record', icon: '🏅', color: '#fbbf24', data: prepBestStreakRanking, getValue: (k: KingdomWithStats) => `${k.prep_best_streak ?? 0}W` },
     { title: 'Battle Streak Record', icon: '🎖️', color: '#f59e0b', data: battleBestStreakRanking, getValue: (k: KingdomWithStats) => `${k.battle_best_streak ?? 0}W` },
+    { title: 'Domination Streak Record', icon: '💎', color: '#c084fc', data: bestDominationStreakRanking, getValue: (k: KingdomWithStats) => `${k.bestDominationStreak}W` },
   ];
   
   // Match Outcome Rankings (Historical)
@@ -438,69 +483,6 @@ const Leaderboards: React.FC = () => {
 
       {/* Content */}
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: isMobile ? '1rem' : '1.5rem 2rem' }}>
-        {/* Controls row */}
-        <div style={{ 
-          display: 'flex', 
-          flexDirection: isMobile ? 'column' : 'row',
-          justifyContent: 'center', 
-          alignItems: 'center',
-          gap: isMobile ? '0.75rem' : '1.5rem',
-          marginBottom: '1.5rem' 
-        }}>
-          {/* Top N toggle */}
-          <div style={{ 
-            display: 'flex', 
-            backgroundColor: '#0a0a0a', 
-            borderRadius: '8px', 
-            border: '1px solid #2a2a2a',
-            overflow: 'hidden'
-          }}>
-            {([10, 20, 50] as const).map((count) => (
-              <button
-                key={count}
-                onClick={() => { trackFeature('Leaderboard Display Count', { count }); setDisplayCount(count); }}
-                style={{
-                  padding: isMobile ? '0.6rem 1rem' : '0.5rem 1.25rem',
-                  minHeight: isMobile ? '44px' : 'auto',
-                  backgroundColor: displayCount === count ? '#22d3ee' : 'transparent',
-                  border: 'none',
-                  color: displayCount === count ? '#000' : '#6b7280',
-                  cursor: 'pointer',
-                  fontWeight: displayCount === count ? '600' : '400',
-                  fontSize: isMobile ? '0.8rem' : '0.85rem',
-                  transition: 'all 0.2s'
-                }}
-              >
-                Top {count}
-              </button>
-            ))}
-          </div>
-
-          {/* KvK Experience filter */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ color: '#6b7280', fontSize: isMobile ? '0.75rem' : '0.8rem' }}>Experience:</span>
-            <select
-              value={kvkFilter}
-              onChange={(e) => setKvkFilter(e.target.value)}
-              style={{
-                padding: isMobile ? '0.6rem 0.75rem' : '0.5rem 0.75rem',
-                minHeight: isMobile ? '44px' : 'auto',
-                backgroundColor: '#131318',
-                border: '1px solid #2a2a2a',
-                borderRadius: '6px',
-                color: '#fff',
-                fontSize: isMobile ? '0.8rem' : '0.85rem',
-                cursor: 'pointer',
-                outline: 'none'
-              }}
-            >
-              {kvkFilterOptions.map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-
         {loading ? (
           <LeaderboardSkeleton rows={10} />
         ) : dataLoadError ? (
@@ -519,9 +501,17 @@ const Leaderboards: React.FC = () => {
                   fontSize: isMobile ? '0.9rem' : '1rem', 
                   marginBottom: '0.75rem',
                   paddingLeft: '0.5rem',
-                  borderLeft: '3px solid #a855f7'
+                  borderLeft: '3px solid #a855f7',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
                 }}>
-                  � Rank Movers
+                  Rank Movers
+                  {rankMovers.climbers[0] && (
+                    <span style={{ color: '#6b7280', fontSize: isMobile ? '0.7rem' : '0.75rem', fontWeight: '400' }}>
+                      KvK #{rankMovers.climbers[0].prev_kvk} → #{rankMovers.climbers[0].curr_kvk}
+                    </span>
+                  )}
                 </h2>
                 <div style={{ 
                   display: 'grid', 
@@ -574,7 +564,7 @@ const Leaderboards: React.FC = () => {
                               {getRankBadge(index + 1)}
                             </span>
                             <span style={{ color: '#fff', fontWeight: '500', fontSize: isMobile ? '0.75rem' : '0.8rem' }}>
-                              K{mover.kingdom_number}
+                              Kingdom {mover.kingdom_number}
                             </span>
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -640,7 +630,7 @@ const Leaderboards: React.FC = () => {
                               {getRankBadge(index + 1)}
                             </span>
                             <span style={{ color: '#fff', fontWeight: '500', fontSize: isMobile ? '0.75rem' : '0.8rem' }}>
-                              K{mover.kingdom_number}
+                              Kingdom {mover.kingdom_number}
                             </span>
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -662,6 +652,69 @@ const Leaderboards: React.FC = () => {
                 </div>
               </div>
             )}
+
+            {/* Controls row - below Rank Movers since they don't affect movers */}
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: isMobile ? 'column' : 'row',
+              justifyContent: 'center', 
+              alignItems: 'center',
+              gap: isMobile ? '0.75rem' : '1.5rem',
+              marginBottom: '1.5rem' 
+            }}>
+              {/* Top N toggle */}
+              <div style={{ 
+                display: 'flex', 
+                backgroundColor: '#0a0a0a', 
+                borderRadius: '8px', 
+                border: '1px solid #2a2a2a',
+                overflow: 'hidden'
+              }}>
+                {([10, 20, 50] as const).map((count) => (
+                  <button
+                    key={count}
+                    onClick={() => { trackFeature('Leaderboard Display Count', { count }); setDisplayCount(count); }}
+                    style={{
+                      padding: isMobile ? '0.6rem 1rem' : '0.5rem 1.25rem',
+                      minHeight: isMobile ? '44px' : 'auto',
+                      backgroundColor: displayCount === count ? '#22d3ee' : 'transparent',
+                      border: 'none',
+                      color: displayCount === count ? '#000' : '#6b7280',
+                      cursor: 'pointer',
+                      fontWeight: displayCount === count ? '600' : '400',
+                      fontSize: isMobile ? '0.8rem' : '0.85rem',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    Top {count}
+                  </button>
+                ))}
+              </div>
+
+              {/* KvK Experience filter */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: '#6b7280', fontSize: isMobile ? '0.75rem' : '0.8rem' }}>Experience:</span>
+                <select
+                  value={kvkFilter}
+                  onChange={(e) => setKvkFilter(e.target.value)}
+                  style={{
+                    padding: isMobile ? '0.6rem 0.75rem' : '0.5rem 0.75rem',
+                    minHeight: isMobile ? '44px' : 'auto',
+                    backgroundColor: '#131318',
+                    border: '1px solid #2a2a2a',
+                    borderRadius: '6px',
+                    color: '#fff',
+                    fontSize: isMobile ? '0.8rem' : '0.85rem',
+                    cursor: 'pointer',
+                    outline: 'none'
+                  }}
+                >
+                  {kvkFilterOptions.map(opt => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
 
             {/* Performance Rankings: Atlas Score + Win Rates */}
             <div style={{ marginBottom: '1.5rem' }}>
@@ -692,10 +745,9 @@ const Leaderboards: React.FC = () => {
               </div>
             </div>
 
-            {/* Current Momentum + All-Time Records side by side on desktop */}
+            {/* Current Momentum + All-Time Records */}
             <div style={{ 
               display: 'grid', 
-              gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', 
               gap: '1.5rem',
               marginBottom: '1.5rem'
             }}>
@@ -710,7 +762,11 @@ const Leaderboards: React.FC = () => {
                 }}>
                   🔥 Current Momentum
                 </h2>
-                <div style={{ display: 'grid', gap: '1rem' }}>
+                <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: isMobile ? '1fr' : `repeat(${momentumRankings.length}, 1fr)`,
+                  gap: '1rem'
+                }}>
                   {momentumRankings.map((ranking, idx) => (
                     <LeaderboardCard
                       key={idx}
@@ -735,7 +791,11 @@ const Leaderboards: React.FC = () => {
                 }}>
                   🏅 All-Time Records
                 </h2>
-                <div style={{ display: 'grid', gap: '1rem' }}>
+                <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: isMobile ? '1fr' : `repeat(${recordRankings.length}, 1fr)`,
+                  gap: '1rem'
+                }}>
                   {recordRankings.map((ranking, idx) => (
                     <LeaderboardCard
                       key={idx}

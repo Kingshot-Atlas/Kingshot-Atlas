@@ -163,6 +163,8 @@ export interface KingdomDataFile {
 export interface KingdomWithStats extends Kingdom {
   prepStreak: number;
   battleStreak: number;
+  dominationStreak: number;
+  bestDominationStreak: number;
   dominations: number;
   invasions: number;
   reversals: number;
