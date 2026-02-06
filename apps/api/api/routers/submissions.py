@@ -87,47 +87,92 @@ def _recalculate_kingdom_stats(kingdom: Kingdom, db: Session) -> None:
     kingdom.last_updated = datetime.now(timezone.utc)
 
 
+def _validate_token_via_supabase_api(token: str) -> Optional[str]:
+    """
+    Validate a JWT by calling Supabase's Auth API.
+    
+    Uses the already-configured Supabase admin client (SUPABASE_URL + SERVICE_ROLE_KEY)
+    to verify the token server-side. This works even if SUPABASE_JWT_SECRET is not set.
+    
+    Returns user_id if valid, None otherwise.
+    """
+    try:
+        from api.supabase_client import get_supabase_admin
+        client = get_supabase_admin()
+        if not client:
+            logger.warning("Supabase admin client not available for token validation")
+            return None
+        
+        user_response = client.auth.get_user(token)
+        if user_response and user_response.user:
+            logger.info(f"Token validated via Supabase API: user={user_response.user.id}")
+            return user_response.user.id
+        
+        logger.warning("Supabase API returned no user for token")
+        return None
+    except Exception as e:
+        logger.warning(f"Supabase API token validation failed: {e}")
+        return None
+
+
 def verify_supabase_jwt(token: str) -> Optional[str]:
     """
     Validate Supabase JWT token and extract user ID.
     Returns user_id (sub claim) if valid, None otherwise.
     
-    Security: This validates the JWT signature if SUPABASE_JWT_SECRET is set.
-    In development without the secret, it will decode without verification (less secure).
+    Strategy (in order):
+    1. Local JWT signature verification (fast, requires SUPABASE_JWT_SECRET)
+    2. Supabase Auth API validation (reliable fallback, requires network call)
+    3. Unverified decode (development only, when nothing else is configured)
     """
     if not token:
         return None
     
-    try:
-        # Remove "Bearer " prefix if present
-        if token.startswith("Bearer "):
-            token = token[7:]
-        
-        if SUPABASE_JWT_SECRET:
-            # Production: Verify JWT signature
+    # Remove "Bearer " prefix if present
+    raw_token = token
+    if token.startswith("Bearer "):
+        raw_token = token[7:]
+    
+    if not raw_token:
+        logger.warning("Empty token after stripping Bearer prefix")
+        return None
+    
+    # Strategy 1: Local JWT signature verification (fastest)
+    if SUPABASE_JWT_SECRET:
+        try:
             payload = jwt.decode(
-                token,
+                raw_token,
                 SUPABASE_JWT_SECRET,
                 algorithms=["HS256"],
                 options={"verify_aud": False}  # Supabase doesn't always set audience
             )
-        else:
-            # Development fallback: Decode without verification (log warning)
-            logger.warning("SUPABASE_JWT_SECRET not set - JWT signature not verified!")
-            payload = jwt.decode(token, key="", algorithms=["HS256"], options={"verify_signature": False})
-        
-        # Extract user ID from 'sub' claim
-        user_id = payload.get("sub")
-        if not user_id:
-            return None
-        
+            user_id = payload.get("sub")
+            if user_id:
+                return user_id
+            logger.warning("JWT decoded but no 'sub' claim found")
+        except JWTError as e:
+            logger.warning(f"Local JWT validation failed (will try Supabase API): {e}")
+        except Exception as e:
+            logger.error(f"Unexpected local JWT error (will try Supabase API): {e}")
+    
+    # Strategy 2: Validate via Supabase Auth API (reliable fallback)
+    user_id = _validate_token_via_supabase_api(raw_token)
+    if user_id:
         return user_id
-    except JWTError as e:
-        logger.warning(f"JWT validation failed: {e}")
-        return None
-    except Exception as e:
-        logger.error(f"Unexpected error during JWT validation: {e}")
-        return None
+    
+    # Strategy 3: Development-only unverified decode
+    if not SUPABASE_JWT_SECRET and not os.getenv("RENDER"):
+        try:
+            logger.warning("SUPABASE_JWT_SECRET not set - attempting unverified decode (dev only)")
+            payload = jwt.decode(raw_token, key="", algorithms=["HS256"], options={"verify_signature": False, "verify_exp": False})
+            user_id = payload.get("sub")
+            if user_id:
+                return user_id
+        except Exception as e:
+            logger.error(f"Unverified JWT decode also failed: {e}")
+    
+    logger.error("All JWT validation strategies failed")
+    return None
 
 
 # Admin emails from environment variable (comma-separated) or fallback to defaults

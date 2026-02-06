@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { KingdomProfile as KingdomProfileType, getTierDescription as getCentralizedTierDescription, type PowerTier } from '../../types';
 import ShareButton from '../ShareButton';
-import FollowKingdomButton from '../FollowKingdomButton';
 import ScoreFreshness from '../ScoreFreshness';
 import { neonGlow, getStatusColor, getTierColor, FONT_DISPLAY } from '../../utils/styles';
 
@@ -315,12 +314,6 @@ const KingdomHeader: React.FC<KingdomHeaderProps> = ({
               {isFavorite ? 'Favorited' : 'Favorite'}
             </button>
 
-            {/* Follow Button */}
-            <FollowKingdomButton 
-              kingdomId={kingdom.kingdom_number} 
-              size="small"
-            />
-            
             {/* Share Button */}
             <ShareButton
               type="kingdom"

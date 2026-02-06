@@ -7,6 +7,70 @@
 
 ## Log Entries
 
+## 2026-02-06 04:00 | Platform Engineer | COMPLETED
+Task: Fix backend JWT validation — add Supabase API-based token validation fallback
+Files:
+  - `apps/api/api/routers/submissions.py` — Rewrote `verify_supabase_jwt()` with 3-strategy validation: (1) local JWT signature check, (2) Supabase Auth API fallback via `client.auth.get_user(token)`, (3) dev-only unverified decode. Added `_validate_token_via_supabase_api()` helper.
+Result: Backend JWT validation now works regardless of whether `SUPABASE_JWT_SECRET` is correctly set on Render. The Supabase API fallback uses the already-working admin client (`SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`) to validate tokens server-side. Added detailed error logging at each strategy stage. All 13 backend tests pass. Frontend build verified.
+
+## 2026-02-06 03:30 | Platform Engineer | COMPLETED
+Task: Harden all backend API calls with fresh token pattern — shared `getAuthHeaders()` utility
+Files:
+  - `apps/web/src/services/authHeaders.ts` (NEW) — Shared utility that calls `supabase.auth.getSession()` for fresh JWT tokens
+  - `apps/web/src/pages/Admin.tsx` — Replaced 6 `X-User-Id`-only fetch calls with `getAuthHeaders()`
+  - `apps/web/src/pages/AdminDashboard.tsx` — Replaced 8 `X-User-Id`/`X-User-Email`-only fetch calls with `getAuthHeaders()`
+  - `apps/web/src/components/PostKvKSubmission.tsx` — Consolidated inline `getSession()` to use shared utility
+Result: All backend API calls now send proper `Authorization: Bearer <JWT>` headers via a single shared utility. Previously, Admin and AdminDashboard pages sent only `X-User-Id` headers which are rejected in production (backend's `get_verified_user_id` rejects unverified headers when `SUPABASE_JWT_SECRET` is set). This was a class-wide auth bug affecting all admin operations. Build verified.
+
+## 2026-02-06 03:00 | Platform Engineer | COMPLETED
+Task: Fix "Authentication required to submit KvK results" error for logged-in users
+Files: `apps/web/src/components/PostKvKSubmission.tsx`
+Result: Root cause — component used stale `session.access_token` from React state instead of getting a fresh token via `supabase.auth.getSession()`. When Supabase JWT expired (1hr default), the stale token failed backend validation. Fixed by calling `getSession()` before API call, matching the pattern already used by `statusService.ts` and `discordService.ts`. Build verified.
+
+## 2026-02-06 01:56 | Atlas Director | COMPLETED
+Task: Deep feasibility analysis — In-app messaging system between users
+Files: None (analysis only, no code changes)
+Result: Comprehensive analysis delivered covering technical requirements, Supabase schema design, cost implications (Free → Pro upgrade required), Realtime quotas, vision alignment concerns ("Not a social network"), moderation burden, and alternative approaches. Recommendation: defer or scope tightly to recruitment/transfer use case only.
+
+## 2026-02-06 01:55 | Product Engineer | COMPLETED
+Task: Remove red count badge from FavoritesBadge header icon
+Files:
+  - apps/web/src/components/FavoritesBadge.tsx — Removed the red numbered badge overlay (lines 50-68). Heart icon alone now serves as the favorites shortcut. Badge was creating false notification urgency.
+Result: Heart icon in header no longer shows a red count badge. Cleaner UX — no more confusion between favorites count and unread notifications. Build verified.
+
+## 2026-02-06 01:50 | Platform Engineer | COMPLETED
+Task: Wire submission_updates preference check into backend create_notification()
+Files:
+  - apps/api/api/supabase_client.py — Added `_check_notification_preference()` helper that maps notification types to preference keys (submission_approved/rejected/claim_verified → submission_updates, system_announcement → system_announcements). `create_notification()` now checks user_data.settings before inserting. Fail-open design: if preference check errors, notification is still sent. Admin types bypass check. Returns True (not error) when notification is skipped by preference.
+Result: All user-facing notifications from submissions.py now respect notification preferences set in the Profile toggle panel. No call-site changes needed — preference check is centralized in create_notification(). Python syntax + frontend build verified.
+
+## 2026-02-06 01:35 | Product Engineer + Platform Engineer | COMPLETED
+Task: Wire score change detection into NotificationBell + add notification preferences panel
+Files:
+  - Supabase migration: notify_favorite_score_change_trigger — PostgreSQL trigger on `kingdoms` table that auto-creates notifications for users who have the kingdom favorited when atlas_score changes. Respects user preferences via user_data.settings JSONB. Uses SECURITY DEFINER + get_tier_from_score().
+  - apps/web/src/services/notificationService.ts — Added `favorite_score_change` type, icon (📊), color (#a855f7 purple). Added NotificationPreferences interface, getPreferences(), updatePreferences() methods using user_data.settings JSONB.
+  - apps/web/src/components/NotificationPreferences.tsx (NEW) — Toggle panel with 3 switches: Score Changes, Submission Updates, System Announcements. Saves to Supabase instantly. Loading/saving states.
+  - apps/web/src/pages/Profile.tsx — Added NotificationPreferences section after Discord Link, before Kingdom Rankings.
+Result: Full end-to-end score change notification pipeline: kvk_history INSERT → sync_kingdom_stats_trigger → kingdoms.atlas_score UPDATE → notify_favorite_score_change trigger → notifications INSERT → NotificationBell real-time display. Users can toggle notification types on/off from Profile. ADR-014 documented. Build verified.
+
+## 2026-02-06 01:20 | Product Engineer | COMPLETED
+Task: NotificationBell improvements — dedup guard, grouping, empty state, dead code cleanup
+Files:
+  - apps/web/src/components/NotificationBell.tsx — Dedup guard on real-time handler, notification grouping (same type+title within 1hr), improved empty state ("You're all caught up" + last-checked timestamp)
+  - apps/web/src/components/Header.tsx — Added FavoritesBadge to mobile header (was missing)
+  - apps/web/src/hooks/useScoreChangeNotifications.ts (DELETED) — Dead module, never imported by any component
+Result: No DB-level duplicate notifications found (6 unique entries, RLS correctly scoped). Added defensive dedup guard to prevent real-time race conditions. Similar notifications now grouped visually. Empty state improved with checkmark icon + timestamp. FavoritesBadge now visible on mobile. Build verified.
+
+## 2026-02-06 01:06 | Product Engineer | COMPLETED
+Task: Remove Follow feature, unify with Favorites, change Kingdom Card icon to heart
+Files:
+  - apps/web/src/components/FollowKingdomButton.tsx (DELETED)
+  - apps/web/src/components/kingdom-profile/KingdomHeader.tsx - Removed Follow button import + JSX
+  - apps/web/src/hooks/useScoreChangeNotifications.ts - Rewired from followed → favorited kingdoms
+  - apps/web/src/services/userDataService.ts - Removed followed_kingdoms from interface, localStorage, sync
+  - apps/web/src/components/KingdomCard.tsx - Changed star icon (★/☆) to heart SVG, red color (#ef4444)
+Result: Follow feature fully removed. Score change notifications now trigger for favorited kingdoms instead. No Supabase changes needed (followed_kingdoms was localStorage-only). Kingdom Cards now use consistent heart icon matching Kingdom Profiles. Build verified.
+
 ## 2026-02-05 21:00 | Product Engineer + Platform Engineer | COMPLETED
 Task: Review rate limiting (3/day) + report system with modal
 Files: `apps/web/src/components/KingdomReviews.tsx`, `apps/web/src/services/reviewService.ts`, Supabase migration (review_reports table)

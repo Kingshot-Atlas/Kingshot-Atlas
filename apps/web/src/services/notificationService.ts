@@ -27,7 +27,20 @@ export type NotificationType =
   | 'submission_rejected'
   | 'claim_verified'
   | 'claim_rejected'
-  | 'system_announcement';
+  | 'system_announcement'
+  | 'favorite_score_change';
+
+export interface NotificationPreferences {
+  score_changes: boolean;
+  submission_updates: boolean;
+  system_announcements: boolean;
+}
+
+export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
+  score_changes: true,
+  submission_updates: true,
+  system_announcements: true,
+};
 
 class NotificationService {
   /**
@@ -246,6 +259,8 @@ class NotificationService {
         return '✗';
       case 'system_announcement':
         return '📢';
+      case 'favorite_score_change':
+        return '📊';
       default:
         return '🔔';
     }
@@ -269,8 +284,82 @@ class NotificationService {
         return '#f59e0b'; // amber
       case 'system_announcement':
         return '#22d3ee'; // cyan
+      case 'favorite_score_change':
+        return '#a855f7'; // purple
       default:
         return '#9ca3af'; // gray
+    }
+  }
+
+  /**
+   * Get notification preferences from user_data.settings
+   */
+  async getPreferences(): Promise<NotificationPreferences> {
+    if (!isSupabaseConfigured || !supabase) {
+      return { ...DEFAULT_NOTIFICATION_PREFERENCES };
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('user_data')
+        .select('settings')
+        .single();
+
+      if (error || !data?.settings?.notification_preferences) {
+        return { ...DEFAULT_NOTIFICATION_PREFERENCES };
+      }
+
+      const prefs = data.settings.notification_preferences;
+      return {
+        score_changes: prefs.score_changes !== false,
+        submission_updates: prefs.submission_updates !== false,
+        system_announcements: prefs.system_announcements !== false,
+      };
+    } catch (err) {
+      logger.error('Error fetching notification preferences:', err);
+      return { ...DEFAULT_NOTIFICATION_PREFERENCES };
+    }
+  }
+
+  /**
+   * Update notification preferences in user_data.settings
+   */
+  async updatePreferences(prefs: NotificationPreferences): Promise<boolean> {
+    if (!isSupabaseConfigured || !supabase) {
+      return false;
+    }
+
+    try {
+      // First get current settings to merge
+      const { data: current } = await supabase
+        .from('user_data')
+        .select('settings')
+        .single();
+
+      const currentSettings = current?.settings || {};
+      const updatedSettings = {
+        ...currentSettings,
+        notification_preferences: {
+          score_changes: prefs.score_changes,
+          submission_updates: prefs.submission_updates,
+          system_announcements: prefs.system_announcements,
+        }
+      };
+
+      const { error } = await supabase
+        .from('user_data')
+        .update({ settings: updatedSettings })
+        .not('user_id', 'is', null); // RLS handles user filtering
+
+      if (error) {
+        logger.error('Failed to update notification preferences:', error.message);
+        return false;
+      }
+
+      return true;
+    } catch (err) {
+      logger.error('Error updating notification preferences:', err);
+      return false;
     }
   }
 }

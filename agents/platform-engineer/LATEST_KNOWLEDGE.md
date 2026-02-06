@@ -426,5 +426,67 @@ def generate_signature(params: dict, salt: str) -> str:
 
 ---
 
+## Auth Headers Pattern (2026-02-06)
+
+### CRITICAL: Never use `session.access_token` from React state for backend API calls
+
+Supabase JWTs expire after 1 hour. React state (`useAuth().session`) can hold stale/expired tokens. The backend's `get_verified_user_id()` rejects expired JWTs and also rejects raw `X-User-Id` headers in production.
+
+### Correct Pattern: Use `getAuthHeaders()`
+```typescript
+import { getAuthHeaders } from '../services/authHeaders';
+
+// For required auth (throws if no session):
+const authHeaders = await getAuthHeaders();
+
+// For optional auth (returns empty object if no session):
+const authHeaders = await getAuthHeaders({ requireAuth: false });
+
+// Use in fetch:
+const response = await fetch(`${API_URL}/api/v1/endpoint`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    ...authHeaders
+  },
+  body: JSON.stringify(data)
+});
+```
+
+### What `getAuthHeaders()` returns
+- `Authorization: Bearer <fresh_jwt>` — Always fresh from `supabase.auth.getSession()`
+- `X-User-Id` — User ID from session
+- `X-User-Email` — User email from session
+
+### Files using this pattern
+- `apps/web/src/components/PostKvKSubmission.tsx`
+- `apps/web/src/pages/Admin.tsx`
+- `apps/web/src/pages/AdminDashboard.tsx`
+
+### DO NOT
+- ❌ Use `session?.access_token` from `useAuth()` for backend API calls
+- ❌ Send only `X-User-Id` header without `Authorization` (rejected in production)
+- ❌ Call `supabase.auth.getSession()` inline — use the shared utility instead
+
+## Backend JWT Validation (2026-02-06)
+
+### 3-Strategy Token Validation in `verify_supabase_jwt()`
+
+The backend validates tokens using a cascading strategy:
+
+1. **Local JWT decode** (fast) — Uses `SUPABASE_JWT_SECRET` to verify signature locally
+2. **Supabase Auth API** (reliable fallback) — Calls `client.auth.get_user(token)` via the admin client (`SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`)
+3. **Unverified decode** (dev only) — Only when `SUPABASE_JWT_SECRET` is not set AND not on Render
+
+### Why the fallback matters
+- `SUPABASE_JWT_SECRET` may be misconfigured on Render
+- The Supabase admin client is ALWAYS available (proven by notifications, profile updates, etc.)
+- Strategy 2 adds ~100ms latency but is 100% reliable
+
+### Backend file
+- `apps/api/api/routers/submissions.py` — `verify_supabase_jwt()`, `_validate_token_via_supabase_api()`
+
+---
+
 *Updated by Platform Engineer based on current backend best practices.*
-*Last audit: 2026-01-29*
+*Last audit: 2026-02-06*

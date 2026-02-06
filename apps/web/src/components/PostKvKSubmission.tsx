@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useToast } from './Toast';
 import { logger } from '../utils/logger';
 import { CURRENT_KVK } from '../constants';
+import { getAuthHeaders } from '../services/authHeaders';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
@@ -19,7 +20,7 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
   defaultKingdom,
   defaultKvkNumber = CURRENT_KVK
 }) => {
-  const { user, session, profile } = useAuth();
+  const { user, profile } = useAuth();
   const { showToast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef2 = useRef<HTMLInputElement>(null);
@@ -153,6 +154,9 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
       const _kingshotUsername = profile?.linked_username || profile?.username || null;
       void _kingshotUsername; // Suppress unused variable warning
 
+      // Get fresh auth headers (avoids stale/expired tokens from React state)
+      const authHeaders = await getAuthHeaders();
+
       // Debug: Log submission attempt
       const payload = {
         kingdom_number: kingdomNumber,
@@ -165,7 +169,7 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
       };
       logger.log('[KvK Submit] Attempting submission:', {
         url: `${API_BASE}/api/v1/submissions/kvk10`,
-        hasToken: !!session?.access_token,
+        hasToken: !!authHeaders['Authorization'],
         userId: user?.id,
         payload: { ...payload, screenshot_base64: `[${screenshotBase64.length} chars]` }
       });
@@ -174,8 +178,7 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': session?.access_token ? `Bearer ${session.access_token}` : '',
-          'X-User-Id': user?.id || ''
+          ...authHeaders
           // X-User-Name removed - backend fetches from Supabase profile (handles special chars)
         },
         body: JSON.stringify({

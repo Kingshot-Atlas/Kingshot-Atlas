@@ -427,6 +427,46 @@ def get_kvk_history_from_supabase(kingdom_number: int, limit: int = 10) -> list:
         return []
 
 
+def _check_notification_preference(client, user_id: str, notification_type: str) -> bool:
+    """
+    Check if a user has enabled notifications for this type.
+    Maps notification types to preference keys in user_data.settings.
+    Returns True if the notification should be sent (default: send).
+    """
+    # Map notification types to preference keys
+    PREFERENCE_MAP = {
+        "submission_approved": "submission_updates",
+        "submission_rejected": "submission_updates",
+        "claim_verified": "submission_updates",
+        "claim_rejected": "submission_updates",
+        "system_announcement": "system_announcements",
+        # favorite_score_change is handled by DB trigger, not this function
+    }
+
+    pref_key = PREFERENCE_MAP.get(notification_type)
+    if not pref_key:
+        # No preference mapping = always send (e.g. admin types)
+        return True
+
+    try:
+        result = (
+            client.table("user_data")
+            .select("settings")
+            .eq("user_id", user_id)
+            .maybe_single()
+            .execute()
+        )
+        if not result.data or not result.data.get("settings"):
+            return True  # No settings = default to enabled
+
+        prefs = result.data["settings"].get("notification_preferences", {})
+        # Default to True if key not present
+        return prefs.get(pref_key, True) is not False
+    except Exception as e:
+        print(f"Error checking notification preference for {user_id}: {e}")
+        return True  # Fail open — send the notification
+
+
 def create_notification(
     user_id: str,
     notification_type: str,
@@ -437,6 +477,7 @@ def create_notification(
 ) -> bool:
     """
     Create a notification for a user.
+    Respects user notification preferences stored in user_data.settings.
     
     Args:
         user_id: Supabase user ID to notify
@@ -453,6 +494,11 @@ def create_notification(
     if not client:
         print(f"WARNING: Supabase not configured, cannot create notification for {user_id}")
         return False
+    
+    # Check user preference before creating notification
+    if not _check_notification_preference(client, user_id, notification_type):
+        print(f"Notification skipped for {user_id}: {notification_type} (disabled by preference)")
+        return True  # Return True — preference was respected, not an error
     
     try:
         data = {

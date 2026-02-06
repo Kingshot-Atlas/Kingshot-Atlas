@@ -19,6 +19,7 @@ const DiscordRolesDashboard = lazy(() => import('../components/DiscordRolesDashb
 import { ADMIN_USERNAMES } from '../utils/constants';
 import { supabase } from '../lib/supabase';
 import { logger } from '../utils/logger';
+import { getAuthHeaders } from '../services/authHeaders';
 import { getCurrentKvK, incrementKvK } from '../services/configService';
 import { CURRENT_KVK } from '../constants';
 import { 
@@ -252,8 +253,9 @@ const AdminDashboard: React.FC = () => {
       let pendingClaims = 0;
       
       try {
+        const authHeaders = await getAuthHeaders({ requireAuth: false });
         const submissionsRes = await fetch(`${API_URL}/api/v1/submissions?status=pending`, {
-          headers: { 'X-User-Id': user?.id || '' }
+          headers: authHeaders
         });
         if (submissionsRes.ok) {
           const data = await submissionsRes.json();
@@ -262,8 +264,9 @@ const AdminDashboard: React.FC = () => {
       } catch { /* API might not be available */ }
       
       try {
+        const authHeaders = await getAuthHeaders({ requireAuth: false });
         const claimsRes = await fetch(`${API_URL}/api/v1/claims?status=pending`, {
-          headers: { 'X-User-Id': user?.id || '' }
+          headers: authHeaders
         });
         if (claimsRes.ok) {
           const data = await claimsRes.json();
@@ -430,9 +433,10 @@ const AdminDashboard: React.FC = () => {
       
       // Fetch real submission counts from API
       try {
-        const pendingRes = await fetch(`${API_URL}/api/v1/submissions?status=pending`, { headers: { 'X-User-Id': user?.id || '' } });
-        const approvedRes = await fetch(`${API_URL}/api/v1/submissions?status=approved`, { headers: { 'X-User-Id': user?.id || '' } });
-        const rejectedRes = await fetch(`${API_URL}/api/v1/submissions?status=rejected`, { headers: { 'X-User-Id': user?.id || '' } });
+        const authHeaders = await getAuthHeaders({ requireAuth: false });
+        const pendingRes = await fetch(`${API_URL}/api/v1/submissions?status=pending`, { headers: authHeaders });
+        const approvedRes = await fetch(`${API_URL}/api/v1/submissions?status=approved`, { headers: authHeaders });
+        const rejectedRes = await fetch(`${API_URL}/api/v1/submissions?status=rejected`, { headers: authHeaders });
         if (pendingRes.ok) realData.submissions.pending = (await pendingRes.json()).length;
         if (approvedRes.ok) realData.submissions.approved = (await approvedRes.json()).length;
         if (rejectedRes.ok) realData.submissions.rejected = (await rejectedRes.json()).length;
@@ -995,8 +999,9 @@ const AdminDashboard: React.FC = () => {
   const fetchSubmissions = async () => {
     setLoading(true);
     try {
+      const authHeaders = await getAuthHeaders({ requireAuth: false });
       const response = await fetch(`${API_URL}/api/v1/submissions?status=${filter}`, {
-        headers: { 'X-User-Id': user?.id || '' }
+        headers: authHeaders
       });
       if (response.ok) {
         setSubmissions(await response.json());
@@ -1011,8 +1016,9 @@ const AdminDashboard: React.FC = () => {
   const fetchClaims = async () => {
     setLoading(true);
     try {
+      const authHeaders = await getAuthHeaders({ requireAuth: false });
       const response = await fetch(`${API_URL}/api/v1/claims?status=${filter}`, {
-        headers: { 'X-User-Id': user?.id || '' }
+        headers: authHeaders
       });
       if (response.ok) {
         setClaims(await response.json());
@@ -1026,12 +1032,12 @@ const AdminDashboard: React.FC = () => {
 
   const reviewSubmission = async (id: number, status: 'approved' | 'rejected') => {
     try {
+      const authHeaders = await getAuthHeaders();
       const response = await fetch(`${API_URL}/api/v1/submissions/${id}/review`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-User-Id': user?.id || '',
-          'X-User-Email': user?.email || ''
+          ...authHeaders
         },
         body: JSON.stringify({ status })
       });
@@ -1058,9 +1064,10 @@ const AdminDashboard: React.FC = () => {
 
   const verifyClaim = async (id: number) => {
     try {
+      const authHeaders = await getAuthHeaders();
       const response = await fetch(`${API_URL}/api/v1/claims/${id}/verify`, {
         method: 'POST',
-        headers: { 'X-User-Id': user?.id || '' }
+        headers: authHeaders
       });
       if (response.ok) {
         showToast('Claim verified', 'success');

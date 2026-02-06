@@ -512,4 +512,56 @@ Create a `FavoritesContext` React context that:
 
 ---
 
+## ADR-014: Score Change Notification Pipeline via Database Triggers
+
+**Date:** 2026-02-06  
+**Status:** ✅ Accepted  
+**Deciders:** Product Engineer, Platform Engineer
+
+### Context
+Users who favorite kingdoms want to know when those kingdoms' Atlas Scores change (e.g., after a KvK result is approved). The old `useScoreChangeNotifications` hook was frontend-only, localStorage-based, and never wired into the NotificationBell. Needed a reliable, server-side approach that works even when the user is offline.
+
+### Decision
+**Use a PostgreSQL trigger on the `kingdoms` table to auto-create notifications when `atlas_score` changes.**
+
+Implementation:
+1. `notify_favorite_score_change()` — SECURITY DEFINER function that fires AFTER UPDATE on `kingdoms`
+2. Checks `user_data.favorites` array for users who have that `kingdom_number` favorited
+3. Checks `user_data.settings->'notification_preferences'->>'score_changes'` to respect user preferences
+4. Inserts into existing `notifications` table with type `'favorite_score_change'`
+5. Notification includes old/new score, old/new tier (via `get_tier_from_score()`), and link to kingdom profile
+6. NotificationBell picks up new notifications via existing Supabase Realtime subscription
+
+**Notification preferences** stored in `user_data.settings` JSONB column (already exists):
+```json
+{ "notification_preferences": { "score_changes": true, "submission_updates": true, "system_announcements": true } }
+```
+
+### Data Flow
+```
+kvk_history INSERT
+  → sync_kingdom_stats_trigger() → kingdoms.atlas_score UPDATE
+    → notify_favorite_score_change() → notifications INSERT
+      → Supabase Realtime → NotificationBell (frontend)
+```
+
+### Alternatives Considered
+- **Frontend polling** — Wasteful, doesn't work when offline, duplicates logic
+- **Edge Function** — More complex deployment, trigger is simpler and synchronous
+- **Separate notification_preferences table** — Overkill; `user_data.settings` JSONB column already exists
+
+### Consequences
+- ✅ Works even when user is offline (notifications wait in DB)
+- ✅ Reuses existing infrastructure (notifications table, Realtime subscription, NotificationBell)
+- ✅ User preferences respected at the DB level (no unnecessary notifications created)
+- ✅ No new tables needed
+- ⚠️ SECURITY DEFINER function runs with elevated privileges (necessary to insert notifications for other users)
+- ⚠️ If many users favorite the same kingdom, one score change creates N notifications (acceptable for current scale of ~79 users)
+
+### Related ADRs
+- ADR-010: Supabase as Single Source of Truth
+- ADR-013: FavoritesContext as Single Source of Truth for Favorites State
+
+---
+
 *Add new decisions as they are made. Reference ADRs when proposing changes.*

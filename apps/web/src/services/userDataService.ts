@@ -9,13 +9,11 @@ import { logger } from '../utils/logger';
 const FAVORITES_KEY = 'kingshot_favorites';
 const RECENTLY_VIEWED_KEY = 'kingshot_recently_viewed';
 const COMPARE_HISTORY_KEY = 'kingshot_compare_history';
-const FOLLOWED_KINGDOMS_KEY = 'kingshot_followed_kingdoms';
 
 export interface UserData {
   favorites: number[];
   recently_viewed: number[];
   compare_history: { k1: number; k2: number }[];
-  followed_kingdoms: number[];
 }
 
 class UserDataService {
@@ -47,10 +45,9 @@ class UserDataService {
         favorites: JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]'),
         recently_viewed: JSON.parse(localStorage.getItem(RECENTLY_VIEWED_KEY) || '[]'),
         compare_history: JSON.parse(localStorage.getItem(COMPARE_HISTORY_KEY) || '[]'),
-        followed_kingdoms: JSON.parse(localStorage.getItem(FOLLOWED_KINGDOMS_KEY) || '[]')
       };
     } catch {
-      return { favorites: [], recently_viewed: [], compare_history: [], followed_kingdoms: [] };
+      return { favorites: [], recently_viewed: [], compare_history: [] };
     }
   }
 
@@ -64,9 +61,6 @@ class UserDataService {
     }
     if (data.compare_history !== undefined) {
       localStorage.setItem(COMPARE_HISTORY_KEY, JSON.stringify(data.compare_history));
-    }
-    if (data.followed_kingdoms !== undefined) {
-      localStorage.setItem(FOLLOWED_KINGDOMS_KEY, JSON.stringify(data.followed_kingdoms));
     }
   }
 
@@ -94,7 +88,6 @@ class UserDataService {
           favorites: data.favorites || local.favorites,
           recently_viewed: this.mergeArrays(data.recently_viewed || [], local.recently_viewed, 20),
           compare_history: data.compare_history || local.compare_history,
-          followed_kingdoms: data.followed_kingdoms || local.followed_kingdoms
         };
         this.saveLocalData(merged);
       }
@@ -114,7 +107,7 @@ class UserDataService {
       const local = this.getLocalData();
       
       // Only sync columns that exist in the database
-      // compare_history and followed_kingdoms are localStorage-only for now
+      // compare_history is localStorage-only for now
       const { error } = await supabase
         .from('user_data')
         .upsert({
@@ -211,45 +204,6 @@ class UserDataService {
     }
   }
 
-  // Followed kingdoms operations
-  async followKingdom(kingdomNumber: number): Promise<number[]> {
-    const data = this.getLocalData();
-    if (!data.followed_kingdoms.includes(kingdomNumber)) {
-      data.followed_kingdoms.push(kingdomNumber);
-      this.saveLocalData({ followed_kingdoms: data.followed_kingdoms });
-      await this.syncToCloud();
-    }
-    return data.followed_kingdoms;
-  }
-
-  async unfollowKingdom(kingdomNumber: number): Promise<number[]> {
-    const data = this.getLocalData();
-    data.followed_kingdoms = data.followed_kingdoms.filter(k => k !== kingdomNumber);
-    this.saveLocalData({ followed_kingdoms: data.followed_kingdoms });
-    await this.syncToCloud();
-    return data.followed_kingdoms;
-  }
-
-  async toggleFollowKingdom(kingdomNumber: number): Promise<{ followed_kingdoms: number[]; followed: boolean }> {
-    const data = this.getLocalData();
-    const isCurrentlyFollowed = data.followed_kingdoms.includes(kingdomNumber);
-    
-    if (isCurrentlyFollowed) {
-      await this.unfollowKingdom(kingdomNumber);
-      return { followed_kingdoms: this.getLocalData().followed_kingdoms, followed: false };
-    } else {
-      await this.followKingdom(kingdomNumber);
-      return { followed_kingdoms: this.getLocalData().followed_kingdoms, followed: true };
-    }
-  }
-
-  isFollowing(kingdomNumber: number): boolean {
-    return this.getLocalData().followed_kingdoms.includes(kingdomNumber);
-  }
-
-  getFollowedKingdoms(): number[] {
-    return this.getLocalData().followed_kingdoms;
-  }
 }
 
 export const userDataService = new UserDataService();

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/Toast';
 import { logger } from '../utils/logger';
+import { getAuthHeaders } from '../services/authHeaders';
 
 interface Submission {
   id: number;
@@ -86,8 +87,9 @@ const Admin: React.FC = () => {
       let pendingClaims = 0;
       
       try {
+        const authHeaders = await getAuthHeaders({ requireAuth: false });
         const submissionsRes = await fetch(`${API_URL}/api/v1/submissions?status=pending`, {
-          headers: { 'X-User-Id': user?.id || '' }
+          headers: authHeaders
         });
         if (submissionsRes.ok) {
           const data = await submissionsRes.json();
@@ -96,8 +98,9 @@ const Admin: React.FC = () => {
       } catch { /* API might not be available */ }
       
       try {
+        const authHeaders = await getAuthHeaders({ requireAuth: false });
         const claimsRes = await fetch(`${API_URL}/api/v1/claims?status=pending`, {
-          headers: { 'X-User-Id': user?.id || '' }
+          headers: authHeaders
         });
         if (claimsRes.ok) {
           const data = await claimsRes.json();
@@ -186,8 +189,9 @@ const Admin: React.FC = () => {
     try {
       const url = `${API_URL}/api/v1/submissions?status=${filter}`;
       logger.log('[Admin] Fetch URL:', url);
+      const authHeaders = await getAuthHeaders({ requireAuth: false });
       const response = await fetch(url, {
-        headers: { 'X-User-Id': user?.id || '' }
+        headers: authHeaders
       });
       logger.log('[Admin] Response status:', response.status, response.ok);
       if (response.ok) {
@@ -208,8 +212,9 @@ const Admin: React.FC = () => {
   const fetchClaims = async () => {
     setLoading(true);
     try {
+      const authHeaders = await getAuthHeaders({ requireAuth: false });
       const response = await fetch(`${API_URL}/api/v1/claims?status=${filter}`, {
-        headers: { 'X-User-Id': user?.id || '' }
+        headers: authHeaders
       });
       if (response.ok) {
         setClaims(await response.json());
@@ -223,11 +228,12 @@ const Admin: React.FC = () => {
 
   const reviewSubmission = async (id: number, status: 'approved' | 'rejected') => {
     try {
+      const authHeaders = await getAuthHeaders();
       const response = await fetch(`${API_URL}/api/v1/submissions/${id}/review`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-User-Id': user?.id || ''
+          ...authHeaders
         },
         body: JSON.stringify({ status })
       });
@@ -244,9 +250,10 @@ const Admin: React.FC = () => {
 
   const verifyClaim = async (id: number) => {
     try {
+      const authHeaders = await getAuthHeaders();
       const response = await fetch(`${API_URL}/api/claims/${id}/verify`, {
         method: 'POST',
-        headers: { 'X-User-Id': user?.id || '' }
+        headers: authHeaders
       });
       if (response.ok) {
         showToast('Claim verified', 'success');

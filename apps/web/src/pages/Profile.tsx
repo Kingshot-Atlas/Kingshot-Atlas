@@ -7,6 +7,7 @@ import AuthModal from '../components/AuthModal';
 import ProfileFeatures from '../components/ProfileFeatures';
 import LinkKingshotAccount from '../components/LinkKingshotAccount';
 import LinkDiscordAccount from '../components/LinkDiscordAccount';
+import NotificationPreferences from '../components/NotificationPreferences';
 import PlayersFromMyKingdom from '../components/PlayersFromMyKingdom';
 import { useAuth, getCacheBustedAvatarUrl, UserProfile, getDisplayName } from '../contexts/AuthContext';
 import { usePremium } from '../contexts/PremiumContext';
@@ -1503,6 +1504,11 @@ const Profile: React.FC = () => {
               }}
             />
           </div>
+        )}
+
+        {/* Notification Preferences - only show for own profile */}
+        {!isViewingOther && user && (
+          <NotificationPreferences />
         )}
 
         {/* User's Kingdom Rankings - show if user has a linked kingdom or home kingdom */}

@@ -68,6 +68,10 @@
 | Favorites Cloud Persistence | ✅ Live | Product | Supabase `user_data` table sync with retry logic (3 attempts, exponential backoff), error toasts (2026-02-06) |
 | Favorites Header Badge | ✅ Live | Product | `FavoritesBadge.tsx` - heart icon with count in header, links to `/?favorites=true` (2026-02-06) |
 | FavoritesContext (Cross-Page) | ✅ Live | Product | `FavoritesContext.tsx` - reactive favorites across all pages, Supabase source of truth, KingdomProfile toggle (ADR-013, 2026-02-06) |
+| Favorites = Score Notifications | ✅ Live | Product | Follow feature removed, score change notifications now trigger for favorited kingdoms. Heart icon on Kingdom Cards (was star). `FollowKingdomButton.tsx` deleted (2026-02-06) |
+| NotificationBell Improvements | ✅ Live | Product | Dedup guard on real-time handler, notification grouping (same type+title within 1hr), "You're all caught up" empty state with last-checked timestamp, FavoritesBadge added to mobile header. Dead `useScoreChangeNotifications.ts` removed (2026-02-06) |
+| Score Change Notifications | ✅ Live | Product + Platform | PostgreSQL trigger on `kingdoms` table auto-notifies users when a favorited kingdom's Atlas Score changes. Shows old→new score + tier change. Purple icon (📊). End-to-end: kvk_history→kingdoms trigger→notify trigger→NotificationBell (2026-02-06) |
+| Notification Preferences | ✅ Live | Product | `NotificationPreferences.tsx` toggle panel on Profile page. 3 categories: Score Changes, Submission Updates, System Announcements. Stored in `user_data.settings` JSONB. DB trigger respects preferences (2026-02-06) |
 | Public Profile Tier Coloring | ✅ Live | Product | Tier-colored usernames on public profiles (2026-01-31) |
 | Kingdom Players Section | ✅ Live | Product | `KingdomPlayers.tsx` - Atlas users from kingdom on profile page (2026-01-31) |
 | User Directory Enhancement | ✅ Live | Product | Shows only linked Kingshot accounts with tier coloring, Kingdom, TC Level (2026-01-31) |

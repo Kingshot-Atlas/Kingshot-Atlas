@@ -36,6 +36,11 @@
 
 | When | Agent | Task | Files |
 |------|-------|------|-------|
+| 2026-02-06 | Platform Engineer | Backend JWT validation fix — 3-strategy cascading auth (local JWT → Supabase API → dev fallback) | submissions.py |
+| 2026-02-06 | Platform Engineer | Auth headers hardening — shared `getAuthHeaders()` utility, fixed 14+ broken API calls | authHeaders.ts (NEW), Admin.tsx, AdminDashboard.tsx, PostKvKSubmission.tsx |
+| 2026-02-06 | Platform Engineer | Backend notification preference check in create_notification() | supabase_client.py |
+| 2026-02-06 | Product + Platform | Score change notifications + notification preferences panel | Supabase trigger, notificationService.ts, NotificationPreferences.tsx, Profile.tsx |
+| 2026-02-06 | Product Engineer | NotificationBell improvements (dedup, grouping, empty state, dead code cleanup) | NotificationBell.tsx, Header.tsx, useScoreChangeNotifications.ts (deleted) |
 | 2026-02-06 | Product Engineer | Favorites persistence fix + UX hardening (retry, error toasts, header badge) | userDataService.ts, KingdomDirectory.tsx, FavoritesBadge.tsx, Header.tsx, useKingdoms.ts |
 | 2026-02-05 | Ops Lead | SEO Phase 2: Sitemap 1211 URLs, Schema markup, Keywords | sitemap.xml, index.html, useMetaTags.ts |
 | 2026-02-05 | Design Lead | Mobile UX Touch Targets (44px min) | KingdomReviews, KvKHistoryTable, Profile, SupportAtlas |

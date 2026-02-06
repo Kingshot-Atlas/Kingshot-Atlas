@@ -1,8 +1,15 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { notificationService, type Notification } from '../services/notificationService';
 import { useIsMobile } from '../hooks/useMediaQuery';
+
+interface GroupedNotification {
+  key: string;
+  notifications: Notification[];
+  latestNotification: Notification;
+  count: number;
+}
 
 const NotificationBell: React.FC = () => {
   const { user } = useAuth();
@@ -12,8 +19,40 @@ const NotificationBell: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [lastChecked, setLastChecked] = useState<Date | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+
+  // Group similar notifications (same type + title within 1 hour)
+  const groupedNotifications = useMemo((): GroupedNotification[] => {
+    const groups: GroupedNotification[] = [];
+    const ONE_HOUR = 60 * 60 * 1000;
+
+    notifications.forEach(notif => {
+      const existing = groups.find(g => {
+        const timeDiff = Math.abs(
+          new Date(g.latestNotification.created_at).getTime() - new Date(notif.created_at).getTime()
+        );
+        return g.latestNotification.type === notif.type
+          && g.latestNotification.title === notif.title
+          && timeDiff < ONE_HOUR;
+      });
+
+      if (existing) {
+        existing.notifications.push(notif);
+        existing.count++;
+      } else {
+        groups.push({
+          key: notif.id,
+          notifications: [notif],
+          latestNotification: notif,
+          count: 1
+        });
+      }
+    });
+
+    return groups;
+  }, [notifications]);
 
   const fetchNotifications = useCallback(async () => {
     if (!user) return;
@@ -25,6 +64,7 @@ const NotificationBell: React.FC = () => {
       ]);
       setNotifications(notifs);
       setUnreadCount(count);
+      setLastChecked(new Date());
     } catch (err) {
       console.error('Failed to fetch notifications:', err);
     } finally {
@@ -40,7 +80,11 @@ const NotificationBell: React.FC = () => {
     const unsubscribe = notificationService.subscribeToNotifications(
       user.id,
       (newNotification) => {
-        setNotifications(prev => [newNotification, ...prev].slice(0, 20));
+        // Dedup guard: skip if notification ID already exists in state
+        setNotifications(prev => {
+          if (prev.some(n => n.id === newNotification.id)) return prev;
+          return [newNotification, ...prev].slice(0, 20);
+        });
         setUnreadCount(prev => prev + 1);
       }
     );
@@ -246,99 +290,131 @@ const NotificationBell: React.FC = () => {
               </div>
             ) : notifications.length === 0 ? (
               <div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ opacity: 0.5, margin: '0 auto 0.75rem' }}>
-                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" strokeWidth="1.5" style={{ opacity: 0.4, margin: '0 auto 0.75rem' }}>
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                  <polyline points="22 4 12 14.01 9 11.01" />
                 </svg>
-                <p style={{ margin: 0, fontSize: '0.85rem' }}>No notifications yet</p>
+                <p style={{ margin: '0 0 0.25rem', fontSize: '0.85rem', color: '#9ca3af' }}>You're all caught up!</p>
+                {lastChecked && (
+                  <p style={{ margin: 0, fontSize: '0.7rem', color: '#4b5563' }}>
+                    Last checked {formatTime(lastChecked.toISOString())}
+                  </p>
+                )}
               </div>
             ) : (
-              notifications.map((notification) => (
-                <button
-                  key={notification.id}
-                  onClick={() => handleNotificationClick(notification)}
-                  style={{
-                    width: '100%',
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: '0.75rem',
-                    padding: '0.75rem 1rem',
-                    backgroundColor: notification.read ? 'transparent' : '#22d3ee08',
-                    border: 'none',
-                    borderBottom: '1px solid #1a1a1a',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                    transition: 'background-color 0.2s'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = notification.read ? 'transparent' : '#22d3ee08'}
-                >
-                  {/* Icon */}
-                  <span style={{
-                    fontSize: '1.25rem',
-                    flexShrink: 0,
-                    width: '28px',
-                    height: '28px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: `${notificationService.getNotificationColor(notification.type)}15`,
-                    borderRadius: '6px'
-                  }}>
-                    {notificationService.getNotificationIcon(notification.type)}
-                  </span>
-
-                  {/* Content */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{
+              groupedNotifications.map((group) => {
+                const notification = group.latestNotification;
+                const hasUnread = group.notifications.some(n => !n.read);
+                return (
+                  <button
+                    key={group.key}
+                    onClick={() => handleNotificationClick(notification)}
+                    style={{
+                      width: '100%',
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: '0.75rem',
+                      padding: '0.75rem 1rem',
+                      backgroundColor: hasUnread ? '#22d3ee08' : 'transparent',
+                      border: 'none',
+                      borderBottom: '1px solid #1a1a1a',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      transition: 'background-color 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = hasUnread ? '#22d3ee08' : 'transparent'}
+                  >
+                    {/* Icon */}
+                    <span style={{
+                      fontSize: '1.25rem',
+                      flexShrink: 0,
+                      width: '28px',
+                      height: '28px',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '0.5rem',
-                      marginBottom: '0.25rem'
+                      justifyContent: 'center',
+                      backgroundColor: `${notificationService.getNotificationColor(notification.type)}15`,
+                      borderRadius: '6px',
+                      position: 'relative'
                     }}>
-                      <span style={{
-                        fontSize: '0.85rem',
-                        fontWeight: notification.read ? '400' : '600',
-                        color: '#fff',
+                      {notificationService.getNotificationIcon(notification.type)}
+                      {group.count > 1 && (
+                        <span style={{
+                          position: 'absolute',
+                          top: '-4px',
+                          right: '-4px',
+                          minWidth: '14px',
+                          height: '14px',
+                          backgroundColor: notificationService.getNotificationColor(notification.type),
+                          borderRadius: '7px',
+                          fontSize: '0.55rem',
+                          fontWeight: '700',
+                          color: '#fff',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          padding: '0 3px'
+                        }}>
+                          {group.count}
+                        </span>
+                      )}
+                    </span>
+
+                    {/* Content */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        marginBottom: '0.25rem'
+                      }}>
+                        <span style={{
+                          fontSize: '0.85rem',
+                          fontWeight: hasUnread ? '600' : '400',
+                          color: '#fff',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}>
+                          {group.count > 1
+                            ? `${notification.title} (+${group.count - 1} more)`
+                            : notification.title}
+                        </span>
+                        {hasUnread && (
+                          <span style={{
+                            width: '6px',
+                            height: '6px',
+                            backgroundColor: '#22d3ee',
+                            borderRadius: '50%',
+                            flexShrink: 0
+                          }} />
+                        )}
+                      </div>
+                      <p style={{
+                        margin: 0,
+                        fontSize: '0.8rem',
+                        color: '#9ca3af',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap'
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical'
                       }}>
-                        {notification.title}
+                        {notification.message}
+                      </p>
+                      <span style={{
+                        fontSize: '0.7rem',
+                        color: '#6b7280',
+                        marginTop: '0.25rem',
+                        display: 'block'
+                      }}>
+                        {formatTime(notification.created_at)}
                       </span>
-                      {!notification.read && (
-                        <span style={{
-                          width: '6px',
-                          height: '6px',
-                          backgroundColor: '#22d3ee',
-                          borderRadius: '50%',
-                          flexShrink: 0
-                        }} />
-                      )}
                     </div>
-                    <p style={{
-                      margin: 0,
-                      fontSize: '0.8rem',
-                      color: '#9ca3af',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical'
-                    }}>
-                      {notification.message}
-                    </p>
-                    <span style={{
-                      fontSize: '0.7rem',
-                      color: '#6b7280',
-                      marginTop: '0.25rem',
-                      display: 'block'
-                    }}>
-                      {formatTime(notification.created_at)}
-                    </span>
-                  </div>
-                </button>
-              ))
+                  </button>
+                );
+              })
             )}
           </div>
         </div>
