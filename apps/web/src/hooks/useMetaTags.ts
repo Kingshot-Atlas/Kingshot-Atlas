@@ -157,7 +157,7 @@ export const PAGE_META_TAGS = {
   leaderboards: {
     title: 'Kingshot Kingdom Rankings & Tier List 2026 - Best Kingdoms to Join',
     description: 'Official Kingshot Kingdom Rankings - S-Tier to F-Tier. Find the best kingdoms before Transfer Events. Updated weekly with KvK results. See which kingdoms dominate.',
-    url: 'https://ks-atlas.com/leaderboards',
+    url: 'https://ks-atlas.com/rankings',
     type: 'website'
   },
   tools: {

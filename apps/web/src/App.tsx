@@ -103,7 +103,8 @@ function AppContent() {
               <Route path="/kingdom/:kingdomNumber" element={<RouteErrorBoundary><KingdomProfile /></RouteErrorBoundary>} />
               <Route path="/compare" element={<ErrorBoundary><CompareKingdoms /></ErrorBoundary>} />
               <Route path="/tools" element={<ErrorBoundary><Tools /></ErrorBoundary>} />
-              <Route path="/leaderboards" element={<ErrorBoundary><Leaderboards /></ErrorBoundary>} />
+              <Route path="/rankings" element={<ErrorBoundary><Leaderboards /></ErrorBoundary>} />
+              <Route path="/leaderboards" element={<ErrorBoundary><Leaderboards /></ErrorBoundary>} /> {/* Legacy redirect */}
               <Route path="/profile" element={<ErrorBoundary><Profile /></ErrorBoundary>} />
               <Route path="/profile/:userId" element={<RouteErrorBoundary><Profile /></RouteErrorBoundary>} />
               <Route path="/players" element={<ErrorBoundary><UserDirectory /></ErrorBoundary>} />

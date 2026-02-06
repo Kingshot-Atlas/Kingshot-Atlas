@@ -11,8 +11,7 @@ import { usePremium } from '../contexts/PremiumContext';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
-import ScoreDistribution from '../components/ScoreDistribution';
-import ScoreMovers from '../components/ScoreMovers';
+import { scoreHistoryService, RankMover } from '../services/scoreHistoryService';
 
 const Leaderboards: React.FC = () => {
   useDocumentTitle('Kingdom Rankings');
@@ -21,6 +20,7 @@ const Leaderboards: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [displayCount, setDisplayCount] = useState<10 | 20 | 50>(10);
   const [kvkFilter, setKvkFilter] = useState<string>('all');
+  const [rankMovers, setRankMovers] = useState<{ climbers: RankMover[]; fallers: RankMover[] } | null>(null);
   const isMobile = useIsMobile();
   const { tier, isPro } = usePremium();
   const { trackFeature } = useAnalytics();
@@ -42,8 +42,12 @@ const Leaderboards: React.FC = () => {
   const loadLeaderboard = async () => {
     setLoading(true);
     try {
-      const data = await apiService.getKingdoms();
+      const [data, movers] = await Promise.all([
+        apiService.getKingdoms(),
+        scoreHistoryService.getRankMovers(10)
+      ]);
       setKingdoms(data);
+      setRankMovers(movers);
     } catch (error) {
       console.error('Failed to load leaderboard:', error);
     } finally {
@@ -434,17 +438,6 @@ const Leaderboards: React.FC = () => {
 
       {/* Content */}
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: isMobile ? '1rem' : '1.5rem 2rem' }}>
-        {/* Score Distribution & Movers Row */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
-          gap: '1rem',
-          marginBottom: '1.5rem'
-        }}>
-          <ScoreDistribution kingdoms={filteredKingdoms} />
-          <ScoreMovers kingdoms={filteredKingdoms} />
-        </div>
-
         {/* Controls row */}
         <div style={{ 
           display: 'flex', 
@@ -518,6 +511,158 @@ const Leaderboards: React.FC = () => {
           </div>
         ) : (
           <>
+            {/* Biggest Climbers & Fallers */}
+            {rankMovers && (
+              <div style={{ marginBottom: '1.5rem' }}>
+                <h2 style={{ 
+                  color: '#fff', 
+                  fontSize: isMobile ? '0.9rem' : '1rem', 
+                  marginBottom: '0.75rem',
+                  paddingLeft: '0.5rem',
+                  borderLeft: '3px solid #a855f7'
+                }}>
+                  � Rank Movers
+                </h2>
+                <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', 
+                  gap: '1rem'
+                }}>
+                  {/* Biggest Climbers */}
+                  <div style={{ 
+                    backgroundColor: '#131318', 
+                    borderRadius: '12px', 
+                    border: '1px solid #2a2a2a',
+                    overflow: 'hidden'
+                  }}>
+                    <div style={{ 
+                      padding: isMobile ? '0.75rem 1rem' : '0.85rem 1rem', 
+                      borderBottom: '1px solid #2a2a2a',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.5rem'
+                    }}>
+                      <span style={{ fontSize: isMobile ? '1rem' : '1.1rem' }}>🚀</span>
+                      <h3 style={{ color: '#fff', fontSize: isMobile ? '0.85rem' : '0.9rem', fontWeight: '600', margin: 0 }}>Biggest Climbers</h3>
+                      <span style={{ fontSize: isMobile ? '1rem' : '1.1rem' }}>🚀</span>
+                    </div>
+                    <div style={{ padding: isMobile ? '0.4rem' : '0.5rem' }}>
+                      {rankMovers.climbers.map((mover, index) => (
+                        <Link 
+                          key={mover.kingdom_number}
+                          to={`/kingdom/${mover.kingdom_number}`}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: isMobile ? '0.4rem 0.6rem' : '0.5rem 0.75rem',
+                            borderRadius: '6px',
+                            textDecoration: 'none',
+                            transition: 'background-color 0.2s',
+                            backgroundColor: index < 3 ? '#22c55e08' : 'transparent'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = index < 3 ? '#22c55e08' : 'transparent'}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '0.4rem' : '0.5rem' }}>
+                            <span style={{ 
+                              ...getRankStyle(index + 1), 
+                              minWidth: isMobile ? '22px' : '26px',
+                              fontSize: isMobile ? '0.75rem' : '0.8rem'
+                            }}>
+                              {getRankBadge(index + 1)}
+                            </span>
+                            <span style={{ color: '#fff', fontWeight: '500', fontSize: isMobile ? '0.75rem' : '0.8rem' }}>
+                              K{mover.kingdom_number}
+                            </span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span style={{ color: '#6b7280', fontSize: isMobile ? '0.65rem' : '0.7rem' }}>
+                              #{mover.prev_rank} → #{mover.curr_rank}
+                            </span>
+                            <span style={{ 
+                              ...neonGlow('#22c55e'), 
+                              fontWeight: 'bold',
+                              fontSize: isMobile ? '0.8rem' : '0.85rem'
+                            }}>
+                              ▲{mover.rank_delta}
+                            </span>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Biggest Fallers */}
+                  <div style={{ 
+                    backgroundColor: '#131318', 
+                    borderRadius: '12px', 
+                    border: '1px solid #2a2a2a',
+                    overflow: 'hidden'
+                  }}>
+                    <div style={{ 
+                      padding: isMobile ? '0.75rem 1rem' : '0.85rem 1rem', 
+                      borderBottom: '1px solid #2a2a2a',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.5rem'
+                    }}>
+                      <span style={{ fontSize: isMobile ? '1rem' : '1.1rem' }}>📉</span>
+                      <h3 style={{ color: '#fff', fontSize: isMobile ? '0.85rem' : '0.9rem', fontWeight: '600', margin: 0 }}>Biggest Fallers</h3>
+                      <span style={{ fontSize: isMobile ? '1rem' : '1.1rem' }}>📉</span>
+                    </div>
+                    <div style={{ padding: isMobile ? '0.4rem' : '0.5rem' }}>
+                      {rankMovers.fallers.map((mover, index) => (
+                        <Link 
+                          key={mover.kingdom_number}
+                          to={`/kingdom/${mover.kingdom_number}`}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: isMobile ? '0.4rem 0.6rem' : '0.5rem 0.75rem',
+                            borderRadius: '6px',
+                            textDecoration: 'none',
+                            transition: 'background-color 0.2s',
+                            backgroundColor: index < 3 ? '#ef444408' : 'transparent'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = index < 3 ? '#ef444408' : 'transparent'}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '0.4rem' : '0.5rem' }}>
+                            <span style={{ 
+                              ...getRankStyle(index + 1), 
+                              minWidth: isMobile ? '22px' : '26px',
+                              fontSize: isMobile ? '0.75rem' : '0.8rem'
+                            }}>
+                              {getRankBadge(index + 1)}
+                            </span>
+                            <span style={{ color: '#fff', fontWeight: '500', fontSize: isMobile ? '0.75rem' : '0.8rem' }}>
+                              K{mover.kingdom_number}
+                            </span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span style={{ color: '#6b7280', fontSize: isMobile ? '0.65rem' : '0.7rem' }}>
+                              #{mover.prev_rank} → #{mover.curr_rank}
+                            </span>
+                            <span style={{ 
+                              ...neonGlow('#ef4444'), 
+                              fontWeight: 'bold',
+                              fontSize: isMobile ? '0.8rem' : '0.85rem'
+                            }}>
+                              ▼{Math.abs(mover.rank_delta)}
+                            </span>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Performance Rankings: Atlas Score + Win Rates */}
             <div style={{ marginBottom: '1.5rem' }}>
               <h2 style={{ 
@@ -532,7 +677,7 @@ const Leaderboards: React.FC = () => {
               <div style={{ 
                 display: 'grid', 
                 gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', 
-                gap: isMobile ? '1rem' : '1rem'
+                gap: '1rem'
               }}>
                 {performanceRankings.map((ranking, idx) => (
                   <LeaderboardCard
@@ -547,67 +692,65 @@ const Leaderboards: React.FC = () => {
               </div>
             </div>
 
-            {/* Current Momentum: Win Streaks */}
-            <div style={{ marginBottom: '1.5rem' }}>
-              <h2 style={{ 
-                color: '#fff', 
-                fontSize: isMobile ? '0.9rem' : '1rem', 
-                marginBottom: '0.75rem',
-                paddingLeft: '0.5rem',
-                borderLeft: '3px solid #eab308'
-              }}>
-                🔥 Current Momentum
-              </h2>
-              <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', 
-                gap: isMobile ? '1rem' : '1rem',
-                maxWidth: isMobile ? '100%' : '66.666%'
-              }}>
-                {momentumRankings.map((ranking, idx) => (
-                  <LeaderboardCard
-                    key={idx}
-                    title={ranking.title}
-                    icon={ranking.icon}
-                    color={ranking.color}
-                    data={ranking.data}
-                    getValue={ranking.getValue}
-                  />
-                ))}
+            {/* Current Momentum + All-Time Records side by side on desktop */}
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', 
+              gap: '1.5rem',
+              marginBottom: '1.5rem'
+            }}>
+              {/* Current Momentum: Win Streaks */}
+              <div>
+                <h2 style={{ 
+                  color: '#fff', 
+                  fontSize: isMobile ? '0.9rem' : '1rem', 
+                  marginBottom: '0.75rem',
+                  paddingLeft: '0.5rem',
+                  borderLeft: '3px solid #eab308'
+                }}>
+                  🔥 Current Momentum
+                </h2>
+                <div style={{ display: 'grid', gap: '1rem' }}>
+                  {momentumRankings.map((ranking, idx) => (
+                    <LeaderboardCard
+                      key={idx}
+                      title={ranking.title}
+                      icon={ranking.icon}
+                      color={ranking.color}
+                      data={ranking.data}
+                      getValue={ranking.getValue}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* All-Time Records: Best Streaks Ever */}
+              <div>
+                <h2 style={{ 
+                  color: '#fff', 
+                  fontSize: isMobile ? '0.9rem' : '1rem', 
+                  marginBottom: '0.75rem',
+                  paddingLeft: '0.5rem',
+                  borderLeft: '3px solid #fbbf24'
+                }}>
+                  🏅 All-Time Records
+                </h2>
+                <div style={{ display: 'grid', gap: '1rem' }}>
+                  {recordRankings.map((ranking, idx) => (
+                    <LeaderboardCard
+                      key={idx}
+                      title={ranking.title}
+                      icon={ranking.icon}
+                      color={ranking.color}
+                      data={ranking.data}
+                      getValue={ranking.getValue}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
 
-            {/* All-Time Records: Best Streaks Ever */}
-            <div style={{ marginBottom: '1.5rem' }}>
-              <h2 style={{ 
-                color: '#fff', 
-                fontSize: isMobile ? '0.9rem' : '1rem', 
-                marginBottom: '0.75rem',
-                paddingLeft: '0.5rem',
-                borderLeft: '3px solid #fbbf24'
-              }}>
-                🏅 All-Time Records
-              </h2>
-              <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', 
-                gap: isMobile ? '1rem' : '1rem',
-                maxWidth: isMobile ? '100%' : '66.666%'
-              }}>
-                {recordRankings.map((ranking, idx) => (
-                  <LeaderboardCard
-                    key={idx}
-                    title={ranking.title}
-                    icon={ranking.icon}
-                    color={ranking.color}
-                    data={ranking.data}
-                    getValue={ranking.getValue}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Match Outcomes: Historical Results */}
+            {/* Match Outcomes + Hall of Infamy */}
             <div style={{ marginBottom: '1.5rem' }}>
               <h2 style={{ 
                 color: '#fff', 
@@ -620,8 +763,8 @@ const Leaderboards: React.FC = () => {
               </h2>
               <div style={{ 
                 display: 'grid', 
-                gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', 
-                gap: isMobile ? '1rem' : '1rem'
+                gridTemplateColumns: isMobile ? '1fr' : 'repeat(4, 1fr)', 
+                gap: '1rem'
               }}>
                 {outcomeRankings.map((ranking, idx) => (
                   <LeaderboardCard
@@ -633,33 +776,13 @@ const Leaderboards: React.FC = () => {
                     getValue={ranking.getValue}
                   />
                 ))}
-              </div>
-            </div>
-            
-            {/* Invasions (Defeats) - centered */}
-            <div style={{ marginBottom: '1rem' }}>
-              <h2 style={{ 
-                color: '#fff', 
-                fontSize: isMobile ? '0.9rem' : '1rem', 
-                marginBottom: '0.75rem',
-                paddingLeft: '0.5rem',
-                borderLeft: '3px solid #ef4444'
-              }}>
-                ⚠️ Hall of Infamy
-              </h2>
-              <div style={{ 
-                display: 'flex',
-                justifyContent: 'center'
-              }}>
-                <div style={{ width: isMobile ? '100%' : 'calc(33.333% - 0.67rem)' }}>
-                  <LeaderboardCard
-                    title={invasionRanking.title}
-                    icon={invasionRanking.icon}
-                    color={invasionRanking.color}
-                    data={invasionRanking.data}
-                    getValue={invasionRanking.getValue}
-                  />
-                </div>
+                <LeaderboardCard
+                  title={invasionRanking.title}
+                  icon={invasionRanking.icon}
+                  color={invasionRanking.color}
+                  data={invasionRanking.data}
+                  getValue={invasionRanking.getValue}
+                />
               </div>
             </div>
           </>

@@ -11,6 +11,16 @@ import {
   getPowerTier
 } from '../utils/atlasScoreFormula';
 
+export interface RankMover {
+  kingdom_number: number;
+  prev_rank: number;
+  curr_rank: number;
+  rank_delta: number;
+  score: number;
+  prev_kvk: number;
+  curr_kvk: number;
+}
+
 export interface ScoreHistoryRecord {
   id: string;
   kingdom_number: number;
@@ -586,7 +596,7 @@ class ScoreHistoryService {
    * Returns the rank_at_time from the most recent KvK entry
    * This is the single source of truth for rank display
    */
-  async getLatestRank(kingdomNumber: number): Promise<{ rank: number; totalAtKvk: number; kvkNumber: number } | null> {
+  async getLatestRank(kingdomNumber: number): Promise<{ rank: number; totalAtKvk: number; kvkNumber: number; percentileRank: number } | null> {
     if (!isSupabaseConfigured || !supabase) {
       return null;
     }
@@ -595,7 +605,7 @@ class ScoreHistoryService {
       // Get the latest score_history entry for this kingdom
       const { data, error } = await supabase
         .from('score_history')
-        .select('kvk_number, rank_at_time')
+        .select('kvk_number, rank_at_time, percentile_rank')
         .eq('kingdom_number', kingdomNumber)
         .not('rank_at_time', 'is', null)
         .order('kvk_number', { ascending: false })
@@ -605,7 +615,7 @@ class ScoreHistoryService {
         return null;
       }
 
-      const latest = data[0] as { kvk_number: number; rank_at_time: number };
+      const latest = data[0] as { kvk_number: number; rank_at_time: number; percentile_rank: number | null };
 
       // Get total kingdoms at that KvK for context
       const { count, error: countError } = await supabase
@@ -614,12 +624,78 @@ class ScoreHistoryService {
         .eq('kvk_number', latest.kvk_number);
 
       if (countError) {
-        return { rank: latest.rank_at_time, totalAtKvk: 0, kvkNumber: latest.kvk_number };
+        return { rank: latest.rank_at_time, totalAtKvk: 0, kvkNumber: latest.kvk_number, percentileRank: latest.percentile_rank ?? 0 };
       }
 
-      return { rank: latest.rank_at_time, totalAtKvk: count || 0, kvkNumber: latest.kvk_number };
+      return { rank: latest.rank_at_time, totalAtKvk: count || 0, kvkNumber: latest.kvk_number, percentileRank: latest.percentile_rank ?? 0 };
     } catch (err) {
       logger.error('Error fetching latest rank:', err);
+      return null;
+    }
+  }
+
+  /**
+   * Get biggest rank movers (climbers and fallers) between their last two KvKs
+   * Returns kingdoms sorted by rank delta
+   */
+  async getRankMovers(limit: number = 10): Promise<{ climbers: RankMover[]; fallers: RankMover[] } | null> {
+    if (!isSupabaseConfigured || !supabase) {
+      return null;
+    }
+
+    try {
+      // Use raw SQL via RPC or manual query to get rank deltas
+      // Get all kingdoms' last two score_history entries
+      const { data, error } = await supabase
+        .from('score_history')
+        .select('kingdom_number, kvk_number, rank_at_time, score')
+        .not('rank_at_time', 'is', null)
+        .order('kvk_number', { ascending: false });
+
+      if (error || !data || data.length === 0) {
+        return null;
+      }
+
+      // Group by kingdom, take last 2 entries
+      const byKingdom = new Map<number, Array<{ kvk_number: number; rank_at_time: number; score: number }>>();
+      for (const row of data) {
+        const entries = byKingdom.get(row.kingdom_number) || [];
+        if (entries.length < 2) {
+          entries.push({
+            kvk_number: row.kvk_number,
+            rank_at_time: row.rank_at_time as number,
+            score: parseFloat(row.score as string)
+          });
+          byKingdom.set(row.kingdom_number, entries);
+        }
+      }
+
+      // Calculate deltas (positive = climbed, negative = fell)
+      const movers: RankMover[] = [];
+      for (const [kingdomNumber, entries] of byKingdom) {
+        if (entries.length === 2) {
+          const curr = entries[0]!; // most recent
+          const prev = entries[1]!; // previous
+          const delta = prev.rank_at_time - curr.rank_at_time; // positive = improved
+          movers.push({
+            kingdom_number: kingdomNumber,
+            prev_rank: prev.rank_at_time,
+            curr_rank: curr.rank_at_time,
+            rank_delta: delta,
+            score: curr.score,
+            prev_kvk: prev.kvk_number,
+            curr_kvk: curr.kvk_number
+          });
+        }
+      }
+
+      // Sort for climbers (highest positive delta) and fallers (most negative delta)
+      const climbers = [...movers].sort((a, b) => b.rank_delta - a.rank_delta).slice(0, limit);
+      const fallers = [...movers].sort((a, b) => a.rank_delta - b.rank_delta).slice(0, limit);
+
+      return { climbers, fallers };
+    } catch (err) {
+      logger.error('Error fetching rank movers:', err);
       return null;
     }
   }

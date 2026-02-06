@@ -37,7 +37,7 @@ export function useKeyboardShortcuts(options: UseKeyboardShortcutsOptions = {}) 
           break;
         case 'l':
           e.preventDefault();
-          navigate('/leaderboards');
+          navigate('/rankings');
           break;
         case 'p':
           e.preventDefault();

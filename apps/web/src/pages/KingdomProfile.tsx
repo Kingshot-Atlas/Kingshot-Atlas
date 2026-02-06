@@ -24,7 +24,7 @@ import { ScoreSimulator } from '../components/ScoreSimulator';
 import { KingdomHeader, QuickStats, PhaseCards, KvKHistoryTable } from '../components/kingdom-profile';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useAuth } from '../contexts/AuthContext';
-import { useFavoritesContext } from '../contexts/FavoritesContext';
+// FavoritesContext is used by child components directly
 import { useToast } from '../components/Toast';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, getKingdomMetaTags } from '../hooks/useMetaTags';
@@ -37,7 +37,6 @@ const KingdomProfile: React.FC = () => {
   useDocumentTitle(kingdomNumber ? `Kingdom ${kingdomNumber}` : undefined);
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { isFavorite, toggleFavorite } = useFavoritesContext();
   const { showToast } = useToast();
   const [kingdom, setKingdom] = useState<KingdomProfileType | null>(null);
   const [allKingdoms, setAllKingdoms] = useState<KingdomProfileType[]>([]);
@@ -52,6 +51,7 @@ const KingdomProfile: React.FC = () => {
   } | null>(null);
   const [scoreHistoryRank, setScoreHistoryRank] = useState<number>(0);
   const [totalKingdomsAtKvk, setTotalKingdomsAtKvk] = useState<number>(0);
+  const [percentileRank, setPercentileRank] = useState<number>(0);
 
   // Auto-refresh when KvK history changes for this kingdom via realtime
   const handleKvkHistoryUpdate = useCallback((updatedKingdom: number, kvkNumber: number) => {
@@ -156,6 +156,7 @@ const KingdomProfile: React.FC = () => {
       if (rankData) {
         setScoreHistoryRank(rankData.rank);
         setTotalKingdomsAtKvk(rankData.totalAtKvk);
+        setPercentileRank(rankData.percentileRank);
       }
       
       // Save to recently viewed and track achievement
@@ -247,22 +248,14 @@ const KingdomProfile: React.FC = () => {
       <KingdomHeader
         kingdom={kingdom}
         rank={rank}
+        totalKingdomsAtKvk={totalKingdomsAtKvk}
+        percentileRank={percentileRank}
         atlasScore={atlasScore}
         powerTier={powerTier}
         achievements={achievements}
         status={status}
         hasPendingSubmission={hasPendingSubmission}
         isMobile={isMobile}
-        isFavorite={isFavorite(kingdom.kingdom_number)}
-        onToggleFavorite={() => {
-          if (!user) {
-            showToast('Sign in to save favorites', 'info');
-            return;
-          }
-          const wasFav = isFavorite(kingdom.kingdom_number);
-          toggleFavorite(kingdom.kingdom_number);
-          showToast(wasFav ? `K${kingdom.kingdom_number} removed from favorites` : `K${kingdom.kingdom_number} added to favorites`, wasFav ? 'info' : 'success');
-        }}
         onStatusModalOpen={() => setShowStatusModal(true)}
         onReportModalOpen={() => setShowReportModal(true)}
       />

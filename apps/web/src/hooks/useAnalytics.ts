@@ -12,7 +12,7 @@ const getPageName = (pathname: string): string => {
   if (pathname === '/') return 'Kingdom Directory';
   if (pathname.startsWith('/kingdom/')) return 'Kingdom Profile';
   if (pathname === '/compare') return 'Compare Kingdoms';
-  if (pathname === '/leaderboards') return 'Leaderboards';
+  if (pathname === '/rankings' || pathname === '/leaderboards') return 'Kingdom Rankings';
   if (pathname === '/profile') return 'My Profile';
   if (pathname.startsWith('/profile/')) return 'User Profile';
   if (pathname === '/players') return 'Player Directory';

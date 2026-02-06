@@ -14,14 +14,14 @@ interface Achievement {
 interface KingdomHeaderProps {
   kingdom: KingdomProfileType;
   rank: number;
+  totalKingdomsAtKvk: number;
+  percentileRank: number;
   atlasScore: number;
   powerTier: PowerTier;
   achievements: Achievement[];
   status: string;
   hasPendingSubmission: boolean;
   isMobile: boolean;
-  isFavorite: boolean;
-  onToggleFavorite: () => void;
   onStatusModalOpen: () => void;
   onReportModalOpen: () => void;
 }
@@ -29,14 +29,14 @@ interface KingdomHeaderProps {
 const KingdomHeader: React.FC<KingdomHeaderProps> = ({
   kingdom,
   rank,
+  totalKingdomsAtKvk,
+  percentileRank,
   atlasScore,
   powerTier,
   achievements,
   status,
   hasPendingSubmission,
   isMobile,
-  isFavorite,
-  onToggleFavorite,
   onStatusModalOpen,
   onReportModalOpen,
 }) => {
@@ -163,7 +163,22 @@ const KingdomHeader: React.FC<KingdomHeaderProps> = ({
               )}
             </span>
             {rank > 0 && (
-              <span style={{ color: '#22d3ee', fontSize: '0.85rem', fontWeight: 'normal' }}>(#{rank})</span>
+              <span style={{ color: '#22d3ee', fontSize: '0.85rem', fontWeight: 'normal' }}>
+                (#{rank}{totalKingdomsAtKvk > 0 ? ` of ${totalKingdomsAtKvk}` : ''})
+              </span>
+            )}
+            {percentileRank > 0 && (
+              <span style={{
+                padding: '0.15rem 0.4rem',
+                borderRadius: '4px',
+                fontSize: '0.65rem',
+                fontWeight: '600',
+                backgroundColor: percentileRank >= 90 ? '#22c55e20' : percentileRank >= 70 ? '#eab30820' : percentileRank >= 50 ? '#3b82f620' : '#6b728020',
+                color: percentileRank >= 90 ? '#22c55e' : percentileRank >= 70 ? '#eab308' : percentileRank >= 50 ? '#3b82f6' : '#6b7280',
+                border: `1px solid ${percentileRank >= 90 ? '#22c55e40' : percentileRank >= 70 ? '#eab30840' : percentileRank >= 50 ? '#3b82f640' : '#6b728040'}`
+              }}>
+                Top {(100 - percentileRank).toFixed(0)}%
+              </span>
             )}
             {kingdom.score_updated_at && (
               <ScoreFreshness updatedAt={kingdom.score_updated_at} style={{ marginLeft: '0.5rem' }} />
@@ -289,30 +304,6 @@ const KingdomHeader: React.FC<KingdomHeaderProps> = ({
             <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>Total KvKs:</span>
             <span style={{ color: '#fff', fontSize: '0.9rem', fontWeight: 'bold' }}>{kingdom.total_kvks}</span>
             <span style={{ color: '#3a3a3a' }}>|</span>
-            
-            {/* Favorite Button */}
-            <button
-              onClick={onToggleFavorite}
-              aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.4rem',
-                padding: isMobile ? '0.35rem 0.6rem' : '0.5rem 0.75rem',
-                backgroundColor: isFavorite ? '#ef444420' : '#1a1a1a',
-                border: `1px solid ${isFavorite ? '#ef4444' : '#333'}`,
-                borderRadius: '6px',
-                color: isFavorite ? '#ef4444' : '#9ca3af',
-                fontSize: '0.75rem',
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill={isFavorite ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-              </svg>
-              {isFavorite ? 'Favorited' : 'Favorite'}
-            </button>
 
             {/* Share Button */}
             <ShareButton

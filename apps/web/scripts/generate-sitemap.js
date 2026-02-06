@@ -28,7 +28,7 @@ const CURRENT_KVK = 11;
 // Define all public static routes with their metadata
 const staticRoutes = [
   { path: '/', changefreq: 'daily', priority: 1.0 },
-  { path: '/leaderboards', changefreq: 'daily', priority: 0.9 },
+  { path: '/rankings', changefreq: 'daily', priority: 0.9 },
   { path: '/compare', changefreq: 'weekly', priority: 0.8 },
   { path: '/tools', changefreq: 'weekly', priority: 0.7 },
   { path: '/players', changefreq: 'daily', priority: 0.7 },

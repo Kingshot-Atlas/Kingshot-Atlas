@@ -158,29 +158,31 @@ const Header: React.FC = () => {
         {/* Mobile Menu Button + Discord */}
         {isMobile && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            {/* Support Atlas Button */}
+            {/* Support Atlas Button - vertical column layout on mobile */}
             <Link
               to="/support"
               style={{
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '0.25rem',
-                padding: '0.5rem 0.75rem',
+                gap: '0.15rem',
+                padding: '0.35rem 0.6rem',
                 minHeight: '44px',
                 backgroundColor: '#ff6b8a15',
                 border: '1px solid #ff6b8a40',
                 borderRadius: '8px',
                 color: '#ff6b8a',
                 textDecoration: 'none',
-                fontSize: '0.75rem',
-                fontWeight: '600'
+                fontSize: '0.6rem',
+                fontWeight: '600',
+                lineHeight: 1
               }}
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
               </svg>
-              Support Us
+              <span>Support</span>
             </Link>
             {/* Discord Button - visible on mobile header */}
             <a
@@ -257,17 +259,17 @@ const Header: React.FC = () => {
             onMouseLeave={handleRankingsLeave}
           >
             <Link
-              to="/leaderboards"
+              to="/rankings"
               style={{
-                color: (isActive('/leaderboards') || isActive('/seasons') || location.pathname.startsWith('/seasons/')) ? '#22d3ee' : '#9ca3af',
+                color: (isActive('/rankings') || isActive('/seasons') || location.pathname.startsWith('/seasons/')) ? '#22d3ee' : '#9ca3af',
                 textDecoration: 'none',
                 fontSize: '0.9rem',
-                fontWeight: (isActive('/leaderboards') || isActive('/seasons') || location.pathname.startsWith('/seasons/')) ? '600' : '400',
+                fontWeight: (isActive('/rankings') || isActive('/seasons') || location.pathname.startsWith('/seasons/')) ? '600' : '400',
                 transition: 'color 0.2s',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.25rem',
-                ...((isActive('/leaderboards') || isActive('/seasons') || location.pathname.startsWith('/seasons/')) ? neonGlow('#22d3ee') : {})
+                ...((isActive('/rankings') || isActive('/seasons') || location.pathname.startsWith('/seasons/')) ? neonGlow('#22d3ee') : {})
               }}
             >
               Rankings
@@ -292,14 +294,14 @@ const Header: React.FC = () => {
                 zIndex: 1000
               }}>
                 <Link
-                  to="/leaderboards"
+                  to="/rankings"
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: '0.75rem',
                     padding: '0.75rem 1rem',
                     borderRadius: '8px',
-                    color: isActive('/leaderboards') ? '#22d3ee' : '#fff',
+                    color: isActive('/rankings') ? '#22d3ee' : '#fff',
                     textDecoration: 'none',
                     fontSize: '0.85rem',
                     transition: 'background-color 0.2s'
@@ -934,12 +936,12 @@ const Header: React.FC = () => {
           <button
             onClick={() => setShowMobileRankingsMenu(!showMobileRankingsMenu)}
             style={{
-              color: (isActive('/leaderboards') || isActive('/seasons') || location.pathname.startsWith('/seasons/')) ? '#22d3ee' : '#9ca3af',
+              color: (isActive('/rankings') || isActive('/seasons') || location.pathname.startsWith('/seasons/')) ? '#22d3ee' : '#9ca3af',
               textDecoration: 'none',
               fontSize: '1rem',
               padding: '0.75rem 1rem',
               borderRadius: '8px',
-              backgroundColor: (isActive('/leaderboards') || isActive('/seasons') || location.pathname.startsWith('/seasons/')) ? '#111' : 'transparent',
+              backgroundColor: (isActive('/rankings') || isActive('/seasons') || location.pathname.startsWith('/seasons/')) ? '#111' : 'transparent',
               border: 'none',
               width: '100%',
               textAlign: 'left',
@@ -968,9 +970,9 @@ const Header: React.FC = () => {
           {showMobileRankingsMenu && (
             <>
               <Link
-                to="/leaderboards"
+                to="/rankings"
                 style={{
-                  color: isActive('/leaderboards') ? '#22d3ee' : '#6b7280',
+                  color: isActive('/rankings') ? '#22d3ee' : '#6b7280',
                   textDecoration: 'none',
                   fontSize: '0.9rem',
                   padding: '0.5rem 1rem 0.5rem 1.5rem',
