@@ -504,21 +504,77 @@ client.on('guildMemberAdd', async (member) => {
   }
 });
 
-// Start bot - login FIRST, commands register after connection
+// Pre-login token validation using raw fetch (bypasses discord.js REST module)
+async function validateToken(token) {
+  console.log('🔍 Validating token with Discord API (raw fetch)...');
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10_000); // 10s timeout
+    
+    const response = await fetch('https://discord.com/api/v10/users/@me', {
+      headers: { 'Authorization': `Bot ${token}` },
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+    
+    const status = response.status;
+    console.log(`   Discord API responded: ${status} ${response.statusText}`);
+    
+    if (status === 200) {
+      const data = await response.json();
+      console.log(`   ✅ Token valid! Bot: ${data.username}#${data.discriminator} (ID: ${data.id})`);
+      return { valid: true, status, botName: data.username, botId: data.id };
+    } else if (status === 401) {
+      console.error('   ❌ Token is INVALID (401 Unauthorized)');
+      return { valid: false, status, error: 'TOKEN_INVALID_401' };
+    } else if (status === 429) {
+      const retryAfter = response.headers.get('retry-after');
+      console.warn(`   ⚠️ Rate limited (429). Retry after: ${retryAfter}s`);
+      return { valid: null, status, error: `RATE_LIMITED_429_retry_${retryAfter}s` };
+    } else {
+      return { valid: null, status, error: `UNEXPECTED_${status}` };
+    }
+  } catch (err) {
+    console.error(`   ❌ Token validation failed: ${err.message}`);
+    return { valid: null, status: 0, error: err.message };
+  }
+}
+
+// Start bot - validate token, then login
 async function main() {
-  // Login to Discord with timeout protection
-  // discord.js client.login() internally calls GET /gateway/bot which can hang
-  // if rate-limited from frequent restarts. We wrap it with a 60s timeout.
-  console.log('🔐 Attempting Discord login...');
+  console.log('🔐 Starting Discord login sequence...');
   console.log(`   Token: ${config.token ? config.token.substring(0, 10) + '...' + config.token.substring(config.token.length - 5) : 'MISSING'} (${config.token?.length || 0} chars)`);
   
-  const LOGIN_TIMEOUT = 60_000; // 60 seconds max for login
+  // Step 1: Validate token with raw HTTP (fast, bypasses discord.js)
+  const tokenCheck = await validateToken(config.token);
   loginAttemptCount = 1;
+  
+  if (tokenCheck.valid === false) {
+    // Token is definitely invalid - don't even try to login
+    loginLastResult = `token_invalid: ${tokenCheck.error}`;
+    lastError = `Token invalid (HTTP ${tokenCheck.status}). Reset token in Discord Developer Portal > Bot > Reset Token, then update DISCORD_TOKEN on Render.`;
+    console.error('❌ ABORTING LOGIN: Token is invalid.');
+    console.error('   1. Go to https://discord.com/developers/applications/' + config.clientId + '/bot');
+    console.error('   2. Click "Reset Token" and copy the new token');
+    console.error('   3. Update DISCORD_TOKEN on Render dashboard');
+    console.error('   Health server remains running for diagnostics.');
+    return; // Don't attempt login with known-bad token
+  }
+  
+  if (tokenCheck.valid === null) {
+    // Couldn't validate (network issue or rate limit) - try login anyway
+    loginLastResult = `validation_inconclusive: ${tokenCheck.error}`;
+    lastError = `Token validation inconclusive: ${tokenCheck.error}. Attempting login anyway.`;
+    console.warn('⚠️ Token validation inconclusive, attempting login anyway...');
+  }
+  
+  // Step 2: Login to Discord with timeout protection
+  const LOGIN_TIMEOUT = 30_000; // 30 seconds (reduced since we validated token)
   
   try {
     const loginPromise = client.login(config.token);
     const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('LOGIN_TIMEOUT: client.login() did not resolve within 60s. Discord may be rate-limiting gateway connections due to frequent restarts.')), LOGIN_TIMEOUT)
+      setTimeout(() => reject(new Error('LOGIN_TIMEOUT: client.login() hung for 30s. Gateway may be rate-limited.')), LOGIN_TIMEOUT)
     );
     
     await Promise.race([loginPromise, timeoutPromise]);
@@ -532,18 +588,13 @@ async function main() {
     
     if (loginError.code === 'TOKEN_INVALID' || loginError.message.includes('invalid token')) {
       console.error('   🔧 TOKEN INVALID: Reset in Discord Developer Portal > Bot > Reset Token');
-      console.error('   Then update DISCORD_TOKEN on Render dashboard');
     } else if (loginError.code === 'DISALLOWED_INTENTS') {
       console.error('   🔧 DISALLOWED INTENTS: Enable Server Members Intent in Discord Developer Portal');
     } else if (loginError.message.includes('LOGIN_TIMEOUT')) {
-      console.error('   🔧 LOGIN TIMED OUT: Discord is likely rate-limiting this bot.');
-      console.error('   The bot will keep running and serving the health endpoint.');
-      console.error('   Render will restart the service, which will try again.');
+      console.error('   🔧 LOGIN TIMED OUT: Gateway rate-limited. Will retry on next Render restart.');
     }
     
-    // Don't crash - keep the health server alive so diagnostics are accessible
-    // Render's health check will eventually fail (after grace period) and restart us
-    console.error('   Bot will remain running for diagnostics. Check /health for details.');
+    console.error('   Bot remains running for diagnostics. Check /health for details.');
   }
 }
 
