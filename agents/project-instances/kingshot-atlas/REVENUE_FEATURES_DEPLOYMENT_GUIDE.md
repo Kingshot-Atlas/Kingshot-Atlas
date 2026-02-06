@@ -253,7 +253,7 @@ After each feature:
 
 ## Deployment Protocol
 
-Per `/docs/AGENT_PROTOCOL.md`: **Build locally, do NOT deploy to Netlify unless explicitly requested.**
+Per `/docs/AGENT_PROTOCOL.md`: **Build locally, do NOT deploy unless explicitly requested.**
 
 ```bash
 cd /apps/web

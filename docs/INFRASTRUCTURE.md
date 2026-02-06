@@ -1,6 +1,6 @@
 # Infrastructure Reference
 
-**Last Updated:** 2026-02-01  
+**Last Updated:** 2026-02-06  
 **Owner:** Ops Lead
 
 ---
@@ -20,7 +20,7 @@
 ### Supabase Schema
 
 **profiles table** (subscription columns added 2026-01-30):
-- `subscription_tier` TEXT DEFAULT 'free' — User's subscription tier (free/pro/recruiter)
+- `subscription_tier` TEXT DEFAULT 'free' — User's subscription tier (free/supporter/recruiter)
 - `stripe_customer_id` TEXT — Stripe customer ID for billing
 - `stripe_subscription_id` TEXT — Active Stripe subscription ID
 
@@ -44,7 +44,7 @@
 **Required Environment Variables:**
 - `SECRET_KEY` - Generated secret
 - `ENVIRONMENT` - `production`
-- `ALLOWED_ORIGINS` - `https://ks-atlas.com,https://www.ks-atlas.com`
+- `ALLOWED_ORIGINS` - `https://ks-atlas.com,https://www.ks-atlas.com,https://ks-atlas.pages.dev`
 - `STRIPE_SECRET_KEY` - Stripe live/test secret key
 - `STRIPE_WEBHOOK_SECRET` - Stripe webhook signing secret
 - `SUPABASE_URL` - Supabase project URL
@@ -129,7 +129,7 @@ curl https://kingshot-atlas.onrender.com/health  # API
 # Test Stripe
 curl -X POST https://kingshot-atlas.onrender.com/api/v1/stripe/checkout \
   -H "Content-Type: application/json" \
-  -d '{"tier":"pro","billing_cycle":"monthly","user_id":"test"}'
+  -d '{"tier":"supporter","billing_cycle":"monthly","user_id":"test"}'
 ```
 
 ---
@@ -153,14 +153,14 @@ Render free tier sleeps after 15 minutes of inactivity. First request after slee
 | Service | Health Endpoint | Monitor |
 |---------|-----------------|---------|
 | API | `https://kingshot-atlas.onrender.com/health` | Required |
-| Discord Bot | `https://atlas-discord-bot.onrender.com/health` | **CRITICAL** - Bot goes offline without this |
+| Discord Bot | `https://atlas-discord-bot-trnf.onrender.com/health` | **CRITICAL** - Bot goes offline without this |
 
 ### Setting Up UptimeRobot (Free)
 
 1. Go to https://uptimerobot.com and create free account
 2. Add New Monitor → HTTP(s)
 3. For Discord Bot:
-   - URL: `https://atlas-discord-bot.onrender.com/health`
+   - URL: `https://atlas-discord-bot-trnf.onrender.com/health`
    - Interval: 5 minutes
    - Alert contacts: Your email
 4. For API (optional but recommended):

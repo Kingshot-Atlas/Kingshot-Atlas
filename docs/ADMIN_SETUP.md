@@ -81,7 +81,7 @@ CREATE INDEX IF NOT EXISTS idx_profiles_role ON profiles(role);
 ## First-Time Setup Checklist
 
 1. [ ] Deploy backend to Render
-2. [ ] Deploy frontend to Netlify
+2. [ ] Deploy frontend to Cloudflare Pages
 3. [ ] Connect Supabase database
 4. [ ] Log in with your Discord account (gatreno)
 5. [ ] Run the SQL above to make yourself admin

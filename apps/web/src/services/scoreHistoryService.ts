@@ -638,7 +638,7 @@ class ScoreHistoryService {
    * Get biggest rank movers (climbers and fallers) between their last two KvKs
    * Returns kingdoms sorted by rank delta
    */
-  async getRankMovers(limit: number = 10): Promise<{ climbers: RankMover[]; fallers: RankMover[] } | null> {
+  async getRankMovers(): Promise<{ climbers: RankMover[]; fallers: RankMover[] } | null> {
     if (!isSupabaseConfigured || !supabase) {
       return null;
     }
@@ -690,8 +690,9 @@ class ScoreHistoryService {
       }
 
       // Sort for climbers (highest positive delta) and fallers (most negative delta)
-      const climbers = [...movers].sort((a, b) => b.rank_delta - a.rank_delta).slice(0, limit);
-      const fallers = [...movers].sort((a, b) => a.rank_delta - b.rank_delta).slice(0, limit);
+      // Return all movers — frontend handles KvK filtering + displayCount slicing
+      const climbers = [...movers].filter(m => m.rank_delta > 0).sort((a, b) => b.rank_delta - a.rank_delta);
+      const fallers = [...movers].filter(m => m.rank_delta < 0).sort((a, b) => a.rank_delta - b.rank_delta);
 
       return { climbers, fallers };
     } catch (err) {

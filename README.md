@@ -20,10 +20,10 @@ It helps:
 |-------|------------|
 | Frontend | React 19, TypeScript, TailwindCSS |
 | Backend | FastAPI, SQLAlchemy, Pydantic |
-| Database | SQLite (PostgreSQL-ready) |
-| Auth | JWT + bcrypt (placeholder) |
-| Monitoring | Sentry (optional) |
-| Deployment | Netlify (frontend), any ASGI host (backend) |
+| Database | Supabase (PostgreSQL) |
+| Auth | Supabase Auth (Google, Discord) |
+| Monitoring | Sentry |
+| Deployment | Cloudflare Pages (frontend), Render (backend) |
 
 ---
 
@@ -106,16 +106,17 @@ open http://localhost:3000
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `SECRET_KEY` | ✅ Yes | JWT signing key (generate with `openssl rand -hex 32`) |
-| `DATABASE_URL` | No | Database connection string (default: SQLite) |
+| `DATABASE_URL` | No | Database connection string (default: Supabase PostgreSQL) |
 | `SENTRY_DSN` | No | Sentry error tracking DSN |
 | `ENVIRONMENT` | No | `development` or `production` |
 
 ### Frontend (`apps/web/.env.local`)
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `REACT_APP_API_URL` | No | Backend API URL (default: `http://127.0.0.1:8000`) |
-| `REACT_APP_SENTRY_DSN` | No | Sentry error tracking DSN |
-| `REACT_APP_ENVIRONMENT` | No | Environment name for Sentry |
+| `VITE_API_URL` | No | Backend API URL (default: `http://127.0.0.1:8000`) |
+| `VITE_SUPABASE_URL` | Yes | Supabase project URL |
+| `VITE_SUPABASE_ANON_KEY` | Yes | Supabase anonymous key |
+| `VITE_SENTRY_DSN` | No | Sentry error tracking DSN |
 
 ---
 
@@ -152,8 +153,8 @@ Kingshot Atlas/
 - **Kingdom Directory** (`/`) - Main page with search, filters, grid/table view
 - **Kingdom Profile** (`/kingdom/:id`) - Detailed stats + recent KVKs
 - **Compare Kingdoms** (`/compare`) - Side-by-side comparison
-- **Leaderboards** (`/leaderboards`) - Rankings by various metrics
-- **User Profile** (`/profile`) - Local profile (auth placeholder)
+- **Rankings** (`/rankings`) - Rankings by various metrics
+- **User Profile** (`/profile`) - User settings, linked accounts, review activity
 
 ---
 
@@ -179,9 +180,9 @@ Kingshot Atlas/
   - Battle result (Win/Loss)
   - Overall result
 
-### Community (Planned)
-- Reviews stored in localStorage (placeholder)
-- Backend auth is placeholder - not production-ready
+### Community
+- Reviews stored in Supabase with full CRUD, helpful voting, reply system
+- Auth via Supabase (Google, Discord, Email)
 
 ---
 
@@ -222,21 +223,18 @@ Experience matters. New kingdoms get scaled down:
 
 ---
 
-## Accounts + Trust Roles (Planned)
+## Accounts + Trust Roles
 
-⚠️ **WARNING:** Auth system is currently placeholder only. Do not use in production.
+Auth is handled by **Supabase Auth** (Google, Discord, Email).
 
-Planned trust hierarchy:
-- **New** → submissions require approval
+Current roles:
+- **User** → submissions require admin approval
+- **Admin** → all permissions (verified via `profiles.is_admin` in Supabase)
+
+Planned trust hierarchy (not yet implemented):
 - **Contributor** → auto-approval
 - **Trusted** → auto-approval + can flag content
 - **Moderator** → approve/reject submissions + moderation tools
-- **Admin** → all permissions + promote/demote users + system configuration
-
-**Before production, must implement:**
-- Real bcrypt password hashing
-- JWT token authentication
-- Rate limiting
 
 ---
 
@@ -278,44 +276,44 @@ Directory must support:
 |-----------|-----|
 | **Frontend** | https://ks-atlas.com |
 
-### Frontend (Netlify)
+### Frontend (Cloudflare Pages)
 
-The frontend is deployed on Netlify with custom domain `ks-atlas.com`.
+The frontend is deployed on Cloudflare Pages with custom domain `ks-atlas.com`.
+Auto-deploys from `main` branch.
 
 Build settings:
 - **Build command**: `npm run build`
-- **Publish directory**: `build`
+- **Publish directory**: `dist`
 - **Base directory**: `apps/web`
+- **Framework preset**: Vite
 
-Set environment variables in Netlify dashboard:
-- `REACT_APP_API_URL` - Production API URL
-- `REACT_APP_SENTRY_DSN` - Sentry DSN (optional)
-- `REACT_APP_ENVIRONMENT` - `production`
+Set environment variables in Cloudflare Dashboard:
+- `VITE_API_URL` - Production API URL
+- `VITE_SUPABASE_URL` - Supabase project URL
+- `VITE_SUPABASE_ANON_KEY` - Supabase anon key
 
-### Backend (Railway)
+### Backend (Render)
 
-The backend is configured for Railway deployment with `railway.json` and `Procfile`.
+The backend auto-deploys from `main` branch on Render.
 
-**Deploy steps:**
-1. Install Railway CLI: `npm install -g @railway/cli`
-2. Login: `railway login`
-3. Create project: `railway init` (in `apps/api` directory)
-4. Link repo: `railway link`
-5. Deploy: `railway up`
+**Production URL:** https://kingshot-atlas.onrender.com
 
-**Required environment variables** (set in Railway dashboard):
+**Required environment variables** (set in Render dashboard):
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `SECRET_KEY` | ✅ Yes | JWT signing key - generate with `openssl rand -hex 32` |
-| `DATABASE_URL` | ✅ Yes | PostgreSQL connection string (Railway provides this) |
-| `ALLOWED_ORIGINS` | ✅ Yes | `https://www.ks-atlas.com,https://ks-atlas.com` |
-| `SUPABASE_JWT_SECRET` | ✅ Yes | Supabase JWT secret for auth validation |
+| `ALLOWED_ORIGINS` | ✅ Yes | `https://ks-atlas.com,https://www.ks-atlas.com,https://ks-atlas.pages.dev` |
+| `SUPABASE_URL` | ✅ Yes | Supabase project URL |
+| `SUPABASE_ANON_KEY` | ✅ Yes | Supabase anonymous key |
+| `SUPABASE_SERVICE_ROLE_KEY` | ✅ Yes | Supabase service role key (admin operations) |
+| `STRIPE_SECRET_KEY` | ✅ Yes | Stripe live secret key |
+| `STRIPE_WEBHOOK_SECRET` | ✅ Yes | Stripe webhook signing secret |
 | `SENTRY_DSN` | No | Sentry error tracking DSN |
 | `ENVIRONMENT` | No | Set to `production` |
 
 **Verify deployment:**
 ```bash
-curl https://your-railway-url.up.railway.app/health
+curl https://kingshot-atlas.onrender.com/health
 # Should return: {"status": "healthy"}
 ```
 

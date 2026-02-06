@@ -1,6 +1,6 @@
 # Ops Lead — Latest Knowledge
 
-**Last Updated:** 2026-01-29  
+**Last Updated:** 2026-02-06  
 **Purpose:** Current best practices for DevOps, deployment, SEO, and analytics
 
 ---
@@ -105,7 +105,7 @@ VITE_SUPABASE_ANON_KEY=(from .env)
 ## Legacy: Netlify (DEPRECATED - DO NOT USE)
 
 Old site ID: `716ed1c2-eb00-4842-8781-c37fb2823eb8`
-Config file `netlify.toml` kept for reference only.
+Legacy `.netlify/` directory deleted 2026-02-06.
 
 ---
 
@@ -308,7 +308,7 @@ const apiUrl = import.meta.env.VITE_API_URL;
 ### Secrets Management
 - Never commit secrets to git
 - Use environment variables
-- Use Netlify/Vercel environment variable UI for production secrets
+- Use Cloudflare Pages environment variable UI for production secrets
 - Rotate secrets if exposed
 
 ---
@@ -322,9 +322,9 @@ const apiUrl = import.meta.env.VITE_API_URL;
 - [ ] Environment variables set
 
 ### Deploy
-- [ ] Verify correct Netlify site (Site ID)
-- [ ] Deploy command: `npx netlify-cli deploy --prod --dir=build`
-- [ ] Wait for completion
+- [ ] Push to main: `git push origin main`
+- [ ] Cloudflare Pages auto-deploys
+- [ ] Wait for completion (~2-3 min)
 
 ### After Deploy
 - [ ] Site loads correctly
@@ -334,9 +334,9 @@ const apiUrl = import.meta.env.VITE_API_URL;
 - [ ] Log in ACTIVITY_LOG.md
 
 ### Rollback (if needed)
-- Go to Netlify dashboard
-- Select previous successful deploy
-- Click "Publish deploy"
+- Go to Cloudflare Pages dashboard → Deployments
+- Select previous successful deploy → "Rollback to this deploy"
+- Or: `git revert HEAD && git push origin main`
 
 ---
 
@@ -358,7 +358,7 @@ const apiUrl = import.meta.env.VITE_API_URL;
 | Issue | Fix Applied | Impact |
 |-------|-------------|--------|
 | CI used wrong API URL (`api.kingshot-atlas.com`) | Changed to `api.ks-atlas.com` | Builds now use correct production API |
-| Missing `base` in netlify.toml | Added `base = "apps/web"` | Monorepo builds correctly |
+| Missing `base` in build config | Set root directory to `apps/web` | Monorepo builds correctly |
 | CSP blocked Plausible analytics | Added `plausible.io` to script-src and connect-src | Analytics now works |
 | robots.txt missing explicit Allow | Added `Allow: /` and `Disallow: /api/` | Better SEO, API not crawled |
 | Sitemap outdated, missing /kingdoms | Updated dates, added /kingdoms, removed /profile | Better SEO coverage |
@@ -380,7 +380,7 @@ const apiUrl = import.meta.env.VITE_API_URL;
 | Client-side rate limiting | Created `utils/rateLimiter.ts` | Prevents API abuse from frontend |
 | Monitoring documentation | Created `docs/MONITORING.md` | UptimeRobot + Sentry setup guide |
 | Security audit checklist | Created `docs/SECURITY_CHECKLIST.md` | Monthly security review process |
-| CSP violation reporting | Added `report-uri` to netlify.toml | CSP violations sent to Sentry |
+| CSP violation reporting | Added `report-uri` to `_headers` | CSP violations sent to Sentry |
 
 ### Performance Optimizations (2026-01-29)
 | Optimization | Implementation | Benefit |

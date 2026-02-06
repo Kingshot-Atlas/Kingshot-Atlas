@@ -133,7 +133,7 @@ NOTIFY pgrst, 'reload config';
 - `/docs/migrations/recreate_profiles.sql` - Database setup
 - `/public/service-worker.js` - Service worker config
 - `/apps/web/src/components/LinkKingshotAccount.tsx` - Avatar component
-- `/apps/web/netlify.toml` - CSP configuration
+- `/apps/web/public/_headers` - CSP configuration
 - `/docs/PLAYER_LINKING_FIX.md` - Complete fix documentation
 
 ### Environment Variables Required
@@ -149,7 +149,7 @@ REACT_APP_SUPABASE_ANON_KEY=your-anon-key
    - Verify table structure
 
 2. **Frontend Deployment**
-   - Build and deploy to Netlify
+   - Push to main (auto-deploys via Cloudflare Pages)
    - Clear service worker cache
 
 3. **Testing**

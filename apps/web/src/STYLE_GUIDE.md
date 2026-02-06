@@ -730,6 +730,8 @@ import {
   getSubscriptionColor, // Get color for subscription tier
   getStatusColor,   // Get color for transfer status
   outcomeColors,    // KvK outcome colors (domination, comeback, etc.)
+  statTypeStyles,   // Stat type colors & emojis (SINGLE SOURCE OF TRUTH)
+  getStatTypeStyle, // Get style for a stat type key
   
   // Spacing & Layout
   spacing,          // Spacing scale (1-12)
@@ -863,14 +865,57 @@ import ComparisonRadarChart from '../components/ComparisonRadarChart';
 
 ---
 
-## Outcome Emojis
+## Stat Type Colors & Emojis (SOURCE OF TRUTH)
 
-| Outcome | Emoji | Color | Description |
-|---------|-------|-------|-------------|
-| **Domination** | 👑 | `#22c55e` | Won both Prep and Battle |
-| **Reversal** | 🔄 | `#a855f7` | Won Prep but lost Battle |
-| **Comeback** | 💪 | `#3b82f6` | Lost Prep but won Battle |
-| **Invasion** | 💀 | `#ef4444` | Lost both Prep and Battle |
+**MANDATORY:** All colored text and emojis related to stat types MUST use these values.
+Import from `utils/styles.ts` → `statTypeStyles` constant. Never hardcode these values.
+
+| Stat Type | Emoji | Color | Hex | Usage |
+|-----------|-------|-------|-----|-------|
+| **Atlas Score** | 💎 | Cyan | `#22d3ee` | Overall score displays, Atlas Score rankings |
+| **Preparation Phase** | 🛡️ | Yellow | `#eab308` | Prep win rates, prep streaks, prep records |
+| **Battle Phase** | ⚔️ | Orange | `#f97316` | Battle win rates, battle streaks, battle records |
+| **Domination** | 👑 | Green | `#22c55e` | Won both Prep and Battle, domination counts/streaks |
+| **Comeback** | 💪 | Blue | `#3b82f6` | Lost Prep but won Battle |
+| **Reversal** | 🔄 | Purple | `#a855f7` | Won Prep but lost Battle |
+| **Invasion** | � | Red | `#ef4444` | Lost both Prep and Battle |
+
+### Implementation
+```tsx
+import { statTypeStyles } from '../utils/styles';
+
+// Get color and emoji for any stat type
+const { color, emoji, label } = statTypeStyles.atlasScore;
+// color: '#22d3ee', emoji: '💎', label: 'Atlas Score'
+
+// Use in ranking card headers
+<span style={{ color: statTypeStyles.prepPhase.color }}>
+  {statTypeStyles.prepPhase.emoji} Prep Win Rate
+</span>
+
+// Use in value displays with neon glow
+<span style={{ ...neonGlow(statTypeStyles.domination.color) }}>
+  {statTypeStyles.domination.emoji} 5 Dominations
+</span>
+```
+
+### Available Keys
+| Key | Maps To |
+|-----|---------|
+| `statTypeStyles.atlasScore` | Atlas Score (💎 cyan) |
+| `statTypeStyles.prepPhase` | Preparation Phase (🛡️ yellow) |
+| `statTypeStyles.battlePhase` | Battle Phase (⚔️ orange) |
+| `statTypeStyles.domination` | Domination (👑 green) |
+| `statTypeStyles.comeback` | Comeback (💪 blue) |
+| `statTypeStyles.reversal` | Reversal (🔄 purple) |
+| `statTypeStyles.invasion` | Invasion (💀 red) |
+
+### Rules
+1. **Always use `statTypeStyles`** — never hardcode stat colors/emojis
+2. **Applies everywhere** — rankings, profiles, cards, tooltips, charts
+3. **Number coloring** — stat values should use the stat type color (not white/gray)
+4. **Emoji placement** — in card/section headers, flanking the title
+5. **Future stat types** — add to `statTypeStyles` in `utils/styles.ts` first, then use
 
 **Note:** The Invasion emoji was changed from 🏳️ to 💀 on 2026-01-29 for better visual impact.
 
@@ -905,4 +950,4 @@ import ComparisonRadarChart from '../components/ComparisonRadarChart';
 
 ---
 
-*Last Updated: 2026-02-02 by Product Engineer*
+*Last Updated: 2026-02-06 by Design Lead — Added Stat Type Colors & Emojis (SOURCE OF TRUTH)*

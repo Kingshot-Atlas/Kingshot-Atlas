@@ -1,6 +1,6 @@
 # Monitoring & Uptime Configuration
 
-**Last Updated:** 2026-01-29  
+**Last Updated:** 2026-02-06  
 **Owner:** Ops Lead
 
 ---
@@ -73,14 +73,12 @@ Alert Format:
 
 3. **Configure Environment Variables**
 
-   **Frontend (Netlify):**
+   **Frontend (Cloudflare Pages):**
    ```
-   REACT_APP_SENTRY_DSN=https://xxx@sentry.io/xxx
-   REACT_APP_ENVIRONMENT=production
-   REACT_APP_VERSION=1.0.0
+   VITE_SENTRY_DSN=https://xxx@sentry.io/xxx
    ```
 
-   **Backend (Railway/Render):**
+   **Backend (Render):**
    ```
    SENTRY_DSN=https://xxx@sentry.io/xxx
    ENVIRONMENT=production
@@ -159,15 +157,15 @@ Configured in `apps/web/lighthouserc.js`:
 ### Site Down
 
 1. Check UptimeRobot for details
-2. Check Netlify deploy status
+2. Check Cloudflare Pages deploy status in dashboard
 3. Check DNS resolution: `dig ks-atlas.com`
 4. Check SSL certificate: `curl -I https://ks-atlas.com`
-5. If Netlify issue, check status.netlify.com
-6. Rollback to previous deploy if recent change caused issue
+5. If Cloudflare issue, check cloudflarestatus.com
+6. Rollback to previous deploy in Cloudflare Pages dashboard or `git revert`
 
 ### API Down
 
-1. Check Railway/Render dashboard
+1. Check Render dashboard
 2. Check API logs for errors
 3. Check database connectivity
 4. Restart service if needed

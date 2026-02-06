@@ -62,7 +62,7 @@ When updating tier thresholds, you MUST update ALL of the following files:
 - [ ] Update `apps/discord-bot/src/utils/api.js` (tierRanges)
 - [ ] Run `npm run build` in apps/web
 - [ ] Push to GitHub (triggers Discord bot auto-deploy)
-- [ ] Deploy frontend to Netlify
+- [ ] Deploy frontend (push to main → Cloudflare Pages auto-deploys)
 - [ ] Update this document with new thresholds
 ```
 

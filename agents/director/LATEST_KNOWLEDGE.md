@@ -87,7 +87,7 @@ Effective handoffs include:
 
 ### Project Context
 - **Product:** Web app for Kingshot mobile game strategy/tracking
-- **Tech Stack:** React (Vite), FastAPI, deployed on Netlify
+- **Tech Stack:** React (Vite), FastAPI, deployed on Cloudflare Pages
 - **Users:** Kingshot players tracking stats, events, KvK schedules
 - **Stage:** Active development, MVP live
 
@@ -99,8 +99,8 @@ Effective handoffs include:
 
 ### Deployment
 - **Production:** https://ks-atlas.com
-- **Netlify Site ID:** `716ed1c2-eb00-4842-8781-c37fb2823eb8`
-- **Deploy command:** `npm run build` then Netlify deploy
+- **Hosting:** Cloudflare Pages (auto-deploys from main branch)
+- **Deploy:** `git push origin main` triggers Cloudflare Pages build
 - **Policy:** Local testing only unless explicitly told to deploy
 
 ### Style Guide

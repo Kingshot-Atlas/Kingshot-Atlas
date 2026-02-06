@@ -263,6 +263,26 @@ export const outcomeColors = {
 } as const;
 
 /**
+ * Stat Type Styles — SINGLE SOURCE OF TRUTH
+ * Use these for ALL colored text and emojis related to stat types
+ * across the entire application (rankings, profiles, cards, etc.)
+ */
+export const statTypeStyles = {
+  atlasScore:   { color: '#22d3ee', emoji: '💎', label: 'Atlas Score' },
+  prepPhase:    { color: '#eab308', emoji: '🛡️', label: 'Preparation Phase' },
+  battlePhase:  { color: '#f97316', emoji: '⚔️', label: 'Battle Phase' },
+  domination:   { color: '#22c55e', emoji: '👑', label: 'Domination' },
+  comeback:     { color: '#3b82f6', emoji: '💪', label: 'Comeback' },
+  reversal:     { color: '#a855f7', emoji: '🔄', label: 'Reversal' },
+  invasion:     { color: '#ef4444', emoji: '💀', label: 'Invasion' },
+} as const;
+
+/**
+ * Get stat type style by key
+ */
+export const getStatTypeStyle = (key: keyof typeof statTypeStyles) => statTypeStyles[key];
+
+/**
  * Button styles - ALL buttons must be center/middle aligned
  * Import and spread these styles for consistent buttons
  */

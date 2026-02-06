@@ -17,7 +17,7 @@ If there are uncommitted changes:
 
 ### 2. Verify Deployment Pipeline
 After pushing:
-- Netlify (frontend): Auto-deploys from main branch
+- Cloudflare Pages (frontend): Auto-deploys from main branch
 - Render (backend): Auto-deploys from main branch
 
 ### 3. Test Production
@@ -29,8 +29,8 @@ After ~3 minutes, verify:
 ## Common Gotchas
 
 ### Frontend Changes Not Appearing
-1. Check `netlify.toml` has `publish = "dist"` (not "build")
-2. Verify Supabase env vars are in `netlify.toml`
+1. Check Cloudflare Pages build output is `dist`
+2. Verify env vars are set in Cloudflare Dashboard
 3. Hard refresh browser (Cmd+Shift+R)
 
 ### API Changes Not Working

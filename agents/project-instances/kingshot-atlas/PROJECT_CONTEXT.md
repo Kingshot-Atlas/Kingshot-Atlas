@@ -1,6 +1,6 @@
 # Kingshot Atlas - Project Context for Specialists
 
-**Last Updated:** 2026-01-28  
+**Last Updated:** 2026-02-06  
 **Read this before starting any work on this project.**
 
 ---
@@ -30,9 +30,9 @@ All files are in this directory: `/agents/project-instances/kingshot-atlas/`
 | Frontend | React 19, TypeScript, Tailwind CSS |
 | State | React hooks, local state |
 | Backend | Python FastAPI |
-| Database | SQLite (PostgreSQL-ready) |
-| Frontend Hosting | Netlify (ks-atlas.com) |
-| Backend Hosting | Railway/Render |
+| Database | Supabase (PostgreSQL) |
+| Frontend Hosting | Cloudflare Pages (ks-atlas.com) |
+| Backend Hosting | Render |
 
 ---
 
@@ -91,7 +91,7 @@ See `STATUS_SNAPSHOT.md` in this directory for real-time status.
 - Refactored KingdomDirectory.tsx (1191 → 878 lines)
 - Extracted components: SkeletonCard, KingdomTable, CompareTray
 - Added unit tests for core utilities
-- Deployed to Netlify with custom domain
+- Deployed to Cloudflare Pages with custom domain
 
 **Known Issues:**
 - `getOutcome()` case-sensitivity test failing
@@ -133,9 +133,9 @@ python -m uvicorn main:app --reload  # http://127.0.0.1:8000
 
 ## Deployment
 
-- **Frontend:** Netlify with custom domain
+- **Frontend:** Cloudflare Pages (auto-deploys from main)
 - **Live URL:** https://ks-atlas.com
-- **Netlify URL:** https://ks-atlas.netlify.app
+- **Pages URL:** https://ks-atlas.pages.dev
 - **Policy:** Local testing only unless user explicitly requests deployment
 
 ---

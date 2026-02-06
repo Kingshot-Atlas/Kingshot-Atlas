@@ -46,8 +46,8 @@ When the Manager needs specialist help:
 **Tech Stack:**
 - Frontend: React 19, TypeScript, Tailwind CSS
 - Backend: Python FastAPI
-- Database: SQLite (PostgreSQL-ready)
-- Hosting: Netlify (frontend), Railway/Render (backend)
+- Database: Supabase (PostgreSQL)
+- Hosting: Cloudflare Pages (frontend), Render (backend)
 
 **Key Files:**
 - Status: `STATUS_SNAPSHOT.md` (this directory)

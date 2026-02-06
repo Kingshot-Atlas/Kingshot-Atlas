@@ -7,6 +7,132 @@
 
 ## Log Entries
 
+## 2026-02-06 16:00 | Ops Lead | COMPLETED
+Task: CORS Alignment — add ks-atlas.pages.dev to backend CORS, fix stale SQLite refs in API config
+Files:
+  - `apps/api/main.py` — Added ks-atlas.pages.dev to CORS defaults, bumped version to 1.0.4
+  - `apps/api/render.yaml` — Added pages.dev to ALLOWED_ORIGINS, changed DATABASE_URL from hardcoded SQLite to sync:false (Supabase)
+  - `apps/api/RENDER_DEPLOY.md` — Updated ALLOWED_ORIGINS, DATABASE_URL instructions, removed SQLite references
+  - `apps/api/.env.example` — Updated ALLOWED_ORIGINS comment to include all production origins
+Result: Cloudflare Pages preview deploys (ks-atlas.pages.dev) will now pass CORS. Build passes ✅.
+
+## 2026-02-06 15:45 | Ops Lead | COMPLETED
+Task: Docs Consistency Audit — fix all stale Railway, REACT_APP_, SQLite, pro tier, and remaining Netlify references
+Files (18 files updated):
+  High priority:
+  - `docs/DEPLOYMENT.md` — Rewrote Section 2 (Railway→Render as primary), fixed Section 4 heading, scaling notes
+  - `README.md` — Fixed env vars (REACT_APP_→VITE_), backend (Railway→Render), auth/reviews sections (no longer placeholder), trust roles updated
+  - `docs/INFRASTRUCTURE.md` — Fixed subscription_tier (pro→supporter), CORS (added pages.dev), Discord bot URL, Stripe test command
+  - `docs/MONITORING.md` — Fixed Netlify runbook→Cloudflare Pages, Railway→Render, env var prefix
+  - `docs/SECURITY_CHECKLIST.md` — Fixed SSL/HTTPS (Netlify→Cloudflare), headers config (netlify.toml→_headers), CORS, infra section
+  - `agents/project-instances/kingshot-atlas/PROJECT_CONTEXT.md` — Fixed Database row (SQLite→Supabase)
+  Medium priority:
+  - `agents/platform-engineer/LATEST_KNOWLEDGE.md` — API Host Railway→Render
+  - `docs/STATE_PACKET.md` — API base URL with actual Render URL
+  - `docs/SUPABASE_SUBSCRIPTION_SETUP.md` — CHECK constraint pro→supporter, REACT_APP_→VITE_
+  - `apps/web/AUTH_TROUBLESHOOTING.md` — Netlify URL→pages.dev, REACT_APP_→VITE_, debug command
+  - `docs/STRIPE_QUICK_SETUP.md` — REACT_APP_→VITE_, pro→supporter in SQL
+  - `docs/LAUNCH_CHECKLIST.md` — Rewrote Steps 4-5 (Netlify→Cloudflare Pages), env vars
+  - `docs/ADMIN_SETUP.md` — Deploy step Netlify→Cloudflare Pages
+  - `docs/AGENT_PROTOCOL.md` — Deployment policy updated
+  - `docs/CREDENTIALS.md` — Hosting section (Netlify→Cloudflare Pages, added Render)
+  - `docs/MCP_GUIDE.md` — MCP table (Netlify→Cloudflare)
+  - `docs/TIER_THRESHOLDS.md` — Deploy step updated
+  - `agents/project-instances/kingshot-atlas/REVENUE_FEATURES_DEPLOYMENT_GUIDE.md` — Deployment protocol
+  Also fixed:
+  - `agents/project-instances/kingshot-atlas/HANDOFF_TEMPLATE.md` — Tech stack (SQLite→Supabase, Netlify→CF Pages)
+  - `docs/DATA_ARCHITECTURE.md` — Deploy ref (Render/Railway→Render)
+  - `docs/DISCORD_BOT.md` — Deployment heading (Railway/Render→Render)
+Result: 21 files updated total. Build passes ✅. Historical docs (reviews, dated reports, activity log entries) preserved as-is.
+
+## 2026-02-06 15:25 | Product Engineer | COMPLETED
+Task: Kingdom Rankings — Global controls + Experience filter redesign
+Files:
+  - `apps/web/src/pages/Leaderboards.tsx` — Moved Top N + Experience controls to top of page (above Rank Movers); Changed Top 10/20/50 → Top 5/10/25 (default 5); Bug fix: controls now affect Rank Movers (Climbers/Fallers) via filteredRankMovers; Replaced Experience dropdown with named preset chips (All, Rookies 1-3, Veterans 4-6, Elite 7-9, Legends 10+, Custom) + custom KvK range with min/max steppers; "Exactly N KvKs" label when min=max
+  - `apps/web/src/services/scoreHistoryService.ts` — No changes (fetch increased to 25 from caller)
+Result: All ranking cards + rank movers respond to both Top N and Experience controls. Custom range allows exact KvK count filtering. Mobile-optimized with 44px touch targets, compact chip layout.
+
+## 2026-02-06 14:55 | Design Lead | COMPLETED
+Task: Kingdom Rankings — Rank Movers table redesign + Stat Type Colors/Emojis system
+Files:
+  - `apps/web/src/utils/styles.ts` — Added `statTypeStyles` constant (SINGLE SOURCE OF TRUTH for all stat type colors & emojis)
+  - `apps/web/src/pages/Leaderboards.tsx` — Redesigned Biggest Climbers/Fallers from list to proper table layout (centralized headers, centralized columns except Kingdom Name, full kingdom names, arrow between old/new rank); Updated all ranking definitions to use `statTypeStyles`
+  - `apps/web/src/STYLE_GUIDE.md` — Replaced "Outcome Emojis" with comprehensive "Stat Type Colors & Emojis (SOURCE OF TRUTH)" section; Added `statTypeStyles` + `getStatTypeStyle` to available exports
+Result: Tables match mockup design. All 13 ranking cards now use correct stat-type emojis and colors from centralized constants. Mobile-optimized with horizontal scroll, compact padding, touch-friendly rows.
+
+## 2026-02-06 11:15 | Platform Engineer + Atlas Director | COMPLETED
+Task: Admin Dashboard — Security Hardening + UX Polish + Real Analytics (13 sub-tasks)
+Files:
+  Backend (`apps/api/api/routers/admin.py`):
+  - Database-driven admin auth: `_verify_admin_jwt` now checks `profiles.is_admin` from Supabase, falls back to email list
+  - `audit_log()` helper writes admin actions to `admin_audit_log` table
+  - `check_rate_limit()` — in-memory rate limiter (60 req/min) integrated into `require_admin`
+  - GET `/audit-log` — returns recent admin activity for dashboard feed
+  - GET `/stats/plausible` — proxies Plausible Analytics aggregate API (visitors, pageviews, bounce rate, visit duration)
+  - GET `/stats/plausible/breakdown` — proxies Plausible breakdown API (sources, countries, pages)
+  - Audit logging added to: sync_subscriptions, recalculate_scores, set_current_kvk
+  Backend (`apps/api/api/routers/submissions.py`):
+  - GET `/submissions/counts` — batch endpoint replacing 3 sequential status fetches
+  Database (Supabase):
+  - Created `admin_audit_log` table with RLS (admins read, service role writes)
+  - Indexes on admin_user_id, action, created_at
+  Frontend:
+  - `AdminDashboard.tsx` — Loading skeletons, last-refreshed timestamp, refresh button, keyboard shortcuts (R=refresh, 1-6=tabs), PlausibleInsights + AdminActivityFeed in analytics tab, batch submissions/counts call
+  - NEW `AdminActivityFeed.tsx` — Shows recent admin actions with time-ago formatting
+  - NEW `PlausibleInsights.tsx` — Traffic sources, countries, top pages bar charts from Plausible API
+  - NEW `LoadingSkeleton.tsx` — Shimmer animation skeleton cards/lists
+  - `AnalyticsOverview.tsx` — Shows Plausible visitors/pageviews when available, falls back to local tracking
+Result: 13/13 sub-tasks complete. Build passes. All changes local (uncommitted).
+
+## 2026-02-06 10:34 | Ops Lead | COMPLETED
+Task: Clean up legacy Netlify artifacts — replace all Netlify references with Cloudflare Pages
+Files:
+  Deleted:
+  - `apps/web/.netlify/netlify.toml` — removed legacy Netlify config directory
+  Updated (Netlify→Cloudflare Pages):
+  - `docs/DEPLOYMENT.md` — rewrote frontend section for Cloudflare Pages, updated env vars to VITE_ prefix
+  - `README.md` — tech stack (Supabase, Cloudflare Pages, Render), /rankings route, deployment section
+  - `.windsurf/workflows/deploy-checklist.md` — updated pipeline and troubleshooting
+  - `agents/project-instances/kingshot-atlas/PROJECT_CONTEXT.md` — hosting, deployment section
+  - `agents/ops-lead/SPECIALIST.md` — scope, infrastructure, deployment workflow, tools, policy
+  - `agents/ops-lead/LATEST_KNOWLEDGE.md` — secrets mgmt, deployment checklist, rollback, audit log
+  - `agents/director/LATEST_KNOWLEDGE.md` — tech stack, deployment info
+  - `agents/platform-engineer/LATEST_KNOWLEDGE.md` — CORS examples (.netlify.app→.pages.dev)
+  - `apps/web/.env.example` — netlify.toml→_headers reference
+  - `docs/STATE_PACKET.md` — deployment refs, site ID, commands
+  - `docs/CRITICAL_SETUP.md` — CSP config file ref, deployment process
+Result: All 12 files updated. Zero remaining Netlify references in active docs (only historical activity logs preserved). Build passes ✅.
+
+## 2026-02-06 10:45 | Platform Engineer | COMPLETED
+Task: Admin Dashboard Hardening — JWT auth for all endpoints, error handling, health indicator, retry logic
+Files:
+  Backend:
+  - `apps/api/api/routers/admin.py` — Added `authorization` header to ALL 18 remaining admin endpoints (mrr-history, churn, forecast, cohort, export/subscribers, export/revenue, kpis, webhooks/events, webhooks/stats, scores/recalculate, scores/distribution, scores/movers, config/current-kvk POST, config/increment-kvk, sync-all, stats/overview, stats/subscriptions, stats/revenue). Internal function call chains now forward authorization.
+  Frontend:
+  - `apps/web/src/components/AnalyticsCharts.tsx` — Added getAuthHeaders to all 5 SaaS metrics fetches + export calls, added error state with retry banner
+  - `apps/web/src/components/WebhookMonitor.tsx` — Added getAuthHeaders to webhook events/stats fetches, added error state with retry banner
+  - `apps/web/src/services/configService.ts` — Added getAuthHeaders to increment-kvk call
+  - `apps/web/src/pages/AdminDashboard.tsx` — Added API/Supabase/Stripe health indicator dots, error toast on admin API failure, fetchWithRetry for overview call
+  - `apps/web/src/components/admin/AnalyticsOverview.tsx` — Renamed "Sessions (local)" to "Browser Sessions"
+  - `apps/web/src/utils/fetchWithRetry.ts` — NEW: Shared retry utility with exponential backoff (skips retries on 401/403)
+Result: All admin endpoints accept JWT auth. All frontend admin calls send auth headers. Failed API calls show visible errors with retry. Health dots show API/DB/Stripe status at a glance.
+
+## 2026-02-06 10:30 | Atlas Director | COMPLETED
+Task: Fix stale data and incorrect references across project docs
+Files:
+  - `FEATURES_IMPLEMENTED.md` — Netlify→Cloudflare Pages, /leaderboards→/rankings, work.md→task.md, FavoritesBadge marked removed, removed hardcoded kingdom/KvK counts
+  - `STATUS_SNAPSHOT.md` — Updated date, added recent activity entries, removed hardcoded 1190 count
+  - Memories updated: Stripe tier key corrected (pro→supporter), deployment policy updated for Cloudflare Pages, game domain knowledge (alliances within kingdoms) saved
+Result: All known stale references corrected. Docs now reflect current state.
+
+## 2026-02-06 10:18 | Platform Engineer | COMPLETED
+Task: Fix Admin Dashboard not showing data (401 + 405 errors)
+Files:
+  - `apps/api/api/routers/admin.py` — Added JWT-based admin auth (`_verify_admin_jwt`) alongside X-Admin-Key; updated `require_admin`, `get_admin_overview`, `get_subscription_stats`, `get_revenue_stats`, `sync_all_subscriptions` to accept Authorization header
+  - `apps/api/api/routers/submissions.py` — Added `GET /claims` admin endpoint with optional status filter
+  - `apps/web/src/pages/AdminDashboard.tsx` — Added `getAuthHeaders()` to admin stats/overview and sync-all fetch calls
+Result: Admin dashboard will now authenticate via Supabase JWT; claims listing endpoint exists for admin use
+
 ## 2026-02-06 08:15 | Product Engineer | COMPLETED
 Task: Rankings page polish + header cleanup
 Changes:

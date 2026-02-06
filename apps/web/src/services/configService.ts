@@ -6,6 +6,7 @@
  */
 
 import { CURRENT_KVK as DEFAULT_CURRENT_KVK } from '../constants';
+import { getAuthHeaders } from './authHeaders';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
@@ -90,8 +91,10 @@ export async function incrementKvK(adminApiKey?: string): Promise<{
   error?: string;
 }> {
   try {
+    const authHeaders = await getAuthHeaders({ requireAuth: false });
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
+      ...authHeaders,
     };
     
     if (adminApiKey) {

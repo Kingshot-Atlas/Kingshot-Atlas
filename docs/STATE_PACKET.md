@@ -33,7 +33,7 @@ Deploy Manager, Monetization, and Security agents. Implement auth security, 4-ti
    - Deploy ID: `697ab5976ff7bc4280f59db8`
 
 ### Previous Completed ✅
-1. **Deployed to Netlify** - https://ks-atlas.com (custom domain active)
+1. **Deployed to Cloudflare Pages** - https://ks-atlas.com (custom domain active)
 2. **Code Quality** - Split KingdomDirectory.tsx, deduplicated getPowerTier()
 3. **Coordination System** - Agent infrastructure established
 
@@ -53,8 +53,8 @@ Deploy Manager, Monetization, and Security agents. Implement auth security, 4-ti
 - **KingdomDirectory.tsx**: 878 lines (was 1191)
 - **Build status**: Compiles successfully with warnings
 - **Test command**: `npm test -- --watchAll=false`
-- **Netlify site ID**: `716ed1c2-eb00-4842-8781-c37fb2823eb8` (ks-atlas)
-- **API base URL**: `http://127.0.0.1:8000` (local) or Railway/Render (prod)
+- **Hosting**: Cloudflare Pages (auto-deploys from main)
+- **API base URL**: `http://127.0.0.1:8000` (local) or `https://kingshot-atlas.onrender.com` (prod)
 
 ---
 
@@ -95,7 +95,7 @@ Deploy Manager, Monetization, and Security agents. Implement auth security, 4-ti
 ```bash
 npm run build                          # ✅ Success
 npm test -- --watchAll=false           # 13 pass, 1 fail
-npx netlify-cli deploy --prod --dir=build  # ✅ Deployed
+git push origin main  # ✅ Auto-deploys via Cloudflare Pages
 wc -l src/pages/KingdomDirectory.tsx   # 878 lines
 ```
 
@@ -124,7 +124,7 @@ wc -l src/pages/KingdomDirectory.tsx   # 878 lines
    - Backend: Add `page` and `limit` params to `/api/kingdoms`
    - Frontend: Update `apiService.getKingdoms()` to use pagination
 3. **Task 5**: Create `.github/workflows/ci.yml` for lint + test on PR
-4. Final deploy to Netlify
+4. Final deploy via git push to main
 5. Provide 3 new suggestions to user
 
 ---

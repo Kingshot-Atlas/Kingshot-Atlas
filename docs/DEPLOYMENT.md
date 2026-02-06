@@ -11,12 +11,12 @@
 
 | Component | Service | Cost |
 |-----------|---------|------|
-| Frontend | Netlify | $0 (free tier) |
-| Backend API | Railway or Render | $5-7/mo |
+| Frontend | Cloudflare Pages | $0 (free tier) |
+| Backend API | Render | $0 (free tier) |
 | Database | Supabase PostgreSQL | $0 (free tier) |
 | Domain | ks-atlas.com | ~$12/yr |
 
-**Total: ~$5-7/month + domain**
+**Total: ~$1/month + domain** (all free tiers)
 
 ---
 
@@ -63,30 +63,9 @@ CREATE POLICY "Users can insert own profile" ON profiles FOR INSERT WITH CHECK (
 
 ---
 
-## 2. Deploy Backend to Railway
+## 2. Deploy Backend to Render
 
-### Option A: Railway (Recommended)
-
-1. **Create Railway account** at [railway.app](https://railway.app)
-
-2. **Connect GitHub repo**
-   - New Project → Deploy from GitHub
-   - Select your repo
-   - Set root directory to `apps/api`
-
-3. **Set environment variables**
-   ```
-   DATABASE_URL=postgresql://postgres:[PASSWORD]@db.xxx.supabase.co:5432/postgres
-   SECRET_KEY=<generate with: openssl rand -hex 32>
-   ENVIRONMENT=production
-   ALLOWED_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
-   ```
-
-4. **Deploy**
-   - Railway auto-detects Python and uses the Procfile
-   - Your API will be at: `https://your-app.railway.app`
-
-### Option B: Render
+**Current production:** https://kingshot-atlas.onrender.com
 
 1. **Create Render account** at [render.com](https://render.com)
 
@@ -96,70 +75,74 @@ CREATE POLICY "Users can insert own profile" ON profiles FOR INSERT WITH CHECK (
    - Build command: `pip install -r requirements.txt`
    - Start command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
 
-3. **Set environment variables** (same as Railway)
+3. **Set environment variables**
+   ```
+   SECRET_KEY=<generate with: openssl rand -hex 32>
+   ENVIRONMENT=production
+   ALLOWED_ORIGINS=https://ks-atlas.com,https://www.ks-atlas.com,https://ks-atlas.pages.dev
+   SUPABASE_URL=https://xxx.supabase.co
+   SUPABASE_ANON_KEY=your-anon-key
+   SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+   STRIPE_SECRET_KEY=your-stripe-key
+   STRIPE_WEBHOOK_SECRET=your-webhook-secret
+   ```
 
 4. **Deploy**
+   - Render auto-deploys from `main` branch
    - Your API will be at: `https://your-app.onrender.com`
+
+> **Note:** Render free tier sleeps after 15 min of inactivity. Use UptimeRobot to keep it awake.
 
 ---
 
-## 3. Deploy Frontend to Netlify
+## 3. Deploy Frontend to Cloudflare Pages
 
-### ⚠️ CRITICAL: Correct Netlify Site Configuration
+The frontend auto-deploys from `main` branch via Cloudflare Pages.
 
-There are TWO Netlify sites - only deploy to the correct one:
+### Project Configuration
 
-| Site Name | Site ID | Custom Domain | Status |
-|-----------|---------|---------------|--------|
-| **ks-atlas** | `716ed1c2-eb00-4842-8781-c37fb2823eb8` | ks-atlas.com | ✅ USE THIS ONE |
-| kingshot-atlas | `48267beb-2840-44b1-bedb-39d6b2defcd4` | (none) | ❌ DO NOT USE |
+| Property | Value |
+|----------|-------|
+| **Project Name** | `ks-atlas` |
+| **Production URL** | `https://ks-atlas.com` |
+| **Pages URL** | `https://ks-atlas.pages.dev` |
+| **Framework Preset** | Vite |
+| **Build Command** | `npm run build` |
+| **Build Output** | `dist` |
+| **Root Directory** | `apps/web` |
 
-### Verify Correct Site Before Deploying
-
-```bash
-cd apps/web
-npx netlify-cli status
-# Should show: Current project: ks-atlas
-```
-
-If linked to wrong site, fix with:
-```bash
-npx netlify-cli unlink
-npx netlify-cli link --id 716ed1c2-eb00-4842-8781-c37fb2823eb8
-```
-
-### Deploy Commands
+### Deploy Process
 
 ```bash
+# Push to main triggers auto-deploy
+git push origin main
+
+# Or build locally first to verify
 cd apps/web
 npm run build
-npx netlify-cli deploy --prod --dir=build
 ```
 
-### Environment Variables (Netlify Dashboard)
+### Environment Variables (Cloudflare Dashboard)
    ```
-   REACT_APP_API_URL=https://your-api.railway.app
-   REACT_APP_SUPABASE_URL=https://xxx.supabase.co
-   REACT_APP_SUPABASE_ANON_KEY=your-anon-key
-   REACT_APP_ENVIRONMENT=production
+   NODE_VERSION=20
+   VITE_API_URL=https://kingshot-atlas.onrender.com
+   VITE_SUPABASE_URL=https://xxx.supabase.co
+   VITE_SUPABASE_ANON_KEY=your-anon-key
    ```
 
 ---
 
 ## 4. Custom Domain Setup
 
-### For Netlify (Frontend) - CONFIGURED
+### For Cloudflare Pages (Frontend) - CONFIGURED
 
-**Production domain:** `www.ks-atlas.com`
+**Production domain:** `ks-atlas.com`
 
-1. Go to Netlify Dashboard → Domain settings
-2. Custom domain `ks-atlas.com` is configured
-3. DNS configured:
-   - CNAME: `www` → `kingshot-atlas.netlify.app`
-   - A record: `@` → Netlify IP
-4. HTTPS enabled (Let's Encrypt)
+1. Domain managed via Cloudflare DNS
+2. Custom domain `ks-atlas.com` configured in Cloudflare Pages
+3. HTTPS enabled automatically
 
-### For Railway/Render (API)
+### For Render (API)
 
 1. Go to Settings → Domains
 2. Add custom domain (e.g., `api.ks-atlas.com`)
@@ -184,7 +167,7 @@ npx netlify-cli deploy --prod --dir=build
 
 ## Environment Variables Reference
 
-### Backend (Railway/Render)
+### Backend (Render)
 
 | Variable | Required | Example |
 |----------|----------|---------|
@@ -194,15 +177,14 @@ npx netlify-cli deploy --prod --dir=build
 | `ALLOWED_ORIGINS` | Yes | `https://yourdomain.com` |
 | `SENTRY_DSN` | No | Sentry DSN |
 
-### Frontend (Netlify)
+### Frontend (Cloudflare Pages)
 
 | Variable | Required | Example |
 |----------|----------|---------|
-| `REACT_APP_API_URL` | Yes | `https://api.yourdomain.com` |
-| `REACT_APP_SUPABASE_URL` | Yes | `https://xxx.supabase.co` |
-| `REACT_APP_SUPABASE_ANON_KEY` | Yes | Supabase anon key |
-| `REACT_APP_SENTRY_DSN` | No | Sentry DSN |
-| `REACT_APP_ENVIRONMENT` | No | `production` |
+| `VITE_API_URL` | Yes | `https://kingshot-atlas.onrender.com` |
+| `VITE_SUPABASE_URL` | Yes | `https://xxx.supabase.co` |
+| `VITE_SUPABASE_ANON_KEY` | Yes | Supabase anon key |
+| `VITE_SENTRY_DSN` | No | Sentry DSN |
 
 ---
 
@@ -230,5 +212,5 @@ npx netlify-cli deploy --prod --dir=build
 - 500MB database
 
 **When to upgrade:**
-- Traffic > 1,000 daily users → Upgrade Railway to Pro ($20/mo)
+- Traffic > 1,000 daily users → Upgrade Render to Pro ($7/mo)
 - Database > 500MB → Upgrade Supabase to Pro ($25/mo)

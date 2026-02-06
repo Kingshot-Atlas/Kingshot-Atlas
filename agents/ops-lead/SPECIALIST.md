@@ -65,7 +65,7 @@ Before starting any work, verify alignment with `/docs/VISION.md`:
 - GitHub Actions workflow configuration
 - Build pipeline optimization
 - Automated testing integration
-- Deployment automation (Netlify, Vercel, Railway)
+- Deployment automation (Cloudflare Pages, Render)
 - Environment management (dev, staging, prod)
 - Rollback strategies
 - Feature flags
@@ -108,8 +108,7 @@ Before starting any work, verify alignment with `/docs/VISION.md`:
 ### I Own ✅
 ```
 /.github/workflows/        → CI/CD pipelines
-/netlify.toml             → Netlify configuration
-/apps/web/public/         → Static assets, robots.txt, sitemap
+/apps/web/public/         → Static assets, robots.txt, sitemap, _headers, _redirects
 Meta tags and SEO         → All pages
 Analytics implementation  → Tracking code, events
 Monitoring setup          → Sentry, uptime checks
@@ -134,31 +133,32 @@ Monitoring setup          → Sentry, uptime checks
 ### Production URLs
 - **Primary:** https://ks-atlas.com
 - **www redirect:** https://www.ks-atlas.com → https://ks-atlas.com
-- **Netlify:** https://ks-atlas.netlify.app
+- **Cloudflare Pages:** https://ks-atlas.pages.dev
 
-### Netlify Configuration
+### Cloudflare Pages Configuration
 ```
-Site Name: ks-atlas
-Site ID: 716ed1c2-eb00-4842-8781-c37fb2823eb8
+Project Name: ks-atlas
 Custom Domain: ks-atlas.com
-
-⚠️ WARNING: DO NOT deploy to old site "kingshot-atlas"
-   (ID: 48267beb-2840-44b1-bedb-39d6b2defcd4)
+Framework Preset: Vite
+Build Command: npm run build
+Build Output: dist
+Root Directory: apps/web
 ```
 
-### Deployment Commands
+### Deployment
 ```bash
-# From /apps/web directory
-npm run build              # Build locally first
-npx netlify-cli status     # Verify correct site
-npx netlify-cli deploy --prod --dir=build  # Deploy to production
+# Push to main triggers auto-deploy
+git push origin main
+
+# Or build locally first to verify
+cd apps/web && npm run build
 ```
 
 ### CORS Origins
 The API must allow:
 - `https://ks-atlas.com`
 - `https://www.ks-atlas.com`
-- `https://ks-atlas.netlify.app`
+- `https://ks-atlas.pages.dev`
 - `http://localhost:3000` (development)
 
 ---
@@ -174,9 +174,9 @@ The API must allow:
    - Test locally if significant changes
 
 2. DEPLOY
-   - Verify linked to correct Netlify site
-   - Run: npx netlify-cli deploy --prod --dir=build
-   - Wait for deployment to complete
+   - Push to main: git push origin main
+   - Cloudflare Pages auto-builds and deploys
+   - Wait for deployment to complete (~2-3 min)
 
 3. POST-DEPLOY
    - Verify site is accessible
@@ -185,7 +185,7 @@ The API must allow:
    - Log deployment in ACTIVITY_LOG.md
 
 4. IF ISSUES
-   - Rollback via Netlify dashboard
+   - Rollback via Cloudflare Pages dashboard or git revert
    - Diagnose issue
    - Fix and redeploy
 ```
@@ -312,8 +312,8 @@ The API must allow:
 ## Tools & Services
 
 ### Hosting & Deployment
-- **Frontend:** Netlify
-- **API:** Railway/Render (if applicable)
+- **Frontend:** Cloudflare Pages
+- **API:** Render
 - **DNS:** Managed via domain registrar
 
 ### Monitoring
@@ -417,8 +417,8 @@ The API must allow:
 **LOCAL TESTING ONLY BY DEFAULT**
 
 - Always run `npm run build` and test locally first
-- Do NOT deploy to Netlify/Vercel unless explicitly instructed
-- When instructed to deploy, verify correct site (Site ID: `716ed1c2-eb00-4842-8781-c37fb2823eb8`)
+- Do NOT use Windsurf's deploy_web_app tool
+- When instructed to deploy, push to main branch (triggers Cloudflare Pages auto-deploy)
 
 ---
 

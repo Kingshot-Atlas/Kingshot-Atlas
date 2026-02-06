@@ -27,8 +27,8 @@ export const AnalyticsOverview: React.FC<AnalyticsOverviewProps> = ({
       {/* Key Metrics */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
         {[
-          { label: 'Total Events', value: analytics.totalVisits.toLocaleString(), color: '#22d3ee', icon: '👁️' },
-          { label: 'Sessions (local)', value: analytics.uniqueVisitors.toLocaleString(), color: '#a855f7', icon: '👤' },
+          { label: analytics.bounceRate ? 'Visitors (30d)' : 'Total Events', value: (analytics.bounceRate ? analytics.uniqueVisitors : analytics.totalVisits).toLocaleString(), color: '#22d3ee', icon: '👁️' },
+          { label: analytics.bounceRate ? 'Page Views (30d)' : 'Page Views', value: analytics.pageViews.toLocaleString(), color: '#a855f7', icon: '�' },
           { label: 'Total Users', value: analytics.userStats.total.toLocaleString(), color: '#22c55e', icon: '👥' },
           { label: 'Monthly Revenue', value: `$${analytics.revenue.monthly.toFixed(2)}`, color: '#fbbf24', icon: '💰' },
         ].map((metric, i) => (

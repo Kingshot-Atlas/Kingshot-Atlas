@@ -1,6 +1,6 @@
 # Features Implemented
 
-**Last Updated:** 2026-01-31  
+**Last Updated:** 2026-02-06  
 **Purpose:** Prevent duplicate work by tracking what's already built.
 
 ---
@@ -26,7 +26,7 @@
 | Kingdom Profile | `/kingdom/:id` | ✅ Live | Product | Full kingdom details, stats, history |
 | Compare Kingdoms | `/compare` | ✅ Live | Product | Side-by-side comparison with radar charts |
 | Tools | `/tools` | ✅ Live | Product | Score simulator, event calendar |
-| Leaderboards | `/leaderboards` | ✅ Live | Product | Multi-category rankings |
+| Rankings | `/rankings` | ✅ Live | Product | Multi-category rankings (renamed from /leaderboards 2026-02-06) |
 | User Profile | `/profile` | ✅ Live | Product | User settings, linked accounts, achievements |
 | Public Profiles | `/profile/:userId` | ✅ Live | Product | View other users' profiles |
 | Player Directory | `/players` | ✅ Live | Product | Browse Atlas users |
@@ -66,7 +66,7 @@
 | Kingshot Player Linking | ✅ Live | Product | `LinkKingshotAccount.tsx` - link to in-game ID |
 | Linked Account Card Redesign | ✅ Live | Product | Table layout with tier-based username colors (2026-01-31) |
 | Favorites Cloud Persistence | ✅ Live | Product | Supabase `user_data` table sync with retry logic (3 attempts, exponential backoff), error toasts (2026-02-06) |
-| Favorites Header Badge | ✅ Live | Product | `FavoritesBadge.tsx` - heart icon with count in header, links to `/?favorites=true` (2026-02-06) |
+| Favorites Header Badge | ❌ Removed | Product | `FavoritesBadge.tsx` - removed from header (2026-02-06). Component still exists but no longer displayed. |
 | FavoritesContext (Cross-Page) | ✅ Live | Product | `FavoritesContext.tsx` - reactive favorites across all pages, Supabase source of truth, KingdomProfile toggle (ADR-013, 2026-02-06) |
 | Favorites = Score Notifications | ✅ Live | Product | Follow feature removed, score change notifications now trigger for favorited kingdoms. Heart icon on Kingdom Cards (was star). `FollowKingdomButton.tsx` deleted (2026-02-06) |
 | NotificationBell Improvements | ✅ Live | Product | Dedup guard on real-time handler, notification grouping (same type+title within 1hr), "You're all caught up" empty state with last-checked timestamp, FavoritesBadge added to mobile header. Dead `useScoreChangeNotifications.ts` removed (2026-02-06) |
@@ -136,7 +136,7 @@
 | Reputation Service | ✅ Live | Platform | `reputationService.ts` user trust scores |
 | KvK Correction Service | ✅ Live | Platform | `kvkCorrectionService.ts` - Supabase-backed corrections |
 | KvK History Service | ✅ Live | Platform | `kvkHistoryService.ts` - Supabase + CSV fallback |
-| KvK Data Migration | ✅ Live | Platform | 5042/5042 records in Supabase (100% parity) + indexes + RLS |
+| KvK Data Migration | ✅ Live | Platform | All records in Supabase (continuously growing) + indexes + RLS |
 | KvK Data Validation | ✅ Live | Platform | `scripts/validate-kvk-data.js` - CSV integrity tests |
 | KvK Data Sync | ✅ Live | Platform | `scripts/sync-kvk-data.js` - Future update utility |
 | Data Source Stats | ✅ Live | Platform | `DataSourceStats.tsx` - Admin parity dashboard |
@@ -154,6 +154,10 @@
 | Community Reviews v3 (Enhanced) | ✅ Live | Product | Sort by Most Helpful, rating breakdown stats, Top Reviewer badge (5+ helpful), review activity on Profile page (2026-02-05) |
 | Community Reviews v4 (Social) | ✅ Live | Product | Verified Reviewer badge (home kingdom), Featured Review display (most helpful highlighted), reply functionality with Official badge for recruiters, notifications for helpful votes/replies (2026-02-05) |
 | Kingdom Ranking History | ✅ Live | Product | Collapsible chart showing rank over time from score_history, purple color scheme, inverted Y-axis (2026-02-05) |
+| Rank Movers Table Layout | ✅ Live | Design | Biggest Climbers/Fallers redesigned as proper tables with centralized headers, columns (except Kingdom Name left-aligned), full kingdom names, Old Rank → New Rank with arrow, Change column. Mobile-optimized (2026-02-06) |
+| Stat Type Styling System | ✅ Live | Design | `statTypeStyles` in styles.ts — SINGLE SOURCE OF TRUTH for all stat type colors & emojis (Atlas Score=💎cyan, Prep=🛡️yellow, Battle=⚔️orange, Domination=👑green, Comeback=💪blue, Reversal=🔄purple, Invasion=💀red). All ranking cards updated (2026-02-06) |
+| Rankings Global Controls | ✅ Live | Product | Top N + Experience controls moved to top of page, affect ALL cards including Rank Movers. Changed to Top 5/10/25 (default 5). Bug fix: Rank Movers now filtered by both controls via filteredRankMovers (2026-02-06) |
+| Experience Filter Redesign | ✅ Live | Product | Replaced dropdown with named preset chips (All, Rookies 1-3, Veterans 4-6, Elite 7-9, Legends 10+, Custom) + custom KvK range with min/max steppers. "Exactly N KvKs" label when min=max. Mobile-optimized 44px touch targets (2026-02-06) |
 | Review 200-Char Limit | ✅ Live | Product | Frontend maxLength + service validation + DB CHECK constraint, character counter (gray→yellow→red), preview panel (2026-02-05) |
 | Review Rate Limiting | ✅ Live | Product | Max 3 reviews per user per day, enforced in reviewService.createReview() (2026-02-05) |
 | Review Report System | ✅ Live | Product + Platform | review_reports table with RLS, flag button on reviews, report modal (reason + details), success toast, unique per user/review (2026-02-05) |
@@ -221,7 +225,7 @@
 | GZip Compression | ✅ Live | Platform | Response compression |
 | CSP Headers | ✅ Live | Platform | Security headers |
 | Sentry Integration | ✅ Live | Platform | Error monitoring |
-| Netlify Deployment | ✅ Live | Ops | Auto-deploy from main |
+| Cloudflare Pages Deployment | ✅ Live | Ops | Auto-deploy from main (migrated from Netlify 2026-02-01) |
 | Custom Domain | ✅ Live | Ops | ks-atlas.com |
 | React Query Caching | ✅ Live | Product | `queryClient.ts` |
 | IndexedDB Cache | ✅ Live | Product | `indexedDBCache.ts` offline support |
@@ -229,7 +233,7 @@
 | Analytics | ✅ Live | Ops | `analyticsService.ts`, Plausible |
 | Dynamic Meta Tags | ✅ Live | Ops | `useMetaTags.ts` - PAGE_META_TAGS for all pages with SEO keywords (2026-02-05) |
 | Structured Data | ✅ Live | Ops | `useStructuredData.ts` - JSON-LD for FAQ, Breadcrumbs (2026-02-05) |
-| Expanded Sitemap | ✅ Live | Ops | 1211 URLs in sitemap.xml (1190 kingdoms + 11 seasons + 10 static) (2026-02-05) |
+| Expanded Sitemap | ✅ Live | Ops | Dynamic sitemap.xml (all kingdoms + seasons + static pages) (2026-02-05) |
 | SEO Schema Markup | ✅ Live | Ops | WebApplication, Organization, WebSite w/ SearchAction in index.html (2026-02-05) |
 | SEO Keyword Optimization | ✅ Live | Ops | Title tags, meta descriptions optimized for "Kingshot mobile game" (2026-02-05) |
 | Prerendering Strategy | 📄 Documented | Ops | `/docs/SEO_PRERENDERING_STRATEGY.md` - Cloudflare Workers roadmap (2026-02-05) |
@@ -263,7 +267,7 @@
 |---------|--------|------|-------|-------|
 | Agent Registry | ✅ Live | 2026-01-28 | Director | `/agents/AGENT_REGISTRY.md` |
 | Vision Document | ✅ Live | 2026-01-29 | Director | `/docs/VISION.md` |
-| Auto-Router Workflow | ✅ Live | 2026-01-29 | Director | `/.windsurf/workflows/work.md` |
+| Auto-Router Workflow | ✅ Live | 2026-01-29 | Director | `/.windsurf/workflows/task.md` (renamed from work.md) |
 | Pre/Post Task Protocols | ✅ Live | 2026-01-29 | Director | Vision alignment, duplicate checks |
 | Features Implemented Registry | ✅ Live | 2026-01-29 | Director | This file |
 | Decisions Record (ADR) | ✅ Live | 2026-01-29 | Director | `/agents/project-instances/kingshot-atlas/DECISIONS.md` |

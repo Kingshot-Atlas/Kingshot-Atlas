@@ -8,7 +8,7 @@ import { LeaderboardSkeleton } from '../components/Skeleton';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { usePremium } from '../contexts/PremiumContext';
-import { neonGlow, FONT_DISPLAY } from '../utils/styles';
+import { neonGlow, FONT_DISPLAY, statTypeStyles } from '../utils/styles';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { scoreHistoryService, RankMover } from '../services/scoreHistoryService';
@@ -18,8 +18,10 @@ const Leaderboards: React.FC = () => {
   useMetaTags(PAGE_META_TAGS.leaderboards);
   const [kingdoms, setKingdoms] = useState<Kingdom[]>([]);
   const [loading, setLoading] = useState(true);
-  const [displayCount, setDisplayCount] = useState<10 | 20 | 50>(10);
+  const [displayCount, setDisplayCount] = useState<5 | 10 | 25>(5);
   const [kvkFilter, setKvkFilter] = useState<string>('all');
+  const [customKvkMin, setCustomKvkMin] = useState<number>(1);
+  const [customKvkMax, setCustomKvkMax] = useState<number>(15);
   const [rankMovers, setRankMovers] = useState<{ climbers: RankMover[]; fallers: RankMover[] } | null>(null);
   const isMobile = useIsMobile();
   const { tier, isPro } = usePremium();
@@ -44,7 +46,7 @@ const Leaderboards: React.FC = () => {
     try {
       const [data, movers] = await Promise.all([
         apiService.getKingdoms(),
-        scoreHistoryService.getRankMovers(10)
+        scoreHistoryService.getRankMovers()
       ]);
       setKingdoms(data);
       setRankMovers(movers);
@@ -55,17 +57,43 @@ const Leaderboards: React.FC = () => {
     }
   };
 
+  // Resolve effective KvK min/max from filter mode
+  const kvkRange = useMemo(() => {
+    if (kvkFilter === 'all') return { min: 0, max: Infinity };
+    if (kvkFilter === 'custom') return { min: customKvkMin, max: customKvkMax };
+    const [minStr, maxStr] = kvkFilter.split('-');
+    return { min: Number(minStr) || 0, max: Number(maxStr) || Infinity };
+  }, [kvkFilter, customKvkMin, customKvkMax]);
+
   // Filter kingdoms by KvK count
   const filteredKingdoms = useMemo(() => {
     if (kvkFilter === 'all') return kingdoms;
-    const [minStr, maxStr] = kvkFilter.split('-');
-    const min = Number(minStr) || 0;
-    const max = Number(maxStr) || Infinity;
     return kingdoms.filter(k => {
       const kvkCount = k.total_kvks || (k.recent_kvks?.length || 0);
-      return kvkCount >= min && kvkCount <= max;
+      return kvkCount >= kvkRange.min && kvkCount <= kvkRange.max;
     });
-  }, [kingdoms, kvkFilter]);
+  }, [kingdoms, kvkFilter, kvkRange]);
+
+  // Build set of filtered kingdom numbers for rank movers filtering
+  const filteredKingdomNumbers = useMemo(() => {
+    if (kvkFilter === 'all') return null; // null = no filter
+    return new Set(filteredKingdoms.map(k => k.kingdom_number));
+  }, [filteredKingdoms, kvkFilter]);
+
+  // Filtered rank movers — respect both kvkFilter and displayCount
+  const filteredRankMovers = useMemo(() => {
+    if (!rankMovers) return null;
+    const filterMovers = (movers: RankMover[]) => {
+      const filtered = filteredKingdomNumbers
+        ? movers.filter(m => filteredKingdomNumbers.has(m.kingdom_number))
+        : movers;
+      return filtered.slice(0, displayCount);
+    };
+    return {
+      climbers: filterMovers(rankMovers.climbers),
+      fallers: filterMovers(rankMovers.fallers),
+    };
+  }, [rankMovers, filteredKingdomNumbers, displayCount]);
 
   // Calculate stats for each kingdom
   const getKingdomStats = (kingdom: Kingdom) => {
@@ -410,42 +438,43 @@ const Leaderboards: React.FC = () => {
   // Row 3: Match Outcomes (Historical results)
   // Row 4: Invasions (Defeats)
   
-  // Performance Rankings (Overall & Win Rates)
+  // Performance Rankings (Overall & Win Rates) — uses statTypeStyles for colors/emojis
   const performanceRankings = [
-    { title: 'Atlas Score', icon: '🏆', color: '#22d3ee', data: atlasScoreRanking, getValue: (k: KingdomWithStats) => k.overall_score.toFixed(2) },
-    { title: 'Prep Win Rate', icon: '📊', color: '#10b981', data: prepWinRateRanking, getValue: (k: KingdomWithStats) => `${(k.prep_win_rate * 100).toFixed(0)}%` },
-    { title: 'Battle Win Rate', icon: '📈', color: '#8b5cf6', data: battleWinRateRanking, getValue: (k: KingdomWithStats) => `${(k.battle_win_rate * 100).toFixed(0)}%` },
+    { title: 'Atlas Score', icon: statTypeStyles.atlasScore.emoji, color: statTypeStyles.atlasScore.color, data: atlasScoreRanking, getValue: (k: KingdomWithStats) => k.overall_score.toFixed(2) },
+    { title: 'Prep Win Rate', icon: statTypeStyles.prepPhase.emoji, color: statTypeStyles.prepPhase.color, data: prepWinRateRanking, getValue: (k: KingdomWithStats) => `${(k.prep_win_rate * 100).toFixed(0)}%` },
+    { title: 'Battle Win Rate', icon: statTypeStyles.battlePhase.emoji, color: statTypeStyles.battlePhase.color, data: battleWinRateRanking, getValue: (k: KingdomWithStats) => `${(k.battle_win_rate * 100).toFixed(0)}%` },
   ];
   
   // Current Momentum Rankings (Current Streaks)
   const momentumRankings = [
-    { title: 'Prep Win Streak', icon: '🛡️', color: '#eab308', data: prepStreakRanking, getValue: (k: KingdomWithStats) => `${k.prepStreak}W` },
-    { title: 'Battle Win Streak', icon: '⚔️', color: '#f97316', data: battleStreakRanking, getValue: (k: KingdomWithStats) => `${k.battleStreak}W` },
-    { title: 'Domination Streak', icon: '👑', color: '#a855f7', data: dominationStreakRanking, getValue: (k: KingdomWithStats) => `${k.dominationStreak}W` },
+    { title: 'Prep Win Streak', icon: statTypeStyles.prepPhase.emoji, color: statTypeStyles.prepPhase.color, data: prepStreakRanking, getValue: (k: KingdomWithStats) => `${k.prepStreak}W` },
+    { title: 'Battle Win Streak', icon: statTypeStyles.battlePhase.emoji, color: statTypeStyles.battlePhase.color, data: battleStreakRanking, getValue: (k: KingdomWithStats) => `${k.battleStreak}W` },
+    { title: 'Domination Streak', icon: statTypeStyles.domination.emoji, color: statTypeStyles.domination.color, data: dominationStreakRanking, getValue: (k: KingdomWithStats) => `${k.dominationStreak}W` },
   ];
   
   // Record Rankings (All-Time Best Streaks)
   const recordRankings = [
-    { title: 'Prep Streak Record', icon: '🏅', color: '#fbbf24', data: prepBestStreakRanking, getValue: (k: KingdomWithStats) => `${k.prep_best_streak ?? 0}W` },
-    { title: 'Battle Streak Record', icon: '🎖️', color: '#f59e0b', data: battleBestStreakRanking, getValue: (k: KingdomWithStats) => `${k.battle_best_streak ?? 0}W` },
-    { title: 'Domination Streak Record', icon: '💎', color: '#c084fc', data: bestDominationStreakRanking, getValue: (k: KingdomWithStats) => `${k.bestDominationStreak}W` },
+    { title: 'Prep Streak Record', icon: statTypeStyles.prepPhase.emoji, color: statTypeStyles.prepPhase.color, data: prepBestStreakRanking, getValue: (k: KingdomWithStats) => `${k.prep_best_streak ?? 0}W` },
+    { title: 'Battle Streak Record', icon: statTypeStyles.battlePhase.emoji, color: statTypeStyles.battlePhase.color, data: battleBestStreakRanking, getValue: (k: KingdomWithStats) => `${k.battle_best_streak ?? 0}W` },
+    { title: 'Domination Streak Record', icon: statTypeStyles.domination.emoji, color: statTypeStyles.domination.color, data: bestDominationStreakRanking, getValue: (k: KingdomWithStats) => `${k.bestDominationStreak}W` },
   ];
   
   // Match Outcome Rankings (Historical)
   const outcomeRankings = [
-    { title: 'Dominations', icon: '👑', color: '#22c55e', data: dominationsRanking, getValue: (k: KingdomWithStats) => `${k.dominations}` },
-    { title: 'Comebacks', icon: '💪', color: '#3b82f6', data: comebacksRanking, getValue: (k: KingdomWithStats) => `${k.comebacks}` },
-    { title: 'Reversals', icon: '🔄', color: '#a855f7', data: reversalsRanking, getValue: (k: KingdomWithStats) => `${k.reversals}` },
+    { title: 'Dominations', icon: statTypeStyles.domination.emoji, color: statTypeStyles.domination.color, data: dominationsRanking, getValue: (k: KingdomWithStats) => `${k.dominations}` },
+    { title: 'Comebacks', icon: statTypeStyles.comeback.emoji, color: statTypeStyles.comeback.color, data: comebacksRanking, getValue: (k: KingdomWithStats) => `${k.comebacks}` },
+    { title: 'Reversals', icon: statTypeStyles.reversal.emoji, color: statTypeStyles.reversal.color, data: reversalsRanking, getValue: (k: KingdomWithStats) => `${k.reversals}` },
   ];
   
-  const invasionRanking = { title: 'Invasions', icon: '💀', color: '#ef4444', data: invasionsRanking, getValue: (k: KingdomWithStats) => `${k.invasions}` };
+  const invasionRanking = { title: 'Invasions', icon: statTypeStyles.invasion.emoji, color: statTypeStyles.invasion.color, data: invasionsRanking, getValue: (k: KingdomWithStats) => `${k.invasions}` };
 
-  const kvkFilterOptions = [
-    { value: 'all', label: 'All KvKs' },
-    { value: '1-3', label: '1-3 KvKs' },
-    { value: '4-6', label: '4-6 KvKs' },
-    { value: '7-9', label: '7-9 KvKs' },
-    { value: '10-99', label: '10+ KvKs' },
+  const kvkPresets = [
+    { value: 'all', label: 'All' },
+    { value: '1-3', label: 'Rookies', sublabel: '1-3' },
+    { value: '4-6', label: 'Veterans', sublabel: '4-6' },
+    { value: '7-9', label: 'Elite', sublabel: '7-9' },
+    { value: '10-99', label: 'Legends', sublabel: '10+' },
+    { value: 'custom', label: 'Custom' },
   ];
 
   return (
@@ -493,167 +522,7 @@ const Leaderboards: React.FC = () => {
           </div>
         ) : (
           <>
-            {/* Biggest Climbers & Fallers */}
-            {rankMovers && (
-              <div style={{ marginBottom: '1.5rem' }}>
-                <h2 style={{ 
-                  color: '#fff', 
-                  fontSize: isMobile ? '0.9rem' : '1rem', 
-                  marginBottom: '0.75rem',
-                  paddingLeft: '0.5rem',
-                  borderLeft: '3px solid #a855f7',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem'
-                }}>
-                  Rank Movers
-                  {rankMovers.climbers[0] && (
-                    <span style={{ color: '#6b7280', fontSize: isMobile ? '0.7rem' : '0.75rem', fontWeight: '400' }}>
-                      KvK #{rankMovers.climbers[0].prev_kvk} → #{rankMovers.climbers[0].curr_kvk}
-                    </span>
-                  )}
-                </h2>
-                <div style={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', 
-                  gap: '1rem'
-                }}>
-                  {/* Biggest Climbers */}
-                  <div style={{ 
-                    backgroundColor: '#131318', 
-                    borderRadius: '12px', 
-                    border: '1px solid #2a2a2a',
-                    overflow: 'hidden'
-                  }}>
-                    <div style={{ 
-                      padding: isMobile ? '0.75rem 1rem' : '0.85rem 1rem', 
-                      borderBottom: '1px solid #2a2a2a',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '0.5rem'
-                    }}>
-                      <span style={{ fontSize: isMobile ? '1rem' : '1.1rem' }}>🚀</span>
-                      <h3 style={{ color: '#fff', fontSize: isMobile ? '0.85rem' : '0.9rem', fontWeight: '600', margin: 0 }}>Biggest Climbers</h3>
-                      <span style={{ fontSize: isMobile ? '1rem' : '1.1rem' }}>🚀</span>
-                    </div>
-                    <div style={{ padding: isMobile ? '0.4rem' : '0.5rem' }}>
-                      {rankMovers.climbers.map((mover, index) => (
-                        <Link 
-                          key={mover.kingdom_number}
-                          to={`/kingdom/${mover.kingdom_number}`}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            padding: isMobile ? '0.4rem 0.6rem' : '0.5rem 0.75rem',
-                            borderRadius: '6px',
-                            textDecoration: 'none',
-                            transition: 'background-color 0.2s',
-                            backgroundColor: index < 3 ? '#22c55e08' : 'transparent'
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'}
-                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = index < 3 ? '#22c55e08' : 'transparent'}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '0.4rem' : '0.5rem' }}>
-                            <span style={{ 
-                              ...getRankStyle(index + 1), 
-                              minWidth: isMobile ? '22px' : '26px',
-                              fontSize: isMobile ? '0.75rem' : '0.8rem'
-                            }}>
-                              {getRankBadge(index + 1)}
-                            </span>
-                            <span style={{ color: '#fff', fontWeight: '500', fontSize: isMobile ? '0.75rem' : '0.8rem' }}>
-                              Kingdom {mover.kingdom_number}
-                            </span>
-                          </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <span style={{ color: '#6b7280', fontSize: isMobile ? '0.65rem' : '0.7rem' }}>
-                              #{mover.prev_rank} → #{mover.curr_rank}
-                            </span>
-                            <span style={{ 
-                              ...neonGlow('#22c55e'), 
-                              fontWeight: 'bold',
-                              fontSize: isMobile ? '0.8rem' : '0.85rem'
-                            }}>
-                              ▲{mover.rank_delta}
-                            </span>
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Biggest Fallers */}
-                  <div style={{ 
-                    backgroundColor: '#131318', 
-                    borderRadius: '12px', 
-                    border: '1px solid #2a2a2a',
-                    overflow: 'hidden'
-                  }}>
-                    <div style={{ 
-                      padding: isMobile ? '0.75rem 1rem' : '0.85rem 1rem', 
-                      borderBottom: '1px solid #2a2a2a',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '0.5rem'
-                    }}>
-                      <span style={{ fontSize: isMobile ? '1rem' : '1.1rem' }}>📉</span>
-                      <h3 style={{ color: '#fff', fontSize: isMobile ? '0.85rem' : '0.9rem', fontWeight: '600', margin: 0 }}>Biggest Fallers</h3>
-                      <span style={{ fontSize: isMobile ? '1rem' : '1.1rem' }}>📉</span>
-                    </div>
-                    <div style={{ padding: isMobile ? '0.4rem' : '0.5rem' }}>
-                      {rankMovers.fallers.map((mover, index) => (
-                        <Link 
-                          key={mover.kingdom_number}
-                          to={`/kingdom/${mover.kingdom_number}`}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            padding: isMobile ? '0.4rem 0.6rem' : '0.5rem 0.75rem',
-                            borderRadius: '6px',
-                            textDecoration: 'none',
-                            transition: 'background-color 0.2s',
-                            backgroundColor: index < 3 ? '#ef444408' : 'transparent'
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'}
-                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = index < 3 ? '#ef444408' : 'transparent'}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '0.4rem' : '0.5rem' }}>
-                            <span style={{ 
-                              ...getRankStyle(index + 1), 
-                              minWidth: isMobile ? '22px' : '26px',
-                              fontSize: isMobile ? '0.75rem' : '0.8rem'
-                            }}>
-                              {getRankBadge(index + 1)}
-                            </span>
-                            <span style={{ color: '#fff', fontWeight: '500', fontSize: isMobile ? '0.75rem' : '0.8rem' }}>
-                              Kingdom {mover.kingdom_number}
-                            </span>
-                          </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <span style={{ color: '#6b7280', fontSize: isMobile ? '0.65rem' : '0.7rem' }}>
-                              #{mover.prev_rank} → #{mover.curr_rank}
-                            </span>
-                            <span style={{ 
-                              ...neonGlow('#ef4444'), 
-                              fontWeight: 'bold',
-                              fontSize: isMobile ? '0.8rem' : '0.85rem'
-                            }}>
-                              ▼{Math.abs(mover.rank_delta)}
-                            </span>
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Controls row - below Rank Movers since they don't affect movers */}
+            {/* Global Controls — Top of page, affects all ranking cards */}
             <div style={{ 
               display: 'flex', 
               flexDirection: isMobile ? 'column' : 'row',
@@ -670,7 +539,7 @@ const Leaderboards: React.FC = () => {
                 border: '1px solid #2a2a2a',
                 overflow: 'hidden'
               }}>
-                {([10, 20, 50] as const).map((count) => (
+                {([5, 10, 25] as const).map((count) => (
                   <button
                     key={count}
                     onClick={() => { trackFeature('Leaderboard Display Count', { count }); setDisplayCount(count); }}
@@ -691,30 +560,348 @@ const Leaderboards: React.FC = () => {
                 ))}
               </div>
 
-              {/* KvK Experience filter */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ color: '#6b7280', fontSize: isMobile ? '0.75rem' : '0.8rem' }}>Experience:</span>
-                <select
-                  value={kvkFilter}
-                  onChange={(e) => setKvkFilter(e.target.value)}
-                  style={{
-                    padding: isMobile ? '0.6rem 0.75rem' : '0.5rem 0.75rem',
-                    minHeight: isMobile ? '44px' : 'auto',
-                    backgroundColor: '#131318',
-                    border: '1px solid #2a2a2a',
-                    borderRadius: '6px',
-                    color: '#fff',
-                    fontSize: isMobile ? '0.8rem' : '0.85rem',
-                    cursor: 'pointer',
-                    outline: 'none'
-                  }}
-                >
-                  {kvkFilterOptions.map(opt => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+              {/* KvK Experience filter — preset chips */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '0.4rem' : '0.5rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+                <span style={{ color: '#6b7280', fontSize: isMobile ? '0.72rem' : '0.8rem', marginRight: '0.15rem' }}>Experience:</span>
+                <div style={{ 
+                  display: 'flex', 
+                  backgroundColor: '#0a0a0a', 
+                  borderRadius: '8px', 
+                  border: '1px solid #2a2a2a',
+                  overflow: 'hidden'
+                }}>
+                  {kvkPresets.map((preset) => (
+                    <button
+                      key={preset.value}
+                      onClick={() => setKvkFilter(preset.value)}
+                      style={{
+                        padding: isMobile ? '0.5rem 0.55rem' : '0.45rem 0.8rem',
+                        minHeight: isMobile ? '44px' : 'auto',
+                        backgroundColor: kvkFilter === preset.value ? '#a855f7' : 'transparent',
+                        border: 'none',
+                        color: kvkFilter === preset.value ? '#fff' : '#6b7280',
+                        cursor: 'pointer',
+                        fontWeight: kvkFilter === preset.value ? '600' : '400',
+                        fontSize: isMobile ? '0.7rem' : '0.78rem',
+                        transition: 'all 0.2s',
+                        whiteSpace: 'nowrap',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        lineHeight: '1.2'
+                      }}
+                    >
+                      <span>{preset.label}</span>
+                      {preset.sublabel && (
+                        <span style={{ 
+                          fontSize: isMobile ? '0.58rem' : '0.62rem', 
+                          opacity: kvkFilter === preset.value ? 0.9 : 0.6 
+                        }}>
+                          {preset.sublabel} KvKs
+                        </span>
+                      )}
+                    </button>
                   ))}
-                </select>
+                </div>
               </div>
             </div>
+
+            {/* Custom KvK Range — only visible when "Custom" is selected */}
+            {kvkFilter === 'custom' && (
+              <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: isMobile ? '0.5rem' : '0.75rem',
+                marginBottom: '1.25rem',
+                marginTop: '-0.75rem',
+                flexWrap: 'wrap'
+              }}>
+                <span style={{ color: '#9ca3af', fontSize: isMobile ? '0.72rem' : '0.78rem' }}>KvKs from</span>
+                {/* Min stepper */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0' }}>
+                  <button
+                    onClick={() => setCustomKvkMin(Math.max(1, customKvkMin - 1))}
+                    style={{
+                      width: isMobile ? '36px' : '30px',
+                      height: isMobile ? '36px' : '30px',
+                      backgroundColor: '#131318',
+                      border: '1px solid #2a2a2a',
+                      borderRadius: '6px 0 0 6px',
+                      color: '#fff',
+                      fontSize: '1rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >−</button>
+                  <div style={{
+                    width: isMobile ? '36px' : '32px',
+                    height: isMobile ? '36px' : '30px',
+                    backgroundColor: '#1a1a1a',
+                    borderTop: '1px solid #2a2a2a',
+                    borderBottom: '1px solid #2a2a2a',
+                    color: '#a855f7',
+                    fontWeight: '700',
+                    fontSize: isMobile ? '0.85rem' : '0.82rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>{customKvkMin}</div>
+                  <button
+                    onClick={() => setCustomKvkMin(Math.min(customKvkMax, customKvkMin + 1))}
+                    style={{
+                      width: isMobile ? '36px' : '30px',
+                      height: isMobile ? '36px' : '30px',
+                      backgroundColor: '#131318',
+                      border: '1px solid #2a2a2a',
+                      borderRadius: '0 6px 6px 0',
+                      color: '#fff',
+                      fontSize: '1rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >+</button>
+                </div>
+                <span style={{ color: '#6b7280', fontSize: isMobile ? '0.75rem' : '0.8rem' }}>to</span>
+                {/* Max stepper */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0' }}>
+                  <button
+                    onClick={() => setCustomKvkMax(Math.max(customKvkMin, customKvkMax - 1))}
+                    style={{
+                      width: isMobile ? '36px' : '30px',
+                      height: isMobile ? '36px' : '30px',
+                      backgroundColor: '#131318',
+                      border: '1px solid #2a2a2a',
+                      borderRadius: '6px 0 0 6px',
+                      color: '#fff',
+                      fontSize: '1rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >−</button>
+                  <div style={{
+                    width: isMobile ? '36px' : '32px',
+                    height: isMobile ? '36px' : '30px',
+                    backgroundColor: '#1a1a1a',
+                    borderTop: '1px solid #2a2a2a',
+                    borderBottom: '1px solid #2a2a2a',
+                    color: '#a855f7',
+                    fontWeight: '700',
+                    fontSize: isMobile ? '0.85rem' : '0.82rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>{customKvkMax}</div>
+                  <button
+                    onClick={() => setCustomKvkMax(customKvkMax + 1)}
+                    style={{
+                      width: isMobile ? '36px' : '30px',
+                      height: isMobile ? '36px' : '30px',
+                      backgroundColor: '#131318',
+                      border: '1px solid #2a2a2a',
+                      borderRadius: '0 6px 6px 0',
+                      color: '#fff',
+                      fontSize: '1rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >+</button>
+                </div>
+                {customKvkMin === customKvkMax && (
+                  <span style={{ 
+                    color: '#a855f7', 
+                    fontSize: isMobile ? '0.68rem' : '0.72rem',
+                    fontWeight: '500'
+                  }}>
+                    Exactly {customKvkMin} KvK{customKvkMin !== 1 ? 's' : ''}
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Biggest Climbers & Fallers — Table Layout */}
+            {filteredRankMovers && (filteredRankMovers.climbers.length > 0 || filteredRankMovers.fallers.length > 0) && (
+              <div style={{ marginBottom: '1.5rem' }}>
+                <h2 style={{ 
+                  color: '#fff', 
+                  fontSize: isMobile ? '0.9rem' : '1rem', 
+                  marginBottom: '0.75rem',
+                  paddingLeft: '0.5rem',
+                  borderLeft: '3px solid #a855f7',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}>
+                  Rank Movers
+                  {filteredRankMovers.climbers[0] && (
+                    <span style={{ color: '#6b7280', fontSize: isMobile ? '0.7rem' : '0.75rem', fontWeight: '400' }}>
+                      KvK #{filteredRankMovers.climbers[0].prev_kvk} → #{filteredRankMovers.climbers[0].curr_kvk}
+                    </span>
+                  )}
+                </h2>
+                <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', 
+                  gap: '1rem'
+                }}>
+                  {/* Rank Mover Table Component */}
+                  {([
+                    { title: 'Biggest Climbers', emoji: '🚀', data: filteredRankMovers.climbers, accentColor: '#22c55e', isClimber: true },
+                    { title: 'Biggest Fallers', emoji: '📉', data: filteredRankMovers.fallers, accentColor: '#ef4444', isClimber: false },
+                  ] as const).map(({ title: tbl, emoji, data, accentColor, isClimber }) => (
+                    <div key={tbl} style={{ 
+                      backgroundColor: '#131318', 
+                      borderRadius: '12px', 
+                      border: '1px solid #2a2a2a',
+                      overflow: 'hidden'
+                    }}>
+                      <div style={{ 
+                        padding: isMobile ? '0.75rem 1rem' : '0.85rem 1rem', 
+                        borderBottom: '1px solid #2a2a2a',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.5rem'
+                      }}>
+                        <span style={{ fontSize: isMobile ? '1rem' : '1.1rem' }}>{emoji}</span>
+                        <h3 style={{ color: '#fff', fontSize: isMobile ? '0.85rem' : '0.9rem', fontWeight: '600', margin: 0 }}>{tbl}</h3>
+                        <span style={{ fontSize: isMobile ? '1rem' : '1.1rem' }}>{emoji}</span>
+                      </div>
+                      {/* Table */}
+                      <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                        <table style={{ 
+                          width: '100%', 
+                          borderCollapse: 'collapse',
+                          fontSize: isMobile ? '0.72rem' : '0.8rem'
+                        }}>
+                          <thead>
+                            <tr style={{ borderBottom: '1px solid #2a2a2a' }}>
+                              {[
+                                { label: '#', width: isMobile ? '32px' : '42px' },
+                                { label: 'Kingdom', width: 'auto', align: 'left' as const },
+                                { label: 'Old Rank', width: isMobile ? '52px' : '70px' },
+                                { label: '', width: isMobile ? '22px' : '28px' },
+                                { label: 'New Rank', width: isMobile ? '56px' : '70px' },
+                                { label: 'Change', width: isMobile ? '52px' : '65px' },
+                              ].map((col, ci) => (
+                                <th key={ci} style={{ 
+                                  padding: isMobile ? '0.5rem 0.25rem' : '0.6rem 0.5rem',
+                                  color: '#9ca3af',
+                                  fontWeight: '600',
+                                  fontSize: isMobile ? '0.65rem' : '0.7rem',
+                                  textTransform: 'uppercase' as const,
+                                  letterSpacing: '0.03em',
+                                  textAlign: col.align || 'center',
+                                  width: col.width,
+                                  whiteSpace: 'nowrap' as const,
+                                }}>
+                                  {col.label}
+                                </th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {data.map((mover, index) => (
+                              <tr
+                                key={mover.kingdom_number}
+                                onClick={() => window.location.href = `/kingdom/${mover.kingdom_number}`}
+                                style={{
+                                  cursor: 'pointer',
+                                  borderBottom: index < data.length - 1 ? '1px solid #1f1f1f' : 'none',
+                                  backgroundColor: index < 3 ? `${accentColor}06` : 'transparent',
+                                  transition: 'background-color 0.15s',
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'}
+                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = index < 3 ? `${accentColor}06` : 'transparent'}
+                              >
+                                {/* Ranking */}
+                                <td style={{ 
+                                  padding: isMobile ? '0.5rem 0.25rem' : '0.55rem 0.5rem',
+                                  textAlign: 'center',
+                                  whiteSpace: 'nowrap',
+                                }}>
+                                  <span style={{ 
+                                    ...getRankStyle(index + 1), 
+                                    fontSize: isMobile ? '0.72rem' : '0.8rem'
+                                  }}>
+                                    {getRankBadge(index + 1)}
+                                  </span>
+                                </td>
+                                {/* Kingdom Name — left-aligned, full name */}
+                                <td style={{ 
+                                  padding: isMobile ? '0.5rem 0.25rem' : '0.55rem 0.5rem',
+                                  textAlign: 'left',
+                                  whiteSpace: 'nowrap',
+                                }}>
+                                  <Link 
+                                    to={`/kingdom/${mover.kingdom_number}`}
+                                    style={{ color: '#fff', fontWeight: '500', textDecoration: 'none', fontSize: isMobile ? '0.72rem' : '0.8rem' }}
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    Kingdom {mover.kingdom_number}
+                                  </Link>
+                                </td>
+                                {/* Old Rank */}
+                                <td style={{ 
+                                  padding: isMobile ? '0.5rem 0.25rem' : '0.55rem 0.5rem',
+                                  textAlign: 'center',
+                                  color: '#9ca3af',
+                                  whiteSpace: 'nowrap',
+                                }}>
+                                  #{mover.prev_rank}
+                                </td>
+                                {/* Arrow */}
+                                <td style={{ 
+                                  padding: isMobile ? '0.5rem 0' : '0.55rem 0',
+                                  textAlign: 'center',
+                                  color: '#6b7280',
+                                  fontSize: isMobile ? '0.65rem' : '0.75rem',
+                                }}>
+                                  →
+                                </td>
+                                {/* New Rank */}
+                                <td style={{ 
+                                  padding: isMobile ? '0.5rem 0.25rem' : '0.55rem 0.5rem',
+                                  textAlign: 'center',
+                                  color: '#fff',
+                                  fontWeight: '600',
+                                  whiteSpace: 'nowrap',
+                                }}>
+                                  #{mover.curr_rank}
+                                </td>
+                                {/* Change */}
+                                <td style={{ 
+                                  padding: isMobile ? '0.5rem 0.25rem' : '0.55rem 0.5rem',
+                                  textAlign: 'center',
+                                  whiteSpace: 'nowrap',
+                                }}>
+                                  <span style={{ 
+                                    ...neonGlow(accentColor), 
+                                    fontWeight: 'bold',
+                                    fontSize: isMobile ? '0.75rem' : '0.82rem'
+                                  }}>
+                                    {isClimber ? '▲' : '▼'}{Math.abs(mover.rank_delta)}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Performance Rankings: Atlas Score + Win Rates */}
             <div style={{ marginBottom: '1.5rem' }}>

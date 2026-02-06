@@ -360,6 +360,31 @@ All page taglines follow the brand voice: competitive, data-driven, direct, punc
 - Match the outcome color (green for positive, red for negative)
 - Normal weight, smaller font size than value
 
+### Stat Type Styling System (2026-02-06)
+**CRITICAL:** All stat type colors and emojis are centralized in `statTypeStyles` in `utils/styles.ts`.
+Never hardcode stat colors/emojis. Always import from the constant.
+
+| Key | Emoji | Color | Hex |
+|-----|-------|-------|-----|
+| `atlasScore` | 💎 | Cyan | `#22d3ee` |
+| `prepPhase` | 🛡️ | Yellow | `#eab308` |
+| `battlePhase` | ⚔️ | Orange | `#f97316` |
+| `domination` | 👑 | Green | `#22c55e` |
+| `comeback` | 💪 | Blue | `#3b82f6` |
+| `reversal` | 🔄 | Purple | `#a855f7` |
+| `invasion` | 💀 | Red | `#ef4444` |
+
+Full documentation in `STYLE_GUIDE.md` → "Stat Type Colors & Emojis (SOURCE OF TRUTH)"
+
+### Rank Movers Table Pattern (2026-02-06)
+Biggest Climbers/Fallers use a proper `<table>` layout:
+- Headers: centralized, uppercase, secondary text color
+- All columns centralized EXCEPT "Kingdom" (left-aligned)
+- Full kingdom names (no abbreviation)
+- Arrow (→) between Old Rank and New Rank
+- Change column with ▲/▼ + neon glow in accent color
+- Mobile: compact padding, horizontal scroll, touch-friendly rows
+
 ---
 
 ## Tools & Resources

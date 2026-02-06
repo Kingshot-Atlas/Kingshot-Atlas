@@ -1,6 +1,6 @@
 # Security Audit Checklist
 
-**Last Updated:** 2026-01-29  
+**Last Updated:** 2026-02-06  
 **Owner:** Ops Lead  
 **Review Frequency:** Monthly
 
@@ -23,10 +23,10 @@
 
 ### HTTPS Configuration
 - [x] All traffic served over HTTPS
-- [x] HTTP redirects to HTTPS (Netlify automatic)
+- [x] HTTP redirects to HTTPS (Cloudflare automatic)
 - [x] HSTS header enabled (`max-age=31536000; includeSubDomains; preload`)
 - [ ] HSTS preload list submission (optional)
-- [x] Valid SSL certificate (Netlify managed)
+- [x] Valid SSL certificate (Cloudflare managed)
 
 ### Verification Commands
 ```bash
@@ -44,7 +44,7 @@ openssl s_client -connect ks-atlas.com:443 -servername ks-atlas.com
 
 ## 2. Security Headers
 
-### Required Headers (netlify.toml)
+### Required Headers (_headers)
 - [x] `X-Frame-Options: DENY` - Prevents clickjacking
 - [x] `X-Content-Type-Options: nosniff` - Prevents MIME sniffing
 - [x] `X-XSS-Protection: 1; mode=block` - XSS filter (legacy browsers)
@@ -113,7 +113,7 @@ curl -I https://ks-atlas.com | grep -E "(X-Frame|X-Content|X-XSS|Referrer|Permis
 ALLOWED_ORIGINS = [
     "https://ks-atlas.com",
     "https://www.ks-atlas.com",
-    "https://ks-atlas.netlify.app",
+    "https://ks-atlas.pages.dev",
     "http://localhost:3000",  # Development only
 ]
 ```
@@ -171,12 +171,12 @@ cd apps/api && pip-audit  # or safety check
 
 ## 7. Infrastructure Security
 
-### Netlify (Frontend)
+### Cloudflare Pages (Frontend)
 - [x] Deploy previews restricted (if sensitive)
 - [x] Build logs don't expose secrets
 - [x] Environment variables properly scoped
 
-### Railway/Render (Backend)
+### Render (Backend)
 - [x] Environment variables encrypted
 - [x] No public access to database
 - [x] Logs don't contain sensitive data

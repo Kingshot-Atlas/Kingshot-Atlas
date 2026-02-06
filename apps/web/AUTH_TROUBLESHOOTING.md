@@ -18,7 +18,7 @@
 **Required URLs**:
 - Development: `http://localhost:3000`
 - Production: `https://ks-atlas.com`
-- Netlify: `https://ks-atlas.netlify.app`
+- Cloudflare Pages: `https://ks-atlas.pages.dev`
 
 **Add to both**:
 - Site URL (single URL)
@@ -39,7 +39,7 @@
 ### 4. Environment Variables Not Loading
 **Check**:
 - `.env` file exists in `apps/web/` directory
-- Variables are prefixed with `REACT_APP_`
+- Variables are prefixed with `VITE_`
 - Restart dev server after changing `.env`
 
 ### 5. CORS Issues
@@ -51,7 +51,7 @@
 1. **Check Environment Variables**
    ```bash
    # In browser console
-   console.log(process.env.REACT_APP_SUPABASE_URL)
+   console.log(import.meta.env.VITE_SUPABASE_URL)
    ```
 
 2. **Test Supabase Connection**

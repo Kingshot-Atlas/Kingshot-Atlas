@@ -600,6 +600,20 @@ def create_kvk10_submission(
     return db_submission
 
 
+@router.get("/submissions/counts")
+def get_submission_counts(db: Session = Depends(get_db)):
+    """Get submission counts by status in a single call."""
+    from sqlalchemy import func
+    results = db.query(
+        KVKSubmission.status, func.count(KVKSubmission.id)
+    ).group_by(KVKSubmission.status).all()
+    counts = {"pending": 0, "approved": 0, "rejected": 0}
+    for status, count in results:
+        if status in counts:
+            counts[status] = count
+    return counts
+
+
 @router.get("/submissions", response_model=List[KVKSubmissionSchema])
 def get_submissions(
     status: Optional[str] = Query(None, description="Filter by status: pending, approved, rejected"),
@@ -834,6 +848,23 @@ def create_claim(
         logger.warning(f"Failed to notify admins of claim: {e}")
     
     return db_claim
+
+
+@router.get("/claims", response_model=List[KingdomClaimSchema])
+def list_claims(
+    status: Optional[str] = Query(None),
+    db: Session = Depends(get_db),
+    verified_user_id: Optional[str] = Depends(get_verified_user_id)
+):
+    """List all kingdom claims (admin only). Optional status filter."""
+    if not verified_user_id:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    if not verify_admin_role(verified_user_id, db) and not verify_moderator_role(verified_user_id, db):
+        raise HTTPException(status_code=403, detail="Admin role required")
+    query = db.query(KingdomClaim)
+    if status:
+        query = query.filter(KingdomClaim.status == status)
+    return query.order_by(desc(KingdomClaim.created_at)).all()
 
 
 @router.get("/claims/my", response_model=List[KingdomClaimSchema])

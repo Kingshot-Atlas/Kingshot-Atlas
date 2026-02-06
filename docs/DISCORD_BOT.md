@@ -244,7 +244,7 @@ COPY . .
 CMD ["npm", "start"]
 ```
 
-### Railway/Render
+### Render
 
 - Connect GitHub repo
 - Set environment variables

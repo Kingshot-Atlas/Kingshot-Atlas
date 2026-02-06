@@ -163,7 +163,7 @@ Log significant decisions to your worklog at:
 
 **LOCAL ONLY by default.**  
 - Run `npm run build` and test locally
-- Do NOT deploy to Netlify/Vercel/etc unless user explicitly says "deploy to Netlify"
+- Do NOT deploy unless user explicitly says "deploy", "commit", or "ship"
 - For local testing, use `npm start` or `npx serve build/`
 
 ---

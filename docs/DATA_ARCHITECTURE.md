@@ -125,7 +125,7 @@ python3 import_data.py
 
 # 4. Deploy (if needed)
 # Frontend: npm run build && deploy
-# API: Deploy to Render/Railway
+# API: Deploy to Render
 ```
 
 ## ⚠️ DEPRECATED Files

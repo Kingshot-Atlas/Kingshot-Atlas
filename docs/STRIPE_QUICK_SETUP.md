@@ -6,7 +6,7 @@
 2. Copy your **Publishable key** (starts with `pk_live_` or `pk_test_`)
 3. Add to your `.env` file:
    ```
-   REACT_APP_STRIPE_PUBLISHABLE_KEY=pk_live_xxxxxxxxxxxxx
+   VITE_STRIPE_PUBLISHABLE_KEY=pk_live_xxxxxxxxxxxxx
    ```
 
 ---
@@ -83,7 +83,7 @@ For each product/price, create a Payment Link:
 3. Click **Save**
 4. Copy the Portal Link and add to `.env`:
    ```
-   REACT_APP_STRIPE_PORTAL_URL=https://billing.stripe.com/p/login/xxxxx
+   VITE_STRIPE_PORTAL_URL=https://billing.stripe.com/p/login/xxxxx
    ```
 
 ---
@@ -96,7 +96,7 @@ Run this SQL in your [Supabase SQL Editor](https://supabase.com/dashboard):
 -- Add subscription columns to profiles
 ALTER TABLE profiles 
 ADD COLUMN IF NOT EXISTS subscription_tier TEXT DEFAULT 'free' 
-  CHECK (subscription_tier IN ('free', 'pro', 'recruiter')),
+  CHECK (subscription_tier IN ('free', 'supporter', 'recruiter')),
 ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT,
 ADD COLUMN IF NOT EXISTS subscription_expires_at TIMESTAMPTZ,
 ADD COLUMN IF NOT EXISTS subscription_status TEXT DEFAULT 'inactive' 
@@ -127,7 +127,7 @@ Without a backend webhook, you'll need to manually update user tiers:
 3. In Supabase, run:
    ```sql
    UPDATE profiles 
-   SET subscription_tier = 'pro', 
+   SET subscription_tier = 'supporter', 
        subscription_status = 'active'
    WHERE email = 'customer@email.com';
    ```

@@ -10,7 +10,7 @@ services:
     autoDeploy: true
     envVars:
       - key: DATABASE_URL
-        value: sqlite:///./kingshot_atlas.db
+        sync: false  # Set in Render dashboard (Supabase PostgreSQL connection string)
       - key: SECRET_KEY
         generateValue: true
       - key: SENTRY_DSN
@@ -18,7 +18,7 @@ services:
       - key: ENVIRONMENT
         value: production
       - key: ALLOWED_ORIGINS
-        value: https://www.ks-atlas.com,https://ks-atlas.com
+        value: https://ks-atlas.com,https://www.ks-atlas.com,https://ks-atlas.pages.dev
       - key: PYTHON_VERSION
         value: "3.11.0"
       # Stripe Configuration (set manually in Render dashboard)

@@ -27,13 +27,13 @@ In Render dashboard → Environment:
 |-----|-------|
 | `SECRET_KEY` | (click Generate) |
 | `ENVIRONMENT` | `production` |
-| `ALLOWED_ORIGINS` | `https://ks-atlas.com,https://www.ks-atlas.com` |
-| `DATABASE_URL` | *(delete or leave empty - defaults to SQLite)* |
+| `ALLOWED_ORIGINS` | `https://ks-atlas.com,https://www.ks-atlas.com,https://ks-atlas.pages.dev` |
+| `DATABASE_URL` | Supabase PostgreSQL connection string (set in dashboard) |
 
 ### 5. Deploy
 Click **Create Web Service** and wait for deployment (~3-5 minutes).
 
-> **Note:** The build command imports kingdom data from CSV files into SQLite.
+> **Note:** The build command imports kingdom data from CSV files into the database.
 
 ### 6. Get Your API URL
 After deployment, Render provides a URL like:
@@ -63,9 +63,8 @@ npm start
 - 750 hours/month free (enough for 24/7 if active)
 
 ### Database Persistence
-The free tier uses ephemeral storage. For persistent data:
-1. Use Render's PostgreSQL (free tier available)
-2. Or use Supabase PostgreSQL (already configured)
+Production uses **Supabase PostgreSQL** for persistent data.
+Set `DATABASE_URL` in Render dashboard with your Supabase connection string.
 
 ### Keep Alive (Optional)
 To prevent sleep, set up a cron job to ping the health endpoint:

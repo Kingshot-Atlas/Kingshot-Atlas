@@ -5,6 +5,46 @@
 
 ---
 
+## Admin Auth Pattern (2026-02-06)
+
+All admin endpoints in `admin.py` now accept **both** `X-Admin-Key` and `Authorization: Bearer <JWT>`:
+```python
+def require_admin(
+    x_admin_key: Optional[str] = Header(None),
+    authorization: Optional[str] = Header(None)
+):
+```
+- `_verify_admin_jwt()` checks JWT via Supabase `get_user()`, then verifies email against `ADMIN_EMAILS`
+- Internal function calls (e.g., `get_admin_overview` → `get_subscription_stats`) must forward both `x_admin_key` and `authorization`
+- Frontend uses `getAuthHeaders()` from `authHeaders.ts` — never exposes `ADMIN_API_KEY`
+
+### Frontend Retry Utility
+`apps/web/src/utils/fetchWithRetry.ts` — exponential backoff, skips retries on 401/403 (auth errors won't resolve with retries), retries on 5xx and 429.
+
+### Admin Audit Logging (2026-02-06)
+- `admin_audit_log` table in Supabase with RLS (admins read, service role writes)
+- `audit_log()` helper in `admin.py` — call after any mutating admin action
+- Currently logs: `sync_subscriptions`, `recalculate_scores`, `set_current_kvk`
+- GET `/admin/audit-log` returns recent entries for the dashboard feed
+
+### Rate Limiting (2026-02-06)
+- In-memory rate limiter in `admin.py`: 60 requests per 60-second window per IP
+- Integrated into `require_admin()` — applies to ALL admin endpoints automatically
+- Returns 429 when exceeded; `fetchWithRetry` handles 429 with backoff
+
+### Plausible Analytics API (2026-02-06)
+- Requires `PLAUSIBLE_API_KEY` env var (get from Plausible settings)
+- `PLAUSIBLE_SITE_ID` defaults to `ks-atlas.com`
+- GET `/admin/stats/plausible` — aggregate stats (visitors, pageviews, bounce rate, visit duration)
+- GET `/admin/stats/plausible/breakdown?property=visit:source` — breakdown by source, country, page, etc.
+- Frontend falls back gracefully when API key is not configured
+
+### Batch Endpoints (2026-02-06)
+- GET `/submissions/counts` — returns `{pending, approved, rejected}` counts in one call
+- Replaces 3 sequential fetches from the admin dashboard
+
+---
+
 ## FastAPI Best Practices (2026)
 
 ### Project Structure
@@ -80,7 +120,7 @@ raise APIError(404, "PLAYER_NOT_FOUND", f"Player {id} not found")
 ALLOWED_ORIGINS = [
     "https://ks-atlas.com",
     "https://www.ks-atlas.com",
-    "https://ks-atlas.netlify.app",
+    "https://ks-atlas.pages.dev",
 ]
 
 if os.getenv("ENVIRONMENT") == "development":
@@ -258,11 +298,11 @@ SECRET_KEY=your-secret-key
 # Optional
 ENVIRONMENT=production|development
 LOG_LEVEL=INFO|DEBUG
-CORS_ORIGINS=https://ks-atlas.com,https://ks-atlas.netlify.app
+CORS_ORIGINS=https://ks-atlas.com,https://ks-atlas.pages.dev
 ```
 
 ### Deployment
-- **API Host:** Railway/Render (or similar)
+- **API Host:** Render
 - **Database:** PostgreSQL (if applicable)
 - **CORS:** Must include all production domains
 

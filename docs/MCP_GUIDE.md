@@ -19,7 +19,7 @@ MCP allows Cascade to directly interact with external APIs and services. Instead
 | **Stripe** | `@stripe/mcp` | ✅ Configured | Create products, prices, payment links |
 | **Supabase** | `supabase` (hosted) | 🔧 Easy setup | Query/modify database, manage tables |
 | **GitHub** | `@modelcontextprotocol/server-github` | 🔧 Needs token | Manage repos, create PRs, issues |
-| **Netlify** | ❌ No official MCP | - | Manual dashboard only |
+| **Cloudflare** | ❌ No official MCP | - | Manual dashboard only |
 | **Render** | ❌ No official MCP | - | Manual dashboard only |
 
 ---

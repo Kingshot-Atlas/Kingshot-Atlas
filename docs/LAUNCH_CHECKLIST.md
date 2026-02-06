@@ -10,7 +10,7 @@
 
 | Service | Cost | Free Tier Limits |
 |---------|------|------------------|
-| **Netlify** (Frontend) | $0 | 100GB bandwidth, 300 build mins/month |
+| **Cloudflare Pages** (Frontend) | $0 | Unlimited bandwidth, 500 builds/month |
 | **Render** (Backend API) | $0 | Sleeps after 15min inactivity, wakes on request (~30s cold start) |
 | **Supabase** (PostgreSQL) | $0 | 500MB database, 2GB bandwidth |
 | **Domain** | ~$6.99/year (first year), $14.98/year after | Required purchase |
@@ -60,29 +60,29 @@
    - `DATABASE_URL`: Paste the Supabase connection string
 5. Redeploy on Render
 
-### Step 4: Deploy Frontend to Netlify (~10 min)
-1. Go to [netlify.com](https://netlify.com) → Sign up with GitHub
-2. Click **Add new site** → **Import an existing project**
+### Step 4: Deploy Frontend to Cloudflare Pages (~10 min)
+1. Go to [dash.cloudflare.com](https://dash.cloudflare.com) → Sign up
+2. Go to **Workers & Pages** → **Create** → **Pages** → **Connect to Git**
 3. Connect your GitHub repo
 4. Configure:
-   - **Base directory**: `apps/web`
+   - **Project name**: `ks-atlas`
+   - **Framework preset**: Vite
+   - **Root directory**: `apps/web`
    - **Build command**: `npm run build`
-   - **Publish directory**: `apps/web/build`
+   - **Build output directory**: `dist`
 5. Add Environment Variables:
-   - `REACT_APP_API_URL`: Your Render URL (e.g., `https://kingshot-atlas.onrender.com`)
-   - `REACT_APP_ENVIRONMENT`: `production`
-6. Click **Deploy**
+   - `VITE_API_URL`: Your Render URL (e.g., `https://kingshot-atlas.onrender.com`)
+   - `VITE_SUPABASE_URL`: Your Supabase project URL
+   - `VITE_SUPABASE_ANON_KEY`: Your Supabase anon key
+   - `NODE_VERSION`: `20`
+6. Click **Save and Deploy**
 
 ### Step 5: Connect Domain (~15 min)
-1. In Netlify → **Site settings** → **Domain management**
-2. Click **Add custom domain** → Enter `ks-atlas.com`
-3. Click **Add custom domain** → Enter `www.ks-atlas.com`
-4. Netlify will show DNS records to add
-5. In your domain registrar (Namecheap/Cloudflare):
-   - Add CNAME: `www` → `[your-site].netlify.app`
-   - Add A record: `@` → Netlify's IP (shown in dashboard)
-6. Wait for DNS propagation (5 min to 48 hours)
-7. Netlify auto-provisions SSL certificate
+1. In Cloudflare Pages → your project → **Custom domains**
+2. Click **Set up a custom domain** → Enter `ks-atlas.com`
+3. If domain is already on Cloudflare DNS, it configures automatically
+4. Otherwise, update nameservers at your registrar to Cloudflare's
+5. HTTPS enabled automatically by Cloudflare
 
 ---
 
@@ -93,7 +93,8 @@ All URLs have been updated to `www.ks-atlas.com`:
 - [x] `apps/web/public/robots.txt` - Sitemap URL (updated to ks-atlas.com)
 - [x] `apps/web/public/sitemap.xml` - All page URLs (updated to ks-atlas.com)
 - [x] `apps/api/render.yaml` - ALLOWED_ORIGINS (updated to ks-atlas.com)
-- [x] `apps/web/netlify.toml` - Build config, security headers, caching
+- [x] `apps/web/public/_headers` - Security headers, caching
+- [x] `apps/web/public/_redirects` - SPA routing fallback
 
 ---
 

@@ -7,7 +7,7 @@ Run this SQL in your Supabase SQL Editor:
 ```sql
 -- Add subscription columns to profiles table
 ALTER TABLE profiles 
-ADD COLUMN IF NOT EXISTS subscription_tier TEXT DEFAULT 'free' CHECK (subscription_tier IN ('free', 'pro', 'recruiter')),
+ADD COLUMN IF NOT EXISTS subscription_tier TEXT DEFAULT 'free' CHECK (subscription_tier IN ('free', 'supporter', 'recruiter')),
 ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT,
 ADD COLUMN IF NOT EXISTS subscription_expires_at TIMESTAMPTZ,
 ADD COLUMN IF NOT EXISTS subscription_status TEXT DEFAULT 'inactive' CHECK (subscription_status IN ('inactive', 'active', 'canceled', 'past_due'));
@@ -48,12 +48,11 @@ Add to your `.env` file:
 
 ```env
 # Stripe Configuration
-REACT_APP_STRIPE_PUBLISHABLE_KEY=pk_live_xxx
-REACT_APP_STRIPE_PRO_MONTHLY=price_xxx
-REACT_APP_STRIPE_PRO_YEARLY=price_xxx
-REACT_APP_STRIPE_RECRUITER_MONTHLY=price_xxx
-REACT_APP_STRIPE_RECRUITER_YEARLY=price_xxx
-REACT_APP_STRIPE_PORTAL_URL=https://billing.stripe.com/p/login/xxx
+VITE_STRIPE_PUBLISHABLE_KEY=pk_live_xxx
+VITE_STRIPE_SUPPORTER_MONTHLY=price_xxx
+VITE_STRIPE_RECRUITER_MONTHLY=price_xxx
+VITE_STRIPE_RECRUITER_YEARLY=price_xxx
+VITE_STRIPE_PORTAL_URL=https://billing.stripe.com/p/login/xxx
 ```
 
 ## 5. Stripe Payment Links (No Backend Required)

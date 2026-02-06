@@ -20,6 +20,7 @@ import { ADMIN_USERNAMES } from '../utils/constants';
 import { supabase } from '../lib/supabase';
 import { logger } from '../utils/logger';
 import { getAuthHeaders } from '../services/authHeaders';
+import { fetchWithRetry } from '../utils/fetchWithRetry';
 import { getCurrentKvK, incrementKvK } from '../services/configService';
 import { CURRENT_KVK } from '../constants';
 import { 
@@ -27,6 +28,9 @@ import {
   SubmissionsTab, 
   NewKingdomsTab, 
   ClaimsTab,
+  AdminActivityFeed,
+  PlausibleInsights,
+  SkeletonGrid,
   type Submission,
   type Claim,
   type DataCorrection,
@@ -64,6 +68,8 @@ const AdminDashboard: React.FC = () => {
   const [syncingSubscriptions, setSyncingSubscriptions] = useState(false);
   const [currentKvK, setCurrentKvK] = useState<number>(CURRENT_KVK);
   const [incrementingKvK, setIncrementingKvK] = useState(false);
+  const [apiHealth, setApiHealth] = useState<{ api: 'ok' | 'error' | 'loading'; supabase: 'ok' | 'error' | 'loading'; stripe: 'ok' | 'error' | 'loading' }>({ api: 'loading', supabase: 'loading', stripe: 'loading' });
+  const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
 
   // Check if user is admin
   const isAdmin = profile?.username && ADMIN_USERNAMES.includes(profile.username.toLowerCase());
@@ -79,6 +85,28 @@ const AdminDashboard: React.FC = () => {
     if (isAdmin) {
       getCurrentKvK().then(kvk => setCurrentKvK(kvk));
     }
+  }, [isAdmin]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    if (!isAdmin) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger shortcuts when typing in inputs
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      switch (e.key.toLowerCase()) {
+        case 'r': fetchAnalytics(); break;
+        case '1': setActiveTab('analytics'); break;
+        case '2': setActiveTab('submissions'); break;
+        case '3': setActiveTab('claims'); break;
+        case '4': setActiveTab('saas-metrics'); break;
+        case '5': setActiveTab('webhooks'); break;
+        case '6': setActiveTab('discord-bot'); break;
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdmin]);
 
   useEffect(() => {
@@ -407,9 +435,14 @@ const AdminDashboard: React.FC = () => {
       };
       
       // Fetch real stats from admin API (Supabase + Stripe)
+      const health: { api: 'ok' | 'error' | 'loading'; supabase: 'ok' | 'error' | 'loading'; stripe: 'ok' | 'error' | 'loading' } = { api: 'loading', supabase: 'loading', stripe: 'loading' };
       try {
-        const adminRes = await fetch(`${API_URL}/api/v1/admin/stats/overview`);
+        const adminAuthHeaders = await getAuthHeaders({ requireAuth: false });
+        const adminRes = await fetchWithRetry(`${API_URL}/api/v1/admin/stats/overview`, {
+          headers: adminAuthHeaders
+        });
         if (adminRes.ok) {
+          health.api = 'ok';
           const adminData = await adminRes.json();
           realData.userStats = {
             total: adminData.users?.total || 0,
@@ -418,6 +451,8 @@ const AdminDashboard: React.FC = () => {
             recruiter: adminData.users?.recruiter || 0,
             kingshot_linked: adminData.users?.kingshot_linked || 0,
           };
+          // Supabase health: if we got user data, Supabase is working
+          health.supabase = adminData.users?.total !== undefined ? 'ok' : 'error';
           realData.revenue = {
             monthly: adminData.revenue?.mrr || 0,
             total: adminData.revenue?.total || 0,
@@ -425,26 +460,58 @@ const AdminDashboard: React.FC = () => {
             activeSubscriptions: adminData.revenue?.active_subscriptions || 0,
             recentPayments: adminData.recent_payments || [],
           };
+          // Stripe health: if we got revenue data without error
+          health.stripe = adminData.revenue?.mrr !== undefined ? 'ok' : 'error';
           realData.recentSubscribers = adminData.recent_subscribers || [];
+        } else {
+          health.api = 'error';
+          health.supabase = 'error';
+          health.stripe = 'error';
+          showToast(`Admin API: ${adminRes.status} ${adminRes.statusText}`, 'error');
         }
       } catch (e) {
+        health.api = 'error';
+        health.supabase = 'error';
+        health.stripe = 'error';
         logger.log('Could not fetch admin stats from API');
       }
+      setApiHealth(health);
       
-      // Fetch real submission counts from API
+      // Fetch real submission counts from API (single batch call)
       try {
         const authHeaders = await getAuthHeaders({ requireAuth: false });
-        const pendingRes = await fetch(`${API_URL}/api/v1/submissions?status=pending`, { headers: authHeaders });
-        const approvedRes = await fetch(`${API_URL}/api/v1/submissions?status=approved`, { headers: authHeaders });
-        const rejectedRes = await fetch(`${API_URL}/api/v1/submissions?status=rejected`, { headers: authHeaders });
-        if (pendingRes.ok) realData.submissions.pending = (await pendingRes.json()).length;
-        if (approvedRes.ok) realData.submissions.approved = (await approvedRes.json()).length;
-        if (rejectedRes.ok) realData.submissions.rejected = (await rejectedRes.json()).length;
+        const countsRes = await fetch(`${API_URL}/api/v1/submissions/counts`, { headers: authHeaders });
+        if (countsRes.ok) {
+          const counts = await countsRes.json();
+          realData.submissions = {
+            pending: counts.pending || 0,
+            approved: counts.approved || 0,
+            rejected: counts.rejected || 0,
+          };
+        }
       } catch (e) {
         logger.log('Could not fetch submission counts from API');
       }
       
+      // Fetch real Plausible analytics (replaces local-only browser sessions)
+      try {
+        const authHeaders = await getAuthHeaders({ requireAuth: false });
+        const plausibleRes = await fetch(`${API_URL}/api/v1/admin/stats/plausible`, { headers: authHeaders });
+        if (plausibleRes.ok) {
+          const pData = await plausibleRes.json();
+          if (pData.source === 'plausible') {
+            realData.uniqueVisitors = pData.visitors || realData.uniqueVisitors;
+            realData.pageViews = pData.pageviews || realData.pageViews;
+            realData.bounceRate = pData.bounce_rate || 0;
+            realData.visitDuration = pData.visit_duration || 0;
+          }
+        }
+      } catch (e) {
+        logger.log('Could not fetch Plausible analytics');
+      }
+      
       setAnalytics(realData);
+      setLastRefreshed(new Date());
     } catch (error) {
       console.error('Failed to fetch analytics:', error);
     } finally {
@@ -473,9 +540,10 @@ const AdminDashboard: React.FC = () => {
   const syncSubscriptions = async () => {
     setSyncingSubscriptions(true);
     try {
+      const syncAuthHeaders = await getAuthHeaders({ requireAuth: false });
       const res = await fetch(`${API_URL}/api/v1/admin/subscriptions/sync-all`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json', ...syncAuthHeaders }
       });
       if (res.ok) {
         const data = await res.json();
@@ -1182,6 +1250,20 @@ const AdminDashboard: React.FC = () => {
           >
             👁️ {viewAsUser ? 'Exit' : 'User View'}
           </button>
+          {/* Health Status Indicators */}
+          <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center' }}>
+            {[
+              { label: 'API', status: apiHealth.api },
+              { label: 'DB', status: apiHealth.supabase },
+              { label: '$', status: apiHealth.stripe },
+            ].map(s => (
+              <div key={s.label} title={`${s.label}: ${s.status}`} style={{
+                width: '8px', height: '8px', borderRadius: '50%',
+                backgroundColor: s.status === 'ok' ? '#22c55e' : s.status === 'error' ? '#ef4444' : '#fbbf24',
+                boxShadow: s.status === 'ok' ? '0 0 4px #22c55e60' : s.status === 'error' ? '0 0 4px #ef444460' : 'none',
+              }} />
+            ))}
+          </div>
           <div style={{ 
             padding: '0.3rem 0.6rem', 
             backgroundColor: '#22c55e15', 
@@ -1386,18 +1468,40 @@ const AdminDashboard: React.FC = () => {
       )}
 
       {loading && activeTab !== 'import' ? (
-        <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
-          Loading...
-        </div>
+        <SkeletonGrid cards={4} cardHeight="100px" />
       ) : activeTab === 'analytics' ? (
-        <AnalyticsOverview 
-          analytics={analytics} 
-          syncingSubscriptions={syncingSubscriptions}
-          onSyncSubscriptions={syncSubscriptions}
-          currentKvK={currentKvK}
-          incrementingKvK={incrementingKvK}
-          onIncrementKvK={handleIncrementKvK}
-        />
+        <>
+          {/* Last Refreshed + Refresh Button */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+            {lastRefreshed && (
+              <span style={{ color: '#4b5563', fontSize: '0.7rem' }}>
+                Updated {lastRefreshed.toLocaleTimeString()}
+              </span>
+            )}
+            <button onClick={fetchAnalytics} disabled={loading} style={{
+              background: 'none', border: '1px solid #2a2a2a', borderRadius: '4px',
+              color: '#6b7280', padding: '0.2rem 0.5rem', cursor: 'pointer', fontSize: '0.7rem'
+            }}>
+              {loading ? '...' : 'Refresh'}
+            </button>
+          </div>
+          <AnalyticsOverview 
+            analytics={analytics} 
+            syncingSubscriptions={syncingSubscriptions}
+            onSyncSubscriptions={syncSubscriptions}
+            currentKvK={currentKvK}
+            incrementingKvK={incrementingKvK}
+            onIncrementKvK={handleIncrementKvK}
+          />
+          {/* Plausible Insights: Sources, Countries, Top Pages */}
+          <div style={{ marginTop: '1.5rem' }}>
+            <PlausibleInsights />
+          </div>
+          {/* Admin Activity Feed */}
+          <div style={{ marginTop: '1.5rem' }}>
+            <AdminActivityFeed />
+          </div>
+        </>
       ) : activeTab === 'saas-metrics' ? (
         <Suspense fallback={<div style={{ padding: '2rem', color: '#6b7280' }}>Loading analytics...</div>}>
           <AnalyticsDashboard />

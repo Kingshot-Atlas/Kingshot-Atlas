@@ -7,6 +7,7 @@
  * - Health indicator prevents issues from going unnoticed
  */
 import React, { useState, useEffect } from 'react';
+import { getAuthHeaders } from '../services/authHeaders';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
@@ -238,6 +239,7 @@ export const WebhookMonitor: React.FC = () => {
   const [events, setEvents] = useState<WebhookEvent[]>([]);
   const [stats, setStats] = useState<WebhookStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'processed' | 'failed'>('all');
 
   useEffect(() => {
@@ -249,22 +251,30 @@ export const WebhookMonitor: React.FC = () => {
 
   const loadData = async () => {
     setLoading(true);
+    setError(null);
     try {
+      const authHeaders = await getAuthHeaders({ requireAuth: false });
+      const opts = { headers: authHeaders };
       const statusParam = filter !== 'all' ? `&status=${filter}` : '';
       const [eventsRes, statsRes] = await Promise.all([
-        fetch(`${API_URL}/api/v1/admin/webhooks/events?limit=50${statusParam}`),
-        fetch(`${API_URL}/api/v1/admin/webhooks/stats`)
+        fetch(`${API_URL}/api/v1/admin/webhooks/events?limit=50${statusParam}`, opts),
+        fetch(`${API_URL}/api/v1/admin/webhooks/stats`, opts)
       ]);
 
       if (eventsRes.ok) {
         const data = await eventsRes.json();
         setEvents(data.events || []);
+      } else {
+        setError(`Events: ${eventsRes.status}`);
       }
       if (statsRes.ok) {
         setStats(await statsRes.json());
+      } else {
+        setError(prev => prev ? `${prev}, Stats: ${statsRes.status}` : `Stats: ${statsRes.status}`);
       }
     } catch (error) {
       console.error('Failed to load webhook data:', error);
+      setError('Failed to connect to API');
     } finally {
       setLoading(false);
     }
@@ -272,6 +282,23 @@ export const WebhookMonitor: React.FC = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      {/* Error Banner */}
+      {error && (
+        <div style={{
+          padding: '0.75rem 1rem',
+          backgroundColor: '#ef444420',
+          border: '1px solid #ef444450',
+          borderRadius: '8px',
+          color: '#ef4444',
+          fontSize: '0.85rem',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <span>⚠️ {error}</span>
+          <button onClick={() => { setError(null); loadData(); }} style={{ background: 'none', border: '1px solid #ef444450', borderRadius: '4px', color: '#ef4444', padding: '0.2rem 0.5rem', cursor: 'pointer', fontSize: '0.75rem' }}>Retry</button>
+        </div>
+      )}
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <div>

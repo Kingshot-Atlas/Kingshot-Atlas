@@ -30,6 +30,6 @@
 - **Primary:** kingshot-atlas.com (if registered)
 
 ## Hosting
-- **Frontend:** Netlify
+- **Frontend:** Cloudflare Pages
+- **Backend API:** Render
 - **Database/Auth:** Supabase
-- **Backend API:** Not deployed (local data fallback active)

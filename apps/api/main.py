@@ -68,11 +68,11 @@ ensure_data_loaded()
 limiter = Limiter(key_func=get_remote_address)
 
 # Allowed origins for CORS - tightened security
-# Production: https://www.ks-atlas.com and https://ks-atlas.com only
+# Production: https://ks-atlas.com, https://www.ks-atlas.com, https://ks-atlas.pages.dev
 # Development: localhost on any port
 ALLOWED_ORIGINS = os.getenv(
     "ALLOWED_ORIGINS",
-    "https://ks-atlas.com,https://www.ks-atlas.com"
+    "https://ks-atlas.com,https://www.ks-atlas.com,https://ks-atlas.pages.dev"
 ).split(",")
 
 # Regex pattern to allow any localhost port for development
@@ -81,7 +81,7 @@ LOCALHOST_ORIGIN_REGEX = r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$"
 app = FastAPI(
     title="Kingshot Atlas API",
     description="Backend API for Kingshot Atlas kingdom data",
-    version="1.0.3"  # CORS fix for any localhost port
+    version="1.0.4"  # CORS: added Cloudflare Pages origin
 )
 
 # Add rate limiter to app state

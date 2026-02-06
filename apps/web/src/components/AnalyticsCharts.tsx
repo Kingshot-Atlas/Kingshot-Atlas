@@ -8,6 +8,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend
 } from 'recharts';
+import { getAuthHeaders } from '../services/authHeaders';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
@@ -318,6 +319,7 @@ export const AnalyticsDashboard: React.FC = () => {
   const [cohorts, setCohorts] = useState<CohortData[]>([]);
   const [subscriptions, setSubscriptions] = useState<{ tier: string; count: number }[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'revenue' | 'retention'>('overview');
 
   useEffect(() => {
@@ -329,31 +331,40 @@ export const AnalyticsDashboard: React.FC = () => {
 
   const fetchAllData = async () => {
     setLoading(true);
+    setError(null);
     try {
+      const authHeaders = await getAuthHeaders({ requireAuth: false });
+      const opts = { headers: authHeaders };
       const [kpiRes, mrrRes, forecastRes, cohortRes, overviewRes] = await Promise.all([
-        fetch(`${API_URL}/api/v1/admin/stats/kpis`),
-        fetch(`${API_URL}/api/v1/admin/stats/mrr-history?days=30`),
-        fetch(`${API_URL}/api/v1/admin/stats/forecast?months=6`),
-        fetch(`${API_URL}/api/v1/admin/stats/cohort`),
-        fetch(`${API_URL}/api/v1/admin/stats/overview`)
+        fetch(`${API_URL}/api/v1/admin/stats/kpis`, opts),
+        fetch(`${API_URL}/api/v1/admin/stats/mrr-history?days=30`, opts),
+        fetch(`${API_URL}/api/v1/admin/stats/forecast?months=6`, opts),
+        fetch(`${API_URL}/api/v1/admin/stats/cohort`, opts),
+        fetch(`${API_URL}/api/v1/admin/stats/overview`, opts)
       ]);
 
-      if (kpiRes.ok) setKpis(await kpiRes.json());
+      const failedEndpoints: string[] = [];
+      if (kpiRes.ok) setKpis(await kpiRes.json()); else failedEndpoints.push('KPIs');
       if (mrrRes.ok) {
         const data = await mrrRes.json();
         setMrrHistory(data.data || []);
-      }
-      if (forecastRes.ok) setForecast(await forecastRes.json());
+      } else failedEndpoints.push('MRR History');
+      if (forecastRes.ok) setForecast(await forecastRes.json()); else failedEndpoints.push('Forecast');
       if (cohortRes.ok) {
         const data = await cohortRes.json();
         setCohorts(data.cohorts || []);
-      }
+      } else failedEndpoints.push('Cohorts');
       if (overviewRes.ok) {
         const data = await overviewRes.json();
         setSubscriptions(data.subscriptions || []);
+      } else failedEndpoints.push('Overview');
+
+      if (failedEndpoints.length > 0) {
+        setError(`Failed to load: ${failedEndpoints.join(', ')}`);
       }
     } catch (error) {
       console.error('Failed to fetch analytics:', error);
+      setError('Failed to connect to API');
     } finally {
       setLoading(false);
     }
@@ -361,7 +372,10 @@ export const AnalyticsDashboard: React.FC = () => {
 
   const handleExport = async (type: 'subscribers' | 'revenue') => {
     try {
-      const response = await fetch(`${API_URL}/api/v1/admin/export/${type}`);
+      const authHeaders = await getAuthHeaders({ requireAuth: false });
+      const response = await fetch(`${API_URL}/api/v1/admin/export/${type}`, {
+        headers: authHeaders
+      });
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
@@ -372,9 +386,12 @@ export const AnalyticsDashboard: React.FC = () => {
         a.click();
         a.remove();
         window.URL.revokeObjectURL(url);
+      } else {
+        setError(`Export failed: ${response.status}`);
       }
     } catch (error) {
       console.error('Export failed:', error);
+      setError('Export failed: network error');
     }
   };
 
@@ -400,6 +417,23 @@ export const AnalyticsDashboard: React.FC = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      {/* Error Banner */}
+      {error && (
+        <div style={{
+          padding: '0.75rem 1rem',
+          backgroundColor: '#ef444420',
+          border: '1px solid #ef444450',
+          borderRadius: '8px',
+          color: '#ef4444',
+          fontSize: '0.85rem',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <span>⚠️ {error}</span>
+          <button onClick={() => { setError(null); fetchAllData(); }} style={{ background: 'none', border: '1px solid #ef444450', borderRadius: '4px', color: '#ef4444', padding: '0.2rem 0.5rem', cursor: 'pointer', fontSize: '0.75rem' }}>Retry</button>
+        </div>
+      )}
       {/* Header with Tabs and Export */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <div style={{ display: 'flex', gap: '0.5rem' }}>

@@ -30,6 +30,51 @@ router = APIRouter()
 # Default KvK number (fallback if not set in database)
 DEFAULT_CURRENT_KVK = 10
 
+# Thread-local-ish storage for current admin info (set during require_admin)
+_current_admin_info: Dict[str, Any] = {}
+
+# Simple in-memory rate limiter for admin endpoints
+_rate_limit_store: Dict[str, List[float]] = {}
+ADMIN_RATE_LIMIT = 60  # max requests per window
+ADMIN_RATE_WINDOW = 60  # seconds
+
+
+def check_rate_limit(client_ip: str = "unknown"):
+    """Check rate limit for admin endpoints. Raises 429 if exceeded."""
+    import time
+    now = time.time()
+    key = f"admin:{client_ip}"
+    timestamps = _rate_limit_store.get(key, [])
+    # Remove expired timestamps
+    timestamps = [t for t in timestamps if now - t < ADMIN_RATE_WINDOW]
+    if len(timestamps) >= ADMIN_RATE_LIMIT:
+        raise HTTPException(status_code=429, detail="Rate limit exceeded. Try again later.")
+    timestamps.append(now)
+    _rate_limit_store[key] = timestamps
+
+
+def audit_log(action: str, resource_type: str = None, resource_id: str = None, details: dict = None):
+    """Log an admin action to the admin_audit_log table in Supabase."""
+    try:
+        client = get_supabase_admin()
+        if not client:
+            return
+        entry = {
+            "action": action,
+            "admin_user_id": _current_admin_info.get("user_id"),
+            "admin_email": _current_admin_info.get("email"),
+            "resource_type": resource_type,
+            "resource_id": str(resource_id) if resource_id else None,
+            "details": details or {},
+        }
+        client.table("admin_audit_log").insert(entry).execute()
+    except Exception as e:
+        logger.warning(f"Failed to write audit log: {e}")
+
+# Plausible Analytics configuration
+PLAUSIBLE_API_KEY = os.getenv("PLAUSIBLE_API_KEY", "")
+PLAUSIBLE_SITE_ID = os.getenv("PLAUSIBLE_SITE_ID", "ks-atlas.com")
+
 # Stripe configuration
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
 if STRIPE_SECRET_KEY:
@@ -37,6 +82,10 @@ if STRIPE_SECRET_KEY:
 
 # Admin API key for authentication
 ADMIN_API_KEY = os.getenv("ADMIN_API_KEY", "")
+
+# Admin emails (shared with submissions router)
+_default_admin_emails = 'gatreno@gmail.com,gatreno.investing@gmail.com'
+ADMIN_EMAILS = [e.strip() for e in os.getenv("ADMIN_EMAILS", _default_admin_emails).split(',') if e.strip()]
 
 
 def verify_admin(api_key: Optional[str]) -> bool:
@@ -51,23 +100,75 @@ def verify_admin(api_key: Optional[str]) -> bool:
     return api_key == ADMIN_API_KEY
 
 
-def require_admin(x_admin_key: Optional[str] = Header(None)):
-    """FastAPI dependency to enforce admin authentication on endpoints."""
-    if not verify_admin(x_admin_key):
-        raise HTTPException(
-            status_code=401,
-            detail="Admin API key required. Set X-Admin-Key header."
-        )
+def _verify_admin_jwt(authorization: Optional[str]) -> bool:
+    """Verify admin access via Supabase JWT.
+    Checks profiles.is_admin in database first, falls back to ADMIN_EMAILS env var."""
+    if not authorization:
+        return False
+    try:
+        token = authorization
+        if token.startswith("Bearer "):
+            token = token[7:]
+        if not token:
+            return False
+        client = get_supabase_admin()
+        if not client:
+            return False
+        user_response = client.auth.get_user(token)
+        if user_response and user_response.user:
+            user_id = user_response.user.id
+            user_email = user_response.user.email
+            # Primary check: database is_admin flag
+            try:
+                profile = client.table("profiles").select("is_admin").eq("id", user_id).single().execute()
+                if profile.data and profile.data.get("is_admin") is True:
+                    logger.info(f"Admin JWT auth via DB flag for {user_email}")
+                    _current_admin_info.update({"user_id": user_id, "email": user_email})
+                    return True
+            except Exception as db_err:
+                logger.warning(f"DB admin check failed, falling back to email list: {db_err}")
+            # Fallback: hardcoded email list (bootstrap / DB unavailable)
+            if user_email and user_email.lower() in [e.lower() for e in ADMIN_EMAILS]:
+                logger.info(f"Admin JWT auth via email list for {user_email}")
+                _current_admin_info.update({"user_id": user_id, "email": user_email})
+                return True
+            logger.warning(f"JWT valid but user {user_email} is not admin")
+    except Exception as e:
+        logger.warning(f"Admin JWT verification failed: {e}")
+    return False
+
+
+def require_admin(
+    x_admin_key: Optional[str] = Header(None),
+    authorization: Optional[str] = Header(None),
+    request: Request = None
+):
+    """FastAPI dependency to enforce admin authentication on endpoints.
+    Accepts either X-Admin-Key header OR Authorization Bearer JWT from an admin user."""
+    # Rate limit check
+    client_ip = "unknown"
+    if request:
+        client_ip = request.client.host if request.client else "unknown"
+    check_rate_limit(client_ip)
+    
+    if verify_admin(x_admin_key):
+        return
+    if _verify_admin_jwt(authorization):
+        return
+    raise HTTPException(
+        status_code=401,
+        detail="Admin authentication required. Use X-Admin-Key or Authorization header."
+    )
 
 
 @router.get("/stats/subscriptions")
-async def get_subscription_stats(x_admin_key: Optional[str] = Header(None)):
+async def get_subscription_stats(x_admin_key: Optional[str] = Header(None), authorization: Optional[str] = Header(None)):
     """
     Get subscription statistics from Supabase.
     
     Returns counts by tier and list of active subscribers.
     """
-    require_admin(x_admin_key)
+    require_admin(x_admin_key, authorization)
     client = get_supabase_admin()
     
     if not client:
@@ -138,13 +239,13 @@ async def get_subscription_stats(x_admin_key: Optional[str] = Header(None)):
 
 
 @router.get("/stats/revenue")
-async def get_revenue_stats(x_admin_key: Optional[str] = Header(None)):
+async def get_revenue_stats(x_admin_key: Optional[str] = Header(None), authorization: Optional[str] = Header(None)):
     """
     Get revenue statistics from Stripe.
     
     Returns MRR, total revenue, and subscription breakdown.
     """
-    require_admin(x_admin_key)
+    require_admin(x_admin_key, authorization)
     if not STRIPE_SECRET_KEY:
         return {
             "mrr": 0,
@@ -223,19 +324,19 @@ async def get_revenue_stats(x_admin_key: Optional[str] = Header(None)):
 
 
 @router.get("/stats/overview")
-async def get_admin_overview(x_admin_key: Optional[str] = Header(None)):
+async def get_admin_overview(x_admin_key: Optional[str] = Header(None), authorization: Optional[str] = Header(None)):
     """
     Get combined overview stats for admin dashboard.
     
     Uses Stripe as the source of truth for subscription counts to avoid
     sync issues between Stripe webhooks and Supabase profile updates.
     """
-    require_admin(x_admin_key)
+    require_admin(x_admin_key, authorization)
     # Get subscription stats from Supabase
-    sub_stats = await get_subscription_stats(x_admin_key)
+    sub_stats = await get_subscription_stats(x_admin_key, authorization)
     
     # Get revenue stats from Stripe (source of truth for subscriptions)
-    rev_stats = await get_revenue_stats(x_admin_key)
+    rev_stats = await get_revenue_stats(x_admin_key, authorization)
     
     # Calculate actual paid user counts from Stripe (source of truth)
     # This avoids discrepancies when webhooks fail to update profiles
@@ -279,13 +380,14 @@ async def get_admin_overview(x_admin_key: Optional[str] = Header(None)):
 @router.get("/stats/mrr-history")
 async def get_mrr_history(
     days: int = 30,
-    x_admin_key: Optional[str] = Header(None)
+    x_admin_key: Optional[str] = Header(None),
+    authorization: Optional[str] = Header(None)
 ):
     """
     Get MRR history over time for charting.
     Returns daily MRR values for the specified number of days.
     """
-    require_admin(x_admin_key)
+    require_admin(x_admin_key, authorization)
     if not STRIPE_SECRET_KEY:
         return {"data": [], "error": "Stripe not configured"}
     
@@ -330,12 +432,12 @@ async def get_mrr_history(
 
 
 @router.get("/stats/churn")
-async def get_churn_stats(x_admin_key: Optional[str] = Header(None)):
+async def get_churn_stats(x_admin_key: Optional[str] = Header(None), authorization: Optional[str] = Header(None)):
     """
     Get churn rate and retention metrics.
     Industry-standard churn calculations.
     """
-    require_admin(x_admin_key)
+    require_admin(x_admin_key, authorization)
     if not STRIPE_SECRET_KEY:
         return {
             "churn_rate": 0,
@@ -400,13 +502,14 @@ async def get_churn_stats(x_admin_key: Optional[str] = Header(None)):
 @router.get("/stats/forecast")
 async def get_revenue_forecast(
     months: int = 6,
-    x_admin_key: Optional[str] = Header(None)
+    x_admin_key: Optional[str] = Header(None),
+    authorization: Optional[str] = Header(None)
 ):
     """
     Get revenue forecast based on current MRR and growth rate.
     Simple linear projection with growth assumptions.
     """
-    require_admin(x_admin_key)
+    require_admin(x_admin_key, authorization)
     if not STRIPE_SECRET_KEY:
         return {"forecast": [], "error": "Stripe not configured"}
     
@@ -454,12 +557,12 @@ async def get_revenue_forecast(
 
 
 @router.get("/stats/cohort")
-async def get_cohort_analysis(x_admin_key: Optional[str] = Header(None)):
+async def get_cohort_analysis(x_admin_key: Optional[str] = Header(None), authorization: Optional[str] = Header(None)):
     """
     Get subscriber cohort analysis by signup month.
     Shows retention by cohort over time.
     """
-    require_admin(x_admin_key)
+    require_admin(x_admin_key, authorization)
     if not STRIPE_SECRET_KEY:
         return {"cohorts": [], "error": "Stripe not configured"}
     
@@ -503,11 +606,11 @@ async def get_cohort_analysis(x_admin_key: Optional[str] = Header(None)):
 
 
 @router.get("/export/subscribers")
-async def export_subscribers_csv(x_admin_key: Optional[str] = Header(None)):
+async def export_subscribers_csv(x_admin_key: Optional[str] = Header(None), authorization: Optional[str] = Header(None)):
     """
     Export all subscriber data as CSV.
     """
-    require_admin(x_admin_key)
+    require_admin(x_admin_key, authorization)
     client = get_supabase_admin()
     
     if not client:
@@ -556,12 +659,13 @@ async def export_subscribers_csv(x_admin_key: Optional[str] = Header(None)):
 @router.get("/export/revenue")
 async def export_revenue_csv(
     days: int = 90,
-    x_admin_key: Optional[str] = Header(None)
+    x_admin_key: Optional[str] = Header(None),
+    authorization: Optional[str] = Header(None)
 ):
     """
     Export revenue data as CSV.
     """
-    require_admin(x_admin_key)
+    require_admin(x_admin_key, authorization)
     if not STRIPE_SECRET_KEY:
         raise HTTPException(status_code=500, detail="Stripe not configured")
     
@@ -606,16 +710,16 @@ async def export_revenue_csv(
 
 
 @router.get("/stats/kpis")
-async def get_key_performance_indicators(x_admin_key: Optional[str] = Header(None)):
+async def get_key_performance_indicators(x_admin_key: Optional[str] = Header(None), authorization: Optional[str] = Header(None)):
     """
     Get all key performance indicators in one call.
     Optimized for dashboard display.
     """
-    require_admin(x_admin_key)
+    require_admin(x_admin_key, authorization)
     # Gather all stats in parallel-ish fashion
-    sub_stats = await get_subscription_stats(x_admin_key)
-    rev_stats = await get_revenue_stats(x_admin_key)
-    churn_stats = await get_churn_stats(x_admin_key)
+    sub_stats = await get_subscription_stats(x_admin_key, authorization)
+    rev_stats = await get_revenue_stats(x_admin_key, authorization)
+    churn_stats = await get_churn_stats(x_admin_key, authorization)
     
     mrr = rev_stats.get("mrr", 0)
     active_subs = rev_stats.get("active_subscriptions", 0)
@@ -650,7 +754,8 @@ async def get_webhook_events_list(
     limit: int = 50,
     event_type: Optional[str] = None,
     status: Optional[str] = None,
-    x_admin_key: Optional[str] = Header(None)
+    x_admin_key: Optional[str] = Header(None),
+    authorization: Optional[str] = Header(None)
 ):
     """
     Get recent webhook events for monitoring.
@@ -660,13 +765,89 @@ async def get_webhook_events_list(
         event_type: Filter by event type
         status: Filter by status (received, processed, failed)
     """
-    require_admin(x_admin_key)
+    require_admin(x_admin_key, authorization)
     events = get_webhook_events(limit=limit, event_type=event_type, status=status)
     return {"events": events, "count": len(events)}
 
 
+@router.get("/audit-log")
+async def get_audit_log(
+    limit: int = 20,
+    x_admin_key: Optional[str] = Header(None),
+    authorization: Optional[str] = Header(None)
+):
+    """Get recent admin actions from the audit log."""
+    require_admin(x_admin_key, authorization)
+    client = get_supabase_admin()
+    if not client:
+        return {"entries": [], "error": "Database not configured"}
+    try:
+        result = client.table("admin_audit_log").select(
+            "id, admin_email, action, resource_type, resource_id, details, created_at"
+        ).order("created_at", desc=True).limit(limit).execute()
+        return {"entries": result.data or []}
+    except Exception as e:
+        return {"entries": [], "error": str(e)}
+
+
+@router.get("/stats/plausible")
+async def get_plausible_stats(
+    period: str = "30d",
+    x_admin_key: Optional[str] = Header(None),
+    authorization: Optional[str] = Header(None)
+):
+    """Proxy Plausible Analytics API to get real visitor stats.
+    Requires PLAUSIBLE_API_KEY env var to be set."""
+    require_admin(x_admin_key, authorization)
+    if not PLAUSIBLE_API_KEY:
+        return {"error": "PLAUSIBLE_API_KEY not configured", "visitors": 0, "pageviews": 0, "bounce_rate": 0, "visit_duration": 0}
+    try:
+        import urllib.request
+        import json as json_lib
+        url = f"https://plausible.io/api/v1/stats/aggregate?site_id={PLAUSIBLE_SITE_ID}&period={period}&metrics=visitors,pageviews,bounce_rate,visit_duration"
+        req = urllib.request.Request(url, headers={"Authorization": f"Bearer {PLAUSIBLE_API_KEY}"})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json_lib.loads(resp.read().decode())
+        results = data.get("results", {})
+        return {
+            "visitors": results.get("visitors", {}).get("value", 0),
+            "pageviews": results.get("pageviews", {}).get("value", 0),
+            "bounce_rate": results.get("bounce_rate", {}).get("value", 0),
+            "visit_duration": results.get("visit_duration", {}).get("value", 0),
+            "period": period,
+            "source": "plausible"
+        }
+    except Exception as e:
+        logger.warning(f"Plausible API error: {e}")
+        return {"error": str(e), "visitors": 0, "pageviews": 0, "bounce_rate": 0, "visit_duration": 0}
+
+
+@router.get("/stats/plausible/breakdown")
+async def get_plausible_breakdown(
+    property: str = "visit:source",
+    period: str = "30d",
+    x_admin_key: Optional[str] = Header(None),
+    authorization: Optional[str] = Header(None)
+):
+    """Get Plausible breakdown by property (source, country, page, etc.)."""
+    require_admin(x_admin_key, authorization)
+    if not PLAUSIBLE_API_KEY:
+        return {"error": "PLAUSIBLE_API_KEY not configured", "results": []}
+    try:
+        import urllib.request
+        import json as json_lib
+        url = f"https://plausible.io/api/v1/stats/breakdown?site_id={PLAUSIBLE_SITE_ID}&period={period}&property={property}&limit=10"
+        req = urllib.request.Request(url, headers={"Authorization": f"Bearer {PLAUSIBLE_API_KEY}"})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json_lib.loads(resp.read().decode())
+        return {"results": data.get("results", []), "property": property, "period": period}
+    except Exception as e:
+        logger.warning(f"Plausible breakdown error: {e}")
+        return {"error": str(e), "results": []}
+
+
 @router.get("/webhooks/stats")
-async def get_webhook_health_stats(x_admin_key: Optional[str] = Header(None)):
+async def get_webhook_health_stats(x_admin_key: Optional[str] = Header(None), authorization: Optional[str] = Header(None)):
     """
     Get webhook health statistics for monitoring dashboard.
     
@@ -677,13 +858,13 @@ async def get_webhook_health_stats(x_admin_key: Optional[str] = Header(None)):
         - Failure rate percentage
         - Health status (healthy/warning/critical)
     """
-    require_admin(x_admin_key)
+    require_admin(x_admin_key, authorization)
     stats = get_webhook_stats()
     return stats
 
 
 @router.post("/subscriptions/sync-all")
-async def sync_all_subscriptions(x_admin_key: Optional[str] = Header(None)):
+async def sync_all_subscriptions(x_admin_key: Optional[str] = Header(None), authorization: Optional[str] = Header(None)):
     """
     Sync all active Stripe subscriptions with Supabase profiles.
     
@@ -696,7 +877,7 @@ async def sync_all_subscriptions(x_admin_key: Optional[str] = Header(None)):
         - skipped: Number of subscriptions without matching profiles
         - details: List of sync operations
     """
-    require_admin(x_admin_key)
+    require_admin(x_admin_key, authorization)
     
     if not STRIPE_SECRET_KEY:
         return {"error": "Stripe not configured", "synced": 0, "failed": 0}
@@ -791,13 +972,15 @@ async def sync_all_subscriptions(x_admin_key: Optional[str] = Header(None)):
                     "reason": "No matching profile found"
                 })
         
-        return {
+        result = {
             "synced": synced,
             "failed": failed,
             "skipped": skipped,
             "total_subscriptions": len(subscriptions.data),
             "details": details
         }
+        audit_log("sync_subscriptions", "subscriptions", None, {"synced": synced, "failed": failed, "skipped": skipped})
+        return result
         
     except stripe.error.StripeError as e:
         return {"error": str(e), "synced": synced, "failed": failed}
@@ -810,6 +993,7 @@ async def sync_all_subscriptions(x_admin_key: Optional[str] = Header(None)):
 @router.post("/scores/recalculate")
 async def recalculate_all_scores(
     x_admin_key: Optional[str] = Header(None),
+    authorization: Optional[str] = Header(None),
     db: Session = Depends(get_db)
 ):
     """
@@ -822,7 +1006,7 @@ async def recalculate_all_scores(
     - Streak bonuses
     - Experience factor
     """
-    require_admin(x_admin_key)
+    require_admin(x_admin_key, authorization)
     
     try:
         # Get all kingdoms
@@ -893,6 +1077,8 @@ async def recalculate_all_scores(
         # Sort changes by magnitude
         score_changes.sort(key=lambda x: abs(x['change']), reverse=True)
         
+        audit_log("recalculate_scores", "kingdoms", None, {"updated": updated, "errors": len(errors), "total": len(kingdoms)})
+        
         return {
             'success': True,
             'updated': updated,
@@ -910,6 +1096,7 @@ async def recalculate_all_scores(
 @router.get("/scores/distribution")
 async def get_score_distribution(
     x_admin_key: Optional[str] = Header(None),
+    authorization: Optional[str] = Header(None),
     db: Session = Depends(get_db)
 ):
     """
@@ -917,7 +1104,7 @@ async def get_score_distribution(
     
     Returns score distribution, tier counts, and percentile thresholds.
     """
-    require_admin(x_admin_key)
+    require_admin(x_admin_key, authorization)
     
     try:
         kingdoms = db.query(Kingdom).all()
@@ -991,6 +1178,7 @@ async def get_score_movers(
     days: int = 7,
     limit: int = 20,
     x_admin_key: Optional[str] = Header(None),
+    authorization: Optional[str] = Header(None),
     db: Session = Depends(get_db)
 ):
     """
@@ -998,7 +1186,7 @@ async def get_score_movers(
     
     Requires score_history table to be populated.
     """
-    require_admin(x_admin_key)
+    require_admin(x_admin_key, authorization)
     
     client = get_supabase_admin()
     if not client:
@@ -1098,7 +1286,8 @@ async def get_current_kvk():
 @router.post("/config/current-kvk")
 async def set_current_kvk(
     kvk_number: int,
-    x_admin_key: Optional[str] = Header(None)
+    x_admin_key: Optional[str] = Header(None),
+    authorization: Optional[str] = Header(None)
 ):
     """
     Set the current KvK number (admin only).
@@ -1112,7 +1301,7 @@ async def set_current_kvk(
     Returns:
         Success status and the new KvK number
     """
-    require_admin(x_admin_key)
+    require_admin(x_admin_key, authorization)
     
     if kvk_number < 1:
         raise HTTPException(status_code=400, detail="KvK number must be positive")
@@ -1133,6 +1322,7 @@ async def set_current_kvk(
             "updated_at": datetime.now().isoformat()
         }, on_conflict="key").execute()
         
+        audit_log("set_current_kvk", "config", "current_kvk", {"kvk_number": kvk_number})
         return {
             "success": True,
             "current_kvk": kvk_number,
@@ -1151,7 +1341,7 @@ async def set_current_kvk(
 
 
 @router.post("/config/increment-kvk")
-async def increment_current_kvk(x_admin_key: Optional[str] = Header(None)):
+async def increment_current_kvk(x_admin_key: Optional[str] = Header(None), authorization: Optional[str] = Header(None)):
     """
     Increment the current KvK number by 1 (admin only).
     
@@ -1161,7 +1351,7 @@ async def increment_current_kvk(x_admin_key: Optional[str] = Header(None)):
     Returns:
         The old and new KvK numbers
     """
-    require_admin(x_admin_key)
+    require_admin(x_admin_key, authorization)
     
     # Get current value
     current_result = await get_current_kvk()
@@ -1171,7 +1361,7 @@ async def increment_current_kvk(x_admin_key: Optional[str] = Header(None)):
     new_kvk = current_kvk + 1
     
     # Set new value
-    result = await set_current_kvk(new_kvk, x_admin_key)
+    result = await set_current_kvk(new_kvk, x_admin_key, authorization)
     
     return {
         "success": True,
