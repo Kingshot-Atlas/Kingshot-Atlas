@@ -168,6 +168,10 @@ const client = new Client({
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMembers,
   ],
+  rest: {
+    timeout: 15_000, // 15s timeout for REST API calls (prevents hanging on rate limits)
+    retries: 1,      // Only retry REST calls once
+  },
 });
 
 // Event: Ready
@@ -502,56 +506,44 @@ client.on('guildMemberAdd', async (member) => {
 
 // Start bot - login FIRST, commands register after connection
 async function main() {
-  // Login to Discord with retry logic
+  // Login to Discord with timeout protection
+  // discord.js client.login() internally calls GET /gateway/bot which can hang
+  // if rate-limited from frequent restarts. We wrap it with a 60s timeout.
   console.log('🔐 Attempting Discord login...');
   console.log(`   Token: ${config.token ? config.token.substring(0, 10) + '...' + config.token.substring(config.token.length - 5) : 'MISSING'} (${config.token?.length || 0} chars)`);
-  let loginSuccess = false;
-  let loginAttempts = 0;
-  const MAX_LOGIN_ATTEMPTS = 3;
   
-  while (!loginSuccess && loginAttempts < MAX_LOGIN_ATTEMPTS) {
-    loginAttempts++;
-    loginAttemptCount = loginAttempts;
-    try {
-      await client.login(config.token);
-      console.log('✅ Discord login call completed (note: WebSocket connection is async)');
-      loginSuccess = true;
-      loginLastResult = 'login_resolved';
-      reconnectAttempts = 0; // Reset reconnect counter on successful startup
-    } catch (loginError) {
-      loginLastResult = `failed: ${loginError.code || loginError.message}`;
-      lastError = `Login attempt ${loginAttempts}: ${loginError.message} (code: ${loginError.code})`;
-      console.error(`❌ Discord login failed (attempt ${loginAttempts}/${MAX_LOGIN_ATTEMPTS}):`, loginError.message);
-      console.error('   Code:', loginError.code);
-      
-      // Fatal errors - don't retry
-      if (loginError.code === 'TOKEN_INVALID' || loginError.message.includes('invalid token')) {
-        console.error('');
-        console.error('   🔧 TOKEN INVALID - Common causes:');
-        console.error('   1. Token was reset in Discord Developer Portal');
-        console.error('   2. Wrong token copied (use Bot token, not Client Secret)');
-        console.error('   3. Token has extra whitespace or newlines');
-        console.error('   4. Environment variable not properly set in Render');
-        console.error('');
-        console.error('   To fix: Go to Discord Developer Portal > Your App > Bot > Reset Token');
-        console.error('   Then update DISCORD_TOKEN or DISCORD_BOT_TOKEN in Render');
-        throw loginError;
-      } else if (loginError.code === 'DISALLOWED_INTENTS') {
-        console.error('');
-        console.error('   🔧 DISALLOWED INTENTS - Enable in Discord Developer Portal:');
-        console.error('   Settings > Bot > Privileged Gateway Intents');
-        throw loginError;
-      }
-      
-      // Retriable errors (rate limit, network, etc.)
-      if (loginAttempts < MAX_LOGIN_ATTEMPTS) {
-        const delay = 5000 * Math.pow(2, loginAttempts - 1); // 5s, 10s
-        console.log(`   ⏳ Retrying in ${delay / 1000}s...`);
-        await new Promise(resolve => setTimeout(resolve, delay));
-      } else {
-        throw loginError;
-      }
+  const LOGIN_TIMEOUT = 60_000; // 60 seconds max for login
+  loginAttemptCount = 1;
+  
+  try {
+    const loginPromise = client.login(config.token);
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('LOGIN_TIMEOUT: client.login() did not resolve within 60s. Discord may be rate-limiting gateway connections due to frequent restarts.')), LOGIN_TIMEOUT)
+    );
+    
+    await Promise.race([loginPromise, timeoutPromise]);
+    console.log('✅ Discord login call completed (WebSocket connection is async)');
+    loginLastResult = 'login_resolved';
+    reconnectAttempts = 0;
+  } catch (loginError) {
+    loginLastResult = `failed: ${loginError.code || loginError.message}`;
+    lastError = `Login: ${loginError.message} (code: ${loginError.code || 'none'})`;
+    console.error('❌ Discord login failed:', loginError.message);
+    
+    if (loginError.code === 'TOKEN_INVALID' || loginError.message.includes('invalid token')) {
+      console.error('   🔧 TOKEN INVALID: Reset in Discord Developer Portal > Bot > Reset Token');
+      console.error('   Then update DISCORD_TOKEN on Render dashboard');
+    } else if (loginError.code === 'DISALLOWED_INTENTS') {
+      console.error('   🔧 DISALLOWED INTENTS: Enable Server Members Intent in Discord Developer Portal');
+    } else if (loginError.message.includes('LOGIN_TIMEOUT')) {
+      console.error('   🔧 LOGIN TIMED OUT: Discord is likely rate-limiting this bot.');
+      console.error('   The bot will keep running and serving the health endpoint.');
+      console.error('   Render will restart the service, which will try again.');
     }
+    
+    // Don't crash - keep the health server alive so diagnostics are accessible
+    // Render's health check will eventually fail (after grace period) and restart us
+    console.error('   Bot will remain running for diagnostics. Check /health for details.');
   }
 }
 
@@ -587,8 +579,11 @@ process.on('unhandledRejection', (reason, promise) => {
   console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
-// Start the bot
+// Start the bot (don't exit on failure - keep health server for diagnostics)
 main().catch((error) => {
   console.error('❌ Failed to start bot:', error);
-  process.exit(1);
+  lastError = `main() crash: ${error.message}`;
+  loginLastResult = `crash: ${error.message}`;
+  // Don't process.exit() - keep health server alive so we can diagnose remotely
+  console.error('   Health server still running at /health for diagnostics');
 });
