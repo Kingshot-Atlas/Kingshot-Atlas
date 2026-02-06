@@ -43,6 +43,13 @@ let lastHeartbeat = Date.now();
 const startupTime = Date.now();
 const STARTUP_GRACE_PERIOD = 300000; // 5 minutes grace period - Discord may rate limit after repeated restarts
 
+// Diagnostic state - exposed via /health and /diagnostic endpoints
+let lastDisconnectCode = null;
+let lastDisconnectReason = null;
+let lastError = null;
+let loginAttemptCount = 0;
+let loginLastResult = null;
+
 const healthServer = http.createServer((req, res) => {
   if (req.url === '/health') {
     // Null-safe access to Discord client state (client may not be initialized yet)
@@ -62,8 +69,21 @@ const healthServer = http.createServer((req, res) => {
       discord: {
         connected: wsStatus === 0,
         wsStatus: wsStatus,
+        wsStatusName: ['READY','CONNECTING','RECONNECTING','IDLE','NEARLY','DISCONNECTED','WAITING_FOR_GUILDS','IDENTIFYING','RESUMING'][wsStatus] || `UNKNOWN(${wsStatus})`,
         guilds: client?.guilds?.cache?.size || 0,
-        ping: client?.ws?.ping ?? -1,
+        ping: client?.ws?.ping ?? null,
+      },
+      diagnostics: {
+        lastDisconnectCode: lastDisconnectCode,
+        lastDisconnectReason: lastDisconnectReason,
+        lastError: lastError,
+        loginAttempts: loginAttemptCount,
+        loginLastResult: loginLastResult,
+        tokenPresent: !!config.token,
+        tokenLength: config.token ? config.token.length : 0,
+        tokenSource: process.env.DISCORD_TOKEN ? 'DISCORD_TOKEN' : process.env.DISCORD_BOT_TOKEN ? 'DISCORD_BOT_TOKEN' : 'NONE',
+        clientIdPresent: !!config.clientId,
+        guildIdPresent: !!config.guildId,
       },
       process: {
         uptime: Math.floor(uptime),
@@ -218,18 +238,47 @@ client.on('shardResume', (id, replayedEvents) => {
 client.on('shardError', (error, shardId) => {
   console.error(`❌ Shard ${shardId} error:`, error.message);
   console.error('   Code:', error.code);
+  lastError = `Shard ${shardId}: ${error.message} (code: ${error.code})`;
 });
 
-// Event: Shard disconnect
+// Event: Shard disconnect - capture close code for remote diagnostics
+// Discord close codes: 4004=AUTH_FAILED, 4014=DISALLOWED_INTENTS, 4013=INVALID_INTENTS
 client.on('shardDisconnect', (event, shardId) => {
-  console.warn(`⚠️ Shard ${shardId} disconnected. Code: ${event.code}, Clean: ${event.wasClean}`);
+  const closeCodeNames = {
+    1000: 'NORMAL', 1001: 'GOING_AWAY', 4000: 'UNKNOWN_ERROR',
+    4001: 'UNKNOWN_OPCODE', 4002: 'DECODE_ERROR', 4003: 'NOT_AUTHENTICATED',
+    4004: 'AUTHENTICATION_FAILED', 4005: 'ALREADY_AUTHENTICATED',
+    4007: 'INVALID_SEQ', 4008: 'RATE_LIMITED', 4009: 'SESSION_TIMED_OUT',
+    4010: 'INVALID_SHARD', 4011: 'SHARDING_REQUIRED', 4012: 'INVALID_API_VERSION',
+    4013: 'INVALID_INTENTS', 4014: 'DISALLOWED_INTENTS',
+  };
+  const codeName = closeCodeNames[event.code] || 'UNKNOWN';
+  console.warn(`⚠️ Shard ${shardId} disconnected. Code: ${event.code} (${codeName}), Clean: ${event.wasClean}`);
+  
+  lastDisconnectCode = event.code;
+  lastDisconnectReason = codeName;
   botReady = false;
+  
+  // Provide actionable guidance based on close code
+  if (event.code === 4004) {
+    lastError = 'AUTHENTICATION_FAILED: Bot token is invalid or revoked. Reset token in Discord Developer Portal and update DISCORD_TOKEN on Render.';
+    console.error('❌ TOKEN INVALID (4004): Reset token in Discord Developer Portal > Bot > Reset Token');
+    console.error('   Then update DISCORD_TOKEN env var on Render dashboard');
+  } else if (event.code === 4014) {
+    lastError = 'DISALLOWED_INTENTS: Server Members Intent not enabled. Go to Discord Developer Portal > Bot > Privileged Gateway Intents.';
+    console.error('❌ DISALLOWED INTENTS (4014): Enable Server Members Intent in Discord Developer Portal');
+    console.error('   https://discord.com/developers/applications/' + (config.clientId || 'YOUR_APP_ID') + '/bot');
+  } else if (event.code === 4013) {
+    lastError = 'INVALID_INTENTS: Requested intents are invalid. Check GatewayIntentBits in bot.js.';
+    console.error('❌ INVALID INTENTS (4013): Check intents configuration');
+  }
 });
 
 // Event: Invalidated session - token may be invalid
 client.on('invalidated', () => {
   console.error('❌ Session invalidated - token may be invalid or revoked');
   botReady = false;
+  lastError = 'Session invalidated - token may be invalid or revoked';
   // Attempt re-login after delay (token may have been rotated on Render)
   scheduleReconnect('session_invalidated');
 });
@@ -430,18 +479,23 @@ async function main() {
 
   // Login to Discord with retry logic
   console.log('🔐 Attempting Discord login...');
+  console.log(`   Token: ${config.token ? config.token.substring(0, 10) + '...' + config.token.substring(config.token.length - 5) : 'MISSING'} (${config.token?.length || 0} chars)`);
   let loginSuccess = false;
   let loginAttempts = 0;
   const MAX_LOGIN_ATTEMPTS = 3;
   
   while (!loginSuccess && loginAttempts < MAX_LOGIN_ATTEMPTS) {
     loginAttempts++;
+    loginAttemptCount = loginAttempts;
     try {
       await client.login(config.token);
-      console.log('✅ Discord login call completed');
+      console.log('✅ Discord login call completed (note: WebSocket connection is async)');
       loginSuccess = true;
+      loginLastResult = 'login_resolved';
       reconnectAttempts = 0; // Reset reconnect counter on successful startup
     } catch (loginError) {
+      loginLastResult = `failed: ${loginError.code || loginError.message}`;
+      lastError = `Login attempt ${loginAttempts}: ${loginError.message} (code: ${loginError.code})`;
       console.error(`❌ Discord login failed (attempt ${loginAttempts}/${MAX_LOGIN_ATTEMPTS}):`, loginError.message);
       console.error('   Code:', loginError.code);
       
