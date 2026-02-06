@@ -50,6 +50,8 @@ let lastError = null;
 let loginAttemptCount = 0;
 let loginLastResult = null;
 let tokenValidationResult = null;
+let interactionCount = 0;
+let lastInteractionTime = null;
 
 const healthServer = http.createServer((req, res) => {
   if (req.url === '/health') {
@@ -89,6 +91,9 @@ const healthServer = http.createServer((req, res) => {
         clientIdPresent: !!config.clientId,
         guildIdPresent: !!config.guildId,
         tokenValidation: tokenValidationResult,
+        interactionsReceived: interactionCount,
+        lastInteractionAt: lastInteractionTime,
+        readyFired: typeof readyFiredCount !== 'undefined' ? readyFiredCount : 0,
       },
       process: {
         uptime: Math.floor(uptime),
@@ -179,8 +184,12 @@ const client = new Client({
   },
 });
 
-// Event: Ready
-client.once('ready', async () => {
+// Event: Ready — MUST use .on() not .once() because login retries can
+// consume a once() handler on a partial connection that gets destroyed,
+// leaving the successful retry without a ready handler.
+let readyFiredCount = 0;
+client.on('ready', async () => {
+  readyFiredCount++;
   botReady = true;
   lastHeartbeat = Date.now();
   
@@ -190,12 +199,13 @@ client.once('ready', async () => {
   lastDisconnectCode = null;
   lastDisconnectReason = null;
   
-  console.log(`\n✅ Atlas is online as ${client.user.tag}`);
+  console.log(`\n✅ Atlas is online as ${client.user.tag} (ready #${readyFiredCount})`);
   console.log(`📊 Serving ${client.guilds.cache.size} server(s)`);
   console.log(`🔗 API: ${config.apiUrl}`);
   console.log(`\n"${config.bot.tagline}"\n`);
   
-  // Start self-ping keepalive
+  // Start self-ping keepalive (guard against duplicate timers)
+  if (selfPingTimer) clearInterval(selfPingTimer);
   startSelfPing();
 
   // Set bot presence
@@ -208,14 +218,15 @@ client.once('ready', async () => {
   });
 
   // Initialize scheduled tasks (daily updates at 02:00 UTC)
-  scheduler.initScheduler(client);
+  // Only on first ready to avoid duplicate cron jobs
+  if (readyFiredCount === 1) {
+    scheduler.initScheduler(client);
+  }
   
   // Test API connectivity
   testApiConnectivity();
 
   // Register slash commands AFTER bot is connected (non-blocking)
-  // Moved here from main() because REST API registration was blocking login
-  // due to rate limits from frequent restarts
   registerCommands().catch(err => {
     console.error('❌ Background command registration failed:', err.message);
   });
@@ -409,10 +420,13 @@ async function testApiConnectivity() {
 
 // Event: Interaction (slash commands)
 client.on('interactionCreate', async (interaction) => {
+  interactionCount++;
+  lastInteractionTime = new Date().toISOString();
+  
   if (!interaction.isChatInputCommand()) return;
 
   const { commandName } = interaction;
-  console.log(`📥 Command received: /${commandName} from ${interaction.user.tag}`);
+  console.log(`📥 Command received: /${commandName} from ${interaction.user.tag} (interaction #${interactionCount})`);
 
   const startTime = Date.now();
   
@@ -667,13 +681,24 @@ function scheduleLoginRetry() {
     loginAttemptCount = loginRetryCount + 1;
     
     try {
-      // Re-validate token first
+      // Re-validate token first (skip if rate-limited)
       const tokenCheck = await validateToken(config.token);
       if (tokenCheck.valid === false) {
         loginLastResult = `token_invalid: ${tokenCheck.error}`;
         lastError = `Token invalid on retry. Reset in Discord Developer Portal.`;
         return;
       }
+      if (tokenCheck.status === 429) {
+        console.warn('   Still rate-limited, skipping login attempt');
+        loginLastResult = `retry_${loginRetryCount}_skipped: still rate-limited`;
+        scheduleLoginRetry();
+        return;
+      }
+      
+      // CRITICAL: Destroy old client state before retrying to prevent
+      // overlapping WebSocket connections that corrupt event routing
+      console.log('   Destroying old connection before retry...');
+      client.destroy();
       
       const loginPromise = client.login(config.token);
       const timeoutPromise = new Promise((_, reject) =>
