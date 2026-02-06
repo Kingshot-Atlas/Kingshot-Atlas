@@ -6,11 +6,12 @@ import { Kingdom, getPowerTier, TIER_COLORS } from '../types';
 import { MiniKingdomCard } from './profile-features';
 import { reviewService, Review } from '../services/reviewService';
 import { isSupabaseConfigured } from '../lib/supabase';
+import { useFavoritesContext } from '../contexts/FavoritesContext';
 
 const ProfileFeatures: React.FC = () => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
-  const [favorites, setFavorites] = useState<number[]>([]);
+  const { favorites, toggleFavorite } = useFavoritesContext();
   const [watchlist, setWatchlist] = useState<number[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [homeKingdomData, setHomeKingdomData] = useState<Kingdom | null>(null);
@@ -40,11 +41,6 @@ const ProfileFeatures: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Load favorites
-    const favKey = 'kingshot_favorites';
-    const saved = localStorage.getItem(favKey);
-    if (saved) setFavorites(JSON.parse(saved));
-
     // Load watchlist
     const watchKey = 'kingshot_watchlist';
     const savedWatch = localStorage.getItem(watchKey);
@@ -92,9 +88,7 @@ const ProfileFeatures: React.FC = () => {
   }, [favorites]);
 
   const removeFromFavorites = (kingdomNumber: number) => {
-    const newFavorites = favorites.filter(k => k !== kingdomNumber);
-    setFavorites(newFavorites);
-    localStorage.setItem('kingshot_favorites', JSON.stringify(newFavorites));
+    toggleFavorite(kingdomNumber);
   };
 
   const removeFromWatchlist = (kingdomNumber: number) => {

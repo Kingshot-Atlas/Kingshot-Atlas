@@ -18,7 +18,15 @@ Before starting work:
 - Search `ACTIVITY_LOG.md` — Was this already done?
 - Search `FEATURES_IMPLEMENTED.md` — Is this already implemented?
 - Grep codebase for existing implementations if building features
+- **Query Supabase** — If task involves database, use `mcp3_list_tables` to check current schema
 - If already done, inform user and suggest alternatives
+
+### Supabase State Check (for database-related tasks)
+```
+Use mcp3_list_tables with project_id: qdczmafwcvnwfvixxbwg
+This shows all existing tables, columns, RLS status, and row counts.
+NEVER suggest creating a table without checking if it already exists.
+```
 
 ## 3. Architecture Review (MANDATORY for data/API/storage changes)
 **Prevents architectural debt. Check BEFORE implementing.**

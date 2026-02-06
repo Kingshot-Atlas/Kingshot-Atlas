@@ -15,7 +15,7 @@ interface KingdomReviewsProps {
 
 const MIN_TC_LEVEL = 20;
 const MIN_COMMENT_LENGTH = 10;
-const MAX_COMMENT_LENGTH = 1000;
+const MAX_COMMENT_LENGTH = 200;
 
 // Get username color based on display tier
 const getUsernameColor = (tier: SubscriptionTier): string => {
@@ -527,9 +527,10 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
             ))}
           </div>
           <textarea
-            placeholder="Share your experience with this kingdom..."
+            placeholder="Brief review, max 200 characters..."
             value={newReview.comment}
             onChange={(e) => setNewReview(prev => ({ ...prev, comment: e.target.value }))}
+            maxLength={MAX_COMMENT_LENGTH}
             style={{
               width: '100%',
               padding: '0.5rem',
@@ -543,6 +544,39 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
               marginBottom: '0.75rem'
             }}
           />
+          {/* Character counter */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '-0.5rem', marginBottom: '0.5rem' }}>
+            <span style={{
+              fontSize: '0.7rem',
+              color: newReview.comment.length >= MAX_COMMENT_LENGTH ? '#ef4444'
+                : newReview.comment.length >= MAX_COMMENT_LENGTH * 0.8 ? '#f59e0b'
+                : '#6b7280'
+            }}>
+              {newReview.comment.length}/{MAX_COMMENT_LENGTH}
+            </span>
+          </div>
+
+          {/* Review preview */}
+          {newReview.comment.trim().length >= MIN_COMMENT_LENGTH && (
+            <div style={{
+              backgroundColor: '#0a0a0a',
+              border: '1px solid #2a2a2a',
+              borderRadius: '6px',
+              padding: '0.5rem 0.75rem',
+              marginBottom: '0.75rem'
+            }}>
+              <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Preview</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.25rem' }}>
+                <span style={{ color: '#fbbf24', fontSize: '0.75rem' }}>
+                  {'★'.repeat(newReview.rating)}{'☆'.repeat(5 - newReview.rating)}
+                </span>
+              </div>
+              <p style={{ color: '#9ca3af', fontSize: '0.8rem', lineHeight: 1.4, margin: 0 }}>
+                {newReview.comment.trim()}
+              </p>
+            </div>
+          )}
+
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <button
               onClick={handleSubmitReview}
@@ -560,9 +594,6 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
             >
               {submitting ? 'Submitting...' : 'Submit Review'}
             </button>
-            <span style={{ color: '#6b7280', fontSize: '0.7rem' }}>
-              {newReview.comment.length}/{MAX_COMMENT_LENGTH}
-            </span>
           </div>
         </div>
       )}
@@ -624,6 +655,61 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
               })}
             </div>
           </div>
+          
+          {/* Progress indicator for Google rating badge */}
+          {reviewStats.totalReviews < 5 && (
+            <div style={{
+              marginTop: '0.75rem',
+              padding: '0.5rem 0.75rem',
+              backgroundColor: '#1a1a2e',
+              borderRadius: '6px',
+              border: '1px solid #22d3ee30',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem'
+            }}>
+              <div style={{ fontSize: '1.25rem' }}>🎯</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: '0.75rem', color: '#22d3ee', fontWeight: '500' }}>
+                  {5 - reviewStats.totalReviews} more review{5 - reviewStats.totalReviews !== 1 ? 's' : ''} needed for Google rating badge
+                </div>
+                <div style={{
+                  marginTop: '0.25rem',
+                  height: '4px',
+                  backgroundColor: '#2a2a2a',
+                  borderRadius: '2px',
+                  overflow: 'hidden'
+                }}>
+                  <div style={{
+                    width: `${(reviewStats.totalReviews / 5) * 100}%`,
+                    height: '100%',
+                    backgroundColor: '#22d3ee',
+                    borderRadius: '2px',
+                    transition: 'width 0.3s ease'
+                  }} />
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Badge earned indicator */}
+          {reviewStats.totalReviews >= 5 && (
+            <div style={{
+              marginTop: '0.75rem',
+              padding: '0.5rem 0.75rem',
+              backgroundColor: '#1a2e1a',
+              borderRadius: '6px',
+              border: '1px solid #22c55e30',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              fontSize: '0.75rem',
+              color: '#22c55e'
+            }}>
+              <span>✓</span>
+              <span>This kingdom qualifies for Google rich results rating badge</span>
+            </div>
+          )}
         </div>
       )}
 
@@ -757,6 +843,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                       <textarea
                         value={editForm.comment}
                         onChange={(e) => setEditForm(prev => ({ ...prev, comment: e.target.value }))}
+                        maxLength={MAX_COMMENT_LENGTH}
                         style={{
                           width: '100%',
                           padding: '0.5rem',
@@ -770,6 +857,17 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                           marginBottom: '0.5rem'
                         }}
                       />
+                      {/* Edit character counter */}
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '-0.25rem', marginBottom: '0.25rem' }}>
+                        <span style={{
+                          fontSize: '0.65rem',
+                          color: editForm.comment.length >= MAX_COMMENT_LENGTH ? '#ef4444'
+                            : editForm.comment.length >= MAX_COMMENT_LENGTH * 0.8 ? '#f59e0b'
+                            : '#6b7280'
+                        }}>
+                          {editForm.comment.length}/{MAX_COMMENT_LENGTH}
+                        </span>
+                      </div>
                       <div style={{ display: 'flex', gap: '0.5rem' }}>
                         <button
                           onClick={() => handleUpdateReview(review.id)}

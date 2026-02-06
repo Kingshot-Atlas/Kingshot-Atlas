@@ -4,7 +4,8 @@ type StructuredDataType =
   | 'FAQPage'
   | 'BreadcrumbList'
   | 'WebPage'
-  | 'Organization';
+  | 'Organization'
+  | 'KingdomProfile';
 
 interface FAQItem {
   question: string;
@@ -16,9 +17,25 @@ interface BreadcrumbItem {
   url: string;
 }
 
+interface AggregateRating {
+  ratingValue: number;
+  reviewCount: number;
+  bestRating: number;
+  worstRating: number;
+}
+
+interface KingdomProfileData {
+  kingdomNumber: number;
+  kingdomName?: string;
+  tier?: string;
+  atlasScore?: number;
+  rank?: number;
+  aggregateRating?: AggregateRating | null;
+}
+
 interface StructuredDataOptions {
   type: StructuredDataType;
-  data: FAQItem[] | BreadcrumbItem[] | Record<string, unknown>;
+  data: FAQItem[] | BreadcrumbItem[] | KingdomProfileData | Record<string, unknown>;
 }
 
 /**
@@ -77,6 +94,41 @@ export const useStructuredData = (options: StructuredDataOptions) => {
           ...(data as Record<string, unknown>)
         };
         break;
+
+      case 'KingdomProfile': {
+        const profileData = data as KingdomProfileData;
+        const baseData: Record<string, unknown> = {
+          ...jsonLd,
+          '@type': 'WebPage',
+          name: `Kingdom ${profileData.kingdomNumber}${profileData.kingdomName ? ` - ${profileData.kingdomName}` : ''} Profile`,
+          description: `View stats, KvK history, and rankings for Kingdom ${profileData.kingdomNumber} in Kingshot Atlas.`,
+          url: `https://ks-atlas.com/kingdom/${profileData.kingdomNumber}`,
+          isPartOf: {
+            '@type': 'WebSite',
+            name: 'Kingshot Atlas',
+            url: 'https://ks-atlas.com'
+          }
+        };
+
+        // Only include aggregateRating if it exists (5+ reviews requirement met)
+        if (profileData.aggregateRating) {
+          baseData.mainEntity = {
+            '@type': 'Product',
+            name: `Kingdom ${profileData.kingdomNumber}`,
+            description: `Kingdom ${profileData.kingdomNumber} in Kingshot mobile game${profileData.tier ? ` (${profileData.tier} Tier)` : ''}`,
+            aggregateRating: {
+              '@type': 'AggregateRating',
+              ratingValue: profileData.aggregateRating.ratingValue.toString(),
+              reviewCount: profileData.aggregateRating.reviewCount.toString(),
+              bestRating: profileData.aggregateRating.bestRating.toString(),
+              worstRating: profileData.aggregateRating.worstRating.toString()
+            }
+          };
+        }
+
+        jsonLd = baseData;
+        break;
+      }
     }
 
     // Create and inject the script element

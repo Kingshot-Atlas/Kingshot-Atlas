@@ -36,6 +36,7 @@
 
 | When | Agent | Task | Files |
 |------|-------|------|-------|
+| 2026-02-06 | Product Engineer | Favorites persistence fix + UX hardening (retry, error toasts, header badge) | userDataService.ts, KingdomDirectory.tsx, FavoritesBadge.tsx, Header.tsx, useKingdoms.ts |
 | 2026-02-05 | Ops Lead | SEO Phase 2: Sitemap 1211 URLs, Schema markup, Keywords | sitemap.xml, index.html, useMetaTags.ts |
 | 2026-02-05 | Design Lead | Mobile UX Touch Targets (44px min) | KingdomReviews, KvKHistoryTable, Profile, SupportAtlas |
 | 2026-02-05 | Security Specialist | Dependency Audit + CI Automation | package.json, security-audit.yml |

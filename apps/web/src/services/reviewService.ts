@@ -57,7 +57,7 @@ export interface ReviewWithVoteStatus extends Review {
 
 const MIN_TC_LEVEL = 20;
 const MIN_COMMENT_LENGTH = 10;
-const MAX_COMMENT_LENGTH = 1000;
+const MAX_COMMENT_LENGTH = 200;
 
 export const reviewService = {
   /**
@@ -523,6 +523,37 @@ export const reviewService = {
     }
 
     return count || 0;
+  },
+
+  /**
+   * Get aggregate rating for structured data (SEO)
+   * Only returns data if kingdom has 5+ reviews (Google requirement)
+   */
+  async getAggregateRatingForStructuredData(
+    kingdomNumber: number,
+    minReviews: number = 5
+  ): Promise<{
+    ratingValue: number;
+    reviewCount: number;
+    bestRating: number;
+    worstRating: number;
+  } | null> {
+    const { data, error } = await getSupabase()
+      .rpc('get_aggregate_rating', {
+        p_kingdom_number: kingdomNumber,
+        p_min_reviews: minReviews
+      });
+
+    if (error || !data || data.length === 0) {
+      return null;
+    }
+
+    return {
+      ratingValue: parseFloat(data[0].rating_value),
+      reviewCount: parseInt(data[0].review_count),
+      bestRating: data[0].best_rating,
+      worstRating: data[0].worst_rating
+    };
   },
 
   /**

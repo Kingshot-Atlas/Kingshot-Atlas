@@ -65,6 +65,9 @@
 | User Profiles | ✅ Live | Product | Settings, preferences, linked accounts |
 | Kingshot Player Linking | ✅ Live | Product | `LinkKingshotAccount.tsx` - link to in-game ID |
 | Linked Account Card Redesign | ✅ Live | Product | Table layout with tier-based username colors (2026-01-31) |
+| Favorites Cloud Persistence | ✅ Live | Product | Supabase `user_data` table sync with retry logic (3 attempts, exponential backoff), error toasts (2026-02-06) |
+| Favorites Header Badge | ✅ Live | Product | `FavoritesBadge.tsx` - heart icon with count in header, links to `/?favorites=true` (2026-02-06) |
+| FavoritesContext (Cross-Page) | ✅ Live | Product | `FavoritesContext.tsx` - reactive favorites across all pages, Supabase source of truth, KingdomProfile toggle (ADR-013, 2026-02-06) |
 | Public Profile Tier Coloring | ✅ Live | Product | Tier-colored usernames on public profiles (2026-01-31) |
 | Kingdom Players Section | ✅ Live | Product | `KingdomPlayers.tsx` - Atlas users from kingdom on profile page (2026-01-31) |
 | User Directory Enhancement | ✅ Live | Product | Shows only linked Kingshot accounts with tier coloring, Kingdom, TC Level (2026-01-31) |

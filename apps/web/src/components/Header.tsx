@@ -4,6 +4,7 @@ import { useAuth, getCacheBustedAvatarUrl } from '../contexts/AuthContext';
 import AuthModal from './AuthModal';
 import KvKCountdown from './KvKCountdown';
 import NotificationBell from './NotificationBell';
+import FavoritesBadge from './FavoritesBadge';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
@@ -683,7 +684,8 @@ const Header: React.FC = () => {
             Players
           </Link> */}
           
-          {/* Notification Bell - only for logged in users */}
+          {/* Favorites + Notification Bell - only for logged in users */}
+          {user && <FavoritesBadge />}
           {user && <NotificationBell />}
           
           <div style={{ position: 'relative' }}>

@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { FilterOptions, SortOptions } from '../types';
 import { apiService } from '../services/api';
+import { useFavoritesContext } from '../contexts/FavoritesContext';
 
 // Query keys for consistent cache management
 export const kingdomKeys = {
@@ -75,31 +76,14 @@ export function useSearchKingdoms(query: string) {
  * Hook for managing favorites with optimistic updates
  */
 export function useFavorites() {
-  const FAVORITES_KEY = 'kingshot_favorites';
+  const { favorites, toggleFavorite: ctxToggle, isFavorite } = useFavoritesContext();
   
-  const getFavorites = (): number[] => {
-    const saved = localStorage.getItem(FAVORITES_KEY);
-    return saved ? JSON.parse(saved) : [];
-  };
-  
-  const saveFavorites = (favorites: number[]) => {
-    localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
-  };
+  const getFavorites = (): number[] => favorites;
   
   const toggleFavorite = (kingdomNumber: number): { added: boolean; favorites: number[] } => {
-    const current = getFavorites();
-    const isFavorite = current.includes(kingdomNumber);
-    
-    const updated = isFavorite
-      ? current.filter(k => k !== kingdomNumber)
-      : [...current, kingdomNumber];
-    
-    saveFavorites(updated);
-    return { added: !isFavorite, favorites: updated };
-  };
-  
-  const isFavorite = (kingdomNumber: number): boolean => {
-    return getFavorites().includes(kingdomNumber);
+    const wasFavorite = isFavorite(kingdomNumber);
+    ctxToggle(kingdomNumber);
+    return { added: !wasFavorite, favorites };
   };
   
   return {

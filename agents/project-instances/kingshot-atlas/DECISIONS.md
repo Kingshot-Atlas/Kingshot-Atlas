@@ -479,4 +479,37 @@ Key functions:
 
 ---
 
+## ADR-013: FavoritesContext as Single Source of Truth for Favorites State
+
+**Date:** 2026-02-06  
+**Status:** ✅ Accepted  
+**Deciders:** Product Engineer
+
+### Context
+Favorites were managed independently by each page via direct localStorage reads. This caused:
+- No reactive updates across pages (toggle on Profile didn't reflect on Directory until refresh)
+- 6 files duplicating the `kingshot_favorites` localStorage key
+- No centralized sync error handling
+
+### Decision
+Create a `FavoritesContext` React context that:
+- Initializes from localStorage (fast, synchronous)
+- Hydrates from Supabase `user_data.favorites` after login (cloud is authoritative for logged-in users)
+- Persists changes: Context state → localStorage → Supabase (via `userDataService.syncToCloud()`)
+- All pages consume from context instead of direct localStorage reads
+
+### Alternatives Considered
+- **Zustand store** — Heavier dependency for a simple list; context is sufficient
+- **Keep localStorage + polling** — FavoritesBadge was polling every 2s; wasteful and not reactive
+- **Supabase real-time subscription** — Overkill for single-user favorites; adds WebSocket overhead
+
+### Consequences
+- ✅ Favorites are reactive across all pages instantly
+- ✅ Single source of truth eliminates duplicate key definitions
+- ✅ Centralized sync error handling with toast notifications
+- ✅ KingdomProfile now has a favorite toggle button
+- ⚠️ Context re-renders all consumers on any favorite change (acceptable for small arrays)
+
+---
+
 *Add new decisions as they are made. Reference ADRs when proposing changes.*

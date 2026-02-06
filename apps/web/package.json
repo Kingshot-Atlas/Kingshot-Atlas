@@ -58,7 +58,8 @@
     "lint:fix": "eslint src --ext .ts,.tsx --fix",
     "analyze": "source-map-explorer 'dist/static/js/*.js'",
     "sitemap": "node scripts/generate-sitemap.js",
-    "prebuild": "node scripts/generate-sitemap.js"
+    "prebuild": "node scripts/generate-sitemap.js",
+    "validate:seo": "node scripts/validate-seo.js"
   },
   "browserslist": {
     "production": [

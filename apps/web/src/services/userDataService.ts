@@ -20,6 +20,18 @@ export interface UserData {
 
 class UserDataService {
   private userId: string | null = null;
+  private syncRetryCount = 0;
+  private maxRetries = 3;
+  private onSyncErrorCallback: ((error: string) => void) | null = null;
+  private _lastSyncStatus: 'idle' | 'syncing' | 'success' | 'error' = 'idle';
+
+  get lastSyncStatus() {
+    return this._lastSyncStatus;
+  }
+
+  onSyncError(callback: (error: string) => void) {
+    this.onSyncErrorCallback = callback;
+  }
 
   setUserId(userId: string | null) {
     this.userId = userId;
@@ -92,9 +104,11 @@ class UserDataService {
     }
   }
 
-  // Sync data to cloud (on data change)
-  async syncToCloud(): Promise<void> {
+  // Sync data to cloud (on data change) with retry logic
+  async syncToCloud(retryAttempt = 0): Promise<void> {
     if (!this.userId || !isSupabaseConfigured || !supabase) return;
+
+    this._lastSyncStatus = 'syncing';
 
     try {
       const local = this.getLocalData();
@@ -111,12 +125,29 @@ class UserDataService {
         }, { onConflict: 'user_id' });
       
       if (error) {
-        // Silently fail - localStorage still works
-        logger.debug('Cloud sync skipped:', error.message);
+        throw new Error(error.message);
       }
+
+      this._lastSyncStatus = 'success';
+      this.syncRetryCount = 0;
     } catch (err) {
-      // Silently fail - localStorage still works
-      logger.debug('Cloud sync error:', err);
+      const errorMsg = err instanceof Error ? err.message : 'Unknown sync error';
+      logger.debug(`Cloud sync failed (attempt ${retryAttempt + 1}/${this.maxRetries}):`, errorMsg);
+
+      if (retryAttempt < this.maxRetries - 1) {
+        // Exponential backoff: 1s, 2s, 4s
+        const delay = Math.pow(2, retryAttempt) * 1000;
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return this.syncToCloud(retryAttempt + 1);
+      }
+
+      // All retries exhausted
+      this._lastSyncStatus = 'error';
+      this.syncRetryCount = retryAttempt + 1;
+      logger.debug('Cloud sync failed after all retries — localStorage still works');
+      if (this.onSyncErrorCallback) {
+        this.onSyncErrorCallback('Favorites saved locally but cloud sync failed. They\'ll sync next time you\'re online.');
+      }
     }
   }
 

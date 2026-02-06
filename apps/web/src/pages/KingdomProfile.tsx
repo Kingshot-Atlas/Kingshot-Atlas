@@ -24,21 +24,31 @@ import { ScoreSimulator } from '../components/ScoreSimulator';
 import { KingdomHeader, QuickStats, PhaseCards, KvKHistoryTable } from '../components/kingdom-profile';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useAuth } from '../contexts/AuthContext';
+import { useFavoritesContext } from '../contexts/FavoritesContext';
 import { useToast } from '../components/Toast';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, getKingdomMetaTags } from '../hooks/useMetaTags';
+import { useStructuredData } from '../hooks/useStructuredData';
+import { reviewService } from '../services/reviewService';
 
 const KingdomProfile: React.FC = () => {
   const { kingdomNumber } = useParams<{ kingdomNumber: string }>();
   useDocumentTitle(kingdomNumber ? `Kingdom ${kingdomNumber}` : undefined);
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isFavorite, toggleFavorite } = useFavoritesContext();
   const { showToast } = useToast();
   const [kingdom, setKingdom] = useState<KingdomProfileType | null>(null);
   const [allKingdoms, setAllKingdoms] = useState<KingdomProfileType[]>([]);
   const [loading, setLoading] = useState(true);
   const isMobile = useIsMobile();
   const [refreshKey, setRefreshKey] = useState(0);
+  const [aggregateRating, setAggregateRating] = useState<{
+    ratingValue: number;
+    reviewCount: number;
+    bestRating: number;
+    worstRating: number;
+  } | null>(null);
 
   // Auto-refresh when KvK history changes for this kingdom via realtime
   const handleKvkHistoryUpdate = useCallback((updatedKingdom: number, kvkNumber: number) => {
@@ -91,6 +101,21 @@ const KingdomProfile: React.FC = () => {
       }
     };
     checkPending();
+  }, [kingdomNumber]);
+
+  // Fetch aggregate rating for structured data (SEO) - only available if 5+ reviews exist
+  useEffect(() => {
+    const fetchAggregateRating = async () => {
+      if (kingdomNumber) {
+        try {
+          const rating = await reviewService.getAggregateRatingForStructuredData(parseInt(kingdomNumber));
+          setAggregateRating(rating);
+        } catch {
+          setAggregateRating(null);
+        }
+      }
+    };
+    fetchAggregateRating();
   }, [kingdomNumber]);
 
   const handleStatusSubmit = async (newStatus: string, notes: string) => {
@@ -154,7 +179,19 @@ const KingdomProfile: React.FC = () => {
   const rank = kingdom ? sortedByScore.findIndex(k => k.kingdom_number === kingdom.kingdom_number) + 1 : 0;
   
   // Update meta tags - must be called before any early returns
-  useMetaTags(kingdom ? getKingdomMetaTags(kingdom.kingdom_number, atlasScore, powerTier, rank > 0 ? rank : undefined) : {});
+  useMetaTags(kingdom ? getKingdomMetaTags(kingdom.kingdom_number, undefined, powerTier, undefined) : {});
+  
+  // Inject structured data for SEO (with aggregateRating only if 5+ reviews exist)
+  useStructuredData({
+    type: 'KingdomProfile',
+    data: {
+      kingdomNumber: kingdom?.kingdom_number || parseInt(kingdomNumber || '0'),
+      tier: powerTier,
+      atlasScore: atlasScore,
+      rank: rank > 0 ? rank : undefined,
+      aggregateRating: aggregateRating
+    }
+  });
 
   if (loading) {
     return <KingdomProfileSkeleton />;
@@ -208,6 +245,16 @@ const KingdomProfile: React.FC = () => {
         status={status}
         hasPendingSubmission={hasPendingSubmission}
         isMobile={isMobile}
+        isFavorite={isFavorite(kingdom.kingdom_number)}
+        onToggleFavorite={() => {
+          if (!user) {
+            showToast('Sign in to save favorites', 'info');
+            return;
+          }
+          const wasFav = isFavorite(kingdom.kingdom_number);
+          toggleFavorite(kingdom.kingdom_number);
+          showToast(wasFav ? `K${kingdom.kingdom_number} removed from favorites` : `K${kingdom.kingdom_number} added to favorites`, wasFav ? 'info' : 'success');
+        }}
         onStatusModalOpen={() => setShowStatusModal(true)}
         onReportModalOpen={() => setShowReportModal(true)}
       />

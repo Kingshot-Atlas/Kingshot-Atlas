@@ -85,6 +85,9 @@ jobs:
       - name: Run ESLint
         run: npm run lint
 
+      - name: SEO Validation
+        run: npm run validate:seo
+
       - name: Security audit (npm)
         run: |
           # Fail build on critical/high vulnerabilities in production dependencies

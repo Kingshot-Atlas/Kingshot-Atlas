@@ -17,6 +17,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { PremiumProvider } from './contexts/PremiumContext';
 import { AccessibilityProvider } from './contexts/AccessibilityContext';
+import { FavoritesProvider } from './contexts/FavoritesContext';
 import './App.css';
 
 // Lazy load pages for code splitting
@@ -135,9 +136,11 @@ function App() {
             <AuthProvider>
               <PremiumProvider>
                 <ToastProvider>
-                  <Router>
-                    <AppContent />
-                  </Router>
+                  <FavoritesProvider>
+                    <Router>
+                      <AppContent />
+                    </Router>
+                  </FavoritesProvider>
                 </ToastProvider>
               </PremiumProvider>
             </AuthProvider>

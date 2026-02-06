@@ -19,11 +19,10 @@ import { usePreferences } from '../hooks/useUrlState';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { useAuth } from '../contexts/AuthContext';
+import { useFavoritesContext } from '../contexts/FavoritesContext';
 import { neonGlow } from '../utils/styles';
 import { countActiveFilters, DEFAULT_FILTERS } from '../utils/kingdomStats';
 import { DataSyncIndicator } from '../components/DataSyncIndicator';
-
-const FAVORITES_KEY = 'kingshot_favorites';
 
 const KingdomDirectory: React.FC = () => {
   useDocumentTitle('Kingdom Directory');
@@ -63,11 +62,8 @@ const KingdomDirectory: React.FC = () => {
   });
   
   
-  const [favorites, setFavorites] = useState<number[]>(() => {
-    const saved = localStorage.getItem(FAVORITES_KEY);
-    return saved ? JSON.parse(saved) : [];
-  });
-  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const { favorites, toggleFavorite: contextToggleFavorite } = useFavoritesContext();
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(() => searchParams.get('favorites') === 'true');
   
   const [showBackToTop, setShowBackToTop] = useState(false);
   const isMobile = useIsMobile();
@@ -160,9 +156,6 @@ const KingdomDirectory: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCardIndex, viewMode, navigate]);
 
-  useEffect(() => {
-    localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
-  }, [favorites]);
 
   // Debounced search - 300ms delay
   useEffect(() => {
@@ -211,17 +204,14 @@ const KingdomDirectory: React.FC = () => {
       navigate('/profile');
       return;
     }
-    setFavorites(prev => {
-      const isFav = prev.includes(kingdomNumber);
-      if (isFav) {
-        showToast(`K${kingdomNumber} removed from favorites`, 'info');
-        return prev.filter(k => k !== kingdomNumber);
-      } else {
-        showToast(`K${kingdomNumber} added to favorites`, 'success');
-        return [...prev, kingdomNumber];
-      }
-    });
-  }, [showToast, user, navigate]);
+    const isFav = favorites.includes(kingdomNumber);
+    contextToggleFavorite(kingdomNumber);
+    if (isFav) {
+      showToast(`K${kingdomNumber} removed from favorites`, 'info');
+    } else {
+      showToast(`K${kingdomNumber} added to favorites`, 'success');
+    }
+  }, [showToast, user, navigate, favorites, contextToggleFavorite]);
 
   const filteredKingdoms = useMemo(() => {
     let result = [...allKingdoms];

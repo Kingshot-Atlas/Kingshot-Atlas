@@ -7,7 +7,72 @@
 
 ## Log Entries
 
+## 2026-02-05 20:40 | Product Engineer | COMPLETED
+Task: Enforce 200-character max on Community Reviews
+Files: `apps/web/src/components/KingdomReviews.tsx`, `apps/web/src/services/reviewService.ts`
+Result: MAX_COMMENT_LENGTH set to 200 in both component and service. Added `maxLength` HTML attribute to both new review and edit form textareas. Build verified.
+
 <!-- Append new entries at the top -->
+
+## 2026-02-06 00:45 | Product Engineer | COMPLETED
+Task: Favorites Cross-Page Consistency - FavoritesContext with Supabase as source of truth
+Files:
+  - apps/web/src/contexts/FavoritesContext.tsx (NEW) - Centralized favorites state with Supabase sync
+  - apps/web/src/App.tsx - Added FavoritesProvider to provider tree
+  - apps/web/src/pages/KingdomDirectory.tsx - Refactored to use FavoritesContext
+  - apps/web/src/pages/KingdomProfile.tsx - Added favorite toggle via context
+  - apps/web/src/components/ProfileFeatures.tsx - Refactored to use FavoritesContext
+  - apps/web/src/components/FavoritesBadge.tsx - Refactored to use context (removed localStorage polling)
+  - apps/web/src/components/kingdom-profile/KingdomHeader.tsx - Added isFavorite/onToggleFavorite props + button
+  - apps/web/src/hooks/useKingdoms.ts - useFavorites now delegates to context
+  - DECISIONS.md - Added ADR-013
+Result: Favorites now reactive across all pages. Supabase user_data.favorites is source of truth. KingdomProfile has favorite toggle button. No more localStorage polling.
+
+## 2026-02-06 00:30 | Platform Engineer + Ops Lead | COMPLETED
+Task: Add aggregateRating structured data for SEO (conditional on 5+ reviews)
+Files:
+  - Supabase: Created get_aggregate_rating() function
+  - apps/web/src/services/reviewService.ts - Added getAggregateRatingForStructuredData()
+  - apps/web/src/hooks/useStructuredData.ts - Added KingdomProfile type with aggregateRating
+  - apps/web/src/pages/KingdomProfile.tsx - Integrated structured data with aggregate rating
+  - apps/web/src/components/KingdomReviews.tsx - Added progress indicator for 5-review threshold
+Result:
+  - aggregateRating only injected when kingdom has 5+ real reviews (Google requirement)
+  - Progress bar shows "X more reviews needed for Google rating badge"
+  - Green indicator when kingdom qualifies for rich results
+  - Current state: Kingdom 172 has 1 review (needs 4 more)
+
+## 2026-02-06 00:18 | Product Engineer | COMPLETED
+Task: Favorites UX Hardening - retry logic, error notifications, header badge, hook sync
+Files:
+  - apps/web/src/services/userDataService.ts - Added retry logic (3 attempts, exponential backoff), onSyncError callback, syncStatus getter
+  - apps/web/src/pages/KingdomDirectory.tsx - Registered sync error toast handler, initialized favorites filter from URL param
+  - apps/web/src/components/FavoritesBadge.tsx (NEW) - Heart icon with count badge, links to /?favorites=true
+  - apps/web/src/components/Header.tsx - Added FavoritesBadge next to NotificationBell for logged-in users
+  - apps/web/src/hooks/useKingdoms.ts - Added syncToCloud() to useFavorites hook
+Result: Favorites system now has resilient cloud sync with user-facing error handling, visible count in header, and all code paths sync to Supabase
+
+## 2026-02-06 00:12 | Product Engineer | COMPLETED
+Task: Fix favorites not persisting after page refresh
+Files:
+  - apps/web/src/pages/KingdomDirectory.tsx - Added userDataService.syncToCloud() call on favorites change
+  - apps/web/src/components/ProfileFeatures.tsx - Added userDataService.syncToCloud() call on favorite removal
+Result: Favorites now sync to Supabase cloud on every change, persisting across page refreshes and devices
+
+## 2026-02-06 00:15 | Ops Lead | COMPLETED
+Task: SEO Hardening - Prevent Future GSC Security Flags
+Files:
+  - docs/SEO_HARDENING.md (NEW) - Full guide on GSC deceptive flag cause and prevention
+  - apps/web/scripts/validate-seo.js (NEW) - CI validation script for structured data
+  - apps/web/package.json - Added validate:seo script
+  - .github/workflows/ci.yml - Added SEO validation step to CI pipeline
+  - .windsurf/workflows/seo-check.md (NEW) - Pre-deployment SEO safety workflow
+Result:
+  - Documented root cause: fabricated aggregateRating (150 reviews @ 4.8)
+  - Created automated CI check to prevent fake ratings/reviews
+  - Added /seo-check workflow for pre-deployment validation
+  - Included future user reviews system design for legitimate aggregateRating
+  - GSC monitoring best practices documented
 
 ## 2026-02-06 00:05 | Business Lead | COMPLETED
 Task: Document Kingdom Ambassador Program for future implementation
