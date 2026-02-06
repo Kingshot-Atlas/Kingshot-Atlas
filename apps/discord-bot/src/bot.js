@@ -197,8 +197,58 @@ client.once('ready', async () => {
   
   // Test API connectivity
   testApiConnectivity();
-  
+
+  // Register slash commands AFTER bot is connected (non-blocking)
+  // Moved here from main() because REST API registration was blocking login
+  // due to rate limits from frequent restarts
+  registerCommands().catch(err => {
+    console.error('❌ Background command registration failed:', err.message);
+  });
 });
+
+/**
+ * Register slash commands with Discord REST API.
+ * Called after bot connects (in 'ready' event) to avoid blocking login.
+ * Wrapped with 30s timeout to prevent hanging.
+ */
+async function registerCommands() {
+  const rest = new REST({ version: '10' }).setToken(config.token);
+  const REGISTRATION_TIMEOUT = 30000; // 30 seconds
+
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('Command registration timed out after 30s')), REGISTRATION_TIMEOUT)
+  );
+
+  try {
+    console.log('🔄 Registering slash commands globally...');
+
+    // Register commands globally - works in ALL servers
+    // Note: Global commands can take up to 1 hour to propagate
+    await Promise.race([
+      rest.put(
+        Routes.applicationCommands(config.clientId),
+        { body: commands }
+      ),
+      timeoutPromise,
+    ]);
+    console.log('✅ Global commands registered');
+
+    // Clear any guild-specific commands to avoid duplicates
+    if (config.guildId) {
+      await Promise.race([
+        rest.put(
+          Routes.applicationGuildCommands(config.clientId, config.guildId),
+          { body: [] }  // Empty array removes guild commands
+        ),
+        timeoutPromise,
+      ]);
+      console.log(`✅ Cleared guild-specific commands from ${config.guildId} (using global only)`);
+    }
+  } catch (error) {
+    console.error('❌ Failed to register commands:', error.message);
+    console.error('   Commands may still work if previously registered. Will retry on next restart.');
+  }
+}
 
 // Event: Resumed (reconnected after disconnect)
 client.on('resumed', () => {
@@ -450,33 +500,8 @@ client.on('guildMemberAdd', async (member) => {
   }
 });
 
-// Register slash commands and start bot
+// Start bot - login FIRST, commands register after connection
 async function main() {
-  const rest = new REST({ version: '10' }).setToken(config.token);
-
-  try {
-    console.log('🔄 Registering slash commands globally...');
-
-    // Register commands globally - works in ALL servers
-    // Note: Global commands can take up to 1 hour to propagate
-    await rest.put(
-      Routes.applicationCommands(config.clientId),
-      { body: commands }
-    );
-    console.log('✅ Global commands registered');
-
-    // Clear any guild-specific commands to avoid duplicates
-    if (config.guildId) {
-      await rest.put(
-        Routes.applicationGuildCommands(config.clientId, config.guildId),
-        { body: [] }  // Empty array removes guild commands
-      );
-      console.log(`✅ Cleared guild-specific commands from ${config.guildId} (using global only)`);
-    }
-  } catch (error) {
-    console.error('❌ Failed to register commands:', error);
-  }
-
   // Login to Discord with retry logic
   console.log('🔐 Attempting Discord login...');
   console.log(`   Token: ${config.token ? config.token.substring(0, 10) + '...' + config.token.substring(config.token.length - 5) : 'MISSING'} (${config.token?.length || 0} chars)`);
