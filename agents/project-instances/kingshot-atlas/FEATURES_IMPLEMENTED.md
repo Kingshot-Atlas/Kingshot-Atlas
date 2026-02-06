@@ -334,6 +334,7 @@
 
 | Feature | Status | Notes |
 |---------|--------|-------|
+| Kingdom Ambassador Program | 🚧 Planned | Full spec at `/docs/KINGDOM_AMBASSADOR_PROGRAM.md` — 3-phase rollout, 1 per kingdom, referral tracking |
 | FilterPanel Integration | 🚧 Planned | Component exists, needs wiring to KingdomDirectory |
 | Mobile Responsive Pass | ✅ Live | 2026-02-05 - Touch targets fixed to 44px min on Header, KingdomProfile, CompareKingdoms, Leaderboards, KingdomCard, KingdomReviews, KvKHistoryTable, SupportAtlas, Profile |
 | Component Refactoring | 🚧 Planned | KingdomCard, ProfileFeatures too large |

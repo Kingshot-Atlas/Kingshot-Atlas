@@ -1,6 +1,6 @@
 # Parking Lot
 
-**Last Updated:** 2026-01-29  
+**Last Updated:** 2026-02-05  
 **Purpose:** Track ideas explicitly deferred to prevent scope creep and enable future revisiting.
 
 ---
@@ -99,6 +99,26 @@
 **Revisit When:** Design resources available, user demand  
 **Description:** Full light theme option (currently dark-only)  
 **Note:** Infrastructure exists in `ThemeContext.tsx`
+
+---
+
+### Kingdom Ambassador Program
+**Parked:** 2026-02-05  
+**Proposed By:** Business Lead  
+**Why Parked:** Full spec complete, awaiting prioritization against other growth initiatives  
+**Revisit When:** Ready to invest in growth engine; 50+ active users recommended before launch  
+**Description:** One trusted player per kingdom becomes an official Atlas Ambassador. They promote Atlas within their community, submit data, and earn perks (free Supporter, unique badge, Discord role). 3-phase rollout from manual MVP to full in-app system.  
+**Full Spec:** `/docs/KINGDOM_AMBASSADOR_PROGRAM.md`  
+**Key Details:**  
+- 1 Ambassador per kingdom (up to 1,190 total)
+- Eligibility: TC 25+, linked account, good submission history
+- Perks: Free Supporter tier, gold Ambassador badge, Discord role, early access
+- Responsibilities: Weekly login, submit KvK results each cycle, share Atlas
+- Phase 1 (MVP): Manual — Google Form, hand-picked ambassadors, zero dev cost
+- Phase 2: In-app application, referral links (`ks-atlas.com/join/k172`), dashboard
+- Phase 3: Public directory, leaderboard, automated renewal
+- Database: `ambassadors` + `ambassador_referrals` tables (Phase 2+)
+- Break-even: ~1 paying referral per ambassador per month
 
 ---
 
