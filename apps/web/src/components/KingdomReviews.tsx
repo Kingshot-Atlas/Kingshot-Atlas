@@ -4,7 +4,7 @@ import { useAuth, getCacheBustedAvatarUrl } from '../contexts/AuthContext';
 import AuthModal from './AuthModal';
 import { getDisplayTier, SUBSCRIPTION_COLORS, SubscriptionTier } from '../utils/constants';
 import { colors, neonGlow } from '../utils/styles';
-import { reviewService, ReviewWithVoteStatus, ReviewReply, Review } from '../services/reviewService';
+import { reviewService, ReviewWithVoteStatus, ReviewReply, Review, ReportReason } from '../services/reviewService';
 import { isSupabaseConfigured } from '../lib/supabase';
 import { useIsMobile } from '../hooks/useMediaQuery';
 
@@ -63,6 +63,11 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
   const [replyText, setReplyText] = useState('');
   const [submittingReply, setSubmittingReply] = useState(false);
   const [reviewReplies, setReviewReplies] = useState<{ [reviewId: string]: ReviewReply[] }>({});
+  const [reportingReviewId, setReportingReviewId] = useState<string | null>(null);
+  const [reportReason, setReportReason] = useState<ReportReason>('inappropriate');
+  const [reportDetails, setReportDetails] = useState('');
+  const [submittingReport, setSubmittingReport] = useState(false);
+  const [reportSuccess, setReportSuccess] = useState<string | null>(null);
 
   // Load reviews from Supabase
   const loadReviews = useCallback(async () => {
@@ -260,6 +265,33 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
     
     const replies = await reviewService.getRepliesForReview(reviewId);
     setReviewReplies(prev => ({ ...prev, [reviewId]: replies }));
+  };
+
+  const handleReportReview = async () => {
+    if (!user || !reportingReviewId) return;
+    
+    setSubmittingReport(true);
+    setError(null);
+    
+    const result = await reviewService.reportReview(
+      reportingReviewId,
+      user.id,
+      reportReason,
+      reportDetails || undefined
+    );
+    
+    setSubmittingReport(false);
+    
+    if (result.success) {
+      setReportSuccess('Report submitted. Our team will review it.');
+      setReportingReviewId(null);
+      setReportReason('inappropriate');
+      setReportDetails('');
+      setTimeout(() => setReportSuccess(null), 4000);
+    } else {
+      setError(result.error || 'Failed to submit report');
+      setReportingReviewId(null);
+    }
   };
 
   const avgRating = reviews.length > 0 
@@ -1076,25 +1108,47 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                           </button>
                         </div>
                         
-                        {/* Reply button (for recruiters and logged-in users) */}
-                        {user && !isOwnReview && (
-                          <button
-                            onClick={() => {
-                              setReplyingToId(replyingToId === review.id ? null : review.id);
-                              loadRepliesForReview(review.id);
-                            }}
-                            style={{
-                              background: 'none',
-                              border: 'none',
-                              color: '#6b7280',
-                              fontSize: '0.7rem',
-                              cursor: 'pointer',
-                              padding: '0.2rem 0.4rem'
-                            }}
-                          >
-                            💬 Reply
-                          </button>
-                        )}
+                        {/* Reply & Report buttons */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                          {user && !isOwnReview && (
+                            <button
+                              onClick={() => {
+                                setReplyingToId(replyingToId === review.id ? null : review.id);
+                                loadRepliesForReview(review.id);
+                              }}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                color: '#6b7280',
+                                fontSize: '0.7rem',
+                                cursor: 'pointer',
+                                padding: '0.2rem 0.4rem'
+                              }}
+                            >
+                              💬 Reply
+                            </button>
+                          )}
+                          {user && !isOwnReview && (
+                            <button
+                              onClick={() => {
+                                setReportingReviewId(review.id);
+                                setReportReason('inappropriate');
+                                setReportDetails('');
+                              }}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                color: '#4a4a4a',
+                                fontSize: '0.7rem',
+                                cursor: 'pointer',
+                                padding: '0.2rem 0.4rem'
+                              }}
+                              title="Report this review"
+                            >
+                              🚩
+                            </button>
+                          )}
+                        </div>
 
                         {/* Edit/Delete buttons for own reviews or admin */}
                         {(isOwnReview || isAdmin) && (
@@ -1231,6 +1285,137 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
           )}
         </div>
       )}
+      {/* Report success toast */}
+      {reportSuccess && (
+        <div style={{
+          position: 'fixed',
+          bottom: '1.5rem',
+          right: '1.5rem',
+          backgroundColor: '#1a2e1a',
+          border: '1px solid #22c55e40',
+          borderRadius: '8px',
+          padding: '0.75rem 1rem',
+          color: '#22c55e',
+          fontSize: '0.8rem',
+          zIndex: 1000,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem'
+        }}>
+          <span>✓</span>
+          <span>{reportSuccess}</span>
+        </div>
+      )}
+
+      {/* Report modal */}
+      {reportingReviewId && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 999,
+          padding: '1rem'
+        }}
+          onClick={() => setReportingReviewId(null)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              backgroundColor: '#111111',
+              border: '1px solid #2a2a2a',
+              borderRadius: '12px',
+              padding: '1.25rem',
+              width: '100%',
+              maxWidth: '400px'
+            }}
+          >
+            <h4 style={{ color: '#fff', fontSize: '0.95rem', margin: '0 0 1rem', fontWeight: '600' }}>
+              🚩 Report Review
+            </h4>
+            <div style={{ marginBottom: '0.75rem' }}>
+              <label style={{ display: 'block', color: '#6b7280', fontSize: '0.75rem', marginBottom: '0.35rem' }}>Reason</label>
+              <select
+                value={reportReason}
+                onChange={(e) => setReportReason(e.target.value as ReportReason)}
+                style={{
+                  width: '100%',
+                  padding: '0.5rem',
+                  backgroundColor: '#0a0a0a',
+                  border: '1px solid #2a2a2a',
+                  borderRadius: '6px',
+                  color: '#fff',
+                  fontSize: '0.8rem'
+                }}
+              >
+                <option value="inappropriate">Inappropriate content</option>
+                <option value="spam">Spam</option>
+                <option value="misleading">Misleading information</option>
+                <option value="harassment">Harassment</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ display: 'block', color: '#6b7280', fontSize: '0.75rem', marginBottom: '0.35rem' }}>Details (optional)</label>
+              <textarea
+                value={reportDetails}
+                onChange={(e) => setReportDetails(e.target.value)}
+                placeholder="Any additional context..."
+                maxLength={300}
+                style={{
+                  width: '100%',
+                  padding: '0.5rem',
+                  backgroundColor: '#0a0a0a',
+                  border: '1px solid #2a2a2a',
+                  borderRadius: '6px',
+                  color: '#fff',
+                  fontSize: '0.8rem',
+                  minHeight: '60px',
+                  resize: 'vertical'
+                }}
+              />
+            </div>
+            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setReportingReviewId(null)}
+                style={{
+                  padding: '0.5rem 1rem',
+                  backgroundColor: '#2a2a2a',
+                  border: 'none',
+                  borderRadius: '6px',
+                  color: '#9ca3af',
+                  fontSize: '0.8rem',
+                  cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleReportReview}
+                disabled={submittingReport}
+                style={{
+                  padding: '0.5rem 1rem',
+                  backgroundColor: submittingReport ? '#2a2a2a' : '#ef4444',
+                  border: 'none',
+                  borderRadius: '6px',
+                  color: '#fff',
+                  fontSize: '0.8rem',
+                  cursor: submittingReport ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {submittingReport ? 'Submitting...' : 'Submit Report'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
     </div>
   );

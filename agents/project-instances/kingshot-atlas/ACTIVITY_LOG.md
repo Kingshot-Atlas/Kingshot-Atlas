@@ -7,6 +7,11 @@
 
 ## Log Entries
 
+## 2026-02-05 20:50 | Product Engineer + Platform Engineer | COMPLETED
+Task: Review Quality & Moderation Polish (5-item suggested next)
+Files: `apps/web/src/components/KingdomReviews.tsx`, `apps/web/src/services/reviewService.ts`, Supabase migration
+Result: Dynamic character counter (gray→yellow→red), review preview panel, placeholder hints at 200-char limit, DB CHECK constraint on kingdom_reviews.comment. Committed and deployed to production.
+
 ## 2026-02-05 20:40 | Product Engineer | COMPLETED
 Task: Enforce 200-character max on Community Reviews
 Files: `apps/web/src/components/KingdomReviews.tsx`, `apps/web/src/services/reviewService.ts`

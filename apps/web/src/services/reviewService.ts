@@ -58,6 +58,19 @@ export interface ReviewWithVoteStatus extends Review {
 const MIN_TC_LEVEL = 20;
 const MIN_COMMENT_LENGTH = 10;
 const MAX_COMMENT_LENGTH = 200;
+const MAX_REVIEWS_PER_DAY = 3;
+
+export type ReportReason = 'spam' | 'inappropriate' | 'misleading' | 'harassment' | 'other';
+
+export interface ReviewReport {
+  id: string;
+  review_id: string;
+  reporter_id: string;
+  reason: ReportReason;
+  details: string | null;
+  status: 'pending' | 'reviewed' | 'dismissed';
+  created_at: string;
+}
 
 export const reviewService = {
   /**
@@ -141,6 +154,19 @@ export const reviewService = {
     const canReviewResult = this.canUserReview(profile);
     if (!canReviewResult.canReview) {
       return { success: false, error: 'You are not eligible to submit reviews' };
+    }
+
+    // Rate limit: max 3 reviews per day
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const { count: todayCount } = await getSupabase()
+      .from('kingdom_reviews')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .gte('created_at', today.toISOString());
+
+    if ((todayCount ?? 0) >= MAX_REVIEWS_PER_DAY) {
+      return { success: false, error: `You can only submit ${MAX_REVIEWS_PER_DAY} reviews per day` };
     }
 
     const { data, error } = await getSupabase()
@@ -575,5 +601,51 @@ export const reviewService = {
     }
 
     return data;
+  },
+
+  /**
+   * Report a review for inappropriate content
+   */
+  async reportReview(
+    reviewId: string,
+    reporterId: string,
+    reason: ReportReason,
+    details?: string
+  ): Promise<{ success: boolean; error?: string }> {
+    const { error } = await getSupabase()
+      .from('review_reports')
+      .insert({
+        review_id: reviewId,
+        reporter_id: reporterId,
+        reason,
+        details: details?.trim() || null
+      });
+
+    if (error) {
+      if (error.code === '23505') {
+        return { success: false, error: 'You have already reported this review' };
+      }
+      console.error('Error reporting review:', error);
+      return { success: false, error: 'Failed to submit report' };
+    }
+
+    return { success: true };
+  },
+
+  /**
+   * Check if user has already reported a specific review
+   */
+  async hasUserReportedReview(
+    reviewId: string,
+    userId: string
+  ): Promise<boolean> {
+    const { data } = await getSupabase()
+      .from('review_reports')
+      .select('id')
+      .eq('review_id', reviewId)
+      .eq('reporter_id', userId)
+      .maybeSingle();
+
+    return !!data;
   }
 };
