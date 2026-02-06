@@ -52,8 +52,9 @@ let loginLastResult = null;
 let tokenValidationResult = null;
 let interactionCount = 0;
 let lastInteractionTime = null;
+let commandRegistrationResult = null;
 
-const healthServer = http.createServer((req, res) => {
+const healthServer = http.createServer(async (req, res) => {
   if (req.url === '/health') {
     // Null-safe access to Discord client state (client may not be initialized yet)
     const wsStatus = client?.ws?.status ?? -1; // -1 = not connected
@@ -88,12 +89,16 @@ const healthServer = http.createServer((req, res) => {
         tokenPresent: !!config.token,
         tokenLength: config.token ? config.token.length : 0,
         tokenSource: process.env.DISCORD_TOKEN ? 'DISCORD_TOKEN' : process.env.DISCORD_BOT_TOKEN ? 'DISCORD_BOT_TOKEN' : 'NONE',
-        clientIdPresent: !!config.clientId,
-        guildIdPresent: !!config.guildId,
+        configClientId: config.clientId || 'NOT_SET',
+        configGuildId: config.guildId || 'NOT_SET',
+        actualBotId: client?.user?.id || 'NOT_CONNECTED',
+        actualBotTag: client?.user?.tag || 'NOT_CONNECTED',
+        appIdMatch: client?.user?.id ? (client.user.id === config.clientId ? 'YES' : `MISMATCH: bot=${client.user.id} config=${config.clientId}`) : 'NOT_CONNECTED',
         tokenValidation: tokenValidationResult,
         interactionsReceived: interactionCount,
         lastInteractionAt: lastInteractionTime,
         readyFired: typeof readyFiredCount !== 'undefined' ? readyFiredCount : 0,
+        commandsRegistered: commandRegistrationResult,
       },
       process: {
         uptime: Math.floor(uptime),
@@ -106,6 +111,58 @@ const healthServer = http.createServer((req, res) => {
     
     res.writeHead(isHealthy ? 200 : 503, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify(healthData));
+  } else if (req.url === '/diagnostic') {
+    // Deep diagnostic endpoint - fetches registered commands from Discord API
+    const diag = { timestamp: new Date().toISOString() };
+    try {
+      if (config.token && config.clientId) {
+        const headers = { Authorization: `Bot ${config.token}` };
+        // Check global commands
+        const globalRes = await fetch(`https://discord.com/api/v10/applications/${config.clientId}/commands`, { headers });
+        diag.globalCommands = { status: globalRes.status };
+        if (globalRes.ok) {
+          const cmds = await globalRes.json();
+          diag.globalCommands.count = cmds.length;
+          diag.globalCommands.names = cmds.map(c => c.name);
+        } else {
+          diag.globalCommands.error = await globalRes.text();
+        }
+        // Check guild commands
+        if (config.guildId) {
+          const guildRes = await fetch(`https://discord.com/api/v10/applications/${config.clientId}/guilds/${config.guildId}/commands`, { headers });
+          diag.guildCommands = { status: guildRes.status };
+          if (guildRes.ok) {
+            const cmds = await guildRes.json();
+            diag.guildCommands.count = cmds.length;
+            diag.guildCommands.names = cmds.map(c => c.name);
+          } else {
+            diag.guildCommands.error = await guildRes.text();
+          }
+        }
+        // Check bot identity
+        const meRes = await fetch('https://discord.com/api/v10/users/@me', { headers });
+        diag.botIdentity = { status: meRes.status };
+        if (meRes.ok) {
+          const me = await meRes.json();
+          diag.botIdentity.id = me.id;
+          diag.botIdentity.username = me.username;
+          diag.botIdentity.applicationId = me.id;
+          diag.botIdentity.configClientIdMatch = me.id === config.clientId;
+        }
+      }
+      diag.eventListeners = {
+        interactionCreate: client.listenerCount('interactionCreate'),
+        ready: client.listenerCount('ready'),
+        guildMemberAdd: client.listenerCount('guildMemberAdd'),
+        error: client.listenerCount('error'),
+      };
+      diag.configClientId = config.clientId;
+      diag.configGuildId = config.guildId;
+    } catch (e) {
+      diag.error = e.message;
+    }
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(diag, null, 2));
   } else if (req.url === '/') {
     res.writeHead(200, { 'Content-Type': 'text/plain' });
     res.end('Atlas Discord Bot - Use /health for status');
@@ -202,6 +259,16 @@ client.on('ready', async () => {
   console.log(`\n✅ Atlas is online as ${client.user.tag} (ready #${readyFiredCount})`);
   console.log(`📊 Serving ${client.guilds.cache.size} server(s)`);
   console.log(`🔗 API: ${config.apiUrl}`);
+  console.log(`   Bot ID: ${client.user.id}`);
+  console.log(`   Config CLIENT_ID: ${config.clientId}`);
+  if (client.user.id !== config.clientId) {
+    console.error(`❌ CRITICAL: Bot ID (${client.user.id}) does NOT match DISCORD_CLIENT_ID (${config.clientId})!`);
+    console.error('   Commands are registered under the wrong application!');
+    console.error('   Fix: Set DISCORD_CLIENT_ID=${client.user.id} on Render');
+    lastError = `APP_ID_MISMATCH: bot=${client.user.id} config=${config.clientId}`;
+  } else {
+    console.log('   ✅ Bot ID matches CLIENT_ID');
+  }
   console.log(`\n"${config.bot.tagline}"\n`);
   
   // Start self-ping keepalive (guard against duplicate timers)
@@ -246,10 +313,22 @@ async function registerCommands() {
   );
 
   try {
-    console.log('🔄 Registering slash commands globally...');
+    // Register GUILD commands first (instant effect) — critical for testing
+    if (config.guildId) {
+      console.log(`🔄 Registering ${commands.length} slash commands to guild ${config.guildId}...`);
+      await Promise.race([
+        rest.put(
+          Routes.applicationGuildCommands(config.clientId, config.guildId),
+          { body: commands }
+        ),
+        timeoutPromise,
+      ]);
+      console.log(`✅ Guild commands registered (instant effect)`);
+      commandRegistrationResult = `guild_ok: ${commands.length} commands`;
+    }
 
-    // Register commands globally - works in ALL servers
-    // Note: Global commands can take up to 1 hour to propagate
+    // Also register globally (works in ALL servers, takes up to 1 hour)
+    console.log('🔄 Registering slash commands globally...');
     await Promise.race([
       rest.put(
         Routes.applicationCommands(config.clientId),
@@ -258,20 +337,10 @@ async function registerCommands() {
       timeoutPromise,
     ]);
     console.log('✅ Global commands registered');
-
-    // Clear any guild-specific commands to avoid duplicates
-    if (config.guildId) {
-      await Promise.race([
-        rest.put(
-          Routes.applicationGuildCommands(config.clientId, config.guildId),
-          { body: [] }  // Empty array removes guild commands
-        ),
-        timeoutPromise,
-      ]);
-      console.log(`✅ Cleared guild-specific commands from ${config.guildId} (using global only)`);
-    }
+    commandRegistrationResult = `ok: ${commands.length} commands (guild+global)`;
   } catch (error) {
     console.error('❌ Failed to register commands:', error.message);
+    commandRegistrationResult = `error: ${error.message}`;
     console.error('   Commands may still work if previously registered. Will retry on next restart.');
   }
 }
