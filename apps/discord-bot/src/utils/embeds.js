@@ -321,7 +321,13 @@ function createHelpEmbed() {
         ].join('\n'),
       },
       {
-        name: '🔗 Links',
+        name: '🔗 Account',
+        value: [
+          '`/link` - Link your Kingshot account for the Settler role',
+        ].join('\n'),
+      },
+      {
+        name: '🌐 Links',
         value: [
           `[Website](${config.urls.base})`,
           `[Leaderboard](${config.urls.leaderboard})`,
@@ -329,7 +335,7 @@ function createHelpEmbed() {
         ].join(' • '),
       },
       {
-        name: '⭐ Atlas Pro',
+        name: '⭐ Atlas Supporter',
         value: [
           '**Unlock premium features:**',
           '• Historical trends & predictions',

@@ -230,7 +230,46 @@ client.on('shardDisconnect', (event, shardId) => {
 client.on('invalidated', () => {
   console.error('❌ Session invalidated - token may be invalid or revoked');
   botReady = false;
+  // Attempt re-login after delay (token may have been rotated on Render)
+  scheduleReconnect('session_invalidated');
 });
+
+// ============================================================================
+// RECONNECTION LOGIC - Exponential backoff for login/session failures
+// ============================================================================
+let reconnectAttempts = 0;
+const MAX_RECONNECT_ATTEMPTS = 5;
+const BASE_RECONNECT_DELAY = 5000; // 5 seconds
+let reconnectTimer = null;
+
+function scheduleReconnect(reason) {
+  if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+    console.error(`❌ Max reconnection attempts (${MAX_RECONNECT_ATTEMPTS}) reached. Reason: ${reason}`);
+    console.error('   Bot will rely on Render auto-restart to recover.');
+    return;
+  }
+  
+  reconnectAttempts++;
+  const delay = Math.min(BASE_RECONNECT_DELAY * Math.pow(2, reconnectAttempts - 1), 120000); // Cap at 2 minutes
+  console.log(`🔄 Reconnect attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS} in ${delay / 1000}s (reason: ${reason})`);
+  
+  if (reconnectTimer) clearTimeout(reconnectTimer);
+  reconnectTimer = setTimeout(async () => {
+    try {
+      console.log('🔐 Attempting Discord re-login...');
+      await client.login(config.token);
+      console.log('✅ Discord re-login successful');
+      reconnectAttempts = 0; // Reset on success
+    } catch (error) {
+      console.error(`❌ Re-login failed: ${error.message}`);
+      if (error.code === 'TOKEN_INVALID') {
+        console.error('   Token is invalid — cannot retry. Waiting for Render restart with new token.');
+        return; // Don't retry on invalid token
+      }
+      scheduleReconnect(error.message);
+    }
+  }, delay);
+}
 
 // Startup API connectivity test (runs once after client ready)
 async function testApiConnectivity() {
@@ -291,6 +330,9 @@ client.on('interactionCreate', async (interaction) => {
         break;
       case 'help':
         await handlers.handleHelp(interaction);
+        break;
+      case 'link':
+        await handlers.handleLink(interaction);
         break;
       case 'stats':
         await handlers.handleStats(interaction);
@@ -386,37 +428,51 @@ async function main() {
     console.error('❌ Failed to register commands:', error);
   }
 
-  // Login to Discord
+  // Login to Discord with retry logic
   console.log('🔐 Attempting Discord login...');
-  try {
-    await client.login(config.token);
-    console.log('✅ Discord login call completed');
-  } catch (loginError) {
-    console.error('❌ Discord login failed:', loginError.message);
-    console.error('   Code:', loginError.code);
-    
-    // Provide helpful error messages for common issues
-    if (loginError.code === 'TOKEN_INVALID' || loginError.message.includes('invalid token')) {
-      console.error('');
-      console.error('   🔧 TOKEN INVALID - Common causes:');
-      console.error('   1. Token was reset in Discord Developer Portal');
-      console.error('   2. Wrong token copied (use Bot token, not Client Secret)');
-      console.error('   3. Token has extra whitespace or newlines');
-      console.error('   4. Environment variable not properly set in Render');
-      console.error('');
-      console.error('   To fix: Go to Discord Developer Portal > Your App > Bot > Reset Token');
-      console.error('   Then update DISCORD_TOKEN or DISCORD_BOT_TOKEN in Render');
-    } else if (loginError.code === 'DISALLOWED_INTENTS') {
-      console.error('');
-      console.error('   🔧 DISALLOWED INTENTS - Enable in Discord Developer Portal:');
-      console.error('   Settings > Bot > Privileged Gateway Intents');
-    } else if (loginError.message.includes('rate limit')) {
-      console.error('');
-      console.error('   🔧 RATE LIMITED - Too many login attempts');
-      console.error('   Wait 5-15 minutes before restarting');
+  let loginSuccess = false;
+  let loginAttempts = 0;
+  const MAX_LOGIN_ATTEMPTS = 3;
+  
+  while (!loginSuccess && loginAttempts < MAX_LOGIN_ATTEMPTS) {
+    loginAttempts++;
+    try {
+      await client.login(config.token);
+      console.log('✅ Discord login call completed');
+      loginSuccess = true;
+      reconnectAttempts = 0; // Reset reconnect counter on successful startup
+    } catch (loginError) {
+      console.error(`❌ Discord login failed (attempt ${loginAttempts}/${MAX_LOGIN_ATTEMPTS}):`, loginError.message);
+      console.error('   Code:', loginError.code);
+      
+      // Fatal errors - don't retry
+      if (loginError.code === 'TOKEN_INVALID' || loginError.message.includes('invalid token')) {
+        console.error('');
+        console.error('   🔧 TOKEN INVALID - Common causes:');
+        console.error('   1. Token was reset in Discord Developer Portal');
+        console.error('   2. Wrong token copied (use Bot token, not Client Secret)');
+        console.error('   3. Token has extra whitespace or newlines');
+        console.error('   4. Environment variable not properly set in Render');
+        console.error('');
+        console.error('   To fix: Go to Discord Developer Portal > Your App > Bot > Reset Token');
+        console.error('   Then update DISCORD_TOKEN or DISCORD_BOT_TOKEN in Render');
+        throw loginError;
+      } else if (loginError.code === 'DISALLOWED_INTENTS') {
+        console.error('');
+        console.error('   🔧 DISALLOWED INTENTS - Enable in Discord Developer Portal:');
+        console.error('   Settings > Bot > Privileged Gateway Intents');
+        throw loginError;
+      }
+      
+      // Retriable errors (rate limit, network, etc.)
+      if (loginAttempts < MAX_LOGIN_ATTEMPTS) {
+        const delay = 5000 * Math.pow(2, loginAttempts - 1); // 5s, 10s
+        console.log(`   ⏳ Retrying in ${delay / 1000}s...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      } else {
+        throw loginError;
+      }
     }
-    
-    throw loginError;
   }
 }
 

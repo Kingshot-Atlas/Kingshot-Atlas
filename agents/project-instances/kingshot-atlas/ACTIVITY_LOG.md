@@ -7,6 +7,15 @@
 
 ## Log Entries
 
+## 2026-02-06 17:00 | Platform Engineer | COMPLETED
+Task: Discord Bot Hardening — Reconnection retry, /link command, help embed update
+Files:
+  - `apps/discord-bot/src/bot.js` — Added reconnection retry with exponential backoff (initial login + session invalidation recovery)
+  - `apps/discord-bot/src/commands/index.js` — Added /link command definition
+  - `apps/discord-bot/src/commands/handlers.js` — Added handleLink handler (links to ks-atlas.com/profile with Settler role instructions)
+  - `apps/discord-bot/src/utils/embeds.js` — Added /link to help embed, fixed "Atlas Pro" → "Atlas Supporter" branding
+Result: Bot now retries login on transient failures (3 attempts with backoff), recovers from session invalidation (5 attempts), and has /link command for account linking. Stripe role sync was already wired — confirmed in stripe.py. Build passes ✅.
+
 ## 2026-02-06 16:30 | Platform Engineer | COMPLETED
 Task: Discord Bot Diagnostic & Fix — Bot not responding to commands, wsStatus=3 (CLOSED)
 Files:

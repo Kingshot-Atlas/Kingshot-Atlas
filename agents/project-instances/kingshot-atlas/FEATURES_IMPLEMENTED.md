@@ -258,6 +258,9 @@
 | Settler Role Auto-Assign | ✅ Fixed | 2026-02-06 | Platform | Fixed: GuildMembers intent added, discordService uses getAuthHeaders() |
 | Settler Role Backfill | ✅ Live | 2026-02-04 | Platform | Admin endpoint to backfill Settler roles for existing linked users |
 | Discord Roles Dashboard | ✅ Live | 2026-02-04 | Platform | Admin UI to view linked users and manage Discord role assignments |
+| /link Command | ✅ Live | 2026-02-06 | Platform | Discord command linking users to ks-atlas.com/profile for Settler role |
+| Reconnection Retry | ✅ Live | 2026-02-06 | Platform | Exponential backoff retry for login failures + session invalidation recovery |
+| Stripe Role Sync | ✅ Verified | 2026-02-06 | Platform | Confirmed: Supporter/Recruiter roles sync on subscription change via stripe.py |
 
 ---
 

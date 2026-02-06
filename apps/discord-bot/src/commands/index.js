@@ -98,6 +98,11 @@ const commands = [
     .setName('help')
     .setDescription('Show all Atlas bot commands'),
 
+  // /link - Link your Kingshot account to get the Settler role
+  new SlashCommandBuilder()
+    .setName('link')
+    .setDescription('Link your Kingshot account to Atlas for the Settler role'),
+
   // /stats (admin only - for Discord Community Manager analysis)
   new SlashCommandBuilder()
     .setName('stats')

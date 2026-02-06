@@ -181,6 +181,44 @@ async function handleHelp(interaction) {
 }
 
 /**
+ * /link
+ * Provides instructions to link Kingshot account for Settler role
+ */
+async function handleLink(interaction) {
+  const embed = embeds.createBaseEmbed()
+    .setTitle('🔗 Link Your Kingshot Account')
+    .setDescription(
+      'Connect your Kingshot account to Atlas and earn the **Settler** role in this server!\n\n' +
+      'The Settler role proves you\'re a verified Kingshot player with a linked account.'
+    )
+    .addFields(
+      {
+        name: '📋 How to Link',
+        value: [
+          '1. Go to **[ks-atlas.com/profile](https://ks-atlas.com/profile)**',
+          '2. Sign in to your Atlas account',
+          '3. Click **Link Discord** in your profile',
+          '4. Click **Link Kingshot Account** and enter your player ID',
+          '5. The **Settler** role is assigned automatically!',
+        ].join('\n'),
+        inline: false,
+      },
+      {
+        name: '🎖️ What You Get',
+        value: [
+          '• **Settler** Discord role — verified player badge',
+          '• Access to Settler-only channels',
+          '• Your kingdom info shown on your Atlas profile',
+        ].join('\n'),
+        inline: false,
+      }
+    )
+    .setURL('https://ks-atlas.com/profile');
+
+  return interaction.reply({ embeds: [embed], ephemeral: true });
+}
+
+/**
  * /stats (admin only)
  * Shows bot usage statistics for Discord Community Manager analysis
  */
@@ -242,5 +280,6 @@ module.exports = {
   handleCountdown,
   handleRandom,
   handleHelp,
+  handleLink,
   handleStats,
 };
