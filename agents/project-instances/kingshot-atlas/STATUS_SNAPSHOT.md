@@ -19,7 +19,7 @@
 | TypeScript | ✅ Clean | No type errors |
 | Accessibility | ✅ Enhanced | WCAG improvements, high contrast mode |
 | Sharing | ✅ Enhanced | PNG export, QR codes, embed codes, Discord formatting |
-| Discord Bot | ⚠️ Awaiting Verification | Code fully fixed + hardened 2026-02-06: retry logic, /link cmd, GuildMembers intent. Token reset + intent enabled by user. |
+| Discord Bot | ✅ Operational | Connected 2026-02-06: 4 guilds, 18ms ping. Rate-limit cycle fixed, retry logic, /link cmd, diagnostics endpoint. |
 | Codebase Health | ✅ Audited | Dead files removed, docs reorganized |
 
 ---

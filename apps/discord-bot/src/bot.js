@@ -184,6 +184,12 @@ client.once('ready', async () => {
   botReady = true;
   lastHeartbeat = Date.now();
   
+  // Clear stale diagnostic state - bot is connected now
+  lastError = null;
+  loginLastResult = 'connected';
+  lastDisconnectCode = null;
+  lastDisconnectReason = null;
+  
   console.log(`\n✅ Atlas is online as ${client.user.tag}`);
   console.log(`📊 Serving ${client.guilds.cache.size} server(s)`);
   console.log(`🔗 API: ${config.apiUrl}`);

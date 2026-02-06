@@ -7,6 +7,21 @@
 
 ## Log Entries
 
+## 2026-02-06 17:15 | Platform Engineer | COMPLETED
+Task: Discord Bot Gateway Rate-Limit Fix — Bot stuck in restart cycle, never connecting
+Root Cause: Render restart cycle → Discord global 429 rate limit (retry-after: 1951s/~32min).
+  Command registration blocked login → health returned 503 → Render restarted → rate limit extended → repeat.
+Files:
+  - `apps/discord-bot/src/bot.js` — Major restructure:
+    1. Login FIRST, register commands AFTER (in ready event with 30s timeout)
+    2. Pre-login token validation via raw fetch (bypasses discord.js REST module)
+    3. Gateway/bot endpoint diagnostics (session limits, retry-after)
+    4. Health endpoint always returns 200 (stops Render restart cycle)
+    5. Internal login retry with exponential backoff (2/4/8/16/32 min)
+    6. Diagnostic state exposed in /health (disconnect codes, token validation, login attempts)
+    7. REST timeout 15s + login timeout 30s to prevent hanging
+Result: Bot connected after rate limit expired. wsStatus=0 (READY), 4 guilds, 18ms ping ✅
+
 ## 2026-02-06 17:00 | Platform Engineer | COMPLETED
 Task: Discord Bot Hardening — Reconnection retry, /link command, help embed update
 Files:
