@@ -94,6 +94,8 @@ const healthServer = http.createServer(async (req, res) => {
         actualBotId: client?.user?.id || 'NOT_CONNECTED',
         actualBotTag: client?.user?.tag || 'NOT_CONNECTED',
         appIdMatch: client?.user?.id ? (client.user.id === config.clientId ? 'YES' : `MISMATCH: bot=${client.user.id} config=${config.clientId}`) : 'NOT_CONNECTED',
+        tokenBotId: (() => { try { const p = config.token?.split('.')[0]; return p ? Buffer.from(p, 'base64').toString() : 'NO_TOKEN'; } catch { return 'DECODE_ERROR'; } })(),
+        tokenMatchesClientId: (() => { try { const p = config.token?.split('.')[0]; const id = p ? Buffer.from(p, 'base64').toString() : ''; return id === config.clientId ? 'YES' : `MISMATCH: token_bot_id=${id} config=${config.clientId}`; } catch { return 'DECODE_ERROR'; } })(),
         tokenValidation: tokenValidationResult,
         interactionsReceived: interactionCount,
         lastInteractionAt: lastInteractionTime,
