@@ -49,6 +49,7 @@ let lastDisconnectReason = null;
 let lastError = null;
 let loginAttemptCount = 0;
 let loginLastResult = null;
+let tokenValidationResult = null;
 
 const healthServer = http.createServer((req, res) => {
   if (req.url === '/health') {
@@ -87,6 +88,7 @@ const healthServer = http.createServer((req, res) => {
         tokenSource: process.env.DISCORD_TOKEN ? 'DISCORD_TOKEN' : process.env.DISCORD_BOT_TOKEN ? 'DISCORD_BOT_TOKEN' : 'NONE',
         clientIdPresent: !!config.clientId,
         guildIdPresent: !!config.guildId,
+        tokenValidation: tokenValidationResult,
       },
       process: {
         uptime: Math.floor(uptime),
@@ -526,7 +528,35 @@ async function validateToken(token) {
     if (status === 200) {
       const data = await response.json();
       console.log(`   ✅ Token valid! Bot: ${data.username}#${data.discriminator} (ID: ${data.id})`);
-      return { valid: true, status, botName: data.username, botId: data.id };
+      
+      // Also check /gateway/bot - this is what discord.js calls during login
+      console.log('🔍 Checking gateway/bot endpoint...');
+      try {
+        const gwController = new AbortController();
+        const gwTimeout = setTimeout(() => gwController.abort(), 10_000);
+        const gwResponse = await fetch('https://discord.com/api/v10/gateway/bot', {
+          headers: { 'Authorization': `Bot ${token}` },
+          signal: gwController.signal,
+        });
+        clearTimeout(gwTimeout);
+        const gwStatus = gwResponse.status;
+        if (gwStatus === 200) {
+          const gwData = await gwResponse.json();
+          console.log(`   ✅ Gateway accessible: ${gwData.url}, shards: ${gwData.shards}`);
+          console.log(`   Session limits: total=${gwData.session_start_limit?.total}, remaining=${gwData.session_start_limit?.remaining}, reset_after=${gwData.session_start_limit?.reset_after}ms`);
+          return { valid: true, status, botName: data.username, botId: data.id, gateway: gwData.url, sessionsRemaining: gwData.session_start_limit?.remaining };
+        } else if (gwStatus === 429) {
+          const retryAfter = gwResponse.headers.get('retry-after');
+          console.warn(`   ⚠️ Gateway rate limited (429). Retry after: ${retryAfter}s`);
+          return { valid: true, status, botName: data.username, botId: data.id, gatewayError: `RATE_LIMITED_429_retry_${retryAfter}s` };
+        } else {
+          console.warn(`   ⚠️ Gateway returned ${gwStatus}`);
+          return { valid: true, status, botName: data.username, botId: data.id, gatewayError: `HTTP_${gwStatus}` };
+        }
+      } catch (gwErr) {
+        console.error(`   ⚠️ Gateway check failed: ${gwErr.message}`);
+        return { valid: true, status, botName: data.username, botId: data.id, gatewayError: gwErr.message };
+      }
     } else if (status === 401) {
       console.error('   ❌ Token is INVALID (401 Unauthorized)');
       return { valid: false, status, error: 'TOKEN_INVALID_401' };
@@ -550,6 +580,7 @@ async function main() {
   
   // Step 1: Validate token with raw HTTP (fast, bypasses discord.js)
   const tokenCheck = await validateToken(config.token);
+  tokenValidationResult = tokenCheck;
   loginAttemptCount = 1;
   
   if (tokenCheck.valid === false) {
