@@ -140,10 +140,13 @@ console.log('✅ Configuration validated');
 console.log(`   Token length: ${config.token.length} chars`);
 
 // Initialize Discord client
-// Note: GuildMembers intent removed - requires privileged intent in Discord Developer Portal
+// GuildMembers intent is REQUIRED for: role assignment, welcome messages, member events
+// IMPORTANT: Must also enable "Server Members Intent" in Discord Developer Portal:
+// https://discord.com/developers/applications/{APP_ID}/bot → Privileged Gateway Intents
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMembers,
   ],
 });
 

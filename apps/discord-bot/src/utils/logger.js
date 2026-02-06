@@ -256,12 +256,13 @@ async function syncToApi(command, guildId, userId) {
   if (!API_SYNC_ENABLED || !config.apiUrl) return;
   
   try {
-    await fetch(`${config.apiUrl}/api/v1/bot/log-command?command=${encodeURIComponent(command)}&guild_id=${encodeURIComponent(guildId)}&user_id=${encodeURIComponent(userId)}`, {
+    await fetch(`${config.apiUrl}/api/v1/bot/log-command`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'X-API-Key': process.env.DISCORD_API_KEY || ''
-      }
+      },
+      body: JSON.stringify({ command, guild_id: guildId, user_id: userId })
     });
   } catch (error) {
     // Silent fail - don't disrupt bot operation for API sync issues

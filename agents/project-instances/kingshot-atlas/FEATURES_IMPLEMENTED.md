@@ -247,15 +247,15 @@
 
 | Feature | Status | Date | Agent | Notes |
 |---------|--------|------|-------|-------|
-| Bot Infrastructure | ✅ Live | 2026-01 | Platform | `/apps/discord-bot/` |
+| Bot Infrastructure | ⚠️ Needs Token | 2026-01 | Platform | `/apps/discord-bot/` — Code fixed 2026-02-06, needs token reset in Discord Dev Portal |
 | Webhook Integration | ✅ Live | 2026-01 | Platform | Patch notes posting |
 | Public Bot Invite | ✅ Live | 2026-02-02 | Platform | Invite link on About page |
 | Bot Admin Dashboard | ✅ Live | 2026-02-02 | Platform | `BotDashboard.tsx` in Admin panel |
 | Bot API Endpoints | ✅ Live | 2026-02-02 | Platform | `/api/v1/bot/*` - status, servers, send-message |
 | Server Browser | ✅ Live | 2026-02-02 | Platform | View/manage connected Discord servers |
 | Message Sender | ✅ Live | 2026-02-02 | Platform | Send messages/embeds to any channel |
-| Command Usage Logging | ✅ Live | 2026-02-02 | Platform | API sync for dashboard stats |
-| Settler Role Auto-Assign | ✅ Live | 2026-02-04 | Platform | Auto-assigns "Settler" Discord role when user links Kingshot account |
+| Command Usage Logging | ✅ Fixed | 2026-02-06 | Platform | Fixed: syncToApi sends JSON body, bot.py log_command uses data.* |
+| Settler Role Auto-Assign | ✅ Fixed | 2026-02-06 | Platform | Fixed: GuildMembers intent added, discordService uses getAuthHeaders() |
 | Settler Role Backfill | ✅ Live | 2026-02-04 | Platform | Admin endpoint to backfill Settler roles for existing linked users |
 | Discord Roles Dashboard | ✅ Live | 2026-02-04 | Platform | Admin UI to view linked users and manage Discord role assignments |
 

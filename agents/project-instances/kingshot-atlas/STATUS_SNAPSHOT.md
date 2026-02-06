@@ -19,7 +19,7 @@
 | TypeScript | ✅ Clean | No type errors |
 | Accessibility | ✅ Enhanced | WCAG improvements, high contrast mode |
 | Sharing | ✅ Enhanced | PNG export, QR codes, embed codes, Discord formatting |
-| Discord Bot | 🔄 Redeploying | Triggered redeploy 2026-02-02, needs UptimeRobot keep-alive |
+| Discord Bot | ⚠️ Needs Token Reset | Code fixes applied 2026-02-06, requires manual token reset + intent enable in Discord Dev Portal |
 | Codebase Health | ✅ Audited | Dead files removed, docs reorganized |
 
 ---

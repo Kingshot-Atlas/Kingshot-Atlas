@@ -17,12 +17,6 @@ function initScheduler(client) {
   // Log webhook status
   if (config.patchNotesWebhook) {
     console.log('✅ Patch notes webhook configured');
-    
-    // Immediate test on startup (remove after confirming)
-    setTimeout(async () => {
-      console.log('🧪 Running immediate startup test...');
-      await postTestMessage();
-    }, 5000); // Wait 5 seconds after startup
   } else {
     console.warn('⚠️ DISCORD_PATCH_NOTES_WEBHOOK not set - daily updates disabled');
   }

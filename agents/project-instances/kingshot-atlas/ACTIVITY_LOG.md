@@ -7,6 +7,17 @@
 
 ## Log Entries
 
+## 2026-02-06 16:30 | Platform Engineer | COMPLETED
+Task: Discord Bot Diagnostic & Fix — Bot not responding to commands, wsStatus=3 (CLOSED)
+Files:
+  - `apps/discord-bot/src/bot.js` — Added GuildMembers privileged intent (required for role assignment, welcome messages)
+  - `apps/discord-bot/src/scheduler.js` — Removed startup test message spam (posted to #patch-notes on every restart)
+  - `apps/discord-bot/src/utils/logger.js` — Fixed syncToApi: was sending query params, backend expects JSON body
+  - `apps/api/api/routers/bot.py` — Fixed log_command bug: bare variable names (command, guild_id, user_id) → data.command, etc.
+  - `apps/web/src/services/discordService.ts` — Fixed syncSettlerRole: added getAuthHeaders() for proper JWT auth
+Root Cause: Bot token likely invalidated + missing GuildMembers intent + multiple integration bugs
+Result: Code fixes applied, build passes ✅. REQUIRES MANUAL ACTION: Reset bot token in Discord Developer Portal, enable Server Members Intent, update token on Render.
+
 ## 2026-02-06 16:00 | Ops Lead | COMPLETED
 Task: CORS Alignment — add ks-atlas.pages.dev to backend CORS, fix stale SQLite refs in API config
 Files:

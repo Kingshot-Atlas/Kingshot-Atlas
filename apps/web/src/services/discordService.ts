@@ -134,10 +134,14 @@ class DiscordService {
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'https://kingshot-atlas.onrender.com';
       
+      const { getAuthHeaders } = await import('./authHeaders');
+      const authHeaders = await getAuthHeaders({ requireAuth: false });
+      
       const response = await fetch(`${API_URL}/api/v1/bot/sync-settler-role`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...authHeaders,
         },
         body: JSON.stringify({ 
           user_id: userId, 

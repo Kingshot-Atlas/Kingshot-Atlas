@@ -360,9 +360,9 @@ async def log_command(
     Called by the Discord bot when a command is executed.
     """
     command_usage.append({
-        "command": command,
-        "guild_id": guild_id,
-        "user_id": user_id,
+        "command": data.command,
+        "guild_id": data.guild_id,
+        "user_id": data.user_id,
         "timestamp": datetime.now(timezone.utc)
     })
     
