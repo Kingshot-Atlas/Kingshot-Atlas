@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from './Toast';
 import { logger } from '../utils/logger';
@@ -212,7 +213,13 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
       const result = await response.json();
       logger.log('[KvK Submit] Success:', result);
 
-      showToast('KvK #10 result submitted for admin review!', 'success');
+      const wasAutoApproved = result.status === 'approved';
+      showToast(
+        wasAutoApproved 
+          ? 'KvK #10 result auto-approved and recorded!' 
+          : 'KvK #10 result submitted for admin review!', 
+        'success'
+      );
       // Reset form
       setKingdomNumber('');
       setOpponentKingdom('');
@@ -241,7 +248,7 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
 
   const outcome = getOutcomeLabel();
 
-  return (
+  return createPortal(
     <div
       style={{
         position: 'fixed',
@@ -655,7 +662,8 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

@@ -30,6 +30,7 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, getKingdomMetaTags } from '../hooks/useMetaTags';
 import { useStructuredData } from '../hooks/useStructuredData';
 import { reviewService } from '../services/reviewService';
+import { scoreHistoryService } from '../services/scoreHistoryService';
 
 const KingdomProfile: React.FC = () => {
   const { kingdomNumber } = useParams<{ kingdomNumber: string }>();
@@ -49,6 +50,8 @@ const KingdomProfile: React.FC = () => {
     bestRating: number;
     worstRating: number;
   } | null>(null);
+  const [scoreHistoryRank, setScoreHistoryRank] = useState<number>(0);
+  const [totalKingdomsAtKvk, setTotalKingdomsAtKvk] = useState<number>(0);
 
   // Auto-refresh when KvK history changes for this kingdom via realtime
   const handleKvkHistoryUpdate = useCallback((updatedKingdom: number, kvkNumber: number) => {
@@ -148,6 +151,13 @@ const KingdomProfile: React.FC = () => {
       const all = await apiService.getKingdoms();
       setAllKingdoms(all as unknown as KingdomProfileType[]);
       
+      // Fetch rank from score_history (single source of truth)
+      const rankData = await scoreHistoryService.getLatestRank(id);
+      if (rankData) {
+        setScoreHistoryRank(rankData.rank);
+        setTotalKingdomsAtKvk(rankData.totalAtKvk);
+      }
+      
       // Save to recently viewed and track achievement
       const recentKey = 'kingshot_recently_viewed';
       const saved = localStorage.getItem(recentKey);
@@ -171,12 +181,10 @@ const KingdomProfile: React.FC = () => {
   const atlasScore = kingdom?.overall_score ?? 0;
   const powerTier = kingdom ? getPowerTier(atlasScore) : 'D';
   
-  // Calculate rank for meta tags
-  const rankingList = kingdom && !allKingdoms.some(k => k.kingdom_number === kingdom.kingdom_number)
-    ? [...allKingdoms, kingdom as unknown as KingdomProfileType]
-    : allKingdoms;
-  const sortedByScore = [...rankingList].sort((a, b) => b.overall_score - a.overall_score);
-  const rank = kingdom ? sortedByScore.findIndex(k => k.kingdom_number === kingdom.kingdom_number) + 1 : 0;
+  // Rank comes from score_history table (single source of truth)
+  // This matches the rank shown in the Kingdom Ranking History chart
+  const rank = scoreHistoryRank;
+  const rankingList = allKingdoms;
   
   // Update meta tags - must be called before any early returns
   useMetaTags(kingdom ? getKingdomMetaTags(kingdom.kingdom_number, undefined, powerTier, undefined) : {});
@@ -348,7 +356,7 @@ const KingdomProfile: React.FC = () => {
         <AtlasScoreBreakdown 
           kingdom={kingdom} 
           rank={rank > 0 ? rank : undefined}
-          totalKingdoms={rankingList.length || undefined}
+          totalKingdoms={totalKingdomsAtKvk > 0 ? totalKingdomsAtKvk : (rankingList.length || undefined)}
           isExpanded={breakdownExpanded}
           onToggle={setBreakdownExpanded}
         />

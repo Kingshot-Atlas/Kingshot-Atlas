@@ -15,6 +15,7 @@ interface ChartDataPoint {
   rank: number;
   score: number;
   tier: string;
+  rankDelta: number | null;
 }
 
 const RankingHistoryChart: React.FC<RankingHistoryChartProps> = ({ 
@@ -57,14 +58,18 @@ const RankingHistoryChart: React.FC<RankingHistoryChartProps> = ({
   }, [kingdomNumber]);
 
   const chartData = useMemo((): ChartDataPoint[] => {
-    return history
-      .filter((record) => record.rank_at_time !== null)
-      .map((record) => ({
+    const filtered = history.filter((record) => record.rank_at_time !== null);
+    return filtered.map((record, index) => {
+      const prevRank = index > 0 ? (filtered[index - 1]?.rank_at_time ?? null) : null;
+      const currentRank = record.rank_at_time as number;
+      return {
         kvk: record.kvk_number,
-        rank: record.rank_at_time as number,
+        rank: currentRank,
         score: record.score,
-        tier: record.tier
-      }));
+        tier: record.tier,
+        rankDelta: prevRank !== null ? prevRank - currentRank : null
+      };
+    });
   }, [history]);
 
   if (loading) {
@@ -401,8 +406,17 @@ const RankingHistoryChart: React.FC<RankingHistoryChartProps> = ({
               }}
               onClick={isMobile ? (e) => e.stopPropagation() : undefined}
             >
-              <div style={{ color: '#fff', fontSize: isMobile ? '12px' : '11px', fontWeight: '600', textAlign: 'center' }}>
+              <div style={{ color: '#fff', fontSize: isMobile ? '12px' : '11px', fontWeight: '600', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                 Rank #{activeData.rank}
+                {activeData.rankDelta !== null && activeData.rankDelta !== 0 && (
+                  <span style={{ 
+                    color: activeData.rankDelta > 0 ? '#22c55e' : '#ef4444', 
+                    fontSize: isMobile ? '10px' : '9px',
+                    fontWeight: '600'
+                  }}>
+                    {activeData.rankDelta > 0 ? '▲' : '▼'}{Math.abs(activeData.rankDelta)}
+                  </span>
+                )}
               </div>
               <div style={{ color: '#6b7280', fontSize: isMobile ? '11px' : '10px', textAlign: 'center' }}>
                 After KvK {activeData.kvk} • Score: {activeData.score.toFixed(2)}

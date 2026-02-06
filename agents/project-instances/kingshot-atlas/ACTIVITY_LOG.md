@@ -7,6 +7,29 @@
 
 ## Log Entries
 
+## 2026-02-06 04:25 | Platform Engineer | COMPLETED
+Task: Fix rank discrepancy + ranking data hardening (chart rank vs profile header rank mismatch)
+Root Cause: Profile header computed rank client-side by sorting all 1,204 kingdoms, while chart read `rank_at_time` from `score_history` which ranked within score_history entries only. Previous fix (04:19) incorrectly ranked historical scores against current `kingdoms.atlas_score`. Correct approach: rank within `score_history` entries at each KvK AND make profile header also read from `score_history`.
+Changes:
+  DB Migrations:
+  - `fix_rank_at_time_within_score_history` — Reverted trigger to rank within score_history entries per KvK using ROW_NUMBER(). Recalculates all entries at the same KvK after each insert.
+  - `add_percentile_rank_to_score_history` — Added `percentile_rank` column, populated for all entries.
+  - `update_trigger_with_percentile_rank` — Trigger now calculates both `rank_at_time` and `percentile_rank`.
+  - `add_current_rank_to_kingdoms` — Added `current_rank` column + `sync_kingdom_current_rank()` trigger to auto-sync from score_history.
+  - `add_verify_rank_consistency_function` — Admin SQL function `verify_and_fix_rank_consistency()` to audit and fix all ranks.
+  Frontend:
+  - `apps/web/src/services/scoreHistoryService.ts` — Added `getLatestRank()` method (fetches latest rank from score_history).
+  - `apps/web/src/pages/KingdomProfile.tsx` — Profile header now reads rank from `score_history` via `getLatestRank()` instead of client-side sort. Single source of truth.
+  - `apps/web/src/components/RankingHistoryChart.tsx` — Added rank delta (▲/▼) to chart tooltip showing change from previous KvK.
+Result: Chart and profile header now both read from `score_history`. K700 shows #163 in both. K172 shows #7 in both. Rank deltas visible in chart tooltips. percentile_rank populated. Admin verification function available.
+
+## 2026-02-06 04:03 | Product Engineer + Platform Engineer | COMPLETED
+Task: Fix KvK submission modal cutoff on desktop + Admin auto-approve submissions
+Files:
+  - `apps/web/src/components/PostKvKSubmission.tsx` — Wrapped modal return in `createPortal(…, document.body)` to escape parent `transform` containing block. Updated toast to show different message for auto-approved vs pending submissions.
+  - `apps/api/api/routers/submissions.py` — Added `Request` dependency to `create_kvk10_submission`, added admin detection via `verify_moderator_role()`, auto-approve + write KvK records to Supabase immediately for admin submissions, skip admin notification for admin submissions.
+Result: Modal now renders at document.body level so it's never clipped by card transforms. Admin submissions are instantly approved and KvK data is written to Supabase without needing manual review. Frontend build verified.
+
 ## 2026-02-06 04:00 | Platform Engineer | COMPLETED
 Task: Fix backend JWT validation — add Supabase API-based token validation fallback
 Files:

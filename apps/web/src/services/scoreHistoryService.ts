@@ -582,6 +582,49 @@ class ScoreHistoryService {
   }
 
   /**
+   * Get the latest rank for a kingdom from score_history
+   * Returns the rank_at_time from the most recent KvK entry
+   * This is the single source of truth for rank display
+   */
+  async getLatestRank(kingdomNumber: number): Promise<{ rank: number; totalAtKvk: number; kvkNumber: number } | null> {
+    if (!isSupabaseConfigured || !supabase) {
+      return null;
+    }
+
+    try {
+      // Get the latest score_history entry for this kingdom
+      const { data, error } = await supabase
+        .from('score_history')
+        .select('kvk_number, rank_at_time')
+        .eq('kingdom_number', kingdomNumber)
+        .not('rank_at_time', 'is', null)
+        .order('kvk_number', { ascending: false })
+        .limit(1);
+
+      if (error || !data || data.length === 0) {
+        return null;
+      }
+
+      const latest = data[0] as { kvk_number: number; rank_at_time: number };
+
+      // Get total kingdoms at that KvK for context
+      const { count, error: countError } = await supabase
+        .from('score_history')
+        .select('id', { count: 'exact', head: true })
+        .eq('kvk_number', latest.kvk_number);
+
+      if (countError) {
+        return { rank: latest.rank_at_time, totalAtKvk: 0, kvkNumber: latest.kvk_number };
+      }
+
+      return { rank: latest.rank_at_time, totalAtKvk: count || 0, kvkNumber: latest.kvk_number };
+    } catch (err) {
+      logger.error('Error fetching latest rank:', err);
+      return null;
+    }
+  }
+
+  /**
    * Clear cache (useful after data updates)
    */
   clearCache(): void {

@@ -488,5 +488,31 @@ The backend validates tokens using a cascading strategy:
 
 ---
 
+## Score History Rank Recalculation (2026-02-06)
+
+### Architecture: `score_history` is the SINGLE SOURCE OF TRUTH for ranks
+- `rank_at_time` ranks within `score_history` entries at the same KvK using `ROW_NUMBER() OVER (ORDER BY score DESC, kingdom_number ASC)`
+- `percentile_rank` = `(total - rank) / (total - 1) * 100`
+- `kingdoms.current_rank` auto-syncs from score_history via `sync_kingdom_current_rank()` trigger
+- **Frontend profile header** reads rank from `scoreHistoryService.getLatestRank()` — NOT client-side sorting
+- **Chart** reads `rank_at_time` from score_history records
+
+### Key gotchas:
+1. ❌ Do NOT rank against `kingdoms.atlas_score` — that compares historical scores against current scores (meaningless)
+2. ✅ Rank within `score_history` entries at the same KvK — this gives the correct historical cohort rank
+3. After UPSERT, recalculate ALL entries at that KvK (not just the new one)
+4. Admin can run `SELECT * FROM verify_and_fix_rank_consistency()` to audit all ranks
+
+### Migrations (in order):
+1. `fix_rank_recalculation_on_score_history` — initial fix for stale ranks
+2. `fix_rank_at_time_use_all_kingdoms` — incorrect fix (ranked vs kingdoms table)
+3. `fix_rank_at_time_within_score_history` — correct fix (ranks within score_history)
+4. `add_percentile_rank_to_score_history` — added column + backfill
+5. `update_trigger_with_percentile_rank` — trigger calculates both
+6. `add_current_rank_to_kingdoms` — auto-sync column + trigger
+7. `add_verify_rank_consistency_function` — admin audit function
+
+---
+
 *Updated by Platform Engineer based on current backend best practices.*
 *Last audit: 2026-02-06*

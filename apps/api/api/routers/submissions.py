@@ -316,6 +316,7 @@ class KvK10SubmissionCreate(BaseModel):
 @router.post("/submissions/kvk10", response_model=KVKSubmissionSchema)
 def create_kvk10_submission(
     submission: KvK10SubmissionCreate,
+    request: Request,
     db: Session = Depends(get_db),
     verified_user_id: Optional[str] = Depends(get_verified_user_id),
     user_name: Optional[str] = Header(None, alias="X-User-Name")
@@ -494,7 +495,11 @@ def create_kvk10_submission(
         except Exception as e:
             logger.warning(f"Screenshot 2 processing error (non-fatal): {e}")
     
-    # Create submission
+    # Check if submitter is an admin (for auto-approval)
+    user_email = request.headers.get("X-User-Email")
+    is_admin = verify_moderator_role(verified_user_id, db, user_email)
+    
+    # Create submission - auto-approve if admin
     db_submission = KVKSubmission(
         submitter_id=verified_user_id,
         submitter_name=submitter_name,
@@ -507,32 +512,90 @@ def create_kvk10_submission(
         screenshot_url=screenshot_url,
         screenshot2_url=screenshot2_url,
         notes=submission.notes,
-        status="pending"
+        status="approved" if is_admin else "pending"
     )
+    
+    if is_admin:
+        db_submission.reviewed_by = verified_user_id
+        db_submission.reviewed_at = datetime.now(timezone.utc)
+        db_submission.review_notes = "Auto-approved (admin submission)"
     
     db.add(db_submission)
     db.commit()
     db.refresh(db_submission)
     
-    logger.info(f"KvK #10 submission created: K{submission.kingdom_number} vs K{submission.opponent_kingdom} by {verified_user_id}")
+    logger.info(f"KvK #10 submission created: K{submission.kingdom_number} vs K{submission.opponent_kingdom} by {verified_user_id} (auto_approved={is_admin})")
     
-    # Notify admins of new submission
-    try:
-        from api.supabase_client import notify_admins
-        notify_admins(
-            notification_type="admin_new_submission",
-            title="New KvK Submission",
-            message=f"K{submission.kingdom_number} vs K{submission.opponent_kingdom} - awaiting review",
-            link="/admin?tab=kvk-submissions",
-            metadata={
-                "submission_id": db_submission.id,
-                "kingdom_number": submission.kingdom_number,
-                "opponent_kingdom": submission.opponent_kingdom,
-                "submitter_name": submitter_name,
-            }
-        )
-    except Exception as e:
-        logger.warning(f"Failed to notify admins: {e}")
+    # If admin, auto-approve: insert KvK records into Supabase immediately
+    if is_admin:
+        try:
+            overall_result = "W" if submission.battle_result == "W" else "L"
+            opponent_prep_result = "L" if submission.prep_result == "W" else "W"
+            opponent_battle_result = "L" if submission.battle_result == "W" else "W"
+            opponent_overall_result = "L" if overall_result == "W" else "W"
+            
+            from api.supabase_client import get_supabase_admin
+            supa = get_supabase_admin()
+            if not supa:
+                logger.error("Supabase unavailable for admin auto-approval")
+            else:
+                # Insert submitting kingdom's record if not exists
+                existing_sub = supa.table('kvk_history').select('id').eq(
+                    'kingdom_number', submission.kingdom_number
+                ).eq('kvk_number', submission.kvk_number).execute()
+                
+                if not existing_sub.data:
+                    supa.table('kvk_history').insert({
+                        'kingdom_number': submission.kingdom_number,
+                        'kvk_number': submission.kvk_number,
+                        'opponent_kingdom': submission.opponent_kingdom,
+                        'prep_result': submission.prep_result,
+                        'battle_result': submission.battle_result,
+                        'overall_result': overall_result,
+                        'kvk_date': None,
+                        'order_index': submission.kvk_number
+                    }).execute()
+                    logger.info(f"Auto-approved: Inserted KvK record for K{submission.kingdom_number}")
+                
+                # Insert opponent kingdom's inverse record if not exists
+                existing_opp = supa.table('kvk_history').select('id').eq(
+                    'kingdom_number', submission.opponent_kingdom
+                ).eq('kvk_number', submission.kvk_number).execute()
+                
+                if not existing_opp.data:
+                    supa.table('kvk_history').insert({
+                        'kingdom_number': submission.opponent_kingdom,
+                        'kvk_number': submission.kvk_number,
+                        'opponent_kingdom': submission.kingdom_number,
+                        'prep_result': opponent_prep_result,
+                        'battle_result': opponent_battle_result,
+                        'overall_result': opponent_overall_result,
+                        'kvk_date': None,
+                        'order_index': submission.kvk_number
+                    }).execute()
+                    logger.info(f"Auto-approved: Inserted inverse KvK record for K{submission.opponent_kingdom}")
+                
+                logger.info(f"Admin auto-approval complete for K{submission.kingdom_number} vs K{submission.opponent_kingdom}")
+        except Exception as e:
+            logger.error(f"Admin auto-approval failed to write KvK records: {e}")
+    else:
+        # Notify admins of new submission (only for non-admin submissions)
+        try:
+            from api.supabase_client import notify_admins
+            notify_admins(
+                notification_type="admin_new_submission",
+                title="New KvK Submission",
+                message=f"K{submission.kingdom_number} vs K{submission.opponent_kingdom} - awaiting review",
+                link="/admin?tab=kvk-submissions",
+                metadata={
+                    "submission_id": db_submission.id,
+                    "kingdom_number": submission.kingdom_number,
+                    "opponent_kingdom": submission.opponent_kingdom,
+                    "submitter_name": submitter_name,
+                }
+            )
+        except Exception as e:
+            logger.warning(f"Failed to notify admins: {e}")
     
     return db_submission
 
