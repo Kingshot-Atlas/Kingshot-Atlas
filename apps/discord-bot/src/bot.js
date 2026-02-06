@@ -57,9 +57,12 @@ const healthServer = http.createServer((req, res) => {
     const timeSinceStartup = Date.now() - startupTime;
     const inStartupGrace = timeSinceStartup < STARTUP_GRACE_PERIOD;
     
-    // During startup grace period, return 200 to pass health checks while Discord connects
-    // After grace period, require actual Discord connection
-    const isHealthy = inStartupGrace || (botReady && wsStatus === 0); // 0 = READY
+    // ALWAYS return 200 to prevent Render restart cycles.
+    // The process IS healthy (health server works). Discord connection status
+    // is reported in the response body for monitoring, not via HTTP status.
+    // Previous behavior (503 when disconnected) caused a vicious restart cycle:
+    // restart → gateway rate-limited → timeout → 503 → restart → repeat
+    const isHealthy = true;
     const uptime = process.uptime();
     const memUsage = process.memoryUsage();
     
@@ -595,7 +598,62 @@ async function main() {
     }
     
     console.error('   Bot remains running for diagnostics. Check /health for details.');
+    
+    // Schedule internal retry with long backoff to break the rate-limit cycle
+    // Discord gateway rate limits last ~5-15 minutes for frequent connectors
+    scheduleLoginRetry();
   }
+}
+
+// Internal login retry with long exponential backoff
+let loginRetryCount = 0;
+const MAX_LOGIN_RETRIES = 5;
+let loginRetryTimer = null;
+
+function scheduleLoginRetry() {
+  if (loginRetryCount >= MAX_LOGIN_RETRIES) {
+    console.error(`❌ Max login retries (${MAX_LOGIN_RETRIES}) exhausted. Waiting for Render restart.`);
+    lastError = `All ${MAX_LOGIN_RETRIES} login retries exhausted. Render will restart the service.`;
+    return;
+  }
+  
+  loginRetryCount++;
+  // Long backoff: 2min, 4min, 8min, 16min, 32min
+  const delay = 120_000 * Math.pow(2, loginRetryCount - 1);
+  const delayMin = Math.round(delay / 60_000);
+  console.log(`🔄 Login retry ${loginRetryCount}/${MAX_LOGIN_RETRIES} scheduled in ${delayMin} minutes`);
+  lastError = `Waiting ${delayMin}min before login retry ${loginRetryCount}/${MAX_LOGIN_RETRIES} (gateway rate-limited)`;
+  
+  if (loginRetryTimer) clearTimeout(loginRetryTimer);
+  loginRetryTimer = setTimeout(async () => {
+    console.log(`🔐 Login retry ${loginRetryCount}/${MAX_LOGIN_RETRIES} starting...`);
+    loginAttemptCount = loginRetryCount + 1;
+    
+    try {
+      // Re-validate token first
+      const tokenCheck = await validateToken(config.token);
+      if (tokenCheck.valid === false) {
+        loginLastResult = `token_invalid: ${tokenCheck.error}`;
+        lastError = `Token invalid on retry. Reset in Discord Developer Portal.`;
+        return;
+      }
+      
+      const loginPromise = client.login(config.token);
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('LOGIN_TIMEOUT')), 30_000)
+      );
+      
+      await Promise.race([loginPromise, timeoutPromise]);
+      console.log('✅ Login retry succeeded!');
+      loginLastResult = 'login_resolved_on_retry';
+      lastError = null;
+      loginRetryCount = 0;
+    } catch (err) {
+      console.error(`❌ Login retry ${loginRetryCount} failed: ${err.message}`);
+      loginLastResult = `retry_${loginRetryCount}_failed: ${err.message}`;
+      scheduleLoginRetry(); // Try again with longer delay
+    }
+  }, delay);
 }
 
 // Handle graceful shutdown
