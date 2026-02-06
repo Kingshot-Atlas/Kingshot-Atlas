@@ -7,6 +7,25 @@
 
 ## Log Entries
 
+## 2026-02-06 06:30 | Product Engineer | COMPLETED
+Task: Enhance Kingdom Rankings page & profile header UI
+Changes:
+  Profile Header:
+  - `KingdomHeader.tsx` — Shows "Rank #X of Y" with total kingdoms at KvK context. Added percentile badge (Top N%) with color coding: green ≥90th, yellow ≥70th, blue ≥50th.
+  - `KingdomProfile.tsx` — Passes `totalKingdomsAtKvk` and `percentileRank` to header. Removed Favorite button props.
+  - `scoreHistoryService.ts` — `getLatestRank()` now returns `percentileRank` from `score_history.percentile_rank`.
+  Header:
+  - `Header.tsx` — Removed Favorite button from KingdomHeader (desktop & mobile). Mobile Support Us button now stacks icon above text vertically.
+  Route Rename (/leaderboards → /rankings):
+  - `App.tsx` — New `/rankings` route + legacy `/leaderboards` redirect.
+  - `Header.tsx` — All nav links updated to `/rankings`.
+  - `useKeyboardShortcuts.ts`, `useAnalytics.ts`, `useMetaTags.ts` — Updated path references.
+  - `generate-sitemap.js` — Updated sitemap path.
+  Rankings Page Restructure:
+  - `Leaderboards.tsx` — Removed ScoreDistribution & ScoreMovers components. Added "Biggest Climbers" and "Biggest Fallers" sections using rank delta data from `score_history`. Reorganized layout: Rank Movers → Performance → Momentum+Records (side-by-side on desktop) → Match Outcomes+Hall of Infamy (4-col grid).
+  - `scoreHistoryService.ts` — Added `getRankMovers()` method and `RankMover` interface for fetching rank deltas between last two KvKs.
+Result: Rankings page is cleaner and more informative. Profile header shows rank context. Route renamed with backward compatibility. Build passes ✅.
+
 ## 2026-02-06 04:25 | Platform Engineer | COMPLETED
 Task: Fix rank discrepancy + ranking data hardening (chart rank vs profile header rank mismatch)
 Root Cause: Profile header computed rank client-side by sorting all 1,204 kingdoms, while chart read `rank_at_time` from `score_history` which ranked within score_history entries only. Previous fix (04:19) incorrectly ranked historical scores against current `kingdoms.atlas_score`. Correct approach: rank within `score_history` entries at each KvK AND make profile header also read from `score_history`.
