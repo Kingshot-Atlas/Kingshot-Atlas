@@ -64,6 +64,12 @@ const KingdomDirectory: React.FC = () => {
   
   const { favorites, toggleFavorite: contextToggleFavorite } = useFavoritesContext();
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(() => searchParams.get('favorites') === 'true');
+
+  // Sync showFavoritesOnly with URL query param (header heart badge toggle)
+  useEffect(() => {
+    const favParam = searchParams.get('favorites') === 'true';
+    setShowFavoritesOnly(favParam);
+  }, [searchParams]);
   
   const [showBackToTop, setShowBackToTop] = useState(false);
   const isMobile = useIsMobile();
@@ -808,36 +814,68 @@ const KingdomDirectory: React.FC = () => {
             padding: '4rem 2rem',
             backgroundColor: '#111111',
             borderRadius: '12px',
-            border: '1px solid #2a2a2a'
+            border: `1px solid ${showFavoritesOnly ? '#ef444440' : '#2a2a2a'}`
           }}>
-            <div style={{ fontSize: '3rem', marginBottom: '1rem', opacity: 0.5 }}>🔍</div>
-            <h3 style={{ color: '#fff', fontSize: '1.25rem', marginBottom: '0.5rem' }}>No kingdoms found</h3>
-            <p style={{ color: '#6b7280', fontSize: '0.9rem', marginBottom: '1.5rem', maxWidth: '400px', margin: '0 auto 1.5rem' }}>
-              {debouncedSearch ? 
-                `No kingdoms match "${debouncedSearch}". Try a different search term.` :
-                countActiveFilters(filters) > 0 ?
-                  'No kingdoms match your current filters. Try adjusting your criteria.' :
-                  showFavoritesOnly ?
-                    'You haven\'t added any favorites yet. Click the star on any kingdom card to add it.' :
-                    'No kingdoms available.'
-              }
-            </p>
-            {(countActiveFilters(filters) > 0 || debouncedSearch) && (
-              <button
-                onClick={() => { setFilters(DEFAULT_FILTERS); setSearchQuery(''); }}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  backgroundColor: '#22d3ee20',
-                  border: '1px solid #22d3ee',
-                  borderRadius: '8px',
-                  color: '#22d3ee',
-                  cursor: 'pointer',
-                  fontSize: '0.9rem',
-                  fontWeight: '500'
-                }}
-              >
-                Clear all filters & search
-              </button>
+            {showFavoritesOnly && !debouncedSearch && countActiveFilters(filters) === 0 ? (
+              <>
+                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="1.5" style={{ opacity: 0.6 }}>
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                  </svg>
+                </div>
+                <h3 style={{ color: '#fff', fontSize: '1.25rem', marginBottom: '0.5rem' }}>No favorites yet</h3>
+                <p style={{ color: '#9ca3af', fontSize: '0.9rem', maxWidth: '420px', margin: '0 auto 1.5rem', lineHeight: '1.5' }}>
+                  Track the kingdoms that matter to you. Click the <span style={{ color: '#ef4444' }}>★</span> on any kingdom card to add it to your watchlist.
+                </p>
+                <button
+                  onClick={() => { setShowFavoritesOnly(false); navigate('/'); }}
+                  style={{
+                    padding: '0.75rem 1.5rem',
+                    backgroundColor: '#ef444420',
+                    border: '1px solid #ef4444',
+                    borderRadius: '8px',
+                    color: '#ef4444',
+                    cursor: 'pointer',
+                    fontSize: '0.9rem',
+                    fontWeight: '500',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#ef444440'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#ef444420'; }}
+                >
+                  Browse all kingdoms
+                </button>
+              </>
+            ) : (
+              <>
+                <div style={{ fontSize: '3rem', marginBottom: '1rem', opacity: 0.5 }}>🔍</div>
+                <h3 style={{ color: '#fff', fontSize: '1.25rem', marginBottom: '0.5rem' }}>No kingdoms found</h3>
+                <p style={{ color: '#6b7280', fontSize: '0.9rem', marginBottom: '1.5rem', maxWidth: '400px', margin: '0 auto 1.5rem' }}>
+                  {debouncedSearch ? 
+                    `No kingdoms match "${debouncedSearch}". Try a different search term.` :
+                    countActiveFilters(filters) > 0 ?
+                      'No kingdoms match your current filters. Try adjusting your criteria.' :
+                      'No kingdoms available.'
+                  }
+                </p>
+                {(countActiveFilters(filters) > 0 || debouncedSearch) && (
+                  <button
+                    onClick={() => { setFilters(DEFAULT_FILTERS); setSearchQuery(''); }}
+                    style={{
+                      padding: '0.75rem 1.5rem',
+                      backgroundColor: '#22d3ee20',
+                      border: '1px solid #22d3ee',
+                      borderRadius: '8px',
+                      color: '#22d3ee',
+                      cursor: 'pointer',
+                      fontSize: '0.9rem',
+                      fontWeight: '500'
+                    }}
+                  >
+                    Clear all filters & search
+                  </button>
+                )}
+              </>
             )}
           </div>
         ) : viewMode === 'grid' ? (

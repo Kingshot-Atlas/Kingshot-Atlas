@@ -150,6 +150,9 @@
 | Community Reviews v3 (Enhanced) | ✅ Live | Product | Sort by Most Helpful, rating breakdown stats, Top Reviewer badge (5+ helpful), review activity on Profile page (2026-02-05) |
 | Community Reviews v4 (Social) | ✅ Live | Product | Verified Reviewer badge (home kingdom), Featured Review display (most helpful highlighted), reply functionality with Official badge for recruiters, notifications for helpful votes/replies (2026-02-05) |
 | Kingdom Ranking History | ✅ Live | Product | Collapsible chart showing rank over time from score_history, purple color scheme, inverted Y-axis (2026-02-05) |
+| Review 200-Char Limit | ✅ Live | Product | Frontend maxLength + service validation + DB CHECK constraint, character counter (gray→yellow→red), preview panel (2026-02-05) |
+| Review Rate Limiting | ✅ Live | Product | Max 3 reviews per user per day, enforced in reviewService.createReview() (2026-02-05) |
+| Review Report System | ✅ Live | Product + Platform | review_reports table with RLS, flag button on reviews, report modal (reason + details), success toast, unique per user/review (2026-02-05) |
 
 ---
 

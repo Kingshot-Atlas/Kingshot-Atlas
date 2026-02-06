@@ -7,6 +7,11 @@
 
 ## Log Entries
 
+## 2026-02-05 21:00 | Product Engineer + Platform Engineer | COMPLETED
+Task: Review rate limiting (3/day) + report system with modal
+Files: `apps/web/src/components/KingdomReviews.tsx`, `apps/web/src/services/reviewService.ts`, Supabase migration (review_reports table)
+Result: Max 3 reviews/day rate limiting in createReview(). New review_reports table with RLS. Report flag button on reviews, report modal with reason dropdown + details. Success toast. Fixed old DB comment constraint (1000→200). Committed and deployed.
+
 ## 2026-02-05 20:50 | Product Engineer + Platform Engineer | COMPLETED
 Task: Review Quality & Moderation Polish (5-item suggested next)
 Files: `apps/web/src/components/KingdomReviews.tsx`, `apps/web/src/services/reviewService.ts`, Supabase migration
