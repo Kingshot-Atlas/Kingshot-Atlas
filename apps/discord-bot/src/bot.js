@@ -292,15 +292,21 @@ console.log(`   Token length: ${config.token.length} chars`);
 // GuildMembers intent is REQUIRED for: role assignment, welcome messages, member events
 // IMPORTANT: Must also enable "Server Members Intent" in Discord Developer Portal:
 // https://discord.com/developers/applications/{APP_ID}/bot → Privileged Gateway Intents
+const clientRestOptions = {
+  timeout: 15_000, // 15s timeout for REST API calls (prevents hanging on rate limits)
+  retries: 1,      // Only retry REST calls once
+};
+if (DISCORD_API_PROXY) {
+  clientRestOptions.api = `${DISCORD_API_PROXY}/api`;
+  clientRestOptions.headers = { 'X-Proxy-Key': DISCORD_PROXY_KEY };
+  console.log(`🔀 Client REST routed through proxy: ${DISCORD_API_PROXY}/api`);
+}
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMembers,
   ],
-  rest: {
-    timeout: 15_000, // 15s timeout for REST API calls (prevents hanging on rate limits)
-    retries: 1,      // Only retry REST calls once
-  },
+  rest: clientRestOptions,
 });
 
 // Event: Ready — MUST use .on() not .once() because login retries can
