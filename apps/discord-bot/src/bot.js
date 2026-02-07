@@ -36,6 +36,34 @@ const logger = require('./utils/logger');
 const scheduler = require('./scheduler');
 
 // ============================================================================
+// DISCORD REST API PROXY — bypasses Cloudflare IP bans on Render's shared IP
+// When DISCORD_API_PROXY is set, REST calls route through a Cloudflare Worker
+// instead of directly to discord.com (which bans Render's IP via Error 1015).
+// ============================================================================
+const DISCORD_API_PROXY = process.env.DISCORD_API_PROXY || '';
+const DISCORD_PROXY_KEY = process.env.DISCORD_PROXY_KEY || '';
+const DISCORD_API_BASE = DISCORD_API_PROXY || 'https://discord.com';
+
+/**
+ * Fetch from Discord API, routing through proxy if configured.
+ * Drop-in replacement for fetch('https://discord.com/...').
+ */
+function discordFetch(path, options = {}) {
+  const url = `${DISCORD_API_BASE}${path}`;
+  const headers = { ...options.headers };
+  if (DISCORD_API_PROXY && DISCORD_PROXY_KEY) {
+    headers['X-Proxy-Key'] = DISCORD_PROXY_KEY;
+  }
+  return fetch(url, { ...options, headers });
+}
+
+if (DISCORD_API_PROXY) {
+  console.log(`🔀 Discord REST proxy: ${DISCORD_API_PROXY}`);
+} else {
+  console.log('📡 Discord REST: direct (no proxy)');
+}
+
+// ============================================================================
 // HEALTH SERVER - Unified with bot for accurate health reporting
 // ============================================================================
 let botReady = false;
@@ -149,7 +177,7 @@ const healthServer = http.createServer(async (req, res) => {
       if (config.token && config.clientId) {
         const headers = { Authorization: `Bot ${config.token}` };
         // Check global commands
-        const globalRes = await fetch(`https://discord.com/api/v10/applications/${config.clientId}/commands`, { headers });
+        const globalRes = await discordFetch(`/api/v10/applications/${config.clientId}/commands`, { headers });
         diag.globalCommands = { status: globalRes.status };
         if (globalRes.ok) {
           const cmds = await globalRes.json();
@@ -160,7 +188,7 @@ const healthServer = http.createServer(async (req, res) => {
         }
         // Check guild commands
         if (config.guildId) {
-          const guildRes = await fetch(`https://discord.com/api/v10/applications/${config.clientId}/guilds/${config.guildId}/commands`, { headers });
+          const guildRes = await discordFetch(`/api/v10/applications/${config.clientId}/guilds/${config.guildId}/commands`, { headers });
           diag.guildCommands = { status: guildRes.status };
           if (guildRes.ok) {
             const cmds = await guildRes.json();
@@ -171,7 +199,7 @@ const healthServer = http.createServer(async (req, res) => {
           }
         }
         // Check bot identity
-        const meRes = await fetch('https://discord.com/api/v10/users/@me', { headers });
+        const meRes = await discordFetch('/api/v10/users/@me', { headers });
         diag.botIdentity = { status: meRes.status };
         if (meRes.ok) {
           const me = await meRes.json();
@@ -366,7 +394,12 @@ async function registerCommandsWithRetry() {
 }
 
 async function registerCommands() {
-  const rest = new REST({ version: '10' }).setToken(config.token);
+  const restOptions = { version: '10' };
+  if (DISCORD_API_PROXY) {
+    restOptions.api = `${DISCORD_API_PROXY}/api`;
+    restOptions.headers = { 'X-Proxy-Key': DISCORD_PROXY_KEY };
+  }
+  const rest = new REST(restOptions).setToken(config.token);
   const REGISTRATION_TIMEOUT = 60000; // 60 seconds
 
   const timeoutPromise = new Promise((_, reject) =>
@@ -572,7 +605,7 @@ client.on('interactionCreate', async (interaction) => {
 
   interaction.deferReply = async (options = {}) => {
     console.log(`   [${commandName}] RAW deferReply...`);
-    const resp = await fetch(`https://discord.com/api/v10/interactions/${iId}/${iToken}/callback`, {
+    const resp = await discordFetch(`/api/v10/interactions/${iId}/${iToken}/callback`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ type: 5, data: options.ephemeral ? { flags: 64 } : {} })
@@ -596,7 +629,7 @@ client.on('interactionCreate', async (interaction) => {
         flags: data.ephemeral ? 64 : 0,
       }
     };
-    const resp = await fetch(`https://discord.com/api/v10/interactions/${iId}/${iToken}/callback`, {
+    const resp = await discordFetch(`/api/v10/interactions/${iId}/${iToken}/callback`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
@@ -612,7 +645,7 @@ client.on('interactionCreate', async (interaction) => {
   interaction.editReply = async (options) => {
     console.log(`   [${commandName}] RAW editReply...`);
     const data = typeof options === 'string' ? { content: options } : { ...options };
-    const resp = await fetch(`https://discord.com/api/v10/webhooks/${appId}/${iToken}/messages/@original`, {
+    const resp = await discordFetch(`/api/v10/webhooks/${appId}/${iToken}/messages/@original`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

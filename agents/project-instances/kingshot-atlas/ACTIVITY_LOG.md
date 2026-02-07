@@ -7,6 +7,29 @@
 
 ## Log Entries
 
+## 2026-02-07 10:15 | Design Lead | COMPLETED
+Task: Transfer Hub card refinements — gold shimmer border, layout restructure, input redesign
+Files: `apps/web/src/pages/TransferBoard.tsx`, `apps/web/src/components/RecruiterDashboard.tsx`
+Result:
+  **Card Changes:**
+  1. Gold tier: full-border shimmer effect (3px animated gradient wrapper with `goldShimmer` keyframes), thicker border
+  2. Kingdom name moved to top-left with 1-letter score tier chip (S glows via `.s-tier-badge` class)
+  3. Atlas Score + Rank removed from below name, replaced with "Transfer Status: ___" from `kingdoms.most_recent_status`
+  4. Stats grid reordered: Atlas Score (2 decimals + rank in parens) / Prep WR / Battle WR — Experience / Dominations / Invasions
+  5. Recruitment tags: language tags ("*Speaking") filtered out from display, max 3 shown
+  6. `most_recent_status` added to KingdomData interface + Supabase fetch query
+  **RecruiterDashboard Changes:**
+  1. Min TC Level: replaced number input with searchable `<select>` dropdown (TC 1-30 + TG1-TG8)
+  2. Min Power: replaced range dropdown with number input in millions (whole number, max 4 digits, shows "= XM power")
+  3. Removed `POWER_RANGE_OPTIONS` constant (no longer needed)
+  **Both files:** Removed language tags from `RECRUITMENT_TAG_OPTIONS`, added 3 new tags (KvK Focused, Event Active, Beginner Friendly)
+  Build verified ✅, deployed locally.
+
+## 2026-02-07 09:13 | Design Lead | COMPLETED
+Task: Redesign KingdomListingCard for Transfer Hub - mobile-first premium UI overhaul
+Files: `apps/web/src/pages/TransferBoard.tsx`
+Result: Complete card redesign with centered kingdom names (1.25rem mobile), fancy tier borders with gradient accent bars and glow effects, recruiting badge in top-right corner, cyan atlas scores/ranks, compact 3×2 stats grid (Atlas Score, Experience, Prep WR, Battle WR, Dominations, Invasions), key info preview chips (language, TG level, power range, tags), recruitment pitch with tier-colored left border, inline review summary with truncated top comment, consolidated expandable "Full Performance & Details" section. Removed "Gold" tag replaced by visually distinct border treatment. Gold tier has animated shimmer gradient bar. Build verified ✅, deployed locally.
+
 ## 2026-02-07 06:50 | Platform Engineer | COMPLETED
 Task: Discord Bot — Bug fixes (state flag race condition) + Security hardening
 Files: `apps/discord-bot/src/bot.js`
