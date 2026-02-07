@@ -526,6 +526,70 @@ client.on('interactionCreate', async (interaction) => {
   console.log(`📥 Command: /${commandName} from ${interaction.user.tag} (interaction #${interactionCount})`);
   lastCommandDebug = `/${commandName} from ${interaction.user.tag}`;
 
+  // CRITICAL: Patch interaction methods to use raw fetch() instead of discord.js REST client.
+  // The REST client may have global rate-limit state from 429s that blocks ALL REST calls,
+  // including interaction responses. Raw fetch bypasses this entirely.
+  const iToken = interaction.token;
+  const iId = interaction.id;
+  const appId = client.user?.id || config.clientId;
+
+  interaction.deferReply = async (options = {}) => {
+    console.log(`   [${commandName}] RAW deferReply...`);
+    const resp = await fetch(`https://discord.com/api/v10/interactions/${iId}/${iToken}/callback`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 5, data: options.ephemeral ? { flags: 64 } : {} })
+    });
+    interaction.deferred = true;
+    if (!resp.ok) {
+      const text = await resp.text().catch(() => '');
+      throw new Error(`deferReply failed: ${resp.status} ${text.substring(0, 200)}`);
+    }
+    console.log(`   [${commandName}] RAW deferReply OK (${resp.status})`);
+  };
+
+  interaction.reply = async (options) => {
+    console.log(`   [${commandName}] RAW reply...`);
+    const data = typeof options === 'string' ? { content: options } : { ...options };
+    const body = {
+      type: 4,
+      data: {
+        content: data.content || undefined,
+        embeds: data.embeds?.map(e => (typeof e.toJSON === 'function' ? e.toJSON() : e)),
+        flags: data.ephemeral ? 64 : 0,
+      }
+    };
+    const resp = await fetch(`https://discord.com/api/v10/interactions/${iId}/${iToken}/callback`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    interaction.replied = true;
+    if (!resp.ok) {
+      const text = await resp.text().catch(() => '');
+      throw new Error(`reply failed: ${resp.status} ${text.substring(0, 200)}`);
+    }
+    console.log(`   [${commandName}] RAW reply OK (${resp.status})`);
+  };
+
+  interaction.editReply = async (options) => {
+    console.log(`   [${commandName}] RAW editReply...`);
+    const data = typeof options === 'string' ? { content: options } : { ...options };
+    const resp = await fetch(`https://discord.com/api/v10/webhooks/${appId}/${iToken}/messages/@original`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        content: data.content || undefined,
+        embeds: data.embeds?.map(e => (typeof e.toJSON === 'function' ? e.toJSON() : e)),
+      })
+    });
+    if (!resp.ok) {
+      const text = await resp.text().catch(() => '');
+      throw new Error(`editReply failed: ${resp.status} ${text.substring(0, 200)}`);
+    }
+    console.log(`   [${commandName}] RAW editReply OK (${resp.status})`);
+  };
+
   const startTime = Date.now();
   
   try {
