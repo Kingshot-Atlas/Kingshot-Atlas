@@ -81,30 +81,67 @@ const AtlasBot: React.FC = () => {
   const commands: CommandCardProps[] = [
     {
       command: 'kingdom',
-      description: 'Pull up any kingdom\'s full profile — Atlas Score, tier, KvK record, and more. Instant intel without leaving Discord.',
+      description: 'Full kingdom profile with Atlas Score, tier, KvK record, dominations, and invasions. Autocomplete suggests kingdoms as you type.',
       example: '/kingdom 172',
-      icon: '🔍',
+      icon: '🏰',
       accentColor: '#22d3ee'
     },
     {
       command: 'compare',
-      description: 'Head-to-head matchup analysis between two kingdoms. Stats, win rates, tier comparison — settle debates with data.',
-      example: '/compare 172 145',
-      icon: '⚔️',
+      description: 'Side-by-side matchup with score, prep, battle, dominations, and invasions. Green check marks show who wins each stat.',
+      example: '/compare 172 231',
+      icon: '⚖️',
       accentColor: '#f97316'
     },
     {
-      command: 'rankings',
-      description: 'Top kingdoms leaderboard right in your channel. See who\'s dominating and who\'s falling.',
-      example: '/rankings top 10',
-      icon: '🏆',
+      command: 'history',
+      description: 'Full KvK season history for any kingdom. See every matchup result, prep and battle outcomes, and overall record.',
+      example: '/history 172',
+      icon: '\ud83d\udcdc',
+      accentColor: '#8b5cf6'
+    },
+    {
+      command: 'predict',
+      description: 'Matchup prediction powered by Atlas Score, win rates, and domination history. See who the data favors.',
+      example: '/predict 172 231',
+      icon: '\ud83d\udd2e',
+      accentColor: '#ec4899'
+    },
+    {
+      command: 'leaderboard',
+      description: 'Top 10 kingdoms by Atlas Score. See who\'s dominating the rankings right now.',
+      icon: '\ud83c\udfc6',
       accentColor: '#eab308'
     },
     {
+      command: 'countdownkvk',
+      description: 'Live countdown to the next KvK. Shows start date and time remaining at a glance.',
+      icon: '\u23f3',
+      accentColor: '#22d3ee'
+    },
+    {
+      command: 'countdowntransfer',
+      description: 'Countdown to the next Transfer Event. Never miss your transfer window again.',
+      icon: '\ud83d\udd04',
+      accentColor: '#a855f7'
+    },
+    {
+      command: 'upcoming',
+      description: 'See both upcoming KvK and Transfer Event dates side by side. Plan ahead.',
+      icon: '\ud83d\udcc5',
+      accentColor: '#3b82f6'
+    },
+    {
+      command: 'random',
+      description: 'Discover a random kingdom. Great for scouting or exploring new matchups.',
+      icon: '\ud83c\udfb2',
+      accentColor: '#22c55e'
+    },
+    {
       command: 'link',
-      description: 'Connect your Discord account to your Atlas profile and get the Settler role. Your kingdom, your identity.',
+      description: 'Connect your Discord account to your Atlas profile and get the Settler role.',
       example: '/link',
-      icon: '🔗',
+      icon: '\ud83d\udd17',
       accentColor: '#22c55e'
     }
   ];

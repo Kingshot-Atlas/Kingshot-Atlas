@@ -364,6 +364,8 @@ client.on('ready', async () => {
     '/help | ks-atlas.com',
     '/kingdom | Look up any kingdom',
     '/compare | Head-to-head stats',
+    '/history | KvK season history',
+    '/predict | Matchup predictions',
     '/countdownkvk | Next KvK',
     '/countdowntransfer | Next Transfer',
   ];
@@ -626,7 +628,7 @@ client.on('interactionCreate', async (interaction) => {
   if (interaction.isAutocomplete()) {
     try {
       const focused = interaction.options.getFocused(true);
-      if (interaction.commandName === 'kingdom' && focused.name === 'number') {
+      if ((interaction.commandName === 'kingdom' || interaction.commandName === 'history') && focused.name === 'number') {
         const typed = String(focused.value);
         if (!kingdomCache || Date.now() - kingdomCacheTime > 300_000) {
           const result = await require('./utils/api').fetchLeaderboard(100);
@@ -746,6 +748,12 @@ client.on('interactionCreate', async (interaction) => {
         break;
       case 'countdowntransfer':
         await handlers.handleCountdownTransfer(interaction);
+        break;
+      case 'history':
+        await handlers.handleHistory(interaction);
+        break;
+      case 'predict':
+        await handlers.handlePredict(interaction);
         break;
       case 'random':
         await handlers.handleRandom(interaction);

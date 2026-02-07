@@ -289,6 +289,56 @@ async function handleStats(interaction) {
   return interaction.reply({ embeds: [embed], ephemeral: true });
 }
 
+async function handleHistory(interaction) {
+  await interaction.deferReply();
+
+  const number = interaction.options.getInteger('number');
+  const kingdom = await api.fetchKingdom(number);
+
+  if (!kingdom) {
+    const errorEmbed = embeds.createErrorEmbed(
+      `Kingdom ${number} not found.`,
+      'Check the kingdom number and try again.'
+    );
+    return interaction.editReply({ embeds: [errorEmbed] });
+  }
+
+  const embed = embeds.createHistoryEmbed(kingdom);
+  return interaction.editReply({ embeds: [embed] });
+}
+
+async function handlePredict(interaction) {
+  await interaction.deferReply();
+
+  const num1 = interaction.options.getInteger('kingdom1');
+  const num2 = interaction.options.getInteger('kingdom2');
+
+  if (num1 === num2) {
+    const errorEmbed = embeds.createErrorEmbed(
+      'Cannot predict a kingdom against itself.',
+      'Choose two different kingdoms.'
+    );
+    return interaction.editReply({ embeds: [errorEmbed] });
+  }
+
+  const [k1, k2] = await Promise.all([
+    api.fetchKingdom(num1),
+    api.fetchKingdom(num2),
+  ]);
+
+  if (!k1 || !k2) {
+    const missing = !k1 ? num1 : num2;
+    const errorEmbed = embeds.createErrorEmbed(
+      `Kingdom ${missing} not found.`,
+      'Check the kingdom number and try again.'
+    );
+    return interaction.editReply({ embeds: [errorEmbed] });
+  }
+
+  const embed = embeds.createPredictEmbed(k1, k2);
+  return interaction.editReply({ embeds: [embed] });
+}
+
 module.exports = {
   handleKingdom,
   handleCompare,
@@ -302,4 +352,6 @@ module.exports = {
   handleHelp,
   handleLink,
   handleStats,
+  handleHistory,
+  handlePredict,
 };

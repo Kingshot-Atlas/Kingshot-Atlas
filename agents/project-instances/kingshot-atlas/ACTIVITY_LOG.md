@@ -7,6 +7,26 @@
 
 ## Log Entries
 
+## 2026-02-07 19:30 | Product Engineer | COMPLETED
+Task: Add /history and /predict commands, fix all corrupted emojis, add CTAs to all embeds
+Files: `apps/discord-bot/src/utils/embeds.js`, `apps/discord-bot/src/commands/handlers.js`, `apps/discord-bot/src/commands/index.js`, `apps/discord-bot/src/bot.js`, `apps/web/src/pages/AtlasBot.tsx`
+Result:
+  - Fixed 4 corrupted emojis (U+FFFD replacement chars): skull in /kingdom, chart in leaderboard CTA, two recycle emojis in /upcoming
+  - /history: new command showing full KvK season history with W/L per phase, summary stats, and website CTA
+  - /predict: new command with weighted matchup prediction (score 40%, prep 25%, battle 25%, doms 10%), probability bar, confidence labels, and factor breakdown
+  - Added CTAs linking to ks-atlas.com on: /tier, /upcoming, /countdownkvk, /countdowntransfer
+  - /history has autocomplete for kingdom numbers (same cache as /kingdom)
+  - Updated help embed, rotating presence, and AtlasBot.tsx with 10 command cards
+  - Both new commands registered in index.js with REGISTER_COMMANDS=1 needed on Render
+
+## 2026-02-07 19:10 | Design Lead + Product Engineer | COMPLETED
+Task: Discord bot embed polish — skull emoji fix, compare layout, Atlas Bot page copy
+Files: `apps/discord-bot/src/utils/embeds.js`, `apps/web/src/pages/AtlasBot.tsx`
+Result:
+  - Fixed corrupted 💀 skull emoji in /kingdom Invasions line (was showing as broken diamond)
+  - /compare: renamed Doms→Dominations, Invs→Invasions, removed middle "vs" column for cleaner mobile layout
+  - Atlas Bot page: updated all 8 command cards to reflect current bot commands (kingdom, compare, leaderboard, countdownkvk, countdowntransfer, upcoming, random, link) with accurate descriptions and icons
+
 ## 2026-02-07 18:45 | Product Engineer | COMPLETED
 Task: Discord bot embed layout redesign — /kingdom, /compare, /countdown commands
 Files: `apps/discord-bot/src/utils/embeds.js`, `apps/discord-bot/src/commands/handlers.js`, `apps/discord-bot/src/commands/index.js`, `apps/discord-bot/src/bot.js`

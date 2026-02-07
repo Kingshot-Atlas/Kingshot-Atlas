@@ -94,6 +94,41 @@ const commands = [
     .setName('countdowntransfer')
     .setDescription('Show countdown timer to next Transfer Event'),
 
+  // /history <number>
+  new SlashCommandBuilder()
+    .setName('history')
+    .setDescription('View a kingdom\'s full KvK season history')
+    .addIntegerOption(option =>
+      option
+        .setName('number')
+        .setDescription('Kingdom number (e.g., 172, 1001)')
+        .setRequired(true)
+        .setMinValue(1)
+        .setMaxValue(9999)
+        .setAutocomplete(true)
+    ),
+
+  // /predict <k1> <k2>
+  new SlashCommandBuilder()
+    .setName('predict')
+    .setDescription('Predict the outcome of a KvK matchup between two kingdoms')
+    .addIntegerOption(option =>
+      option
+        .setName('kingdom1')
+        .setDescription('First kingdom number')
+        .setRequired(true)
+        .setMinValue(1)
+        .setMaxValue(9999)
+    )
+    .addIntegerOption(option =>
+      option
+        .setName('kingdom2')
+        .setDescription('Second kingdom number')
+        .setRequired(true)
+        .setMinValue(1)
+        .setMaxValue(9999)
+    ),
+
   // /random
   new SlashCommandBuilder()
     .setName('random')

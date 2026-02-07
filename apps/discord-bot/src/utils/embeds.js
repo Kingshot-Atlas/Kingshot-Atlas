@@ -105,7 +105,7 @@ function createKingdomEmbed(kingdom) {
         value: [
           `**Total KvKs:** ${kingdom.total_kvks}`,
           `**Dominations:** ${dominations} 👑`,
-          `**Invasions:** ${invasions} �`,
+          `**Invasions:** ${invasions} 💀`,
         ].join('\n'),
         inline: true,
       },
@@ -166,14 +166,9 @@ function createCompareEmbed(k1, k2) {
           `${better(k1.overall_score, k2.overall_score)} **Score:** ${k1.overall_score.toFixed(1)} (${tier1})`,
           `${better(k1.prep_win_rate, k2.prep_win_rate)} **Prep:** ${formatWinRate(k1.prep_win_rate)}`,
           `${better(k1.battle_win_rate, k2.battle_win_rate)} **Battle:** ${formatWinRate(k1.battle_win_rate)}`,
-          `${better(doms1, doms2)} **Doms:** ${doms1}`,
-          `${betterLow(invs1, invs2)} **Invs:** ${invs1}`,
+          `${better(doms1, doms2)} **Dominations:** ${doms1}`,
+          `${betterLow(invs1, invs2)} **Invasions:** ${invs1}`,
         ].join('\n'),
-        inline: true,
-      },
-      {
-        name: '⚡',
-        value: '\n\nvs\n\n',
         inline: true,
       },
       {
@@ -183,8 +178,8 @@ function createCompareEmbed(k1, k2) {
           `${better(k2.overall_score, k1.overall_score)} **Score:** ${k2.overall_score.toFixed(1)} (${tier2})`,
           `${better(k2.prep_win_rate, k1.prep_win_rate)} **Prep:** ${formatWinRate(k2.prep_win_rate)}`,
           `${better(k2.battle_win_rate, k1.battle_win_rate)} **Battle:** ${formatWinRate(k2.battle_win_rate)}`,
-          `${better(doms2, doms1)} **Doms:** ${doms2}`,
-          `${betterLow(invs2, invs1)} **Invs:** ${invs2}`,
+          `${better(doms2, doms1)} **Dominations:** ${doms2}`,
+          `${betterLow(invs2, invs1)} **Invasions:** ${invs2}`,
         ].join('\n'),
         inline: true,
       }
@@ -218,7 +213,7 @@ function createLeaderboardEmbed(kingdoms, title = '🏆 Atlas Leaderboard') {
     .setDescription(leaderboardText || 'No kingdoms found.')
     .addFields({
       name: '\u200b',
-      value: `[� View full leaderboard on ks-atlas.com](${config.urls.leaderboard})`,
+      value: `[📊 View full leaderboard on ks-atlas.com](${config.urls.leaderboard})`,
     })
     .setFooter({ text: `${config.bot.footerText} • Based on Atlas Score` })
     .setTimestamp();
@@ -247,10 +242,16 @@ function createTierEmbed(tier, kingdoms) {
     .setColor(getTierColor(tier))
     .setTitle(`${tierEmoji} Tier ${tier} Kingdoms`)
     .setDescription(tierDescriptions[tier] || '')
-    .addFields({
-      name: `${kingdoms.length} Kingdoms`,
-      value: kingdomList || 'No kingdoms in this tier.',
-    })
+    .addFields(
+      {
+        name: `${kingdoms.length} Kingdoms`,
+        value: kingdomList || 'No kingdoms in this tier.',
+      },
+      {
+        name: '\u200b',
+        value: `[\ud83c\udfc6 View full leaderboard on ks-atlas.com](${config.urls.leaderboard})`,
+      }
+    )
     .setFooter({ text: config.bot.footerText })
     .setTimestamp();
 
@@ -283,18 +284,22 @@ function createUpcomingEmbed(events) {
     const transferValue = [
       `📆 **${events.transfer.startDate}**`,
       `⏳ **${events.transfer.daysUntil}** days away`,
-      events.transfer.phase ? `� Currently: **${events.transfer.phase}**` : '',
+      events.transfer.phase ? `🔄 Currently: **${events.transfer.phase}**` : '',
     ].filter(Boolean).join('\n');
 
     embed.addFields({
-      name: '� Next Transfer Event',
+      name: '🔄 Next Transfer Event',
       value: transferValue,
       inline: true,
     });
   }
 
-  embed.setFooter({ text: config.bot.footerText })
-    .setTimestamp();
+  embed.addFields({
+    name: '\u200b',
+    value: `[\ud83d\udcc5 View event schedule on ks-atlas.com](${config.urls.base})`,
+  })
+  .setFooter({ text: config.bot.footerText })
+  .setTimestamp();
 
   return embed;
 }
@@ -313,6 +318,8 @@ function createHelpEmbed() {
         value: [
           '`/kingdom <number>` - Get kingdom stats',
           '`/compare <k1> <k2>` - Compare two kingdoms',
+          '`/history <number>` - KvK season history',
+          '`/predict <k1> <k2>` - Matchup prediction',
           '`/tier <S|A|B|C|D>` - List kingdoms by tier',
           '`/random` - Discover a random kingdom',
         ].join('\n'),
@@ -447,8 +454,12 @@ function createCountdownEmbed(event, timeRemaining, type = 'kvk') {
       .setDescription(`📆 **Start Date:** ${event.startDate}\n\n\`\`\`\n${timeRemaining}\n\`\`\``);
   }
 
-  embed.setFooter({ text: config.bot.footerText })
-    .setTimestamp();
+  embed.addFields({
+    name: '\u200b',
+    value: `[\u23f3 View event schedule on ks-atlas.com](${config.urls.base})`,
+  })
+  .setFooter({ text: config.bot.footerText })
+  .setTimestamp();
 
   return embed;
 }
@@ -730,6 +741,151 @@ function createWelcomeEmbed(memberName) {
   return embed;
 }
 
+/**
+ * Create KvK history embed for a kingdom
+ */
+function createHistoryEmbed(kingdom) {
+  const kvks = kingdom.recent_kvks || [];
+  const tier = getTier(kingdom.overall_score);
+  const rankDisplay = kingdom.rank ? ` (Rank #${kingdom.rank})` : '';
+
+  const embed = new EmbedBuilder()
+    .setColor(config.colors.primary)
+    .setTitle(`\ud83d\udcdc Kingdom ${kingdom.kingdom_number} \u2014 KvK History${rankDisplay}`)
+    .setURL(config.urls.kingdom(kingdom.kingdom_number));
+
+  if (kvks.length === 0) {
+    embed.setDescription('No KvK history recorded yet.');
+  } else {
+    const resultEmoji = (r) => r === 'W' ? '\u2705' : r === 'L' ? '\u274c' : '\u2796';
+    const overallEmoji = (r) => r === 'Win' ? '\ud83d\udc51' : r === 'Loss' ? '\ud83d\udc80' : '\u2796';
+
+    // Sort by kvk_number descending (most recent first)
+    const sorted = [...kvks].sort((a, b) => (b.kvk_number || b.order_index) - (a.kvk_number || a.order_index));
+
+    const historyLines = sorted.slice(0, 15).map((kvk) => {
+      const num = kvk.kvk_number ? `KvK #${kvk.kvk_number}` : `#${kvk.order_index}`;
+      const opponent = kvk.opponent_kingdom ? `vs K${kvk.opponent_kingdom}` : '';
+      const prep = resultEmoji(kvk.prep_result);
+      const battle = resultEmoji(kvk.battle_result);
+      const overall = overallEmoji(kvk.overall_result);
+      return `${overall} **${num}** ${opponent} \u2014 Prep: ${prep} Battle: ${battle}`;
+    });
+
+    embed.setDescription(historyLines.join('\n'));
+
+    // Summary stats
+    const wins = kvks.filter(k => k.overall_result === 'Win').length;
+    const losses = kvks.filter(k => k.overall_result === 'Loss').length;
+    const draws = kvks.length - wins - losses;
+
+    embed.addFields({
+      name: '\ud83d\udcca Summary',
+      value: `**${kvks.length}** KvKs \u2022 **${wins}W** - **${losses}L**${draws > 0 ? ` - **${draws}D**` : ''} \u2022 ${getTierEmoji(tier)} ${tier}-Tier (${kingdom.overall_score.toFixed(1)})`,
+    });
+  }
+
+  embed.addFields({
+    name: '\u200b',
+    value: `[\ud83d\udcca View full history on ks-atlas.com](${config.urls.kingdom(kingdom.kingdom_number)})`,
+  })
+  .setFooter({ text: config.bot.footerText })
+  .setTimestamp();
+
+  return embed;
+}
+
+/**
+ * Create matchup prediction embed
+ */
+function createPredictEmbed(k1, k2) {
+  const tier1 = getTier(k1.overall_score);
+  const tier2 = getTier(k2.overall_score);
+
+  // Calculate prediction based on weighted factors
+  const scoreWeight = 0.40;
+  const prepWeight = 0.25;
+  const battleWeight = 0.25;
+  const domWeight = 0.10;
+
+  // Normalize scores to 0-1 range (max score ~15)
+  const s1 = (k1.overall_score || 0) / 15;
+  const s2 = (k2.overall_score || 0) / 15;
+
+  // Win rates already 0-1
+  const p1 = k1.prep_win_rate || 0;
+  const p2 = k2.prep_win_rate || 0;
+  const b1 = k1.battle_win_rate || 0;
+  const b2 = k2.battle_win_rate || 0;
+
+  // Domination rate (doms / total kvks)
+  const doms1 = calculateDominations(k1.recent_kvks);
+  const doms2 = calculateDominations(k2.recent_kvks);
+  const d1 = k1.total_kvks > 0 ? doms1 / k1.total_kvks : 0;
+  const d2 = k2.total_kvks > 0 ? doms2 / k2.total_kvks : 0;
+
+  // Weighted composite
+  const composite1 = (s1 * scoreWeight) + (p1 * prepWeight) + (b1 * battleWeight) + (d1 * domWeight);
+  const composite2 = (s2 * scoreWeight) + (p2 * prepWeight) + (b2 * battleWeight) + (d2 * domWeight);
+
+  const total = composite1 + composite2 || 1; // avoid div by zero
+  const prob1 = Math.round((composite1 / total) * 100);
+  const prob2 = 100 - prob1;
+
+  const favoriteNum = prob1 >= prob2 ? k1.kingdom_number : k2.kingdom_number;
+  const favProb = Math.max(prob1, prob2);
+
+  // Visual probability bar (20 chars wide)
+  const barLen = 20;
+  const filled1 = Math.round((prob1 / 100) * barLen);
+  const bar = '\u2588'.repeat(filled1) + '\u2591'.repeat(barLen - filled1);
+
+  // Confidence label
+  let confidence;
+  if (favProb >= 75) confidence = '\ud83d\udd25 Strong Favorite';
+  else if (favProb >= 60) confidence = '\u2694\ufe0f Slight Edge';
+  else confidence = '\u2696\ufe0f Coin Flip';
+
+  const embed = new EmbedBuilder()
+    .setColor(config.colors.primary)
+    .setTitle(`\ud83d\udd2e Prediction: K${k1.kingdom_number} vs K${k2.kingdom_number}`)
+    .setURL(config.urls.compare(k1.kingdom_number, k2.kingdom_number))
+    .setDescription(`${confidence} \u2014 **Kingdom ${favoriteNum}** is favored`)
+    .addFields(
+      {
+        name: `\ud83c\udff0 K${k1.kingdom_number} (${tier1})`,
+        value: `**${prob1}%** win probability`,
+        inline: true,
+      },
+      {
+        name: `\ud83c\udff0 K${k2.kingdom_number} (${tier2})`,
+        value: `**${prob2}%** win probability`,
+        inline: true,
+      },
+      {
+        name: '\ud83d\udcca Probability',
+        value: `\`K${k1.kingdom_number}\` \`${bar}\` \`K${k2.kingdom_number}\`\n${''.padStart(0)}**${prob1}%** vs **${prob2}%**`,
+      },
+      {
+        name: '\ud83d\udee0\ufe0f Factors',
+        value: [
+          `\ud83d\udcce **Score:** ${k1.overall_score.toFixed(1)} vs ${k2.overall_score.toFixed(1)}`,
+          `\ud83d\udee1\ufe0f **Prep:** ${formatWinRate(k1.prep_win_rate)} vs ${formatWinRate(k2.prep_win_rate)}`,
+          `\u2694\ufe0f **Battle:** ${formatWinRate(k1.battle_win_rate)} vs ${formatWinRate(k2.battle_win_rate)}`,
+          `\ud83d\udc51 **Doms:** ${doms1} vs ${doms2}`,
+        ].join('\n'),
+      }
+    )
+    .addFields({
+      name: '\u200b',
+      value: `[\ud83d\udd00 Full comparison on ks-atlas.com](${config.urls.compare(k1.kingdom_number, k2.kingdom_number)})`,
+    })
+    .setFooter({ text: `${config.bot.footerText} \u2022 Based on Atlas Score, win rates & dominations` })
+    .setTimestamp();
+
+  return embed;
+}
+
 module.exports = {
   getTier,
   getTierColor,
@@ -753,4 +909,6 @@ module.exports = {
   createPremiumShowcaseEmbed,
   createWelcomeEmbed,
   createDailyUpdateEmbed,
+  createHistoryEmbed,
+  createPredictEmbed,
 };
