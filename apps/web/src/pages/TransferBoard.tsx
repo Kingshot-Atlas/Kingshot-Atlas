@@ -31,6 +31,7 @@ interface KingdomData {
   battle_win_rate: number;
   dominations: number;
   invasions: number;
+  most_recent_status: string | null;
 }
 
 interface KingdomFund {
@@ -96,11 +97,12 @@ const TIER_BORDER_STYLES: Record<string, string> = {
 };
 
 const RECRUITMENT_TAG_OPTIONS = [
-  'Active KvK', 'Casual Friendly', 'Competitive', 'English Speaking',
-  'Spanish Speaking', 'Portuguese Speaking', 'Arabic Speaking', 'Turkish Speaking',
-  'Looking for TC25+', 'Looking for TC20+', 'Growing Kingdom', 'Established Kingdom',
+  'Active KvK', 'Casual Friendly', 'Competitive',
+  'Growing Kingdom', 'Established Kingdom',
   'Active Alliances', 'Social Community', 'War Focused', 'Farm Friendly',
+  'KvK Focused', 'Event Active', 'Beginner Friendly',
 ];
+
 
 // Used in Transfer Profile creation form (future)
 // const POWER_RANGE_OPTIONS = [
@@ -527,7 +529,7 @@ const FilterPanel: React.FC<{
 };
 
 // =============================================
-// KINGDOM LISTING CARD
+// KINGDOM LISTING CARD (Redesigned)
 // =============================================
 
 const KingdomListingCard: React.FC<{
@@ -550,6 +552,7 @@ const KingdomListingCard: React.FC<{
   const scoreTierColor = SCORE_TIER_COLORS[scoreTier] || '#6b7280';
   const isGold = fundTier === 'gold';
   const isSilver = fundTier === 'silver';
+  const isPremium = fundTier !== 'standard';
 
   // Check if user can fund this kingdom (only their own kingdom)
   const canFundKingdom = profile?.linked_kingdom === kingdom.kingdom_number;
@@ -568,83 +571,90 @@ const KingdomListingCard: React.FC<{
     return stars;
   };
 
-  return (
+  // Filter out language-related tags from display
+  const displayTags = fund?.recruitment_tags?.filter(
+    (tag) => !tag.includes('Speaking')
+  ).slice(0, 3) || [];
+
+  // Score tier letter for chip
+  const tierLetter = scoreTier.charAt(0);
+  const isSTier = scoreTier === 'S';
+
+  // Transfer status
+  const transferStatus = kingdom.most_recent_status || 'Unknown';
+
+  // Border styling
+  const borderWidth = isGold ? 3 : isPremium ? 2 : 1;
+  const borderColor = isPremium ? tierColor : colors.border;
+
+  // Min power display helper
+  const formatMinPower = (val: string | null) => {
+    if (!val || val === 'Any') return null;
+    // If it's a plain number (new format: millions), display as XM
+    const numVal = parseInt(val, 10);
+    if (!isNaN(numVal) && String(numVal) === val) return `${numVal}M`;
+    return val;
+  };
+  const minPowerDisplay = formatMinPower(fund?.min_power_range || null);
+
+  // Gold shimmer border uses a wrapper approach
+  const cardContent = (
     <div
       style={{
+        position: 'relative',
         backgroundColor: colors.surface,
-        border: TIER_BORDER_STYLES[fundTier],
-        borderRadius: '12px',
+        borderRadius: isGold ? '12px' : '14px',
         overflow: 'hidden',
-        transition: 'all 0.2s',
-        boxShadow: isHovered && fundTier !== 'standard'
-          ? `0 0 20px ${tierColor}20`
-          : cardShadow(isHovered),
-        ...(isGold ? { animation: 'goldGlow 3s ease-in-out infinite' } : {}),
+        ...(isGold ? {} : {
+          border: `${borderWidth}px solid ${borderColor}`,
+          transition: 'all 0.3s ease',
+          boxShadow: isHovered
+            ? isPremium
+              ? `0 0 24px ${tierColor}30, 0 0 48px ${tierColor}10, 0 4px 16px rgba(0,0,0,0.4)`
+              : '0 4px 16px rgba(0,0,0,0.4)'
+            : isPremium
+              ? `0 0 12px ${tierColor}15, 0 2px 8px rgba(0,0,0,0.3)`
+              : '0 2px 8px rgba(0,0,0,0.2)',
+        }),
       }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Card Header - Always Visible */}
-      <div style={{ padding: isMobile ? '0.75rem' : '1rem' }}>
-        {/* Top Row: Kingdom Name + Tier Badge + Match Score */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, minWidth: 0 }}>
-            <Link
-              to={`/kingdom/${kingdom.kingdom_number}`}
-              style={{
-                fontFamily: FONT_DISPLAY,
-                fontSize: isMobile ? '0.9rem' : '1rem',
-                color: colors.text,
-                textDecoration: 'none',
-                fontWeight: '700',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}
-            >
-              Kingdom {kingdom.kingdom_number}
-            </Link>
-            {fundTier !== 'standard' && (
+      {/* Card Header */}
+      <div style={{ padding: isMobile ? '0.75rem' : '1rem', position: 'relative' }}>
+
+        {/* Top-right: Recruiting badge + Match Score */}
+        <div style={{
+          position: 'absolute',
+          top: isMobile ? '0.75rem' : '1rem',
+          right: isMobile ? '0.75rem' : '1rem',
+          display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.3rem',
+        }}>
+          {fund?.is_recruiting && (
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '0.3rem',
+              padding: '0.2rem 0.6rem',
+              backgroundColor: '#22c55e12',
+              border: '1px solid #22c55e35',
+              borderRadius: '6px',
+              fontSize: '0.65rem',
+              color: '#22c55e',
+              fontWeight: 'bold',
+              letterSpacing: '0.03em',
+            }}>
               <span style={{
-                padding: '0.15rem 0.5rem',
-                backgroundColor: `${tierColor}15`,
-                border: `1px solid ${tierColor}40`,
-                borderRadius: '4px',
-                fontSize: '0.6rem',
-                color: tierColor,
-                fontWeight: 'bold',
-                textTransform: 'uppercase',
-              }}>
-                {fundTier}
-              </span>
-            )}
-            {fund?.is_recruiting && (
-              <span style={{
-                display: 'flex', alignItems: 'center', gap: '0.25rem',
-                padding: '0.15rem 0.5rem',
-                backgroundColor: '#22c55e15',
-                border: '1px solid #22c55e40',
-                borderRadius: '4px',
-                fontSize: '0.6rem',
-                color: '#22c55e',
-                fontWeight: 'bold',
-              }}>
-                <span style={{
-                  width: '6px', height: '6px', borderRadius: '50%',
-                  backgroundColor: '#22c55e', display: 'inline-block',
-                  animation: 'pulse 2s infinite',
-                }}/>
-                RECRUITING
-              </span>
-            )}
-          </div>
+                width: '6px', height: '6px', borderRadius: '50%',
+                backgroundColor: '#22c55e', display: 'inline-block',
+                animation: 'pulse 2s infinite',
+              }}/>
+              RECRUITING
+            </div>
+          )}
           {mode === 'transferring' && matchScore !== undefined && (
             <span style={{
-              padding: '0.2rem 0.6rem',
-              backgroundColor: matchScore >= 75 ? '#22c55e15' : matchScore >= 50 ? '#eab30815' : '#ef444415',
-              border: `1px solid ${matchScore >= 75 ? '#22c55e40' : matchScore >= 50 ? '#eab30840' : '#ef444440'}`,
+              padding: '0.2rem 0.5rem',
+              backgroundColor: matchScore >= 75 ? '#22c55e12' : matchScore >= 50 ? '#eab30812' : '#ef444412',
+              border: `1px solid ${matchScore >= 75 ? '#22c55e35' : matchScore >= 50 ? '#eab30835' : '#ef444435'}`,
               borderRadius: '6px',
-              fontSize: '0.75rem',
+              fontSize: '0.7rem',
               fontWeight: 'bold',
               color: matchScore >= 75 ? '#22c55e' : matchScore >= 50 ? '#eab308' : '#ef4444',
             }}>
@@ -653,357 +663,354 @@ const KingdomListingCard: React.FC<{
           )}
         </div>
 
-        {/* Score Row */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, auto)',
-          alignItems: 'center',
-          gap: isMobile ? '0.5rem' : '1.5rem',
-        }}>
-          <div>
-            <span style={{ color: colors.textSecondary, fontSize: '0.65rem' }}>Atlas Score</span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-              <span style={{
-                fontFamily: "'Orbitron', monospace",
-                fontWeight: 'bold',
-                fontSize: '1.1rem',
-                ...neonGlow(scoreTierColor),
-              }}>
-                {kingdom.atlas_score?.toFixed(1) || '—'}
-              </span>
-              <span style={{
-                padding: '0.1rem 0.35rem',
-                backgroundColor: `${scoreTierColor}20`,
-                borderRadius: '4px',
-                fontSize: '0.65rem',
-                fontWeight: 'bold',
-                color: scoreTierColor,
-              }}>
-                {scoreTier}-Tier
-              </span>
-              <span style={{ color: scoreTierColor, fontSize: '0.75rem' }}>
-                (#{kingdom.current_rank})
-              </span>
-            </div>
-          </div>
-          <div>
-            <span style={{ color: colors.textSecondary, fontSize: '0.65rem' }}>Prep Win Rate</span>
-            <div style={{ color: statTypeStyles.prepPhase.color, fontWeight: '600', fontSize: '0.9rem' }}>
-              {kingdom.prep_win_rate != null ? `${(kingdom.prep_win_rate * 100).toFixed(0)}%` : '—'}
-            </div>
-          </div>
-          <div>
-            <span style={{ color: colors.textSecondary, fontSize: '0.65rem' }}>Battle Win Rate</span>
-            <div style={{ color: statTypeStyles.battlePhase.color, fontWeight: '600', fontSize: '0.9rem' }}>
-              {kingdom.battle_win_rate != null ? `${(kingdom.battle_win_rate * 100).toFixed(0)}%` : '—'}
-            </div>
-          </div>
-          <div>
-            <span style={{ color: colors.textSecondary, fontSize: '0.65rem' }}>KvKs</span>
-            <div style={{ color: colors.text, fontWeight: '600', fontSize: '0.9rem' }}>
-              {kingdom.total_kvks || 0}
-            </div>
-          </div>
+        {/* Kingdom Name — Top Left with 1-letter Score Tier chip */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.2rem' }}>
+          <Link
+            to={`/kingdom/${kingdom.kingdom_number}`}
+            style={{
+              fontFamily: FONT_DISPLAY,
+              fontSize: isMobile ? '1.15rem' : '1.3rem',
+              color: colors.text,
+              textDecoration: 'none',
+              fontWeight: '700',
+              letterSpacing: '0.02em',
+            }}
+          >
+            Kingdom {kingdom.kingdom_number}
+          </Link>
+          {/* 1-letter Score Tier chip */}
+          <span
+            className={isSTier ? 's-tier-badge' : undefined}
+            style={{
+              padding: '0.1rem 0.4rem',
+              backgroundColor: `${scoreTierColor}20`,
+              border: `1px solid ${scoreTierColor}50`,
+              borderRadius: '4px',
+              fontSize: '0.65rem',
+              fontWeight: 'bold',
+              color: scoreTierColor,
+              ...(isSTier ? {
+                boxShadow: `0 0 8px ${scoreTierColor}40`,
+                textShadow: `0 0 6px ${scoreTierColor}60`,
+              } : {}),
+            }}
+          >
+            {tierLetter}
+          </span>
         </div>
 
-        {/* Recruitment Tags (Bronze+) */}
-        {fund && fund.recruitment_tags.length > 0 && (
-          <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
-            {fund.recruitment_tags.map((tag) => (
-              <span key={tag} style={{
-                padding: '0.15rem 0.5rem',
-                backgroundColor: `${colors.primary}10`,
-                border: `1px solid ${colors.primary}25`,
-                borderRadius: '4px',
-                fontSize: '0.65rem',
-                color: colors.primary,
-              }}>
-                {tag}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* Min Requirements (Bronze+) */}
-        {fund && (fund.min_tc_level || fund.min_power_range) && (
-          <div style={{
-            display: 'flex', gap: '0.5rem', marginTop: '0.5rem',
-            fontSize: '0.7rem', color: colors.textSecondary,
+        {/* Transfer Status below name */}
+        <div style={{ marginBottom: '0.6rem' }}>
+          <span style={{ fontSize: '0.7rem', color: colors.textMuted }}>
+            Transfer Status:{' '}
+          </span>
+          <span style={{
+            fontSize: '0.7rem',
+            color: transferStatus === 'Leading' ? colors.success
+              : transferStatus === 'Ordinary' ? colors.primary
+              : colors.textSecondary,
+            fontWeight: '500',
           }}>
-            {fund.min_tc_level && (
-              <span>Requires {getTGLevel(fund.min_tc_level)}+</span>
-            )}
-            {fund.min_power_range && fund.min_power_range !== 'Any' && (
-              <span>• {fund.min_power_range} power</span>
-            )}
-          </div>
-        )}
+            {transferStatus}
+          </span>
+        </div>
 
-        {/* Recruitment Pitch (Silver+) - visible in collapsed view */}
+        {/* Compact Stats Grid — Row 1: Atlas Score, Prep WR, Battle WR — Row 2: Experience, Dominations, Invasions */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: '0.35rem',
+          padding: '0.5rem',
+          backgroundColor: colors.bg,
+          borderRadius: '8px',
+          marginBottom: '0.6rem',
+        }}>
+          {[
+            { label: 'Atlas Score', value: `${kingdom.atlas_score?.toFixed(2) || '—'} (#${kingdom.current_rank || '—'})`, color: colors.primary, emoji: '💎' },
+            { label: 'Prep WR', value: kingdom.prep_win_rate != null ? `${(kingdom.prep_win_rate * 100).toFixed(0)}%` : '—', color: statTypeStyles.prepPhase.color, emoji: '🛡️' },
+            { label: 'Battle WR', value: kingdom.battle_win_rate != null ? `${(kingdom.battle_win_rate * 100).toFixed(0)}%` : '—', color: statTypeStyles.battlePhase.color, emoji: '⚔️' },
+            { label: 'Experience', value: `${kingdom.total_kvks || 0} KvKs`, color: colors.text, emoji: '⚡' },
+            { label: 'Dominations', value: `${kingdom.dominations || 0}`, color: statTypeStyles.domination.color, emoji: '👑' },
+            { label: 'Invasions', value: `${kingdom.invasions || 0}`, color: statTypeStyles.invasion.color, emoji: '💀' },
+          ].map((stat) => (
+            <div key={stat.label} style={{ textAlign: 'center', padding: '0.2rem 0' }}>
+              <div style={{ fontSize: '0.55rem', color: colors.textMuted, marginBottom: '0.15rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                {stat.emoji} {stat.label}
+              </div>
+              <div style={{ fontSize: '0.8rem', fontWeight: '600', color: stat.color }}>
+                {stat.value}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Key Info Preview — Language, Requirements, Tags */}
+        <div style={{
+          display: 'flex', flexWrap: 'wrap', gap: '0.35rem',
+          marginBottom: fund?.recruitment_pitch ? '0.5rem' : '0.25rem',
+        }}>
+          {fund?.main_language && (
+            <span style={{
+              padding: '0.15rem 0.5rem',
+              backgroundColor: `${colors.primary}08`,
+              border: `1px solid ${colors.primary}20`,
+              borderRadius: '4px',
+              fontSize: '0.65rem',
+              color: colors.primary,
+            }}>
+              🌐 {fund.main_language}
+            </span>
+          )}
+          {fund?.min_tc_level && (
+            <span style={{
+              padding: '0.15rem 0.5rem',
+              backgroundColor: '#eab30808',
+              border: '1px solid #eab30820',
+              borderRadius: '4px',
+              fontSize: '0.65rem',
+              color: '#eab308',
+            }}>
+              ⚙️ {getTGLevel(fund.min_tc_level)}+
+            </span>
+          )}
+          {minPowerDisplay && (
+            <span style={{
+              padding: '0.15rem 0.5rem',
+              backgroundColor: '#f9731608',
+              border: '1px solid #f9731620',
+              borderRadius: '4px',
+              fontSize: '0.65rem',
+              color: '#f97316',
+            }}>
+              💪 {minPowerDisplay}
+            </span>
+          )}
+          {displayTags.map((tag) => (
+            <span key={tag} style={{
+              padding: '0.15rem 0.5rem',
+              backgroundColor: `${colors.primary}08`,
+              border: `1px solid ${colors.primary}18`,
+              borderRadius: '4px',
+              fontSize: '0.65rem',
+              color: colors.textSecondary,
+            }}>
+              {tag}
+            </span>
+          ))}
+        </div>
+
+        {/* Recruitment Pitch (Silver+) */}
         {(isSilver || isGold) && fund?.recruitment_pitch && (
-          <p style={{
-            color: colors.textSecondary,
-            fontSize: '0.8rem',
-            margin: '0.5rem 0 0 0',
-            lineHeight: 1.4,
-            fontStyle: 'italic',
+          <div style={{
+            padding: '0.5rem 0.6rem',
+            backgroundColor: `${tierColor}06`,
+            borderLeft: `2px solid ${tierColor}40`,
+            borderRadius: '0 6px 6px 0',
+            marginBottom: '0.5rem',
           }}>
-            "{fund.recruitment_pitch}"
-          </p>
+            <p style={{
+              color: colors.textSecondary,
+              fontSize: '0.75rem',
+              margin: 0,
+              lineHeight: 1.5,
+              fontStyle: 'italic',
+            }}>
+              &ldquo;{fund.recruitment_pitch}&rdquo;
+            </p>
+          </div>
         )}
 
-        {/* Review Summary */}
+        {/* Review Summary — compact inline */}
         {reviewSummary && reviewSummary.review_count > 0 && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.15rem', fontSize: '0.75rem' }}>
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '0.4rem',
+            padding: '0.35rem 0.5rem',
+            backgroundColor: colors.bg,
+            borderRadius: '6px',
+            marginBottom: '0.25rem',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.1rem', fontSize: '0.7rem' }}>
               {renderStars(reviewSummary.avg_rating)}
             </div>
             <span style={{ color: colors.textSecondary, fontSize: '0.7rem' }}>
-              {reviewSummary.avg_rating.toFixed(1)} ({reviewSummary.review_count} review{reviewSummary.review_count !== 1 ? 's' : ''})
+              {reviewSummary.avg_rating.toFixed(1)} ({reviewSummary.review_count})
             </span>
+            {reviewSummary.top_review_comment && (
+              <span style={{
+                color: colors.textMuted,
+                fontSize: '0.65rem',
+                flex: 1,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                fontStyle: 'italic',
+              }}>
+                — &ldquo;{reviewSummary.top_review_comment.substring(0, 60)}{reviewSummary.top_review_comment.length > 60 ? '…' : ''}&rdquo;
+              </span>
+            )}
           </div>
         )}
       </div>
 
       {/* Expandable Sections */}
       <div style={{ borderTop: `1px solid ${colors.border}` }}>
-        {/* Performance Section */}
+        {/* More Details Section */}
         <button
-          onClick={() => toggleSection('performance')}
+          onClick={() => toggleSection('details')}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            width: '100%', padding: '0.6rem 1rem',
-            backgroundColor: expandedSection === 'performance' ? colors.bg : 'transparent',
+            width: '100%', padding: '0.5rem 1rem',
+            backgroundColor: expandedSection === 'details' ? colors.bg : 'transparent',
             border: 'none', borderBottom: `1px solid ${colors.border}`,
-            color: colors.textSecondary, fontSize: '0.8rem', cursor: 'pointer',
+            color: colors.textSecondary, fontSize: '0.75rem', cursor: 'pointer',
             minHeight: '44px',
           }}
         >
-          <span>{statTypeStyles.atlasScore.emoji} Performance</span>
+          <span>📊 Full Performance &amp; Details</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-            style={{ transform: expandedSection === 'performance' ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
+            style={{ transform: expandedSection === 'details' ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
           >
             <path d="M6 9l6 6 6-6"/>
           </svg>
         </button>
-        {expandedSection === 'performance' && (
+        {expandedSection === 'details' && (
           <div style={{
             padding: '0.75rem 1rem',
             backgroundColor: colors.bg,
-            display: 'grid',
-            gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)',
-            gap: '0.75rem',
           }}>
-            <div>
-              <span style={{ color: statTypeStyles.prepPhase.color, fontSize: '0.65rem' }}>{statTypeStyles.prepPhase.emoji} Prep Win Rate</span>
-              <div style={{ color: colors.text, fontWeight: '600' }}>
-                {kingdom.prep_win_rate != null ? `${(kingdom.prep_win_rate * 100).toFixed(1)}%` : '—'}
-                <span style={{ color: colors.textSecondary, fontSize: '0.7rem', fontWeight: 'normal' }}> ({kingdom.prep_wins}W-{kingdom.prep_losses}L)</span>
+            {/* Performance stats with W-L records */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(2, 1fr)',
+              gap: '0.6rem',
+              marginBottom: '0.75rem',
+            }}>
+              <div>
+                <span style={{ color: statTypeStyles.prepPhase.color, fontSize: '0.65rem' }}>{statTypeStyles.prepPhase.emoji} Prep Win Rate</span>
+                <div style={{ color: colors.text, fontWeight: '600', fontSize: '0.85rem' }}>
+                  {kingdom.prep_win_rate != null ? `${(kingdom.prep_win_rate * 100).toFixed(1)}%` : '—'}
+                  <span style={{ color: colors.textSecondary, fontSize: '0.65rem', fontWeight: 'normal' }}> ({kingdom.prep_wins}W-{kingdom.prep_losses}L)</span>
+                </div>
+              </div>
+              <div>
+                <span style={{ color: statTypeStyles.battlePhase.color, fontSize: '0.65rem' }}>{statTypeStyles.battlePhase.emoji} Battle Win Rate</span>
+                <div style={{ color: colors.text, fontWeight: '600', fontSize: '0.85rem' }}>
+                  {kingdom.battle_win_rate != null ? `${(kingdom.battle_win_rate * 100).toFixed(1)}%` : '—'}
+                  <span style={{ color: colors.textSecondary, fontSize: '0.65rem', fontWeight: 'normal' }}> ({kingdom.battle_wins}W-{kingdom.battle_losses}L)</span>
+                </div>
+              </div>
+              <div>
+                <span style={{ color: statTypeStyles.domination.color, fontSize: '0.65rem' }}>{statTypeStyles.domination.emoji} Dominations</span>
+                <div style={{ color: colors.text, fontWeight: '600' }}>{kingdom.dominations || 0}</div>
+              </div>
+              <div>
+                <span style={{ color: statTypeStyles.invasion.color, fontSize: '0.65rem' }}>{statTypeStyles.invasion.emoji} Invasions</span>
+                <div style={{ color: colors.text, fontWeight: '600' }}>{kingdom.invasions || 0}</div>
               </div>
             </div>
-            <div>
-              <span style={{ color: statTypeStyles.battlePhase.color, fontSize: '0.65rem' }}>{statTypeStyles.battlePhase.emoji} Battle Win Rate</span>
-              <div style={{ color: colors.text, fontWeight: '600' }}>
-                {kingdom.battle_win_rate != null ? `${(kingdom.battle_win_rate * 100).toFixed(1)}%` : '—'}
-                <span style={{ color: colors.textSecondary, fontSize: '0.7rem', fontWeight: 'normal' }}> ({kingdom.battle_wins}W-{kingdom.battle_losses}L)</span>
-              </div>
-            </div>
-            <div>
-              <span style={{ color: statTypeStyles.domination.color, fontSize: '0.65rem' }}>{statTypeStyles.domination.emoji} Dominations</span>
-              <div style={{ color: colors.text, fontWeight: '600' }}>{kingdom.dominations || 0}</div>
-            </div>
-            <div>
-              <span style={{ color: statTypeStyles.invasion.color, fontSize: '0.65rem' }}>{statTypeStyles.invasion.emoji} Invasions</span>
-              <div style={{ color: colors.text, fontWeight: '600' }}>{kingdom.invasions || 0}</div>
-            </div>
-            <div>
-              <span style={{ color: colors.textSecondary, fontSize: '0.65rem' }}>Total KvKs</span>
-              <div style={{ color: colors.text, fontWeight: '600' }}>{kingdom.total_kvks || 0}</div>
-            </div>
-            <div>
-              <span style={{ color: colors.textSecondary, fontSize: '0.65rem' }}>Rank</span>
-              <div style={{ color: scoreTierColor, fontWeight: '600' }}>#{kingdom.current_rank}</div>
-            </div>
-          </div>
-        )}
 
-        {/* Recruitment Section (Bronze+) */}
-        {fund && fundTier !== 'standard' && (
-          <>
-            <button
-              onClick={() => toggleSection('recruitment')}
-              style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                width: '100%', padding: '0.6rem 1rem',
-                backgroundColor: expandedSection === 'recruitment' ? colors.bg : 'transparent',
-                border: 'none', borderBottom: `1px solid ${colors.border}`,
-                color: colors.textSecondary, fontSize: '0.8rem', cursor: 'pointer',
-                minHeight: '44px',
-              }}
-            >
-              <span>📋 Recruitment Info</span>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-                style={{ transform: expandedSection === 'recruitment' ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
-              >
-                <path d="M6 9l6 6 6-6"/>
-              </svg>
-            </button>
-            {expandedSection === 'recruitment' && (
-              <div style={{ padding: '0.75rem 1rem', backgroundColor: colors.bg }}>
+            {/* Recruitment Info (if available) */}
+            {fund && isPremium && (
+              <div style={{ borderTop: `1px solid ${colors.border}`, paddingTop: '0.6rem' }}>
                 {fund.main_language && (
-                  <div style={{ marginBottom: '0.5rem' }}>
-                    <span style={{ color: colors.textSecondary, fontSize: '0.7rem' }}>Language: </span>
-                    <span style={{ color: colors.text, fontSize: '0.8rem' }}>{fund.main_language}</span>
+                  <div style={{ marginBottom: '0.4rem', fontSize: '0.75rem' }}>
+                    <span style={{ color: colors.textMuted }}>Language: </span>
+                    <span style={{ color: colors.text }}>{fund.main_language}</span>
                     {fund.secondary_languages.length > 0 && (
-                      <span style={{ color: colors.textSecondary, fontSize: '0.75rem' }}> + {fund.secondary_languages.join(', ')}</span>
+                      <span style={{ color: colors.textSecondary }}> + {fund.secondary_languages.join(', ')}</span>
                     )}
                   </div>
                 )}
                 {fund.event_times && fund.event_times.length > 0 && (
-                  <div style={{ marginBottom: '0.5rem' }}>
-                    <span style={{ color: colors.textSecondary, fontSize: '0.7rem' }}>Event Times (UTC): </span>
-                    <span style={{ color: colors.text, fontSize: '0.8rem' }}>
-                      {fund.event_times.map((t) => `${t.start} - ${t.end}`).join(', ')}
-                    </span>
+                  <div style={{ marginBottom: '0.4rem', fontSize: '0.75rem' }}>
+                    <span style={{ color: colors.textMuted }}>Events (UTC): </span>
+                    <span style={{ color: colors.text }}>{fund.event_times.map((t) => `${t.start}–${t.end}`).join(', ')}</span>
                   </div>
                 )}
                 {fund.contact_link && (
-                  <div style={{ marginBottom: '0.5rem' }}>
-                    <span style={{ color: colors.textSecondary, fontSize: '0.7rem' }}>Contact: </span>
-                    <a href={fund.contact_link} target="_blank" rel="noopener noreferrer"
-                      style={{ color: colors.primary, fontSize: '0.8rem' }}
-                    >
+                  <div style={{ marginBottom: '0.4rem', fontSize: '0.75rem' }}>
+                    <span style={{ color: colors.textMuted }}>Contact: </span>
+                    <a href={fund.contact_link} target="_blank" rel="noopener noreferrer" style={{ color: colors.primary, fontSize: '0.75rem' }}>
                       Discord Invite ↗
                     </a>
                   </div>
                 )}
                 {isGold && fund.what_we_offer && (
-                  <div style={{ marginBottom: '0.5rem', padding: '0.5rem', backgroundColor: colors.surface, borderRadius: '8px' }}>
-                    <span style={{ color: colors.success, fontSize: '0.7rem', fontWeight: 'bold' }}>What We Offer</span>
-                    <p style={{ color: colors.textSecondary, fontSize: '0.8rem', margin: '0.25rem 0 0 0', lineHeight: 1.4 }}>{fund.what_we_offer}</p>
+                  <div style={{ marginBottom: '0.4rem', padding: '0.4rem 0.5rem', backgroundColor: colors.surface, borderRadius: '6px' }}>
+                    <span style={{ color: colors.success, fontSize: '0.65rem', fontWeight: 'bold' }}>What We Offer</span>
+                    <p style={{ color: colors.textSecondary, fontSize: '0.75rem', margin: '0.15rem 0 0 0', lineHeight: 1.4 }}>{fund.what_we_offer}</p>
                   </div>
                 )}
                 {isGold && fund.what_we_want && (
-                  <div style={{ padding: '0.5rem', backgroundColor: colors.surface, borderRadius: '8px' }}>
-                    <span style={{ color: colors.orange, fontSize: '0.7rem', fontWeight: 'bold' }}>What We're Looking For</span>
-                    <p style={{ color: colors.textSecondary, fontSize: '0.8rem', margin: '0.25rem 0 0 0', lineHeight: 1.4 }}>{fund.what_we_want}</p>
+                  <div style={{ padding: '0.4rem 0.5rem', backgroundColor: colors.surface, borderRadius: '6px' }}>
+                    <span style={{ color: colors.orange, fontSize: '0.65rem', fontWeight: 'bold' }}>What We&apos;re Looking For</span>
+                    <p style={{ color: colors.textSecondary, fontSize: '0.75rem', margin: '0.15rem 0 0 0', lineHeight: 1.4 }}>{fund.what_we_want}</p>
                   </div>
                 )}
               </div>
             )}
-          </>
-        )}
 
-        {/* Alliance Events (Silver+) */}
-        {fund && fundTier !== 'standard' && fund.alliance_events && fund.alliance_events.length > 0 && (
-          <button
-            onClick={() => toggleSection('alliance_events')}
-            style={{
-              width: '100%',
-              padding: '0.75rem',
-              backgroundColor: expandedSection === 'alliance_events' ? colors.bg : 'transparent',
-              border: 'none',
-              borderBottom: expandedSection === 'alliance_events' ? `1px solid ${colors.border}` : 'none',
-              color: colors.textSecondary,
-              fontSize: '0.75rem',
-              cursor: 'pointer',
-              textAlign: 'left',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}
-          >
-            <span>🤝 Alliance Events ({fund.alliance_events.length})</span>
-            <span style={{ fontSize: '0.6rem' }}>{expandedSection === 'alliance_events' ? '▼' : '▶'}</span>
-          </button>
-        )}
-        {expandedSection === 'alliance_events' && fund && fund.alliance_events && fund.alliance_events.length > 0 && (
-          <div style={{
-            padding: '0.75rem',
-            backgroundColor: colors.bg,
-            borderBottom: `1px solid ${colors.border}`,
-          }}>
-            {fund.alliance_events.map((alliance, idx) => (
-              <div key={idx} style={{ marginBottom: idx < fund.alliance_events.length - 1 ? '0.75rem' : 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                  <span style={{
-                    padding: '0.1rem 0.4rem',
-                    backgroundColor: `${colors.primary}20`,
-                    border: `1px solid ${colors.primary}40`,
-                    borderRadius: '4px',
-                    fontSize: '0.6rem',
-                    color: colors.primary,
-                    fontWeight: 'bold',
-                  }}>
-                    [{alliance.tag}]
-                  </span>
-                  <span style={{ color: colors.text, fontSize: '0.8rem', fontWeight: '600' }}>
-                    {alliance.event_type === 'bear_hunt' && 'Bear Hunt'}
-                    {alliance.event_type === 'viking_vengeance' && 'Viking Vengeance'}
-                    {alliance.event_type === 'swordland_showdown' && 'Swordland Showdown'}
-                    {alliance.event_type === 'tri_alliance_clash' && 'Tri-Alliance Clash'}
-                  </span>
-                </div>
-                <div style={{ color: colors.textSecondary, fontSize: '0.7rem' }}>
-                  {alliance.time_slots.join(', ')}
+            {/* Alliance Events */}
+            {fund && fund.alliance_events && fund.alliance_events.length > 0 && (
+              <div style={{ borderTop: `1px solid ${colors.border}`, paddingTop: '0.6rem', marginTop: '0.6rem' }}>
+                <span style={{ color: colors.textMuted, fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Alliance Events</span>
+                <div style={{ marginTop: '0.3rem' }}>
+                  {fund.alliance_events.map((alliance, idx) => (
+                    <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.25rem' }}>
+                      <span style={{
+                        padding: '0.05rem 0.3rem',
+                        backgroundColor: `${colors.primary}15`,
+                        border: `1px solid ${colors.primary}30`,
+                        borderRadius: '3px',
+                        fontSize: '0.55rem',
+                        color: colors.primary,
+                        fontWeight: 'bold',
+                      }}>
+                        {alliance.tag}
+                      </span>
+                      <span style={{ color: colors.text, fontSize: '0.7rem' }}>
+                        {alliance.event_type === 'bear_hunt' && 'Bear Hunt'}
+                        {alliance.event_type === 'viking_vengeance' && 'Viking Vengeance'}
+                        {alliance.event_type === 'swordland_showdown' && 'Swordland Showdown'}
+                        {alliance.event_type === 'tri_alliance_clash' && 'Tri-Alliance Clash'}
+                      </span>
+                      <span style={{ color: colors.textMuted, fontSize: '0.6rem' }}>{alliance.time_slots.join(', ')}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
-            ))}
-          </div>
-        )}
+            )}
 
-        {/* Community Section */}
-        <button
-          onClick={() => toggleSection('community')}
-          style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            width: '100%', padding: '0.6rem 1rem',
-            backgroundColor: expandedSection === 'community' ? colors.bg : 'transparent',
-            border: 'none',
-            color: colors.textSecondary, fontSize: '0.8rem', cursor: 'pointer',
-            minHeight: '44px',
-          }}
-        >
-          <span>💬 Community</span>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-            style={{ transform: expandedSection === 'community' ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
-          >
-            <path d="M6 9l6 6 6-6"/>
-          </svg>
-        </button>
-        {expandedSection === 'community' && (
-          <div style={{ padding: '0.75rem 1rem', backgroundColor: colors.bg }}>
-            {reviewSummary && reviewSummary.review_count > 0 ? (
-              <>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                  <div style={{ display: 'flex', gap: '0.1rem', fontSize: '0.9rem' }}>
+            {/* Full Community Reviews */}
+            {reviewSummary && reviewSummary.review_count > 0 && (
+              <div style={{ borderTop: `1px solid ${colors.border}`, paddingTop: '0.6rem', marginTop: '0.6rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
+                  <div style={{ display: 'flex', gap: '0.1rem', fontSize: '0.85rem' }}>
                     {renderStars(reviewSummary.avg_rating)}
                   </div>
-                  <span style={{ color: colors.text, fontWeight: '600', fontSize: '0.85rem' }}>
+                  <span style={{ color: colors.text, fontWeight: '600', fontSize: '0.8rem' }}>
                     {reviewSummary.avg_rating.toFixed(1)}
                   </span>
-                  <span style={{ color: colors.textSecondary, fontSize: '0.75rem' }}>
+                  <span style={{ color: colors.textSecondary, fontSize: '0.7rem' }}>
                     ({reviewSummary.review_count} review{reviewSummary.review_count !== 1 ? 's' : ''})
                   </span>
                 </div>
                 {reviewSummary.top_review_comment && (
                   <div style={{
-                    padding: '0.5rem 0.75rem',
+                    padding: '0.4rem 0.6rem',
                     backgroundColor: colors.surface,
-                    borderRadius: '8px',
+                    borderRadius: '6px',
                     borderLeft: '3px solid #fbbf24',
                   }}>
-                    <p style={{ color: colors.textSecondary, fontSize: '0.8rem', margin: 0, fontStyle: 'italic', lineHeight: 1.4 }}>
-                      "{reviewSummary.top_review_comment}"
+                    <p style={{ color: colors.textSecondary, fontSize: '0.75rem', margin: 0, fontStyle: 'italic', lineHeight: 1.4 }}>
+                      &ldquo;{reviewSummary.top_review_comment}&rdquo;
                     </p>
                     {reviewSummary.top_review_author && (
-                      <span style={{ color: colors.textSecondary, fontSize: '0.7rem' }}>— {reviewSummary.top_review_author}</span>
+                      <span style={{ color: colors.textMuted, fontSize: '0.65rem' }}>— {reviewSummary.top_review_author}</span>
                     )}
                   </div>
                 )}
-              </>
-            ) : (
-              <p style={{ color: colors.textMuted, fontSize: '0.8rem', margin: 0 }}>No community reviews yet</p>
+              </div>
             )}
           </div>
         )}
@@ -1011,11 +1018,12 @@ const KingdomListingCard: React.FC<{
 
       {/* Card Footer - CTA */}
       <div style={{
-        padding: '0.75rem 1rem',
+        padding: '0.6rem 1rem',
         borderTop: `1px solid ${colors.border}`,
         display: 'flex',
         gap: '0.5rem',
         justifyContent: 'flex-end',
+        alignItems: 'center',
       }}>
         <Link
           to={`/kingdom/${kingdom.kingdom_number}`}
@@ -1031,6 +1039,7 @@ const KingdomListingCard: React.FC<{
             alignItems: 'center',
             gap: '0.3rem',
             minHeight: '44px',
+            transition: 'border-color 0.2s',
           }}
         >
           View Profile
@@ -1056,7 +1065,7 @@ const KingdomListingCard: React.FC<{
             Fund
           </button>
         )}
-        {mode === 'transferring' && fundTier !== 'standard' && (
+        {mode === 'transferring' && isPremium && (
           <button
             style={{
               padding: '0.4rem 0.75rem',
@@ -1084,9 +1093,10 @@ const KingdomListingCard: React.FC<{
           0%, 100% { opacity: 1; }
           50% { opacity: 0.4; }
         }
-        @keyframes goldGlow {
-          0%, 100% { box-shadow: 0 0 8px #fbbf2415; }
-          50% { box-shadow: 0 0 20px #fbbf2425; }
+        @keyframes goldShimmer {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
         }
         @keyframes spin {
           from { transform: rotate(0deg); }
@@ -1095,6 +1105,31 @@ const KingdomListingCard: React.FC<{
       `}</style>
     </div>
   );
+
+  // Gold cards get a full-border shimmer wrapper
+  if (isGold) {
+    return (
+      <div
+        style={{
+          padding: '3px',
+          borderRadius: '14px',
+          background: 'linear-gradient(135deg, #fbbf24, #f59e0b, #fbbf24, #d97706, #fbbf24, #f59e0b, #fbbf24)',
+          backgroundSize: '300% 300%',
+          animation: 'goldShimmer 4s ease-in-out infinite',
+          boxShadow: isHovered
+            ? '0 0 28px #fbbf2430, 0 0 48px #fbbf2415, 0 4px 16px rgba(0,0,0,0.4)'
+            : '0 0 14px #fbbf2420, 0 2px 8px rgba(0,0,0,0.3)',
+          transition: 'box-shadow 0.3s ease',
+        }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        {cardContent}
+      </div>
+    );
+  }
+
+  return cardContent;
 };
 
 // =============================================
@@ -1273,7 +1308,7 @@ const TransferBoard: React.FC = () => {
         // Fetch kingdoms with scores (from Supabase single source of truth)
         const { data: kingdomData, error: kError } = await supabase
           .from('kingdoms')
-          .select('kingdom_number, atlas_score, current_rank, total_kvks, prep_wins, prep_losses, prep_win_rate, battle_wins, battle_losses, battle_win_rate, dominations, invasions')
+          .select('kingdom_number, atlas_score, current_rank, total_kvks, prep_wins, prep_losses, prep_win_rate, battle_wins, battle_losses, battle_win_rate, dominations, invasions, most_recent_status')
           .order('current_rank', { ascending: true });
 
         if (kError) throw kError;
@@ -1438,12 +1473,12 @@ const TransferBoard: React.FC = () => {
   }, [kingdoms, filters, fundMap]);
 
   // Calculate match score for transferring mode
-  const calculateMatchScore = (kingdom: KingdomData, fund: KingdomFund | null): number => {
+  const calculateMatchScore = (_kingdom: KingdomData, fund: KingdomFund | null): number => {
     if (!hasTransferProfile || !fund) return 0;
     
     // Use transfer profile data instead of user profile
     const transferProfile = {
-      power_range: '0 - 50M', // Default if not set
+      power_range: '0 - 50M',
       tc_level: 1,
       main_language: 'English',
       kvk_participation: 'most'
@@ -1452,21 +1487,21 @@ const TransferBoard: React.FC = () => {
     let score = 50; // Base score
     
     // Power range matching
-    if (fund.min_power_range && transferProfile.power_range) {
-      const userPower = parseInt(transferProfile.power_range.split(' - ')[1]) || 0;
-      const minPower = parseInt(fund.min_power_range.split(' - ')[1]) || 0;
+    if (fund.min_power_range) {
+      const userPower = parseInt((transferProfile.power_range.split(' - ')[1] || '0'), 10) || 0;
+      const minPower = parseInt((fund.min_power_range.split(' - ')[1] || '0'), 10) || 0;
       if (userPower >= minPower) score += 20;
       else score -= 20;
     }
     
     // TC level matching
-    if (fund.min_tc_level && transferProfile.tc_level) {
+    if (fund.min_tc_level) {
       if (transferProfile.tc_level >= fund.min_tc_level) score += 15;
       else score -= 15;
     }
     
     // Language matching
-    if (fund.main_language && transferProfile.main_language) {
+    if (fund.main_language) {
       if (fund.main_language === transferProfile.main_language) score += 10;
       else if (fund.secondary_languages?.includes(transferProfile.main_language)) score += 5;
     }

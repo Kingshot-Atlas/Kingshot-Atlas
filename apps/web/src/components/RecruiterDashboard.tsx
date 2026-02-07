@@ -94,15 +94,11 @@ const LANGUAGE_OPTIONS = [
   'Russian', 'Chinese', 'Japanese', 'Korean', 'Indonesian', 'Thai', 'Vietnamese', 'Other',
 ];
 
-const POWER_RANGE_OPTIONS = [
-  'Any', '0 - 50M', '50 - 100M', '100 - 150M', '150 - 200M', '200 - 250M', '250 - 300M', '300 - 500M', '500 - 750M', '750 - 1,000M', '1,000M+',
-];
-
 const RECRUITMENT_TAG_OPTIONS = [
-  'Active KvK', 'Casual Friendly', 'Competitive', 'English Speaking',
-  'Spanish Speaking', 'Portuguese Speaking', 'Arabic Speaking', 'Turkish Speaking',
-  'Looking for TC25+', 'Looking for TC20+', 'Growing Kingdom', 'Established Kingdom',
+  'Active KvK', 'Casual Friendly', 'Competitive',
+  'Growing Kingdom', 'Established Kingdom',
   'Active Alliances', 'Social Community', 'War Focused', 'Farm Friendly',
+  'KvK Focused', 'Event Active', 'Beginner Friendly',
 ];
 
 const TIER_INFO = [
@@ -1000,32 +996,56 @@ const RecruiterDashboard: React.FC<{
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
                         <div>
                           <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>Min TC Level</span>
-                          <input
-                            type="number"
-                            min={1}
-                            max={60}
+                          <select
                             value={profileDraft.min_tc_level ?? fund.min_tc_level ?? ''}
                             onChange={(e) => setProfileDraft(d => ({ ...d, min_tc_level: e.target.value ? parseInt(e.target.value) : null }))}
-                            placeholder="e.g. 35"
-                            style={inputStyle}
-                          />
-                          {(profileDraft.min_tc_level || fund.min_tc_level) && (
-                            <span style={{ color: colors.textSecondary, fontSize: '0.6rem', marginTop: '0.25rem', display: 'block' }}>
-                              = {getTGLevel(profileDraft.min_tc_level || fund.min_tc_level || 0)}
-                            </span>
-                          )}
-                        </div>
-                        <div>
-                          <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>Min Power Range</span>
-                          <select
-                            value={profileDraft.min_power_range ?? fund.min_power_range ?? 'Any'}
-                            onChange={(e) => setProfileDraft(d => ({ ...d, min_power_range: e.target.value === 'Any' ? null : e.target.value }))}
                             style={inputStyle}
                           >
-                            {POWER_RANGE_OPTIONS.map((opt) => (
-                              <option key={opt} value={opt}>{opt}</option>
+                            <option value="">None</option>
+                            {Array.from({ length: 30 }, (_, i) => i + 1).map((lvl) => (
+                              <option key={lvl} value={lvl}>TC {lvl}</option>
+                            ))}
+                            {[
+                              { label: 'TG1 (TC 35)', value: 35 },
+                              { label: 'TG2 (TC 40)', value: 40 },
+                              { label: 'TG3 (TC 45)', value: 45 },
+                              { label: 'TG4 (TC 50)', value: 50 },
+                              { label: 'TG5 (TC 55)', value: 55 },
+                              { label: 'TG6 (TC 60)', value: 60 },
+                              { label: 'TG7 (TC 65)', value: 65 },
+                              { label: 'TG8 (TC 70)', value: 70 },
+                            ].map((tg) => (
+                              <option key={tg.value} value={tg.value}>{tg.label}</option>
                             ))}
                           </select>
+                        </div>
+                        <div>
+                          <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>Min Power (in Millions)</span>
+                          <input
+                            type="number"
+                            min={0}
+                            max={9999}
+                            step={1}
+                            value={profileDraft.min_power_range ?? fund.min_power_range ?? ''}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val === '') {
+                                setProfileDraft(d => ({ ...d, min_power_range: null }));
+                              } else {
+                                const num = Math.floor(Math.abs(parseInt(val) || 0));
+                                if (num <= 9999) {
+                                  setProfileDraft(d => ({ ...d, min_power_range: String(num) }));
+                                }
+                              }
+                            }}
+                            placeholder="e.g. 100 = 100M"
+                            style={inputStyle}
+                          />
+                          {(profileDraft.min_power_range || fund.min_power_range) && (
+                            <span style={{ color: colors.textSecondary, fontSize: '0.6rem', marginTop: '0.25rem', display: 'block' }}>
+                              = {profileDraft.min_power_range || fund.min_power_range}M power
+                            </span>
+                          )}
                         </div>
                       </div>
                     </ProfileField>

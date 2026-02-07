@@ -45,6 +45,80 @@ def require_admin(
 
 ---
 
+## Discord Bot Cloudflare Worker Proxy (2026-02-07)
+
+### Problem
+Render's shared IP (74.220.49.253) gets Cloudflare Error 1015 (IP ban) when the bot makes too many Discord REST API calls — especially during rapid restart cycles. The ban blocks ALL REST calls including interaction responses and gateway URL lookup.
+
+### Solution: Cloudflare Worker Proxy
+- Worker: `atlas-discord-proxy.gatreno-investing.workers.dev`
+- Code: `apps/discord-bot/cloudflare-worker/discord-proxy.js`
+- Routes REST calls through Cloudflare's own IP space (never banned by Cloudflare WAF)
+
+### Bot-side Implementation
+```javascript
+// discordFetch() is a drop-in replacement for fetch('https://discord.com/...')
+const DISCORD_API_PROXY = process.env.DISCORD_API_PROXY || '';
+const DISCORD_PROXY_KEY = process.env.DISCORD_PROXY_KEY || '';
+const DISCORD_API_BASE = DISCORD_API_PROXY || 'https://discord.com';
+
+function discordFetch(path, options = {}) {
+  const url = `${DISCORD_API_BASE}${path}`;
+  const headers = { ...options.headers };
+  if (DISCORD_API_PROXY && DISCORD_PROXY_KEY) {
+    headers['X-Proxy-Key'] = DISCORD_PROXY_KEY;
+  }
+  return fetch(url, { ...options, headers });
+}
+```
+
+### Environment Variables
+| Var | Where | Value |
+|-----|-------|-------|
+| `DISCORD_API_PROXY` | Render (bot) | `https://atlas-discord-proxy.gatreno-investing.workers.dev` |
+| `DISCORD_PROXY_KEY` | Render (bot) | Same as PROXY_SECRET on Worker |
+| `PROXY_SECRET` | Cloudflare Worker | Random hex string |
+
+### Critical: discord.js Client REST
+The `client.login()` call internally uses discord.js's REST client to fetch `GET /gateway/bot`. This MUST also route through the proxy:
+```javascript
+const clientRestOptions = { timeout: 15_000, retries: 1 };
+if (DISCORD_API_PROXY) {
+  clientRestOptions.api = `${DISCORD_API_PROXY}/api`;
+  clientRestOptions.headers = { 'X-Proxy-Key': DISCORD_PROXY_KEY };
+}
+```
+
+### What's NOT proxied
+- Gateway WebSocket (`wss://gateway.discord.gg`) — connects directly (not HTTP)
+- Webhook POSTs for patch notes/announcements — use Discord webhook URLs directly
+- API backend (`discord_role_sync.py`) — separate Render service, different IP
+
+---
+
+## Settler Role Auto-Assignment (2026-02-07)
+
+### Architecture
+Two sync paths ensure the Settler role stays current:
+1. **Web app (real-time):** `discordService.syncSettlerRole()` called on link/unlink in Profile.tsx → API `POST /api/v1/bot/sync-settler-role` → `discord_role_sync.assign_settler_role()`
+2. **Bot (periodic):** `syncSettlerRoles()` every 30min → `GET /api/v1/bot/linked-users` → assigns/removes roles via discord.js `member.roles.add/remove`
+
+### Eligibility
+User must have BOTH in `profiles` table:
+- `discord_id` IS NOT NULL (linked Discord via OAuth)
+- `linked_player_id` IS NOT NULL (linked Kingshot account)
+
+### Role ID
+- Default: `1466442878585934102`
+- Configurable: `DISCORD_SETTLER_ROLE_ID` env var
+
+### Bot Prerequisites
+- `GuildMembers` privileged intent enabled in Discord Developer Portal
+- Bot role must be HIGHER than Settler role in guild role hierarchy
+- `Manage Roles` permission
+
+---
+
 ## FastAPI Best Practices (2026)
 
 ### Project Structure

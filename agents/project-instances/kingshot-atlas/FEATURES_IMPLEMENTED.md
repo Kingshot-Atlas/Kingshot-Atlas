@@ -249,7 +249,7 @@
 
 | Feature | Status | Date | Agent | Notes |
 |---------|--------|------|-------|-------|
-| Bot Infrastructure | ⚠️ Needs Token | 2026-01 | Platform | `/apps/discord-bot/` — Code fixed 2026-02-06, needs token reset in Discord Dev Portal |
+| Bot Infrastructure | ✅ Live | 2026-02-07 | Platform | `/apps/discord-bot/` — Cloudflare Worker proxy bypasses IP ban, all REST calls routed via `discordFetch()` |
 | Webhook Integration | ✅ Live | 2026-01 | Platform | Patch notes posting |
 | Public Bot Invite | ✅ Live | 2026-02-02 | Platform | Invite link on About page |
 | Bot Admin Dashboard | ✅ Live | 2026-02-02 | Platform | `BotDashboard.tsx` in Admin panel |
@@ -257,7 +257,7 @@
 | Server Browser | ✅ Live | 2026-02-02 | Platform | View/manage connected Discord servers |
 | Message Sender | ✅ Live | 2026-02-02 | Platform | Send messages/embeds to any channel |
 | Command Usage Logging | ✅ Fixed | 2026-02-06 | Platform | Fixed: syncToApi sends JSON body, bot.py log_command uses data.* |
-| Settler Role Auto-Assign | ✅ Fixed | 2026-02-06 | Platform | Fixed: GuildMembers intent added, discordService uses getAuthHeaders() |
+| Settler Role Auto-Assign | ✅ Live | 2026-02-07 | Platform | Bot-side: `syncSettlerRoles()` every 30min + `guildMemberAdd` check. API-side: `discordService.syncSettlerRole()` on link/unlink. Role ID: `1466442878585934102` |
 | Settler Role Backfill | ✅ Live | 2026-02-04 | Platform | Admin endpoint to backfill Settler roles for existing linked users |
 | Discord Roles Dashboard | ✅ Live | 2026-02-04 | Platform | Admin UI to view linked users and manage Discord role assignments |
 | /link Command | ✅ Live | 2026-02-06 | Platform | Discord command linking users to ks-atlas.com/profile for Settler role |

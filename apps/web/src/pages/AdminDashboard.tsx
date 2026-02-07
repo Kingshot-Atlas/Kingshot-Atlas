@@ -501,7 +501,7 @@ const AdminDashboard: React.FC = () => {
           const pData = await plausibleRes.json();
           if (pData.source === 'plausible') {
             realData.uniqueVisitors = pData.visitors || realData.uniqueVisitors;
-            realData.pageViews = pData.pageviews || realData.pageViews;
+            realData.totalPageViews = pData.pageviews || 0;
             realData.bounceRate = pData.bounce_rate || 0;
             realData.visitDuration = pData.visit_duration || 0;
           }

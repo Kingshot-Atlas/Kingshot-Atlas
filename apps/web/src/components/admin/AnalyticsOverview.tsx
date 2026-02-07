@@ -28,7 +28,7 @@ export const AnalyticsOverview: React.FC<AnalyticsOverviewProps> = ({
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
         {[
           { label: analytics.bounceRate ? 'Visitors (30d)' : 'Total Events', value: (analytics.bounceRate ? analytics.uniqueVisitors : analytics.totalVisits).toLocaleString(), color: '#22d3ee', icon: '👁️' },
-          { label: analytics.bounceRate ? 'Page Views (30d)' : 'Page Views', value: analytics.pageViews.toLocaleString(), color: '#a855f7', icon: '�' },
+          { label: analytics.bounceRate ? 'Page Views (30d)' : 'Page Views', value: (analytics.totalPageViews ?? (Array.isArray(analytics.pageViews) ? analytics.pageViews.length : 0)).toLocaleString(), color: '#a855f7', icon: '📄' },
           { label: 'Total Users', value: analytics.userStats.total.toLocaleString(), color: '#22c55e', icon: '👥' },
           { label: 'Monthly Revenue', value: `$${analytics.revenue.monthly.toFixed(2)}`, color: '#fbbf24', icon: '💰' },
         ].map((metric, i) => (
@@ -245,7 +245,7 @@ export const AnalyticsOverview: React.FC<AnalyticsOverviewProps> = ({
       {/* Top Pages */}
       <div style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', border: '1px solid #2a2a2a' }}>
         <h3 style={{ color: '#fff', marginBottom: '1rem', fontSize: '1rem' }}>📊 Top Pages</h3>
-        {analytics.pageViews.map((page, i) => (
+        {Array.isArray(analytics.pageViews) && analytics.pageViews.length > 0 ? analytics.pageViews.map((page, i) => (
           <div key={i} style={{ 
             display: 'flex', 
             justifyContent: 'space-between', 
@@ -256,7 +256,9 @@ export const AnalyticsOverview: React.FC<AnalyticsOverviewProps> = ({
             <span style={{ color: '#fff' }}>{page.page}</span>
             <span style={{ color: '#22d3ee', fontWeight: '600' }}>{page.views.toLocaleString()}</span>
           </div>
-        ))}
+        )) : (
+          <div style={{ color: '#6b7280', fontSize: '0.85rem', fontStyle: 'italic' }}>No page view data available</div>
+        )}
       </div>
     </div>
   );

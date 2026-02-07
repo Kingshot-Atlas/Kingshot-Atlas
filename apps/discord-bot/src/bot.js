@@ -63,6 +63,12 @@ if (DISCORD_API_PROXY) {
   console.log('📡 Discord REST: direct (no proxy)');
 }
 
+// Settler role — assigned to Discord members who linked both Discord + Kingshot on ks-atlas.com
+const SETTLER_ROLE_ID = process.env.DISCORD_SETTLER_ROLE_ID || '1466442878585934102';
+const SETTLER_SYNC_INTERVAL = 30 * 60 * 1000; // 30 minutes
+let settlerSyncTimer = null;
+let lastSettlerSync = null;
+
 // ============================================================================
 // HEALTH SERVER - Unified with bot for accurate health reporting
 // ============================================================================
@@ -128,6 +134,7 @@ const healthServer = http.createServer(async (req, res) => {
         readyFired: typeof readyFiredCount !== 'undefined' ? readyFiredCount : 0,
         commandsRegistered: commandRegistrationResult,
         lastCommandError: lastCommandError,
+        lastSettlerSync: lastSettlerSync,
       },
       process: {
         uptime: Math.floor(uptime),
@@ -342,6 +349,12 @@ client.on('ready', async () => {
   // Start self-ping keepalive (guard against duplicate timers)
   if (selfPingTimer) clearInterval(selfPingTimer);
   startSelfPing();
+
+  // Start Settler role sync (first run after 60s, then every 30 min)
+  if (settlerSyncTimer) clearInterval(settlerSyncTimer);
+  setTimeout(() => syncSettlerRoles(), 60_000);
+  settlerSyncTimer = setInterval(() => syncSettlerRoles(), SETTLER_SYNC_INTERVAL);
+  console.log(`🎖️ Settler role sync scheduled (every ${SETTLER_SYNC_INTERVAL / 60000} min)`);
 
   // Set bot presence
   client.user.setPresence({
@@ -759,7 +772,7 @@ client.on('guildDelete', (guild) => {
   logger.logGuildEvent('leave', guild);
 });
 
-// Event: New member joins - send welcome message to #welcome channel
+// Event: New member joins - send welcome message + check Settler role eligibility
 client.on('guildMemberAdd', async (member) => {
   console.log(`👋 New member: ${member.user.username} joined ${member.guild.name}`);
   
@@ -778,7 +791,116 @@ client.on('guildMemberAdd', async (member) => {
   } catch (error) {
     console.error('Failed to send welcome message:', error);
   }
+
+  // Check if this new member is eligible for Settler role
+  try {
+    await checkAndAssignSettlerRole(member);
+  } catch (error) {
+    console.error(`Failed to check Settler role for ${member.user.username}:`, error.message);
+  }
 });
+
+// ============================================================================
+// SETTLER ROLE AUTO-ASSIGNMENT
+// Queries API for users with linked Discord + Kingshot accounts,
+// then assigns the Settler role to eligible guild members.
+// ============================================================================
+
+/**
+ * Check a single guild member for Settler role eligibility via API.
+ */
+async function checkAndAssignSettlerRole(member) {
+  try {
+    const res = await fetch(`${config.apiUrl}/api/v1/bot/linked-users`);
+    if (!res.ok) return;
+    const data = await res.json();
+    const eligible = (data.users || []).find(u => u.discord_id === member.user.id);
+    if (eligible && !member.roles.cache.has(SETTLER_ROLE_ID)) {
+      await member.roles.add(SETTLER_ROLE_ID, 'Auto-assign: linked Kingshot + Discord on ks-atlas.com');
+      console.log(`🎖️ Settler role assigned to ${member.user.username} (new member, already linked)`);
+    }
+  } catch (err) {
+    console.error(`Settler check failed for ${member.user.username}:`, err.message);
+  }
+}
+
+/**
+ * Periodic sync: fetch all eligible users from API, assign Settler role
+ * to guild members who don't have it yet, remove from those who lost eligibility.
+ */
+async function syncSettlerRoles() {
+  if (!botReady || !client.guilds.cache.size) {
+    console.log('🎖️ Settler sync skipped (bot not ready)');
+    return;
+  }
+
+  console.log('🎖️ Settler role sync starting...');
+  const startTime = Date.now();
+
+  try {
+    // Fetch eligible users from API
+    const res = await fetch(`${config.apiUrl}/api/v1/bot/linked-users`);
+    if (!res.ok) {
+      console.error(`🎖️ Settler sync: API returned ${res.status}`);
+      return;
+    }
+    const data = await res.json();
+    const eligibleUsers = data.users || [];
+    const eligibleDiscordIds = new Set(eligibleUsers.map(u => u.discord_id).filter(Boolean));
+
+    console.log(`🎖️ ${eligibleDiscordIds.size} eligible users from API`);
+
+    const guild = client.guilds.cache.get(config.guildId);
+    if (!guild) {
+      console.error('🎖️ Settler sync: guild not found in cache');
+      return;
+    }
+
+    // Fetch all members (needed for role checks)
+    await guild.members.fetch();
+
+    let assigned = 0;
+    let removed = 0;
+    let alreadyHas = 0;
+
+    // Assign to eligible members who don't have it
+    for (const discordId of eligibleDiscordIds) {
+      const member = guild.members.cache.get(discordId);
+      if (!member) continue; // Not in guild
+      if (member.roles.cache.has(SETTLER_ROLE_ID)) {
+        alreadyHas++;
+        continue;
+      }
+      try {
+        await member.roles.add(SETTLER_ROLE_ID, 'Auto-assign: linked Kingshot + Discord on ks-atlas.com');
+        assigned++;
+        console.log(`   🎖️ +Settler: ${member.user.username}`);
+      } catch (err) {
+        console.error(`   ❌ Failed to assign Settler to ${member.user.username}: ${err.message}`);
+      }
+    }
+
+    // Remove from members who have the role but are no longer eligible
+    const settlerMembers = guild.members.cache.filter(m => m.roles.cache.has(SETTLER_ROLE_ID));
+    for (const [memberId, member] of settlerMembers) {
+      if (!eligibleDiscordIds.has(memberId) && !member.user.bot) {
+        try {
+          await member.roles.remove(SETTLER_ROLE_ID, 'Auto-remove: Kingshot account unlinked on ks-atlas.com');
+          removed++;
+          console.log(`   🎖️ -Settler: ${member.user.username}`);
+        } catch (err) {
+          console.error(`   ❌ Failed to remove Settler from ${member.user.username}: ${err.message}`);
+        }
+      }
+    }
+
+    const elapsed = Date.now() - startTime;
+    lastSettlerSync = new Date().toISOString();
+    console.log(`🎖️ Settler sync done in ${elapsed}ms: +${assigned} -${removed} =${alreadyHas} already`);
+  } catch (err) {
+    console.error('🎖️ Settler sync error:', err.message);
+  }
+}
 
 // Pre-login token validation using raw fetch (bypasses discord.js REST module)
 async function validateToken(token) {
@@ -787,7 +909,7 @@ async function validateToken(token) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10_000); // 10s timeout
     
-    const response = await fetch('https://discord.com/api/v10/users/@me', {
+    const response = await discordFetch('/api/v10/users/@me', {
       headers: { 'Authorization': `Bot ${token}` },
       signal: controller.signal,
     });
@@ -805,7 +927,7 @@ async function validateToken(token) {
       try {
         const gwController = new AbortController();
         const gwTimeout = setTimeout(() => gwController.abort(), 10_000);
-        const gwResponse = await fetch('https://discord.com/api/v10/gateway/bot', {
+        const gwResponse = await discordFetch('/api/v10/gateway/bot', {
           headers: { 'Authorization': `Bot ${token}` },
           signal: gwController.signal,
         });

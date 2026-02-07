@@ -19,7 +19,7 @@
 | TypeScript | ✅ Clean | No type errors |
 | Accessibility | ✅ Enhanced | WCAG improvements, high contrast mode |
 | Sharing | ✅ Enhanced | PNG export, QR codes, embed codes, Discord formatting |
-| Discord Bot | ⚠️ Fix Deployed | Cloudflare Error 1015 IP ban from restart-hammer cycle. Fix: skip cmd reg on boot, cache /diagnostic, 5-30min retry backoff, startup delay env var. Deploy to recover. |
+| Discord Bot | ✅ Operational | Cloudflare Worker proxy bypasses IP ban. Settler role auto-sync every 30min. Env: DISCORD_API_PROXY, DISCORD_PROXY_KEY. |
 | Codebase Health | ✅ Audited | Dead files removed, docs reorganized |
 
 ---

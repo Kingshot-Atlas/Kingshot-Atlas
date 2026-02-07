@@ -7,6 +7,27 @@
 
 ## Log Entries
 
+## 2026-02-07 11:00 | Platform Engineer | COMPLETED
+Task: Settler role auto-assignment — Bot-side periodic sync + guildMemberAdd check
+Files: `apps/discord-bot/src/bot.js`
+Result:
+  - `syncSettlerRoles()` runs every 30 min: fetches eligible users from API (`/api/v1/bot/linked-users`), assigns Settler role to guild members with linked Discord + Kingshot, removes from those who unlinked
+  - `checkAndAssignSettlerRole()` on `guildMemberAdd`: checks new members immediately
+  - `lastSettlerSync` exposed in `/health` endpoint for monitoring
+  - `validateToken()` updated to use `discordFetch` (proxy-aware)
+  - Settler role ID: `1466442878585934102` (configurable via `DISCORD_SETTLER_ROLE_ID`)
+
+## 2026-02-07 10:40 | Platform Engineer | COMPLETED
+Task: Discord bot Cloudflare Worker proxy — bypass Error 1015 IP ban on Render
+Files: `apps/discord-bot/src/bot.js`, `apps/discord-bot/cloudflare-worker/discord-proxy.js`
+Result:
+  - Created Cloudflare Worker (`atlas-discord-proxy`) to proxy Discord REST API calls through Cloudflare's IP space
+  - Added `discordFetch()` helper — drop-in replacement routing through proxy when `DISCORD_API_PROXY` env var is set
+  - Updated ALL Discord REST calls: interaction responses (deferReply/reply/editReply), diagnostics, command registration, client REST
+  - Fixed discord.js Client REST config to route `GET /gateway/bot` through proxy (was causing login timeouts)
+  - Env vars: `DISCORD_API_PROXY`, `DISCORD_PROXY_KEY`, `PROXY_SECRET` (on Cloudflare Worker)
+  - Root cause: Render's shared IP (74.220.49.253) was Cloudflare Error 1015 banned from rapid restart cycle
+
 ## 2026-02-07 10:15 | Design Lead | COMPLETED
 Task: Transfer Hub card refinements — gold shimmer border, layout restructure, input redesign
 Files: `apps/web/src/pages/TransferBoard.tsx`, `apps/web/src/components/RecruiterDashboard.tsx`

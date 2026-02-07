@@ -82,6 +82,7 @@ export interface AnalyticsData {
   totalVisits: number;
   uniqueVisitors: number;
   pageViews: { page: string; views: number }[];
+  totalPageViews?: number;
   bounceRate: number;
   visitDuration: number;
   topSources: { source: string; visitors: number }[];
