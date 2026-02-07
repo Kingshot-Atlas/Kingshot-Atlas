@@ -125,7 +125,7 @@ export const MiniKingdomCard: React.FC<MiniKingdomCardProps> = ({
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                 <span style={{ color: tierColors[tier], fontWeight: 'bold' }}>{tier}-Tier</span>
                 <span style={{ color: '#9ca3af' }}>
-                  {tier === 'S' ? '8.9+ (Top 3%)' : tier === 'A' ? '7.8 – 8.9 (Top 10%)' : tier === 'B' ? '6.4 – 7.8 (Top 25%)' : tier === 'C' ? '4.7 – 6.4 (Top 50%)' : '< 4.7 (Bottom 50%)'}
+                  {tier === 'S' ? '57+ (Top 3%)' : tier === 'A' ? '47 – 57 (Top 10%)' : tier === 'B' ? '38 – 47 (Top 25%)' : tier === 'C' ? '29 – 38 (Top 50%)' : '< 29 (Bottom 50%)'}
                 </span>
               </div>
             </div>

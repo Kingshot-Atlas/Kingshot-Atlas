@@ -7,6 +7,128 @@
 
 ## Log Entries
 
+## 2026-02-07 18:45 | Product Engineer | COMPLETED
+Task: Discord bot embed layout redesign — /kingdom, /compare, /countdown commands
+Files: `apps/discord-bot/src/utils/embeds.js`, `apps/discord-bot/src/commands/handlers.js`, `apps/discord-bot/src/commands/index.js`, `apps/discord-bot/src/bot.js`
+Result:
+  - /kingdom: Description now shows "💎 Atlas Score: X • S-Tier", removed Status field, added Invasions 💀
+  - /compare: Title uses ⚖️, KvKs first with ⚔️ emoji, added Doms/Invs with better/betterLow indicators
+  - /countdown renamed to /countdownkvk: Cyan bar, simplified layout (title + start date + timer), removed tagline/event number
+  - Added /countdowntransfer: Same template for Transfer Event countdown with phase-aware target dates
+  - /random: Inherits new /kingdom layout automatically (already uses createKingdomEmbed)
+  - Help embed updated with new command names
+
+## 2026-02-07 19:00 | Design Lead + Product Engineer | COMPLETED
+Task: Fix Atlas Score Breakdown display values + copy audit for v3.1
+Files: `apps/web/src/components/AtlasScoreBreakdown.tsx`, `apps/web/src/pages/About.tsx`, `apps/web/src/utils/atlasScoreFormula.ts`
+Result:
+  - Breakdown donut charts now show values on display scale (0-100) instead of internal scale (0-15) — components add up to the displayed final score
+  - Fixed stale tooltips: Prep 40%→45%, Battle 60%→55%, experience 5+→7+ KvKs, streak descriptions updated
+  - Fixed stale About page copy: same weight corrections, Comeback 0.75→0.80, Reversal 0.6→0.70, removed misleading percentage titles
+  - Exported DISPLAY_SCALE_FACTOR from atlasScoreFormula.ts for shared use
+  - Build passes cleanly
+
+## 2026-02-07 18:30 | Platform Engineer | COMPLETED
+Task: Atlas Score Formula v3.1 — Fix score inflation (Option A: linear remapping)
+Files: PostgreSQL functions (calculate_atlas_score, calculate_atlas_score_at_kvk, get_history_bonus, get_tier_from_score, create_score_history_entry), `apps/web/src/utils/atlasScoreFormula.ts`, `apps/web/src/pages/About.tsx`, `apps/web/src/components/profile-features/MiniKingdomCard.tsx`, `apps/web/src/components/AtlasScoreBreakdown.tsx`, `apps/web/src/components/ScoreHistoryChart.tsx`, `apps/web/src/components/SimilarKingdoms.tsx`, `apps/web/src/pages/TransferBoard.tsx`
+Result:
+  - v3.0 had score inflation: 7 kingdoms tied at 100.00 because multipliers compounded on 10x-larger base
+  - Fix: Option A — keep internal formula on 0-10 base scale, scale final by ×(100/15) for display
+  - Reverted history bonus to old scale (max 1.5)
+  - Recalibrated tier thresholds: S≥57, A≥47, B≥38, C≥29 (matches ~3%/10%/25%/50% percentiles)
+  - Recalculated all 1,198 kingdom scores + 6,112 score_history entries + ranks for KvK 1-10
+  - No kingdom hits 100 (max is 82.39 for K231). Requires ~18 consecutive dominations to reach 100.
+  - All 7 previously-tied kingdoms now differentiated: K231=82.39, K3=76.15, K61=71.56, K12=69.99, K163=69.06, K172=68.79, K321=68.14
+  - Frontend synced to v3.1.0, all hardcoded tier ranges and scale references updated
+  - Build passes cleanly
+
+## 2026-02-07 17:00 | Platform Engineer | COMPLETED
+Task: Fix Atlas Score History + Kingdom Ranking History charts not showing KvK #10 data
+Files: `apps/web/src/pages/AdminDashboard.tsx`, Supabase migrations, Edge Function `backfill-score-history`
+Result:
+  - Root cause: create_score_history_entry trigger skipped Bye matches (opponent_kingdom=0) AND bulk import disabled triggers, leaving 482 kingdoms without score_history entries for KvK #10
+  - Backfilled 482 missing KvK #10 entries + 12 missing entries across KvKs 1-9 (all Bye kingdoms)
+  - Recalculated ranks for all 1058 KvK #10 entries (sequential 1-1058)
+  - Fixed trigger to no longer skip Bye matches — all kingdoms get score_history entries
+  - Deployed `backfill-score-history` Edge Function for reliable batched backfill + rank recalculation
+  - Updated executeImport Phases 6-7 to use Edge Function instead of slow RPC (no more timeouts)
+  - All KvKs now have complete score_history coverage with correct ranks
+
+## 2026-02-07 16:25 | Platform Engineer | COMPLETED
+Task: Fix statement timeout on kvk_history INSERT during bulk import
+Files: `apps/web/src/pages/AdminDashboard.tsx`, Supabase migration
+Result:
+  - Root cause: 3 triggers on kvk_history (trg_create_score_history, kvk_history_sync_kingdoms, kvk_history_set_score) fired per-row during bulk insert, cascading heavy computations → statement timeout
+  - Fix: Created admin-only RPC functions disable_kvk_triggers() / enable_kvk_triggers() (SECURITY DEFINER)
+  - executeImport now: disables triggers → inserts/upserts batches → re-enables triggers → runs recalc phases 5-7
+  - Triggers always re-enabled: on success, on insert error, on upsert error, and in catch block
+  - Recalc phases 5-7 (already added) do the same work as the triggers but in a single efficient pass
+
+## 2026-02-07 16:20 | Platform Engineer | COMPLETED
+Task: Fix 403 import error + auto-recalculate scores after import
+Files: `apps/web/src/pages/AdminDashboard.tsx`, Supabase migration
+Result:
+  - Root cause: trigger functions on kvk_history (create_score_history_entry, sync_kingdom_stats_trigger, set_historical_atlas_score) were NOT SECURITY DEFINER — they ran as the calling user, which couldn't UPDATE score_history (no UPDATE policy)
+  - Fix: Made all 4 trigger functions SECURITY DEFINER + added UPDATE policy on score_history for admins
+  - Added auto-recalc pipeline to executeImport: Phase 5 (recalculate_all_kingdom_scores), Phase 6 (backfill_score_history per KvK), Phase 7 (verify_and_fix_rank_consistency)
+  - Import toast now shows full breakdown: "531 new, 12 replaced | 1198 scores recalculated | 0 score history entries created | 0 rank(s) fixed"
+  - All phases are non-fatal — import succeeds even if recalc phases encounter errors
+
+## 2026-02-07 16:10 | Platform Engineer | COMPLETED
+Task: Post-import data integrity verification — recalc scores, check coverage, verify ranks, create backfill
+Files: `apps/web/src/pages/AdminDashboard.tsx`, Supabase migration
+Result:
+  - Recalculated 1,198 kingdoms (avg score: 4.56), 0 rank mismatches across all 10 KvKs
+  - Spot-checked K172, K245, K506, K519, K529 — all have correct Atlas Scores, KvK #10 data, and score_history entries
+  - Score_history coverage: 526/526 non-Bye kingdoms have entries at KvK #10 — zero gaps
+  - Rank distribution: ranks 1-526 fully sequential, no gaps or duplicates
+  - Created `backfill_score_history_for_kvk(kvk_num)` safety net function for future imports
+  - Fixed handleRecalculateScores() — wrong column names (count_updated→updated_count, new_avg→avg_score, was_incorrect→mismatches_found)
+
+## 2026-02-07 16:00 | Product Engineer | COMPLETED
+Task: Fix Replace/Skip buttons appearing non-functional on duplicate review step
+Files: `apps/web/src/pages/AdminDashboard.tsx`
+Result:
+  - Root cause: duplicates defaulted to action='replace', so clicking Replace/Replace All produced zero visible change
+  - Fix: default action changed to 'skip' — user must actively opt-in to replacing (safer + visible feedback)
+  - Added live summary: "✓ X replacing, ✗ Y skipping" updates in real-time as buttons are toggled
+  - Confirm button now shows breakdown: "Confirm Import (531 new + 12 replaced)"
+
+## 2026-02-07 15:55 | Product Engineer | COMPLETED
+Task: Fix Bye match validation + Add score recalculation button
+Files: `apps/web/src/pages/AdminDashboard.tsx`
+Result:
+  - Fixed CSV validation to allow Bye matches: opponent_kingdom=0, overall_result=Bye, prep/battle=B
+  - Added "BYE" to valid outcomes (was only Domination/Invasion/Comeback/Reversal)
+  - Bye detection: if overall_result=Bye OR (opponent=0 AND prep=B AND battle=B), skip opponent validation
+  - Added "Recalculate All Scores" button to Import tab — calls recalculate_all_kingdom_scores() then verify_and_fix_rank_consistency()
+  - Shows result: kingdoms updated, avg score, ranks fixed/consistent
+  - DB functions already handle Byes correctly (WHERE opponent_kingdom > 0 filter)
+
+## 2026-02-07 15:45 | Product Engineer | COMPLETED
+Task: Harden KvK data import pipeline — RLS fix, validation, preview, progress, audit trail
+Files: `apps/web/src/pages/AdminDashboard.tsx`, Supabase migrations
+Result:
+  - Fixed RLS: Added admin INSERT/UPDATE policies to `kingdoms` table (was blocking auto-create during import)
+  - Created `import_history` table in Supabase with admin-only RLS for audit trail
+  - Rewrote import as 4-step flow: Input → Preview & Validate → Duplicate Review → Import with Progress
+  - Step 2 (Preview): Shows parsed data in scrollable table, highlights invalid cells in red, lists all validation errors
+  - Step 4 (Import): Batched inserts (50 rows per batch) with animated progress bar and phase labels
+  - Import History: Shows last 10 imports with who/when/stats (inserted/replaced/skipped/kingdoms created)
+  - Step indicator bar at top shows current position in the import workflow
+
+## 2026-02-07 15:25 | Product Engineer | COMPLETED
+Task: Fix CSV bulk import — column name mismatch + duplicate row handling
+Files: `apps/web/src/pages/AdminDashboard.tsx`
+Result:
+  - Fixed `opponent_number` → `opponent_kingdom` mismatch (Supabase column is `opponent_kingdom`)
+  - Accepts both `opponent_kingdom` and `opponent_number` in CSV headers for backwards compatibility
+  - Added duplicate detection: checks existing `kvk_history` rows before inserting
+  - Duplicate review UI: shows old vs new data side-by-side, per-row Replace/Skip toggle
+  - Bulk Replace All / Skip All buttons for convenience
+  - `order_index` now read from CSV if present, falls back to `kvk_number`
+  - Import button shows loading state during processing
+
 ## 2026-02-07 11:00 | Platform Engineer | COMPLETED
 Task: Settler role auto-assignment — Bot-side periodic sync + guildMemberAdd check
 Files: `apps/discord-bot/src/bot.js`

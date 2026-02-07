@@ -17,6 +17,7 @@ const commands = [
         .setRequired(true)
         .setMinValue(1)
         .setMaxValue(9999)
+        .setAutocomplete(true)
     ),
 
   // /compare <k1> <k2>
@@ -83,10 +84,15 @@ const commands = [
     .setName('upcoming')
     .setDescription('Show upcoming KvK and Transfer Event dates'),
 
-  // /countdown
+  // /countdownkvk
   new SlashCommandBuilder()
-    .setName('countdown')
+    .setName('countdownkvk')
     .setDescription('Show countdown timer to next KvK'),
+
+  // /countdowntransfer
+  new SlashCommandBuilder()
+    .setName('countdowntransfer')
+    .setDescription('Show countdown timer to next Transfer Event'),
 
   // /random
   new SlashCommandBuilder()

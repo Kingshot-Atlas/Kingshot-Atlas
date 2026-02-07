@@ -8,6 +8,7 @@ import {
   calculateAtlasScore,
   extractStatsFromProfile,
   TIER_COLORS,
+  DISPLAY_SCALE_FACTOR,
 } from '../utils/atlasScoreFormula';
 
 // Lazy load RadarChart - only loaded when user expands the breakdown
@@ -23,12 +24,12 @@ interface AtlasScoreBreakdownProps {
 
 // Tooltip descriptions for score components
 const SCORE_TOOLTIPS: Record<string, string> = {
-  'Base Score': 'Combined win rate: Prep (40%) + Battle (60%) with Bayesian adjustment to prevent small sample bias.',
+  'Base Score': 'Combined win rate: Prep (45%) + Battle (55%) with Bayesian adjustment to prevent small sample bias.',
   'Dom/Inv': 'Dominations boost your score; Invasions hurt it equally. Rewards consistent double-phase performance.',
   'Recent Form': 'Performance trend in your last 5 KvKs. Recent results weigh more heavily.',
-  'Streaks': 'Current win streaks provide a small boost. Battle streaks count 50% more than prep streaks.',
+  'Streaks': 'Current win streaks provide a boost. Battle: +1.1% per win. Prep: +1% per win.',
   'Experience': 'Full experience credit achieved—no penalty applied.',
-  'Experience Penalty': 'Kingdoms with 5+ KvKs get full credit. Newer kingdoms face a small penalty until they prove themselves.',
+  'Experience Penalty': 'Kingdoms with 7+ KvKs get full credit. Newer kingdoms face a graduated penalty until they prove themselves.',
   'History': 'Bonus for extensive track record. Grows with each KvK completed.',
 };
 
@@ -111,16 +112,18 @@ const AtlasScoreBreakdown: React.FC<AtlasScoreBreakdownProps> = ({ kingdom, rank
     
     // For donut charts, show contributions as points (can be negative)
     // Max values for visualization (approximate ranges based on formula)
+    // Scale all point values from internal (0-15) to display (0-100) range
+    const sf = DISPLAY_SCALE_FACTOR;
     return {
-      baseScore: { value: base, maxPoints: 10 },
-      domInv: { value: domInvContribution, maxPoints: 1.5 }, // ±15% of ~10 = ±1.5
-      recentForm: { value: formContribution, maxPoints: 1.5 },
-      streaks: { value: streakContribution, maxPoints: 1.5 },
+      baseScore: { value: base * sf, maxPoints: 10 * sf },
+      domInv: { value: domInvContribution * sf, maxPoints: 1.5 * sf },
+      recentForm: { value: formContribution * sf, maxPoints: 1.5 * sf },
+      streaks: { value: streakContribution * sf, maxPoints: 1.5 * sf },
       expFactor: breakdown.experienceFactor,
-      expContribution: expContribution,
-      historyBonus: breakdown.historyBonus,
+      expContribution: expContribution * sf,
+      historyBonus: breakdown.historyBonus * sf,
       // Verify the math adds up
-      calculatedTotal: base + domInvContribution + formContribution + streakContribution + expContribution + breakdown.historyBonus,
+      calculatedTotal: (base + domInvContribution + formContribution + streakContribution + expContribution + breakdown.historyBonus) * sf,
       finalScore: breakdown.finalScore
     };
   }, [kingdom]);
@@ -322,17 +325,17 @@ const AtlasScoreBreakdown: React.FC<AtlasScoreBreakdownProps> = ({ kingdom, rank
                   label: 'History', 
                   sublabel: 'bonus',
                   points: scoreComponents.historyBonus, 
-                  maxPoints: 1.5,
+                  maxPoints: 1.5 * DISPLAY_SCALE_FACTOR,
                   tooltipKey: 'History',
                   isFullCredit: false
                 },
                 { 
                   label: 'Experience', 
-                  sublabel: (kingdom.total_kvks || 0) >= 5 ? 'No Penalty' : `${kingdom.total_kvks || 0} KvKs`,
-                  points: (kingdom.total_kvks || 0) >= 5 ? 1.0 : scoreComponents.expContribution, 
+                  sublabel: (kingdom.total_kvks || 0) >= 7 ? 'No Penalty' : `${kingdom.total_kvks || 0} KvKs`,
+                  points: (kingdom.total_kvks || 0) >= 7 ? 1.0 : scoreComponents.expContribution, 
                   maxPoints: 1.0,
-                  tooltipKey: (kingdom.total_kvks || 0) >= 5 ? 'Experience' : 'Experience Penalty',
-                  isFullCredit: (kingdom.total_kvks || 0) >= 5
+                  tooltipKey: (kingdom.total_kvks || 0) >= 7 ? 'Experience' : 'Experience Penalty',
+                  isFullCredit: (kingdom.total_kvks || 0) >= 7
                 },
               ].map((item, i) => {
                 const tooltipText = SCORE_TOOLTIPS[item.tooltipKey];

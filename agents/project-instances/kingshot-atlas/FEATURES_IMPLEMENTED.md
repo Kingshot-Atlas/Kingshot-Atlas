@@ -302,6 +302,9 @@
 | Compact Header | ✅ Live | 2026-02-03 | Product | Reduced header, total pending badge, 40% vertical space reduction |
 | Lazy-Loaded Sub-Components | ✅ Live | 2026-02-03 | Product | AnalyticsDashboard, EngagementDashboard, BotDashboard, DataSourceStats, WebhookMonitor |
 | Performance Optimization | ✅ Live | 2026-02-03 | Product | Chunk size reduced from 528KB to 74KB (86% reduction) |
+| CSV Import Pipeline | ✅ Live | 2026-02-07 | Product | 4-step wizard: Input → Preview & Validate → Duplicate Review → Import with Progress. Batched inserts (50/batch), animated progress bar, validation feedback with highlighted errors, Bye match support |
+| Import History Audit Log | ✅ Live | 2026-02-07 | Product | `import_history` table in Supabase. Logs admin, row counts, KvK numbers per import. Visible on Import tab |
+| Recalculate Atlas Scores | ✅ Live | 2026-02-07 | Product | Button calls `recalculate_all_kingdom_scores()` + `verify_and_fix_rank_consistency()`. Shows kingdoms updated, avg score, ranks fixed |
 
 ---
 

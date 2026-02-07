@@ -32,8 +32,8 @@ const SimilarKingdoms: React.FC<SimilarKingdomsProps> = ({
       .filter(k => k.kingdom_number >= minKingdom && k.kingdom_number <= maxKingdom)
       .map(k => {
         // Weighted similarity calculation
-        // Atlas Score similarity (max 15 point difference in data, weight: 40%)
-        const maxScoreDiff = 15;
+        // Atlas Score similarity (max 100 point difference in data, weight: 40%)
+        const maxScoreDiff = 100;
         const scoreSim = Math.max(0, 1 - Math.abs(k.overall_score - currentKingdom.overall_score) / maxScoreDiff);
         
         // Win rate similarity (weight: 25% each)

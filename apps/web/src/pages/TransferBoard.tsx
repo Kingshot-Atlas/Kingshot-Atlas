@@ -467,7 +467,7 @@ const FilterPanel: React.FC<{
               type="number"
               step="0.1"
               min="0"
-              max="15"
+              max="100"
               value={filters.minScore}
               onChange={(e) => update('minScore', e.target.value)}
               placeholder="0.0"

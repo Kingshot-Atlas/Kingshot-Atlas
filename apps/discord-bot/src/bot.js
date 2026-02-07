@@ -13,7 +13,8 @@
  * /tier <S|A|B|C|D>  - List kingdoms by tier
  * /top <prep|battle> - Top 10 by phase win rate
  * /upcoming          - Show next KvK and Transfer dates
- * /countdown         - Time until next KvK
+ * /countdownkvk      - Time until next KvK
+ * /countdowntransfer - Time until next Transfer Event
  * /random            - Discover a random kingdom
  * /help              - Show all commands
  * 
@@ -89,6 +90,8 @@ let lastInteractionTime = null;
 let commandRegistrationResult = null;
 let lastCommandError = null;
 let lastCommandDebug = null;
+let kingdomCache = null;
+let kingdomCacheTime = 0;
 
 // Diagnostic cache - prevents /diagnostic from burning Discord API rate-limit budget
 // Each /diagnostic hit was making 3 Discord API calls, compounding Cloudflare bans
@@ -356,14 +359,27 @@ client.on('ready', async () => {
   settlerSyncTimer = setInterval(() => syncSettlerRoles(), SETTLER_SYNC_INTERVAL);
   console.log(`🎖️ Settler role sync scheduled (every ${SETTLER_SYNC_INTERVAL / 60000} min)`);
 
-  // Set bot presence
-  client.user.setPresence({
-    activities: [{
-      name: '/help | ks-atlas.com',
-      type: ActivityType.Playing,
-    }],
-    status: 'online',
-  });
+  // Rotating bot presence
+  const presenceMessages = [
+    '/help | ks-atlas.com',
+    '/kingdom | Look up any kingdom',
+    '/compare | Head-to-head stats',
+    '/countdownkvk | Next KvK',
+    '/countdowntransfer | Next Transfer',
+  ];
+  let presenceIndex = 0;
+  const updatePresence = () => {
+    client.user.setPresence({
+      activities: [{
+        name: presenceMessages[presenceIndex % presenceMessages.length],
+        type: ActivityType.Playing,
+      }],
+      status: 'online',
+    });
+    presenceIndex++;
+  };
+  updatePresence();
+  setInterval(updatePresence, 60_000);
 
   // Initialize scheduled tasks (daily updates at 02:00 UTC)
   // Only on first ready to avoid duplicate cron jobs
@@ -606,6 +622,29 @@ client.on('interactionCreate', async (interaction) => {
   console.log(`📥 Interaction #${interactionCount}: type=${iType} isChatInput=${isChatInput} id=${interaction.id}`);
   lastCommandDebug = `type=${iType} isChatInput=${isChatInput} ts=${lastInteractionTime}`;
   
+  // Handle autocomplete interactions (e.g. /kingdom number)
+  if (interaction.isAutocomplete()) {
+    try {
+      const focused = interaction.options.getFocused(true);
+      if (interaction.commandName === 'kingdom' && focused.name === 'number') {
+        const typed = String(focused.value);
+        if (!kingdomCache || Date.now() - kingdomCacheTime > 300_000) {
+          const result = await require('./utils/api').fetchLeaderboard(100);
+          kingdomCache = (result.data || result).map(k => k.kingdom_number).sort((a, b) => a - b);
+          kingdomCacheTime = Date.now();
+        }
+        const filtered = kingdomCache
+          .filter(n => String(n).startsWith(typed))
+          .slice(0, 25)
+          .map(n => ({ name: `Kingdom ${n}`, value: n }));
+        await interaction.respond(filtered);
+      }
+    } catch (e) {
+      console.error('Autocomplete error:', e.message);
+    }
+    return;
+  }
+
   if (!isChatInput) {
     lastCommandDebug += ' SKIPPED(not chat input)';
     return;
@@ -702,8 +741,11 @@ client.on('interactionCreate', async (interaction) => {
       case 'upcoming':
         await handlers.handleUpcoming(interaction);
         break;
-      case 'countdown':
-        await handlers.handleCountdown(interaction);
+      case 'countdownkvk':
+        await handlers.handleCountdownKvk(interaction);
+        break;
+      case 'countdowntransfer':
+        await handlers.handleCountdownTransfer(interaction);
         break;
       case 'random':
         await handlers.handleRandom(interaction);
@@ -716,6 +758,12 @@ client.on('interactionCreate', async (interaction) => {
         break;
       case 'stats':
         await handlers.handleStats(interaction);
+        break;
+      case 'countdown':
+        await interaction.reply({
+          content: '`/countdown` has been renamed! Use:\n• `/countdownkvk` — Time until next KvK\n• `/countdowntransfer` — Time until next Transfer Event',
+          ephemeral: true,
+        });
         break;
       default:
         console.warn(`   [${commandName}] Unknown command`);

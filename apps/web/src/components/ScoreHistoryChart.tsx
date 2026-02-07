@@ -112,9 +112,9 @@ const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
   const chartWidth = width - padding.left - padding.right;
   const chartHeight = height - padding.top - padding.bottom;
 
-  // Fixed Y-axis range: 0 to 15 (max possible Atlas Score)
+  // Fixed Y-axis range: 0 to 100 (max possible Atlas Score)
   const minScore = 0;
-  const maxScore = 15;
+  const maxScore = 100;
   const scoreRange = maxScore - minScore;
 
   const xScale = (index: number) => 

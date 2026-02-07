@@ -1,5 +1,5 @@
 /**
- * Atlas Score Formula v2.1 - Single Source of Truth (Frontend)
+ * Atlas Score Formula v3.1 - Single Source of Truth (Frontend)
  * 
  * ⚠️  SYNC WARNING: This frontend formula must stay in sync with the PostgreSQL
  *     calculate_atlas_score() function. If you change this file, update the
@@ -20,17 +20,19 @@
  * - Uses Bayesian adjustment for statistical confidence
  * 
  * Components:
- * 1. Base Performance Score (Prep 40% + Battle 60% with Bayesian adjustment)
+ * 1. Base Performance Score (Prep 45% + Battle 55% with Bayesian adjustment)
  * 2. Domination/Invasion Multiplier (rewards double wins, penalizes double losses)
  * 3. Recent Form Multiplier (last 5 KvKs weighted by recency)
  * 4. Streak Multiplier (current prep + battle streaks)
- * 5. Experience Factor (logarithmic scaling, veterans get full credit at 5+ KvKs)
+ * 5. Experience Factor (step function, veterans get full credit at 7+ KvKs)
  * 6. History Depth Bonus (small bonus for extensive track record)
+ *
+ * Scale: 0-100 (clamped)
  */
 
 // Formula version - increment when formula changes to detect sync issues
-export const FORMULA_VERSION = '2.1.0';
-export const FORMULA_LAST_UPDATED = '2026-02-05';
+export const FORMULA_VERSION = '3.1.0';
+export const FORMULA_LAST_UPDATED = '2026-02-07';
 
 import { KingdomProfile } from '../types';
 
@@ -41,8 +43,8 @@ import { KingdomProfile } from '../types';
 /** KvK outcome scores for Recent Form calculation */
 export const KVK_OUTCOME_SCORES = {
   Domination: 1.0,   // WW - Best outcome
-  Comeback: 0.75,    // LW - Lost prep but won battle (battle matters more)
-  Reversal: 0.6,     // WL - Won prep but lost battle (not as good)
+  Comeback: 0.80,    // LW - Lost prep but won battle (battle matters more)
+  Reversal: 0.70,    // WL - Won prep but lost battle (not as good)
   Invasion: 0,       // LL - Worst outcome
 } as const;
 
@@ -53,17 +55,14 @@ const RECENT_FORM_WEIGHTS = [1.0, 0.8, 0.6, 0.4, 0.2];
 const BAYESIAN_PRIOR = 2.5; // Prior wins/losses to add
 const BAYESIAN_TOTAL_PRIOR = 5; // Total prior games
 
-/** Experience factor thresholds */
-const EXPERIENCE_THRESHOLDS = {
-  VETERAN: 16,  // Reference point for logarithmic scaling
-  FULL_CREDIT: 5, // Minimum KvKs for full experience credit
-};
-
-/** Maximum history depth bonus */
+/** Maximum history depth bonus (on internal 0-15 scale, before final scaling) */
 const MAX_HISTORY_BONUS = 1.5;
 
-/** History bonus per KvK */
+/** History bonus per KvK (30 KvKs to reach max on internal scale) */
 const HISTORY_BONUS_PER_KVK = 0.05;
+
+/** Scale factor: maps internal 0-15 range to display 0-100 range */
+export const DISPLAY_SCALE_FACTOR = 100.0 / 15.0;
 
 // ============================================================================
 // SCORE FORMATTING - Single source of truth for display
@@ -104,10 +103,10 @@ export type PowerTier = 'S' | 'A' | 'B' | 'C' | 'D';
  * These should be recalculated periodically based on actual score distribution
  */
 export const TIER_THRESHOLDS = {
-  S: 8.9,   // Top 3% - Elite kingdoms
-  A: 7.8,   // Top 10% - Formidable kingdoms
-  B: 6.4,   // Top 25% - Competitive kingdoms
-  C: 4.7,   // Top 50% - Developing kingdoms
+  S: 57,    // Top 3% - Elite kingdoms
+  A: 47,    // Top 10% - Formidable kingdoms
+  B: 38,    // Top 25% - Competitive kingdoms
+  C: 29,    // Top 50% - Developing kingdoms
   D: 0,     // Bottom 50% - Struggling kingdoms
 } as const;
 
@@ -203,7 +202,7 @@ export function bayesianAdjustedRate(wins: number, total: number): number {
 
 /**
  * Calculate base performance score
- * Prep Phase: 40% weight, Battle Phase: 60% weight
+ * Prep Phase: 45% weight, Battle Phase: 55% weight
  */
 export function calculateBaseScore(stats: KingdomStats): number {
   const prepTotal = stats.prepWins + stats.prepLosses;
@@ -212,8 +211,8 @@ export function calculateBaseScore(stats: KingdomStats): number {
   const adjPrepRate = bayesianAdjustedRate(stats.prepWins, prepTotal);
   const adjBattleRate = bayesianAdjustedRate(stats.battleWins, battleTotal);
   
-  // Weighted combination: Prep 40%, Battle 60%
-  const baseScore = (adjPrepRate * 0.40 + adjBattleRate * 0.60) * 10;
+  // Weighted combination: Prep 45%, Battle 55% (internal 0-10 scale)
+  const baseScore = (adjPrepRate * 0.45 + adjBattleRate * 0.55) * 10;
   
   return baseScore;
 }
@@ -267,38 +266,34 @@ export function calculateRecentFormMultiplier(recentOutcomes: string[]): number 
  * Battle streaks weighted more heavily than prep streaks
  */
 export function calculateStreakMultiplier(prepStreak: number, battleStreak: number): number {
-  // Prep streak bonus: 1% per win, max 6%
-  const prepBonus = Math.min(prepStreak, 6) * 0.01;
+  // Prep streak bonus: 1% per win, max 10 wins = +10%
+  const prepBonus = prepStreak > 0 ? Math.min(prepStreak, 10) * 0.01 : 0;
   
-  // Battle streak bonus: 1.5% per win, max 9% (battle streaks count more)
-  const battleBonus = Math.min(battleStreak, 6) * 0.015;
+  // Battle streak bonus: 1.1% per win, max 10 wins = +11%
+  const battleBonus = battleStreak > 0 ? Math.min(battleStreak, 10) * 0.011 : 0;
   
-  // Loss streaks: small penalty
-  const prepPenalty = prepStreak < 0 ? Math.min(Math.abs(prepStreak), 3) * 0.01 : 0;
-  const battlePenalty = battleStreak < 0 ? Math.min(Math.abs(battleStreak), 3) * 0.015 : 0;
+  // Loss streaks: penalty capped at 5 consecutive
+  const prepPenalty = prepStreak < 0 ? Math.min(Math.abs(prepStreak), 5) * 0.01 : 0;
+  const battlePenalty = battleStreak < 0 ? Math.min(Math.abs(battleStreak), 5) * 0.011 : 0;
   
   const multiplier = 1.0 + prepBonus + battleBonus - prepPenalty - battlePenalty;
   
-  return Math.max(0.91, Math.min(1.15, multiplier));
+  return Math.max(0.895, Math.min(1.21, multiplier));
 }
 
 /**
- * Calculate experience factor using logarithmic scaling
- * Rewards proven veterans without over-penalizing newcomers
+ * Calculate experience factor using step function
+ * Full credit at 7+ KvKs, graduated penalty for newer kingdoms
  */
 export function calculateExperienceFactor(totalKvks: number): number {
   if (totalKvks === 0) return 0.0;
   if (totalKvks === 1) return 0.4;
-  if (totalKvks === 2) return 0.6;
-  if (totalKvks === 3) return 0.75;
-  if (totalKvks === 4) return 0.9;
-  
-  // Full credit for 5+ KvKs with slight bonus for extensive history
-  // Uses logarithmic scaling: log₁₀(total+1) / log₁₀(17) for gradual increase
-  const base = 1.0;
-  const historyBonus = 0.5 * (Math.log10(totalKvks + 1) / Math.log10(EXPERIENCE_THRESHOLDS.VETERAN + 1));
-  
-  return Math.min(1.0, base + historyBonus * 0.1);
+  if (totalKvks === 2) return 0.5;
+  if (totalKvks === 3) return 0.6;
+  if (totalKvks === 4) return 0.75;
+  if (totalKvks === 5) return 0.85;
+  if (totalKvks === 6) return 0.9;
+  return 1.0;
 }
 
 /**
@@ -325,10 +320,12 @@ export function calculateAtlasScore(stats: KingdomStats): ScoreBreakdown {
   const experienceFactor = calculateExperienceFactor(stats.totalKvks);
   const historyBonus = calculateHistoryBonus(stats.totalKvks);
   
-  // Apply formula: (Base × Multipliers × Experience) + History Bonus
+  // Apply formula: (Base × Multipliers × Experience) + History Bonus (internal 0-15 scale)
   const rawScore = baseScore * domInvMultiplier * recentFormMultiplier * streakMultiplier;
-  const scaledScore = rawScore * experienceFactor;
-  const finalScore = Math.max(0, Math.min(15, scaledScore + historyBonus));
+  const internalScore = rawScore * experienceFactor + historyBonus;
+  
+  // Scale from internal 0-15 range to display 0-100 range
+  const finalScore = Math.max(0, Math.min(100, internalScore * DISPLAY_SCALE_FACTOR));
   
   return {
     baseScore: Math.round(baseScore * 100) / 100,
@@ -439,18 +436,18 @@ export function getScoreComponents(stats: KingdomStats): ScoreComponents {
     prepWinRate: {
       raw: prepTotal > 0 ? stats.prepWins / prepTotal : 0,
       adjusted: bayesianAdjustedRate(stats.prepWins, prepTotal),
-      weight: 40,
+      weight: 45,
     },
     battleWinRate: {
       raw: battleTotal > 0 ? stats.battleWins / battleTotal : 0,
       adjusted: bayesianAdjustedRate(stats.battleWins, battleTotal),
-      weight: 60,
+      weight: 55,
     },
     dominationRate: stats.totalKvks > 0 ? stats.dominations / stats.totalKvks : 0,
     invasionRate: stats.totalKvks > 0 ? stats.invasions / stats.totalKvks : 0,
     recentFormScore: calculateRecentFormMultiplier(stats.recentOutcomes),
-    prepStreakBonus: Math.min(stats.currentPrepStreak, 6) * 0.01,
-    battleStreakBonus: Math.min(stats.currentBattleStreak, 6) * 0.015,
+    prepStreakBonus: Math.min(stats.currentPrepStreak, 10) * 0.01,
+    battleStreakBonus: Math.min(stats.currentBattleStreak, 10) * 0.011,
     experienceFactor: calculateExperienceFactor(stats.totalKvks),
   };
 }
@@ -461,11 +458,11 @@ export function getScoreComponents(stats: KingdomStats): ScoreComponents {
 
 export const SCORE_TOOLTIPS = {
   atlasScore: 'Comprehensive rating based on win rates, performance patterns, recent form, and experience. Rewards consistency over lucky streaks.',
-  baseScore: 'Combined Prep (40%) and Battle (60%) win rates with Bayesian adjustment to prevent small sample bias.',
+  baseScore: 'Combined Prep (45%) and Battle (55%) win rates with Bayesian adjustment to prevent small sample bias.',
   domInvMultiplier: 'Dominations boost your score; Invasions hurt it equally. Rewards consistent double-phase performance.',
-  recentForm: 'Your last 5 KvKs weighted by recency. Domination = 1.0, Comeback = 0.75, Reversal = 0.6, Invasion = 0.',
-  streakBonus: 'Current win streaks provide a small boost. Battle streaks count 50% more than prep streaks.',
-  experienceFactor: 'Kingdoms with 5+ KvKs get full credit. Newer kingdoms face a small penalty until they prove themselves.',
+  recentForm: 'Your last 5 KvKs weighted by recency. Domination = 1.0, Comeback = 0.80, Reversal = 0.70, Invasion = 0.',
+  streakBonus: 'Current win streaks provide a boost. Prep: +1% per win (max 10). Battle: +1.1% per win (max 10).',
+  experienceFactor: 'Kingdoms with 7+ KvKs get full credit. Newer kingdoms face a graduated penalty until they prove themselves.',
   tier: 'Power tier based on Atlas Score percentile. S = Top 3%, A = Top 10%, B = Top 25%, C = Top 50%, D = Bottom 50%.',
 };
 
@@ -483,10 +480,10 @@ export function getTierDescription(tier: PowerTier): string {
  */
 export function getTierRange(tier: PowerTier): string {
   switch (tier) {
-    case 'S': return '8.9+';
-    case 'A': return '7.8-8.9';
-    case 'B': return '6.4-7.8';
-    case 'C': return '4.7-6.4';
-    case 'D': return '0-4.7';
+    case 'S': return '57+';
+    case 'A': return '47-57';
+    case 'B': return '38-47';
+    case 'C': return '29-38';
+    case 'D': return '0-29';
   }
 }

@@ -138,16 +138,35 @@ async function handleUpcoming(interaction) {
 }
 
 /**
- * /countdown
+ * /countdownkvk
  */
-async function handleCountdown(interaction) {
+async function handleCountdownKvk(interaction) {
   const kvk = events.getNextKvK();
   const targetDate = kvk.isActive 
     ? (kvk.phase === 'Prep Phase' ? kvk.prepEnd : kvk.battleEnd)
     : kvk.startDateRaw;
   
   const timeRemaining = events.formatCountdown(targetDate);
-  const embed = embeds.createCountdownEmbed(kvk, timeRemaining);
+  const embed = embeds.createCountdownEmbed(kvk, timeRemaining, 'kvk');
+  return interaction.reply({ embeds: [embed] });
+}
+
+/**
+ * /countdowntransfer
+ */
+async function handleCountdownTransfer(interaction) {
+  const transfer = events.getNextTransfer();
+  let targetDate;
+  if (transfer.isActive) {
+    if (transfer.phase === 'Pre-Transfer Phase') targetDate = transfer.preTransferEnd;
+    else if (transfer.phase === 'Invitational Transfer Phase') targetDate = transfer.invitationalEnd;
+    else targetDate = transfer.openEnd;
+  } else {
+    targetDate = transfer.startDateRaw;
+  }
+  
+  const timeRemaining = events.formatCountdown(targetDate);
+  const embed = embeds.createCountdownEmbed(transfer, timeRemaining, 'transfer');
   return interaction.reply({ embeds: [embed] });
 }
 
@@ -277,7 +296,8 @@ module.exports = {
   handleTier,
   handleTop,
   handleUpcoming,
-  handleCountdown,
+  handleCountdownKvk,
+  handleCountdownTransfer,
   handleRandom,
   handleHelp,
   handleLink,

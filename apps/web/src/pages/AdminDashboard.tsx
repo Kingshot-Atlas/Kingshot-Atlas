@@ -62,6 +62,17 @@ const AdminDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('pending');
   const [importData, setImportData] = useState<string>('');
+  const [duplicateRows, setDuplicateRows] = useState<Array<{ existing: Record<string, unknown>; incoming: Record<string, unknown>; action: 'replace' | 'skip' }>>([]);
+  const [newRows, setNewRows] = useState<Array<Record<string, unknown>>>([]);
+  const [importProcessing, setImportProcessing] = useState(false);
+  const [missingKingdomsForImport, setMissingKingdomsForImport] = useState<number[]>([]);
+  const [importStep, setImportStep] = useState<'input' | 'preview' | 'duplicates' | 'importing'>('input');
+  const [parsedRecords, setParsedRecords] = useState<Array<Record<string, unknown>>>([]);
+  const [validationErrors, setValidationErrors] = useState<Array<{ row: number; field: string; value: string; message: string }>>([]);
+  const [importProgress, setImportProgress] = useState<{ current: number; total: number; phase: string }>({ current: 0, total: 0, phase: '' });
+  const [importHistory, setImportHistory] = useState<Array<{ id: string; admin_username: string; total_rows: number; inserted_rows: number; replaced_rows: number; skipped_rows: number; kingdoms_created: number; kvk_numbers: number[]; validation_errors: number; created_at: string }>>([]);
+  const [recalculating, setRecalculating] = useState(false);
+  const [recalcResult, setRecalcResult] = useState<{ updated: number; avgScore: number; ranksFixed: number } | null>(null);
   const [pendingCounts, setPendingCounts] = useState<{ submissions: number; claims: number; corrections: number; transfers: number; kvkErrors: number; feedback: number }>({ submissions: 0, claims: 0, corrections: 0, transfers: 0, kvkErrors: 0, feedback: 0 });
   const [feedbackItems, setFeedbackItems] = useState<Array<{ id: string; type: string; message: string; email: string | null; status: string; page_url: string | null; created_at: string; admin_notes: string | null }>>([]); 
   const [feedbackCounts, setFeedbackCounts] = useState<{ new: number; reviewed: number; in_progress: number; resolved: number; closed: number }>({ new: 0, reviewed: 0, in_progress: 0, resolved: 0, closed: 0 });
@@ -890,108 +901,378 @@ const AdminDashboard: React.FC = () => {
     last_updated: new Date().toISOString()
   });
 
-  const handleBulkImport = async () => {
+  // Fetch import history from Supabase
+  const fetchImportHistory = async () => {
+    if (!supabase) return;
+    const { data } = await supabase
+      .from('import_history')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(10);
+    if (data) setImportHistory(data);
+  };
+
+  // Step 1: Parse & Validate CSV → show preview
+  const handleParseAndPreview = () => {
     if (!importData.trim()) {
       showToast('Please paste CSV data', 'error');
       return;
     }
-    if (!supabase) {
-      showToast('Supabase not available', 'error');
+    const lines = importData.trim().split('\n');
+    if (lines.length < 2) {
+      showToast('CSV must have header and at least one data row', 'error');
       return;
     }
+    const headers = lines[0]?.split(',').map(h => h.trim().toLowerCase()) || [];
+
+    // Validate required columns
+    const hasOpponentCol = headers.includes('opponent_kingdom') || headers.includes('opponent_number');
+    const requiredCols = ['kingdom_number', 'kvk_number', 'prep_result', 'battle_result', 'overall_result', 'kvk_date'];
+    const missingCols = requiredCols.filter(col => !headers.includes(col));
+    if (!hasOpponentCol) missingCols.push('opponent_kingdom');
+    if (missingCols.length > 0) {
+      showToast(`Missing columns: ${missingCols.join(', ')}`, 'error');
+      return;
+    }
+
+    const opponentHeader = headers.includes('opponent_kingdom') ? 'opponent_kingdom' : 'opponent_number';
+    const rawRecords = lines.slice(1).filter(line => line.trim()).map(line => {
+      const values = line.split(',');
+      const record: Record<string, string> = {};
+      headers.forEach((h, i) => record[h] = values[i]?.trim() || '');
+      return record;
+    });
+
+    // Validate each row
+    const errors: Array<{ row: number; field: string; value: string; message: string }> = [];
+    const validResults = ['W', 'L', 'B'];
+    const validOutcomes = ['DOMINATION', 'INVASION', 'COMEBACK', 'REVERSAL', 'BYE'];
+
+    const kvkRecords = rawRecords.map((r, idx) => {
+      const rowNum = idx + 2; // 1-indexed, skip header
+      const kn = parseInt(r.kingdom_number || '0', 10);
+      const kvk = parseInt(r.kvk_number || '0', 10);
+      const opp = parseInt(r[opponentHeader] || '0', 10);
+      const prep = r.prep_result?.toUpperCase() || '';
+      const battle = r.battle_result?.toUpperCase() || '';
+      const overall = r.overall_result || '';
+      const date = r.kvk_date || '';
+      const isBye = overall.toUpperCase() === 'BYE' || (opp === 0 && prep === 'B' && battle === 'B');
+
+      if (!kn || kn <= 0) errors.push({ row: rowNum, field: 'kingdom_number', value: r.kingdom_number || '', message: 'Must be a positive integer' });
+      if (!kvk || kvk <= 0) errors.push({ row: rowNum, field: 'kvk_number', value: r.kvk_number || '', message: 'Must be a positive integer' });
+      if (!isBye && opp <= 0) errors.push({ row: rowNum, field: opponentHeader, value: r[opponentHeader] || '', message: 'Must be a positive integer (or 0 for Bye)' });
+      if (!validResults.includes(prep)) errors.push({ row: rowNum, field: 'prep_result', value: prep, message: `Must be W, L, or B (got "${prep}")` });
+      if (!validResults.includes(battle)) errors.push({ row: rowNum, field: 'battle_result', value: battle, message: `Must be W, L, or B (got "${battle}")` });
+      if (!validOutcomes.includes(overall.toUpperCase()) && overall) errors.push({ row: rowNum, field: 'overall_result', value: overall, message: `Expected Domination/Invasion/Comeback/Reversal/Bye` });
+      if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) errors.push({ row: rowNum, field: 'kvk_date', value: date, message: 'Must be YYYY-MM-DD format' });
+
+      return {
+        kingdom_number: kn,
+        kvk_number: kvk,
+        opponent_kingdom: opp,
+        prep_result: prep || null,
+        battle_result: battle || null,
+        overall_result: overall || null,
+        kvk_date: date || null,
+        order_index: r.order_index ? parseInt(r.order_index, 10) : kvk
+      };
+    });
+
+    setValidationErrors(errors);
+    setParsedRecords(kvkRecords);
+    setImportStep('preview');
+    if (errors.length > 0) {
+      showToast(`${errors.length} validation issue(s) found — review highlighted rows`, 'error');
+    }
+  };
+
+  // Step 2: Check duplicates and proceed
+  const handleCheckDuplicates = async () => {
+    if (!supabase) return;
+    // Filter out rows with critical errors (kingdom_number or kvk_number = 0)
+    const validRecords = parsedRecords.filter(r => (r.kingdom_number as number) > 0 && (r.kvk_number as number) > 0);
+    if (validRecords.length === 0) {
+      showToast('No valid rows to import after filtering errors', 'error');
+      return;
+    }
+
+    setImportProcessing(true);
     try {
-      const lines = importData.trim().split('\n');
-      if (lines.length < 2) {
-        showToast('CSV must have header and at least one data row', 'error');
-        return;
-      }
-      const headers = lines[0]?.split(',').map(h => h.trim().toLowerCase()) || [];
-      
-      // Validate required columns
-      const requiredCols = ['kingdom_number', 'kvk_number', 'opponent_number', 'prep_result', 'battle_result', 'overall_result', 'kvk_date'];
-      const missingCols = requiredCols.filter(col => !headers.includes(col));
-      if (missingCols.length > 0) {
-        showToast(`Missing columns: ${missingCols.join(', ')}`, 'error');
-        return;
-      }
-      
-      const records = lines.slice(1).filter(line => line.trim()).map(line => {
-        const values = line.split(',');
-        const record: Record<string, string> = {};
-        headers.forEach((h, i) => record[h] = values[i]?.trim() || '');
-        return record;
-      });
-      
-      // Collect all unique kingdom numbers (both kingdom and opponent)
+      // Check missing kingdoms
       const allKingdomNumbers = new Set<number>();
-      records.forEach(r => {
-        const kn = parseInt(r.kingdom_number || '0', 10);
-        const on = parseInt(r.opponent_number || '0', 10);
-        if (kn > 0) allKingdomNumbers.add(kn);
-        if (on > 0) allKingdomNumbers.add(on);
+      validRecords.forEach(r => {
+        if ((r.kingdom_number as number) > 0) allKingdomNumbers.add(r.kingdom_number as number);
+        if ((r.opponent_kingdom as number) > 0) allKingdomNumbers.add(r.opponent_kingdom as number);
       });
-      
-      // Check which kingdoms already exist
+
       const { data: existingKingdoms } = await supabase
         .from('kingdoms')
         .select('kingdom_number')
         .in('kingdom_number', Array.from(allKingdomNumbers));
-      
       const existingSet = new Set((existingKingdoms || []).map(k => k.kingdom_number));
       const missingKingdoms = Array.from(allKingdomNumbers).filter(kn => !existingSet.has(kn));
-      
-      // Auto-create missing kingdoms with empty data
-      if (missingKingdoms.length > 0) {
-        const newKingdoms = missingKingdoms.map(kn => createEmptyKingdom(kn));
-        const { error: createError } = await supabase
-          .from('kingdoms')
-          .upsert(newKingdoms, { onConflict: 'kingdom_number' });
-        
-        if (createError) {
-          console.error('Failed to create missing kingdoms:', createError);
-          showToast(`Warning: Could not create ${missingKingdoms.length} missing kingdoms`, 'error');
+      setMissingKingdomsForImport(missingKingdoms);
+
+      // Check for duplicates
+      const uniqueKvkNumbers = [...new Set(validRecords.map(r => r.kvk_number as number))];
+      const uniqueKingdomNumbers = [...new Set(validRecords.map(r => r.kingdom_number as number))];
+
+      const { data: existingRows } = await supabase
+        .from('kvk_history')
+        .select('*')
+        .in('kingdom_number', uniqueKingdomNumbers)
+        .in('kvk_number', uniqueKvkNumbers);
+
+      const existingMap = new Map<string, Record<string, unknown>>();
+      (existingRows || []).forEach(row => {
+        existingMap.set(`${row.kingdom_number}-${row.kvk_number}`, row);
+      });
+
+      const freshRows: Record<string, unknown>[] = [];
+      const dupes: Array<{ existing: Record<string, unknown>; incoming: Record<string, unknown>; action: 'replace' | 'skip' }> = [];
+
+      validRecords.forEach(r => {
+        const key = `${r.kingdom_number}-${r.kvk_number}`;
+        const existing = existingMap.get(key);
+        if (existing) {
+          dupes.push({ existing, incoming: r, action: 'skip' });
         } else {
-          console.log(`Auto-created ${missingKingdoms.length} kingdoms: ${missingKingdoms.join(', ')}`);
+          freshRows.push(r);
+        }
+      });
+
+      setNewRows(freshRows);
+      setDuplicateRows(dupes);
+
+      if (dupes.length > 0) {
+        setImportStep('duplicates');
+        showToast(`Found ${dupes.length} duplicate row(s). Review below.`, 'info');
+      } else {
+        // No duplicates — go straight to import
+        await executeImport(freshRows, [], missingKingdoms);
+      }
+    } catch (error) {
+      console.error('Duplicate check error:', error);
+      showToast('Error checking for duplicates', 'error');
+    } finally {
+      setImportProcessing(false);
+    }
+  };
+
+  const handleConfirmImport = async () => {
+    const rowsToReplace = duplicateRows.filter(d => d.action === 'replace').map(d => d.incoming);
+    const skippedCount = duplicateRows.filter(d => d.action === 'skip').length;
+    await executeImport(newRows, rowsToReplace, missingKingdomsForImport, skippedCount);
+  };
+
+  const executeImport = async (freshRows: Record<string, unknown>[], replaceRows: Record<string, unknown>[], missingKingdoms: number[], skippedCount = 0) => {
+    if (!supabase) return;
+    setImportStep('importing');
+    setImportProcessing(true);
+    const totalOps = freshRows.length + replaceRows.length + (missingKingdoms.length > 0 ? 1 : 0);
+    let completedOps = 0;
+
+    try {
+      // Phase 1: Auto-create missing kingdoms
+      if (missingKingdoms.length > 0) {
+        setImportProgress({ current: 0, total: totalOps, phase: `Creating ${missingKingdoms.length} missing kingdoms...` });
+        const batchSize = 200;
+        for (let i = 0; i < missingKingdoms.length; i += batchSize) {
+          const batch = missingKingdoms.slice(i, i + batchSize).map(kn => createEmptyKingdom(kn));
+          const { error: createError } = await supabase
+            .from('kingdoms')
+            .upsert(batch, { onConflict: 'kingdom_number' });
+          if (createError) {
+            console.error('Failed to create missing kingdoms:', createError);
+            showToast(`Warning: Could not create some missing kingdoms`, 'error');
+          }
+        }
+        completedOps++;
+        setImportProgress({ current: completedOps, total: totalOps, phase: 'Kingdoms created' });
+      }
+
+      let insertedCount = 0;
+      let replacedCount = 0;
+      const batchSize = 50;
+
+      // Disable expensive triggers during bulk insert (recalc happens in Phases 5-7 instead)
+      setImportProgress({ current: completedOps, total: totalOps, phase: 'Preparing bulk insert...' });
+      const { error: disableErr } = await supabase.rpc('disable_kvk_triggers');
+      if (disableErr) console.error('Could not disable triggers (non-fatal):', disableErr);
+
+      // Phase 2: Insert fresh rows in batches
+      if (freshRows.length > 0) {
+        setImportProgress({ current: completedOps, total: totalOps, phase: `Inserting ${freshRows.length} new rows...` });
+        for (let i = 0; i < freshRows.length; i += batchSize) {
+          const batch = freshRows.slice(i, i + batchSize);
+          const { error } = await supabase.from('kvk_history').insert(batch);
+          if (error) {
+            console.error('Insert error:', error);
+            await supabase.rpc('enable_kvk_triggers');
+            showToast(`Insert failed at row ${i + 1}: ${error.message}`, 'error');
+            setImportProcessing(false);
+            return;
+          }
+          insertedCount += batch.length;
+          completedOps += batch.length;
+          setImportProgress({ current: completedOps, total: totalOps, phase: `Inserted ${insertedCount}/${freshRows.length} new rows...` });
         }
       }
-      
-      // Transform to kvk_history format
-      const kvkRecords = records.map(r => ({
-        kingdom_number: parseInt(r.kingdom_number || '0', 10),
-        kvk_number: parseInt(r.kvk_number || '0', 10),
-        opponent_number: parseInt(r.opponent_number || '0', 10),
-        prep_result: r.prep_result?.toUpperCase() || null,
-        battle_result: r.battle_result?.toUpperCase() || null,
-        overall_result: r.overall_result?.toUpperCase() || null,
-        kvk_date: r.kvk_date || null,
-        order_index: parseInt(r.kvk_number || '0', 10)
-      }));
-      
-      // Insert into Supabase kvk_history table
-      const { error } = await supabase
-        .from('kvk_history')
-        .upsert(kvkRecords, { 
-          onConflict: 'kingdom_number,kvk_number',
-          ignoreDuplicates: false 
-        });
-      
-      if (error) {
-        console.error('Bulk import error:', error);
-        showToast(`Import failed: ${error.message}`, 'error');
-        return;
+
+      // Phase 3: Upsert replacement rows in batches
+      if (replaceRows.length > 0) {
+        setImportProgress({ current: completedOps, total: totalOps, phase: `Replacing ${replaceRows.length} existing rows...` });
+        for (let i = 0; i < replaceRows.length; i += batchSize) {
+          const batch = replaceRows.slice(i, i + batchSize);
+          const { error } = await supabase
+            .from('kvk_history')
+            .upsert(batch, { onConflict: 'kingdom_number,kvk_number', ignoreDuplicates: false });
+          if (error) {
+            console.error('Upsert error:', error);
+            await supabase.rpc('enable_kvk_triggers');
+            showToast(`Replace failed at row ${i + 1}: ${error.message}`, 'error');
+            setImportProcessing(false);
+            return;
+          }
+          replacedCount += batch.length;
+          completedOps += batch.length;
+          setImportProgress({ current: completedOps, total: totalOps, phase: `Replaced ${replacedCount}/${replaceRows.length} rows...` });
+        }
       }
-      
-      // Also reload data to refresh caches
+
+      // Re-enable triggers before recalc phases
+      const { error: enableErr } = await supabase.rpc('enable_kvk_triggers');
+      if (enableErr) console.error('Could not re-enable triggers:', enableErr);
+
+      // Phase 4: Log to import_history
+      const kvkNums = [...new Set([...freshRows, ...replaceRows].map(r => r.kvk_number as number))];
+      await supabase.from('import_history').insert({
+        admin_user_id: user?.id,
+        admin_username: profile?.username || 'unknown',
+        total_rows: freshRows.length + replaceRows.length + skippedCount,
+        inserted_rows: insertedCount,
+        replaced_rows: replacedCount,
+        skipped_rows: skippedCount,
+        kingdoms_created: missingKingdoms.length,
+        kvk_numbers: kvkNums,
+        validation_errors: validationErrors.length
+      });
+
+      // Phase 5: Auto-recalculate scores for affected kingdoms
+      setImportProgress({ current: completedOps, total: totalOps, phase: 'Recalculating Atlas Scores...' });
+      const { data: recalcData, error: recalcError } = await supabase.rpc('recalculate_all_kingdom_scores');
+      const recalcUpdated = recalcError ? 0 : (recalcData?.[0]?.updated_count ?? 0);
+      if (recalcError) console.error('Auto-recalc error (non-fatal):', recalcError);
+
+      // Phase 6: Auto-backfill score_history via edge function (handles batching internally)
+      let backfillCreated = 0;
+      for (const kvk of kvkNums) {
+        setImportProgress({ current: completedOps, total: totalOps, phase: `Backfilling score history for KvK #${kvk}...` });
+        const { data: bfData, error: bfError } = await supabase.functions.invoke('backfill-score-history', {
+          body: { kvk_number: kvk }
+        });
+        if (bfError) {
+          console.error(`Backfill error for KvK #${kvk} (non-fatal):`, bfError);
+        } else {
+          backfillCreated += bfData?.created ?? 0;
+        }
+      }
+
+      // Phase 7: Recalculate ranks via edge function (handles pagination internally)
+      let ranksFixed = 0;
+      for (const kvk of kvkNums) {
+        setImportProgress({ current: completedOps, total: totalOps, phase: `Recalculating ranks for KvK #${kvk}...` });
+        let offset = 0;
+        let hasMore = true;
+        while (hasMore) {
+          const { data: rankData, error: rankError } = await supabase.functions.invoke('backfill-score-history', {
+            body: { kvk_number: kvk, action: 'recalculate_ranks', offset }
+          });
+          if (rankError) {
+            console.error(`Rank recalc error for KvK #${kvk} (non-fatal):`, rankError);
+            hasMore = false;
+          } else {
+            ranksFixed += rankData?.updated ?? 0;
+            hasMore = rankData?.has_more ?? false;
+            offset = rankData?.next_offset ?? 0;
+          }
+        }
+      }
+
+      // Reload caches
       kvkHistoryService.invalidateCache();
       apiService.reloadData();
       queryClient.invalidateQueries({ queryKey: kingdomKeys.all });
-      
+
+      const parts: string[] = [];
+      if (insertedCount > 0) parts.push(`${insertedCount} new`);
+      if (replacedCount > 0) parts.push(`${replacedCount} replaced`);
+      if (skippedCount > 0) parts.push(`${skippedCount} skipped`);
       const createdMsg = missingKingdoms.length > 0 ? ` (created ${missingKingdoms.length} new kingdoms)` : '';
-      showToast(`✅ Imported ${records.length} KvK records to database${createdMsg}`, 'success');
-      setImportData('');
+      const recalcMsg = recalcUpdated > 0 ? ` | ${recalcUpdated} scores recalculated` : '';
+      const backfillMsg = backfillCreated > 0 ? ` | ${backfillCreated} score history entries created` : '';
+      const rankMsg = ranksFixed > 0 ? ` | ${ranksFixed} rank(s) fixed` : '';
+      setImportProgress({ current: totalOps, total: totalOps, phase: 'Complete!' });
+      showToast(`Imported ${parts.join(', ')} KvK records${createdMsg}${recalcMsg}${backfillMsg}${rankMsg}`, 'success');
+
+      // Reset after short delay so user sees "Complete!"
+      setTimeout(() => {
+        setImportData('');
+        setImportStep('input');
+        setParsedRecords([]);
+        setValidationErrors([]);
+        setDuplicateRows([]);
+        setNewRows([]);
+        fetchImportHistory();
+      }, 1500);
     } catch (error) {
-      console.error('Bulk import error:', error);
-      showToast('Invalid CSV format or data', 'error');
+      console.error('Import error:', error);
+      if (supabase) await supabase.rpc('enable_kvk_triggers');
+      showToast('Import failed unexpectedly', 'error');
+    } finally {
+      setImportProcessing(false);
+    }
+  };
+
+  // Recalculate Atlas Scores for all kingdoms after import
+  const handleRecalculateScores = async () => {
+    if (!supabase) return;
+    setRecalculating(true);
+    setRecalcResult(null);
+    try {
+      // Step 1: Recalculate all kingdom stats + atlas scores
+      const { data: recalcData, error: recalcError } = await supabase.rpc('recalculate_all_kingdom_scores');
+      if (recalcError) {
+        console.error('Recalc error:', recalcError);
+        showToast(`Score recalculation failed: ${recalcError.message}`, 'error');
+        setRecalculating(false);
+        return;
+      }
+      const updated = recalcData?.[0]?.updated_count ?? 0;
+      const avgScore = recalcData?.[0]?.avg_score ?? 0;
+
+      // Step 2: Fix rank consistency
+      const { data: rankData, error: rankError } = await supabase.rpc('verify_and_fix_rank_consistency');
+      if (rankError) {
+        console.error('Rank fix error:', rankError);
+        showToast(`Ranks fix failed: ${rankError.message}`, 'error');
+      }
+      const ranksFixed = rankData?.filter((r: Record<string, unknown>) => (r.mismatches_found as number) > 0)
+        .reduce((sum: number, r: Record<string, unknown>) => sum + (r.mismatches_fixed as number || 0), 0) ?? 0;
+
+      // Refresh caches
+      kvkHistoryService.invalidateCache();
+      apiService.reloadData();
+      queryClient.invalidateQueries({ queryKey: kingdomKeys.all });
+
+      setRecalcResult({ updated, avgScore: parseFloat(String(avgScore)), ranksFixed });
+      showToast(`Recalculated ${updated} kingdoms (avg score: ${avgScore}). ${ranksFixed} rank(s) fixed.`, 'success');
+    } catch (error) {
+      console.error('Recalc error:', error);
+      showToast('Score recalculation failed', 'error');
+    } finally {
+      setRecalculating(false);
     }
   };
 
@@ -2165,57 +2446,306 @@ const AdminDashboard: React.FC = () => {
         </div>
       ) : activeTab === 'import' ? (
         <div style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', border: '1px solid #2a2a2a' }}>
-          <h3 style={{ color: '#fff', marginBottom: '1rem' }}>Bulk Import KvK Results</h3>
-          <p style={{ color: '#6b7280', fontSize: '0.875rem', marginBottom: '1rem' }}>
-            Upload a CSV file or paste data directly. Required columns: <code style={{ color: '#22d3ee' }}>kingdom_number, kvk_number, opponent_number, prep_result, battle_result, overall_result, kvk_date</code>
-          </p>
-          <p style={{ color: '#4b5563', fontSize: '0.75rem', marginBottom: '1rem' }}>
-            Results should be W/L/D. Date format: YYYY-MM-DD. Data will be inserted directly into the kvk_history table.
-          </p>
-          
-          <div style={{ marginBottom: '1rem' }}>
-            <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} style={{ display: 'none' }} />
-            <button onClick={() => fileInputRef.current?.click()} style={{ padding: '0.75rem 1.5rem', backgroundColor: '#22d3ee20', border: '1px solid #22d3ee50', borderRadius: '8px', color: '#22d3ee', cursor: 'pointer', fontWeight: 500 }}>
-              📁 Choose CSV File
-            </button>
+          <h3 style={{ color: '#fff', marginBottom: '0.5rem' }}>Bulk Import KvK Results</h3>
+
+          {/* Step indicator */}
+          <div style={{ display: 'flex', gap: '0.25rem', marginBottom: '1rem', fontSize: '0.75rem' }}>
+            {(['input', 'preview', 'duplicates', 'importing'] as const).map((step, i) => (
+              <div key={step} style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                <span style={{ padding: '0.15rem 0.5rem', borderRadius: '4px', backgroundColor: importStep === step ? '#22d3ee20' : 'transparent', color: importStep === step ? '#22d3ee' : '#4b5563', fontWeight: importStep === step ? 600 : 400, border: `1px solid ${importStep === step ? '#22d3ee50' : '#2a2a2a'}` }}>
+                  {i + 1}. {step === 'input' ? 'Input' : step === 'preview' ? 'Preview' : step === 'duplicates' ? 'Duplicates' : 'Import'}
+                </span>
+                {i < 3 && <span style={{ color: '#2a2a2a' }}>→</span>}
+              </div>
+            ))}
           </div>
 
-          <div style={{ marginBottom: '1rem' }}>
-            <label style={{ display: 'block', color: '#9ca3af', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
-              Or paste CSV data:
-            </label>
-            <textarea
-              value={importData}
-              onChange={(e) => setImportData(e.target.value)}
-              placeholder="kingdom_number,kvk_number,opponent_number,prep_result,battle_result,overall_result,kvk_date&#10;172,10,245,W,L,L,2026-02-01&#10;172,11,301,W,W,W,2026-02-22"
-              style={{ width: '100%', height: '200px', padding: '1rem', backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '8px', color: '#fff', fontFamily: 'monospace', fontSize: '0.85rem', resize: 'vertical' }}
-            />
-          </div>
-
-          <button onClick={handleBulkImport} style={{ padding: '0.75rem 2rem', backgroundColor: '#22c55e', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: 600, cursor: 'pointer' }}>
-            Import Data
-          </button>
-
-          <div style={{ marginTop: '2rem', paddingTop: '2rem', borderTop: '1px solid #2a2a2a' }}>
-            <h4 style={{ color: '#fff', marginBottom: '0.75rem' }}>Bulk Create Empty Kingdoms</h4>
-            <p style={{ color: '#6b7280', fontSize: '0.8rem', marginBottom: '1rem' }}>
-              Create placeholder kingdom profiles with no KvK data. Useful for adding all kingdoms that participated in a KvK.
-            </p>
-            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-              <button 
-                onClick={() => handleBulkCreateKingdoms(1, 1304)} 
-                style={{ padding: '0.6rem 1.25rem', backgroundColor: '#a855f720', border: '1px solid #a855f750', borderRadius: '8px', color: '#a855f7', cursor: 'pointer', fontWeight: 500, fontSize: '0.85rem' }}
-              >
-                Create Kingdoms 1-1304
+          {/* Step 1: Input */}
+          {importStep === 'input' && (
+            <>
+              <p style={{ color: '#6b7280', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
+                Required columns: <code style={{ color: '#22d3ee' }}>kingdom_number, kvk_number, opponent_kingdom, prep_result, battle_result, overall_result, kvk_date</code>
+              </p>
+              <p style={{ color: '#4b5563', fontSize: '0.75rem', marginBottom: '1rem' }}>
+                Results: W/L/B. Date: YYYY-MM-DD. Also accepts <code style={{ color: '#4b5563' }}>opponent_number</code> as alias.
+              </p>
+              <div style={{ marginBottom: '1rem' }}>
+                <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} style={{ display: 'none' }} />
+                <button onClick={() => fileInputRef.current?.click()} style={{ padding: '0.75rem 1.5rem', backgroundColor: '#22d3ee20', border: '1px solid #22d3ee50', borderRadius: '8px', color: '#22d3ee', cursor: 'pointer', fontWeight: 500 }}>
+                  📁 Choose CSV File
+                </button>
+              </div>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', color: '#9ca3af', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Or paste CSV data:</label>
+                <textarea
+                  value={importData}
+                  onChange={(e) => setImportData(e.target.value)}
+                  placeholder="kingdom_number,kvk_number,opponent_kingdom,prep_result,battle_result,overall_result,kvk_date&#10;172,10,245,W,L,Reversal,2026-02-01&#10;172,11,301,W,W,Domination,2026-02-22"
+                  style={{ width: '100%', height: '200px', padding: '1rem', backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '8px', color: '#fff', fontFamily: 'monospace', fontSize: '0.85rem', resize: 'vertical' }}
+                />
+              </div>
+              <button onClick={handleParseAndPreview} style={{ padding: '0.75rem 2rem', backgroundColor: '#22d3ee', border: 'none', borderRadius: '8px', color: '#000', fontWeight: 600, cursor: 'pointer' }}>
+                Preview & Validate
               </button>
-              <button 
-                onClick={() => handleBulkCreateKingdoms(1305, 1500)} 
-                style={{ padding: '0.6rem 1.25rem', backgroundColor: '#6b728020', border: '1px solid #6b728050', borderRadius: '8px', color: '#9ca3af', cursor: 'pointer', fontWeight: 500, fontSize: '0.85rem' }}
-              >
-                Create 1305-1500
-              </button>
+            </>
+          )}
+
+          {/* Step 2: Preview with validation */}
+          {importStep === 'preview' && (
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                <div>
+                  <span style={{ color: '#fff', fontWeight: 600 }}>{parsedRecords.length} rows parsed</span>
+                  {validationErrors.length > 0 && (
+                    <span style={{ color: '#ef4444', marginLeft: '0.75rem', fontSize: '0.85rem' }}>
+                      ⚠️ {validationErrors.length} validation error{validationErrors.length !== 1 ? 's' : ''}
+                    </span>
+                  )}
+                  {validationErrors.length === 0 && (
+                    <span style={{ color: '#22c55e', marginLeft: '0.75rem', fontSize: '0.85rem' }}>✓ All rows valid</span>
+                  )}
+                </div>
+                <button onClick={() => { setImportStep('input'); setParsedRecords([]); setValidationErrors([]); }} style={{ padding: '0.4rem 0.75rem', backgroundColor: 'transparent', border: '1px solid #3a3a3a', borderRadius: '6px', color: '#9ca3af', cursor: 'pointer', fontSize: '0.75rem' }}>
+                  ← Back
+                </button>
+              </div>
+
+              {/* Validation errors summary */}
+              {validationErrors.length > 0 && (
+                <div style={{ backgroundColor: '#ef444410', border: '1px solid #ef444430', borderRadius: '8px', padding: '0.75rem', marginBottom: '0.75rem', maxHeight: '150px', overflowY: 'auto' }}>
+                  <p style={{ color: '#ef4444', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.4rem' }}>Validation Errors:</p>
+                  {validationErrors.map((err, i) => (
+                    <div key={i} style={{ color: '#f87171', fontSize: '0.75rem', padding: '0.15rem 0' }}>
+                      Row {err.row}: <span style={{ color: '#9ca3af' }}>{err.field}</span> = <code style={{ color: '#fbbf24' }}>{err.value || '(empty)'}</code> — {err.message}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Preview table */}
+              <div style={{ overflowX: 'auto', maxHeight: '350px', overflowY: 'auto', border: '1px solid #2a2a2a', borderRadius: '8px' }}>
+                <table style={{ width: '100%', fontSize: '0.75rem', borderCollapse: 'collapse', minWidth: '700px' }}>
+                  <thead>
+                    <tr style={{ position: 'sticky', top: 0, backgroundColor: '#0a0a0a', zIndex: 1 }}>
+                      <th style={{ textAlign: 'left', color: '#6b7280', padding: '0.5rem', borderBottom: '1px solid #2a2a2a' }}>#</th>
+                      <th style={{ textAlign: 'left', color: '#6b7280', padding: '0.5rem', borderBottom: '1px solid #2a2a2a' }}>Kingdom</th>
+                      <th style={{ textAlign: 'left', color: '#6b7280', padding: '0.5rem', borderBottom: '1px solid #2a2a2a' }}>KvK</th>
+                      <th style={{ textAlign: 'left', color: '#6b7280', padding: '0.5rem', borderBottom: '1px solid #2a2a2a' }}>Opponent</th>
+                      <th style={{ textAlign: 'left', color: '#6b7280', padding: '0.5rem', borderBottom: '1px solid #2a2a2a' }}>Prep</th>
+                      <th style={{ textAlign: 'left', color: '#6b7280', padding: '0.5rem', borderBottom: '1px solid #2a2a2a' }}>Battle</th>
+                      <th style={{ textAlign: 'left', color: '#6b7280', padding: '0.5rem', borderBottom: '1px solid #2a2a2a' }}>Result</th>
+                      <th style={{ textAlign: 'left', color: '#6b7280', padding: '0.5rem', borderBottom: '1px solid #2a2a2a' }}>Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {parsedRecords.map((r, idx) => {
+                      const rowNum = idx + 2;
+                      const rowErrors = validationErrors.filter(e => e.row === rowNum);
+                      const errorFields = new Set(rowErrors.map(e => e.field));
+                      const hasError = rowErrors.length > 0;
+                      const cellStyle = (field: string) => ({
+                        padding: '0.35rem 0.5rem',
+                        color: errorFields.has(field) ? '#ef4444' : '#fff',
+                        backgroundColor: errorFields.has(field) ? '#ef444410' : 'transparent',
+                        fontFamily: 'monospace' as const,
+                        borderBottom: '1px solid #1a1a1f'
+                      });
+                      return (
+                        <tr key={idx} style={{ backgroundColor: hasError ? '#ef444408' : 'transparent' }}>
+                          <td style={{ padding: '0.35rem 0.5rem', color: hasError ? '#ef4444' : '#4b5563', borderBottom: '1px solid #1a1a1f', fontSize: '0.7rem' }}>{rowNum}</td>
+                          <td style={cellStyle('kingdom_number')}>{String(r.kingdom_number)}</td>
+                          <td style={cellStyle('kvk_number')}>{String(r.kvk_number)}</td>
+                          <td style={cellStyle('opponent_kingdom')}>{String(r.opponent_kingdom)}</td>
+                          <td style={cellStyle('prep_result')}>{String(r.prep_result ?? '')}</td>
+                          <td style={cellStyle('battle_result')}>{String(r.battle_result ?? '')}</td>
+                          <td style={cellStyle('overall_result')}>{String(r.overall_result ?? '')}</td>
+                          <td style={cellStyle('kvk_date')}>{String(r.kvk_date ?? '')}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
+                <button
+                  onClick={handleCheckDuplicates}
+                  disabled={importProcessing}
+                  style={{ padding: '0.75rem 2rem', backgroundColor: importProcessing ? '#4b5563' : '#22c55e', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: 600, cursor: importProcessing ? 'not-allowed' : 'pointer' }}
+                >
+                  {importProcessing ? 'Checking...' : `Import ${parsedRecords.filter(r => (r.kingdom_number as number) > 0).length} Rows`}
+                </button>
+                {validationErrors.length > 0 && (
+                  <p style={{ color: '#fbbf24', fontSize: '0.75rem', alignSelf: 'center' }}>
+                    Rows with critical errors (missing kingdom/kvk) will be skipped.
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* Step 3: Duplicate review */}
+          {importStep === 'duplicates' && (
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <h4 style={{ color: '#fbbf24', margin: 0 }}>
+                  ⚠️ {duplicateRows.length} Duplicate Row{duplicateRows.length !== 1 ? 's' : ''} Found
+                </h4>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button onClick={() => { setImportStep('preview'); }} style={{ padding: '0.4rem 0.75rem', backgroundColor: 'transparent', border: '1px solid #3a3a3a', borderRadius: '6px', color: '#9ca3af', cursor: 'pointer', fontSize: '0.75rem' }}>← Back</button>
+                  <button onClick={() => setDuplicateRows(prev => prev.map(d => ({ ...d, action: 'replace' as const })))} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#22c55e20', border: '1px solid #22c55e50', borderRadius: '6px', color: '#22c55e', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 500 }}>Replace All</button>
+                  <button onClick={() => setDuplicateRows(prev => prev.map(d => ({ ...d, action: 'skip' as const })))} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#ef444420', border: '1px solid #ef444450', borderRadius: '6px', color: '#ef4444', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 500 }}>Skip All</button>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+                {newRows.length > 0 && (
+                  <span style={{ color: '#6b7280' }}>{newRows.length} new row{newRows.length !== 1 ? 's' : ''} will be imported.</span>
+                )}
+                <span style={{ color: '#22c55e' }}>✓ {duplicateRows.filter(d => d.action === 'replace').length} replacing</span>
+                <span style={{ color: '#ef4444' }}>✗ {duplicateRows.filter(d => d.action === 'skip').length} skipping</span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '400px', overflowY: 'auto' }}>
+                {duplicateRows.map((dup, idx) => {
+                  const ex = dup.existing as Record<string, unknown>;
+                  const inc = dup.incoming as Record<string, unknown>;
+                  const fields = ['opponent_kingdom', 'prep_result', 'battle_result', 'overall_result', 'kvk_date', 'order_index'];
+                  const hasChanges = fields.some(f => String(ex[f] ?? '') !== String(inc[f] ?? ''));
+                  return (
+                    <div key={idx} style={{ backgroundColor: '#0a0a0a', borderRadius: '8px', border: `1px solid ${dup.action === 'replace' ? '#22c55e40' : '#ef444440'}`, padding: '0.75rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                        <span style={{ color: '#fff', fontWeight: 600, fontSize: '0.85rem' }}>K{String(inc.kingdom_number)} — KvK #{String(inc.kvk_number)}</span>
+                        <div style={{ display: 'flex', gap: '0.4rem' }}>
+                          <button onClick={() => setDuplicateRows(prev => prev.map((d, i) => i === idx ? { ...d, action: 'replace' } : d))} style={{ padding: '0.25rem 0.6rem', backgroundColor: dup.action === 'replace' ? '#22c55e' : 'transparent', border: '1px solid #22c55e50', borderRadius: '4px', color: dup.action === 'replace' ? '#fff' : '#22c55e', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 600 }}>Replace</button>
+                          <button onClick={() => setDuplicateRows(prev => prev.map((d, i) => i === idx ? { ...d, action: 'skip' } : d))} style={{ padding: '0.25rem 0.6rem', backgroundColor: dup.action === 'skip' ? '#ef4444' : 'transparent', border: '1px solid #ef444450', borderRadius: '4px', color: dup.action === 'skip' ? '#fff' : '#ef4444', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 600 }}>Skip</button>
+                        </div>
+                      </div>
+                      {hasChanges ? (
+                        <table style={{ width: '100%', fontSize: '0.75rem', borderCollapse: 'collapse' }}>
+                          <thead><tr>
+                            <th style={{ textAlign: 'left', color: '#6b7280', padding: '0.2rem 0.4rem', borderBottom: '1px solid #2a2a2a' }}>Field</th>
+                            <th style={{ textAlign: 'left', color: '#ef4444', padding: '0.2rem 0.4rem', borderBottom: '1px solid #2a2a2a' }}>Current</th>
+                            <th style={{ textAlign: 'left', color: '#22c55e', padding: '0.2rem 0.4rem', borderBottom: '1px solid #2a2a2a' }}>New</th>
+                          </tr></thead>
+                          <tbody>
+                            {fields.filter(f => String(ex[f] ?? '') !== String(inc[f] ?? '')).map(f => (
+                              <tr key={f}>
+                                <td style={{ color: '#9ca3af', padding: '0.2rem 0.4rem' }}>{f}</td>
+                                <td style={{ color: '#ef4444', padding: '0.2rem 0.4rem', fontFamily: 'monospace' }}>{String(ex[f] ?? '—')}</td>
+                                <td style={{ color: '#22c55e', padding: '0.2rem 0.4rem', fontFamily: 'monospace' }}>{String(inc[f] ?? '—')}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      ) : (
+                        <p style={{ color: '#6b7280', fontSize: '0.75rem', margin: '0.25rem 0 0' }}>No field changes — identical row already exists.</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
+                <button onClick={handleConfirmImport} disabled={importProcessing} style={{ padding: '0.75rem 2rem', backgroundColor: importProcessing ? '#4b5563' : '#22c55e', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: 600, cursor: importProcessing ? 'not-allowed' : 'pointer' }}>
+                  {importProcessing ? 'Importing...' : `Confirm Import (${newRows.length} new + ${duplicateRows.filter(d => d.action === 'replace').length} replaced)`}
+                </button>
+                <button onClick={() => { setImportStep('input'); setDuplicateRows([]); setNewRows([]); setParsedRecords([]); }} style={{ padding: '0.75rem 1.5rem', backgroundColor: 'transparent', border: '1px solid #3a3a3a', borderRadius: '8px', color: '#9ca3af', cursor: 'pointer', fontWeight: 500 }}>Cancel</button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 4: Importing with progress */}
+          {importStep === 'importing' && (
+            <div style={{ padding: '2rem 0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+                <div style={{ width: '24px', height: '24px', border: '3px solid #22d3ee40', borderTop: '3px solid #22d3ee', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                <span style={{ color: '#fff', fontWeight: 600 }}>Importing...</span>
+              </div>
+              <div style={{ backgroundColor: '#0a0a0a', borderRadius: '8px', overflow: 'hidden', height: '8px', marginBottom: '0.5rem' }}>
+                <div style={{ height: '100%', backgroundColor: importProgress.phase === 'Complete!' ? '#22c55e' : '#22d3ee', borderRadius: '8px', transition: 'width 0.3s ease', width: importProgress.total > 0 ? `${Math.min(100, (importProgress.current / importProgress.total) * 100)}%` : '0%' }} />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem' }}>
+                <span style={{ color: '#9ca3af' }}>{importProgress.phase}</span>
+                <span style={{ color: '#6b7280' }}>{importProgress.total > 0 ? `${importProgress.current}/${importProgress.total}` : ''}</span>
+              </div>
+              <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+            </div>
+          )}
+
+          {/* Import History */}
+          {importStep === 'input' && (
+            <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid #2a2a2a' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                <h4 style={{ color: '#fff', margin: 0 }}>Import History</h4>
+                <button onClick={fetchImportHistory} style={{ padding: '0.3rem 0.6rem', backgroundColor: 'transparent', border: '1px solid #2a2a2a', borderRadius: '4px', color: '#6b7280', cursor: 'pointer', fontSize: '0.7rem' }}>Refresh</button>
+              </div>
+              {importHistory.length === 0 ? (
+                <p style={{ color: '#4b5563', fontSize: '0.8rem' }}>No import history yet. <button onClick={fetchImportHistory} style={{ color: '#22d3ee', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.8rem', textDecoration: 'underline' }}>Load history</button></p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '250px', overflowY: 'auto' }}>
+                  {importHistory.map(h => (
+                    <div key={h.id} style={{ backgroundColor: '#0a0a0a', borderRadius: '6px', padding: '0.6rem 0.75rem', border: '1px solid #1a1a1f', fontSize: '0.75rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                        <span style={{ color: '#22d3ee', fontWeight: 600 }}>{h.admin_username}</span>
+                        <span style={{ color: '#4b5563' }}>{new Date(h.created_at).toLocaleString()}</span>
+                      </div>
+                      <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', color: '#9ca3af' }}>
+                        <span>{h.total_rows} total</span>
+                        {h.inserted_rows > 0 && <span style={{ color: '#22c55e' }}>+{h.inserted_rows} new</span>}
+                        {h.replaced_rows > 0 && <span style={{ color: '#fbbf24' }}>{h.replaced_rows} replaced</span>}
+                        {h.skipped_rows > 0 && <span style={{ color: '#6b7280' }}>{h.skipped_rows} skipped</span>}
+                        {h.kingdoms_created > 0 && <span style={{ color: '#a855f7' }}>{h.kingdoms_created} kingdoms created</span>}
+                        {h.kvk_numbers?.length > 0 && <span>KvK {h.kvk_numbers.join(', ')}</span>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Recalculate Atlas Scores (only on input step) */}
+          {importStep === 'input' && (
+            <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid #2a2a2a' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                <div>
+                  <h4 style={{ color: '#fff', margin: 0 }}>Recalculate Atlas Scores</h4>
+                  <p style={{ color: '#6b7280', fontSize: '0.8rem', margin: '0.25rem 0 0' }}>
+                    Recalculates stats, Atlas Scores, and rank consistency for all kingdoms with KvK data. Run after bulk imports.
+                  </p>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                <button
+                  onClick={handleRecalculateScores}
+                  disabled={recalculating}
+                  style={{ padding: '0.6rem 1.25rem', backgroundColor: recalculating ? '#4b5563' : '#f59e0b20', border: `1px solid ${recalculating ? '#4b5563' : '#f59e0b50'}`, borderRadius: '8px', color: recalculating ? '#9ca3af' : '#f59e0b', cursor: recalculating ? 'not-allowed' : 'pointer', fontWeight: 500, fontSize: '0.85rem' }}
+                >
+                  {recalculating ? '⏳ Recalculating...' : '🔄 Recalculate All Scores'}
+                </button>
+                {recalcResult && (
+                  <div style={{ display: 'flex', gap: '0.75rem', fontSize: '0.75rem', color: '#9ca3af' }}>
+                    <span style={{ color: '#22c55e' }}>✓ {recalcResult.updated} kingdoms updated</span>
+                    <span>Avg score: {recalcResult.avgScore.toFixed(2)}</span>
+                    {recalcResult.ranksFixed > 0 && <span style={{ color: '#fbbf24' }}>{recalcResult.ranksFixed} rank(s) corrected</span>}
+                    {recalcResult.ranksFixed === 0 && <span style={{ color: '#22c55e' }}>All ranks consistent</span>}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Bulk Create Kingdoms (only on input step) */}
+          {importStep === 'input' && (
+            <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid #2a2a2a' }}>
+              <h4 style={{ color: '#fff', marginBottom: '0.75rem' }}>Bulk Create Empty Kingdoms</h4>
+              <p style={{ color: '#6b7280', fontSize: '0.8rem', marginBottom: '1rem' }}>
+                Create placeholder kingdom profiles with no KvK data. Useful for adding all kingdoms that participated in a KvK.
+              </p>
+              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                <button onClick={() => handleBulkCreateKingdoms(1, 1304)} style={{ padding: '0.6rem 1.25rem', backgroundColor: '#a855f720', border: '1px solid #a855f750', borderRadius: '8px', color: '#a855f7', cursor: 'pointer', fontWeight: 500, fontSize: '0.85rem' }}>Create Kingdoms 1-1304</button>
+                <button onClick={() => handleBulkCreateKingdoms(1305, 1500)} style={{ padding: '0.6rem 1.25rem', backgroundColor: '#6b728020', border: '1px solid #6b728050', borderRadius: '8px', color: '#9ca3af', cursor: 'pointer', fontWeight: 500, fontSize: '0.85rem' }}>Create 1305-1500</button>
+              </div>
+            </div>
+          )}
         </div>
       ) : null}
 

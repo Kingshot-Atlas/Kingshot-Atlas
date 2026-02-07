@@ -128,10 +128,10 @@ const About: React.FC = () => {
           
           <div style={{ display: 'grid', gap: '0.75rem', marginBottom: '1.25rem' }}>
             {[
-              { icon: '⚔️', title: 'Base Score (60%)', desc: 'Combined Prep (40%) + Battle (60%) win rates with Bayesian adjustment. No inflated scores from lucky starts.', color: '#22d3ee' },
-              { icon: '👑', title: 'Domination/Invasion (15%)', desc: 'Dominations boost your score up to +15%. Invasions hurt equally. Rewards consistent double-phase performance.', color: '#22c55e' },
-              { icon: '🔥', title: 'Recent Form (15%)', desc: 'Last 5 KvKs weighted by recency. Domination=1.0, Comeback=0.75, Reversal=0.6, Invasion=0.', color: '#eab308' },
-              { icon: '⚡', title: 'Streak Bonus (10%)', desc: 'Current win streaks provide a small boost. Battle streaks count 50% more than prep streaks.', color: '#a855f7' },
+              { icon: '⚔️', title: 'Base Score', desc: 'Combined Prep (45%) + Battle (55%) win rates with Bayesian adjustment. No inflated scores from lucky starts.', color: '#22d3ee' },
+              { icon: '👑', title: 'Domination/Invasion', desc: 'Dominations boost your score up to +15%. Invasions hurt equally. Rewards consistent double-phase performance.', color: '#22c55e' },
+              { icon: '🔥', title: 'Recent Form', desc: 'Last 5 KvKs weighted by recency. Domination=1.0, Comeback=0.80, Reversal=0.70, Invasion=0.', color: '#eab308' },
+              { icon: '⚡', title: 'Streak Bonus', desc: 'Current win streaks provide a boost. Battle: +1.1% per win (max 10). Prep: +1% per win (max 10).', color: '#a855f7' },
             ].map((item, i) => (
               <div key={i} style={{ 
                 display: 'flex', 
@@ -193,11 +193,11 @@ const About: React.FC = () => {
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(5, 1fr)', gap: '0.75rem' }}>
             {[
-              { tier: 'S', range: '8.9+', color: '#fbbf24', desc: 'Elite', detail: 'Top 3% - Apex predators' },
-              { tier: 'A', range: '7.8-8.9', color: '#22c55e', desc: 'Formidable', detail: 'Top 10% - Serious contenders' },
-              { tier: 'B', range: '6.4-7.8', color: '#3b82f6', desc: 'Competitive', detail: 'Top 25% - Solid performers' },
-              { tier: 'C', range: '4.7-6.4', color: '#f97316', desc: 'Developing', detail: 'Top 50% - Room to grow' },
-              { tier: 'D', range: '0-4.7', color: '#ef4444', desc: 'Struggling', detail: 'Bottom 50% - Rebuilding' },
+              { tier: 'S', range: '57+', color: '#fbbf24', desc: 'Elite', detail: 'Top 3% - Apex predators' },
+              { tier: 'A', range: '47-57', color: '#22c55e', desc: 'Formidable', detail: 'Top 10% - Serious contenders' },
+              { tier: 'B', range: '38-47', color: '#3b82f6', desc: 'Competitive', detail: 'Top 25% - Solid performers' },
+              { tier: 'C', range: '29-38', color: '#f97316', desc: 'Developing', detail: 'Top 50% - Room to grow' },
+              { tier: 'D', range: '0-29', color: '#ef4444', desc: 'Struggling', detail: 'Bottom 50% - Rebuilding' },
             ].map((t, i) => (
               <div key={i} style={{ 
                 backgroundColor: '#111111', 

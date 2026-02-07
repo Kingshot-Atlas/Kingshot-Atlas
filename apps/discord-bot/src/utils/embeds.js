@@ -75,26 +75,37 @@ function calculateDominations(recentKvks) {
 }
 
 /**
+ * Calculate invasions (double losses) from recent_kvks
+ */
+function calculateInvasions(recentKvks) {
+  if (!recentKvks || !Array.isArray(recentKvks)) return 0;
+  return recentKvks.filter(kvk => 
+    kvk.overall_result === 'Loss' || 
+    (kvk.prep_result === 'L' && kvk.battle_result === 'L')
+  ).length;
+}
+
+/**
  * Create kingdom stats embed
  */
 function createKingdomEmbed(kingdom) {
   const tier = getTier(kingdom.overall_score);
-  const tierEmoji = getTierEmoji(tier);
   const dominations = calculateDominations(kingdom.recent_kvks);
+  const invasions = calculateInvasions(kingdom.recent_kvks);
   const rankDisplay = kingdom.rank ? ` (Rank #${kingdom.rank})` : '';
 
   const embed = new EmbedBuilder()
     .setColor(config.colors.primary)
     .setTitle(`🏰 Kingdom ${kingdom.kingdom_number}${rankDisplay}`)
     .setURL(config.urls.kingdom(kingdom.kingdom_number))
-    .setDescription(`${tierEmoji} **Tier ${tier}** • Atlas Score: **${kingdom.overall_score.toFixed(1)}**`)
+    .setDescription(`💎 Atlas Score: **${kingdom.overall_score.toFixed(1)}** • ${tier}-Tier`)
     .addFields(
       {
         name: '📊 Overall Stats',
         value: [
           `**Total KvKs:** ${kingdom.total_kvks}`,
-          `**Status:** ${kingdom.most_recent_status || 'Unknown'}`,
           `**Dominations:** ${dominations} 👑`,
+          `**Invasions:** ${invasions} �`,
         ].join('\n'),
         inline: true,
       },
@@ -133,29 +144,30 @@ function createKingdomEmbed(kingdom) {
 function createCompareEmbed(k1, k2) {
   const tier1 = getTier(k1.overall_score);
   const tier2 = getTier(k2.overall_score);
+  const doms1 = calculateDominations(k1.recent_kvks);
+  const doms2 = calculateDominations(k2.recent_kvks);
+  const invs1 = calculateInvasions(k1.recent_kvks);
+  const invs2 = calculateInvasions(k2.recent_kvks);
 
-  // Determine winner indicators
-  const scoreWinner = k1.overall_score > k2.overall_score ? '✅' : k1.overall_score < k2.overall_score ? '❌' : '➖';
-  const scoreWinner2 = k2.overall_score > k1.overall_score ? '✅' : k2.overall_score < k1.overall_score ? '❌' : '➖';
-
-  const prepWinner = k1.prep_win_rate > k2.prep_win_rate ? '✅' : k1.prep_win_rate < k2.prep_win_rate ? '❌' : '➖';
-  const prepWinner2 = k2.prep_win_rate > k1.prep_win_rate ? '✅' : k2.prep_win_rate < k1.prep_win_rate ? '❌' : '➖';
-
-  const battleWinner = k1.battle_win_rate > k2.battle_win_rate ? '✅' : k1.battle_win_rate < k2.battle_win_rate ? '❌' : '➖';
-  const battleWinner2 = k2.battle_win_rate > k1.battle_win_rate ? '✅' : k2.battle_win_rate < k1.battle_win_rate ? '❌' : '➖';
+  // Determine winner indicators (higher is better)
+  const better = (a, b) => a > b ? '✅' : a < b ? '❌' : '➖';
+  // For invasions, lower is better
+  const betterLow = (a, b) => a < b ? '✅' : a > b ? '❌' : '➖';
 
   const embed = new EmbedBuilder()
     .setColor(config.colors.primary)
-    .setTitle(`⚔️ Kingdom ${k1.kingdom_number} vs Kingdom ${k2.kingdom_number}`)
+    .setTitle(`⚖️ Kingdom ${k1.kingdom_number} vs Kingdom ${k2.kingdom_number}`)
     .setURL(config.urls.compare(k1.kingdom_number, k2.kingdom_number))
     .addFields(
       {
         name: `🏰 K${k1.kingdom_number}`,
         value: [
-          `${scoreWinner} **Score:** ${k1.overall_score.toFixed(1)} (${tier1})`,
-          `${prepWinner} **Prep:** ${formatWinRate(k1.prep_win_rate)}`,
-          `${battleWinner} **Battle:** ${formatWinRate(k1.battle_win_rate)}`,
-          `📈 **KvKs:** ${k1.total_kvks}`,
+          `⚔️ **KvKs:** ${k1.total_kvks}`,
+          `${better(k1.overall_score, k2.overall_score)} **Score:** ${k1.overall_score.toFixed(1)} (${tier1})`,
+          `${better(k1.prep_win_rate, k2.prep_win_rate)} **Prep:** ${formatWinRate(k1.prep_win_rate)}`,
+          `${better(k1.battle_win_rate, k2.battle_win_rate)} **Battle:** ${formatWinRate(k1.battle_win_rate)}`,
+          `${better(doms1, doms2)} **Doms:** ${doms1}`,
+          `${betterLow(invs1, invs2)} **Invs:** ${invs1}`,
         ].join('\n'),
         inline: true,
       },
@@ -167,17 +179,19 @@ function createCompareEmbed(k1, k2) {
       {
         name: `🏰 K${k2.kingdom_number}`,
         value: [
-          `${scoreWinner2} **Score:** ${k2.overall_score.toFixed(1)} (${tier2})`,
-          `${prepWinner2} **Prep:** ${formatWinRate(k2.prep_win_rate)}`,
-          `${battleWinner2} **Battle:** ${formatWinRate(k2.battle_win_rate)}`,
-          `📈 **KvKs:** ${k2.total_kvks}`,
+          `⚔️ **KvKs:** ${k2.total_kvks}`,
+          `${better(k2.overall_score, k1.overall_score)} **Score:** ${k2.overall_score.toFixed(1)} (${tier2})`,
+          `${better(k2.prep_win_rate, k1.prep_win_rate)} **Prep:** ${formatWinRate(k2.prep_win_rate)}`,
+          `${better(k2.battle_win_rate, k1.battle_win_rate)} **Battle:** ${formatWinRate(k2.battle_win_rate)}`,
+          `${better(doms2, doms1)} **Doms:** ${doms2}`,
+          `${betterLow(invs2, invs1)} **Invs:** ${invs2}`,
         ].join('\n'),
         inline: true,
       }
     )
     .addFields({
       name: '\u200b',
-      value: `[� Compare more kingdoms on ks-atlas.com](${config.urls.compare(k1.kingdom_number, k2.kingdom_number)})`,
+      value: `[🔀 Compare more kingdoms on ks-atlas.com](${config.urls.compare(k1.kingdom_number, k2.kingdom_number)})`,
     })
     .setFooter({ text: `${config.bot.footerText} • ✅ = Better` })
     .setTimestamp();
@@ -249,15 +263,13 @@ function createTierEmbed(tier, kingdoms) {
 function createUpcomingEmbed(events) {
   const embed = new EmbedBuilder()
     .setColor(config.colors.primary)
-    .setTitle('📅 Upcoming Events')
-    .setDescription(config.bot.tagline);
+    .setTitle('📅 Upcoming Events');
 
   if (events.kvk) {
     const kvkValue = [
       `📆 **${events.kvk.startDate}**`,
-      `⏰ **${events.kvk.daysUntil}** days away`,
-      `🔢 KvK #${events.kvk.number}`,
-      events.kvk.phase ? `📍 Currently: **${events.kvk.phase}**` : '',
+      `⏳ **${events.kvk.daysUntil}** days away`,
+      events.kvk.phase ? `⚔️ Currently: **${events.kvk.phase}**` : '',
     ].filter(Boolean).join('\n');
 
     embed.addFields({
@@ -270,13 +282,12 @@ function createUpcomingEmbed(events) {
   if (events.transfer) {
     const transferValue = [
       `📆 **${events.transfer.startDate}**`,
-      `⏰ **${events.transfer.daysUntil}** days away`,
-      `🔢 Transfer Event #${events.transfer.number}`,
-      events.transfer.phase ? `📍 Currently: **${events.transfer.phase}**` : '',
+      `⏳ **${events.transfer.daysUntil}** days away`,
+      events.transfer.phase ? `� Currently: **${events.transfer.phase}**` : '',
     ].filter(Boolean).join('\n');
 
     embed.addFields({
-      name: '🚀 Next Transfer Event',
+      name: '� Next Transfer Event',
       value: transferValue,
       inline: true,
     });
@@ -317,7 +328,8 @@ function createHelpEmbed() {
         name: '📅 Events',
         value: [
           '`/upcoming` - Next KvK and Transfer dates',
-          '`/countdown` - Time until next KvK',
+          '`/countdownkvk` - Time until next KvK',
+          '`/countdowntransfer` - Time until next Transfer Event',
         ].join('\n'),
       },
       {
@@ -418,39 +430,21 @@ function createErrorEmbed(message, details = null) {
 }
 
 /**
- * Create countdown embed
+ * Create countdown embed (generic for KvK and Transfer)
  */
-function createCountdownEmbed(event, timeRemaining) {
+function createCountdownEmbed(event, timeRemaining, type = 'kvk') {
+  const isKvk = type === 'kvk';
+  const label = isKvk ? 'KvK' : 'Transfer Event';
+
   const embed = new EmbedBuilder()
-    .setColor(event.isActive ? config.colors.orange : config.colors.warning)
-    .setTitle(event.isActive ? `⚔️ KvK #${event.number} In Progress!` : `⏰ KvK #${event.number} Countdown`)
-    .setDescription(event.isActive 
-      ? `**${event.phase}** is happening now!`
-      : `*${config.bot.tagline}*`
-    );
+    .setColor(config.colors.primary);
 
   if (event.isActive) {
-    embed.addFields({
-      name: '📍 Current Phase',
-      value: `**${event.phase}**\nEnds in: ${timeRemaining}`,
-    });
+    embed.setTitle(`${label} Countdown`)
+      .setDescription(`⚔️ **${event.phase}** is happening now!\n\n\`\`\`\n${timeRemaining}\n\`\`\``);
   } else {
-    embed.addFields(
-      {
-        name: '⏱️ Time Until KvK',
-        value: `\`\`\`\n${timeRemaining}\n\`\`\``,
-      },
-      {
-        name: '📆 Start Date',
-        value: event.startDate,
-        inline: true,
-      },
-      {
-        name: '🔢 Event Number',
-        value: `KvK #${event.number}`,
-        inline: true,
-      }
-    );
+    embed.setTitle(`${label} Countdown`)
+      .setDescription(`📆 **Start Date:** ${event.startDate}\n\n\`\`\`\n${timeRemaining}\n\`\`\``);
   }
 
   embed.setFooter({ text: config.bot.footerText })

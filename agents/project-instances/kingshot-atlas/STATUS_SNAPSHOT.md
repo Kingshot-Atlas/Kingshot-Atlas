@@ -28,6 +28,7 @@
 
 | Task | Owner | Status |
 |------|-------|--------|
+| Atlas Score v3.1 | Platform Engineer | ✅ Complete — Option A linear remapping deployed. 0 kingdoms at 100. Max=82.39 (K231). Tier thresholds recalibrated. Frontend synced. Local build passes. Awaiting commit approval. |
 | Transfer Hub (was Transfer Board) | Product + Business + Platform | ✅ Feature Complete + Gated — Renamed to Transfer Hub (/transfer-hub). Owner-only access gate live. Full Stripe pipeline, infinite scroll, skeletons, toasts. Ready for controlled launch. |
 
 ---
