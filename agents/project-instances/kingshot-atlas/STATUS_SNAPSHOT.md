@@ -28,7 +28,7 @@
 
 | Task | Owner | Status |
 |------|-------|--------|
-| Transfer Board MVP | Product + Business | 🔨 In Progress — Page shell, entry modal, mode toggle, kingdom listings, filters built. DB schema applied. Nav entry added with "Soon" tag. Remaining: Transfer Profile form, Application system, Recruiter Dashboard, Kingdom Fund (Stripe), Editor Claiming. |
+| Transfer Board MVP | Product + Business | 🔨 In Progress — All core UI built: page, profiles, applications, recruiter dashboard, editor claiming. Remaining: Kingdom Fund Stripe integration. Coming Soon tag still active. |
 
 ---
 
@@ -36,6 +36,7 @@
 
 | When | Agent | Task | Files |
 |------|-------|------|-------|
+| 2026-02-06 | Product + Business | Transfer Board — Recruiter Dashboard, Editor Claiming, Application System, Transfer Profile Form, critical column name bug fix | RecruiterDashboard.tsx (NEW), EditorClaiming.tsx (NEW), TransferApplications.tsx (NEW), TransferProfileForm.tsx (NEW), TransferBoard.tsx |
 | 2026-02-06 | Product + Business | Transfer Board — DB schema (6 tables), page shell, nav integration | TransferBoard.tsx (NEW), App.tsx, Header.tsx, DECISIONS.md (ADR-015) |
 | 2026-02-06 | Ops Lead | Docs Consistency Audit — 21 files fixed (Railway→Render, REACT_APP_→VITE_, SQLite→Supabase, pro→supporter) | 21 docs across /docs, /agents, /apps/web |
 | 2026-02-06 | Design Lead | Rank Movers table redesign + Stat Type Styling System | Leaderboards.tsx, styles.ts, STYLE_GUIDE.md |

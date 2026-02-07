@@ -53,6 +53,8 @@ let tokenValidationResult = null;
 let interactionCount = 0;
 let lastInteractionTime = null;
 let commandRegistrationResult = null;
+let lastCommandError = null;
+let lastCommandDebug = null;
 
 const healthServer = http.createServer(async (req, res) => {
   if (req.url === '/health') {
@@ -101,6 +103,8 @@ const healthServer = http.createServer(async (req, res) => {
         lastInteractionAt: lastInteractionTime,
         readyFired: typeof readyFiredCount !== 'undefined' ? readyFiredCount : 0,
         commandsRegistered: commandRegistrationResult,
+        lastCommandError: lastCommandError,
+        lastCommandDebug: lastCommandDebug,
       },
       process: {
         uptime: Math.floor(uptime),
@@ -295,56 +299,69 @@ client.on('ready', async () => {
   // Test API connectivity
   testApiConnectivity();
 
-  // Register slash commands AFTER bot is connected (non-blocking)
-  registerCommands().catch(err => {
-    console.error('❌ Background command registration failed:', err.message);
-  });
+  // Register slash commands AFTER bot is connected (non-blocking, with auto-retry)
+  registerCommandsWithRetry();
 });
 
 /**
  * Register slash commands with Discord REST API.
- * Called after bot connects (in 'ready' event) to avoid blocking login.
- * Wrapped with 30s timeout to prevent hanging.
+ * Retries up to 5 times with 2-minute delays if registration fails
+ * (e.g., REST API still rate-limited even though WebSocket connected).
  */
+let cmdRegRetries = 0;
+const CMD_REG_MAX_RETRIES = 5;
+
+async function registerCommandsWithRetry() {
+  try {
+    await registerCommands();
+  } catch (err) {
+    console.error(`❌ Command registration attempt failed: ${err.message}`);
+    if (cmdRegRetries < CMD_REG_MAX_RETRIES) {
+      cmdRegRetries++;
+      const delay = 120_000; // 2 minutes
+      console.log(`🔄 Retrying command registration in 2min (attempt ${cmdRegRetries}/${CMD_REG_MAX_RETRIES})`);
+      commandRegistrationResult = `retry_scheduled: attempt ${cmdRegRetries}/${CMD_REG_MAX_RETRIES} in 2min`;
+      setTimeout(() => registerCommandsWithRetry(), delay);
+    } else {
+      commandRegistrationResult = `failed_all_retries: ${err.message}`;
+    }
+  }
+}
+
 async function registerCommands() {
   const rest = new REST({ version: '10' }).setToken(config.token);
-  const REGISTRATION_TIMEOUT = 30000; // 30 seconds
+  const REGISTRATION_TIMEOUT = 60000; // 60 seconds
 
   const timeoutPromise = new Promise((_, reject) =>
-    setTimeout(() => reject(new Error('Command registration timed out after 30s')), REGISTRATION_TIMEOUT)
+    setTimeout(() => reject(new Error('Command registration timed out after 60s')), REGISTRATION_TIMEOUT)
   );
 
-  try {
-    // Register GUILD commands first (instant effect) — critical for testing
-    if (config.guildId) {
-      console.log(`🔄 Registering ${commands.length} slash commands to guild ${config.guildId}...`);
-      await Promise.race([
-        rest.put(
-          Routes.applicationGuildCommands(config.clientId, config.guildId),
-          { body: commands }
-        ),
-        timeoutPromise,
-      ]);
-      console.log(`✅ Guild commands registered (instant effect)`);
-      commandRegistrationResult = `guild_ok: ${commands.length} commands`;
-    }
-
-    // Also register globally (works in ALL servers, takes up to 1 hour)
-    console.log('🔄 Registering slash commands globally...');
+  // Register GUILD commands first (instant effect) — critical for testing
+  if (config.guildId) {
+    console.log(`🔄 Registering ${commands.length} slash commands to guild ${config.guildId}...`);
     await Promise.race([
       rest.put(
-        Routes.applicationCommands(config.clientId),
+        Routes.applicationGuildCommands(config.clientId, config.guildId),
         { body: commands }
       ),
       timeoutPromise,
     ]);
-    console.log('✅ Global commands registered');
-    commandRegistrationResult = `ok: ${commands.length} commands (guild+global)`;
-  } catch (error) {
-    console.error('❌ Failed to register commands:', error.message);
-    commandRegistrationResult = `error: ${error.message}`;
-    console.error('   Commands may still work if previously registered. Will retry on next restart.');
+    console.log(`✅ Guild commands registered (instant effect)`);
+    commandRegistrationResult = `guild_ok: ${commands.length} commands`;
   }
+
+  // Also register globally (works in ALL servers, takes up to 1 hour)
+  console.log('🔄 Registering slash commands globally...');
+  await Promise.race([
+    rest.put(
+      Routes.applicationCommands(config.clientId),
+      { body: commands }
+    ),
+    timeoutPromise,
+  ]);
+  console.log('✅ Global commands registered');
+  commandRegistrationResult = `ok: ${commands.length} commands (guild+global)`;
+  cmdRegRetries = 0;
 }
 
 // Event: Resumed (reconnected after disconnect)
@@ -494,14 +511,25 @@ client.on('interactionCreate', async (interaction) => {
   interactionCount++;
   lastInteractionTime = new Date().toISOString();
   
-  if (!interaction.isChatInputCommand()) return;
+  // Log ALL interactions for debugging
+  const iType = interaction.type;
+  const isChatInput = interaction.isChatInputCommand();
+  console.log(`📥 Interaction #${interactionCount}: type=${iType} isChatInput=${isChatInput} id=${interaction.id}`);
+  lastCommandDebug = `type=${iType} isChatInput=${isChatInput} ts=${lastInteractionTime}`;
+  
+  if (!isChatInput) {
+    lastCommandDebug += ' SKIPPED(not chat input)';
+    return;
+  }
 
   const { commandName } = interaction;
-  console.log(`📥 Command received: /${commandName} from ${interaction.user.tag} (interaction #${interactionCount})`);
+  console.log(`📥 Command: /${commandName} from ${interaction.user.tag} (interaction #${interactionCount})`);
+  lastCommandDebug = `/${commandName} from ${interaction.user.tag}`;
 
   const startTime = Date.now();
   
   try {
+    console.log(`   [${commandName}] Step 1: Dispatching to handler...`);
     switch (commandName) {
       case 'kingdom':
         await handlers.handleKingdom(interaction);
@@ -537,18 +565,30 @@ client.on('interactionCreate', async (interaction) => {
         await handlers.handleStats(interaction);
         break;
       default:
-        console.warn(`Unknown command: ${commandName}`);
+        console.warn(`   [${commandName}] Unknown command`);
+        lastCommandDebug += ' UNKNOWN_COMMAND';
     }
     
     // Log successful command
     const responseTime = Date.now() - startTime;
-    logger.logCommand(interaction, responseTime, true);
+    console.log(`   [${commandName}] ✅ Completed in ${responseTime}ms`);
+    lastCommandDebug += ` OK(${responseTime}ms)`;
+    lastCommandError = null;
     
-    // Sync to API for dashboard tracking (non-blocking)
-    logger.syncToApi(commandName, interaction.guildId || 'DM', interaction.user.id);
+    try {
+      logger.logCommand(interaction, responseTime, true);
+      logger.syncToApi(commandName, interaction.guildId || 'DM', interaction.user.id);
+    } catch (logErr) {
+      console.error(`   [${commandName}] Logger error (non-fatal): ${logErr.message}`);
+    }
   } catch (error) {
-    console.error(`Command error (${commandName}):`, error);
-    logger.logError(commandName, error, interaction);
+    const errMsg = `${error.name}: ${error.message}`;
+    console.error(`   [${commandName}] ❌ HANDLER ERROR: ${errMsg}`);
+    console.error(`   [${commandName}] Stack: ${error.stack}`);
+    lastCommandError = `/${commandName}: ${errMsg}`;
+    lastCommandDebug += ` ERROR(${errMsg})`;
+    
+    try { logger.logError(commandName, error, interaction); } catch (e) { /* ignore logger errors */ }
 
     const errorReply = {
       content: '❌ Something went wrong. Please try again later.',

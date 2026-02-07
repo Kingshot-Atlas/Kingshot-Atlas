@@ -8,7 +8,10 @@ import KvKCountdown from '../components/KvKCountdown';
 import { supabase } from '../lib/supabase';
 import TransferProfileForm from '../components/TransferProfileForm';
 import { ApplyModal, MyApplicationsTracker } from '../components/TransferApplications';
+import RecruiterDashboard from '../components/RecruiterDashboard';
+import EditorClaiming from '../components/EditorClaiming';
 import { neonGlow, FONT_DISPLAY, shadows, statTypeStyles } from '../utils/styles';
+import { getPowerTier } from '../utils/atlasScoreFormula';
 
 // =============================================
 // TYPES
@@ -16,10 +19,8 @@ import { neonGlow, FONT_DISPLAY, shadows, statTypeStyles } from '../utils/styles
 
 interface KingdomData {
   kingdom_number: number;
-  kingdom_name: string;
-  overall_score: number;
-  tier: string;
-  rank: number;
+  atlas_score: number;
+  current_rank: number;
   total_kvks: number;
   prep_wins: number;
   prep_losses: number;
@@ -29,7 +30,6 @@ interface KingdomData {
   battle_win_rate: number;
   dominations: number;
   invasions: number;
-  transfer_status: string;
 }
 
 interface KingdomFund {
@@ -526,7 +526,8 @@ const KingdomListingCard: React.FC<{
 
   const fundTier = fund?.tier || 'standard';
   const tierColor = TIER_COLORS[fundTier];
-  const scoreTierColor = SCORE_TIER_COLORS[kingdom.tier] || '#6b7280';
+  const scoreTier = getPowerTier(kingdom.atlas_score || 0);
+  const scoreTierColor = SCORE_TIER_COLORS[scoreTier] || '#6b7280';
   const isGold = fundTier === 'gold';
   const isSilver = fundTier === 'silver';
 
@@ -645,7 +646,7 @@ const KingdomListingCard: React.FC<{
                 fontSize: '1.1rem',
                 ...neonGlow(scoreTierColor),
               }}>
-                {kingdom.overall_score?.toFixed(1) || '—'}
+                {kingdom.atlas_score?.toFixed(1) || '—'}
               </span>
               <span style={{
                 padding: '0.1rem 0.35rem',
@@ -655,10 +656,10 @@ const KingdomListingCard: React.FC<{
                 fontWeight: 'bold',
                 color: scoreTierColor,
               }}>
-                {kingdom.tier}-Tier
+                {scoreTier}-Tier
               </span>
               <span style={{ color: scoreTierColor, fontSize: '0.75rem' }}>
-                (#{kingdom.rank})
+                (#{kingdom.current_rank})
               </span>
             </div>
           </div>
@@ -798,7 +799,7 @@ const KingdomListingCard: React.FC<{
             </div>
             <div>
               <span style={{ color: '#9ca3af', fontSize: '0.65rem' }}>Rank</span>
-              <div style={{ color: scoreTierColor, fontWeight: '600' }}>#{kingdom.rank}</div>
+              <div style={{ color: scoreTierColor, fontWeight: '600' }}>#{kingdom.current_rank}</div>
             </div>
           </div>
         )}
@@ -1047,13 +1048,15 @@ const TransferBoard: React.FC = () => {
   const [applyingToKingdom, setApplyingToKingdom] = useState<number | null>(null);
   const [activeAppCount, setActiveAppCount] = useState(0);
   const [appRefreshKey, setAppRefreshKey] = useState(0);
+  const [showRecruiterDash, setShowRecruiterDash] = useState(false);
+  const [isEditor, setIsEditor] = useState(false);
 
   // Track page view
   useEffect(() => {
     trackFeature('Transfer Board');
   }, [trackFeature]);
 
-  // Check if user has a transfer profile + count active applications
+  // Check if user has a transfer profile + count active applications + editor status
   useEffect(() => {
     const checkProfile = async () => {
       if (!supabase || !user) return;
@@ -1073,8 +1076,19 @@ const TransferBoard: React.FC = () => {
         .in('status', ['pending', 'viewed', 'interested']);
       setActiveAppCount(count || 0);
     };
+    const checkEditor = async () => {
+      if (!supabase || !user) return;
+      const { data } = await supabase
+        .from('kingdom_editors')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .single();
+      setIsEditor(!!data);
+    };
     checkProfile();
     countActiveApps();
+    checkEditor();
   }, [user, appRefreshKey]);
 
   // Load kingdom data from Supabase
@@ -1089,8 +1103,8 @@ const TransferBoard: React.FC = () => {
         // Fetch kingdoms with scores (from Supabase single source of truth)
         const { data: kingdomData, error: kError } = await supabase
           .from('kingdoms')
-          .select('kingdom_number, kingdom_name, overall_score, tier, rank, total_kvks, prep_wins, prep_losses, prep_win_rate, battle_wins, battle_losses, battle_win_rate, dominations, invasions, transfer_status')
-          .order('rank', { ascending: true });
+          .select('kingdom_number, atlas_score, current_rank, total_kvks, prep_wins, prep_losses, prep_win_rate, battle_wins, battle_losses, battle_win_rate, dominations, invasions')
+          .order('current_rank', { ascending: true });
 
         if (kError) throw kError;
         setKingdoms(kingdomData || []);
@@ -1213,12 +1227,12 @@ const TransferBoard: React.FC = () => {
 
     if (filters.minScore) {
       const min = parseFloat(filters.minScore);
-      result = result.filter((k) => (k.overall_score || 0) >= min);
+      result = result.filter((k) => (k.atlas_score || 0) >= min);
     }
 
     if (filters.maxScore) {
       const max = parseFloat(filters.maxScore);
-      result = result.filter((k) => (k.overall_score || 0) <= max);
+      result = result.filter((k) => (k.atlas_score || 0) <= max);
     }
 
     if (filters.tag !== 'all') {
@@ -1237,14 +1251,14 @@ const TransferBoard: React.FC = () => {
           const bTier = fundMap.get(b.kingdom_number)?.tier || 'standard';
           const tierDiff = (tierOrder[aTier as keyof typeof tierOrder] || 3) - (tierOrder[bTier as keyof typeof tierOrder] || 3);
           if (tierDiff !== 0) return tierDiff;
-          return (b.overall_score || 0) - (a.overall_score || 0);
+          return (b.atlas_score || 0) - (a.atlas_score || 0);
         });
         break;
       case 'score':
-        result.sort((a, b) => (b.overall_score || 0) - (a.overall_score || 0));
+        result.sort((a, b) => (b.atlas_score || 0) - (a.atlas_score || 0));
         break;
       case 'rank':
-        result.sort((a, b) => (a.rank || 9999) - (b.rank || 9999));
+        result.sort((a, b) => (a.current_rank || 9999) - (b.current_rank || 9999));
         break;
       default:
         break;
@@ -1383,6 +1397,41 @@ const TransferBoard: React.FC = () => {
         <MyApplicationsTracker
           onWithdraw={() => setAppRefreshKey((k) => k + 1)}
         />
+      )}
+
+      {/* Recruiter Mode: Editor Claiming + Dashboard Access */}
+      {mode === 'recruiting' && user && (
+        <div style={{ marginBottom: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <EditorClaiming onEditorActivated={() => setIsEditor(true)} />
+          {isEditor && (
+            <button
+              onClick={() => setShowRecruiterDash(true)}
+              style={{
+                padding: '0.6rem 1rem',
+                backgroundColor: '#a855f715',
+                border: '1px solid #a855f730',
+                borderRadius: '10px',
+                color: '#a855f7',
+                fontSize: '0.85rem',
+                fontWeight: '600',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem',
+                minHeight: '44px',
+                width: '100%',
+              }}
+            >
+              Open Recruiter Dashboard
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Recruiter Dashboard Modal */}
+      {showRecruiterDash && (
+        <RecruiterDashboard onClose={() => setShowRecruiterDash(false)} />
       )}
 
       {/* Filters */}
