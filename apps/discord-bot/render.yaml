@@ -35,3 +35,7 @@ services:
         value: "1466084333470351523"
       - key: NODE_VERSION
         value: "20"
+      - key: STARTUP_DELAY_SECONDS
+        value: "0"  # Set to 300 (5 min) if Cloudflare IP ban cycle occurs
+      - key: REGISTER_COMMANDS
+        value: "0"  # Set to 1 only when adding/changing slash commands

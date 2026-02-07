@@ -56,6 +56,12 @@ let commandRegistrationResult = null;
 let lastCommandError = null;
 let lastCommandDebug = null;
 
+// Diagnostic cache - prevents /diagnostic from burning Discord API rate-limit budget
+// Each /diagnostic hit was making 3 Discord API calls, compounding Cloudflare bans
+let diagnosticCache = null;
+let diagnosticCacheTime = 0;
+const DIAGNOSTIC_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+
 const healthServer = http.createServer(async (req, res) => {
   if (req.url === '/health') {
     // Null-safe access to Discord client state (client may not be initialized yet)
@@ -89,22 +95,11 @@ const healthServer = http.createServer(async (req, res) => {
         loginAttempts: loginAttemptCount,
         loginLastResult: loginLastResult,
         tokenPresent: !!config.token,
-        tokenLength: config.token ? config.token.length : 0,
-        tokenSource: process.env.DISCORD_TOKEN ? 'DISCORD_TOKEN' : process.env.DISCORD_BOT_TOKEN ? 'DISCORD_BOT_TOKEN' : 'NONE',
-        configClientId: config.clientId || 'NOT_SET',
-        configGuildId: config.guildId || 'NOT_SET',
-        actualBotId: client?.user?.id || 'NOT_CONNECTED',
-        actualBotTag: client?.user?.tag || 'NOT_CONNECTED',
-        appIdMatch: client?.user?.id ? (client.user.id === config.clientId ? 'YES' : `MISMATCH: bot=${client.user.id} config=${config.clientId}`) : 'NOT_CONNECTED',
-        tokenBotId: (() => { try { const p = config.token?.split('.')[0]; return p ? Buffer.from(p, 'base64').toString() : 'NO_TOKEN'; } catch { return 'DECODE_ERROR'; } })(),
-        tokenMatchesClientId: (() => { try { const p = config.token?.split('.')[0]; const id = p ? Buffer.from(p, 'base64').toString() : ''; return id === config.clientId ? 'YES' : `MISMATCH: token_bot_id=${id} config=${config.clientId}`; } catch { return 'DECODE_ERROR'; } })(),
-        tokenValidation: tokenValidationResult,
         interactionsReceived: interactionCount,
         lastInteractionAt: lastInteractionTime,
         readyFired: typeof readyFiredCount !== 'undefined' ? readyFiredCount : 0,
         commandsRegistered: commandRegistrationResult,
         lastCommandError: lastCommandError,
-        lastCommandDebug: lastCommandDebug,
       },
       process: {
         uptime: Math.floor(uptime),
@@ -117,9 +112,39 @@ const healthServer = http.createServer(async (req, res) => {
     
     res.writeHead(isHealthy ? 200 : 503, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify(healthData));
-  } else if (req.url === '/diagnostic') {
-    // Deep diagnostic endpoint - fetches registered commands from Discord API
-    const diag = { timestamp: new Date().toISOString() };
+  } else if (req.url === '/diagnostic' || req.url?.startsWith('/diagnostic?')) {
+    // Deep diagnostic endpoint - CACHED to prevent burning Discord API rate-limit budget
+    // Previously made 3 live Discord API calls per hit, compounding Cloudflare IP bans
+    // SECURITY: Requires DIAGNOSTIC_API_KEY to prevent info disclosure
+    const diagKey = process.env.DIAGNOSTIC_API_KEY;
+    if (diagKey) {
+      const url = new URL(req.url, `http://localhost:${HEALTH_PORT}`);
+      const providedKey = url.searchParams.get('key') || req.headers['x-diagnostic-key'];
+      if (providedKey !== diagKey) {
+        res.writeHead(403, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Forbidden — provide ?key= or X-Diagnostic-Key header' }));
+        return;
+      }
+    }
+    const now = Date.now();
+    if (diagnosticCache && (now - diagnosticCacheTime) < DIAGNOSTIC_CACHE_TTL) {
+      diagnosticCache._cached = true;
+      diagnosticCache._cacheAge = Math.round((now - diagnosticCacheTime) / 1000) + 's';
+      diagnosticCache._nextRefresh = Math.round((DIAGNOSTIC_CACHE_TTL - (now - diagnosticCacheTime)) / 1000) + 's';
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(diagnosticCache, null, 2));
+      return;
+    }
+
+    const diag = {
+      timestamp: new Date().toISOString(),
+      _cached: false,
+      tokenSource: process.env.DISCORD_TOKEN ? 'DISCORD_TOKEN' : process.env.DISCORD_BOT_TOKEN ? 'DISCORD_BOT_TOKEN' : 'NONE',
+      tokenLength: config.token ? config.token.length : 0,
+      tokenBotId: (() => { try { const p = config.token?.split('.')[0]; return p ? Buffer.from(p, 'base64').toString() : 'NO_TOKEN'; } catch { return 'DECODE_ERROR'; } })(),
+      tokenMatchesClientId: (() => { try { const p = config.token?.split('.')[0]; const id = p ? Buffer.from(p, 'base64').toString() : ''; return id === config.clientId ? 'YES' : `MISMATCH: token_bot_id=${id} config=${config.clientId}`; } catch { return 'DECODE_ERROR'; } })(),
+      lastCommandDebug: lastCommandDebug,
+    };
     try {
       if (config.token && config.clientId) {
         const headers = { Authorization: `Bot ${config.token}` };
@@ -167,6 +192,9 @@ const healthServer = http.createServer(async (req, res) => {
     } catch (e) {
       diag.error = e.message;
     }
+    // Cache the result to avoid repeated Discord API calls
+    diagnosticCache = diag;
+    diagnosticCacheTime = now;
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify(diag, null, 2));
   } else if (req.url === '/') {
@@ -299,8 +327,17 @@ client.on('ready', async () => {
   // Test API connectivity
   testApiConnectivity();
 
-  // Register slash commands AFTER bot is connected (non-blocking, with auto-retry)
-  registerCommandsWithRetry();
+  // Register slash commands only when explicitly requested — they persist in Discord.
+  // Re-registering on every boot wastes 2 REST API calls and contributes to
+  // Cloudflare rate-limit bans (Error 1015) on Render's shared IP.
+  if (process.env.REGISTER_COMMANDS === '1') {
+    console.log('🔄 REGISTER_COMMANDS=1 set, registering commands...');
+    registerCommandsWithRetry();
+  } else {
+    console.log('ℹ️  Command registration skipped (commands persist in Discord)');
+    console.log('   Set REGISTER_COMMANDS=1 on Render to force re-registration');
+    commandRegistrationResult = 'skipped (persisted)';
+  }
 });
 
 /**
@@ -540,11 +577,11 @@ client.on('interactionCreate', async (interaction) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ type: 5, data: options.ephemeral ? { flags: 64 } : {} })
     });
-    interaction.deferred = true;
     if (!resp.ok) {
       const text = await resp.text().catch(() => '');
       throw new Error(`deferReply failed: ${resp.status} ${text.substring(0, 200)}`);
     }
+    interaction.deferred = true;
     console.log(`   [${commandName}] RAW deferReply OK (${resp.status})`);
   };
 
@@ -564,11 +601,11 @@ client.on('interactionCreate', async (interaction) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     });
-    interaction.replied = true;
     if (!resp.ok) {
       const text = await resp.text().catch(() => '');
       throw new Error(`reply failed: ${resp.status} ${text.substring(0, 200)}`);
     }
+    interaction.replied = true;
     console.log(`   [${commandName}] RAW reply OK (${resp.status})`);
   };
 
@@ -771,7 +808,19 @@ async function validateToken(token) {
 // Start bot - login directly (skip validateToken to minimize API calls)
 async function main() {
   console.log('🔐 Starting Discord login sequence...');
-  console.log(`   Token: ${config.token ? config.token.substring(0, 10) + '...' + config.token.substring(config.token.length - 5) : 'MISSING'} (${config.token?.length || 0} chars)`);
+  console.log(`   Token: ${config.token ? `present (${config.token.length} chars)` : 'MISSING'}`);
+  
+  // Optional startup delay to break Cloudflare rate-limit cycles.
+  // When Render restarts repeatedly, each restart hammers Discord's API,
+  // triggering Cloudflare Error 1015 (IP ban). A delay lets the ban expire.
+  // Set STARTUP_DELAY_SECONDS=300 on Render to wait 5 min before first login.
+  const startupDelay = parseInt(process.env.STARTUP_DELAY_SECONDS || '0', 10) * 1000;
+  if (startupDelay > 0) {
+    console.log(`⏳ Startup delay: ${startupDelay / 1000}s (STARTUP_DELAY_SECONDS=${process.env.STARTUP_DELAY_SECONDS})`);
+    console.log('   This prevents Cloudflare bans from rapid restart cycles');
+    await new Promise(r => setTimeout(r, startupDelay));
+    console.log('✅ Startup delay complete, proceeding with login');
+  }
   
   // Go straight to login — validateToken made 2 extra API calls that contributed
   // to rate limiting. client.login() only calls GET /gateway/bot internally.
@@ -817,7 +866,7 @@ async function main() {
 // (2 REST API calls per check) and preemptively blocks login attempts
 // based on REST rate limits, while the WebSocket gateway may be available.
 let loginRetryCount = 0;
-const MAX_LOGIN_RETRIES = 10;
+const MAX_LOGIN_RETRIES = 6;
 let loginRetryTimer = null;
 
 function scheduleLoginRetry() {
@@ -828,8 +877,10 @@ function scheduleLoginRetry() {
   }
   
   loginRetryCount++;
-  // Linear backoff: 1min, 2min, 3min, 4min, 5min (cap at 5min)
-  const delay = Math.min(loginRetryCount * 60_000, 300_000);
+  // Linear backoff: 5min, 10min, 15min, 20min, 25min, 30min (cap at 30min)
+  // Long delays let Cloudflare IP bans expire (typically 15-30 min)
+  // Total coverage: 5+10+15+20+25+30 = 105 min (~1.75 hours)
+  const delay = Math.min(loginRetryCount * 5 * 60_000, 30 * 60_000);
   const delayMin = Math.round(delay / 60_000);
   console.log(`🔄 Login retry ${loginRetryCount}/${MAX_LOGIN_RETRIES} scheduled in ${delayMin} minutes`);
   lastError = `Waiting ${delayMin}min before login retry ${loginRetryCount}/${MAX_LOGIN_RETRIES}`;

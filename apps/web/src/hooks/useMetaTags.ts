@@ -201,6 +201,12 @@ export const PAGE_META_TAGS = {
     description: 'Compare Kingshot kingdoms side-by-side before Transfer Events. Analyze KvK stats, Kingdom Rankings, win rates. Make informed transfer decisions.',
     url: 'https://ks-atlas.com/compare',
     type: 'website'
+  },
+  atlasBot: {
+    title: 'Atlas Discord Bot - Kingdom Intel in Your Server | Kingshot Atlas',
+    description: 'Add the Atlas Discord Bot to your server. Look up kingdoms, compare matchups, check rankings — all from Discord. Free for all servers.',
+    url: 'https://ks-atlas.com/atlas-bot',
+    type: 'website'
   }
 } as const satisfies Record<string, MetaTagsOptions>;
 

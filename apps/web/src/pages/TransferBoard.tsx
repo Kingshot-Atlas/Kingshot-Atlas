@@ -1,17 +1,18 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useAnalytics } from '../hooks/useAnalytics';
-import PageTitle from '../components/PageTitle';
 import KvKCountdown from '../components/KvKCountdown';
 import { supabase } from '../lib/supabase';
 import TransferProfileForm from '../components/TransferProfileForm';
 import { ApplyModal, MyApplicationsTracker } from '../components/TransferApplications';
 import RecruiterDashboard from '../components/RecruiterDashboard';
 import EditorClaiming from '../components/EditorClaiming';
-import { neonGlow, FONT_DISPLAY, shadows, statTypeStyles } from '../utils/styles';
+import KingdomFundContribute from '../components/KingdomFundContribute';
+import { neonGlow, FONT_DISPLAY, statTypeStyles, colors, cardShadow } from '../utils/styles';
 import { getPowerTier } from '../utils/atlasScoreFormula';
+import { isAdminUsername, isAdminEmail } from '../utils/constants';
 
 // =============================================
 // TYPES
@@ -49,6 +50,11 @@ interface KingdomFund {
   what_we_want: string | null;
   highlighted_stats: string[];
   banner_theme: string;
+  alliance_events: Array<{
+    tag: string;
+    event_type: 'bear_hunt' | 'viking_vengeance' | 'swordland_showdown' | 'tri_alliance_clash';
+    time_slots: string[];
+  }>;
 }
 
 interface KingdomReviewSummary {
@@ -65,18 +71,28 @@ type BoardMode = 'transferring' | 'recruiting' | 'browsing';
 // CONSTANTS
 // =============================================
 
+// Helper function to convert TC level to TG level
+const getTGLevel = (tcLevel: number): string => {
+  if (tcLevel < 35) return 'TG0';
+  if (tcLevel < 40) return 'TG1';
+  if (tcLevel < 45) return 'TG2';
+  if (tcLevel < 50) return 'TG3';
+  if (tcLevel < 55) return 'TG4';
+  return 'TG5+';
+};
+
 const TIER_COLORS: Record<string, string> = {
-  gold: '#fbbf24',
-  silver: '#9ca3af',
+  gold: colors.gold,
+  silver: colors.textSecondary,
   bronze: '#cd7f32',
-  standard: '#4b5563',
+  standard: colors.textMuted,
 };
 
 const TIER_BORDER_STYLES: Record<string, string> = {
-  gold: '2px solid #fbbf24',
-  silver: '2px solid #9ca3af80',
-  bronze: '2px solid #cd7f3280',
-  standard: '1px solid #2a2a2a',
+  gold: `2px solid ${colors.gold}`,
+  silver: `2px solid ${colors.textSecondary}40`,
+  bronze: `2px solid #cd7f3280`,
+  standard: `1px solid ${colors.border}`,
 };
 
 const RECRUITMENT_TAG_OPTIONS = [
@@ -97,12 +113,12 @@ const LANGUAGE_OPTIONS = [
 ];
 
 const SCORE_TIER_COLORS: Record<string, string> = {
-  S: '#fbbf24',
-  A: '#22c55e',
-  B: '#3b82f6',
-  C: '#f97316',
-  D: '#ef4444',
-  F: '#6b7280',
+  S: colors.gold,
+  A: colors.success,
+  B: colors.blue,
+  C: colors.orange,
+  D: colors.error,
+  F: colors.textMuted,
 };
 
 // =============================================
@@ -155,22 +171,23 @@ const EntryModal: React.FC<{
         bottom: 0,
         backgroundColor: 'rgba(0, 0, 0, 0.85)',
         display: 'flex',
-        alignItems: 'center',
+        alignItems: isMobile ? 'flex-end' : 'center',
         justifyContent: 'center',
         zIndex: 1000,
-        padding: '1rem',
+        padding: isMobile ? 0 : '1rem',
       }}
       onClick={onClose}
     >
       <div
         style={{
-          backgroundColor: '#111111',
-          border: '1px solid #2a2a2a',
-          borderRadius: '16px',
-          padding: isMobile ? '1.5rem' : '2rem',
-          maxWidth: '500px',
+          backgroundColor: colors.surface,
+          border: `1px solid ${colors.border}`,
+          borderRadius: isMobile ? '16px 16px 0 0' : '16px',
+          padding: isMobile ? '1.5rem 1rem' : '2rem',
+          maxWidth: isMobile ? '100%' : '500px',
           width: '100%',
           boxShadow: '0 20px 60px rgba(0, 0, 0, 0.6)',
+          paddingBottom: isMobile ? 'max(1.5rem, env(safe-area-inset-bottom))' : '2rem',
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -179,13 +196,13 @@ const EntryModal: React.FC<{
             style={{
               fontFamily: FONT_DISPLAY,
               fontSize: isMobile ? '1.2rem' : '1.4rem',
-              color: '#fff',
+              color: colors.text,
               margin: '0 0 0.5rem 0',
             }}
           >
             What brings you here?
           </h2>
-          <p style={{ color: '#6b7280', fontSize: '0.85rem', margin: 0 }}>
+          <p style={{ color: colors.textSecondary, fontSize: '0.85rem', margin: 0 }}>
             This helps us personalize your experience
           </p>
         </div>
@@ -200,7 +217,7 @@ const EntryModal: React.FC<{
                 alignItems: 'center',
                 gap: '1rem',
                 padding: '1rem 1.25rem',
-                backgroundColor: '#0a0a0a',
+                backgroundColor: colors.bg,
                 border: `1px solid ${opt.color}30`,
                 borderRadius: '12px',
                 cursor: 'pointer',
@@ -214,15 +231,15 @@ const EntryModal: React.FC<{
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.borderColor = `${opt.color}30`;
-                e.currentTarget.style.backgroundColor = '#0a0a0a';
+                e.currentTarget.style.backgroundColor = colors.bg;
               }}
             >
               <span style={{ fontSize: '1.5rem' }}>{opt.icon}</span>
               <div>
-                <div style={{ color: '#fff', fontWeight: '600', fontSize: '0.9rem' }}>
+                <div style={{ color: colors.text, fontWeight: '600', fontSize: '0.9rem' }}>
                   {opt.title}
                 </div>
-                <div style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                <div style={{ color: colors.textSecondary, fontSize: '0.75rem', marginTop: '0.25rem' }}>
                   {opt.subtitle}
                 </div>
               </div>
@@ -254,8 +271,8 @@ const ModeToggle: React.FC<{
       style={{
         display: 'flex',
         gap: '0.5rem',
-        backgroundColor: '#0a0a0a',
-        border: '1px solid #2a2a2a',
+        backgroundColor: colors.bg,
+        border: `1px solid ${colors.border}`,
         borderRadius: '12px',
         padding: '0.25rem',
         width: 'fit-content',
@@ -275,8 +292,8 @@ const ModeToggle: React.FC<{
             cursor: 'pointer',
             fontSize: isMobile ? '0.75rem' : '0.8rem',
             fontWeight: mode === tab.mode ? '600' : '400',
-            backgroundColor: mode === tab.mode ? '#22d3ee15' : 'transparent',
-            color: mode === tab.mode ? '#22d3ee' : '#6b7280',
+            backgroundColor: mode === tab.mode ? `${colors.primary}15` : 'transparent',
+            color: mode === tab.mode ? colors.primary : colors.textSecondary,
             transition: 'all 0.2s',
             minHeight: '44px',
           }}
@@ -330,13 +347,14 @@ const FilterPanel: React.FC<{
 
   const selectStyle: React.CSSProperties = {
     padding: '0.5rem 0.75rem',
-    backgroundColor: '#0a0a0a',
-    border: '1px solid #2a2a2a',
+    backgroundColor: colors.bg,
+    border: `1px solid ${colors.border}`,
     borderRadius: '8px',
-    color: '#fff',
-    fontSize: '0.8rem',
+    color: colors.text,
+    fontSize: isMobile ? '1rem' : '0.8rem',
     minHeight: '44px',
     cursor: 'pointer',
+    width: '100%',
   };
 
   const activeFilterCount = Object.entries(filters).filter(([key, val]) => {
@@ -347,8 +365,8 @@ const FilterPanel: React.FC<{
 
   return (
     <div style={{
-      backgroundColor: '#111111',
-      border: '1px solid #2a2a2a',
+      backgroundColor: colors.surface,
+      border: `1px solid ${colors.border}`,
       borderRadius: '12px',
       padding: '1rem',
     }}>
@@ -361,7 +379,7 @@ const FilterPanel: React.FC<{
           width: '100%',
           background: 'none',
           border: 'none',
-          color: '#fff',
+          color: colors.text,
           cursor: 'pointer',
           padding: 0,
           fontSize: '0.85rem',
@@ -376,7 +394,7 @@ const FilterPanel: React.FC<{
           Filters
           {activeFilterCount > 0 && (
             <span style={{
-              backgroundColor: '#22d3ee',
+              backgroundColor: colors.primary,
               color: '#000',
               borderRadius: '10px',
               padding: '0.1rem 0.5rem',
@@ -402,10 +420,10 @@ const FilterPanel: React.FC<{
           gap: '0.75rem',
           marginTop: '1rem',
           paddingTop: '1rem',
-          borderTop: '1px solid #2a2a2a',
+          borderTop: `1px solid ${colors.border}`,
         }}>
           <div>
-            <label style={{ color: '#9ca3af', fontSize: '0.7rem', marginBottom: '0.25rem', display: 'block' }}>Fund Tier</label>
+            <label style={{ color: colors.textSecondary, fontSize: '0.7rem', marginBottom: '0.25rem', display: 'block' }}>Fund Tier</label>
             <select value={filters.tier} onChange={(e) => update('tier', e.target.value)} style={selectStyle}>
               <option value="all">All Tiers</option>
               <option value="gold">Gold</option>
@@ -415,7 +433,7 @@ const FilterPanel: React.FC<{
             </select>
           </div>
           <div>
-            <label style={{ color: '#9ca3af', fontSize: '0.7rem', marginBottom: '0.25rem', display: 'block' }}>Language</label>
+            <label style={{ color: colors.textSecondary, fontSize: '0.7rem', marginBottom: '0.25rem', display: 'block' }}>Language</label>
             <select value={filters.language} onChange={(e) => update('language', e.target.value)} style={selectStyle}>
               <option value="all">All Languages</option>
               {LANGUAGE_OPTIONS.map((lang) => (
@@ -424,7 +442,7 @@ const FilterPanel: React.FC<{
             </select>
           </div>
           <div>
-            <label style={{ color: '#9ca3af', fontSize: '0.7rem', marginBottom: '0.25rem', display: 'block' }}>Sort By</label>
+            <label style={{ color: colors.textSecondary, fontSize: '0.7rem', marginBottom: '0.25rem', display: 'block' }}>Sort By</label>
             <select value={filters.sortBy} onChange={(e) => update('sortBy', e.target.value)} style={selectStyle}>
               <option value="tier">Fund Tier (High → Low)</option>
               <option value="score">Atlas Score (High → Low)</option>
@@ -433,7 +451,7 @@ const FilterPanel: React.FC<{
             </select>
           </div>
           <div>
-            <label style={{ color: '#9ca3af', fontSize: '0.7rem', marginBottom: '0.25rem', display: 'block' }}>Recruitment Tag</label>
+            <label style={{ color: colors.textSecondary, fontSize: '0.7rem', marginBottom: '0.25rem', display: 'block' }}>Recruitment Tag</label>
             <select value={filters.tag} onChange={(e) => update('tag', e.target.value)} style={selectStyle}>
               <option value="all">All Tags</option>
               {RECRUITMENT_TAG_OPTIONS.map((tag) => (
@@ -442,7 +460,7 @@ const FilterPanel: React.FC<{
             </select>
           </div>
           <div>
-            <label style={{ color: '#9ca3af', fontSize: '0.7rem', marginBottom: '0.25rem', display: 'block' }}>Min Atlas Score</label>
+            <label style={{ color: colors.textSecondary, fontSize: '0.7rem', marginBottom: '0.25rem', display: 'block' }}>Min Atlas Score</label>
             <input
               type="number"
               step="0.1"
@@ -456,7 +474,7 @@ const FilterPanel: React.FC<{
           </div>
           {mode === 'transferring' && (
             <div>
-              <label style={{ color: '#9ca3af', fontSize: '0.7rem', marginBottom: '0.25rem', display: 'block' }}>Min Match Score</label>
+              <label style={{ color: colors.textSecondary, fontSize: '0.7rem', marginBottom: '0.25rem', display: 'block' }}>Min Match Score</label>
               <input
                 type="number"
                 step="5"
@@ -472,13 +490,13 @@ const FilterPanel: React.FC<{
           <div style={{ display: 'flex', alignItems: 'flex-end' }}>
             <label style={{
               display: 'flex', alignItems: 'center', gap: '0.5rem',
-              color: '#9ca3af', fontSize: '0.8rem', cursor: 'pointer', minHeight: '44px',
+              color: colors.textSecondary, fontSize: '0.8rem', cursor: 'pointer', minHeight: '44px',
             }}>
               <input
                 type="checkbox"
                 checked={filters.isRecruiting}
                 onChange={(e) => update('isRecruiting', e.target.checked)}
-                style={{ width: '18px', height: '18px', accentColor: '#22d3ee' }}
+                style={{ width: '18px', height: '18px', accentColor: colors.primary }}
               />
               Actively Recruiting Only
             </label>
@@ -490,9 +508,9 @@ const FilterPanel: React.FC<{
                 style={{
                   padding: '0.5rem 1rem',
                   backgroundColor: 'transparent',
-                  border: '1px solid #ef444440',
+                  border: `1px solid ${colors.error}40`,
                   borderRadius: '8px',
-                  color: '#ef4444',
+                  color: colors.error,
                   fontSize: '0.8rem',
                   cursor: 'pointer',
                   minHeight: '44px',
@@ -519,8 +537,10 @@ const KingdomListingCard: React.FC<{
   mode: BoardMode;
   matchScore?: number;
   onApply?: (kingdomNumber: number) => void;
-}> = ({ kingdom, fund, reviewSummary, mode, matchScore, onApply }) => {
+  onFund?: (kingdomNumber: number) => void;
+}> = ({ kingdom, fund, reviewSummary, mode, matchScore, onApply, onFund }) => {
   const isMobile = useIsMobile();
+  const { profile } = useAuth();
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -530,6 +550,9 @@ const KingdomListingCard: React.FC<{
   const scoreTierColor = SCORE_TIER_COLORS[scoreTier] || '#6b7280';
   const isGold = fundTier === 'gold';
   const isSilver = fundTier === 'silver';
+
+  // Check if user can fund this kingdom (only their own kingdom)
+  const canFundKingdom = profile?.linked_kingdom === kingdom.kingdom_number;
 
   const toggleSection = (section: string) => {
     setExpandedSection(expandedSection === section ? null : section);
@@ -548,14 +571,14 @@ const KingdomListingCard: React.FC<{
   return (
     <div
       style={{
-        backgroundColor: '#111111',
+        backgroundColor: colors.surface,
         border: TIER_BORDER_STYLES[fundTier],
         borderRadius: '12px',
         overflow: 'hidden',
         transition: 'all 0.2s',
         boxShadow: isHovered && fundTier !== 'standard'
           ? `0 0 20px ${tierColor}20`
-          : shadows.card,
+          : cardShadow(isHovered),
         ...(isGold ? { animation: 'goldGlow 3s ease-in-out infinite' } : {}),
       }}
       onMouseEnter={() => setIsHovered(true)}
@@ -571,7 +594,7 @@ const KingdomListingCard: React.FC<{
               style={{
                 fontFamily: FONT_DISPLAY,
                 fontSize: isMobile ? '0.9rem' : '1rem',
-                color: '#fff',
+                color: colors.text,
                 textDecoration: 'none',
                 fontWeight: '700',
                 whiteSpace: 'nowrap',
@@ -632,13 +655,13 @@ const KingdomListingCard: React.FC<{
 
         {/* Score Row */}
         <div style={{
-          display: 'flex',
+          display: 'grid',
+          gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, auto)',
           alignItems: 'center',
-          gap: isMobile ? '0.75rem' : '1.5rem',
-          flexWrap: 'wrap',
+          gap: isMobile ? '0.5rem' : '1.5rem',
         }}>
           <div>
-            <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>Atlas Score</span>
+            <span style={{ color: colors.textSecondary, fontSize: '0.65rem' }}>Atlas Score</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
               <span style={{
                 fontFamily: "'Orbitron', monospace",
@@ -664,20 +687,20 @@ const KingdomListingCard: React.FC<{
             </div>
           </div>
           <div>
-            <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>Prep Win Rate</span>
+            <span style={{ color: colors.textSecondary, fontSize: '0.65rem' }}>Prep Win Rate</span>
             <div style={{ color: statTypeStyles.prepPhase.color, fontWeight: '600', fontSize: '0.9rem' }}>
               {kingdom.prep_win_rate != null ? `${(kingdom.prep_win_rate * 100).toFixed(0)}%` : '—'}
             </div>
           </div>
           <div>
-            <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>Battle Win Rate</span>
+            <span style={{ color: colors.textSecondary, fontSize: '0.65rem' }}>Battle Win Rate</span>
             <div style={{ color: statTypeStyles.battlePhase.color, fontWeight: '600', fontSize: '0.9rem' }}>
               {kingdom.battle_win_rate != null ? `${(kingdom.battle_win_rate * 100).toFixed(0)}%` : '—'}
             </div>
           </div>
           <div>
-            <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>KvKs</span>
-            <div style={{ color: '#fff', fontWeight: '600', fontSize: '0.9rem' }}>
+            <span style={{ color: colors.textSecondary, fontSize: '0.65rem' }}>KvKs</span>
+            <div style={{ color: colors.text, fontWeight: '600', fontSize: '0.9rem' }}>
               {kingdom.total_kvks || 0}
             </div>
           </div>
@@ -689,11 +712,11 @@ const KingdomListingCard: React.FC<{
             {fund.recruitment_tags.map((tag) => (
               <span key={tag} style={{
                 padding: '0.15rem 0.5rem',
-                backgroundColor: '#22d3ee10',
-                border: '1px solid #22d3ee25',
+                backgroundColor: `${colors.primary}10`,
+                border: `1px solid ${colors.primary}25`,
                 borderRadius: '4px',
                 fontSize: '0.65rem',
-                color: '#22d3ee',
+                color: colors.primary,
               }}>
                 {tag}
               </span>
@@ -705,10 +728,10 @@ const KingdomListingCard: React.FC<{
         {fund && (fund.min_tc_level || fund.min_power_range) && (
           <div style={{
             display: 'flex', gap: '0.5rem', marginTop: '0.5rem',
-            fontSize: '0.7rem', color: '#9ca3af',
+            fontSize: '0.7rem', color: colors.textSecondary,
           }}>
             {fund.min_tc_level && (
-              <span>Requires TC{fund.min_tc_level}+</span>
+              <span>Requires {getTGLevel(fund.min_tc_level)}+</span>
             )}
             {fund.min_power_range && fund.min_power_range !== 'Any' && (
               <span>• {fund.min_power_range} power</span>
@@ -719,7 +742,7 @@ const KingdomListingCard: React.FC<{
         {/* Recruitment Pitch (Silver+) - visible in collapsed view */}
         {(isSilver || isGold) && fund?.recruitment_pitch && (
           <p style={{
-            color: '#d1d5db',
+            color: colors.textSecondary,
             fontSize: '0.8rem',
             margin: '0.5rem 0 0 0',
             lineHeight: 1.4,
@@ -735,7 +758,7 @@ const KingdomListingCard: React.FC<{
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.15rem', fontSize: '0.75rem' }}>
               {renderStars(reviewSummary.avg_rating)}
             </div>
-            <span style={{ color: '#9ca3af', fontSize: '0.7rem' }}>
+            <span style={{ color: colors.textSecondary, fontSize: '0.7rem' }}>
               {reviewSummary.avg_rating.toFixed(1)} ({reviewSummary.review_count} review{reviewSummary.review_count !== 1 ? 's' : ''})
             </span>
           </div>
@@ -743,16 +766,16 @@ const KingdomListingCard: React.FC<{
       </div>
 
       {/* Expandable Sections */}
-      <div style={{ borderTop: '1px solid #1a1a1a' }}>
+      <div style={{ borderTop: `1px solid ${colors.border}` }}>
         {/* Performance Section */}
         <button
           onClick={() => toggleSection('performance')}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             width: '100%', padding: '0.6rem 1rem',
-            backgroundColor: expandedSection === 'performance' ? '#0a0a0a' : 'transparent',
-            border: 'none', borderBottom: '1px solid #1a1a1a',
-            color: '#9ca3af', fontSize: '0.8rem', cursor: 'pointer',
+            backgroundColor: expandedSection === 'performance' ? colors.bg : 'transparent',
+            border: 'none', borderBottom: `1px solid ${colors.border}`,
+            color: colors.textSecondary, fontSize: '0.8rem', cursor: 'pointer',
             minHeight: '44px',
           }}
         >
@@ -766,39 +789,39 @@ const KingdomListingCard: React.FC<{
         {expandedSection === 'performance' && (
           <div style={{
             padding: '0.75rem 1rem',
-            backgroundColor: '#0a0a0a',
+            backgroundColor: colors.bg,
             display: 'grid',
             gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)',
             gap: '0.75rem',
           }}>
             <div>
               <span style={{ color: statTypeStyles.prepPhase.color, fontSize: '0.65rem' }}>{statTypeStyles.prepPhase.emoji} Prep Win Rate</span>
-              <div style={{ color: '#fff', fontWeight: '600' }}>
+              <div style={{ color: colors.text, fontWeight: '600' }}>
                 {kingdom.prep_win_rate != null ? `${(kingdom.prep_win_rate * 100).toFixed(1)}%` : '—'}
-                <span style={{ color: '#6b7280', fontSize: '0.7rem', fontWeight: 'normal' }}> ({kingdom.prep_wins}W-{kingdom.prep_losses}L)</span>
+                <span style={{ color: colors.textSecondary, fontSize: '0.7rem', fontWeight: 'normal' }}> ({kingdom.prep_wins}W-{kingdom.prep_losses}L)</span>
               </div>
             </div>
             <div>
               <span style={{ color: statTypeStyles.battlePhase.color, fontSize: '0.65rem' }}>{statTypeStyles.battlePhase.emoji} Battle Win Rate</span>
-              <div style={{ color: '#fff', fontWeight: '600' }}>
+              <div style={{ color: colors.text, fontWeight: '600' }}>
                 {kingdom.battle_win_rate != null ? `${(kingdom.battle_win_rate * 100).toFixed(1)}%` : '—'}
-                <span style={{ color: '#6b7280', fontSize: '0.7rem', fontWeight: 'normal' }}> ({kingdom.battle_wins}W-{kingdom.battle_losses}L)</span>
+                <span style={{ color: colors.textSecondary, fontSize: '0.7rem', fontWeight: 'normal' }}> ({kingdom.battle_wins}W-{kingdom.battle_losses}L)</span>
               </div>
             </div>
             <div>
               <span style={{ color: statTypeStyles.domination.color, fontSize: '0.65rem' }}>{statTypeStyles.domination.emoji} Dominations</span>
-              <div style={{ color: '#fff', fontWeight: '600' }}>{kingdom.dominations || 0}</div>
+              <div style={{ color: colors.text, fontWeight: '600' }}>{kingdom.dominations || 0}</div>
             </div>
             <div>
               <span style={{ color: statTypeStyles.invasion.color, fontSize: '0.65rem' }}>{statTypeStyles.invasion.emoji} Invasions</span>
-              <div style={{ color: '#fff', fontWeight: '600' }}>{kingdom.invasions || 0}</div>
+              <div style={{ color: colors.text, fontWeight: '600' }}>{kingdom.invasions || 0}</div>
             </div>
             <div>
-              <span style={{ color: '#9ca3af', fontSize: '0.65rem' }}>Total KvKs</span>
-              <div style={{ color: '#fff', fontWeight: '600' }}>{kingdom.total_kvks || 0}</div>
+              <span style={{ color: colors.textSecondary, fontSize: '0.65rem' }}>Total KvKs</span>
+              <div style={{ color: colors.text, fontWeight: '600' }}>{kingdom.total_kvks || 0}</div>
             </div>
             <div>
-              <span style={{ color: '#9ca3af', fontSize: '0.65rem' }}>Rank</span>
+              <span style={{ color: colors.textSecondary, fontSize: '0.65rem' }}>Rank</span>
               <div style={{ color: scoreTierColor, fontWeight: '600' }}>#{kingdom.current_rank}</div>
             </div>
           </div>
@@ -812,9 +835,9 @@ const KingdomListingCard: React.FC<{
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 width: '100%', padding: '0.6rem 1rem',
-                backgroundColor: expandedSection === 'recruitment' ? '#0a0a0a' : 'transparent',
-                border: 'none', borderBottom: '1px solid #1a1a1a',
-                color: '#9ca3af', fontSize: '0.8rem', cursor: 'pointer',
+                backgroundColor: expandedSection === 'recruitment' ? colors.bg : 'transparent',
+                border: 'none', borderBottom: `1px solid ${colors.border}`,
+                color: colors.textSecondary, fontSize: '0.8rem', cursor: 'pointer',
                 minHeight: '44px',
               }}
             >
@@ -826,49 +849,107 @@ const KingdomListingCard: React.FC<{
               </svg>
             </button>
             {expandedSection === 'recruitment' && (
-              <div style={{ padding: '0.75rem 1rem', backgroundColor: '#0a0a0a' }}>
+              <div style={{ padding: '0.75rem 1rem', backgroundColor: colors.bg }}>
                 {fund.main_language && (
                   <div style={{ marginBottom: '0.5rem' }}>
-                    <span style={{ color: '#6b7280', fontSize: '0.7rem' }}>Language: </span>
-                    <span style={{ color: '#fff', fontSize: '0.8rem' }}>{fund.main_language}</span>
+                    <span style={{ color: colors.textSecondary, fontSize: '0.7rem' }}>Language: </span>
+                    <span style={{ color: colors.text, fontSize: '0.8rem' }}>{fund.main_language}</span>
                     {fund.secondary_languages.length > 0 && (
-                      <span style={{ color: '#6b7280', fontSize: '0.75rem' }}> + {fund.secondary_languages.join(', ')}</span>
+                      <span style={{ color: colors.textSecondary, fontSize: '0.75rem' }}> + {fund.secondary_languages.join(', ')}</span>
                     )}
                   </div>
                 )}
                 {fund.event_times && fund.event_times.length > 0 && (
                   <div style={{ marginBottom: '0.5rem' }}>
-                    <span style={{ color: '#6b7280', fontSize: '0.7rem' }}>Event Times (UTC): </span>
-                    <span style={{ color: '#fff', fontSize: '0.8rem' }}>
+                    <span style={{ color: colors.textSecondary, fontSize: '0.7rem' }}>Event Times (UTC): </span>
+                    <span style={{ color: colors.text, fontSize: '0.8rem' }}>
                       {fund.event_times.map((t) => `${t.start} - ${t.end}`).join(', ')}
                     </span>
                   </div>
                 )}
                 {fund.contact_link && (
                   <div style={{ marginBottom: '0.5rem' }}>
-                    <span style={{ color: '#6b7280', fontSize: '0.7rem' }}>Contact: </span>
+                    <span style={{ color: colors.textSecondary, fontSize: '0.7rem' }}>Contact: </span>
                     <a href={fund.contact_link} target="_blank" rel="noopener noreferrer"
-                      style={{ color: '#22d3ee', fontSize: '0.8rem' }}
+                      style={{ color: colors.primary, fontSize: '0.8rem' }}
                     >
                       Discord Invite ↗
                     </a>
                   </div>
                 )}
                 {isGold && fund.what_we_offer && (
-                  <div style={{ marginBottom: '0.5rem', padding: '0.5rem', backgroundColor: '#111', borderRadius: '8px' }}>
-                    <span style={{ color: '#22c55e', fontSize: '0.7rem', fontWeight: 'bold' }}>What We Offer</span>
-                    <p style={{ color: '#d1d5db', fontSize: '0.8rem', margin: '0.25rem 0 0 0', lineHeight: 1.4 }}>{fund.what_we_offer}</p>
+                  <div style={{ marginBottom: '0.5rem', padding: '0.5rem', backgroundColor: colors.surface, borderRadius: '8px' }}>
+                    <span style={{ color: colors.success, fontSize: '0.7rem', fontWeight: 'bold' }}>What We Offer</span>
+                    <p style={{ color: colors.textSecondary, fontSize: '0.8rem', margin: '0.25rem 0 0 0', lineHeight: 1.4 }}>{fund.what_we_offer}</p>
                   </div>
                 )}
                 {isGold && fund.what_we_want && (
-                  <div style={{ padding: '0.5rem', backgroundColor: '#111', borderRadius: '8px' }}>
-                    <span style={{ color: '#f97316', fontSize: '0.7rem', fontWeight: 'bold' }}>What We're Looking For</span>
-                    <p style={{ color: '#d1d5db', fontSize: '0.8rem', margin: '0.25rem 0 0 0', lineHeight: 1.4 }}>{fund.what_we_want}</p>
+                  <div style={{ padding: '0.5rem', backgroundColor: colors.surface, borderRadius: '8px' }}>
+                    <span style={{ color: colors.orange, fontSize: '0.7rem', fontWeight: 'bold' }}>What We're Looking For</span>
+                    <p style={{ color: colors.textSecondary, fontSize: '0.8rem', margin: '0.25rem 0 0 0', lineHeight: 1.4 }}>{fund.what_we_want}</p>
                   </div>
                 )}
               </div>
             )}
           </>
+        )}
+
+        {/* Alliance Events (Silver+) */}
+        {fund && fundTier !== 'standard' && fund.alliance_events && fund.alliance_events.length > 0 && (
+          <button
+            onClick={() => toggleSection('alliance_events')}
+            style={{
+              width: '100%',
+              padding: '0.75rem',
+              backgroundColor: expandedSection === 'alliance_events' ? colors.bg : 'transparent',
+              border: 'none',
+              borderBottom: expandedSection === 'alliance_events' ? `1px solid ${colors.border}` : 'none',
+              color: colors.textSecondary,
+              fontSize: '0.75rem',
+              cursor: 'pointer',
+              textAlign: 'left',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
+            <span>🤝 Alliance Events ({fund.alliance_events.length})</span>
+            <span style={{ fontSize: '0.6rem' }}>{expandedSection === 'alliance_events' ? '▼' : '▶'}</span>
+          </button>
+        )}
+        {expandedSection === 'alliance_events' && fund && fund.alliance_events && fund.alliance_events.length > 0 && (
+          <div style={{
+            padding: '0.75rem',
+            backgroundColor: colors.bg,
+            borderBottom: `1px solid ${colors.border}`,
+          }}>
+            {fund.alliance_events.map((alliance, idx) => (
+              <div key={idx} style={{ marginBottom: idx < fund.alliance_events.length - 1 ? '0.75rem' : 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                  <span style={{
+                    padding: '0.1rem 0.4rem',
+                    backgroundColor: `${colors.primary}20`,
+                    border: `1px solid ${colors.primary}40`,
+                    borderRadius: '4px',
+                    fontSize: '0.6rem',
+                    color: colors.primary,
+                    fontWeight: 'bold',
+                  }}>
+                    [{alliance.tag}]
+                  </span>
+                  <span style={{ color: colors.text, fontSize: '0.8rem', fontWeight: '600' }}>
+                    {alliance.event_type === 'bear_hunt' && 'Bear Hunt'}
+                    {alliance.event_type === 'viking_vengeance' && 'Viking Vengeance'}
+                    {alliance.event_type === 'swordland_showdown' && 'Swordland Showdown'}
+                    {alliance.event_type === 'tri_alliance_clash' && 'Tri-Alliance Clash'}
+                  </span>
+                </div>
+                <div style={{ color: colors.textSecondary, fontSize: '0.7rem' }}>
+                  {alliance.time_slots.join(', ')}
+                </div>
+              </div>
+            ))}
+          </div>
         )}
 
         {/* Community Section */}
@@ -877,9 +958,9 @@ const KingdomListingCard: React.FC<{
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             width: '100%', padding: '0.6rem 1rem',
-            backgroundColor: expandedSection === 'community' ? '#0a0a0a' : 'transparent',
+            backgroundColor: expandedSection === 'community' ? colors.bg : 'transparent',
             border: 'none',
-            color: '#9ca3af', fontSize: '0.8rem', cursor: 'pointer',
+            color: colors.textSecondary, fontSize: '0.8rem', cursor: 'pointer',
             minHeight: '44px',
           }}
         >
@@ -891,38 +972,38 @@ const KingdomListingCard: React.FC<{
           </svg>
         </button>
         {expandedSection === 'community' && (
-          <div style={{ padding: '0.75rem 1rem', backgroundColor: '#0a0a0a' }}>
+          <div style={{ padding: '0.75rem 1rem', backgroundColor: colors.bg }}>
             {reviewSummary && reviewSummary.review_count > 0 ? (
               <>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
                   <div style={{ display: 'flex', gap: '0.1rem', fontSize: '0.9rem' }}>
                     {renderStars(reviewSummary.avg_rating)}
                   </div>
-                  <span style={{ color: '#fff', fontWeight: '600', fontSize: '0.85rem' }}>
+                  <span style={{ color: colors.text, fontWeight: '600', fontSize: '0.85rem' }}>
                     {reviewSummary.avg_rating.toFixed(1)}
                   </span>
-                  <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                  <span style={{ color: colors.textSecondary, fontSize: '0.75rem' }}>
                     ({reviewSummary.review_count} review{reviewSummary.review_count !== 1 ? 's' : ''})
                   </span>
                 </div>
                 {reviewSummary.top_review_comment && (
                   <div style={{
                     padding: '0.5rem 0.75rem',
-                    backgroundColor: '#111',
+                    backgroundColor: colors.surface,
                     borderRadius: '8px',
                     borderLeft: '3px solid #fbbf24',
                   }}>
-                    <p style={{ color: '#d1d5db', fontSize: '0.8rem', margin: 0, fontStyle: 'italic', lineHeight: 1.4 }}>
+                    <p style={{ color: colors.textSecondary, fontSize: '0.8rem', margin: 0, fontStyle: 'italic', lineHeight: 1.4 }}>
                       "{reviewSummary.top_review_comment}"
                     </p>
                     {reviewSummary.top_review_author && (
-                      <span style={{ color: '#6b7280', fontSize: '0.7rem' }}>— {reviewSummary.top_review_author}</span>
+                      <span style={{ color: colors.textSecondary, fontSize: '0.7rem' }}>— {reviewSummary.top_review_author}</span>
                     )}
                   </div>
                 )}
               </>
             ) : (
-              <p style={{ color: '#4b5563', fontSize: '0.8rem', margin: 0 }}>No community reviews yet</p>
+              <p style={{ color: colors.textMuted, fontSize: '0.8rem', margin: 0 }}>No community reviews yet</p>
             )}
           </div>
         )}
@@ -931,7 +1012,7 @@ const KingdomListingCard: React.FC<{
       {/* Card Footer - CTA */}
       <div style={{
         padding: '0.75rem 1rem',
-        borderTop: '1px solid #1a1a1a',
+        borderTop: `1px solid ${colors.border}`,
         display: 'flex',
         gap: '0.5rem',
         justifyContent: 'flex-end',
@@ -941,34 +1022,55 @@ const KingdomListingCard: React.FC<{
           style={{
             padding: '0.4rem 0.75rem',
             backgroundColor: 'transparent',
-            border: '1px solid #2a2a2a',
+            border: `1px solid ${colors.border}`,
             borderRadius: '8px',
-            color: '#9ca3af',
+            color: colors.textSecondary,
             fontSize: '0.75rem',
             textDecoration: 'none',
             display: 'flex',
             alignItems: 'center',
             gap: '0.3rem',
-            minHeight: '36px',
+            minHeight: '44px',
           }}
         >
           View Profile
         </Link>
-        {mode === 'transferring' && fundTier !== 'standard' && (
+        {canFundKingdom && (
           <button
+            onClick={() => onFund?.(kingdom.kingdom_number)}
             style={{
               padding: '0.4rem 0.75rem',
-              backgroundColor: '#22d3ee15',
-              border: '1px solid #22d3ee40',
+              backgroundColor: `${colors.success}10`,
+              border: `1px solid ${colors.success}30`,
               borderRadius: '8px',
-              color: '#22d3ee',
+              color: colors.success,
               fontSize: '0.75rem',
               cursor: 'pointer',
               fontWeight: '600',
               display: 'flex',
               alignItems: 'center',
               gap: '0.3rem',
-              minHeight: '36px',
+              minHeight: '44px',
+            }}
+          >
+            Fund
+          </button>
+        )}
+        {mode === 'transferring' && fundTier !== 'standard' && (
+          <button
+            style={{
+              padding: '0.4rem 0.75rem',
+              backgroundColor: `${colors.primary}15`,
+              border: `1px solid ${colors.primary}40`,
+              borderRadius: '8px',
+              color: colors.primary,
+              fontSize: '0.75rem',
+              cursor: 'pointer',
+              fontWeight: '600',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.3rem',
+              minHeight: '44px',
             }}
             onClick={() => onApply?.(kingdom.kingdom_number)}
           >
@@ -986,55 +1088,70 @@ const KingdomListingCard: React.FC<{
           0%, 100% { box-shadow: 0 0 8px #fbbf2415; }
           50% { box-shadow: 0 0 20px #fbbf2425; }
         }
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
       `}</style>
     </div>
   );
 };
 
 // =============================================
-// COMING SOON BANNER
-// =============================================
-
-const ComingSoonBanner: React.FC = () => {
-  const isMobile = useIsMobile();
-  return (
-    <div style={{
-      backgroundColor: '#f59e0b10',
-      border: '1px solid #f59e0b30',
-      borderRadius: '12px',
-      padding: isMobile ? '1rem' : '1.25rem',
-      marginBottom: '1.5rem',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '0.75rem',
-    }}>
-      <span style={{ fontSize: '1.5rem' }}>🚧</span>
-      <div>
-        <span style={{ color: '#f59e0b', fontWeight: '700', fontSize: '0.9rem' }}>Coming Soon</span>
-        <p style={{ color: '#9ca3af', fontSize: '0.8rem', margin: '0.25rem 0 0 0' }}>
-          The Transfer Board is under construction. Kingdom listings, transfer profiles, and the application system are being built. Stay tuned!
-        </p>
-      </div>
-    </div>
-  );
-};
-
-// =============================================
-// MAIN TRANSFER BOARD PAGE
+// MAIN TRANSFER HUB PAGE
 // =============================================
 
 const TransferBoard: React.FC = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const isMobile = useIsMobile();
   const { trackFeature } = useAnalytics();
 
+  // Access gate: owner-only during pre-launch
+  // Check all possible username sources (Discord stores in full_name/name/preferred_username, not username)
+  const isOwner = isAdminEmail(user?.email)
+    || isAdminUsername(user?.user_metadata?.username)
+    || isAdminUsername(user?.user_metadata?.preferred_username)
+    || isAdminUsername(user?.user_metadata?.full_name)
+    || isAdminUsername(user?.user_metadata?.name)
+    || isAdminUsername(profile?.discord_username)
+    || isAdminUsername(profile?.linked_username)
+    || isAdminUsername(profile?.username);
+  if (!isOwner) {
+    return (
+      <div style={{
+        maxWidth: '600px', margin: '4rem auto', textAlign: 'center',
+        padding: '2rem', backgroundColor: '#111111', borderRadius: '16px',
+        border: '1px solid #2a2a2a',
+      }}>
+        <h1 style={{ fontFamily: FONT_DISPLAY, fontSize: '1.5rem', marginBottom: '0.75rem' }}>
+          <span style={{ color: '#fff' }}>TRANSFER</span>
+          <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.4rem' }}>HUB</span>
+        </h1>
+        <p style={{ color: '#9ca3af', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
+          Coming soon.
+        </p>
+        <p style={{ color: '#6b7280', fontSize: '0.8rem', marginBottom: '1.5rem' }}>
+          The Transfer Hub is currently in private beta. Stay tuned for the public launch.
+        </p>
+        <Link to="/" style={{
+          display: 'inline-block', padding: '0.6rem 1.5rem',
+          backgroundColor: '#22d3ee', color: '#000', borderRadius: '8px',
+          fontWeight: '600', fontSize: '0.85rem', textDecoration: 'none',
+          minHeight: '44px', lineHeight: '44px',
+        }}>
+          Back to Atlas
+        </Link>
+      </div>
+    );
+  }
+
   // Mode state — persisted in localStorage
   const [mode, setMode] = useState<BoardMode>(() => {
-    const saved = localStorage.getItem('atlas_transfer_board_mode');
+    const saved = localStorage.getItem('atlas_transfer_hub_mode');
     return (saved as BoardMode) || 'browsing';
   });
   const [showEntryModal, setShowEntryModal] = useState(() => {
-    return !localStorage.getItem('atlas_transfer_board_visited');
+    return !localStorage.getItem('atlas_transfer_hub_visited');
   });
 
   // Data state
@@ -1050,11 +1167,64 @@ const TransferBoard: React.FC = () => {
   const [appRefreshKey, setAppRefreshKey] = useState(0);
   const [showRecruiterDash, setShowRecruiterDash] = useState(false);
   const [isEditor, setIsEditor] = useState(false);
+  const [contributingToKingdom, setContributingToKingdom] = useState<number | null>(null);
+  const [showContributionSuccess, setShowContributionSuccess] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(20);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   // Track page view
   useEffect(() => {
-    trackFeature('Transfer Board');
+    trackFeature('Transfer Hub');
   }, [trackFeature]);
+
+  // Handle URL parameters: ?fund=N opens contribution modal, ?contributed=true shows success toast
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const fundParam = params.get('fund');
+    const contributed = params.get('contributed');
+
+    if (contributed === 'true') {
+      setShowContributionSuccess(true);
+    }
+
+    if (fundParam) {
+      const kn = parseInt(fundParam, 10);
+      if (!isNaN(kn) && kn > 0) {
+        setContributingToKingdom(kn);
+      }
+    }
+
+    // Clean URL params
+    if (fundParam || contributed) {
+      params.delete('fund');
+      params.delete('contributed');
+      const newUrl = params.toString()
+        ? `${window.location.pathname}?${params.toString()}`
+        : window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, []);
+
+  // Infinite scroll: load more standard listings when sentinel comes into view
+  const loadMore = useCallback(() => {
+    setVisibleCount(prev => prev + 20);
+  }, []);
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => { if (entries[0]?.isIntersecting) loadMore(); },
+      { rootMargin: '200px' }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [loadMore, loading]);
+
+  // Reset visible count when filters or mode change
+  useEffect(() => {
+    setVisibleCount(20);
+  }, [filters, mode]);
 
   // Check if user has a transfer profile + count active applications + editor status
   useEffect(() => {
@@ -1161,7 +1331,7 @@ const TransferBoard: React.FC = () => {
           setReviewSummaries(summaries);
         }
       } catch (err) {
-        console.error('Transfer Board data load error:', err);
+        console.error('Transfer Hub data load error:', err);
       } finally {
         setLoading(false);
       }
@@ -1173,15 +1343,15 @@ const TransferBoard: React.FC = () => {
   // Handle entry modal selection
   const handleModeSelect = (selectedMode: BoardMode) => {
     setMode(selectedMode);
-    localStorage.setItem('atlas_transfer_board_mode', selectedMode);
-    localStorage.setItem('atlas_transfer_board_visited', 'true');
+    localStorage.setItem('atlas_transfer_hub_mode', selectedMode);
+    localStorage.setItem('atlas_transfer_hub_visited', 'true');
     setShowEntryModal(false);
   };
 
   // Handle mode toggle change
   const handleModeChange = (newMode: BoardMode) => {
     setMode(newMode);
-    localStorage.setItem('atlas_transfer_board_mode', newMode);
+    localStorage.setItem('atlas_transfer_hub_mode', newMode);
   };
 
   // Create fund lookup map
@@ -1267,57 +1437,104 @@ const TransferBoard: React.FC = () => {
     return result;
   }, [kingdoms, filters, fundMap]);
 
+  // Calculate match score for transferring mode
+  const calculateMatchScore = (kingdom: KingdomData, fund: KingdomFund | null): number => {
+    if (!hasTransferProfile || !fund) return 0;
+    
+    // Use transfer profile data instead of user profile
+    const transferProfile = {
+      power_range: '0 - 50M', // Default if not set
+      tc_level: 1,
+      main_language: 'English',
+      kvk_participation: 'most'
+    };
+    
+    let score = 50; // Base score
+    
+    // Power range matching
+    if (fund.min_power_range && transferProfile.power_range) {
+      const userPower = parseInt(transferProfile.power_range.split(' - ')[1]) || 0;
+      const minPower = parseInt(fund.min_power_range.split(' - ')[1]) || 0;
+      if (userPower >= minPower) score += 20;
+      else score -= 20;
+    }
+    
+    // TC level matching
+    if (fund.min_tc_level && transferProfile.tc_level) {
+      if (transferProfile.tc_level >= fund.min_tc_level) score += 15;
+      else score -= 15;
+    }
+    
+    // Language matching
+    if (fund.main_language && transferProfile.main_language) {
+      if (fund.main_language === transferProfile.main_language) score += 10;
+      else if (fund.secondary_languages?.includes(transferProfile.main_language)) score += 5;
+    }
+    
+    // KvK participation matching
+    if (transferProfile.kvk_participation === 'every' && fund.recruitment_tags?.includes('Active KvK')) score += 5;
+    
+    return Math.max(0, Math.min(100, score));
+  };
+
   const kingdomsWithFunds = filteredKingdoms.filter((k) => fundMap.has(k.kingdom_number));
   const kingdomsWithoutFunds = filteredKingdoms.filter((k) => !fundMap.has(k.kingdom_number));
 
   return (
-    <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+    <div style={{ maxWidth: '900px', margin: '0 auto', padding: isMobile ? '0 0.25rem' : 0 }}>
       {showEntryModal && (
         <EntryModal
           onSelect={handleModeSelect}
           onClose={() => {
-            localStorage.setItem('atlas_transfer_board_visited', 'true');
+            localStorage.setItem('atlas_transfer_hub_visited', 'true');
             setShowEntryModal(false);
           }}
         />
       )}
 
-      {/* Header */}
-      <div style={{ marginBottom: '1.5rem' }}>
-        <PageTitle tagline="No more blind migrations. Find your perfect kingdom.">
-          TRANSFER BOARD
-        </PageTitle>
-      </div>
-
-      {/* Coming Soon Banner */}
-      <ComingSoonBanner />
-
-      {/* Transfer Event Countdown */}
+      {/* Hero Section - matching Rankings/About pages */}
       <div style={{
-        display: 'flex',
-        gap: '0.75rem',
+        padding: isMobile ? '1.25rem 1rem 1rem' : '1.75rem 2rem 1.25rem',
+        textAlign: 'center',
+        background: 'linear-gradient(180deg, #111111 0%, #0a0a0a 100%)',
+        borderRadius: '16px',
         marginBottom: '1.25rem',
-        flexWrap: 'wrap',
-        alignItems: 'center',
+        position: 'relative',
+        overflow: 'hidden',
       }}>
-        <KvKCountdown type="transfer" />
-        <KvKCountdown type="kvk" />
+        <div style={{ position: 'relative', zIndex: 1, maxWidth: '800px', margin: '0 auto' }}>
+          <h1 style={{
+            fontSize: isMobile ? '1.5rem' : '2rem',
+            fontWeight: 'bold',
+            marginBottom: '0.5rem',
+            fontFamily: FONT_DISPLAY,
+          }}>
+            <span style={{ color: '#fff' }}>TRANSFER</span>
+            <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>HUB</span>
+          </h1>
+          <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.8rem' : '0.9rem', marginBottom: '0.25rem' }}>
+            No more blind transfers.
+          </p>
+          <p style={{ color: '#6b7280', fontSize: isMobile ? '0.7rem' : '0.8rem', marginBottom: '0.75rem' }}>
+            Find the perfect kingdom for you — or the best recruits.
+          </p>
+          {!isMobile && (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+              <div style={{ width: '50px', height: '2px', background: 'linear-gradient(90deg, transparent, #22d3ee)' }} />
+              <div style={{ width: '6px', height: '6px', backgroundColor: '#22d3ee', transform: 'rotate(45deg)', boxShadow: '0 0 8px #22d3ee' }} />
+              <div style={{ width: '50px', height: '2px', background: 'linear-gradient(90deg, #22d3ee, transparent)' }} />
+            </div>
+          )}
+          {/* Transfer Countdown Only */}
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <KvKCountdown type="transfer" />
+          </div>
+        </div>
       </div>
 
-      {/* Mode Toggle + Stats Row */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '0.75rem',
-        marginBottom: '1rem',
-      }}>
+      {/* Mode Toggle */}
+      <div style={{ marginBottom: '1rem' }}>
         <ModeToggle mode={mode} onChange={handleModeChange} />
-        <div style={{ display: 'flex', gap: '1rem', color: '#6b7280', fontSize: '0.75rem' }}>
-          <span>{filteredKingdoms.length} kingdoms</span>
-          <span>{funds.filter((f) => f.is_recruiting).length} recruiting</span>
-        </div>
       </div>
 
       {/* Transfer Profile CTA (only in transferring mode) */}
@@ -1434,29 +1651,154 @@ const TransferBoard: React.FC = () => {
         <RecruiterDashboard onClose={() => setShowRecruiterDash(false)} />
       )}
 
+      {/* Kingdom Fund Contribution Modal */}
+      {contributingToKingdom && (
+        <KingdomFundContribute
+          kingdomNumber={contributingToKingdom}
+          currentBalance={fundMap.get(contributingToKingdom)?.balance || 0}
+          currentTier={fundMap.get(contributingToKingdom)?.tier || 'standard'}
+          onClose={() => setContributingToKingdom(null)}
+        />
+      )}
+
+      {/* Contribution Success Overlay */}
+      {showContributionSuccess && (
+        <div
+          style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+            display: 'flex', alignItems: isMobile ? 'flex-end' : 'center', justifyContent: 'center',
+            zIndex: 1100, padding: isMobile ? 0 : '1rem',
+          }}
+          onClick={() => setShowContributionSuccess(false)}
+        >
+          <div
+            style={{
+              backgroundColor: '#111111', border: '1px solid #22c55e30',
+              borderRadius: isMobile ? '16px 16px 0 0' : '16px',
+              padding: isMobile ? '2rem 1.5rem' : '2.5rem',
+              maxWidth: '450px', width: '100%',
+              textAlign: 'center',
+              boxShadow: '0 0 40px #22c55e10',
+              paddingBottom: isMobile ? 'max(2rem, env(safe-area-inset-bottom))' : '2.5rem',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{
+              width: '60px', height: '60px', borderRadius: '50%',
+              backgroundColor: '#22c55e15', border: '2px solid #22c55e40',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              margin: '0 auto 1rem',
+              fontSize: '1.5rem',
+            }}>
+              ✓
+            </div>
+            <h2 style={{
+              fontFamily: FONT_DISPLAY, fontSize: '1.3rem',
+              color: '#fff', margin: '0 0 0.5rem 0',
+            }}>
+              Contribution Successful!
+            </h2>
+            <p style={{ color: '#9ca3af', fontSize: '0.9rem', margin: '0 0 0.75rem 0', lineHeight: 1.5 }}>
+              Thank you for supporting your kingdom's Transfer Hub listing.
+              Your contribution helps the fund grow and unlocks better listing features.
+            </p>
+            <div style={{
+              padding: '0.75rem', backgroundColor: '#0a0a0a',
+              borderRadius: '10px', border: '1px solid #2a2a2a',
+              marginBottom: '1rem',
+            }}>
+              <span style={{ color: '#6b7280', fontSize: '0.7rem' }}>What happens next?</span>
+              <ul style={{ color: '#d1d5db', fontSize: '0.8rem', margin: '0.5rem 0 0 0', padding: '0 0 0 1.2rem', lineHeight: 1.8, textAlign: 'left' }}>
+                <li>Your payment is processed by Stripe</li>
+                <li>The kingdom fund balance is updated automatically</li>
+                <li>If the fund reaches a new tier, the listing upgrades</li>
+                <li>Fund depletes ~$5/week to stay active</li>
+              </ul>
+            </div>
+            <button
+              onClick={() => setShowContributionSuccess(false)}
+              style={{
+                padding: '0.6rem 2rem',
+                backgroundColor: '#22c55e15',
+                border: '1px solid #22c55e40',
+                borderRadius: '10px',
+                color: '#22c55e',
+                fontWeight: '600',
+                fontSize: '0.9rem',
+                cursor: 'pointer',
+                minHeight: '44px',
+              }}
+            >
+              Continue Browsing
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Filters */}
       <div style={{ marginBottom: '1rem' }}>
         <FilterPanel filters={filters} onChange={setFilters} mode={mode} />
+        {/* Kingdom and Recruiting Counts */}
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'flex-end', 
+          gap: '1rem', 
+          color: colors.textSecondary, 
+          fontSize: '0.75rem',
+          marginTop: '0.5rem',
+          paddingRight: '0.5rem'
+        }}>
+          <span>{filteredKingdoms.length} kingdoms</span>
+          <span>{funds.filter((f) => f.is_recruiting).length} recruiting</span>
+        </div>
       </div>
 
       {/* Kingdom Listings */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '3rem 0', color: '#6b7280' }}>
-          Loading kingdoms...
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} style={{
+              backgroundColor: '#111111',
+              borderRadius: '12px',
+              border: '1px solid #2a2a2a',
+              padding: '1rem',
+              animation: 'pulse 1.5s ease-in-out infinite',
+            }}>
+              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', marginBottom: '0.75rem' }}>
+                <div style={{ width: '40px', height: '40px', borderRadius: '8px', backgroundColor: '#1a1a1a' }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ height: '14px', width: '120px', backgroundColor: '#1a1a1a', borderRadius: '4px', marginBottom: '6px' }} />
+                  <div style={{ height: '10px', width: '80px', backgroundColor: '#1a1a1a', borderRadius: '4px' }} />
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                {[1, 2, 3, 4].map((j) => (
+                  <div key={j} style={{ flex: 1, height: '36px', backgroundColor: '#1a1a1a', borderRadius: '6px' }} />
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           {/* Funded kingdoms first */}
-          {kingdomsWithFunds.map((kingdom) => (
-            <KingdomListingCard
-              key={kingdom.kingdom_number}
-              kingdom={kingdom}
-              fund={fundMap.get(kingdom.kingdom_number) || null}
-              reviewSummary={reviewMap.get(kingdom.kingdom_number) || null}
-              mode={mode}
-              onApply={(kn) => setApplyingToKingdom(kn)}
-            />
-          ))}
+          {kingdomsWithFunds.map((kingdom) => {
+            const fund = fundMap.get(kingdom.kingdom_number) || null;
+            const matchScore = mode === 'transferring' ? calculateMatchScore(kingdom, fund) : undefined;
+            return (
+              <KingdomListingCard
+                key={kingdom.kingdom_number}
+                kingdom={kingdom}
+                fund={fund}
+                reviewSummary={reviewMap.get(kingdom.kingdom_number) || null}
+                mode={mode}
+                matchScore={matchScore}
+                onApply={(kn) => setApplyingToKingdom(kn)}
+                onFund={(kn) => setContributingToKingdom(kn)}
+              />
+            );
+          })}
 
           {/* Separator if both groups exist */}
           {kingdomsWithFunds.length > 0 && kingdomsWithoutFunds.length > 0 && (
@@ -1470,24 +1812,39 @@ const TransferBoard: React.FC = () => {
             </div>
           )}
 
-          {/* Standard (unfunded) kingdoms */}
-          {kingdomsWithoutFunds.slice(0, 50).map((kingdom) => (
-            <KingdomListingCard
-              key={kingdom.kingdom_number}
-              kingdom={kingdom}
-              fund={null}
-              reviewSummary={reviewMap.get(kingdom.kingdom_number) || null}
-              mode={mode}
-              onApply={(kn) => setApplyingToKingdom(kn)}
-            />
-          ))}
+          {/* Standard (unfunded) kingdoms — infinite scroll */}
+          {kingdomsWithoutFunds.slice(0, visibleCount).map((kingdom) => {
+            const fund = null;
+            const matchScore = mode === 'transferring' ? calculateMatchScore(kingdom, fund) : undefined;
+            return (
+              <KingdomListingCard
+                key={kingdom.kingdom_number}
+                kingdom={kingdom}
+                fund={fund}
+                reviewSummary={reviewMap.get(kingdom.kingdom_number) || null}
+                mode={mode}
+                matchScore={matchScore}
+                onApply={(kn) => setApplyingToKingdom(kn)}
+                onFund={(kn) => setContributingToKingdom(kn)}
+              />
+            );
+          })}
 
-          {kingdomsWithoutFunds.length > 50 && (
-            <div style={{
-              textAlign: 'center', padding: '1rem',
-              color: '#6b7280', fontSize: '0.8rem',
-            }}>
-              Showing top 50 standard listings. Use filters to narrow results.
+          {/* Infinite scroll sentinel */}
+          {visibleCount < kingdomsWithoutFunds.length && (
+            <div ref={sentinelRef} style={{ padding: '1.5rem 0', textAlign: 'center' }}>
+              <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+                color: '#6b7280', fontSize: '0.8rem',
+              }}>
+                <div style={{
+                  width: '16px', height: '16px',
+                  border: '2px solid #2a2a2a', borderTopColor: '#22d3ee',
+                  borderRadius: '50%',
+                  animation: 'spin 0.8s linear infinite',
+                }} />
+                Loading more kingdoms...
+              </div>
             </div>
           )}
 

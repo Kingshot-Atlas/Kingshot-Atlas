@@ -37,6 +37,7 @@ const staticRoutes = [
   { path: '/about', changefreq: 'monthly', priority: 0.5 },
   { path: '/support', changefreq: 'monthly', priority: 0.4 },
   { path: '/contribute-data', changefreq: 'monthly', priority: 0.4 },
+  { path: '/atlas-bot', changefreq: 'monthly', priority: 0.6 },
 ];
 
 function generateUrlEntry(path, changefreq, priority, lastmod) {

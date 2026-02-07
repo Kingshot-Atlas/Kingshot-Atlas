@@ -13,7 +13,7 @@ from pydantic import BaseModel
 from typing import Optional
 from slowapi import Limiter
 from slowapi.util import get_remote_address
-from api.supabase_client import update_user_subscription, get_user_by_stripe_customer, get_user_profile, log_webhook_event
+from api.supabase_client import update_user_subscription, get_user_by_stripe_customer, get_user_profile, log_webhook_event, credit_kingdom_fund
 from api.email_service import send_welcome_email, send_cancellation_email, send_payment_failed_email
 from api.discord_role_sync import sync_user_discord_role, is_discord_sync_configured
 import time
@@ -197,7 +197,12 @@ async def stripe_webhook(
     
     try:
         if event_type == "checkout.session.completed":
-            await handle_checkout_completed(data)
+            # Check if this is a Kingdom Fund contribution (client_reference_id starts with 'kf_')
+            client_ref = data.get("client_reference_id", "")
+            if client_ref and client_ref.startswith("kf_"):
+                await handle_kingdom_fund_payment(data)
+            else:
+                await handle_checkout_completed(data)
         elif event_type == "customer.subscription.updated":
             await handle_subscription_updated(data)
         elif event_type == "customer.subscription.deleted":
@@ -396,6 +401,51 @@ async def handle_payment_failed(invoice: dict):
                 username=profile.get("username", "Champion"),
                 tier=tier
             )
+
+
+async def handle_kingdom_fund_payment(session: dict):
+    """
+    Handle a Kingdom Fund contribution payment.
+    
+    client_reference_id format: kf_{kingdom_number}_{user_id}
+    Amount is extracted from the Stripe session's amount_total (in cents).
+    """
+    client_ref = session.get("client_reference_id", "")
+    payment_intent = session.get("payment_intent")
+    amount_total = session.get("amount_total", 0)  # in cents
+    
+    # Parse client_reference_id: kf_{kingdom_number}_{user_id}
+    parts = client_ref.split("_", 2)
+    if len(parts) < 3:
+        print(f"WARNING: Invalid kingdom fund client_reference_id: {client_ref}")
+        return
+    
+    try:
+        kingdom_number = int(parts[1])
+    except (ValueError, IndexError):
+        print(f"WARNING: Could not parse kingdom number from: {client_ref}")
+        return
+    
+    user_id = parts[2] if parts[2] != "anon" else None
+    amount_dollars = amount_total / 100.0
+    
+    if amount_dollars <= 0:
+        print(f"WARNING: Zero/negative amount for kingdom fund payment: {amount_total}")
+        return
+    
+    print(f"Kingdom Fund payment: kingdom={kingdom_number}, amount=${amount_dollars}, user={user_id}")
+    
+    success = credit_kingdom_fund(
+        kingdom_number=kingdom_number,
+        amount=amount_dollars,
+        user_id=user_id,
+        stripe_payment_intent_id=payment_intent,
+    )
+    
+    if success:
+        print(f"Successfully credited kingdom {kingdom_number} fund with ${amount_dollars}")
+    else:
+        print(f"Failed to credit kingdom {kingdom_number} fund")
 
 
 @router.get("/subscription/{user_id}")

@@ -187,7 +187,7 @@ const NominateForm: React.FC<{
       </h3>
 
       <p style={{ color: '#9ca3af', fontSize: '0.8rem', margin: '0 0 1rem 0', lineHeight: 1.5 }}>
-        Become the editor for your kingdom's Transfer Board listing.
+        Become the editor for your kingdom's Transfer Hub listing.
         As editor, you control recruitment settings, review applications, and manage your kingdom's public profile.
       </p>
 
@@ -336,7 +336,7 @@ const PendingClaimView: React.FC<{
     }
   };
 
-  const shareLink = `${window.location.origin}/transfer-board?endorse=${claim.id}`;
+  const shareLink = `${window.location.origin}/transfer-hub?endorse=${claim.id}`;
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(shareLink);
@@ -657,7 +657,7 @@ const EditorClaiming: React.FC<{
             Active Editor — Kingdom {myClaim.kingdom_number}
           </span>
           <p style={{ color: '#6b7280', fontSize: '0.7rem', margin: '0.2rem 0 0 0' }}>
-            You manage this kingdom's Transfer Board listing.
+            You manage this kingdom's Transfer Hub listing.
           </p>
         </div>
         <span style={{

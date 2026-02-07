@@ -248,47 +248,45 @@ const KvKCountdown: React.FC<KvKCountdownProps> = ({ compact = false, navbar = f
     );
   }
 
-  // Full variant - both events
-  const renderEventCard = (status: EventStatus, title: string) => {
+  // Full variant - renders one or both events depending on type prop
+  const renderEventCard = (status: EventStatus, title: string, singleMode = false) => {
     const isLive = status.phase !== 'countdown';
     
     return (
-      <div style={{ marginBottom: '1.5rem' }}>
+      <div style={{ marginBottom: singleMode ? 0 : '1.5rem' }}>
         <div style={{ 
           display: 'flex', 
           alignItems: 'center', 
-          justifyContent: 'space-between',
-          marginBottom: '1rem'
+          justifyContent: 'center',
+          marginBottom: singleMode ? '0.5rem' : '1rem',
+          gap: '0.5rem',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ fontSize: '1.5rem' }}>{status.icon}</span>
-            <div>
-              <h3 style={{ margin: 0, color: '#fff', fontSize: '1rem', fontWeight: '600' }}>
-                {title} #{status.eventNumber}
-              </h3>
-              <div style={{ 
-                color: status.color, 
-                fontSize: '0.8rem',
-                fontWeight: '500'
-              }}>
-                {status.phaseName}
-                {isLive && (
-                  <span style={{ 
-                    marginLeft: '0.5rem',
-                    padding: '0.15rem 0.4rem',
-                    backgroundColor: `${status.color}20`,
-                    borderRadius: '4px',
-                    fontSize: '0.7rem'
-                  }}>
-                    LIVE
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
+          <span style={{ fontSize: singleMode ? '1rem' : '1.5rem' }}>{status.icon}</span>
+          <h3 style={{ margin: 0, color: '#fff', fontSize: singleMode ? '0.85rem' : '1rem', fontWeight: '600' }}>
+            {title} #{status.eventNumber}
+          </h3>
+          <span style={{ 
+            color: status.color, 
+            fontSize: singleMode ? '0.7rem' : '0.8rem',
+            fontWeight: '500'
+          }}>
+            {status.phaseName}
+          </span>
+          {isLive && (
+            <span style={{ 
+              padding: '0.1rem 0.35rem',
+              backgroundColor: `${status.color}20`,
+              borderRadius: '4px',
+              fontSize: '0.65rem',
+              color: status.color,
+              fontWeight: '600',
+            }}>
+              LIVE
+            </span>
+          )}
         </div>
 
-        <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
+        <div style={{ display: 'flex', gap: singleMode ? '0.5rem' : '0.75rem', justifyContent: 'center' }}>
           {[
             { value: status.timeLeft.days, label: 'Days' },
             { value: status.timeLeft.hours, label: 'Hours' },
@@ -297,14 +295,14 @@ const KvKCountdown: React.FC<KvKCountdownProps> = ({ compact = false, navbar = f
           ].map((item, i) => (
             <div key={i} style={{
               backgroundColor: '#1a1a20',
-              borderRadius: '10px',
-              padding: '0.75rem 1rem',
-              minWidth: '60px',
+              borderRadius: singleMode ? '8px' : '10px',
+              padding: singleMode ? '0.4rem 0.6rem' : '0.75rem 1rem',
+              minWidth: singleMode ? '48px' : '60px',
               textAlign: 'center',
               border: isLive ? `1px solid ${status.color}30` : 'none'
             }}>
               <div style={{
-                fontSize: '1.5rem',
+                fontSize: singleMode ? '1.1rem' : '1.5rem',
                 fontWeight: '700',
                 color: status.color,
                 fontFamily: 'monospace',
@@ -312,7 +310,7 @@ const KvKCountdown: React.FC<KvKCountdownProps> = ({ compact = false, navbar = f
               }}>
                 {formatNumber(item.value)}
               </div>
-              <div style={{ fontSize: '0.65rem', color: '#6b7280', textTransform: 'uppercase' }}>
+              <div style={{ fontSize: '0.6rem', color: '#6b7280', textTransform: 'uppercase' }}>
                 {item.label}
               </div>
             </div>
@@ -322,6 +320,36 @@ const KvKCountdown: React.FC<KvKCountdownProps> = ({ compact = false, navbar = f
     );
   };
 
+  // Single-event mode: render only the specified type with a lighter wrapper
+  if (type === 'transfer') {
+    return (
+      <div style={{
+        backgroundColor: '#131318',
+        borderRadius: '12px',
+        border: '1px solid #2a2a2a',
+        padding: '0.75rem 1rem',
+        display: 'inline-block',
+      }}>
+        {renderEventCard(transferStatus, 'Transfer', true)}
+      </div>
+    );
+  }
+
+  if (type === 'kvk') {
+    return (
+      <div style={{
+        backgroundColor: '#131318',
+        borderRadius: '12px',
+        border: '1px solid #2a2a2a',
+        padding: '0.75rem 1rem',
+        display: 'inline-block',
+      }}>
+        {renderEventCard(kvkStatus, 'KvK', true)}
+      </div>
+    );
+  }
+
+  // Default: both events
   return (
     <div style={{
       backgroundColor: '#131318',

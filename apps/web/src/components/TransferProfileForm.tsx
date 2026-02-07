@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { supabase } from '../lib/supabase';
-import { neonGlow, FONT_DISPLAY } from '../utils/styles';
+import { neonGlow, FONT_DISPLAY, colors } from '../utils/styles';
 
 // =============================================
 // TYPES
@@ -36,7 +36,7 @@ interface ExistingProfile extends TransferProfileData {
 // =============================================
 
 const POWER_RANGE_OPTIONS = [
-  '10M-50M', '50M-100M', '100M-200M', '200M-500M', '500M-1B', '1B+',
+  '0 - 50M', '50 - 100M', '100 - 150M', '150 - 200M', '200 - 250M', '250 - 300M', '300 - 500M', '500 - 750M', '750 - 1,000M', '1,000M+',
 ];
 
 const LANGUAGE_OPTIONS = [
@@ -53,11 +53,13 @@ const KVK_PARTICIPATION_OPTIONS = [
 
 const LOOKING_FOR_OPTIONS = [
   { value: 'active_kvk', label: 'Active KvK' },
-  { value: 'casual', label: 'Casual' },
-  { value: 'social', label: 'Social' },
   { value: 'competitive', label: 'Competitive' },
-  { value: 'growing', label: 'Growing Kingdom' },
+  { value: 'alliance_events', label: 'Alliance Events' },
+  { value: 'growth', label: 'Growing Kingdom' },
   { value: 'established', label: 'Established Kingdom' },
+  { value: 'social', label: 'Social Community' },
+  { value: 'war_focused', label: 'War Focused' },
+  { value: 'farm_friendly', label: 'Farm Friendly' },
 ];
 
 const GROUP_SIZE_OPTIONS = [
@@ -165,7 +167,7 @@ const TransferProfileForm: React.FC<{
       ...prev,
       looking_for: prev.looking_for.includes(value)
         ? prev.looking_for.filter((v) => v !== value)
-        : prev.looking_for.length < 4 ? [...prev.looking_for, value] : prev.looking_for,
+        : prev.looking_for.length < 8 ? [...prev.looking_for, value] : prev.looking_for,
     }));
   };
 
@@ -275,16 +277,16 @@ const TransferProfileForm: React.FC<{
   const inputStyle: React.CSSProperties = {
     width: '100%',
     padding: '0.6rem 0.75rem',
-    backgroundColor: '#0a0a0a',
-    border: '1px solid #2a2a2a',
+    backgroundColor: colors.bg,
+    border: `1px solid ${colors.border}`,
     borderRadius: '8px',
-    color: '#fff',
-    fontSize: '0.85rem',
+    color: colors.text,
+    fontSize: isMobile ? '1rem' : '0.85rem',
     minHeight: '44px',
   };
 
   const labelStyle: React.CSSProperties = {
-    color: '#9ca3af',
+    color: colors.textSecondary,
     fontSize: '0.75rem',
     fontWeight: '500',
     marginBottom: '0.35rem',
@@ -293,14 +295,14 @@ const TransferProfileForm: React.FC<{
 
   const chipStyle = (active: boolean): React.CSSProperties => ({
     padding: '0.35rem 0.75rem',
-    backgroundColor: active ? '#22d3ee15' : '#0a0a0a',
-    border: `1px solid ${active ? '#22d3ee50' : '#2a2a2a'}`,
+    backgroundColor: active ? `${colors.primary}15` : colors.bg,
+    border: `1px solid ${active ? `${colors.primary}50` : colors.border}`,
     borderRadius: '8px',
-    color: active ? '#22d3ee' : '#6b7280',
+    color: active ? colors.primary : colors.textSecondary,
     fontSize: '0.75rem',
     cursor: 'pointer',
     fontWeight: active ? '600' : '400',
-    minHeight: '36px',
+    minHeight: '44px',
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -308,7 +310,7 @@ const TransferProfileForm: React.FC<{
 
   if (!user) {
     return (
-      <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
+      <div style={{ textAlign: 'center', padding: '2rem', color: colors.textSecondary }}>
         <p>You must be signed in to create a transfer profile.</p>
       </div>
     );
@@ -317,10 +319,10 @@ const TransferProfileForm: React.FC<{
   if (!profile?.linked_player_id) {
     return (
       <div style={{ textAlign: 'center', padding: '2rem' }}>
-        <p style={{ color: '#f59e0b', fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem' }}>
+        <p style={{ color: colors.warning, fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem' }}>
           Link Your Kingshot Account First
         </p>
-        <p style={{ color: '#6b7280', fontSize: '0.85rem', marginBottom: '1rem' }}>
+        <p style={{ color: colors.textSecondary, fontSize: '0.85rem', marginBottom: '1rem' }}>
           You need to link your Kingshot account before creating a transfer profile. This ensures your kingdom and TC level are verified.
         </p>
         <a
@@ -330,10 +332,10 @@ const TransferProfileForm: React.FC<{
             alignItems: 'center',
             gap: '0.4rem',
             padding: '0.6rem 1.25rem',
-            backgroundColor: '#22d3ee15',
-            border: '1px solid #22d3ee40',
+            backgroundColor: `${colors.primary}15`,
+            border: `1px solid ${colors.primary}40`,
             borderRadius: '8px',
-            color: '#22d3ee',
+            color: colors.primary,
             fontSize: '0.85rem',
             fontWeight: '600',
             textDecoration: 'none',
@@ -347,7 +349,7 @@ const TransferProfileForm: React.FC<{
 
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
+      <div style={{ textAlign: 'center', padding: '2rem', color: colors.textSecondary }}>
         Loading...
       </div>
     );
@@ -371,10 +373,11 @@ const TransferProfileForm: React.FC<{
     >
       <div
         style={{
-          backgroundColor: '#111111',
-          border: '1px solid #2a2a2a',
+          backgroundColor: colors.surface,
+          border: `1px solid ${colors.border}`,
           borderRadius: isMobile ? '16px 16px 0 0' : '16px',
-          padding: isMobile ? '1.25rem' : '1.5rem',
+          padding: isMobile ? '1.25rem 1rem' : '1.5rem',
+          paddingBottom: isMobile ? 'max(1.25rem, env(safe-area-inset-bottom))' : '1.5rem',
           maxWidth: '600px',
           width: '100%',
           maxHeight: isMobile ? '90vh' : '85vh',
@@ -389,12 +392,12 @@ const TransferProfileForm: React.FC<{
             <h2 style={{
               fontFamily: FONT_DISPLAY,
               fontSize: isMobile ? '1.1rem' : '1.25rem',
-              color: '#fff',
+              color: colors.text,
               margin: 0,
             }}>
-              {existingProfile ? 'Edit' : 'Create'} <span style={{ ...neonGlow('#22d3ee') }}>Transfer Profile</span>
+              {existingProfile ? 'Edit' : 'Create'} <span style={{ ...neonGlow(colors.primary) }}>Transfer Profile</span>
             </h2>
-            <p style={{ color: '#6b7280', fontSize: '0.75rem', margin: '0.25rem 0 0 0' }}>
+            <p style={{ color: colors.textSecondary, fontSize: '0.75rem', margin: '0.25rem 0 0 0' }}>
               This is what kingdoms will see when reviewing your application
             </p>
           </div>
@@ -428,7 +431,7 @@ const TransferProfileForm: React.FC<{
           marginBottom: '1rem',
         }}>
           <span style={{ color: '#22d3ee', fontSize: '0.7rem', fontWeight: 'bold' }}>AUTO-FILLED FROM LINKED ACCOUNT</span>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', marginTop: '0.5rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(3, 1fr)', gap: '0.5rem', marginTop: '0.5rem' }}>
             <div>
               <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>Username</span>
               <div style={{ color: '#fff', fontSize: '0.85rem', fontWeight: '600' }}>{formData.username || '—'}</div>
@@ -568,7 +571,7 @@ const TransferProfileForm: React.FC<{
 
           {/* Looking For */}
           <div>
-            <label style={labelStyle}>What I'm Looking For * (up to 4)</label>
+            <label style={labelStyle}>What I'm Looking For * (up to 8)</label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
               {LOOKING_FOR_OPTIONS.map((opt) => (
                 <button

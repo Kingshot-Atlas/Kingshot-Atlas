@@ -61,6 +61,12 @@
     <priority>0.4</priority>
   </url>
   <url>
+    <loc>https://ks-atlas.com/atlas-bot</loc>
+    <lastmod>2026-02-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://ks-atlas.com/kingdom/1</loc>
     <lastmod>2026-02-07</lastmod>
     <changefreq>weekly</changefreq>

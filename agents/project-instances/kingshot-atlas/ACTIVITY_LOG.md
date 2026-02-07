@@ -7,6 +7,102 @@
 
 ## Log Entries
 
+## 2026-02-07 06:50 | Platform Engineer | COMPLETED
+Task: Discord Bot — Bug fixes (state flag race condition) + Security hardening
+Files: `apps/discord-bot/src/bot.js`
+Result:
+  **Bug Fixes (2):**
+  1. `deferReply`: Moved `interaction.deferred = true` AFTER HTTP success check. Previously set before `if (!resp.ok)`, causing error handler to incorrectly call `editReply` on failed defers (users got no error feedback).
+  2. `reply`: Same fix — moved `interaction.replied = true` AFTER HTTP success check. Same broken error recovery pattern.
+  **Security Hardening (4 fixes from /securitytest audit):**
+  1. `/diagnostic` endpoint now requires `DIAGNOSTIC_API_KEY` env var (query param or header). Was publicly exposing bot ID, guild ID, registered commands, token metadata.
+  2. Removed token fragment logging on startup (was logging first 10 + last 5 chars). Now logs only "present (N chars)".
+  3. Removed `tokenLength`, `tokenSource`, `tokenBotId`, `tokenMatchesClientId`, `configClientId`, `configGuildId`, `lastCommandDebug` from public `/health` endpoint. Moved to auth-protected `/diagnostic`.
+  4. `/health` slimmed to operational-only data (connection status, errors, interaction count).
+  **Security Score: 78/100** — No critical vulns. Moderate `undici` CVE in discord.js (no fix available). Build verified ✅.
+
+## 2026-02-07 04:30 | Product | COMPLETED
+Task: Transfer Hub remaining features batch (items 47-57)
+Files: RecruiterDashboard.tsx, TransferBoard.tsx, Supabase Edge Functions, Supabase migrations
+Result:
+  1. Recruiter Dashboard — New "Profile" tab with full editing UI for: recruitment pitch, what we offer/want, min TC level, min power range, main language, secondary languages, event times (UTC), contact link, recruitment tags (16 options)
+  2. Tier info panel — shows all 4 tiers (Standard/Bronze/Silver/Gold) with costs and features, highlights current tier
+  3. ProfileField wrapper — tier-gated fields with "Bronze+ Required" / "Silver+ Required" / "Gold Required" badges, locked state for lower tiers
+  4. Co-editor assignment UI — primary editors can invite co-editors by user ID (validates kingdom link, TC20+, duplicate check, reactivation)
+  5. Application auto-expiry — deployed `expire-transfer-applications` Edge Function + daily cron at 06:00 UTC via pg_cron
+  6. Contribution success overlay — replaced toast with dedicated overlay showing checkmark, thank you message, and "What happens next?" steps
+  7. RLS policies audit — added 3 new policies: `kingdom_funds_update_editor` (editors can update listing profile), `editors_insert_coeditor` (primary editors can add co-editors), `editors_update_coeditor` (primary editors can update co-editor status)
+  8. Build verified ✅
+
+## 2026-02-07 03:00 | Product | COMPLETED
+Task: Transfer Hub nav polish + access gate fix + subtitle update
+Files: Header.tsx, TransferBoard.tsx
+Result:
+  1. Removed "Soon" badge from Transfer Hub button (desktop + mobile nav)
+  2. Replaced icon with proper bi-directional transfer arrows (← →)
+  3. Fixed access gate: now checks all Discord metadata fields (full_name, name, preferred_username) + profile fields (discord_username, linked_username, username) — was failing because Discord doesn't populate user_metadata.username
+  4. Updated subtitle: "Find the perfect kingdom for you — or the best recruits."
+  5. Build verified ✅
+
+## 2026-02-07 02:45 | Product | COMPLETED
+Task: Transfer Hub rename + owner-only access gate + hero subtitle update
+Files: TransferBoard.tsx, Header.tsx, EditorClaiming.tsx, RecruiterDashboard.tsx, App.tsx
+Result:
+  1. Renamed Transfer Board → Transfer Hub across entire codebase (routes, nav, localStorage keys, analytics, share links, editor claiming text)
+  2. URL changed from /transfer-board to /transfer-hub (legacy /transfer-board route kept as redirect)
+  3. Owner-only access gate: non-admin users see "Coming soon" private beta page with back link
+  4. Hero subtitle: "No more blind transfers." + "Find your next kingdom — or find your next star player."
+  5. Build verified ✅
+
+## 2026-02-07 02:30 | Product + Platform | COMPLETED
+Task: Transfer Board — KvK countdown removal, backend payment pipeline, UX polish
+Files: KvKCountdown.tsx, TransferBoard.tsx, RecruiterDashboard.tsx, stripe.py, supabase_client.py, Supabase Edge Function (deplete-kingdom-funds)
+Result:
+  1. KvKCountdown: Split full variant to respect `type` prop — renders only specified event with compact layout
+  2. TransferBoard: Removed KvK countdown, kept Transfer-only compact countdown in hero
+  3. Backend: Added credit_kingdom_fund() Supabase helper + handle_kingdom_fund_payment() webhook handler
+  4. Supabase: Deployed deplete-kingdom-funds Edge Function + pg_cron weekly schedule (Mon 00:00 UTC, $5/week)
+  5. UX: Infinite scroll (IntersectionObserver, 20 items/batch), loading skeleton cards, toast notifications
+  6. Replaced alert() with useToast in RecruiterDashboard, added ?contributed=true success flow
+  7. Build verified ✅
+
+## 2026-02-07 02:10 | Ops Lead | COMPLETED
+Task: Atlas Bot SEO — meta tags + sitemap coverage
+Files: useMetaTags.ts, generate-sitemap.js, AtlasBot.tsx
+Result:
+  1. Added `atlasBot` entry to PAGE_META_TAGS constant in useMetaTags.ts
+  2. Updated AtlasBot.tsx to use PAGE_META_TAGS.atlasBot instead of inline meta
+  3. Added /atlas-bot to sitemap generator (priority 0.6, monthly changefreq)
+  4. Sitemap now 11 static pages, 1212 total URLs
+  5. Build verified ✅
+
+## 2026-02-07 01:57 | Design Lead + Product Engineer | COMPLETED
+Task: Atlas Tools page rename + dedicated Atlas Bot page
+Files: AtlasBot.tsx (NEW), Tools.tsx, App.tsx, Header.tsx, FEATURES_IMPLEMENTED.md
+Result: 
+  1. Renamed "Domination Tools" → "ATLAS TOOLS" with consistent two-tone styling
+  2. Created dedicated /atlas-bot page with hero, how-it-works, slash commands, features, invite CTAs
+  3. Added Atlas Discord Bot as first tool card on Tools page (links to /atlas-bot)
+  4. Updated Header nav: Tools dropdown "Atlas Discord Bot" now links to /atlas-bot (was direct invite URL)
+  5. Added Atlas Bot link to mobile Tools submenu
+  6. Build verified ✅
+
+## 2026-02-06 21:45 | Platform Engineer | COMPLETED
+Task: Discord Bot Cloudflare Error 1015 IP Ban Fix — Bot unable to connect for 24+ hours
+Root Cause: Cloudflare WAF Error 1015 banning Render's IP (74.220.49.253) due to restart-hammer cycle.
+  Each restart made 3+ Discord API calls (login + command registration + diagnostic probes).
+  /diagnostic endpoint made 3 LIVE Discord API calls per hit, compounding the ban.
+  Login retries were too aggressive (1-5 min), never letting the ban expire (typically 15-30 min).
+Fix Applied:
+  1. Skip command registration on startup (commands persist in Discord) — saves 2 API calls/boot
+  2. Cache /diagnostic endpoint for 10 min — stops it from burning rate-limit budget
+  3. Increase login retry backoff from 1-5min to 5-30min — lets Cloudflare bans expire
+  4. Add STARTUP_DELAY_SECONDS env var — optional safety valve for future ban cycles
+Files:
+  - `apps/discord-bot/src/bot.js` — All 4 fixes
+  - `apps/discord-bot/render.yaml` — Document new env vars
+Result: API calls per restart reduced from 6+ to 1 (just GET /gateway/bot). Retry delays long enough for bans to expire.
+
 ## 2026-02-06 20:45 | Design Lead | COMPLETED
 Task: Fix mobile tier tooltip — was spawning above and getting cut off, showed full tier list
 Files:

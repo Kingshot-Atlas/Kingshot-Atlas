@@ -25,7 +25,7 @@
 | Kingdom Directory | `/` | ✅ Live | Product | Main listing with search, filters, sorting |
 | Kingdom Profile | `/kingdom/:id` | ✅ Live | Product | Full kingdom details, stats, history |
 | Compare Kingdoms | `/compare` | ✅ Live | Product | Side-by-side comparison with radar charts |
-| Tools | `/tools` | ✅ Live | Product | Score simulator, event calendar |
+| Tools | `/tools` | ✅ Live | Product | Atlas Tools page — renamed from Domination Tools (2026-02-07) |
 | Rankings | `/rankings` | ✅ Live | Product | Multi-category rankings (renamed from /leaderboards 2026-02-06) |
 | User Profile | `/profile` | ✅ Live | Product | User settings, linked accounts, achievements |
 | Public Profiles | `/profile/:userId` | ✅ Live | Product | View other users' profiles |
@@ -34,6 +34,7 @@
 | Admin Dashboard | `/admin` | ✅ Live | Platform | Data management, submissions review |
 | Support Atlas | `/support`, `/upgrade`, `/pro` | ✅ Live | Business | Community support page (formerly Upgrade) |
 | Changelog | `/changelog` | ✅ Live | Release | Version history and updates |
+| Atlas Bot | `/atlas-bot` | ✅ Live | Design + Product | Dedicated Atlas Discord Bot page with commands, features, invite CTA (2026-02-07) |
 | Transfer Board | `/transfer-board` | 🔨 In Progress | Product + Business | Kingdom listings, transfer profiles, applications. Coming Soon tag. (2026-02-06) |
 
 ---
@@ -355,14 +356,21 @@
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Transfer Board — Transfer Profile Form | ✅ Built | Player-created transfer cards with auto-fill from linked account, validation, Supabase upsert (2026-02-06) |
-| Transfer Board — Application System | ✅ Built | Apply modal with 3-slot visualization, MyApplicationsTracker, withdraw, status tracking (2026-02-06) |
-| Transfer Board — Recruiter Dashboard | ✅ Built | Full-screen modal: inbox with status actions, team view, fund overview, recruiting toggle (2026-02-06) |
-| Transfer Board — Kingdom Fund (Stripe) | 🚧 Planned | Community contributions, tiered benefits, fund depletion — Stripe integration pending |
-| Transfer Board — Editor Claiming | ✅ Built | Nominate form with TC20+ check, endorsement progress bar, share link, endorse button (2026-02-06) |
+| Transfer Hub — Access Gate | ✅ Built | Owner-only access during pre-launch. Non-admin users see "Coming soon" page with back link. Rename from Transfer Board → Transfer Hub, URL /transfer-hub (2026-02-07) |
+| Transfer Hub — Transfer Profile Form | ✅ Built | Player-created transfer cards with auto-fill from linked account, validation, Supabase upsert (2026-02-06) |
+| Transfer Hub — Application System | ✅ Built | Apply modal with 3-slot visualization, MyApplicationsTracker, withdraw, status tracking (2026-02-06) |
+| Transfer Hub — Recruiter Dashboard | ✅ Built | Full-screen modal: inbox with status actions, team view, fund overview, recruiting toggle. Profile tab with tier-gated editing for pitch, offer/want, min requirements, event times, languages, contact link, recruitment tags (2026-02-07) |
+| Transfer Hub — Kingdom Fund (Stripe) | ✅ Built | Full pipeline: Stripe product/prices/payment links, KingdomFundContribute modal, webhook handler (credit_kingdom_fund), weekly depletion Edge Function cron, tier auto-upgrade, dedicated contribution success overlay (2026-02-07) |
+| Transfer Hub — Editor Claiming | ✅ Built | Nominate form with TC20+ check, endorsement progress bar, share link, endorse button (2026-02-06) |
+| Transfer Hub — Tier Info Display | ✅ Built | 4-tier breakdown (Standard/Bronze/Silver/Gold) with costs, features, and current tier highlight in Recruiter Dashboard Profile tab (2026-02-07) |
+| Transfer Hub — Co-Editor Assignment | ✅ Built | Primary editors can invite co-editors by user ID with kingdom link validation, TC20+ check, duplicate detection, reactivation support (2026-02-07) |
+| Transfer Hub — Application Auto-Expiry | ✅ Built | Edge Function `expire-transfer-applications` expires pending/viewed/interested apps past `expires_at`. Cron runs daily at 06:00 UTC via pg_cron (2026-02-07) |
+| Transfer Hub — RLS Policies | ✅ Built | 3 new policies: editor UPDATE on kingdom_funds (profile editing), editor INSERT on kingdom_editors (co-editor invites), editor UPDATE on kingdom_editors (co-editor management). Full audit on all 6 tables (2026-02-07) |
 | Kingdom Ambassador Program | 🚧 Planned | Full spec at `/docs/KINGDOM_AMBASSADOR_PROGRAM.md` — 3-phase rollout, 1 per kingdom, referral tracking |
 | FilterPanel Integration | 🚧 Planned | Component exists, needs wiring to KingdomDirectory |
 | Mobile Responsive Pass | ✅ Live | 2026-02-05 - Touch targets fixed to 44px min on Header, KingdomProfile, CompareKingdoms, Leaderboards, KingdomCard, KingdomReviews, KvKHistoryTable, SupportAtlas, Profile |
+| Transfer Hub Mobile UX Pass | ✅ Built | Bottom-sheet modals, 44px touch targets, iOS zoom prevention (16px inputs), 2-col grid on mobile, safe area insets across all Transfer Hub components (2026-02-07) |
+| Transfer Hub — Infinite Scroll | ✅ Built | IntersectionObserver-based infinite scroll for standard listings, loading skeletons, spinner sentinel (2026-02-07) |
 | Component Refactoring | 🚧 Planned | KingdomCard, ProfileFeatures too large |
 | Multi-Kingdom Share/Export | 🚧 Planned | ShareButton still uses 2-kingdom format |
 

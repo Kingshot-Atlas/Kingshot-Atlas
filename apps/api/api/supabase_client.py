@@ -618,6 +618,93 @@ def get_webhook_stats() -> dict:
         return {"total_24h": 0, "processed": 0, "failed": 0, "failure_rate": 0, "health": "unknown"}
 
 
+def credit_kingdom_fund(
+    kingdom_number: int,
+    amount: float,
+    user_id: Optional[str] = None,
+    stripe_payment_intent_id: Optional[str] = None,
+) -> bool:
+    """
+    Credit a kingdom fund balance and log the contribution.
+    Also recalculates the fund tier based on new balance.
+
+    Args:
+        kingdom_number: The kingdom to credit
+        amount: Dollar amount to add
+        user_id: Supabase user ID of contributor (optional for anonymous)
+        stripe_payment_intent_id: Stripe payment intent ID for tracking
+
+    Returns:
+        True if successful
+    """
+    client = get_supabase_admin()
+    if not client:
+        print(f"WARNING: Supabase not configured, cannot credit fund for kingdom {kingdom_number}")
+        return False
+
+    try:
+        # 1. Get or create the kingdom fund record
+        fund_result = client.table("kingdom_funds").select("kingdom_number, balance").eq(
+            "kingdom_number", kingdom_number
+        ).limit(1).execute()
+
+        if fund_result.data and len(fund_result.data) > 0:
+            current_balance = float(fund_result.data[0].get("balance", 0))
+            new_balance = current_balance + amount
+            new_tier = _calculate_fund_tier(new_balance)
+
+            client.table("kingdom_funds").update({
+                "balance": new_balance,
+                "tier": new_tier,
+            }).eq("kingdom_number", kingdom_number).execute()
+        else:
+            # Create new fund record
+            new_balance = amount
+            new_tier = _calculate_fund_tier(new_balance)
+
+            client.table("kingdom_funds").insert({
+                "kingdom_number": kingdom_number,
+                "balance": new_balance,
+                "tier": new_tier,
+                "is_recruiting": False,
+                "recruitment_tags": [],
+                "secondary_languages": [],
+                "event_times": [],
+                "highlighted_stats": [],
+                "banner_theme": "default",
+            }).execute()
+
+        # 2. Log the contribution
+        contribution_data = {
+            "kingdom_number": kingdom_number,
+            "amount": amount,
+        }
+        if user_id:
+            contribution_data["user_id"] = user_id
+        if stripe_payment_intent_id:
+            contribution_data["stripe_payment_intent_id"] = stripe_payment_intent_id
+
+        client.table("kingdom_fund_contributions").insert(contribution_data).execute()
+
+        print(f"Credited kingdom {kingdom_number} fund: +${amount} -> ${new_balance} (tier: {new_tier})")
+        return True
+
+    except Exception as e:
+        print(f"Error crediting kingdom fund {kingdom_number}: {e}")
+        return False
+
+
+def _calculate_fund_tier(balance: float) -> str:
+    """Calculate fund tier based on balance."""
+    if balance >= 100:
+        return "gold"
+    elif balance >= 50:
+        return "silver"
+    elif balance >= 25:
+        return "bronze"
+    return "standard"
+
+
 def get_users_with_linked_kingshot_and_discord() -> list:
     """
     Get all users who have both a linked Kingshot account AND a Discord account.

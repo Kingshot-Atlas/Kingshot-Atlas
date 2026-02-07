@@ -3,7 +3,22 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { supabase } from '../lib/supabase';
-import { FONT_DISPLAY, neonGlow } from '../utils/styles';
+import { neonGlow, FONT_DISPLAY, colors } from '../utils/styles';
+import { useToast } from './Toast';
+
+// =============================================
+// CONSTANTS
+// =============================================
+
+// Helper function to convert TC level to TG level
+const getTGLevel = (tcLevel: number): string => {
+  if (tcLevel < 35) return 'TG0';
+  if (tcLevel < 40) return 'TG1';
+  if (tcLevel < 45) return 'TG2';
+  if (tcLevel < 50) return 'TG3';
+  if (tcLevel < 55) return 'TG4';
+  return 'TG5+';
+};
 
 // =============================================
 // TYPES
@@ -61,42 +76,76 @@ interface FundInfo {
   balance: number;
   tier: string;
   is_recruiting: boolean;
+  recruitment_pitch: string | null;
+  what_we_offer: string | null;
+  what_we_want: string | null;
+  min_tc_level: number | null;
+  min_power_range: string | null;
+  main_language: string | null;
+  secondary_languages: string[];
+  event_times: Array<{ start: string; end: string }>;
+  contact_link: string | null;
+  recruitment_tags: string[];
+  highlighted_stats: string[];
 }
+
+const LANGUAGE_OPTIONS = [
+  'English', 'Spanish', 'Portuguese', 'Arabic', 'Turkish', 'French', 'German',
+  'Russian', 'Chinese', 'Japanese', 'Korean', 'Indonesian', 'Thai', 'Vietnamese', 'Other',
+];
+
+const POWER_RANGE_OPTIONS = [
+  'Any', '0 - 50M', '50 - 100M', '100 - 150M', '150 - 200M', '200 - 250M', '250 - 300M', '300 - 500M', '500 - 750M', '750 - 1,000M', '1,000M+',
+];
+
+const RECRUITMENT_TAG_OPTIONS = [
+  'Active KvK', 'Casual Friendly', 'Competitive', 'English Speaking',
+  'Spanish Speaking', 'Portuguese Speaking', 'Arabic Speaking', 'Turkish Speaking',
+  'Looking for TC25+', 'Looking for TC20+', 'Growing Kingdom', 'Established Kingdom',
+  'Active Alliances', 'Social Community', 'War Focused', 'Farm Friendly',
+];
+
+const TIER_INFO = [
+  { tier: 'Standard', cost: '$0', color: '#4b5563', features: ['Basic listing with performance data', 'Community reviews'] },
+  { tier: 'Bronze', cost: '$25+', color: '#cd7f32', features: ['Recruitment tags', 'Min requirements display', 'Contact link'] },
+  { tier: 'Silver', cost: '$50+', color: '#9ca3af', features: ['Everything in Bronze', 'Recruitment pitch', 'Language info', 'Event times'] },
+  { tier: 'Gold', cost: '$100+', color: '#fbbf24', features: ['Everything in Silver', '"What We Offer / Want" sections', 'Highlighted stats', 'Gold glow effect'] },
+];
 
 const STATUS_ACTIONS: Record<string, { next: string[]; colors: Record<string, { bg: string; border: string; text: string }> }> = {
   pending: {
     next: ['viewed', 'interested', 'declined'],
     colors: {
-      viewed: { bg: '#3b82f615', border: '#3b82f640', text: '#3b82f6' },
-      interested: { bg: '#a855f715', border: '#a855f740', text: '#a855f7' },
-      declined: { bg: '#ef444415', border: '#ef444440', text: '#ef4444' },
+      viewed: { bg: `${colors.blue}15`, border: `${colors.blue}40`, text: colors.blue },
+      interested: { bg: `${colors.purple}15`, border: `${colors.purple}40`, text: colors.purple },
+      declined: { bg: `${colors.error}15`, border: `${colors.error}40`, text: colors.error },
     },
   },
   viewed: {
     next: ['interested', 'accepted', 'declined'],
     colors: {
-      interested: { bg: '#a855f715', border: '#a855f740', text: '#a855f7' },
-      accepted: { bg: '#22c55e15', border: '#22c55e40', text: '#22c55e' },
-      declined: { bg: '#ef444415', border: '#ef444440', text: '#ef4444' },
+      interested: { bg: `${colors.purple}15`, border: `${colors.purple}40`, text: colors.purple },
+      accepted: { bg: `${colors.success}15`, border: `${colors.success}40`, text: colors.success },
+      declined: { bg: `${colors.error}15`, border: `${colors.error}40`, text: colors.error },
     },
   },
   interested: {
     next: ['accepted', 'declined'],
     colors: {
-      accepted: { bg: '#22c55e15', border: '#22c55e40', text: '#22c55e' },
-      declined: { bg: '#ef444415', border: '#ef444440', text: '#ef4444' },
+      accepted: { bg: `${colors.success}15`, border: `${colors.success}40`, text: colors.success },
+      declined: { bg: `${colors.error}15`, border: `${colors.error}40`, text: colors.error },
     },
   },
 };
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  pending: { label: 'Pending', color: '#eab308' },
-  viewed: { label: 'Viewed', color: '#3b82f6' },
-  interested: { label: 'Interested', color: '#a855f7' },
-  accepted: { label: 'Accepted', color: '#22c55e' },
-  declined: { label: 'Declined', color: '#ef4444' },
-  withdrawn: { label: 'Withdrawn', color: '#6b7280' },
-  expired: { label: 'Expired', color: '#4b5563' },
+  pending: { label: 'Pending', color: colors.warning },
+  viewed: { label: 'Viewed', color: colors.blue },
+  interested: { label: 'Interested', color: colors.purple },
+  accepted: { label: 'Accepted', color: colors.success },
+  declined: { label: 'Declined', color: colors.error },
+  withdrawn: { label: 'Withdrawn', color: colors.textSecondary },
+  expired: { label: 'Expired', color: colors.textMuted },
 };
 
 // =============================================
@@ -127,7 +176,7 @@ const ApplicationCard: React.FC<{
 
   return (
     <div style={{
-      backgroundColor: '#0a0a0a',
+      backgroundColor: colors.bg,
       border: `1px solid ${statusInfo.color}25`,
       borderRadius: '10px',
       overflow: 'hidden',
@@ -146,12 +195,12 @@ const ApplicationCard: React.FC<{
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, minWidth: 0 }}>
-          <span style={{ color: '#fff', fontWeight: '600', fontSize: '0.85rem' }}>
+          <span style={{ color: colors.text, fontWeight: '600', fontSize: '0.85rem' }}>
             {profile?.username || 'Unknown Player'}
           </span>
           {profile && (
-            <span style={{ color: '#6b7280', fontSize: '0.7rem' }}>
-              K{profile.current_kingdom} • TC{profile.tc_level} • {profile.power_range}
+            <span style={{ color: colors.textSecondary, fontSize: '0.7rem' }}>
+              K{profile.current_kingdom} • {getTGLevel(profile.tc_level)} • {profile.power_range}
             </span>
           )}
           <span style={{
@@ -275,7 +324,10 @@ const ApplicationCard: React.FC<{
                       cursor: updating === application.id ? 'not-allowed' : 'pointer',
                       opacity: updating === application.id ? 0.5 : 1,
                       textTransform: 'capitalize',
-                      minHeight: '36px',
+                      minHeight: '44px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
                     }}
                   >
                     {updating === application.id ? '...' : nextStatus === 'viewed' ? 'Mark Viewed' : nextStatus.charAt(0).toUpperCase() + nextStatus.slice(1)}
@@ -291,6 +343,74 @@ const ApplicationCard: React.FC<{
 };
 
 // =============================================
+// SHARED STYLES
+// =============================================
+
+const inputStyle: React.CSSProperties = {
+  padding: '0.5rem 0.75rem',
+  backgroundColor: '#0a0a0a',
+  border: '1px solid #2a2a2a',
+  borderRadius: '8px',
+  color: '#fff',
+  fontSize: '0.8rem',
+  outline: 'none',
+  width: '100%',
+  minHeight: '44px',
+  boxSizing: 'border-box' as const,
+};
+
+const TIER_ORDER = ['standard', 'bronze', 'silver', 'gold'];
+
+// =============================================
+// PROFILE FIELD WRAPPER
+// =============================================
+
+const ProfileField: React.FC<{
+  label: string;
+  tierRequired: string;
+  currentTier: string;
+  children: React.ReactNode;
+}> = ({ label, tierRequired, currentTier, children }) => {
+  const currentIdx = TIER_ORDER.indexOf(currentTier);
+  const requiredIdx = TIER_ORDER.indexOf(tierRequired);
+  const locked = currentIdx < requiredIdx;
+
+  return (
+    <div style={{
+      backgroundColor: '#111111',
+      borderRadius: '10px',
+      border: `1px solid ${locked ? '#1a1a1a' : '#2a2a2a'}`,
+      padding: '0.75rem',
+      opacity: locked ? 0.5 : 1,
+      position: 'relative',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+        <span style={{ color: '#9ca3af', fontSize: '0.75rem', fontWeight: '600' }}>{label}</span>
+        {locked && (
+          <span style={{
+            padding: '0.1rem 0.3rem',
+            backgroundColor: '#f59e0b15',
+            border: '1px solid #f59e0b30',
+            borderRadius: '4px',
+            fontSize: '0.55rem',
+            color: '#f59e0b',
+            fontWeight: 'bold',
+            textTransform: 'uppercase',
+          }}>
+            {tierRequired}+ Required
+          </span>
+        )}
+      </div>
+      {locked ? (
+        <p style={{ color: '#4b5563', fontSize: '0.7rem', margin: 0 }}>
+          Upgrade to {tierRequired} tier to unlock this feature.
+        </p>
+      ) : children}
+    </div>
+  );
+};
+
+// =============================================
 // RECRUITER DASHBOARD
 // =============================================
 
@@ -299,13 +419,18 @@ const RecruiterDashboard: React.FC<{
 }> = ({ onClose }) => {
   const { user } = useAuth();
   const isMobile = useIsMobile();
+  const { showToast } = useToast();
   const [editorInfo, setEditorInfo] = useState<EditorInfo | null>(null);
   const [applications, setApplications] = useState<IncomingApplication[]>([]);
   const [team, setTeam] = useState<TeamMember[]>([]);
   const [fund, setFund] = useState<FundInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'inbox' | 'team' | 'fund'>('inbox');
+  const [activeTab, setActiveTab] = useState<'inbox' | 'team' | 'fund' | 'profile'>('inbox');
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileDraft, setProfileDraft] = useState<Partial<FundInfo>>({});
+  const [coEditorUserId, setCoEditorUserId] = useState('');
+  const [invitingCoEditor, setInvitingCoEditor] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>('active');
 
   useEffect(() => {
@@ -383,7 +508,7 @@ const RecruiterDashboard: React.FC<{
       // Get fund info
       const { data: fundData } = await supabase
         .from('kingdom_funds')
-        .select('kingdom_number, balance, tier, is_recruiting')
+        .select('kingdom_number, balance, tier, is_recruiting, recruitment_pitch, what_we_offer, what_we_want, min_tc_level, min_power_range, main_language, secondary_languages, event_times, contact_link, recruitment_tags, highlighted_stats')
         .eq('kingdom_number', editor.kingdom_number)
         .single();
 
@@ -438,6 +563,103 @@ const RecruiterDashboard: React.FC<{
     }
   };
 
+  const handleSaveProfile = async () => {
+    if (!supabase || !fund || !editorInfo || Object.keys(profileDraft).length === 0) return;
+    setSavingProfile(true);
+    try {
+      const { error } = await supabase
+        .from('kingdom_funds')
+        .update(profileDraft)
+        .eq('kingdom_number', editorInfo.kingdom_number);
+
+      if (error) {
+        showToast('Failed to save profile: ' + error.message, 'error');
+      } else {
+        setFund({ ...fund, ...profileDraft } as FundInfo);
+        setProfileDraft({});
+        showToast('Kingdom profile updated!', 'success');
+      }
+    } catch {
+      showToast('Failed to save profile.', 'error');
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  const handleInviteCoEditor = async () => {
+    if (!supabase || !editorInfo || !coEditorUserId.trim()) return;
+    setInvitingCoEditor(true);
+    try {
+      // Check if user exists and is linked to this kingdom
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id, linked_kingdom, linked_tc_level, username, linked_username')
+        .eq('id', coEditorUserId.trim())
+        .single();
+
+      if (!profile) {
+        showToast('User not found. Check the user ID.', 'error');
+        return;
+      }
+      if (profile.linked_kingdom !== editorInfo.kingdom_number) {
+        showToast(`User is linked to Kingdom ${profile.linked_kingdom || 'none'}, not Kingdom ${editorInfo.kingdom_number}.`, 'error');
+        return;
+      }
+      if ((profile.linked_tc_level || 0) < 20) {
+        showToast('User must be TC20+ to be a co-editor.', 'error');
+        return;
+      }
+
+      // Check for existing editor entry
+      const { data: existing } = await supabase
+        .from('kingdom_editors')
+        .select('id, status')
+        .eq('user_id', coEditorUserId.trim())
+        .eq('kingdom_number', editorInfo.kingdom_number)
+        .maybeSingle();
+
+      if (existing) {
+        if (existing.status === 'active') {
+          showToast('This user is already a co-editor.', 'error');
+          return;
+        }
+        // Reactivate
+        await supabase
+          .from('kingdom_editors')
+          .update({ status: 'active', role: 'co-editor', assigned_by: user?.id, activated_at: new Date().toISOString() })
+          .eq('id', existing.id);
+      } else {
+        // Create new co-editor entry
+        const { error } = await supabase
+          .from('kingdom_editors')
+          .insert({
+            kingdom_number: editorInfo.kingdom_number,
+            user_id: coEditorUserId.trim(),
+            role: 'co-editor',
+            status: 'active',
+            endorsement_count: 0,
+            required_endorsements: 0,
+            assigned_by: user?.id,
+            activated_at: new Date().toISOString(),
+          });
+
+        if (error) {
+          showToast('Failed to add co-editor: ' + error.message, 'error');
+          return;
+        }
+      }
+
+      const displayName = profile.linked_username || profile.username || 'User';
+      showToast(`${displayName} added as co-editor!`, 'success');
+      setCoEditorUserId('');
+      loadDashboard();
+    } catch {
+      showToast('Failed to invite co-editor.', 'error');
+    } finally {
+      setInvitingCoEditor(false);
+    }
+  };
+
   if (!user) return null;
 
   const activeApps = applications.filter((a) => ['pending', 'viewed', 'interested'].includes(a.status));
@@ -484,14 +706,17 @@ const RecruiterDashboard: React.FC<{
           <button
             onClick={onClose}
             style={{
-              padding: '0.4rem 0.75rem',
+              padding: '0.5rem 0.75rem',
               backgroundColor: 'transparent',
               border: '1px solid #2a2a2a',
               borderRadius: '8px',
               color: '#9ca3af',
               fontSize: '0.8rem',
               cursor: 'pointer',
-              minHeight: '36px',
+              minHeight: '44px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
             Close
@@ -517,7 +742,7 @@ const RecruiterDashboard: React.FC<{
             {/* Stats Row */}
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(4, 1fr)',
+              gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
               gap: '0.5rem',
               marginBottom: '1rem',
             }}>
@@ -591,7 +816,7 @@ const RecruiterDashboard: React.FC<{
               padding: '0.25rem',
               marginBottom: '1rem',
             }}>
-              {(['inbox', 'team', 'fund'] as const).map((tab) => (
+              {(['inbox', 'profile', 'team', 'fund'] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -606,10 +831,14 @@ const RecruiterDashboard: React.FC<{
                     fontWeight: activeTab === tab ? '600' : '400',
                     cursor: 'pointer',
                     position: 'relative',
-                    minHeight: '36px',
+                    minHeight: '44px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}
                 >
                   {tab === 'inbox' ? `Inbox${pendingCount > 0 ? ` (${pendingCount})` : ''}` :
+                   tab === 'profile' ? 'Profile' :
                    tab === 'team' ? 'Team' : 'Fund'}
                 </button>
               ))}
@@ -630,7 +859,7 @@ const RecruiterDashboard: React.FC<{
                       color: filterStatus === 'active' ? '#22d3ee' : '#6b7280',
                       fontSize: '0.75rem',
                       cursor: 'pointer',
-                      minHeight: '32px',
+                      minHeight: '44px',
                     }}
                   >
                     Active ({activeApps.length})
@@ -645,7 +874,7 @@ const RecruiterDashboard: React.FC<{
                       color: filterStatus === 'closed' ? '#22d3ee' : '#6b7280',
                       fontSize: '0.75rem',
                       cursor: 'pointer',
-                      minHeight: '32px',
+                      minHeight: '44px',
                     }}
                   >
                     Past ({closedApps.length})
@@ -672,6 +901,289 @@ const RecruiterDashboard: React.FC<{
                         updating={updating}
                       />
                     ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TAB: Profile - Kingdom Listing Editor */}
+            {activeTab === 'profile' && (
+              <div>
+                {!fund ? (
+                  <div style={{
+                    textAlign: 'center', padding: '2rem 1rem',
+                    backgroundColor: '#111111', borderRadius: '12px',
+                    border: '1px solid #2a2a2a',
+                  }}>
+                    <p style={{ color: '#fff', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
+                      Start a Kingdom Fund to edit your listing profile
+                    </p>
+                    <p style={{ color: '#6b7280', fontSize: '0.8rem' }}>
+                      Contribute to your kingdom fund to unlock tier features and customize your listing.
+                    </p>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    {/* Tier Info */}
+                    <div style={{
+                      backgroundColor: '#111111', borderRadius: '10px',
+                      border: '1px solid #2a2a2a', padding: '0.75rem',
+                    }}>
+                      <span style={{ color: '#9ca3af', fontSize: '0.7rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Fund Tier Benefits</span>
+                      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '0.5rem', marginTop: '0.5rem' }}>
+                        {TIER_INFO.map((t) => {
+                          const isCurrentTier = t.tier.toLowerCase() === fund.tier;
+                          return (
+                            <div key={t.tier} style={{
+                              padding: '0.5rem 0.6rem',
+                              borderRadius: '8px',
+                              border: isCurrentTier ? `1px solid ${t.color}50` : '1px solid #1a1a1a',
+                              backgroundColor: isCurrentTier ? `${t.color}08` : '#0a0a0a',
+                            }}>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <span style={{ color: t.color, fontWeight: 'bold', fontSize: '0.8rem' }}>{t.tier}</span>
+                                <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>{t.cost}</span>
+                              </div>
+                              <div style={{ marginTop: '0.25rem' }}>
+                                {t.features.map((f) => (
+                                  <div key={f} style={{ color: '#9ca3af', fontSize: '0.65rem', lineHeight: 1.5 }}>• {f}</div>
+                                ))}
+                              </div>
+                              {isCurrentTier && (
+                                <span style={{ display: 'inline-block', marginTop: '0.3rem', padding: '0.1rem 0.3rem', backgroundColor: `${t.color}20`, borderRadius: '3px', fontSize: '0.55rem', color: t.color, fontWeight: 'bold' }}>CURRENT</span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Recruitment Tags (Bronze+) */}
+                    <ProfileField label="Recruitment Tags" tierRequired="bronze" currentTier={fund.tier}>
+                      <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>
+                        {RECRUITMENT_TAG_OPTIONS.map((tag) => {
+                          const selected = (profileDraft.recruitment_tags ?? fund.recruitment_tags ?? []).includes(tag);
+                          return (
+                            <button key={tag} onClick={() => {
+                              const current = profileDraft.recruitment_tags ?? fund.recruitment_tags ?? [];
+                              setProfileDraft(d => ({
+                                ...d,
+                                recruitment_tags: selected ? current.filter(t => t !== tag) : [...current, tag],
+                              }));
+                            }} style={{
+                              padding: '0.25rem 0.5rem', borderRadius: '6px', fontSize: '0.7rem', cursor: 'pointer',
+                              backgroundColor: selected ? '#22d3ee15' : '#0a0a0a',
+                              border: `1px solid ${selected ? '#22d3ee40' : '#2a2a2a'}`,
+                              color: selected ? '#22d3ee' : '#6b7280',
+                              minHeight: '36px',
+                            }}>
+                              {tag}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </ProfileField>
+
+                    {/* Contact Link (Bronze+) */}
+                    <ProfileField label="Contact Link (Discord invite, etc.)" tierRequired="bronze" currentTier={fund.tier}>
+                      <input
+                        type="url"
+                        value={profileDraft.contact_link ?? fund.contact_link ?? ''}
+                        onChange={(e) => setProfileDraft(d => ({ ...d, contact_link: e.target.value || null }))}
+                        placeholder="https://discord.gg/your-invite"
+                        style={inputStyle}
+                      />
+                    </ProfileField>
+
+                    {/* Min Requirements (Bronze+) */}
+                    <ProfileField label="Minimum Requirements" tierRequired="bronze" currentTier={fund.tier}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                        <div>
+                          <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>Min TC Level</span>
+                          <input
+                            type="number"
+                            min={1}
+                            max={60}
+                            value={profileDraft.min_tc_level ?? fund.min_tc_level ?? ''}
+                            onChange={(e) => setProfileDraft(d => ({ ...d, min_tc_level: e.target.value ? parseInt(e.target.value) : null }))}
+                            placeholder="e.g. 35"
+                            style={inputStyle}
+                          />
+                          {(profileDraft.min_tc_level || fund.min_tc_level) && (
+                            <span style={{ color: colors.textSecondary, fontSize: '0.6rem', marginTop: '0.25rem', display: 'block' }}>
+                              = {getTGLevel(profileDraft.min_tc_level || fund.min_tc_level || 0)}
+                            </span>
+                          )}
+                        </div>
+                        <div>
+                          <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>Min Power Range</span>
+                          <select
+                            value={profileDraft.min_power_range ?? fund.min_power_range ?? 'Any'}
+                            onChange={(e) => setProfileDraft(d => ({ ...d, min_power_range: e.target.value === 'Any' ? null : e.target.value }))}
+                            style={inputStyle}
+                          >
+                            {POWER_RANGE_OPTIONS.map((opt) => (
+                              <option key={opt} value={opt}>{opt}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    </ProfileField>
+
+                    {/* Recruitment Pitch (Silver+) */}
+                    <ProfileField label="Recruitment Pitch" tierRequired="silver" currentTier={fund.tier}>
+                      <textarea
+                        value={profileDraft.recruitment_pitch ?? fund.recruitment_pitch ?? ''}
+                        onChange={(e) => setProfileDraft(d => ({ ...d, recruitment_pitch: e.target.value || null }))}
+                        maxLength={250}
+                        rows={3}
+                        placeholder="Sell your kingdom in a few sentences..."
+                        style={{ ...inputStyle, resize: 'vertical', minHeight: '70px' }}
+                      />
+                      <span style={{ color: '#4b5563', fontSize: '0.6rem' }}>
+                        {(profileDraft.recruitment_pitch ?? fund.recruitment_pitch ?? '').length}/250
+                      </span>
+                    </ProfileField>
+
+                    {/* Languages (Silver+) */}
+                    <ProfileField label="Languages" tierRequired="silver" currentTier={fund.tier}>
+                      <div style={{ marginBottom: '0.4rem' }}>
+                        <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>Main Language</span>
+                        <select
+                          value={profileDraft.main_language ?? fund.main_language ?? ''}
+                          onChange={(e) => setProfileDraft(d => ({ ...d, main_language: e.target.value || null }))}
+                          style={inputStyle}
+                        >
+                          <option value="">Select language...</option>
+                          {LANGUAGE_OPTIONS.map((lang) => (
+                            <option key={lang} value={lang}>{lang}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>Other Languages</span>
+                        <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap', marginTop: '0.25rem' }}>
+                          {LANGUAGE_OPTIONS.filter(l => l !== (profileDraft.main_language ?? fund.main_language)).map((lang) => {
+                            const selected = (profileDraft.secondary_languages ?? fund.secondary_languages ?? []).includes(lang);
+                            return (
+                              <button key={lang} onClick={() => {
+                                const current = profileDraft.secondary_languages ?? fund.secondary_languages ?? [];
+                                setProfileDraft(d => ({
+                                  ...d,
+                                  secondary_languages: selected ? current.filter(l => l !== lang) : [...current, lang],
+                                }));
+                              }} style={{
+                                padding: '0.2rem 0.45rem', borderRadius: '4px', fontSize: '0.65rem', cursor: 'pointer',
+                                backgroundColor: selected ? '#a855f715' : '#0a0a0a',
+                                border: `1px solid ${selected ? '#a855f740' : '#2a2a2a'}`,
+                                color: selected ? '#a855f7' : '#6b7280',
+                                minHeight: '32px',
+                              }}>
+                                {lang}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </ProfileField>
+
+                    {/* Event Times (Silver+) */}
+                    <ProfileField label="Event Times (UTC)" tierRequired="silver" currentTier={fund.tier}>
+                      {(profileDraft.event_times ?? fund.event_times ?? []).map((slot, idx) => (
+                        <div key={idx} style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', marginBottom: '0.4rem' }}>
+                          <input
+                            type="time"
+                            value={slot.start}
+                            onChange={(e) => {
+                              const times = (profileDraft.event_times ?? fund.event_times ?? []).map((t, i) =>
+                                i === idx ? { start: e.target.value, end: t.end } : t
+                              );
+                              setProfileDraft(d => ({ ...d, event_times: times }));
+                            }}
+                            style={{ ...inputStyle, flex: 1 }}
+                          />
+                          <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>to</span>
+                          <input
+                            type="time"
+                            value={slot.end}
+                            onChange={(e) => {
+                              const times = (profileDraft.event_times ?? fund.event_times ?? []).map((t, i) =>
+                                i === idx ? { start: t.start, end: e.target.value } : t
+                              );
+                              setProfileDraft(d => ({ ...d, event_times: times }));
+                            }}
+                            style={{ ...inputStyle, flex: 1 }}
+                          />
+                          <button onClick={() => {
+                            const times = (profileDraft.event_times ?? fund.event_times ?? []).filter((_, i) => i !== idx);
+                            setProfileDraft(d => ({ ...d, event_times: times }));
+                          }} style={{
+                            padding: '0.3rem 0.5rem', backgroundColor: '#ef444415', border: '1px solid #ef444430',
+                            borderRadius: '6px', color: '#ef4444', fontSize: '0.75rem', cursor: 'pointer', minHeight: '36px',
+                          }}>✕</button>
+                        </div>
+                      ))}
+                      <button onClick={() => {
+                        const times = [...(profileDraft.event_times ?? fund.event_times ?? []), { start: '12:00', end: '14:00' }];
+                        setProfileDraft(d => ({ ...d, event_times: times }));
+                      }} style={{
+                        padding: '0.3rem 0.6rem', backgroundColor: '#22d3ee10', border: '1px solid #22d3ee25',
+                        borderRadius: '6px', color: '#22d3ee', fontSize: '0.7rem', cursor: 'pointer', minHeight: '36px',
+                      }}>
+                        + Add Time Slot
+                      </button>
+                    </ProfileField>
+
+                    {/* What We Offer (Gold) */}
+                    <ProfileField label="What We Offer" tierRequired="gold" currentTier={fund.tier}>
+                      <textarea
+                        value={profileDraft.what_we_offer ?? fund.what_we_offer ?? ''}
+                        onChange={(e) => setProfileDraft(d => ({ ...d, what_we_offer: e.target.value || null }))}
+                        maxLength={250}
+                        rows={3}
+                        placeholder="What does your kingdom offer to new members?"
+                        style={{ ...inputStyle, resize: 'vertical', minHeight: '70px' }}
+                      />
+                      <span style={{ color: '#4b5563', fontSize: '0.6rem' }}>
+                        {(profileDraft.what_we_offer ?? fund.what_we_offer ?? '').length}/250
+                      </span>
+                    </ProfileField>
+
+                    {/* What We Want (Gold) */}
+                    <ProfileField label="What We're Looking For" tierRequired="gold" currentTier={fund.tier}>
+                      <textarea
+                        value={profileDraft.what_we_want ?? fund.what_we_want ?? ''}
+                        onChange={(e) => setProfileDraft(d => ({ ...d, what_we_want: e.target.value || null }))}
+                        maxLength={250}
+                        rows={3}
+                        placeholder="What kind of players are you recruiting?"
+                        style={{ ...inputStyle, resize: 'vertical', minHeight: '70px' }}
+                      />
+                      <span style={{ color: '#4b5563', fontSize: '0.6rem' }}>
+                        {(profileDraft.what_we_want ?? fund.what_we_want ?? '').length}/250
+                      </span>
+                    </ProfileField>
+
+                    {/* Save Button */}
+                    <button
+                      onClick={handleSaveProfile}
+                      disabled={savingProfile || Object.keys(profileDraft).length === 0}
+                      style={{
+                        padding: '0.6rem 1.5rem',
+                        backgroundColor: Object.keys(profileDraft).length === 0 ? '#1a1a1a' : '#22c55e15',
+                        border: `1px solid ${Object.keys(profileDraft).length === 0 ? '#2a2a2a' : '#22c55e40'}`,
+                        borderRadius: '10px',
+                        color: Object.keys(profileDraft).length === 0 ? '#4b5563' : '#22c55e',
+                        fontWeight: '600',
+                        fontSize: '0.85rem',
+                        cursor: Object.keys(profileDraft).length === 0 ? 'default' : 'pointer',
+                        minHeight: '44px',
+                        width: '100%',
+                        opacity: savingProfile ? 0.6 : 1,
+                      }}
+                    >
+                      {savingProfile ? 'Saving...' : Object.keys(profileDraft).length === 0 ? 'No Changes' : 'Save Profile Changes'}
+                    </button>
                   </div>
                 )}
               </div>
@@ -719,13 +1231,41 @@ const RecruiterDashboard: React.FC<{
                     </div>
                   ))}
                 </div>
+                {/* Co-Editor Invite */}
                 {editorInfo.role === 'editor' && team.filter((t) => t.status === 'active').length < 3 && (
-                  <p style={{
-                    color: '#6b7280', fontSize: '0.75rem',
-                    marginTop: '0.75rem', textAlign: 'center',
-                  }}>
-                    You can have up to 2 co-editors. Co-editor invites coming soon.
-                  </p>
+                  <div style={{ marginTop: '0.75rem', padding: '0.75rem', backgroundColor: '#111111', borderRadius: '10px', border: '1px solid #2a2a2a' }}>
+                    <span style={{ color: '#9ca3af', fontSize: '0.75rem', fontWeight: '600' }}>Invite Co-Editor</span>
+                    <p style={{ color: '#6b7280', fontSize: '0.65rem', margin: '0.25rem 0 0.5rem 0' }}>
+                      Enter the user ID of a linked kingdom member (TC20+) to add as co-editor.
+                    </p>
+                    <div style={{ display: 'flex', gap: '0.4rem' }}>
+                      <input
+                        type="text"
+                        value={coEditorUserId}
+                        onChange={(e) => setCoEditorUserId(e.target.value)}
+                        placeholder="Supabase User ID"
+                        style={{ ...inputStyle, flex: 1 }}
+                      />
+                      <button
+                        onClick={handleInviteCoEditor}
+                        disabled={invitingCoEditor || !coEditorUserId.trim()}
+                        style={{
+                          padding: '0.4rem 0.75rem',
+                          backgroundColor: '#a855f715',
+                          border: '1px solid #a855f730',
+                          borderRadius: '8px',
+                          color: '#a855f7',
+                          fontSize: '0.75rem',
+                          fontWeight: '600',
+                          cursor: !coEditorUserId.trim() ? 'default' : 'pointer',
+                          minHeight: '44px',
+                          opacity: invitingCoEditor || !coEditorUserId.trim() ? 0.5 : 1,
+                        }}
+                      >
+                        {invitingCoEditor ? '...' : 'Invite'}
+                      </button>
+                    </div>
+                  </div>
                 )}
               </div>
             )}
@@ -776,9 +1316,31 @@ const RecruiterDashboard: React.FC<{
                       </p>
                     </div>
                     <div style={{ marginTop: '0.75rem', textAlign: 'center' }}>
-                      <span style={{ color: '#6b7280', fontSize: '0.7rem' }}>
-                        Kingdom Fund contribution page coming soon
-                      </span>
+                      <button
+                        onClick={() => {
+                          const url = `${window.location.origin}/transfer-hub?fund=${editorInfo.kingdom_number}`;
+                          navigator.clipboard.writeText(url).then(() => {
+                            showToast('Contribution link copied! Share with your kingdom.', 'success');
+                          });
+                        }}
+                        style={{
+                          padding: '0.5rem 1rem',
+                          backgroundColor: '#22c55e15',
+                          border: '1px solid #22c55e30',
+                          borderRadius: '8px',
+                          color: '#22c55e',
+                          fontSize: '0.8rem',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          minHeight: '44px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '0.4rem',
+                        }}
+                      >
+                        📋 Copy Contribution Link
+                      </button>
                     </div>
                   </div>
                 ) : (

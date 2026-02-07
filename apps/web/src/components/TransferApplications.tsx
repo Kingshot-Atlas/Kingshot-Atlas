@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { supabase } from '../lib/supabase';
-import { neonGlow, FONT_DISPLAY } from '../utils/styles';
+import { neonGlow, FONT_DISPLAY, colors } from '../utils/styles';
 
 // =============================================
 // TYPES
@@ -107,20 +107,21 @@ const ApplyModal: React.FC<{
         top: 0, left: 0, right: 0, bottom: 0,
         backgroundColor: 'rgba(0, 0, 0, 0.85)',
         display: 'flex',
-        alignItems: 'center',
+        alignItems: isMobile ? 'flex-end' : 'center',
         justifyContent: 'center',
         zIndex: 1000,
-        padding: '1rem',
+        padding: isMobile ? 0 : '1rem',
       }}
       onClick={onClose}
     >
       <div
         style={{
-          backgroundColor: '#111111',
-          border: '1px solid #2a2a2a',
-          borderRadius: '16px',
-          padding: isMobile ? '1.25rem' : '1.5rem',
-          maxWidth: '450px',
+          backgroundColor: colors.surface,
+          border: `1px solid ${colors.border}`,
+          borderRadius: isMobile ? '16px 16px 0 0' : '16px',
+          padding: isMobile ? '1.25rem 1rem' : '1.5rem',
+          paddingBottom: isMobile ? 'max(1.25rem, env(safe-area-inset-bottom))' : '1.5rem',
+          maxWidth: isMobile ? '100%' : '450px',
           width: '100%',
           boxShadow: '0 20px 60px rgba(0, 0, 0, 0.6)',
         }}
@@ -129,24 +130,24 @@ const ApplyModal: React.FC<{
         <h3 style={{
           fontFamily: FONT_DISPLAY,
           fontSize: '1.1rem',
-          color: '#fff',
+          color: colors.text,
           margin: '0 0 0.75rem 0',
         }}>
-          Apply to <span style={{ ...neonGlow('#22d3ee') }}>Kingdom {kingdomNumber}</span>
+          Apply to <span style={{ ...neonGlow(colors.primary) }}>Kingdom {kingdomNumber}</span>
         </h3>
 
         {!hasProfile ? (
           <div style={{
             padding: '1rem',
-            backgroundColor: '#f59e0b10',
-            border: '1px solid #f59e0b30',
+            backgroundColor: `${colors.warning}10`,
+            border: `1px solid ${colors.warning}30`,
             borderRadius: '10px',
             marginBottom: '1rem',
           }}>
-            <p style={{ color: '#f59e0b', fontSize: '0.85rem', fontWeight: '600', margin: '0 0 0.5rem 0' }}>
+            <p style={{ color: colors.warning, fontSize: '0.85rem', fontWeight: '600', margin: '0 0 0.5rem 0' }}>
               Transfer Profile Required
             </p>
-            <p style={{ color: '#9ca3af', fontSize: '0.8rem', margin: 0 }}>
+            <p style={{ color: colors.textSecondary, fontSize: '0.8rem', margin: 0 }}>
               You need to create a transfer profile before you can apply to kingdoms. Your profile tells recruiters about you.
             </p>
           </div>
@@ -154,14 +155,14 @@ const ApplyModal: React.FC<{
           <>
             <div style={{
               padding: '0.75rem',
-              backgroundColor: '#0a0a0a',
+              backgroundColor: colors.bg,
               borderRadius: '10px',
               marginBottom: '1rem',
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ color: '#9ca3af', fontSize: '0.8rem' }}>Application Slots</span>
+                <span style={{ color: colors.textSecondary, fontSize: '0.8rem' }}>Application Slots</span>
                 <span style={{
-                  color: slotsRemaining > 0 ? '#22c55e' : '#ef4444',
+                  color: slotsRemaining > 0 ? colors.success : colors.error,
                   fontSize: '0.85rem',
                   fontWeight: '600',
                 }}>
@@ -178,7 +179,7 @@ const ApplyModal: React.FC<{
                       flex: 1,
                       height: '4px',
                       borderRadius: '2px',
-                      backgroundColor: idx < activeCount ? '#22d3ee' : '#2a2a2a',
+                      backgroundColor: idx < activeCount ? colors.primary : colors.border,
                     }}
                   />
                 ))}
@@ -188,18 +189,18 @@ const ApplyModal: React.FC<{
             {slotsRemaining <= 0 && (
               <div style={{
                 padding: '0.75rem',
-                backgroundColor: '#ef444410',
-                border: '1px solid #ef444430',
+                backgroundColor: `${colors.error}10`,
+                border: `1px solid ${colors.error}30`,
                 borderRadius: '8px',
                 marginBottom: '1rem',
               }}>
-                <p style={{ color: '#ef4444', fontSize: '0.8rem', margin: 0 }}>
+                <p style={{ color: colors.error, fontSize: '0.8rem', margin: 0 }}>
                   You've used all 3 application slots. Withdraw an existing application to apply here.
                 </p>
               </div>
             )}
 
-            <p style={{ color: '#9ca3af', fontSize: '0.8rem', margin: '0 0 0.75rem 0' }}>
+            <p style={{ color: colors.textSecondary, fontSize: '0.8rem', margin: '0 0 0.75rem 0' }}>
               Your transfer profile will be shared with Kingdom {kingdomNumber}'s recruiters. Applications expire after 14 days if not responded to.
             </p>
           </>
@@ -208,10 +209,10 @@ const ApplyModal: React.FC<{
         {error && (
           <div style={{
             padding: '0.6rem 0.75rem',
-            backgroundColor: '#ef444415',
-            border: '1px solid #ef444440',
+            backgroundColor: `${colors.error}15`,
+            border: `1px solid ${colors.error}40`,
             borderRadius: '8px',
-            color: '#ef4444',
+            color: colors.error,
             fontSize: '0.8rem',
             marginBottom: '0.75rem',
           }}>
@@ -225,9 +226,9 @@ const ApplyModal: React.FC<{
             style={{
               padding: '0.5rem 1rem',
               backgroundColor: 'transparent',
-              border: '1px solid #2a2a2a',
+              border: `1px solid ${colors.border}`,
               borderRadius: '8px',
-              color: '#9ca3af',
+              color: colors.textSecondary,
               fontSize: '0.8rem',
               cursor: 'pointer',
               minHeight: '44px',
@@ -241,7 +242,7 @@ const ApplyModal: React.FC<{
               disabled={submitting}
               style={{
                 padding: '0.5rem 1rem',
-                backgroundColor: submitting ? '#22d3ee50' : '#22d3ee',
+                backgroundColor: submitting ? `${colors.primary}50` : colors.primary,
                 border: 'none',
                 borderRadius: '8px',
                 color: '#000',
@@ -431,9 +432,12 @@ const MyApplicationsTracker: React.FC<{
                     color: '#ef4444',
                     fontSize: '0.7rem',
                     cursor: withdrawingId === app.id ? 'not-allowed' : 'pointer',
-                    minHeight: '32px',
+                    minHeight: '44px',
                     opacity: withdrawingId === app.id ? 0.5 : 1,
                     whiteSpace: 'nowrap',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}
                 >
                   {withdrawingId === app.id ? 'Withdrawing...' : 'Withdraw'}
