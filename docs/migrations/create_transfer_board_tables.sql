@@ -1,0 +1,10 @@
+-- =============================================
+-- TRANSFER BOARD SCHEMA
+-- Created: 2026-02-06
+-- Applied to Supabase project: qdczmafwcvnwfvixxbwg
+-- Purpose: Kingdom Fund, Editor Claiming, Transfer Profiles, Applications
+-- =============================================
+-- See ADR-015 in DECISIONS.md for full architectural context.
+-- Tables: kingdom_funds, kingdom_fund_contributions, kingdom_editors,
+--         editor_endorsements, transfer_profiles, transfer_applications
+-- All data lives in Supabase (single source of truth per ADR-010).

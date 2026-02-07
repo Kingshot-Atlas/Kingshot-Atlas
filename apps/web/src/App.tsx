@@ -36,6 +36,7 @@ const ComponentsDemo = lazy(() => import('./pages/ComponentsDemo'));
 const MissingDataRegistry = lazy(() => import('./pages/MissingDataRegistry'));
 const DiscordCallback = lazy(() => import('./pages/DiscordCallback'));
 const KvKSeasons = lazy(() => import('./pages/KvKSeasons'));
+const TransferBoard = lazy(() => import('./pages/TransferBoard'));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -119,6 +120,7 @@ function AppContent() {
               <Route path="/auth/discord/callback" element={<ErrorBoundary><DiscordCallback /></ErrorBoundary>} />
               <Route path="/seasons" element={<ErrorBoundary><KvKSeasons /></ErrorBoundary>} />
               <Route path="/seasons/:seasonNumber" element={<ErrorBoundary><KvKSeasons /></ErrorBoundary>} />
+              <Route path="/transfer-board" element={<ErrorBoundary><TransferBoard /></ErrorBoundary>} />
             </Routes>
           </Suspense>
         </PageTransition>

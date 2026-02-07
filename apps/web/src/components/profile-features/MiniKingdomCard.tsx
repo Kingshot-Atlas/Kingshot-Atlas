@@ -109,39 +109,24 @@ export const MiniKingdomCard: React.FC<MiniKingdomCardProps> = ({
           {showTierTooltip && (
             <div style={{
               position: 'absolute',
-              bottom: '100%',
+              top: '100%',
               left: '50%',
               transform: 'translateX(-50%)',
-              marginBottom: '8px',
+              marginTop: '8px',
               backgroundColor: '#0a0a0a',
               border: `1px solid ${tierColors[tier]}`,
               borderRadius: '8px',
-              padding: '0.6rem 0.8rem',
+              padding: '0.5rem 0.7rem',
               zIndex: 1000,
               whiteSpace: 'nowrap',
               fontSize: '0.75rem',
               boxShadow: '0 8px 24px rgba(0,0,0,0.5)'
             }}>
-              <div style={{ fontWeight: 'bold', marginBottom: '0.4rem', color: '#fff', fontSize: '0.8rem' }}>Power Tiers</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                <span style={{ color: '#fbbf24', fontWeight: 'bold', width: '14px' }}>S</span>
-                <span style={{ color: '#9ca3af' }}>10+ (Top 10%)</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                <span style={{ color: '#22c55e', fontWeight: 'bold', width: '14px' }}>A</span>
-                <span style={{ color: '#9ca3af' }}>7 – 9.9 (Top 25%)</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                <span style={{ color: '#3b82f6', fontWeight: 'bold', width: '14px' }}>B</span>
-                <span style={{ color: '#9ca3af' }}>4.5 – 6.9 (Top 50%)</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                <span style={{ color: '#9ca3af', fontWeight: 'bold', width: '14px' }}>C</span>
-                <span style={{ color: '#9ca3af' }}>2.5 – 4.4 (Top 75%)</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ color: '#6b7280', fontWeight: 'bold', width: '14px' }}>D</span>
-                <span style={{ color: '#9ca3af' }}>{'< 2.5'} (Bottom 25%)</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <span style={{ color: tierColors[tier], fontWeight: 'bold' }}>{tier}-Tier</span>
+                <span style={{ color: '#9ca3af' }}>
+                  {tier === 'S' ? '8.9+ (Top 3%)' : tier === 'A' ? '7.8 – 8.9 (Top 10%)' : tier === 'B' ? '6.4 – 7.8 (Top 25%)' : tier === 'C' ? '4.7 – 6.4 (Top 50%)' : '< 4.7 (Bottom 50%)'}
+                </span>
               </div>
             </div>
           )}

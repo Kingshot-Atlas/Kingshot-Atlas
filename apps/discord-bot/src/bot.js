@@ -675,12 +675,12 @@ async function main() {
   loginAttemptCount = 1;
   
   // Login to Discord with timeout protection
-  const LOGIN_TIMEOUT = 30_000; // 30 seconds
+  const LOGIN_TIMEOUT = 60_000; // 60 seconds (generous — gateway can be slow under load)
   
   try {
     const loginPromise = client.login(config.token);
     const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('LOGIN_TIMEOUT: client.login() hung for 30s. Gateway may be rate-limited.')), LOGIN_TIMEOUT)
+      setTimeout(() => reject(new Error('LOGIN_TIMEOUT: client.login() hung for 60s. Gateway may be rate-limited.')), LOGIN_TIMEOUT)
     );
     
     await Promise.race([loginPromise, timeoutPromise]);
@@ -708,9 +708,12 @@ async function main() {
   }
 }
 
-// Internal login retry with long exponential backoff
+// Internal login retry — just try client.login() directly each time.
+// DO NOT call validateToken() here — it wastes rate-limit budget
+// (2 REST API calls per check) and preemptively blocks login attempts
+// based on REST rate limits, while the WebSocket gateway may be available.
 let loginRetryCount = 0;
-const MAX_LOGIN_RETRIES = 5;
+const MAX_LOGIN_RETRIES = 10;
 let loginRetryTimer = null;
 
 function scheduleLoginRetry() {
@@ -721,11 +724,11 @@ function scheduleLoginRetry() {
   }
   
   loginRetryCount++;
-  // Long backoff: 2min, 4min, 8min, 16min, 32min
-  const delay = 120_000 * Math.pow(2, loginRetryCount - 1);
+  // Linear backoff: 1min, 2min, 3min, 4min, 5min (cap at 5min)
+  const delay = Math.min(loginRetryCount * 60_000, 300_000);
   const delayMin = Math.round(delay / 60_000);
   console.log(`🔄 Login retry ${loginRetryCount}/${MAX_LOGIN_RETRIES} scheduled in ${delayMin} minutes`);
-  lastError = `Waiting ${delayMin}min before login retry ${loginRetryCount}/${MAX_LOGIN_RETRIES} (gateway rate-limited)`;
+  lastError = `Waiting ${delayMin}min before login retry ${loginRetryCount}/${MAX_LOGIN_RETRIES}`;
   
   if (loginRetryTimer) clearTimeout(loginRetryTimer);
   loginRetryTimer = setTimeout(async () => {
@@ -740,20 +743,6 @@ function scheduleLoginRetry() {
     }
     
     try {
-      // Quick check if still rate-limited (lightweight /users/@me call)
-      const tokenCheck = await validateToken(config.token);
-      if (tokenCheck.valid === false) {
-        loginLastResult = `token_invalid: ${tokenCheck.error}`;
-        lastError = `Token invalid on retry. Reset in Discord Developer Portal.`;
-        return;
-      }
-      if (tokenCheck.status === 429) {
-        console.warn('   Still rate-limited, skipping login attempt');
-        loginLastResult = `retry_${loginRetryCount}_skipped: still rate-limited`;
-        scheduleLoginRetry();
-        return;
-      }
-      
       // CRITICAL: Destroy old client state before retrying to prevent
       // overlapping WebSocket connections that corrupt event routing
       console.log('   Destroying old connection before retry...');
@@ -761,7 +750,7 @@ function scheduleLoginRetry() {
       
       const loginPromise = client.login(config.token);
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('LOGIN_TIMEOUT')), 30_000)
+        setTimeout(() => reject(new Error('LOGIN_TIMEOUT')), 60_000)
       );
       
       await Promise.race([loginPromise, timeoutPromise]);

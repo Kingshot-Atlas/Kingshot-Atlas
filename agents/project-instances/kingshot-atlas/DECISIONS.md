@@ -564,4 +564,68 @@ kvk_history INSERT
 
 ---
 
+## ADR-015: Transfer Board & Kingdom Fund Architecture
+
+**Date:** 2026-02-06  
+**Status:** Accepted  
+**Deciders:** Atlas Director, Product Engineer, Business Lead
+
+### Context
+Players need a structured way to find kingdoms to transfer to, and kingdoms need a way to recruit. The previous "Claim Kingdom" approach (single owner, recruiter-tier gated) was parked due to verification complexity and abuse risk (see PARKING_LOT.md).
+
+### Decision
+Implement a **community-funded Transfer Board** with these pillars:
+
+1. **Kingdom Fund** — Community-pooled real money that unlocks profile tiers:
+   - Standard ($0): Basic listing with performance data
+   - Bronze ($10): Recruitment tags, min requirements, contact link
+   - Silver ($25): Recruitment pitch, language info, event times
+   - Gold ($50): What We Offer/Want sections, highlighted stats, gold glow
+   - Fund depletes ~$5/week to prevent "pay once, stay forever"
+
+2. **Editor Claiming** — Governance for who controls kingdom listings:
+   - Self-nominate with $5+ contribution (must be linked to kingdom, TC20+)
+   - Requires 10 endorsements from linked TC20+ members
+   - Primary editor can assign up to 2 co-editors
+
+3. **Transfer Profiles** — Player-created cards for those seeking a new kingdom:
+   - Auto-filled data from linked account (username, kingdom, TC level)
+   - Player-provided: power range, language, play schedule (UTC), bio, contact
+   - Contact limited to Discord username or in-game coordinates
+
+4. **Transfer Applications** — Max 3 active applications per player:
+   - Status flow: pending → viewed → interested → accepted/declined
+   - Auto-expire after 14 days
+   - Kingdom editors manage applications via Recruiter Dashboard
+
+### Supabase Tables Created
+- `kingdom_funds` — Fund balance, tier, recruitment info per kingdom
+- `kingdom_fund_contributions` — Individual contributions ($5 minimum)
+- `kingdom_editors` — Editor claims with endorsement tracking
+- `editor_endorsements` — Endorsements for editor nominations
+- `transfer_profiles` — Player transfer cards
+- `transfer_applications` — Applications with status tracking and 3-slot limit
+
+### Alternatives Considered
+- **Single-payer claiming** — Rejected: puts burden on one player, low revenue
+- **Atlas Credits (virtual currency)** — Rejected: adds complexity, unclear value
+- **Pay-per-listing** — Rejected: excludes smaller kingdoms
+- **Free-for-all editing** — Rejected: abuse risk too high
+
+### Consequences
+- ✅ Community-funded model distributes cost across players
+- ✅ Tiered benefits create clear value proposition for contributions
+- ✅ Endorsement-based governance prevents single-actor abuse
+- ✅ Application limits prevent spam
+- ✅ Fund depletion prevents stale listings
+- ⚠️ Requires Stripe integration for contributions (existing infrastructure)
+- ⚠️ Endorsement threshold (10) may be hard for smaller kingdoms initially
+
+### Related ADRs
+- ADR-007: Premium/Freemium Model
+- ADR-010: Supabase as Single Source of Truth
+- ADR-012: Atlas Scores Must Come From Supabase
+
+---
+
 *Add new decisions as they are made. Reference ADRs when proposing changes.*

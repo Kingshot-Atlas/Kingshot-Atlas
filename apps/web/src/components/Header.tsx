@@ -513,10 +513,10 @@ const Header: React.FC = () => {
           >
             <button
               style={{
-                color: (isActive('/players') || isActive('/about') || isActive('/contribute-data')) ? '#22d3ee' : '#9ca3af',
+                color: (isActive('/players') || isActive('/about') || isActive('/contribute-data') || isActive('/transfer-board')) ? '#22d3ee' : '#9ca3af',
                 textDecoration: 'none',
                 fontSize: '0.9rem',
-                fontWeight: (isActive('/players') || isActive('/about') || isActive('/contribute-data')) ? '600' : '400',
+                fontWeight: (isActive('/players') || isActive('/about') || isActive('/contribute-data') || isActive('/transfer-board')) ? '600' : '400',
                 transition: 'color 0.2s',
                 display: 'flex',
                 alignItems: 'center',
@@ -525,7 +525,7 @@ const Header: React.FC = () => {
                 border: 'none',
                 cursor: 'pointer',
                 padding: 0,
-                ...((isActive('/players') || isActive('/about') || isActive('/contribute-data')) ? neonGlow('#22d3ee') : {})
+                ...((isActive('/players') || isActive('/about') || isActive('/contribute-data') || isActive('/transfer-board')) ? neonGlow('#22d3ee') : {})
               }}
             >
               Community
@@ -549,6 +549,28 @@ const Header: React.FC = () => {
                 boxShadow: '0 10px 40px rgba(0, 0, 0, 0.6)',
                 zIndex: 1000
               }}>
+                <Link
+                  to="/transfer-board"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    padding: '0.75rem 1rem',
+                    borderRadius: '8px',
+                    color: isActive('/transfer-board') ? '#22d3ee' : '#fff',
+                    textDecoration: 'none',
+                    fontSize: '0.85rem',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#22c55e' }}>
+                    <path d="M8 7h12l-4 4h4l-8 8-4-4h4z"/>
+                  </svg>
+                  Transfer Board
+                  <span style={{ fontSize: '0.6rem', backgroundColor: '#f59e0b20', color: '#f59e0b', padding: '0.15rem 0.4rem', borderRadius: '4px', marginLeft: 'auto' }}>Soon</span>
+                </Link>
                 <Link
                   to="/players"
                   style={{
@@ -1052,12 +1074,12 @@ const Header: React.FC = () => {
           <button
             onClick={() => setShowMobileCommunityMenu(!showMobileCommunityMenu)}
             style={{
-              color: (isActive('/players') || isActive('/about') || isActive('/contribute-data')) ? '#22d3ee' : '#9ca3af',
+              color: (isActive('/players') || isActive('/about') || isActive('/contribute-data') || isActive('/transfer-board')) ? '#22d3ee' : '#9ca3af',
               textDecoration: 'none',
               fontSize: '1rem',
               padding: '0.75rem 1rem',
               borderRadius: '8px',
-              backgroundColor: (isActive('/players') || isActive('/about') || isActive('/contribute-data')) ? '#111' : 'transparent',
+              backgroundColor: (isActive('/players') || isActive('/about') || isActive('/contribute-data') || isActive('/transfer-board')) ? '#111' : 'transparent',
               border: 'none',
               width: '100%',
               textAlign: 'left',
@@ -1085,6 +1107,22 @@ const Header: React.FC = () => {
           </button>
           {showMobileCommunityMenu && (
             <>
+              <Link
+                to="/transfer-board"
+                style={{
+                  color: isActive('/transfer-board') ? '#22d3ee' : '#6b7280',
+                  textDecoration: 'none',
+                  fontSize: '0.9rem',
+                  padding: '0.5rem 1rem 0.5rem 1.5rem',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}
+              >
+                <span style={{ color: '#333' }}>└</span> Transfer Board
+                <span style={{ fontSize: '0.55rem', backgroundColor: '#f59e0b20', color: '#f59e0b', padding: '0.1rem 0.3rem', borderRadius: '4px' }}>Soon</span>
+              </Link>
               <Link
                 to="/players"
                 style={{

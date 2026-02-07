@@ -45,33 +45,31 @@ const TierBadge: React.FC<TierBadgeProps> = ({ tier }) => {
       onClick={() => isMobile && setShowTooltip(!showTooltip)}
     >
       {tier}
-      {showTooltip && (
-        <div style={{
-          position: 'absolute',
-          bottom: '100%',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          marginBottom: '8px',
-          backgroundColor: '#0a0a0a',
-          border: `1px solid ${config.color}`,
-          borderRadius: '8px',
-          padding: '0.6rem 0.8rem',
-          zIndex: 1000,
-          whiteSpace: 'nowrap',
-          fontSize: '0.75rem',
-          boxShadow: '0 8px 24px rgba(0,0,0,0.5)'
-        }}>
-          <div style={{ fontWeight: 'bold', marginBottom: '0.4rem', color: '#fff', fontSize: '0.8rem' }}>
-            Power Tiers
-          </div>
-          {TIER_DESCRIPTIONS.map(t => (
-            <div key={t.tier} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-              <span style={{ color: t.color, fontWeight: 'bold', width: '14px' }}>{t.tier}</span>
-              <span style={{ color: '#9ca3af' }}>{t.range}</span>
+      {showTooltip && (() => {
+        const currentTier = TIER_DESCRIPTIONS.find(t => t.tier === tier);
+        return (
+          <div style={{
+            position: 'absolute',
+            top: '100%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            marginTop: '8px',
+            backgroundColor: '#0a0a0a',
+            border: `1px solid ${config.color}`,
+            borderRadius: '8px',
+            padding: '0.5rem 0.7rem',
+            zIndex: 1000,
+            whiteSpace: 'nowrap',
+            fontSize: '0.75rem',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.5)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <span style={{ color: config.color, fontWeight: 'bold' }}>{tier}-Tier</span>
+              <span style={{ color: '#9ca3af' }}>{currentTier?.range}</span>
             </div>
-          ))}
-        </div>
-      )}
+          </div>
+        );
+      })()}
       <style>{`
         @keyframes sTierPulse {
           0%, 100% { box-shadow: 0 0 8px #fbbf2440; }

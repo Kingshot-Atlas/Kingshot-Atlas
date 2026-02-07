@@ -7,6 +7,13 @@
 
 ## Log Entries
 
+## 2026-02-06 20:45 | Design Lead | COMPLETED
+Task: Fix mobile tier tooltip — was spawning above and getting cut off, showed full tier list
+Files:
+  - `apps/web/src/components/shared/TierBadge.tsx` — Tooltip now spawns below badge, shows only current tier info
+  - `apps/web/src/components/profile-features/MiniKingdomCard.tsx` — Same fix for inline tier tooltip
+Result: Tooltip no longer clipped on mobile, shows concise single-tier description
+
 ## 2026-02-06 17:15 | Platform Engineer | COMPLETED
 Task: Discord Bot Gateway Rate-Limit Fix — Bot stuck in restart cycle, never connecting
 Root Cause: Render restart cycle → Discord global 429 rate limit (retry-after: 1951s/~32min).

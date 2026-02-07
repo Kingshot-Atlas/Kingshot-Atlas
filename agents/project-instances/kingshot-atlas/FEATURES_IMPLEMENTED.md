@@ -34,6 +34,7 @@
 | Admin Dashboard | `/admin` | ✅ Live | Platform | Data management, submissions review |
 | Support Atlas | `/support`, `/upgrade`, `/pro` | ✅ Live | Business | Community support page (formerly Upgrade) |
 | Changelog | `/changelog` | ✅ Live | Release | Version history and updates |
+| Transfer Board | `/transfer-board` | 🔨 In Progress | Product + Business | Kingdom listings, transfer profiles, applications. Coming Soon tag. (2026-02-06) |
 
 ---
 
@@ -354,6 +355,11 @@
 
 | Feature | Status | Notes |
 |---------|--------|-------|
+| Transfer Board — Transfer Profile Form | 🚧 Planned | Player-created transfer cards with auto-filled linked account data |
+| Transfer Board — Application System | 🚧 Planned | Apply to kingdoms, 3-slot limit, status tracking, auto-expire 14d |
+| Transfer Board — Recruiter Dashboard | 🚧 Planned | Overview, inbox, team management for kingdom editors |
+| Transfer Board — Kingdom Fund (Stripe) | 🚧 Planned | Community contributions, tiered benefits, fund depletion |
+| Transfer Board — Editor Claiming | 🚧 Planned | Nominate + $5 contribution + 10 endorsements from TC20+ |
 | Kingdom Ambassador Program | 🚧 Planned | Full spec at `/docs/KINGDOM_AMBASSADOR_PROGRAM.md` — 3-phase rollout, 1 per kingdom, referral tracking |
 | FilterPanel Integration | 🚧 Planned | Component exists, needs wiring to KingdomDirectory |
 | Mobile Responsive Pass | ✅ Live | 2026-02-05 - Touch targets fixed to 44px min on Header, KingdomProfile, CompareKingdoms, Leaderboards, KingdomCard, KingdomReviews, KvKHistoryTable, SupportAtlas, Profile |
