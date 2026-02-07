@@ -29,8 +29,10 @@ DISCORD_RECRUITER_ROLE_ID = os.getenv("DISCORD_RECRUITER_ROLE_ID")
 # Settler role - given to users who link their Kingshot account
 DISCORD_SETTLER_ROLE_ID = os.getenv("DISCORD_SETTLER_ROLE_ID", "1466442878585934102")
 
-# Discord API base URL
-DISCORD_API_BASE = "https://discord.com/api/v10"
+# Cloudflare Worker proxy to bypass Render IP bans (Error 1015)
+DISCORD_API_PROXY = os.getenv("DISCORD_API_PROXY", "")
+DISCORD_PROXY_KEY = os.getenv("DISCORD_PROXY_KEY", "")
+DISCORD_API_BASE = f"{DISCORD_API_PROXY}/api/v10" if DISCORD_API_PROXY else "https://discord.com/api/v10"
 
 
 def is_discord_sync_configured() -> bool:
@@ -62,6 +64,8 @@ async def add_role_to_member(discord_user_id: str, role_id: str) -> bool:
         "Authorization": f"Bot {DISCORD_BOT_TOKEN}",
         "Content-Type": "application/json",
     }
+    if DISCORD_API_PROXY and DISCORD_PROXY_KEY:
+        headers["X-Proxy-Key"] = DISCORD_PROXY_KEY
     
     try:
         async with httpx.AsyncClient() as client:
@@ -106,6 +110,8 @@ async def remove_role_from_member(discord_user_id: str, role_id: str) -> bool:
     headers = {
         "Authorization": f"Bot {DISCORD_BOT_TOKEN}",
     }
+    if DISCORD_API_PROXY and DISCORD_PROXY_KEY:
+        headers["X-Proxy-Key"] = DISCORD_PROXY_KEY
     
     try:
         async with httpx.AsyncClient() as client:

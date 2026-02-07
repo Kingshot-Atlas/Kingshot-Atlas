@@ -14,7 +14,7 @@ const shortcuts = [
   { key: '↑/↓', description: 'Navigate cards vertically' },
   { key: 'Enter', description: 'Open selected kingdom' },
   { key: 'G then H', description: 'Go to Home' },
-  { key: 'G then L', description: 'Go to Leaderboards' },
+  { key: 'G then L', description: 'Go to Rankings' },
   { key: 'G then P', description: 'Go to Profile' },
 ];
 

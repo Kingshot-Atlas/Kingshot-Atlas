@@ -16,6 +16,19 @@ router = APIRouter()
 DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
 DISCORD_API_KEY = os.getenv("DISCORD_API_KEY")
 
+# Cloudflare Worker proxy to bypass Render IP bans (Error 1015)
+DISCORD_API_PROXY = os.getenv("DISCORD_API_PROXY", "")
+DISCORD_PROXY_KEY = os.getenv("DISCORD_PROXY_KEY", "")
+DISCORD_API_BASE = DISCORD_API_PROXY or "https://discord.com"
+
+
+def get_discord_headers():
+    """Get headers for Discord API calls, including proxy key if configured."""
+    headers = {"Authorization": f"Bot {DISCORD_BOT_TOKEN}"}
+    if DISCORD_API_PROXY and DISCORD_PROXY_KEY:
+        headers["X-Proxy-Key"] = DISCORD_PROXY_KEY
+    return headers
+
 # Brand colors
 COLORS = {
     "primary": 0x22d3ee,
@@ -70,8 +83,8 @@ class ChannelInfo(BaseModel):
     position: int
 
 
-# In-memory command usage tracking (will be replaced with Supabase in production)
-command_usage: List[Dict[str, Any]] = []
+import hashlib
+from api.supabase_client import get_supabase_admin
 
 
 @router.get("/status")
@@ -90,10 +103,12 @@ async def get_bot_status(_: bool = Depends(verify_api_key)):
     
     try:
         async with httpx.AsyncClient() as client:
+            headers = get_discord_headers()
+            
             # Get bot user info
             response = await client.get(
-                "https://discord.com/api/v10/users/@me",
-                headers={"Authorization": f"Bot {DISCORD_BOT_TOKEN}"}
+                f"{DISCORD_API_BASE}/api/v10/users/@me",
+                headers=headers
             )
             
             if response.status_code != 200:
@@ -107,8 +122,8 @@ async def get_bot_status(_: bool = Depends(verify_api_key)):
             
             # Get guilds (servers) the bot is in
             guilds_response = await client.get(
-                "https://discord.com/api/v10/users/@me/guilds",
-                headers={"Authorization": f"Bot {DISCORD_BOT_TOKEN}"}
+                f"{DISCORD_API_BASE}/api/v10/users/@me/guilds",
+                headers=headers
             )
             
             guilds = guilds_response.json() if guilds_response.status_code == 200 else []
@@ -119,7 +134,7 @@ async def get_bot_status(_: bool = Depends(verify_api_key)):
                 "bot_id": bot_user.get("id"),
                 "bot_avatar": bot_user.get("avatar"),
                 "server_count": len(guilds),
-                "uptime_hours": 0  # Would need to track bot start time
+                "uptime_hours": 0
             }
     except Exception as e:
         return {
@@ -139,9 +154,10 @@ async def get_bot_servers(_: bool = Depends(verify_api_key)):
     
     try:
         async with httpx.AsyncClient() as client:
+            headers = get_discord_headers()
             response = await client.get(
-                "https://discord.com/api/v10/users/@me/guilds",
-                headers={"Authorization": f"Bot {DISCORD_BOT_TOKEN}"}
+                f"{DISCORD_API_BASE}/api/v10/users/@me/guilds",
+                headers=headers
             )
             
             if response.status_code != 200:
@@ -181,9 +197,10 @@ async def get_server_channels(server_id: str, _: bool = Depends(verify_api_key))
     
     try:
         async with httpx.AsyncClient() as client:
+            headers = get_discord_headers()
             response = await client.get(
-                f"https://discord.com/api/v10/guilds/{server_id}/channels",
-                headers={"Authorization": f"Bot {DISCORD_BOT_TOKEN}"}
+                f"{DISCORD_API_BASE}/api/v10/guilds/{server_id}/channels",
+                headers=headers
             )
             
             if response.status_code != 200:
@@ -247,12 +264,11 @@ async def send_message(data: SendMessageRequest, _: bool = Depends(verify_api_ke
             payload["embeds"] = [embed]
         
         async with httpx.AsyncClient() as client:
+            headers = get_discord_headers()
+            headers["Content-Type"] = "application/json"
             response = await client.post(
-                f"https://discord.com/api/v10/channels/{data.channel_id}/messages",
-                headers={
-                    "Authorization": f"Bot {DISCORD_BOT_TOKEN}",
-                    "Content-Type": "application/json"
-                },
+                f"{DISCORD_API_BASE}/api/v10/channels/{data.channel_id}/messages",
+                headers=headers,
                 json=payload
             )
             
@@ -293,31 +309,44 @@ async def get_bot_stats(_: bool = Depends(verify_api_key)):
     try:
         # Get server count
         async with httpx.AsyncClient() as client:
+            headers = get_discord_headers()
             guilds_response = await client.get(
-                "https://discord.com/api/v10/users/@me/guilds",
-                headers={"Authorization": f"Bot {DISCORD_BOT_TOKEN}"}
+                f"{DISCORD_API_BASE}/api/v10/users/@me/guilds",
+                headers=headers
             )
             server_count = len(guilds_response.json()) if guilds_response.status_code == 200 else 0
         
-        # Calculate command stats from in-memory tracking
+        # Calculate command stats from Supabase
         now = datetime.now(timezone.utc)
-        day_ago = now - timedelta(days=1)
-        week_ago = now - timedelta(days=7)
+        day_ago = (now - timedelta(days=1)).isoformat()
+        week_ago = (now - timedelta(days=7)).isoformat()
         
-        commands_24h = len([c for c in command_usage if c.get("timestamp", now) > day_ago])
-        commands_7d = len([c for c in command_usage if c.get("timestamp", now) > week_ago])
+        commands_24h = 0
+        commands_7d = 0
+        top_commands = []
         
-        # Aggregate top commands
-        command_counts: Dict[str, int] = {}
-        for cmd in command_usage:
-            name = cmd.get("command", "unknown")
-            command_counts[name] = command_counts.get(name, 0) + 1
-        
-        top_commands = sorted(
-            [{"name": k, "count": v} for k, v in command_counts.items()],
-            key=lambda x: x["count"],
-            reverse=True
-        )[:5]
+        sb = get_supabase_admin()
+        if sb:
+            try:
+                r24 = sb.table("bot_command_usage").select("id", count="exact").gte("created_at", day_ago).execute()
+                commands_24h = r24.count or 0
+                
+                r7d = sb.table("bot_command_usage").select("id", count="exact").gte("created_at", week_ago).execute()
+                commands_7d = r7d.count or 0
+                
+                # Top commands (all time, limited to recent 10k)
+                all_cmds = sb.table("bot_command_usage").select("command_name").order("created_at", desc=True).limit(10000).execute()
+                command_counts: Dict[str, int] = {}
+                for row in (all_cmds.data or []):
+                    name = row.get("command_name", "unknown")
+                    command_counts[name] = command_counts.get(name, 0) + 1
+                top_commands = sorted(
+                    [{"name": k, "count": v} for k, v in command_counts.items()],
+                    key=lambda x: x["count"],
+                    reverse=True
+                )[:5]
+            except Exception as e:
+                print(f"WARNING: Failed to read command stats from Supabase: {e}")
         
         return {
             "status": "online",
@@ -356,19 +385,21 @@ async def log_command(
     _: bool = Depends(verify_api_key)
 ):
     """
-    Log a command usage event.
-    Called by the Discord bot when a command is executed.
+    Log a command usage event to Supabase.
+    User IDs are hashed for privacy.
     """
-    command_usage.append({
-        "command": data.command,
-        "guild_id": data.guild_id,
-        "user_id": data.user_id,
-        "timestamp": datetime.now(timezone.utc)
-    })
+    user_hash = hashlib.sha256(data.user_id.encode()).hexdigest()[:16]
     
-    # Keep only last 10000 entries to prevent memory issues
-    if len(command_usage) > 10000:
-        command_usage.pop(0)
+    client = get_supabase_admin()
+    if client:
+        try:
+            client.table("bot_command_usage").insert({
+                "command_name": data.command,
+                "user_id_hash": user_hash,
+                "guild_id": data.guild_id,
+            }).execute()
+        except Exception as e:
+            print(f"WARNING: Failed to log command to Supabase: {e}")
     
     return {"success": True}
 
@@ -505,8 +536,8 @@ async def leave_server(server_id: str, _: bool = Depends(verify_api_key)):
     try:
         async with httpx.AsyncClient() as client:
             response = await client.delete(
-                f"https://discord.com/api/v10/users/@me/guilds/{server_id}",
-                headers={"Authorization": f"Bot {DISCORD_BOT_TOKEN}"}
+                f"{DISCORD_API_BASE}/api/v10/users/@me/guilds/{server_id}",
+                headers=get_discord_headers()
             )
             
             if response.status_code not in (200, 204):
@@ -549,8 +580,8 @@ async def discord_diagnostic(_: bool = Depends(verify_api_key)):
         async with httpx.AsyncClient(timeout=10.0) as client:
             # Test 1: Verify bot token by getting bot user
             bot_response = await client.get(
-                "https://discord.com/api/v10/users/@me",
-                headers={"Authorization": f"Bot {DISCORD_BOT_TOKEN}"}
+                f"{DISCORD_API_BASE}/api/v10/users/@me",
+                headers=get_discord_headers()
             )
             
             if bot_response.status_code == 200:
@@ -584,8 +615,8 @@ async def discord_diagnostic(_: bool = Depends(verify_api_key)):
             # Test 2: Check if bot is in the target guild
             if DISCORD_GUILD_ID:
                 guild_response = await client.get(
-                    f"https://discord.com/api/v10/guilds/{DISCORD_GUILD_ID}",
-                    headers={"Authorization": f"Bot {DISCORD_BOT_TOKEN}"}
+                    f"{DISCORD_API_BASE}/api/v10/guilds/{DISCORD_GUILD_ID}",
+                    headers=get_discord_headers()
                 )
                 
                 if guild_response.status_code == 200:
@@ -611,8 +642,8 @@ async def discord_diagnostic(_: bool = Depends(verify_api_key)):
                 bot_id = results["tests"].get("bot_token", {}).get("bot_id")
                 if bot_id:
                     member_response = await client.get(
-                        f"https://discord.com/api/v10/guilds/{DISCORD_GUILD_ID}/members/{bot_id}",
-                        headers={"Authorization": f"Bot {DISCORD_BOT_TOKEN}"}
+                        f"{DISCORD_API_BASE}/api/v10/guilds/{DISCORD_GUILD_ID}/members/{bot_id}",
+                        headers=get_discord_headers()
                     )
                     
                     if member_response.status_code == 200:
@@ -631,8 +662,8 @@ async def discord_diagnostic(_: bool = Depends(verify_api_key)):
             # Test 4: Check if Settler role exists
             if DISCORD_GUILD_ID and DISCORD_SETTLER_ROLE_ID:
                 roles_response = await client.get(
-                    f"https://discord.com/api/v10/guilds/{DISCORD_GUILD_ID}/roles",
-                    headers={"Authorization": f"Bot {DISCORD_BOT_TOKEN}"}
+                    f"{DISCORD_API_BASE}/api/v10/guilds/{DISCORD_GUILD_ID}/roles",
+                    headers=get_discord_headers()
                 )
                 
                 if roles_response.status_code == 200:

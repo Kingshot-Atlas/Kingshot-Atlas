@@ -542,7 +542,7 @@ const Leaderboards: React.FC = () => {
                 {([5, 10, 25] as const).map((count) => (
                   <button
                     key={count}
-                    onClick={() => { trackFeature('Leaderboard Display Count', { count }); setDisplayCount(count); }}
+                    onClick={() => { trackFeature('Rankings Display Count', { count }); setDisplayCount(count); }}
                     style={{
                       padding: isMobile ? '0.6rem 1rem' : '0.5rem 1.25rem',
                       minHeight: isMobile ? '44px' : 'auto',

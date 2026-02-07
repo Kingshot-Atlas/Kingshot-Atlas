@@ -74,7 +74,7 @@ module.exports = {
     base: 'https://ks-atlas.com',
     kingdom: (num) => `https://ks-atlas.com/kingdom/${num}`,
     compare: (k1, k2) => `https://ks-atlas.com/compare?k1=${k1}&k2=${k2}`,
-    leaderboard: 'https://ks-atlas.com/leaderboard',
+    rankings: 'https://ks-atlas.com/rankings',
     changelog: 'https://ks-atlas.com/changelog',
     pro: 'https://ks-atlas.com/pro',
   },

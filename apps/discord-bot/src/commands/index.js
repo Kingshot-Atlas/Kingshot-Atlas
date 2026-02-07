@@ -41,9 +41,9 @@ const commands = [
         .setMaxValue(9999)
     ),
 
-  // /leaderboard
+  // /rankings
   new SlashCommandBuilder()
-    .setName('leaderboard')
+    .setName('rankings')
     .setDescription('Show top 10 kingdoms by Atlas Score'),
 
   // /tier <tier>
@@ -63,26 +63,6 @@ const commands = [
           { name: '⬜ D-Tier (New)', value: 'D' }
         )
     ),
-
-  // /top <phase>
-  new SlashCommandBuilder()
-    .setName('top')
-    .setDescription('Show top 10 kingdoms by phase win rate')
-    .addStringOption(option =>
-      option
-        .setName('phase')
-        .setDescription('Select phase')
-        .setRequired(true)
-        .addChoices(
-          { name: '🛡️ Prep Phase', value: 'prep' },
-          { name: '⚔️ Battle Phase', value: 'battle' }
-        )
-    ),
-
-  // /upcoming
-  new SlashCommandBuilder()
-    .setName('upcoming')
-    .setDescription('Show upcoming KvK and Transfer Event dates'),
 
   // /countdownkvk
   new SlashCommandBuilder()
@@ -129,20 +109,10 @@ const commands = [
         .setMaxValue(9999)
     ),
 
-  // /random
-  new SlashCommandBuilder()
-    .setName('random')
-    .setDescription('Discover a random kingdom'),
-
   // /help
   new SlashCommandBuilder()
     .setName('help')
     .setDescription('Show all Atlas bot commands'),
-
-  // /link - Link your Kingshot account to get the Settler role
-  new SlashCommandBuilder()
-    .setName('link')
-    .setDescription('Link your Kingshot account to Atlas for the Settler role'),
 
   // /stats (admin only - for Discord Community Manager analysis)
   new SlashCommandBuilder()

@@ -7,6 +7,21 @@
 
 ## Log Entries
 
+## 2026-02-07 19:44 | Product Engineer | COMPLETED
+Task: Command cleanup, leaderboard→rankings rename, /predict disclaimer, duplicate command fix, /history layout fix, Supabase usage tracking, BotDashboard proxy fix
+Files: `apps/discord-bot/src/commands/index.js`, `apps/discord-bot/src/commands/handlers.js`, `apps/discord-bot/src/bot.js`, `apps/discord-bot/src/utils/embeds.js`, `apps/discord-bot/src/config.js`, `apps/discord-bot/src/register-commands.js`, `apps/api/api/routers/bot.py`, `apps/api/api/discord_role_sync.py`, `apps/web/src/pages/AtlasBot.tsx`, `apps/web/src/components/KeyboardShortcutsModal.tsx`, `apps/web/src/pages/Leaderboards.tsx`
+Result:
+  - Removed /top, /link, /random, /upcoming commands (definitions, handlers, dispatch, presence)
+  - Renamed /leaderboard→/rankings everywhere: command, embed, config URL, help, presence, web page cards, keyboard shortcuts
+  - Added Atlas-personality disclaimer to /predict: "Data-driven estimate, not a crystal ball. KvK is won on the battlefield."
+  - Fixed duplicate commands: register-commands.js now registers globally AND clears guild-specific commands to prevent duplicates
+  - Redesigned /history embed: title "📜 Kingdom X - KvK History", 2-column layout (Matchup | Result), 10 per page, no summary
+  - Created `bot_command_usage` Supabase table with RLS, indexes, and privacy-hashed user IDs
+  - Wired bot.py log-command to insert into Supabase, stats endpoint to read from Supabase
+  - Fixed BotDashboard "error" status / 0 servers / can't send messages: ALL Discord API calls in bot.py and discord_role_sync.py now route through Cloudflare Worker proxy (DISCORD_API_PROXY env var) to bypass Render IP blocks
+  - REGISTER_COMMANDS=1 needed on Render after deploy to push new command set to Discord
+  - DISCORD_API_PROXY and DISCORD_PROXY_KEY env vars must be set on the API Render service (same values as bot service)
+
 ## 2026-02-07 19:30 | Product Engineer | COMPLETED
 Task: Add /history and /predict commands, fix all corrupted emojis, add CTAs to all embeds
 Files: `apps/discord-bot/src/utils/embeds.js`, `apps/discord-bot/src/commands/handlers.js`, `apps/discord-bot/src/commands/index.js`, `apps/discord-bot/src/bot.js`, `apps/web/src/pages/AtlasBot.tsx`

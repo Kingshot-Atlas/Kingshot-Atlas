@@ -9,13 +9,12 @@
  * Commands:
  * /kingdom <number>  - Get detailed kingdom stats
  * /compare <k1> <k2> - Compare two kingdoms head-to-head
- * /leaderboard       - Show top 10 kingdoms by Atlas Score
+ * /rankings          - Show top 10 kingdoms by Atlas Score
  * /tier <S|A|B|C|D>  - List kingdoms by tier
- * /top <prep|battle> - Top 10 by phase win rate
- * /upcoming          - Show next KvK and Transfer dates
+ * /history <number>  - KvK season history
+ * /predict <k1> <k2> - Matchup prediction
  * /countdownkvk      - Time until next KvK
  * /countdowntransfer - Time until next Transfer Event
- * /random            - Discover a random kingdom
  * /help              - Show all commands
  * 
  * Setup:
@@ -366,8 +365,8 @@ client.on('ready', async () => {
     '/compare | Head-to-head stats',
     '/history | KvK season history',
     '/predict | Matchup predictions',
+    '/rankings | Top kingdoms',
     '/countdownkvk | Next KvK',
-    '/countdowntransfer | Next Transfer',
   ];
   let presenceIndex = 0;
   const updatePresence = () => {
@@ -731,17 +730,11 @@ client.on('interactionCreate', async (interaction) => {
       case 'compare':
         await handlers.handleCompare(interaction);
         break;
-      case 'leaderboard':
-        await handlers.handleLeaderboard(interaction);
+      case 'rankings':
+        await handlers.handleRankings(interaction);
         break;
       case 'tier':
         await handlers.handleTier(interaction);
-        break;
-      case 'top':
-        await handlers.handleTop(interaction);
-        break;
-      case 'upcoming':
-        await handlers.handleUpcoming(interaction);
         break;
       case 'countdownkvk':
         await handlers.handleCountdownKvk(interaction);
@@ -755,14 +748,8 @@ client.on('interactionCreate', async (interaction) => {
       case 'predict':
         await handlers.handlePredict(interaction);
         break;
-      case 'random':
-        await handlers.handleRandom(interaction);
-        break;
       case 'help':
         await handlers.handleHelp(interaction);
-        break;
-      case 'link':
-        await handlers.handleLink(interaction);
         break;
       case 'stats':
         await handlers.handleStats(interaction);

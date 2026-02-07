@@ -108,8 +108,8 @@ const AtlasBot: React.FC = () => {
       accentColor: '#ec4899'
     },
     {
-      command: 'leaderboard',
-      description: 'Top 10 kingdoms by Atlas Score. See who\'s dominating the rankings right now.',
+      command: 'rankings',
+      description: 'Top 10 kingdoms by Atlas Score. See who\'s dominating right now.',
       icon: '\ud83c\udfc6',
       accentColor: '#eab308'
     },
@@ -126,23 +126,11 @@ const AtlasBot: React.FC = () => {
       accentColor: '#a855f7'
     },
     {
-      command: 'upcoming',
-      description: 'See both upcoming KvK and Transfer Event dates side by side. Plan ahead.',
-      icon: '\ud83d\udcc5',
-      accentColor: '#3b82f6'
-    },
-    {
-      command: 'random',
-      description: 'Discover a random kingdom. Great for scouting or exploring new matchups.',
-      icon: '\ud83c\udfb2',
-      accentColor: '#22c55e'
-    },
-    {
-      command: 'link',
-      description: 'Connect your Discord account to your Atlas profile and get the Settler role.',
-      example: '/link',
-      icon: '\ud83d\udd17',
-      accentColor: '#22c55e'
+      command: 'tier',
+      description: 'Browse kingdoms by tier (S through D). Quickly find where any kingdom ranks.',
+      example: '/tier S',
+      icon: '\u2b50',
+      accentColor: '#fbbf24'
     }
   ];
 
