@@ -22,6 +22,8 @@ interface Server {
   icon: string | null;
   owner: boolean;
   permissions: string;
+  member_count: number;
+  presence_count: number;
 }
 
 interface Channel {
@@ -79,6 +81,7 @@ export const BotDashboard: React.FC = () => {
   const [useEmbed, setUseEmbed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [analyticsPeriod, setAnalyticsPeriod] = useState<'24h' | '7d' | '30d'>('7d');
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
@@ -106,21 +109,33 @@ export const BotDashboard: React.FC = () => {
 
   const loadBotData = async () => {
     setLoading(true);
+    setServerError(null);
     try {
-      const [statusRes, serversRes, statsRes] = await Promise.all([
+      // Fetch status and stats first (lightweight)
+      const [statusRes, statsRes] = await Promise.all([
         fetch(`${API_URL}/api/v1/bot/status`),
-        fetch(`${API_URL}/api/v1/bot/servers`),
         fetch(`${API_URL}/api/v1/bot/stats`)
       ]);
 
       if (statusRes.ok) setBotStatus(await statusRes.json());
+      if (statsRes.ok) setStats(await statsRes.json());
+
+      // Fetch servers separately to avoid Discord API rate-limit race
+      const serversRes = await fetch(`${API_URL}/api/v1/bot/servers`);
       if (serversRes.ok) {
         const data = await serversRes.json();
         setServers(data.servers || []);
+        if (data.error) setServerError(data.error);
+        // Update server_count on botStatus from servers response
+        if (data.total && data.total > 0) {
+          setBotStatus(prev => prev ? { ...prev, server_count: data.total } : prev);
+        }
+      } else {
+        setServerError(`API returned ${serversRes.status}`);
       }
-      if (statsRes.ok) setStats(await statsRes.json());
     } catch (error) {
       console.error('Failed to load bot data:', error);
+      setServerError(String(error));
     } finally {
       setLoading(false);
     }
@@ -401,10 +416,36 @@ export const BotDashboard: React.FC = () => {
       {/* Servers Tab */}
       {activeTab === 'servers' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <h3 style={{ color: '#fff', margin: 0, fontSize: '1rem' }}>
-            Connected Servers ({servers.length})
-          </h3>
-          {servers.length === 0 ? (
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3 style={{ color: '#fff', margin: 0, fontSize: '1rem' }}>
+              Connected Servers ({servers.length})
+            </h3>
+            {servers.length > 0 && (
+              <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem' }}>
+                <span style={{ color: COLORS.muted }}>
+                  Total Members: <span style={{ color: COLORS.primary, fontWeight: '600' }}>{servers.reduce((s, sv) => s + (sv.member_count || 0), 0).toLocaleString()}</span>
+                </span>
+                <span style={{ color: COLORS.muted }}>
+                  Online: <span style={{ color: COLORS.success, fontWeight: '600' }}>{servers.reduce((s, sv) => s + (sv.presence_count || 0), 0).toLocaleString()}</span>
+                </span>
+              </div>
+            )}
+          </div>
+
+          {serverError && (
+            <div style={{
+              padding: '0.75rem 1rem',
+              backgroundColor: COLORS.danger + '15',
+              borderRadius: '8px',
+              border: `1px solid ${COLORS.danger}40`,
+              color: COLORS.danger,
+              fontSize: '0.8rem'
+            }}>
+              ⚠️ {serverError}
+            </div>
+          )}
+
+          {servers.length === 0 && !serverError ? (
             <div style={{
               textAlign: 'center',
               padding: '2rem',
@@ -416,30 +457,30 @@ export const BotDashboard: React.FC = () => {
               Bot is not in any servers yet
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1rem' }}>
-              {servers.map(server => (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              {servers.sort((a, b) => (b.member_count || 0) - (a.member_count || 0)).map(server => (
                 <div
                   key={server.id}
                   style={{
                     backgroundColor: COLORS.background,
-                    borderRadius: '12px',
-                    padding: '1rem',
+                    borderRadius: '10px',
+                    padding: '0.85rem 1rem',
                     border: `1px solid ${COLORS.border}`,
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '1rem'
+                    gap: '0.75rem'
                   }}
                 >
                   {server.icon ? (
                     <img
                       src={server.icon}
                       alt={server.name}
-                      style={{ width: '48px', height: '48px', borderRadius: '50%' }}
+                      style={{ width: '40px', height: '40px', borderRadius: '50%', flexShrink: 0 }}
                     />
                   ) : (
                     <div style={{
-                      width: '48px',
-                      height: '48px',
+                      width: '40px',
+                      height: '40px',
                       borderRadius: '50%',
                       backgroundColor: COLORS.primary + '20',
                       display: 'flex',
@@ -447,7 +488,8 @@ export const BotDashboard: React.FC = () => {
                       justifyContent: 'center',
                       color: COLORS.primary,
                       fontWeight: '600',
-                      fontSize: '1.25rem'
+                      fontSize: '1rem',
+                      flexShrink: 0
                     }}>
                       {server.name.charAt(0).toUpperCase()}
                     </div>
@@ -463,8 +505,18 @@ export const BotDashboard: React.FC = () => {
                     }}>
                       {server.name}
                     </div>
-                    <div style={{ color: COLORS.muted, fontSize: '0.75rem' }}>
-                      ID: {server.id}
+                    <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.2rem', fontSize: '0.75rem' }}>
+                      <span style={{ color: COLORS.muted }}>
+                        👥 <span style={{ color: COLORS.primary }}>{(server.member_count || 0).toLocaleString()}</span> members
+                      </span>
+                      {server.presence_count > 0 && (
+                        <span style={{ color: COLORS.muted }}>
+                          🟢 <span style={{ color: COLORS.success }}>{server.presence_count.toLocaleString()}</span> online
+                        </span>
+                      )}
+                      {server.owner && (
+                        <span style={{ color: COLORS.warning }}>👑 Owner</span>
+                      )}
                     </div>
                   </div>
                   <button
@@ -476,7 +528,8 @@ export const BotDashboard: React.FC = () => {
                       borderRadius: '4px',
                       color: COLORS.danger,
                       cursor: 'pointer',
-                      fontSize: '0.7rem'
+                      fontSize: '0.7rem',
+                      flexShrink: 0
                     }}
                     title="Remove bot from server"
                   >

@@ -91,7 +91,8 @@ from api.supabase_client import get_supabase_admin
 async def get_bot_status(_: bool = Depends(verify_api_key)):
     """
     Get the current status of the Discord bot.
-    Returns online status, server count, and basic metrics.
+    Returns online status and basic bot info.
+    Note: server_count comes from /servers endpoint to avoid duplicate Discord API calls.
     """
     if not DISCORD_BOT_TOKEN:
         return {
@@ -102,10 +103,10 @@ async def get_bot_status(_: bool = Depends(verify_api_key)):
         }
     
     try:
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=10.0) as client:
             headers = get_discord_headers()
             
-            # Get bot user info
+            # Get bot user info only — guilds fetched separately by /servers
             response = await client.get(
                 f"{DISCORD_API_BASE}/api/v10/users/@me",
                 headers=headers
@@ -120,20 +121,12 @@ async def get_bot_status(_: bool = Depends(verify_api_key)):
             
             bot_user = response.json()
             
-            # Get guilds (servers) the bot is in
-            guilds_response = await client.get(
-                f"{DISCORD_API_BASE}/api/v10/users/@me/guilds",
-                headers=headers
-            )
-            
-            guilds = guilds_response.json() if guilds_response.status_code == 200 else []
-            
             return {
                 "status": "online",
                 "bot_name": bot_user.get("username", "Atlas"),
                 "bot_id": bot_user.get("id"),
                 "bot_avatar": bot_user.get("avatar"),
-                "server_count": len(guilds),
+                "server_count": 0,
                 "uptime_hours": 0
             }
     except Exception as e:
@@ -147,24 +140,27 @@ async def get_bot_status(_: bool = Depends(verify_api_key)):
 @router.get("/servers")
 async def get_bot_servers(_: bool = Depends(verify_api_key)):
     """
-    Get list of all servers the bot is in.
+    Get list of all servers the bot is in, with member counts.
+    Uses ?with_counts=true for approximate member/presence stats.
+    Returns gracefully on error instead of throwing.
     """
     if not DISCORD_BOT_TOKEN:
-        raise HTTPException(status_code=503, detail="Discord bot token not configured")
+        return {"servers": [], "total": 0, "error": "Discord bot token not configured"}
     
     try:
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=15.0) as client:
             headers = get_discord_headers()
             response = await client.get(
-                f"{DISCORD_API_BASE}/api/v10/users/@me/guilds",
+                f"{DISCORD_API_BASE}/api/v10/users/@me/guilds?with_counts=true",
                 headers=headers
             )
             
             if response.status_code != 200:
-                raise HTTPException(
-                    status_code=response.status_code,
-                    detail=f"Discord API error: {response.text}"
-                )
+                return {
+                    "servers": [],
+                    "total": 0,
+                    "error": f"Discord API error {response.status_code}: {response.text[:200]}"
+                }
             
             guilds = response.json()
             
@@ -175,16 +171,16 @@ async def get_bot_servers(_: bool = Depends(verify_api_key)):
                         "name": g.get("name"),
                         "icon": f"https://cdn.discordapp.com/icons/{g.get('id')}/{g.get('icon')}.png" if g.get("icon") else None,
                         "owner": g.get("owner", False),
-                        "permissions": g.get("permissions")
+                        "permissions": g.get("permissions"),
+                        "member_count": g.get("approximate_member_count", 0),
+                        "presence_count": g.get("approximate_presence_count", 0)
                     }
                     for g in guilds
                 ],
                 "total": len(guilds)
             }
-    except HTTPException:
-        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return {"servers": [], "total": 0, "error": str(e)}
 
 
 @router.get("/servers/{server_id}/channels")
