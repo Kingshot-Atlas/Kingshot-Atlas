@@ -31,13 +31,15 @@ const formatTCLevel = (level: number | null | undefined): string => {
 };
 
 // Get border color for avatar based on subscription tier
-// Supporter = Pink, Recruiter = Purple, Admin = Gold
-const getTierBorderColor = (tier: 'free' | 'pro' | 'recruiter' | 'admin'): string => {
+// Supporter = Pink, Admin = Gold
+const getTierBorderColor = (tier: string): string => {
   switch (tier) {
-    case 'admin': return '#f59e0b';    // Gold - Admin
-    case 'recruiter': return '#a855f7'; // Purple - Atlas Recruiter
-    case 'pro': return '#FF6B8A';       // Pink - Atlas Supporter
-    default: return '#ffffff';          // White
+    case 'admin': return '#f59e0b';       // Gold - Admin
+    case 'supporter':
+    case 'pro':                           // Legacy
+    case 'recruiter':                     // Legacy
+      return '#FF6B8A';                   // Pink - Atlas Supporter
+    default: return '#ffffff';            // White
   }
 };
 
@@ -417,14 +419,14 @@ const Profile: React.FC = () => {
   const { userId } = useParams<{ userId?: string }>();
   useDocumentTitle(userId ? 'User Profile' : 'My Profile');
   const { user, profile, loading, updateProfile, refreshLinkedPlayer } = useAuth();
-  const { tierName, isPro, isRecruiter, isAdmin } = usePremium();
+  const { tierName, isSupporter, isAdmin } = usePremium();
   const { showToast } = useToast();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [managingSubscription, setManagingSubscription] = useState(false);
   const isMobile = useIsMobile();
   const [viewedProfile, setViewedProfile] = useState<UserProfile | null>(null);
   const [isViewingOther, setIsViewingOther] = useState(false);
-  const [viewedUserTier, setViewedUserTier] = useState<'free' | 'pro' | 'recruiter' | 'admin'>('free');
+  const [viewedUserTier, setViewedUserTier] = useState<string>('free');
   const [isEditing, setIsEditing] = useState(false);
   const [hasShownWelcome, setHasShownWelcome] = useState(false);
   const [editForm, setEditForm] = useState<EditForm>({
@@ -486,8 +488,7 @@ const Profile: React.FC = () => {
               if (data.is_admin) {
                 setViewedUserTier('admin');
               } else {
-                const tier = data.subscription_tier as 'free' | 'pro' | 'recruiter' | undefined;
-                setViewedUserTier(tier || 'free');
+                setViewedUserTier(data.subscription_tier || 'free');
               }
               return;
             }
@@ -969,7 +970,7 @@ const Profile: React.FC = () => {
                     avatarUrl={viewedProfile?.linked_username ? viewedProfile?.linked_avatar_url || undefined : undefined}
                     username={viewedProfile?.linked_username}
                     size={isMobile ? 96 : 80}
-                    themeColor={getTierBorderColor(isAdmin ? 'admin' : isRecruiter ? 'recruiter' : isPro ? 'pro' : 'free')}
+                    themeColor={getTierBorderColor(isAdmin ? 'admin' : isSupporter ? 'supporter' : 'free')}
                     badgeStyle={viewedProfile?.badge_style}
                     showGlobeDefault={!viewedProfile?.linked_username}
                     onClick={!viewedProfile?.linked_username ? () => {
@@ -1324,7 +1325,7 @@ const Profile: React.FC = () => {
               }}
               onUnlink={() => {}}
               linkedPlayer={null}
-              subscriptionTier={isAdmin ? 'admin' : isRecruiter ? 'recruiter' : isPro ? 'pro' : 'free'}
+              subscriptionTier={isAdmin ? 'admin' : isSupporter ? 'supporter' : 'free'}
             />
           </div>
         )}
@@ -1336,11 +1337,11 @@ const Profile: React.FC = () => {
             borderRadius: '12px',
             padding: isMobile ? '1rem' : '1.25rem',
             marginBottom: '1.5rem',
-            border: `1px solid ${isPro || isRecruiter ? themeColor : '#2a2a2a'}30`,
+            border: `1px solid ${isSupporter ? themeColor : '#2a2a2a'}30`,
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ fontSize: '1.1rem' }}>{isAdmin ? '⚡' : isPro || isRecruiter ? '⭐' : '👤'}</span>
+                <span style={{ fontSize: '1.1rem' }}>{isAdmin ? '⚡' : isSupporter ? '⭐' : '👤'}</span>
                 <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: '600', color: '#fff' }}>
                   Subscription
                 </h3>
@@ -1348,15 +1349,13 @@ const Profile: React.FC = () => {
               <div style={{
                 padding: '0.25rem 0.75rem',
                 backgroundColor: isAdmin ? '#ef444420' 
-                  : isRecruiter ? '#f9731620' 
-                  : isPro ? '#22d3ee20' 
+                  : isSupporter ? '#22d3ee20' 
                   : '#3a3a3a20',
                 borderRadius: '9999px',
                 fontSize: '0.75rem',
                 fontWeight: '600',
                 color: isAdmin ? '#ef4444' 
-                  : isRecruiter ? '#f97316' 
-                  : isPro ? '#22d3ee' 
+                  : isSupporter ? '#22d3ee' 
                   : '#9ca3af',
               }}>
                 {tierName}
@@ -1374,12 +1373,12 @@ const Profile: React.FC = () => {
               <p style={{ color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.85rem', margin: 0, lineHeight: 1.5 }}>
                 {isAdmin 
                   ? 'You have full admin access to all features.'
-                  : isPro || isRecruiter 
-                  ? `You have full access to ${isRecruiter ? 'Recruiter' : 'Pro'} features.`
+                  : isSupporter 
+                  ? 'You have full access to Supporter features.'
                   : 'Upgrade to unlock premium features and support the project.'}
               </p>
               
-              {(isPro || isRecruiter) && !isAdmin ? (
+              {isSupporter && !isAdmin ? (
                 <button
                   onClick={async () => {
                     if (!user) return;

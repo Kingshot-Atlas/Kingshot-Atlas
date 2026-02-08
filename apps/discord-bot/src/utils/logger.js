@@ -12,7 +12,12 @@
 
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const config = require('../config');
+
+function hashUserId(userId) {
+  return crypto.createHash('sha256').update(userId).digest('hex').slice(0, 16);
+}
 
 // API sync configuration
 const API_SYNC_ENABLED = process.env.BOT_API_SYNC !== 'false';
@@ -108,8 +113,9 @@ function logCommand(interaction, responseTime = 0, success = true) {
     stats.dailyActivity[today] = { commands: 0, errors: 0, uniqueUsers: [] };
   }
   stats.dailyActivity[today].commands++;
-  if (!stats.dailyActivity[today].uniqueUsers.includes(userId)) {
-    stats.dailyActivity[today].uniqueUsers.push(userId);
+  const userHash = hashUserId(userId);
+  if (!stats.dailyActivity[today].uniqueUsers.includes(userHash)) {
+    stats.dailyActivity[today].uniqueUsers.push(userHash);
   }
 
   // Track guild activity

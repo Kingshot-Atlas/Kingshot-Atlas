@@ -648,7 +648,7 @@ const KingdomListingCard: React.FC<{
               RECRUITING
             </div>
           )}
-          {mode === 'transferring' && matchScore !== undefined && (
+          {mode === 'transferring' && matchScore !== undefined && matchScore > 0 && (
             <span style={{
               padding: '0.2rem 0.5rem',
               backgroundColor: matchScore >= 75 ? '#22c55e12' : matchScore >= 50 ? '#eab30812' : '#ef444412',
@@ -660,6 +660,26 @@ const KingdomListingCard: React.FC<{
             }}>
               {matchScore}% match
             </span>
+          )}
+          {mode === 'transferring' && (!matchScore || matchScore === 0) && !profile?.linked_username && fund?.is_recruiting && (
+            <Link to="/profile" style={{ textDecoration: 'none' }}>
+              <span style={{
+                padding: '0.2rem 0.5rem',
+                backgroundColor: '#9ca3af08',
+                border: '1px solid #9ca3af20',
+                borderRadius: '6px',
+                fontSize: '0.7rem',
+                fontWeight: 'bold',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.25rem',
+                cursor: 'pointer',
+                transition: 'border-color 0.2s',
+              }}>
+                <span style={{ filter: 'blur(4px)', color: '#22c55e', userSelect: 'none' }}>87%</span>
+                <span style={{ color: '#4b5563', fontSize: '0.6rem' }}>Link to see</span>
+              </span>
+            </Link>
           )}
         </div>
 

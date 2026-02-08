@@ -106,18 +106,19 @@ export const tierColors = {
  */
 export const subscriptionColors = {
   free: '#6b7280',      // Gray
-  pro: '#FF6B8A',       // Pink - Atlas Supporter
-  recruiter: '#a855f7', // Purple - Atlas Recruiter
+  supporter: '#FF6B8A', // Pink - Atlas Supporter
   admin: '#f59e0b',     // Gold - Admin
 } as const;
 
 /**
  * Get color for a subscription tier
  */
-export const getSubscriptionColor = (tier: 'pro' | 'recruiter' | 'admin' | 'free'): string => {
+export const getSubscriptionColor = (tier: string): string => {
   switch (tier) {
-    case 'pro': return subscriptionColors.pro;
-    case 'recruiter': return subscriptionColors.recruiter;
+    case 'supporter':
+    case 'pro':        // Legacy
+    case 'recruiter':  // Legacy
+      return subscriptionColors.supporter;
     case 'admin': return subscriptionColors.admin;
     default: return colors.textSecondary;
   }

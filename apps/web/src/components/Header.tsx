@@ -882,7 +882,7 @@ const Header: React.FC = () => {
           {/* Sign In / Profile - First Item - Show Kingshot account if linked */}
           {user ? (
             (() => {
-              const displayTier = getDisplayTier(profile?.subscription_tier as 'free' | 'pro' | 'recruiter' | null, profile?.username);
+              const displayTier = getDisplayTier(profile?.subscription_tier, profile?.username);
               const usernameColor = SUBSCRIPTION_COLORS[displayTier as keyof typeof SUBSCRIPTION_COLORS] || '#ffffff';
               const displayName = profile?.linked_username || profile?.username || 'My Profile';
               const displayAvatar = profile?.linked_avatar_url || profile?.avatar_url;

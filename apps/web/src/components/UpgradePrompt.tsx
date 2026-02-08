@@ -15,7 +15,7 @@ interface UpgradePromptProps {
 const UpgradePrompt: React.FC<UpgradePromptProps> = ({ 
   feature, 
   description,
-  requiredTier = 'pro',
+  requiredTier: _requiredTier = 'supporter',
   inline = false,
   compact = false
 }) => {
@@ -23,8 +23,8 @@ const UpgradePrompt: React.FC<UpgradePromptProps> = ({
   const { user } = useAuth();
   const [isHovered, setIsHovered] = useState(false);
 
-  const tierLabel = requiredTier === 'recruiter' ? 'Recruiter' : 'Pro';
-  const tierColor = requiredTier === 'recruiter' ? '#a855f7' : '#22d3ee';
+  const tierLabel = 'Supporter';
+  const tierColor = '#22d3ee';
 
   if (inline) {
     return (
@@ -185,7 +185,7 @@ const UpgradePrompt: React.FC<UpgradePromptProps> = ({
         fontSize: '0.75rem', 
         marginTop: '0.75rem' 
       }}>
-        {requiredTier === 'pro' ? 'Starting at $4.99/month' : 'Starting at $19.99/month'}
+        Starting at $4.99/month
       </p>
     </div>
   );

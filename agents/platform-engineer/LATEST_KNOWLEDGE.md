@@ -1,7 +1,37 @@
 # Platform Engineer — Latest Knowledge
 
-**Last Updated:** 2026-01-28  
+**Last Updated:** 2026-02-08  
 **Purpose:** Current best practices for backend development, security, and performance
+
+---
+
+## Bot Admin Auth Pattern (2026-02-08)
+
+Bot admin endpoints in `bot.py` now use the **same dual-auth pattern** as `admin.py`:
+```python
+def require_bot_admin(
+    x_api_key: Optional[str] = Header(None),
+    authorization: Optional[str] = Header(None),
+    request: Request = None,
+):
+```
+- Accepts `X-API-Key` (for server-side bot calls) OR `Authorization: Bearer <JWT>` (for frontend admin dashboard)
+- JWT verified via Supabase `get_user()` → checks `profiles.is_admin` → falls back to `ADMIN_EMAILS`
+- In-memory rate limiting: 30 req/60s per IP (stricter than admin.py's 60/60)
+- In production, `DISCORD_API_KEY` env var MUST be set or API-key auth fails
+- Frontend uses `getAuthHeaders()` from `authHeaders.ts` — **NO API keys in frontend bundle**
+
+### Discord.py also upgraded
+`discord.py`'s `verify_api_key` now accepts both `X-API-Key` and `Authorization: Bearer <JWT>` — same dual-auth pattern.
+
+### Auth Levels — Two Dependencies
+| Dependency | Who Can Call | Endpoints |
+|------------|-------------|-----------|
+| `require_bot_admin` | Admin JWT or API key | status, servers, channels, send-message, stats, analytics, linked-users, backfill, leave-server, diagnostic |
+| `require_bot_or_user` | Any authenticated user JWT or API key | sync-settler-role, log-command |
+
+### Key Gotcha: discordService.ts
+`discordService.ts` calls `/bot/sync-settler-role` during user account linking. Uses `require_bot_or_user` (not admin-only) so any authenticated user's JWT works. The bot also calls `log-command` server-side with API key — same `require_bot_or_user` dependency.
 
 ---
 
@@ -92,7 +122,41 @@ if (DISCORD_API_PROXY) {
 ### What's NOT proxied
 - Gateway WebSocket (`wss://gateway.discord.gg`) — connects directly (not HTTP)
 - Webhook POSTs for patch notes/announcements — use Discord webhook URLs directly
-- API backend (`discord_role_sync.py`) — separate Render service, different IP
+- OAuth token exchange in `discord.py` — uses user Bearer tokens, not bot tokens
+
+### API-side Resilience (2026-02-08)
+The backend API (`bot.py`) now has full proxy support + resilience:
+
+**`discord_fetch()` helper** — ALL Discord REST calls go through this:
+- Retry on 429 (respects `Retry-After`), 5xx (exponential backoff 0.5s, 1s)
+- Skips retry on 4xx (except 429) — auth/permission errors won't resolve
+- Logs every call to `discord_api_log` Supabase table
+- `max_retries=2` default, `timeout=15s` default
+
+**`_TTLCache`** — In-memory cache (5 min default):
+- `bot_status` — cached `/users/@me` response
+- `servers_list` — cached guild list
+- Invalidated on `/leave-server`
+
+**`/bot/health`** — Lightweight endpoint, NO Discord API calls:
+- Returns proxy config status, cached bot status, cached server count
+- Frontend can poll cheaply without burning Discord quota
+
+**Startup warning** — Prints to Render logs if `DISCORD_API_PROXY` not set
+
+**`discord_api_log` table** — Tracks all Discord REST calls:
+- Columns: `method`, `path`, `status_code`, `proxy_used`, `error`, `created_at`
+- RLS: service_role insert, admin read
+- Retention: 30 days (manual cleanup)
+
+### Environment Variables (BOTH Render services need these)
+| Var | Where | Value |
+|-----|-------|-------|
+| `DISCORD_API_PROXY` | Render (bot) + Render (API) | `https://atlas-discord-proxy.gatreno-investing.workers.dev` |
+| `DISCORD_PROXY_KEY` | Render (bot) + Render (API) | Same as PROXY_SECRET on Worker |
+| `PROXY_SECRET` | Cloudflare Worker | Random hex string |
+
+⚠️ **CRITICAL:** Both `Kingshot-Atlas` (API) and `Atlas-Discord-bot` need these env vars. The API was missing them, causing Error 1015.
 
 ---
 

@@ -7,6 +7,53 @@
 
 ## Log Entries
 
+## 2026-02-08 03:15 | Product Engineer | COMPLETED
+Task: Nudge Refinement — Score Change Hook, RIVAL Badge, Match Score Teaser
+Files: `apps/web/src/components/kingdom-profile/KingdomHeader.tsx`, `apps/web/src/components/KingdomCard.tsx`, `apps/web/src/pages/TransferBoard.tsx`, `apps/web/src/pages/KingdomProfile.tsx`, `agents/project-instances/kingshot-atlas/FEATURES_IMPLEMENTED.md`
+Result:
+  - **Score Change Hook:** Blurred score delta pill on KingdomProfile header for non-linked users (links to /profile). Linked users see real ▲/▼ value with color coding. Data fetched via `scoreHistoryService.getKingdomScoreHistory()` in parallel with existing `getLatestRank()`.
+  - **RIVAL Badge:** Red "RIVAL" badge on KingdomCard for kingdoms that faced user's linked kingdom in KvK. Shows count (×N) for multiple matchups. Uses existing `recent_kvks` data — zero API cost. Sits in existing badge row with `flexWrap: 'wrap'`.
+  - **Match Score Teaser:** Blurred "87%" match score on TransferBoard recruiting cards for non-linked users. Links to /profile. Only shows on transferring mode for cards with active recruitment.
+  - **Mobile UX verified:** All 3 nudges use inline-flex/small fonts, no fixed widths, wrap gracefully on mobile.
+  - **Docs updated:** FEATURES_IMPLEMENTED.md — 3 nudges moved from proposed to implemented, 4 new proposed nudges added.
+  - Build passes (exit code 0).
+
+## 2026-02-08 01:35 | Ops Lead | COMPLETED
+Task: Dynamic Sitemap Generation + BreadcrumbList Structured Data for All Pages
+Files: `apps/web/scripts/generate-sitemap.js`, `apps/web/src/hooks/useStructuredData.ts`, + 11 page files
+Result:
+  - **Sitemap:** Rewrote `generate-sitemap.js` to dynamically query Supabase at build time for actual kingdom numbers and KvK count. Falls back to hardcoded values if Supabase unavailable. Includes manual `.env` loader (no dotenv dependency). Added `limit=5000` safety for PostgREST pagination.
+  - **Sitemap Impact:** Old static sitemap had 1190 kingdoms. New dynamic version found 1204 actual kingdoms (max: 1260) — **14 more kingdoms now indexed** by search engines.
+  - **BreadcrumbList:** Added JSON-LD BreadcrumbList structured data to all 11 public pages: Rankings, Compare, Tools, Players, KvK Seasons, Changelog, About, Support, Contribute Data, Atlas Bot, and dynamic kingdom profiles. Google displays breadcrumbs in search results, improving CTR.
+  - **Dynamic breadcrumbs:** KingdomProfile uses `getKingdomBreadcrumbs(num)` for Home > Rankings > Kingdom X. KvK Seasons uses `getSeasonBreadcrumbs(num)` for Home > KvK Seasons > Season N.
+  - Build passes. SEO validation passes.
+
+## 2026-02-08 01:17 | Platform Engineer + Ops Lead | COMPLETED
+Task: Bot Dashboard Security Hardening (round 2) + SEO Optimization
+Files: `apps/api/api/routers/bot.py`, `apps/api/api/routers/discord.py`, `apps/web/src/components/BotDashboard.tsx`, `apps/web/src/components/DiscordRolesDashboard.tsx`, `apps/web/src/services/discordService.ts`, `apps/web/index.html`, `apps/web/src/hooks/useMetaTags.ts`
+Result:
+  - **Security:** Replaced simple API key auth with dual-auth (JWT + API key) on all bot.py and discord.py endpoints — matching admin.py pattern. Frontend now authenticates via Supabase JWT instead of exposing API key in bundle.
+  - **Security:** Added in-memory rate limiting (30 req/60s per IP) to all bot admin endpoints.
+  - **Security:** Removed `VITE_DISCORD_API_KEY` from all frontend code — no secrets in JS bundle.
+  - **Security:** Two-tier auth: `require_bot_admin` (admin-only for sensitive endpoints) and `require_bot_or_user` (any authenticated user for sync-settler-role, log-command).
+  - **SEO:** Fixed index.html title (76→49 chars) and description (200→155 chars) to comply with <60/<160 limits.
+  - **SEO:** Fixed all 10 PAGE_META_TAGS entries — titles under 60 chars, descriptions under 160 chars.
+  - **SEO:** Verified structured data (3 JSON-LD blocks clean), robots.txt, sitemap.xml (1190+ kingdom pages), no deceptive patterns.
+  - Build passes. SEO validation script passes.
+
+## 2026-02-08 00:55 | Platform Engineer | COMPLETED
+Task: Harden Discord API resilience — retry logic, caching, health endpoint, monitoring
+Files: `apps/api/api/routers/bot.py` (major refactor), Supabase migration `create_discord_api_log_table`
+Result:
+  - Added `discord_fetch()` helper with exponential backoff (retry on 429/5xx/network errors, respects Retry-After header)
+  - Added `_TTLCache` — bot status and server list cached for 5 minutes to reduce Discord API calls
+  - New `/bot/health` endpoint — lightweight, no Discord API calls, returns cached state + proxy config
+  - Startup warning when `DISCORD_API_PROXY` env var is missing (visible in Render logs)
+  - Created `discord_api_log` Supabase table — every Discord REST call logged with method, path, status_code, proxy_used, error
+  - Refactored all 6 Discord-calling endpoints to use `discord_fetch` (status, servers, channels, send-message, stats, leave-server, diagnostic)
+  - `/leave-server` now invalidates server cache after leaving
+  - `/stats` uses cached server count when available instead of hitting Discord API
+
 ## 2026-02-07 20:10 | Product + Design | COMPLETED
 Task: Bot Analytics Dashboard + AtlasBot page copy rewrite
 Files: `apps/web/src/components/BotDashboard.tsx`, `apps/web/src/pages/AtlasBot.tsx`, `apps/api/api/routers/bot.py`, `apps/discord-bot/src/bot.js`, `apps/discord-bot/src/utils/logger.js`

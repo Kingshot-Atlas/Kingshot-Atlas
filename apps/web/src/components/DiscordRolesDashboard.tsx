@@ -6,6 +6,16 @@ import React, { useState, useEffect } from 'react';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
+async function botHeaders(extra: Record<string, string> = {}): Promise<Record<string, string>> {
+  try {
+    const { getAuthHeaders } = await import('../services/authHeaders');
+    const auth = await getAuthHeaders({ requireAuth: false });
+    return { ...auth, ...extra };
+  } catch {
+    return { ...extra };
+  }
+}
+
 interface LinkedUser {
   id: string;
   username: string;
@@ -55,7 +65,7 @@ export const DiscordRolesDashboard: React.FC = () => {
   const loadLinkedUsers = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/v1/bot/linked-users`);
+      const res = await fetch(`${API_URL}/api/v1/bot/linked-users`, { headers: await botHeaders() });
       if (res.ok) {
         const data = await res.json();
         setLinkedUsers(data.users || []);
@@ -73,7 +83,7 @@ export const DiscordRolesDashboard: React.FC = () => {
     try {
       const res = await fetch(`${API_URL}/api/v1/bot/backfill-settler-roles`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: await botHeaders({ 'Content-Type': 'application/json' })
       });
       const result = await res.json();
       setBackfillResult(result);
@@ -99,7 +109,7 @@ export const DiscordRolesDashboard: React.FC = () => {
     try {
       const res = await fetch(`${API_URL}/api/v1/bot/sync-settler-role`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: await botHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ user_id: userId, is_linking: true })
       });
       const result = await res.json();

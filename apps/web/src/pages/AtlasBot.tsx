@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
+import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 
 const BOT_INVITE_URL = 'https://discord.com/oauth2/authorize?client_id=1465531618965061672&permissions=2147485696&scope=bot%20applications.commands';
@@ -76,6 +77,7 @@ const CommandCard: React.FC<CommandCardProps> = ({ command, description, example
 const AtlasBot: React.FC = () => {
   useDocumentTitle('Atlas Discord Bot');
   useMetaTags(PAGE_META_TAGS.atlasBot);
+  useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.atlasBot });
   const isMobile = useIsMobile();
 
   const commands: CommandCardProps[] = [

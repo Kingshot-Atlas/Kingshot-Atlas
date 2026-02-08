@@ -18,7 +18,7 @@ export interface Review {
   author_linked_avatar_url: string | null;
   author_linked_kingdom: number | null;
   author_linked_tc_level: number;
-  author_subscription_tier: 'free' | 'pro' | 'recruiter' | null;
+  author_subscription_tier: string | null;
   helpful_count: number;
   created_at: string;
   updated_at: string;
@@ -32,7 +32,7 @@ export interface ReviewReply {
   reply_text: string;
   author_linked_username: string;
   author_linked_avatar_url: string | null;
-  author_subscription_tier: 'free' | 'pro' | 'recruiter' | null;
+  author_subscription_tier: string | null;
   is_official_reply: boolean;
   created_at: string;
   updated_at: string;

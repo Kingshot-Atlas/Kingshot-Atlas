@@ -4,6 +4,7 @@ import { useIsMobile } from '../hooks/useMediaQuery';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
+import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
 import { useAuth } from '../contexts/AuthContext';
 import { usePremium } from '../contexts/PremiumContext';
 import SupportButton from '../components/SupportButton';
@@ -12,6 +13,7 @@ import { getCheckoutUrl } from '../lib/stripe';
 const SupportAtlas: React.FC = () => {
   useDocumentTitle('Support Atlas');
   useMetaTags(PAGE_META_TAGS.support);
+  useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.support });
   const isMobile = useIsMobile();
   const { user } = useAuth();
   const { tier, refreshSubscription } = usePremium();
@@ -52,7 +54,7 @@ const SupportAtlas: React.FC = () => {
       alert('Please sign in to become a Supporter');
       return;
     }
-    const checkoutUrl = getCheckoutUrl('pro', 'monthly', user.id);
+    const checkoutUrl = getCheckoutUrl('supporter', 'monthly', user.id);
     window.location.href = checkoutUrl;
   };
 
@@ -65,7 +67,7 @@ const SupportAtlas: React.FC = () => {
     { icon: '📅', text: 'Event Calendar', desc: 'KvK and Transfer Event schedules' },
   ];
 
-  const isSupporter = tier === 'pro' || tier === 'recruiter';
+  const isSupporter = tier === 'supporter';
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a' }}>

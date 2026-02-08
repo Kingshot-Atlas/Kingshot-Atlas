@@ -4,6 +4,7 @@ import { Kingdom, getPowerTier } from '../types';
 import { neonGlow, colors, radius, shadows, transition, FONT_DISPLAY } from '../utils/styles';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useAnalytics } from '../hooks/useAnalytics';
+import { useAuth } from '../contexts/AuthContext';
 import { TierBadge } from './shared';
 import { 
   AchievementBadges, 
@@ -37,6 +38,12 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { trackFeature } = useAnalytics();
+  const { profile } = useAuth();
+  const isMyKingdom = profile?.linked_kingdom === kingdom.kingdom_number;
+  // RIVAL badge: check if user's kingdom has faced this kingdom in KvK
+  const rivalCount = (!isMyKingdom && profile?.linked_kingdom && kingdom.recent_kvks)
+    ? kingdom.recent_kvks.filter(kvk => kvk.opponent_kingdom === profile.linked_kingdom).length
+    : 0;
   const [isHovered, setIsHovered] = useState(false);
   const [showAtlasTooltip, setShowAtlasTooltip] = useState(false);
   const [showMissingDataTooltip, setShowMissingDataTooltip] = useState(false);
@@ -154,6 +161,38 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
             Kingdom {kingdom.kingdom_number}
           </div>
           
+          {isMyKingdom && (
+            <span style={{
+              fontSize: '0.6rem',
+              padding: '0.15rem 0.4rem',
+              backgroundColor: '#22d3ee15',
+              border: '1px solid #22d3ee30',
+              borderRadius: '4px',
+              color: '#22d3ee',
+              fontWeight: '600',
+              letterSpacing: '0.03em',
+            }}>
+              YOUR KINGDOM
+            </span>
+          )}
+          {rivalCount > 0 && (
+            <span
+              title={`Faced your kingdom ${rivalCount}x in KvK`}
+              style={{
+                fontSize: '0.6rem',
+                padding: '0.15rem 0.4rem',
+                backgroundColor: '#ef444412',
+                border: '1px solid #ef444425',
+                borderRadius: '4px',
+                color: '#ef4444',
+                fontWeight: '600',
+                letterSpacing: '0.03em',
+                cursor: 'default',
+              }}
+            >
+              RIVAL{rivalCount > 1 ? ` ×${rivalCount}` : ''}
+            </span>
+          )}
           <TierBadge tier={powerTier as 'S' | 'A' | 'B' | 'C' | 'D'} />
           <AchievementBadges kingdom={kingdom} />
         </div>

@@ -27,7 +27,7 @@ export interface UserProfile {
   linked_kingdom?: number;
   linked_tc_level?: number;
   linked_last_synced?: string;
-  subscription_tier?: 'free' | 'pro' | 'recruiter';
+  subscription_tier?: string;
   discord_id?: string | null;
   discord_username?: string | null;
   discord_linked_at?: string | null;

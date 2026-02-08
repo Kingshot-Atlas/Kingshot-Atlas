@@ -224,14 +224,14 @@ export const AnalyticsOverview: React.FC<AnalyticsOverviewProps> = ({
                 <span style={{ color: '#fff' }}>{sub.username}</span>
                 <span style={{ 
                   padding: '0.15rem 0.5rem',
-                  backgroundColor: sub.tier === 'recruiter' ? '#a855f720' : '#FF6B8A20',
-                  color: sub.tier === 'recruiter' ? '#a855f7' : '#FF6B8A',
+                  backgroundColor: '#FF6B8A20',
+                  color: '#FF6B8A',
                   borderRadius: '9999px',
                   fontSize: '0.7rem',
                   fontWeight: '600',
                   textTransform: 'uppercase'
                 }}>
-                  {sub.tier === 'pro' ? 'SUPPORTER' : sub.tier}
+                  SUPPORTER
                 </span>
               </div>
               <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>

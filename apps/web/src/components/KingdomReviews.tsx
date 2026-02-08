@@ -21,8 +21,7 @@ const MAX_COMMENT_LENGTH = 200;
 const getUsernameColor = (tier: SubscriptionTier): string => {
   switch (tier) {
     case 'admin': return SUBSCRIPTION_COLORS.admin;
-    case 'recruiter': return SUBSCRIPTION_COLORS.recruiter;
-    case 'pro': return SUBSCRIPTION_COLORS.pro;
+    case 'supporter': return SUBSCRIPTION_COLORS.supporter;
     default: return colors.text;
   }
 };
@@ -31,8 +30,7 @@ const getUsernameColor = (tier: SubscriptionTier): string => {
 const getAvatarBorderColor = (tier: SubscriptionTier): string => {
   switch (tier) {
     case 'admin': return SUBSCRIPTION_COLORS.admin;
-    case 'recruiter': return SUBSCRIPTION_COLORS.recruiter;
-    case 'pro': return SUBSCRIPTION_COLORS.pro;
+    case 'supporter': return SUBSCRIPTION_COLORS.supporter;
     default: return '#ffffff';
   }
 };
@@ -234,8 +232,8 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
     setSubmittingReply(true);
     setError(null);
     
-    // Check if user is a recruiter for this kingdom (has linked_kingdom matching)
-    const isRecruiter = profile.subscription_tier === 'recruiter' && profile.linked_kingdom === kingdomNumber;
+    // Check if user is an editor for this kingdom (has linked_kingdom matching)
+    const isOfficialReply = profile.linked_kingdom === kingdomNumber;
     
     const result = await reviewService.createReply(
       reviewId,
@@ -243,7 +241,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
       replyText,
       profile,
       user.id,
-      isRecruiter // Mark as official if recruiter
+      isOfficialReply // Mark as official if from same kingdom
     );
     
     setSubmittingReply(false);
@@ -445,7 +443,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
             const displayTier = getDisplayTier(profile?.subscription_tier, profile?.linked_username);
             const usernameColor = getUsernameColor(displayTier);
             const avatarBorderColor = getAvatarBorderColor(displayTier);
-            const isPaidOrAdmin = displayTier === 'pro' || displayTier === 'recruiter' || displayTier === 'admin';
+            const isPaidOrAdmin = displayTier === 'supporter' || displayTier === 'admin';
             
             return (
               <div style={{ 
@@ -510,30 +508,17 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                     ADMIN
                   </span>
                 )}
-                {displayTier === 'pro' && (
+                {displayTier === 'supporter' && (
                   <span style={{
                     fontSize: '0.55rem',
                     padding: '0.1rem 0.25rem',
-                    backgroundColor: `${SUBSCRIPTION_COLORS.pro}15`,
-                    border: `1px solid ${SUBSCRIPTION_COLORS.pro}40`,
+                    backgroundColor: `${SUBSCRIPTION_COLORS.supporter}15`,
+                    border: `1px solid ${SUBSCRIPTION_COLORS.supporter}40`,
                     borderRadius: '3px',
-                    color: SUBSCRIPTION_COLORS.pro,
+                    color: SUBSCRIPTION_COLORS.supporter,
                     fontWeight: '600',
                   }}>
                     SUPPORTER
-                  </span>
-                )}
-                {displayTier === 'recruiter' && (
-                  <span style={{
-                    fontSize: '0.55rem',
-                    padding: '0.1rem 0.25rem',
-                    backgroundColor: `${SUBSCRIPTION_COLORS.recruiter}15`,
-                    border: `1px solid ${SUBSCRIPTION_COLORS.recruiter}40`,
-                    borderRadius: '3px',
-                    color: SUBSCRIPTION_COLORS.recruiter,
-                    fontWeight: '600',
-                  }}>
-                    RECRUITER
                   </span>
                 )}
               </div>
@@ -840,7 +825,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
               const displayTier = getDisplayTier(review.author_subscription_tier, review.author_linked_username);
               const usernameColor = getUsernameColor(displayTier);
               const avatarBorderColor = getAvatarBorderColor(displayTier);
-              const isPaidOrAdmin = displayTier === 'pro' || displayTier === 'recruiter' || displayTier === 'admin';
+              const isPaidOrAdmin = displayTier === 'supporter' || displayTier === 'admin';
               const isOwnReview = user?.id === review.user_id;
               const isAdmin = profile?.is_admin;
               const isEditing = editingReviewId === review.id;
@@ -1033,30 +1018,17 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                               ADMIN
                             </span>
                           )}
-                          {displayTier === 'pro' && (
+                          {displayTier === 'supporter' && (
                             <span style={{
                               fontSize: '0.5rem',
                               padding: '0.1rem 0.2rem',
-                              backgroundColor: `${SUBSCRIPTION_COLORS.pro}15`,
-                              border: `1px solid ${SUBSCRIPTION_COLORS.pro}40`,
+                              backgroundColor: `${SUBSCRIPTION_COLORS.supporter}15`,
+                              border: `1px solid ${SUBSCRIPTION_COLORS.supporter}40`,
                               borderRadius: '3px',
-                              color: SUBSCRIPTION_COLORS.pro,
+                              color: SUBSCRIPTION_COLORS.supporter,
                               fontWeight: '600',
                             }}>
                               SUPPORTER
-                            </span>
-                          )}
-                          {displayTier === 'recruiter' && (
-                            <span style={{
-                              fontSize: '0.5rem',
-                              padding: '0.1rem 0.2rem',
-                              backgroundColor: `${SUBSCRIPTION_COLORS.recruiter}15`,
-                              border: `1px solid ${SUBSCRIPTION_COLORS.recruiter}40`,
-                              borderRadius: '3px',
-                              color: SUBSCRIPTION_COLORS.recruiter,
-                              fontWeight: '600',
-                            }}>
-                              RECRUITER
                             </span>
                           )}
                         </Link>

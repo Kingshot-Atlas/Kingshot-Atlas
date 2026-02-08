@@ -1,16 +1,13 @@
 import React from 'react';
-import { SubscriptionTier } from '../contexts/PremiumContext';
 
 interface ProBadgeProps {
-  tier?: SubscriptionTier;
   size?: 'sm' | 'md' | 'lg';
 }
 
-const ProBadge: React.FC<ProBadgeProps> = ({ tier = 'pro', size = 'sm' }) => {
-  const isRecruiter = tier === 'recruiter';
-  const color = isRecruiter ? '#a855f7' : '#FF6B8A'; // Recruiter=Purple, Supporter=Pink
-  const label = isRecruiter ? 'RECRUITER' : 'SUPPORTER';
-  const icon = isRecruiter ? '💜' : '💖'; // Purple heart for Recruiter, Pink heart for Supporter
+const ProBadge: React.FC<ProBadgeProps> = ({ size = 'sm' }) => {
+  const color = '#FF6B8A'; // Supporter=Pink
+  const label = 'SUPPORTER';
+  const icon = '';
   
   const sizes = {
     sm: { padding: '0.15rem 0.4rem', fontSize: '0.65rem', iconSize: 8, gap: '0.2rem' },

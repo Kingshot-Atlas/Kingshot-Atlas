@@ -181,4 +181,45 @@ export const ABOUT_FAQ_DATA: FAQItem[] = [
   }
 ];
 
+/**
+ * Pre-defined breadcrumb data for key pages.
+ * Google displays breadcrumbs in search results, improving CTR.
+ */
+const HOME_CRUMB = { name: 'Kingshot Atlas', url: 'https://ks-atlas.com/' };
+
+export const PAGE_BREADCRUMBS = {
+  rankings: [HOME_CRUMB, { name: 'Kingdom Rankings', url: 'https://ks-atlas.com/rankings' }],
+  compare: [HOME_CRUMB, { name: 'Compare Kingdoms', url: 'https://ks-atlas.com/compare' }],
+  tools: [HOME_CRUMB, { name: 'Tools', url: 'https://ks-atlas.com/tools' }],
+  players: [HOME_CRUMB, { name: 'Player Directory', url: 'https://ks-atlas.com/players' }],
+  seasons: [HOME_CRUMB, { name: 'KvK Seasons', url: 'https://ks-atlas.com/seasons' }],
+  changelog: [HOME_CRUMB, { name: 'Changelog', url: 'https://ks-atlas.com/changelog' }],
+  about: [HOME_CRUMB, { name: 'About', url: 'https://ks-atlas.com/about' }],
+  support: [HOME_CRUMB, { name: 'Support', url: 'https://ks-atlas.com/support' }],
+  contributeData: [HOME_CRUMB, { name: 'Contribute Data', url: 'https://ks-atlas.com/contribute-data' }],
+  atlasBot: [HOME_CRUMB, { name: 'Atlas Bot', url: 'https://ks-atlas.com/atlas-bot' }],
+};
+
+/**
+ * Generate breadcrumb data for a kingdom profile page.
+ */
+export function getKingdomBreadcrumbs(kingdomNumber: number, kingdomName?: string): { name: string; url: string }[] {
+  return [
+    HOME_CRUMB,
+    { name: 'Kingdom Rankings', url: 'https://ks-atlas.com/rankings' },
+    { name: kingdomName || `Kingdom ${kingdomNumber}`, url: `https://ks-atlas.com/kingdom/${kingdomNumber}` },
+  ];
+}
+
+/**
+ * Generate breadcrumb data for a KvK season page.
+ */
+export function getSeasonBreadcrumbs(seasonNumber: number): { name: string; url: string }[] {
+  return [
+    HOME_CRUMB,
+    { name: 'KvK Seasons', url: 'https://ks-atlas.com/seasons' },
+    { name: `Season ${seasonNumber}`, url: `https://ks-atlas.com/seasons/${seasonNumber}` },
+  ];
+}
+
 export default useStructuredData;

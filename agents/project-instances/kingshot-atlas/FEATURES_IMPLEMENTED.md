@@ -171,6 +171,14 @@
 | Feature | Status | Agent | Notes |
 |---------|--------|-------|-------|
 | Premium Context | ✅ Live | Platform | `PremiumContext.tsx` subscription state + refreshSubscription() |
+| Tier Refactor: Recruiter Removed | ✅ Live | Product | Removed recruiter tier entirely, renamed pro→supporter across all files. 3 tiers: anonymous, free, supporter (2026-02-08) |
+| Content Gating Overhaul | ✅ Live | Product | Reviews: linked+TC20+. KvK submissions: linked+TC20+. Status submissions: linked. Compare: 2 anon/3 free/5 linked (2026-02-08) |
+| Upgrade Page Simplification | ✅ Live | Product | Single Supporter tier card, removed recruiter pricing/features, simplified comparison table to Free vs Supporter (2026-02-08) |
+| Link Account Nudge | ✅ Live | Product | `LinkAccountNudge.tsx` — contextual nudge on Kingdom Profiles for non-linked users (2026-02-08) |
+| Your Kingdom Badge | ✅ Live | Product | "YOUR KINGDOM" badge on KingdomCard when viewing your linked kingdom (2026-02-08) |
+| Score Change Hook | ✅ Live | Product | Blurred score delta on KingdomProfile header for non-linked users; linked users see real ▲/▼ value. `KingdomHeader.tsx` (2026-02-08) |
+| RIVAL Badge | ✅ Live | Product | "RIVAL" badge on KingdomCard for kingdoms that faced user's linked kingdom in KvK. Shows count (×N). `KingdomCard.tsx` (2026-02-08) |
+| Match Score Teaser | ✅ Live | Product | Blurred "87%" match score on TransferBoard recruiting cards for non-linked users. `TransferBoard.tsx` (2026-02-08) |
 | Stripe Checkout Flow | ✅ Live | Platform | API-based checkout session creation |
 | Stripe Webhook Handler | ✅ Live | Platform | Handles subscription events, updates Supabase |
 | Checkout Success/Error UX | ✅ Live | Platform | Success/canceled/error messages on Upgrade page |
@@ -379,6 +387,23 @@
 | Transfer Hub — Infinite Scroll | ✅ Built | IntersectionObserver-based infinite scroll for standard listings, loading skeletons, spinner sentinel (2026-02-07) |
 | Component Refactoring | 🚧 Planned | KingdomCard, ProfileFeatures too large |
 | Multi-Kingdom Share/Export | 🚧 Planned | ShareButton still uses 2-kingdom format |
+
+---
+
+## Proposed Nudges (Awaiting Approval)
+
+| Nudge Idea | Description | Where | Effort | Impact |
+|------------|-------------|-------|--------|--------|
+| Linked User Flair | Subtle glow/border on comments and reviews from linked users, making their contributions visually distinct. Encourages linking for social proof. | KingdomReviews, UserDirectory | Low | Medium |
+| Contributor Badge | Auto-awarded badge on Profile for users who submit 3+ verified KvK results. Shows "Verified Contributor" tag next to username. Requires linked account to submit, so it naturally encourages linking. | Profile, KingdomPlayers, UserDirectory | Medium | High |
+| Kingdom Rivals | "Your kingdom has faced K-XXX 3 times" contextual card on Kingdom Profile when viewing a kingdom your linked kingdom has fought. Personalized data drives curiosity and linking. | KingdomProfile | Medium | High |
+| ~~Score Change Notification Hook~~ | **IMPLEMENTED** — see Score Change Hook above | — | — | — |
+| ~~Match Score Teaser (Transfer Hub)~~ | **IMPLEMENTED** — see Match Score Teaser above | — | — | — |
+| ~~RIVAL Badge~~ | **IMPLEMENTED** — see RIVAL Badge above | — | — | — |
+| Personalized Insights Panel | "You vs K-XXX" mini comparison card on Kingdom Profile for linked users viewing a rival kingdom. Shows head-to-head prep/battle record at a glance. | KingdomProfile | Medium | High |
+| Return Visit Delta | Track kingdom scores in localStorage and show "Score changed +0.15 since your last visit" for ALL users (not just linked), encouraging repeat visits. Linked users get richer data. | KingdomProfile | Low | Medium |
+| Watchlist Score Alerts | Toast notification on login if any favorited kingdom's score changed since last session. "K-1234 moved up 3 ranks!" Encourages daily engagement. | Global (on auth) | Medium | High |
+| Transfer Readiness Score | On user's profile, show a "Transfer Readiness" percentage based on how complete their transfer profile is. Incomplete fields show blurred potential score. | Profile | Low | Medium |
 
 ---
 

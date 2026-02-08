@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
+import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 
 interface ToolCardProps {
@@ -150,6 +151,7 @@ const ToolCard: React.FC<ToolCardProps> = ({
 const Tools: React.FC = () => {
   useDocumentTitle('Tools');
   useMetaTags(PAGE_META_TAGS.tools);
+  useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.tools });
   const isMobile = useIsMobile();
 
   const tools: ToolCardProps[] = [

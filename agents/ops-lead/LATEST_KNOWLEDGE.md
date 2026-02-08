@@ -1,7 +1,29 @@
 # Ops Lead — Latest Knowledge
 
-**Last Updated:** 2026-02-06  
+**Last Updated:** 2026-02-08  
 **Purpose:** Current best practices for DevOps, deployment, SEO, and analytics
+
+---
+
+## Dynamic Sitemap Generation (2026-02-08)
+
+`scripts/generate-sitemap.js` now queries Supabase REST API at build time:
+- Fetches actual kingdom numbers from `kingdoms` table (not hardcoded range)
+- Fetches max KvK number from `kvk_history` table
+- Falls back to `FALLBACK_MAX_KINGDOM=1260` / `FALLBACK_MAX_KVK=11` if Supabase unavailable
+- Manual `.env` loader (no dotenv dependency) — reads `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`
+- Uses `limit=5000` on kingdom query to prevent PostgREST silent truncation
+- Runs as `prebuild` hook — sitemap is always fresh before each build
+- **Gotcha:** Cloudflare Pages CI must have `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` env vars set, otherwise falls back to hardcoded values
+
+## BreadcrumbList Structured Data (2026-02-08)
+
+All 11 public pages + kingdom profiles now have BreadcrumbList JSON-LD:
+- Static breadcrumbs: `PAGE_BREADCRUMBS` object in `useStructuredData.ts`
+- Dynamic breadcrumbs: `getKingdomBreadcrumbs(num)` and `getSeasonBreadcrumbs(num)`
+- Pattern: `useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.pageName })`
+- About page has both FAQPage + BreadcrumbList (multiple `useStructuredData` calls work fine)
+- **Impact:** Google displays breadcrumbs in search results → better CTR
 
 ---
 

@@ -19,7 +19,8 @@
 | TypeScript | ✅ Clean | No type errors |
 | Accessibility | ✅ Enhanced | WCAG improvements, high contrast mode |
 | Sharing | ✅ Enhanced | PNG export, QR codes, embed codes, Discord formatting |
-| Discord Bot | ✅ Operational | Cloudflare Worker proxy bypasses IP ban. Settler role auto-sync every 30min. Env: DISCORD_API_PROXY, DISCORD_PROXY_KEY. |
+| Discord Bot | ✅ Operational | Cloudflare Worker proxy bypasses IP ban. Settler role auto-sync every 30min. Dual-auth (JWT + API key) on all admin endpoints. Rate limited 30req/60s. |
+| SEO | ✅ Enhanced | Dynamic sitemap (1204 kingdoms live from Supabase), BreadcrumbList JSON-LD on all 11 public pages + kingdom profiles |
 | Codebase Health | ✅ Audited | Dead files removed, docs reorganized |
 
 ---
@@ -37,6 +38,8 @@
 
 | When | Agent | Task | Files |
 |------|-------|------|-------|
+| 2026-02-08 | Product | Nudge Refinement — Score Change Hook (blurred delta on KingdomProfile), RIVAL badge (KingdomCard), Match Score Teaser (TransferBoard). All mobile-verified. | KingdomHeader.tsx, KingdomCard.tsx, TransferBoard.tsx, KingdomProfile.tsx |
+| 2026-02-08 | Product | Gating & Tier Refactor — Removed recruiter tier, renamed pro→supporter, content gating (reviews/KvK/status/compare), LinkAccountNudge component, YOUR KINGDOM badge | PremiumContext.tsx, KingdomProfile.tsx, KingdomCard.tsx, 15+ files |
 | 2026-02-07 | Product | Transfer Hub rename + access gate — Renamed Transfer Board → Transfer Hub across all files (routes, nav, localStorage, analytics, share links, editor claiming). Owner-only gate with "Coming soon" page for non-admins. Hero subtitle updated with brand copy. | TransferBoard.tsx, Header.tsx, EditorClaiming.tsx, RecruiterDashboard.tsx, App.tsx |
 | 2026-02-07 | Platform + Product | Kingdom Fund Backend Pipeline — Stripe webhook handler (handle_kingdom_fund_payment), credit_kingdom_fund Supabase helper, deplete-kingdom-funds Edge Function + pg_cron weekly schedule, tier auto-upgrade/downgrade | stripe.py, supabase_client.py, Supabase Edge Functions |
 | 2026-02-07 | Product | Transfer Board UX Polish — KvK countdown removed (Transfer-only compact), infinite scroll (IntersectionObserver), loading skeletons, toast notifications (replaced alert()), ?contributed=true success flow | KvKCountdown.tsx, TransferBoard.tsx, RecruiterDashboard.tsx |

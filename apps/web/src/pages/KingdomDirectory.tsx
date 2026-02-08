@@ -82,7 +82,7 @@ const KingdomDirectory: React.FC = () => {
   const [showPostKvKModal, setShowPostKvKModal] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false); // Closed by default
 
-  // Handler for KvK submission - requires login + linked Kingshot account
+  // Handler for KvK submission - requires login + linked Kingshot account + TC20+
   const handleSubmitKvKClick = () => {
     if (!user) {
       showToast('Please log in to submit KvK results', 'error');
@@ -92,6 +92,10 @@ const KingdomDirectory: React.FC = () => {
     if (!profile?.linked_username) {
       showToast('Please link your Kingshot account to submit results', 'error');
       navigate('/profile');
+      return;
+    }
+    if (!profile?.linked_tc_level || profile.linked_tc_level < 20) {
+      showToast(`TC20+ required to submit KvK results (you're TC${profile?.linked_tc_level || '?'})`, 'error');
       return;
     }
     setShowPostKvKModal(true);

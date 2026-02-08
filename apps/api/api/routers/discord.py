@@ -67,14 +67,67 @@ class StatusRequest(BaseModel):
     message: str = Field(..., description="Status message")
 
 
-def verify_api_key(x_api_key: str = Header(None)):
-    """Simple API key verification for webhook endpoints"""
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+
+# Admin emails for JWT verification (shared with admin.py / bot.py)
+_default_admin_emails = 'gatreno@gmail.com,gatreno.investing@gmail.com'
+ADMIN_EMAILS = [e.strip() for e in os.getenv("ADMIN_EMAILS", _default_admin_emails).split(',') if e.strip()]
+
+
+def _verify_discord_api_key(x_api_key: Optional[str]) -> bool:
+    """Verify Discord API key."""
     if not DISCORD_API_KEY:
-        # If no API key is configured, allow all requests (development mode)
+        if ENVIRONMENT == "production":
+            return False
+        return True  # Dev mode passthrough
+    return x_api_key == DISCORD_API_KEY
+
+
+def _verify_discord_admin_jwt(authorization: Optional[str]) -> bool:
+    """Verify admin access via Supabase JWT — checks profiles.is_admin then email fallback."""
+    if not authorization:
+        return False
+    try:
+        from api.supabase_client import get_supabase_admin
+        token = authorization
+        if token.startswith("Bearer "):
+            token = token[7:]
+        if not token:
+            return False
+        client = get_supabase_admin()
+        if not client:
+            return False
+        user_response = client.auth.get_user(token)
+        if user_response and user_response.user:
+            user_email = user_response.user.email
+            user_id = user_response.user.id
+            try:
+                profile = client.table("profiles").select("is_admin").eq("id", user_id).single().execute()
+                if profile.data and profile.data.get("is_admin") is True:
+                    return True
+            except Exception:
+                pass
+            if user_email and user_email.lower() in [e.lower() for e in ADMIN_EMAILS]:
+                return True
+    except Exception:
+        pass
+    return False
+
+
+def verify_api_key(
+    x_api_key: Optional[str] = Header(None),
+    authorization: Optional[str] = Header(None),
+):
+    """FastAPI dependency for Discord webhook/admin endpoints.
+    Accepts either X-API-Key header OR Authorization Bearer JWT from an admin user."""
+    if _verify_discord_api_key(x_api_key):
         return True
-    if x_api_key != DISCORD_API_KEY:
-        raise HTTPException(status_code=401, detail="Invalid API key")
-    return True
+    if _verify_discord_admin_jwt(authorization):
+        return True
+    raise HTTPException(
+        status_code=401,
+        detail="Authentication required. Use X-API-Key or Authorization header."
+    )
 
 
 def log_discord_link_attempt(

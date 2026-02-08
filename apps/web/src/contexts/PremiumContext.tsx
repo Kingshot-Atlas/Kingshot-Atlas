@@ -4,36 +4,24 @@ import { useAuth } from './AuthContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { ADMIN_EMAILS, ADMIN_USERNAMES } from '../utils/constants';
 
-// 4 tiers: anonymous (not logged in), free (logged in), pro, recruiter
-export type SubscriptionTier = 'anonymous' | 'free' | 'pro' | 'recruiter';
+// 3 tiers: anonymous (not logged in), free (logged in), supporter (paid)
+export type SubscriptionTier = 'anonymous' | 'free' | 'supporter';
 
 export interface PremiumFeatures {
   // Content access
   fullKvkHistory: boolean;
   kvkHistoryLimit: number; // How many KvKs can view
   viewKingdomProfiles: boolean;
-  viewDetailedStats: boolean;
   
   // Features
-  watchlistLimit: number;
-  advancedFilters: boolean;
-  multiCompare: number; // max kingdoms to compare
-  exportData: boolean;
+  multiCompare: number; // max kingdoms to compare (2 anon, 3 free, 5 linked/supporter)
   submitData: boolean; // Can submit KvK results
-  prioritySubmissions: boolean;
-  scoreSimulator: boolean; // Pro feature: simulate future KvK scores
+  scoreSimulator: boolean;
   
   // Premium perks
   adFree: boolean;
-  proBadge: boolean;
+  supporterBadge: boolean;
   earlyAccess: boolean;
-  
-  // Recruiter features
-  claimKingdom: boolean;
-  recruiterDashboard: boolean;
-  customBanner: boolean;
-  recruitInbox: boolean;
-  apiAccess: boolean;
 }
 
 const TIER_FEATURES: Record<SubscriptionTier, PremiumFeatures> = {
@@ -42,88 +30,36 @@ const TIER_FEATURES: Record<SubscriptionTier, PremiumFeatures> = {
     fullKvkHistory: true,
     kvkHistoryLimit: 999,
     viewKingdomProfiles: true,
-    viewDetailedStats: false,
-    watchlistLimit: 0,
-    advancedFilters: false,
-    multiCompare: 0, // Must log in to compare
-    exportData: false,
+    multiCompare: 2, // Anonymous can compare 2
     submitData: false,
-    prioritySubmissions: false,
-    scoreSimulator: true, // Now free for everyone
+    scoreSimulator: true,
     adFree: false,
-    proBadge: false,
+    supporterBadge: false,
     earlyAccess: false,
-    claimKingdom: false,
-    recruiterDashboard: false,
-    customBanner: false,
-    recruitInbox: false,
-    apiAccess: false,
   },
-  // Logged in free user - full KvK history access
+  // Logged in free user
   free: {
     fullKvkHistory: true,
     kvkHistoryLimit: 999,
     viewKingdomProfiles: true,
-    viewDetailedStats: true,
-    watchlistLimit: 3,
-    advancedFilters: false,
-    multiCompare: 2, // Free users can compare 2 kingdoms
-    exportData: false,
+    multiCompare: 3, // Logged in can compare 3
     submitData: true,
-    prioritySubmissions: false,
-    scoreSimulator: true, // Now free for everyone
+    scoreSimulator: true,
     adFree: false,
-    proBadge: false,
+    supporterBadge: false,
     earlyAccess: false,
-    claimKingdom: false,
-    recruiterDashboard: false,
-    customBanner: false,
-    recruitInbox: false,
-    apiAccess: false,
   },
-  // Atlas Supporter - power users
-  pro: {
+  // Atlas Supporter ($4.99/mo)
+  supporter: {
     fullKvkHistory: true,
     kvkHistoryLimit: 999,
     viewKingdomProfiles: true,
-    viewDetailedStats: true,
-    watchlistLimit: 20,
-    advancedFilters: true,
-    multiCompare: 5,
-    exportData: false,
+    multiCompare: 5, // Supporters can compare 5
     submitData: true,
-    prioritySubmissions: true,
     scoreSimulator: true,
     adFree: true,
-    proBadge: true,
+    supporterBadge: true,
     earlyAccess: true,
-    claimKingdom: false,
-    recruiterDashboard: false,
-    customBanner: false,
-    recruitInbox: false,
-    apiAccess: false,
-  },
-  // Atlas Recruiter - kingdom managers
-  recruiter: {
-    fullKvkHistory: true,
-    kvkHistoryLimit: 999,
-    viewKingdomProfiles: true,
-    viewDetailedStats: true,
-    watchlistLimit: 50,
-    advancedFilters: true,
-    multiCompare: 5,
-    exportData: false,
-    submitData: true,
-    prioritySubmissions: true,
-    scoreSimulator: true,
-    adFree: true,
-    proBadge: true,
-    earlyAccess: true,
-    claimKingdom: true,
-    recruiterDashboard: true,
-    customBanner: true,
-    recruitInbox: true,
-    apiAccess: true,
   },
 };
 
@@ -132,9 +68,8 @@ interface PremiumContextType {
   tierName: string;
   features: PremiumFeatures;
   isLoggedIn: boolean;
-  isPro: boolean;
-  isRecruiter: boolean;
-  isAdmin: boolean; // True if user is admin (displays as Admin, not Recruiter)
+  isSupporter: boolean;
+  isAdmin: boolean;
   loading: boolean;
   checkFeature: (feature: keyof PremiumFeatures) => boolean;
   getFeatureLimit: (feature: keyof PremiumFeatures) => number;
@@ -146,8 +81,7 @@ interface PremiumContextType {
 const TIER_NAMES: Record<SubscriptionTier, string> = {
   anonymous: 'Guest',
   free: 'Free',
-  pro: 'Atlas Supporter',
-  recruiter: 'Atlas Recruiter',
+  supporter: 'Atlas Supporter',
 };
 
 // Display name for admins (overrides tier name)
@@ -166,7 +100,7 @@ export const usePremium = () => {
 const PREMIUM_KEY = 'kingshot_premium_tier';
 
 export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [tier, setTier] = useState<SubscriptionTier>('anonymous');
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -180,11 +114,7 @@ export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children })
         return;
       }
 
-      // Check if user is admin - admins get ALL features (Recruiter tier)
-      // Multiple checks for robustness:
-      // 1. Profile has is_admin flag
-      // 2. Email matches admin list
-      // 3. Username matches admin list (from profile, user_metadata, or email prefix)
+      // Check if user is admin - admins get ALL features (Supporter tier)
       const emailPrefix = user.email?.split('@')[0]?.toLowerCase();
       const preferredUsername = user.user_metadata?.preferred_username?.toLowerCase();
       const fullName = user.user_metadata?.full_name?.toLowerCase();
@@ -200,7 +130,7 @@ export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children })
       if (isAdmin) {
         logger.info('Admin user detected, granting full access:', user.email);
         setIsAdminUser(true);
-        setTier('recruiter'); // Full access
+        setTier('supporter'); // Full access
         setLoading(false);
         return;
       } else {
@@ -212,8 +142,8 @@ export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children })
 
       // Check local cache first
       const cached = localStorage.getItem(PREMIUM_KEY);
-      if (cached && (cached === 'pro' || cached === 'recruiter')) {
-        setTier(cached as SubscriptionTier);
+      if (cached && (cached === 'supporter' || cached === 'pro' || cached === 'recruiter')) {
+        setTier('supporter'); // Normalize legacy cached values
       }
 
       // Fetch from Supabase if configured
@@ -226,11 +156,11 @@ export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children })
             .single();
 
           if (!error && data?.subscription_tier) {
-            const fetchedTier = data.subscription_tier as SubscriptionTier;
-            // Only cache paid tiers
-            if (fetchedTier === 'pro' || fetchedTier === 'recruiter') {
-              setTier(fetchedTier);
-              localStorage.setItem(PREMIUM_KEY, fetchedTier);
+            const fetchedTier = data.subscription_tier;
+            // Normalize legacy tier values (pro/recruiter → supporter)
+            if (fetchedTier === 'pro' || fetchedTier === 'recruiter' || fetchedTier === 'supporter') {
+              setTier('supporter');
+              localStorage.setItem(PREMIUM_KEY, 'supporter');
             } else {
               setTier('free');
             }
@@ -256,11 +186,15 @@ export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   };
 
-  const features = TIER_FEATURES[tier];
+  // Override multiCompare for linked users: linked accounts get 5 slots regardless of tier
+  const isLinked = !!profile?.linked_username;
+  const baseFeatures = TIER_FEATURES[tier];
+  const features: PremiumFeatures = isLinked && baseFeatures.multiCompare < 5
+    ? { ...baseFeatures, multiCompare: 5 }
+    : baseFeatures;
   const tierName = isAdminUser ? ADMIN_TIER_NAME : TIER_NAMES[tier];
   const isLoggedIn = tier !== 'anonymous';
-  const isPro = tier === 'pro' || tier === 'recruiter';
-  const isRecruiter = tier === 'recruiter';
+  const isSupporter = tier === 'supporter';
   const isAdmin = isAdminUser;
 
   const checkFeature = (feature: keyof PremiumFeatures): boolean => {
@@ -296,13 +230,6 @@ export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children })
         cta: 'Support Atlas',
       };
     }
-    if (tier === 'pro') {
-      return {
-        title: 'Upgrade to Recruiter',
-        message: `${feature} is available with Atlas Recruiter. Perfect for alliance leaders and kingdom managers.`,
-        cta: 'View Recruiter',
-      };
-    }
     return { title: '', message: '', cta: '' };
   };
 
@@ -312,8 +239,7 @@ export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children })
       tierName,
       features,
       isLoggedIn,
-      isPro,
-      isRecruiter,
+      isSupporter,
       isAdmin,
       loading,
       checkFeature,

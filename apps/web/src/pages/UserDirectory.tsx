@@ -7,12 +7,12 @@ import { getDisplayTier, getTierBorderColor, SubscriptionTier } from '../utils/c
 import { logger } from '../utils/logger';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
+import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
 
 // Get username color based on subscription tier (including admin)
 const getUsernameColor = (tier: SubscriptionTier | null | undefined): string => {
   switch (tier) {
-    case 'pro': return subscriptionColors.pro;
-    case 'recruiter': return subscriptionColors.recruiter;
+    case 'supporter': return subscriptionColors.supporter;
     case 'admin': return subscriptionColors.admin;
     default: return colors.text;
   }
@@ -31,6 +31,7 @@ const formatTCLevel = (level: number | null | undefined): string => {
 const UserDirectory: React.FC = () => {
   useDocumentTitle('Player Directory');
   useMetaTags(PAGE_META_TAGS.players);
+  useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.players });
   const { user: currentUser } = useAuth();
   const [searchParams] = useSearchParams();
   const [users, setUsers] = useState<UserProfile[]>([]);
@@ -42,7 +43,7 @@ const UserDirectory: React.FC = () => {
   const urlKingdom = searchParams.get('kingdom');
   const [filterBy, setFilterBy] = useState<'all' | 'alliance' | 'region' | 'kingdom'>(urlKingdom ? 'kingdom' : 'all');
   const [filterValue, setFilterValue] = useState(urlKingdom || '');
-  const [tierFilter, setTierFilter] = useState<'all' | 'admin' | 'pro'>('all');
+  const [tierFilter, setTierFilter] = useState<'all' | 'admin' | 'supporter'>('all');
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   
   // Searchable kingdom filter state
@@ -104,7 +105,7 @@ const UserDirectory: React.FC = () => {
             // Sort: by tier hierarchy (Admin > Recruiter > Pro > Free), then by created_at
             // Use getDisplayTier to properly detect admins by username
             const sorted = [...data].sort((a, b) => {
-              const tierOrder = { admin: 0, recruiter: 1, pro: 2, free: 3 };
+              const tierOrder = { admin: 0, supporter: 1, free: 2 };
               const aDisplayTier = getDisplayTier(a.subscription_tier, a.linked_username || a.username);
               const bDisplayTier = getDisplayTier(b.subscription_tier, b.linked_username || b.username);
               const aTier = tierOrder[aDisplayTier as keyof typeof tierOrder] ?? 3;
@@ -136,7 +137,7 @@ const UserDirectory: React.FC = () => {
           theme_color: '#ef4444',
           badge_style: 'glow',
           created_at: new Date().toISOString(),
-          subscription_tier: 'recruiter',
+          subscription_tier: 'supporter',
           linked_username: 'DragonSlayer',
           linked_avatar_url: '',
           linked_kingdom: 42,
@@ -155,7 +156,7 @@ const UserDirectory: React.FC = () => {
           theme_color: '#f97316',
           badge_style: 'gradient',
           created_at: new Date().toISOString(),
-          subscription_tier: 'pro',
+          subscription_tier: 'supporter',
           linked_username: 'PhoenixRising',
           linked_avatar_url: '',
           linked_kingdom: 17,
@@ -547,9 +548,9 @@ const UserDirectory: React.FC = () => {
 
         {/* Tier Filter Chips */}
         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-          {(['all', 'admin', 'pro'] as const).map((tier) => {
+          {(['all', 'admin', 'supporter'] as const).map((tier) => {
             const isActive = tierFilter === tier;
-            const chipColor = tier === 'admin' ? subscriptionColors.admin : tier === 'pro' ? subscriptionColors.pro : '#6b7280';
+            const chipColor = tier === 'admin' ? subscriptionColors.admin : tier === 'supporter' ? subscriptionColors.supporter : '#6b7280';
             const label = tier === 'all' ? 'All Players' : tier === 'admin' ? '👑 Admin' : '💖 Supporter';
             
             return (
@@ -719,14 +720,14 @@ const UserDirectory: React.FC = () => {
                             👑 ADMIN
                           </span>
                         )}
-                        {displayTier === 'pro' && (
+                        {displayTier === 'supporter' && (
                           <span style={{
                             fontSize: '0.6rem',
                             padding: '0.15rem 0.4rem',
-                            backgroundColor: `${subscriptionColors.pro}15`,
-                            border: `1px solid ${subscriptionColors.pro}40`,
+                            backgroundColor: `${subscriptionColors.supporter}15`,
+                            border: `1px solid ${subscriptionColors.supporter}40`,
                             borderRadius: '4px',
-                            color: subscriptionColors.pro,
+                            color: subscriptionColors.supporter,
                             fontWeight: '600',
                           }}>
                             💖 SUPPORTER

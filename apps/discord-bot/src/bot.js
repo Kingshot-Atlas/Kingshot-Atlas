@@ -67,7 +67,21 @@ if (DISCORD_API_PROXY) {
 const SETTLER_ROLE_ID = process.env.DISCORD_SETTLER_ROLE_ID || '1466442878585934102';
 const SETTLER_SYNC_INTERVAL = 30 * 60 * 1000; // 30 minutes
 let settlerSyncTimer = null;
+let settlerSyncInitTimeout = null;
 let lastSettlerSync = null;
+
+// Presence rotation state (module-level to guard against reconnect leaks)
+const presenceMessages = [
+  '/help | ks-atlas.com',
+  '/kingdom | Look up any kingdom',
+  '/compare | Head-to-head stats',
+  '/history | KvK season history',
+  '/predict | Matchup predictions',
+  '/rankings | Top kingdoms',
+  '/countdownkvk | Next KvK',
+];
+let presenceIndex = 0;
+let presenceTimer = null;
 
 // ============================================================================
 // HEALTH SERVER - Unified with bot for accurate health reporting
@@ -353,22 +367,15 @@ client.on('ready', async () => {
   startSelfPing();
 
   // Start Settler role sync (first run after 60s, then every 30 min)
+  if (settlerSyncInitTimeout) clearTimeout(settlerSyncInitTimeout);
   if (settlerSyncTimer) clearInterval(settlerSyncTimer);
-  setTimeout(() => syncSettlerRoles(), 60_000);
+  settlerSyncInitTimeout = setTimeout(() => syncSettlerRoles(), 60_000);
   settlerSyncTimer = setInterval(() => syncSettlerRoles(), SETTLER_SYNC_INTERVAL);
   console.log(`🎖️ Settler role sync scheduled (every ${SETTLER_SYNC_INTERVAL / 60000} min)`);
 
-  // Rotating bot presence
-  const presenceMessages = [
-    '/help | ks-atlas.com',
-    '/kingdom | Look up any kingdom',
-    '/compare | Head-to-head stats',
-    '/history | KvK season history',
-    '/predict | Matchup predictions',
-    '/rankings | Top kingdoms',
-    '/countdownkvk | Next KvK',
-  ];
-  let presenceIndex = 0;
+  // Rotating bot presence (guard against duplicate timers on reconnect)
+  if (presenceTimer) clearInterval(presenceTimer);
+  presenceIndex = 0;
   const updatePresence = () => {
     client.user.setPresence({
       activities: [{
@@ -380,7 +387,7 @@ client.on('ready', async () => {
     presenceIndex++;
   };
   updatePresence();
-  setInterval(updatePresence, 60_000);
+  presenceTimer = setInterval(updatePresence, 60_000);
 
   // Initialize scheduled tasks (daily updates at 02:00 UTC)
   // Only on first ready to avoid duplicate cron jobs

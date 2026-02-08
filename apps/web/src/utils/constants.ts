@@ -6,29 +6,26 @@
  */
 
 // Subscription tier type - includes admin as a display tier
-export type SubscriptionTier = 'free' | 'pro' | 'recruiter' | 'admin';
+// Legacy DB values 'pro' and 'recruiter' are normalized to 'supporter' by getDisplayTier()
+export type SubscriptionTier = 'free' | 'supporter' | 'admin';
 
 // Admin users - usernames that have admin access
-// SINGLE SOURCE OF TRUTH: Admins have full access but display as "Admin" (not Recruiter)
+// SINGLE SOURCE OF TRUTH: Admins have full access but display as "Admin"
 export const ADMIN_USERNAMES: readonly string[] = ['gatreno'];
 export const ADMIN_EMAILS: readonly string[] = ['gatreno@gmail.com'];
 
 // Subscription colors - SINGLE SOURCE OF TRUTH for tier styling
-// IMPORTANT: 'pro' is the internal tier name, but displays as "SUPPORTER" (not "PRO") to users
-// Supporter = Pink, Recruiter = Purple, Admin = Gold
+// Supporter = Pink, Admin = Gold
 export const SUBSCRIPTION_COLORS = {
   free: '#6b7280',      // Gray
-  pro: '#FF6B8A',       // Pink - Atlas Supporter (display as "SUPPORTER", NOT "PRO")
-  recruiter: '#a855f7', // Purple - Atlas Recruiter
+  supporter: '#FF6B8A', // Pink - Atlas Supporter
   admin: '#f59e0b',     // Gold - Admin
 } as const;
 
 // BADGE DISPLAY NAMES - Use these for user-facing badge text
-// Internal tier 'pro' should display as "SUPPORTER" in all badges
 export const TIER_DISPLAY_NAMES = {
   free: null,           // No badge for free users
-  pro: 'SUPPORTER',     // NOT "PRO" - rebranded as of v1.5.0
-  recruiter: 'RECRUITER',
+  supporter: 'SUPPORTER',
   admin: 'ADMIN',
 } as const;
 
@@ -55,34 +52,41 @@ export const isAdminEmail = (email: string | null | undefined): boolean => {
   return ADMIN_EMAILS.includes(email.toLowerCase());
 };
 
-// Get effective tier for ACCESS purposes (admins get recruiter-level access)
+// Get effective tier for ACCESS purposes (admins get supporter-level access)
 export const getAccessTier = (
-  tier: 'free' | 'pro' | 'recruiter' | null | undefined,
+  tier: string | null | undefined,
   username: string | null | undefined
-): 'free' | 'pro' | 'recruiter' => {
-  if (isAdminUsername(username)) return 'recruiter'; // Full access
-  return tier || 'free';
+): 'free' | 'supporter' => {
+  if (isAdminUsername(username)) return 'supporter'; // Full access
+  // Normalize legacy tier values
+  if (tier === 'pro' || tier === 'recruiter' || tier === 'supporter') return 'supporter';
+  return 'free';
 };
 
-// Get effective tier for DISPLAY purposes (admins show as "admin", not "recruiter")
+// Get effective tier for DISPLAY purposes (admins show as "admin")
+// Accepts legacy DB values (pro, recruiter) and normalizes to supporter
 export const getDisplayTier = (
-  tier: 'free' | 'pro' | 'recruiter' | null | undefined,
+  tier: string | null | undefined,
   username: string | null | undefined
 ): SubscriptionTier => {
   if (isAdminUsername(username)) return 'admin';
-  return tier || 'free';
+  // Normalize legacy tier values
+  if (tier === 'pro' || tier === 'recruiter' || tier === 'supporter') return 'supporter';
+  return 'free';
 };
 
-// Legacy alias for backward compatibility (use getAccessTier for access, getDisplayTier for display)
+// Legacy alias for backward compatibility
 export const getEffectiveTier = getAccessTier;
 
 // Get tier color for UI elements (borders, buttons) - white for free, colored for paid
-// Supporter = Pink, Recruiter = Purple, Admin = Gold
-export const getTierBorderColor = (tier: SubscriptionTier | null | undefined): string => {
+// Supporter = Pink, Admin = Gold
+export const getTierBorderColor = (tier: string | null | undefined): string => {
   switch (tier) {
-    case 'pro': return SUBSCRIPTION_COLORS.pro;       // Pink
-    case 'recruiter': return SUBSCRIPTION_COLORS.recruiter; // Purple
-    case 'admin': return SUBSCRIPTION_COLORS.admin;   // Gold
+    case 'supporter':
+    case 'pro':        // Legacy
+    case 'recruiter':  // Legacy
+      return SUBSCRIPTION_COLORS.supporter;
+    case 'admin': return SUBSCRIPTION_COLORS.admin;
     default: return '#ffffff'; // White for free users
   }
 };

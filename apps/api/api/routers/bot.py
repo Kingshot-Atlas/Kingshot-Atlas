@@ -4,11 +4,14 @@ Endpoints for managing the Atlas Discord bot from the admin dashboard
 """
 
 import os
+import asyncio
 import httpx
 from datetime import datetime, timedelta, timezone
-from fastapi import APIRouter, HTTPException, Depends, Header
+from fastapi import APIRouter, HTTPException, Depends, Header, Request
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
+import hashlib
+from api.supabase_client import get_supabase_admin
 
 router = APIRouter()
 
@@ -21,6 +24,42 @@ DISCORD_API_PROXY = os.getenv("DISCORD_API_PROXY", "")
 DISCORD_PROXY_KEY = os.getenv("DISCORD_PROXY_KEY", "")
 DISCORD_API_BASE = DISCORD_API_PROXY or "https://discord.com"
 
+# Startup warning if proxy is not configured
+if not DISCORD_API_PROXY:
+    print("⚠️  WARNING: DISCORD_API_PROXY not set. Discord API calls will go directly to discord.com.")
+    print("   Render's shared IP may get Cloudflare Error 1015 (IP ban).")
+    print("   Set DISCORD_API_PROXY=https://atlas-discord-proxy.gatreno-investing.workers.dev")
+else:
+    print(f"✅ Discord API proxy configured: {DISCORD_API_PROXY[:40]}...")
+
+
+# ---------------------------------------------------------------------------
+# TTL Cache for Discord API responses (avoids hammering Discord on every page load)
+# ---------------------------------------------------------------------------
+class _TTLCache:
+    """Simple in-memory cache with per-key TTL."""
+    def __init__(self):
+        self._store: Dict[str, tuple] = {}  # key -> (value, expires_at)
+
+    def get(self, key: str):
+        entry = self._store.get(key)
+        if entry is None:
+            return None
+        value, expires_at = entry
+        if datetime.now(timezone.utc) > expires_at:
+            del self._store[key]
+            return None
+        return value
+
+    def set(self, key: str, value, ttl_seconds: int = 300):
+        expires_at = datetime.now(timezone.utc) + timedelta(seconds=ttl_seconds)
+        self._store[key] = (value, expires_at)
+
+    def invalidate(self, key: str):
+        self._store.pop(key, None)
+
+_cache = _TTLCache()
+
 
 def get_discord_headers():
     """Get headers for Discord API calls, including proxy key if configured."""
@@ -28,6 +67,99 @@ def get_discord_headers():
     if DISCORD_API_PROXY and DISCORD_PROXY_KEY:
         headers["X-Proxy-Key"] = DISCORD_PROXY_KEY
     return headers
+
+
+# ---------------------------------------------------------------------------
+# Discord API fetch helper with retry + exponential backoff
+# ---------------------------------------------------------------------------
+async def discord_fetch(
+    method: str,
+    path: str,
+    *,
+    json: Optional[Dict] = None,
+    max_retries: int = 2,
+    timeout: float = 15.0,
+) -> httpx.Response:
+    """
+    Make a Discord API request with automatic retry on 5xx / 429 / network errors.
+    Skips retry on 4xx (except 429) since those won't resolve with retries.
+    """
+    url = f"{DISCORD_API_BASE}{path}"
+    headers = get_discord_headers()
+    if json is not None:
+        headers["Content-Type"] = "application/json"
+
+    last_exc: Optional[Exception] = None
+    for attempt in range(max_retries + 1):
+        try:
+            async with httpx.AsyncClient(timeout=timeout) as client:
+                response = await client.request(method, url, headers=headers, json=json)
+
+            # Log every Discord API call for monitoring
+            _log_discord_api_call(method, path, response.status_code)
+
+            # Success or client error (not 429) — return immediately
+            if response.status_code < 500 and response.status_code != 429:
+                return response
+
+            # 429 rate-limited — respect Retry-After header
+            if response.status_code == 429:
+                retry_after = float(response.headers.get("Retry-After", "1"))
+                retry_after = min(retry_after, 5.0)  # cap at 5s
+                if attempt < max_retries:
+                    await asyncio.sleep(retry_after)
+                    continue
+                return response
+
+            # 5xx — exponential backoff
+            if attempt < max_retries:
+                await asyncio.sleep(0.5 * (2 ** attempt))  # 0.5s, 1s
+                continue
+            return response
+
+        except (httpx.TimeoutException, httpx.ConnectError, httpx.ReadError) as exc:
+            last_exc = exc
+            _log_discord_api_call(method, path, 0, error=str(exc))
+            if attempt < max_retries:
+                await asyncio.sleep(0.5 * (2 ** attempt))
+                continue
+            raise
+
+    # Should not reach here, but just in case
+    if last_exc:
+        raise last_exc
+    raise RuntimeError("discord_fetch exhausted retries without result")
+
+
+# ---------------------------------------------------------------------------
+# Discord API call logger (async-safe, fire-and-forget to Supabase)
+# ---------------------------------------------------------------------------
+def _log_discord_api_call(method: str, path: str, status_code: int, error: str = None):
+    """Log Discord API call to Supabase for monitoring trends. Non-blocking."""
+    try:
+        sb = get_supabase_admin()
+        if not sb:
+            return
+        row = {
+            "method": method,
+            "path": path[:200],
+            "status_code": status_code,
+            "proxy_used": bool(DISCORD_API_PROXY),
+        }
+        if error:
+            row["error"] = error[:500]
+        sb.table("discord_api_log").insert(row).execute()
+    except Exception:
+        pass  # Never let logging break the actual request
+
+def _sanitize_discord_error(status_code: int, response_text: str) -> str:
+    """Return a clean error message, stripping Cloudflare HTML pages."""
+    if "<!doctype" in response_text.lower() or "<html" in response_text.lower():
+        if "1015" in response_text:
+            return f"Discord API blocked (Cloudflare Error 1015 — IP rate-limited). Proxy may not be configured. Status {status_code}"
+        return f"Discord API returned HTML error page (status {status_code}). Likely a Cloudflare block."
+    return f"Discord API error {status_code}: {response_text[:300]}"
+
 
 # Brand colors
 COLORS = {
@@ -39,13 +171,135 @@ COLORS = {
 }
 
 
-def verify_api_key(x_api_key: str = Header(None)):
-    """Simple API key verification for bot admin endpoints"""
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+
+# Admin emails for JWT verification (shared with admin.py)
+_default_admin_emails = 'gatreno@gmail.com,gatreno.investing@gmail.com'
+ADMIN_EMAILS = [e.strip() for e in os.getenv("ADMIN_EMAILS", _default_admin_emails).split(',') if e.strip()]
+
+# In-memory rate limiter for bot admin endpoints
+_rate_limit_store: Dict[str, list] = {}
+BOT_RATE_LIMIT = 30  # max requests per window
+BOT_RATE_WINDOW = 60  # seconds
+
+def _check_rate_limit(client_ip: str = "unknown"):
+    """Check rate limit for bot admin endpoints. Raises 429 if exceeded."""
+    import time
+    now = time.time()
+    key = f"bot:{client_ip}"
+    timestamps = _rate_limit_store.get(key, [])
+    timestamps = [t for t in timestamps if now - t < BOT_RATE_WINDOW]
+    if len(timestamps) >= BOT_RATE_LIMIT:
+        raise HTTPException(status_code=429, detail="Rate limit exceeded. Try again later.")
+    timestamps.append(now)
+    _rate_limit_store[key] = timestamps
+
+
+def _verify_api_key(x_api_key: Optional[str]) -> bool:
+    """Verify bot admin API key."""
     if not DISCORD_API_KEY:
+        if ENVIRONMENT == "production":
+            return False
+        return True  # Dev mode passthrough
+    return x_api_key == DISCORD_API_KEY
+
+
+def _verify_bot_admin_jwt(authorization: Optional[str]) -> bool:
+    """Verify admin access via Supabase JWT — checks profiles.is_admin then email fallback."""
+    if not authorization:
+        return False
+    try:
+        token = authorization
+        if token.startswith("Bearer "):
+            token = token[7:]
+        if not token:
+            return False
+        client = get_supabase_admin()
+        if not client:
+            return False
+        user_response = client.auth.get_user(token)
+        if user_response and user_response.user:
+            user_email = user_response.user.email
+            user_id = user_response.user.id
+            # Primary: database is_admin flag
+            try:
+                profile = client.table("profiles").select("is_admin").eq("id", user_id).single().execute()
+                if profile.data and profile.data.get("is_admin") is True:
+                    return True
+            except Exception:
+                pass
+            # Fallback: admin email list
+            if user_email and user_email.lower() in [e.lower() for e in ADMIN_EMAILS]:
+                return True
+    except Exception:
+        pass
+    return False
+
+
+def require_bot_admin(
+    x_api_key: Optional[str] = Header(None),
+    authorization: Optional[str] = Header(None),
+    request: Request = None,
+):
+    """FastAPI dependency for bot admin endpoints.
+    Accepts either X-API-Key header OR Authorization Bearer JWT from an admin user.
+    Also enforces per-IP rate limiting."""
+    client_ip = "unknown"
+    if request and request.client:
+        client_ip = request.client.host
+    _check_rate_limit(client_ip)
+
+    if _verify_api_key(x_api_key):
         return True
-    if x_api_key != DISCORD_API_KEY:
-        raise HTTPException(status_code=401, detail="Invalid API key")
-    return True
+    if _verify_bot_admin_jwt(authorization):
+        return True
+    raise HTTPException(
+        status_code=401,
+        detail="Bot admin authentication required. Use X-API-Key or Authorization header."
+    )
+
+
+def _verify_any_authenticated_jwt(authorization: Optional[str]) -> bool:
+    """Verify that the caller has a valid Supabase JWT (any authenticated user, not just admin)."""
+    if not authorization:
+        return False
+    try:
+        token = authorization
+        if token.startswith("Bearer "):
+            token = token[7:]
+        if not token:
+            return False
+        client = get_supabase_admin()
+        if not client:
+            return False
+        user_response = client.auth.get_user(token)
+        if user_response and user_response.user:
+            return True
+    except Exception:
+        pass
+    return False
+
+
+def require_bot_or_user(
+    x_api_key: Optional[str] = Header(None),
+    authorization: Optional[str] = Header(None),
+    request: Request = None,
+):
+    """FastAPI dependency for endpoints callable by the bot (API key) OR any authenticated user (JWT).
+    Used for user-initiated actions like sync-settler-role."""
+    client_ip = "unknown"
+    if request and request.client:
+        client_ip = request.client.host
+    _check_rate_limit(client_ip)
+
+    if _verify_api_key(x_api_key):
+        return True
+    if _verify_any_authenticated_jwt(authorization):
+        return True
+    raise HTTPException(
+        status_code=401,
+        detail="Authentication required. Sign in or provide API key."
+    )
 
 
 class SendMessageRequest(BaseModel):
@@ -83,16 +337,34 @@ class ChannelInfo(BaseModel):
     position: int
 
 
-import hashlib
-from api.supabase_client import get_supabase_admin
+
+@router.get("/health")
+async def bot_health():
+    """
+    Lightweight health endpoint — does NOT call Discord API.
+    Returns cached bot status if available, otherwise just config state.
+    Frontend can poll this cheaply without burning Discord API quota.
+    """
+    cached_status = _cache.get("bot_status")
+    cached_servers = _cache.get("servers_list")
+
+    return {
+        "bot_token_configured": bool(DISCORD_BOT_TOKEN),
+        "proxy_configured": bool(DISCORD_API_PROXY),
+        "discord_api_base": DISCORD_API_BASE[:50],
+        "cached_bot_status": cached_status.get("status") if cached_status else None,
+        "cached_server_count": cached_servers.get("total") if cached_servers else None,
+        "cache_note": "Call /status or /servers to populate cache from Discord API",
+    }
 
 
 @router.get("/status")
-async def get_bot_status(_: bool = Depends(verify_api_key)):
+async def get_bot_status(_: bool = Depends(require_bot_admin)):
     """
     Get the current status of the Discord bot.
     Returns online status and basic bot info.
     Note: server_count comes from /servers endpoint to avoid duplicate Discord API calls.
+    Caches result for 5 minutes.
     """
     if not DISCORD_BOT_TOKEN:
         return {
@@ -102,89 +374,94 @@ async def get_bot_status(_: bool = Depends(verify_api_key)):
             "uptime_hours": 0
         }
     
+    # Return cached status if fresh
+    cached = _cache.get("bot_status")
+    if cached is not None:
+        return cached
+    
     try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            headers = get_discord_headers()
-            
-            # Get bot user info only — guilds fetched separately by /servers
-            response = await client.get(
-                f"{DISCORD_API_BASE}/api/v10/users/@me",
-                headers=headers
-            )
-            
-            if response.status_code != 200:
-                return {
-                    "status": "error",
-                    "message": f"Discord API error: {response.status_code}",
-                    "server_count": 0
-                }
-            
-            bot_user = response.json()
-            
+        response = await discord_fetch("GET", "/api/v10/users/@me", timeout=10.0)
+        
+        if response.status_code != 200:
             return {
-                "status": "online",
-                "bot_name": bot_user.get("username", "Atlas"),
-                "bot_id": bot_user.get("id"),
-                "bot_avatar": bot_user.get("avatar"),
-                "server_count": 0,
-                "uptime_hours": 0
+                "status": "error",
+                "message": _sanitize_discord_error(response.status_code, response.text),
+                "server_count": 0
             }
+        
+        bot_user = response.json()
+        
+        result = {
+            "status": "online",
+            "bot_name": bot_user.get("username", "Atlas"),
+            "bot_id": bot_user.get("id"),
+            "bot_avatar": bot_user.get("avatar"),
+            "server_count": 0,
+            "uptime_hours": 0
+        }
+        _cache.set("bot_status", result, ttl_seconds=300)
+        return result
     except Exception as e:
+        print(f"ERROR in /status: {e}")
         return {
             "status": "error",
-            "message": str(e),
+            "message": "Failed to connect to Discord API",
             "server_count": 0
         }
 
 
 @router.get("/servers")
-async def get_bot_servers(_: bool = Depends(verify_api_key)):
+async def get_bot_servers(_: bool = Depends(require_bot_admin)):
     """
     Get list of all servers the bot is in, with member counts.
     Uses ?with_counts=true for approximate member/presence stats.
     Returns gracefully on error instead of throwing.
+    Caches result for 5 minutes to reduce Discord API calls.
     """
     if not DISCORD_BOT_TOKEN:
         return {"servers": [], "total": 0, "error": "Discord bot token not configured"}
     
+    # Return cached servers if fresh
+    cached = _cache.get("servers_list")
+    if cached is not None:
+        return cached
+    
     try:
-        async with httpx.AsyncClient(timeout=15.0) as client:
-            headers = get_discord_headers()
-            response = await client.get(
-                f"{DISCORD_API_BASE}/api/v10/users/@me/guilds?with_counts=true",
-                headers=headers
-            )
-            
-            if response.status_code != 200:
-                return {
-                    "servers": [],
-                    "total": 0,
-                    "error": f"Discord API error {response.status_code}: {response.text[:200]}"
-                }
-            
-            guilds = response.json()
-            
+        response = await discord_fetch("GET", "/api/v10/users/@me/guilds?with_counts=true")
+        
+        if response.status_code != 200:
             return {
-                "servers": [
-                    {
-                        "id": g.get("id"),
-                        "name": g.get("name"),
-                        "icon": f"https://cdn.discordapp.com/icons/{g.get('id')}/{g.get('icon')}.png" if g.get("icon") else None,
-                        "owner": g.get("owner", False),
-                        "permissions": g.get("permissions"),
-                        "member_count": g.get("approximate_member_count", 0),
-                        "presence_count": g.get("approximate_presence_count", 0)
-                    }
-                    for g in guilds
-                ],
-                "total": len(guilds)
+                "servers": [],
+                "total": 0,
+                "error": _sanitize_discord_error(response.status_code, response.text)
             }
+        
+        guilds = response.json()
+        
+        result = {
+            "servers": [
+                {
+                    "id": g.get("id"),
+                    "name": g.get("name"),
+                    "icon": f"https://cdn.discordapp.com/icons/{g.get('id')}/{g.get('icon')}.png" if g.get("icon") else None,
+                    "owner": g.get("owner", False),
+                    "permissions": g.get("permissions"),
+                    "member_count": g.get("approximate_member_count", 0),
+                    "presence_count": g.get("approximate_presence_count", 0)
+                }
+                for g in guilds
+            ],
+            "total": len(guilds)
+        }
+        _cache.set("servers_list", result, ttl_seconds=300)
+        return result
     except Exception as e:
-        return {"servers": [], "total": 0, "error": str(e)}
+        print(f"ERROR in /servers: {e}")
+        return {"servers": [], "total": 0, "error": "Failed to fetch server list"}
 
 
 @router.get("/servers/{server_id}/channels")
-async def get_server_channels(server_id: str, _: bool = Depends(verify_api_key)):
+async def get_server_channels(server_id: str, _: bool = Depends(require_bot_admin)):
     """
     Get list of text channels in a specific server.
     """
@@ -192,46 +469,42 @@ async def get_server_channels(server_id: str, _: bool = Depends(verify_api_key))
         raise HTTPException(status_code=503, detail="Discord bot token not configured")
     
     try:
-        async with httpx.AsyncClient() as client:
-            headers = get_discord_headers()
-            response = await client.get(
-                f"{DISCORD_API_BASE}/api/v10/guilds/{server_id}/channels",
-                headers=headers
+        response = await discord_fetch("GET", f"/api/v10/guilds/{server_id}/channels")
+        
+        if response.status_code != 200:
+            raise HTTPException(
+                status_code=response.status_code,
+                detail=_sanitize_discord_error(response.status_code, response.text)
             )
-            
-            if response.status_code != 200:
-                raise HTTPException(
-                    status_code=response.status_code,
-                    detail=f"Discord API error: {response.text}"
-                )
-            
-            channels = response.json()
-            
-            # Filter to text channels only (type 0 = text channel)
-            text_channels = [
-                {
-                    "id": c.get("id"),
-                    "name": c.get("name"),
-                    "type": c.get("type"),
-                    "position": c.get("position", 0),
-                    "parent_id": c.get("parent_id")
-                }
-                for c in channels
-                if c.get("type") == 0  # Text channels only
-            ]
-            
-            # Sort by position
-            text_channels.sort(key=lambda x: x["position"])
-            
-            return {"channels": text_channels}
+        
+        channels = response.json()
+        
+        # Filter to text channels only (type 0 = text channel)
+        text_channels = [
+            {
+                "id": c.get("id"),
+                "name": c.get("name"),
+                "type": c.get("type"),
+                "position": c.get("position", 0),
+                "parent_id": c.get("parent_id")
+            }
+            for c in channels
+            if c.get("type") == 0  # Text channels only
+        ]
+        
+        # Sort by position
+        text_channels.sort(key=lambda x: x["position"])
+        
+        return {"channels": text_channels}
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"ERROR in /servers/channels: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch channels")
 
 
 @router.post("/send-message")
-async def send_message(data: SendMessageRequest, _: bool = Depends(verify_api_key)):
+async def send_message(data: SendMessageRequest, _: bool = Depends(require_bot_admin)):
     """
     Send a message to a Discord channel.
     Can send plain text, embeds, or both.
@@ -259,36 +532,34 @@ async def send_message(data: SendMessageRequest, _: bool = Depends(verify_api_ke
                 embed["timestamp"] = datetime.now(timezone.utc).isoformat()
             payload["embeds"] = [embed]
         
-        async with httpx.AsyncClient() as client:
-            headers = get_discord_headers()
-            headers["Content-Type"] = "application/json"
-            response = await client.post(
-                f"{DISCORD_API_BASE}/api/v10/channels/{data.channel_id}/messages",
-                headers=headers,
-                json=payload
+        response = await discord_fetch(
+            "POST",
+            f"/api/v10/channels/{data.channel_id}/messages",
+            json=payload,
+        )
+        
+        if response.status_code not in (200, 201):
+            raise HTTPException(
+                status_code=response.status_code,
+                detail=_sanitize_discord_error(response.status_code, response.text)
             )
-            
-            if response.status_code not in (200, 201):
-                raise HTTPException(
-                    status_code=response.status_code,
-                    detail=f"Discord API error: {response.text}"
-                )
-            
-            message = response.json()
-            
-            return {
-                "success": True,
-                "message_id": message.get("id"),
-                "channel_id": data.channel_id
-            }
+        
+        message = response.json()
+        
+        return {
+            "success": True,
+            "message_id": message.get("id"),
+            "channel_id": data.channel_id
+        }
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"ERROR in /send-message: {e}")
+        raise HTTPException(status_code=500, detail="Failed to send message")
 
 
 @router.get("/stats")
-async def get_bot_stats(_: bool = Depends(verify_api_key)):
+async def get_bot_stats(_: bool = Depends(require_bot_admin)):
     """
     Get bot usage statistics.
     Returns command usage, server count, and other metrics.
@@ -303,14 +574,16 @@ async def get_bot_stats(_: bool = Depends(verify_api_key)):
         }
     
     try:
-        # Get server count
-        async with httpx.AsyncClient() as client:
-            headers = get_discord_headers()
-            guilds_response = await client.get(
-                f"{DISCORD_API_BASE}/api/v10/users/@me/guilds",
-                headers=headers
-            )
-            server_count = len(guilds_response.json()) if guilds_response.status_code == 200 else 0
+        # Get server count from cache first, then Discord API
+        cached_servers = _cache.get("servers_list")
+        if cached_servers:
+            server_count = cached_servers.get("total", 0)
+        else:
+            try:
+                response = await discord_fetch("GET", "/api/v10/users/@me/guilds")
+                server_count = len(response.json()) if response.status_code == 200 else 0
+            except Exception:
+                server_count = 0
         
         # Calculate command stats from Supabase
         now = datetime.now(timezone.utc)
@@ -352,9 +625,10 @@ async def get_bot_stats(_: bool = Depends(verify_api_key)):
             "top_commands": top_commands
         }
     except Exception as e:
+        print(f"ERROR in /stats: {e}")
         return {
             "status": "error",
-            "message": str(e),
+            "message": "Failed to fetch bot statistics",
             "server_count": 0,
             "commands_24h": 0,
             "commands_7d": 0,
@@ -363,7 +637,7 @@ async def get_bot_stats(_: bool = Depends(verify_api_key)):
 
 
 @router.get("/analytics")
-async def get_bot_analytics(_: bool = Depends(verify_api_key)):
+async def get_bot_analytics(_: bool = Depends(require_bot_admin)):
     """
     Comprehensive bot analytics: command usage (24h/7d/30d), unique users,
     server breakdown, latency stats, and daily time series.
@@ -482,7 +756,8 @@ async def get_bot_analytics(_: bool = Depends(verify_api_key)):
             "time_series": time_series,
         }
     except Exception as e:
-        return {"error": str(e)}
+        print(f"ERROR in /analytics: {e}")
+        return {"error": "Failed to compute analytics"}
 
 
 class LogCommandRequest(BaseModel):
@@ -502,7 +777,7 @@ class SyncSettlerRoleRequest(BaseModel):
 @router.post("/log-command")
 async def log_command(
     data: LogCommandRequest,
-    _: bool = Depends(verify_api_key)
+    _: bool = Depends(require_bot_or_user)
 ):
     """
     Log a command usage event to Supabase.
@@ -530,7 +805,7 @@ async def log_command(
 @router.post("/sync-settler-role")
 async def sync_settler_role(
     data: SyncSettlerRoleRequest,
-    _: bool = Depends(verify_api_key)
+    _: bool = Depends(require_bot_or_user)
 ):
     """
     Sync the Settler Discord role when a user links/unlinks their Kingshot account.
@@ -554,7 +829,7 @@ async def sync_settler_role(
 
 
 @router.get("/linked-users")
-async def get_linked_users(_: bool = Depends(verify_api_key)):
+async def get_linked_users(_: bool = Depends(require_bot_admin)):
     """
     Get all users who have both a linked Kingshot account AND a Discord account.
     These are eligible for the Settler role.
@@ -570,7 +845,7 @@ async def get_linked_users(_: bool = Depends(verify_api_key)):
 
 
 @router.post("/backfill-settler-roles")
-async def backfill_settler_roles(_: bool = Depends(verify_api_key)):
+async def backfill_settler_roles(_: bool = Depends(require_bot_admin)):
     """
     Backfill Settler Discord role for all users who have both:
     - A linked Kingshot account (linked_player_id)
@@ -632,12 +907,13 @@ async def backfill_settler_roles(_: bool = Depends(verify_api_key)):
                     "reason": result.get("error", "Unknown"),
                 })
         except Exception as e:
+            print(f"ERROR in /backfill-settler-roles for user {user_id}: {e}")
             results["failed"] += 1
             results["details"].append({
                 "user_id": user_id,
                 "username": username,
                 "status": "failed",
-                "error": str(e),
+                "error": "Discord API call failed",
             })
     
     results["success"] = results["failed"] == 0
@@ -649,7 +925,7 @@ async def backfill_settler_roles(_: bool = Depends(verify_api_key)):
 
 
 @router.post("/leave-server/{server_id}")
-async def leave_server(server_id: str, _: bool = Depends(verify_api_key)):
+async def leave_server(server_id: str, _: bool = Depends(require_bot_admin)):
     """
     Make the bot leave a specific server.
     """
@@ -657,27 +933,26 @@ async def leave_server(server_id: str, _: bool = Depends(verify_api_key)):
         raise HTTPException(status_code=503, detail="Discord bot token not configured")
     
     try:
-        async with httpx.AsyncClient() as client:
-            response = await client.delete(
-                f"{DISCORD_API_BASE}/api/v10/users/@me/guilds/{server_id}",
-                headers=get_discord_headers()
+        response = await discord_fetch("DELETE", f"/api/v10/users/@me/guilds/{server_id}")
+        
+        if response.status_code not in (200, 204):
+            raise HTTPException(
+                status_code=response.status_code,
+                detail=_sanitize_discord_error(response.status_code, response.text)
             )
-            
-            if response.status_code not in (200, 204):
-                raise HTTPException(
-                    status_code=response.status_code,
-                    detail=f"Discord API error: {response.text}"
-                )
-            
-            return {"success": True, "message": f"Left server {server_id}"}
+        
+        # Invalidate server cache since guild list changed
+        _cache.invalidate("servers_list")
+        return {"success": True, "message": f"Left server {server_id}"}
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"ERROR in /leave-server: {e}")
+        raise HTTPException(status_code=500, detail="Failed to leave server")
 
 
 @router.get("/discord-diagnostic")
-async def discord_diagnostic(_: bool = Depends(verify_api_key)):
+async def discord_diagnostic(_: bool = Depends(require_bot_admin)):
     """
     Diagnostic endpoint to debug Discord API connectivity issues.
     Tests bot token, guild membership, and role management permissions.
@@ -691,6 +966,9 @@ async def discord_diagnostic(_: bool = Depends(verify_api_key)):
             "bot_token_length": len(DISCORD_BOT_TOKEN) if DISCORD_BOT_TOKEN else 0,
             "guild_id": DISCORD_GUILD_ID,
             "settler_role_id": DISCORD_SETTLER_ROLE_ID,
+            "proxy_configured": bool(DISCORD_API_PROXY),
+            "proxy_url": DISCORD_API_PROXY[:30] + "..." if DISCORD_API_PROXY else None,
+            "discord_api_base": DISCORD_API_BASE[:50],
         },
         "tests": {},
     }
@@ -700,119 +978,107 @@ async def discord_diagnostic(_: bool = Depends(verify_api_key)):
         return results
     
     try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            # Test 1: Verify bot token by getting bot user
-            bot_response = await client.get(
-                f"{DISCORD_API_BASE}/api/v10/users/@me",
-                headers=get_discord_headers()
-            )
+        # Test 1: Verify bot token by getting bot user
+        bot_response = await discord_fetch("GET", "/api/v10/users/@me", max_retries=1, timeout=10.0)
+        
+        if bot_response.status_code == 200:
+            bot_data = bot_response.json()
+            results["tests"]["bot_token"] = {
+                "status": "PASS",
+                "bot_name": bot_data.get("username"),
+                "bot_id": bot_data.get("id"),
+            }
+        elif bot_response.status_code == 401:
+            results["tests"]["bot_token"] = {
+                "status": "FAIL",
+                "error": "Invalid token (401 Unauthorized)",
+                "hint": "Token may be revoked or incorrect"
+            }
+            return results
+        elif bot_response.status_code == 429:
+            results["tests"]["bot_token"] = {
+                "status": "RATE_LIMITED",
+                "error": f"Rate limited (429)",
+                "retry_after": bot_response.headers.get("Retry-After", "unknown")
+            }
+            return results
+        else:
+            results["tests"]["bot_token"] = {
+                "status": "FAIL",
+                "error": _sanitize_discord_error(bot_response.status_code, bot_response.text)
+            }
+            return results
+        
+        # Test 2: Check if bot is in the target guild
+        if DISCORD_GUILD_ID:
+            guild_response = await discord_fetch("GET", f"/api/v10/guilds/{DISCORD_GUILD_ID}", max_retries=1)
             
-            if bot_response.status_code == 200:
-                bot_data = bot_response.json()
-                results["tests"]["bot_token"] = {
+            if guild_response.status_code == 200:
+                guild_data = guild_response.json()
+                results["tests"]["guild_membership"] = {
                     "status": "PASS",
-                    "bot_name": bot_data.get("username"),
-                    "bot_id": bot_data.get("id"),
+                    "guild_name": guild_data.get("name"),
+                    "member_count": guild_data.get("approximate_member_count"),
                 }
-            elif bot_response.status_code == 401:
-                results["tests"]["bot_token"] = {
+            elif guild_response.status_code == 403:
+                results["tests"]["guild_membership"] = {
                     "status": "FAIL",
-                    "error": "Invalid token (401 Unauthorized)",
-                    "hint": "Token may be revoked or incorrect"
+                    "error": "Bot not in guild or lacks access (403)"
                 }
-                return results
-            elif bot_response.status_code == 429:
-                results["tests"]["bot_token"] = {
-                    "status": "RATE_LIMITED",
-                    "error": f"Rate limited (429)",
-                    "retry_after": bot_response.headers.get("Retry-After", "unknown")
-                }
-                return results
             else:
-                results["tests"]["bot_token"] = {
+                results["tests"]["guild_membership"] = {
                     "status": "FAIL",
-                    "error": f"HTTP {bot_response.status_code}: {bot_response.text[:200]}"
+                    "error": f"HTTP {guild_response.status_code}"
                 }
-                return results
-            
-            # Test 2: Check if bot is in the target guild
-            if DISCORD_GUILD_ID:
-                guild_response = await client.get(
-                    f"{DISCORD_API_BASE}/api/v10/guilds/{DISCORD_GUILD_ID}",
-                    headers=get_discord_headers()
-                )
+        
+        # Test 3: Check bot's roles in guild (to verify Manage Roles permission)
+        if DISCORD_GUILD_ID:
+            bot_id = results["tests"].get("bot_token", {}).get("bot_id")
+            if bot_id:
+                member_response = await discord_fetch("GET", f"/api/v10/guilds/{DISCORD_GUILD_ID}/members/{bot_id}", max_retries=1)
                 
-                if guild_response.status_code == 200:
-                    guild_data = guild_response.json()
-                    results["tests"]["guild_membership"] = {
+                if member_response.status_code == 200:
+                    member_data = member_response.json()
+                    results["tests"]["bot_guild_roles"] = {
                         "status": "PASS",
-                        "guild_name": guild_data.get("name"),
-                        "member_count": guild_data.get("approximate_member_count"),
-                    }
-                elif guild_response.status_code == 403:
-                    results["tests"]["guild_membership"] = {
-                        "status": "FAIL",
-                        "error": "Bot not in guild or lacks access (403)"
+                        "role_count": len(member_data.get("roles", [])),
+                        "role_ids": member_data.get("roles", [])[:5],  # First 5 roles
                     }
                 else:
-                    results["tests"]["guild_membership"] = {
+                    results["tests"]["bot_guild_roles"] = {
                         "status": "FAIL",
-                        "error": f"HTTP {guild_response.status_code}"
+                        "error": f"HTTP {member_response.status_code}"
                     }
+        
+        # Test 4: Check if Settler role exists
+        if DISCORD_GUILD_ID and DISCORD_SETTLER_ROLE_ID:
+            roles_response = await discord_fetch("GET", f"/api/v10/guilds/{DISCORD_GUILD_ID}/roles", max_retries=1)
             
-            # Test 3: Check bot's roles in guild (to verify Manage Roles permission)
-            if DISCORD_GUILD_ID:
-                bot_id = results["tests"].get("bot_token", {}).get("bot_id")
-                if bot_id:
-                    member_response = await client.get(
-                        f"{DISCORD_API_BASE}/api/v10/guilds/{DISCORD_GUILD_ID}/members/{bot_id}",
-                        headers=get_discord_headers()
-                    )
-                    
-                    if member_response.status_code == 200:
-                        member_data = member_response.json()
-                        results["tests"]["bot_guild_roles"] = {
-                            "status": "PASS",
-                            "role_count": len(member_data.get("roles", [])),
-                            "role_ids": member_data.get("roles", [])[:5],  # First 5 roles
-                        }
-                    else:
-                        results["tests"]["bot_guild_roles"] = {
-                            "status": "FAIL",
-                            "error": f"HTTP {member_response.status_code}"
-                        }
-            
-            # Test 4: Check if Settler role exists
-            if DISCORD_GUILD_ID and DISCORD_SETTLER_ROLE_ID:
-                roles_response = await client.get(
-                    f"{DISCORD_API_BASE}/api/v10/guilds/{DISCORD_GUILD_ID}/roles",
-                    headers=get_discord_headers()
-                )
-                
-                if roles_response.status_code == 200:
-                    roles = roles_response.json()
-                    settler_role = next((r for r in roles if r["id"] == DISCORD_SETTLER_ROLE_ID), None)
-                    if settler_role:
-                        results["tests"]["settler_role"] = {
-                            "status": "PASS",
-                            "role_name": settler_role.get("name"),
-                            "role_position": settler_role.get("position"),
-                        }
-                    else:
-                        results["tests"]["settler_role"] = {
-                            "status": "FAIL",
-                            "error": f"Role {DISCORD_SETTLER_ROLE_ID} not found in guild"
-                        }
+            if roles_response.status_code == 200:
+                roles = roles_response.json()
+                settler_role = next((r for r in roles if r["id"] == DISCORD_SETTLER_ROLE_ID), None)
+                if settler_role:
+                    results["tests"]["settler_role"] = {
+                        "status": "PASS",
+                        "role_name": settler_role.get("name"),
+                        "role_position": settler_role.get("position"),
+                    }
                 else:
                     results["tests"]["settler_role"] = {
                         "status": "FAIL",
-                        "error": f"HTTP {roles_response.status_code}"
+                        "error": f"Role {DISCORD_SETTLER_ROLE_ID} not found in guild"
                     }
+            else:
+                results["tests"]["settler_role"] = {
+                    "status": "FAIL",
+                    "error": f"HTTP {roles_response.status_code}"
+                }
                     
     except Exception as e:
+        print(f"ERROR in /discord-diagnostic: {e}")
         results["tests"]["connection"] = {
             "status": "FAIL",
-            "error": str(e)
+            "error": "Discord API connection failed"
         }
     
     # Overall status

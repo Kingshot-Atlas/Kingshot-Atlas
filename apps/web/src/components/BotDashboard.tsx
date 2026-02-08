@@ -6,6 +6,16 @@ import React, { useState, useEffect } from 'react';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
+async function botHeaders(extra: Record<string, string> = {}): Promise<Record<string, string>> {
+  try {
+    const { getAuthHeaders } = await import('../services/authHeaders');
+    const auth = await getAuthHeaders({ requireAuth: false });
+    return { ...auth, ...extra };
+  } catch {
+    return { ...extra };
+  }
+}
+
 interface BotStatus {
   status: 'online' | 'offline' | 'error' | 'unconfigured';
   bot_name?: string;
@@ -98,7 +108,7 @@ export const BotDashboard: React.FC = () => {
   const loadAnalytics = async () => {
     setAnalyticsLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/v1/bot/analytics`);
+      const res = await fetch(`${API_URL}/api/v1/bot/analytics`, { headers: await botHeaders() });
       if (res.ok) setAnalytics(await res.json());
     } catch (e) {
       console.error('Failed to load analytics:', e);
@@ -112,16 +122,17 @@ export const BotDashboard: React.FC = () => {
     setServerError(null);
     try {
       // Fetch status and stats first (lightweight)
+      const headers = await botHeaders();
       const [statusRes, statsRes] = await Promise.all([
-        fetch(`${API_URL}/api/v1/bot/status`),
-        fetch(`${API_URL}/api/v1/bot/stats`)
+        fetch(`${API_URL}/api/v1/bot/status`, { headers }),
+        fetch(`${API_URL}/api/v1/bot/stats`, { headers })
       ]);
 
       if (statusRes.ok) setBotStatus(await statusRes.json());
       if (statsRes.ok) setStats(await statsRes.json());
 
       // Fetch servers separately to avoid Discord API rate-limit race
-      const serversRes = await fetch(`${API_URL}/api/v1/bot/servers`);
+      const serversRes = await fetch(`${API_URL}/api/v1/bot/servers`, { headers });
       if (serversRes.ok) {
         const data = await serversRes.json();
         setServers(data.servers || []);
@@ -131,7 +142,12 @@ export const BotDashboard: React.FC = () => {
           setBotStatus(prev => prev ? { ...prev, server_count: data.total } : prev);
         }
       } else {
-        setServerError(`API returned ${serversRes.status}`);
+        try {
+          const errData = await serversRes.json();
+          setServerError(errData?.detail || errData?.error || `API returned ${serversRes.status}`);
+        } catch {
+          setServerError(`API returned ${serversRes.status}`);
+        }
       }
     } catch (error) {
       console.error('Failed to load bot data:', error);
@@ -143,7 +159,7 @@ export const BotDashboard: React.FC = () => {
 
   const loadChannels = async (serverId: string) => {
     try {
-      const res = await fetch(`${API_URL}/api/v1/bot/servers/${serverId}/channels`);
+      const res = await fetch(`${API_URL}/api/v1/bot/servers/${serverId}/channels`, { headers: await botHeaders() });
       if (res.ok) {
         const data = await res.json();
         setChannels(data.channels || []);
@@ -185,7 +201,7 @@ export const BotDashboard: React.FC = () => {
 
       const res = await fetch(`${API_URL}/api/v1/bot/send-message`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: await botHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(payload)
       });
 
@@ -211,7 +227,8 @@ export const BotDashboard: React.FC = () => {
 
     try {
       const res = await fetch(`${API_URL}/api/v1/bot/leave-server/${serverId}`, {
-        method: 'POST'
+        method: 'POST',
+        headers: await botHeaders()
       });
 
       if (res.ok) {
@@ -801,7 +818,7 @@ export const BotDashboard: React.FC = () => {
                           <div key={srv.guild_id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                             <div style={{ width: '20px', flexShrink: 0, color: COLORS.muted, fontSize: '0.75rem', textAlign: 'right' }}>{i + 1}.</div>
                             <div style={{ width: '140px', flexShrink: 0, color: '#fff', fontSize: '0.8rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                              {serverName || srv.guild_id === 'DM' ? 'Direct Messages' : srv.guild_id.slice(0, 8) + '...'}
+                              {serverName ? serverName : srv.guild_id === 'DM' ? 'Direct Messages' : srv.guild_id.slice(0, 8) + '...'}
                             </div>
                             <div style={{ flex: 1, position: 'relative', height: '20px', backgroundColor: '#0a0a0f', borderRadius: '4px', overflow: 'hidden' }}>
                               <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${(srv.commands / maxSrv) * 100}%`, backgroundColor: COLORS.success + '40', borderRadius: '4px' }} />

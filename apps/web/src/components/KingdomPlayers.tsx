@@ -14,26 +14,24 @@ interface PlayerProfile {
   linked_tc_level: number | null;
   alliance_tag: string | null;
   theme_color: string;
-  subscription_tier: 'free' | 'pro' | 'recruiter' | null;
+  subscription_tier: string | null;
 }
 
-// Get tier sort priority (admin=0, recruiter=1, pro=2, free=3)
+// Get tier sort priority (admin=0, supporter=1, free=2)
 const getTierSortPriority = (tier: SubscriptionTier): number => {
   switch (tier) {
     case 'admin': return 0;
-    case 'recruiter': return 1;
-    case 'pro': return 2;
-    default: return 3;
+    case 'supporter': return 1;
+    default: return 2;
   }
 };
 
 // Get avatar border color (full color, not opacity)
 const getAvatarBorderColor = (tier: SubscriptionTier): string => {
   switch (tier) {
-    case 'admin': return SUBSCRIPTION_COLORS.admin;    // Gold
-    case 'recruiter': return SUBSCRIPTION_COLORS.recruiter; // Purple
-    case 'pro': return SUBSCRIPTION_COLORS.pro;       // Pink
-    default: return '#ffffff';                         // White
+    case 'admin': return SUBSCRIPTION_COLORS.admin;      // Gold
+    case 'supporter': return SUBSCRIPTION_COLORS.supporter; // Pink
+    default: return '#ffffff';                           // White
   }
 };
 
@@ -46,8 +44,7 @@ interface KingdomPlayersProps {
 const getUsernameColor = (tier: SubscriptionTier): string => {
   switch (tier) {
     case 'admin': return SUBSCRIPTION_COLORS.admin;
-    case 'recruiter': return SUBSCRIPTION_COLORS.recruiter;
-    case 'pro': return SUBSCRIPTION_COLORS.pro;
+    case 'supporter': return SUBSCRIPTION_COLORS.supporter;
     default: return colors.text;
   }
 };
@@ -161,7 +158,7 @@ const KingdomPlayers: React.FC<KingdomPlayersProps> = ({
           // Use linked_username for admin check since that's the Kingshot identity
           const displayTier = getDisplayTier(player.subscription_tier, player.linked_username || player.username);
           const usernameColor = getUsernameColor(displayTier);
-          const isPaidOrAdmin = displayTier === 'pro' || displayTier === 'recruiter' || displayTier === 'admin';
+          const isPaidOrAdmin = displayTier === 'supporter' || displayTier === 'admin';
           
           return (
             <Link 
@@ -260,30 +257,17 @@ const KingdomPlayers: React.FC<KingdomPlayersProps> = ({
                       ADMIN
                     </span>
                   )}
-                  {displayTier === 'pro' && (
+                  {displayTier === 'supporter' && (
                     <span style={{
                       fontSize: '0.6rem',
                       padding: '0.1rem 0.3rem',
-                      backgroundColor: `${SUBSCRIPTION_COLORS.pro}15`,
-                      border: `1px solid ${SUBSCRIPTION_COLORS.pro}40`,
+                      backgroundColor: `${SUBSCRIPTION_COLORS.supporter}15`,
+                      border: `1px solid ${SUBSCRIPTION_COLORS.supporter}40`,
                       borderRadius: '3px',
-                      color: SUBSCRIPTION_COLORS.pro,
+                      color: SUBSCRIPTION_COLORS.supporter,
                       fontWeight: '600',
                     }}>
                       SUPPORTER
-                    </span>
-                  )}
-                  {displayTier === 'recruiter' && (
-                    <span style={{
-                      fontSize: '0.6rem',
-                      padding: '0.1rem 0.3rem',
-                      backgroundColor: `${SUBSCRIPTION_COLORS.recruiter}15`,
-                      border: `1px solid ${SUBSCRIPTION_COLORS.recruiter}40`,
-                      borderRadius: '3px',
-                      color: SUBSCRIPTION_COLORS.recruiter,
-                      fontWeight: '600',
-                    }}>
-                      RECRUITER
                     </span>
                   )}
                 </div>

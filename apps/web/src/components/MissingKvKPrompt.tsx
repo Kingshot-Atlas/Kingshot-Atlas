@@ -90,7 +90,22 @@ const MissingKvKPrompt: React.FC<MissingKvKPromptProps> = ({
     );
   }
 
-  // Case 3: Logged in and linked - can submit
+  // Case 3: Logged in and linked but TC too low
+  const tcLevel = profile?.linked_tc_level || 0;
+  if (tcLevel < 20) {
+    return (
+      <div style={containerStyle}>
+        <div style={{ color: '#fbbf24', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
+          ⚠️ KvK #{kvkNumber} data missing
+        </div>
+        <p style={{ color: '#9ca3af', fontSize: '0.8rem', marginBottom: '0.75rem' }}>
+          TC20+ required to submit KvK results (you&apos;re TC{tcLevel || '?'}).
+        </p>
+      </div>
+    );
+  }
+
+  // Case 4: Logged in, linked, and TC20+ - can submit
   return (
     <>
       <div style={containerStyle}>

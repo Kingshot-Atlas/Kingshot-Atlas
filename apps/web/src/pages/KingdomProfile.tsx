@@ -19,6 +19,7 @@ import SimilarKingdoms from '../components/SimilarKingdoms';
 import KingdomPlayers from '../components/KingdomPlayers';
 import ClaimKingdom from '../components/ClaimKingdom';
 import AtlasScoreBreakdown from '../components/AtlasScoreBreakdown';
+import LinkAccountNudge from '../components/LinkAccountNudge';
 import PathToNextTier from '../components/PathToNextTier';
 import { ScoreSimulator } from '../components/ScoreSimulator';
 import { KingdomHeader, QuickStats, PhaseCards, KvKHistoryTable } from '../components/kingdom-profile';
@@ -28,7 +29,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/Toast';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, getKingdomMetaTags } from '../hooks/useMetaTags';
-import { useStructuredData } from '../hooks/useStructuredData';
+import { useStructuredData, getKingdomBreadcrumbs } from '../hooks/useStructuredData';
 import { reviewService } from '../services/reviewService';
 import { scoreHistoryService } from '../services/scoreHistoryService';
 
@@ -36,7 +37,7 @@ const KingdomProfile: React.FC = () => {
   const { kingdomNumber } = useParams<{ kingdomNumber: string }>();
   useDocumentTitle(kingdomNumber ? `Kingdom ${kingdomNumber}` : undefined);
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { showToast } = useToast();
   const [kingdom, setKingdom] = useState<KingdomProfileType | null>(null);
   const [allKingdoms, setAllKingdoms] = useState<KingdomProfileType[]>([]);
@@ -52,6 +53,7 @@ const KingdomProfile: React.FC = () => {
   const [scoreHistoryRank, setScoreHistoryRank] = useState<number>(0);
   const [totalKingdomsAtKvk, setTotalKingdomsAtKvk] = useState<number>(0);
   const [percentileRank, setPercentileRank] = useState<number>(0);
+  const [recentScoreChange, setRecentScoreChange] = useState<number | null>(null);
 
   // Auto-refresh when KvK history changes for this kingdom via realtime
   const handleKvkHistoryUpdate = useCallback((updatedKingdom: number, kvkNumber: number) => {
@@ -152,11 +154,22 @@ const KingdomProfile: React.FC = () => {
       setAllKingdoms(all as unknown as KingdomProfileType[]);
       
       // Fetch rank from score_history (single source of truth)
-      const rankData = await scoreHistoryService.getLatestRank(id);
+      const [rankData, scoreHistory] = await Promise.all([
+        scoreHistoryService.getLatestRank(id),
+        scoreHistoryService.getKingdomScoreHistory(id),
+      ]);
       if (rankData) {
         setScoreHistoryRank(rankData.rank);
         setTotalKingdomsAtKvk(rankData.totalAtKvk);
         setPercentileRank(rankData.percentileRank);
+      }
+      // Get last KvK score change for the Score Change Hook nudge
+      if (scoreHistory && scoreHistory.history.length >= 2) {
+        const h = scoreHistory.history;
+        const delta = h[h.length - 1].score - h[h.length - 2].score;
+        setRecentScoreChange(delta);
+      } else {
+        setRecentScoreChange(null);
       }
       
       // Save to recently viewed and track achievement
@@ -201,6 +214,7 @@ const KingdomProfile: React.FC = () => {
       aggregateRating: aggregateRating
     }
   });
+  useStructuredData({ type: 'BreadcrumbList', data: getKingdomBreadcrumbs(parseInt(kingdomNumber || '0')) });
 
   if (loading) {
     return <KingdomProfileSkeleton />;
@@ -256,7 +270,21 @@ const KingdomProfile: React.FC = () => {
         status={status}
         hasPendingSubmission={hasPendingSubmission}
         isMobile={isMobile}
-        onStatusModalOpen={() => setShowStatusModal(true)}
+        recentScoreChange={recentScoreChange}
+        isLinked={!!profile?.linked_username}
+        onStatusModalOpen={() => {
+          if (!user) {
+            showToast('Please sign in to submit status updates', 'error');
+            navigate('/login?redirect=' + window.location.pathname);
+            return;
+          }
+          if (!profile?.linked_username) {
+            showToast('Please link your Kingshot account to submit status updates', 'error');
+            navigate('/profile');
+            return;
+          }
+          setShowStatusModal(true);
+        }}
         onReportModalOpen={() => setShowReportModal(true)}
       />
 
@@ -292,6 +320,13 @@ const KingdomProfile: React.FC = () => {
           kvkRecords={kingdom.recent_kvks || []}
           isMobile={isMobile}
           onReportErrorClick={() => setShowKvKErrorModal(true)}
+        />
+
+        {/* Link Account Nudge - contextual prompt for non-linked users */}
+        <LinkAccountNudge 
+          variant="kingdom-profile" 
+          kingdomNumber={kingdom.kingdom_number}
+          themeColor="#22d3ee"
         />
 
         {/* Expand/Collapse All Button */}

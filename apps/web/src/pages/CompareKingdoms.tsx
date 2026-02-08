@@ -10,10 +10,10 @@ import { neonGlow, getTierColor, FONT_DISPLAY } from '../utils/styles';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { usePremium } from '../contexts/PremiumContext';
 import { useAuth } from '../contexts/AuthContext';
-import ProBadge from '../components/ProBadge';
 import ComparisonRadarChart from '../components/ComparisonRadarChart';
 import ShareComparisonScreenshot from '../components/ShareComparisonScreenshot';
 import { useMetaTags, getCompareMetaTags } from '../hooks/useMetaTags';
+import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
 
 // Max slots to show in UI (Pro limit)
 const MAX_COMPARE_SLOTS = 5;
@@ -173,6 +173,7 @@ const MultiCompareRadarChart: React.FC<MultiCompareRadarChartProps> = memo(funct
 
 const CompareKingdoms: React.FC = () => {
   useDocumentTitle('Compare Kingdoms');
+  useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.compare });
   const [searchParams] = useSearchParams();
   const { features, tier } = usePremium();
   const { user } = useAuth();
@@ -577,7 +578,7 @@ const CompareKingdoms: React.FC = () => {
             marginTop: '0.75rem',
             width: '100%'
           }}>
-            {/* Slot 3 - Pro/Recruiter only (Free users have limit of 2) */}
+            {/* Slot 3 - Available to logged-in users (3+) and linked users (5) */}
             {(() => {
               const slotIndex = 2;
               const isLocked = features.multiCompare < 3;
@@ -636,7 +637,7 @@ const CompareKingdoms: React.FC = () => {
               );
             })()}
             
-            {/* Slots 4-5 - Pro users only */}
+            {/* Slots 4-5 - Available to linked/supporter users */}
             {[3, 4].map((slotIndex) => {
               const isLocked = features.multiCompare <= slotIndex;
               const input = kingdomInputs[slotIndex] || '';
@@ -696,9 +697,9 @@ const CompareKingdoms: React.FC = () => {
             })}
           </div>
           
-          {/* Upgrade Prompt - tier-aware messaging */}
+          {/* Upgrade Prompt - linking-aware messaging */}
           {features.multiCompare < MAX_COMPARE_SLOTS && (
-            <Link to="/upgrade" style={{ textDecoration: 'none' }}>
+            <Link to="/profile" style={{ textDecoration: 'none' }}>
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -712,9 +713,9 @@ const CompareKingdoms: React.FC = () => {
                 cursor: 'pointer',
                 transition: 'all 0.2s'
               }}>
-                <ProBadge size="sm" />
+                <span style={{ fontSize: '0.85rem' }}>🔗</span>
                 <span style={{ color: '#9ca3af', fontSize: '0.8rem' }}>
-                  Become a Supporter to compare up to 5 kingdoms
+                  {!user ? 'Sign in to compare up to 5 kingdoms' : 'Link your Kingshot account to compare up to 5 kingdoms'}
                 </span>
               </div>
             </Link>

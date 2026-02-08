@@ -4,13 +4,14 @@ import { useIsMobile } from '../hooks/useMediaQuery';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
-import { useStructuredData, ABOUT_FAQ_DATA } from '../hooks/useStructuredData';
+import { useStructuredData, ABOUT_FAQ_DATA, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
 import SupportButton from '../components/SupportButton';
 
 const About: React.FC = () => {
   useDocumentTitle('About');
   useMetaTags(PAGE_META_TAGS.about);
   useStructuredData({ type: 'FAQPage', data: ABOUT_FAQ_DATA });
+  useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.about });
   const isMobile = useIsMobile();
 
   return (

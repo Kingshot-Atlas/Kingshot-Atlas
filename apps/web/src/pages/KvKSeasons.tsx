@@ -5,6 +5,7 @@ import { neonGlow } from '../utils/styles';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
+import { useStructuredData, PAGE_BREADCRUMBS, getSeasonBreadcrumbs } from '../hooks/useStructuredData';
 
 interface SeasonStats {
   totalMatchups: number;
@@ -18,6 +19,8 @@ interface SeasonStats {
 const KvKSeasons: React.FC = () => {
   useMetaTags(PAGE_META_TAGS.kvkSeasons);
   const { seasonNumber } = useParams<{ seasonNumber?: string }>();
+  const seasonNum = seasonNumber ? parseInt(seasonNumber) : null;
+  useStructuredData({ type: 'BreadcrumbList', data: seasonNum ? getSeasonBreadcrumbs(seasonNum) : PAGE_BREADCRUMBS.seasons });
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   

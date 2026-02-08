@@ -17,15 +17,14 @@ interface PlayerProfile {
   linked_tc_level: number | null;
   alliance_tag: string | null;
   theme_color: string;
-  subscription_tier: 'free' | 'pro' | 'recruiter' | null;
+  subscription_tier: string | null;
 }
 
 // Get username color based on display tier
 const getUsernameColor = (tier: SubscriptionTier): string => {
   switch (tier) {
     case 'admin': return SUBSCRIPTION_COLORS.admin;
-    case 'recruiter': return SUBSCRIPTION_COLORS.recruiter;
-    case 'pro': return SUBSCRIPTION_COLORS.pro;
+    case 'supporter': return SUBSCRIPTION_COLORS.supporter;
     default: return '#ffffff'; // White for free users
   }
 };
@@ -152,7 +151,7 @@ const PlayersFromMyKingdom: React.FC<PlayersFromMyKingdomProps> = ({
           // Use linked_username for admin check since that's the Kingshot identity
           const displayTier = getDisplayTier(player.subscription_tier, player.linked_username || player.username);
           const usernameColor = getUsernameColor(displayTier);
-          const isPaidOrAdmin = displayTier === 'pro' || displayTier === 'recruiter' || displayTier === 'admin';
+          const isPaidOrAdmin = displayTier === 'supporter' || displayTier === 'admin';
           // Use Kingshot account data if available, fallback to OAuth data
           const displayName = player.linked_username || player.username || 'Anonymous';
           const displayAvatar = player.linked_avatar_url || player.avatar_url;
@@ -258,30 +257,17 @@ const PlayersFromMyKingdom: React.FC<PlayersFromMyKingdomProps> = ({
                         ADMIN
                       </span>
                     )}
-                    {displayTier === 'pro' && (
+                    {displayTier === 'supporter' && (
                       <span style={{
                         fontSize: '0.6rem',
                         padding: '0.1rem 0.3rem',
-                        backgroundColor: `${SUBSCRIPTION_COLORS.pro}15`,
-                        border: `1px solid ${SUBSCRIPTION_COLORS.pro}40`,
+                        backgroundColor: `${SUBSCRIPTION_COLORS.supporter}15`,
+                        border: `1px solid ${SUBSCRIPTION_COLORS.supporter}40`,
                         borderRadius: '3px',
-                        color: SUBSCRIPTION_COLORS.pro,
+                        color: SUBSCRIPTION_COLORS.supporter,
                         fontWeight: '600',
                       }}>
                         SUPPORTER
-                      </span>
-                    )}
-                    {displayTier === 'recruiter' && (
-                      <span style={{
-                        fontSize: '0.6rem',
-                        padding: '0.1rem 0.3rem',
-                        backgroundColor: `${SUBSCRIPTION_COLORS.recruiter}15`,
-                        border: `1px solid ${SUBSCRIPTION_COLORS.recruiter}40`,
-                        borderRadius: '3px',
-                        color: SUBSCRIPTION_COLORS.recruiter,
-                        fontWeight: '600',
-                      }}>
-                        RECRUITER
                       </span>
                     )}
                   </div>

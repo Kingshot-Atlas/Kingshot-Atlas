@@ -13,15 +13,6 @@ export const STRIPE_CONFIG = {
       monthly: import.meta.env.VITE_STRIPE_PRO_MONTHLY_LINK || '',
       yearly: import.meta.env.VITE_STRIPE_PRO_YEARLY_LINK || '',
     },
-    // Legacy alias for backwards compatibility
-    pro: {
-      monthly: import.meta.env.VITE_STRIPE_PRO_MONTHLY_LINK || '',
-      yearly: import.meta.env.VITE_STRIPE_PRO_YEARLY_LINK || '',
-    },
-    recruiter: {
-      monthly: import.meta.env.VITE_STRIPE_RECRUITER_MONTHLY_LINK || '',
-      yearly: import.meta.env.VITE_STRIPE_RECRUITER_YEARLY_LINK || '',
-    },
   },
   
   // Customer portal URL for managing subscriptions
@@ -38,7 +29,7 @@ export const isStripeConfigured = Boolean(
 
 // Create checkout session via API (preferred method)
 export const createCheckoutSession = async (
-  tier: 'pro' | 'recruiter',
+  tier: string,
   billingCycle: 'monthly' | 'yearly',
   userId: string,
   userEmail?: string
@@ -67,12 +58,12 @@ export const createCheckoutSession = async (
 // Get checkout URL for a specific tier and billing cycle
 // This function tries API first, then payment links, then Ko-fi fallback
 export const getCheckoutUrl = (
-  tier: 'pro' | 'recruiter',
+  _tier: string,
   billingCycle: 'monthly' | 'yearly',
   userId?: string
 ): string => {
   // Try payment links first (no backend needed, instant redirect)
-  const paymentLink = STRIPE_CONFIG.paymentLinks[tier][billingCycle];
+  const paymentLink = STRIPE_CONFIG.paymentLinks.supporter[billingCycle];
   if (paymentLink) {
     const url = paymentLink.startsWith('http') 
       ? paymentLink 
@@ -86,7 +77,7 @@ export const getCheckoutUrl = (
 
 // Async version that uses API checkout session
 export const getCheckoutUrlAsync = async (
-  tier: 'pro' | 'recruiter',
+  tier: string,
   billingCycle: 'monthly' | 'yearly',
   userId: string,
   userEmail?: string

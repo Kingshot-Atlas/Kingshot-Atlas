@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { KingdomProfile as KingdomProfileType, getTierDescription as getCentralizedTierDescription, type PowerTier } from '../../types';
 import ShareButton from '../ShareButton';
 import ScoreFreshness from '../ScoreFreshness';
@@ -22,6 +23,8 @@ interface KingdomHeaderProps {
   status: string;
   hasPendingSubmission: boolean;
   isMobile: boolean;
+  recentScoreChange?: number | null;
+  isLinked?: boolean;
   onStatusModalOpen: () => void;
   onReportModalOpen: () => void;
 }
@@ -37,6 +40,8 @@ const KingdomHeader: React.FC<KingdomHeaderProps> = ({
   status,
   hasPendingSubmission,
   isMobile,
+  recentScoreChange,
+  isLinked = false,
   onStatusModalOpen,
   onReportModalOpen,
 }) => {
@@ -222,6 +227,56 @@ const KingdomHeader: React.FC<KingdomHeaderProps> = ({
               </span>
             ))}
           </div>
+
+          {/* Score Change Hook — blurred teaser for non-linked, real for linked */}
+          {recentScoreChange !== null && recentScoreChange !== undefined && recentScoreChange !== 0 && (
+            isLinked ? (
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.3rem',
+                padding: '0.2rem 0.6rem',
+                borderRadius: '20px',
+                fontSize: '0.7rem',
+                fontWeight: '600',
+                backgroundColor: recentScoreChange > 0 ? '#22c55e12' : '#ef444412',
+                color: recentScoreChange > 0 ? '#22c55e' : '#ef4444',
+                border: `1px solid ${recentScoreChange > 0 ? '#22c55e25' : '#ef444425'}`,
+                marginBottom: '0.4rem',
+              }}>
+                <span>{recentScoreChange > 0 ? '▲' : '▼'}</span>
+                <span>{recentScoreChange > 0 ? '+' : ''}{recentScoreChange.toFixed(2)} last KvK</span>
+              </div>
+            ) : (
+              <Link to="/profile" style={{ textDecoration: 'none' }}>
+                <div style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.3rem',
+                  padding: '0.2rem 0.6rem',
+                  borderRadius: '20px',
+                  fontSize: '0.7rem',
+                  fontWeight: '600',
+                  backgroundColor: '#9ca3af08',
+                  border: '1px solid #9ca3af15',
+                  marginBottom: '0.4rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#22d3ee30'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#9ca3af15'; }}
+                >
+                  <span style={{ color: '#6b7280' }}>📊</span>
+                  <span style={{ 
+                    filter: 'blur(4px)', 
+                    userSelect: 'none',
+                    color: '#22c55e',
+                  }}>+0.00</span>
+                  <span style={{ color: '#4b5563', fontSize: '0.65rem' }}>Link account to see</span>
+                </div>
+              </Link>
+            )
+          )}
           
           {/* Row 3: Last Transfer Status */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>

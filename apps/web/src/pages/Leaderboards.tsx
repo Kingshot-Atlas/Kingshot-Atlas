@@ -11,11 +11,13 @@ import { usePremium } from '../contexts/PremiumContext';
 import { neonGlow, FONT_DISPLAY, statTypeStyles } from '../utils/styles';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
+import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
 import { scoreHistoryService, RankMover } from '../services/scoreHistoryService';
 
 const Leaderboards: React.FC = () => {
   useDocumentTitle('Kingdom Rankings');
   useMetaTags(PAGE_META_TAGS.leaderboards);
+  useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.rankings });
   const [kingdoms, setKingdoms] = useState<Kingdom[]>([]);
   const [loading, setLoading] = useState(true);
   const [displayCount, setDisplayCount] = useState<5 | 10 | 25>(5);
@@ -24,11 +26,11 @@ const Leaderboards: React.FC = () => {
   const [customKvkMax, setCustomKvkMax] = useState<number>(15);
   const [rankMovers, setRankMovers] = useState<{ climbers: RankMover[]; fallers: RankMover[] } | null>(null);
   const isMobile = useIsMobile();
-  const { tier, isPro } = usePremium();
+  const { tier, isSupporter } = usePremium();
   const { trackFeature } = useAnalytics();
   
-  // Tier-based leaderboard limits: anonymous=10, free=25, pro=unlimited
-  const leaderboardLimit = isPro ? 999 : (tier === 'free' ? 25 : 10);
+  // Tier-based leaderboard limits: anonymous=10, free=25, supporter=unlimited
+  const leaderboardLimit = isSupporter ? 999 : (tier === 'free' ? 25 : 10);
 
   const hasTrackedView = useRef(false);
   

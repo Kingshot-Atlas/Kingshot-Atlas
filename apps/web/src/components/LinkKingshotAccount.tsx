@@ -5,11 +5,13 @@ import { colors, neonGlow, transition, subscriptionColors } from '../utils/style
 import { Button } from './shared';
 
 // Get username color based on subscription tier (includes admin)
-const getUsernameColor = (tier: 'free' | 'pro' | 'recruiter' | 'admin'): string => {
+const getUsernameColor = (tier: string): string => {
   switch (tier) {
     case 'admin': return '#ef4444'; // Admin = red
-    case 'pro': return subscriptionColors.pro;
-    case 'recruiter': return subscriptionColors.recruiter;
+    case 'supporter':
+    case 'pro':        // Legacy
+    case 'recruiter':  // Legacy
+      return subscriptionColors.supporter;
     default: return colors.text; // White for free users
   }
 };
@@ -164,7 +166,7 @@ interface LinkKingshotAccountProps {
   showRefresh?: boolean;
   lastSynced?: string | null;
   onRefresh?: () => void;
-  subscriptionTier?: 'free' | 'pro' | 'recruiter' | 'admin';
+  subscriptionTier?: string;
   isPublicView?: boolean;
 }
 
