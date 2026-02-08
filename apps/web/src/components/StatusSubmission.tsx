@@ -12,8 +12,8 @@ interface StatusSubmissionProps {
 }
 
 const STATUS_OPTIONS = [
-  { value: 'Leading', label: 'Leading', description: 'Open for high-power players only', color: '#fbbf24' },
-  { value: 'Ordinary', label: 'Ordinary', description: 'Open for all players', color: '#9ca3af' },
+  { value: 'Leading', label: 'Leading', description: 'Transfers in restricted — prevents strong kingdoms from growing disproportionately', color: '#fbbf24' },
+  { value: 'Ordinary', label: 'Ordinary', description: 'Open to all incoming transfers', color: '#9ca3af' },
   { value: 'Unannounced', label: 'Unannounced', description: 'Transfer status not yet announced', color: '#ef4444' },
 ];
 

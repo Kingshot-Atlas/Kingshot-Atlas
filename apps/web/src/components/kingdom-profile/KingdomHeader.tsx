@@ -58,8 +58,8 @@ const KingdomHeader: React.FC<KingdomHeaderProps> = ({
 
   const getStatusDescription = (status: string) => {
     switch (status) {
-      case 'Leading': return 'Open for migration with favorable conditions';
-      case 'Ordinary': return 'Standard migration status';
+      case 'Leading': return 'Transfers in are restricted — prevents top kingdoms from growing disproportionately stronger';
+      case 'Ordinary': return 'Standard transfer status — open to all incoming transfers';
       default: return 'Transfer status not yet available';
     }
   };

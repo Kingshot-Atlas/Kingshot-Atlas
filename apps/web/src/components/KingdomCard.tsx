@@ -15,6 +15,9 @@ import {
   TransferStatus 
 } from './kingdom-card';
 import PostKvKSubmission from './PostKvKSubmission';
+import StatusSubmission from './StatusSubmission';
+import { statusService } from '../services/statusService';
+import { useToast } from './Toast';
 import { CURRENT_KVK } from '../constants';
 
 interface KingdomCardProps {
@@ -38,7 +41,7 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { trackFeature } = useAnalytics();
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
   const isMyKingdom = profile?.linked_kingdom === kingdom.kingdom_number;
   // RIVAL badge: check if user's kingdom has faced this kingdom in KvK
   const rivalCount = (!isMyKingdom && profile?.linked_kingdom && kingdom.recent_kvks)
@@ -48,6 +51,8 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
   const [showAtlasTooltip, setShowAtlasTooltip] = useState(false);
   const [showMissingDataTooltip, setShowMissingDataTooltip] = useState(false);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const { showToast } = useToast();
   const [animatedScore, setAnimatedScore] = useState(0);
   const [hasAnimated, setHasAnimated] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -121,6 +126,7 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
         backgroundColor: colors.card,
         borderRadius: isMobile ? radius.lg : radius.xl,
         padding: isMobile ? '1rem' : '1.25rem',
+        paddingTop: (isMyKingdom || rivalCount > 0) ? (isMobile ? '1.75rem' : '2rem') : (isMobile ? '1rem' : '1.25rem'),
         cursor: 'default',
         transition: transition.slow,
         border: `1px solid ${isHovered ? `${colors.primary}40` : colors.border}`,
@@ -132,10 +138,64 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
         flexDirection: 'column',
         gap: '0',
         position: 'relative',
-        overflow: 'visible',
+        overflow: 'hidden',
         zIndex: hasActiveTooltip ? 100 : 1
       }}
     >
+      {/* ═══════════════════ TOP RIBBON: YOUR KINGDOM / RIVAL ═══════════════════ */}
+      {isMyKingdom && (
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '28px',
+          background: 'linear-gradient(135deg, #22d3ee18 0%, #22d3ee08 50%, #06b6d408 100%)',
+          borderBottom: '1px solid #22d3ee30',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '0.4rem',
+        }}>
+          <span style={{
+            fontSize: '0.6rem',
+            fontWeight: '700',
+            color: '#22d3ee',
+            letterSpacing: '0.12em',
+            textTransform: 'uppercase',
+            textShadow: '0 0 8px #22d3ee40',
+          }}>
+            ★ YOUR KINGDOM ★
+          </span>
+        </div>
+      )}
+      {!isMyKingdom && rivalCount > 0 && (
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '28px',
+          background: 'linear-gradient(135deg, #ef444418 0%, #ef444408 50%, #dc262608 100%)',
+          borderBottom: '1px solid #ef444430',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '0.4rem',
+        }}>
+          <span style={{
+            fontSize: '0.6rem',
+            fontWeight: '700',
+            color: '#ef4444',
+            letterSpacing: '0.12em',
+            textTransform: 'uppercase',
+            textShadow: '0 0 8px #ef444440',
+          }}>
+            ⚔ RIVAL{rivalCount > 1 ? ` × ${rivalCount}` : ''} ⚔
+          </span>
+        </div>
+      )}
+
       {/* ═══════════════════ HEADER SECTION ═══════════════════ */}
       <div style={{ 
         display: 'flex', 
@@ -160,39 +220,6 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
           >
             Kingdom {kingdom.kingdom_number}
           </div>
-          
-          {isMyKingdom && (
-            <span style={{
-              fontSize: '0.6rem',
-              padding: '0.15rem 0.4rem',
-              backgroundColor: '#22d3ee15',
-              border: '1px solid #22d3ee30',
-              borderRadius: '4px',
-              color: '#22d3ee',
-              fontWeight: '600',
-              letterSpacing: '0.03em',
-            }}>
-              YOUR KINGDOM
-            </span>
-          )}
-          {rivalCount > 0 && (
-            <span
-              title={`Faced your kingdom ${rivalCount}x in KvK`}
-              style={{
-                fontSize: '0.6rem',
-                padding: '0.15rem 0.4rem',
-                backgroundColor: '#ef444412',
-                border: '1px solid #ef444425',
-                borderRadius: '4px',
-                color: '#ef4444',
-                fontWeight: '600',
-                letterSpacing: '0.03em',
-                cursor: 'default',
-              }}
-            >
-              RIVAL{rivalCount > 1 ? ` ×${rivalCount}` : ''}
-            </span>
-          )}
           <TierBadge tier={powerTier as 'S' | 'A' | 'B' | 'C' | 'D'} />
           <AchievementBadges kingdom={kingdom} />
         </div>
@@ -390,7 +417,14 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
         paddingTop: '0.75rem',
         borderTop: `1px solid ${colors.borderSubtle}`
       }}>
-        <TransferStatus status={status} lastUpdated={kingdom.last_updated} />
+        <TransferStatus status={status} lastUpdated={kingdom.last_updated} onSubmitStatus={() => {
+          if (!profile?.linked_username) {
+            showToast('Link your Kingshot account to submit status updates', 'error');
+            navigate('/profile');
+            return;
+          }
+          setShowStatusModal(true);
+        }} />
         <CardActions 
           kingdom={kingdom}
           onCopyLink={onCopyLink}
@@ -413,6 +447,20 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
         defaultKingdom={kingdom.kingdom_number}
         defaultKvkNumber={CURRENT_KVK}
       />
+
+      {/* Status Submission Modal */}
+      {showStatusModal && (
+        <StatusSubmission
+          kingdomNumber={kingdom.kingdom_number}
+          currentStatus={status}
+          onSubmit={async (newStatus, notes) => {
+            if (!user) return;
+            await statusService.submitStatusUpdate(kingdom.kingdom_number, status, newStatus, notes, user.id);
+            showToast('Status update submitted for review!', 'success');
+          }}
+          onClose={() => setShowStatusModal(false)}
+        />
+      )}
     </div>
   );
 };

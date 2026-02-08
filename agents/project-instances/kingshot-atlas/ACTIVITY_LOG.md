@@ -7,6 +7,18 @@
 
 ## Log Entries
 
+## 2026-02-08 03:28 | Product Engineer | COMPLETED
+Task: KingdomCard badge ribbon + Transfer Status UX improvements
+Files: `apps/web/src/components/KingdomCard.tsx`, `apps/web/src/components/kingdom-card/TransferStatus.tsx`, `apps/web/src/components/kingdom-profile/KingdomHeader.tsx`, `apps/web/src/components/StatusSubmission.tsx`
+Result:
+  - **Badge Ribbon:** Moved YOUR KINGDOM and RIVAL badges from inline header row to fancy top-edge ribbon. Gradient background, centered text with glow, `★`/`⚔` decorators. Card padding adjusts dynamically when ribbon is present. De-clutters the kingdom name row.
+  - **Unannounced Click-to-Submit:** Clicking "Unannounced" transfer status opens StatusSubmission modal directly from the card. Tooltip prompts "Click to submit a status update". Requires linked account (redirects to /profile if not linked).
+  - **Tooltip Copy Fix (Ordinary):** "Standard migration status" → "Standard transfer status — open to all incoming transfers"
+  - **Tooltip Copy Fix (Leading):** "Open for migration with favorable conditions" → "Transfers in are restricted — prevents top kingdoms from growing disproportionately stronger"
+  - **StatusSubmission Options Updated:** Leading description now explains restriction mechanism. Ordinary says "Open to all incoming transfers."
+  - Fixed in both KingdomCard TransferStatus component AND KingdomProfile KingdomHeader component.
+  - Build passes (exit code 0).
+
 ## 2026-02-08 03:15 | Product Engineer | COMPLETED
 Task: Nudge Refinement — Score Change Hook, RIVAL Badge, Match Score Teaser
 Files: `apps/web/src/components/kingdom-profile/KingdomHeader.tsx`, `apps/web/src/components/KingdomCard.tsx`, `apps/web/src/pages/TransferBoard.tsx`, `apps/web/src/pages/KingdomProfile.tsx`, `agents/project-instances/kingshot-atlas/FEATURES_IMPLEMENTED.md`
