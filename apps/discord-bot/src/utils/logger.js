@@ -252,17 +252,19 @@ function getFormattedStats() {
  * @param {string} guildId - Guild ID
  * @param {string} userId - User ID
  */
-async function syncToApi(command, guildId, userId) {
+async function syncToApi(command, guildId, userId, latencyMs = null) {
   if (!API_SYNC_ENABLED || !config.apiUrl) return;
   
   try {
+    const body = { command, guild_id: guildId, user_id: userId };
+    if (latencyMs !== null) body.latency_ms = latencyMs;
     await fetch(`${config.apiUrl}/api/v1/bot/log-command`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'X-API-Key': process.env.DISCORD_API_KEY || ''
       },
-      body: JSON.stringify({ command, guild_id: guildId, user_id: userId })
+      body: JSON.stringify(body)
     });
   } catch (error) {
     // Silent fail - don't disrupt bot operation for API sync issues

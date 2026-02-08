@@ -773,7 +773,7 @@ client.on('interactionCreate', async (interaction) => {
     
     try {
       logger.logCommand(interaction, responseTime, true);
-      logger.syncToApi(commandName, interaction.guildId || 'DM', interaction.user.id);
+      logger.syncToApi(commandName, interaction.guildId || 'DM', interaction.user.id, responseTime);
     } catch (logErr) {
       console.error(`   [${commandName}] Logger error (non-fatal): ${logErr.message}`);
     }

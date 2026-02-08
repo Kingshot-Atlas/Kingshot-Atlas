@@ -366,11 +366,135 @@ async def get_bot_stats(_: bool = Depends(verify_api_key)):
         }
 
 
+@router.get("/analytics")
+async def get_bot_analytics(_: bool = Depends(verify_api_key)):
+    """
+    Comprehensive bot analytics: command usage (24h/7d/30d), unique users,
+    server breakdown, latency stats, and daily time series.
+    """
+    sb = get_supabase_admin()
+    if not sb:
+        return {"error": "Supabase not configured"}
+    
+    now = datetime.now(timezone.utc)
+    day_ago = (now - timedelta(days=1)).isoformat()
+    week_ago = (now - timedelta(days=7)).isoformat()
+    month_ago = (now - timedelta(days=30)).isoformat()
+    
+    try:
+        # Fetch all rows from last 30 days (command_name, user_id_hash, guild_id, latency_ms, created_at)
+        rows_resp = sb.table("bot_command_usage").select(
+            "command_name,user_id_hash,guild_id,latency_ms,created_at"
+        ).gte("created_at", month_ago).order("created_at", desc=True).limit(50000).execute()
+        rows = rows_resp.data or []
+        
+        # Parse into buckets
+        r24, r7d, r30d = [], [], []
+        for r in rows:
+            r30d.append(r)
+            ts = r.get("created_at", "")
+            if ts >= week_ago:
+                r7d.append(r)
+            if ts >= day_ago:
+                r24.append(r)
+        
+        def compute_stats(data):
+            total = len(data)
+            unique_users = len(set(r.get("user_id_hash", "") for r in data))
+            # Command breakdown
+            cmd_counts: Dict[str, int] = {}
+            cmd_unique: Dict[str, set] = {}
+            for r in data:
+                cmd = r.get("command_name", "unknown")
+                cmd_counts[cmd] = cmd_counts.get(cmd, 0) + 1
+                if cmd not in cmd_unique:
+                    cmd_unique[cmd] = set()
+                cmd_unique[cmd].add(r.get("user_id_hash", ""))
+            commands = sorted(
+                [{"name": k, "count": v, "unique_users": len(cmd_unique.get(k, set()))} for k, v in cmd_counts.items()],
+                key=lambda x: x["count"],
+                reverse=True
+            )
+            # Latency stats
+            latencies = [r.get("latency_ms") for r in data if r.get("latency_ms") is not None]
+            latency = None
+            if latencies:
+                latencies_sorted = sorted(latencies)
+                latency = {
+                    "avg": round(sum(latencies) / len(latencies)),
+                    "p50": latencies_sorted[len(latencies_sorted) // 2],
+                    "p95": latencies_sorted[int(len(latencies_sorted) * 0.95)],
+                    "max": latencies_sorted[-1],
+                }
+            return {"total": total, "unique_users": unique_users, "commands": commands, "latency": latency}
+        
+        stats_24h = compute_stats(r24)
+        stats_7d = compute_stats(r7d)
+        stats_30d = compute_stats(r30d)
+        
+        # Server breakdown (30d)
+        server_counts: Dict[str, int] = {}
+        for r in r30d:
+            gid = r.get("guild_id", "DM")
+            server_counts[gid] = server_counts.get(gid, 0) + 1
+        servers = sorted(
+            [{"guild_id": k, "commands": v} for k, v in server_counts.items()],
+            key=lambda x: x["commands"],
+            reverse=True
+        )
+        
+        # Per-command latency breakdown (30d)
+        cmd_latencies: Dict[str, list] = {}
+        for r in r30d:
+            cmd = r.get("command_name", "unknown")
+            lat = r.get("latency_ms")
+            if lat is not None:
+                if cmd not in cmd_latencies:
+                    cmd_latencies[cmd] = []
+                cmd_latencies[cmd].append(lat)
+        latency_by_command = []
+        for cmd, lats in cmd_latencies.items():
+            lats_sorted = sorted(lats)
+            latency_by_command.append({
+                "command": cmd,
+                "avg": round(sum(lats) / len(lats)),
+                "p50": lats_sorted[len(lats_sorted) // 2],
+                "p95": lats_sorted[int(len(lats_sorted) * 0.95)],
+                "count": len(lats),
+            })
+        latency_by_command.sort(key=lambda x: x["avg"], reverse=True)
+        
+        # Daily time series (last 30 days)
+        daily: Dict[str, Dict] = {}
+        for r in r30d:
+            day = r.get("created_at", "")[:10]
+            if day not in daily:
+                daily[day] = {"date": day, "commands": 0, "unique_users": set()}
+            daily[day]["commands"] += 1
+            daily[day]["unique_users"].add(r.get("user_id_hash", ""))
+        time_series = sorted(
+            [{"date": d["date"], "commands": d["commands"], "unique_users": len(d["unique_users"])} for d in daily.values()],
+            key=lambda x: x["date"]
+        )
+        
+        return {
+            "period_24h": stats_24h,
+            "period_7d": stats_7d,
+            "period_30d": stats_30d,
+            "servers": servers,
+            "latency_by_command": latency_by_command,
+            "time_series": time_series,
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+
 class LogCommandRequest(BaseModel):
     """Request model for logging a command usage event"""
     command: str = Field(..., description="Command name that was executed")
     guild_id: str = Field(..., description="Discord guild/server ID")
     user_id: str = Field(..., description="Discord user ID who executed the command")
+    latency_ms: Optional[int] = Field(None, description="Command response time in milliseconds")
 
 
 class SyncSettlerRoleRequest(BaseModel):
@@ -393,11 +517,14 @@ async def log_command(
     client = get_supabase_admin()
     if client:
         try:
-            client.table("bot_command_usage").insert({
+            row = {
                 "command_name": data.command,
                 "user_id_hash": user_hash,
                 "guild_id": data.guild_id,
-            }).execute()
+            }
+            if data.latency_ms is not None:
+                row["latency_ms"] = data.latency_ms
+            client.table("bot_command_usage").insert(row).execute()
         except Exception as e:
             print(f"WARNING: Failed to log command to Supabase: {e}")
     

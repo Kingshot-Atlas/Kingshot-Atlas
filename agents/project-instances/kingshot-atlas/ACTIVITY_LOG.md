@@ -7,6 +7,16 @@
 
 ## Log Entries
 
+## 2026-02-07 20:10 | Product + Design | COMPLETED
+Task: Bot Analytics Dashboard + AtlasBot page copy rewrite
+Files: `apps/web/src/components/BotDashboard.tsx`, `apps/web/src/pages/AtlasBot.tsx`, `apps/api/api/routers/bot.py`, `apps/discord-bot/src/bot.js`, `apps/discord-bot/src/utils/logger.js`
+Result:
+  - Added `latency_ms` column to `bot_command_usage` Supabase table
+  - Bot dispatch now tracks and sends response time to API via `syncToApi()`
+  - `bot.py` `/log-command` accepts and stores `latency_ms`; new `/analytics` endpoint returns 24h/7d/30d stats with unique users, command breakdown, server activity, latency percentiles, and daily time series
+  - BotDashboard: new "Analytics" tab with period selector (24h/7d/30d), summary cards (total commands, unique users, avg/p95 latency), command usage bar chart with unique user counts, server activity breakdown (30d), latency-by-command table (avg/p50/p95 with color coding), daily activity bar chart (30d)
+  - AtlasBot.tsx: rewrote all 8 command descriptions with Design Lead brand voice (competitive, analytical, direct, punchy). Updated feature cards and CTA copy. Removed /help from public commands list.
+
 ## 2026-02-07 19:44 | Product Engineer | COMPLETED
 Task: Command cleanup, leaderboard→rankings rename, /predict disclaimer, duplicate command fix, /history layout fix, Supabase usage tracking, BotDashboard proxy fix
 Files: `apps/discord-bot/src/commands/index.js`, `apps/discord-bot/src/commands/handlers.js`, `apps/discord-bot/src/bot.js`, `apps/discord-bot/src/utils/embeds.js`, `apps/discord-bot/src/config.js`, `apps/discord-bot/src/register-commands.js`, `apps/api/api/routers/bot.py`, `apps/api/api/discord_role_sync.py`, `apps/web/src/pages/AtlasBot.tsx`, `apps/web/src/components/KeyboardShortcutsModal.tsx`, `apps/web/src/pages/Leaderboards.tsx`

@@ -81,73 +81,73 @@ const AtlasBot: React.FC = () => {
   const commands: CommandCardProps[] = [
     {
       command: 'kingdom',
-      description: 'Full kingdom profile with Atlas Score, tier, KvK record, dominations, and invasions. Autocomplete suggests kingdoms as you type.',
+      description: 'Pull up any kingdom\'s full dossier — Atlas Score, tier, KvK record, dominations, and invasions. Know exactly what you\'re up against.',
       example: '/kingdom 172',
       icon: '🏰',
       accentColor: '#22d3ee'
     },
     {
       command: 'compare',
-      description: 'Side-by-side matchup with score, prep, battle, dominations, and invasions. Green check marks show who wins each stat.',
+      description: 'Head-to-head breakdown. Score, prep, battle, dominations — every stat side-by-side with clear winners marked. Stop guessing, start knowing.',
       example: '/compare 172 231',
       icon: '⚖️',
       accentColor: '#f97316'
     },
     {
       command: 'history',
-      description: 'Full KvK season history for any kingdom. See every matchup result, prep and battle outcomes, and overall record.',
+      description: 'Every KvK a kingdom has ever fought. Matchups, prep and battle outcomes, page by page. Study their patterns before they study yours.',
       example: '/history 172',
       icon: '\ud83d\udcdc',
       accentColor: '#8b5cf6'
     },
     {
       command: 'predict',
-      description: 'Matchup prediction powered by Atlas Score, win rates, and domination history. See who the data favors.',
+      description: 'Data-driven matchup prediction weighted by Atlas Score, win rates, and domination history. See who the numbers favor before the castle burns.',
       example: '/predict 172 231',
       icon: '\ud83d\udd2e',
       accentColor: '#ec4899'
     },
     {
       command: 'rankings',
-      description: 'Top 10 kingdoms by Atlas Score. See who\'s dominating right now.',
+      description: 'The top 10 kingdoms by Atlas Score, ranked and tiered. One glance tells you who\'s running the game right now.',
       icon: '\ud83c\udfc6',
       accentColor: '#eab308'
     },
     {
+      command: 'tier',
+      description: 'Filter kingdoms by tier — S through D. Instantly see where any kingdom lands in the pecking order.',
+      example: '/tier S',
+      icon: '\u2b50',
+      accentColor: '#fbbf24'
+    },
+    {
       command: 'countdownkvk',
-      description: 'Live countdown to the next KvK. Shows start date and time remaining at a glance.',
+      description: 'Live countdown to the next KvK. Days, hours, minutes — always know exactly when it\'s time to fight.',
       icon: '\u23f3',
       accentColor: '#22d3ee'
     },
     {
       command: 'countdowntransfer',
-      description: 'Countdown to the next Transfer Event. Never miss your transfer window again.',
+      description: 'Countdown to the next Transfer Event. Plan your move before the window opens — or miss it entirely.',
       icon: '\ud83d\udd04',
       accentColor: '#a855f7'
-    },
-    {
-      command: 'tier',
-      description: 'Browse kingdoms by tier (S through D). Quickly find where any kingdom ranks.',
-      example: '/tier S',
-      icon: '\u2b50',
-      accentColor: '#fbbf24'
     }
   ];
 
   const features = [
     {
       title: 'Zero Setup',
-      description: 'Invite the bot, and it works. No configuration, no API keys, no databases to manage.',
+      description: 'Invite it. Use it. That\'s the whole tutorial. No config files, no API keys, no databases.',
       icon: '⚡'
     },
     {
-      title: 'Real-Time Data',
-      description: 'Pulls directly from the Atlas database. Same data you see on ks-atlas.com, delivered to your server.',
+      title: 'Live Atlas Data',
+      description: 'Same database powering ks-atlas.com. Updated after every KvK. No stale spreadsheets.',
       icon: '📡'
     },
     {
-      title: 'Free Forever',
-      description: 'No premium tiers for the bot. Every command, every server, completely free.',
+      title: 'Free. Always.',
+      description: 'Every command, every server, no limits. Atlas Bot doesn\'t gate intel behind a paywall.',
       icon: '🎁'
     }
   ];
@@ -416,7 +416,7 @@ const AtlasBot: React.FC = () => {
             marginBottom: '0.5rem',
             fontFamily: FONT_DISPLAY
           }}>
-            Ready to level up your server?
+            Your server deserves better intel.
           </h3>
           <p style={{
             color: '#9ca3af',
@@ -426,7 +426,7 @@ const AtlasBot: React.FC = () => {
             margin: '0 auto 1.25rem',
             lineHeight: 1.6
           }}>
-            Join hundreds of Kingshot players who use Atlas Bot to scout, compare, and dominate — without ever leaving Discord.
+            Kingshot players across dozens of servers use Atlas Bot to scout opponents, compare kingdoms, and plan transfers — without leaving Discord.
           </p>
           <div style={{
             display: 'flex',

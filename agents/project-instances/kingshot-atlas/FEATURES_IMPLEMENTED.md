@@ -266,6 +266,9 @@
 | Gateway Rate-Limit Fix | ✅ Live | 2026-02-06 | Platform | Login-first architecture, health always 200, internal retry with backoff (2/4/8/16/32min) |
 | Health Diagnostics | ✅ Live | 2026-02-06 | Platform | /health exposes disconnect codes, token validation, gateway status, login attempts |
 | Token Pre-Validation | ✅ Live | 2026-02-06 | Platform | Raw fetch to /users/@me and /gateway/bot before discord.js login |
+| Bot Analytics Dashboard | ✅ Live | 2026-02-07 | Product + Platform | Analytics tab in BotDashboard: 24h/7d/30d period selector, summary cards (commands, unique users, avg/p95 latency), command usage bar chart with unique user counts, server activity breakdown, latency-by-command table (avg/p50/p95), daily activity bar chart. API: `/api/v1/bot/analytics` endpoint. DB: `latency_ms` column in `bot_command_usage` |
+| Per-Command Latency Tracking | ✅ Live | 2026-02-07 | Platform | Bot measures response time per command, sends `latency_ms` via `syncToApi()` to Supabase. Color-coded in dashboard (green <1s, yellow 1-2s, red >2s) |
+| AtlasBot Page Copy Rewrite | ✅ Live | 2026-02-07 | Design | All 8 command descriptions rewritten with brand voice (competitive, analytical, direct). Feature cards and CTA updated. /help excluded from public listing |
 
 ---
 
