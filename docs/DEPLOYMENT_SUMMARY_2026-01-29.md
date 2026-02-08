@@ -51,9 +51,9 @@ Successfully implemented Discord user feedback fixes and deployed to production.
 ## 🚀 **Deployment Details**
 
 ### **Production URLs**
-- **Primary:** https://ks-atlas.com ✅ LIVE
-- **Netlify:** https://ks-atlas.netlify.app ✅ LIVE
-- **Deploy ID:** 697b958dcf8eb51612ade5d3
+- **Primary:** https://ks-atlas.com ✅ LIVE (Cloudflare Pages — migrated from Netlify 2026-02-01)
+- **Legacy Netlify:** https://ks-atlas.netlify.app (DEPRECATED — do not use)
+- **Deploy ID (historical):** 697b958dcf8eb51612ade5d3
 
 ### **Build Performance**
 - **Build Time:** 6.3s (local) + 12.8s (Netlify)
