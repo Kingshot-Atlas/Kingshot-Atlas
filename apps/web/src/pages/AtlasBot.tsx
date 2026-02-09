@@ -110,6 +110,13 @@ const AtlasBot: React.FC = () => {
       accentColor: '#ec4899'
     },
     {
+      command: 'multirally',
+      description: 'Coordinate multiple rallies to hit the same building within seconds. Enter player names and march times — get exact timing for each rally call.',
+      example: '/multirally target:Turret 1 players:PlayerB:18,PlayerA:15',
+      icon: '\u2694\ufe0f',
+      accentColor: '#ef4444'
+    },
+    {
       command: 'rankings',
       description: 'The top 10 kingdoms by Atlas Score, ranked and tiered. One glance tells you who\'s running the game right now.',
       icon: '\ud83c\udfc6',

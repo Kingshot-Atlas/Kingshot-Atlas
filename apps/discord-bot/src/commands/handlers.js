@@ -285,6 +285,15 @@ async function handlePredict(interaction) {
  * Response is ephemeral to avoid channel spam.
  */
 async function handleMultirally(interaction) {
+  // 60-second cooldown per user
+  const remaining = checkCooldown('multirally', interaction.user.id, 60);
+  if (remaining > 0) {
+    return interaction.reply({
+      content: `\u23f3 Cooldown: try again in **${remaining}s**.`,
+      ephemeral: true,
+    });
+  }
+
   const target = interaction.options.getString('target');
   const playersRaw = interaction.options.getString('players');
   const gap = interaction.options.getInteger('gap') || 1;
