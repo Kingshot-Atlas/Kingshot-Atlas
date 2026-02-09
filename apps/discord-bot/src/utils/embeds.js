@@ -991,7 +991,7 @@ function createMultirallyHelpEmbed() {
           '**players** \u2014 Comma-separated `Name:MarchTimeInSeconds` pairs',
           'List players in desired **hit order** (first listed hits first)',
           '',
-          '**gap** \u2014 Seconds between each hit (default: 1, max: 10)',
+          '**gap** \u2014 Seconds between each hit (default: 0, max: 10)',
         ].join('\n'),
       },
       {

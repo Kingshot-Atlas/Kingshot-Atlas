@@ -364,7 +364,7 @@ const AtlasBot: React.FC = () => {
             textAlign: 'center'
           }}>
             <span style={{ color: '#fff' }}>PREMIUM</span>
-            <span style={{ ...neonGlow('#ef4444'), marginLeft: '0.4rem' }}>COMMANDS</span>
+            <span style={{ ...neonGlow('#FF6B8A'), marginLeft: '0.4rem' }}>COMMANDS</span>
           </h2>
           <p style={{
             color: '#6b7280',
@@ -379,9 +379,9 @@ const AtlasBot: React.FC = () => {
             style={{
               backgroundColor: '#111111',
               borderRadius: '16px',
-              border: '1px solid #ef444440',
+              border: '1px solid #FF6B8A40',
               padding: isMobile ? '1.25rem' : '1.75rem',
-              background: 'linear-gradient(135deg, #111111 0%, #ef444408 100%)'
+              background: 'linear-gradient(135deg, #111111 0%, #FF6B8A08 100%)'
             }}
           >
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '1rem' }}>
@@ -389,7 +389,7 @@ const AtlasBot: React.FC = () => {
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
                   <code style={{
-                    color: '#ef4444',
+                    color: '#FF6B8A',
                     fontSize: isMobile ? '1rem' : '1.1rem',
                     fontWeight: '700',
                     fontFamily: "'Orbitron', monospace"
@@ -399,9 +399,9 @@ const AtlasBot: React.FC = () => {
                   <span style={{
                     fontSize: '0.65rem',
                     fontWeight: '700',
-                    color: '#ef4444',
-                    backgroundColor: '#ef444418',
-                    border: '1px solid #ef444430',
+                    color: '#FF6B8A',
+                    backgroundColor: '#FF6B8A18',
+                    border: '1px solid #FF6B8A30',
                     padding: '0.15rem 0.5rem',
                     borderRadius: '4px',
                     letterSpacing: '0.05em',
@@ -476,9 +476,9 @@ const AtlasBot: React.FC = () => {
               justifyContent: 'space-between',
               gap: '0.75rem',
               padding: '0.85rem 1rem',
-              backgroundColor: '#ef444410',
+              backgroundColor: '#FF6B8A10',
               borderRadius: '10px',
-              border: '1px solid #ef444425'
+              border: '1px solid #FF6B8A25'
             }}>
               <div>
                 <p style={{ color: '#d1d5db', fontSize: isMobile ? '0.8rem' : '0.85rem', fontWeight: '600', marginBottom: '0.15rem' }}>
@@ -495,7 +495,7 @@ const AtlasBot: React.FC = () => {
                   alignItems: 'center',
                   gap: '0.4rem',
                   padding: '0.5rem 1rem',
-                  backgroundColor: '#ef4444',
+                  backgroundColor: '#FF6B8A',
                   border: 'none',
                   borderRadius: '8px',
                   color: '#fff',

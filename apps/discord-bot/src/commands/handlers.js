@@ -363,7 +363,7 @@ async function handleMultirally(interaction) {
 
   const target = interaction.options.getString('target');
   const playersRaw = interaction.options.getString('players');
-  const gap = interaction.options.getInteger('gap') || 1;
+  const gap = interaction.options.getInteger('gap') ?? 0;
 
   // Help shortcut: if players field is "help", show usage guide
   if (playersRaw.trim().toLowerCase() === 'help') {
@@ -433,7 +433,6 @@ async function handleMultirally(interaction) {
     name: p.name,
     marchTime: p.marchTime,
     startDelay: startDelays[i],
-    hitTime: startDelays[i] + totalTimes[i],
     hitOrder: i + 1,
   }));
   callOrder.sort((a, b) => a.startDelay - b.startDelay);
@@ -446,27 +445,21 @@ async function handleMultirally(interaction) {
     const timing = p.startDelay === 0
       ? 'Start rally **NOW** (T+0s)'
       : `Wait **${p.startDelay}s**, then start rally (T+${p.startDelay}s)`;
-    return `${emoji} **${p.name}** \u2014 ${timing}\n\u2003\u2003March: ${p.marchTime}s \u2192 Hits at T+${p.hitTime}s`;
+    return `${emoji} **${p.name}** \u2014 ${timing}\n\u2003\u2003March: ${p.marchTime}s`;
   });
-
-  const firstHit = Math.min(...callOrder.map(p => p.hitTime));
-  const lastHit = Math.max(...callOrder.map(p => p.hitTime));
-  const spread = lastHit - firstHit;
 
   // Build copy-friendly plain text for alliance chat
   const copyLines = callOrder.map((p, i) => {
     const timing = p.startDelay === 0
       ? 'START NOW (T+0s)'
       : `Wait ${p.startDelay}s (T+${p.startDelay}s)`;
-    return `${i + 1}. ${p.name} — ${timing} | March: ${p.marchTime}s → Hits T+${p.hitTime}s`;
+    return `${i + 1}. ${p.name} — ${timing} | March: ${p.marchTime}s`;
   });
   const copyText = [
     `=== RALLY ORDER: ${target} ===`,
     `Gap: ${gap}s | Fill: 5min`,
     '',
     ...copyLines,
-    '',
-    `All ${players.length} rallies hit within ${spread}s`,
   ].join('\n');
 
   // Credits remaining footer (subtract 1 since this use will be incremented after)
@@ -481,10 +474,6 @@ async function handleMultirally(interaction) {
     .addFields({
       name: '\ud83d\udce2 Rally Call Order',
       value: lines.join('\n\n'),
-    })
-    .addFields({
-      name: '\u200b',
-      value: `\u23f1\ufe0f All ${players.length} rallies hit within **${spread}s** of each other`,
     })
     .addFields({
       name: '\ud83d\udccb Copy for Alliance Chat',

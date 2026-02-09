@@ -135,9 +135,9 @@ const commands = [
     .addIntegerOption(option =>
       option
         .setName('gap')
-        .setDescription('Seconds between each hit (default: 1)')
+        .setDescription('Seconds between each hit (default: 0)')
         .setRequired(false)
-        .setMinValue(1)
+        .setMinValue(0)
         .setMaxValue(10)
     ),
 

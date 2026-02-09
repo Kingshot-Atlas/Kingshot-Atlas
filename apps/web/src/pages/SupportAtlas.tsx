@@ -16,7 +16,7 @@ const SupportAtlas: React.FC = () => {
   useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.support });
   const isMobile = useIsMobile();
   const { user } = useAuth();
-  const { tier, refreshSubscription } = usePremium();
+  const { tier, isAdmin, refreshSubscription } = usePremium();
   const [searchParams, setSearchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   
@@ -68,7 +68,7 @@ const SupportAtlas: React.FC = () => {
     { icon: '📅', text: 'Event Calendar', desc: 'KvK and Transfer Event schedules' },
   ];
 
-  const isSupporter = tier === 'supporter';
+  const isSupporter = tier === 'supporter' && !isAdmin;
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a' }}>
