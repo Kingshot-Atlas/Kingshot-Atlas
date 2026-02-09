@@ -619,6 +619,23 @@ async function testApiConnectivity() {
   }
 }
 
+// Session-based usage tracking for soft upsell prompt (non-supporters only)
+// Tracks per-user command count with 1-hour TTL
+const sessionUsage = new Map(); // userId -> { count, lastUsed }
+const SESSION_TTL_MS = 60 * 60 * 1000; // 1 hour
+const SUPPORTER_ROLE_ID_FOR_UPSELL = process.env.DISCORD_SUPPORTER_ROLE_ID || '';
+
+function getSessionCount(userId) {
+  const entry = sessionUsage.get(userId);
+  if (!entry || Date.now() - entry.lastUsed > SESSION_TTL_MS) {
+    sessionUsage.set(userId, { count: 1, lastUsed: Date.now() });
+    return 1;
+  }
+  entry.count++;
+  entry.lastUsed = Date.now();
+  return entry.count;
+}
+
 // Event: Interaction (slash commands)
 client.on('interactionCreate', async (interaction) => {
   interactionCount++;
@@ -787,6 +804,22 @@ client.on('interactionCreate', async (interaction) => {
     } catch (logErr) {
       console.error(`   [${commandName}] Logger error (non-fatal): ${logErr.message}`);
     }
+
+    // Soft "Support Atlas" prompt after 5th command use in a session (non-supporters only)
+    try {
+      const sessionCount = getSessionCount(interaction.user.id);
+      const isSupporterUser = SUPPORTER_ROLE_ID_FOR_UPSELL && interaction.member?.roles?.cache?.has(SUPPORTER_ROLE_ID_FOR_UPSELL);
+      if (sessionCount === 5 && !isSupporterUser && commandName !== 'help') {
+        await discordFetch(`/api/v10/webhooks/${appId}/${iToken}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            content: '💖 *Enjoying Atlas? You\'ve used 5 commands this session! Consider supporting at **ks-atlas.com/support** to unlock unlimited `/multirally` and help keep Atlas free for everyone.*',
+            flags: 64, // ephemeral
+          }),
+        });
+      }
+    } catch (_) { /* never block on upsell */ }
   } catch (error) {
     const errMsg = `${error.name}: ${error.message}`;
     console.error(`   [${commandName}] ❌ HANDLER ERROR: ${errMsg}`);

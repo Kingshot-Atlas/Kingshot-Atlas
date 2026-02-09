@@ -760,6 +760,16 @@ async def get_bot_analytics(_: bool = Depends(require_bot_admin)):
         return {"error": "Failed to compute analytics"}
 
 
+class LogMultirallyRequest(BaseModel):
+    """Request model for logging multirally analytics"""
+    target: str = Field(..., description="Target building name")
+    player_count: int = Field(..., description="Number of players in the rally")
+    gap: int = Field(0, description="Gap in seconds between hits")
+    guild_id: str = Field("DM", description="Discord guild/server ID")
+    user_id: str = Field(..., description="Discord user ID")
+    is_supporter: bool = Field(False, description="Whether the user is a supporter")
+
+
 class LogCommandRequest(BaseModel):
     """Request model for logging a command usage event"""
     command: str = Field(..., description="Command name that was executed")
@@ -772,6 +782,140 @@ class SyncSettlerRoleRequest(BaseModel):
     """Request model for syncing Settler role when Kingshot account is linked/unlinked"""
     user_id: str = Field(..., description="Supabase user ID")
     is_linking: bool = Field(True, description="True if linking, False if unlinking")
+
+
+@router.post("/log-multirally")
+async def log_multirally(
+    data: LogMultirallyRequest,
+    _: bool = Depends(require_bot_or_user)
+):
+    """
+    Log multirally analytics (target building, player count, gap) to Supabase.
+    User IDs are hashed for privacy.
+    """
+    user_hash = hashlib.sha256(data.user_id.encode()).hexdigest()[:16]
+
+    client = get_supabase_admin()
+    if client:
+        try:
+            client.table("multirally_analytics").insert({
+                "target": data.target[:100],
+                "player_count": data.player_count,
+                "gap": data.gap,
+                "guild_id": data.guild_id,
+                "user_id_hash": user_hash,
+                "is_supporter": data.is_supporter,
+            }).execute()
+        except Exception as e:
+            print(f"WARNING: Failed to log multirally analytics: {e}")
+
+    return {"success": True}
+
+
+@router.get("/multirally-analytics")
+async def get_multirally_analytics(_: bool = Depends(require_bot_admin)):
+    """
+    Get detailed multirally analytics: target building distribution, avg players per call.
+    Uses the multirally_analytics table (detailed per-call logs).
+    """
+    sb = get_supabase_admin()
+    if not sb:
+        return {"error": "Supabase not configured"}
+
+    try:
+        rows_resp = sb.table("multirally_analytics").select("*").order("created_at", desc=True).limit(1000).execute()
+        rows = rows_resp.data or []
+
+        if not rows:
+            return {"total_uses": 0, "avg_players": 0, "target_distribution": [], "supporter_ratio": 0}
+
+        total = len(rows)
+        avg_players = round(sum(r.get("player_count", 0) for r in rows) / total, 1) if total else 0
+        supporters = sum(1 for r in rows if r.get("is_supporter"))
+
+        target_counts: Dict[str, int] = {}
+        for r in rows:
+            t = r.get("target", "Unknown")
+            target_counts[t] = target_counts.get(t, 0) + 1
+        target_dist = sorted(
+            [{"target": k, "count": v, "pct": round(v / total * 100, 1)} for k, v in target_counts.items()],
+            key=lambda x: x["count"], reverse=True
+        )
+
+        return {
+            "total_uses": total,
+            "avg_players": avg_players,
+            "target_distribution": target_dist,
+            "supporter_ratio": round(supporters / total * 100, 1) if total else 0,
+        }
+    except Exception as e:
+        print(f"ERROR in /multirally-analytics: {e}")
+        return {"error": "Failed to compute multirally analytics"}
+
+
+@router.get("/check-permissions/{guild_id}")
+async def check_guild_permissions(
+    guild_id: str,
+    _: bool = Depends(require_bot_admin),
+):
+    """
+    Check the bot's permissions in a specific guild.
+    Returns permission flags and a health status.
+    """
+    if not DISCORD_BOT_TOKEN:
+        raise HTTPException(status_code=500, detail="Bot token not configured")
+
+    headers = {
+        "Authorization": f"Bot {DISCORD_BOT_TOKEN}",
+        "Content-Type": "application/json",
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            # Get bot's own member info in the guild
+            me_resp = await client.get(
+                f"{DISCORD_API_BASE}/api/v10/guilds/{guild_id}/members/@me",
+                headers=headers,
+            )
+            if me_resp.status_code != 200:
+                return {
+                    "healthy": False,
+                    "error": f"Cannot access guild (HTTP {me_resp.status_code})",
+                    "permissions": {},
+                }
+
+            # Get guild roles to compute effective permissions
+            roles_resp = await client.get(
+                f"{DISCORD_API_BASE}/api/v10/guilds/{guild_id}/roles",
+                headers=headers,
+            )
+            member = me_resp.json()
+            bot_role_ids = set(member.get("roles", []))
+            roles = roles_resp.json() if roles_resp.status_code == 200 else []
+
+            # Compute combined permission bits
+            perms = 0
+            for role in roles:
+                if role["id"] == guild_id or role["id"] in bot_role_ids:
+                    perms |= int(role.get("permissions", "0"))
+
+            # Check key permissions
+            checks = {
+                "VIEW_CHANNEL": bool(perms & (1 << 10)),
+                "SEND_MESSAGES": bool(perms & (1 << 11)),
+                "EMBED_LINKS": bool(perms & (1 << 14)),
+                "MANAGE_ROLES": bool(perms & (1 << 28)),
+                "USE_APPLICATION_COMMANDS": bool(perms & (1 << 31)),
+            }
+            healthy = all(checks.values())
+
+            return {
+                "healthy": healthy,
+                "permissions": checks,
+                "missing": [k for k, v in checks.items() if not v],
+            }
+    except Exception as e:
+        return {"healthy": False, "error": str(e), "permissions": {}}
 
 
 @router.post("/log-command")

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { KingdomProfile as KingdomProfileType, getPowerTier } from '../types';
 import { incrementStat } from '../components/UserAchievements';
+import { getAchievements } from '../components/kingdom-card/AchievementBadges';
 // Note: Atlas Score comes from Supabase (kingdom.overall_score) - DO NOT recalculate client-side
 import { apiService, dataLoadError } from '../services/api';
 import { DataLoadError } from '../components/DataLoadError';
@@ -361,18 +362,8 @@ const KingdomProfile: React.FC = () => {
     );
   }
   
-  // Calculate achievements
-  const isSupremeRuler = kingdom.prep_losses === 0 && kingdom.battle_losses === 0 && kingdom.total_kvks > 0;
-  const isPrepMaster = kingdom.prep_losses === 0 && kingdom.prep_wins > 0;
-  const isBattleLegend = kingdom.battle_losses === 0 && kingdom.battle_wins > 0;
-  
-  const achievements: { icon: string; title: string; desc: string; color: string }[] = [];
-  if (isSupremeRuler) {
-    achievements.push({ icon: '👑', title: 'Supreme Ruler', desc: 'Undefeated overall', color: '#fbbf24' });
-  } else {
-    if (isPrepMaster) achievements.push({ icon: '🛡️', title: 'Prep Master', desc: 'Undefeated in Prep', color: '#eab308' });
-    if (isBattleLegend) achievements.push({ icon: '⚔️', title: 'Battle Legend', desc: 'Undefeated in Battle', color: '#f97316' });
-  }
+  // Calculate achievements (uses shared getAchievements from kingdom-card/AchievementBadges)
+  const achievements = getAchievements(kingdom);
 
   // Use full history values from kingdom data
   const highKings = kingdom.dominations ?? 0;

@@ -6,6 +6,7 @@ import { logger } from '../utils/logger';
 import { CURRENT_KVK } from '../constants';
 import { getAuthHeaders } from '../services/authHeaders';
 import { isAdminUsername } from '../utils/constants';
+import { incrementStat } from './UserAchievements';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
@@ -226,6 +227,7 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
           : 'KvK #10 result submitted for admin review!', 
         'success'
       );
+      incrementStat('dataSubmissions');
       // Reset form
       setKingdomNumber('');
       setOpponentKingdom('');

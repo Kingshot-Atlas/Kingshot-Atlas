@@ -417,6 +417,12 @@ async function handleMultirally(interaction) {
     players.push({ name, marchTime });
   }
 
+  // Warn about unrealistic march times (>100s)
+  const slowPlayers = players.filter(p => p.marchTime > 100);
+  const marchWarning = slowPlayers.length > 0
+    ? `\n\u26a0\ufe0f **Heads up:** ${slowPlayers.map(p => `${p.name} (${p.marchTime}s)`).join(', ')} ${slowPlayers.length === 1 ? 'has' : 'have'} march time over 100s — double-check that's correct.`
+    : '';
+
   // Calculate rally start delays
   // Players are listed in desired HIT ORDER (first listed hits first)
   // desiredHitTime[i] = i * gap (seconds after first hit)
@@ -470,7 +476,7 @@ async function handleMultirally(interaction) {
 
   const embed = embeds.createBaseEmbed()
     .setTitle(`\ud83c\udff0 Multi-Rally Coordination \u2014 ${target}`)
-    .setDescription(`Target gap: **${gap}s** between hits\n\u200b`)
+    .setDescription(`Target gap: **${gap}s** between hits${marchWarning}\n\u200b`)
     .addFields({
       name: '\ud83d\udce2 Rally Call Order',
       value: lines.join('\n\n'),
@@ -483,6 +489,25 @@ async function handleMultirally(interaction) {
 
   // Increment usage AFTER successful execution
   await incrementMultirallyCredits(interaction.user.id, isSupporter);
+
+  // Track multirally analytics (target building, player count, gap)
+  logger.syncToApi('multirally', interaction.guildId || 'DM', interaction.user.id);
+  try {
+    const body = {
+      target,
+      player_count: players.length,
+      gap,
+      guild_id: interaction.guildId || 'DM',
+      user_id: interaction.user.id,
+      is_supporter: !!isSupporter,
+    };
+    const apiUrl = process.env.API_URL || 'https://kingshot-atlas.onrender.com';
+    fetch(`${apiUrl}/api/v1/bot/log-multirally`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-API-Key': process.env.DISCORD_API_KEY || '' },
+      body: JSON.stringify(body),
+    }).catch(() => {}); // fire-and-forget
+  } catch (_) { /* never block on analytics */ }
 
   return interaction.reply({ embeds: [embed], ephemeral: true });
 }

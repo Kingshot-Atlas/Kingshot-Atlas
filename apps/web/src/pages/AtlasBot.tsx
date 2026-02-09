@@ -6,7 +6,7 @@ import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 
-const BOT_INVITE_URL = 'https://discord.com/oauth2/authorize?client_id=1465531618965061672&permissions=2147485696&scope=bot%20applications.commands';
+const BOT_INVITE_URL = 'https://discord.com/oauth2/authorize?client_id=1465531618965061672&permissions=2415938560&scope=bot%20applications.commands';
 const DISCORD_INVITE = 'https://discord.gg/cajcacDzGd';
 
 interface CommandCardProps {

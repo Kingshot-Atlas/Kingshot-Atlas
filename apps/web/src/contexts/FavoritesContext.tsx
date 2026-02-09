@@ -3,6 +3,7 @@ import { useAuth } from './AuthContext';
 import { useToast } from '../components/Toast';
 import { userDataService } from '../services/userDataService';
 import { STORAGE_KEYS } from '../constants';
+import { incrementStat } from '../components/UserAchievements';
 
 interface FavoritesContextType {
   favorites: number[];
@@ -72,6 +73,9 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const toggleFavorite = useCallback((kingdomNumber: number) => {
     setFavorites(prev => {
       const isFav = prev.includes(kingdomNumber);
+      if (!isFav) {
+        incrementStat('favoritesSaved');
+      }
       return isFav
         ? prev.filter(k => k !== kingdomNumber)
         : [...prev, kingdomNumber];

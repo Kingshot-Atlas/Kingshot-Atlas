@@ -7,6 +7,7 @@ import { colors, neonGlow } from '../utils/styles';
 import { reviewService, ReviewWithVoteStatus, ReviewReply, Review, ReportReason } from '../services/reviewService';
 import { isSupabaseConfigured } from '../lib/supabase';
 import { useIsMobile } from '../hooks/useMediaQuery';
+import { incrementStat } from './UserAchievements';
 
 interface KingdomReviewsProps {
   kingdomNumber: number;
@@ -148,6 +149,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
       setNewReview({ rating: 5, comment: '' });
       setShowForm(false);
       setHasExistingReview(true);
+      incrementStat('reviewsWritten');
     } else {
       setError(result.error || 'Failed to submit review');
     }

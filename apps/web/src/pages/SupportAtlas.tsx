@@ -263,7 +263,52 @@ const SupportAtlas: React.FC = () => {
           <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.85rem' : '0.9rem', lineHeight: 1.6, marginBottom: '1.5rem', maxWidth: '500px', margin: '0 auto 1.5rem' }}>
             Get the Supporter Badge, Discord role, ad-free experience, and help fund Atlas development.
           </p>
-          
+
+          {/* Animated Supporter Badge Preview */}
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '0.5rem 1rem',
+            backgroundColor: '#FF6B8A18',
+            border: '1px solid #FF6B8A35',
+            borderRadius: '20px',
+            marginBottom: '1.5rem',
+            animation: 'supporterBadgePulse 2.5s ease-in-out infinite',
+          }}>
+            <span style={{
+              fontSize: '0.85rem',
+              animation: 'supporterBadgeSpin 3s ease-in-out infinite',
+              display: 'inline-block',
+            }}>💖</span>
+            <span style={{ color: '#FF6B8A', fontWeight: '700', fontSize: '0.8rem', letterSpacing: '0.04em' }}>
+              ATLAS SUPPORTER
+            </span>
+            <span style={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              backgroundColor: '#FF6B8A',
+              boxShadow: '0 0 8px #FF6B8A, 0 0 16px #FF6B8A60',
+              animation: 'supporterBadgeGlow 2s ease-in-out infinite',
+            }} />
+          </div>
+          <style>{`
+            @keyframes supporterBadgePulse {
+              0%, 100% { box-shadow: 0 0 0 0 rgba(255,107,138,0); }
+              50% { box-shadow: 0 0 20px 4px rgba(255,107,138,0.15); }
+            }
+            @keyframes supporterBadgeSpin {
+              0%, 100% { transform: scale(1); }
+              50% { transform: scale(1.2); }
+            }
+            @keyframes supporterBadgeGlow {
+              0%, 100% { opacity: 0.5; transform: scale(0.8); }
+              50% { opacity: 1; transform: scale(1.2); }
+            }
+          `}</style>
+          <br />
+
           {isSupporter ? (
             <button
               disabled

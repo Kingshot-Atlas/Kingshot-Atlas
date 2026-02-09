@@ -80,6 +80,14 @@ interface MultirallyStats {
   error?: string;
 }
 
+interface MultirallyAnalytics {
+  total_uses: number;
+  avg_players: number;
+  target_distribution: Array<{ target: string; count: number; pct: number }>;
+  supporter_ratio: number;
+  error?: string;
+}
+
 const COLORS = {
   primary: '#22d3ee',
   success: '#22c55e',
@@ -108,6 +116,18 @@ export const BotDashboard: React.FC = () => {
   const [analyticsPeriod, setAnalyticsPeriod] = useState<'24h' | '7d' | '30d'>('7d');
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [multirallyStats, setMultirallyStats] = useState<MultirallyStats | null>(null);
+  const [multirallyAnalytics, setMultirallyAnalytics] = useState<MultirallyAnalytics | null>(null);
+  const [messageHistory, setMessageHistory] = useState<Array<{ id: string; channel: string; server: string; content: string; timestamp: string; hasEmbed: boolean }>>([]);
+  const [messageTemplates] = useState([
+    { name: 'KvK Reminder', content: '', embedTitle: 'KvK Reminder', embedDescription: 'KvK starts soon! Make sure your rallies are coordinated.\n\nUse `/multirally` to plan your hits.', useEmbed: true },
+    { name: 'Patch Notes', content: '', embedTitle: 'Atlas Update', embedDescription: 'New features have been deployed!\n\nCheck out the changelog at ks-atlas.com/changelog', useEmbed: true },
+    { name: 'Welcome Message', content: 'Welcome to the Atlas Discord! Use `/help` to see all available commands.', embedTitle: '', embedDescription: '', useEmbed: false },
+    { name: 'Transfer Event', content: '', embedTitle: 'Transfer Event Notice', embedDescription: 'Transfer Event is approaching!\n\nVisit ks-atlas.com/transfer-hub to find your next kingdom.', useEmbed: true },
+  ]);
+  const [permCheck, setPermCheck] = useState<{ healthy: boolean; permissions: Record<string, boolean>; missing?: string[]; error?: string } | null>(null);
+  const [permChecking, setPermChecking] = useState(false);
+  const [scheduledMessages, setScheduledMessages] = useState<Array<{ id: string; channel: Channel; server: Server; content: string; embedTitle: string; embedDescription: string; useEmbed: boolean; scheduledFor: Date; timer: ReturnType<typeof setTimeout> }>>([]);
+  const [scheduleTime, setScheduleTime] = useState('');
   const [activeTab, setActiveTab] = useState<'status' | 'servers' | 'message' | 'analytics'>('status');
 
   useEffect(() => {
@@ -122,12 +142,14 @@ export const BotDashboard: React.FC = () => {
     setAnalyticsLoading(true);
     try {
       const headers = await botHeaders();
-      const [analyticsRes, mrStatsRes] = await Promise.all([
+      const [analyticsRes, mrStatsRes, mrAnalyticsRes] = await Promise.all([
         fetch(`${API_URL}/api/v1/bot/analytics`, { headers }),
         fetch(`${API_URL}/api/v1/bot/multirally-stats`, { headers }),
+        fetch(`${API_URL}/api/v1/bot/multirally-analytics`, { headers }),
       ]);
       if (analyticsRes.ok) setAnalytics(await analyticsRes.json());
       if (mrStatsRes.ok) setMultirallyStats(await mrStatsRes.json());
+      if (mrAnalyticsRes.ok) setMultirallyAnalytics(await mrAnalyticsRes.json());
     } catch (e) {
       console.error('Failed to load analytics:', e);
     } finally {
@@ -190,7 +212,24 @@ export const BotDashboard: React.FC = () => {
   const handleServerSelect = (server: Server) => {
     setSelectedServer(server);
     setSelectedChannel(null);
+    setPermCheck(null);
     loadChannels(server.id);
+    checkPermissions(server.id);
+  };
+
+  const checkPermissions = async (guildId: string) => {
+    setPermChecking(true);
+    setPermCheck(null);
+    try {
+      const res = await fetch(`${API_URL}/api/v1/bot/check-permissions/${guildId}`, { headers: await botHeaders() });
+      if (res.ok) {
+        setPermCheck(await res.json());
+      }
+    } catch {
+      setPermCheck({ healthy: false, error: 'Failed to check permissions', permissions: {} });
+    } finally {
+      setPermChecking(false);
+    }
   };
 
   const handleSendMessage = async () => {
@@ -224,13 +263,27 @@ export const BotDashboard: React.FC = () => {
       });
 
       if (res.ok) {
+        // Track in message history (local, last 20)
+        setMessageHistory(prev => [{
+          id: Date.now().toString(),
+          channel: `#${selectedChannel.name}`,
+          server: selectedServer?.name || 'Unknown',
+          content: messageContent || embedTitle || embedDescription || '(embed)',
+          timestamp: new Date().toISOString(),
+          hasEmbed: useEmbed && !!(embedTitle || embedDescription),
+        }, ...prev].slice(0, 20));
         setMessageContent('');
         setEmbedTitle('');
         setEmbedDescription('');
         alert('Message sent successfully!');
       } else {
         const error = await res.json();
-        alert(`Failed to send message: ${error.detail}`);
+        const detail = error.detail || 'Unknown error';
+        if (detail.includes('50001') || detail.includes('Missing Access')) {
+          alert('Bot lacks permission to send in this channel.\n\nFix: Re-authorize the bot with updated permissions using the link in the Status tab, or grant the bot View Channel + Send Messages in Discord server settings.');
+        } else {
+          alert(`Failed to send message: ${detail}`);
+        }
       }
     } catch (error) {
       console.error('Failed to send message:', error);
@@ -238,6 +291,85 @@ export const BotDashboard: React.FC = () => {
     } finally {
       setSending(false);
     }
+  };
+
+  const handleScheduleMessage = () => {
+    if (!selectedChannel || !selectedServer) return;
+    if (!messageContent && !embedTitle && !embedDescription) return;
+    if (!scheduleTime) { alert('Please select a schedule time'); return; }
+
+    const scheduledFor = new Date(scheduleTime);
+    const now = new Date();
+    const delay = scheduledFor.getTime() - now.getTime();
+    if (delay <= 0) { alert('Scheduled time must be in the future'); return; }
+
+    const id = Date.now().toString();
+    const capturedContent = messageContent;
+    const capturedEmbedTitle = embedTitle;
+    const capturedEmbedDescription = embedDescription;
+    const capturedUseEmbed = useEmbed;
+    const capturedChannel = selectedChannel;
+    const capturedServer = selectedServer;
+
+    const timer = setTimeout(async () => {
+      // Auto-send when the time arrives
+      try {
+        const payload: { channel_id: string; content?: string; embed?: { title?: string; description?: string } } = {
+          channel_id: capturedChannel.id,
+        };
+        if (capturedContent) payload.content = capturedContent;
+        if (capturedUseEmbed && (capturedEmbedTitle || capturedEmbedDescription)) {
+          payload.embed = {};
+          if (capturedEmbedTitle) payload.embed.title = capturedEmbedTitle;
+          if (capturedEmbedDescription) payload.embed.description = capturedEmbedDescription;
+        }
+        const res = await fetch(`${API_URL}/api/v1/bot/send-message`, {
+          method: 'POST',
+          headers: await botHeaders({ 'Content-Type': 'application/json' }),
+          body: JSON.stringify(payload),
+        });
+        if (res.ok) {
+          setMessageHistory(prev => [{
+            id,
+            channel: `#${capturedChannel.name}`,
+            server: capturedServer.name,
+            content: capturedContent || capturedEmbedTitle || capturedEmbedDescription || '(embed)',
+            timestamp: new Date().toISOString(),
+            hasEmbed: capturedUseEmbed && !!(capturedEmbedTitle || capturedEmbedDescription),
+          }, ...prev].slice(0, 20));
+        }
+      } catch (e) {
+        console.error('Scheduled message failed:', e);
+      }
+      // Remove from queue
+      setScheduledMessages(prev => prev.filter(m => m.id !== id));
+    }, delay);
+
+    setScheduledMessages(prev => [...prev, {
+      id,
+      channel: selectedChannel,
+      server: selectedServer,
+      content: messageContent,
+      embedTitle,
+      embedDescription,
+      useEmbed,
+      scheduledFor,
+      timer,
+    }]);
+
+    setMessageContent('');
+    setEmbedTitle('');
+    setEmbedDescription('');
+    setScheduleTime('');
+    alert(`Message scheduled for ${scheduledFor.toLocaleTimeString()}`);
+  };
+
+  const cancelScheduledMessage = (id: string) => {
+    setScheduledMessages(prev => {
+      const msg = prev.find(m => m.id === id);
+      if (msg) clearTimeout(msg.timer);
+      return prev.filter(m => m.id !== id);
+    });
   };
 
   const handleLeaveServer = async (serverId: string) => {
@@ -424,11 +556,11 @@ export const BotDashboard: React.FC = () => {
               wordBreak: 'break-all',
               marginBottom: '0.75rem'
             }}>
-              https://discord.com/api/oauth2/authorize?client_id=1465531618965061672&permissions=2147485696&scope=bot%20applications.commands
+              https://discord.com/api/oauth2/authorize?client_id=1465531618965061672&permissions=2415938560&scope=bot%20applications.commands
             </code>
             <button
               onClick={() => {
-                navigator.clipboard.writeText('https://discord.com/api/oauth2/authorize?client_id=1465531618965061672&permissions=2147485696&scope=bot%20applications.commands');
+                navigator.clipboard.writeText('https://discord.com/api/oauth2/authorize?client_id=1465531618965061672&permissions=2415938560&scope=bot%20applications.commands');
                 alert('Copied to clipboard!');
               }}
               style={{
@@ -581,6 +713,36 @@ export const BotDashboard: React.FC = () => {
       {activeTab === 'message' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <h3 style={{ color: '#fff', margin: 0, fontSize: '1rem' }}>Send Message</h3>
+
+          {/* Message Templates */}
+          <div>
+            <div style={{ fontSize: '0.8rem', color: COLORS.muted, marginBottom: '0.5rem' }}>Quick Templates</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+              {messageTemplates.map(t => (
+                <button
+                  key={t.name}
+                  onClick={() => {
+                    setMessageContent(t.content);
+                    setEmbedTitle(t.embedTitle);
+                    setEmbedDescription(t.embedDescription);
+                    setUseEmbed(t.useEmbed);
+                  }}
+                  style={{
+                    padding: '0.4rem 0.75rem',
+                    backgroundColor: COLORS.background,
+                    border: `1px solid ${COLORS.border}`,
+                    borderRadius: '6px',
+                    color: COLORS.primary,
+                    fontSize: '0.75rem',
+                    cursor: 'pointer',
+                    fontWeight: '500',
+                  }}
+                >
+                  {t.name}
+                </button>
+              ))}
+            </div>
+          </div>
           
           {/* Server Selection */}
           <div>
@@ -609,6 +771,43 @@ export const BotDashboard: React.FC = () => {
               ))}
             </select>
           </div>
+
+          {/* Permission Health Check */}
+          {selectedServer && (
+            <div style={{
+              padding: '0.6rem 0.75rem',
+              backgroundColor: permChecking ? '#111116' : permCheck?.healthy ? COLORS.success + '10' : permCheck ? COLORS.danger + '10' : '#111116',
+              border: `1px solid ${permChecking ? COLORS.border : permCheck?.healthy ? COLORS.success + '40' : permCheck ? COLORS.danger + '40' : COLORS.border}`,
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              fontSize: '0.8rem',
+            }}>
+              {permChecking ? (
+                <span style={{ color: COLORS.muted }}>Checking permissions...</span>
+              ) : permCheck?.healthy ? (
+                <span style={{ color: COLORS.success }}>✅ All permissions OK</span>
+              ) : permCheck?.error ? (
+                <span style={{ color: COLORS.danger }}>⚠️ {permCheck.error}</span>
+              ) : permCheck ? (
+                <div>
+                  <span style={{ color: COLORS.danger, fontWeight: '600' }}>⚠️ Missing permissions:</span>
+                  <span style={{ color: COLORS.muted, marginLeft: '0.5rem' }}>
+                    {permCheck.missing?.join(', ') || 'Unknown'}
+                  </span>
+                </div>
+              ) : null}
+              {permCheck && !permChecking && !permCheck.healthy && (
+                <button
+                  onClick={() => checkPermissions(selectedServer.id)}
+                  style={{ marginLeft: 'auto', padding: '0.25rem 0.5rem', backgroundColor: 'transparent', border: `1px solid ${COLORS.border}`, borderRadius: '4px', color: COLORS.muted, cursor: 'pointer', fontSize: '0.7rem' }}
+                >
+                  Re-check
+                </button>
+              )}
+            </div>
+          )}
 
           {/* Channel Selection */}
           {selectedServer && (
@@ -734,25 +933,132 @@ export const BotDashboard: React.FC = () => {
                 </div>
               )}
 
-              {/* Send Button */}
-              <button
-                onClick={handleSendMessage}
-                disabled={sending || (!messageContent && !embedTitle && !embedDescription)}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  backgroundColor: sending ? COLORS.muted : COLORS.primary,
-                  border: 'none',
-                  borderRadius: '8px',
-                  color: '#0a0a0a',
-                  fontWeight: '600',
-                  fontSize: '0.9rem',
-                  cursor: sending ? 'not-allowed' : 'pointer',
-                  opacity: (!messageContent && !embedTitle && !embedDescription) ? 0.5 : 1
-                }}
-              >
-                {sending ? 'Sending...' : 'Send Message'}
-              </button>
+              {/* Schedule Time */}
+              <div>
+                <label style={{ display: 'block', color: COLORS.muted, fontSize: '0.8rem', marginBottom: '0.35rem' }}>
+                  Schedule (optional)
+                </label>
+                <input
+                  type="datetime-local"
+                  value={scheduleTime}
+                  onChange={(e) => setScheduleTime(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '0.6rem',
+                    backgroundColor: COLORS.background,
+                    border: `1px solid ${COLORS.border}`,
+                    borderRadius: '6px',
+                    color: '#fff',
+                    fontSize: '0.85rem',
+                    colorScheme: 'dark',
+                  }}
+                />
+              </div>
+
+              {/* Send / Schedule Buttons */}
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button
+                  onClick={handleSendMessage}
+                  disabled={sending || (!messageContent && !embedTitle && !embedDescription)}
+                  style={{
+                    flex: 1,
+                    padding: '0.75rem 1.5rem',
+                    backgroundColor: sending ? COLORS.muted : COLORS.primary,
+                    border: 'none',
+                    borderRadius: '8px',
+                    color: '#0a0a0a',
+                    fontWeight: '600',
+                    fontSize: '0.9rem',
+                    cursor: sending ? 'not-allowed' : 'pointer',
+                    opacity: (!messageContent && !embedTitle && !embedDescription) ? 0.5 : 1
+                  }}
+                >
+                  {sending ? 'Sending...' : 'Send Now'}
+                </button>
+                {scheduleTime && (
+                  <button
+                    onClick={handleScheduleMessage}
+                    disabled={!messageContent && !embedTitle && !embedDescription}
+                    style={{
+                      padding: '0.75rem 1.5rem',
+                      backgroundColor: COLORS.warning,
+                      border: 'none',
+                      borderRadius: '8px',
+                      color: '#0a0a0a',
+                      fontWeight: '600',
+                      fontSize: '0.9rem',
+                      cursor: 'pointer',
+                      opacity: (!messageContent && !embedTitle && !embedDescription) ? 0.5 : 1
+                    }}
+                  >
+                    Schedule
+                  </button>
+                )}
+              </div>
             </>
+          )}
+
+          {/* Scheduled Messages Queue */}
+          {scheduledMessages.length > 0 && (
+            <div style={{ backgroundColor: COLORS.background, borderRadius: '12px', padding: '1rem', border: `1px solid ${COLORS.warning}30` }}>
+              <h4 style={{ color: COLORS.warning, margin: '0 0 0.75rem', fontSize: '0.9rem' }}>Scheduled ({scheduledMessages.length})</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                {scheduledMessages.map(msg => (
+                  <div key={msg.id} style={{
+                    display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem 0.75rem',
+                    backgroundColor: '#0a0a0f', borderRadius: '6px', border: `1px solid ${COLORS.border}`,
+                  }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.15rem' }}>
+                        <span style={{ color: COLORS.warning, fontSize: '0.75rem', fontWeight: '600' }}>{msg.server.name}</span>
+                        <span style={{ color: COLORS.muted, fontSize: '0.7rem' }}>#{msg.channel.name}</span>
+                      </div>
+                      <div style={{ color: '#ccc', fontSize: '0.75rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {msg.content || msg.embedTitle || msg.embedDescription || '(embed)'}
+                      </div>
+                    </div>
+                    <div style={{ color: COLORS.warning, fontSize: '0.65rem', flexShrink: 0, whiteSpace: 'nowrap' }}>
+                      {msg.scheduledFor.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                    <button
+                      onClick={() => cancelScheduledMessage(msg.id)}
+                      style={{ padding: '0.2rem 0.4rem', backgroundColor: COLORS.danger + '20', border: `1px solid ${COLORS.danger}40`, borderRadius: '4px', color: COLORS.danger, cursor: 'pointer', fontSize: '0.65rem', flexShrink: 0 }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Message History Log */}
+          {messageHistory.length > 0 && (
+            <div style={{ backgroundColor: COLORS.background, borderRadius: '12px', padding: '1rem', border: `1px solid ${COLORS.border}`, marginTop: '0.5rem' }}>
+              <h4 style={{ color: '#fff', margin: '0 0 0.75rem', fontSize: '0.9rem' }}>Recent Messages ({messageHistory.length})</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', maxHeight: '300px', overflowY: 'auto' }}>
+                {messageHistory.map(msg => (
+                  <div key={msg.id} style={{
+                    display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem 0.75rem',
+                    backgroundColor: '#0a0a0f', borderRadius: '6px', border: `1px solid ${COLORS.border}`,
+                  }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.15rem' }}>
+                        <span style={{ color: COLORS.primary, fontSize: '0.75rem', fontWeight: '600' }}>{msg.server}</span>
+                        <span style={{ color: COLORS.muted, fontSize: '0.7rem' }}>{msg.channel}</span>
+                        {msg.hasEmbed && <span style={{ fontSize: '0.6rem', padding: '0.1rem 0.3rem', backgroundColor: COLORS.warning + '20', color: COLORS.warning, borderRadius: '3px' }}>EMBED</span>}
+                      </div>
+                      <div style={{ color: '#ccc', fontSize: '0.75rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {msg.content}
+                      </div>
+                    </div>
+                    <div style={{ color: COLORS.muted, fontSize: '0.65rem', flexShrink: 0, whiteSpace: 'nowrap' }}>
+                      {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
         </div>
       )}
@@ -944,6 +1250,42 @@ export const BotDashboard: React.FC = () => {
                         {multirallyStats.upsell_impressions} user{multirallyStats.upsell_impressions !== 1 ? 's' : ''} hit the paywall
                         {multirallyStats.supporter_uses > 0 && ` · ${multirallyStats.supporter_uses} Supporter uses tracked`}
                       </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Multirally Detailed Analytics — Target Distribution & Avg Players */}
+                {multirallyAnalytics && !multirallyAnalytics.error && multirallyAnalytics.total_uses > 0 && (
+                  <div style={{ backgroundColor: COLORS.background, borderRadius: '12px', padding: '1.25rem', border: `1px solid ${COLORS.border}` }}>
+                    <h3 style={{ color: '#fff', margin: '0 0 1rem', fontSize: '1rem' }}>Rally Analytics</h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
+                      <div style={{ backgroundColor: '#0a0a0f', borderRadius: '8px', padding: '0.75rem', border: `1px solid ${COLORS.border}` }}>
+                        <div style={{ fontSize: '0.65rem', color: COLORS.muted, textTransform: 'uppercase', marginBottom: '0.2rem' }}>Avg Players/Call</div>
+                        <div style={{ fontSize: '1.5rem', fontWeight: '700', color: COLORS.primary }}>{multirallyAnalytics.avg_players}</div>
+                      </div>
+                      <div style={{ backgroundColor: '#0a0a0f', borderRadius: '8px', padding: '0.75rem', border: `1px solid ${COLORS.border}` }}>
+                        <div style={{ fontSize: '0.65rem', color: COLORS.muted, textTransform: 'uppercase', marginBottom: '0.2rem' }}>Supporter %</div>
+                        <div style={{ fontSize: '1.5rem', fontWeight: '700', color: COLORS.warning }}>{multirallyAnalytics.supporter_ratio}%</div>
+                      </div>
+                    </div>
+                    {multirallyAnalytics.target_distribution.length > 0 && (
+                      <>
+                        <div style={{ fontSize: '0.8rem', color: COLORS.muted, marginBottom: '0.5rem' }}>Target Building Distribution</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                          {multirallyAnalytics.target_distribution.slice(0, 8).map(t => {
+                            const maxT = multirallyAnalytics.target_distribution[0]?.count || 1;
+                            return (
+                              <div key={t.target} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <div style={{ width: '100px', flexShrink: 0, color: '#fff', fontSize: '0.8rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.target}</div>
+                                <div style={{ flex: 1, position: 'relative', height: '20px', backgroundColor: '#0a0a0f', borderRadius: '4px', overflow: 'hidden' }}>
+                                  <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${(t.count / maxT) * 100}%`, backgroundColor: COLORS.danger + '50', borderRadius: '4px' }} />
+                                  <div style={{ position: 'relative', padding: '0 0.5rem', lineHeight: '20px', fontSize: '0.7rem', color: COLORS.muted }}>{t.count} ({t.pct}%)</div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </>
                     )}
                   </div>
                 )}
