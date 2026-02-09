@@ -812,49 +812,75 @@ function createHistoryEmbed(kingdom, page = 1) {
 }
 
 /**
+ * Predict outcome emoji
+ */
+function getOutcomeEmoji(outcome) {
+  const emojis = {
+    Domination: '\ud83d\udc51',
+    Comeback: '\ud83d\udcaa',
+    Reversal: '\ud83d\udd04',
+    Invasion: '\ud83d\udc80',
+  };
+  return emojis[outcome] || '';
+}
+
+/**
  * Create matchup prediction embed
  */
 function createPredictEmbed(k1, k2) {
   const tier1 = getTier(k1.overall_score);
   const tier2 = getTier(k2.overall_score);
 
-  // Calculate prediction based on weighted factors
-  const scoreWeight = 0.40;
-  const prepWeight = 0.25;
-  const battleWeight = 0.25;
-  const domWeight = 0.10;
+  // Use direct counts from kingdom data (source of truth)
+  const doms1 = k1.dominations || 0;
+  const doms2 = k2.dominations || 0;
+  const inv1 = k1.invasions || 0;
+  const inv2 = k2.invasions || 0;
 
-  // Normalize scores to 0-1 range (max score ~15)
-  const s1 = (k1.overall_score || 0) / 15;
-  const s2 = (k2.overall_score || 0) / 15;
-
-  // Win rates already 0-1
+  // Win rates (already 0-1)
   const p1 = k1.prep_win_rate || 0;
   const p2 = k2.prep_win_rate || 0;
   const b1 = k1.battle_win_rate || 0;
   const b2 = k2.battle_win_rate || 0;
 
-  // Domination rate (doms / total kvks)
-  const doms1 = calculateDominations(k1.recent_kvks);
-  const doms2 = calculateDominations(k2.recent_kvks);
+  // Head-to-head phase win chances
+  const prepTotal = p1 + p2 || 1;
+  const battleTotal = b1 + b2 || 1;
+  const prepChance1 = Math.round((p1 / prepTotal) * 100);
+  const prepChance2 = 100 - prepChance1;
+  const battleChance1 = Math.round((b1 / battleTotal) * 100);
+  const battleChance2 = 100 - battleChance1;
+
+  // Predict most likely outcome per kingdom
+  function predictOutcome(prepPct, battlePct) {
+    const pW = prepPct / 100;
+    const bW = battlePct / 100;
+    const outcomes = {
+      Domination: pW * bW,
+      Reversal: pW * (1 - bW),
+      Comeback: (1 - pW) * bW,
+      Invasion: (1 - pW) * (1 - bW),
+    };
+    return Object.entries(outcomes).reduce((a, b) => a[1] > b[1] ? a : b)[0];
+  }
+
+  const outcome1 = predictOutcome(prepChance1, battleChance1);
+  const outcome2 = predictOutcome(prepChance2, battleChance2);
+
+  // Determine favorite based on weighted composite (v3.1 scale: 0-100)
+  const scoreWeight = 0.40;
+  const prepWeight = 0.25;
+  const battleWeight = 0.25;
+  const domWeight = 0.10;
+  const s1 = (k1.overall_score || 0) / 100;
+  const s2 = (k2.overall_score || 0) / 100;
   const d1 = k1.total_kvks > 0 ? doms1 / k1.total_kvks : 0;
   const d2 = k2.total_kvks > 0 ? doms2 / k2.total_kvks : 0;
-
-  // Weighted composite
   const composite1 = (s1 * scoreWeight) + (p1 * prepWeight) + (b1 * battleWeight) + (d1 * domWeight);
   const composite2 = (s2 * scoreWeight) + (p2 * prepWeight) + (b2 * battleWeight) + (d2 * domWeight);
-
-  const total = composite1 + composite2 || 1; // avoid div by zero
-  const prob1 = Math.round((composite1 / total) * 100);
-  const prob2 = 100 - prob1;
-
-  const favoriteNum = prob1 >= prob2 ? k1.kingdom_number : k2.kingdom_number;
-  const favProb = Math.max(prob1, prob2);
-
-  // Visual probability bar (20 chars wide)
-  const barLen = 20;
-  const filled1 = Math.round((prob1 / 100) * barLen);
-  const bar = '\u2588'.repeat(filled1) + '\u2591'.repeat(barLen - filled1);
+  const compTotal = composite1 + composite2 || 1;
+  const favProb = Math.round((Math.max(composite1, composite2) / compTotal) * 100);
+  const favoriteNum = composite1 >= composite2 ? k1.kingdom_number : k2.kingdom_number;
 
   // Confidence label
   let confidence;
@@ -864,32 +890,39 @@ function createPredictEmbed(k1, k2) {
 
   const embed = new EmbedBuilder()
     .setColor(config.colors.primary)
-    .setTitle(`\ud83d\udd2e Prediction: K${k1.kingdom_number} vs K${k2.kingdom_number}`)
+    .setTitle(`\ud83d\udd2e Prediction: Kingdom ${k1.kingdom_number} vs Kingdom ${k2.kingdom_number}`)
     .setURL(config.urls.compare(k1.kingdom_number, k2.kingdom_number))
     .setDescription(`${confidence} \u2014 **Kingdom ${favoriteNum}** is favored`)
     .addFields(
       {
-        name: `\ud83c\udff0 K${k1.kingdom_number} (${tier1})`,
-        value: `**${prob1}%** win probability`,
-        inline: true,
-      },
-      {
-        name: `\ud83c\udff0 K${k2.kingdom_number} (${tier2})`,
-        value: `**${prob2}%** win probability`,
-        inline: true,
-      },
-      {
-        name: '\ud83d\udcca Probability',
-        value: `\`K${k1.kingdom_number}\` \`${bar}\` \`K${k2.kingdom_number}\`\n${''.padStart(0)}**${prob1}%** vs **${prob2}%**`,
-      },
-      {
-        name: '\ud83d\udee0\ufe0f Factors',
+        name: `\ud83c\udff0 Kingdom ${k1.kingdom_number} (${tier1})`,
         value: [
-          `\ud83d\udcce **Score:** ${k1.overall_score.toFixed(1)} vs ${k2.overall_score.toFixed(1)}`,
-          `\ud83d\udee1\ufe0f **Prep:** ${formatWinRate(k1.prep_win_rate)} vs ${formatWinRate(k2.prep_win_rate)}`,
-          `\u2694\ufe0f **Battle:** ${formatWinRate(k1.battle_win_rate)} vs ${formatWinRate(k2.battle_win_rate)}`,
-          `\ud83d\udc51 **Doms:** ${doms1} vs ${doms2}`,
+          `\ud83d\udc8e Atlas Score: ${k1.overall_score.toFixed(1)}`,
+          `\ud83d\udee1\ufe0f Prep WR: ${formatWinRate(k1.prep_win_rate)}`,
+          `\u2694\ufe0f Battle WR: ${formatWinRate(k1.battle_win_rate)}`,
+          `\ud83d\udc51 Dominations: ${doms1}`,
+          `\ud83d\udc80 Invasions: ${inv1}`,
+          '',
+          `Prep W chance: ${prepChance1}%`,
+          `Battle W chance: ${battleChance1}%`,
+          `Outcome: ${getOutcomeEmoji(outcome1)} ${outcome1}`,
         ].join('\n'),
+        inline: true,
+      },
+      {
+        name: `\ud83c\udff0 Kingdom ${k2.kingdom_number} (${tier2})`,
+        value: [
+          `\ud83d\udc8e Atlas Score: ${k2.overall_score.toFixed(1)}`,
+          `\ud83d\udee1\ufe0f Prep WR: ${formatWinRate(k2.prep_win_rate)}`,
+          `\u2694\ufe0f Battle WR: ${formatWinRate(k2.battle_win_rate)}`,
+          `\ud83d\udc51 Dominations: ${doms2}`,
+          `\ud83d\udc80 Invasions: ${inv2}`,
+          '',
+          `Prep W chance: ${prepChance2}%`,
+          `Battle W chance: ${battleChance2}%`,
+          `Outcome: ${getOutcomeEmoji(outcome2)} ${outcome2}`,
+        ].join('\n'),
+        inline: true,
       }
     )
     .addFields({
