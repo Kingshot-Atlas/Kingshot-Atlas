@@ -26,7 +26,7 @@ KvK #10 is in **Prep Phase** right now. Atlas Pro members are already analyzing 
 ---
 
 🔓 Atlas Pro members get the full picture.
-**Stop guessing. Start winning.** → https://ks-atlas.com/pro
+**Stop guessing. Start winning.** → https://ks-atlas.com/support
 ```
 
 ---
@@ -52,7 +52,7 @@ Our analysis revealed 3 kingdoms performing significantly above their tier ranki
 ---
 
 Atlas Pro members saw this first.
-Don't miss the next insight → https://ks-atlas.com/pro
+Don't miss the next insight → https://ks-atlas.com/support
 ```
 
 ### Version C (FOMO-driven)
@@ -73,7 +73,7 @@ While you were sleeping, Atlas Pro members were preparing.
 
 ---
 
-🔓 Get the edge → https://ks-atlas.com/pro
+🔓 Get the edge → https://ks-atlas.com/support
 ```
 
 ---

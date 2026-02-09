@@ -76,7 +76,7 @@ module.exports = {
     compare: (k1, k2) => `https://ks-atlas.com/compare?k1=${k1}&k2=${k2}`,
     rankings: 'https://ks-atlas.com/rankings',
     changelog: 'https://ks-atlas.com/changelog',
-    pro: 'https://ks-atlas.com/pro',
+    support: 'https://ks-atlas.com/support',
   },
 
   // Bot avatar (hosted on ks-atlas.com)
@@ -84,9 +84,9 @@ module.exports = {
 
   // Premium conversion messaging
   premium: {
-    cta: '🔓 Want historical trends & predictions? → Atlas Pro',
-    ctaShort: '🔓 Unlock more with Atlas Pro',
-    ctaUrl: 'https://ks-atlas.com/pro',
+    cta: '🔓 Want historical trends & predictions? → Atlas Supporter',
+    ctaShort: '🔓 Unlock more with Atlas Supporter',
+    ctaUrl: 'https://ks-atlas.com/support',
   },
 
   // Bot identity

@@ -11,11 +11,11 @@
 
 ### Premium CTAs Implemented
 Bot embeds now include premium conversion messages:
-- `/kingdom` → "🔓 Unlock more with Atlas Pro"
-- `/compare` → "🔓 Get matchup predictions with Atlas Pro"
-- `/leaderboard` → "🔓 Track historical rankings with Atlas Pro"
-- `/help` → Full "⭐ Atlas Pro" features section
-- Patch Notes → "Support development with Atlas Pro"
+- `/kingdom` → "🔓 Unlock more with Atlas Supporter"
+- `/compare` → "🔓 Get matchup predictions with Atlas Supporter"
+- `/leaderboard` → "🔓 Track historical rankings with Atlas Supporter"
+- `/help` → Full "⭐ Atlas Supporter" features section
+- Patch Notes → "Support development"
 
 ### Key Channels for Conversion
 - **#premium-showcase** — Weekly premium insights/teasers
@@ -24,10 +24,10 @@ Bot embeds now include premium conversion messages:
 
 ### Conversion Funnel
 ```
-Discord Member → Bot Usage → Premium CTA Click → ks-atlas.com/pro → Subscriber
+Discord Member → Bot Usage → Premium CTA Click → ks-atlas.com/support → Subscriber
 ```
 
-### @Pro Role
+### @Supporter Role
 Exists and ready. Assign to premium subscribers for:
 - Social proof (visible in member list)
 - Status recognition (competitive players value this)

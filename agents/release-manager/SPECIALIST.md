@@ -315,7 +315,7 @@ Quick summary of what's new in Kingshot Atlas.
 
 💬 **What feature do you want next?** Drop it in #suggestions!
 
-🚀 Love these updates? Support development → https://ks-atlas.com/pro
+🚀 Love these updates? Support development → https://ks-atlas.com/support
 ```
 
 ### KvK Reminder Template (24h Before)
@@ -329,19 +329,19 @@ Time to scout your opponents and plan your strategy.
 • Compare matchups with `/compare`
 • View the leaderboard
 
-🔓 **Atlas Pro:**
+🔓 **Atlas Supporter:**
 • Matchup win probabilities
 • Historical performance trends
 • Advanced predictions
 
-**Don't go in blind.** → https://ks-atlas.com/pro
+**Don't go in blind.** → https://ks-atlas.com/support
 ```
 
 ### Premium Showcase Template (Weekly)
 ```markdown
 🔮 **Premium Insight — Week of [DATE]**
 
-This week, Atlas Pro members got early access to:
+This week, Atlas Supporter members got early access to:
 
 📊 **[FEATURE/INSIGHT NAME]**
 [1-2 sentence teaser about what Pro members saw]
@@ -351,8 +351,8 @@ This week, Atlas Pro members got early access to:
 
 ---
 
-**Atlas Pro members saw this first.**
-Don't miss the next insight → https://ks-atlas.com/pro
+**Atlas Supporter members saw this first.**
+Don't miss the next insight → https://ks-atlas.com/support
 ```
 
 ---

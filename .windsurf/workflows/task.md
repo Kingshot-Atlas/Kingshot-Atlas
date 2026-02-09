@@ -112,12 +112,13 @@ Add row with: Feature | Status | Date | Agent | Notes
 - Files changed
 
 ## 8. Generate Dynamic Suggestions
-Based on the completed task, generate **1 suggested next step** with 5 sub-tasks.
+Based on the completed task, generate **2 suggested next steps** with 5 sub-tasks each.
 
 ### Rules for Suggestions
 - **Must be contextually related** to what was just completed
 - **Must include WHY** — business value, user impact, or tech debt reduction
 - **Prioritize by impact:** Revenue > User Experience > Technical Debt > Nice-to-Have
+- The two suggestions should cover **different categories** (e.g., one revenue-focused, one UX-focused)
 
 ### Suggestion Categories (pick the most relevant)
 | Just Completed | Suggest Next |
@@ -132,7 +133,15 @@ Based on the completed task, generate **1 suggested next step** with 5 sub-tasks
 
 ### Format
 ```
-**Suggested Next: [Title]**
+**Suggested Next 1: [Title]**
+WHY: [1-2 sentences on business/user impact]
+1. [Task 1]
+2. [Task 2]
+3. [Task 3]
+4. [Task 4]
+5. [Task 5]
+
+**Suggested Next 2: [Title]**
 WHY: [1-2 sentences on business/user impact]
 1. [Task 1]
 2. [Task 2]

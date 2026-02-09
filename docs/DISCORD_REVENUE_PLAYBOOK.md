@@ -8,7 +8,7 @@
 
 ## Overview
 
-This document contains all templates, strategies, and workflows for converting Discord community members into Atlas Pro subscribers.
+This document contains all templates, strategies, and workflows for converting Discord community members into Atlas Supporter subscribers.
 
 ---
 
@@ -64,11 +64,11 @@ The bot now includes premium CTAs in these responses:
 
 | Command | CTA Type | Message |
 |---------|----------|---------|
-| `/kingdom` | Soft | "🔓 Unlock more with Atlas Pro" |
-| `/compare` | Feature | "🔓 Get matchup predictions with Atlas Pro" |
-| `/leaderboard` | Feature | "🔓 Track historical rankings with Atlas Pro" |
-| `/help` | Section | Full "⭐ Atlas Pro" features list |
-| Patch Notes | Support | "💬 Love these updates? Support development with Atlas Pro" |
+| `/kingdom` | Soft | "🔓 Unlock more with Atlas Supporter" |
+| `/compare` | Feature | "🔓 Get matchup predictions with Atlas Supporter" |
+| `/leaderboard` | Feature | "🔓 Track historical rankings with Atlas Supporter" |
+| `/help` | Section | Full "⭐ Atlas Supporter" features list |
+| Patch Notes | Support | "💬 Love these updates? Support development" |
 
 ---
 
@@ -83,7 +83,7 @@ The bot now includes premium CTAs in these responses:
 ```markdown
 🔮 **Premium Insight — Week of [DATE]**
 
-This week, Atlas Pro members got early access to:
+This week, Atlas Supporter members got early access to:
 
 📊 **[FEATURE/INSIGHT NAME]**
 [1-2 sentence teaser about what Pro members saw]
@@ -93,15 +93,15 @@ This week, Atlas Pro members got early access to:
 
 ---
 
-**Atlas Pro members saw this first.**
-Don't miss the next insight → https://ks-atlas.com/pro
+**Atlas Supporter members saw this first.**
+Don't miss the next insight → https://ks-atlas.com/support
 ```
 
 **Example:**
 ```markdown
 🔮 **Premium Insight — Week of January 27**
 
-This week, Atlas Pro members got early access to:
+This week, Atlas Supporter members got early access to:
 
 📊 **KvK #10 Matchup Predictions**
 Our algorithm predicted 8 out of 10 prep phase outcomes correctly.
@@ -112,8 +112,8 @@ Our algorithm predicted 8 out of 10 prep phase outcomes correctly.
 
 ---
 
-**Atlas Pro members saw this first.**
-Don't miss the next insight → https://ks-atlas.com/pro
+**Atlas Supporter members saw this first.**
+Don't miss the next insight → https://ks-atlas.com/support
 ```
 
 ---
@@ -134,12 +134,12 @@ Time to scout your opponents and plan your strategy.
 • Compare matchups with `/compare`
 • View the leaderboard
 
-🔓 **Atlas Pro:**
+🔓 **Atlas Supporter:**
 • Matchup win probabilities
 • Historical performance trends
 • Advanced predictions
 
-**Don't go in blind.** → https://ks-atlas.com/pro
+**Don't go in blind.** → https://ks-atlas.com/support
 ```
 
 ---
@@ -169,7 +169,7 @@ Time to scout your opponents and plan your strategy.
 
 💬 **What feature do you want next?** Drop it in #suggestions!
 
-🚀 Love these updates? Support development → https://ks-atlas.com/pro
+🚀 Love these updates? Support development → https://ks-atlas.com/support
 ```
 
 ---
@@ -198,8 +198,8 @@ We're a community of competitive players who make decisions with data, not rumor
 • Report issues in #bugs
 
 **⭐ Want More?**
-Upgrade to Atlas Pro for historical trends, predictions, and advanced analytics.
-→ https://ks-atlas.com/pro
+Upgrade to Atlas Supporter for historical trends, predictions, and advanced analytics.
+→ https://ks-atlas.com/support
 
 *Built by Kingdom 172 — Data-driven dominance.*
 ```

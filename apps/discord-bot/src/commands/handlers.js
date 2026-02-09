@@ -32,6 +32,37 @@ function checkCooldown(commandName, userId, cooldownSeconds) {
 
 const RALLY_FILL_TIME = 300; // 5 minutes in seconds
 
+// Supporter role — users with this Discord role bypass /multirally credit limits
+const SUPPORTER_ROLE_ID = process.env.DISCORD_SUPPORTER_ROLE_ID || '';
+
+// Daily usage credits for /multirally (non-Supporters)
+const MULTIRALLY_DAILY_LIMIT = 3;
+const multirallyCredits = new Map(); // userId -> { uses: number, date: string }
+
+/**
+ * Check if a user has remaining /multirally credits.
+ * Supporters always return true. Free users get MULTIRALLY_DAILY_LIMIT per day.
+ * Returns { allowed: boolean, remaining: number } and increments if allowed.
+ */
+function checkMultirallyCredits(userId, isSupporter) {
+  if (isSupporter) return { allowed: true, remaining: Infinity };
+
+  const today = new Date().toISOString().split('T')[0];
+  const entry = multirallyCredits.get(userId);
+
+  if (!entry || entry.date !== today) {
+    multirallyCredits.set(userId, { uses: 1, date: today });
+    return { allowed: true, remaining: MULTIRALLY_DAILY_LIMIT - 1 };
+  }
+
+  if (entry.uses >= MULTIRALLY_DAILY_LIMIT) {
+    return { allowed: false, remaining: 0 };
+  }
+
+  entry.uses++;
+  return { allowed: true, remaining: MULTIRALLY_DAILY_LIMIT - entry.uses };
+}
+
 /**
  * /kingdom <number>
  */
@@ -292,6 +323,14 @@ async function handleMultirally(interaction) {
       content: `\u23f3 Cooldown: try again in **${remaining}s**.`,
       ephemeral: true,
     });
+  }
+
+  // Credits check: Supporters get unlimited, free users get 3/day
+  const isSupporter = SUPPORTER_ROLE_ID && interaction.member?.roles?.cache?.has(SUPPORTER_ROLE_ID);
+  const credits = checkMultirallyCredits(interaction.user.id, isSupporter);
+  if (!credits.allowed) {
+    const upsellEmbed = embeds.createMultirallyUpsellEmbed();
+    return interaction.reply({ embeds: [upsellEmbed], ephemeral: true });
   }
 
   const target = interaction.options.getString('target');

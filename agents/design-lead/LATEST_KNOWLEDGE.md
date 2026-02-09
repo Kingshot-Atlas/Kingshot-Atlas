@@ -327,7 +327,7 @@ All page taglines follow the brand voice: competitive, data-driven, direct, punc
 ### Tier Descriptions
 | Tier | Description |
 |------|-------------|
-| **Atlas Pro** | "For players who refuse to lose" |
+| **Atlas Supporter** | "For players who refuse to lose" |
 | **Atlas Recruiter** | "For leaders building winning kingdoms" |
 
 ### Neon Glow Effect

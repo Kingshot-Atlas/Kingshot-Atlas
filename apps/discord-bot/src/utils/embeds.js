@@ -415,7 +415,7 @@ function createPatchNotesEmbed(patchNotes) {
     },
     {
       name: '\u200b',
-      value: `💬 Love these updates? [Support development with Atlas Pro](${config.premium.ctaUrl})`,
+      value: `💬 Love these updates? [Support development](${config.premium.ctaUrl})`,
     }
   );
 
@@ -621,7 +621,7 @@ function createKvkReminderEmbed(kvkNumber, hoursUntil = 24) {
         inline: true,
       },
       {
-        name: '🔓 Atlas Pro',
+        name: '🔓 Atlas Supporter',
         value: [
           '• Matchup win probabilities',
           '• Historical performance trends',
@@ -631,7 +631,7 @@ function createKvkReminderEmbed(kvkNumber, hoursUntil = 24) {
       },
       {
         name: '\u200b',
-        value: `**Don't go in blind.** [Get Atlas Pro →](${config.premium.ctaUrl})`,
+        value: `**Don't go in blind.** [Become a Supporter →](${config.premium.ctaUrl})`,
       }
     )
     .setFooter({ text: config.bot.footerText })
@@ -660,7 +660,7 @@ function createPremiumShowcaseEmbed(showcaseData) {
   embed.addFields({
     name: '\u200b',
     value: [
-      '**Atlas Pro members saw this first.**',
+      '**Atlas Supporter members saw this first.**',
       '',
       `[Unlock Premium Features →](${config.premium.ctaUrl})`,
     ].join('\n'),
@@ -939,6 +939,29 @@ function createPredictEmbed(k1, k2) {
   return embed;
 }
 
+/**
+ * Create /multirally upsell embed
+ * Shown when free users exhaust their daily credits
+ */
+function createMultirallyUpsellEmbed() {
+  return new EmbedBuilder()
+    .setColor(config.colors.gold)
+    .setTitle('\u2694\ufe0f Daily Rally Credits Used')
+    .setDescription([
+      "You've used all **3 free** `/multirally` uses for today.",
+      '',
+      '**Atlas Supporters** get **unlimited** rally coordination \u2014 plus every other premium feature.',
+      '',
+      `[Become a Supporter \u2192](${config.premium.ctaUrl})`,
+    ].join('\n'))
+    .addFields({
+      name: '\u200b',
+      value: '\u23f0 Your free credits reset at midnight UTC.',
+    })
+    .setFooter({ text: config.bot.footerText })
+    .setTimestamp();
+}
+
 module.exports = {
   getTier,
   getTierColor,
@@ -964,4 +987,5 @@ module.exports = {
   createDailyUpdateEmbed,
   createHistoryEmbed,
   createPredictEmbed,
+  createMultirallyUpsellEmbed,
 };
