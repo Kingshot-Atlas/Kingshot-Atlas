@@ -42,16 +42,27 @@ const multirallyCredits = new Map(); // userId -> { uses: number, date: string }
 /**
  * Check if a user has remaining /multirally credits.
  * Supporters always return true. Free users get MULTIRALLY_DAILY_LIMIT per day.
- * Returns { allowed: boolean, remaining: number } and increments if allowed.
+ * Returns { allowed: boolean, remaining: number }.
+ * Uses API-backed persistent tracking; falls back to in-memory on API failure.
  */
-function checkMultirallyCredits(userId, isSupporter) {
+async function checkMultirallyCredits(userId, isSupporter) {
+  // Try API-backed check first (persistent across restarts)
+  const apiResult = await api.checkMultirallyCredits(userId, isSupporter);
+  if (apiResult) {
+    return {
+      allowed: apiResult.allowed,
+      remaining: apiResult.is_supporter ? Infinity : apiResult.remaining,
+    };
+  }
+
+  // Fallback to in-memory tracking if API is unavailable
+  console.warn('[multirally] API credit check failed, using in-memory fallback');
   if (isSupporter) return { allowed: true, remaining: Infinity };
 
   const today = new Date().toISOString().split('T')[0];
   const entry = multirallyCredits.get(userId);
 
   if (!entry || entry.date !== today) {
-    multirallyCredits.set(userId, { uses: 1, date: today });
     return { allowed: true, remaining: MULTIRALLY_DAILY_LIMIT - 1 };
   }
 
@@ -59,8 +70,29 @@ function checkMultirallyCredits(userId, isSupporter) {
     return { allowed: false, remaining: 0 };
   }
 
-  entry.uses++;
   return { allowed: true, remaining: MULTIRALLY_DAILY_LIMIT - entry.uses };
+}
+
+/**
+ * Increment /multirally usage after successful execution.
+ * Writes to API (persistent) and updates in-memory fallback.
+ */
+async function incrementMultirallyCredits(userId, isSupporter) {
+  // Always update in-memory fallback
+  const today = new Date().toISOString().split('T')[0];
+  const entry = multirallyCredits.get(userId);
+  if (!entry || entry.date !== today) {
+    multirallyCredits.set(userId, { uses: 1, date: today });
+  } else {
+    entry.uses++;
+  }
+
+  // Write to API for persistence
+  const apiResult = await api.incrementMultirallyCredits(userId, isSupporter);
+  if (!apiResult) {
+    console.warn('[multirally] API increment failed, in-memory fallback used');
+  }
+  return apiResult;
 }
 
 /**
@@ -340,7 +372,7 @@ async function handleMultirally(interaction) {
   }
 
   // Check credits AFTER help (help doesn't cost a credit)
-  const credits = checkMultirallyCredits(interaction.user.id, isSupporter);
+  const credits = await checkMultirallyCredits(interaction.user.id, isSupporter);
   if (!credits.allowed) {
     logger.logMultirallyUpsell(interaction.user.id, interaction.guildId || 'DM');
     logger.syncToApi('multirally_upsell', interaction.guildId || 'DM', interaction.user.id);
@@ -437,10 +469,11 @@ async function handleMultirally(interaction) {
     `All ${players.length} rallies hit within ${spread}s`,
   ].join('\n');
 
-  // Credits remaining footer
+  // Credits remaining footer (subtract 1 since this use will be incremented after)
+  const remainingAfter = isSupporter ? Infinity : Math.max(0, credits.remaining - 1);
   const creditsText = isSupporter
     ? 'Atlas Supporter \u2022 Unlimited'
-    : `${credits.remaining} use${credits.remaining !== 1 ? 's' : ''} remaining today`;
+    : `${remainingAfter} use${remainingAfter !== 1 ? 's' : ''} remaining today`;
 
   const embed = embeds.createBaseEmbed()
     .setTitle(`\ud83c\udff0 Multi-Rally Coordination \u2014 ${target}`)
@@ -458,6 +491,9 @@ async function handleMultirally(interaction) {
       value: `\`\`\`\n${copyText}\n\`\`\``,
     })
     .setFooter({ text: `Kingshot Atlas \u2022 ks-atlas.com \u2022 ${creditsText}` });
+
+  // Increment usage AFTER successful execution
+  await incrementMultirallyCredits(interaction.user.id, isSupporter);
 
   return interaction.reply({ embeds: [embed], ephemeral: true });
 }

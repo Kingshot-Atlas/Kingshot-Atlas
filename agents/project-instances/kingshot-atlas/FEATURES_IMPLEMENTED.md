@@ -174,7 +174,10 @@
 | Tier Refactor: Recruiter Removed | ✅ Live | Product | Removed recruiter tier entirely, renamed pro→supporter across all files. 3 tiers: anonymous, free, supporter (2026-02-08) |
 | Content Gating Overhaul | ✅ Live | Product | Reviews: linked+TC20+. KvK submissions: linked+TC20+. Status submissions: linked. Compare: 2 anon/3 free/5 linked (2026-02-08) |
 | Upgrade Page Simplification | ✅ Live | Product | Single Supporter tier card, removed recruiter pricing/features, simplified comparison table to Free vs Supporter (2026-02-08) |
-| Link Account Nudge | ✅ Live | Product | `LinkAccountNudge.tsx` — contextual nudge on Kingdom Profiles for non-linked users (2026-02-08) |
+| Link Account Nudge | ✅ Live | Product | `LinkAccountNudge.tsx` — contextual nudge for non-linked users. Removed from KingdomProfile (2026-02-08), still used on Transfer Hub |
+| Kingdom Profile Login Gating | ✅ Live | Product | 6 expandable sections + KingdomPlayers gated behind login for anonymous users. `LoginGatedSection` component with 🔒 sign-in prompt (2026-02-08) |
+| Conversion Funnel Analytics | ✅ Live | Product | Tracks `Gated Section Expanded` (with section name), `Gated CTA: {section}` clicks, `Gated CTA: Kingdom Players`, `Gated CTA: Compare Page`, `Gated CTA: Sticky Banner`. All flow to Admin Dashboard (2026-02-08) |
+| Anonymous Sticky Banner | ✅ Live | Product | Persistent fixed bottom banner on KingdomProfile for anonymous users: "Sign in free to unlock detailed analytics" with Sign In CTA. Safe-area-aware (2026-02-08) |
 | Your Kingdom Badge | ✅ Live | Product | "YOUR KINGDOM" badge on KingdomCard when viewing your linked kingdom (2026-02-08) |
 | Score Change Hook | ✅ Live | Product | Blurred score delta on KingdomProfile header for non-linked users; linked users see real ▲/▼ value. `KingdomHeader.tsx` (2026-02-08) |
 | RIVAL Badge | ✅ Live | Product | "RIVAL" badge on KingdomCard for kingdoms that faced user's linked kingdom in KvK. Shows count (×N). `KingdomCard.tsx` (2026-02-08) |
@@ -277,6 +280,8 @@
 | Bot Analytics Dashboard | ✅ Live | 2026-02-07 | Product + Platform | Analytics tab in BotDashboard: 24h/7d/30d period selector, summary cards (commands, unique users, avg/p95 latency), command usage bar chart with unique user counts, server activity breakdown, latency-by-command table (avg/p50/p95), daily activity bar chart. API: `/api/v1/bot/analytics` endpoint. DB: `latency_ms` column in `bot_command_usage` |
 | Per-Command Latency Tracking | ✅ Live | 2026-02-07 | Platform | Bot measures response time per command, sends `latency_ms` via `syncToApi()` to Supabase. Color-coded in dashboard (green <1s, yellow 1-2s, red >2s) |
 | AtlasBot Page Copy Rewrite | ✅ Live | 2026-02-07 | Design | All 8 command descriptions rewritten with brand voice (competitive, analytical, direct). Feature cards and CTA updated. /help excluded from public listing |
+| Premium Commands Section | ✅ Live | 2026-02-09 | Product | /multirally moved to dedicated "PREMIUM COMMANDS" section with full-width card, detailed how-it-works, 3-step flow, 3 free daily credits callout, Supporter CTA. "Free. Always." → "Free Core" |
+| Multirally Credit Enforcement | ✅ Live | 2026-02-09 | Platform + Product | Persistent credit tracking via `multirally_usage` Supabase table. API: `/bot/multirally-credits/check`, `/increment`, `/multirally-stats`. Bot uses API-backed credits with in-memory fallback. BotDashboard: premium stats section (total/supporter/free uses, upsell impressions, conversion signal). Support page: "Unlimited Premium Bot Commands" perk added |
 
 ---
 
@@ -401,7 +406,7 @@
 | ~~Match Score Teaser (Transfer Hub)~~ | **IMPLEMENTED** — see Match Score Teaser above | — | — | — |
 | ~~RIVAL Badge~~ | **IMPLEMENTED** — see RIVAL Badge above | — | — | — |
 | Personalized Insights Panel | "You vs K-XXX" mini comparison card on Kingdom Profile for linked users viewing a rival kingdom. Shows head-to-head prep/battle record at a glance. | KingdomProfile | Medium | High |
-| Return Visit Delta | Track kingdom scores in localStorage and show "Score changed +0.15 since your last visit" for ALL users (not just linked), encouraging repeat visits. Linked users get richer data. | KingdomProfile | Low | Medium |
+| ~~Return Visit Delta~~ | **IMPLEMENTED** — localStorage-based score tracking, dismissible banner on KingdomProfile showing score delta since last visit for ALL users (2026-02-08) | — | — | — |
 | Watchlist Score Alerts | Toast notification on login if any favorited kingdom's score changed since last session. "K-1234 moved up 3 ranks!" Encourages daily engagement. | Global (on auth) | Medium | High |
 | Transfer Readiness Score | On user's profile, show a "Transfer Readiness" percentage based on how complete their transfer profile is. Incomplete fields show blurred potential score. | Profile | Low | Medium |
 

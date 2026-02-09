@@ -44,6 +44,7 @@ const SupportAtlas: React.FC = () => {
   const supporterPerks = [
     { icon: '⭐', text: 'Supporter Badge', desc: 'Pink badge on your profile' },
     { icon: '💜', text: 'Discord Supporter Role', desc: 'Exclusive pink role in Discord' },
+    { icon: '⚔️', text: 'Unlimited Premium Bot Commands', desc: 'Unlimited /multirally and future premium commands (free users get 3/day)' },
     { icon: '🎙️', text: 'Exclusive Discord Channel', desc: 'Access to supporter-only discussions' },
     { icon: '🚀', text: 'Early Access to New Features', desc: 'Be the first to try upcoming tools' },
     { icon: '🚫', text: 'Ad-Free Experience', desc: 'Clean, distraction-free browsing' },

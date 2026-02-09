@@ -179,10 +179,56 @@ async function fetchTopByPhase(phase, limit = 10) {
   }
 }
 
+/**
+ * Check /multirally credits for a Discord user via backend API.
+ * Returns { allowed, remaining, is_supporter } or null on failure.
+ */
+async function checkMultirallyCredits(discordUserId, isSupporter) {
+  try {
+    const res = await fetchWithTimeout(`${config.apiUrl}/api/v1/bot/multirally-credits/check`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Key': process.env.DISCORD_API_KEY || '',
+      },
+      body: JSON.stringify({ discord_user_id: discordUserId, is_supporter: isSupporter }),
+    }, 5000); // 5s timeout — don't block command on slow API
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) {
+    console.error(`[API] checkMultirallyCredits error: ${e.message}`);
+    return null;
+  }
+}
+
+/**
+ * Increment /multirally usage for a Discord user via backend API.
+ * Returns { success, usage_count, remaining } or null on failure.
+ */
+async function incrementMultirallyCredits(discordUserId, isSupporter) {
+  try {
+    const res = await fetchWithTimeout(`${config.apiUrl}/api/v1/bot/multirally-credits/increment`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Key': process.env.DISCORD_API_KEY || '',
+      },
+      body: JSON.stringify({ discord_user_id: discordUserId, is_supporter: isSupporter }),
+    }, 5000);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) {
+    console.error(`[API] incrementMultirallyCredits error: ${e.message}`);
+    return null;
+  }
+}
+
 module.exports = {
   fetchKingdom,
   fetchLeaderboard,
   fetchKingdomsByTier,
   fetchRandomKingdom,
   fetchTopByPhase,
+  checkMultirallyCredits,
+  incrementMultirallyCredits,
 };

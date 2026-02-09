@@ -68,6 +68,18 @@ interface AnalyticsData {
   time_series: Array<{ date: string; commands: number; unique_users: number }>;
 }
 
+interface MultirallyStats {
+  total_uses: number;
+  unique_users: number;
+  supporter_uses: number;
+  free_uses: number;
+  upsell_impressions: number;
+  today: { uses: number; users: number };
+  week: { uses: number; users: number };
+  month: { uses: number; users: number };
+  error?: string;
+}
+
 const COLORS = {
   primary: '#22d3ee',
   success: '#22c55e',
@@ -95,6 +107,7 @@ export const BotDashboard: React.FC = () => {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [analyticsPeriod, setAnalyticsPeriod] = useState<'24h' | '7d' | '30d'>('7d');
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
+  const [multirallyStats, setMultirallyStats] = useState<MultirallyStats | null>(null);
   const [activeTab, setActiveTab] = useState<'status' | 'servers' | 'message' | 'analytics'>('status');
 
   useEffect(() => {
@@ -108,8 +121,13 @@ export const BotDashboard: React.FC = () => {
   const loadAnalytics = async () => {
     setAnalyticsLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/v1/bot/analytics`, { headers: await botHeaders() });
-      if (res.ok) setAnalytics(await res.json());
+      const headers = await botHeaders();
+      const [analyticsRes, mrStatsRes] = await Promise.all([
+        fetch(`${API_URL}/api/v1/bot/analytics`, { headers }),
+        fetch(`${API_URL}/api/v1/bot/multirally-stats`, { headers }),
+      ]);
+      if (analyticsRes.ok) setAnalytics(await analyticsRes.json());
+      if (mrStatsRes.ok) setMultirallyStats(await mrStatsRes.json());
     } catch (e) {
       console.error('Failed to load analytics:', e);
     } finally {
@@ -884,6 +902,49 @@ export const BotDashboard: React.FC = () => {
                       <span>{analytics.time_series[0]?.date.slice(5)}</span>
                       <span>{analytics.time_series[analytics.time_series.length - 1]?.date.slice(5)}</span>
                     </div>
+                  </div>
+                )}
+
+                {/* Premium Commands — /multirally Stats */}
+                {multirallyStats && !multirallyStats.error && (
+                  <div style={{ backgroundColor: COLORS.background, borderRadius: '12px', padding: '1.25rem', border: `1px solid ${COLORS.danger}40` }}>
+                    <h3 style={{ color: '#fff', margin: '0 0 1rem', fontSize: '1rem' }}>
+                      <span style={{ color: COLORS.danger }}>⚔️</span> Premium Commands — /multirally
+                    </h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
+                      {[
+                        { label: 'Total Uses', value: multirallyStats.total_uses.toLocaleString(), color: COLORS.primary },
+                        { label: 'Unique Users', value: multirallyStats.unique_users.toLocaleString(), color: COLORS.success },
+                        { label: 'Supporter Uses', value: multirallyStats.supporter_uses.toLocaleString(), color: COLORS.warning },
+                        { label: 'Free Uses', value: multirallyStats.free_uses.toLocaleString(), color: COLORS.muted },
+                        { label: 'Upsell Views', value: multirallyStats.upsell_impressions.toLocaleString(), color: COLORS.danger },
+                      ].map(card => (
+                        <div key={card.label} style={{ backgroundColor: '#0a0a0f', borderRadius: '8px', padding: '0.75rem', border: `1px solid ${COLORS.border}` }}>
+                          <div style={{ fontSize: '0.65rem', color: COLORS.muted, textTransform: 'uppercase', marginBottom: '0.2rem' }}>{card.label}</div>
+                          <div style={{ fontSize: '1.25rem', fontWeight: '700', color: card.color }}>{card.value}</div>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
+                      {[
+                        { label: 'Today', uses: multirallyStats.today.uses, users: multirallyStats.today.users },
+                        { label: '7 Days', uses: multirallyStats.week.uses, users: multirallyStats.week.users },
+                        { label: '30 Days', uses: multirallyStats.month.uses, users: multirallyStats.month.users },
+                      ].map(period => (
+                        <div key={period.label} style={{ backgroundColor: '#0a0a0f', borderRadius: '6px', padding: '0.6rem', textAlign: 'center', border: `1px solid ${COLORS.border}` }}>
+                          <div style={{ fontSize: '0.65rem', color: COLORS.muted, marginBottom: '0.2rem' }}>{period.label}</div>
+                          <div style={{ fontSize: '1rem', fontWeight: '600', color: '#fff' }}>{period.uses}</div>
+                          <div style={{ fontSize: '0.65rem', color: COLORS.muted }}>{period.users} user{period.users !== 1 ? 's' : ''}</div>
+                        </div>
+                      ))}
+                    </div>
+                    {multirallyStats.upsell_impressions > 0 && multirallyStats.total_uses > 0 && (
+                      <div style={{ marginTop: '0.75rem', padding: '0.5rem 0.75rem', backgroundColor: COLORS.danger + '10', borderRadius: '6px', fontSize: '0.75rem', color: COLORS.muted }}>
+                        <span style={{ color: COLORS.danger, fontWeight: '600' }}>Conversion signal:</span>{' '}
+                        {multirallyStats.upsell_impressions} user{multirallyStats.upsell_impressions !== 1 ? 's' : ''} hit the paywall
+                        {multirallyStats.supporter_uses > 0 && ` · ${multirallyStats.supporter_uses} Supporter uses tracked`}
+                      </div>
+                    )}
                   </div>
                 )}
               </>

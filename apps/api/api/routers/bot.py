@@ -1089,3 +1089,172 @@ async def discord_diagnostic(_: bool = Depends(require_bot_admin)):
     results["overall"] = "HEALTHY" if all_pass else "ISSUES_DETECTED"
     
     return results
+
+
+# ---------------------------------------------------------------------------
+# Multirally Premium Credit System
+# Free users: 3 uses/day. Supporters: unlimited.
+# ---------------------------------------------------------------------------
+
+MULTIRALLY_DAILY_LIMIT = 3
+
+
+class MultirallyCheckRequest(BaseModel):
+    """Request model for checking multirally credits"""
+    discord_user_id: str = Field(..., description="Discord user ID")
+    is_supporter: bool = Field(False, description="Whether the user has the Supporter role")
+
+
+class MultirallyIncrementRequest(BaseModel):
+    """Request model for incrementing multirally usage"""
+    discord_user_id: str = Field(..., description="Discord user ID")
+    is_supporter: bool = Field(False, description="Whether the user has the Supporter role")
+
+
+@router.post("/multirally-credits/check")
+async def check_multirally_credits(
+    data: MultirallyCheckRequest,
+    _: bool = Depends(require_bot_or_user)
+):
+    """
+    Check if a Discord user has remaining /multirally credits for today.
+    Supporters always have unlimited. Free users get 3/day.
+    """
+    if data.is_supporter:
+        return {"allowed": True, "remaining": -1, "is_supporter": True}
+
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    client = get_supabase_admin()
+    if not client:
+        # Fallback: allow if DB unavailable (don't block users)
+        return {"allowed": True, "remaining": MULTIRALLY_DAILY_LIMIT, "is_supporter": False}
+
+    try:
+        result = client.table("multirally_usage").select("usage_count").eq(
+            "discord_user_id", data.discord_user_id
+        ).eq("usage_date", today).execute()
+
+        current_count = 0
+        if result.data and len(result.data) > 0:
+            current_count = result.data[0].get("usage_count", 0)
+
+        remaining = max(0, MULTIRALLY_DAILY_LIMIT - current_count)
+        return {
+            "allowed": current_count < MULTIRALLY_DAILY_LIMIT,
+            "remaining": remaining,
+            "is_supporter": False,
+        }
+    except Exception as e:
+        print(f"WARNING: Failed to check multirally credits: {e}")
+        return {"allowed": True, "remaining": MULTIRALLY_DAILY_LIMIT, "is_supporter": False}
+
+
+@router.post("/multirally-credits/increment")
+async def increment_multirally_credits(
+    data: MultirallyIncrementRequest,
+    _: bool = Depends(require_bot_or_user)
+):
+    """
+    Increment /multirally usage for a Discord user today.
+    Upserts into multirally_usage table.
+    """
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    client = get_supabase_admin()
+    if not client:
+        return {"success": False, "error": "Database unavailable"}
+
+    try:
+        # Check if row exists for today
+        result = client.table("multirally_usage").select("id,usage_count").eq(
+            "discord_user_id", data.discord_user_id
+        ).eq("usage_date", today).execute()
+
+        if result.data and len(result.data) > 0:
+            # Update existing row
+            row = result.data[0]
+            new_count = row["usage_count"] + 1
+            client.table("multirally_usage").update({
+                "usage_count": new_count,
+                "is_supporter": data.is_supporter,
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+            }).eq("id", row["id"]).execute()
+        else:
+            # Insert new row
+            new_count = 1
+            client.table("multirally_usage").insert({
+                "discord_user_id": data.discord_user_id,
+                "usage_date": today,
+                "usage_count": 1,
+                "is_supporter": data.is_supporter,
+            }).execute()
+
+        remaining = max(0, MULTIRALLY_DAILY_LIMIT - new_count) if not data.is_supporter else -1
+        return {"success": True, "usage_count": new_count, "remaining": remaining}
+    except Exception as e:
+        print(f"WARNING: Failed to increment multirally credits: {e}")
+        return {"success": False, "error": str(e)}
+
+
+@router.get("/multirally-stats")
+async def get_multirally_stats(
+    _: bool = Depends(require_bot_or_user)
+):
+    """
+    Get /multirally premium usage stats for the analytics dashboard.
+    Returns total uses, unique users, supporter vs free breakdown, and upsell count.
+    """
+    client = get_supabase_admin()
+    if not client:
+        return {"error": "Database unavailable"}
+
+    try:
+        now = datetime.now(timezone.utc)
+        today = now.strftime("%Y-%m-%d")
+        week_ago = (now - timedelta(days=7)).strftime("%Y-%m-%d")
+        month_ago = (now - timedelta(days=30)).strftime("%Y-%m-%d")
+
+        # All-time stats
+        all_rows = client.table("multirally_usage").select(
+            "discord_user_id,usage_count,is_supporter,usage_date"
+        ).execute()
+        rows = all_rows.data or []
+
+        total_uses = sum(r.get("usage_count", 0) for r in rows)
+        unique_users = len(set(r.get("discord_user_id") for r in rows))
+        supporter_uses = sum(r.get("usage_count", 0) for r in rows if r.get("is_supporter"))
+        free_uses = total_uses - supporter_uses
+
+        # Today
+        today_rows = [r for r in rows if r.get("usage_date") == today]
+        today_uses = sum(r.get("usage_count", 0) for r in today_rows)
+        today_users = len(set(r.get("discord_user_id") for r in today_rows))
+
+        # Last 7 days
+        week_rows = [r for r in rows if r.get("usage_date", "") >= week_ago]
+        week_uses = sum(r.get("usage_count", 0) for r in week_rows)
+        week_users = len(set(r.get("discord_user_id") for r in week_rows))
+
+        # Last 30 days
+        month_rows = [r for r in rows if r.get("usage_date", "") >= month_ago]
+        month_uses = sum(r.get("usage_count", 0) for r in month_rows)
+        month_users = len(set(r.get("discord_user_id") for r in month_rows))
+
+        # Upsell impressions (from bot_command_usage where command_name = 'multirally_upsell')
+        upsell_resp = client.table("bot_command_usage").select("id", count="exact").eq(
+            "command_name", "multirally_upsell"
+        ).execute()
+        upsell_count = upsell_resp.count or 0
+
+        return {
+            "total_uses": total_uses,
+            "unique_users": unique_users,
+            "supporter_uses": supporter_uses,
+            "free_uses": free_uses,
+            "upsell_impressions": upsell_count,
+            "today": {"uses": today_uses, "users": today_users},
+            "week": {"uses": week_uses, "users": week_users},
+            "month": {"uses": month_uses, "users": month_users},
+        }
+    except Exception as e:
+        print(f"ERROR in /multirally-stats: {e}")
+        return {"error": str(e)}

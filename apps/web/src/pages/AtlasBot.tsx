@@ -110,13 +110,6 @@ const AtlasBot: React.FC = () => {
       accentColor: '#ec4899'
     },
     {
-      command: 'multirally',
-      description: 'Coordinate multiple rallies to hit the same building within seconds. Enter player names and march times — get exact timing for each rally call.',
-      example: '/multirally target:Turret 1 players:PlayerB:18,PlayerA:15',
-      icon: '\u2694\ufe0f',
-      accentColor: '#ef4444'
-    },
-    {
       command: 'rankings',
       description: 'The top 10 kingdoms by Atlas Score, ranked and tiered. One glance tells you who\'s running the game right now.',
       icon: '\ud83c\udfc6',
@@ -155,8 +148,8 @@ const AtlasBot: React.FC = () => {
       icon: '📡'
     },
     {
-      title: 'Free. Always.',
-      description: 'Every command, every server, no limits. Atlas Bot doesn\'t gate intel behind a paywall.',
+      title: 'Free Core',
+      description: 'Every intel command, every server, no restrictions. Kingdom data should never be locked away.',
       icon: '🎁'
     }
   ];
@@ -357,6 +350,166 @@ const AtlasBot: React.FC = () => {
             {commands.map((cmd) => (
               <CommandCard key={cmd.command} {...cmd} />
             ))}
+          </div>
+        </div>
+
+        {/* Premium Slash Commands */}
+        <div style={{ marginBottom: isMobile ? '2rem' : '3rem' }}>
+          <h2 style={{
+            fontSize: isMobile ? '1.1rem' : '1.35rem',
+            fontWeight: 'bold',
+            color: '#fff',
+            marginBottom: '0.4rem',
+            fontFamily: FONT_DISPLAY,
+            textAlign: 'center'
+          }}>
+            <span style={{ color: '#fff' }}>PREMIUM</span>
+            <span style={{ ...neonGlow('#ef4444'), marginLeft: '0.4rem' }}>COMMANDS</span>
+          </h2>
+          <p style={{
+            color: '#6b7280',
+            fontSize: isMobile ? '0.8rem' : '0.85rem',
+            textAlign: 'center',
+            marginBottom: '1.5rem'
+          }}>
+            Tactical tools built for players who coordinate to win.
+          </p>
+
+          <div
+            style={{
+              backgroundColor: '#111111',
+              borderRadius: '16px',
+              border: '1px solid #ef444440',
+              padding: isMobile ? '1.25rem' : '1.75rem',
+              background: 'linear-gradient(135deg, #111111 0%, #ef444408 100%)'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '1rem' }}>
+              <span style={{ fontSize: isMobile ? '1.5rem' : '1.75rem', lineHeight: 1 }}>⚔️</span>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
+                  <code style={{
+                    color: '#ef4444',
+                    fontSize: isMobile ? '1rem' : '1.1rem',
+                    fontWeight: '700',
+                    fontFamily: "'Orbitron', monospace"
+                  }}>
+                    /multirally
+                  </code>
+                  <span style={{
+                    fontSize: '0.65rem',
+                    fontWeight: '700',
+                    color: '#ef4444',
+                    backgroundColor: '#ef444418',
+                    border: '1px solid #ef444430',
+                    padding: '0.15rem 0.5rem',
+                    borderRadius: '4px',
+                    letterSpacing: '0.05em',
+                    textTransform: 'uppercase'
+                  }}>
+                    Supporter
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <p style={{
+              color: '#d1d5db',
+              fontSize: isMobile ? '0.85rem' : '0.9rem',
+              lineHeight: 1.7,
+              marginBottom: '1rem'
+            }}>
+              The difference between a coordinated castle hit and a wasted march is <strong style={{ color: '#fff' }}>timing</strong>. /multirally calculates the exact second each rally caller should start so that every rally lands on the same building within your desired gap — no spreadsheets, no guesswork.
+            </p>
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+              gap: '0.75rem',
+              marginBottom: '1.25rem'
+            }}>
+              {[
+                { title: 'Pick Your Target', desc: "King's Castle or any Turret.", icon: '🏰' },
+                { title: 'Enter March Times', desc: 'Each player\'s time to the target in minutes.', icon: '⏱️' },
+                { title: 'Get the Call Order', desc: 'Exact delays so all rallies hit within seconds.', icon: '📋' }
+              ].map((step) => (
+                <div key={step.title} style={{
+                  backgroundColor: '#0a0a0a',
+                  borderRadius: '8px',
+                  border: '1px solid #1f1f1f',
+                  padding: '0.75rem',
+                  textAlign: 'center'
+                }}>
+                  <span style={{ fontSize: '1.1rem', display: 'block', marginBottom: '0.35rem' }}>{step.icon}</span>
+                  <h4 style={{ color: '#fff', fontSize: '0.8rem', fontWeight: '600', marginBottom: '0.2rem' }}>{step.title}</h4>
+                  <p style={{ color: '#6b7280', fontSize: '0.72rem', lineHeight: 1.4 }}>{step.desc}</p>
+                </div>
+              ))}
+            </div>
+
+            <div style={{
+              padding: '0.6rem 0.8rem',
+              backgroundColor: '#0a0a0a',
+              borderRadius: '8px',
+              border: '1px solid #1f1f1f',
+              fontSize: isMobile ? '0.7rem' : '0.75rem',
+              color: '#6b7280',
+              fontFamily: "'JetBrains Mono', monospace",
+              marginBottom: '1.25rem'
+            }}>
+              /multirally target:Turret 1 players:PlayerB:18,PlayerA:15,PlayerC:22
+            </div>
+
+            <p style={{
+              color: '#9ca3af',
+              fontSize: isMobile ? '0.8rem' : '0.85rem',
+              lineHeight: 1.6,
+              marginBottom: '1rem'
+            }}>
+              The bot accounts for the 5-minute rally fill time plus each player's individual march time, then tells you <strong style={{ color: '#fff' }}>who calls first</strong> and the <strong style={{ color: '#fff' }}>exact delay</strong> between each subsequent call. Your rallies connect within a 1-second window. The enemy can't reinforce fast enough.
+            </p>
+
+            <div style={{
+              display: 'flex',
+              flexDirection: isMobile ? 'column' : 'row',
+              alignItems: isMobile ? 'flex-start' : 'center',
+              justifyContent: 'space-between',
+              gap: '0.75rem',
+              padding: '0.85rem 1rem',
+              backgroundColor: '#ef444410',
+              borderRadius: '10px',
+              border: '1px solid #ef444425'
+            }}>
+              <div>
+                <p style={{ color: '#d1d5db', fontSize: isMobile ? '0.8rem' : '0.85rem', fontWeight: '600', marginBottom: '0.15rem' }}>
+                  3 free uses per day
+                </p>
+                <p style={{ color: '#6b7280', fontSize: isMobile ? '0.7rem' : '0.75rem' }}>
+                  Atlas Supporters get unlimited access — every rally, every KvK.
+                </p>
+              </div>
+              <Link
+                to="/support"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  padding: '0.5rem 1rem',
+                  backgroundColor: '#ef4444',
+                  border: 'none',
+                  borderRadius: '8px',
+                  color: '#fff',
+                  fontWeight: '600',
+                  fontSize: isMobile ? '0.8rem' : '0.85rem',
+                  textDecoration: 'none',
+                  transition: 'all 0.2s ease',
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0
+                }}
+              >
+                Become a Supporter
+              </Link>
+            </div>
           </div>
         </div>
 

@@ -468,6 +468,7 @@ const CompareKingdoms: React.FC = () => {
             </p>
             <Link
               to="/profile"
+              onClick={() => trackFeature('Gated CTA: Compare Page')}
               style={{
                 display: 'inline-block',
                 padding: '0.6rem 1.5rem',
@@ -481,9 +482,6 @@ const CompareKingdoms: React.FC = () => {
             >
               Sign In / Register
             </Link>
-            <p style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '1rem' }}>
-              Pro & Recruiter can compare up to 5 kingdoms
-            </p>
           </div>
         )}
 

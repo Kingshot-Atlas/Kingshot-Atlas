@@ -189,6 +189,22 @@ const QuickFilterChips: React.FC<QuickFilterChipsProps> = ({ filters, setFilters
           >
             7-9 KvKs
           </button>
+          <button
+            onClick={() => setFilters(f => (f.minKvKs === 10 && f.maxKvKs === 99) ? { ...f, minKvKs: 0, maxKvKs: 99 } : { ...f, minKvKs: 10, maxKvKs: 99 })}
+            style={{
+              padding: '0.3rem 0.6rem',
+              backgroundColor: (filters.minKvKs === 10 && filters.maxKvKs === 99) ? '#fbbf2420' : 'transparent',
+              border: `1px solid ${(filters.minKvKs === 10 && filters.maxKvKs === 99) ? '#fbbf24' : '#3a3a3a'}`,
+              borderRadius: '16px',
+              color: (filters.minKvKs === 10 && filters.maxKvKs === 99) ? '#fbbf24' : '#6b7280',
+              cursor: 'pointer',
+              fontSize: '0.75rem',
+              fontWeight: '500',
+              transition: 'all 0.2s'
+            }}
+          >
+            10+ KvKs
+          </button>
         </>
       )}
     </div>

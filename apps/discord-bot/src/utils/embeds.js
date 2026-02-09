@@ -894,10 +894,9 @@ function createPredictEmbed(k1, k2) {
     .setColor(config.colors.primary)
     .setTitle(`\ud83d\udd2e Prediction: Kingdom ${k1.kingdom_number} vs Kingdom ${k2.kingdom_number}`)
     .setURL(config.urls.compare(k1.kingdom_number, k2.kingdom_number))
-    .setDescription(`${confidence} \u2014 **Kingdom ${favoriteNum}** is favored\n\u200b`)
     .addFields(
       {
-        name: `\ud83c\udff0 Kingdom ${k1.kingdom_number} (${tier1})`,
+        name: `\ud83c\udff0 Kingdom ${k1.kingdom_number} (${tier1}-Tier)`,
         value: [
           `\ud83d\udc8e Atlas Score: ${k1.overall_score.toFixed(1)}`,
           `\ud83d\udee1\ufe0f Prep WR: ${formatWinRate(k1.prep_win_rate)}`,
@@ -914,7 +913,7 @@ function createPredictEmbed(k1, k2) {
         inline: true,
       },
       {
-        name: `\ud83c\udff0 Kingdom ${k2.kingdom_number} (${tier2})`,
+        name: `\ud83c\udff0 Kingdom ${k2.kingdom_number} (${tier2}-Tier)`,
         value: [
           `\ud83d\udc8e Atlas Score: ${k2.overall_score.toFixed(1)}`,
           `\ud83d\udee1\ufe0f Prep WR: ${formatWinRate(k2.prep_win_rate)}`,
@@ -925,6 +924,8 @@ function createPredictEmbed(k1, k2) {
           `Prep W chance: ${prepChance2}%`,
           `Battle W chance: ${battleChance2}%`,
           `Outcome: ${getOutcomeEmoji(outcome2)} ${outcome2}`,
+          '',
+          '\u2500'.repeat(18),
         ].join('\n'),
         inline: true,
       }

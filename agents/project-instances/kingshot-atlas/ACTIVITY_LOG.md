@@ -7,6 +7,73 @@
 
 ## Log Entries
 
+## 2026-02-09 10:00 | Platform + Product Engineer | COMPLETED
+Task: Premium Command Backend Enforcement — persistent /multirally credit tracking, API endpoints, analytics dashboard, Support page update
+Files: `apps/api/api/routers/bot.py`, `apps/discord-bot/src/commands/handlers.js`, `apps/discord-bot/src/utils/api.js`, `apps/web/src/components/BotDashboard.tsx`, `apps/web/src/pages/SupportAtlas.tsx`
+Result:
+  - Created `multirally_usage` table in Supabase (discord_user_id, usage_date, usage_count, is_supporter) with RLS + indexes
+  - Added 3 backend API endpoints: `POST /bot/multirally-credits/check`, `POST /bot/multirally-credits/increment`, `GET /bot/multirally-stats`
+  - Updated bot handlers.js: replaced in-memory credit tracking with API-backed persistent system, in-memory as fallback
+  - Added `checkMultirallyCredits()` and `incrementMultirallyCredits()` to bot's api.js utility
+  - Added Premium Commands stats section to BotDashboard analytics tab: total/unique/supporter/free uses, upsell impressions, today/7d/30d breakdown, conversion signal
+  - Added "Unlimited Premium Bot Commands" to Support page's Supporter Perks list
+  - Build passes (exit code 0)
+
+## 2026-02-09 09:30 | Product Engineer | COMPLETED
+Task: Premium Slash Commands section on AtlasBot page — /multirally separated into dedicated full-width premium card
+Files: `apps/web/src/pages/AtlasBot.tsx`
+Result:
+  - Removed /multirally from regular Slash Commands grid
+  - Created new "PREMIUM COMMANDS" section with single-column layout
+  - Full-width /multirally card with: Supporter badge, detailed how-it-works copy, 3-step visual flow (Pick Target → Enter March Times → Get Call Order), example command, mechanics explanation (5-min fill + march time), "3 free uses per day" with Supporter CTA
+  - Updated "Free. Always." feature card → "Free Core" to reflect premium command reality
+  - Brand voice maintained: competitive, direct, data-driven, no pushy sales language
+  - Build passes (exit code 0)
+
+## 2026-02-08 21:25 | Product Engineer | COMPLETED
+Task: Return Visit Delta — score change since last visit for ALL users
+Files: `apps/web/src/pages/KingdomProfile.tsx`
+Result:
+  - **localStorage tracking:** Stores each kingdom's Atlas Score under `kingshot_visit_score_{id}` on every visit. On return, computes delta against stored value.
+  - **UI banner:** Dismissible banner between QuickStats and PhaseCards showing "📈 Score +X.XX since your last visit" (green) or "📉 Score -X.XX since your last visit" (red). Only appears when delta ≥ 0.01.
+  - **Works for ALL users** including anonymous — drives repeat visits and engagement.
+  - No API/DB changes. Pure localStorage. Safe and non-destructive.
+  - Build passes (exit code 0).
+
+## 2026-02-08 21:10 | Product Engineer | COMPLETED
+Task: Anonymous-to-Signup Conversion Funnel Analytics + Sticky Banner
+Files: `apps/web/src/pages/KingdomProfile.tsx`, `apps/web/src/pages/CompareKingdoms.tsx`
+Result:
+  - **LoginGatedSection analytics:** Tracks `Gated Section Expanded` (feature_use with section name) when anonymous users expand any gated section. Tracks `Gated CTA: {section}` (button_click) when they click Sign In/Register.
+  - **KingdomPlayers gate analytics:** Tracks `Gated CTA: Kingdom Players` on Sign In CTA click.
+  - **Compare page analytics:** Tracks `Gated CTA: Compare Page` on Sign In CTA click.
+  - **Sticky bottom banner:** Persistent fixed banner for anonymous users on kingdom profile: "Sign in free to unlock detailed analytics" with Sign In button. Safe-area-aware, gradient fade, tracks `Gated CTA: Sticky Banner`.
+  - All events flow into existing `analyticsService` → visible in Admin Dashboard's Feature Adoption & Button Clicks.
+  - Build passes (exit code 0).
+
+## 2026-02-08 20:41 | Product Engineer | COMPLETED
+Task: Anonymous user content gating on kingdom profile + compare page cleanup
+Files: `apps/web/src/pages/KingdomProfile.tsx`, `apps/web/src/pages/CompareKingdoms.tsx`
+Result:
+  - **Compare page:** Removed outdated "Pro & Recruiter can compare up to 5 kingdoms" text.
+  - **Kingdom profile:** Removed "Sign in & link your account" `LinkAccountNudge` component and its import.
+  - **6 expandable sections gated:** Atlas Score Breakdown, Atlas Score Simulator, Atlas Score History, Kingdom Ranking History, Path to Next Tier, Performance Trend — anonymous users see collapsed headers; expanding shows 🔒 "Sign in to view" with Sign In/Register CTA.
+  - **Atlas Users section gated:** Anonymous users see locked card with "Sign in to see Atlas users" prompt instead of player list.
+  - **New component:** `LoginGatedSection` — reusable login-gated expandable section defined in KingdomProfile.tsx.
+  - Logged-in users see all sections normally (no change).
+  - Build passes (exit code 0). Local preview deployed on port 5173.
+
+## 2026-02-08 20:26 | Product Engineer | COMPLETED
+Task: Locked states for 0-KvK kingdom profiles + commit & deploy
+Files: `apps/web/src/components/AtlasScoreBreakdown.tsx`, `apps/web/src/components/ScoreHistoryChart.tsx`, `apps/web/src/components/RankingHistoryChart.tsx`, `apps/web/src/components/TrendChart.tsx`, `apps/web/src/pages/KingdomProfile.tsx`
+Result:
+  - **Atlas Score Breakdown:** Early return for `kingdom.total_kvks === 0` showing compact locked card: "Play your first KvK to unlock score breakdown!"
+  - **Atlas Score History:** Replaced empty chart (`chartData.length === 0`) with compact locked card: "Play your first KvK to unlock score history!" Kept 1-point case with "Need at least 2 KvKs" in same compact style.
+  - **Kingdom Ranking History:** Same pattern as Score History with ranking-specific messages.
+  - **Performance Trend:** Added locked state for empty `kvkRecords`. Updated parent to always render TrendChart (removed `length >= 2` guard).
+  - **Deployed:** Committed and pushed to `main` (hash: 73cb2bb). CI/CD will deploy to production.
+  - Build passes (exit code 0).
+
 ## 2026-02-08 20:20 | Product Engineer | COMPLETED
 Task: Remove radar chart data point tooltips, enhance YOUR KINGDOM/RIVAL banners, fix mobile stat-card hover border
 Files: `apps/web/src/components/RadarChart.tsx`, `apps/web/src/components/KingdomCard.tsx`, `apps/web/src/App.css`
