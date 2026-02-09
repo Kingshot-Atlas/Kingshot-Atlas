@@ -952,12 +952,65 @@ function createMultirallyUpsellEmbed() {
       '',
       '**Atlas Supporters** get **unlimited** rally coordination \u2014 plus every other premium feature.',
       '',
-      `[Become a Supporter \u2192](${config.premium.ctaUrl})`,
+      `[Become a Supporter \u2192](${config.premium.ctaUrl}?utm_source=discord&utm_medium=bot&utm_campaign=multirally_upsell)`,
     ].join('\n'))
     .addFields({
       name: '\u200b',
       value: '\u23f0 Your free credits reset at midnight UTC.',
     })
+    .setFooter({ text: config.bot.footerText })
+    .setTimestamp();
+}
+
+/**
+ * Create /multirally help embed
+ * Shows format examples, building positions, and usage tips
+ */
+function createMultirallyHelpEmbed() {
+  return new EmbedBuilder()
+    .setColor(config.colors.primary)
+    .setTitle('\u2694\ufe0f /multirally — Usage Guide')
+    .setDescription('Coordinate multiple rallies to hit the same building within seconds of each other.')
+    .addFields(
+      {
+        name: '\ud83c\udff0 Target Buildings',
+        value: [
+          "**King's Castle** \u2014 Center of the map",
+          '**Turret 1** \u2014 South corner',
+          '**Turret 2** \u2014 West corner',
+          '**Turret 3** \u2014 East corner',
+          '**Turret 4** \u2014 North corner',
+        ].join('\n'),
+      },
+      {
+        name: '\ud83d\udcdd Format',
+        value: [
+          '`/multirally target:<building> players:<list> [gap:<seconds>]`',
+          '',
+          '**players** \u2014 Comma-separated `Name:MarchTimeInSeconds` pairs',
+          'List players in desired **hit order** (first listed hits first)',
+          '',
+          '**gap** \u2014 Seconds between each hit (default: 1, max: 10)',
+        ].join('\n'),
+      },
+      {
+        name: '\ud83d\udca1 Examples',
+        value: [
+          '`/multirally target:Turret 1 players:Alpha:18,Bravo:15`',
+          '`/multirally target:King\'s Castle players:R1Lead:22,R2Lead:15,R3Lead:30 gap:2`',
+        ].join('\n'),
+      },
+      {
+        name: '\u2139\ufe0f How It Works',
+        value: [
+          'Each rally takes **5 minutes to fill** + march time.',
+          'The bot calculates exact start delays so rallies',
+          'land within your target gap \u2014 even with different march times.',
+          '',
+          'March time = seconds from your position to the target building.',
+        ].join('\n'),
+      }
+    )
     .setFooter({ text: config.bot.footerText })
     .setTimestamp();
 }
@@ -988,4 +1041,5 @@ module.exports = {
   createHistoryEmbed,
   createPredictEmbed,
   createMultirallyUpsellEmbed,
+  createMultirallyHelpEmbed,
 };

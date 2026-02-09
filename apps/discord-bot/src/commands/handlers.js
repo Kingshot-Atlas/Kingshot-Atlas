@@ -226,6 +226,7 @@ async function handleStats(interaction) {
           `Commands: **${stats.totals.commands.toLocaleString()}**`,
           `Errors: **${stats.totals.errors}** (${stats.totals.errorRate})`,
           `Active Servers: **${stats.activeGuilds}**`,
+          `Rally Upsells: **${stats.totals.multirallyUpsells || 0}**`,
         ].join('\n'),
         inline: true,
       },
@@ -327,15 +328,25 @@ async function handleMultirally(interaction) {
 
   // Credits check: Supporters get unlimited, free users get 3/day
   const isSupporter = SUPPORTER_ROLE_ID && interaction.member?.roles?.cache?.has(SUPPORTER_ROLE_ID);
-  const credits = checkMultirallyCredits(interaction.user.id, isSupporter);
-  if (!credits.allowed) {
-    const upsellEmbed = embeds.createMultirallyUpsellEmbed();
-    return interaction.reply({ embeds: [upsellEmbed], ephemeral: true });
-  }
 
   const target = interaction.options.getString('target');
   const playersRaw = interaction.options.getString('players');
   const gap = interaction.options.getInteger('gap') || 1;
+
+  // Help shortcut: if players field is "help", show usage guide
+  if (playersRaw.trim().toLowerCase() === 'help') {
+    const helpEmbed = embeds.createMultirallyHelpEmbed();
+    return interaction.reply({ embeds: [helpEmbed], ephemeral: true });
+  }
+
+  // Check credits AFTER help (help doesn't cost a credit)
+  const credits = checkMultirallyCredits(interaction.user.id, isSupporter);
+  if (!credits.allowed) {
+    logger.logMultirallyUpsell(interaction.user.id, interaction.guildId || 'DM');
+    logger.syncToApi('multirally_upsell', interaction.guildId || 'DM', interaction.user.id);
+    const upsellEmbed = embeds.createMultirallyUpsellEmbed();
+    return interaction.reply({ embeds: [upsellEmbed], ephemeral: true });
+  }
 
   // Parse "PlayerName:MarchTimeInSeconds" pairs
   const entries = playersRaw.split(',').map(s => s.trim()).filter(Boolean);
@@ -353,6 +364,7 @@ async function handleMultirally(interaction) {
   }
 
   const players = [];
+  const seenNames = new Set();
   for (const entry of entries) {
     const [name, timeStr] = entry.split(':').map(s => s.trim());
     const marchTime = parseInt(timeStr, 10);
@@ -362,6 +374,14 @@ async function handleMultirally(interaction) {
         ephemeral: true,
       });
     }
+    const nameLower = name.toLowerCase();
+    if (seenNames.has(nameLower)) {
+      return interaction.reply({
+        content: `\u274c Duplicate player name: \`${name}\`. Each player should appear only once.`,
+        ephemeral: true,
+      });
+    }
+    seenNames.add(nameLower);
     players.push({ name, marchTime });
   }
 
@@ -401,6 +421,27 @@ async function handleMultirally(interaction) {
   const lastHit = Math.max(...callOrder.map(p => p.hitTime));
   const spread = lastHit - firstHit;
 
+  // Build copy-friendly plain text for alliance chat
+  const copyLines = callOrder.map((p, i) => {
+    const timing = p.startDelay === 0
+      ? 'START NOW (T+0s)'
+      : `Wait ${p.startDelay}s (T+${p.startDelay}s)`;
+    return `${i + 1}. ${p.name} — ${timing} | March: ${p.marchTime}s → Hits T+${p.hitTime}s`;
+  });
+  const copyText = [
+    `=== RALLY ORDER: ${target} ===`,
+    `Gap: ${gap}s | Fill: 5min`,
+    '',
+    ...copyLines,
+    '',
+    `All ${players.length} rallies hit within ${spread}s`,
+  ].join('\n');
+
+  // Credits remaining footer
+  const creditsText = isSupporter
+    ? 'Atlas Supporter \u2022 Unlimited'
+    : `${credits.remaining} use${credits.remaining !== 1 ? 's' : ''} remaining today`;
+
   const embed = embeds.createBaseEmbed()
     .setTitle(`\ud83c\udff0 Multi-Rally Coordination \u2014 ${target}`)
     .setDescription(`Target gap: **${gap}s** between hits\n\u200b`)
@@ -412,7 +453,11 @@ async function handleMultirally(interaction) {
       name: '\u200b',
       value: `\u23f1\ufe0f All ${players.length} rallies hit within **${spread}s** of each other`,
     })
-    .setFooter({ text: 'Kingshot Atlas \u2022 ks-atlas.com \u2022 Rally times assume 5-minute fill' });
+    .addFields({
+      name: '\ud83d\udccb Copy for Alliance Chat',
+      value: `\`\`\`\n${copyText}\n\`\`\``,
+    })
+    .setFooter({ text: `Kingshot Atlas \u2022 ks-atlas.com \u2022 ${creditsText}` });
 
   return interaction.reply({ embeds: [embed], ephemeral: true });
 }

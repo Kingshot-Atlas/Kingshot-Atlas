@@ -45,6 +45,7 @@ function initStats() {
       dailyActivity: {},
       errorTypes: {},
       guilds: {},
+      multirallyUpsells: 0,
     };
     fs.writeFileSync(statsPath, JSON.stringify(initialStats, null, 2));
     return initialStats;
@@ -199,6 +200,30 @@ function logGuildEvent(event, guild) {
  * Get current stats summary
  * @returns {Object} Stats summary
  */
+/**
+ * Log a /multirally upsell impression (credits exhausted)
+ */
+function logMultirallyUpsell(userId, guildId) {
+  stats.multirallyUpsells = (stats.multirallyUpsells || 0) + 1;
+
+  const today = todayKey();
+  if (!stats.dailyActivity[today]) {
+    stats.dailyActivity[today] = { commands: 0, errors: 0, uniqueUsers: [] };
+  }
+  stats.dailyActivity[today].multirallyUpsells = (stats.dailyActivity[today].multirallyUpsells || 0) + 1;
+
+  const logEntry = [
+    timestamp(),
+    'UPSELL',
+    'multirally',
+    `guild:${guildId}`,
+    `user:${userId}`,
+  ].join(' | ');
+  fs.appendFileSync(commandsLogPath, logEntry + '\n');
+
+  saveStats();
+}
+
 function getStats() {
   const today = todayKey();
   const todayStats = stats.dailyActivity[today] || { commands: 0, errors: 0, uniqueUsers: [] };
@@ -212,6 +237,7 @@ function getStats() {
       errorRate: stats.totalCommands > 0 
         ? ((stats.totalErrors / stats.totalCommands) * 100).toFixed(2) + '%' 
         : '0%',
+      multirallyUpsells: stats.multirallyUpsells || 0,
     },
     today: {
       commands: todayStats.commands,
@@ -281,6 +307,7 @@ module.exports = {
   logCommand,
   logError,
   logGuildEvent,
+  logMultirallyUpsell,
   getStats,
   getFormattedStats,
   syncToApi,
