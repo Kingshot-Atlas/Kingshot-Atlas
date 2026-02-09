@@ -896,7 +896,7 @@ const AdminDashboard: React.FC = () => {
     reversals: 0,
     comebacks: 0,
     invasions: 0,
-    atlas_score: 50.0,
+    atlas_score: 0,
     most_recent_status: 'Unannounced',
     last_updated: new Date().toISOString()
   });

@@ -37,21 +37,46 @@ const CardActions: React.FC<CardActionsProps> = ({
           logging: false,
           ignoreElements: (el) => el.classList.contains('share-popup')
         });
-        canvas.toBlob(async (blob) => {
-          if (blob) {
-            try {
-              await navigator.clipboard.write([
-                new ClipboardItem({ 'image/png': blob })
-              ]);
-              if (onCopyLink) onCopyLink();
-            } catch {
-              const link = document.createElement('a');
-              link.download = `Kingdom-${kingdom.kingdom_number}-stats.png`;
-              link.href = canvas.toDataURL('image/png');
-              link.click();
-            }
+        
+        // Convert canvas to blob
+        const blob = await new Promise<Blob | null>((resolve) => {
+          canvas.toBlob(resolve, 'image/png');
+        });
+        
+        if (!blob) return;
+
+        // Try clipboard first (works on desktop, some mobile browsers)
+        let copied = false;
+        if (navigator.clipboard?.write) {
+          try {
+            await navigator.clipboard.write([
+              new ClipboardItem({ 'image/png': blob })
+            ]);
+            copied = true;
+            if (onCopyLink) onCopyLink();
+          } catch {
+            // Clipboard failed — try alternatives below
           }
-        }, 'image/png');
+        }
+        
+        // Mobile fallback: try Web Share API (native share sheet)
+        if (!copied && isMobile && navigator.share) {
+          try {
+            const file = new File([blob], `Kingdom-${kingdom.kingdom_number}.png`, { type: 'image/png' });
+            await navigator.share({ files: [file] });
+            copied = true;
+          } catch {
+            // Share cancelled or unsupported — fall through to download
+          }
+        }
+        
+        // Last resort: download the file
+        if (!copied) {
+          const link = document.createElement('a');
+          link.download = `Kingdom-${kingdom.kingdom_number}-stats.png`;
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+        }
       } catch (err) {
         console.error('Failed to generate image:', err);
       }

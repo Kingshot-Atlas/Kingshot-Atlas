@@ -309,7 +309,7 @@ class KvK10SubmissionCreate(BaseModel):
     prep_result: Literal['W', 'L'] = Field(..., description="Prep phase result")
     battle_result: Literal['W', 'L'] = Field(..., description="Battle phase result")
     notes: Optional[str] = Field(None, max_length=500)
-    screenshot_base64: str = Field(..., description="Base64 encoded screenshot image")
+    screenshot_base64: Optional[str] = Field(None, description="Base64 encoded screenshot image (optional for admins)")
     screenshot2_base64: Optional[str] = Field(None, description="Optional second screenshot")
 
 
@@ -371,80 +371,91 @@ def create_kvk10_submission(
                 detail=f"You already have a pending submission for K{submission.kingdom_number} vs K{submission.opponent_kingdom}. Please wait for admin review."
             )
     
-    # Validate screenshot is provided and is valid base64
-    if not submission.screenshot_base64:
+    # Check if submitter is an admin (for auto-approval and skipping screenshot)
+    user_email = request.headers.get("X-User-Email")
+    is_admin = verify_moderator_role(verified_user_id, db, user_email)
+    
+    # Validate screenshot is provided for non-admin users
+    if not submission.screenshot_base64 and not is_admin:
         raise HTTPException(status_code=400, detail="Screenshot proof is required")
     
-    try:
-        # Parse base64 data URL
-        if ',' in submission.screenshot_base64:
-            header, base64_data = submission.screenshot_base64.split(',', 1)
-            # Extract mime type
-            if 'image/png' in header:
-                file_ext = 'png'
-            elif 'image/jpeg' in header or 'image/jpg' in header:
-                file_ext = 'jpg'
-            elif 'image/webp' in header:
-                file_ext = 'webp'
-            else:
-                file_ext = 'png'  # Default
-        else:
-            base64_data = submission.screenshot_base64
-            file_ext = 'png'
-        
-        # Decode and validate image
-        image_data = base64.b64decode(base64_data)
-        
-        # Check file size (max 5MB)
-        if len(image_data) > 5 * 1024 * 1024:
-            raise HTTPException(status_code=400, detail="Screenshot must be under 5MB")
-        
-        # SECURITY: Validate image magic bytes to prevent malicious uploads
-        PNG_MAGIC = b'\x89PNG\r\n\x1a\n'
-        JPEG_MAGIC = b'\xff\xd8\xff'
-        WEBP_MAGIC = b'RIFF'
-        
-        is_valid_image = (
-            image_data[:8] == PNG_MAGIC or
-            image_data[:3] == JPEG_MAGIC or
-            (image_data[:4] == WEBP_MAGIC and b'WEBP' in image_data[:12])
-        )
-        
-        if not is_valid_image:
-            logger.warning(f"Invalid image magic bytes from user {verified_user_id}")
-            raise HTTPException(status_code=400, detail="Invalid image format. Only PNG, JPEG, and WebP are allowed.")
-        
-        # Generate unique filename
-        filename = f"kvk10/{verified_user_id}_{submission.kingdom_number}_{uuid.uuid4().hex[:8]}.{file_ext}"
-        
-        # Try to upload to Supabase Storage
-        screenshot_url = None
+    # Process screenshot (skip if admin with no screenshot)
+    screenshot_url = None
+    if submission.screenshot_base64:
         try:
-            from api.supabase_client import get_supabase_admin
-            supabase = get_supabase_admin()
-            if supabase:
-                # Upload to 'submissions' bucket
-                result = supabase.storage.from_('submissions').upload(
-                    filename,
-                    image_data,
-                    {'content-type': f'image/{file_ext}'}
-                )
-                # Get public URL
-                screenshot_url = supabase.storage.from_('submissions').get_public_url(filename)
-                logger.info(f"Screenshot uploaded successfully: {screenshot_url}")
+            # Parse base64 data URL
+            if ',' in submission.screenshot_base64:
+                header, base64_data = submission.screenshot_base64.split(',', 1)
+                # Extract mime type
+                if 'image/png' in header:
+                    file_ext = 'png'
+                elif 'image/jpeg' in header or 'image/jpg' in header:
+                    file_ext = 'jpg'
+                elif 'image/webp' in header:
+                    file_ext = 'webp'
+                else:
+                    file_ext = 'png'  # Default
             else:
-                logger.warning("Supabase client not available - check SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY env vars")
-                screenshot_url = "storage_unavailable:supabase_not_configured"
+                base64_data = submission.screenshot_base64
+                file_ext = 'png'
+            
+            # Decode and validate image
+            image_data = base64.b64decode(base64_data)
+            
+            # Check file size (max 5MB)
+            if len(image_data) > 5 * 1024 * 1024:
+                raise HTTPException(status_code=400, detail="Screenshot must be under 5MB")
+            
+            # SECURITY: Validate image magic bytes to prevent malicious uploads
+            PNG_MAGIC = b'\x89PNG\r\n\x1a\n'
+            JPEG_MAGIC = b'\xff\xd8\xff'
+            WEBP_MAGIC = b'RIFF'
+            
+            is_valid_image = (
+                image_data[:8] == PNG_MAGIC or
+                image_data[:3] == JPEG_MAGIC or
+                (image_data[:4] == WEBP_MAGIC and b'WEBP' in image_data[:12])
+            )
+            
+            if not is_valid_image:
+                logger.warning(f"Invalid image magic bytes from user {verified_user_id}")
+                raise HTTPException(status_code=400, detail="Invalid image format. Only PNG, JPEG, and WebP are allowed.")
+            
+            # Generate unique filename
+            filename = f"kvk10/{verified_user_id}_{submission.kingdom_number}_{uuid.uuid4().hex[:8]}.{file_ext}"
+            
+            # Try to upload to Supabase Storage
+            try:
+                from api.supabase_client import get_supabase_admin
+                supabase = get_supabase_admin()
+                if supabase:
+                    # Upload to 'submissions' bucket
+                    result = supabase.storage.from_('submissions').upload(
+                        filename,
+                        image_data,
+                        {'content-type': f'image/{file_ext}'}
+                    )
+                    # Get public URL
+                    screenshot_url = supabase.storage.from_('submissions').get_public_url(filename)
+                    logger.info(f"Screenshot uploaded successfully: {screenshot_url}")
+                else:
+                    logger.warning("Supabase client not available - check SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY env vars")
+                    screenshot_url = "storage_unavailable:supabase_not_configured"
+            except Exception as e:
+                logger.error(f"Failed to upload to Supabase Storage: {type(e).__name__}: {e}")
+                screenshot_url = f"storage_error:{type(e).__name__}"
+            
+            if not screenshot_url:
+                screenshot_url = "storage_unavailable:unknown"
+            
+        except HTTPException:
+            raise
         except Exception as e:
-            logger.error(f"Failed to upload to Supabase Storage: {type(e).__name__}: {e}")
-            screenshot_url = f"storage_error:{type(e).__name__}"
-        
-        if not screenshot_url:
-            screenshot_url = "storage_unavailable:unknown"
-        
-    except Exception as e:
-        logger.error(f"Screenshot processing error: {e}")
-        raise HTTPException(status_code=400, detail="Invalid screenshot format. Please upload a valid image.")
+            logger.error(f"Screenshot processing error: {e}")
+            raise HTTPException(status_code=400, detail="Invalid screenshot format. Please upload a valid image.")
+    elif is_admin:
+        screenshot_url = "admin_submission:no_screenshot"
+        logger.info(f"Admin submission without screenshot by {verified_user_id}")
     
     # Process second screenshot (optional)
     screenshot2_url = None
@@ -494,10 +505,6 @@ def create_kvk10_submission(
                         logger.warning(f"Failed to upload screenshot 2: {e}")
         except Exception as e:
             logger.warning(f"Screenshot 2 processing error (non-fatal): {e}")
-    
-    # Check if submitter is an admin (for auto-approval)
-    user_email = request.headers.get("X-User-Email")
-    is_admin = verify_moderator_role(verified_user_id, db, user_email)
     
     # Create submission - auto-approve if admin
     db_submission = KVKSubmission(

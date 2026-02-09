@@ -1,12 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
+import SmartTooltip from './shared/SmartTooltip';
 
 interface AtlasScoreInfoProps {
   inline?: boolean;
 }
 
 const AtlasScoreInfo: React.FC<AtlasScoreInfoProps> = ({ inline = false }) => {
-  const [showTooltip, setShowTooltip] = useState(false);
-
   const neonGlow = (color: string) => ({
     color: color,
     textShadow: `0 0 8px ${color}40, 0 0 12px ${color}20`
@@ -46,11 +45,12 @@ const AtlasScoreInfo: React.FC<AtlasScoreInfoProps> = ({ inline = false }) => {
   }
 
   return (
-    <div style={{ position: 'relative', display: 'inline-block' }}>
+    <SmartTooltip
+      accentColor="#22d3ee"
+      maxWidth={260}
+      content={content}
+    >
       <button
-        onMouseEnter={() => setShowTooltip(true)}
-        onMouseLeave={() => setShowTooltip(false)}
-        onClick={() => setShowTooltip(!showTooltip)}
         style={{
           background: 'none',
           border: 'none',
@@ -66,38 +66,7 @@ const AtlasScoreInfo: React.FC<AtlasScoreInfoProps> = ({ inline = false }) => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       </button>
-
-      {showTooltip && (
-        <div style={{
-          position: 'absolute',
-          bottom: '100%',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          marginBottom: '8px',
-          animation: 'fadeIn 0.2s ease'
-        }}>
-          {content}
-          <div style={{
-            position: 'absolute',
-            bottom: '-6px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: 0,
-            height: 0,
-            borderLeft: '8px solid transparent',
-            borderRight: '8px solid transparent',
-            borderTop: '8px solid #22d3ee'
-          }} />
-        </div>
-      )}
-
-      <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateX(-50%) translateY(5px); }
-          to { opacity: 1; transform: translateX(-50%) translateY(0); }
-        }
-      `}</style>
-    </div>
+    </SmartTooltip>
   );
 };
 

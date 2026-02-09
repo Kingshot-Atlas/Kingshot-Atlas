@@ -303,7 +303,10 @@ export const SubscriptionPieChart: React.FC<{
           />
           <Legend 
             wrapperStyle={{ color: '#fff' }}
-            formatter={(value) => <span style={{ color: '#fff' }}>{value}</span>}
+            formatter={(value) => {
+              const normalized = typeof value === 'string' && /pro/i.test(value) ? 'Supporter' : value;
+              return <span style={{ color: '#fff' }}>{normalized}</span>;
+            }}
           />
         </PieChart>
       </ResponsiveContainer>

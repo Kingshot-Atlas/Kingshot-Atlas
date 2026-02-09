@@ -173,7 +173,7 @@ const EntryModal: React.FC<{
         bottom: 0,
         backgroundColor: 'rgba(0, 0, 0, 0.85)',
         display: 'flex',
-        alignItems: isMobile ? 'flex-end' : 'center',
+        alignItems: isMobile ? 'flex-start' : 'center',
         justifyContent: 'center',
         zIndex: 1000,
         padding: isMobile ? 0 : '1rem',

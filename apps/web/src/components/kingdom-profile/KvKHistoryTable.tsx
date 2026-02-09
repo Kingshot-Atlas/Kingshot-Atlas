@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import MissingKvKPrompt from '../MissingKvKPrompt';
+import SmartTooltip from '../shared/SmartTooltip';
 import { getOutcome, OUTCOMES } from '../../utils/outcomes';
 import { CURRENT_KVK } from '../../constants';
 
@@ -26,11 +27,6 @@ const KvKHistoryTable: React.FC<KvKHistoryTableProps> = ({
   onReportErrorClick,
 }) => {
   const navigate = useNavigate();
-  const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
-
-  const handleTooltipToggle = (id: string) => {
-    setActiveTooltip(activeTooltip === id ? null : id);
-  };
 
   // Sort by kvk_number descending (most recent first)
   const allKvks = [...kvkRecords].sort((a, b) => b.kvk_number - a.kvk_number);
@@ -181,47 +177,32 @@ const KvKHistoryTable: React.FC<KvKHistoryTableProps> = ({
                     </span>
                   </td>
                   <td style={{ padding: isMobile ? '0.5rem 0.35rem' : '0.65rem 0.5rem', textAlign: 'center' }}>
-                    <span 
-                      onClick={isMobile ? () => handleTooltipToggle(`outcome-${index}`) : undefined}
-                      onMouseEnter={() => !isMobile && setActiveTooltip(`outcome-${index}`)}
-                      onMouseLeave={() => !isMobile && setActiveTooltip(null)}
-                      style={{
-                        display: 'inline-block',
-                        padding: isMobile ? '0.2rem 0.4rem' : '0.25rem 0.6rem',
-                        borderRadius: '6px',
-                        backgroundColor: outcomeStyle.bg,
-                        border: `1px solid ${outcomeStyle.text}40`,
-                        color: outcomeStyle.text,
-                        fontSize: isMobile ? '0.7rem' : '0.8rem',
-                        fontWeight: 'bold',
-                        cursor: 'pointer',
-                        position: 'relative',
-                        boxShadow: `0 0 6px ${outcomeStyle.text}20`
-                      }}
-                    >
-                      {outcomeLetter}
-                      {activeTooltip === `outcome-${index}` && (
-                        <div style={{
-                          position: 'absolute',
-                          bottom: '100%',
-                          left: '50%',
-                          transform: 'translateX(-50%)',
-                          marginBottom: '0.5rem',
-                          padding: '0.5rem 0.75rem',
-                          backgroundColor: '#0a0a0a',
-                          border: `1px solid ${outcomeStyle.text}`,
-                          borderRadius: '6px',
-                          fontSize: '0.75rem',
-                          color: '#fff',
-                          whiteSpace: 'nowrap',
-                          zIndex: 1000,
-                          boxShadow: '0 4px 12px rgba(0,0,0,0.4)'
-                        }}>
-                          <div style={{ fontWeight: 'bold', color: outcomeStyle.text, marginBottom: '0.15rem' }}>{outcomeStyle.label}</div>
-                          <div style={{ color: '#9ca3af', fontSize: '0.65rem' }}>{outcomeStyle.description}</div>
+                    <SmartTooltip
+                      accentColor={outcomeStyle.text}
+                      content={
+                        <div style={{ fontSize: '0.7rem' }}>
+                          <div style={{ fontWeight: 'bold', color: outcomeStyle.text, marginBottom: '2px' }}>{outcomeStyle.label}</div>
+                          <div style={{ color: '#9ca3af' }}>{outcomeStyle.description}</div>
                         </div>
-                      )}
-                    </span>
+                      }
+                    >
+                      <span 
+                        style={{
+                          display: 'inline-block',
+                          padding: isMobile ? '0.2rem 0.4rem' : '0.25rem 0.6rem',
+                          borderRadius: '6px',
+                          backgroundColor: outcomeStyle.bg,
+                          border: `1px solid ${outcomeStyle.text}40`,
+                          color: outcomeStyle.text,
+                          fontSize: isMobile ? '0.7rem' : '0.8rem',
+                          fontWeight: 'bold',
+                          cursor: 'default',
+                          boxShadow: `0 0 6px ${outcomeStyle.text}20`
+                        }}
+                      >
+                        {outcomeLetter}
+                      </span>
+                    </SmartTooltip>
                   </td>
                 </tr>
               );

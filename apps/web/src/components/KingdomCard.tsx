@@ -5,7 +5,7 @@ import { neonGlow, colors, radius, shadows, transition, FONT_DISPLAY } from '../
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { useAuth } from '../contexts/AuthContext';
-import { TierBadge } from './shared';
+import { TierBadge, SmartTooltip } from './shared';
 import { 
   AchievementBadges, 
   RecentKvKs, 
@@ -18,6 +18,7 @@ import PostKvKSubmission from './PostKvKSubmission';
 import StatusSubmission from './StatusSubmission';
 import { statusService } from '../services/statusService';
 import { useToast } from './Toast';
+import { isAdminUsername } from '../utils/constants';
 import { CURRENT_KVK } from '../constants';
 
 interface KingdomCardProps {
@@ -48,8 +49,6 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
     ? kingdom.recent_kvks.filter(kvk => kvk.opponent_kingdom === profile.linked_kingdom).length
     : 0;
   const [isHovered, setIsHovered] = useState(false);
-  const [showAtlasTooltip, setShowAtlasTooltip] = useState(false);
-  const [showMissingDataTooltip, setShowMissingDataTooltip] = useState(false);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const { showToast } = useToast();
@@ -103,9 +102,6 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
   const status = kingdom.most_recent_status || 'Unannounced';
   const powerTier = kingdom.power_tier ?? getPowerTier(kingdom.overall_score);
 
-  // Check if any tooltip is showing for z-index
-  const hasActiveTooltip = showAtlasTooltip || showMissingDataTooltip;
-
   // Check if kingdom is missing latest KvK data
   const isMissingLatestKvK = useMemo(() => {
     if (!kingdom.recent_kvks || kingdom.recent_kvks.length === 0) return true;
@@ -139,7 +135,7 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
         gap: '0',
         position: 'relative',
         overflow: 'hidden',
-        zIndex: hasActiveTooltip ? 100 : 1
+        zIndex: 1
       }}
     >
       {/* ═══════════════════ TOP RIBBON: YOUR KINGDOM / RIVAL ═══════════════════ */}
@@ -149,21 +145,23 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
           top: 0,
           left: 0,
           right: 0,
-          height: '28px',
-          background: 'linear-gradient(135deg, #22d3ee18 0%, #22d3ee08 50%, #06b6d408 100%)',
-          borderBottom: '1px solid #22d3ee30',
+          height: '34px',
+          background: 'linear-gradient(90deg, transparent 0%, #22d3ee20 15%, #22d3ee38 50%, #22d3ee20 85%, transparent 100%)',
+          borderTop: '2px solid #22d3ee',
+          borderBottom: '1px solid #22d3ee40',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           gap: '0.4rem',
+          boxShadow: '0 4px 20px #22d3ee20, inset 0 -8px 16px #22d3ee08',
         }}>
           <span style={{
-            fontSize: '0.6rem',
-            fontWeight: '700',
+            fontSize: '0.7rem',
+            fontWeight: '800',
             color: '#22d3ee',
-            letterSpacing: '0.12em',
+            letterSpacing: '0.18em',
             textTransform: 'uppercase',
-            textShadow: '0 0 8px #22d3ee40',
+            textShadow: '0 0 12px #22d3ee80, 0 0 24px #22d3ee40',
           }}>
             ★ YOUR KINGDOM ★
           </span>
@@ -175,21 +173,23 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
           top: 0,
           left: 0,
           right: 0,
-          height: '28px',
-          background: 'linear-gradient(135deg, #ef444418 0%, #ef444408 50%, #dc262608 100%)',
-          borderBottom: '1px solid #ef444430',
+          height: '34px',
+          background: 'linear-gradient(90deg, transparent 0%, #ef444420 15%, #ef444438 50%, #ef444420 85%, transparent 100%)',
+          borderTop: '2px solid #ef4444',
+          borderBottom: '1px solid #ef444440',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           gap: '0.4rem',
+          boxShadow: '0 4px 20px #ef444420, inset 0 -8px 16px #ef444408',
         }}>
           <span style={{
-            fontSize: '0.6rem',
-            fontWeight: '700',
+            fontSize: '0.7rem',
+            fontWeight: '800',
             color: '#ef4444',
-            letterSpacing: '0.12em',
+            letterSpacing: '0.18em',
             textTransform: 'uppercase',
-            textShadow: '0 0 8px #ef444440',
+            textShadow: '0 0 12px #ef444480, 0 0 24px #ef444440',
           }}>
             ⚔ RIVAL{rivalCount > 1 ? ` × ${rivalCount}` : ''} ⚔
           </span>
@@ -258,37 +258,53 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
         gap: '0.5rem',
         marginBottom: '0.75rem'
       }}>
-        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-          <span style={{ fontSize: '0.75rem', color: colors.textMuted, lineHeight: '1.2' }}>Atlas</span>
-          <span style={{ fontSize: '0.75rem', color: colors.textMuted, lineHeight: '1.2' }}>Score</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.35rem' }}>
-          <span 
-            style={{ 
-              fontSize: isMobile ? '1.6rem' : '2rem', 
-              fontWeight: '700', 
-              ...neonGlow(colors.primary),
-              fontFamily: 'system-ui',
-              lineHeight: 1
-            }}
-            onMouseEnter={() => setShowAtlasTooltip(true)}
-            onMouseLeave={() => setShowAtlasTooltip(false)}
-          >
-            {animatedScore.toFixed(2)}
-          </span>
-          {rank && (
-            <span style={{ fontSize: '0.85rem', color: colors.primary, fontWeight: 'normal' }}>
-              (#{rank})
-            </span>
-          )}
-        </div>
+        <SmartTooltip
+          accentColor={colors.primary}
+          maxWidth={200}
+          content={
+            <div style={{ fontSize: '0.7rem', color: '#9ca3af' }}>
+              Rewards experience and consistency over lucky streaks
+            </div>
+          }
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'default' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+              <span style={{ fontSize: '0.75rem', color: colors.textMuted, lineHeight: '1.2' }}>Atlas</span>
+              <span style={{ fontSize: '0.75rem', color: colors.textMuted, lineHeight: '1.2' }}>Score</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.35rem' }}>
+              <span 
+                style={{ 
+                  fontSize: isMobile ? '1.6rem' : '2rem', 
+                  fontWeight: '700', 
+                  ...neonGlow(colors.primary),
+                  fontFamily: 'system-ui',
+                  lineHeight: 1
+                }}
+              >
+                {animatedScore.toFixed(2)}
+              </span>
+              {rank && (
+                <span style={{ fontSize: '0.85rem', color: colors.primary, fontWeight: 'normal' }}>
+                  (#{rank})
+                </span>
+              )}
+            </div>
+          </div>
+        </SmartTooltip>
         
         {/* Missing KvK Data Chip - shows when kingdom is missing latest KvK data */}
         {isMissingLatestKvK && (
-          <div 
-            style={{ marginLeft: 'auto', position: 'relative' }}
-            onMouseEnter={() => setShowMissingDataTooltip(true)}
-            onMouseLeave={() => setShowMissingDataTooltip(false)}
+          <SmartTooltip
+            accentColor={missingDataColor}
+            maxWidth={180}
+            content={
+              <div style={{ fontSize: '0.65rem' }}>
+                <span style={{ fontWeight: '600', color: missingDataColor }}>Missing KvK #{CURRENT_KVK}</span>
+                <span style={{ color: colors.textMuted, marginLeft: '0.25rem' }}>— tap to submit</span>
+              </div>
+            }
+            style={{ marginLeft: 'auto' }}
           >
             <div 
               onClick={(e) => {
@@ -321,57 +337,7 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
             >
               📊 Submit KvK {CURRENT_KVK}
             </div>
-            
-            {showMissingDataTooltip && (
-              <div 
-                style={{
-                  position: 'absolute',
-                  bottom: '100%',
-                  right: 0,
-                  marginBottom: '0.5rem',
-                  backgroundColor: colors.bg,
-                  border: `1px solid ${missingDataColor}`,
-                  borderRadius: '6px',
-                  padding: '0.5rem 0.75rem',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
-                  zIndex: 1000,
-                  maxWidth: isMobile ? '180px' : '220px',
-                  fontSize: '0.65rem',
-                  color: colors.textSecondary
-                }}
-              >
-                <div style={{ fontWeight: '600', color: missingDataColor, marginBottom: '0.25rem' }}>
-                  Missing KvK #{CURRENT_KVK} Data
-                </div>
-                <div style={{ color: colors.textMuted }}>
-                  Click to submit results for this kingdom
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-        
-        {showAtlasTooltip && (
-          <div style={{
-            position: 'absolute',
-            bottom: '100%',
-            left: '1rem',
-            marginBottom: '0.5rem',
-            backgroundColor: colors.bg,
-            border: `1px solid ${colors.primary}`,
-            borderRadius: radius.md,
-            padding: '0.6rem 0.8rem',
-            boxShadow: shadows.tooltip,
-            zIndex: 1000,
-            maxWidth: isMobile ? '200px' : '280px'
-          }}>
-            <div style={{ fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '3px', color: colors.primary }}>
-              Atlas Score
-            </div>
-            <div style={{ color: colors.textSecondary, fontSize: '0.7rem' }}>
-              Rewards experience and consistency over lucky streaks
-            </div>
-          </div>
+          </SmartTooltip>
         )}
       </div>
 
@@ -455,8 +421,9 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
           currentStatus={status}
           onSubmit={async (newStatus, notes) => {
             if (!user) return;
-            await statusService.submitStatusUpdate(kingdom.kingdom_number, status, newStatus, notes, user.id);
-            showToast('Status update submitted for review!', 'success');
+            const adminUser = isAdminUsername(profile?.linked_username) || isAdminUsername(profile?.username);
+            await statusService.submitStatusUpdate(kingdom.kingdom_number, status, newStatus, notes, user.id, adminUser);
+            showToast(adminUser ? 'Status update auto-approved!' : 'Status update submitted for review!', 'success');
           }}
           onClose={() => setShowStatusModal(false)}
         />

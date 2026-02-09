@@ -5,6 +5,7 @@ import { useToast } from './Toast';
 import { logger } from '../utils/logger';
 import { CURRENT_KVK } from '../constants';
 import { getAuthHeaders } from '../services/authHeaders';
+import { isAdminUsername } from '../utils/constants';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
@@ -115,13 +116,15 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
     }
   };
 
+  const userIsAdmin = isAdminUsername(profile?.linked_username) || isAdminUsername(profile?.username);
+
   const isFormValid = () => {
-    return kingdomNumber && opponentKingdom && prepResult && battleResult && screenshot;
+    return kingdomNumber && opponentKingdom && prepResult && battleResult && (screenshot || userIsAdmin);
   };
 
   const handleSubmit = async () => {
     if (!isFormValid()) {
-      showToast('Please fill in all fields and upload a screenshot', 'error');
+      showToast(userIsAdmin ? 'Please fill in all required fields' : 'Please fill in all fields and upload a screenshot', 'error');
       return;
     }
 
@@ -132,13 +135,16 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
 
     setSubmitting(true);
     try {
-      // Convert screenshots to base64
-      const reader = new FileReader();
-      const base64Promise = new Promise<string>((resolve) => {
-        reader.onloadend = () => resolve(reader.result as string);
-        reader.readAsDataURL(screenshot!);
-      });
-      const screenshotBase64 = await base64Promise;
+      // Convert screenshots to base64 (optional for admins)
+      let screenshotBase64: string | null = null;
+      if (screenshot) {
+        const reader = new FileReader();
+        const base64Promise = new Promise<string>((resolve) => {
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.readAsDataURL(screenshot);
+        });
+        screenshotBase64 = await base64Promise;
+      }
 
       // Second screenshot (optional)
       let screenshot2Base64: string | null = null;
@@ -166,13 +172,13 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
         prep_result: prepResult,
         battle_result: battleResult,
         notes: notes || null,
-        screenshot_base64: screenshotBase64.substring(0, 100) + '...' // Truncate for logging
+        screenshot_base64: screenshotBase64 ? screenshotBase64.substring(0, 100) + '...' : '(none - admin)'
       };
       logger.log('[KvK Submit] Attempting submission:', {
         url: `${API_BASE}/api/v1/submissions/kvk10`,
         hasToken: !!authHeaders['Authorization'],
         userId: user?.id,
-        payload: { ...payload, screenshot_base64: `[${screenshotBase64.length} chars]` }
+        payload: { ...payload, screenshot_base64: screenshotBase64 ? `[${screenshotBase64.length} chars]` : '(none - admin)' }
       });
 
       const response = await fetch(`${API_BASE}/api/v1/submissions/kvk10`, {
@@ -189,8 +195,8 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
           prep_result: prepResult,
           battle_result: battleResult,
           notes: notes || null,
-          screenshot_base64: screenshotBase64,
-          screenshot2_base64: screenshot2Base64
+          screenshot_base64: screenshotBase64 || undefined,
+          screenshot2_base64: screenshot2Base64 || undefined
         })
       });
 
@@ -285,7 +291,7 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
               </h2>
             </div>
             <p style={{ color: '#6b7280', fontSize: '0.8rem', margin: 0 }}>
-              One submission per match • Screenshot required
+              One submission per match{userIsAdmin ? ' • Admin auto-approval' : ' • Screenshot required'}
             </p>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '1.5rem', lineHeight: 1 }}>×</button>
@@ -444,7 +450,7 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
           {/* Screenshot Upload */}
           <div>
             <label style={{ display: 'block', color: '#9ca3af', fontSize: '0.75rem', marginBottom: '0.35rem' }}>
-              Screenshot Proof * <span style={{ color: '#6b7280' }}>(Required for verification)</span>
+              Screenshot Proof {userIsAdmin ? '' : '*'} <span style={{ color: '#6b7280' }}>{userIsAdmin ? '(Optional for admins)' : '(Required for verification)'}</span>
             </label>
             
             {!screenshotPreview ? (

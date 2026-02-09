@@ -300,9 +300,11 @@ const ScoreSimulator: React.FC<ScoreSimulatorProps> = ({ kingdom, isExpanded: ex
                       fontSize: '0.65rem',
                       fontWeight: 'bold',
                       marginLeft: 'auto',
-                      display: 'flex',
+                      display: 'inline-flex',
                       alignItems: 'center',
-                      gap: '0.2rem'
+                      gap: '0.2rem',
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0
                     }}>
                       {outcome.emoji} {outcome.label}
                     </span>

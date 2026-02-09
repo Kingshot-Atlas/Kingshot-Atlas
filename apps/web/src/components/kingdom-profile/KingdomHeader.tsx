@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { KingdomProfile as KingdomProfileType, getTierDescription as getCentralizedTierDescription, type PowerTier } from '../../types';
 import ShareButton from '../ShareButton';
 import ScoreFreshness from '../ScoreFreshness';
+import SmartTooltip from '../shared/SmartTooltip';
 import { neonGlow, getStatusColor, getTierColor, FONT_DISPLAY } from '../../utils/styles';
 
 interface Achievement {
@@ -24,6 +25,7 @@ interface KingdomHeaderProps {
   hasPendingSubmission: boolean;
   isMobile: boolean;
   recentScoreChange?: number | null;
+  recentRankChange?: number | null;
   isLinked?: boolean;
   onStatusModalOpen: () => void;
   onReportModalOpen: () => void;
@@ -41,28 +43,27 @@ const KingdomHeader: React.FC<KingdomHeaderProps> = ({
   hasPendingSubmission,
   isMobile,
   recentScoreChange,
+  recentRankChange,
   isLinked = false,
   onStatusModalOpen,
   onReportModalOpen,
 }) => {
-  const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
   const tierColor = getTierColor(powerTier);
-
-  const handleTooltipToggle = (id: string) => {
-    setActiveTooltip(activeTooltip === id ? null : id);
-  };
 
   const getTierDescription = (tier: string) => {
     return getCentralizedTierDescription(tier as PowerTier);
   };
 
-  const getStatusDescription = (status: string) => {
-    switch (status) {
-      case 'Leading': return 'Transfers in are restricted — prevents top kingdoms from growing disproportionately stronger';
-      case 'Ordinary': return 'Standard transfer status — open to all incoming transfers';
-      default: return 'Transfer status not yet available';
+  const getStatusDescription = (s: string) => {
+    switch (s) {
+      case 'Leading': return 'Transfers in are restricted';
+      case 'Ordinary': return 'Open to all incoming transfers';
+      default: return 'Not yet reported';
     }
   };
+
+  const statusColor = status === 'Unannounced' ? '#6b7280' : getStatusColor(status);
+  const topPercent = 100 - percentileRank;
 
   return (
     <div style={{ 
@@ -74,8 +75,8 @@ const KingdomHeader: React.FC<KingdomHeaderProps> = ({
     }}>
       <div style={{ position: 'relative', zIndex: 1, maxWidth: '800px', margin: '0 auto' }}>
         <div style={{ textAlign: 'center' }}>
-          {/* Row 1: Kingdom name + tier */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+          {/* Row 1: Kingdom name + Tier + Top% + Achievements */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
             <h1 style={{ 
               fontSize: isMobile ? '1.5rem' : '2.25rem', 
               fontWeight: 'bold', 
@@ -88,9 +89,16 @@ const KingdomHeader: React.FC<KingdomHeaderProps> = ({
             </h1>
             
             {/* Power Tier Badge */}
-            <div 
-              onClick={() => isMobile && handleTooltipToggle('tier')}
-              style={{
+            <SmartTooltip
+              accentColor={tierColor}
+              preferPosition="bottom"
+              content={
+                <div style={{ fontSize: '0.7rem', color: '#9ca3af' }}>
+                  <span style={{ color: tierColor, fontWeight: 'bold' }}>{powerTier}-Tier</span> — {getTierDescription(powerTier)}
+                </div>
+              }
+            >
+              <div style={{
                 padding: '0.2rem 0.5rem',
                 borderRadius: '4px',
                 fontSize: '0.7rem',
@@ -99,259 +107,209 @@ const KingdomHeader: React.FC<KingdomHeaderProps> = ({
                 color: tierColor,
                 border: `1px solid ${tierColor}40`,
                 boxShadow: powerTier === 'S' ? `0 0 8px ${tierColor}40` : 'none',
-                cursor: 'pointer',
-                position: 'relative'
-              }}
-              aria-label={getTierDescription(powerTier)}
-            >
-              {powerTier}-Tier
-              {isMobile && activeTooltip === 'tier' && (
-                <div style={{
-                  position: 'absolute',
-                  top: '100%',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  marginTop: '0.5rem',
-                  padding: '0.5rem 0.75rem',
-                  backgroundColor: '#1f1f1f',
-                  border: '1px solid #333',
-                  borderRadius: '6px',
-                  fontSize: '0.7rem',
-                  color: '#fff',
-                  whiteSpace: 'nowrap',
-                  zIndex: 100
+                cursor: 'default'
+              }}>
+                {powerTier}-Tier
+              </div>
+            </SmartTooltip>
+
+            {/* Top x% Badge — next to tier (plain, no tooltip) */}
+            {percentileRank > 0 && (() => {
+              const pColor = percentileRank >= 90 ? '#22c55e' : percentileRank >= 70 ? '#eab308' : percentileRank >= 50 ? '#3b82f6' : '#6b7280';
+              return (
+                <span style={{
+                  padding: '0.15rem 0.4rem',
+                  borderRadius: '4px',
+                  fontSize: '0.65rem',
+                  fontWeight: '600',
+                  backgroundColor: `${pColor}20`,
+                  color: pColor,
+                  border: `1px solid ${pColor}40`,
                 }}>
-                  {getTierDescription(powerTier)}
-                </div>
-              )}
-            </div>
+                  Top {topPercent.toFixed(1)}%
+                </span>
+              );
+            })()}
+
+            {/* Achievement badges — next to tier/top% */}
+            {achievements.map((a, i) => (
+              <SmartTooltip
+                key={i}
+                accentColor={a.color}
+                content={
+                  <div style={{ fontSize: '0.7rem' }}>
+                    <div style={{ color: a.color, fontWeight: 'bold', marginBottom: '2px' }}>{a.title}</div>
+                    <div style={{ color: '#9ca3af' }}>{a.desc}</div>
+                  </div>
+                }
+              >
+                <span style={{ 
+                  fontSize: '1rem', 
+                  filter: `drop-shadow(0 0 4px ${a.color}60)`,
+                  cursor: 'default'
+                }}>
+                  {a.icon}
+                </span>
+              </SmartTooltip>
+            ))}
           </div>
           
-          {/* Row 2: Atlas Score + Rank + Achievements */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
+          {/* Row 2: Atlas Score + Score Change */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.35rem', flexWrap: 'wrap' }}>
             <span style={{ color: '#6b7280', fontSize: '0.85rem' }}>Atlas Score:</span>
-            <span
-              onClick={() => isMobile && handleTooltipToggle('score')}
-              onMouseEnter={() => !isMobile && setActiveTooltip('score')}
-              onMouseLeave={() => !isMobile && setActiveTooltip(null)}
-              style={{ 
+            <SmartTooltip
+              accentColor="#22d3ee"
+              content={
+                <div style={{ fontSize: '0.7rem' }}>
+                  <div style={{ color: '#22d3ee', fontWeight: 'bold', marginBottom: '2px' }}>Atlas Score</div>
+                  <div style={{ color: '#9ca3af' }}>Rewards experience and consistency</div>
+                </div>
+              }
+            >
+              <span style={{ 
                 fontSize: '2rem', 
                 fontWeight: '700', 
                 ...neonGlow('#22d3ee'), 
                 fontFamily: 'system-ui',
-                cursor: 'pointer',
-                position: 'relative',
+                cursor: 'default',
                 lineHeight: 1
-              }}
-            >
-              {atlasScore.toFixed(2)}
-              {activeTooltip === 'score' && (
-                <div style={{
-                  position: 'absolute',
-                  bottom: '100%',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  marginBottom: '0.5rem',
-                  padding: '0.5rem 0.75rem',
-                  backgroundColor: '#0a0a0a',
-                  border: '1px solid #22d3ee',
-                  borderRadius: '6px',
-                  fontSize: '0.7rem',
-                  color: '#fff',
-                  whiteSpace: 'nowrap',
-                  zIndex: 100,
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.4)'
-                }}>
-                  <div style={{ color: '#22d3ee', fontWeight: 'bold', marginBottom: '2px' }}>Atlas Score</div>
-                  <div style={{ color: '#9ca3af' }}>Rewards experience and consistency over lucky streaks</div>
-                </div>
-              )}
-            </span>
-            {rank > 0 && (
-              <span style={{ color: '#22d3ee', fontSize: '0.85rem', fontWeight: 'normal' }}>
-                (#{rank}{totalKingdomsAtKvk > 0 ? ` of ${totalKingdomsAtKvk}` : ''})
-              </span>
-            )}
-            {percentileRank > 0 && (
-              <span style={{
-                padding: '0.15rem 0.4rem',
-                borderRadius: '4px',
-                fontSize: '0.65rem',
-                fontWeight: '600',
-                backgroundColor: percentileRank >= 90 ? '#22c55e20' : percentileRank >= 70 ? '#eab30820' : percentileRank >= 50 ? '#3b82f620' : '#6b728020',
-                color: percentileRank >= 90 ? '#22c55e' : percentileRank >= 70 ? '#eab308' : percentileRank >= 50 ? '#3b82f6' : '#6b7280',
-                border: `1px solid ${percentileRank >= 90 ? '#22c55e40' : percentileRank >= 70 ? '#eab30840' : percentileRank >= 50 ? '#3b82f640' : '#6b728040'}`
               }}>
-                Top {(100 - percentileRank).toFixed(0)}%
+                {atlasScore.toFixed(2)}
               </span>
-            )}
-            {kingdom.score_updated_at && (
-              <ScoreFreshness updatedAt={kingdom.score_updated_at} style={{ marginLeft: '0.5rem' }} />
-            )}
-            {/* Achievement badges */}
-            {achievements.map((a, i) => (
-              <span 
-                key={i} 
-                onClick={() => isMobile && handleTooltipToggle(`achievement-${i}`)}
-                onMouseEnter={() => !isMobile && setActiveTooltip(`achievement-${i}`)}
-                onMouseLeave={() => !isMobile && setActiveTooltip(null)}
-                style={{ 
-                  fontSize: '1rem', 
-                  filter: `drop-shadow(0 0 4px ${a.color}60)`,
-                  cursor: 'pointer',
-                  position: 'relative'
-                }}
-              >
-                {a.icon}
-                {activeTooltip === `achievement-${i}` && (
-                  <div style={{
-                    position: 'absolute',
-                    bottom: '100%',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    marginBottom: '0.5rem',
-                    padding: '0.5rem 0.75rem',
-                    backgroundColor: '#0a0a0a',
-                    border: `1px solid ${a.color}`,
-                    borderRadius: '6px',
-                    fontSize: '0.7rem',
-                    color: '#fff',
-                    whiteSpace: 'nowrap',
-                    zIndex: 100,
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.4)'
-                  }}>
-                    <div style={{ color: a.color, fontWeight: 'bold', marginBottom: '2px' }}>{a.title}</div>
-                    <div style={{ color: '#9ca3af' }}>{a.desc}</div>
-                  </div>
-                )}
-              </span>
-            ))}
-          </div>
-
-          {/* Score Change Hook — blurred teaser for non-linked, real for linked */}
-          {recentScoreChange !== null && recentScoreChange !== undefined && recentScoreChange !== 0 && (
-            isLinked ? (
-              <div style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.3rem',
-                padding: '0.2rem 0.6rem',
-                borderRadius: '20px',
-                fontSize: '0.7rem',
-                fontWeight: '600',
-                backgroundColor: recentScoreChange > 0 ? '#22c55e12' : '#ef444412',
-                color: recentScoreChange > 0 ? '#22c55e' : '#ef4444',
-                border: `1px solid ${recentScoreChange > 0 ? '#22c55e25' : '#ef444425'}`,
-                marginBottom: '0.4rem',
-              }}>
-                <span>{recentScoreChange > 0 ? '▲' : '▼'}</span>
-                <span>{recentScoreChange > 0 ? '+' : ''}{recentScoreChange.toFixed(2)} last KvK</span>
-              </div>
-            ) : (
-              <Link to="/profile" style={{ textDecoration: 'none' }}>
-                <div style={{
+            </SmartTooltip>
+            {/* Score Change */}
+            {recentScoreChange !== null && recentScoreChange !== undefined && recentScoreChange !== 0 && (
+              isLinked ? (
+                <span style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '0.3rem',
-                  padding: '0.2rem 0.6rem',
+                  gap: '0.2rem',
+                  padding: '0.15rem 0.5rem',
                   borderRadius: '20px',
                   fontSize: '0.7rem',
                   fontWeight: '600',
-                  backgroundColor: '#9ca3af08',
-                  border: '1px solid #9ca3af15',
-                  marginBottom: '0.4rem',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#22d3ee30'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#9ca3af15'; }}
-                >
-                  <span style={{ color: '#6b7280' }}>📊</span>
-                  <span style={{ 
-                    filter: 'blur(4px)', 
-                    userSelect: 'none',
-                    color: '#22c55e',
-                  }}>+0.00</span>
-                  <span style={{ color: '#4b5563', fontSize: '0.65rem' }}>Link account to see</span>
-                </div>
-              </Link>
-            )
+                  backgroundColor: recentScoreChange > 0 ? '#22c55e12' : '#ef444412',
+                  color: recentScoreChange > 0 ? '#22c55e' : '#ef4444',
+                  border: `1px solid ${recentScoreChange > 0 ? '#22c55e25' : '#ef444425'}`,
+                }}>
+                  <span>{recentScoreChange > 0 ? '▲' : '▼'}</span>
+                  <span>{recentScoreChange > 0 ? '+' : ''}{recentScoreChange.toFixed(2)} last KvK</span>
+                </span>
+              ) : (
+                <Link to="/profile" style={{ textDecoration: 'none' }}>
+                  <span style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.2rem',
+                    padding: '0.15rem 0.5rem',
+                    borderRadius: '20px',
+                    fontSize: '0.7rem',
+                    fontWeight: '600',
+                    backgroundColor: '#9ca3af08',
+                    border: '1px solid #9ca3af15',
+                    cursor: 'pointer',
+                  }}>
+                    <span style={{ color: '#6b7280' }}>📊</span>
+                    <span style={{ filter: 'blur(4px)', userSelect: 'none', color: '#22c55e' }}>+0.00</span>
+                    <span style={{ color: '#4b5563', fontSize: '0.65rem' }}>Link to see</span>
+                  </span>
+                </Link>
+              )
+            )}
+          </div>
+
+          {/* Row 3: Atlas Rank + Rank Change */}
+          {rank > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.35rem', flexWrap: 'wrap' }}>
+              <span style={{ color: '#6b7280', fontSize: '0.85rem' }}>Atlas Rank:</span>
+              <span style={{ color: '#22d3ee', fontSize: '0.95rem', fontWeight: '600' }}>
+                #{rank}{totalKingdomsAtKvk > 0 ? ` of ${totalKingdomsAtKvk}` : ''}
+              </span>
+              {/* Rank Change */}
+              {recentRankChange !== null && recentRankChange !== undefined && recentRankChange !== 0 && (
+                isLinked ? (
+                  <span style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.2rem',
+                    padding: '0.15rem 0.5rem',
+                    borderRadius: '20px',
+                    fontSize: '0.7rem',
+                    fontWeight: '600',
+                    backgroundColor: recentRankChange > 0 ? '#22c55e12' : '#ef444412',
+                    color: recentRankChange > 0 ? '#22c55e' : '#ef4444',
+                    border: `1px solid ${recentRankChange > 0 ? '#22c55e25' : '#ef444425'}`,
+                  }}>
+                    <span>{recentRankChange > 0 ? '▲' : '▼'}</span>
+                    <span>{recentRankChange > 0 ? '+' : ''}{recentRankChange} last KvK</span>
+                  </span>
+                ) : (
+                  <Link to="/profile" style={{ textDecoration: 'none' }}>
+                    <span style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.2rem',
+                      padding: '0.15rem 0.5rem',
+                      borderRadius: '20px',
+                      fontSize: '0.7rem',
+                      fontWeight: '600',
+                      backgroundColor: '#9ca3af08',
+                      border: '1px solid #9ca3af15',
+                      cursor: 'pointer',
+                    }}>
+                      <span style={{ color: '#6b7280' }}>📊</span>
+                      <span style={{ filter: 'blur(4px)', userSelect: 'none', color: '#22c55e' }}>+0</span>
+                      <span style={{ color: '#4b5563', fontSize: '0.65rem' }}>Link to see</span>
+                    </span>
+                  </Link>
+                )
+              )}
+              {kingdom.score_updated_at && (
+                <ScoreFreshness updatedAt={kingdom.score_updated_at} style={{ marginLeft: '0.25rem' }} />
+              )}
+            </div>
           )}
-          
-          {/* Row 3: Last Transfer Status */}
+
+          {/* Row 4: Transfer Status — clickable to open modal, no Update button */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
             <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>Transfer Status:</span>
-            <span 
-              onClick={() => isMobile && handleTooltipToggle('status')}
-              style={{ 
-                padding: '0.25rem 0.5rem',
-                borderRadius: '4px',
-                fontSize: '0.7rem',
-                fontWeight: '500',
-                backgroundColor: status === 'Unannounced' ? '#6b728015' : `${getStatusColor(status)}15`,
-                color: status === 'Unannounced' ? '#6b7280' : getStatusColor(status),
-                border: `1px solid ${status === 'Unannounced' ? '#6b728030' : `${getStatusColor(status)}30`}`,
-                cursor: 'pointer',
-                position: 'relative',
-                height: '24px',
-                display: 'inline-flex',
-                alignItems: 'center'
-              }}
-              onMouseEnter={() => !isMobile && setActiveTooltip('status')}
-              onMouseLeave={() => !isMobile && setActiveTooltip(null)}
-            >
-              {status}
-              {activeTooltip === 'status' && (
-                <div style={{
-                  position: 'absolute',
-                  bottom: '100%',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  marginBottom: '0.5rem',
-                  padding: '0.5rem 0.75rem',
-                  backgroundColor: '#0a0a0a',
-                  border: `1px solid ${status === 'Unannounced' ? '#4a4a4a' : getStatusColor(status)}`,
-                  borderRadius: '6px',
-                  fontSize: '0.7rem',
-                  color: '#fff',
-                  whiteSpace: 'nowrap',
-                  zIndex: 100,
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.4)'
-                }}>
-                  <div style={{ color: status === 'Unannounced' ? '#9ca3af' : getStatusColor(status), fontWeight: 'bold', marginBottom: '2px' }}>
-                    {status === 'Unannounced' ? 'No Data Available' : status}
+            <SmartTooltip
+              accentColor={statusColor}
+              content={
+                <div style={{ fontSize: '0.7rem' }}>
+                  <div style={{ color: statusColor, fontWeight: 'bold', marginBottom: '2px' }}>
+                    {status === 'Unannounced' ? 'No Data' : status}
                   </div>
-                  <div style={{ color: '#9ca3af' }}>
-                    {status === 'Unannounced' ? 'Transfer status has not been reported yet' : getStatusDescription(status)}
-                  </div>
-                  {status !== 'Unannounced' && kingdom.last_updated && (
-                    <div style={{ color: '#6b7280', fontSize: '0.65rem', marginTop: '0.25rem', borderTop: '1px solid #2a2a2a', paddingTop: '0.25rem' }}>
-                      Last updated: {new Date(kingdom.last_updated).toLocaleDateString()}
-                    </div>
+                  <div style={{ color: '#9ca3af' }}>{getStatusDescription(status)}</div>
+                  {!hasPendingSubmission && (
+                    <div style={{ color: '#22d3ee', fontSize: '0.6rem', marginTop: '3px' }}>Tap to update</div>
                   )}
                 </div>
-              )}
-            </span>
-            {/* Update Status Button */}
-            <button
-              onClick={onStatusModalOpen}
-              disabled={hasPendingSubmission}
-              style={{
-                padding: '0.25rem 0.5rem',
-                backgroundColor: hasPendingSubmission ? '#2a2a2a' : '#22d3ee15',
-                border: `1px solid ${hasPendingSubmission ? '#3a3a3a' : '#22d3ee40'}`,
-                borderRadius: '4px',
-                color: hasPendingSubmission ? '#6b7280' : '#22d3ee',
-                fontSize: '0.7rem',
-                cursor: hasPendingSubmission ? 'not-allowed' : 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.25rem',
-                height: '24px'
-              }}
+              }
             >
-              {hasPendingSubmission ? '⏳ Pending' : '✏️ Update'}
-            </button>
+              <span 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!hasPendingSubmission) onStatusModalOpen();
+                }}
+                style={{ 
+                  padding: '0.25rem 0.5rem',
+                  borderRadius: '4px',
+                  fontSize: '0.7rem',
+                  fontWeight: '500',
+                  backgroundColor: hasPendingSubmission ? '#6b728015' : (status === 'Unannounced' ? '#6b728015' : `${statusColor}15`),
+                  color: hasPendingSubmission ? '#6b7280' : statusColor,
+                  border: `1px solid ${hasPendingSubmission ? '#6b728030' : (status === 'Unannounced' ? '#6b728030' : `${statusColor}30`)}`,
+                  cursor: hasPendingSubmission ? 'default' : 'pointer',
+                  height: '24px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.25rem'
+                }}
+              >
+                {hasPendingSubmission ? '⏳ Pending' : status}
+              </span>
+            </SmartTooltip>
           </div>
           
           {/* Row 4: Total KvKs + Actions */}

@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Kingdom } from '../types';
-import { useIsMobile } from '../hooks/useMediaQuery';
+import SmartTooltip from './shared/SmartTooltip';
 
 interface AchievementBadgesProps {
   kingdom: Kingdom;
@@ -44,15 +44,9 @@ const achievements: Achievement[] = [
 ];
 
 const AchievementBadges: React.FC<AchievementBadgesProps> = ({ kingdom, compact = false }) => {
-  const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
-  const isMobile = useIsMobile();
   const earned = achievements.filter(a => a.check(kingdom));
   
   if (earned.length === 0) return null;
-
-  const handleTooltipToggle = (id: string) => {
-    setActiveTooltip(prev => prev === id ? null : id);
-  };
 
   return (
     <div style={{ 
@@ -62,50 +56,29 @@ const AchievementBadges: React.FC<AchievementBadgesProps> = ({ kingdom, compact 
       alignItems: 'center'
     }}>
       {earned.map(achievement => (
-        <span
+        <SmartTooltip
           key={achievement.id}
-          style={{
-            fontSize: compact ? '0.9rem' : '1.1rem',
-            cursor: 'default',
-            filter: `drop-shadow(0 0 4px ${achievement.color}60)`,
-            transition: 'transform 0.2s ease',
-            position: 'relative'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'scale(1.2)';
-            if (!isMobile) setActiveTooltip(achievement.id);
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'scale(1)';
-            if (!isMobile) setActiveTooltip(null);
-          }}
-          onClick={() => isMobile && handleTooltipToggle(achievement.id)}
-        >
-          {achievement.icon}
-          {activeTooltip === achievement.id && (
-            <div style={{
-              position: 'absolute',
-              bottom: '100%',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              marginBottom: '8px',
-              backgroundColor: '#0a0a0a',
-              border: `1px solid ${achievement.color}`,
-              borderRadius: '8px',
-              padding: '0.5rem 0.7rem',
-              whiteSpace: 'nowrap',
-              zIndex: 100,
-              boxShadow: '0 4px 12px rgba(0,0,0,0.4)'
-            }}>
-              <div style={{ color: achievement.color, fontWeight: 'bold', fontSize: '0.75rem', marginBottom: '3px' }}>
-                {achievement.title}
-              </div>
-              <div style={{ color: '#9ca3af', fontSize: '0.65rem' }}>
-                {achievement.description}
-              </div>
+          accentColor={achievement.color}
+          content={
+            <div style={{ fontSize: '0.7rem' }}>
+              <div style={{ color: achievement.color, fontWeight: 'bold', marginBottom: '2px' }}>{achievement.title}</div>
+              <div style={{ color: '#9ca3af' }}>{achievement.description}</div>
             </div>
-          )}
-        </span>
+          }
+        >
+          <span
+            style={{
+              fontSize: compact ? '0.9rem' : '1.1rem',
+              cursor: 'default',
+              filter: `drop-shadow(0 0 4px ${achievement.color}60)`,
+              transition: 'transform 0.2s ease',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.2)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
+          >
+            {achievement.icon}
+          </span>
+        </SmartTooltip>
       ))}
     </div>
   );

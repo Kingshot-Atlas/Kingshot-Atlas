@@ -222,7 +222,7 @@ function createRankingsEmbed(kingdoms, title = '\ud83c\udfc6 Atlas Rankings') {
 }
 
 /**
- * Create tier list embed
+ * Create tier list embed — 2-column layout, 10 kingdoms per page
  */
 function createTierEmbed(tier, kingdoms) {
   const tierEmoji = getTierEmoji(tier);
@@ -234,25 +234,43 @@ function createTierEmbed(tier, kingdoms) {
     D: 'New or struggling kingdoms',
   };
 
-  const kingdomList = kingdoms.slice(0, 15).map((k, i) => {
-    return `\`${(i + 1).toString().padStart(2, ' ')}.\` **K${k.kingdom_number}** • ${k.overall_score.toFixed(1)} pts`;
-  }).join('\n');
+  const pageSize = 10;
+  const page = kingdoms.slice(0, pageSize);
+
+  // Format a single row: rank + full kingdom name + right-aligned score
+  const formatRow = (k, idx) => {
+    const rank = (idx + 1).toString().padStart(2, ' ');
+    const name = `Kingdom ${k.kingdom_number}`;
+    const score = k.overall_score.toFixed(1);
+    // Pad between name and score so score is right-aligned (total ~22 chars)
+    const padLen = Math.max(1, 22 - rank.length - 2 - name.length - score.length);
+    return `${rank}. ${name}${' '.repeat(padLen)}${score}`;
+  };
+
+  const half = Math.ceil(page.length / 2);
+  const col1 = page.slice(0, half);
+  const col2 = page.slice(half);
+
+  const col1Text = col1.length > 0
+    ? '```\n' + col1.map((k, i) => formatRow(k, i)).join('\n') + '\n```'
+    : 'No kingdoms.';
+  const col2Text = col2.length > 0
+    ? '```\n' + col2.map((k, i) => formatRow(k, i + half)).join('\n') + '\n```'
+    : '\u200b';
 
   const embed = new EmbedBuilder()
     .setColor(getTierColor(tier))
     .setTitle(`${tierEmoji} Tier ${tier} Kingdoms`)
     .setDescription(tierDescriptions[tier] || '')
     .addFields(
-      {
-        name: `${kingdoms.length} Kingdoms`,
-        value: kingdomList || 'No kingdoms in this tier.',
-      },
+      { name: '\u200b', value: col1Text, inline: true },
+      { name: '\u200b', value: col2Text, inline: true },
       {
         name: '\u200b',
         value: `[\ud83c\udfc6 View full rankings on ks-atlas.com](${config.urls.rankings})`,
       }
     )
-    .setFooter({ text: config.bot.footerText })
+    .setFooter({ text: `${config.bot.footerText} • Showing ${page.length} of ${kingdoms.length}` })
     .setTimestamp();
 
   return embed;

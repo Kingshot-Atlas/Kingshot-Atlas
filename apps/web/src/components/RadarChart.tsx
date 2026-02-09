@@ -1,4 +1,4 @@
-import React, { memo, useState, useEffect, useRef, useCallback } from 'react';
+import React, { memo, useState, useEffect, useRef } from 'react';
 import { useIsMobile } from '../hooks/useMediaQuery';
 
 interface RadarDataPoint {
@@ -47,9 +47,7 @@ const RadarChart: React.FC<RadarChartProps> = ({
   const animationRef = useRef<number | null>(null);
   const prevDataRef = useRef<string>(data.map(d => d.value).join(','));
   
-  // Touch/hover state for mobile interactions
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
-  const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
+  // Touch/hover state for label tooltips
   const [hoveredLabel, setHoveredLabel] = useState<number | null>(null);
   
   // Check for reduced motion preference
@@ -106,34 +104,6 @@ const RadarChart: React.FC<RadarChartProps> = ({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, shouldAnimate]);
   
-  // Handle touch/click on data points (mobile-friendly)
-  const handlePointInteraction = useCallback((index: number) => {
-    setActiveIndex(prev => prev === index ? null : index);
-  }, []);
-  
-  // Handle keyboard navigation
-  const handleKeyDown = useCallback((e: React.KeyboardEvent, index: number) => {
-    switch (e.key) {
-      case 'Enter':
-      case ' ':
-        e.preventDefault();
-        handlePointInteraction(index);
-        break;
-      case 'ArrowRight':
-      case 'ArrowDown':
-        e.preventDefault();
-        setFocusedIndex((index + 1) % data.length);
-        break;
-      case 'ArrowLeft':
-      case 'ArrowUp':
-        e.preventDefault();
-        setFocusedIndex((index - 1 + data.length) % data.length);
-        break;
-      case 'Escape':
-        setActiveIndex(null);
-        break;
-    }
-  }, [data.length, handlePointInteraction]);
   
   const angleStep = (2 * Math.PI) / data.length;
   
@@ -245,84 +215,19 @@ const RadarChart: React.FC<RadarChartProps> = ({
           }}
         />
         
-        {/* Data points - interactive for touch/keyboard */}
-        {dataPoints.map((point, i) => {
-          const isActive = activeIndex === i;
-          const isFocused = focusedIndex === i;
-          return (
-            <g key={`point-${i}`}>
-              {/* Larger touch target for mobile */}
-              <circle
-                cx={point.x}
-                cy={point.y}
-                r={isMobile ? 20 : 12}
-                fill="transparent"
-                style={{ cursor: 'pointer' }}
-                onClick={() => handlePointInteraction(i)}
-                onTouchEnd={(e) => {
-                  e.preventDefault();
-                  handlePointInteraction(i);
-                }}
-                tabIndex={0}
-                role="button"
-                aria-label={`${data[i]?.label}: ${Math.round(data[i]?.value || 0)}%`}
-                onKeyDown={(e) => handleKeyDown(e, i)}
-                onFocus={() => setFocusedIndex(i)}
-                onBlur={() => setFocusedIndex(null)}
-              />
-              {/* Visible point */}
-              <circle
-                cx={point.x}
-                cy={point.y}
-                r={isActive || isFocused ? 6 : 4}
-                fill={accentColor}
-                stroke={isFocused ? '#fff' : '#0a0a0a'}
-                strokeWidth={isFocused ? 3 : 2}
-                style={{ 
-                  transition: 'r 0.15s ease, stroke-width 0.15s ease',
-                  pointerEvents: 'none'
-                }}
-              />
-              {/* Tooltip on active/focused */}
-              {(isActive || isFocused) && (
-                <foreignObject
-                  x={point.x - 90}
-                  y={point.y - 75}
-                  width={180}
-                  height={70}
-                  style={{ overflow: 'visible' }}
-                >
-                  <div style={{
-                    backgroundColor: '#0a0a0a',
-                    border: `1px solid ${accentColor}`,
-                    borderRadius: '6px',
-                    padding: '0.5rem 0.6rem',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
-                    textAlign: 'center'
-                  }}>
-                    <div style={{ 
-                      color: accentColor, 
-                      fontWeight: 600, 
-                      fontSize: '0.75rem',
-                      marginBottom: '0.2rem'
-                    }}>
-                      {data[i]?.label}: {Math.round(data[i]?.value || 0)}%
-                    </div>
-                    {RADAR_TOOLTIPS[data[i]?.label || ''] && (
-                      <div style={{ 
-                        color: '#9ca3af', 
-                        fontSize: '0.6rem',
-                        lineHeight: 1.3
-                      }}>
-                        {RADAR_TOOLTIPS[data[i]?.label || '']}
-                      </div>
-                    )}
-                  </div>
-                </foreignObject>
-              )}
-            </g>
-          );
-        })}
+        {/* Data points - decorative only, tooltips on labels */}
+        {dataPoints.map((point, i) => (
+          <circle
+            key={`point-${i}`}
+            cx={point.x}
+            cy={point.y}
+            r={4}
+            fill={accentColor}
+            stroke="#0a0a0a"
+            strokeWidth={2}
+            style={{ pointerEvents: 'none' }}
+          />
+        ))}
         
         {/* Labels with tooltips */}
         {labelPositions.map((pos, i) => {
@@ -362,29 +267,34 @@ const RadarChart: React.FC<RadarChartProps> = ({
         })}
         
         {/* Tooltip layer - rendered last to be on top */}
-        {hoveredLabel !== null && labelPositions[hoveredLabel] && RADAR_TOOLTIPS[labelPositions[hoveredLabel]?.label ?? ''] && (
-          <foreignObject
-            x={Math.max(10, Math.min(size - 190, (labelPositions[hoveredLabel]?.x ?? 0) - 90))}
-            y={(labelPositions[hoveredLabel]?.y ?? 0) + 18}
-            width={180}
-            height={50}
-            style={{ overflow: 'visible', pointerEvents: 'none' }}
-          >
-            <div style={{
-              backgroundColor: '#0a0a0a',
-              border: `1px solid ${accentColor}`,
-              borderRadius: '6px',
-              padding: '0.4rem 0.5rem',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
-              textAlign: 'center',
-              fontSize: '0.6rem',
-              color: '#d1d5db',
-              lineHeight: 1.3
-            }}>
-              {RADAR_TOOLTIPS[labelPositions[hoveredLabel]?.label ?? '']}
-            </div>
-          </foreignObject>
-        )}
+        {hoveredLabel !== null && labelPositions[hoveredLabel] && RADAR_TOOLTIPS[labelPositions[hoveredLabel]?.label ?? ''] && (() => {
+          const lbl = labelPositions[hoveredLabel]!;
+          const isBottom = lbl.y > center;
+          const tooltipH = 50;
+          return (
+            <foreignObject
+              x={Math.max(10, Math.min(size - 190, lbl.x - 90))}
+              y={isBottom ? lbl.y - 18 - tooltipH : lbl.y + 18}
+              width={180}
+              height={tooltipH}
+              style={{ overflow: 'visible', pointerEvents: 'none' }}
+            >
+              <div style={{
+                backgroundColor: '#0a0a0a',
+                border: `1px solid ${accentColor}`,
+                borderRadius: '6px',
+                padding: '0.4rem 0.5rem',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+                textAlign: 'center',
+                fontSize: '0.6rem',
+                color: '#d1d5db',
+                lineHeight: 1.3
+              }}>
+                {RADAR_TOOLTIPS[lbl.label]}
+              </div>
+            </foreignObject>
+          );
+        })()}
       </svg>
       
       {/* Accessible data table (hidden visually, available to screen readers) */}

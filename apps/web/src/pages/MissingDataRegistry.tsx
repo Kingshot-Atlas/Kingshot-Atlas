@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import SmartTooltip from '../components/shared/SmartTooltip';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { apiService } from '../services/api';
@@ -39,50 +40,34 @@ interface MissingKingdom {
 
 // KvK Badge with tooltip
 const KvKBadge: React.FC<{ kvk: number; isLatest?: boolean }> = ({ kvk, isLatest }) => {
-  const [showTooltip, setShowTooltip] = useState(false);
   const date = KVK_DATES[kvk] || 'Unknown';
   
   return (
-    <span
-      style={{
-        backgroundColor: isLatest ? '#22d3ee20' : '#2a2a2a',
-        color: isLatest ? '#22d3ee' : '#9ca3af',
-        padding: '0.25rem 0.5rem',
-        borderRadius: '4px',
-        fontSize: '0.75rem',
-        fontWeight: '500',
-        border: isLatest ? '1px solid #22d3ee40' : 'none',
-        cursor: 'help',
-        position: 'relative',
-        display: 'inline-block'
-      }}
-      onMouseEnter={() => setShowTooltip(true)}
-      onMouseLeave={() => setShowTooltip(false)}
-      onClick={() => setShowTooltip(!showTooltip)}
-    >
-      #{kvk}
-      {showTooltip && (
-        <div style={{
-          position: 'absolute',
-          bottom: '100%',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          backgroundColor: '#1a1a1f',
-          border: '1px solid #3a3a3a',
-          borderRadius: '6px',
-          padding: '0.4rem 0.6rem',
-          fontSize: '0.7rem',
-          color: '#fff',
-          whiteSpace: 'nowrap',
-          zIndex: 100,
-          marginBottom: '4px',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.4)'
-        }}>
+    <SmartTooltip
+      accentColor="#22d3ee"
+      content={
+        <div style={{ fontSize: '0.7rem' }}>
           <div style={{ fontWeight: '600', color: '#22d3ee' }}>KvK #{kvk}</div>
           <div style={{ color: '#9ca3af' }}>{date}</div>
         </div>
-      )}
-    </span>
+      }
+    >
+      <span
+        style={{
+          backgroundColor: isLatest ? '#22d3ee20' : '#2a2a2a',
+          color: isLatest ? '#22d3ee' : '#9ca3af',
+          padding: '0.25rem 0.5rem',
+          borderRadius: '4px',
+          fontSize: '0.75rem',
+          fontWeight: '500',
+          border: isLatest ? '1px solid #22d3ee40' : 'none',
+          cursor: 'help',
+          display: 'inline-block'
+        }}
+      >
+        #{kvk}
+      </span>
+    </SmartTooltip>
   );
 };
 

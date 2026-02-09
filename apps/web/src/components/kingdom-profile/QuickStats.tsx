@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { neonGlow } from '../../utils/styles';
+import SmartTooltip from '../shared/SmartTooltip';
 
 interface StatItem {
   label: string;
@@ -27,12 +28,6 @@ const QuickStats: React.FC<QuickStatsProps> = ({
   battleWins,
   isMobile,
 }) => {
-  const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
-
-  const handleTooltipToggle = (id: string) => {
-    setActiveTooltip(activeTooltip === id ? null : id);
-  };
-
   const kvks = totalKvks || 1;
   const reversals = prepWins - dominations;
   const comebacks = battleWins - dominations;
@@ -49,55 +44,43 @@ const QuickStats: React.FC<QuickStatsProps> = ({
       display: 'grid', 
       gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', 
       gap: isMobile ? '0.5rem' : '0.75rem', 
-      marginBottom: isMobile ? '1.25rem' : '1.5rem' 
+      marginBottom: isMobile ? '1.25rem' : '1.5rem',
+      width: '100%'
     }}>
       {stats.map((stat, i) => (
-        <div 
+        <SmartTooltip
           key={i}
-          className="stat-card"
-          onClick={() => isMobile && handleTooltipToggle(`stat-${i}`)}
-          onMouseEnter={() => !isMobile && setActiveTooltip(`stat-${i}`)}
-          onMouseLeave={() => !isMobile && setActiveTooltip(null)}
-          style={{ 
-            padding: isMobile ? '0.75rem 0.5rem' : '1rem', 
-            textAlign: 'center',
-            position: 'relative',
-            cursor: 'pointer'
-          }}
-        >
-          <div style={{ fontSize: isMobile ? '0.9rem' : '1rem', marginBottom: '0.25rem' }}>{stat.icon}</div>
-          <div style={{ 
-            fontSize: isMobile ? '1.25rem' : '1.5rem', 
-            fontWeight: 'bold', 
-            ...neonGlow(stat.color), 
-            fontFamily: 'system-ui',
-            lineHeight: 1
-          }}>
-            {stat.value}<span style={{ fontSize: '0.65rem', color: stat.color, fontWeight: 'normal', marginLeft: '0.25rem' }}>({stat.percent}%)</span>
-          </div>
-          <div style={{ color: '#6b7280', fontSize: isMobile ? '0.65rem' : '0.7rem', marginTop: '0.25rem' }}>{stat.label}</div>
-          {activeTooltip === `stat-${i}` && (
-            <div style={{
-              position: 'absolute',
-              bottom: '100%',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              marginBottom: '0.5rem',
-              padding: '0.5rem 0.75rem',
-              backgroundColor: '#0a0a0a',
-              border: `1px solid ${stat.color}`,
-              borderRadius: '6px',
-              fontSize: '0.75rem',
-              color: '#fff',
-              whiteSpace: 'nowrap',
-              zIndex: 100,
-              boxShadow: '0 4px 12px rgba(0,0,0,0.4)'
-            }}>
-              <div style={{ color: stat.color, fontWeight: 'bold', marginBottom: '0.15rem' }}>{stat.icon} {stat.label}</div>
-              <div style={{ color: '#9ca3af', fontSize: '0.65rem' }}>{stat.tooltip}</div>
+          accentColor={stat.color}
+          style={{ width: '100%', display: 'flex' }}
+          content={
+            <div style={{ fontSize: '0.7rem' }}>
+              <div style={{ color: stat.color, fontWeight: 'bold', marginBottom: '2px' }}>{stat.icon} {stat.label}</div>
+              <div style={{ color: '#9ca3af' }}>{stat.tooltip}</div>
             </div>
-          )}
-        </div>
+          }
+        >
+          <div 
+            className="stat-card"
+            style={{ 
+              padding: isMobile ? '0.75rem 0.5rem' : '1rem', 
+              textAlign: 'center',
+              cursor: 'default',
+              width: '100%'
+            }}
+          >
+            <div style={{ fontSize: isMobile ? '0.9rem' : '1rem', marginBottom: '0.25rem' }}>{stat.icon}</div>
+            <div style={{ 
+              fontSize: isMobile ? '1.25rem' : '1.5rem', 
+              fontWeight: 'bold', 
+              ...neonGlow(stat.color), 
+              fontFamily: 'system-ui',
+              lineHeight: 1
+            }}>
+              {stat.value}<span style={{ fontSize: '0.65rem', color: stat.color, fontWeight: 'normal', marginLeft: '0.25rem' }}>({stat.percent}%)</span>
+            </div>
+            <div style={{ color: '#6b7280', fontSize: isMobile ? '0.65rem' : '0.7rem', marginTop: '0.25rem' }}>{stat.label}</div>
+          </div>
+        </SmartTooltip>
       ))}
     </div>
   );

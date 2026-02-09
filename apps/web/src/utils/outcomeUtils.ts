@@ -136,7 +136,7 @@ export function getOutcomeDisplay(outcome: StandardOutcome): {
         abbrev: 'C',
         color: '#3b82f6',
         bgColor: '#3b82f615',
-        emoji: '�',
+        emoji: '💪',
         description: 'Lost Prep but won Battle phase'
       };
     case 'Invasion':

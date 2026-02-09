@@ -120,7 +120,8 @@ class StatusService {
     oldStatus: string,
     newStatus: string,
     notes: string,
-    userId: string
+    userId: string,
+    isAdmin: boolean = false
   ): Promise<StatusSubmission> {
     this.ensureSupabase();
 
@@ -164,15 +165,25 @@ class StatusService {
           sessionUserId: sessionData.session.user.id 
         });
 
-        const { data, error } = await supabase!
-          .from('status_submissions')
-          .insert({
+        const insertPayload: Record<string, unknown> = {
             kingdom_number: kingdomNumber,
             old_status: oldStatus,
             new_status: newStatus,
             notes,
             submitted_by: userId
-          })
+          };
+
+        // Admin submissions are auto-approved
+        if (isAdmin) {
+          insertPayload.status = 'approved';
+          insertPayload.reviewed_by = userId;
+          insertPayload.reviewed_at = new Date().toISOString();
+          insertPayload.review_notes = 'Auto-approved (admin submission)';
+        }
+
+        const { data, error } = await supabase!
+          .from('status_submissions')
+          .insert(insertPayload)
           .select()
           .single();
 

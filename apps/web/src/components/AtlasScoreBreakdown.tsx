@@ -1,9 +1,10 @@
-import React, { useState, memo, Suspense, lazy, useMemo, useCallback, useEffect, useRef } from 'react';
+import React, { memo, Suspense, lazy, useMemo, useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { KingdomProfile } from '../types';
 import { useAnalytics } from '../hooks/useAnalytics';
 import DonutChart from './DonutChart';
+import SmartTooltip from './shared/SmartTooltip';
 import {
   calculateAtlasScore,
   extractStatsFromProfile,
@@ -54,7 +55,6 @@ const AtlasScoreBreakdown: React.FC<AtlasScoreBreakdownProps> = ({ kingdom, rank
     }
   }, [onToggle]);
   
-  const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
   const isMobile = useIsMobile();
   const { trackFeature } = useAnalytics();
   
@@ -82,6 +82,26 @@ const AtlasScoreBreakdown: React.FC<AtlasScoreBreakdownProps> = ({ kingdom, rank
     }
   }, [showChart, setShowChart, trackFeature, kingdom.kingdom_number, kingdom.overall_score, kingdom.power_tier]);
   
+  // Handle edge case: new kingdom with 0 KvKs
+  if (kingdom.total_kvks === 0) {
+    return (
+      <div style={{
+        backgroundColor: '#131318',
+        borderRadius: '12px',
+        padding: isMobile ? '1rem' : '1.25rem',
+        border: '1px solid #2a2a2a',
+        marginBottom: isMobile ? '1.25rem' : '1.5rem'
+      }}>
+        <h4 style={{ color: '#fff', fontSize: '0.9rem', fontWeight: '600', margin: '0 0 0.75rem 0', textAlign: 'center' }}>
+          Atlas Score Breakdown
+        </h4>
+        <div style={{ color: '#6b7280', fontSize: '0.85rem', textAlign: 'center', padding: '1rem' }}>
+          Play your first KvK to unlock score breakdown!
+        </div>
+      </div>
+    );
+  }
+
   // Calculate score components using centralized Atlas Score formula
   // Option B: Convert multipliers to sequential point contributions so numbers ADD UP
   const scoreComponents = useMemo(() => {
@@ -288,7 +308,7 @@ const AtlasScoreBreakdown: React.FC<AtlasScoreBreakdownProps> = ({ kingdom, rank
               justifyItems: 'center',
               marginBottom: '0.5rem'
             }}>
-              {[
+              {([
                 { 
                   label: 'Base Score', 
                   sublabel: 'win rates',
@@ -337,57 +357,38 @@ const AtlasScoreBreakdown: React.FC<AtlasScoreBreakdownProps> = ({ kingdom, rank
                   tooltipKey: (kingdom.total_kvks || 0) >= 7 ? 'Experience' : 'Experience Penalty',
                   isFullCredit: (kingdom.total_kvks || 0) >= 7
                 },
-              ].map((item, i) => {
+              ] as const).map((item, i) => {
                 const tooltipText = SCORE_TOOLTIPS[item.tooltipKey];
                 const isNegative = item.points < 0 && !item.isFullCredit;
-                // Green for positive/full credit, red for negative contributions
                 const displayColor = isNegative ? '#ef4444' : '#22c55e';
                 return (
-                  <div 
+                  <SmartTooltip
                     key={i}
-                    style={{ position: 'relative' }}
-                    onMouseEnter={() => !isMobile && setActiveTooltip(item.label)}
-                    onMouseLeave={() => !isMobile && setActiveTooltip(null)}
-                    onClick={() => isMobile && setActiveTooltip(activeTooltip === item.label ? null : item.label)}
-                  >
-                    {activeTooltip === item.label && tooltipText && (
-                      <div style={{
-                        position: 'absolute',
-                        bottom: '100%',
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        marginBottom: '0.5rem',
-                        backgroundColor: '#0a0a0a',
-                        border: `1px solid ${displayColor}`,
-                        borderRadius: '6px',
-                        padding: '0.5rem 0.75rem',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
-                        zIndex: 1000,
-                        width: 'max-content',
-                        maxWidth: '200px',
-                        fontSize: '0.65rem',
-                        color: '#d1d5db',
-                        lineHeight: 1.4,
-                        textAlign: 'center'
-                      }}>
-                        <div style={{ fontWeight: '600', color: displayColor, marginBottom: '0.25rem' }}>
-                          {item.label}
+                    accentColor={displayColor}
+                    maxWidth={200}
+                    content={
+                      tooltipText ? (
+                        <div style={{ fontSize: '0.65rem', color: '#d1d5db', lineHeight: 1.4, textAlign: 'center' }}>
+                          <div style={{ fontWeight: '600', color: displayColor, marginBottom: '0.25rem' }}>{item.label}</div>
+                          {tooltipText}
                         </div>
-                        {tooltipText}
-                      </div>
-                    )}
-                    <DonutChart
-                      value={item.points}
-                      maxValue={item.maxPoints}
-                      size={isMobile ? 60 : 70}
-                      strokeWidth={isMobile ? 5 : 6}
-                      color={displayColor}
-                      label={item.label}
-                      sublabel={item.sublabel}
-                      isNegative={isNegative}
-                      showCheckmark={item.isFullCredit}
-                    />
-                  </div>
+                      ) : null
+                    }
+                  >
+                    <div>
+                      <DonutChart
+                        value={item.points}
+                        maxValue={item.maxPoints}
+                        size={isMobile ? 60 : 70}
+                        strokeWidth={isMobile ? 5 : 6}
+                        color={displayColor}
+                        label={item.label}
+                        sublabel={item.sublabel}
+                        isNegative={isNegative}
+                        showCheckmark={item.isFullCredit}
+                      />
+                    </div>
+                  </SmartTooltip>
                 );
               })}
             </div>

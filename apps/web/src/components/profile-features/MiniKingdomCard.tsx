@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Kingdom, getPowerTier, TIER_COLORS } from '../../types';
+import SmartTooltip from '../shared/SmartTooltip';
 
 interface MiniKingdomCardProps {
   kingdom: Kingdom;
@@ -23,7 +24,6 @@ export const MiniKingdomCard: React.FC<MiniKingdomCardProps> = ({
   navigate 
 }) => {
   const [isHovered, setIsHovered] = useState(false);
-  const [showTierTooltip, setShowTierTooltip] = useState(false);
 
   const tier = kingdom.power_tier ?? getPowerTier(kingdom.overall_score);
   const tierColors = TIER_COLORS;
@@ -89,48 +89,31 @@ export const MiniKingdomCard: React.FC<MiniKingdomCardProps> = ({
         }}>
           Kingdom {kingdom.kingdom_number}
         </span>
-        <div
-          style={{
-            position: 'relative',
-            padding: '0.2rem 0.5rem',
-            borderRadius: '6px',
-            fontSize: '0.7rem',
-            fontWeight: 'bold',
-            cursor: 'default',
-            backgroundColor: `${tierColors[tier]}20`,
-            color: tierColors[tier],
-            border: `1px solid ${tierColors[tier]}50`
-          }}
-          onClick={(e) => e.stopPropagation()}
-          onMouseEnter={() => setShowTierTooltip(true)}
-          onMouseLeave={() => setShowTierTooltip(false)}
-        >
-          {tier}
-          {showTierTooltip && (
-            <div style={{
-              position: 'absolute',
-              top: '100%',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              marginTop: '8px',
-              backgroundColor: '#0a0a0a',
-              border: `1px solid ${tierColors[tier]}`,
-              borderRadius: '8px',
-              padding: '0.5rem 0.7rem',
-              zIndex: 1000,
-              whiteSpace: 'nowrap',
-              fontSize: '0.75rem',
-              boxShadow: '0 8px 24px rgba(0,0,0,0.5)'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <span style={{ color: tierColors[tier], fontWeight: 'bold' }}>{tier}-Tier</span>
-                <span style={{ color: '#9ca3af' }}>
-                  {tier === 'S' ? '57+ (Top 3%)' : tier === 'A' ? '47 – 57 (Top 10%)' : tier === 'B' ? '38 – 47 (Top 25%)' : tier === 'C' ? '29 – 38 (Top 50%)' : '< 29 (Bottom 50%)'}
-                </span>
-              </div>
+        <SmartTooltip
+          accentColor={tierColors[tier]}
+          preferPosition="bottom"
+          content={
+            <div style={{ fontSize: '0.7rem', color: '#9ca3af' }}>
+              <span style={{ color: tierColors[tier], fontWeight: 'bold' }}>{tier}-Tier</span> — {tier === 'S' ? '57+ (Top 3%)' : tier === 'A' ? '47–57 (Top 10%)' : tier === 'B' ? '38–47 (Top 25%)' : tier === 'C' ? '29–38 (Top 50%)' : '< 29 (Bottom 50%)'}
             </div>
-          )}
-        </div>
+          }
+        >
+          <div
+            style={{
+              padding: '0.2rem 0.5rem',
+              borderRadius: '6px',
+              fontSize: '0.7rem',
+              fontWeight: 'bold',
+              cursor: 'default',
+              backgroundColor: `${tierColors[tier]}20`,
+              color: tierColors[tier],
+              border: `1px solid ${tierColors[tier]}50`
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {tier}
+          </div>
+        </SmartTooltip>
       </div>
 
       {/* Atlas Score Row */}

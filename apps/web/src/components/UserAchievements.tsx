@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import SmartTooltip from './shared/SmartTooltip';
 
 interface UserStats {
   reviewsWritten: number;
@@ -188,61 +189,34 @@ const UserAchievements: React.FC = () => {
       {earned.length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
           {earned.map(a => (
-            <div
+            <SmartTooltip
               key={a.id}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.4rem',
-                padding: '0.4rem 0.6rem',
-                backgroundColor: `${a.color}15`,
-                border: `1px solid ${a.color}30`,
-                borderRadius: '8px',
-                cursor: 'default',
-                position: 'relative'
-              }}
-              onMouseEnter={(e) => {
-                const tooltip = e.currentTarget.querySelector('.achievement-tooltip') as HTMLElement;
-                if (tooltip) tooltip.style.opacity = '1';
-              }}
-              onMouseLeave={(e) => {
-                const tooltip = e.currentTarget.querySelector('.achievement-tooltip') as HTMLElement;
-                if (tooltip) tooltip.style.opacity = '0';
-              }}
+              accentColor={a.color}
+              maxWidth={200}
+              content={
+                <div style={{ fontSize: '0.7rem' }}>
+                  <div style={{ color: a.color, fontWeight: 'bold', marginBottom: '2px' }}>{a.title} ✓</div>
+                  <div style={{ color: '#9ca3af', lineHeight: 1.4 }}>{a.description}</div>
+                  <div style={{ color: '#22c55e', fontSize: '0.65rem', marginTop: '3px', fontWeight: '500' }}>Achievement Unlocked!</div>
+                </div>
+              }
             >
-              <span style={{ fontSize: '1rem' }}>{a.icon}</span>
-              <span style={{ fontSize: '0.75rem', color: a.color, fontWeight: '600' }}>{a.title}</span>
               <div
-                className="achievement-tooltip"
                 style={{
-                  position: 'absolute',
-                  bottom: '100%',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  marginBottom: '8px',
-                  backgroundColor: '#0a0a0a',
-                  border: `1px solid ${a.color}`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  padding: '0.4rem 0.6rem',
+                  backgroundColor: `${a.color}15`,
+                  border: `1px solid ${a.color}30`,
                   borderRadius: '8px',
-                  padding: '0.6rem 0.75rem',
-                  minWidth: '180px',
-                  zIndex: 100,
-                  boxShadow: `0 4px 20px rgba(0, 0, 0, 0.5), 0 0 10px ${a.color}30`,
-                  opacity: 0,
-                  transition: 'opacity 0.15s ease',
-                  pointerEvents: 'none'
+                  cursor: 'default'
                 }}
               >
-                <div style={{ color: a.color, fontWeight: 'bold', fontSize: '0.8rem', marginBottom: '0.25rem' }}>
-                  {a.title} ✓
-                </div>
-                <div style={{ color: '#9ca3af', fontSize: '0.7rem', lineHeight: 1.4 }}>
-                  {a.description}
-                </div>
-                <div style={{ color: '#22c55e', fontSize: '0.65rem', marginTop: '0.35rem', fontWeight: '500' }}>
-                  Achievement Unlocked!
-                </div>
+                <span style={{ fontSize: '1rem' }}>{a.icon}</span>
+                <span style={{ fontSize: '0.75rem', color: a.color, fontWeight: '600' }}>{a.title}</span>
               </div>
-            </div>
+            </SmartTooltip>
           ))}
         </div>
       )}
@@ -256,61 +230,32 @@ const UserAchievements: React.FC = () => {
               const progress = a.check(stats);
               const percent = Math.min(100, (progress / a.requirement) * 100);
               return (
-                <div 
-                  key={a.id} 
-                  style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', position: 'relative' }}
-                  onMouseEnter={(e) => {
-                    const tooltip = e.currentTarget.querySelector('.progress-tooltip') as HTMLElement;
-                    if (tooltip) tooltip.style.opacity = '1';
-                  }}
-                  onMouseLeave={(e) => {
-                    const tooltip = e.currentTarget.querySelector('.progress-tooltip') as HTMLElement;
-                    if (tooltip) tooltip.style.opacity = '0';
-                  }}
+                <SmartTooltip
+                  key={a.id}
+                  accentColor={a.color}
+                  maxWidth={220}
+                  content={
+                    <div style={{ fontSize: '0.7rem' }}>
+                      <div style={{ color: '#fff', fontWeight: 'bold', marginBottom: '2px' }}>{a.icon} {a.title}</div>
+                      <div style={{ color: '#9ca3af', lineHeight: 1.4, marginBottom: '3px' }}>{a.description}</div>
+                      <div style={{ color: a.color, fontWeight: '500' }}>Progress: {progress}/{a.requirement} ({Math.round(percent)}%)</div>
+                      <div style={{ color: '#6b7280', fontSize: '0.65rem', marginTop: '2px' }}>{a.requirement - progress} more to unlock</div>
+                    </div>
+                  }
+                  style={{ display: 'flex', width: '100%' }}
                 >
-                  <span style={{ fontSize: '0.9rem', opacity: 0.5, cursor: 'default' }}>{a.icon}</span>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '0.7rem', color: '#6b7280', marginBottom: '0.15rem' }}>
-                      {a.title} ({progress}/{a.requirement})
-                    </div>
-                    <div style={{ height: '4px', backgroundColor: '#2a2a2a', borderRadius: '2px' }}>
-                      <div style={{ height: '100%', width: `${percent}%`, backgroundColor: a.color, borderRadius: '2px', opacity: 0.6 }} />
-                    </div>
-                  </div>
-                  <div
-                    className="progress-tooltip"
-                    style={{
-                      position: 'absolute',
-                      bottom: '100%',
-                      left: '50%',
-                      transform: 'translateX(-50%)',
-                      marginBottom: '8px',
-                      backgroundColor: '#0a0a0a',
-                      border: '1px solid #3a3a3a',
-                      borderRadius: '8px',
-                      padding: '0.6rem 0.75rem',
-                      minWidth: '200px',
-                      zIndex: 100,
-                      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5)',
-                      opacity: 0,
-                      transition: 'opacity 0.15s ease',
-                      pointerEvents: 'none'
-                    }}
-                  >
-                    <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '0.8rem', marginBottom: '0.25rem' }}>
-                      {a.icon} {a.title}
-                    </div>
-                    <div style={{ color: '#9ca3af', fontSize: '0.7rem', lineHeight: 1.4, marginBottom: '0.4rem' }}>
-                      {a.description}
-                    </div>
-                    <div style={{ color: a.color, fontSize: '0.7rem', fontWeight: '500' }}>
-                      Progress: {progress} / {a.requirement} ({Math.round(percent)}%)
-                    </div>
-                    <div style={{ color: '#6b7280', fontSize: '0.65rem', marginTop: '0.25rem' }}>
-                      {a.requirement - progress} more to unlock
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%' }}>
+                    <span style={{ fontSize: '0.9rem', opacity: 0.5, cursor: 'default' }}>{a.icon}</span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: '0.7rem', color: '#6b7280', marginBottom: '0.15rem' }}>
+                        {a.title} ({progress}/{a.requirement})
+                      </div>
+                      <div style={{ height: '4px', backgroundColor: '#2a2a2a', borderRadius: '2px' }}>
+                        <div style={{ height: '100%', width: `${percent}%`, backgroundColor: a.color, borderRadius: '2px', opacity: 0.6 }} />
+                      </div>
                     </div>
                   </div>
-                </div>
+                </SmartTooltip>
               );
             })}
           </div>

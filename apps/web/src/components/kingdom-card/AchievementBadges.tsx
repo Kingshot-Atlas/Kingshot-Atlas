@@ -1,5 +1,6 @@
-import React, { useState, memo } from 'react';
+import React, { memo } from 'react';
 import { Kingdom } from '../../types';
+import SmartTooltip from '../shared/SmartTooltip';
 
 interface Achievement {
   icon: string;
@@ -41,7 +42,6 @@ export const getAchievements = (kingdom: Kingdom): Achievement[] => {
 };
 
 const AchievementBadges: React.FC<AchievementBadgesProps> = ({ kingdom }) => {
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const achievements = getAchievements(kingdom);
 
   if (achievements.length === 0) return null;
@@ -49,39 +49,27 @@ const AchievementBadges: React.FC<AchievementBadgesProps> = ({ kingdom }) => {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
       {achievements.map((a, i) => (
-        <span 
-          key={i} 
-          style={{ 
-            fontSize: '1rem', 
-            cursor: 'default', 
-            filter: `drop-shadow(0 0 4px ${a.color}60)`, 
-            position: 'relative' 
-          }}
-          onMouseEnter={() => setHoveredIndex(i)}
-          onMouseLeave={() => setHoveredIndex(null)}
-        >
-          {a.icon}
-          {hoveredIndex === i && (
-            <div style={{
-              position: 'absolute',
-              bottom: '100%',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              marginBottom: '8px',
-              backgroundColor: '#0a0a0a',
-              border: `1px solid ${a.color}`,
-              borderRadius: '8px',
-              padding: '0.5rem 0.7rem',
-              fontSize: '0.75rem',
-              whiteSpace: 'nowrap',
-              zIndex: 100,
-              boxShadow: '0 8px 24px rgba(0,0,0,0.5)'
-            }}>
-              <div style={{ color: a.color, fontWeight: 'bold', marginBottom: '3px' }}>{a.title}</div>
-              <div style={{ color: '#9ca3af', fontSize: '0.7rem' }}>{a.desc}</div>
+        <SmartTooltip
+          key={i}
+          accentColor={a.color}
+          maxWidth={200}
+          content={
+            <div>
+              <span style={{ color: a.color, fontWeight: 'bold', fontSize: '0.75rem' }}>{a.title}</span>
+              <span style={{ color: '#9ca3af', fontSize: '0.7rem', marginLeft: '0.3rem' }}>{a.desc}</span>
             </div>
-          )}
-        </span>
+          }
+        >
+          <span 
+            style={{ 
+              fontSize: '1rem', 
+              cursor: 'default', 
+              filter: `drop-shadow(0 0 4px ${a.color}60)` 
+            }}
+          >
+            {a.icon}
+          </span>
+        </SmartTooltip>
       ))}
     </div>
   );

@@ -17,7 +17,6 @@ import ScoreHistoryChart from '../components/ScoreHistoryChart';
 import RankingHistoryChart from '../components/RankingHistoryChart';
 import SimilarKingdoms from '../components/SimilarKingdoms';
 import KingdomPlayers from '../components/KingdomPlayers';
-import ClaimKingdom from '../components/ClaimKingdom';
 import AtlasScoreBreakdown from '../components/AtlasScoreBreakdown';
 import LinkAccountNudge from '../components/LinkAccountNudge';
 import PathToNextTier from '../components/PathToNextTier';
@@ -27,6 +26,7 @@ import { useIsMobile } from '../hooks/useMediaQuery';
 import { useAuth } from '../contexts/AuthContext';
 // FavoritesContext is used by child components directly
 import { useToast } from '../components/Toast';
+import { isAdminUsername } from '../utils/constants';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, getKingdomMetaTags } from '../hooks/useMetaTags';
 import { useStructuredData, getKingdomBreadcrumbs } from '../hooks/useStructuredData';
@@ -54,6 +54,7 @@ const KingdomProfile: React.FC = () => {
   const [totalKingdomsAtKvk, setTotalKingdomsAtKvk] = useState<number>(0);
   const [percentileRank, setPercentileRank] = useState<number>(0);
   const [recentScoreChange, setRecentScoreChange] = useState<number | null>(null);
+  const [recentRankChange, setRecentRankChange] = useState<number | null>(null);
 
   // Auto-refresh when KvK history changes for this kingdom via realtime
   const handleKvkHistoryUpdate = useCallback((updatedKingdom: number, kvkNumber: number) => {
@@ -71,7 +72,6 @@ const KingdomProfile: React.FC = () => {
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [hasPendingSubmission, setHasPendingSubmission] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
-  const [showClaimModal, setShowClaimModal] = useState(false);
   const [showKvKErrorModal, setShowKvKErrorModal] = useState(false);
   
   // Expand/collapse all state for collapsible sections
@@ -126,16 +126,18 @@ const KingdomProfile: React.FC = () => {
   const handleStatusSubmit = async (newStatus: string, notes: string) => {
     if (!user || !kingdom) return;
     
+    const adminUser = isAdminUsername(profile?.linked_username) || isAdminUsername(profile?.username);
     await statusService.submitStatusUpdate(
       kingdom.kingdom_number,
       kingdom.most_recent_status || 'Unannounced',
       newStatus,
       notes,
-      user.id
+      user.id,
+      adminUser
     );
     
-    showToast('Status update submitted for review!', 'success');
-    setHasPendingSubmission(true);
+    showToast(adminUser ? 'Status update auto-approved!' : 'Status update submitted for review!', 'success');
+    setHasPendingSubmission(!adminUser);
   };
 
   useEffect(() => {
@@ -166,10 +168,19 @@ const KingdomProfile: React.FC = () => {
       // Get last KvK score change for the Score Change Hook nudge
       if (scoreHistory && scoreHistory.history.length >= 2) {
         const h = scoreHistory.history;
-        const delta = h[h.length - 1].score - h[h.length - 2].score;
+        const delta = h[h.length - 1]!.score - h[h.length - 2]!.score;
         setRecentScoreChange(delta);
+        // Rank change: positive = climbed (lower rank number is better)
+        const prevRank = h[h.length - 2]!.rank_at_time;
+        const currRank = h[h.length - 1]!.rank_at_time;
+        if (prevRank != null && currRank != null) {
+          setRecentRankChange(prevRank - currRank);
+        } else {
+          setRecentRankChange(null);
+        }
       } else {
         setRecentScoreChange(null);
+        setRecentRankChange(null);
       }
       
       // Save to recently viewed and track achievement
@@ -271,6 +282,7 @@ const KingdomProfile: React.FC = () => {
         hasPendingSubmission={hasPendingSubmission}
         isMobile={isMobile}
         recentScoreChange={recentScoreChange}
+        recentRankChange={recentRankChange}
         isLinked={!!profile?.linked_username}
         onStatusModalOpen={() => {
           if (!user) {
@@ -422,15 +434,13 @@ const KingdomProfile: React.FC = () => {
         />
 
         {/* Performance Trend Chart */}
-        {kingdom.recent_kvks && kingdom.recent_kvks.length >= 2 && (
-          <div style={{ marginBottom: isMobile ? '1.25rem' : '1.5rem' }}>
-            <TrendChart 
-              kvkRecords={kingdom.recent_kvks} 
-              isExpanded={trendExpanded}
-              onToggle={setTrendExpanded}
-            />
-          </div>
-        )}
+        <div style={{ marginBottom: isMobile ? '1.25rem' : '1.5rem' }}>
+          <TrendChart 
+            kvkRecords={kingdom.recent_kvks || []} 
+            isExpanded={trendExpanded}
+            onToggle={setTrendExpanded}
+          />
+        </div>
 
         {/* Atlas Users from this Kingdom */}
         <KingdomPlayers kingdomNumber={kingdom.kingdom_number} themeColor="#22d3ee" />
@@ -456,25 +466,6 @@ const KingdomProfile: React.FC = () => {
             </div>
           )}
 
-          {/* Claim Kingdom Button */}
-          <button
-            onClick={() => setShowClaimModal(true)}
-            style={{
-              padding: '0.6rem 1.25rem',
-              backgroundColor: '#fbbf2415',
-              border: '1px solid #fbbf2440',
-              borderRadius: '8px',
-              color: '#fbbf24',
-              fontWeight: '500',
-              fontSize: '0.85rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem'
-            }}
-          >
-            👑 Claim This Kingdom
-          </button>
 
           <button
             onClick={() => navigate(`/compare?kingdoms=${kingdom.kingdom_number},`)}
@@ -547,14 +538,6 @@ const KingdomProfile: React.FC = () => {
         />
       )}
 
-      {/* Claim Kingdom Modal */}
-      {kingdom && (
-        <ClaimKingdom
-          kingdomNumber={kingdom.kingdom_number}
-          isOpen={showClaimModal}
-          onClose={() => setShowClaimModal(false)}
-        />
-      )}
 
       {/* KvK Error Report Modal */}
       {kingdom && (

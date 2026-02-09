@@ -603,7 +603,7 @@ const UserDirectory: React.FC = () => {
           <div style={{ 
             display: 'grid', 
             gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(350px, 1fr))', 
-            gap: '1.5rem' 
+            gap: isMobile ? '1rem' : '1.5rem' 
           }}>
             {filteredUsers.map(user => {
               const displayTier = getDisplayTier(user.subscription_tier, user.linked_username || user.username);
@@ -620,7 +620,7 @@ const UserDirectory: React.FC = () => {
                 <div style={{
                   backgroundColor: '#111116',
                   borderRadius: '12px',
-                  padding: '1.5rem',
+                  padding: isMobile ? '1rem' : '1.5rem',
                   border: `2px solid ${tierColor}40`,
                   transition: 'transform 0.2s, border-color 0.2s, box-shadow 0.2s',
                   cursor: 'pointer',
@@ -640,11 +640,11 @@ const UserDirectory: React.FC = () => {
                 }}
                 >
                   {/* Player Header - Avatar + Info */}
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', marginBottom: '1rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: isMobile ? '0.5rem' : '1rem', marginBottom: '0.75rem' }}>
                     {user.linked_avatar_url ? (
                       <div style={{
-                        width: '52px',
-                        height: '52px',
+                        width: isMobile ? '44px' : '52px',
+                        height: isMobile ? '44px' : '52px',
                         borderRadius: '50%',
                         border: `2px solid ${tierColor}`,
                         overflow: 'hidden',
@@ -663,8 +663,8 @@ const UserDirectory: React.FC = () => {
                       </div>
                     ) : (
                       <div style={{
-                        width: '52px',
-                        height: '52px',
+                        width: isMobile ? '44px' : '52px',
+                        height: isMobile ? '44px' : '52px',
                         borderRadius: '50%',
                         border: `2px solid ${tierColor}`,
                         display: 'flex',
@@ -752,8 +752,8 @@ const UserDirectory: React.FC = () => {
                       <div style={{ 
                         display: 'grid', 
                         gridTemplateColumns: '1fr 1fr', 
-                        gap: '0.25rem 1rem',
-                        fontSize: '0.85rem'
+                        gap: isMobile ? '0.15rem 0.75rem' : '0.25rem 1rem',
+                        fontSize: isMobile ? '0.8rem' : '0.85rem'
                       }}>
                         <div>
                           <span style={{ color: '#6b7280' }}>Kingdom: </span>
@@ -785,7 +785,7 @@ const UserDirectory: React.FC = () => {
 
                   {/* Bio - fixed height container for consistent layout */}
                   <div style={{ 
-                    minHeight: '2.5rem',
+                    minHeight: isMobile ? '2rem' : '2.5rem',
                     marginBottom: '0.5rem'
                   }}>
                     {user.bio && (

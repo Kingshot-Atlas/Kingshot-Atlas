@@ -1,5 +1,5 @@
-import React, { useState, memo } from 'react';
-import { useIsMobile } from '../../hooks/useMediaQuery';
+import React, { memo } from 'react';
+import SmartTooltip from './SmartTooltip';
 
 interface TierBadgeProps {
   tier: 'S' | 'A' | 'B' | 'C' | 'D';
@@ -13,73 +13,53 @@ const TIER_CONFIG = {
   D: { color: '#ef4444', bg: '#ef444420', border: '#ef444450' },
 } as const;
 
-const TIER_DESCRIPTIONS = [
-  { tier: 'S', range: '8.9+ (Top 3%)', color: '#fbbf24' },
-  { tier: 'A', range: '7.8 – 8.9 (Top 10%)', color: '#22c55e' },
-  { tier: 'B', range: '6.4 – 7.8 (Top 25%)', color: '#3b82f6' },
-  { tier: 'C', range: '4.7 – 6.4 (Top 50%)', color: '#f97316' },
-  { tier: 'D', range: '< 4.7 (Bottom 50%)', color: '#ef4444' },
-];
+const TIER_RANGES: Record<string, string> = {
+  S: '57+ (Top 3%)',
+  A: '47 – 57 (Top 10%)',
+  B: '38 – 47 (Top 25%)',
+  C: '29 – 38 (Top 50%)',
+  D: '< 29 (Bottom 50%)',
+};
 
 const TierBadge: React.FC<TierBadgeProps> = ({ tier }) => {
-  const [showTooltip, setShowTooltip] = useState(false);
-  const isMobile = useIsMobile();
   const config = TIER_CONFIG[tier];
 
   return (
-    <div
-      className={tier === 'S' ? 's-tier-badge' : ''}
-      style={{
-        position: 'relative',
-        padding: '0.2rem 0.5rem',
-        borderRadius: '6px',
-        fontSize: '0.7rem',
-        fontWeight: 'bold',
-        cursor: 'default',
-        backgroundColor: config.bg,
-        color: config.color,
-        border: `1px solid ${config.border}`
-      }}
-      onMouseEnter={() => !isMobile && setShowTooltip(true)}
-      onMouseLeave={() => !isMobile && setShowTooltip(false)}
-      onClick={() => isMobile && setShowTooltip(!showTooltip)}
+    <SmartTooltip
+      accentColor={config.color}
+      maxWidth={180}
+      content={
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', whiteSpace: 'nowrap', fontSize: '0.75rem' }}>
+          <span style={{ color: config.color, fontWeight: 'bold' }}>{tier}-Tier</span>
+          <span style={{ color: '#9ca3af' }}>{TIER_RANGES[tier]}</span>
+        </div>
+      }
     >
-      {tier}
-      {showTooltip && (() => {
-        const currentTier = TIER_DESCRIPTIONS.find(t => t.tier === tier);
-        return (
-          <div style={{
-            position: 'absolute',
-            top: '100%',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            marginTop: '8px',
-            backgroundColor: '#0a0a0a',
-            border: `1px solid ${config.color}`,
-            borderRadius: '8px',
-            padding: '0.5rem 0.7rem',
-            zIndex: 1000,
-            whiteSpace: 'nowrap',
-            fontSize: '0.75rem',
-            boxShadow: '0 8px 24px rgba(0,0,0,0.5)'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <span style={{ color: config.color, fontWeight: 'bold' }}>{tier}-Tier</span>
-              <span style={{ color: '#9ca3af' }}>{currentTier?.range}</span>
-            </div>
-          </div>
-        );
-      })()}
-      <style>{`
-        @keyframes sTierPulse {
-          0%, 100% { box-shadow: 0 0 8px #fbbf2440; }
-          50% { box-shadow: 0 0 16px #fbbf2480, 0 0 24px #fbbf2430; }
-        }
-        .s-tier-badge {
-          animation: sTierPulse 2s ease-in-out infinite;
-        }
-      `}</style>
-    </div>
+      <div
+        className={tier === 'S' ? 's-tier-badge' : ''}
+        style={{
+          padding: '0.2rem 0.5rem',
+          borderRadius: '6px',
+          fontSize: '0.7rem',
+          fontWeight: 'bold',
+          cursor: 'default',
+          backgroundColor: config.bg,
+          color: config.color,
+          border: `1px solid ${config.border}`
+        }}
+      >
+        {tier}
+        <style>{`
+          @keyframes sTierPulse {
+            0%, 100% { box-shadow: 0 0 8px #fbbf2440; }
+            50% { box-shadow: 0 0 16px #fbbf2480, 0 0 24px #fbbf2430; }
+          }
+          .s-tier-badge {
+            animation: sTierPulse 2s ease-in-out infinite;
+          }
+        `}</style>
+      </div>
+    </SmartTooltip>
   );
 };
 

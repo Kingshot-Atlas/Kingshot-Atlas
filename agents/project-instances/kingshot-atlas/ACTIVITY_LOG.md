@@ -7,6 +7,54 @@
 
 ## Log Entries
 
+## 2026-02-08 20:20 | Product Engineer | COMPLETED
+Task: Remove radar chart data point tooltips, enhance YOUR KINGDOM/RIVAL banners, fix mobile stat-card hover border
+Files: `apps/web/src/components/RadarChart.tsx`, `apps/web/src/components/KingdomCard.tsx`, `apps/web/src/App.css`
+Result:
+  - **Radar Chart:** Removed tooltips from data point dots entirely. Dots are now decorative only. Tooltips only appear on label names. Removed unused `activeIndex`, `focusedIndex`, `handlePointInteraction`, `handleKeyDown`, and `useCallback` import.
+  - **YOUR KINGDOM / RIVAL Banners:** Taller (34px), stronger gradient (38% peak opacity), solid 2px top border accent, inset box-shadow for depth, larger text (0.7rem), stronger text glow with dual-layer textShadow.
+  - **Mobile Stat-Card Border:** Wrapped `.stat-card:hover` in `@media (hover: hover)` so hover effects only apply on devices with pointer hover capability. Prevents sticky `:hover` border on mobile touchscreens.
+  - Build passes (exit code 0).
+
+## 2026-02-08 20:05 | Product Engineer | COMPLETED
+Task: Fix QuickStats cards not filling full container width
+Files: `apps/web/src/components/kingdom-profile/QuickStats.tsx`
+Result:
+  - **Grid container:** Added `width: '100%'` to ensure grid spans full parent width.
+  - **SmartTooltip wrapper:** Changed from `inline-flex` to `display: 'flex'` via style override so it properly fills grid cells as a block-level element.
+  - **Stat-card div:** Added `width: '100%'` to fill the SmartTooltip wrapper completely.
+  - Root cause: SmartTooltip's default `display: 'inline-flex'` shrinks to content size even with `width: '100%'`, preventing grid children from stretching.
+  - Build passes (exit code 0).
+
+## 2026-02-08 19:27 | Product Engineer | COMPLETED
+Task: Restructure KingdomHeader layout, add Atlas Rank row with rank change badge, remove Top% tooltip
+Files: `apps/web/src/components/kingdom-profile/KingdomHeader.tsx`, `apps/web/src/pages/KingdomProfile.tsx`
+Result:
+  - **Header Layout Restructured:** Row1=Name+Tier+Top%+Achievements, Row2=Atlas Score+ScoreChange, Row3=Atlas Rank+RankChange (NEW), Row4=Transfer Status, Row5=KvKs+Actions.
+  - **Rank Change Badge:** Computed from score_history (previous rank - current rank). Shows ▲/▼ with position change, styled like score change badge.
+  - **Top% Tooltip Removed:** Badge is now plain (no SmartTooltip wrapper).
+  - Build passes (exit code 0).
+
+## 2026-02-08 18:48 | Product Engineer | COMPLETED
+Task: Fix Streaks tooltip positioning, QuickStats equal-width layout, Top% SmartTooltip
+Files: `apps/web/src/components/RadarChart.tsx`, `apps/web/src/components/kingdom-profile/QuickStats.tsx`, `apps/web/src/components/kingdom-profile/KingdomHeader.tsx`
+Result:
+  - **Streaks Tooltip Fix:** Radar chart label tooltips now detect if label is in bottom half and flip tooltip above instead of below. Previously "Streaks" tooltip rendered off-screen.
+  - **QuickStats Equal Width:** Added `style={{ width: '100%' }}` to SmartTooltip wrappers so they fill CSS grid cells properly. Desktop: 4 equal-width boxes in 1 row. Mobile: 2×2 equal-width grid.
+  - **Top x% SmartTooltip:** Wrapped the "Top x%" badge in SmartTooltip showing rank details (e.g., "Ranked #1 out of 1058 kingdoms").
+  - Build passes (exit code 0).
+
+## 2026-02-08 17:55 | Product Engineer | COMPLETED
+Task: SmartTooltip system, tier threshold fix, copy image mobile fix, atlas score tooltip
+Files: `apps/web/src/components/shared/SmartTooltip.tsx` (new), `apps/web/src/components/shared/TierBadge.tsx`, `apps/web/src/components/shared/index.ts`, `apps/web/src/components/KingdomCard.tsx`, `apps/web/src/components/kingdom-card/AchievementBadges.tsx`, `apps/web/src/components/kingdom-card/RecentKvKs.tsx`, `apps/web/src/components/kingdom-card/QuickStats.tsx`, `apps/web/src/components/kingdom-card/TransferStatus.tsx`, `apps/web/src/components/kingdom-card/CardActions.tsx`
+Result:
+  - **SmartTooltip:** New portal-based tooltip with edge-aware positioning (flips vertically near top, shifts horizontally near edges), global 1-at-a-time dismiss, auto-close on scroll/resize, tap-to-toggle on mobile.
+  - **Tier Thresholds Fixed:** Updated from old 0-10 scale (8.9/7.8/6.4/4.7) to v3.1 0-100 scale (57/47/38/29).
+  - **All Kingdom Card Tooltips Migrated:** TierBadge, AchievementBadges, RecentKvKs, QuickStats, TransferStatus, Atlas Score, Missing KvK chip — all now use SmartTooltip.
+  - **Atlas Score Tooltip Added:** Hover/tap "Atlas Score" area shows "Rewards experience and consistency over lucky streaks".
+  - **Copy Image Mobile Fix:** Now tries clipboard → Web Share API (native share sheet) → download as fallback chain.
+  - Build passes (exit code 0).
+
 ## 2026-02-08 03:28 | Product Engineer | COMPLETED
 Task: KingdomCard badge ribbon + Transfer Status UX improvements
 Files: `apps/web/src/components/KingdomCard.tsx`, `apps/web/src/components/kingdom-card/TransferStatus.tsx`, `apps/web/src/components/kingdom-profile/KingdomHeader.tsx`, `apps/web/src/components/StatusSubmission.tsx`

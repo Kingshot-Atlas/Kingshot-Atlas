@@ -1,4 +1,5 @@
-import React, { useState, memo } from 'react';
+import React, { memo } from 'react';
+import SmartTooltip from './SmartTooltip';
 import { useIsMobile } from '../../hooks/useMediaQuery';
 
 interface StatBoxProps {
@@ -21,23 +22,18 @@ const StatBox: React.FC<StatBoxProps> = ({
   bgColor = '#1a1a20',
   tooltip
 }) => {
-  const [showTooltip, setShowTooltip] = useState(false);
   const isMobile = useIsMobile();
 
-  return (
+  const box = (
     <div 
       style={{ 
-        flex: 1,
+        width: '100%',
         backgroundColor: bgColor,
         borderRadius: '8px',
         padding: isMobile ? '0.5rem 0.4rem' : '0.6rem 0.5rem',
         textAlign: 'center',
-        position: 'relative',
         cursor: tooltip ? 'default' : 'auto'
       }}
-      onMouseEnter={() => tooltip && !isMobile && setShowTooltip(true)}
-      onMouseLeave={() => tooltip && !isMobile && setShowTooltip(false)}
-      onClick={() => tooltip && isMobile && setShowTooltip(!showTooltip)}
     >
       <div style={{ 
         fontSize: isMobile ? '0.95rem' : '1.1rem', 
@@ -53,28 +49,27 @@ const StatBox: React.FC<StatBoxProps> = ({
       }}>
         {label}
       </div>
-      {showTooltip && tooltip && (
-        <div style={{
-          position: 'absolute',
-          bottom: '100%',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          marginBottom: '8px',
-          backgroundColor: '#0a0a0a',
-          border: `1px solid ${color}`,
-          borderRadius: '8px',
-          padding: '0.6rem 0.8rem',
-          fontSize: '0.75rem',
-          whiteSpace: 'nowrap',
-          zIndex: 100,
-          boxShadow: '0 8px 24px rgba(0,0,0,0.5)'
-        }}>
-          <div style={{ color, fontWeight: 'bold', marginBottom: '3px' }}>{tooltip.title}</div>
-          <div style={{ color: '#9ca3af', fontSize: '0.7rem' }}>{tooltip.description}</div>
-        </div>
-      )}
     </div>
   );
+
+  if (tooltip) {
+    return (
+      <SmartTooltip
+        accentColor={color}
+        style={{ flex: 1 }}
+        content={
+          <div style={{ fontSize: '0.7rem' }}>
+            <div style={{ color, fontWeight: 'bold', marginBottom: '2px' }}>{tooltip.title}</div>
+            <div style={{ color: '#9ca3af' }}>{tooltip.description}</div>
+          </div>
+        }
+      >
+        {box}
+      </SmartTooltip>
+    );
+  }
+
+  return <div style={{ flex: 1 }}>{box}</div>;
 };
 
 export default memo(StatBox);

@@ -312,6 +312,20 @@ export function calculateHistoryBonus(totalKvks: number): number {
  * Calculate the complete Atlas Score with full breakdown
  */
 export function calculateAtlasScore(stats: KingdomStats): ScoreBreakdown {
+  // Kingdoms with no KvK history get a flat 0 score
+  if (stats.totalKvks === 0) {
+    return {
+      baseScore: 0,
+      domInvMultiplier: 1,
+      recentFormMultiplier: 1,
+      streakMultiplier: 1,
+      experienceFactor: 0,
+      historyBonus: 0,
+      finalScore: 0,
+      tier: 'D',
+    };
+  }
+
   // Calculate each component
   const baseScore = calculateBaseScore(stats);
   const domInvMultiplier = calculateDomInvMultiplier(stats);

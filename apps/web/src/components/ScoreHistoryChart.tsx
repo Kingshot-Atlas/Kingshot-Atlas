@@ -85,23 +85,39 @@ const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
     );
   }
 
-  if (chartData.length < 2) {
+  if (chartData.length === 0) {
     return (
-      <div style={{ backgroundColor: '#1a1a20', borderRadius: '12px', padding: '1rem', marginBottom: isMobile ? '1.25rem' : '1.5rem' }}>
-        <h4 style={{ margin: '0 0 0.75rem 0', color: '#fff', fontSize: '0.9rem', fontWeight: '600', textAlign: 'center' }}>
+      <div style={{
+        backgroundColor: '#131318',
+        borderRadius: '12px',
+        padding: isMobile ? '1rem' : '1.25rem',
+        border: '1px solid #2a2a2a',
+        marginBottom: isMobile ? '1.25rem' : '1.5rem'
+      }}>
+        <h4 style={{ color: '#fff', fontSize: '0.9rem', fontWeight: '600', margin: '0 0 0.75rem 0', textAlign: 'center' }}>
           Atlas Score History
         </h4>
-        <div style={{
-          height: height - 60,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#6b7280',
-          fontSize: '0.85rem'
-        }}>
-          {chartData.length === 0 
-            ? 'No score history available yet' 
-            : 'Need at least 2 KvKs for trend data'}
+        <div style={{ color: '#6b7280', fontSize: '0.85rem', textAlign: 'center', padding: '1rem' }}>
+          Play your first KvK to unlock score history!
+        </div>
+      </div>
+    );
+  }
+
+  if (chartData.length < 2) {
+    return (
+      <div style={{
+        backgroundColor: '#131318',
+        borderRadius: '12px',
+        padding: isMobile ? '1rem' : '1.25rem',
+        border: '1px solid #2a2a2a',
+        marginBottom: isMobile ? '1.25rem' : '1.5rem'
+      }}>
+        <h4 style={{ color: '#fff', fontSize: '0.9rem', fontWeight: '600', margin: '0 0 0.75rem 0', textAlign: 'center' }}>
+          Atlas Score History
+        </h4>
+        <div style={{ color: '#6b7280', fontSize: '0.85rem', textAlign: 'center', padding: '1rem' }}>
+          Need at least 2 KvKs for trend data
         </div>
       </div>
     );

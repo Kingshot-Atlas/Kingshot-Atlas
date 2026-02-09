@@ -69,43 +69,46 @@ const StatusSubmission: React.FC<StatusSubmissionProps> = ({
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.8)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 1000,
-      padding: '1rem'
-    }}>
-      <div style={{
-        backgroundColor: '#111111',
-        borderRadius: '12px',
-        border: '1px solid #2a2a2a',
-        maxWidth: '450px',
-        width: '100%',
-        maxHeight: '90vh',
-        overflow: 'auto'
+    <div
+      onClick={(e) => { e.stopPropagation(); onClose(); }}
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.85)',
+        display: 'flex',
+        alignItems: isMobile ? 'flex-start' : 'center',
+        justifyContent: 'center',
+        zIndex: 9999,
+        padding: isMobile ? '1rem 0.5rem' : '1rem',
+        overflowY: 'auto'
       }}>
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          backgroundColor: '#111111',
+          borderRadius: '12px',
+          border: '1px solid #2a2a2a',
+          maxWidth: isMobile ? '100%' : '420px',
+          width: '100%',
+          maxHeight: isMobile ? 'none' : '90vh',
+          overflow: isMobile ? 'visible' : 'auto',
+          marginTop: isMobile ? '0.5rem' : 0
+        }}>
         {/* Header */}
         <div style={{
-          padding: '1.25rem',
+          padding: isMobile ? '0.75rem 1rem' : '1.25rem',
           borderBottom: '1px solid #2a2a2a',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between'
         }}>
           <div>
-            <h2 style={{ color: '#fff', fontSize: '1.1rem', fontWeight: '600', margin: 0 }}>
-              Update Status
+            <h2 style={{ color: '#fff', fontSize: isMobile ? '1rem' : '1.1rem', fontWeight: '600', margin: 0 }}>
+              Update Status — <span style={neonGlow('#22d3ee')}>K{kingdomNumber}</span>
             </h2>
-            <p style={{ color: '#6b7280', fontSize: '0.85rem', margin: '0.25rem 0 0' }}>
-              Kingdom <span style={neonGlow('#22d3ee')}>K-{kingdomNumber}</span>
-            </p>
           </div>
           <button
             onClick={onClose}
@@ -124,51 +127,51 @@ const StatusSubmission: React.FC<StatusSubmissionProps> = ({
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} style={{ padding: '1.25rem' }}>
+        <form onSubmit={handleSubmit} style={{ padding: isMobile ? '0.75rem 1rem' : '1.25rem' }}>
           {/* Current Status */}
-          <div style={{ marginBottom: '1.25rem' }}>
+          <div style={{ marginBottom: isMobile ? '0.75rem' : '1.25rem' }}>
             <label style={{ 
               display: 'block', 
               color: '#9ca3af', 
-              fontSize: '0.8rem', 
-              marginBottom: '0.5rem',
+              fontSize: '0.75rem', 
+              marginBottom: '0.35rem',
               textTransform: 'uppercase',
               letterSpacing: '0.05em'
             }}>
               Current Status
             </label>
             <div style={{
-              padding: '0.75rem',
+              padding: isMobile ? '0.5rem 0.75rem' : '0.75rem',
               backgroundColor: '#0a0a0a',
               borderRadius: '8px',
               border: '1px solid #2a2a2a',
               color: STATUS_OPTIONS.find(s => s.value === currentStatus)?.color || '#6b7280',
-              fontSize: '0.9rem'
+              fontSize: '0.85rem'
             }}>
               {currentStatus}
             </div>
           </div>
 
           {/* New Status */}
-          <div style={{ marginBottom: '1.25rem' }}>
+          <div style={{ marginBottom: isMobile ? '0.75rem' : '1.25rem' }}>
             <label style={{ 
               display: 'block', 
               color: '#9ca3af', 
-              fontSize: '0.8rem', 
-              marginBottom: '0.5rem',
+              fontSize: '0.75rem', 
+              marginBottom: '0.35rem',
               textTransform: 'uppercase',
               letterSpacing: '0.05em'
             }}>
               New Status
             </label>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '0.35rem' : '0.5rem' }}>
               {STATUS_OPTIONS.map(option => (
                 <button
                   key={option.value}
                   type="button"
                   onClick={() => setSelectedStatus(option.value)}
                   style={{
-                    padding: '0.75rem 1rem',
+                    padding: isMobile ? '0.5rem 0.75rem' : '0.75rem 1rem',
                     backgroundColor: selectedStatus === option.value ? `${option.color}15` : '#0a0a0a',
                     border: `1px solid ${selectedStatus === option.value ? option.color : '#2a2a2a'}`,
                     borderRadius: '8px',
@@ -179,30 +182,32 @@ const StatusSubmission: React.FC<StatusSubmissionProps> = ({
                 >
                   <div style={{ 
                     color: selectedStatus === option.value ? option.color : '#fff',
-                    fontSize: '0.9rem',
+                    fontSize: '0.85rem',
                     fontWeight: '500'
                   }}>
                     {option.label}
                   </div>
-                  <div style={{ 
-                    color: '#6b7280', 
-                    fontSize: '0.75rem',
-                    marginTop: '0.25rem'
-                  }}>
-                    {option.description}
-                  </div>
+                  {!isMobile && (
+                    <div style={{ 
+                      color: '#6b7280', 
+                      fontSize: '0.7rem',
+                      marginTop: '0.2rem'
+                    }}>
+                      {option.description}
+                    </div>
+                  )}
                 </button>
               ))}
             </div>
           </div>
 
           {/* Notes */}
-          <div style={{ marginBottom: '1.25rem' }}>
+          <div style={{ marginBottom: isMobile ? '0.75rem' : '1.25rem' }}>
             <label style={{ 
               display: 'block', 
               color: '#9ca3af', 
-              fontSize: '0.8rem', 
-              marginBottom: '0.5rem',
+              fontSize: '0.75rem', 
+              marginBottom: '0.35rem',
               textTransform: 'uppercase',
               letterSpacing: '0.05em'
             }}>
@@ -211,26 +216,27 @@ const StatusSubmission: React.FC<StatusSubmissionProps> = ({
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Add any relevant details (e.g., source of information, effective date)..."
+              placeholder="Source of info, effective date..."
               maxLength={500}
               style={{
                 width: '100%',
-                padding: '0.75rem',
+                padding: isMobile ? '0.5rem 0.75rem' : '0.75rem',
                 backgroundColor: '#0a0a0a',
                 border: '1px solid #2a2a2a',
                 borderRadius: '8px',
                 color: '#fff',
-                fontSize: '0.85rem',
+                fontSize: '0.8rem',
                 resize: 'vertical',
-                minHeight: '80px',
-                outline: 'none'
+                minHeight: isMobile ? '50px' : '80px',
+                outline: 'none',
+                boxSizing: 'border-box'
               }}
             />
             <div style={{ 
               color: '#4a4a4a', 
-              fontSize: '0.7rem', 
+              fontSize: '0.65rem', 
               textAlign: 'right',
-              marginTop: '0.25rem'
+              marginTop: '0.15rem'
             }}>
               {notes.length}/500
             </div>
@@ -280,38 +286,34 @@ const StatusSubmission: React.FC<StatusSubmissionProps> = ({
 
           {/* Info */}
           <div style={{
-            padding: '0.75rem',
+            padding: isMobile ? '0.5rem 0.75rem' : '0.75rem',
             backgroundColor: '#22d3ee10',
             border: '1px solid #22d3ee30',
             borderRadius: '8px',
-            marginBottom: '1.25rem'
+            marginBottom: isMobile ? '0.75rem' : '1.25rem'
           }}>
-            <div style={{ color: '#22d3ee', fontSize: '0.8rem', fontWeight: '500', marginBottom: '0.25rem' }}>
-              ℹ️ Moderation Notice
-            </div>
-            <p style={{ color: '#6b7280', fontSize: '0.75rem', margin: 0, lineHeight: 1.4 }}>
-              Your submission will be reviewed by our team before being published. 
-              False submissions may result in account restrictions.
+            <p style={{ color: '#6b7280', fontSize: '0.7rem', margin: 0, lineHeight: 1.3 }}>
+              ℹ️ Reviewed by our team before publishing. False submissions may result in restrictions.
             </p>
           </div>
 
           {/* Actions */}
           <div style={{ 
             display: 'flex', 
-            gap: '0.75rem',
-            flexDirection: isMobile ? 'column' : 'row'
+            gap: '0.5rem',
+            flexDirection: 'row'
           }}>
             <button
               type="button"
               onClick={onClose}
               style={{
                 flex: 1,
-                padding: '0.75rem 1rem',
+                padding: isMobile ? '0.6rem 0.75rem' : '0.75rem 1rem',
                 backgroundColor: 'transparent',
                 border: '1px solid #3a3a3a',
                 borderRadius: '8px',
                 color: '#9ca3af',
-                fontSize: '0.9rem',
+                fontSize: '0.85rem',
                 cursor: 'pointer'
               }}
             >
@@ -322,18 +324,18 @@ const StatusSubmission: React.FC<StatusSubmissionProps> = ({
               disabled={isSubmitting || selectedStatus === currentStatus || !user}
               style={{
                 flex: 1,
-                padding: '0.75rem 1rem',
+                padding: isMobile ? '0.6rem 0.75rem' : '0.75rem 1rem',
                 backgroundColor: isSubmitting || selectedStatus === currentStatus ? '#2a2a2a' : '#22d3ee',
                 border: 'none',
                 borderRadius: '8px',
                 color: isSubmitting || selectedStatus === currentStatus ? '#6b7280' : '#000',
-                fontSize: '0.9rem',
+                fontSize: '0.85rem',
                 fontWeight: '600',
                 cursor: isSubmitting || selectedStatus === currentStatus ? 'not-allowed' : 'pointer',
                 transition: 'all 0.2s'
               }}
             >
-              {isSubmitting ? 'Submitting...' : !user ? 'Sign in to Submit' : 'Submit Update'}
+              {isSubmitting ? 'Submitting...' : !user ? 'Sign in' : 'Submit Update'}
             </button>
           </div>
         </form>
