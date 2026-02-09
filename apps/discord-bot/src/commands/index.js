@@ -109,6 +109,38 @@ const commands = [
         .setMaxValue(9999)
     ),
 
+  // /multirally <target> <players> [gap]
+  new SlashCommandBuilder()
+    .setName('multirally')
+    .setDescription('Coordinate multiple rallies to hit a building at the same time')
+    .addStringOption(option =>
+      option
+        .setName('target')
+        .setDescription('Building to target')
+        .setRequired(true)
+        .addChoices(
+          { name: "King's Castle", value: "King's Castle" },
+          { name: 'Turret 1 (South)', value: 'Turret 1' },
+          { name: 'Turret 2 (West)', value: 'Turret 2' },
+          { name: 'Turret 3 (East)', value: 'Turret 3' },
+          { name: 'Turret 4 (North)', value: 'Turret 4' }
+        )
+    )
+    .addStringOption(option =>
+      option
+        .setName('players')
+        .setDescription('Player:MarchTime pairs in desired HIT order (e.g. PlayerB:18,PlayerA:15)')
+        .setRequired(true)
+    )
+    .addIntegerOption(option =>
+      option
+        .setName('gap')
+        .setDescription('Seconds between each hit (default: 1)')
+        .setRequired(false)
+        .setMinValue(1)
+        .setMaxValue(10)
+    ),
+
   // /help
   new SlashCommandBuilder()
     .setName('help')

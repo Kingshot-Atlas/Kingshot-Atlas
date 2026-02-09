@@ -755,6 +755,9 @@ client.on('interactionCreate', async (interaction) => {
       case 'predict':
         await handlers.handlePredict(interaction);
         break;
+      case 'multirally':
+        await handlers.handleMultirally(interaction);
+        break;
       case 'help':
         await handlers.handleHelp(interaction);
         break;

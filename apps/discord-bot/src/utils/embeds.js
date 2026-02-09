@@ -350,6 +350,10 @@ function createHelpEmbed() {
         ].join('\n'),
       },
       {
+        name: '⚔️ Battle Tools',
+        value: '`/multirally <target> <players>` - Coordinate rally timing',
+      },
+      {
         name: '🌐 Links',
         value: [
           `[Website](${config.urls.base})`,
@@ -843,12 +847,10 @@ function createPredictEmbed(k1, k2) {
   const b1 = k1.battle_win_rate || 0;
   const b2 = k2.battle_win_rate || 0;
 
-  // Head-to-head phase win chances
-  const prepTotal = p1 + p2 || 1;
-  const battleTotal = b1 + b2 || 1;
-  const prepChance1 = Math.round((p1 / prepTotal) * 100);
+  // Head-to-head phase win chances (both 0 → 50/50)
+  const prepChance1 = (p1 === 0 && p2 === 0) ? 50 : Math.round((p1 / (p1 + p2)) * 100);
   const prepChance2 = 100 - prepChance1;
-  const battleChance1 = Math.round((b1 / battleTotal) * 100);
+  const battleChance1 = (b1 === 0 && b2 === 0) ? 50 : Math.round((b1 / (b1 + b2)) * 100);
   const battleChance2 = 100 - battleChance1;
 
   // Predict most likely outcome per kingdom
@@ -892,7 +894,7 @@ function createPredictEmbed(k1, k2) {
     .setColor(config.colors.primary)
     .setTitle(`\ud83d\udd2e Prediction: Kingdom ${k1.kingdom_number} vs Kingdom ${k2.kingdom_number}`)
     .setURL(config.urls.compare(k1.kingdom_number, k2.kingdom_number))
-    .setDescription(`${confidence} \u2014 **Kingdom ${favoriteNum}** is favored`)
+    .setDescription(`${confidence} \u2014 **Kingdom ${favoriteNum}** is favored\n\u200b`)
     .addFields(
       {
         name: `\ud83c\udff0 Kingdom ${k1.kingdom_number} (${tier1})`,
@@ -906,6 +908,8 @@ function createPredictEmbed(k1, k2) {
           `Prep W chance: ${prepChance1}%`,
           `Battle W chance: ${battleChance1}%`,
           `Outcome: ${getOutcomeEmoji(outcome1)} ${outcome1}`,
+          '',
+          '\u2500'.repeat(18),
         ].join('\n'),
         inline: true,
       },

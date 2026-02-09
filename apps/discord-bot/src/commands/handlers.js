@@ -8,6 +8,30 @@ const events = require('../utils/events');
 const embeds = require('../utils/embeds');
 const logger = require('../utils/logger');
 
+// Cooldown tracking: command -> Map<userId, lastUsedTimestamp>
+const cooldowns = new Map();
+
+/**
+ * Check if a user is on cooldown for a command.
+ * Returns seconds remaining if on cooldown, 0 if not.
+ */
+function checkCooldown(commandName, userId, cooldownSeconds) {
+  if (!cooldowns.has(commandName)) {
+    cooldowns.set(commandName, new Map());
+  }
+  const cmdCooldowns = cooldowns.get(commandName);
+  const lastUsed = cmdCooldowns.get(userId) || 0;
+  const now = Date.now();
+  const elapsed = (now - lastUsed) / 1000;
+  if (elapsed < cooldownSeconds) {
+    return Math.ceil(cooldownSeconds - elapsed);
+  }
+  cmdCooldowns.set(userId, now);
+  return 0;
+}
+
+const RALLY_FILL_TIME = 300; // 5 minutes in seconds
+
 /**
  * /kingdom <number>
  */
@@ -215,6 +239,15 @@ async function handleHistory(interaction) {
 }
 
 async function handlePredict(interaction) {
+  // 30-second cooldown per user
+  const remaining = checkCooldown('predict', interaction.user.id, 30);
+  if (remaining > 0) {
+    return interaction.reply({
+      content: `\u23f3 Cooldown: try again in **${remaining}s**.`,
+      ephemeral: true,
+    });
+  }
+
   await interaction.deferReply();
 
   const num1 = interaction.options.getInteger('kingdom1');
@@ -246,6 +279,96 @@ async function handlePredict(interaction) {
   return interaction.editReply({ embeds: [embed] });
 }
 
+/**
+ * /multirally — Rally coordination calculator
+ * Calculates timing delays so multiple rallies hit a building within 1s of each other.
+ * Response is ephemeral to avoid channel spam.
+ */
+async function handleMultirally(interaction) {
+  const target = interaction.options.getString('target');
+  const playersRaw = interaction.options.getString('players');
+  const gap = interaction.options.getInteger('gap') || 1;
+
+  // Parse "PlayerName:MarchTimeInSeconds" pairs
+  const entries = playersRaw.split(',').map(s => s.trim()).filter(Boolean);
+  if (entries.length < 2) {
+    return interaction.reply({
+      content: '\u274c You need at least 2 players. Format: `PlayerA:15,PlayerB:18`',
+      ephemeral: true,
+    });
+  }
+  if (entries.length > 10) {
+    return interaction.reply({
+      content: '\u274c Maximum 10 rallies supported.',
+      ephemeral: true,
+    });
+  }
+
+  const players = [];
+  for (const entry of entries) {
+    const [name, timeStr] = entry.split(':').map(s => s.trim());
+    const marchTime = parseInt(timeStr, 10);
+    if (!name || isNaN(marchTime) || marchTime < 1 || marchTime > 600) {
+      return interaction.reply({
+        content: `\u274c Invalid entry: \`${entry}\`. Format: \`PlayerName:MarchTimeInSeconds\` (1-600s).`,
+        ephemeral: true,
+      });
+    }
+    players.push({ name, marchTime });
+  }
+
+  // Calculate rally start delays
+  // Players are listed in desired HIT ORDER (first listed hits first)
+  // desiredHitTime[i] = i * gap (seconds after first hit)
+  // totalRallyTime[i] = RALLY_FILL_TIME + marchTime[i]
+  // We normalize so the earliest caller starts at T=0
+  const totalTimes = players.map(p => RALLY_FILL_TIME + p.marchTime);
+  const desiredHits = players.map((_, i) => i * gap);
+  const offsets = players.map((_, i) => totalTimes[i] - desiredHits[i]);
+  const maxOffset = Math.max(...offsets);
+  const startDelays = offsets.map(o => maxOffset - o);
+
+  // Build the sorted call order (by start delay ascending = who calls first)
+  const callOrder = players.map((p, i) => ({
+    name: p.name,
+    marchTime: p.marchTime,
+    startDelay: startDelays[i],
+    hitTime: startDelays[i] + totalTimes[i],
+    hitOrder: i + 1,
+  }));
+  callOrder.sort((a, b) => a.startDelay - b.startDelay);
+
+  // Format output
+  const numberEmojis = ['1\ufe0f\u20e3', '2\ufe0f\u20e3', '3\ufe0f\u20e3', '4\ufe0f\u20e3', '5\ufe0f\u20e3', '6\ufe0f\u20e3', '7\ufe0f\u20e3', '8\ufe0f\u20e3', '9\ufe0f\u20e3', '\ud83d\udd1f'];
+
+  const lines = callOrder.map((p, i) => {
+    const emoji = numberEmojis[i] || `${i + 1}.`;
+    const timing = p.startDelay === 0
+      ? 'Start rally **NOW** (T+0s)'
+      : `Wait **${p.startDelay}s**, then start rally (T+${p.startDelay}s)`;
+    return `${emoji} **${p.name}** \u2014 ${timing}\n\u2003\u2003March: ${p.marchTime}s \u2192 Hits at T+${p.hitTime}s`;
+  });
+
+  const firstHit = Math.min(...callOrder.map(p => p.hitTime));
+  const lastHit = Math.max(...callOrder.map(p => p.hitTime));
+  const spread = lastHit - firstHit;
+
+  const embed = embeds.createBaseEmbed()
+    .setTitle(`\ud83c\udff0 Multi-Rally Coordination \u2014 ${target}`)
+    .setDescription(`Target gap: **${gap}s** between hits\n\u200b`)
+    .addFields({
+      name: '\ud83d\udce2 Rally Call Order',
+      value: lines.join('\n\n'),
+    })
+    .addFields({
+      name: '\u200b',
+      value: `\u23f1\ufe0f All ${players.length} rallies hit within **${spread}s** of each other`,
+    })
+    .setFooter({ text: 'Kingshot Atlas \u2022 ks-atlas.com \u2022 Rally times assume 5-minute fill' });
+
+  return interaction.reply({ embeds: [embed], ephemeral: true });
+}
+
 module.exports = {
   handleKingdom,
   handleCompare,
@@ -257,4 +380,5 @@ module.exports = {
   handleStats,
   handleHistory,
   handlePredict,
+  handleMultirally,
 };
