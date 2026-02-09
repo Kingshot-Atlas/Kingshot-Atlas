@@ -834,9 +834,28 @@ client.on('guildMemberAdd', async (member) => {
     
     if (welcomeChannel) {
       const embeds = require('./utils/embeds');
-      const welcomeEmbed = embeds.createWelcomeEmbed(member.user.username);
-      await welcomeChannel.send({ embeds: [welcomeEmbed] });
-      console.log(`✅ Sent welcome message for ${member.user.username}`);
+      
+      // Try to look up their profile name from linked accounts
+      let displayName = member.displayName || member.user.username;
+      try {
+        const res = await fetch(`${config.apiUrl}/api/v1/bot/linked-users`);
+        if (res.ok) {
+          const data = await res.json();
+          const linked = (data.users || []).find(u => u.discord_id === member.user.id);
+          if (linked && linked.linked_username) {
+            displayName = linked.linked_username;
+          } else if (linked && linked.username) {
+            displayName = linked.username;
+          }
+        }
+      } catch (e) {
+        console.log(`Could not look up profile name for ${member.user.username}: ${e.message}`);
+      }
+      
+      const welcomeEmbed = embeds.createWelcomeEmbed(displayName);
+      // Tag the member in message content so they get a notification
+      await welcomeChannel.send({ content: `<@${member.user.id}>`, embeds: [welcomeEmbed] });
+      console.log(`✅ Sent welcome message for ${member.user.username} (display: ${displayName})`);
     }
   } catch (error) {
     console.error('Failed to send welcome message:', error);

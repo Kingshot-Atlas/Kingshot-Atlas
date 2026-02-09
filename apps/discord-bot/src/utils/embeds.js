@@ -11,11 +11,11 @@ const config = require('../config');
  * IMPORTANT: Keep in sync with apps/web/src/types/index.ts POWER_TIER_THRESHOLDS
  */
 function getTier(score) {
-  if (score >= 8.90) return 'S';  // Top 3%: Score 8.90+
-  if (score >= 7.79) return 'A';  // Top 10%: Score 7.79-8.89
-  if (score >= 6.42) return 'B';  // Top 25%: Score 6.42-7.78
-  if (score >= 4.72) return 'C';  // Top 50%: Score 4.72-6.41
-  return 'D';                     // Bottom 50%: Score below 4.72
+  if (score >= 57) return 'S';  // Top 2.9%: Score 57+ (v3.1, 0-100 scale)
+  if (score >= 47) return 'A';  // Top 9.6%: Score 47-56.99
+  if (score >= 38) return 'B';  // Top 24.3%: Score 38-46.99
+  if (score >= 29) return 'C';  // Top 48.9%: Score 29-37.99
+  return 'D';                   // Bottom 51.1%: Score below 29
 }
 
 /**
