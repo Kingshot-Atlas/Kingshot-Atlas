@@ -228,7 +228,7 @@ const Ambassadors: React.FC = () => {
             <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.85rem', marginBottom: '0.15rem' }}>Scout</div>
             <div style={{ color: REFERRAL_TIER_COLORS.scout, fontSize: '0.7rem', fontWeight: 600, marginBottom: '0.5rem' }}>2 Referrals</div>
             <div style={{ color: '#9ca3af', fontSize: '0.68rem', lineHeight: 1.5 }}>
-              Scout badge on your profile. You're on the radar.
+              Scout badge on your profile. Listed on the Ambassador Network page.
             </div>
           </div>
 
@@ -244,7 +244,7 @@ const Ambassadors: React.FC = () => {
             <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.85rem', marginBottom: '0.15rem' }}>Recruiter</div>
             <div style={{ color: REFERRAL_TIER_COLORS.recruiter, fontSize: '0.7rem', fontWeight: 600, marginBottom: '0.5rem' }}>5 Referrals</div>
             <div style={{ color: '#9ca3af', fontSize: '0.68rem', lineHeight: 1.5 }}>
-              Recruiter badge. Your kingdom knows who's bringing in talent.
+              Recruiter badge on your profile. Highlighted in kingdom player lists.
             </div>
           </div>
 
@@ -256,11 +256,11 @@ const Ambassadors: React.FC = () => {
             backgroundColor: `${REFERRAL_TIER_COLORS.consul}08`,
             textAlign: 'center',
           }}>
-            <div style={{ fontSize: '1.25rem', marginBottom: '0.35rem' }}>🏛️</div>
+            <div style={{ fontSize: '1.25rem', marginBottom: '0.35rem' }}>⚖️</div>
             <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.85rem', marginBottom: '0.15rem' }}>Consul</div>
             <div style={{ color: REFERRAL_TIER_COLORS.consul, fontSize: '0.7rem', fontWeight: 600, marginBottom: '0.5rem' }}>10 Referrals</div>
             <div style={{ color: '#9ca3af', fontSize: '0.68rem', lineHeight: 1.5 }}>
-              Exclusive Discord Consul role. A respected voice in the community.
+              Exclusive Consul role in Discord. Priority support and community influence.
             </div>
           </div>
 
@@ -273,11 +273,11 @@ const Ambassadors: React.FC = () => {
             textAlign: 'center',
             boxShadow: `0 0 15px ${REFERRAL_TIER_COLORS.ambassador}15`,
           }}>
-            <div style={{ fontSize: '1.25rem', marginBottom: '0.35rem' }}>👑</div>
+            <div style={{ fontSize: '1.25rem', marginBottom: '0.35rem' }}>🏛️</div>
             <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.85rem', marginBottom: '0.15rem' }}>Ambassador</div>
             <div style={{ color: REFERRAL_TIER_COLORS.ambassador, fontSize: '0.7rem', fontWeight: 600, marginBottom: '0.5rem' }}>20 Referrals</div>
             <div style={{ color: '#9ca3af', fontSize: '0.68rem', lineHeight: 1.5 }}>
-              Top-tier Discord role, leaderboard spotlight, and community recognition.
+              Top-tier Ambassador Discord role. Leaderboard spotlight and direct input on Atlas features.
             </div>
           </div>
         </div>
@@ -300,7 +300,7 @@ const Ambassadors: React.FC = () => {
             </p>
           </div>
           <Link
-            to="/profile"
+            to="/profile#referral-program"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -332,7 +332,7 @@ const Ambassadors: React.FC = () => {
         {[
           { key: 'all', label: 'All', color: '#22d3ee' },
           { key: 'ambassador', label: '🏛️ Ambassadors', color: REFERRAL_TIER_COLORS.ambassador },
-          { key: 'consul', label: '🏛️ Consuls', color: REFERRAL_TIER_COLORS.consul },
+          { key: 'consul', label: '⚖️ Consuls', color: REFERRAL_TIER_COLORS.consul },
           { key: 'recruiter', label: '📢 Recruiters', color: REFERRAL_TIER_COLORS.recruiter },
           { key: 'scout', label: '🔍 Scouts', color: REFERRAL_TIER_COLORS.scout },
         ].map(chip => (
@@ -519,58 +519,6 @@ const Ambassadors: React.FC = () => {
         </div>
       )}
 
-      {/* CTA for non-ambassadors */}
-      <div style={{
-        textAlign: 'center',
-        marginTop: '2rem',
-        padding: isMobile ? '1.5rem 1rem' : '2rem',
-        backgroundColor: '#111111',
-        borderRadius: '12px',
-        border: '1px solid #2a2a2a',
-      }}>
-        <h3 style={{
-          margin: '0 0 0.5rem',
-          fontSize: '1rem',
-          fontWeight: '700',
-          color: '#fff',
-        }}>
-          Your network is your power.
-        </h3>
-        <p style={{
-          color: '#6b7280',
-          fontSize: '0.85rem',
-          margin: '0 0 0.5rem',
-          lineHeight: 1.5,
-        }}>
-          Link your account (TC25+), share your link, climb the ranks.
-        </p>
-        <p style={{
-          color: '#4b5563',
-          fontSize: '0.75rem',
-          margin: '0 0 1rem',
-          lineHeight: 1.5,
-        }}>
-          🔍 2 = Scout &nbsp;·&nbsp; 📢 5 = Recruiter &nbsp;·&nbsp; 🏛️ 10 = Consul &nbsp;·&nbsp; 👑 20 = Ambassador
-        </p>
-        <Link
-          to="/profile"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            padding: '0.6rem 1.25rem',
-            backgroundColor: '#a24cf320',
-            border: '1px solid #a24cf350',
-            borderRadius: '10px',
-            color: '#a24cf3',
-            fontSize: '0.85rem',
-            fontWeight: '600',
-            textDecoration: 'none',
-            minHeight: '44px',
-          }}
-        >
-          Get Your Referral Link →
-        </Link>
-      </div>
     </div>
   );
 };

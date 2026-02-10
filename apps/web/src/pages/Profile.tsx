@@ -244,6 +244,22 @@ const Profile: React.FC = () => {
     }
   }, [profile, userId, hasShownWelcome, showToast]);
   
+  // Handle hash-based scroll (e.g. /profile#referral-program from Ambassadors page)
+  useEffect(() => {
+    const hash = window.location.hash?.replace('#', '');
+    if (hash && !loading) {
+      const el = document.getElementById(hash);
+      if (el) {
+        setTimeout(() => {
+          el.scrollIntoView({ behavior: 'smooth' });
+          el.style.transition = 'box-shadow 0.3s ease';
+          el.style.boxShadow = '0 0 0 2px #a24cf3, 0 0 20px rgba(162, 76, 243, 0.4)';
+          setTimeout(() => { el.style.boxShadow = 'none'; }, 1500);
+        }, 600);
+      }
+    }
+  }, [loading]);
+
   // Scroll to link section helper with highlight animation
   const scrollToLinkSection = useCallback(() => {
     const linkSection = document.getElementById('link-kingshot-section');
@@ -1471,7 +1487,9 @@ const Profile: React.FC = () => {
 
         {/* 5. Referral Program - only show for own profile */}
         {!isViewingOther && (
-          <ReferralStats />
+          <div id="referral-program">
+            <ReferralStats />
+          </div>
         )}
 
         {/* 6. User Achievements - only show for own profile (uses current user's stats) */}

@@ -3,6 +3,19 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-10 17:15 | Product Engineer | DEPLOYED
+Task: Ambassador tier perks, endorsement UX polish, activation notifications, stale claim reminders
+Files:
+- `apps/web/src/pages/Ambassadors.tsx` — Restored tier perks section with CTA "Start Recruiting →" button and Atlas personality copy
+- `apps/web/src/components/EditorClaiming.tsx` — Share to Discord button (copies pre-formatted message); milestone celebrations at 25/50/75/100% on EndorsementProgress bar
+- `apps/web/src/pages/TransferBoard.tsx` — Dynamic OG meta tags for endorsement links (title, description, URL change based on endorseClaimData)
+- `apps/web/src/components/admin/TransferHubAdminTab.tsx` — Editor claims show only Kingshot username (removed random username + parentheses)
+- Supabase migration `editor_activated_notifications_trigger` — Notifies editor (activation + fund ready) + all endorsers on status→active
+- Supabase migration `prevent_multiple_active_editors_per_kingdom` — Partial unique index + RPC guard for race conditions
+- Supabase migration `endorsement_stale_claim_reminder` — pg_cron job (daily noon UTC) sends reminder to nominees with stale claims (>48h, <50% endorsements)
+- Supabase: Deleted 3 Gatreno test applications; reset K172 fake $50 fund balance to $0
+Result: Deployed to production via git push. Ambassador page has compelling tier perks with CTA. Endorsement links preview nicely in Discord. Share to Discord copies formatted message. Milestones show progress celebration. Stale claims get daily reminders. Multiple active editor race condition prevented.
+
 ## 2026-02-10 17:00 | Product Engineer | COMPLETED
 Task: Endorsement system hardening — UI fixes, activation notifications, data cleanup, security audit
 Files:

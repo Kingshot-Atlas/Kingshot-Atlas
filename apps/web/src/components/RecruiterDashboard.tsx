@@ -528,7 +528,7 @@ const RecruiterDashboard: React.FC<{
   const [browseFilters, setBrowseFilters] = useState<{ minTc: string; minPower: string; language: string; sortBy: string }>({ minTc: '', minPower: '', language: '', sortBy: 'newest' });
   const [compareList, setCompareList] = useState<Set<string>>(new Set());
   const [showCompare, setShowCompare] = useState(false);
-  const [contributions, setContributions] = useState<Array<{ id: string; amount: number; contributed_at: string }>>([]);
+  const [contributions, setContributions] = useState<Array<{ id: string; amount: number; created_at: string }>>([]);
   const [loadingContributions, setLoadingContributions] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(() => {
     return !localStorage.getItem('atlas_recruiter_onboarded');
@@ -739,9 +739,9 @@ const RecruiterDashboard: React.FC<{
     try {
       const { data } = await supabase
         .from('kingdom_fund_contributions')
-        .select('id, amount, contributed_at')
+        .select('id, amount, created_at')
         .eq('kingdom_number', editorInfo.kingdom_number)
-        .order('contributed_at', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(20);
       setContributions(data || []);
     } catch {
@@ -2449,7 +2449,7 @@ const RecruiterDashboard: React.FC<{
                                 </span>
                               </div>
                               <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>
-                                {new Date(c.contributed_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                {new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                               </span>
                             </div>
                           ))}

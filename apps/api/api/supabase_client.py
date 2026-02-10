@@ -653,10 +653,17 @@ def credit_kingdom_fund(
             new_balance = current_balance + amount
             new_tier = _calculate_fund_tier(new_balance)
 
+            # Use RPC to atomically increment contributor_count and total_contributed
             client.table("kingdom_funds").update({
                 "balance": new_balance,
                 "tier": new_tier,
             }).eq("kingdom_number", kingdom_number).execute()
+
+            # Increment total_contributed and contributor_count via raw SQL
+            client.rpc("increment_fund_totals", {
+                "p_kingdom_number": kingdom_number,
+                "p_amount": amount,
+            }).execute()
         else:
             # Create new fund record
             new_balance = amount
@@ -685,6 +692,39 @@ def credit_kingdom_fund(
             contribution_data["stripe_payment_intent_id"] = stripe_payment_intent_id
 
         client.table("kingdom_fund_contributions").insert(contribution_data).execute()
+
+        # 3. Notify the kingdom's active editor about the contribution
+        try:
+            editor_result = client.table("kingdom_editors").select("user_id").eq(
+                "kingdom_number", kingdom_number
+            ).eq("status", "active").limit(1).execute()
+
+            if editor_result.data and len(editor_result.data) > 0:
+                editor_user_id = editor_result.data[0]["user_id"]
+                # Get contributor name if available
+                contributor_name = "Someone"
+                if user_id:
+                    profile_result = client.table("profiles").select("linked_username, username").eq(
+                        "id", user_id
+                    ).limit(1).execute()
+                    if profile_result.data:
+                        contributor_name = profile_result.data[0].get("linked_username") or profile_result.data[0].get("username") or "Someone"
+
+                client.table("notifications").insert({
+                    "user_id": editor_user_id,
+                    "type": "fund_contribution",
+                    "title": f"Kingdom {kingdom_number} Fund Contribution",
+                    "message": f"{contributor_name} contributed ${amount:.0f} to Kingdom {kingdom_number}'s fund. New balance: ${new_balance:.0f}.",
+                    "link": "/transfer-hub",
+                    "metadata": {
+                        "kingdom_number": kingdom_number,
+                        "amount": amount,
+                        "new_balance": new_balance,
+                        "contributor_user_id": user_id,
+                    },
+                }).execute()
+        except Exception as notify_err:
+            print(f"Non-blocking: failed to notify editor for K{kingdom_number}: {notify_err}")
 
         print(f"Credited kingdom {kingdom_number} fund: +${amount} -> ${new_balance} (tier: {new_tier})")
         return True

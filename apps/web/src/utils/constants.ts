@@ -90,7 +90,7 @@ export const REFERRAL_TIER_THRESHOLDS: Record<ReferralTier, number> = {
 
 export const REFERRAL_TIER_COLORS: Record<ReferralTier, string> = {
   scout: '#ffffff',     // White
-  recruiter: '#22c55e', // Green
+  recruiter: '#4ade80', // Soft Green
   consul: '#b890dd',    // Light Purple
   ambassador: '#a24cf3', // Purple
 } as const;
