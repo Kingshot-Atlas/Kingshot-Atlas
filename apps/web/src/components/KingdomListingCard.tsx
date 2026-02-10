@@ -874,6 +874,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
         gap: '0.5rem',
         justifyContent: 'flex-end',
         alignItems: 'center',
+        flexWrap: 'wrap',
       }}>
         <Link
           to={`/kingdom/${kingdom.kingdom_number}`}

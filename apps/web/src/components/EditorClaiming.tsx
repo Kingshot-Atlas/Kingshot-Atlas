@@ -358,15 +358,23 @@ const PendingClaimView: React.FC<{
       backgroundColor: '#111111',
       border: '1px solid #eab30825',
       borderRadius: '12px',
-      padding: isMobile ? '1rem' : '1.25rem',
+      padding: isMobile ? '0.75rem' : '1.25rem',
+      maxWidth: '500px',
+      margin: '0 auto',
     }}>
+      {/* Header */}
       <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        marginBottom: '0.75rem',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: isMobile ? 'center' : 'space-between',
+        flexDirection: isMobile ? 'column' : 'row',
+        gap: isMobile ? '0.35rem' : '0',
+        marginBottom: '0.5rem',
+        textAlign: isMobile ? 'center' : undefined,
       }}>
         <h3 style={{
           fontFamily: FONT_DISPLAY,
-          fontSize: '1rem',
+          fontSize: isMobile ? '0.9rem' : '1rem',
           color: '#eab308',
           margin: 0,
         }}>
@@ -377,7 +385,7 @@ const PendingClaimView: React.FC<{
           backgroundColor: '#eab30815',
           border: '1px solid #eab30830',
           borderRadius: '4px',
-          fontSize: '0.65rem',
+          fontSize: '0.6rem',
           color: '#eab308',
           fontWeight: 'bold',
         }}>
@@ -387,67 +395,116 @@ const PendingClaimView: React.FC<{
 
       <EndorsementProgress current={claim.endorsement_count} required={claim.required_endorsements} />
 
-      <p style={{ color: '#9ca3af', fontSize: '0.8rem', margin: '0.75rem 0', lineHeight: 1.5 }}>
-        Share this link with TC20+ members of Kingdom {claim.kingdom_number} to gather endorsements.
-        Once you reach {claim.required_endorsements} endorsements, your claim is automatically activated.
+      <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.75rem' : '0.8rem', margin: '0.5rem 0', lineHeight: 1.4, textAlign: isMobile ? 'center' : undefined }}>
+        {isMobile
+          ? `Share with TC20+ K${claim.kingdom_number} members. ${claim.required_endorsements} endorsements to activate.`
+          : `Share this link with TC20+ members of Kingdom ${claim.kingdom_number} to gather endorsements. Once you reach ${claim.required_endorsements} endorsements, your claim is automatically activated.`
+        }
       </p>
 
-      {/* Share Link */}
-      <div style={{
-        display: 'flex', gap: '0.5rem',
-        marginBottom: '0.75rem',
-      }}>
+      {/* Share Actions */}
+      {isMobile ? (
         <div style={{
-          flex: 1,
-          padding: '0.5rem 0.75rem',
-          backgroundColor: '#0a0a0a',
-          border: '1px solid #2a2a2a',
-          borderRadius: '8px',
-          color: '#6b7280',
-          fontSize: '0.7rem',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-          display: 'flex',
-          alignItems: 'center',
+          display: 'flex', gap: '0.5rem',
+          marginBottom: '0.5rem',
         }}>
-          {shareLink}
+          <button
+            onClick={handleCopyLink}
+            style={{
+              flex: 1,
+              padding: '0.5rem 0.75rem',
+              backgroundColor: copied ? '#22c55e15' : '#22d3ee15',
+              border: `1px solid ${copied ? '#22c55e30' : '#22d3ee30'}`,
+              borderRadius: '8px',
+              color: copied ? '#22c55e' : '#22d3ee',
+              fontSize: '0.75rem',
+              fontWeight: '600',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              minHeight: '40px',
+            }}
+          >
+            {copied ? '✓ Link Copied!' : '🔗 Copy Link'}
+          </button>
+          <button
+            onClick={handleShareDiscord}
+            style={{
+              flex: 1,
+              padding: '0.5rem 0.75rem',
+              backgroundColor: discordCopied ? '#22c55e15' : '#5865F215',
+              border: `1px solid ${discordCopied ? '#22c55e30' : '#5865F230'}`,
+              borderRadius: '8px',
+              color: discordCopied ? '#22c55e' : '#5865F2',
+              fontSize: '0.75rem',
+              fontWeight: '600',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              minHeight: '40px',
+            }}
+          >
+            {discordCopied ? '✓ Copied!' : '💬 Discord'}
+          </button>
         </div>
-        <button
-          onClick={handleCopyLink}
-          style={{
+      ) : (
+        <div style={{
+          display: 'flex', gap: '0.5rem',
+          marginBottom: '0.75rem',
+        }}>
+          <div style={{
+            flex: 1,
             padding: '0.5rem 0.75rem',
-            backgroundColor: copied ? '#22c55e15' : '#22d3ee15',
-            border: `1px solid ${copied ? '#22c55e30' : '#22d3ee30'}`,
+            backgroundColor: '#0a0a0a',
+            border: '1px solid #2a2a2a',
             borderRadius: '8px',
-            color: copied ? '#22c55e' : '#22d3ee',
-            fontSize: '0.75rem',
-            fontWeight: '600',
-            cursor: 'pointer',
+            color: '#6b7280',
+            fontSize: '0.7rem',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
-            minHeight: '36px',
-          }}
-        >
-          {copied ? 'Copied!' : 'Copy Link'}
-        </button>
-        <button
-          onClick={handleShareDiscord}
-          style={{
-            padding: '0.5rem 0.75rem',
-            backgroundColor: discordCopied ? '#22c55e15' : '#5865F215',
-            border: `1px solid ${discordCopied ? '#22c55e30' : '#5865F230'}`,
-            borderRadius: '8px',
-            color: discordCopied ? '#22c55e' : '#5865F2',
-            fontSize: '0.75rem',
-            fontWeight: '600',
-            cursor: 'pointer',
-            whiteSpace: 'nowrap',
-            minHeight: '36px',
-          }}
-        >
-          {discordCopied ? 'Copied!' : '💬 Discord'}
-        </button>
-      </div>
+            display: 'flex',
+            alignItems: 'center',
+            minWidth: 0,
+          }}>
+            {shareLink}
+          </div>
+          <button
+            onClick={handleCopyLink}
+            style={{
+              padding: '0.5rem 0.75rem',
+              backgroundColor: copied ? '#22c55e15' : '#22d3ee15',
+              border: `1px solid ${copied ? '#22c55e30' : '#22d3ee30'}`,
+              borderRadius: '8px',
+              color: copied ? '#22c55e' : '#22d3ee',
+              fontSize: '0.75rem',
+              fontWeight: '600',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              minHeight: '36px',
+              flexShrink: 0,
+            }}
+          >
+            {copied ? 'Copied!' : 'Copy Link'}
+          </button>
+          <button
+            onClick={handleShareDiscord}
+            style={{
+              padding: '0.5rem 0.75rem',
+              backgroundColor: discordCopied ? '#22c55e15' : '#5865F215',
+              border: `1px solid ${discordCopied ? '#22c55e30' : '#5865F230'}`,
+              borderRadius: '8px',
+              color: discordCopied ? '#22c55e' : '#5865F2',
+              fontSize: '0.75rem',
+              fontWeight: '600',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              minHeight: '36px',
+              flexShrink: 0,
+            }}
+          >
+            {discordCopied ? 'Copied!' : '💬 Discord'}
+          </button>
+        </div>
+      )}
 
       {/* Endorsers List */}
       {loading ? (
