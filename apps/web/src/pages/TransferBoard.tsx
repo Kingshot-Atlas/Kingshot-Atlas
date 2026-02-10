@@ -8,7 +8,7 @@ import { supabase } from '../lib/supabase';
 import TransferProfileForm from '../components/TransferProfileForm';
 import { ApplyModal, MyApplicationsTracker } from '../components/TransferApplications';
 import RecruiterDashboard from '../components/RecruiterDashboard';
-import EditorClaiming from '../components/EditorClaiming';
+import EditorClaiming, { EndorseButton } from '../components/EditorClaiming';
 import KingdomFundContribute from '../components/KingdomFundContribute';
 import { neonGlow, FONT_DISPLAY, colors } from '../utils/styles';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
@@ -122,17 +122,29 @@ const TransferBoard: React.FC = () => {
   const [profileViewCount, setProfileViewCount] = useState(0);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const [showAuthGate, setShowAuthGate] = useState<'login' | 'link' | null>(null);
+  const [endorseClaimId, setEndorseClaimId] = useState<string | null>(null);
+  const [endorseClaimData, setEndorseClaimData] = useState<{
+    id: string;
+    kingdom_number: number;
+    status: string;
+    endorsement_count: number;
+    required_endorsements: number;
+    nominee_username: string;
+    nominee_linked_username: string | null;
+  } | null>(null);
+  const [endorseLoading, setEndorseLoading] = useState(false);
 
   // Track page view
   useEffect(() => {
     trackFeature('Transfer Hub');
   }, [trackFeature]);
 
-  // Handle URL parameters: ?fund=N opens contribution modal, ?contributed=true shows success toast
+  // Handle URL parameters: ?fund=N opens contribution modal, ?contributed=true shows success toast, ?endorse=ID opens endorsement
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const fundParam = params.get('fund');
     const contributed = params.get('contributed');
+    const endorseParam = params.get('endorse');
 
     if (contributed === 'true') {
       setShowContributionSuccess(true);
@@ -145,7 +157,20 @@ const TransferBoard: React.FC = () => {
       }
     }
 
-    // Clean URL params
+    if (endorseParam) {
+      setEndorseClaimId(endorseParam);
+      // Clear any stored pending endorsement since we have it in URL
+      localStorage.removeItem('atlas_pending_endorsement');
+    } else {
+      // Check localStorage for pending endorsement (from auth redirect flow)
+      const stored = localStorage.getItem('atlas_pending_endorsement');
+      if (stored) {
+        setEndorseClaimId(stored);
+        localStorage.removeItem('atlas_pending_endorsement');
+      }
+    }
+
+    // Clean non-endorse URL params (keep endorse for auth redirect flow)
     if (fundParam || contributed) {
       params.delete('fund');
       params.delete('contributed');
@@ -155,6 +180,49 @@ const TransferBoard: React.FC = () => {
       window.history.replaceState({}, '', newUrl);
     }
   }, []);
+
+  // Fetch endorsement claim details when endorseClaimId is set
+  useEffect(() => {
+    const fetchEndorseClaim = async () => {
+      if (!supabase || !endorseClaimId) return;
+      setEndorseLoading(true);
+      try {
+        const { data: claim, error } = await supabase
+          .from('kingdom_editors')
+          .select('id, kingdom_number, user_id, status, endorsement_count, required_endorsements')
+          .eq('id', endorseClaimId)
+          .single();
+
+        if (error || !claim) {
+          setEndorseClaimData(null);
+          return;
+        }
+
+        // Fetch nominee's profile
+        const { data: nomineeProfile } = await supabase
+          .from('profiles')
+          .select('username, linked_username')
+          .eq('id', claim.user_id)
+          .single();
+
+        setEndorseClaimData({
+          id: claim.id,
+          kingdom_number: claim.kingdom_number,
+          status: claim.status,
+          endorsement_count: claim.endorsement_count,
+          required_endorsements: claim.required_endorsements,
+          nominee_username: nomineeProfile?.username || 'Unknown',
+          nominee_linked_username: nomineeProfile?.linked_username || null,
+        });
+      } catch (err) {
+        console.error('Error fetching endorsement claim:', err);
+        setEndorseClaimData(null);
+      } finally {
+        setEndorseLoading(false);
+      }
+    };
+    fetchEndorseClaim();
+  }, [endorseClaimId, user]);
 
   // Infinite scroll: load more standard listings when sentinel comes into view
   const loadMore = useCallback(() => {
@@ -1258,6 +1326,215 @@ const TransferBoard: React.FC = () => {
           )}
         </div>
       )}
+      {/* Endorsement Overlay Modal */}
+      {endorseClaimId && (
+        <div
+          style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+            display: 'flex', alignItems: isMobile ? 'flex-end' : 'center', justifyContent: 'center',
+            zIndex: 1100, padding: isMobile ? 0 : '1rem',
+          }}
+          onClick={() => {
+            setEndorseClaimId(null);
+            setEndorseClaimData(null);
+            // Clean URL
+            const params = new URLSearchParams(window.location.search);
+            params.delete('endorse');
+            const newUrl = params.toString()
+              ? `${window.location.pathname}?${params.toString()}`
+              : window.location.pathname;
+            window.history.replaceState({}, '', newUrl);
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: '#111111', border: '1px solid #22c55e30',
+              borderRadius: isMobile ? '16px 16px 0 0' : '16px',
+              padding: isMobile ? '1.5rem 1.25rem' : '2rem',
+              maxWidth: '480px', width: '100%',
+              paddingBottom: isMobile ? 'max(1.5rem, env(safe-area-inset-bottom))' : '2rem',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {endorseLoading ? (
+              <div style={{ textAlign: 'center', padding: '2rem 0' }}>
+                <div style={{ color: '#6b7280', fontSize: '0.85rem' }}>Loading endorsement details...</div>
+              </div>
+            ) : !endorseClaimData ? (
+              <div style={{ textAlign: 'center', padding: '1.5rem 0' }}>
+                <div style={{
+                  width: '50px', height: '50px', borderRadius: '50%',
+                  backgroundColor: '#ef444415', border: '2px solid #ef444430',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  margin: '0 auto 1rem', fontSize: '1.3rem',
+                }}>✗</div>
+                <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: '1.1rem', color: '#fff', margin: '0 0 0.5rem 0' }}>
+                  Endorsement Not Found
+                </h2>
+                <p style={{ color: '#9ca3af', fontSize: '0.85rem', margin: '0 0 1rem 0' }}>
+                  This endorsement link may be invalid or expired.
+                </p>
+                <button
+                  onClick={() => {
+                    setEndorseClaimId(null);
+                    const params = new URLSearchParams(window.location.search);
+                    params.delete('endorse');
+                    window.history.replaceState({}, '', params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname);
+                  }}
+                  style={{
+                    padding: '0.6rem 1.5rem', backgroundColor: '#22d3ee15',
+                    border: '1px solid #22d3ee40', borderRadius: '8px',
+                    color: '#22d3ee', fontWeight: '600', fontSize: '0.85rem', cursor: 'pointer',
+                    minHeight: '44px',
+                  }}
+                >Continue to Transfer Hub</button>
+              </div>
+            ) : endorseClaimData.status !== 'pending' ? (
+              <div style={{ textAlign: 'center', padding: '1.5rem 0' }}>
+                <div style={{
+                  width: '50px', height: '50px', borderRadius: '50%',
+                  backgroundColor: endorseClaimData.status === 'active' ? '#22c55e15' : '#6b728015',
+                  border: `2px solid ${endorseClaimData.status === 'active' ? '#22c55e30' : '#6b728030'}`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  margin: '0 auto 1rem', fontSize: '1.3rem',
+                }}>{endorseClaimData.status === 'active' ? '✓' : '—'}</div>
+                <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: '1.1rem', color: '#fff', margin: '0 0 0.5rem 0' }}>
+                  {endorseClaimData.status === 'active' ? 'Already Activated!' : 'Claim No Longer Active'}
+                </h2>
+                <p style={{ color: '#9ca3af', fontSize: '0.85rem', margin: '0 0 1rem 0' }}>
+                  {endorseClaimData.status === 'active'
+                    ? `${endorseClaimData.nominee_linked_username || endorseClaimData.nominee_username} is now the editor of Kingdom ${endorseClaimData.kingdom_number}.`
+                    : 'This editor claim is no longer accepting endorsements.'}
+                </p>
+                <button
+                  onClick={() => {
+                    setEndorseClaimId(null);
+                    const params = new URLSearchParams(window.location.search);
+                    params.delete('endorse');
+                    window.history.replaceState({}, '', params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname);
+                  }}
+                  style={{
+                    padding: '0.6rem 1.5rem', backgroundColor: '#22d3ee15',
+                    border: '1px solid #22d3ee40', borderRadius: '8px',
+                    color: '#22d3ee', fontWeight: '600', fontSize: '0.85rem', cursor: 'pointer',
+                    minHeight: '44px',
+                  }}
+                >Continue to Transfer Hub</button>
+              </div>
+            ) : !user ? (
+              /* Not logged in — prompt to sign in */
+              <div style={{ textAlign: 'center', padding: '1rem 0' }}>
+                <div style={{
+                  width: '50px', height: '50px', borderRadius: '50%',
+                  backgroundColor: '#a855f715', border: '2px solid #a855f730',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  margin: '0 auto 1rem', fontSize: '1.3rem',
+                }}>🗳️</div>
+                <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: '1.1rem', color: '#fff', margin: '0 0 0.5rem 0' }}>
+                  Endorse {endorseClaimData.nominee_linked_username || endorseClaimData.nominee_username}
+                </h2>
+                <p style={{ color: '#9ca3af', fontSize: '0.85rem', margin: '0 0 0.5rem 0', lineHeight: 1.5 }}>
+                  <span style={{ color: '#a855f7', fontWeight: 600 }}>{endorseClaimData.nominee_linked_username || endorseClaimData.nominee_username}</span> is claiming
+                  Kingdom <strong style={{ color: '#22d3ee' }}>{endorseClaimData.kingdom_number}</strong> and needs endorsements from kingdom members.
+                </p>
+                <div style={{
+                  padding: '0.5rem 0.75rem', backgroundColor: '#0a0a0a',
+                  borderRadius: '8px', border: '1px solid #2a2a2a',
+                  marginBottom: '1rem', fontSize: '0.8rem', color: '#6b7280',
+                }}>
+                  {endorseClaimData.endorsement_count}/{endorseClaimData.required_endorsements} endorsements
+                </div>
+                <p style={{ color: '#f59e0b', fontSize: '0.8rem', margin: '0 0 1rem 0' }}>
+                  Sign in to endorse this candidate.
+                </p>
+                <Link
+                  to="/profile"
+                  onClick={() => {
+                    if (endorseClaimId) localStorage.setItem('atlas_pending_endorsement', endorseClaimId);
+                  }}
+                  style={{
+                    display: 'inline-block', padding: '0.6rem 1.5rem',
+                    backgroundColor: '#a855f7', color: '#fff', borderRadius: '8px',
+                    fontWeight: '600', fontSize: '0.85rem', textDecoration: 'none',
+                    minHeight: '44px', lineHeight: '44px',
+                  }}
+                >Sign In to Endorse</Link>
+                <p style={{ color: '#6b7280', fontSize: '0.7rem', margin: '0.75rem 0 0 0', lineHeight: 1.4 }}>
+                  After signing in, return to the Transfer Hub to complete your endorsement.
+                </p>
+              </div>
+            ) : !profile?.linked_player_id ? (
+              /* Logged in but not linked — prompt to link */
+              <div style={{ textAlign: 'center', padding: '1rem 0' }}>
+                <div style={{
+                  width: '50px', height: '50px', borderRadius: '50%',
+                  backgroundColor: '#f59e0b15', border: '2px solid #f59e0b30',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  margin: '0 auto 1rem', fontSize: '1.3rem',
+                }}>🔗</div>
+                <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: '1.1rem', color: '#fff', margin: '0 0 0.5rem 0' }}>
+                  Link Your Kingshot Account
+                </h2>
+                <p style={{ color: '#9ca3af', fontSize: '0.85rem', margin: '0 0 0.5rem 0', lineHeight: 1.5 }}>
+                  To endorse <span style={{ color: '#a855f7', fontWeight: 600 }}>{endorseClaimData.nominee_linked_username || endorseClaimData.nominee_username}</span> for
+                  Kingdom <strong style={{ color: '#22d3ee' }}>{endorseClaimData.kingdom_number}</strong>, you need to link your in-game account first.
+                </p>
+                <p style={{ color: '#6b7280', fontSize: '0.75rem', margin: '0 0 1rem 0' }}>
+                  This verifies which kingdom you belong to and your TC level.
+                </p>
+                <Link
+                  to="/profile"
+                  onClick={() => {
+                    if (endorseClaimId) localStorage.setItem('atlas_pending_endorsement', endorseClaimId);
+                  }}
+                  style={{
+                    display: 'inline-block', padding: '0.6rem 1.5rem',
+                    backgroundColor: '#f59e0b', color: '#000', borderRadius: '8px',
+                    fontWeight: '600', fontSize: '0.85rem', textDecoration: 'none',
+                    minHeight: '44px', lineHeight: '44px',
+                  }}
+                >Link Account</Link>
+                <p style={{ color: '#6b7280', fontSize: '0.7rem', margin: '0.75rem 0 0 0', lineHeight: 1.4 }}>
+                  After linking, return to the Transfer Hub to complete your endorsement.
+                </p>
+              </div>
+            ) : (
+              /* Logged in and linked — show the EndorseButton */
+              <div style={{ padding: '0.5rem 0' }}>
+                <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+                  <div style={{
+                    width: '50px', height: '50px', borderRadius: '50%',
+                    backgroundColor: '#22c55e15', border: '2px solid #22c55e30',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    margin: '0 auto 0.75rem', fontSize: '1.3rem',
+                  }}>🗳️</div>
+                  <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: '1.1rem', color: '#fff', margin: '0 0 0.25rem 0' }}>
+                    Endorse for K{endorseClaimData.kingdom_number}
+                  </h2>
+                  <p style={{ color: '#9ca3af', fontSize: '0.8rem', margin: '0 0 0.5rem 0' }}>
+                    <span style={{ color: '#a855f7', fontWeight: 600 }}>{endorseClaimData.nominee_linked_username || endorseClaimData.nominee_username}</span> needs
+                    {' '}{endorseClaimData.required_endorsements - endorseClaimData.endorsement_count} more endorsement{endorseClaimData.required_endorsements - endorseClaimData.endorsement_count !== 1 ? 's' : ''}
+                  </p>
+                </div>
+                <EndorseButton
+                  claimId={endorseClaimData.id}
+                  kingdomNumber={endorseClaimData.kingdom_number}
+                  nomineeName={endorseClaimData.nominee_linked_username || endorseClaimData.nominee_username}
+                  onEndorsed={() => {
+                    // Refresh claim data to update count
+                    setEndorseClaimData(prev => prev ? {
+                      ...prev,
+                      endorsement_count: prev.endorsement_count + 1,
+                    } : null);
+                  }}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Auth Gate Modal */}
       {showAuthGate && (
         <div
@@ -1296,18 +1573,25 @@ const TransferBoard: React.FC = () => {
             </h2>
             <p style={{ color: '#9ca3af', fontSize: '0.85rem', margin: '0 0 1.25rem 0', lineHeight: 1.5 }}>
               {showAuthGate === 'login'
-                ? 'Sign in to apply for transfers, create your profile, and manage recruitment.'
-                : 'Link your Kingshot account to apply for transfers and access all Transfer Hub features.'}
+                ? (endorseClaimId
+                    ? 'Sign in to endorse this editor candidate.'
+                    : 'Sign in to apply for transfers, create your profile, and manage recruitment.')
+                : (endorseClaimId
+                    ? 'Link your Kingshot account to verify your kingdom and endorse.'
+                    : 'Link your Kingshot account to apply for transfers and access all Transfer Hub features.')}
             </p>
             <Link
-              to={showAuthGate === 'login' ? '/auth' : '/profile'}
+              to="/profile"
+              onClick={() => {
+                if (endorseClaimId) localStorage.setItem('atlas_pending_endorsement', endorseClaimId);
+                setShowAuthGate(null);
+              }}
               style={{
                 display: 'inline-block', padding: '0.6rem 1.5rem',
                 backgroundColor: '#22d3ee', color: '#000', borderRadius: '8px',
                 fontWeight: '600', fontSize: '0.85rem', textDecoration: 'none',
                 minHeight: '44px', lineHeight: '44px',
               }}
-              onClick={() => setShowAuthGate(null)}
             >
               {showAuthGate === 'login' ? 'Sign In' : 'Go to Profile'}
             </Link>

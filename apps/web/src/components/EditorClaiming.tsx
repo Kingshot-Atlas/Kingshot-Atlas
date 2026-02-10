@@ -443,8 +443,9 @@ const PendingClaimView: React.FC<{
 const EndorseButton: React.FC<{
   claimId: string;
   kingdomNumber: number;
+  nomineeName?: string;
   onEndorsed: () => void;
-}> = ({ claimId, kingdomNumber, onEndorsed }) => {
+}> = ({ claimId, kingdomNumber, nomineeName, onEndorsed }) => {
   const { user, profile } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -477,42 +478,23 @@ const EndorseButton: React.FC<{
     setError(null);
 
     try {
-      const { error: insertError } = await supabase
-        .from('editor_endorsements')
-        .insert({
-          editor_claim_id: claimId,
-          endorser_user_id: user.id,
+      // Atomic RPC: inserts endorsement + increments count in one transaction
+      const { data, error: rpcError } = await supabase
+        .rpc('submit_endorsement', {
+          p_claim_id: claimId,
+          p_endorser_user_id: user.id,
         });
 
-      if (insertError) {
-        setError(insertError.message);
+      if (rpcError) {
+        setError(rpcError.message);
         return;
       }
 
-      // Update endorsement count on the claim
-      const { error: updateError } = await supabase
-        .rpc('increment_endorsement_count', { claim_id: claimId });
+      const result = data as { success: boolean; error?: string; new_count?: number; activated?: boolean } | null;
 
-      if (updateError) {
-        // Fallback: manual increment
-        const { data: claim } = await supabase
-          .from('kingdom_editors')
-          .select('endorsement_count, required_endorsements')
-          .eq('id', claimId)
-          .single();
-
-        if (claim) {
-          const newCount = (claim.endorsement_count || 0) + 1;
-          const updates: Record<string, unknown> = { endorsement_count: newCount };
-          if (newCount >= claim.required_endorsements) {
-            updates.status = 'active';
-            updates.activated_at = new Date().toISOString();
-          }
-          await supabase
-            .from('kingdom_editors')
-            .update(updates)
-            .eq('id', claimId);
-        }
+      if (!result?.success) {
+        setError(result?.error || 'Failed to endorse');
+        return;
       }
 
       setAlreadyEndorsed(true);
@@ -541,11 +523,21 @@ const EndorseButton: React.FC<{
     }}>
       <div>
         <span style={{ color: '#fff', fontSize: '0.85rem', fontWeight: '600' }}>
-          Endorse Editor for K{kingdomNumber}
+          Endorse {nomineeName ? <span style={{ color: '#a855f7' }}>{nomineeName}</span> : 'Editor'} for K{kingdomNumber}
         </span>
-        {!isSameKingdom && (
+        {!isLinked && (
+          <p style={{ color: '#f59e0b', fontSize: '0.7rem', margin: '0.2rem 0 0 0' }}>
+            Link your Kingshot account first to endorse.
+          </p>
+        )}
+        {isLinked && !isSameKingdom && (
           <p style={{ color: '#6b7280', fontSize: '0.7rem', margin: '0.2rem 0 0 0' }}>
             Only members of Kingdom {kingdomNumber} with TC20+ can endorse.
+          </p>
+        )}
+        {isLinked && isSameKingdom && !meetsTcReq && (
+          <p style={{ color: '#6b7280', fontSize: '0.7rem', margin: '0.2rem 0 0 0' }}>
+            TC Level 20+ required to endorse.
           </p>
         )}
       </div>

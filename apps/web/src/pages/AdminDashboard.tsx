@@ -32,6 +32,7 @@ import {
   AdminActivityFeed,
   PlausibleInsights,
   TransferApplicationsTab,
+  TransferHubAdminTab,
   SkeletonGrid,
   type Submission,
   type Claim,
@@ -49,7 +50,7 @@ const AdminDashboard: React.FC = () => {
   const { showToast } = useToast();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [activeTab, setActiveTab] = useState<'analytics' | 'saas-metrics' | 'engagement' | 'webhooks' | 'data-sources' | 'discord-bot' | 'discord-roles' | 'referrals' | 'submissions' | 'new-kingdoms' | 'claims' | 'corrections' | 'kvk-errors' | 'import' | 'users' | 'plausible' | 'transfer-status' | 'transfer-apps' | 'feedback'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'saas-metrics' | 'engagement' | 'webhooks' | 'data-sources' | 'discord-bot' | 'discord-roles' | 'referrals' | 'submissions' | 'new-kingdoms' | 'claims' | 'corrections' | 'kvk-errors' | 'import' | 'plausible' | 'transfer-status' | 'transfer-apps' | 'transfer-hub' | 'feedback'>('analytics');
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [claims, setClaims] = useState<Claim[]>([]);
   const [transferSubmissions, setTransferSubmissions] = useState<StatusSubmission[]>([]);
@@ -112,9 +113,9 @@ const AdminDashboard: React.FC = () => {
         case '1': setActiveTab('analytics'); break;
         case '2': setActiveTab('submissions'); break;
         case '3': setActiveTab('claims'); break;
-        case '4': setActiveTab('saas-metrics'); break;
-        case '5': setActiveTab('webhooks'); break;
-        case '6': setActiveTab('discord-bot'); break;
+        case '4': setActiveTab('transfer-hub'); break;
+        case '5': setActiveTab('feedback'); break;
+        case '6': setActiveTab('import'); break;
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -1491,7 +1492,8 @@ const AdminDashboard: React.FC = () => {
   // Determine active category based on current tab
   const getActiveCategory = () => {
     if (['analytics', 'saas-metrics', 'engagement', 'plausible'].includes(activeTab)) return 'analytics';
-    if (['submissions', 'new-kingdoms', 'claims', 'transfer-status', 'transfer-apps', 'corrections', 'kvk-errors'].includes(activeTab)) return 'review';
+    if (['submissions', 'new-kingdoms', 'claims', 'corrections', 'kvk-errors'].includes(activeTab)) return 'review';
+    if (['transfer-hub', 'transfer-status', 'transfer-apps'].includes(activeTab)) return 'transfer';
     return 'system';
   };
   const activeCategory = getActiveCategory();
@@ -1572,7 +1574,8 @@ const AdminDashboard: React.FC = () => {
       }}>
         {[
           { id: 'analytics', label: 'Analytics', icon: '📊' },
-          { id: 'review', label: 'Review', icon: '📋', count: pendingCounts.submissions + pendingCounts.claims + pendingCounts.corrections + pendingCounts.transfers + pendingCounts.kvkErrors },
+          { id: 'review', label: 'Review', icon: '📋', count: pendingCounts.submissions + pendingCounts.claims + pendingCounts.corrections + pendingCounts.kvkErrors },
+          { id: 'transfer', label: 'Transfer Hub', icon: '🔄', count: pendingCounts.transfers },
           { id: 'system', label: 'System', icon: '⚙️', count: pendingCounts.feedback }
         ].map(cat => (
           <button
@@ -1580,6 +1583,7 @@ const AdminDashboard: React.FC = () => {
             onClick={() => {
               if (cat.id === 'analytics') setActiveTab('analytics');
               else if (cat.id === 'review') setActiveTab('submissions');
+              else if (cat.id === 'transfer') setActiveTab('transfer-hub');
               else setActiveTab('feedback');
             }}
             style={{
@@ -1649,8 +1653,6 @@ const AdminDashboard: React.FC = () => {
           { id: 'submissions', label: 'KvK Results', count: pendingCounts.submissions },
           { id: 'new-kingdoms', label: 'New Kingdoms', count: 0 },
           { id: 'claims', label: 'Claims', count: pendingCounts.claims },
-          { id: 'transfer-status', label: 'Transfer Status', count: pendingCounts.transfers },
-          { id: 'transfer-apps', label: 'Transfer Apps', count: 0 },
           { id: 'corrections', label: 'Corrections', count: pendingCounts.corrections },
           { id: 'kvk-errors', label: 'KvK Errors', count: pendingCounts.kvkErrors }
         ].map(tab => (
@@ -1675,6 +1677,43 @@ const AdminDashboard: React.FC = () => {
             {tab.count > 0 && (
               <span style={{
                 backgroundColor: activeTab === tab.id ? '#22d3ee' : '#fbbf24',
+                color: '#0a0a0a',
+                fontSize: '0.6rem',
+                fontWeight: 700,
+                padding: '0.1rem 0.3rem',
+                borderRadius: '9999px'
+              }}>
+                {tab.count}
+              </span>
+            )}
+          </button>
+        ))}
+        {activeCategory === 'transfer' && [
+          { id: 'transfer-hub', label: 'Overview', count: 0 },
+          { id: 'transfer-status', label: 'Status Submissions', count: pendingCounts.transfers },
+          { id: 'transfer-apps', label: 'Applications', count: 0 }
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as typeof activeTab)}
+            style={{
+              padding: '0.35rem 0.7rem',
+              backgroundColor: activeTab === tab.id ? '#a855f720' : 'transparent',
+              color: activeTab === tab.id ? '#a855f7' : '#6b7280',
+              border: activeTab === tab.id ? '1px solid #a855f740' : '1px solid transparent',
+              borderRadius: '6px',
+              fontWeight: 500,
+              cursor: 'pointer',
+              fontSize: '0.8rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.3rem'
+            }}
+          >
+            {tab.label}
+            {tab.count > 0 && (
+              <span style={{
+                backgroundColor: activeTab === tab.id ? '#a855f7' : '#fbbf24',
                 color: '#0a0a0a',
                 fontSize: '0.6rem',
                 fontWeight: 700,
@@ -1730,7 +1769,7 @@ const AdminDashboard: React.FC = () => {
       </div>
 
       {/* Filter (not for analytics) */}
-      {activeTab !== 'analytics' && activeTab !== 'import' && (
+      {(['submissions', 'new-kingdoms', 'claims', 'corrections', 'kvk-errors', 'transfer-status', 'feedback'] as const).includes(activeTab as never) && (
         <div style={{ marginBottom: '1rem' }}>
           <select
             value={filter}
@@ -2114,6 +2153,8 @@ const AdminDashboard: React.FC = () => {
             ))
           )}
         </div>
+      ) : activeTab === 'transfer-hub' ? (
+        <TransferHubAdminTab />
       ) : activeTab === 'transfer-status' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {transferSubmissions.length === 0 ? (

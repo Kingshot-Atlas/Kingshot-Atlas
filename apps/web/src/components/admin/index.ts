@@ -8,3 +8,4 @@ export { AdminActivityFeed } from './AdminActivityFeed';
 export { SkeletonGrid, SkeletonList } from './LoadingSkeleton';
 export { PlausibleInsights } from './PlausibleInsights';
 export { TransferApplicationsTab } from './TransferApplicationsTab';
+export { TransferHubAdminTab } from './TransferHubAdminTab';
