@@ -3,6 +3,18 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-10 16:30 | Product Engineer | COMPLETED
+Task: Fix K270 endorsement bug — endorsement count stuck at 0 + full endorsement flow overhaul
+Files:
+- Supabase migration `create_submit_endorsement_rpc` — Atomic SECURITY DEFINER RPC: INSERT endorsement + increment count in one transaction
+- `apps/web/src/components/EditorClaiming.tsx` — Replaced separate INSERT+RPC+fallback with atomic `submit_endorsement` RPC; added `nomineeName` prop to EndorseButton; improved condition messages for unlinked/wrong-kingdom/low-TC users
+- `apps/web/src/pages/TransferBoard.tsx` — CRITICAL: Added `?endorse=` URL param handling (was completely missing); built endorsement overlay modal with 5 states; localStorage-based endorsement persistence through OAuth flow; imported EndorseButton
+- `apps/web/src/components/admin/TransferHubAdminTab.tsx` — Added linked_username fetch+display in Editor Claims cards; capitalized Editor badge; added admin test-view (Copy Link + Open in New Tab) for pending claims
+- `apps/web/src/components/admin/index.ts` — Export TransferHubAdminTab
+- `apps/web/src/pages/AdminDashboard.tsx` — Integrated Transfer Hub tab with sub-tabs
+Root cause: Endorsement links (`/transfer-hub?endorse=ID`) were never handled in TransferBoard — users clicking them saw the Transfer Hub with no endorsement UI. The old separate INSERT + RPC pattern also had a fallback that was blocked by RLS.
+Result: Endorsement flow now works end-to-end. Atomic RPC prevents count desync. Admin can test via Copy Link/Open in New Tab. Build passes. Deployed to production.
+
 ## 2026-02-10 15:40 | Platform Engineer | COMPLETED
 Task: Final editor pipeline verification & FK constraint fix + co-editor limit
 Files:
