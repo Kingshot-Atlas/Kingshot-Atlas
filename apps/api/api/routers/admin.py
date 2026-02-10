@@ -806,7 +806,7 @@ async def get_plausible_stats(
         import json as json_lib
         url = f"https://plausible.io/api/v1/stats/aggregate?site_id={PLAUSIBLE_SITE_ID}&period={period}&metrics=visitors,pageviews,bounce_rate,visit_duration"
         req = urllib.request.Request(url, headers={"Authorization": f"Bearer {PLAUSIBLE_API_KEY}"})
-        with urllib.request.urlopen(req, timeout=10) as resp:
+        with urllib.request.urlopen(req, timeout=10) as resp:  # nosec B310 - URL is hardcoded plausible.io API
             data = json_lib.loads(resp.read().decode())
         results = data.get("results", {})
         return {
@@ -838,7 +838,7 @@ async def get_plausible_breakdown(
         import json as json_lib
         url = f"https://plausible.io/api/v1/stats/breakdown?site_id={PLAUSIBLE_SITE_ID}&period={period}&property={property}&limit=10"
         req = urllib.request.Request(url, headers={"Authorization": f"Bearer {PLAUSIBLE_API_KEY}"})
-        with urllib.request.urlopen(req, timeout=10) as resp:
+        with urllib.request.urlopen(req, timeout=10) as resp:  # nosec B310 - URL is hardcoded plausible.io API
             data = json_lib.loads(resp.read().decode())
         return {"results": data.get("results", []), "property": property, "period": period}
     except Exception as e:

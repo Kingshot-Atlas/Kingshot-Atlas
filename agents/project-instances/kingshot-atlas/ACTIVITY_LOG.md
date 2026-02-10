@@ -3,6 +3,16 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-10 18:51 | Product Engineer | DEPLOYED
+Task: Transfer Hub UX polish — sticky filters, layout reorder, referral tracking, image sharing, CTA animation
+Files:
+- `apps/web/src/pages/TransferBoard.tsx` — Sticky search/filter bar (position:sticky), mode toggle moved below guide, removed Transfer countdown, referral ?ref= landing tracking, animated CTA banner (fadeSlideUp keyframe)
+- `apps/web/src/components/KingdomListingCard.tsx` — Referral ?ref= appended to Share + Discord links, "Copy as Image" button (generateTransferListingCard → clipboard/share/download)
+- `apps/web/src/components/RecruiterDashboard.tsx` — Referral ?ref= appended to Copy Listing Link, destructured profile from useAuth
+- `apps/web/src/utils/sharing.ts` — generateTransferListingDiscordMessage + generateTransferListingCard added (prior session)
+- `apps/web/src/components/kingdom-profile/KingdomHeader.tsx` — View Transfer Listing moved next to Transfer Status (prior session)
+Result: Deployed to production via git push. Sticky filter bar stays visible during scroll. Mode toggle is immediately after How It Works guide. All shared links include ?ref= for ambassador tracking. Image sharing generates and copies/shares PNG. CTA banner animates on entry.
+
 ## 2026-02-10 18:41 | Product Engineer | COMPLETED
 Task: Transfer Hub shareable listings, sharing & discovery features, recruitment conversion tools
 Files:

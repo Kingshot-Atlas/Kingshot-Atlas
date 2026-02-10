@@ -1274,8 +1274,8 @@ const TransferBoard: React.FC = () => {
       {mode !== 'recruiting' && (
         <div style={{
           position: 'sticky',
-          top: 0,
-          zIndex: 50,
+          top: '56px',
+          zIndex: 90,
           backgroundColor: '#0a0a0a',
           paddingTop: '0.5rem',
           paddingBottom: '0.5rem',
@@ -1284,6 +1284,7 @@ const TransferBoard: React.FC = () => {
           marginRight: isMobile ? '-0.25rem' : 0,
           paddingLeft: isMobile ? '0.25rem' : 0,
           paddingRight: isMobile ? '0.25rem' : 0,
+          borderBottom: '1px solid #1a1a1a',
         }}>
           <FilterPanel filters={filters} onChange={setFilters} mode={mode} searchQuery={searchQuery} onSearchChange={setSearchQuery} />
           {/* Kingdom and Recruiting Counts */}

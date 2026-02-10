@@ -463,6 +463,11 @@
 | Transfer Hub — Discord Share Button | ✅ Built | Discord-branded button on KingdomListingCard copies formatted message with kingdom number, tier, score, recruiting status, language, fund tier. (2026-02-10) |
 | Transfer Hub — Transfer Listing Card (OG) | ✅ Built | `generateTransferListingCard` in sharing.ts creates 600×315 canvas PNG with kingdom number, tier, recruiting badge, score, language, fund tier, CTA. (2026-02-10) |
 | Kingdom Profile — View Transfer Listing | ✅ Built | "View Transfer Listing" link moved next to Transfer Status in KingdomHeader Row 4. Compact pill style matching status badge height. Desktop+mobile optimized. (2026-02-10) |
+| Transfer Hub — Sticky Search/Filter | ✅ Live | FilterPanel uses `position: sticky; top: 0; z-index: 50` with dark background. Stays visible during scroll for quick access. Mobile edge-to-edge padding. (2026-02-10) |
+| Transfer Hub — Layout Reorder | ✅ Live | Mode toggle (Transferring/Recruiting/Browsing) moved right below How It Works guide. Transfer countdown removed from hero section. (2026-02-10) |
+| Transfer Hub — Referral Tracking | ✅ Live | All shared listing links (Share, Discord, Copy Listing Link in RecruiterDashboard) append `?ref=<linked_username>` for referral-eligible users. Landing tracked via `Transfer Hub Referral Landing` analytics event. Uses existing `isReferralEligible` from constants. (2026-02-10) |
+| Transfer Hub — Copy as Image | ✅ Live | "Image" button on KingdomListingCard generates 600×315 PNG via `generateTransferListingCard`, copies to clipboard (desktop) or uses Web Share API (mobile), falls back to download. (2026-02-10) |
+| Transfer Hub — CTA Animation | ✅ Live | Unauthenticated CTA banner on shared listing landing uses `fadeSlideUp` CSS keyframe animation (0.5s ease-out). (2026-02-10) |
 | Component Refactoring | 🚧 Planned | KingdomCard, ProfileFeatures too large |
 | Multi-Kingdom Share/Export | 🚧 Planned | ShareButton still uses 2-kingdom format |
 

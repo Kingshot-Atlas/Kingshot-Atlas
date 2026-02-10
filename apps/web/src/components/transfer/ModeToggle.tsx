@@ -11,7 +11,7 @@ const ModeToggle: React.FC<{
   const tabs: Array<{ mode: BoardMode; label: string; icon: string }> = [
     { mode: 'transferring', label: "I'm Transferring", icon: '🚀' },
     { mode: 'recruiting', label: "I'm Recruiting", icon: '📢' },
-    { mode: 'browsing', label: 'Browsing', icon: '👀' },
+    { mode: 'browsing', label: "I'm Browsing", icon: '👀' },
   ];
 
   return (
