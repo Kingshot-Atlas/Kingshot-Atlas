@@ -692,5 +692,35 @@ The backend validates tokens using a cascading strategy:
 
 ---
 
+## Security Hardening — Transfer Hub Launch (2026-02-10)
+
+### RLS Policy Fixes Applied
+
+**`applications_update_own`** on `transfer_applications`:
+- Previously: `USING (auth.uid() = applicant_user_id)` with NO `WITH CHECK`
+- Users could update ANY column (status, kingdom_number, expires_at) via crafted Supabase client
+- **Fixed:** Added `WITH CHECK (auth.uid() = applicant_user_id AND status = 'withdrawn')`
+- Now users can ONLY set their own applications to 'withdrawn'
+
+**`Authenticated users can send notifications`** on `notifications`:
+- Previously: `WITH CHECK (true)` — any authenticated user could insert notifications to ANY user
+- Abuse vector: notification spam to arbitrary users
+- **Fixed:** `WITH CHECK (type IN ('new_application', 'application_status', 'transfer_invite'))`
+- Only transfer-related notification types allowed from frontend; all other types must come from service_role/triggers
+
+### Function search_path (ALL 44 fixed)
+- Applied `ALTER FUNCTION ... SET search_path = public` to all 44 public functions
+- Prevents search_path injection attacks where attacker creates shadow functions in other schemas
+- Migration: `set_search_path_on_all_functions`
+
+### Remaining Acceptable Warnings
+- `admin_audit_log`, `discord_link_attempts`, `review_notifications` — service_role INSERT (backend-only, intentional)
+- `multirally_analytics/usage` — service_role ALL (bot backend only)
+- `auth_leaked_password_protection` — We use OAuth (Google/Discord), not passwords
+
+### Security Score: 82 → 93/100
+
+---
+
 *Updated by Platform Engineer based on current backend best practices.*
-*Last audit: 2026-02-06*
+*Last audit: 2026-02-10*

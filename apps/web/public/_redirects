@@ -1,3 +1,10 @@
 # Cloudflare Pages Redirects
+
+# 301 redirects for legacy/renamed URLs (fixes GSC "Page with redirect")
+/leaderboards     /rankings        301
+/transfer-board   /transfer-hub    301
+/pro              /support         301
+/upgrade          /support         301
+
 # SPA fallback - all routes serve index.html
 /*    /index.html   200

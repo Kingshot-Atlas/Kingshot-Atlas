@@ -149,32 +149,32 @@ export const getCompareMetaTags = (
  */
 export const PAGE_META_TAGS = {
   home: {
-    title: 'Kingshot Atlas - Kingdom Rankings & KvK Tracker',
-    description: 'The #1 Kingshot database. Scout 1190+ kingdoms before Transfer Events, compare rankings, track KvK results. Data-driven dominance.',
+    title: 'Kingshot Atlas - Kingdom Rankings, KvK Results & Scouting Tool',
+    description: 'The #1 Kingshot kingdom database. Scout opponents, find the best kingdoms, compare rankings, track KvK history. Recruit or transfer with real data.',
     url: 'https://ks-atlas.com/',
     type: 'website'
   },
   leaderboards: {
-    title: 'Kingdom Rankings & Tier List - Kingshot Atlas',
-    description: 'S-Tier to F-Tier kingdom rankings. Find the best Kingshot kingdoms before Transfer Events. Updated weekly with KvK results.',
+    title: 'Kingshot Kingdom Rankings - Best Kingdoms & Tier List',
+    description: 'Find the best Kingshot kingdoms ranked S-Tier to D-Tier. Kingdom rankings updated after every KvK. Scout top kingdoms before Transfer Events.',
     url: 'https://ks-atlas.com/rankings',
     type: 'website'
   },
   tools: {
-    title: 'Atlas Tools - KvK Calendar & Score Simulator',
-    description: 'Free Kingshot tools: KvK event calendar, countdown timer, Atlas Score simulator. Plan your next transfer with real data.',
+    title: 'Kingshot Tools - KvK Calendar, Scouting & Score Simulator',
+    description: 'Free Kingshot tools for KvK scouting: event calendar, countdown timer, kingdom comparison, Atlas Score simulator. Plan transfers with data.',
     url: 'https://ks-atlas.com/tools',
     type: 'website'
   },
   about: {
-    title: 'About Kingshot Atlas - Kingdom Intelligence',
-    description: 'Stop guessing before Transfer Events. Kingshot Atlas provides kingdom rankings and KvK data for informed transfers. Built by players.',
+    title: 'About Kingshot Atlas - Kingdom Scouting & Recruiting Platform',
+    description: 'Kingshot Atlas: the kingdom intelligence platform. Scout KvK opponents, find the best kingdoms, recruit for transfers. Built by players, for players.',
     url: 'https://ks-atlas.com/about',
     type: 'website'
   },
   players: {
-    title: 'Player Directory - Kingshot Atlas',
-    description: 'Browse Kingshot Atlas users. Find players from any kingdom, connect with recruiters before Transfer Events.',
+    title: 'Kingshot Player Directory - Find Recruiters & Players',
+    description: 'Browse Kingshot players and recruiters. Find players from any kingdom, connect before Transfer Events. Recruiting made easy.',
     url: 'https://ks-atlas.com/players',
     type: 'website'
   },
@@ -191,21 +191,39 @@ export const PAGE_META_TAGS = {
     type: 'website'
   },
   kvkSeasons: {
-    title: 'KvK Season History & Results - Kingshot Atlas',
-    description: 'Complete KvK event history for all Kingshot seasons. Track kingdom performance, view win rates and rankings before Transfer Events.',
+    title: 'Kingshot KvK History - All Season Results & Matchups',
+    description: 'Complete Kingshot KvK history: every season, every matchup, every result. Track kingdom performance across all KvK events.',
     url: 'https://ks-atlas.com/seasons',
     type: 'website'
   },
   compare: {
-    title: 'Compare Kingdoms - Kingshot Atlas',
-    description: 'Compare Kingshot kingdoms side-by-side before Transfer Events. Analyze KvK stats, rankings, and win rates.',
+    title: 'Compare Kingshot Kingdoms - Head-to-Head Scouting',
+    description: 'Compare Kingshot kingdoms side-by-side. Analyze KvK stats, Atlas Scores, rankings, and win rates. Scout opponents before battle.',
     url: 'https://ks-atlas.com/compare',
     type: 'website'
   },
   atlasBot: {
-    title: 'Atlas Discord Bot - Kingshot Atlas',
+    title: 'Kingshot Atlas Discord Bot - Kingdom Lookup & KvK Tools',
     description: 'Add the Atlas Discord Bot to your server. Look up kingdoms, compare matchups, check rankings — all from Discord. Free for all servers.',
     url: 'https://ks-atlas.com/atlas-bot',
+    type: 'website'
+  },
+  transferHub: {
+    title: 'Kingshot Transfer Hub - Recruit & Find Kingdoms',
+    description: 'Kingshot Transfer Hub: recruit players, find kingdoms accepting transfers, apply directly. Real data for every Transfer Event. No more blind migrations.',
+    url: 'https://ks-atlas.com/transfer-hub',
+    type: 'website'
+  },
+  ambassadors: {
+    title: 'Kingshot Atlas Ambassador Network - Refer & Earn',
+    description: 'Join the Kingshot Atlas Ambassador Network. Refer players, earn badges, and help grow the community. Scout, recruit, and climb the ranks.',
+    url: 'https://ks-atlas.com/ambassadors',
+    type: 'website'
+  },
+  contributeData: {
+    title: 'Contribute KvK Data - Kingshot Atlas',
+    description: 'Submit KvK results and kingdom data to Kingshot Atlas. Help build the most accurate Kingshot database. Community-powered accuracy.',
+    url: 'https://ks-atlas.com/contribute-data',
     type: 'website'
   }
 } as const satisfies Record<string, MetaTagsOptions>;

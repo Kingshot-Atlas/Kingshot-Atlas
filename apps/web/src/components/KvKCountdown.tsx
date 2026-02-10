@@ -262,16 +262,24 @@ const KvKCountdown: React.FC<KvKCountdownProps> = ({ compact = false, navbar = f
           gap: '0.5rem',
         }}>
           <span style={{ fontSize: singleMode ? '1rem' : '1.5rem' }}>{status.icon}</span>
-          <h3 style={{ margin: 0, color: '#fff', fontSize: singleMode ? '0.85rem' : '1rem', fontWeight: '600' }}>
-            {title} #{status.eventNumber}
-          </h3>
-          <span style={{ 
-            color: status.color, 
-            fontSize: singleMode ? '0.7rem' : '0.8rem',
-            fontWeight: '500'
-          }}>
-            {status.phaseName}
-          </span>
+          {status.phase === 'countdown' ? (
+            <h3 style={{ margin: 0, color: '#fff', fontSize: singleMode ? '0.85rem' : '1rem', fontWeight: '600' }}>
+              Next {title} Event
+            </h3>
+          ) : (
+            <>
+              <h3 style={{ margin: 0, color: '#fff', fontSize: singleMode ? '0.85rem' : '1rem', fontWeight: '600' }}>
+                {title} #{status.eventNumber}
+              </h3>
+              <span style={{ 
+                color: status.color, 
+                fontSize: singleMode ? '0.7rem' : '0.8rem',
+                fontWeight: '500'
+              }}>
+                {status.phaseName}
+              </span>
+            </>
+          )}
           {isLive && (
             <span style={{ 
               padding: '0.1rem 0.35rem',

@@ -5,6 +5,8 @@ import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { ReferralTier, REFERRAL_TIER_COLORS, REFERRAL_TIER_LABELS, REFERRAL_TIER_THRESHOLDS } from '../utils/constants';
 import ReferralBadge from '../components/ReferralBadge';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
+import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
 import { useIsMobile } from '../hooks/useMediaQuery';
 
 interface AmbassadorProfile {
@@ -41,7 +43,9 @@ const formatTCLevel = (level: number | null | undefined): string => {
 };
 
 const Ambassadors: React.FC = () => {
-  useDocumentTitle('Ambassador Network | Kingshot Atlas');
+  useDocumentTitle('Ambassador Network');
+  useMetaTags(PAGE_META_TAGS.ambassadors);
+  useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.ambassadors });
   const isMobile = useIsMobile();
   const [ambassadors, setAmbassadors] = useState<AmbassadorProfile[]>([]);
   const [loading, setLoading] = useState(true);

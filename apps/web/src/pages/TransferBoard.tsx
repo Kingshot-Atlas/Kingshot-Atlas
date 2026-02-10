@@ -11,6 +11,9 @@ import RecruiterDashboard from '../components/RecruiterDashboard';
 import EditorClaiming from '../components/EditorClaiming';
 import KingdomFundContribute from '../components/KingdomFundContribute';
 import { neonGlow, FONT_DISPLAY, colors } from '../utils/styles';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
+import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
 import KingdomListingCard, { KingdomData, KingdomFund, KingdomReviewSummary, BoardMode, MatchDetail, formatTCLevel } from '../components/KingdomListingCard';
 import { useScrollDepth } from '../hooks/useScrollDepth';
 import TransferHubGuide from '../components/TransferHubGuide';
@@ -79,6 +82,9 @@ const getTransferGroup = (kingdomNumber: number): [number, number] | null => {
 // =============================================
 
 const TransferBoard: React.FC = () => {
+  useDocumentTitle('Transfer Hub');
+  useMetaTags(PAGE_META_TAGS.transferHub);
+  useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.transferHub });
   useScrollDepth('Transfer Hub');
   const { user, profile } = useAuth();
   const isMobile = useIsMobile();
@@ -202,12 +208,13 @@ const TransferBoard: React.FC = () => {
           contact_method: data.contact_method || '',
           visible_to_recruiters: !!data.visible_to_recruiters,
         });
-        // Fetch profile view count
-        const { count: viewCount } = await supabase
+        // Fetch distinct kingdom view count
+        const { data: viewRows } = await supabase
           .from('transfer_profile_views')
-          .select('viewer_kingdom_number', { count: 'exact', head: true })
+          .select('viewer_kingdom_number')
           .eq('transfer_profile_id', data.id);
-        setProfileViewCount(viewCount || 0);
+        const uniqueKingdoms = new Set((viewRows || []).map((v: { viewer_kingdom_number: number }) => v.viewer_kingdom_number));
+        setProfileViewCount(uniqueKingdoms.size);
       } else {
         setTransferProfile(null);
         setProfileViewCount(0);
@@ -485,7 +492,7 @@ const TransferBoard: React.FC = () => {
     }
 
     return result;
-  }, [kingdoms, filters, fundMap, mode, profile?.linked_kingdom, userTransferGroup, searchQuery]);
+  }, [kingdoms, filters, fundMap, mode, profile?.linked_kingdom, userTransferGroup, searchQuery, transferProfile]);
 
   // Calculate match score for transferring mode
   const calculateMatchScore = (_kingdom: KingdomData, fund: KingdomFund | null): { score: number; details: MatchDetail[] } => {
@@ -697,7 +704,7 @@ const TransferBoard: React.FC = () => {
       )}
 
       {/* Mode Toggle */}
-      <div style={{ marginBottom: '1rem' }}>
+      <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'center' }}>
         <ModeToggle mode={mode} onChange={handleModeChange} />
       </div>
 
@@ -901,29 +908,48 @@ const TransferBoard: React.FC = () => {
 
       {/* Recruiter Mode: Editor Claiming + Dashboard Access */}
       {mode === 'recruiting' && user && profile?.linked_kingdom && (
-        <div style={{ marginBottom: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div style={{
+          marginBottom: '1rem',
+          display: 'grid',
+          gridTemplateColumns: isEditor ? '1fr 1fr' : '1fr',
+          gap: '0.75rem',
+          maxWidth: isMobile ? '100%' : '500px',
+          margin: '0 auto 1rem',
+        }}>
           <EditorClaiming onEditorActivated={() => setIsEditor(true)} />
           {isEditor && (
             <button
               onClick={() => { trackFeature('Recruiter Dashboard Open'); setShowRecruiterDash(true); }}
               style={{
                 padding: '0.6rem 1rem',
-                backgroundColor: '#a855f715',
+                backgroundColor: '#a855f710',
                 border: '1px solid #a855f730',
                 borderRadius: '10px',
-                color: '#a855f7',
-                fontSize: '0.85rem',
-                fontWeight: '600',
                 cursor: 'pointer',
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '0.5rem',
+                gap: '0.35rem',
                 minHeight: '44px',
-                width: '100%',
               }}
             >
-              Open Recruiter Dashboard
+              <span style={{ color: '#a855f7', fontSize: '0.75rem', fontWeight: '600' }}>
+                Recruiter Dashboard
+              </span>
+              <span style={{
+                padding: '0.15rem 0.6rem',
+                backgroundColor: '#a855f720',
+                border: '1px solid #a855f740',
+                borderRadius: '6px',
+                fontSize: '0.6rem',
+                color: '#a855f7',
+                fontWeight: '700',
+                textTransform: 'uppercase',
+                letterSpacing: '0.03em',
+              }}>
+                Open
+              </span>
             </button>
           )}
         </div>

@@ -1,7 +1,19 @@
 # https://www.robotstxt.org/robotstxt.html
 User-agent: *
 Allow: /
+
+# Disallow non-public and auth-required paths
 Disallow: /api/
+Disallow: /admin
+Disallow: /auth/
+Disallow: /profile
+Disallow: /components
+
+# Disallow legacy URLs (301 redirects exist, but save crawl budget)
+Disallow: /leaderboards
+Disallow: /transfer-board
+Disallow: /pro
+Disallow: /upgrade
 
 # Sitemap
 Sitemap: https://ks-atlas.com/sitemap.xml

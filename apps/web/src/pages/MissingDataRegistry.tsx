@@ -8,6 +8,7 @@ import PostKvKSubmission from '../components/PostKvKSubmission';
 import { useToast } from '../components/Toast';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
 import { supabase } from '../lib/supabase';
 import { CURRENT_KVK, KVK_CONFIG } from '../constants';
@@ -73,6 +74,7 @@ const KvKBadge: React.FC<{ kvk: number; isLatest?: boolean }> = ({ kvk, isLatest
 
 const MissingDataRegistry: React.FC = () => {
   useDocumentTitle('Contribute Data');
+  useMetaTags(PAGE_META_TAGS.contributeData);
   useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.contributeData });
   const { user, profile } = useAuth();
   const { showToast } = useToast();

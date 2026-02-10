@@ -3,6 +3,30 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-10 14:30 | Platform Engineer | COMPLETED
+Task: Security hardening — Transfer Hub RLS policies, function search_path, table bloat, UI fix
+Files:
+- `apps/web/src/components/EditorClaiming.tsx` — Centered text in active editor info box (flexbox centering)
+- Supabase migration `restrict_applications_update_own` — Added WITH CHECK (status = 'withdrawn') to prevent users from arbitrarily updating application fields
+- Supabase migration `restrict_notifications_insert_types` — Restricted authenticated INSERT to known types (new_application, application_status, transfer_invite) to prevent notification spam
+- Supabase migration `set_search_path_on_all_functions` — Fixed search_path on all 44 public functions to prevent search_path injection
+- VACUUM FULL on kingdoms table — Reclaimed bloated storage
+Result: Security score improved from 82/100 → 93/100. All function_search_path_mutable warnings eliminated. RLS policies hardened. Build passes.
+
+## 2026-02-10 14:00 | Ops Lead | COMPLETED
+Task: Comprehensive SEO optimization based on Google Search Console data
+Files:
+- `apps/web/public/_redirects` — Added 301 redirects for legacy URLs (/leaderboards, /transfer-board, /pro, /upgrade) to fix GSC "Page with redirect" issue
+- `apps/web/public/robots.txt` — Expanded to disallow /admin, /auth, /profile, /components, legacy URLs to save crawl budget and reduce 5xx errors
+- `apps/web/public/sitemap.xml` — Added /transfer-hub and /ambassadors pages
+- `apps/web/index.html` — Updated title, meta description, OG tags, Twitter tags, keywords (10 items, no stuffing), structured data description
+- `apps/web/src/hooks/useMetaTags.ts` — Rewrote all PAGE_META_TAGS titles/descriptions targeting 13 user-specified search queries; added transferHub, ambassadors, contributeData entries
+- `apps/web/src/hooks/useStructuredData.ts` — Added 6 new FAQ items targeting transfer/scouting/recruiting/KvK keywords; added transferHub + ambassadors breadcrumbs
+- `apps/web/src/pages/TransferBoard.tsx` — Added useDocumentTitle, useMetaTags, useStructuredData (was completely missing SEO)
+- `apps/web/src/pages/Ambassadors.tsx` — Added useMetaTags, useStructuredData breadcrumbs
+- `apps/web/src/pages/MissingDataRegistry.tsx` — Added useMetaTags
+Result: SEO validation passes, build passes. All 13 target keywords now covered across page titles and descriptions. FAQ rich snippets target 12 questions. Legacy URL redirects fix GSC indexing issues.
+
 ## 2026-02-10 13:15 | Product Engineer | COMPLETED
 Task: Profile Page — Code cleanup, component extraction, edit form restructure
 Files:

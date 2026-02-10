@@ -182,6 +182,26 @@ export const ABOUT_FAQ_DATA: FAQItem[] = [
   {
     question: 'What is the Transfer Hub?',
     answer: 'The Transfer Hub is where players looking for a new kingdom and recruiters seeking new members connect. Browse every kingdom with real performance data, create a Transfer Profile, apply directly, and track your applications — all without relying on Discord hearsay or blind transfers.'
+  },
+  {
+    question: 'How do I find the best Kingshot kingdom to transfer to?',
+    answer: 'Use the Kingdom Rankings page to see every kingdom ranked by Atlas Score (S through D tier). Filter by KvK experience, win rate, and more. Compare kingdoms side-by-side, then visit the Transfer Hub to apply directly to kingdoms accepting transfers.'
+  },
+  {
+    question: 'How does Kingshot scouting work on Atlas?',
+    answer: 'Kingshot Atlas lets you scout any kingdom before KvK or Transfer Events. View their KvK history, win rates, domination record, and Atlas Score. Compare your upcoming opponent head-to-head to prepare your strategy.'
+  },
+  {
+    question: 'How do I recruit players for my kingdom?',
+    answer: 'Recruiters can claim their kingdom on the Transfer Hub, set up a recruiting profile with requirements and offers, then review and manage incoming transfer applications. All backed by real kingdom performance data.'
+  },
+  {
+    question: 'When is the next Kingshot KvK event?',
+    answer: 'KvK events happen every 4 weeks. Check the KvK Countdown on the Tools page or homepage for the exact date and time. The Atlas Event Calendar shows all upcoming KvK and Transfer Event dates.'
+  },
+  {
+    question: 'When is the next Kingshot Transfer Event?',
+    answer: 'Transfer Events happen every 8 weeks with three phases: Pre-Transfer, Invitational, and Open Transfer. Check the Event Calendar on the Tools page for exact dates and use the Transfer Hub to prepare your move.'
   }
 ];
 
@@ -202,6 +222,8 @@ export const PAGE_BREADCRUMBS = {
   support: [HOME_CRUMB, { name: 'Support', url: 'https://ks-atlas.com/support' }],
   contributeData: [HOME_CRUMB, { name: 'Contribute Data', url: 'https://ks-atlas.com/contribute-data' }],
   atlasBot: [HOME_CRUMB, { name: 'Atlas Bot', url: 'https://ks-atlas.com/atlas-bot' }],
+  transferHub: [HOME_CRUMB, { name: 'Transfer Hub', url: 'https://ks-atlas.com/transfer-hub' }],
+  ambassadors: [HOME_CRUMB, { name: 'Ambassador Network', url: 'https://ks-atlas.com/ambassadors' }],
 };
 
 /**

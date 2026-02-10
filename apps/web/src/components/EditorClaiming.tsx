@@ -647,31 +647,34 @@ const EditorClaiming: React.FC<{
         backgroundColor: '#22c55e08',
         border: '1px solid #22c55e25',
         borderRadius: '10px',
-        padding: '0.75rem 1rem',
+        padding: '0.6rem 0.75rem',
+        height: '100%',
+        boxSizing: 'border-box',
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'space-between',
+        justifyContent: 'center',
       }}>
-        <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap', justifyContent: 'center' }}>
           <span style={{ color: '#22c55e', fontWeight: '600', fontSize: '0.85rem' }}>
-            Active Editor — Kingdom {myClaim.kingdom_number}
+            Kingdom {myClaim.kingdom_number}
           </span>
-          <p style={{ color: '#6b7280', fontSize: '0.7rem', margin: '0.2rem 0 0 0' }}>
-            You manage this kingdom's Transfer Hub listing.
-          </p>
+          <span style={{
+            padding: '0.1rem 0.4rem',
+            backgroundColor: '#22c55e15',
+            border: '1px solid #22c55e30',
+            borderRadius: '4px',
+            fontSize: '0.55rem',
+            color: '#22c55e',
+            fontWeight: 'bold',
+            textTransform: 'uppercase',
+          }}>
+            {myClaim.role}
+          </span>
         </div>
-        <span style={{
-          padding: '0.15rem 0.5rem',
-          backgroundColor: '#22c55e15',
-          border: '1px solid #22c55e30',
-          borderRadius: '4px',
-          fontSize: '0.6rem',
-          color: '#22c55e',
-          fontWeight: 'bold',
-          textTransform: 'uppercase',
-        }}>
-          {myClaim.role}
-        </span>
+        <p style={{ color: '#6b7280', fontSize: '0.65rem', margin: '0.15rem 0 0 0', lineHeight: 1.3, textAlign: 'center' }}>
+          You manage this kingdom's<br />Transfer Hub listing.
+        </p>
       </div>
     );
   }
