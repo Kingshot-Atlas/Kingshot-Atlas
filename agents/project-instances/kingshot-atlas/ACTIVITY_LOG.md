@@ -3,6 +3,13 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-10 15:40 | Platform Engineer | COMPLETED
+Task: Final editor pipeline verification & FK constraint fix + co-editor limit
+Files:
+- Supabase migration `drop_fk_editor_fund_constraint` — Dropped FK that required kingdom_funds to exist before editor nomination (caused "violates foreign key constraint fk_editor_fund" error)
+- `apps/web/src/components/RecruiterDashboard.tsx` — Enforced max 2 co-editors per kingdom (active + pending count check in handleInviteCoEditor + UI visibility fix)
+Result: Full pipeline verified end-to-end: nomination → endorsement → activation → fund creation → dashboard → co-editor invites (max 2). All DB constraints, RLS policies, triggers, and RPCs confirmed working. Build passes.
+
 ## 2026-02-10 15:20 | Platform Engineer | COMPLETED
 Task: Transfer Hub RLS Audit & Full Editor Pipeline Fix
 Files:

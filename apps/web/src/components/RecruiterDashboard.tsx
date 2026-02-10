@@ -861,6 +861,13 @@ const RecruiterDashboard: React.FC<{
     if (!supabase || !editorInfo || !coEditorUserId.trim()) return;
     setInvitingCoEditor(true);
     try {
+      // Enforce max 2 co-editors (active + pending)
+      const coEditorCount = team.filter(t => t.role === 'co-editor' && (t.status === 'active' || t.status === 'pending')).length;
+      if (coEditorCount >= 2) {
+        showToast('Maximum of 2 co-editors allowed per kingdom.', 'error');
+        return;
+      }
+
       // Look up user by linked_player_id
       const { data: profile } = await supabase
         .from('profiles')
@@ -2297,7 +2304,7 @@ const RecruiterDashboard: React.FC<{
                   ))}
                 </div>
                 {/* Co-Editor Invite */}
-                {editorInfo.role === 'editor' && team.filter((t) => t.status === 'active').length < 3 && (
+                {editorInfo.role === 'editor' && team.filter((t) => t.role === 'co-editor' && (t.status === 'active' || t.status === 'pending')).length < 2 && (
                   <div style={{ marginTop: '0.75rem', padding: '0.75rem', backgroundColor: '#111111', borderRadius: '10px', border: '1px solid #2a2a2a' }}>
                     <span style={{ color: '#9ca3af', fontSize: '0.75rem', fontWeight: '600' }}>Invite Co-Editor</span>
                     <p style={{ color: '#6b7280', fontSize: '0.65rem', margin: '0.25rem 0 0.5rem 0' }}>
