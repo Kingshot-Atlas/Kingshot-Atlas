@@ -121,6 +121,7 @@ const TransferBoard: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [profileViewCount, setProfileViewCount] = useState(0);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const [showAuthGate, setShowAuthGate] = useState<'login' | 'link' | null>(null);
 
   // Track page view
   useEffect(() => {
@@ -567,38 +568,13 @@ const TransferBoard: React.FC = () => {
     return { score, details };
   };
 
-  // Access gate: require linked Kingshot account (placed after all hooks for Rules of Hooks compliance)
+  // Auth helpers — browsing is open to all, actions require login + linked account
   const hasLinkedAccount = !!profile?.linked_player_id;
-  if (!user || !hasLinkedAccount) {
-    return (
-      <div style={{
-        maxWidth: '600px', margin: '4rem auto', textAlign: 'center',
-        padding: '2rem', backgroundColor: '#111111', borderRadius: '16px',
-        border: '1px solid #2a2a2a',
-      }}>
-        <h1 style={{ fontFamily: FONT_DISPLAY, fontSize: '1.5rem', marginBottom: '0.75rem' }}>
-          <span style={{ color: '#fff' }}>TRANSFER</span>
-          <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.4rem' }}>HUB</span>
-        </h1>
-        <p style={{ color: '#9ca3af', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
-          {!user ? 'Sign in to access the Transfer Hub.' : 'Link your Kingshot account to access the Transfer Hub.'}
-        </p>
-        <p style={{ color: '#6b7280', fontSize: '0.8rem', marginBottom: '1.5rem' }}>
-          {!user
-            ? 'The Transfer Hub requires an account to browse kingdoms, apply for transfers, and manage recruitment.'
-            : 'Go to your Profile and link your in-game account to unlock the Transfer Hub.'}
-        </p>
-        <Link to={!user ? '/auth' : '/profile'} style={{
-          display: 'inline-block', padding: '0.6rem 1.5rem',
-          backgroundColor: '#22d3ee', color: '#000', borderRadius: '8px',
-          fontWeight: '600', fontSize: '0.85rem', textDecoration: 'none',
-          minHeight: '44px', lineHeight: '44px',
-        }}>
-          {!user ? 'Sign In' : 'Link Account'}
-        </Link>
-      </div>
-    );
-  }
+  const requireAuth = (action: () => void) => {
+    if (!user) { setShowAuthGate('login'); return; }
+    if (!hasLinkedAccount) { setShowAuthGate('link'); return; }
+    action();
+  };
 
   // Memoized top matches for Recommended Kingdoms section
   const topMatches = useMemo(() => {
@@ -815,7 +791,7 @@ const TransferBoard: React.FC = () => {
               )}
             </div>
             <button
-              onClick={() => { setScrollToIncomplete(!!isIncomplete); setShowProfileForm(true); }}
+              onClick={() => requireAuth(() => { setScrollToIncomplete(!!isIncomplete); setShowProfileForm(true); })}
               style={{
                 padding: '0.5rem 1rem',
                 backgroundColor: hasTransferProfile ? 'transparent' : '#22d3ee',
@@ -870,6 +846,40 @@ const TransferBoard: React.FC = () => {
         <MyApplicationsTracker
           onWithdraw={() => setAppRefreshKey((k) => k + 1)}
         />
+      )}
+
+      {/* Recruiter Mode: Sign-in prompt for guests */}
+      {mode === 'recruiting' && !user && (
+        <div style={{
+          textAlign: 'center',
+          padding: '2rem 1rem',
+          backgroundColor: '#111111',
+          borderRadius: '12px',
+          border: '1px solid #2a2a2a',
+          marginBottom: '1rem',
+        }}>
+          <span style={{ fontSize: '2rem', display: 'block', marginBottom: '0.75rem' }}>👑</span>
+          <p style={{ color: '#fff', fontSize: '0.95rem', fontWeight: '600', marginBottom: '0.3rem' }}>
+            Sign In to Recruit
+          </p>
+          <p style={{ color: '#6b7280', fontSize: '0.8rem', marginBottom: '1rem', maxWidth: '400px', margin: '0 auto 1rem' }}>
+            Sign in and link your Kingshot account to claim your kingdom, set up your listing, and review transfer applications.
+          </p>
+          <Link to="/auth" style={{
+            display: 'inline-block',
+            padding: '0.6rem 1.5rem',
+            backgroundColor: '#a855f7',
+            color: '#fff',
+            borderRadius: '8px',
+            fontWeight: '600',
+            fontSize: '0.85rem',
+            textDecoration: 'none',
+            minHeight: '44px',
+            lineHeight: '44px',
+          }}>
+            Sign In
+          </Link>
+        </div>
       )}
 
       {/* Recruiter Mode: No linked kingdom empty state */}
@@ -1063,8 +1073,8 @@ const TransferBoard: React.FC = () => {
                 mode={mode}
                 matchScore={score}
                 matchDetails={details}
-                onApply={(kn) => { trackFeature('Transfer Apply Click', { kingdom: kn, source: 'recommended' }); setApplyingToKingdom(kn); }}
-                onFund={(kn) => { trackFeature('Transfer Fund Click', { kingdom: kn }); setContributingToKingdom(kn); }}
+                onApply={(kn) => requireAuth(() => { trackFeature('Transfer Apply Click', { kingdom: kn, source: 'recommended' }); setApplyingToKingdom(kn); })}
+                onFund={(kn) => requireAuth(() => { trackFeature('Transfer Fund Click', { kingdom: kn }); setContributingToKingdom(kn); })}
               />
             ))}
           </div>
@@ -1169,8 +1179,8 @@ const TransferBoard: React.FC = () => {
                 mode={mode}
                 matchScore={matchResult?.score}
                 matchDetails={matchResult?.details}
-                onApply={(kn) => { trackFeature('Transfer Apply Click', { kingdom: kn }); setApplyingToKingdom(kn); }}
-                onFund={(kn) => { trackFeature('Transfer Fund Click', { kingdom: kn }); setContributingToKingdom(kn); }}
+                onApply={(kn) => requireAuth(() => { trackFeature('Transfer Apply Click', { kingdom: kn }); setApplyingToKingdom(kn); })}
+                onFund={(kn) => requireAuth(() => { trackFeature('Transfer Fund Click', { kingdom: kn }); setContributingToKingdom(kn); })}
               />
             );
           })}
@@ -1200,8 +1210,8 @@ const TransferBoard: React.FC = () => {
                 mode={mode}
                 matchScore={matchResult?.score}
                 matchDetails={matchResult?.details}
-                onApply={(kn) => { trackFeature('Transfer Apply Click', { kingdom: kn }); setApplyingToKingdom(kn); }}
-                onFund={(kn) => { trackFeature('Transfer Fund Click', { kingdom: kn }); setContributingToKingdom(kn); }}
+                onApply={(kn) => requireAuth(() => { trackFeature('Transfer Apply Click', { kingdom: kn }); setApplyingToKingdom(kn); })}
+                onFund={(kn) => requireAuth(() => { trackFeature('Transfer Fund Click', { kingdom: kn }); setContributingToKingdom(kn); })}
               />
             );
           })}
@@ -1246,6 +1256,62 @@ const TransferBoard: React.FC = () => {
               </button>
             </div>
           )}
+        </div>
+      )}
+      {/* Auth Gate Modal */}
+      {showAuthGate && (
+        <div
+          style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.85)',
+            display: 'flex', alignItems: isMobile ? 'flex-end' : 'center', justifyContent: 'center',
+            zIndex: 1100, padding: isMobile ? 0 : '1rem',
+          }}
+          onClick={() => setShowAuthGate(null)}
+        >
+          <div
+            style={{
+              backgroundColor: '#111111', border: '1px solid #22d3ee30',
+              borderRadius: isMobile ? '16px 16px 0 0' : '16px',
+              padding: isMobile ? '2rem 1.5rem' : '2.5rem',
+              maxWidth: '420px', width: '100%',
+              textAlign: 'center',
+              paddingBottom: isMobile ? 'max(2rem, env(safe-area-inset-bottom))' : '2.5rem',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{
+              width: '50px', height: '50px', borderRadius: '50%',
+              backgroundColor: '#22d3ee10', border: '2px solid #22d3ee30',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              margin: '0 auto 1rem', fontSize: '1.3rem',
+            }}>
+              {showAuthGate === 'login' ? '🔒' : '🔗'}
+            </div>
+            <h2 style={{
+              fontFamily: FONT_DISPLAY, fontSize: '1.1rem',
+              color: '#fff', margin: '0 0 0.5rem 0',
+            }}>
+              {showAuthGate === 'login' ? 'Sign In Required' : 'Link Your Account'}
+            </h2>
+            <p style={{ color: '#9ca3af', fontSize: '0.85rem', margin: '0 0 1.25rem 0', lineHeight: 1.5 }}>
+              {showAuthGate === 'login'
+                ? 'Sign in to apply for transfers, create your profile, and manage recruitment.'
+                : 'Link your Kingshot account to apply for transfers and access all Transfer Hub features.'}
+            </p>
+            <Link
+              to={showAuthGate === 'login' ? '/auth' : '/profile'}
+              style={{
+                display: 'inline-block', padding: '0.6rem 1.5rem',
+                backgroundColor: '#22d3ee', color: '#000', borderRadius: '8px',
+                fontWeight: '600', fontSize: '0.85rem', textDecoration: 'none',
+                minHeight: '44px', lineHeight: '44px',
+              }}
+              onClick={() => setShowAuthGate(null)}
+            >
+              {showAuthGate === 'login' ? 'Sign In' : 'Go to Profile'}
+            </Link>
+          </div>
         </div>
       )}
     </div>
