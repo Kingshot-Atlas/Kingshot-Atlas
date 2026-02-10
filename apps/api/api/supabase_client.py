@@ -673,6 +673,8 @@ def credit_kingdom_fund(
                 "kingdom_number": kingdom_number,
                 "balance": new_balance,
                 "tier": new_tier,
+                "total_contributed": amount,
+                "contributor_count": 1,
                 "is_recruiting": False,
                 "recruitment_tags": [],
                 "secondary_languages": [],
