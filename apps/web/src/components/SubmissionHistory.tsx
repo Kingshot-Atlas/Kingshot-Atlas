@@ -154,8 +154,8 @@ const SubmissionHistory: React.FC<{ userId?: string; themeColor?: string }> = ({
       padding: '1.5rem',
       border: '1px solid #2a2a2a'
     }}>
-      <h3 style={{ color: '#fff', fontSize: '1rem', fontWeight: '600', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-        <span>📊</span> My Contributions
+      <h3 style={{ color: '#fff', fontSize: '1rem', fontWeight: '600', marginBottom: '1rem', textAlign: 'center' }}>
+        My Contributions
       </h3>
 
       {/* Stats Summary */}

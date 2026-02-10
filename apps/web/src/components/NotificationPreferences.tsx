@@ -123,8 +123,7 @@ const NotificationPreferences: React.FC = () => {
         justifyContent: 'space-between',
         marginBottom: '0.75rem',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span style={{ fontSize: '1.1rem' }}>🔔</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
           <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: '600', color: '#fff' }}>
             Notification Preferences
           </h3>

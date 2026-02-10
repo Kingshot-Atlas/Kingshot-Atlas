@@ -50,13 +50,12 @@ const ReferralStats: React.FC = () => {
         marginBottom: '1.5rem',
         border: '1px solid #2a2a2a',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-          <span style={{ fontSize: '1.1rem' }}>🔗</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0.75rem' }}>
           <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: '600', color: '#fff' }}>
             Referral Program
           </h3>
         </div>
-        <p style={{ color: '#9ca3af', fontSize: '0.85rem', margin: 0, lineHeight: 1.5 }}>
+        <p style={{ color: '#9ca3af', fontSize: '0.85rem', margin: 0, lineHeight: 1.5, textAlign: 'center' }}>
           Link your Kingshot account (TC25+) to unlock your personal referral link.
           Bring players to Atlas and earn badges, Discord roles, and recognition.
         </p>
@@ -90,7 +89,6 @@ const ReferralStats: React.FC = () => {
         gap: '0.5rem',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span style={{ fontSize: '1.1rem' }}>🔗</span>
           <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: '600', color: '#fff' }}>
             Referral Program
           </h3>

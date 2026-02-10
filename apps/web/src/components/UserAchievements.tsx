@@ -396,9 +396,9 @@ const UserAchievements: React.FC = () => {
       padding: '1.25rem',
       border: '1px solid #2a2a2a'
     }}>
-      <h3 style={{ color: '#fff', fontSize: '1rem', fontWeight: '600', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-        <span>🏆</span> Your Achievements
-        <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 'normal' }}>
+      <h3 style={{ color: '#fff', fontSize: '1rem', fontWeight: '600', marginBottom: '0.75rem', textAlign: 'center' }}>
+        Your Achievements
+        <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 'normal', marginLeft: '0.5rem' }}>
           ({earned.length}/{userAchievements.length})
         </span>
       </h3>

@@ -402,8 +402,8 @@ const ProfileFeatures: React.FC = () => {
           padding: isMobile ? '1.25rem' : '1.5rem',
           border: `1px solid ${themeColor}30`
         }}>
-          <h3 style={{ color: '#fff', fontSize: '1.1rem', fontWeight: '600', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            🏠 Home Kingdom Stats
+          <h3 style={{ color: '#fff', fontSize: '1.1rem', fontWeight: '600', marginBottom: '1rem', textAlign: 'center' }}>
+            Home Kingdom Stats
           </h3>
           <KingdomCard kingdom={homeKingdomData} showRemove={false} />
         </div>
@@ -418,16 +418,11 @@ const ProfileFeatures: React.FC = () => {
           padding: isMobile ? '1.25rem' : '1.5rem',
           border: '1px solid #2a2a2a'
         }}>
-          <h3 style={{ color: '#fff', fontSize: '1.1rem', fontWeight: '600', marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              ⭐ Favorite Kingdoms
-              <span style={{ fontSize: '0.8rem', color: '#6b7280', fontWeight: 'normal' }}>
+          <h3 style={{ color: '#fff', fontSize: '1.1rem', fontWeight: '600', marginBottom: '1rem', textAlign: 'center' }}>
+              Favorites
+              <span style={{ fontSize: '0.8rem', color: '#6b7280', fontWeight: 'normal', marginLeft: '0.5rem' }}>
                 ({favoriteKingdoms.length})
               </span>
-            </span>
-            <span style={{ fontSize: '0.7rem', color: '#6b7280', fontWeight: 'normal' }}>
-              Sorted by Atlas Score
-            </span>
           </h3>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
             {(showAllFavorites ? favoriteKingdoms : favoriteKingdoms.slice(0, 5)).map((kingdom) => (
@@ -499,9 +494,9 @@ const ProfileFeatures: React.FC = () => {
           padding: isMobile ? '1.25rem' : '1.5rem',
           border: '1px solid #2a2a2a'
         }}>
-          <h3 style={{ color: '#fff', fontSize: '1.1rem', fontWeight: '600', marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
+          <h3 style={{ color: '#fff', fontSize: '1.1rem', fontWeight: '600', marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-              📝 Review History
+              Review History
               <span style={{ fontSize: '0.8rem', color: '#6b7280', fontWeight: 'normal' }}>
                 ({reviews.length})
               </span>

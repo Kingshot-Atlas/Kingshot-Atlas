@@ -22,6 +22,7 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { neonGlow } from '../utils/styles';
 import { isRandomUsername } from '../utils/randomUsername';
+import { useAnalytics } from '../hooks/useAnalytics';
 
 // Convert TC level to display string (TC 31+ becomes TG tiers)
 // Source of truth: /docs/TC_TG_NAMING.md
@@ -324,13 +325,10 @@ const ProfileCompletionProgress: React.FC<{
       marginBottom: '1.5rem',
       border: '1px solid #2a2a2a',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span style={{ fontSize: '1rem' }}>📊</span>
-          <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: '600', color: '#fff' }}>
-            Profile Completion
-          </h3>
-        </div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0.75rem', gap: '0.5rem' }}>
+        <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: '600', color: '#fff' }}>
+          Profile Completion
+        </h3>
         <span style={{ 
           fontSize: '0.85rem', 
           fontWeight: 'bold', 
@@ -406,6 +404,160 @@ const ProfileCompletionProgress: React.FC<{
           </div>
         ))}
       </div>
+    </div>
+  );
+};
+
+// Transfer Readiness Score Component
+const TransferReadinessScore: React.FC<{
+  userId: string;
+  hasLinkedAccount: boolean;
+  isMobile: boolean;
+}> = ({ userId, hasLinkedAccount, isMobile }) => {
+  const { trackFeature } = useAnalytics();
+  const [transferProfile, setTransferProfile] = useState<Record<string, unknown> | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!supabase || !userId) { setLoading(false); return; }
+      const { data } = await supabase
+        .from('transfer_profiles')
+        .select('power_million, tc_level, main_language, secondary_languages, looking_for, kvk_availability, saving_for_kvk, group_size, player_bio, play_schedule, contact_method, contact_discord, contact_coordinates, visible_to_recruiters')
+        .eq('user_id', userId)
+        .eq('is_active', true)
+        .single();
+      setTransferProfile(data);
+      setLoading(false);
+    };
+    fetchProfile();
+  }, [userId]);
+
+  if (loading) return null;
+
+  // No transfer profile yet — show CTA
+  if (!transferProfile) {
+    if (!hasLinkedAccount) return null;
+    return (
+      <div style={{
+        backgroundColor: '#111111',
+        borderRadius: '12px',
+        padding: isMobile ? '1rem' : '1.25rem',
+        marginBottom: '1.5rem',
+        border: '1px solid #22d3ee20',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+          <span style={{ fontSize: '1rem' }}>🚀</span>
+          <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: '600', color: '#fff' }}>
+            Transfer Readiness
+          </h3>
+          <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: '400' }}>0%</span>
+        </div>
+        <p style={{ color: '#9ca3af', fontSize: '0.8rem', margin: '0 0 0.75rem 0', lineHeight: 1.5 }}>
+          Create a Transfer Profile to get matched with kingdoms and apply directly from the Transfer Hub.
+        </p>
+        <a
+          href="/transfer-hub"
+          onClick={() => trackFeature('Transfer Readiness CTA', { action: 'create' })}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.35rem',
+            padding: '0.5rem 1rem',
+            backgroundColor: '#22d3ee10',
+            border: '1px solid #22d3ee30',
+            borderRadius: '8px',
+            color: '#22d3ee',
+            fontSize: '0.8rem',
+            fontWeight: '600',
+            textDecoration: 'none',
+            minHeight: '44px',
+          }}
+        >
+          Create Transfer Profile →
+        </a>
+      </div>
+    );
+  }
+
+  // Calculate readiness
+  const tp = transferProfile;
+  const checks = [
+    { label: 'Power set', done: !!(tp.power_million && (tp.power_million as number) > 0) },
+    { label: 'Language set', done: !!tp.main_language },
+    { label: 'KvK availability', done: !!tp.kvk_availability },
+    { label: 'Saving preference', done: !!tp.saving_for_kvk },
+    { label: 'Looking for tags', done: Array.isArray(tp.looking_for) && (tp.looking_for as string[]).length > 0 },
+    { label: 'Group size', done: !!tp.group_size },
+    { label: 'Player bio', done: !!(tp.player_bio && (tp.player_bio as string).trim()) },
+    { label: 'Play schedule', done: Array.isArray(tp.play_schedule) && (tp.play_schedule as unknown[]).length > 0 },
+    { label: 'Contact method', done: !!tp.contact_method },
+    { label: 'Visible to recruiters', done: !!tp.visible_to_recruiters },
+  ];
+
+  const doneCount = checks.filter(c => c.done).length;
+  const pct = Math.round((doneCount / checks.length) * 100);
+
+  // Don't show if 100%
+  if (pct === 100) return null;
+
+  const barColor = pct >= 80 ? '#22c55e' : pct >= 50 ? '#fbbf24' : '#22d3ee';
+
+  return (
+    <div style={{
+      backgroundColor: '#111111',
+      borderRadius: '12px',
+      padding: isMobile ? '1rem' : '1.25rem',
+      marginBottom: '1.5rem',
+      border: '1px solid #2a2a2a',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span style={{ fontSize: '1rem' }}>🚀</span>
+          <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: '600', color: '#fff' }}>
+            Transfer Readiness
+          </h3>
+        </div>
+        <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: barColor }}>{pct}%</span>
+      </div>
+
+      {/* Progress bar */}
+      <div style={{
+        width: '100%', height: '8px',
+        backgroundColor: '#1a1a1a', borderRadius: '4px',
+        overflow: 'hidden', marginBottom: '0.75rem',
+      }}>
+        <div style={{
+          width: `${pct}%`, height: '100%',
+          backgroundColor: barColor, borderRadius: '4px',
+          transition: 'width 0.3s ease',
+        }} />
+      </div>
+
+      {/* Incomplete items only */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+        {checks.filter(c => !c.done).map((item, idx) => (
+          <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.3rem 0' }}>
+            <span style={{
+              width: '16px', height: '16px', borderRadius: '50%',
+              border: '2px solid #3a3a3a', flexShrink: 0,
+            }} />
+            <span style={{ fontSize: '0.78rem', color: '#fff' }}>{item.label}</span>
+          </div>
+        ))}
+      </div>
+
+      <a
+        href="/transfer-hub"
+        onClick={() => trackFeature('Transfer Readiness CTA', { action: 'edit', pct })}
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+          marginTop: '0.75rem', fontSize: '0.75rem', color: '#22d3ee',
+          textDecoration: 'none',
+        }}
+      >
+        Edit Transfer Profile →
+      </a>
     </div>
   );
 };
@@ -943,7 +1095,6 @@ const Profile: React.FC = () => {
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <span style={{ fontSize: '1rem' }}>📍</span>
                     <div>
                       <div style={{ color: '#fff', fontSize: '0.85rem', fontWeight: '500' }}>Show In-Game Coordinates</div>
                       <div style={{ color: '#6b7280', fontSize: '0.7rem' }}>Let other Atlas users find you in-game</div>
@@ -1029,6 +1180,9 @@ const Profile: React.FC = () => {
                   </div>
                 )}
               </div>
+
+              {/* Notification Preferences - inside edit mode */}
+              <NotificationPreferences />
 
               <div style={{ display: 'flex', gap: '1rem' }}>
                 <button
@@ -1459,17 +1613,14 @@ const Profile: React.FC = () => {
             border: '1px solid #2a2a2a'
           }}>
             <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              marginBottom: '0.75rem'
+              marginBottom: '0.75rem',
+              textAlign: 'center'
             }}>
-              <span style={{ fontSize: '1rem' }}>📝</span>
               <span style={{ 
                 fontSize: '0.95rem', 
                 color: '#fff', 
                 fontWeight: '600'
-              }}>About Me:</span>
+              }}>About Me</span>
             </div>
             <p style={{ 
               color: '#d1d5db', 
@@ -1491,17 +1642,14 @@ const Profile: React.FC = () => {
             border: '1px solid #2a2a2a'
           }}>
             <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              marginBottom: '0.75rem'
+              marginBottom: '0.75rem',
+              textAlign: 'center'
             }}>
-              <span style={{ fontSize: '1rem' }}>📍</span>
               <span style={{ 
                 fontSize: '0.95rem', 
                 color: '#fff', 
                 fontWeight: '600'
-              }}>In-Game Location:</span>
+              }}>In-Game Location</span>
             </div>
             <div style={{ 
               display: 'flex', 
@@ -1531,7 +1679,7 @@ const Profile: React.FC = () => {
           </div>
         )}
 
-        {/* Profile Completion Progress - only show for own profile */}
+        {/* 1. Profile Completion Progress - only show for own profile */}
         {!isViewingOther && (
           <ProfileCompletionProgress 
             profile={viewedProfile} 
@@ -1540,12 +1688,7 @@ const Profile: React.FC = () => {
           />
         )}
 
-        {/* Referral Program - only show for own profile */}
-        {!isViewingOther && (
-          <ReferralStats />
-        )}
-
-        {/* Link Kingshot Account - only show for own profile when NOT linked */}
+        {/* 2. Link Kingshot Account - only show for own profile when NOT linked */}
         {!isViewingOther && !viewedProfile?.linked_username && (
           <div id="link-kingshot-section" style={{ marginBottom: '1.5rem' }}>
             <LinkKingshotAccount
@@ -1575,7 +1718,26 @@ const Profile: React.FC = () => {
           </div>
         )}
 
-        {/* Subscription Status - only show for own profile */}
+        {/* 3. Discord Account Link - only show for own profile */}
+        {!isViewingOther && user && (
+          <div style={{ marginBottom: '1.5rem' }}>
+            <LinkDiscordAccount
+              discordId={profile?.discord_id}
+              discordUsername={profile?.discord_username}
+              onUnlink={() => {
+                if (updateProfile) {
+                  updateProfile({
+                    discord_id: null,
+                    discord_username: null,
+                    discord_linked_at: null,
+                  });
+                }
+              }}
+            />
+          </div>
+        )}
+
+        {/* 4. Subscription Status - only show for own profile */}
         {!isViewingOther && user && (
           <div style={{
             backgroundColor: '#111111',
@@ -1585,13 +1747,13 @@ const Profile: React.FC = () => {
             border: `1px solid ${isSupporter ? themeColor : '#2a2a2a'}30`,
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ fontSize: '1.1rem' }}>{isAdmin ? '⚡' : isSupporter ? '⭐' : '👤'}</span>
-                <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: '600', color: '#fff' }}>
-                  Subscription
-                </h3>
-              </div>
+              <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: '600', color: '#fff', width: '100%', textAlign: 'center' }}>
+                Subscription
+              </h3>
+            </div>
+            <div style={{ textAlign: 'center', marginBottom: '0.75rem' }}>
               <div style={{
+                display: 'inline-block',
                 padding: '0.25rem 0.75rem',
                 backgroundColor: isAdmin ? '#ef444420' 
                   : isSupporter ? '#22d3ee20' 
@@ -1609,18 +1771,16 @@ const Profile: React.FC = () => {
             
             <div style={{ 
               display: 'flex', 
-              flexDirection: isMobile ? 'column' : 'row',
-              alignItems: isMobile ? 'stretch' : 'center', 
-              justifyContent: 'space-between',
-              gap: isMobile ? '0.75rem' : '1rem',
-              flexWrap: 'wrap'
+              flexDirection: 'column',
+              alignItems: 'center', 
+              gap: '0.75rem',
             }}>
-              <p style={{ color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.85rem', margin: 0, lineHeight: 1.5 }}>
+              <p style={{ color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.85rem', margin: 0, lineHeight: 1.5, textAlign: 'center' }}>
                 {isAdmin 
                   ? 'You have full admin access to all features.'
                   : isSupporter 
-                  ? 'You have full access to Supporter features.'
-                  : 'Upgrade to unlock premium features and support the project.'}
+                  ? 'You have full access to Atlas Supporter features. Thanks for backing the project.'
+                  : 'Stop guessing. Get deeper insights, unlimited bot commands, and support the platform that helps you win.'}
               </p>
               
               {isSupporter && !isAdmin ? (
@@ -1629,12 +1789,10 @@ const Profile: React.FC = () => {
                     if (!user) return;
                     setManagingSubscription(true);
                     try {
-                      // Try API-based portal session first (links to user's actual Stripe account)
                       const portalUrl = await createPortalSession(user.id);
                       window.location.href = portalUrl;
                     } catch (error) {
                       console.warn('API portal failed, trying direct URL:', error);
-                      // Fallback to direct portal URL if configured
                       const directPortalUrl = getCustomerPortalUrl();
                       if (directPortalUrl && directPortalUrl !== '/profile') {
                         window.location.href = directPortalUrl;
@@ -1666,18 +1824,18 @@ const Profile: React.FC = () => {
               ) : !isAdmin ? (
                 <div style={{ 
                   display: 'flex', 
-                  flexDirection: isMobile ? 'column' : 'row',
-                  alignItems: isMobile ? 'stretch' : 'center', 
-                  gap: isMobile ? '0.5rem' : '1rem', 
+                  flexDirection: 'column',
+                  alignItems: 'center', 
+                  gap: '0.5rem', 
                   width: isMobile ? '100%' : 'auto'
                 }}>
                   <Link
-                    to="/upgrade"
+                    to="/support"
                     style={{
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      padding: isMobile ? '0.75rem 1rem' : '0.5rem 1rem',
+                      padding: isMobile ? '0.75rem 1.5rem' : '0.5rem 1.25rem',
                       minHeight: isMobile ? '48px' : 'auto',
                       background: `linear-gradient(135deg, ${themeColor} 0%, ${themeColor}cc 100%)`,
                       borderRadius: '10px',
@@ -1688,7 +1846,7 @@ const Profile: React.FC = () => {
                       WebkitTapHighlightColor: 'transparent'
                     }}
                   >
-                    Upgrade to Pro
+                    Become an Atlas Supporter
                   </Link>
                   <button
                     onClick={async () => {
@@ -1731,28 +1889,37 @@ const Profile: React.FC = () => {
           </div>
         )}
 
-        {/* Discord Account Link - only show for own profile */}
+        {/* 5. Referral Program - only show for own profile */}
+        {!isViewingOther && (
+          <ReferralStats />
+        )}
+
+        {/* 6. User Achievements */}
+        <div style={{ marginBottom: '2rem' }}>
+          <UserAchievements />
+        </div>
+
+        {/* 7. My Contributions - only for logged in users viewing their own profile */}
         {!isViewingOther && user && (
-          <div style={{ marginBottom: '1.5rem' }}>
-            <LinkDiscordAccount
-              discordId={profile?.discord_id}
-              discordUsername={profile?.discord_username}
-              onUnlink={() => {
-                if (updateProfile) {
-                  updateProfile({
-                    discord_id: null,
-                    discord_username: null,
-                    discord_linked_at: null,
-                  });
-                }
-              }}
-            />
+          <div style={{ marginBottom: '2rem' }}>
+            <SubmissionHistory userId={user.id} themeColor={themeColor} />
           </div>
         )}
 
-        {/* Notification Preferences - only show for own profile */}
+        {/* 8. Favorites - only show for own profile */}
+        {!isViewingOther && (
+          <div>
+            <ProfileFeatures />
+          </div>
+        )}
+
+        {/* Transfer Readiness Score - only show for own profile */}
         {!isViewingOther && user && (
-          <NotificationPreferences />
+          <TransferReadinessScore
+            userId={user.id}
+            hasLinkedAccount={!!viewedProfile?.linked_username}
+            isMobile={isMobile}
+          />
         )}
 
         {/* User's Kingdom Rankings - show if user has a linked kingdom or home kingdom */}
@@ -1765,26 +1932,6 @@ const Profile: React.FC = () => {
         {/* Players from My Kingdom - only show for own profile */}
         {!isViewingOther && (
           <PlayersFromMyKingdom themeColor={themeColor} />
-        )}
-
-
-        {/* User Achievements */}
-        <div style={{ marginBottom: '2rem' }}>
-          <UserAchievements />
-        </div>
-
-        {/* C1: Submission History - only for logged in users viewing their own profile */}
-        {!isViewingOther && user && (
-          <div style={{ marginBottom: '2rem' }}>
-            <SubmissionHistory userId={user.id} themeColor={themeColor} />
-          </div>
-        )}
-
-        {/* Profile Features - Favorites, Watchlist, Reviews, etc. - only show for own profile */}
-        {!isViewingOther && (
-          <div>
-            <ProfileFeatures />
-          </div>
         )}
         
         <div style={{ textAlign: 'center', marginTop: '2rem', paddingBottom: '1rem' }}>

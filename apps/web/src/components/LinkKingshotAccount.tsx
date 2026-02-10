@@ -336,10 +336,9 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
           border: `1px solid ${colors.success}40`,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-          <span style={{ fontSize: '1.25rem' }}>🎮</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
           <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '600', color: colors.text }}>
-            Linked Kingshot Account
+            Link Kingshot Account
           </h3>
           <span
             style={{
@@ -509,8 +508,7 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
           border: `1px solid ${colors.primary}40`,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-          <span style={{ fontSize: '1.25rem' }}>✅</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
           <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '600', color: colors.text }}>
             Account Found - Confirm Link
           </h3>
@@ -612,8 +610,7 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
         border: `1px solid ${colors.border}`,
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-        <span style={{ fontSize: '1.25rem' }}>🔗</span>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
         <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '600', color: colors.text }}>
           Link Kingshot Account
         </h3>
