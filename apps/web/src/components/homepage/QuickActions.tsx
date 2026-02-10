@@ -58,7 +58,7 @@ const ACTIONS: QuickAction[] = [
     icon: <TransferHubIcon />,
   },
   {
-    label: 'Rankings',
+    label: 'Kingdom Rankings',
     path: '/rankings',
     color: '#22d3ee',
     icon: <RankingsIcon />,

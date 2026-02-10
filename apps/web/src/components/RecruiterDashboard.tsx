@@ -58,6 +58,7 @@ interface IncomingApplication {
   viewed_at: string | null;
   responded_at: string | null;
   expires_at: string;
+  applicant_note: string | null;
   // Joined from transfer_profiles + profiles
   profile?: {
     user_id: string;
@@ -96,6 +97,7 @@ interface TransfereeProfile {
   looking_for: string[];
   is_anonymous: boolean;
   is_active: boolean;
+  last_active_at: string | null;
 }
 
 interface TeamMember {
@@ -202,6 +204,7 @@ const ApplicationCard: React.FC<{
   const isMobile = useIsMobile();
   const [expanded, setExpanded] = useState(false);
   const profile = application.profile;
+  const isAnon = profile?.is_anonymous && application.status !== 'accepted';
   const statusInfo = STATUS_LABELS[application.status] || { label: application.status, color: '#6b7280' };
   const actions = STATUS_ACTIONS[application.status];
 
@@ -238,7 +241,7 @@ const ApplicationCard: React.FC<{
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, minWidth: 0 }}>
           <span style={{ color: colors.text, fontWeight: '600', fontSize: '0.85rem' }}>
-            {profile?.username || 'Unknown Player'}
+            {isAnon ? '🔒 Anonymous Applicant' : (profile?.username || 'Unknown Player')}
           </span>
           {profile && (
             <span style={{ color: colors.textSecondary, fontSize: '0.7rem' }}>
@@ -311,21 +314,27 @@ const ApplicationCard: React.FC<{
             </div>
             <div>
               <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>Contact</span>
-              <div style={{ color: '#22d3ee', fontSize: '0.8rem' }}>
-                {(profile.contact_method === 'discord' || profile.contact_method === 'both') && profile.contact_discord && (
-                  <span>💬 {profile.contact_discord}</span>
-                )}
-                {profile.contact_method === 'both' && ' · '}
-                {(profile.contact_method === 'in_game' || profile.contact_method === 'both') && profile.contact_coordinates && (
-                  <span>🎮 {(() => {
-                    const m = profile.contact_coordinates.match(/^K:(\d+) X:(\d+) Y:(\d+)$/);
-                    return m ? `K${m[1]} · X:${m[2]} Y:${m[3]}` : profile.contact_coordinates;
-                  })()}</span>
-                )}
-                {!profile.contact_discord && !profile.contact_coordinates && profile.contact_info && (
-                  <span>{profile.contact_method === 'discord' ? '💬 ' : '🎮 '}{profile.contact_info}</span>
-                )}
-              </div>
+              {isAnon ? (
+                <div style={{ color: '#6b7280', fontSize: '0.8rem', fontStyle: 'italic' }}>
+                  🔒 Revealed after acceptance
+                </div>
+              ) : (
+                <div style={{ color: '#22d3ee', fontSize: '0.8rem' }}>
+                  {(profile.contact_method === 'discord' || profile.contact_method === 'both') && profile.contact_discord && (
+                    <span>💬 {profile.contact_discord}</span>
+                  )}
+                  {profile.contact_method === 'both' && ' · '}
+                  {(profile.contact_method === 'in_game' || profile.contact_method === 'both') && profile.contact_coordinates && (
+                    <span>🎮 {(() => {
+                      const m = profile.contact_coordinates.match(/^K:(\d+) X:(\d+) Y:(\d+)$/);
+                      return m ? `K${m[1]} · X:${m[2]} Y:${m[3]}` : profile.contact_coordinates;
+                    })()}</span>
+                  )}
+                  {!profile.contact_discord && !profile.contact_coordinates && profile.contact_info && (
+                    <span>{profile.contact_method === 'discord' ? '💬 ' : '🎮 '}{profile.contact_info}</span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -354,6 +363,21 @@ const ApplicationCard: React.FC<{
               <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>Bio</span>
               <p style={{ color: '#d1d5db', fontSize: '0.8rem', margin: '0.2rem 0 0 0', lineHeight: 1.4 }}>
                 {profile.player_bio}
+              </p>
+            </div>
+          )}
+
+          {application.applicant_note && (
+            <div style={{
+              marginTop: '0.5rem',
+              padding: '0.5rem 0.75rem',
+              backgroundColor: '#22d3ee08',
+              border: '1px solid #22d3ee15',
+              borderRadius: '8px',
+            }}>
+              <span style={{ color: '#22d3ee', fontSize: '0.65rem', fontWeight: '600' }}>📝 Applicant Note</span>
+              <p style={{ color: '#d1d5db', fontSize: '0.78rem', margin: '0.2rem 0 0 0', lineHeight: 1.4 }}>
+                {application.applicant_note}
               </p>
             </div>
           )}
@@ -592,7 +616,7 @@ const RecruiterDashboard: React.FC<{
         const profileIds = [...new Set(apps.map((a: IncomingApplication) => a.transfer_profile_id))];
         const { data: profiles } = await supabase
           .from('transfer_profiles')
-          .select('id, user_id, username, current_kingdom, tc_level, power_million, power_range, main_language, kvk_availability, saving_for_kvk, group_size, player_bio, contact_method, contact_discord, contact_coordinates, contact_info, looking_for, is_anonymous')
+          .select('id, user_id, username, current_kingdom, tc_level, power_million, power_range, main_language, kvk_availability, saving_for_kvk, group_size, player_bio, contact_method, contact_discord, contact_coordinates, contact_info, looking_for, is_anonymous, last_active_at')
           .in('id', profileIds);
 
         // Fetch linked_player_id from profiles for all applicant users
@@ -676,7 +700,7 @@ const RecruiterDashboard: React.FC<{
       const offset = loadMore ? transferees.length : 0;
       const { data } = await supabase
         .from('transfer_profiles')
-        .select('id, username, current_kingdom, tc_level, power_million, power_range, main_language, kvk_availability, saving_for_kvk, group_size, player_bio, looking_for, is_anonymous, is_active, visible_to_recruiters')
+        .select('id, username, current_kingdom, tc_level, power_million, power_range, main_language, kvk_availability, saving_for_kvk, group_size, player_bio, looking_for, is_anonymous, is_active, visible_to_recruiters, last_active_at')
         .eq('is_active', true)
         .eq('visible_to_recruiters', true)
         .neq('current_kingdom', editorInfo.kingdom_number)
@@ -689,6 +713,19 @@ const RecruiterDashboard: React.FC<{
         setTransferees(results);
       }
       setHasMoreTransferees(results.length === BROWSE_PAGE_SIZE);
+
+      // Record profile views (fire-and-forget, one per profile per day)
+      if (results.length > 0 && user) {
+        const views = results.map(tp => ({
+          transfer_profile_id: tp.id,
+          viewer_user_id: user.id,
+          viewer_kingdom_number: editorInfo.kingdom_number,
+        }));
+        supabase.from('transfer_profile_views').upsert(views, {
+          onConflict: 'transfer_profile_id,viewer_user_id,view_date',
+          ignoreDuplicates: true,
+        }).then(() => {});
+      }
     } catch {
       // silent
     } finally {
@@ -737,6 +774,11 @@ const RecruiterDashboard: React.FC<{
         setApplications((prev) =>
           prev.map((a) => a.id === applicationId ? { ...a, status: newStatus as IncomingApplication['status'] } : a)
         );
+
+        // Funnel tracking for accepted applications
+        if (newStatus === 'accepted') {
+          trackFeature('Transfer Funnel: Application Accepted', { kingdom: editorInfo?.kingdom_number || 0 });
+        }
 
         // Send notification to the applicant for meaningful status changes
         const app = applications.find(a => a.id === applicationId);
@@ -1503,7 +1545,7 @@ const RecruiterDashboard: React.FC<{
                               fontSize: '0.65rem', minWidth: '120px',
                             }}>
                               <span style={{ color: '#d1d5db', fontWeight: '600' }}>
-                                {(tp as { is_anonymous?: boolean }).is_anonymous ? '🔒' : ((tp as { username?: string }).username || 'Unknown')}
+                                {(tp as { is_anonymous?: boolean }).is_anonymous ? '🔒 Anon' : ((tp as { username?: string }).username || 'Unknown')}
                               </span>
                               <span style={{ color: '#a855f7', fontWeight: 'bold' }}>{tp._matchScore}%</span>
                               <span style={{ color: '#6b7280' }}>{formatTCLevel(tp.tc_level)} · {tp.power_million ? `${tp.power_million}M` : '—'}</span>
@@ -1531,9 +1573,20 @@ const RecruiterDashboard: React.FC<{
                               <span style={{ color: colors.text, fontWeight: '600', fontSize: '0.85rem' }}>
                                 {isAnon ? '🔒 Anonymous' : (tp.username || 'Unknown')}
                               </span>
-                              {!isAnon && (
-                                <span style={{ color: colors.textMuted, fontSize: '0.65rem' }}>K{tp.current_kingdom}</span>
-                              )}
+                              <span style={{ color: colors.textMuted, fontSize: '0.65rem' }}>K{tp.current_kingdom}</span>
+                              {tp.last_active_at && (() => {
+                                const diff = Date.now() - new Date(tp.last_active_at).getTime();
+                                const mins = Math.floor(diff / 60000);
+                                const hrs = Math.floor(diff / 3600000);
+                                const days = Math.floor(diff / 86400000);
+                                const label = mins < 60 ? `${mins}m ago` : hrs < 24 ? `${hrs}h ago` : `${days}d ago`;
+                                const fresh = days < 3;
+                                return (
+                                  <span style={{ color: fresh ? '#22c55e' : '#6b7280', fontSize: '0.55rem' }}>
+                                    {fresh ? '🟢' : '⚪'} {label}
+                                  </span>
+                                );
+                              })()}
                             </div>
                             <div style={{ display: 'flex', gap: '0.3rem' }}>
                               <span style={{
@@ -1767,7 +1820,7 @@ const RecruiterDashboard: React.FC<{
                                 <th style={{ textAlign: 'left', padding: '0.4rem 0.5rem', color: '#6b7280', borderBottom: '1px solid #2a2a2a', fontSize: '0.65rem' }}>Field</th>
                                 {selected.map(tp => (
                                   <th key={tp.id} style={{ textAlign: 'center', padding: '0.4rem 0.5rem', color: '#22d3ee', borderBottom: '1px solid #2a2a2a', fontSize: '0.7rem', fontWeight: '600' }}>
-                                    {(tp.is_anonymous ? '🔒 Anon' : tp.username) || 'Unknown'}
+                                    {tp.is_anonymous ? '🔒 Anonymous' : (tp.username || 'Unknown')}
                                   </th>
                                 ))}
                               </tr>

@@ -247,57 +247,6 @@ const ProfileFeatures: React.FC = () => {
     </div>
   );
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _AllianceBadge = React.useCallback(() => {
-    if (!profile?.alliance_tag) return null;
-    
-    const getBadgeStyle = (style: string, color: string) => {
-      switch (style) {
-        case 'gradient':
-          return { background: `linear-gradient(135deg, ${color} 0%, ${color}80 100%)` };
-        case 'outline':
-          return { backgroundColor: 'transparent', border: `2px solid ${color}` };
-        case 'glow':
-          return { backgroundColor: color, boxShadow: `0 0 20px ${color}60` };
-        default:
-          return { backgroundColor: color };
-      }
-    };
-
-    return (
-      <div style={{
-        backgroundColor: '#111116',
-        borderRadius: '12px',
-        padding: '1.5rem',
-        border: '1px solid #2a2a2a',
-        textAlign: 'center'
-      }}>
-        <h3 style={{ color: '#fff', fontSize: '1rem', fontWeight: '600', marginBottom: '1rem' }}>
-          Alliance Badge
-        </h3>
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem' }}>
-          <div style={{
-            padding: '0.75rem 1.5rem',
-            borderRadius: '8px',
-            ...getBadgeStyle(profile.badge_style || 'default', themeColor),
-            color: '#fff',
-            fontSize: '1.5rem',
-            fontWeight: 'bold',
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase' as const
-          }}>
-            [{profile.alliance_tag}]
-          </div>
-          {profile.home_kingdom && (
-            <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>
-              K-{profile.home_kingdom}
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }, [profile?.alliance_tag, profile?.badge_style, profile?.home_kingdom, themeColor]);
-
   // Quick Actions Bar - mobile optimized with proper touch targets
   const QuickActionsBar = () => (
     <div style={{
@@ -343,47 +292,6 @@ const ProfileFeatures: React.FC = () => {
         >
           <span>🏠</span>
           <span>View Home Kingdom</span>
-        </button>
-      )}
-      {favoriteKingdoms.length >= 2 && (
-        <button
-          onClick={() => {
-            const nums = favoriteKingdoms.slice(0, 2).map(k => k.kingdom_number);
-            navigate(`/compare?kingdoms=${nums.join(',')}`);
-          }}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: isMobile ? 'center' : 'flex-start',
-            gap: '0.5rem',
-            padding: isMobile ? '0.875rem 1rem' : '0.6rem 1rem',
-            minHeight: isMobile ? '48px' : 'auto',
-            width: isMobile ? '100%' : 'auto',
-            backgroundColor: '#131318',
-            border: '1px solid #3b82f640',
-            borderRadius: '10px',
-            color: '#fff',
-            fontSize: isMobile ? '0.9rem' : '0.85rem',
-            fontWeight: '500',
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            WebkitTapHighlightColor: 'transparent'
-          }}
-          onMouseEnter={(e) => {
-            if (!isMobile) {
-              e.currentTarget.style.backgroundColor = '#3b82f615';
-              e.currentTarget.style.borderColor = '#3b82f6';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (!isMobile) {
-              e.currentTarget.style.backgroundColor = '#131318';
-              e.currentTarget.style.borderColor = '#3b82f640';
-            }
-          }}
-        >
-          <span>⚖️</span>
-          <span>Compare Favorites</span>
         </button>
       )}
     </div>

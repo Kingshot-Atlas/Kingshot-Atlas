@@ -14,6 +14,9 @@ import { neonGlow, FONT_DISPLAY, colors } from '../utils/styles';
 import KingdomListingCard, { KingdomData, KingdomFund, KingdomReviewSummary, BoardMode, MatchDetail, formatTCLevel } from '../components/KingdomListingCard';
 import { useScrollDepth } from '../hooks/useScrollDepth';
 import TransferHubGuide from '../components/TransferHubGuide';
+import EntryModal from '../components/transfer/EntryModal';
+import ModeToggle from '../components/transfer/ModeToggle';
+import FilterPanel, { FilterState, defaultFilters } from '../components/transfer/FilterPanel';
 
 // =============================================
 // TYPES (KingdomData, KingdomFund, KingdomReviewSummary, BoardMode, MatchDetail, formatTCLevel
@@ -28,6 +31,11 @@ interface UserTransferProfile {
   looking_for: string[];
   kvk_availability: string;
   saving_for_kvk: string;
+  group_size: string;
+  player_bio: string;
+  play_schedule: unknown[];
+  contact_method: string;
+  visible_to_recruiters: boolean;
 }
 
 // =============================================
@@ -35,24 +43,7 @@ interface UserTransferProfile {
 // =============================================
 
 
-const RECRUITMENT_TAG_OPTIONS = [
-  'Active KvK', 'Casual Friendly', 'Competitive',
-  'Growing Kingdom', 'Established Kingdom',
-  'Active Alliances', 'Social Community', 'War Focused', 'Farm Friendly',
-  'KvK Focused', 'Event Active', 'Beginner Friendly',
-];
-
-
-// Used in Transfer Profile creation form (future)
-// const POWER_RANGE_OPTIONS = [
-//   'Any', '10M-50M', '50M-100M', '100M-200M', '200M-500M', '500M-1B', '1B+',
-// ];
-
-const LANGUAGE_OPTIONS = [
-  'English', 'Mandarin Chinese', 'Hindi', 'Spanish', 'French', 'Arabic', 'Bengali',
-  'Portuguese', 'Russian', 'Japanese', 'German', 'Korean', 'Turkish', 'Vietnamese',
-  'Italian', 'Thai', 'Polish', 'Indonesian', 'Dutch', 'Tagalog', 'Other',
-];
+// RECRUITMENT_TAG_OPTIONS and LANGUAGE_OPTIONS moved to ../components/transfer/FilterPanel
 
 // =============================================
 // TRANSFER GROUPS — Update these when new event groups are announced
@@ -76,410 +67,9 @@ const getTransferGroup = (kingdomNumber: number): [number, number] | null => {
   return TRANSFER_GROUPS.find(([min, max]) => kingdomNumber >= min && kingdomNumber <= max) || null;
 };
 
-// =============================================
-// ENTRY MODAL
-// =============================================
+// EntryModal and ModeToggle extracted to ../components/transfer/
 
-const EntryModal: React.FC<{
-  onSelect: (mode: BoardMode) => void;
-  onClose: () => void;
-}> = ({ onSelect, onClose }) => {
-  const isMobile = useIsMobile();
-
-  const options: Array<{
-    mode: BoardMode;
-    icon: string;
-    title: string;
-    subtitle: string;
-    color: string;
-  }> = [
-    {
-      mode: 'transferring',
-      icon: '🚀',
-      title: "I'm looking for a new kingdom",
-      subtitle: 'Create your Transfer Profile and apply to kingdoms',
-      color: '#22d3ee',
-    },
-    {
-      mode: 'recruiting',
-      icon: '📢',
-      title: "I'm recruiting for my kingdom",
-      subtitle: 'Manage your kingdom listing and review applications',
-      color: '#a855f7',
-    },
-    {
-      mode: 'browsing',
-      icon: '👀',
-      title: "Just browsing",
-      subtitle: 'Explore kingdoms and see what\'s available',
-      color: '#9ca3af',
-    },
-  ];
-
-  return (
-    <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.85)',
-        display: 'flex',
-        alignItems: isMobile ? 'flex-end' : 'center',
-        justifyContent: 'center',
-        zIndex: 1000,
-        padding: isMobile ? 0 : '1rem',
-      }}
-      onClick={onClose}
-    >
-      <div
-        style={{
-          backgroundColor: colors.surface,
-          border: `1px solid ${colors.border}`,
-          borderRadius: isMobile ? '16px 16px 0 0' : '16px',
-          padding: isMobile ? '1.5rem 1rem' : '2rem',
-          maxWidth: isMobile ? '100%' : '500px',
-          width: '100%',
-          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.6)',
-          paddingBottom: isMobile ? 'max(1.5rem, env(safe-area-inset-bottom))' : '2rem',
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-          <h2
-            style={{
-              fontFamily: FONT_DISPLAY,
-              fontSize: isMobile ? '1.2rem' : '1.4rem',
-              color: colors.text,
-              margin: '0 0 0.5rem 0',
-            }}
-          >
-            What brings you here?
-          </h2>
-          <p style={{ color: colors.textSecondary, fontSize: '0.85rem', margin: 0 }}>
-            This helps us personalize your experience
-          </p>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          {options.map((opt) => (
-            <button
-              key={opt.mode}
-              onClick={() => onSelect(opt.mode)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '1rem',
-                padding: '1rem 1.25rem',
-                backgroundColor: colors.bg,
-                border: `1px solid ${opt.color}30`,
-                borderRadius: '12px',
-                cursor: 'pointer',
-                textAlign: 'left',
-                transition: 'all 0.2s',
-                minHeight: '44px',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = `${opt.color}60`;
-                e.currentTarget.style.backgroundColor = `${opt.color}10`;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = `${opt.color}30`;
-                e.currentTarget.style.backgroundColor = colors.bg;
-              }}
-            >
-              <span style={{ fontSize: '1.5rem' }}>{opt.icon}</span>
-              <div>
-                <div style={{ color: colors.text, fontWeight: '600', fontSize: '0.9rem' }}>
-                  {opt.title}
-                </div>
-                <div style={{ color: colors.textSecondary, fontSize: '0.75rem', marginTop: '0.25rem' }}>
-                  {opt.subtitle}
-                </div>
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// =============================================
-// MODE TOGGLE (Tab Bar)
-// =============================================
-
-const ModeToggle: React.FC<{
-  mode: BoardMode;
-  onChange: (mode: BoardMode) => void;
-}> = ({ mode, onChange }) => {
-  const isMobile = useIsMobile();
-  const tabs: Array<{ mode: BoardMode; label: string; icon: string }> = [
-    { mode: 'transferring', label: "I'm Transferring", icon: '🚀' },
-    { mode: 'recruiting', label: "I'm Recruiting", icon: '📢' },
-    { mode: 'browsing', label: 'Browsing', icon: '👀' },
-  ];
-
-  return (
-    <div
-      style={{
-        display: 'flex',
-        gap: '0.5rem',
-        backgroundColor: colors.bg,
-        border: `1px solid ${colors.border}`,
-        borderRadius: '12px',
-        padding: '0.25rem',
-        width: 'fit-content',
-      }}
-    >
-      {tabs.map((tab) => (
-        <button
-          key={tab.mode}
-          onClick={() => onChange(tab.mode)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.4rem',
-            padding: isMobile ? '0.5rem 0.75rem' : '0.5rem 1rem',
-            borderRadius: '10px',
-            border: 'none',
-            cursor: 'pointer',
-            fontSize: isMobile ? '0.75rem' : '0.8rem',
-            fontWeight: mode === tab.mode ? '600' : '400',
-            backgroundColor: mode === tab.mode ? `${colors.primary}15` : 'transparent',
-            color: mode === tab.mode ? colors.primary : colors.textSecondary,
-            transition: 'all 0.2s',
-            minHeight: '44px',
-          }}
-        >
-          <span>{tab.icon}</span>
-          {!isMobile && tab.label}
-          {isMobile && tab.label.split(' ').pop()}
-        </button>
-      ))}
-    </div>
-  );
-};
-
-// =============================================
-// FILTERS
-// =============================================
-
-interface FilterState {
-  tier: string;
-  language: string;
-  minScore: string;
-  maxScore: string;
-  isRecruiting: boolean;
-  tag: string;
-  minMatchScore: string;
-  sortBy: string;
-}
-
-const defaultFilters: FilterState = {
-  tier: 'all',
-  language: 'all',
-  minScore: '',
-  maxScore: '',
-  isRecruiting: false,
-  tag: 'all',
-  minMatchScore: '',
-  sortBy: 'tier',
-};
-
-const FilterPanel: React.FC<{
-  filters: FilterState;
-  onChange: (filters: FilterState) => void;
-  mode: BoardMode;
-}> = ({ filters, onChange, mode }) => {
-  const isMobile = useIsMobile();
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  const update = (key: keyof FilterState, value: string | boolean) => {
-    onChange({ ...filters, [key]: value });
-  };
-
-  const selectStyle: React.CSSProperties = {
-    padding: '0.5rem 0.75rem',
-    backgroundColor: colors.bg,
-    border: `1px solid ${colors.border}`,
-    borderRadius: '8px',
-    color: colors.text,
-    fontSize: isMobile ? '1rem' : '0.8rem',
-    minHeight: '44px',
-    cursor: 'pointer',
-    width: '100%',
-  };
-
-  const activeFilterCount = Object.entries(filters).filter(([key, val]) => {
-    if (key === 'sortBy') return false;
-    if (typeof val === 'boolean') return val;
-    return val !== '' && val !== 'all';
-  }).length;
-
-  return (
-    <div style={{
-      backgroundColor: colors.surface,
-      border: `1px solid ${colors.border}`,
-      borderRadius: '12px',
-      padding: '1rem',
-    }}>
-      <button
-        onClick={() => setIsExpanded(!isExpanded)}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          width: '100%',
-          background: 'none',
-          border: 'none',
-          color: colors.text,
-          cursor: 'pointer',
-          padding: 0,
-          fontSize: '0.85rem',
-          fontWeight: '500',
-          minHeight: '44px',
-        }}
-      >
-        <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
-          </svg>
-          Filters
-          {activeFilterCount > 0 && (
-            <span style={{
-              backgroundColor: colors.primary,
-              color: '#000',
-              borderRadius: '10px',
-              padding: '0.1rem 0.5rem',
-              fontSize: '0.7rem',
-              fontWeight: 'bold',
-            }}>
-              {activeFilterCount}
-            </span>
-          )}
-        </span>
-        <svg
-          width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-          style={{ transform: isExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
-        >
-          <path d="M6 9l6 6 6-6"/>
-        </svg>
-      </button>
-
-      {isExpanded && (
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
-          gap: '0.75rem',
-          marginTop: '1rem',
-          paddingTop: '1rem',
-          borderTop: `1px solid ${colors.border}`,
-        }}>
-          <div>
-            <label style={{ color: colors.textSecondary, fontSize: '0.7rem', marginBottom: '0.25rem', display: 'block' }}>Fund Tier</label>
-            <select value={filters.tier} onChange={(e) => update('tier', e.target.value)} style={selectStyle}>
-              <option value="all">All Tiers</option>
-              <option value="gold">Gold</option>
-              <option value="silver">Silver</option>
-              <option value="bronze">Bronze</option>
-              <option value="standard">Standard</option>
-            </select>
-          </div>
-          <div>
-            <label style={{ color: colors.textSecondary, fontSize: '0.7rem', marginBottom: '0.25rem', display: 'block' }}>Language</label>
-            <select value={filters.language} onChange={(e) => update('language', e.target.value)} style={selectStyle}>
-              <option value="all">All Languages</option>
-              {LANGUAGE_OPTIONS.map((lang) => (
-                <option key={lang} value={lang}>{lang}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label style={{ color: colors.textSecondary, fontSize: '0.7rem', marginBottom: '0.25rem', display: 'block' }}>Sort By</label>
-            <select value={filters.sortBy} onChange={(e) => update('sortBy', e.target.value)} style={selectStyle}>
-              <option value="tier">Fund Tier (High → Low)</option>
-              <option value="score">Atlas Score (High → Low)</option>
-              <option value="rank">Rank (Best → Worst)</option>
-              <option value="match">Match Score (Best → Worst)</option>
-            </select>
-          </div>
-          <div>
-            <label style={{ color: colors.textSecondary, fontSize: '0.7rem', marginBottom: '0.25rem', display: 'block' }}>Recruitment Tag</label>
-            <select value={filters.tag} onChange={(e) => update('tag', e.target.value)} style={selectStyle}>
-              <option value="all">All Tags</option>
-              {RECRUITMENT_TAG_OPTIONS.map((tag) => (
-                <option key={tag} value={tag}>{tag}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label style={{ color: colors.textSecondary, fontSize: '0.7rem', marginBottom: '0.25rem', display: 'block' }}>Min Atlas Score</label>
-            <input
-              type="number"
-              step="0.1"
-              min="0"
-              max="100"
-              value={filters.minScore}
-              onChange={(e) => update('minScore', e.target.value)}
-              placeholder="0.0"
-              style={{ ...selectStyle, width: '100%' }}
-            />
-          </div>
-          {mode === 'transferring' && (
-            <div>
-              <label style={{ color: colors.textSecondary, fontSize: '0.7rem', marginBottom: '0.25rem', display: 'block' }}>Min Match Score</label>
-              <input
-                type="number"
-                step="5"
-                min="0"
-                max="100"
-                value={filters.minMatchScore}
-                onChange={(e) => update('minMatchScore', e.target.value)}
-                placeholder="0%"
-                style={{ ...selectStyle, width: '100%' }}
-              />
-            </div>
-          )}
-          <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-            <label style={{
-              display: 'flex', alignItems: 'center', gap: '0.5rem',
-              color: colors.textSecondary, fontSize: '0.8rem', cursor: 'pointer', minHeight: '44px',
-            }}>
-              <input
-                type="checkbox"
-                checked={filters.isRecruiting}
-                onChange={(e) => update('isRecruiting', e.target.checked)}
-                style={{ width: '18px', height: '18px', accentColor: colors.primary }}
-              />
-              Actively Recruiting Only
-            </label>
-          </div>
-          {activeFilterCount > 0 && (
-            <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-              <button
-                onClick={() => onChange(defaultFilters)}
-                style={{
-                  padding: '0.5rem 1rem',
-                  backgroundColor: 'transparent',
-                  border: `1px solid ${colors.error}40`,
-                  borderRadius: '8px',
-                  color: colors.error,
-                  fontSize: '0.8rem',
-                  cursor: 'pointer',
-                  minHeight: '44px',
-                }}
-              >
-                Clear Filters
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-};
+// FilterPanel, FilterState, defaultFilters extracted to ../components/transfer/FilterPanel
 
 // AllianceEventTimesGrid and KingdomListingCard are now in ../components/KingdomListingCard.tsx
 // (removed ~830 lines of inline component code)
@@ -510,6 +100,7 @@ const TransferBoard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const [showProfileForm, setShowProfileForm] = useState(false);
+  const [scrollToIncomplete, setScrollToIncomplete] = useState(false);
   const [hasTransferProfile, setHasTransferProfile] = useState(false);
   const [transferProfile, setTransferProfile] = useState<UserTransferProfile | null>(null);
   const [applyingToKingdom, setApplyingToKingdom] = useState<number | null>(null);
@@ -521,6 +112,8 @@ const TransferBoard: React.FC = () => {
   const [showContributionSuccess, setShowContributionSuccess] = useState(false);
   const [visibleCount, setVisibleCount] = useState(20);
   const [activeTransfereeCount, setActiveTransfereeCount] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [profileViewCount, setProfileViewCount] = useState(0);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   // Track page view
@@ -583,12 +176,18 @@ const TransferBoard: React.FC = () => {
       if (!supabase || !user) return;
       const { data } = await supabase
         .from('transfer_profiles')
-        .select('id, power_million, tc_level, main_language, secondary_languages, looking_for, kvk_availability, saving_for_kvk')
+        .select('id, power_million, tc_level, main_language, secondary_languages, looking_for, kvk_availability, saving_for_kvk, group_size, player_bio, play_schedule, contact_method, visible_to_recruiters')
         .eq('user_id', user.id)
         .eq('is_active', true)
         .single();
       setHasTransferProfile(!!data);
       if (data) {
+        // Touch last_active_at silently (debounced — max once per hour)
+        const lastTouch = localStorage.getItem('atlas_tp_last_active_touch');
+        if (!lastTouch || Date.now() - parseInt(lastTouch, 10) > 3600000) {
+          supabase.from('transfer_profiles').update({ last_active_at: new Date().toISOString() }).eq('id', data.id).then(() => {});
+          localStorage.setItem('atlas_tp_last_active_touch', String(Date.now()));
+        }
         setTransferProfile({
           power_million: data.power_million || 0,
           tc_level: data.tc_level || 0,
@@ -597,9 +196,21 @@ const TransferBoard: React.FC = () => {
           looking_for: data.looking_for || [],
           kvk_availability: data.kvk_availability || '',
           saving_for_kvk: data.saving_for_kvk || '',
+          group_size: data.group_size || '',
+          player_bio: data.player_bio || '',
+          play_schedule: data.play_schedule || [],
+          contact_method: data.contact_method || '',
+          visible_to_recruiters: !!data.visible_to_recruiters,
         });
+        // Fetch profile view count
+        const { count: viewCount } = await supabase
+          .from('transfer_profile_views')
+          .select('viewer_kingdom_number', { count: 'exact', head: true })
+          .eq('transfer_profile_id', data.id);
+        setProfileViewCount(viewCount || 0);
       } else {
         setTransferProfile(null);
+        setProfileViewCount(0);
       }
     };
     const countActiveApps = async () => {
@@ -761,7 +372,17 @@ const TransferBoard: React.FC = () => {
     if (fund.min_tc_level && fund.min_tc_level > 0) { total++; if (transferProfile.tc_level >= fund.min_tc_level) matched++; }
     if (fund.main_language) { total++; if (fund.main_language === transferProfile.main_language || (fund.secondary_languages || []).includes(transferProfile.main_language) || fund.main_language === (transferProfile.secondary_languages?.[0] || '')) matched++; }
     if (fund.kingdom_vibe && fund.kingdom_vibe.length > 0 && transferProfile.looking_for.length > 0) { total++; if (transferProfile.looking_for.some(v => fund.kingdom_vibe.includes(v))) matched++; }
-    return total === 0 ? 0 : Math.round((matched / total) * 100);
+    if (total === 0) {
+      // Fallback: soft heuristic when no explicit requirements set
+      let fallback = 0, fallbackTotal = 0;
+      if (fund.main_language) { fallbackTotal++; if (fund.main_language === transferProfile.main_language) fallback++; }
+      if (fund.kingdom_vibe && fund.kingdom_vibe.length > 0 && transferProfile.looking_for.length > 0) {
+        fallbackTotal++; if (transferProfile.looking_for.some(v => fund.kingdom_vibe.includes(v))) fallback++;
+      }
+      if (fund.is_recruiting) { fallbackTotal++; fallback++; }
+      return fallbackTotal === 0 ? 0 : Math.round((fallback / fallbackTotal) * 100);
+    }
+    return Math.round((matched / total) * 100);
   };
 
   // Filter and sort kingdoms
@@ -771,6 +392,17 @@ const TransferBoard: React.FC = () => {
     // In transferring mode, exclude user's own kingdom (can't transfer to yourself)
     if (mode === 'transferring' && profile?.linked_kingdom) {
       result = result.filter((k) => k.kingdom_number !== profile.linked_kingdom);
+    }
+
+    // In recruiting mode, only show the viewer's own kingdom
+    if (mode === 'recruiting' && profile?.linked_kingdom) {
+      result = result.filter((k) => k.kingdom_number === profile.linked_kingdom);
+    }
+
+    // Kingdom number search filter
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim();
+      result = result.filter((k) => String(k.kingdom_number).includes(q));
     }
 
     // Transfer group filter — only show kingdoms in user's transfer group
@@ -853,7 +485,7 @@ const TransferBoard: React.FC = () => {
     }
 
     return result;
-  }, [kingdoms, filters, fundMap, mode, profile?.linked_kingdom, userTransferGroup]);
+  }, [kingdoms, filters, fundMap, mode, profile?.linked_kingdom, userTransferGroup, searchQuery]);
 
   // Calculate match score for transferring mode
   const calculateMatchScore = (_kingdom: KingdomData, fund: KingdomFund | null): { score: number; details: MatchDetail[] } => {
@@ -899,7 +531,31 @@ const TransferBoard: React.FC = () => {
       details.push({ label: 'Vibe Match', matched: vibeMatch, detail: vibeMatch ? `${overlap.length} shared: ${overlap.join(', ')}` : 'No overlapping vibes' });
     }
 
-    if (total === 0) return { score: 0, details: [] };
+    if (total === 0) {
+      // Fallback heuristic when no explicit min requirements are set
+      const fbDetails: MatchDetail[] = [];
+      let fbMatched = 0, fbTotal = 0;
+      if (fund.main_language) {
+        fbTotal++;
+        const langOk = fund.main_language === transferProfile.main_language
+          || (fund.secondary_languages || []).includes(transferProfile.main_language);
+        if (langOk) fbMatched++;
+        fbDetails.push({ label: 'Language', matched: langOk, detail: langOk ? `${transferProfile.main_language} matches` : `${transferProfile.main_language} ≠ ${fund.main_language}` });
+      }
+      if (fund.kingdom_vibe && fund.kingdom_vibe.length > 0 && transferProfile.looking_for.length > 0) {
+        fbTotal++;
+        const overlap = transferProfile.looking_for.filter(v => fund.kingdom_vibe.includes(v));
+        const vibeOk = overlap.length > 0;
+        if (vibeOk) fbMatched++;
+        fbDetails.push({ label: 'Vibe Match', matched: vibeOk, detail: vibeOk ? `${overlap.length} shared: ${overlap.join(', ')}` : 'No overlapping vibes' });
+      }
+      if (fund.is_recruiting) {
+        fbTotal++; fbMatched++;
+        fbDetails.push({ label: 'Recruiting', matched: true, detail: 'Kingdom is actively recruiting' });
+      }
+      if (fbTotal === 0) return { score: 0, details: [] };
+      return { score: Math.round((fbMatched / fbTotal) * 100), details: fbDetails };
+    }
     const score = Math.round((matched / total) * 100);
     return { score, details };
   };
@@ -925,7 +581,7 @@ const TransferBoard: React.FC = () => {
             ? 'The Transfer Hub requires an account to browse kingdoms, apply for transfers, and manage recruitment.'
             : 'Go to your Profile and link your in-game account to unlock the Transfer Hub.'}
         </p>
-        <Link to={!user ? '/profile' : '/profile'} style={{
+        <Link to={!user ? '/auth' : '/profile'} style={{
           display: 'inline-block', padding: '0.6rem 1.5rem',
           backgroundColor: '#22d3ee', color: '#000', borderRadius: '8px',
           fontWeight: '600', fontSize: '0.85rem', textDecoration: 'none',
@@ -936,6 +592,20 @@ const TransferBoard: React.FC = () => {
       </div>
     );
   }
+
+  // Memoized top matches for Recommended Kingdoms section
+  const topMatches = useMemo(() => {
+    if (!transferProfile || mode !== 'transferring') return [];
+    return filteredKingdoms
+      .map(k => {
+        const f = fundMap.get(k.kingdom_number) || null;
+        const { score, details } = calculateMatchScore(k, f);
+        return { kingdom: k, fund: f, score, details };
+      })
+      .filter(m => m.score >= 50)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3);
+  }, [filteredKingdoms, fundMap, transferProfile, mode]);
 
   const kingdomsWithFunds = filteredKingdoms.filter((k) => fundMap.has(k.kingdom_number));
   const kingdomsWithoutFunds = filteredKingdoms.filter((k) => !fundMap.has(k.kingdom_number));
@@ -1032,60 +702,145 @@ const TransferBoard: React.FC = () => {
       </div>
 
       {/* Transfer Profile CTA (only in transferring mode) */}
-      {mode === 'transferring' && (
-        <div style={{
-          backgroundColor: '#22d3ee08',
-          border: '1px solid #22d3ee25',
-          borderRadius: '12px',
-          padding: isMobile ? '0.75rem' : '1rem',
-          marginBottom: '1rem',
-          display: 'flex',
-          alignItems: isMobile ? 'flex-start' : 'center',
-          justifyContent: 'space-between',
-          gap: '0.75rem',
-          flexDirection: isMobile ? 'column' : 'row',
-        }}>
-          <div>
-            <span style={{ color: '#22d3ee', fontWeight: '600', fontSize: '0.85rem' }}>
-              {hasTransferProfile ? 'Your Transfer Profile is Active' : 'Create Your Transfer Profile'}
-            </span>
-            <p style={{ color: '#6b7280', fontSize: '0.75rem', margin: '0.2rem 0 0 0' }}>
-              {hasTransferProfile
-                ? 'Kingdoms can see your profile when you apply. You can edit it anytime.'
-                : 'Set up your profile so kingdoms know what you bring to the table.'}
-            </p>
+      {mode === 'transferring' && (() => {
+        // Calculate profile completeness
+        const tp = transferProfile;
+        const profilePct = tp ? (() => {
+          const checks = [
+            tp.power_million > 0,
+            !!tp.main_language,
+            !!tp.kvk_availability,
+            !!tp.saving_for_kvk,
+            tp.looking_for.length > 0,
+            !!tp.group_size,
+            !!tp.player_bio?.trim(),
+            tp.play_schedule.length > 0,
+            !!tp.contact_method,
+            !!tp.visible_to_recruiters,
+          ];
+          return Math.round((checks.filter(Boolean).length / checks.length) * 100);
+        })() : 0;
+        const isIncomplete = hasTransferProfile && profilePct < 100;
+        const barColor = profilePct >= 80 ? '#22c55e' : profilePct >= 50 ? '#fbbf24' : '#22d3ee';
+
+        return (
+          <div style={{
+            backgroundColor: '#22d3ee08',
+            border: '1px solid #22d3ee25',
+            borderRadius: '12px',
+            padding: isMobile ? '0.75rem' : '1rem',
+            marginBottom: '1rem',
+            display: 'flex',
+            alignItems: isMobile ? 'flex-start' : 'center',
+            justifyContent: 'space-between',
+            gap: '0.75rem',
+            flexDirection: isMobile ? 'column' : 'row',
+          }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: '#22d3ee', fontWeight: '600', fontSize: '0.85rem' }}>
+                  {hasTransferProfile ? 'Your Transfer Profile is Active' : 'Create Your Transfer Profile'}
+                </span>
+                {isIncomplete && (
+                  <span style={{
+                    padding: '0.1rem 0.4rem',
+                    backgroundColor: `${barColor}15`,
+                    border: `1px solid ${barColor}30`,
+                    borderRadius: '4px',
+                    fontSize: '0.65rem',
+                    fontWeight: '700',
+                    color: barColor,
+                  }}>
+                    {profilePct}%
+                  </span>
+                )}
+              </div>
+              <p style={{ color: '#6b7280', fontSize: '0.75rem', margin: '0.2rem 0 0 0' }}>
+                {isIncomplete
+                  ? 'Complete your profile for better Match Scores and more recruiter visibility.'
+                  : hasTransferProfile
+                    ? 'Kingdoms can see your profile when you apply. You can edit it anytime.'
+                    : 'Set up your profile so kingdoms know what you bring to the table.'}
+              </p>
+              {hasTransferProfile && profileViewCount > 0 && (
+                <div style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+                  marginTop: '0.35rem',
+                  padding: '0.15rem 0.5rem',
+                  backgroundColor: '#a855f710',
+                  border: '1px solid #a855f725',
+                  borderRadius: '6px',
+                  fontSize: '0.65rem',
+                  color: '#a855f7',
+                }}>
+                  <span>👀</span>
+                  <span style={{ fontWeight: '700' }}>{profileViewCount}</span>
+                  <span>kingdom{profileViewCount !== 1 ? 's' : ''} viewed your profile</span>
+                </div>
+              )}
+              {hasTransferProfile && activeAppCount >= 2 && (
+                <div style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
+                  marginTop: '0.35rem',
+                  padding: '0.15rem 0.5rem',
+                  backgroundColor: activeAppCount >= 3 ? '#ef444410' : '#f59e0b10',
+                  border: `1px solid ${activeAppCount >= 3 ? '#ef444425' : '#f59e0b25'}`,
+                  borderRadius: '6px',
+                  fontSize: '0.65rem',
+                  color: activeAppCount >= 3 ? '#ef4444' : '#f59e0b',
+                  fontWeight: '600',
+                }}>
+                  📋 {activeAppCount}/3 application slots used{activeAppCount >= 3 ? ' — withdraw one to apply again' : ''}
+                </div>
+              )}
+              {isIncomplete && (
+                <div style={{
+                  width: '100%', maxWidth: '200px', height: '4px',
+                  backgroundColor: '#1a1a1a', borderRadius: '2px',
+                  overflow: 'hidden', marginTop: '0.4rem',
+                }}>
+                  <div style={{
+                    width: `${profilePct}%`, height: '100%',
+                    backgroundColor: barColor, borderRadius: '2px',
+                    transition: 'width 0.3s ease',
+                  }} />
+                </div>
+              )}
+            </div>
+            <button
+              onClick={() => { setScrollToIncomplete(!!isIncomplete); setShowProfileForm(true); }}
+              style={{
+                padding: '0.5rem 1rem',
+                backgroundColor: hasTransferProfile ? 'transparent' : '#22d3ee',
+                border: hasTransferProfile ? '1px solid #22d3ee40' : 'none',
+                borderRadius: '8px',
+                color: hasTransferProfile ? '#22d3ee' : '#000',
+                fontSize: '0.8rem',
+                fontWeight: '600',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                minHeight: '44px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              {isIncomplete ? 'Complete Profile' : hasTransferProfile ? 'Edit Profile' : 'Create Profile'}
+            </button>
           </div>
-          <button
-            onClick={() => setShowProfileForm(true)}
-            style={{
-              padding: '0.5rem 1rem',
-              backgroundColor: hasTransferProfile ? 'transparent' : '#22d3ee',
-              border: hasTransferProfile ? '1px solid #22d3ee40' : 'none',
-              borderRadius: '8px',
-              color: hasTransferProfile ? '#22d3ee' : '#000',
-              fontSize: '0.8rem',
-              fontWeight: '600',
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
-              minHeight: '44px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            {hasTransferProfile ? 'Edit Profile' : 'Create Profile'}
-          </button>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Transfer Profile Form Modal */}
       {showProfileForm && (
         <TransferProfileForm
-          onClose={() => setShowProfileForm(false)}
+          onClose={() => { setShowProfileForm(false); setScrollToIncomplete(false); }}
           onSaved={() => {
             setShowProfileForm(false);
+            setScrollToIncomplete(false);
             setHasTransferProfile(true);
           }}
+          scrollToIncomplete={scrollToIncomplete}
         />
       )}
 
@@ -1110,8 +865,42 @@ const TransferBoard: React.FC = () => {
         />
       )}
 
+      {/* Recruiter Mode: No linked kingdom empty state */}
+      {mode === 'recruiting' && user && !profile?.linked_kingdom && (
+        <div style={{
+          textAlign: 'center',
+          padding: '2rem 1rem',
+          backgroundColor: '#111111',
+          borderRadius: '12px',
+          border: '1px solid #2a2a2a',
+          marginBottom: '1rem',
+        }}>
+          <span style={{ fontSize: '2rem', display: 'block', marginBottom: '0.75rem' }}>🏰</span>
+          <p style={{ color: '#fff', fontSize: '0.95rem', fontWeight: '600', marginBottom: '0.3rem' }}>
+            Link Your Kingshot Account
+          </p>
+          <p style={{ color: '#6b7280', fontSize: '0.8rem', marginBottom: '1rem', maxWidth: '400px', margin: '0 auto 1rem' }}>
+            To recruit for your kingdom, you need to link your in-game account first. This tells us which kingdom you represent.
+          </p>
+          <Link to="/profile" style={{
+            display: 'inline-block',
+            padding: '0.6rem 1.5rem',
+            backgroundColor: '#a855f7',
+            color: '#fff',
+            borderRadius: '8px',
+            fontWeight: '600',
+            fontSize: '0.85rem',
+            textDecoration: 'none',
+            minHeight: '44px',
+            lineHeight: '44px',
+          }}>
+            Go to Profile
+          </Link>
+        </div>
+      )}
+
       {/* Recruiter Mode: Editor Claiming + Dashboard Access */}
-      {mode === 'recruiting' && user && (
+      {mode === 'recruiting' && user && profile?.linked_kingdom && (
         <div style={{ marginBottom: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <EditorClaiming onEditorActivated={() => setIsEditor(true)} />
           {isEditor && (
@@ -1230,23 +1019,56 @@ const TransferBoard: React.FC = () => {
         </div>
       )}
 
-      {/* Filters */}
-      <div style={{ marginBottom: '1rem' }}>
-        <FilterPanel filters={filters} onChange={setFilters} mode={mode} />
-        {/* Kingdom and Recruiting Counts */}
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'flex-end', 
-          gap: '1rem', 
-          color: colors.textSecondary, 
-          fontSize: '0.75rem',
-          marginTop: '0.5rem',
-          paddingRight: '0.5rem'
-        }}>
-          <span>{filteredKingdoms.length} kingdoms</span>
-          <span>{funds.filter((f) => f.is_recruiting).length} recruiting</span>
+      {/* Recommended Kingdoms (transferring mode, profile exists) */}
+      {mode === 'transferring' && hasTransferProfile && transferProfile && !loading && topMatches.length > 0 && (
+        <div style={{ marginBottom: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
+            <span style={{ fontSize: '0.85rem' }}>🎯</span>
+            <span style={{ color: '#22c55e', fontSize: '0.8rem', fontWeight: '600' }}>Top Matches For You</span>
+            <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>based on your Transfer Profile</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            {topMatches.map(({ kingdom, fund, score, details }) => (
+              <KingdomListingCard
+                key={`rec-${kingdom.kingdom_number}`}
+                kingdom={kingdom}
+                fund={fund}
+                reviewSummary={reviewMap.get(kingdom.kingdom_number) || null}
+                mode={mode}
+                matchScore={score}
+                matchDetails={details}
+                onApply={(kn) => { trackFeature('Transfer Apply Click', { kingdom: kn, source: 'recommended' }); setApplyingToKingdom(kn); }}
+                onFund={(kn) => { trackFeature('Transfer Fund Click', { kingdom: kn }); setContributingToKingdom(kn); }}
+              />
+            ))}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', margin: '0.75rem 0 0 0', color: '#4b5563', fontSize: '0.7rem' }}>
+            <div style={{ flex: 1, height: '1px', backgroundColor: '#2a2a2a' }} />
+            <span>All Kingdoms</span>
+            <div style={{ flex: 1, height: '1px', backgroundColor: '#2a2a2a' }} />
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Search + Filters (hidden in Recruiting mode) */}
+      {mode !== 'recruiting' && (
+        <div style={{ marginBottom: '1rem' }}>
+          <FilterPanel filters={filters} onChange={setFilters} mode={mode} searchQuery={searchQuery} onSearchChange={setSearchQuery} />
+          {/* Kingdom and Recruiting Counts */}
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'flex-end', 
+            gap: '1rem', 
+            color: colors.textSecondary, 
+            fontSize: '0.75rem',
+            marginTop: '0.5rem',
+            paddingRight: '0.5rem'
+          }}>
+            <span>{filteredKingdoms.length} kingdoms</span>
+            <span>{funds.filter((f) => f.is_recruiting).length} recruiting</span>
+          </div>
+        </div>
+      )}
 
       {/* Transfer Group Banner */}
       {TRANSFER_GROUPS_ACTIVE && (
@@ -1303,7 +1125,11 @@ const TransferBoard: React.FC = () => {
           ))}
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div style={{
+          display: 'flex', flexDirection: 'column', gap: '0.75rem',
+          transition: 'opacity 0.2s ease',
+          opacity: 1,
+        }}>
           {/* Funded kingdoms first */}
           {kingdomsWithFunds.map((kingdom) => {
             const fund = fundMap.get(kingdom.kingdom_number) || null;

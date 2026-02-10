@@ -3,9 +3,66 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-10 13:15 | Product Engineer | COMPLETED
+Task: Profile Page — Code cleanup, component extraction, edit form restructure
+Files:
+- `apps/web/src/pages/Profile.tsx` — Removed hardcoded demo users, removed `display_name` from EditForm (not editable), replaced 3x `alert()` with `showToast()` in subscription sync, restructured edit form layout (3-col row: Alliance Tag + Language + Region, then Bio, Coordinates, NotifPrefs, centered Save/Cancel), extracted 3 inline components, removed unused imports
+- `apps/web/src/components/ProfileFeatures.tsx` — Removed unused `_AllianceBadge` variable (~50 lines)
+- `apps/web/src/components/ProfileCompletionProgress.tsx` — NEW: extracted from Profile.tsx
+- `apps/web/src/components/TransferReadinessScore.tsx` — NEW: extracted from Profile.tsx
+- `apps/web/src/components/KingdomLeaderboardPosition.tsx` — NEW: extracted from Profile.tsx
+Result: Profile.tsx reduced from ~1958 to ~1535 lines, 3 components extracted, edit form restructured, build clean ✅
+
+---
+
+## 2026-02-10 13:00 | Product Engineer | COMPLETED
+Task: Profile Page — Edit mode isolation, UX fixes, referral tooltips, code review
+Files:
+- `apps/web/src/pages/Profile.tsx` — Hide all sections below Save/Cancel when editing (fragment wrapper), reset isEditing on route change, standardize section spacing to 1.5rem, hide UserAchievements for public profiles (shows viewer's stats not viewed user's), wrap TransferReadiness/KingdomRankings in spacing divs
+- `apps/web/src/components/ProfileFeatures.tsx` — Remove Compare Favorites button
+- `apps/web/src/components/ReferralStats.tsx` — Add SmartTooltips to tier badges with descriptions (Scout/Recruiter/Consul/Ambassador)
+Result: 5 fixes applied, 2 bugs found and fixed during review, build clean ✅
+
+---
+
+## 2026-02-10 12:45 | Product Engineer + Platform Engineer | COMPLETED
+Task: Transfer Hub — Application Quality Batch
+Files:
+- `apps/web/src/components/TransferApplications.tsx` — Applicant note textarea in ApplyModal (300 char limit, optional), per-kingdom 24h withdraw cooldown, accepted apps moved to active section with recruiter contact "Next Steps" block, recruiter contact fetching for accepted kingdoms
+- `apps/web/src/components/RecruiterDashboard.tsx` — `applicant_note` on IncomingApplication interface, 📝 Applicant Note display on application cards
+- `apps/web/src/pages/TransferBoard.tsx` — Application slot count indicator (📋 2/3 or 3/3) on Transfer Hub CTA banner, Match Score fallback heuristic (language + vibe + recruiting status) when no explicit min requirements set, applied to both calculateMatchScore and calculateMatchScoreForSort
+- DB migration: `add_applicant_note_to_transfer_applications` — `applicant_note text` column with 300 char CHECK constraint
+Result: All 5 features built, build clean ✅
+
+---
+
+## 2026-02-10 12:15 | Product Engineer + Platform Engineer | COMPLETED
+Task: Transfer Hub — Conversion, Trust & Analysis Batch
+Files:
+- `apps/web/src/pages/KingdomDirectory.tsx` — Hero text: `<br />` before "Dominate Kingshot." on mobile
+- `apps/web/src/components/TransferProfileForm.tsx` — Analytics tracking (Preview toggle, Share click, Profile Created funnel), reactivate deactivated profiles on edit, `last_active_at` touch on save
+- `apps/web/src/pages/Profile.tsx` — Analytics tracking (Readiness Score CTA clicks)
+- `apps/web/src/components/TransferApplications.tsx` — Funnel tracking (Application Sent), fixed expiry text (14d → 72h)
+- `apps/web/src/components/RecruiterDashboard.tsx` — Funnel tracking (Application Accepted), `last_active_at` display on transferee cards (🟢/⚪ freshness), added field to both SELECT queries
+- `apps/web/src/pages/TransferBoard.tsx` — Profile completeness % nudge banner with progress bar, Recommended Kingdoms (top 3 by Match Score, memoized), expanded UserTransferProfile interface, debounced `last_active_at` touch (1hr)
+- DB migration: `add_last_active_at_to_transfer_profiles` — new `last_active_at` timestamptz column
+- Edge function: `deactivate-stale-profiles` — auto-deactivates profiles inactive >30 days, sends notification
+- `docs/TRANSFER_HUB_ANALYSIS.md` — Full analysis report with 4 bugs found, 5 UX issues, 3 perf concerns, 14 recommendations
+Result: All features built, 5 high-priority bugs fixed, build clean ✅
+
 ---
 
 ## Log Entries
+
+## 2026-02-10 13:00 | Product Engineer + Design Lead | COMPLETED
+Task: Transfer Profile UX Polish — Preview, Readiness Score, Share, Chip Limit, Hero Fix
+Files: `pages/KingdomDirectory.tsx`, `components/TransferProfileForm.tsx`, `pages/Profile.tsx`
+Result:
+  - **Hero Quote Marks Removed:** Removed `"` marks from homepage subtitle text in KingdomDirectory.tsx.
+  - **Looking For Chips → 4:** Increased "What I'm looking for" chip limit from 3 to 4 in TransferProfileForm (logic + label).
+  - **Transfer Profile Preview:** Added live preview card in TransferProfileForm showing exactly how recruiters see the profile (username/anon, TC, power, language, KvK, group size, looking for tags, bio). Toggle button in action bar.
+  - **Transfer Readiness Score:** New `TransferReadinessScore` component on Profile page. Fetches active transfer profile, calculates 10-field completeness (power, language, KvK availability, saving pref, looking for, group size, bio, schedule, contact, visibility). Shows progress bar + incomplete checklist. CTA to create profile if none exists. Hidden at 100%.
+  - **Share Transfer Profile:** "🔗 Share" button in TransferProfileForm (shown when editing existing profile). Generates Discord-formatted text with player stats, looking-for tags, bio, and Transfer Hub link. Copies to clipboard with toast confirmation.
 
 ## 2026-02-10 12:30 | Product Engineer + Platform Engineer | COMPLETED
 Task: Coordinates Data Integrity, RecruiterDashboard Audit & Public Profile Coordinates

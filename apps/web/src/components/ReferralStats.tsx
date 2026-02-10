@@ -12,6 +12,7 @@ import { copyToClipboard } from '../utils/sharing';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import useAnalytics from '../hooks/useAnalytics';
 import ReferralBadge from './ReferralBadge';
+import SmartTooltip from './shared/SmartTooltip';
 
 const ReferralStats: React.FC = () => {
   const { profile } = useAuth();
@@ -159,22 +160,43 @@ const ReferralStats: React.FC = () => {
         {(Object.entries(REFERRAL_TIER_THRESHOLDS) as [ReferralTier, number][]).map(([tier, threshold]) => {
           const reached = referralCount >= threshold;
           const tierColor = REFERRAL_TIER_COLORS[tier];
+          const tierDescriptions: Record<ReferralTier, string> = {
+            scout: 'First badge earned. You\'re on the radar.',
+            recruiter: 'Proven recruiter. Your kingdom notices.',
+            consul: 'Unlocks Consul Discord role. Respected voice.',
+            ambassador: 'Top tier. Ambassador Discord role + recognition.',
+          };
           return (
-            <div key={tier} style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.25rem',
-              padding: '0.2rem 0.5rem',
-              borderRadius: '12px',
-              backgroundColor: reached ? `${tierColor}15` : '#0a0a0a',
-              border: `1px solid ${reached ? `${tierColor}40` : '#2a2a2a'}`,
-              fontSize: '0.7rem',
-              color: reached ? tierColor : '#6b7280',
-              fontWeight: reached ? 600 : 400,
-            }}>
-              {reached ? '✓' : threshold}
-              <span>{REFERRAL_TIER_LABELS[tier]}</span>
-            </div>
+            <SmartTooltip
+              key={tier}
+              accentColor={tierColor}
+              maxWidth={180}
+              content={
+                <div style={{ fontSize: '0.75rem', color: '#d1d5db' }}>
+                  <div style={{ fontWeight: 600, color: tierColor, marginBottom: '0.2rem' }}>
+                    {REFERRAL_TIER_LABELS[tier]} — {threshold} referrals
+                  </div>
+                  {tierDescriptions[tier]}
+                </div>
+              }
+            >
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.25rem',
+                padding: '0.2rem 0.5rem',
+                borderRadius: '12px',
+                backgroundColor: reached ? `${tierColor}15` : '#0a0a0a',
+                border: `1px solid ${reached ? `${tierColor}40` : '#2a2a2a'}`,
+                fontSize: '0.7rem',
+                color: reached ? tierColor : '#6b7280',
+                fontWeight: reached ? 600 : 400,
+                cursor: 'pointer',
+              }}>
+                {reached ? '✓' : threshold}
+                <span>{REFERRAL_TIER_LABELS[tier]}</span>
+              </div>
+            </SmartTooltip>
           );
         })}
       </div>

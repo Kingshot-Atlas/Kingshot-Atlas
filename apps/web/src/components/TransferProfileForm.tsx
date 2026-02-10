@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useIsMobile } from '../hooks/useMediaQuery';
+import { useToast } from './Toast';
+import { useAnalytics } from '../hooks/useAnalytics';
 import { supabase } from '../lib/supabase';
 import { neonGlow, FONT_DISPLAY, colors } from '../utils/styles';
 import { moderateText } from '../utils/contentModeration';
+import { copyToClipboard } from '../utils/sharing';
 
 // =============================================
 // HELPERS
@@ -102,14 +105,41 @@ const UTC_HOURS = Array.from({ length: 24 }, (_, i) => `${i.toString().padStart(
 const TransferProfileForm: React.FC<{
   onClose: () => void;
   onSaved: () => void;
-}> = ({ onClose, onSaved }) => {
+  scrollToIncomplete?: boolean;
+}> = ({ onClose, onSaved, scrollToIncomplete = false }) => {
   const { user, profile } = useAuth();
   const isMobile = useIsMobile();
+  const { showToast } = useToast();
+  const { trackFeature } = useAnalytics();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [existingProfile, setExistingProfile] = useState<ExistingProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
+  const formContainerRef = useRef<HTMLDivElement>(null);
+  const hasScrolledRef = useRef(false);
+
+  const handleShareProfile = async () => {
+    const tags = formData.looking_for.length > 0 ? formData.looking_for.join(', ') : 'Not set';
+    const text = [
+      `🚀 **${formData.is_anonymous ? 'Anonymous Player' : formData.username}** is looking for a new kingdom!`,
+      `⚡ ${formData.tc_level ? formatTCLevel(formData.tc_level) : '—'} · ${formData.power_million ? `${formData.power_million}M power` : '—'}`,
+      `🌐 ${formData.main_language || '—'} · 👥 ${formData.group_size || 'Solo'}`,
+      `🎯 Looking for: ${tags}`,
+      formData.player_bio ? `💬 "${formData.player_bio}"` : '',
+      ``,
+      `📋 View on Kingshot Atlas Transfer Hub:`,
+      `https://ks-atlas.com/transfer-hub`,
+    ].filter(Boolean).join('\n');
+
+    const ok = await copyToClipboard(text);
+    if (ok) {
+      showToast('Profile link copied — paste it in Discord!', 'success');
+    } else {
+      showToast('Failed to copy', 'error');
+    }
+  };
 
   // Form state
   const [formData, setFormData] = useState<TransferProfileData>({
@@ -209,6 +239,49 @@ const TransferProfileForm: React.FC<{
     loadExisting();
   }, [user]);
 
+  // Auto-scroll to first incomplete required field
+  useEffect(() => {
+    if (!scrollToIncomplete || loading || hasScrolledRef.current) return;
+    hasScrolledRef.current = true;
+
+    // Small delay to ensure DOM is rendered
+    const timer = setTimeout(() => {
+      const container = formContainerRef.current;
+      if (!container) return;
+
+      // Check required fields in order
+      const fieldChecks: Array<{ field: string; isEmpty: boolean }> = [
+        { field: 'power_million', isEmpty: !formData.power_million || formData.power_million <= 0 },
+        { field: 'main_language', isEmpty: !formData.main_language },
+        { field: 'play_schedule', isEmpty: !formData.play_schedule || formData.play_schedule.length === 0 },
+        { field: 'kvk_availability', isEmpty: !formData.kvk_availability },
+        { field: 'saving_for_kvk', isEmpty: !formData.saving_for_kvk },
+        { field: 'looking_for', isEmpty: !formData.looking_for || formData.looking_for.length === 0 },
+        { field: 'group_size', isEmpty: !formData.group_size },
+        { field: 'player_bio', isEmpty: !formData.player_bio?.trim() },
+        { field: 'contact_method', isEmpty: !formData.contact_method },
+      ];
+
+      const firstIncomplete = fieldChecks.find((c) => c.isEmpty);
+      if (!firstIncomplete) return;
+
+      const el = container.querySelector(`[data-field="${firstIncomplete.field}"]`) as HTMLElement;
+      if (!el) return;
+
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Brief highlight
+      el.style.outline = '2px solid #22d3ee';
+      el.style.outlineOffset = '4px';
+      el.style.borderRadius = '8px';
+      el.style.transition = 'outline-color 2s ease';
+      setTimeout(() => {
+        el.style.outlineColor = 'transparent';
+      }, 2000);
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [scrollToIncomplete, loading, formData]);
+
   const updateField = <K extends keyof TransferProfileData>(key: K, value: TransferProfileData[K]) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
   };
@@ -218,7 +291,7 @@ const TransferProfileForm: React.FC<{
       ...prev,
       looking_for: prev.looking_for.includes(value)
         ? prev.looking_for.filter((v) => v !== value)
-        : prev.looking_for.length < 3 ? [...prev.looking_for, value] : prev.looking_for,
+        : prev.looking_for.length < 4 ? [...prev.looking_for, value] : prev.looking_for,
     }));
   };
 
@@ -328,6 +401,8 @@ const TransferProfileForm: React.FC<{
         const { error: updateError } = await supabase
           .from('transfer_profiles')
           .update({
+            is_active: true,
+            last_active_at: new Date().toISOString(),
             username: formData.username,
             current_kingdom: formData.current_kingdom,
             tc_level: formData.tc_level,
@@ -359,6 +434,7 @@ const TransferProfileForm: React.FC<{
           .insert(payload);
 
         if (insertError) throw insertError;
+        trackFeature('Transfer Funnel: Profile Created');
       }
 
       onSaved();
@@ -469,6 +545,7 @@ const TransferProfileForm: React.FC<{
       onClick={onClose}
     >
       <div
+        ref={formContainerRef}
         style={{
           backgroundColor: colors.surface,
           border: `1px solid ${colors.border}`,
@@ -547,7 +624,7 @@ const TransferProfileForm: React.FC<{
         {/* Form Fields */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {/* Power (Millions) */}
-          <div>
+          <div data-field="power_million">
             <label style={labelStyle}>Total Power (in millions) *</label>
             <div style={{ position: 'relative' }}>
               <input
@@ -571,7 +648,7 @@ const TransferProfileForm: React.FC<{
           </div>
 
           {/* Main Language */}
-          <div>
+          <div data-field="main_language">
             <label style={labelStyle}>Main Language *</label>
             <select
               value={formData.main_language}
@@ -600,7 +677,7 @@ const TransferProfileForm: React.FC<{
           </div>
 
           {/* Play Schedule (UTC) */}
-          <div>
+          <div data-field="play_schedule">
             <label style={labelStyle}>Play Schedule — UTC (1-3 ranges) *</label>
             {formData.play_schedule.map((range, idx) => (
               <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
@@ -657,7 +734,7 @@ const TransferProfileForm: React.FC<{
           </div>
 
           {/* KvK Availability */}
-          <div>
+          <div data-field="kvk_availability">
             <label style={labelStyle}>KvK Availability *</label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
               {KVK_AVAILABILITY_OPTIONS.map((opt) => (
@@ -674,7 +751,7 @@ const TransferProfileForm: React.FC<{
           </div>
 
           {/* Saving for KvK */}
-          <div>
+          <div data-field="saving_for_kvk">
             <label style={labelStyle}>Saving for KvK *</label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
               {SAVING_FOR_KVK_OPTIONS.map((opt) => (
@@ -691,8 +768,8 @@ const TransferProfileForm: React.FC<{
           </div>
 
           {/* Looking For */}
-          <div>
-            <label style={labelStyle}>What I'm Looking For * (pick up to 3)</label>
+          <div data-field="looking_for">
+            <label style={labelStyle}>What I'm Looking For * (pick up to 4)</label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
               {LOOKING_FOR_OPTIONS.map((opt) => (
                 <button
@@ -708,7 +785,7 @@ const TransferProfileForm: React.FC<{
           </div>
 
           {/* Group Size */}
-          <div>
+          <div data-field="group_size">
             <label style={labelStyle}>Group Size *</label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
               {GROUP_SIZE_OPTIONS.map((opt) => (
@@ -725,7 +802,7 @@ const TransferProfileForm: React.FC<{
           </div>
 
           {/* Player Bio */}
-          <div>
+          <div data-field="player_bio">
             <label style={labelStyle}>
               Player Bio * <span style={{
                 color: formData.player_bio.length > 140 ? '#ef4444' : formData.player_bio.length > 120 ? '#eab308' : '#4b5563',
@@ -767,7 +844,7 @@ const TransferProfileForm: React.FC<{
           </div>
 
           {/* Contact Method */}
-          <div>
+          <div data-field="contact_method">
             <label style={labelStyle}>Contact Method *</label>
             <div style={{ display: 'flex', gap: '0.35rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
               <button type="button" onClick={() => updateField('contact_method', 'discord')} style={chipStyle(formData.contact_method === 'discord')}>Discord</button>
@@ -899,50 +976,185 @@ const TransferProfileForm: React.FC<{
           </div>
         )}
 
+        {/* Preview Card */}
+        {showPreview && (
+          <div style={{
+            marginTop: '1rem',
+            padding: '0.75rem',
+            backgroundColor: '#0a0a0a',
+            border: '1px solid #22d3ee30',
+            borderRadius: '10px',
+          }}>
+            <div style={{ fontSize: '0.65rem', color: '#22d3ee', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>
+              👁️ How recruiters will see your card
+            </div>
+            <div style={{
+              backgroundColor: colors.bg,
+              border: `1px solid ${colors.border}`,
+              borderRadius: '10px',
+              padding: '0.75rem',
+            }}>
+              {/* Header */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <span style={{ color: colors.text, fontWeight: '600', fontSize: '0.85rem' }}>
+                    {formData.is_anonymous ? '🔒 Anonymous' : (formData.username || 'Unknown')}
+                  </span>
+                  {!formData.is_anonymous && formData.current_kingdom > 0 && (
+                    <span style={{ color: colors.textMuted, fontSize: '0.65rem' }}>K{formData.current_kingdom}</span>
+                  )}
+                </div>
+                <div style={{ display: 'flex', gap: '0.3rem' }}>
+                  <span style={{
+                    padding: '0.1rem 0.35rem',
+                    backgroundColor: '#eab30808',
+                    border: '1px solid #eab30820',
+                    borderRadius: '4px',
+                    fontSize: '0.6rem',
+                    color: '#eab308',
+                  }}>
+                    {formData.tc_level ? formatTCLevel(formData.tc_level) : '—'}
+                  </span>
+                  <span style={{
+                    padding: '0.1rem 0.35rem',
+                    backgroundColor: '#f9731608',
+                    border: '1px solid #f9731620',
+                    borderRadius: '4px',
+                    fontSize: '0.6rem',
+                    color: '#f97316',
+                  }}>
+                    {formData.power_million ? `${formData.power_million}M` : '—'}
+                  </span>
+                </div>
+              </div>
+              {/* Quick Stats */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem', marginBottom: '0.4rem' }}>
+                <span style={{ color: colors.textSecondary, fontSize: '0.65rem' }}>🌐 {formData.main_language || '—'}</span>
+                {formData.kvk_availability && (
+                  <span style={{ color: colors.textSecondary, fontSize: '0.65rem' }}>⚔️ {formData.kvk_availability}</span>
+                )}
+                <span style={{ color: colors.textSecondary, fontSize: '0.65rem' }}>👥 {formData.group_size || '—'}</span>
+              </div>
+              {/* Looking For Tags */}
+              {formData.looking_for.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.2rem', marginBottom: '0.4rem' }}>
+                  {formData.looking_for.map((tag) => (
+                    <span key={tag} style={{
+                      padding: '0.08rem 0.35rem',
+                      backgroundColor: '#22d3ee08',
+                      border: '1px solid #22d3ee18',
+                      borderRadius: '4px',
+                      fontSize: '0.55rem',
+                      color: '#22d3ee',
+                    }}>
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {/* Bio */}
+              {formData.player_bio ? (
+                <p style={{ color: colors.textSecondary, fontSize: '0.7rem', margin: 0, lineHeight: 1.4, fontStyle: 'italic' }}>
+                  &ldquo;{formData.player_bio}&rdquo;
+                </p>
+              ) : (
+                <p style={{ color: colors.textMuted, fontSize: '0.65rem', margin: 0, fontStyle: 'italic' }}>
+                  No bio yet — add one above
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Action Buttons */}
         <div style={{
           display: 'flex',
           gap: '0.75rem',
           marginTop: '1.25rem',
-          justifyContent: 'flex-end',
+          justifyContent: 'space-between',
+          alignItems: 'center',
           paddingBottom: isMobile ? 'max(0.5rem, env(safe-area-inset-bottom))' : 0,
         }}>
-          <button
-            onClick={onClose}
-            style={{
-              padding: '0.6rem 1.25rem',
-              backgroundColor: 'transparent',
-              border: '1px solid #2a2a2a',
-              borderRadius: '8px',
-              color: '#9ca3af',
-              fontSize: '0.85rem',
-              cursor: 'pointer',
-              minHeight: '44px',
-            }}
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={saving}
-            style={{
-              padding: '0.6rem 1.25rem',
-              backgroundColor: saving ? '#22d3ee50' : '#22d3ee',
-              border: 'none',
-              borderRadius: '8px',
-              color: '#000',
-              fontSize: '0.85rem',
-              fontWeight: '600',
-              cursor: saving ? 'not-allowed' : 'pointer',
-              minHeight: '44px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '0.4rem',
-            }}
-          >
-            {saving ? 'Saving...' : existingProfile ? 'Update Profile' : 'Create Profile'}
-          </button>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button
+              type="button"
+              onClick={() => { setShowPreview(!showPreview); trackFeature('Transfer Profile Preview Toggle', { visible: !showPreview }); }}
+              style={{
+                padding: '0.5rem 0.75rem',
+                backgroundColor: showPreview ? '#22d3ee10' : 'transparent',
+                border: `1px solid ${showPreview ? '#22d3ee40' : '#2a2a2a'}`,
+                borderRadius: '8px',
+                color: showPreview ? '#22d3ee' : '#6b7280',
+                fontSize: '0.75rem',
+                cursor: 'pointer',
+                minHeight: '44px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.3rem',
+              }}
+            >
+              👁️ {showPreview ? 'Hide' : 'Preview'}
+            </button>
+            {existingProfile && (
+              <button
+                type="button"
+                onClick={() => { handleShareProfile(); trackFeature('Transfer Profile Share Clicked'); }}
+                style={{
+                  padding: '0.5rem 0.75rem',
+                  backgroundColor: 'transparent',
+                  border: '1px solid #2a2a2a',
+                  borderRadius: '8px',
+                  color: '#6b7280',
+                  fontSize: '0.75rem',
+                  cursor: 'pointer',
+                  minHeight: '44px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.3rem',
+                }}
+              >
+                🔗 Share
+              </button>
+            )}
+          </div>
+          <div style={{ display: 'flex', gap: '0.75rem' }}>
+            <button
+              onClick={onClose}
+              style={{
+                padding: '0.6rem 1.25rem',
+                backgroundColor: 'transparent',
+                border: '1px solid #2a2a2a',
+                borderRadius: '8px',
+                color: '#9ca3af',
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                minHeight: '44px',
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={saving}
+              style={{
+                padding: '0.6rem 1.25rem',
+                backgroundColor: saving ? '#22d3ee50' : '#22d3ee',
+                border: 'none',
+                borderRadius: '8px',
+                color: '#000',
+                fontSize: '0.85rem',
+                fontWeight: '600',
+                cursor: saving ? 'not-allowed' : 'pointer',
+                minHeight: '44px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.4rem',
+              }}
+            >
+              {saving ? 'Saving...' : existingProfile ? 'Update Profile' : 'Create Profile'}
+            </button>
+          </div>
         </div>
       </div>
     </div>

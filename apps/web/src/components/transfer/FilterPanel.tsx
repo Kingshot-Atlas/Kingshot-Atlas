@@ -1,0 +1,281 @@
+import React, { useState } from 'react';
+import { useIsMobile } from '../../hooks/useMediaQuery';
+import { colors } from '../../utils/styles';
+import { BoardMode } from '../KingdomListingCard';
+
+export interface FilterState {
+  tier: string;
+  language: string;
+  minScore: string;
+  maxScore: string;
+  isRecruiting: boolean;
+  tag: string;
+  minMatchScore: string;
+  sortBy: string;
+}
+
+export const defaultFilters: FilterState = {
+  tier: 'all',
+  language: 'all',
+  minScore: '',
+  maxScore: '',
+  isRecruiting: false,
+  tag: 'all',
+  minMatchScore: '',
+  sortBy: 'tier',
+};
+
+const LANGUAGE_OPTIONS = [
+  'English', 'Mandarin Chinese', 'Hindi', 'Spanish', 'French', 'Arabic', 'Bengali',
+  'Portuguese', 'Russian', 'Japanese', 'German', 'Korean', 'Turkish', 'Vietnamese',
+  'Italian', 'Thai', 'Polish', 'Indonesian', 'Dutch', 'Tagalog', 'Other',
+];
+
+const RECRUITMENT_TAG_OPTIONS = [
+  'Active KvK', 'Casual Friendly', 'Competitive',
+  'Growing Kingdom', 'Established Kingdom',
+  'Active Alliances', 'Social Community', 'War Focused', 'Farm Friendly',
+  'KvK Focused', 'Event Active', 'Beginner Friendly',
+];
+
+const FilterPanel: React.FC<{
+  filters: FilterState;
+  onChange: (filters: FilterState) => void;
+  mode: BoardMode;
+  searchQuery?: string;
+  onSearchChange?: (query: string) => void;
+}> = ({ filters, onChange, mode, searchQuery = '', onSearchChange }) => {
+  const isMobile = useIsMobile();
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const update = (key: keyof FilterState, value: string | boolean) => {
+    onChange({ ...filters, [key]: value });
+  };
+
+  const selectStyle: React.CSSProperties = {
+    padding: '0.5rem 0.75rem',
+    backgroundColor: colors.bg,
+    border: `1px solid ${colors.border}`,
+    borderRadius: '8px',
+    color: colors.text,
+    fontSize: isMobile ? '1rem' : '0.8rem',
+    minHeight: '44px',
+    cursor: 'pointer',
+    width: '100%',
+  };
+
+  const activeFilterCount = Object.entries(filters).filter(([key, val]) => {
+    if (key === 'sortBy') return false;
+    if (typeof val === 'boolean') return val;
+    return val !== '' && val !== 'all';
+  }).length;
+
+  return (
+    <div style={{
+      backgroundColor: colors.surface,
+      border: `1px solid ${colors.border}`,
+      borderRadius: '12px',
+      padding: '1rem',
+    }}>
+      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+        {/* Search Input */}
+        {onSearchChange && (
+          <div style={{ flex: 1, position: 'relative' }}>
+            <svg
+              width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2"
+              style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="M21 21l-4.35-4.35" />
+            </svg>
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder="Search kingdom #..."
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value.replace(/[^0-9]/g, ''))}
+              style={{
+                width: '100%',
+                padding: '0.5rem 0.75rem 0.5rem 2.25rem',
+                backgroundColor: colors.bg,
+                border: `1px solid ${colors.border}`,
+                borderRadius: '8px',
+                color: colors.text,
+                fontSize: isMobile ? '1rem' : '0.8rem',
+                minHeight: '44px',
+                outline: 'none',
+              }}
+            />
+            {searchQuery && (
+              <button
+                onClick={() => onSearchChange('')}
+                style={{
+                  position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)',
+                  background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer',
+                  padding: '0.25rem', fontSize: '1rem', lineHeight: 1,
+                }}
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        )}
+        {/* Filters Toggle */}
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            background: 'none',
+            border: `1px solid ${colors.border}`,
+            borderRadius: '8px',
+            color: colors.text,
+            cursor: 'pointer',
+            padding: '0 0.75rem',
+            fontSize: '0.85rem',
+            fontWeight: '500',
+            minHeight: '44px',
+            whiteSpace: 'nowrap',
+            flexShrink: 0,
+          }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+          </svg>
+          Filters
+          {activeFilterCount > 0 && (
+            <span style={{
+              backgroundColor: colors.primary,
+              color: '#000',
+              borderRadius: '10px',
+              padding: '0.1rem 0.5rem',
+              fontSize: '0.7rem',
+              fontWeight: 'bold',
+            }}>
+              {activeFilterCount}
+            </span>
+          )}
+          <svg
+            width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+            style={{ transform: isExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
+          >
+            <path d="M6 9l6 6 6-6"/>
+          </svg>
+        </button>
+      </div>
+
+      {isExpanded && (
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+          gap: '0.75rem',
+          marginTop: '1rem',
+          paddingTop: '1rem',
+          borderTop: `1px solid ${colors.border}`,
+        }}>
+          <div>
+            <label style={{ color: colors.textSecondary, fontSize: '0.7rem', marginBottom: '0.25rem', display: 'block' }}>Fund Tier</label>
+            <select value={filters.tier} onChange={(e) => update('tier', e.target.value)} style={selectStyle}>
+              <option value="all">All Tiers</option>
+              <option value="gold">Gold</option>
+              <option value="silver">Silver</option>
+              <option value="bronze">Bronze</option>
+              <option value="standard">Standard</option>
+            </select>
+          </div>
+          <div>
+            <label style={{ color: colors.textSecondary, fontSize: '0.7rem', marginBottom: '0.25rem', display: 'block' }}>Language</label>
+            <select value={filters.language} onChange={(e) => update('language', e.target.value)} style={selectStyle}>
+              <option value="all">All Languages</option>
+              {LANGUAGE_OPTIONS.map((lang) => (
+                <option key={lang} value={lang}>{lang}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label style={{ color: colors.textSecondary, fontSize: '0.7rem', marginBottom: '0.25rem', display: 'block' }}>Sort By</label>
+            <select value={filters.sortBy} onChange={(e) => update('sortBy', e.target.value)} style={selectStyle}>
+              <option value="tier">Fund Tier (High → Low)</option>
+              <option value="score">Atlas Score (High → Low)</option>
+              <option value="rank">Rank (Best → Worst)</option>
+              <option value="match">Match Score (Best → Worst)</option>
+            </select>
+          </div>
+          <div>
+            <label style={{ color: colors.textSecondary, fontSize: '0.7rem', marginBottom: '0.25rem', display: 'block' }}>Recruitment Tag</label>
+            <select value={filters.tag} onChange={(e) => update('tag', e.target.value)} style={selectStyle}>
+              <option value="all">All Tags</option>
+              {RECRUITMENT_TAG_OPTIONS.map((tag) => (
+                <option key={tag} value={tag}>{tag}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label style={{ color: colors.textSecondary, fontSize: '0.7rem', marginBottom: '0.25rem', display: 'block' }}>Min Atlas Score</label>
+            <input
+              type="number"
+              step="0.1"
+              min="0"
+              max="100"
+              value={filters.minScore}
+              onChange={(e) => update('minScore', e.target.value)}
+              placeholder="0.0"
+              style={{ ...selectStyle, width: '100%' }}
+            />
+          </div>
+          {mode === 'transferring' && (
+            <div>
+              <label style={{ color: colors.textSecondary, fontSize: '0.7rem', marginBottom: '0.25rem', display: 'block' }}>Min Match Score</label>
+              <input
+                type="number"
+                step="5"
+                min="0"
+                max="100"
+                value={filters.minMatchScore}
+                onChange={(e) => update('minMatchScore', e.target.value)}
+                placeholder="0%"
+                style={{ ...selectStyle, width: '100%' }}
+              />
+            </div>
+          )}
+          <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+            <label style={{
+              display: 'flex', alignItems: 'center', gap: '0.5rem',
+              color: colors.textSecondary, fontSize: '0.8rem', cursor: 'pointer', minHeight: '44px',
+            }}>
+              <input
+                type="checkbox"
+                checked={filters.isRecruiting}
+                onChange={(e) => update('isRecruiting', e.target.checked)}
+                style={{ width: '18px', height: '18px', accentColor: colors.primary }}
+              />
+              Actively Recruiting Only
+            </label>
+          </div>
+          {activeFilterCount > 0 && (
+            <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+              <button
+                onClick={() => onChange(defaultFilters)}
+                style={{
+                  padding: '0.5rem 1rem',
+                  backgroundColor: 'transparent',
+                  border: `1px solid ${colors.error}40`,
+                  borderRadius: '8px',
+                  color: colors.error,
+                  fontSize: '0.8rem',
+                  cursor: 'pointer',
+                  minHeight: '44px',
+                }}
+              >
+                Clear Filters
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default FilterPanel;

@@ -11,6 +11,9 @@ import NotificationPreferences from '../components/NotificationPreferences';
 import PlayersFromMyKingdom from '../components/PlayersFromMyKingdom';
 import ReferralStats from '../components/ReferralStats';
 import ReferralBadge from '../components/ReferralBadge';
+import ProfileCompletionProgress from '../components/ProfileCompletionProgress';
+import TransferReadinessScore from '../components/TransferReadinessScore';
+import KingdomLeaderboardPosition from '../components/KingdomLeaderboardPosition';
 import { ReferralTier, REFERRAL_TIER_COLORS } from '../utils/constants';
 import { useAuth, getCacheBustedAvatarUrl, UserProfile, getDisplayName } from '../contexts/AuthContext';
 import { usePremium } from '../contexts/PremiumContext';
@@ -22,7 +25,6 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { neonGlow } from '../utils/styles';
 import { isRandomUsername } from '../utils/randomUsername';
-import { useAnalytics } from '../hooks/useAnalytics';
 
 // Convert TC level to display string (TC 31+ becomes TG tiers)
 // Source of truth: /docs/TC_TG_NAMING.md
@@ -181,7 +183,6 @@ const LANGUAGES = [
 const REGIONS = ['Americas', 'Europe', 'Asia', 'Oceania'];
 
 interface EditForm {
-  display_name: string;
   alliance_tag: string;
   language: string;
   region: string;
@@ -189,378 +190,6 @@ interface EditForm {
   show_coordinates: boolean;
   coordinates: string;
 }
-
-const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
-
-interface KingdomData {
-  id: number;
-  atlas_score: number;
-  rank: number;
-  total_wins: number;
-  total_losses: number;
-  kvk_count: number;
-}
-
-const KingdomLeaderboardPosition: React.FC<{
-  kingdomId: number | null;
-  themeColor: string;
-  isMobile: boolean;
-}> = ({ kingdomId, themeColor, isMobile }) => {
-  const [kingdom, setKingdom] = useState<KingdomData | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (!kingdomId) {
-      setKingdom(null);
-      return;
-    }
-    
-    setLoading(true);
-    fetch(`${API_BASE}/api/v1/kingdoms/${kingdomId}`)
-      .then(res => res.ok ? res.json() : null)
-      .then(data => {
-        if (data) {
-          setKingdom({
-            id: data.id ?? data.kingdom_number ?? kingdomId,
-            atlas_score: data.atlas_score ?? data.overall_score ?? 0,
-            rank: data.rank ?? 0,
-            total_wins: data.total_wins ?? (data.prep_wins ?? 0) + (data.battle_wins ?? 0),
-            total_losses: data.total_losses ?? (data.prep_losses ?? 0) + (data.battle_losses ?? 0),
-            kvk_count: data.kvk_count ?? data.total_kvks ?? 0,
-          });
-        }
-      })
-      .catch(() => setKingdom(null))
-      .finally(() => setLoading(false));
-  }, [kingdomId]);
-
-  if (!kingdomId) return null;
-  if (loading) return (
-    <div style={{
-      backgroundColor: '#111111',
-      borderRadius: '12px',
-      padding: '1rem',
-      marginBottom: '1.5rem',
-      border: '1px solid #2a2a2a',
-    }}>
-      <div style={{ color: '#6b7280', fontSize: '0.85rem' }}>Loading kingdom data...</div>
-    </div>
-  );
-  if (!kingdom) return null;
-
-  return (
-    <Link to={`/kingdom/${kingdom.id}`} style={{ textDecoration: 'none', display: 'block' }}>
-      <div style={{
-        backgroundColor: '#111111',
-        borderRadius: '12px',
-        padding: isMobile ? '1rem' : '1.25rem',
-        marginBottom: '1.5rem',
-        border: `1px solid ${themeColor}30`,
-        cursor: 'pointer',
-        transition: 'border-color 0.2s',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-          <span style={{ fontSize: '1.1rem' }}>🏆</span>
-          <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: '600', color: '#fff' }}>
-            User&apos;s Kingdom Rankings
-          </h3>
-        </div>
-        
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
-          gap: '0.75rem',
-        }}>
-          <div style={{ padding: '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <div style={{ fontSize: '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Kingdom</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: '700', color: '#fff' }}>{kingdom.id}</div>
-          </div>
-          <div style={{ padding: '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <div style={{ fontSize: '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Atlas Score</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: '700', ...neonGlow(themeColor) }}>{kingdom.atlas_score.toFixed(2)}</div>
-          </div>
-          <div style={{ padding: '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <div style={{ fontSize: '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Rank</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: '700', ...neonGlow(themeColor) }}>#{kingdom.rank}</div>
-          </div>
-          <div style={{ padding: '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <div style={{ fontSize: '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Experience</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: '700', color: '#fff' }}>{kingdom.kvk_count} KvKs</div>
-          </div>
-        </div>
-      </div>
-    </Link>
-  );
-};
-
-// Profile Completion Progress Component
-const ProfileCompletionProgress: React.FC<{
-  profile: UserProfile | null;
-  isMobile: boolean;
-  onScrollToLink: () => void;
-}> = ({ profile, isMobile, onScrollToLink }) => {
-  if (!profile) return null;
-  
-  // Calculate completion items
-  const items = [
-    { label: 'Link Kingshot Account', done: !!profile.linked_username, action: onScrollToLink },
-    { label: 'Set Language', done: !!profile.language },
-    { label: 'Set Region', done: !!profile.region },
-    { label: 'Add Alliance Tag', done: !!profile.alliance_tag },
-    { label: 'Write Bio', done: !!profile.bio },
-  ];
-  
-  const completedCount = items.filter(i => i.done).length;
-  const totalCount = items.length;
-  const percentage = Math.round((completedCount / totalCount) * 100);
-  
-  // Don't show if 100% complete
-  if (percentage === 100) return null;
-  
-  return (
-    <div style={{
-      backgroundColor: '#111111',
-      borderRadius: '12px',
-      padding: isMobile ? '1rem' : '1.25rem',
-      marginBottom: '1.5rem',
-      border: '1px solid #2a2a2a',
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0.75rem', gap: '0.5rem' }}>
-        <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: '600', color: '#fff' }}>
-          Profile Completion
-        </h3>
-        <span style={{ 
-          fontSize: '0.85rem', 
-          fontWeight: 'bold', 
-          color: percentage >= 80 ? '#22c55e' : percentage >= 50 ? '#fbbf24' : '#22d3ee' 
-        }}>
-          {percentage}%
-        </span>
-      </div>
-      
-      {/* Progress bar */}
-      <div style={{
-        width: '100%',
-        height: '8px',
-        backgroundColor: '#1a1a1a',
-        borderRadius: '4px',
-        overflow: 'hidden',
-        marginBottom: '1rem'
-      }}>
-        <div style={{
-          width: `${percentage}%`,
-          height: '100%',
-          backgroundColor: percentage >= 80 ? '#22c55e' : percentage >= 50 ? '#fbbf24' : '#22d3ee',
-          borderRadius: '4px',
-          transition: 'width 0.3s ease'
-        }} />
-      </div>
-      
-      {/* Checklist */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-        {items.map((item, idx) => (
-          <div 
-            key={idx}
-            onClick={item.action}
-            style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '0.5rem',
-              padding: '0.5rem 0.25rem',
-              minHeight: '44px',
-              cursor: item.action ? 'pointer' : 'default',
-              opacity: item.done ? 0.6 : 1,
-              borderRadius: '6px',
-              transition: 'background-color 0.15s'
-            }}
-            onMouseEnter={(e) => item.action && (e.currentTarget.style.backgroundColor = '#ffffff08')}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-          >
-            <span style={{ 
-              width: '18px', 
-              height: '18px', 
-              borderRadius: '50%', 
-              border: item.done ? 'none' : '2px solid #3a3a3a',
-              backgroundColor: item.done ? '#22c55e' : 'transparent',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '0.7rem',
-              color: '#fff',
-              flexShrink: 0
-            }}>
-              {item.done && '✓'}
-            </span>
-            <span style={{ 
-              fontSize: '0.8rem', 
-              color: item.done ? '#6b7280' : '#fff',
-              textDecoration: item.done ? 'line-through' : 'none'
-            }}>
-              {item.label}
-            </span>
-            {!item.done && item.action && (
-              <span style={{ fontSize: '0.7rem', color: '#22d3ee', marginLeft: 'auto' }}>→</span>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-// Transfer Readiness Score Component
-const TransferReadinessScore: React.FC<{
-  userId: string;
-  hasLinkedAccount: boolean;
-  isMobile: boolean;
-}> = ({ userId, hasLinkedAccount, isMobile }) => {
-  const { trackFeature } = useAnalytics();
-  const [transferProfile, setTransferProfile] = useState<Record<string, unknown> | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchProfile = async () => {
-      if (!supabase || !userId) { setLoading(false); return; }
-      const { data } = await supabase
-        .from('transfer_profiles')
-        .select('power_million, tc_level, main_language, secondary_languages, looking_for, kvk_availability, saving_for_kvk, group_size, player_bio, play_schedule, contact_method, contact_discord, contact_coordinates, visible_to_recruiters')
-        .eq('user_id', userId)
-        .eq('is_active', true)
-        .single();
-      setTransferProfile(data);
-      setLoading(false);
-    };
-    fetchProfile();
-  }, [userId]);
-
-  if (loading) return null;
-
-  // No transfer profile yet — show CTA
-  if (!transferProfile) {
-    if (!hasLinkedAccount) return null;
-    return (
-      <div style={{
-        backgroundColor: '#111111',
-        borderRadius: '12px',
-        padding: isMobile ? '1rem' : '1.25rem',
-        marginBottom: '1.5rem',
-        border: '1px solid #22d3ee20',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-          <span style={{ fontSize: '1rem' }}>🚀</span>
-          <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: '600', color: '#fff' }}>
-            Transfer Readiness
-          </h3>
-          <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: '400' }}>0%</span>
-        </div>
-        <p style={{ color: '#9ca3af', fontSize: '0.8rem', margin: '0 0 0.75rem 0', lineHeight: 1.5 }}>
-          Create a Transfer Profile to get matched with kingdoms and apply directly from the Transfer Hub.
-        </p>
-        <a
-          href="/transfer-hub"
-          onClick={() => trackFeature('Transfer Readiness CTA', { action: 'create' })}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.35rem',
-            padding: '0.5rem 1rem',
-            backgroundColor: '#22d3ee10',
-            border: '1px solid #22d3ee30',
-            borderRadius: '8px',
-            color: '#22d3ee',
-            fontSize: '0.8rem',
-            fontWeight: '600',
-            textDecoration: 'none',
-            minHeight: '44px',
-          }}
-        >
-          Create Transfer Profile →
-        </a>
-      </div>
-    );
-  }
-
-  // Calculate readiness
-  const tp = transferProfile;
-  const checks = [
-    { label: 'Power set', done: !!(tp.power_million && (tp.power_million as number) > 0) },
-    { label: 'Language set', done: !!tp.main_language },
-    { label: 'KvK availability', done: !!tp.kvk_availability },
-    { label: 'Saving preference', done: !!tp.saving_for_kvk },
-    { label: 'Looking for tags', done: Array.isArray(tp.looking_for) && (tp.looking_for as string[]).length > 0 },
-    { label: 'Group size', done: !!tp.group_size },
-    { label: 'Player bio', done: !!(tp.player_bio && (tp.player_bio as string).trim()) },
-    { label: 'Play schedule', done: Array.isArray(tp.play_schedule) && (tp.play_schedule as unknown[]).length > 0 },
-    { label: 'Contact method', done: !!tp.contact_method },
-    { label: 'Visible to recruiters', done: !!tp.visible_to_recruiters },
-  ];
-
-  const doneCount = checks.filter(c => c.done).length;
-  const pct = Math.round((doneCount / checks.length) * 100);
-
-  // Don't show if 100%
-  if (pct === 100) return null;
-
-  const barColor = pct >= 80 ? '#22c55e' : pct >= 50 ? '#fbbf24' : '#22d3ee';
-
-  return (
-    <div style={{
-      backgroundColor: '#111111',
-      borderRadius: '12px',
-      padding: isMobile ? '1rem' : '1.25rem',
-      marginBottom: '1.5rem',
-      border: '1px solid #2a2a2a',
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span style={{ fontSize: '1rem' }}>🚀</span>
-          <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: '600', color: '#fff' }}>
-            Transfer Readiness
-          </h3>
-        </div>
-        <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: barColor }}>{pct}%</span>
-      </div>
-
-      {/* Progress bar */}
-      <div style={{
-        width: '100%', height: '8px',
-        backgroundColor: '#1a1a1a', borderRadius: '4px',
-        overflow: 'hidden', marginBottom: '0.75rem',
-      }}>
-        <div style={{
-          width: `${pct}%`, height: '100%',
-          backgroundColor: barColor, borderRadius: '4px',
-          transition: 'width 0.3s ease',
-        }} />
-      </div>
-
-      {/* Incomplete items only */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-        {checks.filter(c => !c.done).map((item, idx) => (
-          <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.3rem 0' }}>
-            <span style={{
-              width: '16px', height: '16px', borderRadius: '50%',
-              border: '2px solid #3a3a3a', flexShrink: 0,
-            }} />
-            <span style={{ fontSize: '0.78rem', color: '#fff' }}>{item.label}</span>
-          </div>
-        ))}
-      </div>
-
-      <a
-        href="/transfer-hub"
-        onClick={() => trackFeature('Transfer Readiness CTA', { action: 'edit', pct })}
-        style={{
-          display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
-          marginTop: '0.75rem', fontSize: '0.75rem', color: '#22d3ee',
-          textDecoration: 'none',
-        }}
-      >
-        Edit Transfer Profile →
-      </a>
-    </div>
-  );
-};
 
 // Get auth provider from user metadata
 const getAuthProvider = (user: { app_metadata?: { provider?: string; providers?: string[] } } | null): 'discord' | 'google' | 'email' | null => {
@@ -588,7 +217,6 @@ const Profile: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [hasShownWelcome, setHasShownWelcome] = useState(false);
   const [editForm, setEditForm] = useState<EditForm>({
-    display_name: '',
     alliance_tag: '',
     language: '',
     region: '',
@@ -635,6 +263,7 @@ const Profile: React.FC = () => {
   useEffect(() => {
     if (userId) {
       // Viewing another user's profile
+      setIsEditing(false); // Reset edit mode on navigation
       setViewedProfile(null); // Reset while loading
       const loadOtherProfile = async () => {
         // Try to fetch from Supabase first
@@ -675,58 +304,6 @@ const Profile: React.FC = () => {
           }
         }
 
-        // Fallback to demo users
-        const demoUsers = [
-          {
-            id: 'demo1',
-            username: 'DragonSlayer',
-            email: 'demo1@example.com',
-            avatar_url: '',
-            home_kingdom: 42,
-            alliance_tag: 'DRG',
-            language: 'English',
-            region: 'Americas',
-            bio: 'Leading kingdoms to victory since KvK #1',
-            theme_color: '#ef4444',
-            badge_style: 'glow',
-            created_at: new Date().toISOString()
-          },
-          {
-            id: 'demo2',
-            username: 'PhoenixRising',
-            email: 'demo2@example.com',
-            avatar_url: '',
-            home_kingdom: 17,
-            alliance_tag: 'PHX',
-            language: 'Spanish',
-            region: 'Europe',
-            bio: 'From ashes we rise. Building the strongest alliances.',
-            theme_color: '#f97316',
-            badge_style: 'gradient',
-            created_at: new Date().toISOString()
-          },
-          {
-            id: 'demo3',
-            username: 'ShadowHunter',
-            email: 'demo3@example.com',
-            avatar_url: '',
-            home_kingdom: 88,
-            alliance_tag: 'SHD',
-            language: 'English',
-            region: 'Asia',
-            bio: 'Master strategist. Victory through superior tactics.',
-            theme_color: '#8b5cf6',
-            badge_style: 'outline',
-            created_at: new Date().toISOString()
-          }
-        ];
-        
-        const demoUser = demoUsers.find(u => u.id === userId);
-        if (demoUser) {
-          setViewedProfile(demoUser);
-          setIsViewingOther(true);
-          return;
-        }
       };
       
       loadOtherProfile();
@@ -744,7 +321,6 @@ const Profile: React.FC = () => {
     if (viewedProfile && !isViewingOther) {
       const coords = viewedProfile.coordinates || '';
       setEditForm({
-        display_name: viewedProfile.display_name || '',
         alliance_tag: viewedProfile.alliance_tag || '',
         language: viewedProfile.language || '',
         region: viewedProfile.region || '',
@@ -1021,20 +597,19 @@ const Profile: React.FC = () => {
         }}>
           {isEditing && !isViewingOther ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              {/* Alliance Tag */}
-              <div>
-                <label style={{ color: '#9ca3af', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>Alliance Tag (3 chars)</label>
-                <input
-                  type="text"
-                  value={editForm.alliance_tag}
-                  onChange={(e) => handleAllianceTagChange(e.target.value)}
-                  placeholder="e.g. TWS"
-                  maxLength={3}
-                  style={{ ...inputStyle, textTransform: 'uppercase', letterSpacing: '0.1em', maxWidth: '150px' }}
-                />
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '0.75rem' : '1rem' }}>
+              {/* Alliance Tag, Language, Region — 3-column row */}
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: isMobile ? '0.75rem' : '1rem' }}>
+                <div>
+                  <label style={{ color: '#9ca3af', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>Alliance Tag (3 chars)</label>
+                  <input
+                    type="text"
+                    value={editForm.alliance_tag}
+                    onChange={(e) => handleAllianceTagChange(e.target.value)}
+                    placeholder="e.g. TWS"
+                    maxLength={3}
+                    style={{ ...inputStyle, textTransform: 'uppercase', letterSpacing: '0.1em' }}
+                  />
+                </div>
                 <div>
                   <label style={{ color: '#9ca3af', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>Main Language</label>
                   <select
@@ -1063,6 +638,7 @@ const Profile: React.FC = () => {
                 </div>
               </div>
 
+              {/* Bio */}
               <div>
                 <label style={{ color: '#9ca3af', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>Bio</label>
                 <textarea
@@ -1184,7 +760,7 @@ const Profile: React.FC = () => {
               {/* Notification Preferences - inside edit mode */}
               <NotificationPreferences />
 
-              <div style={{ display: 'flex', gap: '1rem' }}>
+              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
                 <button
                   onClick={handleSave}
                   style={{
@@ -1194,7 +770,8 @@ const Profile: React.FC = () => {
                     borderRadius: '8px',
                     color: '#000',
                     fontWeight: 'bold',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    minHeight: '48px',
                   }}
                 >
                   Save Profile
@@ -1207,7 +784,8 @@ const Profile: React.FC = () => {
                     border: '1px solid #3a3a3a',
                     borderRadius: '8px',
                     color: '#9ca3af',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    minHeight: '48px',
                   }}
                 >
                   Cancel
@@ -1603,6 +1181,8 @@ const Profile: React.FC = () => {
           </div>
         )}
 
+        {/* Hide all sections below when editing */}
+        {!isEditing && (<>
         {/* Bio Section - separate from profile card */}
         {viewedProfile?.bio && (
           <div style={{
@@ -1856,14 +1436,14 @@ const Profile: React.FC = () => {
                         const { syncSubscription } = await import('../lib/stripe');
                         const result = await syncSubscription(user.id);
                         if (result.synced && result.tier !== 'free') {
-                          alert(`✅ ${result.message}`);
+                          showToast(result.message || 'Subscription synced!', 'success');
                           window.location.reload();
                         } else {
-                          alert(result.message || 'No active subscription found.');
+                          showToast(result.message || 'No active subscription found.', 'info');
                         }
                       } catch (error) {
                         console.error('Sync error:', error);
-                        alert('Unable to sync subscription. Please email support@ks-atlas.com');
+                        showToast('Unable to sync subscription. Please email support@ks-atlas.com', 'error');
                       } finally {
                         setManagingSubscription(false);
                       }
@@ -1894,40 +1474,46 @@ const Profile: React.FC = () => {
           <ReferralStats />
         )}
 
-        {/* 6. User Achievements */}
-        <div style={{ marginBottom: '2rem' }}>
-          <UserAchievements />
-        </div>
+        {/* 6. User Achievements - only show for own profile (uses current user's stats) */}
+        {!isViewingOther && (
+          <div style={{ marginBottom: '1.5rem' }}>
+            <UserAchievements />
+          </div>
+        )}
 
         {/* 7. My Contributions - only for logged in users viewing their own profile */}
         {!isViewingOther && user && (
-          <div style={{ marginBottom: '2rem' }}>
+          <div style={{ marginBottom: '1.5rem' }}>
             <SubmissionHistory userId={user.id} themeColor={themeColor} />
           </div>
         )}
 
         {/* 8. Favorites - only show for own profile */}
         {!isViewingOther && (
-          <div>
+          <div style={{ marginBottom: '1.5rem' }}>
             <ProfileFeatures />
           </div>
         )}
 
         {/* Transfer Readiness Score - only show for own profile */}
         {!isViewingOther && user && (
-          <TransferReadinessScore
-            userId={user.id}
-            hasLinkedAccount={!!viewedProfile?.linked_username}
-            isMobile={isMobile}
-          />
+          <div style={{ marginBottom: '1.5rem' }}>
+            <TransferReadinessScore
+              userId={user.id}
+              hasLinkedAccount={!!viewedProfile?.linked_username}
+              isMobile={isMobile}
+            />
+          </div>
         )}
 
         {/* User's Kingdom Rankings - show if user has a linked kingdom or home kingdom */}
-        <KingdomLeaderboardPosition 
-          kingdomId={viewedProfile?.linked_kingdom || viewedProfile?.home_kingdom || null}
-          themeColor={themeColor}
-          isMobile={isMobile}
-        />
+        <div style={{ marginBottom: '1.5rem' }}>
+          <KingdomLeaderboardPosition 
+            kingdomId={viewedProfile?.linked_kingdom || viewedProfile?.home_kingdom || null}
+            themeColor={themeColor}
+            isMobile={isMobile}
+          />
+        </div>
 
         {/* Players from My Kingdom - only show for own profile */}
         {!isViewingOther && (
@@ -1937,6 +1523,7 @@ const Profile: React.FC = () => {
         <div style={{ textAlign: 'center', marginTop: '2rem', paddingBottom: '1rem' }}>
           <Link to="/" style={{ color: themeColor, textDecoration: 'none', fontSize: '0.8rem' }}>← Back to Home</Link>
         </div>
+        </>)}
         </div>
       </div>
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />

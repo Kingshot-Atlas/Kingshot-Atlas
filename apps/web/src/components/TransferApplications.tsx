@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useIsMobile } from '../hooks/useMediaQuery';
+import { useAnalytics } from '../hooks/useAnalytics';
 import { supabase } from '../lib/supabase';
 import { neonGlow, FONT_DISPLAY, colors } from '../utils/styles';
 
@@ -50,8 +51,10 @@ const ApplyModal: React.FC<{
 }> = ({ kingdomNumber, onClose, onApplied, activeCount, hasProfile }) => {
   const { user, profile } = useAuth();
   const isMobile = useIsMobile();
+  const { trackFeature } = useAnalytics();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [applicantNote, setApplicantNote] = useState('');
 
   const isOwnKingdom = profile?.linked_kingdom === kingdomNumber;
   const slotsRemaining = MAX_ACTIVE_APPLICATIONS - activeCount;
@@ -87,6 +90,21 @@ const ApplyModal: React.FC<{
         return;
       }
 
+      // Check per-kingdom cooldown (24h after withdraw)
+      const { data: recentWithdraw } = await supabase
+        .from('transfer_applications')
+        .select('id')
+        .eq('applicant_user_id', user.id)
+        .eq('kingdom_number', kingdomNumber)
+        .eq('status', 'withdrawn')
+        .gte('applied_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+        .limit(1);
+
+      if (recentWithdraw && recentWithdraw.length > 0) {
+        setError('You recently withdrew an application to this kingdom. Please wait 24 hours before re-applying.');
+        return;
+      }
+
       // Submit application (DB trigger enforces 3-slot limit)
       const { error: insertError } = await supabase
         .from('transfer_applications')
@@ -94,6 +112,7 @@ const ApplyModal: React.FC<{
           transfer_profile_id: profile.id,
           applicant_user_id: user.id,
           kingdom_number: kingdomNumber,
+          applicant_note: applicantNote.trim() || null,
         });
 
       if (insertError) {
@@ -126,6 +145,7 @@ const ApplyModal: React.FC<{
 
       // Record cooldown timestamp
       localStorage.setItem(COOLDOWN_KEY, String(Date.now()));
+      trackFeature('Transfer Funnel: Application Sent', { kingdom: kingdomNumber });
 
       onApplied();
     } catch (err: unknown) {
@@ -251,8 +271,36 @@ const ApplyModal: React.FC<{
             )}
 
             <p style={{ color: colors.textSecondary, fontSize: '0.8rem', margin: '0 0 0.75rem 0' }}>
-              Your transfer profile will be shared with Kingdom {kingdomNumber}'s recruiters. Applications expire after 14 days if not responded to.
+              Your transfer profile will be shared with Kingdom {kingdomNumber}'s recruiters. Applications expire after 72 hours if not responded to.
             </p>
+
+            <div style={{ marginBottom: '0.75rem' }}>
+              <label style={{ display: 'block', color: colors.textSecondary, fontSize: '0.75rem', marginBottom: '0.3rem', fontWeight: '500' }}>
+                Add a note to the recruiter <span style={{ color: '#6b7280', fontWeight: '400' }}>(optional, 300 chars)</span>
+              </label>
+              <textarea
+                value={applicantNote}
+                onChange={(e) => setApplicantNote(e.target.value.slice(0, 300))}
+                placeholder="Why are you interested in this kingdom? What do you bring?"
+                rows={3}
+                style={{
+                  width: '100%',
+                  padding: '0.6rem 0.75rem',
+                  backgroundColor: colors.bg,
+                  border: `1px solid ${colors.border}`,
+                  borderRadius: '8px',
+                  color: colors.text,
+                  fontSize: '0.8rem',
+                  resize: 'vertical',
+                  fontFamily: 'inherit',
+                  outline: 'none',
+                  boxSizing: 'border-box',
+                }}
+              />
+              <div style={{ textAlign: 'right', fontSize: '0.6rem', color: applicantNote.length > 280 ? '#f59e0b' : '#4b5563', marginTop: '0.15rem' }}>
+                {applicantNote.length}/300
+              </div>
+            </div>
           </>
         )}
 
@@ -333,11 +381,45 @@ const MyApplicationsTracker: React.FC<{
   const [loading, setLoading] = useState(true);
   const [withdrawingId, setWithdrawingId] = useState<string | null>(null);
   const [respondingInviteId, setRespondingInviteId] = useState<string | null>(null);
+  const [recruiterContacts, setRecruiterContacts] = useState<Map<number, string[]>>(new Map());
 
   useEffect(() => {
     loadApplications();
     loadInvites();
   }, [user]);
+
+  // Fetch recruiter contacts for accepted applications
+  useEffect(() => {
+    const fetchRecruiterContacts = async () => {
+      if (!supabase) return;
+      const acceptedKingdoms = applications.filter(a => a.status === 'accepted').map(a => a.kingdom_number);
+      if (acceptedKingdoms.length === 0) return;
+      const uniqueKingdoms = [...new Set(acceptedKingdoms)];
+      const { data: editors } = await supabase
+        .from('kingdom_editors')
+        .select('kingdom_number, user_id')
+        .in('kingdom_number', uniqueKingdoms)
+        .eq('status', 'active');
+      if (!editors || editors.length === 0) return;
+      const editorUserIds = [...new Set(editors.map((e: { user_id: string }) => e.user_id))];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, discord_username, display_name, username')
+        .in('id', editorUserIds);
+      if (!profiles) return;
+      const profileMap = new Map(profiles.map((p: { id: string; discord_username: string | null; display_name: string | null; username: string | null }) => [p.id, p.discord_username || p.display_name || p.username || 'Unknown']));
+      const contactMap = new Map<number, string[]>();
+      editors.forEach((e: { kingdom_number: number; user_id: string }) => {
+        const name = profileMap.get(e.user_id);
+        if (!name) return;
+        const existing = contactMap.get(e.kingdom_number) || [];
+        if (!existing.includes(name)) existing.push(name);
+        contactMap.set(e.kingdom_number, existing);
+      });
+      setRecruiterContacts(contactMap);
+    };
+    fetchRecruiterContacts();
+  }, [applications]);
 
   const loadApplications = async () => {
     if (!supabase || !user) {
@@ -400,8 +482,11 @@ const MyApplicationsTracker: React.FC<{
     }
   };
 
+  const [confirmWithdrawId, setConfirmWithdrawId] = useState<string | null>(null);
+
   const handleWithdraw = async (applicationId: string) => {
     if (!supabase) return;
+    setConfirmWithdrawId(null);
     setWithdrawingId(applicationId);
     try {
       const { error } = await supabase
@@ -422,14 +507,21 @@ const MyApplicationsTracker: React.FC<{
     }
   };
 
-  const activeApplications = applications.filter((a) =>
-    ['pending', 'viewed', 'interested'].includes(a.status)
-  );
-  const pastApplications = applications.filter((a) =>
-    ['accepted', 'declined', 'withdrawn', 'expired'].includes(a.status)
-  );
-
   const now = Date.now();
+
+  // Client-side expiry: treat apps past expires_at as expired immediately
+  const appsWithClientExpiry = applications.map((a) => {
+    if (['pending', 'viewed', 'interested'].includes(a.status) && a.expires_at && new Date(a.expires_at).getTime() <= now) {
+      return { ...a, status: 'expired' as typeof a.status };
+    }
+    return a;
+  });
+  const activeApplications = appsWithClientExpiry.filter((a) =>
+    ['pending', 'viewed', 'interested', 'accepted'].includes(a.status)
+  );
+  const pastApplications = appsWithClientExpiry.filter((a) =>
+    ['declined', 'withdrawn', 'expired'].includes(a.status)
+  );
   const pendingInvites = invites.filter(inv => inv.status === 'pending' && new Date(inv.expires_at).getTime() > now);
   const pastInvites = invites.filter(inv => inv.status !== 'pending' || new Date(inv.expires_at).getTime() <= now);
 
@@ -694,27 +786,102 @@ const MyApplicationsTracker: React.FC<{
                     </span>
                   )}
                 </div>
-                <button
-                  onClick={() => handleWithdraw(app.id)}
-                  disabled={withdrawingId === app.id}
-                  style={{
-                    padding: '0.3rem 0.6rem',
-                    backgroundColor: 'transparent',
-                    border: '1px solid #ef444430',
-                    borderRadius: '6px',
-                    color: '#ef4444',
-                    fontSize: '0.7rem',
-                    cursor: withdrawingId === app.id ? 'not-allowed' : 'pointer',
-                    minHeight: '44px',
-                    opacity: withdrawingId === app.id ? 0.5 : 1,
-                    whiteSpace: 'nowrap',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  {withdrawingId === app.id ? 'Withdrawing...' : 'Withdraw'}
-                </button>
+                {app.status !== 'accepted' && (
+                  confirmWithdrawId === app.id ? (
+                    <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center' }}>
+                      <span style={{ color: '#ef4444', fontSize: '0.65rem', whiteSpace: 'nowrap' }}>Are you sure?</span>
+                      <button
+                        onClick={() => handleWithdraw(app.id)}
+                        disabled={withdrawingId === app.id}
+                        style={{
+                          padding: '0.25rem 0.5rem',
+                          backgroundColor: '#ef444415',
+                          border: '1px solid #ef444440',
+                          borderRadius: '6px',
+                          color: '#ef4444',
+                          fontSize: '0.65rem',
+                          cursor: 'pointer',
+                          minHeight: '36px',
+                          fontWeight: '600',
+                        }}
+                      >
+                        {withdrawingId === app.id ? '...' : 'Yes'}
+                      </button>
+                      <button
+                        onClick={() => setConfirmWithdrawId(null)}
+                        style={{
+                          padding: '0.25rem 0.5rem',
+                          backgroundColor: 'transparent',
+                          border: '1px solid #2a2a2a',
+                          borderRadius: '6px',
+                          color: '#6b7280',
+                          fontSize: '0.65rem',
+                          cursor: 'pointer',
+                          minHeight: '36px',
+                        }}
+                      >
+                        No
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setConfirmWithdrawId(app.id)}
+                      disabled={withdrawingId === app.id}
+                      style={{
+                        padding: '0.3rem 0.6rem',
+                        backgroundColor: 'transparent',
+                        border: '1px solid #ef444430',
+                        borderRadius: '6px',
+                        color: '#ef4444',
+                        fontSize: '0.7rem',
+                        cursor: withdrawingId === app.id ? 'not-allowed' : 'pointer',
+                        minHeight: '44px',
+                        opacity: withdrawingId === app.id ? 0.5 : 1,
+                        whiteSpace: 'nowrap',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      Withdraw
+                    </button>
+                  )
+                )}
+                {app.status === 'accepted' && (
+                  <div style={{
+                    width: '100%',
+                    marginTop: '0.4rem',
+                    padding: '0.5rem 0.75rem',
+                    backgroundColor: '#22c55e08',
+                    border: '1px solid #22c55e20',
+                    borderRadius: '8px',
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.3rem' }}>
+                      <span style={{ fontSize: '0.75rem' }}>🎉</span>
+                      <span style={{ color: '#22c55e', fontSize: '0.72rem', fontWeight: '600' }}>Next Steps</span>
+                    </div>
+                    {recruiterContacts.has(app.kingdom_number) ? (
+                      <p style={{ color: '#d1d5db', fontSize: '0.72rem', margin: 0, lineHeight: 1.5 }}>
+                        Reach out to the recruiter{recruiterContacts.get(app.kingdom_number)!.length > 1 ? 's' : ''}:{' '}
+                        {recruiterContacts.get(app.kingdom_number)!.map((name, i) => (
+                          <span key={i}>
+                            {i > 0 && ', '}
+                            <strong style={{ color: '#22d3ee' }}>{name}</strong>
+                          </span>
+                        ))}
+                        {' '}to coordinate your transfer.
+                      </p>
+                    ) : (
+                      <p style={{ color: '#9ca3af', fontSize: '0.72rem', margin: 0, lineHeight: 1.5 }}>
+                        Visit the{' '}
+                        <Link to={`/kingdom/${app.kingdom_number}`} style={{ color: '#22d3ee', textDecoration: 'none' }}>
+                          kingdom page
+                        </Link>
+                        {' '}to find recruiter contact info and coordinate your transfer.
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}
