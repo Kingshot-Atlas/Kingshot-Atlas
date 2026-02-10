@@ -82,8 +82,6 @@ const getTransferGroup = (kingdomNumber: number): [number, number] | null => {
 // =============================================
 
 const TransferBoard: React.FC = () => {
-  useDocumentTitle('Transfer Hub');
-  useMetaTags(PAGE_META_TAGS.transferHub);
   useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.transferHub });
   useScrollDepth('Transfer Hub');
   const { user, profile } = useAuth();
@@ -133,6 +131,15 @@ const TransferBoard: React.FC = () => {
     nominee_linked_username: string | null;
   } | null>(null);
   const [endorseLoading, setEndorseLoading] = useState(false);
+
+  useDocumentTitle(endorseClaimData ? `Endorse for K${endorseClaimData.kingdom_number} — Kingshot Atlas` : 'Transfer Hub');
+  useMetaTags(endorseClaimData ? {
+    title: `Endorse ${endorseClaimData.nominee_linked_username || endorseClaimData.nominee_username} for Kingdom ${endorseClaimData.kingdom_number} — Kingshot Atlas`,
+    description: `${endorseClaimData.nominee_linked_username || endorseClaimData.nominee_username} is running for Kingdom ${endorseClaimData.kingdom_number} editor. ${endorseClaimData.endorsement_count}/${endorseClaimData.required_endorsements} endorsements so far. Your vote matters.`,
+    url: `https://ks-atlas.com/transfer-hub?endorse=${endorseClaimData.id}`,
+    image: 'https://ks-atlas.com/Atlas%20Logo.png',
+    type: 'article',
+  } : PAGE_META_TAGS.transferHub);
 
   // Track page view
   useEffect(() => {

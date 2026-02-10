@@ -420,14 +420,7 @@ const EditorsTab: React.FC<{ editors: EditorClaim[]; timeAgo: (d: string | null)
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                  <span style={{ color: '#fff', fontWeight: 600, fontSize: '0.9rem' }}>{editor.username}</span>
-                  {editor.linked_username && (
-                    <span style={{ color: '#a855f7', fontSize: '0.7rem', fontWeight: 500 }}
-                      title="Linked Kingshot Account"
-                    >
-                      ({editor.linked_username})
-                    </span>
-                  )}
+                  <span style={{ color: '#fff', fontWeight: 600, fontSize: '0.9rem' }}>{editor.linked_username || editor.username}</span>
                   <span style={{
                     padding: '0.1rem 0.4rem',
                     backgroundColor: sc.bg,

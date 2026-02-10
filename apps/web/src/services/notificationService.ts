@@ -34,7 +34,9 @@ export type NotificationType =
   | 'application_status'
   | 'co_editor_invite'
   | 'fund_contribution'
-  | 'application_expiring';
+  | 'application_expiring'
+  | 'endorsement_received'
+  | 'editor_activated';
 
 export interface NotificationPreferences {
   score_changes: boolean;
@@ -281,6 +283,10 @@ class NotificationService {
         return '💰';
       case 'application_expiring':
         return '⏳';
+      case 'endorsement_received':
+        return '🗳️';
+      case 'editor_activated':
+        return '👑';
       default:
         return '🔔';
     }
@@ -318,6 +324,10 @@ class NotificationService {
         return '#22c55e'; // green
       case 'application_expiring':
         return '#f59e0b'; // amber
+      case 'endorsement_received':
+        return '#a855f7'; // purple
+      case 'editor_activated':
+        return '#22c55e'; // green
       default:
         return '#9ca3af'; // gray
     }

@@ -40,13 +40,29 @@ const EndorsementProgress: React.FC<{
   const pct = Math.min(100, (current / required) * 100);
   const isComplete = current >= required;
 
+  const getMilestone = () => {
+    if (pct >= 100) return { emoji: '🎉', label: 'Activated!', color: '#22c55e' };
+    if (pct >= 75) return { emoji: '🔥', label: 'Almost there!', color: '#f97316' };
+    if (pct >= 50) return { emoji: '⚡', label: 'Halfway!', color: '#eab308' };
+    if (pct >= 25) return { emoji: '🚀', label: 'Gaining momentum', color: '#22d3ee' };
+    return null;
+  };
+  const milestone = getMilestone();
+
   return (
     <div>
       <div style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         marginBottom: '0.35rem',
       }}>
-        <span style={{ color: '#9ca3af', fontSize: '0.7rem' }}>Endorsements</span>
+        <span style={{ color: '#9ca3af', fontSize: '0.7rem' }}>
+          Endorsements
+          {milestone && (
+            <span style={{ marginLeft: '0.4rem', color: milestone.color, fontWeight: 600 }}>
+              {milestone.emoji} {milestone.label}
+            </span>
+          )}
+        </span>
         <span style={{
           color: isComplete ? '#22c55e' : '#eab308',
           fontSize: '0.75rem',
@@ -64,9 +80,10 @@ const EndorsementProgress: React.FC<{
         <div style={{
           width: `${pct}%`,
           height: '100%',
-          backgroundColor: isComplete ? '#22c55e' : '#eab308',
+          backgroundColor: isComplete ? '#22c55e' : milestone?.color || '#eab308',
           borderRadius: '3px',
-          transition: 'width 0.3s ease',
+          transition: 'width 0.5s ease',
+          ...(pct >= 75 && !isComplete ? { boxShadow: `0 0 8px ${milestone?.color || '#f97316'}60` } : {}),
         }} />
       </div>
     </div>
@@ -281,6 +298,7 @@ const PendingClaimView: React.FC<{
   const [endorsements, setEndorsements] = useState<Endorsement[]>([]);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [discordCopied, setDiscordCopied] = useState(false);
 
   useEffect(() => {
     loadEndorsements();
@@ -325,6 +343,14 @@ const PendingClaimView: React.FC<{
     navigator.clipboard.writeText(shareLink);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleShareDiscord = () => {
+    const remaining = claim.required_endorsements - claim.endorsement_count;
+    const msg = `🗳️ **Endorse me as Kingdom ${claim.kingdom_number} Editor on Kingshot Atlas!**\n\nI need ${remaining} more endorsement${remaining !== 1 ? 's' : ''} from K${claim.kingdom_number} members (TC20+).\n\n👉 ${shareLink}\n\nHelp me unlock the Transfer Hub for our kingdom!`;
+    navigator.clipboard.writeText(msg);
+    setDiscordCopied(true);
+    setTimeout(() => setDiscordCopied(false), 2500);
   };
 
   return (
@@ -403,6 +429,23 @@ const PendingClaimView: React.FC<{
           }}
         >
           {copied ? 'Copied!' : 'Copy Link'}
+        </button>
+        <button
+          onClick={handleShareDiscord}
+          style={{
+            padding: '0.5rem 0.75rem',
+            backgroundColor: discordCopied ? '#22c55e15' : '#5865F215',
+            border: `1px solid ${discordCopied ? '#22c55e30' : '#5865F230'}`,
+            borderRadius: '8px',
+            color: discordCopied ? '#22c55e' : '#5865F2',
+            fontSize: '0.75rem',
+            fontWeight: '600',
+            cursor: 'pointer',
+            whiteSpace: 'nowrap',
+            minHeight: '36px',
+          }}
+        >
+          {discordCopied ? 'Copied!' : '💬 Discord'}
         </button>
       </div>
 
@@ -514,33 +557,31 @@ const EndorseButton: React.FC<{
       backgroundColor: '#111111',
       border: '1px solid #22c55e25',
       borderRadius: '10px',
-      padding: '0.75rem 1rem',
+      padding: '1rem',
       display: 'flex',
-      alignItems: isSameKingdom ? 'center' : 'flex-start',
-      justifyContent: 'space-between',
-      flexDirection: isSameKingdom ? 'row' : 'column',
+      flexDirection: 'column',
+      alignItems: 'center',
       gap: '0.5rem',
+      textAlign: 'center',
     }}>
-      <div>
-        <span style={{ color: '#fff', fontSize: '0.85rem', fontWeight: '600' }}>
-          Endorse {nomineeName ? <span style={{ color: '#a855f7' }}>{nomineeName}</span> : 'Editor'} for K{kingdomNumber}
-        </span>
-        {!isLinked && (
-          <p style={{ color: '#f59e0b', fontSize: '0.7rem', margin: '0.2rem 0 0 0' }}>
-            Link your Kingshot account first to endorse.
-          </p>
-        )}
-        {isLinked && !isSameKingdom && (
-          <p style={{ color: '#6b7280', fontSize: '0.7rem', margin: '0.2rem 0 0 0' }}>
-            Only members of Kingdom {kingdomNumber} with TC20+ can endorse.
-          </p>
-        )}
-        {isLinked && isSameKingdom && !meetsTcReq && (
-          <p style={{ color: '#6b7280', fontSize: '0.7rem', margin: '0.2rem 0 0 0' }}>
-            TC Level 20+ required to endorse.
-          </p>
-        )}
-      </div>
+      <span style={{ color: '#fff', fontSize: '0.85rem', fontWeight: '600' }}>
+        Endorse {nomineeName ? <span style={{ color: '#a855f7' }}>{nomineeName}</span> : 'Editor'} for K{kingdomNumber}
+      </span>
+      {!isLinked && (
+        <p style={{ color: '#f59e0b', fontSize: '0.7rem', margin: 0 }}>
+          Link your Kingshot account first to endorse.
+        </p>
+      )}
+      {isLinked && !isSameKingdom && (
+        <p style={{ color: '#6b7280', fontSize: '0.7rem', margin: 0 }}>
+          Only members of Kingdom {kingdomNumber} with TC20+ can endorse.
+        </p>
+      )}
+      {isLinked && isSameKingdom && !meetsTcReq && (
+        <p style={{ color: '#6b7280', fontSize: '0.7rem', margin: 0 }}>
+          TC Level 20+ required to endorse.
+        </p>
+      )}
 
       {error && (
         <span style={{ color: '#ef4444', fontSize: '0.7rem' }}>{error}</span>
@@ -555,15 +596,15 @@ const EndorseButton: React.FC<{
           onClick={handleEndorse}
           disabled={!canEndorse || submitting}
           style={{
-            padding: '0.4rem 0.75rem',
+            padding: '0.5rem 1.5rem',
             backgroundColor: canEndorse && !submitting ? '#22c55e' : '#22c55e20',
             border: 'none',
             borderRadius: '8px',
             color: canEndorse && !submitting ? '#000' : '#6b7280',
-            fontSize: '0.8rem',
+            fontSize: '0.85rem',
             fontWeight: '600',
             cursor: canEndorse && !submitting ? 'pointer' : 'not-allowed',
-            minHeight: '36px',
+            minHeight: '44px',
             whiteSpace: 'nowrap',
           }}
         >

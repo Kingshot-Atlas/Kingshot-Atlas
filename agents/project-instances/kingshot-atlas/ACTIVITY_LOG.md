@@ -3,6 +3,27 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-10 17:00 | Product Engineer | COMPLETED
+Task: Endorsement system hardening — UI fixes, activation notifications, data cleanup, security audit
+Files:
+- `apps/web/src/components/admin/TransferHubAdminTab.tsx` — Editor claims now show only Kingshot username (removed random username + parentheses)
+- Supabase: Deleted 3 Gatreno test applications from transfer_applications
+- Supabase: Reset K172 fake $50 fund balance to $0
+- Supabase migration `editor_activated_notifications_trigger` — AFTER UPDATE trigger on kingdom_editors: notifies editor (activation + fund ready) + all endorsers when status→active
+- Supabase migration `prevent_multiple_active_editors_per_kingdom` — SECURITY FIX: partial unique index prevents multiple active editors per kingdom per role; submit_endorsement RPC now checks before activating
+- `apps/web/src/services/notificationService.ts` — (already updated in prior task with endorsement_received + editor_activated types)
+Result: Editor activation triggers 3 notifications (editor activation, fund ready, endorsers thanked). Race condition for duplicate active editors prevented at DB level. Admin UI shows clean Kingshot usernames. Test data cleaned up. Build passes.
+
+## 2026-02-10 16:45 | Product Engineer | COMPLETED
+Task: Endorsement process hardening — UI centering, notification trigger, server-side validation
+Files:
+- `apps/web/src/components/EditorClaiming.tsx` — Centralized EndorseButton layout (flexDirection: column, alignItems: center, textAlign: center, larger button)
+- `apps/web/src/services/notificationService.ts` — Added `endorsement_received` and `editor_activated` to NotificationType union + icon/color maps
+- Supabase migration `endorsement_notification_trigger` — AFTER INSERT trigger on editor_endorsements creates notification for claim owner
+- Supabase migration `harden_submit_endorsement_rpc` — SECURITY FIX: Added server-side kingdom membership + TC20+ validation (was frontend-only, easily bypassed)
+- Supabase migration `fix_endorsement_notification_count` — Fixed stale count in notification by counting actual rows instead of reading pre-increment value
+Result: Endorsement UI centralized. Notifications auto-created on endorsement with real-time delivery via existing NotificationBell. Server-side validation prevents cross-kingdom endorsement abuse. Build passes.
+
 ## 2026-02-10 16:30 | Product Engineer | COMPLETED
 Task: Fix K270 endorsement bug — endorsement count stuck at 0 + full endorsement flow overhaul
 Files:

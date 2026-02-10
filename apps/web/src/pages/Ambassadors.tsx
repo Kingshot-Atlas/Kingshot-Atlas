@@ -183,6 +183,144 @@ const Ambassadors: React.FC = () => {
         </div>
       </div>
 
+      {/* Tier Perks — What You Unlock */}
+      <div style={{
+        marginBottom: isMobile ? '1.5rem' : '2rem',
+        padding: isMobile ? '1.25rem 1rem' : '1.5rem',
+        backgroundColor: '#111116',
+        borderRadius: '16px',
+        border: '1px solid #2a2a2a',
+      }}>
+        <h2 style={{
+          fontFamily: FONT_DISPLAY,
+          fontSize: isMobile ? '1rem' : '1.15rem',
+          fontWeight: '700',
+          color: '#fff',
+          margin: '0 0 0.25rem',
+          textAlign: 'center',
+        }}>
+          Every Referral Counts. Every Tier Unlocks More.
+        </h2>
+        <p style={{
+          color: '#6b7280',
+          fontSize: '0.8rem',
+          margin: '0 0 1.25rem',
+          textAlign: 'center',
+          lineHeight: 1.5,
+        }}>
+          Share Atlas. Climb the ranks. The top recruiters don't wait — they build networks.
+        </p>
+
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, 1fr)',
+          gap: isMobile ? '0.6rem' : '0.75rem',
+        }}>
+          {/* Scout */}
+          <div style={{
+            padding: isMobile ? '0.75rem' : '1rem',
+            borderRadius: '12px',
+            border: '1px solid #ffffff25',
+            backgroundColor: '#ffffff08',
+            textAlign: 'center',
+          }}>
+            <div style={{ fontSize: '1.25rem', marginBottom: '0.35rem' }}>🔍</div>
+            <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.85rem', marginBottom: '0.15rem' }}>Scout</div>
+            <div style={{ color: REFERRAL_TIER_COLORS.scout, fontSize: '0.7rem', fontWeight: 600, marginBottom: '0.5rem' }}>2 Referrals</div>
+            <div style={{ color: '#9ca3af', fontSize: '0.68rem', lineHeight: 1.5 }}>
+              Scout badge on your profile. You're on the radar.
+            </div>
+          </div>
+
+          {/* Recruiter */}
+          <div style={{
+            padding: isMobile ? '0.75rem' : '1rem',
+            borderRadius: '12px',
+            border: `1px solid ${REFERRAL_TIER_COLORS.recruiter}30`,
+            backgroundColor: `${REFERRAL_TIER_COLORS.recruiter}08`,
+            textAlign: 'center',
+          }}>
+            <div style={{ fontSize: '1.25rem', marginBottom: '0.35rem' }}>📢</div>
+            <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.85rem', marginBottom: '0.15rem' }}>Recruiter</div>
+            <div style={{ color: REFERRAL_TIER_COLORS.recruiter, fontSize: '0.7rem', fontWeight: 600, marginBottom: '0.5rem' }}>5 Referrals</div>
+            <div style={{ color: '#9ca3af', fontSize: '0.68rem', lineHeight: 1.5 }}>
+              Recruiter badge. Your kingdom knows who's bringing in talent.
+            </div>
+          </div>
+
+          {/* Consul */}
+          <div style={{
+            padding: isMobile ? '0.75rem' : '1rem',
+            borderRadius: '12px',
+            border: `1px solid ${REFERRAL_TIER_COLORS.consul}30`,
+            backgroundColor: `${REFERRAL_TIER_COLORS.consul}08`,
+            textAlign: 'center',
+          }}>
+            <div style={{ fontSize: '1.25rem', marginBottom: '0.35rem' }}>🏛️</div>
+            <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.85rem', marginBottom: '0.15rem' }}>Consul</div>
+            <div style={{ color: REFERRAL_TIER_COLORS.consul, fontSize: '0.7rem', fontWeight: 600, marginBottom: '0.5rem' }}>10 Referrals</div>
+            <div style={{ color: '#9ca3af', fontSize: '0.68rem', lineHeight: 1.5 }}>
+              Exclusive Discord Consul role. A respected voice in the community.
+            </div>
+          </div>
+
+          {/* Ambassador */}
+          <div style={{
+            padding: isMobile ? '0.75rem' : '1rem',
+            borderRadius: '12px',
+            border: `1px solid ${REFERRAL_TIER_COLORS.ambassador}50`,
+            backgroundColor: `${REFERRAL_TIER_COLORS.ambassador}10`,
+            textAlign: 'center',
+            boxShadow: `0 0 15px ${REFERRAL_TIER_COLORS.ambassador}15`,
+          }}>
+            <div style={{ fontSize: '1.25rem', marginBottom: '0.35rem' }}>👑</div>
+            <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.85rem', marginBottom: '0.15rem' }}>Ambassador</div>
+            <div style={{ color: REFERRAL_TIER_COLORS.ambassador, fontSize: '0.7rem', fontWeight: 600, marginBottom: '0.5rem' }}>20 Referrals</div>
+            <div style={{ color: '#9ca3af', fontSize: '0.68rem', lineHeight: 1.5 }}>
+              Top-tier Discord role, leaderboard spotlight, and community recognition.
+            </div>
+          </div>
+        </div>
+
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '0.75rem',
+          marginTop: '1.25rem',
+        }}>
+          <div style={{
+            padding: '0.5rem 0.75rem',
+            backgroundColor: '#22c55e08',
+            borderRadius: '8px',
+            border: '1px solid #22c55e20',
+          }}>
+            <p style={{ color: '#22c55e', fontSize: '0.75rem', fontWeight: 600, margin: 0 }}>
+              ⚡ Spots fill fast. The earlier you start, the higher you climb.
+            </p>
+          </div>
+          <Link
+            to="/profile"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              padding: '0.6rem 1.5rem',
+              backgroundColor: '#a24cf320',
+              border: '1px solid #a24cf350',
+              borderRadius: '10px',
+              color: '#a24cf3',
+              fontSize: '0.85rem',
+              fontWeight: '600',
+              textDecoration: 'none',
+              minHeight: '44px',
+              transition: 'all 0.2s',
+            }}
+          >
+            Start Recruiting →
+          </Link>
+        </div>
+      </div>
+
       {/* Filter chips */}
       <div style={{
         display: 'flex',
