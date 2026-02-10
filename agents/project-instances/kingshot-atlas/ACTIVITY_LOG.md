@@ -7,6 +7,38 @@
 
 ## Log Entries
 
+## 2026-02-10 12:30 | Product Engineer + Platform Engineer | COMPLETED
+Task: Coordinates Data Integrity, RecruiterDashboard Audit & Public Profile Coordinates
+Files: `components/RecruiterDashboard.tsx`, `pages/Profile.tsx`, `contexts/AuthContext.tsx` + Supabase migration
+Result:
+  - **DB CHECK Constraint:** Added `contact_coordinates_format_check` on `transfer_profiles` and `profile_coordinates_format_check` on `profiles` — enforces `K:\d+ X:\d+ Y:\d+` format or NULL/empty.
+  - **DB Schema:** Added `show_coordinates` (boolean, default false) and `coordinates` (text) columns to `profiles` table.
+  - **RecruiterDashboard Audit:** Updated coordinate display to parse structured format (`K:172 X:765 Y:722` → `K172 · X:765 Y:722`) with fallback for legacy strings.
+  - **Public Profile Coordinates:** Added toggable "Show In-Game Coordinates" feature to profile edit form with Kingdom (pre-filled from linked account, read-only), X (0-1199), Y (0-1199) structured inputs. Default hidden. Displayed on public profile view with monospace formatting.
+  - **Data Migration:** Checked all existing records — only 1 exists, already in structured format. No migration needed.
+
+## 2026-02-10 12:00 | Design Lead + Product Engineer | COMPLETED
+Task: Transfer Hub Discoverability, Onboarding Polish & Content
+Files: `components/KingdomListingCard.tsx`, `components/TransferApplications.tsx`, `components/TransferHubGuide.tsx`, `pages/TransferBoard.tsx`, `hooks/useStructuredData.ts`, `docs/TRANSFER_HUB_DISCORD_ANNOUNCEMENT.md` (NEW)
+Result:
+  - **Match Score SmartTooltip:** Replaced native `title` attribute with proper SmartTooltip showing full match breakdown (label, matched/unmatched, detail) per criteria. Color-coded by score range.
+  - **MyApplicationsTracker Empty State:** Replaced `return null` with helpful empty-state card ("No applications yet — browse kingdoms below").
+  - **Kingdom Fund Tier Badge:** Added visible tier badge (Bronze/Silver/Gold) next to kingdom name with SmartTooltip explaining all fund tiers and their features.
+  - **Transfer Guide Analytics:** Added `trackFeature` calls for "Transfer Guide Tab Switch" and "Transfer Guide Dismissed" events.
+  - **Transfer Hub Stats Banner:** Added live stats row (Kingdoms · Recruiting · Transferees) between guide and mode toggle. Transferee count from lightweight Supabase count query.
+  - **About Page FAQ:** Added "What is the Transfer Hub?" to structured data `ABOUT_FAQ_DATA` for SEO. About page already had Transfer Hub section.
+  - **Discord Announcement Template:** Created `docs/TRANSFER_HUB_DISCORD_ANNOUNCEMENT.md` with main announcement, embed version, and Day 2/3 follow-ups. Not sent.
+
+## 2026-02-10 11:30 | Product Engineer | COMPLETED
+Task: Transfer Profile — Structured In-Game Coordinate Fields
+Files: `components/TransferProfileForm.tsx`
+Result: Replaced single freeform text input for in-game coordinates with 3 structured fields: Kingdom (pre-filled from linked account, read-only), X (0-1199), Y (0-1199). Inline layout with proper spacing. Numeric-only validation. Coordinates stored as `K:231 X:123 Y:456` format. Backward-compatible parsing of existing coordinates on profile load.
+
+## 2026-02-10 11:15 | Design Lead | COMPLETED
+Task: Transfer Hub "How It Works" Guide
+Files: `components/TransferHubGuide.tsx` (NEW), `pages/TransferBoard.tsx`
+Result: Created collapsible guide panel placed between hero and mode toggle. Two-tab layout (Transferring / Recruiting) with 4-step flows, quick tips, and localStorage persistence. Brand voice copy. Auto-expanded for first-time visitors, dismissable with "Got it" button. Re-openable anytime.
+
 ## 2026-02-10 01:00 | Product Engineer | COMPLETED
 Task: Transfer Hub Bug Fixes, Code Review, Browse Filters & Profile Comparison
 Files: `pages/TransferBoard.tsx`, `components/TransferApplications.tsx`, `components/RecruiterDashboard.tsx`

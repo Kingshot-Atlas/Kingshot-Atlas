@@ -435,7 +435,24 @@ const MyApplicationsTracker: React.FC<{
 
   if (!user) return null;
   if (loading) return <div style={{ color: '#6b7280', fontSize: '0.8rem', padding: '0.5rem 0' }}>Loading applications...</div>;
-  if (applications.length === 0 && invites.length === 0) return null;
+  if (applications.length === 0 && invites.length === 0) return (
+    <div style={{
+      backgroundColor: '#111111',
+      border: '1px solid #2a2a2a',
+      borderRadius: '12px',
+      padding: '1rem',
+      marginBottom: '1rem',
+      textAlign: 'center',
+    }}>
+      <div style={{ fontSize: '1.25rem', marginBottom: '0.4rem', opacity: 0.5 }}>📋</div>
+      <p style={{ color: '#9ca3af', fontSize: '0.82rem', fontWeight: '600', margin: '0 0 0.25rem 0' }}>
+        No applications yet
+      </p>
+      <p style={{ color: '#6b7280', fontSize: '0.75rem', margin: 0 }}>
+        Browse kingdoms below and hit Apply when you find the right fit.
+      </p>
+    </div>
+  );
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);

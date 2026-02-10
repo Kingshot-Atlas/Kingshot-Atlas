@@ -66,7 +66,7 @@ const About: React.FC = () => {
             Scouting your next KvK opponent? We&apos;ve got their win rate, their streaks, and their weaknesses. Looking for a new home during Transfer? Find kingdoms that match your competitive level. Recruiting for your alliance? Show prospects exactly why your kingdom dominates.
           </p>
           <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.9rem' : '0.95rem', lineHeight: 1.7 }}>
-            No more guessing. No more blind migrations. No more surprises. Just <span style={{ color: '#22c55e' }}>data-driven dominance</span>.
+            No more guessing. No more blind transfers. No more surprises. Just <span style={{ color: '#22c55e' }}>data-driven dominance</span>.
           </p>
         </section>
 
@@ -276,6 +276,48 @@ const About: React.FC = () => {
           </div>
           <p style={{ color: '#6b7280', fontSize: isMobile ? '0.85rem' : '0.9rem', lineHeight: 1.7 }}>
             Kingshot Atlas is an independent fan project. We&apos;re not affiliated with or endorsed by the developers of Kingshot. We&apos;re just players who love the game.
+          </p>
+        </section>
+
+        {/* Transfer Hub */}
+        <section style={{ marginBottom: '2.5rem' }}>
+          <h2 style={{ 
+            fontSize: isMobile ? '1.1rem' : '1.25rem', 
+            fontWeight: 'bold', 
+            color: '#fff', 
+            marginBottom: '1rem',
+            fontFamily: FONT_DISPLAY
+          }}>
+            The Transfer Hub: No More Blind Transfers
+          </h2>
+          <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.9rem' : '0.95rem', lineHeight: 1.7, marginBottom: '1rem' }}>
+            Tired of asking &ldquo;anyone know a good kingdom?&rdquo; in Discord and getting 20 different answers? The <span style={{ color: '#22d3ee' }}>Transfer Hub</span> puts real data behind the biggest decision in Kingshot.
+          </p>
+          <div style={{ display: 'grid', gap: '0.75rem', marginBottom: '1rem' }}>
+            {[
+              { icon: '🚀', title: 'For Players Transferring', desc: 'Browse every kingdom with Atlas Scores, KvK records, and community reviews. Create a Transfer Profile, apply directly, and track your applications. Match Scores show which kingdoms fit your playstyle.', color: '#22d3ee' },
+              { icon: '📢', title: 'For Recruiters', desc: 'Claim your kingdom, set up your listing with requirements and vibe tags, and review incoming applications. Fund your listing to unlock better visibility and features like invites and priority placement.', color: '#a855f7' },
+            ].map((item, i) => (
+              <div key={i} style={{ 
+                display: 'flex', 
+                alignItems: 'flex-start', 
+                gap: '0.75rem',
+                backgroundColor: '#111111',
+                padding: '0.875rem',
+                borderRadius: '8px',
+                border: '1px solid #2a2a2a'
+              }}>
+                <span style={{ fontSize: '1.25rem' }}>{item.icon}</span>
+                <div>
+                  <div style={{ color: item.color, fontWeight: '600', fontSize: isMobile ? '0.85rem' : '0.9rem', marginBottom: '0.25rem' }}>{item.title}</div>
+                  <div style={{ color: '#9ca3af', fontSize: isMobile ? '0.8rem' : '0.85rem', lineHeight: 1.5 }}>{item.desc}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <p style={{ color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.85rem', lineHeight: 1.6 }}>
+            Real data. Real applications. No more guessing who&apos;s actually recruiting and who&apos;s worth joining.{' '}
+            <Link to="/transfer-hub" style={{ color: '#22d3ee', textDecoration: 'none' }}>Check it out →</Link>
           </p>
         </section>
 

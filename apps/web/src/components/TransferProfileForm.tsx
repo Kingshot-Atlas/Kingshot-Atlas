@@ -132,6 +132,11 @@ const TransferProfileForm: React.FC<{
     visible_to_recruiters: true,
   });
 
+  // Structured coordinate fields for in-game contact
+  const [coordKingdom, setCoordKingdom] = useState<string>('');
+  const [coordX, setCoordX] = useState<string>('');
+  const [coordY, setCoordY] = useState<string>('');
+
   // Auto-fill from linked account
   useEffect(() => {
     if (profile) {
@@ -142,6 +147,10 @@ const TransferProfileForm: React.FC<{
         tc_level: profile.linked_tc_level || 0,
         main_language: profile.language || 'English',
       }));
+      // Pre-fill coordinate kingdom from linked account
+      if (profile.linked_kingdom && !coordKingdom) {
+        setCoordKingdom(String(profile.linked_kingdom));
+      }
     }
   }, [profile]);
 
@@ -161,6 +170,7 @@ const TransferProfileForm: React.FC<{
 
         if (data && !fetchError) {
           setExistingProfile(data as ExistingProfile);
+          const coords = data.contact_coordinates || (data.contact_method === 'in_game' ? data.contact_info : '') || '';
           setFormData({
             username: data.username,
             current_kingdom: data.current_kingdom,
@@ -176,10 +186,19 @@ const TransferProfileForm: React.FC<{
             player_bio: data.player_bio,
             contact_method: data.contact_method,
             contact_discord: data.contact_discord || (data.contact_method === 'discord' ? data.contact_info : '') || '',
-            contact_coordinates: data.contact_coordinates || (data.contact_method === 'in_game' ? data.contact_info : '') || '',
+            contact_coordinates: coords,
             is_anonymous: data.is_anonymous ?? true,
             visible_to_recruiters: data.visible_to_recruiters ?? true,
           });
+          // Parse structured coordinates (format: "K:231 X:123 Y:456")
+          if (coords) {
+            const kMatch = coords.match(/K:(\d+)/);
+            const xMatch = coords.match(/X:(\d+)/);
+            const yMatch = coords.match(/Y:(\d+)/);
+            if (kMatch) setCoordKingdom(kMatch[1]);
+            if (xMatch) setCoordX(xMatch[1]);
+            if (yMatch) setCoordY(yMatch[1]);
+          }
         }
       } catch {
         // No existing profile — that's fine
@@ -248,8 +267,15 @@ const TransferProfileForm: React.FC<{
     const bioCheck = moderateText(formData.player_bio);
     if (!bioCheck.isClean) return bioCheck.reason || 'Bio contains inappropriate language.';
     if (formData.contact_method === 'discord' && !formData.contact_discord.trim()) return 'Discord username is required';
-    if (formData.contact_method === 'in_game' && !formData.contact_coordinates.trim()) return 'In-game coordinates are required';
-    if (formData.contact_method === 'both' && (!formData.contact_discord.trim() || !formData.contact_coordinates.trim())) return 'Both contact methods are required';
+    if (formData.contact_method === 'in_game' || formData.contact_method === 'both') {
+      if (!coordKingdom.trim()) return 'Kingdom number is required for in-game coordinates';
+      if (!coordX.trim() || !coordY.trim()) return 'Both X and Y coordinates are required';
+      const xNum = parseInt(coordX, 10);
+      const yNum = parseInt(coordY, 10);
+      if (isNaN(xNum) || xNum < 0 || xNum > 1199) return 'X coordinate must be between 0 and 1199';
+      if (isNaN(yNum) || yNum < 0 || yNum > 1199) return 'Y coordinate must be between 0 and 1199';
+    }
+    if (formData.contact_method === 'both' && !formData.contact_discord.trim()) return 'Discord username is required';
     return null;
   };
 
@@ -269,6 +295,11 @@ const TransferProfileForm: React.FC<{
     setError(null);
 
     try {
+      // Compose structured coordinates into storage string
+      const composedCoords = (formData.contact_method === 'in_game' || formData.contact_method === 'both')
+        ? `K:${coordKingdom} X:${coordX} Y:${coordY}`
+        : '';
+
       const payload = {
         user_id: user.id,
         username: formData.username,
@@ -285,10 +316,10 @@ const TransferProfileForm: React.FC<{
         player_bio: formData.player_bio,
         contact_method: formData.contact_method,
         contact_discord: formData.contact_discord,
-        contact_coordinates: formData.contact_coordinates,
+        contact_coordinates: composedCoords,
         is_anonymous: formData.is_anonymous,
         visible_to_recruiters: formData.visible_to_recruiters,
-        contact_info: formData.contact_method === 'discord' ? formData.contact_discord : formData.contact_method === 'in_game' ? formData.contact_coordinates : `${formData.contact_discord} | ${formData.contact_coordinates}`,
+        contact_info: formData.contact_method === 'discord' ? formData.contact_discord : formData.contact_method === 'in_game' ? composedCoords : `${formData.contact_discord} | ${composedCoords}`,
         power_range: `${formData.power_million}M`,
         kvk_participation: formData.kvk_availability,
       };
@@ -311,10 +342,10 @@ const TransferProfileForm: React.FC<{
             player_bio: formData.player_bio,
             contact_method: formData.contact_method,
             contact_discord: formData.contact_discord,
-            contact_coordinates: formData.contact_coordinates,
+            contact_coordinates: composedCoords,
             is_anonymous: formData.is_anonymous,
             visible_to_recruiters: formData.visible_to_recruiters,
-            contact_info: formData.contact_method === 'discord' ? formData.contact_discord : formData.contact_method === 'in_game' ? formData.contact_coordinates : `${formData.contact_discord} | ${formData.contact_coordinates}`,
+            contact_info: formData.contact_method === 'discord' ? formData.contact_discord : formData.contact_method === 'in_game' ? composedCoords : `${formData.contact_discord} | ${composedCoords}`,
             power_range: `${formData.power_million}M`,
             kvk_participation: formData.kvk_availability,
             updated_at: new Date().toISOString(),
@@ -753,13 +784,61 @@ const TransferProfileForm: React.FC<{
               />
             )}
             {(formData.contact_method === 'in_game' || formData.contact_method === 'both') && (
-              <input
-                type="text"
-                value={formData.contact_coordinates}
-                onChange={(e) => updateField('contact_coordinates', e.target.value)}
-                placeholder="In-game coordinates (e.g., X:123 Y:456)"
-                style={inputStyle}
-              />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                  <span style={{ color: colors.textSecondary, fontSize: '0.75rem', whiteSpace: 'nowrap' }}>Kingdom:</span>
+                  <input
+                    type="number"
+                    min="1"
+                    max="9999"
+                    value={coordKingdom}
+                    onChange={(e) => setCoordKingdom(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                    placeholder="—"
+                    style={{
+                      ...inputStyle,
+                      width: '5rem',
+                      textAlign: 'center',
+                      padding: '0.6rem 0.4rem',
+                      backgroundColor: coordKingdom && profile?.linked_kingdom ? `${colors.primary}08` : colors.bg,
+                    }}
+                    readOnly={!!profile?.linked_kingdom}
+                  />
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                  <span style={{ color: colors.textSecondary, fontSize: '0.75rem' }}>X:</span>
+                  <input
+                    type="number"
+                    min="0"
+                    max="1199"
+                    value={coordX}
+                    onChange={(e) => setCoordX(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                    placeholder="0-1199"
+                    style={{
+                      ...inputStyle,
+                      width: '5.5rem',
+                      textAlign: 'center',
+                      padding: '0.6rem 0.4rem',
+                    }}
+                  />
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                  <span style={{ color: colors.textSecondary, fontSize: '0.75rem' }}>Y:</span>
+                  <input
+                    type="number"
+                    min="0"
+                    max="1199"
+                    value={coordY}
+                    onChange={(e) => setCoordY(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                    placeholder="0-1199"
+                    style={{
+                      ...inputStyle,
+                      width: '5.5rem',
+                      textAlign: 'center',
+                      padding: '0.6rem 0.4rem',
+                    }}
+                  />
+                </div>
+              </div>
             )}
           </div>
         </div>

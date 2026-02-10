@@ -317,7 +317,10 @@ const ApplicationCard: React.FC<{
                 )}
                 {profile.contact_method === 'both' && ' · '}
                 {(profile.contact_method === 'in_game' || profile.contact_method === 'both') && profile.contact_coordinates && (
-                  <span>🎮 {profile.contact_coordinates}</span>
+                  <span>🎮 {(() => {
+                    const m = profile.contact_coordinates.match(/^K:(\d+) X:(\d+) Y:(\d+)$/);
+                    return m ? `K${m[1]} · X:${m[2]} Y:${m[3]}` : profile.contact_coordinates;
+                  })()}</span>
                 )}
                 {!profile.contact_discord && !profile.contact_coordinates && profile.contact_info && (
                   <span>{profile.contact_method === 'discord' ? '💬 ' : '🎮 '}{profile.contact_info}</span>

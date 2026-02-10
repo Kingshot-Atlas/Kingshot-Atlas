@@ -342,8 +342,8 @@ const KingdomDirectory: React.FC = () => {
             <span style={{ color: '#fff' }}>KINGSHOT</span>
             <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>ATLAS</span>
           </h1>
-          <p style={{ color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.9rem', marginBottom: '0.75rem' }}>
-            Scout your enemy. Choose your allies. Dominate Kingshot.
+          <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.75rem' : '0.85rem', marginBottom: '0.75rem', lineHeight: 1.6, fontStyle: 'italic' }}>
+            "Discover the best kingdoms. Find the strongest allies.{isMobile ? ' ' : <br />}Dominate Kingshot."
           </p>
           
           {!isMobile && (

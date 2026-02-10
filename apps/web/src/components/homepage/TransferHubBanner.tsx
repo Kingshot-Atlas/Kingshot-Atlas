@@ -114,7 +114,7 @@ const TransferHubBanner: React.FC = () => {
           }}>
             {isLive
               ? <>The <span style={{ color: '#22c55e', fontWeight: 600 }}>{transferStatus.phaseName}</span> phase is active now.</>
-              : <>Find the perfect kingdom. No more blind migrations.</>
+              : <>Find the perfect kingdom for you. No more blind transfers.</>
             }
           </p>
         </div>

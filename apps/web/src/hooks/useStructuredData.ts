@@ -178,6 +178,10 @@ export const ABOUT_FAQ_DATA: FAQItem[] = [
   {
     question: 'Can I contribute data to Kingshot Atlas?',
     answer: 'Yes! Registered users can submit KvK results and kingdom updates. All submissions are reviewed by admins before being added to the database to maintain data integrity.'
+  },
+  {
+    question: 'What is the Transfer Hub?',
+    answer: 'The Transfer Hub is where players looking for a new kingdom and recruiters seeking new members connect. Browse every kingdom with real performance data, create a Transfer Profile, apply directly, and track your applications — all without relying on Discord hearsay or blind transfers.'
   }
 ];
 

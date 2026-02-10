@@ -185,6 +185,8 @@ interface EditForm {
   language: string;
   region: string;
   bio: string;
+  show_coordinates: boolean;
+  coordinates: string;
 }
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
@@ -438,8 +440,15 @@ const Profile: React.FC = () => {
     alliance_tag: '',
     language: '',
     region: '',
-    bio: ''
+    bio: '',
+    show_coordinates: false,
+    coordinates: '',
   });
+
+  // Structured coordinate fields for profile coordinates
+  const [profileCoordKingdom, setProfileCoordKingdom] = useState<string>('');
+  const [profileCoordX, setProfileCoordX] = useState<string>('');
+  const [profileCoordY, setProfileCoordY] = useState<string>('');
 
   const themeColor = viewedProfile?.theme_color || '#22d3ee';
   
@@ -581,24 +590,63 @@ const Profile: React.FC = () => {
 
   useEffect(() => {
     if (viewedProfile && !isViewingOther) {
+      const coords = viewedProfile.coordinates || '';
       setEditForm({
         display_name: viewedProfile.display_name || '',
         alliance_tag: viewedProfile.alliance_tag || '',
         language: viewedProfile.language || '',
         region: viewedProfile.region || '',
-        bio: viewedProfile.bio || ''
+        bio: viewedProfile.bio || '',
+        show_coordinates: viewedProfile.show_coordinates ?? false,
+        coordinates: coords,
       });
+      // Parse structured coordinates into individual fields
+      if (coords) {
+        const kMatch = coords.match(/K:(\d+)/);
+        const xMatch = coords.match(/X:(\d+)/);
+        const yMatch = coords.match(/Y:(\d+)/);
+        if (kMatch?.[1]) setProfileCoordKingdom(kMatch[1]);
+        if (xMatch?.[1]) setProfileCoordX(xMatch[1]);
+        if (yMatch?.[1]) setProfileCoordY(yMatch[1]);
+      }
+      // Pre-fill kingdom from linked account if no coordinates yet
+      if (!coords && viewedProfile.linked_kingdom) {
+        setProfileCoordKingdom(String(viewedProfile.linked_kingdom));
+      }
     }
   }, [viewedProfile, isViewingOther]);
 
   const handleSave = async () => {
-    const result = await updateProfile(editForm);
+    // Validate coordinates if shown
+    if (editForm.show_coordinates) {
+      if (profileCoordX.trim() || profileCoordY.trim()) {
+        const xNum = parseInt(profileCoordX, 10);
+        const yNum = parseInt(profileCoordY, 10);
+        if (profileCoordX.trim() && (isNaN(xNum) || xNum < 0 || xNum > 1199)) {
+          showToast('X coordinate must be between 0 and 1199', 'error');
+          return;
+        }
+        if (profileCoordY.trim() && (isNaN(yNum) || yNum < 0 || yNum > 1199)) {
+          showToast('Y coordinate must be between 0 and 1199', 'error');
+          return;
+        }
+      }
+    }
+
+    // Compose coordinates string from structured fields
+    const composedCoords = (editForm.show_coordinates && profileCoordKingdom && profileCoordX && profileCoordY)
+      ? `K:${profileCoordKingdom} X:${profileCoordX} Y:${profileCoordY}`
+      : '';
+
+    const result = await updateProfile({
+      ...editForm,
+      coordinates: composedCoords,
+    });
     if (result.success) {
       setIsEditing(false);
       showToast('Profile saved successfully!', 'success');
     } else {
       showToast(`Failed to save profile: ${result.error || 'Unknown error'}`, 'error');
-      // Keep edit form open so user can retry
     }
   };
 
@@ -875,6 +923,111 @@ const Profile: React.FC = () => {
                     resize: 'vertical'
                   }}
                 />
+              </div>
+
+              {/* In-Game Coordinates Toggle */}
+              <div>
+                <div
+                  onClick={() => setEditForm({ ...editForm, show_coordinates: !editForm.show_coordinates })}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '0.75rem 1rem',
+                    backgroundColor: editForm.show_coordinates ? `${themeColor}10` : '#0a0a0a',
+                    border: `1px solid ${editForm.show_coordinates ? `${themeColor}40` : '#2a2a2a'}`,
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    minHeight: '48px',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span style={{ fontSize: '1rem' }}>📍</span>
+                    <div>
+                      <div style={{ color: '#fff', fontSize: '0.85rem', fontWeight: '500' }}>Show In-Game Coordinates</div>
+                      <div style={{ color: '#6b7280', fontSize: '0.7rem' }}>Let other Atlas users find you in-game</div>
+                    </div>
+                  </div>
+                  <div style={{
+                    width: '36px',
+                    height: '20px',
+                    borderRadius: '10px',
+                    backgroundColor: editForm.show_coordinates ? themeColor : '#3a3a3a',
+                    position: 'relative',
+                    transition: 'background-color 0.2s',
+                    flexShrink: 0,
+                  }}>
+                    <div style={{
+                      width: '16px',
+                      height: '16px',
+                      borderRadius: '50%',
+                      backgroundColor: '#fff',
+                      position: 'absolute',
+                      top: '2px',
+                      left: editForm.show_coordinates ? '18px' : '2px',
+                      transition: 'left 0.2s',
+                    }} />
+                  </div>
+                </div>
+
+                {editForm.show_coordinates && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.75rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                      <span style={{ color: '#9ca3af', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>Kingdom:</span>
+                      <input
+                        type="number"
+                        min="1"
+                        max="9999"
+                        value={profileCoordKingdom}
+                        onChange={(e) => setProfileCoordKingdom(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                        placeholder="—"
+                        style={{
+                          ...inputStyle,
+                          width: '5rem',
+                          textAlign: 'center',
+                          padding: '0.6rem 0.4rem',
+                          backgroundColor: profileCoordKingdom && viewedProfile?.linked_kingdom ? `${themeColor}08` : '#0a0a0a',
+                        }}
+                        readOnly={!!viewedProfile?.linked_kingdom}
+                      />
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                      <span style={{ color: '#9ca3af', fontSize: '0.75rem' }}>X:</span>
+                      <input
+                        type="number"
+                        min="0"
+                        max="1199"
+                        value={profileCoordX}
+                        onChange={(e) => setProfileCoordX(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                        placeholder="0-1199"
+                        style={{
+                          ...inputStyle,
+                          width: '5.5rem',
+                          textAlign: 'center',
+                          padding: '0.6rem 0.4rem',
+                        }}
+                      />
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                      <span style={{ color: '#9ca3af', fontSize: '0.75rem' }}>Y:</span>
+                      <input
+                        type="number"
+                        min="0"
+                        max="1199"
+                        value={profileCoordY}
+                        onChange={(e) => setProfileCoordY(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                        placeholder="0-1199"
+                        style={{
+                          ...inputStyle,
+                          width: '5.5rem',
+                          textAlign: 'center',
+                          padding: '0.6rem 0.4rem',
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div style={{ display: 'flex', gap: '1rem' }}>
@@ -1325,6 +1478,56 @@ const Profile: React.FC = () => {
               margin: 0,
               fontStyle: 'italic'
             }}>&quot;{viewedProfile.bio}&quot;</p>
+          </div>
+        )}
+
+        {/* In-Game Coordinates - shown when user has enabled it */}
+        {viewedProfile?.show_coordinates && viewedProfile?.coordinates && (
+          <div style={{
+            marginBottom: '1.5rem',
+            padding: isMobile ? '1rem' : '1.25rem',
+            backgroundColor: '#111111',
+            borderRadius: '12px',
+            border: '1px solid #2a2a2a'
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              marginBottom: '0.75rem'
+            }}>
+              <span style={{ fontSize: '1rem' }}>📍</span>
+              <span style={{ 
+                fontSize: '0.95rem', 
+                color: '#fff', 
+                fontWeight: '600'
+              }}>In-Game Location:</span>
+            </div>
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '1rem',
+              color: themeColor,
+              fontSize: isMobile ? '0.95rem' : '1.05rem',
+              fontWeight: '600',
+              fontFamily: 'monospace',
+            }}>
+              {(() => {
+                const m = viewedProfile.coordinates.match(/^K:(\d+) X:(\d+) Y:(\d+)$/);
+                if (m) {
+                  return (
+                    <>
+                      <span>K{m[1]}</span>
+                      <span style={{ color: '#3a3a3a' }}>·</span>
+                      <span>X: {m[2]}</span>
+                      <span style={{ color: '#3a3a3a' }}>·</span>
+                      <span>Y: {m[3]}</span>
+                    </>
+                  );
+                }
+                return <span>{viewedProfile.coordinates}</span>;
+              })()}
+            </div>
           </div>
         )}
 

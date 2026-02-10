@@ -34,6 +34,8 @@ export interface UserProfile {
   referred_by?: string | null;
   referral_count?: number;
   referral_tier?: string | null;
+  show_coordinates?: boolean;
+  coordinates?: string | null;
 }
 
 /**

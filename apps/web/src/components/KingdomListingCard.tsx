@@ -370,6 +370,43 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
             >
               {tierLetter}
             </span>
+            {isPremium && (
+              <SmartTooltip
+                accentColor={tierColor}
+                maxWidth={240}
+                content={
+                  <div style={{ fontSize: '0.7rem' }}>
+                    <div style={{ fontWeight: '600', color: tierColor, marginBottom: '0.3rem' }}>
+                      {fundTier.charAt(0).toUpperCase() + fundTier.slice(1)} Listing
+                    </div>
+                    <div style={{ color: '#9ca3af', lineHeight: 1.5, marginBottom: '0.3rem' }}>
+                      Kingdoms fund their listing to unlock better visibility and features.
+                    </div>
+                    <div style={{ color: '#6b7280', lineHeight: 1.5 }}>
+                      🥉 <span style={{ color: '#cd7f32' }}>Bronze $25+</span> — Requirements & vibe tags{'\n'}
+                      🥈 <span style={{ color: '#9ca3af' }}>Silver $50+</span> — Bio, invites & event times{'\n'}
+                      🥇 <span style={{ color: colors.gold }}>Gold $100+</span> — Priority placement & glow
+                    </div>
+                  </div>
+                }
+              >
+                <span
+                  style={{
+                    padding: '0.1rem 0.4rem',
+                    backgroundColor: `${tierColor}15`,
+                    border: `1px solid ${tierColor}40`,
+                    borderRadius: '4px',
+                    fontSize: '0.6rem',
+                    fontWeight: 'bold',
+                    color: tierColor,
+                    cursor: 'help',
+                    textTransform: 'capitalize',
+                  }}
+                >
+                  {fundTier}
+                </span>
+              </SmartTooltip>
+            )}
           </div>
 
           {/* Right: Recruiting badge + Match Score */}
@@ -395,21 +432,46 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
               </div>
             )}
             {mode === 'transferring' && matchScore !== undefined && matchScore > 0 && (
-              <span
-                style={{
-                  padding: '0.2rem 0.5rem',
-                  backgroundColor: matchScore >= 75 ? '#22c55e12' : matchScore >= 50 ? '#eab30812' : '#ef444412',
-                  border: `1px solid ${matchScore >= 75 ? '#22c55e35' : matchScore >= 50 ? '#eab30835' : '#ef444435'}`,
-                  borderRadius: '6px',
-                  fontSize: '0.7rem',
-                  fontWeight: 'bold',
-                  color: matchScore >= 75 ? '#22c55e' : matchScore >= 50 ? '#eab308' : '#ef4444',
-                  cursor: matchDetails ? 'help' : 'default',
-                }}
-                title={matchDetails ? matchDetails.map(d => `${d.matched ? '✅' : '❌'} ${d.label}: ${d.detail}`).join('\n') : undefined}
+              <SmartTooltip
+                accentColor={matchScore >= 75 ? '#22c55e' : matchScore >= 50 ? '#eab308' : '#ef4444'}
+                maxWidth={260}
+                content={
+                  matchDetails && matchDetails.length > 0 ? (
+                    <div>
+                      <div style={{ fontSize: '0.7rem', fontWeight: '600', color: '#fff', marginBottom: '0.3rem' }}>
+                        Match Breakdown
+                      </div>
+                      <div style={{ fontSize: '0.7rem', color: '#9ca3af', marginBottom: '0.35rem', lineHeight: 1.4 }}>
+                        How well this kingdom fits your Transfer Profile preferences.
+                      </div>
+                      {matchDetails.map((d, i) => (
+                        <div key={i} style={{ fontSize: '0.7rem', color: d.matched ? '#22c55e' : '#ef4444', lineHeight: 1.6 }}>
+                          {d.matched ? '✅' : '❌'} <span style={{ color: '#d1d5db' }}>{d.label}:</span> {d.detail}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <span style={{ fontSize: '0.7rem', color: '#9ca3af' }}>
+                      Based on your Transfer Profile preferences vs this kingdom's listing.
+                    </span>
+                  )
+                }
               >
-                {matchScore}% match
-              </span>
+                <span
+                  style={{
+                    padding: '0.2rem 0.5rem',
+                    backgroundColor: matchScore >= 75 ? '#22c55e12' : matchScore >= 50 ? '#eab30812' : '#ef444412',
+                    border: `1px solid ${matchScore >= 75 ? '#22c55e35' : matchScore >= 50 ? '#eab30835' : '#ef444435'}`,
+                    borderRadius: '6px',
+                    fontSize: '0.7rem',
+                    fontWeight: 'bold',
+                    color: matchScore >= 75 ? '#22c55e' : matchScore >= 50 ? '#eab308' : '#ef4444',
+                    cursor: 'help',
+                  }}
+                >
+                  {matchScore}% match
+                </span>
+              </SmartTooltip>
             )}
             {mode === 'transferring' && (!matchScore || matchScore === 0) && !profile?.linked_username && fund?.is_recruiting && (
               <Link to="/profile" style={{ textDecoration: 'none' }}>
@@ -494,14 +556,14 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
               flex: 1,
             }}>
               {[
-                { label: 'Atlas Score', value: kingdom.atlas_score ? `${kingdom.atlas_score.toFixed(2)} (#${kingdom.current_rank || '—'})` : '—', color: '#22d3ee', emoji: '💎', tooltip: 'Overall performance rating (0-100) combining prep & battle win rates, KvK outcomes, streaks and experience. Higher = stronger kingdom.' },
+                { label: 'Atlas Score', value: kingdom.atlas_score ? `${kingdom.atlas_score.toFixed(2)} (#${kingdom.current_rank || '—'})` : '—', color: '#22d3ee', emoji: '💎', tooltip: 'Comprehensive rating based on win rates, performance patterns, recent form, and experience. Rewards consistency over lucky streaks.' },
                 { label: 'KvKs', value: `${kingdom.total_kvks || 0}`, color: colors.text, emoji: '⚡', tooltip: null },
                 { label: 'Prep Win Rate', value: kingdom.prep_win_rate != null ? `${(kingdom.prep_win_rate * 100).toFixed(0)}%` : '—', color: statTypeStyles.prepPhase.color, emoji: '🛡️', tooltip: null },
                 { label: 'Battle Win Rate', value: kingdom.battle_win_rate != null ? `${(kingdom.battle_win_rate * 100).toFixed(0)}%` : '—', color: statTypeStyles.battlePhase.color, emoji: '⚔️', tooltip: null },
-                { label: 'Dominations', value: `${kingdom.dominations || 0}`, color: statTypeStyles.domination.color, emoji: '👑', tooltip: 'Won BOTH Prep Phase and Battle Phase in a KvK — the best possible outcome.' },
-                { label: 'Comebacks', value: `${kingdom.comebacks || 0}`, color: '#3b82f6', emoji: '💪', tooltip: 'Lost Prep Phase but won Battle Phase — recovered from a slow start.' },
-                { label: 'Reversals', value: `${kingdom.reversals || 0}`, color: '#a855f7', emoji: '🔄', tooltip: 'Won Prep Phase but lost Battle Phase — strong start that didn\'t hold.' },
-                { label: 'Invasions', value: `${kingdom.invasions || 0}`, color: statTypeStyles.invasion.color, emoji: '💀', tooltip: 'Lost BOTH Prep Phase and Battle Phase — the worst possible outcome.' },
+                { label: 'Dominations', value: `${kingdom.dominations || 0}`, color: statTypeStyles.domination.color, emoji: '👑', tooltip: 'Won both Prep and Battle' },
+                { label: 'Comebacks', value: `${kingdom.comebacks || 0}`, color: '#3b82f6', emoji: '💪', tooltip: 'Lost Prep but won Battle' },
+                { label: 'Reversals', value: `${kingdom.reversals || 0}`, color: '#a855f7', emoji: '🔄', tooltip: 'Won Prep but lost Battle' },
+                { label: 'Invasions', value: `${kingdom.invasions || 0}`, color: statTypeStyles.invasion.color, emoji: '💀', tooltip: 'Lost both Prep and Battle' },
               ].map((stat) => {
                 const statBox = (
                   <div style={{
@@ -529,7 +591,12 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
                     accentColor={stat.color}
                     maxWidth={220}
                     style={{ width: '100%' }}
-                    content={<span style={{ fontSize: '0.65rem', color: '#d1d5db', lineHeight: 1.4 }}>{stat.tooltip}</span>}
+                    content={
+                      <div style={{ fontSize: '0.7rem' }}>
+                        <div style={{ color: stat.color, fontWeight: 'bold', marginBottom: '2px' }}>{stat.emoji} {stat.label}</div>
+                        <div style={{ color: '#9ca3af' }}>{stat.tooltip}</div>
+                      </div>
+                    }
                   >
                     {statBox}
                   </SmartTooltip>
