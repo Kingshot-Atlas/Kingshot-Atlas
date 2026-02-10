@@ -9,6 +9,9 @@ import LinkKingshotAccount from '../components/LinkKingshotAccount';
 import LinkDiscordAccount from '../components/LinkDiscordAccount';
 import NotificationPreferences from '../components/NotificationPreferences';
 import PlayersFromMyKingdom from '../components/PlayersFromMyKingdom';
+import ReferralStats from '../components/ReferralStats';
+import ReferralBadge from '../components/ReferralBadge';
+import { ReferralTier, REFERRAL_TIER_COLORS } from '../utils/constants';
 import { useAuth, getCacheBustedAvatarUrl, UserProfile, getDisplayName } from '../contexts/AuthContext';
 import { usePremium } from '../contexts/PremiumContext';
 import { useToast } from '../components/Toast';
@@ -427,6 +430,7 @@ const Profile: React.FC = () => {
   const [viewedProfile, setViewedProfile] = useState<UserProfile | null>(null);
   const [isViewingOther, setIsViewingOther] = useState(false);
   const [viewedUserTier, setViewedUserTier] = useState<string>('free');
+  const [referredByUsername, setReferredByUsername] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [hasShownWelcome, setHasShownWelcome] = useState(false);
   const [editForm, setEditForm] = useState<EditForm>({
@@ -489,6 +493,19 @@ const Profile: React.FC = () => {
                 setViewedUserTier('admin');
               } else {
                 setViewedUserTier(data.subscription_tier || 'free');
+              }
+
+              // Fetch "Referred by" info if profile was created within 30 days
+              if (data.referred_by && data.created_at) {
+                const createdAt = new Date(data.created_at);
+                const daysSinceCreated = (Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
+                if (daysSinceCreated <= 30) {
+                  setReferredByUsername(data.referred_by);
+                } else {
+                  setReferredByUsername(null);
+                }
+              } else {
+                setReferredByUsername(null);
               }
               return;
             }
@@ -907,12 +924,28 @@ const Profile: React.FC = () => {
                   avatarUrl={viewedProfile?.linked_avatar_url ?? undefined}
                   username={viewedProfile?.linked_username ?? undefined}
                   size={isMobile ? 96 : 80}
-                  themeColor={getTierBorderColor(viewedUserTier)}
+                  themeColor={viewedProfile?.referral_tier 
+                    ? REFERRAL_TIER_COLORS[viewedProfile.referral_tier as ReferralTier] 
+                    : getTierBorderColor(viewedUserTier)}
                   badgeStyle={viewedProfile?.badge_style ?? undefined}
                 />
-                <div style={{ fontSize: isMobile ? '1.5rem' : '1.75rem', fontWeight: 'bold', color: '#fff' }}>
-                  {viewedProfile?.linked_username || getDisplayName(viewedProfile)}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+                  <div style={{ fontSize: isMobile ? '1.5rem' : '1.75rem', fontWeight: 'bold', color: '#fff' }}>
+                    {viewedProfile?.linked_username || getDisplayName(viewedProfile)}
+                  </div>
+                  {viewedProfile?.referral_tier && (
+                    <ReferralBadge tier={viewedProfile.referral_tier as ReferralTier} size="md" />
+                  )}
                 </div>
+                {referredByUsername && isViewingOther && (
+                  <div style={{
+                    fontSize: '0.75rem',
+                    color: '#6b7280',
+                    marginTop: '0.25rem',
+                  }}>
+                    Referred by <span style={{ color: '#a24cf3', fontWeight: '600' }}>{referredByUsername}</span>
+                  </div>
+                )}
               </div>
             ) : (
               // Own profile: centered avatar like public profile, with action buttons in corner
@@ -1304,13 +1337,18 @@ const Profile: React.FC = () => {
           />
         )}
 
+        {/* Referral Program - only show for own profile */}
+        {!isViewingOther && (
+          <ReferralStats />
+        )}
+
         {/* Link Kingshot Account - only show for own profile when NOT linked */}
         {!isViewingOther && !viewedProfile?.linked_username && (
           <div id="link-kingshot-section" style={{ marginBottom: '1.5rem' }}>
             <LinkKingshotAccount
               onLink={async (playerData) => {
                 if (updateProfile && user) {
-                  await updateProfile({
+                  const result = await updateProfile({
                     ...viewedProfile,
                     linked_player_id: playerData.player_id,
                     linked_username: playerData.username,
@@ -1319,6 +1357,10 @@ const Profile: React.FC = () => {
                     linked_tc_level: playerData.town_center_level,
                     linked_last_synced: new Date().toISOString(),
                   });
+                  if (!result.success) {
+                    showToast(result.error || 'Failed to link account', 'error');
+                    return;
+                  }
                   // Assign Settler role in Discord (fire and forget)
                   discordService.syncSettlerRole(user.id, true).catch(() => {});
                 }

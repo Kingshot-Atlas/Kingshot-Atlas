@@ -70,6 +70,13 @@ let settlerSyncTimer = null;
 let settlerSyncInitTimeout = null;
 let lastSettlerSync = null;
 
+// Referral tier roles — Consul (10+ referrals) and Ambassador (20+ referrals)
+const CONSUL_ROLE_ID = process.env.DISCORD_CONSUL_ROLE_ID || '1470500049141235926';
+const AMBASSADOR_ROLE_ID = process.env.DISCORD_AMBASSADOR_ROLE_ID || '1466442919304237207';
+let referralSyncTimer = null;
+let referralSyncInitTimeout = null;
+let lastReferralSync = null;
+
 // Presence rotation state (module-level to guard against reconnect leaks)
 const presenceMessages = [
   '/help | ks-atlas.com',
@@ -151,6 +158,7 @@ const healthServer = http.createServer(async (req, res) => {
         commandsRegistered: commandRegistrationResult,
         lastCommandError: lastCommandError,
         lastSettlerSync: lastSettlerSync,
+        lastReferralSync: lastReferralSync,
       },
       process: {
         uptime: Math.floor(uptime),
@@ -372,6 +380,13 @@ client.on('ready', async () => {
   settlerSyncInitTimeout = setTimeout(() => syncSettlerRoles(), 60_000);
   settlerSyncTimer = setInterval(() => syncSettlerRoles(), SETTLER_SYNC_INTERVAL);
   console.log(`🎖️ Settler role sync scheduled (every ${SETTLER_SYNC_INTERVAL / 60000} min)`);
+
+  // Start Referral role sync (first run after 90s, then every 30 min)
+  if (referralSyncInitTimeout) clearTimeout(referralSyncInitTimeout);
+  if (referralSyncTimer) clearInterval(referralSyncTimer);
+  referralSyncInitTimeout = setTimeout(() => syncReferralRoles(), 90_000);
+  referralSyncTimer = setInterval(() => syncReferralRoles(), SETTLER_SYNC_INTERVAL);
+  console.log(`🏛️ Referral role sync scheduled (Consul/Ambassador, every ${SETTLER_SYNC_INTERVAL / 60000} min)`);
 
   // Rotating bot presence (guard against duplicate timers on reconnect)
   if (presenceTimer) clearInterval(presenceTimer);
@@ -1004,6 +1019,120 @@ async function syncSettlerRoles() {
     console.log(`🎖️ Settler sync done in ${elapsed}ms: +${assigned} -${removed} =${alreadyHas} already`);
   } catch (err) {
     console.error('🎖️ Settler sync error:', err.message);
+  }
+}
+
+/**
+ * Periodic sync: fetch all linked users from API, assign/remove Consul and
+ * Ambassador Discord roles based on their referral_tier.
+ * Runs on the same interval as Settler sync.
+ */
+async function syncReferralRoles() {
+  if (!botReady || !client.guilds.cache.size) {
+    console.log('🏛️ Referral sync skipped (bot not ready)');
+    return;
+  }
+
+  console.log('🏛️ Referral role sync starting...');
+  const startTime = Date.now();
+
+  try {
+    // Reuse the same linked-users endpoint (now includes referral_tier)
+    const res = await fetch(`${config.apiUrl}/api/v1/bot/linked-users`);
+    if (!res.ok) {
+      console.error(`🏛️ Referral sync: API returned ${res.status}`);
+      return;
+    }
+    const data = await res.json();
+    const users = data.users || [];
+
+    // Build maps of who should have which referral roles
+    const consulEligible = new Set();
+    const ambassadorEligible = new Set();
+    for (const u of users) {
+      if (!u.discord_id) continue;
+      if (u.referral_tier === 'ambassador') {
+        ambassadorEligible.add(u.discord_id);
+        consulEligible.add(u.discord_id); // Ambassadors also get Consul
+      } else if (u.referral_tier === 'consul') {
+        consulEligible.add(u.discord_id);
+      }
+    }
+
+    console.log(`🏛️ Eligible: ${consulEligible.size} Consul, ${ambassadorEligible.size} Ambassador`);
+
+    const guild = client.guilds.cache.get(config.guildId);
+    if (!guild) {
+      console.error('🏛️ Referral sync: guild not found');
+      return;
+    }
+
+    // Members already fetched by settler sync if it ran first, but ensure
+    await guild.members.fetch();
+
+    let changes = 0;
+
+    // --- Consul role ---
+    for (const discordId of consulEligible) {
+      const member = guild.members.cache.get(discordId);
+      if (!member) continue;
+      if (!member.roles.cache.has(CONSUL_ROLE_ID)) {
+        try {
+          await member.roles.add(CONSUL_ROLE_ID, 'Auto-assign: 10+ verified referrals on ks-atlas.com');
+          changes++;
+          console.log(`   🏛️ +Consul: ${member.user.username}`);
+        } catch (err) {
+          console.error(`   ❌ Failed +Consul ${member.user.username}: ${err.message}`);
+        }
+      }
+    }
+    // Remove Consul from those who lost eligibility
+    const consulMembers = guild.members.cache.filter(m => m.roles.cache.has(CONSUL_ROLE_ID));
+    for (const [memberId, member] of consulMembers) {
+      if (!consulEligible.has(memberId) && !member.user.bot) {
+        try {
+          await member.roles.remove(CONSUL_ROLE_ID, 'Auto-remove: referral tier changed on ks-atlas.com');
+          changes++;
+          console.log(`   🏛️ -Consul: ${member.user.username}`);
+        } catch (err) {
+          console.error(`   ❌ Failed -Consul ${member.user.username}: ${err.message}`);
+        }
+      }
+    }
+
+    // --- Ambassador role ---
+    for (const discordId of ambassadorEligible) {
+      const member = guild.members.cache.get(discordId);
+      if (!member) continue;
+      if (!member.roles.cache.has(AMBASSADOR_ROLE_ID)) {
+        try {
+          await member.roles.add(AMBASSADOR_ROLE_ID, 'Auto-assign: 20+ verified referrals on ks-atlas.com');
+          changes++;
+          console.log(`   🏛️ +Ambassador: ${member.user.username}`);
+        } catch (err) {
+          console.error(`   ❌ Failed +Ambassador ${member.user.username}: ${err.message}`);
+        }
+      }
+    }
+    // Remove Ambassador from those who lost eligibility
+    const ambMembers = guild.members.cache.filter(m => m.roles.cache.has(AMBASSADOR_ROLE_ID));
+    for (const [memberId, member] of ambMembers) {
+      if (!ambassadorEligible.has(memberId) && !member.user.bot) {
+        try {
+          await member.roles.remove(AMBASSADOR_ROLE_ID, 'Auto-remove: referral tier changed on ks-atlas.com');
+          changes++;
+          console.log(`   🏛️ -Ambassador: ${member.user.username}`);
+        } catch (err) {
+          console.error(`   ❌ Failed -Ambassador ${member.user.username}: ${err.message}`);
+        }
+      }
+    }
+
+    const elapsed = Date.now() - startTime;
+    lastReferralSync = new Date().toISOString();
+    console.log(`🏛️ Referral sync done in ${elapsed}ms: ${changes} role changes`);
+  } catch (err) {
+    console.error('🏛️ Referral sync error:', err.message);
   }
 }
 

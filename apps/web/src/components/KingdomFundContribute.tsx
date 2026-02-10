@@ -28,7 +28,6 @@ const CONTRIBUTION_TIERS = [
     description: 'Champion',
     paymentLink: 'https://buy.stripe.com/28EfZibbKdcS69y4rdeZ209',
     color: '#a855f7',
-    popular: true,
   },
   {
     amount: 50,
@@ -62,10 +61,10 @@ const TIER_COLORS: Record<string, string> = {
 };
 
 const TIER_BENEFITS: Record<string, string[]> = {
-  standard: ['Basic kingdom listing'],
-  bronze: ['Recruitment tags', 'Min requirements display', 'Contact link'],
-  silver: ['All Bronze benefits', 'Recruitment pitch', 'Priority in search'],
-  gold: ['All Silver benefits', 'What We Offer/Want sections', 'Gold glow effect', 'Top listing priority'],
+  standard: ['Basic listing with Atlas Score & stats', 'Community reviews from players'],
+  bronze: ['Min TC & Power requirements shown', 'Browse transferee profiles', 'Kingdom Policies & Vibe tags'],
+  silver: ['All Bronze benefits', 'Send invites to transferees', 'Kingdom Bio & Language display', 'Alliance Event Times'],
+  gold: ['All Silver benefits', '5 bonus invites per cycle', 'Gold glow on listing', 'Top listing priority'],
 };
 
 // =============================================
@@ -205,21 +204,6 @@ const KingdomFundContribute: React.FC<{
                   gap: '0.25rem',
                 }}
               >
-                {tier.popular && (
-                  <span style={{
-                    position: 'absolute',
-                    top: '-8px',
-                    right: '-4px',
-                    padding: '0.1rem 0.4rem',
-                    backgroundColor: tier.color,
-                    color: '#000',
-                    borderRadius: '4px',
-                    fontSize: '0.55rem',
-                    fontWeight: 'bold',
-                  }}>
-                    POPULAR
-                  </span>
-                )}
                 <span style={{
                   fontSize: '1.25rem',
                   fontWeight: 'bold',

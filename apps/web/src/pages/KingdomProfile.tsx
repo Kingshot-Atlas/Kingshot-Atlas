@@ -33,6 +33,7 @@ import { useStructuredData, getKingdomBreadcrumbs } from '../hooks/useStructured
 import { reviewService } from '../services/reviewService';
 import { scoreHistoryService } from '../services/scoreHistoryService';
 import { analyticsService } from '../services/analyticsService';
+import { useScrollDepth } from '../hooks/useScrollDepth';
 
 // Login-gated expandable section for anonymous users
 const LoginGatedSection: React.FC<{
@@ -129,6 +130,7 @@ const LoginGatedSection: React.FC<{
 const KingdomProfile: React.FC = () => {
   const { kingdomNumber } = useParams<{ kingdomNumber: string }>();
   useDocumentTitle(kingdomNumber ? `Kingdom ${kingdomNumber}` : undefined);
+  useScrollDepth('Kingdom Profile');
   const navigate = useNavigate();
   const { user, profile } = useAuth();
   const { showToast } = useToast();

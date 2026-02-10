@@ -10,91 +10,29 @@ import { ApplyModal, MyApplicationsTracker } from '../components/TransferApplica
 import RecruiterDashboard from '../components/RecruiterDashboard';
 import EditorClaiming from '../components/EditorClaiming';
 import KingdomFundContribute from '../components/KingdomFundContribute';
-import { neonGlow, FONT_DISPLAY, statTypeStyles, colors, cardShadow } from '../utils/styles';
-import { getPowerTier } from '../utils/atlasScoreFormula';
-import { isAdminUsername, isAdminEmail } from '../utils/constants';
+import { neonGlow, FONT_DISPLAY, colors } from '../utils/styles';
+import KingdomListingCard, { KingdomData, KingdomFund, KingdomReviewSummary, BoardMode, MatchDetail, formatTCLevel } from '../components/KingdomListingCard';
+import { useScrollDepth } from '../hooks/useScrollDepth';
 
 // =============================================
-// TYPES
+// TYPES (KingdomData, KingdomFund, KingdomReviewSummary, BoardMode, MatchDetail, formatTCLevel
+// are imported from ../components/KingdomListingCard)
 // =============================================
 
-interface KingdomData {
-  kingdom_number: number;
-  atlas_score: number;
-  current_rank: number;
-  total_kvks: number;
-  prep_wins: number;
-  prep_losses: number;
-  prep_win_rate: number;
-  battle_wins: number;
-  battle_losses: number;
-  battle_win_rate: number;
-  dominations: number;
-  invasions: number;
-  most_recent_status: string | null;
-}
-
-interface KingdomFund {
-  kingdom_number: number;
-  balance: number;
-  tier: 'standard' | 'bronze' | 'silver' | 'gold';
-  is_recruiting: boolean;
-  recruitment_tags: string[];
-  contact_link: string | null;
-  min_tc_level: number | null;
-  min_power_range: string | null;
-  recruitment_pitch: string | null;
-  main_language: string | null;
+interface UserTransferProfile {
+  power_million: number;
+  tc_level: number;
+  main_language: string;
   secondary_languages: string[];
-  event_times: Array<{ start: string; end: string }>;
-  what_we_offer: string | null;
-  what_we_want: string | null;
-  highlighted_stats: string[];
-  banner_theme: string;
-  alliance_events: Array<{
-    tag: string;
-    event_type: 'bear_hunt' | 'viking_vengeance' | 'swordland_showdown' | 'tri_alliance_clash';
-    time_slots: string[];
-  }>;
+  looking_for: string[];
+  kvk_availability: string;
+  saving_for_kvk: string;
 }
-
-interface KingdomReviewSummary {
-  kingdom_number: number;
-  avg_rating: number;
-  review_count: number;
-  top_review_comment: string | null;
-  top_review_author: string | null;
-}
-
-type BoardMode = 'transferring' | 'recruiting' | 'browsing';
 
 // =============================================
 // CONSTANTS
 // =============================================
 
-// Helper function to convert TC level to TG level
-const getTGLevel = (tcLevel: number): string => {
-  if (tcLevel < 35) return 'TG0';
-  if (tcLevel < 40) return 'TG1';
-  if (tcLevel < 45) return 'TG2';
-  if (tcLevel < 50) return 'TG3';
-  if (tcLevel < 55) return 'TG4';
-  return 'TG5+';
-};
-
-const TIER_COLORS: Record<string, string> = {
-  gold: colors.gold,
-  silver: colors.textSecondary,
-  bronze: '#cd7f32',
-  standard: colors.textMuted,
-};
-
-const TIER_BORDER_STYLES: Record<string, string> = {
-  gold: `2px solid ${colors.gold}`,
-  silver: `2px solid ${colors.textSecondary}40`,
-  bronze: `2px solid #cd7f3280`,
-  standard: `1px solid ${colors.border}`,
-};
 
 const RECRUITMENT_TAG_OPTIONS = [
   'Active KvK', 'Casual Friendly', 'Competitive',
@@ -110,17 +48,31 @@ const RECRUITMENT_TAG_OPTIONS = [
 // ];
 
 const LANGUAGE_OPTIONS = [
-  'English', 'Spanish', 'Portuguese', 'Arabic', 'Turkish', 'French', 'German',
-  'Russian', 'Chinese', 'Japanese', 'Korean', 'Indonesian', 'Thai', 'Vietnamese', 'Other',
+  'English', 'Mandarin Chinese', 'Hindi', 'Spanish', 'French', 'Arabic', 'Bengali',
+  'Portuguese', 'Russian', 'Japanese', 'German', 'Korean', 'Turkish', 'Vietnamese',
+  'Italian', 'Thai', 'Polish', 'Indonesian', 'Dutch', 'Tagalog', 'Other',
 ];
 
-const SCORE_TIER_COLORS: Record<string, string> = {
-  S: colors.gold,
-  A: colors.success,
-  B: colors.blue,
-  C: colors.orange,
-  D: colors.error,
-  F: colors.textMuted,
+// =============================================
+// TRANSFER GROUPS — Update these when new event groups are announced
+// Set TRANSFER_GROUPS_ACTIVE = true when event is live, false otherwise
+// =============================================
+
+const TRANSFER_GROUPS_ACTIVE = false; // Set to true when transfer groups are announced
+
+// Last known transfer groups (update with each new event)
+const TRANSFER_GROUPS: Array<[number, number]> = [
+  [1, 6],
+  [7, 115],
+  [116, 417],
+  [418, 587],
+  [588, 674],
+  [675, 846],
+];
+
+// Find which transfer group a kingdom belongs to
+const getTransferGroup = (kingdomNumber: number): [number, number] | null => {
+  return TRANSFER_GROUPS.find(([min, max]) => kingdomNumber >= min && kingdomNumber <= max) || null;
 };
 
 // =============================================
@@ -528,677 +480,18 @@ const FilterPanel: React.FC<{
   );
 };
 
-// =============================================
-// KINGDOM LISTING CARD (Redesigned)
-// =============================================
-
-const KingdomListingCard: React.FC<{
-  kingdom: KingdomData;
-  fund: KingdomFund | null;
-  reviewSummary: KingdomReviewSummary | null;
-  mode: BoardMode;
-  matchScore?: number;
-  onApply?: (kingdomNumber: number) => void;
-  onFund?: (kingdomNumber: number) => void;
-}> = ({ kingdom, fund, reviewSummary, mode, matchScore, onApply, onFund }) => {
-  const isMobile = useIsMobile();
-  const { profile } = useAuth();
-  const [expandedSection, setExpandedSection] = useState<string | null>(null);
-  const [isHovered, setIsHovered] = useState(false);
-
-  const fundTier = fund?.tier || 'standard';
-  const tierColor = TIER_COLORS[fundTier];
-  const scoreTier = getPowerTier(kingdom.atlas_score || 0);
-  const scoreTierColor = SCORE_TIER_COLORS[scoreTier] || '#6b7280';
-  const isGold = fundTier === 'gold';
-  const isSilver = fundTier === 'silver';
-  const isPremium = fundTier !== 'standard';
-
-  // Check if user can fund this kingdom (only their own kingdom)
-  const canFundKingdom = profile?.linked_kingdom === kingdom.kingdom_number;
-
-  const toggleSection = (section: string) => {
-    setExpandedSection(expandedSection === section ? null : section);
-  };
-
-  const renderStars = (rating: number) => {
-    const stars = [];
-    for (let idx = 1; idx <= 5; idx++) {
-      stars.push(
-        <span key={idx} style={{ color: idx <= Math.round(rating) ? '#fbbf24' : '#333' }}>★</span>
-      );
-    }
-    return stars;
-  };
-
-  // Filter out language-related tags from display
-  const displayTags = fund?.recruitment_tags?.filter(
-    (tag) => !tag.includes('Speaking')
-  ).slice(0, 3) || [];
-
-  // Score tier letter for chip
-  const tierLetter = scoreTier.charAt(0);
-  const isSTier = scoreTier === 'S';
-
-  // Transfer status
-  const transferStatus = kingdom.most_recent_status || 'Unknown';
-
-  // Border styling
-  const borderWidth = isGold ? 3 : isPremium ? 2 : 1;
-  const borderColor = isPremium ? tierColor : colors.border;
-
-  // Min power display helper
-  const formatMinPower = (val: string | null) => {
-    if (!val || val === 'Any') return null;
-    // If it's a plain number (new format: millions), display as XM
-    const numVal = parseInt(val, 10);
-    if (!isNaN(numVal) && String(numVal) === val) return `${numVal}M`;
-    return val;
-  };
-  const minPowerDisplay = formatMinPower(fund?.min_power_range || null);
-
-  // Gold shimmer border uses a wrapper approach
-  const cardContent = (
-    <div
-      style={{
-        position: 'relative',
-        backgroundColor: colors.surface,
-        borderRadius: isGold ? '12px' : '14px',
-        overflow: 'hidden',
-        ...(isGold ? {} : {
-          border: `${borderWidth}px solid ${borderColor}`,
-          transition: 'all 0.3s ease',
-          boxShadow: isHovered
-            ? isPremium
-              ? `0 0 24px ${tierColor}30, 0 0 48px ${tierColor}10, 0 4px 16px rgba(0,0,0,0.4)`
-              : '0 4px 16px rgba(0,0,0,0.4)'
-            : isPremium
-              ? `0 0 12px ${tierColor}15, 0 2px 8px rgba(0,0,0,0.3)`
-              : '0 2px 8px rgba(0,0,0,0.2)',
-        }),
-      }}
-    >
-      {/* Card Header */}
-      <div style={{ padding: isMobile ? '0.75rem' : '1rem', position: 'relative' }}>
-
-        {/* Top-right: Recruiting badge + Match Score */}
-        <div style={{
-          position: 'absolute',
-          top: isMobile ? '0.75rem' : '1rem',
-          right: isMobile ? '0.75rem' : '1rem',
-          display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.3rem',
-        }}>
-          {fund?.is_recruiting && (
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: '0.3rem',
-              padding: '0.2rem 0.6rem',
-              backgroundColor: '#22c55e12',
-              border: '1px solid #22c55e35',
-              borderRadius: '6px',
-              fontSize: '0.65rem',
-              color: '#22c55e',
-              fontWeight: 'bold',
-              letterSpacing: '0.03em',
-            }}>
-              <span style={{
-                width: '6px', height: '6px', borderRadius: '50%',
-                backgroundColor: '#22c55e', display: 'inline-block',
-                animation: 'pulse 2s infinite',
-              }}/>
-              RECRUITING
-            </div>
-          )}
-          {mode === 'transferring' && matchScore !== undefined && matchScore > 0 && (
-            <span style={{
-              padding: '0.2rem 0.5rem',
-              backgroundColor: matchScore >= 75 ? '#22c55e12' : matchScore >= 50 ? '#eab30812' : '#ef444412',
-              border: `1px solid ${matchScore >= 75 ? '#22c55e35' : matchScore >= 50 ? '#eab30835' : '#ef444435'}`,
-              borderRadius: '6px',
-              fontSize: '0.7rem',
-              fontWeight: 'bold',
-              color: matchScore >= 75 ? '#22c55e' : matchScore >= 50 ? '#eab308' : '#ef4444',
-            }}>
-              {matchScore}% match
-            </span>
-          )}
-          {mode === 'transferring' && (!matchScore || matchScore === 0) && !profile?.linked_username && fund?.is_recruiting && (
-            <Link to="/profile" style={{ textDecoration: 'none' }}>
-              <span style={{
-                padding: '0.2rem 0.5rem',
-                backgroundColor: '#9ca3af08',
-                border: '1px solid #9ca3af20',
-                borderRadius: '6px',
-                fontSize: '0.7rem',
-                fontWeight: 'bold',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.25rem',
-                cursor: 'pointer',
-                transition: 'border-color 0.2s',
-              }}>
-                <span style={{ filter: 'blur(4px)', color: '#22c55e', userSelect: 'none' }}>87%</span>
-                <span style={{ color: '#4b5563', fontSize: '0.6rem' }}>Link to see</span>
-              </span>
-            </Link>
-          )}
-        </div>
-
-        {/* Kingdom Name — Top Left with 1-letter Score Tier chip */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.2rem' }}>
-          <Link
-            to={`/kingdom/${kingdom.kingdom_number}`}
-            style={{
-              fontFamily: FONT_DISPLAY,
-              fontSize: isMobile ? '1.15rem' : '1.3rem',
-              color: colors.text,
-              textDecoration: 'none',
-              fontWeight: '700',
-              letterSpacing: '0.02em',
-            }}
-          >
-            Kingdom {kingdom.kingdom_number}
-          </Link>
-          {/* 1-letter Score Tier chip */}
-          <span
-            className={isSTier ? 's-tier-badge' : undefined}
-            style={{
-              padding: '0.1rem 0.4rem',
-              backgroundColor: `${scoreTierColor}20`,
-              border: `1px solid ${scoreTierColor}50`,
-              borderRadius: '4px',
-              fontSize: '0.65rem',
-              fontWeight: 'bold',
-              color: scoreTierColor,
-              ...(isSTier ? {
-                boxShadow: `0 0 8px ${scoreTierColor}40`,
-                textShadow: `0 0 6px ${scoreTierColor}60`,
-              } : {}),
-            }}
-          >
-            {tierLetter}
-          </span>
-        </div>
-
-        {/* Transfer Status below name */}
-        <div style={{ marginBottom: '0.6rem' }}>
-          <span style={{ fontSize: '0.7rem', color: colors.textMuted }}>
-            Transfer Status:{' '}
-          </span>
-          <span style={{
-            fontSize: '0.7rem',
-            color: transferStatus === 'Leading' ? colors.success
-              : transferStatus === 'Ordinary' ? colors.primary
-              : colors.textSecondary,
-            fontWeight: '500',
-          }}>
-            {transferStatus}
-          </span>
-        </div>
-
-        {/* Compact Stats Grid — Row 1: Atlas Score, Prep WR, Battle WR — Row 2: Experience, Dominations, Invasions */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: '0.35rem',
-          padding: '0.5rem',
-          backgroundColor: colors.bg,
-          borderRadius: '8px',
-          marginBottom: '0.6rem',
-        }}>
-          {[
-            { label: 'Atlas Score', value: `${kingdom.atlas_score?.toFixed(2) || '—'} (#${kingdom.current_rank || '—'})`, color: colors.primary, emoji: '💎' },
-            { label: 'Prep WR', value: kingdom.prep_win_rate != null ? `${(kingdom.prep_win_rate * 100).toFixed(0)}%` : '—', color: statTypeStyles.prepPhase.color, emoji: '🛡️' },
-            { label: 'Battle WR', value: kingdom.battle_win_rate != null ? `${(kingdom.battle_win_rate * 100).toFixed(0)}%` : '—', color: statTypeStyles.battlePhase.color, emoji: '⚔️' },
-            { label: 'Experience', value: `${kingdom.total_kvks || 0} KvKs`, color: colors.text, emoji: '⚡' },
-            { label: 'Dominations', value: `${kingdom.dominations || 0}`, color: statTypeStyles.domination.color, emoji: '👑' },
-            { label: 'Invasions', value: `${kingdom.invasions || 0}`, color: statTypeStyles.invasion.color, emoji: '💀' },
-          ].map((stat) => (
-            <div key={stat.label} style={{ textAlign: 'center', padding: '0.2rem 0' }}>
-              <div style={{ fontSize: '0.55rem', color: colors.textMuted, marginBottom: '0.15rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                {stat.emoji} {stat.label}
-              </div>
-              <div style={{ fontSize: '0.8rem', fontWeight: '600', color: stat.color }}>
-                {stat.value}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Key Info Preview — Language, Requirements, Tags */}
-        <div style={{
-          display: 'flex', flexWrap: 'wrap', gap: '0.35rem',
-          marginBottom: fund?.recruitment_pitch ? '0.5rem' : '0.25rem',
-        }}>
-          {fund?.main_language && (
-            <span style={{
-              padding: '0.15rem 0.5rem',
-              backgroundColor: `${colors.primary}08`,
-              border: `1px solid ${colors.primary}20`,
-              borderRadius: '4px',
-              fontSize: '0.65rem',
-              color: colors.primary,
-            }}>
-              🌐 {fund.main_language}
-            </span>
-          )}
-          {fund?.min_tc_level && (
-            <span style={{
-              padding: '0.15rem 0.5rem',
-              backgroundColor: '#eab30808',
-              border: '1px solid #eab30820',
-              borderRadius: '4px',
-              fontSize: '0.65rem',
-              color: '#eab308',
-            }}>
-              ⚙️ {getTGLevel(fund.min_tc_level)}+
-            </span>
-          )}
-          {minPowerDisplay && (
-            <span style={{
-              padding: '0.15rem 0.5rem',
-              backgroundColor: '#f9731608',
-              border: '1px solid #f9731620',
-              borderRadius: '4px',
-              fontSize: '0.65rem',
-              color: '#f97316',
-            }}>
-              💪 {minPowerDisplay}
-            </span>
-          )}
-          {displayTags.map((tag) => (
-            <span key={tag} style={{
-              padding: '0.15rem 0.5rem',
-              backgroundColor: `${colors.primary}08`,
-              border: `1px solid ${colors.primary}18`,
-              borderRadius: '4px',
-              fontSize: '0.65rem',
-              color: colors.textSecondary,
-            }}>
-              {tag}
-            </span>
-          ))}
-        </div>
-
-        {/* Recruitment Pitch (Silver+) */}
-        {(isSilver || isGold) && fund?.recruitment_pitch && (
-          <div style={{
-            padding: '0.5rem 0.6rem',
-            backgroundColor: `${tierColor}06`,
-            borderLeft: `2px solid ${tierColor}40`,
-            borderRadius: '0 6px 6px 0',
-            marginBottom: '0.5rem',
-          }}>
-            <p style={{
-              color: colors.textSecondary,
-              fontSize: '0.75rem',
-              margin: 0,
-              lineHeight: 1.5,
-              fontStyle: 'italic',
-            }}>
-              &ldquo;{fund.recruitment_pitch}&rdquo;
-            </p>
-          </div>
-        )}
-
-        {/* Review Summary — compact inline */}
-        {reviewSummary && reviewSummary.review_count > 0 && (
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: '0.4rem',
-            padding: '0.35rem 0.5rem',
-            backgroundColor: colors.bg,
-            borderRadius: '6px',
-            marginBottom: '0.25rem',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.1rem', fontSize: '0.7rem' }}>
-              {renderStars(reviewSummary.avg_rating)}
-            </div>
-            <span style={{ color: colors.textSecondary, fontSize: '0.7rem' }}>
-              {reviewSummary.avg_rating.toFixed(1)} ({reviewSummary.review_count})
-            </span>
-            {reviewSummary.top_review_comment && (
-              <span style={{
-                color: colors.textMuted,
-                fontSize: '0.65rem',
-                flex: 1,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                fontStyle: 'italic',
-              }}>
-                — &ldquo;{reviewSummary.top_review_comment.substring(0, 60)}{reviewSummary.top_review_comment.length > 60 ? '…' : ''}&rdquo;
-              </span>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Expandable Sections */}
-      <div style={{ borderTop: `1px solid ${colors.border}` }}>
-        {/* More Details Section */}
-        <button
-          onClick={() => toggleSection('details')}
-          style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            width: '100%', padding: '0.5rem 1rem',
-            backgroundColor: expandedSection === 'details' ? colors.bg : 'transparent',
-            border: 'none', borderBottom: `1px solid ${colors.border}`,
-            color: colors.textSecondary, fontSize: '0.75rem', cursor: 'pointer',
-            minHeight: '44px',
-          }}
-        >
-          <span>📊 Full Performance &amp; Details</span>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-            style={{ transform: expandedSection === 'details' ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
-          >
-            <path d="M6 9l6 6 6-6"/>
-          </svg>
-        </button>
-        {expandedSection === 'details' && (
-          <div style={{
-            padding: '0.75rem 1rem',
-            backgroundColor: colors.bg,
-          }}>
-            {/* Performance stats with W-L records */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(2, 1fr)',
-              gap: '0.6rem',
-              marginBottom: '0.75rem',
-            }}>
-              <div>
-                <span style={{ color: statTypeStyles.prepPhase.color, fontSize: '0.65rem' }}>{statTypeStyles.prepPhase.emoji} Prep Win Rate</span>
-                <div style={{ color: colors.text, fontWeight: '600', fontSize: '0.85rem' }}>
-                  {kingdom.prep_win_rate != null ? `${(kingdom.prep_win_rate * 100).toFixed(1)}%` : '—'}
-                  <span style={{ color: colors.textSecondary, fontSize: '0.65rem', fontWeight: 'normal' }}> ({kingdom.prep_wins}W-{kingdom.prep_losses}L)</span>
-                </div>
-              </div>
-              <div>
-                <span style={{ color: statTypeStyles.battlePhase.color, fontSize: '0.65rem' }}>{statTypeStyles.battlePhase.emoji} Battle Win Rate</span>
-                <div style={{ color: colors.text, fontWeight: '600', fontSize: '0.85rem' }}>
-                  {kingdom.battle_win_rate != null ? `${(kingdom.battle_win_rate * 100).toFixed(1)}%` : '—'}
-                  <span style={{ color: colors.textSecondary, fontSize: '0.65rem', fontWeight: 'normal' }}> ({kingdom.battle_wins}W-{kingdom.battle_losses}L)</span>
-                </div>
-              </div>
-              <div>
-                <span style={{ color: statTypeStyles.domination.color, fontSize: '0.65rem' }}>{statTypeStyles.domination.emoji} Dominations</span>
-                <div style={{ color: colors.text, fontWeight: '600' }}>{kingdom.dominations || 0}</div>
-              </div>
-              <div>
-                <span style={{ color: statTypeStyles.invasion.color, fontSize: '0.65rem' }}>{statTypeStyles.invasion.emoji} Invasions</span>
-                <div style={{ color: colors.text, fontWeight: '600' }}>{kingdom.invasions || 0}</div>
-              </div>
-            </div>
-
-            {/* Recruitment Info (if available) */}
-            {fund && isPremium && (
-              <div style={{ borderTop: `1px solid ${colors.border}`, paddingTop: '0.6rem' }}>
-                {fund.main_language && (
-                  <div style={{ marginBottom: '0.4rem', fontSize: '0.75rem' }}>
-                    <span style={{ color: colors.textMuted }}>Language: </span>
-                    <span style={{ color: colors.text }}>{fund.main_language}</span>
-                    {fund.secondary_languages.length > 0 && (
-                      <span style={{ color: colors.textSecondary }}> + {fund.secondary_languages.join(', ')}</span>
-                    )}
-                  </div>
-                )}
-                {fund.event_times && fund.event_times.length > 0 && (
-                  <div style={{ marginBottom: '0.4rem', fontSize: '0.75rem' }}>
-                    <span style={{ color: colors.textMuted }}>Events (UTC): </span>
-                    <span style={{ color: colors.text }}>{fund.event_times.map((t) => `${t.start}–${t.end}`).join(', ')}</span>
-                  </div>
-                )}
-                {fund.contact_link && (
-                  <div style={{ marginBottom: '0.4rem', fontSize: '0.75rem' }}>
-                    <span style={{ color: colors.textMuted }}>Contact: </span>
-                    <a href={fund.contact_link} target="_blank" rel="noopener noreferrer" style={{ color: colors.primary, fontSize: '0.75rem' }}>
-                      Discord Invite ↗
-                    </a>
-                  </div>
-                )}
-                {isGold && fund.what_we_offer && (
-                  <div style={{ marginBottom: '0.4rem', padding: '0.4rem 0.5rem', backgroundColor: colors.surface, borderRadius: '6px' }}>
-                    <span style={{ color: colors.success, fontSize: '0.65rem', fontWeight: 'bold' }}>What We Offer</span>
-                    <p style={{ color: colors.textSecondary, fontSize: '0.75rem', margin: '0.15rem 0 0 0', lineHeight: 1.4 }}>{fund.what_we_offer}</p>
-                  </div>
-                )}
-                {isGold && fund.what_we_want && (
-                  <div style={{ padding: '0.4rem 0.5rem', backgroundColor: colors.surface, borderRadius: '6px' }}>
-                    <span style={{ color: colors.orange, fontSize: '0.65rem', fontWeight: 'bold' }}>What We&apos;re Looking For</span>
-                    <p style={{ color: colors.textSecondary, fontSize: '0.75rem', margin: '0.15rem 0 0 0', lineHeight: 1.4 }}>{fund.what_we_want}</p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Alliance Events */}
-            {fund && fund.alliance_events && fund.alliance_events.length > 0 && (
-              <div style={{ borderTop: `1px solid ${colors.border}`, paddingTop: '0.6rem', marginTop: '0.6rem' }}>
-                <span style={{ color: colors.textMuted, fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Alliance Events</span>
-                <div style={{ marginTop: '0.3rem' }}>
-                  {fund.alliance_events.map((alliance, idx) => (
-                    <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.25rem' }}>
-                      <span style={{
-                        padding: '0.05rem 0.3rem',
-                        backgroundColor: `${colors.primary}15`,
-                        border: `1px solid ${colors.primary}30`,
-                        borderRadius: '3px',
-                        fontSize: '0.55rem',
-                        color: colors.primary,
-                        fontWeight: 'bold',
-                      }}>
-                        {alliance.tag}
-                      </span>
-                      <span style={{ color: colors.text, fontSize: '0.7rem' }}>
-                        {alliance.event_type === 'bear_hunt' && 'Bear Hunt'}
-                        {alliance.event_type === 'viking_vengeance' && 'Viking Vengeance'}
-                        {alliance.event_type === 'swordland_showdown' && 'Swordland Showdown'}
-                        {alliance.event_type === 'tri_alliance_clash' && 'Tri-Alliance Clash'}
-                      </span>
-                      <span style={{ color: colors.textMuted, fontSize: '0.6rem' }}>{alliance.time_slots.join(', ')}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Full Community Reviews */}
-            {reviewSummary && reviewSummary.review_count > 0 && (
-              <div style={{ borderTop: `1px solid ${colors.border}`, paddingTop: '0.6rem', marginTop: '0.6rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
-                  <div style={{ display: 'flex', gap: '0.1rem', fontSize: '0.85rem' }}>
-                    {renderStars(reviewSummary.avg_rating)}
-                  </div>
-                  <span style={{ color: colors.text, fontWeight: '600', fontSize: '0.8rem' }}>
-                    {reviewSummary.avg_rating.toFixed(1)}
-                  </span>
-                  <span style={{ color: colors.textSecondary, fontSize: '0.7rem' }}>
-                    ({reviewSummary.review_count} review{reviewSummary.review_count !== 1 ? 's' : ''})
-                  </span>
-                </div>
-                {reviewSummary.top_review_comment && (
-                  <div style={{
-                    padding: '0.4rem 0.6rem',
-                    backgroundColor: colors.surface,
-                    borderRadius: '6px',
-                    borderLeft: '3px solid #fbbf24',
-                  }}>
-                    <p style={{ color: colors.textSecondary, fontSize: '0.75rem', margin: 0, fontStyle: 'italic', lineHeight: 1.4 }}>
-                      &ldquo;{reviewSummary.top_review_comment}&rdquo;
-                    </p>
-                    {reviewSummary.top_review_author && (
-                      <span style={{ color: colors.textMuted, fontSize: '0.65rem' }}>— {reviewSummary.top_review_author}</span>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Card Footer - CTA */}
-      <div style={{
-        padding: '0.6rem 1rem',
-        borderTop: `1px solid ${colors.border}`,
-        display: 'flex',
-        gap: '0.5rem',
-        justifyContent: 'flex-end',
-        alignItems: 'center',
-      }}>
-        <Link
-          to={`/kingdom/${kingdom.kingdom_number}`}
-          style={{
-            padding: '0.4rem 0.75rem',
-            backgroundColor: 'transparent',
-            border: `1px solid ${colors.border}`,
-            borderRadius: '8px',
-            color: colors.textSecondary,
-            fontSize: '0.75rem',
-            textDecoration: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.3rem',
-            minHeight: '44px',
-            transition: 'border-color 0.2s',
-          }}
-        >
-          View Profile
-        </Link>
-        {canFundKingdom && (
-          <button
-            onClick={() => onFund?.(kingdom.kingdom_number)}
-            style={{
-              padding: '0.4rem 0.75rem',
-              backgroundColor: `${colors.success}10`,
-              border: `1px solid ${colors.success}30`,
-              borderRadius: '8px',
-              color: colors.success,
-              fontSize: '0.75rem',
-              cursor: 'pointer',
-              fontWeight: '600',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.3rem',
-              minHeight: '44px',
-            }}
-          >
-            Fund
-          </button>
-        )}
-        {mode === 'transferring' && isPremium && (
-          <button
-            style={{
-              padding: '0.4rem 0.75rem',
-              backgroundColor: `${colors.primary}15`,
-              border: `1px solid ${colors.primary}40`,
-              borderRadius: '8px',
-              color: colors.primary,
-              fontSize: '0.75rem',
-              cursor: 'pointer',
-              fontWeight: '600',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.3rem',
-              minHeight: '44px',
-            }}
-            onClick={() => onApply?.(kingdom.kingdom_number)}
-          >
-            Apply to Transfer
-          </button>
-        )}
-      </div>
-
-      <style>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.4; }
-        }
-        @keyframes goldShimmer {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
-    </div>
-  );
-
-  // Gold cards get a full-border shimmer wrapper
-  if (isGold) {
-    return (
-      <div
-        style={{
-          padding: '3px',
-          borderRadius: '14px',
-          background: 'linear-gradient(135deg, #fbbf24, #f59e0b, #fbbf24, #d97706, #fbbf24, #f59e0b, #fbbf24)',
-          backgroundSize: '300% 300%',
-          animation: 'goldShimmer 4s ease-in-out infinite',
-          boxShadow: isHovered
-            ? '0 0 28px #fbbf2430, 0 0 48px #fbbf2415, 0 4px 16px rgba(0,0,0,0.4)'
-            : '0 0 14px #fbbf2420, 0 2px 8px rgba(0,0,0,0.3)',
-          transition: 'box-shadow 0.3s ease',
-        }}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
-        {cardContent}
-      </div>
-    );
-  }
-
-  return cardContent;
-};
+// AllianceEventTimesGrid and KingdomListingCard are now in ../components/KingdomListingCard.tsx
+// (removed ~830 lines of inline component code)
 
 // =============================================
 // MAIN TRANSFER HUB PAGE
 // =============================================
 
 const TransferBoard: React.FC = () => {
+  useScrollDepth('Transfer Hub');
   const { user, profile } = useAuth();
   const isMobile = useIsMobile();
   const { trackFeature } = useAnalytics();
-
-  // Access gate: owner-only during pre-launch
-  // Check all possible username sources (Discord stores in full_name/name/preferred_username, not username)
-  const isOwner = isAdminEmail(user?.email)
-    || isAdminUsername(user?.user_metadata?.username)
-    || isAdminUsername(user?.user_metadata?.preferred_username)
-    || isAdminUsername(user?.user_metadata?.full_name)
-    || isAdminUsername(user?.user_metadata?.name)
-    || isAdminUsername(profile?.discord_username)
-    || isAdminUsername(profile?.linked_username)
-    || isAdminUsername(profile?.username);
-  if (!isOwner) {
-    return (
-      <div style={{
-        maxWidth: '600px', margin: '4rem auto', textAlign: 'center',
-        padding: '2rem', backgroundColor: '#111111', borderRadius: '16px',
-        border: '1px solid #2a2a2a',
-      }}>
-        <h1 style={{ fontFamily: FONT_DISPLAY, fontSize: '1.5rem', marginBottom: '0.75rem' }}>
-          <span style={{ color: '#fff' }}>TRANSFER</span>
-          <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.4rem' }}>HUB</span>
-        </h1>
-        <p style={{ color: '#9ca3af', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
-          Coming soon.
-        </p>
-        <p style={{ color: '#6b7280', fontSize: '0.8rem', marginBottom: '1.5rem' }}>
-          The Transfer Hub is currently in private beta. Stay tuned for the public launch.
-        </p>
-        <Link to="/" style={{
-          display: 'inline-block', padding: '0.6rem 1.5rem',
-          backgroundColor: '#22d3ee', color: '#000', borderRadius: '8px',
-          fontWeight: '600', fontSize: '0.85rem', textDecoration: 'none',
-          minHeight: '44px', lineHeight: '44px',
-        }}>
-          Back to Atlas
-        </Link>
-      </div>
-    );
-  }
 
   // Mode state — persisted in localStorage
   const [mode, setMode] = useState<BoardMode>(() => {
@@ -1217,6 +510,7 @@ const TransferBoard: React.FC = () => {
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const [showProfileForm, setShowProfileForm] = useState(false);
   const [hasTransferProfile, setHasTransferProfile] = useState(false);
+  const [transferProfile, setTransferProfile] = useState<UserTransferProfile | null>(null);
   const [applyingToKingdom, setApplyingToKingdom] = useState<number | null>(null);
   const [activeAppCount, setActiveAppCount] = useState(0);
   const [appRefreshKey, setAppRefreshKey] = useState(0);
@@ -1287,10 +581,24 @@ const TransferBoard: React.FC = () => {
       if (!supabase || !user) return;
       const { data } = await supabase
         .from('transfer_profiles')
-        .select('id')
+        .select('id, power_million, tc_level, main_language, secondary_languages, looking_for, kvk_availability, saving_for_kvk')
         .eq('user_id', user.id)
+        .eq('is_active', true)
         .single();
       setHasTransferProfile(!!data);
+      if (data) {
+        setTransferProfile({
+          power_million: data.power_million || 0,
+          tc_level: data.tc_level || 0,
+          main_language: data.main_language || 'English',
+          secondary_languages: data.secondary_languages || [],
+          looking_for: data.looking_for || [],
+          kvk_availability: data.kvk_availability || '',
+          saving_for_kvk: data.saving_for_kvk || '',
+        });
+      } else {
+        setTransferProfile(null);
+      }
     };
     const countActiveApps = async () => {
       if (!supabase || !user) return;
@@ -1328,7 +636,7 @@ const TransferBoard: React.FC = () => {
         // Fetch kingdoms with scores (from Supabase single source of truth)
         const { data: kingdomData, error: kError } = await supabase
           .from('kingdoms')
-          .select('kingdom_number, atlas_score, current_rank, total_kvks, prep_wins, prep_losses, prep_win_rate, battle_wins, battle_losses, battle_win_rate, dominations, invasions, most_recent_status')
+          .select('kingdom_number, atlas_score, current_rank, total_kvks, prep_wins, prep_losses, prep_win_rate, battle_wins, battle_losses, battle_win_rate, dominations, comebacks, reversals, invasions, most_recent_status')
           .order('current_rank', { ascending: true });
 
         if (kError) throw kError;
@@ -1398,6 +706,7 @@ const TransferBoard: React.FC = () => {
   // Handle entry modal selection
   const handleModeSelect = (selectedMode: BoardMode) => {
     setMode(selectedMode);
+    trackFeature('Transfer Hub Mode', { mode: selectedMode });
     localStorage.setItem('atlas_transfer_hub_mode', selectedMode);
     localStorage.setItem('atlas_transfer_hub_visited', 'true');
     setShowEntryModal(false);
@@ -1406,6 +715,7 @@ const TransferBoard: React.FC = () => {
   // Handle mode toggle change
   const handleModeChange = (newMode: BoardMode) => {
     setMode(newMode);
+    trackFeature('Transfer Hub Mode Toggle', { mode: newMode });
     localStorage.setItem('atlas_transfer_hub_mode', newMode);
   };
 
@@ -1423,9 +733,39 @@ const TransferBoard: React.FC = () => {
     return map;
   }, [reviewSummaries]);
 
+  // Determine user's transfer group
+  const userTransferGroup = useMemo(() => {
+    if (!TRANSFER_GROUPS_ACTIVE || !profile?.linked_kingdom) return null;
+    return getTransferGroup(profile.linked_kingdom);
+  }, [profile?.linked_kingdom]);
+
+  // Lightweight match score for sorting (no details array allocation)
+  const calculateMatchScoreForSort = (_kingdom: KingdomData, fund: KingdomFund | null): number => {
+    if (!transferProfile || !fund) return 0;
+    let matched = 0;
+    let total = 0;
+    const minPower = fund.min_power_million || (fund.min_power_range ? parseInt(fund.min_power_range, 10) || 0 : 0);
+    if (minPower > 0) { total++; if (transferProfile.power_million >= minPower) matched++; }
+    if (fund.min_tc_level && fund.min_tc_level > 0) { total++; if (transferProfile.tc_level >= fund.min_tc_level) matched++; }
+    if (fund.main_language) { total++; if (fund.main_language === transferProfile.main_language || (fund.secondary_languages || []).includes(transferProfile.main_language) || fund.main_language === (transferProfile.secondary_languages?.[0] || '')) matched++; }
+    if (fund.kingdom_vibe && fund.kingdom_vibe.length > 0 && transferProfile.looking_for.length > 0) { total++; if (transferProfile.looking_for.some(v => fund.kingdom_vibe.includes(v))) matched++; }
+    return total === 0 ? 0 : Math.round((matched / total) * 100);
+  };
+
   // Filter and sort kingdoms
   const filteredKingdoms = useMemo(() => {
     let result = [...kingdoms];
+
+    // In transferring mode, exclude user's own kingdom (can't transfer to yourself)
+    if (mode === 'transferring' && profile?.linked_kingdom) {
+      result = result.filter((k) => k.kingdom_number !== profile.linked_kingdom);
+    }
+
+    // Transfer group filter — only show kingdoms in user's transfer group
+    if (TRANSFER_GROUPS_ACTIVE && userTransferGroup) {
+      const [min, max] = userTransferGroup;
+      result = result.filter((k) => k.kingdom_number >= min && k.kingdom_number <= max);
+    }
 
     // Apply filters
     if (filters.isRecruiting) {
@@ -1485,52 +825,105 @@ const TransferBoard: React.FC = () => {
       case 'rank':
         result.sort((a, b) => (a.current_rank || 9999) - (b.current_rank || 9999));
         break;
+      case 'match':
+        if (transferProfile) {
+          result.sort((a, b) => {
+            const aFund = fundMap.get(a.kingdom_number) || null;
+            const bFund = fundMap.get(b.kingdom_number) || null;
+            const aScore = aFund && transferProfile ? calculateMatchScoreForSort(a, aFund) : 0;
+            const bScore = bFund && transferProfile ? calculateMatchScoreForSort(b, bFund) : 0;
+            return bScore - aScore;
+          });
+        }
+        break;
       default:
         break;
     }
 
     return result;
-  }, [kingdoms, filters, fundMap]);
+  }, [kingdoms, filters, fundMap, mode, profile?.linked_kingdom, userTransferGroup]);
 
   // Calculate match score for transferring mode
-  const calculateMatchScore = (_kingdom: KingdomData, fund: KingdomFund | null): number => {
-    if (!hasTransferProfile || !fund) return 0;
-    
-    // Use transfer profile data instead of user profile
-    const transferProfile = {
-      power_range: '0 - 50M',
-      tc_level: 1,
-      main_language: 'English',
-      kvk_participation: 'most'
-    };
-    
-    let score = 50; // Base score
-    
-    // Power range matching
-    if (fund.min_power_range) {
-      const userPower = parseInt((transferProfile.power_range.split(' - ')[1] || '0'), 10) || 0;
-      const minPower = parseInt((fund.min_power_range.split(' - ')[1] || '0'), 10) || 0;
-      if (userPower >= minPower) score += 20;
-      else score -= 20;
+  const calculateMatchScore = (_kingdom: KingdomData, fund: KingdomFund | null): { score: number; details: MatchDetail[] } => {
+    if (!transferProfile || !fund) return { score: 0, details: [] };
+
+    const details: MatchDetail[] = [];
+    let matched = 0;
+    let total = 0;
+
+    // 1. Power check
+    const minPower = fund.min_power_million || (fund.min_power_range ? parseInt(fund.min_power_range, 10) || 0 : 0);
+    if (minPower > 0) {
+      total++;
+      const powerOk = transferProfile.power_million >= minPower;
+      if (powerOk) matched++;
+      details.push({ label: 'Power', matched: powerOk, detail: powerOk ? `${transferProfile.power_million}M ≥ ${minPower}M required` : `${transferProfile.power_million}M < ${minPower}M required` });
     }
-    
-    // TC level matching
-    if (fund.min_tc_level) {
-      if (transferProfile.tc_level >= fund.min_tc_level) score += 15;
-      else score -= 15;
+
+    // 2. TC Level check
+    if (fund.min_tc_level && fund.min_tc_level > 0) {
+      total++;
+      const tcOk = transferProfile.tc_level >= fund.min_tc_level;
+      if (tcOk) matched++;
+      details.push({ label: 'TC Level', matched: tcOk, detail: tcOk ? `${formatTCLevel(transferProfile.tc_level)} ≥ ${formatTCLevel(fund.min_tc_level)} required` : `${formatTCLevel(transferProfile.tc_level)} < ${formatTCLevel(fund.min_tc_level)} required` });
     }
-    
-    // Language matching
+
+    // 3. Language check
     if (fund.main_language) {
-      if (fund.main_language === transferProfile.main_language) score += 10;
-      else if (fund.secondary_languages?.includes(transferProfile.main_language)) score += 5;
+      total++;
+      const langMatch = fund.main_language === transferProfile.main_language
+        || (fund.secondary_languages || []).includes(transferProfile.main_language)
+        || fund.main_language === (transferProfile.secondary_languages?.[0] || '');
+      if (langMatch) matched++;
+      details.push({ label: 'Language', matched: langMatch, detail: langMatch ? `${transferProfile.main_language} matches` : `${transferProfile.main_language} ≠ ${fund.main_language}` });
     }
-    
-    // KvK participation matching
-    if (transferProfile.kvk_participation === 'every' && fund.recruitment_tags?.includes('Active KvK')) score += 5;
-    
-    return Math.max(0, Math.min(100, score));
+
+    // 4. Kingdom Vibe / Looking For overlap
+    if (fund.kingdom_vibe && fund.kingdom_vibe.length > 0 && transferProfile.looking_for.length > 0) {
+      total++;
+      const overlap = transferProfile.looking_for.filter(v => fund.kingdom_vibe.includes(v));
+      const vibeMatch = overlap.length > 0;
+      if (vibeMatch) matched++;
+      details.push({ label: 'Vibe Match', matched: vibeMatch, detail: vibeMatch ? `${overlap.length} shared: ${overlap.join(', ')}` : 'No overlapping vibes' });
+    }
+
+    if (total === 0) return { score: 0, details: [] };
+    const score = Math.round((matched / total) * 100);
+    return { score, details };
   };
+
+  // Access gate: require linked Kingshot account (placed after all hooks for Rules of Hooks compliance)
+  const hasLinkedAccount = !!profile?.linked_player_id;
+  if (!user || !hasLinkedAccount) {
+    return (
+      <div style={{
+        maxWidth: '600px', margin: '4rem auto', textAlign: 'center',
+        padding: '2rem', backgroundColor: '#111111', borderRadius: '16px',
+        border: '1px solid #2a2a2a',
+      }}>
+        <h1 style={{ fontFamily: FONT_DISPLAY, fontSize: '1.5rem', marginBottom: '0.75rem' }}>
+          <span style={{ color: '#fff' }}>TRANSFER</span>
+          <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.4rem' }}>HUB</span>
+        </h1>
+        <p style={{ color: '#9ca3af', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
+          {!user ? 'Sign in to access the Transfer Hub.' : 'Link your Kingshot account to access the Transfer Hub.'}
+        </p>
+        <p style={{ color: '#6b7280', fontSize: '0.8rem', marginBottom: '1.5rem' }}>
+          {!user
+            ? 'The Transfer Hub requires an account to browse kingdoms, apply for transfers, and manage recruitment.'
+            : 'Go to your Profile and link your in-game account to unlock the Transfer Hub.'}
+        </p>
+        <Link to={!user ? '/profile' : '/profile'} style={{
+          display: 'inline-block', padding: '0.6rem 1.5rem',
+          backgroundColor: '#22d3ee', color: '#000', borderRadius: '8px',
+          fontWeight: '600', fontSize: '0.85rem', textDecoration: 'none',
+          minHeight: '44px', lineHeight: '44px',
+        }}>
+          {!user ? 'Sign In' : 'Link Account'}
+        </Link>
+      </div>
+    );
+  }
 
   const kingdomsWithFunds = filteredKingdoms.filter((k) => fundMap.has(k.kingdom_number));
   const kingdomsWithoutFunds = filteredKingdoms.filter((k) => !fundMap.has(k.kingdom_number));
@@ -1677,7 +1070,7 @@ const TransferBoard: React.FC = () => {
           <EditorClaiming onEditorActivated={() => setIsEditor(true)} />
           {isEditor && (
             <button
-              onClick={() => setShowRecruiterDash(true)}
+              onClick={() => { trackFeature('Recruiter Dashboard Open'); setShowRecruiterDash(true); }}
               style={{
                 padding: '0.6rem 1rem',
                 backgroundColor: '#a855f715',
@@ -1707,7 +1100,7 @@ const TransferBoard: React.FC = () => {
       )}
 
       {/* Kingdom Fund Contribution Modal */}
-      {contributingToKingdom && (
+      {contributingToKingdom !== null && (
         <KingdomFundContribute
           kingdomNumber={contributingToKingdom}
           currentBalance={fundMap.get(contributingToKingdom)?.balance || 0}
@@ -1809,6 +1202,34 @@ const TransferBoard: React.FC = () => {
         </div>
       </div>
 
+      {/* Transfer Group Banner */}
+      {TRANSFER_GROUPS_ACTIVE && (
+        <div style={{
+          padding: '0.6rem 1rem',
+          backgroundColor: '#22d3ee08',
+          border: '1px solid #22d3ee20',
+          borderRadius: '10px',
+          marginBottom: '1rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          fontSize: '0.8rem',
+        }}>
+          <span style={{ fontSize: '1rem' }}>🔀</span>
+          {userTransferGroup ? (
+            <span style={{ color: colors.textSecondary }}>
+              <span style={{ color: '#22d3ee', fontWeight: '600' }}>Transfer Group Active</span>
+              {' — '}Showing kingdoms {userTransferGroup[0]}–{userTransferGroup[1]} (your group)
+            </span>
+          ) : (
+            <span style={{ color: colors.textSecondary }}>
+              <span style={{ color: '#eab308', fontWeight: '600' }}>Transfer Groups Active</span>
+              {' — '}<Link to="/profile" style={{ color: '#22d3ee', textDecoration: 'underline' }}>Link your kingdom</Link> to see only your transfer group
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Kingdom Listings */}
       {loading ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -1840,7 +1261,7 @@ const TransferBoard: React.FC = () => {
           {/* Funded kingdoms first */}
           {kingdomsWithFunds.map((kingdom) => {
             const fund = fundMap.get(kingdom.kingdom_number) || null;
-            const matchScore = mode === 'transferring' ? calculateMatchScore(kingdom, fund) : undefined;
+            const matchResult = mode === 'transferring' ? calculateMatchScore(kingdom, fund) : undefined;
             return (
               <KingdomListingCard
                 key={kingdom.kingdom_number}
@@ -1848,9 +1269,10 @@ const TransferBoard: React.FC = () => {
                 fund={fund}
                 reviewSummary={reviewMap.get(kingdom.kingdom_number) || null}
                 mode={mode}
-                matchScore={matchScore}
-                onApply={(kn) => setApplyingToKingdom(kn)}
-                onFund={(kn) => setContributingToKingdom(kn)}
+                matchScore={matchResult?.score}
+                matchDetails={matchResult?.details}
+                onApply={(kn) => { trackFeature('Transfer Apply Click', { kingdom: kn }); setApplyingToKingdom(kn); }}
+                onFund={(kn) => { trackFeature('Transfer Fund Click', { kingdom: kn }); setContributingToKingdom(kn); }}
               />
             );
           })}
@@ -1870,7 +1292,7 @@ const TransferBoard: React.FC = () => {
           {/* Standard (unfunded) kingdoms — infinite scroll */}
           {kingdomsWithoutFunds.slice(0, visibleCount).map((kingdom) => {
             const fund = null;
-            const matchScore = mode === 'transferring' ? calculateMatchScore(kingdom, fund) : undefined;
+            const matchResult = mode === 'transferring' ? calculateMatchScore(kingdom, fund) : undefined;
             return (
               <KingdomListingCard
                 key={kingdom.kingdom_number}
@@ -1878,9 +1300,10 @@ const TransferBoard: React.FC = () => {
                 fund={fund}
                 reviewSummary={reviewMap.get(kingdom.kingdom_number) || null}
                 mode={mode}
-                matchScore={matchScore}
-                onApply={(kn) => setApplyingToKingdom(kn)}
-                onFund={(kn) => setContributingToKingdom(kn)}
+                matchScore={matchResult?.score}
+                matchDetails={matchResult?.details}
+                onApply={(kn) => { trackFeature('Transfer Apply Click', { kingdom: kn }); setApplyingToKingdom(kn); }}
+                onFund={(kn) => { trackFeature('Transfer Fund Click', { kingdom: kn }); setContributingToKingdom(kn); }}
               />
             );
           })}
@@ -1906,10 +1329,23 @@ const TransferBoard: React.FC = () => {
           {filteredKingdoms.length === 0 && (
             <div style={{
               textAlign: 'center', padding: '3rem 1rem',
-              color: '#6b7280',
+              backgroundColor: '#111111', borderRadius: '16px',
+              border: '1px solid #2a2a2a',
             }}>
-              <p style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>No kingdoms match your filters</p>
-              <p style={{ fontSize: '0.85rem' }}>Try adjusting your filters or clearing them</p>
+              <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem', opacity: 0.6 }}>🔍</div>
+              <p style={{ fontSize: '1.1rem', marginBottom: '0.4rem', color: '#d1d5db', fontWeight: '600' }}>No kingdoms match your filters</p>
+              <p style={{ fontSize: '0.85rem', color: '#6b7280', marginBottom: '1rem' }}>Try adjusting your filters or clearing them to see all kingdoms.</p>
+              <button
+                onClick={() => setFilters(defaultFilters)}
+                style={{
+                  padding: '0.5rem 1.25rem', backgroundColor: '#22d3ee15',
+                  border: '1px solid #22d3ee30', borderRadius: '8px',
+                  color: '#22d3ee', fontSize: '0.8rem', fontWeight: '600',
+                  cursor: 'pointer', minHeight: '44px',
+                }}
+              >
+                Clear All Filters
+              </button>
             </div>
           )}
         </div>

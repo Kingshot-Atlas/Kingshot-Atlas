@@ -3,6 +3,7 @@ import { useIsMobile } from '../hooks/useMediaQuery';
 import { useToast } from './Toast';
 import { colors, neonGlow, transition, subscriptionColors } from '../utils/styles';
 import { Button } from './shared';
+import { supabase } from '../lib/supabase';
 
 // Get username color based on subscription tier (includes admin)
 const getUsernameColor = (tier: string): string => {
@@ -258,6 +259,22 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
 
     try {
       const data = await verifyPlayer(playerId.trim());
+
+      // Check if this player ID is already linked to another Atlas account
+      if (supabase) {
+        const { data: existing } = await supabase
+          .from('profiles')
+          .select('username')
+          .eq('linked_player_id', playerId.trim())
+          .maybeSingle();
+
+        if (existing) {
+          setError('This Player ID is already linked to another Atlas account.');
+          setIsLoading(false);
+          return;
+        }
+      }
+
       setPreviewData(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Verification failed');

@@ -16,6 +16,7 @@ const WebhookMonitor = lazy(() => import('../components/WebhookMonitor').then(m 
 const DataSourceStats = lazy(() => import('../components/DataSourceStats').then(m => ({ default: m.DataSourceStats })));
 const BotDashboard = lazy(() => import('../components/BotDashboard').then(m => ({ default: m.BotDashboard })));
 const DiscordRolesDashboard = lazy(() => import('../components/DiscordRolesDashboard').then(m => ({ default: m.DiscordRolesDashboard })));
+const ReferralFunnel = lazy(() => import('../components/ReferralFunnel'));
 import { ADMIN_USERNAMES } from '../utils/constants';
 import { supabase } from '../lib/supabase';
 import { logger } from '../utils/logger';
@@ -30,6 +31,7 @@ import {
   ClaimsTab,
   AdminActivityFeed,
   PlausibleInsights,
+  TransferApplicationsTab,
   SkeletonGrid,
   type Submission,
   type Claim,
@@ -47,7 +49,7 @@ const AdminDashboard: React.FC = () => {
   const { showToast } = useToast();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [activeTab, setActiveTab] = useState<'analytics' | 'saas-metrics' | 'engagement' | 'webhooks' | 'data-sources' | 'discord-bot' | 'discord-roles' | 'submissions' | 'new-kingdoms' | 'claims' | 'corrections' | 'kvk-errors' | 'import' | 'users' | 'plausible' | 'transfer-status' | 'feedback'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'saas-metrics' | 'engagement' | 'webhooks' | 'data-sources' | 'discord-bot' | 'discord-roles' | 'referrals' | 'submissions' | 'new-kingdoms' | 'claims' | 'corrections' | 'kvk-errors' | 'import' | 'users' | 'plausible' | 'transfer-status' | 'transfer-apps' | 'feedback'>('analytics');
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [claims, setClaims] = useState<Claim[]>([]);
   const [transferSubmissions, setTransferSubmissions] = useState<StatusSubmission[]>([]);
@@ -1489,7 +1491,7 @@ const AdminDashboard: React.FC = () => {
   // Determine active category based on current tab
   const getActiveCategory = () => {
     if (['analytics', 'saas-metrics', 'engagement', 'plausible'].includes(activeTab)) return 'analytics';
-    if (['submissions', 'new-kingdoms', 'claims', 'transfer-status', 'corrections', 'kvk-errors'].includes(activeTab)) return 'review';
+    if (['submissions', 'new-kingdoms', 'claims', 'transfer-status', 'transfer-apps', 'corrections', 'kvk-errors'].includes(activeTab)) return 'review';
     return 'system';
   };
   const activeCategory = getActiveCategory();
@@ -1648,6 +1650,7 @@ const AdminDashboard: React.FC = () => {
           { id: 'new-kingdoms', label: 'New Kingdoms', count: 0 },
           { id: 'claims', label: 'Claims', count: pendingCounts.claims },
           { id: 'transfer-status', label: 'Transfer Status', count: pendingCounts.transfers },
+          { id: 'transfer-apps', label: 'Transfer Apps', count: 0 },
           { id: 'corrections', label: 'Corrections', count: pendingCounts.corrections },
           { id: 'kvk-errors', label: 'KvK Errors', count: pendingCounts.kvkErrors }
         ].map(tab => (
@@ -1687,6 +1690,7 @@ const AdminDashboard: React.FC = () => {
           { id: 'feedback', label: 'Feedback', count: pendingCounts.feedback },
           { id: 'discord-bot', label: 'Discord Bot', count: 0 },
           { id: 'discord-roles', label: 'Discord Roles', count: 0 },
+          { id: 'referrals', label: 'Referrals', count: 0 },
           { id: 'webhooks', label: 'Webhooks', count: 0 },
           { id: 'data-sources', label: 'Data Sources', count: 0 },
           { id: 'import', label: 'Import', count: 0 }
@@ -1806,6 +1810,10 @@ const AdminDashboard: React.FC = () => {
       ) : activeTab === 'discord-roles' ? (
         <Suspense fallback={<div style={{ padding: '2rem', color: '#6b7280' }}>Loading roles dashboard...</div>}>
           <DiscordRolesDashboard />
+        </Suspense>
+      ) : activeTab === 'referrals' ? (
+        <Suspense fallback={<div style={{ padding: '2rem', color: '#6b7280' }}>Loading referral metrics...</div>}>
+          <ReferralFunnel />
         </Suspense>
       ) : activeTab === 'new-kingdoms' ? (
         <NewKingdomsTab
@@ -2167,6 +2175,8 @@ const AdminDashboard: React.FC = () => {
             ))
           )}
         </div>
+      ) : activeTab === 'transfer-apps' ? (
+        <TransferApplicationsTab />
       ) : activeTab === 'plausible' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           <div style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', border: '1px solid #2a2a2a' }}>

@@ -28,18 +28,26 @@ export type NotificationType =
   | 'claim_verified'
   | 'claim_rejected'
   | 'system_announcement'
-  | 'favorite_score_change';
+  | 'favorite_score_change'
+  | 'referral_verified'
+  | 'new_application'
+  | 'application_status'
+  | 'co_editor_invite'
+  | 'fund_contribution'
+  | 'application_expiring';
 
 export interface NotificationPreferences {
   score_changes: boolean;
   submission_updates: boolean;
   system_announcements: boolean;
+  transfer_updates: boolean;
 }
 
 export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   score_changes: true,
   submission_updates: true,
   system_announcements: true,
+  transfer_updates: true,
 };
 
 class NotificationService {
@@ -261,6 +269,18 @@ class NotificationService {
         return '📢';
       case 'favorite_score_change':
         return '📊';
+      case 'referral_verified':
+        return '🏛️';
+      case 'new_application':
+        return '📩';
+      case 'application_status':
+        return '📋';
+      case 'co_editor_invite':
+        return '🤝';
+      case 'fund_contribution':
+        return '💰';
+      case 'application_expiring':
+        return '⏳';
       default:
         return '🔔';
     }
@@ -286,6 +306,18 @@ class NotificationService {
         return '#22d3ee'; // cyan
       case 'favorite_score_change':
         return '#a855f7'; // purple
+      case 'referral_verified':
+        return '#a24cf3'; // ambassador purple
+      case 'new_application':
+        return '#eab308'; // yellow
+      case 'application_status':
+        return '#22d3ee'; // cyan
+      case 'co_editor_invite':
+        return '#a855f7'; // purple
+      case 'fund_contribution':
+        return '#22c55e'; // green
+      case 'application_expiring':
+        return '#f59e0b'; // amber
       default:
         return '#9ca3af'; // gray
     }
@@ -314,6 +346,7 @@ class NotificationService {
         score_changes: prefs.score_changes !== false,
         submission_updates: prefs.submission_updates !== false,
         system_announcements: prefs.system_announcements !== false,
+        transfer_updates: prefs.transfer_updates !== false,
       };
     } catch (err) {
       logger.error('Error fetching notification preferences:', err);
@@ -343,6 +376,7 @@ class NotificationService {
           score_changes: prefs.score_changes,
           submission_updates: prefs.submission_updates,
           system_announcements: prefs.system_announcements,
+          transfer_updates: prefs.transfer_updates,
         }
       };
 

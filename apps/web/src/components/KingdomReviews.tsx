@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth, getCacheBustedAvatarUrl } from '../contexts/AuthContext';
 import AuthModal from './AuthModal';
-import { getDisplayTier, SUBSCRIPTION_COLORS, SubscriptionTier } from '../utils/constants';
+import { getDisplayTier, SUBSCRIPTION_COLORS, SubscriptionTier, ReferralTier } from '../utils/constants';
+import ReferralBadge from './ReferralBadge';
 import { colors, neonGlow } from '../utils/styles';
 import { reviewService, ReviewWithVoteStatus, ReviewReply, Review, ReportReason } from '../services/reviewService';
 import { isSupabaseConfigured } from '../lib/supabase';
@@ -523,6 +524,9 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                     SUPPORTER
                   </span>
                 )}
+                {profile?.referral_tier && (
+                  <ReferralBadge tier={profile.referral_tier as ReferralTier} />
+                )}
               </div>
             );
           })()}
@@ -1032,6 +1036,9 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                             }}>
                               SUPPORTER
                             </span>
+                          )}
+                          {review.author_referral_tier && (
+                            <ReferralBadge tier={review.author_referral_tier as ReferralTier} />
                           )}
                         </Link>
                         

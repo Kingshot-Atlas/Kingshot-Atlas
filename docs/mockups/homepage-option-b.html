@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kingshot Atlas - Option B Mockup</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { 
+    background: #0a0a0a; 
+    color: #fff; 
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    overflow-x: hidden;
+  }
+  
+  /* Toggle */
+  .view-toggle {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
+    background: #1a1a1a; border-bottom: 1px solid #333;
+    display: flex; align-items: center; justify-content: center; gap: 1rem;
+    padding: 0.75rem;
+  }
+  .view-toggle button {
+    padding: 0.5rem 1.5rem; border-radius: 8px; border: 1px solid #333;
+    background: transparent; color: #9ca3af; cursor: pointer; font-size: 0.9rem;
+    transition: all 0.2s;
+  }
+  .view-toggle button.active {
+    background: #22d3ee20; border-color: #22d3ee; color: #22d3ee;
+  }
+  .view-toggle .label { color: #6b7280; font-size: 0.8rem; }
+  
+  /* Frames */
+  .frame-container {
+    display: flex; justify-content: center; padding-top: 60px; min-height: 100vh;
+  }
+  .device-frame {
+    background: #0a0a0a;
+    overflow-y: auto; overflow-x: hidden;
+    transition: width 0.3s ease;
+    border: 1px solid #333;
+    border-radius: 12px;
+    margin: 1rem;
+    max-height: calc(100vh - 80px);
+  }
+  .device-frame.desktop { width: 1200px; }
+  .device-frame.mobile { width: 390px; }
+  .device-frame.hidden { display: none; }
+  
+  /* ===== HEADER ===== */
+  .header {
+    background: #0a0a0a;
+    border-bottom: 1px solid #333;
+    padding: 0 1.5rem;
+    height: 56px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .logo { display: flex; align-items: center; gap: 0.5rem; text-decoration: none; }
+  .logo-icon { width: 28px; height: 28px; background: #22d3ee; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.7rem; color: #000; }
+  .logo-text { display: flex; flex-direction: column; line-height: 1; }
+  .logo-text .top { color: #fff; font-size: 0.65rem; font-weight: bold; letter-spacing: 0.05em; }
+  .logo-text .bottom { color: #22d3ee; font-size: 1rem; font-weight: bold; text-shadow: 0 0 10px rgba(34,211,238,0.5); }
+  
+  .nav-links { display: flex; align-items: center; gap: 1.5rem; }
+  .nav-links a { color: #9ca3af; text-decoration: none; font-size: 0.9rem; }
+  .nav-links a:hover { color: #22d3ee; }
+  .nav-links .active { color: #22d3ee; font-weight: 600; text-shadow: 0 0 10px rgba(34,211,238,0.3); }
+  
+  .support-btn { 
+    display: flex; align-items: center; gap: 0.4rem; color: #ff6b8a; font-size: 0.85rem;
+    padding: 0.4rem 0.75rem; background: #ff6b8a15; border: 1px solid #ff6b8a40;
+    border-radius: 6px; text-decoration: none;
+  }
+  .sign-in-btn {
+    display: flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.75rem;
+    background: #1a1a1a; border: 1px solid #333; border-radius: 6px; color: #fff;
+    font-size: 0.85rem; cursor: pointer;
+  }
+  
+  .hamburger { 
+    width: 40px; height: 40px; background: transparent; border: none; color: #9ca3af; 
+    cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;
+  }
+  
+  .countdown-pills { display: flex; gap: 0.5rem; }
+  .countdown-pill {
+    padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.7rem; font-weight: 500;
+    display: flex; align-items: center; gap: 0.3rem;
+  }
+  .countdown-pill.kvk { background: #f9731615; border: 1px solid #f9731640; color: #f97316; }
+  .countdown-pill.transfer { background: #22c55e15; border: 1px solid #22c55e40; color: #22c55e; }
+
+  /* ===== HERO ===== */
+  .hero {
+    text-align: center; padding: 1.5rem 1rem 1rem;
+    background: linear-gradient(180deg, #111 0%, #0a0a0a 100%);
+    position: relative;
+  }
+  .hero h1 { font-family: 'Times New Roman', serif; margin-bottom: 0.4rem; }
+  .hero h1 .white { color: #fff; font-size: 1.8rem; }
+  .hero h1 .cyan { color: #22d3ee; font-size: 2rem; text-shadow: 0 0 20px rgba(34,211,238,0.4); margin-left: 0.5rem; }
+  .hero p { color: #6b7280; font-size: 0.85rem; }
+  .mobile .hero h1 .white { font-size: 1.3rem; }
+  .mobile .hero h1 .cyan { font-size: 1.5rem; }
+  .mobile .hero { padding: 1rem 0.75rem 0.75rem; }
+  
+  /* ===== NEW: QUICK ACTIONS ===== */
+  .quick-actions {
+    max-width: 1200px; margin: 0 auto;
+    padding: 0.75rem 1.5rem;
+  }
+  .quick-actions-grid {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.75rem;
+  }
+  .qa-tile {
+    display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+    padding: 1rem 0.5rem;
+    background: #111; border: 1px solid #2a2a2a; border-radius: 12px;
+    cursor: pointer; transition: all 0.2s; text-decoration: none;
+  }
+  .qa-tile:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+  .qa-tile .icon {
+    width: 44px; height: 44px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; font-size: 1.3rem;
+  }
+  .qa-tile .label { font-size: 0.8rem; color: #d1d5db; font-weight: 500; text-align: center; white-space: nowrap; }
+  
+  /* Mobile quick actions */
+  .mobile .quick-actions { padding: 0.5rem 0.75rem; }
+  .mobile .quick-actions-grid {
+    grid-template-columns: repeat(3, 1fr); gap: 0.5rem;
+  }
+  .mobile .qa-tile { padding: 0.75rem 0.25rem; }
+  .mobile .qa-tile .icon { width: 36px; height: 36px; font-size: 1.1rem; }
+  .mobile .qa-tile .label { font-size: 0.7rem; }
+  
+  /* ===== NEW: TRANSFER HUB BANNER ===== */
+  .transfer-banner {
+    max-width: 1200px; margin: 0 auto;
+    padding: 0 1.5rem 0.75rem;
+  }
+  .transfer-banner-inner {
+    background: linear-gradient(135deg, #0a1a0f 0%, #111 50%, #0f1a1a 100%);
+    border: 1px solid #22c55e40;
+    border-radius: 14px;
+    padding: 1.25rem 1.5rem;
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    position: relative; overflow: hidden;
+  }
+  .transfer-banner-inner::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 20% 50%, #22c55e08, transparent 70%);
+  }
+  .tb-content { position: relative; z-index: 1; }
+  .tb-content h3 { font-size: 1.1rem; color: #fff; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.5rem; }
+  .tb-content h3 .arrow { color: #22c55e; font-size: 1.2rem; }
+  .tb-content p { color: #9ca3af; font-size: 0.85rem; }
+  .tb-content p span { color: #22c55e; font-weight: 600; }
+  .tb-actions { display: flex; align-items: center; gap: 1rem; position: relative; z-index: 1; }
+  .tb-countdown {
+    padding: 0.5rem 0.75rem; background: #0a0a0a; border: 1px solid #22c55e30;
+    border-radius: 8px; text-align: center;
+  }
+  .tb-countdown .time { color: #22c55e; font-size: 1.1rem; font-weight: bold; font-variant-numeric: tabular-nums; }
+  .tb-countdown .lbl { color: #6b7280; font-size: 0.65rem; text-transform: uppercase; }
+  .tb-cta {
+    padding: 0.65rem 1.25rem; background: #22c55e; color: #000; font-weight: 600;
+    border: none; border-radius: 8px; font-size: 0.9rem; cursor: pointer;
+    display: flex; align-items: center; gap: 0.4rem;
+    box-shadow: 0 0 20px rgba(34,197,94,0.3);
+  }
+  .tb-dismiss {
+    position: absolute; top: 0.5rem; right: 0.75rem; background: none; border: none;
+    color: #4b5563; cursor: pointer; font-size: 1rem; z-index: 2;
+  }
+  
+  /* Mobile banner */
+  .mobile .transfer-banner { padding: 0 0.75rem 0.5rem; }
+  .mobile .transfer-banner-inner { 
+    flex-direction: column; align-items: flex-start; padding: 1rem; 
+  }
+  .mobile .tb-actions { width: 100%; justify-content: space-between; }
+  .mobile .tb-cta { flex: 1; justify-content: center; }
+  
+  /* ===== NEW: MOBILE COUNTDOWNS ===== */
+  .mobile-countdowns {
+    display: flex; gap: 0.5rem; padding: 0 0.75rem 0.5rem;
+  }
+  .mc-pill {
+    flex: 1; padding: 0.6rem; border-radius: 10px; text-align: center;
+  }
+  .mc-pill.kvk { background: #f9731610; border: 1px solid #f9731630; }
+  .mc-pill.transfer { background: #22c55e10; border: 1px solid #22c55e30; }
+  .mc-pill .mc-label { font-size: 0.65rem; color: #6b7280; text-transform: uppercase; margin-bottom: 0.2rem; }
+  .mc-pill.kvk .mc-time { color: #f97316; font-size: 0.85rem; font-weight: 600; }
+  .mc-pill.transfer .mc-time { color: #22c55e; font-size: 0.85rem; font-weight: 600; }
+  
+  /* ===== SEARCH BAR ===== */
+  .search-section {
+    max-width: 1200px; margin: 0 auto; padding: 0.5rem 1.5rem;
+    position: sticky; top: 56px; z-index: 50; background: #0a0a0a;
+  }
+  .search-bar-wrapper {
+    background: rgba(17,17,17,0.95); backdrop-filter: blur(12px);
+    border: 1px solid #2a2a2a; border-radius: 12px;
+    padding: 0.75rem; display: flex; align-items: center; gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .search-input {
+    flex: 1; min-width: 200px; padding: 0.75rem 1rem;
+    background: #0a0a0a; border: 1px solid #2a2a2a; border-radius: 8px;
+    color: #fff; font-size: 0.9rem; outline: none;
+  }
+  .search-input::placeholder { color: #4b5563; }
+  .filter-btn, .view-btn, .sort-btn {
+    padding: 0.65rem 1rem; background: #0a0a0a; border: 1px solid #2a2a2a;
+    border-radius: 8px; color: #9ca3af; cursor: pointer; font-size: 0.85rem;
+    display: flex; align-items: center; gap: 0.4rem;
+  }
+  .chip-row { 
+    display: flex; gap: 0.4rem; flex-wrap: wrap; padding: 0.5rem 0 0; 
+    align-items: center;
+  }
+  .chip {
+    padding: 0.25rem 0.6rem; border-radius: 16px; font-size: 0.75rem;
+    border: 1px solid #3a3a3a; color: #6b7280; background: transparent; cursor: pointer;
+  }
+  .results-count { color: #6b7280; font-size: 0.85rem; }
+  .results-count span { color: #22d3ee; font-weight: 600; }
+  
+  .mobile .search-section { padding: 0.5rem 0.75rem; top: 56px; }
+  .mobile .search-bar-wrapper { flex-direction: column; }
+  .mobile .search-input { width: 100%; min-width: 0; }
+  .mobile .mobile-controls { display: flex; gap: 0.5rem; width: 100%; }
+  .mobile .mobile-controls > * { flex: 1; }
+  
+  /* ===== KINGDOM GRID ===== */
+  .kingdom-grid {
+    max-width: 1200px; margin: 0 auto; padding: 0.5rem 1.5rem 3rem;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.25rem;
+  }
+  .kingdom-card {
+    background: #111; border: 1px solid #2a2a2a; border-radius: 14px;
+    padding: 1.25rem; transition: all 0.2s; cursor: pointer;
+  }
+  .kingdom-card:hover { border-color: #22d3ee50; transform: translateY(-2px); }
+  .kc-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; }
+  .kc-title { font-size: 1.1rem; font-weight: 600; }
+  .kc-rank { color: #22d3ee; font-size: 0.8rem; }
+  .kc-tier { 
+    padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.7rem; 
+    font-weight: 700; letter-spacing: 0.05em;
+  }
+  .kc-tier.S { background: #fbbf2420; color: #fbbf24; border: 1px solid #fbbf2450; }
+  .kc-tier.A { background: #22c55e20; color: #22c55e; border: 1px solid #22c55e50; }
+  .kc-tier.B { background: #3b82f620; color: #3b82f6; border: 1px solid #3b82f650; }
+  .kc-score { 
+    font-size: 1.8rem; font-weight: bold; color: #22d3ee; 
+    text-shadow: 0 0 15px rgba(34,211,238,0.4); margin-bottom: 0.5rem;
+  }
+  .kc-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+  .kc-stat { }
+  .kc-stat .stat-label { font-size: 0.7rem; color: #6b7280; text-transform: uppercase; }
+  .kc-stat .stat-value { font-size: 0.95rem; font-weight: 600; }
+  .kc-stat .stat-value.prep { color: #eab308; }
+  .kc-stat .stat-value.battle { color: #f97316; }
+  .kc-stat .stat-value.kvks { color: #a855f7; }
+  .kc-stat .stat-value.status { color: #22c55e; }
+  
+  .mobile .kingdom-grid { 
+    grid-template-columns: 1fr; gap: 0.75rem; padding: 0.5rem 0.75rem 3rem; 
+  }
+  
+  /* ===== ANNOTATION LABELS ===== */
+  .annotation {
+    position: relative;
+  }
+  .annotation::after {
+    content: attr(data-label);
+    position: absolute; right: -12px; top: 50%; transform: translate(100%, -50%);
+    background: #22d3ee; color: #000; padding: 0.25rem 0.6rem; border-radius: 4px;
+    font-size: 0.65rem; font-weight: 700; white-space: nowrap;
+    letter-spacing: 0.05em; text-transform: uppercase;
+  }
+  .mobile .annotation::after { display: none; }
+  
+  /* Label bar */
+  .section-label {
+    max-width: 1200px; margin: 0 auto; padding: 0.25rem 1.5rem;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .section-label .tag {
+    padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.6rem;
+    font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .tag.new { background: #22c55e20; color: #22c55e; border: 1px solid #22c55e50; }
+  .tag.existing { background: #3b82f620; color: #3b82f6; border: 1px solid #3b82f650; }
+  .tag.enhanced { background: #f9731620; color: #f97316; border: 1px solid #f9731650; }
+  .section-label .desc { color: #4b5563; font-size: 0.7rem; }
+  
+  .mobile .section-label { padding: 0.25rem 0.75rem; }
+</style>
+</head>
+<body>
+
+<div class="view-toggle">
+  <span class="label">VIEW:</span>
+  <button id="btn-desktop" class="active" onclick="showView('desktop')">Desktop (1200px)</button>
+  <button id="btn-mobile" onclick="showView('mobile')">Mobile (390px)</button>
+  <button id="btn-side" onclick="showView('side')">Side by Side</button>
+</div>
+
+<!-- DESKTOP -->
+<div class="frame-container" id="container">
+
+<div class="device-frame desktop" id="frame-desktop">
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">KA</div>
+      <div class="logo-text">
+        <span class="top">KINGSHOT</span>
+        <span class="bottom">ATLAS</span>
+      </div>
+    </div>
+    <div class="countdown-pills">
+      <div class="countdown-pill kvk">⚔️ KvK #11 in 14d 2h</div>
+      <div class="countdown-pill transfer">🔀 Transfer in 6d 8h</div>
+    </div>
+    <div class="nav-links">
+      <a href="#" class="active">Home</a>
+      <a href="#">Rankings ▾</a>
+      <a href="#">Tools ▾</a>
+      <a href="#">Community ▾</a>
+      <a href="#" class="support-btn">❤️ Support Us</a>
+      <button class="sign-in-btn">👤 Sign In</button>
+    </div>
+  </div>
+  
+  <!-- Hero -->
+  <div class="hero">
+    <h1><span class="white">KINGSHOT</span><span class="cyan">ATLAS</span></h1>
+    <p>Scout your enemy. Choose your allies. Dominate Kingshot.</p>
+  </div>
+  
+  <!-- NEW: Quick Actions -->
+  <div class="section-label"><span class="tag new">NEW</span><span class="desc">Quick Actions — surfaces all core features in 1 click</span></div>
+  <div class="quick-actions">
+    <div class="quick-actions-grid">
+      <a class="qa-tile" style="--accent: #22c55e;">
+        <div class="icon" style="background: #22c55e15; color: #22c55e;">🔀</div>
+        <div class="label">Transfer Hub</div>
+      </a>
+      <a class="qa-tile" style="--accent: #22d3ee;">
+        <div class="icon" style="background: #22d3ee15; color: #22d3ee;">🏆</div>
+        <div class="label">Rankings</div>
+      </a>
+      <a class="qa-tile" style="--accent: #a855f7;">
+        <div class="icon" style="background: #a855f715; color: #a855f7;">⚔️</div>
+        <div class="label">Compare</div>
+      </a>
+      <a class="qa-tile" style="--accent: #5865F2;">
+        <div class="icon" style="background: #5865F215; color: #5865F2;">🤖</div>
+        <div class="label">Atlas Bot</div>
+      </a>
+      <a class="qa-tile" style="--accent: #f97316;">
+        <div class="icon" style="background: #f9731615; color: #f97316;">📊</div>
+        <div class="label">KvK Seasons</div>
+      </a>
+    </div>
+  </div>
+  
+  <!-- NEW: Transfer Hub Banner -->
+  <div class="section-label"><span class="tag new">NEW</span><span class="desc">Transfer Hub Banner — highlights #1 feature, dismissable</span></div>
+  <div class="transfer-banner">
+    <div class="transfer-banner-inner">
+      <button class="tb-dismiss">✕</button>
+      <div class="tb-content">
+        <h3><span class="arrow">🔀</span> Looking to transfer?</h3>
+        <p>Find the perfect kingdom. <span>12 kingdoms</span> are actively recruiting right now.</p>
+      </div>
+      <div class="tb-actions">
+        <div class="tb-countdown">
+          <div class="time">6d 8h 14m</div>
+          <div class="lbl">Next Transfer Event</div>
+        </div>
+        <button class="tb-cta">Browse Transfer Hub →</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Search & Controls (existing, enhanced) -->
+  <div class="section-label"><span class="tag existing">EXISTING</span><span class="desc">Search, filters, sort — unchanged</span></div>
+  <div class="search-section">
+    <div class="search-bar-wrapper">
+      <input class="search-input" placeholder="🔍 Search kingdoms by number...  Press /" />
+      <button class="filter-btn">☆ Favorites (3)</button>
+      <div style="display:flex;background:#0a0a0a;border-radius:8px;padding:3px;">
+        <button class="view-btn" style="padding:0.5rem;border-radius:6px;background:#2a2a2a;border:none;color:#fff;">⊞</button>
+        <button class="view-btn" style="padding:0.5rem;border-radius:6px;background:transparent;border:none;color:#6b7280;">☰</button>
+      </div>
+      <button class="filter-btn">⚙ Filters</button>
+      <div style="display:flex;align-items:center;gap:0.5rem;">
+        <span style="color:#6b7280;font-size:0.85rem;">Sort:</span>
+        <select style="padding:0.65rem 2rem 0.65rem 1rem;background:#0a0a0a;border:1px solid #2a2a2a;border-radius:8px;color:#fff;font-size:0.85rem;">
+          <option>Atlas Score</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:0.5rem;flex-wrap:wrap;">
+      <div class="results-count">Showing <span>15</span> of 248 kingdoms</div>
+      <div class="chip-row">
+        <button class="chip">S-Tier</button>
+        <button class="chip">A-Tier</button>
+        <span style="color:#2a2a2a">|</span>
+        <button class="chip">100% Prep</button>
+        <button class="chip">80%+ Prep</button>
+        <button class="chip">100% Battle</button>
+        <span style="color:#2a2a2a">|</span>
+        <button class="chip">1-3 KvKs</button>
+        <button class="chip">4-6 KvKs</button>
+        <button class="chip">7-9 KvKs</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Kingdom Grid (existing) -->
+  <div class="section-label"><span class="tag existing">EXISTING</span><span class="desc">Kingdom cards grid — unchanged</span></div>
+  <div class="kingdom-grid">
+    <div class="kingdom-card">
+      <div class="kc-header">
+        <div><div class="kc-title">Kingdom 231</div><div class="kc-rank">#1</div></div>
+        <div class="kc-tier S">S-TIER</div>
+      </div>
+      <div class="kc-score">82.39</div>
+      <div class="kc-stats">
+        <div class="kc-stat"><div class="stat-label">🛡️ Prep WR</div><div class="stat-value prep">100%</div></div>
+        <div class="kc-stat"><div class="stat-label">⚔️ Battle WR</div><div class="stat-value battle">88%</div></div>
+        <div class="kc-stat"><div class="stat-label">Total KvKs</div><div class="stat-value kvks">8</div></div>
+        <div class="kc-stat"><div class="stat-label">Status</div><div class="stat-value status">Leading</div></div>
+      </div>
+    </div>
+    <div class="kingdom-card">
+      <div class="kc-header">
+        <div><div class="kc-title">Kingdom 3</div><div class="kc-rank">#2</div></div>
+        <div class="kc-tier S">S-TIER</div>
+      </div>
+      <div class="kc-score">76.15</div>
+      <div class="kc-stats">
+        <div class="kc-stat"><div class="stat-label">🛡️ Prep WR</div><div class="stat-value prep">89%</div></div>
+        <div class="kc-stat"><div class="stat-label">⚔️ Battle WR</div><div class="stat-value battle">78%</div></div>
+        <div class="kc-stat"><div class="stat-label">Total KvKs</div><div class="stat-value kvks">9</div></div>
+        <div class="kc-stat"><div class="stat-label">Status</div><div class="stat-value status">Leading</div></div>
+      </div>
+    </div>
+    <div class="kingdom-card">
+      <div class="kc-header">
+        <div><div class="kc-title">Kingdom 61</div><div class="kc-rank">#3</div></div>
+        <div class="kc-tier S">S-TIER</div>
+      </div>
+      <div class="kc-score">71.56</div>
+      <div class="kc-stats">
+        <div class="kc-stat"><div class="stat-label">🛡️ Prep WR</div><div class="stat-value prep">86%</div></div>
+        <div class="kc-stat"><div class="stat-label">⚔️ Battle WR</div><div class="stat-value battle">71%</div></div>
+        <div class="kc-stat"><div class="stat-label">Total KvKs</div><div class="stat-value kvks">7</div></div>
+        <div class="kc-stat"><div class="stat-label">Status</div><div class="stat-value status">Ordinary</div></div>
+      </div>
+    </div>
+    <div class="kingdom-card">
+      <div class="kc-header">
+        <div><div class="kc-title">Kingdom 88</div><div class="kc-rank">#4</div></div>
+        <div class="kc-tier A">A-TIER</div>
+      </div>
+      <div class="kc-score">65.22</div>
+      <div class="kc-stats">
+        <div class="kc-stat"><div class="stat-label">🛡️ Prep WR</div><div class="stat-value prep">75%</div></div>
+        <div class="kc-stat"><div class="stat-label">⚔️ Battle WR</div><div class="stat-value battle">75%</div></div>
+        <div class="kc-stat"><div class="stat-label">Total KvKs</div><div class="stat-value kvks">8</div></div>
+        <div class="kc-stat"><div class="stat-label">Status</div><div class="stat-value status">Leading</div></div>
+      </div>
+    </div>
+    <div class="kingdom-card">
+      <div class="kc-header">
+        <div><div class="kc-title">Kingdom 145</div><div class="kc-rank">#5</div></div>
+        <div class="kc-tier A">A-TIER</div>
+      </div>
+      <div class="kc-score">58.90</div>
+      <div class="kc-stats">
+        <div class="kc-stat"><div class="stat-label">🛡️ Prep WR</div><div class="stat-value prep">80%</div></div>
+        <div class="kc-stat"><div class="stat-label">⚔️ Battle WR</div><div class="stat-value battle">60%</div></div>
+        <div class="kc-stat"><div class="stat-label">Total KvKs</div><div class="stat-value kvks">5</div></div>
+        <div class="kc-stat"><div class="stat-label">Status</div><div class="stat-value status">Ordinary</div></div>
+      </div>
+    </div>
+    <div class="kingdom-card">
+      <div class="kc-header">
+        <div><div class="kc-title">Kingdom 202</div><div class="kc-rank">#6</div></div>
+        <div class="kc-tier B">B-TIER</div>
+      </div>
+      <div class="kc-score">42.17</div>
+      <div class="kc-stats">
+        <div class="kc-stat"><div class="stat-label">🛡️ Prep WR</div><div class="stat-value prep">60%</div></div>
+        <div class="kc-stat"><div class="stat-label">⚔️ Battle WR</div><div class="stat-value battle">40%</div></div>
+        <div class="kc-stat"><div class="stat-label">Total KvKs</div><div class="stat-value kvks">5</div></div>
+        <div class="kc-stat"><div class="stat-label">Status</div><div class="stat-value status">Ordinary</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MOBILE -->
+<div class="device-frame mobile hidden" id="frame-mobile">
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">KA</div>
+      <div class="logo-text">
+        <span class="top">KINGSHOT</span>
+        <span class="bottom">ATLAS</span>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:0.4rem;">
+      <a href="#" class="support-btn" style="font-size:0.6rem;padding:0.3rem 0.5rem;flex-direction:column;gap:0.1rem;">
+        <span>❤️</span><span>Support</span>
+      </a>
+      <div style="width:32px;height:32px;background:#5865F2;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.9rem;">💬</div>
+      <button class="hamburger">☰</button>
+    </div>
+  </div>
+  
+  <!-- Hero (compact) -->
+  <div class="hero" style="padding:0.75rem 0.75rem 0.5rem;">
+    <h1 style="font-size:1rem;"><span class="white" style="font-size:1.2rem;">KINGSHOT</span><span class="cyan" style="font-size:1.4rem;margin-left:0.4rem;">ATLAS</span></h1>
+    <p style="font-size:0.75rem;">Scout your enemy. Choose your allies. Dominate Kingshot.</p>
+  </div>
+  
+  <!-- NEW: Mobile Countdowns (currently hidden on mobile!) -->
+  <div style="padding:0 0.75rem 0;">
+    <div style="display:flex;align-items:center;gap:0.3rem;margin-bottom:0.4rem;">
+      <span class="tag enhanced" style="padding:0.1rem 0.4rem;font-size:0.55rem;">ENHANCED</span>
+      <span style="color:#4b5563;font-size:0.6rem;">Countdowns now visible on mobile</span>
+    </div>
+  </div>
+  <div class="mobile-countdowns">
+    <div class="mc-pill kvk">
+      <div class="mc-label">⚔️ KvK #11</div>
+      <div class="mc-time">14d 2h 30m</div>
+    </div>
+    <div class="mc-pill transfer">
+      <div class="mc-label">🔀 Transfer</div>
+      <div class="mc-time">6d 8h 14m</div>
+    </div>
+  </div>
+  
+  <!-- NEW: Quick Actions (3-col on mobile) -->
+  <div style="padding:0 0.75rem 0;">
+    <div style="display:flex;align-items:center;gap:0.3rem;margin-bottom:0.3rem;">
+      <span class="tag new" style="padding:0.1rem 0.4rem;font-size:0.55rem;">NEW</span>
+      <span style="color:#4b5563;font-size:0.6rem;">Quick Actions grid</span>
+    </div>
+  </div>
+  <div style="padding:0 0.75rem 0.5rem;">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.4rem;">
+      <a class="qa-tile" style="--accent:#22c55e;padding:0.6rem 0.25rem;">
+        <div class="icon" style="background:#22c55e15;color:#22c55e;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;">🔀</div>
+        <div style="font-size:0.65rem;color:#d1d5db;font-weight:500;">Transfer Hub</div>
+      </a>
+      <a class="qa-tile" style="--accent:#22d3ee;padding:0.6rem 0.25rem;">
+        <div class="icon" style="background:#22d3ee15;color:#22d3ee;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;">🏆</div>
+        <div style="font-size:0.65rem;color:#d1d5db;font-weight:500;">Rankings</div>
+      </a>
+      <a class="qa-tile" style="--accent:#a855f7;padding:0.6rem 0.25rem;">
+        <div class="icon" style="background:#a855f715;color:#a855f7;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;">⚔️</div>
+        <div style="font-size:0.65rem;color:#d1d5db;font-weight:500;">Compare</div>
+      </a>
+      <a class="qa-tile" style="--accent:#5865F2;padding:0.6rem 0.25rem;">
+        <div class="icon" style="background:#5865F215;color:#5865F2;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;">🤖</div>
+        <div style="font-size:0.65rem;color:#d1d5db;font-weight:500;">Atlas Bot</div>
+      </a>
+      <a class="qa-tile" style="--accent:#f97316;padding:0.6rem 0.25rem;">
+        <div class="icon" style="background:#f9731615;color:#f97316;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;">📊</div>
+        <div style="font-size:0.65rem;color:#d1d5db;font-weight:500;">Seasons</div>
+      </a>
+      <a class="qa-tile" style="--accent:#22d3ee;padding:0.6rem 0.25rem;">
+        <div class="icon" style="background:#22d3ee15;color:#22d3ee;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;">📝</div>
+        <div style="font-size:0.65rem;color:#d1d5db;font-weight:500;">Submit KvK</div>
+      </a>
+    </div>
+  </div>
+  
+  <!-- NEW: Transfer Hub Banner (mobile) -->
+  <div style="padding:0 0.75rem 0;">
+    <div style="display:flex;align-items:center;gap:0.3rem;margin-bottom:0.3rem;">
+      <span class="tag new" style="padding:0.1rem 0.4rem;font-size:0.55rem;">NEW</span>
+      <span style="color:#4b5563;font-size:0.6rem;">Transfer Hub Banner</span>
+    </div>
+  </div>
+  <div style="padding:0 0.75rem 0.5rem;">
+    <div style="background:linear-gradient(135deg,#0a1a0f,#111,#0f1a1a);border:1px solid #22c55e40;border-radius:12px;padding:0.85rem;position:relative;">
+      <button style="position:absolute;top:0.35rem;right:0.5rem;background:none;border:none;color:#4b5563;font-size:0.85rem;cursor:pointer;">✕</button>
+      <div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0.3rem;">
+        <span style="font-size:1rem;">🔀</span>
+        <span style="font-size:0.9rem;font-weight:600;color:#fff;">Looking to transfer?</span>
+      </div>
+      <p style="color:#9ca3af;font-size:0.75rem;margin-bottom:0.6rem;">
+        <span style="color:#22c55e;font-weight:600;">12 kingdoms</span> are actively recruiting
+      </p>
+      <div style="display:flex;gap:0.5rem;align-items:center;">
+        <div style="flex:1;padding:0.5rem;background:#0a0a0a;border:1px solid #22c55e30;border-radius:8px;text-align:center;">
+          <div style="color:#22c55e;font-size:0.85rem;font-weight:bold;">6d 8h</div>
+          <div style="color:#6b7280;font-size:0.55rem;text-transform:uppercase;">Transfer Event</div>
+        </div>
+        <button style="flex:1.5;padding:0.6rem;background:#22c55e;color:#000;font-weight:600;border:none;border-radius:8px;font-size:0.8rem;cursor:pointer;box-shadow:0 0 15px rgba(34,197,94,0.25);">
+          Browse Hub →
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Search (mobile layout) -->
+  <div style="padding:0 0.75rem 0;">
+    <div style="display:flex;align-items:center;gap:0.3rem;margin-bottom:0.3rem;">
+      <span class="tag existing" style="padding:0.1rem 0.4rem;font-size:0.55rem;">EXISTING</span>
+      <span style="color:#4b5563;font-size:0.6rem;">Search + controls</span>
+    </div>
+  </div>
+  <div style="padding:0 0.75rem;position:sticky;top:56px;z-index:50;background:#0a0a0a;padding-bottom:0.5rem;">
+    <div style="background:rgba(17,17,17,0.95);border:1px solid #2a2a2a;border-radius:10px;padding:0.6rem;display:flex;flex-direction:column;gap:0.4rem;">
+      <input style="width:100%;padding:0.6rem 0.75rem;background:#0a0a0a;border:1px solid #2a2a2a;border-radius:8px;color:#fff;font-size:0.85rem;" placeholder="🔍 Search kingdoms..." />
+      <div style="display:flex;gap:0.4rem;">
+        <button style="flex:1;padding:0.5rem;background:#0a0a0a;border:1px solid #2a2a2a;border-radius:8px;color:#9ca3af;font-size:0.75rem;cursor:pointer;">☆ (3)</button>
+        <button style="flex:1;padding:0.5rem;background:#0a0a0a;border:1px solid #2a2a2a;border-radius:8px;color:#9ca3af;font-size:0.75rem;cursor:pointer;">⚙ Filters</button>
+        <select style="flex:1.5;padding:0.5rem;background:#0a0a0a;border:1px solid #2a2a2a;border-radius:8px;color:#fff;font-size:0.75rem;">
+          <option>Atlas Score</option>
+        </select>
+      </div>
+    </div>
+    <div style="color:#6b7280;font-size:0.75rem;margin-top:0.3rem;">Showing <span style="color:#22d3ee;font-weight:600;">15</span> of 248 kingdoms</div>
+  </div>
+  
+  <!-- Kingdom Cards (mobile - single column) -->
+  <div style="padding:0 0.75rem 2rem;">
+    <div style="display:flex;align-items:center;gap:0.3rem;margin-bottom:0.4rem;">
+      <span class="tag existing" style="padding:0.1rem 0.4rem;font-size:0.55rem;">EXISTING</span>
+      <span style="color:#4b5563;font-size:0.6rem;">Kingdom cards (unchanged)</span>
+    </div>
+    
+    <div class="kingdom-card" style="margin-bottom:0.6rem;">
+      <div class="kc-header">
+        <div><div class="kc-title" style="font-size:1rem;">Kingdom 231</div><div class="kc-rank" style="font-size:0.75rem;">#1</div></div>
+        <div class="kc-tier S" style="font-size:0.65rem;">S-TIER</div>
+      </div>
+      <div class="kc-score" style="font-size:1.5rem;">82.39</div>
+      <div class="kc-stats">
+        <div class="kc-stat"><div class="stat-label" style="font-size:0.65rem;">🛡️ Prep WR</div><div class="stat-value prep" style="font-size:0.85rem;">100%</div></div>
+        <div class="kc-stat"><div class="stat-label" style="font-size:0.65rem;">⚔️ Battle WR</div><div class="stat-value battle" style="font-size:0.85rem;">88%</div></div>
+        <div class="kc-stat"><div class="stat-label" style="font-size:0.65rem;">Total KvKs</div><div class="stat-value kvks" style="font-size:0.85rem;">8</div></div>
+        <div class="kc-stat"><div class="stat-label" style="font-size:0.65rem;">Status</div><div class="stat-value status" style="font-size:0.85rem;">Leading</div></div>
+      </div>
+    </div>
+    
+    <div class="kingdom-card" style="margin-bottom:0.6rem;">
+      <div class="kc-header">
+        <div><div class="kc-title" style="font-size:1rem;">Kingdom 3</div><div class="kc-rank" style="font-size:0.75rem;">#2</div></div>
+        <div class="kc-tier S" style="font-size:0.65rem;">S-TIER</div>
+      </div>
+      <div class="kc-score" style="font-size:1.5rem;">76.15</div>
+      <div class="kc-stats">
+        <div class="kc-stat"><div class="stat-label" style="font-size:0.65rem;">🛡️ Prep WR</div><div class="stat-value prep" style="font-size:0.85rem;">89%</div></div>
+        <div class="kc-stat"><div class="stat-label" style="font-size:0.65rem;">⚔️ Battle WR</div><div class="stat-value battle" style="font-size:0.85rem;">78%</div></div>
+        <div class="kc-stat"><div class="stat-label" style="font-size:0.65rem;">Total KvKs</div><div class="stat-value kvks" style="font-size:0.85rem;">9</div></div>
+        <div class="kc-stat"><div class="stat-label" style="font-size:0.65rem;">Status</div><div class="stat-value status" style="font-size:0.85rem;">Leading</div></div>
+      </div>
+    </div>
+    
+    <div class="kingdom-card">
+      <div class="kc-header">
+        <div><div class="kc-title" style="font-size:1rem;">Kingdom 61</div><div class="kc-rank" style="font-size:0.75rem;">#3</div></div>
+        <div class="kc-tier S" style="font-size:0.65rem;">S-TIER</div>
+      </div>
+      <div class="kc-score" style="font-size:1.5rem;">71.56</div>
+      <div class="kc-stats">
+        <div class="kc-stat"><div class="stat-label" style="font-size:0.65rem;">🛡️ Prep WR</div><div class="stat-value prep" style="font-size:0.85rem;">86%</div></div>
+        <div class="kc-stat"><div class="stat-label" style="font-size:0.65rem;">⚔️ Battle WR</div><div class="stat-value battle" style="font-size:0.85rem;">71%</div></div>
+        <div class="kc-stat"><div class="stat-label" style="font-size:0.65rem;">Total KvKs</div><div class="stat-value kvks" style="font-size:0.85rem;">7</div></div>
+        <div class="kc-stat"><div class="stat-label" style="font-size:0.65rem;">Status</div><div class="stat-value status" style="font-size:0.85rem;">Ordinary</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+function showView(mode) {
+  const desktop = document.getElementById('frame-desktop');
+  const mobile = document.getElementById('frame-mobile');
+  const container = document.getElementById('container');
+  
+  document.querySelectorAll('.view-toggle button').forEach(b => b.classList.remove('active'));
+  
+  if (mode === 'desktop') {
+    desktop.classList.remove('hidden');
+    mobile.classList.add('hidden');
+    desktop.classList.add('desktop');
+    desktop.classList.remove('mobile');
+    container.style.justifyContent = 'center';
+    document.getElementById('btn-desktop').classList.add('active');
+  } else if (mode === 'mobile') {
+    desktop.classList.add('hidden');
+    mobile.classList.remove('hidden');
+    container.style.justifyContent = 'center';
+    document.getElementById('btn-mobile').classList.add('active');
+  } else {
+    desktop.classList.remove('hidden');
+    mobile.classList.remove('hidden');
+    container.style.justifyContent = 'center';
+    document.getElementById('btn-side').classList.add('active');
+  }
+}
+</script>
+</body>
+</html>

@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback, lazy, Suspense } from 'react';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { useIsMobile } from '../hooks/useMediaQuery';
+import { useAuth } from '../contexts/AuthContext';
+import { isReferralEligible } from '../utils/constants';
 import { incrementStat } from './UserAchievements';
 import {
   copyToClipboard,
@@ -42,7 +44,12 @@ const ShareButton: React.FC<ShareButtonProps> = ({ type, kingdomData, compareDat
   const [showQRCode, setShowQRCode] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const { trackFeature } = useAnalytics();
+  const { profile } = useAuth();
   const isMobile = useIsMobile();
+
+  // Auto-append ?ref= for referral-eligible users
+  const refParam = profile && isReferralEligible(profile) && profile.linked_username
+    ? profile.linked_username : null;
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -64,22 +71,29 @@ const ShareButton: React.FC<ShareButtonProps> = ({ type, kingdomData, compareDat
   }, []);
 
   const handleCopyLink = useCallback(async () => {
-    const url = type === 'kingdom' && kingdomData
-      ? generateShareUrl(`/kingdom/${kingdomData.number}`)
-      : type === 'compare' && compareData
-        ? generateShareUrl('/compare', { 
-            k1: compareData.kingdom1.number, 
-            k2: compareData.kingdom2.number 
-          })
-        : window.location.href;
+    let url: string;
+    if (type === 'kingdom' && kingdomData) {
+      const params: Record<string, string | number> = {};
+      if (refParam) params.ref = refParam;
+      url = generateShareUrl(`/kingdom/${kingdomData.number}`, params);
+    } else if (type === 'compare' && compareData) {
+      const params: Record<string, string | number> = {
+        k1: compareData.kingdom1.number,
+        k2: compareData.kingdom2.number,
+      };
+      if (refParam) params.ref = refParam;
+      url = generateShareUrl('/compare', params);
+    } else {
+      url = window.location.href;
+    }
 
     const success = await copyToClipboard(url);
     if (success) {
       showFeedback('link');
-      trackFeature('Share Link Copied', { type });
+      trackFeature('Share Link Copied', { type, hasReferral: !!refParam });
       incrementStat('linksShared');
     }
-  }, [type, kingdomData, compareData, showFeedback, trackFeature]);
+  }, [type, kingdomData, compareData, showFeedback, trackFeature, refParam]);
 
   const handleCopyDiscord = useCallback(async () => {
     if (type === 'kingdom' && kingdomData) {
@@ -177,14 +191,21 @@ const ShareButton: React.FC<ShareButtonProps> = ({ type, kingdomData, compareDat
   }, [type, kingdomData, compareData, showFeedback, trackFeature]);
 
   const handleNativeShare = useCallback(async () => {
-    const url = type === 'kingdom' && kingdomData
-      ? generateShareUrl(`/kingdom/${kingdomData.number}`)
-      : type === 'compare' && compareData
-        ? generateShareUrl('/compare', { 
-            k1: compareData.kingdom1.number, 
-            k2: compareData.kingdom2.number 
-          })
-        : window.location.href;
+    let url: string;
+    if (type === 'kingdom' && kingdomData) {
+      const params: Record<string, string | number> = {};
+      if (refParam) params.ref = refParam;
+      url = generateShareUrl(`/kingdom/${kingdomData.number}`, params);
+    } else if (type === 'compare' && compareData) {
+      const params: Record<string, string | number> = {
+        k1: compareData.kingdom1.number,
+        k2: compareData.kingdom2.number,
+      };
+      if (refParam) params.ref = refParam;
+      url = generateShareUrl('/compare', params);
+    } else {
+      url = window.location.href;
+    }
 
     const title = type === 'kingdom' && kingdomData
       ? `Kingdom #${kingdomData.number} - Kingshot Atlas`
@@ -199,7 +220,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({ type, kingdomData, compareDat
       trackFeature('Native Share Used', { type });
       setShowMenu(false);
     }
-  }, [type, kingdomData, compareData, trackFeature]);
+  }, [type, kingdomData, compareData, trackFeature, refParam]);
 
   const handleCopyEmbed = useCallback(async () => {
     if (type === 'kingdom' && kingdomData) {

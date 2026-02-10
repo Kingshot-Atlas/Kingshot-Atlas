@@ -56,8 +56,8 @@ const KingdomHeader: React.FC<KingdomHeaderProps> = ({
 
   const getStatusDescription = (s: string) => {
     switch (s) {
-      case 'Leading': return 'Transfers in are restricted';
-      case 'Ordinary': return 'Open to all incoming transfers';
+      case 'Leading': return '20 regular invites, 10 open slots, lower power cap';
+      case 'Ordinary': return '35 regular invites, up to 3 special invites, 20 open slots, higher power cap';
       default: return 'Not yet reported';
     }
   };

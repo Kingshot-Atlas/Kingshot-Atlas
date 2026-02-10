@@ -365,4 +365,6 @@ const KvKCountdown: React.FC<KvKCountdownProps> = ({ compact = false, navbar = f
   );
 };
 
+export { getKvKStatus, getTransferStatus };
+export type { EventStatus };
 export default KvKCountdown;

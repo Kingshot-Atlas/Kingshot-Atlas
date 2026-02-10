@@ -10,8 +10,8 @@ interface TransferStatusProps {
 
 const getStatusDescription = (status: string) => {
   switch (status) {
-    case 'Leading': return 'Restricted transfers in';
-    case 'Ordinary': return 'Open to all transfers';
+    case 'Leading': return '20 regular invites, 10 open slots, lower power cap';
+    case 'Ordinary': return '35 regular invites, up to 3 special invites, 20 open slots, higher power cap';
     default: return 'Not yet reported';
   }
 };

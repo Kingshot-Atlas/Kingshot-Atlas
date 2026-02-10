@@ -3,6 +3,19 @@ import { useAuth } from '../contexts/AuthContext';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { supabase } from '../lib/supabase';
 import { neonGlow, FONT_DISPLAY, colors } from '../utils/styles';
+import { moderateText } from '../utils/contentModeration';
+
+// =============================================
+// HELPERS
+// =============================================
+
+const formatTCLevel = (tcLevel: number): string => {
+  if (tcLevel <= 0) return '—';
+  if (tcLevel <= 30) return `TC${tcLevel}`;
+  if (tcLevel <= 34) return 'TC30';
+  const tgLevel = Math.floor((tcLevel - 35) / 5) + 1;
+  return `TG${tgLevel}`;
+};
 
 // =============================================
 // TYPES
@@ -12,16 +25,20 @@ interface TransferProfileData {
   username: string;
   current_kingdom: number;
   tc_level: number;
-  power_range: string;
+  power_million: number;
   main_language: string;
   secondary_languages: string[];
   play_schedule: Array<{ start: string; end: string }>;
-  kvk_participation: string;
+  kvk_availability: string;
+  saving_for_kvk: string;
   looking_for: string[];
   group_size: string;
   player_bio: string;
   contact_method: string;
-  contact_info: string;
+  contact_discord: string;
+  contact_coordinates: string;
+  is_anonymous: boolean;
+  visible_to_recruiters: boolean;
 }
 
 interface ExistingProfile extends TransferProfileData {
@@ -29,43 +46,50 @@ interface ExistingProfile extends TransferProfileData {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  power_range?: string;
+  kvk_participation?: string;
+  contact_info?: string;
 }
 
 // =============================================
 // CONSTANTS
 // =============================================
 
-const POWER_RANGE_OPTIONS = [
-  '0 - 50M', '50 - 100M', '100 - 150M', '150 - 200M', '200 - 250M', '250 - 300M', '300 - 500M', '500 - 750M', '750 - 1,000M', '1,000M+',
-];
-
 const LANGUAGE_OPTIONS = [
-  'English', 'Spanish', 'Portuguese', 'Arabic', 'Turkish', 'French', 'German',
-  'Russian', 'Chinese', 'Japanese', 'Korean', 'Indonesian', 'Thai', 'Vietnamese', 'Other',
+  'English', 'Mandarin Chinese', 'Hindi', 'Spanish', 'French', 'Arabic', 'Bengali',
+  'Portuguese', 'Russian', 'Japanese', 'German', 'Korean', 'Turkish', 'Vietnamese',
+  'Italian', 'Thai', 'Polish', 'Indonesian', 'Dutch', 'Tagalog', 'Other',
 ];
 
-const KVK_PARTICIPATION_OPTIONS = [
-  { value: 'every', label: 'Every KvK' },
-  { value: 'most', label: 'Most KvKs' },
-  { value: 'sometimes', label: 'Sometimes' },
-  { value: 'rarely', label: 'Rarely' },
+const KVK_AVAILABILITY_OPTIONS = [
+  { value: 'every', label: 'Every KvK', desc: 'Never miss one' },
+  { value: 'most', label: 'Most KvKs', desc: 'Miss occasionally' },
+  { value: 'some', label: 'Some KvKs', desc: 'Participate when possible' },
+  { value: 'uncertain', label: 'Uncertain', desc: "I don't know when I can or not" },
+];
+
+const SAVING_FOR_KVK_OPTIONS = [
+  { value: 'aggressively', label: 'Aggressively saving', desc: 'All resources/speedups reserved for KvK' },
+  { value: 'moderately', label: 'Moderately saving', desc: 'Saving some, spending some' },
+  { value: 'casually', label: 'Casually saving', desc: 'Saving a little' },
+  { value: 'not_saving', label: 'Not saving', desc: 'Spending freely' },
 ];
 
 const LOOKING_FOR_OPTIONS = [
-  { value: 'active_kvk', label: 'Active KvK' },
-  { value: 'competitive', label: 'Competitive' },
-  { value: 'alliance_events', label: 'Alliance Events' },
-  { value: 'growth', label: 'Growing Kingdom' },
-  { value: 'established', label: 'Established Kingdom' },
-  { value: 'social', label: 'Social Community' },
-  { value: 'war_focused', label: 'War Focused' },
-  { value: 'farm_friendly', label: 'Farm Friendly' },
+  { value: 'competitive', label: 'Competitive', emoji: '🏆' },
+  { value: 'casual', label: 'Casual', emoji: '🌴' },
+  { value: 'kvk_focused', label: 'KvK-focused', emoji: '⚔️' },
+  { value: 'community_focused', label: 'Community-focused', emoji: '👥' },
+  { value: 'social', label: 'Social', emoji: '💬' },
+  { value: 'drama_free', label: 'Drama-free', emoji: '☮️' },
+  { value: 'organized', label: 'Organized', emoji: '📋' },
+  { value: 'beginner_friendly', label: 'Beginner-friendly', emoji: '🌱' },
 ];
 
 const GROUP_SIZE_OPTIONS = [
   { value: 'solo', label: 'Solo' },
   { value: '2-5', label: '2-5 Players' },
-  { value: '6-10', label: '6-10 Players' },
+  { value: '6-9', label: '6-9 Players' },
   { value: '10+', label: '10+ Players' },
 ];
 
@@ -92,16 +116,20 @@ const TransferProfileForm: React.FC<{
     username: '',
     current_kingdom: 0,
     tc_level: 0,
-    power_range: '',
+    power_million: 0,
     main_language: 'English',
     secondary_languages: [],
     play_schedule: [{ start: '10:00', end: '18:00' }],
-    kvk_participation: 'most',
+    kvk_availability: 'most',
+    saving_for_kvk: 'moderately',
     looking_for: [],
     group_size: 'solo',
     player_bio: '',
     contact_method: 'discord',
-    contact_info: '',
+    contact_discord: '',
+    contact_coordinates: '',
+    is_anonymous: true,
+    visible_to_recruiters: true,
   });
 
   // Auto-fill from linked account
@@ -137,16 +165,20 @@ const TransferProfileForm: React.FC<{
             username: data.username,
             current_kingdom: data.current_kingdom,
             tc_level: data.tc_level,
-            power_range: data.power_range,
+            power_million: data.power_million || 0,
             main_language: data.main_language,
             secondary_languages: data.secondary_languages || [],
             play_schedule: data.play_schedule || [{ start: '10:00', end: '18:00' }],
-            kvk_participation: data.kvk_participation,
+            kvk_availability: data.kvk_availability || data.kvk_participation || 'most',
+            saving_for_kvk: data.saving_for_kvk || 'moderately',
             looking_for: data.looking_for || [],
-            group_size: data.group_size,
+            group_size: data.group_size === '6-10' ? '6-9' : data.group_size,
             player_bio: data.player_bio,
             contact_method: data.contact_method,
-            contact_info: data.contact_info,
+            contact_discord: data.contact_discord || (data.contact_method === 'discord' ? data.contact_info : '') || '',
+            contact_coordinates: data.contact_coordinates || (data.contact_method === 'in_game' ? data.contact_info : '') || '',
+            is_anonymous: data.is_anonymous ?? true,
+            visible_to_recruiters: data.visible_to_recruiters ?? true,
           });
         }
       } catch {
@@ -167,17 +199,7 @@ const TransferProfileForm: React.FC<{
       ...prev,
       looking_for: prev.looking_for.includes(value)
         ? prev.looking_for.filter((v) => v !== value)
-        : prev.looking_for.length < 8 ? [...prev.looking_for, value] : prev.looking_for,
-    }));
-  };
-
-  const toggleSecondaryLanguage = (lang: string) => {
-    if (lang === formData.main_language) return;
-    setFormData((prev) => ({
-      ...prev,
-      secondary_languages: prev.secondary_languages.includes(lang)
-        ? prev.secondary_languages.filter((l) => l !== lang)
-        : prev.secondary_languages.length < 3 ? [...prev.secondary_languages, lang] : prev.secondary_languages,
+        : prev.looking_for.length < 3 ? [...prev.looking_for, value] : prev.looking_for,
     }));
   };
 
@@ -213,15 +235,21 @@ const TransferProfileForm: React.FC<{
     if (!formData.username.trim()) return 'Username is required';
     if (!formData.current_kingdom || formData.current_kingdom <= 0) return 'Current kingdom is required';
     if (!formData.tc_level || formData.tc_level < 1) return 'TC level is required';
-    if (!formData.power_range) return 'Power range is required';
+    if (!formData.power_million || formData.power_million < 1) return 'Power (in millions) is required';
+    if (formData.power_million > 99999) return 'Power must be 99,999M or less';
     if (!formData.main_language) return 'Main language is required';
     if (formData.play_schedule.length === 0) return 'At least one play schedule is required';
-    if (!formData.kvk_participation) return 'KvK participation is required';
+    if (!formData.kvk_availability) return 'KvK availability is required';
+    if (!formData.saving_for_kvk) return 'Saving for KvK preference is required';
     if (formData.looking_for.length === 0) return 'Select at least one thing you\'re looking for';
     if (!formData.group_size) return 'Group size is required';
     if (!formData.player_bio.trim()) return 'Player bio is required';
-    if (formData.player_bio.length > 300) return 'Player bio must be 300 characters or less';
-    if (!formData.contact_info.trim()) return 'Contact info is required';
+    if (formData.player_bio.length > 150) return 'Player bio must be 150 characters or less';
+    const bioCheck = moderateText(formData.player_bio);
+    if (!bioCheck.isClean) return bioCheck.reason || 'Bio contains inappropriate language.';
+    if (formData.contact_method === 'discord' && !formData.contact_discord.trim()) return 'Discord username is required';
+    if (formData.contact_method === 'in_game' && !formData.contact_coordinates.trim()) return 'In-game coordinates are required';
+    if (formData.contact_method === 'both' && (!formData.contact_discord.trim() || !formData.contact_coordinates.trim())) return 'Both contact methods are required';
     return null;
   };
 
@@ -243,14 +271,52 @@ const TransferProfileForm: React.FC<{
     try {
       const payload = {
         user_id: user.id,
-        ...formData,
+        username: formData.username,
+        current_kingdom: formData.current_kingdom,
+        tc_level: formData.tc_level,
+        power_million: formData.power_million,
+        main_language: formData.main_language,
+        secondary_languages: formData.secondary_languages,
+        play_schedule: formData.play_schedule,
+        kvk_availability: formData.kvk_availability,
+        saving_for_kvk: formData.saving_for_kvk,
+        looking_for: formData.looking_for,
+        group_size: formData.group_size,
+        player_bio: formData.player_bio,
+        contact_method: formData.contact_method,
+        contact_discord: formData.contact_discord,
+        contact_coordinates: formData.contact_coordinates,
+        is_anonymous: formData.is_anonymous,
+        visible_to_recruiters: formData.visible_to_recruiters,
+        contact_info: formData.contact_method === 'discord' ? formData.contact_discord : formData.contact_method === 'in_game' ? formData.contact_coordinates : `${formData.contact_discord} | ${formData.contact_coordinates}`,
+        power_range: `${formData.power_million}M`,
+        kvk_participation: formData.kvk_availability,
       };
 
       if (existingProfile) {
         const { error: updateError } = await supabase
           .from('transfer_profiles')
           .update({
-            ...formData,
+            username: formData.username,
+            current_kingdom: formData.current_kingdom,
+            tc_level: formData.tc_level,
+            power_million: formData.power_million,
+            main_language: formData.main_language,
+            secondary_languages: formData.secondary_languages,
+            play_schedule: formData.play_schedule,
+            kvk_availability: formData.kvk_availability,
+            saving_for_kvk: formData.saving_for_kvk,
+            looking_for: formData.looking_for,
+            group_size: formData.group_size,
+            player_bio: formData.player_bio,
+            contact_method: formData.contact_method,
+            contact_discord: formData.contact_discord,
+            contact_coordinates: formData.contact_coordinates,
+            is_anonymous: formData.is_anonymous,
+            visible_to_recruiters: formData.visible_to_recruiters,
+            contact_info: formData.contact_method === 'discord' ? formData.contact_discord : formData.contact_method === 'in_game' ? formData.contact_coordinates : `${formData.contact_discord} | ${formData.contact_coordinates}`,
+            power_range: `${formData.power_million}M`,
+            kvk_participation: formData.kvk_availability,
             updated_at: new Date().toISOString(),
           })
           .eq('id', existingProfile.id);
@@ -442,26 +508,35 @@ const TransferProfileForm: React.FC<{
             </div>
             <div>
               <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>TC Level</span>
-              <div style={{ color: '#fff', fontSize: '0.85rem', fontWeight: '600' }}>{formData.tc_level || '—'}</div>
+              <div style={{ color: '#fff', fontSize: '0.85rem', fontWeight: '600' }}>{formData.tc_level ? formatTCLevel(formData.tc_level) : '—'}</div>
             </div>
           </div>
         </div>
 
         {/* Form Fields */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          {/* Power Range */}
+          {/* Power (Millions) */}
           <div>
-            <label style={labelStyle}>Power Range *</label>
-            <select
-              value={formData.power_range}
-              onChange={(e) => updateField('power_range', e.target.value)}
-              style={inputStyle}
-            >
-              <option value="">Select power range</option>
-              {POWER_RANGE_OPTIONS.map((opt) => (
-                <option key={opt} value={opt}>{opt}</option>
-              ))}
-            </select>
+            <label style={labelStyle}>Total Power (in millions) *</label>
+            <div style={{ position: 'relative' }}>
+              <input
+                type="number"
+                min="1"
+                max="99999"
+                value={formData.power_million || ''}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value, 10);
+                  updateField('power_million', isNaN(val) ? 0 : Math.min(99999, Math.max(0, val)));
+                }}
+                placeholder="e.g. 100 = 100M"
+                style={inputStyle}
+              />
+              {formData.power_million > 0 && (
+                <span style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: colors.textMuted, fontSize: '0.75rem', pointerEvents: 'none' }}>
+                  = {formData.power_million}M
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Main Language */}
@@ -478,21 +553,19 @@ const TransferProfileForm: React.FC<{
             </select>
           </div>
 
-          {/* Secondary Languages */}
+          {/* Secondary Language */}
           <div>
-            <label style={labelStyle}>Secondary Languages (up to 3)</label>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
+            <label style={labelStyle}>Secondary Language</label>
+            <select
+              value={formData.secondary_languages[0] || ''}
+              onChange={(e) => updateField('secondary_languages', e.target.value ? [e.target.value] : [])}
+              style={inputStyle}
+            >
+              <option value="">None</option>
               {LANGUAGE_OPTIONS.filter((l) => l !== formData.main_language).map((lang) => (
-                <button
-                  key={lang}
-                  type="button"
-                  onClick={() => toggleSecondaryLanguage(lang)}
-                  style={chipStyle(formData.secondary_languages.includes(lang))}
-                >
-                  {lang}
-                </button>
+                <option key={lang} value={lang}>{lang}</option>
               ))}
-            </div>
+            </select>
           </div>
 
           {/* Play Schedule (UTC) */}
@@ -552,18 +625,35 @@ const TransferProfileForm: React.FC<{
             )}
           </div>
 
-          {/* KvK Participation */}
+          {/* KvK Availability */}
           <div>
-            <label style={labelStyle}>KvK Participation *</label>
+            <label style={labelStyle}>KvK Availability *</label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
-              {KVK_PARTICIPATION_OPTIONS.map((opt) => (
+              {KVK_AVAILABILITY_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
                   type="button"
-                  onClick={() => updateField('kvk_participation', opt.value)}
-                  style={chipStyle(formData.kvk_participation === opt.value)}
+                  onClick={() => updateField('kvk_availability', opt.value)}
+                  style={chipStyle(formData.kvk_availability === opt.value)}
                 >
-                  {opt.label}
+                  <span>{opt.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Saving for KvK */}
+          <div>
+            <label style={labelStyle}>Saving for KvK *</label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
+              {SAVING_FOR_KVK_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => updateField('saving_for_kvk', opt.value)}
+                  style={chipStyle(formData.saving_for_kvk === opt.value)}
+                >
+                  <span>{opt.label}</span>
                 </button>
               ))}
             </div>
@@ -571,7 +661,7 @@ const TransferProfileForm: React.FC<{
 
           {/* Looking For */}
           <div>
-            <label style={labelStyle}>What I'm Looking For * (up to 8)</label>
+            <label style={labelStyle}>What I'm Looking For * (pick up to 3)</label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
               {LOOKING_FOR_OPTIONS.map((opt) => (
                 <button
@@ -580,7 +670,7 @@ const TransferProfileForm: React.FC<{
                   onClick={() => toggleLookingFor(opt.value)}
                   style={chipStyle(formData.looking_for.includes(opt.value))}
                 >
-                  {opt.label}
+                  {opt.emoji} {opt.label}
                 </button>
               ))}
             </div>
@@ -607,53 +697,112 @@ const TransferProfileForm: React.FC<{
           <div>
             <label style={labelStyle}>
               Player Bio * <span style={{
-                color: formData.player_bio.length > 280 ? '#ef4444' : formData.player_bio.length > 250 ? '#eab308' : '#4b5563',
+                color: formData.player_bio.length > 140 ? '#ef4444' : formData.player_bio.length > 120 ? '#eab308' : '#4b5563',
                 fontSize: '0.65rem',
               }}>
-                ({formData.player_bio.length}/300)
+                ({formData.player_bio.length}/150)
               </span>
             </label>
             <textarea
               value={formData.player_bio}
-              onChange={(e) => updateField('player_bio', e.target.value.slice(0, 300))}
-              placeholder="Tell kingdoms about yourself, your experience, and what you bring to the table..."
-              rows={4}
+              onChange={(e) => updateField('player_bio', e.target.value.slice(0, 150))}
+              placeholder="Brief intro — your experience and what you bring..."
+              rows={3}
               style={{
                 ...inputStyle,
-                minHeight: '80px',
+                minHeight: '64px',
                 resize: 'vertical',
                 fontFamily: 'inherit',
               }}
             />
           </div>
 
+          {/* Anonymity Toggle */}
+          <div>
+            <label style={{ ...labelStyle, display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', minHeight: '44px' }}>
+              <input
+                type="checkbox"
+                checked={formData.is_anonymous}
+                onChange={(e) => updateField('is_anonymous', e.target.checked)}
+                style={{ width: '18px', height: '18px', accentColor: colors.primary }}
+              />
+              <span>Stay anonymous</span>
+            </label>
+            <p style={{ color: colors.textMuted, fontSize: '0.65rem', margin: '0.1rem 0 0 0' }}>
+              {formData.is_anonymous
+                ? 'Your username and kingdom will be hidden from recruiters until you reveal them.'
+                : 'Recruiters will see your username and kingdom of origin.'}
+            </p>
+          </div>
+
           {/* Contact Method */}
           <div>
             <label style={labelStyle}>Contact Method *</label>
-            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
-              <button
-                type="button"
-                onClick={() => updateField('contact_method', 'discord')}
-                style={chipStyle(formData.contact_method === 'discord')}
-              >
-                Discord
-              </button>
-              <button
-                type="button"
-                onClick={() => updateField('contact_method', 'in_game')}
-                style={chipStyle(formData.contact_method === 'in_game')}
-              >
-                In-Game Coordinates
-              </button>
+            <div style={{ display: 'flex', gap: '0.35rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
+              <button type="button" onClick={() => updateField('contact_method', 'discord')} style={chipStyle(formData.contact_method === 'discord')}>Discord</button>
+              <button type="button" onClick={() => updateField('contact_method', 'in_game')} style={chipStyle(formData.contact_method === 'in_game')}>In-Game</button>
+              <button type="button" onClick={() => updateField('contact_method', 'both')} style={chipStyle(formData.contact_method === 'both')}>Both</button>
             </div>
-            <input
-              type="text"
-              value={formData.contact_info}
-              onChange={(e) => updateField('contact_info', e.target.value)}
-              placeholder={formData.contact_method === 'discord' ? 'Discord username (e.g., player#1234)' : 'In-game coordinates (e.g., X:123 Y:456)'}
-              style={inputStyle}
-            />
+            {(formData.contact_method === 'discord' || formData.contact_method === 'both') && (
+              <input
+                type="text"
+                value={formData.contact_discord}
+                onChange={(e) => updateField('contact_discord', e.target.value)}
+                placeholder="Discord username (e.g., player#1234)"
+                style={{ ...inputStyle, marginBottom: formData.contact_method === 'both' ? '0.5rem' : 0 }}
+              />
+            )}
+            {(formData.contact_method === 'in_game' || formData.contact_method === 'both') && (
+              <input
+                type="text"
+                value={formData.contact_coordinates}
+                onChange={(e) => updateField('contact_coordinates', e.target.value)}
+                placeholder="In-game coordinates (e.g., X:123 Y:456)"
+                style={inputStyle}
+              />
+            )}
           </div>
+        </div>
+
+        {/* Visibility Toggle */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0.75rem',
+          backgroundColor: formData.visible_to_recruiters ? '#22c55e08' : '#ef444408',
+          border: `1px solid ${formData.visible_to_recruiters ? '#22c55e25' : '#ef444425'}`,
+          borderRadius: '8px',
+          marginTop: '0.5rem',
+        }}>
+          <div>
+            <div style={{ color: colors.text, fontSize: '0.85rem', fontWeight: '500' }}>
+              {formData.visible_to_recruiters ? '👁️ Visible to Recruiters' : '🙈 Hidden from Recruiters'}
+            </div>
+            <div style={{ color: colors.textMuted, fontSize: '0.7rem', marginTop: '0.15rem' }}>
+              {formData.visible_to_recruiters
+                ? 'Kingdom editors can see your profile and send invites'
+                : 'Your profile is hidden — recruiters cannot find or invite you'}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => updateField('visible_to_recruiters', !formData.visible_to_recruiters)}
+            style={{
+              padding: '0.4rem 0.8rem',
+              backgroundColor: formData.visible_to_recruiters ? '#22c55e15' : '#ef444415',
+              border: `1px solid ${formData.visible_to_recruiters ? '#22c55e40' : '#ef444440'}`,
+              borderRadius: '6px',
+              color: formData.visible_to_recruiters ? '#22c55e' : '#ef4444',
+              fontSize: '0.75rem',
+              fontWeight: '600',
+              cursor: 'pointer',
+              minHeight: '36px',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {formData.visible_to_recruiters ? 'Hide Me' : 'Show Me'}
+          </button>
         </div>
 
         {/* Error Display */}

@@ -722,7 +722,7 @@ def get_users_with_linked_kingshot_and_discord() -> list:
         # Query for users with both linked_player_id and discord_id not null
         # Using not_.is_ to check for IS NOT NULL (neq with string "null" was wrong)
         result = client.table("profiles").select(
-            "id, discord_id, linked_player_id, linked_username, username"
+            "id, discord_id, linked_player_id, linked_username, username, referral_tier"
         ).not_.is_("linked_player_id", "null").not_.is_("discord_id", "null").execute()
         
         users = result.data or []

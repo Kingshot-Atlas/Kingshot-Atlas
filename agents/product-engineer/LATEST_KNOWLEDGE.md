@@ -688,4 +688,35 @@ const pointsNeeded = threshold - calculateAtlasScore(stats).finalScore;
 
 ---
 
+## Referral System (Open Ambassador Network)
+
+### Architecture
+- **DB**: `referrals` table (referrer→referred, status: pending/verified/invalid) + `profiles` columns (`referred_by`, `referral_count`, `referral_tier`)
+- **Capture**: `?ref=<linked_username>` URL param → stored in `localStorage('kingshot_referral_code')` → processed on profile creation in `AuthContext.tsx`
+- **Verification**: Supabase trigger `on_profile_link_verify_referral` fires when `linked_player_id` changes from NULL with TC20+. Auto-verifies pending referral and updates referrer's count/tier.
+- **Tier computation**: `compute_referral_tier()` PostgreSQL function. Also mirrored in `constants.ts` as `getReferralTierFromCount()`.
+
+### Tier System
+| Tier | Referrals | Badge Color | Discord Role |
+|------|-----------|-------------|--------------|
+| Scout | 2+ | White `#ffffff` | — |
+| Recruiter | 5+ | Green `#22c55e` | — |
+| Consul | 10+ | Light Purple `#b890dd` | `1470500049141235926` |
+| Ambassador | 20+ | Purple `#a24cf3` | `1466442919304237207` |
+
+### Key Components
+- `ReferralBadge.tsx` — tier badge with color + optional glow (Ambassador)
+- `ReferralStats.tsx` — Profile page section: progress bar, tier roadmap, copy referral link button
+- `ShareButton.tsx` — auto-appends `?ref=` for eligible users (TC25+)
+- `constants.ts` — `REFERRAL_TIER_*` constants, `isReferralEligible()`, `getNextReferralTier()`
+
+### Discord Bot
+- `syncReferralRoles()` runs every 30min alongside `syncSettlerRoles()`
+- Reuses `/api/v1/bot/linked-users` endpoint (includes `referral_tier`)
+- Assigns/removes Consul and Ambassador roles based on `referral_tier`
+
+### Eligibility
+- **To get a referral link**: Must have linked Kingshot account with TC25+
+- **For a referral to verify**: Referred user must link account with TC20+
+
 *Updated by Product Engineer based on current React best practices.*

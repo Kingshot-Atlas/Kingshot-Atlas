@@ -164,6 +164,14 @@ const NotificationPreferences: React.FC = () => {
             onChange={(v) => handleChange('system_announcements', v)}
             isMobile={isMobile}
           />
+          <ToggleItem
+            icon="📩"
+            label="Transfer Hub Updates"
+            description="New applications, status changes, fund contributions, and expiring applications"
+            enabled={preferences.transfer_updates}
+            onChange={(v) => handleChange('transfer_updates', v)}
+            isMobile={isMobile}
+          />
           <p style={{
             margin: '0.75rem 0 0',
             fontSize: '0.7rem',

@@ -26,10 +26,10 @@ Kings/Managers can send invites during this phase.
 
 ### Slot Limits
 
-| Kingdom Type | Regular Invites | Special Invites | Total Capacity |
-|--------------|-----------------|-----------------|----------------|
-| **Leading** | 20 | 0 | 20 (10 reserved for Open) |
-| **Ordinary** | 35 | 3 | 38 |
+| Kingdom Type | Regular Invites | Special Invites | Open Slots | Power Cap |
+|--------------|-----------------|-----------------|------------|-----------|
+| **Leading** | 20 | 0 | 10 | Lower — restricts high-power transferees |
+| **Ordinary** | 35 | 3 | 20 | Higher — accepts more powerful players |
 
 ### Special Invites (Ordinary Kingdoms Only)
 
@@ -76,6 +76,40 @@ Required for all transfers, regardless of phase.
 | High power | 30–50 |
 
 *Exact formula TBD — needs research*
+
+---
+
+## Transfer Groups
+
+Each Transfer Event groups kingdoms into **transfer groups**. Players from a given kingdom can **only transfer to other kingdoms within the same transfer group**. Transfer groups change every event and are announced shortly before the event begins.
+
+### How It Works
+
+1. Kingdoms are divided into numbered ranges (transfer groups)
+2. A player in Kingdom X can only transfer to another kingdom in the same group where Kingdom X falls
+3. The Transfer Hub must filter listings so users only see kingdoms in their transfer group
+4. Groups are configured per event — they are **not permanent**
+
+### Last Transfer Event Groups (Reference)
+
+| Group | Kingdom Range |
+|-------|---------------|
+| 1 | Kingdoms 1 – 6 |
+| 2 | Kingdoms 7 – 115 |
+| 3 | Kingdoms 116 – 417 |
+| 4 | Kingdoms 418 – 587 |
+| 5 | Kingdoms 588 – 674 |
+| 6 | Kingdoms 675 – 846 |
+
+**Example:** A player in Kingdom 172 could only transfer to kingdoms 116–417 (Group 3).
+
+### Implementation Notes
+
+- Transfer groups are stored as a frontend config (`TRANSFER_GROUPS` array of `[min, max]` ranges)
+- When groups for the new event are announced, update the config and set `TRANSFER_GROUPS_ACTIVE = true`
+- When no active event, set `TRANSFER_GROUPS_ACTIVE = false` to show all kingdoms
+- The user's linked kingdom determines which group they belong to
+- Users without a linked kingdom see all kingdoms (no filtering)
 
 ---
 

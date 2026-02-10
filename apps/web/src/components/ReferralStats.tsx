@@ -1,0 +1,211 @@
+import React, { useState, useCallback } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import {
+  ReferralTier,
+  REFERRAL_TIER_COLORS,
+  REFERRAL_TIER_LABELS,
+  REFERRAL_TIER_THRESHOLDS,
+  getNextReferralTier,
+  isReferralEligible,
+} from '../utils/constants';
+import { copyToClipboard } from '../utils/sharing';
+import { useIsMobile } from '../hooks/useMediaQuery';
+import useAnalytics from '../hooks/useAnalytics';
+import ReferralBadge from './ReferralBadge';
+
+const ReferralStats: React.FC = () => {
+  const { profile } = useAuth();
+  const isMobile = useIsMobile();
+  const { trackFeature } = useAnalytics();
+  const [copied, setCopied] = useState(false);
+
+  const referralCount = profile?.referral_count ?? 0;
+  const currentTier = profile?.referral_tier as ReferralTier | null;
+  const nextTier = getNextReferralTier(currentTier);
+  const eligible = profile ? isReferralEligible(profile) : false;
+
+  const handleCopyLink = useCallback(async () => {
+    if (!profile?.linked_username) return;
+    const kingdom = profile.linked_kingdom || '';
+    const url = kingdom
+      ? `https://ks-atlas.com/kingdom/${kingdom}?ref=${profile.linked_username}`
+      : `https://ks-atlas.com?ref=${profile.linked_username}`;
+    const success = await copyToClipboard(url);
+    if (success) {
+      setCopied(true);
+      trackFeature('Referral Link Copied', { tier: currentTier || 'none', count: referralCount });
+      setTimeout(() => setCopied(false), 2000);
+    }
+  }, [profile, trackFeature, currentTier, referralCount]);
+
+  if (!profile) return null;
+
+  // Not eligible yet — show requirements
+  if (!eligible) {
+    return (
+      <div style={{
+        backgroundColor: '#111111',
+        borderRadius: '12px',
+        padding: isMobile ? '1rem' : '1.25rem',
+        marginBottom: '1.5rem',
+        border: '1px solid #2a2a2a',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+          <span style={{ fontSize: '1.1rem' }}>🔗</span>
+          <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: '600', color: '#fff' }}>
+            Referral Program
+          </h3>
+        </div>
+        <p style={{ color: '#9ca3af', fontSize: '0.85rem', margin: 0, lineHeight: 1.5 }}>
+          Link your Kingshot account (TC25+) to unlock your personal referral link.
+          Bring players to Atlas and earn badges, Discord roles, and recognition.
+        </p>
+      </div>
+    );
+  }
+
+  // Eligible — show stats + link
+  const progressToNext = nextTier
+    ? Math.min(100, (referralCount / nextTier.threshold) * 100)
+    : 100;
+
+  const currentTierColor = currentTier ? REFERRAL_TIER_COLORS[currentTier] : '#6b7280';
+  const nextTierColor = nextTier ? REFERRAL_TIER_COLORS[nextTier.tier] : currentTierColor;
+
+  return (
+    <div style={{
+      backgroundColor: '#111111',
+      borderRadius: '12px',
+      padding: isMobile ? '1rem' : '1.25rem',
+      marginBottom: '1.5rem',
+      border: `1px solid ${currentTier ? `${currentTierColor}30` : '#2a2a2a'}`,
+    }}>
+      {/* Header */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: '0.75rem',
+        flexWrap: 'wrap',
+        gap: '0.5rem',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span style={{ fontSize: '1.1rem' }}>🔗</span>
+          <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: '600', color: '#fff' }}>
+            Referral Program
+          </h3>
+          {currentTier && <ReferralBadge tier={currentTier} />}
+        </div>
+        <span style={{
+          fontSize: '0.85rem',
+          fontWeight: 'bold',
+          color: currentTierColor,
+        }}>
+          {referralCount} referral{referralCount !== 1 ? 's' : ''}
+        </span>
+      </div>
+
+      {/* Progress to next tier */}
+      {nextTier && (
+        <div style={{ marginBottom: '0.75rem' }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '0.35rem',
+          }}>
+            <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>
+              Next: {REFERRAL_TIER_LABELS[nextTier.tier]}
+            </span>
+            <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>
+              {referralCount}/{nextTier.threshold}
+            </span>
+          </div>
+          <div style={{
+            width: '100%',
+            height: '6px',
+            backgroundColor: '#1a1a1a',
+            borderRadius: '3px',
+            overflow: 'hidden',
+          }}>
+            <div style={{
+              width: `${progressToNext}%`,
+              height: '100%',
+              backgroundColor: nextTierColor,
+              borderRadius: '3px',
+              transition: 'width 0.3s ease',
+            }} />
+          </div>
+        </div>
+      )}
+
+      {/* Max tier reached */}
+      {!nextTier && currentTier === 'ambassador' && (
+        <p style={{
+          fontSize: '0.8rem',
+          color: REFERRAL_TIER_COLORS.ambassador,
+          margin: '0 0 0.75rem 0',
+          fontWeight: 500,
+        }}>
+          🏛️ You&apos;ve reached the highest referral tier!
+        </p>
+      )}
+
+      {/* Tier roadmap - compact for mobile */}
+      <div style={{
+        display: 'flex',
+        gap: isMobile ? '0.35rem' : '0.5rem',
+        marginBottom: '0.75rem',
+        flexWrap: 'wrap',
+      }}>
+        {(Object.entries(REFERRAL_TIER_THRESHOLDS) as [ReferralTier, number][]).map(([tier, threshold]) => {
+          const reached = referralCount >= threshold;
+          const tierColor = REFERRAL_TIER_COLORS[tier];
+          return (
+            <div key={tier} style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.25rem',
+              padding: '0.2rem 0.5rem',
+              borderRadius: '12px',
+              backgroundColor: reached ? `${tierColor}15` : '#0a0a0a',
+              border: `1px solid ${reached ? `${tierColor}40` : '#2a2a2a'}`,
+              fontSize: '0.7rem',
+              color: reached ? tierColor : '#6b7280',
+              fontWeight: reached ? 600 : 400,
+            }}>
+              {reached ? '✓' : threshold}
+              <span>{REFERRAL_TIER_LABELS[tier]}</span>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Copy referral link button */}
+      <button
+        onClick={handleCopyLink}
+        style={{
+          width: '100%',
+          padding: '0.75rem',
+          backgroundColor: copied ? '#22c55e' : (currentTier ? `${currentTierColor}15` : '#1a1a1a'),
+          border: `1px solid ${copied ? '#22c55e' : (currentTier ? `${currentTierColor}40` : '#333')}`,
+          borderRadius: '8px',
+          color: copied ? '#fff' : (currentTier ? currentTierColor : '#22d3ee'),
+          cursor: 'pointer',
+          fontSize: '0.85rem',
+          fontWeight: 600,
+          transition: 'all 0.2s',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '0.5rem',
+          minHeight: '48px',
+        }}
+      >
+        {copied ? '✓ Link Copied!' : '📋 Copy Your Referral Link'}
+      </button>
+    </div>
+  );
+};
+
+export default ReferralStats;

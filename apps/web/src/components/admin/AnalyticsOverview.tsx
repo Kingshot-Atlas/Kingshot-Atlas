@@ -1,156 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useMemo } from 'react';
 import type { AnalyticsData } from './types';
-import { getAuthHeaders } from '../../services/authHeaders';
-
-const API_URL = import.meta.env.VITE_API_URL || '';
-
-// --- Mini Area Chart (SVG) ---
-interface AreaChartProps {
-  data: number[];
-  labels?: string[];
-  color: string;
-  height?: number;
-}
-
-const MiniAreaChart: React.FC<AreaChartProps> = ({ data, labels, color, height = 120 }) => {
-  if (!data.length) return null;
-  const W = 600;
-  const H = height;
-  const PAD = { top: 10, right: 10, bottom: 24, left: 40 };
-  const chartW = W - PAD.left - PAD.right;
-  const chartH = H - PAD.top - PAD.bottom;
-  const max = Math.max(...data, 1);
-  const step = chartW / Math.max(data.length - 1, 1);
-
-  const points = data.map((v, i) => ({
-    x: PAD.left + i * step,
-    y: PAD.top + chartH - (v / max) * chartH,
-  }));
-
-  const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
-  const areaPath = `${linePath} L${points[points.length - 1]!.x},${PAD.top + chartH} L${PAD.left},${PAD.top + chartH} Z`;
-
-  // Y-axis ticks (4 levels)
-  const yTicks = [0, 0.25, 0.5, 0.75, 1].map(pct => ({
-    value: Math.round(max * pct),
-    y: PAD.top + chartH - pct * chartH,
-  }));
-
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto' }} preserveAspectRatio="xMidYMid meet">
-      {/* Grid lines */}
-      {yTicks.map((t, i) => (
-        <g key={i}>
-          <line x1={PAD.left} y1={t.y} x2={W - PAD.right} y2={t.y} stroke="#1f1f24" strokeWidth={1} />
-          <text x={PAD.left - 6} y={t.y + 3} textAnchor="end" fill="#4b5563" fontSize={9}>{t.value}</text>
-        </g>
-      ))}
-      {/* Area fill */}
-      <path d={areaPath} fill={`${color}15`} />
-      {/* Line */}
-      <path d={linePath} fill="none" stroke={color} strokeWidth={2} />
-      {/* Dots */}
-      {points.map((p, i) => (
-        <circle key={i} cx={p.x} cy={p.y} r={2.5} fill={color} />
-      ))}
-      {/* X-axis labels (every ~7 days) */}
-      {labels && labels.map((l, i) => {
-        if (data.length <= 7 || i % Math.ceil(data.length / 7) === 0 || i === data.length - 1) {
-          return (
-            <text key={i} x={PAD.left + i * step} y={H - 4} textAnchor="middle" fill="#4b5563" fontSize={8}>
-              {l}
-            </text>
-          );
-        }
-        return null;
-      })}
-    </svg>
-  );
-};
-
-// --- Collapsible Section ---
-const CollapsibleChart: React.FC<{
-  title: string;
-  color: string;
-  children: React.ReactNode;
-  defaultOpen?: boolean;
-}> = ({ title, color, children, defaultOpen = false }) => {
-  const [open, setOpen] = useState(defaultOpen);
-  return (
-    <div style={{
-      backgroundColor: '#111116',
-      borderRadius: '10px',
-      border: `1px solid ${open ? color + '30' : '#2a2a2a'}`,
-      overflow: 'hidden',
-      transition: 'border-color 0.2s',
-    }}>
-      <button
-        onClick={() => setOpen(o => !o)}
-        style={{
-          width: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '0.75rem 1rem',
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          color: '#fff',
-        }}
-      >
-        <span style={{ fontSize: '0.85rem', fontWeight: '600' }}>{title}</span>
-        <span style={{
-          color: '#6b7280',
-          fontSize: '0.75rem',
-          transition: 'transform 0.2s',
-          transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
-        }}>▼</span>
-      </button>
-      {open && (
-        <div style={{ padding: '0 1rem 1rem' }}>
-          {children}
-        </div>
-      )}
-    </div>
-  );
-};
-
-// --- Stacked Bar for User Breakdown ---
-const BreakdownBar: React.FC<{ breakdown: { label: string; value: number; color: string }[] }> = ({ breakdown }) => {
-  const total = breakdown.reduce((s, b) => s + b.value, 0) || 1;
-  return (
-    <div>
-      <div style={{ display: 'flex', borderRadius: '6px', overflow: 'hidden', height: '28px', marginBottom: '0.5rem' }}>
-        {breakdown.map((b, i) => (
-          <div
-            key={i}
-            style={{
-              width: `${(b.value / total) * 100}%`,
-              backgroundColor: b.color,
-              minWidth: b.value > 0 ? '2px' : 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'width 0.3s',
-            }}
-          >
-            {(b.value / total) > 0.08 && (
-              <span style={{ fontSize: '0.65rem', color: '#fff', fontWeight: '600' }}>{b.value}</span>
-            )}
-          </div>
-        ))}
-      </div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
-        {breakdown.map((b, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-            <div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: b.color }} />
-            <span style={{ fontSize: '0.7rem', color: '#9ca3af' }}>{b.label}: <span style={{ color: '#fff', fontWeight: '600' }}>{b.value}</span></span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
+import { analyticsService } from '../../services/analyticsService';
 
 interface AnalyticsOverviewProps {
   analytics: AnalyticsData | null;
@@ -161,14 +11,6 @@ interface AnalyticsOverviewProps {
   onIncrementKvK: () => void;
 }
 
-interface TimeseriesPoint { date: string; visitors: number; pageviews: number }
-interface UserGrowthData {
-  signups: { date: string; count: number }[];
-  cumulative: { date: string; total: number }[];
-  total_users: number;
-  breakdown: { free: number; supporter: number; recruiter: number; kingshot_linked: number };
-}
-
 export const AnalyticsOverview: React.FC<AnalyticsOverviewProps> = ({
   analytics,
   syncingSubscriptions,
@@ -177,45 +19,11 @@ export const AnalyticsOverview: React.FC<AnalyticsOverviewProps> = ({
   incrementingKvK,
   onIncrementKvK
 }) => {
-  const [timeseries, setTimeseries] = useState<TimeseriesPoint[]>([]);
-  const [userGrowth, setUserGrowth] = useState<UserGrowthData | null>(null);
-  const [chartsLoading, setChartsLoading] = useState(false);
-
-  const fetchGrowthData = useCallback(async () => {
-    setChartsLoading(true);
-    try {
-      const headers = await getAuthHeaders({ requireAuth: false });
-      const [tsRes, ugRes] = await Promise.all([
-        fetch(`${API_URL}/api/v1/admin/stats/plausible/timeseries?period=30d`, { headers }),
-        fetch(`${API_URL}/api/v1/admin/stats/user-growth`, { headers }),
-      ]);
-      if (tsRes.ok) {
-        const tsData = await tsRes.json();
-        setTimeseries(tsData.results || []);
-      }
-      if (ugRes.ok) {
-        const ugData = await ugRes.json();
-        setUserGrowth(ugData);
-      }
-    } catch (e) {
-      console.error('Failed to load growth data:', e);
-    } finally {
-      setChartsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchGrowthData();
-  }, [fetchGrowthData]);
+  const homepageCTR = useMemo(() => analyticsService.getHomepageCTR(), [analytics]);
 
   if (!analytics) {
     return <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>Loading analytics...</div>;
   }
-
-  const fmtDate = (d: string) => {
-    const parts = d.split('-');
-    return `${parts[1]}/${parts[2]}`;
-  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -243,63 +51,6 @@ export const AnalyticsOverview: React.FC<AnalyticsOverviewProps> = ({
           </div>
         ))}
       </div>
-
-      {/* Growth Charts (Collapsible) */}
-      {chartsLoading ? (
-        <div style={{ textAlign: 'center', padding: '1rem', color: '#6b7280', fontSize: '0.8rem' }}>Loading growth charts...</div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          {/* Visitors Growth */}
-          {timeseries.length > 0 && (
-            <CollapsibleChart title="📈 Visitors — 30 Day Trend" color="#22d3ee">
-              <MiniAreaChart
-                data={timeseries.map(t => t.visitors)}
-                labels={timeseries.map(t => fmtDate(t.date))}
-                color="#22d3ee"
-              />
-            </CollapsibleChart>
-          )}
-
-          {/* Page Views Growth */}
-          {timeseries.length > 0 && (
-            <CollapsibleChart title="📄 Page Views — 30 Day Trend" color="#a855f7">
-              <MiniAreaChart
-                data={timeseries.map(t => t.pageviews)}
-                labels={timeseries.map(t => fmtDate(t.date))}
-                color="#a855f7"
-              />
-            </CollapsibleChart>
-          )}
-
-          {/* Total Users Growth */}
-          {userGrowth && userGrowth.cumulative.length > 0 && (
-            <CollapsibleChart title="👥 Total Users — 30 Day Growth" color="#22c55e">
-              <MiniAreaChart
-                data={userGrowth.cumulative.map(c => c.total)}
-                labels={userGrowth.cumulative.map(c => fmtDate(c.date))}
-                color="#22c55e"
-              />
-              <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#6b7280' }}>
-                New signups in period: <span style={{ color: '#22c55e', fontWeight: '600' }}>
-                  {userGrowth.signups.reduce((s, d) => s + d.count, 0)}
-                </span>
-              </div>
-            </CollapsibleChart>
-          )}
-
-          {/* User Breakdown Chart */}
-          {userGrowth && (
-            <CollapsibleChart title="🧩 User Breakdown" color="#f59e0b">
-              <BreakdownBar breakdown={[
-                { label: 'Free', value: userGrowth.breakdown.free, color: '#6b7280' },
-                { label: 'Kingshot Linked', value: userGrowth.breakdown.kingshot_linked, color: '#f59e0b' },
-                { label: 'Supporter', value: userGrowth.breakdown.supporter, color: '#FF6B8A' },
-                { label: 'Recruiter', value: userGrowth.breakdown.recruiter, color: '#22d3ee' },
-              ]} />
-            </CollapsibleChart>
-          )}
-        </div>
-      )}
 
       {/* User Breakdown */}
       <div style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', border: '1px solid #2a2a2a' }}>
@@ -510,6 +261,93 @@ export const AnalyticsOverview: React.FC<AnalyticsOverviewProps> = ({
           </div>
         )) : (
           <div style={{ color: '#6b7280', fontSize: '0.85rem', fontStyle: 'italic' }}>No page view data available</div>
+        )}
+      </div>
+
+      {/* Homepage Click-Through Rates */}
+      <div style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', border: '1px solid #22c55e30' }}>
+        <h3 style={{ color: '#fff', marginBottom: '1rem', fontSize: '1rem' }}>🏠 Homepage CTR (30d)</h3>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
+
+          {/* Quick Actions */}
+          <div style={{ backgroundColor: '#0a0a0f', borderRadius: '10px', padding: '1rem', border: '1px solid #2a2a2a' }}>
+            <div style={{ fontSize: '0.85rem', color: '#9ca3af', marginBottom: '0.75rem', fontWeight: 600 }}>Quick Action Tiles</div>
+            {homepageCTR.quickActions.length > 0 ? homepageCTR.quickActions.map((qa, i) => (
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.35rem 0', borderBottom: i < homepageCTR.quickActions.length - 1 ? '1px solid #1a1a1f' : 'none' }}>
+                <span style={{ color: '#d1d5db', fontSize: '0.85rem' }}>{qa.label}</span>
+                <span style={{ color: '#22d3ee', fontWeight: 600, fontSize: '0.85rem' }}>{qa.clicks} clicks</span>
+              </div>
+            )) : (
+              <div style={{ color: '#6b7280', fontSize: '0.8rem', fontStyle: 'italic' }}>No clicks yet</div>
+            )}
+          </div>
+
+          {/* Transfer Banner */}
+          <div style={{ backgroundColor: '#0a0a0f', borderRadius: '10px', padding: '1rem', border: '1px solid #2a2a2a' }}>
+            <div style={{ fontSize: '0.85rem', color: '#9ca3af', marginBottom: '0.75rem', fontWeight: 600 }}>Transfer Hub Banner</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', textAlign: 'center' }}>
+              <div>
+                <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#22c55e' }}>{homepageCTR.transferBanner.ctaClicks}</div>
+                <div style={{ fontSize: '0.7rem', color: '#6b7280' }}>CTA Clicks</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#ef4444' }}>{homepageCTR.transferBanner.dismissals}</div>
+                <div style={{ fontSize: '0.7rem', color: '#6b7280' }}>Dismissed</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#fbbf24' }}>{homepageCTR.transferBanner.ctr}%</div>
+                <div style={{ fontSize: '0.7rem', color: '#6b7280' }}>CTR</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Transfer Banner - keep in grid */}
+        </div>
+
+        {/* Scroll Depth Per Page */}
+        <div style={{ marginTop: '1rem' }}>
+          <div style={{ fontSize: '0.85rem', color: '#9ca3af', marginBottom: '0.75rem', fontWeight: 600 }}>Scroll Depth by Page</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '0.75rem' }}>
+            {homepageCTR.scrollDepthByPage.map((pageData, pi) => {
+              const maxCount = Math.max(...pageData.depths.map(d => d.count), 1);
+              const totalHits = pageData.depths.reduce((s, d) => s + d.count, 0);
+              return (
+                <div key={pi} style={{ backgroundColor: '#0a0a0f', borderRadius: '10px', padding: '0.85rem', border: '1px solid #2a2a2a' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                    <span style={{ color: '#d1d5db', fontSize: '0.8rem', fontWeight: 600 }}>{pageData.page}</span>
+                    <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>{totalHits} events</span>
+                  </div>
+                  {pageData.depths.map((sd, i) => {
+                    const barWidth = Math.max((sd.count / maxCount) * 100, 2);
+                    const barColor = sd.threshold <= 25 ? '#22d3ee' : sd.threshold <= 50 ? '#22c55e' : sd.threshold <= 75 ? '#fbbf24' : '#f97316';
+                    return (
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.3rem' }}>
+                        <span style={{ color: '#9ca3af', fontSize: '0.7rem', width: '28px', textAlign: 'right' }}>{sd.threshold}%</span>
+                        <div style={{ flex: 1, height: '12px', backgroundColor: '#1a1a20', borderRadius: '3px', overflow: 'hidden' }}>
+                          <div style={{ width: `${barWidth}%`, height: '100%', backgroundColor: barColor, borderRadius: '3px', transition: 'width 0.3s' }} />
+                        </div>
+                        <span style={{ color: '#d1d5db', fontSize: '0.7rem', width: '24px' }}>{sd.count}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Worst Drop-off Alert */}
+        {homepageCTR.worstDropoffs.length > 0 && (
+          <div style={{ marginTop: '0.75rem', padding: '0.75rem 1rem', backgroundColor: '#ef444410', border: '1px solid #ef444430', borderRadius: '10px' }}>
+            <div style={{ fontSize: '0.85rem', color: '#ef4444', fontWeight: 600, marginBottom: '0.4rem' }}>⚠️ Drop-off Alert</div>
+            <div style={{ fontSize: '0.8rem', color: '#9ca3af' }}>
+              {homepageCTR.worstDropoffs.map((d, i) => (
+                <div key={i} style={{ marginBottom: '0.2rem' }}>
+                  <span style={{ color: '#d1d5db', fontWeight: 500 }}>{d.page}</span>: {d.dropoffPercent}% of users drop off before 50% scroll ({d.at25} reached 25%, only {d.at50} reached 50%)
+                </div>
+              ))}
+            </div>
+          </div>
         )}
       </div>
     </div>

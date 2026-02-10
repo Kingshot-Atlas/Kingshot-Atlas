@@ -13,11 +13,13 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
 import { scoreHistoryService, RankMover } from '../services/scoreHistoryService';
+import { useScrollDepth } from '../hooks/useScrollDepth';
 
 const Leaderboards: React.FC = () => {
   useDocumentTitle('Kingdom Rankings');
   useMetaTags(PAGE_META_TAGS.leaderboards);
   useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.rankings });
+  useScrollDepth('Rankings');
   const [kingdoms, setKingdoms] = useState<Kingdom[]>([]);
   const [loading, setLoading] = useState(true);
   const [displayCount, setDisplayCount] = useState<5 | 10 | 25>(5);

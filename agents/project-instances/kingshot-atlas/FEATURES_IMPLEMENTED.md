@@ -66,6 +66,7 @@
 | Auth Modal | ✅ Live | Product | `AuthModal.tsx` login/signup flow |
 | User Profiles | ✅ Live | Product | Settings, preferences, linked accounts |
 | Kingshot Player Linking | ✅ Live | Product | `LinkKingshotAccount.tsx` - link to in-game ID |
+| Player ID Uniqueness Constraint | ✅ Live | Platform | UNIQUE constraint on `profiles.linked_player_id`. Two-layer defense: frontend pre-check + DB constraint. Error handling in AuthContext + Profile.tsx (2026-02-09) |
 | Linked Account Card Redesign | ✅ Live | Product | Table layout with tier-based username colors (2026-01-31) |
 | Favorites Cloud Persistence | ✅ Live | Product | Supabase `user_data` table sync with retry logic (3 attempts, exponential backoff), error toasts (2026-02-06) |
 | Favorites Header Badge | ❌ Removed | Product | `FavoritesBadge.tsx` - removed from header (2026-02-06). Component still exists but no longer displayed. |
@@ -99,6 +100,17 @@
 | Shareable Cards | ✅ Live | Product | `ShareableCard.tsx` PNG export |
 | Discord Formatting | ✅ Live | Product | Copy-paste ready Discord embeds |
 | Meta Tags | ✅ Live | Product | `useMetaTags.ts` for social previews |
+| Referral System (Open Ambassador Network) | ✅ Live | Product + Platform | 4-tier referral system (Scout/Recruiter/Consul/Ambassador). `?ref=` URL param captured in AuthContext, stored in localStorage, recorded on signup. Auto-verify trigger when referred user links TC20+ account. `ReferralBadge.tsx`, `ReferralStats.tsx` on Profile page. Referral tier borders on UserDirectory cards. ShareButton auto-appends `?ref=` for eligible users (TC25+). Discord bot auto-syncs Consul/Ambassador roles every 30min. DB: `referrals` table + `referred_by`/`referral_count`/`referral_tier` on profiles. Spec: `docs/OPEN_AMBASSADOR_NETWORK.md` (2026-07-16) |
+| Ambassador Directory | ✅ Live | Product | `/ambassadors` page — public directory of all users with referral tiers, sorted by tier+count. Filter chips by tier. Hover cards with rank badges. CTA to get referral link. (2026-02-09) |
+| Ambassador Tag on Reviews | ✅ Live | Product | `KingdomReviews.tsx` shows `ReferralBadge` next to reviewer username. `kingdom_reviews` + `review_replies` tables extended with `author_referral_tier`. Review creation populates referral tier. (2026-02-09) |
+| KingdomPlayers Referral Sorting | ✅ Live | Product | `KingdomPlayers.tsx` sort priority updated: admin > supporter > ambassador > consul > recruiter > scout > free. Fetches `referral_tier`, shows `ReferralBadge`. (2026-02-09) |
+| Referral Anti-Gaming | ✅ Live | Platform | DB triggers: `check_referral_rate_limit` (max 10 pending/referrer), `check_referral_ip_abuse` (auto-invalidate 3+ same IP+referrer). `signup_ip` column on referrals, captured via ipify API. (2026-02-09) |
+| Referral Admin Dashboard | ✅ Live | Product | `ReferralFunnel.tsx` — Admin tab showing total/pending/verified/invalid counts, conversion rate, tier distribution bars, top 5 referrers, recent referrals table, suspicious IP alerts. (2026-02-09) |
+| Referral Analytics Events | ✅ Live | Product | `trackFeature('Referral Link Copied')` in ReferralStats, `hasReferral` metadata on ShareButton link copies. (2026-02-09) |
+| Referral Verification Notifications | ✅ Live | Platform | DB trigger `verify_pending_referral` inserts notification (type `referral_verified`) for referrer when referred user links TC20+ account. Real-time via Supabase channel. Purple ambassador color + 🏛️ icon. Links to /ambassadors. (2026-02-09) |
+| Referred By on Profiles | ✅ Live | Product | Public profiles show "Referred by [username]" in purple for 30 days after account creation. Uses `profiles.referred_by` + `created_at`. (2026-02-09) |
+| Referral Count on Player Cards | ✅ Live | Product | UserDirectory cards show referral count in tier color when user has referrals. (2026-02-09) |
+| Monthly Referral Counter | ✅ Live | Product | Ambassadors hero shows "⚡ X players joined via referrals this month" live counter. Queries verified referrals since start of month. (2026-02-09) |
 
 ---
 
@@ -321,6 +333,7 @@
 | CSV Import Pipeline | ✅ Live | 2026-02-07 | Product | 4-step wizard: Input → Preview & Validate → Duplicate Review → Import with Progress. Batched inserts (50/batch), animated progress bar, validation feedback with highlighted errors, Bye match support |
 | Import History Audit Log | ✅ Live | 2026-02-07 | Product | `import_history` table in Supabase. Logs admin, row counts, KvK numbers per import. Visible on Import tab |
 | Recalculate Atlas Scores | ✅ Live | 2026-02-07 | Product | Button calls `recalculate_all_kingdom_scores()` + `verify_and_fix_rank_consistency()`. Shows kingdoms updated, avg score, ranks fixed |
+| Analytics Growth Charts | ❌ Removed | 2026-02-09 | Platform | Removed — Plausible was connected after site launch (Jan 25), causing misleading zero-padded charts. Charts + backend endpoints deleted. |
 
 ---
 
@@ -390,6 +403,27 @@
 | Mobile Responsive Pass | ✅ Live | 2026-02-05 - Touch targets fixed to 44px min on Header, KingdomProfile, CompareKingdoms, Leaderboards, KingdomCard, KingdomReviews, KvKHistoryTable, SupportAtlas, Profile |
 | Transfer Hub Mobile UX Pass | ✅ Built | Bottom-sheet modals, 44px touch targets, iOS zoom prevention (16px inputs), 2-col grid on mobile, safe area insets across all Transfer Hub components (2026-02-07) |
 | Transfer Hub — Infinite Scroll | ✅ Built | IntersectionObserver-based infinite scroll for standard listings, loading skeletons, spinner sentinel (2026-02-07) |
+| Transfer Hub — Transfer Groups | ✅ Built | Configurable `TRANSFER_GROUPS` array with `TRANSFER_GROUPS_ACTIVE` flag. Filters kingdoms by user's linked kingdom group. Banner shows active group or prompts linking. Groups updated per event. Documented in TRANSFER_EVENT_MECHANICS.md (2026-02-09) |
+| Transfer Hub — KingdomListingCard Redesign | ✅ Built | Transfer Status: gold/silver colors. Performance: centered title, cyan Atlas Score+Rank merged, gray-bordered stat boxes. Characteristics: Vibe tags, language pair, min power/TC, kingdom bio. Reviews moved to More Details. Alliance Event Times grid with UTC/Local toggle. NAP/Sanctuaries/Castle row in More Details. Fixed broken emoji (2026-02-09) |
+| Transfer Hub — Browse Tab Invites | ✅ Built | Send Invite button on transferee cards. Duplicate check (pending invite query), recipient notification, budget enforcement, "✓ Invited" state tracking via `sentInviteIds`. Uses `transfer_invites` table (2026-02-09) |
+| Transfer Hub — Contribution History | ✅ Built | Fund tab shows contribution log with amount, date, running total. Auto-loads on tab select. RLS: editors can view their kingdom's contributions. Empty state with share CTA (2026-02-09) |
+| Transfer Hub — Fund Contribution Notifications | ✅ Built | DB trigger `on_fund_contribution_notify` fires on INSERT to `kingdom_fund_contributions`. Notifies all active editors with 💰 icon. Wired to Stripe webhook pipeline (2026-02-09) |
+| Transfer Hub — Application Expiry Warnings | ✅ Built | `notify_expiring_applications()` DB function finds apps expiring within 24h, deduplicates via metadata, inserts ⏳ notification. Cron at 05:00 UTC via pg_cron (2026-02-09) |
+| Transfer Hub — Real-Time Browse | ✅ Built | Supabase Realtime subscription on `transfer_profiles` INSERT. New profiles auto-prepend to browse list. Channel cleaned up on tab switch (2026-02-09) |
+| Transfer Hub — Transfer Notification Preferences | ✅ Built | `transfer_updates` toggle in NotificationPreferences. Controls new_application, application_status, co_editor_invite, fund_contribution, application_expiring notifications. Defaults enabled (2026-02-09) |
+| Transfer Hub — Open Access Gate | ✅ Built | Removed owner-only gate. Requires linked Kingshot account. Shows "Sign In" or "Link Account" CTA for gated users. (2026-02-09) |
+| Transfer Hub — Self-Kingdom Protection | ✅ Built | Users cannot apply to own kingdom. "Your Kingdom" badge on listing card. Own kingdom excluded from transferring mode. Guard in ApplyModal. (2026-02-09) |
+| Transfer Hub — My Invites | ✅ Built | New section in MyApplicationsTracker: pending invites with Accept/Decline, past invites collapsible. Fetches from `transfer_invites` via recipient's transfer profile. (2026-02-09) |
+| Transfer Hub — Recruiter Onboarding | ✅ Built | 3-step dismissible banner (Claim → Fund → Recruit) in RecruiterDashboard. Steps show ✅ when done. Persisted in localStorage. (2026-02-09) |
+| Transfer Hub — Analytics Events | ✅ Built | 8 tracking calls: tab switch, invite sent, contribution link copied, mode select, mode toggle, apply click, fund click, dashboard open. (2026-02-09) |
+| Homepage Restructure (Option B) | ✅ Live | Quick Actions (4 tiles: Transfer Hub, Rankings, KvK Seasons, Atlas Bot with original SVG icons), Transfer Hub Banner (dismissable CTA with countdown), Mobile Countdowns (KvK + Transfer thin pills with "Next KvK"/"Next Transfer" labels + seconds). Mobile-first: 2×2 grid on mobile, 4-col on desktop. Reuses KvKCountdown status logic. (2026-02-09) |
+| Homepage Analytics Tracking | ✅ Live | QuickAction Clicked (with tile label), Transfer Banner CTA Clicked, Transfer Banner Dismissed, Scroll Depth (25/50/75/100%) on 4 pages (Homepage, Kingdom Profile, Transfer Hub, Rankings). Admin Dashboard: Homepage CTR section with Quick Action breakdown, Transfer Banner CTR, per-page scroll depth bar charts, drop-off alert for pages where <30% reach 50% depth. Uses `useScrollDepth` hook + `getHomepageCTR()` in analyticsService. (2026-02-09) |
+| Transfer Hub — Apply Button Fix | ✅ Built | Removed `isPremium` gate from Apply button — all kingdoms show Apply in transferring mode, not just Silver/Gold. (2026-02-10) |
+| Transfer Hub — React Hooks Fix | ✅ Built | Moved all useState/useEffect/useMemo/useCallback/useRef hooks before conditional early return to comply with React Rules of Hooks. Prevents crash on login state change. (2026-02-10) |
+| Transfer Hub — Match Score Sort | ✅ Built | Added `case 'match'` to sort switch. Lightweight `calculateMatchScoreForSort` function avoids details array allocation. (2026-02-10) |
+| Transfer Hub — Browse Filters | ✅ Built | TC level, power, and language filters in Recruiter Dashboard Browse tab. Client-side filtering with count display and clear button. (2026-02-10) |
+| Transfer Hub — Profile Comparison | ✅ Built | Compare up to 4 transferee profiles side-by-side. Checkbox selection on each card, comparison modal with table view (TC, power, language, KvK availability, saving status, group size, looking for). (2026-02-10) |
+| Transfer Hub — Code Review Fixes | ✅ Built | 8 bugs fixed: real-time subscription filter, LANGUAGE_OPTIONS sync, invite notification type, falsy kingdom check, expired invite filtering. (2026-02-10) |
 | Component Refactoring | 🚧 Planned | KingdomCard, ProfileFeatures too large |
 | Multi-Kingdom Share/Export | 🚧 Planned | ShareButton still uses 2-kingdom format |
 

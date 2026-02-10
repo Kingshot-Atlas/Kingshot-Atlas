@@ -78,6 +78,53 @@ export const getDisplayTier = (
 // Legacy alias for backward compatibility
 export const getEffectiveTier = getAccessTier;
 
+// ─── Referral Tier System ───
+export type ReferralTier = 'scout' | 'recruiter' | 'consul' | 'ambassador';
+
+export const REFERRAL_TIER_THRESHOLDS: Record<ReferralTier, number> = {
+  scout: 2,
+  recruiter: 5,
+  consul: 10,
+  ambassador: 20,
+} as const;
+
+export const REFERRAL_TIER_COLORS: Record<ReferralTier, string> = {
+  scout: '#ffffff',     // White
+  recruiter: '#22c55e', // Green
+  consul: '#b890dd',    // Light Purple
+  ambassador: '#a24cf3', // Purple
+} as const;
+
+export const REFERRAL_TIER_LABELS: Record<ReferralTier, string> = {
+  scout: 'Scout',
+  recruiter: 'Recruiter',
+  consul: 'Consul',
+  ambassador: 'Ambassador',
+} as const;
+
+export const REFERRAL_TIER_ORDER: ReferralTier[] = ['scout', 'recruiter', 'consul', 'ambassador'];
+
+export const getReferralTierFromCount = (count: number): ReferralTier | null => {
+  if (count >= 20) return 'ambassador';
+  if (count >= 10) return 'consul';
+  if (count >= 5) return 'recruiter';
+  if (count >= 2) return 'scout';
+  return null;
+};
+
+export const getNextReferralTier = (currentTier: ReferralTier | null): { tier: ReferralTier; threshold: number } | null => {
+  if (!currentTier) return { tier: 'scout', threshold: 2 };
+  const idx = REFERRAL_TIER_ORDER.indexOf(currentTier);
+  if (idx < 0 || idx >= REFERRAL_TIER_ORDER.length - 1) return null;
+  const next = REFERRAL_TIER_ORDER[idx + 1] as ReferralTier;
+  return { tier: next, threshold: REFERRAL_TIER_THRESHOLDS[next] };
+};
+
+// Referral eligibility: must have linked account with TC25+
+export const isReferralEligible = (profile: { linked_player_id?: string | null; linked_tc_level?: number | null }): boolean => {
+  return !!profile.linked_player_id && (profile.linked_tc_level ?? 0) >= 25;
+};
+
 // Get tier color for UI elements (borders, buttons) - white for free, colored for paid
 // Supporter = Pink, Admin = Gold
 export const getTierBorderColor = (tier: string | null | undefined): string => {

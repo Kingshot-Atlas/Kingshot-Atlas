@@ -19,6 +19,7 @@ export interface Review {
   author_linked_kingdom: number | null;
   author_linked_tc_level: number;
   author_subscription_tier: string | null;
+  author_referral_tier: string | null;
   helpful_count: number;
   created_at: string;
   updated_at: string;
@@ -33,6 +34,7 @@ export interface ReviewReply {
   author_linked_username: string;
   author_linked_avatar_url: string | null;
   author_subscription_tier: string | null;
+  author_referral_tier: string | null;
   is_official_reply: boolean;
   created_at: string;
   updated_at: string;
@@ -180,7 +182,8 @@ export const reviewService = {
         author_linked_avatar_url: profile.linked_avatar_url || null,
         author_linked_kingdom: profile.linked_kingdom || null,
         author_linked_tc_level: profile.linked_tc_level,
-        author_subscription_tier: profile.subscription_tier || 'free'
+        author_subscription_tier: profile.subscription_tier || 'free',
+        author_referral_tier: profile.referral_tier || null
       })
       .select()
       .single();
@@ -443,6 +446,7 @@ export const reviewService = {
         author_linked_username: profile.linked_username || profile.username || 'Anonymous',
         author_linked_avatar_url: profile.linked_avatar_url || null,
         author_subscription_tier: profile.subscription_tier || 'free',
+        author_referral_tier: profile.referral_tier || null,
         is_official_reply: isOfficial
       })
       .select()

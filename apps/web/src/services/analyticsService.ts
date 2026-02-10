@@ -456,6 +456,89 @@ class AnalyticsService {
       userJourney: journeyData
     };
   }
+
+  // Get homepage click-through rates for Admin Dashboard
+  getHomepageCTR(): {
+    quickActions: { label: string; clicks: number; lastClicked: string }[];
+    transferBanner: { ctaClicks: number; dismissals: number; ctr: number };
+    scrollDepthByPage: { page: string; depths: { threshold: number; count: number }[] }[];
+    worstDropoffs: { page: string; at25: number; at50: number; dropoffPercent: number }[];
+  } {
+    const events = this.getEvents();
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const recent = events.filter(e => new Date(e.timestamp) >= thirtyDaysAgo);
+
+    // QuickAction clicks breakdown by tile label
+    const qaMap = new Map<string, { clicks: number; lastClicked: string }>();
+    recent
+      .filter(e => e.event_name === 'QuickAction Clicked')
+      .forEach(e => {
+        const label = (e.metadata?.tile as string) || 'Unknown';
+        if (!qaMap.has(label)) qaMap.set(label, { clicks: 0, lastClicked: e.timestamp });
+        const entry = qaMap.get(label)!;
+        entry.clicks++;
+        if (e.timestamp > entry.lastClicked) entry.lastClicked = e.timestamp;
+      });
+    const quickActions = Array.from(qaMap.entries())
+      .map(([label, data]) => ({ label, ...data }))
+      .sort((a, b) => b.clicks - a.clicks);
+
+    // Transfer Banner CTR
+    const ctaClicks = recent.filter(e => e.event_name === 'Transfer Banner CTA Clicked').length;
+    const dismissals = recent.filter(e => e.event_name === 'Transfer Banner Dismissed').length;
+    const totalImpressions = ctaClicks + dismissals;
+    const ctr = totalImpressions > 0 ? Math.round((ctaClicks / totalImpressions) * 100) : 0;
+
+    // Scroll depth by page — collect all tracked pages
+    const scrollEvents = recent.filter(e => e.event_name === 'Scroll Depth');
+    const pageDepthMap = new Map<string, Map<number, number>>();
+    const trackedPages = ['Kingdom Directory', 'Kingdom Profile', 'Transfer Hub', 'Rankings'];
+    trackedPages.forEach(p => {
+      const m = new Map<number, number>();
+      [25, 50, 75, 100].forEach(t => m.set(t, 0));
+      pageDepthMap.set(p, m);
+    });
+
+    scrollEvents.forEach(e => {
+      const page = e.metadata?.page as string;
+      const depth = e.metadata?.depth as number;
+      if (!page || !depth) return;
+      if (!pageDepthMap.has(page)) {
+        const m = new Map<number, number>();
+        [25, 50, 75, 100].forEach(t => m.set(t, 0));
+        pageDepthMap.set(page, m);
+      }
+      const m = pageDepthMap.get(page)!;
+      if (m.has(depth)) m.set(depth, (m.get(depth) || 0) + 1);
+    });
+
+    const scrollDepthByPage = Array.from(pageDepthMap.entries())
+      .map(([page, depthMap]) => ({
+        page,
+        depths: Array.from(depthMap.entries())
+          .map(([threshold, count]) => ({ threshold, count }))
+          .sort((a, b) => a.threshold - b.threshold),
+      }))
+      .sort((a, b) => {
+        const totalA = a.depths.reduce((s, d) => s + d.count, 0);
+        const totalB = b.depths.reduce((s, d) => s + d.count, 0);
+        return totalB - totalA;
+      });
+
+    // Worst drop-offs: pages where <30% of users who hit 25% reach 50%
+    const worstDropoffs = scrollDepthByPage
+      .map(({ page, depths }) => {
+        const at25 = depths.find(d => d.threshold === 25)?.count || 0;
+        const at50 = depths.find(d => d.threshold === 50)?.count || 0;
+        const dropoffPercent = at25 > 0 ? Math.round(((at25 - at50) / at25) * 100) : 0;
+        return { page, at25, at50, dropoffPercent };
+      })
+      .filter(d => d.at25 > 0 && d.dropoffPercent > 70) // >70% drop means <30% reach 50%
+      .sort((a, b) => b.dropoffPercent - a.dropoffPercent);
+
+    return { quickActions, transferBanner: { ctaClicks, dismissals, ctr }, scrollDepthByPage, worstDropoffs };
+  }
 }
 
 export const analyticsService = new AnalyticsService();

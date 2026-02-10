@@ -365,9 +365,10 @@ function createHelpEmbed() {
         name: '⭐ Atlas Supporter',
         value: [
           '**Unlock premium features:**',
-          '• Historical trends & predictions',
-          '• Matchup win probabilities',
-          '• Advanced analytics',
+          '• Multi-Compare — up to 5 kingdoms',
+          '• Ad-free experience',
+          '• Early access to new features',
+          '• Supporter badge & Discord role',
           `[Upgrade Now](${config.premium.ctaUrl})`,
         ].join('\n'),
       }

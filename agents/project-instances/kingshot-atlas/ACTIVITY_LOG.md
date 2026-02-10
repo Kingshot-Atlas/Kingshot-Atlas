@@ -7,6 +7,191 @@
 
 ## Log Entries
 
+## 2026-02-10 01:00 | Product Engineer | COMPLETED
+Task: Transfer Hub Bug Fixes, Code Review, Browse Filters & Profile Comparison
+Files: `pages/TransferBoard.tsx`, `components/TransferApplications.tsx`, `components/RecruiterDashboard.tsx`
+Result:
+  - **CRITICAL BUG FIX — Apply Button:** Removed `isPremium` gate from Apply button. All kingdoms now show "Apply to Transfer" in transferring mode, not just Silver/Gold funded ones. Root cause of user-reported K172 bug.
+  - **CRITICAL BUG FIX — React Hooks:** Moved all useState/useEffect/useMemo/useCallback/useRef hooks before conditional early return in TransferBoard. Previous code violated React Rules of Hooks and would crash when user login state changed.
+  - **BUG FIX — Match Score Sort:** Added `case 'match':` handler with lightweight `calculateMatchScoreForSort` function. Previously fell through to `default: break;` (no-op).
+  - **BUG FIX — Real-time Subscription:** Added `visible_to_recruiters` and `current_kingdom` checks to Realtime INSERT handler. Previously auto-prepended all new profiles regardless of visibility.
+  - **BUG FIX — LANGUAGE_OPTIONS:** Synced TransferBoard options with RecruiterDashboard (21 languages). "Chinese" → "Mandarin Chinese" mismatch fixed.
+  - **BUG FIX — Invite Notification Type:** Changed from `application_status` to `transfer_invite` for correct routing.
+  - **BUG FIX — contributingToKingdom:** Changed falsy check to strict `!== null`.
+  - **BUG FIX — Expired Invites:** Added `expires_at` check to pending invite filter.
+  - **FEATURE — Browse Filters:** TC level, power, language filters in Recruiter Dashboard Browse tab with count and clear button.
+  - **FEATURE — Profile Comparison:** Compare up to 4 transferees side-by-side in modal table (TC, power, language, KvK, saving, group, looking for).
+  - Build passes ✅
+
+## 2026-02-09 23:45 | Ops Lead | COMPLETED
+Task: Expand Scroll Depth Tracking to All Key Pages
+Files: `pages/KingdomProfile.tsx`, `pages/TransferBoard.tsx`, `pages/Leaderboards.tsx`, `services/analyticsService.ts`, `components/admin/AnalyticsOverview.tsx`
+Result:
+  - **KingdomProfile:** Added `useScrollDepth('Kingdom Profile')` — tracks 25/50/75/100% scroll thresholds.
+  - **TransferBoard:** Added `useScrollDepth('Transfer Hub')` — tracks scroll depth on Transfer Hub page.
+  - **Leaderboards:** Added `useScrollDepth('Rankings')` — tracks scroll depth on Rankings page.
+  - **analyticsService.ts:** Expanded `getHomepageCTR()` → returns `scrollDepthByPage` (per-page breakdown for all 4 tracked pages) and `worstDropoffs` (pages where >70% drop off before 50% scroll).
+  - **Admin Dashboard:** Replaced single homepage scroll depth chart with per-page grid (4 cards with bar charts). Added red "Drop-off Alert" panel that flags pages with severe scroll abandonment.
+  - Build passes ✅
+
+## 2026-02-09 23:30 | Product Engineer + Ops Lead | COMPLETED
+Task: Homepage Countdown Fixes + Analytics Tracking for Homepage Components
+Files: `components/homepage/MobileCountdowns.tsx`, `components/homepage/QuickActions.tsx`, `components/homepage/TransferHubBanner.tsx`, `hooks/useScrollDepth.ts` (NEW), `services/analyticsService.ts`, `components/admin/AnalyticsOverview.tsx`, `pages/KingdomDirectory.tsx`
+Result:
+  - **MobileCountdowns Fix:** Changed labels from "KVK #11" / "TRANSFER #4" to "Next KvK" / "Next Transfer" when in countdown phase. Added seconds to time display.
+  - **QuickAction Analytics:** Tracks `QuickAction Clicked` with tile label metadata (Transfer Hub, Rankings, KvK Seasons, Atlas Bot).
+  - **Transfer Banner Analytics:** Tracks `Transfer Banner CTA Clicked` and `Transfer Banner Dismissed` events.
+  - **Scroll Depth Tracking:** New `useScrollDepth` hook fires at 25/50/75/100% thresholds on the homepage. One-time per page load.
+  - **Admin Dashboard CTR Section:** New "Homepage CTR (30d)" panel in Analytics tab with Quick Action click breakdown, Transfer Banner CTR (clicks/dismissals/%), and scroll depth visualization with colored bar chart.
+  - **analyticsService.ts:** Added `getHomepageCTR()` method for aggregating homepage-specific events.
+  - Build passes ✅
+
+## 2026-02-09 23:00 | Product Engineer | COMPLETED
+Task: Homepage Restructure — Option B (Enriched Homepage with Feature Discovery)
+Files: `KingdomDirectory.tsx`, `components/homepage/QuickActions.tsx` (NEW), `components/homepage/TransferHubBanner.tsx` (NEW), `components/homepage/MobileCountdowns.tsx` (NEW), `KvKCountdown.tsx` (exported status functions)
+Result:
+  - **QuickActions:** 4 tiles (Transfer Hub, Rankings, KvK Seasons, Atlas Bot) with original SVG icons. 4-col row on desktop, 2×2 grid on mobile. Hover effects with accent color borders.
+  - **TransferHubBanner:** Dismissable CTA card (7-day re-show). Shows transfer countdown + "Browse Transfer Hub" button. Detects live transfer events. Green accent with radial glow.
+  - **MobileCountdowns:** Two thin side-by-side pills showing KvK and Transfer event status. Live-updates every second. Shows LIVE badge during active events. Mobile-only component.
+  - **KvKCountdown.tsx:** Exported `getKvKStatus`, `getTransferStatus`, and `EventStatus` type for reuse.
+  - **Integration:** Components inserted between hero section and sticky search controls in KingdomDirectory.tsx.
+  - Build passes ✅
+
+## 2026-02-09 23:30 | Product Engineer | COMPLETED
+Task: Transfer Hub Launch Readiness — Access Gate, Onboarding, My Invites, Analytics, Data Integrity
+Files: `TransferBoard.tsx`, `TransferApplications.tsx`, `RecruiterDashboard.tsx`
+Result:
+  - **Access Gate Opened:** Removed owner-only gate. Now requires linked Kingshot account (any user). Shows "Sign In" or "Link Account" CTA for gated users.
+  - **Self-Kingdom Protection:** Users cannot apply to their own kingdom. "Your Kingdom" badge shown instead of Apply button. Own kingdom filtered out of transferring mode listings. Server-side guard in ApplyModal.
+  - **Transfer Group Filtering:** When `TRANSFER_GROUPS_ACTIVE` is true, "I'm Transferring" tab shows only kingdoms in user's transfer group (excluding own kingdom). Ready for next transfer event activation.
+  - **My Invites Section:** New section in MyApplicationsTracker showing received invites from `transfer_invites` table. Pending invites with Accept/Decline buttons. Past invites in collapsible section. Divider between invites and applications.
+  - **Recruiter Onboarding Tour:** 3-step dismissible banner (Claim → Fund → Recruit) in RecruiterDashboard. Steps show ✅ when completed. Persisted via `atlas_recruiter_onboarded` localStorage key.
+  - **Analytics Events:** 7 new tracking calls: Recruiter Tab Switch, Invite Sent, Contribution Link Copied, Transfer Hub Mode, Mode Toggle, Apply Click, Fund Click, Recruiter Dashboard Open.
+  - **Data Integrity Verified:** `visible_to_recruiters` filter confirmed correct in Browse tab. Anonymous profiles show as "🔒 Anonymous" in Browse only — full details visible to recruiters in Inbox when users apply.
+  - Build passes ✅
+
+## 2026-02-09 22:30 | Product Engineer + Platform Engineer | COMPLETED
+Task: Transfer Hub Polish & Testing + Kingdom Fund Revenue Pipeline
+Files: `RecruiterDashboard.tsx`, `notificationService.ts`, `NotificationPreferences.tsx`, Supabase migrations
+Result:
+  - **Browse Tab Invite Enhancement:** Added duplicate invite check (queries existing pending), recipient notification on send, `sentInviteIds` tracking to show "✓ Invited" state. Prevents spam invites.
+  - **Notification System Expansion:** Added 5 new types: `new_application`, `application_status`, `co_editor_invite`, `fund_contribution`, `application_expiring`. Each with icon + color in `notificationService.ts`. Updated `NotificationType` union.
+  - **Transfer Notification Preferences:** Added `transfer_updates` toggle to `NotificationPreferences.tsx`. Stored in `user_data.settings.notification_preferences`. Defaults to enabled.
+  - **Application Expiry Warnings:** Created `notify_expiring_applications()` DB function — finds apps expiring within 24h, checks dedup via metadata, inserts notification. Scheduled via `pg_cron` at 05:00 UTC daily (1hr before the 06:00 expiry job).
+  - **Real-Time Browse Tab:** Added Supabase Realtime subscription on `transfer_profiles` INSERT. New profiles auto-prepend to browse list while tab is open. Channel cleaned up on tab switch.
+  - **Contribution History UI:** New section in Fund tab showing all contributions with 💰 amount, date, running total. Auto-loads on Fund tab selection. Empty state with CTA to share contribution link.
+  - **Fund Contribution Notifications:** DB trigger `on_fund_contribution_notify` fires on INSERT to `kingdom_fund_contributions`, notifies all active editors. Already wired to Stripe webhook → `credit_kingdom_fund` → table insert pipeline.
+  - **RLS Enhancements:** Added "Editors can view kingdom contributions" policy on `kingdom_fund_contributions`. Previously only had self-read + service-write.
+  - Build passes ✅
+
+## 2026-02-09 22:15 | Product Engineer + Platform Engineer | COMPLETED
+Task: Transfer Hub bug fixes, notification system, mobile alignment, fund modal cleanup, code review
+Files: `RecruiterDashboard.tsx`, `TransferBoard.tsx`, `KingdomFundContribute.tsx`, `TransferApplications.tsx`, `notificationService.ts`
+Result:
+  - **Browse Tab Bug:** Fixed `loadTransferees` never being called — added `useEffect` to auto-load when tab is selected. Fixed `visible_to_recruiters` filter from `.neq(false)` to `.eq(true)`.
+  - **Notifications:** Added 3 new notification types: `new_application` (→editors), `application_status` (→applicant for interested/accepted/declined), `co_editor_invite`. Added icons + colors to `notificationService.ts`. Fixed RLS policy — old INSERT policy only allowed `user_id = auth.uid()`, preventing cross-user notifications. Applied migration `allow_authenticated_notification_inserts`.
+  - **Mobile Tier Alignment:** Refactored KingdomListingCard header from absolute-positioned badges to flex row with `justify-content: space-between`. Kingdom name + tier badge on left, RECRUITING + match % on right. Proper `flexWrap` for small screens.
+  - **Fund Modal:** Removed fake "POPULAR" badge from $25 tier. Updated `TIER_BENEFITS` to match actual implemented features (was showing generic descriptions). Both `KingdomFundContribute.tsx` and `RecruiterDashboard.tsx` tier info now aligned.
+  - **Fake Data Cleanup:** Removed blurred "87%" fake match score placeholder — replaced with "Link to see match %" text.
+  - **Review findings:** No other fake data found. Transfer groups flag correctly `false`. `visible_to_recruiters` properly saved in TransferProfileForm. Notification infrastructure (NotificationBell + real-time subscription) already existed and works with new types.
+  - Build passes ✅
+
+## 2026-02-09 21:40 | Product Engineer + Platform Engineer | COMPLETED
+Task: Fix Comebacks/Reversals data bug, match score calculation, recruiter dashboard UX improvements
+Files: `apps/web/src/pages/TransferBoard.tsx`, `apps/web/src/components/RecruiterDashboard.tsx`, Supabase migration `fix_comebacks_reversals_calculation`
+Result:
+  - **DB Bug Fix:** `recalculate_kingdom_stats` function was hardcoding comebacks=0, reversals=0 instead of calculating them. Fixed to properly count L/W (comebacks) and W/L (reversals). Recalculated all kingdoms.
+  - **Match Score:** Rewrote `calculateMatchScore` to use real transfer profile data (was using hardcoded placeholder). Now checks Power, TC Level, Language, and Kingdom Vibe overlap. Added `MatchDetail[]` return + native tooltip on hover showing ✅/❌ per criterion.
+  - **ApplicationCard:** Show player ID for accepted apps, added "Saving for KvK" field, changed "K172" to "Kingdom 172"
+  - **Co-Editor Invite:** Changed from Supabase User ID to Player ID lookup (via `linked_player_id`). Creates pending invitation + notification. Added accept/decline UI when user has pending invite.
+  - **Team tab:** Renamed to "Recruiter Team"
+  - **Fund Tiers:** Updated benefits to include transferee browsing (Bronze) and invite sending (Silver)
+  - **Looking For:** Truncated existing 4-item DB records to 3, added `.slice(0, 3)` safeguard in display
+  - Build passes ✅
+
+## 2026-02-09 21:15 | Platform Engineer | COMPLETED
+Task: Add UNIQUE constraint on profiles.linked_player_id to prevent duplicate player ID claims
+Files: `apps/web/src/components/LinkKingshotAccount.tsx`, `apps/web/src/contexts/AuthContext.tsx`, `apps/web/src/pages/Profile.tsx`
+Result:
+  - Applied Supabase migration: `profiles_linked_player_id_unique` constraint
+  - Added pre-check in LinkKingshotAccount: queries profiles table before showing preview
+  - Added constraint violation handler in AuthContext.updateProfile (error code 23505)
+  - Profile.tsx onLink callback now checks updateProfile result and shows error toast on failure
+  - Two-layer defense: frontend pre-check + DB constraint (race condition safe)
+
+## 2026-02-09 19:20 | Product Engineer | COMPLETED
+Task: Transfer Groups documentation + config, KingdomListingCard full redesign
+Files: `docs/TRANSFER_EVENT_MECHANICS.md`, `apps/web/src/pages/TransferBoard.tsx`
+Result:
+  - Documented transfer group mechanics (kingdoms grouped per event, players can only transfer within their group)
+  - Added configurable `TRANSFER_GROUPS` array + `TRANSFER_GROUPS_ACTIVE` flag — flip to true and update ranges when new event announced
+  - Transfer group filtering: users with linked kingdom only see kingdoms in their group; banner shows active group info
+  - KingdomListingCard redesign:
+    - Transfer Status: gold for Leading, silver for Ordinary; removed from Characteristics section
+    - Performance: centered/larger/whiter title, cyan Atlas Score + Rank merged ("68.79 (#6)"), stat boxes with gray borders (KvKs, Dominations, Invasions, Prep WR)
+    - Characteristics: Kingdom Vibe tags, Main/Secondary Language pair row, Min Power + Min TC Level row, Kingdom Bio
+    - Reviews removed from primary view → moved to More Details expandable
+    - More Details: fixed broken emoji (📋), removed Prep/Battle WR records, added NAP/Sanctuaries/Castle row
+    - New `AllianceEventTimesGrid` component: top 3 alliances' event times in card grid with UTC/Local Time toggle
+  - Removed unused imports (`cardShadow`, `TIER_BORDER_STYLES`, `displayTags`, `VIBE_EMOJI`)
+  - Local build passes cleanly (0 errors)
+
+## 2026-02-09 17:00 | Design Lead + Product + Platform | COMPLETED
+Task: Referral verification notifications, "Referred by" on profiles, referral count on cards, monthly counter, Ambassadors copy polish
+Files: `apps/web/src/pages/Ambassadors.tsx`, `apps/web/src/pages/Profile.tsx`, `apps/web/src/pages/UserDirectory.tsx`, `apps/web/src/services/notificationService.ts`, DB migration
+Result:
+  - DB: Updated `verify_pending_referral` trigger to insert notification for referrer when referral is verified (ambassador purple, links to /ambassadors)
+  - Profile: "Referred by [username]" shown on public profiles for 30 days after account creation
+  - UserDirectory: Referral count shown in card info grid (colored by referral tier)
+  - Ambassadors hero: "X players joined via referrals this month" live counter
+  - Copy (Image 1): "The players spreading data-driven dominance. More referrals, higher rank."
+  - Copy (Image 2): "Your network is your power." + "Link your account (TC25+), share your link, climb the ranks." — no alliance talk, balanced rows
+  - Local build passes cleanly
+
+## 2026-02-09 16:30 | Product Engineer | COMPLETED
+Task: Ambassador Network polish — Header nav link, KingdomPlayers referral CTA, brand-voice copy
+Files: `apps/web/src/components/Header.tsx`, `apps/web/src/components/KingdomPlayers.tsx`, `apps/web/src/pages/Ambassadors.tsx`
+Result:
+  - Added /ambassadors to Header Community dropdown (desktop + mobile), with purple layers icon
+  - KingdomPlayers empty state now shows "Refer a Friend" CTA instead of returning null
+  - Rewrote Ambassadors page copy with Atlas brand personality: competitive, direct, punchy
+  - Confirmed DISCORD_AMBASSADOR_ROLE_ID and DISCORD_CONSUL_ROLE_ID env var names match bot.js code
+  - Local build passes cleanly
+
+## 2026-02-09 16:00 | Product + Platform Engineer | COMPLETED
+Task: Open Ambassador Network Phase 2 — Ambassador Perks + Anti-Gaming + Analytics
+Files: `apps/web/src/pages/Ambassadors.tsx` (NEW), `apps/web/src/components/ReferralFunnel.tsx` (NEW), `apps/web/src/App.tsx`, `apps/web/src/components/KingdomReviews.tsx`, `apps/web/src/components/KingdomPlayers.tsx`, `apps/web/src/services/reviewService.ts`, `apps/web/src/components/ReferralStats.tsx`, `apps/web/src/components/ShareButton.tsx`, `apps/web/src/contexts/AuthContext.tsx`, `apps/web/src/pages/AdminDashboard.tsx`
+Result:
+  - Built `/ambassadors` public directory page — filterable by tier, sorted by tier+count, hover cards, CTA
+  - Added ReferralBadge on reviews (KingdomReviews.tsx) — both review form preview and review list items
+  - Extended kingdom_reviews + review_replies tables with `author_referral_tier` column
+  - Updated KingdomPlayers.tsx sort: admin > supporter > ambassador > consul > recruiter > scout > free
+  - DB: Rate limiting trigger (max 10 pending referrals/referrer), IP abuse detection (auto-invalidate 3+ same IP+referrer)
+  - Added `signup_ip` to referrals table, captured via ipify API on referral creation
+  - Built ReferralFunnel admin dashboard — funnel metrics, tier distribution, top referrers, recent referrals, suspicious IP alerts
+  - Added analytics tracking: `trackFeature('Referral Link Copied')` in ReferralStats, `hasReferral` flag in ShareButton
+  - Local build passes cleanly
+
+## 2026-02-09 13:10 | Platform Engineer | COMPLETED
+Task: Remove misleading growth charts + investigate analytics number sources
+Files: `apps/web/src/components/admin/AnalyticsOverview.tsx`, `apps/api/api/routers/admin.py`
+Result:
+  - Removed collapsible growth charts (Visitors, Page Views, Total Users, User Breakdown) — Plausible was connected after site launch, causing misleading zero-padded data
+  - Removed unused backend endpoints: `/stats/plausible/timeseries`, `/stats/user-growth`
+  - Investigated data sources: Visitors (359) and Page Views (1,946) both come from Plausible API aggregate endpoint (`period=30d`). Local analyticsService is fallback only.
+  - Reverted AnalyticsOverview.tsx to clean state (metric cards + existing sections)
+
+## 2026-02-09 12:15 | Product + Platform Engineer | COMPLETED
+Task: Analytics Growth Charts — Collapsible 30-day trend charts for Visitors, Page Views, Total Users, and User Breakdown
+Files: `apps/web/src/components/admin/AnalyticsOverview.tsx`, `apps/api/api/routers/admin.py`
+Result:
+  - Added `GET /stats/plausible/timeseries` backend endpoint (proxies Plausible API daily visitors+pageviews)
+  - Added `GET /stats/user-growth` backend endpoint (daily signups, cumulative totals, tier breakdown from Supabase)
+  - Built SVG-based `MiniAreaChart`, `CollapsibleChart`, `BreakdownBar` components
+  - 4 collapsible sections: Visitors 30d trend, Page Views 30d trend, Total Users growth, User Breakdown stacked bar
+  - All charts default collapsed, expand on click with smooth border-color transition
+  - Committed and deployed to production
+
 ## 2026-02-09 10:00 | Platform + Product Engineer | COMPLETED
 Task: Premium Command Backend Enforcement — persistent /multirally credit tracking, API endpoints, analytics dashboard, Support page update
 Files: `apps/api/api/routers/bot.py`, `apps/discord-bot/src/commands/handlers.js`, `apps/discord-bot/src/utils/api.js`, `apps/web/src/components/BotDashboard.tsx`, `apps/web/src/pages/SupportAtlas.tsx`

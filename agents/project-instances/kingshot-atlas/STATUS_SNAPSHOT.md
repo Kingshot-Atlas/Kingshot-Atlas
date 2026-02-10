@@ -29,8 +29,10 @@
 
 | Task | Owner | Status |
 |------|-------|--------|
+| Homepage Restructure (Option B) | Product Engineer | ✅ Complete — QuickActions (4 tiles with SVG icons), TransferHubBanner (dismissable CTA), MobileCountdowns (KvK+Transfer pills). Mobile-first. Build passes. |
+| Open Ambassador Network Phase 2 | Product + Platform | ✅ Complete — /ambassadors directory, review badges, KingdomPlayers referral sorting, anti-gaming (rate limit + IP abuse), admin referral funnel dashboard, analytics events. Local build passes. |
 | Atlas Score v3.1 | Platform Engineer | ✅ Complete — Option A linear remapping deployed. 0 kingdoms at 100. Max=82.39 (K231). Tier thresholds recalibrated. Frontend synced. Local build passes. Awaiting commit approval. |
-| Transfer Hub (was Transfer Board) | Product + Business + Platform | ✅ Feature Complete + Gated — Renamed to Transfer Hub (/transfer-hub). Owner-only access gate live. Full Stripe pipeline, infinite scroll, skeletons, toasts. Ready for controlled launch. |
+| Transfer Hub (was Transfer Board) | Product + Business + Platform | ✅ Launch Ready — Access gate opened to all linked users. Self-kingdom protection (can't apply to own). My Invites section with Accept/Decline. Recruiter onboarding tour. 8 analytics events. Transfer group filtering ready for activation. All data integrity verified. |
 
 ---
 
@@ -38,6 +40,7 @@
 
 | When | Agent | Task | Files |
 |------|-------|------|-------|
+| 2026-02-09 | Product + Platform | Analytics Growth Charts — Collapsible 30-day trend charts for Visitors, Page Views, Total Users, User Breakdown. Backend timeseries + user-growth endpoints. SVG charts. | AnalyticsOverview.tsx, admin.py |
 | 2026-02-08 | Product | Nudge Refinement — Score Change Hook (blurred delta on KingdomProfile), RIVAL badge (KingdomCard), Match Score Teaser (TransferBoard). All mobile-verified. | KingdomHeader.tsx, KingdomCard.tsx, TransferBoard.tsx, KingdomProfile.tsx |
 | 2026-02-08 | Product | Gating & Tier Refactor — Removed recruiter tier, renamed pro→supporter, content gating (reviews/KvK/status/compare), LinkAccountNudge component, YOUR KINGDOM badge | PremiumContext.tsx, KingdomProfile.tsx, KingdomCard.tsx, 15+ files |
 | 2026-02-07 | Product | Transfer Hub rename + access gate — Renamed Transfer Board → Transfer Hub across all files (routes, nav, localStorage, analytics, share links, editor claiming). Owner-only gate with "Coming soon" page for non-admins. Hero subtitle updated with brand copy. | TransferBoard.tsx, Header.tsx, EditorClaiming.tsx, RecruiterDashboard.tsx, App.tsx |

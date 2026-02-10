@@ -31,6 +31,9 @@ export interface UserProfile {
   discord_id?: string | null;
   discord_username?: string | null;
   discord_linked_at?: string | null;
+  referred_by?: string | null;
+  referral_count?: number;
+  referral_tier?: string | null;
 }
 
 /**
@@ -67,6 +70,7 @@ export const useAuth = () => {
 };
 
 const PROFILE_KEY = 'kingshot_profile';
+const REFERRAL_KEY = 'kingshot_referral_code';
 
 // Strip any existing cache-busting params from avatar URL (for clean storage)
 const getCleanAvatarUrl = (url: string | undefined): string => {
@@ -121,6 +125,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const isConfigured = isSupabaseConfigured;
+
+  // Capture ?ref= param from URL and store in localStorage for later use during signup
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const refCode = params.get('ref');
+      if (refCode && refCode.trim()) {
+        localStorage.setItem(REFERRAL_KEY, refCode.trim());
+      }
+    } catch { /* ignore */ }
+  }, []);
 
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase) {
@@ -273,6 +288,41 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           setProfile(mergedProfile);
           localStorage.setItem(PROFILE_KEY, JSON.stringify(mergedProfile));
         } else if (created) {
+          // Process referral code if present (new user was referred)
+          const storedRefCode = localStorage.getItem(REFERRAL_KEY);
+          if (storedRefCode && supabase) {
+            try {
+              // Look up the referrer by their linked_username
+              const { data: referrer } = await supabase
+                .from('profiles')
+                .select('id')
+                .eq('linked_username', storedRefCode)
+                .single();
+              
+              if (referrer && referrer.id !== created.id) {
+                // Capture IP for abuse detection (best-effort, non-blocking)
+                let signupIp: string | null = null;
+                try {
+                  const ipRes = await fetch('https://api.ipify.org?format=json', { signal: AbortSignal.timeout(3000) });
+                  if (ipRes.ok) { signupIp = (await ipRes.json()).ip; }
+                } catch { /* IP capture is best-effort */ }
+                // Create the referral record (pending until referred user links account)
+                await supabase.from('referrals').insert({
+                  referrer_user_id: referrer.id,
+                  referred_user_id: created.id,
+                  referral_code: storedRefCode,
+                  status: 'pending',
+                  signup_ip: signupIp,
+                });
+                // Update profile with referred_by
+                await supabase.from('profiles').update({ referred_by: storedRefCode }).eq('id', created.id);
+                logger.info('Referral recorded:', { referrer: storedRefCode, referred: created.id });
+              }
+            } catch (refErr) {
+              logger.error('Failed to process referral:', refErr);
+            }
+            localStorage.removeItem(REFERRAL_KEY);
+          }
           // Merge created profile with any cached linked player data
           const cached = localStorage.getItem(PROFILE_KEY);
           let linkedData = {};
@@ -469,7 +519,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       'language', 'region', 'bio', 'theme_color', 'badge_style',
       'linked_player_id', 'linked_username', 'linked_avatar_url',
       'linked_kingdom', 'linked_tc_level', 'subscription_tier',
-      'stripe_customer_id', 'stripe_subscription_id'
+      'stripe_customer_id', 'stripe_subscription_id',
+      'referred_by', 'referral_count', 'referral_tier'
     ];
     
     const dbUpdates = Object.fromEntries(
@@ -488,6 +539,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (profile) {
           setProfile(profile);
           localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+        }
+        // Handle unique constraint violation on linked_player_id
+        if (error.code === '23505' && error.message?.includes('linked_player_id')) {
+          return { success: false, error: 'This Player ID is already linked to another Atlas account.' };
         }
         return { success: false, error: error.message };
       } else {

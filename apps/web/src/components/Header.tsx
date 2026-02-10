@@ -511,10 +511,10 @@ const Header: React.FC = () => {
           >
             <button
               style={{
-                color: (isActive('/players') || isActive('/about') || isActive('/contribute-data') || isActive('/transfer-hub')) ? '#22d3ee' : '#9ca3af',
+                color: (isActive('/players') || isActive('/about') || isActive('/contribute-data') || isActive('/transfer-hub') || isActive('/ambassadors')) ? '#22d3ee' : '#9ca3af',
                 textDecoration: 'none',
                 fontSize: '0.9rem',
-                fontWeight: (isActive('/players') || isActive('/about') || isActive('/contribute-data') || isActive('/transfer-hub')) ? '600' : '400',
+                fontWeight: (isActive('/players') || isActive('/about') || isActive('/contribute-data') || isActive('/transfer-hub') || isActive('/ambassadors')) ? '600' : '400',
                 transition: 'color 0.2s',
                 display: 'flex',
                 alignItems: 'center',
@@ -523,7 +523,7 @@ const Header: React.FC = () => {
                 border: 'none',
                 cursor: 'pointer',
                 padding: 0,
-                ...((isActive('/players') || isActive('/about') || isActive('/contribute-data') || isActive('/transfer-hub')) ? neonGlow('#22d3ee') : {})
+                ...((isActive('/players') || isActive('/about') || isActive('/contribute-data') || isActive('/transfer-hub') || isActive('/ambassadors')) ? neonGlow('#22d3ee') : {})
               }}
             >
               Community
@@ -593,6 +593,29 @@ const Header: React.FC = () => {
                     <path d="M16 3.13a4 4 0 0 1 0 7.75" />
                   </svg>
                   Player Directory
+                </Link>
+                <Link
+                  to="/ambassadors"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    padding: '0.75rem 1rem',
+                    borderRadius: '8px',
+                    color: isActive('/ambassadors') ? '#22d3ee' : '#fff',
+                    textDecoration: 'none',
+                    fontSize: '0.85rem',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#a24cf3' }}>
+                    <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                    <path d="M2 17l10 5 10-5"/>
+                    <path d="M2 12l10 5 10-5"/>
+                  </svg>
+                  Ambassadors
                 </Link>
                 <Link
                   to="/contribute-data"
@@ -1090,12 +1113,12 @@ const Header: React.FC = () => {
           <button
             onClick={() => setShowMobileCommunityMenu(!showMobileCommunityMenu)}
             style={{
-              color: (isActive('/players') || isActive('/about') || isActive('/contribute-data') || isActive('/transfer-hub')) ? '#22d3ee' : '#9ca3af',
+              color: (isActive('/players') || isActive('/about') || isActive('/contribute-data') || isActive('/transfer-hub') || isActive('/ambassadors')) ? '#22d3ee' : '#9ca3af',
               textDecoration: 'none',
               fontSize: '1rem',
               padding: '0.75rem 1rem',
               borderRadius: '8px',
-              backgroundColor: (isActive('/players') || isActive('/about') || isActive('/contribute-data') || isActive('/transfer-hub')) ? '#111' : 'transparent',
+              backgroundColor: (isActive('/players') || isActive('/about') || isActive('/contribute-data') || isActive('/transfer-hub') || isActive('/ambassadors')) ? '#111' : 'transparent',
               border: 'none',
               width: '100%',
               textAlign: 'left',
@@ -1152,6 +1175,21 @@ const Header: React.FC = () => {
                 }}
               >
                 <span style={{ color: '#333' }}>└</span> Player Directory
+              </Link>
+              <Link
+                to="/ambassadors"
+                style={{
+                  color: isActive('/ambassadors') ? '#22d3ee' : '#6b7280',
+                  textDecoration: 'none',
+                  fontSize: '0.9rem',
+                  padding: '0.5rem 1rem 0.5rem 1.5rem',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}
+              >
+                <span style={{ color: '#333' }}>└</span> Ambassadors
               </Link>
               <Link
                 to="/contribute-data"

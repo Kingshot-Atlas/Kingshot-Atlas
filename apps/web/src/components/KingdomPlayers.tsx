@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { colors, neonGlow } from '../utils/styles';
-import { getDisplayTier, SUBSCRIPTION_COLORS, SubscriptionTier } from '../utils/constants';
+import { getDisplayTier, SUBSCRIPTION_COLORS, SubscriptionTier, ReferralTier } from '../utils/constants';
+import ReferralBadge from './ReferralBadge';
 
 interface PlayerProfile {
   id: string;
@@ -15,14 +16,19 @@ interface PlayerProfile {
   alliance_tag: string | null;
   theme_color: string;
   subscription_tier: string | null;
+  referral_tier: string | null;
 }
 
-// Get tier sort priority (admin=0, supporter=1, free=2)
-const getTierSortPriority = (tier: SubscriptionTier): number => {
-  switch (tier) {
-    case 'admin': return 0;
-    case 'supporter': return 1;
-    default: return 2;
+// Get combined sort priority: admin=0, supporter=1, ambassador=2, consul=3, recruiter=4, scout=5, free=6
+const getCombinedSortPriority = (subTier: SubscriptionTier, refTier: string | null): number => {
+  if (subTier === 'admin') return 0;
+  if (subTier === 'supporter') return 1;
+  switch (refTier) {
+    case 'ambassador': return 2;
+    case 'consul': return 3;
+    case 'recruiter': return 4;
+    case 'scout': return 5;
+    default: return 6;
   }
 };
 
@@ -81,7 +87,7 @@ const KingdomPlayers: React.FC<KingdomPlayersProps> = ({
         // Then get all users to sort them properly
         const { data, error: fetchError } = await supabase!
           .from('profiles')
-          .select('id, username, avatar_url, linked_username, linked_avatar_url, linked_tc_level, alliance_tag, theme_color, subscription_tier')
+          .select('id, username, avatar_url, linked_username, linked_avatar_url, linked_tc_level, alliance_tag, theme_color, subscription_tier, referral_tier')
           .or(`home_kingdom.eq.${kingdomNumber},linked_kingdom.eq.${kingdomNumber}`);
 
         if (fetchError) {
@@ -93,7 +99,7 @@ const KingdomPlayers: React.FC<KingdomPlayersProps> = ({
           ...player,
           displayTier: getDisplayTier(player.subscription_tier, player.linked_username || player.username)
         })).sort((a, b) => {
-          const tierDiff = getTierSortPriority(a.displayTier) - getTierSortPriority(b.displayTier);
+          const tierDiff = getCombinedSortPriority(a.displayTier, a.referral_tier) - getCombinedSortPriority(b.displayTier, b.referral_tier);
           if (tierDiff !== 0) return tierDiff;
           const nameA = (a.linked_username || a.username || '').toLowerCase();
           const nameB = (b.linked_username || b.username || '').toLowerCase();
@@ -126,8 +132,46 @@ const KingdomPlayers: React.FC<KingdomPlayersProps> = ({
     );
   }
 
-  if (error || players.length === 0) {
-    return null;
+  if (error) return null;
+
+  if (players.length === 0) {
+    return (
+      <div style={{
+        backgroundColor: colors.surface,
+        borderRadius: '12px',
+        padding: isMobile ? '1.25rem' : '1.5rem',
+        marginBottom: '1.5rem',
+        border: `1px solid ${themeColor}20`,
+        textAlign: 'center',
+      }}>
+        <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>👀</div>
+        <p style={{ color: colors.text, fontSize: '0.9rem', fontWeight: '600', margin: '0 0 0.25rem' }}>
+          No Atlas users from Kingdom {kingdomNumber} yet.
+        </p>
+        <p style={{ color: '#6b7280', fontSize: '0.8rem', margin: '0 0 0.75rem', lineHeight: 1.5 }}>
+          Know someone here? Invite them — every referral counts toward your Ambassador rank.
+        </p>
+        <Link
+          to="/profile"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.35rem',
+            padding: '0.5rem 1rem',
+            backgroundColor: '#a24cf318',
+            border: '1px solid #a24cf340',
+            borderRadius: '8px',
+            color: '#a24cf3',
+            fontSize: '0.8rem',
+            fontWeight: '600',
+            textDecoration: 'none',
+            minHeight: '40px',
+          }}
+        >
+          🔗 Refer a Friend
+        </Link>
+      </div>
+    );
   }
 
   return (
@@ -269,6 +313,9 @@ const KingdomPlayers: React.FC<KingdomPlayersProps> = ({
                     }}>
                       SUPPORTER
                     </span>
+                  )}
+                  {player.referral_tier && (
+                    <ReferralBadge tier={player.referral_tier as ReferralTier} />
                   )}
                 </div>
               </div>

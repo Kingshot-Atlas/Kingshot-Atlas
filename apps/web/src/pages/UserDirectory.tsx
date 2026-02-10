@@ -3,7 +3,8 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth, UserProfile } from '../contexts/AuthContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { colors, neonGlow as neonGlowUtil, subscriptionColors, FONT_DISPLAY } from '../utils/styles';
-import { getDisplayTier, getTierBorderColor, SubscriptionTier } from '../utils/constants';
+import { getDisplayTier, getTierBorderColor, SubscriptionTier, ReferralTier, REFERRAL_TIER_COLORS } from '../utils/constants';
+import ReferralBadge from '../components/ReferralBadge';
 import { logger } from '../utils/logger';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
@@ -89,7 +90,7 @@ const UserDirectory: React.FC = () => {
           logger.log('[PlayerDirectory] Fetching users from Supabase...');
           const { data, error } = await supabase
             .from('profiles')
-            .select('id, username, email, avatar_url, home_kingdom, alliance_tag, language, region, bio, theme_color, badge_style, created_at, linked_username, linked_avatar_url, linked_kingdom, linked_tc_level, subscription_tier')
+            .select('id, username, email, avatar_url, home_kingdom, alliance_tag, language, region, bio, theme_color, badge_style, created_at, linked_username, linked_avatar_url, linked_kingdom, linked_tc_level, subscription_tier, referral_tier, referral_count')
             .neq('linked_username', '')
             .not('linked_username', 'is', null)
             .order('created_at', { ascending: false })
@@ -607,7 +608,12 @@ const UserDirectory: React.FC = () => {
           }}>
             {filteredUsers.map(user => {
               const displayTier = getDisplayTier(user.subscription_tier, user.linked_username || user.username);
-              const tierColor = getTierBorderColor(displayTier);
+              const subTierColor = getTierBorderColor(displayTier);
+              // Referral tier border takes priority for recruiter+ (colored borders)
+              const refTier = user.referral_tier as ReferralTier | null;
+              const hasRefBorder = refTier && ['recruiter', 'consul', 'ambassador'].includes(refTier);
+              const tierColor = hasRefBorder ? REFERRAL_TIER_COLORS[refTier!] : subTierColor;
+              const hasGlow = displayTier !== 'free' || hasRefBorder;
               return (
               <Link
                 key={user.id}
@@ -649,7 +655,7 @@ const UserDirectory: React.FC = () => {
                         border: `2px solid ${tierColor}`,
                         overflow: 'hidden',
                         flexShrink: 0,
-                        ...(displayTier !== 'free' ? { boxShadow: `0 0 8px ${tierColor}40` } : {})
+                        ...(hasGlow ? { boxShadow: `0 0 8px ${tierColor}40` } : {})
                       }}>
                         <img 
                           src={user.linked_avatar_url} 
@@ -674,7 +680,7 @@ const UserDirectory: React.FC = () => {
                         color: '#fff',
                         fontWeight: 'bold',
                         backgroundColor: '#1a1a1a',
-                        ...(displayTier !== 'free' ? { boxShadow: `0 0 8px ${tierColor}40` } : {})
+                        ...(hasGlow ? { boxShadow: `0 0 8px ${tierColor}40` } : {})
                       }}>
                         {user.linked_username?.[0]?.toUpperCase() ?? '?'}
                       </div>
@@ -733,6 +739,9 @@ const UserDirectory: React.FC = () => {
                             💖 SUPPORTER
                           </span>
                         )}
+                        {refTier && (
+                          <ReferralBadge tier={refTier} />
+                        )}
                         {user.id === currentUser?.id && (
                           <span style={{
                             fontSize: '0.6rem',
@@ -779,6 +788,14 @@ const UserDirectory: React.FC = () => {
                             {user.region || '—'}
                           </span>
                         </div>
+                        {(user.referral_count ?? 0) > 0 && (
+                          <div>
+                            <span style={{ color: '#6b7280' }}>Referrals: </span>
+                            <span style={{ color: REFERRAL_TIER_COLORS[(user.referral_tier as ReferralTier)] || '#fff', fontWeight: '600' }}>
+                              {user.referral_count}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
