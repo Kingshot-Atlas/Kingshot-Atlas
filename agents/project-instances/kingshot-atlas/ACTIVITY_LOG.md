@@ -3,6 +3,18 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-10 15:20 | Platform Engineer | COMPLETED
+Task: Transfer Hub RLS Audit & Full Editor Pipeline Fix
+Files:
+- `apps/web/src/components/EditorClaiming.tsx` — Removed premature kingdom_funds INSERT from nomination flow
+- Supabase migration `auto_create_kingdom_fund_on_editor_activation` — Trigger auto-creates fund row on editor activation
+- Supabase migration `fix_auto_create_kingdom_fund_search_path` — Fixed search_path on trigger function
+- Supabase migration `allow_editor_self_nomination` — NEW policy: users can nominate themselves (role=editor, status=pending)
+- Supabase migration `allow_coeditor_accept_decline_own_invite` — NEW policy: pending co-editors can accept/decline their own invite
+- Supabase migration `create_increment_endorsement_count_rpc` — NEW SECURITY DEFINER function for endorsement counting + auto-activation
+- Supabase migration `expand_notification_insert_types` — Added co_editor_invite and endorsement_received to allowed notification types
+Result: 5 silent RLS failures fixed across the full editor pipeline (nomination → endorsement → activation → co-editor invites → notifications). Security score maintained at 93/100. Build passes.
+
 ## 2026-02-10 14:30 | Platform Engineer | COMPLETED
 Task: Security hardening — Transfer Hub RLS policies, function search_path, table bloat, UI fix
 Files:

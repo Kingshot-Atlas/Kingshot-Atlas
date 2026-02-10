@@ -100,23 +100,6 @@ const NominateForm: React.FC<{
     setError(null);
 
     try {
-      // Check if kingdom fund exists — create one if not
-      const { data: existingFund } = await supabase
-        .from('kingdom_funds')
-        .select('kingdom_number')
-        .eq('kingdom_number', linkedKingdom)
-        .single();
-
-      if (!existingFund) {
-        const { error: fundError } = await supabase
-          .from('kingdom_funds')
-          .insert({ kingdom_number: linkedKingdom, balance: 0, tier: 'standard' });
-        if (fundError) {
-          setError('Failed to initialize kingdom fund: ' + fundError.message);
-          return;
-        }
-      }
-
       // Check for existing claim
       const { data: existingClaim } = await supabase
         .from('kingdom_editors')

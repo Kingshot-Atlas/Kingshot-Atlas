@@ -722,5 +722,41 @@ The backend validates tokens using a cascading strategy:
 
 ---
 
+## Transfer Hub Editor Pipeline — RLS Audit (2026-02-10)
+
+### Full pipeline: Nomination → Endorsement → Activation → Co-Editor → Notifications
+
+**5 silent RLS failures found and fixed** across the entire editor flow:
+
+#### 1. kingdom_funds INSERT during nomination (user-reported bug)
+- Frontend tried to INSERT into `kingdom_funds` — only `service_role` can write
+- **Fix:** Removed premature INSERT from `EditorClaiming.tsx`
+- **Fix:** Added `trg_auto_create_kingdom_fund` trigger (SECURITY DEFINER) on `kingdom_editors` — auto-creates fund row when editor status becomes 'active'
+
+#### 2. kingdom_editors self-nomination INSERT
+- No INSERT policy existed for nominating yourself (only `editors_insert_coeditor`)
+- **Fix:** Added `editors_nominate_self` policy — allows INSERT where `auth.uid() = user_id AND role = 'editor' AND status = 'pending'`
+
+#### 3. increment_endorsement_count RPC missing
+- Frontend called `supabase.rpc('increment_endorsement_count')` — function didn't exist
+- Manual fallback tried UPDATE on `kingdom_editors` — also blocked by RLS (endorser isn't an editor)
+- **Fix:** Created `increment_endorsement_count(claim_id uuid)` as SECURITY DEFINER function
+- Atomically increments count and activates editor when threshold reached
+
+#### 4. Co-editor accept/decline blocked
+- `editors_update_coeditor` requires user to be active editor — but pending co-editors aren't active yet
+- Accept/decline buttons in RecruiterDashboard silently failed
+- **Fix:** Added `editors_respond_own_invite` policy — pending co-editors can set their own status to 'active' or 'inactive'
+
+#### 5. Co-editor invite notifications silently blocked
+- Notification INSERT policy only allowed 3 types: `new_application`, `application_status`, `transfer_invite`
+- RecruiterDashboard sends `co_editor_invite` type — was silently dropped
+- **Fix:** Expanded allowed types to include `co_editor_invite` and `endorsement_received`
+
+### Key Pattern: SECURITY DEFINER for Cross-Role Operations
+When user A's action needs to modify user B's data (e.g., endorser incrementing editor's count), use a SECURITY DEFINER function. Never add permissive RLS policies that allow any authenticated user to UPDATE arbitrary rows.
+
+---
+
 *Updated by Platform Engineer based on current backend best practices.*
 *Last audit: 2026-02-10*

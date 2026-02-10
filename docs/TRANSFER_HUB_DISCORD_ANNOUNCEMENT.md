@@ -11,7 +11,7 @@
 ```
 🚀 **TRANSFER HUB — NOW LIVE**
 
-Done guessing where to transfer. Done cold-DMing recruiters.
+Done guessing where to transfer. Done cold-DMing recruits.
 
 The **Transfer Hub** is open to all linked users on Kingshot Atlas.
 
