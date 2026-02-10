@@ -455,6 +455,149 @@ export const generateDiscordMessage = (
 };
 
 /**
+ * Generate Discord-formatted message for a transfer listing
+ */
+export const generateTransferListingDiscordMessage = (
+  kingdomNumber: number,
+  atlasScore: number,
+  tier: string,
+  isRecruiting: boolean,
+  mainLanguage?: string,
+  fundTier?: string
+): string => {
+  const recruitingTag = isRecruiting ? '🟢 Recruiting' : '⚪ Not Recruiting';
+  const langTag = mainLanguage ? ` | 🌐 ${mainLanguage}` : '';
+  const fundTag = fundTier && fundTier !== 'standard' ? ` | ${fundTier === 'gold' ? '🥇' : fundTier === 'silver' ? '🥈' : '🥉'} ${fundTier.charAt(0).toUpperCase() + fundTier.slice(1)} Fund` : '';
+  return `**Kingdom #${kingdomNumber}** — Transfer Listing
+${recruitingTag} | ${tier}-Tier | Score: **${atlasScore.toFixed(2)}**${langTag}${fundTag}
+🔗 https://ks-atlas.com/transfer-hub?kingdom=${kingdomNumber}`;
+};
+
+/**
+ * Generate a shareable transfer listing card as PNG
+ */
+export const generateTransferListingCard = async (
+  kingdomNumber: number,
+  atlasScore: number,
+  tier: string,
+  isRecruiting: boolean,
+  mainLanguage?: string,
+  fundTier?: string
+): Promise<Blob> => {
+  const width = 600;
+  const height = 315;
+
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Could not get canvas context');
+
+  const scale = 2;
+  canvas.width = width * scale;
+  canvas.height = height * scale;
+  ctx.scale(scale, scale);
+
+  // Background gradient
+  const gradient = ctx.createLinearGradient(0, 0, width, height);
+  gradient.addColorStop(0, '#0a0a0a');
+  gradient.addColorStop(1, '#131318');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, width, height);
+
+  // Border with recruiting accent
+  ctx.strokeStyle = isRecruiting ? '#22c55e40' : '#22d3ee40';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(1, 1, width - 2, height - 2);
+
+  // Brand
+  ctx.fillStyle = '#22d3ee';
+  ctx.font = 'bold 14px system-ui, -apple-system, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('KINGSHOT ATLAS — TRANSFER HUB', 24, 32);
+
+  // Kingdom number
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 64px system-ui, -apple-system, sans-serif';
+  ctx.fillText(`#${kingdomNumber}`, 24, 110);
+
+  // Tier badge
+  const tierColors: Record<string, string> = {
+    'S': '#fbbf24', 'A': '#a855f7', 'B': '#22d3ee', 'C': '#22c55e', 'D': '#6b7280', 'F': '#ef4444'
+  };
+  const tierKey = tier && tier.length > 0 ? tier.charAt(0) : 'D';
+  const tierColor = tierColors[tierKey] || '#6b7280';
+
+  ctx.fillStyle = tierColor + '30';
+  ctx.beginPath();
+  ctx.roundRect(24, 125, 55, 28, 6);
+  ctx.fill();
+  ctx.fillStyle = tierColor;
+  ctx.font = 'bold 16px system-ui, -apple-system, sans-serif';
+  ctx.fillText(tier, 38, 145);
+
+  // Recruiting status badge
+  const recruitColor = isRecruiting ? '#22c55e' : '#6b7280';
+  ctx.fillStyle = recruitColor + '20';
+  ctx.beginPath();
+  ctx.roundRect(90, 125, isRecruiting ? 110 : 120, 28, 6);
+  ctx.fill();
+  ctx.fillStyle = recruitColor;
+  ctx.font = 'bold 13px system-ui, -apple-system, sans-serif';
+  ctx.fillText(isRecruiting ? '● Recruiting' : '○ Not Recruiting', 100, 144);
+
+  // Atlas Score
+  ctx.fillStyle = '#9ca3af';
+  ctx.font = '14px system-ui, -apple-system, sans-serif';
+  ctx.fillText('Atlas Score', 24, 190);
+  ctx.fillStyle = '#22d3ee';
+  ctx.font = 'bold 32px system-ui, -apple-system, sans-serif';
+  ctx.fillText(atlasScore.toFixed(2), 24, 225);
+
+  // Right side info
+  const infoX = 350;
+  if (mainLanguage) {
+    ctx.fillStyle = '#9ca3af';
+    ctx.font = '12px system-ui, -apple-system, sans-serif';
+    ctx.fillText('Language', infoX, 80);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 22px system-ui, -apple-system, sans-serif';
+    ctx.fillText(mainLanguage, infoX, 108);
+  }
+
+  if (fundTier && fundTier !== 'standard') {
+    const fundColors: Record<string, string> = { gold: '#fbbf24', silver: '#9ca3af', bronze: '#cd7f32' };
+    ctx.fillStyle = '#9ca3af';
+    ctx.font = '12px system-ui, -apple-system, sans-serif';
+    ctx.fillText('Fund Tier', infoX, 140);
+    ctx.fillStyle = fundColors[fundTier] || '#6b7280';
+    ctx.font = 'bold 22px system-ui, -apple-system, sans-serif';
+    ctx.fillText(fundTier.charAt(0).toUpperCase() + fundTier.slice(1), infoX, 168);
+  }
+
+  // CTA
+  ctx.fillStyle = isRecruiting ? '#22c55e' : '#22d3ee';
+  ctx.font = 'bold 16px system-ui, -apple-system, sans-serif';
+  ctx.fillText(isRecruiting ? 'Apply to Transfer →' : 'View Listing →', infoX, 225);
+
+  // URL footer
+  ctx.fillStyle = '#4a4a4a';
+  ctx.font = '12px system-ui, -apple-system, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('ks-atlas.com/transfer-hub', 24, height - 20);
+
+  ctx.fillStyle = '#6b7280';
+  ctx.font = 'italic 12px system-ui, -apple-system, sans-serif';
+  ctx.textAlign = 'right';
+  ctx.fillText('Data-driven dominance', width - 24, height - 20);
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) resolve(blob);
+      else reject(new Error('Failed to create blob'));
+    }, 'image/png');
+  });
+};
+
+/**
  * Generate embed code for external sites
  */
 export const generateEmbedCode = (

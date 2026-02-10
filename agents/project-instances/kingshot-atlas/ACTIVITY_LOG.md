@@ -3,6 +3,16 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-10 18:41 | Product Engineer | COMPLETED
+Task: Transfer Hub shareable listings, sharing & discovery features, recruitment conversion tools
+Files:
+- `apps/web/src/components/kingdom-profile/KingdomHeader.tsx` — Moved "View Transfer Listing" button next to Transfer Status row (optimized desktop+mobile); removed from actions row
+- `apps/web/src/components/KingdomListingCard.tsx` — Added highlighted prop, id anchor, scroll margin, Share button (copy link), Discord share button with formatted message
+- `apps/web/src/pages/TransferBoard.tsx` — ?kingdom=N URL param handling: scroll-to, highlight, entry modal skip, CTA banner for unauthenticated users, recruiting toast, conversion funnel tracking (shared_link source), dynamic OG meta tags
+- `apps/web/src/utils/sharing.ts` — generateTransferListingDiscordMessage (Discord-formatted message), generateTransferListingCard (OG image canvas PNG)
+- `apps/web/src/components/RecruiterDashboard.tsx` — Added "Copy Listing Link" button alongside existing "Copy Contribution Link" in fund section
+Result: Shareable URLs for transfer listings (ks-atlas.com/transfer-hub?kingdom=N). Kingdom Profile links directly to listing. Cards have Share + Discord buttons. Unauthenticated users see "Sign Up to Apply" CTA. Recruiting kingdoms show toast on arrival. Conversion funnel tracked. Build passes.
+
 ## 2026-02-10 17:15 | Product Engineer | DEPLOYED
 Task: Ambassador tier perks, endorsement UX polish, activation notifications, stale claim reminders
 Files:

@@ -7,6 +7,7 @@ import { supabase } from '../lib/supabase';
 import { neonGlow, FONT_DISPLAY, colors } from '../utils/styles';
 import { moderateText } from '../utils/contentModeration';
 import { useToast } from './Toast';
+import { isReferralEligible } from '../utils/constants';
 
 // =============================================
 // CONSTANTS
@@ -503,7 +504,7 @@ const ProfileField: React.FC<{
 const RecruiterDashboard: React.FC<{
   onClose: () => void;
 }> = ({ onClose }) => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const isMobile = useIsMobile();
   const { showToast } = useToast();
   const { trackFeature } = useAnalytics();
@@ -2387,7 +2388,34 @@ const RecruiterDashboard: React.FC<{
                         Share the kingdom link to encourage contributions.
                       </p>
                     </div>
-                    <div style={{ marginTop: '0.75rem', textAlign: 'center' }}>
+                    <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                      <button
+                        onClick={() => {
+                          const refParam = profile && isReferralEligible(profile) && profile.linked_username ? `&ref=${profile.linked_username}` : '';
+                          const url = `${window.location.origin}/transfer-hub?kingdom=${editorInfo.kingdom_number}${refParam}`;
+                          navigator.clipboard.writeText(url).then(() => {
+                            trackFeature('Listing Link Copied', { kingdom: editorInfo.kingdom_number, hasReferral: !!refParam });
+                            showToast('Listing link copied! Share to recruit transferees.', 'success');
+                          });
+                        }}
+                        style={{
+                          padding: '0.5rem 1rem',
+                          backgroundColor: '#22d3ee15',
+                          border: '1px solid #22d3ee30',
+                          borderRadius: '8px',
+                          color: '#22d3ee',
+                          fontSize: '0.8rem',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          minHeight: '44px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '0.4rem',
+                        }}
+                      >
+                        🔗 Copy Listing Link
+                      </button>
                       <button
                         onClick={() => {
                           const url = `${window.location.origin}/transfer-hub?fund=${editorInfo.kingdom_number}`;
@@ -2412,7 +2440,7 @@ const RecruiterDashboard: React.FC<{
                           gap: '0.4rem',
                         }}
                       >
-                        📋 Copy Contribution Link
+                        💰 Copy Contribution Link
                       </button>
                     </div>
 

@@ -270,8 +270,8 @@ const KingdomHeader: React.FC<KingdomHeaderProps> = ({
             </div>
           )}
 
-          {/* Row 4: Transfer Status — clickable to open modal, no Update button */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+          {/* Row 4: Transfer Status + View Transfer Listing */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
             <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>Transfer Status:</span>
             <SmartTooltip
               accentColor={statusColor}
@@ -310,6 +310,38 @@ const KingdomHeader: React.FC<KingdomHeaderProps> = ({
                 {hasPendingSubmission ? '⏳ Pending' : status}
               </span>
             </SmartTooltip>
+            <Link
+              to={`/transfer-hub?kingdom=${kingdom.kingdom_number}`}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.3rem',
+                padding: isMobile ? '0.2rem 0.5rem' : '0.25rem 0.6rem',
+                backgroundColor: '#22d3ee10',
+                border: '1px solid #22d3ee25',
+                borderRadius: '4px',
+                color: '#22d3ee',
+                textDecoration: 'none',
+                fontSize: '0.7rem',
+                fontWeight: '500',
+                height: '24px',
+                transition: 'all 0.2s',
+                whiteSpace: 'nowrap',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#22d3ee20';
+                e.currentTarget.style.borderColor = '#22d3ee40';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#22d3ee10';
+                e.currentTarget.style.borderColor = '#22d3ee25';
+              }}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+              </svg>
+              View Transfer Listing
+            </Link>
           </div>
           
           {/* Row 4: Total KvKs + Actions */}
@@ -331,7 +363,7 @@ const KingdomHeader: React.FC<KingdomHeaderProps> = ({
                 totalKvks: kingdom.total_kvks
               }}
             />
-            
+
             <button
               onClick={onReportModalOpen}
               style={{

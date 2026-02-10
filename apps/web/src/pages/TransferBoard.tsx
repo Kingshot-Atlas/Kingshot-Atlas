@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useAnalytics } from '../hooks/useAnalytics';
-import KvKCountdown from '../components/KvKCountdown';
 import { supabase } from '../lib/supabase';
 import TransferProfileForm from '../components/TransferProfileForm';
 import { ApplyModal, MyApplicationsTracker } from '../components/TransferApplications';
@@ -20,6 +19,7 @@ import TransferHubGuide from '../components/TransferHubGuide';
 import EntryModal from '../components/transfer/EntryModal';
 import ModeToggle from '../components/transfer/ModeToggle';
 import FilterPanel, { FilterState, defaultFilters } from '../components/transfer/FilterPanel';
+import { useToast } from '../components/Toast';
 
 // =============================================
 // TYPES (KingdomData, KingdomFund, KingdomReviewSummary, BoardMode, MatchDetail, formatTCLevel
@@ -87,6 +87,7 @@ const TransferBoard: React.FC = () => {
   const { user, profile } = useAuth();
   const isMobile = useIsMobile();
   const { trackFeature } = useAnalytics();
+  const { showToast } = useToast();
 
   // Mode state — persisted in localStorage
   const [mode, setMode] = useState<BoardMode>(() => {
@@ -117,6 +118,7 @@ const TransferBoard: React.FC = () => {
   const [visibleCount, setVisibleCount] = useState(20);
   const [activeTransfereeCount, setActiveTransfereeCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
+  const [highlightedKingdom, setHighlightedKingdom] = useState<number | null>(null);
   const [profileViewCount, setProfileViewCount] = useState(0);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const [showAuthGate, setShowAuthGate] = useState<'login' | 'link' | null>(null);
@@ -132,14 +134,28 @@ const TransferBoard: React.FC = () => {
   } | null>(null);
   const [endorseLoading, setEndorseLoading] = useState(false);
 
-  useDocumentTitle(endorseClaimData ? `Endorse for K${endorseClaimData.kingdom_number} — Kingshot Atlas` : 'Transfer Hub');
-  useMetaTags(endorseClaimData ? {
-    title: `Endorse ${endorseClaimData.nominee_linked_username || endorseClaimData.nominee_username} for Kingdom ${endorseClaimData.kingdom_number} — Kingshot Atlas`,
-    description: `${endorseClaimData.nominee_linked_username || endorseClaimData.nominee_username} is running for Kingdom ${endorseClaimData.kingdom_number} editor. ${endorseClaimData.endorsement_count}/${endorseClaimData.required_endorsements} endorsements so far. Your vote matters.`,
-    url: `https://ks-atlas.com/transfer-hub?endorse=${endorseClaimData.id}`,
-    image: 'https://ks-atlas.com/Atlas%20Logo.png',
-    type: 'article',
-  } : PAGE_META_TAGS.transferHub);
+  useDocumentTitle(
+    highlightedKingdom
+      ? `Kingdom ${highlightedKingdom} Transfer Listing — Kingshot Atlas`
+      : endorseClaimData
+        ? `Endorse for K${endorseClaimData.kingdom_number} — Kingshot Atlas`
+        : 'Transfer Hub'
+  );
+  useMetaTags(
+    highlightedKingdom ? {
+      title: `Kingdom ${highlightedKingdom} Transfer Listing — Kingshot Atlas`,
+      description: `View Kingdom ${highlightedKingdom}'s transfer listing on the Kingshot Atlas Transfer Hub. Check stats, recruitment info, and apply to transfer.`,
+      url: `https://ks-atlas.com/transfer-hub?kingdom=${highlightedKingdom}`,
+      image: 'https://ks-atlas.com/Atlas%20Logo.png',
+      type: 'article',
+    } : endorseClaimData ? {
+      title: `Endorse ${endorseClaimData.nominee_linked_username || endorseClaimData.nominee_username} for Kingdom ${endorseClaimData.kingdom_number} — Kingshot Atlas`,
+      description: `${endorseClaimData.nominee_linked_username || endorseClaimData.nominee_username} is running for Kingdom ${endorseClaimData.kingdom_number} editor. ${endorseClaimData.endorsement_count}/${endorseClaimData.required_endorsements} endorsements so far. Your vote matters.`,
+      url: `https://ks-atlas.com/transfer-hub?endorse=${endorseClaimData.id}`,
+      image: 'https://ks-atlas.com/Atlas%20Logo.png',
+      type: 'article',
+    } : PAGE_META_TAGS.transferHub
+  );
 
   // Track page view
   useEffect(() => {
@@ -153,6 +169,14 @@ const TransferBoard: React.FC = () => {
     const contributed = params.get('contributed');
     const endorseParam = params.get('endorse');
 
+    const kingdomParam = params.get('kingdom');
+    const refParam = params.get('ref');
+
+    // Track referral landing if ?ref= is present
+    if (refParam) {
+      trackFeature('Transfer Hub Referral Landing', { referrer: refParam, kingdom: kingdomParam || 'none' });
+    }
+
     if (contributed === 'true') {
       setShowContributionSuccess(true);
     }
@@ -161,6 +185,15 @@ const TransferBoard: React.FC = () => {
       const kn = parseInt(fundParam, 10);
       if (!isNaN(kn) && kn > 0) {
         setContributingToKingdom(kn);
+      }
+    }
+
+    if (kingdomParam) {
+      const kn = parseInt(kingdomParam, 10);
+      if (!isNaN(kn) && kn > 0) {
+        setHighlightedKingdom(kn);
+        // Skip entry modal when arriving via direct kingdom link
+        setShowEntryModal(false);
       }
     }
 
@@ -408,6 +441,39 @@ const TransferBoard: React.FC = () => {
 
     loadData();
   }, []);
+
+  // Ensure highlighted kingdom is visible in the unfunded list (expand visibleCount if needed)
+  useEffect(() => {
+    if (!highlightedKingdom || loading || kingdoms.length === 0) return;
+    // Check if the kingdom is in the unfunded list and beyond visibleCount
+    const unfundedIndex = kingdomsWithoutFunds.findIndex(k => k.kingdom_number === highlightedKingdom);
+    if (unfundedIndex >= 0 && unfundedIndex >= visibleCount) {
+      setVisibleCount(unfundedIndex + 5);
+    }
+  }, [highlightedKingdom, loading, kingdoms.length]);
+
+  // Scroll to highlighted kingdom card after data loads + recruiting toast + conversion tracking
+  useEffect(() => {
+    if (!highlightedKingdom || loading) return;
+
+    // Track shared link landing
+    trackFeature('Transfer Listing Shared Link', { kingdom: highlightedKingdom, authenticated: !!user });
+
+    // Show recruiting toast if the kingdom is actively recruiting
+    const highlightedFund = fundMap.get(highlightedKingdom);
+    if (highlightedFund?.is_recruiting) {
+      showToast(`Kingdom ${highlightedKingdom} is actively recruiting! Check their listing below.`, 'info');
+    }
+
+    // Small delay to let DOM render the cards
+    const timer = setTimeout(() => {
+      const el = document.getElementById(`listing-${highlightedKingdom}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [highlightedKingdom, loading]);
 
   // Handle entry modal selection
   const handleModeSelect = (selectedMode: BoardMode) => {
@@ -670,6 +736,12 @@ const TransferBoard: React.FC = () => {
 
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto', padding: isMobile ? '0 0.25rem' : 0 }}>
+      <style>{`
+        @keyframes fadeSlideUp {
+          from { opacity: 0; transform: translateY(12px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
       {showEntryModal && (
         <EntryModal
           onSelect={handleModeSelect}
@@ -713,15 +785,56 @@ const TransferBoard: React.FC = () => {
               <div style={{ width: '50px', height: '2px', background: 'linear-gradient(90deg, #22d3ee, transparent)' }} />
             </div>
           )}
-          {/* Transfer Countdown Only */}
-          <div style={{ display: 'flex', justifyContent: 'center' }}>
-            <KvKCountdown type="transfer" />
-          </div>
         </div>
       </div>
 
+      {/* Shared Link CTA for unauthenticated users */}
+      {highlightedKingdom && !user && (
+        <div style={{
+          padding: isMobile ? '1rem' : '1.25rem 1.5rem',
+          marginBottom: '1rem',
+          backgroundColor: '#22d3ee08',
+          border: '1px solid #22d3ee20',
+          borderRadius: '12px',
+          display: 'flex',
+          alignItems: isMobile ? 'flex-start' : 'center',
+          gap: isMobile ? '0.75rem' : '1rem',
+          flexDirection: isMobile ? 'column' : 'row',
+          animation: 'fadeSlideUp 0.5s ease-out',
+        }}>
+          <div style={{ flex: 1 }}>
+            <p style={{ color: '#fff', fontSize: '0.9rem', fontWeight: '600', margin: '0 0 0.25rem 0' }}>
+              Interested in Kingdom {highlightedKingdom}?
+            </p>
+            <p style={{ color: '#9ca3af', fontSize: '0.8rem', margin: 0, lineHeight: 1.5 }}>
+              Sign in and create your Transfer Profile to apply directly. Recruiters will see your stats and reach out.
+            </p>
+          </div>
+          <Link to="/auth" style={{
+            padding: '0.5rem 1.25rem',
+            backgroundColor: '#22d3ee',
+            color: '#000',
+            borderRadius: '8px',
+            fontWeight: '700',
+            fontSize: '0.85rem',
+            textDecoration: 'none',
+            whiteSpace: 'nowrap',
+            minHeight: '44px',
+            display: 'inline-flex',
+            alignItems: 'center',
+          }}>
+            Sign Up to Apply
+          </Link>
+        </div>
+      )}
+
       {/* How It Works Guide */}
       <TransferHubGuide />
+
+      {/* Mode Toggle — right below guide */}
+      <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'center' }}>
+        <ModeToggle mode={mode} onChange={handleModeChange} />
+      </div>
 
       {/* Transfer Hub Stats */}
       {!loading && (
@@ -753,11 +866,6 @@ const TransferBoard: React.FC = () => {
           ))}
         </div>
       )}
-
-      {/* Mode Toggle */}
-      <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'center' }}>
-        <ModeToggle mode={mode} onChange={handleModeChange} />
-      </div>
 
       {/* Transfer Profile CTA (only in transferring mode) */}
       {mode === 'transferring' && (() => {
@@ -1150,6 +1258,7 @@ const TransferBoard: React.FC = () => {
                 matchDetails={details}
                 onApply={(kn) => requireAuth(() => { trackFeature('Transfer Apply Click', { kingdom: kn, source: 'recommended' }); setApplyingToKingdom(kn); })}
                 onFund={(kn) => requireAuth(() => { trackFeature('Transfer Fund Click', { kingdom: kn }); setContributingToKingdom(kn); })}
+                highlighted={highlightedKingdom === kingdom.kingdom_number}
               />
             ))}
           </div>
@@ -1161,9 +1270,21 @@ const TransferBoard: React.FC = () => {
         </div>
       )}
 
-      {/* Search + Filters (hidden in Recruiting mode) */}
+      {/* Search + Filters — sticky when scrolling (hidden in Recruiting mode) */}
       {mode !== 'recruiting' && (
-        <div style={{ marginBottom: '1rem' }}>
+        <div style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 50,
+          backgroundColor: '#0a0a0a',
+          paddingTop: '0.5rem',
+          paddingBottom: '0.5rem',
+          marginBottom: '0.5rem',
+          marginLeft: isMobile ? '-0.25rem' : 0,
+          marginRight: isMobile ? '-0.25rem' : 0,
+          paddingLeft: isMobile ? '0.25rem' : 0,
+          paddingRight: isMobile ? '0.25rem' : 0,
+        }}>
           <FilterPanel filters={filters} onChange={setFilters} mode={mode} searchQuery={searchQuery} onSearchChange={setSearchQuery} />
           {/* Kingdom and Recruiting Counts */}
           <div style={{ 
@@ -1254,8 +1375,9 @@ const TransferBoard: React.FC = () => {
                 mode={mode}
                 matchScore={matchResult?.score}
                 matchDetails={matchResult?.details}
-                onApply={(kn) => requireAuth(() => { trackFeature('Transfer Apply Click', { kingdom: kn }); setApplyingToKingdom(kn); })}
+                onApply={(kn) => requireAuth(() => { trackFeature('Transfer Apply Click', { kingdom: kn, ...(highlightedKingdom === kn ? { source: 'shared_link' } : {}) }); setApplyingToKingdom(kn); })}
                 onFund={(kn) => requireAuth(() => { trackFeature('Transfer Fund Click', { kingdom: kn }); setContributingToKingdom(kn); })}
+                highlighted={highlightedKingdom === kingdom.kingdom_number}
               />
             );
           })}
@@ -1285,8 +1407,9 @@ const TransferBoard: React.FC = () => {
                 mode={mode}
                 matchScore={matchResult?.score}
                 matchDetails={matchResult?.details}
-                onApply={(kn) => requireAuth(() => { trackFeature('Transfer Apply Click', { kingdom: kn }); setApplyingToKingdom(kn); })}
+                onApply={(kn) => requireAuth(() => { trackFeature('Transfer Apply Click', { kingdom: kn, ...(highlightedKingdom === kn ? { source: 'shared_link' } : {}) }); setApplyingToKingdom(kn); })}
                 onFund={(kn) => requireAuth(() => { trackFeature('Transfer Fund Click', { kingdom: kn }); setContributingToKingdom(kn); })}
+                highlighted={highlightedKingdom === kingdom.kingdom_number}
               />
             );
           })}

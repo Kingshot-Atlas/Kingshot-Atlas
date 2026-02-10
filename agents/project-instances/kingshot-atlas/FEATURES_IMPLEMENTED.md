@@ -455,6 +455,14 @@
 | Transfer Application — Per-Kingdom Cooldown | ✅ Built | 24-hour cooldown after withdrawing an application to the same kingdom. Prevents spam re-applications. Server-side check via `transfer_applications` query for recent withdrawn apps. (2026-02-10) |
 | Transfer Hub — Slot Count Indicator | ✅ Built | Shows "📋 2/3 application slots used" or "3/3 — withdraw one to apply again" badge on Transfer Hub CTA banner when user has 2+ active apps. Color-coded amber/red. (2026-02-10) |
 | Transfer Hub — Match Score Fallback | ✅ Built | When kingdoms have no explicit min requirements (power/TC), Match Score now uses fallback heuristic: language match + vibe overlap + recruiting status. Applied to both `calculateMatchScore` (with details) and `calculateMatchScoreForSort`. Previously showed 0% for all unfunded/unconfigured kingdoms. (2026-02-10) |
+| Transfer Hub — Shareable Listing URLs | ✅ Built | `?kingdom=N` URL param scrolls to & highlights kingdom card with cyan glow. Entry modal skipped. Dynamic OG meta tags (title, description, URL). Share + Discord buttons on every listing card. `generateTransferListingDiscordMessage` in sharing.ts. (2026-02-10) |
+| Transfer Hub — Shared Link CTA | ✅ Built | Unauthenticated users landing via `?kingdom=N` see "Interested in Kingdom N? Sign Up to Apply" banner with auth link. (2026-02-10) |
+| Transfer Hub — Recruiting Toast | ✅ Built | Landing on a recruiting kingdom via shared link shows "Kingdom N is actively recruiting!" info toast. (2026-02-10) |
+| Transfer Hub — Conversion Funnel | ✅ Built | Tracks `Transfer Listing Shared Link` (kingdom, authenticated), `Transfer Apply Click` with `source: shared_link` when applying to the highlighted kingdom. (2026-02-10) |
+| Transfer Hub — Copy Listing Link (Recruiter) | ✅ Built | "🔗 Copy Listing Link" button in RecruiterDashboard fund section alongside existing contribution link. Copies `?kingdom=N` URL. (2026-02-10) |
+| Transfer Hub — Discord Share Button | ✅ Built | Discord-branded button on KingdomListingCard copies formatted message with kingdom number, tier, score, recruiting status, language, fund tier. (2026-02-10) |
+| Transfer Hub — Transfer Listing Card (OG) | ✅ Built | `generateTransferListingCard` in sharing.ts creates 600×315 canvas PNG with kingdom number, tier, recruiting badge, score, language, fund tier, CTA. (2026-02-10) |
+| Kingdom Profile — View Transfer Listing | ✅ Built | "View Transfer Listing" link moved next to Transfer Status in KingdomHeader Row 4. Compact pill style matching status badge height. Desktop+mobile optimized. (2026-02-10) |
 | Component Refactoring | 🚧 Planned | KingdomCard, ProfileFeatures too large |
 | Multi-Kingdom Share/Export | 🚧 Planned | ShareButton still uses 2-kingdom format |
 
