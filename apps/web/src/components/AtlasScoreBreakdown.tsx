@@ -82,26 +82,6 @@ const AtlasScoreBreakdown: React.FC<AtlasScoreBreakdownProps> = ({ kingdom, rank
     }
   }, [showChart, setShowChart, trackFeature, kingdom.kingdom_number, kingdom.overall_score, kingdom.power_tier]);
   
-  // Handle edge case: new kingdom with 0 KvKs
-  if (kingdom.total_kvks === 0) {
-    return (
-      <div style={{
-        backgroundColor: '#131318',
-        borderRadius: '12px',
-        padding: isMobile ? '1rem' : '1.25rem',
-        border: '1px solid #2a2a2a',
-        marginBottom: isMobile ? '1.25rem' : '1.5rem'
-      }}>
-        <h4 style={{ color: '#fff', fontSize: '0.9rem', fontWeight: '600', margin: '0 0 0.75rem 0', textAlign: 'center' }}>
-          Atlas Score Breakdown
-        </h4>
-        <div style={{ color: '#6b7280', fontSize: '0.85rem', textAlign: 'center', padding: '1rem' }}>
-          Play your first KvK to unlock score breakdown!
-        </div>
-      </div>
-    );
-  }
-
   // Calculate score components using centralized Atlas Score formula
   // Option B: Convert multipliers to sequential point contributions so numbers ADD UP
   const scoreComponents = useMemo(() => {
@@ -193,6 +173,26 @@ const AtlasScoreBreakdown: React.FC<AtlasScoreBreakdownProps> = ({ kingdom, rank
       { label: 'Resilience', value: resilience },
     ];
   }, [kingdom]);
+
+  // Handle edge case: new kingdom with 0 KvKs
+  if (kingdom.total_kvks === 0) {
+    return (
+      <div style={{
+        backgroundColor: '#131318',
+        borderRadius: '12px',
+        padding: isMobile ? '1rem' : '1.25rem',
+        border: '1px solid #2a2a2a',
+        marginBottom: isMobile ? '1.25rem' : '1.5rem'
+      }}>
+        <h4 style={{ color: '#fff', fontSize: '0.9rem', fontWeight: '600', margin: '0 0 0.75rem 0', textAlign: 'center' }}>
+          Atlas Score Breakdown
+        </h4>
+        <div style={{ color: '#6b7280', fontSize: '0.85rem', textAlign: 'center', padding: '1rem' }}>
+          Play your first KvK to unlock score breakdown!
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div 

@@ -31,27 +31,9 @@ const TrendChart: React.FC<TrendChartProps> = ({
     }
   };
 
-  // Handle edge case: no KvK records
-  if (!kvkRecords || kvkRecords.length === 0) {
-    return (
-      <div style={{
-        backgroundColor: '#131318',
-        borderRadius: '12px',
-        padding: isMobile ? '1rem' : '1.25rem',
-        border: '1px solid #2a2a2a',
-        marginBottom: isMobile ? '1.25rem' : '1.5rem'
-      }}>
-        <h4 style={{ color: '#fff', fontSize: '0.9rem', fontWeight: '600', margin: '0 0 0.75rem 0', textAlign: 'center' }}>
-          Performance Trend
-        </h4>
-        <div style={{ color: '#6b7280', fontSize: '0.85rem', textAlign: 'center', padding: '1rem' }}>
-          Play your first KvK to unlock performance trends!
-        </div>
-      </div>
-    );
-  }
-
   const chartData = useMemo(() => {
+    if (!kvkRecords || kvkRecords.length === 0) return [];
+
     // Sort by KvK number ascending (oldest first)
     const sorted = [...kvkRecords].sort((a, b) => a.kvk_number - b.kvk_number);
     

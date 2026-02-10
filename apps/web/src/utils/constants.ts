@@ -33,7 +33,7 @@ export const TIER_DISPLAY_NAMES = {
 // Handles fancy brackets like 『』「」【】, quotes, and other decorations
 const stripDecorations = (username: string): string => {
   return username
-    .replace(/[『』「」【】「」〖〗《》〈〉⟨⟩｢｣\[\](){}]/g, '')
+    .replace(/[『』「」【】「」〖〗《》〈〉⟨⟩｢｣[\](){}]/g, '')
     .trim()
     .toLowerCase();
 };

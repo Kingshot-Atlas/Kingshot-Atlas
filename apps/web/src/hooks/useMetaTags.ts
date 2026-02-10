@@ -117,7 +117,7 @@ export function getKingdomMetaTags(
     image: 'https://ks-atlas.com/Atlas%20Logo.png',
     type: 'article'
   };
-};
+}
 
 /**
  * Generate meta tags for comparison page
