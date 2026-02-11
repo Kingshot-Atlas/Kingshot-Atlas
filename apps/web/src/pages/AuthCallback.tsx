@@ -18,8 +18,12 @@ const AuthCallback: React.FC = () => {
       return;
     }
 
-    let timeoutId: ReturnType<typeof setTimeout>;
     let cancelled = false;
+    const timeoutId = setTimeout(() => {
+      if (!cancelled) {
+        setError('Sign-in is taking longer than expected. Please try again.');
+      }
+    }, 10000);
 
     // Listen for auth state changes (fires when Supabase processes the hash)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -36,13 +40,6 @@ const AuthCallback: React.FC = () => {
         navigate('/profile', { replace: true });
       }
     });
-
-    // Timeout after 10 seconds — show error with retry
-    timeoutId = setTimeout(() => {
-      if (!cancelled) {
-        setError('Sign-in is taking longer than expected. Please try again.');
-      }
-    }, 10000);
 
     return () => {
       cancelled = true;
