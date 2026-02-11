@@ -3,6 +3,16 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-11 17:30 | Product Engineer | COMPLETED
+Task: Separate Co-Editors into dedicated admin tab
+Files: apps/web/src/components/admin/TransferHubAdminTab.tsx
+Changes:
+1. **New Co-Editors tab:** Added 🤝 Co-Editors sub-tab in Transfer Hub admin
+2. **Filtered Editor Claims:** Editor Claims tab now only shows `role === 'editor'`
+3. **No endorsement data:** Co-Editor cards show status, kingdom, home, TC level, timeline — no endorsement progress bar or count
+4. **Purple badge:** Co-Editor role badge uses purple (#a855f7) to differentiate from cyan Editor badge
+Result: Co-Editors separated from Editors. Committed and deployed via Cloudflare Pages.
+
 ## 2026-02-11 16:55 | Product Engineer | COMPLETED
 Task: i18n — Korean (ko) Language Support
 Files: apps/web/src/locales/ko/translation.json (NEW), apps/web/src/i18n.ts, apps/web/public/locales/ko/translation.json (NEW), apps/web/scripts/i18n-diff.js, .windsurf/workflows/i18n-translate.md, agents/project-instances/kingshot-atlas/FEATURES_IMPLEMENTED.md

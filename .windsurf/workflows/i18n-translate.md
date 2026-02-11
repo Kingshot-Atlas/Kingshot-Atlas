@@ -1,5 +1,5 @@
 ---
-description: Translate new or changed content into all supported languages (ES/FR/ZH/DE/KO/JA)
+description: Translate new or changed content into all supported languages (ES/FR/ZH/DE/KO/JA/AR)
 ---
 
 # i18n Translation Workflow
@@ -42,6 +42,7 @@ For each new/changed key in EN, add the translation to:
 - `src/locales/de/translation.json` (German)
 - `src/locales/ko/translation.json` (Korean)
 - `src/locales/ja/translation.json` (Japanese)
+- `src/locales/ar/translation.json` (Arabic — RTL language, ensure `dir: 'rtl'` in LANGUAGE_META)
 
 **Translation quality guidelines:**
 - Use natural phrasing, not literal word-for-word translation

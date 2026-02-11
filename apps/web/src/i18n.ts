@@ -7,11 +7,11 @@ import HttpBackend from 'i18next-http-backend';
 import en from './locales/en/translation.json';
 
 // Supported languages — add new languages here and in public/locales/{code}/
-export const SUPPORTED_LANGUAGES = ['en', 'es', 'fr', 'zh', 'de', 'ko', 'ja'] as const;
+export const SUPPORTED_LANGUAGES = ['en', 'es', 'fr', 'zh', 'de', 'ko', 'ja', 'ar'] as const;
 export type SupportedLanguage = typeof SUPPORTED_LANGUAGES[number];
 
 // Language metadata for UI (Header, etc.)
-// dir: 'ltr' | 'rtl' — groundwork for future RTL language support (e.g., Arabic)
+// dir: 'ltr' | 'rtl' — used to set document direction for RTL languages (e.g., Arabic)
 export const LANGUAGE_META: Record<SupportedLanguage, { label: string; flag: string; dir: 'ltr' | 'rtl' }> = {
   en: { label: 'English', flag: '🇺🇸', dir: 'ltr' },
   es: { label: 'Español', flag: '🇪🇸', dir: 'ltr' },
@@ -20,6 +20,7 @@ export const LANGUAGE_META: Record<SupportedLanguage, { label: string; flag: str
   de: { label: 'Deutsch', flag: '🇩🇪', dir: 'ltr' },
   ko: { label: '한국어', flag: '🇰🇷', dir: 'ltr' },
   ja: { label: '日本語', flag: '🇯🇵', dir: 'ltr' },
+  ar: { label: 'العربية', flag: '🇸🇦', dir: 'rtl' },
 };
 
 i18n

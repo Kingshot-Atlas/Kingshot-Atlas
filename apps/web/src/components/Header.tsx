@@ -56,6 +56,11 @@ const Header: React.FC = () => {
 
   const changeLanguage = (code: string) => {
     i18n.changeLanguage(code);
+    const meta = LANGUAGE_META[code as keyof typeof LANGUAGE_META];
+    if (meta) {
+      document.documentElement.dir = meta.dir;
+      document.documentElement.lang = code;
+    }
     setShowLangMenu(false);
     setShowMobileLangMenu(false);
     trackButton(`Language Switch: ${code}`);
