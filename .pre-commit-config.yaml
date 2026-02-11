@@ -8,7 +8,7 @@ repos:
     rev: 1.7.7
     hooks:
       - id: bandit
-        args: ['-r', '-ll', '-ii', '--exclude', './apps/api/tests,./venv']
+        args: ['-r', '-ll', '-ii', '--exclude', './apps/api/tests,./venv', '-c', 'apps/api/.bandit.yml']
         files: ^apps/api/
 
   # Python code formatting
@@ -44,6 +44,17 @@ repos:
         language: system
         files: \.(ts|tsx|js|jsx)$
         pass_filenames: false
+
+  # Frontend tests on changed test files
+  - repo: local
+    hooks:
+      - id: vitest
+        name: Vitest (changed test files)
+        entry: bash -c 'cd apps/web && npx vitest run --passWithNoTests'
+        language: system
+        files: apps/web/src/.*\.(test|spec)\.(ts|tsx)$
+        pass_filenames: false
+        stages: [push]
 
   # General file checks
   - repo: https://github.com/pre-commit/pre-commit-hooks

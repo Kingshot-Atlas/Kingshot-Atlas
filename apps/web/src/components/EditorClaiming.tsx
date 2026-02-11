@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { supabase } from '../lib/supabase';
@@ -300,11 +300,7 @@ const PendingClaimView: React.FC<{
   const [copied, setCopied] = useState(false);
   const [discordCopied, setDiscordCopied] = useState(false);
 
-  useEffect(() => {
-    loadEndorsements();
-  }, [claim.id]);
-
-  const loadEndorsements = async () => {
+  const loadEndorsements = useCallback(async () => {
     if (!supabase) return;
     try {
       const { data } = await supabase
@@ -335,7 +331,11 @@ const PendingClaimView: React.FC<{
     } finally {
       setLoading(false);
     }
-  };
+  }, [claim.id]);
+
+  useEffect(() => {
+    loadEndorsements();
+  }, [loadEndorsements]);
 
   const shareLink = `${window.location.origin}/transfer-hub?endorse=${claim.id}`;
 
@@ -557,11 +557,7 @@ const EndorseButton: React.FC<{
   const isSameKingdom = linkedKingdom === kingdomNumber;
   const canEndorse = isLinked && meetsTcReq && isSameKingdom && !alreadyEndorsed;
 
-  useEffect(() => {
-    checkExisting();
-  }, [user, claimId]);
-
-  const checkExisting = async () => {
+  const checkExisting = useCallback(async () => {
     if (!supabase || !user) return;
     const { data } = await supabase
       .from('editor_endorsements')
@@ -570,7 +566,11 @@ const EndorseButton: React.FC<{
       .eq('endorser_user_id', user.id)
       .single();
     setAlreadyEndorsed(!!data);
-  };
+  }, [user, claimId]);
+
+  useEffect(() => {
+    checkExisting();
+  }, [checkExisting]);
 
   const handleEndorse = async () => {
     if (!supabase || !user || !canEndorse) return;
@@ -684,11 +684,7 @@ const EditorClaiming: React.FC<{
   const [loading, setLoading] = useState(true);
   const [showNominate, setShowNominate] = useState(false);
 
-  useEffect(() => {
-    loadMyClaim();
-  }, [user]);
-
-  const loadMyClaim = async () => {
+  const loadMyClaim = useCallback(async () => {
     if (!supabase || !user) {
       setLoading(false);
       return;
@@ -708,7 +704,11 @@ const EditorClaiming: React.FC<{
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    loadMyClaim();
+  }, [loadMyClaim]);
 
   if (!user) return null;
   if (loading) return <div style={{ color: '#6b7280', fontSize: '0.8rem', padding: '0.5rem 0' }}>Checking editor status...</div>;

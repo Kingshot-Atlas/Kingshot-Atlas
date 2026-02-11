@@ -51,8 +51,8 @@ jobs:
         run: |
           pip install bandit
           # Fail on high-severity issues (-ll = medium+high, -ii = medium+high confidence)
-          # Exit code 1 = issues found, 0 = clean
-          bandit -r api/ -ll -ii --exclude ./api/tests,./venv -f txt
+          # Config file suppresses known low-severity false positives (B110, B105)
+          bandit -r api/ -ll -ii --exclude ./api/tests,./venv -c .bandit.yml -f txt
           echo "✅ Bandit security scan passed"
 
       - name: Run tests
@@ -127,7 +127,7 @@ jobs:
         run: npm run build
         env:
           CI: true
-          REACT_APP_API_URL: ${{ vars.REACT_APP_API_URL || 'https://api.ks-atlas.com' }}
+          VITE_API_URL: ${{ vars.VITE_API_URL || 'https://kingshot-atlas.onrender.com' }}
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
@@ -219,8 +219,9 @@ jobs:
         run: npm install -g @lhci/cli
 
       - name: Run Lighthouse CI
+        working-directory: apps/web
         continue-on-error: true
         run: |
-          lhci autorun --config=./apps/web/lighthouserc.js
+          lhci autorun --config=./lighthouserc.js
         env:
           LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}

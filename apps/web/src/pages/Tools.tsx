@@ -180,16 +180,34 @@ const Tools: React.FC = () => {
       accentColor: '#22d3ee'
     },
     {
-      title: 'Gift Code Redeemer',
-      description: 'Bulk redeem gift codes across all your accounts. One click. Multiple accounts. Zero hassle.',
-      tagline: 'Stop typing. Start claiming.',
+      title: 'KvK Rally Coordinator',
+      description: 'Time your rallies to land together. Set hit order, march times, and delay windows — so your alliance strikes as one.',
+      tagline: 'Synchronized destruction. No guesswork.',
       icon: (
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 6v6l4 2"/>
+          <path d="M2 12h2M20 12h2M12 2v2M12 20v2"/>
         </svg>
       ),
       comingSoon: true,
-      accentColor: '#f59e0b'
+      accentColor: '#ef4444'
+    },
+    {
+      title: 'Appointment Scheduler',
+      description: 'Schedule King\'s Appointments across your kingdom during Prep Phase. Maximize buff slots, avoid overlap, and make every 30 minutes count.',
+      tagline: 'Precision wins wars.',
+      icon: (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+          <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/>
+        </svg>
+      ),
+      comingSoon: true,
+      accentColor: '#a855f7'
     },
     {
       title: 'Gaming Calculators',
@@ -213,20 +231,16 @@ const Tools: React.FC = () => {
       accentColor: '#10b981'
     },
     {
-      title: 'Appointment Scheduler',
-      description: 'Perfect buff timing for Prep Phase. Never miss a window. Coordinate with your alliance like clockwork.',
-      tagline: 'Precision wins wars.',
+      title: 'Gift Code Redeemer',
+      description: 'Bulk redeem gift codes across all your accounts. One click. Multiple accounts. Zero hassle.',
+      tagline: 'Stop typing. Start claiming.',
       icon: (
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-          <line x1="16" y1="2" x2="16" y2="6"/>
-          <line x1="8" y1="2" x2="8" y2="6"/>
-          <line x1="3" y1="10" x2="21" y2="10"/>
-          <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/>
+          <path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
         </svg>
       ),
       comingSoon: true,
-      accentColor: '#a855f7'
+      accentColor: '#f59e0b'
     }
   ];
 
