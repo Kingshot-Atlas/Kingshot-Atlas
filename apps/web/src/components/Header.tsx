@@ -16,6 +16,9 @@ const DISCORD_INVITE = import.meta.env.VITE_DISCORD_INVITE || 'https://discord.g
 const LANGUAGE_OPTIONS = [
   { code: 'en', label: 'English', flag: '🇺🇸' },
   { code: 'es', label: 'Español', flag: '🇪🇸' },
+  { code: 'fr', label: 'Français', flag: '🇫🇷' },
+  { code: 'zh', label: '中文', flag: '🇨🇳' },
+  { code: 'de', label: 'Deutsch', flag: '🇩🇪' },
 ] as const;
 
 const Header: React.FC = () => {

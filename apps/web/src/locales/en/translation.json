@@ -935,7 +935,10 @@
   "languageSwitcher": {
     "label": "Language",
     "en": "English",
-    "es": "Español"
+    "es": "Español",
+    "fr": "Français",
+    "zh": "中文",
+    "de": "Deutsch"
   },
   "accessibility": {
     "skipToContent": "Skip to content",
