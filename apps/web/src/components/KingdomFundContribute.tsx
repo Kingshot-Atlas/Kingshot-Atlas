@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
@@ -77,6 +78,7 @@ const KingdomFundContribute: React.FC<{
   currentTier?: string;
   onClose: () => void;
 }> = ({ kingdomNumber, currentBalance = 0, currentTier = 'standard', onClose }) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const isMobile = useIsMobile();
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
@@ -130,10 +132,10 @@ const KingdomFundContribute: React.FC<{
             color: '#fff',
             margin: '0 0 0.35rem 0',
           }}>
-            Fund <span style={{ ...neonGlow('#22d3ee') }}>Kingdom {kingdomNumber}</span>
+            {t('kingdomFund.fundKingdom', { num: '' })} <span style={{ ...neonGlow('#22d3ee') }}>{kingdomNumber}</span>
           </h2>
           <p style={{ color: '#6b7280', fontSize: '0.8rem', margin: 0 }}>
-            Contributions boost listing visibility and unlock tier benefits
+            {t('kingdomFund.boostDesc')}
           </p>
         </div>
 
@@ -149,7 +151,7 @@ const KingdomFundContribute: React.FC<{
           border: `1px solid ${TIER_COLORS[currentTier] || '#2a2a2a'}30`,
         }}>
           <div>
-            <span style={{ color: '#6b7280', fontSize: '0.7rem' }}>Current Balance</span>
+            <span style={{ color: '#6b7280', fontSize: '0.7rem' }}>{t('kingdomFund.currentBalance')}</span>
             <div style={{
               fontWeight: 'bold',
               fontSize: '1.1rem',
@@ -159,7 +161,7 @@ const KingdomFundContribute: React.FC<{
             </div>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <span style={{ color: '#6b7280', fontSize: '0.7rem' }}>Current Tier</span>
+            <span style={{ color: '#6b7280', fontSize: '0.7rem' }}>{t('kingdomFund.currentTier')}</span>
             <div style={{
               color: TIER_COLORS[currentTier] || '#4b5563',
               fontWeight: 'bold',
@@ -221,7 +223,7 @@ const KingdomFundContribute: React.FC<{
                     fontWeight: '600',
                     marginTop: '0.1rem',
                   }}>
-                    → {projectedTier} tier
+                    {t('kingdomFund.toTier', { tier: projectedTier })}
                   </span>
                 )}
               </button>
@@ -239,7 +241,7 @@ const KingdomFundContribute: React.FC<{
             border: '1px solid #2a2a2a',
           }}>
             <span style={{ color: '#9ca3af', fontSize: '0.7rem', fontWeight: '600' }}>
-              {getProjectedTier(selectedAmount).toUpperCase()} TIER BENEFITS
+              {t('kingdomFund.tierBenefits', { tier: getProjectedTier(selectedAmount).toUpperCase() })}
             </span>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', marginTop: '0.35rem' }}>
               {(TIER_BENEFITS[getProjectedTier(selectedAmount)] || []).map((benefit) => (
@@ -260,8 +262,7 @@ const KingdomFundContribute: React.FC<{
           marginBottom: '1rem',
         }}>
           <p style={{ color: '#9ca3af', fontSize: '0.7rem', margin: 0, lineHeight: 1.5 }}>
-            Funds deplete ~$5/week to maintain your tier. Your contribution is added to the kingdom's balance. 
-            Secure payment via Stripe. No recurring charges.
+            {t('kingdomFund.fundsDeplete')}
           </p>
         </div>
 
@@ -284,7 +285,7 @@ const KingdomFundContribute: React.FC<{
               justifyContent: 'center',
             }}
           >
-            Cancel
+            {t('kingdomFund.cancel')}
           </button>
           <button
             onClick={() => {
@@ -309,7 +310,7 @@ const KingdomFundContribute: React.FC<{
               gap: '0.4rem',
             }}
           >
-            {selectedAmount ? `Contribute $${selectedAmount}` : 'Select an amount'}
+            {selectedAmount ? t('kingdomFund.contribute', { amount: selectedAmount }) : t('kingdomFund.selectAmount')}
           </button>
         </div>
 
@@ -321,7 +322,7 @@ const KingdomFundContribute: React.FC<{
           marginTop: '0.75rem',
           marginBottom: 0,
         }}>
-          🔒 Payments processed securely by Stripe
+          🔒 {t('kingdomFund.securePayment')}
         </p>
       </div>
     </div>

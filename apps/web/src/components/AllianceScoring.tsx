@@ -1,4 +1,5 @@
 import React, { useMemo, memo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { 
@@ -34,6 +35,7 @@ const AllianceScoring: React.FC<AllianceScoringProps> = ({
   allianceIds,
   title = 'Alliance Overview'
 }) => {
+  const { t } = useTranslation();
   const isMobile = useIsMobile();
   const [showDetails, setShowDetails] = useState(false);
   const [selectedKingdoms, setSelectedKingdoms] = useState<Set<number>>(new Set(allianceIds || []));
@@ -129,7 +131,7 @@ const AllianceScoring: React.FC<AllianceScoringProps> = ({
           </span>
           {stats && (
             <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>
-              ({stats.memberCount} kingdoms)
+              {t('allianceScoring.kingdoms_count', { count: stats.memberCount })}
             </span>
           )}
         </div>
@@ -159,7 +161,7 @@ const AllianceScoring: React.FC<AllianceScoringProps> = ({
                 fontSize: '0.7rem', 
                 marginBottom: '0.5rem' 
               }}>
-                Select kingdoms to analyze:
+                {t('allianceScoring.selectKingdoms')}
               </div>
               <div style={{
                 display: 'flex',
@@ -207,7 +209,7 @@ const AllianceScoring: React.FC<AllianceScoringProps> = ({
                   borderRadius: '8px',
                   textAlign: 'center'
                 }}>
-                  <div style={{ color: '#6b7280', fontSize: '0.6rem' }}>Avg Score</div>
+                  <div style={{ color: '#6b7280', fontSize: '0.6rem' }}>{t('allianceScoring.avgScore')}</div>
                   <div style={{ 
                     color: TIER_COLORS[getPowerTier(stats.avgScore)], 
                     fontSize: '1.1rem', 
@@ -222,7 +224,7 @@ const AllianceScoring: React.FC<AllianceScoringProps> = ({
                   borderRadius: '8px',
                   textAlign: 'center'
                 }}>
-                  <div style={{ color: '#6b7280', fontSize: '0.6rem' }}>Dom Rate</div>
+                  <div style={{ color: '#6b7280', fontSize: '0.6rem' }}>{t('allianceScoring.domRate')}</div>
                   <div style={{ color: '#22c55e', fontSize: '1.1rem', fontWeight: '700' }}>
                     {Math.round(stats.dominationRate * 100)}%
                   </div>
@@ -233,7 +235,7 @@ const AllianceScoring: React.FC<AllianceScoringProps> = ({
                   borderRadius: '8px',
                   textAlign: 'center'
                 }}>
-                  <div style={{ color: '#6b7280', fontSize: '0.6rem' }}>Total KvKs</div>
+                  <div style={{ color: '#6b7280', fontSize: '0.6rem' }}>{t('allianceScoring.totalKvks')}</div>
                   <div style={{ color: '#fff', fontSize: '1.1rem', fontWeight: '700' }}>
                     {stats.totalKvks}
                   </div>
@@ -252,7 +254,7 @@ const AllianceScoring: React.FC<AllianceScoringProps> = ({
                   fontSize: '0.65rem', 
                   marginBottom: '0.5rem' 
                 }}>
-                  Tier Distribution
+                  {t('allianceScoring.tierDistribution')}
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   {(['S', 'A', 'B', 'C', 'D'] as PowerTier[]).map(tier => (
@@ -288,7 +290,7 @@ const AllianceScoring: React.FC<AllianceScoringProps> = ({
                   fontSize: '0.65rem', 
                   marginBottom: '0.5rem' 
                 }}>
-                  Top Performers
+                  {t('allianceScoring.topPerformers')}
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                   {stats.topPerformers.map((k, i) => (
@@ -335,7 +337,7 @@ const AllianceScoring: React.FC<AllianceScoringProps> = ({
                   borderRadius: '6px',
                   textAlign: 'center'
                 }}>
-                  <div style={{ color: '#6b7280', fontSize: '0.6rem' }}>Avg Prep WR</div>
+                  <div style={{ color: '#6b7280', fontSize: '0.6rem' }}>{t('allianceScoring.avgPrepWR')}</div>
                   <div style={{ color: '#fff', fontSize: '0.9rem', fontWeight: '600' }}>
                     {Math.round(stats.avgPrepWinRate * 100)}%
                   </div>
@@ -346,7 +348,7 @@ const AllianceScoring: React.FC<AllianceScoringProps> = ({
                   borderRadius: '6px',
                   textAlign: 'center'
                 }}>
-                  <div style={{ color: '#6b7280', fontSize: '0.6rem' }}>Avg Battle WR</div>
+                  <div style={{ color: '#6b7280', fontSize: '0.6rem' }}>{t('allianceScoring.avgBattleWR')}</div>
                   <div style={{ color: '#fff', fontSize: '0.9rem', fontWeight: '600' }}>
                     {Math.round(stats.avgBattleWinRate * 100)}%
                   </div>
@@ -360,7 +362,7 @@ const AllianceScoring: React.FC<AllianceScoringProps> = ({
               fontSize: '0.8rem',
               padding: '2rem 0'
             }}>
-              Select kingdoms above to view alliance statistics
+              {t('allianceScoring.selectToView')}
             </div>
           )}
         </div>

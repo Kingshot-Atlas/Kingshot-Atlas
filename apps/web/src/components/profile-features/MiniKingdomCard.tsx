@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Kingdom, getPowerTier, TIER_COLORS } from '../../types';
 import SmartTooltip from '../shared/SmartTooltip';
 
@@ -23,6 +24,7 @@ export const MiniKingdomCard: React.FC<MiniKingdomCardProps> = ({
   isMobile, 
   navigate 
 }) => {
+  const { t } = useTranslation();
   const [isHovered, setIsHovered] = useState(false);
 
   const tier = kingdom.power_tier ?? getPowerTier(kingdom.overall_score);
@@ -158,7 +160,7 @@ export const MiniKingdomCard: React.FC<MiniKingdomCardProps> = ({
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.4rem' }}>
             <span style={{ fontSize: '0.9rem' }}>🛡️</span>
-            <span style={{ fontSize: '0.75rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Prep</span>
+            <span style={{ fontSize: '0.75rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('miniKingdomCard.prep')}</span>
           </div>
           <div style={{ fontSize: '0.85rem', color: '#fff', marginBottom: '0.4rem' }}>
             {prepWins}W – {prepLosses}L
@@ -181,7 +183,7 @@ export const MiniKingdomCard: React.FC<MiniKingdomCardProps> = ({
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.4rem' }}>
             <span style={{ fontSize: '0.9rem' }}>⚔️</span>
-            <span style={{ fontSize: '0.75rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Battle</span>
+            <span style={{ fontSize: '0.75rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('miniKingdomCard.battle')}</span>
           </div>
           <div style={{ fontSize: '0.85rem', color: '#fff', marginBottom: '0.4rem' }}>
             {battleWins}W – {battleLosses}L

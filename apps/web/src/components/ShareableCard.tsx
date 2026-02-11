@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Kingdom, getPowerTier, TIER_COLORS } from '../types';
 
 interface ShareableCardProps {
@@ -7,6 +8,7 @@ interface ShareableCardProps {
 }
 
 const ShareableCard: React.FC<ShareableCardProps> = ({ kingdom, onClose }) => {
+  const { t } = useTranslation();
   const cardRef = useRef<HTMLDivElement>(null);
 
   const tier = getPowerTier(kingdom.overall_score);
@@ -49,7 +51,7 @@ ${window.location.origin}/kingdom/${kingdom.kingdom_number}`;
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <h3 style={{ color: '#fff', fontSize: '1rem', fontWeight: '600' }}>Share Kingdom Card</h3>
+          <h3 style={{ color: '#fff', fontSize: '1rem', fontWeight: '600' }}>{t('shareableCard.title')}</h3>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#6b7280', fontSize: '1.25rem', cursor: 'pointer' }}>×</button>
         </div>
 
@@ -109,7 +111,7 @@ ${window.location.origin}/kingdom/${kingdom.kingdom_number}`;
               cursor: 'pointer'
             }}
           >
-            Copy as Text
+            {t('shareableCard.copyAsText')}
           </button>
           <button
             onClick={handleCopyLink}
@@ -125,7 +127,7 @@ ${window.location.origin}/kingdom/${kingdom.kingdom_number}`;
               cursor: 'pointer'
             }}
           >
-            Copy Link
+            {t('shareableCard.copyLink')}
           </button>
         </div>
       </div>

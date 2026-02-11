@@ -3,6 +3,63 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-11 16:55 | Product Engineer | COMPLETED
+Task: i18n — Korean (ko) Language Support
+Files: apps/web/src/locales/ko/translation.json (NEW), apps/web/src/i18n.ts, apps/web/public/locales/ko/translation.json (NEW), apps/web/scripts/i18n-diff.js, .windsurf/workflows/i18n-translate.md, agents/project-instances/kingshot-atlas/FEATURES_IMPLEMENTED.md
+Changes:
+1. **Full Korean translation:** 1606 lines, 1442 keys — natural Korean phrasing with proper gaming terminology
+2. **i18n config:** Added 'ko' to SUPPORTED_LANGUAGES and LANGUAGE_META (🇰🇷 한국어, ltr)
+3. **i18n-diff script:** Added 'ko' to LANGUAGES array for validation coverage
+4. **Workflow:** Updated /i18n-translate to include Korean (ES/FR/ZH/DE/KO)
+5. **Validation:** validate:i18n ✅, i18n:diff --strict ✅, i18n:check ✅, npm run build ✅
+Result: 6 supported languages (en, es, fr, zh, de, ko). All 1442 keys in sync. Build passes.
+
+## 2026-02-12 14:00 | Product Engineer | COMPLETED
+Task: i18n Translation System — Phase 6 (Remaining Public Components)
+Files: apps/web/src/components/ReportKvKErrorModal.tsx, apps/web/src/components/KingdomFundContribute.tsx, apps/web/src/components/ShareableCard.tsx, apps/web/src/components/SupportButton.tsx, apps/web/src/components/ClaimKingdom.tsx, apps/web/src/components/RadarChart.tsx, apps/web/src/components/ReportDataModal.tsx, apps/web/src/components/UserAchievements.tsx, apps/web/src/pages/MetaAnalysis.tsx, apps/web/src/locales/*/translation.json, apps/web/public/locales/*/translation.json
+Changes:
+1. **9 more components translated:** ReportKvKErrorModal, KingdomFundContribute, ShareableCard, SupportButton, ClaimKingdom, RadarChart, ReportDataModal, UserAchievements, MetaAnalysis — 480 new keys added (96 per language)
+2. **Remaining flagged files:** Only 9 files flagged (6 admin-only, 3 false positives). All user-facing public components now translated.
+Result: Build passes, 1442 keys across 5 languages (all in sync), 87/149 public .tsx files (58%) use useTranslation. Zero dead keys. Local dev server verified.
+
+## 2026-02-12 10:00 | Product Engineer | COMPLETED
+Task: i18n Translation System — Phase 5 (Extended Coverage + Tooling)
+Files: apps/web/src/components/ProfileFeatures.tsx, apps/web/src/components/SubmissionHistory.tsx, apps/web/src/components/SideBySideAnalysis.tsx, apps/web/src/components/AllianceScoring.tsx, apps/web/src/components/KingdomLeaderboardPosition.tsx, apps/web/src/components/profile-features/MiniKingdomCard.tsx, apps/web/src/i18n.ts, apps/web/scripts/i18n-diff.js (NEW), apps/web/package.json, apps/web/src/locales/*/translation.json, apps/web/public/locales/*/translation.json, .windsurf/workflows/i18n-translate.md (NEW)
+Changes:
+1. **6 more components translated:** ProfileFeatures, SubmissionHistory, SideBySideAnalysis, AllianceScoring, KingdomLeaderboardPosition, MiniKingdomCard — 360 new keys added
+2. **Pluralization support:** Added _one/_other plural forms for count-dependent strings (FR, ES, DE, EN)
+3. **RTL groundwork:** Added `dir: 'ltr' | 'rtl'` property to LANGUAGE_META for future Arabic support
+4. **Translation diff script:** New `i18n-diff.js` with --snapshot/--check-stale modes to detect stale translations when EN changes
+5. **npm scripts:** Added `i18n:diff` and `i18n:snapshot`
+6. **Workflow:** Created `/i18n-translate` workflow for Cascade to auto-translate new content
+Result: Build passes, 1346 keys across 5 languages (all in sync), 78/156 public .tsx files (50%) use useTranslation. Zero dead keys.
+
+## 2026-02-11 16:00 | Product Engineer | COMPLETED
+Task: i18n Translation System — Phase 3 (Regression Prevention) + Phase 4 (Translate Remaining Pages)
+Files: .github/workflows/ci.yml, apps/web/scripts/i18n-check-hardcoded.js (NEW), apps/web/docs/I18N_GUIDE.md (NEW), apps/web/package.json, apps/web/src/pages/RallyCoordinator.tsx, apps/web/src/pages/MissingDataRegistry.tsx, apps/web/src/components/ReferralFunnel.tsx, apps/web/src/components/ReferralIntelligence.tsx, apps/web/src/locales/*/translation.json, apps/web/public/locales/*/translation.json
+Changes:
+1. **CI gate:** Added `validate:i18n` step to GitHub Actions CI pipeline — catches missing keys before merge
+2. **Hardcoded string detector:** New script `i18n-check-hardcoded.js` scans .tsx files for untranslated strings, with `--strict` flag for CI enforcement
+3. **I18N_GUIDE.md:** Developer checklist and guide for adding translations to new features
+4. **Translated 4 pages:** RallyCoordinator, MissingDataRegistry, ReferralFunnel, ReferralIntelligence — all hardcoded strings extracted and translated to ES/FR/ZH/DE
+5. **108 new translation keys** added across all 5 languages (1274 total keys, all in sync)
+6. **npm script:** `i18n:check` added for hardcoded string detection
+Result: Build passes, ESLint 0 errors, all validation scripts green. Coverage: 72/149 .tsx files (48%) use useTranslation.
+
+## 2026-02-11 14:00 | Product Engineer | COMPLETED
+Task: i18n Translation System Optimization — Phase 1 (Bug Fixes) + Phase 2 (Streamlining)
+Files: apps/web/src/i18n.ts, apps/web/src/components/Header.tsx, apps/web/src/locales/*/translation.json, apps/web/public/locales/*/translation.json (NEW), apps/web/scripts/i18n-validate.js, apps/web/scripts/i18n-add-language.js, apps/web/scripts/i18n-sync-public.js (NEW), apps/web/package.json
+Changes:
+1. **Bug fix:** Header language switcher only showed 🇪🇸/🇺🇸 flags — now maps all 5 languages correctly via LANGUAGE_META lookup
+2. **Bug fix:** Added 53 missing translation keys (pathToTier.*, simulator.*, kingdomProfile.*, performanceTrend.*) to all 5 language files with proper translations
+3. **Bug fix:** Validation script grep was broken on macOS zsh — rewrote extractUsedKeys() as pure Node.js file scanner (no shell dependency)
+4. **Tooling:** Added `validate:i18n`, `i18n:sync`, `i18n:add` npm scripts to package.json
+5. **Performance:** Switched from static imports (368KB all languages bundled) to i18next-http-backend lazy loading. Only EN bundled for instant first paint; ES/FR/ZH/DE loaded on demand (~70KB each)
+6. **Architecture:** Centralized SUPPORTED_LANGUAGES + LANGUAGE_META in i18n.ts as single source of truth. Header now derives LANGUAGE_OPTIONS from these exports
+7. **Cleanup:** Removed 326 dead translation keys from all 5 languages (1492 → 1166 keys, all matching t() calls in code)
+8. **Workflow:** Created i18n-sync-public.js, wired into prebuild. Updated i18n-add-language.js to write both src/ and public/ locations
+Result: Zero missing keys, zero dead keys, ~300KB bundle savings for non-EN users, validation script works on macOS. Build passes.
+
 ## 2026-02-11 13:00 | Platform Engineer | COMPLETED
 Task: Bot Observability Dashboard + Auto-Cleanup & Discord Alerting
 Files: apps/api/api/routers/bot.py, apps/web/src/components/admin/BotTelemetryTab.tsx (NEW), apps/web/src/components/admin/index.ts, apps/web/src/pages/AdminDashboard.tsx, Supabase migrations (pg_cron cleanup, Discord alert trigger)

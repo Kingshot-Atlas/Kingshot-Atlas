@@ -425,7 +425,7 @@ const KingdomDirectory: React.FC = () => {
                 <svg style={{ width: '14px', height: '14px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                 </svg>
-                Filters{countActiveFilters(filters) > 0 && ` (${countActiveFilters(filters)})`}
+                {t('common.filter')}{countActiveFilters(filters) > 0 && ` (${countActiveFilters(filters)})`}
               </button>
               <select value={sort.sortBy} onChange={(e) => setSort({ ...sort, sortBy: e.target.value as SortOptions['sortBy'] })} style={{ flex: 1.5, padding: '0.6rem 1.5rem 0.6rem 0.5rem', backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '8px', color: '#fff', fontSize: '0.8rem', cursor: 'pointer', appearance: 'none', backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.3rem center', backgroundSize: '0.8rem' }}>
                 <option value="overall_score">{t('stats.atlasScore')}</option>

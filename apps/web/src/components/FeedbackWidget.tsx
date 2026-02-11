@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 
+const FEEDBACK_HIDDEN_KEY = 'atlas_feedback_hidden';
+const FEEDBACK_HIDDEN_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days
+
 interface FeedbackWidgetProps {
   position?: 'bottom-right' | 'bottom-left';
 }
@@ -11,6 +14,14 @@ type FeedbackType = 'bug' | 'feature' | 'general';
 const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ position = 'bottom-right' }) => {
   const { user } = useAuth();
   const { t } = useTranslation();
+  const [isHidden, setIsHidden] = useState(() => {
+    try {
+      const hiddenUntil = localStorage.getItem(FEEDBACK_HIDDEN_KEY);
+      if (hiddenUntil && Date.now() < Number(hiddenUntil)) return true;
+      if (hiddenUntil) localStorage.removeItem(FEEDBACK_HIDDEN_KEY);
+    } catch { /* ignore */ }
+    return false;
+  });
   const [isOpen, setIsOpen] = useState(false);
   const [feedbackType, setFeedbackType] = useState<FeedbackType>('general');
   const [message, setMessage] = useState('');
@@ -65,40 +76,85 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ position = 'bottom-righ
     ? { right: '1rem', bottom: '1rem' }
     : { left: '1rem', bottom: '1rem' };
 
+  const handleDismiss = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      localStorage.setItem(FEEDBACK_HIDDEN_KEY, String(Date.now() + FEEDBACK_HIDDEN_DURATION));
+    } catch { /* ignore */ }
+    setIsHidden(true);
+  };
+
+  if (isHidden) return null;
+
   if (!isOpen) {
     return (
-      <button
-        onClick={() => setIsOpen(true)}
-        data-testid="feedback-trigger"
+      <div
         style={{
           position: 'fixed',
           ...positionStyles,
           zIndex: 1000,
-          padding: '0.75rem 1rem',
-          backgroundColor: '#22d3ee',
-          color: '#000',
-          border: 'none',
-          borderRadius: '8px',
-          cursor: 'pointer',
-          fontWeight: '600',
-          fontSize: '0.875rem',
           display: 'flex',
           alignItems: 'center',
-          gap: '0.5rem',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-          transition: 'transform 0.2s, background-color 0.2s',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'scale(1.05)';
-          e.currentTarget.style.backgroundColor = '#06b6d4';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'scale(1)';
-          e.currentTarget.style.backgroundColor = '#22d3ee';
+          gap: '0',
         }}
       >
-        💬 {t('feedback.title', 'Feedback')}
-      </button>
+        <button
+          onClick={() => setIsOpen(true)}
+          data-testid="feedback-trigger"
+          style={{
+            padding: '0.75rem 1rem',
+            backgroundColor: '#22d3ee',
+            color: '#000',
+            border: 'none',
+            borderRadius: '8px 0 0 8px',
+            cursor: 'pointer',
+            fontWeight: '600',
+            fontSize: '0.875rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+            transition: 'transform 0.2s, background-color 0.2s',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#06b6d4';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = '#22d3ee';
+          }}
+        >
+          💬 {t('feedback.title', 'Feedback')}
+        </button>
+        <button
+          onClick={handleDismiss}
+          data-testid="feedback-dismiss"
+          aria-label={t('feedback.hide', 'Hide feedback button')}
+          style={{
+            padding: '0.75rem 0.5rem',
+            backgroundColor: '#1aa3b8',
+            color: '#000',
+            border: 'none',
+            borderRadius: '0 8px 8px 0',
+            cursor: 'pointer',
+            fontSize: '0.875rem',
+            fontWeight: '600',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+            transition: 'background-color 0.2s',
+            minWidth: '28px',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#0e7490';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = '#1aa3b8';
+          }}
+        >
+          ×
+        </button>
+      </div>
     );
   }
 

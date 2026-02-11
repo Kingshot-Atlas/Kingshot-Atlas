@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { KingdomProfile } from '../types';
 import { useAnalytics } from '../hooks/useAnalytics';
@@ -17,6 +18,7 @@ const SideBySideAnalysis: React.FC<SideBySideAnalysisProps> = ({
   kingdom2, 
   showComparisonChart = true 
 }) => {
+  const { t } = useTranslation();
   const isMobile = useIsMobile();
   const { trackFeature } = useAnalytics();
   const [activeTab, setActiveTab] = useState<'overview' | 'radar' | 'history'>('overview');
@@ -188,7 +190,7 @@ const SideBySideAnalysis: React.FC<SideBySideAnalysisProps> = ({
             color: side === 'left' ? '#22d3ee' : '#a855f7',
             marginTop: '0.25rem'
           }}>
-            Atlas Score
+            {t('sideBySide.atlasScore')}
           </div>
         </div>
 
@@ -198,25 +200,25 @@ const SideBySideAnalysis: React.FC<SideBySideAnalysisProps> = ({
             <div style={{ fontSize: '0.8rem', color: '#22c55e', fontWeight: 'bold' }}>
               {kingdom.prep_wins}
             </div>
-            <div style={{ fontSize: '0.6rem', color: '#6b7280' }}>Prep Wins</div>
+            <div style={{ fontSize: '0.6rem', color: '#6b7280' }}>{t('sideBySide.prepWins')}</div>
           </div>
           <div style={{ textAlign: 'center', padding: '0.5rem', backgroundColor: '#0a0a0a', borderRadius: '6px' }}>
             <div style={{ fontSize: '0.8rem', color: '#f97316', fontWeight: 'bold' }}>
               {kingdom.battle_wins}
             </div>
-            <div style={{ fontSize: '0.6rem', color: '#6b7280' }}>Battle Wins</div>
+            <div style={{ fontSize: '0.6rem', color: '#6b7280' }}>{t('sideBySide.battleWins')}</div>
           </div>
           <div style={{ textAlign: 'center', padding: '0.5rem', backgroundColor: '#0a0a0a', borderRadius: '6px' }}>
             <div style={{ fontSize: '0.8rem', color: '#22c55e', fontWeight: 'bold' }}>
               {kingdom.dominations || 0}
             </div>
-            <div style={{ fontSize: '0.6rem', color: '#6b7280' }}>Dominations</div>
+            <div style={{ fontSize: '0.6rem', color: '#6b7280' }}>{t('sideBySide.dominations')}</div>
           </div>
           <div style={{ textAlign: 'center', padding: '0.5rem', backgroundColor: '#0a0a0a', borderRadius: '6px' }}>
             <div style={{ fontSize: '0.8rem', color: '#ef4444', fontWeight: 'bold' }}>
               {kingdom.invasions ?? kingdom.defeats ?? 0}
             </div>
-            <div style={{ fontSize: '0.6rem', color: '#6b7280' }}>Invasions</div>
+            <div style={{ fontSize: '0.6rem', color: '#6b7280' }}>{t('sideBySide.invasions')}</div>
           </div>
         </div>
 
@@ -226,13 +228,13 @@ const SideBySideAnalysis: React.FC<SideBySideAnalysisProps> = ({
             <div style={{ fontSize: '1rem', color: '#fff', fontWeight: 'bold' }}>
               {Math.round(kingdom.prep_win_rate * 100)}%
             </div>
-            <div style={{ fontSize: '0.6rem', color: '#6b7280' }}>Prep Win Rate</div>
+            <div style={{ fontSize: '0.6rem', color: '#6b7280' }}>{t('sideBySide.prepWinRate')}</div>
           </div>
           <div style={{ textAlign: 'center', padding: '0.5rem', backgroundColor: '#0a0a0a', borderRadius: '6px' }}>
             <div style={{ fontSize: '1rem', color: '#fff', fontWeight: 'bold' }}>
               {Math.round(kingdom.battle_win_rate * 100)}%
             </div>
-            <div style={{ fontSize: '0.6rem', color: '#6b7280' }}>Battle Win Rate</div>
+            <div style={{ fontSize: '0.6rem', color: '#6b7280' }}>{t('sideBySide.battleWinRate')}</div>
           </div>
         </div>
       </div>
@@ -296,7 +298,7 @@ const SideBySideAnalysis: React.FC<SideBySideAnalysisProps> = ({
             marginBottom: '1rem',
             textAlign: 'center'
           }}>
-            🎯 Direct Performance Comparison
+            🎯 {t('sideBySide.directComparison')}
           </h4>
           <ComparisonRadarChart
             datasets={[radarData.kingdom1, radarData.kingdom2]}
@@ -321,7 +323,7 @@ const SideBySideAnalysis: React.FC<SideBySideAnalysisProps> = ({
             marginBottom: '1rem',
             textAlign: 'center'
           }}>
-            📈 Head-to-Head Statistics
+            📈 {t('sideBySide.headToHead')}
           </h4>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>

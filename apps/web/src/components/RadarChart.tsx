@@ -1,4 +1,5 @@
 import React, { memo, useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '../hooks/useMediaQuery';
 
 interface RadarDataPoint {
@@ -36,6 +37,7 @@ const RadarChart: React.FC<RadarChartProps> = ({
   animated = true,
   ariaLabel = 'Performance radar chart'
 }) => {
+  const { t } = useTranslation();
   const isMobile = useIsMobile();
   const size = propSize || (isMobile ? 240 : 300);
   const center = size / 2;
@@ -302,8 +304,8 @@ const RadarChart: React.FC<RadarChartProps> = ({
         <caption>{ariaLabel}</caption>
         <thead>
           <tr>
-            <th>Metric</th>
-            <th>Value</th>
+            <th>{t('radarChart.metric')}</th>
+            <th>{t('radarChart.value')}</th>
           </tr>
         </thead>
         <tbody>

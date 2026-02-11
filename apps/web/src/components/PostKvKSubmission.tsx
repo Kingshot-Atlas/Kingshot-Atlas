@@ -7,6 +7,7 @@ import { CURRENT_KVK } from '../constants';
 import { getAuthHeaders } from '../services/authHeaders';
 import { isAdminUsername } from '../utils/constants';
 import { incrementStat } from './UserAchievements';
+import { useTranslation } from 'react-i18next';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
@@ -25,6 +26,7 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
 }) => {
   const { user, profile } = useAuth();
   const { showToast } = useToast();
+  const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef2 = useRef<HTMLInputElement>(null);
   const opponentInputRef = useRef<HTMLInputElement>(null);
@@ -248,10 +250,10 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
 
   const getOutcomeLabel = () => {
     if (!prepResult || !battleResult) return null;
-    if (prepResult === 'W' && battleResult === 'W') return { label: 'Domination', color: '#22c55e' };
-    if (prepResult === 'L' && battleResult === 'L') return { label: 'Invasion', color: '#ef4444' };
-    if (prepResult === 'W') return { label: 'Reversal', color: '#eab308' };
-    return { label: 'Comeback', color: '#f97316' };
+    if (prepResult === 'W' && battleResult === 'W') return { label: t('outcomes.Domination', 'Domination'), color: '#22c55e' };
+    if (prepResult === 'L' && battleResult === 'L') return { label: t('outcomes.Invasion', 'Invasion'), color: '#ef4444' };
+    if (prepResult === 'W') return { label: t('outcomes.Reversal', 'Reversal'), color: '#eab308' };
+    return { label: t('outcomes.Comeback', 'Comeback'), color: '#f97316' };
   };
 
   const outcome = getOutcomeLabel();

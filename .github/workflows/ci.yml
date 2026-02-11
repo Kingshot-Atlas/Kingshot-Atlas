@@ -88,6 +88,9 @@ jobs:
       - name: SEO Validation
         run: npm run validate:seo
 
+      - name: i18n Validation
+        run: npm run validate:i18n
+
       - name: Security audit (npm)
         run: |
           # Fail build on critical/high vulnerabilities in production dependencies

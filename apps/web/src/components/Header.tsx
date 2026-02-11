@@ -7,19 +7,17 @@ import NotificationBell from './NotificationBell';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { useTranslation } from 'react-i18next';
+import { SUPPORTED_LANGUAGES, LANGUAGE_META } from '../i18n';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { ADMIN_USERNAMES, getDisplayTier, SUBSCRIPTION_COLORS } from '../utils/constants';
 
 // Discord invite link - configurable via environment variable
 const DISCORD_INVITE = import.meta.env.VITE_DISCORD_INVITE || 'https://discord.gg/cajcacDzGd';
 
-const LANGUAGE_OPTIONS = [
-  { code: 'en', label: 'English', flag: '🇺🇸' },
-  { code: 'es', label: 'Español', flag: '🇪🇸' },
-  { code: 'fr', label: 'Français', flag: '🇫🇷' },
-  { code: 'zh', label: '中文', flag: '🇨🇳' },
-  { code: 'de', label: 'Deutsch', flag: '🇩🇪' },
-] as const;
+const LANGUAGE_OPTIONS = SUPPORTED_LANGUAGES.map(code => ({
+  code,
+  ...LANGUAGE_META[code],
+}));
 
 const Header: React.FC = () => {
   const location = useLocation();
@@ -864,7 +862,7 @@ const Header: React.FC = () => {
                 <line x1="2" y1="12" x2="22" y2="12"/>
                 <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
               </svg>
-              {i18n.language === 'es' ? '🇪🇸' : '🇺🇸'}
+              {LANGUAGE_OPTIONS.find(l => l.code === i18n.language)?.flag ?? '🇺🇸'}
             </button>
             {showLangMenu && (
               <div style={{

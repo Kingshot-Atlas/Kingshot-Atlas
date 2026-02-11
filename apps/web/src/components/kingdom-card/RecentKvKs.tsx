@@ -44,7 +44,7 @@ const RecentKvKs: React.FC<RecentKvKsProps> = ({ recentKvks }) => {
               KvK #{kvk.kvk_number} {isByeResult ? '' : `vs K${kvk.opponent_kingdom}`}
             </div>
             {isByeResult ? (
-              <div style={{ textAlign: 'center', color: '#6b7280', fontSize: '0.7rem' }}>No match</div>
+              <div style={{ textAlign: 'center', color: '#6b7280', fontSize: '0.7rem' }}>{t('outcomes.noMatch', 'No match')}</div>
             ) : (
               <div style={{ display: 'flex', justifyContent: 'space-around', marginBottom: '0.3rem' }}>
                 <div style={{ textAlign: 'center' }}>
@@ -65,7 +65,7 @@ const RecentKvKs: React.FC<RecentKvKsProps> = ({ recentKvks }) => {
               fontWeight: '600',
               fontSize: '0.7rem'
             }}>
-              {outcomeInfo.name}
+              {t(`outcomes.${outcome}`, outcomeInfo.name)}
             </div>
           </div>
         );

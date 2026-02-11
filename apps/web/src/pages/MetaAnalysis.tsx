@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { Kingdom, getPowerTier, TIER_DESCRIPTIONS } from '../types';
 import { apiService } from '../services/api';
@@ -6,6 +7,7 @@ import { getTierColor, neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { useIsMobile } from '../hooks/useMediaQuery';
 
 const MetaAnalysis: React.FC = () => {
+  const { t } = useTranslation();
   const [kingdoms, setKingdoms] = useState<Kingdom[]>([]);
   const [loading, setLoading] = useState(true);
   const isMobile = useIsMobile();
@@ -100,11 +102,11 @@ const MetaAnalysis: React.FC = () => {
           fontFamily: FONT_DISPLAY,
           marginBottom: '0.5rem'
         }}>
-          <span style={{ color: '#fff' }}>META</span>
-          <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.5rem' }}>ANALYSIS</span>
+          <span style={{ color: '#fff' }}>{t('metaAnalysis.title1')}</span>
+          <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.5rem' }}>{t('metaAnalysis.title2')}</span>
         </h1>
         <p style={{ color: '#6b7280', fontSize: '0.9rem' }}>
-          The big picture across {stats.total.toLocaleString()} kingdoms. No spin.
+          {t('metaAnalysis.subtitle', { count: stats.total.toLocaleString() } as Record<string, string>)}
         </p>
       </div>
 
@@ -117,10 +119,10 @@ const MetaAnalysis: React.FC = () => {
           marginBottom: '2rem'
         }}>
           {[
-            { label: 'Avg Atlas Score', value: stats.avgScore.toFixed(2), color: '#22d3ee' },
-            { label: 'Avg Prep WR', value: `${Math.round(stats.avgPrepWR * 100)}%`, color: '#eab308' },
-            { label: 'Avg Battle WR', value: `${Math.round(stats.avgBattleWR * 100)}%`, color: '#f97316' },
-            { label: 'Avg KvKs', value: stats.avgKvks.toFixed(1), color: '#a855f7' }
+            { label: t('metaAnalysis.avgAtlasScore'), value: stats.avgScore.toFixed(2), color: '#22d3ee' },
+            { label: t('metaAnalysis.avgPrepWR'), value: `${Math.round(stats.avgPrepWR * 100)}%`, color: '#eab308' },
+            { label: t('metaAnalysis.avgBattleWR'), value: `${Math.round(stats.avgBattleWR * 100)}%`, color: '#f97316' },
+            { label: t('metaAnalysis.avgKvks'), value: stats.avgKvks.toFixed(1), color: '#a855f7' }
           ].map((stat, i) => (
             <div key={i} style={{
               backgroundColor: '#131318',
@@ -144,7 +146,7 @@ const MetaAnalysis: React.FC = () => {
           marginBottom: '2rem'
         }}>
           <h2 style={{ color: '#fff', fontSize: '1.1rem', fontWeight: '600', marginBottom: '1rem' }}>
-            Tier Distribution
+            {t('metaAnalysis.tierDistribution')}
           </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             {(['S', 'A', 'B', 'C', 'D'] as const).map(tier => {
@@ -213,9 +215,9 @@ const MetaAnalysis: React.FC = () => {
           marginBottom: '2rem'
         }}>
           {[
-            { title: 'Top by Atlas Score', data: stats.topByScore, getValue: (k: Kingdom) => k.overall_score, format: (v: number) => v.toFixed(2) },
-            { title: 'Top Prep Win Rate', data: stats.topByPrepWR, getValue: (k: Kingdom) => k.prep_win_rate, format: (v: number) => `${Math.round(v * 100)}%` },
-            { title: 'Top Battle Win Rate', data: stats.topByBattleWR, getValue: (k: Kingdom) => k.battle_win_rate, format: (v: number) => `${Math.round(v * 100)}%` }
+            { title: t('metaAnalysis.topByScore'), data: stats.topByScore, getValue: (k: Kingdom) => k.overall_score, format: (v: number) => v.toFixed(2) },
+            { title: t('metaAnalysis.topPrepWR'), data: stats.topByPrepWR, getValue: (k: Kingdom) => k.prep_win_rate, format: (v: number) => `${Math.round(v * 100)}%` },
+            { title: t('metaAnalysis.topBattleWR'), data: stats.topByBattleWR, getValue: (k: Kingdom) => k.battle_win_rate, format: (v: number) => `${Math.round(v * 100)}%` }
           ].map((section, i) => (
             <div key={i} style={{
               backgroundColor: '#131318',
@@ -264,12 +266,12 @@ const MetaAnalysis: React.FC = () => {
           marginBottom: '2rem'
         }}>
           <h2 style={{ color: '#fff', fontSize: '1.1rem', fontWeight: '600', marginBottom: '1rem' }}>
-            Undefeated Kingdoms
+            {t('metaAnalysis.undefeatedKingdoms')}
           </h2>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '1rem' }}>
             <div>
               <div style={{ color: '#eab308', fontSize: '0.85rem', marginBottom: '0.5rem' }}>
-                🛡️ Undefeated Prep ({stats.undefeatedPrep.length})
+                🛡️ {t('metaAnalysis.undefeatedPrep')} ({stats.undefeatedPrep.length})
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
                 {stats.undefeatedPrep.slice(0, 8).map(k => (
@@ -287,14 +289,14 @@ const MetaAnalysis: React.FC = () => {
                 ))}
                 {stats.undefeatedPrep.length > 8 && (
                   <span style={{ color: '#6b7280', fontSize: '0.75rem', padding: '0.2rem' }}>
-                    +{stats.undefeatedPrep.length - 8} more
+                    {t('metaAnalysis.more', { count: stats.undefeatedPrep.length - 8 })}
                   </span>
                 )}
               </div>
             </div>
             <div>
               <div style={{ color: '#f97316', fontSize: '0.85rem', marginBottom: '0.5rem' }}>
-                ⚔️ Undefeated Battle ({stats.undefeatedBattle.length})
+                ⚔️ {t('metaAnalysis.undefeatedBattle')} ({stats.undefeatedBattle.length})
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
                 {stats.undefeatedBattle.slice(0, 8).map(k => (
@@ -312,14 +314,14 @@ const MetaAnalysis: React.FC = () => {
                 ))}
                 {stats.undefeatedBattle.length > 8 && (
                   <span style={{ color: '#6b7280', fontSize: '0.75rem', padding: '0.2rem' }}>
-                    +{stats.undefeatedBattle.length - 8} more
+                    {t('metaAnalysis.more', { count: stats.undefeatedBattle.length - 8 })}
                   </span>
                 )}
               </div>
             </div>
             <div>
               <div style={{ color: '#fbbf24', fontSize: '0.85rem', marginBottom: '0.5rem' }}>
-                👑 Supreme Rulers ({stats.undefeatedOverall.length})
+                👑 {t('metaAnalysis.supremeRulers')} ({stats.undefeatedOverall.length})
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
                 {stats.undefeatedOverall.slice(0, 8).map(k => (
@@ -337,7 +339,7 @@ const MetaAnalysis: React.FC = () => {
                 ))}
                 {stats.undefeatedOverall.length > 8 && (
                   <span style={{ color: '#6b7280', fontSize: '0.75rem', padding: '0.2rem' }}>
-                    +{stats.undefeatedOverall.length - 8} more
+                    {t('metaAnalysis.more', { count: stats.undefeatedOverall.length - 8 })}
                   </span>
                 )}
               </div>
@@ -348,7 +350,7 @@ const MetaAnalysis: React.FC = () => {
         {/* Back to Home */}
         <div style={{ textAlign: 'center' }}>
           <Link to="/" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: '0.9rem' }}>
-            ← Back to Home
+            {t('metaAnalysis.backToHome')}
           </Link>
         </div>
       </div>

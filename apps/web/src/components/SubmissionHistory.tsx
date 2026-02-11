@@ -1,6 +1,7 @@
 // C1: Show submission status history in user profile
 // C3: Add appeal option for rejected submissions
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { contributorService, type ContributorStats, type UserNotification } from '../services/contributorService';
 import { useToast } from './Toast';
@@ -34,6 +35,7 @@ interface KvKError {
 }
 
 const SubmissionHistory: React.FC<{ userId?: string; themeColor?: string }> = ({ userId, themeColor = '#22d3ee' }) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<'submissions' | 'notifications' | 'badges'>('submissions');
@@ -155,7 +157,7 @@ const SubmissionHistory: React.FC<{ userId?: string; themeColor?: string }> = ({
       border: '1px solid #2a2a2a'
     }}>
       <h3 style={{ color: '#fff', fontSize: '1rem', fontWeight: '600', marginBottom: '1rem', textAlign: 'center' }}>
-        My Contributions
+        {t('submissionHistory.myContributions')}
       </h3>
 
       {/* Stats Summary */}
@@ -165,21 +167,21 @@ const SubmissionHistory: React.FC<{ userId?: string; themeColor?: string }> = ({
             <div style={{ fontSize: '1.25rem', fontWeight: '700', color: themeColor }}>
               {stats.totals.approved}
             </div>
-            <div style={{ fontSize: '0.65rem', color: '#6b7280' }}>Approved</div>
+            <div style={{ fontSize: '0.65rem', color: '#6b7280' }}>{t('submissionHistory.approved')}</div>
           </div>
           <div style={{ padding: '0.5rem', backgroundColor: '#0a0a0a', borderRadius: '8px', textAlign: 'center' }}>
             <div style={{ fontSize: '1.25rem', fontWeight: '700', color: '#fbbf24' }}>
               {stats.totals.pending}
             </div>
-            <div style={{ fontSize: '0.65rem', color: '#6b7280' }}>Pending</div>
+            <div style={{ fontSize: '0.65rem', color: '#6b7280' }}>{t('submissionHistory.pending')}</div>
           </div>
           <div style={{ padding: '0.5rem', backgroundColor: '#0a0a0a', borderRadius: '8px', textAlign: 'center' }}>
             <div style={{ fontSize: '1.25rem', fontWeight: '700', color: '#22c55e' }}>{stats.reputation}</div>
-            <div style={{ fontSize: '0.65rem', color: '#6b7280' }}>Reputation</div>
+            <div style={{ fontSize: '0.65rem', color: '#6b7280' }}>{t('submissionHistory.reputation')}</div>
           </div>
           <div style={{ padding: '0.5rem', backgroundColor: '#0a0a0a', borderRadius: '8px', textAlign: 'center' }}>
             <div style={{ fontSize: '1.25rem', fontWeight: '700', color: '#a855f7' }}>{stats.badges.length}</div>
-            <div style={{ fontSize: '0.65rem', color: '#6b7280' }}>Badges</div>
+            <div style={{ fontSize: '0.65rem', color: '#6b7280' }}>{t('submissionHistory.badges')}</div>
           </div>
         </div>
       )}
@@ -187,9 +189,9 @@ const SubmissionHistory: React.FC<{ userId?: string; themeColor?: string }> = ({
       {/* Tabs */}
       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', borderBottom: '1px solid #2a2a2a', paddingBottom: '0.5rem' }}>
         {[
-          { id: 'submissions', label: 'Submissions', count: allSubmissions.length },
-          { id: 'notifications', label: 'Notifications', count: unreadCount },
-          { id: 'badges', label: 'Badges', count: stats?.badges.length || 0 }
+          { id: 'submissions', label: t('submissionHistory.submissions'), count: allSubmissions.length },
+          { id: 'notifications', label: t('submissionHistory.notifications'), count: unreadCount },
+          { id: 'badges', label: t('submissionHistory.badges'), count: stats?.badges.length || 0 }
         ].map(tab => (
           <button
             key={tab.id}
@@ -230,7 +232,7 @@ const SubmissionHistory: React.FC<{ userId?: string; themeColor?: string }> = ({
         <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
           {allSubmissions.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280', fontSize: '0.85rem' }}>
-              No submissions yet. Help improve our data!
+              {t('submissionHistory.noSubmissions')}
             </div>
           ) : (
             allSubmissions.map((item) => (
@@ -275,12 +277,12 @@ const SubmissionHistory: React.FC<{ userId?: string; themeColor?: string }> = ({
                       cursor: 'pointer'
                     }}
                   >
-                    ⚠️ Appeal Decision
+                    {t('submissionHistory.appealDecision')}
                   </button>
                 )}
                 {item.appeal && (
                   <div style={{ marginTop: '0.5rem', padding: '0.4rem', backgroundColor: '#fbbf2410', borderRadius: '4px', fontSize: '0.7rem', color: '#fbbf24' }}>
-                    Appeal submitted: {item.appeal.reason.substring(0, 50)}...
+                    {t('submissionHistory.appealSubmitted')} {item.appeal.reason.substring(0, 50)}...
                   </div>
                 )}
               </div>
@@ -302,12 +304,12 @@ const SubmissionHistory: React.FC<{ userId?: string; themeColor?: string }> = ({
               fontSize: '0.75rem',
               cursor: 'pointer'
             }}>
-              Mark all as read
+              {t('submissionHistory.markAllRead')}
             </button>
           )}
           {notifications.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280', fontSize: '0.85rem' }}>
-              No notifications
+              {t('submissionHistory.noNotifications')}
             </div>
           ) : (
             notifications.map((notif) => (
@@ -343,7 +345,7 @@ const SubmissionHistory: React.FC<{ userId?: string; themeColor?: string }> = ({
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem' }}>
           {stats?.badges.length === 0 ? (
             <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '2rem', color: '#6b7280', fontSize: '0.85rem' }}>
-              No badges earned yet. Keep contributing!
+              {t('submissionHistory.noBadges')}
             </div>
           ) : (
             stats?.badges.map((badgeId) => {
@@ -389,14 +391,14 @@ const SubmissionHistory: React.FC<{ userId?: string; themeColor?: string }> = ({
             maxWidth: '400px',
             width: '90%'
           }} onClick={(e) => e.stopPropagation()}>
-            <h3 style={{ color: '#fff', fontSize: '1rem', marginBottom: '1rem' }}>Appeal Rejection</h3>
+            <h3 style={{ color: '#fff', fontSize: '1rem', marginBottom: '1rem' }}>{t('submissionHistory.appealRejection')}</h3>
             <p style={{ color: '#9ca3af', fontSize: '0.85rem', marginBottom: '1rem' }}>
-              Explain why you believe this decision should be reconsidered.
+              {t('submissionHistory.appealExplain')}
             </p>
             <textarea
               value={appealReason}
               onChange={(e) => setAppealReason(e.target.value)}
-              placeholder="Provide additional evidence or context..."
+              placeholder={t('submissionHistory.appealPlaceholder')}
               rows={4}
               style={{
                 width: '100%',
@@ -418,7 +420,7 @@ const SubmissionHistory: React.FC<{ userId?: string; themeColor?: string }> = ({
                 borderRadius: '6px',
                 color: '#9ca3af',
                 cursor: 'pointer'
-              }}>Cancel</button>
+              }}>{t('submissionHistory.cancel')}</button>
               <button onClick={submitAppeal} style={{
                 padding: '0.5rem 1rem',
                 backgroundColor: '#fbbf24',
@@ -427,7 +429,7 @@ const SubmissionHistory: React.FC<{ userId?: string; themeColor?: string }> = ({
                 color: '#0a0a0a',
                 fontWeight: 600,
                 cursor: 'pointer'
-              }}>Submit Appeal</button>
+              }}>{t('submissionHistory.submitAppeal')}</button>
             </div>
           </div>
         </div>

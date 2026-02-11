@@ -36,7 +36,8 @@ const KvKHistoryTable: React.FC<KvKHistoryTableProps> = ({
   const getOutcomeStyle = (prepResult: string, battleResult: string) => {
     const outcome = getOutcome(prepResult, battleResult);
     const info = OUTCOMES[outcome];
-    return { bg: info.bgColor, text: info.color, label: info.name, description: info.description };
+    const descKey = `${outcome.toLowerCase()}Desc`;
+    return { bg: info.bgColor, text: info.color, label: t(`outcomes.${outcome}`, info.name), description: t(`outcomes.${descKey}`, info.description) };
   };
 
   const getOutcomeLetter = (prepResult: string, battleResult: string) => {
@@ -118,7 +119,7 @@ const KvKHistoryTable: React.FC<KvKHistoryTableProps> = ({
               const isByeResult = kvk.overall_result?.toLowerCase() === 'bye' || kvk.prep_result === null || kvk.battle_result === null || kvk.opponent_kingdom === 0 || kvk.prep_result === 'B' || kvk.battle_result === 'B';
               
               // Override outcome style and letter for Bye results
-              const byeStyle = { bg: '#6b728020', text: '#6b7280', label: 'Bye', description: 'No opponent this round' };
+              const byeStyle = { bg: '#6b728020', text: '#6b7280', label: t('outcomes.Bye', 'Bye'), description: t('outcomes.byeDesc', 'No opponent this round') };
               const outcomeStyle = isByeResult ? byeStyle : getOutcomeStyle(kvk.prep_result, kvk.battle_result);
               const outcomeLetter = isByeResult ? '⏸️' : getOutcomeLetter(kvk.prep_result, kvk.battle_result);
               

@@ -13,7 +13,6 @@
 
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
 
 const LOCALES_DIR = path.join(__dirname, '..', 'src', 'locales');
 const SRC_DIR = path.join(__dirname, '..', 'src');
@@ -49,21 +48,35 @@ function loadLanguage(lang) {
   return flattenKeys(data);
 }
 
-// Extract all t() keys from source code
-function extractUsedKeys() {
-  try {
-    // Match t('key', ...) and t("key", ...) patterns
-    const result = execSync(
-      `grep -rohE "t\\(['\"][a-zA-Z0-9_.]+['\"]" "${SRC_DIR}" --include="*.tsx" --include="*.ts" | sort -u`,
-      { encoding: 'utf-8' }
-    );
-    return result.split('\n')
-      .filter(Boolean)
-      .map(match => match.replace(/^t\(['"]/, '').replace(/['"]$/, ''))
-      .filter(key => key && !key.includes('${') && !key.includes('`'));
-  } catch {
-    return [];
+// Recursively collect all .ts/.tsx files
+function collectSourceFiles(dir) {
+  const results = [];
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory() && entry.name !== 'node_modules' && entry.name !== '__tests__') {
+      results.push(...collectSourceFiles(full));
+    } else if (entry.isFile() && /\.(tsx?|jsx?)$/.test(entry.name) && !entry.name.endsWith('.test.tsx')) {
+      results.push(full);
+    }
   }
+  return results;
+}
+
+// Extract all t() keys from source code using pure Node.js (no shell grep)
+function extractUsedKeys() {
+  const pattern = /t\(['"]([a-zA-Z][a-zA-Z0-9]*(?:\.[a-zA-Z][a-zA-Z0-9_]*)+)['"]\s*[,)]/g;
+  const keys = new Set();
+
+  for (const file of collectSourceFiles(SRC_DIR)) {
+    const content = fs.readFileSync(file, 'utf-8');
+    let match;
+    while ((match = pattern.exec(content)) !== null) {
+      keys.add(match[1]);
+    }
+    pattern.lastIndex = 0; // reset regex state for next file
+  }
+
+  return [...keys].sort();
 }
 
 // Main validation

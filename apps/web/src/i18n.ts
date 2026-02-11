@@ -1,25 +1,37 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
+import HttpBackend from 'i18next-http-backend';
 
+// English is bundled for instant first paint (no flash of untranslated content)
 import en from './locales/en/translation.json';
-import es from './locales/es/translation.json';
-import fr from './locales/fr/translation.json';
-import zh from './locales/zh/translation.json';
-import de from './locales/de/translation.json';
+
+// Supported languages — add new languages here and in public/locales/{code}/
+export const SUPPORTED_LANGUAGES = ['en', 'es', 'fr', 'zh', 'de', 'ko'] as const;
+export type SupportedLanguage = typeof SUPPORTED_LANGUAGES[number];
+
+// Language metadata for UI (Header, etc.)
+// dir: 'ltr' | 'rtl' — groundwork for future RTL language support (e.g., Arabic)
+export const LANGUAGE_META: Record<SupportedLanguage, { label: string; flag: string; dir: 'ltr' | 'rtl' }> = {
+  en: { label: 'English', flag: '🇺🇸', dir: 'ltr' },
+  es: { label: 'Español', flag: '🇪🇸', dir: 'ltr' },
+  fr: { label: 'Français', flag: '🇫🇷', dir: 'ltr' },
+  zh: { label: '中文', flag: '🇨🇳', dir: 'ltr' },
+  de: { label: 'Deutsch', flag: '🇩🇪', dir: 'ltr' },
+  ko: { label: '한국어', flag: '🇰🇷', dir: 'ltr' },
+};
 
 i18n
+  .use(HttpBackend)
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
+    // English bundled inline; other languages loaded on demand from /locales/{lng}/
+    partialBundledLanguages: true,
     resources: {
       en: { translation: en },
-      es: { translation: es },
-      fr: { translation: fr },
-      zh: { translation: zh },
-      de: { translation: de },
     },
-    supportedLngs: ['en', 'es', 'fr', 'zh', 'de'],
+    supportedLngs: [...SUPPORTED_LANGUAGES],
     nonExplicitSupportedLngs: true, // es-MX, es-419, en-US etc. map to 'es', 'en'
     fallbackLng: 'en',
     interpolation: {
@@ -29,6 +41,9 @@ i18n
       order: ['localStorage', 'navigator', 'htmlTag'],
       caches: ['localStorage'],
       lookupLocalStorage: 'i18nextLng',
+    },
+    backend: {
+      loadPath: '/locales/{{lng}}/{{ns}}.json',
     },
   });
 

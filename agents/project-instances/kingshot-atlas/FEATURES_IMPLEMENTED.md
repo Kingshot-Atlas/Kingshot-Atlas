@@ -264,6 +264,7 @@
 | React Query Caching | ✅ Live | Product | `queryClient.ts` |
 | IndexedDB Cache | ✅ Live | Product | `indexedDBCache.ts` offline support |
 | Code Splitting | ✅ Live | Product | Lazy-loaded routes |
+| i18n Optimization | ✅ Live | Product | Phase 1-6 complete. HTTP backend lazy loading (EN bundled, others on-demand). Centralized SUPPORTED_LANGUAGES + LANGUAGE_META (with RTL dir groundwork) in i18n.ts. 1442 keys across 5 languages (EN/ES/FR/ZH/DE), zero dead keys. Pluralization support (_one/_other). CI validation on every PR. Hardcoded string detector + translation diff script. I18N_GUIDE.md checklist. /i18n-translate workflow. Translated components: ProfileFeatures, SubmissionHistory, SideBySideAnalysis, AllianceScoring, KingdomLeaderboardPosition, MiniKingdomCard, RallyCoordinator, MissingDataRegistry, ReferralFunnel, ReferralIntelligence, ReportKvKErrorModal, KingdomFundContribute, ShareableCard, SupportButton, ClaimKingdom, RadarChart, ReportDataModal, UserAchievements, MetaAnalysis (87/149 public files = 58%). All user-facing public components translated; remaining 9 flagged files are admin-only or false positives. npm scripts: validate:i18n, i18n:sync, i18n:add, i18n:check, i18n:diff, i18n:snapshot. (2026-02-12) |
 | Analytics | ✅ Live | Ops | `analyticsService.ts`, Plausible |
 | Dynamic Meta Tags | ✅ Live | Ops | `useMetaTags.ts` - PAGE_META_TAGS for all pages with SEO keywords (2026-02-05) |
 | Structured Data | ✅ Live | Ops | `useStructuredData.ts` - JSON-LD for FAQ, Breadcrumbs (2026-02-05) |
@@ -499,6 +500,7 @@
 | Transfer Hub — Premium Tier Visual Polish | ✅ Live | Gold/Silver/Bronze inner gradient overlay (subtle tier-tinted highlight at card top), enhanced hover glow (Gold 3-layer 80px, Silver 3-layer 72px), tier badge micro-animations (Gold 3s, Silver 4s, Bronze 5s glow pulse), enhanced tooltip with cumulative tier comparison. STYLE_GUIDE.md updated with Kingdom Fund Tier Borders SOURCE OF TRUTH. (2026-02-10) |
 | Transfer Hub — Why Fund? Banner | ✅ Live | Standard tier cards show subtle upgrade nudge above footer: "✨ Funded listings get shimmer borders, glow effects & more visibility". Non-intrusive, informational. Gold/silver highlighted keywords. (2026-02-10) |
 | i18n — German (de) Translation | ✅ Live | Full German translation (1584 lines). Proper German gaming terminology. Registered in i18n config, language switcher (🇩🇪 Deutsch), and all locale files updated with `"de": "Deutsch"`. Supported languages: en, es, fr, zh, de. (2026-02-12) |
+| i18n — Korean (ko) Translation | ✅ Live | Full Korean translation (1606 lines, 1442 keys). Natural Korean phrasing with proper gaming terminology. Registered in i18n config, language switcher (🇰🇷 한국어). i18n-diff script and /i18n-translate workflow updated. Supported languages: en, es, fr, zh, de, ko. (2026-02-11) |
 | Component Refactoring | 🚧 Planned | KingdomCard, ProfileFeatures too large |
 | Multi-Kingdom Share/Export | 🚧 Planned | ShareButton still uses 2-kingdom format |
 

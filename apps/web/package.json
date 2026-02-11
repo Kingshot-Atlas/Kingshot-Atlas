@@ -21,6 +21,7 @@
     "html2canvas": "^1.4.1",
     "i18next": "^25.8.5",
     "i18next-browser-languagedetector": "^8.2.0",
+    "i18next-http-backend": "^3.0.2",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "react-i18next": "^16.5.4",
@@ -61,8 +62,14 @@
     "lint:fix": "eslint src --ext .ts,.tsx --fix",
     "analyze": "source-map-explorer 'dist/static/js/*.js'",
     "sitemap": "node scripts/generate-sitemap.js",
-    "prebuild": "node scripts/generate-sitemap.js",
-    "validate:seo": "node scripts/validate-seo.js"
+    "prebuild": "node scripts/generate-sitemap.js && node scripts/i18n-sync-public.js",
+    "validate:seo": "node scripts/validate-seo.js",
+    "validate:i18n": "node scripts/i18n-validate.js",
+    "i18n:sync": "node scripts/i18n-sync-public.js",
+    "i18n:add": "node scripts/i18n-add-language.js",
+    "i18n:check": "node scripts/i18n-check-hardcoded.js",
+    "i18n:diff": "node scripts/i18n-diff.js",
+    "i18n:snapshot": "node scripts/i18n-diff.js --snapshot"
   },
   "browserslist": {
     "production": [

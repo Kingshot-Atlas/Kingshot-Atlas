@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { REFERRAL_TIER_COLORS, REFERRAL_TIER_LABELS, ReferralTier } from '../utils/constants';
 
@@ -57,6 +58,7 @@ const SOURCE_CONFIG: Record<string, { label: string; icon: string; color: string
 // =============================================
 
 export const ReferralIntelligence: React.FC = () => {
+  const { t } = useTranslation();
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState<'overview' | 'sources' | 'referrers' | 'recent'>('overview');
@@ -253,23 +255,23 @@ export const ReferralIntelligence: React.FC = () => {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
             <div style={{ ...cardStyle, textAlign: 'center' }}>
               <div style={{ fontSize: '1.5rem', fontWeight: '800', color: '#22d3ee' }}>{metrics.total}</div>
-              <div style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.25rem' }}>Total Referrals</div>
+              <div style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.25rem' }}>{t('referralIntelligence.totalReferrals')}</div>
             </div>
             <div style={{ ...cardStyle, textAlign: 'center' }}>
               <div style={{ fontSize: '1.5rem', fontWeight: '800', color: '#22c55e' }}>{metrics.verified}</div>
-              <div style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.25rem' }}>Verified</div>
+              <div style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.25rem' }}>{t('referralIntelligence.verified')}</div>
             </div>
             <div style={{ ...cardStyle, textAlign: 'center' }}>
               <div style={{ fontSize: '1.5rem', fontWeight: '800', color: '#fbbf24' }}>{metrics.pending}</div>
-              <div style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.25rem' }}>Pending</div>
+              <div style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.25rem' }}>{t('referralIntelligence.pending')}</div>
             </div>
             <div style={{ ...cardStyle, textAlign: 'center' }}>
               <div style={{ fontSize: '1.5rem', fontWeight: '800', color: '#a855f7' }}>{metrics.conversionRate}%</div>
-              <div style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.25rem' }}>Conversion</div>
+              <div style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.25rem' }}>{t('referralIntelligence.conversion')}</div>
             </div>
             <div style={{ ...cardStyle, textAlign: 'center' }}>
               <div style={{ fontSize: '1.5rem', fontWeight: '800', color: '#fff' }}>{metrics.uniqueReferrers}</div>
-              <div style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.25rem' }}>Active Referrers</div>
+              <div style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.25rem' }}>{t('referralIntelligence.activeReferrers')}</div>
             </div>
             <div style={{ ...cardStyle, textAlign: 'center' }}>
               <div style={{ fontSize: '1.5rem', fontWeight: '800', color: metrics.thisMonthCount > 0 ? '#22c55e' : '#6b7280' }}>
@@ -327,16 +329,16 @@ export const ReferralIntelligence: React.FC = () => {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.35rem' }}>
               <span style={{ fontSize: '0.6rem', color: '#4b5563' }}>{metrics.dailyTrend[0]?.date.split('-').slice(1).join('/')}</span>
-              <span style={{ fontSize: '0.6rem', color: '#4b5563' }}>Today</span>
+              <span style={{ fontSize: '0.6rem', color: '#4b5563' }}>{t('referralIntelligence.today')}</span>
             </div>
           </div>
 
           {/* Tier Distribution + Avg Verify Time */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
             <div style={{ ...cardStyle }}>
-              <h4 style={{ color: '#fff', fontSize: '0.85rem', margin: '0 0 0.75rem', fontWeight: '600' }}>Tier Distribution</h4>
+              <h4 style={{ color: '#fff', fontSize: '0.85rem', margin: '0 0 0.75rem', fontWeight: '600' }}>{t('referralIntelligence.tierDistribution')}</h4>
               {metrics.tierBreakdown.length === 0 ? (
-                <div style={{ color: '#4b5563', fontSize: '0.8rem' }}>No users with referral tiers yet</div>
+                <div style={{ color: '#4b5563', fontSize: '0.8rem' }}>{t('referralIntelligence.noTiersYet')}</div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   {(['ambassador', 'consul', 'recruiter', 'scout'] as ReferralTier[]).map(tier => {
@@ -366,7 +368,7 @@ export const ReferralIntelligence: React.FC = () => {
             </div>
 
             <div style={{ ...cardStyle }}>
-              <h4 style={{ color: '#fff', fontSize: '0.85rem', margin: '0 0 0.75rem', fontWeight: '600' }}>Health Metrics</h4>
+              <h4 style={{ color: '#fff', fontSize: '0.85rem', margin: '0 0 0.75rem', fontWeight: '600' }}>{t('referralIntelligence.healthMetrics')}</h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 <div>
                   <div style={{ color: '#6b7280', fontSize: '0.7rem', marginBottom: '0.2rem' }}>Avg. Time to Verify</div>
@@ -379,13 +381,13 @@ export const ReferralIntelligence: React.FC = () => {
                   </div>
                 </div>
                 <div>
-                  <div style={{ color: '#6b7280', fontSize: '0.7rem', marginBottom: '0.2rem' }}>Invalid Rate</div>
+                  <div style={{ color: '#6b7280', fontSize: '0.7rem', marginBottom: '0.2rem' }}>{t('referralIntelligence.invalidRate')}</div>
                   <div style={{ color: metrics.invalid > 0 ? '#ef4444' : '#22c55e', fontSize: '1.1rem', fontWeight: '700' }}>
                     {metrics.total > 0 ? `${Math.round((metrics.invalid / metrics.total) * 100)}%` : '0%'}
                   </div>
                 </div>
                 <div>
-                  <div style={{ color: '#6b7280', fontSize: '0.7rem', marginBottom: '0.2rem' }}>Attribution Sources</div>
+                  <div style={{ color: '#6b7280', fontSize: '0.7rem', marginBottom: '0.2rem' }}>{t('referralIntelligence.attributionSources')}</div>
                   <div style={{ color: '#fff', fontSize: '1.1rem', fontWeight: '700' }}>
                     {metrics.sourceBreakdown.length}
                   </div>
@@ -450,15 +452,15 @@ export const ReferralIntelligence: React.FC = () => {
           {/* Source comparison table */}
           {metrics.sourceBreakdown.length > 0 && (
             <div style={cardStyle}>
-              <h4 style={{ color: '#fff', fontSize: '0.85rem', margin: '0 0 0.75rem', fontWeight: '600' }}>Source Comparison</h4>
+              <h4 style={{ color: '#fff', fontSize: '0.85rem', margin: '0 0 0.75rem', fontWeight: '600' }}>{t('referralIntelligence.sourceComparison')}</h4>
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
                   <thead>
                     <tr style={{ borderBottom: '1px solid #2a2a2a' }}>
-                      <th style={{ textAlign: 'left', padding: '0.5rem', color: '#6b7280', fontWeight: '600' }}>Source</th>
-                      <th style={{ textAlign: 'right', padding: '0.5rem', color: '#6b7280', fontWeight: '600' }}>Total</th>
-                      <th style={{ textAlign: 'right', padding: '0.5rem', color: '#6b7280', fontWeight: '600' }}>Verified</th>
-                      <th style={{ textAlign: 'right', padding: '0.5rem', color: '#6b7280', fontWeight: '600' }}>Pending</th>
+                      <th style={{ textAlign: 'left', padding: '0.5rem', color: '#6b7280', fontWeight: '600' }}>{t('referralIntelligence.source')}</th>
+                      <th style={{ textAlign: 'right', padding: '0.5rem', color: '#6b7280', fontWeight: '600' }}>{t('referralIntelligence.total')}</th>
+                      <th style={{ textAlign: 'right', padding: '0.5rem', color: '#6b7280', fontWeight: '600' }}>{t('referralIntelligence.verified')}</th>
+                      <th style={{ textAlign: 'right', padding: '0.5rem', color: '#6b7280', fontWeight: '600' }}>{t('referralIntelligence.pending')}</th>
                       <th style={{ textAlign: 'right', padding: '0.5rem', color: '#6b7280', fontWeight: '600' }}>Conv. Rate</th>
                       <th style={{ textAlign: 'right', padding: '0.5rem', color: '#6b7280', fontWeight: '600' }}>% of Total</th>
                     </tr>
@@ -502,7 +504,7 @@ export const ReferralIntelligence: React.FC = () => {
           </h3>
 
           {metrics.topReferrers.length === 0 ? (
-            <div style={{ ...cardStyle, color: '#4b5563', fontSize: '0.85rem', textAlign: 'center' }}>No referrers yet</div>
+            <div style={{ ...cardStyle, color: '#4b5563', fontSize: '0.85rem', textAlign: 'center' }}>{t('referralIntelligence.noReferrersYet')}</div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               {metrics.topReferrers.map((ref, i) => {
@@ -576,17 +578,17 @@ export const ReferralIntelligence: React.FC = () => {
           </h3>
 
           {metrics.recentReferrals.length === 0 ? (
-            <div style={{ ...cardStyle, color: '#4b5563', fontSize: '0.85rem', textAlign: 'center' }}>No referrals yet</div>
+            <div style={{ ...cardStyle, color: '#4b5563', fontSize: '0.85rem', textAlign: 'center' }}>{t('referralIntelligence.noReferralsYet')}</div>
           ) : (
             <div style={{ ...cardStyle, overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid #2a2a2a' }}>
-                    <th style={{ textAlign: 'left', padding: '0.5rem', color: '#6b7280', fontWeight: '600' }}>Referrer</th>
-                    <th style={{ textAlign: 'left', padding: '0.5rem', color: '#6b7280', fontWeight: '600' }}>Referred</th>
-                    <th style={{ textAlign: 'left', padding: '0.5rem', color: '#6b7280', fontWeight: '600' }}>Source</th>
-                    <th style={{ textAlign: 'left', padding: '0.5rem', color: '#6b7280', fontWeight: '600' }}>Status</th>
-                    <th style={{ textAlign: 'left', padding: '0.5rem', color: '#6b7280', fontWeight: '600' }}>Date</th>
+                    <th style={{ textAlign: 'left', padding: '0.5rem', color: '#6b7280', fontWeight: '600' }}>{t('referralIntelligence.referrer')}</th>
+                    <th style={{ textAlign: 'left', padding: '0.5rem', color: '#6b7280', fontWeight: '600' }}>{t('referralIntelligence.referred')}</th>
+                    <th style={{ textAlign: 'left', padding: '0.5rem', color: '#6b7280', fontWeight: '600' }}>{t('referralIntelligence.source')}</th>
+                    <th style={{ textAlign: 'left', padding: '0.5rem', color: '#6b7280', fontWeight: '600' }}>{t('referralIntelligence.status')}</th>
+                    <th style={{ textAlign: 'left', padding: '0.5rem', color: '#6b7280', fontWeight: '600' }}>{t('referralIntelligence.date')}</th>
                   </tr>
                 </thead>
                 <tbody>

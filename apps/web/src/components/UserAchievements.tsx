@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import SmartTooltip from './shared/SmartTooltip';
 
 interface UserStats {
@@ -275,6 +276,7 @@ interface UnlockToastProps {
 }
 
 const UnlockToast: React.FC<UnlockToastProps> = ({ achievement, onDismiss }) => {
+  const { t } = useTranslation();
   useEffect(() => {
     const timer = setTimeout(onDismiss, 5000);
     return () => clearTimeout(timer);
@@ -326,7 +328,7 @@ const UnlockToast: React.FC<UnlockToastProps> = ({ achievement, onDismiss }) => 
         </span>
         <div>
           <div style={{ fontSize: '0.65rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-            Achievement Unlocked
+            {t('achievements.achievementUnlocked')}
           </div>
           <div style={{ color: achievement.color, fontWeight: '700', fontSize: '0.95rem' }}>
             {achievement.title}
@@ -341,6 +343,7 @@ const UnlockToast: React.FC<UnlockToastProps> = ({ achievement, onDismiss }) => 
 };
 
 const UserAchievements: React.FC = () => {
+  const { t } = useTranslation();
   const [stats, setStats] = useState<UserStats>(getStats());
   const [showAll, setShowAll] = useState(false);
   const [newUnlock, setNewUnlock] = useState<UserAchievement | null>(null);
@@ -397,7 +400,7 @@ const UserAchievements: React.FC = () => {
       border: '1px solid #2a2a2a'
     }}>
       <h3 style={{ color: '#fff', fontSize: '1rem', fontWeight: '600', marginBottom: '0.75rem', textAlign: 'center' }}>
-        Your Achievements
+        {t('achievements.yourAchievements')}
         <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 'normal', marginLeft: '0.5rem' }}>
           ({earned.length}/{userAchievements.length})
         </span>
@@ -445,7 +448,7 @@ const UserAchievements: React.FC = () => {
       {/* In Progress */}
       {showAll && inProgress.length > 0 && (
         <div style={{ marginTop: '0.75rem' }}>
-          <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.5rem' }}>In Progress</div>
+          <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.5rem' }}>{t('achievements.inProgress')}</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
             {inProgress.map(a => {
               const progress = a.check(stats);
@@ -500,7 +503,7 @@ const UserAchievements: React.FC = () => {
           cursor: 'pointer'
         }}
       >
-        {showAll ? 'Hide progress' : 'Show all achievements'}
+        {showAll ? t('achievements.hideProgress') : t('achievements.showAll')}
       </button>
 
       {/* Unlock Toast */}

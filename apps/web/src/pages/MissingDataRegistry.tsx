@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import SmartTooltip from '../components/shared/SmartTooltip';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -73,6 +74,7 @@ const KvKBadge: React.FC<{ kvk: number; isLatest?: boolean }> = ({ kvk, isLatest
 };
 
 const MissingDataRegistry: React.FC = () => {
+  const { t } = useTranslation();
   useDocumentTitle('Contribute Data');
   useMetaTags(PAGE_META_TAGS.contributeData);
   useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.contributeData });
@@ -213,12 +215,12 @@ const MissingDataRegistry: React.FC = () => {
           gap: '0.5rem',
           fontFamily: FONT_DISPLAY
         }}>
-          CONTRIBUTE <span style={{ color: '#22d3ee', textShadow: '0 0 8px #22d3ee40, 0 0 12px #22d3ee20' }}>DATA</span>
+          {t('missingData.contributeTitle')} <span style={{ color: '#22d3ee', textShadow: '0 0 8px #22d3ee40, 0 0 12px #22d3ee20' }}>{t('missingData.contributeTitleAccent')}</span>
         </h1>
         <p style={{ color: '#9ca3af', fontSize: '0.95rem', maxWidth: '650px', margin: '0 auto', lineHeight: 1.6 }}>
-          Missing data means blind spots. Fill the gaps and help every player make smarter decisions.
+          {t('missingData.subtitle')}
           <br />
-          <span style={{ color: '#fbbf24' }}>Linked players earn contributor achievements.</span>
+          <span style={{ color: '#fbbf24' }}>{t('missingData.linkedEarn')}</span>
         </p>
       </div>
 
@@ -238,10 +240,10 @@ const MissingDataRegistry: React.FC = () => {
         }}>
           <div>
             <div style={{ color: '#fbbf24', fontWeight: '600', marginBottom: '0.25rem' }}>
-              Sign in to contribute
+              {t('missingData.signInPrompt')}
             </div>
             <div style={{ color: '#9ca3af', fontSize: '0.85rem' }}>
-              Link your account to submit KvK results and earn contributor status.
+              {t('missingData.signInDesc')}
             </div>
           </div>
           <Link to="/profile" style={{ textDecoration: 'none' }}>
@@ -255,7 +257,7 @@ const MissingDataRegistry: React.FC = () => {
               cursor: 'pointer',
               fontSize: '0.85rem'
             }}>
-              Sign In
+              {t('missingData.signIn')}
             </button>
           </Link>
         </div>
@@ -276,10 +278,10 @@ const MissingDataRegistry: React.FC = () => {
         }}>
           <div>
             <div style={{ color: '#22d3ee', fontWeight: '600', marginBottom: '0.25rem' }}>
-              Link your account
+              {t('missingData.linkPrompt')}
             </div>
             <div style={{ color: '#9ca3af', fontSize: '0.85rem' }}>
-              Connect your kingdom to unlock submissions and track your contributions.
+              {t('missingData.linkDesc')}
             </div>
           </div>
           <Link to="/profile" style={{ textDecoration: 'none' }}>
@@ -293,7 +295,7 @@ const MissingDataRegistry: React.FC = () => {
               cursor: 'pointer',
               fontSize: '0.85rem'
             }}>
-              Link Account
+              {t('missingData.linkAccount')}
             </button>
           </Link>
         </div>
@@ -316,7 +318,7 @@ const MissingDataRegistry: React.FC = () => {
           <div style={{ color: '#22c55e', fontSize: '1.5rem', fontWeight: '700' }}>
             {stats.withData}
           </div>
-          <div style={{ color: '#9ca3af', fontSize: '0.75rem' }}>Kingdoms tracked</div>
+          <div style={{ color: '#9ca3af', fontSize: '0.75rem' }}>{t('missingData.kingdomsTracked')}</div>
         </div>
         <div style={{
           backgroundColor: '#1a1a1f',
@@ -328,7 +330,7 @@ const MissingDataRegistry: React.FC = () => {
           <div style={{ color: '#f97316', fontSize: '1.5rem', fontWeight: '700' }}>
             {stats.totalMissing}
           </div>
-          <div style={{ color: '#9ca3af', fontSize: '0.75rem' }}>Need data</div>
+          <div style={{ color: '#9ca3af', fontSize: '0.75rem' }}>{t('missingData.needData')}</div>
         </div>
         <div style={{
           backgroundColor: '#1a1a1f',
@@ -352,7 +354,7 @@ const MissingDataRegistry: React.FC = () => {
           <div style={{ color: '#a855f7', fontSize: '1.5rem', fontWeight: '700' }}>
             {stats.totalKingdoms - stats.withData}
           </div>
-          <div style={{ color: '#9ca3af', fontSize: '0.75rem' }}>Not in Atlas</div>
+          <div style={{ color: '#9ca3af', fontSize: '0.75rem' }}>{t('missingData.notInAtlas')}</div>
         </div>
       </div>
 
@@ -447,7 +449,7 @@ const MissingDataRegistry: React.FC = () => {
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M12 5v14M5 12h14" />
             </svg>
-            Add Kingdom
+            {t('missingData.addKingdom')}
           </button>
         )}
       </div>
@@ -499,14 +501,14 @@ const MissingDataRegistry: React.FC = () => {
                 fontSize: '0.75rem',
                 fontWeight: '600'
               }}>
-                {kingdom.missingKvks.length} missing
+                {t('missingData.missing', { count: kingdom.missingKvks.length })}
               </div>
             </div>
 
             {/* Missing KvKs */}
             <div style={{ marginBottom: '1rem' }}>
               <div style={{ color: '#6b7280', fontSize: '0.75rem', marginBottom: '0.5rem' }}>
-                Missing KvKs (hover for date):
+                {t('missingData.missingKvksLabel')}:
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
                 {kingdom.missingKvks.slice(0, 8).map(kvk => (
@@ -541,11 +543,11 @@ const MissingDataRegistry: React.FC = () => {
               }}
             >
               {isLinked ? (
-                <>Submit Data</>
+                <>{t('missingData.submitData')}</>
               ) : isLoggedIn ? (
-                <>Link Account to Submit</>
+                <>{t('missingData.linkToSubmit')}</>
               ) : (
-                <>Sign In to Submit</>
+                <>{t('missingData.signInToSubmit')}</>
               )}
             </button>
           </div>
@@ -558,8 +560,8 @@ const MissingDataRegistry: React.FC = () => {
           padding: '3rem',
           color: '#6b7280'
         }}>
-          <div style={{ color: '#22d3ee', fontSize: '1rem', fontWeight: '600', marginBottom: '0.25rem' }}>All clear</div>
-          <div>No kingdoms match this filter.</div>
+          <div style={{ color: '#22d3ee', fontSize: '1rem', fontWeight: '600', marginBottom: '0.25rem' }}>{t('missingData.allClear')}</div>
+          <div>{t('missingData.noMatch')}</div>
         </div>
       )}
 
@@ -572,35 +574,35 @@ const MissingDataRegistry: React.FC = () => {
         border: '1px solid #2a2a2a'
       }}>
         <h3 style={{ color: '#fff', fontSize: '1.1rem', fontWeight: '600', marginBottom: '1rem', fontFamily: FONT_DISPLAY }}>
-          Contributor Ranks
+          {t('missingData.contributorRanks')}
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <div style={{ fontSize: '1.5rem' }}>🥉</div>
             <div>
-              <div style={{ color: '#fff', fontWeight: '500', fontSize: '0.9rem' }}>Data Scout</div>
-              <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>Submit 1 approved correction</div>
+              <div style={{ color: '#fff', fontWeight: '500', fontSize: '0.9rem' }}>{t('missingData.dataScout')}</div>
+              <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>{t('missingData.dataScoutDesc')}</div>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <div style={{ fontSize: '1.5rem' }}>🥈</div>
             <div>
-              <div style={{ color: '#fff', fontWeight: '500', fontSize: '0.9rem' }}>Data Hunter</div>
-              <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>Submit 5 approved corrections</div>
+              <div style={{ color: '#fff', fontWeight: '500', fontSize: '0.9rem' }}>{t('missingData.dataHunter')}</div>
+              <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>{t('missingData.dataHunterDesc')}</div>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <div style={{ fontSize: '1.5rem' }}>🥇</div>
             <div>
-              <div style={{ color: '#fff', fontWeight: '500', fontSize: '0.9rem' }}>Data Master</div>
-              <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>Submit 10 approved corrections</div>
+              <div style={{ color: '#fff', fontWeight: '500', fontSize: '0.9rem' }}>{t('missingData.dataMaster')}</div>
+              <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>{t('missingData.dataMasterDesc')}</div>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <div style={{ fontSize: '1.5rem' }}>💎</div>
             <div>
-              <div style={{ color: '#fff', fontWeight: '500', fontSize: '0.9rem' }}>Atlas Legend</div>
-              <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>Submit 25 approved corrections</div>
+              <div style={{ color: '#fff', fontWeight: '500', fontSize: '0.9rem' }}>{t('missingData.atlasLegend')}</div>
+              <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>{t('missingData.atlasLegendDesc')}</div>
             </div>
           </div>
         </div>

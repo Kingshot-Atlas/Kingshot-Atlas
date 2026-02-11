@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { KVKRecord } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from './Toast';
@@ -12,14 +13,14 @@ interface ReportKvKErrorModalProps {
   onClose: () => void;
 }
 
-const ERROR_TYPES = [
-  { key: 'wrong_opponent', label: 'Wrong Opponent Kingdom' },
-  { key: 'wrong_prep_result', label: 'Incorrect Prep Result' },
-  { key: 'wrong_battle_result', label: 'Incorrect Battle Result' },
-  { key: 'wrong_both_results', label: 'Incorrect Prep & Battle Results' },
-  { key: 'missing_kvk', label: 'Missing KvK (not in list)' },
-  { key: 'duplicate_kvk', label: 'Duplicate Entry' },
-  { key: 'other', label: 'Other Error' },
+const ERROR_TYPE_KEYS = [
+  { key: 'wrong_opponent', i18nKey: 'wrongOpponent' },
+  { key: 'wrong_prep_result', i18nKey: 'wrongPrep' },
+  { key: 'wrong_battle_result', i18nKey: 'wrongBattle' },
+  { key: 'wrong_both_results', i18nKey: 'wrongBoth' },
+  { key: 'missing_kvk', i18nKey: 'missingKvk' },
+  { key: 'duplicate_kvk', i18nKey: 'duplicateEntry' },
+  { key: 'other', i18nKey: 'otherError' },
 ];
 
 const ReportKvKErrorModal: React.FC<ReportKvKErrorModalProps> = ({ 
@@ -28,6 +29,7 @@ const ReportKvKErrorModal: React.FC<ReportKvKErrorModalProps> = ({
   isOpen, 
   onClose 
 }) => {
+  const { t } = useTranslation();
   const { user, profile } = useAuth();
   const { showToast } = useToast();
   const [selectedKvK, setSelectedKvK] = useState<number | null>(null);
@@ -43,22 +45,22 @@ const ReportKvKErrorModal: React.FC<ReportKvKErrorModalProps> = ({
   const handleSubmit = async () => {
     // Must be authenticated to submit (RLS requires submitted_by = auth.uid())
     if (!user?.id) {
-      showToast('Please sign in to submit error reports', 'error');
+      showToast(t('reportKvkError.signInRequired'), 'error');
       return;
     }
 
     if (!errorType) {
-      showToast('Please select an error type', 'error');
+      showToast(t('reportKvkError.selectErrorTypeError'), 'error');
       return;
     }
 
     if (errorType !== 'missing_kvk' && !selectedKvK) {
-      showToast('Please select which KvK has the error', 'error');
+      showToast(t('reportKvkError.selectKvkError'), 'error');
       return;
     }
 
     if (!description.trim()) {
-      showToast('Please describe what is incorrect', 'error');
+      showToast(t('reportKvkError.describeError'), 'error');
       return;
     }
 
@@ -71,7 +73,7 @@ const ReportKvKErrorModal: React.FC<ReportKvKErrorModalProps> = ({
         error_type: errorType
       });
       if (duplicate.isDuplicate) {
-        showToast('A similar error report is already pending review', 'error');
+        showToast(t('reportKvkError.duplicateError'), 'error');
         setSubmitting(false);
         return;
       }
@@ -87,7 +89,7 @@ const ReportKvKErrorModal: React.FC<ReportKvKErrorModalProps> = ({
           kingdom_number: kingdomNumber,
           kvk_number: selectedKvK,
           error_type: errorType,
-          error_type_label: ERROR_TYPES.find(e => e.key === errorType)?.label || errorType,
+          error_type_label: ERROR_TYPE_KEYS.find(e => e.key === errorType)?.i18nKey ? t(`reportKvkError.${ERROR_TYPE_KEYS.find(e => e.key === errorType)!.i18nKey}`) : errorType,
           current_data: selectedKvKRecord ? {
             opponent: selectedKvKRecord.opponent_kingdom,
             prep_result: selectedKvKRecord.prep_result,
@@ -109,12 +111,12 @@ const ReportKvKErrorModal: React.FC<ReportKvKErrorModalProps> = ({
         contributorService.trackNewSubmission(user.id, profile?.username || 'Anonymous', 'kvkError');
       }
 
-      showToast('KvK error reported. Thank you for helping improve our data!', 'success');
+      showToast(t('reportKvkError.successToast'), 'success');
       onClose();
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       console.error('KvK error submission failed:', errorMessage, err);
-      showToast('Failed to submit report. Please try again.', 'error');
+      showToast(t('reportKvkError.failedToast'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -151,7 +153,7 @@ const ReportKvKErrorModal: React.FC<ReportKvKErrorModalProps> = ({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
           <div>
             <h2 style={{ color: '#fff', fontSize: '1.1rem', fontWeight: '600', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span>🚩</span> Report KvK Data Error
+              <span>🚩</span> {t('reportKvkError.title')}
             </h2>
             <p style={{ color: '#6b7280', fontSize: '0.8rem', margin: '0.25rem 0 0' }}>
               Kingdom {kingdomNumber}
@@ -175,7 +177,7 @@ const ReportKvKErrorModal: React.FC<ReportKvKErrorModalProps> = ({
         {/* Select KvK */}
         <div style={{ marginBottom: '1rem' }}>
           <label style={{ display: 'block', color: '#9ca3af', fontSize: '0.8rem', marginBottom: '0.5rem' }}>
-            Which KvK has incorrect data?
+            {t('reportKvkError.whichKvk')}
           </label>
           <select
             value={selectedKvK || ''}
@@ -190,7 +192,7 @@ const ReportKvKErrorModal: React.FC<ReportKvKErrorModalProps> = ({
               fontSize: '0.85rem'
             }}
           >
-            <option value="">-- Select KvK --</option>
+            <option value="">{t('reportKvkError.selectKvk')}</option>
             {sortedKvKs.map(kvk => (
               <option key={kvk.kvk_number} value={kvk.kvk_number}>
                 KvK #{kvk.kvk_number} vs Kingdom {kvk.opponent_kingdom} 
@@ -210,22 +212,22 @@ const ReportKvKErrorModal: React.FC<ReportKvKErrorModalProps> = ({
             borderRadius: '8px',
             border: '1px solid #1f1f1f'
           }}>
-            <div style={{ color: '#6b7280', fontSize: '0.7rem', marginBottom: '0.5rem' }}>CURRENT DATA</div>
+            <div style={{ color: '#6b7280', fontSize: '0.7rem', marginBottom: '0.5rem' }}>{t('reportKvkError.currentData')}</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', fontSize: '0.8rem' }}>
               <div>
-                <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>Opponent</div>
+                <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>{t('reportKvkError.opponent')}</div>
                 <div style={{ color: '#22d3ee' }}>K{selectedKvKRecord.opponent_kingdom}</div>
               </div>
               <div>
-                <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>Prep</div>
+                <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>{t('reportKvkError.prep')}</div>
                 <div style={{ color: selectedKvKRecord.prep_result === 'Win' || selectedKvKRecord.prep_result === 'W' ? '#22c55e' : '#ef4444' }}>
-                  {selectedKvKRecord.prep_result === 'Win' || selectedKvKRecord.prep_result === 'W' ? 'Win' : 'Loss'}
+                  {selectedKvKRecord.prep_result === 'Win' || selectedKvKRecord.prep_result === 'W' ? t('reportKvkError.win') : t('reportKvkError.loss')}
                 </div>
               </div>
               <div>
-                <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>Battle</div>
+                <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>{t('reportKvkError.battle')}</div>
                 <div style={{ color: selectedKvKRecord.battle_result === 'Win' || selectedKvKRecord.battle_result === 'W' ? '#22c55e' : '#ef4444' }}>
-                  {selectedKvKRecord.battle_result === 'Win' || selectedKvKRecord.battle_result === 'W' ? 'Win' : 'Loss'}
+                  {selectedKvKRecord.battle_result === 'Win' || selectedKvKRecord.battle_result === 'W' ? t('reportKvkError.win') : t('reportKvkError.loss')}
                 </div>
               </div>
             </div>
@@ -235,7 +237,7 @@ const ReportKvKErrorModal: React.FC<ReportKvKErrorModalProps> = ({
         {/* Error Type */}
         <div style={{ marginBottom: '1rem' }}>
           <label style={{ display: 'block', color: '#9ca3af', fontSize: '0.8rem', marginBottom: '0.5rem' }}>
-            What&apos;s wrong?
+            {t('reportKvkError.whatsWrong')}
           </label>
           <select
             value={errorType}
@@ -250,9 +252,9 @@ const ReportKvKErrorModal: React.FC<ReportKvKErrorModalProps> = ({
               fontSize: '0.85rem'
             }}
           >
-            <option value="">-- Select error type --</option>
-            {ERROR_TYPES.map(et => (
-              <option key={et.key} value={et.key}>{et.label}</option>
+            <option value="">{t('reportKvkError.selectErrorType')}</option>
+            {ERROR_TYPE_KEYS.map(et => (
+              <option key={et.key} value={et.key}>{t(`reportKvkError.${et.i18nKey}`)}</option>
             ))}
           </select>
         </div>
@@ -260,12 +262,12 @@ const ReportKvKErrorModal: React.FC<ReportKvKErrorModalProps> = ({
         {/* Description */}
         <div style={{ marginBottom: '1rem' }}>
           <label style={{ display: 'block', color: '#9ca3af', fontSize: '0.8rem', marginBottom: '0.5rem' }}>
-            Describe the correct data
+            {t('reportKvkError.describeCorrect')}
           </label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="e.g., 'The opponent was actually Kingdom 245' or 'We won the Battle phase, not lost'"
+            placeholder={t('reportKvkError.descPlaceholder')}
             rows={3}
             style={{
               width: '100%',
@@ -290,7 +292,7 @@ const ReportKvKErrorModal: React.FC<ReportKvKErrorModalProps> = ({
         }}>
           <div style={{ color: '#22d3ee', fontSize: '0.75rem', display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
             <span>ℹ️</span>
-            <span>Reports are reviewed by our team before updates are applied. Thank you for helping keep our data accurate!</span>
+            <span>{t('reportKvkError.reviewNotice')}</span>
           </div>
         </div>
 
@@ -308,7 +310,7 @@ const ReportKvKErrorModal: React.FC<ReportKvKErrorModalProps> = ({
               fontSize: '0.85rem'
             }}
           >
-            Cancel
+            {t('reportKvkError.cancel')}
           </button>
           <button
             onClick={handleSubmit}
@@ -328,7 +330,7 @@ const ReportKvKErrorModal: React.FC<ReportKvKErrorModalProps> = ({
             }}
           >
             {submitting && <span className="loading-spinner" style={{ width: '14px', height: '14px' }} />}
-            🚩 Submit Report
+            🚩 {t('reportKvkError.submitReport')}
           </button>
         </div>
       </div>

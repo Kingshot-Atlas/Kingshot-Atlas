@@ -308,7 +308,7 @@ const ScoreSimulator: React.FC<ScoreSimulatorProps> = ({ kingdom, isExpanded: ex
                       whiteSpace: 'nowrap',
                       flexShrink: 0
                     }}>
-                      {outcome.emoji} {outcome.label}
+                      {outcome.emoji} {t(`outcomes.${outcome.label}`, outcome.label)}
                     </span>
 
                     {/* Remove Button */}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { apiService } from '../services/api';
@@ -9,6 +10,7 @@ import { isSupabaseConfigured } from '../lib/supabase';
 import { useFavoritesContext } from '../contexts/FavoritesContext';
 
 const ProfileFeatures: React.FC = () => {
+  const { t } = useTranslation();
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const { favorites, toggleFavorite } = useFavoritesContext();
@@ -171,17 +173,17 @@ const ProfileFeatures: React.FC = () => {
       
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', fontSize: '0.8rem' }}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ color: '#6b7280' }}>KvKs</div>
+          <div style={{ color: '#6b7280' }}>{t('profileFeatures.kvks')}</div>
           <div style={{ color: themeColor, fontWeight: 'bold' }}>{kingdom.total_kvks}</div>
         </div>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ color: '#6b7280' }}>Prep</div>
+          <div style={{ color: '#6b7280' }}>{t('profileFeatures.prep')}</div>
           <div style={{ color: kingdom.prep_win_rate >= 0.8 ? '#22c55e' : '#ef4444', fontWeight: 'bold' }}>
             {Math.round(kingdom.prep_win_rate * 100)}%
           </div>
         </div>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ color: '#6b7280' }}>Battle</div>
+          <div style={{ color: '#6b7280' }}>{t('profileFeatures.battle')}</div>
           <div style={{ color: kingdom.battle_win_rate >= 0.8 ? '#22c55e' : '#ef4444', fontWeight: 'bold' }}>
             {Math.round(kingdom.battle_win_rate * 100)}%
           </div>
@@ -291,7 +293,7 @@ const ProfileFeatures: React.FC = () => {
           }}
         >
           <span>🏠</span>
-          <span>View Home Kingdom</span>
+          <span>{t('profileFeatures.viewHomeKingdom')}</span>
         </button>
       )}
     </div>
@@ -311,7 +313,7 @@ const ProfileFeatures: React.FC = () => {
           border: `1px solid ${themeColor}30`
         }}>
           <h3 style={{ color: '#fff', fontSize: '1.1rem', fontWeight: '600', marginBottom: '1rem', textAlign: 'center' }}>
-            Home Kingdom Stats
+            {t('profileFeatures.homeKingdomStats')}
           </h3>
           <KingdomCard kingdom={homeKingdomData} showRemove={false} />
         </div>
@@ -327,7 +329,7 @@ const ProfileFeatures: React.FC = () => {
           border: '1px solid #2a2a2a'
         }}>
           <h3 style={{ color: '#fff', fontSize: '1.1rem', fontWeight: '600', marginBottom: '1rem', textAlign: 'center' }}>
-              Favorites
+              {t('profileFeatures.favorites')}
               <span style={{ fontSize: '0.8rem', color: '#6b7280', fontWeight: 'normal', marginLeft: '0.5rem' }}>
                 ({favoriteKingdoms.length})
               </span>
@@ -369,7 +371,7 @@ const ProfileFeatures: React.FC = () => {
                 e.currentTarget.style.borderColor = `${themeColor}40`;
               }}
             >
-              {showAllFavorites ? '▲ Show Less' : `▼ View All ${favoriteKingdoms.length} Favorites`}
+              {showAllFavorites ? t('profileFeatures.showLess') : t('profileFeatures.viewAllFavorites', { count: favoriteKingdoms.length })}
             </button>
           )}
         </div>
@@ -384,7 +386,7 @@ const ProfileFeatures: React.FC = () => {
           border: '1px solid #2a2a2a'
         }}>
           <h3 style={{ color: '#fff', fontSize: '1.1rem', fontWeight: '600', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            👁️ Watchlist ({watchlist.length})
+            👁️ {t('profileFeatures.watchlist')} ({watchlist.length})
           </h3>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
             {watchlist.map(kingdomNumber => (
@@ -404,7 +406,7 @@ const ProfileFeatures: React.FC = () => {
         }}>
           <h3 style={{ color: '#fff', fontSize: '1.1rem', fontWeight: '600', marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-              Review History
+              {t('profileFeatures.reviewHistory')}
               <span style={{ fontSize: '0.8rem', color: '#6b7280', fontWeight: 'normal' }}>
                 ({reviews.length})
               </span>
@@ -422,18 +424,18 @@ const ProfileFeatures: React.FC = () => {
                   alignItems: 'center',
                   gap: '0.25rem'
                 }}>
-                  ⭐ TOP REVIEWER
+                  ⭐ {t('profileFeatures.topReviewer')}
                 </span>
               )}
               {/* Helpful count */}
               {totalHelpfulCount > 0 && (
                 <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 'normal' }}>
-                  • 👍 {totalHelpfulCount} helpful
+                  • 👍 {totalHelpfulCount} {t('profileFeatures.helpful')}
                 </span>
               )}
             </span>
             <span style={{ fontSize: '0.7rem', color: '#6b7280', fontWeight: 'normal' }}>
-              Most Recent First
+              {t('profileFeatures.mostRecentFirst')}
             </span>
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -465,7 +467,7 @@ const ProfileFeatures: React.FC = () => {
                 e.currentTarget.style.borderColor = `${themeColor}40`;
               }}
             >
-              {showAllReviews ? '▲ Show Less' : `▼ View All ${reviews.length} Reviews`}
+              {showAllReviews ? t('profileFeatures.showLess') : t('profileFeatures.viewAllReviews', { count: reviews.length })}
             </button>
           )}
         </div>
@@ -487,7 +489,7 @@ const ProfileFeatures: React.FC = () => {
             fontWeight: '600', 
             marginBottom: '0.75rem' 
           }}>
-            Start Building Your Profile
+            {t('profileFeatures.startBuildingProfile')}
           </h3>
           <p style={{ 
             color: '#6b7280', 
@@ -496,7 +498,7 @@ const ProfileFeatures: React.FC = () => {
             lineHeight: 1.6,
             padding: isMobile ? '0 0.5rem' : 0
           }}>
-            Add kingdoms to your favorites, create a watchlist, and write reviews to personalize your profile.
+            {t('profileFeatures.emptyStateDesc')}
           </p>
           <Link 
             to="/"
@@ -529,7 +531,7 @@ const ProfileFeatures: React.FC = () => {
               }
             }}
           >
-            Browse Kingdoms
+            {t('profileFeatures.browseKingdoms')}
           </Link>
         </div>
       )}
@@ -539,6 +541,7 @@ const ProfileFeatures: React.FC = () => {
 
 // Helper component to load kingdom data
 const KingCardLoader: React.FC<{ kingdomNumber: number; onRemove: () => void; themeColor: string; isMobile: boolean }> = ({ kingdomNumber, onRemove, themeColor, isMobile }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [kingdom, setKingdom] = useState<Kingdom | null>(null);
   const [loading, setLoading] = useState(true);
@@ -565,7 +568,7 @@ const KingCardLoader: React.FC<{ kingdomNumber: number; onRemove: () => void; th
         textAlign: 'center',
         color: '#6b7280'
       }}>
-        Loading K-{kingdomNumber}...
+        {t('profileFeatures.loadingKingdom', { num: kingdomNumber })}
       </div>
     );
   }
@@ -580,7 +583,7 @@ const KingCardLoader: React.FC<{ kingdomNumber: number; onRemove: () => void; th
         textAlign: 'center',
         color: '#ef4444'
       }}>
-        K-{kingdomNumber} not found in database
+        {t('profileFeatures.kingdomNotFound', { num: kingdomNumber })}
         <button
           onClick={onRemove}
           style={{
@@ -595,7 +598,7 @@ const KingCardLoader: React.FC<{ kingdomNumber: number; onRemove: () => void; th
             cursor: 'pointer'
           }}
         >
-          Remove
+          {t('profileFeatures.remove')}
         </button>
       </div>
     );
@@ -670,17 +673,17 @@ const KingCardLoader: React.FC<{ kingdomNumber: number; onRemove: () => void; th
       
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', fontSize: '0.8rem' }}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ color: '#6b7280' }}>KvKs</div>
+          <div style={{ color: '#6b7280' }}>{t('profileFeatures.kvks')}</div>
           <div style={{ color: themeColor, fontWeight: 'bold' }}>{kingdom.total_kvks}</div>
         </div>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ color: '#6b7280' }}>Prep</div>
+          <div style={{ color: '#6b7280' }}>{t('profileFeatures.prep')}</div>
           <div style={{ color: kingdom.prep_win_rate >= 0.8 ? '#22c55e' : '#ef4444', fontWeight: 'bold' }}>
             {Math.round(kingdom.prep_win_rate * 100)}%
           </div>
         </div>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ color: '#6b7280' }}>Battle</div>
+          <div style={{ color: '#6b7280' }}>{t('profileFeatures.battle')}</div>
           <div style={{ color: kingdom.battle_win_rate >= 0.8 ? '#22c55e' : '#ef4444', fontWeight: 'bold' }}>
             {Math.round(kingdom.battle_win_rate * 100)}%
           </div>

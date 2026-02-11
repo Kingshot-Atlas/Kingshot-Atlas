@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { REFERRAL_TIER_COLORS, REFERRAL_TIER_LABELS, ReferralTier } from '../utils/constants';
 
@@ -17,6 +18,7 @@ interface ReferralMetrics {
 }
 
 export const ReferralFunnel: React.FC = () => {
+  const { t } = useTranslation();
   const [metrics, setMetrics] = useState<ReferralMetrics | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -144,27 +146,27 @@ export const ReferralFunnel: React.FC = () => {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.75rem', marginBottom: '1.5rem' }}>
         <div style={statCardStyle}>
           <div style={{ fontSize: '1.5rem', fontWeight: '800', color: '#22d3ee' }}>{metrics.totalReferrals}</div>
-          <div style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.25rem' }}>Total Referrals</div>
+          <div style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.25rem' }}>{t('referralFunnel.totalReferrals')}</div>
         </div>
         <div style={statCardStyle}>
           <div style={{ fontSize: '1.5rem', fontWeight: '800', color: '#fbbf24' }}>{metrics.pendingReferrals}</div>
-          <div style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.25rem' }}>Pending</div>
+          <div style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.25rem' }}>{t('referralFunnel.pending')}</div>
         </div>
         <div style={statCardStyle}>
           <div style={{ fontSize: '1.5rem', fontWeight: '800', color: '#22c55e' }}>{metrics.verifiedReferrals}</div>
-          <div style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.25rem' }}>Verified</div>
+          <div style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.25rem' }}>{t('referralFunnel.verified')}</div>
         </div>
         <div style={statCardStyle}>
           <div style={{ fontSize: '1.5rem', fontWeight: '800', color: '#ef4444' }}>{metrics.invalidReferrals}</div>
-          <div style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.25rem' }}>Invalid</div>
+          <div style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.25rem' }}>{t('referralFunnel.invalid')}</div>
         </div>
         <div style={statCardStyle}>
           <div style={{ fontSize: '1.5rem', fontWeight: '800', color: '#a855f7' }}>{metrics.conversionRate}%</div>
-          <div style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.25rem' }}>Conversion Rate</div>
+          <div style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.25rem' }}>{t('referralFunnel.conversionRate')}</div>
         </div>
         <div style={statCardStyle}>
           <div style={{ fontSize: '1.5rem', fontWeight: '800', color: '#fff' }}>{metrics.uniqueReferrers}</div>
-          <div style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.25rem' }}>Active Referrers</div>
+          <div style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.25rem' }}>{t('referralFunnel.activeReferrers')}</div>
         </div>
       </div>
 
@@ -209,9 +211,9 @@ export const ReferralFunnel: React.FC = () => {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1rem' }}>
         {/* Tier Breakdown */}
         <div style={{ ...statCardStyle, textAlign: 'left' }}>
-          <h4 style={{ color: '#fff', fontSize: '0.85rem', margin: '0 0 0.75rem', fontWeight: '600' }}>Tier Distribution</h4>
+          <h4 style={{ color: '#fff', fontSize: '0.85rem', margin: '0 0 0.75rem', fontWeight: '600' }}>{t('referralFunnel.tierDistribution')}</h4>
           {metrics.tierBreakdown.length === 0 ? (
-            <div style={{ color: '#4b5563', fontSize: '0.8rem' }}>No users with referral tiers yet</div>
+            <div style={{ color: '#4b5563', fontSize: '0.8rem' }}>{t('referralFunnel.noTiersYet')}</div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               {(['ambassador', 'consul', 'recruiter', 'scout'] as ReferralTier[]).map(tier => {
@@ -243,9 +245,9 @@ export const ReferralFunnel: React.FC = () => {
 
         {/* Top Referrers */}
         <div style={{ ...statCardStyle, textAlign: 'left' }}>
-          <h4 style={{ color: '#fff', fontSize: '0.85rem', margin: '0 0 0.75rem', fontWeight: '600' }}>Top Referrers</h4>
+          <h4 style={{ color: '#fff', fontSize: '0.85rem', margin: '0 0 0.75rem', fontWeight: '600' }}>{t('referralFunnel.topReferrers')}</h4>
           {metrics.topReferrers.length === 0 ? (
-            <div style={{ color: '#4b5563', fontSize: '0.8rem' }}>No referrers yet</div>
+            <div style={{ color: '#4b5563', fontSize: '0.8rem' }}>{t('referralFunnel.noReferrersYet')}</div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
               {metrics.topReferrers.slice(0, 5).map((ref, i) => {
@@ -281,19 +283,19 @@ export const ReferralFunnel: React.FC = () => {
 
       {/* Recent Referrals Table */}
       <div style={{ ...statCardStyle, textAlign: 'left', marginTop: '1rem' }}>
-        <h4 style={{ color: '#fff', fontSize: '0.85rem', margin: '0 0 0.75rem', fontWeight: '600' }}>Recent Referrals</h4>
+        <h4 style={{ color: '#fff', fontSize: '0.85rem', margin: '0 0 0.75rem', fontWeight: '600' }}>{t('referralFunnel.recentReferrals')}</h4>
         {metrics.recentReferrals.length === 0 ? (
-          <div style={{ color: '#4b5563', fontSize: '0.8rem' }}>No referrals yet</div>
+          <div style={{ color: '#4b5563', fontSize: '0.8rem' }}>{t('referralFunnel.noReferralsYet')}</div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid #2a2a2a' }}>
-                  <th style={{ textAlign: 'left', padding: '0.4rem', color: '#6b7280', fontWeight: '600' }}>Referrer</th>
-                  <th style={{ textAlign: 'left', padding: '0.4rem', color: '#6b7280', fontWeight: '600' }}>Referred</th>
-                  <th style={{ textAlign: 'left', padding: '0.4rem', color: '#6b7280', fontWeight: '600' }}>Status</th>
-                  <th style={{ textAlign: 'left', padding: '0.4rem', color: '#6b7280', fontWeight: '600' }}>Source</th>
-                  <th style={{ textAlign: 'left', padding: '0.4rem', color: '#6b7280', fontWeight: '600' }}>Date</th>
+                  <th style={{ textAlign: 'left', padding: '0.4rem', color: '#6b7280', fontWeight: '600' }}>{t('referralFunnel.referrer')}</th>
+                  <th style={{ textAlign: 'left', padding: '0.4rem', color: '#6b7280', fontWeight: '600' }}>{t('referralFunnel.referred')}</th>
+                  <th style={{ textAlign: 'left', padding: '0.4rem', color: '#6b7280', fontWeight: '600' }}>{t('referralFunnel.status')}</th>
+                  <th style={{ textAlign: 'left', padding: '0.4rem', color: '#6b7280', fontWeight: '600' }}>{t('referralFunnel.source')}</th>
+                  <th style={{ textAlign: 'left', padding: '0.4rem', color: '#6b7280', fontWeight: '600' }}>{t('referralFunnel.date')}</th>
                 </tr>
               </thead>
               <tbody>

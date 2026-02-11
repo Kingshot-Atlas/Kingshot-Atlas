@@ -232,7 +232,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                   lineHeight: 1.5,
                   fontWeight: 500
                 }}>
-                  📱 Opens Discord in your browser
+                  📱 {t('auth.discordOpensInBrowser', 'Opens Discord in your browser')}
                 </p>
                 <p style={{ 
                   color: '#9ca3af', 
@@ -242,7 +242,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                   marginBottom: 0,
                   lineHeight: 1.4
                 }}>
-                  Discord requires browser login for security. Check &quot;Remember me&quot; for faster future logins. You&apos;ll be redirected back automatically.
+                  {t('auth.discordBrowserHint', 'Discord requires browser login for security. Check "Remember me" for faster future logins. You\'ll be redirected back automatically.')}
                 </p>
               </div>
             )}
@@ -257,7 +257,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           {t('auth.termsAgreement', 'By signing in, you agree to our Terms of Service and Privacy Policy.')}
           <br />
           <span style={{ fontSize: '0.75rem', color: '#4b5563' }}>
-            We use OAuth providers to prevent spam accounts.
+            {t('auth.oauthDisclaimer', 'We use OAuth providers to prevent spam accounts.')}
           </span>
         </p>
       </div>

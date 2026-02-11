@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Kingdom } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from './Toast';
@@ -28,6 +29,7 @@ const CORRECTABLE_FIELDS = [
 ];
 
 const ReportDataModal: React.FC<ReportDataModalProps> = ({ kingdom, isOpen, onClose }) => {
+  const { t } = useTranslation();
   const { user, profile } = useAuth();
   const { showToast } = useToast();
   const [corrections, setCorrections] = useState<DataCorrection[]>([]);
@@ -54,7 +56,7 @@ const ReportDataModal: React.FC<ReportDataModalProps> = ({ kingdom, isOpen, onCl
 
     const currentValue = getCurrentValue(selectedField);
     if (currentValue === suggestedValue) {
-      showToast('Suggested value is same as current value', 'error');
+      showToast(t('reportData.sameValue'), 'error');
       return;
     }
 
@@ -73,7 +75,7 @@ const ReportDataModal: React.FC<ReportDataModalProps> = ({ kingdom, isOpen, onCl
 
   const handleSubmit = async () => {
     if (corrections.length === 0) {
-      showToast('Please add at least one correction', 'error');
+      showToast(t('reportData.addAtLeastOne'), 'error');
       return;
     }
 
@@ -87,7 +89,7 @@ const ReportDataModal: React.FC<ReportDataModalProps> = ({ kingdom, isOpen, onCl
           suggested_value: c.suggestedValue
         });
         if (duplicate.isDuplicate) {
-          showToast(`A similar correction for ${c.field} is already pending review`, 'error');
+          showToast(t('reportData.duplicatePending', { field: c.field }), 'error');
           setSubmitting(false);
           return;
         }
@@ -119,10 +121,10 @@ const ReportDataModal: React.FC<ReportDataModalProps> = ({ kingdom, isOpen, onCl
         }
       }
 
-      showToast('Data correction submitted for review. Thank you!', 'success');
+      showToast(t('reportData.successToast'), 'success');
       onClose();
     } catch (err) {
-      showToast('Failed to submit data correction. Please try again.', 'error');
+      showToast(t('reportData.failedToast'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -161,7 +163,7 @@ const ReportDataModal: React.FC<ReportDataModalProps> = ({ kingdom, isOpen, onCl
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
           <div>
             <h2 style={{ color: '#fff', fontSize: '1.25rem', fontWeight: '600', margin: 0 }}>
-              Report Incorrect Data
+              {t('reportData.title')}
             </h2>
             <p style={{ color: '#6b7280', fontSize: '0.85rem', margin: '0.25rem 0 0' }}>
               Kingdom {kingdom.kingdom_number}
@@ -185,7 +187,7 @@ const ReportDataModal: React.FC<ReportDataModalProps> = ({ kingdom, isOpen, onCl
         {/* Add Correction Form */}
         <div style={{ marginBottom: '1.5rem' }}>
           <label style={{ display: 'block', color: '#9ca3af', fontSize: '0.85rem', marginBottom: '0.5rem' }}>
-            Select Field to Correct
+            {t('reportData.selectField')}
           </label>
           <select
             value={selectedField}
@@ -204,7 +206,7 @@ const ReportDataModal: React.FC<ReportDataModalProps> = ({ kingdom, isOpen, onCl
               marginBottom: '0.75rem'
             }}
           >
-            <option value="">-- Select a field --</option>
+            <option value="">{t('reportData.selectFieldPlaceholder')}</option>
             {CORRECTABLE_FIELDS.map(f => (
               <option key={f.key} value={f.key}>{f.label}</option>
             ))}
@@ -221,12 +223,12 @@ const ReportDataModal: React.FC<ReportDataModalProps> = ({ kingdom, isOpen, onCl
                 borderRadius: '8px'
               }}>
                 <div style={{ flex: 1 }}>
-                  <div style={{ color: '#6b7280', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Current Value</div>
+                  <div style={{ color: '#6b7280', fontSize: '0.75rem', marginBottom: '0.25rem' }}>{t('reportData.currentValue')}</div>
                   <div style={{ color: '#ef4444', fontWeight: '600' }}>{getCurrentValue(selectedField)}</div>
                 </div>
                 <div style={{ color: '#3a3a3a', display: 'flex', alignItems: 'center' }}>→</div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ color: '#6b7280', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Correct Value</div>
+                  <div style={{ color: '#6b7280', fontSize: '0.75rem', marginBottom: '0.25rem' }}>{t('reportData.correctValue')}</div>
                   {fieldConfig?.type === 'select' ? (
                     <select
                       value={suggestedValue}
@@ -251,7 +253,7 @@ const ReportDataModal: React.FC<ReportDataModalProps> = ({ kingdom, isOpen, onCl
                       type="number"
                       value={suggestedValue}
                       onChange={(e) => setSuggestedValue(e.target.value)}
-                      placeholder="Enter correct value"
+                      placeholder={t('reportData.enterCorrectValue')}
                       style={{
                         width: '100%',
                         padding: '0.5rem',
@@ -279,7 +281,7 @@ const ReportDataModal: React.FC<ReportDataModalProps> = ({ kingdom, isOpen, onCl
                   fontWeight: '500'
                 }}
               >
-                + Add Correction
+                {t('reportData.addCorrection')}
               </button>
             </>
           )}
@@ -289,7 +291,7 @@ const ReportDataModal: React.FC<ReportDataModalProps> = ({ kingdom, isOpen, onCl
         {corrections.length > 0 && (
           <div style={{ marginBottom: '1.5rem' }}>
             <div style={{ color: '#9ca3af', fontSize: '0.85rem', marginBottom: '0.5rem' }}>
-              Corrections to Submit ({corrections.length})
+              {t('reportData.correctionsToSubmit', { count: corrections.length })}
             </div>
             {corrections.map((c, i) => (
               <div
@@ -330,12 +332,12 @@ const ReportDataModal: React.FC<ReportDataModalProps> = ({ kingdom, isOpen, onCl
         {/* Notes */}
         <div style={{ marginBottom: '1.5rem' }}>
           <label style={{ display: 'block', color: '#9ca3af', fontSize: '0.85rem', marginBottom: '0.5rem' }}>
-            Additional Notes (optional)
+            {t('reportData.additionalNotes')}
           </label>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Provide any context or source for the correction..."
+            placeholder={t('reportData.notesPlaceholder')}
             rows={3}
             style={{
               width: '100%',
@@ -360,7 +362,7 @@ const ReportDataModal: React.FC<ReportDataModalProps> = ({ kingdom, isOpen, onCl
         }}>
           <div style={{ color: '#eab308', fontSize: '0.8rem', display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
             <span>⚠️</span>
-            <span>Submissions are reviewed before being applied. False reports may affect your reputation score.</span>
+            <span>{t('reportData.reviewWarning')}</span>
           </div>
         </div>
 
@@ -378,7 +380,7 @@ const ReportDataModal: React.FC<ReportDataModalProps> = ({ kingdom, isOpen, onCl
               fontSize: '0.9rem'
             }}
           >
-            Cancel
+            {t('reportData.cancel')}
           </button>
           <button
             onClick={handleSubmit}
@@ -398,7 +400,7 @@ const ReportDataModal: React.FC<ReportDataModalProps> = ({ kingdom, isOpen, onCl
             }}
           >
             {submitting && <span className="loading-spinner" style={{ width: '14px', height: '14px' }} />}
-            Submit for Review
+            {t('reportData.submitForReview')}
           </button>
         </div>
       </div>

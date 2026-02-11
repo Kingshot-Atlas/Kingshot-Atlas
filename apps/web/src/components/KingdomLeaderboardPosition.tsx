@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { neonGlow } from '../utils/styles';
 
@@ -18,6 +19,7 @@ const KingdomLeaderboardPosition: React.FC<{
   themeColor: string;
   isMobile: boolean;
 }> = ({ kingdomId, themeColor, isMobile }) => {
+  const { t } = useTranslation();
   const [kingdom, setKingdom] = useState<KingdomData | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -55,7 +57,7 @@ const KingdomLeaderboardPosition: React.FC<{
       marginBottom: '1.5rem',
       border: '1px solid #2a2a2a',
     }}>
-      <div style={{ color: '#6b7280', fontSize: '0.85rem' }}>Loading kingdom data...</div>
+      <div style={{ color: '#6b7280', fontSize: '0.85rem' }}>{t('leaderboardPosition.loadingData')}</div>
     </div>
   );
   if (!kingdom) return null;
@@ -74,7 +76,7 @@ const KingdomLeaderboardPosition: React.FC<{
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
           <span style={{ fontSize: '1.1rem' }}>🏆</span>
           <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: '600', color: '#fff' }}>
-            User&apos;s Kingdom Rankings
+            {t('leaderboardPosition.userKingdomRankings')}
           </h3>
         </div>
         
@@ -84,19 +86,19 @@ const KingdomLeaderboardPosition: React.FC<{
           gap: '0.75rem',
         }}>
           <div style={{ padding: '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <div style={{ fontSize: '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Kingdom</div>
+            <div style={{ fontSize: '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>{t('leaderboardPosition.kingdom')}</div>
             <div style={{ fontSize: '1.25rem', fontWeight: '700', color: '#fff' }}>{kingdom.id}</div>
           </div>
           <div style={{ padding: '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <div style={{ fontSize: '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Atlas Score</div>
+            <div style={{ fontSize: '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>{t('leaderboardPosition.atlasScore')}</div>
             <div style={{ fontSize: '1.25rem', fontWeight: '700', ...neonGlow(themeColor) }}>{kingdom.atlas_score.toFixed(2)}</div>
           </div>
           <div style={{ padding: '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <div style={{ fontSize: '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Rank</div>
+            <div style={{ fontSize: '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>{t('leaderboardPosition.rank')}</div>
             <div style={{ fontSize: '1.25rem', fontWeight: '700', ...neonGlow(themeColor) }}>#{kingdom.rank}</div>
           </div>
           <div style={{ padding: '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <div style={{ fontSize: '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Experience</div>
+            <div style={{ fontSize: '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>{t('leaderboardPosition.experience')}</div>
             <div style={{ fontSize: '1.25rem', fontWeight: '700', color: '#fff' }}>{kingdom.kvk_count} KvKs</div>
           </div>
         </div>

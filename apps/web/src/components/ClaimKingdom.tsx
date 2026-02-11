@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface ClaimKingdomProps {
   kingdomNumber: number;
@@ -7,6 +8,7 @@ interface ClaimKingdomProps {
 }
 
 const ClaimKingdom: React.FC<ClaimKingdomProps> = ({ kingdomNumber, isOpen, onClose }) => {
+  const { t } = useTranslation();
   if (!isOpen) return null;
 
   return (
@@ -49,7 +51,7 @@ const ClaimKingdom: React.FC<ClaimKingdomProps> = ({ kingdomNumber, isOpen, onCl
           textTransform: 'uppercase',
           letterSpacing: '0.5px'
         }}>
-          Coming Soon
+          {t('claimKingdom.comingSoon')}
         </div>
 
         {/* Icon */}
@@ -63,7 +65,7 @@ const ClaimKingdom: React.FC<ClaimKingdomProps> = ({ kingdomNumber, isOpen, onCl
           margin: '0 0 0.75rem',
           fontFamily: "'Cinzel', serif"
         }}>
-          Claim Kingdom {kingdomNumber}
+          {t('claimKingdom.claimKingdom', { num: kingdomNumber })}
         </h2>
 
         {/* Description */}
@@ -73,9 +75,7 @@ const ClaimKingdom: React.FC<ClaimKingdomProps> = ({ kingdomNumber, isOpen, onCl
           lineHeight: 1.6,
           margin: '0 0 1.5rem'
         }}>
-          Soon you&apos;ll be able to <strong style={{ color: '#a855f7' }}>officially represent</strong> your kingdom. 
-          Verified leaders get a special badge, can customize their kingdom&apos;s profile banner, 
-          and receive transfer interest from players looking to join.
+          {t('claimKingdom.description')}
         </p>
 
         {/* Recruiter Tier Note */}
@@ -86,7 +86,7 @@ const ClaimKingdom: React.FC<ClaimKingdomProps> = ({ kingdomNumber, isOpen, onCl
           marginBottom: '1.5rem'
         }}>
           <p style={{ color: '#6b7280', fontSize: '0.8rem', margin: 0 }}>
-            This feature will be available to <span style={{ color: '#a855f7', fontWeight: '600' }}>Atlas Recruiter</span> subscribers.
+            {t('claimKingdom.recruiterNote')}
           </p>
         </div>
 
@@ -105,7 +105,7 @@ const ClaimKingdom: React.FC<ClaimKingdomProps> = ({ kingdomNumber, isOpen, onCl
             transition: 'all 0.2s'
           }}
         >
-          Got it
+          {t('claimKingdom.gotIt')}
         </button>
       </div>
     </div>
