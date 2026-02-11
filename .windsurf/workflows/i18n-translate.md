@@ -1,5 +1,5 @@
 ---
-description: Translate new or changed content into all supported languages (ES/FR/ZH/DE/KO)
+description: Translate new or changed content into all supported languages (ES/FR/ZH/DE/KO/JA)
 ---
 
 # i18n Translation Workflow
@@ -41,12 +41,13 @@ For each new/changed key in EN, add the translation to:
 - `src/locales/zh/translation.json` (Chinese)
 - `src/locales/de/translation.json` (German)
 - `src/locales/ko/translation.json` (Korean)
+- `src/locales/ja/translation.json` (Japanese)
 
 **Translation quality guidelines:**
 - Use natural phrasing, not literal word-for-word translation
 - Preserve interpolation variables exactly: `{{count}}`, `{{name}}`
 - Preserve emoji placement
-- For plural forms: add `_one`/`_other` variants (Chinese uses same form for both)
+- For plural forms: add `_one`/`_other` variants (Chinese and Japanese use same form for both)
 - For game-specific terms (KvK, Prep, Battle), keep English or use established translations
 
 ### 5. Sync and validate

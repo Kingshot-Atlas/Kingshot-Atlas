@@ -21,7 +21,7 @@ const LOCALES_DIR = path.join(__dirname, '..', 'src', 'locales');
 const SNAPSHOT_FILE = path.join(__dirname, '..', '.i18n-baseline.json');
 const EN_FILE = path.join(LOCALES_DIR, 'en', 'translation.json');
 
-const LANGUAGES = ['es', 'fr', 'zh', 'de', 'ko'];
+const LANGUAGES = ['es', 'fr', 'zh', 'de', 'ko', 'ja'];
 
 function flattenKeys(obj, prefix = '') {
   const keys = {};

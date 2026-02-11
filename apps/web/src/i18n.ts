@@ -7,7 +7,7 @@ import HttpBackend from 'i18next-http-backend';
 import en from './locales/en/translation.json';
 
 // Supported languages — add new languages here and in public/locales/{code}/
-export const SUPPORTED_LANGUAGES = ['en', 'es', 'fr', 'zh', 'de', 'ko'] as const;
+export const SUPPORTED_LANGUAGES = ['en', 'es', 'fr', 'zh', 'de', 'ko', 'ja'] as const;
 export type SupportedLanguage = typeof SUPPORTED_LANGUAGES[number];
 
 // Language metadata for UI (Header, etc.)
@@ -19,6 +19,7 @@ export const LANGUAGE_META: Record<SupportedLanguage, { label: string; flag: str
   zh: { label: '中文', flag: '🇨🇳', dir: 'ltr' },
   de: { label: 'Deutsch', flag: '🇩🇪', dir: 'ltr' },
   ko: { label: '한국어', flag: '🇰🇷', dir: 'ltr' },
+  ja: { label: '日本語', flag: '🇯🇵', dir: 'ltr' },
 };
 
 i18n
