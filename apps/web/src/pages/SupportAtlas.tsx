@@ -515,10 +515,10 @@ const SupportAtlas: React.FC = () => {
           </h2>
           <div style={{ display: 'grid', gap: '0.75rem' }}>
             {[
-              { icon: '🛠️', title: 'Fund Development', desc: 'New features, better performance, more data—your support makes it happen.' },
-              { icon: '🖥️', title: 'Keep Servers Running', desc: 'Hosting isn\'t free. Your support covers infrastructure costs.' },
-              { icon: '🤝', title: 'Community First', desc: 'No corporate overlords. Just players helping players.' },
-              { icon: '💡', title: 'Shape the Future', desc: 'Supporters get early access and input on what we build next.' },
+              { icon: '🛠️', title: t('support.fundDev', 'Fund Development'), desc: t('support.fundDevDesc', 'New features, better performance, more data—your support makes it happen.') },
+              { icon: '🖥️', title: t('support.keepServers', 'Keep Servers Running'), desc: t('support.keepServersDesc', 'Hosting isn\'t free. Your support covers infrastructure costs.') },
+              { icon: '🤝', title: t('support.communityFirst', 'Community First'), desc: t('support.communityFirstDesc', 'No corporate overlords. Just players helping players.') },
+              { icon: '💡', title: t('support.shapeFuture', 'Shape the Future'), desc: t('support.shapeFutureDesc', 'Supporters get early access and input on what we build next.') },
             ].map((item, i) => (
               <div key={i} style={{
                 backgroundColor: '#111111',

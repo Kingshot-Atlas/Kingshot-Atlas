@@ -513,7 +513,7 @@ const KingdomDirectory: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem', marginTop: '0.75rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <span style={{ color: '#6b7280', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
-              Showing <span style={{ ...neonGlow('#22d3ee'), fontWeight: '600' }}>{displayedKingdoms.length}</span> of {filteredKingdoms.length} kingdoms
+              {t('kingdomDirectory.showing', 'Showing')} <span style={{ ...neonGlow('#22d3ee'), fontWeight: '600' }}>{displayedKingdoms.length}</span> {t('kingdomDirectory.of', 'of')} {filteredKingdoms.length} {t('kingdomDirectory.kingdoms', 'kingdoms')}
               {showFavoritesOnly && <span style={{ color: '#22d3ee' }}> (Favorites)</span>}
             </span>
             <DataSyncIndicator compact />
@@ -954,7 +954,7 @@ const KingdomDirectory: React.FC = () => {
         {/* End of list indicator */}
         {displayCount >= filteredKingdoms.length && filteredKingdoms.length > 0 && !loading && (
           <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280', fontSize: '0.9rem' }}>
-            Showing all {filteredKingdoms.length} kingdoms
+            {t('kingdomDirectory.showingAll', 'Showing all')} {filteredKingdoms.length} {t('kingdomDirectory.kingdoms', 'kingdoms')}
           </div>
         )}
       </div>

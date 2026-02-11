@@ -24,7 +24,9 @@ const Header: React.FC = () => {
   const { trackButton } = useAnalytics();
   const { t, i18n } = useTranslation();
   const [showLangMenu, setShowLangMenu] = useState(false);
+  const [showMobileLangMenu, setShowMobileLangMenu] = useState(false);
   const langMenuRef = useRef<HTMLDivElement>(null);
+  const mobileLangMenuRef = useRef<HTMLDivElement>(null);
   const isAdmin = profile?.username && ADMIN_USERNAMES.includes(profile.username.toLowerCase());
   const [showLoginMenu, setShowLoginMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -43,14 +45,18 @@ const Header: React.FC = () => {
       if (langMenuRef.current && !langMenuRef.current.contains(e.target as Node)) {
         setShowLangMenu(false);
       }
+      if (mobileLangMenuRef.current && !mobileLangMenuRef.current.contains(e.target as Node)) {
+        setShowMobileLangMenu(false);
+      }
     };
-    if (showLangMenu) document.addEventListener('mousedown', handleClickOutside);
+    if (showLangMenu || showMobileLangMenu) document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showLangMenu]);
+  }, [showLangMenu, showMobileLangMenu]);
 
   const changeLanguage = (code: string) => {
     i18n.changeLanguage(code);
     setShowLangMenu(false);
+    setShowMobileLangMenu(false);
     trackButton(`Language Switch: ${code}`);
   };
   
@@ -232,6 +238,77 @@ const Header: React.FC = () => {
             </a>
             {/* Notification Bell - mobile */}
             {user && <NotificationBell />}
+            {/* Mobile Language Switcher */}
+            <div ref={mobileLangMenuRef} style={{ position: 'relative' }}>
+              <button
+                onClick={() => setShowMobileLangMenu(!showMobileLangMenu)}
+                aria-label="Change language"
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  padding: 0,
+                  backgroundColor: showMobileLangMenu ? '#22d3ee20' : 'transparent',
+                  border: showMobileLangMenu ? '1px solid #22d3ee' : '1px solid #2a2a2a',
+                  borderRadius: '8px',
+                  color: showMobileLangMenu ? '#22d3ee' : '#9ca3af',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M2 12h20" />
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                </svg>
+              </button>
+              {showMobileLangMenu && (
+                <div style={{
+                  position: 'absolute',
+                  top: '100%',
+                  right: 0,
+                  marginTop: '6px',
+                  backgroundColor: '#111116',
+                  border: '1px solid #2a2a2a',
+                  borderRadius: '10px',
+                  padding: '0.25rem',
+                  minWidth: '160px',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+                  zIndex: 100,
+                  animation: 'fadeIn 0.15s ease-out'
+                }}>
+                  {LANGUAGE_OPTIONS.map((lang) => (
+                    <button
+                      key={lang.code}
+                      onClick={() => changeLanguage(lang.code)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.6rem',
+                        width: '100%',
+                        padding: '0.6rem 0.75rem',
+                        backgroundColor: i18n.language === lang.code ? '#22d3ee15' : 'transparent',
+                        border: 'none',
+                        borderRadius: '8px',
+                        color: i18n.language === lang.code ? '#22d3ee' : '#d1d5db',
+                        fontSize: '0.9rem',
+                        fontWeight: i18n.language === lang.code ? '600' : '400',
+                        cursor: 'pointer',
+                        transition: 'background-color 0.15s ease'
+                      }}
+                    >
+                      <span style={{ fontSize: '1.2rem' }}>{lang.flag}</span>
+                      <span>{lang.label}</span>
+                      {i18n.language === lang.code && (
+                        <span style={{ marginLeft: 'auto', fontSize: '0.75rem' }}>✓</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             {/* Hamburger Menu */}
             <button
               onClick={() => setShowMobileMenu(!showMobileMenu)}
@@ -1372,32 +1449,6 @@ const Header: React.FC = () => {
             </svg>
             {t('common.joinDiscord')}
           </a>
-          {/* Language Switcher - Mobile */}
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            {LANGUAGE_OPTIONS.map((lang) => (
-              <button
-                key={lang.code}
-                onClick={() => changeLanguage(lang.code)}
-                style={{
-                  flex: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.4rem',
-                  padding: '0.6rem',
-                  backgroundColor: i18n.language === lang.code ? '#22d3ee15' : '#111',
-                  border: i18n.language === lang.code ? '1px solid #22d3ee40' : '1px solid #2a2a2a',
-                  borderRadius: '8px',
-                  color: i18n.language === lang.code ? '#22d3ee' : '#9ca3af',
-                  cursor: 'pointer',
-                  fontSize: '0.85rem'
-                }}
-              >
-                <span>{lang.flag}</span>
-                {lang.label}
-              </button>
-            ))}
-          </div>
           {/* Sign Out Button - Mobile Menu */}
           {user && (
             <>

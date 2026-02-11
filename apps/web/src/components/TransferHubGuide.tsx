@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { colors } from '../utils/styles';
@@ -6,6 +7,7 @@ import { colors } from '../utils/styles';
 const STORAGE_KEY = 'atlas_transfer_hub_guide_dismissed';
 
 const TransferHubGuide: React.FC = () => {
+  const { t } = useTranslation();
   const isMobile = useIsMobile();
   const { trackFeature } = useAnalytics();
   const [isExpanded, setIsExpanded] = useState(() => {
@@ -36,26 +38,26 @@ const TransferHubGuide: React.FC = () => {
   const recruitSteps = [
     {
       number: '1',
-      title: 'Pick your mode',
-      description: 'Select "I\'m Transferring" from the toggle at the top. This unlocks tools built for you.',
+      title: t('transferHub.guide.recruit.step1Title', 'Pick your mode'),
+      description: t('transferHub.guide.recruit.step1Desc', 'Select "I\'m Transferring" from the toggle at the top. This unlocks tools built for you.'),
       icon: '🎯',
     },
     {
       number: '2',
-      title: 'Create your Transfer Profile',
-      description: 'Set your power, TC level, language, and what you\'re looking for. Kingdoms see this when you apply.',
+      title: t('transferHub.guide.recruit.step2Title', 'Create your Transfer Profile'),
+      description: t('transferHub.guide.recruit.step2Desc', 'Set your power, TC level, language, and what you\'re looking for. Kingdoms see this when you apply.'),
       icon: '📋',
     },
     {
       number: '3',
-      title: 'Browse & compare kingdoms',
-      description: 'Every kingdom has an Atlas Score, KvK record, and community reviews. Use filters to narrow it down. Match Scores show how well you fit.',
+      title: t('transferHub.guide.recruit.step3Title', 'Browse & compare kingdoms'),
+      description: t('transferHub.guide.recruit.step3Desc', 'Every kingdom has an Atlas Score, KvK record, and community reviews. Use filters to narrow it down. Match Scores show how well you fit.'),
       icon: '🔍',
     },
     {
       number: '4',
-      title: 'Apply',
-      description: 'Found the right one? Hit Apply. You can have up to 3 active applications. Track their status in My Applications.',
+      title: t('transferHub.guide.recruit.step4Title', 'Apply'),
+      description: t('transferHub.guide.recruit.step4Desc', 'Found the right one? Hit Apply. You can have up to 3 active applications. Track their status in My Applications.'),
       icon: '🚀',
     },
   ];
@@ -63,26 +65,26 @@ const TransferHubGuide: React.FC = () => {
   const recruiterSteps = [
     {
       number: '1',
-      title: 'Claim your kingdom',
-      description: 'Switch to "I\'m Recruiting" and claim editor rights. You need endorsements from kingdom members to activate.',
+      title: t('transferHub.guide.recruiter.step1Title', 'Claim your kingdom'),
+      description: t('transferHub.guide.recruiter.step1Desc', 'Switch to "I\'m Recruiting" and claim editor rights. You need endorsements from kingdom members to activate.'),
       icon: '👑',
     },
     {
       number: '2',
-      title: 'Set up your listing',
-      description: 'Open the Recruiter Dashboard. Add your pitch, requirements, languages, vibe tags, and event times. This is your kingdom\'s storefront.',
+      title: t('transferHub.guide.recruiter.step2Title', 'Set up your listing'),
+      description: t('transferHub.guide.recruiter.step2Desc', 'Open the Recruiter Dashboard. Add your pitch, requirements, languages, vibe tags, and event times. This is your kingdom\'s storefront.'),
       icon: '📢',
     },
     {
       number: '3',
-      title: 'Fund your listing (optional)',
-      description: 'Contributing to your Kingdom Fund unlocks Bronze → Silver → Gold tiers with better visibility and features. Funds deplete ~$5/week.',
+      title: t('transferHub.guide.recruiter.step3Title', 'Fund your listing (optional)'),
+      description: t('transferHub.guide.recruiter.step3Desc', 'Contributing to your Kingdom Fund unlocks Bronze → Silver → Gold tiers with better visibility and features. Funds deplete ~$5/week.'),
       icon: '💰',
     },
     {
       number: '4',
-      title: 'Review applications',
-      description: 'Applicants land in your inbox. View their profiles, mark as Interested, Accept, or Decline. The right players come to you.',
+      title: t('transferHub.guide.recruiter.step4Title', 'Review applications'),
+      description: t('transferHub.guide.recruiter.step4Desc', 'Applicants land in your inbox. View their profiles, mark as Interested, Accept, or Decline. The right players come to you.'),
       icon: '📬',
     },
   ];
@@ -122,14 +124,14 @@ const TransferHubGuide: React.FC = () => {
           fontWeight: '600',
         }}>
           <span style={{ fontSize: '1rem' }}>📖</span>
-          <span>How the Transfer Hub Works</span>
+          <span>{t('transferHub.guide.title', 'How the Transfer Hub Works')}</span>
           {!isExpanded && (
             <span style={{
               fontSize: '0.7rem',
               color: colors.textMuted,
               fontWeight: '400',
             }}>
-              — tap to learn
+              {t('transferHub.guide.tapToLearn', '— tap to learn')}
             </span>
           )}
         </span>
@@ -159,7 +161,7 @@ const TransferHubGuide: React.FC = () => {
             margin: '0.75rem 0',
             lineHeight: 1.5,
           }}>
-            No more blind transfers. Here's everything you need in 60 seconds.
+            {t('transferHub.guide.intro', 'No more blind transfers. Here\'s everything you need in 60 seconds.')}
           </p>
 
           {/* Tab Toggle: Recruit vs Recruiter */}
@@ -194,7 +196,7 @@ const TransferHubGuide: React.FC = () => {
                 gap: '0.4rem',
               }}
             >
-              <span>🚀</span> I'm Transferring
+              <span>🚀</span> {t('transferHub.mode.transferring', "I'm Transferring")}
             </button>
             <button
               onClick={() => handleTabSwitch('recruiter')}
@@ -222,7 +224,7 @@ const TransferHubGuide: React.FC = () => {
                 gap: '0.4rem',
               }}
             >
-              <span>📢</span> I'm Recruiting
+              <span>📢</span> {t('transferHub.mode.recruiting', "I'm Recruiting")}
             </button>
           </div>
 
@@ -303,7 +305,7 @@ const TransferHubGuide: React.FC = () => {
               textTransform: 'uppercase' as const,
               letterSpacing: '0.05em',
             }}>
-              ⚡ Quick tip
+              ⚡ {t('transferHub.guide.quickTip', 'Quick tip')}
             </span>
             <p style={{
               color: colors.textSecondary,
@@ -312,8 +314,8 @@ const TransferHubGuide: React.FC = () => {
               lineHeight: 1.5,
             }}>
               {activeTab === 'recruit'
-                ? 'The better your Transfer Profile, the higher your Match Score with kingdoms. Fill it out completely — recruiters notice.'
-                : 'Kingdoms with active funds rank higher in listings. Even a Bronze tier gets you noticed over Standard listings.'}
+                ? t('transferHub.guide.tipRecruit', 'The better your Transfer Profile, the higher your Match Score with kingdoms. Fill it out completely — recruiters notice.')
+                : t('transferHub.guide.tipRecruiter', 'Kingdoms with active funds rank higher in listings. Even a Bronze tier gets you noticed over Standard listings.')}
             </p>
           </div>
 
@@ -341,7 +343,7 @@ const TransferHubGuide: React.FC = () => {
                 e.currentTarget.style.color = colors.textSecondary;
               }}
             >
-              Got it, let's go
+              {t('transferHub.guide.gotIt', 'Got it, let\'s go')}
             </button>
           </div>
         </div>

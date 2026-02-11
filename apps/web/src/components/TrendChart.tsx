@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { KVKRecord } from '../types';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { CHART_WIDTH, CHART_PADDING, CHART_FONTS, CHART_COLORS, X_AXIS_LABEL_OFFSET, X_AXIS_TITLE_OFFSET, Y_AXIS_GRID_COUNT } from '../constants/chartConstants';
@@ -19,6 +20,7 @@ const TrendChart: React.FC<TrendChartProps> = ({
   const [hoveredPoint, setHoveredPoint] = useState<{ index: number; type: 'prep' | 'battle' } | null>(null);
   const [internalExpanded, setInternalExpanded] = useState(false);
   const isMobile = useIsMobile();
+  const { t } = useTranslation();
   
   // Use external control if provided, otherwise use internal state
   const isExpanded = externalExpanded !== undefined ? externalExpanded : internalExpanded;
@@ -72,7 +74,7 @@ const TrendChart: React.FC<TrendChartProps> = ({
         color: '#6b7280',
         fontSize: '0.85rem'
       }}>
-        Need at least 2 KvKs for trend data
+        {t('performanceTrend.needTwo', 'Need at least 2 KvKs for trend data')}
       </div>
     );
   }
@@ -138,11 +140,11 @@ const TrendChart: React.FC<TrendChartProps> = ({
         }}
       >
         <h4 style={{ margin: 0, color: '#fff', fontSize: '0.9rem', fontWeight: '600', textAlign: 'center' }}>
-          Performance Trend
+          {t('performanceTrend.title', 'Performance Trend')}
         </h4>
         {!isExpanded && (
           <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>
-            &quot;What&apos;s my win rate trend?&quot;
+            {t('performanceTrend.subtitle', '"What\'s my win rate trend?"')}
           </span>
         )}
         {isExpanded && (
@@ -151,13 +153,13 @@ const TrendChart: React.FC<TrendChartProps> = ({
               <svg width="16" height="8">
                 <line x1="0" y1="4" x2="16" y2="4" stroke={prepColor} strokeWidth="2" strokeDasharray="4,2" />
               </svg>
-              <span style={{ color: '#9ca3af', fontSize: '0.72rem', fontWeight: '500' }}>Prep WR</span>
+              <span style={{ color: '#9ca3af', fontSize: '0.72rem', fontWeight: '500' }}>{t('performanceTrend.prepWR', 'Prep WR')}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
               <svg width="16" height="8">
                 <line x1="0" y1="4" x2="16" y2="4" stroke={battleColor} strokeWidth="2" />
               </svg>
-              <span style={{ color: '#9ca3af', fontSize: '0.72rem', fontWeight: '500' }}>Battle WR</span>
+              <span style={{ color: '#9ca3af', fontSize: '0.72rem', fontWeight: '500' }}>{t('performanceTrend.battleWR', 'Battle WR')}</span>
             </div>
           </div>
         )}

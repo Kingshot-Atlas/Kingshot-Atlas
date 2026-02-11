@@ -51,7 +51,7 @@ const MobileCountdowns: React.FC = () => {
           justifyContent: 'center',
           gap: '0.25rem',
         }}>
-          {kvkStatus.icon} {kvkIsLive ? kvkStatus.phaseName : t('countdown.nextKvk', 'Next KvK')}
+          {kvkStatus.icon} {kvkIsLive ? ({'Prep Phase': t('countdown.prepPhase', 'Prep Phase'), 'Castle Battle': t('countdown.castleBattle', 'Castle Battle'), 'Battle Phase': t('countdown.battlePhase', 'Battle Phase'), 'Battle Phase (Castle Soon)': t('countdown.battlePhaseCastleSoon', 'Battle Phase (Castle Soon)')}[kvkStatus.phaseName] || kvkStatus.phaseName) : t('countdown.nextKvk', 'Next KvK')}
           {kvkIsLive && (
             <span style={{
               color: kvkStatus.color,
@@ -59,7 +59,7 @@ const MobileCountdowns: React.FC = () => {
               fontWeight: 700,
               animation: 'pulse 2s infinite',
             }}>
-              LIVE
+              {t('countdown.live', 'LIVE')}
             </span>
           )}
         </div>
@@ -93,7 +93,7 @@ const MobileCountdowns: React.FC = () => {
           justifyContent: 'center',
           gap: '0.25rem',
         }}>
-          🔀 {transferIsLive ? transferStatus.phaseName : t('countdown.nextTransfer', 'Next Transfer')}
+          🔀 {transferIsLive ? ({'Pre-Transfer': t('countdown.preTransferPhase', 'Pre-Transfer'), 'Invitational': t('countdown.invitationalPhase', 'Invitational'), 'Open Transfer': t('countdown.openTransferPhase', 'Open Transfer')}[transferStatus.phaseName] || transferStatus.phaseName) : t('countdown.nextTransfer', 'Next Transfer')}
           {transferIsLive && (
             <span style={{
               color: transferStatus.color,
@@ -101,7 +101,7 @@ const MobileCountdowns: React.FC = () => {
               fontWeight: 700,
               animation: 'pulse 2s infinite',
             }}>
-              LIVE
+              {t('countdown.live', 'LIVE')}
             </span>
           )}
         </div>

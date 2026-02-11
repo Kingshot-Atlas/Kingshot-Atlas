@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { scoreHistoryService, ScoreHistoryRecord } from '../services/scoreHistoryService';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { CHART_WIDTH, CHART_PADDING, CHART_FONTS, CHART_COLORS, POINT_SIZES, X_AXIS_LABEL_OFFSET, X_AXIS_TITLE_OFFSET, Y_AXIS_GRID_COUNT } from '../constants/chartConstants';
@@ -44,6 +45,7 @@ const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const loadHistory = async () => {
@@ -69,7 +71,7 @@ const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
     return (
       <div style={{ backgroundColor: '#1a1a20', borderRadius: '12px', padding: '1rem', marginBottom: isMobile ? '1.25rem' : '1.5rem' }}>
         <h4 style={{ margin: '0 0 0.75rem 0', color: '#fff', fontSize: '0.9rem', fontWeight: '600', textAlign: 'center' }}>
-          Atlas Score History
+          {t('scoreHistory.title', 'Atlas Score History')}
         </h4>
         <div style={{
           height: height - 60,
@@ -79,7 +81,7 @@ const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
           color: '#6b7280',
           fontSize: '0.85rem'
         }}>
-          Loading score history...
+          {t('scoreHistory.loading', 'Loading score history...')}
         </div>
       </div>
     );
@@ -95,10 +97,10 @@ const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
         marginBottom: isMobile ? '1.25rem' : '1.5rem'
       }}>
         <h4 style={{ color: '#fff', fontSize: '0.9rem', fontWeight: '600', margin: '0 0 0.75rem 0', textAlign: 'center' }}>
-          Atlas Score History
+          {t('scoreHistory.title', 'Atlas Score History')}
         </h4>
         <div style={{ color: '#6b7280', fontSize: '0.85rem', textAlign: 'center', padding: '1rem' }}>
-          Play your first KvK to unlock score history!
+          {t('scoreHistory.playFirst', 'Play your first KvK to unlock score history!')}
         </div>
       </div>
     );
@@ -114,10 +116,10 @@ const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
         marginBottom: isMobile ? '1.25rem' : '1.5rem'
       }}>
         <h4 style={{ color: '#fff', fontSize: '0.9rem', fontWeight: '600', margin: '0 0 0.75rem 0', textAlign: 'center' }}>
-          Atlas Score History
+          {t('scoreHistory.title', 'Atlas Score History')}
         </h4>
         <div style={{ color: '#6b7280', fontSize: '0.85rem', textAlign: 'center', padding: '1rem' }}>
-          Need at least 2 KvKs for trend data
+          {t('scoreHistory.needTwo', 'Need at least 2 KvKs for trend data')}
         </div>
       </div>
     );
@@ -234,11 +236,11 @@ const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
         }}
       >
         <h4 style={{ margin: 0, color: '#fff', fontSize: '0.9rem', fontWeight: '600', textAlign: 'center' }}>
-          Atlas Score History
+          {t('scoreHistory.title', 'Atlas Score History')}
         </h4>
         {!isExpanded && (
           <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>
-            &quot;How has my score evolved?&quot;
+            {t('scoreHistory.subtitle', '"How has my score evolved?"')}
           </span>
         )}
         {isExpanded && chartData.length >= 2 && prevKvk && lastKvk && (

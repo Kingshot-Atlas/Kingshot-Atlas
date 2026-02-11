@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useAnalytics } from '../hooks/useAnalytics';
@@ -51,6 +52,7 @@ const ApplyModal: React.FC<{
 }> = ({ kingdomNumber, onClose, onApplied, activeCount, hasProfile }) => {
   const { user, profile } = useAuth();
   const isMobile = useIsMobile();
+  const { t } = useTranslation();
   const { trackFeature } = useAnalytics();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -189,7 +191,7 @@ const ApplyModal: React.FC<{
           color: colors.text,
           margin: '0 0 0.75rem 0',
         }}>
-          Apply to <span style={{ ...neonGlow(colors.primary) }}>Kingdom {kingdomNumber}</span>
+          {t('applications.applyTo', 'Apply to')} <span style={{ ...neonGlow(colors.primary) }}>{t('editor.kingdom', 'Kingdom')} {kingdomNumber}</span>
         </h3>
 
         {!hasProfile ? (
@@ -201,10 +203,10 @@ const ApplyModal: React.FC<{
             marginBottom: '1rem',
           }}>
             <p style={{ color: colors.warning, fontSize: '0.85rem', fontWeight: '600', margin: '0 0 0.5rem 0' }}>
-              Transfer Profile Required
+              {t('applications.profileRequired', 'Transfer Profile Required')}
             </p>
             <p style={{ color: colors.textSecondary, fontSize: '0.8rem', margin: 0 }}>
-              You need to create a transfer profile before you can apply to kingdoms. Your profile tells recruiters about you.
+              {t('applications.needProfile', 'You need to create a transfer profile before you can apply to kingdoms. Your profile tells recruiters about you.')}
             </p>
           </div>
         ) : (
@@ -216,13 +218,13 @@ const ApplyModal: React.FC<{
               marginBottom: '1rem',
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ color: colors.textSecondary, fontSize: '0.8rem' }}>Application Slots</span>
+                <span style={{ color: colors.textSecondary, fontSize: '0.8rem' }}>{t('applications.slots', 'Application Slots')}</span>
                 <span style={{
                   color: slotsRemaining > 0 ? colors.success : colors.error,
                   fontSize: '0.85rem',
                   fontWeight: '600',
                 }}>
-                  {slotsRemaining}/{MAX_ACTIVE_APPLICATIONS} remaining
+                  {slotsRemaining}/{MAX_ACTIVE_APPLICATIONS} {t('applications.remaining', 'remaining')}
                 </span>
               </div>
               <div style={{
@@ -251,7 +253,7 @@ const ApplyModal: React.FC<{
                 marginBottom: '1rem',
               }}>
                 <p style={{ color: colors.error, fontSize: '0.8rem', margin: 0 }}>
-                  You can't apply to your own kingdom. Browse other kingdoms to find a new home.
+                  {t('applications.cantApplyOwn', "You can't apply to your own kingdom. Browse other kingdoms to find a new home.")}
                 </p>
               </div>
             )}
@@ -265,18 +267,18 @@ const ApplyModal: React.FC<{
                 marginBottom: '1rem',
               }}>
                 <p style={{ color: colors.error, fontSize: '0.8rem', margin: 0 }}>
-                  You've used all 3 application slots. Withdraw an existing application to apply here.
+                  {t('applications.allSlotsUsed', "You've used all 3 application slots. Withdraw an existing application to apply here.")}
                 </p>
               </div>
             )}
 
             <p style={{ color: colors.textSecondary, fontSize: '0.8rem', margin: '0 0 0.75rem 0' }}>
-              Your transfer profile will be shared with Kingdom {kingdomNumber}'s recruiters. Applications expire after 72 hours if not responded to.
+              {t('applications.profileShared', "Your transfer profile will be shared with Kingdom {{kingdom}}'s recruiters. Applications expire after 72 hours if not responded to.", { kingdom: kingdomNumber })}
             </p>
 
             <div style={{ marginBottom: '0.75rem' }}>
               <label style={{ display: 'block', color: colors.textSecondary, fontSize: '0.75rem', marginBottom: '0.3rem', fontWeight: '500' }}>
-                Add a note to the recruiter <span style={{ color: '#6b7280', fontWeight: '400' }}>(optional, 300 chars)</span>
+                {t('applications.addNote', 'Add a note to the recruiter')} <span style={{ color: '#6b7280', fontWeight: '400' }}>({t('applications.optional', 'optional')}, 300 {t('applications.chars', 'chars')})</span>
               </label>
               <textarea
                 value={applicantNote}
@@ -332,7 +334,7 @@ const ApplyModal: React.FC<{
               minHeight: '44px',
             }}
           >
-            Cancel
+            {t('editor.cancel', 'Cancel')}
           </button>
           {canApply && (
             <button
@@ -350,7 +352,7 @@ const ApplyModal: React.FC<{
                 minHeight: '44px',
               }}
             >
-              {submitting ? 'Applying...' : 'Confirm Application'}
+              {submitting ? t('applications.applying', 'Applying...') : t('applications.confirmApplication', 'Confirm Application')}
             </button>
           )}
         </div>
@@ -376,6 +378,7 @@ const MyApplicationsTracker: React.FC<{
 }> = ({ onWithdraw }) => {
   const { user } = useAuth();
   const isMobile = useIsMobile();
+  const { t } = useTranslation();
   const [applications, setApplications] = useState<TransferApplication[]>([]);
   const [invites, setInvites] = useState<ReceivedInvite[]>([]);
   const [loading, setLoading] = useState(true);
@@ -526,7 +529,7 @@ const MyApplicationsTracker: React.FC<{
   const pastInvites = invites.filter(inv => inv.status !== 'pending' || new Date(inv.expires_at).getTime() <= now);
 
   if (!user) return null;
-  if (loading) return <div style={{ color: '#6b7280', fontSize: '0.8rem', padding: '0.5rem 0' }}>Loading applications...</div>;
+  if (loading) return <div style={{ color: '#6b7280', fontSize: '0.8rem', padding: '0.5rem 0' }}>{t('applications.loadingApps', 'Loading applications...')}</div>;
   if (applications.length === 0 && invites.length === 0) return (
     <div style={{
       backgroundColor: '#111111',
@@ -538,10 +541,10 @@ const MyApplicationsTracker: React.FC<{
     }}>
       <div style={{ fontSize: '1.25rem', marginBottom: '0.4rem', opacity: 0.5 }}>📋</div>
       <p style={{ color: '#9ca3af', fontSize: '0.82rem', fontWeight: '600', margin: '0 0 0.25rem 0' }}>
-        No applications yet
+        {t('applications.noAppsYet', 'No applications yet')}
       </p>
       <p style={{ color: '#6b7280', fontSize: '0.75rem', margin: 0 }}>
-        Browse kingdoms below and hit Apply when you find the right fit.
+        {t('applications.browseKingdoms', 'Browse kingdoms below and hit Apply when you find the right fit.')}
       </p>
     </div>
   );
@@ -572,7 +575,7 @@ const MyApplicationsTracker: React.FC<{
             marginBottom: '0.5rem',
           }}>
             <h3 style={{ color: '#fff', fontSize: '0.9rem', fontWeight: '600', margin: 0 }}>
-              📩 My Invites
+              📩 {t('applications.myInvites', 'My Invites')}
             </h3>
             {pendingInvites.length > 0 && (
               <span style={{
@@ -584,7 +587,7 @@ const MyApplicationsTracker: React.FC<{
                 color: '#a855f7',
                 fontWeight: 'bold',
               }}>
-                {pendingInvites.length} pending
+                {pendingInvites.length} {t('applications.pendingLabel', 'pending')}
               </span>
             )}
           </div>
@@ -610,13 +613,13 @@ const MyApplicationsTracker: React.FC<{
                         to={`/kingdom/${inv.kingdom_number}`}
                         style={{ color: '#a855f7', textDecoration: 'none', fontWeight: '600', fontSize: '0.85rem' }}
                       >
-                        Kingdom {inv.kingdom_number}
+                        {t('editor.kingdom', 'Kingdom')} {inv.kingdom_number}
                       </Link>
                       <span style={{ color: '#4b5563', fontSize: '0.65rem' }}>
                         {formatDate(inv.sent_at)}
                       </span>
                       {daysLeft <= 3 && daysLeft > 0 && (
-                        <span style={{ color: '#f59e0b', fontSize: '0.6rem' }}>{daysLeft}d left</span>
+                        <span style={{ color: '#f59e0b', fontSize: '0.6rem' }}>{daysLeft}{t('applications.dLeft', 'd left')}</span>
                       )}
                     </div>
                     <div style={{ display: 'flex', gap: '0.4rem' }}>
@@ -635,7 +638,7 @@ const MyApplicationsTracker: React.FC<{
                           minHeight: '36px',
                         }}
                       >
-                        Accept
+                        {t('recruiter.accept', 'Accept')}
                       </button>
                       <button
                         onClick={() => handleRespondInvite(inv.id, 'declined')}
@@ -651,7 +654,7 @@ const MyApplicationsTracker: React.FC<{
                           minHeight: '36px',
                         }}
                       >
-                        Decline
+                        {t('recruiter.decline', 'Decline')}
                       </button>
                     </div>
                   </div>
@@ -670,7 +673,7 @@ const MyApplicationsTracker: React.FC<{
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M6 9l6 6 6-6"/>
                 </svg>
-                Past invites ({pastInvites.length})
+                {t('applications.pastInvites', 'Past invites')} ({pastInvites.length})
               </summary>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginTop: '0.5rem' }}>
                 {pastInvites.slice(0, 10).map((inv) => {
@@ -686,7 +689,7 @@ const MyApplicationsTracker: React.FC<{
                     }}>
                       <Link to={`/kingdom/${inv.kingdom_number}`}
                         style={{ color: '#9ca3af', textDecoration: 'none', fontSize: '0.8rem' }}>
-                        Kingdom {inv.kingdom_number}
+                        {t('editor.kingdom', 'Kingdom')} {inv.kingdom_number}
                       </Link>
                       <span style={{
                         padding: '0.1rem 0.35rem', borderRadius: '4px',
@@ -719,7 +722,7 @@ const MyApplicationsTracker: React.FC<{
         marginBottom: '0.75rem',
       }}>
         <h3 style={{ color: '#fff', fontSize: '0.9rem', fontWeight: '600', margin: 0 }}>
-          My Applications
+          {t('applications.myApplications', 'My Applications')}
         </h3>
         <span style={{
           padding: '0.15rem 0.5rem',
@@ -730,7 +733,7 @@ const MyApplicationsTracker: React.FC<{
           color: '#22d3ee',
           fontWeight: 'bold',
         }}>
-          {activeApplications.length}/{MAX_ACTIVE_APPLICATIONS} slots used
+          {activeApplications.length}/{MAX_ACTIVE_APPLICATIONS} {t('applications.slotsUsed', 'slots used')}
         </span>
       </div>
 
@@ -763,7 +766,7 @@ const MyApplicationsTracker: React.FC<{
                       whiteSpace: 'nowrap',
                     }}
                   >
-                    Kingdom {app.kingdom_number}
+                    {t('editor.kingdom', 'Kingdom')} {app.kingdom_number}
                   </Link>
                   <span style={{
                     padding: '0.1rem 0.4rem',
@@ -782,14 +785,14 @@ const MyApplicationsTracker: React.FC<{
                   </span>
                   {daysLeft <= 3 && daysLeft > 0 && (
                     <span style={{ color: '#f59e0b', fontSize: '0.6rem' }}>
-                      {daysLeft}d left
+                      {daysLeft}{t('applications.dLeft', 'd left')}
                     </span>
                   )}
                 </div>
                 {app.status !== 'accepted' && (
                   confirmWithdrawId === app.id ? (
                     <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center' }}>
-                      <span style={{ color: '#ef4444', fontSize: '0.65rem', whiteSpace: 'nowrap' }}>Are you sure?</span>
+                      <span style={{ color: '#ef4444', fontSize: '0.65rem', whiteSpace: 'nowrap' }}>{t('applications.areYouSure', 'Are you sure?')}</span>
                       <button
                         onClick={() => handleWithdraw(app.id)}
                         disabled={withdrawingId === app.id}
@@ -805,7 +808,7 @@ const MyApplicationsTracker: React.FC<{
                           fontWeight: '600',
                         }}
                       >
-                        {withdrawingId === app.id ? '...' : 'Yes'}
+                        {withdrawingId === app.id ? '...' : t('applications.yes', 'Yes')}
                       </button>
                       <button
                         onClick={() => setConfirmWithdrawId(null)}
@@ -820,7 +823,7 @@ const MyApplicationsTracker: React.FC<{
                           minHeight: '36px',
                         }}
                       >
-                        No
+                        {t('applications.no', 'No')}
                       </button>
                     </div>
                   ) : (
@@ -843,7 +846,7 @@ const MyApplicationsTracker: React.FC<{
                         justifyContent: 'center',
                       }}
                     >
-                      Withdraw
+                      {t('applications.withdraw', 'Withdraw')}
                     </button>
                   )
                 )}
@@ -858,7 +861,7 @@ const MyApplicationsTracker: React.FC<{
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.3rem' }}>
                       <span style={{ fontSize: '0.75rem' }}>🎉</span>
-                      <span style={{ color: '#22c55e', fontSize: '0.72rem', fontWeight: '600' }}>Next Steps</span>
+                      <span style={{ color: '#22c55e', fontSize: '0.72rem', fontWeight: '600' }}>{t('applications.nextSteps', 'Next Steps')}</span>
                     </div>
                     {recruiterContacts.has(app.kingdom_number) ? (
                       <p style={{ color: '#d1d5db', fontSize: '0.72rem', margin: 0, lineHeight: 1.5 }}>
@@ -869,15 +872,15 @@ const MyApplicationsTracker: React.FC<{
                             <strong style={{ color: '#22d3ee' }}>{name}</strong>
                           </span>
                         ))}
-                        {' '}to coordinate your transfer.
+                        {' '}{t('applications.toCoordinate', 'to coordinate your transfer.')}
                       </p>
                     ) : (
                       <p style={{ color: '#9ca3af', fontSize: '0.72rem', margin: 0, lineHeight: 1.5 }}>
-                        Visit the{' '}
+                        {t('applications.visitThe', 'Visit the')}{' '}
                         <Link to={`/kingdom/${app.kingdom_number}`} style={{ color: '#22d3ee', textDecoration: 'none' }}>
-                          kingdom page
+                          {t('applications.kingdomPage', 'kingdom page')}
                         </Link>
-                        {' '}to find recruiter contact info and coordinate your transfer.
+                        {' '}{t('applications.toFindContact', 'to find recruiter contact info and coordinate your transfer.')}
                       </p>
                     )}
                   </div>
@@ -904,7 +907,7 @@ const MyApplicationsTracker: React.FC<{
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M6 9l6 6 6-6"/>
             </svg>
-            Past applications ({pastApplications.length})
+            {t('applications.pastApplications', 'Past applications')} ({pastApplications.length})
           </summary>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginTop: '0.5rem' }}>
             {pastApplications.slice(0, 10).map((app) => {
@@ -923,7 +926,7 @@ const MyApplicationsTracker: React.FC<{
                     to={`/kingdom/${app.kingdom_number}`}
                     style={{ color: '#9ca3af', textDecoration: 'none', fontSize: '0.8rem' }}
                   >
-                    Kingdom {app.kingdom_number}
+                    {t('editor.kingdom', 'Kingdom')} {app.kingdom_number}
                   </Link>
                   <span style={{
                     padding: '0.1rem 0.35rem',

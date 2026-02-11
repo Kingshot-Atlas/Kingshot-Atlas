@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '../../hooks/useMediaQuery';
 import { colors } from '../../utils/styles';
 import { BoardMode } from '../KingdomListingCard';
@@ -7,11 +8,12 @@ const ModeToggle: React.FC<{
   mode: BoardMode;
   onChange: (mode: BoardMode) => void;
 }> = ({ mode, onChange }) => {
+  const { t } = useTranslation();
   const isMobile = useIsMobile();
   const tabs: Array<{ mode: BoardMode; label: string; icon: string }> = [
-    { mode: 'transferring', label: "I'm Transferring", icon: '🚀' },
-    { mode: 'recruiting', label: "I'm Recruiting", icon: '📢' },
-    { mode: 'browsing', label: "I'm Browsing", icon: '👀' },
+    { mode: 'transferring', label: t('transferHub.mode.transferring', "I'm Transferring"), icon: '🚀' },
+    { mode: 'recruiting', label: t('transferHub.mode.recruiting', "I'm Recruiting"), icon: '📢' },
+    { mode: 'browsing', label: t('transferHub.mode.browsing', "I'm Browsing"), icon: '👀' },
   ];
 
   return (

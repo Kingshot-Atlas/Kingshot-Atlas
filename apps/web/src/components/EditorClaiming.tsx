@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { supabase } from '../lib/supabase';
@@ -37,14 +38,15 @@ const EndorsementProgress: React.FC<{
   current: number;
   required: number;
 }> = ({ current, required }) => {
+  const { t } = useTranslation();
   const pct = Math.min(100, (current / required) * 100);
   const isComplete = current >= required;
 
   const getMilestone = () => {
-    if (pct >= 100) return { emoji: '🎉', label: 'Activated!', color: '#22c55e' };
-    if (pct >= 75) return { emoji: '🔥', label: 'Almost there!', color: '#f97316' };
-    if (pct >= 50) return { emoji: '⚡', label: 'Halfway!', color: '#eab308' };
-    if (pct >= 25) return { emoji: '🚀', label: 'Gaining momentum', color: '#22d3ee' };
+    if (pct >= 100) return { emoji: '🎉', label: t('editor.activated', 'Activated!'), color: '#22c55e' };
+    if (pct >= 75) return { emoji: '🔥', label: t('editor.almostThere', 'Almost there!'), color: '#f97316' };
+    if (pct >= 50) return { emoji: '⚡', label: t('editor.halfway', 'Halfway!'), color: '#eab308' };
+    if (pct >= 25) return { emoji: '🚀', label: t('editor.gainingMomentum', 'Gaining momentum'), color: '#22d3ee' };
     return null;
   };
   const milestone = getMilestone();
@@ -56,7 +58,7 @@ const EndorsementProgress: React.FC<{
         marginBottom: '0.35rem',
       }}>
         <span style={{ color: '#9ca3af', fontSize: '0.7rem' }}>
-          Endorsements
+          {t('editor.endorsements', 'Endorsements')}
           {milestone && (
             <span style={{ marginLeft: '0.4rem', color: milestone.color, fontWeight: 600 }}>
               {milestone.emoji} {milestone.label}
@@ -100,6 +102,7 @@ const NominateForm: React.FC<{
 }> = ({ onNominated, onCancel }) => {
   const { user, profile } = useAuth();
   const isMobile = useIsMobile();
+  const { t } = useTranslation();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -183,12 +186,11 @@ const NominateForm: React.FC<{
         color: '#fff',
         margin: '0 0 0.75rem 0',
       }}>
-        Claim Your Kingdom
+        {t('editor.claimYourKingdom', 'Claim Your Kingdom')}
       </h3>
 
       <p style={{ color: '#9ca3af', fontSize: '0.8rem', margin: '0 0 1rem 0', lineHeight: 1.5 }}>
-        Become the editor for your kingdom's Transfer Hub listing.
-        As editor, you control recruitment settings, review applications, and manage your kingdom's public profile.
+        {t('editor.becomeEditorDesc', "Become the editor for your kingdom's Transfer Hub listing. As editor, you control recruitment settings, review applications, and manage your kingdom's public profile.")}
       </p>
 
       {/* Requirements Checklist */}
@@ -201,7 +203,7 @@ const NominateForm: React.FC<{
             {isLinked ? '✓' : '✗'}
           </span>
           <span style={{ color: isLinked ? '#d1d5db' : '#6b7280', fontSize: '0.8rem' }}>
-            Linked Kingshot account {linkedKingdom ? `(Kingdom ${linkedKingdom})` : ''}
+            {t('editor.linkedAccount', 'Linked Kingshot account')} {linkedKingdom ? `(${t('editor.kingdom', 'Kingdom')} ${linkedKingdom})` : ''}
           </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -209,13 +211,13 @@ const NominateForm: React.FC<{
             {meetsTcReq ? '✓' : '✗'}
           </span>
           <span style={{ color: meetsTcReq ? '#d1d5db' : '#6b7280', fontSize: '0.8rem' }}>
-            TC Level 20+ {linkedTcLevel ? `(currently TC${linkedTcLevel})` : ''}
+            {t('editor.tcLevel20', 'TC Level 20+')} {linkedTcLevel ? `(${t('editor.currently', 'currently')} TC${linkedTcLevel})` : ''}
           </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>○</span>
           <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>
-            10 endorsements from TC20+ kingdom members (after nomination)
+            {t('editor.endorsementsRequired', '10 endorsements from TC20+ kingdom members (after nomination)')}
           </span>
         </div>
       </div>
@@ -229,7 +231,7 @@ const NominateForm: React.FC<{
           marginBottom: '0.75rem',
         }}>
           <p style={{ color: '#f59e0b', fontSize: '0.8rem', margin: 0 }}>
-            Link your Kingshot account first. Go to your Profile page and use the "Link Kingshot Account" section.
+            {t('editor.linkAccountFirst', 'Link your Kingshot account first. Go to your Profile page and use the "Link Kingshot Account" section.')}
           </p>
         </div>
       )}
@@ -262,7 +264,7 @@ const NominateForm: React.FC<{
             minHeight: '44px',
           }}
         >
-          Cancel
+          {t('editor.cancel', 'Cancel')}
         </button>
         <button
           onClick={handleNominate}
@@ -279,7 +281,7 @@ const NominateForm: React.FC<{
             minHeight: '44px',
           }}
         >
-          {submitting ? 'Submitting...' : 'Nominate Myself'}
+          {submitting ? t('editor.submitting', 'Submitting...') : t('editor.nominateMyself', 'Nominate Myself')}
         </button>
       </div>
     </div>
@@ -295,6 +297,7 @@ const PendingClaimView: React.FC<{
   onRefresh: () => void;
 }> = ({ claim, onRefresh: _onRefresh }) => {
   const isMobile = useIsMobile();
+  const { t } = useTranslation();
   const [endorsements, setEndorsements] = useState<Endorsement[]>([]);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -378,7 +381,7 @@ const PendingClaimView: React.FC<{
           color: '#eab308',
           margin: 0,
         }}>
-          Pending Editor Claim — K{claim.kingdom_number}
+          {t('editor.pendingClaim', 'Pending Editor Claim')} — K{claim.kingdom_number}
         </h3>
         <span style={{
           padding: '0.15rem 0.5rem',
@@ -389,7 +392,7 @@ const PendingClaimView: React.FC<{
           color: '#eab308',
           fontWeight: 'bold',
         }}>
-          GATHERING ENDORSEMENTS
+          {t('editor.gatheringEndorsements', 'GATHERING ENDORSEMENTS')}
         </span>
       </div>
 
@@ -424,7 +427,7 @@ const PendingClaimView: React.FC<{
               minHeight: '40px',
             }}
           >
-            {copied ? '✓ Link Copied!' : '🔗 Copy Link'}
+            {copied ? t('editor.linkCopied', '✓ Link Copied!') : t('editor.copyLink', '🔗 Copy Link')}
           </button>
           <button
             onClick={handleShareDiscord}
@@ -442,7 +445,7 @@ const PendingClaimView: React.FC<{
               minHeight: '40px',
             }}
           >
-            {discordCopied ? '✓ Copied!' : '💬 Discord'}
+            {discordCopied ? t('editor.copied', '✓ Copied!') : '💬 Discord'}
           </button>
         </div>
       ) : (
@@ -483,7 +486,7 @@ const PendingClaimView: React.FC<{
               flexShrink: 0,
             }}
           >
-            {copied ? 'Copied!' : 'Copy Link'}
+            {copied ? t('editor.copied', 'Copied!') : t('editor.copyLinkShort', 'Copy Link')}
           </button>
           <button
             onClick={handleShareDiscord}
@@ -501,17 +504,17 @@ const PendingClaimView: React.FC<{
               flexShrink: 0,
             }}
           >
-            {discordCopied ? 'Copied!' : '💬 Discord'}
+            {discordCopied ? t('editor.copied', 'Copied!') : '💬 Discord'}
           </button>
         </div>
       )}
 
       {/* Endorsers List */}
       {loading ? (
-        <div style={{ color: '#6b7280', fontSize: '0.75rem', padding: '0.5rem 0' }}>Loading endorsements...</div>
+        <div style={{ color: '#6b7280', fontSize: '0.75rem', padding: '0.5rem 0' }}>{t('editor.loadingEndorsements', 'Loading endorsements...')}</div>
       ) : endorsements.length > 0 ? (
         <div>
-          <span style={{ color: '#6b7280', fontSize: '0.7rem' }}>Endorsed by:</span>
+          <span style={{ color: '#6b7280', fontSize: '0.7rem' }}>{t('editor.endorsedBy', 'Endorsed by:')}</span>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginTop: '0.35rem' }}>
             {endorsements.map((e) => (
               <span key={e.id} style={{
@@ -529,7 +532,7 @@ const PendingClaimView: React.FC<{
         </div>
       ) : (
         <p style={{ color: '#4b5563', fontSize: '0.75rem', margin: 0 }}>
-          No endorsements yet. Share your link to get started.
+          {t('editor.noEndorsements', 'No endorsements yet. Share your link to get started.')}
         </p>
       )}
     </div>
@@ -547,6 +550,7 @@ const EndorseButton: React.FC<{
   onEndorsed: () => void;
 }> = ({ claimId, kingdomNumber, nomineeName, onEndorsed }) => {
   const { user, profile } = useAuth();
+  const { t } = useTranslation();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [alreadyEndorsed, setAlreadyEndorsed] = useState(false);
@@ -622,21 +626,21 @@ const EndorseButton: React.FC<{
       textAlign: 'center',
     }}>
       <span style={{ color: '#fff', fontSize: '0.85rem', fontWeight: '600' }}>
-        Endorse {nomineeName ? <span style={{ color: '#a855f7' }}>{nomineeName}</span> : 'Editor'} for K{kingdomNumber}
+        {t('editor.endorse', 'Endorse')} {nomineeName ? <span style={{ color: '#a855f7' }}>{nomineeName}</span> : t('recruiter.editor', 'Editor')} {t('editor.forKingdom', 'for')} K{kingdomNumber}
       </span>
       {!isLinked && (
         <p style={{ color: '#f59e0b', fontSize: '0.7rem', margin: 0 }}>
-          Link your Kingshot account first to endorse.
+          {t('editor.linkToEndorse', 'Link your Kingshot account first to endorse.')}
         </p>
       )}
       {isLinked && !isSameKingdom && (
         <p style={{ color: '#6b7280', fontSize: '0.7rem', margin: 0 }}>
-          Only members of Kingdom {kingdomNumber} with TC20+ can endorse.
+          {t('editor.onlyMembers', 'Only members of Kingdom {{kingdom}} with TC20+ can endorse.', { kingdom: kingdomNumber })}
         </p>
       )}
       {isLinked && isSameKingdom && !meetsTcReq && (
         <p style={{ color: '#6b7280', fontSize: '0.7rem', margin: 0 }}>
-          TC Level 20+ required to endorse.
+          {t('editor.tcRequired', 'TC Level 20+ required to endorse.')}
         </p>
       )}
 
@@ -646,7 +650,7 @@ const EndorseButton: React.FC<{
 
       {alreadyEndorsed ? (
         <span style={{ color: '#22c55e', fontSize: '0.8rem', fontWeight: '600' }}>
-          ✓ Endorsed
+          {t('editor.endorsed', '✓ Endorsed')}
         </span>
       ) : (
         <button
@@ -665,7 +669,7 @@ const EndorseButton: React.FC<{
             whiteSpace: 'nowrap',
           }}
         >
-          {submitting ? 'Endorsing...' : 'Endorse'}
+          {submitting ? t('editor.endorsing', 'Endorsing...') : t('editor.endorse', 'Endorse')}
         </button>
       )}
     </div>
@@ -680,6 +684,7 @@ const EditorClaiming: React.FC<{
   onEditorActivated?: () => void;
 }> = ({ onEditorActivated }) => {
   const { user, profile } = useAuth();
+  const { t } = useTranslation();
   const [myClaim, setMyClaim] = useState<EditorClaim | null>(null);
   const [loading, setLoading] = useState(true);
   const [showNominate, setShowNominate] = useState(false);
@@ -711,7 +716,7 @@ const EditorClaiming: React.FC<{
   }, [loadMyClaim]);
 
   if (!user) return null;
-  if (loading) return <div style={{ color: '#6b7280', fontSize: '0.8rem', padding: '0.5rem 0' }}>Checking editor status...</div>;
+  if (loading) return <div style={{ color: '#6b7280', fontSize: '0.8rem', padding: '0.5rem 0' }}>{t('editor.checkingStatus', 'Checking editor status...')}</div>;
 
   // Already an active editor
   if (myClaim?.status === 'active') {
@@ -746,7 +751,7 @@ const EditorClaiming: React.FC<{
           </span>
         </div>
         <p style={{ color: '#6b7280', fontSize: '0.65rem', margin: '0.15rem 0 0 0', lineHeight: 1.3, textAlign: 'center' }}>
-          You manage this kingdom's<br />Transfer Hub listing.
+          {t('editor.youManage', "You manage this kingdom's")} <br />{t('editor.transferHubListing', 'Transfer Hub listing.')}
         </p>
       </div>
     );
@@ -793,12 +798,12 @@ const EditorClaiming: React.FC<{
     }}>
       <div>
         <span style={{ color: '#a855f7', fontWeight: '600', fontSize: '0.85rem' }}>
-          Become a Kingdom Editor
+          {t('editor.becomeEditor', 'Become a Kingdom Editor')}
         </span>
         <p style={{ color: '#6b7280', fontSize: '0.7rem', margin: '0.2rem 0 0 0' }}>
           {linkedKingdom
-            ? `Claim Kingdom ${linkedKingdom} to manage its recruitment listing.`
-            : 'Link your Kingshot account first, then claim your kingdom.'}
+            ? t('editor.claimKingdomDesc', 'Claim Kingdom {{kingdom}} to manage its recruitment listing.', { kingdom: linkedKingdom })
+            : t('editor.linkFirst', 'Link your Kingshot account first, then claim your kingdom.')}
         </p>
       </div>
       <button
@@ -816,7 +821,7 @@ const EditorClaiming: React.FC<{
           minHeight: '44px',
         }}
       >
-        Claim Kingdom
+        {t('editor.claimKingdom', 'Claim Kingdom')}
       </button>
     </div>
   );

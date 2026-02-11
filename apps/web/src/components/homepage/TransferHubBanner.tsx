@@ -175,9 +175,11 @@ const TransferHubBanner: React.FC = () => {
               alignItems: 'center',
               gap: '0.4rem',
               boxShadow: '0 0 20px rgba(34, 197, 94, 0.25)',
-              whiteSpace: 'nowrap',
+              whiteSpace: 'normal',
               flex: isMobile ? 1 : 'none',
               justifyContent: 'center',
+              textAlign: 'center',
+              lineHeight: 1.3,
               transition: 'all 0.2s ease',
             }}
             onMouseEnter={(e) => {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useToast } from './Toast';
@@ -109,6 +110,7 @@ const TransferProfileForm: React.FC<{
 }> = ({ onClose, onSaved, scrollToIncomplete = false }) => {
   const { user, profile } = useAuth();
   const isMobile = useIsMobile();
+  const { t } = useTranslation();
   const { showToast } = useToast();
   const { trackFeature } = useAnalytics();
 
@@ -484,7 +486,7 @@ const TransferProfileForm: React.FC<{
   if (!user) {
     return (
       <div style={{ textAlign: 'center', padding: '2rem', color: colors.textSecondary }}>
-        <p>You must be signed in to create a transfer profile.</p>
+        <p>{t('transferProfile.mustBeSignedIn', 'You must be signed in to create a transfer profile.')}</p>
       </div>
     );
   }
@@ -493,10 +495,10 @@ const TransferProfileForm: React.FC<{
     return (
       <div style={{ textAlign: 'center', padding: '2rem' }}>
         <p style={{ color: colors.warning, fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem' }}>
-          Link Your Kingshot Account First
+          {t('transferProfile.linkAccountFirst', 'Link Your Kingshot Account First')}
         </p>
         <p style={{ color: colors.textSecondary, fontSize: '0.85rem', marginBottom: '1rem' }}>
-          You need to link your Kingshot account before creating a transfer profile. This ensures your kingdom and TC level are verified.
+          {t('transferProfile.linkAccountDesc', 'You need to link your Kingshot account before creating a transfer profile. This ensures your kingdom and TC level are verified.')}
         </p>
         <a
           href="/profile"
@@ -514,7 +516,7 @@ const TransferProfileForm: React.FC<{
             textDecoration: 'none',
           }}
         >
-          Go to Profile →
+          {t('transferProfile.goToProfile', 'Go to Profile →')}
         </a>
       </div>
     );
@@ -523,7 +525,7 @@ const TransferProfileForm: React.FC<{
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: '2rem', color: colors.textSecondary }}>
-        Loading...
+        {t('transferProfile.loading', 'Loading...')}
       </div>
     );
   }
@@ -569,10 +571,10 @@ const TransferProfileForm: React.FC<{
               color: colors.text,
               margin: 0,
             }}>
-              {existingProfile ? 'Edit' : 'Create'} <span style={{ ...neonGlow(colors.primary) }}>Transfer Profile</span>
+              {existingProfile ? t('transferProfile.edit', 'Edit') : t('transferProfile.create', 'Create')} <span style={{ ...neonGlow(colors.primary) }}>{t('transferProfile.transferProfile', 'Transfer Profile')}</span>
             </h2>
             <p style={{ color: colors.textSecondary, fontSize: '0.75rem', margin: '0.25rem 0 0 0' }}>
-              This is what kingdoms will see when reviewing your application
+              {t('transferProfile.whatKingdomsSee', 'This is what kingdoms will see when reviewing your application')}
             </p>
           </div>
           <button
@@ -604,18 +606,18 @@ const TransferProfileForm: React.FC<{
           padding: '0.75rem 1rem',
           marginBottom: '1rem',
         }}>
-          <span style={{ color: '#22d3ee', fontSize: '0.7rem', fontWeight: 'bold' }}>AUTO-FILLED FROM LINKED ACCOUNT</span>
+          <span style={{ color: '#22d3ee', fontSize: '0.7rem', fontWeight: 'bold' }}>{t('transferProfile.autoFilled', 'AUTO-FILLED FROM LINKED ACCOUNT')}</span>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(3, 1fr)', gap: '0.5rem', marginTop: '0.5rem' }}>
             <div>
-              <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>Username</span>
+              <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>{t('transferProfile.username', 'Username')}</span>
               <div style={{ color: '#fff', fontSize: '0.85rem', fontWeight: '600' }}>{formData.username || '—'}</div>
             </div>
             <div>
-              <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>Kingdom</span>
+              <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>{t('transferProfile.kingdom', 'Kingdom')}</span>
               <div style={{ color: '#fff', fontSize: '0.85rem', fontWeight: '600' }}>{formData.current_kingdom || '—'}</div>
             </div>
             <div>
-              <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>TC Level</span>
+              <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>{t('transferProfile.tcLevel', 'TC Level')}</span>
               <div style={{ color: '#fff', fontSize: '0.85rem', fontWeight: '600' }}>{formData.tc_level ? formatTCLevel(formData.tc_level) : '—'}</div>
             </div>
           </div>
@@ -625,7 +627,7 @@ const TransferProfileForm: React.FC<{
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {/* Power (Millions) */}
           <div data-field="power_million">
-            <label style={labelStyle}>Total Power (in millions) *</label>
+            <label style={labelStyle}>{t('transferProfile.totalPower', 'Total Power (in millions)')} *</label>
             <div style={{ position: 'relative' }}>
               <input
                 type="number"
@@ -649,7 +651,7 @@ const TransferProfileForm: React.FC<{
 
           {/* Main Language */}
           <div data-field="main_language">
-            <label style={labelStyle}>Main Language *</label>
+            <label style={labelStyle}>{t('transferProfile.mainLanguage', 'Main Language')} *</label>
             <select
               value={formData.main_language}
               onChange={(e) => updateField('main_language', e.target.value)}
@@ -663,7 +665,7 @@ const TransferProfileForm: React.FC<{
 
           {/* Secondary Language */}
           <div>
-            <label style={labelStyle}>Secondary Language</label>
+            <label style={labelStyle}>{t('transferProfile.secondaryLanguage', 'Secondary Language')}</label>
             <select
               value={formData.secondary_languages[0] || ''}
               onChange={(e) => updateField('secondary_languages', e.target.value ? [e.target.value] : [])}
@@ -678,7 +680,7 @@ const TransferProfileForm: React.FC<{
 
           {/* Play Schedule (UTC) */}
           <div data-field="play_schedule">
-            <label style={labelStyle}>Play Schedule — UTC (1-3 ranges) *</label>
+            <label style={labelStyle}>{t('transferProfile.playSchedule', 'Play Schedule — UTC (1-3 ranges)')} *</label>
             {formData.play_schedule.map((range, idx) => (
               <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
                 <select
@@ -688,7 +690,7 @@ const TransferProfileForm: React.FC<{
                 >
                   {UTC_HOURS.map((h) => <option key={h} value={h}>{h}</option>)}
                 </select>
-                <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>to</span>
+                <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>{t('transferProfile.to', 'to')}</span>
                 <select
                   value={range.end}
                   onChange={(e) => updateTimeRange(idx, 'end', e.target.value)}
@@ -728,14 +730,14 @@ const TransferProfileForm: React.FC<{
                   minHeight: '36px',
                 }}
               >
-                + Add Time Range
+                {t('transferProfile.addTimeRange', '+ Add Time Range')}
               </button>
             )}
           </div>
 
           {/* KvK Availability */}
           <div data-field="kvk_availability">
-            <label style={labelStyle}>KvK Availability *</label>
+            <label style={labelStyle}>{t('transferProfile.kvkAvailability', 'KvK Availability')} *</label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
               {KVK_AVAILABILITY_OPTIONS.map((opt) => (
                 <button
@@ -752,7 +754,7 @@ const TransferProfileForm: React.FC<{
 
           {/* Saving for KvK */}
           <div data-field="saving_for_kvk">
-            <label style={labelStyle}>Saving for KvK *</label>
+            <label style={labelStyle}>{t('transferProfile.savingForKvk', 'Saving for KvK')} *</label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
               {SAVING_FOR_KVK_OPTIONS.map((opt) => (
                 <button
@@ -769,7 +771,7 @@ const TransferProfileForm: React.FC<{
 
           {/* Looking For */}
           <div data-field="looking_for">
-            <label style={labelStyle}>What I'm Looking For * (pick up to 4)</label>
+            <label style={labelStyle}>{t('transferProfile.lookingFor', "What I'm Looking For")} * ({t('transferProfile.pickUpTo', 'pick up to')} 4)</label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
               {LOOKING_FOR_OPTIONS.map((opt) => (
                 <button
@@ -786,7 +788,7 @@ const TransferProfileForm: React.FC<{
 
           {/* Group Size */}
           <div data-field="group_size">
-            <label style={labelStyle}>Group Size *</label>
+            <label style={labelStyle}>{t('transferProfile.groupSize', 'Group Size')} *</label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
               {GROUP_SIZE_OPTIONS.map((opt) => (
                 <button
@@ -804,7 +806,7 @@ const TransferProfileForm: React.FC<{
           {/* Player Bio */}
           <div data-field="player_bio">
             <label style={labelStyle}>
-              Player Bio * <span style={{
+              {t('transferProfile.playerBio', 'Player Bio')} * <span style={{
                 color: formData.player_bio.length > 140 ? '#ef4444' : formData.player_bio.length > 120 ? '#eab308' : '#4b5563',
                 fontSize: '0.65rem',
               }}>
@@ -834,18 +836,18 @@ const TransferProfileForm: React.FC<{
                 onChange={(e) => updateField('is_anonymous', e.target.checked)}
                 style={{ width: '18px', height: '18px', accentColor: colors.primary }}
               />
-              <span>Stay anonymous</span>
+              <span>{t('transferProfile.stayAnonymous', 'Stay anonymous')}</span>
             </label>
             <p style={{ color: colors.textMuted, fontSize: '0.65rem', margin: '0.1rem 0 0 0' }}>
               {formData.is_anonymous
-                ? 'Your username and kingdom will be hidden from recruiters until you reveal them.'
-                : 'Recruiters will see your username and kingdom of origin.'}
+                ? t('transferProfile.anonDesc', 'Your username and kingdom will be hidden from recruiters until you reveal them.')
+                : t('transferProfile.visibleDesc', 'Recruiters will see your username and kingdom of origin.')}
             </p>
           </div>
 
           {/* Contact Method */}
           <div data-field="contact_method">
-            <label style={labelStyle}>Contact Method *</label>
+            <label style={labelStyle}>{t('transferProfile.contactMethod', 'Contact Method')} *</label>
             <div style={{ display: 'flex', gap: '0.35rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
               <button type="button" onClick={() => updateField('contact_method', 'discord')} style={chipStyle(formData.contact_method === 'discord')}>Discord</button>
               <button type="button" onClick={() => updateField('contact_method', 'in_game')} style={chipStyle(formData.contact_method === 'in_game')}>In-Game</button>
@@ -863,7 +865,7 @@ const TransferProfileForm: React.FC<{
             {(formData.contact_method === 'in_game' || formData.contact_method === 'both') && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                  <span style={{ color: colors.textSecondary, fontSize: '0.75rem', whiteSpace: 'nowrap' }}>Kingdom:</span>
+                  <span style={{ color: colors.textSecondary, fontSize: '0.75rem', whiteSpace: 'nowrap' }}>{t('transferProfile.kingdom', 'Kingdom')}:</span>
                   <input
                     type="number"
                     min="1"
@@ -933,12 +935,12 @@ const TransferProfileForm: React.FC<{
         }}>
           <div>
             <div style={{ color: colors.text, fontSize: '0.85rem', fontWeight: '500' }}>
-              {formData.visible_to_recruiters ? '👁️ Visible to Recruiters' : '🙈 Hidden from Recruiters'}
+              {formData.visible_to_recruiters ? t('transferProfile.visibleToRecruiters', '👁️ Visible to Recruiters') : t('transferProfile.hiddenFromRecruiters', '🙈 Hidden from Recruiters')}
             </div>
             <div style={{ color: colors.textMuted, fontSize: '0.7rem', marginTop: '0.15rem' }}>
               {formData.visible_to_recruiters
-                ? 'Kingdom editors can see your profile and send invites'
-                : 'Your profile is hidden — recruiters cannot find or invite you'}
+                ? t('transferProfile.editorsCanSee', 'Kingdom editors can see your profile and send invites')
+                : t('transferProfile.profileHidden', 'Your profile is hidden — recruiters cannot find or invite you')}
             </div>
           </div>
           <button
@@ -957,7 +959,7 @@ const TransferProfileForm: React.FC<{
               whiteSpace: 'nowrap',
             }}
           >
-            {formData.visible_to_recruiters ? 'Hide Me' : 'Show Me'}
+            {formData.visible_to_recruiters ? t('transferProfile.hideMe', 'Hide Me') : t('transferProfile.showMe', 'Show Me')}
           </button>
         </div>
 
@@ -986,7 +988,7 @@ const TransferProfileForm: React.FC<{
             borderRadius: '10px',
           }}>
             <div style={{ fontSize: '0.65rem', color: '#22d3ee', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>
-              👁️ How recruiters will see your card
+              👁️ {t('transferProfile.howRecruitersSee', 'How recruiters will see your card')}
             </div>
             <div style={{
               backgroundColor: colors.bg,
@@ -1059,7 +1061,7 @@ const TransferProfileForm: React.FC<{
                 </p>
               ) : (
                 <p style={{ color: colors.textMuted, fontSize: '0.65rem', margin: 0, fontStyle: 'italic' }}>
-                  No bio yet — add one above
+                  {t('transferProfile.noBioYet', 'No bio yet — add one above')}
                 </p>
               )}
             </div>
@@ -1093,7 +1095,7 @@ const TransferProfileForm: React.FC<{
                 gap: '0.3rem',
               }}
             >
-              👁️ {showPreview ? 'Hide' : 'Preview'}
+              👁️ {showPreview ? t('transferProfile.hide', 'Hide') : t('transferProfile.preview', 'Preview')}
             </button>
             {existingProfile && (
               <button
@@ -1113,7 +1115,7 @@ const TransferProfileForm: React.FC<{
                   gap: '0.3rem',
                 }}
               >
-                🔗 Share
+                🔗 {t('transferProfile.share', 'Share')}
               </button>
             )}
           </div>
@@ -1131,7 +1133,7 @@ const TransferProfileForm: React.FC<{
                 minHeight: '44px',
               }}
             >
-              Cancel
+              {t('editor.cancel', 'Cancel')}
             </button>
             <button
               onClick={handleSubmit}
@@ -1152,7 +1154,7 @@ const TransferProfileForm: React.FC<{
                 gap: '0.4rem',
               }}
             >
-              {saving ? 'Saving...' : existingProfile ? 'Update Profile' : 'Create Profile'}
+              {saving ? t('transferProfile.saving', 'Saving...') : existingProfile ? t('transferProfile.updateProfile', 'Update Profile') : t('transferProfile.createProfile', 'Create Profile')}
             </button>
           </div>
         </div>

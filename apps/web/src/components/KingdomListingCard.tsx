@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { FONT_DISPLAY, statTypeStyles, colors } from '../utils/styles';
@@ -137,6 +138,7 @@ const AllianceEventTimesGrid: React.FC<{
     schedule: Record<string, string[][]>;
   };
 }> = ({ allianceEvents }) => {
+  const { t } = useTranslation();
   const [showLocal, setShowLocal] = useState(false);
   const { alliances, schedule } = allianceEvents;
 
@@ -152,7 +154,7 @@ const AllianceEventTimesGrid: React.FC<{
     <div style={{ marginBottom: '0.6rem' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
         <span style={{ color: colors.textMuted, fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-          Alliance Event Times
+          {t('listing.allianceEventTimes', 'Alliance Event Times')}
         </span>
         <button
           onClick={() => setShowLocal(!showLocal)}
@@ -167,7 +169,7 @@ const AllianceEventTimesGrid: React.FC<{
             transition: 'all 0.2s',
           }}
         >
-          {showLocal ? '🕐 Local Time' : '🌐 UTC'}
+          {showLocal ? `🕐 ${t('listing.localTime', 'Local Time')}` : `🌐 ${t('listing.utc', 'UTC')}`}
         </button>
       </div>
       <div style={{
@@ -183,7 +185,7 @@ const AllianceEventTimesGrid: React.FC<{
           borderBottom: `1px solid ${colors.border}`,
         }}>
           <div style={{ padding: '0.3rem 0.4rem', fontSize: '0.55rem', color: colors.textMuted, fontWeight: '600' }}>
-            Event
+            {t('listing.event', 'Event')}
           </div>
           {alliances.map((tag, i) => (
             <div key={i} style={{
@@ -257,6 +259,7 @@ export interface KingdomListingCardProps {
 }
 
 const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, reviewSummary, mode, matchScore, matchDetails, onApply, onFund, highlighted }) => {
+  const { t } = useTranslation();
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedDiscord, setCopiedDiscord] = useState(false);
   const [copiedImage, setCopiedImage] = useState(false);
@@ -423,7 +426,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
                 letterSpacing: '0.02em',
               }}
             >
-              Kingdom {kingdom.kingdom_number}
+              {t('common.kingdom', 'Kingdom')} {kingdom.kingdom_number}
             </Link>
             <span
               className={isSTier ? 's-tier-badge' : undefined}
@@ -450,15 +453,15 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
                 content={
                   <div style={{ fontSize: '0.7rem' }}>
                     <div style={{ fontWeight: '600', color: tierColor, marginBottom: '0.3rem' }}>
-                      {fundTier.charAt(0).toUpperCase() + fundTier.slice(1)} Listing
+                      {fundTier.charAt(0).toUpperCase() + fundTier.slice(1)} {t('listing.listing', 'Listing')}
                     </div>
                     <div style={{ color: '#9ca3af', lineHeight: 1.5, marginBottom: '0.3rem' }}>
-                      Kingdoms fund their listing to unlock better visibility and features.
+                      {t('listing.fundDescription', 'Kingdoms fund their listing to unlock better visibility and features.')}
                     </div>
                     <div style={{ color: '#6b7280', lineHeight: 1.8, display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>
-                      <div>🥉 <span style={{ color: '#cd7f32' }}>Bronze $25+</span> — Shimmer border · requirements · vibes</div>
-                      <div>🥈 <span style={{ color: '#9ca3af' }}>Silver $50+</span> — + Silver glow · bio · event times</div>
-                      <div>🥇 <span style={{ color: colors.gold }}>Gold $100+</span> — + Gold glow · highlight · priority</div>
+                      <div>🥉 <span style={{ color: '#cd7f32' }}>Bronze $25+</span> — {t('listing.bronzePerks', 'Shimmer border · requirements · vibes')}</div>
+                      <div>🥈 <span style={{ color: '#9ca3af' }}>Silver $50+</span> — {t('listing.silverPerks', '+ Silver glow · bio · event times')}</div>
+                      <div>🥇 <span style={{ color: colors.gold }}>Gold $100+</span> — {t('listing.goldPerks', '+ Gold glow · highlight · priority')}</div>
                     </div>
                   </div>
                 }
@@ -502,7 +505,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
                   backgroundColor: '#22c55e', display: 'inline-block',
                   animation: 'pulse 2s infinite',
                 }}/>
-                RECRUITING
+                {t('listing.recruiting', 'RECRUITING')}
               </div>
             )}
             {mode === 'transferring' && matchScore !== undefined && matchScore > 0 && (
@@ -513,10 +516,10 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
                   matchDetails && matchDetails.length > 0 ? (
                     <div>
                       <div style={{ fontSize: '0.7rem', fontWeight: '600', color: '#fff', marginBottom: '0.3rem' }}>
-                        Match Breakdown
+                        {t('listing.matchBreakdown', 'Match Breakdown')}
                       </div>
                       <div style={{ fontSize: '0.7rem', color: '#9ca3af', marginBottom: '0.35rem', lineHeight: 1.4 }}>
-                        How well this kingdom fits your Transfer Profile preferences.
+                        {t('listing.matchBreakdownDesc', 'How well this kingdom fits your Transfer Profile preferences.')}
                       </div>
                       {matchDetails.map((d, i) => (
                         <div key={i} style={{ fontSize: '0.7rem', color: d.matched ? '#22c55e' : '#ef4444', lineHeight: 1.6 }}>
@@ -526,7 +529,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
                     </div>
                   ) : (
                     <span style={{ fontSize: '0.7rem', color: '#9ca3af' }}>
-                      Based on your Transfer Profile preferences vs this kingdom's listing.
+                      {t('listing.matchBasedOn', 'Based on your Transfer Profile preferences vs this kingdom\'s listing.')}
                     </span>
                   )
                 }
@@ -543,7 +546,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
                     cursor: 'help',
                   }}
                 >
-                  {matchScore}% match
+                  {t('listing.matchPercent', '{{score}}% match', { score: matchScore })}
                 </span>
               </SmartTooltip>
             )}
@@ -561,7 +564,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
                   gap: '0.25rem',
                   cursor: 'pointer',
                 }}>
-                  <span style={{ color: '#4b5563', fontSize: '0.6rem' }}>Link to see match %</span>
+                  <span style={{ color: '#4b5563', fontSize: '0.6rem' }}>{t('listing.linkToSeeMatch', 'Link to see match %')}</span>
                 </span>
               </Link>
             )}
@@ -580,17 +583,17 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
                 </span>
                 <span style={{ color: '#9ca3af', marginLeft: '0.3rem' }}>
                   — {transferStatus === 'Leading'
-                    ? '20 regular invites, 10 open slots, lower power cap'
+                    ? t('listing.leadingDesc', '20 regular invites, 10 open slots, lower power cap')
                     : transferStatus === 'Ordinary'
-                    ? '35 regular invites, up to 3 special invites, 20 open slots, higher power cap'
-                    : 'Transfer status not yet reported'}
+                    ? t('listing.ordinaryDesc', '35 regular invites, up to 3 special invites, 20 open slots, higher power cap')
+                    : t('listing.unknownStatusDesc', 'Transfer status not yet reported')}
                 </span>
               </div>
             }
           >
             <span style={{ cursor: 'help' }}>
               <span style={{ fontSize: '0.7rem', color: isSilver ? colors.textSecondary : colors.textMuted }}>
-                Transfer Status:{' '}
+                {t('listing.transferStatus', 'Transfer Status')}:{' '}
               </span>
               <span style={{
                 fontSize: '0.7rem',
@@ -621,7 +624,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
             flexDirection: 'column',
           }}>
             <div style={{ fontSize: '0.7rem', color: '#e5e7eb', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.4rem', textAlign: 'center' }}>
-              Performance
+              {t('listing.performance', 'Performance')}
             </div>
             <div style={{
               display: 'grid',
@@ -630,14 +633,14 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
               flex: 1,
             }}>
               {[
-                { label: 'Atlas Score', value: kingdom.atlas_score ? `${kingdom.atlas_score.toFixed(2)} (#${kingdom.current_rank || '—'})` : '—', color: '#22d3ee', emoji: '💎', tooltip: 'Comprehensive rating based on win rates, performance patterns, recent form, and experience. Rewards consistency over lucky streaks.' },
-                { label: 'KvKs', value: `${kingdom.total_kvks || 0}`, color: colors.text, emoji: '⚡', tooltip: null },
-                { label: 'Prep Win Rate', value: kingdom.prep_win_rate != null ? `${(kingdom.prep_win_rate * 100).toFixed(0)}%` : '—', color: statTypeStyles.prepPhase.color, emoji: '🛡️', tooltip: null },
-                { label: 'Battle Win Rate', value: kingdom.battle_win_rate != null ? `${(kingdom.battle_win_rate * 100).toFixed(0)}%` : '—', color: statTypeStyles.battlePhase.color, emoji: '⚔️', tooltip: null },
-                { label: 'Dominations', value: `${kingdom.dominations || 0}`, color: statTypeStyles.domination.color, emoji: '👑', tooltip: 'Won both Prep and Battle' },
-                { label: 'Comebacks', value: `${kingdom.comebacks || 0}`, color: '#3b82f6', emoji: '💪', tooltip: 'Lost Prep but won Battle' },
-                { label: 'Reversals', value: `${kingdom.reversals || 0}`, color: '#a855f7', emoji: '🔄', tooltip: 'Won Prep but lost Battle' },
-                { label: 'Invasions', value: `${kingdom.invasions || 0}`, color: statTypeStyles.invasion.color, emoji: '💀', tooltip: 'Lost both Prep and Battle' },
+                { label: t('listing.atlasScore', 'Atlas Score'), value: kingdom.atlas_score ? `${kingdom.atlas_score.toFixed(2)} (#${kingdom.current_rank || '—'})` : '—', color: '#22d3ee', emoji: '💎', tooltip: t('listing.atlasScoreTooltip', 'Comprehensive rating based on win rates, performance patterns, recent form, and experience. Rewards consistency over lucky streaks.') },
+                { label: t('listing.kvks', 'KvKs'), value: `${kingdom.total_kvks || 0}`, color: colors.text, emoji: '⚡', tooltip: null },
+                { label: t('listing.prepWinRate', 'Prep Win Rate'), value: kingdom.prep_win_rate != null ? `${(kingdom.prep_win_rate * 100).toFixed(0)}%` : '—', color: statTypeStyles.prepPhase.color, emoji: '🛡️', tooltip: null },
+                { label: t('listing.battleWinRate', 'Battle Win Rate'), value: kingdom.battle_win_rate != null ? `${(kingdom.battle_win_rate * 100).toFixed(0)}%` : '—', color: statTypeStyles.battlePhase.color, emoji: '⚔️', tooltip: null },
+                { label: t('listing.dominations', 'Dominations'), value: `${kingdom.dominations || 0}`, color: statTypeStyles.domination.color, emoji: '👑', tooltip: t('listing.dominationsTooltip', 'Won both Prep and Battle') },
+                { label: t('listing.comebacks', 'Comebacks'), value: `${kingdom.comebacks || 0}`, color: '#3b82f6', emoji: '💪', tooltip: t('listing.comebacksTooltip', 'Lost Prep but won Battle') },
+                { label: t('listing.reversals', 'Reversals'), value: `${kingdom.reversals || 0}`, color: '#a855f7', emoji: '🔄', tooltip: t('listing.reversalsTooltip', 'Won Prep but lost Battle') },
+                { label: t('listing.invasions', 'Invasions'), value: `${kingdom.invasions || 0}`, color: statTypeStyles.invasion.color, emoji: '💀', tooltip: t('listing.invasionsTooltip', 'Lost both Prep and Battle') },
               ].map((stat) => {
                 const statBox = (
                   <div style={{
@@ -688,7 +691,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
             padding: '0.6rem',
           }}>
             <div style={{ fontSize: '0.7rem', color: '#e5e7eb', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.4rem', textAlign: 'center' }}>
-              Characteristics
+              {t('listing.characteristics', 'Characteristics')}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
               {/* Row 1: Minimum Power + Minimum TC Level (2 cols) */}
@@ -704,10 +707,10 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
                   justifyContent: 'center',
                 }}>
                   <div style={{ fontSize: '0.5rem', color: colors.textMuted, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.05rem' }}>
-                    🔥 Minimum Power 🔥
+                    🔥 {t('listing.minPower', 'Minimum Power')} 🔥
                   </div>
                   <div style={{ fontSize: '0.8rem', fontWeight: '600', color: minPowerDisplay ? colors.text : colors.textMuted, lineHeight: 1.2 }}>
-                    {minPowerDisplay || 'Not set'}
+                    {minPowerDisplay || t('listing.notSet', 'Not set')}
                   </div>
                 </div>
                 <div style={{
@@ -721,10 +724,10 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
                   justifyContent: 'center',
                 }}>
                   <div style={{ fontSize: '0.5rem', color: colors.textMuted, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.05rem' }}>
-                    🏰 Minimum TC Level 🏰
+                    🏰 {t('listing.minTCLevel', 'Minimum TC Level')} 🏰
                   </div>
                   <div style={{ fontSize: '0.8rem', fontWeight: '600', color: fund?.min_tc_level ? colors.text : colors.textMuted, lineHeight: 1.2 }}>
-                    {fund?.min_tc_level ? formatTCLevel(fund.min_tc_level) : 'Not set'}
+                    {fund?.min_tc_level ? formatTCLevel(fund.min_tc_level) : t('listing.notSet', 'Not set')}
                   </div>
                 </div>
               </div>
@@ -741,10 +744,10 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
                   justifyContent: 'center',
                 }}>
                   <div style={{ fontSize: '0.5rem', color: colors.textMuted, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.05rem' }}>
-                    🌐 Main Language 🌐
+                    🌐 {t('listing.mainLanguage', 'Main Language')} 🌐
                   </div>
                   <div style={{ fontSize: '0.75rem', fontWeight: '600', color: fund?.main_language ? colors.text : colors.textMuted, lineHeight: 1.2 }}>
-                    {fund?.main_language || 'Not set'}
+                    {fund?.main_language || t('listing.notSet', 'Not set')}
                   </div>
                 </div>
                 <div style={{
@@ -758,10 +761,10 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
                   justifyContent: 'center',
                 }}>
                   <div style={{ fontSize: '0.5rem', color: colors.textMuted, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.05rem' }}>
-                    💬 Secondary Language 💬
+                    💬 {t('listing.secondaryLanguage', 'Secondary Language')} 💬
                   </div>
                   <div style={{ fontSize: '0.75rem', fontWeight: '600', color: (fund?.secondary_languages && fund.secondary_languages.length > 0) ? colors.text : colors.textMuted, lineHeight: 1.2 }}>
-                    {fund?.secondary_languages && fund.secondary_languages.length > 0 ? fund.secondary_languages.join(', ') : 'Not set'}
+                    {fund?.secondary_languages && fund.secondary_languages.length > 0 ? fund.secondary_languages.join(', ') : t('listing.notSet', 'Not set')}
                   </div>
                 </div>
               </div>
@@ -772,7 +775,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
                 borderRadius: '6px',
               }}>
                 <div style={{ fontSize: '0.5rem', color: colors.textMuted, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.15rem', textAlign: 'center' }}>
-                  ✨ Kingdom Vibe ✨
+                  ✨ {t('listing.kingdomVibe', 'Kingdom Vibe')} ✨
                 </div>
                 {fund?.kingdom_vibe && fund.kingdom_vibe.length > 0 ? (
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.2rem', justifyContent: 'center' }}>
@@ -791,7 +794,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
                   </div>
                 ) : (
                   <div style={{ fontSize: '0.7rem', color: colors.textMuted, fontStyle: 'italic' }}>
-                    Not set — editors can add vibes in the Recruiter Dashboard
+                    {t('listing.vibeNotSet', 'Not set — editors can add vibes in the Recruiter Dashboard')}
                   </div>
                 )}
               </div>
@@ -804,7 +807,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
                 flex: 1,
               }}>
                 <div style={{ fontSize: '0.5rem', color: colors.textMuted, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.15rem', textAlign: 'center' }}>
-                  📝 Kingdom Bio 📝 {!(isSilver || isGold) && <span style={{ color: '#c0c0c0', fontSize: '0.45rem', fontWeight: 'normal', textTransform: 'none' }}>(Silver+)</span>}
+                  📝 {t('listing.kingdomBio', 'Kingdom Bio')} 📝 {!(isSilver || isGold) && <span style={{ color: '#c0c0c0', fontSize: '0.45rem', fontWeight: 'normal', textTransform: 'none' }}>(Silver+)</span>}
                 </div>
                 {(isSilver || isGold) && fund?.recruitment_pitch ? (
                   <p style={{
@@ -819,11 +822,11 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
                   </p>
                 ) : (isSilver || isGold) ? (
                   <div style={{ fontSize: '0.7rem', color: colors.textMuted, fontStyle: 'italic' }}>
-                    Not set — add a bio in the Recruiter Dashboard (max 150 chars)
+                    {t('listing.bioNotSet', 'Not set — add a bio in the Recruiter Dashboard (max 150 chars)')}
                   </div>
                 ) : (
                   <div style={{ fontSize: '0.7rem', color: colors.textMuted, fontStyle: 'italic' }}>
-                    Upgrade to Silver to add a kingdom bio
+                    {t('listing.upgradeForBio', 'Upgrade to Silver to add a kingdom bio')}
                   </div>
                 )}
               </div>
@@ -846,7 +849,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
             minHeight: '44px',
           }}
         >
-          <span>📋 More Details</span>
+          <span>📋 {t('listing.moreDetails', 'More Details')}</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
             style={{ transform: expandedSection === 'details' ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
           >
@@ -870,7 +873,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
                     fontSize: '0.65rem',
                     color: fund.nap_policy ? '#22c55e' : '#ef4444',
                   }}>
-                    {fund.nap_policy ? '✓' : '✗'} NAP
+                    {fund.nap_policy ? '✓' : '✗'} {t('listing.nap', 'NAP')}
                   </span>
                 )}
                 {fund.sanctuary_distribution !== null && (
@@ -882,7 +885,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
                     fontSize: '0.65rem',
                     color: fund.sanctuary_distribution ? '#22c55e' : '#ef4444',
                   }}>
-                    {fund.sanctuary_distribution ? '✓' : '✗'} Sanctuary Distribution
+                    {fund.sanctuary_distribution ? '✓' : '✗'} {t('listing.sanctuaryDistribution', 'Sanctuary Distribution')}
                   </span>
                 )}
                 {fund.castle_rotation !== null && (
@@ -894,7 +897,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
                     fontSize: '0.65rem',
                     color: fund.castle_rotation ? '#22c55e' : '#ef4444',
                   }}>
-                    {fund.castle_rotation ? '✓' : '✗'} Castle Rotation
+                    {fund.castle_rotation ? '✓' : '✗'} {t('listing.castleRotation', 'Castle Rotation')}
                   </span>
                 )}
               </div>
@@ -916,7 +919,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
                     {reviewSummary.avg_rating.toFixed(1)}
                   </span>
                   <span style={{ color: colors.textSecondary, fontSize: '0.65rem' }}>
-                    ({reviewSummary.review_count} review{reviewSummary.review_count !== 1 ? 's' : ''})
+                    ({t('listing.reviewCount', '{{count}} review(s)', { count: reviewSummary.review_count })})
                   </span>
                 </div>
                 {reviewSummary.top_review_comment && (
@@ -949,7 +952,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
           background: `linear-gradient(90deg, transparent 0%, #fbbf2404 50%, transparent 100%)`,
         }}>
           <span style={{ fontSize: '0.6rem', color: colors.textMuted }}>
-            ✨ Funded listings get <span style={{ color: '#fbbf24' }}>shimmer borders</span>, <span style={{ color: '#c0c0c0' }}>glow effects</span> & more visibility
+            {t('listing.fundedListingsPromo', '✨ Funded listings get shimmer borders, glow effects & more visibility')}
           </span>
         </div>
       )}
@@ -985,7 +988,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
             <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
             <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
           </svg>
-          {copiedLink ? 'Link Copied!' : 'Share'}
+          {copiedLink ? t('listing.linkCopied', 'Link Copied!') : t('listing.share', 'Share')}
         </button>
         <button
           onClick={handleCopyDiscord}
@@ -1007,7 +1010,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
             <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/>
           </svg>
-          {copiedDiscord ? 'Copied!' : 'Discord'}
+          {copiedDiscord ? t('listing.copied', 'Copied!') : t('listing.discord', 'Discord')}
         </button>
         <button
           onClick={handleCopyAsImage}
@@ -1031,7 +1034,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
             <circle cx="8.5" cy="8.5" r="1.5"/>
             <polyline points="21 15 16 10 5 21"/>
           </svg>
-          {copiedImage ? 'Saved!' : 'Image'}
+          {copiedImage ? t('listing.saved', 'Saved!') : t('listing.image', 'Image')}
         </button>
         <Link
           to={`/kingdom/${kingdom.kingdom_number}`}
@@ -1050,7 +1053,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
             transition: 'border-color 0.2s',
           }}
         >
-          View Profile
+          {t('listing.viewProfile', 'View Profile')}
         </Link>
         {canFundKingdom && (
           <button
@@ -1070,7 +1073,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
               minHeight: '44px',
             }}
           >
-            Fund
+            {t('listing.fund', 'Fund')}
           </button>
         )}
         {mode === 'transferring' && !isOwnKingdom && (
@@ -1091,7 +1094,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
             }}
             onClick={() => onApply?.(kingdom.kingdom_number)}
           >
-            Apply to Transfer
+            {t('listing.applyToTransfer', 'Apply to Transfer')}
           </button>
         )}
         {mode === 'transferring' && isOwnKingdom && (
@@ -1104,7 +1107,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
             fontSize: '0.7rem',
             fontWeight: '600',
           }}>
-            Your Kingdom
+            {t('listing.yourKingdom', 'Your Kingdom')}
           </span>
         )}
       </div>

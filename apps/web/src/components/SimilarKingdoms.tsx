@@ -103,7 +103,7 @@ const SimilarKingdoms: React.FC<SimilarKingdomsProps> = ({
         borderBottom: '1px solid #2a2a2a',
         marginBottom: '0.5rem'
       }}>
-        <span style={{ color: '#6b7280', fontSize: '0.7rem', fontWeight: '500', textAlign: 'left' }}>Kingdom</span>
+        <span style={{ color: '#6b7280', fontSize: '0.7rem', fontWeight: '500', textAlign: 'left' }}>{t('common.kingdom', 'Kingdom')}</span>
         <span style={{ color: '#6b7280', fontSize: '0.7rem', fontWeight: '500', textAlign: 'left', paddingLeft: '0.25rem' }}>Tier</span>
         <span style={{ color: '#6b7280', fontSize: '0.7rem', fontWeight: '500', textAlign: 'center' }}>Atlas Score</span>
         <span style={{ color: '#6b7280', fontSize: '0.7rem', fontWeight: '500', textAlign: 'center' }}>Match</span>
@@ -143,7 +143,7 @@ const SimilarKingdoms: React.FC<SimilarKingdomsProps> = ({
                 fontSize: '0.85rem',
                 textAlign: 'left'
               }}>
-                Kingdom {kingdom.kingdom_number}
+                {t('common.kingdom', 'Kingdom')} {kingdom.kingdom_number}
               </span>
               
               {/* Tier */}

@@ -23,7 +23,7 @@ const MAX_COMPARE_SLOTS = 5;
 export const KINGDOM_COLORS = ['#22d3ee', '#a855f7', '#22c55e', '#f59e0b', '#ef4444'];
 
 // Helper to calculate radar data for a kingdom
-const calculateRadarData = (kingdom: KingdomProfile) => {
+const calculateRadarData = (kingdom: KingdomProfile, t?: (key: string, fallback: string) => string) => {
   const totalKvks = kingdom.total_kvks || 1;
   const prepWinRate = Math.round(kingdom.prep_win_rate * 100);
   const battleWinRate = Math.round(kingdom.battle_win_rate * 100);
@@ -39,12 +39,12 @@ const calculateRadarData = (kingdom: KingdomProfile) => {
   const experienceFactor = Math.min(100, Math.round((totalKvks / 10) * 100));
   
   return [
-    { label: 'Prep Win', value: prepWinRate },
-    { label: 'Battle Win', value: battleWinRate },
-    { label: 'Domination', value: dominationRate },
-    { label: 'Recent', value: recentPerformance },
-    { label: 'Experience', value: experienceFactor },
-    { label: 'Resilience', value: Math.max(0, 100 - invasionRate) },
+    { label: t ? t('radarLabels.prepWin', 'Prep Win') : 'Prep Win', value: prepWinRate },
+    { label: t ? t('radarLabels.battleWin', 'Battle Win') : 'Battle Win', value: battleWinRate },
+    { label: t ? t('radarLabels.domination', 'Domination') : 'Domination', value: dominationRate },
+    { label: t ? t('radarLabels.recent', 'Recent') : 'Recent', value: recentPerformance },
+    { label: t ? t('radarLabels.experience', 'Experience') : 'Experience', value: experienceFactor },
+    { label: t ? t('radarLabels.resilience', 'Resilience') : 'Resilience', value: Math.max(0, 100 - invasionRate) },
   ];
 };
 
@@ -63,10 +63,10 @@ const MultiCompareRadarChart: React.FC<MultiCompareRadarChartProps> = memo(funct
   const radarData = useMemo(() => 
     kingdoms.map((kingdom, i) => ({
       label: `K${kingdom.kingdom_number}`,
-      data: calculateRadarData(kingdom),
+      data: calculateRadarData(kingdom, t),
       color: colors[i % colors.length] || '#22d3ee'
     })),
-    [kingdoms, colors]
+    [kingdoms, colors, t]
   );
   
   const handleToggle = useCallback(() => {
@@ -435,8 +435,8 @@ const CompareKingdoms: React.FC = () => {
             marginBottom: '0.5rem',
             fontFamily: FONT_DISPLAY
           }}>
-            <span style={{ color: '#fff' }}>KINGDOM</span>
-            <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>COMPARISON</span>
+            <span style={{ color: '#fff' }}>{t('compare.heroTitle1', 'KINGDOM')}</span>
+            <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>{t('compare.heroTitle2', 'COMPARISON')}</span>
           </h1>
           <p style={{ color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.9rem', marginBottom: '0.75rem' }}>
             {t('compare.heroSubtitle', 'Put any kingdoms in the ring. Let the stats decide.')}
@@ -508,7 +508,7 @@ const CompareKingdoms: React.FC = () => {
               pattern="[0-9]*"
               value={kingdom1Input}
               onChange={(e) => setKingdom1Input(e.target.value.replace(/[^0-9]/g, ''))}
-              placeholder="Kingdom A"
+              placeholder={t('compare.kingdomA', 'Kingdom A')}
               className="input-glow"
               style={{
                 width: isMobile ? '110px' : '140px',
@@ -533,7 +533,7 @@ const CompareKingdoms: React.FC = () => {
               pattern="[0-9]*"
               value={kingdom2Input}
               onChange={(e) => setKingdom2Input(e.target.value.replace(/[^0-9]/g, ''))}
-              placeholder="Kingdom B"
+              placeholder={t('compare.kingdomB', 'Kingdom B')}
               className="input-glow"
               style={{
                 width: isMobile ? '110px' : '140px',

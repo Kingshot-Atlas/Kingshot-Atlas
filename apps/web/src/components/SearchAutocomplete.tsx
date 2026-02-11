@@ -18,7 +18,7 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
   value,
   onChange,
   onSelect,
-  placeholder = "Search by kingdom number (e.g., 1001)..."
+  placeholder
 }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
@@ -129,7 +129,7 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
         onFocus={() => setIsFocused(true)}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
-        placeholder={isMobile ? t('search.mobilePlaceholder', 'Search by kingdom #...') : placeholder}
+        placeholder={isMobile ? t('search.mobilePlaceholder', 'Search by kingdom #...') : (placeholder || t('search.placeholder', 'Search by kingdom number (e.g., 1001)...'))}
         style={{
           width: '100%',
           padding: '0.875rem 3rem 0.875rem 3rem',

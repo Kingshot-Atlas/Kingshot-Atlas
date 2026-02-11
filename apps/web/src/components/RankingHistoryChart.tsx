@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { scoreHistoryService, ScoreHistoryRecord } from '../services/scoreHistoryService';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { CHART_WIDTH, CHART_PADDING, CHART_FONTS, CHART_COLORS, POINT_SIZES, X_AXIS_LABEL_OFFSET, X_AXIS_TITLE_OFFSET, Y_AXIS_GRID_COUNT } from '../constants/chartConstants';
@@ -43,6 +44,7 @@ const RankingHistoryChart: React.FC<RankingHistoryChartProps> = ({
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
+  const { t } = useTranslation();
 
   // Purple color scheme for ranking
   const accentColor = CHART_COLORS.rankingHistory;
@@ -76,7 +78,7 @@ const RankingHistoryChart: React.FC<RankingHistoryChartProps> = ({
     return (
       <div style={{ backgroundColor: '#1a1a20', borderRadius: '12px', padding: '1rem', marginBottom: isMobile ? '1.25rem' : '1.5rem' }}>
         <h4 style={{ margin: '0 0 0.75rem 0', color: '#fff', fontSize: '0.9rem', fontWeight: '600', textAlign: 'center' }}>
-          Kingdom Ranking History
+          {t('rankingHistory.title', 'Kingdom Ranking History')}
         </h4>
         <div style={{
           height: height - 60,
@@ -86,7 +88,7 @@ const RankingHistoryChart: React.FC<RankingHistoryChartProps> = ({
           color: '#6b7280',
           fontSize: '0.85rem'
         }}>
-          Loading ranking history...
+          {t('rankingHistory.loading', 'Loading ranking history...')}
         </div>
       </div>
     );
@@ -102,10 +104,10 @@ const RankingHistoryChart: React.FC<RankingHistoryChartProps> = ({
         marginBottom: isMobile ? '1.25rem' : '1.5rem'
       }}>
         <h4 style={{ color: '#fff', fontSize: '0.9rem', fontWeight: '600', margin: '0 0 0.75rem 0', textAlign: 'center' }}>
-          Kingdom Ranking History
+          {t('rankingHistory.title', 'Kingdom Ranking History')}
         </h4>
         <div style={{ color: '#6b7280', fontSize: '0.85rem', textAlign: 'center', padding: '1rem' }}>
-          Play your first KvK to unlock ranking history!
+          {t('rankingHistory.playFirst', 'Play your first KvK to unlock ranking history!')}
         </div>
       </div>
     );
@@ -121,10 +123,10 @@ const RankingHistoryChart: React.FC<RankingHistoryChartProps> = ({
         marginBottom: isMobile ? '1.25rem' : '1.5rem'
       }}>
         <h4 style={{ color: '#fff', fontSize: '0.9rem', fontWeight: '600', margin: '0 0 0.75rem 0', textAlign: 'center' }}>
-          Kingdom Ranking History
+          {t('rankingHistory.title', 'Kingdom Ranking History')}
         </h4>
         <div style={{ color: '#6b7280', fontSize: '0.85rem', textAlign: 'center', padding: '1rem' }}>
-          Need at least 2 KvKs for trend data
+          {t('rankingHistory.needTwo', 'Need at least 2 KvKs for trend data')}
         </div>
       </div>
     );
@@ -234,11 +236,11 @@ const RankingHistoryChart: React.FC<RankingHistoryChartProps> = ({
         }}
       >
         <h4 style={{ margin: 0, color: '#fff', fontSize: '0.9rem', fontWeight: '600', textAlign: 'center' }}>
-          Kingdom Ranking History
+          {t('rankingHistory.title', 'Kingdom Ranking History')}
         </h4>
         {!isExpanded && (
           <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>
-            &quot;Am I climbing or slipping?&quot;
+            {t('rankingHistory.subtitle', '"Am I climbing or slipping?"')}
           </span>
         )}
         {isExpanded && chartData.length >= 2 && prevKvk && lastKvk && (

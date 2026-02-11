@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '../../hooks/useMediaQuery';
 import { usePremium } from '../../contexts/PremiumContext';
 
 const ScoreSimulatorTeaser: React.FC = () => {
   const isMobile = useIsMobile();
+  const { t } = useTranslation();
   const { tier } = usePremium();
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -32,7 +34,7 @@ const ScoreSimulatorTeaser: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <span style={{ fontSize: '1.1rem' }}>🔮</span>
           <h3 style={{ color: '#fff', fontSize: isMobile ? '0.95rem' : '1.1rem', fontWeight: '600', margin: 0 }}>
-            Score Simulator
+            {t('simulator.title', 'Atlas Score Simulator')}
           </h3>
           <Link
             to="/upgrade"
@@ -68,7 +70,7 @@ const ScoreSimulatorTeaser: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           {!isExpanded && (
             <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>
-              &quot;What if I win the next KvK?&quot;
+              {t('simulator.subtitle', '"What if I win the next KvK?"')}
             </span>
           )}
           <svg 
@@ -109,13 +111,13 @@ const ScoreSimulatorTeaser: React.FC = () => {
             backgroundColor: '#0a0a0a',
             borderRadius: '8px'
           }}>
-            <div style={{ color: '#6b7280', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Current Atlas Score</div>
+            <div style={{ color: '#6b7280', fontSize: '0.75rem', marginBottom: '0.25rem' }}>{t('simulator.currentScore', 'Current Atlas Score')}</div>
             <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#22d3ee' }}>8.5</div>
           </div>
 
           {/* Fake KvK inputs */}
           <div style={{ marginBottom: '1rem' }}>
-            <div style={{ color: '#9ca3af', fontSize: '0.85rem', marginBottom: '0.5rem' }}>Simulate Next KvKs</div>
+            <div style={{ color: '#9ca3af', fontSize: '0.85rem', marginBottom: '0.5rem' }}>{t('simulator.simulateNext', 'Simulate Next KvKs')}</div>
             <div style={{ 
               padding: '0.5rem',
               backgroundColor: '#0a0a0a',
@@ -137,7 +139,7 @@ const ScoreSimulatorTeaser: React.FC = () => {
             borderRadius: '8px',
             textAlign: 'center'
           }}>
-            <div style={{ color: '#6b7280', fontSize: '0.7rem' }}>Projected Score</div>
+            <div style={{ color: '#6b7280', fontSize: '0.7rem' }}>{t('simulator.projectedScore', 'Projected Score')}</div>
             <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#22c55e' }}>9.2</div>
             <div style={{ color: '#22c55e', fontSize: '0.8rem' }}>+0.7 (↑8%)</div>
           </div>
@@ -175,7 +177,7 @@ const ScoreSimulatorTeaser: React.FC = () => {
               marginBottom: '0.5rem',
               margin: '0 0 0.5rem 0'
             }}>
-              Predict Your Future Score
+              {t('simulator.predictTitle', 'Predict Your Future Score')}
             </h4>
             <p style={{ 
               color: '#9ca3af', 
@@ -183,7 +185,7 @@ const ScoreSimulatorTeaser: React.FC = () => {
               marginBottom: '1rem',
               lineHeight: 1.5
             }}>
-              &quot;What if I win the next 3 KvKs?&quot; See how your Atlas Score changes with different outcomes.
+              {t('simulator.predictDesc', '"What if I win the next 3 KvKs?" See how your Atlas Score changes with different outcomes.')}
             </p>
 
             {/* Benefits */}
@@ -196,15 +198,15 @@ const ScoreSimulatorTeaser: React.FC = () => {
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <span style={{ color: '#22c55e', fontSize: '0.7rem' }}>✓</span>
-                <span style={{ color: '#9ca3af', fontSize: '0.75rem' }}>Sign in to unlock 2 future KvKs. Pro gives access to 5.</span>
+                <span style={{ color: '#9ca3af', fontSize: '0.75rem' }}>{t('simulator.benefit1', 'Sign in to unlock 2 future KvKs. Pro gives access to 5.')}</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <span style={{ color: '#22c55e', fontSize: '0.7rem' }}>✓</span>
-                <span style={{ color: '#9ca3af', fontSize: '0.75rem' }}>See streak and experience impact</span>
+                <span style={{ color: '#9ca3af', fontSize: '0.75rem' }}>{t('simulator.benefit2', 'See streak and experience impact')}</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <span style={{ color: '#22c55e', fontSize: '0.7rem' }}>✓</span>
-                <span style={{ color: '#9ca3af', fontSize: '0.75rem' }}>Get actionable insights</span>
+                <span style={{ color: '#9ca3af', fontSize: '0.75rem' }}>{t('simulator.benefit3', 'Get actionable insights')}</span>
               </div>
             </div>
 
@@ -230,7 +232,7 @@ const ScoreSimulatorTeaser: React.FC = () => {
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
               </svg>
-              {tier === 'anonymous' ? 'Sign In to Unlock' : 'Unlock Simulator'}
+              {tier === 'anonymous' ? t('simulator.signInUnlock', 'Sign In to Unlock') : t('simulator.unlockSimulator', 'Unlock Simulator')}
             </Link>
           </div>
         </div>

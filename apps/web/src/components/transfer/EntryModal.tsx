@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '../../hooks/useMediaQuery';
 import { FONT_DISPLAY, colors } from '../../utils/styles';
 import { BoardMode } from '../KingdomListingCard';
@@ -7,6 +8,7 @@ const EntryModal: React.FC<{
   onSelect: (mode: BoardMode) => void;
   onClose: () => void;
 }> = ({ onSelect, onClose }) => {
+  const { t } = useTranslation();
   const isMobile = useIsMobile();
 
   const options: Array<{
@@ -19,22 +21,22 @@ const EntryModal: React.FC<{
     {
       mode: 'transferring',
       icon: '🚀',
-      title: "I'm looking for a new kingdom",
-      subtitle: 'Create your Transfer Profile and apply to kingdoms',
+      title: t('transferHub.entry.transferring', "I'm looking for a new kingdom"),
+      subtitle: t('transferHub.entry.transferringDesc', 'Create your Transfer Profile and apply to kingdoms'),
       color: '#22d3ee',
     },
     {
       mode: 'recruiting',
       icon: '📢',
-      title: "I'm recruiting for my kingdom",
-      subtitle: 'Manage your kingdom listing and review applications',
+      title: t('transferHub.entry.recruiting', "I'm recruiting for my kingdom"),
+      subtitle: t('transferHub.entry.recruitingDesc', 'Manage your kingdom listing and review applications'),
       color: '#a855f7',
     },
     {
       mode: 'browsing',
       icon: '👀',
-      title: "Just browsing",
-      subtitle: 'Explore kingdoms and see what\'s available',
+      title: t('transferHub.entry.browsing', 'Just browsing'),
+      subtitle: t('transferHub.entry.browsingDesc', 'Explore kingdoms and see what\'s available'),
       color: '#9ca3af',
     },
   ];
@@ -78,10 +80,10 @@ const EntryModal: React.FC<{
               margin: '0 0 0.5rem 0',
             }}
           >
-            What brings you here?
+            {t('transferHub.entry.title', 'What brings you here?')}
           </h2>
           <p style={{ color: colors.textSecondary, fontSize: '0.85rem', margin: 0 }}>
-            This helps us personalize your experience
+            {t('transferHub.entry.subtitle', 'This helps us personalize your experience')}
           </p>
         </div>
 
@@ -125,7 +127,7 @@ const EntryModal: React.FC<{
           ))}
         </div>
         <p style={{ color: '#4b5563', fontSize: '0.65rem', textAlign: 'center', marginTop: '1rem', margin: '1rem 0 0 0' }}>
-          Your choice is saved on this device. You can switch modes anytime.
+          {t('transferHub.entry.savedOnDevice', 'Your choice is saved on this device. You can switch modes anytime.')}
         </p>
       </div>
     </div>

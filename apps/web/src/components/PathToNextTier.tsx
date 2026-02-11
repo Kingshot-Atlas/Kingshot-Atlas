@@ -1,4 +1,5 @@
 import React, { useMemo, memo, useState, useRef, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { 
   KingdomProfile, 
@@ -26,6 +27,7 @@ interface TierRequirement {
 
 const PathToNextTier: React.FC<PathToNextTierProps> = ({ kingdom, isExpanded: externalExpanded, onToggle }) => {
   const isMobile = useIsMobile();
+  const { t } = useTranslation();
   const [internalExpanded, setInternalExpanded] = useState(false);
   const [hasShownConfetti, setHasShownConfetti] = useState(false);
   const confettiContainerRef = useRef<HTMLDivElement>(null);
@@ -105,11 +107,11 @@ const PathToNextTier: React.FC<PathToNextTierProps> = ({ kingdom, isExpanded: ex
       const kvksNeeded = Math.ceil(pointsNeeded / actualScorePerDomination);
       
       const descriptions: Record<PowerTier, string> = {
-        S: 'Elite status - Top 3% of all kingdoms',
-        A: 'Formidable - Serious contender status',
-        B: 'Competitive - Above average performance',
-        C: 'Developing - Average kingdom tier',
-        D: 'Rebuilding - Growth opportunity'
+        S: t('pathToTier.descS', 'Elite status - Top 3% of all kingdoms'),
+        A: t('pathToTier.descA', 'Formidable - Serious contender status'),
+        B: t('pathToTier.descB', 'Competitive - Above average performance'),
+        C: t('pathToTier.descC', 'Developing - Average kingdom tier'),
+        D: t('pathToTier.descD', 'Rebuilding - Growth opportunity')
       };
       
       requirements.push({
@@ -124,8 +126,8 @@ const PathToNextTier: React.FC<PathToNextTierProps> = ({ kingdom, isExpanded: ex
     // What-if scenarios
     const scenarios = [
       {
-        name: 'Domination',
-        description: 'Win both Prep and Battle',
+        name: t('pathToTier.domination', 'Domination'),
+        description: t('pathToTier.dominationDesc', 'Win both Prep and Battle'),
         icon: '👑',
         simulate: () => {
           const simStats = { ...stats };
@@ -140,8 +142,8 @@ const PathToNextTier: React.FC<PathToNextTierProps> = ({ kingdom, isExpanded: ex
         }
       },
       {
-        name: 'Comeback',
-        description: 'Lose Prep, Win Battle',
+        name: t('pathToTier.comeback', 'Comeback'),
+        description: t('pathToTier.comebackDesc', 'Lose Prep, Win Battle'),
         icon: '💪',
         simulate: () => {
           const simStats = { ...stats };
@@ -155,8 +157,8 @@ const PathToNextTier: React.FC<PathToNextTierProps> = ({ kingdom, isExpanded: ex
         }
       },
       {
-        name: 'Reversal',
-        description: 'Win Prep, Lose Battle',
+        name: t('pathToTier.reversal', 'Reversal'),
+        description: t('pathToTier.reversalDesc', 'Win Prep, Lose Battle'),
         icon: '🔄',
         simulate: () => {
           const simStats = { ...stats };
@@ -170,8 +172,8 @@ const PathToNextTier: React.FC<PathToNextTierProps> = ({ kingdom, isExpanded: ex
         }
       },
       {
-        name: 'Invasion',
-        description: 'Lose both phases',
+        name: t('pathToTier.invasion', 'Invasion'),
+        description: t('pathToTier.invasionDesc', 'Lose both phases'),
         icon: '💀',
         simulate: () => {
           const simStats = { ...stats };
@@ -280,11 +282,11 @@ const PathToNextTier: React.FC<PathToNextTierProps> = ({ kingdom, isExpanded: ex
         }}
       >
         <h4 style={{ color: '#fff', fontSize: '0.9rem', fontWeight: '600', margin: 0, textAlign: 'center' }}>
-          Path to Next Tier
+          {t('pathToTier.title', 'Path to Next Tier')}
         </h4>
         {!isExpanded && (
           <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>
-            &quot;How do I reach the next tier?&quot;
+            {t('pathToTier.subtitle', '"How do I reach the next tier?"')}
           </span>
         )}
         <svg 
@@ -346,7 +348,7 @@ const PathToNextTier: React.FC<PathToNextTierProps> = ({ kingdom, isExpanded: ex
             marginBottom: '0.5rem',
             textShadow: '0 0 10px #fbbf2440'
           }}>
-            Already S-Tier!
+            {t('pathToTier.alreadySTier', 'Already S-Tier!')}
           </div>
           
           {/* Motivational Message */}
@@ -359,7 +361,7 @@ const PathToNextTier: React.FC<PathToNextTierProps> = ({ kingdom, isExpanded: ex
             marginLeft: 'auto',
             marginRight: 'auto'
           }}>
-            The top 3% fear no matchup. Keep dominating.
+            {t('pathToTier.keepDominating', 'The top 3% fear no matchup. Keep dominating.')}
           </div>
           
           {/* Current Score Display */}
@@ -368,8 +370,8 @@ const PathToNextTier: React.FC<PathToNextTierProps> = ({ kingdom, isExpanded: ex
             color: '#6b7280', 
             fontSize: '0.8rem' 
           }}>
-            Current Score: <span style={{ color: '#fbbf24', fontWeight: '600' }}>{(kingdom.overall_score ?? analysis.currentScore).toFixed(2)}</span>
-            <span style={{ color: '#4b5563' }}> / {POWER_TIER_THRESHOLDS.S} threshold</span>
+            {t('pathToTier.currentScore', 'Current Score')}: <span style={{ color: '#fbbf24', fontWeight: '600' }}>{(kingdom.overall_score ?? analysis.currentScore).toFixed(2)}</span>
+            <span style={{ color: '#4b5563' }}> / {POWER_TIER_THRESHOLDS.S} {t('pathToTier.threshold', 'threshold')}</span>
           </div>
         </div>
       ) : (
@@ -401,7 +403,7 @@ const PathToNextTier: React.FC<PathToNextTierProps> = ({ kingdom, isExpanded: ex
             textTransform: 'uppercase',
             letterSpacing: '0.5px'
           }}>
-            Current Tier
+            {t('pathToTier.currentTier', 'Current Tier')}
           </div>
           <div style={{
             width: '36px',
@@ -451,7 +453,7 @@ const PathToNextTier: React.FC<PathToNextTierProps> = ({ kingdom, isExpanded: ex
                 textTransform: 'uppercase',
                 letterSpacing: '0.5px'
               }}>
-                Next Tier
+                {t('pathToTier.nextTier', 'Next Tier')}
               </div>
               <div style={{
                 width: '36px',
@@ -499,7 +501,7 @@ const PathToNextTier: React.FC<PathToNextTierProps> = ({ kingdom, isExpanded: ex
               letterSpacing: '0.5px',
               textAlign: 'center'
             }}>
-              Progress to {nextReq.tier}-Tier
+              {t('pathToTier.progressTo', 'Progress to')} {nextReq.tier}-Tier
             </div>
             
             {/* Progress bar */}
@@ -524,7 +526,7 @@ const PathToNextTier: React.FC<PathToNextTierProps> = ({ kingdom, isExpanded: ex
               marginTop: '0.5rem',
               textAlign: 'center'
             }}>
-              ~{nextReq.kvksNeeded} domination{nextReq.kvksNeeded !== 1 ? 's' : ''} needed (estimated)
+              {t('pathToTier.dominationsNeeded', '~{{count}} domination(s) needed (estimated)', { count: nextReq.kvksNeeded })}
             </div>
           </div>
         );
@@ -541,7 +543,7 @@ const PathToNextTier: React.FC<PathToNextTierProps> = ({ kingdom, isExpanded: ex
           letterSpacing: '0.5px',
           textAlign: 'center'
         }}>
-          Next KvK Impact
+          {t('pathToTier.nextKvkImpact', 'Next KvK Impact')}
         </div>
         <div style={{
           display: 'grid',

@@ -131,10 +131,10 @@ const LoginGatedSection: React.FC<{
 
 const KingdomProfile: React.FC = () => {
   const { kingdomNumber } = useParams<{ kingdomNumber: string }>();
-  useDocumentTitle(kingdomNumber ? `Kingdom ${kingdomNumber}` : undefined);
+  const { t } = useTranslation();
+  useDocumentTitle(kingdomNumber ? `${t('common.kingdom', 'Kingdom')} ${kingdomNumber}` : undefined);
   useScrollDepth('Kingdom Profile');
   const navigate = useNavigate();
-  const { t } = useTranslation();
   const { user, profile } = useAuth();
   const { showToast } = useToast();
   const [kingdom, setKingdom] = useState<KingdomProfileType | null>(null);
@@ -541,7 +541,7 @@ const KingdomProfile: React.FC = () => {
             onToggle={setBreakdownExpanded}
           />
         ) : (
-          <LoginGatedSection title="Atlas Score Breakdown" subtitle={'\u201CWhy is my score what it is?\u201D'} isExpanded={breakdownExpanded} onToggle={setBreakdownExpanded} isMobile={isMobile} />
+          <LoginGatedSection title={t('scoreBreakdown.title', 'Atlas Score Breakdown')} subtitle={t('scoreBreakdown.whyScore', '\u201CWhy is my score what it is?\u201D')} isExpanded={breakdownExpanded} onToggle={setBreakdownExpanded} isMobile={isMobile} />
         )}
 
         {/* Atlas Score Simulator - Pro Feature */}
@@ -552,7 +552,7 @@ const KingdomProfile: React.FC = () => {
             onToggle={setSimulatorExpanded}
           />
         ) : (
-          <LoginGatedSection title="Atlas Score Simulator" subtitle={'\u201CWhat if I win the next KvK?\u201D'} isExpanded={simulatorExpanded} onToggle={setSimulatorExpanded} isMobile={isMobile} />
+          <LoginGatedSection title={t('simulator.title', 'Atlas Score Simulator')} subtitle={t('simulator.subtitle', '\u201CWhat if I win the next KvK?\u201D')} isExpanded={simulatorExpanded} onToggle={setSimulatorExpanded} isMobile={isMobile} />
         )}
 
         {/* Atlas Score History Chart */}
@@ -565,7 +565,7 @@ const KingdomProfile: React.FC = () => {
             />
           </div>
         ) : (
-          <LoginGatedSection title="Atlas Score History" subtitle={'\u201CHow has my score evolved?\u201D'} isExpanded={scoreHistoryExpanded} onToggle={setScoreHistoryExpanded} isMobile={isMobile} />
+          <LoginGatedSection title={t('scoreHistory.title', 'Atlas Score History')} subtitle={t('scoreHistory.subtitle', '\u201CHow has my score evolved?\u201D')} isExpanded={scoreHistoryExpanded} onToggle={setScoreHistoryExpanded} isMobile={isMobile} />
         )}
 
         {/* Kingdom Ranking History Chart */}
@@ -578,7 +578,7 @@ const KingdomProfile: React.FC = () => {
             />
           </div>
         ) : (
-          <LoginGatedSection title="Kingdom Ranking History" subtitle={'\u201CAm I climbing or slipping?\u201D'} isExpanded={rankingHistoryExpanded} onToggle={setRankingHistoryExpanded} isMobile={isMobile} />
+          <LoginGatedSection title={t('rankingHistory.title', 'Kingdom Ranking History')} subtitle={t('rankingHistory.subtitle', '\u201CAm I climbing or slipping?\u201D')} isExpanded={rankingHistoryExpanded} onToggle={setRankingHistoryExpanded} isMobile={isMobile} />
         )}
 
         {/* Path to Next Tier - What-If Scenarios */}
@@ -589,7 +589,7 @@ const KingdomProfile: React.FC = () => {
             onToggle={setPathExpanded}
           />
         ) : (
-          <LoginGatedSection title="Path to Next Tier" subtitle={'\u201CHow do I reach the next tier?\u201D'} isExpanded={pathExpanded} onToggle={setPathExpanded} isMobile={isMobile} />
+          <LoginGatedSection title={t('pathToTier.title', 'Path to Next Tier')} subtitle={t('pathToTier.subtitle', '\u201CHow do I reach the next tier?\u201D')} isExpanded={pathExpanded} onToggle={setPathExpanded} isMobile={isMobile} />
         )}
 
         {/* Performance Trend Chart */}
@@ -602,7 +602,7 @@ const KingdomProfile: React.FC = () => {
             />
           </div>
         ) : (
-          <LoginGatedSection title="Performance Trend" subtitle={'\u201CWhat\u2019s my win rate trend?\u201D'} isExpanded={trendExpanded} onToggle={setTrendExpanded} isMobile={isMobile} />
+          <LoginGatedSection title={t('performanceTrend.title', 'Performance Trend')} subtitle={t('performanceTrend.subtitle', '\u201CWhat\u2019s my win rate trend?\u201D')} isExpanded={trendExpanded} onToggle={setTrendExpanded} isMobile={isMobile} />
         )}
 
         {/* Atlas Users from this Kingdom */}

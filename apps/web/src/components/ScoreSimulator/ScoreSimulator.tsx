@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { KingdomProfile } from '../../types';
 import { usePremium } from '../../contexts/PremiumContext';
 import { useIsMobile } from '../../hooks/useMediaQuery';
@@ -14,6 +15,7 @@ interface ScoreSimulatorProps {
 const ScoreSimulator: React.FC<ScoreSimulatorProps> = ({ kingdom, isExpanded: externalExpanded, onToggle }) => {
   usePremium(); // Keep hook call for potential future use
   const isMobile = useIsMobile();
+  const { t } = useTranslation();
   const [simulatedKvKs, setSimulatedKvKs] = useState<SimulatedKvK[]>([
     { prepResult: 'W', battleResult: 'W' }
   ]);
@@ -46,10 +48,10 @@ const ScoreSimulator: React.FC<ScoreSimulatorProps> = ({ kingdom, isExpanded: ex
         marginBottom: isMobile ? '1.25rem' : '1.5rem'
       }}>
         <h4 style={{ color: '#fff', fontSize: '0.9rem', fontWeight: '600', margin: '0 0 0.75rem 0', textAlign: 'center' }}>
-          Atlas Score Simulator
+          {t('simulator.title', 'Atlas Score Simulator')}
         </h4>
         <div style={{ color: '#6b7280', fontSize: '0.85rem', textAlign: 'center', padding: '1rem' }}>
-          Play your first KvK to unlock score projections!
+          {t('simulator.playFirst', 'Play your first KvK to unlock score projections!')}
         </div>
       </div>
     );
@@ -110,11 +112,11 @@ const ScoreSimulator: React.FC<ScoreSimulatorProps> = ({ kingdom, isExpanded: ex
         }}
       >
         <h4 style={{ color: '#fff', fontSize: '0.9rem', fontWeight: '600', margin: 0, textAlign: 'center' }}>
-          Atlas Score Simulator
+          {t('simulator.title', 'Atlas Score Simulator')}
         </h4>
         {!isExpanded && (
           <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>
-            &quot;What if I win the next KvK?&quot;
+            {t('simulator.subtitle', '"What if I win the next KvK?"')}
           </span>
         )}
         <svg 
@@ -148,7 +150,7 @@ const ScoreSimulator: React.FC<ScoreSimulatorProps> = ({ kingdom, isExpanded: ex
             borderRadius: '8px',
             border: '1px solid #1f1f1f'
           }}>
-            <div style={{ color: '#6b7280', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Current Atlas Score</div>
+            <div style={{ color: '#6b7280', fontSize: '0.75rem', marginBottom: '0.25rem' }}>{t('simulator.currentScore', 'Current Atlas Score')}</div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
               <span style={{ 
                 fontSize: '1.5rem', 
@@ -180,7 +182,7 @@ const ScoreSimulator: React.FC<ScoreSimulatorProps> = ({ kingdom, isExpanded: ex
               marginBottom: '0.75rem'
             }}>
               <span style={{ color: '#9ca3af', fontSize: '0.85rem', fontWeight: '500' }}>
-                Simulate Next KvKs
+                {t('simulator.simulateNext', 'Simulate Next KvKs')}
               </span>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <button
@@ -195,7 +197,7 @@ const ScoreSimulator: React.FC<ScoreSimulatorProps> = ({ kingdom, isExpanded: ex
                     cursor: 'pointer'
                   }}
                 >
-                  Reset
+                  {t('simulator.reset', 'Reset')}
                 </button>
                 {simulatedKvKs.length < 5 && (
                   <button
@@ -213,7 +215,7 @@ const ScoreSimulator: React.FC<ScoreSimulatorProps> = ({ kingdom, isExpanded: ex
                       gap: '0.25rem'
                     }}
                   >
-                    + Add KvK
+                    {t('simulator.addKvk', '+ Add KvK')}
                   </button>
                 )}
               </div>
@@ -246,7 +248,7 @@ const ScoreSimulator: React.FC<ScoreSimulatorProps> = ({ kingdom, isExpanded: ex
 
                     {/* Prep Result */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                      <span style={{ color: '#eab308', fontSize: '0.65rem' }}>Prep:</span>
+                      <span style={{ color: '#eab308', fontSize: '0.65rem' }}>{t('simulator.prep', 'Prep')}:</span>
                       <select
                         value={kvk.prepResult}
                         onChange={(e) => updateKvK(index, 'prepResult', e.target.value as 'W' | 'L')}
@@ -269,7 +271,7 @@ const ScoreSimulator: React.FC<ScoreSimulatorProps> = ({ kingdom, isExpanded: ex
 
                     {/* Battle Result */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                      <span style={{ color: '#f97316', fontSize: '0.65rem' }}>Battle:</span>
+                      <span style={{ color: '#f97316', fontSize: '0.65rem' }}>{t('simulator.battle', 'Battle')}:</span>
                       <select
                         value={kvk.battleResult}
                         onChange={(e) => updateKvK(index, 'battleResult', e.target.value as 'W' | 'L')}
@@ -349,7 +351,7 @@ const ScoreSimulator: React.FC<ScoreSimulatorProps> = ({ kingdom, isExpanded: ex
             }}>
               {/* Projected Score */}
               <div style={{ textAlign: 'center', flex: 1, minWidth: '120px' }}>
-                <div style={{ color: '#6b7280', fontSize: '0.7rem', marginBottom: '0.25rem' }}>Projected Score</div>
+                <div style={{ color: '#6b7280', fontSize: '0.7rem', marginBottom: '0.25rem' }}>{t('simulator.projectedScore', 'Projected Score')}</div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
                   <span style={{ 
                     fontSize: '1.75rem', 
@@ -376,7 +378,7 @@ const ScoreSimulator: React.FC<ScoreSimulatorProps> = ({ kingdom, isExpanded: ex
 
               {/* Score Change */}
               <div style={{ textAlign: 'center', flex: 1, minWidth: '100px' }}>
-                <div style={{ color: '#6b7280', fontSize: '0.7rem', marginBottom: '0.25rem' }}>Change</div>
+                <div style={{ color: '#6b7280', fontSize: '0.7rem', marginBottom: '0.25rem' }}>{t('simulator.change', 'Change')}</div>
                 <div style={{ 
                   fontSize: '1.25rem', 
                   fontWeight: 'bold', 
@@ -400,7 +402,7 @@ const ScoreSimulator: React.FC<ScoreSimulatorProps> = ({ kingdom, isExpanded: ex
               gap: '0.5rem'
             }}>
               <div style={{ textAlign: 'center' }}>
-                <div style={{ color: '#6b7280', fontSize: '0.6rem' }}>Base Win Rate</div>
+                <div style={{ color: '#6b7280', fontSize: '0.6rem' }}>{t('simulator.baseWinRate', 'Base Win Rate')}</div>
                 <div style={{ 
                   color: simulation.breakdown.baseScoreChange >= 0 ? '#22c55e' : '#ef4444',
                   fontSize: '0.8rem',
@@ -410,7 +412,7 @@ const ScoreSimulator: React.FC<ScoreSimulatorProps> = ({ kingdom, isExpanded: ex
                 </div>
               </div>
               <div style={{ textAlign: 'center' }}>
-                <div style={{ color: '#6b7280', fontSize: '0.6rem' }}>Streak Impact</div>
+                <div style={{ color: '#6b7280', fontSize: '0.6rem' }}>{t('simulator.streakImpact', 'Streak Impact')}</div>
                 <div style={{ 
                   color: simulation.breakdown.streakImpact >= 0 ? '#22c55e' : '#ef4444',
                   fontSize: '0.8rem',
@@ -420,7 +422,7 @@ const ScoreSimulator: React.FC<ScoreSimulatorProps> = ({ kingdom, isExpanded: ex
                 </div>
               </div>
               <div style={{ textAlign: 'center' }}>
-                <div style={{ color: '#6b7280', fontSize: '0.6rem' }}>Experience</div>
+                <div style={{ color: '#6b7280', fontSize: '0.6rem' }}>{t('simulator.experience', 'Experience')}</div>
                 <div style={{ 
                   color: simulation.breakdown.experienceGain >= 0 ? '#22c55e' : '#ef4444',
                   fontSize: '0.8rem',
@@ -430,7 +432,7 @@ const ScoreSimulator: React.FC<ScoreSimulatorProps> = ({ kingdom, isExpanded: ex
                 </div>
               </div>
               <div style={{ textAlign: 'center' }}>
-                <div style={{ color: '#6b7280', fontSize: '0.6rem' }}>Form Bonus</div>
+                <div style={{ color: '#6b7280', fontSize: '0.6rem' }}>{t('simulator.formBonus', 'Form Bonus')}</div>
                 <div style={{ 
                   color: simulation.breakdown.formBonus >= 0 ? '#22c55e' : '#ef4444',
                   fontSize: '0.8rem',

@@ -9,6 +9,7 @@ import { logger } from '../utils/logger';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
+import { useTranslation } from 'react-i18next';
 
 // Get username color based on subscription tier (including admin)
 const getUsernameColor = (tier: SubscriptionTier | null | undefined): string => {
@@ -38,7 +39,8 @@ const formatMemberSince = (dateStr: string): string => {
 type SortBy = 'role' | 'joined' | 'kingdom' | 'tc';
 
 const UserDirectory: React.FC = () => {
-  useDocumentTitle('Player Directory');
+  const { t } = useTranslation();
+  useDocumentTitle(t('playerDirectory.title', 'Player Directory'));
   useMetaTags(PAGE_META_TAGS.players);
   useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.players });
   const { user: currentUser } = useAuth();
@@ -355,7 +357,7 @@ const UserDirectory: React.FC = () => {
   if (loading) {
     return (
       <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ color: '#6b7280' }}>Loading users...</div>
+        <div style={{ color: '#6b7280' }}>{t('playerDirectory.loadingUsers', 'Loading users...')}</div>
       </div>
     );
   }
@@ -377,11 +379,11 @@ const UserDirectory: React.FC = () => {
             marginBottom: '0.5rem',
             fontFamily: FONT_DISPLAY
           }}>
-            <span style={{ color: '#fff' }}>PLAYER</span>
-            <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>DIRECTORY</span>
+            <span style={{ color: '#fff' }}>{t('playerDirectory.heroTitle1', 'PLAYER')}</span>
+            <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>{t('playerDirectory.heroTitle2', 'DIRECTORY')}</span>
           </h1>
           <p style={{ color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.9rem', marginBottom: '0.75rem' }}>
-            Find allies, scout rivals, connect with the community
+            {t('playerDirectory.heroSubtitle', 'Find allies, scout rivals, connect with the community')}
           </p>
           
           {!isMobile && (
@@ -409,7 +411,7 @@ const UserDirectory: React.FC = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by Kingshot username or alliance..."
+              placeholder={t('playerDirectory.searchPlaceholder', 'Search by Kingshot username or alliance...')}
               style={{
                 width: '100%',
                 padding: '0.875rem 1rem',
@@ -450,10 +452,10 @@ const UserDirectory: React.FC = () => {
                 minWidth: '130px'
               }}
             >
-              <option value="all">All Players</option>
-              <option value="alliance">By Alliance</option>
-              <option value="region">By Region</option>
-              <option value="kingdom">By Kingdom</option>
+              <option value="all">{t('playerDirectory.allPlayers', 'All Players')}</option>
+              <option value="alliance">{t('playerDirectory.byAlliance', 'By Alliance')}</option>
+              <option value="region">{t('playerDirectory.byRegion', 'By Region')}</option>
+              <option value="kingdom">{t('playerDirectory.byKingdom', 'By Kingdom')}</option>
             </select>
 
             {filterBy === 'alliance' && (
@@ -476,7 +478,7 @@ const UserDirectory: React.FC = () => {
                   minWidth: '160px'
                 }}
               >
-                <option value="">All Alliances</option>
+                <option value="">{t('playerDirectory.allAlliances', 'All Alliances')}</option>
                 {uniqueAlliances.sort().map(tag => (
                   <option key={tag} value={tag}>[{tag}] · {alliancePlayerCounts[tag as string] || 0} players</option>
                 ))}
@@ -503,7 +505,7 @@ const UserDirectory: React.FC = () => {
                   minWidth: '140px'
                 }}
               >
-                <option value="">All Regions</option>
+                <option value="">{t('playerDirectory.allRegions', 'All Regions')}</option>
                 {uniqueRegions.map(region => (
                   <option key={region} value={region}>{region}</option>
                 ))}
@@ -525,7 +527,7 @@ const UserDirectory: React.FC = () => {
                     }
                   }}
                   onFocus={() => setShowKingdomDropdown(true)}
-                  placeholder="Type kingdom #..."
+                  placeholder={t('playerDirectory.typeKingdom', 'Type kingdom #...')}
                   style={{
                     padding: '0.875rem 2.5rem 0.875rem 1rem',
                     backgroundColor: '#111116',
@@ -575,7 +577,7 @@ const UserDirectory: React.FC = () => {
                       onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'}
                       onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                     >
-                      All Kingdoms
+                      {t('playerDirectory.allKingdoms', 'All Kingdoms')}
                     </div>
                     {filteredKingdomOptions.map(kingdom => {
                       const count = kingdomPlayerCounts[kingdom as number] || 0;
@@ -600,7 +602,7 @@ const UserDirectory: React.FC = () => {
                           onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'}
                           onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                         >
-                          <span>Kingdom {kingdom}</span>
+                          <span>{t('common.kingdom', 'Kingdom')} {kingdom}</span>
                           {count > 0 && (
                             <span style={{ 
                               color: '#6b7280', 
@@ -615,7 +617,7 @@ const UserDirectory: React.FC = () => {
                     })}
                     {filteredKingdomOptions.length === 0 && (
                       <div style={{ padding: '0.75rem 1rem', color: '#6b7280', fontSize: '0.85rem' }}>
-                        No kingdoms found
+                        {t('playerDirectory.noKingdomsFound', 'No kingdoms found')}
                       </div>
                     )}
                   </div>
@@ -685,7 +687,7 @@ const UserDirectory: React.FC = () => {
                 transition: 'all 0.2s ease',
               }}
             >
-              🏠 My Kingdom ({myKingdom})
+              🏠 {t('playerDirectory.myKingdom', 'My Kingdom')} ({myKingdom})
             </button>
           )}
         </div>
@@ -693,7 +695,7 @@ const UserDirectory: React.FC = () => {
         {/* Sort-by + Results Count row */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
           <span style={{ color: '#6b7280', fontSize: '0.85rem' }}>
-            Showing <span style={{ ...neonGlow('#22d3ee'), fontWeight: '600' }}>{Math.min(visibleCount, filteredUsers.length)}</span> of <span style={{ ...neonGlow('#22d3ee'), fontWeight: '600' }}>{filteredUsers.length}</span> player{filteredUsers.length !== 1 ? 's' : ''}
+            {t('playerDirectory.showing', 'Showing')} <span style={{ ...neonGlow('#22d3ee'), fontWeight: '600' }}>{Math.min(visibleCount, filteredUsers.length)}</span> {t('playerDirectory.of', 'of')} <span style={{ ...neonGlow('#22d3ee'), fontWeight: '600' }}>{filteredUsers.length}</span> {filteredUsers.length !== 1 ? t('playerDirectory.players', 'players') : t('playerDirectory.player', 'player')}
           </span>
           <select
             value={sortBy}
@@ -709,10 +711,10 @@ const UserDirectory: React.FC = () => {
               outline: 'none',
             }}
           >
-            <option value="role">Sort: Role Priority</option>
-            <option value="joined">Sort: Newest First</option>
-            <option value="kingdom">Sort: Kingdom #</option>
-            <option value="tc">Sort: TC Level</option>
+            <option value="role">{t('playerDirectory.sortRole', 'Sort: Role Priority')}</option>
+            <option value="joined">{t('playerDirectory.sortNewest', 'Sort: Newest First')}</option>
+            <option value="kingdom">{t('playerDirectory.sortKingdom', 'Sort: Kingdom #')}</option>
+            <option value="tc">{t('playerDirectory.sortTC', 'Sort: TC Level')}</option>
           </select>
         </div>
 
@@ -727,10 +729,10 @@ const UserDirectory: React.FC = () => {
           }}>
             <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔍</div>
             <h3 style={{ color: '#fff', fontSize: '1.25rem', fontWeight: '600', marginBottom: '0.75rem' }}>
-              No players found
+              {t('playerDirectory.noPlayersFound', 'No players found')}
             </h3>
             <p style={{ color: '#6b7280', fontSize: '0.95rem', marginBottom: '1.5rem' }}>
-              Try adjusting your search or filters to find players.
+              {t('playerDirectory.noPlayersDesc', 'Try adjusting your search or filters to find players.')}
             </p>
           </div>
         ) : (
@@ -895,32 +897,32 @@ const UserDirectory: React.FC = () => {
                         fontSize: isMobile ? '0.8rem' : '0.85rem'
                       }}>
                         <div>
-                          <span style={{ color: '#6b7280' }}>Kingdom: </span>
+                          <span style={{ color: '#6b7280' }}>{t('common.kingdom', 'Kingdom')}: </span>
                           <span style={{ color: '#fff', fontWeight: '600' }}>
                             {user.linked_kingdom || '—'}
                           </span>
                         </div>
                         <div>
-                          <span style={{ color: '#6b7280' }}>Language: </span>
+                          <span style={{ color: '#6b7280' }}>{t('kingdomProfile.language', 'Language')}: </span>
                           <span style={{ color: '#fff', fontWeight: '600' }}>
                             {user.language || '—'}
                           </span>
                         </div>
                         <div>
-                          <span style={{ color: '#6b7280' }}>Town Center: </span>
+                          <span style={{ color: '#6b7280' }}>{t('kingdomProfile.townCenter', 'Town Center')}: </span>
                           <span style={{ color: '#fff', fontWeight: '600' }}>
                             {user.linked_tc_level ? formatTCLevel(user.linked_tc_level) : '—'}
                           </span>
                         </div>
                         <div>
-                          <span style={{ color: '#6b7280' }}>Region: </span>
+                          <span style={{ color: '#6b7280' }}>{t('kingdomProfile.region', 'Region')}: </span>
                           <span style={{ color: '#fff', fontWeight: '600' }}>
                             {user.region || '—'}
                           </span>
                         </div>
                         {(user.referral_count ?? 0) > 0 && (
                           <div>
-                            <span style={{ color: '#6b7280' }}>Referrals: </span>
+                            <span style={{ color: '#6b7280' }}>{t('kingdomProfile.referrals', 'Referrals')}: </span>
                             <span style={{ color: REFERRAL_TIER_COLORS[(user.referral_tier as ReferralTier)] || '#fff', fontWeight: '600' }}>
                               {user.referral_count}
                             </span>
@@ -928,7 +930,7 @@ const UserDirectory: React.FC = () => {
                         )}
                         {user.created_at && (
                           <div>
-                            <span style={{ color: '#6b7280' }}>Member since: </span>
+                            <span style={{ color: '#6b7280' }}>{t('playerDirectory.memberSince', 'Member since')}: </span>
                             <span style={{ color: '#9ca3af', fontWeight: '600' }}>
                               {formatMemberSince(user.created_at)}
                             </span>
@@ -972,7 +974,7 @@ const UserDirectory: React.FC = () => {
                       fontWeight: '500',
                       transition: 'all 0.2s'
                     }}>
-                      View Profile →
+                      {t('kingdomProfile.viewProfile', 'View Profile')} →
                     </span>
                   </div>
                 </div>
@@ -991,7 +993,7 @@ const UserDirectory: React.FC = () => {
       {/* Back to Home */}
       <div style={{ textAlign: 'center', marginTop: '3rem', paddingBottom: '2rem' }}>
         <Link to="/" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: '0.85rem' }}>
-          ← Back to Home
+          {t('common.backToHome', '← Back to Home')}
         </Link>
       </div>
     </div>

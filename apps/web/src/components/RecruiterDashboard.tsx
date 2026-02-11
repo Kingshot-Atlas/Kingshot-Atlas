@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useAnalytics } from '../hooks/useAnalytics';
@@ -507,6 +508,7 @@ const RecruiterDashboard: React.FC<{
 }> = ({ onClose }) => {
   const { user, profile } = useAuth();
   const isMobile = useIsMobile();
+  const { t } = useTranslation();
   const { showToast } = useToast();
   const { trackFeature } = useAnalytics();
   const [editorInfo, setEditorInfo] = useState<EditorInfo | null>(null);
@@ -1076,7 +1078,7 @@ const RecruiterDashboard: React.FC<{
         )}
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '3rem 0', color: '#6b7280' }}>Loading dashboard...</div>
+          <div style={{ textAlign: 'center', padding: '3rem 0', color: '#6b7280' }}>{t('recruiter.loading', 'Loading dashboard...')}</div>
         ) : !editorInfo ? (
           <div style={{
             textAlign: 'center', padding: '3rem 1rem',
@@ -1085,9 +1087,9 @@ const RecruiterDashboard: React.FC<{
           }}>
             {pendingInvite ? (
               <>
-                <p style={{ color: '#fff', fontSize: '1rem', marginBottom: '0.5rem' }}>🎉 Co-Editor Invitation</p>
+                <p style={{ color: '#fff', fontSize: '1rem', marginBottom: '0.5rem' }}>🎉 {t('recruiter.coEditorInvitation', 'Co-Editor Invitation')}</p>
                 <p style={{ color: '#6b7280', fontSize: '0.85rem', marginBottom: '1rem' }}>
-                  You&apos;ve been invited to be a co-editor for Kingdom {pendingInvite.kingdom_number}&apos;s recruiter dashboard.
+                  {t('recruiter.invitedCoEditor', "You've been invited to be a co-editor for Kingdom {{kingdom}}'s recruiter dashboard.", { kingdom: pendingInvite.kingdom_number })}
                 </p>
                 <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
                   <button
@@ -1105,7 +1107,7 @@ const RecruiterDashboard: React.FC<{
                       borderRadius: '8px', color: '#22c55e', fontSize: '0.85rem', fontWeight: '600', cursor: 'pointer', minHeight: '44px',
                     }}
                   >
-                    Accept
+                    {t('recruiter.accept', 'Accept')}
                   </button>
                   <button
                     onClick={async () => {
@@ -1122,16 +1124,15 @@ const RecruiterDashboard: React.FC<{
                       borderRadius: '8px', color: '#ef4444', fontSize: '0.85rem', fontWeight: '600', cursor: 'pointer', minHeight: '44px',
                     }}
                   >
-                    Decline
+                    {t('recruiter.decline', 'Decline')}
                   </button>
                 </div>
               </>
             ) : (
               <>
-                <p style={{ color: '#fff', fontSize: '1rem', marginBottom: '0.5rem' }}>No Active Editor Role</p>
+                <p style={{ color: '#fff', fontSize: '1rem', marginBottom: '0.5rem' }}>{t('recruiter.noActiveRole', 'No Active Editor Role')}</p>
                 <p style={{ color: '#6b7280', fontSize: '0.85rem' }}>
-                  You need to be an active editor for a kingdom to access the Recruiter Dashboard.
-                  Claim your kingdom first through the Editor Claiming process.
+                  {t('recruiter.needEditorRole', 'You need to be an active editor for a kingdom to access the Recruiter Dashboard. Claim your kingdom first through the Editor Claiming process.')}
                 </p>
               </>
             )}
@@ -1146,10 +1147,10 @@ const RecruiterDashboard: React.FC<{
               marginBottom: '1rem',
             }}>
               {[
-                { label: 'Pending', value: pendingCount, color: '#eab308' },
-                { label: 'Invites', value: `${getInviteBudget().total - getInviteBudget().used}/${getInviteBudget().total}`, color: '#22d3ee' },
-                { label: 'Team', value: team.filter((t) => t.status === 'active').length, color: '#a855f7' },
-                { label: 'Fund', value: fund ? `$${Number(fund.balance).toFixed(0)}` : '$0', color: '#22c55e' },
+                { label: t('recruiter.pending', 'Pending'), value: pendingCount, color: '#eab308' },
+                { label: t('recruiter.invites', 'Invites'), value: `${getInviteBudget().total - getInviteBudget().used}/${getInviteBudget().total}`, color: '#22d3ee' },
+                { label: t('recruiter.team', 'Team'), value: team.filter((t) => t.status === 'active').length, color: '#a855f7' },
+                { label: t('recruiter.fund', 'Fund'), value: fund ? `$${Number(fund.balance).toFixed(0)}` : '$0', color: '#22c55e' },
               ].map((stat) => (
                 <div key={stat.label} style={{
                   backgroundColor: '#111111',
@@ -1176,10 +1177,10 @@ const RecruiterDashboard: React.FC<{
               }}>
                 <div>
                   <span style={{ color: '#fff', fontSize: '0.8rem', fontWeight: '600' }}>
-                    {fund.is_recruiting ? 'Actively Recruiting' : 'Not Recruiting'}
+                    {fund.is_recruiting ? t('recruiter.activelyRecruiting', 'Actively Recruiting') : t('recruiter.notRecruiting', 'Not Recruiting')}
                   </span>
                   <p style={{ color: '#6b7280', fontSize: '0.65rem', margin: '0.1rem 0 0 0' }}>
-                    {fund.is_recruiting ? 'Your kingdom appears in transfer searches' : 'Toggle on to appear in transfer searches'}
+                    {fund.is_recruiting ? t('recruiter.appearsInSearches', 'Your kingdom appears in transfer searches') : t('recruiter.toggleToAppear', 'Toggle on to appear in transfer searches')}
                   </p>
                 </div>
                 <button
@@ -1240,11 +1241,11 @@ const RecruiterDashboard: React.FC<{
                     justifyContent: 'center',
                   }}
                 >
-                  {tab === 'inbox' ? `Inbox${pendingCount > 0 ? ` (${pendingCount})` : ''}` :
-                   tab === 'browse' ? 'Browse' :
-                   tab === 'profile' ? 'Profile' :
-                   tab === 'team' ? 'Team' :
-                   tab === 'invites' ? 'Co-Editors' : 'Fund'}
+                  {tab === 'inbox' ? `${t('recruiter.inbox', 'Inbox')}${pendingCount > 0 ? ` (${pendingCount})` : ''}` :
+                   tab === 'browse' ? t('recruiter.browse', 'Browse') :
+                   tab === 'profile' ? t('recruiter.profile', 'Profile') :
+                   tab === 'team' ? t('recruiter.team', 'Team') :
+                   tab === 'invites' ? t('recruiter.coEditors', 'Co-Editors') : t('recruiter.fund', 'Fund')}
                 </button>
               ))}
             </div>
@@ -1267,7 +1268,7 @@ const RecruiterDashboard: React.FC<{
                       minHeight: '44px',
                     }}
                   >
-                    Active ({activeApps.length})
+                    {t('recruiter.active', 'Active')} ({activeApps.length})
                   </button>
                   <button
                     onClick={() => setFilterStatus('approved')}
@@ -1282,7 +1283,7 @@ const RecruiterDashboard: React.FC<{
                       minHeight: '44px',
                     }}
                   >
-                    Approved ({approvedApps.length})
+                    {t('recruiter.approved', 'Approved')} ({approvedApps.length})
                   </button>
                   <button
                     onClick={() => setFilterStatus('closed')}
@@ -1297,7 +1298,7 @@ const RecruiterDashboard: React.FC<{
                       minHeight: '44px',
                     }}
                   >
-                    Past ({closedApps.length})
+                    {t('recruiter.past', 'Past')} ({closedApps.length})
                   </button>
                 </div>
 
@@ -1308,7 +1309,7 @@ const RecruiterDashboard: React.FC<{
                     border: '1px solid #2a2a2a',
                   }}>
                     <p style={{ color: '#6b7280', fontSize: '0.85rem' }}>
-                      {filterStatus === 'active' ? 'No active applications' : filterStatus === 'approved' ? 'No approved applications' : 'No past applications'}
+                      {filterStatus === 'active' ? t('recruiter.noActiveApps', 'No active applications') : filterStatus === 'approved' ? t('recruiter.noApprovedApps', 'No approved applications') : t('recruiter.noPastApps', 'No past applications')}
                     </p>
                   </div>
                 ) : (
@@ -1340,14 +1341,14 @@ const RecruiterDashboard: React.FC<{
                     marginBottom: '0.75rem',
                   }}>
                     <span style={{ color: colors.textSecondary, fontSize: '0.75rem' }}>
-                      Invite Budget: <strong style={{ color: colors.text }}>{getInviteBudget().total - getInviteBudget().used}</strong> remaining
+                      {t('recruiter.inviteBudget', 'Invite Budget')}: <strong style={{ color: colors.text }}>{getInviteBudget().total - getInviteBudget().used}</strong> {t('recruiter.remaining', 'remaining')}
                       {getInviteBudget().bonus > 0 && <span style={{ color: colors.gold, fontSize: '0.6rem' }}> (+{getInviteBudget().bonus} Gold bonus)</span>}
                     </span>
                     <button onClick={() => loadTransferees()} style={{
                       padding: '0.25rem 0.5rem', backgroundColor: '#22d3ee10', border: '1px solid #22d3ee25',
                       borderRadius: '6px', color: '#22d3ee', fontSize: '0.65rem', cursor: 'pointer', minHeight: '32px',
                     }}>
-                      ↻ Refresh
+                      ↻ {t('recruiter.refresh', 'Refresh')}
                     </button>
                   </div>
                 )}
@@ -1358,7 +1359,7 @@ const RecruiterDashboard: React.FC<{
                   flexWrap: 'wrap', alignItems: 'flex-end',
                 }}>
                   <div style={{ flex: '1 1 100px', minWidth: '80px' }}>
-                    <span style={{ color: '#6b7280', fontSize: '0.6rem', display: 'block', marginBottom: '0.15rem' }}>Min TC</span>
+                    <span style={{ color: '#6b7280', fontSize: '0.6rem', display: 'block', marginBottom: '0.15rem' }}>{t('recruiter.minTC', 'Min TC')}</span>
                     <select
                       value={browseFilters.minTc}
                       onChange={(e) => setBrowseFilters(f => ({ ...f, minTc: e.target.value }))}
@@ -1371,7 +1372,7 @@ const RecruiterDashboard: React.FC<{
                     </select>
                   </div>
                   <div style={{ flex: '1 1 100px', minWidth: '80px' }}>
-                    <span style={{ color: '#6b7280', fontSize: '0.6rem', display: 'block', marginBottom: '0.15rem' }}>Min Power</span>
+                    <span style={{ color: '#6b7280', fontSize: '0.6rem', display: 'block', marginBottom: '0.15rem' }}>{t('recruiter.minPower', 'Min Power')}</span>
                     <input
                       type="number"
                       placeholder="e.g. 100"
@@ -1381,7 +1382,7 @@ const RecruiterDashboard: React.FC<{
                     />
                   </div>
                   <div style={{ flex: '1 1 120px', minWidth: '90px' }}>
-                    <span style={{ color: '#6b7280', fontSize: '0.6rem', display: 'block', marginBottom: '0.15rem' }}>Language</span>
+                    <span style={{ color: '#6b7280', fontSize: '0.6rem', display: 'block', marginBottom: '0.15rem' }}>{t('recruiter.language', 'Language')}</span>
                     <select
                       value={browseFilters.language}
                       onChange={(e) => setBrowseFilters(f => ({ ...f, language: e.target.value }))}
@@ -1394,15 +1395,15 @@ const RecruiterDashboard: React.FC<{
                     </select>
                   </div>
                   <div style={{ flex: '1 1 100px', minWidth: '80px' }}>
-                    <span style={{ color: '#6b7280', fontSize: '0.6rem', display: 'block', marginBottom: '0.15rem' }}>Sort By</span>
+                    <span style={{ color: '#6b7280', fontSize: '0.6rem', display: 'block', marginBottom: '0.15rem' }}>{t('recruiter.sortBy', 'Sort By')}</span>
                     <select
                       value={browseFilters.sortBy}
                       onChange={(e) => setBrowseFilters(f => ({ ...f, sortBy: e.target.value }))}
                       style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '36px' }}
                     >
-                      <option value="newest">Newest First</option>
-                      <option value="power_desc">Power (High → Low)</option>
-                      <option value="tc_desc">TC Level (High → Low)</option>
+                      <option value="newest">{t('recruiter.newestFirst', 'Newest First')}</option>
+                      <option value="power_desc">{t('recruiter.powerHighLow', 'Power (High → Low)')}</option>
+                      <option value="tc_desc">{t('recruiter.tcHighLow', 'TC Level (High → Low)')}</option>
                     </select>
                   </div>
                   {(browseFilters.minTc || browseFilters.minPower || browseFilters.language) && (
@@ -1414,7 +1415,7 @@ const RecruiterDashboard: React.FC<{
                         whiteSpace: 'nowrap',
                       }}
                     >
-                      Clear
+                      {t('recruiter.clear', 'Clear Filters')}
                     </button>
                   )}
                 </div>
@@ -1430,7 +1431,7 @@ const RecruiterDashboard: React.FC<{
                     marginBottom: '0.75rem',
                   }}>
                     <span style={{ color: '#a855f7', fontSize: '0.75rem', fontWeight: '600' }}>
-                      {compareList.size} selected for comparison
+                      {t('recruiter.selectedForComparison', '{{count}} selected for comparison', { count: compareList.size })}
                     </span>
                     <div style={{ display: 'flex', gap: '0.3rem' }}>
                       <button
@@ -1443,7 +1444,7 @@ const RecruiterDashboard: React.FC<{
                           fontSize: '0.65rem', fontWeight: '600', cursor: compareList.size >= 2 ? 'pointer' : 'not-allowed', minHeight: '32px',
                         }}
                       >
-                        Compare
+                        {t('recruiter.compare', 'Compare')}
                       </button>
                       <button
                         onClick={() => setCompareList(new Set())}
@@ -1452,7 +1453,7 @@ const RecruiterDashboard: React.FC<{
                           borderRadius: '6px', color: '#6b7280', fontSize: '0.6rem', cursor: 'pointer', minHeight: '32px',
                         }}
                       >
-                        Clear
+                        {t('recruiter.clear', 'Clear')}
                       </button>
                     </div>
                   </div>
@@ -1483,7 +1484,7 @@ const RecruiterDashboard: React.FC<{
                   // 'newest' is default order from Supabase (created_at desc)
 
                   if (loadingTransferees) return (
-                    <div style={{ textAlign: 'center', padding: '2rem 0', color: '#6b7280' }}>Loading transferees...</div>
+                    <div style={{ textAlign: 'center', padding: '2rem 0', color: '#6b7280' }}>{t('recruiter.loadingTransferees', 'Loading transferees...')}</div>
                   );
                   if (filtered.length === 0) return (
                     <div style={{
@@ -1495,12 +1496,12 @@ const RecruiterDashboard: React.FC<{
                         {transferees.length > 0 ? '🔍' : '📭'}
                       </div>
                       <p style={{ color: '#d1d5db', fontSize: '0.9rem', fontWeight: '600', marginBottom: '0.3rem' }}>
-                        {transferees.length > 0 ? 'No transferees match your filters' : 'No active transfer profiles yet'}
+                        {transferees.length > 0 ? t('recruiter.noTransfereesMatch', 'No transferees match your filters') : t('recruiter.noActiveProfiles', 'No active transfer profiles yet')}
                       </p>
                       <p style={{ color: '#6b7280', fontSize: '0.75rem', marginBottom: transferees.length > 0 ? '0.75rem' : 0 }}>
                         {transferees.length > 0
-                          ? 'Try adjusting your filters to broaden results.'
-                          : 'Players who are looking to transfer will appear here once they create a profile.'}
+                          ? t('recruiter.tryAdjustingFilters', 'Try adjusting your filters to broaden results.')
+                          : t('recruiter.playersWillAppear', 'Players who are looking to transfer will appear here once they create a profile.')}
                       </p>
                       {transferees.length > 0 && (
                         <button
@@ -1512,7 +1513,7 @@ const RecruiterDashboard: React.FC<{
                             cursor: 'pointer', minHeight: '36px',
                           }}
                         >
-                          Clear Filters
+                          {t('recruiter.clearFilters', 'Clear Filters')}
                         </button>
                       )}
                     </div>
@@ -1543,8 +1544,8 @@ const RecruiterDashboard: React.FC<{
                       }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.4rem' }}>
                           <span style={{ fontSize: '0.85rem' }}>⭐</span>
-                          <span style={{ color: '#a855f7', fontSize: '0.75rem', fontWeight: '700' }}>Recommended for You</span>
-                          <span style={{ color: '#6b7280', fontSize: '0.6rem' }}>Based on your kingdom requirements</span>
+                          <span style={{ color: '#a855f7', fontSize: '0.75rem', fontWeight: '700' }}>{t('recruiter.recommendedForYou', 'Recommended for You')}</span>
+                          <span style={{ color: '#6b7280', fontSize: '0.6rem' }}>{t('recruiter.basedOnRequirements', 'Based on your kingdom requirements')}</span>
                         </div>
                         <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
                           {recommended.map(tp => (
@@ -1659,7 +1660,7 @@ const RecruiterDashboard: React.FC<{
                           {/* Tier Gate Message */}
                           {!canSeeDetails && (
                             <p style={{ color: colors.textMuted, fontSize: '0.65rem', margin: '0.25rem 0', fontStyle: 'italic' }}>
-                              🔒 Upgrade to Bronze+ to view full profile details
+                              🔒 {t('recruiter.upgradeBronze', 'Upgrade to Bronze+ to view full profile details')}
                             </p>
                           )}
 
@@ -1679,7 +1680,7 @@ const RecruiterDashboard: React.FC<{
                                 }}
                                 style={{ accentColor: '#a855f7' }}
                               />
-                              Compare
+                              {t('recruiter.compare', 'Compare')}
                             </label>
                           {canSendInvite ? (
                             <button
@@ -1746,11 +1747,11 @@ const RecruiterDashboard: React.FC<{
                                 minHeight: '36px',
                               }}
                             >
-                              {sentInviteIds.has(tp.id) ? '✓ Invited' : budgetLeft > 0 ? '📩 Send Invite' : 'No invites remaining'}
+                              {sentInviteIds.has(tp.id) ? t('recruiter.invited', '✓ Invited') : budgetLeft > 0 ? t('recruiter.sendInvite', '📩 Send Invite') : t('recruiter.noInvitesRemaining', 'No invites remaining')}
                             </button>
                           ) : (
                             <p style={{ color: colors.textMuted, fontSize: '0.6rem', margin: '0.25rem 0', fontStyle: 'italic' }}>
-                              🔒 Upgrade to Silver+ to send invites
+                              🔒 {t('recruiter.upgradeSilver', 'Upgrade to Silver+ to send invites')}
                             </p>
                           )}
                           </div>
@@ -1778,13 +1779,13 @@ const RecruiterDashboard: React.FC<{
                         minHeight: '40px',
                       }}
                     >
-                      Load More ({transferees.length} loaded)
+                      {t('recruiter.loadMore', 'Load More')} ({transferees.length} {t('recruiter.loaded', 'loaded')})
                     </button>
                   </div>
                 )}
                 {loadingTransferees && transferees.length > 0 && (
                   <div style={{ textAlign: 'center', padding: '1rem 0', color: '#6b7280', fontSize: '0.8rem' }}>
-                    Loading more...
+                    {t('recruiter.loadingMore', 'Loading more...')}
                   </div>
                 )}
 
@@ -1793,13 +1794,13 @@ const RecruiterDashboard: React.FC<{
                   const selected = transferees.filter(tp => compareList.has(tp.id));
                   if (selected.length < 2) return null;
                   const fields: { key: string; label: string; render: (tp: TransfereeProfile) => string }[] = [
-                    { key: 'tc', label: 'TC Level', render: (tp) => formatTCLevel(tp.tc_level) },
-                    { key: 'power', label: 'Power', render: (tp) => tp.power_million ? `${tp.power_million}M` : (tp.power_range || '—') },
-                    { key: 'lang', label: 'Language', render: (tp) => tp.main_language || '—' },
-                    { key: 'kvk', label: 'KvK Avail.', render: (tp) => (tp.kvk_availability || '—').replace(/_/g, ' ') },
-                    { key: 'saving', label: 'Saving For', render: (tp) => (tp.saving_for_kvk || '—').replace(/_/g, ' ') },
-                    { key: 'group', label: 'Group Size', render: (tp) => String(tp.group_size || '—') },
-                    { key: 'looking', label: 'Looking For', render: (tp) => tp.looking_for?.join(', ') || '—' },
+                    { key: 'tc', label: t('recruiter.tcLevel', 'TC Level'), render: (tp) => formatTCLevel(tp.tc_level) },
+                    { key: 'power', label: t('recruiter.power', 'Power'), render: (tp) => tp.power_million ? `${tp.power_million}M` : (tp.power_range || '—') },
+                    { key: 'lang', label: t('recruiter.language', 'Language'), render: (tp) => tp.main_language || '—' },
+                    { key: 'kvk', label: t('recruiter.kvkAvail', 'KvK Avail.'), render: (tp) => (tp.kvk_availability || '—').replace(/_/g, ' ') },
+                    { key: 'saving', label: t('recruiter.savingFor', 'Saving For'), render: (tp) => (tp.saving_for_kvk || '—').replace(/_/g, ' ') },
+                    { key: 'group', label: t('recruiter.groupSize', 'Group Size'), render: (tp) => String(tp.group_size || '—') },
+                    { key: 'looking', label: t('recruiter.lookingFor', 'Looking For'), render: (tp) => tp.looking_for?.join(', ') || '—' },
                   ];
                   return (
                     <div style={{
@@ -1817,7 +1818,7 @@ const RecruiterDashboard: React.FC<{
                       }} onClick={(e) => e.stopPropagation()}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
                           <h3 style={{ color: '#fff', fontSize: '1rem', fontWeight: '700', margin: 0, fontFamily: FONT_DISPLAY }}>
-                            Profile Comparison
+                            {t('recruiter.profileComparison', 'Profile Comparison')}
                           </h3>
                           <button onClick={() => setShowCompare(false)} style={{
                             background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '1.2rem', padding: '0.25rem',
@@ -1827,7 +1828,7 @@ const RecruiterDashboard: React.FC<{
                           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
                             <thead>
                               <tr>
-                                <th style={{ textAlign: 'left', padding: '0.4rem 0.5rem', color: '#6b7280', borderBottom: '1px solid #2a2a2a', fontSize: '0.65rem' }}>Field</th>
+                                <th style={{ textAlign: 'left', padding: '0.4rem 0.5rem', color: '#6b7280', borderBottom: '1px solid #2a2a2a', fontSize: '0.65rem' }}>{t('recruiter.field', 'Field')}</th>
                                 {selected.map(tp => (
                                   <th key={tp.id} style={{ textAlign: 'center', padding: '0.4rem 0.5rem', color: '#22d3ee', borderBottom: '1px solid #2a2a2a', fontSize: '0.7rem', fontWeight: '600' }}>
                                     {tp.is_anonymous ? '🔒 Anonymous' : (tp.username || 'Unknown')}
@@ -1866,10 +1867,10 @@ const RecruiterDashboard: React.FC<{
                     border: '1px solid #2a2a2a',
                   }}>
                     <p style={{ color: '#fff', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
-                      Start a Kingdom Fund to edit your listing profile
+                      {t('recruiter.startFundToEdit', 'Start a Kingdom Fund to edit your listing profile')}
                     </p>
                     <p style={{ color: '#6b7280', fontSize: '0.8rem' }}>
-                      Contribute to your kingdom fund to unlock tier features and customize your listing.
+                      {t('recruiter.contributeToUnlock', 'Contribute to your kingdom fund to unlock tier features and customize your listing.')}
                     </p>
                   </div>
                 ) : (
@@ -1879,7 +1880,7 @@ const RecruiterDashboard: React.FC<{
                       backgroundColor: '#111111', borderRadius: '10px',
                       border: '1px solid #2a2a2a', padding: '0.75rem',
                     }}>
-                      <span style={{ color: '#9ca3af', fontSize: '0.7rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Fund Tier Benefits</span>
+                      <span style={{ color: '#9ca3af', fontSize: '0.7rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('recruiter.fundTierBenefits', 'Fund Tier Benefits')}</span>
                       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '0.5rem', marginTop: '0.5rem' }}>
                         {TIER_INFO.map((t) => {
                           const isCurrentTier = t.tier.toLowerCase() === fund.tier;
@@ -1978,7 +1979,7 @@ const RecruiterDashboard: React.FC<{
                     <ProfileField label="Minimum Requirements" tierRequired="bronze" currentTier={fund.tier}>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
                         <div>
-                          <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>Min TC Level</span>
+                          <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>{t('recruiter.minTCLevel', 'Min TC Level')}</span>
                           <select
                             value={profileDraft.min_tc_level ?? fund.min_tc_level ?? ''}
                             onChange={(e) => setProfileDraft(d => ({ ...d, min_tc_level: e.target.value ? parseInt(e.target.value) : null }))}
@@ -2003,7 +2004,7 @@ const RecruiterDashboard: React.FC<{
                           </select>
                         </div>
                         <div>
-                          <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>Min Power (in Millions)</span>
+                          <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>{t('recruiter.minPowerMillions', 'Min Power (in Millions)')}</span>
                           <input
                             type="number"
                             min={0}
@@ -2051,7 +2052,7 @@ const RecruiterDashboard: React.FC<{
                     {/* Languages (Silver+) */}
                     <ProfileField label="Languages" tierRequired="silver" currentTier={fund.tier}>
                       <div style={{ marginBottom: '0.4rem' }}>
-                        <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>Main Language</span>
+                        <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>{t('recruiter.mainLanguage', 'Main Language')}</span>
                         <select
                           value={profileDraft.main_language ?? fund.main_language ?? ''}
                           onChange={(e) => setProfileDraft(d => ({ ...d, main_language: e.target.value || null }))}
@@ -2064,7 +2065,7 @@ const RecruiterDashboard: React.FC<{
                         </select>
                       </div>
                       <div>
-                        <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>Secondary Language</span>
+                        <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>{t('recruiter.secondaryLanguage', 'Secondary Language')}</span>
                         <select
                           value={(profileDraft.secondary_languages ?? fund.secondary_languages ?? [])[0] || ''}
                           onChange={(e) => setProfileDraft(d => ({ ...d, secondary_languages: e.target.value ? [e.target.value] : [] }))}
@@ -2257,7 +2258,7 @@ const RecruiterDashboard: React.FC<{
                         opacity: savingProfile ? 0.6 : 1,
                       }}
                     >
-                      {savingProfile ? 'Saving...' : Object.keys(profileDraft).length === 0 ? 'No Changes' : 'Save Profile Changes'}
+                      {savingProfile ? t('recruiter.saving', 'Saving...') : Object.keys(profileDraft).length === 0 ? t('recruiter.noChanges', 'No Changes') : t('recruiter.saveProfileChanges', 'Save Profile Changes')}
                     </button>
                   </div>
                 )}
@@ -2293,7 +2294,7 @@ const RecruiterDashboard: React.FC<{
                           fontWeight: 'bold',
                           textTransform: 'uppercase',
                         }}>
-                          {member.role === 'editor' ? 'Editor' : 'Co-Editor'}
+                          {member.role === 'editor' ? t('recruiter.editor', 'Editor') : t('recruiter.coEditor', 'Co-Editor')}
                         </span>
                       </div>
                       <span style={{
@@ -2318,7 +2319,7 @@ const RecruiterDashboard: React.FC<{
                   return coEditors.length > 0 ? (
                     <div style={{ marginBottom: '1rem' }}>
                       <span style={{ color: '#9ca3af', fontSize: '0.7rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                        Current Co-Editors
+                        {t('recruiter.currentCoEditors', 'Current Co-Editors')}
                       </span>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.5rem' }}>
                         {coEditors.map((member) => (
@@ -2368,7 +2369,7 @@ const RecruiterDashboard: React.FC<{
                       marginBottom: '1rem',
                     }}>
                       <p style={{ color: '#6b7280', fontSize: '0.8rem', margin: 0 }}>
-                        No co-editors yet. Invite up to 2 co-editors to help manage your kingdom.
+                        {t('recruiter.noCoEditors', 'No co-editors yet. Invite up to 2 co-editors to help manage your kingdom.')}
                       </p>
                     </div>
                   );
@@ -2377,10 +2378,9 @@ const RecruiterDashboard: React.FC<{
                 {/* Invite Form */}
                 {editorInfo.role === 'editor' && team.filter((t) => t.role === 'co-editor' && (t.status === 'active' || t.status === 'pending')).length < 2 && (
                   <div style={{ padding: '0.75rem', backgroundColor: '#111111', borderRadius: '10px', border: '1px solid #a855f720' }}>
-                    <span style={{ color: '#a855f7', fontSize: '0.8rem', fontWeight: '600' }}>Invite Co-Editor</span>
+                    <span style={{ color: '#a855f7', fontSize: '0.8rem', fontWeight: '600' }}>{t('recruiter.inviteCoEditor', 'Invite Co-Editor')}</span>
                     <p style={{ color: '#6b7280', fontSize: '0.7rem', margin: '0.25rem 0 0.5rem 0' }}>
-                      Enter the player ID of a linked kingdom member (TC20+) to add as co-editor.
-                      Co-editors can manage applications, browse transferees, and update the kingdom profile.
+                      {t('recruiter.inviteCoEditorDesc', 'Enter the player ID of a linked kingdom member (TC20+) to add as co-editor. Co-editors can manage applications, browse transferees, and update the kingdom profile.')}
                     </p>
                     <div style={{ display: 'flex', gap: '0.4rem' }}>
                       <input
@@ -2406,7 +2406,7 @@ const RecruiterDashboard: React.FC<{
                           opacity: invitingCoEditor || !coEditorUserId.trim() ? 0.5 : 1,
                         }}
                       >
-                        {invitingCoEditor ? '...' : 'Invite'}
+                        {invitingCoEditor ? '...' : t('recruiter.invite', 'Invite')}
                       </button>
                     </div>
                   </div>
@@ -2419,7 +2419,7 @@ const RecruiterDashboard: React.FC<{
                     border: '1px solid #2a2a2a',
                   }}>
                     <p style={{ color: '#6b7280', fontSize: '0.75rem', margin: 0 }}>
-                      Only the primary editor can invite co-editors.
+                      {t('recruiter.onlyPrimaryCanInvite', 'Only the primary editor can invite co-editors.')}
                     </p>
                   </div>
                 )}
@@ -2441,7 +2441,7 @@ const RecruiterDashboard: React.FC<{
                       gap: '1rem', marginBottom: '1rem',
                     }}>
                       <div>
-                        <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>Balance</span>
+                        <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>{t('recruiter.balance', 'Balance')}</span>
                         <div style={{
                           fontWeight: 'bold', fontSize: '1.2rem',
                           ...neonGlow('#22c55e'),
@@ -2450,7 +2450,7 @@ const RecruiterDashboard: React.FC<{
                         </div>
                       </div>
                       <div>
-                        <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>Tier</span>
+                        <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>{t('recruiter.tier', 'Tier')}</span>
                         <div style={{
                           color: fund.tier === 'gold' ? '#fbbf24' : fund.tier === 'silver' ? '#9ca3af' : fund.tier === 'bronze' ? '#cd7f32' : '#4b5563',
                           fontWeight: 'bold', fontSize: '1.2rem',
@@ -2497,7 +2497,7 @@ const RecruiterDashboard: React.FC<{
                           gap: '0.4rem',
                         }}
                       >
-                        🔗 Copy Listing Link
+                        🔗 {t('recruiter.copyListingLink', 'Copy Listing Link')}
                       </button>
                       <button
                         onClick={() => {
@@ -2523,17 +2523,17 @@ const RecruiterDashboard: React.FC<{
                           gap: '0.4rem',
                         }}
                       >
-                        💰 Copy Contribution Link
+                        💰 {t('recruiter.copyContributionLink', 'Copy Contribution Link')}
                       </button>
                     </div>
 
                     {/* Contribution History */}
                     <div style={{ marginTop: '1rem' }}>
                       <span style={{ color: '#9ca3af', fontSize: '0.7rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                        Contribution History
+                        {t('recruiter.contributionHistory', 'Contribution History')}
                       </span>
                       {loadingContributions ? (
-                        <div style={{ padding: '1rem 0', color: '#6b7280', fontSize: '0.8rem', textAlign: 'center' }}>Loading...</div>
+                        <div style={{ padding: '1rem 0', color: '#6b7280', fontSize: '0.8rem', textAlign: 'center' }}>{t('recruiter.loading', 'Loading...')}</div>
                       ) : contributions.length === 0 ? (
                         <div style={{
                           marginTop: '0.5rem', padding: '0.75rem',
@@ -2541,7 +2541,7 @@ const RecruiterDashboard: React.FC<{
                           textAlign: 'center',
                         }}>
                           <p style={{ color: '#6b7280', fontSize: '0.75rem', margin: 0 }}>
-                            No contributions yet. Share the contribution link with your kingdom members!
+                            {t('recruiter.noContributions', 'No contributions yet. Share the contribution link with your kingdom members!')}
                           </p>
                         </div>
                       ) : (
@@ -2588,10 +2588,10 @@ const RecruiterDashboard: React.FC<{
                     border: '1px solid #2a2a2a',
                   }}>
                     <p style={{ color: '#fff', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
-                      No Kingdom Fund Yet
+                      {t('recruiter.noKingdomFund', 'No Kingdom Fund Yet')}
                     </p>
                     <p style={{ color: '#6b7280', fontSize: '0.8rem' }}>
-                      Start a Kingdom Fund to unlock tier benefits and boost your listing visibility.
+                      {t('recruiter.startFundDesc', 'Start a Kingdom Fund to unlock tier benefits and boost your listing visibility.')}
                     </p>
                   </div>
                 )}

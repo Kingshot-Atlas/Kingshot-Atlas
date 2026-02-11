@@ -167,14 +167,14 @@ const AtlasScoreBreakdown: React.FC<AtlasScoreBreakdownProps> = ({ kingdom, rank
     const resilience = Math.round((1 - invasionRate) * 100);
     
     return [
-      { label: 'Win Rate', value: winRateComposite },
-      { label: 'Domination', value: dominationRate },
-      { label: 'Form', value: recentFormPct },
-      { label: 'Streaks', value: streakStrength },
-      { label: 'Experience', value: experiencePct },
-      { label: 'Resilience', value: resilience },
+      { label: t('radarLabels.winRate', 'Win Rate'), value: winRateComposite },
+      { label: t('radarLabels.domination', 'Domination'), value: dominationRate },
+      { label: t('radarLabels.form', 'Form'), value: recentFormPct },
+      { label: t('radarLabels.streaks', 'Streaks'), value: streakStrength },
+      { label: t('radarLabels.experience', 'Experience'), value: experiencePct },
+      { label: t('radarLabels.resilience', 'Resilience'), value: resilience },
     ];
-  }, [kingdom]);
+  }, [kingdom, t]);
 
   // Handle edge case: new kingdom with 0 KvKs
   if (kingdom.total_kvks === 0) {

@@ -156,7 +156,7 @@ const KvKHistoryTable: React.FC<KvKHistoryTableProps> = ({
                         onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
                         onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
                       >
-                        {`Kingdom ${kvk.opponent_kingdom}`}
+                        {`${t('common.kingdom', 'Kingdom')} ${kvk.opponent_kingdom}`}
                       </span>
                     )}
                   </td>

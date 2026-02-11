@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface KvKCountdownProps {
   compact?: boolean;
@@ -177,8 +178,24 @@ const getTransferStatus = (): EventStatus => {
 };
 
 const KvKCountdown: React.FC<KvKCountdownProps> = ({ compact = false, navbar = false, type = 'kvk' }) => {
+  const { t } = useTranslation();
   const [kvkStatus, setKvkStatus] = useState<EventStatus>(getKvKStatus());
   const [transferStatus, setTransferStatus] = useState<EventStatus>(getTransferStatus());
+
+  const translatePhase = (phaseName: string): string => {
+    const map: Record<string, string> = {
+      'Prep Phase': t('countdown.prepPhase', 'Prep Phase'),
+      'Castle Battle': t('countdown.castleBattle', 'Castle Battle'),
+      'Battle Phase': t('countdown.battlePhase', 'Battle Phase'),
+      'Battle Phase (Castle Soon)': t('countdown.battlePhaseCastleSoon', 'Battle Phase (Castle Soon)'),
+      'Pre-Transfer': t('countdown.preTransferPhase', 'Pre-Transfer'),
+      'Invitational': t('countdown.invitationalPhase', 'Invitational'),
+      'Open Transfer': t('countdown.openTransferPhase', 'Open Transfer'),
+      'Next KvK': t('countdown.nextKvk', 'Next KvK'),
+      'Next Transfer': t('countdown.nextTransfer', 'Next Transfer'),
+    };
+    return map[phaseName] || phaseName;
+  };
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -208,7 +225,7 @@ const KvKCountdown: React.FC<KvKCountdownProps> = ({ compact = false, navbar = f
         <span style={{ fontSize: '0.8rem' }}>{status.icon}</span>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
           <span style={{ fontSize: '0.65rem', color: '#9ca3af', whiteSpace: 'nowrap', lineHeight: 1 }}>
-            {status.phaseName}
+            {translatePhase(status.phaseName)}
           </span>
           <div style={{ 
             fontSize: '0.8rem', 
@@ -239,7 +256,7 @@ const KvKCountdown: React.FC<KvKCountdownProps> = ({ compact = false, navbar = f
         border: '1px solid #2a2a2a'
       }}>
         <div>
-          <div style={{ fontSize: '0.7rem', color: '#6b7280' }}>{status.phaseName}</div>
+          <div style={{ fontSize: '0.7rem', color: '#6b7280' }}>{translatePhase(status.phaseName)}</div>
           <div style={{ fontSize: '0.85rem', color: status.color, fontWeight: '600', fontFamily: 'monospace' }}>
             {`${status.timeLeft.days}d ${formatNumber(status.timeLeft.hours)}h ${formatNumber(status.timeLeft.minutes)}m`}
           </div>
@@ -264,7 +281,7 @@ const KvKCountdown: React.FC<KvKCountdownProps> = ({ compact = false, navbar = f
           <span style={{ fontSize: singleMode ? '1rem' : '1.5rem' }}>{status.icon}</span>
           {status.phase === 'countdown' ? (
             <h3 style={{ margin: 0, color: '#fff', fontSize: singleMode ? '0.85rem' : '1rem', fontWeight: '600' }}>
-              Next {title} Event
+              {t('countdown.nextEvent', 'Next {{title}} Event', { title })}
             </h3>
           ) : (
             <>
@@ -276,7 +293,7 @@ const KvKCountdown: React.FC<KvKCountdownProps> = ({ compact = false, navbar = f
                 fontSize: singleMode ? '0.7rem' : '0.8rem',
                 fontWeight: '500'
               }}>
-                {status.phaseName}
+                {translatePhase(status.phaseName)}
               </span>
             </>
           )}
@@ -289,17 +306,17 @@ const KvKCountdown: React.FC<KvKCountdownProps> = ({ compact = false, navbar = f
               color: status.color,
               fontWeight: '600',
             }}>
-              LIVE
+              {t('countdown.live', 'LIVE')}
             </span>
           )}
         </div>
 
         <div style={{ display: 'flex', gap: singleMode ? '0.5rem' : '0.75rem', justifyContent: 'center' }}>
           {[
-            { value: status.timeLeft.days, label: 'Days' },
-            { value: status.timeLeft.hours, label: 'Hours' },
-            { value: status.timeLeft.minutes, label: 'Min' },
-            { value: status.timeLeft.seconds, label: 'Sec' }
+            { value: status.timeLeft.days, label: t('countdown.days', 'Days') },
+            { value: status.timeLeft.hours, label: t('countdown.hours', 'Hours') },
+            { value: status.timeLeft.minutes, label: t('countdown.min', 'Min') },
+            { value: status.timeLeft.seconds, label: t('countdown.sec', 'Sec') }
           ].map((item, i) => (
             <div key={i} style={{
               backgroundColor: '#1a1a20',

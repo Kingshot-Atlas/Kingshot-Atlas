@@ -9,6 +9,7 @@ import { ApplyModal, MyApplicationsTracker } from '../components/TransferApplica
 import RecruiterDashboard from '../components/RecruiterDashboard';
 import EditorClaiming, { EndorseButton } from '../components/EditorClaiming';
 import KingdomFundContribute from '../components/KingdomFundContribute';
+import { useTranslation } from 'react-i18next';
 import { neonGlow, FONT_DISPLAY, colors } from '../utils/styles';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
@@ -84,6 +85,7 @@ const getTransferGroup = (kingdomNumber: number): [number, number] | null => {
 const TransferBoard: React.FC = () => {
   useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.transferHub });
   useScrollDepth('Transfer Hub');
+  const { t } = useTranslation();
   const { user, profile } = useAuth();
   const isMobile = useIsMobile();
   const { trackFeature } = useAnalytics();
@@ -136,10 +138,10 @@ const TransferBoard: React.FC = () => {
 
   useDocumentTitle(
     highlightedKingdom
-      ? `Kingdom ${highlightedKingdom} Transfer Listing — Kingshot Atlas`
+      ? `${t('common.kingdom', 'Kingdom')} ${highlightedKingdom} Transfer Listing — Kingshot Atlas`
       : endorseClaimData
         ? `Endorse for K${endorseClaimData.kingdom_number} — Kingshot Atlas`
-        : 'Transfer Hub'
+        : t('nav.transferHub', 'Transfer Hub')
   );
   useMetaTags(
     highlightedKingdom ? {
@@ -769,14 +771,14 @@ const TransferBoard: React.FC = () => {
             marginBottom: '0.5rem',
             fontFamily: FONT_DISPLAY,
           }}>
-            <span style={{ color: '#fff' }}>TRANSFER</span>
-            <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>HUB</span>
+            <span style={{ color: '#fff' }}>{t('transferHub.heroTitle1', 'TRANSFER')}</span>
+            <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>{t('transferHub.heroTitle2', 'HUB')}</span>
           </h1>
           <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.8rem' : '0.9rem', marginBottom: '0.25rem' }}>
-            No more blind transfers.
+            {t('transferHub.heroSubtitle', 'No more blind transfers.')}
           </p>
           <p style={{ color: '#6b7280', fontSize: isMobile ? '0.7rem' : '0.8rem', marginBottom: '0.75rem' }}>
-            Find the perfect kingdom for you — or the best recruits.
+            {t('transferHub.heroDesc', 'Find the perfect kingdom for you — or the best recruits.')}
           </p>
           {!isMobile && (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
@@ -804,10 +806,10 @@ const TransferBoard: React.FC = () => {
         }}>
           <div style={{ flex: 1 }}>
             <p style={{ color: '#fff', fontSize: '0.9rem', fontWeight: '600', margin: '0 0 0.25rem 0' }}>
-              Interested in Kingdom {highlightedKingdom}?
+              {t('transferHub.interestedIn', 'Interested in Kingdom {{num}}?', { num: highlightedKingdom })}
             </p>
             <p style={{ color: '#9ca3af', fontSize: '0.8rem', margin: 0, lineHeight: 1.5 }}>
-              Sign in and create your Transfer Profile to apply directly. Recruiters will see your stats and reach out.
+              {t('transferHub.signInCta', 'Sign in and create your Transfer Profile to apply directly. Recruiters will see your stats and reach out.')}
             </p>
           </div>
           <Link to="/auth" style={{
@@ -823,7 +825,7 @@ const TransferBoard: React.FC = () => {
             display: 'inline-flex',
             alignItems: 'center',
           }}>
-            Sign Up to Apply
+            {t('transferHub.signUpToApply', 'Sign Up to Apply')}
           </Link>
         </div>
       )}
@@ -845,9 +847,9 @@ const TransferBoard: React.FC = () => {
           justifyContent: 'center',
         }}>
           {[
-            { label: 'Kingdoms', value: kingdoms.length, icon: '🏰' },
-            { label: 'Recruiting', value: funds.filter(f => f.is_recruiting).length, icon: '📢', color: '#22c55e' },
-            { label: 'Transferees', value: activeTransfereeCount, icon: '🚀', color: '#22d3ee' },
+            { label: t('transferHub.kingdoms', 'Kingdoms'), value: kingdoms.length, icon: '🏰' },
+            { label: t('transferHub.recruiting', 'Recruiting'), value: funds.filter(f => f.is_recruiting).length, icon: '📢', color: '#22c55e' },
+            { label: t('transferHub.transferees', 'Transferees'), value: activeTransfereeCount, icon: '🚀', color: '#22d3ee' },
           ].map((stat) => (
             <div key={stat.label} style={{
               display: 'flex',
@@ -905,7 +907,7 @@ const TransferBoard: React.FC = () => {
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <span style={{ color: '#22d3ee', fontWeight: '600', fontSize: '0.85rem' }}>
-                  {hasTransferProfile ? 'Your Transfer Profile is Active' : 'Create Your Transfer Profile'}
+                  {hasTransferProfile ? t('transferHub.profileActive', 'Your Transfer Profile is Active') : t('transferHub.createProfile', 'Create Your Transfer Profile')}
                 </span>
                 {isIncomplete && (
                   <span style={{
@@ -923,10 +925,10 @@ const TransferBoard: React.FC = () => {
               </div>
               <p style={{ color: '#6b7280', fontSize: '0.75rem', margin: '0.2rem 0 0 0' }}>
                 {isIncomplete
-                  ? 'Complete your profile for better Match Scores and more recruiter visibility.'
+                  ? t('transferHub.completeForBetter', 'Complete your profile for better Match Scores and more recruiter visibility.')
                   : hasTransferProfile
-                    ? 'Kingdoms can see your profile when you apply. You can edit it anytime.'
-                    : 'Set up your profile so kingdoms know what you bring to the table.'}
+                    ? t('transferHub.profileVisible', 'Kingdoms can see your profile when you apply. You can edit it anytime.')
+                    : t('transferHub.setupProfile', 'Set up your profile so kingdoms know what you bring to the table.')}
               </p>
               {hasTransferProfile && profileViewCount > 0 && (
                 <div style={{
@@ -941,7 +943,7 @@ const TransferBoard: React.FC = () => {
                 }}>
                   <span>👀</span>
                   <span style={{ fontWeight: '700' }}>{profileViewCount}</span>
-                  <span>kingdom{profileViewCount !== 1 ? 's' : ''} viewed your profile</span>
+                  <span>{t('transferHub.kingdomsViewedProfile', '{{count}} kingdom(s) viewed your profile', { count: profileViewCount })}</span>
                 </div>
               )}
               {hasTransferProfile && activeAppCount >= 2 && (
@@ -956,7 +958,7 @@ const TransferBoard: React.FC = () => {
                   color: activeAppCount >= 3 ? '#ef4444' : '#f59e0b',
                   fontWeight: '600',
                 }}>
-                  📋 {activeAppCount}/3 application slots used{activeAppCount >= 3 ? ' — withdraw one to apply again' : ''}
+                  📋 {t('transferHub.appSlotsUsed', '{{count}}/3 application slots used', { count: activeAppCount })}{activeAppCount >= 3 ? ' — ' + t('transferHub.withdrawToApply', 'withdraw one to apply again') : ''}
                 </div>
               )}
               {isIncomplete && (
@@ -991,7 +993,7 @@ const TransferBoard: React.FC = () => {
                 justifyContent: 'center',
               }}
             >
-              {isIncomplete ? 'Complete Profile' : hasTransferProfile ? 'Edit Profile' : 'Create Profile'}
+              {isIncomplete ? t('transferHub.completeProfile', 'Complete Profile') : hasTransferProfile ? t('transferHub.editProfile', 'Edit Profile') : t('transferHub.createProfileBtn', 'Create Profile')}
             </button>
           </div>
         );
@@ -1043,10 +1045,10 @@ const TransferBoard: React.FC = () => {
         }}>
           <span style={{ fontSize: '2rem', display: 'block', marginBottom: '0.75rem' }}>👑</span>
           <p style={{ color: '#fff', fontSize: '0.95rem', fontWeight: '600', marginBottom: '0.3rem' }}>
-            Sign In to Recruit
+            {t('transferHub.signInToRecruit', 'Sign In to Recruit')}
           </p>
           <p style={{ color: '#6b7280', fontSize: '0.8rem', marginBottom: '1rem', maxWidth: '400px', margin: '0 auto 1rem' }}>
-            Sign in and link your Kingshot account to claim your kingdom, set up your listing, and review transfer applications.
+            {t('transferHub.signInRecruitDesc', 'Sign in and link your Kingshot account to claim your kingdom, set up your listing, and review transfer applications.')}
           </p>
           <Link to="/auth" style={{
             display: 'inline-block',
@@ -1060,7 +1062,7 @@ const TransferBoard: React.FC = () => {
             minHeight: '44px',
             lineHeight: '44px',
           }}>
-            Sign In
+            {t('common.signIn', 'Sign In')}
           </Link>
         </div>
       )}
@@ -1077,10 +1079,10 @@ const TransferBoard: React.FC = () => {
         }}>
           <span style={{ fontSize: '2rem', display: 'block', marginBottom: '0.75rem' }}>🏰</span>
           <p style={{ color: '#fff', fontSize: '0.95rem', fontWeight: '600', marginBottom: '0.3rem' }}>
-            Link Your Kingshot Account
+            {t('transferHub.linkAccount', 'Link Your Kingshot Account')}
           </p>
           <p style={{ color: '#6b7280', fontSize: '0.8rem', marginBottom: '1rem', maxWidth: '400px', margin: '0 auto 1rem' }}>
-            To recruit for your kingdom, you need to link your in-game account first. This tells us which kingdom you represent.
+            {t('transferHub.linkAccountDesc', 'To recruit for your kingdom, you need to link your in-game account first. This tells us which kingdom you represent.')}
           </p>
           <Link to="/profile" style={{
             display: 'inline-block',
@@ -1094,7 +1096,7 @@ const TransferBoard: React.FC = () => {
             minHeight: '44px',
             lineHeight: '44px',
           }}>
-            Go to Profile
+            {t('transferHub.goToProfile', 'Go to Profile')}
           </Link>
         </div>
       )}
@@ -1128,7 +1130,7 @@ const TransferBoard: React.FC = () => {
               }}
             >
               <span style={{ color: '#a855f7', fontSize: '0.75rem', fontWeight: '600' }}>
-                Recruiter Dashboard
+                {t('transferHub.recruiterDashboard', 'Recruiter Dashboard')}
               </span>
               <span style={{
                 padding: '0.15rem 0.6rem',
@@ -1141,7 +1143,7 @@ const TransferBoard: React.FC = () => {
                 textTransform: 'uppercase',
                 letterSpacing: '0.03em',
               }}>
-                Open
+                {t('transferHub.open', 'Open')}
               </span>
             </button>
           )}
@@ -1199,23 +1201,22 @@ const TransferBoard: React.FC = () => {
               fontFamily: FONT_DISPLAY, fontSize: '1.3rem',
               color: '#fff', margin: '0 0 0.5rem 0',
             }}>
-              Contribution Successful!
+              {t('transferHub.contributionSuccess', 'Contribution Successful!')}
             </h2>
             <p style={{ color: '#9ca3af', fontSize: '0.9rem', margin: '0 0 0.75rem 0', lineHeight: 1.5 }}>
-              Thank you for supporting your kingdom's Transfer Hub listing.
-              Your contribution helps the fund grow and unlocks better listing features.
+              {t('transferHub.contributionThankYou', 'Thank you for supporting your kingdom\'s Transfer Hub listing. Your contribution helps the fund grow and unlocks better listing features.')}
             </p>
             <div style={{
               padding: '0.75rem', backgroundColor: '#0a0a0a',
               borderRadius: '10px', border: '1px solid #2a2a2a',
               marginBottom: '1rem',
             }}>
-              <span style={{ color: '#6b7280', fontSize: '0.7rem' }}>What happens next?</span>
+              <span style={{ color: '#6b7280', fontSize: '0.7rem' }}>{t('transferHub.whatHappensNext', 'What happens next?')}</span>
               <ul style={{ color: '#d1d5db', fontSize: '0.8rem', margin: '0.5rem 0 0 0', padding: '0 0 0 1.2rem', lineHeight: 1.8, textAlign: 'left' }}>
-                <li>Your payment is processed by Stripe</li>
-                <li>The kingdom fund balance is updated automatically</li>
-                <li>If the fund reaches a new tier, the listing upgrades</li>
-                <li>Fund depletes ~$5/week to stay active</li>
+                <li>{t('transferHub.paymentProcessed', 'Your payment is processed by Stripe')}</li>
+                <li>{t('transferHub.balanceUpdated', 'The kingdom fund balance is updated automatically')}</li>
+                <li>{t('transferHub.tierUpgrade', 'If the fund reaches a new tier, the listing upgrades')}</li>
+                <li>{t('transferHub.fundDepletes', 'Fund depletes ~$5/week to stay active')}</li>
               </ul>
             </div>
             <button
@@ -1232,7 +1233,7 @@ const TransferBoard: React.FC = () => {
                 minHeight: '44px',
               }}
             >
-              Continue Browsing
+              {t('transferHub.continueBrowsing', 'Continue Browsing')}
             </button>
           </div>
         </div>
@@ -1243,8 +1244,8 @@ const TransferBoard: React.FC = () => {
         <div style={{ marginBottom: '1rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
             <span style={{ fontSize: '0.85rem' }}>🎯</span>
-            <span style={{ color: '#22c55e', fontSize: '0.8rem', fontWeight: '600' }}>Top Matches For You</span>
-            <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>based on your Transfer Profile</span>
+            <span style={{ color: '#22c55e', fontSize: '0.8rem', fontWeight: '600' }}>{t('transferHub.topMatches', 'Top Matches For You')}</span>
+            <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>{t('transferHub.basedOnProfile', 'based on your Transfer Profile')}</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {topMatches.map(({ kingdom, fund, score, details }) => (
@@ -1264,7 +1265,7 @@ const TransferBoard: React.FC = () => {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', margin: '0.75rem 0 0 0', color: '#4b5563', fontSize: '0.7rem' }}>
             <div style={{ flex: 1, height: '1px', backgroundColor: '#2a2a2a' }} />
-            <span>All Kingdoms</span>
+            <span>{t('transferHub.allKingdoms', 'All Kingdoms')}</span>
             <div style={{ flex: 1, height: '1px', backgroundColor: '#2a2a2a' }} />
           </div>
         </div>
@@ -1297,8 +1298,8 @@ const TransferBoard: React.FC = () => {
             marginTop: '0.5rem',
             paddingRight: '0.5rem'
           }}>
-            <span>{filteredKingdoms.length} kingdoms</span>
-            <span>{funds.filter((f) => f.is_recruiting).length} recruiting</span>
+            <span>{filteredKingdoms.length} {t('transferHub.kingdoms', 'Kingdoms').toLowerCase()}</span>
+            <span>{funds.filter((f) => f.is_recruiting).length} {t('transferHub.recruiting', 'Recruiting').toLowerCase()}</span>
           </div>
         </div>
       )}
@@ -1390,7 +1391,7 @@ const TransferBoard: React.FC = () => {
               margin: '0.5rem 0', color: '#4b5563', fontSize: '0.75rem',
             }}>
               <div style={{ flex: 1, height: '1px', backgroundColor: '#2a2a2a' }} />
-              <span>Standard Listings</span>
+              <span>{t('transferHub.standardListings', 'Standard Listings')}</span>
               <div style={{ flex: 1, height: '1px', backgroundColor: '#2a2a2a' }} />
             </div>
           )}
@@ -1428,7 +1429,7 @@ const TransferBoard: React.FC = () => {
                   borderRadius: '50%',
                   animation: 'spin 0.8s linear infinite',
                 }} />
-                Loading more kingdoms...
+                {t('transferHub.loadingMore', 'Loading more kingdoms...')}
               </div>
             </div>
           )}
@@ -1440,8 +1441,8 @@ const TransferBoard: React.FC = () => {
               border: '1px solid #2a2a2a',
             }}>
               <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem', opacity: 0.6 }}>🔍</div>
-              <p style={{ fontSize: '1.1rem', marginBottom: '0.4rem', color: '#d1d5db', fontWeight: '600' }}>No kingdoms match your filters</p>
-              <p style={{ fontSize: '0.85rem', color: '#6b7280', marginBottom: '1rem' }}>Try adjusting your filters or clearing them to see all kingdoms.</p>
+              <p style={{ fontSize: '1.1rem', marginBottom: '0.4rem', color: '#d1d5db', fontWeight: '600' }}>{t('transferHub.noMatch', 'No kingdoms match your filters')}</p>
+              <p style={{ fontSize: '0.85rem', color: '#6b7280', marginBottom: '1rem' }}>{t('transferHub.tryAdjusting', 'Try adjusting your filters or clearing them to see all kingdoms.')}</p>
               <button
                 onClick={() => setFilters(defaultFilters)}
                 style={{
@@ -1451,7 +1452,7 @@ const TransferBoard: React.FC = () => {
                   cursor: 'pointer', minHeight: '44px',
                 }}
               >
-                Clear All Filters
+                {t('transferHub.clearFilters', 'Clear All Filters')}
               </button>
             </div>
           )}
@@ -1490,7 +1491,7 @@ const TransferBoard: React.FC = () => {
           >
             {endorseLoading ? (
               <div style={{ textAlign: 'center', padding: '2rem 0' }}>
-                <div style={{ color: '#6b7280', fontSize: '0.85rem' }}>Loading endorsement details...</div>
+                <div style={{ color: '#6b7280', fontSize: '0.85rem' }}>{t('transferHub.loadingEndorsement', 'Loading endorsement details...')}</div>
               </div>
             ) : !endorseClaimData ? (
               <div style={{ textAlign: 'center', padding: '1.5rem 0' }}>
@@ -1501,10 +1502,10 @@ const TransferBoard: React.FC = () => {
                   margin: '0 auto 1rem', fontSize: '1.3rem',
                 }}>✗</div>
                 <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: '1.1rem', color: '#fff', margin: '0 0 0.5rem 0' }}>
-                  Endorsement Not Found
+                  {t('transferHub.endorsementNotFound', 'Endorsement Not Found')}
                 </h2>
                 <p style={{ color: '#9ca3af', fontSize: '0.85rem', margin: '0 0 1rem 0' }}>
-                  This endorsement link may be invalid or expired.
+                  {t('transferHub.endorsementInvalid', 'This endorsement link may be invalid or expired.')}
                 </p>
                 <button
                   onClick={() => {
@@ -1519,7 +1520,7 @@ const TransferBoard: React.FC = () => {
                     color: '#22d3ee', fontWeight: '600', fontSize: '0.85rem', cursor: 'pointer',
                     minHeight: '44px',
                   }}
-                >Continue to Transfer Hub</button>
+                >{t('transferHub.continueToHub', 'Continue to Transfer Hub')}</button>
               </div>
             ) : endorseClaimData.status !== 'pending' ? (
               <div style={{ textAlign: 'center', padding: '1.5rem 0' }}>
@@ -1531,12 +1532,12 @@ const TransferBoard: React.FC = () => {
                   margin: '0 auto 1rem', fontSize: '1.3rem',
                 }}>{endorseClaimData.status === 'active' ? '✓' : '—'}</div>
                 <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: '1.1rem', color: '#fff', margin: '0 0 0.5rem 0' }}>
-                  {endorseClaimData.status === 'active' ? 'Already Activated!' : 'Claim No Longer Active'}
+                  {endorseClaimData.status === 'active' ? t('transferHub.alreadyActivated', 'Already Activated!') : t('transferHub.claimNoLongerActive', 'Claim No Longer Active')}
                 </h2>
                 <p style={{ color: '#9ca3af', fontSize: '0.85rem', margin: '0 0 1rem 0' }}>
                   {endorseClaimData.status === 'active'
-                    ? `${endorseClaimData.nominee_linked_username || endorseClaimData.nominee_username} is now the editor of Kingdom ${endorseClaimData.kingdom_number}.`
-                    : 'This editor claim is no longer accepting endorsements.'}
+                    ? t('transferHub.nowEditor', '{{name}} is now the editor of Kingdom {{num}}.', { name: endorseClaimData.nominee_linked_username || endorseClaimData.nominee_username, num: endorseClaimData.kingdom_number })
+                    : t('transferHub.noLongerAccepting', 'This editor claim is no longer accepting endorsements.')}
                 </p>
                 <button
                   onClick={() => {
@@ -1551,7 +1552,7 @@ const TransferBoard: React.FC = () => {
                     color: '#22d3ee', fontWeight: '600', fontSize: '0.85rem', cursor: 'pointer',
                     minHeight: '44px',
                   }}
-                >Continue to Transfer Hub</button>
+                >{t('transferHub.continueToHub', 'Continue to Transfer Hub')}</button>
               </div>
             ) : !user ? (
               /* Not logged in — prompt to sign in */
@@ -1577,7 +1578,7 @@ const TransferBoard: React.FC = () => {
                   {endorseClaimData.endorsement_count}/{endorseClaimData.required_endorsements} endorsements
                 </div>
                 <p style={{ color: '#f59e0b', fontSize: '0.8rem', margin: '0 0 1rem 0' }}>
-                  Sign in to endorse this candidate.
+                  {t('transferHub.signInToEndorse', 'Sign in to endorse this candidate.')}
                 </p>
                 <Link
                   to="/profile"
@@ -1590,9 +1591,9 @@ const TransferBoard: React.FC = () => {
                     fontWeight: '600', fontSize: '0.85rem', textDecoration: 'none',
                     minHeight: '44px', lineHeight: '44px',
                   }}
-                >Sign In to Endorse</Link>
+                >{t('transferHub.signInToEndorseBtn', 'Sign In to Endorse')}</Link>
                 <p style={{ color: '#6b7280', fontSize: '0.7rem', margin: '0.75rem 0 0 0', lineHeight: 1.4 }}>
-                  After signing in, return to the Transfer Hub to complete your endorsement.
+                  {t('transferHub.afterSignIn', 'After signing in, return to the Transfer Hub to complete your endorsement.')}
                 </p>
               </div>
             ) : !profile?.linked_player_id ? (
@@ -1612,7 +1613,7 @@ const TransferBoard: React.FC = () => {
                   Kingdom <strong style={{ color: '#22d3ee' }}>{endorseClaimData.kingdom_number}</strong>, you need to link your in-game account first.
                 </p>
                 <p style={{ color: '#6b7280', fontSize: '0.75rem', margin: '0 0 1rem 0' }}>
-                  This verifies which kingdom you belong to and your TC level.
+                  {t('transferHub.verifiesKingdom', 'This verifies which kingdom you belong to and your TC level.')}
                 </p>
                 <Link
                   to="/profile"
@@ -1625,9 +1626,9 @@ const TransferBoard: React.FC = () => {
                     fontWeight: '600', fontSize: '0.85rem', textDecoration: 'none',
                     minHeight: '44px', lineHeight: '44px',
                   }}
-                >Link Account</Link>
+                >{t('transferHub.linkAccountBtn', 'Link Account')}</Link>
                 <p style={{ color: '#6b7280', fontSize: '0.7rem', margin: '0.75rem 0 0 0', lineHeight: 1.4 }}>
-                  After linking, return to the Transfer Hub to complete your endorsement.
+                  {t('transferHub.afterLinking', 'After linking, return to the Transfer Hub to complete your endorsement.')}
                 </p>
               </div>
             ) : (
@@ -1700,16 +1701,16 @@ const TransferBoard: React.FC = () => {
               fontFamily: FONT_DISPLAY, fontSize: '1.1rem',
               color: '#fff', margin: '0 0 0.5rem 0',
             }}>
-              {showAuthGate === 'login' ? 'Sign In Required' : 'Link Your Account'}
+              {showAuthGate === 'login' ? t('transferHub.signInRequired', 'Sign In Required') : t('transferHub.linkYourAccount', 'Link Your Account')}
             </h2>
             <p style={{ color: '#9ca3af', fontSize: '0.85rem', margin: '0 0 1.25rem 0', lineHeight: 1.5 }}>
               {showAuthGate === 'login'
                 ? (endorseClaimId
-                    ? 'Sign in to endorse this editor candidate.'
-                    : 'Sign in to apply for transfers, create your profile, and manage recruitment.')
+                    ? t('transferHub.signInEndorseCandidate', 'Sign in to endorse this editor candidate.')
+                    : t('transferHub.signInApplyTransfers', 'Sign in to apply for transfers, create your profile, and manage recruitment.'))
                 : (endorseClaimId
-                    ? 'Link your Kingshot account to verify your kingdom and endorse.'
-                    : 'Link your Kingshot account to apply for transfers and access all Transfer Hub features.')}
+                    ? t('transferHub.linkToVerifyEndorse', 'Link your Kingshot account to verify your kingdom and endorse.')
+                    : t('transferHub.linkToAccess', 'Link your Kingshot account to apply for transfers and access all Transfer Hub features.'))}
             </p>
             <Link
               to="/profile"
@@ -1724,7 +1725,7 @@ const TransferBoard: React.FC = () => {
                 minHeight: '44px', lineHeight: '44px',
               }}
             >
-              {showAuthGate === 'login' ? 'Sign In' : 'Go to Profile'}
+              {showAuthGate === 'login' ? t('common.signIn', 'Sign In') : t('transferHub.goToProfile', 'Go to Profile')}
             </Link>
           </div>
         </div>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '../../hooks/useMediaQuery';
 import { colors } from '../../utils/styles';
 import { BoardMode } from '../KingdomListingCard';
@@ -45,6 +46,7 @@ const FilterPanel: React.FC<{
   searchQuery?: string;
   onSearchChange?: (query: string) => void;
 }> = ({ filters, onChange, mode, searchQuery = '', onSearchChange }) => {
+  const { t } = useTranslation();
   const isMobile = useIsMobile();
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -91,7 +93,7 @@ const FilterPanel: React.FC<{
             <input
               type="text"
               inputMode="numeric"
-              placeholder="Search kingdom #..."
+              placeholder={t('transferHub.filters.searchKingdom', 'Search kingdom #...')}
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value.replace(/[^0-9]/g, ''))}
               style={{
@@ -143,7 +145,7 @@ const FilterPanel: React.FC<{
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
           </svg>
-          Filters
+          {t('transferHub.filters.filters', 'Filters')}
           {activeFilterCount > 0 && (
             <span style={{
               backgroundColor: colors.primary,
@@ -175,44 +177,44 @@ const FilterPanel: React.FC<{
           borderTop: `1px solid ${colors.border}`,
         }}>
           <div>
-            <label style={{ color: colors.textSecondary, fontSize: '0.7rem', marginBottom: '0.25rem', display: 'block' }}>Fund Tier</label>
+            <label style={{ color: colors.textSecondary, fontSize: '0.7rem', marginBottom: '0.25rem', display: 'block' }}>{t('transferHub.filters.fundTier', 'Fund Tier')}</label>
             <select value={filters.tier} onChange={(e) => update('tier', e.target.value)} style={selectStyle}>
-              <option value="all">All Tiers</option>
-              <option value="gold">Gold</option>
-              <option value="silver">Silver</option>
-              <option value="bronze">Bronze</option>
-              <option value="standard">Standard</option>
+              <option value="all">{t('transferHub.filters.allTiers', 'All Tiers')}</option>
+              <option value="gold">{t('transferHub.filters.gold', 'Gold')}</option>
+              <option value="silver">{t('transferHub.filters.silver', 'Silver')}</option>
+              <option value="bronze">{t('transferHub.filters.bronze', 'Bronze')}</option>
+              <option value="standard">{t('transferHub.filters.standard', 'Standard')}</option>
             </select>
           </div>
           <div>
-            <label style={{ color: colors.textSecondary, fontSize: '0.7rem', marginBottom: '0.25rem', display: 'block' }}>Language</label>
+            <label style={{ color: colors.textSecondary, fontSize: '0.7rem', marginBottom: '0.25rem', display: 'block' }}>{t('transferHub.filters.language', 'Language')}</label>
             <select value={filters.language} onChange={(e) => update('language', e.target.value)} style={selectStyle}>
-              <option value="all">All Languages</option>
+              <option value="all">{t('transferHub.filters.allLanguages', 'All Languages')}</option>
               {LANGUAGE_OPTIONS.map((lang) => (
                 <option key={lang} value={lang}>{lang}</option>
               ))}
             </select>
           </div>
           <div>
-            <label style={{ color: colors.textSecondary, fontSize: '0.7rem', marginBottom: '0.25rem', display: 'block' }}>Sort By</label>
+            <label style={{ color: colors.textSecondary, fontSize: '0.7rem', marginBottom: '0.25rem', display: 'block' }}>{t('transferHub.filters.sortBy', 'Sort By')}</label>
             <select value={filters.sortBy} onChange={(e) => update('sortBy', e.target.value)} style={selectStyle}>
-              <option value="tier">Fund Tier (High → Low)</option>
-              <option value="score">Atlas Score (High → Low)</option>
-              <option value="rank">Rank (Best → Worst)</option>
-              <option value="match">Match Score (Best → Worst)</option>
+              <option value="tier">{t('transferHub.filters.sortTier', 'Fund Tier (High → Low)')}</option>
+              <option value="score">{t('transferHub.filters.sortScore', 'Atlas Score (High → Low)')}</option>
+              <option value="rank">{t('transferHub.filters.sortRank', 'Rank (Best → Worst)')}</option>
+              <option value="match">{t('transferHub.filters.sortMatch', 'Match Score (Best → Worst)')}</option>
             </select>
           </div>
           <div>
-            <label style={{ color: colors.textSecondary, fontSize: '0.7rem', marginBottom: '0.25rem', display: 'block' }}>Recruitment Tag</label>
+            <label style={{ color: colors.textSecondary, fontSize: '0.7rem', marginBottom: '0.25rem', display: 'block' }}>{t('transferHub.filters.recruitmentTag', 'Recruitment Tag')}</label>
             <select value={filters.tag} onChange={(e) => update('tag', e.target.value)} style={selectStyle}>
-              <option value="all">All Tags</option>
+              <option value="all">{t('transferHub.filters.allTags', 'All Tags')}</option>
               {RECRUITMENT_TAG_OPTIONS.map((tag) => (
                 <option key={tag} value={tag}>{tag}</option>
               ))}
             </select>
           </div>
           <div>
-            <label style={{ color: colors.textSecondary, fontSize: '0.7rem', marginBottom: '0.25rem', display: 'block' }}>Min Atlas Score</label>
+            <label style={{ color: colors.textSecondary, fontSize: '0.7rem', marginBottom: '0.25rem', display: 'block' }}>{t('transferHub.filters.minAtlasScore', 'Min Atlas Score')}</label>
             <input
               type="number"
               step="0.1"
@@ -226,7 +228,7 @@ const FilterPanel: React.FC<{
           </div>
           {mode === 'transferring' && (
             <div>
-              <label style={{ color: colors.textSecondary, fontSize: '0.7rem', marginBottom: '0.25rem', display: 'block' }}>Min Match Score</label>
+              <label style={{ color: colors.textSecondary, fontSize: '0.7rem', marginBottom: '0.25rem', display: 'block' }}>{t('transferHub.filters.minMatchScore', 'Min Match Score')}</label>
               <input
                 type="number"
                 step="5"
@@ -250,7 +252,7 @@ const FilterPanel: React.FC<{
                 onChange={(e) => update('isRecruiting', e.target.checked)}
                 style={{ width: '18px', height: '18px', accentColor: colors.primary }}
               />
-              Actively Recruiting Only
+              {t('transferHub.filters.activelyRecruiting', 'Actively Recruiting Only')}
             </label>
           </div>
           {activeFilterCount > 0 && (
@@ -268,7 +270,7 @@ const FilterPanel: React.FC<{
                   minHeight: '44px',
                 }}
               >
-                Clear Filters
+                {t('transferHub.filters.clearFilters', 'Clear Filters')}
               </button>
             </div>
           )}
