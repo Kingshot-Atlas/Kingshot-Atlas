@@ -79,7 +79,7 @@ async def send_email(
 
 def get_welcome_email(username: str, tier: str) -> tuple[str, str]:
     """Generate welcome email for new subscribers."""
-    tier_name = "Pro" if tier == "pro" else "Recruiter"
+    tier_name = "Supporter" if tier in ("pro", "supporter") else "Recruiter"
     
     subject = f"🎉 Welcome to Atlas {tier_name}!"
     
@@ -137,7 +137,7 @@ def get_welcome_email(username: str, tier: str) -> tuple[str, str]:
 
 def get_renewal_reminder_email(username: str, tier: str, days_until: int, amount: str) -> tuple[str, str]:
     """Generate renewal reminder email."""
-    tier_name = "Pro" if tier == "pro" else "Recruiter"
+    tier_name = "Supporter" if tier in ("pro", "supporter") else "Recruiter"
     
     subject = f"⏰ Your Atlas {tier_name} renews in {days_until} days"
     
@@ -187,7 +187,7 @@ def get_renewal_reminder_email(username: str, tier: str, days_until: int, amount
 
 def get_cancellation_email(username: str, tier: str) -> tuple[str, str]:
     """Generate cancellation confirmation email."""
-    tier_name = "Pro" if tier == "pro" else "Recruiter"
+    tier_name = "Supporter" if tier in ("pro", "supporter") else "Recruiter"
     
     subject = f"😢 Your Atlas {tier_name} has been cancelled"
     
@@ -239,7 +239,7 @@ def get_cancellation_email(username: str, tier: str) -> tuple[str, str]:
 
 def get_payment_failed_email(username: str, tier: str) -> tuple[str, str]:
     """Generate payment failed alert email."""
-    tier_name = "Pro" if tier == "pro" else "Recruiter"
+    tier_name = "Supporter" if tier in ("pro", "supporter") else "Recruiter"
     
     subject = f"⚠️ Payment failed for Atlas {tier_name}"
     

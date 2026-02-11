@@ -198,7 +198,7 @@ async def sync_subscription_role(
                 "success": success,
             })
             
-    elif new_tier == "pro":
+    elif new_tier in ("pro", "supporter"):
         # Add Supporter role
         if DISCORD_SUPPORTER_ROLE_ID:
             success = await add_role_to_member(discord_user_id, DISCORD_SUPPORTER_ROLE_ID)

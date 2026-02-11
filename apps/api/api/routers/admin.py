@@ -189,7 +189,7 @@ async def get_subscription_stats(x_admin_key: Optional[str] = Header(None), auth
         profiles = result.data or []
         
         # Count by tier and linked status
-        tier_counts = {"free": 0, "pro": 0, "recruiter": 0}
+        tier_counts = {"free": 0, "supporter": 0, "pro": 0, "recruiter": 0}
         kingshot_linked_count = 0
         
         for profile in profiles:
@@ -227,13 +227,13 @@ async def get_subscription_stats(x_admin_key: Optional[str] = Header(None), auth
             "by_tier": tier_counts,
             "kingshot_linked": kingshot_linked_count,
             "recent_subscribers": recent[:10],  # Last 10
-            "paid_users": tier_counts["pro"] + tier_counts["recruiter"]
+            "paid_users": tier_counts["supporter"] + tier_counts["pro"] + tier_counts["recruiter"]
         }
         
     except Exception as e:
         return {
             "total_users": 0,
-            "by_tier": {"free": 0, "pro": 0, "recruiter": 0},
+            "by_tier": {"free": 0, "supporter": 0, "pro": 0, "recruiter": 0},
             "recent_subscribers": [],
             "error": str(e)
         }
@@ -262,7 +262,7 @@ async def get_revenue_stats(x_admin_key: Optional[str] = Header(None), authoriza
         subscriptions = stripe.Subscription.list(status="active", limit=100)
         
         mrr = 0
-        tier_counts = {"pro_monthly": 0, "pro_yearly": 0, "recruiter_monthly": 0, "recruiter_yearly": 0}
+        tier_counts = {"supporter_monthly": 0, "supporter_yearly": 0, "recruiter_monthly": 0, "recruiter_yearly": 0}
         
         for sub in subscriptions.data:
             # Calculate MRR from subscription
@@ -277,7 +277,10 @@ async def get_revenue_stats(x_admin_key: Optional[str] = Header(None), authoriza
                     mrr += amount
                 
                 # Count by tier from metadata
-                tier = sub.get("metadata", {}).get("tier", "pro")
+                tier = sub.get("metadata", {}).get("tier", "supporter")
+                # Normalize legacy "pro" tier to "supporter"
+                if tier == "pro":
+                    tier = "supporter"
                 billing = "yearly" if interval == "year" else "monthly"
                 key = f"{tier}_{billing}"
                 if key in tier_counts:
@@ -341,20 +344,20 @@ async def get_admin_overview(x_admin_key: Optional[str] = Header(None), authoriz
     
     # Calculate actual paid user counts from Stripe (source of truth)
     # This avoids discrepancies when webhooks fail to update profiles
-    stripe_pro_count = 0
+    stripe_supporter_count = 0
     stripe_recruiter_count = 0
     
     for tier_info in rev_stats.get("subscriptions_by_tier", []):
         tier_name = tier_info.get("tier", "").lower()
         count = tier_info.get("count", 0)
-        if "pro" in tier_name:
-            stripe_pro_count += count
+        if "supporter" in tier_name:
+            stripe_supporter_count += count
         elif "recruiter" in tier_name:
             stripe_recruiter_count += count
     
     # Total users from Supabase, but paid counts from Stripe
     total_users = sub_stats.get("total_users", 0)
-    paid_from_stripe = stripe_pro_count + stripe_recruiter_count
+    paid_from_stripe = stripe_supporter_count + stripe_recruiter_count
     
     # Free users = total users - paid users (from Stripe)
     free_users = max(0, total_users - paid_from_stripe)
@@ -363,7 +366,7 @@ async def get_admin_overview(x_admin_key: Optional[str] = Header(None), authoriz
         "users": {
             "total": total_users,
             "free": free_users,
-            "pro": stripe_pro_count,
+            "pro": stripe_supporter_count,
             "recruiter": stripe_recruiter_count,
             "kingshot_linked": sub_stats.get("kingshot_linked", 0),
         },
@@ -899,7 +902,10 @@ async def sync_all_subscriptions(x_admin_key: Optional[str] = Header(None), auth
         for sub in subscriptions.data:
             sub_id = sub.id
             customer_id = sub.customer
-            tier = sub.get("metadata", {}).get("tier", "pro")
+            tier = sub.get("metadata", {}).get("tier", "supporter")
+            # Normalize legacy "pro" tier to "supporter"
+            if tier == "pro":
+                tier = "supporter"
             user_id = sub.get("metadata", {}).get("user_id")
             
             # Try to find user by metadata user_id first

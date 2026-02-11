@@ -59,8 +59,6 @@ interface RallyPreset {
 // CONSTANTS
 // =============================================
 
-const RALLY_FILL_TIME = 300; // 5 minutes in seconds
-
 const BUILDING_LABELS: Record<BuildingKey, string> = {
   castle: "King's Castle",
   turret1: 'Turret 1 (South)',
@@ -114,7 +112,11 @@ function calculateRallyTimings(
   slots: RallySlot[],
   gap: number
 ): CalculatedRally[] {
-  if (slots.length < 2) return [];
+  if (slots.length === 0) return [];
+  if (slots.length === 1) {
+    const s = slots[0]!;
+    return [{ name: s.playerName, marchTime: s.marchTime, startDelay: 0, hitOrder: 1, arrivalTime: s.marchTime, team: s.team }];
+  }
 
   // Timeline does NOT include fill time — only march-to-hit
   const marchTimes = slots.map(s => s.marchTime);
@@ -131,45 +133,6 @@ function calculateRallyTimings(
       startDelay: delay,
       hitOrder: i + 1,
       arrivalTime: delay + s.marchTime,
-      team: s.team,
-    };
-  });
-
-  return results.sort((a, b) => a.startDelay - b.startDelay);
-}
-
-function calculateCounterTimings(
-  enemyHitTime: number,
-  counterSlots: RallySlot[],
-  counterGap: number,
-  afterDelay: number
-): CalculatedRally[] {
-  if (counterSlots.length < 1) return [];
-  if (counterSlots.length === 1) {
-    const s = counterSlots[0]!;
-    const arrivalTarget = enemyHitTime + afterDelay;
-    const callTime = arrivalTarget - RALLY_FILL_TIME - s.marchTime;
-    return [{
-      name: s.playerName,
-      marchTime: s.marchTime,
-      startDelay: Math.max(0, callTime),
-      hitOrder: 1,
-      arrivalTime: arrivalTarget,
-      team: s.team,
-    }];
-  }
-
-  // Multiple counter rallies: first hits at enemyHitTime + afterDelay
-  const baseTarget = enemyHitTime + afterDelay;
-  const results: CalculatedRally[] = counterSlots.map((s, i) => {
-    const targetHit = baseTarget + i * counterGap;
-    const callTime = targetHit - RALLY_FILL_TIME - s.marchTime;
-    return {
-      name: s.playerName,
-      marchTime: s.marchTime,
-      startDelay: Math.max(0, callTime),
-      hitOrder: i + 1,
-      arrivalTime: targetHit,
       team: s.team,
     };
   });
@@ -381,7 +344,9 @@ const IntervalSlider: React.FC<{
   value: number;
   onChange: (v: number) => void;
   accentColor?: string;
-}> = ({ value, onChange, accentColor = '#ef4444' }) => {
+  min?: number;
+  max?: number;
+}> = ({ value, onChange, accentColor = '#ef4444', min = 1, max = 5 }) => {
   const sliderRef = useRef<HTMLDivElement>(null);
   const [dragging, setDragging] = useState(false);
 
@@ -389,7 +354,7 @@ const IntervalSlider: React.FC<{
     if (!sliderRef.current) return;
     const rect = sliderRef.current.getBoundingClientRect();
     const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-    onChange(Math.round(pct * 10));
+    onChange(min + Math.round(pct * (max - min)));
   }, [onChange]);
 
   useEffect(() => {
@@ -411,7 +376,8 @@ const IntervalSlider: React.FC<{
     };
   }, [dragging, updateValue]);
 
-  const pct = (value / 10) * 100;
+  const range = max - min;
+  const pct = range > 0 ? ((value - min) / range) * 100 : 0;
 
   return (
     <div>
@@ -445,8 +411,8 @@ const IntervalSlider: React.FC<{
         }} />
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2px' }}>
-        <span style={{ color: '#4b5563', fontSize: '0.5rem' }}>0s</span>
-        <span style={{ color: '#4b5563', fontSize: '0.5rem' }}>10s</span>
+        <span style={{ color: '#4b5563', fontSize: '0.5rem' }}>{min}s</span>
+        <span style={{ color: '#4b5563', fontSize: '0.5rem' }}>{max}s</span>
       </div>
     </div>
   );
@@ -859,7 +825,7 @@ const RallyCoordinator: React.FC = () => {
   // State: Configuration
   const [selectedBuilding, setSelectedBuilding] = useState<BuildingKey>('castle');
   const [hitMode, setHitMode] = useState<HitMode>('simultaneous');
-  const [interval, setInterval] = useState(0);
+  const [interval, setInterval] = useState(1);
   const [marchType, setMarchType] = useState<MarchType>('regular');
 
   // State: Rally queue
@@ -868,9 +834,7 @@ const RallyCoordinator: React.FC = () => {
   // State: Counter-rally
   const [counterQueue, setCounterQueue] = useState<RallySlot[]>([]);
   const [counterHitMode, setCounterHitMode] = useState<HitMode>('simultaneous');
-  const [counterInterval, setCounterInterval] = useState(0);
-  const [enemyHitTime, setEnemyHitTime] = useState(600);
-  const [counterAfterDelay, setCounterAfterDelay] = useState(5);
+  const [counterInterval, setCounterInterval] = useState(1);
 
   // State: Modals
   const [playerModalOpen, setPlayerModalOpen] = useState(false);
@@ -897,10 +861,10 @@ const RallyCoordinator: React.FC = () => {
     [rallyQueue, gap]
   );
 
-  // Calculated counter-rallies
+  // Calculated counter-rallies (same engine as rally, allows 1+ players)
   const calculatedCounters = useMemo(
-    () => calculateCounterTimings(enemyHitTime, counterQueue, cGap, counterAfterDelay),
-    [enemyHitTime, counterQueue, cGap, counterAfterDelay]
+    () => calculateRallyTimings(counterQueue, cGap),
+    [counterQueue, cGap]
   );
 
   // Player IDs in queues
@@ -1322,7 +1286,7 @@ const RallyCoordinator: React.FC = () => {
           {renderQueueDropZone(
             rallyQueue, handleDrop, removeFromQueue, moveInQueue,
             (i) => toggleBuff('rally', i), clearQueue,
-            'rally', `⚔️ RALLY QUEUE — ${BUILDING_SHORT[selectedBuilding]}`,
+            'rally', `⚔️ RALLY QUEUE — ${BUILDING_LABELS[selectedBuilding]}`,
             ALLY_COLOR, RALLY_COLORS, 2,
           )}
 
@@ -1344,7 +1308,7 @@ const RallyCoordinator: React.FC = () => {
             <div style={{ marginTop: '0.25rem' }}>
               <div style={{ fontSize: '0.6rem', color: '#9ca3af', fontWeight: '600', marginBottom: '0.3rem' }}>Hit Timing</div>
               <div style={{ display: 'flex', gap: '0.4rem', marginBottom: hitMode === 'interval' ? '0.5rem' : 0 }}>
-                <button onClick={() => { setHitMode('simultaneous'); setInterval(0); }} style={{
+                <button onClick={() => { setHitMode('simultaneous'); }} style={{
                   flex: 1, padding: '0.35rem',
                   backgroundColor: hitMode === 'simultaneous' ? `${ALLY_COLOR}20` : 'transparent',
                   border: `1px solid ${hitMode === 'simultaneous' ? `${ALLY_COLOR}50` : '#2a2a2a'}`,
@@ -1354,7 +1318,7 @@ const RallyCoordinator: React.FC = () => {
                 }}>
                   💥 Simultaneous
                 </button>
-                <button onClick={() => setHitMode('interval')} style={{
+                <button onClick={() => { setHitMode('interval'); if (interval < 1) setInterval(1); }} style={{
                   flex: 1, padding: '0.35rem',
                   backgroundColor: hitMode === 'interval' ? `${ALLY_COLOR}20` : 'transparent',
                   border: `1px solid ${hitMode === 'interval' ? `${ALLY_COLOR}50` : '#2a2a2a'}`,
@@ -1477,30 +1441,8 @@ const RallyCoordinator: React.FC = () => {
             <div style={{ ...CARD }}>
               <h4 style={cardHeader(ENEMY_COLOR)}>🛡️ COUNTER-RALLY CONFIG</h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                <div>
-                  <label style={{ color: '#9ca3af', fontSize: '0.55rem', display: 'block', marginBottom: '0.2rem' }}>
-                    Enemy hits at (seconds from now)
-                  </label>
-                  <input
-                    type="number" min="0" max="3600"
-                    value={enemyHitTime}
-                    onChange={e => setEnemyHitTime(Math.max(0, parseInt(e.target.value) || 0))}
-                    style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.3rem 0.5rem', minHeight: '32px' }}
-                  />
-                </div>
-                <div>
-                  <label style={{ color: '#9ca3af', fontSize: '0.55rem', display: 'block', marginBottom: '0.2rem' }}>
-                    Hit after enemy by (seconds)
-                  </label>
-                  <input
-                    type="number" min="0" max="60"
-                    value={counterAfterDelay}
-                    onChange={e => setCounterAfterDelay(Math.max(0, parseInt(e.target.value) || 0))}
-                    style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.3rem 0.5rem', minHeight: '32px' }}
-                  />
-                </div>
                 <div style={{ display: 'flex', gap: '0.4rem' }}>
-                  <button onClick={() => { setCounterHitMode('simultaneous'); setCounterInterval(0); }} style={{
+                  <button onClick={() => { setCounterHitMode('simultaneous'); }} style={{
                     flex: 1, padding: '0.3rem',
                     backgroundColor: counterHitMode === 'simultaneous' ? `${ENEMY_COLOR}20` : 'transparent',
                     border: `1px solid ${counterHitMode === 'simultaneous' ? `${ENEMY_COLOR}50` : '#2a2a2a'}`,
@@ -1510,7 +1452,7 @@ const RallyCoordinator: React.FC = () => {
                   }}>
                     💥 Simultaneous
                   </button>
-                  <button onClick={() => setCounterHitMode('interval')} style={{
+                  <button onClick={() => { setCounterHitMode('interval'); if (counterInterval < 1) setCounterInterval(1); }} style={{
                     flex: 1, padding: '0.3rem',
                     backgroundColor: counterHitMode === 'interval' ? `${ENEMY_COLOR}20` : 'transparent',
                     border: `1px solid ${counterHitMode === 'interval' ? `${ENEMY_COLOR}50` : '#2a2a2a'}`,
@@ -1518,7 +1460,7 @@ const RallyCoordinator: React.FC = () => {
                     color: counterHitMode === 'interval' ? ENEMY_COLOR : '#6b7280',
                     fontSize: '0.55rem', fontWeight: '600',
                   }}>
-                    🔗 Chain
+                    🔗 Chain Hits
                   </button>
                 </div>
                 {counterHitMode === 'interval' && (
@@ -1538,12 +1480,6 @@ const RallyCoordinator: React.FC = () => {
                 padding: '0.4rem', backgroundColor: '#0a0a0a', borderRadius: '6px',
                 border: '1px solid #1a1a1a',
               }}>
-                <span style={{ color: '#9ca3af', fontWeight: '600' }}>Fill time:</span> 5 min (not shown in timeline)
-              </div>
-              <div style={{
-                padding: '0.4rem', backgroundColor: '#0a0a0a', borderRadius: '6px',
-                border: '1px solid #1a1a1a',
-              }}>
                 <span style={{ color: '#9ca3af', fontWeight: '600' }}>Building:</span> {BUILDING_LABELS[selectedBuilding]}
               </div>
               <div style={{
@@ -1556,14 +1492,14 @@ const RallyCoordinator: React.FC = () => {
                 padding: '0.4rem', backgroundColor: '#0a0a0a', borderRadius: '6px',
                 border: '1px solid #1a1a1a',
               }}>
-                <span style={{ color: ENEMY_COLOR, fontWeight: '600' }}>Counter:</span> {counterQueue.length} players, hits {counterAfterDelay}s after enemy
+                <span style={{ color: ENEMY_COLOR, fontWeight: '600' }}>Counter:</span> {counterQueue.length} players, {counterHitMode === 'simultaneous' ? 'simultaneous' : `${counterInterval}s gaps`}
               </div>
-              {/* Per-player buff hint */}
+              {/* Right-click hint */}
               <div style={{
                 padding: '0.4rem', backgroundColor: '#22c55e08', borderRadius: '6px',
                 border: '1px solid #22c55e15',
               }}>
-                <span style={{ color: '#22c55e' }}>Tip:</span> Toggle ⚡/🏃 per player in queue to use buffed or regular march time individually.
+                <span style={{ color: '#22c55e' }}>Tip:</span> Right-click players to edit march times.
               </div>
             </div>
           </div>

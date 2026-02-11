@@ -515,7 +515,7 @@ const RecruiterDashboard: React.FC<{
   const [fund, setFund] = useState<FundInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'inbox' | 'browse' | 'team' | 'fund' | 'profile'>('inbox');
+  const [activeTab, setActiveTab] = useState<'inbox' | 'browse' | 'team' | 'invites' | 'fund' | 'profile'>('inbox');
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileDraft, setProfileDraft] = useState<Partial<FundInfo>>({});
   const [coEditorUserId, setCoEditorUserId] = useState('');
@@ -1215,7 +1215,7 @@ const RecruiterDashboard: React.FC<{
               padding: '0.25rem',
               marginBottom: '1rem',
             }}>
-              {(['inbox', 'browse', 'profile', 'team', 'fund'] as const).map((tab) => (
+              {(['inbox', 'browse', 'profile', 'team', 'invites', 'fund'] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => {
@@ -1230,7 +1230,7 @@ const RecruiterDashboard: React.FC<{
                     border: activeTab === tab ? '1px solid #22d3ee30' : '1px solid transparent',
                     borderRadius: '8px',
                     color: activeTab === tab ? '#22d3ee' : '#6b7280',
-                    fontSize: isMobile ? '0.7rem' : '0.8rem',
+                    fontSize: isMobile ? '0.65rem' : '0.75rem',
                     fontWeight: activeTab === tab ? '600' : '400',
                     cursor: 'pointer',
                     position: 'relative',
@@ -1243,7 +1243,8 @@ const RecruiterDashboard: React.FC<{
                   {tab === 'inbox' ? `Inbox${pendingCount > 0 ? ` (${pendingCount})` : ''}` :
                    tab === 'browse' ? 'Browse' :
                    tab === 'profile' ? 'Profile' :
-                   tab === 'team' ? 'Recruiter Team' : 'Fund'}
+                   tab === 'team' ? 'Team' :
+                   tab === 'invites' ? 'Co-Editors' : 'Fund'}
                 </button>
               ))}
             </div>
@@ -2305,12 +2306,81 @@ const RecruiterDashboard: React.FC<{
                     </div>
                   ))}
                 </div>
-                {/* Co-Editor Invite */}
+              </div>
+            )}
+
+            {/* TAB: Co-Editors (Invites) */}
+            {activeTab === 'invites' && (
+              <div>
+                {/* Current Co-Editors */}
+                {(() => {
+                  const coEditors = team.filter((t) => t.role === 'co-editor');
+                  return coEditors.length > 0 ? (
+                    <div style={{ marginBottom: '1rem' }}>
+                      <span style={{ color: '#9ca3af', fontSize: '0.7rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        Current Co-Editors
+                      </span>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.5rem' }}>
+                        {coEditors.map((member) => (
+                          <div key={member.id} style={{
+                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                            padding: '0.75rem',
+                            backgroundColor: '#0a0a0a',
+                            borderRadius: '8px',
+                            border: '1px solid #2a2a2a',
+                          }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <Link
+                                to={`/profile/${member.user_id}`}
+                                style={{ color: '#fff', textDecoration: 'none', fontWeight: '600', fontSize: '0.85rem' }}
+                              >
+                                {member.linked_username || member.username || 'User'}
+                              </Link>
+                              <span style={{
+                                padding: '0.1rem 0.4rem',
+                                backgroundColor: '#a855f715',
+                                border: '1px solid #a855f730',
+                                borderRadius: '4px',
+                                fontSize: '0.6rem',
+                                color: '#a855f7',
+                                fontWeight: 'bold',
+                                textTransform: 'uppercase',
+                              }}>
+                                Co-Editor
+                              </span>
+                            </div>
+                            <span style={{
+                              color: member.status === 'active' ? '#22c55e' : member.status === 'pending' ? '#eab308' : '#6b7280',
+                              fontSize: '0.7rem',
+                              textTransform: 'capitalize',
+                            }}>
+                              {member.status}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{
+                      textAlign: 'center', padding: '1.5rem 1rem',
+                      backgroundColor: '#111111', borderRadius: '10px',
+                      border: '1px solid #2a2a2a',
+                      marginBottom: '1rem',
+                    }}>
+                      <p style={{ color: '#6b7280', fontSize: '0.8rem', margin: 0 }}>
+                        No co-editors yet. Invite up to 2 co-editors to help manage your kingdom.
+                      </p>
+                    </div>
+                  );
+                })()}
+
+                {/* Invite Form */}
                 {editorInfo.role === 'editor' && team.filter((t) => t.role === 'co-editor' && (t.status === 'active' || t.status === 'pending')).length < 2 && (
-                  <div style={{ marginTop: '0.75rem', padding: '0.75rem', backgroundColor: '#111111', borderRadius: '10px', border: '1px solid #2a2a2a' }}>
-                    <span style={{ color: '#9ca3af', fontSize: '0.75rem', fontWeight: '600' }}>Invite Co-Editor</span>
-                    <p style={{ color: '#6b7280', fontSize: '0.65rem', margin: '0.25rem 0 0.5rem 0' }}>
+                  <div style={{ padding: '0.75rem', backgroundColor: '#111111', borderRadius: '10px', border: '1px solid #a855f720' }}>
+                    <span style={{ color: '#a855f7', fontSize: '0.8rem', fontWeight: '600' }}>Invite Co-Editor</span>
+                    <p style={{ color: '#6b7280', fontSize: '0.7rem', margin: '0.25rem 0 0.5rem 0' }}>
                       Enter the player ID of a linked kingdom member (TC20+) to add as co-editor.
+                      Co-editors can manage applications, browse transferees, and update the kingdom profile.
                     </p>
                     <div style={{ display: 'flex', gap: '0.4rem' }}>
                       <input
@@ -2339,6 +2409,18 @@ const RecruiterDashboard: React.FC<{
                         {invitingCoEditor ? '...' : 'Invite'}
                       </button>
                     </div>
+                  </div>
+                )}
+                {editorInfo.role === 'co-editor' && (
+                  <div style={{
+                    padding: '0.75rem',
+                    backgroundColor: '#111111',
+                    borderRadius: '10px',
+                    border: '1px solid #2a2a2a',
+                  }}>
+                    <p style={{ color: '#6b7280', fontSize: '0.75rem', margin: 0 }}>
+                      Only the primary editor can invite co-editors.
+                    </p>
                   </div>
                 )}
               </div>

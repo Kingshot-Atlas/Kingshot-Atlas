@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth, UserProfile } from '../contexts/AuthContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
@@ -44,7 +44,10 @@ const UserDirectory: React.FC = () => {
   const urlKingdom = searchParams.get('kingdom');
   const [filterBy, setFilterBy] = useState<'all' | 'alliance' | 'region' | 'kingdom'>(urlKingdom ? 'kingdom' : 'all');
   const [filterValue, setFilterValue] = useState(urlKingdom || '');
-  const [tierFilter, setTierFilter] = useState<'all' | 'admin' | 'supporter'>('all');
+  const [tierFilter, setTierFilter] = useState<'all' | 'admin' | 'supporter' | 'ambassador' | 'consul' | 'recruiter' | 'scout'>('all');
+  const PAGE_SIZE = 25;
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const sentinelRef = useRef<HTMLDivElement>(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   
   // Searchable kingdom filter state
@@ -93,8 +96,7 @@ const UserDirectory: React.FC = () => {
             .select('id, username, email, avatar_url, home_kingdom, alliance_tag, language, region, bio, theme_color, badge_style, created_at, linked_username, linked_avatar_url, linked_kingdom, linked_tc_level, subscription_tier, referral_tier, referral_count')
             .neq('linked_username', '')
             .not('linked_username', 'is', null)
-            .order('created_at', { ascending: false })
-            .limit(100);
+            .order('created_at', { ascending: false });
 
           logger.log('[PlayerDirectory] Query result:', { data, error, count: data?.length });
 
@@ -103,15 +105,22 @@ const UserDirectory: React.FC = () => {
           }
 
           if (data && data.length > 0) {
-            // Sort: by tier hierarchy (Admin > Recruiter > Pro > Free), then by created_at
-            // Use getDisplayTier to properly detect admins by username
+            // Sort: Admin > Supporter > Ambassador > Consul > Recruiter > Scout > Regular
+            const getUserPriority = (u: typeof data[0]): number => {
+              const dt = getDisplayTier(u.subscription_tier, u.linked_username || u.username);
+              if (dt === 'admin') return 0;
+              if (dt === 'supporter') return 1;
+              const rt = u.referral_tier as string | null;
+              if (rt === 'ambassador') return 2;
+              if (rt === 'consul') return 3;
+              if (rt === 'recruiter') return 4;
+              if (rt === 'scout') return 5;
+              return 6;
+            };
             const sorted = [...data].sort((a, b) => {
-              const tierOrder = { admin: 0, supporter: 1, free: 2 };
-              const aDisplayTier = getDisplayTier(a.subscription_tier, a.linked_username || a.username);
-              const bDisplayTier = getDisplayTier(b.subscription_tier, b.linked_username || b.username);
-              const aTier = tierOrder[aDisplayTier as keyof typeof tierOrder] ?? 3;
-              const bTier = tierOrder[bDisplayTier as keyof typeof tierOrder] ?? 3;
-              if (aTier !== bTier) return aTier - bTier;
+              const aPri = getUserPriority(a);
+              const bPri = getUserPriority(b);
+              if (aPri !== bPri) return aPri - bPri;
               return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
             });
             setUsers(sorted as UserProfile[]);
@@ -199,10 +208,15 @@ const UserDirectory: React.FC = () => {
     
     if (!matchesSearch) return false;
 
-    // Tier filter - use getDisplayTier to properly detect admins
+    // Tier filter - subscription tiers and referral tiers
     if (tierFilter !== 'all') {
-      const userDisplayTier = getDisplayTier(user.subscription_tier, user.linked_username || user.username);
-      if (userDisplayTier !== tierFilter) return false;
+      if (tierFilter === 'admin' || tierFilter === 'supporter') {
+        const userDisplayTier = getDisplayTier(user.subscription_tier, user.linked_username || user.username);
+        if (userDisplayTier !== tierFilter) return false;
+      } else {
+        // Filter by referral tier
+        if (user.referral_tier !== tierFilter) return false;
+      }
     }
     
     switch (filterBy) {
@@ -258,6 +272,27 @@ const UserDirectory: React.FC = () => {
     });
   }, [uniqueKingdoms, kingdomSearchInput]);
   
+  // Reset visible count when filters change
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [searchQuery, filterBy, filterValue]);
+
+  // Infinite scroll: observe sentinel to load more
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setVisibleCount(prev => prev + PAGE_SIZE);
+        }
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  });
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -549,22 +584,27 @@ const UserDirectory: React.FC = () => {
 
         {/* Tier Filter Chips */}
         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-          {(['all', 'admin', 'supporter'] as const).map((tier) => {
-            const isActive = tierFilter === tier;
-            const chipColor = tier === 'admin' ? subscriptionColors.admin : tier === 'supporter' ? subscriptionColors.supporter : '#6b7280';
-            const label = tier === 'all' ? 'All Players' : tier === 'admin' ? '👑 Admin' : '💖 Supporter';
-            
+          {([
+            { key: 'all' as const, label: 'All Players', color: '#6b7280' },
+            { key: 'admin' as const, label: '👑 Admin', color: subscriptionColors.admin },
+            { key: 'supporter' as const, label: '💖 Supporter', color: subscriptionColors.supporter },
+            { key: 'ambassador' as const, label: '🟣 Ambassador', color: '#a24cf3' },
+            { key: 'consul' as const, label: '🟣 Consul', color: '#b890dd' },
+            { key: 'recruiter' as const, label: '🟢 Recruiter', color: '#4ade80' },
+            { key: 'scout' as const, label: '⚪ Scout', color: '#ffffff' },
+          ]).map(({ key, label, color }) => {
+            const isActive = tierFilter === key;
             return (
               <button
-                key={tier}
-                onClick={() => setTierFilter(tier)}
+                key={key}
+                onClick={() => { setTierFilter(key); setVisibleCount(PAGE_SIZE); }}
                 style={{
-                  padding: '0.5rem 1rem',
+                  padding: '0.4rem 0.75rem',
                   borderRadius: '20px',
-                  border: `1px solid ${isActive ? chipColor : '#2a2a2a'}`,
-                  backgroundColor: isActive ? `${chipColor}15` : 'transparent',
-                  color: isActive ? chipColor : '#6b7280',
-                  fontSize: '0.8rem',
+                  border: `1px solid ${isActive ? color : '#2a2a2a'}`,
+                  backgroundColor: isActive ? `${color}15` : 'transparent',
+                  color: isActive ? color : '#6b7280',
+                  fontSize: '0.75rem',
                   fontWeight: isActive ? '600' : '400',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
@@ -579,7 +619,7 @@ const UserDirectory: React.FC = () => {
         {/* Results Count */}
         <div style={{ marginBottom: '1.5rem' }}>
           <span style={{ color: '#6b7280', fontSize: '0.85rem' }}>
-            Showing <span style={{ ...neonGlow('#22d3ee'), fontWeight: '600' }}>{filteredUsers.length}</span> player{filteredUsers.length !== 1 ? 's' : ''}
+            Showing <span style={{ ...neonGlow('#22d3ee'), fontWeight: '600' }}>{Math.min(visibleCount, filteredUsers.length)}</span> of <span style={{ ...neonGlow('#22d3ee'), fontWeight: '600' }}>{filteredUsers.length}</span> player{filteredUsers.length !== 1 ? 's' : ''}
           </span>
         </div>
 
@@ -606,7 +646,7 @@ const UserDirectory: React.FC = () => {
             gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(350px, 1fr))', 
             gap: isMobile ? '1rem' : '1.5rem' 
           }}>
-            {filteredUsers.map(user => {
+            {filteredUsers.slice(0, visibleCount).map(user => {
               const displayTier = getDisplayTier(user.subscription_tier, user.linked_username || user.username);
               const subTierColor = getTierBorderColor(displayTier);
               // Referral tier border takes priority for recruiter+ (colored borders)
@@ -844,6 +884,11 @@ const UserDirectory: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Infinite scroll sentinel */}
+      {visibleCount < filteredUsers.length && (
+        <div ref={sentinelRef} style={{ height: '1px' }} />
+      )}
 
       {/* Back to Home */}
       <div style={{ textAlign: 'center', marginTop: '3rem', paddingBottom: '2rem' }}>

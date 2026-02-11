@@ -247,7 +247,10 @@ async def handle_checkout_completed(session: dict):
     We need to update the user's tier in Supabase.
     """
     user_id = session.get("client_reference_id") or session.get("metadata", {}).get("user_id")
-    tier = session.get("metadata", {}).get("tier", "pro")
+    tier = session.get("metadata", {}).get("tier", "supporter")
+    # Normalize legacy "pro" tier to "supporter"
+    if tier == "pro":
+        tier = "supporter"
     subscription_id = session.get("subscription")
     customer_id = session.get("customer")
     
@@ -338,7 +341,7 @@ async def handle_subscription_deleted(subscription: dict):
     subscription_id = subscription.get("id")
     customer_id = subscription.get("customer")
     user_id = subscription.get("metadata", {}).get("user_id")
-    previous_tier = subscription.get("metadata", {}).get("tier", "pro")
+    previous_tier = subscription.get("metadata", {}).get("tier", "supporter")
     
     print(f"Subscription deleted: id={subscription_id}, user={user_id}")
     
@@ -395,7 +398,7 @@ async def handle_payment_failed(invoice: dict):
     if attempt_count == 1 and customer_id:
         profile = get_user_by_stripe_customer(customer_id)
         if profile and profile.get("email"):
-            tier = profile.get("subscription_tier", "pro")
+            tier = profile.get("subscription_tier", "supporter")
             await send_payment_failed_email(
                 email=profile["email"],
                 username=profile.get("username", "Champion"),
@@ -636,8 +639,11 @@ async def sync_subscription(request: Request, sync_request: SyncRequest):
         
         if subscriptions.data:
             sub = subscriptions.data[0]
-            # Determine tier from price metadata or default to pro
-            tier = sub.get("metadata", {}).get("tier", "pro")
+            # Determine tier from price metadata or default to supporter
+            tier = sub.get("metadata", {}).get("tier", "supporter")
+            # Normalize legacy "pro" tier to "supporter"
+            if tier == "pro":
+                tier = "supporter"
             
             # Update the user's subscription in Supabase
             update_user_subscription(
