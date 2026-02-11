@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Kingdom, getPowerTier } from '../types';
 import { getTierColor, colors } from '../utils/styles';
 import SmartTooltip from './shared/SmartTooltip';
+import { useTranslation } from 'react-i18next';
 
 interface SimilarKingdomsProps {
   currentKingdom: Kingdom;
@@ -15,6 +16,7 @@ const SimilarKingdoms: React.FC<SimilarKingdomsProps> = ({
   allKingdoms, 
   limit = 5 
 }) => {
+  const { t } = useTranslation();
   
   const similarKingdoms = useMemo(() => {
     const currentTier = getPowerTier(currentKingdom.overall_score);
@@ -75,7 +77,7 @@ const SimilarKingdoms: React.FC<SimilarKingdomsProps> = ({
           maxWidth={240}
           content={
             <div style={{ fontSize: '0.7rem' }}>
-              <div style={{ color: colors.primary, fontWeight: 'bold', marginBottom: '2px' }}>How it works</div>
+              <div style={{ color: colors.primary, fontWeight: 'bold', marginBottom: '2px' }}>{t('similarKingdoms.howItWorks', 'How it works')}</div>
               <div style={{ color: '#9ca3af' }}>Similar Atlas Score, win rates, and tier within ±50 of K-{currentKingdom.kingdom_number}</div>
             </div>
           }
@@ -87,7 +89,7 @@ const SimilarKingdoms: React.FC<SimilarKingdomsProps> = ({
             margin: 0,
             cursor: 'help'
           }}>
-            Nearby Kingdoms
+            {t('similarKingdoms.title', 'Nearby Kingdoms')}
           </h3>
         </SmartTooltip>
       </div>

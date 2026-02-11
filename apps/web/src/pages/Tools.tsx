@@ -7,6 +7,7 @@ import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData'
 import { useAuth } from '../contexts/AuthContext';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { ADMIN_USERNAMES } from '../utils/constants';
+import { useTranslation } from 'react-i18next';
 
 interface ToolCardProps {
   title: string;
@@ -30,6 +31,7 @@ const ToolCard: React.FC<ToolCardProps> = ({
   usageStat 
 }) => {
   const isMobile = useIsMobile();
+  const { t } = useTranslation();
   
   const content = (
     <div style={{
@@ -73,7 +75,7 @@ const ToolCard: React.FC<ToolCardProps> = ({
           textTransform: 'uppercase',
           letterSpacing: '0.05em'
         }}>
-          Coming Soon
+          {t('common.comingSoon')}
         </div>
       )}
       {usageStat && !comingSoon && (
@@ -148,7 +150,7 @@ const ToolCard: React.FC<ToolCardProps> = ({
           fontSize: '0.85rem',
           fontWeight: '600'
         }}>
-          Launch Tool
+          {t('tools.launchTool', 'Launch Tool')}
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M5 12h14M12 5l7 7-7 7"/>
           </svg>
@@ -169,6 +171,7 @@ const ToolCard: React.FC<ToolCardProps> = ({
 };
 
 const Tools: React.FC = () => {
+  const { t } = useTranslation();
   useDocumentTitle('Tools');
   useMetaTags(PAGE_META_TAGS.tools);
   useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.tools });
@@ -178,10 +181,10 @@ const Tools: React.FC = () => {
 
   const tools: ToolCardProps[] = [
     {
-      title: 'Atlas Discord Bot',
-      description: 'Bring kingdom intelligence directly to your Discord server. Look up kingdoms, compare matchups, and check rankings — without leaving Discord.',
-      tagline: 'Intel at your fingertips. No tab-switching.',
-      usageStat: '10+ Discord servers',
+      title: t('tools.botTitle', 'Atlas Discord Bot'),
+      description: t('tools.botDesc', 'Bring kingdom intelligence directly to your Discord server. Look up kingdoms, compare matchups, and check rankings — without leaving Discord.'),
+      tagline: t('tools.botTagline', 'Intel at your fingertips. No tab-switching.'),
+      usageStat: t('tools.botStat', '10+ Discord servers'),
       icon: (
         <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
           <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
@@ -191,10 +194,10 @@ const Tools: React.FC = () => {
       accentColor: '#5865F2'
     },
     {
-      title: 'Kingdom Comparison',
-      description: 'Put any kingdoms in the ring. Head-to-head stats, win rates, and Atlas Scores. Let the data crown the champion.',
-      tagline: 'Know your enemy. Choose your allies.',
-      usageStat: '1,300+ kingdoms',
+      title: t('tools.compareTitle', 'Kingdom Comparison'),
+      description: t('tools.compareDesc', 'Put any kingdoms in the ring. Head-to-head stats, win rates, and Atlas Scores. Let the data crown the champion.'),
+      tagline: t('tools.compareTagline', 'Know your enemy. Choose your allies.'),
+      usageStat: t('tools.compareStat', '1,300+ kingdoms'),
       icon: (
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M16 3h5v5M8 3H3v5M3 16v5h5M21 16v5h-5M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/>
@@ -204,9 +207,9 @@ const Tools: React.FC = () => {
       accentColor: '#22d3ee'
     },
     {
-      title: 'KvK Rally Coordinator',
-      description: 'Time your rallies to land together. Set hit order, march times, and delay windows — so your alliance strikes as one.',
-      tagline: 'Synchronized destruction. No guesswork.',
+      title: t('tools.rallyTitle', 'KvK Rally Coordinator'),
+      description: t('tools.rallyDesc', 'Time your rallies to land together. Set hit order, march times, and delay windows — so your alliance strikes as one.'),
+      tagline: t('tools.rallyTagline', 'Synchronized destruction. No guesswork.'),
       icon: (
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <circle cx="12" cy="12" r="10"/>
@@ -219,9 +222,9 @@ const Tools: React.FC = () => {
       accentColor: '#ef4444'
     },
     {
-      title: 'Appointment Scheduler',
-      description: 'Schedule King\'s Appointments across your kingdom during Prep Phase. Maximize buff slots, avoid overlap, and make every 30 minutes count.',
-      tagline: 'Precision wins wars.',
+      title: t('tools.appointmentTitle', 'Appointment Scheduler'),
+      description: t('tools.appointmentDesc', 'Schedule King\'s Appointments across your kingdom during Prep Phase. Maximize buff slots, avoid overlap, and make every 30 minutes count.'),
+      tagline: t('tools.appointmentTagline', 'Precision wins wars.'),
       icon: (
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
@@ -235,9 +238,9 @@ const Tools: React.FC = () => {
       accentColor: '#a855f7'
     },
     {
-      title: 'Gaming Calculators',
-      description: 'Resource planners, upgrade costs, speedup estimates. Math so you don\'t have to.',
-      tagline: 'Calculate smarter. Grow faster.',
+      title: t('tools.calcTitle', 'Gaming Calculators'),
+      description: t('tools.calcDesc', 'Resource planners, upgrade costs, speedup estimates. Math so you don\'t have to.'),
+      tagline: t('tools.calcTagline', 'Calculate smarter. Grow faster.'),
       icon: (
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <rect x="4" y="2" width="16" height="20" rx="2"/>
@@ -256,9 +259,9 @@ const Tools: React.FC = () => {
       accentColor: '#10b981'
     },
     {
-      title: 'Gift Code Redeemer',
-      description: 'Bulk redeem gift codes across all your accounts. One click. Multiple accounts. Zero hassle.',
-      tagline: 'Stop typing. Start claiming.',
+      title: t('tools.giftTitle', 'Gift Code Redeemer'),
+      description: t('tools.giftDesc', 'Bulk redeem gift codes across all your accounts. One click. Multiple accounts. Zero hassle.'),
+      tagline: t('tools.giftTagline', 'Stop typing. Start claiming.'),
       icon: (
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
@@ -297,7 +300,7 @@ const Tools: React.FC = () => {
             margin: '0 auto 1rem',
             lineHeight: 1.6
           }}>
-            Your arsenal for KvK supremacy. Data-driven tools built by players, for players.
+            {t('tools.heroSubtitle', 'Your arsenal for KvK supremacy. Data-driven tools built by players, for players.')}
           </p>
           
           {!isMobile && (
@@ -341,14 +344,14 @@ const Tools: React.FC = () => {
             color: '#fff',
             marginBottom: '0.5rem'
           }}>
-            Got a tool idea?
+            {t('tools.gotIdea', 'Got a tool idea?')}
           </h3>
           <p style={{
             fontSize: isMobile ? '0.8rem' : '0.85rem',
             color: '#6b7280',
             marginBottom: '1rem'
           }}>
-            We&apos;re building what the community needs. Drop your suggestions in Discord.
+            {t('tools.dropSuggestions', "We're building what the community needs. Drop your suggestions in Discord.")}
           </p>
           <a
             href="https://discord.gg/cajcacDzGd"
@@ -370,14 +373,14 @@ const Tools: React.FC = () => {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
               <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
             </svg>
-            Join the Discussion
+            {t('tools.joinDiscussion', 'Join the Discussion')}
           </a>
         </div>
 
         {/* Back to Home */}
         <div style={{ textAlign: 'center', marginTop: '2rem', paddingBottom: '1rem' }}>
           <Link to="/" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: '0.8rem' }}>
-            ← Back to Home
+            {t('common.backToHome')}
           </Link>
         </div>
       </div>

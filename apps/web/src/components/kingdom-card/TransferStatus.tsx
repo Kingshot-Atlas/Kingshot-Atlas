@@ -1,6 +1,7 @@
 import React, { memo } from 'react';
 import { getStatusColor } from '../../utils/styles';
 import SmartTooltip from '../shared/SmartTooltip';
+import { useTranslation } from 'react-i18next';
 
 interface TransferStatusProps {
   status: string;
@@ -17,6 +18,7 @@ const getStatusDescription = (status: string) => {
 };
 
 const TransferStatus: React.FC<TransferStatusProps> = ({ status, onSubmitStatus }) => {
+  const { t } = useTranslation();
   const statusColor = status === 'Unannounced' ? '#6b7280' : getStatusColor(status);
   const isUnannounced = status === 'Unannounced';
   const accentColor = isUnannounced ? '#4a4a4a' : statusColor;
@@ -30,7 +32,7 @@ const TransferStatus: React.FC<TransferStatusProps> = ({ status, onSubmitStatus 
         — {getStatusDescription(status)}
       </span>
       {isUnannounced && onSubmitStatus && (
-        <div style={{ color: '#22d3ee', fontSize: '0.65rem', marginTop: '0.2rem' }}>Tap to submit</div>
+        <div style={{ color: '#22d3ee', fontSize: '0.65rem', marginTop: '0.2rem' }}>{t('kingdomCard.tapToSubmit')}</div>
       )}
     </div>
   );
@@ -45,7 +47,7 @@ const TransferStatus: React.FC<TransferStatusProps> = ({ status, onSubmitStatus 
         style={{ fontSize: '0.7rem', cursor: isUnannounced && onSubmitStatus ? 'pointer' : 'default' }}
         onClick={isUnannounced && onSubmitStatus ? onSubmitStatus : undefined}
       >
-        <span style={{ color: '#6b7280', marginRight: '0.25rem' }}>Transfer Status:</span>
+        <span style={{ color: '#6b7280', marginRight: '0.25rem' }}>{t('kingdomCard.transferStatus')}:</span>
         <span style={{ 
           padding: '0.25rem 0.5rem',
           borderRadius: '4px',

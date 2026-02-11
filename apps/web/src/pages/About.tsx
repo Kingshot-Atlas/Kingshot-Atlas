@@ -6,8 +6,10 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { useStructuredData, ABOUT_FAQ_DATA, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
 import SupportButton from '../components/SupportButton';
+import { useTranslation } from 'react-i18next';
 
 const About: React.FC = () => {
+  const { t } = useTranslation();
   useDocumentTitle('About');
   useMetaTags(PAGE_META_TAGS.about);
   useStructuredData({ type: 'FAQPage', data: ABOUT_FAQ_DATA });
@@ -35,7 +37,7 @@ const About: React.FC = () => {
             <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>US</span>
           </h1>
           <p style={{ color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.9rem', marginBottom: '0.75rem' }}>
-            Know your enemy. Choose your allies. Dominate Kingshot.
+            {t('about.heroSubtitle', 'Know your enemy. Choose your allies. Dominate Kingshot.')}
           </p>
           {!isMobile && (
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
@@ -57,7 +59,7 @@ const About: React.FC = () => {
             marginBottom: '1rem',
             fontFamily: FONT_DISPLAY
           }}>
-            Stop Guessing. Start Winning.
+            {t('about.stopGuessing', 'Stop Guessing. Start Winning.')}
           </h2>
           <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.9rem' : '0.95rem', lineHeight: 1.7, marginBottom: '1rem' }}>
             <span style={{ color: '#22d3ee' }}>Kingshot Atlas</span> is the only analytics platform built specifically for Kingshot players who refuse to leave victory to chance. We track every KvK result, analyze every kingdom&apos;s performance, and give you the intelligence you need to make decisions that actually matter.
@@ -79,15 +81,15 @@ const About: React.FC = () => {
             marginBottom: '1rem',
             fontFamily: FONT_DISPLAY
           }}>
-            Your Competitive Edge
+            {t('about.competitiveEdge', 'Your Competitive Edge')}
           </h2>
           <div style={{ display: 'grid', gap: '1rem' }}>
             {[
-              { title: 'Kingdom Directory', desc: 'Every kingdom. Every stat. Searchable, filterable, and ranked. Find exactly what you\'re looking for in seconds.', icon: '🗺️' },
-              { title: 'Atlas Score', desc: 'Battle-tested rating that rewards experience and consistency. One number tells you who\'s a real threat vs a lucky newcomer.', icon: '⚡' },
-              { title: 'Head-to-Head Comparison', desc: 'Pit any two kingdoms against each other. See who has the edge in Prep, Battle, and overall dominance.', icon: '⚔️' },
-              { title: 'Complete KvK History', desc: 'Every match. Every result. Every streak. Know exactly what you\'re walking into before the gates open.', icon: '📜' },
-              { title: 'Power Tier Rankings', desc: 'S-Tier elites to D-Tier underdogs. Instantly identify where any kingdom stands in the pecking order.', icon: '🏆' },
+              { title: t('about.featureDirectory', 'Kingdom Directory'), desc: t('about.featureDirectoryDesc', 'Every kingdom. Every stat. Searchable, filterable, and ranked. Find exactly what you\'re looking for in seconds.'), icon: '🗺️' },
+              { title: t('about.featureScore', 'Atlas Score'), desc: t('about.featureScoreDesc', 'Battle-tested rating that rewards experience and consistency. One number tells you who\'s a real threat vs a lucky newcomer.'), icon: '⚡' },
+              { title: t('about.featureComparison', 'Head-to-Head Comparison'), desc: t('about.featureComparisonDesc', 'Pit any two kingdoms against each other. See who has the edge in Prep, Battle, and overall dominance.'), icon: '⚔️' },
+              { title: t('about.featureHistory', 'Complete KvK History'), desc: t('about.featureHistoryDesc', 'Every match. Every result. Every streak. Know exactly what you\'re walking into before the gates open.'), icon: '📜' },
+              { title: t('about.featureTiers', 'Power Tier Rankings'), desc: t('about.featureTiersDesc', 'S-Tier elites to D-Tier underdogs. Instantly identify where any kingdom stands in the pecking order.'), icon: '🏆' },
             ].map((feature, i) => (
               <div key={i} style={{ 
                 backgroundColor: '#111111', 
@@ -121,18 +123,18 @@ const About: React.FC = () => {
             marginBottom: '1rem',
             fontFamily: FONT_DISPLAY
           }}>
-            The Atlas Score: Your Kingdom&apos;s True Power Level
+            {t('about.atlasScoreTitle', "The Atlas Score: Your Kingdom's True Power Level")}
           </h2>
           <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.9rem' : '0.95rem', lineHeight: 1.7, marginBottom: '1rem' }}>
-            Stop guessing. Start winning. The Atlas Score measures what actually matters: <span style={{ color: '#22d3ee' }}>consistent performance</span>. Our formula rewards experience, punishes lucky streaks, and shows who really dominates. Here&apos;s the breakdown:
+            {t('about.atlasScoreIntro', 'Stop guessing. Start winning. The Atlas Score measures what actually matters:')}{' '}<span style={{ color: '#22d3ee' }}>{t('about.consistentPerformance', 'consistent performance')}</span>{'. '}{t('about.atlasScoreIntro2', 'Our formula rewards experience, punishes lucky streaks, and shows who really dominates. Here\'s the breakdown:')}
           </p>
           
           <div style={{ display: 'grid', gap: '0.75rem', marginBottom: '1.25rem' }}>
             {[
-              { icon: '⚔️', title: 'Base Score', desc: 'Combined Prep (45%) + Battle (55%) win rates with Bayesian adjustment. No inflated scores from lucky starts.', color: '#22d3ee' },
-              { icon: '👑', title: 'Domination/Invasion', desc: 'Dominations boost your score up to +15%. Invasions hurt equally. Rewards consistent double-phase performance.', color: '#22c55e' },
-              { icon: '🔥', title: 'Recent Form', desc: 'Last 5 KvKs weighted by recency. Domination=1.0, Comeback=0.80, Reversal=0.70, Invasion=0.', color: '#eab308' },
-              { icon: '⚡', title: 'Streak Bonus', desc: 'Current win streaks provide a boost. Battle: +1.1% per win (max 10). Prep: +1% per win (max 10).', color: '#a855f7' },
+              { icon: '⚔️', title: t('about.baseScore', 'Base Score'), desc: t('about.baseScoreDesc', 'Combined Prep (45%) + Battle (55%) win rates with Bayesian adjustment. No inflated scores from lucky starts.'), color: '#22d3ee' },
+              { icon: '👑', title: t('about.domInvasion', 'Domination/Invasion'), desc: t('about.domInvasionDesc', 'Dominations boost your score up to +15%. Invasions hurt equally. Rewards consistent double-phase performance.'), color: '#22c55e' },
+              { icon: '🔥', title: t('about.recentForm', 'Recent Form'), desc: t('about.recentFormDesc', 'Last 5 KvKs weighted by recency. Domination=1.0, Comeback=0.80, Reversal=0.70, Invasion=0.'), color: '#eab308' },
+              { icon: '⚡', title: t('about.streakBonus', 'Streak Bonus'), desc: t('about.streakBonusDesc', 'Current win streaks provide a boost. Battle: +1.1% per win (max 10). Prep: +1% per win (max 10).'), color: '#a855f7' },
             ].map((item, i) => (
               <div key={i} style={{ 
                 display: 'flex', 
@@ -160,21 +162,21 @@ const About: React.FC = () => {
             marginBottom: '1rem'
           }}>
             <div style={{ color: '#22d3ee', fontWeight: '600', fontSize: isMobile ? '0.85rem' : '0.9rem', marginBottom: '0.5rem' }}>
-              Why It Works
+              {t('about.whyItWorks', 'Why It Works')}
             </div>
             <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.8rem' : '0.85rem', lineHeight: 1.6, margin: '0 0 0.5rem 0' }}>
-              • <strong>Bayesian adjustment:</strong> Pulls extreme rates toward 50% until you prove yourself
+              • <strong>{t('about.bayesianAdj', 'Bayesian adjustment:')}</strong> {t('about.bayesianAdjDesc', 'Pulls extreme rates toward 50% until you prove yourself')}
             </p>
             <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.8rem' : '0.85rem', lineHeight: 1.6, margin: '0 0 0.5rem 0' }}>
-              • <strong>Experience scaling:</strong> Full credit at 5+ KvKs—no shortcuts for newcomers
+              • <strong>{t('about.expScaling', 'Experience scaling:')}</strong> {t('about.expScalingDesc', 'Full credit at 5+ KvKs—no shortcuts for newcomers')}
             </p>
             <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.8rem' : '0.85rem', lineHeight: 1.6, margin: 0 }}>
-              • <strong>Multiplier stacking:</strong> Dominations, form, and streaks compound your base score
+              • <strong>{t('about.multiplierStack', 'Multiplier stacking:')}</strong> {t('about.multiplierStackDesc', 'Dominations, form, and streaks compound your base score')}
             </p>
           </div>
 
           <p style={{ color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.85rem', lineHeight: 1.6 }}>
-            Real data. Real results. No spin. That&apos;s how you know who to fear and who to target.
+            {t('about.realData', 'Real data. Real results. No spin. That\'s how you know who to fear and who to target.')}
           </p>
         </section>
 
@@ -187,32 +189,32 @@ const About: React.FC = () => {
             marginBottom: '1rem',
             fontFamily: FONT_DISPLAY
           }}>
-            The Tier System: Where Does Your Kingdom Rank?
+            {t('about.tierSystemTitle', 'The Tier System: Where Does Your Kingdom Rank?')}
           </h2>
           <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.9rem' : '0.95rem', lineHeight: 1.7, marginBottom: '1rem' }}>
-            Every kingdom earns their tier through battle. No politics, no favoritism—just cold, hard results.
+            {t('about.tierSystemDesc', 'Every kingdom earns their tier through battle. No politics, no favoritism\u2014just cold, hard results.')}
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(5, 1fr)', gap: '0.75rem' }}>
             {[
-              { tier: 'S', range: '57+', color: '#fbbf24', desc: 'Elite', detail: 'Top 3% - Apex predators' },
-              { tier: 'A', range: '47-57', color: '#22c55e', desc: 'Formidable', detail: 'Top 10% - Serious contenders' },
-              { tier: 'B', range: '38-47', color: '#3b82f6', desc: 'Competitive', detail: 'Top 25% - Solid performers' },
-              { tier: 'C', range: '29-38', color: '#f97316', desc: 'Developing', detail: 'Top 50% - Room to grow' },
-              { tier: 'D', range: '0-29', color: '#ef4444', desc: 'Struggling', detail: 'Bottom 50% - Rebuilding' },
-            ].map((t, i) => (
+              { tier: 'S', range: '57+', color: '#fbbf24', desc: t('about.tierS', 'Elite'), detail: t('about.tierSDetail', 'Top 3% - Apex predators') },
+              { tier: 'A', range: '47-57', color: '#22c55e', desc: t('about.tierA', 'Formidable'), detail: t('about.tierADetail', 'Top 10% - Serious contenders') },
+              { tier: 'B', range: '38-47', color: '#3b82f6', desc: t('about.tierB', 'Competitive'), detail: t('about.tierBDetail', 'Top 25% - Solid performers') },
+              { tier: 'C', range: '29-38', color: '#f97316', desc: t('about.tierC', 'Developing'), detail: t('about.tierCDetail', 'Top 50% - Room to grow') },
+              { tier: 'D', range: '0-29', color: '#ef4444', desc: t('about.tierD', 'Struggling'), detail: t('about.tierDDetail', 'Bottom 50% - Rebuilding') },
+            ].map((tierItem, i) => (
               <div key={i} style={{ 
                 backgroundColor: '#111111', 
                 padding: '1rem', 
                 borderRadius: '8px',
-                border: `1px solid ${t.color}30`,
+                border: `1px solid ${tierItem.color}30`,
                 textAlign: 'center'
               }}>
-                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: t.color, marginBottom: '0.25rem' }}>
-                  {t.tier}
+                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: tierItem.color, marginBottom: '0.25rem' }}>
+                  {tierItem.tier}
                 </div>
-                <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>{t.range}</div>
-                <div style={{ fontSize: '0.8rem', color: t.color, marginBottom: '0.25rem', fontWeight: '500' }}>{t.desc}</div>
-                <div style={{ fontSize: '0.7rem', color: '#6b7280', fontStyle: 'italic' }}>{t.detail}</div>
+                <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>{tierItem.range}</div>
+                <div style={{ fontSize: '0.8rem', color: tierItem.color, marginBottom: '0.25rem', fontWeight: '500' }}>{tierItem.desc}</div>
+                <div style={{ fontSize: '0.7rem', color: '#6b7280', fontStyle: 'italic' }}>{tierItem.detail}</div>
               </div>
             ))}
           </div>
@@ -227,16 +229,16 @@ const About: React.FC = () => {
             marginBottom: '1rem',
             fontFamily: FONT_DISPLAY
           }}>
-            Built by a Player, For Players
+            {t('about.builtByPlayer', 'Built by a Player, For Players')}
           </h2>
           <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.9rem' : '0.95rem', lineHeight: 1.7, marginBottom: '1rem' }}>
-            Kingshot Atlas was born in <span style={{ color: '#22d3ee' }}>Kingdom 172</span>. The founder got tired of making transfer decisions based on rumors and Discord hearsay. Tired of walking into KvK blind. Tired of guessing.
+            {t('about.originP1', 'Kingshot Atlas was born in')} <span style={{ color: '#22d3ee' }}>Kingdom 172</span>{'. '}{t('about.originP1b', 'The founder got tired of making transfer decisions based on rumors and Discord hearsay. Tired of walking into KvK blind. Tired of guessing.')}
           </p>
           <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.9rem' : '0.95rem', lineHeight: 1.7, marginBottom: '1rem' }}>
-            So he built the tool he wished existed: a place where every kingdom&apos;s track record is laid bare. Real data. Real results. No spin.
+            {t('about.originP2', 'So he built the tool he wished existed: a place where every kingdom\'s track record is laid bare. Real data. Real results. No spin.')}
           </p>
           <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.9rem' : '0.95rem', lineHeight: 1.7 }}>
-            Today, Atlas is powered by the community—players contributing data, reporting results, and helping each other make smarter decisions. This isn&apos;t a corporate product. It&apos;s a passion project built by someone who plays the game and wants to see the community thrive.
+            {t('about.originP3', 'Today, Atlas is powered by the community\u2014players contributing data, reporting results, and helping each other make smarter decisions. This isn\'t a corporate product. It\'s a passion project built by someone who plays the game and wants to see the community thrive.')}
           </p>
         </section>
 
@@ -249,10 +251,10 @@ const About: React.FC = () => {
             marginBottom: '1rem',
             fontFamily: FONT_DISPLAY
           }}>
-            The Fine Print
+            {t('about.finePrint', 'The Fine Print')}
           </h2>
           <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.9rem' : '0.95rem', lineHeight: 1.7, marginBottom: '1rem' }}>
-            Our data comes from community contributions and verified KvK results. We obsess over accuracy, but KvK is complex—edge cases exist. If you spot an error, let us know.
+            {t('about.finePrintDesc', 'Our data comes from community contributions and verified KvK results. We obsess over accuracy, but KvK is complex\u2014edge cases exist. If you spot an error, let us know.')}
           </p>
           <div style={{ 
             backgroundColor: '#111111', 
@@ -262,7 +264,7 @@ const About: React.FC = () => {
             marginBottom: '1rem'
           }}>
             <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.85rem' : '0.9rem', lineHeight: 1.6, margin: 0 }}>
-              <span style={{ color: '#22d3ee', fontWeight: '600' }}>Special thanks</span> to{' '}
+              <span style={{ color: '#22d3ee', fontWeight: '600' }}>{t('about.specialThanks', 'Special thanks')}</span>{' '}{t('about.to', 'to')}{' '}
               <a 
                 href="https://www.reddit.com/r/KingShot/comments/1qc42ga/all_kvk_results_for_every_kingdom_rankings/"
                 target="_blank"
@@ -271,11 +273,11 @@ const About: React.FC = () => {
               >
                 Cosmos (u/CosmosSolitarus)
               </a>
-              {' '}for compiling the original KvK History spreadsheet that made this project possible. Community effort at its finest.
+              {' '}{t('about.cosmosCredit', 'for compiling the original KvK History spreadsheet that made this project possible. Community effort at its finest.')}
             </p>
           </div>
           <p style={{ color: '#6b7280', fontSize: isMobile ? '0.85rem' : '0.9rem', lineHeight: 1.7 }}>
-            Kingshot Atlas is an independent fan project. We&apos;re not affiliated with or endorsed by the developers of Kingshot. We&apos;re just players who love the game.
+            {t('about.disclaimer', 'Kingshot Atlas is an independent fan project. We\'re not affiliated with or endorsed by the developers of Kingshot. We\'re just players who love the game.')}
           </p>
         </section>
 
@@ -288,15 +290,15 @@ const About: React.FC = () => {
             marginBottom: '1rem',
             fontFamily: FONT_DISPLAY
           }}>
-            The Transfer Hub: No More Blind Transfers
+            {t('about.transferHubTitle', 'The Transfer Hub: No More Blind Transfers')}
           </h2>
           <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.9rem' : '0.95rem', lineHeight: 1.7, marginBottom: '1rem' }}>
-            Tired of asking &ldquo;anyone know a good kingdom?&rdquo; in Discord and getting 20 different answers? The <span style={{ color: '#22d3ee' }}>Transfer Hub</span> puts real data behind the biggest decision in Kingshot.
+            {t('about.transferHubDesc', 'Tired of asking "anyone know a good kingdom?" in Discord and getting 20 different answers? The')}{' '}<span style={{ color: '#22d3ee' }}>Transfer Hub</span>{' '}{t('about.transferHubDesc2', 'puts real data behind the biggest decision in Kingshot.')}
           </p>
           <div style={{ display: 'grid', gap: '0.75rem', marginBottom: '1rem' }}>
             {[
-              { icon: '🚀', title: 'For Players Transferring', desc: 'Browse every kingdom with Atlas Scores, KvK records, and community reviews. Create a Transfer Profile, apply directly, and track your applications. Match Scores show which kingdoms fit your playstyle.', color: '#22d3ee' },
-              { icon: '📢', title: 'For Recruiters', desc: 'Claim your kingdom, set up your listing with requirements and vibe tags, and review incoming applications. Fund your listing to unlock better visibility and features like invites and priority placement.', color: '#a855f7' },
+              { icon: '🚀', title: t('about.forPlayers', 'For Players Transferring'), desc: t('about.forPlayersDesc', 'Browse every kingdom with Atlas Scores, KvK records, and community reviews. Create a Transfer Profile, apply directly, and track your applications. Match Scores show which kingdoms fit your playstyle.'), color: '#22d3ee' },
+              { icon: '📢', title: t('about.forRecruiters', 'For Recruiters'), desc: t('about.forRecruitersDesc', 'Claim your kingdom, set up your listing with requirements and vibe tags, and review incoming applications. Fund your listing to unlock better visibility and features like invites and priority placement.'), color: '#a855f7' },
             ].map((item, i) => (
               <div key={i} style={{ 
                 display: 'flex', 
@@ -316,8 +318,8 @@ const About: React.FC = () => {
             ))}
           </div>
           <p style={{ color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.85rem', lineHeight: 1.6 }}>
-            Real data. Real applications. No more guessing who&apos;s actually recruiting and who&apos;s worth joining.{' '}
-            <Link to="/transfer-hub" style={{ color: '#22d3ee', textDecoration: 'none' }}>Check it out →</Link>
+            {t('about.transferHubCTA', 'Real data. Real applications. No more guessing who\'s actually recruiting and who\'s worth joining.')}{' '}
+            <Link to="/transfer-hub" style={{ color: '#22d3ee', textDecoration: 'none' }}>{t('about.checkItOut')}</Link>
           </p>
         </section>
 
@@ -352,10 +354,10 @@ const About: React.FC = () => {
             marginBottom: '0.75rem',
             fontFamily: FONT_DISPLAY
           }}>
-            Fuel the Atlas
+            {t('about.fuelAtlas', 'Fuel the Atlas')}
           </h2>
           <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.85rem' : '0.9rem', lineHeight: 1.6, marginBottom: '1.25rem', maxWidth: '500px', margin: '0 auto 1.25rem' }}>
-            Servers cost money. Development takes time. If Atlas has helped you make better decisions, consider throwing some support our way. Every bit helps keep the lights on and new features coming.
+            {t('about.fuelDesc', 'Servers cost money. Development takes time. If Atlas has helped you make better decisions, consider throwing some support our way. Every bit helps keep the lights on and new features coming.')}
           </p>
           <SupportButton />
           <p style={{ 
@@ -363,7 +365,7 @@ const About: React.FC = () => {
             fontSize: '0.75rem', 
             marginTop: '1rem' 
           }}>
-            Buy us a coffee, fund a feature, or just say thanks ☕
+            {t('about.fuelFooter', 'Buy us a coffee, fund a feature, or just say thanks ☕')}
           </p>
         </section>
 
@@ -382,10 +384,10 @@ const About: React.FC = () => {
             marginBottom: '0.75rem',
             fontFamily: FONT_DISPLAY
           }}>
-            Join the Community
+            {t('about.joinCommunity', 'Join the Community')}
           </h2>
           <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.85rem' : '0.9rem', lineHeight: 1.6, marginBottom: '1rem' }}>
-            Got intel to share? Found a bug? Want to argue about tier rankings? Jump into our Discord. We&apos;re always looking for contributors, testers, and fellow data nerds.
+            {t('about.joinCommunityDesc', 'Got intel to share? Found a bug? Want to argue about tier rankings? Jump into our Discord. We\'re always looking for contributors, testers, and fellow data nerds.')}
           </p>
           <a
             href="https://discord.gg/cajcacDzGd"
@@ -410,13 +412,13 @@ const About: React.FC = () => {
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
               <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
             </svg>
-            Join Our Discord
+            {t('about.joinDiscord', 'Join Our Discord')}
           </a>
         </section>
 
         {/* Back Link */}
         <div style={{ textAlign: 'center', marginTop: '2rem' }}>
-          <Link to="/" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: '0.85rem' }}>← Back to Home</Link>
+          <Link to="/" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: '0.85rem' }}>{t('common.backToHome')}</Link>
         </div>
       </div>
     </div>

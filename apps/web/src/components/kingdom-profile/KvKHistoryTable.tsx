@@ -4,6 +4,7 @@ import MissingKvKPrompt from '../MissingKvKPrompt';
 import SmartTooltip from '../shared/SmartTooltip';
 import { getOutcome, OUTCOMES } from '../../utils/outcomes';
 import { CURRENT_KVK } from '../../constants';
+import { useTranslation } from 'react-i18next';
 
 interface KvKRecord {
   kvk_number: number;
@@ -27,6 +28,7 @@ const KvKHistoryTable: React.FC<KvKHistoryTableProps> = ({
   onReportErrorClick,
 }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   // Sort by kvk_number descending (most recent first)
   const allKvks = [...kvkRecords].sort((a, b) => b.kvk_number - a.kvk_number);
@@ -59,7 +61,7 @@ const KvKHistoryTable: React.FC<KvKHistoryTableProps> = ({
       position: 'relative'
     }}>
       <h3 style={{ color: '#fff', fontSize: isMobile ? '0.95rem' : '1.1rem', fontWeight: '600', margin: '0 0 0.5rem 0', textAlign: 'center' }}>
-        KvK History
+        {t('kingdomProfile.kvkHistory', 'KvK History')}
       </h3>
       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
         <button
@@ -88,7 +90,7 @@ const KvKHistoryTable: React.FC<KvKHistoryTableProps> = ({
             e.currentTarget.style.borderColor = '#ef444430';
           }}
         >
-          Report Error
+          {t('kingdomProfile.reportError', 'Report Error')}
         </button>
       </div>
       
@@ -104,11 +106,11 @@ const KvKHistoryTable: React.FC<KvKHistoryTableProps> = ({
         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 'auto' }}>
           <thead>
             <tr style={{ borderBottom: '1px solid #2a2a2a' }}>
-              <th style={{ padding: isMobile ? '0.4rem 0.3rem' : '0.5rem', textAlign: 'center', color: '#6b7280', fontSize: isMobile ? '0.7rem' : '0.75rem', fontWeight: '500' }}>KvK #</th>
-              <th style={{ padding: isMobile ? '0.4rem 0.3rem' : '0.5rem', textAlign: 'center', color: '#6b7280', fontSize: isMobile ? '0.7rem' : '0.75rem', fontWeight: '500' }}>Opponent</th>
-              <th style={{ padding: isMobile ? '0.4rem 0.3rem' : '0.5rem', textAlign: 'center', color: '#6b7280', fontSize: isMobile ? '0.7rem' : '0.75rem', fontWeight: '500' }}>Prep</th>
-              <th style={{ padding: isMobile ? '0.4rem 0.3rem' : '0.5rem', textAlign: 'center', color: '#6b7280', fontSize: isMobile ? '0.7rem' : '0.75rem', fontWeight: '500' }}>Battle</th>
-              <th style={{ padding: isMobile ? '0.4rem 0.3rem' : '0.5rem', textAlign: 'center', color: '#6b7280', fontSize: isMobile ? '0.7rem' : '0.75rem', fontWeight: '500' }}>Result</th>
+              <th style={{ padding: isMobile ? '0.4rem 0.3rem' : '0.5rem', textAlign: 'center', color: '#6b7280', fontSize: isMobile ? '0.7rem' : '0.75rem', fontWeight: '500' }}>{t('kingdomProfile.kvkNum', 'KvK #')}</th>
+              <th style={{ padding: isMobile ? '0.4rem 0.3rem' : '0.5rem', textAlign: 'center', color: '#6b7280', fontSize: isMobile ? '0.7rem' : '0.75rem', fontWeight: '500' }}>{t('kingdomProfile.opponent', 'Opponent')}</th>
+              <th style={{ padding: isMobile ? '0.4rem 0.3rem' : '0.5rem', textAlign: 'center', color: '#6b7280', fontSize: isMobile ? '0.7rem' : '0.75rem', fontWeight: '500' }}>{t('kingdomProfile.prep', 'Prep')}</th>
+              <th style={{ padding: isMobile ? '0.4rem 0.3rem' : '0.5rem', textAlign: 'center', color: '#6b7280', fontSize: isMobile ? '0.7rem' : '0.75rem', fontWeight: '500' }}>{t('kingdomProfile.battle', 'Battle')}</th>
+              <th style={{ padding: isMobile ? '0.4rem 0.3rem' : '0.5rem', textAlign: 'center', color: '#6b7280', fontSize: isMobile ? '0.7rem' : '0.75rem', fontWeight: '500' }}>{t('kingdomProfile.result', 'Result')}</th>
             </tr>
           </thead>
           <tbody>
@@ -140,7 +142,7 @@ const KvKHistoryTable: React.FC<KvKHistoryTableProps> = ({
                         fontSize: isMobile ? '0.75rem' : '0.85rem',
                         fontStyle: 'italic'
                       }}>
-                        No match
+                        {t('kingdomProfile.noMatch', 'No match')}
                       </span>
                     ) : (
                       <span 
@@ -213,7 +215,7 @@ const KvKHistoryTable: React.FC<KvKHistoryTableProps> = ({
       {/* Showing count at bottom right */}
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.75rem' }}>
         <span style={{ color: '#6b7280', fontSize: '0.7rem' }}>
-          Showing {allKvks.length} of {allKvks.length} KvKs
+          {t('kingdomProfile.showingKvks', 'Showing {{count}} of {{total}} KvKs', { count: allKvks.length, total: allKvks.length })}
         </span>
       </div>
     </div>

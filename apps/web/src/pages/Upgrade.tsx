@@ -6,8 +6,10 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useAuth } from '../contexts/AuthContext';
 import { usePremium } from '../contexts/PremiumContext';
 import { getCheckoutUrlAsync } from '../lib/stripe';
+import { useTranslation } from 'react-i18next';
 
 const Upgrade: React.FC = () => {
+  const { t } = useTranslation();
   useDocumentTitle('Atlas Upgrade');
   const isMobile = useIsMobile();
   const { user } = useAuth();
@@ -77,29 +79,29 @@ const Upgrade: React.FC = () => {
       }
     } catch (error) {
       console.error('Checkout error:', error);
-      setCheckoutError(error instanceof Error ? error.message : 'Failed to start checkout. Please try again.');
+      setCheckoutError(error instanceof Error ? error.message : t('upgrade.checkoutFailed', 'Failed to start checkout. Please try again.'));
       setIsLoading(null);
     }
   };
 
   const supporterFeatures = [
-    { icon: '⚖️', text: 'Multi-Compare — Up to 5 kingdoms side-by-side' },
-    { icon: '🚫', text: 'Ad-Free — Clean, distraction-free experience' },
-    { icon: '🚀', text: 'Early Access — First to try new features' },
-    { icon: '💖', text: 'Supporter Badge — Stand out in the community' },
-    { icon: '💎', text: 'Discord Role — Exclusive Supporter role & badge' },
+    { icon: '⚖️', text: t('upgrade.featureMultiCompare', 'Multi-Compare — Up to 5 kingdoms side-by-side') },
+    { icon: '🚫', text: t('upgrade.featureAdFree', 'Ad-Free — Clean, distraction-free experience') },
+    { icon: '🚀', text: t('upgrade.featureEarlyAccess', 'Early Access — First to try new features') },
+    { icon: '💖', text: t('upgrade.featureBadge', 'Supporter Badge — Stand out in the community') },
+    { icon: '💎', text: t('upgrade.featureDiscordRole', 'Discord Role — Exclusive Supporter role & badge') },
   ];
 
   // Comparison table data
   const comparisonData = [
-    { feature: 'KvK History', free: 'Full', supporter: 'Full' },
-    { feature: 'Kingdom Profiles', free: '✓', supporter: '✓' },
-    { feature: 'Score Simulator', free: '✓', supporter: '✓' },
-    { feature: 'Compare Kingdoms', free: '2–3', supporter: '5' },
-    { feature: 'Ad-Free', free: '—', supporter: '✓' },
-    { feature: 'Early Access', free: '—', supporter: '✓' },
-    { feature: 'Supporter Badge', free: '—', supporter: '✓' },
-    { feature: 'Discord Role', free: '—', supporter: '✓' },
+    { feature: t('upgrade.cmpKvKHistory', 'KvK History'), free: t('upgrade.cmpFull', 'Full'), supporter: t('upgrade.cmpFull', 'Full') },
+    { feature: t('upgrade.cmpKingdomProfiles', 'Kingdom Profiles'), free: '✓', supporter: '✓' },
+    { feature: t('upgrade.cmpScoreSimulator', 'Score Simulator'), free: '✓', supporter: '✓' },
+    { feature: t('upgrade.cmpCompareKingdoms', 'Compare Kingdoms'), free: '2–3', supporter: '5' },
+    { feature: t('upgrade.cmpAdFree', 'Ad-Free'), free: '—', supporter: '✓' },
+    { feature: t('upgrade.cmpEarlyAccess', 'Early Access'), free: '—', supporter: '✓' },
+    { feature: t('upgrade.cmpSupporterBadge', 'Supporter Badge'), free: '—', supporter: '✓' },
+    { feature: t('upgrade.cmpDiscordRole', 'Discord Role'), free: '—', supporter: '✓' },
   ];
 
   const pricing = {
@@ -132,7 +134,7 @@ const Upgrade: React.FC = () => {
             <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>UPGRADE</span>
           </h1>
           <p style={{ color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.9rem', marginBottom: '0.75rem' }}>
-            Stop guessing. Start winning.
+            {t('upgrade.heroSubtitle', 'Stop guessing. Start winning.')}
           </p>
           {!isMobile && (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
@@ -160,10 +162,10 @@ const Upgrade: React.FC = () => {
             <span style={{ fontSize: '1.5rem' }}>🎉</span>
             <div>
               <div style={{ color: '#22c55e', fontWeight: '600', marginBottom: '0.25rem' }}>
-                Welcome to Atlas Supporter!
+                {t('upgrade.welcomeSupporter', 'Welcome to Atlas Supporter!')}
               </div>
               <div style={{ color: '#9ca3af', fontSize: '0.85rem' }}>
-                Your subscription is now active. Enjoy your premium features!
+                {t('upgrade.subscriptionActive', 'Your subscription is now active. Enjoy your premium features!')}
               </div>
             </div>
           </div>
@@ -183,7 +185,7 @@ const Upgrade: React.FC = () => {
           }}>
             <span style={{ fontSize: '1.25rem' }}>ℹ️</span>
             <div style={{ color: '#f59e0b', fontSize: '0.9rem' }}>
-              Checkout canceled. No worries — you can upgrade anytime.
+              {t('upgrade.checkoutCanceled', 'Checkout canceled. No worries — you can upgrade anytime.')}
             </div>
           </div>
         )}
@@ -203,7 +205,7 @@ const Upgrade: React.FC = () => {
             <span style={{ fontSize: '1.25rem' }}>⚠️</span>
             <div>
               <div style={{ color: '#ef4444', fontWeight: '600', marginBottom: '0.25rem' }}>
-                Checkout Error
+                {t('upgrade.checkoutError', 'Checkout Error')}
               </div>
               <div style={{ color: '#9ca3af', fontSize: '0.85rem' }}>
                 {checkoutError}
@@ -232,10 +234,10 @@ const Upgrade: React.FC = () => {
                 <span style={{ fontSize: '1.25rem' }}>⭐</span>
                 <div>
                   <div style={{ color: '#22d3ee', fontWeight: '600' }}>
-                    You&apos;re an Atlas Supporter
+                    {t('upgrade.youreSupporter', "You're an Atlas Supporter")}
                   </div>
                   <div style={{ color: '#6b7280', fontSize: '0.8rem', marginTop: '0.25rem' }}>
-                    Thank you for supporting Atlas!
+                    {t('upgrade.thankYouSupporting', 'Thank you for supporting Atlas!')}
                   </div>
                 </div>
               </div>
@@ -249,7 +251,7 @@ const Upgrade: React.FC = () => {
                       window.location.href = portalUrl;
                     } catch (error) {
                       console.error('Portal error:', error);
-                      setCheckoutError('Unable to open billing portal. Please try from your Profile page or email support@ks-atlas.com');
+                      setCheckoutError(t('upgrade.portalError', 'Unable to open billing portal. Please try from your Profile page or email support@ks-atlas.com'));
                       setIsLoading(null);
                     }
                   }}
@@ -266,12 +268,12 @@ const Upgrade: React.FC = () => {
                     opacity: isLoading ? 0.7 : 1,
                   }}
                 >
-                  {isLoading === 'manage' ? 'Opening...' : '⚙️ Manage Billing'}
+                  {isLoading === 'manage' ? t('support.opening') : `⚙️ ${t('upgrade.manageBilling', 'Manage Billing')}`}
                 </button>
                 <button
                   onClick={async () => {
                     if (!user) return;
-                    const confirmed = window.confirm('Are you sure you want to cancel? You can always resubscribe later.');
+                    const confirmed = window.confirm(t('upgrade.cancelConfirm', 'Are you sure you want to cancel? You can always resubscribe later.'));
                     if (!confirmed) return;
                     setIsLoading('cancel');
                     try {
@@ -279,7 +281,7 @@ const Upgrade: React.FC = () => {
                       window.location.href = portalUrl;
                     } catch (error) {
                       console.error('Portal error:', error);
-                      setCheckoutError('Unable to open cancellation portal. Please email support@ks-atlas.com');
+                      setCheckoutError(t('upgrade.cancelPortalError', 'Unable to open cancellation portal. Please email support@ks-atlas.com'));
                       setIsLoading(null);
                     }
                   }}
@@ -296,7 +298,7 @@ const Upgrade: React.FC = () => {
                     opacity: isLoading ? 0.7 : 1,
                   }}
                 >
-                  {isLoading === 'cancel' ? 'Opening...' : 'Cancel Subscription'}
+                  {isLoading === 'cancel' ? t('support.opening') : t('upgrade.cancelSubscription', 'Cancel Subscription')}
                 </button>
               </div>
             </div>
@@ -326,7 +328,7 @@ const Upgrade: React.FC = () => {
                 transition: 'all 0.2s'
               }}
             >
-              Monthly
+              {t('upgrade.monthly', 'Monthly')}
             </button>
             <button
               onClick={() => setBillingCycle('yearly')}
@@ -342,7 +344,7 @@ const Upgrade: React.FC = () => {
                 transition: 'all 0.2s'
               }}
             >
-              Yearly
+              {t('upgrade.yearly', 'Yearly')}
               <span style={{
                 marginLeft: '0.5rem',
                 padding: '0.15rem 0.4rem',
@@ -352,7 +354,7 @@ const Upgrade: React.FC = () => {
                 fontSize: '0.7rem',
                 fontWeight: '700'
               }}>
-                SAVE 33%
+                {t('upgrade.save33', 'SAVE 33%')}
               </span>
             </button>
           </div>
@@ -373,7 +375,7 @@ const Upgrade: React.FC = () => {
             gap: '1rem'
           }}>
             <span style={{ fontSize: '0.85rem', color: '#9ca3af' }}>
-              💰 You&apos;re saving with yearly billing
+              💰 {t('upgrade.savingYearly', "You're saving with yearly billing")}
             </span>
             <span style={{ color: '#22c55e', fontWeight: '700', fontSize: '0.85rem' }}>
               Save ${yearlySavings.toFixed(2)}/yr
@@ -407,20 +409,20 @@ const Upgrade: React.FC = () => {
               <svg width="24" height="24" viewBox="0 0 24 24" fill="#22d3ee">
                 <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
               </svg>
-              <h2 style={{ color: '#fff', fontSize: '1.25rem', fontWeight: 'bold', margin: 0 }}>Atlas Supporter</h2>
+              <h2 style={{ color: '#fff', fontSize: '1.25rem', fontWeight: 'bold', margin: 0 }}>{t('support.supporterTier')}</h2>
             </div>
             <p style={{ color: '#6b7280', fontSize: '0.85rem', marginBottom: '1rem' }}>
-              Support the project. Unlock perks.
+              {t('upgrade.supportUnlock', 'Support the project. Unlock perks.')}
             </p>
             
             <div style={{ marginBottom: '1.5rem' }}>
               <span style={{ color: '#22d3ee', fontSize: '2.5rem', fontWeight: 'bold' }}>
                 ${billingCycle === 'yearly' ? pricing.yearlyMonthly.toFixed(2) : pricing.monthly.toFixed(2)}
               </span>
-              <span style={{ color: '#6b7280', fontSize: '0.9rem' }}>/month</span>
+              <span style={{ color: '#6b7280', fontSize: '0.9rem' }}>/{t('upgrade.month', 'month')}</span>
               {billingCycle === 'yearly' && (
                 <div style={{ color: '#9ca3af', fontSize: '0.8rem', marginTop: '0.25rem' }}>
-                  Billed ${pricing.yearly}/year
+                  {t('upgrade.billedYearly', 'Billed ${{amount}}/year', { amount: pricing.yearly })}
                 </div>
               )}
             </div>
@@ -442,7 +444,7 @@ const Upgrade: React.FC = () => {
                 transition: 'all 0.2s'
               }}
             >
-              {isLoading === 'supporter' ? 'Redirecting...' : user ? 'Become a Supporter' : 'Sign In to Upgrade'}
+              {isLoading === 'supporter' ? t('upgrade.redirecting', 'Redirecting...') : user ? t('support.becomeSupporter') : t('upgrade.signInToUpgrade', 'Sign In to Upgrade')}
             </button>
 
             <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
@@ -473,7 +475,7 @@ const Upgrade: React.FC = () => {
             marginBottom: '1rem',
             textAlign: 'center'
           }}>
-            Compare Plans
+            {t('upgrade.comparePlans', 'Compare Plans')}
           </h2>
           <div style={{ 
             overflowX: 'auto',
@@ -505,7 +507,7 @@ const Upgrade: React.FC = () => {
                     textTransform: 'uppercase',
                     letterSpacing: '0.05em',
                     borderBottom: '1px solid #2a2a2a'
-                  }}>Feature</th>
+                  }}>{t('upgrade.feature', 'Feature')}</th>
                   <th style={{ 
                     padding: '1rem 0.5rem', 
                     textAlign: 'center', 
@@ -515,7 +517,7 @@ const Upgrade: React.FC = () => {
                     textTransform: 'uppercase',
                     letterSpacing: '0.05em',
                     borderBottom: '1px solid #2a2a2a'
-                  }}>Free</th>
+                  }}>{t('support.freeTier')}</th>
                   <th style={{ 
                     padding: '1rem 0.5rem', 
                     textAlign: 'center', 
@@ -526,7 +528,7 @@ const Upgrade: React.FC = () => {
                     letterSpacing: '0.05em',
                     borderBottom: '2px solid #22d3ee40',
                     background: 'linear-gradient(180deg, #22d3ee08 0%, transparent 100%)'
-                  }}>Supporter</th>
+                  }}>{t('upgrade.supporter', 'Supporter')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -576,14 +578,14 @@ const Upgrade: React.FC = () => {
             marginBottom: '1rem',
             textAlign: 'center'
           }}>
-            Frequently Asked Questions
+            {t('upgrade.faq', 'Frequently Asked Questions')}
           </h2>
           <div style={{ display: 'grid', gap: '0.75rem' }}>
             {[
-              { q: 'Can I cancel anytime?', a: 'Yes! Cancel anytime with one click. No questions asked, no hidden fees.' },
-              { q: 'What payment methods do you accept?', a: 'We accept all major credit cards, PayPal, and Apple Pay through Stripe.' },
-              { q: 'Is there a free trial?', a: 'The free tier gives you access to core features. Upgrade when you need more!' },
-              { q: 'Can I switch between plans?', a: 'Absolutely. Upgrade or downgrade anytime, and we\'ll prorate the difference.' },
+              { q: t('upgrade.faqCancel', 'Can I cancel anytime?'), a: t('upgrade.faqCancelA', 'Yes! Cancel anytime with one click. No questions asked, no hidden fees.') },
+              { q: t('upgrade.faqPayment', 'What payment methods do you accept?'), a: t('upgrade.faqPaymentA', 'We accept all major credit cards, PayPal, and Apple Pay through Stripe.') },
+              { q: t('upgrade.faqTrial', 'Is there a free trial?'), a: t('upgrade.faqTrialA', 'The free tier gives you access to core features. Upgrade when you need more!') },
+              { q: t('upgrade.faqSwitch', 'Can I switch between plans?'), a: t('upgrade.faqSwitchA', 'Absolutely. Upgrade or downgrade anytime, and we\'ll prorate the difference.') },
             ].map((faq, i) => (
               <div key={i} style={{
                 backgroundColor: '#111111',
@@ -605,7 +607,7 @@ const Upgrade: React.FC = () => {
         {/* Back Link */}
         <div style={{ textAlign: 'center', marginTop: '2rem' }}>
           <Link to="/" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: '0.85rem' }}>
-            ← Back to Home
+            {t('common.backToHome')}
           </Link>
         </div>
       </div>

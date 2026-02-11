@@ -20,6 +20,7 @@ import { statusService } from '../services/statusService';
 import { useToast } from './Toast';
 import { isAdminUsername } from '../utils/constants';
 import { CURRENT_KVK } from '../constants';
+import { useTranslation } from 'react-i18next';
 
 interface KingdomCardProps {
   kingdom: Kingdom;
@@ -40,6 +41,7 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
   onAddToCompare
 }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const isMobile = useIsMobile();
   const { trackFeature } = useAnalytics();
   const { user, profile } = useAuth();
@@ -163,7 +165,7 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
             textTransform: 'uppercase',
             textShadow: '0 0 12px #22d3ee80, 0 0 24px #22d3ee40',
           }}>
-            ★ YOUR KINGDOM ★
+            ★ {t('kingdomCard.yourKingdom')} ★
           </span>
         </div>
       )}
@@ -191,7 +193,7 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
             textTransform: 'uppercase',
             textShadow: '0 0 12px #ef444480, 0 0 24px #ef444440',
           }}>
-            ⚔ RIVAL{rivalCount > 1 ? ` × ${rivalCount}` : ''} ⚔
+            ⚔ {t('kingdomCard.rival')}{rivalCount > 1 ? ` × ${rivalCount}` : ''} ⚔
           </span>
         </div>
       )}
@@ -218,7 +220,7 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
             onMouseEnter={(e) => e.currentTarget.style.color = colors.primary}
             onMouseLeave={(e) => e.currentTarget.style.color = colors.text}
           >
-            Kingdom {kingdom.kingdom_number}
+            {t('common.kingdom')} {kingdom.kingdom_number}
           </div>
           <TierBadge tier={powerTier as 'S' | 'A' | 'B' | 'C' | 'D'} />
           <AchievementBadges kingdom={kingdom} />
@@ -263,7 +265,7 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
           maxWidth={200}
           content={
             <div style={{ fontSize: '0.7rem', color: '#9ca3af' }}>
-              Rewards experience and consistency over lucky streaks
+              {t('kingdomCard.scoreTooltip', 'Rewards experience and consistency over lucky streaks')}
             </div>
           }
         >
@@ -300,8 +302,8 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
             maxWidth={180}
             content={
               <div style={{ fontSize: '0.65rem' }}>
-                <span style={{ fontWeight: '600', color: missingDataColor }}>Missing KvK #{CURRENT_KVK}</span>
-                <span style={{ color: colors.textMuted, marginLeft: '0.25rem' }}>— tap to submit</span>
+                <span style={{ fontWeight: '600', color: missingDataColor }}>{t('kingdomCard.missingKvK', 'Missing KvK #{{num}}', { num: CURRENT_KVK })}</span>
+                <span style={{ color: colors.textMuted, marginLeft: '0.25rem' }}>— {t('kingdomCard.tapToSubmit', 'tap to submit')}</span>
               </div>
             }
             style={{ marginLeft: 'auto' }}
@@ -335,7 +337,7 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
                 e.currentTarget.style.borderColor = `${missingDataColor}40`;
               }}
             >
-              📊 Submit KvK {CURRENT_KVK}
+              📊 {t('kingdomCard.submitKvK')} {CURRENT_KVK}
             </div>
           </SmartTooltip>
         )}
@@ -371,7 +373,7 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
         justifyContent: 'space-between',
         marginBottom: '0.75rem'
       }}>
-        <span style={{ fontSize: '0.75rem', color: colors.textMuted }}>Recent Performance</span>
+        <span style={{ fontSize: '0.75rem', color: colors.textMuted }}>{t('kingdomCard.recentPerformance', 'Recent Performance')}</span>
         <RecentKvKs recentKvks={kingdom.recent_kvks || []} />
       </div>
 
@@ -385,7 +387,7 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
       }}>
         <TransferStatus status={status} lastUpdated={kingdom.last_updated} onSubmitStatus={() => {
           if (!profile?.linked_username) {
-            showToast('Link your Kingshot account to submit status updates', 'error');
+            showToast(t('home.linkToSubmit'), 'error');
             navigate('/profile');
             return;
           }
@@ -423,7 +425,7 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
             if (!user) return;
             const adminUser = isAdminUsername(profile?.linked_username) || isAdminUsername(profile?.username);
             await statusService.submitStatusUpdate(kingdom.kingdom_number, status, newStatus, notes, user.id, adminUser);
-            showToast(adminUser ? 'Status update auto-approved!' : 'Status update submitted for review!', 'success');
+            showToast(adminUser ? t('kingdomCard.statusAutoApproved', 'Status update auto-approved!') : t('kingdomCard.statusSubmitted', 'Status update submitted for review!'), 'success');
           }}
           onClose={() => setShowStatusModal(false)}
         />

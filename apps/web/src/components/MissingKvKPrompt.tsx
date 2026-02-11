@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import PostKvKSubmission from './PostKvKSubmission';
+import { useTranslation } from 'react-i18next';
 
 interface MissingKvKPromptProps {
   kingdomNumber: number;
@@ -15,6 +16,7 @@ const MissingKvKPrompt: React.FC<MissingKvKPromptProps> = ({
   existingKvkNumbers
 }) => {
   const { user, profile } = useAuth();
+  const { t } = useTranslation();
   const [showSubmitModal, setShowSubmitModal] = useState(false);
 
   // Check if this KvK already exists
@@ -57,14 +59,14 @@ const MissingKvKPrompt: React.FC<MissingKvKPromptProps> = ({
     return (
       <div style={containerStyle}>
         <div style={{ color: '#fbbf24', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
-          ⚠️ KvK #{kvkNumber} data missing
+          {t('missingKvk.dataMissing', '⚠️ KvK #{{num}} data missing', { num: kvkNumber })}
         </div>
         <p style={{ color: '#9ca3af', fontSize: '0.8rem', marginBottom: '0.75rem' }}>
-          Help complete this kingdom&apos;s history! Sign in to submit results.
+          {t('missingKvk.signInToHelp', "Help complete this kingdom's history! Sign in to submit results.")}
         </p>
         <Link to="/profile" style={{ textDecoration: 'none' }}>
           <button style={primaryButtonStyle}>
-            Sign In to Submit
+            {t('missingKvk.signInToSubmit', 'Sign In to Submit')}
           </button>
         </Link>
       </div>
@@ -76,14 +78,14 @@ const MissingKvKPrompt: React.FC<MissingKvKPromptProps> = ({
     return (
       <div style={containerStyle}>
         <div style={{ color: '#fbbf24', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
-          ⚠️ KvK #{kvkNumber} data missing
+          {t('missingKvk.dataMissing', '⚠️ KvK #{{num}} data missing', { num: kvkNumber })}
         </div>
         <p style={{ color: '#9ca3af', fontSize: '0.8rem', marginBottom: '0.75rem' }}>
-          Link your Kingshot account to submit KvK results.
+          {t('missingKvk.linkToSubmit', 'Link your Kingshot account to submit KvK results.')}
         </p>
         <Link to="/profile" style={{ textDecoration: 'none' }}>
           <button style={primaryButtonStyle}>
-            Link Kingshot Account
+            {t('missingKvk.linkAccount', 'Link Kingshot Account')}
           </button>
         </Link>
       </div>
@@ -96,10 +98,10 @@ const MissingKvKPrompt: React.FC<MissingKvKPromptProps> = ({
     return (
       <div style={containerStyle}>
         <div style={{ color: '#fbbf24', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
-          ⚠️ KvK #{kvkNumber} data missing
+          {t('missingKvk.dataMissing', '⚠️ KvK #{{num}} data missing', { num: kvkNumber })}
         </div>
         <p style={{ color: '#9ca3af', fontSize: '0.8rem', marginBottom: '0.75rem' }}>
-          TC20+ required to submit KvK results (you&apos;re TC{tcLevel || '?'}).
+          {t('missingKvk.tcRequired', 'TC20+ required to submit KvK results (you\'re TC{{level}}).', { level: tcLevel || '?' })}
         </p>
       </div>
     );
@@ -110,19 +112,19 @@ const MissingKvKPrompt: React.FC<MissingKvKPromptProps> = ({
     <>
       <div style={containerStyle}>
         <div style={{ color: '#fbbf24', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
-          ⚠️ KvK #{kvkNumber} data missing
+          {t('missingKvk.dataMissing', '⚠️ KvK #{{num}} data missing', { num: kvkNumber })}
         </div>
         <p style={{ color: '#9ca3af', fontSize: '0.8rem', marginBottom: '0.75rem' }}>
           {isTheirKingdom 
-            ? "Your kingdom is missing this KvK! Submit your results."
-            : "Know this kingdom's KvK result? Help complete the data."
+            ? t('missingKvk.yourKingdomMissing', 'Your kingdom is missing this KvK! Submit your results.')
+            : t('missingKvk.knowResult', "Know this kingdom's KvK result? Help complete the data.")
           }
         </p>
         <button 
           style={primaryButtonStyle}
           onClick={() => setShowSubmitModal(true)}
         >
-          📊 Submit KvK #{kvkNumber} Result
+          {t('missingKvk.submitResult', '📊 Submit KvK #{{num}} Result', { num: kvkNumber })}
         </button>
       </div>
 

@@ -5,6 +5,7 @@ import ShareButton from '../ShareButton';
 import ScoreFreshness from '../ScoreFreshness';
 import SmartTooltip from '../shared/SmartTooltip';
 import { neonGlow, getStatusColor, getTierColor, FONT_DISPLAY } from '../../utils/styles';
+import { useTranslation } from 'react-i18next';
 
 interface Achievement {
   icon: string;
@@ -48,6 +49,7 @@ const KingdomHeader: React.FC<KingdomHeaderProps> = ({
   onStatusModalOpen,
   onReportModalOpen,
 }) => {
+  const { t } = useTranslation();
   const tierColor = getTierColor(powerTier);
 
   const getTierDescription = (tier: string) => {
@@ -85,7 +87,7 @@ const KingdomHeader: React.FC<KingdomHeaderProps> = ({
               letterSpacing: '0.02em',
               margin: 0
             }}>
-              Kingdom {kingdom.kingdom_number}
+              {t('common.kingdom', 'Kingdom')} {kingdom.kingdom_number}
             </h1>
             
             {/* Power Tier Badge */}
@@ -156,13 +158,13 @@ const KingdomHeader: React.FC<KingdomHeaderProps> = ({
           
           {/* Row 2: Atlas Score + Score Change */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.35rem', flexWrap: 'wrap' }}>
-            <span style={{ color: '#6b7280', fontSize: '0.85rem' }}>Atlas Score:</span>
+            <span style={{ color: '#6b7280', fontSize: '0.85rem' }}>{t('kingdomProfile.atlasScore', 'Atlas Score')}:</span>
             <SmartTooltip
               accentColor="#22d3ee"
               content={
                 <div style={{ fontSize: '0.7rem' }}>
-                  <div style={{ color: '#22d3ee', fontWeight: 'bold', marginBottom: '2px' }}>Atlas Score</div>
-                  <div style={{ color: '#9ca3af' }}>Rewards experience and consistency</div>
+                  <div style={{ color: '#22d3ee', fontWeight: 'bold', marginBottom: '2px' }}>{t('kingdomProfile.atlasScore', 'Atlas Score')}</div>
+                  <div style={{ color: '#9ca3af' }}>{t('kingdomProfile.atlasScoreDesc', 'Rewards experience and consistency')}</div>
                 </div>
               }
             >
@@ -193,7 +195,7 @@ const KingdomHeader: React.FC<KingdomHeaderProps> = ({
                   border: `1px solid ${recentScoreChange > 0 ? '#22c55e25' : '#ef444425'}`,
                 }}>
                   <span>{recentScoreChange > 0 ? '▲' : '▼'}</span>
-                  <span>{recentScoreChange > 0 ? '+' : ''}{recentScoreChange.toFixed(2)} last KvK</span>
+                  <span>{recentScoreChange > 0 ? '+' : ''}{recentScoreChange.toFixed(2)} {t('kingdomProfile.lastKvk', 'last KvK')}</span>
                 </span>
               ) : (
                 <Link to="/profile" style={{ textDecoration: 'none' }}>
@@ -211,7 +213,7 @@ const KingdomHeader: React.FC<KingdomHeaderProps> = ({
                   }}>
                     <span style={{ color: '#6b7280' }}>📊</span>
                     <span style={{ filter: 'blur(4px)', userSelect: 'none', color: '#22c55e' }}>+0.00</span>
-                    <span style={{ color: '#4b5563', fontSize: '0.65rem' }}>Link to see</span>
+                    <span style={{ color: '#4b5563', fontSize: '0.65rem' }}>{t('kingdomProfile.linkToSee', 'Link to see')}</span>
                   </span>
                 </Link>
               )
@@ -221,7 +223,7 @@ const KingdomHeader: React.FC<KingdomHeaderProps> = ({
           {/* Row 3: Atlas Rank + Rank Change */}
           {rank > 0 && (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.35rem', flexWrap: 'wrap' }}>
-              <span style={{ color: '#6b7280', fontSize: '0.85rem' }}>Atlas Rank:</span>
+              <span style={{ color: '#6b7280', fontSize: '0.85rem' }}>{t('kingdomProfile.atlasRank', 'Atlas Rank')}:</span>
               <span style={{ color: '#22d3ee', fontSize: '0.95rem', fontWeight: '600' }}>
                 #{rank}{totalKingdomsAtKvk > 0 ? ` of ${totalKingdomsAtKvk}` : ''}
               </span>
@@ -241,7 +243,7 @@ const KingdomHeader: React.FC<KingdomHeaderProps> = ({
                     border: `1px solid ${recentRankChange > 0 ? '#22c55e25' : '#ef444425'}`,
                   }}>
                     <span>{recentRankChange > 0 ? '▲' : '▼'}</span>
-                    <span>{recentRankChange > 0 ? '+' : ''}{recentRankChange} last KvK</span>
+                    <span>{recentRankChange > 0 ? '+' : ''}{recentRankChange} {t('kingdomProfile.lastKvk', 'last KvK')}</span>
                   </span>
                 ) : (
                   <Link to="/profile" style={{ textDecoration: 'none' }}>
@@ -272,17 +274,17 @@ const KingdomHeader: React.FC<KingdomHeaderProps> = ({
 
           {/* Row 4: Transfer Status + View Transfer Listing */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-            <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>Transfer Status:</span>
+            <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>{t('kingdomProfile.transferStatus', 'Transfer Status')}:</span>
             <SmartTooltip
               accentColor={statusColor}
               content={
                 <div style={{ fontSize: '0.7rem' }}>
                   <div style={{ color: statusColor, fontWeight: 'bold', marginBottom: '2px' }}>
-                    {status === 'Unannounced' ? 'No Data' : status}
+                    {status === 'Unannounced' ? t('kingdomProfile.noData', 'No Data') : status}
                   </div>
                   <div style={{ color: '#9ca3af' }}>{getStatusDescription(status)}</div>
                   {!hasPendingSubmission && (
-                    <div style={{ color: '#22d3ee', fontSize: '0.6rem', marginTop: '3px' }}>Tap to update</div>
+                    <div style={{ color: '#22d3ee', fontSize: '0.6rem', marginTop: '3px' }}>{t('kingdomProfile.tapToUpdate', 'Tap to update')}</div>
                   )}
                 </div>
               }
@@ -340,13 +342,13 @@ const KingdomHeader: React.FC<KingdomHeaderProps> = ({
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
               </svg>
-              View Transfer Listing
+              {t('kingdomProfile.viewTransferListing', 'View Transfer Listing')}
             </Link>
           </div>
           
           {/* Row 4: Total KvKs + Actions */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', marginTop: '0.5rem', flexWrap: 'wrap', position: 'relative', zIndex: 10 }}>
-            <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>Total KvKs:</span>
+            <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>{t('kingdomProfile.totalKvks', 'Total KvKs')}:</span>
             <span style={{ color: '#fff', fontSize: '0.9rem', fontWeight: 'bold' }}>{kingdom.total_kvks}</span>
             <span style={{ color: '#3a3a3a' }}>|</span>
 
@@ -393,7 +395,7 @@ const KingdomHeader: React.FC<KingdomHeaderProps> = ({
                 <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
                 <line x1="4" y1="22" x2="4" y2="15"/>
               </svg>
-              Report
+              {t('kingdomProfile.report', 'Report')}
             </button>
           </div>
           

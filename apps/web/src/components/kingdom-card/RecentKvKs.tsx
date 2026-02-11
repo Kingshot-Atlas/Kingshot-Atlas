@@ -2,12 +2,14 @@ import React, { memo } from 'react';
 import { KVKRecord } from '../../types';
 import { getOutcome, OUTCOMES } from '../../utils/outcomes';
 import SmartTooltip from '../shared/SmartTooltip';
+import { useTranslation } from 'react-i18next';
 
 interface RecentKvKsProps {
   recentKvks: KVKRecord[];
 }
 
 const RecentKvKs: React.FC<RecentKvKsProps> = ({ recentKvks }) => {
+  const { t } = useTranslation();
   // Sort by kvk_number ascending (chronological order: oldest first)
   const sortedKvks = [...recentKvks].sort((a, b) => a.kvk_number - b.kvk_number);
   // Get last 5 for display (most recent 5, but in chronological order)
@@ -18,7 +20,7 @@ const RecentKvKs: React.FC<RecentKvKsProps> = ({ recentKvks }) => {
   if (recentResults.length === 0) {
     return (
       <span style={{ fontSize: '0.75rem', color: '#3a3a3a', fontStyle: 'italic' }}>
-        No KvK history yet
+        {t('kingdomCard.noKvKHistory')}
       </span>
     );
   }
@@ -46,11 +48,11 @@ const RecentKvKs: React.FC<RecentKvKsProps> = ({ recentKvks }) => {
             ) : (
               <div style={{ display: 'flex', justifyContent: 'space-around', marginBottom: '0.3rem' }}>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '0.6rem', color: '#6b7280' }}>Prep</div>
+                  <div style={{ fontSize: '0.6rem', color: '#6b7280' }}>{t('kingdomCard.prep')}</div>
                   <div style={{ fontWeight: 'bold', color: isWinResult(kvk.prep_result) ? '#22c55e' : '#ef4444' }}>{prepDisplay}</div>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '0.6rem', color: '#6b7280' }}>Battle</div>
+                  <div style={{ fontSize: '0.6rem', color: '#6b7280' }}>{t('kingdomCard.battle')}</div>
                   <div style={{ fontWeight: 'bold', color: isWinResult(kvk.battle_result) ? '#22c55e' : '#ef4444' }}>{battleDisplay}</div>
                 </div>
               </div>

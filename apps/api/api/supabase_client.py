@@ -78,10 +78,29 @@ def update_user_subscription(
         elif tier != "free" and stripe_customer_id:
             update_data["subscription_source"] = "stripe"
         
+        # Set subscription_started_at on first subscription (don't overwrite if already set)
+        if tier != "free":
+            from datetime import datetime, timezone
+            existing = client.table("profiles").select("subscription_started_at").eq("id", user_id).single().execute()
+            if existing.data and not existing.data.get("subscription_started_at"):
+                update_data["subscription_started_at"] = datetime.now(timezone.utc).isoformat()
+        
         result = client.table("profiles").update(update_data).eq("id", user_id).execute()
         
         if result.data:
             print(f"Updated subscription for user {user_id}: tier={tier}")
+            # Send welcome notification on first subscription
+            if tier != "free" and "subscription_started_at" in update_data:
+                try:
+                    create_notification(
+                        user_id=user_id,
+                        notification_type="system_announcement",
+                        title="Welcome to Atlas Supporter! 💖",
+                        message="Thank you for supporting Kingshot Atlas! You now have access to all Supporter perks including ad-free browsing, 5-kingdom comparisons, and your Supporter badge.",
+                        link="/support",
+                    )
+                except Exception as notif_err:
+                    print(f"Non-fatal: Could not send welcome notification: {notif_err}")
             return True
         else:
             print(f"No profile found for user {user_id}")

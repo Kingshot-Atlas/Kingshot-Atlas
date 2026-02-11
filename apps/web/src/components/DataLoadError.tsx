@@ -4,6 +4,7 @@
  * Shows clear messaging instead of silently showing stale/no data
  */
 import { dataLoadError } from '../services/api';
+import { useTranslation } from 'react-i18next';
 
 interface DataLoadErrorProps {
   onRetry?: () => void;
@@ -11,6 +12,7 @@ interface DataLoadErrorProps {
 }
 
 export function DataLoadError({ onRetry, className = '' }: DataLoadErrorProps) {
+  const { t } = useTranslation();
   if (!dataLoadError) return null;
 
   return (
@@ -36,7 +38,7 @@ export function DataLoadError({ onRetry, className = '' }: DataLoadErrorProps) {
           color: '#f87171', 
           marginBottom: '0.5rem' 
         }}>
-          Data Unavailable
+          {t('dataLoadError.title', 'Data Unavailable')}
         </h3>
         <p style={{ color: '#9ca3af', marginBottom: '1rem' }}>
           {dataLoadError}
@@ -61,11 +63,11 @@ export function DataLoadError({ onRetry, className = '' }: DataLoadErrorProps) {
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#b45309'}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#d97706'}
           >
-            🔄 Try Again
+            🔄 {t('common.retry', 'Try Again')}
           </button>
         )}
         <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '1rem' }}>
-          Kingdom data is fetched from our database. If this persists, please try again later.
+          {t('dataLoadError.persistMessage', 'Kingdom data is fetched from our database. If this persists, please try again later.')}
         </p>
       </div>
     </div>

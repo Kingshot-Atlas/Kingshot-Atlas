@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 interface FeedbackWidgetProps {
   position?: 'bottom-right' | 'bottom-left';
@@ -9,6 +10,7 @@ type FeedbackType = 'bug' | 'feature' | 'general';
 
 const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ position = 'bottom-right' }) => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [feedbackType, setFeedbackType] = useState<FeedbackType>('general');
   const [message, setMessage] = useState('');
@@ -95,7 +97,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ position = 'bottom-righ
           e.currentTarget.style.backgroundColor = '#22d3ee';
         }}
       >
-        💬 Feedback
+        💬 {t('feedback.title', 'Feedback')}
       </button>
     );
   }
@@ -125,7 +127,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ position = 'bottom-righ
         backgroundColor: '#0a0a0a',
       }}>
         <h3 style={{ margin: 0, color: '#fff', fontSize: '1rem', fontWeight: '600' }}>
-          Send Feedback
+          {t('feedback.sendFeedback', 'Send Feedback')}
         </h3>
         <button
           onClick={() => setIsOpen(false)}
@@ -149,7 +151,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ position = 'bottom-righ
           <div style={{ textAlign: 'center', padding: '1rem 0' }}>
             <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>✅</div>
             <p style={{ color: '#22c55e', fontWeight: '500', margin: 0 }}>
-              Thanks for your feedback!
+              {t('feedback.thanks', 'Thanks for your feedback!')}
             </p>
           </div>
         ) : (
@@ -157,7 +159,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ position = 'bottom-righ
             {/* Feedback Type */}
             <div style={{ marginBottom: '1rem' }}>
               <label style={{ display: 'block', color: '#9ca3af', fontSize: '0.75rem', marginBottom: '0.5rem' }}>
-                Type
+                {t('feedback.type', 'Type')}
               </label>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 {(['bug', 'feature', 'general'] as FeedbackType[]).map((type) => (
@@ -190,7 +192,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ position = 'bottom-righ
             {/* Message */}
             <div style={{ marginBottom: '1rem' }}>
               <label style={{ display: 'block', color: '#9ca3af', fontSize: '0.75rem', marginBottom: '0.5rem' }}>
-                Your feedback
+                {t('feedback.yourFeedback', 'Your feedback')}
               </label>
               <textarea
                 value={message}
@@ -219,7 +221,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ position = 'bottom-righ
             {!user && (
               <div style={{ marginBottom: '1rem' }}>
                 <label style={{ display: 'block', color: '#9ca3af', fontSize: '0.75rem', marginBottom: '0.5rem' }}>
-                  Email (optional, for follow-up)
+                  {t('feedback.emailOptional', 'Email (optional, for follow-up)')}
                 </label>
                 <input
                   type="email"
@@ -262,7 +264,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ position = 'bottom-righ
                 fontSize: '0.875rem',
               }}
             >
-              {isSubmitting ? 'Sending...' : 'Send Feedback'}
+              {isSubmitting ? t('feedback.sending', 'Sending...') : t('feedback.sendFeedback', 'Send Feedback')}
             </button>
           </form>
         )}

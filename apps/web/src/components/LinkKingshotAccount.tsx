@@ -4,6 +4,7 @@ import { useToast } from './Toast';
 import { colors, neonGlow, transition, subscriptionColors } from '../utils/styles';
 import { Button } from './shared';
 import { supabase } from '../lib/supabase';
+import { useTranslation } from 'react-i18next';
 
 // Get username color based on subscription tier (includes admin)
 const getUsernameColor = (tier: string): string => {
@@ -200,6 +201,7 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
   isPublicView = false,
 }) => {
   const isMobile = useIsMobile();
+  const { t } = useTranslation();
   const { showToast } = useToast();
   const [playerId, setPlayerId] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -244,12 +246,12 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
 
   const handleVerify = async () => {
     if (!playerId.trim()) {
-      setError('Please enter your Player ID');
+      setError(t('linkAccount.enterPlayerId', 'Please enter your Player ID'));
       return;
     }
 
     if (!/^\d{6,20}$/.test(playerId.trim())) {
-      setError('Player ID must be 6-20 digits');
+      setError(t('linkAccount.playerIdFormat', 'Player ID must be 6-20 digits'));
       return;
     }
 
@@ -269,7 +271,7 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
           .maybeSingle();
 
         if (existing) {
-          setError('This Player ID is already linked to another Atlas account.');
+          setError(t('linkAccount.alreadyLinked', 'This Player ID is already linked to another Atlas account.'));
           setIsLoading(false);
           return;
         }
@@ -277,7 +279,7 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
 
       setPreviewData(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Verification failed');
+      setError(err instanceof Error ? err.message : t('linkAccount.verificationFailed', 'Verification failed'));
     } finally {
       setIsLoading(false);
     }
@@ -286,7 +288,7 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
   const handleConfirmLink = () => {
     if (previewData && onLink) {
       onLink(previewData);
-      showToast(`Account linked: ${previewData.username}`, 'success');
+      showToast(t('linkAccount.accountLinked', 'Account linked: {{name}}', { name: previewData.username }), 'success');
       setPreviewData(null);
       setPlayerId('');
     }
@@ -307,11 +309,11 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
       const data = await refreshPlayer(linkedPlayer.player_id);
       if (onLink) {
         onLink(data);
-        showToast('Player data refreshed!', 'success');
+        showToast(t('linkAccount.dataRefreshed', 'Player data refreshed!'), 'success');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Refresh failed');
-      showToast('Failed to refresh data', 'error');
+      setError(err instanceof Error ? err.message : t('linkAccount.refreshFailed', 'Refresh failed'));
+      showToast(t('linkAccount.refreshError', 'Failed to refresh data'), 'error');
     } finally {
       setIsRefreshing(false);
     }
@@ -320,7 +322,7 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
   const handleUnlink = () => {
     if (onUnlink) {
       onUnlink();
-      showToast('Account unlinked', 'info');
+      showToast(t('linkAccount.accountUnlinked', 'Account unlinked'), 'info');
       setShowUnlinkConfirm(false);
     }
   };
@@ -338,7 +340,7 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
           <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '600', color: colors.text }}>
-            Link Kingshot Account
+            {t('linkAccount.title', 'Link Kingshot Account')}
           </h3>
           <span
             style={{
@@ -350,7 +352,7 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
               fontWeight: '600',
             }}
           >
-            Verified
+            {t('linkAccount.verified', 'Verified')}
           </span>
         </div>
 
@@ -390,18 +392,18 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
 
             {/* Row 3: Kingdom */}
             <div style={{ fontSize: '0.85rem', color: colors.textSecondary }}>
-              <span style={{ color: colors.textMuted }}>Kingdom:</span> {linkedPlayer.kingdom}
+              <span style={{ color: colors.textMuted }}>{t('linkAccount.kingdom', 'Kingdom:')}</span> {linkedPlayer.kingdom}
             </div>
 
             {/* Row 4: Town Center */}
             <div style={{ fontSize: '0.85rem', color: colors.textSecondary }}>
-              <span style={{ color: colors.textMuted }}>Town Center:</span> {formatTCLevel(linkedPlayer.town_center_level)}
+              <span style={{ color: colors.textMuted }}>{t('linkAccount.townCenter', 'Town Center:')}</span> {formatTCLevel(linkedPlayer.town_center_level)}
             </div>
 
             {/* Last synced - only show if not public view */}
             {!isPublicView && (
               <div style={{ fontSize: '0.7rem', color: colors.textMuted, marginTop: '0.25rem' }}>
-                Synced: {formatLastSynced(lastSynced)}
+                {t('linkAccount.synced', 'Synced:')} {formatLastSynced(lastSynced)}
               </div>
             )}
           </div>
@@ -429,7 +431,7 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
                   fontSize: isMobile ? '0.9rem' : undefined
                 }}
               >
-                {isRefreshing ? 'Refreshing...' : 'Refresh Data'}
+                {isRefreshing ? t('linkAccount.refreshing', 'Refreshing...') : t('linkAccount.refreshData', 'Refresh Data')}
               </Button>
             )}
 
@@ -442,7 +444,7 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
                   width: isMobile ? '100%' : 'auto'
                 }}
               >
-                Unlink
+                {t('linkAccount.unlink', 'Unlink')}
               </Button>
             ) : (
               <div style={{ 
@@ -461,7 +463,7 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
                     flex: isMobile ? 1 : 'none'
                   }}
                 >
-                  Confirm
+                  {t('common.confirm', 'Confirm')}
                 </Button>
                 <Button 
                   variant="ghost" 
@@ -471,7 +473,7 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
                     flex: isMobile ? 1 : 'none'
                   }}
                 >
-                  Cancel
+                  {t('common.cancel', 'Cancel')}
                 </Button>
               </div>
             )}
@@ -510,7 +512,7 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
           <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '600', color: colors.text }}>
-            Account Found - Confirm Link
+            {t('linkAccount.accountFound', 'Account Found - Confirm Link')}
           </h3>
         </div>
 
@@ -551,14 +553,14 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
                 color: colors.textSecondary,
               }}
             >
-              <span>🏰 Kingdom {previewData.kingdom}</span>
+              <span>🏰 {t('common.kingdom', 'Kingdom')} {previewData.kingdom}</span>
               <span>🏠 {formatTCLevel(previewData.town_center_level)}</span>
             </div>
           </div>
         </div>
 
         <p style={{ fontSize: '0.85rem', color: colors.textSecondary, marginBottom: '1rem' }}>
-          Is this your account? Click &quot;Link Account&quot; to connect it to your Atlas profile.
+          {t('linkAccount.confirmPrompt', 'Is this your account? Click "Link Account" to connect it to your Atlas profile.')}
         </p>
 
         <div style={{ display: 'flex', gap: '0.75rem' }}>
@@ -577,7 +579,7 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
               transition: transition.fast,
             }}
           >
-            ✓ Link Account
+            ✓ {t('linkAccount.linkAccount', 'Link Account')}
           </button>
           <button
             onClick={handleCancelPreview}
@@ -593,7 +595,7 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
               transition: transition.fast,
             }}
           >
-            Cancel
+            {t('common.cancel', 'Cancel')}
           </button>
         </div>
       </div>
@@ -612,12 +614,12 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
         <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '600', color: colors.text }}>
-          Link Kingshot Account
+          {t('linkAccount.title', 'Link Kingshot Account')}
         </h3>
       </div>
 
       <p style={{ fontSize: '0.85rem', color: colors.textSecondary, marginBottom: '1rem', lineHeight: 1.5 }}>
-        Connect your in-game account to auto-fill your profile with your avatar, username, kingdom, and Town Center level.
+        {t('linkAccount.description', 'Connect your in-game account to auto-fill your profile with your avatar, username, kingdom, and Town Center level.')}
       </p>
 
       <div style={{ marginBottom: '1rem' }}>
@@ -631,7 +633,7 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
             marginBottom: '0.5rem',
           }}
         >
-          Player ID
+          {t('linkAccount.playerIdLabel', 'Player ID')}
         </label>
         <input
           id="player-id"
@@ -641,7 +643,7 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
             setPlayerId(e.target.value.replace(/\D/g, ''));
             setError(null);
           }}
-          placeholder="Enter your numeric Player ID"
+          placeholder={t('linkAccount.playerIdPlaceholder', 'Enter your numeric Player ID')}
           style={{
             width: '100%',
             padding: '0.75rem 1rem',
@@ -668,7 +670,7 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
           }}
         />
         <p style={{ fontSize: '0.75rem', color: colors.textMuted, marginTop: '0.5rem' }}>
-          Find your Player ID in-game: Settings → Account → Player ID
+          {t('linkAccount.findPlayerId', 'Find your Player ID in-game: Settings → Account → Player ID')}
         </p>
       </div>
 
@@ -683,7 +685,7 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
         >
           <LoadingSkeleton />
           <div style={{ textAlign: 'center', paddingBottom: '0.75rem', color: colors.textSecondary, fontSize: '0.8rem' }}>
-            Verifying player ID...
+            {t('linkAccount.verifying', 'Verifying player ID...')}
           </div>
         </div>
       )}
@@ -712,7 +714,7 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
         icon={!isLoading ? <span>🔍</span> : undefined}
         fullWidth
       >
-        {isLoading ? 'Verifying...' : 'Verify Player ID'}
+        {isLoading ? t('linkAccount.verifying', 'Verifying...') : t('linkAccount.verifyPlayerId', 'Verify Player ID')}
       </Button>
     </div>
   );

@@ -1,11 +1,13 @@
 import React from 'react';
 import SmartTooltip from './shared/SmartTooltip';
+import { useTranslation } from 'react-i18next';
 
 interface AtlasScoreInfoProps {
   inline?: boolean;
 }
 
 const AtlasScoreInfo: React.FC<AtlasScoreInfoProps> = ({ inline = false }) => {
+  const { t } = useTranslation();
   const neonGlow = (color: string) => ({
     color: color,
     textShadow: `0 0 8px ${color}40, 0 0 12px ${color}20`
@@ -22,10 +24,10 @@ const AtlasScoreInfo: React.FC<AtlasScoreInfoProps> = ({ inline = false }) => {
       zIndex: 1000
     }}>
       <div style={{ fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '0.5rem', ...neonGlow('#22d3ee') }}>
-        Atlas Score
+        {t('atlasScoreInfo.title', 'Atlas Score')}
       </div>
       <p style={{ color: '#9ca3af', fontSize: '0.7rem', lineHeight: 1.4, marginBottom: '0.5rem' }}>
-        Bayesian rating. Experience matters. No more lucky newcomers.
+        {t('atlasScoreInfo.description', 'Bayesian rating. Experience matters. No more lucky newcomers.')}
       </p>
       <div style={{ 
         backgroundColor: '#111111', 

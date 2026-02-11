@@ -13,6 +13,7 @@ import { useKeyboardShortcuts, useKeyboardHelp } from './hooks/useKeyboardShortc
 import { usePageTracking } from './hooks/useAnalytics';
 import { useKingdomsRealtime } from './hooks/useKingdomsRealtime';
 import { useToast } from './components/Toast';
+import { useTranslation } from 'react-i18next';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { PremiumProvider } from './contexts/PremiumContext';
@@ -40,6 +41,7 @@ const TransferBoard = lazy(() => import('./pages/TransferBoard'));
 const AtlasBot = lazy(() => import('./pages/AtlasBot'));
 const Ambassadors = lazy(() => import('./pages/Ambassadors'));
 const RallyCoordinator = lazy(() => import('./pages/RallyCoordinator'));
+const AuthCallback = lazy(() => import('./pages/AuthCallback'));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -76,6 +78,7 @@ const PageTransition: React.FC<{ children: React.ReactNode }> = ({ children }) =
 function AppContent() {
   const { showHelp, openHelp, closeHelp } = useKeyboardHelp();
   const { showToast } = useToast();
+  const { t } = useTranslation();
   useKeyboardShortcuts({ onShowHelp: openHelp });
   usePageTracking(); // Track page views for analytics
   
@@ -83,14 +86,14 @@ function AppContent() {
   useKingdomsRealtime({
     onKingdomUpdate: (kingdomNumber, eventType) => {
       if (eventType === 'UPDATE') {
-        showToast(`🔄 Kingdom ${kingdomNumber} data updated`, 'info');
+        showToast(`🔄 ${t('realtime.kingdomUpdated', { number: kingdomNumber })}`, 'info');
       }
     },
     onKvkHistoryUpdate: (kingdomNumber, kvkNumber, eventType) => {
       if (eventType === 'UPDATE') {
-        showToast(`📊 K${kingdomNumber} KvK #${kvkNumber} data corrected`, 'success');
+        showToast(`📊 ${t('realtime.kvkCorrected', { kingdom: kingdomNumber, kvk: kvkNumber })}`, 'success');
       } else if (eventType === 'INSERT') {
-        showToast(`✨ New KvK record for Kingdom ${kingdomNumber}`, 'info');
+        showToast(`✨ ${t('realtime.newKvkRecord', { number: kingdomNumber })}`, 'info');
       }
     }
   });
@@ -128,6 +131,7 @@ function AppContent() {
               <Route path="/atlas-bot" element={<ErrorBoundary><AtlasBot /></ErrorBoundary>} />
               <Route path="/ambassadors" element={<ErrorBoundary><Ambassadors /></ErrorBoundary>} />
               <Route path="/tools/rally-coordinator" element={<ErrorBoundary><RallyCoordinator /></ErrorBoundary>} />
+              <Route path="/auth/callback" element={<ErrorBoundary><AuthCallback /></ErrorBoundary>} />
             </Routes>
           </Suspense>
         </PageTransition>

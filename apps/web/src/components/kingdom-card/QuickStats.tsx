@@ -1,6 +1,7 @@
 import React, { memo } from 'react';
 import { useIsMobile } from '../../hooks/useMediaQuery';
 import SmartTooltip from '../shared/SmartTooltip';
+import { useTranslation } from 'react-i18next';
 
 interface QuickStatsProps {
   totalKvks: number;
@@ -9,6 +10,7 @@ interface QuickStatsProps {
 }
 
 const QuickStats: React.FC<QuickStatsProps> = ({ totalKvks, dominations, invasions }) => {
+  const { t } = useTranslation();
   const isMobile = useIsMobile();
 
   return (
@@ -22,7 +24,7 @@ const QuickStats: React.FC<QuickStatsProps> = ({ totalKvks, dominations, invasio
         textAlign: 'center'
       }}>
         <div style={{ fontSize: '1.1rem', fontWeight: '700', color: '#fff' }}>{totalKvks}</div>
-        <div style={{ fontSize: '0.65rem', color: '#6b7280', marginTop: '2px' }}>KvKs</div>
+        <div style={{ fontSize: '0.65rem', color: '#6b7280', marginTop: '2px' }}>{t('kingdomCard.kvks')}</div>
       </div>
       
       {/* Dominations */}
@@ -32,7 +34,7 @@ const QuickStats: React.FC<QuickStatsProps> = ({ totalKvks, dominations, invasio
         style={{ flex: 1 }}
         content={
           <div style={{ fontSize: '0.7rem', color: '#9ca3af' }}>
-            <span style={{ color: '#22c55e', fontWeight: 'bold' }}>Dominations</span> — Won both Prep and Battle
+            <span style={{ color: '#22c55e', fontWeight: 'bold' }}>{t('stats.dominations')}</span> — {t('kingdomCard.dominationTooltip', 'Won both Prep and Battle')}
           </div>
         }
       >
@@ -50,7 +52,7 @@ const QuickStats: React.FC<QuickStatsProps> = ({ totalKvks, dominations, invasio
             {dominations} 👑
           </div>
           <div style={{ fontSize: isMobile ? '0.6rem' : '0.65rem', color: '#22c55e80', marginTop: '2px' }}>
-            Dominations
+            {t('stats.dominations')}
           </div>
         </div>
       </SmartTooltip>
@@ -62,7 +64,7 @@ const QuickStats: React.FC<QuickStatsProps> = ({ totalKvks, dominations, invasio
         style={{ flex: 1 }}
         content={
           <div style={{ fontSize: '0.7rem', color: '#9ca3af' }}>
-            <span style={{ color: '#ef4444', fontWeight: 'bold' }}>Invasions</span> — Lost both Prep and Battle
+            <span style={{ color: '#ef4444', fontWeight: 'bold' }}>{t('stats.invasions')}</span> — {t('kingdomCard.invasionTooltip', 'Lost both Prep and Battle')}
           </div>
         }
       >
@@ -80,7 +82,7 @@ const QuickStats: React.FC<QuickStatsProps> = ({ totalKvks, dominations, invasio
             {invasions} 💀
           </div>
           <div style={{ fontSize: isMobile ? '0.6rem' : '0.65rem', color: '#ef444480', marginTop: '2px' }}>
-            Invasions
+            {t('stats.invasions')}
           </div>
         </div>
       </SmartTooltip>

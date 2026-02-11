@@ -237,6 +237,10 @@
 | `/api/v1/discord` | ✅ Live | Platform | Discord bot integration |
 | `/api/v1/player-link` | ✅ Live | Platform | Kingshot account linking |
 | `/api/feedback` | ✅ Live | Platform | User feedback submission endpoint |
+| `/api/v1/admin/email/inbox` | ✅ Live | Platform | Email inbox fetch with status/direction filters (2026-02-11) |
+| `/api/v1/admin/email/send` | ✅ Live | Platform | Send email via Resend API, store in outbox (2026-02-11) |
+| `/api/v1/admin/email/{id}/read` | ✅ Live | Platform | Mark email as read (2026-02-11) |
+| `/api/v1/admin/email/stats` | ✅ Live | Platform | Email inbox statistics (2026-02-11) |
 
 ---
 
@@ -253,6 +257,9 @@
 | CSP Headers | ✅ Live | Platform | Security headers |
 | Sentry Integration | ✅ Live | Platform | Error monitoring |
 | Cloudflare Pages Deployment | ✅ Live | Ops | Auto-deploy from main (migrated from Netlify 2026-02-01) |
+| Cloudflare Email Worker | ✅ Live | Platform | `apps/email-worker/worker.js` — receives inbound emails to support@ks-atlas.com, stores in Supabase `support_emails` table, forwards to Gmail backup. Deployed to Cloudflare Workers with Email Routing rule. Secrets: SUPABASE_URL, SUPABASE_SERVICE_KEY, FORWARD_TO. (2026-02-11) |
+| Admin Email System | ✅ Live | Product + Platform | `EmailTab.tsx` — full inbox/compose UI in Admin Dashboard. Backend: 4 API endpoints (inbox, send, read, stats). DB: `support_emails` table. Outbound via Resend API (free tier). (2026-02-11) |
+| Admin Dashboard Improvements | ✅ Live | Product | P1: FeedbackTab extracted. P2: Removed Plausible duplication from Overview. P3: Moved engagement widgets off Live Traffic. P4: Subscriber duration badges + CSV export. P5: 60s auto-refresh on analytics tab. P6: CSV export utility for subscribers/feedback. (2026-02-11) |
 | Custom Domain | ✅ Live | Ops | ks-atlas.com |
 | React Query Caching | ✅ Live | Product | `queryClient.ts` |
 | IndexedDB Cache | ✅ Live | Product | `indexedDBCache.ts` offline support |
@@ -339,6 +346,21 @@
 | Import History Audit Log | ✅ Live | 2026-02-07 | Product | `import_history` table in Supabase. Logs admin, row counts, KvK numbers per import. Visible on Import tab |
 | Recalculate Atlas Scores | ✅ Live | 2026-02-07 | Product | Button calls `recalculate_all_kingdom_scores()` + `verify_and_fix_rank_consistency()`. Shows kingdoms updated, avg score, ranks fixed |
 | Analytics Growth Charts | ❌ Removed | 2026-02-09 | Platform | Removed — Plausible was connected after site launch (Jan 25), causing misleading zero-padded charts. Charts + backend endpoints deleted. |
+| S1.1: Email Templates | ✅ Live | 2026-02-11 | Product | Pre-built reply templates in EmailTab compose view (Welcome, Bug, Feature, Resolved) |
+| S1.2: Email Notification Badge | ✅ Live | 2026-02-11 | Product | Unread email count badge on Admin header, polls every 30s |
+| S1.3: Email Thread Grouping | ✅ Live | 2026-02-11 | Product | Group emails by thread_id, show thread count, toggle button |
+| S1.4: Email Search | ✅ Live | 2026-02-11 | Product | Full-text search on subject, body, sender via backend ilike |
+| S1.5: Canned Responses Library | ✅ Live | 2026-02-11 | Product + Platform | Supabase `canned_responses` table, CRUD API endpoints, usage tracking, replaces hardcoded templates |
+| S2.1: Tab Extraction | ✅ Live | 2026-02-11 | Product | `CorrectionsTab`, `KvKErrorsTab`, `TransferStatusTab` extracted from AdminDashboard (~200 lines reduced) |
+| S2.2: Feedback Email Reply | ✅ Live | 2026-02-11 | Product | "Reply via Email" button on feedback items, pre-fills compose via sessionStorage |
+| S2.3: Admin Notes Display | ✅ Live | 2026-02-11 | Product | Show review_notes on corrections and KvK error cards with styled ADMIN NOTE badge |
+| S2.4: Dashboard Search Bar | ✅ Live | 2026-02-11 | Product | Global search input between header and category tabs |
+| S2.5: CSV Export Extended | ✅ Live | 2026-02-11 | Product | CSV export buttons on Corrections and KvK Errors tabs |
+| S3.1: Response Time Tracking | ✅ Live | 2026-02-11 | Platform | Avg response time (inbound→reply) calculated in email stats, displayed in EmailTab |
+| S3.2: Subscriber Churn Alerts | ✅ Live | 2026-02-11 | Platform + Product | Backend `/churn-alerts` endpoint reads webhook_events, UI section in AnalyticsOverview |
+| S3.3: Weekly Digest Email | ✅ Live | 2026-02-11 | Platform | POST `/email/weekly-digest` compiles stats and sends via Resend |
+| S3.4: Trend Sparklines | ✅ Live | 2026-02-11 | Product | Inline SVG sparklines on key metric cards in AnalyticsOverview |
+| S3.5: Date Range Picker | ✅ Live | 2026-02-11 | Product | Date range inputs + 7d/14d/30d quick buttons in AnalyticsOverview |
 
 ---
 

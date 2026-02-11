@@ -1,6 +1,7 @@
 import React from 'react';
 import { FilterOptions } from '../types';
 import { countActiveFilters, DEFAULT_FILTERS } from '../utils/kingdomStats';
+import { useTranslation } from 'react-i18next';
 
 interface FilterPanelProps {
   filters: FilterOptions;
@@ -10,6 +11,7 @@ interface FilterPanelProps {
 }
 
 const FilterPanel: React.FC<FilterPanelProps> = ({ filters, setFilters, isMobile, onClearAll }) => {
+  const { t } = useTranslation();
   const activeCount = countActiveFilters(filters);
   const handleClearAll = () => {
     setFilters(DEFAULT_FILTERS);
@@ -33,13 +35,13 @@ const FilterPanel: React.FC<FilterPanelProps> = ({ filters, setFilters, isMobile
     >
       {/* Kingdom Tier */}
       <div>
-        <label style={{ fontSize: '0.85rem', color: '#9ca3af', display: 'block', marginBottom: '0.5rem' }}>Kingdom Tier</label>
+        <label style={{ fontSize: '0.85rem', color: '#9ca3af', display: 'block', marginBottom: '0.5rem' }}>{t('filters.kingdomTier', 'Kingdom Tier')}</label>
         <select 
           value={filters.tier || 'all'} 
           onChange={(e) => setFilters({ ...filters, tier: e.target.value })} 
           style={{ width: '100%', padding: isMobile ? '0.75rem' : '0.6rem', minHeight: '44px', backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '6px', color: '#fff', fontSize: '1rem' }}
         >
-          <option value="all">All Tiers</option>
+          <option value="all">{t('filters.allTiers', 'All Tiers')}</option>
           <option value="S">S Tier - Elite (Top 10%)</option>
           <option value="A">A Tier - Strong (Top 25%)</option>
           <option value="B">B Tier - Average (Top 50%)</option>
@@ -50,13 +52,13 @@ const FilterPanel: React.FC<FilterPanelProps> = ({ filters, setFilters, isMobile
 
       {/* Transfer Status */}
       <div>
-        <label style={{ fontSize: '0.85rem', color: '#9ca3af', display: 'block', marginBottom: '0.5rem' }}>Transfer Status</label>
+        <label style={{ fontSize: '0.85rem', color: '#9ca3af', display: 'block', marginBottom: '0.5rem' }}>{t('filters.transferStatus', 'Transfer Status')}</label>
         <select 
           value={filters.status || 'all'} 
           onChange={(e) => setFilters({ ...filters, status: e.target.value })} 
           style={{ width: '100%', padding: isMobile ? '0.75rem' : '0.6rem', minHeight: '44px', backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '6px', color: '#fff', fontSize: '1rem' }}
         >
-          <option value="all">All Statuses</option>
+          <option value="all">{t('filters.allStatuses', 'All Statuses')}</option>
           <option value="Leading">Leading</option>
           <option value="Ordinary">Ordinary</option>
           <option value="Unannounced">Unannounced</option>
@@ -65,7 +67,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({ filters, setFilters, isMobile
 
       {/* Experience (KvKs Range) */}
       <div>
-        <label style={{ fontSize: '0.85rem', color: '#9ca3af', display: 'block', marginBottom: '0.5rem' }}>Experience (KvKs)</label>
+        <label style={{ fontSize: '0.85rem', color: '#9ca3af', display: 'block', marginBottom: '0.5rem' }}>{t('filters.experience', 'Experience (KvKs)')}</label>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           <input 
             type="number" 
@@ -92,7 +94,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({ filters, setFilters, isMobile
       {/* Min Prep WR */}
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-          <label style={{ fontSize: '0.85rem', color: '#9ca3af' }}>Min Prep WR</label>
+          <label style={{ fontSize: '0.85rem', color: '#9ca3af' }}>{t('filters.minPrepWR', 'Min Prep WR')}</label>
           <span style={{ fontSize: '0.85rem', color: '#eab308', fontWeight: 'bold' }}>{Math.round((filters.minPrepWinRate || 0) * 100)}%</span>
         </div>
         <input 
@@ -108,7 +110,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({ filters, setFilters, isMobile
       {/* Min Battle WR */}
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-          <label style={{ fontSize: '0.85rem', color: '#9ca3af' }}>Min Battle WR</label>
+          <label style={{ fontSize: '0.85rem', color: '#9ca3af' }}>{t('filters.minBattleWR', 'Min Battle WR')}</label>
           <span style={{ fontSize: '0.85rem', color: '#f97316', fontWeight: 'bold' }}>{Math.round((filters.minBattleWinRate || 0) * 100)}%</span>
         </div>
         <input 
@@ -138,7 +140,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({ filters, setFilters, isMobile
             transition: 'all 0.2s'
           }}
         >
-          Clear All Filters{activeCount > 0 && ` (${activeCount})`}
+          {t('filters.clearAll', 'Clear All Filters')}{activeCount > 0 && ` (${activeCount})`}
         </button>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import React, { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface WinRatesProps {
   prepWinRate: number;
@@ -29,6 +30,7 @@ const WinRates: React.FC<WinRatesProps> = ({
   battleLossStreak,
   battleBestStreak
 }) => {
+  const { t } = useTranslation();
   return (
     <div style={{ 
       display: 'grid', 
@@ -49,7 +51,7 @@ const WinRates: React.FC<WinRatesProps> = ({
           alignItems: 'center',
           marginBottom: '0.5rem'
         }}>
-          <span style={{ fontSize: '0.7rem', color: '#eab308', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Prep</span>
+          <span style={{ fontSize: '0.7rem', color: '#eab308', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('kingdomCard.prep')}</span>
           <span style={{ fontSize: '1.1rem', fontWeight: '700', color: '#fff' }}>
             {Math.round(prepWinRate * 100)}%
           </span>
@@ -59,16 +61,16 @@ const WinRates: React.FC<WinRatesProps> = ({
         </div>
         {prepStreak >= 2 && (
           <div style={{ fontSize: '0.7rem', color: '#22c55e', marginBottom: '0.25rem' }}>
-            Current Streak: {prepStreak}W
+            {t('stats.currentStreak')}: {prepStreak}W
           </div>
         )}
         {prepStreak < 2 && prepLossStreak >= 2 && (
           <div style={{ fontSize: '0.7rem', color: '#ef4444', marginBottom: '0.25rem' }}>
-            Current Streak: {prepLossStreak}L
+            {t('stats.currentStreak')}: {prepLossStreak}L
           </div>
         )}
         <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.3rem' }}>
-          Best Streak: {prepBestStreak}W
+          {t('stats.bestStreak')}: {prepBestStreak}W
         </div>
         <div style={{ height: '4px', backgroundColor: '#2a2a30', borderRadius: '2px', overflow: 'hidden' }}>
           <div style={{
@@ -94,7 +96,7 @@ const WinRates: React.FC<WinRatesProps> = ({
           alignItems: 'center',
           marginBottom: '0.5rem'
         }}>
-          <span style={{ fontSize: '0.7rem', color: '#f97316', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Battle</span>
+          <span style={{ fontSize: '0.7rem', color: '#f97316', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('kingdomCard.battle')}</span>
           <span style={{ fontSize: '1.1rem', fontWeight: '700', color: '#fff' }}>
             {Math.round(battleWinRate * 100)}%
           </span>
@@ -104,16 +106,16 @@ const WinRates: React.FC<WinRatesProps> = ({
         </div>
         {battleStreak >= 2 && (
           <div style={{ fontSize: '0.7rem', color: '#22c55e', marginBottom: '0.25rem' }}>
-            Current Streak: {battleStreak}W
+            {t('stats.currentStreak')}: {battleStreak}W
           </div>
         )}
         {battleStreak < 2 && battleLossStreak >= 2 && (
           <div style={{ fontSize: '0.7rem', color: '#ef4444', marginBottom: '0.25rem' }}>
-            Current Streak: {battleLossStreak}L
+            {t('stats.currentStreak')}: {battleLossStreak}L
           </div>
         )}
         <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.3rem' }}>
-          Best Streak: {battleBestStreak}W
+          {t('stats.bestStreak')}: {battleBestStreak}W
         </div>
         <div style={{ height: '4px', backgroundColor: '#2a2a30', borderRadius: '2px', overflow: 'hidden' }}>
           <div style={{

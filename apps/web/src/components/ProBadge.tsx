@@ -7,7 +7,7 @@ interface ProBadgeProps {
 const ProBadge: React.FC<ProBadgeProps> = ({ size = 'sm' }) => {
   const color = '#FF6B8A'; // Supporter=Pink
   const label = 'SUPPORTER';
-  const icon = '';
+  const icon = '💖';
   
   const sizes = {
     sm: { padding: '0.15rem 0.4rem', fontSize: '0.65rem', iconSize: 8, gap: '0.2rem' },

@@ -1,6 +1,7 @@
 import React, { useState, memo } from 'react';
 import { Kingdom } from '../../types';
 import { useIsMobile } from '../../hooks/useMediaQuery';
+import { useTranslation } from 'react-i18next';
 
 interface CardActionsProps {
   kingdom: Kingdom;
@@ -16,6 +17,7 @@ const CardActions: React.FC<CardActionsProps> = ({
   cardRef 
 }) => {
   const [showPopup, setShowPopup] = useState(false);
+  const { t } = useTranslation();
   const isMobile = useIsMobile();
 
   const handleCopyLink = () => {
@@ -142,7 +144,7 @@ const CardActions: React.FC<CardActionsProps> = ({
           }
         }}
       >
-        Actions
+        {t('kingdomCard.actions', 'Actions')}
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <polyline points="6 9 12 15 18 9"/>
         </svg>
@@ -179,7 +181,7 @@ const CardActions: React.FC<CardActionsProps> = ({
               <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
               <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
             </svg>
-            Copy Link
+            {t('kingdomCard.copyLink')}
           </button>
           
           <button
@@ -194,7 +196,7 @@ const CardActions: React.FC<CardActionsProps> = ({
               <circle cx="8.5" cy="8.5" r="1.5"/>
               <polyline points="21 15 16 10 5 21"/>
             </svg>
-            Copy Image
+            {t('kingdomCard.copyImage', 'Copy Image')}
           </button>
           
           <button
@@ -207,7 +209,7 @@ const CardActions: React.FC<CardActionsProps> = ({
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
-            Compare Kingdom
+            {t('kingdomCard.compareKingdom', 'Compare Kingdom')}
           </button>
         </div>
       )}

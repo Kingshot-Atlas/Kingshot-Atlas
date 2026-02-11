@@ -5,6 +5,7 @@ import { useIsMobile } from '../hooks/useMediaQuery';
 import { colors, neonGlow } from '../utils/styles';
 import { getDisplayTier, SUBSCRIPTION_COLORS, SubscriptionTier, ReferralTier } from '../utils/constants';
 import ReferralBadge from './ReferralBadge';
+import { useTranslation } from 'react-i18next';
 
 interface PlayerProfile {
   id: string;
@@ -60,6 +61,7 @@ const KingdomPlayers: React.FC<KingdomPlayersProps> = ({
   themeColor = colors.primary
 }) => {
   const isMobile = useIsMobile();
+  const { t } = useTranslation();
   const [players, setPlayers] = useState<PlayerProfile[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -127,7 +129,7 @@ const KingdomPlayers: React.FC<KingdomPlayersProps> = ({
         marginBottom: '1.5rem',
         border: `1px solid ${colors.border}`,
       }}>
-        <div style={{ color: colors.textMuted, fontSize: '0.85rem' }}>Loading players...</div>
+        <div style={{ color: colors.textMuted, fontSize: '0.85rem' }}>{t('kingdomPlayers.loading', 'Loading players...')}</div>
       </div>
     );
   }
@@ -146,10 +148,10 @@ const KingdomPlayers: React.FC<KingdomPlayersProps> = ({
       }}>
         <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>👀</div>
         <p style={{ color: colors.text, fontSize: '0.9rem', fontWeight: '600', margin: '0 0 0.25rem' }}>
-          No Atlas users from Kingdom {kingdomNumber} yet.
+          {t('kingdomPlayers.noUsers', 'No Atlas users from Kingdom {{num}} yet.', { num: kingdomNumber })}
         </p>
         <p style={{ color: '#6b7280', fontSize: '0.8rem', margin: '0 0 0.75rem', lineHeight: 1.5 }}>
-          Know someone here? Invite them — every referral counts toward your Ambassador rank.
+          {t('kingdomPlayers.inviteThem', 'Know someone here? Invite them — every referral counts toward your Ambassador rank.')}
         </p>
         <Link
           to="/profile"
@@ -168,7 +170,7 @@ const KingdomPlayers: React.FC<KingdomPlayersProps> = ({
             minHeight: '40px',
           }}
         >
-          🔗 Refer a Friend
+          {t('kingdomPlayers.referFriend', '🔗 Refer a Friend')}
         </Link>
       </div>
     );
@@ -190,7 +192,7 @@ const KingdomPlayers: React.FC<KingdomPlayersProps> = ({
         color: colors.text,
         textAlign: 'center'
       }}>
-        Atlas Users from Kingdom {kingdomNumber}
+        {t('kingdomPlayers.title', 'Atlas Users from Kingdom {{num}}', { num: kingdomNumber })}
       </h3>
 
       <div style={{
@@ -338,10 +340,10 @@ const KingdomPlayers: React.FC<KingdomPlayersProps> = ({
             textDecoration: 'none',
           }}
         >
-          Browse all Kingdom {kingdomNumber} players →
+          {t('kingdomPlayers.browseAll', 'Browse all Kingdom {{num}} players →', { num: kingdomNumber })}
         </Link>
         <span style={{ fontSize: '0.7rem', color: colors.textMuted }}>
-          Showing {players.length} of {totalCount} players
+          {t('kingdomPlayers.showing', 'Showing {{count}} of {{total}} players', { count: players.length, total: totalCount })}
         </span>
       </div>
     </div>

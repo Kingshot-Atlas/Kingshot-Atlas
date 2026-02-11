@@ -8,6 +8,7 @@ import { colors, neonGlow } from '../utils/styles';
 import { reviewService, ReviewWithVoteStatus, ReviewReply, Review, ReportReason } from '../services/reviewService';
 import { isSupabaseConfigured } from '../lib/supabase';
 import { useIsMobile } from '../hooks/useMediaQuery';
+import { useTranslation } from 'react-i18next';
 import { incrementStat } from './UserAchievements';
 
 interface KingdomReviewsProps {
@@ -40,6 +41,7 @@ const getAvatarBorderColor = (tier: SubscriptionTier): string => {
 type SortOption = 'newest' | 'helpful' | 'highest' | 'lowest';
 
 const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact = false }) => {
+  const { t } = useTranslation();
   const isMobile = useIsMobile();
   const { user, profile } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -302,14 +304,14 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
   if (compact) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem' }}>
-        <span style={{ color: '#6b7280' }}>Reviews:</span>
+        <span style={{ color: '#6b7280' }}>{t('reviews.label', 'Reviews:')}</span>
         {avgRating ? (
           <>
             <span style={{ color: '#fbbf24' }}>{'★'.repeat(Math.round(Number(avgRating)))}</span>
             <span style={{ color: '#9ca3af' }}>({reviews.length})</span>
           </>
         ) : (
-          <span style={{ color: '#4a4a4a' }}>No reviews yet</span>
+          <span style={{ color: '#4a4a4a' }}>{t('reviews.noReviewsYet', 'No reviews yet')}</span>
         )}
       </div>
     );
@@ -324,7 +326,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
     }}>
       <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
         <h3 style={{ color: '#fff', fontSize: '1rem', fontWeight: '600', margin: 0 }}>
-          Community Reviews
+          {t('reviews.communityReviews', 'Community Reviews')}
           {avgRating && (
             <span style={{ marginLeft: '0.75rem', fontSize: '0.85rem', color: '#fbbf24' }}>
               ★ {avgRating} ({reviews.length})
@@ -349,7 +351,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                   cursor: 'pointer'
                 }}
               >
-                {showForm ? 'Cancel' : '+ Add Review'}
+                {showForm ? t('common.cancel', 'Cancel') : t('reviews.addReview', '+ Add Review')}
               </button>
             );
           } else if (blockReason === 'sign_in') {
@@ -366,7 +368,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                   textDecoration: 'underline'
                 }}
               >
-                Sign in to review
+                {t('reviews.signInToReview', 'Sign in to review')}
               </span>
             );
           } else if (blockReason === 'not_linked') {
@@ -382,7 +384,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                   textDecoration: 'none'
                 }}
               >
-                <span style={{ color: '#f59e0b' }}>Link your Kingshot account</span> to leave reviews
+                <span style={{ color: '#f59e0b' }}>{t('reviews.linkAccount', 'Link your Kingshot account')}</span> {t('reviews.toLeaveReviews', 'to leave reviews')}
               </Link>
             );
           } else if (blockReason.startsWith('tc_level_low:')) {
@@ -397,7 +399,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                   fontStyle: 'italic'
                 }}
               >
-                TC Level {MIN_TC_LEVEL}+ required to review (yours: {currentLevel})
+                {t('reviews.tcRequired', 'TC Level {{level}}+ required to review (yours: {{current}})', { level: MIN_TC_LEVEL, current: currentLevel })}
               </span>
             );
           } else if (blockReason === 'already_reviewed') {
@@ -411,7 +413,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                   fontStyle: 'italic'
                 }}
               >
-                You've already reviewed this kingdom
+                {t('reviews.alreadyReviewed', "You've already reviewed this kingdom")}
               </span>
             );
           }
@@ -531,7 +533,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
             );
           })()}
           <div style={{ marginBottom: '0.75rem' }}>
-            <span style={{ color: '#6b7280', fontSize: '0.8rem', marginRight: '0.5rem' }}>Rating:</span>
+            <span style={{ color: '#6b7280', fontSize: '0.8rem', marginRight: '0.5rem' }}>{t('reviews.rating', 'Rating:')}</span>
             {[1,2,3,4,5].map(n => (
               <button
                 key={n}
@@ -550,7 +552,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
             ))}
           </div>
           <textarea
-            placeholder="Brief review, max 200 characters..."
+            placeholder={t('reviews.placeholder', 'Brief review, max 200 characters...')}
             value={newReview.comment}
             onChange={(e) => setNewReview(prev => ({ ...prev, comment: e.target.value }))}
             maxLength={MAX_COMMENT_LENGTH}
@@ -588,7 +590,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
               padding: '0.5rem 0.75rem',
               marginBottom: '0.75rem'
             }}>
-              <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Preview</div>
+              <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('reviews.preview', 'Preview')}</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.25rem' }}>
                 <span style={{ color: '#fbbf24', fontSize: '0.75rem' }}>
                   {'★'.repeat(newReview.rating)}{'☆'.repeat(5 - newReview.rating)}
@@ -615,7 +617,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                 fontSize: isMobile ? '0.9rem' : '0.85rem'
               }}
             >
-              {submitting ? 'Submitting...' : 'Submit Review'}
+              {submitting ? t('reviews.submitting', 'Submitting...') : t('reviews.submitReview', 'Submit Review')}
             </button>
           </div>
         </div>
@@ -624,7 +626,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
       {/* Loading state */}
       {loading && (
         <div style={{ color: '#6b7280', fontSize: '0.85rem', textAlign: 'center', padding: '1rem' }}>
-          Loading reviews...
+          {t('reviews.loading', 'Loading reviews...')}
         </div>
       )}
 
@@ -644,7 +646,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                 {reviewStats.avgRating.toFixed(1)}
               </div>
               <div style={{ fontSize: '0.7rem', color: '#6b7280' }}>
-                {reviewStats.totalReviews} review{reviewStats.totalReviews !== 1 ? 's' : ''}
+                {t('reviews.reviewCount', '{{count}} review', { count: reviewStats.totalReviews }) + (reviewStats.totalReviews !== 1 ? 's' : '')}
               </div>
             </div>
             
@@ -694,7 +696,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
               <div style={{ fontSize: '1.25rem' }}>🎯</div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: '0.75rem', color: '#22d3ee', fontWeight: '500' }}>
-                  {5 - reviewStats.totalReviews} more review{5 - reviewStats.totalReviews !== 1 ? 's' : ''} needed for Google rating badge
+                  {t('reviews.moreNeeded', '{{count}} more review(s) needed for Google rating badge', { count: 5 - reviewStats.totalReviews })}
                 </div>
                 <div style={{
                   marginTop: '0.25rem',
@@ -730,7 +732,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
               color: '#22c55e'
             }}>
               <span>✓</span>
-              <span>This kingdom qualifies for Google rich results rating badge</span>
+              <span>{t('reviews.badgeEarned', 'This kingdom qualifies for Google rich results rating badge')}</span>
             </div>
           )}
         </div>
@@ -759,7 +761,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
             alignItems: 'center',
             gap: '0.25rem'
           }}>
-            ⭐ FEATURED REVIEW
+            ⭐ {t('reviews.featured', 'FEATURED REVIEW')}
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: '0.25rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -791,12 +793,12 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
           marginBottom: '0.75rem',
           flexWrap: 'wrap'
         }}>
-          <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>Sort by:</span>
+          <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>{t('reviews.sortBy', 'Sort by:')}</span>
           {([
-            { value: 'newest', label: 'Newest' },
-            { value: 'helpful', label: 'Most Helpful' },
-            { value: 'highest', label: 'Highest Rated' },
-            { value: 'lowest', label: 'Lowest Rated' }
+            { value: 'newest', label: t('reviews.newest', 'Newest') },
+            { value: 'helpful', label: t('reviews.mostHelpful', 'Most Helpful') },
+            { value: 'highest', label: t('reviews.highestRated', 'Highest Rated') },
+            { value: 'lowest', label: t('reviews.lowestRated', 'Lowest Rated') }
           ] as { value: SortOption; label: string }[]).map(option => (
             <button
               key={option.value}
@@ -823,7 +825,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           {sortedReviews.length === 0 ? (
             <div style={{ color: '#6b7280', fontSize: '0.85rem', textAlign: 'center', padding: '1rem' }}>
-              No reviews yet. Be the first to share your experience!
+              {t('reviews.beFirst', 'No reviews yet. Be the first to share your experience!')}
             </div>
           ) : (
             sortedReviews.slice(0, 10).map(review => {
@@ -848,7 +850,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                     // Edit mode
                     <div>
                       <div style={{ marginBottom: '0.75rem' }}>
-                        <span style={{ color: '#6b7280', fontSize: '0.8rem', marginRight: '0.5rem' }}>Rating:</span>
+                        <span style={{ color: '#6b7280', fontSize: '0.8rem', marginRight: '0.5rem' }}>{t('reviews.rating', 'Rating:')}</span>
                         {[1,2,3,4,5].map(n => (
                           <button
                             key={n}
@@ -906,7 +908,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                             cursor: 'pointer'
                           }}
                         >
-                          {submitting ? 'Saving...' : 'Save'}
+                          {submitting ? t('reviews.saving', 'Saving...') : t('common.save', 'Save')}
                         </button>
                         <button
                           onClick={() => setEditingReviewId(null)}
@@ -921,7 +923,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                             cursor: 'pointer'
                           }}
                         >
-                          Cancel
+                          {t('common.cancel', 'Cancel')}
                         </button>
                       </div>
                     </div>
@@ -1085,7 +1087,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                           >
                             <span>👍</span>
                             <span>{review.helpful_count > 0 ? review.helpful_count : ''}</span>
-                            <span style={{ marginLeft: '0.1rem' }}>Helpful</span>
+                            <span style={{ marginLeft: '0.1rem' }}>{t('reviews.helpful', 'Helpful')}</span>
                           </button>
                         </div>
                         
@@ -1106,7 +1108,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                                 padding: '0.2rem 0.4rem'
                               }}
                             >
-                              💬 Reply
+                              💬 {t('reviews.reply', 'Reply')}
                             </button>
                           )}
                           <button
@@ -1126,7 +1128,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                               padding: '0.2rem 0.4rem'
                             }}
                           >
-                            🔗 Share
+                            🔗 {t('reviews.share', 'Share')}
                           </button>
                           {user && !isOwnReview && (
                             <button
@@ -1165,7 +1167,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                                   padding: '0.2rem 0.4rem'
                                 }}
                               >
-                                Edit
+                                {t('common.edit', 'Edit')}
                               </button>
                             )}
                             <button
@@ -1179,7 +1181,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                                 padding: '0.2rem 0.4rem'
                               }}
                             >
-                              Delete
+                              {t('common.delete', 'Delete')}
                             </button>
                           </div>
                         )}
@@ -1230,7 +1232,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                           <textarea
                             value={replyText}
                             onChange={(e) => setReplyText(e.target.value)}
-                            placeholder="Write a reply..."
+                            placeholder={t('reviews.replyPlaceholder', 'Write a reply...')}
                             style={{
                               width: '100%',
                               padding: '0.5rem',
@@ -1257,7 +1259,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                                 cursor: 'pointer'
                               }}
                             >
-                              Cancel
+                              {t('common.cancel', 'Cancel')}
                             </button>
                             <button
                               onClick={() => handleSubmitReply(review.id)}
@@ -1272,7 +1274,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                                 cursor: replyText.length >= 5 ? 'pointer' : 'not-allowed'
                               }}
                             >
-                              {submittingReply ? 'Sending...' : 'Reply'}
+                              {submittingReply ? t('reviews.sending', 'Sending...') : t('reviews.reply', 'Reply')}
                             </button>
                           </div>
                         </div>
@@ -1337,10 +1339,10 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
             }}
           >
             <h4 style={{ color: '#fff', fontSize: '0.95rem', margin: '0 0 1rem', fontWeight: '600' }}>
-              🚩 Report Review
+              🚩 {t('reviews.reportReview', 'Report Review')}
             </h4>
             <div style={{ marginBottom: '0.75rem' }}>
-              <label style={{ display: 'block', color: '#6b7280', fontSize: '0.75rem', marginBottom: '0.35rem' }}>Reason</label>
+              <label style={{ display: 'block', color: '#6b7280', fontSize: '0.75rem', marginBottom: '0.35rem' }}>{t('reviews.reason', 'Reason')}</label>
               <select
                 value={reportReason}
                 onChange={(e) => setReportReason(e.target.value as ReportReason)}
@@ -1354,19 +1356,19 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                   fontSize: '0.8rem'
                 }}
               >
-                <option value="inappropriate">Inappropriate content</option>
-                <option value="spam">Spam</option>
-                <option value="misleading">Misleading information</option>
-                <option value="harassment">Harassment</option>
-                <option value="other">Other</option>
+                <option value="inappropriate">{t('reviews.inappropriate', 'Inappropriate content')}</option>
+                <option value="spam">{t('reviews.spam', 'Spam')}</option>
+                <option value="misleading">{t('reviews.misleading', 'Misleading information')}</option>
+                <option value="harassment">{t('reviews.harassment', 'Harassment')}</option>
+                <option value="other">{t('reviews.other', 'Other')}</option>
               </select>
             </div>
             <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', color: '#6b7280', fontSize: '0.75rem', marginBottom: '0.35rem' }}>Details (optional)</label>
+              <label style={{ display: 'block', color: '#6b7280', fontSize: '0.75rem', marginBottom: '0.35rem' }}>{t('reviews.detailsOptional', 'Details (optional)')}</label>
               <textarea
                 value={reportDetails}
                 onChange={(e) => setReportDetails(e.target.value)}
-                placeholder="Any additional context..."
+                placeholder={t('reviews.additionalContext', 'Any additional context...')}
                 maxLength={300}
                 style={{
                   width: '100%',
@@ -1394,7 +1396,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                   cursor: 'pointer'
                 }}
               >
-                Cancel
+                {t('common.cancel', 'Cancel')}
               </button>
               <button
                 onClick={handleReportReview}
@@ -1409,7 +1411,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                   cursor: submittingReport ? 'not-allowed' : 'pointer'
                 }}
               >
-                {submittingReport ? 'Submitting...' : 'Submit Report'}
+                {submittingReport ? t('reviews.submitting', 'Submitting...') : t('reviews.submitReport', 'Submit Report')}
               </button>
             </div>
           </div>

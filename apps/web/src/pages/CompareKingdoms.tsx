@@ -14,6 +14,7 @@ import ComparisonRadarChart from '../components/ComparisonRadarChart';
 import ShareComparisonScreenshot from '../components/ShareComparisonScreenshot';
 import { useMetaTags, getCompareMetaTags } from '../hooks/useMetaTags';
 import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
+import { useTranslation } from 'react-i18next';
 
 // Max slots to show in UI (Pro limit)
 const MAX_COMPARE_SLOTS = 5;
@@ -57,6 +58,7 @@ const MultiCompareRadarChart: React.FC<MultiCompareRadarChartProps> = memo(funct
   const [showChart, setShowChart] = useState(false);
   const isMobile = useIsMobile();
   const { trackFeature } = useAnalytics();
+  const { t } = useTranslation();
   
   const radarData = useMemo(() => 
     kingdoms.map((kingdom, i) => ({
@@ -104,7 +106,7 @@ const MultiCompareRadarChart: React.FC<MultiCompareRadarChartProps> = memo(funct
         }}
       >
         <span style={{ fontSize: '1.25rem' }}>🎯</span>
-        <span>{showChart ? 'Hide Visual Comparison' : 'Show Overlapping Comparison'}</span>
+        <span>{showChart ? t('compare.hideVisual', 'Hide Visual Comparison') : t('compare.showOverlapping', 'Show Overlapping Comparison')}</span>
         <svg 
           width="18" 
           height="18" 
@@ -139,7 +141,7 @@ const MultiCompareRadarChart: React.FC<MultiCompareRadarChartProps> = memo(funct
             marginBottom: '0.5rem',
             textAlign: 'center'
           }}>
-            🎯 {kingdoms.length}-Kingdom Performance Comparison
+            🎯 {t('compare.performanceComparison', '{{count}}-Kingdom Performance Comparison', { count: kingdoms.length })}
           </h4>
           
           <p style={{ 
@@ -149,7 +151,7 @@ const MultiCompareRadarChart: React.FC<MultiCompareRadarChartProps> = memo(funct
             marginBottom: '1rem',
             lineHeight: 1.4
           }}>
-            Direct visual comparison with overlapping metrics. Hover over datasets to highlight.
+            {t('compare.radarDescription', 'Direct visual comparison with overlapping metrics. Hover over datasets to highlight.')}
           </p>
           
           <ComparisonRadarChart
@@ -172,6 +174,7 @@ const MultiCompareRadarChart: React.FC<MultiCompareRadarChartProps> = memo(funct
 });
 
 const CompareKingdoms: React.FC = () => {
+  const { t } = useTranslation();
   useDocumentTitle('Compare Kingdoms');
   useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.compare });
   const [searchParams] = useSearchParams();
@@ -232,13 +235,13 @@ const CompareKingdoms: React.FC = () => {
               apiService.getKingdomProfile(parseInt(nums[1]!))
             ]);
             if (!data1 || !data2) {
-              setError('One or both kingdoms not found');
+              setError(t('compare.kingdomsNotFound', 'One or both kingdoms not found'));
             } else {
               setKingdom1(data1);
               setKingdom2(data2);
             }
           } catch {
-            setError('Failed to load kingdom data');
+            setError(t('compare.loadFailed', 'Failed to load kingdom data. Please try again later.'));
           } finally {
             setLoading(false);
           }
@@ -255,7 +258,7 @@ const CompareKingdoms: React.FC = () => {
       .slice(0, features.multiCompare); // Limit to user's allowed slots
     
     if (allInputs.length < 2) {
-      setError('Please enter at least 2 kingdom numbers');
+      setError(t('compare.enterAtLeast2', 'Please enter at least 2 kingdom numbers'));
       return;
     }
 
@@ -274,7 +277,7 @@ const CompareKingdoms: React.FC = () => {
       const validResults = results.filter((k): k is KingdomProfile => k !== null);
       
       if (validResults.length < 2) {
-        setError('Not enough kingdoms found. Please check the kingdom numbers and try again.');
+        setError(t('compare.notEnoughKingdoms', 'Not enough kingdoms found. Please check the kingdom numbers and try again.'));
         return;
       }
 
@@ -288,7 +291,7 @@ const CompareKingdoms: React.FC = () => {
       });
       setKingdoms(newKingdoms);
     } catch (err) {
-      setError('Failed to load kingdom data. Please try again later.');
+      setError(t('compare.loadFailed', 'Failed to load kingdom data. Please try again later.'));
     } finally {
       setLoading(false);
     }
@@ -436,7 +439,7 @@ const CompareKingdoms: React.FC = () => {
             <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>COMPARISON</span>
           </h1>
           <p style={{ color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.9rem', marginBottom: '0.75rem' }}>
-            Put any kingdoms in the ring. Let the stats decide.
+            {t('compare.heroSubtitle', 'Put any kingdoms in the ring. Let the stats decide.')}
           </p>
           {!isMobile && (
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
@@ -461,10 +464,10 @@ const CompareKingdoms: React.FC = () => {
           }}>
             <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>🔒</div>
             <h3 style={{ color: '#fff', fontSize: '1.1rem', marginBottom: '0.5rem' }}>
-              Sign in to Compare Kingdoms
+              {t('compare.signInToCompare', 'Sign in to Compare Kingdoms')}
             </h3>
             <p style={{ color: '#9ca3af', fontSize: '0.85rem', marginBottom: '1rem' }}>
-              Create a free account to compare up to 2 kingdoms side-by-side.
+              {t('compare.freeAccountCompare', 'Create a free account to compare up to 2 kingdoms side-by-side.')}
             </p>
             <Link
               to="/profile"
@@ -480,7 +483,7 @@ const CompareKingdoms: React.FC = () => {
                 textDecoration: 'none'
               }}
             >
-              Sign In / Register
+              {t('common.signIn')} / {t('kingdomProfile.register', 'Register')}
             </Link>
           </div>
         )}
@@ -564,7 +567,7 @@ const CompareKingdoms: React.FC = () => {
               opacity: loading ? 0.7 : 1
             }}
           >
-            {loading ? 'Loading...' : 'Compare'}
+            {loading ? t('common.loading') : t('compare.compareButton', 'Compare')}
           </button>
           
           {/* Additional Kingdom Slots */}
@@ -713,7 +716,7 @@ const CompareKingdoms: React.FC = () => {
               }}>
                 <span style={{ fontSize: '0.85rem' }}>🔗</span>
                 <span style={{ color: '#9ca3af', fontSize: '0.8rem' }}>
-                  {!user ? 'Sign in to compare up to 5 kingdoms' : 'Link your Kingshot account to compare up to 5 kingdoms'}
+                  {!user ? t('compare.signInFor5', 'Sign in to compare up to 5 kingdoms') : t('compare.linkFor5', 'Link your Kingshot account to compare up to 5 kingdoms')}
                 </span>
               </div>
             </Link>
@@ -754,7 +757,7 @@ const CompareKingdoms: React.FC = () => {
                   <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                     <Link to={`/kingdom/${loadedKingdoms[0]!.kingdom_number}`} style={{ textDecoration: 'none' }}>
                       <div style={{ fontSize: isMobile ? '1rem' : '1.15rem', fontWeight: 'bold', color: KINGDOM_COLORS[0], fontFamily: FONT_DISPLAY }}>
-                        Kingdom {loadedKingdoms[0]!.kingdom_number}
+                        {t('common.kingdom', 'Kingdom')} {loadedKingdoms[0]!.kingdom_number}
                       </div>
                     </Link>
                     <div style={{ 
@@ -772,7 +775,7 @@ const CompareKingdoms: React.FC = () => {
                   <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                     <Link to={`/kingdom/${loadedKingdoms[1]!.kingdom_number}`} style={{ textDecoration: 'none' }}>
                       <div style={{ fontSize: isMobile ? '1rem' : '1.15rem', fontWeight: 'bold', color: KINGDOM_COLORS[1], fontFamily: FONT_DISPLAY }}>
-                        Kingdom {loadedKingdoms[1]!.kingdom_number}
+                        {t('common.kingdom', 'Kingdom')} {loadedKingdoms[1]!.kingdom_number}
                       </div>
                     </Link>
                     <div style={{ 
@@ -798,7 +801,7 @@ const CompareKingdoms: React.FC = () => {
                           color: KINGDOM_COLORS[i % KINGDOM_COLORS.length], 
                           fontFamily: FONT_DISPLAY 
                         }}>
-                          Kingdom {k.kingdom_number}
+                          {t('common.kingdom', 'Kingdom')} {k.kingdom_number}
                         </div>
                       </Link>
                       <div style={{ 
@@ -815,29 +818,29 @@ const CompareKingdoms: React.FC = () => {
             </div>
 
             {/* Atlas Score & Rank */}
-            <ComparisonRow label="Atlas Score" values={loadedKingdoms.map(k => k.overall_score || 0)} format="decimal" />
-            <ComparisonRow label="Atlas Rank" values={loadedKingdoms.map(k => getRank(k.kingdom_number))} higherIsBetter={false} />
+            <ComparisonRow label={t('stats.atlasScore')} values={loadedKingdoms.map(k => k.overall_score || 0)} format="decimal" />
+            <ComparisonRow label={t('compare.atlasRank', 'Atlas Rank')} values={loadedKingdoms.map(k => getRank(k.kingdom_number))} higherIsBetter={false} />
             
             <SectionDivider />
 
             {/* KvK Stats */}
-            <ComparisonRow label="Total KvKs" values={loadedKingdoms.map(k => k.total_kvks)} />
-            <ComparisonRow label="Dominations" values={loadedKingdoms.map(k => getDominations(k))} />
-            <ComparisonRow label="Invasions" values={loadedKingdoms.map(k => getInvasions(k))} higherIsBetter={false} />
+            <ComparisonRow label={t('stats.totalKvKs')} values={loadedKingdoms.map(k => k.total_kvks)} />
+            <ComparisonRow label={t('stats.dominations')} values={loadedKingdoms.map(k => getDominations(k))} />
+            <ComparisonRow label={t('stats.invasions')} values={loadedKingdoms.map(k => getInvasions(k))} higherIsBetter={false} />
             
             <SectionDivider />
 
             {/* Prep Stats */}
-            <ComparisonRow label="Prep Wins" values={loadedKingdoms.map(k => k.prep_wins)} />
-            <ComparisonRow label="Prep Win Rate" values={loadedKingdoms.map(k => k.prep_win_rate)} format="percent" />
-            <ComparisonRow label="Prep Streak" values={loadedKingdoms.map(k => getCurrentStreak(k, 'prep'))} />
+            <ComparisonRow label={t('compare.prepWins', 'Prep Wins')} values={loadedKingdoms.map(k => k.prep_wins)} />
+            <ComparisonRow label={t('stats.prepWinRate')} values={loadedKingdoms.map(k => k.prep_win_rate)} format="percent" />
+            <ComparisonRow label={t('compare.prepStreak', 'Prep Streak')} values={loadedKingdoms.map(k => getCurrentStreak(k, 'prep'))} />
             
             <SectionDivider />
 
             {/* Battle Stats */}
-            <ComparisonRow label="Battle Wins" values={loadedKingdoms.map(k => k.battle_wins)} />
-            <ComparisonRow label="Battle Win Rate" values={loadedKingdoms.map(k => k.battle_win_rate)} format="percent" />
-            <ComparisonRow label="Battle Streak" values={loadedKingdoms.map(k => getCurrentStreak(k, 'battle'))} />
+            <ComparisonRow label={t('compare.battleWins', 'Battle Wins')} values={loadedKingdoms.map(k => k.battle_wins)} />
+            <ComparisonRow label={t('stats.battleWinRate')} values={loadedKingdoms.map(k => k.battle_win_rate)} format="percent" />
+            <ComparisonRow label={t('compare.battleStreak', 'Battle Streak')} values={loadedKingdoms.map(k => getCurrentStreak(k, 'battle'))} />
 
           </div>
 
@@ -857,13 +860,13 @@ const CompareKingdoms: React.FC = () => {
 
         {loadedKingdoms.length === 0 && !loading && (
           <div style={{ textAlign: 'center', color: '#6b7280', marginTop: '-0.5rem' }}>
-            <div style={{ fontSize: isMobile ? '0.8rem' : '0.85rem' }}>Pick your matchup. The numbers will tell the story.</div>
+            <div style={{ fontSize: isMobile ? '0.8rem' : '0.85rem' }}>{t('compare.pickMatchup', 'Pick your matchup. The numbers will tell the story.')}</div>
           </div>
         )}
 
         {/* Back to Home link */}
         <div style={{ textAlign: 'center', marginTop: '2rem', paddingBottom: '1rem' }}>
-          <Link to="/" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: '0.8rem' }}>← Back to Home</Link>
+          <Link to="/" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: '0.8rem' }}>{t('common.backToHome')}</Link>
         </div>
       </div>
     </div>

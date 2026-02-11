@@ -30,9 +30,13 @@ import {
   NewKingdomsTab, 
   ClaimsTab,
   AdminActivityFeed,
-  PlausibleInsights,
   TransferApplicationsTab,
   TransferHubAdminTab,
+  EmailTab,
+  FeedbackTab,
+  CorrectionsTab,
+  KvKErrorsTab,
+  TransferStatusTab,
   SkeletonGrid,
   type Submission,
   type Claim,
@@ -50,7 +54,7 @@ const AdminDashboard: React.FC = () => {
   const { showToast } = useToast();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [activeTab, setActiveTab] = useState<'analytics' | 'saas-metrics' | 'engagement' | 'webhooks' | 'data-sources' | 'discord-bot' | 'discord-roles' | 'referrals' | 'submissions' | 'new-kingdoms' | 'claims' | 'corrections' | 'kvk-errors' | 'import' | 'plausible' | 'transfer-status' | 'transfer-apps' | 'transfer-hub' | 'feedback'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'saas-metrics' | 'engagement' | 'webhooks' | 'data-sources' | 'discord-bot' | 'discord-roles' | 'referrals' | 'submissions' | 'new-kingdoms' | 'claims' | 'corrections' | 'kvk-errors' | 'import' | 'plausible' | 'transfer-status' | 'transfer-apps' | 'transfer-hub' | 'feedback' | 'email'>('analytics');
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [claims, setClaims] = useState<Claim[]>([]);
   const [transferSubmissions, setTransferSubmissions] = useState<StatusSubmission[]>([]);
@@ -84,6 +88,8 @@ const AdminDashboard: React.FC = () => {
   const [incrementingKvK, setIncrementingKvK] = useState(false);
   const [apiHealth, setApiHealth] = useState<{ api: 'ok' | 'error' | 'loading'; supabase: 'ok' | 'error' | 'loading'; stripe: 'ok' | 'error' | 'loading' }>({ api: 'loading', supabase: 'loading', stripe: 'loading' });
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
+  const [unreadEmailCount, setUnreadEmailCount] = useState(0);
+  const [dashboardSearch, setDashboardSearch] = useState('');
 
   // Check if user is admin
   const isAdmin = profile?.username && ADMIN_USERNAMES.includes(profile.username.toLowerCase());
@@ -99,6 +105,37 @@ const AdminDashboard: React.FC = () => {
     if (isAdmin) {
       getCurrentKvK().then(kvk => setCurrentKvK(kvk));
     }
+  }, [isAdmin]);
+
+  // P5: Auto-refresh analytics every 60 seconds when on analytics tab
+  useEffect(() => {
+    if (!isAdmin || activeTab !== 'analytics') return;
+    const interval = setInterval(() => {
+      fetchAnalytics();
+      fetchPendingCounts();
+    }, 60000);
+    return () => clearInterval(interval);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdmin, activeTab]);
+
+  // S1.2: Poll unread email count every 30 seconds
+  const fetchUnreadEmailCount = async () => {
+    try {
+      const authHeaders = await getAuthHeaders({ requireAuth: false });
+      const res = await fetch(`${API_URL}/api/v1/admin/email/stats`, { headers: authHeaders });
+      if (res.ok) {
+        const data = await res.json();
+        setUnreadEmailCount(data.unread || 0);
+      }
+    } catch { /* silent */ }
+  };
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    fetchUnreadEmailCount();
+    const interval = setInterval(fetchUnreadEmailCount, 30000);
+    return () => clearInterval(interval);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdmin]);
 
   // Keyboard shortcuts
@@ -1543,6 +1580,25 @@ const AdminDashboard: React.FC = () => {
               {totalPending} pending
             </div>
           )}
+          {unreadEmailCount > 0 && (
+            <div
+              onClick={() => setActiveTab('email')}
+              style={{ 
+                padding: '0.2rem 0.6rem', 
+                backgroundColor: '#ef444420', 
+                borderRadius: '12px',
+                border: '1px solid #ef444450',
+                color: '#ef4444',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.3rem',
+              }}>
+              📧 {unreadEmailCount} unread
+            </div>
+          )}
           {viewAsUser && <span style={{ fontSize: '0.75rem', color: '#fbbf24', fontStyle: 'italic' }}>(User View)</span>}
         </div>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
@@ -1587,6 +1643,21 @@ const AdminDashboard: React.FC = () => {
         </div>
       </div>
 
+      {/* S2.4: Dashboard-wide search bar */}
+      <div style={{ marginBottom: '0.5rem' }}>
+        <input
+          type="text"
+          value={dashboardSearch}
+          onChange={(e) => setDashboardSearch(e.target.value)}
+          placeholder="Search across submissions, corrections, feedback, emails..."
+          style={{
+            width: '100%', padding: '0.5rem 0.75rem', backgroundColor: '#111116',
+            border: '1px solid #2a2a2a', borderRadius: '8px', color: '#fff', fontSize: '0.85rem',
+            outline: 'none', boxSizing: 'border-box',
+          }}
+        />
+      </div>
+
       {/* Primary Category Tabs */}
       <div style={{ 
         display: 'flex', 
@@ -1609,7 +1680,7 @@ const AdminDashboard: React.FC = () => {
               if (cat.id === 'analytics') setActiveTab('analytics');
               else if (cat.id === 'review') setActiveTab('submissions');
               else if (cat.id === 'transfer') setActiveTab('transfer-hub');
-              else setActiveTab('feedback');
+              else setActiveTab('email');
             }}
             style={{
               padding: '0.5rem 1rem',
@@ -1751,6 +1822,7 @@ const AdminDashboard: React.FC = () => {
           </button>
         ))}
         {activeCategory === 'system' && [
+          { id: 'email', label: 'Email', count: unreadEmailCount },
           { id: 'feedback', label: 'Feedback', count: pendingCounts.feedback },
           { id: 'discord-bot', label: 'Discord Bot', count: 0 },
           { id: 'discord-roles', label: 'Discord Roles', count: 0 },
@@ -1843,10 +1915,6 @@ const AdminDashboard: React.FC = () => {
             onIncrementKvK={handleIncrementKvK}
             onGrantSubscription={handleGrantSubscription}
           />
-          {/* Plausible Insights: Sources, Countries, Top Pages */}
-          <div style={{ marginTop: '1.5rem' }}>
-            <PlausibleInsights />
-          </div>
           {/* Admin Activity Feed */}
           <div style={{ marginTop: '1.5rem' }}>
             <AdminActivityFeed />
@@ -1900,350 +1968,41 @@ const AdminDashboard: React.FC = () => {
           onVerify={verifyClaim}
         />
       ) : activeTab === 'corrections' ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          {/* A2: Bulk Actions Toolbar */}
-          {filter === 'pending' && corrections.some(c => c.status === 'pending') && (
-            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', padding: '0.75rem', backgroundColor: '#111116', borderRadius: '8px', border: '1px solid #2a2a2a' }}>
-              <button onClick={() => selectAllPending('corrections')} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#22d3ee20', border: '1px solid #22d3ee50', borderRadius: '6px', color: '#22d3ee', fontSize: '0.8rem', cursor: 'pointer' }}>
-                Select All ({corrections.filter(c => c.status === 'pending').length})
-              </button>
-              {selectedItems.size > 0 && (
-                <>
-                  <span style={{ color: '#9ca3af', fontSize: '0.8rem' }}>{selectedItems.size} selected</span>
-                  <button onClick={() => bulkReviewCorrections('approved')} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#22c55e', border: 'none', borderRadius: '6px', color: '#fff', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>
-                    ✓ Approve All
-                  </button>
-                  <button onClick={() => bulkReviewCorrections('rejected')} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#ef4444', border: 'none', borderRadius: '6px', color: '#fff', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>
-                    ✗ Reject All
-                  </button>
-                  <button onClick={clearSelection} style={{ padding: '0.4rem 0.75rem', backgroundColor: 'transparent', border: '1px solid #3a3a3a', borderRadius: '6px', color: '#9ca3af', fontSize: '0.8rem', cursor: 'pointer' }}>
-                    Clear
-                  </button>
-                </>
-              )}
-            </div>
-          )}
-          {corrections.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
-              No {filter} data corrections
-            </div>
-          ) : (
-            corrections.map((correction) => (
-              <div key={correction.id} style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', border: selectedItems.has(correction.id) ? '2px solid #22d3ee' : '1px solid #2a2a2a' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    {correction.status === 'pending' && (
-                      <input type="checkbox" checked={selectedItems.has(correction.id)} onChange={() => toggleItemSelection(correction.id)} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
-                    )}
-                    <span style={{ color: '#22d3ee', fontWeight: 600 }}>K{correction.kingdom_number} - {correction.field}</span>
-                  </div>
-                  <div style={{ 
-                    padding: '0.25rem 0.75rem',
-                    backgroundColor: correction.status === 'pending' ? '#fbbf2420' : correction.status === 'approved' ? '#22c55e20' : '#ef444420',
-                    color: correction.status === 'pending' ? '#fbbf24' : correction.status === 'approved' ? '#22c55e' : '#ef4444',
-                    borderRadius: '9999px',
-                    fontSize: '0.75rem',
-                    fontWeight: 600
-                  }}>
-                    {correction.status.toUpperCase()}
-                  </div>
-                </div>
-                
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                  <div>
-                    <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>Current: </span>
-                    <span style={{ color: '#ef4444' }}>{correction.current_value}</span>
-                  </div>
-                  <div>
-                    <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>Suggested: </span>
-                    <span style={{ color: '#22c55e' }}>{correction.suggested_value}</span>
-                  </div>
-                </div>
-
-                {correction.reason && (
-                  <div style={{ color: '#9ca3af', fontSize: '0.875rem', marginBottom: '1rem' }}>
-                    Reason: {correction.reason}
-                  </div>
-                )}
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #2a2a2a', paddingTop: '1rem' }}>
-                  <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>
-                    By {correction.submitter_name} • {new Date(correction.created_at).toLocaleDateString()}
-                  </div>
-                  
-                  {correction.status === 'pending' && (
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button onClick={() => reviewCorrection(correction.id, 'approved')} style={{ padding: '0.5rem 1rem', backgroundColor: '#22c55e', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }}>
-                        Approve
-                      </button>
-                      <button onClick={() => setRejectModalOpen({ type: 'correction', id: correction.id })} style={{ padding: '0.5rem 1rem', backgroundColor: '#ef4444', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }}>
-                        Reject
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))
-          )}
-        </div>
+        <CorrectionsTab
+          corrections={corrections}
+          filter={filter}
+          selectedItems={selectedItems}
+          onReviewCorrection={reviewCorrection}
+          onRejectOpen={(id) => setRejectModalOpen({ type: 'correction', id })}
+          onSelectAllPending={() => selectAllPending('corrections')}
+          onToggleItem={toggleItemSelection}
+          onBulkReview={bulkReviewCorrections}
+          onClearSelection={clearSelection}
+        />
       ) : activeTab === 'kvk-errors' ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          {/* A2: Bulk Actions Toolbar for KvK Errors */}
-          {filter === 'pending' && kvkErrors.some(e => e.status === 'pending') && (
-            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', padding: '0.75rem', backgroundColor: '#111116', borderRadius: '8px', border: '1px solid #2a2a2a' }}>
-              <button onClick={() => selectAllPending('kvk-errors')} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#22d3ee20', border: '1px solid #22d3ee50', borderRadius: '6px', color: '#22d3ee', fontSize: '0.8rem', cursor: 'pointer' }}>
-                Select All ({kvkErrors.filter(e => e.status === 'pending').length})
-              </button>
-              {selectedItems.size > 0 && (
-                <>
-                  <span style={{ color: '#9ca3af', fontSize: '0.8rem' }}>{selectedItems.size} selected</span>
-                  <button onClick={() => bulkReviewKvkErrors('approved')} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#22c55e', border: 'none', borderRadius: '6px', color: '#fff', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>
-                    ✓ Approve All
-                  </button>
-                  <button onClick={() => bulkReviewKvkErrors('rejected')} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#ef4444', border: 'none', borderRadius: '6px', color: '#fff', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>
-                    ✗ Reject All
-                  </button>
-                  <button onClick={clearSelection} style={{ padding: '0.4rem 0.75rem', backgroundColor: 'transparent', border: '1px solid #3a3a3a', borderRadius: '6px', color: '#9ca3af', fontSize: '0.8rem', cursor: 'pointer' }}>
-                    Clear
-                  </button>
-                </>
-              )}
-            </div>
-          )}
-          {kvkErrors.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
-              No {filter} KvK error reports
-            </div>
-          ) : (
-            kvkErrors.map((error) => (
-              <div key={error.id} style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', border: selectedItems.has(error.id) ? '2px solid #22d3ee' : '1px solid #2a2a2a' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    {error.status === 'pending' && (
-                      <input type="checkbox" checked={selectedItems.has(error.id)} onChange={() => toggleItemSelection(error.id)} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
-                    )}
-                    <span style={{ color: '#22d3ee', fontWeight: 600 }}>K{error.kingdom_number}</span>
-                    {error.kvk_number && <span style={{ color: '#6b7280' }}> - KvK #{error.kvk_number}</span>}
-                  </div>
-                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                    <span style={{ 
-                      padding: '0.2rem 0.5rem',
-                      backgroundColor: '#ef444420',
-                      color: '#ef4444',
-                      borderRadius: '4px',
-                      fontSize: '0.7rem',
-                      fontWeight: 600
-                    }}>
-                      {error.error_type_label}
-                    </span>
-                    <div style={{ 
-                      padding: '0.25rem 0.75rem',
-                      backgroundColor: error.status === 'pending' ? '#fbbf2420' : error.status === 'approved' ? '#22c55e20' : '#ef444420',
-                      color: error.status === 'pending' ? '#fbbf24' : error.status === 'approved' ? '#22c55e' : '#ef4444',
-                      borderRadius: '9999px',
-                      fontSize: '0.75rem',
-                      fontWeight: 600
-                    }}>
-                      {error.status.toUpperCase()}
-                    </div>
-                  </div>
-                </div>
-                
-                {error.current_data && (() => {
-                  // Calculate what will change based on error_type
-                  const willFlipPrep = error.error_type === 'wrong_prep_result' || error.error_type === 'wrong_both_results';
-                  const willFlipBattle = error.error_type === 'wrong_battle_result' || error.error_type === 'wrong_both_results';
-                  const newPrep = willFlipPrep 
-                    ? (error.current_data.prep_result === 'Win' ? 'Loss' : 'Win')
-                    : error.current_data.prep_result;
-                  const newBattle = willFlipBattle
-                    ? (error.current_data.battle_result === 'Win' ? 'Loss' : 'Win')
-                    : error.current_data.battle_result;
-                  // Calculate overall result
-                  const prepWin = newPrep === 'Win';
-                  const battleWin = newBattle === 'Win';
-                  const newOverall = prepWin && battleWin ? 'Domination' 
-                    : !prepWin && battleWin ? 'Comeback'
-                    : prepWin && !battleWin ? 'Prep Only'
-                    : 'Invasion';
-                  
-                  return (
-                    <div style={{ 
-                      marginBottom: '1rem',
-                      padding: '0.75rem',
-                      backgroundColor: '#0a0a0a',
-                      borderRadius: '8px',
-                      border: '1px solid #1f1f1f'
-                    }}>
-                      {/* Before → After Preview */}
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: '0.75rem', alignItems: 'center' }}>
-                        {/* BEFORE */}
-                        <div>
-                          <div style={{ color: '#ef4444', fontSize: '0.7rem', marginBottom: '0.5rem', fontWeight: 600 }}>❌ CURRENT (WRONG)</div>
-                          <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem' }}>
-                            <div>
-                              <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>Prep</div>
-                              <div style={{ 
-                                color: error.current_data.prep_result === 'Win' ? '#22c55e' : '#ef4444',
-                                textDecoration: willFlipPrep ? 'line-through' : 'none',
-                                opacity: willFlipPrep ? 0.5 : 1
-                              }}>
-                                {error.current_data.prep_result === 'Win' ? 'W' : 'L'}
-                              </div>
-                            </div>
-                            <div>
-                              <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>Battle</div>
-                              <div style={{ 
-                                color: error.current_data.battle_result === 'Win' ? '#22c55e' : '#ef4444',
-                                textDecoration: willFlipBattle ? 'line-through' : 'none',
-                                opacity: willFlipBattle ? 0.5 : 1
-                              }}>
-                                {error.current_data.battle_result === 'Win' ? 'W' : 'L'}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        {/* Arrow */}
-                        <div style={{ color: '#22d3ee', fontSize: '1.5rem', fontWeight: 700 }}>→</div>
-                        
-                        {/* AFTER */}
-                        <div>
-                          <div style={{ color: '#22c55e', fontSize: '0.7rem', marginBottom: '0.5rem', fontWeight: 600 }}>✓ AFTER APPROVAL</div>
-                          <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem' }}>
-                            <div>
-                              <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>Prep</div>
-                              <div style={{ 
-                                color: newPrep === 'Win' ? '#22c55e' : '#ef4444',
-                                fontWeight: willFlipPrep ? 700 : 400
-                              }}>
-                                {newPrep === 'Win' ? 'W' : 'L'}
-                                {willFlipPrep && <span style={{ color: '#fbbf24', marginLeft: '0.25rem' }}>⚡</span>}
-                              </div>
-                            </div>
-                            <div>
-                              <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>Battle</div>
-                              <div style={{ 
-                                color: newBattle === 'Win' ? '#22c55e' : '#ef4444',
-                                fontWeight: willFlipBattle ? 700 : 400
-                              }}>
-                                {newBattle === 'Win' ? 'W' : 'L'}
-                                {willFlipBattle && <span style={{ color: '#fbbf24', marginLeft: '0.25rem' }}>⚡</span>}
-                              </div>
-                            </div>
-                            <div>
-                              <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>Result</div>
-                              <div style={{ 
-                                color: newOverall === 'Domination' ? '#22c55e' : newOverall === 'Invasion' ? '#ef4444' : '#fbbf24',
-                                fontWeight: 600,
-                                fontSize: '0.75rem'
-                              }}>
-                                {newOverall}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Opponent info */}
-                      <div style={{ marginTop: '0.75rem', paddingTop: '0.5rem', borderTop: '1px solid #1f1f1f', color: '#6b7280', fontSize: '0.75rem' }}>
-                        vs <span style={{ color: '#22d3ee' }}>K{error.current_data.opponent}</span>
-                        {' '}• Also updates K{error.current_data.opponent}&apos;s record (inverse)
-                      </div>
-                    </div>
-                  );
-                })()}
-
-                <div style={{ color: '#fff', fontSize: '0.875rem', marginBottom: '1rem', padding: '0.75rem', backgroundColor: '#1a1a20', borderRadius: '6px' }}>
-                  <span style={{ color: '#6b7280' }}>Description: </span>
-                  {error.description}
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #2a2a2a', paddingTop: '1rem' }}>
-                  <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>
-                    By {error.submitted_by_name} • {new Date(error.submitted_at).toLocaleDateString()}
-                  </div>
-                  
-                  {error.status === 'pending' && (
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button onClick={() => reviewKvkError(error.id, 'approved')} style={{ padding: '0.5rem 1rem', backgroundColor: '#22c55e', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }}>
-                        Approve
-                      </button>
-                      <button onClick={() => setRejectModalOpen({ type: 'kvk-error', id: error.id })} style={{ padding: '0.5rem 1rem', backgroundColor: '#ef4444', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }}>
-                        Reject
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))
-          )}
-        </div>
+        <KvKErrorsTab
+          kvkErrors={kvkErrors}
+          filter={filter}
+          selectedItems={selectedItems}
+          onReviewError={reviewKvkError}
+          onRejectOpen={(id) => setRejectModalOpen({ type: 'kvk-error', id })}
+          onSelectAllPending={() => selectAllPending('kvk-errors')}
+          onToggleItem={toggleItemSelection}
+          onBulkReview={bulkReviewKvkErrors}
+          onClearSelection={clearSelection}
+        />
       ) : activeTab === 'transfer-hub' ? (
         <TransferHubAdminTab />
       ) : activeTab === 'transfer-status' ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          {transferSubmissions.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
-              No {filter} transfer status submissions
-            </div>
-          ) : (
-            transferSubmissions.map((sub) => (
-              <div key={sub.id} style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', border: '1px solid #2a2a2a' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                  <span style={{ color: '#22d3ee', fontWeight: 600, fontSize: '1.25rem' }}>Kingdom {sub.kingdom_number}</span>
-                  <div style={{ 
-                    padding: '0.25rem 0.75rem',
-                    backgroundColor: sub.status === 'pending' ? '#fbbf2420' : sub.status === 'approved' ? '#22c55e20' : '#ef444420',
-                    color: sub.status === 'pending' ? '#fbbf24' : sub.status === 'approved' ? '#22c55e' : '#ef4444',
-                    borderRadius: '9999px',
-                    fontSize: '0.75rem',
-                    fontWeight: 600
-                  }}>
-                    {sub.status.toUpperCase()}
-                  </div>
-                </div>
-                
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                  <div>
-                    <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>Previous Status: </span>
-                    <span style={{ color: '#ef4444' }}>{sub.old_status || 'Unknown'}</span>
-                  </div>
-                  <div>
-                    <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>New Status: </span>
-                    <span style={{ color: '#22c55e' }}>{sub.new_status}</span>
-                  </div>
-                </div>
-
-                {sub.notes && (
-                  <div style={{ color: '#9ca3af', fontSize: '0.875rem', marginBottom: '1rem' }}>
-                    Notes: {sub.notes}
-                  </div>
-                )}
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #2a2a2a', paddingTop: '1rem' }}>
-                  <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>
-                    Submitted {new Date(sub.submitted_at).toLocaleDateString()}
-                    {sub.reviewed_at && ` • Reviewed ${new Date(sub.reviewed_at).toLocaleDateString()}`}
-                  </div>
-                  
-                  {sub.status === 'pending' && (
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button onClick={() => reviewTransferSubmission(sub.id, 'approved')} style={{ padding: '0.5rem 1rem', backgroundColor: '#22c55e', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }}>
-                        Approve
-                      </button>
-                      <button onClick={() => reviewTransferSubmission(sub.id, 'rejected')} style={{ padding: '0.5rem 1rem', backgroundColor: '#ef4444', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }}>
-                        Reject
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))
-          )}
-        </div>
+        <TransferStatusTab
+          transferSubmissions={transferSubmissions}
+          filter={filter}
+          onReview={reviewTransferSubmission}
+        />
       ) : activeTab === 'transfer-apps' ? (
         <TransferApplicationsTab />
+      ) : activeTab === 'email' ? (
+        <EmailTab />
       ) : activeTab === 'plausible' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           <div style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', border: '1px solid #2a2a2a' }}>
@@ -2354,173 +2113,19 @@ const AdminDashboard: React.FC = () => {
             ))}
           </div>
 
-          {/* Feature Usage - Real tracking data */}
-          <div style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', border: '1px solid #2a2a2a' }}>
-            <h3 style={{ color: '#fff', marginBottom: '1rem', fontSize: '1rem' }}>🎯 Feature Usage (Real Data)</h3>
-            {(analytics?.featureUsage || []).length > 0 ? (
-              analytics?.featureUsage?.map((feature, i) => (
-                <div key={i} style={{ 
-                  display: 'flex', 
-                  justifyContent: 'space-between', 
-                  alignItems: 'center',
-                  padding: '0.5rem 0',
-                  borderBottom: i < (analytics?.featureUsage?.length || 0) - 1 ? '1px solid #1a1a1f' : 'none'
-                }}>
-                  <span style={{ color: '#fff' }}>{feature.feature}</span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <span style={{ color: '#22c55e', fontWeight: '600' }}>{feature.count}x</span>
-                    <span style={{ color: '#6b7280', fontSize: '0.7rem' }}>
-                      {new Date(feature.lastUsed).toLocaleDateString()}
-                    </span>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>No feature usage data yet. Data will appear as users interact with the app.</p>
-            )}
-          </div>
-
-          {/* Button Clicks - Real tracking data */}
-          <div style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', border: '1px solid #2a2a2a' }}>
-            <h3 style={{ color: '#fff', marginBottom: '1rem', fontSize: '1rem' }}>🖱️ Button Clicks (Real Data)</h3>
-            {(analytics?.buttonClicks || []).length > 0 ? (
-              analytics?.buttonClicks?.map((button, i) => (
-                <div key={i} style={{ 
-                  display: 'flex', 
-                  justifyContent: 'space-between', 
-                  alignItems: 'center',
-                  padding: '0.5rem 0',
-                  borderBottom: i < (analytics?.buttonClicks?.length || 0) - 1 ? '1px solid #1a1a1f' : 'none'
-                }}>
-                  <span style={{ color: '#fff' }}>{button.feature}</span>
-                  <span style={{ color: '#f97316', fontWeight: '600' }}>{button.count}x</span>
-                </div>
-              ))
-            ) : (
-              <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>No button click data yet. Data will appear as users interact with the app.</p>
-            )}
-          </div>
-
-          {/* Activity Timeline - Events by Day */}
-          {analytics?.eventsByDay && analytics.eventsByDay.length > 0 && (
-            <div style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', border: '1px solid #2a2a2a' }}>
-              <h3 style={{ color: '#fff', marginBottom: '1rem', fontSize: '1rem' }}>📊 Activity (Last 7 Days)</h3>
-              <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0.5rem', height: '100px' }}>
-                {analytics.eventsByDay.map((day, i) => {
-                  const maxCount = Math.max(...analytics.eventsByDay!.map(d => d.count), 1);
-                  const height = (day.count / maxCount) * 100;
-                  return (
-                    <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
-                      <div style={{ 
-                        width: '100%', 
-                        height: `${Math.max(height, 4)}%`,
-                        backgroundColor: '#22d3ee',
-                        borderRadius: '4px 4px 0 0',
-                        minHeight: '4px'
-                      }} />
-                      <span style={{ color: '#6b7280', fontSize: '0.6rem' }}>
-                        {new Date(day.date).toLocaleDateString('en', { weekday: 'short' })}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
         </div>
       ) : activeTab === 'feedback' ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          {/* Feedback Stats */}
-          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
-            {(['new', 'reviewed', 'in_progress', 'resolved', 'closed'] as const).map(status => {
-              const count = feedbackCounts[status];
-              const colors: Record<string, string> = { new: '#fbbf24', reviewed: '#22d3ee', in_progress: '#a855f7', resolved: '#22c55e', closed: '#6b7280' };
-              return (
-                <div key={status} style={{ backgroundColor: '#111116', padding: '0.75rem 1rem', borderRadius: '8px', border: '1px solid #2a2a2a', minWidth: '80px', textAlign: 'center' }}>
-                  <div style={{ color: colors[status], fontWeight: 700, fontSize: '1.25rem' }}>{count}</div>
-                  <div style={{ color: '#6b7280', fontSize: '0.7rem', textTransform: 'capitalize' }}>{status.replace('_', ' ')}</div>
-                </div>
-              );
-            })}
-          </div>
-
-          {feedbackItems.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
-              No feedback found
-            </div>
-          ) : (
-            feedbackItems.map((item) => (
-              <div key={item.id} style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1rem', border: '1px solid #2a2a2a' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
-                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                    <span style={{ fontSize: '1.25rem' }}>
-                      {item.type === 'bug' ? '🐛' : item.type === 'feature' ? '✨' : '💭'}
-                    </span>
-                    <span style={{ color: '#fff', fontWeight: 600, textTransform: 'capitalize' }}>{item.type}</span>
-                    <span style={{ 
-                      padding: '0.2rem 0.5rem', 
-                      borderRadius: '4px', 
-                      fontSize: '0.7rem', 
-                      fontWeight: 600,
-                      backgroundColor: item.status === 'new' ? '#fbbf2420' : item.status === 'resolved' ? '#22c55e20' : '#22d3ee20',
-                      color: item.status === 'new' ? '#fbbf24' : item.status === 'resolved' ? '#22c55e' : '#22d3ee'
-                    }}>
-                      {item.status.replace('_', ' ')}
-                    </span>
-                  </div>
-                  <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>
-                    {new Date(item.created_at).toLocaleDateString()} {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                </div>
-                
-                <p style={{ color: '#e5e7eb', fontSize: '0.9rem', marginBottom: '0.75rem', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
-                  {item.message}
-                </p>
-                
-                {item.email && (
-                  <div style={{ fontSize: '0.75rem', color: '#9ca3af', marginBottom: '0.5rem' }}>
-                    📧 <a href={`mailto:${item.email}`} style={{ color: '#22d3ee' }}>{item.email}</a>
-                  </div>
-                )}
-                
-                {item.page_url && (
-                  <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.5rem' }}>
-                    📍 {item.page_url.replace(window.location.origin, '')}
-                  </div>
-                )}
-
-                {item.admin_notes && (
-                  <div style={{ backgroundColor: '#0a0a0a', padding: '0.5rem 0.75rem', borderRadius: '6px', marginBottom: '0.75rem', fontSize: '0.8rem' }}>
-                    <span style={{ color: '#6b7280' }}>Admin notes:</span> <span style={{ color: '#9ca3af' }}>{item.admin_notes}</span>
-                  </div>
-                )}
-                
-                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                  {item.status === 'new' && (
-                    <button onClick={() => updateFeedbackStatus(item.id, 'reviewed')} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#22d3ee20', border: '1px solid #22d3ee50', borderRadius: '6px', color: '#22d3ee', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 500 }}>
-                      ✓ Mark Reviewed
-                    </button>
-                  )}
-                  {(item.status === 'new' || item.status === 'reviewed') && (
-                    <button onClick={() => updateFeedbackStatus(item.id, 'in_progress')} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#a855f720', border: '1px solid #a855f750', borderRadius: '6px', color: '#a855f7', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 500 }}>
-                      🔧 In Progress
-                    </button>
-                  )}
-                  {item.status !== 'resolved' && item.status !== 'closed' && (
-                    <button onClick={() => updateFeedbackStatus(item.id, 'resolved')} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#22c55e20', border: '1px solid #22c55e50', borderRadius: '6px', color: '#22c55e', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 500 }}>
-                      ✅ Resolved
-                    </button>
-                  )}
-                  {item.status !== 'closed' && (
-                    <button onClick={() => updateFeedbackStatus(item.id, 'closed')} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#6b728020', border: '1px solid #6b728050', borderRadius: '6px', color: '#6b7280', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 500 }}>
-                      ✕ Close
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))
-          )}
-        </div>
+        <FeedbackTab
+          items={feedbackItems}
+          counts={feedbackCounts}
+          onUpdateStatus={updateFeedbackStatus}
+          onEmailReply={(email, subject, body) => {
+            // S2.2: Switch to email tab and pre-fill compose
+            setActiveTab('email');
+            // Store pre-fill data for EmailTab via sessionStorage
+            sessionStorage.setItem('email_prefill', JSON.stringify({ to: email, subject, body }));
+          }}
+        />
       ) : activeTab === 'import' ? (
         <div style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', border: '1px solid #2a2a2a' }}>
           <h3 style={{ color: '#fff', marginBottom: '0.5rem' }}>Bulk Import KvK Results</h3>

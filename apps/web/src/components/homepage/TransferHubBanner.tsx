@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '../../hooks/useMediaQuery';
+import { useTranslation } from 'react-i18next';
 import { useAnalytics } from '../../hooks/useAnalytics';
 import { getTransferStatus } from '../KvKCountdown';
 
@@ -11,6 +12,7 @@ const TransferHubBanner: React.FC = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { trackFeature } = useAnalytics();
+  const { t } = useTranslation();
   const [dismissed, setDismissed] = useState(() => {
     const ts = localStorage.getItem(DISMISS_KEY);
     if (!ts) return false;
@@ -105,7 +107,7 @@ const TransferHubBanner: React.FC = () => {
               <path d="M17 20L21 16L17 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               <path d="M21 16H9C6.23858 16 4 13.7614 4 11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             </svg>
-            {isLive ? 'Transfer Event is LIVE' : 'Looking to transfer?'}
+            {isLive ? t('transferBanner.eventLive', 'Transfer Event is LIVE') : t('transferBanner.lookingToTransfer', 'Looking to transfer?')}
           </h3>
           <p style={{
             color: '#9ca3af',
@@ -113,8 +115,8 @@ const TransferHubBanner: React.FC = () => {
             margin: 0,
           }}>
             {isLive
-              ? <>The <span style={{ color: '#22c55e', fontWeight: 600 }}>{transferStatus.phaseName}</span> phase is active now.</>
-              : <>Find the perfect kingdom for you. No more blind transfers.</>
+              ? <>{t('transferBanner.phaseActivePrefix', 'The ')}<span style={{ color: '#22c55e', fontWeight: 600 }}>{transferStatus.phaseName}</span>{t('transferBanner.phaseActiveSuffix', ' phase is active now.')}</>
+              : <>{t('transferBanner.findPerfect', 'Find the perfect kingdom for you. No more blind transfers.')}</>
             }
           </p>
         </div>
@@ -152,7 +154,7 @@ const TransferHubBanner: React.FC = () => {
               textTransform: 'uppercase',
               lineHeight: 1.2,
             }}>
-              {isLive ? transferStatus.phaseName : 'Next Transfer'}
+              {isLive ? transferStatus.phaseName : t('transferBanner.nextTransfer', 'Next Transfer')}
             </div>
           </div>
           <button
@@ -187,7 +189,7 @@ const TransferHubBanner: React.FC = () => {
               e.currentTarget.style.transform = 'translateY(0)';
             }}
           >
-            Browse Transfer Hub →
+            {t('transferBanner.browseHub', 'Browse Transfer Hub →')}
           </button>
         </div>
       </div>

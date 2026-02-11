@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Kingdom, getPowerTier } from '../types';
 import { getTierColor } from '../utils/styles';
+import { useTranslation } from 'react-i18next';
 
 interface HotRightNowProps {
   kingdoms: Kingdom[];
@@ -14,6 +15,7 @@ const HotRightNow: React.FC<HotRightNowProps> = ({
   recentlyViewed = [],
   limit = 6 
 }) => {
+  const { t } = useTranslation();
   const hotKingdoms = useMemo(() => {
     // Calculate "hotness" based on various factors
     const scored = kingdoms.map(k => {
@@ -67,7 +69,7 @@ const HotRightNow: React.FC<HotRightNowProps> = ({
         gap: '0.5rem'
       }}>
         <span style={{ color: '#ef4444' }}>🔥</span>
-        Hot Right Now
+        {t('hotRightNow.title', 'Hot Right Now')}
       </h3>
       
       <div style={{ 

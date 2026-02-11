@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface GameEvent {
   id: string;
@@ -157,6 +158,7 @@ const generateEvents = (): GameEvent[] => {
 };
 
 const EventCalendar: React.FC = () => {
+  const { t } = useTranslation();
   const [events] = useState<GameEvent[]>(generateEvents);
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();
@@ -213,7 +215,7 @@ const EventCalendar: React.FC = () => {
         alignItems: 'center',
         gap: '0.5rem'
       }}>
-        📅 Event Calendar
+        {t('eventCalendar.title', '📅 Event Calendar')}
       </h2>
 
       {/* Month Navigation */}
@@ -329,7 +331,7 @@ const EventCalendar: React.FC = () => {
       {/* Upcoming Events List */}
       <div>
         <h3 style={{ color: '#9ca3af', fontSize: '0.85rem', marginBottom: '0.75rem' }}>
-          Upcoming Events
+          {t('eventCalendar.upcoming', 'Upcoming Events')}
         </h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           {upcomingEvents.map(event => (

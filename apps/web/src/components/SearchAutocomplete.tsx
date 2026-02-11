@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { Kingdom } from '../types';
 import { useIsMobile } from '../hooks/useMediaQuery';
+import { useTranslation } from 'react-i18next';
 import { useAnalytics } from '../hooks/useAnalytics';
 
 interface SearchAutocompleteProps {
@@ -25,6 +26,7 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const { t } = useTranslation();
   const { trackSearch, trackFeature } = useAnalytics();
 
   const suggestions = useMemo(() => value.trim()
@@ -127,7 +129,7 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
         onFocus={() => setIsFocused(true)}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
-        placeholder={isMobile ? "Search by kingdom #..." : placeholder}
+        placeholder={isMobile ? t('search.mobilePlaceholder', 'Search by kingdom #...') : placeholder}
         style={{
           width: '100%',
           padding: '0.875rem 3rem 0.875rem 3rem',
@@ -203,7 +205,7 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
                   fontSize: '0.95rem',
                   fontFamily: "'Cinzel', serif"
                 }}>
-                  Kingdom {kingdom.kingdom_number}
+                  {t('common.kingdom', 'Kingdom')} {kingdom.kingdom_number}
                 </span>
                 <span style={{
                   backgroundColor: kingdom.power_tier === 'S' ? '#fbbf2420' : 
@@ -230,7 +232,7 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
           
           {value.trim() && suggestions.length === 0 && (
             <div style={{ padding: '1rem', textAlign: 'center', color: '#6b7280', fontSize: '0.85rem' }}>
-              No kingdoms match &quot;{value}&quot;
+              {t('search.noResults', 'No kingdoms match "{{query}}"', { query: value })}
             </div>
           )}
         </div>

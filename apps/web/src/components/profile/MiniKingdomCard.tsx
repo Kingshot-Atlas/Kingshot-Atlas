@@ -2,6 +2,7 @@ import React, { useState, memo } from 'react';
 import { Kingdom, getPowerTier } from '../../types';
 import { TierBadge } from '../shared';
 import { neonGlow } from '../../utils/styles';
+import { useTranslation } from 'react-i18next';
 
 interface MiniKingdomCardProps {
   kingdom: Kingdom;
@@ -18,6 +19,7 @@ const MiniKingdomCard: React.FC<MiniKingdomCardProps> = ({
   isMobile, 
   navigate 
 }) => {
+  const { t } = useTranslation();
   const [isHovered, setIsHovered] = useState(false);
 
   const tier = kingdom.power_tier ?? getPowerTier(kingdom.overall_score);
@@ -80,7 +82,7 @@ const MiniKingdomCard: React.FC<MiniKingdomCardProps> = ({
           fontFamily: "'Cinzel', serif",
           letterSpacing: '0.02em'
         }}>
-          Kingdom {kingdom.kingdom_number}
+          {t('common.kingdom', 'Kingdom')} {kingdom.kingdom_number}
         </span>
         <TierBadge tier={tier as 'S' | 'A' | 'B' | 'C' | 'D'} />
       </div>
@@ -127,7 +129,7 @@ const MiniKingdomCard: React.FC<MiniKingdomCardProps> = ({
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.4rem' }}>
             <span style={{ fontSize: '0.9rem' }}>🛡️</span>
-            <span style={{ fontSize: '0.75rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Prep</span>
+            <span style={{ fontSize: '0.75rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('kingdom.prep', 'Prep')}</span>
           </div>
           <div style={{ fontSize: '0.85rem', color: '#fff', marginBottom: '0.4rem' }}>
             {prepWins}W – {prepLosses}L
@@ -150,7 +152,7 @@ const MiniKingdomCard: React.FC<MiniKingdomCardProps> = ({
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.4rem' }}>
             <span style={{ fontSize: '0.9rem' }}>⚔️</span>
-            <span style={{ fontSize: '0.75rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Battle</span>
+            <span style={{ fontSize: '0.75rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('kingdom.battle', 'Battle')}</span>
           </div>
           <div style={{ fontSize: '0.85rem', color: '#fff', marginBottom: '0.4rem' }}>
             {battleWins}W – {battleLosses}L

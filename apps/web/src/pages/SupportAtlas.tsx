@@ -9,8 +9,10 @@ import { useAuth } from '../contexts/AuthContext';
 import { usePremium } from '../contexts/PremiumContext';
 import SupportButton from '../components/SupportButton';
 import { getCheckoutUrl } from '../lib/stripe';
+import { useTranslation } from 'react-i18next';
 
 const SupportAtlas: React.FC = () => {
+  const { t } = useTranslation();
   useDocumentTitle('Support Atlas');
   useMetaTags(PAGE_META_TAGS.support);
   useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.support });
@@ -42,12 +44,12 @@ const SupportAtlas: React.FC = () => {
   }, [isCanceled, setSearchParams]);
 
   const supporterPerks = [
-    { icon: '⭐', text: 'Supporter Badge', desc: 'Pink badge on your profile' },
-    { icon: '💜', text: 'Discord Supporter Role', desc: 'Exclusive pink role in Discord' },
-    { icon: '⚔️', text: 'Unlimited Premium Bot Commands', desc: 'Unlimited /multirally and future premium commands (free users get 3/day)' },
-    { icon: '🎙️', text: 'Exclusive Discord Channel', desc: 'Access to supporter-only discussions' },
-    { icon: '🚀', text: 'Early Access to New Features', desc: 'Be the first to try upcoming tools' },
-    { icon: '🚫', text: 'Ad-Free Experience', desc: 'Clean, distraction-free browsing' },
+    { icon: '⭐', text: t('support.perk1Title', 'Supporter Badge'), desc: t('support.perk1Desc', 'Pink badge on your profile') },
+    { icon: '💜', text: t('support.perk2Title', 'Discord Supporter Role'), desc: t('support.perk2Desc', 'Exclusive pink role in Discord') },
+    { icon: '⚔️', text: t('support.perk3Title', 'Unlimited Premium Bot Commands'), desc: t('support.perk3Desc', 'Unlimited /multirally and future premium commands (free users get 3/day)') },
+    { icon: '🎙️', text: t('support.perk4Title', 'Exclusive Discord Channel'), desc: t('support.perk4Desc', 'Access to supporter-only discussions') },
+    { icon: '🚀', text: t('support.perk5Title', 'Early Access to New Features'), desc: t('support.perk5Desc', 'Be the first to try upcoming tools') },
+    { icon: '🚫', text: t('support.perk6Title', 'Ad-Free Experience'), desc: t('support.perk6Desc', 'Clean, distraction-free browsing') },
   ];
 
   const handleStripeCheckout = () => {
@@ -60,12 +62,12 @@ const SupportAtlas: React.FC = () => {
   };
 
   const freeFeatures = [
-    { icon: '📜', text: 'Full KvK History', desc: 'Every match, every result, every kingdom' },
-    { icon: '⚡', text: 'Atlas Score & Rankings', desc: 'See where every kingdom stands' },
-    { icon: '⚔️', text: 'Kingdom Comparison', desc: 'Compare up to 2 kingdoms side-by-side' },
-    { icon: '🎯', text: 'Score Simulator', desc: 'Project future scores based on outcomes' },
-    { icon: '📊', text: 'Detailed Kingdom Profiles', desc: 'Full stats and performance history' },
-    { icon: '📅', text: 'Event Calendar', desc: 'KvK and Transfer Event schedules' },
+    { icon: '📜', text: t('support.free1Title', 'Full KvK History'), desc: t('support.free1Desc', 'Every match, every result, every kingdom') },
+    { icon: '⚡', text: t('support.free2Title', 'Atlas Score & Rankings'), desc: t('support.free2Desc', 'See where every kingdom stands') },
+    { icon: '⚔️', text: t('support.free3Title', 'Kingdom Comparison'), desc: t('support.free3Desc', 'Compare up to 2 kingdoms side-by-side') },
+    { icon: '🎯', text: t('support.free4Title', 'Score Simulator'), desc: t('support.free4Desc', 'Project future scores based on outcomes') },
+    { icon: '📊', text: t('support.free5Title', 'Detailed Kingdom Profiles'), desc: t('support.free5Desc', 'Full stats and performance history') },
+    { icon: '📅', text: t('support.free6Title', 'Event Calendar'), desc: t('support.free6Desc', 'KvK and Transfer Event schedules') },
   ];
 
   const isSupporter = tier === 'supporter' && !isAdmin;
@@ -91,7 +93,7 @@ const SupportAtlas: React.FC = () => {
             <span style={{ ...neonGlow('#FF6B8A'), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>ATLAS</span>
           </h1>
           <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.85rem' : '0.95rem', marginBottom: '0.75rem', maxWidth: '500px', margin: '0 auto 0.75rem' }}>
-            Atlas is a community project built by players, for players. Your support keeps the lights on and new features coming.
+            {t('support.heroDesc', 'Atlas is a community project built by players, for players. Your support keeps the lights on and new features coming.')}
           </p>
           {!isMobile && (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
@@ -119,10 +121,10 @@ const SupportAtlas: React.FC = () => {
             <span style={{ fontSize: '1.5rem' }}>🎉</span>
             <div>
               <div style={{ color: '#22c55e', fontWeight: '600', marginBottom: '0.25rem' }}>
-                Thank you for your support!
+                {t('support.thankYou', 'Thank you for your support!')}
               </div>
               <div style={{ color: '#9ca3af', fontSize: '0.85rem' }}>
-                You&apos;re now an Atlas Supporter. Welcome to the family!
+                {t('support.welcomeFamily', "You're now an Atlas Supporter. Welcome to the family!")}
               </div>
             </div>
           </div>
@@ -142,7 +144,7 @@ const SupportAtlas: React.FC = () => {
           }}>
             <span style={{ fontSize: '1.25rem' }}>ℹ️</span>
             <div style={{ color: '#f59e0b', fontSize: '0.9rem' }}>
-              No worries — you can support anytime. We appreciate you being here!
+              {t('support.canceledMsg', 'No worries — you can support anytime. We appreciate you being here!')}
             </div>
           </div>
         )}
@@ -164,7 +166,7 @@ const SupportAtlas: React.FC = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <span style={{ color: '#FF6B8A', fontSize: '1rem' }}>�</span>
               <span style={{ color: '#FF6B8A', fontWeight: '600', fontSize: '0.9rem' }}>
-                You&apos;re a Supporter!
+                {t('support.youreSupporter', "You're a Supporter!")}
               </span>
             </div>
             <button
@@ -193,7 +195,7 @@ const SupportAtlas: React.FC = () => {
                 opacity: isLoading ? 0.7 : 1,
               }}
             >
-              {isLoading ? 'Opening...' : 'Manage'}
+              {isLoading ? t('support.opening', 'Opening...') : t('support.manage', 'Manage')}
             </button>
           </div>
         )}
@@ -223,7 +225,7 @@ const SupportAtlas: React.FC = () => {
             borderRadius: '4px',
             textTransform: 'uppercase'
           }}>
-            ⭐ Recommended
+            ⭐ {t('support.recommended', 'Recommended')}
           </div>
           
           <div style={{
@@ -247,7 +249,7 @@ const SupportAtlas: React.FC = () => {
             marginBottom: '0.5rem',
             fontFamily: FONT_DISPLAY
           }}>
-            Atlas Supporter
+            {t('support.supporterTier')}
           </h2>
           <div style={{ 
             fontSize: isMobile ? '1.75rem' : '2rem', 
@@ -258,10 +260,10 @@ const SupportAtlas: React.FC = () => {
             $4.99<span style={{ fontSize: '0.9rem', color: '#6b7280', fontWeight: 'normal' }}>/month</span>
           </div>
           <p style={{ color: '#6b7280', fontSize: '0.8rem', marginBottom: '1rem' }}>
-            Cancel anytime • Manage via Stripe
+            {t('support.cancelAnytime', 'Cancel anytime • Manage via Stripe')}
           </p>
           <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.85rem' : '0.9rem', lineHeight: 1.6, marginBottom: '1.5rem', maxWidth: '500px', margin: '0 auto 1.5rem' }}>
-            Get the Supporter Badge, Discord role, ad-free experience, and help fund Atlas development.
+            {t('support.getPerks', 'Get the Supporter Badge, Discord role, ad-free experience, and help fund Atlas development.')}
           </p>
 
           {/* Animated Supporter Badge Preview */}
@@ -326,7 +328,7 @@ const SupportAtlas: React.FC = () => {
                 cursor: 'default',
               }}
             >
-              ✓ You&apos;re a Supporter!
+              ✓ {t('support.youreSupporter', "You're a Supporter!")}
             </button>
           ) : user ? (
             <button
@@ -349,7 +351,7 @@ const SupportAtlas: React.FC = () => {
                 opacity: isLoading ? 0.7 : 1
               }}
             >
-              💖 Become a Supporter
+              💖 {t('support.becomeSupporter', 'Become a Supporter')}
             </button>
           ) : (
             <Link
@@ -370,12 +372,12 @@ const SupportAtlas: React.FC = () => {
                 textDecoration: 'none',
               }}
             >
-              🔐 Sign In to Subscribe
+              🔐 {t('support.signInToSubscribe', 'Sign In to Subscribe')}
             </Link>
           )}
           
           <p style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '1rem' }}>
-            Want to give more? You can increase your amount in the Stripe portal after subscribing.
+            {t('support.giveMore', 'Want to give more? You can increase your amount in the Stripe portal after subscribing.')}
           </p>
         </section>
 
@@ -391,15 +393,15 @@ const SupportAtlas: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
             <span style={{ fontSize: '1.25rem' }}>☕</span>
             <h3 style={{ color: '#fff', fontWeight: '600', fontSize: '1rem', margin: 0 }}>
-              One-Time Donation
+              {t('support.oneTimeDonation', 'One-Time Donation')}
             </h3>
           </div>
           <p style={{ color: '#9ca3af', fontSize: '0.85rem', lineHeight: 1.6, marginBottom: '1rem', maxWidth: '450px', margin: '0 auto 1rem' }}>
-            Prefer a one-time contribution? Buy us a coffee on Ko-fi. Every bit helps keep the servers running.
+            {t('support.oneTimeDesc', 'Prefer a one-time contribution? Buy us a coffee on Ko-fi. Every bit helps keep the servers running.')}
           </p>
           <SupportButton />
           <p style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.75rem', fontStyle: 'italic' }}>
-            Note: One-time donations don&apos;t include the Supporter badge or Discord role.
+            {t('support.oneTimeNote', "Note: One-time donations don't include the Supporter badge or Discord role.")}
           </p>
         </section>
 
@@ -413,10 +415,10 @@ const SupportAtlas: React.FC = () => {
             fontFamily: FONT_DISPLAY,
             textAlign: 'center'
           }}>
-            Supporter Perks
+            {t('support.supporterPerks', 'Supporter Perks')}
           </h2>
           <p style={{ color: '#6b7280', fontSize: '0.85rem', textAlign: 'center', marginBottom: '1.25rem' }}>
-            A small thank you for helping us grow
+            {t('support.smallThankYou', 'A small thank you for helping us grow')}
           </p>
           <div style={{ display: 'grid', gap: '0.75rem' }}>
             {supporterPerks.map((perk, i) => (
@@ -451,10 +453,10 @@ const SupportAtlas: React.FC = () => {
             fontFamily: FONT_DISPLAY,
             textAlign: 'center'
           }}>
-            What Everyone Gets — Free
+            {t('support.whatsFree', 'What Everyone Gets — Free')}
           </h2>
           <p style={{ color: '#6b7280', fontSize: '0.85rem', textAlign: 'center', marginBottom: '1.25rem' }}>
-            Atlas is built for the community. These features are free forever.
+            {t('support.freeForever', 'Atlas is built for the community. These features are free forever.')}
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '0.75rem' }}>
             {freeFeatures.map((feature, i) => (
@@ -490,7 +492,7 @@ const SupportAtlas: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
             <span style={{ fontSize: '1.25rem' }}>🚀</span>
             <h3 style={{ color: '#a855f7', fontWeight: '600', fontSize: '1rem', margin: 0 }}>
-              Coming Soon: Atlas Recruiter
+              {t('support.comingSoonRecruiter', 'Coming Soon: Atlas Recruiter')}
             </h3>
           </div>
           <p style={{ color: '#9ca3af', fontSize: '0.85rem', lineHeight: 1.6, margin: 0 }}>
@@ -509,7 +511,7 @@ const SupportAtlas: React.FC = () => {
             fontFamily: FONT_DISPLAY,
             textAlign: 'center'
           }}>
-            Why Support Atlas?
+            {t('support.whySupport')}
           </h2>
           <div style={{ display: 'grid', gap: '0.75rem' }}>
             {[
@@ -549,10 +551,10 @@ const SupportAtlas: React.FC = () => {
           textAlign: 'center'
         }}>
           <h3 style={{ color: '#fff', fontWeight: '600', fontSize: '1rem', marginBottom: '0.75rem' }}>
-            Other Ways to Help
+            {t('support.otherWays', 'Other Ways to Help')}
           </h3>
           <p style={{ color: '#9ca3af', fontSize: '0.85rem', lineHeight: 1.6, marginBottom: '1rem' }}>
-            Not everyone can donate, and that&apos;s totally fine! Here&apos;s how you can still help:
+            {t('support.cantDonate', "Not everyone can donate, and that's totally fine! Here's how you can still help:")}
           </p>
           <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '0.75rem' }}>
             <Link to="/contribute-data" style={{
@@ -569,7 +571,7 @@ const SupportAtlas: React.FC = () => {
               fontSize: '0.85rem',
               fontWeight: '500'
             }}>
-              📊 Submit KvK Data
+              📊 {t('support.submitData', 'Submit KvK Data')}
             </Link>
             <a href="https://discord.gg/cajcacDzGd" target="_blank" rel="noopener noreferrer" style={{
               display: 'inline-flex',
@@ -585,7 +587,7 @@ const SupportAtlas: React.FC = () => {
               fontSize: '0.85rem',
               fontWeight: '500'
             }}>
-              💬 Join Discord
+              💬 {t('common.joinDiscord')}
             </a>
             <button onClick={() => {
               if (navigator.share) {
@@ -607,7 +609,7 @@ const SupportAtlas: React.FC = () => {
               fontWeight: '500',
               cursor: 'pointer'
             }}>
-              📤 Share Atlas
+              📤 {t('support.shareAtlas', 'Share Atlas')}
             </button>
           </div>
         </section>
@@ -615,7 +617,7 @@ const SupportAtlas: React.FC = () => {
         {/* Back Link */}
         <div style={{ textAlign: 'center', marginTop: '2rem' }}>
           <Link to="/" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: '0.85rem' }}>
-            ← Back to Home
+            {t('common.backToHome')}
           </Link>
         </div>
       </div>

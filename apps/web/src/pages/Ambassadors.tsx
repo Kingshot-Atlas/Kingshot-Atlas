@@ -8,6 +8,7 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
 import { useIsMobile } from '../hooks/useMediaQuery';
+import { useTranslation } from 'react-i18next';
 
 interface AmbassadorProfile {
   id: string;
@@ -50,6 +51,7 @@ const SOURCE_META: Record<string, { label: string; icon: string; color: string }
 };
 
 const Ambassadors: React.FC = () => {
+  const { t } = useTranslation();
   useDocumentTitle('Ambassador Network');
   useMetaTags(PAGE_META_TAGS.ambassadors);
   useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.ambassadors });
@@ -157,7 +159,7 @@ const Ambassadors: React.FC = () => {
           margin: '0 0 0.5rem',
           letterSpacing: '-0.02em',
         }}>
-          🏛️ Ambassador Network
+          🏛️ {t('ambassadors.title', 'Ambassador Network')}
         </h1>
         <p style={{
           color: '#9ca3af',
@@ -168,7 +170,7 @@ const Ambassadors: React.FC = () => {
           marginLeft: 'auto',
           marginRight: 'auto',
         }}>
-          The players spreading data-driven dominance. More referrals, higher rank.
+          {t('ambassadors.heroDesc', 'The players spreading data-driven dominance. More referrals, higher rank.')}
         </p>
 
         {monthlyJoins > 0 && (
@@ -228,7 +230,7 @@ const Ambassadors: React.FC = () => {
           margin: '0 0 0.25rem',
           textAlign: 'center',
         }}>
-          Every Referral Counts. Every Tier Unlocks More.
+          {t('ambassadors.everyReferral', 'Every Referral Counts. Every Tier Unlocks More.')}
         </h2>
         <p style={{
           color: '#6b7280',
@@ -237,7 +239,7 @@ const Ambassadors: React.FC = () => {
           textAlign: 'center',
           lineHeight: 1.5,
         }}>
-          Share Atlas. Climb the ranks. The top recruiters don't wait — they build networks.
+          {t('ambassadors.shareAtlasClimb', 'Share Atlas. Climb the ranks. The top recruiters don’t wait — they build networks.')}
         </p>
 
         <div style={{
@@ -345,7 +347,7 @@ const Ambassadors: React.FC = () => {
               transition: 'all 0.2s',
             }}
           >
-            Start Recruiting →
+            {t('ambassadors.startRecruiting', 'Start Recruiting →')}
           </Link>
         </div>
       </div>
@@ -436,7 +438,7 @@ const Ambassadors: React.FC = () => {
           color: '#6b7280',
           fontSize: '0.9rem',
         }}>
-          Loading ambassadors...
+          {t('ambassadors.loading', 'Loading ambassadors...')}
         </div>
       ) : filteredAmbassadors.length === 0 ? (
         <div style={{
@@ -448,10 +450,10 @@ const Ambassadors: React.FC = () => {
         }}>
           <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>🏛️</div>
           <p style={{ color: '#9ca3af', fontSize: '0.95rem', margin: '0 0 0.5rem' }}>
-            No one's claimed this tier yet.
+            {t('ambassadors.noOneClaimed', "No one's claimed this tier yet.")}
           </p>
           <p style={{ color: '#6b7280', fontSize: '0.8rem', margin: 0 }}>
-            Be the first. Share Atlas, rack up referrals, and own this leaderboard.
+            {t('ambassadors.beTheFirst', 'Be the first. Share Atlas, rack up referrals, and own this leaderboard.')}
           </p>
         </div>
       ) : (

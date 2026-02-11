@@ -378,7 +378,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
         ...(isGold
           ? { background: `linear-gradient(180deg, #fbbf240a 0%, ${colors.surface} 35%, ${colors.surface} 100%)` }
           : isSilver
-          ? { background: `linear-gradient(180deg, #c0c0c008 0%, ${colors.surface} 35%, ${colors.surface} 100%)` }
+          ? { background: `linear-gradient(180deg, #c0c0c005 0%, ${colors.surface} 25%, ${colors.surface} 100%)` }
           : isBronze
           ? { background: `linear-gradient(180deg, #cd7f3206 0%, ${colors.surface} 35%, ${colors.surface} 100%)` }
           : { backgroundColor: colors.surface }),
@@ -589,14 +589,14 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
             }
           >
             <span style={{ cursor: 'help' }}>
-              <span style={{ fontSize: '0.7rem', color: colors.textMuted }}>
+              <span style={{ fontSize: '0.7rem', color: isSilver ? colors.textSecondary : colors.textMuted }}>
                 Transfer Status:{' '}
               </span>
               <span style={{
                 fontSize: '0.7rem',
                 color: transferStatus === 'Leading' ? colors.gold
-                  : transferStatus === 'Ordinary' ? '#c0c0c0'
-                  : colors.textSecondary,
+                  : transferStatus === 'Ordinary' ? (isSilver ? '#e5e7eb' : '#c0c0c0')
+                  : (isSilver ? '#d1d5db' : colors.textSecondary),
                 fontWeight: '600',
               }}>
                 {transferStatus}

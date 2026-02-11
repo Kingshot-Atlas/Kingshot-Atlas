@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { SubscriptionTier } from '../contexts/PremiumContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 interface UpgradePromptProps {
   feature: string;
@@ -21,6 +22,7 @@ const UpgradePrompt: React.FC<UpgradePromptProps> = ({
 }) => {
   const isMobile = useIsMobile();
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [isHovered, setIsHovered] = useState(false);
 
   const tierLabel = 'Supporter';
@@ -71,7 +73,7 @@ const UpgradePrompt: React.FC<UpgradePromptProps> = ({
             <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
           </svg>
           <span style={{ color: '#fff', fontSize: '0.85rem' }}>
-            <strong>{feature}</strong> requires Atlas {tierLabel}
+            <strong>{feature}</strong> {t('upgrade.requiresTier', 'requires Atlas {{tier}}', { tier: tierLabel })}
           </span>
         </div>
         <Link
@@ -89,7 +91,7 @@ const UpgradePrompt: React.FC<UpgradePromptProps> = ({
             textDecoration: 'none'
           }}
         >
-          Upgrade
+          {t('upgrade.upgrade', 'Upgrade')}
         </Link>
       </div>
     );
@@ -176,7 +178,7 @@ const UpgradePrompt: React.FC<UpgradePromptProps> = ({
             textDecoration: 'none'
           }}
         >
-          {user ? 'Upgrade Now' : 'Sign In to Upgrade'}
+          {user ? t('upgrade.upgradeNow', 'Upgrade Now') : t('upgrade.signInToUpgrade', 'Sign In to Upgrade')}
         </Link>
       </div>
       
@@ -185,7 +187,7 @@ const UpgradePrompt: React.FC<UpgradePromptProps> = ({
         fontSize: '0.75rem', 
         marginTop: '0.75rem' 
       }}>
-        Starting at $4.99/month
+        {t('upgrade.startingAt', 'Starting at $4.99/month')}
       </p>
     </div>
   );

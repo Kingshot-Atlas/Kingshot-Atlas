@@ -384,6 +384,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const cached = localStorage.getItem(PROFILE_KEY);
         if (cached) {
           setProfile(JSON.parse(cached));
+        } else {
+          // No cache available — create a minimal local profile so the user isn't stuck
+          const fallbackProfile: UserProfile = {
+            id: user.id,
+            username: generateRandomUsername(),
+            email: user.email || '',
+            avatar_url: getCleanAvatarUrl(user.user_metadata?.avatar_url || user.user_metadata?.picture),
+            home_kingdom: null,
+            alliance_tag: '',
+            language: '',
+            region: '',
+            bio: '',
+            theme_color: '#22d3ee',
+            badge_style: 'default',
+            created_at: new Date().toISOString(),
+            is_admin: false
+          };
+          setProfile(fallbackProfile);
+          localStorage.setItem(PROFILE_KEY, JSON.stringify(fallbackProfile));
+          logger.warn('Using fallback profile due to fetch error — will retry on next load');
         }
       } else if (data) {
         // Debug: Log OAuth metadata to understand avatar source
@@ -454,6 +474,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const cached = localStorage.getItem(PROFILE_KEY);
       if (cached) {
         setProfile(JSON.parse(cached));
+      } else {
+        // No cache — create minimal fallback so user isn't stuck on loading screen
+        const fallbackProfile: UserProfile = {
+          id: user.id,
+          username: generateRandomUsername(),
+          email: user.email || '',
+          avatar_url: getCleanAvatarUrl(user.user_metadata?.avatar_url || user.user_metadata?.picture),
+          home_kingdom: null,
+          alliance_tag: '',
+          language: '',
+          region: '',
+          bio: '',
+          theme_color: '#22d3ee',
+          badge_style: 'default',
+          created_at: new Date().toISOString(),
+          is_admin: false
+        };
+        setProfile(fallbackProfile);
+        localStorage.setItem(PROFILE_KEY, JSON.stringify(fallbackProfile));
+        logger.warn('Using fallback profile due to network error — will retry on next load');
       }
     } finally {
       setLoading(false);
@@ -465,7 +505,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/profile`
+        redirectTo: `${window.location.origin}/auth/callback`
       }
     });
     if (error) logger.error('Google sign-in error:', error);
@@ -476,7 +516,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'discord',
       options: {
-        redirectTo: `${window.location.origin}/profile`
+        redirectTo: `${window.location.origin}/auth/callback`
       }
     });
     if (error) logger.error('Discord sign-in error:', error);
@@ -494,7 +534,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       email, 
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/profile`
+        emailRedirectTo: `${window.location.origin}/auth/callback`
       }
     });
     return { error };

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Kingdom, getPowerTier } from '../types';
 
 interface TableColumn {
@@ -21,24 +22,24 @@ const getOutcomeStats = (k: Kingdom) => {
   return { dominations, invasions, comebacks, reversals };
 };
 
-const ALL_COLUMNS: TableColumn[] = [
+const getTranslatedColumns = (t: (key: string, fallback: string) => string): TableColumn[] => [
   { id: 'favorite', label: '★', getValue: () => '', align: 'center' },
-  { id: 'kingdom', label: 'Kingdom', getValue: (k) => `Kingdom ${k.kingdom_number}`, align: 'left' },
-  { id: 'tier', label: 'Tier', color: '#fbbf24', getValue: (k) => k.power_tier || getPowerTier(k.overall_score), align: 'center' },
-  { id: 'atlas_score', label: 'Atlas Score', color: '#22d3ee', getValue: (k) => k.overall_score.toFixed(2), align: 'center' },
-  { id: 'rank', label: 'Rank', color: '#22d3ee', getValue: (_k, rank) => rank ? `#${rank}` : '-', align: 'center' },
-  { id: 'total_kvks', label: 'KvKs', getValue: (k) => k.total_kvks, align: 'center' },
-  { id: 'prep_wins', label: 'Prep W', color: '#eab308', getValue: (k) => k.prep_wins, align: 'center' },
-  { id: 'prep_wr', label: 'Prep WR', color: '#eab308', getValue: (k) => `${Math.round(k.prep_win_rate * 100)}%`, align: 'center' },
-  { id: 'prep_streak', label: 'Prep Streak', color: '#eab308', getValue: (k) => k.prep_streak > 0 ? `${k.prep_streak}W` : `${Math.abs(k.prep_streak)}L`, align: 'center' },
-  { id: 'battle_wins', label: 'Battle W', color: '#f97316', getValue: (k) => k.battle_wins, align: 'center' },
-  { id: 'battle_wr', label: 'Battle WR', color: '#f97316', getValue: (k) => `${Math.round(k.battle_win_rate * 100)}%`, align: 'center' },
-  { id: 'battle_streak', label: 'Battle Streak', color: '#f97316', getValue: (k) => k.battle_streak > 0 ? `${k.battle_streak}W` : `${Math.abs(k.battle_streak)}L`, align: 'center' },
-  { id: 'dominations', label: '👑 Dominations', color: '#22c55e', getValue: (k) => getOutcomeStats(k).dominations, align: 'center' },
-  { id: 'comebacks', label: '💪 Comebacks', color: '#3b82f6', getValue: (k) => getOutcomeStats(k).comebacks, align: 'center' },
-  { id: 'reversals', label: '🔄 Reversals', color: '#a855f7', getValue: (k) => getOutcomeStats(k).reversals, align: 'center' },
-  { id: 'invasions', label: '💀 Invasions', color: '#ef4444', getValue: (k) => getOutcomeStats(k).invasions, align: 'center' },
-  { id: 'status', label: 'Transfer Status', getValue: (k) => k.most_recent_status || 'Unannounced', align: 'center' }
+  { id: 'kingdom', label: t('table.kingdom', 'Kingdom'), getValue: (k) => `${t('common.kingdom', 'Kingdom')} ${k.kingdom_number}`, align: 'left' },
+  { id: 'tier', label: t('table.tier', 'Tier'), color: '#fbbf24', getValue: (k) => k.power_tier || getPowerTier(k.overall_score), align: 'center' },
+  { id: 'atlas_score', label: t('table.atlasScore', 'Atlas Score'), color: '#22d3ee', getValue: (k) => k.overall_score.toFixed(2), align: 'center' },
+  { id: 'rank', label: t('table.rank', 'Rank'), color: '#22d3ee', getValue: (_k, rank) => rank ? `#${rank}` : '-', align: 'center' },
+  { id: 'total_kvks', label: t('table.kvks', 'KvKs'), getValue: (k) => k.total_kvks, align: 'center' },
+  { id: 'prep_wins', label: t('table.prepW', 'Prep W'), color: '#eab308', getValue: (k) => k.prep_wins, align: 'center' },
+  { id: 'prep_wr', label: t('table.prepWR', 'Prep WR'), color: '#eab308', getValue: (k) => `${Math.round(k.prep_win_rate * 100)}%`, align: 'center' },
+  { id: 'prep_streak', label: t('table.prepStreak', 'Prep Streak'), color: '#eab308', getValue: (k) => k.prep_streak > 0 ? `${k.prep_streak}W` : `${Math.abs(k.prep_streak)}L`, align: 'center' },
+  { id: 'battle_wins', label: t('table.battleW', 'Battle W'), color: '#f97316', getValue: (k) => k.battle_wins, align: 'center' },
+  { id: 'battle_wr', label: t('table.battleWR', 'Battle WR'), color: '#f97316', getValue: (k) => `${Math.round(k.battle_win_rate * 100)}%`, align: 'center' },
+  { id: 'battle_streak', label: t('table.battleStreak', 'Battle Streak'), color: '#f97316', getValue: (k) => k.battle_streak > 0 ? `${k.battle_streak}W` : `${Math.abs(k.battle_streak)}L`, align: 'center' },
+  { id: 'dominations', label: '👑 ' + t('table.dominations', 'Dominations'), color: '#22c55e', getValue: (k) => getOutcomeStats(k).dominations, align: 'center' },
+  { id: 'comebacks', label: '💪 ' + t('table.comebacks', 'Comebacks'), color: '#3b82f6', getValue: (k) => getOutcomeStats(k).comebacks, align: 'center' },
+  { id: 'reversals', label: '🔄 ' + t('table.reversals', 'Reversals'), color: '#a855f7', getValue: (k) => getOutcomeStats(k).reversals, align: 'center' },
+  { id: 'invasions', label: '💀 ' + t('table.invasions', 'Invasions'), color: '#ef4444', getValue: (k) => getOutcomeStats(k).invasions, align: 'center' },
+  { id: 'status', label: t('table.transferStatus', 'Transfer Status'), getValue: (k) => k.most_recent_status || t('table.unannounced', 'Unannounced'), align: 'center' }
 ];
 
 const DEFAULT_COLUMNS = ['kingdom', 'favorite', 'tier', 'atlas_score', 'rank', 'total_kvks', 'dominations', 'comebacks', 'reversals', 'invasions', 'status'];
@@ -92,7 +93,9 @@ const KingdomTable: React.FC<KingdomTableProps> = ({
   sortOrder,
   onSort
 }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
+  const ALL_COLUMNS = getTranslatedColumns(t);
   const [showColumnSelector, setShowColumnSelector] = useState(false);
   const [visibleColumns, setVisibleColumns] = useState<string[]>(() => {
     const saved = localStorage.getItem(TABLE_COLUMNS_KEY);
@@ -136,7 +139,7 @@ const KingdomTable: React.FC<KingdomTableProps> = ({
           <svg style={{ width: '14px', height: '14px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
           </svg>
-          Columns ({visibleColumns.length})
+          {t('table.columns', 'Columns')} ({visibleColumns.length})
         </button>
         
         {showColumnSelector && (
@@ -156,8 +159,8 @@ const KingdomTable: React.FC<KingdomTableProps> = ({
             boxShadow: '0 4px 20px rgba(0,0,0,0.5)'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', paddingBottom: '0.5rem', borderBottom: '1px solid #2a2a2a' }}>
-              <span style={{ color: '#fff', fontSize: '0.85rem', fontWeight: '600' }}>Show Columns</span>
-              <button onClick={resetColumns} style={{ background: 'none', border: 'none', color: '#22d3ee', fontSize: '0.75rem', cursor: 'pointer' }}>Reset</button>
+              <span style={{ color: '#fff', fontSize: '0.85rem', fontWeight: '600' }}>{t('table.showColumns', 'Show Columns')}</span>
+              <button onClick={resetColumns} style={{ background: 'none', border: 'none', color: '#22d3ee', fontSize: '0.75rem', cursor: 'pointer' }}>{t('common.reset', 'Reset')}</button>
             </div>
             {ALL_COLUMNS.map(col => (
               <label key={col.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0', cursor: 'pointer' }}>

@@ -27,8 +27,10 @@ import QuickActions from '../components/homepage/QuickActions';
 import TransferHubBanner from '../components/homepage/TransferHubBanner';
 import MobileCountdowns from '../components/homepage/MobileCountdowns';
 import { useScrollDepth } from '../hooks/useScrollDepth';
+import { useTranslation } from 'react-i18next';
 
 const KingdomDirectory: React.FC = () => {
+  const { t } = useTranslation();
   useDocumentTitle('Kingdom Directory');
   useMetaTags(PAGE_META_TAGS.home);
   useScrollDepth('Kingdom Directory');
@@ -343,7 +345,7 @@ const KingdomDirectory: React.FC = () => {
             <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>ATLAS</span>
           </h1>
           <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.75rem' : '0.85rem', marginBottom: '0.75rem', lineHeight: 1.6, fontStyle: 'italic' }}>
-            Discover the best kingdoms. Find the strongest allies.<br />Dominate Kingshot.
+            {t('home.subtitle').split('\n').map((line, i) => <React.Fragment key={i}>{i > 0 && <br />}{line}</React.Fragment>)}
           </p>
           
           {!isMobile && (
@@ -426,15 +428,15 @@ const KingdomDirectory: React.FC = () => {
                 Filters{countActiveFilters(filters) > 0 && ` (${countActiveFilters(filters)})`}
               </button>
               <select value={sort.sortBy} onChange={(e) => setSort({ ...sort, sortBy: e.target.value as SortOptions['sortBy'] })} style={{ flex: 1.5, padding: '0.6rem 1.5rem 0.6rem 0.5rem', backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '8px', color: '#fff', fontSize: '0.8rem', cursor: 'pointer', appearance: 'none', backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.3rem center', backgroundSize: '0.8rem' }}>
-                <option value="overall_score">Atlas Score</option>
-                <option value="kingdom_number">Kingdom #</option>
-                <option value="prep_win_rate">Prep WR</option>
-                <option value="battle_win_rate">Battle WR</option>
-                <option value="total_kvks">Total KvKs</option>
-                <option value="dominations">Dominations</option>
-                <option value="comebacks">Comebacks</option>
-                <option value="reversals">Reversals</option>
-                <option value="invasions">Invasions</option>
+                <option value="overall_score">{t('stats.atlasScore')}</option>
+                <option value="kingdom_number">{t('home.sortKingdomNumber')}</option>
+                <option value="prep_win_rate">{t('stats.prepWR')}</option>
+                <option value="battle_win_rate">{t('stats.battleWR')}</option>
+                <option value="total_kvks">{t('stats.totalKvKs')}</option>
+                <option value="dominations">{t('stats.dominations')}</option>
+                <option value="comebacks">{t('stats.comebacks')}</option>
+                <option value="reversals">{t('stats.reversals')}</option>
+                <option value="invasions">{t('stats.invasions')}</option>
               </select>
             </div>
           ) : (
@@ -457,7 +459,7 @@ const KingdomDirectory: React.FC = () => {
             }}
           >
             <span style={{ fontSize: '1.1rem' }}>{showFavoritesOnly ? '★' : '☆'}</span>
-            Favorites {favorites.length > 0 && `(${favorites.length})`}
+            {t('home.favorites')} {favorites.length > 0 && `(${favorites.length})`}
           </button>
 
           {/* View Toggle */}
@@ -479,22 +481,22 @@ const KingdomDirectory: React.FC = () => {
             <svg style={{ width: '16px', height: '16px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
             </svg>
-            Filters{countActiveFilters(filters) > 0 && <span style={{ backgroundColor: '#22d3ee', color: '#000', borderRadius: '10px', padding: '0.1rem 0.4rem', fontSize: '0.7rem', fontWeight: 'bold', marginLeft: '0.25rem' }}>{countActiveFilters(filters)}</span>}
+            {t('common.filter')}{countActiveFilters(filters) > 0 && <span style={{ backgroundColor: '#22d3ee', color: '#000', borderRadius: '10px', padding: '0.1rem 0.4rem', fontSize: '0.7rem', fontWeight: 'bold', marginLeft: '0.25rem' }}>{countActiveFilters(filters)}</span>}
           </button>
 
           {/* Sort Dropdown */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ color: '#6b7280', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>Sort:</span>
+            <span style={{ color: '#6b7280', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>{t('home.sortLabel')}</span>
             <select value={sort.sortBy} onChange={(e) => setSort({ ...sort, sortBy: e.target.value as SortOptions['sortBy'] })} style={{ padding: '0.75rem 2rem 0.75rem 1rem', backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '8px', color: '#fff', fontSize: '0.9rem', cursor: 'pointer', appearance: 'none', backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1rem' }}>
-              <option value="overall_score">Atlas Score</option>
-              <option value="kingdom_number">Kingdom Number</option>
-              <option value="prep_win_rate">Prep Win Rate</option>
-              <option value="battle_win_rate">Battle Win Rate</option>
-              <option value="total_kvks">Total KvKs</option>
-              <option value="dominations">👑 Dominations</option>
-              <option value="comebacks">💪 Comebacks</option>
-              <option value="reversals">🔄 Reversals</option>
-              <option value="invasions">💀 Invasions</option>
+              <option value="overall_score">{t('stats.atlasScore')}</option>
+              <option value="kingdom_number">{t('home.sortKingdomNumber')}</option>
+              <option value="prep_win_rate">{t('stats.prepWinRate')}</option>
+              <option value="battle_win_rate">{t('stats.battleWinRate')}</option>
+              <option value="total_kvks">{t('stats.totalKvKs')}</option>
+              <option value="dominations">👑 {t('stats.dominations')}</option>
+              <option value="comebacks">💪 {t('stats.comebacks')}</option>
+              <option value="reversals">🔄 {t('stats.reversals')}</option>
+              <option value="invasions">💀 {t('stats.invasions')}</option>
             </select>
             <button onClick={() => setSort({ ...sort, order: sort.order === 'desc' ? 'asc' : 'desc' })} style={{ padding: '0.75rem', backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'transform 0.2s', gap: '0.25rem' }}>
               <svg style={{ width: '16px', height: '16px', color: '#6b7280', transform: sort.order === 'asc' ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -696,7 +698,7 @@ const KingdomDirectory: React.FC = () => {
             gap: '0.75rem',
             padding: '0.5rem 0'
           }}>
-            <span style={{ color: '#4a4a4a', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>Recently-viewed:</span>
+            <span style={{ color: '#4a4a4a', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>{t('home.recentlyViewed')}</span>
             <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', alignItems: 'center' }}>
               {recentlyViewed.slice(0, 5).map(kNum => (
                 <button
@@ -749,29 +751,29 @@ const KingdomDirectory: React.FC = () => {
           <div className="filter-panel" style={{ padding: isMobile ? '1rem' : '1.5rem', backgroundColor: 'rgba(17, 17, 17, 0.9)', borderRadius: '12px', marginBottom: '1.5rem', display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: isMobile ? '1rem' : '1.25rem', border: '1px solid #2a2a2a', animation: 'fadeIn 0.2s ease', backdropFilter: 'blur(12px)' }}>
             {/* Kingdom Tier */}
             <div>
-              <label style={{ fontSize: '0.85rem', color: '#9ca3af', display: 'block', marginBottom: '0.5rem' }}>Kingdom Tier</label>
+              <label style={{ fontSize: '0.85rem', color: '#9ca3af', display: 'block', marginBottom: '0.5rem' }}>{t('home.filterKingdomTier')}</label>
               <select value={filters.tier || 'all'} onChange={(e) => setFilters({ ...filters, tier: e.target.value })} style={{ width: '100%', padding: '0.6rem', backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '6px', color: '#fff', fontSize: '0.85rem' }}>
-                <option value="all">All Tiers</option>
-                <option value="S">S Tier - Elite (Top 10%)</option>
-                <option value="A">A Tier - Strong (Top 25%)</option>
-                <option value="B">B Tier - Average (Top 50%)</option>
-                <option value="C">C Tier - Below Average (Top 75%)</option>
-                <option value="D">D Tier - Developing (Bottom 25%)</option>
+                <option value="all">{t('tiers.allTiers')}</option>
+                <option value="S">{t('tiers.sDescription')}</option>
+                <option value="A">{t('tiers.aDescription')}</option>
+                <option value="B">{t('tiers.bDescription')}</option>
+                <option value="C">{t('tiers.cDescription')}</option>
+                <option value="D">{t('tiers.dDescription')}</option>
               </select>
             </div>
             {/* Transfer Status */}
             <div>
-              <label style={{ fontSize: '0.85rem', color: '#9ca3af', display: 'block', marginBottom: '0.5rem' }}>Transfer Status</label>
+              <label style={{ fontSize: '0.85rem', color: '#9ca3af', display: 'block', marginBottom: '0.5rem' }}>{t('home.filterTransferStatus')}</label>
               <select value={filters.status || 'all'} onChange={(e) => setFilters({ ...filters, status: e.target.value })} style={{ width: '100%', padding: '0.6rem', backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '6px', color: '#fff', fontSize: '0.85rem' }}>
-                <option value="all">All Statuses</option>
-                <option value="Leading">Leading</option>
-                <option value="Ordinary">Ordinary</option>
-                <option value="Unannounced">Unannounced</option>
+                <option value="all">{t('home.allStatuses')}</option>
+                <option value="Leading">{t('home.statusLeading')}</option>
+                <option value="Ordinary">{t('home.statusOrdinary')}</option>
+                <option value="Unannounced">{t('home.statusUnannounced')}</option>
               </select>
             </div>
             {/* Experience (KvKs Range) */}
             <div>
-              <label style={{ fontSize: '0.85rem', color: '#9ca3af', display: 'block', marginBottom: '0.5rem' }}>Experience (KvKs)</label>
+              <label style={{ fontSize: '0.85rem', color: '#9ca3af', display: 'block', marginBottom: '0.5rem' }}>{t('home.filterExperience')}</label>
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                 <input 
                   type="number" 
@@ -797,7 +799,7 @@ const KingdomDirectory: React.FC = () => {
             {/* Min Prep WR */}
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                <label style={{ fontSize: '0.85rem', color: '#9ca3af' }}>Min Prep WR</label>
+                <label style={{ fontSize: '0.85rem', color: '#9ca3af' }}>{t('home.filterMinPrepWR')}</label>
                 <span style={{ fontSize: '0.85rem', color: '#eab308', fontWeight: 'bold' }}>{Math.round((filters.minPrepWinRate || 0) * 100)}%</span>
               </div>
               <input type="range" min="0" max="100" value={(filters.minPrepWinRate || 0) * 100} onChange={(e) => setFilters({ ...filters, minPrepWinRate: parseInt(e.target.value) / 100 })} style={{ width: '100%', height: '6px', appearance: 'none', backgroundColor: '#1f1f1f', borderRadius: '3px', cursor: 'pointer' }} />
@@ -805,7 +807,7 @@ const KingdomDirectory: React.FC = () => {
             {/* Min Battle WR */}
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                <label style={{ fontSize: '0.85rem', color: '#9ca3af' }}>Min Battle WR</label>
+                <label style={{ fontSize: '0.85rem', color: '#9ca3af' }}>{t('home.filterMinBattleWR')}</label>
                 <span style={{ fontSize: '0.85rem', color: '#f97316', fontWeight: 'bold' }}>{Math.round((filters.minBattleWinRate || 0) * 100)}%</span>
               </div>
               <input type="range" min="0" max="100" value={(filters.minBattleWinRate || 0) * 100} onChange={(e) => setFilters({ ...filters, minBattleWinRate: parseInt(e.target.value) / 100 })} style={{ width: '100%', height: '6px', appearance: 'none', backgroundColor: '#1f1f1f', borderRadius: '3px', cursor: 'pointer' }} />
@@ -813,7 +815,7 @@ const KingdomDirectory: React.FC = () => {
             {/* Reset */}
             <div style={{ display: 'flex', alignItems: 'flex-end' }}>
               <button onClick={() => setFilters(DEFAULT_FILTERS)} style={{ padding: '0.6rem 1.25rem', backgroundColor: countActiveFilters(filters) > 0 ? '#ef444420' : 'transparent', border: `1px solid ${countActiveFilters(filters) > 0 ? '#ef4444' : '#3a3a3a'}`, borderRadius: '6px', color: countActiveFilters(filters) > 0 ? '#ef4444' : '#9ca3af', cursor: 'pointer', fontSize: '0.85rem', fontWeight: countActiveFilters(filters) > 0 ? '500' : 'normal', transition: 'all 0.2s' }}>
-                Clear All Filters{countActiveFilters(filters) > 0 && ` (${countActiveFilters(filters)})`}
+                {t('home.clearFilters')}{countActiveFilters(filters) > 0 && ` (${countActiveFilters(filters)})`}
               </button>
             </div>
           </div>
@@ -841,7 +843,7 @@ const KingdomDirectory: React.FC = () => {
                     <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                   </svg>
                 </div>
-                <h3 style={{ color: '#fff', fontSize: '1.25rem', marginBottom: '0.5rem' }}>No favorites yet</h3>
+                <h3 style={{ color: '#fff', fontSize: '1.25rem', marginBottom: '0.5rem' }}>{t('home.noFavoritesTitle')}</h3>
                 <p style={{ color: '#9ca3af', fontSize: '0.9rem', maxWidth: '420px', margin: '0 auto 1.5rem', lineHeight: '1.5' }}>
                   Track the kingdoms that matter to you. Click the <span style={{ color: '#ef4444' }}>★</span> on any kingdom card to add it to your watchlist.
                 </p>
@@ -861,13 +863,13 @@ const KingdomDirectory: React.FC = () => {
                   onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#ef444440'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#ef444420'; }}
                 >
-                  Browse all kingdoms
+                  {t('home.browseAll', 'Browse all kingdoms')}
                 </button>
               </>
             ) : (
               <>
                 <div style={{ fontSize: '3rem', marginBottom: '1rem', opacity: 0.5 }}>🔍</div>
-                <h3 style={{ color: '#fff', fontSize: '1.25rem', marginBottom: '0.5rem' }}>No kingdoms found</h3>
+                <h3 style={{ color: '#fff', fontSize: '1.25rem', marginBottom: '0.5rem' }}>{t('home.noKingdomsTitle')}</h3>
                 <p style={{ color: '#6b7280', fontSize: '0.9rem', marginBottom: '1.5rem', maxWidth: '400px', margin: '0 auto 1.5rem' }}>
                   {debouncedSearch ? 
                     `No kingdoms match "${debouncedSearch}". Try a different search term.` :
@@ -890,7 +892,7 @@ const KingdomDirectory: React.FC = () => {
                       fontWeight: '500'
                     }}
                   >
-                    Clear all filters & search
+                    {t('home.clearFilters')}
                   </button>
                 )}
               </>

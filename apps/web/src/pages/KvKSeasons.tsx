@@ -6,6 +6,7 @@ import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { useStructuredData, PAGE_BREADCRUMBS, getSeasonBreadcrumbs } from '../hooks/useStructuredData';
+import { useTranslation } from 'react-i18next';
 
 interface SeasonStats {
   totalMatchups: number;
@@ -17,6 +18,7 @@ interface SeasonStats {
 }
 
 const KvKSeasons: React.FC = () => {
+  const { t } = useTranslation();
   useMetaTags(PAGE_META_TAGS.kvkSeasons);
   const { seasonNumber } = useParams<{ seasonNumber?: string }>();
   const seasonNum = seasonNumber ? parseInt(seasonNumber) : null;
@@ -176,7 +178,7 @@ const KvKSeasons: React.FC = () => {
             <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>SEASONS</span>
           </h1>
           <p style={{ color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.9rem', marginBottom: '0.75rem' }}>
-            Relive the battles. Every matchup ranked by combined Atlas Score—see which kingdoms brought the heat.
+            {t('seasons.subtitle', 'Relive the battles. Every matchup ranked by combined Atlas Score—see which kingdoms brought the heat.')}
           </p>
           {!isMobile && (
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
@@ -216,7 +218,7 @@ const KvKSeasons: React.FC = () => {
             transition: 'all 0.2s'
           }}
         >
-          📅 Browse by Season
+          📅 {t('seasons.browseBySeason', 'Browse by Season')}
         </button>
         <button
           onClick={() => setView('all-time')}
@@ -237,7 +239,7 @@ const KvKSeasons: React.FC = () => {
             transition: 'all 0.2s'
           }}
         >
-          🏆 All-Time Greatest
+          🏆 {t('seasons.allTimeGreatest', 'All-Time Greatest')}
         </button>
       </div>
 
@@ -251,7 +253,7 @@ const KvKSeasons: React.FC = () => {
           marginBottom: '1.5rem'
         }}>
           <span style={{ color: '#9ca3af', fontSize: '0.9rem', fontWeight: '500' }}>
-            Select Season
+            {t('seasons.selectSeason')}
           </span>
           <select
             value={selectedSeason ?? ''}
@@ -298,7 +300,7 @@ const KvKSeasons: React.FC = () => {
             color: '#9ca3af'
           }}>
             <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>⚔️</div>
-            <div style={{ fontSize: '0.95rem' }}>Loading battlefield data...</div>
+            <div style={{ fontSize: '0.95rem' }}>{t('seasons.loadingData', 'Loading battlefield data...')}</div>
           </div>
         ) : displayedMatchups.length === 0 ? (
           <div style={{
@@ -307,9 +309,9 @@ const KvKSeasons: React.FC = () => {
             color: '#9ca3af'
           }}>
             <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>📊</div>
-            <div style={{ fontSize: '1rem', marginBottom: '0.5rem' }}>No matchup data available yet</div>
+            <div style={{ fontSize: '1rem', marginBottom: '0.5rem' }}>{t('seasons.noMatchups', 'No matchup data available yet')}</div>
             <div style={{ fontSize: '0.85rem', color: '#6b7280' }}>
-              Score history is being calculated. Check back soon.
+              {t('seasons.checkBackSoon', 'Score history is being calculated. Check back soon.')}
             </div>
           </div>
         ) : (
@@ -419,7 +421,7 @@ const KvKSeasons: React.FC = () => {
                       {/* Right: Combined Score */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                         <span style={{ color: '#6b7280', fontSize: isMobile ? '0.55rem' : '0.7rem' }}>
-                          Combined Score
+                          {t('seasons.combinedScore', 'Combined Score')}
                         </span>
                         <span style={{ 
                           color: '#22d3ee',
@@ -449,7 +451,7 @@ const KvKSeasons: React.FC = () => {
                       {/* Kingdom Info */}
                       <div style={{ minWidth: 0 }}>
                         <div style={{ color: '#fff', fontWeight: '600', fontSize: isMobile ? '0.75rem' : '0.85rem' }}>
-                          Kingdom {matchup.kingdom1}
+                          {t('common.kingdom')} {matchup.kingdom1}
                         </div>
                         <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', marginTop: '0.1rem' }}>
                           <span style={{ color: '#22d3ee' }}>
@@ -466,7 +468,7 @@ const KvKSeasons: React.FC = () => {
                       {/* Prep & Battle Results - Fixed width column, center aligned */}
                       <div style={{ display: 'flex', gap: isMobile ? '0.15rem' : '0.5rem', justifyContent: 'center' }}>
                         <div style={{ textAlign: 'center', width: isMobile ? '24px' : '32px' }}>
-                          <div style={{ color: '#6b7280', fontSize: isMobile ? '0.45rem' : '0.55rem' }}>Prep</div>
+                          <div style={{ color: '#6b7280', fontSize: isMobile ? '0.45rem' : '0.55rem' }}>{t('kingdomCard.prep')}</div>
                           <div style={{ 
                             color: k1PrepResult === 'W' ? '#22c55e' : k1PrepResult === 'L' ? '#ef4444' : '#6b7280',
                             fontWeight: '700',
@@ -476,7 +478,7 @@ const KvKSeasons: React.FC = () => {
                           </div>
                         </div>
                         <div style={{ textAlign: 'center', width: isMobile ? '24px' : '32px' }}>
-                          <div style={{ color: '#6b7280', fontSize: isMobile ? '0.45rem' : '0.55rem' }}>Battle</div>
+                          <div style={{ color: '#6b7280', fontSize: isMobile ? '0.45rem' : '0.55rem' }}>{t('kingdomCard.battle')}</div>
                           <div style={{ 
                             color: k1BattleResult === 'W' ? '#22c55e' : k1BattleResult === 'L' ? '#ef4444' : '#6b7280',
                             fontWeight: '700',
@@ -539,7 +541,7 @@ const KvKSeasons: React.FC = () => {
                       {/* Kingdom Info */}
                       <div style={{ minWidth: 0 }}>
                         <div style={{ color: '#fff', fontWeight: '600', fontSize: isMobile ? '0.75rem' : '0.85rem' }}>
-                          Kingdom {matchup.kingdom2}
+                          {t('common.kingdom')} {matchup.kingdom2}
                         </div>
                         <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', marginTop: '0.1rem' }}>
                           <span style={{ color: '#22d3ee' }}>
@@ -556,7 +558,7 @@ const KvKSeasons: React.FC = () => {
                       {/* Prep & Battle Results - Fixed width column, center aligned */}
                       <div style={{ display: 'flex', gap: isMobile ? '0.15rem' : '0.5rem', justifyContent: 'center' }}>
                         <div style={{ textAlign: 'center', width: isMobile ? '24px' : '32px' }}>
-                          <div style={{ color: '#6b7280', fontSize: isMobile ? '0.45rem' : '0.55rem' }}>Prep</div>
+                          <div style={{ color: '#6b7280', fontSize: isMobile ? '0.45rem' : '0.55rem' }}>{t('kingdomCard.prep')}</div>
                           <div style={{ 
                             color: k2PrepResult === 'W' ? '#22c55e' : k2PrepResult === 'L' ? '#ef4444' : '#6b7280',
                             fontWeight: '700',
@@ -566,7 +568,7 @@ const KvKSeasons: React.FC = () => {
                           </div>
                         </div>
                         <div style={{ textAlign: 'center', width: isMobile ? '24px' : '32px' }}>
-                          <div style={{ color: '#6b7280', fontSize: isMobile ? '0.45rem' : '0.55rem' }}>Battle</div>
+                          <div style={{ color: '#6b7280', fontSize: isMobile ? '0.45rem' : '0.55rem' }}>{t('kingdomCard.battle')}</div>
                           <div style={{ 
                             color: k2BattleResult === 'W' ? '#22c55e' : k2BattleResult === 'L' ? '#ef4444' : '#6b7280',
                             fontWeight: '700',
@@ -612,12 +614,12 @@ const KvKSeasons: React.FC = () => {
             >
               {isLoadingMore && (
                 <div style={{ color: '#6b7280', fontSize: '0.85rem' }}>
-                  Loading more matchups...
+                  {t('seasons.loadingMore', 'Loading more matchups...')}
                 </div>
               )}
               {!isLoadingMore && displayLimit >= (view === 'all-time' ? allTimeMatchups : matchups).length && (
                 <div style={{ color: '#4a4a4a', fontSize: '0.8rem' }}>
-                  All matchups loaded
+                  {t('seasons.allLoaded', 'All matchups loaded')}
                 </div>
               )}
             </div>
@@ -642,11 +644,10 @@ const KvKSeasons: React.FC = () => {
           <span style={{ fontSize: '1.25rem' }}>💡</span>
           <div>
             <h4 style={{ color: '#fff', fontSize: '0.95rem', fontWeight: '600', margin: '0 0 0.5rem 0' }}>
-              What is Combined Power Level?
+              {t('seasons.combinedPowerTitle', 'What is Combined Power Level?')}
             </h4>
             <p style={{ color: '#9ca3af', fontSize: '0.85rem', margin: 0, lineHeight: 1.6 }}>
-              The sum of both kingdoms' Atlas Scores going into the matchup. Higher scores = 
-              more competitive battles between proven kingdoms. This is how legends are made.
+              {t('seasons.combinedPowerDesc', "The sum of both kingdoms' Atlas Scores going into the matchup. Higher scores = more competitive battles between proven kingdoms. This is how legends are made.")}
             </p>
           </div>
         </div>
@@ -658,11 +659,10 @@ const KvKSeasons: React.FC = () => {
           <span style={{ fontSize: '1.25rem' }}>🎯</span>
           <div>
             <h4 style={{ color: '#fff', fontSize: '0.95rem', fontWeight: '600', margin: '0 0 0.5rem 0' }}>
-              Score Timing
+              {t('seasons.scoreTimingTitle', 'Score Timing')}
             </h4>
             <p style={{ color: '#9ca3af', fontSize: '0.85rem', margin: 0, lineHeight: 1.6 }}>
-              Scores reflect each kingdom's Atlas Score <em>before</em> the battle began—based on 
-              their track record up to that point. No hindsight, just raw pre-battle power.
+              {t('seasons.scoreTimingDesc', "Scores reflect each kingdom's Atlas Score before the battle began—based on their track record up to that point. No hindsight, just raw pre-battle power.")}
             </p>
           </div>
         </div>

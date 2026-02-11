@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { neonGlow } from '../../utils/styles';
 import SmartTooltip from '../shared/SmartTooltip';
 
@@ -28,15 +29,16 @@ const QuickStats: React.FC<QuickStatsProps> = ({
   battleWins,
   isMobile,
 }) => {
+  const { t } = useTranslation();
   const kvks = totalKvks || 1;
   const reversals = prepWins - dominations;
   const comebacks = battleWins - dominations;
 
   const stats: StatItem[] = [
-    { label: 'Dominations', value: dominations, color: '#22c55e', icon: '👑', tooltip: 'Won both Prep and Battle', percent: Math.round((dominations / kvks) * 100) },
-    { label: 'Comebacks', value: comebacks, color: '#3b82f6', icon: '💪', tooltip: 'Lost Prep but won Battle', percent: Math.round((comebacks / kvks) * 100) },
-    { label: 'Reversals', value: reversals, color: '#a855f7', icon: '🔄', tooltip: 'Won Prep but lost Battle', percent: Math.round((reversals / kvks) * 100) },
-    { label: 'Invasions', value: invasions, color: '#ef4444', icon: '💀', tooltip: 'Lost both Prep and Battle', percent: Math.round((invasions / kvks) * 100) },
+    { label: t('kingdomProfile.dominations', 'Dominations'), value: dominations, color: '#22c55e', icon: '👑', tooltip: t('kingdomProfile.dominationDesc', 'Won both Prep and Battle'), percent: Math.round((dominations / kvks) * 100) },
+    { label: t('kingdomProfile.comebacks', 'Comebacks'), value: comebacks, color: '#3b82f6', icon: '💪', tooltip: t('kingdomProfile.comebackDesc', 'Lost Prep but won Battle'), percent: Math.round((comebacks / kvks) * 100) },
+    { label: t('kingdomProfile.reversals', 'Reversals'), value: reversals, color: '#a855f7', icon: '🔄', tooltip: t('kingdomProfile.reversalDesc', 'Won Prep but lost Battle'), percent: Math.round((reversals / kvks) * 100) },
+    { label: t('kingdomProfile.invasions', 'Invasions'), value: invasions, color: '#ef4444', icon: '💀', tooltip: t('kingdomProfile.invasionDesc', 'Lost both Prep and Battle'), percent: Math.round((invasions / kvks) * 100) },
   ];
 
   return (

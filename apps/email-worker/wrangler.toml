@@ -1,0 +1,6 @@
+name = "atlas-email-worker"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+# Email routing - bind to support@ks-atlas.com
+# Configure in Cloudflare Dashboard > Email Routing > Email Workers

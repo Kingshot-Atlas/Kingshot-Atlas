@@ -3,6 +3,7 @@ import { useAnalytics } from '../hooks/useAnalytics';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useAuth } from '../contexts/AuthContext';
 import { isReferralEligible } from '../utils/constants';
+import { useTranslation } from 'react-i18next';
 import { incrementStat } from './UserAchievements';
 import {
   copyToClipboard,
@@ -38,6 +39,7 @@ interface ShareButtonProps {
 }
 
 const ShareButton: React.FC<ShareButtonProps> = ({ type, kingdomData, compareData }) => {
+  const { t } = useTranslation();
   const [showMenu, setShowMenu] = useState(false);
   const [copying, setCopying] = useState<string | null>(null);
   const [showEmbedCode, setShowEmbedCode] = useState(false);
@@ -236,52 +238,52 @@ const ShareButton: React.FC<ShareButtonProps> = ({ type, kingdomData, compareDat
   const menuItems = [
     {
       icon: '🔗',
-      label: 'Copy Link',
+      label: t('share.copyLink', 'Copy Link'),
       action: handleCopyLink,
       feedback: 'link',
-      feedbackText: 'Link copied!'
+      feedbackText: t('share.linkCopied', 'Link copied!')
     },
     ...(type === 'kingdom' ? [{
       icon: '💬',
-      label: 'Copy for Discord',
+      label: t('share.copyForDiscord', 'Copy for Discord'),
       action: handleCopyDiscord,
       feedback: 'discord',
-      feedbackText: 'Discord message copied!'
+      feedbackText: t('share.discordCopied', 'Discord message copied!')
     }] : []),
     {
       icon: '📷',
-      label: isMobile ? 'Share Image' : 'Copy as Image',
+      label: isMobile ? t('share.shareImage', 'Share Image') : t('share.copyAsImage', 'Copy as Image'),
       action: handleCopyImage,
       feedback: isMobile ? 'shared' : 'image',
-      feedbackText: isMobile ? 'Sharing...' : 'Image copied!'
+      feedbackText: isMobile ? t('share.sharing', 'Sharing...') : t('share.imageCopied', 'Image copied!')
     },
     {
       icon: '⬇️',
-      label: 'Download PNG',
+      label: t('share.downloadPNG', 'Download PNG'),
       action: handleDownloadImage,
       feedback: 'downloaded',
-      feedbackText: 'Downloaded!'
+      feedbackText: t('share.downloaded', 'Downloaded!')
     },
     ...(type === 'kingdom' ? [{
       icon: '📋',
-      label: 'Get Embed Code',
+      label: t('share.getEmbedCode', 'Get Embed Code'),
       action: () => setShowEmbedCode(true),
       feedback: 'embed',
-      feedbackText: 'Embed code copied!'
+      feedbackText: t('share.embedCopied', 'Embed code copied!')
     }] : []),
     {
       icon: '📱',
-      label: 'Show QR Code',
+      label: t('share.showQRCode', 'Show QR Code'),
       action: () => setShowQRCode(true),
       feedback: 'qr',
-      feedbackText: 'QR Code shown!'
+      feedbackText: t('share.qrShown', 'QR Code shown!')
     },
     ...(typeof navigator !== 'undefined' && 'share' in navigator ? [{
       icon: '📤',
-      label: 'Share...',
+      label: t('share.shareNative', 'Share...'),
       action: handleNativeShare,
       feedback: 'native',
-      feedbackText: 'Shared!'
+      feedbackText: t('share.shared', 'Shared!')
     }] : [])
   ];
 
@@ -327,7 +329,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({ type, kingdomData, compareDat
           <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
           <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
         </svg>
-        Share
+        {t('common.share', 'Share')}
       </button>
 
       {showMenu && (
@@ -355,7 +357,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({ type, kingdomData, compareDat
                 marginBottom: '0.75rem'
               }}>
                 <span style={{ color: '#fff', fontSize: '0.85rem', fontWeight: '600' }}>
-                  QR Code
+                  {t('share.qrCode', 'QR Code')}
                 </span>
                 <button
                   onClick={() => setShowQRCode(false)}
@@ -371,7 +373,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({ type, kingdomData, compareDat
                   ×
                 </button>
               </div>
-              <Suspense fallback={<div style={{ color: '#6b7280', padding: '2rem' }}>Loading...</div>}>
+              <Suspense fallback={<div style={{ color: '#6b7280', padding: '2rem' }}>{t('common.loading', 'Loading...')}</div>}>
                 <QRCode 
                   value={type === 'kingdom' && kingdomData 
                     ? `https://ks-atlas.com/kingdom/${kingdomData.number}`
@@ -385,7 +387,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({ type, kingdomData, compareDat
                 />
               </Suspense>
               <p style={{ color: '#6b7280', fontSize: '0.7rem', marginTop: '0.75rem' }}>
-                Scan to open on mobile
+                {t('share.scanToOpen', 'Scan to open on mobile')}
               </p>
             </div>
           ) : showEmbedCode && type === 'kingdom' && kingdomData ? (
@@ -397,7 +399,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({ type, kingdomData, compareDat
                 marginBottom: '0.75rem'
               }}>
                 <span style={{ color: '#fff', fontSize: '0.85rem', fontWeight: '600' }}>
-                  Embed Code
+                  {t('share.embedCode', 'Embed Code')}
                 </span>
                 <button
                   onClick={() => setShowEmbedCode(false)}
@@ -444,7 +446,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({ type, kingdomData, compareDat
                   fontSize: '0.8rem'
                 }}
               >
-                {copying === 'embed' ? '✓ Copied!' : 'Copy Code'}
+                {copying === 'embed' ? t('share.copied', '✓ Copied!') : t('share.copyCode', 'Copy Code')}
               </button>
             </div>
           ) : (
@@ -457,7 +459,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({ type, kingdomData, compareDat
                 textTransform: 'uppercase',
                 letterSpacing: '0.05em'
               }}>
-                Share {type === 'kingdom' ? 'Kingdom' : 'Comparison'}
+                {t('share.shareType', 'Share {{type}}', { type: type === 'kingdom' ? t('common.kingdom', 'Kingdom') : t('share.comparison', 'Comparison') })}
               </div>
               {menuItems.map((item, i) => (
                 <button

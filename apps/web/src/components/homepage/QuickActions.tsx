@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '../../hooks/useMediaQuery';
+import { useTranslation } from 'react-i18next';
 import { useAnalytics } from '../../hooks/useAnalytics';
 
 interface QuickAction {
@@ -50,37 +51,18 @@ const AtlasBotIcon: React.FC<{ size?: number }> = ({ size = 24 }) => (
   </svg>
 );
 
-const ACTIONS: QuickAction[] = [
-  {
-    label: 'Transfer Hub',
-    path: '/transfer-hub',
-    color: '#22c55e',
-    icon: <TransferHubIcon />,
-  },
-  {
-    label: 'Kingdom Rankings',
-    path: '/rankings',
-    color: '#22d3ee',
-    icon: <RankingsIcon />,
-  },
-  {
-    label: 'KvK Seasons',
-    path: '/rankings?tab=seasons',
-    color: '#f97316',
-    icon: <KvKSeasonsIcon />,
-  },
-  {
-    label: 'Atlas Bot',
-    path: '/atlas-bot',
-    color: '#5865F2',
-    icon: <AtlasBotIcon />,
-  },
-];
-
 const QuickActions: React.FC = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { trackFeature } = useAnalytics();
+  const { t } = useTranslation();
+
+  const ACTIONS: QuickAction[] = [
+    { label: t('nav.transferHub', 'Transfer Hub'), path: '/transfer-hub', color: '#22c55e', icon: <TransferHubIcon /> },
+    { label: t('nav.kingdomRankings', 'Kingdom Rankings'), path: '/rankings', color: '#22d3ee', icon: <RankingsIcon /> },
+    { label: t('nav.kvkSeasons', 'KvK Seasons'), path: '/rankings?tab=seasons', color: '#f97316', icon: <KvKSeasonsIcon /> },
+    { label: t('nav.atlasBot', 'Atlas Bot'), path: '/atlas-bot', color: '#5865F2', icon: <AtlasBotIcon /> },
+  ];
 
   return (
     <div style={{

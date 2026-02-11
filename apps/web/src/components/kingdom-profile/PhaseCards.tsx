@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface KvKRecord {
   kvk_number: number;
@@ -32,6 +33,7 @@ const PhaseCards: React.FC<PhaseCardsProps> = ({
   recentKvks,
   isMobile,
 }) => {
+  const { t } = useTranslation();
   // Calculate current streaks
   const sortedKvks = [...recentKvks].sort((a, b) => b.kvk_number - a.kvk_number);
   
@@ -80,7 +82,7 @@ const PhaseCards: React.FC<PhaseCardsProps> = ({
           margin: '0 0 0.75rem 0', 
           textAlign: 'center'
         }}>
-          Preparation Phase
+          {t('kingdomProfile.prepPhase', 'Preparation Phase')}
         </h3>
         
         <div style={{ 
@@ -92,7 +94,7 @@ const PhaseCards: React.FC<PhaseCardsProps> = ({
           {/* Wins column */}
           <div style={{ textAlign: 'center', flex: 1 }}>
             <div style={{ color: '#22c55e', fontSize: isMobile ? '1.75rem' : '2rem', fontWeight: 'bold', lineHeight: 1 }}>{prepWins}</div>
-            <div style={{ color: '#6b7280', fontSize: '0.7rem', marginTop: '0.25rem' }}>Wins</div>
+            <div style={{ color: '#6b7280', fontSize: '0.7rem', marginTop: '0.25rem' }}>{t('common.wins', 'Wins')}</div>
             {showPrepStreak && prepStreakType === 'W' && (
               <div style={{ marginTop: '0.5rem' }}>
                 <span style={{ 
@@ -119,7 +121,7 @@ const PhaseCards: React.FC<PhaseCardsProps> = ({
             }}>
               {Math.round(prepWinRate * 100)}%
             </div>
-            <div style={{ color: '#6b7280', fontSize: '0.7rem', marginTop: '0.25rem' }}>Win Rate</div>
+            <div style={{ color: '#6b7280', fontSize: '0.7rem', marginTop: '0.25rem' }}>{t('kingdomProfile.winRate', 'Win Rate')}</div>
             {prepBestStreak >= 3 && (
               <div style={{ color: '#6b7280', fontSize: '0.65rem', marginTop: '0.25rem' }}>
                 Best: {prepBestStreak}W
@@ -130,7 +132,7 @@ const PhaseCards: React.FC<PhaseCardsProps> = ({
           {/* Losses column */}
           <div style={{ textAlign: 'center', flex: 1 }}>
             <div style={{ color: '#ef4444', fontSize: isMobile ? '1.75rem' : '2rem', fontWeight: 'bold', lineHeight: 1 }}>{prepLosses}</div>
-            <div style={{ color: '#6b7280', fontSize: '0.7rem', marginTop: '0.25rem' }}>Losses</div>
+            <div style={{ color: '#6b7280', fontSize: '0.7rem', marginTop: '0.25rem' }}>{t('common.losses', 'Losses')}</div>
             {showPrepStreak && prepStreakType === 'L' && (
               <div style={{ marginTop: '0.5rem' }}>
                 <span style={{ 
@@ -159,7 +161,7 @@ const PhaseCards: React.FC<PhaseCardsProps> = ({
           margin: '0 0 0.75rem 0', 
           textAlign: 'center'
         }}>
-          Battle Phase
+          {t('kingdomProfile.battlePhase', 'Battle Phase')}
         </h3>
         
         <div style={{ 
@@ -171,7 +173,7 @@ const PhaseCards: React.FC<PhaseCardsProps> = ({
           {/* Wins column */}
           <div style={{ textAlign: 'center', flex: 1 }}>
             <div style={{ color: '#22c55e', fontSize: isMobile ? '1.75rem' : '2rem', fontWeight: 'bold', lineHeight: 1 }}>{battleWins}</div>
-            <div style={{ color: '#6b7280', fontSize: '0.7rem', marginTop: '0.25rem' }}>Wins</div>
+            <div style={{ color: '#6b7280', fontSize: '0.7rem', marginTop: '0.25rem' }}>{t('common.wins', 'Wins')}</div>
             {showBattleStreak && battleStreakType === 'W' && (
               <div style={{ marginTop: '0.5rem' }}>
                 <span style={{ 
@@ -198,7 +200,7 @@ const PhaseCards: React.FC<PhaseCardsProps> = ({
             }}>
               {Math.round(battleWinRate * 100)}%
             </div>
-            <div style={{ color: '#6b7280', fontSize: '0.7rem', marginTop: '0.25rem' }}>Win Rate</div>
+            <div style={{ color: '#6b7280', fontSize: '0.7rem', marginTop: '0.25rem' }}>{t('kingdomProfile.winRate', 'Win Rate')}</div>
             {battleBestStreak >= 3 && (
               <div style={{ color: '#6b7280', fontSize: '0.65rem', marginTop: '0.25rem' }}>
                 Best: {battleBestStreak}W
@@ -209,7 +211,7 @@ const PhaseCards: React.FC<PhaseCardsProps> = ({
           {/* Losses column */}
           <div style={{ textAlign: 'center', flex: 1 }}>
             <div style={{ color: '#ef4444', fontSize: isMobile ? '1.75rem' : '2rem', fontWeight: 'bold', lineHeight: 1 }}>{battleLosses}</div>
-            <div style={{ color: '#6b7280', fontSize: '0.7rem', marginTop: '0.25rem' }}>Losses</div>
+            <div style={{ color: '#6b7280', fontSize: '0.7rem', marginTop: '0.25rem' }}>{t('common.losses', 'Losses')}</div>
             {showBattleStreak && battleStreakType === 'L' && (
               <div style={{ marginTop: '0.5rem' }}>
                 <span style={{ 

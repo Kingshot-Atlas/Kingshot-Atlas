@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 interface LinkAccountNudgeProps {
   variant: 'kingdom-profile' | 'transfer-hub' | 'compare' | 'inline';
@@ -14,6 +15,7 @@ const LinkAccountNudge: React.FC<LinkAccountNudgeProps> = ({
   themeColor = '#22d3ee' 
 }) => {
   const { user, profile } = useAuth();
+  const { t } = useTranslation();
 
   // Don't show if already linked
   if (profile?.linked_username) return null;
@@ -46,10 +48,10 @@ const LinkAccountNudge: React.FC<LinkAccountNudgeProps> = ({
           <span style={{ fontSize: '1.25rem', opacity: 0.8 }}>🔗</span>
           <div style={{ flex: 1 }}>
             <div style={{ color: '#d1d5db', fontSize: '0.85rem', fontWeight: '500' }}>
-              {user ? 'Link your Kingshot account' : 'Sign in & link your account'}
+              {user ? t('linkNudge.linkAccount', 'Link your Kingshot account') : t('linkNudge.signInLink', 'Sign in & link your account')}
             </div>
             <div style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.15rem' }}>
-              See players from your kingdom, submit data, and unlock more features
+              {t('linkNudge.seePlayersDesc', 'See players from your kingdom, submit data, and unlock more features')}
             </div>
           </div>
           <span style={{ color: '#4b5563', fontSize: '0.85rem' }}>→</span>
@@ -103,10 +105,10 @@ const LinkAccountNudge: React.FC<LinkAccountNudgeProps> = ({
                 filter: 'blur(3px)',
                 userSelect: 'none',
               }}>87%</span>
-              {' '}match score available
+              {' '}{t('linkNudge.matchScoreAvailable', 'match score available')}
             </div>
             <div style={{ color: '#6b7280', fontSize: '0.7rem', marginTop: '0.1rem' }}>
-              {user ? 'Link your account to see personalized transfer matches' : 'Sign in to see your transfer match score'}
+              {user ? t('linkNudge.linkForMatches', 'Link your account to see personalized transfer matches') : t('linkNudge.signInForMatches', 'Sign in to see your transfer match score')}
             </div>
           </div>
         </div>
@@ -130,7 +132,7 @@ const LinkAccountNudge: React.FC<LinkAccountNudgeProps> = ({
         onMouseEnter={(e) => { e.currentTarget.style.color = '#9ca3af'; }}
         onMouseLeave={(e) => { e.currentTarget.style.color = '#4b5563'; }}
         >
-          🔗 {user ? 'Link account for more' : 'Sign in for more'}
+          🔗 {user ? t('linkNudge.linkForMore', 'Link account for more') : t('linkNudge.signInForMore', 'Sign in for more')}
         </span>
       </Link>
     );

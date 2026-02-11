@@ -1,6 +1,29 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import type { AnalyticsData } from './types';
 import { analyticsService } from '../../services/analyticsService';
+import ProBadge from '../ProBadge';
+import { downloadCSV } from '../../utils/csvExport';
+import { getAuthHeaders } from '../../services/authHeaders';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+
+// S3.4: Inline SVG sparkline component
+const Sparkline: React.FC<{ data: number[]; color: string; width?: number; height?: number }> = ({ data, color, width = 80, height = 24 }) => {
+  if (!data.length || data.length < 2) return null;
+  const max = Math.max(...data);
+  const min = Math.min(...data);
+  const range = max - min || 1;
+  const points = data.map((v, i) => {
+    const x = (i / (data.length - 1)) * width;
+    const y = height - ((v - min) / range) * (height - 4) - 2;
+    return `${x},${y}`;
+  }).join(' ');
+  return (
+    <svg width={width} height={height} style={{ display: 'block', opacity: 0.7 }}>
+      <polyline fill="none" stroke={color} strokeWidth="1.5" points={points} />
+    </svg>
+  );
+};
 
 interface AnalyticsOverviewProps {
   analytics: AnalyticsData | null;
@@ -28,19 +51,69 @@ export const AnalyticsOverview: React.FC<AnalyticsOverviewProps> = ({
   const [grantLoading, setGrantLoading] = useState(false);
   const [grantResult, setGrantResult] = useState<{ success: boolean; message: string } | null>(null);
 
+  // S3.2: Churn alerts
+  const [churnAlerts, setChurnAlerts] = useState<Array<{ event_id: string; customer_id: string; canceled_at: string; reason: string }>>([]);
+  const fetchChurnAlerts = useCallback(async () => {
+    try {
+      const authHeaders = await getAuthHeaders({ requireAuth: false });
+      const res = await fetch(`${API_URL}/api/v1/admin/churn-alerts`, { headers: authHeaders });
+      if (res.ok) {
+        const data = await res.json();
+        setChurnAlerts(data.cancellations || []);
+      }
+    } catch { /* silent */ }
+  }, []);
+  useEffect(() => { fetchChurnAlerts(); }, [fetchChurnAlerts]);
+
+  // S3.5: Date range state
+  const [dateRange, setDateRange] = useState<{ from: string; to: string }>({
+    from: new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0] ?? '',
+    to: new Date().toISOString().split('T')[0] ?? '',
+  });
+
   if (!analytics) {
     return <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>Loading analytics...</div>;
   }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      {/* Key Metrics */}
+      {/* S3.5: Date Range Picker */}
+      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+        <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>Date Range:</span>
+        <input
+          type="date"
+          value={dateRange.from}
+          onChange={(e) => setDateRange(prev => ({ ...prev, from: e.target.value }))}
+          style={{ padding: '0.3rem 0.5rem', backgroundColor: '#111116', border: '1px solid #2a2a2a', borderRadius: '6px', color: '#fff', fontSize: '0.8rem' }}
+        />
+        <span style={{ color: '#6b7280' }}>—</span>
+        <input
+          type="date"
+          value={dateRange.to}
+          onChange={(e) => setDateRange(prev => ({ ...prev, to: e.target.value }))}
+          style={{ padding: '0.3rem 0.5rem', backgroundColor: '#111116', border: '1px solid #2a2a2a', borderRadius: '6px', color: '#fff', fontSize: '0.8rem' }}
+        />
+        {[7, 14, 30].map(days => (
+          <button
+            key={days}
+            onClick={() => setDateRange({ from: new Date(Date.now() - days * 86400000).toISOString().split('T')[0] ?? '', to: new Date().toISOString().split('T')[0] ?? '' })}
+            style={{
+              padding: '0.25rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', cursor: 'pointer',
+              backgroundColor: 'transparent', color: '#6b7280', border: '1px solid #2a2a2a',
+            }}
+          >
+            {days}d
+          </button>
+        ))}
+      </div>
+
+      {/* Key Metrics with S3.4 Sparklines */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
         {[
-          { label: analytics.bounceRate ? 'Visitors (30d)' : 'Total Events', value: (analytics.bounceRate ? analytics.uniqueVisitors : analytics.totalVisits).toLocaleString(), color: '#22d3ee', icon: '👁️' },
-          { label: analytics.bounceRate ? 'Page Views (30d)' : 'Page Views', value: (analytics.totalPageViews ?? (Array.isArray(analytics.pageViews) ? analytics.pageViews.length : 0)).toLocaleString(), color: '#a855f7', icon: '📄' },
-          { label: 'Total Users', value: analytics.userStats.total.toLocaleString(), color: '#22c55e', icon: '👥' },
-          { label: 'Monthly Revenue', value: `$${analytics.revenue.monthly.toFixed(2)}`, color: '#fbbf24', icon: '💰' },
+          { label: analytics.bounceRate ? 'Visitors (30d)' : 'Total Events', value: (analytics.bounceRate ? analytics.uniqueVisitors : analytics.totalVisits).toLocaleString(), color: '#22d3ee', icon: '👁️', sparkData: Array.isArray(analytics.pageViews) ? analytics.pageViews.slice(0, 7).map(p => p.views) : [] },
+          { label: analytics.bounceRate ? 'Page Views (30d)' : 'Page Views', value: (analytics.totalPageViews ?? (Array.isArray(analytics.pageViews) ? analytics.pageViews.length : 0)).toLocaleString(), color: '#a855f7', icon: '📄', sparkData: Array.isArray(analytics.pageViews) ? analytics.pageViews.map(p => p.views) : [] },
+          { label: 'Total Users', value: analytics.userStats.total.toLocaleString(), color: '#22c55e', icon: '👥', sparkData: [analytics.userStats.free, analytics.userStats.kingshot_linked, analytics.userStats.pro, analytics.userStats.recruiter].filter(v => v > 0) },
+          { label: 'Monthly Revenue', value: `$${analytics.revenue.monthly.toFixed(2)}`, color: '#fbbf24', icon: '💰', sparkData: analytics.revenue.recentPayments ? analytics.revenue.recentPayments.slice(0, 7).map((p: { amount: number }) => p.amount) : [] },
         ].map((metric, i) => (
           <div key={i} style={{
             backgroundColor: '#111116',
@@ -48,9 +121,12 @@ export const AnalyticsOverview: React.FC<AnalyticsOverviewProps> = ({
             padding: '1.25rem',
             border: '1px solid #2a2a2a'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-              <span>{metric.icon}</span>
-              <span style={{ color: '#6b7280', fontSize: '0.85rem' }}>{metric.label}</span>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span>{metric.icon}</span>
+                <span style={{ color: '#6b7280', fontSize: '0.85rem' }}>{metric.label}</span>
+              </div>
+              <Sparkline data={metric.sparkData} color={metric.color} />
             </div>
             <div style={{ fontSize: '1.75rem', fontWeight: '700', color: metric.color }}>
               {metric.value}
@@ -347,31 +423,74 @@ export const AnalyticsOverview: React.FC<AnalyticsOverviewProps> = ({
       {/* Recent Subscribers */}
       {analytics.recentSubscribers && analytics.recentSubscribers.length > 0 && (
         <div style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', border: '1px solid #2a2a2a' }}>
-          <h3 style={{ color: '#fff', marginBottom: '1rem', fontSize: '1rem' }}>🎉 Recent Subscribers</h3>
-          {analytics.recentSubscribers.slice(0, 5).map((sub, i) => (
-            <div key={i} style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center',
-              padding: '0.5rem 0',
-              borderBottom: i < 4 ? '1px solid #1a1a1f' : 'none'
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <h3 style={{ color: '#fff', fontSize: '1rem', margin: 0 }}>🎉 Recent Subscribers</h3>
+            <button
+              onClick={() => downloadCSV(
+                analytics.recentSubscribers!.map(s => ({ username: s.username, tier: s.tier, supporting_since: s.created_at })),
+                'subscribers'
+              )}
+              style={{
+                background: 'none', border: '1px solid #2a2a2a', borderRadius: '4px',
+                color: '#6b7280', padding: '0.2rem 0.5rem', cursor: 'pointer', fontSize: '0.7rem',
+              }}
+            >
+              📥 Export CSV
+            </button>
+          </div>
+          {analytics.recentSubscribers.slice(0, 5).map((sub, i) => {
+            const subDate = new Date(sub.created_at);
+            const daysAgo = Math.floor((Date.now() - subDate.getTime()) / 86400000);
+            const durationLabel = daysAgo < 1 ? 'Today' : daysAgo === 1 ? '1 day' : daysAgo < 30 ? `${daysAgo} days` : `${Math.floor(daysAgo / 30)} mo`;
+            const sinceLabel = `Since ${subDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+            return (
+              <div key={i} style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center',
+                padding: '0.6rem 0',
+                borderBottom: i < 4 ? '1px solid #1a1a1f' : 'none'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span style={{ color: '#fff', fontWeight: 500 }}>{sub.username}</span>
+                  <ProBadge size="sm" />
+                  <span style={{ 
+                    padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.6rem', fontWeight: 600,
+                    backgroundColor: '#22c55e15', color: '#22c55e',
+                  }}>
+                    {durationLabel}
+                  </span>
+                </div>
+                <span style={{ color: '#9ca3af', fontSize: '0.75rem' }}>
+                  {sinceLabel}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* S3.2: Churn Alerts */}
+      {churnAlerts.length > 0 && (
+        <div style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', border: '1px solid #ef444430' }}>
+          <h3 style={{ color: '#ef4444', fontSize: '1rem', margin: '0 0 1rem 0' }}>⚠️ Subscriber Churn ({churnAlerts.length})</h3>
+          {churnAlerts.slice(0, 5).map((alert, i) => (
+            <div key={alert.event_id || i} style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              padding: '0.5rem 0', borderBottom: i < Math.min(churnAlerts.length, 5) - 1 ? '1px solid #1a1a1f' : 'none',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ color: '#fff' }}>{sub.username}</span>
-                <span style={{ 
-                  padding: '0.15rem 0.5rem',
-                  backgroundColor: '#FF6B8A20',
-                  color: '#FF6B8A',
-                  borderRadius: '9999px',
-                  fontSize: '0.7rem',
-                  fontWeight: '600',
-                  textTransform: 'uppercase'
+                <span style={{ color: '#ef4444', fontSize: '0.8rem' }}>✕</span>
+                <span style={{ color: '#fff', fontSize: '0.85rem' }}>{alert.customer_id}</span>
+                <span style={{
+                  padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.6rem', fontWeight: 600,
+                  backgroundColor: '#ef444415', color: '#ef4444',
                 }}>
-                  SUPPORTER
+                  {alert.reason}
                 </span>
               </div>
               <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>
-                {new Date(sub.created_at).toLocaleDateString()}
+                {new Date(alert.canceled_at).toLocaleDateString()}
               </span>
             </div>
           ))}

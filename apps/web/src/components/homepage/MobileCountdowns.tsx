@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { getKvKStatus, getTransferStatus, EventStatus } from '../KvKCountdown';
+import { useTranslation } from 'react-i18next';
 
 const MobileCountdowns: React.FC = () => {
+  const { t } = useTranslation();
   const [kvkStatus, setKvkStatus] = useState<EventStatus>(getKvKStatus());
   const [transferStatus, setTransferStatus] = useState<EventStatus>(getTransferStatus());
 
@@ -49,7 +51,7 @@ const MobileCountdowns: React.FC = () => {
           justifyContent: 'center',
           gap: '0.25rem',
         }}>
-          {kvkStatus.icon} {kvkIsLive ? kvkStatus.phaseName : 'Next KvK'}
+          {kvkStatus.icon} {kvkIsLive ? kvkStatus.phaseName : t('countdown.nextKvk', 'Next KvK')}
           {kvkIsLive && (
             <span style={{
               color: kvkStatus.color,
@@ -91,7 +93,7 @@ const MobileCountdowns: React.FC = () => {
           justifyContent: 'center',
           gap: '0.25rem',
         }}>
-          🔀 {transferIsLive ? transferStatus.phaseName : 'Next Transfer'}
+          🔀 {transferIsLive ? transferStatus.phaseName : t('countdown.nextTransfer', 'Next Transfer')}
           {transferIsLive && (
             <span style={{
               color: transferStatus.color,

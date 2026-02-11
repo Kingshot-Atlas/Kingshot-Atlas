@@ -25,6 +25,7 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { neonGlow } from '../utils/styles';
 import { isRandomUsername } from '../utils/randomUsername';
+import { useTranslation } from 'react-i18next';
 
 // Convert TC level to display string (TC 31+ becomes TG tiers)
 // Source of truth: /docs/TC_TG_NAMING.md
@@ -201,7 +202,48 @@ const getAuthProvider = (user: { app_metadata?: { provider?: string; providers?:
   return null;
 };
 
+// Fallback for the "user logged in but profile not loaded" race condition.
+// After 8 seconds, offers a retry instead of spinning forever.
+const ProfileLoadingFallback: React.FC = () => {
+  const [timedOut, setTimedOut] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setTimedOut(true), 8000);
+    return () => clearTimeout(t);
+  }, []);
+
+  if (timedOut) {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '1.5rem', padding: '2rem' }}>
+        <div style={{ color: '#9ca3af', fontSize: '1rem', textAlign: 'center' }}>
+          Profile is taking a while to load.
+        </div>
+        <button
+          onClick={() => window.location.reload()}
+          style={{
+            padding: '0.75rem 1.5rem',
+            background: 'linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%)',
+            border: 'none',
+            borderRadius: '8px',
+            color: '#000',
+            fontWeight: 'bold',
+            cursor: 'pointer'
+          }}
+        >
+          Reload Page
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ color: '#6b7280' }}>Loading profile...</div>
+    </div>
+  );
+};
+
 const Profile: React.FC = () => {
+  const { t } = useTranslation();
   const { userId } = useParams<{ userId?: string }>();
   useDocumentTitle(userId ? 'User Profile' : 'My Profile');
   const { user, profile, loading, updateProfile, refreshLinkedPlayer } = useAuth();
@@ -421,7 +463,7 @@ const Profile: React.FC = () => {
             My <span style={neonGlow('#22d3ee')}>Profile</span>
           </h1>
           <p style={{ color: '#6b7280', marginBottom: '2rem' }}>
-            Track your kingdoms, earn achievements, and prove your dominance.
+            {t('profile.trackKingdoms', 'Track your kingdoms, earn achievements, and prove your dominance.')}
           </p>
           <button
             onClick={() => setShowAuthModal(true)}
@@ -436,11 +478,11 @@ const Profile: React.FC = () => {
               fontSize: '1rem'
             }}
           >
-            Sign In to Continue
+            {t('profile.signInToContinue', 'Sign In to Continue')}
           </button>
           <div style={{ marginTop: '3rem' }}>
             <Link to="/" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: '0.85rem' }}>
-              ← Back to Home
+              {t('common.backToHome')}
             </Link>
           </div>
         </div>
@@ -451,11 +493,7 @@ const Profile: React.FC = () => {
 
   // User is logged in but profile is still loading (race condition fix)
   if (user && !userId && !profile) {
-    return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ color: '#6b7280' }}>Loading profile...</div>
-      </div>
-    );
+    return <ProfileLoadingFallback />;
   }
 
   if (!viewedProfile) {
@@ -477,14 +515,14 @@ const Profile: React.FC = () => {
           textAlign: 'center'
         }}>
           <h1 style={{ fontSize: '2rem', fontWeight: 'bold', color: '#fff', marginBottom: '1rem' }}>
-            Profile Not Found
+            {t('profile.notFound', 'Profile Not Found')}
           </h1>
           <p style={{ color: '#6b7280', marginBottom: '2rem' }}>
-            This user profile could not be found or may have been removed.
+            {t('profile.notFoundDesc', 'This user profile could not be found or may have been removed.')}
           </p>
           <div style={{ marginTop: '3rem' }}>
             <Link to="/players" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: '0.85rem' }}>
-              ← Back to Players
+              {t('profile.backToPlayers', '← Back to Players')}
             </Link>
           </div>
         </div>
@@ -804,7 +842,7 @@ const Profile: React.FC = () => {
                     minHeight: '48px',
                   }}
                 >
-                  Cancel
+                  {t('common.cancel', 'Cancel')}
                 </button>
               </div>
             </div>
@@ -899,7 +937,7 @@ const Profile: React.FC = () => {
                       justifyContent: 'center'
                     }}
                   >
-                    ✏️ Edit Profile
+                    ✏️ {t('profile.editProfile')}
                   </button>
                 </div>
                 
@@ -1356,7 +1394,7 @@ const Profile: React.FC = () => {
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
               <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: '600', color: '#fff', width: '100%', textAlign: 'center' }}>
-                Subscription
+                {t('profile.subscription', 'Subscription')}
               </h3>
             </div>
             <div style={{ textAlign: 'center', marginBottom: '0.75rem' }}>
@@ -1427,7 +1465,7 @@ const Profile: React.FC = () => {
                     WebkitTapHighlightColor: 'transparent'
                   }}
                 >
-                  {managingSubscription ? 'Opening Portal...' : 'Manage Subscription'}
+                  {managingSubscription ? t('support.opening') : t('support.manageSubscription')}
                 </button>
               ) : !isAdmin ? (
                 <div style={{ 
@@ -1489,7 +1527,7 @@ const Profile: React.FC = () => {
                       WebkitTapHighlightColor: 'transparent'
                     }}
                   >
-                    {managingSubscription ? 'Syncing...' : 'Subscription not showing?'}
+                    {managingSubscription ? t('profile.syncing', 'Syncing...') : t('profile.subscriptionNotShowing', 'Subscription not showing?')}
                   </button>
                 </div>
               ) : null}

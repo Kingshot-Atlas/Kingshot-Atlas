@@ -3,6 +3,84 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-11 09:06 | Ops Lead | COMPLETED
+Task: Deploy Cloudflare Email Worker for inbound email processing
+Changes:
+1. Deployed `atlas-email-worker` to Cloudflare Workers (`apps/email-worker/worker.js`)
+2. Onboarded ks-atlas.com domain in Cloudflare Email Routing (replaced registrar MX records)
+3. Set worker secrets: SUPABASE_URL, SUPABASE_SERVICE_KEY, FORWARD_TO
+4. Created routing rule: support@ks-atlas.com → atlas-email-worker
+5. Verified end-to-end: test email stored in Supabase `support_emails` table ✅
+6. Added RESEND_API_KEY to Render (Kingshot-Atlas) for outbound emails
+Result: Full email pipeline live — inbound emails stored in Supabase + forwarded to Gmail backup
+
+## 2026-02-11 11:00 | Product Engineer + Platform Engineer | COMPLETED
+Task: Admin Dashboard Email Integration + Dashboard Recommendations
+Changes:
+1. **Email System (support@ks-atlas.com)**
+   - Created `support_emails` Supabase table (direction, status, thread_id, metadata)
+   - Created Cloudflare Email Worker (`apps/email-worker/worker.js`) for inbound emails
+   - Created 4 backend API endpoints: inbox fetch, send (Resend), mark read, stats
+   - Created `EmailTab.tsx` — full split-view inbox + compose UI in Admin Dashboard
+   - Email tab is first tab in System category
+2. **Admin Dashboard Recommendations Implemented**
+   - P1: Extracted inline feedback tab → `FeedbackTab.tsx` component with CSV export
+   - P2: Removed Plausible data duplication from Analytics Overview (kept on Live Traffic)
+   - P3: Removed engagement widgets (Feature Usage, Button Clicks, Timeline) from Live Traffic tab
+   - P4: Enhanced Recent Subscribers with duration badges ("3 days", "1 mo") + CSV export button
+   - P5: Added 60-second auto-refresh polling for analytics tab
+   - P6: Created `csvExport.ts` utility + export buttons on subscribers and feedback
+3. System category now defaults to Email tab instead of Feedback
+Files: admin.py, AdminDashboard.tsx, EmailTab.tsx, FeedbackTab.tsx, AnalyticsOverview.tsx, csvExport.ts, email-worker/worker.js, admin/index.ts
+Result: Build passes, all changes verified locally
+
+## 2026-02-11 09:00 | Product Engineer | COMPLETED
+Task: Subscriber Experience Polish + Admin Dashboard Review
+Changes:
+1. Added 💖 ProBadge next to Kingshot username in Recent Subscribers (replaced plain "SUPPORTER" text pill)
+   - Fixed ProBadge component icon (was empty string, now shows 💖)
+   - Imported ProBadge into AnalyticsOverview.tsx
+2. Changed date display to "Supporting since Feb 10" format (was raw toLocaleDateString)
+   - Uses en-US locale with short month + day format
+3. Added "Thank you" welcome notification for new supporters
+   - Triggers in update_user_subscription() when subscription_started_at is first set
+   - Creates system_announcement notification with welcome message and link to /support
+   - Non-fatal: wrapped in try/catch so notification failure won't block subscription update
+4. Delivered email method research report (support@ks-atlas.com) — awaiting approval
+5. Delivered comprehensive Admin Dashboard review with findings and recommendations
+Files: AnalyticsOverview.tsx, ProBadge.tsx, supabase_client.py (backend)
+Result: Build passes, all 3 subscriber experience features implemented
+
+## 2026-02-11 07:30 | Product Engineer + Platform Engineer | COMPLETED
+Task: Fix 3 issues — subscriber date, username display, Silver card text visibility
+Fixes:
+1. da_kirbs subscription date showed 1/29 (account creation) instead of 2/10 (actual Stripe sub start)
+   - Added `subscription_started_at` column to profiles table
+   - Backfilled from Stripe timestamps (da_kirbs=2026-02-10, ctamarti=2026-01-29)
+   - Updated admin API to use `subscription_started_at` instead of `created_at`
+   - Updated `update_user_subscription()` to set `subscription_started_at` for future subscribers
+2. Recent Subscribers showed Discord/auth usernames instead of Kingshot account names
+   - Changed from `p.get("username")` to `p.get("linked_username") or p.get("username")`
+   - Now shows: Kirby (was da_kirbs), Catarina (was ctamarti)
+3. Silver tier transfer listing card had poor text visibility in header
+   - Reduced silver inner gradient opacity from `08` to `05` and shortened gradient to 25%
+   - Boosted "Transfer Status" label from textMuted to textSecondary for silver cards
+   - Boosted status value color from #9ca3af to #d1d5db for silver cards (was identical to silver border color)
+Files: admin.py, supabase_client.py, KingdomListingCard.tsx, Supabase migration
+Result: All 3 fixes verified, build passes, deployed locally
+
+## 2026-02-11 04:10 | Platform Engineer | COMPLETED
+Task: Fix OAuth sign-in stuck at loading screen (user report: rickybrackett2011@gmail.com)
+Root Cause: OAuth redirect went directly to /profile with #access_token hash — race condition between Supabase hash processing and React rendering caused permanent "Loading profile..." stuck state
+Fix:
+- Created dedicated /auth/callback page that waits for Supabase to process hash tokens, then redirects to /profile
+- Updated all OAuth redirectTo URLs (Google, Discord, email) from /profile to /auth/callback
+- Added fallback profile creation in AuthContext when profile fetch fails with no cache (prevents null profile stuck state)
+- Added 8-second timeout with "Reload Page" button in Profile.tsx ProfileLoadingFallback component
+Files: AuthCallback.tsx (updated), AuthContext.tsx, Profile.tsx, App.tsx
+⚠️ REQUIRES: Add https://ks-atlas.com/auth/callback to Supabase Auth Redirect URLs in dashboard
+Result: Auth flow now uses dedicated callback page with proper error handling and timeout recovery
+
 ## 2026-02-11 04:30 | Product Engineer | COMPLETED
 Task: Rally Coordinator Layout Restructure + Universal Buff Timers
 Layout:

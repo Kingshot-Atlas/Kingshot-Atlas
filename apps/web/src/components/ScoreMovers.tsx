@@ -1,6 +1,7 @@
 import React, { memo, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useIsMobile } from '../hooks/useMediaQuery';
+import { useTranslation } from 'react-i18next';
 import { 
   Kingdom, 
   getPowerTier, 
@@ -26,6 +27,7 @@ interface Mover {
 
 const ScoreMovers: React.FC<ScoreMoversProps> = ({ kingdoms, previousScores }) => {
   const isMobile = useIsMobile();
+  const { t } = useTranslation();
   const [showAll, setShowAll] = useState(false);
   const [filter, setFilter] = useState<'all' | 'up' | 'down' | 'tier'>('all');
   
@@ -137,7 +139,7 @@ const ScoreMovers: React.FC<ScoreMoversProps> = ({ kingdoms, previousScores }) =
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <span style={{ fontSize: '1rem' }}>📈</span>
           <h3 style={{ color: '#fff', fontSize: '0.95rem', fontWeight: '600', margin: 0 }}>
-            Score Movers
+            {t('scoreMovers.title', 'Score Movers')}
           </h3>
           <span style={{ 
             color: '#6b7280', 
@@ -146,14 +148,14 @@ const ScoreMovers: React.FC<ScoreMoversProps> = ({ kingdoms, previousScores }) =
             padding: '0.15rem 0.4rem',
             borderRadius: '4px'
           }}>
-            This Week
+            {t('scoreMovers.thisWeek', 'This Week')}
           </span>
         </div>
         
         {/* Filter tabs */}
         <div style={{ display: 'flex', gap: '0.25rem' }}>
           {[
-            { key: 'all', label: 'All' },
+            { key: 'all', label: t('common.all', 'All') },
             { key: 'up', label: '↑' },
             { key: 'down', label: '↓' },
             { key: 'tier', label: '⭐' }
@@ -212,7 +214,7 @@ const ScoreMovers: React.FC<ScoreMoversProps> = ({ kingdoms, previousScores }) =
                   fontSize: '0.85rem', 
                   fontWeight: '500' 
                 }}>
-                  Kingdom {mover.kingdom.kingdom_number}
+                  {t('common.kingdom', 'Kingdom')} {mover.kingdom.kingdom_number}
                 </div>
                 <div style={{ 
                   display: 'flex', 
@@ -273,7 +275,7 @@ const ScoreMovers: React.FC<ScoreMoversProps> = ({ kingdoms, previousScores }) =
             cursor: 'pointer'
           }}
         >
-          {showAll ? 'Show Less' : `Show ${filteredMovers.length - 5} More`}
+          {showAll ? t('common.less', 'Show Less') : t('scoreMovers.showMore', 'Show {{count}} More', { count: filteredMovers.length - 5 })}
         </button>
       )}
       
@@ -295,7 +297,7 @@ const ScoreMovers: React.FC<ScoreMoversProps> = ({ kingdoms, previousScores }) =
           ↓ {movers.filter(m => m.change < 0).length}
         </span>
         <span style={{ color: '#fbbf24' }}>
-          ⭐ {movers.filter(m => m.tierChanged).length} tier changes
+          ⭐ {movers.filter(m => m.tierChanged).length} {t('scoreMovers.tierChanges', 'tier changes')}
         </span>
       </div>
     </div>

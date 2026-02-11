@@ -14,8 +14,10 @@ import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
 import { scoreHistoryService, RankMover } from '../services/scoreHistoryService';
 import { useScrollDepth } from '../hooks/useScrollDepth';
+import { useTranslation } from 'react-i18next';
 
 const Leaderboards: React.FC = () => {
+  const { t } = useTranslation();
   useDocumentTitle('Kingdom Rankings');
   useMetaTags(PAGE_META_TAGS.leaderboards);
   useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.rankings });
@@ -382,7 +384,7 @@ const Leaderboards: React.FC = () => {
                   fontWeight: '500',
                   fontSize: isMobile ? '0.75rem' : '0.8rem'
                 }}>
-                  Kingdom {kingdom.kingdom_number}
+                  {t('common.kingdom')} {kingdom.kingdom_number}
                 </span>
               </div>
               <span style={{ 
@@ -428,7 +430,7 @@ const Leaderboards: React.FC = () => {
               <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
               </svg>
-              {tier === 'anonymous' ? 'Sign in to see more' : 'Upgrade for full rankings'}
+              {tier === 'anonymous' ? t('rankings.signInForMore') : t('rankings.upgradeForMore', 'Upgrade for full rankings')}
             </Link>
           </div>
         )}
@@ -502,7 +504,7 @@ const Leaderboards: React.FC = () => {
             <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>RANKINGS</span>
           </h1>
           <p style={{ color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.9rem', marginBottom: '0.75rem' }}>
-            Who&apos;s dominating? The data doesn&apos;t lie.
+            {t('rankings.subtitle')}
           </p>
           {!isMobile && (
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
@@ -522,7 +524,7 @@ const Leaderboards: React.FC = () => {
           <DataLoadError onRetry={loadLeaderboard} />
         ) : kingdoms.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '4rem 0', color: '#6b7280' }}>
-            <p>No kingdom data available.</p>
+            <p>{t('rankings.noData', 'No kingdom data available.')}</p>
           </div>
         ) : (
           <>
@@ -559,14 +561,14 @@ const Leaderboards: React.FC = () => {
                       transition: 'all 0.2s'
                     }}
                   >
-                    Top {count}
+                    {t('rankings.topN', { count })}
                   </button>
                 ))}
               </div>
 
               {/* KvK Experience filter — preset chips */}
               <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '0.4rem' : '0.5rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-                <span style={{ color: '#6b7280', fontSize: isMobile ? '0.72rem' : '0.8rem', marginRight: '0.15rem' }}>Experience:</span>
+                <span style={{ color: '#6b7280', fontSize: isMobile ? '0.72rem' : '0.8rem', marginRight: '0.15rem' }}>{t('rankings.experienceFilter')}:</span>
                 <div style={{ 
                   display: 'flex', 
                   backgroundColor: '#0a0a0a', 
@@ -745,7 +747,7 @@ const Leaderboards: React.FC = () => {
                   alignItems: 'center',
                   gap: '0.5rem'
                 }}>
-                  Rank Movers
+                  {t('rankings.rankMovers', 'Rank Movers')}
                   {filteredRankMovers.climbers[0] && (
                     <span style={{ color: '#6b7280', fontSize: isMobile ? '0.7rem' : '0.75rem', fontWeight: '400' }}>
                       KvK #{filteredRankMovers.climbers[0].prev_kvk} → #{filteredRankMovers.climbers[0].curr_kvk}
@@ -759,8 +761,8 @@ const Leaderboards: React.FC = () => {
                 }}>
                   {/* Rank Mover Table Component */}
                   {([
-                    { title: 'Biggest Climbers', emoji: '🚀', data: filteredRankMovers.climbers, accentColor: '#22c55e', isClimber: true },
-                    { title: 'Biggest Fallers', emoji: '📉', data: filteredRankMovers.fallers, accentColor: '#ef4444', isClimber: false },
+                    { title: t('rankings.biggestClimbers'), emoji: '🚀', data: filteredRankMovers.climbers, accentColor: '#22c55e', isClimber: true },
+                    { title: t('rankings.biggestFallers'), emoji: '📉', data: filteredRankMovers.fallers, accentColor: '#ef4444', isClimber: false },
                   ] as const).map(({ title: tbl, emoji, data, accentColor, isClimber }) => (
                     <div key={tbl} style={{ 
                       backgroundColor: '#131318', 
@@ -851,7 +853,7 @@ const Leaderboards: React.FC = () => {
                                     style={{ color: '#fff', fontWeight: '500', textDecoration: 'none', fontSize: isMobile ? '0.72rem' : '0.8rem' }}
                                     onClick={(e) => e.stopPropagation()}
                                   >
-                                    Kingdom {mover.kingdom_number}
+                                    {t('common.kingdom')} {mover.kingdom_number}
                                   </Link>
                                 </td>
                                 {/* Old Rank */}
@@ -916,7 +918,7 @@ const Leaderboards: React.FC = () => {
                 paddingLeft: '0.5rem',
                 borderLeft: '3px solid #22d3ee'
               }}>
-                📊 Performance Rankings
+                📊 {t('rankings.performanceRankings', 'Performance Rankings')}
               </h2>
               <div style={{ 
                 display: 'grid', 
@@ -951,7 +953,7 @@ const Leaderboards: React.FC = () => {
                   paddingLeft: '0.5rem',
                   borderLeft: '3px solid #eab308'
                 }}>
-                  🔥 Current Momentum
+                  🔥 {t('rankings.currentMomentum', 'Current Momentum')}
                 </h2>
                 <div style={{ 
                   display: 'grid', 
@@ -980,7 +982,7 @@ const Leaderboards: React.FC = () => {
                   paddingLeft: '0.5rem',
                   borderLeft: '3px solid #fbbf24'
                 }}>
-                  🏅 All-Time Records
+                  🏅 {t('rankings.allTimeRecords', 'All-Time Records')}
                 </h2>
                 <div style={{ 
                   display: 'grid', 
@@ -1010,7 +1012,7 @@ const Leaderboards: React.FC = () => {
                 paddingLeft: '0.5rem',
                 borderLeft: '3px solid #22c55e'
               }}>
-                📈 Match Outcomes
+                📈 {t('rankings.matchOutcomes', 'Match Outcomes')}
               </h2>
               <div style={{ 
                 display: 'grid', 
@@ -1041,7 +1043,7 @@ const Leaderboards: React.FC = () => {
 
         {/* Back to Home link */}
         <div style={{ textAlign: 'center', marginTop: '2rem', paddingBottom: '1rem' }}>
-          <Link to="/" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: '0.8rem' }}>← Back to Home</Link>
+          <Link to="/" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: '0.8rem' }}>{t('common.backToHome')}</Link>
         </div>
       </div>
     </div>

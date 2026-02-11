@@ -1,6 +1,7 @@
 import React, { memo, Suspense, lazy, useMemo, useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useIsMobile } from '../hooks/useMediaQuery';
+import { useTranslation } from 'react-i18next';
 import { KingdomProfile } from '../types';
 import { useAnalytics } from '../hooks/useAnalytics';
 import DonutChart from './DonutChart';
@@ -56,6 +57,7 @@ const AtlasScoreBreakdown: React.FC<AtlasScoreBreakdownProps> = ({ kingdom, rank
   }, [onToggle]);
   
   const isMobile = useIsMobile();
+  const { t } = useTranslation();
   const { trackFeature } = useAnalytics();
   
   // Auto-expand and scroll when navigating from spider chart
@@ -185,10 +187,10 @@ const AtlasScoreBreakdown: React.FC<AtlasScoreBreakdownProps> = ({ kingdom, rank
         marginBottom: isMobile ? '1.25rem' : '1.5rem'
       }}>
         <h4 style={{ color: '#fff', fontSize: '0.9rem', fontWeight: '600', margin: '0 0 0.75rem 0', textAlign: 'center' }}>
-          Atlas Score Breakdown
+          {t('scoreBreakdown.title', 'Atlas Score Breakdown')}
         </h4>
         <div style={{ color: '#6b7280', fontSize: '0.85rem', textAlign: 'center', padding: '1rem' }}>
-          Play your first KvK to unlock score breakdown!
+          {t('scoreBreakdown.playFirst', 'Play your first KvK to unlock score breakdown!')}
         </div>
       </div>
     );
@@ -226,11 +228,11 @@ const AtlasScoreBreakdown: React.FC<AtlasScoreBreakdownProps> = ({ kingdom, rank
         }}
       >
         <h4 style={{ color: '#fff', fontSize: '0.9rem', fontWeight: '600', margin: 0, textAlign: 'center' }}>
-          Atlas Score Breakdown
+          {t('scoreBreakdown.title', 'Atlas Score Breakdown')}
         </h4>
         {!showChart && (
           <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>
-            &quot;Why is my score what it is?&quot;
+            {t('scoreBreakdown.whyScore', '"Why is my score what it is?"')}
           </span>
         )}
         <svg 
@@ -282,7 +284,7 @@ const AtlasScoreBreakdown: React.FC<AtlasScoreBreakdownProps> = ({ kingdom, rank
               borderBottom: '1px solid #2a2a2a'
             }}>
               <span style={{ fontSize: '0.75rem', color: '#fff', fontWeight: '600', marginBottom: '0.25rem' }}>
-                Score Components
+                {t('scoreBreakdown.scoreComponents', 'Score Components')}
               </span>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.35rem' }}>
                 <span style={{ fontSize: '0.65rem', color: '#6b7280' }}>Atlas Score</span>
@@ -296,7 +298,7 @@ const AtlasScoreBreakdown: React.FC<AtlasScoreBreakdownProps> = ({ kingdom, rank
                 </span>
               </div>
               <span style={{ fontSize: '0.5rem', color: '#4a4a4a', marginTop: '0.15rem' }}>
-                (breakdown is approximate)
+                {t('scoreBreakdown.approximate', '(breakdown is approximate)')}
               </span>
             </div>
             
@@ -407,7 +409,7 @@ const AtlasScoreBreakdown: React.FC<AtlasScoreBreakdownProps> = ({ kingdom, rank
                   fontSize: '0.65rem', 
                   color: TIER_COLORS[kingdom.power_tier || 'D']
                 }}>
-                  Ranks better than <strong>{percentile}%</strong> of all kingdoms
+                  {t('scoreBreakdown.ranksBetter', 'Ranks better than')} <strong>{percentile}%</strong> {t('scoreBreakdown.ofAllKingdoms', 'of all kingdoms')}
                 </span>
               </div>
             )}
@@ -429,7 +431,7 @@ const AtlasScoreBreakdown: React.FC<AtlasScoreBreakdownProps> = ({ kingdom, rank
                 color: '#6b7280',
                 fontSize: '0.8rem'
               }}>
-                Loading chart...
+                {t('scoreBreakdown.loadingChart', 'Loading chart...')}
               </div>
             }>
               <RadarChart data={radarData} accentColor="#22d3ee" size={isMobile ? 260 : 320} />

@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { usePremium } from '../contexts/PremiumContext';
+import { useTranslation } from 'react-i18next';
 
 interface CompareTrayProps {
   compareKingdom1: string;
@@ -30,6 +31,7 @@ const CompareTray: React.FC<CompareTrayProps> = ({
   const [showHistory, setShowHistory] = useState(false);
   const isMobile = useIsMobile();
   const { features } = usePremium();
+  const { t } = useTranslation();
   
   // Check if user can compare (multiCompare > 0 means they can compare at least 2)
   const canCompare = features.multiCompare >= 2;
@@ -88,7 +90,7 @@ const CompareTray: React.FC<CompareTrayProps> = ({
           }
         }}
       >
-        Compare Kingdoms
+        {t('compare.compareKingdoms', 'Compare Kingdoms')}
         <style>{`
           @keyframes comparePulse {
             0%, 100% { box-shadow: 0 4px 25px rgba(34, 211, 238, 0.6), 0 0 40px rgba(34, 211, 238, 0.3); }
@@ -134,7 +136,7 @@ const CompareTray: React.FC<CompareTrayProps> = ({
           flexWrap: 'wrap'
         }}>
           <span style={{ color: '#9ca3af', fontSize: isMobile ? '0.85rem' : '0.95rem' }}>
-            🔒 Sign in to compare kingdoms
+            🔒 {t('compare.signInToCompare', 'Sign in to compare kingdoms')}
           </span>
           <Link
             to="/profile"
@@ -148,7 +150,7 @@ const CompareTray: React.FC<CompareTrayProps> = ({
               textDecoration: 'none'
             }}
           >
-            Sign In
+            {t('common.signIn', 'Sign In')}
           </Link>
           <button 
             onClick={() => setShowCompareTray(false)}
@@ -217,7 +219,7 @@ const CompareTray: React.FC<CompareTrayProps> = ({
             gap: '0.5rem'
           }}>
             <span style={{ fontSize: '1.2rem' }}>⚖️</span>
-            Quick Compare:
+            {t('compare.quickCompare', 'Quick Compare:')}
           </span>
         )}
         
@@ -284,7 +286,7 @@ const CompareTray: React.FC<CompareTrayProps> = ({
               transition: 'all 0.2s ease' 
             }}
           >
-            Compare
+            {t('compare.compare', 'Compare')}
           </button>
 
           {compareHistory.length > 0 && !isMobile && (
@@ -309,7 +311,7 @@ const CompareTray: React.FC<CompareTrayProps> = ({
               <svg style={{ width: '14px', height: '14px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              History
+              {t('compare.history', 'History')}
             </button>
           )}
 
@@ -327,7 +329,7 @@ const CompareTray: React.FC<CompareTrayProps> = ({
               fontSize: '0.85rem' 
             }}
           >
-            Clear
+            {t('common.clear', 'Clear')}
           </button>
 
           <button 
@@ -374,7 +376,7 @@ const CompareTray: React.FC<CompareTrayProps> = ({
             borderBottom: '1px solid #2a2a2a', 
             marginBottom: '0.5rem' 
           }}>
-            Recent Comparisons
+            {t('compare.recentComparisons', 'Recent Comparisons')}
           </div>
           {compareHistory.map((h, i) => (
             <button 

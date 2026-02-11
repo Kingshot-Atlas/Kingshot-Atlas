@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { notificationService, type Notification } from '../services/notificationService';
 import { useIsMobile } from '../hooks/useMediaQuery';
+import { useTranslation } from 'react-i18next';
 
 interface GroupedNotification {
   key: string;
@@ -13,6 +14,7 @@ interface GroupedNotification {
 
 const NotificationBell: React.FC = () => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
@@ -145,7 +147,7 @@ const NotificationBell: React.FC = () => {
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return 'Just now';
+    if (diffMins < 1) return t('notifications.justNow', 'Just now');
     if (diffMins < 60) return `${diffMins}m ago`;
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
@@ -237,7 +239,7 @@ const NotificationBell: React.FC = () => {
             borderBottom: '1px solid #2a2a2a'
           }}>
             <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: '600', color: '#fff' }}>
-              Notifications
+              {t('notifications.title', 'Notifications')}
             </h3>
             {notifications.length > 0 && (
               <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -256,7 +258,7 @@ const NotificationBell: React.FC = () => {
                     onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#22d3ee15'}
                     onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                   >
-                    Mark all read
+                    {t('notifications.markAllRead', 'Mark all read')}
                   </button>
                 )}
                 <button
@@ -273,7 +275,7 @@ const NotificationBell: React.FC = () => {
                   onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'}
                   onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 >
-                  Clear all
+                  {t('notifications.clearAll', 'Clear all')}
                 </button>
               </div>
             )}
@@ -286,7 +288,7 @@ const NotificationBell: React.FC = () => {
           }}>
             {loading && notifications.length === 0 ? (
               <div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>
-                Loading...
+                {t('common.loading', 'Loading...')}
               </div>
             ) : notifications.length === 0 ? (
               <div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>
@@ -294,7 +296,7 @@ const NotificationBell: React.FC = () => {
                   <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                   <polyline points="22 4 12 14.01 9 11.01" />
                 </svg>
-                <p style={{ margin: '0 0 0.25rem', fontSize: '0.85rem', color: '#9ca3af' }}>You're all caught up!</p>
+                <p style={{ margin: '0 0 0.25rem', fontSize: '0.85rem', color: '#9ca3af' }}>{t('notifications.allCaughtUp', "You're all caught up!")}</p>
                 {lastChecked && (
                   <p style={{ margin: 0, fontSize: '0.7rem', color: '#4b5563' }}>
                     Last checked {formatTime(lastChecked.toISOString())}

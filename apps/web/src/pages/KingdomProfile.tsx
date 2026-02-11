@@ -34,6 +34,7 @@ import { reviewService } from '../services/reviewService';
 import { scoreHistoryService } from '../services/scoreHistoryService';
 import { analyticsService } from '../services/analyticsService';
 import { useScrollDepth } from '../hooks/useScrollDepth';
+import { useTranslation } from 'react-i18next';
 
 // Login-gated expandable section for anonymous users
 const LoginGatedSection: React.FC<{
@@ -43,6 +44,7 @@ const LoginGatedSection: React.FC<{
   onToggle: (expanded: boolean) => void;
   isMobile: boolean;
 }> = ({ title, subtitle, isExpanded, onToggle, isMobile }) => {
+  const { t } = useTranslation();
   const handleToggle = () => {
     const newState = !isExpanded;
     onToggle(newState);
@@ -100,10 +102,10 @@ const LoginGatedSection: React.FC<{
       <div style={{ padding: '1.5rem', textAlign: 'center' }}>
         <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>🔒</div>
         <div style={{ color: '#d1d5db', fontSize: '0.9rem', fontWeight: '500', marginBottom: '0.5rem' }}>
-          Sign in to view
+          {t('kingdomProfile.signInToView', 'Sign in to view')}
         </div>
         <div style={{ color: '#6b7280', fontSize: '0.8rem', marginBottom: '1rem' }}>
-          Create a free account to access detailed analytics.
+          {t('kingdomProfile.freeAccountCta', 'Create a free account to access detailed analytics.')}
         </div>
         <Link
           to="/profile"
@@ -119,7 +121,7 @@ const LoginGatedSection: React.FC<{
             textDecoration: 'none'
           }}
         >
-          Sign In / Register
+          {t('common.signIn')} / {t('kingdomProfile.register', 'Register')}
         </Link>
       </div>
     )}
@@ -132,6 +134,7 @@ const KingdomProfile: React.FC = () => {
   useDocumentTitle(kingdomNumber ? `Kingdom ${kingdomNumber}` : undefined);
   useScrollDepth('Kingdom Profile');
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { user, profile } = useAuth();
   const { showToast } = useToast();
   const [kingdom, setKingdom] = useState<KingdomProfileType | null>(null);
@@ -357,8 +360,8 @@ const KingdomProfile: React.FC = () => {
       <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>❌</div>
-          <div style={{ color: '#ef4444', fontSize: '1.25rem', marginBottom: '1rem' }}>Kingdom not found. Either it doesn&apos;t exist, or we haven&apos;t tracked it yet.</div>
-          <Link to="/" style={{ color: '#22d3ee', textDecoration: 'none' }}>← Back to Home</Link>
+          <div style={{ color: '#ef4444', fontSize: '1.25rem', marginBottom: '1rem' }}>{t('kingdomProfile.notFoundMessage', "Kingdom not found. Either it doesn't exist, or we haven't tracked it yet.")}</div>
+          <Link to="/" style={{ color: '#22d3ee', textDecoration: 'none' }}>{t('common.backToHome')}</Link>
         </div>
       </div>
     );
@@ -390,12 +393,12 @@ const KingdomProfile: React.FC = () => {
         isLinked={!!profile?.linked_username}
         onStatusModalOpen={() => {
           if (!user) {
-            showToast('Please sign in to submit status updates', 'error');
+            showToast(t('kingdomProfile.signInToSubmit', 'Please sign in to submit status updates'), 'error');
             navigate('/login?redirect=' + window.location.pathname);
             return;
           }
           if (!profile?.linked_username) {
-            showToast('Please link your Kingshot account to submit status updates', 'error');
+            showToast(t('home.linkToSubmit'), 'error');
             navigate('/profile');
             return;
           }
@@ -435,7 +438,7 @@ const KingdomProfile: React.FC = () => {
               fontSize: '0.8rem', 
               fontWeight: '500' 
             }}>
-              Score {visitDelta > 0 ? '+' : ''}{visitDelta.toFixed(2)} since your last visit
+              {t('kingdomProfile.scoreSinceVisit', 'Score {{change}} since your last visit', { change: `${visitDelta > 0 ? '+' : ''}${visitDelta.toFixed(2)}` })}
             </span>
             <button
               onClick={() => setVisitDelta(null)}
@@ -524,7 +527,7 @@ const KingdomProfile: React.FC = () => {
             >
               <polyline points="6 9 12 15 18 9" />
             </svg>
-            {allExpanded ? 'Collapse All' : 'Expand All'}
+            {allExpanded ? t('kingdomProfile.collapseAll', 'Collapse All') : t('kingdomProfile.expandAll', 'Expand All')}
           </button>
         </div>
 
@@ -615,14 +618,14 @@ const KingdomProfile: React.FC = () => {
             textAlign: 'center'
           }}>
             <h3 style={{ margin: '0 0 0.75rem 0', fontSize: '0.9rem', fontWeight: '600', color: '#fff' }}>
-              Atlas Users from Kingdom {kingdom.kingdom_number}
+              {t('kingdomProfile.atlasUsersFrom', 'Atlas Users from Kingdom {{num}}', { num: kingdom.kingdom_number })}
             </h3>
             <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>🔒</div>
             <div style={{ color: '#d1d5db', fontSize: '0.85rem', fontWeight: '500', marginBottom: '0.35rem' }}>
-              Sign in to see Atlas users
+              {t('kingdomProfile.signInToSeeUsers', 'Sign in to see Atlas users')}
             </div>
             <div style={{ color: '#6b7280', fontSize: '0.8rem', marginBottom: '1rem' }}>
-              Log in and link your Kingshot account to see players from this kingdom.
+              {t('kingdomProfile.linkToSeePlayers', 'Log in and link your Kingshot account to see players from this kingdom.')}
             </div>
             <Link
               to="/profile"
@@ -638,7 +641,7 @@ const KingdomProfile: React.FC = () => {
                 textDecoration: 'none'
               }}
             >
-              Sign In / Register
+              {t('common.signIn')} / {t('kingdomProfile.register', 'Register')}
             </Link>
           </div>
         )}
@@ -689,7 +692,7 @@ const KingdomProfile: React.FC = () => {
               e.currentTarget.style.boxShadow = '0 0 20px rgba(168, 85, 247, 0.25)';
             }}
           >
-            Compare with another Kingdom
+            {t('kingdomProfile.compareWith', 'Compare with another Kingdom')}
           </button>
           
           <Link 
@@ -712,7 +715,7 @@ const KingdomProfile: React.FC = () => {
               e.currentTarget.style.color = '#6b7280';
             }}
           >
-            ← Back to Home
+            {t('common.backToHome')}
           </Link>
         </div>
       </div>
@@ -769,7 +772,7 @@ const KingdomProfile: React.FC = () => {
             gap: '0.75rem',
           }}>
             <span style={{ color: '#9ca3af', fontSize: isMobile ? '0.75rem' : '0.8rem' }}>
-              Sign in free to unlock detailed analytics
+              {t('kingdomProfile.signInFree', 'Sign in free to unlock detailed analytics')}
             </span>
             <Link
               to="/profile"
@@ -785,7 +788,7 @@ const KingdomProfile: React.FC = () => {
                 whiteSpace: 'nowrap',
               }}
             >
-              Sign In
+              {t('common.signIn')}
             </Link>
           </div>
         </div>
