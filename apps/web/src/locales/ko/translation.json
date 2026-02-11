@@ -498,7 +498,10 @@
     "signingIn": "로그인 중...",
     "termsAgreement": "로그인하면 이용약관 및 개인정보 보호정책에 동의하는 것입니다.",
     "notConfigured": "인증이 구성되지 않았습니다. 지원팀에 문의하세요.",
-    "signInFailed": "로그인에 실패했습니다. 다시 시도하거나 연결을 확인하세요."
+    "signInFailed": "로그인에 실패했습니다. 다시 시도하거나 연결을 확인하세요.",
+    "discordOpensInBrowser": "브라우저에서 Discord를 엽니다",
+    "discordBrowserHint": "Discord는 보안을 위해 브라우저 로그인이 필요합니다. \"로그인 유지\"를 체크하면 다음 로그인이 빨라집니다. 자동으로 다시 돌아옵니다.",
+    "oauthDisclaimer": "스팸 계정 방지를 위해 OAuth 제공업체를 사용합니다."
   },
   "notifications": {
     "title": "알림",
@@ -514,7 +517,8 @@
     "type": "유형",
     "yourFeedback": "피드백 내용",
     "emailOptional": "이메일 (선택사항, 후속 연락용)",
-    "sending": "전송 중..."
+    "sending": "전송 중...",
+    "hide": "피드백 버튼 숨기기"
   },
   "reviews": {
     "helpful": "도움됨",
@@ -1601,6 +1605,15 @@
   },
   "radarChart": {
     "metric": "지표",
-    "value": "값"
+    "value": "수치"
+  },
+  "outcomes": {
+    "Domination": "지배",
+    "Invasion": "침공",
+    "Reversal": "역전",
+    "Comeback": "반격",
+    "Bye": "부전승",
+    "byeDesc": "이번 라운드 상대 없음",
+    "noMatch": "대전 없음"
   }
 }

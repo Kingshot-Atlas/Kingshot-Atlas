@@ -498,7 +498,10 @@
     "signingIn": "Connexion en cours...",
     "termsAgreement": "En vous connectant, vous acceptez nos Conditions d'Utilisation et notre Politique de Confidentialité.",
     "notConfigured": "L'authentification n'est pas configurée. Veuillez contacter le support.",
-    "signInFailed": "Échec de la connexion. Veuillez réessayer ou vérifier votre connexion."
+    "signInFailed": "Échec de la connexion. Veuillez réessayer ou vérifier votre connexion.",
+    "discordOpensInBrowser": "Ouvre Discord dans votre navigateur",
+    "discordBrowserHint": "Discord nécessite une connexion via le navigateur pour la sécurité. Cochez \"Se souvenir de moi\" pour des connexions plus rapides. Vous serez redirigé automatiquement.",
+    "oauthDisclaimer": "Nous utilisons des fournisseurs OAuth pour prévenir les comptes de spam."
   },
   "notifications": {
     "title": "Notifications",
@@ -514,7 +517,8 @@
     "type": "Type",
     "yourFeedback": "Votre retour",
     "emailOptional": "Email (facultatif, pour le suivi)",
-    "sending": "Envoi en cours..."
+    "sending": "Envoi en cours...",
+    "hide": "Masquer le bouton de commentaires"
   },
   "reviews": {
     "helpful": "Utile",
@@ -1602,5 +1606,14 @@
   "radarChart": {
     "metric": "Métrique",
     "value": "Valeur"
+  },
+  "outcomes": {
+    "Domination": "Domination",
+    "Invasion": "Invasion",
+    "Reversal": "Renversement",
+    "Comeback": "Remontée",
+    "Bye": "Exempt",
+    "byeDesc": "Pas d'adversaire ce tour",
+    "noMatch": "Pas de match"
   }
 }

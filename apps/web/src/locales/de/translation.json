@@ -498,7 +498,10 @@
     "signingIn": "Anmeldung läuft...",
     "termsAgreement": "Mit der Anmeldung stimmst du unseren Nutzungsbedingungen und der Datenschutzerklärung zu.",
     "notConfigured": "Authentifizierung ist nicht konfiguriert. Bitte kontaktiere den Support.",
-    "signInFailed": "Anmeldung fehlgeschlagen. Bitte erneut versuchen oder Verbindung prüfen."
+    "signInFailed": "Anmeldung fehlgeschlagen. Bitte erneut versuchen oder Verbindung prüfen.",
+    "discordOpensInBrowser": "Öffnet Discord in deinem Browser",
+    "discordBrowserHint": "Discord erfordert eine Browser-Anmeldung aus Sicherheitsgründen. Aktiviere \"Angemeldet bleiben\" für schnellere zukünftige Logins. Du wirst automatisch zurückgeleitet.",
+    "oauthDisclaimer": "Wir verwenden OAuth-Anbieter zur Vermeidung von Spam-Konten."
   },
   "notifications": {
     "title": "Benachrichtigungen",
@@ -514,7 +517,8 @@
     "type": "Typ",
     "yourFeedback": "Dein Feedback",
     "emailOptional": "E-Mail (optional, für Rückfragen)",
-    "sending": "Wird gesendet..."
+    "sending": "Wird gesendet...",
+    "hide": "Feedback-Button ausblenden"
   },
   "reviews": {
     "helpful": "Hilfreich",
@@ -1600,7 +1604,16 @@
     "progress": "Fortschritt: {{current}}/{{total}} ({{percent}}%)"
   },
   "radarChart": {
-    "metric": "Metrik",
+    "metric": "Kennzahl",
     "value": "Wert"
+  },
+  "outcomes": {
+    "Domination": "Dominanz",
+    "Invasion": "Invasion",
+    "Reversal": "Wende",
+    "Comeback": "Aufholjagd",
+    "Bye": "Freilos",
+    "byeDesc": "Kein Gegner in dieser Runde",
+    "noMatch": "Kein Kampf"
   }
 }

@@ -498,7 +498,10 @@
     "signingIn": "登录中...",
     "termsAgreement": "登录即表示你同意我们的服务条款和隐私政策。",
     "notConfigured": "身份验证未配置。请联系支持。",
-    "signInFailed": "登录失败。请重试或检查你的连接。"
+    "signInFailed": "登录失败。请重试或检查你的连接。",
+    "discordOpensInBrowser": "在浏览器中打开Discord",
+    "discordBrowserHint": "Discord需要通过浏览器登录以确保安全。勾选\"记住我\"可加快今后的登录速度。你将被自动重定向回来。",
+    "oauthDisclaimer": "我们使用OAuth提供商来防止垃圾账户。"
   },
   "notifications": {
     "title": "通知",
@@ -514,7 +517,8 @@
     "type": "类型",
     "yourFeedback": "你的反馈",
     "emailOptional": "邮箱（可选，用于后续联系）",
-    "sending": "发送中..."
+    "sending": "发送中...",
+    "hide": "隐藏反馈按钮"
   },
   "reviews": {
     "helpful": "有帮助",
@@ -1602,5 +1606,14 @@
   "radarChart": {
     "metric": "指标",
     "value": "数值"
+  },
+  "outcomes": {
+    "Domination": "统治",
+    "Invasion": "入侵",
+    "Reversal": "逆转",
+    "Comeback": "反击",
+    "Bye": "轮空",
+    "byeDesc": "本轮无对手",
+    "noMatch": "无对战"
   }
 }

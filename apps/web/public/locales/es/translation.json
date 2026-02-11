@@ -498,7 +498,10 @@
     "signingIn": "Iniciando sesión...",
     "termsAgreement": "Al iniciar sesión, aceptas nuestros Términos de Servicio y Política de Privacidad.",
     "notConfigured": "La autenticación no está configurada. Por favor contacta al soporte.",
-    "signInFailed": "Error al iniciar sesión. Por favor inténtalo de nuevo o verifica tu conexión."
+    "signInFailed": "Error al iniciar sesión. Por favor inténtalo de nuevo o verifica tu conexión.",
+    "discordOpensInBrowser": "Abre Discord en tu navegador",
+    "discordBrowserHint": "Discord requiere inicio de sesión en el navegador por seguridad. Marca \"Recuérdame\" para inicios de sesión más rápidos. Serás redirigido automáticamente.",
+    "oauthDisclaimer": "Usamos proveedores de OAuth para prevenir cuentas de spam."
   },
   "notifications": {
     "title": "Notificaciones",
@@ -514,7 +517,8 @@
     "type": "Tipo",
     "yourFeedback": "Tu comentario",
     "emailOptional": "Email (opcional, para seguimiento)",
-    "sending": "Enviando..."
+    "sending": "Enviando...",
+    "hide": "Ocultar botón de comentarios"
   },
   "reviews": {
     "helpful": "Útil",
@@ -1602,5 +1606,14 @@
   "radarChart": {
     "metric": "Métrica",
     "value": "Valor"
+  },
+  "outcomes": {
+    "Domination": "Dominación",
+    "Invasion": "Invasión",
+    "Reversal": "Reversión",
+    "Comeback": "Remontada",
+    "Bye": "Descanso",
+    "byeDesc": "Sin oponente en esta ronda",
+    "noMatch": "Sin enfrentamiento"
   }
 }
