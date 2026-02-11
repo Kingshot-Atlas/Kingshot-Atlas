@@ -112,6 +112,8 @@ export const TransferHubAdminTab: React.FC = () => {
   const [profiles, setProfiles] = useState<TransferProfile[]>([]);
   const [stats, setStats] = useState<TransferHubStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [confirmAction, setConfirmAction] = useState<{ id: string; action: string; name: string } | null>(null);
 
   useEffect(() => {
     fetchAll();
@@ -254,6 +256,139 @@ export const TransferHubAdminTab: React.FC = () => {
     return `${days}d ago`;
   };
 
+  const updateEditorStatus = async (editorId: string, newStatus: string, editorUserId: string, kingdomNumber: number, notifyMessage: string) => {
+    if (!supabase) return;
+    setActionLoading(editorId);
+    try {
+      const updateData: Record<string, unknown> = { status: newStatus };
+      if (newStatus === 'active') updateData.activated_at = new Date().toISOString();
+
+      const { error } = await supabase
+        .from('kingdom_editors')
+        .update(updateData)
+        .eq('id', editorId);
+
+      if (error) { console.error('Status update failed:', error); return; }
+
+      // Notify the editor
+      await supabase.from('notifications').insert({
+        user_id: editorUserId,
+        type: 'editor_status_change',
+        title: 'Editor Status Updated',
+        message: notifyMessage,
+        link: '/transfer-hub',
+        metadata: { kingdom_number: kingdomNumber, new_status: newStatus },
+      });
+
+      await fetchEditors();
+    } catch (err) {
+      console.error('Error updating editor status:', err);
+    } finally {
+      setActionLoading(null);
+      setConfirmAction(null);
+    }
+  };
+
+  const removeEditor = async (editorId: string, editorUserId: string, kingdomNumber: number) => {
+    if (!supabase) return;
+    setActionLoading(editorId);
+    try {
+      const { error } = await supabase
+        .from('kingdom_editors')
+        .delete()
+        .eq('id', editorId);
+
+      if (error) { console.error('Remove failed:', error); return; }
+
+      await supabase.from('notifications').insert({
+        user_id: editorUserId,
+        type: 'editor_status_change',
+        title: 'Editor Role Removed',
+        message: `Your editor role for Kingdom ${kingdomNumber} has been removed by an admin.`,
+        link: '/transfer-hub',
+        metadata: { kingdom_number: kingdomNumber, action: 'removed' },
+      });
+
+      await fetchEditors();
+    } catch (err) {
+      console.error('Error removing editor:', err);
+    } finally {
+      setActionLoading(null);
+      setConfirmAction(null);
+    }
+  };
+
+  const promoteToEditor = async (editorId: string, editorUserId: string, kingdomNumber: number) => {
+    if (!supabase) return;
+    setActionLoading(editorId);
+    try {
+      const { error } = await supabase
+        .from('kingdom_editors')
+        .update({ role: 'editor', status: 'active', activated_at: new Date().toISOString() })
+        .eq('id', editorId);
+
+      if (error) { console.error('Promote failed:', error); return; }
+
+      await supabase.from('notifications').insert({
+        user_id: editorUserId,
+        type: 'editor_status_change',
+        title: 'Promoted to Editor',
+        message: `You have been promoted to primary Editor for Kingdom ${kingdomNumber}!`,
+        link: '/transfer-hub',
+        metadata: { kingdom_number: kingdomNumber, action: 'promoted' },
+      });
+
+      await fetchEditors();
+    } catch (err) {
+      console.error('Error promoting editor:', err);
+    } finally {
+      setActionLoading(null);
+      setConfirmAction(null);
+    }
+  };
+
+  const bulkDeactivateInactive = async () => {
+    if (!supabase) return;
+    setActionLoading('bulk');
+    try {
+      // Find editors inactive for 30+ days
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+      const { data: staleEditors } = await supabase
+        .from('kingdom_editors')
+        .select('id, user_id, kingdom_number')
+        .eq('status', 'active')
+        .lt('last_active_at', thirtyDaysAgo);
+
+      if (!staleEditors || staleEditors.length === 0) {
+        setActionLoading(null);
+        return;
+      }
+
+      const ids = staleEditors.map(e => e.id);
+      await supabase
+        .from('kingdom_editors')
+        .update({ status: 'inactive' })
+        .in('id', ids);
+
+      // Notify each
+      const notifications = staleEditors.map(e => ({
+        user_id: e.user_id,
+        type: 'editor_status_change',
+        title: 'Editor Status: Inactive',
+        message: `Your editor role for Kingdom ${e.kingdom_number} was set to inactive due to 30+ days of inactivity.`,
+        link: '/transfer-hub',
+        metadata: { kingdom_number: e.kingdom_number, action: 'auto_inactive' },
+      }));
+      await supabase.from('notifications').insert(notifications);
+
+      await fetchEditors();
+    } catch (err) {
+      console.error('Bulk deactivate error:', err);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const subTabs: { id: SubTab; label: string; icon: string }[] = [
     { id: 'overview', label: 'Overview', icon: '📊' },
     { id: 'editors', label: 'Editor Claims', icon: '👑' },
@@ -310,9 +445,27 @@ export const TransferHubAdminTab: React.FC = () => {
       ) : subTab === 'overview' ? (
         <OverviewTab stats={stats} />
       ) : subTab === 'editors' ? (
-        <EditorsTab editors={editors.filter(e => e.role === 'editor')} timeAgo={timeAgo} />
+        <EditorsTab
+          editors={editors.filter(e => e.role === 'editor')}
+          timeAgo={timeAgo}
+          actionLoading={actionLoading}
+          confirmAction={confirmAction}
+          onConfirmAction={setConfirmAction}
+          onUpdateStatus={updateEditorStatus}
+          onRemove={removeEditor}
+          onBulkDeactivate={bulkDeactivateInactive}
+        />
       ) : subTab === 'co-editors' ? (
-        <CoEditorsTab editors={editors.filter(e => e.role === 'co-editor')} timeAgo={timeAgo} />
+        <CoEditorsTab
+          editors={editors.filter(e => e.role === 'co-editor')}
+          timeAgo={timeAgo}
+          actionLoading={actionLoading}
+          confirmAction={confirmAction}
+          onConfirmAction={setConfirmAction}
+          onUpdateStatus={updateEditorStatus}
+          onRemove={removeEditor}
+          onPromote={promoteToEditor}
+        />
       ) : subTab === 'funds' ? (
         <FundsTab funds={funds} timeAgo={timeAgo} />
       ) : subTab === 'profiles' ? (
@@ -398,21 +551,92 @@ const OverviewTab: React.FC<{ stats: TransferHubStats | null }> = ({ stats }) =>
   );
 };
 
-const EditorsTab: React.FC<{ editors: EditorClaim[]; timeAgo: (d: string | null) => string }> = ({ editors, timeAgo }) => {
+// Shared action button styles
+const actionBtn = (bg: string, border: string, color: string, disabled?: boolean): React.CSSProperties => ({
+  padding: '0.2rem 0.5rem',
+  backgroundColor: disabled ? '#1a1a1f' : bg,
+  border: `1px solid ${disabled ? '#2a2a2a' : border}`,
+  borderRadius: '4px',
+  color: disabled ? '#4b5563' : color,
+  fontSize: '0.6rem',
+  fontWeight: 600,
+  cursor: disabled ? 'not-allowed' : 'pointer',
+  opacity: disabled ? 0.5 : 1,
+});
+
+// Confirmation dialog
+const ConfirmDialog: React.FC<{
+  action: { id: string; action: string; name: string };
+  loading: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+}> = ({ action, loading, onConfirm, onCancel }) => (
+  <div style={{
+    padding: '0.5rem 0.75rem',
+    backgroundColor: '#ef444410',
+    border: '1px solid #ef444430',
+    borderRadius: '6px',
+    marginTop: '0.5rem',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    fontSize: '0.7rem',
+  }}>
+    <span style={{ color: '#ef4444' }}>
+      {action.action === 'remove' ? `Remove ${action.name}?` : `${action.action} ${action.name}?`}
+    </span>
+    <button
+      onClick={onConfirm}
+      disabled={loading}
+      style={actionBtn('#ef444420', '#ef444440', '#ef4444', loading)}
+    >
+      {loading ? '...' : 'Confirm'}
+    </button>
+    <button onClick={onCancel} style={actionBtn('transparent', '#2a2a2a', '#6b7280')}>
+      Cancel
+    </button>
+  </div>
+);
+
+interface EditorsTabProps {
+  editors: EditorClaim[];
+  timeAgo: (d: string | null) => string;
+  actionLoading: string | null;
+  confirmAction: { id: string; action: string; name: string } | null;
+  onConfirmAction: (a: { id: string; action: string; name: string } | null) => void;
+  onUpdateStatus: (id: string, status: string, userId: string, kn: number, msg: string) => void;
+  onRemove: (id: string, userId: string, kn: number) => void;
+  onBulkDeactivate: () => void;
+}
+
+const EditorsTab: React.FC<EditorsTabProps> = ({
+  editors, timeAgo, actionLoading, confirmAction, onConfirmAction, onUpdateStatus, onRemove, onBulkDeactivate,
+}) => {
   if (editors.length === 0) {
     return <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>No editor claims yet</div>;
   }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-      <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>
-        {editors.length} total claim{editors.length !== 1 ? 's' : ''} · {editors.filter(e => e.status === 'pending').length} pending · {editors.filter(e => e.status === 'active').length} active
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+          {editors.length} total claim{editors.length !== 1 ? 's' : ''} · {editors.filter(e => e.status === 'pending').length} pending · {editors.filter(e => e.status === 'active').length} active
+        </div>
+        <button
+          onClick={onBulkDeactivate}
+          disabled={actionLoading === 'bulk'}
+          style={actionBtn('#6b728010', '#6b728040', '#6b7280', actionLoading === 'bulk')}
+        >
+          {actionLoading === 'bulk' ? 'Processing...' : 'Deactivate 30d+ Inactive'}
+        </button>
       </div>
       {editors.map(editor => {
         const sc = STATUS_COLORS[editor.status] ?? { bg: '#eab30815', border: '#eab30840', text: '#eab308' };
         const endorsementPct = editor.required_endorsements > 0
           ? Math.min(100, (editor.endorsement_count / editor.required_endorsements) * 100)
           : 0;
+        const displayName = editor.linked_username || editor.username || 'Unknown';
+        const isLoading = actionLoading === editor.id;
         return (
           <div key={editor.id} style={{
             backgroundColor: '#111116',
@@ -423,7 +647,7 @@ const EditorsTab: React.FC<{ editors: EditorClaim[]; timeAgo: (d: string | null)
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                  <span style={{ color: '#fff', fontWeight: 600, fontSize: '0.9rem' }}>{editor.linked_username || editor.username}</span>
+                  <span style={{ color: '#fff', fontWeight: 600, fontSize: '0.9rem' }}>{displayName}</span>
                   <span style={{
                     padding: '0.1rem 0.4rem',
                     backgroundColor: sc.bg,
@@ -456,7 +680,40 @@ const EditorsTab: React.FC<{ editors: EditorClaim[]; timeAgo: (d: string | null)
                   <span>Nominated {timeAgo(editor.nominated_at)}</span>
                 </div>
               </div>
+
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', gap: '0.3rem', flexShrink: 0 }}>
+                {editor.status !== 'active' && (
+                  <button
+                    onClick={() => onUpdateStatus(editor.id, 'active', editor.user_id, editor.kingdom_number, `Your editor claim for Kingdom ${editor.kingdom_number} has been activated by an admin.`)}
+                    disabled={isLoading}
+                    style={actionBtn('#22c55e15', '#22c55e40', '#22c55e', isLoading)}
+                  >Activate</button>
+                )}
+                {editor.status !== 'suspended' && editor.status !== 'pending' && (
+                  <button
+                    onClick={() => onUpdateStatus(editor.id, 'suspended', editor.user_id, editor.kingdom_number, `Your editor role for Kingdom ${editor.kingdom_number} has been suspended by an admin.`)}
+                    disabled={isLoading}
+                    style={actionBtn('#eab30815', '#eab30840', '#eab308', isLoading)}
+                  >Suspend</button>
+                )}
+                <button
+                  onClick={() => onConfirmAction({ id: editor.id, action: 'remove', name: displayName })}
+                  disabled={isLoading}
+                  style={actionBtn('#ef444415', '#ef444440', '#ef4444', isLoading)}
+                >Remove</button>
+              </div>
             </div>
+
+            {/* Confirm dialog */}
+            {confirmAction?.id === editor.id && (
+              <ConfirmDialog
+                action={confirmAction}
+                loading={isLoading}
+                onConfirm={() => onRemove(editor.id, editor.user_id, editor.kingdom_number)}
+                onCancel={() => onConfirmAction(null)}
+              />
+            )}
 
             {/* Endorsement Progress */}
             <div style={{ marginTop: '0.5rem' }}>
@@ -543,7 +800,20 @@ const EditorsTab: React.FC<{ editors: EditorClaim[]; timeAgo: (d: string | null)
   );
 };
 
-const CoEditorsTab: React.FC<{ editors: EditorClaim[]; timeAgo: (d: string | null) => string }> = ({ editors, timeAgo }) => {
+interface CoEditorsTabProps {
+  editors: EditorClaim[];
+  timeAgo: (d: string | null) => string;
+  actionLoading: string | null;
+  confirmAction: { id: string; action: string; name: string } | null;
+  onConfirmAction: (a: { id: string; action: string; name: string } | null) => void;
+  onUpdateStatus: (id: string, status: string, userId: string, kn: number, msg: string) => void;
+  onRemove: (id: string, userId: string, kn: number) => void;
+  onPromote: (id: string, userId: string, kn: number) => void;
+}
+
+const CoEditorsTab: React.FC<CoEditorsTabProps> = ({
+  editors, timeAgo, actionLoading, confirmAction, onConfirmAction, onUpdateStatus, onRemove, onPromote,
+}) => {
   if (editors.length === 0) {
     return <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>No co-editors yet</div>;
   }
@@ -555,6 +825,8 @@ const CoEditorsTab: React.FC<{ editors: EditorClaim[]; timeAgo: (d: string | nul
       </div>
       {editors.map(editor => {
         const sc = STATUS_COLORS[editor.status] ?? { bg: '#eab30815', border: '#eab30840', text: '#eab308' };
+        const displayName = editor.linked_username || editor.username || 'Unknown';
+        const isLoading = actionLoading === editor.id;
         return (
           <div key={editor.id} style={{
             backgroundColor: '#111116',
@@ -565,7 +837,7 @@ const CoEditorsTab: React.FC<{ editors: EditorClaim[]; timeAgo: (d: string | nul
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                  <span style={{ color: '#fff', fontWeight: 600, fontSize: '0.9rem' }}>{editor.linked_username || editor.username}</span>
+                  <span style={{ color: '#fff', fontWeight: 600, fontSize: '0.9rem' }}>{displayName}</span>
                   <span style={{
                     padding: '0.1rem 0.4rem',
                     backgroundColor: sc.bg,
@@ -597,7 +869,51 @@ const CoEditorsTab: React.FC<{ editors: EditorClaim[]; timeAgo: (d: string | nul
                   <span>Nominated {timeAgo(editor.nominated_at)}</span>
                 </div>
               </div>
+
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', gap: '0.3rem', flexShrink: 0 }}>
+                {editor.status !== 'active' && (
+                  <button
+                    onClick={() => onUpdateStatus(editor.id, 'active', editor.user_id, editor.kingdom_number, `Your co-editor role for Kingdom ${editor.kingdom_number} has been activated by an admin.`)}
+                    disabled={isLoading}
+                    style={actionBtn('#22c55e15', '#22c55e40', '#22c55e', isLoading)}
+                  >Activate</button>
+                )}
+                <button
+                  onClick={() => onConfirmAction({ id: editor.id, action: 'promote', name: displayName })}
+                  disabled={isLoading}
+                  style={actionBtn('#22d3ee15', '#22d3ee40', '#22d3ee', isLoading)}
+                >Promote to Editor</button>
+                {editor.status !== 'suspended' && editor.status !== 'pending' && (
+                  <button
+                    onClick={() => onUpdateStatus(editor.id, 'suspended', editor.user_id, editor.kingdom_number, `Your co-editor role for Kingdom ${editor.kingdom_number} has been suspended by an admin.`)}
+                    disabled={isLoading}
+                    style={actionBtn('#eab30815', '#eab30840', '#eab308', isLoading)}
+                  >Suspend</button>
+                )}
+                <button
+                  onClick={() => onConfirmAction({ id: editor.id, action: 'remove', name: displayName })}
+                  disabled={isLoading}
+                  style={actionBtn('#ef444415', '#ef444440', '#ef4444', isLoading)}
+                >Remove</button>
+              </div>
             </div>
+
+            {/* Confirm dialog */}
+            {confirmAction?.id === editor.id && (
+              <ConfirmDialog
+                action={confirmAction}
+                loading={isLoading}
+                onConfirm={() => {
+                  if (confirmAction.action === 'promote') {
+                    onPromote(editor.id, editor.user_id, editor.kingdom_number);
+                  } else {
+                    onRemove(editor.id, editor.user_id, editor.kingdom_number);
+                  }
+                }}
+                onCancel={() => onConfirmAction(null)}
+              />
+            )}
 
             {/* Timeline */}
             <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem', fontSize: '0.65rem', color: '#4b5563' }}>

@@ -308,7 +308,7 @@ const Header: React.FC = () => {
                       <span style={{ fontSize: '1.2rem' }}>{lang.flag}</span>
                       <span>{lang.label}</span>
                       {i18n.language === lang.code && (
-                        <span style={{ marginLeft: 'auto', fontSize: '0.75rem' }}>✓</span>
+                        <span style={{ marginInlineStart: 'auto', fontSize: '0.75rem' }}>✓</span>
                       )}
                     </button>
                   ))}
@@ -908,7 +908,7 @@ const Header: React.FC = () => {
                     <span>{lang.flag}</span>
                     {lang.label}
                     {i18n.language === lang.code && (
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{ marginLeft: 'auto' }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{ marginInlineStart: 'auto' }}>
                         <polyline points="20 6 9 17 4 12"/>
                       </svg>
                     )}

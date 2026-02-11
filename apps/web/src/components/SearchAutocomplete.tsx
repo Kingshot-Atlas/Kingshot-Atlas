@@ -106,7 +106,7 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
       <svg 
         style={{ 
           position: 'absolute', 
-          left: '1rem', 
+          insetInlineStart: '1rem', 
           top: '50%', 
           transform: 'translateY(-50%)', 
           width: '18px', 
@@ -146,7 +146,7 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
       {!isMobile && (
         <span style={{ 
           position: 'absolute', 
-          right: '1rem', 
+          insetInlineEnd: '1rem', 
           top: '50%', 
           transform: 'translateY(-50%)', 
           color: '#4a4a4a', 
@@ -194,7 +194,7 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
                 borderBottom: index < suggestions.length - 1 ? '1px solid #1a1a1a' : 'none',
                 color: '#fff',
                 cursor: 'pointer',
-                textAlign: 'left',
+                textAlign: 'start',
                 transition: 'background-color 0.1s'
               }}
             >
@@ -222,7 +222,7 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
                   {kingdom.power_tier}-Tier
                 </span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: '#6b7280', marginLeft: 'auto' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: '#6b7280', marginInlineStart: 'auto' }}>
                 <span style={{ textAlign: 'left' }}>Atlas Score: <span style={{ color: '#22d3ee', fontWeight: 'bold' }}>{kingdom.overall_score.toFixed(2)}</span></span>
                 <span style={{ color: '#4a4a4a' }}>|</span>
                 <span>{kingdom.total_kvks} KvKs</span>

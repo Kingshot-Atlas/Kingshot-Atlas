@@ -537,6 +537,7 @@ const RecruiterDashboard: React.FC<{
   const [showOnboarding, setShowOnboarding] = useState(() => {
     return !localStorage.getItem('atlas_recruiter_onboarded');
   });
+  const [processingRequest, setProcessingRequest] = useState<string | null>(null);
 
   useEffect(() => {
     loadDashboard();

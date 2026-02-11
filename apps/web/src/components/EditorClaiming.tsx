@@ -680,6 +680,8 @@ const EndorseButton: React.FC<{
 // MAIN EDITOR CLAIMING COMPONENT
 // =============================================
 
+const MAX_CO_EDITORS_PER_KINGDOM = 2;
+
 const EditorClaiming: React.FC<{
   onEditorActivated?: () => void;
 }> = ({ onEditorActivated }) => {
@@ -688,6 +690,10 @@ const EditorClaiming: React.FC<{
   const [myClaim, setMyClaim] = useState<EditorClaim | null>(null);
   const [loading, setLoading] = useState(true);
   const [showNominate, setShowNominate] = useState(false);
+  const [hasActiveEditor, setHasActiveEditor] = useState(false);
+  const [coEditorCount, setCoEditorCount] = useState(0);
+  const [submittingCoEditor, setSubmittingCoEditor] = useState(false);
+  const [coEditorError, setCoEditorError] = useState<string | null>(null);
 
   const loadMyClaim = useCallback(async () => {
     if (!supabase || !user) {
@@ -706,10 +712,36 @@ const EditorClaiming: React.FC<{
       setMyClaim(data || null);
     } catch {
       // No claim found
-    } finally {
-      setLoading(false);
     }
-  }, [user]);
+
+    // Check if kingdom has an active editor & co-editor count
+    const linkedKingdom = profile?.linked_kingdom;
+    if (linkedKingdom) {
+      try {
+        const { data: activeEd } = await supabase
+          .from('kingdom_editors')
+          .select('id')
+          .eq('kingdom_number', linkedKingdom)
+          .eq('status', 'active')
+          .eq('role', 'editor')
+          .limit(1)
+          .maybeSingle();
+        setHasActiveEditor(!!activeEd);
+
+        const { data: coEditors } = await supabase
+          .from('kingdom_editors')
+          .select('id')
+          .eq('kingdom_number', linkedKingdom)
+          .eq('role', 'co-editor')
+          .in('status', ['active', 'pending']);
+        setCoEditorCount(coEditors?.length || 0);
+      } catch {
+        // silent
+      }
+    }
+
+    setLoading(false);
+  }, [user, profile?.linked_kingdom]);
 
   useEffect(() => {
     loadMyClaim();
@@ -770,6 +802,89 @@ const EditorClaiming: React.FC<{
     );
   }
 
+  // Co-editor self-nomination handler
+  const handleBecomeCoEditor = async () => {
+    if (!supabase || !user || !profile?.linked_kingdom) return;
+    setSubmittingCoEditor(true);
+    setCoEditorError(null);
+
+    const linkedKingdom = profile.linked_kingdom;
+    const meetsTcReq = (profile.linked_tc_level || 0) >= 20;
+
+    if (!meetsTcReq) {
+      setCoEditorError('TC Level 20+ required to become a co-editor.');
+      setSubmittingCoEditor(false);
+      return;
+    }
+
+    if (coEditorCount >= MAX_CO_EDITORS_PER_KINGDOM) {
+      setCoEditorError(`Maximum of ${MAX_CO_EDITORS_PER_KINGDOM} co-editors per kingdom.`);
+      setSubmittingCoEditor(false);
+      return;
+    }
+
+    try {
+      // Check for existing claim
+      const { data: existing } = await supabase
+        .from('kingdom_editors')
+        .select('id, status')
+        .eq('kingdom_number', linkedKingdom)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (existing) {
+        setCoEditorError('You already have an editor claim for this kingdom.');
+        setSubmittingCoEditor(false);
+        return;
+      }
+
+      // Insert co-editor claim — skip endorsements, goes straight to pending for editor approval
+      const { error: insertError } = await supabase
+        .from('kingdom_editors')
+        .insert({
+          kingdom_number: linkedKingdom,
+          user_id: user.id,
+          role: 'co-editor',
+          status: 'pending',
+          endorsement_count: 0,
+          required_endorsements: 0,
+        });
+
+      if (insertError) {
+        setCoEditorError(insertError.message);
+        return;
+      }
+
+      // Notify the active editor(s) about the request
+      const { data: activeEditors } = await supabase
+        .from('kingdom_editors')
+        .select('user_id')
+        .eq('kingdom_number', linkedKingdom)
+        .eq('status', 'active')
+        .eq('role', 'editor');
+
+      if (activeEditors?.length) {
+        const displayName = profile.linked_username || profile.username || 'A user';
+        const notifications = activeEditors.map(e => ({
+          user_id: e.user_id,
+          type: 'co_editor_request',
+          title: 'Co-Editor Request',
+          message: `${displayName} wants to become a co-editor for Kingdom ${linkedKingdom}.`,
+          link: '/transfer-hub',
+          metadata: { kingdom_number: linkedKingdom, requester_id: user.id },
+        }));
+        await supabase.from('notifications').insert(notifications);
+      }
+
+      loadMyClaim();
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to submit co-editor request';
+      setCoEditorError(message);
+    } finally {
+      setSubmittingCoEditor(false);
+    }
+  };
+
   // No claim — show CTA or nominate form
   if (showNominate) {
     return (
@@ -785,44 +900,129 @@ const EditorClaiming: React.FC<{
 
   // CTA to claim kingdom
   const linkedKingdom = profile?.linked_kingdom;
+  const isLinked = !!profile?.linked_player_id;
+  const meetsTcReq = (profile?.linked_tc_level || 0) >= 20;
+  const canBeCoEditor = isLinked && meetsTcReq && linkedKingdom && hasActiveEditor && coEditorCount < MAX_CO_EDITORS_PER_KINGDOM;
+
   return (
-    <div style={{
-      backgroundColor: '#a855f708',
-      border: '1px solid #a855f725',
-      borderRadius: '12px',
-      padding: '0.75rem 1rem',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: '0.75rem',
-    }}>
-      <div>
-        <span style={{ color: '#a855f7', fontWeight: '600', fontSize: '0.85rem' }}>
-          {t('editor.becomeEditor', 'Become a Kingdom Editor')}
-        </span>
-        <p style={{ color: '#6b7280', fontSize: '0.7rem', margin: '0.2rem 0 0 0' }}>
-          {linkedKingdom
-            ? t('editor.claimKingdomDesc', 'Claim Kingdom {{kingdom}} to manage its recruitment listing.', { kingdom: linkedKingdom })
-            : t('editor.linkFirst', 'Link your Kingshot account first, then claim your kingdom.')}
-        </p>
-      </div>
-      <button
-        onClick={() => setShowNominate(true)}
-        style={{
-          padding: '0.5rem 1rem',
-          backgroundColor: '#a855f7',
-          border: 'none',
-          borderRadius: '8px',
-          color: '#fff',
-          fontSize: '0.8rem',
-          fontWeight: '600',
-          cursor: 'pointer',
-          whiteSpace: 'nowrap',
-          minHeight: '44px',
-        }}
-      >
-        {t('editor.claimKingdom', 'Claim Kingdom')}
-      </button>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      {/* Primary CTA: Become Editor */}
+      {!hasActiveEditor && (
+        <div style={{
+          backgroundColor: '#a855f708',
+          border: '1px solid #a855f725',
+          borderRadius: '12px',
+          padding: '0.75rem 1rem',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '0.75rem',
+        }}>
+          <div>
+            <span style={{ color: '#a855f7', fontWeight: '600', fontSize: '0.85rem' }}>
+              {t('editor.becomeEditor', 'Become a Kingdom Editor')}
+            </span>
+            <p style={{ color: '#6b7280', fontSize: '0.7rem', margin: '0.2rem 0 0 0' }}>
+              {linkedKingdom
+                ? t('editor.claimKingdomDesc', 'Claim Kingdom {{kingdom}} to manage its recruitment listing.', { kingdom: linkedKingdom })
+                : t('editor.linkFirst', 'Link your Kingshot account first, then claim your kingdom.')}
+            </p>
+          </div>
+          <button
+            onClick={() => setShowNominate(true)}
+            style={{
+              padding: '0.5rem 1rem',
+              backgroundColor: '#a855f7',
+              border: 'none',
+              borderRadius: '8px',
+              color: '#fff',
+              fontSize: '0.8rem',
+              fontWeight: '600',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              minHeight: '44px',
+            }}
+          >
+            {t('editor.claimKingdom', 'Claim Kingdom')}
+          </button>
+        </div>
+      )}
+
+      {/* Co-Editor CTA: When kingdom already has an active editor */}
+      {hasActiveEditor && linkedKingdom && (
+        <div style={{
+          backgroundColor: '#a855f708',
+          border: '1px solid #a855f725',
+          borderRadius: '12px',
+          padding: '0.75rem 1rem',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
+            <div>
+              <span style={{ color: '#a855f7', fontWeight: '600', fontSize: '0.85rem' }}>
+                Become a Co-Editor
+              </span>
+              <p style={{ color: '#6b7280', fontSize: '0.7rem', margin: '0.2rem 0 0 0' }}>
+                Kingdom {linkedKingdom} already has an editor. Join as a co-editor to help manage the Transfer Hub listing.
+                {coEditorCount > 0 && (
+                  <span style={{ color: '#a855f7' }}> ({coEditorCount}/{MAX_CO_EDITORS_PER_KINGDOM} co-editor slots used)</span>
+                )}
+              </p>
+              <p style={{ color: '#4b5563', fontSize: '0.65rem', margin: '0.2rem 0 0 0' }}>
+                No endorsements required. The editor will be notified of your request.
+              </p>
+            </div>
+            <button
+              onClick={handleBecomeCoEditor}
+              disabled={!canBeCoEditor || submittingCoEditor}
+              style={{
+                padding: '0.5rem 1rem',
+                backgroundColor: canBeCoEditor && !submittingCoEditor ? '#a855f7' : '#a855f730',
+                border: 'none',
+                borderRadius: '8px',
+                color: canBeCoEditor && !submittingCoEditor ? '#fff' : '#6b7280',
+                fontSize: '0.8rem',
+                fontWeight: '600',
+                cursor: canBeCoEditor && !submittingCoEditor ? 'pointer' : 'not-allowed',
+                whiteSpace: 'nowrap',
+                minHeight: '44px',
+                flexShrink: 0,
+              }}
+            >
+              {submittingCoEditor ? 'Requesting...' : 'Request Co-Editor'}
+            </button>
+          </div>
+
+          {coEditorError && (
+            <div style={{
+              marginTop: '0.5rem',
+              padding: '0.4rem 0.6rem',
+              backgroundColor: '#ef444415',
+              border: '1px solid #ef444440',
+              borderRadius: '6px',
+              color: '#ef4444',
+              fontSize: '0.75rem',
+            }}>
+              {coEditorError}
+            </div>
+          )}
+
+          {!isLinked && (
+            <p style={{ color: '#f59e0b', fontSize: '0.7rem', margin: '0.4rem 0 0 0' }}>
+              Link your Kingshot account first to become a co-editor.
+            </p>
+          )}
+          {isLinked && !meetsTcReq && (
+            <p style={{ color: '#6b7280', fontSize: '0.7rem', margin: '0.4rem 0 0 0' }}>
+              TC Level 20+ required to become a co-editor.
+            </p>
+          )}
+          {coEditorCount >= MAX_CO_EDITORS_PER_KINGDOM && (
+            <p style={{ color: '#6b7280', fontSize: '0.7rem', margin: '0.4rem 0 0 0' }}>
+              This kingdom has reached the maximum of {MAX_CO_EDITORS_PER_KINGDOM} co-editors.
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 };

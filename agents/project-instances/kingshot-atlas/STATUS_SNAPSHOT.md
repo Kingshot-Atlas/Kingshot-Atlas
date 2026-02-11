@@ -40,6 +40,7 @@
 
 | When | Agent | Task | Files |
 |------|-------|------|-------|
+| 2026-02-11 | Product | Editor Role Management + Co-Editor Self-Nomination — Admin action buttons (Activate/Suspend/Remove/Promote), bulk deactivate 30d+ inactive, co-editor self-nomination CTA (no endorsements, max 2/kingdom), confirmation dialogs, notifications on all status changes | TransferHubAdminTab.tsx, EditorClaiming.tsx |
 | 2026-02-11 | Product | Rally Coordinator Buff Timer Polish — localStorage persistence, sound/vibration notification, toast on auto-expire, pulsing amber glow on enemy PlayerPill | RallyCoordinator.tsx |
 | 2026-02-11 | Product | Player Directory Engagement — Tier count badges on filter chips, "Member since" on cards, sort-by dropdown (role/joined/kingdom/TC), "My Kingdom" quick filter | UserDirectory.tsx |
 | 2026-02-10 | Design Lead | Premium Tier Visual Polish — Gold/Silver/Bronze inner gradient overlay, enhanced hover glow (3-layer), tier badge micro-animations (glow pulse), "Why Fund?" standard tier banner, enhanced tooltip with cumulative comparison, STYLE_GUIDE.md updated | KingdomListingCard.tsx, STYLE_GUIDE.md |

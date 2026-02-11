@@ -3,6 +3,20 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-11 18:15 | Product Engineer | COMPLETED
+Task: Editor Role Management + Co-Editor Self-Nomination
+Files: apps/web/src/components/admin/TransferHubAdminTab.tsx, apps/web/src/components/EditorClaiming.tsx
+Changes:
+1. **Admin action buttons:** Activate / Suspend / Remove on every editor and co-editor card
+2. **Promote to Editor:** Co-editor cards have a "Promote to Editor" button with confirmation dialog
+3. **Bulk deactivate:** "Deactivate 30d+ Inactive" button on Editor Claims tab
+4. **Notifications:** Every status change, removal, and promotion sends a notification to the affected user
+5. **Co-Editor self-nomination:** Users on kingdoms with an active editor see "Become a Co-Editor" CTA (no endorsements required)
+6. **Co-editor limit enforced:** Max 2 co-editors per kingdom (active + pending), slot counter shown in UI
+7. **Editor approval flow:** Co-editor requests notify the active editor(s) via notifications table
+8. **Confirmation dialogs:** Destructive actions (remove, promote) require explicit confirmation
+Result: Full admin role management + user-facing co-editor nomination flow. Build passes locally.
+
 ## 2026-02-11 17:30 | Product Engineer | COMPLETED
 Task: Separate Co-Editors into dedicated admin tab
 Files: apps/web/src/components/admin/TransferHubAdminTab.tsx

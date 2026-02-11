@@ -49,4 +49,13 @@ i18n
     },
   });
 
+// Set document direction and lang on every language change (including initial detection)
+i18n.on('languageChanged', (lng: string) => {
+  const meta = LANGUAGE_META[lng as SupportedLanguage];
+  if (meta) {
+    document.documentElement.dir = meta.dir;
+    document.documentElement.lang = lng;
+  }
+});
+
 export default i18n;

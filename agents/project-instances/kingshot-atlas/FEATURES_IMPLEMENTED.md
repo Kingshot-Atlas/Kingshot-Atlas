@@ -430,6 +430,9 @@
 | Transfer Hub — Co-Editor Assignment | ✅ Built | Primary editors can invite co-editors by user ID with kingdom link validation, TC20+ check, duplicate detection, reactivation support (2026-02-07) |
 | Transfer Hub — Application Auto-Expiry | ✅ Built | Edge Function `expire-transfer-applications` expires pending/viewed/interested apps past `expires_at`. Cron runs daily at 06:00 UTC via pg_cron (2026-02-07) |
 | Transfer Hub — RLS Policies | ✅ Built | 3 new policies: editor UPDATE on kingdom_funds (profile editing), editor INSERT on kingdom_editors (co-editor invites), editor UPDATE on kingdom_editors (co-editor management). Full audit on all 6 tables (2026-02-07) |
+| Transfer Hub — Editor Role Management | ✅ Built | Admin action buttons (Activate/Suspend/Remove) on editor & co-editor cards. Promote to Editor on co-editors. Bulk deactivate 30d+ inactive. Confirmation dialogs for destructive actions. Notifications on every status change. (2026-02-11) |
+| Transfer Hub — Co-Editor Self-Nomination | ✅ Built | "Become a Co-Editor" CTA on EditorClaiming when kingdom has active editor. No endorsements required. Max 2 co-editors/kingdom enforced. Slot counter shown. Editor approval flow via notifications. TC20+ required. (2026-02-11) |
+| Transfer Hub — Co-Editors Admin Tab | ✅ Built | Dedicated 🤝 Co-Editors sub-tab in Transfer Hub admin. No endorsement data shown. Purple badge (#a855f7). Separated from Editor Claims tab. (2026-02-11) |
 | Kingdom Ambassador Program | 🚧 Planned | Full spec at `/docs/KINGDOM_AMBASSADOR_PROGRAM.md` — 3-phase rollout, 1 per kingdom, referral tracking |
 | FilterPanel Integration | 🚧 Planned | Component exists, needs wiring to KingdomDirectory |
 | Mobile Responsive Pass | ✅ Live | 2026-02-05 - Touch targets fixed to 44px min on Header, KingdomProfile, CompareKingdoms, Leaderboards, KingdomCard, KingdomReviews, KvKHistoryTable, SupportAtlas, Profile |

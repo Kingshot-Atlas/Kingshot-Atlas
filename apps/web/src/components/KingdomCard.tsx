@@ -303,10 +303,10 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
             content={
               <div style={{ fontSize: '0.65rem' }}>
                 <span style={{ fontWeight: '600', color: missingDataColor }}>{t('kingdomCard.missingKvK', 'Missing KvK #{{num}}', { num: CURRENT_KVK })}</span>
-                <span style={{ color: colors.textMuted, marginLeft: '0.25rem' }}>— {t('kingdomCard.tapToSubmit', 'tap to submit')}</span>
+                <span style={{ color: colors.textMuted, marginInlineStart: '0.25rem' }}>— {t('kingdomCard.tapToSubmit', 'tap to submit')}</span>
               </div>
             }
-            style={{ marginLeft: 'auto' }}
+            style={{ marginInlineStart: 'auto' }}
           >
             <div 
               onClick={(e) => {

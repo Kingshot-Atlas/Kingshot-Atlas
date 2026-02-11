@@ -491,3 +491,195 @@ select:focus-visible {
     page-break-inside: avoid;
   }
 }
+
+/* ===========================================
+   RTL (Right-to-Left) Language Support
+   Applied when <html dir="rtl"> is set (e.g., Arabic)
+   =========================================== */
+
+/* Global text alignment flip */
+[dir="rtl"] body {
+  text-align: right;
+}
+
+/* Flex row direction auto-reversal — CSS flexbox respects dir="rtl" natively
+   for flex containers, so most flex-row layouts reverse automatically.
+   However, some inline styles override this, so we add explicit rules. */
+
+/* Mirror directional icons (arrows, chevrons, back buttons) */
+[dir="rtl"] .rtl-mirror,
+[dir="rtl"] .icon-arrow,
+[dir="rtl"] .icon-chevron {
+  transform: scaleX(-1);
+}
+
+/* Unicode arrows in translated text are already handled in translation JSON.
+   SVG arrows used as UI elements need mirroring: */
+[dir="rtl"] [data-direction="forward"],
+[dir="rtl"] .arrow-right {
+  transform: scaleX(-1);
+}
+
+/* Navigation & Header adjustments */
+[dir="rtl"] nav {
+  direction: rtl;
+}
+
+/* Dropdown menus: flip anchor from right to left */
+[dir="rtl"] [style*="right: 0"] {
+  right: auto !important;
+  left: 0 !important;
+}
+
+/* Override any hardcoded text-align: left in inline styles for menus */
+[dir="rtl"] button,
+[dir="rtl"] a {
+  text-align: inherit;
+}
+
+/* Space-x utilities: Tailwind space-x adds margin-left to siblings.
+   In RTL, we need margin-right instead. Tailwind v3 handles this
+   with space-x when dir is set, but inline gap works better. */
+
+/* Margin/Padding logical property overrides for common patterns */
+[dir="rtl"] .ml-auto { margin-left: 0; margin-right: auto; }
+[dir="rtl"] .mr-auto { margin-right: 0; margin-left: auto; }
+[dir="rtl"] .ml-1 { margin-left: 0; margin-right: 0.25rem; }
+[dir="rtl"] .mr-1 { margin-right: 0; margin-left: 0.25rem; }
+[dir="rtl"] .ml-2 { margin-left: 0; margin-right: 0.5rem; }
+[dir="rtl"] .mr-2 { margin-right: 0; margin-left: 0.5rem; }
+[dir="rtl"] .ml-3 { margin-left: 0; margin-right: 0.75rem; }
+[dir="rtl"] .mr-3 { margin-right: 0; margin-left: 0.75rem; }
+[dir="rtl"] .ml-4 { margin-left: 0; margin-right: 1rem; }
+[dir="rtl"] .mr-4 { margin-right: 0; margin-left: 1rem; }
+[dir="rtl"] .ml-6 { margin-left: 0; margin-right: 1.5rem; }
+[dir="rtl"] .mr-6 { margin-right: 0; margin-left: 1.5rem; }
+[dir="rtl"] .ml-8 { margin-left: 0; margin-right: 2rem; }
+[dir="rtl"] .mr-8 { margin-right: 0; margin-left: 2rem; }
+
+[dir="rtl"] .pl-2 { padding-left: 0; padding-right: 0.5rem; }
+[dir="rtl"] .pr-2 { padding-right: 0; padding-left: 0.5rem; }
+[dir="rtl"] .pl-3 { padding-left: 0; padding-right: 0.75rem; }
+[dir="rtl"] .pr-3 { padding-right: 0; padding-left: 0.75rem; }
+[dir="rtl"] .pl-4 { padding-left: 0; padding-right: 1rem; }
+[dir="rtl"] .pr-4 { padding-right: 0; padding-left: 1rem; }
+[dir="rtl"] .pl-6 { padding-left: 0; padding-right: 1.5rem; }
+[dir="rtl"] .pr-6 { padding-right: 0; padding-left: 1.5rem; }
+[dir="rtl"] .pl-8 { padding-left: 0; padding-right: 2rem; }
+[dir="rtl"] .pr-8 { padding-right: 0; padding-left: 2rem; }
+
+/* Text alignment flip */
+[dir="rtl"] .text-left { text-align: right; }
+[dir="rtl"] .text-right { text-align: left; }
+
+/* Border radius directional flip */
+[dir="rtl"] .rounded-l { border-radius: 0 var(--radius-md) var(--radius-md) 0; }
+[dir="rtl"] .rounded-r { border-radius: var(--radius-md) 0 0 var(--radius-md); }
+[dir="rtl"] .rounded-l-md { border-radius: 0 8px 8px 0; }
+[dir="rtl"] .rounded-r-md { border-radius: 8px 0 0 8px; }
+[dir="rtl"] .rounded-l-lg { border-radius: 0 12px 12px 0; }
+[dir="rtl"] .rounded-r-lg { border-radius: 12px 0 0 12px; }
+
+/* Border directional flip */
+[dir="rtl"] .border-l { border-left: none; border-right: 1px solid; }
+[dir="rtl"] .border-r { border-right: none; border-left: 1px solid; }
+
+/* Slide animations: reverse direction for RTL */
+[dir="rtl"] .animate-slide-in {
+  animation-name: slideInRtl;
+}
+
+@keyframes slideInRtl {
+  from { transform: translateX(-100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* Scrollbar position: RTL moves scrollbar to left side (browser default) */
+
+/* Form inputs: ensure proper alignment */
+[dir="rtl"] input,
+[dir="rtl"] textarea,
+[dir="rtl"] select {
+  text-align: right;
+}
+
+[dir="rtl"] input[type="number"],
+[dir="rtl"] input[type="tel"] {
+  text-align: left;
+  direction: ltr;
+}
+
+/* Tables: flip text alignment */
+[dir="rtl"] th,
+[dir="rtl"] td {
+  text-align: right;
+}
+
+[dir="rtl"] th:last-child,
+[dir="rtl"] td:last-child {
+  text-align: left;
+}
+
+/* Score/stat numbers should remain LTR */
+[dir="rtl"] .stat-value,
+[dir="rtl"] .score-value,
+[dir="rtl"] [data-numeric] {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* Percentage and number displays */
+[dir="rtl"] .percentage,
+[dir="rtl"] .atlas-score {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* Progress bars: flip direction */
+[dir="rtl"] .progress-bar {
+  direction: rtl;
+}
+
+/* Tooltips: flip positioning */
+[dir="rtl"] .tooltip {
+  left: auto;
+  right: 0;
+}
+
+/* Kingdom card layout adjustments */
+[dir="rtl"] .kingdom-card {
+  text-align: right;
+}
+
+/* Badge positioning */
+[dir="rtl"] .badge {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* Safe area insets for RTL */
+@supports (padding: max(0px)) {
+  [dir="rtl"] .safe-area-inset {
+    padding-right: max(0.75rem, env(safe-area-inset-right));
+    padding-left: max(0.75rem, env(safe-area-inset-left));
+  }
+}
+
+/* Mobile RTL adjustments */
+@media (max-width: 768px) {
+  [dir="rtl"] .container {
+    padding-right: 0.75rem;
+    padding-left: 0.75rem;
+  }
+
+  /* Mobile menu slides from left in RTL */
+  [dir="rtl"] .mobile-menu {
+    right: auto;
+    left: 0;
+  }
+
+  /* Swipe gestures direction hint */
+  [dir="rtl"] .swipe-hint {
+    transform: scaleX(-1);
+  }
+}
