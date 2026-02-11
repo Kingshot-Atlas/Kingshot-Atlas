@@ -5,6 +5,55 @@
 
 ---
 
+## Referral System RLS & URL Encoding Gotchas (2026-02-11)
+
+**Critical:** The `referrals` table needs both SELECT and INSERT RLS policies. The original implementation only had SELECT, causing all referral inserts to be silently rejected.
+
+**URL encoding:** Referral links use `?ref=<linked_username>`. Usernames with spaces (e.g., "Overseer Billy") break URLs on Discord/social platforms — the URL gets truncated at the space. Always use `encodeURIComponent()` when building referral URLs. `URLSearchParams.get('ref')` auto-decodes on the receiving end, so no decode step needed.
+
+**Referral flow recap:**
+1. Visitor lands with `?ref=X` → stored in localStorage (`kingshot_referral_code`)
+2. On new profile creation (PGRST116 branch in AuthContext), code reads localStorage
+3. Looks up referrer by `profiles.linked_username` = ref code
+4. Inserts into `referrals` table (requires INSERT RLS policy!)
+5. Updates new profile's `referred_by` field
+6. When referred user links TC20+ account → `verify_pending_referral` trigger fires → updates referrer's `referral_count` and `referral_tier`
+
+**Anti-gaming triggers on `referrals`:** `check_referral_rate_limit` (max 10 pending/referrer), `check_referral_ip_abuse` (auto-invalidate 3+ same IP+referrer)
+
+## Multi-Source Referral Attribution (2026-02-11, expanded)
+
+**`referrals.source` column** tracks how a user was brought to Atlas (4 channels):
+- `'referral_link'` — via `?ref=` URL parameter (default, no `?src=` param)
+- `'endorsement'` — user signed up to endorse an editor nominee (server-side in `submit_endorsement`)
+- `'review_invite'` — user clicked a shared review link (`?ref=X&src=review`)
+- `'transfer_listing'` — user clicked a shared transfer listing link (`?ref=X&src=transfer`)
+
+**Frontend tracking flow:**
+1. URLs carry `?ref=<username>&src=<type>` — `src` is optional, defaults to `referral_link`
+2. `AuthContext.tsx` captures both params in `useEffect`, stores in localStorage: `REFERRAL_KEY` + `REFERRAL_SOURCE_KEY`
+3. On new profile creation, reads both from localStorage, includes `source` in `referrals` INSERT
+4. Both keys cleaned from localStorage after processing
+
+**Where `&src=` is appended:**
+- `KingdomListingCard.tsx` → `&src=transfer` (copy listing link + Discord copy)
+- `RecruiterDashboard.tsx` → `&src=transfer` (copy listing link)
+- `KingdomReviews.tsx` → `&src=review` (share review button on each review card)
+- `ShareButton.tsx` → no `src` = default `referral_link`
+- `submit_endorsement` → server-side `source='endorsement'`
+
+**Endorsement → referral logic** (in `submit_endorsement` SECURITY DEFINER function):
+- After successful endorsement, checks if endorser's `profiles.created_at > kingdom_editors.created_at` (joined after nomination)
+- If endorser has no existing referral record (`referred_user_id` UNIQUE), creates a `'verified'` referral with `source='endorsement'`
+- Auto-updates nominee's `referral_count` and `referral_tier` via `compute_referral_tier()`
+- Endorsement referrals skip the `verify_pending_referral` trigger since endorsers already have TC20+ linked accounts
+
+**Adding new sources:** Add value to `referrals.source` CHECK constraint, add `src` mapping in `AuthContext.tsx` `sourceMap`, then add `&src=<key>` to the relevant link generation code. The `referral_count` counts ALL verified referrals regardless of source.
+
+**Admin component:** `ReferralIntelligence.tsx` replaced `ReferralFunnel.tsx` in admin dashboard. 4-section tabbed analytics: Overview, How People Found Atlas, Top Referrers, Recent Activity.
+
+---
+
 ## Bot Admin Auth Pattern (2026-02-08)
 
 Bot admin endpoints in `bot.py` now use the **same dual-auth pattern** as `admin.py`:

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import type { AnalyticsData } from './types';
 import { analyticsService } from '../../services/analyticsService';
 
@@ -9,6 +9,7 @@ interface AnalyticsOverviewProps {
   currentKvK: number;
   incrementingKvK: boolean;
   onIncrementKvK: () => void;
+  onGrantSubscription?: (email: string, tier: string, source: string, reason: string) => Promise<{ success: boolean; message: string }>;
 }
 
 export const AnalyticsOverview: React.FC<AnalyticsOverviewProps> = ({
@@ -17,9 +18,15 @@ export const AnalyticsOverview: React.FC<AnalyticsOverviewProps> = ({
   onSyncSubscriptions,
   currentKvK,
   incrementingKvK,
-  onIncrementKvK
+  onIncrementKvK,
+  onGrantSubscription
 }) => {
   const homepageCTR = useMemo(() => analyticsService.getHomepageCTR(), [analytics]);
+  const [grantEmail, setGrantEmail] = useState('');
+  const [grantSource, setGrantSource] = useState<'kofi' | 'manual' | 'stripe'>('kofi');
+  const [grantReason, setGrantReason] = useState('');
+  const [grantLoading, setGrantLoading] = useState(false);
+  const [grantResult, setGrantResult] = useState<{ success: boolean; message: string } | null>(null);
 
   if (!analytics) {
     return <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>Loading analytics...</div>;
@@ -89,6 +96,132 @@ export const AnalyticsOverview: React.FC<AnalyticsOverviewProps> = ({
           ))}
         </div>
       </div>
+
+      {/* Manual Subscription Grant */}
+      {onGrantSubscription && (
+        <div style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', border: '1px solid #FF6B8A40' }}>
+          <h3 style={{ color: '#fff', fontSize: '1rem', margin: '0 0 0.5rem 0' }}>💖 Manual Supporter Grant</h3>
+          <p style={{ color: '#9ca3af', fontSize: '0.8rem', marginBottom: '1rem' }}>
+            Grant or revoke Supporter perks for Ko-Fi subscribers or manual grants. Updates badge + Discord role.
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <input
+              type="email"
+              placeholder="User email address"
+              value={grantEmail}
+              onChange={e => { setGrantEmail(e.target.value); setGrantResult(null); }}
+              style={{
+                padding: '0.6rem 0.75rem',
+                backgroundColor: '#0a0a0f',
+                border: '1px solid #2a2a2a',
+                borderRadius: '8px',
+                color: '#fff',
+                fontSize: '0.85rem',
+                outline: 'none',
+              }}
+            />
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <span style={{ color: '#9ca3af', fontSize: '0.8rem' }}>Source:</span>
+              {(['kofi', 'manual', 'stripe'] as const).map(src => (
+                <button
+                  key={src}
+                  onClick={() => setGrantSource(src)}
+                  style={{
+                    padding: '0.3rem 0.65rem',
+                    backgroundColor: grantSource === src ? '#FF6B8A20' : 'transparent',
+                    border: `1px solid ${grantSource === src ? '#FF6B8A' : '#2a2a2a'}`,
+                    borderRadius: '6px',
+                    color: grantSource === src ? '#FF6B8A' : '#6b7280',
+                    fontSize: '0.75rem',
+                    cursor: 'pointer',
+                    textTransform: 'capitalize',
+                  }}
+                >
+                  {src === 'kofi' ? 'Ko-Fi' : src}
+                </button>
+              ))}
+            </div>
+            <input
+              type="text"
+              placeholder="Reason (optional)"
+              value={grantReason}
+              onChange={e => setGrantReason(e.target.value)}
+              style={{
+                padding: '0.5rem 0.75rem',
+                backgroundColor: '#0a0a0f',
+                border: '1px solid #2a2a2a',
+                borderRadius: '8px',
+                color: '#fff',
+                fontSize: '0.8rem',
+                outline: 'none',
+              }}
+            />
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button
+                onClick={async () => {
+                  if (!grantEmail.trim()) return;
+                  setGrantLoading(true);
+                  setGrantResult(null);
+                  const result = await onGrantSubscription(grantEmail.trim(), 'supporter', grantSource, grantReason);
+                  setGrantResult(result);
+                  setGrantLoading(false);
+                  if (result.success) { setGrantEmail(''); setGrantReason(''); }
+                }}
+                disabled={grantLoading || !grantEmail.trim()}
+                style={{
+                  flex: 1,
+                  padding: '0.6rem',
+                  backgroundColor: grantLoading ? '#374151' : '#22c55e20',
+                  color: grantLoading ? '#6b7280' : '#22c55e',
+                  border: '1px solid #22c55e60',
+                  borderRadius: '8px',
+                  fontSize: '0.85rem',
+                  fontWeight: '600',
+                  cursor: grantLoading || !grantEmail.trim() ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {grantLoading ? '⏳ Processing...' : '✅ Grant Supporter'}
+              </button>
+              <button
+                onClick={async () => {
+                  if (!grantEmail.trim()) return;
+                  setGrantLoading(true);
+                  setGrantResult(null);
+                  const result = await onGrantSubscription(grantEmail.trim(), 'free', grantSource, grantReason || 'Revoked');
+                  setGrantResult(result);
+                  setGrantLoading(false);
+                  if (result.success) { setGrantEmail(''); setGrantReason(''); }
+                }}
+                disabled={grantLoading || !grantEmail.trim()}
+                style={{
+                  padding: '0.6rem 1rem',
+                  backgroundColor: grantLoading ? '#374151' : '#ef444420',
+                  color: grantLoading ? '#6b7280' : '#ef4444',
+                  border: '1px solid #ef444460',
+                  borderRadius: '8px',
+                  fontSize: '0.85rem',
+                  fontWeight: '600',
+                  cursor: grantLoading || !grantEmail.trim() ? 'not-allowed' : 'pointer',
+                }}
+              >
+                Revoke
+              </button>
+            </div>
+            {grantResult && (
+              <div style={{
+                padding: '0.5rem 0.75rem',
+                backgroundColor: grantResult.success ? '#22c55e10' : '#ef444410',
+                border: `1px solid ${grantResult.success ? '#22c55e40' : '#ef444440'}`,
+                borderRadius: '8px',
+                color: grantResult.success ? '#22c55e' : '#ef4444',
+                fontSize: '0.8rem',
+              }}>
+                {grantResult.message}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* KvK Management */}
       <div style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', border: '1px solid #8b5cf640' }}>

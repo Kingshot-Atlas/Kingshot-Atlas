@@ -98,6 +98,7 @@ interface TransfereeProfile {
   looking_for: string[];
   is_anonymous: boolean;
   is_active: boolean;
+  visible_to_recruiters: boolean;
   last_active_at: string | null;
 }
 
@@ -1341,7 +1342,7 @@ const RecruiterDashboard: React.FC<{
                       Invite Budget: <strong style={{ color: colors.text }}>{getInviteBudget().total - getInviteBudget().used}</strong> remaining
                       {getInviteBudget().bonus > 0 && <span style={{ color: colors.gold, fontSize: '0.6rem' }}> (+{getInviteBudget().bonus} Gold bonus)</span>}
                     </span>
-                    <button onClick={loadTransferees} style={{
+                    <button onClick={() => loadTransferees()} style={{
                       padding: '0.25rem 0.5rem', backgroundColor: '#22d3ee10', border: '1px solid #22d3ee25',
                       borderRadius: '6px', color: '#22d3ee', fontSize: '0.65rem', cursor: 'pointer', minHeight: '32px',
                     }}>
@@ -2391,7 +2392,7 @@ const RecruiterDashboard: React.FC<{
                     <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>
                       <button
                         onClick={() => {
-                          const refParam = profile && isReferralEligible(profile) && profile.linked_username ? `&ref=${profile.linked_username}` : '';
+                          const refParam = profile && isReferralEligible(profile) && profile.linked_username ? `&ref=${profile.linked_username}&src=transfer` : '';
                           const url = `${window.location.origin}/transfer-hub?kingdom=${editorInfo.kingdom_number}${refParam}`;
                           navigator.clipboard.writeText(url).then(() => {
                             trackFeature('Listing Link Copied', { kingdom: editorInfo.kingdom_number, hasReferral: !!refParam });

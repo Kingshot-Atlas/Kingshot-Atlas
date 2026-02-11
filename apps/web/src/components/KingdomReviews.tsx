@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth, getCacheBustedAvatarUrl } from '../contexts/AuthContext';
 import AuthModal from './AuthModal';
-import { getDisplayTier, SUBSCRIPTION_COLORS, SubscriptionTier, ReferralTier } from '../utils/constants';
+import { getDisplayTier, SUBSCRIPTION_COLORS, SubscriptionTier, ReferralTier, isReferralEligible } from '../utils/constants';
 import ReferralBadge from './ReferralBadge';
 import { colors, neonGlow } from '../utils/styles';
 import { reviewService, ReviewWithVoteStatus, ReviewReply, Review, ReportReason } from '../services/reviewService';
@@ -1089,7 +1089,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                           </button>
                         </div>
                         
-                        {/* Reply & Report buttons */}
+                        {/* Reply, Share & Report buttons */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                           {user && !isOwnReview && (
                             <button
@@ -1109,6 +1109,25 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                               💬 Reply
                             </button>
                           )}
+                          <button
+                            onClick={() => {
+                              const refSuffix = profile && isReferralEligible(profile) && profile.linked_username
+                                ? `?ref=${encodeURIComponent(profile.linked_username)}&src=review`
+                                : '';
+                              const url = `${window.location.origin}/kingdom/${kingdomNumber}${refSuffix}#reviews`;
+                              navigator.clipboard.writeText(url);
+                            }}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              color: '#6b7280',
+                              fontSize: '0.7rem',
+                              cursor: 'pointer',
+                              padding: '0.2rem 0.4rem'
+                            }}
+                          >
+                            🔗 Share
+                          </button>
                           {user && !isOwnReview && (
                             <button
                               onClick={() => {

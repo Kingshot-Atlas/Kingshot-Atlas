@@ -46,6 +46,7 @@ def update_user_subscription(
     tier: str,
     stripe_customer_id: Optional[str] = None,
     stripe_subscription_id: Optional[str] = None,
+    source: Optional[str] = None,
 ) -> bool:
     """
     Update a user's subscription tier in Supabase.
@@ -55,6 +56,7 @@ def update_user_subscription(
         tier: Subscription tier ('free', 'pro', 'recruiter')
         stripe_customer_id: Stripe customer ID
         stripe_subscription_id: Stripe subscription ID
+        source: Subscription source ('stripe', 'kofi', 'manual')
         
     Returns:
         True if successful, False otherwise
@@ -71,6 +73,10 @@ def update_user_subscription(
             update_data["stripe_customer_id"] = stripe_customer_id
         if stripe_subscription_id:
             update_data["stripe_subscription_id"] = stripe_subscription_id
+        if source:
+            update_data["subscription_source"] = source
+        elif tier != "free" and stripe_customer_id:
+            update_data["subscription_source"] = "stripe"
         
         result = client.table("profiles").update(update_data).eq("id", user_id).execute()
         

@@ -3,6 +3,23 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-11 02:30 | Platform Engineer | COMPLETED
+Task: Referral Source Expansion — multi-channel attribution + admin intelligence dashboard
+DB Changes:
+- `referrals.source` CHECK constraint expanded: added `'review_invite'`, `'transfer_listing'` (Supabase migration `expand_referral_source_types`)
+Frontend — Source Tracking:
+- `AuthContext.tsx` — Captures `?src=` URL param alongside `?ref=`, stores in `REFERRAL_SOURCE_KEY` localStorage, maps `review→review_invite`, `transfer→transfer_listing`, includes source when creating referral records
+- `KingdomListingCard.tsx` — Added `&src=transfer` to listing link + Discord copy
+- `RecruiterDashboard.tsx` — Added `&src=transfer` to listing link copy
+- `KingdomReviews.tsx` — Added 🔗 Share button on each review card with `&src=review`
+Frontend — Source Display:
+- `ReferralStats.tsx` — Added source breakdown pills on profile page (shows when user has referrals from multiple sources)
+- `Ambassadors.tsx` — Added Source filter chips below tier filters, fetches per-referrer source data
+Frontend — Admin Dashboard:
+- `ReferralIntelligence.tsx` — NEW: Comprehensive admin analytics replacing ReferralFunnel. 4 sections: Overview (key metrics, 14-day trend chart, tier distribution, health metrics), How People Found Atlas (source cards with % fill, comparison table), Top Referrers (ranked list with tier badges), Recent Activity (full table with source + status badges)
+- `AdminDashboard.tsx` — Replaced `ReferralFunnel` lazy import with `ReferralIntelligence`
+Result: Full multi-source referral attribution system. All shared links now carry source context. Admin has comprehensive referral intelligence dashboard. ReferralFunnel.tsx preserved but no longer loaded in admin.
+
 ## 2026-02-10 22:30 | Design Lead | COMPLETED
 Task: Premium Tier Visual Identity Polish + Kingdom Fund Conversion Optimization
 Files: KingdomListingCard.tsx, STYLE_GUIDE.md

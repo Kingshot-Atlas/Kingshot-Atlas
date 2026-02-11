@@ -111,7 +111,7 @@
 | Referred By on Profiles | ✅ Live | Product | Public profiles show "Referred by [username]" in purple for 30 days after account creation. Uses `profiles.referred_by` + `created_at`. (2026-02-09) |
 | Referral Count on Player Cards | ✅ Live | Product | UserDirectory cards show referral count in tier color when user has referrals. (2026-02-09) |
 | Monthly Referral Counter | ✅ Live | Product | Ambassadors hero shows "⚡ X players joined via referrals this month" live counter. Queries verified referrals since start of month. (2026-02-09) |
-| Multi-Source Referral Attribution | ✅ Live | Platform | `referrals.source` column tracks attribution channel ('referral_link', 'endorsement'). `submit_endorsement` auto-creates verified referral for endorsers who joined after nomination. `ReferralFunnel.tsx` shows source breakdown cards + source icons in recent referrals table. Extensible for future sources. (2026-02-11) |
+| Multi-Source Referral Attribution | ✅ Live | Platform | `referrals.source` column tracks 4 attribution channels: `referral_link`, `endorsement`, `review_invite`, `transfer_listing`. `?src=` URL param captured in AuthContext alongside `?ref=`. Transfer listing links append `&src=transfer`, review share buttons append `&src=review`. Endorsement attribution handled server-side in `submit_endorsement`. `ReferralStats.tsx` shows per-user source breakdown pills. `Ambassadors.tsx` has source filter chips. `ReferralIntelligence.tsx` replaces `ReferralFunnel.tsx` in admin with 4-section analytics: Overview, How People Found Atlas, Top Referrers, Recent Activity. (2026-02-11) |
 
 ---
 

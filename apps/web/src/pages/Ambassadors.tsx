@@ -42,6 +42,13 @@ const formatTCLevel = (level: number | null | undefined): string => {
   return `TG${tgTier}`;
 };
 
+const SOURCE_META: Record<string, { label: string; icon: string; color: string }> = {
+  referral_link: { label: 'Links', icon: '🔗', color: '#22d3ee' },
+  endorsement: { label: 'Endorsements', icon: '🗳️', color: '#a855f7' },
+  review_invite: { label: 'Reviews', icon: '⭐', color: '#fbbf24' },
+  transfer_listing: { label: 'Transfers', icon: '🔄', color: '#22c55e' },
+};
+
 const Ambassadors: React.FC = () => {
   useDocumentTitle('Ambassador Network');
   useMetaTags(PAGE_META_TAGS.ambassadors);
@@ -50,7 +57,10 @@ const Ambassadors: React.FC = () => {
   const [ambassadors, setAmbassadors] = useState<AmbassadorProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterTier, setFilterTier] = useState<string>('all');
+  const [filterSource, setFilterSource] = useState<string>('all');
   const [monthlyJoins, setMonthlyJoins] = useState<number>(0);
+  const [referrerSources, setReferrerSources] = useState<Map<string, Set<string>>>(new Map());
+  const [globalSourceCounts, setGlobalSourceCounts] = useState<Map<string, number>>(new Map());
 
   useEffect(() => {
     const fetchAmbassadors = async () => {
@@ -83,6 +93,24 @@ const Ambassadors: React.FC = () => {
           .eq('status', 'verified')
           .gte('verified_at', startOfMonth.toISOString());
         setMonthlyJoins(count || 0);
+
+        // Fetch referral source breakdown per referrer
+        const { data: sourceData } = await supabase
+          .from('referrals')
+          .select('referrer_user_id, source')
+          .eq('status', 'verified');
+        if (sourceData) {
+          const perReferrer = new Map<string, Set<string>>();
+          const globalCounts = new Map<string, number>();
+          sourceData.forEach((r: { referrer_user_id: string; source: string }) => {
+            const src = r.source || 'referral_link';
+            if (!perReferrer.has(r.referrer_user_id)) perReferrer.set(r.referrer_user_id, new Set());
+            perReferrer.get(r.referrer_user_id)!.add(src);
+            globalCounts.set(src, (globalCounts.get(src) || 0) + 1);
+          });
+          setReferrerSources(perReferrer);
+          setGlobalSourceCounts(globalCounts);
+        }
       } catch (err) {
         console.error('Failed to fetch ambassadors:', err);
       } finally {
@@ -95,6 +123,7 @@ const Ambassadors: React.FC = () => {
 
   const filteredAmbassadors = ambassadors
     .filter(a => filterTier === 'all' || a.referral_tier === filterTier)
+    .filter(a => filterSource === 'all' || (referrerSources.get(a.id)?.has(filterSource) ?? false))
     .sort((a, b) => {
       const tierDiff = getReferralSortPriority(a.referral_tier) - getReferralSortPriority(b.referral_tier);
       if (tierDiff !== 0) return tierDiff;
@@ -321,11 +350,11 @@ const Ambassadors: React.FC = () => {
         </div>
       </div>
 
-      {/* Filter chips */}
+      {/* Filter chips — Tier */}
       <div style={{
         display: 'flex',
         gap: '0.5rem',
-        marginBottom: '1.5rem',
+        marginBottom: '0.75rem',
         flexWrap: 'wrap',
         justifyContent: 'center',
       }}>
@@ -357,6 +386,47 @@ const Ambassadors: React.FC = () => {
           </button>
         ))}
       </div>
+
+      {/* Filter chips — Source */}
+      {globalSourceCounts.size > 0 && (
+        <div style={{
+          display: 'flex',
+          gap: '0.4rem',
+          marginBottom: '1.5rem',
+          flexWrap: 'wrap',
+          justifyContent: 'center',
+        }}>
+          <span style={{ color: '#4b5563', fontSize: '0.7rem', alignSelf: 'center', marginRight: '0.25rem' }}>Source:</span>
+          {[
+            { key: 'all', label: 'All Sources', color: '#6b7280' },
+            ...Array.from(globalSourceCounts.entries()).map(([src, count]) => ({
+              key: src,
+              label: `${SOURCE_META[src]?.icon || ''} ${SOURCE_META[src]?.label || src} (${count})`,
+              color: SOURCE_META[src]?.color || '#6b7280',
+            })),
+          ].map(chip => (
+            <button
+              key={chip.key}
+              onClick={() => setFilterSource(chip.key)}
+              style={{
+                padding: '0.3rem 0.6rem',
+                borderRadius: '16px',
+                fontSize: '0.65rem',
+                fontWeight: '600',
+                border: `1px solid ${filterSource === chip.key ? chip.color : '#2a2a2a'}`,
+                backgroundColor: filterSource === chip.key ? `${chip.color}15` : 'transparent',
+                color: filterSource === chip.key ? chip.color : '#4b5563',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                minHeight: '30px',
+                WebkitTapHighlightColor: 'transparent',
+              }}
+            >
+              {chip.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Loading state */}
       {loading ? (

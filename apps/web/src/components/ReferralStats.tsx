@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import {
   ReferralTier,
@@ -13,12 +13,41 @@ import { useIsMobile } from '../hooks/useMediaQuery';
 import useAnalytics from '../hooks/useAnalytics';
 import ReferralBadge from './ReferralBadge';
 import SmartTooltip from './shared/SmartTooltip';
+import { supabase } from '../lib/supabase';
+
+const SOURCE_CONFIG: Record<string, { label: string; icon: string; color: string }> = {
+  referral_link: { label: 'Referral Links', icon: '🔗', color: '#22d3ee' },
+  endorsement: { label: 'Endorsements', icon: '🗳️', color: '#a855f7' },
+  review_invite: { label: 'Reviews', icon: '⭐', color: '#fbbf24' },
+  transfer_listing: { label: 'Transfer Hub', icon: '🔄', color: '#22c55e' },
+};
 
 const ReferralStats: React.FC = () => {
   const { profile } = useAuth();
   const isMobile = useIsMobile();
   const { trackFeature } = useAnalytics();
   const [copied, setCopied] = useState(false);
+  const [sourceBreakdown, setSourceBreakdown] = useState<{ source: string; count: number }[]>([]);
+
+  useEffect(() => {
+    const fetchSources = async () => {
+      if (!supabase || !profile?.id) return;
+      const { data } = await supabase
+        .from('referrals')
+        .select('source')
+        .eq('referrer_user_id', profile.id)
+        .eq('status', 'verified');
+      if (data && data.length > 0) {
+        const counts = new Map<string, number>();
+        data.forEach((r: { source: string }) => {
+          const src = r.source || 'referral_link';
+          counts.set(src, (counts.get(src) || 0) + 1);
+        });
+        setSourceBreakdown(Array.from(counts.entries()).map(([source, count]) => ({ source, count })).sort((a, b) => b.count - a.count));
+      }
+    };
+    fetchSources();
+  }, [profile?.id]);
 
   const referralCount = profile?.referral_count ?? 0;
   const currentTier = profile?.referral_tier as ReferralTier | null;
@@ -28,9 +57,10 @@ const ReferralStats: React.FC = () => {
   const handleCopyLink = useCallback(async () => {
     if (!profile?.linked_username) return;
     const kingdom = profile.linked_kingdom || '';
+    const encodedUsername = encodeURIComponent(profile.linked_username);
     const url = kingdom
-      ? `https://ks-atlas.com/kingdom/${kingdom}?ref=${profile.linked_username}`
-      : `https://ks-atlas.com?ref=${profile.linked_username}`;
+      ? `https://ks-atlas.com/kingdom/${kingdom}?ref=${encodedUsername}`
+      : `https://ks-atlas.com?ref=${encodedUsername}`;
     const success = await copyToClipboard(url);
     if (success) {
       setCopied(true);
@@ -200,6 +230,37 @@ const ReferralStats: React.FC = () => {
           );
         })}
       </div>
+
+      {/* Source breakdown */}
+      {sourceBreakdown.length > 1 && (
+        <div style={{
+          display: 'flex',
+          gap: '0.4rem',
+          marginBottom: '0.75rem',
+          flexWrap: 'wrap',
+        }}>
+          {sourceBreakdown.map(({ source, count }) => {
+            const cfg = SOURCE_CONFIG[source] || { label: source, icon: '📊', color: '#6b7280' };
+            return (
+              <div key={source} style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.25rem',
+                padding: '0.2rem 0.5rem',
+                borderRadius: '12px',
+                backgroundColor: `${cfg.color}10`,
+                border: `1px solid ${cfg.color}25`,
+                fontSize: '0.65rem',
+                color: cfg.color,
+              }}>
+                <span>{cfg.icon}</span>
+                <span style={{ fontWeight: 600 }}>{count}</span>
+                <span style={{ color: '#9ca3af' }}>{cfg.label}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Copy referral link button */}
       <button

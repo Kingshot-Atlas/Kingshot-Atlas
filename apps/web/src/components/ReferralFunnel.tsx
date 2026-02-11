@@ -11,8 +11,9 @@ interface ReferralMetrics {
   uniqueReferrers: number;
   tierBreakdown: { tier: string; count: number }[];
   topReferrers: { username: string; count: number; tier: string | null }[];
-  recentReferrals: { referrer: string; referred: string; status: string; created_at: string }[];
+  recentReferrals: { referrer: string; referred: string; status: string; source: string; created_at: string }[];
   suspiciousIps: number;
+  sourceBreakdown: { source: string; count: number }[];
 }
 
 export const ReferralFunnel: React.FC = () => {
@@ -33,7 +34,7 @@ export const ReferralFunnel: React.FC = () => {
       // Fetch all referrals
       const { data: referrals } = await supabase
         .from('referrals')
-        .select('id, referrer_user_id, referred_user_id, referral_code, status, created_at, signup_ip')
+        .select('id, referrer_user_id, referred_user_id, referral_code, status, created_at, signup_ip, source')
         .order('created_at', { ascending: false });
 
       // Fetch referrer profiles (users with referral_count > 0)
@@ -82,8 +83,16 @@ export const ReferralFunnel: React.FC = () => {
         referrer: r.referral_code || 'unknown',
         referred: r.referred_user_id?.substring(0, 8) + '...' || 'unknown',
         status: r.status || 'pending',
+        source: r.source || 'referral_link',
         created_at: r.created_at,
       }));
+
+      // Source breakdown
+      const sourceCounts = new Map<string, number>();
+      allRefs.forEach(r => {
+        const src = r.source || 'referral_link';
+        sourceCounts.set(src, (sourceCounts.get(src) || 0) + 1);
+      });
 
       setMetrics({
         totalReferrals: allRefs.length,
@@ -100,6 +109,7 @@ export const ReferralFunnel: React.FC = () => {
         })),
         recentReferrals: recentReferralDetails,
         suspiciousIps,
+        sourceBreakdown: Array.from(sourceCounts.entries()).map(([source, count]) => ({ source, count })),
       });
     } catch (err) {
       console.error('Failed to fetch referral metrics:', err);
@@ -157,6 +167,22 @@ export const ReferralFunnel: React.FC = () => {
           <div style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.25rem' }}>Active Referrers</div>
         </div>
       </div>
+
+      {/* Source Attribution */}
+      {metrics.sourceBreakdown.length > 0 && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
+          {metrics.sourceBreakdown.map(({ source, count }) => {
+            const label = source === 'referral_link' ? '🔗 Referral Links' : source === 'endorsement' ? '🗳️ Endorsements' : source;
+            const color = source === 'referral_link' ? '#22d3ee' : '#a855f7';
+            return (
+              <div key={source} style={{ ...statCardStyle, border: `1px solid ${color}30` }}>
+                <div style={{ fontSize: '1.5rem', fontWeight: '800', color }}>{count}</div>
+                <div style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.25rem' }}>{label}</div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Suspicious IP alert */}
       {metrics.suspiciousIps > 0 && (
@@ -266,6 +292,7 @@ export const ReferralFunnel: React.FC = () => {
                   <th style={{ textAlign: 'left', padding: '0.4rem', color: '#6b7280', fontWeight: '600' }}>Referrer</th>
                   <th style={{ textAlign: 'left', padding: '0.4rem', color: '#6b7280', fontWeight: '600' }}>Referred</th>
                   <th style={{ textAlign: 'left', padding: '0.4rem', color: '#6b7280', fontWeight: '600' }}>Status</th>
+                  <th style={{ textAlign: 'left', padding: '0.4rem', color: '#6b7280', fontWeight: '600' }}>Source</th>
                   <th style={{ textAlign: 'left', padding: '0.4rem', color: '#6b7280', fontWeight: '600' }}>Date</th>
                 </tr>
               </thead>
@@ -285,6 +312,18 @@ export const ReferralFunnel: React.FC = () => {
                         border: `1px solid ${ref.status === 'verified' ? '#22c55e40' : ref.status === 'invalid' ? '#ef444440' : '#fbbf2440'}`,
                       }}>
                         {ref.status.toUpperCase()}
+                      </span>
+                    </td>
+                    <td style={{ padding: '0.4rem' }}>
+                      <span style={{
+                        fontSize: '0.6rem',
+                        padding: '0.1rem 0.3rem',
+                        borderRadius: '3px',
+                        backgroundColor: ref.source === 'endorsement' ? '#a855f715' : '#22d3ee15',
+                        color: ref.source === 'endorsement' ? '#a855f7' : '#22d3ee',
+                        border: `1px solid ${ref.source === 'endorsement' ? '#a855f740' : '#22d3ee40'}`,
+                      }}>
+                        {ref.source === 'endorsement' ? '🗳️' : '🔗'}
                       </span>
                     </td>
                     <td style={{ padding: '0.4rem', color: '#6b7280' }}>

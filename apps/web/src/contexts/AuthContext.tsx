@@ -73,6 +73,7 @@ export const useAuth = () => {
 
 const PROFILE_KEY = 'kingshot_profile';
 const REFERRAL_KEY = 'kingshot_referral_code';
+const REFERRAL_SOURCE_KEY = 'kingshot_referral_source';
 
 // Strip any existing cache-busting params from avatar URL (for clean storage)
 const getCleanAvatarUrl = (url: string | undefined): string => {
@@ -128,13 +129,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [loading, setLoading] = useState(true);
   const isConfigured = isSupabaseConfigured;
 
-  // Capture ?ref= param from URL and store in localStorage for later use during signup
+  // Capture ?ref= and ?src= params from URL and store in localStorage for later use during signup
   useEffect(() => {
     try {
       const params = new URLSearchParams(window.location.search);
       const refCode = params.get('ref');
       if (refCode && refCode.trim()) {
         localStorage.setItem(REFERRAL_KEY, refCode.trim());
+        const srcParam = params.get('src');
+        if (srcParam && ['review', 'transfer'].includes(srcParam.trim())) {
+          const sourceMap: Record<string, string> = { review: 'review_invite', transfer: 'transfer_listing' };
+          localStorage.setItem(REFERRAL_SOURCE_KEY, sourceMap[srcParam.trim()] || 'referral_link');
+        } else {
+          localStorage.setItem(REFERRAL_SOURCE_KEY, 'referral_link');
+        }
       }
     } catch { /* ignore */ }
   }, []);
@@ -309,12 +317,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                   if (ipRes.ok) { signupIp = (await ipRes.json()).ip; }
                 } catch { /* IP capture is best-effort */ }
                 // Create the referral record (pending until referred user links account)
+                const storedSource = localStorage.getItem(REFERRAL_SOURCE_KEY) || 'referral_link';
                 await supabase.from('referrals').insert({
                   referrer_user_id: referrer.id,
                   referred_user_id: created.id,
                   referral_code: storedRefCode,
                   status: 'pending',
                   signup_ip: signupIp,
+                  source: storedSource,
                 });
                 // Update profile with referred_by
                 await supabase.from('profiles').update({ referred_by: storedRefCode }).eq('id', created.id);
@@ -324,6 +334,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               logger.error('Failed to process referral:', refErr);
             }
             localStorage.removeItem(REFERRAL_KEY);
+            localStorage.removeItem(REFERRAL_SOURCE_KEY);
           }
           // Merge created profile with any cached linked player data
           const cached = localStorage.getItem(PROFILE_KEY);

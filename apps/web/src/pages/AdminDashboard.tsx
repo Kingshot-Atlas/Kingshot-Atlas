@@ -16,7 +16,7 @@ const WebhookMonitor = lazy(() => import('../components/WebhookMonitor').then(m 
 const DataSourceStats = lazy(() => import('../components/DataSourceStats').then(m => ({ default: m.DataSourceStats })));
 const BotDashboard = lazy(() => import('../components/BotDashboard').then(m => ({ default: m.BotDashboard })));
 const DiscordRolesDashboard = lazy(() => import('../components/DiscordRolesDashboard').then(m => ({ default: m.DiscordRolesDashboard })));
-const ReferralFunnel = lazy(() => import('../components/ReferralFunnel'));
+const ReferralIntelligence = lazy(() => import('../components/ReferralIntelligence'));
 import { ADMIN_USERNAMES } from '../utils/constants';
 import { supabase } from '../lib/supabase';
 import { logger } from '../utils/logger';
@@ -577,6 +577,31 @@ const AdminDashboard: React.FC = () => {
       showToast('Failed to sync subscriptions', 'error');
     } finally {
       setSyncingSubscriptions(false);
+    }
+  };
+
+  const handleGrantSubscription = async (email: string, tier: string, source: string, reason: string): Promise<{ success: boolean; message: string }> => {
+    try {
+      const grantAuthHeaders = await getAuthHeaders({ requireAuth: false });
+      const res = await fetch(`${API_URL}/api/v1/admin/subscriptions/grant-by-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...grantAuthHeaders },
+        body: JSON.stringify({ email, tier, source, reason }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showToast(data.message, 'success');
+        fetchAnalytics();
+        return { success: true, message: data.message };
+      } else {
+        const errorMsg = data.detail || data.message || 'Failed to update subscription';
+        showToast(errorMsg, 'error');
+        return { success: false, message: errorMsg };
+      }
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : 'Network error';
+      showToast(`Grant failed: ${msg}`, 'error');
+      return { success: false, message: msg };
     }
   };
 
@@ -1816,6 +1841,7 @@ const AdminDashboard: React.FC = () => {
             currentKvK={currentKvK}
             incrementingKvK={incrementingKvK}
             onIncrementKvK={handleIncrementKvK}
+            onGrantSubscription={handleGrantSubscription}
           />
           {/* Plausible Insights: Sources, Countries, Top Pages */}
           <div style={{ marginTop: '1.5rem' }}>
@@ -1851,8 +1877,8 @@ const AdminDashboard: React.FC = () => {
           <DiscordRolesDashboard />
         </Suspense>
       ) : activeTab === 'referrals' ? (
-        <Suspense fallback={<div style={{ padding: '2rem', color: '#6b7280' }}>Loading referral metrics...</div>}>
-          <ReferralFunnel />
+        <Suspense fallback={<div style={{ padding: '2rem', color: '#6b7280' }}>Loading referral intelligence...</div>}>
+          <ReferralIntelligence />
         </Suspense>
       ) : activeTab === 'new-kingdoms' ? (
         <NewKingdomsTab

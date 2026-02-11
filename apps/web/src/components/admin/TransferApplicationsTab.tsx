@@ -283,7 +283,7 @@ export const TransferApplicationsTab: React.FC = () => {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           {filteredApps.map(app => {
-            const sc = STATUS_COLORS[app.status] || STATUS_COLORS.pending;
+            const sc = STATUS_COLORS[app.status] ?? STATUS_COLORS['pending'] ?? { bg: '#6b728010', border: '#6b728030', text: '#6b7280' };
             const isExpired = app.expires_at && new Date(app.expires_at) < new Date() && app.status === 'pending';
             return (
               <div key={app.id} style={{

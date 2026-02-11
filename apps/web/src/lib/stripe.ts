@@ -10,7 +10,7 @@ export const STRIPE_CONFIG = {
   // Note: "pro" tier is now displayed as "Atlas Supporter" to users
   paymentLinks: {
     supporter: {
-      monthly: import.meta.env.VITE_STRIPE_PRO_MONTHLY_LINK || '',
+      monthly: import.meta.env.VITE_STRIPE_PRO_MONTHLY_LINK || 'https://buy.stripe.com/dRm8wQ2Fe2ye7dC3n9eZ206',
       yearly: import.meta.env.VITE_STRIPE_PRO_YEARLY_LINK || '',
     },
   },
@@ -71,8 +71,8 @@ export const getCheckoutUrl = (
     return userId ? `${url}?client_reference_id=${userId}` : url;
   }
   
-  // Fallback to Ko-fi
-  return STRIPE_CONFIG.kofiUrl;
+  // Fallback to hardcoded Stripe payment link (never Ko-fi for subscriptions)
+  return 'https://buy.stripe.com/dRm8wQ2Fe2ye7dC3n9eZ206';
 };
 
 // Async version that uses API checkout session

@@ -8,6 +8,7 @@ import os
 import logging
 import stripe
 from fastapi import APIRouter, HTTPException, Request, Header, Depends
+from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 from fastapi.responses import StreamingResponse
@@ -984,6 +985,169 @@ async def sync_all_subscriptions(x_admin_key: Optional[str] = Header(None), auth
         
     except stripe.error.StripeError as e:
         return {"error": str(e), "synced": synced, "failed": failed}
+
+
+# ============================================================================
+# MANUAL SUBSCRIPTION MANAGEMENT
+# ============================================================================
+
+
+class ManualSubscriptionRequest(BaseModel):
+    """Request body for manually granting/revoking supporter status."""
+    user_id: str
+    tier: str  # 'supporter' or 'free'
+    source: str = "manual"  # 'kofi', 'manual', 'stripe'
+    reason: Optional[str] = None
+
+
+class ManualSubscriptionByEmailRequest(BaseModel):
+    """Request body for granting supporter status by email."""
+    email: str
+    tier: str  # 'supporter' or 'free'
+    source: str = "manual"
+    reason: Optional[str] = None
+
+
+@router.post("/subscriptions/grant")
+async def grant_subscription(
+    request: Request,
+    body: ManualSubscriptionRequest,
+    x_admin_key: Optional[str] = Header(None),
+    authorization: Optional[str] = Header(None),
+):
+    """
+    Manually grant or revoke supporter status for a user.
+    
+    Use cases:
+    - Ko-Fi subscribers who need supporter perks
+    - Manual grants for community contributors
+    - Revoking access when needed
+    
+    Args:
+        body.user_id: Supabase user ID
+        body.tier: 'supporter' or 'free'
+        body.source: 'kofi', 'manual', or 'stripe'
+        body.reason: Optional reason for the change
+    """
+    require_admin(x_admin_key, authorization)
+    
+    if body.tier not in ("supporter", "free"):
+        raise HTTPException(status_code=400, detail="Tier must be 'supporter' or 'free'")
+    if body.source not in ("kofi", "manual", "stripe"):
+        raise HTTPException(status_code=400, detail="Source must be 'kofi', 'manual', or 'stripe'")
+    
+    client = get_supabase_admin()
+    if not client:
+        raise HTTPException(status_code=500, detail="Database not configured")
+    
+    try:
+        # Verify user exists
+        profile_result = client.table("profiles").select(
+            "id, username, email, subscription_tier, subscription_source"
+        ).eq("id", body.user_id).single().execute()
+        
+        if not profile_result.data:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        profile = profile_result.data
+        old_tier = profile.get("subscription_tier", "free")
+        
+        # Update subscription tier and source
+        update_data = {
+            "subscription_tier": body.tier,
+            "subscription_source": body.source if body.tier != "free" else None,
+        }
+        
+        client.table("profiles").update(update_data).eq("id", body.user_id).execute()
+        
+        # Sync Discord role if configured
+        from api.discord_role_sync import sync_user_discord_role, is_discord_sync_configured
+        discord_synced = False
+        if is_discord_sync_configured():
+            try:
+                old_tier_for_removal = old_tier if body.tier == "free" else None
+                discord_result = await sync_user_discord_role(
+                    body.user_id, body.tier, old_tier_for_removal
+                )
+                discord_synced = bool(discord_result)
+            except Exception as e:
+                logger.warning(f"Discord role sync failed during manual grant: {e}")
+        
+        audit_log(
+            "manual_subscription_grant",
+            "profiles",
+            body.user_id,
+            {
+                "username": profile.get("username"),
+                "old_tier": old_tier,
+                "new_tier": body.tier,
+                "source": body.source,
+                "reason": body.reason,
+                "discord_synced": discord_synced,
+            }
+        )
+        
+        return {
+            "success": True,
+            "user_id": body.user_id,
+            "username": profile.get("username"),
+            "old_tier": old_tier,
+            "new_tier": body.tier,
+            "source": body.source,
+            "discord_synced": discord_synced,
+            "message": f"Subscription updated: {old_tier} → {body.tier} (source: {body.source})"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/subscriptions/grant-by-email")
+async def grant_subscription_by_email(
+    request: Request,
+    body: ManualSubscriptionByEmailRequest,
+    x_admin_key: Optional[str] = Header(None),
+    authorization: Optional[str] = Header(None),
+):
+    """
+    Manually grant or revoke supporter status by email address.
+    Useful when you don't know the user's Supabase ID.
+    """
+    require_admin(x_admin_key, authorization)
+    
+    if body.tier not in ("supporter", "free"):
+        raise HTTPException(status_code=400, detail="Tier must be 'supporter' or 'free'")
+    if body.source not in ("kofi", "manual", "stripe"):
+        raise HTTPException(status_code=400, detail="Source must be 'kofi', 'manual', or 'stripe'")
+    
+    client = get_supabase_admin()
+    if not client:
+        raise HTTPException(status_code=500, detail="Database not configured")
+    
+    try:
+        # Find user by email
+        profile_result = client.table("profiles").select(
+            "id, username, email, subscription_tier, subscription_source"
+        ).eq("email", body.email).single().execute()
+        
+        if not profile_result.data:
+            raise HTTPException(status_code=404, detail=f"No user found with email: {body.email}")
+        
+        # Delegate to the grant-by-id endpoint logic
+        grant_request = ManualSubscriptionRequest(
+            user_id=profile_result.data["id"],
+            tier=body.tier,
+            source=body.source,
+            reason=body.reason,
+        )
+        return await grant_subscription(request, grant_request, x_admin_key, authorization)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ============================================================================

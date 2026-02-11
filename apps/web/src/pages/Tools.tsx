@@ -194,7 +194,7 @@ const Tools: React.FC = () => {
       title: 'Kingdom Comparison',
       description: 'Put any kingdoms in the ring. Head-to-head stats, win rates, and Atlas Scores. Let the data crown the champion.',
       tagline: 'Know your enemy. Choose your allies.',
-      usageStat: '5,000+ comparisons',
+      usageStat: '1,300+ kingdoms',
       icon: (
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M16 3h5v5M8 3H3v5M3 16v5h5M21 16v5h-5M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/>
