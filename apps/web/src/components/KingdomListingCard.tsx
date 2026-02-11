@@ -319,7 +319,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
   const minPowerDisplay = getMinPowerDisplay();
 
   const handleCopyListingLink = () => {
-    const refSuffix = refParam ? `&ref=${refParam}` : '';
+    const refSuffix = refParam ? `&ref=${refParam}&src=transfer` : '';
     const url = `${window.location.origin}/transfer-hub?kingdom=${kingdom.kingdom_number}${refSuffix}`;
     navigator.clipboard.writeText(url).then(() => {
       setCopiedLink(true);
@@ -328,7 +328,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
   };
 
   const handleCopyDiscord = async () => {
-    const refSuffix = refParam ? `&ref=${refParam}` : '';
+    const refSuffix = refParam ? `&ref=${refParam}&src=transfer` : '';
     const message = generateTransferListingDiscordMessage(
       kingdom.kingdom_number,
       kingdom.atlas_score || 0,
@@ -375,7 +375,13 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
       {...(!hasWrapper ? { id: `listing-${kingdom.kingdom_number}` } : {})}
       style={{
         position: 'relative',
-        backgroundColor: colors.surface,
+        ...(isGold
+          ? { background: `linear-gradient(180deg, #fbbf240a 0%, ${colors.surface} 35%, ${colors.surface} 100%)` }
+          : isSilver
+          ? { background: `linear-gradient(180deg, #c0c0c008 0%, ${colors.surface} 35%, ${colors.surface} 100%)` }
+          : isBronze
+          ? { background: `linear-gradient(180deg, #cd7f3206 0%, ${colors.surface} 35%, ${colors.surface} 100%)` }
+          : { backgroundColor: colors.surface }),
         borderRadius: hasWrapper ? '12px' : '14px',
         overflow: 'hidden',
         ...(!hasWrapper ? { scrollMarginTop: '80px' } : {}),
@@ -449,15 +455,16 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
                     <div style={{ color: '#9ca3af', lineHeight: 1.5, marginBottom: '0.3rem' }}>
                       Kingdoms fund their listing to unlock better visibility and features.
                     </div>
-                    <div style={{ color: '#6b7280', lineHeight: 1.5 }}>
-                      🥉 <span style={{ color: '#cd7f32' }}>Bronze $25+</span> — Requirements & vibe tags{'\n'}
-                      🥈 <span style={{ color: '#9ca3af' }}>Silver $50+</span> — Bio, invites & event times{'\n'}
-                      🥇 <span style={{ color: colors.gold }}>Gold $100+</span> — Priority placement & glow
+                    <div style={{ color: '#6b7280', lineHeight: 1.8, display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>
+                      <div>🥉 <span style={{ color: '#cd7f32' }}>Bronze $25+</span> — Shimmer border · requirements · vibes</div>
+                      <div>🥈 <span style={{ color: '#9ca3af' }}>Silver $50+</span> — + Silver glow · bio · event times</div>
+                      <div>🥇 <span style={{ color: colors.gold }}>Gold $100+</span> — + Gold glow · highlight · priority</div>
                     </div>
                   </div>
                 }
               >
                 <span
+                  className={isGold ? 'tier-chip-gold' : isSilver ? 'tier-chip-silver' : 'tier-chip-bronze'}
                   style={{
                     padding: '0.1rem 0.4rem',
                     backgroundColor: `${tierColor}15`,
@@ -933,6 +940,20 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
         )}
       </div>
 
+      {/* Why Fund? — subtle upgrade nudge for standard tier */}
+      {!isPremium && (
+        <div style={{
+          padding: '0.35rem 1rem',
+          borderTop: `1px solid ${colors.border}`,
+          textAlign: 'center',
+          background: `linear-gradient(90deg, transparent 0%, #fbbf2404 50%, transparent 100%)`,
+        }}>
+          <span style={{ fontSize: '0.6rem', color: colors.textMuted }}>
+            ✨ Funded listings get <span style={{ color: '#fbbf24' }}>shimmer borders</span>, <span style={{ color: '#c0c0c0' }}>glow effects</span> & more visibility
+          </span>
+        </div>
+      )}
+
       {/* Card Footer - CTA */}
       <div style={{
         padding: '0.6rem 1rem',
@@ -1102,6 +1123,26 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
         }
+        @keyframes tierChipGlow {
+          0%, 100% { box-shadow: 0 0 4px currentColor; }
+          50% { box-shadow: 0 0 8px currentColor, 0 0 14px currentColor; }
+        }
+        @keyframes tierChipWarm {
+          0%, 100% { box-shadow: 0 0 3px currentColor; }
+          50% { box-shadow: 0 0 6px currentColor; }
+        }
+        .tier-chip-gold {
+          animation: tierChipGlow 3s ease-in-out infinite;
+          text-shadow: 0 0 6px #fbbf2460;
+        }
+        .tier-chip-silver {
+          animation: tierChipGlow 4s ease-in-out infinite;
+          text-shadow: 0 0 4px #c0c0c040;
+        }
+        .tier-chip-bronze {
+          animation: tierChipWarm 5s ease-in-out infinite;
+          text-shadow: 0 0 3px #cd7f3240;
+        }
       `}</style>
     </div>
   );
@@ -1119,7 +1160,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
           backgroundSize: '300% 300%',
           animation: 'goldShimmer 4s ease-in-out infinite',
           boxShadow: isHovered
-            ? '0 0 28px #fbbf2430, 0 0 48px #fbbf2415, 0 4px 16px rgba(0,0,0,0.4)'
+            ? '0 0 32px #fbbf2440, 0 0 56px #fbbf2420, 0 0 80px #fbbf2410, 0 4px 16px rgba(0,0,0,0.4)'
             : '0 0 14px #fbbf2420, 0 2px 8px rgba(0,0,0,0.3)',
           transition: 'box-shadow 0.3s ease',
         }}
@@ -1144,7 +1185,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
           backgroundSize: '300% 300%',
           animation: 'goldShimmer 5s ease-in-out infinite',
           boxShadow: isHovered
-            ? '0 0 24px #c0c0c025, 0 0 40px #c0c0c012, 0 4px 16px rgba(0,0,0,0.4)'
+            ? '0 0 28px #c0c0c030, 0 0 48px #c0c0c018, 0 0 72px #c0c0c00c, 0 4px 16px rgba(0,0,0,0.4)'
             : '0 0 10px #c0c0c018, 0 2px 8px rgba(0,0,0,0.3)',
           transition: 'box-shadow 0.3s ease',
         }}

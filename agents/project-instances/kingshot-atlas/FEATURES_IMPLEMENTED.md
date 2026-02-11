@@ -111,6 +111,7 @@
 | Referred By on Profiles | ✅ Live | Product | Public profiles show "Referred by [username]" in purple for 30 days after account creation. Uses `profiles.referred_by` + `created_at`. (2026-02-09) |
 | Referral Count on Player Cards | ✅ Live | Product | UserDirectory cards show referral count in tier color when user has referrals. (2026-02-09) |
 | Monthly Referral Counter | ✅ Live | Product | Ambassadors hero shows "⚡ X players joined via referrals this month" live counter. Queries verified referrals since start of month. (2026-02-09) |
+| Multi-Source Referral Attribution | ✅ Live | Platform | `referrals.source` column tracks attribution channel ('referral_link', 'endorsement'). `submit_endorsement` auto-creates verified referral for endorsers who joined after nomination. `ReferralFunnel.tsx` shows source breakdown cards + source icons in recent referrals table. Extensible for future sources. (2026-02-11) |
 
 ---
 
@@ -468,6 +469,8 @@
 | Transfer Hub — Referral Tracking | ✅ Live | All shared listing links (Share, Discord, Copy Listing Link in RecruiterDashboard) append `?ref=<linked_username>` for referral-eligible users. Landing tracked via `Transfer Hub Referral Landing` analytics event. Uses existing `isReferralEligible` from constants. (2026-02-10) |
 | Transfer Hub — Copy as Image | ✅ Live | "Image" button on KingdomListingCard generates 600×315 PNG via `generateTransferListingCard`, copies to clipboard (desktop) or uses Web Share API (mobile), falls back to download. (2026-02-10) |
 | Transfer Hub — CTA Animation | ✅ Live | Unauthenticated CTA banner on shared listing landing uses `fadeSlideUp` CSS keyframe animation (0.5s ease-out). (2026-02-10) |
+| Transfer Hub — Premium Tier Visual Polish | ✅ Live | Gold/Silver/Bronze inner gradient overlay (subtle tier-tinted highlight at card top), enhanced hover glow (Gold 3-layer 80px, Silver 3-layer 72px), tier badge micro-animations (Gold 3s, Silver 4s, Bronze 5s glow pulse), enhanced tooltip with cumulative tier comparison. STYLE_GUIDE.md updated with Kingdom Fund Tier Borders SOURCE OF TRUTH. (2026-02-10) |
+| Transfer Hub — Why Fund? Banner | ✅ Live | Standard tier cards show subtle upgrade nudge above footer: "✨ Funded listings get shimmer borders, glow effects & more visibility". Non-intrusive, informational. Gold/silver highlighted keywords. (2026-02-10) |
 | Component Refactoring | 🚧 Planned | KingdomCard, ProfileFeatures too large |
 | Multi-Kingdom Share/Export | 🚧 Planned | ShareButton still uses 2-kingdom format |
 

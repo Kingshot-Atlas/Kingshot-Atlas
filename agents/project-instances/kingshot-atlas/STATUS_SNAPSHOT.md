@@ -40,6 +40,7 @@
 
 | When | Agent | Task | Files |
 |------|-------|------|-------|
+| 2026-02-10 | Design Lead | Premium Tier Visual Polish — Gold/Silver/Bronze inner gradient overlay, enhanced hover glow (3-layer), tier badge micro-animations (glow pulse), "Why Fund?" standard tier banner, enhanced tooltip with cumulative comparison, STYLE_GUIDE.md updated | KingdomListingCard.tsx, STYLE_GUIDE.md |
 | 2026-02-10 | Ops Lead | CI/CD Green Path Hardening — Lighthouse CI path fix, useEffect dep warnings fixed, bandit.yml config, 20 sharing tests, vitest pre-push hook, REACT_APP→VITE env var fix | ci.yml, EditorClaiming.tsx, .bandit.yml, sharing.test.ts, .pre-commit-config.yaml |
 | 2026-02-10 | Product | Transfer Hub — Shareable Listings & Recruitment Conversion: ?kingdom=N URLs with scroll-to + highlight, Share + Discord buttons on cards, Copy Listing Link in RecruiterDashboard, unauthenticated CTA banner, recruiting toast, conversion funnel tracking, OG card generation, View Transfer Listing in KingdomHeader | KingdomHeader.tsx, KingdomListingCard.tsx, TransferBoard.tsx, sharing.ts, RecruiterDashboard.tsx |
 | 2026-02-09 | Product + Platform | Analytics Growth Charts — Collapsible 30-day trend charts for Visitors, Page Views, Total Users, User Breakdown. Backend timeseries + user-growth endpoints. SVG charts. | AnalyticsOverview.tsx, admin.py |

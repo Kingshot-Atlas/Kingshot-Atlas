@@ -3,6 +3,49 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-10 22:30 | Design Lead | COMPLETED
+Task: Premium Tier Visual Identity Polish + Kingdom Fund Conversion Optimization
+Files: KingdomListingCard.tsx, STYLE_GUIDE.md
+Result: 
+- Gold/Silver/Bronze inner gradient overlay (subtle tier-tinted highlight at card top)
+- Enhanced hover glow (Gold: 3-layer 80px spread, Silver: 3-layer 72px spread)
+- Tier badge micro-animations (Gold: 3s glow pulse, Silver: 4s glow pulse, Bronze: 5s warm pulse)
+- "Why Fund?" subtle banner on standard tier cards (shimmer borders & glow effects awareness)
+- Enhanced tooltip with cumulative tier comparison (Bronze → Silver → Gold progression)
+- STYLE_GUIDE.md updated with Kingdom Fund Tier Borders SOURCE OF TRUTH section
+
+## 2026-02-11 02:15 | Platform Engineer | COMPLETED
+Task: Multi-source referral attribution — endorsements count as referrals
+Design: Users who sign up to endorse an editor nominee are attributed as referrals to that nominee if their account was created AFTER the nomination.
+DB Changes:
+- `referrals` table: Added `source` column (TEXT, CHECK IN 'referral_link','endorsement') for multi-source attribution
+- `submit_endorsement` function: Extended to auto-create verified referral records for new endorsers, update referrer's count+tier
+Frontend:
+- `apps/web/src/components/ReferralFunnel.tsx` — Added source breakdown cards (🔗 Referral Links / 🗳️ Endorsements), source column in recent referrals table
+Retroactive fix:
+- Created 3 endorsement referral records for Overseer Billy (K200 AMEX, Jim Lahey, NotACookie — all joined after his nomination)
+- Updated Billy's referral_count: 1→4, referral_tier: null→scout
+Result: Referral system now tracks multiple attribution sources. Future endorsements from new users auto-create referral records. Admin dashboard shows source breakdown.
+
+## 2026-02-11 02:00 | Platform Engineer | COMPLETED
+Task: Fix referral system — referral count stuck at 0 for all users
+Root Cause: 2 bugs found:
+1. Missing INSERT RLS policy on `referrals` table — all referral inserts silently rejected
+2. Spaces in `linked_username` break referral URLs on Discord (URL truncated at space)
+Fixes:
+- `referrals` table: Added INSERT policy "Users can insert referral for themselves" (Supabase migration)
+- `apps/web/src/components/ReferralStats.tsx` — URL-encode `linked_username` with `encodeURIComponent()` in referral link generation
+- Retroactive data repair: Created missing verified referral record for Baba Yaya → Overseer Billy, updated referral_count to 1
+Result: Referral system now functional. New signups via referral links will be properly tracked. Overseer Billy's count updated from 0 to 1.
+
+## 2026-02-11 00:30 | Product Engineer | COMPLETED
+Task: Build KvK Rally Coordinator tool + Tools page usage stats
+Files:
+- `apps/web/src/pages/RallyCoordinator.tsx` — NEW: Full rally coordination tool with player/enemy databases (localStorage), visual + formation building selector, drag-drop rally queue, simultaneous/chain-hit timing modes with interval slider, calculation engine (ported from Discord bot /multirally), Gantt timeline chart, call order output with copy-to-chat, admin-gated access.
+- `apps/web/src/App.tsx` — Added lazy import + route `/tools/rally-coordinator`
+- `apps/web/src/pages/Tools.tsx` — Added `usageStat` prop to ToolCard, usage badges on live tools (Discord Bot: "10+ Discord servers", Comparison: "5,000+ comparisons"), Rally Coordinator card links to tool for admins (coming soon for others), added auth + admin imports.
+Result: Deployed to production. Admin can access at ks-atlas.com/tools/rally-coordinator.
+
 ## 2026-02-11 00:14 | Product Engineer | COMPLETED
 Task: Tools page — Add KvK Rally Coordinator card, update Appointment Scheduler copy, reorder grid
 Files:

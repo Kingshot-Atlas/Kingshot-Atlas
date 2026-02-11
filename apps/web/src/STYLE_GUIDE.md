@@ -531,6 +531,63 @@ const getTierBorderColor = (tier: 'free' | 'pro' | 'recruiter' | 'admin'): strin
 
 ---
 
+## Kingdom Fund Tier Borders (SOURCE OF TRUTH)
+
+Kingdom listings on the Transfer Hub use tier-based shimmer borders, glow effects, and badge animations based on the kingdom's fund tier. All implemented in `KingdomListingCard.tsx`.
+
+### Tier Visual Hierarchy
+
+| Tier | Border | Shimmer | Glow | Inner Highlight | Badge Animation | Padding |
+|------|--------|---------|------|-----------------|-----------------|---------|
+| **Gold** | 3px gradient (`#fbbf24` → `#d97706`) | 4s `goldShimmer` | Yes — `0 0 32px` hover | Gold tint (`#fbbf240a`) at top | `tierChipGlow` 3s | 3px |
+| **Silver** | 2px gradient (`#c0c0c0` → `#8e8e8e`) | 5s `goldShimmer` | Yes — `0 0 28px` hover | Silver tint (`#c0c0c008`) at top | `tierChipGlow` 4s | 2px |
+| **Bronze** | 2px gradient (`#cd7f32` → `#a0682d`) | 6s `goldShimmer` | No glow | Bronze tint (`#cd7f3206`) at top | `tierChipWarm` 5s | 2px |
+| **Standard** | 1px solid `#2a2a2a` | None | None | None | None | N/A |
+
+### Wrapper Approach
+Premium tiers (Gold/Silver/Bronze) use a **wrapper div** around the card content:
+- Wrapper provides the shimmer border via `linear-gradient` + `background-position` animation
+- Card content sits inside with `borderRadius: 12px` and `overflow: hidden`
+- Hover events are on the wrapper, not the card content
+- Standard tier cards render without a wrapper
+
+### CSS Animations (in `<style>` block)
+```css
+/* Shimmer border animation (shared by all premium tiers) */
+@keyframes goldShimmer {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Tier badge chip glow (Gold & Silver) */
+@keyframes tierChipGlow {
+  0%, 100% { box-shadow: 0 0 4px currentColor; }
+  50% { box-shadow: 0 0 8px currentColor, 0 0 14px currentColor; }
+}
+
+/* Tier badge chip warm pulse (Bronze) */
+@keyframes tierChipWarm {
+  0%, 100% { box-shadow: 0 0 3px currentColor; }
+  50% { box-shadow: 0 0 6px currentColor; }
+}
+```
+
+### Badge Chip Classes
+| Class | Animation | Text Shadow |
+|-------|-----------|-------------|
+| `.tier-chip-gold` | `tierChipGlow 3s` | `0 0 6px #fbbf2460` |
+| `.tier-chip-silver` | `tierChipGlow 4s` | `0 0 4px #c0c0c040` |
+| `.tier-chip-bronze` | `tierChipWarm 5s` | `0 0 3px #cd7f3240` |
+
+### Why Fund? Banner
+Standard tier cards show a subtle upgrade nudge above the footer:
+- Background: `linear-gradient(90deg, transparent 0%, #fbbf2404 50%, transparent 100%)`
+- Text: `0.6rem`, `colors.textMuted`, with gold/silver highlighted keywords
+- Non-intrusive, informational only
+
+---
+
 ## Power Tier Colors
 
 | Tier | Color | Hex | Tailwind Class |
