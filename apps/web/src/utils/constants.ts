@@ -137,3 +137,29 @@ export const getTierBorderColor = (tier: string | null | undefined): string => {
     default: return '#ffffff'; // White for free users
   }
 };
+
+// Get the HIGHEST priority tier color considering both subscription and referral tiers.
+// Priority: Admin > Supporter > Ambassador > Consul > Recruiter > Scout > Free
+// This ensures paid subscription tiers outrank referral tiers (e.g. Supporter > Recruiter).
+export const getHighestTierColor = (
+  subscriptionDisplayTier: SubscriptionTier | string,
+  referralTier: ReferralTier | string | null | undefined
+): { color: string; hasGlow: boolean } => {
+  // Priority map: lower number = higher priority
+  const priorities: { priority: number; color: string }[] = [];
+
+  // Subscription tier priority
+  if (subscriptionDisplayTier === 'admin') priorities.push({ priority: 0, color: SUBSCRIPTION_COLORS.admin });
+  else if (subscriptionDisplayTier === 'supporter') priorities.push({ priority: 1, color: SUBSCRIPTION_COLORS.supporter });
+
+  // Referral tier priority
+  if (referralTier === 'ambassador') priorities.push({ priority: 2, color: REFERRAL_TIER_COLORS.ambassador });
+  else if (referralTier === 'consul') priorities.push({ priority: 3, color: REFERRAL_TIER_COLORS.consul });
+  else if (referralTier === 'recruiter') priorities.push({ priority: 4, color: REFERRAL_TIER_COLORS.recruiter });
+  else if (referralTier === 'scout') priorities.push({ priority: 5, color: REFERRAL_TIER_COLORS.scout });
+
+  if (priorities.length === 0) return { color: '#ffffff', hasGlow: false };
+
+  priorities.sort((a, b) => a.priority - b.priority);
+  return { color: priorities[0]!.color, hasGlow: true };
+};

@@ -14,7 +14,7 @@ import ReferralBadge from '../components/ReferralBadge';
 import ProfileCompletionProgress from '../components/ProfileCompletionProgress';
 import TransferReadinessScore from '../components/TransferReadinessScore';
 import KingdomLeaderboardPosition from '../components/KingdomLeaderboardPosition';
-import { ReferralTier, REFERRAL_TIER_COLORS } from '../utils/constants';
+import { ReferralTier, getHighestTierColor, SUBSCRIPTION_COLORS } from '../utils/constants';
 import { useAuth, getCacheBustedAvatarUrl, UserProfile, getDisplayName } from '../contexts/AuthContext';
 import { usePremium } from '../contexts/PremiumContext';
 import { useToast } from '../components/Toast';
@@ -825,15 +825,27 @@ const Profile: React.FC = () => {
                   avatarUrl={viewedProfile?.linked_avatar_url ?? undefined}
                   username={viewedProfile?.linked_username ?? undefined}
                   size={isMobile ? 96 : 80}
-                  themeColor={viewedProfile?.referral_tier 
-                    ? REFERRAL_TIER_COLORS[viewedProfile.referral_tier as ReferralTier] 
-                    : getTierBorderColor(viewedUserTier)}
+                  themeColor={getHighestTierColor(viewedUserTier, viewedProfile?.referral_tier).color}
                   badgeStyle={viewedProfile?.badge_style ?? undefined}
                 />
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'center' }}>
                   <div style={{ fontSize: isMobile ? '1.5rem' : '1.75rem', fontWeight: 'bold', color: '#fff' }}>
                     {viewedProfile?.linked_username || getDisplayName(viewedProfile)}
                   </div>
+                  {viewedUserTier === 'supporter' && (
+                    <span style={{
+                      fontSize: '0.7rem',
+                      padding: '0.2rem 0.5rem',
+                      backgroundColor: `${SUBSCRIPTION_COLORS.supporter}15`,
+                      border: `1px solid ${SUBSCRIPTION_COLORS.supporter}40`,
+                      borderRadius: '4px',
+                      color: SUBSCRIPTION_COLORS.supporter,
+                      fontWeight: 600,
+                      whiteSpace: 'nowrap',
+                    }}>
+                      💖 SUPPORTER
+                    </span>
+                  )}
                   {viewedProfile?.referral_tier && (
                     <ReferralBadge tier={viewedProfile.referral_tier as ReferralTier} size="md" />
                   )}

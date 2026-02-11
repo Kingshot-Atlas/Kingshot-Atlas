@@ -183,6 +183,18 @@ const arrowBtnStyle = (active: boolean): React.CSSProperties => ({
   padding: 0,
 });
 
+const BUFF_DURATION_MS = 2 * 60 * 60 * 1000; // 2 hours
+
+const formatCountdown = (ms: number): string => {
+  if (ms <= 0) return '0:00';
+  const totalSec = Math.ceil(ms / 1000);
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  if (h > 0) return `${h}h ${m.toString().padStart(2, '0')}m`;
+  return `${m}:${s.toString().padStart(2, '0')}`;
+};
+
 const menuItemStyle: React.CSSProperties = {
   display: 'block', width: '100%', padding: '0.5rem 0.75rem',
   backgroundColor: 'transparent', border: 'none', color: '#d1d5db',
@@ -429,7 +441,8 @@ const RallyQueueSlot: React.FC<{
   onToggleBuff: () => void;
   color: string;
   isMobile: boolean;
-}> = ({ slot, index, total, onRemove, onMoveUp, onMoveDown, onToggleBuff, color, isMobile }) => {
+  buffTimeRemaining?: number | null;
+}> = ({ slot, index, total, onRemove, onMoveUp, onMoveDown, onToggleBuff, color, isMobile, buffTimeRemaining }) => {
   const teamColor = slot.team === 'ally' ? ALLY_COLOR : ENEMY_COLOR;
   return (
     <div
@@ -467,16 +480,28 @@ const RallyQueueSlot: React.FC<{
           {slot.marchTime}s
         </span>
       </div>
-      <button onClick={onToggleBuff} style={{
-        padding: '0.15rem 0.35rem',
-        backgroundColor: slot.useBuffed ? '#22c55e20' : 'transparent',
-        border: `1px solid ${slot.useBuffed ? '#22c55e50' : '#2a2a2a'}`,
-        borderRadius: '4px', cursor: 'pointer',
-        color: slot.useBuffed ? '#22c55e' : '#6b7280',
-        fontSize: '0.55rem', fontWeight: '600', flexShrink: 0,
-      }}>
-        {slot.useBuffed ? '⚡' : '🏃'}
-      </button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', flexShrink: 0 }}>
+        <button onClick={onToggleBuff} style={{
+          padding: '0.15rem 0.35rem',
+          backgroundColor: slot.useBuffed ? '#22c55e20' : 'transparent',
+          border: `1px solid ${slot.useBuffed ? '#22c55e50' : '#2a2a2a'}`,
+          borderRadius: '4px', cursor: 'pointer',
+          color: slot.useBuffed ? '#22c55e' : '#6b7280',
+          fontSize: '0.55rem', fontWeight: '600',
+        }}>
+          {slot.useBuffed ? '⚡' : '🏃'}
+        </button>
+        {buffTimeRemaining != null && buffTimeRemaining > 0 && (
+          <span style={{
+            color: '#f59e0b', fontSize: '0.5rem', fontWeight: '600',
+            padding: '0.1rem 0.25rem', backgroundColor: '#f59e0b15',
+            border: '1px solid #f59e0b30', borderRadius: '3px',
+            whiteSpace: 'nowrap',
+          }}>
+            ⏱ {formatCountdown(buffTimeRemaining)}
+          </span>
+        )}
+      </div>
       <div style={{ display: 'flex', gap: '1px', flexShrink: 0 }}>
         <button onClick={onMoveUp} disabled={index === 0} style={arrowBtnStyle(index > 0)}>▲</button>
         <button onClick={onMoveDown} disabled={index === total - 1} style={arrowBtnStyle(index < total - 1)}>▼</button>
@@ -843,9 +868,55 @@ const RallyCoordinator: React.FC = () => {
   const [presetName, setPresetName] = useState('');
   const [showPresetSave, setShowPresetSave] = useState(false);
 
+  // State: Enemy buff timers (playerId -> expiry timestamp in ms)
+  const [buffTimers, setBuffTimers] = useState<Record<string, number>>({});
+  const [buffConfirmPopup, setBuffConfirmPopup] = useState<{ queueType: 'rally' | 'counter'; index: number } | null>(null);
+  const [tickNow, setTickNow] = useState(Date.now());
+
   // Persist
   useEffect(() => { saveToStorage(STORAGE_KEY_PLAYERS, players); }, [players]);
   useEffect(() => { saveToStorage(STORAGE_KEY_PRESETS, presets); }, [presets]);
+
+  // Tick every second when buff timers are active
+  useEffect(() => {
+    const hasTimers = Object.keys(buffTimers).length > 0;
+    if (!hasTimers) return;
+    const id = window.setInterval(() => setTickNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [Object.keys(buffTimers).length]);
+
+  // Auto-expire buff timers: toggle off buff when timer runs out
+  const buffTimersRef = useRef(buffTimers);
+  buffTimersRef.current = buffTimers;
+  const playersRef = useRef(players);
+  playersRef.current = players;
+  const selectedBuildingRef = useRef(selectedBuilding);
+  selectedBuildingRef.current = selectedBuilding;
+
+  useEffect(() => {
+    const now = Date.now();
+    const expiredIds = Object.entries(buffTimersRef.current)
+      .filter(([, expiry]) => now >= expiry)
+      .map(([id]) => id);
+    if (expiredIds.length === 0) return;
+
+    // Auto-toggle off expired buffs in counter queue
+    setCounterQueue(prev => prev.map(slot => {
+      if (!expiredIds.includes(slot.playerId) || !slot.useBuffed) return slot;
+      const player = playersRef.current.find(p => p.id === slot.playerId);
+      if (!player) return slot;
+      const mt = player.marchTimes[selectedBuildingRef.current].regular;
+      if (mt <= 0) return slot;
+      return { ...slot, useBuffed: false, marchTime: mt };
+    }));
+
+    // Remove expired timers
+    setBuffTimers(prev => {
+      const next = { ...prev };
+      expiredIds.forEach(id => delete next[id]);
+      return next;
+    });
+  }, [tickNow]);
 
   // Derived: allies and enemies
   const allies = useMemo(() => players.filter(p => p.team === 'ally'), [players]);
@@ -933,19 +1004,50 @@ const RallyCoordinator: React.FC = () => {
     });
   }, []);
 
-  // Toggle buff for a queue slot
-  const toggleBuff = useCallback((queueType: 'rally' | 'counter', index: number) => {
+  // Toggle buff for a queue slot (with enemy buff timer logic)
+  const toggleBuff = useCallback((queueType: 'rally' | 'counter', index: number, forceOff?: boolean) => {
+    const queue = queueType === 'rally' ? rallyQueue : counterQueue;
+    const slot = queue[index];
+    if (!slot) return;
+
+    // Enemy in counter queue: handle buff timer
+    if (queueType === 'counter' && slot.team === 'enemy') {
+      if (slot.useBuffed && !forceOff) {
+        // Trying to toggle OFF with active timer → show confirmation
+        if (buffTimers[slot.playerId]) {
+          setBuffConfirmPopup({ queueType, index });
+          return;
+        }
+      }
+    }
+
     const setter = queueType === 'rally' ? setRallyQueue : setCounterQueue;
-    setter(prev => prev.map((slot, i) => {
-      if (i !== index) return slot;
-      const player = players.find(p => p.id === slot.playerId);
-      if (!player) return slot;
-      const newBuffed = !slot.useBuffed;
+    setter(prev => prev.map((s, i) => {
+      if (i !== index) return s;
+      const player = players.find(p => p.id === s.playerId);
+      if (!player) return s;
+      const newBuffed = !s.useBuffed;
       const mt = getMarchTime(player, newBuffed);
-      if (mt <= 0) return slot;
-      return { ...slot, useBuffed: newBuffed, marchTime: mt };
+      if (mt <= 0) return s;
+      return { ...s, useBuffed: newBuffed, marchTime: mt };
     }));
-  }, [players, getMarchTime]);
+
+    // Start/clear buff timer for enemies in counter queue
+    if (queueType === 'counter' && slot.team === 'enemy') {
+      const newBuffed = !slot.useBuffed;
+      if (newBuffed) {
+        // Starting buff → set 2-hour timer
+        setBuffTimers(prev => ({ ...prev, [slot.playerId]: Date.now() + BUFF_DURATION_MS }));
+      } else {
+        // Turning off buff → clear timer
+        setBuffTimers(prev => {
+          const next = { ...prev };
+          delete next[slot.playerId];
+          return next;
+        });
+      }
+    }
+  }, [players, getMarchTime, rallyQueue, counterQueue, buffTimers]);
 
   // Drop handler for rally queue
   const handleDrop = useCallback((e: React.DragEvent) => {
@@ -1128,6 +1230,11 @@ const RallyCoordinator: React.FC = () => {
               onToggleBuff={() => onToggle(i)}
               color={colors[i % colors.length] ?? accent}
               isMobile={isMobile}
+              buffTimeRemaining={
+                queueType === 'counter' && buffTimers[slot.playerId]
+                  ? Math.max(0, buffTimers[slot.playerId]! - tickNow)
+                  : null
+              }
             />
           ))}
         </div>
@@ -1558,6 +1665,61 @@ const RallyCoordinator: React.FC = () => {
         editingPlayer={editingPlayer}
         defaultTeam={defaultTeam}
       />
+
+      {/* Buff timer confirmation popup */}
+      {buffConfirmPopup && (
+        <div style={{
+          position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.7)',
+          zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: '1rem',
+        }}
+          onClick={() => setBuffConfirmPopup(null)}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              backgroundColor: '#111', border: '1px solid #2a2a2a',
+              borderRadius: '12px', padding: '1.25rem', maxWidth: '300px',
+              textAlign: 'center', width: '100%',
+            }}
+          >
+            <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>⚠️</div>
+            <p style={{ color: '#fff', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
+              Turn off buff?
+            </p>
+            <p style={{ color: '#6b7280', fontSize: '0.7rem', marginBottom: '1rem' }}>
+              The 2-hour buff timer will be reset.
+            </p>
+            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+              <button
+                onClick={() => setBuffConfirmPopup(null)}
+                style={{
+                  padding: '0.4rem 1rem', backgroundColor: 'transparent',
+                  border: '1px solid #2a2a2a', borderRadius: '8px',
+                  color: '#9ca3af', fontSize: '0.75rem', fontWeight: '600', cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (buffConfirmPopup) {
+                    toggleBuff(buffConfirmPopup.queueType, buffConfirmPopup.index, true);
+                  }
+                  setBuffConfirmPopup(null);
+                }}
+                style={{
+                  padding: '0.4rem 1rem', backgroundColor: '#ef444420',
+                  border: '1px solid #ef444450', borderRadius: '8px',
+                  color: '#ef4444', fontSize: '0.75rem', fontWeight: '600', cursor: 'pointer',
+                }}
+              >
+                Turn Off
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

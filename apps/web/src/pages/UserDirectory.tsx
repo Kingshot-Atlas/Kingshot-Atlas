@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth, UserProfile } from '../contexts/AuthContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { colors, neonGlow as neonGlowUtil, subscriptionColors, FONT_DISPLAY } from '../utils/styles';
-import { getDisplayTier, getTierBorderColor, SubscriptionTier, ReferralTier, REFERRAL_TIER_COLORS } from '../utils/constants';
+import { getDisplayTier, getHighestTierColor, SubscriptionTier, ReferralTier, REFERRAL_TIER_COLORS } from '../utils/constants';
 import ReferralBadge from '../components/ReferralBadge';
 import { logger } from '../utils/logger';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
@@ -648,12 +648,9 @@ const UserDirectory: React.FC = () => {
           }}>
             {filteredUsers.slice(0, visibleCount).map(user => {
               const displayTier = getDisplayTier(user.subscription_tier, user.linked_username || user.username);
-              const subTierColor = getTierBorderColor(displayTier);
-              // Referral tier border takes priority for recruiter+ (colored borders)
+              // Use unified priority: Admin > Supporter > Ambassador > Consul > Recruiter > Scout > Free
               const refTier = user.referral_tier as ReferralTier | null;
-              const hasRefBorder = refTier && ['recruiter', 'consul', 'ambassador'].includes(refTier);
-              const tierColor = hasRefBorder ? REFERRAL_TIER_COLORS[refTier!] : subTierColor;
-              const hasGlow = displayTier !== 'free' || hasRefBorder;
+              const { color: tierColor, hasGlow } = getHighestTierColor(displayTier, refTier);
               return (
               <Link
                 key={user.id}
