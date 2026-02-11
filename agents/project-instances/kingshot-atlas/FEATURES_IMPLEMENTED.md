@@ -498,6 +498,7 @@
 | Transfer Hub — CTA Animation | ✅ Live | Unauthenticated CTA banner on shared listing landing uses `fadeSlideUp` CSS keyframe animation (0.5s ease-out). (2026-02-10) |
 | Transfer Hub — Premium Tier Visual Polish | ✅ Live | Gold/Silver/Bronze inner gradient overlay (subtle tier-tinted highlight at card top), enhanced hover glow (Gold 3-layer 80px, Silver 3-layer 72px), tier badge micro-animations (Gold 3s, Silver 4s, Bronze 5s glow pulse), enhanced tooltip with cumulative tier comparison. STYLE_GUIDE.md updated with Kingdom Fund Tier Borders SOURCE OF TRUTH. (2026-02-10) |
 | Transfer Hub — Why Fund? Banner | ✅ Live | Standard tier cards show subtle upgrade nudge above footer: "✨ Funded listings get shimmer borders, glow effects & more visibility". Non-intrusive, informational. Gold/silver highlighted keywords. (2026-02-10) |
+| i18n — German (de) Translation | ✅ Live | Full German translation (1584 lines). Proper German gaming terminology. Registered in i18n config, language switcher (🇩🇪 Deutsch), and all locale files updated with `"de": "Deutsch"`. Supported languages: en, es, fr, zh, de. (2026-02-12) |
 | Component Refactoring | 🚧 Planned | KingdomCard, ProfileFeatures too large |
 | Multi-Kingdom Share/Export | 🚧 Planned | ShareButton still uses 2-kingdom format |
 
