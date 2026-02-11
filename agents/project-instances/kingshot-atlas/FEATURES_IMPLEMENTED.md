@@ -501,6 +501,7 @@
 | Transfer Hub — Why Fund? Banner | ✅ Live | Standard tier cards show subtle upgrade nudge above footer: "✨ Funded listings get shimmer borders, glow effects & more visibility". Non-intrusive, informational. Gold/silver highlighted keywords. (2026-02-10) |
 | i18n — German (de) Translation | ✅ Live | Full German translation (1584 lines). Proper German gaming terminology. Registered in i18n config, language switcher (🇩🇪 Deutsch), and all locale files updated with `"de": "Deutsch"`. Supported languages: en, es, fr, zh, de. (2026-02-12) |
 | i18n — Korean (ko) Translation | ✅ Live | Full Korean translation (1606 lines, 1442 keys). Natural Korean phrasing with proper gaming terminology. Registered in i18n config, language switcher (🇰🇷 한국어). i18n-diff script and /i18n-translate workflow updated. Supported languages: en, es, fr, zh, de, ko. (2026-02-11) |
+| i18n — Japanese (ja) Translation | ✅ Live | Full Japanese translation (1620 lines, 1453 keys). Natural Japanese phrasing with game terms kept in English (KvK, Prep, Battle). Registered in i18n config, language switcher (🇯🇵 日本語). i18n-diff script and /i18n-translate workflow updated. Supported languages: en, es, fr, zh, de, ko, ja. (2026-02-12) |
 | Component Refactoring | 🚧 Planned | KingdomCard, ProfileFeatures too large |
 | Multi-Kingdom Share/Export | 🚧 Planned | ShareButton still uses 2-kingdom format |
 
