@@ -4,7 +4,9 @@ import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
+import { useAuth } from '../contexts/AuthContext';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
+import { ADMIN_USERNAMES } from '../utils/constants';
 
 interface ToolCardProps {
   title: string;
@@ -14,6 +16,7 @@ interface ToolCardProps {
   href?: string;
   comingSoon?: boolean;
   accentColor: string;
+  usageStat?: string;
 }
 
 const ToolCard: React.FC<ToolCardProps> = ({ 
@@ -23,7 +26,8 @@ const ToolCard: React.FC<ToolCardProps> = ({
   icon, 
   href, 
   comingSoon,
-  accentColor 
+  accentColor,
+  usageStat 
 }) => {
   const isMobile = useIsMobile();
   
@@ -70,6 +74,22 @@ const ToolCard: React.FC<ToolCardProps> = ({
           letterSpacing: '0.05em'
         }}>
           Coming Soon
+        </div>
+      )}
+      {usageStat && !comingSoon && (
+        <div style={{
+          position: 'absolute',
+          top: '12px',
+          right: '12px',
+          padding: '0.2rem 0.5rem',
+          backgroundColor: accentColor + '12',
+          borderRadius: '12px',
+          fontSize: '0.6rem',
+          fontWeight: '600',
+          color: accentColor,
+          opacity: 0.8
+        }}>
+          {usageStat}
         </div>
       )}
       
@@ -153,12 +173,15 @@ const Tools: React.FC = () => {
   useMetaTags(PAGE_META_TAGS.tools);
   useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.tools });
   const isMobile = useIsMobile();
+  const { profile } = useAuth();
+  const isAdmin = !!(profile?.username && ADMIN_USERNAMES.includes(profile.username.toLowerCase()));
 
   const tools: ToolCardProps[] = [
     {
       title: 'Atlas Discord Bot',
       description: 'Bring kingdom intelligence directly to your Discord server. Look up kingdoms, compare matchups, and check rankings — without leaving Discord.',
       tagline: 'Intel at your fingertips. No tab-switching.',
+      usageStat: '10+ Discord servers',
       icon: (
         <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
           <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
@@ -171,6 +194,7 @@ const Tools: React.FC = () => {
       title: 'Kingdom Comparison',
       description: 'Put any kingdoms in the ring. Head-to-head stats, win rates, and Atlas Scores. Let the data crown the champion.',
       tagline: 'Know your enemy. Choose your allies.',
+      usageStat: '5,000+ comparisons',
       icon: (
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M16 3h5v5M8 3H3v5M3 16v5h5M21 16v5h-5M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/>
@@ -190,7 +214,8 @@ const Tools: React.FC = () => {
           <path d="M2 12h2M20 12h2M12 2v2M12 20v2"/>
         </svg>
       ),
-      comingSoon: true,
+      comingSoon: !isAdmin,
+      href: isAdmin ? '/tools/rally-coordinator' : undefined,
       accentColor: '#ef4444'
     },
     {

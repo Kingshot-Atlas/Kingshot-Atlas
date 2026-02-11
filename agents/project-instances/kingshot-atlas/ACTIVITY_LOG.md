@@ -3,6 +3,12 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-11 00:14 | Product Engineer | COMPLETED
+Task: Tools page — Add KvK Rally Coordinator card, update Appointment Scheduler copy, reorder grid
+Files:
+- `apps/web/src/pages/Tools.tsx` — Added KvK Rally Coordinator coming soon card (red #ef4444 theme, clock/crosshair icon, "Synchronized destruction. No guesswork." tagline). Updated Appointment Scheduler description to reference King's Appointments buff slots during Prep Phase. Reordered grid: Discord Bot + Comparison, Rally Coordinator + Scheduler, Calculators + Gift Code Redeemer.
+Result: Deployed to production via git push to main (Cloudflare Pages auto-deploy).
+
 ## 2026-02-10 19:25 | Ops Lead | COMPLETED
 Task: CI/CD Green Path Hardening — Lighthouse CI fix, lint warning cleanup, bandit config, test coverage, pre-commit hook
 Files:

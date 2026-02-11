@@ -39,6 +39,7 @@ const KvKSeasons = lazy(() => import('./pages/KvKSeasons'));
 const TransferBoard = lazy(() => import('./pages/TransferBoard'));
 const AtlasBot = lazy(() => import('./pages/AtlasBot'));
 const Ambassadors = lazy(() => import('./pages/Ambassadors'));
+const RallyCoordinator = lazy(() => import('./pages/RallyCoordinator'));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -126,6 +127,7 @@ function AppContent() {
               <Route path="/transfer-board" element={<ErrorBoundary><TransferBoard /></ErrorBoundary>} /> {/* Legacy redirect */}
               <Route path="/atlas-bot" element={<ErrorBoundary><AtlasBot /></ErrorBoundary>} />
               <Route path="/ambassadors" element={<ErrorBoundary><Ambassadors /></ErrorBoundary>} />
+              <Route path="/tools/rally-coordinator" element={<ErrorBoundary><RallyCoordinator /></ErrorBoundary>} />
             </Routes>
           </Suspense>
         </PageTransition>
