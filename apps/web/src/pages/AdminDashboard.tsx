@@ -37,6 +37,7 @@ import {
   CorrectionsTab,
   KvKErrorsTab,
   TransferStatusTab,
+  BotTelemetryTab,
   SkeletonGrid,
   type Submission,
   type Claim,
@@ -54,7 +55,7 @@ const AdminDashboard: React.FC = () => {
   const { showToast } = useToast();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [activeTab, setActiveTab] = useState<'analytics' | 'saas-metrics' | 'engagement' | 'webhooks' | 'data-sources' | 'discord-bot' | 'discord-roles' | 'referrals' | 'submissions' | 'new-kingdoms' | 'claims' | 'corrections' | 'kvk-errors' | 'import' | 'plausible' | 'transfer-status' | 'transfer-apps' | 'transfer-hub' | 'feedback' | 'email'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'saas-metrics' | 'engagement' | 'webhooks' | 'data-sources' | 'discord-bot' | 'discord-roles' | 'referrals' | 'submissions' | 'new-kingdoms' | 'claims' | 'corrections' | 'kvk-errors' | 'import' | 'plausible' | 'transfer-status' | 'transfer-apps' | 'transfer-hub' | 'feedback' | 'email' | 'bot-telemetry'>('analytics');
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [claims, setClaims] = useState<Claim[]>([]);
   const [transferSubmissions, setTransferSubmissions] = useState<StatusSubmission[]>([]);
@@ -1825,6 +1826,7 @@ const AdminDashboard: React.FC = () => {
           { id: 'email', label: 'Email', count: unreadEmailCount },
           { id: 'feedback', label: 'Feedback', count: pendingCounts.feedback },
           { id: 'discord-bot', label: 'Discord Bot', count: 0 },
+          { id: 'bot-telemetry', label: 'Bot Telemetry', count: 0 },
           { id: 'discord-roles', label: 'Discord Roles', count: 0 },
           { id: 'referrals', label: 'Referrals', count: 0 },
           { id: 'webhooks', label: 'Webhooks', count: 0 },
@@ -2003,6 +2005,8 @@ const AdminDashboard: React.FC = () => {
         <TransferApplicationsTab />
       ) : activeTab === 'email' ? (
         <EmailTab />
+      ) : activeTab === 'bot-telemetry' ? (
+        <BotTelemetryTab />
       ) : activeTab === 'plausible' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           <div style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', border: '1px solid #2a2a2a' }}>

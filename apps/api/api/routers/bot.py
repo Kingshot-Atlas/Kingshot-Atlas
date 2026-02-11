@@ -1339,6 +1339,79 @@ async def increment_multirally_credits(
         return {"success": False, "error": str(e)}
 
 
+@router.get("/telemetry")
+async def get_bot_telemetry(
+    limit: int = 50,
+    severity: Optional[str] = None,
+    event_type: Optional[str] = None,
+    hours: int = 168,
+    _: bool = Depends(require_bot_admin),
+):
+    """
+    Get bot telemetry events from Supabase.
+    Returns recent lifecycle events with optional filtering.
+    
+    Query params:
+      - limit: max rows (default 50, max 200)
+      - severity: filter by severity (info, warn, error, critical)
+      - event_type: filter by event type
+      - hours: lookback window in hours (default 168 = 7 days)
+    """
+    sb = get_supabase_admin()
+    if not sb:
+        return {"events": [], "summary": {}, "error": "Supabase not configured"}
+
+    limit = min(limit, 200)
+    since = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat()
+
+    try:
+        query = sb.table("bot_telemetry").select("*").gte("created_at", since).order("created_at", desc=True).limit(limit)
+        if severity:
+            query = query.eq("severity", severity)
+        if event_type:
+            query = query.eq("event_type", event_type)
+        result = query.execute()
+        events = result.data or []
+
+        # Build summary from full 7-day window (unfiltered)
+        summary_query = sb.table("bot_telemetry").select("event_type,severity,created_at").gte("created_at", since).order("created_at", desc=True).limit(1000)
+        summary_result = summary_query.execute()
+        all_events = summary_result.data or []
+
+        now = datetime.now(timezone.utc)
+        day_ago = (now - timedelta(hours=24)).isoformat()
+
+        crashes_24h = sum(1 for e in all_events if e.get("severity") in ("error", "critical") and e.get("created_at", "") >= day_ago)
+        memory_warnings = sum(1 for e in all_events if e.get("event_type") == "memory_warning")
+        disconnects = sum(1 for e in all_events if e.get("event_type") == "disconnect")
+        restarts = sum(1 for e in all_events if e.get("event_type") == "startup")
+
+        # Uptime segments: each startup→shutdown/crash pair
+        startups = [e for e in reversed(all_events) if e.get("event_type") == "startup"]
+        shutdowns = [e for e in reversed(all_events) if e.get("event_type") in ("shutdown", "crash")]
+
+        # Severity breakdown
+        severity_counts = {}
+        for e in all_events:
+            s = e.get("severity", "info")
+            severity_counts[s] = severity_counts.get(s, 0) + 1
+
+        summary = {
+            "total_events": len(all_events),
+            "crashes_24h": crashes_24h,
+            "memory_warnings": memory_warnings,
+            "disconnects": disconnects,
+            "restarts": restarts,
+            "severity_counts": severity_counts,
+            "period_hours": hours,
+        }
+
+        return {"events": events, "summary": summary}
+    except Exception as e:
+        print(f"ERROR in /telemetry: {e}")
+        return {"events": [], "summary": {}, "error": str(e)}
+
+
 @router.get("/multirally-stats")
 async def get_multirally_stats(
     _: bool = Depends(require_bot_or_user)

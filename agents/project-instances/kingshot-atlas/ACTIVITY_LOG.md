@@ -3,6 +3,30 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-11 13:00 | Platform Engineer | COMPLETED
+Task: Bot Observability Dashboard + Auto-Cleanup & Discord Alerting
+Files: apps/api/api/routers/bot.py, apps/web/src/components/admin/BotTelemetryTab.tsx (NEW), apps/web/src/components/admin/index.ts, apps/web/src/pages/AdminDashboard.tsx, Supabase migrations (pg_cron cleanup, Discord alert trigger)
+Changes:
+1. Backend: Added `GET /api/v1/bot/telemetry` endpoint with filtering (severity, event_type, hours) and summary stats (crashes_24h, memory_warnings, disconnects, restarts, severity_counts)
+2. Frontend: Created `BotTelemetryTab` component — summary cards, severity breakdown bar, filterable event list with expandable metadata, color-coded by severity (info=gray, warn=yellow, error=red, critical=pulsing red), auto-refresh 60s
+3. Wired into Admin Dashboard under System > Bot Telemetry sub-tab
+4. Supabase: pg_cron job `bot-telemetry-cleanup` — weekly Sunday 03:00 UTC, deletes rows older than 30 days
+5. Supabase: `notify_critical_bot_event()` trigger function — on INSERT of error/critical events, sends Discord webhook via pg_net. Webhook URL stored in vault secret `bot_alerts_discord_webhook`
+Result: Full observability pipeline — telemetry data visible in Admin Dashboard, auto-cleanup prevents table bloat, critical events push to Discord instantly
+
+## 2026-02-11 12:20 | Platform Engineer | COMPLETED
+Task: Discord Bot persistent telemetry — diagnose 503 outage, add crash-resilience logging
+Files: apps/discord-bot/src/telemetry.js (NEW), apps/discord-bot/src/bot.js, Supabase migration (bot_telemetry table)
+Changes:
+1. Investigated 37-minute 503 outage on Atlas Discord Bot (Render service completely down)
+2. Root cause: Process death with no persistent logs — all diagnostic state lost on crash
+3. Created `bot_telemetry` table in Supabase for persistent lifecycle logging
+4. Created `telemetry.js` module — fire-and-forget writes to Supabase REST API (no SDK)
+5. Wired 12 lifecycle events: startup, ready, disconnect, reconnect, crash, shutdown, login_failed, login_retry, memory_warning, shard_error, session_invalidated, main_catch
+6. Added memory monitoring (warn at 200MB, critical at 400MB, check every 5min, cooldown 30min)
+7. All telemetry calls are non-blocking to avoid impacting bot performance
+Result: Next outage will have persistent diagnostic data in Supabase. Requires SUPABASE_URL + SUPABASE_SERVICE_KEY env vars on Render.
+
 ## 2026-02-11 09:10 | Platform Engineer + Ops Lead | COMPLETED
 Task: Email system hardening + production deployment of all Admin Dashboard changes
 Files: apps/email-worker/worker.js, apps/web/src/components/admin/EmailTab.tsx

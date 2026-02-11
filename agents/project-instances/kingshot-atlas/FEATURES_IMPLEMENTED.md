@@ -306,6 +306,10 @@
 | AtlasBot Page Copy Rewrite | ✅ Live | 2026-02-07 | Design | All 8 command descriptions rewritten with brand voice (competitive, analytical, direct). Feature cards and CTA updated. /help excluded from public listing |
 | Premium Commands Section | ✅ Live | 2026-02-09 | Product | /multirally moved to dedicated "PREMIUM COMMANDS" section with full-width card, detailed how-it-works, 3-step flow, 3 free daily credits callout, Supporter CTA. "Free. Always." → "Free Core" |
 | Multirally Credit Enforcement | ✅ Live | 2026-02-09 | Platform + Product | Persistent credit tracking via `multirally_usage` Supabase table. API: `/bot/multirally-credits/check`, `/increment`, `/multirally-stats`. Bot uses API-backed credits with in-memory fallback. BotDashboard: premium stats section (total/supporter/free uses, upsell impressions, conversion signal). Support page: "Unlimited Premium Bot Commands" perk added |
+| Persistent Telemetry | ✅ Live | 2026-02-11 | Platform | `telemetry.js` logs 12 lifecycle events to Supabase `bot_telemetry` table via REST API. Memory monitoring (warn 200MB, critical 400MB). Fire-and-forget writes. Env vars set on Render. |
+| Bot Observability Dashboard | ✅ Live | 2026-02-11 | Platform | `BotTelemetryTab` in Admin Dashboard (System > Bot Telemetry). Summary cards, severity bar, filterable event list, expandable metadata. API: `GET /api/v1/bot/telemetry`. Auto-refresh 60s. |
+| Bot Telemetry Auto-Cleanup | ✅ Live | 2026-02-11 | Platform | pg_cron `bot-telemetry-cleanup` runs weekly Sunday 03:00 UTC, deletes rows >30 days old. |
+| Bot Critical Event Alerts | ✅ Ready | 2026-02-11 | Platform | `notify_critical_bot_event()` trigger fires on error/critical INSERT to `bot_telemetry`. Posts Discord embed via pg_net. Webhook URL from vault secret `bot_alerts_discord_webhook`. |
 
 ---
 

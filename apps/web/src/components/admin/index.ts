@@ -14,3 +14,4 @@ export { FeedbackTab } from './FeedbackTab';
 export { CorrectionsTab } from './CorrectionsTab';
 export { KvKErrorsTab } from './KvKErrorsTab';
 export { TransferStatusTab } from './TransferStatusTab';
+export { BotTelemetryTab } from './BotTelemetryTab';

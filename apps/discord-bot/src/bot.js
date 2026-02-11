@@ -34,6 +34,7 @@ const commands = require('./commands');
 const handlers = require('./commands/handlers');
 const logger = require('./utils/logger');
 const scheduler = require('./scheduler');
+const telemetry = require('./telemetry');
 
 // ============================================================================
 // DISCORD REST API PROXY — bypasses Cloudflare IP bans on Render's shared IP
@@ -304,6 +305,9 @@ const tokenSource = process.env.DISCORD_TOKEN ? 'DISCORD_TOKEN' :
                     process.env.DISCORD_BOT_TOKEN ? 'DISCORD_BOT_TOKEN' : 'NONE';
 console.log(`🔑 Token source: ${tokenSource}`);
 
+// Log startup to persistent telemetry
+telemetry.logStartup({ token_source: tokenSource, api_url: config.apiUrl });
+
 // Validate configuration
 if (!config.token || !config.clientId) {
   console.error('❌ Missing Discord credentials');
@@ -369,6 +373,12 @@ client.on('ready', async () => {
     console.log('   ✅ Bot ID matches CLIENT_ID');
   }
   console.log(`\n"${config.bot.tagline}"\n`);
+  
+  // Log ready to persistent telemetry
+  telemetry.logReady(client);
+  
+  // Start memory monitoring
+  telemetry.startMemoryMonitoring(client);
   
   // Start self-ping keepalive (guard against duplicate timers)
   if (selfPingTimer) clearInterval(selfPingTimer);
@@ -502,6 +512,7 @@ client.on('resumed', () => {
 client.on('disconnect', () => {
   console.warn('⚠️ Discord disconnected');
   botReady = false;
+  telemetry.logDisconnect(null, 'disconnect_event', client);
 });
 
 // Event: Error
@@ -524,6 +535,7 @@ client.on('shardResume', (id, replayedEvents) => {
   console.log(`✅ Shard ${id} resumed (${replayedEvents} events replayed)`);
   botReady = true;
   lastHeartbeat = Date.now();
+  telemetry.logReconnect(id, replayedEvents, client);
 });
 
 // Event: Shard error - critical for diagnosing connection issues
@@ -531,6 +543,7 @@ client.on('shardError', (error, shardId) => {
   console.error(`❌ Shard ${shardId} error:`, error.message);
   console.error('   Code:', error.code);
   lastError = `Shard ${shardId}: ${error.message} (code: ${error.code})`;
+  telemetry.logShardError(shardId, error, client);
 });
 
 // Event: Shard disconnect - capture close code for remote diagnostics
@@ -550,6 +563,7 @@ client.on('shardDisconnect', (event, shardId) => {
   lastDisconnectCode = event.code;
   lastDisconnectReason = codeName;
   botReady = false;
+  telemetry.logDisconnect(event.code, codeName, client);
   
   // Provide actionable guidance based on close code
   if (event.code === 4004) {
@@ -571,6 +585,7 @@ client.on('invalidated', () => {
   console.error('❌ Session invalidated - token may be invalid or revoked');
   botReady = false;
   lastError = 'Session invalidated - token may be invalid or revoked';
+  telemetry.logSessionInvalidated(client);
   // Attempt re-login after delay (token may have been rotated on Render)
   scheduleReconnect('session_invalidated');
 });
@@ -593,6 +608,7 @@ function scheduleReconnect(reason) {
   reconnectAttempts++;
   const delay = Math.min(BASE_RECONNECT_DELAY * Math.pow(2, reconnectAttempts - 1), 120000); // Cap at 2 minutes
   console.log(`🔄 Reconnect attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS} in ${delay / 1000}s (reason: ${reason})`);
+  telemetry.logLoginRetry(reconnectAttempts, MAX_RECONNECT_ATTEMPTS, delay);
   
   if (reconnectTimer) clearTimeout(reconnectTimer);
   reconnectTimer = setTimeout(async () => {
@@ -1239,6 +1255,7 @@ async function main() {
     loginLastResult = `failed: ${loginError.code || loginError.message}`;
     lastError = `Login: ${loginError.message} (code: ${loginError.code || 'none'})`;
     console.error('❌ Discord login failed:', loginError.message);
+    telemetry.logLoginFailed(loginError);
     
     if (loginError.code === 'TOKEN_INVALID' || loginError.message.includes('invalid token')) {
       console.error('   🔧 TOKEN INVALID: Reset in Discord Developer Portal > Bot > Reset Token');
@@ -1278,6 +1295,7 @@ function scheduleLoginRetry() {
   const delay = Math.min(loginRetryCount * 5 * 60_000, 30 * 60_000);
   const delayMin = Math.round(delay / 60_000);
   console.log(`🔄 Login retry ${loginRetryCount}/${MAX_LOGIN_RETRIES} scheduled in ${delayMin} minutes`);
+  telemetry.logLoginRetry(loginRetryCount, MAX_LOGIN_RETRIES, delay);
   lastError = `Waiting ${delayMin}min before login retry ${loginRetryCount}/${MAX_LOGIN_RETRIES}`;
   
   if (loginRetryTimer) clearTimeout(loginRetryTimer);
@@ -1320,6 +1338,10 @@ function scheduleLoginRetry() {
 function gracefulShutdown(signal) {
   console.log(`\n👋 Shutting down Atlas (${signal})...`);
   botReady = false;
+  telemetry.stopMemoryMonitoring();
+  
+  // Log shutdown to persistent telemetry (best-effort, may not complete)
+  telemetry.logShutdown(signal, client);
   
   if (selfPingTimer) {
     clearInterval(selfPingTimer);
@@ -1342,10 +1364,13 @@ process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 // Handle uncaught errors to prevent silent crashes
 process.on('uncaughtException', (error) => {
   console.error('❌ Uncaught Exception:', error);
+  telemetry.logCrash(error, 'uncaughtException');
 });
 
 process.on('unhandledRejection', (reason, promise) => {
   console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+  const err = reason instanceof Error ? reason : new Error(String(reason));
+  telemetry.logCrash(err, 'unhandledRejection');
 });
 
 // Start the bot (don't exit on failure - keep health server for diagnostics)
@@ -1353,6 +1378,7 @@ main().catch((error) => {
   console.error('❌ Failed to start bot:', error);
   lastError = `main() crash: ${error.message}`;
   loginLastResult = `crash: ${error.message}`;
+  telemetry.logCrash(error, 'main_catch');
   // Don't process.exit() - keep health server alive so we can diagnose remotely
   console.error('   Health server still running at /health for diagnostics');
 });

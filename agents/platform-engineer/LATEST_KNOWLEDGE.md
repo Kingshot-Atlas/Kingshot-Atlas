@@ -5,6 +5,41 @@
 
 ---
 
+## Bot Persistent Telemetry (2026-02-11)
+
+**Module:** `apps/discord-bot/src/telemetry.js`
+**Table:** `bot_telemetry` in Supabase (RLS enabled, service_role only)
+
+**Pattern:** Fire-and-forget writes to Supabase REST API (no SDK). All telemetry calls are non-blocking — if Supabase is unreachable, bot continues unaffected.
+
+**Event types logged:** startup, ready, disconnect, reconnect, crash, shutdown, login_failed, login_retry, memory_warning, shard_error, session_invalidated, health_check
+
+**Memory monitoring:** Checks every 5min, warns at 200MB heap, critical at 400MB. Cooldown prevents spam (30min between alerts).
+
+**Env vars required on Render (Atlas-Discord-bot service):**
+- `SUPABASE_URL` = `https://qdczmafwcvnwfvixxbwg.supabase.co`
+- `SUPABASE_SERVICE_KEY` = service_role key (same one used by email worker)
+
+**Querying telemetry:**
+```sql
+-- Recent events
+SELECT event_type, severity, message, memory_mb, created_at 
+FROM bot_telemetry ORDER BY created_at DESC LIMIT 20;
+
+-- Crashes only
+SELECT * FROM bot_telemetry WHERE severity IN ('error', 'critical') ORDER BY created_at DESC;
+```
+
+**Gotcha:** The `bot_telemetry` table has NO public RLS policies — only `service_role` can read/write. Admin dashboard queries must go through the backend API (which uses service_role).
+
+**Observability Dashboard:** `BotTelemetryTab` in Admin Dashboard (System > Bot Telemetry). Fetches from `GET /api/v1/bot/telemetry?limit=100&hours=168&severity=...&event_type=...`. Summary cards show crashes_24h, memory_warnings, disconnects, restarts. Auto-refreshes every 60s.
+
+**Auto-Cleanup:** pg_cron job `bot-telemetry-cleanup` runs weekly Sunday 03:00 UTC. Deletes rows older than 30 days. To check: `SELECT * FROM cron.job WHERE jobname = 'bot-telemetry-cleanup';`
+
+**Discord Alert Trigger:** `notify_critical_bot_event()` fires on INSERT of error/critical events. Uses `pg_net.http_post` to send Discord webhook embed. Webhook URL stored in vault: `INSERT INTO vault.secrets (name, secret) VALUES ('bot_alerts_discord_webhook', 'https://discord.com/api/webhooks/...');` — user needs to create a Discord webhook in their alerts channel and store the URL.
+
+---
+
 ## Referral System RLS & URL Encoding Gotchas (2026-02-11)
 
 **Critical:** The `referrals` table needs both SELECT and INSERT RLS policies. The original implementation only had SELECT, causing all referral inserts to be silently rejected.
