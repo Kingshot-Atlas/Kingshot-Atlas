@@ -77,7 +77,7 @@
 | Notification Preferences | ✅ Live | Product | `NotificationPreferences.tsx` toggle panel on Profile page. 3 categories: Score Changes, Submission Updates, System Announcements. Stored in `user_data.settings` JSONB. DB trigger respects preferences (2026-02-06) |
 | Public Profile Tier Coloring | ✅ Live | Product | Tier-colored usernames on public profiles (2026-01-31) |
 | Kingdom Players Section | ✅ Live | Product | `KingdomPlayers.tsx` - Atlas users from kingdom on profile page (2026-01-31) |
-| User Directory Enhancement | ✅ Live | Product | Shows only linked Kingshot accounts with tier coloring, Kingdom, TC Level (2026-01-31) |
+| User Directory Enhancement | ✅ Live | Product | Shows only linked Kingshot accounts with tier coloring, Kingdom, TC Level (2026-01-31). Enhanced: tier count badges on filter chips, "Member since" on cards, sort-by dropdown (role/joined/kingdom/TC), "My Kingdom" quick filter for logged-in users (2026-02-11) |
 | Navigation Reorganization | ✅ Live | Product | Community dropdown (Players, Discord, About), cleaner header (2026-01-31) |
 | User Achievements | ✅ Live | Product | `UserAchievements.tsx`, `AchievementBadges.tsx` |
 | User Directory | ✅ Live | Product | Browse and search Atlas users |
@@ -134,6 +134,7 @@
 | Score Simulator | ✅ Live | Product | `ScoreSimulator/` - what-if calculations |
 | Event Calendar | ✅ Live | Product | `EventCalendar.tsx` KvK/transfer schedule |
 | KvK Countdown | ✅ Live | Product | `KvKCountdown.tsx` next event timer |
+| Rally Coordinator | ✅ Live | Product | `RallyCoordinator.tsx` — Admin-only rally planner. Ally+enemy player database, march time management (regular/buffed per building), rally queue + counter-rally queue with drag-and-drop, simultaneous/chain hits modes, Gantt timelines, call order display. Enemy buff timer: 2hr countdown on toggle, localStorage persistence, auto-expire with sound+vibration+toast, confirmation popup on manual toggle-off, pulsing amber indicator on PlayerPill. (2026-02-11) |
 | Keyboard Shortcuts | ✅ Live | Product | `useKeyboardShortcuts.ts`, help modal |
 | Keyboard Navigation | ✅ Live | Product | `useKeyboardNavigation.ts` for lists |
 

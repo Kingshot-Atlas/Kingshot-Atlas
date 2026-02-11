@@ -3,6 +3,45 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-11 04:30 | Product Engineer | COMPLETED
+Task: Rally Coordinator Layout Restructure + Universal Buff Timers
+Layout:
+- Restructured 3x3 flat grid → 3 column-based layout (Column 1: Leaders + Target Building + Tips, Column 2: Rally Queue + Call Order + Rally Config + Rally Timeline, Column 3: Counter Queue + Counter Call Order + Counter Config + Counter Timeline)
+- Separated "Rally Configuration" (hit timing) from "Target Building" (building selector + presets)
+- Rally Config + Rally Timeline now visually "touch" (2px gap, shared rounded corners)
+- Counter Config + Counter Timeline same treatment
+Renames:
+- "Target & Timing" → "🏰 TARGET BUILDING"
+- "Call Order" → "📢 RALLY CALL ORDER"
+- "Counter-Rally Config" → "🛡️ COUNTER CONFIGURATION"
+- "Counter-Rally Queue" → "🛡️ COUNTER QUEUE — {building name}"
+- "📋 INFO" → "🔑 TIPS" (replaced static info with 5 contextual tips)
+Buff Timers:
+- Extended 2-hour buff timer to ALL players (allies + enemies) in both queues
+- Ally buff expiry toast notifications (🏃 prefix)
+- Different sound: enemy = descending sine (880→660Hz, urgent), ally = ascending triangle (523→784Hz, friendly chime)
+- Ally PlayerPills now show amber glow when buff timer active
+Files: RallyCoordinator.tsx
+Result: Build passes. Ready for commit + deploy.
+
+## 2026-02-11 03:45 | Product Engineer | COMPLETED
+Task: Rally Coordinator Buff Timer Polish + Player Directory Engagement Enhancements
+Rally Coordinator:
+- Buff timers now persist to localStorage (survive page refresh)
+- Sound notification (dual-tone beep via Web Audio API) + vibration on buff expiry
+- Toast notification on auto-expire ("Enemy X's buff expired — switched to regular")
+- Pulsing amber glow indicator on enemy PlayerPill when buff timer is active
+- CSS @keyframes animation for subtle pulse effect
+Player Directory:
+- Player count badges on filter chips (e.g. "🟢 Recruiter (4)")
+- "Member since" timestamp on all player cards (formatted "Jan 2026")
+- Sort-by dropdown: Role Priority, Newest First, Kingdom #, TC Level
+- "🏠 My Kingdom" quick filter button for logged-in users with linked kingdoms
+- Dynamic sorting via useMemo (moved from fetch-time to render-time)
+- Tier counts computed via useMemo for filter chip badges
+Files: RallyCoordinator.tsx, UserDirectory.tsx
+Result: Build passes. All features working. Ready for commit.
+
 ## 2026-02-11 02:30 | Platform Engineer | COMPLETED
 Task: Referral Source Expansion — multi-channel attribution + admin intelligence dashboard
 DB Changes:

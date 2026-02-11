@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { useToast } from '../components/Toast';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { ADMIN_USERNAMES } from '../utils/constants';
 
@@ -146,6 +147,61 @@ function calculateRallyTimings(
 
 const STORAGE_KEY_PLAYERS = 'atlas_rally_players_v2';
 const STORAGE_KEY_PRESETS = 'atlas_rally_presets';
+const STORAGE_KEY_BUFF_TIMERS = 'atlas_rally_buff_timers';
+
+const playEnemyBuffExpireSound = () => {
+  try {
+    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = 880;
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.5);
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+    osc2.frequency.value = 660;
+    osc2.type = 'sine';
+    gain2.gain.setValueAtTime(0.3, ctx.currentTime + 0.3);
+    gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.8);
+    osc2.start(ctx.currentTime + 0.3);
+    osc2.stop(ctx.currentTime + 0.8);
+  } catch { /* audio not supported */ }
+  try { navigator.vibrate?.([200, 100, 200]); } catch { /* vibrate not supported */ }
+};
+
+const playAllyBuffExpireSound = () => {
+  try {
+    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = 523;
+    osc.type = 'triangle';
+    gain.gain.setValueAtTime(0.25, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.4);
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+    osc2.frequency.value = 784;
+    osc2.type = 'triangle';
+    gain2.gain.setValueAtTime(0.25, ctx.currentTime + 0.25);
+    gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.7);
+    osc2.start(ctx.currentTime + 0.25);
+    osc2.stop(ctx.currentTime + 0.7);
+  } catch { /* audio not supported */ }
+  try { navigator.vibrate?.([100]); } catch { /* vibrate not supported */ }
+};
 
 function loadFromStorage<T>(key: string, fallback: T): T {
   try {
@@ -292,7 +348,8 @@ const PlayerPill: React.FC<{
   onEdit: () => void;
   onRemoveFromDb: () => void;
   isMobile: boolean;
-}> = ({ player, marchTime, isInQueue, onAdd, onEdit, onRemoveFromDb, isMobile }) => {
+  hasActiveBuffTimer?: boolean;
+}> = ({ player, marchTime, isInQueue, onAdd, onEdit, onRemoveFromDb, isMobile, hasActiveBuffTimer }) => {
   const [showMenu, setShowMenu] = useState(false);
   const teamColor = player.team === 'ally' ? ALLY_COLOR : ENEMY_COLOR;
 
@@ -314,7 +371,7 @@ const PlayerPill: React.FC<{
           gap: '0.35rem',
           padding: isMobile ? '0.3rem 0.55rem' : '0.35rem 0.65rem',
           backgroundColor: isInQueue ? '#1a1a1a' : `${teamColor}12`,
-          border: `1px solid ${isInQueue ? '#2a2a2a' : `${teamColor}40`}`,
+          border: `1px solid ${hasActiveBuffTimer ? '#f59e0b80' : isInQueue ? '#2a2a2a' : `${teamColor}40`}`,
           borderRadius: '20px',
           cursor: isInQueue ? 'not-allowed' : 'grab',
           opacity: isInQueue ? 0.4 : 1,
@@ -323,6 +380,10 @@ const PlayerPill: React.FC<{
           color: isInQueue ? '#4b5563' : '#fff',
           userSelect: 'none',
           minHeight: '34px',
+          ...(hasActiveBuffTimer ? {
+            boxShadow: '0 0 8px #f59e0b30',
+            animation: 'buffTimerPulse 2s ease-in-out infinite',
+          } : {}),
         }}
       >
         <span style={{
@@ -869,13 +930,24 @@ const RallyCoordinator: React.FC = () => {
   const [showPresetSave, setShowPresetSave] = useState(false);
 
   // State: Enemy buff timers (playerId -> expiry timestamp in ms)
-  const [buffTimers, setBuffTimers] = useState<Record<string, number>>({});
+  const [buffTimers, setBuffTimers] = useState<Record<string, number>>(() => {
+    const stored = loadFromStorage<Record<string, number>>(STORAGE_KEY_BUFF_TIMERS, {});
+    // Prune any already-expired timers on load
+    const now = Date.now();
+    const valid: Record<string, number> = {};
+    for (const [id, expiry] of Object.entries(stored)) {
+      if (expiry > now) valid[id] = expiry;
+    }
+    return valid;
+  });
   const [buffConfirmPopup, setBuffConfirmPopup] = useState<{ queueType: 'rally' | 'counter'; index: number } | null>(null);
   const [tickNow, setTickNow] = useState(Date.now());
+  const { showToast } = useToast();
 
   // Persist
   useEffect(() => { saveToStorage(STORAGE_KEY_PLAYERS, players); }, [players]);
   useEffect(() => { saveToStorage(STORAGE_KEY_PRESETS, presets); }, [presets]);
+  useEffect(() => { saveToStorage(STORAGE_KEY_BUFF_TIMERS, buffTimers); }, [buffTimers]);
 
   // Tick every second when buff timers are active
   useEffect(() => {
@@ -900,15 +972,23 @@ const RallyCoordinator: React.FC = () => {
       .map(([id]) => id);
     if (expiredIds.length === 0) return;
 
-    // Auto-toggle off expired buffs in counter queue
-    setCounterQueue(prev => prev.map(slot => {
+    // Resolve player info for notifications
+    const expiredPlayers = expiredIds.map(id => {
+      const p = playersRef.current.find(pl => pl.id === id);
+      return { id, name: p?.name ?? 'Player', team: p?.team ?? ('ally' as const) };
+    });
+
+    // Auto-toggle off expired buffs in BOTH queues
+    const toggleOffExpired = (prev: RallySlot[]) => prev.map(slot => {
       if (!expiredIds.includes(slot.playerId) || !slot.useBuffed) return slot;
       const player = playersRef.current.find(p => p.id === slot.playerId);
       if (!player) return slot;
       const mt = player.marchTimes[selectedBuildingRef.current].regular;
       if (mt <= 0) return slot;
       return { ...slot, useBuffed: false, marchTime: mt };
-    }));
+    });
+    setRallyQueue(toggleOffExpired);
+    setCounterQueue(toggleOffExpired);
 
     // Remove expired timers
     setBuffTimers(prev => {
@@ -916,7 +996,21 @@ const RallyCoordinator: React.FC = () => {
       expiredIds.forEach(id => delete next[id]);
       return next;
     });
-  }, [tickNow]);
+
+    // Differentiated sound + toast by team
+    const hasEnemy = expiredPlayers.some(p => p.team === 'enemy');
+    const hasAlly = expiredPlayers.some(p => p.team === 'ally');
+    if (hasEnemy) playEnemyBuffExpireSound();
+    if (hasAlly) playAllyBuffExpireSound();
+    expiredPlayers.forEach(({ name, team }) => {
+      showToast(
+        team === 'enemy'
+          ? `⚔️ ${name}'s buff expired — switched to regular march time`
+          : `🏃 ${name}'s buff expired — switched to regular march time`,
+        'info'
+      );
+    });
+  }, [tickNow, showToast]);
 
   // Derived: allies and enemies
   const allies = useMemo(() => players.filter(p => p.team === 'ally'), [players]);
@@ -1004,21 +1098,16 @@ const RallyCoordinator: React.FC = () => {
     });
   }, []);
 
-  // Toggle buff for a queue slot (with enemy buff timer logic)
+  // Toggle buff for a queue slot (with buff timer for ALL players)
   const toggleBuff = useCallback((queueType: 'rally' | 'counter', index: number, forceOff?: boolean) => {
     const queue = queueType === 'rally' ? rallyQueue : counterQueue;
     const slot = queue[index];
     if (!slot) return;
 
-    // Enemy in counter queue: handle buff timer
-    if (queueType === 'counter' && slot.team === 'enemy') {
-      if (slot.useBuffed && !forceOff) {
-        // Trying to toggle OFF with active timer → show confirmation
-        if (buffTimers[slot.playerId]) {
-          setBuffConfirmPopup({ queueType, index });
-          return;
-        }
-      }
+    // Any player with active timer: show confirmation when toggling OFF
+    if (slot.useBuffed && !forceOff && buffTimers[slot.playerId]) {
+      setBuffConfirmPopup({ queueType, index });
+      return;
     }
 
     const setter = queueType === 'rally' ? setRallyQueue : setCounterQueue;
@@ -1032,20 +1121,16 @@ const RallyCoordinator: React.FC = () => {
       return { ...s, useBuffed: newBuffed, marchTime: mt };
     }));
 
-    // Start/clear buff timer for enemies in counter queue
-    if (queueType === 'counter' && slot.team === 'enemy') {
-      const newBuffed = !slot.useBuffed;
-      if (newBuffed) {
-        // Starting buff → set 2-hour timer
-        setBuffTimers(prev => ({ ...prev, [slot.playerId]: Date.now() + BUFF_DURATION_MS }));
-      } else {
-        // Turning off buff → clear timer
-        setBuffTimers(prev => {
-          const next = { ...prev };
-          delete next[slot.playerId];
-          return next;
-        });
-      }
+    // Start/clear buff timer for ALL players
+    const newBuffed = !slot.useBuffed;
+    if (newBuffed) {
+      setBuffTimers(prev => ({ ...prev, [slot.playerId]: Date.now() + BUFF_DURATION_MS }));
+    } else {
+      setBuffTimers(prev => {
+        const next = { ...prev };
+        delete next[slot.playerId];
+        return next;
+      });
     }
   }, [players, getMarchTime, rallyQueue, counterQueue, buffTimers]);
 
@@ -1231,7 +1316,7 @@ const RallyCoordinator: React.FC = () => {
               color={colors[i % colors.length] ?? accent}
               isMobile={isMobile}
               buffTimeRemaining={
-                queueType === 'counter' && buffTimers[slot.playerId]
+                buffTimers[slot.playerId]
                   ? Math.max(0, buffTimers[slot.playerId]! - tickNow)
                   : null
               }
@@ -1281,6 +1366,14 @@ const RallyCoordinator: React.FC = () => {
         </div>
       </div>
 
+      {/* Keyframes for buff timer pulse */}
+      <style>{`
+        @keyframes buffTimerPulse {
+          0%, 100% { box-shadow: 0 0 8px #f59e0b30; }
+          50% { box-shadow: 0 0 14px #f59e0b50; }
+        }
+      `}</style>
+
       {/* Main Content — 3x3 Grid */}
       <div style={{
         maxWidth: '1400px', margin: '0 auto',
@@ -1292,240 +1385,282 @@ const RallyCoordinator: React.FC = () => {
           gap: isMobile ? '0.75rem' : '0.75rem',
         }}>
 
-          {/* ===== ROW 1 ===== */}
+          {/* ===== COLUMN 1 ===== */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '0.75rem' : '0.75rem' }}>
 
-          {/* Cell 1,1: Rally Leaders (Allies + Enemies) */}
-          <div style={{ ...CARD, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={cardHeader()}>👥 RALLY LEADERS</h3>
-              <div style={{ display: 'flex', gap: '4px' }}>
-                <button onClick={() => { setEditingPlayer(null); setDefaultTeam('ally'); setPlayerModalOpen(true); }} style={{
-                  padding: '0.2rem 0.4rem', backgroundColor: `${ALLY_COLOR}15`,
-                  border: `1px solid ${ALLY_COLOR}30`, borderRadius: '5px',
-                  color: ALLY_COLOR, fontSize: '0.55rem', fontWeight: '700', cursor: 'pointer',
-                }}>
-                  + Ally
-                </button>
-                <button onClick={() => { setEditingPlayer(null); setDefaultTeam('enemy'); setPlayerModalOpen(true); }} style={{
-                  padding: '0.2rem 0.4rem', backgroundColor: `${ENEMY_COLOR}15`,
-                  border: `1px solid ${ENEMY_COLOR}30`, borderRadius: '5px',
-                  color: ENEMY_COLOR, fontSize: '0.55rem', fontWeight: '700', cursor: 'pointer',
-                }}>
-                  + Enemy
-                </button>
-              </div>
-            </div>
-
-            {/* Default march display toggle */}
-            <div style={{ display: 'flex', gap: '0.4rem' }}>
-              {(['regular', 'buffed'] as MarchType[]).map(t => (
-                <button key={t} onClick={() => setMarchType(t)} style={{
-                  flex: 1, padding: '0.25rem',
-                  backgroundColor: marchType === t ? (t === 'buffed' ? '#22c55e15' : `${ALLY_COLOR}15`) : 'transparent',
-                  border: `1px solid ${marchType === t ? (t === 'buffed' ? '#22c55e40' : `${ALLY_COLOR}40`) : '#2a2a2a'}`,
-                  borderRadius: '6px', cursor: 'pointer',
-                  color: marchType === t ? (t === 'buffed' ? '#22c55e' : ALLY_COLOR) : '#6b7280',
-                  fontSize: '0.6rem', fontWeight: '600',
-                }}>
-                  {t === 'buffed' ? '⚡ Buffed' : '🏃 Regular'}
-                </button>
-              ))}
-            </div>
-
-            {/* Allies */}
-            {allies.length > 0 && (
-              <div>
-                <div style={{ fontSize: '0.55rem', color: ALLY_COLOR, fontWeight: '700', marginBottom: '0.25rem', letterSpacing: '0.05em' }}>
-                  ALLIES
-                </div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
-                  {allies.map(p => (
-                    <PlayerPill
-                      key={p.id}
-                      player={p}
-                      marchTime={p.marchTimes[selectedBuilding][marchType]}
-                      isInQueue={queuedPlayerIds.has(p.id) || counterQueuedIds.has(p.id)}
-                      onAdd={() => addToQueue(p, marchType === 'buffed')}
-                      onEdit={() => { setEditingPlayer(p); setDefaultTeam('ally'); setPlayerModalOpen(true); }}
-                      onRemoveFromDb={() => handleDeletePlayer(p.id)}
-                      isMobile={isMobile}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Enemies */}
-            {enemies.length > 0 && (
-              <div>
-                <div style={{ fontSize: '0.55rem', color: ENEMY_COLOR, fontWeight: '700', marginBottom: '0.25rem', letterSpacing: '0.05em' }}>
-                  ENEMIES
-                </div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
-                  {enemies.map(p => (
-                    <PlayerPill
-                      key={p.id}
-                      player={p}
-                      marchTime={p.marchTimes[selectedBuilding][marchType]}
-                      isInQueue={queuedPlayerIds.has(p.id) || counterQueuedIds.has(p.id)}
-                      onAdd={() => addToCounterQueue(p, marchType === 'buffed')}
-                      onEdit={() => { setEditingPlayer(p); setDefaultTeam('enemy'); setPlayerModalOpen(true); }}
-                      onRemoveFromDb={() => handleDeletePlayer(p.id)}
-                      isMobile={isMobile}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {players.length === 0 && (
-              <p style={{ color: '#4b5563', fontSize: '0.6rem', textAlign: 'center', padding: '0.75rem 0' }}>
-                Add allies and enemies to start coordinating.
-              </p>
-            )}
-
-            <p style={{ color: '#4b5563', fontSize: '0.5rem' }}>
-              Click allies → Rally Queue. Click enemies → Counter Queue. Right-click to edit/remove.
-            </p>
-          </div>
-
-          {/* Cell 1,2: Rally Queue */}
-          {renderQueueDropZone(
-            rallyQueue, handleDrop, removeFromQueue, moveInQueue,
-            (i) => toggleBuff('rally', i), clearQueue,
-            'rally', `⚔️ RALLY QUEUE — ${BUILDING_LABELS[selectedBuilding]}`,
-            ALLY_COLOR, RALLY_COLORS, 2,
-          )}
-
-          {/* Cell 1,3: Counter-Rally Queue */}
-          {renderQueueDropZone(
-            counterQueue, handleCounterDrop, removeFromCounterQueue, moveInCounterQueue,
-            (i) => toggleBuff('counter', i), clearCounterQueue,
-            'counter', `🛡️ COUNTER-RALLY QUEUE`,
-            ENEMY_COLOR, COUNTER_COLORS, 1,
-          )}
-
-          {/* ===== ROW 2 ===== */}
-
-          {/* Cell 2,1: Target Building + Hit Timing */}
-          <div style={{ ...CARD, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <h3 style={cardHeader()}>🏰 TARGET & TIMING</h3>
-            <BuildingSelector selected={selectedBuilding} onSelect={setSelectedBuilding} isMobile={isMobile} />
-
-            <div style={{ marginTop: '0.25rem' }}>
-              <div style={{ fontSize: '0.6rem', color: '#9ca3af', fontWeight: '600', marginBottom: '0.3rem' }}>Hit Timing</div>
-              <div style={{ display: 'flex', gap: '0.4rem', marginBottom: hitMode === 'interval' ? '0.5rem' : 0 }}>
-                <button onClick={() => { setHitMode('simultaneous'); }} style={{
-                  flex: 1, padding: '0.35rem',
-                  backgroundColor: hitMode === 'simultaneous' ? `${ALLY_COLOR}20` : 'transparent',
-                  border: `1px solid ${hitMode === 'simultaneous' ? `${ALLY_COLOR}50` : '#2a2a2a'}`,
-                  borderRadius: '7px', cursor: 'pointer',
-                  color: hitMode === 'simultaneous' ? ALLY_COLOR : '#6b7280',
-                  fontSize: '0.6rem', fontWeight: '600',
-                }}>
-                  💥 Simultaneous
-                </button>
-                <button onClick={() => { setHitMode('interval'); if (interval < 1) setInterval(1); }} style={{
-                  flex: 1, padding: '0.35rem',
-                  backgroundColor: hitMode === 'interval' ? `${ALLY_COLOR}20` : 'transparent',
-                  border: `1px solid ${hitMode === 'interval' ? `${ALLY_COLOR}50` : '#2a2a2a'}`,
-                  borderRadius: '7px', cursor: 'pointer',
-                  color: hitMode === 'interval' ? ALLY_COLOR : '#6b7280',
-                  fontSize: '0.6rem', fontWeight: '600',
-                }}>
-                  🔗 Chain Hits
-                </button>
-              </div>
-              {hitMode === 'interval' && (
-                <IntervalSlider value={interval} onChange={setInterval} accentColor={ALLY_COLOR} />
-              )}
-            </div>
-
-            {/* Presets */}
-            <div style={{ borderTop: '1px solid #1a1a1a', paddingTop: '0.5rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
-                <span style={{ fontSize: '0.6rem', color: '#9ca3af', fontWeight: '600' }}>Presets</span>
-                {rallyQueue.length >= 2 && (
-                  <button onClick={() => setShowPresetSave(!showPresetSave)} style={{
-                    padding: '0.15rem 0.35rem', backgroundColor: '#22c55e15',
-                    border: '1px solid #22c55e30', borderRadius: '4px',
-                    color: '#22c55e', fontSize: '0.5rem', fontWeight: '700', cursor: 'pointer',
+            {/* Rally Leaders */}
+            <div style={{ ...CARD, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={cardHeader()}>👥 RALLY LEADERS</h3>
+                <div style={{ display: 'flex', gap: '4px' }}>
+                  <button onClick={() => { setEditingPlayer(null); setDefaultTeam('ally'); setPlayerModalOpen(true); }} style={{
+                    padding: '0.2rem 0.4rem', backgroundColor: `${ALLY_COLOR}15`,
+                    border: `1px solid ${ALLY_COLOR}30`, borderRadius: '5px',
+                    color: ALLY_COLOR, fontSize: '0.55rem', fontWeight: '700', cursor: 'pointer',
                   }}>
-                    💾 Save Current
+                    + Ally
                   </button>
+                  <button onClick={() => { setEditingPlayer(null); setDefaultTeam('enemy'); setPlayerModalOpen(true); }} style={{
+                    padding: '0.2rem 0.4rem', backgroundColor: `${ENEMY_COLOR}15`,
+                    border: `1px solid ${ENEMY_COLOR}30`, borderRadius: '5px',
+                    color: ENEMY_COLOR, fontSize: '0.55rem', fontWeight: '700', cursor: 'pointer',
+                  }}>
+                    + Enemy
+                  </button>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.4rem' }}>
+                {(['regular', 'buffed'] as MarchType[]).map(t => (
+                  <button key={t} onClick={() => setMarchType(t)} style={{
+                    flex: 1, padding: '0.25rem',
+                    backgroundColor: marchType === t ? (t === 'buffed' ? '#22c55e15' : `${ALLY_COLOR}15`) : 'transparent',
+                    border: `1px solid ${marchType === t ? (t === 'buffed' ? '#22c55e40' : `${ALLY_COLOR}40`) : '#2a2a2a'}`,
+                    borderRadius: '6px', cursor: 'pointer',
+                    color: marchType === t ? (t === 'buffed' ? '#22c55e' : ALLY_COLOR) : '#6b7280',
+                    fontSize: '0.6rem', fontWeight: '600',
+                  }}>
+                    {t === 'buffed' ? '⚡ Buffed' : '🏃 Regular'}
+                  </button>
+                ))}
+              </div>
+
+              {allies.length > 0 && (
+                <div>
+                  <div style={{ fontSize: '0.55rem', color: ALLY_COLOR, fontWeight: '700', marginBottom: '0.25rem', letterSpacing: '0.05em' }}>ALLIES</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
+                    {allies.map(p => (
+                      <PlayerPill
+                        key={p.id} player={p}
+                        marchTime={p.marchTimes[selectedBuilding][marchType]}
+                        isInQueue={queuedPlayerIds.has(p.id) || counterQueuedIds.has(p.id)}
+                        onAdd={() => addToQueue(p, marchType === 'buffed')}
+                        onEdit={() => { setEditingPlayer(p); setDefaultTeam('ally'); setPlayerModalOpen(true); }}
+                        onRemoveFromDb={() => handleDeletePlayer(p.id)}
+                        isMobile={isMobile}
+                        hasActiveBuffTimer={!!buffTimers[p.id]}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {enemies.length > 0 && (
+                <div>
+                  <div style={{ fontSize: '0.55rem', color: ENEMY_COLOR, fontWeight: '700', marginBottom: '0.25rem', letterSpacing: '0.05em' }}>ENEMIES</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
+                    {enemies.map(p => (
+                      <PlayerPill
+                        key={p.id} player={p}
+                        marchTime={p.marchTimes[selectedBuilding][marchType]}
+                        isInQueue={queuedPlayerIds.has(p.id) || counterQueuedIds.has(p.id)}
+                        onAdd={() => addToCounterQueue(p, marchType === 'buffed')}
+                        onEdit={() => { setEditingPlayer(p); setDefaultTeam('enemy'); setPlayerModalOpen(true); }}
+                        onRemoveFromDb={() => handleDeletePlayer(p.id)}
+                        isMobile={isMobile}
+                        hasActiveBuffTimer={!!buffTimers[p.id]}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {players.length === 0 && (
+                <p style={{ color: '#4b5563', fontSize: '0.6rem', textAlign: 'center', padding: '0.75rem 0' }}>
+                  Add allies and enemies to start coordinating.
+                </p>
+              )}
+
+              <p style={{ color: '#4b5563', fontSize: '0.5rem' }}>
+                Click allies → Rally Queue. Click enemies → Counter Queue. Right-click to edit/remove.
+              </p>
+            </div>
+
+            {/* 🏰 TARGET BUILDING */}
+            <div style={{ ...CARD, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <h3 style={cardHeader()}>🏰 TARGET BUILDING</h3>
+              <BuildingSelector selected={selectedBuilding} onSelect={setSelectedBuilding} isMobile={isMobile} />
+
+              {/* Presets */}
+              <div style={{ borderTop: '1px solid #1a1a1a', paddingTop: '0.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
+                  <span style={{ fontSize: '0.6rem', color: '#9ca3af', fontWeight: '600' }}>Presets</span>
+                  {rallyQueue.length >= 2 && (
+                    <button onClick={() => setShowPresetSave(!showPresetSave)} style={{
+                      padding: '0.15rem 0.35rem', backgroundColor: '#22c55e15',
+                      border: '1px solid #22c55e30', borderRadius: '4px',
+                      color: '#22c55e', fontSize: '0.5rem', fontWeight: '700', cursor: 'pointer',
+                    }}>
+                      💾 Save Current
+                    </button>
+                  )}
+                </div>
+                {showPresetSave && (
+                  <div style={{ display: 'flex', gap: '0.3rem', marginBottom: '0.4rem' }}>
+                    <input
+                      value={presetName}
+                      onChange={e => setPresetName(e.target.value)}
+                      placeholder="Preset name..."
+                      style={{ ...inputStyle, fontSize: '0.6rem', padding: '0.25rem 0.4rem', minHeight: '28px', flex: 1 }}
+                    />
+                    <button onClick={savePreset} disabled={!presetName.trim()} style={{
+                      padding: '0.25rem 0.5rem', backgroundColor: '#22c55e',
+                      border: 'none', borderRadius: '5px',
+                      color: '#000', fontSize: '0.55rem', fontWeight: '700', cursor: 'pointer',
+                      opacity: presetName.trim() ? 1 : 0.4,
+                    }}>
+                      Save
+                    </button>
+                  </div>
+                )}
+                {presets.length === 0 ? (
+                  <p style={{ color: '#2a2a2a', fontSize: '0.55rem' }}>No presets saved yet.</p>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    {presets.map(p => (
+                      <div key={p.id} style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        padding: '0.25rem 0.4rem', backgroundColor: '#0a0a0a',
+                        border: '1px solid #1a1a1a', borderRadius: '6px',
+                      }}>
+                        <button onClick={() => loadPreset(p)} style={{
+                          background: 'none', border: 'none', color: '#d1d5db',
+                          fontSize: '0.6rem', fontWeight: '600', cursor: 'pointer', textAlign: 'left', flex: 1, padding: 0,
+                        }}>
+                          {p.name}
+                          <span style={{ color: '#4b5563', marginLeft: '0.3rem', fontSize: '0.5rem' }}>
+                            {BUILDING_SHORT[p.building]} · {p.slots.length} players
+                          </span>
+                        </button>
+                        <button onClick={() => deletePreset(p.id)} style={{
+                          background: 'none', border: 'none', color: '#4b5563',
+                          fontSize: '0.5rem', cursor: 'pointer', padding: '0 0.2rem',
+                        }}>✕</button>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
-              {showPresetSave && (
-                <div style={{ display: 'flex', gap: '0.3rem', marginBottom: '0.4rem' }}>
-                  <input
-                    value={presetName}
-                    onChange={e => setPresetName(e.target.value)}
-                    placeholder="Preset name..."
-                    style={{ ...inputStyle, fontSize: '0.6rem', padding: '0.25rem 0.4rem', minHeight: '28px', flex: 1 }}
-                  />
-                  <button onClick={savePreset} disabled={!presetName.trim()} style={{
-                    padding: '0.25rem 0.5rem', backgroundColor: '#22c55e',
-                    border: 'none', borderRadius: '5px',
-                    color: '#000', fontSize: '0.55rem', fontWeight: '700', cursor: 'pointer',
-                    opacity: presetName.trim() ? 1 : 0.4,
-                  }}>
-                    Save
-                  </button>
-                </div>
-              )}
-              {presets.length === 0 ? (
-                <p style={{ color: '#2a2a2a', fontSize: '0.55rem' }}>No presets saved yet.</p>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                  {presets.map(p => (
-                    <div key={p.id} style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                      padding: '0.25rem 0.4rem', backgroundColor: '#0a0a0a',
-                      border: '1px solid #1a1a1a', borderRadius: '6px',
-                    }}>
-                      <button onClick={() => loadPreset(p)} style={{
-                        background: 'none', border: 'none', color: '#d1d5db',
-                        fontSize: '0.6rem', fontWeight: '600', cursor: 'pointer', textAlign: 'left', flex: 1, padding: 0,
-                      }}>
-                        {p.name}
-                        <span style={{ color: '#4b5563', marginLeft: '0.3rem', fontSize: '0.5rem' }}>
-                          {BUILDING_SHORT[p.building]} · {p.slots.length} players
-                        </span>
-                      </button>
-                      <button onClick={() => deletePreset(p.id)} style={{
-                        background: 'none', border: 'none', color: '#4b5563',
-                        fontSize: '0.5rem', cursor: 'pointer', padding: '0 0.2rem',
-                      }}>✕</button>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
+
+            {/* 🔑 TIPS */}
+            <div style={{ ...CARD }}>
+              <h3 style={cardHeader()}>🔑 TIPS</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', fontSize: '0.6rem' }}>
+                <div style={{ padding: '0.4rem', backgroundColor: '#22c55e08', borderRadius: '6px', border: '1px solid #22c55e15' }}>
+                  <span style={{ color: '#22c55e' }}>Tip:</span> <span style={{ color: '#6b7280' }}>Right-click players to edit march times.</span>
+                </div>
+                <div style={{ padding: '0.4rem', backgroundColor: '#3b82f608', borderRadius: '6px', border: '1px solid #3b82f615' }}>
+                  <span style={{ color: '#3b82f6' }}>Tip:</span> <span style={{ color: '#6b7280' }}>Buff timers persist across page refreshes.</span>
+                </div>
+                <div style={{ padding: '0.4rem', backgroundColor: '#f59e0b08', borderRadius: '6px', border: '1px solid #f59e0b15' }}>
+                  <span style={{ color: '#f59e0b' }}>Tip:</span> <span style={{ color: '#6b7280' }}>Chain hits stagger rallies for sustained pressure.</span>
+                </div>
+                <div style={{ padding: '0.4rem', backgroundColor: '#8b5cf608', borderRadius: '6px', border: '1px solid #8b5cf615' }}>
+                  <span style={{ color: '#8b5cf6' }}>Tip:</span> <span style={{ color: '#6b7280' }}>Save presets for your most-used rally configs.</span>
+                </div>
+                <div style={{ padding: '0.4rem', backgroundColor: '#ef444408', borderRadius: '6px', border: '1px solid #ef444415' }}>
+                  <span style={{ color: '#ef4444' }}>Tip:</span> <span style={{ color: '#6b7280' }}>The slowest marcher determines your rally timing.</span>
+                </div>
+              </div>
+            </div>
+
           </div>
 
-          {/* Cell 2,2: Call Order */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          {/* ===== COLUMN 2 ===== */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '0.75rem' : '0.75rem' }}>
+
+            {/* Rally Queue */}
+            {renderQueueDropZone(
+              rallyQueue, handleDrop, removeFromQueue, moveInQueue,
+              (i) => toggleBuff('rally', i), clearQueue,
+              'rally', `⚔️ RALLY QUEUE — ${BUILDING_LABELS[selectedBuilding]}`,
+              ALLY_COLOR, RALLY_COLORS, 2,
+            )}
+
+            {/* 📢 RALLY CALL ORDER */}
             {calculatedRallies.length >= 2 ? (
               <CallOrderOutput
                 rallies={calculatedRallies}
                 building={selectedBuilding}
                 gap={gap}
                 isMobile={isMobile}
-                title="📢 CALL ORDER"
+                title="📢 RALLY CALL ORDER"
                 colors={RALLY_COLORS}
                 accentColor={ALLY_COLOR}
               />
             ) : (
-              <div style={{ ...CARD, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '120px' }}>
+              <div style={{ ...CARD, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100px' }}>
                 <p style={{ color: '#2a2a2a', fontSize: '0.65rem', textAlign: 'center' }}>
                   Add 2+ players to Rally Queue<br />to see call order
                 </p>
               </div>
             )}
+
+            {/* ⚔️ RALLY CONFIGURATION + RALLY TIMELINE (touching) */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+              <div style={{ ...CARD, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}>
+                <h4 style={cardHeader(ALLY_COLOR)}>⚔️ RALLY CONFIGURATION</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  <div style={{ display: 'flex', gap: '0.4rem' }}>
+                    <button onClick={() => { setHitMode('simultaneous'); }} style={{
+                      flex: 1, padding: '0.3rem',
+                      backgroundColor: hitMode === 'simultaneous' ? `${ALLY_COLOR}20` : 'transparent',
+                      border: `1px solid ${hitMode === 'simultaneous' ? `${ALLY_COLOR}50` : '#2a2a2a'}`,
+                      borderRadius: '7px', cursor: 'pointer',
+                      color: hitMode === 'simultaneous' ? ALLY_COLOR : '#6b7280',
+                      fontSize: '0.55rem', fontWeight: '600',
+                    }}>
+                      💥 Simultaneous
+                    </button>
+                    <button onClick={() => { setHitMode('interval'); if (interval < 1) setInterval(1); }} style={{
+                      flex: 1, padding: '0.3rem',
+                      backgroundColor: hitMode === 'interval' ? `${ALLY_COLOR}20` : 'transparent',
+                      border: `1px solid ${hitMode === 'interval' ? `${ALLY_COLOR}50` : '#2a2a2a'}`,
+                      borderRadius: '7px', cursor: 'pointer',
+                      color: hitMode === 'interval' ? ALLY_COLOR : '#6b7280',
+                      fontSize: '0.55rem', fontWeight: '600',
+                    }}>
+                      🔗 Chain Hits
+                    </button>
+                  </div>
+                  {hitMode === 'interval' && (
+                    <IntervalSlider value={interval} onChange={setInterval} accentColor={ALLY_COLOR} />
+                  )}
+                </div>
+              </div>
+              {calculatedRallies.length >= 2 ? (
+                <div style={{ borderTopLeftRadius: 0, borderTopRightRadius: 0, overflow: 'hidden' }}>
+                  <GanttChart
+                    rallies={calculatedRallies}
+                    isMobile={isMobile}
+                    title="⚔️ RALLY TIMELINE"
+                    colors={RALLY_COLORS}
+                  />
+                </div>
+              ) : (
+                <div style={{ ...CARD, borderTopLeftRadius: 0, borderTopRightRadius: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80px' }}>
+                  <p style={{ color: '#2a2a2a', fontSize: '0.65rem', textAlign: 'center' }}>
+                    Rally timeline will appear here
+                  </p>
+                </div>
+              )}
+            </div>
+
           </div>
 
-          {/* Cell 2,3: Counter-Rally Call Order */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          {/* ===== COLUMN 3 ===== */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '0.75rem' : '0.75rem' }}>
+
+            {/* 🛡️ COUNTER QUEUE */}
+            {renderQueueDropZone(
+              counterQueue, handleCounterDrop, removeFromCounterQueue, moveInCounterQueue,
+              (i) => toggleBuff('counter', i), clearCounterQueue,
+              'counter', `🛡️ COUNTER QUEUE — ${BUILDING_LABELS[selectedBuilding]}`,
+              ENEMY_COLOR, COUNTER_COLORS, 1,
+            )}
+
+            {/* 📢 COUNTER CALL ORDER */}
             {calculatedCounters.length >= 1 ? (
               <CallOrderOutput
                 rallies={calculatedCounters}
@@ -1537,111 +1672,64 @@ const RallyCoordinator: React.FC = () => {
                 accentColor={ENEMY_COLOR}
               />
             ) : (
-              <div style={{ ...CARD, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '120px' }}>
+              <div style={{ ...CARD, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100px' }}>
                 <p style={{ color: '#2a2a2a', fontSize: '0.65rem', textAlign: 'center' }}>
                   Add players to Counter Queue<br />to see counter call order
                 </p>
               </div>
             )}
 
-            {/* Counter-Rally Config */}
-            <div style={{ ...CARD }}>
-              <h4 style={cardHeader(ENEMY_COLOR)}>🛡️ COUNTER-RALLY CONFIG</h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                <div style={{ display: 'flex', gap: '0.4rem' }}>
-                  <button onClick={() => { setCounterHitMode('simultaneous'); }} style={{
-                    flex: 1, padding: '0.3rem',
-                    backgroundColor: counterHitMode === 'simultaneous' ? `${ENEMY_COLOR}20` : 'transparent',
-                    border: `1px solid ${counterHitMode === 'simultaneous' ? `${ENEMY_COLOR}50` : '#2a2a2a'}`,
-                    borderRadius: '7px', cursor: 'pointer',
-                    color: counterHitMode === 'simultaneous' ? ENEMY_COLOR : '#6b7280',
-                    fontSize: '0.55rem', fontWeight: '600',
-                  }}>
-                    💥 Simultaneous
-                  </button>
-                  <button onClick={() => { setCounterHitMode('interval'); if (counterInterval < 1) setCounterInterval(1); }} style={{
-                    flex: 1, padding: '0.3rem',
-                    backgroundColor: counterHitMode === 'interval' ? `${ENEMY_COLOR}20` : 'transparent',
-                    border: `1px solid ${counterHitMode === 'interval' ? `${ENEMY_COLOR}50` : '#2a2a2a'}`,
-                    borderRadius: '7px', cursor: 'pointer',
-                    color: counterHitMode === 'interval' ? ENEMY_COLOR : '#6b7280',
-                    fontSize: '0.55rem', fontWeight: '600',
-                  }}>
-                    🔗 Chain Hits
-                  </button>
+            {/* 🛡️ COUNTER CONFIGURATION + COUNTER TIMELINE (touching) */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+              <div style={{ ...CARD, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}>
+                <h4 style={cardHeader(ENEMY_COLOR)}>🛡️ COUNTER CONFIGURATION</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  <div style={{ display: 'flex', gap: '0.4rem' }}>
+                    <button onClick={() => { setCounterHitMode('simultaneous'); }} style={{
+                      flex: 1, padding: '0.3rem',
+                      backgroundColor: counterHitMode === 'simultaneous' ? `${ENEMY_COLOR}20` : 'transparent',
+                      border: `1px solid ${counterHitMode === 'simultaneous' ? `${ENEMY_COLOR}50` : '#2a2a2a'}`,
+                      borderRadius: '7px', cursor: 'pointer',
+                      color: counterHitMode === 'simultaneous' ? ENEMY_COLOR : '#6b7280',
+                      fontSize: '0.55rem', fontWeight: '600',
+                    }}>
+                      💥 Simultaneous
+                    </button>
+                    <button onClick={() => { setCounterHitMode('interval'); if (counterInterval < 1) setCounterInterval(1); }} style={{
+                      flex: 1, padding: '0.3rem',
+                      backgroundColor: counterHitMode === 'interval' ? `${ENEMY_COLOR}20` : 'transparent',
+                      border: `1px solid ${counterHitMode === 'interval' ? `${ENEMY_COLOR}50` : '#2a2a2a'}`,
+                      borderRadius: '7px', cursor: 'pointer',
+                      color: counterHitMode === 'interval' ? ENEMY_COLOR : '#6b7280',
+                      fontSize: '0.55rem', fontWeight: '600',
+                    }}>
+                      🔗 Chain Hits
+                    </button>
+                  </div>
+                  {counterHitMode === 'interval' && (
+                    <IntervalSlider value={counterInterval} onChange={setCounterInterval} accentColor={ENEMY_COLOR} />
+                  )}
                 </div>
-                {counterHitMode === 'interval' && (
-                  <IntervalSlider value={counterInterval} onChange={setCounterInterval} accentColor={ENEMY_COLOR} />
-                )}
               </div>
+              {calculatedCounters.length >= 1 ? (
+                <div style={{ borderTopLeftRadius: 0, borderTopRightRadius: 0, overflow: 'hidden' }}>
+                  <GanttChart
+                    rallies={calculatedCounters}
+                    isMobile={isMobile}
+                    title="🛡️ COUNTER TIMELINE"
+                    colors={COUNTER_COLORS}
+                  />
+                </div>
+              ) : (
+                <div style={{ ...CARD, borderTopLeftRadius: 0, borderTopRightRadius: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80px' }}>
+                  <p style={{ color: '#2a2a2a', fontSize: '0.65rem', textAlign: 'center' }}>
+                    Counter timeline will appear here
+                  </p>
+                </div>
+              )}
             </div>
+
           </div>
-
-          {/* ===== ROW 3 ===== */}
-
-          {/* Cell 3,1: Info / Tips */}
-          <div style={{ ...CARD }}>
-            <h3 style={cardHeader()}>📋 INFO</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', fontSize: '0.6rem', color: '#6b7280' }}>
-              <div style={{
-                padding: '0.4rem', backgroundColor: '#0a0a0a', borderRadius: '6px',
-                border: '1px solid #1a1a1a',
-              }}>
-                <span style={{ color: '#9ca3af', fontWeight: '600' }}>Building:</span> {BUILDING_LABELS[selectedBuilding]}
-              </div>
-              <div style={{
-                padding: '0.4rem', backgroundColor: '#0a0a0a', borderRadius: '6px',
-                border: '1px solid #1a1a1a',
-              }}>
-                <span style={{ color: ALLY_COLOR, fontWeight: '600' }}>Rally:</span> {rallyQueue.length} players, {hitMode === 'simultaneous' ? 'simultaneous' : `${interval}s gaps`}
-              </div>
-              <div style={{
-                padding: '0.4rem', backgroundColor: '#0a0a0a', borderRadius: '6px',
-                border: '1px solid #1a1a1a',
-              }}>
-                <span style={{ color: ENEMY_COLOR, fontWeight: '600' }}>Counter:</span> {counterQueue.length} players, {counterHitMode === 'simultaneous' ? 'simultaneous' : `${counterInterval}s gaps`}
-              </div>
-              {/* Right-click hint */}
-              <div style={{
-                padding: '0.4rem', backgroundColor: '#22c55e08', borderRadius: '6px',
-                border: '1px solid #22c55e15',
-              }}>
-                <span style={{ color: '#22c55e' }}>Tip:</span> Right-click players to edit march times.
-              </div>
-            </div>
-          </div>
-
-          {/* Cell 3,2: Rally Timeline */}
-          {calculatedRallies.length >= 2 ? (
-            <GanttChart
-              rallies={calculatedRallies}
-              isMobile={isMobile}
-              title="⚔️ RALLY TIMELINE"
-              colors={RALLY_COLORS}
-            />
-          ) : (
-            <div style={{ ...CARD, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100px' }}>
-              <p style={{ color: '#2a2a2a', fontSize: '0.65rem', textAlign: 'center' }}>
-                Rally timeline will appear here
-              </p>
-            </div>
-          )}
-
-          {/* Cell 3,3: Counter-Rally Timeline */}
-          {calculatedCounters.length >= 1 ? (
-            <GanttChart
-              rallies={calculatedCounters}
-              isMobile={isMobile}
-              title="🛡️ COUNTER TIMELINE"
-              colors={COUNTER_COLORS}
-            />
-          ) : (
-            <div style={{ ...CARD, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100px' }}>
-              <p style={{ color: '#2a2a2a', fontSize: '0.65rem', textAlign: 'center' }}>
-                Counter timeline will appear here
-              </p>
-            </div>
-          )}
         </div>
 
         {/* Slow march warning */}

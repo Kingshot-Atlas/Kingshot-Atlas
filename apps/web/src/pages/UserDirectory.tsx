@@ -29,6 +29,14 @@ const formatTCLevel = (level: number | null | undefined): string => {
   return `TG${tgTier}`;
 };
 
+const formatMemberSince = (dateStr: string): string => {
+  const d = new Date(dateStr);
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return `${months[d.getMonth()]} ${d.getFullYear()}`;
+};
+
+type SortBy = 'role' | 'joined' | 'kingdom' | 'tc';
+
 const UserDirectory: React.FC = () => {
   useDocumentTitle('Player Directory');
   useMetaTags(PAGE_META_TAGS.players);
@@ -45,6 +53,7 @@ const UserDirectory: React.FC = () => {
   const [filterBy, setFilterBy] = useState<'all' | 'alliance' | 'region' | 'kingdom'>(urlKingdom ? 'kingdom' : 'all');
   const [filterValue, setFilterValue] = useState(urlKingdom || '');
   const [tierFilter, setTierFilter] = useState<'all' | 'admin' | 'supporter' | 'ambassador' | 'consul' | 'recruiter' | 'scout'>('all');
+  const [sortBy, setSortBy] = useState<SortBy>('role');
   const PAGE_SIZE = 25;
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -105,25 +114,7 @@ const UserDirectory: React.FC = () => {
           }
 
           if (data && data.length > 0) {
-            // Sort: Admin > Supporter > Ambassador > Consul > Recruiter > Scout > Regular
-            const getUserPriority = (u: typeof data[0]): number => {
-              const dt = getDisplayTier(u.subscription_tier, u.linked_username || u.username);
-              if (dt === 'admin') return 0;
-              if (dt === 'supporter') return 1;
-              const rt = u.referral_tier as string | null;
-              if (rt === 'ambassador') return 2;
-              if (rt === 'consul') return 3;
-              if (rt === 'recruiter') return 4;
-              if (rt === 'scout') return 5;
-              return 6;
-            };
-            const sorted = [...data].sort((a, b) => {
-              const aPri = getUserPriority(a);
-              const bPri = getUserPriority(b);
-              if (aPri !== bPri) return aPri - bPri;
-              return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-            });
-            setUsers(sorted as UserProfile[]);
+            setUsers(data as UserProfile[]);
             setLoading(false);
             return;
           }
@@ -200,36 +191,88 @@ const UserDirectory: React.FC = () => {
     fetchUsers();
   }, []);
 
-  const filteredUsers = users.filter(user => {
-    // Search by linked Kingshot username or alliance tag
-    const matchesSearch = !searchQuery || 
-      (user.linked_username && user.linked_username.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (user.alliance_tag && user.alliance_tag.toLowerCase().includes(searchQuery.toLowerCase()));
-    
-    if (!matchesSearch) return false;
+  // Compute tier counts for filter chip badges
+  const tierCounts = React.useMemo(() => {
+    const counts: Record<string, number> = { all: users.length, admin: 0, supporter: 0, ambassador: 0, consul: 0, recruiter: 0, scout: 0 };
+    users.forEach(u => {
+      const dt = getDisplayTier(u.subscription_tier, u.linked_username || u.username);
+      if (dt === 'admin') counts.admin!++;
+      if (dt === 'supporter') counts.supporter!++;
+      const rt = u.referral_tier as string | null;
+      if (rt === 'ambassador') counts.ambassador!++;
+      else if (rt === 'consul') counts.consul!++;
+      else if (rt === 'recruiter') counts.recruiter!++;
+      else if (rt === 'scout') counts.scout!++;
+    });
+    return counts;
+  }, [users]);
 
-    // Tier filter - subscription tiers and referral tiers
-    if (tierFilter !== 'all') {
-      if (tierFilter === 'admin' || tierFilter === 'supporter') {
-        const userDisplayTier = getDisplayTier(user.subscription_tier, user.linked_username || user.username);
-        if (userDisplayTier !== tierFilter) return false;
-      } else {
-        // Filter by referral tier
-        if (user.referral_tier !== tierFilter) return false;
+  // Current user's kingdom for "My Kingdom" filter
+  const myKingdom = (currentUser as UserProfile | null)?.linked_kingdom;
+
+  // Sort helper
+  const getUserPriority = (u: UserProfile): number => {
+    const dt = getDisplayTier(u.subscription_tier, u.linked_username || u.username);
+    if (dt === 'admin') return 0;
+    if (dt === 'supporter') return 1;
+    const rt = u.referral_tier as string | null;
+    if (rt === 'ambassador') return 2;
+    if (rt === 'consul') return 3;
+    if (rt === 'recruiter') return 4;
+    if (rt === 'scout') return 5;
+    return 6;
+  };
+
+  const filteredUsers = React.useMemo(() => {
+    const filtered = users.filter(user => {
+      // Search by linked Kingshot username or alliance tag
+      const matchesSearch = !searchQuery || 
+        (user.linked_username && user.linked_username.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (user.alliance_tag && user.alliance_tag.toLowerCase().includes(searchQuery.toLowerCase()));
+      
+      if (!matchesSearch) return false;
+
+      // Tier filter - subscription tiers and referral tiers
+      if (tierFilter !== 'all') {
+        if (tierFilter === 'admin' || tierFilter === 'supporter') {
+          const userDisplayTier = getDisplayTier(user.subscription_tier, user.linked_username || user.username);
+          if (userDisplayTier !== tierFilter) return false;
+        } else {
+          if (user.referral_tier !== tierFilter) return false;
+        }
       }
-    }
-    
-    switch (filterBy) {
-      case 'alliance':
-        return !filterValue || user.alliance_tag === filterValue;
-      case 'region':
-        return !filterValue || user.region === filterValue;
-      case 'kingdom':
-        return !filterValue || user.linked_kingdom === parseInt(filterValue);
-      default:
-        return true;
-    }
-  });
+      
+      switch (filterBy) {
+        case 'alliance':
+          return !filterValue || user.alliance_tag === filterValue;
+        case 'region':
+          return !filterValue || user.region === filterValue;
+        case 'kingdom':
+          return !filterValue || user.linked_kingdom === parseInt(filterValue);
+        default:
+          return true;
+      }
+    });
+
+    // Sort based on sortBy
+    return [...filtered].sort((a, b) => {
+      switch (sortBy) {
+        case 'joined':
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        case 'kingdom':
+          return (a.linked_kingdom || 9999) - (b.linked_kingdom || 9999);
+        case 'tc':
+          return (b.linked_tc_level || 0) - (a.linked_tc_level || 0);
+        case 'role':
+        default: {
+          const aPri = getUserPriority(a);
+          const bPri = getUserPriority(b);
+          if (aPri !== bPri) return aPri - bPri;
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        }
+      }
+    });
+  }, [users, searchQuery, tierFilter, filterBy, filterValue, sortBy]);
 
   const neonGlow = (color: string) => ({
     color: color,
@@ -582,8 +625,8 @@ const UserDirectory: React.FC = () => {
           </div>
         </div>
 
-        {/* Tier Filter Chips */}
-        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+        {/* Tier Filter Chips + My Kingdom button */}
+        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
           {([
             { key: 'all' as const, label: 'All Players', color: '#6b7280' },
             { key: 'admin' as const, label: '👑 Admin', color: subscriptionColors.admin },
@@ -594,6 +637,7 @@ const UserDirectory: React.FC = () => {
             { key: 'scout' as const, label: '⚪ Scout', color: '#ffffff' },
           ]).map(({ key, label, color }) => {
             const isActive = tierFilter === key;
+            const count = tierCounts[key] ?? 0;
             return (
               <button
                 key={key}
@@ -608,19 +652,68 @@ const UserDirectory: React.FC = () => {
                   fontWeight: isActive ? '600' : '400',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.3rem',
                 }}
               >
                 {label}
+                {key !== 'all' && count > 0 && (
+                  <span style={{ fontSize: '0.65rem', opacity: 0.7 }}>({count})</span>
+                )}
               </button>
             );
           })}
+          {/* My Kingdom quick filter */}
+          {myKingdom && (
+            <button
+              onClick={() => {
+                setFilterBy('kingdom');
+                setFilterValue(myKingdom.toString());
+                setKingdomSearchInput(`Kingdom ${myKingdom}`);
+                setVisibleCount(PAGE_SIZE);
+              }}
+              style={{
+                padding: '0.4rem 0.75rem',
+                borderRadius: '20px',
+                border: `1px solid ${filterBy === 'kingdom' && filterValue === myKingdom.toString() ? '#22d3ee' : '#2a2a2a'}`,
+                backgroundColor: filterBy === 'kingdom' && filterValue === myKingdom.toString() ? '#22d3ee15' : 'transparent',
+                color: filterBy === 'kingdom' && filterValue === myKingdom.toString() ? '#22d3ee' : '#6b7280',
+                fontSize: '0.75rem',
+                fontWeight: filterBy === 'kingdom' && filterValue === myKingdom.toString() ? '600' : '400',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              🏠 My Kingdom ({myKingdom})
+            </button>
+          )}
         </div>
 
-        {/* Results Count */}
-        <div style={{ marginBottom: '1.5rem' }}>
+        {/* Sort-by + Results Count row */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
           <span style={{ color: '#6b7280', fontSize: '0.85rem' }}>
             Showing <span style={{ ...neonGlow('#22d3ee'), fontWeight: '600' }}>{Math.min(visibleCount, filteredUsers.length)}</span> of <span style={{ ...neonGlow('#22d3ee'), fontWeight: '600' }}>{filteredUsers.length}</span> player{filteredUsers.length !== 1 ? 's' : ''}
           </span>
+          <select
+            value={sortBy}
+            onChange={e => { setSortBy(e.target.value as SortBy); setVisibleCount(PAGE_SIZE); }}
+            style={{
+              padding: '0.35rem 0.6rem',
+              backgroundColor: '#111116',
+              border: '1px solid #2a2a2a',
+              borderRadius: '8px',
+              color: '#9ca3af',
+              fontSize: '0.75rem',
+              cursor: 'pointer',
+              outline: 'none',
+            }}
+          >
+            <option value="role">Sort: Role Priority</option>
+            <option value="joined">Sort: Newest First</option>
+            <option value="kingdom">Sort: Kingdom #</option>
+            <option value="tc">Sort: TC Level</option>
+          </select>
         </div>
 
         {/* User Grid */}
@@ -830,6 +923,14 @@ const UserDirectory: React.FC = () => {
                             <span style={{ color: '#6b7280' }}>Referrals: </span>
                             <span style={{ color: REFERRAL_TIER_COLORS[(user.referral_tier as ReferralTier)] || '#fff', fontWeight: '600' }}>
                               {user.referral_count}
+                            </span>
+                          </div>
+                        )}
+                        {user.created_at && (
+                          <div>
+                            <span style={{ color: '#6b7280' }}>Member since: </span>
+                            <span style={{ color: '#9ca3af', fontWeight: '600' }}>
+                              {formatMemberSince(user.created_at)}
                             </span>
                           </div>
                         )}
