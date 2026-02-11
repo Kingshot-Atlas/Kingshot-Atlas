@@ -180,7 +180,7 @@ const Ambassadors: React.FC = () => {
             color: '#22c55e',
             fontWeight: '600',
           }}>
-            ⚡ {monthlyJoins} player{monthlyJoins !== 1 ? 's' : ''} joined via referrals this month
+            ⚡ {t('ambassadors.monthlyJoins', '{{count}} players joined via referrals this month', { count: monthlyJoins })}
           </div>
         )}
 
@@ -256,10 +256,10 @@ const Ambassadors: React.FC = () => {
             textAlign: 'center',
           }}>
             <div style={{ fontSize: '1.25rem', marginBottom: '0.35rem' }}>🔍</div>
-            <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.85rem', marginBottom: '0.15rem' }}>Scout</div>
-            <div style={{ color: REFERRAL_TIER_COLORS.scout, fontSize: '0.7rem', fontWeight: 600, marginBottom: '0.5rem' }}>2 Referrals</div>
+            <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.85rem', marginBottom: '0.15rem' }}>{t('ambassadors.scoutTitle', 'Scout')}</div>
+            <div style={{ color: REFERRAL_TIER_COLORS.scout, fontSize: '0.7rem', fontWeight: 600, marginBottom: '0.5rem' }}>{t('ambassadors.scoutReq', '2 Referrals')}</div>
             <div style={{ color: '#9ca3af', fontSize: '0.68rem', lineHeight: 1.5 }}>
-              Scout badge on your profile. Listed on the Ambassador Network page.
+              {t('ambassadors.scoutDesc', 'Scout badge on your profile. Listed on the Ambassador Network page.')}
             </div>
           </div>
 
@@ -272,10 +272,10 @@ const Ambassadors: React.FC = () => {
             textAlign: 'center',
           }}>
             <div style={{ fontSize: '1.25rem', marginBottom: '0.35rem' }}>📢</div>
-            <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.85rem', marginBottom: '0.15rem' }}>Recruiter</div>
-            <div style={{ color: REFERRAL_TIER_COLORS.recruiter, fontSize: '0.7rem', fontWeight: 600, marginBottom: '0.5rem' }}>5 Referrals</div>
+            <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.85rem', marginBottom: '0.15rem' }}>{t('ambassadors.recruiterTitle', 'Recruiter')}</div>
+            <div style={{ color: REFERRAL_TIER_COLORS.recruiter, fontSize: '0.7rem', fontWeight: 600, marginBottom: '0.5rem' }}>{t('ambassadors.recruiterReq', '5 Referrals')}</div>
             <div style={{ color: '#9ca3af', fontSize: '0.68rem', lineHeight: 1.5 }}>
-              Recruiter badge on your profile. Highlighted in kingdom player lists.
+              {t('ambassadors.recruiterDesc', 'Recruiter badge on your profile. Highlighted in kingdom player lists.')}
             </div>
           </div>
 
@@ -288,10 +288,10 @@ const Ambassadors: React.FC = () => {
             textAlign: 'center',
           }}>
             <div style={{ fontSize: '1.25rem', marginBottom: '0.35rem' }}>⚖️</div>
-            <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.85rem', marginBottom: '0.15rem' }}>Consul</div>
-            <div style={{ color: REFERRAL_TIER_COLORS.consul, fontSize: '0.7rem', fontWeight: 600, marginBottom: '0.5rem' }}>10 Referrals</div>
+            <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.85rem', marginBottom: '0.15rem' }}>{t('ambassadors.consulTitle', 'Consul')}</div>
+            <div style={{ color: REFERRAL_TIER_COLORS.consul, fontSize: '0.7rem', fontWeight: 600, marginBottom: '0.5rem' }}>{t('ambassadors.consulReq', '10 Referrals')}</div>
             <div style={{ color: '#9ca3af', fontSize: '0.68rem', lineHeight: 1.5 }}>
-              Exclusive Consul role in Discord. Priority support and community influence.
+              {t('ambassadors.consulDesc', 'Exclusive Consul role in Discord. Recognized voice in the community.')}
             </div>
           </div>
 
@@ -305,10 +305,10 @@ const Ambassadors: React.FC = () => {
             boxShadow: `0 0 15px ${REFERRAL_TIER_COLORS.ambassador}15`,
           }}>
             <div style={{ fontSize: '1.25rem', marginBottom: '0.35rem' }}>🏛️</div>
-            <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.85rem', marginBottom: '0.15rem' }}>Ambassador</div>
-            <div style={{ color: REFERRAL_TIER_COLORS.ambassador, fontSize: '0.7rem', fontWeight: 600, marginBottom: '0.5rem' }}>20 Referrals</div>
+            <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.85rem', marginBottom: '0.15rem' }}>{t('ambassadors.ambassadorTitle', 'Ambassador')}</div>
+            <div style={{ color: REFERRAL_TIER_COLORS.ambassador, fontSize: '0.7rem', fontWeight: 600, marginBottom: '0.5rem' }}>{t('ambassadors.ambassadorReq', '20 Referrals')}</div>
             <div style={{ color: '#9ca3af', fontSize: '0.68rem', lineHeight: 1.5 }}>
-              Top-tier Ambassador Discord role. Leaderboard spotlight and direct input on Atlas features.
+              {t('ambassadors.ambassadorDesc', 'Ambassador Discord role + badge. Priority support, #ambassadors-lounge access, leaderboard spotlight, and direct input on Atlas features.')}
             </div>
           </div>
         </div>
@@ -327,7 +327,7 @@ const Ambassadors: React.FC = () => {
             border: '1px solid #22c55e20',
           }}>
             <p style={{ color: '#22c55e', fontSize: '0.75rem', fontWeight: 600, margin: 0 }}>
-              ⚡ Spots fill fast. The earlier you start, the higher you climb.
+              ⚡ {t('ambassadors.spotsFillFast', 'Spots fill fast. The earlier you start, the higher you climb.')}
             </p>
           </div>
           <Link
@@ -361,11 +361,11 @@ const Ambassadors: React.FC = () => {
         justifyContent: 'center',
       }}>
         {[
-          { key: 'all', label: 'All', color: '#22d3ee' },
-          { key: 'ambassador', label: '🏛️ Ambassadors', color: REFERRAL_TIER_COLORS.ambassador },
-          { key: 'consul', label: '⚖️ Consuls', color: REFERRAL_TIER_COLORS.consul },
-          { key: 'recruiter', label: '📢 Recruiters', color: REFERRAL_TIER_COLORS.recruiter },
-          { key: 'scout', label: '🔍 Scouts', color: REFERRAL_TIER_COLORS.scout },
+          { key: 'all', label: t('common.all', 'All'), color: '#22d3ee' },
+          { key: 'ambassador', label: '🏛️ ' + t('ambassadors.ambassadors', 'Ambassadors'), color: REFERRAL_TIER_COLORS.ambassador },
+          { key: 'consul', label: '⚖️ ' + t('ambassadors.consuls', 'Consuls'), color: REFERRAL_TIER_COLORS.consul },
+          { key: 'recruiter', label: '📢 ' + t('ambassadors.recruiters', 'Recruiters'), color: REFERRAL_TIER_COLORS.recruiter },
+          { key: 'scout', label: '🔍 ' + t('ambassadors.scouts', 'Scouts'), color: REFERRAL_TIER_COLORS.scout },
         ].map(chip => (
           <button
             key={chip.key}
@@ -398,9 +398,9 @@ const Ambassadors: React.FC = () => {
           flexWrap: 'wrap',
           justifyContent: 'center',
         }}>
-          <span style={{ color: '#4b5563', fontSize: '0.7rem', alignSelf: 'center', marginRight: '0.25rem' }}>Source:</span>
+          <span style={{ color: '#4b5563', fontSize: '0.7rem', alignSelf: 'center', marginRight: '0.25rem' }}>{t('ambassadors.source', 'Source:')}</span>
           {[
-            { key: 'all', label: 'All Sources', color: '#6b7280' },
+            { key: 'all', label: t('ambassadors.allSources', 'All Sources'), color: '#6b7280' },
             ...Array.from(globalSourceCounts.entries()).map(([src, count]) => ({
               key: src,
               label: `${SOURCE_META[src]?.icon || ''} ${SOURCE_META[src]?.label || src} (${count})`,
@@ -571,11 +571,11 @@ const Ambassadors: React.FC = () => {
                         color: '#6b7280',
                       }}>
                         <span>
-                          <strong style={{ color: tierColor }}>{amb.referral_count}</strong> referrals
+                          <strong style={{ color: tierColor }}>{amb.referral_count}</strong> {t('ambassadors.referrals', 'referrals')}
                         </span>
                         {amb.linked_kingdom && (
                           <span>
-                            Kingdom <strong style={{ color: '#fff' }}>{amb.linked_kingdom}</strong>
+                            {t('common.kingdom', 'Kingdom')} <strong style={{ color: '#fff' }}>{amb.linked_kingdom}</strong>
                           </span>
                         )}
                         {amb.linked_tc_level && (

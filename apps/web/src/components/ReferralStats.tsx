@@ -193,8 +193,8 @@ const ReferralStats: React.FC = () => {
           const tierDescriptions: Record<ReferralTier, string> = {
             scout: 'First badge earned. You\'re on the radar.',
             recruiter: 'Proven recruiter. Your kingdom notices.',
-            consul: 'Unlocks Consul Discord role. Respected voice.',
-            ambassador: 'Top tier. Ambassador Discord role + recognition.',
+            consul: 'Unlocks Consul Discord role. Recognized voice in the community.',
+            ambassador: 'Top tier. Ambassador role + badge, priority support, and #ambassadors-lounge access.',
           };
           return (
             <SmartTooltip
