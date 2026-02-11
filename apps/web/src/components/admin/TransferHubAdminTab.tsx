@@ -81,7 +81,7 @@ interface TransferHubStats {
   totalProfileViews: number;
 }
 
-type SubTab = 'overview' | 'editors' | 'funds' | 'profiles';
+type SubTab = 'overview' | 'editors' | 'co-editors' | 'funds' | 'profiles';
 
 // =============================================
 // CONSTANTS
@@ -257,6 +257,7 @@ export const TransferHubAdminTab: React.FC = () => {
   const subTabs: { id: SubTab; label: string; icon: string }[] = [
     { id: 'overview', label: 'Overview', icon: '📊' },
     { id: 'editors', label: 'Editor Claims', icon: '👑' },
+    { id: 'co-editors', label: 'Co-Editors', icon: '🤝' },
     { id: 'funds', label: 'Kingdom Funds', icon: '💰' },
     { id: 'profiles', label: 'Transfer Profiles', icon: '🔄' },
   ];
@@ -309,7 +310,9 @@ export const TransferHubAdminTab: React.FC = () => {
       ) : subTab === 'overview' ? (
         <OverviewTab stats={stats} />
       ) : subTab === 'editors' ? (
-        <EditorsTab editors={editors} timeAgo={timeAgo} />
+        <EditorsTab editors={editors.filter(e => e.role === 'editor')} timeAgo={timeAgo} />
+      ) : subTab === 'co-editors' ? (
+        <CoEditorsTab editors={editors.filter(e => e.role === 'co-editor')} timeAgo={timeAgo} />
       ) : subTab === 'funds' ? (
         <FundsTab funds={funds} timeAgo={timeAgo} />
       ) : subTab === 'profiles' ? (
@@ -527,6 +530,74 @@ const EditorsTab: React.FC<{ editors: EditorClaim[]; timeAgo: (d: string | null)
                 >Open in New Tab</button>
               </div>
             )}
+
+            {/* Timeline */}
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem', fontSize: '0.65rem', color: '#4b5563' }}>
+              {editor.activated_at && <span>Activated {timeAgo(editor.activated_at)}</span>}
+              {editor.last_active_at && <span>Last active {timeAgo(editor.last_active_at)}</span>}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+const CoEditorsTab: React.FC<{ editors: EditorClaim[]; timeAgo: (d: string | null) => string }> = ({ editors, timeAgo }) => {
+  if (editors.length === 0) {
+    return <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>No co-editors yet</div>;
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+        {editors.length} co-editor{editors.length !== 1 ? 's' : ''} · {editors.filter(e => e.status === 'pending').length} pending · {editors.filter(e => e.status === 'active').length} active
+      </div>
+      {editors.map(editor => {
+        const sc = STATUS_COLORS[editor.status] ?? { bg: '#eab30815', border: '#eab30840', text: '#eab308' };
+        return (
+          <div key={editor.id} style={{
+            backgroundColor: '#111116',
+            borderRadius: '10px',
+            border: '1px solid #2a2a2a',
+            padding: '1rem',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                  <span style={{ color: '#fff', fontWeight: 600, fontSize: '0.9rem' }}>{editor.linked_username || editor.username}</span>
+                  <span style={{
+                    padding: '0.1rem 0.4rem',
+                    backgroundColor: sc.bg,
+                    border: `1px solid ${sc.border}`,
+                    borderRadius: '4px',
+                    fontSize: '0.65rem',
+                    fontWeight: 600,
+                    color: sc.text,
+                    textTransform: 'capitalize',
+                  }}>
+                    {editor.status}
+                  </span>
+                  <span style={{
+                    padding: '0.1rem 0.4rem',
+                    backgroundColor: '#a855f715',
+                    border: '1px solid #a855f740',
+                    borderRadius: '4px',
+                    fontSize: '0.65rem',
+                    fontWeight: 600,
+                    color: '#a855f7',
+                  }}>
+                    Co-Editor
+                  </span>
+                </div>
+                <div style={{ display: 'flex', gap: '0.75rem', fontSize: '0.7rem', color: '#6b7280' }}>
+                  <span>Kingdom <strong style={{ color: '#22d3ee' }}>K{editor.kingdom_number}</strong></span>
+                  {editor.linked_kingdom && <span>Home: K{editor.linked_kingdom}</span>}
+                  {editor.linked_tc_level && <span>TC{editor.linked_tc_level > 30 ? '30+' : editor.linked_tc_level}</span>}
+                  <span>Nominated {timeAgo(editor.nominated_at)}</span>
+                </div>
+              </div>
+            </div>
 
             {/* Timeline */}
             <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem', fontSize: '0.65rem', color: '#4b5563' }}>
