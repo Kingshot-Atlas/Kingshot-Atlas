@@ -13,6 +13,8 @@ i18n
       en: { translation: en },
       es: { translation: es },
     },
+    supportedLngs: ['en', 'es'],
+    nonExplicitSupportedLngs: true, // es-MX, es-419, en-US etc. map to 'es', 'en'
     fallbackLng: 'en',
     interpolation: {
       escapeValue: false, // React already escapes

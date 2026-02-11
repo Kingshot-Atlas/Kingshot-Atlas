@@ -832,6 +832,9 @@ const Header: React.FC = () => {
             Players
           </Link> */}
           
+          {/* Notification Bell - only for logged in users */}
+          {user && <NotificationBell />}
+
           {/* Language Switcher */}
           <div ref={langMenuRef} style={{ position: 'relative' }}>
             <button
@@ -908,9 +911,6 @@ const Header: React.FC = () => {
               </div>
             )}
           </div>
-
-          {/* Notification Bell - only for logged in users */}
-          {user && <NotificationBell />}
           
           <div style={{ position: 'relative' }}>
             {user ? (
