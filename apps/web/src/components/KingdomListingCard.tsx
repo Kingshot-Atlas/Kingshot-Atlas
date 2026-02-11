@@ -273,7 +273,9 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
   const scoreTierColor = SCORE_TIER_COLORS[scoreTier] || '#6b7280';
   const isGold = fundTier === 'gold';
   const isSilver = fundTier === 'silver';
+  const isBronze = fundTier === 'bronze';
   const isPremium = fundTier !== 'standard';
+  const hasWrapper = isGold || isSilver || isBronze;
 
   // Check if user can fund this kingdom (only their own kingdom)
   const canFundKingdom = profile?.linked_kingdom === kingdom.kingdom_number;
@@ -367,17 +369,17 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
     }
   };
 
-  // Gold shimmer border uses a wrapper approach
+  // Premium tiers (Gold/Silver/Bronze) use a wrapper approach for shimmer borders
   const cardContent = (
     <div
-      {...(!isGold ? { id: `listing-${kingdom.kingdom_number}` } : {})}
+      {...(!hasWrapper ? { id: `listing-${kingdom.kingdom_number}` } : {})}
       style={{
         position: 'relative',
         backgroundColor: colors.surface,
-        borderRadius: isGold ? '12px' : '14px',
+        borderRadius: hasWrapper ? '12px' : '14px',
         overflow: 'hidden',
-        ...(!isGold ? { scrollMarginTop: '80px' } : {}),
-        ...(isGold ? {} : {
+        ...(!hasWrapper ? { scrollMarginTop: '80px' } : {}),
+        ...(hasWrapper ? {} : {
           border: highlighted
             ? `2px solid ${colors.primary}`
             : `${borderWidth}px solid ${borderColor}`,
@@ -1104,7 +1106,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
     </div>
   );
 
-  // Gold cards get a full-border shimmer wrapper
+  // Gold cards get a full-border shimmer wrapper + glow
   if (isGold) {
     return (
       <div
@@ -1120,6 +1122,54 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
             ? '0 0 28px #fbbf2430, 0 0 48px #fbbf2415, 0 4px 16px rgba(0,0,0,0.4)'
             : '0 0 14px #fbbf2420, 0 2px 8px rgba(0,0,0,0.3)',
           transition: 'box-shadow 0.3s ease',
+        }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        {cardContent}
+      </div>
+    );
+  }
+
+  // Silver cards get a shimmer border + glow (like Gold but silver)
+  if (isSilver) {
+    return (
+      <div
+        id={`listing-${kingdom.kingdom_number}`}
+        style={{
+          padding: '2px',
+          borderRadius: '14px',
+          scrollMarginTop: '80px',
+          background: 'linear-gradient(135deg, #c0c0c0, #a8a8a8, #d4d4d4, #8e8e8e, #c0c0c0, #a8a8a8, #c0c0c0)',
+          backgroundSize: '300% 300%',
+          animation: 'goldShimmer 5s ease-in-out infinite',
+          boxShadow: isHovered
+            ? '0 0 24px #c0c0c025, 0 0 40px #c0c0c012, 0 4px 16px rgba(0,0,0,0.4)'
+            : '0 0 10px #c0c0c018, 0 2px 8px rgba(0,0,0,0.3)',
+          transition: 'box-shadow 0.3s ease',
+        }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        {cardContent}
+      </div>
+    );
+  }
+
+  // Bronze cards get a shimmer border (no glow)
+  if (isBronze) {
+    return (
+      <div
+        id={`listing-${kingdom.kingdom_number}`}
+        style={{
+          padding: '2px',
+          borderRadius: '14px',
+          scrollMarginTop: '80px',
+          background: 'linear-gradient(135deg, #cd7f32, #b87333, #da8a45, #a0682d, #cd7f32, #b87333, #cd7f32)',
+          backgroundSize: '300% 300%',
+          animation: 'goldShimmer 6s ease-in-out infinite',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+          transition: 'all 0.3s ease',
         }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
