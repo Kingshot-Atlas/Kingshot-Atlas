@@ -3,6 +3,16 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-12 17:45 | Ops Lead | COMPLETED
+Task: SEO Content Expansion — Rankings FAQ Rich Snippets + hreflang Tags for 9 Languages
+Files: _middleware.ts, useStructuredData.ts, Leaderboards.tsx
+Changes:
+1. **Rankings FAQ structured data** — Added 5 FAQ items targeting "best kingdoms", "kingdom rankings", "S-tier" featured snippets. Dual injection: client-side via `useStructuredData` FAQPage hook in Leaderboards.tsx + server-side via `_middleware.ts` JSON-LD for bots.
+2. **hreflang tags for all 9 languages** — Injected `<link rel="alternate" hreflang="xx">` for EN/ES/FR/ZH/DE/KO/JA/AR/TR + `x-default` in middleware HeadInjector. All pointing to canonical URL (SPA with client-side detection). Corrected original suggestion which only listed 4 languages.
+3. **Pre-task verification** — Confirmed Rankings page had only BreadcrumbList (no FAQ), zero hreflang tags in codebase, and 9 supported languages (not 4). Skipped GSC API integration (requires external OAuth setup) and kingdom comparison static pages (low ROI for SPA architecture).
+4. **Deployed to production** — Build passes. 4 files changed, 58 insertions. Pushed to main.
+Result: Rankings page now eligible for Google FAQ featured snippets. All bot-served pages signal 9-language availability to search engines.
+
 ## 2026-02-12 17:15 | Product Engineer | COMPLETED
 Task: Transfer Hub UX Polish — Loading Skeletons + Listing Freshness Indicator
 Files: RecruiterDashboard.tsx, KingdomListingCard.tsx

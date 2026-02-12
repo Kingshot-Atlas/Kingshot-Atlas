@@ -272,10 +272,11 @@
 | SEO Schema Markup | ✅ Live | Ops | WebApplication, Organization, WebSite w/ SearchAction in index.html (2026-02-05) |
 | SEO Keyword Optimization | ✅ Live | Ops | Title tags, meta descriptions optimized for 13 target keywords (rankings, transfer, scouting, recruiting, kvk history, best kingdom). All pages have useMetaTags + useStructuredData breadcrumbs (2026-02-10) |
 | SEO Redirect Fixes | ✅ Live | Ops | 301 redirects for /leaderboards→/rankings, /transfer-board→/transfer-hub, /pro→/support, /upgrade→/support. Fixes GSC "Page with redirect" (2026-02-10) |
-| SEO FAQ Rich Snippets | ✅ Live | Ops | 12 FAQ items in About page JSON-LD targeting transfer, scouting, recruiting, KvK keywords (2026-02-10) |
+| SEO FAQ Rich Snippets | ✅ Live | Ops | About page: 12 FAQ items. Rankings page: 5 FAQ items targeting "best kingdoms", "S-tier", "kingdom rankings" featured snippets. Dual injection: client-side useStructuredData + middleware edge-side JSON-LD for bots (2026-02-12) |
 | SEO Crawl Budget Optimization | ✅ Live | Ops | robots.txt disallows /admin, /auth, /profile, /components, legacy URLs (2026-02-10) |
 | Prerendering Strategy | 📄 Documented | Ops | `/docs/SEO_PRERENDERING_STRATEGY.md` - Cloudflare Workers roadmap (2026-02-05) |
-| Cloudflare Prerender Middleware | ✅ Ready | Ops | `functions/_middleware.ts` - Bot detection for prerender.io (2026-02-05) |
+| Cloudflare Prerender Middleware | ✅ Live | Ops | `functions/_middleware.ts` — Two-tier: prerender.io if PRERENDER_TOKEN set, else free HTMLRewriter edge-side meta injection for all bot-served pages (2026-02-12) |
+| SEO hreflang Tags | ✅ Live | Ops | `<link rel="alternate" hreflang>` for all 9 languages (EN/ES/FR/ZH/DE/KO/JA/AR/TR) + x-default. Injected via middleware HeadInjector for bot-served pages. SPA client-side detection pattern (2026-02-12) |
 | Google Search Console Guide | 📄 Documented | Ops | `/docs/GOOGLE_SEARCH_CONSOLE_SETUP.md` - GSC verification + sitemap submission (2026-02-05) |
 | Primary Use Case SEO | ✅ Live | Ops | Keywords: Transfer Events, Kingdom Rankings, KvK Event (2026-02-05) |
 
