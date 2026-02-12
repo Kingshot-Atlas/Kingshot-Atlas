@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { discordService } from '../services/discordService';
 import { useToast } from './Toast';
 
@@ -15,12 +16,13 @@ const LinkDiscordAccount: React.FC<LinkDiscordAccountProps> = ({
   onUnlink,
   isDiscordAuth = false
 }) => {
+  const { t } = useTranslation();
   const { showToast } = useToast();
   const [isUnlinking, setIsUnlinking] = useState(false);
 
   const handleLinkDiscord = () => {
     if (!discordService.isConfigured()) {
-      showToast('Discord integration is not configured yet', 'error');
+      showToast(t('discord.notConfigured', 'Discord integration is not configured yet'), 'error');
       return;
     }
     
@@ -38,10 +40,10 @@ const LinkDiscordAccount: React.FC<LinkDiscordAccountProps> = ({
     setIsUnlinking(false);
     
     if (result.success) {
-      showToast('Discord account unlinked', 'success');
+      showToast(t('discord.accountUnlinked', 'Discord account unlinked'), 'success');
       onUnlink?.();
     } else {
-      showToast(result.error || 'Failed to unlink Discord', 'error');
+      showToast(result.error || t('discord.unlinkFailed', 'Failed to unlink Discord'), 'error');
     }
   };
 
@@ -56,7 +58,7 @@ const LinkDiscordAccount: React.FC<LinkDiscordAccountProps> = ({
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem' }}>
         <h3 style={{ color: '#fff', fontSize: '1rem', fontWeight: '600', margin: 0 }}>
-          Discord Account
+          {t('discord.title', 'Discord Account')}
         </h3>
       </div>
 
@@ -93,15 +95,15 @@ const LinkDiscordAccount: React.FC<LinkDiscordAccountProps> = ({
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
                 </svg>
-                Connected
+                {t('discord.connected', 'Connected')}
               </div>
             </div>
           </div>
           
           <p style={{ color: '#6b7280', fontSize: '0.8rem', marginBottom: '0.75rem' }}>
             {isDiscordAuth
-              ? 'Connected via Discord sign-in. Eligible roles will be synced automatically.'
-              : 'Your Discord account is linked. Eligible roles will be synced automatically.'}
+              ? t('discord.connectedViaSignIn', 'Connected via Discord sign-in. Eligible roles will be synced automatically.')
+              : t('discord.accountLinked', 'Your Discord account is linked. Eligible roles will be synced automatically.')}
           </p>
           
           {!isDiscordAuth && (
@@ -121,25 +123,25 @@ const LinkDiscordAccount: React.FC<LinkDiscordAccountProps> = ({
                 opacity: isUnlinking ? 0.6 : 1
               }}
             >
-              {isUnlinking ? 'Unlinking...' : 'Unlink Discord'}
+              {isUnlinking ? t('discord.unlinking', 'Unlinking...') : t('discord.unlinkDiscord', 'Unlink Discord')}
             </button>
           )}
         </div>
       ) : (
         <div>
           <p style={{ color: '#9ca3af', fontSize: '0.85rem', marginBottom: '0.75rem' }}>
-            Link your Discord account to receive roles based on your Atlas achievements:
+            {t('discord.linkDesc', 'Link your Discord account to receive roles based on your Atlas achievements:')}
           </p>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#6b7280', fontSize: '0.8rem' }}>
-              <span style={{ color: '#FF6B8A' }}>*</span> Atlas Supporter role for subscribers
+              <span style={{ color: '#FF6B8A' }}>*</span> {t('discord.supporterRole', 'Atlas Supporter role for subscribers')}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#6b7280', fontSize: '0.8rem' }}>
-              <span style={{ color: '#a855f7' }}>*</span> Atlas Recruiter role for affiliates
+              <span style={{ color: '#a855f7' }}>*</span> {t('discord.recruiterRole', 'Atlas Recruiter role for affiliates')}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#6b7280', fontSize: '0.8rem' }}>
-              <span style={{ color: '#f97316' }}>*</span> Atlas Archivist role for top contributors
+              <span style={{ color: '#f97316' }}>*</span> {t('discord.archivistRole', 'Atlas Archivist role for top contributors')}
             </div>
           </div>
           
@@ -164,7 +166,7 @@ const LinkDiscordAccount: React.FC<LinkDiscordAccountProps> = ({
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
               <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
             </svg>
-            Link Discord Account
+            {t('discord.linkDiscordAccount', 'Link Discord Account')}
           </button>
         </div>
       )}

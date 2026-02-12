@@ -205,17 +205,18 @@ const getAuthProvider = (user: { app_metadata?: { provider?: string; providers?:
 // Fallback for the "user logged in but profile not loaded" race condition.
 // After 8 seconds, offers a retry instead of spinning forever.
 const ProfileLoadingFallback: React.FC = () => {
+  const { t } = useTranslation();
   const [timedOut, setTimedOut] = useState(false);
   useEffect(() => {
-    const t = setTimeout(() => setTimedOut(true), 8000);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setTimedOut(true), 8000);
+    return () => clearTimeout(timer);
   }, []);
 
   if (timedOut) {
     return (
       <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '1.5rem', padding: '2rem' }}>
         <div style={{ color: '#9ca3af', fontSize: '1rem', textAlign: 'center' }}>
-          Profile is taking a while to load.
+          {t('profile.profileSlowLoad', 'Profile is taking a while to load.')}
         </div>
         <button
           onClick={() => window.location.reload()}
@@ -229,7 +230,7 @@ const ProfileLoadingFallback: React.FC = () => {
             cursor: 'pointer'
           }}
         >
-          Reload Page
+          {t('profile.reloadPage', 'Reload Page')}
         </button>
       </div>
     );
@@ -237,7 +238,7 @@ const ProfileLoadingFallback: React.FC = () => {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ color: '#6b7280' }}>Loading profile...</div>
+      <div style={{ color: '#6b7280' }}>{t('profile.loadingProfile', 'Loading profile...')}</div>
     </div>
   );
 };
@@ -245,7 +246,7 @@ const ProfileLoadingFallback: React.FC = () => {
 const Profile: React.FC = () => {
   const { t } = useTranslation();
   const { userId } = useParams<{ userId?: string }>();
-  useDocumentTitle(userId ? 'User Profile' : 'My Profile');
+  useDocumentTitle(userId ? t('profile.publicProfile', 'User Profile') : t('common.myProfile', 'My Profile'));
   const { user, profile, loading, updateProfile, refreshLinkedPlayer } = useAuth();
   const { tierName, isSupporter, isAdmin } = usePremium();
   const { showToast } = useToast();
@@ -279,7 +280,7 @@ const Profile: React.FC = () => {
     if (!hasShownWelcome && profile && !userId && isRandomUsername(profile.username)) {
       const welcomeKey = `atlas_welcomed_${profile.id}`;
       if (!localStorage.getItem(welcomeKey)) {
-        showToast(`Welcome to Atlas, ${profile.username}! 🌍`, 'info');
+        showToast(t('profile.welcomeToast', 'Welcome to Atlas, {{name}}! 🌍', { name: profile.username }), 'info');
         localStorage.setItem(welcomeKey, 'true');
         setHasShownWelcome(true);
       }
@@ -409,11 +410,11 @@ const Profile: React.FC = () => {
         const xNum = parseInt(profileCoordX, 10);
         const yNum = parseInt(profileCoordY, 10);
         if (profileCoordX.trim() && (isNaN(xNum) || xNum < 0 || xNum > 1199)) {
-          showToast('X coordinate must be between 0 and 1199', 'error');
+          showToast(t('profile.coordXError', 'X coordinate must be between 0 and 1199'), 'error');
           return;
         }
         if (profileCoordY.trim() && (isNaN(yNum) || yNum < 0 || yNum > 1199)) {
-          showToast('Y coordinate must be between 0 and 1199', 'error');
+          showToast(t('profile.coordYError', 'Y coordinate must be between 0 and 1199'), 'error');
           return;
         }
       }
@@ -430,9 +431,9 @@ const Profile: React.FC = () => {
     });
     if (result.success) {
       setIsEditing(false);
-      showToast('Profile saved successfully!', 'success');
+      showToast(t('profile.profileSaved', 'Profile saved successfully!'), 'success');
     } else {
-      showToast(`Failed to save profile: ${result.error || 'Unknown error'}`, 'error');
+      showToast(t('profile.profileSaveFailed', 'Failed to save profile: {{error}}', { error: result.error || 'Unknown error' }), 'error');
     }
   };
 
@@ -501,7 +502,7 @@ const Profile: React.FC = () => {
     if (!userId && profile) {
       return (
         <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ color: '#6b7280' }}>Loading profile...</div>
+          <div style={{ color: '#6b7280' }}>{t('profile.loadingProfile', 'Loading profile...')}</div>
         </div>
       );
     }
@@ -574,12 +575,12 @@ const Profile: React.FC = () => {
             marginBottom: '0.5rem',
             fontFamily: "'Cinzel', 'Times New Roman', serif"
           }}>
-            <span style={{ color: '#fff' }}>{isViewingOther ? 'PUBLIC' : 'MY'}</span>
-            <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>PROFILE</span>
+            <span style={{ color: '#fff' }}>{isViewingOther ? t('profile.publicProfile', 'PUBLIC') : 'MY'}</span>
+            <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>{t('profile.profileWord', 'PROFILE')}</span>
           </h1>
           {!isViewingOther && (
           <p style={{ color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.9rem', marginBottom: '0.75rem' }}>
-            Your command center for kingdom intel
+            {t('profile.commandCenter', 'Your command center for kingdom intel')}
           </p>
           )}
           {!isMobile && (
@@ -624,10 +625,10 @@ const Profile: React.FC = () => {
               <span style={{ fontSize: '1.25rem' }}>🔗</span>
               <div>
                 <div style={{ fontSize: isMobile ? '0.85rem' : '0.9rem', fontWeight: '600', color: '#fff' }}>
-                  Link your Kingshot account
+                  {t('profile.linkBannerTitle', 'Link your Kingshot account')}
                 </div>
                 <div style={{ fontSize: isMobile ? '0.7rem' : '0.75rem', color: '#9ca3af' }}>
-                  Unlock profile editing and show your in-game stats
+                  {t('profile.linkBannerDesc', 'Unlock profile editing and show your in-game stats')}
                 </div>
               </div>
             </div>
@@ -654,7 +655,7 @@ const Profile: React.FC = () => {
               {/* Alliance Tag, Language, Region — 3-column row */}
               <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: isMobile ? '0.75rem' : '1rem' }}>
                 <div>
-                  <label style={{ color: '#9ca3af', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>Alliance Tag (3 chars)</label>
+                  <label style={{ color: '#9ca3af', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>{t('profile.allianceTagLabel', 'Alliance Tag (3 chars)')}</label>
                   <input
                     type="text"
                     value={editForm.alliance_tag}
@@ -665,26 +666,26 @@ const Profile: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label style={{ color: '#9ca3af', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>Main Language</label>
+                  <label style={{ color: '#9ca3af', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>{t('profile.mainLanguageLabel', 'Main Language')}</label>
                   <select
                     value={editForm.language}
                     onChange={(e) => setEditForm({ ...editForm, language: e.target.value })}
                     style={selectStyle}
                   >
-                    <option value="">Select language</option>
+                    <option value="">{t('profile.selectLanguage', 'Select language')}</option>
                     {LANGUAGES.map(lang => (
                       <option key={lang} value={lang}>{lang}</option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label style={{ color: '#9ca3af', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>Region</label>
+                  <label style={{ color: '#9ca3af', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>{t('profile.regionLabel', 'Region')}</label>
                   <select
                     value={editForm.region}
                     onChange={(e) => setEditForm({ ...editForm, region: e.target.value })}
                     style={selectStyle}
                   >
-                    <option value="">Select region</option>
+                    <option value="">{t('profile.selectRegion', 'Select region')}</option>
                     {REGIONS.map(r => (
                       <option key={r} value={r}>{r}</option>
                     ))}
@@ -694,11 +695,11 @@ const Profile: React.FC = () => {
 
               {/* Bio */}
               <div>
-                <label style={{ color: '#9ca3af', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>Bio</label>
+                <label style={{ color: '#9ca3af', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>{t('profile.bioLabel', 'Bio')}</label>
                 <textarea
                   value={editForm.bio}
                   onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
-                  placeholder="Tell us about yourself..."
+                  placeholder={t('profile.bioPlaceholder', 'Tell us about yourself...')}
                   rows={3}
                   style={{
                     ...inputStyle,
@@ -726,8 +727,8 @@ const Profile: React.FC = () => {
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <div>
-                      <div style={{ color: '#fff', fontSize: '0.85rem', fontWeight: '500' }}>Show In-Game Coordinates</div>
-                      <div style={{ color: '#6b7280', fontSize: '0.7rem' }}>Let other Atlas users find you in-game</div>
+                      <div style={{ color: '#fff', fontSize: '0.85rem', fontWeight: '500' }}>{t('profile.showCoordinates', 'Show In-Game Coordinates')}</div>
+                      <div style={{ color: '#6b7280', fontSize: '0.7rem' }}>{t('profile.showCoordinatesDesc', 'Let other Atlas users find you in-game')}</div>
                     </div>
                   </div>
                   <div style={{
@@ -828,7 +829,7 @@ const Profile: React.FC = () => {
                     minHeight: '48px',
                   }}
                 >
-                  Save Profile
+                  {t('profile.saveProfile', 'Save Profile')}
                 </button>
                 <button
                   onClick={() => setIsEditing(false)}
@@ -894,7 +895,7 @@ const Profile: React.FC = () => {
                     color: '#6b7280',
                     marginTop: '0.25rem',
                   }}>
-                    Referred by <span style={{ color: '#a24cf3', fontWeight: '600' }}>{referredByUsername}</span>
+                    {t('profile.referredBy', 'Referred by')} <span style={{ color: '#a24cf3', fontWeight: '600' }}>{referredByUsername}</span>
                   </div>
                 )}
               </div>
@@ -916,7 +917,7 @@ const Profile: React.FC = () => {
                       if (viewedProfile?.linked_username) {
                         setIsEditing(true);
                       } else {
-                        showToast('Link your Kingshot account to unlock profile editing', 'info');
+                        showToast(t('profile.linkToEdit', 'Link your Kingshot account to unlock profile editing'), 'info');
                         scrollToLinkSection();
                       }
                     }}
@@ -1026,7 +1027,7 @@ const Profile: React.FC = () => {
                         color: getAuthProvider(user) === 'discord' ? '#5865F2' : '#4285f4',
                         fontWeight: '500'
                       }}>
-                        Signed in with {getAuthProvider(user) === 'discord' ? 'Discord' : 'Google'}
+                        {t('profile.signedInWith', 'Signed in with {{provider}}', { provider: getAuthProvider(user) === 'discord' ? 'Discord' : 'Google' })}
                       </span>
                     </div>
                   )}
@@ -1044,7 +1045,7 @@ const Profile: React.FC = () => {
                         {/* Unlink button */}
                         <button
                           onClick={async () => {
-                            if (confirm('Are you sure you want to unlink your Kingshot account?')) {
+                            if (confirm(t('profile.unlinkConfirm', 'Are you sure you want to unlink your Kingshot account?'))) {
                               if (updateProfile && user) {
                                 await updateProfile({
                                   ...viewedProfile,
@@ -1055,7 +1056,7 @@ const Profile: React.FC = () => {
                                   linked_tc_level: undefined,
                                   linked_last_synced: undefined,
                                 });
-                                showToast('Kingshot account unlinked', 'success');
+                                showToast(t('profile.kingshotUnlinked', 'Kingshot account unlinked'), 'success');
                                 // Remove Settler role from Discord (fire and forget)
                                 discordService.syncSettlerRole(user.id, false).catch(() => {});
                               }
@@ -1084,7 +1085,7 @@ const Profile: React.FC = () => {
                             transition: 'all 0.2s'
                           }}
                         >
-                          🔓 Unlink Kingshot
+                          🔓 {t('profile.unlinkKingshot', 'Unlink Kingshot')}
                         </button>
                         
                         {/* Refresh button */}
@@ -1098,7 +1099,7 @@ const Profile: React.FC = () => {
                               await refreshLinkedPlayer();
                               if (icon) icon.style.animation = 'none';
                               if (btn) btn.removeAttribute('disabled');
-                              showToast('Player data synced!', 'success');
+                              showToast(t('profile.playerDataSynced', 'Player data synced!'), 'success');
                             }}
                             id="refresh-sync-btn"
                             onMouseEnter={(e) => {
@@ -1124,7 +1125,7 @@ const Profile: React.FC = () => {
                               transition: 'all 0.2s'
                             }}
                           >
-                            <span id="refresh-icon">🔄</span> Refresh Kingshot
+                            <span id="refresh-icon">🔄</span> {t('profile.refreshKingshot', 'Refresh Kingshot')}
                           </button>
                         )}
                       </div>
@@ -1135,7 +1136,7 @@ const Profile: React.FC = () => {
                           color: '#6b7280',
                           fontStyle: 'italic'
                         }}>
-                          Last synced: {new Date(viewedProfile.linked_last_synced).toLocaleString()}
+                          {t('profile.lastSynced', 'Last synced: {{date}}', { date: new Date(viewedProfile.linked_last_synced).toLocaleString() })}
                         </span>
                       )}
                     </div>
@@ -1153,41 +1154,41 @@ const Profile: React.FC = () => {
                   {viewedProfile?.linked_kingdom ? (
                     <Link to={`/kingdom/${viewedProfile.linked_kingdom}`} style={{ textDecoration: 'none' }}>
                       <div style={{ padding: isMobile ? '0.5rem' : '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a', cursor: 'pointer', transition: 'border-color 0.2s', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                        <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Kingdom</div>
+                        <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>{t('profile.kingdom', 'Kingdom')}</div>
                         <div style={{ fontSize: isMobile ? '1rem' : '1.25rem', fontWeight: '700', color: '#fff' }}>{viewedProfile.linked_kingdom}</div>
                       </div>
                     </Link>
                   ) : (
                     <div style={{ padding: isMobile ? '0.5rem' : '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                      <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Kingdom</div>
+                      <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>{t('profile.kingdom', 'Kingdom')}</div>
                       <div style={{ fontSize: isMobile ? '1rem' : '1.25rem', fontWeight: '700', color: '#4a4a4a' }}>—</div>
                     </div>
                   )}
                   <div style={{ padding: isMobile ? '0.5rem' : '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Alliance</div>
+                    <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>{t('profile.alliance', 'Alliance')}</div>
                     <div style={{ fontSize: isMobile ? '1rem' : '1.25rem', fontWeight: '700', color: viewedProfile?.alliance_tag ? '#fff' : '#4a4a4a' }}>
                       {viewedProfile?.alliance_tag ? `[${viewedProfile.alliance_tag}]` : '—'}
                     </div>
                   </div>
                   <div style={{ padding: isMobile ? '0.5rem' : '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Player ID</div>
+                    <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>{t('profile.playerId', 'Player ID')}</div>
                     <div style={{ fontSize: isMobile ? '0.85rem' : '1.25rem', fontWeight: '700', color: viewedProfile?.linked_player_id ? '#fff' : '#4a4a4a' }}>{viewedProfile?.linked_player_id || '—'}</div>
                   </div>
                 </div>
                 {/* Row 2: TC Level, Language, Region */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: isMobile ? '0.5rem' : '1rem' }}>
                   <div style={{ padding: isMobile ? '0.5rem' : '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Town Center</div>
+                    <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>{t('profile.townCenter', 'Town Center')}</div>
                     <div style={{ fontSize: isMobile ? '1rem' : '1.25rem', fontWeight: '700', color: viewedProfile?.linked_tc_level ? '#fff' : '#4a4a4a' }}>{viewedProfile?.linked_tc_level ? formatTCLevel(viewedProfile.linked_tc_level) : '—'}</div>
                   </div>
                   <div style={{ padding: isMobile ? '0.5rem' : '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Language</div>
+                    <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>{t('profile.language', 'Language')}</div>
                     <div style={{ fontSize: isMobile ? '1rem' : '1.25rem', fontWeight: '700', color: viewedProfile?.language ? '#fff' : '#4a4a4a' }}>
                       {viewedProfile?.language || '—'}
                     </div>
                   </div>
                   <div style={{ padding: isMobile ? '0.5rem' : '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Region</div>
+                    <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>{t('profile.region', 'Region')}</div>
                     <div style={{ fontSize: isMobile ? '1rem' : '1.25rem', fontWeight: '700', color: viewedProfile?.region ? '#fff' : '#4a4a4a' }}>
                       {viewedProfile?.region || '—'}
                     </div>
@@ -1202,41 +1203,41 @@ const Profile: React.FC = () => {
                   {viewedProfile?.linked_kingdom ? (
                     <Link to={`/kingdom/${viewedProfile.linked_kingdom}`} style={{ textDecoration: 'none' }}>
                       <div style={{ padding: isMobile ? '0.5rem' : '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a', cursor: 'pointer', transition: 'border-color 0.2s', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                        <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Kingdom</div>
+                        <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>{t('profile.kingdom', 'Kingdom')}</div>
                         <div style={{ fontSize: isMobile ? '1rem' : '1.25rem', fontWeight: '700', color: '#fff' }}>{viewedProfile.linked_kingdom}</div>
                       </div>
                     </Link>
                   ) : (
                     <div style={{ padding: isMobile ? '0.5rem' : '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                      <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Kingdom</div>
+                      <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>{t('profile.kingdom', 'Kingdom')}</div>
                       <div style={{ fontSize: isMobile ? '1rem' : '1.25rem', fontWeight: '700', color: '#4a4a4a' }}>—</div>
                     </div>
                   )}
                   <div style={{ padding: isMobile ? '0.5rem' : '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Alliance</div>
+                    <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>{t('profile.alliance', 'Alliance')}</div>
                     <div style={{ fontSize: isMobile ? '1rem' : '1.25rem', fontWeight: '700', color: viewedProfile?.alliance_tag ? '#fff' : '#4a4a4a' }}>
                       {viewedProfile?.alliance_tag ? `[${viewedProfile.alliance_tag}]` : '—'}
                     </div>
                   </div>
                   <div style={{ padding: isMobile ? '0.5rem' : '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Player ID</div>
+                    <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>{t('profile.playerId', 'Player ID')}</div>
                     <div style={{ fontSize: isMobile ? '0.85rem' : '1.25rem', fontWeight: '700', color: viewedProfile?.linked_player_id ? '#fff' : '#4a4a4a' }}>{viewedProfile?.linked_player_id || '—'}</div>
                   </div>
                 </div>
                 {/* Row 2: TC Level, Language, Region */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: isMobile ? '0.5rem' : '1rem' }}>
                   <div style={{ padding: isMobile ? '0.5rem' : '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Town Center</div>
+                    <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>{t('profile.townCenter', 'Town Center')}</div>
                     <div style={{ fontSize: isMobile ? '1rem' : '1.25rem', fontWeight: '700', color: viewedProfile?.linked_tc_level ? '#fff' : '#4a4a4a' }}>{viewedProfile?.linked_tc_level ? formatTCLevel(viewedProfile.linked_tc_level) : '—'}</div>
                   </div>
                   <div style={{ padding: isMobile ? '0.5rem' : '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Language</div>
+                    <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>{t('profile.language', 'Language')}</div>
                     <div style={{ fontSize: isMobile ? '1rem' : '1.25rem', fontWeight: '700', color: viewedProfile?.language ? '#fff' : '#4a4a4a' }}>
                       {viewedProfile?.language || '—'}
                     </div>
                   </div>
                   <div style={{ padding: isMobile ? '0.5rem' : '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Region</div>
+                    <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>{t('profile.region', 'Region')}</div>
                     <div style={{ fontSize: isMobile ? '1rem' : '1.25rem', fontWeight: '700', color: viewedProfile?.region ? '#fff' : '#4a4a4a' }}>
                       {viewedProfile?.region || '—'}
                     </div>
@@ -1266,7 +1267,7 @@ const Profile: React.FC = () => {
                 fontSize: '0.95rem', 
                 color: '#fff', 
                 fontWeight: '600'
-              }}>About Me</span>
+              }}>{t('profile.aboutMe', 'About Me')}</span>
             </div>
             <p style={{ 
               color: '#d1d5db', 
@@ -1295,7 +1296,7 @@ const Profile: React.FC = () => {
                 fontSize: '0.95rem', 
                 color: '#fff', 
                 fontWeight: '600'
-              }}>In-Game Location</span>
+              }}>{t('profile.inGameLocation', 'In-Game Location')}</span>
             </div>
             <div style={{ 
               display: 'flex', 
@@ -1429,10 +1430,10 @@ const Profile: React.FC = () => {
             }}>
               <p style={{ color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.85rem', margin: 0, lineHeight: 1.5, textAlign: 'center' }}>
                 {isAdmin 
-                  ? 'You have full admin access to all features.'
+                  ? t('profile.adminAccess', 'You have full admin access to all features.')
                   : isSupporter 
-                  ? 'You have full access to Atlas Supporter features. Thanks for backing the project.'
-                  : 'Stop guessing. Get deeper insights, unlimited bot commands, and support the platform that helps you win.'}
+                  ? t('profile.supporterAccess', 'You have full access to Atlas Supporter features. Thanks for backing the project.')
+                  : t('profile.freeAccess', 'Stop guessing. Get deeper insights, unlimited bot commands, and support the platform that helps you win.')}
               </p>
               
               {isSupporter && !isAdmin ? (
@@ -1449,7 +1450,7 @@ const Profile: React.FC = () => {
                       if (directPortalUrl && directPortalUrl !== '/profile') {
                         window.location.href = directPortalUrl;
                       } else {
-                        alert('Unable to open subscription management. Please email support@ks-atlas.com for assistance.');
+                        alert(t('profile.portalError', 'Unable to open subscription management. Please email support@ks-atlas.com for assistance.'));
                       }
                     } finally {
                       setManagingSubscription(false);
@@ -1498,7 +1499,7 @@ const Profile: React.FC = () => {
                       WebkitTapHighlightColor: 'transparent'
                     }}
                   >
-                    Become an Atlas Supporter
+                    {t('profile.becomeSupporter', 'Become an Atlas Supporter')}
                   </Link>
                   <button
                     onClick={async () => {
@@ -1595,7 +1596,7 @@ const Profile: React.FC = () => {
         )}
         
         <div style={{ textAlign: 'center', marginTop: '2rem', paddingBottom: '1rem' }}>
-          <Link to="/" style={{ color: themeColor, textDecoration: 'none', fontSize: '0.8rem' }}>← Back to Home</Link>
+          <Link to="/" style={{ color: themeColor, textDecoration: 'none', fontSize: '0.8rem' }}>{t('profile.backToHome', '← Back to Home')}</Link>
         </div>
         </>)}
         </div>
