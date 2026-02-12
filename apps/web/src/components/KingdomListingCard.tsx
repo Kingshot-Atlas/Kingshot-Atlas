@@ -256,9 +256,11 @@ export interface KingdomListingCardProps {
   onApply?: (kingdomNumber: number) => void;
   onFund?: (kingdomNumber: number) => void;
   highlighted?: boolean;
+  isComparing?: boolean;
+  onToggleCompare?: (kingdomNumber: number) => void;
 }
 
-const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, reviewSummary, mode, matchScore, matchDetails, onApply, onFund, highlighted }) => {
+const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, reviewSummary, mode, matchScore, matchDetails, onApply, onFund, highlighted, isComparing, onToggleCompare }) => {
   const { t } = useTranslation();
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedDiscord, setCopiedDiscord] = useState(false);
@@ -967,6 +969,28 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
         alignItems: 'center',
         flexWrap: 'wrap',
       }}>
+        {onToggleCompare && (
+          <button
+            onClick={() => onToggleCompare(kingdom.kingdom_number)}
+            style={{
+              padding: '0.4rem 0.75rem',
+              backgroundColor: isComparing ? `${colors.primary}15` : 'transparent',
+              border: `1px solid ${isComparing ? `${colors.primary}40` : colors.border}`,
+              borderRadius: '8px',
+              color: isComparing ? colors.primary : colors.textMuted,
+              fontSize: '0.75rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.3rem',
+              minHeight: '44px',
+              transition: 'all 0.2s',
+              marginRight: 'auto',
+            }}
+          >
+            {isComparing ? '✓ Comparing' : '⚖️ Compare'}
+          </button>
+        )}
         <button
           onClick={handleCopyListingLink}
           style={{

@@ -534,6 +534,7 @@ const RecruiterDashboard: React.FC<{
   const [showCompare, setShowCompare] = useState(false);
   const [contributions, setContributions] = useState<Array<{ id: string; amount: number; created_at: string }>>([]);
   const [loadingContributions, setLoadingContributions] = useState(false);
+  const [listingViews, setListingViews] = useState(0);
   const [showOnboarding, setShowOnboarding] = useState(() => {
     return !localStorage.getItem('atlas_recruiter_onboarded');
   });
@@ -679,6 +680,15 @@ const RecruiterDashboard: React.FC<{
       const { data: usedData } = await supabase
         .rpc('get_used_invites', { p_kingdom_number: editor.kingdom_number });
       if (usedData != null) setUsedInvites(usedData);
+
+      // Get listing views (last 30 days) for analytics
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+      const { count: viewCount } = await supabase
+        .from('transfer_profile_views')
+        .select('id', { count: 'exact', head: true })
+        .eq('viewer_kingdom_number', editor.kingdom_number)
+        .gte('viewed_at', thirtyDaysAgo);
+      setListingViews(viewCount || 0);
     } catch {
       // silent
     } finally {
@@ -958,8 +968,67 @@ const RecruiterDashboard: React.FC<{
     }
   };
 
+  const handleCoEditorRequest = async (memberId: string, memberUserId: string, approve: boolean) => {
+    if (!supabase || !editorInfo) return;
+    setProcessingRequest(memberId);
+    try {
+      if (approve) {
+        await supabase
+          .from('kingdom_editors')
+          .update({ status: 'active', activated_at: new Date().toISOString() })
+          .eq('id', memberId);
+        await supabase.from('notifications').insert({
+          user_id: memberUserId,
+          type: 'co_editor_invite',
+          title: 'Co-Editor Request Approved',
+          message: `Your co-editor request for Kingdom ${editorInfo.kingdom_number} has been approved! You now have access to the Recruiter Dashboard.`,
+          link: '/transfer-hub',
+          metadata: { kingdom_number: editorInfo.kingdom_number, action: 'approved' },
+        });
+        await supabase.from('editor_audit_log').insert({
+          editor_id: memberId,
+          kingdom_number: editorInfo.kingdom_number,
+          action: 'approve',
+          performed_by: user?.id,
+          target_user_id: memberUserId,
+          details: { source: 'recruiter_dashboard' },
+        });
+        showToast('Co-editor request approved!', 'success');
+      } else {
+        await supabase
+          .from('kingdom_editors')
+          .update({ status: 'inactive' })
+          .eq('id', memberId);
+        await supabase.from('notifications').insert({
+          user_id: memberUserId,
+          type: 'co_editor_invite',
+          title: 'Co-Editor Request Declined',
+          message: `Your co-editor request for Kingdom ${editorInfo.kingdom_number} has been declined by the editor.`,
+          link: '/transfer-hub',
+          metadata: { kingdom_number: editorInfo.kingdom_number, action: 'rejected' },
+        });
+        await supabase.from('editor_audit_log').insert({
+          editor_id: memberId,
+          kingdom_number: editorInfo.kingdom_number,
+          action: 'reject',
+          performed_by: user?.id,
+          target_user_id: memberUserId,
+          details: { source: 'recruiter_dashboard' },
+        });
+        showToast('Co-editor request declined.', 'success');
+      }
+      trackFeature('Co-Editor Request Response', { action: approve ? 'approve' : 'reject', kingdom: editorInfo.kingdom_number });
+      loadDashboard();
+    } catch {
+      showToast('Failed to process co-editor request.', 'error');
+    } finally {
+      setProcessingRequest(null);
+    }
+  };
+
   if (!user) return null;
 
+  const pendingCoEditorRequests = team.filter((t) => t.role === 'co-editor' && t.status === 'pending');
   const activeApps = applications.filter((a) => ['pending', 'viewed', 'interested'].includes(a.status));
   const approvedApps = applications.filter((a) => a.status === 'accepted');
   const closedApps = applications.filter((a) => ['declined', 'withdrawn', 'expired'].includes(a.status));
@@ -1246,7 +1315,7 @@ const RecruiterDashboard: React.FC<{
                    tab === 'browse' ? t('recruiter.browse', 'Browse') :
                    tab === 'profile' ? t('recruiter.profile', 'Profile') :
                    tab === 'team' ? t('recruiter.team', 'Team') :
-                   tab === 'invites' ? t('recruiter.coEditors', 'Co-Editors') : t('recruiter.fund', 'Fund')}
+                   tab === 'invites' ? (<>{t('recruiter.coEditors', 'Co-Editors')}{pendingCoEditorRequests.length > 0 && <span style={{ marginLeft: '0.3rem', backgroundColor: '#eab308', color: '#000', borderRadius: '50%', width: '16px', height: '16px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.55rem', fontWeight: 'bold' }}>{pendingCoEditorRequests.length}</span>}</>) : t('recruiter.fund', 'Fund')}
                 </button>
               ))}
             </div>
@@ -1254,6 +1323,33 @@ const RecruiterDashboard: React.FC<{
             {/* TAB: Inbox */}
             {activeTab === 'inbox' && (
               <div>
+                {/* Editor Analytics Stats */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
+                  gap: '0.5rem',
+                  marginBottom: '0.75rem',
+                }}>
+                  {[
+                    { label: 'Profile Views', value: listingViews, sub: 'last 30 days', color: '#ec4899', icon: '👁️' },
+                    { label: 'Applications', value: applications.length, sub: `${activeApps.length} active`, color: '#22d3ee', icon: '📨' },
+                    { label: 'Acceptance Rate', value: applications.length > 0 ? `${Math.round((approvedApps.length / applications.length) * 100)}%` : '—', sub: `${approvedApps.length} accepted`, color: '#22c55e', icon: '✓' },
+                    { label: 'Invites Sent', value: usedInvites, sub: `${Math.max(0, getInviteBudget().total - usedInvites)} remaining`, color: '#f97316', icon: '✉️' },
+                  ].map((stat, i) => (
+                    <div key={i} style={{
+                      backgroundColor: '#111116',
+                      borderRadius: '8px',
+                      padding: '0.5rem 0.6rem',
+                      border: '1px solid #1a1a1a',
+                      textAlign: 'center',
+                    }}>
+                      <div style={{ fontSize: '0.6rem', color: '#4b5563', marginBottom: '0.15rem' }}>{stat.icon} {stat.label}</div>
+                      <div style={{ fontSize: '1.1rem', fontWeight: 700, color: stat.color }}>{stat.value}</div>
+                      <div style={{ fontSize: '0.55rem', color: '#374151' }}>{stat.sub}</div>
+                    </div>
+                  ))}
+                </div>
+
                 {/* Filter Tabs */}
                 <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
                   <button
@@ -2325,39 +2421,70 @@ const RecruiterDashboard: React.FC<{
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.5rem' }}>
                         {coEditors.map((member) => (
                           <div key={member.id} style={{
-                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                             padding: '0.75rem',
-                            backgroundColor: '#0a0a0a',
+                            backgroundColor: member.status === 'pending' ? '#eab30808' : '#0a0a0a',
                             borderRadius: '8px',
-                            border: '1px solid #2a2a2a',
+                            border: `1px solid ${member.status === 'pending' ? '#eab30820' : '#2a2a2a'}`,
                           }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                              <Link
-                                to={`/profile/${member.user_id}`}
-                                style={{ color: '#fff', textDecoration: 'none', fontWeight: '600', fontSize: '0.85rem' }}
-                              >
-                                {member.linked_username || member.username || 'User'}
-                              </Link>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <Link
+                                  to={`/profile/${member.user_id}`}
+                                  style={{ color: '#fff', textDecoration: 'none', fontWeight: '600', fontSize: '0.85rem' }}
+                                >
+                                  {member.linked_username || member.username || 'User'}
+                                </Link>
+                                <span style={{
+                                  padding: '0.1rem 0.4rem',
+                                  backgroundColor: '#a855f715',
+                                  border: '1px solid #a855f730',
+                                  borderRadius: '4px',
+                                  fontSize: '0.6rem',
+                                  color: '#a855f7',
+                                  fontWeight: 'bold',
+                                  textTransform: 'uppercase',
+                                }}>
+                                  Co-Editor
+                                </span>
+                              </div>
                               <span style={{
-                                padding: '0.1rem 0.4rem',
-                                backgroundColor: '#a855f715',
-                                border: '1px solid #a855f730',
-                                borderRadius: '4px',
-                                fontSize: '0.6rem',
-                                color: '#a855f7',
-                                fontWeight: 'bold',
-                                textTransform: 'uppercase',
+                                color: member.status === 'active' ? '#22c55e' : member.status === 'pending' ? '#eab308' : '#6b7280',
+                                fontSize: '0.7rem',
+                                textTransform: 'capitalize',
                               }}>
-                                Co-Editor
+                                {member.status}
                               </span>
                             </div>
-                            <span style={{
-                              color: member.status === 'active' ? '#22c55e' : member.status === 'pending' ? '#eab308' : '#6b7280',
-                              fontSize: '0.7rem',
-                              textTransform: 'capitalize',
-                            }}>
-                              {member.status}
-                            </span>
+                            {member.status === 'pending' && editorInfo.role === 'editor' && (
+                              <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.5rem' }}>
+                                <button
+                                  onClick={() => handleCoEditorRequest(member.id, member.user_id, true)}
+                                  disabled={processingRequest === member.id}
+                                  style={{
+                                    flex: 1, padding: '0.4rem', backgroundColor: '#22c55e15',
+                                    border: '1px solid #22c55e40', borderRadius: '6px',
+                                    color: '#22c55e', fontSize: '0.75rem', fontWeight: '600',
+                                    cursor: processingRequest === member.id ? 'default' : 'pointer',
+                                    minHeight: '36px', opacity: processingRequest === member.id ? 0.5 : 1,
+                                  }}
+                                >
+                                  {processingRequest === member.id ? '...' : '✓ Approve'}
+                                </button>
+                                <button
+                                  onClick={() => handleCoEditorRequest(member.id, member.user_id, false)}
+                                  disabled={processingRequest === member.id}
+                                  style={{
+                                    flex: 1, padding: '0.4rem', backgroundColor: '#ef444415',
+                                    border: '1px solid #ef444440', borderRadius: '6px',
+                                    color: '#ef4444', fontSize: '0.75rem', fontWeight: '600',
+                                    cursor: processingRequest === member.id ? 'default' : 'pointer',
+                                    minHeight: '36px', opacity: processingRequest === member.id ? 0.5 : 1,
+                                  }}
+                                >
+                                  {processingRequest === member.id ? '...' : '✕ Decline'}
+                                </button>
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>

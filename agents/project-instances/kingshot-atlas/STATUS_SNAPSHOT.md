@@ -19,7 +19,7 @@
 | TypeScript | ✅ Clean | No type errors |
 | Accessibility | ✅ Enhanced | WCAG improvements, high contrast mode |
 | Sharing | ✅ Enhanced | PNG export, QR codes, embed codes, Discord formatting |
-| Discord Bot | ✅ Operational | Cloudflare Worker proxy bypasses IP ban. Settler role auto-sync every 30min. Dual-auth (JWT + API key) on all admin endpoints. Rate limited 30req/60s. Persistent telemetry to Supabase `bot_telemetry`. Observability dashboard in Admin. Auto-cleanup (30d retention). Discord webhook alerts on critical events. |
+| Discord Bot | ✅ Operational | Cloudflare Worker proxy bypasses IP ban. Settler + Supporter + Referral role auto-sync every 30min. Dual-auth (JWT + API key) on all admin endpoints. Rate limited 30req/60s. Persistent telemetry to Supabase `bot_telemetry`. Observability dashboard in Admin. Auto-cleanup (30d retention). Discord webhook alerts on critical events. |
 | SEO | ✅ Enhanced | Dynamic sitemap (1204 kingdoms live from Supabase), BreadcrumbList JSON-LD on all 11 public pages + kingdom profiles |
 | Codebase Health | ✅ Audited | Dead files removed, docs reorganized |
 

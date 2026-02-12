@@ -299,6 +299,8 @@
 | /link Command | ✅ Live | 2026-02-06 | Platform | Discord command linking users to ks-atlas.com/profile for Settler role |
 | Reconnection Retry | ✅ Live | 2026-02-06 | Platform | Exponential backoff retry for login failures + session invalidation recovery |
 | Stripe Role Sync | ✅ Verified | 2026-02-06 | Platform | Confirmed: Supporter/Recruiter roles sync on subscription change via stripe.py |
+| Supporter Role Periodic Sync | ✅ Live | 2026-02-11 | Platform | `syncSupporterRoles()` every 30min in bot.js. API: `/api/v1/bot/supporter-users`. Adds/removes Supporter role based on `subscription_tier=supporter` + `discord_id`. |
+| Discord Unlink Bug Fix | ✅ Live | 2026-02-11 | Platform | Hid unlink button for Discord-auth users (AuthContext auto-repopulates discord_id from OAuth metadata). `isDiscordAuth` prop on LinkDiscordAccount. |
 | Gateway Rate-Limit Fix | ✅ Live | 2026-02-06 | Platform | Login-first architecture, health always 200, internal retry with backoff (2/4/8/16/32min) |
 | Health Diagnostics | ✅ Live | 2026-02-06 | Platform | /health exposes disconnect codes, token validation, gateway status, login attempts |
 | Token Pre-Validation | ✅ Live | 2026-02-06 | Platform | Raw fetch to /users/@me and /gateway/bot before discord.js login |
@@ -433,6 +435,7 @@
 | Transfer Hub — Editor Role Management | ✅ Built | Admin action buttons (Activate/Suspend/Remove) on editor & co-editor cards. Promote to Editor on co-editors. Bulk deactivate 30d+ inactive. Confirmation dialogs for destructive actions. Notifications on every status change. (2026-02-11) |
 | Transfer Hub — Co-Editor Self-Nomination | ✅ Built | "Become a Co-Editor" CTA on EditorClaiming when kingdom has active editor. No endorsements required. Max 2 co-editors/kingdom enforced. Slot counter shown. Editor approval flow via notifications. TC20+ required. (2026-02-11) |
 | Transfer Hub — Co-Editors Admin Tab | ✅ Built | Dedicated 🤝 Co-Editors sub-tab in Transfer Hub admin. No endorsement data shown. Purple badge (#a855f7). Separated from Editor Claims tab. (2026-02-11) |
+| Transfer Hub — Editor Role Enhancements | ✅ Built | Approve/Reject buttons for pending co-editor requests in RecruiterDashboard. Pending count badge on Co-Editors tab. Co-editor request notification preference. "Managed by [editor]" on kingdom profile header. RLS for co-editor self-nomination. Rate limit (1/user/day). Admin audit log table. Auto-expire pending requests after 7 days (pg_cron). Removal cascade trigger. (2026-02-11) |
 | Kingdom Ambassador Program | 🚧 Planned | Full spec at `/docs/KINGDOM_AMBASSADOR_PROGRAM.md` — 3-phase rollout, 1 per kingdom, referral tracking |
 | FilterPanel Integration | 🚧 Planned | Component exists, needs wiring to KingdomDirectory |
 | Mobile Responsive Pass | ✅ Live | 2026-02-05 - Touch targets fixed to 44px min on Header, KingdomProfile, CompareKingdoms, Leaderboards, KingdomCard, KingdomReviews, KvKHistoryTable, SupportAtlas, Profile |

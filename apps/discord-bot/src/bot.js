@@ -71,6 +71,12 @@ let settlerSyncTimer = null;
 let settlerSyncInitTimeout = null;
 let lastSettlerSync = null;
 
+// Supporter role — assigned to Atlas Supporter subscribers who linked Discord
+const SUPPORTER_ROLE_ID = process.env.DISCORD_SUPPORTER_ROLE_ID || '';
+let supporterSyncTimer = null;
+let supporterSyncInitTimeout = null;
+let lastSupporterSync = null;
+
 // Referral tier roles — Consul (10+ referrals) and Ambassador (20+ referrals)
 const CONSUL_ROLE_ID = process.env.DISCORD_CONSUL_ROLE_ID || '1470500049141235926';
 const AMBASSADOR_ROLE_ID = process.env.DISCORD_AMBASSADOR_ROLE_ID || '1466442919304237207';
@@ -160,6 +166,7 @@ const healthServer = http.createServer(async (req, res) => {
         lastCommandError: lastCommandError,
         lastSettlerSync: lastSettlerSync,
         lastReferralSync: lastReferralSync,
+        lastSupporterSync: lastSupporterSync,
       },
       process: {
         uptime: Math.floor(uptime),
@@ -397,6 +404,17 @@ client.on('ready', async () => {
   referralSyncInitTimeout = setTimeout(() => syncReferralRoles(), 90_000);
   referralSyncTimer = setInterval(() => syncReferralRoles(), SETTLER_SYNC_INTERVAL);
   console.log(`🏛️ Referral role sync scheduled (Consul/Ambassador, every ${SETTLER_SYNC_INTERVAL / 60000} min)`);
+
+  // Start Supporter role sync (first run after 120s, then every 30 min)
+  if (SUPPORTER_ROLE_ID) {
+    if (supporterSyncInitTimeout) clearTimeout(supporterSyncInitTimeout);
+    if (supporterSyncTimer) clearInterval(supporterSyncTimer);
+    supporterSyncInitTimeout = setTimeout(() => syncSupporterRoles(), 120_000);
+    supporterSyncTimer = setInterval(() => syncSupporterRoles(), SETTLER_SYNC_INTERVAL);
+    console.log(`💎 Supporter role sync scheduled (every ${SETTLER_SYNC_INTERVAL / 60000} min)`);
+  } else {
+    console.log('⚠️ DISCORD_SUPPORTER_ROLE_ID not set — Supporter role sync disabled');
+  }
 
   // Rotating bot presence (guard against duplicate timers on reconnect)
   if (presenceTimer) clearInterval(presenceTimer);
@@ -1149,6 +1167,87 @@ async function syncReferralRoles() {
     console.log(`🏛️ Referral sync done in ${elapsed}ms: ${changes} role changes`);
   } catch (err) {
     console.error('🏛️ Referral sync error:', err.message);
+  }
+}
+
+/**
+ * Periodic sync: fetch all supporter subscribers from API, assign Supporter
+ * Discord role to eligible guild members, remove from those who lost eligibility.
+ * Runs on the same interval as Settler sync.
+ */
+async function syncSupporterRoles() {
+  if (!botReady || !client.guilds.cache.size) {
+    console.log('💎 Supporter sync skipped (bot not ready)');
+    return;
+  }
+  if (!SUPPORTER_ROLE_ID) {
+    console.log('💎 Supporter sync skipped (DISCORD_SUPPORTER_ROLE_ID not set)');
+    return;
+  }
+
+  console.log('💎 Supporter role sync starting...');
+  const startTime = Date.now();
+
+  try {
+    const res = await fetch(`${config.apiUrl}/api/v1/bot/supporter-users`);
+    if (!res.ok) {
+      console.error(`💎 Supporter sync: API returned ${res.status}`);
+      return;
+    }
+    const data = await res.json();
+    const supporterUsers = data.users || [];
+    const supporterDiscordIds = new Set(supporterUsers.map(u => u.discord_id).filter(Boolean));
+
+    console.log(`💎 ${supporterDiscordIds.size} supporter users from API`);
+
+    const guild = client.guilds.cache.get(config.guildId);
+    if (!guild) {
+      console.error('💎 Supporter sync: guild not found in cache');
+      return;
+    }
+
+    await guild.members.fetch();
+
+    let assigned = 0;
+    let removed = 0;
+    let alreadyHas = 0;
+
+    // Assign to eligible members who don't have it
+    for (const discordId of supporterDiscordIds) {
+      const member = guild.members.cache.get(discordId);
+      if (!member) continue;
+      if (member.roles.cache.has(SUPPORTER_ROLE_ID)) {
+        alreadyHas++;
+        continue;
+      }
+      try {
+        await member.roles.add(SUPPORTER_ROLE_ID, 'Auto-assign: Atlas Supporter subscriber on ks-atlas.com');
+        assigned++;
+        console.log(`   💎 +Supporter: ${member.user.username}`);
+      } catch (err) {
+        console.error(`   ❌ Failed to assign Supporter to ${member.user.username}: ${err.message}`);
+      }
+    }
+
+    // Remove from members who have the role but are no longer supporters
+    const supporterMembers = guild.members.cache.filter(m => m.roles.cache.has(SUPPORTER_ROLE_ID));
+    for (const [memberId, member] of supporterMembers) {
+      if (!supporterDiscordIds.has(memberId) && !member.user.bot) {
+        try {
+          await member.roles.remove(SUPPORTER_ROLE_ID, 'Auto-remove: subscription ended on ks-atlas.com');
+          removed++;
+          console.log(`   💎 -Supporter: ${member.user.username}`);
+        } catch (err) {
+          console.error(`   ❌ Failed to remove Supporter from ${member.user.username}: ${err.message}`);
+        }
+      }
+    }
+
+    const elapsed = Date.now() - startTime;
+    lastSupporterSync = new Date().toISOString();
+    console.log(`💎 Supporter sync done in ${elapsed}ms: +${assigned} -${removed} =${alreadyHas} already`);
+  } catch (err) {
+    console.error('💎 Supporter sync error:', err.message);
   }
 }
 

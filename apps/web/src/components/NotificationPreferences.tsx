@@ -171,6 +171,14 @@ const NotificationPreferences: React.FC = () => {
             onChange={(v) => handleChange('transfer_updates', v)}
             isMobile={isMobile}
           />
+          <ToggleItem
+            icon="🤝"
+            label="Co-Editor Requests"
+            description="Get notified when someone requests to be a co-editor for your kingdom"
+            enabled={preferences.co_editor_requests}
+            onChange={(v) => handleChange('co_editor_requests', v)}
+            isMobile={isMobile}
+          />
           <p style={{
             margin: '0.75rem 0 0',
             fontSize: '0.7rem',

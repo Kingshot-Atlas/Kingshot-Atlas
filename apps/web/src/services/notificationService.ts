@@ -36,13 +36,15 @@ export type NotificationType =
   | 'fund_contribution'
   | 'application_expiring'
   | 'endorsement_received'
-  | 'editor_activated';
+  | 'editor_activated'
+  | 'co_editor_request';
 
 export interface NotificationPreferences {
   score_changes: boolean;
   submission_updates: boolean;
   system_announcements: boolean;
   transfer_updates: boolean;
+  co_editor_requests: boolean;
 }
 
 export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
@@ -50,6 +52,7 @@ export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   submission_updates: true,
   system_announcements: true,
   transfer_updates: true,
+  co_editor_requests: true,
 };
 
 class NotificationService {
@@ -287,6 +290,8 @@ class NotificationService {
         return '🗳️';
       case 'editor_activated':
         return '👑';
+      case 'co_editor_request':
+        return '🙋';
       default:
         return '🔔';
     }
@@ -328,6 +333,8 @@ class NotificationService {
         return '#a855f7'; // purple
       case 'editor_activated':
         return '#22c55e'; // green
+      case 'co_editor_request':
+        return '#a855f7'; // purple
       default:
         return '#9ca3af'; // gray
     }
@@ -357,6 +364,7 @@ class NotificationService {
         submission_updates: prefs.submission_updates !== false,
         system_announcements: prefs.system_announcements !== false,
         transfer_updates: prefs.transfer_updates !== false,
+        co_editor_requests: prefs.co_editor_requests !== false,
       };
     } catch (err) {
       logger.error('Error fetching notification preferences:', err);
@@ -387,6 +395,7 @@ class NotificationService {
           submission_updates: prefs.submission_updates,
           system_announcements: prefs.system_announcements,
           transfer_updates: prefs.transfer_updates,
+          co_editor_requests: prefs.co_editor_requests,
         }
       };
 

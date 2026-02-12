@@ -772,6 +772,33 @@ def _calculate_fund_tier(balance: float) -> str:
     return "standard"
 
 
+def get_supporter_users_with_discord() -> list:
+    """
+    Get all users who have an active supporter subscription AND a linked Discord account.
+    These are eligible for the Supporter Discord role.
+    
+    Returns:
+        List of user profiles with id, discord_id, username, subscription_tier
+    """
+    client = get_supabase_admin()
+    if not client:
+        print("WARNING: Supabase not configured")
+        return []
+    
+    try:
+        result = client.table("profiles").select(
+            "id, discord_id, username, linked_username, subscription_tier"
+        ).eq("subscription_tier", "supporter").not_.is_("discord_id", "null").execute()
+        
+        users = result.data or []
+        print(f"Found {len(users)} supporter users with Discord accounts")
+        return users
+        
+    except Exception as e:
+        print(f"Error fetching supporter users: {e}")
+        return []
+
+
 def get_users_with_linked_kingshot_and_discord() -> list:
     """
     Get all users who have both a linked Kingshot account AND a Discord account.

@@ -21,6 +21,7 @@ import EntryModal from '../components/transfer/EntryModal';
 import ModeToggle from '../components/transfer/ModeToggle';
 import FilterPanel, { FilterState, defaultFilters } from '../components/transfer/FilterPanel';
 import { useToast } from '../components/Toast';
+import KingdomCompare from '../components/transfer/KingdomCompare';
 
 // =============================================
 // TYPES (KingdomData, KingdomFund, KingdomReviewSummary, BoardMode, MatchDetail, formatTCLevel
@@ -135,6 +136,8 @@ const TransferBoard: React.FC = () => {
     nominee_linked_username: string | null;
   } | null>(null);
   const [endorseLoading, setEndorseLoading] = useState(false);
+  const [compareKingdoms, setCompareKingdoms] = useState<Set<number>>(new Set());
+  const [showCompareModal, setShowCompareModal] = useState(false);
 
   useDocumentTitle(
     highlightedKingdom
@@ -1380,6 +1383,8 @@ const TransferBoard: React.FC = () => {
                 onApply={(kn) => requireAuth(() => { trackFeature('Transfer Apply Click', { kingdom: kn, ...(highlightedKingdom === kn ? { source: 'shared_link' } : {}) }); setApplyingToKingdom(kn); })}
                 onFund={(kn) => requireAuth(() => { trackFeature('Transfer Fund Click', { kingdom: kn }); setContributingToKingdom(kn); })}
                 highlighted={highlightedKingdom === kingdom.kingdom_number}
+                isComparing={compareKingdoms.has(kingdom.kingdom_number)}
+                onToggleCompare={(kn) => setCompareKingdoms(prev => { const next = new Set(prev); if (next.has(kn)) next.delete(kn); else if (next.size < 3) next.add(kn); return next; })}
               />
             );
           })}
@@ -1412,6 +1417,8 @@ const TransferBoard: React.FC = () => {
                 onApply={(kn) => requireAuth(() => { trackFeature('Transfer Apply Click', { kingdom: kn, ...(highlightedKingdom === kn ? { source: 'shared_link' } : {}) }); setApplyingToKingdom(kn); })}
                 onFund={(kn) => requireAuth(() => { trackFeature('Transfer Fund Click', { kingdom: kn }); setContributingToKingdom(kn); })}
                 highlighted={highlightedKingdom === kingdom.kingdom_number}
+                isComparing={compareKingdoms.has(kingdom.kingdom_number)}
+                onToggleCompare={(kn) => setCompareKingdoms(prev => { const next = new Set(prev); if (next.has(kn)) next.delete(kn); else if (next.size < 3) next.add(kn); return next; })}
               />
             );
           })}
@@ -1729,6 +1736,82 @@ const TransferBoard: React.FC = () => {
             </Link>
           </div>
         </div>
+      )}
+
+      {/* Floating Compare Bar */}
+      {compareKingdoms.size > 0 && (
+        <div style={{
+          position: 'fixed',
+          bottom: isMobile ? 'env(safe-area-inset-bottom, 0px)' : '1rem',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          backgroundColor: colors.surface,
+          border: `1px solid ${colors.primary}40`,
+          borderRadius: '12px',
+          padding: '0.5rem 1rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.75rem',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6)',
+          zIndex: 900,
+          minWidth: isMobile ? '90vw' : '300px',
+          justifyContent: 'space-between',
+        }}>
+          <span style={{ color: colors.text, fontSize: '0.8rem', fontWeight: 600 }}>
+            ⚖️ {compareKingdoms.size}/3 {t('transferHub.compare.selected', 'selected')}
+          </span>
+          <div style={{ display: 'flex', gap: '0.4rem' }}>
+            <button
+              onClick={() => setCompareKingdoms(new Set())}
+              style={{
+                padding: '0.35rem 0.6rem',
+                backgroundColor: 'transparent',
+                border: `1px solid ${colors.border}`,
+                borderRadius: '8px',
+                color: colors.textMuted,
+                fontSize: '0.7rem',
+                cursor: 'pointer',
+                minHeight: '36px',
+              }}
+            >
+              {t('transferHub.compare.clear', 'Clear')}
+            </button>
+            <button
+              onClick={() => { if (compareKingdoms.size >= 2) setShowCompareModal(true); }}
+              disabled={compareKingdoms.size < 2}
+              style={{
+                padding: '0.35rem 0.8rem',
+                backgroundColor: compareKingdoms.size >= 2 ? colors.primary : `${colors.primary}30`,
+                border: 'none',
+                borderRadius: '8px',
+                color: compareKingdoms.size >= 2 ? '#000' : colors.textMuted,
+                fontSize: '0.7rem',
+                fontWeight: 600,
+                cursor: compareKingdoms.size >= 2 ? 'pointer' : 'not-allowed',
+                minHeight: '36px',
+              }}
+            >
+              {t('transferHub.compare.compareNow', 'Compare')} →
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Kingdom Compare Modal */}
+      {showCompareModal && (
+        <KingdomCompare
+          kingdoms={kingdoms.filter(k => compareKingdoms.has(k.kingdom_number))}
+          funds={fundMap}
+          onClose={() => setShowCompareModal(false)}
+          onRemove={(kn) => {
+            setCompareKingdoms(prev => { const next = new Set(prev); next.delete(kn); return next; });
+            if (compareKingdoms.size <= 2) setShowCompareModal(false);
+          }}
+          onApply={mode === 'transferring' ? (kn) => {
+            setShowCompareModal(false);
+            requireAuth(() => { trackFeature('Transfer Apply Click', { kingdom: kn, source: 'compare' }); setApplyingToKingdom(kn); });
+          } : undefined}
+        />
       )}
     </div>
   );

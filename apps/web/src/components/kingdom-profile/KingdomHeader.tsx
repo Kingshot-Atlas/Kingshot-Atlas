@@ -28,6 +28,7 @@ interface KingdomHeaderProps {
   recentScoreChange?: number | null;
   recentRankChange?: number | null;
   isLinked?: boolean;
+  managedBy?: { username: string; userId: string } | null;
   onStatusModalOpen: () => void;
   onReportModalOpen: () => void;
 }
@@ -46,6 +47,7 @@ const KingdomHeader: React.FC<KingdomHeaderProps> = ({
   recentScoreChange,
   recentRankChange,
   isLinked = false,
+  managedBy,
   onStatusModalOpen,
   onReportModalOpen,
 }) => {
@@ -344,6 +346,38 @@ const KingdomHeader: React.FC<KingdomHeaderProps> = ({
               </svg>
               {t('kingdomProfile.viewTransferListing', 'View Transfer Listing')}
             </Link>
+            {managedBy && (
+              <Link
+                to={`/profile/${managedBy.userId}`}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.25rem',
+                  padding: isMobile ? '0.2rem 0.5rem' : '0.25rem 0.6rem',
+                  backgroundColor: '#a855f708',
+                  border: '1px solid #a855f720',
+                  borderRadius: '4px',
+                  color: '#9ca3af',
+                  textDecoration: 'none',
+                  fontSize: '0.65rem',
+                  fontWeight: '500',
+                  height: '24px',
+                  transition: 'all 0.2s',
+                  whiteSpace: 'nowrap',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#a855f715';
+                  e.currentTarget.style.borderColor = '#a855f730';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#a855f708';
+                  e.currentTarget.style.borderColor = '#a855f720';
+                }}
+              >
+                <span style={{ color: '#a855f7' }}>👑</span>
+                Managed by <span style={{ color: '#a855f7', fontWeight: '600' }}>{managedBy.username}</span>
+              </Link>
+            )}
           </div>
           
           {/* Row 4: Total KvKs + Actions */}

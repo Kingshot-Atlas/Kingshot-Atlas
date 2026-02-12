@@ -687,6 +687,7 @@ const EditorClaiming: React.FC<{
 }> = ({ onEditorActivated }) => {
   const { user, profile } = useAuth();
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
   const [myClaim, setMyClaim] = useState<EditorClaim | null>(null);
   const [loading, setLoading] = useState(true);
   const [showNominate, setShowNominate] = useState(false);
@@ -694,6 +695,7 @@ const EditorClaiming: React.FC<{
   const [coEditorCount, setCoEditorCount] = useState(0);
   const [submittingCoEditor, setSubmittingCoEditor] = useState(false);
   const [coEditorError, setCoEditorError] = useState<string | null>(null);
+  const [coEditorRequestSent, setCoEditorRequestSent] = useState(false);
 
   const loadMyClaim = useCallback(async () => {
     if (!supabase || !user) {
@@ -789,7 +791,44 @@ const EditorClaiming: React.FC<{
     );
   }
 
-  // Has a pending claim
+  // Has a pending co-editor request
+  if (myClaim?.status === 'pending' && myClaim?.role === 'co-editor') {
+    return (
+      <div style={{
+        backgroundColor: '#eab30808',
+        border: '1px solid #eab30825',
+        borderRadius: '10px',
+        padding: '0.75rem 1rem',
+        textAlign: 'center',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', marginBottom: '0.3rem' }}>
+          <span style={{ fontSize: '1rem' }}>📨</span>
+          <span style={{ color: '#eab308', fontWeight: '600', fontSize: '0.85rem' }}>
+            {t('editor.coEditorRequestSent', 'Co-Editor Request Sent')}
+          </span>
+        </div>
+        <p style={{ color: '#9ca3af', fontSize: '0.7rem', margin: '0.2rem 0 0 0', lineHeight: 1.4 }}>
+          {t('editor.coEditorRequestPending', 'Your request to co-edit Kingdom {{kingdom}} is pending editor approval. You\'ll be notified when it\'s reviewed.', { kingdom: myClaim.kingdom_number })}
+        </p>
+        {coEditorRequestSent && (
+          <div style={{
+            marginTop: '0.5rem',
+            padding: '0.3rem 0.6rem',
+            backgroundColor: '#22c55e10',
+            border: '1px solid #22c55e25',
+            borderRadius: '6px',
+            color: '#22c55e',
+            fontSize: '0.65rem',
+            fontWeight: '500',
+          }}>
+            ✓ {t('editor.requestJustSent', 'Request just sent! The editor has been notified.')}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Has a pending editor claim
   if (myClaim?.status === 'pending') {
     return (
       <PendingClaimView
@@ -876,6 +915,7 @@ const EditorClaiming: React.FC<{
         await supabase.from('notifications').insert(notifications);
       }
 
+      setCoEditorRequestSent(true);
       loadMyClaim();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to submit co-editor request';
@@ -956,19 +996,19 @@ const EditorClaiming: React.FC<{
           borderRadius: '12px',
           padding: '0.75rem 1rem',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', alignItems: isMobile ? 'stretch' : 'center', justifyContent: 'space-between', gap: '0.75rem', flexDirection: isMobile ? 'column' : 'row' }}>
             <div>
               <span style={{ color: '#a855f7', fontWeight: '600', fontSize: '0.85rem' }}>
-                Become a Co-Editor
+                {t('editor.becomeCoEditor', 'Become a Co-Editor')}
               </span>
               <p style={{ color: '#6b7280', fontSize: '0.7rem', margin: '0.2rem 0 0 0' }}>
-                Kingdom {linkedKingdom} already has an editor. Join as a co-editor to help manage the Transfer Hub listing.
+                {t('editor.becomeCoEditorDesc', 'Kingdom {{kingdom}} already has an editor. Join as a co-editor to help manage the Transfer Hub listing.', { kingdom: linkedKingdom })}
                 {coEditorCount > 0 && (
-                  <span style={{ color: '#a855f7' }}> ({coEditorCount}/{MAX_CO_EDITORS_PER_KINGDOM} co-editor slots used)</span>
+                  <span style={{ color: '#a855f7' }}> {t('editor.coEditorSlotsUsed', '({{count}}/{{max}} co-editor slots used)', { count: coEditorCount, max: MAX_CO_EDITORS_PER_KINGDOM })}</span>
                 )}
               </p>
               <p style={{ color: '#4b5563', fontSize: '0.65rem', margin: '0.2rem 0 0 0' }}>
-                No endorsements required. The editor will be notified of your request.
+                {t('editor.noEndorsementsRequired', 'No endorsements required. The editor will be notified of your request.')}
               </p>
             </div>
             <button
@@ -986,9 +1026,10 @@ const EditorClaiming: React.FC<{
                 whiteSpace: 'nowrap',
                 minHeight: '44px',
                 flexShrink: 0,
+                width: isMobile ? '100%' : 'auto',
               }}
             >
-              {submittingCoEditor ? 'Requesting...' : 'Request Co-Editor'}
+              {submittingCoEditor ? t('editor.requesting', 'Requesting...') : t('editor.requestCoEditor', 'Request Co-Editor')}
             </button>
           </div>
 
@@ -1008,17 +1049,17 @@ const EditorClaiming: React.FC<{
 
           {!isLinked && (
             <p style={{ color: '#f59e0b', fontSize: '0.7rem', margin: '0.4rem 0 0 0' }}>
-              Link your Kingshot account first to become a co-editor.
+              {t('editor.linkAccountCoEditor', 'Link your Kingshot account first to become a co-editor.')}
             </p>
           )}
           {isLinked && !meetsTcReq && (
             <p style={{ color: '#6b7280', fontSize: '0.7rem', margin: '0.4rem 0 0 0' }}>
-              TC Level 20+ required to become a co-editor.
+              {t('editor.tcRequiredCoEditor', 'TC Level 20+ required to become a co-editor.')}
             </p>
           )}
           {coEditorCount >= MAX_CO_EDITORS_PER_KINGDOM && (
             <p style={{ color: '#6b7280', fontSize: '0.7rem', margin: '0.4rem 0 0 0' }}>
-              This kingdom has reached the maximum of {MAX_CO_EDITORS_PER_KINGDOM} co-editors.
+              {t('editor.maxCoEditors', 'This kingdom has reached the maximum of {{max}} co-editors.', { max: MAX_CO_EDITORS_PER_KINGDOM })}
             </p>
           )}
         </div>

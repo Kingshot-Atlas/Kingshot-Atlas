@@ -1370,6 +1370,7 @@ const Profile: React.FC = () => {
             <LinkDiscordAccount
               discordId={profile?.discord_id}
               discordUsername={profile?.discord_username}
+              isDiscordAuth={getAuthProvider(user) === 'discord'}
               onUnlink={() => {
                 if (updateProfile) {
                   updateProfile({

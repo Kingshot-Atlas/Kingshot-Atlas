@@ -81,7 +81,21 @@ interface TransferHubStats {
   totalProfileViews: number;
 }
 
-type SubTab = 'overview' | 'editors' | 'co-editors' | 'funds' | 'profiles';
+interface AuditLogEntry {
+  id: string;
+  editor_id: string | null;
+  kingdom_number: number;
+  action: string;
+  performed_by: string | null;
+  target_user_id: string | null;
+  details: Record<string, unknown>;
+  created_at: string;
+  // Joined
+  performer_name?: string;
+  target_name?: string;
+}
+
+type SubTab = 'overview' | 'editors' | 'co-editors' | 'funds' | 'profiles' | 'audit-log';
 
 // =============================================
 // CONSTANTS
@@ -111,6 +125,7 @@ export const TransferHubAdminTab: React.FC = () => {
   const [funds, setFunds] = useState<KingdomFund[]>([]);
   const [profiles, setProfiles] = useState<TransferProfile[]>([]);
   const [stats, setStats] = useState<TransferHubStats | null>(null);
+  const [auditLog, setAuditLog] = useState<AuditLogEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [confirmAction, setConfirmAction] = useState<{ id: string; action: string; name: string } | null>(null);
@@ -244,6 +259,44 @@ export const TransferHubAdminTab: React.FC = () => {
     }
   };
 
+  const fetchAuditLog = async () => {
+    if (!supabase) return;
+    try {
+      const { data, error } = await supabase
+        .from('editor_audit_log')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(100);
+      if (error) { console.error('Error fetching audit log:', error); return; }
+      if (!data || data.length === 0) { setAuditLog([]); return; }
+
+      // Enrich with performer and target names
+      const userIds = [...new Set([
+        ...data.map(e => e.performed_by).filter(Boolean),
+        ...data.map(e => e.target_user_id).filter(Boolean),
+      ])] as string[];
+
+      const profileMap = new Map<string, string>();
+      if (userIds.length > 0) {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('id, username, linked_username')
+          .in('id', userIds);
+        profileData?.forEach(p => {
+          profileMap.set(p.id, p.linked_username || p.username || 'Unknown');
+        });
+      }
+
+      setAuditLog(data.map(e => ({
+        ...e,
+        performer_name: e.performed_by ? profileMap.get(e.performed_by) || 'System' : 'System',
+        target_name: e.target_user_id ? profileMap.get(e.target_user_id) || 'Unknown' : '—',
+      })));
+    } catch (err) {
+      console.error('Error fetching audit log:', err);
+    }
+  };
+
   const timeAgo = (dateStr: string | null) => {
     if (!dateStr) return '—';
     const diff = Date.now() - new Date(dateStr).getTime();
@@ -280,6 +333,16 @@ export const TransferHubAdminTab: React.FC = () => {
         metadata: { kingdom_number: kingdomNumber, new_status: newStatus },
       });
 
+      // Audit log
+      await supabase.from('editor_audit_log').insert({
+        editor_id: editorId,
+        kingdom_number: kingdomNumber,
+        action: newStatus === 'active' ? 'activate' : 'suspend',
+        performed_by: (await supabase.auth.getUser()).data.user?.id,
+        target_user_id: editorUserId,
+        details: { new_status: newStatus, source: 'admin_dashboard' },
+      });
+
       await fetchEditors();
     } catch (err) {
       console.error('Error updating editor status:', err);
@@ -309,6 +372,16 @@ export const TransferHubAdminTab: React.FC = () => {
         metadata: { kingdom_number: kingdomNumber, action: 'removed' },
       });
 
+      // Audit log (removal cascade trigger also fires)
+      await supabase.from('editor_audit_log').insert({
+        editor_id: editorId,
+        kingdom_number: kingdomNumber,
+        action: 'remove',
+        performed_by: (await supabase.auth.getUser()).data.user?.id,
+        target_user_id: editorUserId,
+        details: { source: 'admin_dashboard' },
+      });
+
       await fetchEditors();
     } catch (err) {
       console.error('Error removing editor:', err);
@@ -336,6 +409,16 @@ export const TransferHubAdminTab: React.FC = () => {
         message: `You have been promoted to primary Editor for Kingdom ${kingdomNumber}!`,
         link: '/transfer-hub',
         metadata: { kingdom_number: kingdomNumber, action: 'promoted' },
+      });
+
+      // Audit log
+      await supabase.from('editor_audit_log').insert({
+        editor_id: editorId,
+        kingdom_number: kingdomNumber,
+        action: 'promote',
+        performed_by: (await supabase.auth.getUser()).data.user?.id,
+        target_user_id: editorUserId,
+        details: { source: 'admin_dashboard' },
       });
 
       await fetchEditors();
@@ -381,6 +464,18 @@ export const TransferHubAdminTab: React.FC = () => {
       }));
       await supabase.from('notifications').insert(notifications);
 
+      // Audit log for bulk action
+      const adminId = (await supabase.auth.getUser()).data.user?.id;
+      const auditEntries = staleEditors.map(e => ({
+        editor_id: e.id,
+        kingdom_number: e.kingdom_number,
+        action: 'bulk_deactivate' as const,
+        performed_by: adminId,
+        target_user_id: e.user_id,
+        details: { reason: '30d_inactive', source: 'admin_dashboard' },
+      }));
+      await supabase.from('editor_audit_log').insert(auditEntries);
+
       await fetchEditors();
     } catch (err) {
       console.error('Bulk deactivate error:', err);
@@ -395,6 +490,7 @@ export const TransferHubAdminTab: React.FC = () => {
     { id: 'co-editors', label: 'Co-Editors', icon: '🤝' },
     { id: 'funds', label: 'Kingdom Funds', icon: '💰' },
     { id: 'profiles', label: 'Transfer Profiles', icon: '🔄' },
+    { id: 'audit-log', label: 'Audit Log', icon: '📋' },
   ];
 
   return (
@@ -470,6 +566,8 @@ export const TransferHubAdminTab: React.FC = () => {
         <FundsTab funds={funds} timeAgo={timeAgo} />
       ) : subTab === 'profiles' ? (
         <ProfilesTab profiles={profiles} timeAgo={timeAgo} />
+      ) : subTab === 'audit-log' ? (
+        <AuditLogTab entries={auditLog} timeAgo={timeAgo} loading={loading} onRefresh={fetchAuditLog} />
       ) : null}
     </div>
   );
@@ -1194,6 +1292,156 @@ const ProfilesTab: React.FC<{ profiles: TransferProfile[]; timeAgo: (d: string |
             )}
           </div>
         ))
+      )}
+    </div>
+  );
+};
+
+// =============================================
+// AUDIT LOG TAB
+// =============================================
+
+const ACTION_LABELS: Record<string, { label: string; color: string; icon: string }> = {
+  activate: { label: 'Activated', color: '#22c55e', icon: '✅' },
+  suspend: { label: 'Suspended', color: '#ef4444', icon: '⏸️' },
+  remove: { label: 'Removed', color: '#ef4444', icon: '🗑️' },
+  promote: { label: 'Promoted', color: '#a855f7', icon: '⬆️' },
+  bulk_deactivate: { label: 'Bulk Deactivated', color: '#f97316', icon: '📦' },
+  approve: { label: 'Approved', color: '#22c55e', icon: '✓' },
+  reject: { label: 'Rejected', color: '#ef4444', icon: '✕' },
+  self_nominate: { label: 'Self-Nominated', color: '#eab308', icon: '🙋' },
+  invite: { label: 'Invited', color: '#3b82f6', icon: '✉️' },
+  expire: { label: 'Expired', color: '#6b7280', icon: '⏰' },
+  cascade_delete: { label: 'Cascade Deleted', color: '#6b7280', icon: '🔗' },
+};
+
+const AuditLogTab: React.FC<{
+  entries: AuditLogEntry[];
+  timeAgo: (d: string | null) => string;
+  loading: boolean;
+  onRefresh: () => void;
+}> = ({ entries, timeAgo, loading, onRefresh }) => {
+  const [filter, setFilter] = useState<string>('all');
+
+  // Lazy-load audit log on first render
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => {
+    if (!loaded) {
+      onRefresh();
+      setLoaded(true);
+    }
+  }, [loaded, onRefresh]);
+
+  const filtered = filter === 'all' ? entries : entries.filter(e => e.action === filter);
+  const actionTypes = [...new Set(entries.map(e => e.action))];
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      {/* Header + Filters */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span style={{ color: '#fff', fontSize: '0.9rem', fontWeight: '600' }}>📋 Audit Log</span>
+          <span style={{ color: '#4b5563', fontSize: '0.7rem' }}>({filtered.length} entries)</span>
+        </div>
+        <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>
+          <button
+            onClick={() => setFilter('all')}
+            style={{
+              padding: '0.2rem 0.5rem',
+              backgroundColor: filter === 'all' ? '#a855f720' : 'transparent',
+              color: filter === 'all' ? '#a855f7' : '#6b7280',
+              border: filter === 'all' ? '1px solid #a855f740' : '1px solid #2a2a2a',
+              borderRadius: '4px',
+              fontSize: '0.65rem',
+              cursor: 'pointer',
+            }}
+          >
+            All
+          </button>
+          {actionTypes.map(action => {
+            const meta = ACTION_LABELS[action] || { label: action, color: '#6b7280', icon: '•' };
+            return (
+              <button
+                key={action}
+                onClick={() => setFilter(action)}
+                style={{
+                  padding: '0.2rem 0.5rem',
+                  backgroundColor: filter === action ? `${meta.color}20` : 'transparent',
+                  color: filter === action ? meta.color : '#6b7280',
+                  border: filter === action ? `1px solid ${meta.color}40` : '1px solid #2a2a2a',
+                  borderRadius: '4px',
+                  fontSize: '0.65rem',
+                  cursor: 'pointer',
+                }}
+              >
+                {meta.icon} {meta.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Entries */}
+      {loading && entries.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>Loading audit log...</div>
+      ) : filtered.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280', fontSize: '0.8rem' }}>
+          No audit log entries{filter !== 'all' ? ` for "${filter}"` : ''}.
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+          {filtered.map(entry => {
+            const meta = ACTION_LABELS[entry.action] || { label: entry.action, color: '#6b7280', icon: '•' };
+            return (
+              <div key={entry.id} style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                padding: '0.6rem 0.75rem',
+                backgroundColor: '#111116',
+                borderRadius: '8px',
+                border: '1px solid #1a1a1a',
+                fontSize: '0.75rem',
+              }}>
+                {/* Action badge */}
+                <span style={{
+                  padding: '0.15rem 0.4rem',
+                  backgroundColor: `${meta.color}15`,
+                  border: `1px solid ${meta.color}30`,
+                  borderRadius: '4px',
+                  color: meta.color,
+                  fontSize: '0.6rem',
+                  fontWeight: '600',
+                  textTransform: 'uppercase',
+                  whiteSpace: 'nowrap',
+                  minWidth: '80px',
+                  textAlign: 'center',
+                }}>
+                  {meta.icon} {meta.label}
+                </span>
+
+                {/* Details */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ color: '#d1d5db', fontSize: '0.75rem' }}>
+                    <span style={{ color: '#22d3ee', fontWeight: '500' }}>{entry.performer_name}</span>
+                    {' → '}
+                    <span style={{ color: '#fff', fontWeight: '500' }}>{entry.target_name}</span>
+                  </div>
+                  <div style={{ color: '#4b5563', fontSize: '0.65rem', marginTop: '0.1rem' }}>
+                    K{entry.kingdom_number}
+                    {entry.details?.source ? <> · {String(entry.details.source).replace(/_/g, ' ')}</> : null}
+                    {entry.details?.reason ? <> · {String(entry.details.reason).replace(/_/g, ' ')}</> : null}
+                  </div>
+                </div>
+
+                {/* Time */}
+                <span style={{ color: '#4b5563', fontSize: '0.6rem', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                  {timeAgo(entry.created_at)}
+                </span>
+              </div>
+            );
+          })}
+        </div>
       )}
     </div>
   );

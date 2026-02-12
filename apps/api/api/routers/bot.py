@@ -988,6 +988,22 @@ async def get_linked_users(_: bool = Depends(require_bot_admin)):
     }
 
 
+@router.get("/supporter-users")
+async def get_supporter_users(_: bool = Depends(require_bot_admin)):
+    """
+    Get all users who have an active supporter subscription AND a Discord account.
+    Used by the Discord bot for periodic Supporter role sync.
+    """
+    from api.supabase_client import get_supporter_users_with_discord
+    
+    users = get_supporter_users_with_discord()
+    
+    return {
+        "users": users,
+        "total": len(users)
+    }
+
+
 @router.post("/backfill-settler-roles")
 async def backfill_settler_roles(_: bool = Depends(require_bot_admin)):
     """

@@ -3,6 +3,31 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-11 21:00 | Platform Engineer | COMPLETED
+Task: Discord Unlink/Relink Bug Fix + Supporter Role Periodic Sync
+Files: LinkDiscordAccount.tsx, Profile.tsx, supabase_client.py, bot.py (API), bot.js (Discord bot)
+Changes:
+1. **Discord unlink bug fix:** Hid "Unlink Discord" button for users who signed in via Discord OAuth — unlink was a no-op since AuthContext auto-repopulates discord_id from auth metadata on every page load
+2. **Supporter role periodic sync:** Added `syncSupporterRoles()` to Discord bot (30min interval, same pattern as Settler/Referral), new `/api/v1/bot/supporter-users` API endpoint, `get_supporter_users_with_discord()` Supabase query
+3. **Health endpoint:** Added `lastSupporterSync` to bot health diagnostics
+4. **Env var:** `VITE_DISCORD_CLIENT_ID` added to Cloudflare Pages production env
+Result: Build passes. StormRunner650 (cubano969) will get Supporter role on next bot sync cycle.
+
+## 2026-02-11 19:30 | Product Engineer | COMPLETED
+Task: Transfer Hub Editor Role Enhancements
+Files: RecruiterDashboard.tsx, NotificationPreferences.tsx, notificationService.ts, KingdomHeader.tsx, KingdomProfile.tsx, TransferHubAdminTab.tsx + 3 DB migrations
+Changes:
+1. **Approve/Reject buttons:** Pending co-editor cards in RecruiterDashboard show Approve/Reject with loading states (editor-only)
+2. **Count badge:** Co-Editors tab shows yellow badge with pending request count
+3. **Notification preference:** New "Co-Editor Requests" toggle + `co_editor_request` notification type
+4. **Managed by [editor]:** Kingdom profile header shows clickable "Managed by [username]" badge next to Transfer Listing link
+5. **RLS policy:** `coeditor_self_nominate` policy allows authenticated users to insert co-editor self-nominations
+6. **Rate limit:** `coeditor_rate_limit_trigger` enforces 1 self-nomination per user per day
+7. **Audit log:** `editor_audit_log` table with RLS. All admin actions (activate/suspend/remove/promote/bulk_deactivate) and recruiter actions (approve/reject) logged
+8. **Auto-expire:** `expire_pending_coeditor_requests()` function + pg_cron daily at 07:00 UTC, sets pending co-editor requests to inactive after 7 days with notification
+9. **Removal cascade:** `editor_removal_cascade_trigger` logs deletions to audit log
+Result: All 9 enhancements implemented. Build passes locally.
+
 ## 2026-02-11 18:15 | Product Engineer | COMPLETED
 Task: Editor Role Management + Co-Editor Self-Nomination
 Files: apps/web/src/components/admin/TransferHubAdminTab.tsx, apps/web/src/components/EditorClaiming.tsx

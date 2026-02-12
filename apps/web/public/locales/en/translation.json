@@ -129,6 +129,7 @@
     "opponent": "Opponent",
     "result": "Result",
     "viewTransferListing": "View Transfer Listing",
+    "managedBy": "Managed by",
     "atlasScore": "Atlas Score",
     "atlasScoreDesc": "Rewards experience and consistency",
     "atlasRank": "Atlas Rank",
@@ -508,7 +509,9 @@
     "allCaughtUp": "You're all caught up!",
     "markAllRead": "Mark all read",
     "clearAll": "Clear all",
-    "justNow": "Just now"
+    "justNow": "Just now",
+    "coEditorRequests": "Co-Editor Requests",
+    "coEditorRequestsDesc": "Get notified when someone requests to be a co-editor for your kingdom"
   },
   "feedback": {
     "title": "Feedback",
@@ -1118,7 +1121,19 @@
     "becomeEditor": "Become a Kingdom Editor",
     "claimKingdomDesc": "Claim Kingdom {{kingdom}} to manage its recruitment listing.",
     "linkFirst": "Link your Kingshot account first, then claim your kingdom.",
-    "claimKingdom": "Claim Kingdom"
+    "claimKingdom": "Claim Kingdom",
+    "becomeCoEditor": "Become a Co-Editor",
+    "becomeCoEditorDesc": "Kingdom {{kingdom}} already has an editor. Join as a co-editor to help manage the Transfer Hub listing.",
+    "coEditorSlotsUsed": "({{count}}/{{max}} co-editor slots used)",
+    "noEndorsementsRequired": "No endorsements required. The editor will be notified of your request.",
+    "requestCoEditor": "Request Co-Editor",
+    "requesting": "Requesting...",
+    "coEditorRequestSent": "Co-Editor Request Sent",
+    "coEditorRequestPending": "Your request to co-edit Kingdom {{kingdom}} is pending editor approval. You'll be notified when it's reviewed.",
+    "requestJustSent": "Request just sent! The editor has been notified.",
+    "tcRequiredCoEditor": "TC Level 20+ required to become a co-editor.",
+    "linkAccountCoEditor": "Link your Kingshot account first to become a co-editor.",
+    "maxCoEditors": "This kingdom has reached the maximum of {{max}} co-editors."
   },
   "recruiter": {
     "loading": "Loading dashboard...",
@@ -1208,7 +1223,12 @@
     "contributionHistory": "Contribution History",
     "noContributions": "No contributions yet. Share the contribution link with your kingdom members!",
     "noKingdomFund": "No Kingdom Fund Yet",
-    "startFundDesc": "Start a Kingdom Fund to unlock tier benefits and boost your listing visibility."
+    "startFundDesc": "Start a Kingdom Fund to unlock tier benefits and boost your listing visibility.",
+    "approveCoEditor": "✓ Approve",
+    "declineCoEditor": "✕ Decline",
+    "coEditorApproved": "Co-editor request approved!",
+    "coEditorDeclined": "Co-editor request declined.",
+    "coEditorRequestFailed": "Failed to process co-editor request."
   },
   "applications": {
     "applyTo": "Apply to",

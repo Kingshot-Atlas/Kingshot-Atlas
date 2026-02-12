@@ -154,6 +154,7 @@ const KingdomProfile: React.FC = () => {
   const [recentScoreChange, setRecentScoreChange] = useState<number | null>(null);
   const [recentRankChange, setRecentRankChange] = useState<number | null>(null);
   const [visitDelta, setVisitDelta] = useState<number | null>(null);
+  const [managedBy, setManagedBy] = useState<{ username: string; userId: string } | null>(null);
 
   // Auto-refresh when KvK history changes for this kingdom via realtime
   const handleKvkHistoryUpdate = useCallback((updatedKingdom: number, kvkNumber: number) => {
@@ -205,6 +206,39 @@ const KingdomProfile: React.FC = () => {
       }
     };
     checkPending();
+  }, [kingdomNumber]);
+
+  // Fetch active editor for "Managed by" display
+  useEffect(() => {
+    const fetchEditor = async () => {
+      if (!kingdomNumber) return;
+      try {
+        const { supabase } = await import('../lib/supabase');
+        if (!supabase) return;
+        const { data: editor } = await supabase
+          .from('kingdom_editors')
+          .select('user_id')
+          .eq('kingdom_number', parseInt(kingdomNumber))
+          .eq('role', 'editor')
+          .eq('status', 'active')
+          .limit(1)
+          .maybeSingle();
+        if (editor) {
+          const { data: editorProfile } = await supabase
+            .from('profiles')
+            .select('linked_username, username')
+            .eq('id', editor.user_id)
+            .single();
+          if (editorProfile) {
+            setManagedBy({
+              username: editorProfile.linked_username || editorProfile.username || 'Editor',
+              userId: editor.user_id,
+            });
+          }
+        }
+      } catch { /* silent */ }
+    };
+    fetchEditor();
   }, [kingdomNumber]);
 
   // Fetch aggregate rating for structured data (SEO) - only available if 5+ reviews exist
@@ -391,6 +425,7 @@ const KingdomProfile: React.FC = () => {
         recentScoreChange={recentScoreChange}
         recentRankChange={recentRankChange}
         isLinked={!!profile?.linked_username}
+        managedBy={managedBy}
         onStatusModalOpen={() => {
           if (!user) {
             showToast(t('kingdomProfile.signInToSubmit', 'Please sign in to submit status updates'), 'error');

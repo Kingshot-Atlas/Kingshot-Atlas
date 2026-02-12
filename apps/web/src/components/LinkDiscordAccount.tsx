@@ -6,12 +6,14 @@ interface LinkDiscordAccountProps {
   discordId?: string | null;
   discordUsername?: string | null;
   onUnlink?: () => void;
+  isDiscordAuth?: boolean;
 }
 
 const LinkDiscordAccount: React.FC<LinkDiscordAccountProps> = ({
   discordId,
   discordUsername,
-  onUnlink
+  onUnlink,
+  isDiscordAuth = false
 }) => {
   const { showToast } = useToast();
   const [isUnlinking, setIsUnlinking] = useState(false);
@@ -97,27 +99,31 @@ const LinkDiscordAccount: React.FC<LinkDiscordAccountProps> = ({
           </div>
           
           <p style={{ color: '#6b7280', fontSize: '0.8rem', marginBottom: '0.75rem' }}>
-            Your Discord account is linked. Eligible roles will be synced automatically.
+            {isDiscordAuth
+              ? 'Connected via Discord sign-in. Eligible roles will be synced automatically.'
+              : 'Your Discord account is linked. Eligible roles will be synced automatically.'}
           </p>
           
-          <button
-            onClick={handleUnlinkDiscord}
-            disabled={isUnlinking}
-            style={{
-              width: '100%',
-              padding: '0.6rem',
-              backgroundColor: 'transparent',
-              border: '1px solid #ef444440',
-              borderRadius: '8px',
-              color: '#ef4444',
-              fontSize: '0.85rem',
-              fontWeight: '500',
-              cursor: isUnlinking ? 'wait' : 'pointer',
-              opacity: isUnlinking ? 0.6 : 1
-            }}
-          >
-            {isUnlinking ? 'Unlinking...' : 'Unlink Discord'}
-          </button>
+          {!isDiscordAuth && (
+            <button
+              onClick={handleUnlinkDiscord}
+              disabled={isUnlinking}
+              style={{
+                width: '100%',
+                padding: '0.6rem',
+                backgroundColor: 'transparent',
+                border: '1px solid #ef444440',
+                borderRadius: '8px',
+                color: '#ef4444',
+                fontSize: '0.85rem',
+                fontWeight: '500',
+                cursor: isUnlinking ? 'wait' : 'pointer',
+                opacity: isUnlinking ? 0.6 : 1
+              }}
+            >
+              {isUnlinking ? 'Unlinking...' : 'Unlink Discord'}
+            </button>
+          )}
         </div>
       ) : (
         <div>
