@@ -512,14 +512,14 @@ const Header: React.FC = () => {
                 <div style={{ height: '1px', backgroundColor: '#2a2a2a', margin: '0.25rem 0' }} />
                 {/* 3. Gift Code Redeemer (LIVE) */}
                 <Link
-                  to="/tools/gift-codes"
+                  to="/gift-codes"
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: '0.75rem',
                     padding: '0.75rem 1rem',
                     borderRadius: '8px',
-                    color: isActive('/tools/gift-codes') ? '#22d3ee' : '#fff',
+                    color: isActive('/gift-codes') ? '#22d3ee' : '#fff',
                     textDecoration: 'none',
                     fontSize: '0.85rem',
                     transition: 'background-color 0.2s'
@@ -1306,9 +1306,9 @@ const Header: React.FC = () => {
                 <span style={{ color: '#333' }}>└</span> {t('nav.kvkBattleCoordinator')}
               </Link>
               <Link
-                to="/tools/gift-codes"
+                to="/gift-codes"
                 style={{
-                  color: isActive('/tools/gift-codes') ? '#22d3ee' : '#6b7280',
+                  color: isActive('/gift-codes') ? '#22d3ee' : '#6b7280',
                   textDecoration: 'none',
                   fontSize: '0.9rem',
                   padding: '0.5rem 1rem 0.5rem 1.5rem',

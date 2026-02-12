@@ -779,6 +779,7 @@ client.on('interactionCreate', async (interaction) => {
       data: {
         content: data.content || undefined,
         embeds: data.embeds?.map(e => (typeof e.toJSON === 'function' ? e.toJSON() : e)),
+        components: data.components?.map(c => (typeof c.toJSON === 'function' ? c.toJSON() : c)),
         flags: data.ephemeral ? 64 : 0,
       }
     };
@@ -804,6 +805,7 @@ client.on('interactionCreate', async (interaction) => {
       body: JSON.stringify({
         content: data.content || undefined,
         embeds: data.embeds?.map(e => (typeof e.toJSON === 'function' ? e.toJSON() : e)),
+        components: data.components?.map(c => (typeof c.toJSON === 'function' ? c.toJSON() : c)),
       })
     });
     if (!resp.ok) {
@@ -856,6 +858,9 @@ client.on('interactionCreate', async (interaction) => {
         break;
       case 'redeem-all':
         await handlers.handleRedeemAll(interaction);
+        break;
+      case 'link':
+        await handlers.handleLink(interaction);
         break;
       case 'stats':
         await handlers.handleStats(interaction);

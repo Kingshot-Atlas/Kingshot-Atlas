@@ -36,7 +36,7 @@ const RALLY_FILL_TIME = 300; // 5 minutes in seconds
 const SUPPORTER_ROLE_ID = process.env.DISCORD_SUPPORTER_ROLE_ID || '';
 
 // Daily usage credits for /multirally (non-Supporters)
-const MULTIRALLY_DAILY_LIMIT = 3;
+const MULTIRALLY_DAILY_LIMIT = 5;
 const multirallyCredits = new Map(); // userId -> { uses: number, date: string }
 
 /**
@@ -358,7 +358,7 @@ async function handleMultirally(interaction) {
     });
   }
 
-  // Credits check: Supporters get unlimited, free users get 3/day
+  // Credits check: Supporters get unlimited, free users get 5/day
   const isSupporter = SUPPORTER_ROLE_ID && interaction.member?.roles?.cache?.has(SUPPORTER_ROLE_ID);
 
   const target = interaction.options.getString('target');
@@ -870,6 +870,88 @@ async function handleRedeemAll(interaction) {
   return interaction.editReply({ embeds: [finalEmbed] });
 }
 
+/**
+ * /link — Guide users to link their Discord account to their Atlas profile.
+ * Checks if already linked; if so, shows status. Otherwise, provides instructions.
+ */
+async function handleLink(interaction) {
+  await interaction.deferReply({ ephemeral: true });
+
+  // Track usage
+  logger.syncToApi('link', interaction.guildId || 'DM', interaction.user.id);
+
+  // Check if user is already linked
+  const profile = await api.lookupUserByDiscordId(interaction.user.id);
+
+  if (profile && profile.linked_player_id) {
+    const playerName = profile.linked_username || profile.username || `Player ${profile.linked_player_id}`;
+    const embed = embeds.createBaseEmbed()
+      .setTitle('✅ Already Linked')
+      .setDescription(
+        `Your Discord is linked to **${playerName}** (ID: \`${profile.linked_player_id}\`).\n\n` +
+        '**What you can do:**\n' +
+        '• `/redeem` — Redeem gift codes for your account\n' +
+        '• `/redeem-all` — Redeem for all alt accounts (Supporter)\n' +
+        '• Settler role is auto-assigned on next sync\n\n' +
+        'To change your linked account, visit [your Atlas profile](https://ks-atlas.com/profile).'
+      )
+      .setColor(0x22c55e);
+    return interaction.editReply({ embeds: [embed] });
+  }
+
+  if (profile && !profile.linked_player_id) {
+    const embed = embeds.createBaseEmbed()
+      .setTitle('🔗 Almost There — Link Your Kingshot Account')
+      .setDescription(
+        'Your Discord is connected to Atlas, but you haven\'t linked your **Kingshot Player ID** yet.\n\n' +
+        '**Next step:**\n' +
+        '1. Go to [your Atlas profile](https://ks-atlas.com/profile)\n' +
+        '2. Click **Link Kingshot Account**\n' +
+        '3. Enter your Player ID (found in-game under Settings > Account)\n\n' +
+        'Once linked, you\'ll unlock `/redeem`, the Settler role, and cloud-synced alt accounts.'
+      )
+      .setColor(0xfbbf24);
+
+    const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setLabel('Go to Profile')
+        .setURL('https://ks-atlas.com/profile')
+        .setStyle(ButtonStyle.Link)
+        .setEmoji('🔗')
+    );
+    return interaction.editReply({ embeds: [embed], components: [row] });
+  }
+
+  // Not linked at all
+  const embed = embeds.createBaseEmbed()
+    .setTitle('🔗 Link Your Account')
+    .setDescription(
+      'Connect your Discord to Atlas to unlock powerful features:\n\n' +
+      '**What you get:**\n' +
+      '• 🎖️ **Settler role** — automatic Discord role\n' +
+      '• 🎁 **`/redeem`** — one-click gift code redemption\n' +
+      '• ☁️ **Cloud sync** — alt accounts saved across devices\n' +
+      '• ⚔️ **`/redeem-all`** — bulk redeem for all accounts (Supporter)\n\n' +
+      '**How to link (takes 30 seconds):**\n' +
+      '1. Go to [ks-atlas.com](https://ks-atlas.com) and **Sign in with Discord**\n' +
+      '2. Go to your **Profile** page\n' +
+      '3. Click **Link Kingshot Account** and enter your Player ID\n\n' +
+      '*Your Player ID is in-game under Settings > Account.*'
+    )
+    .setColor(0x5865F2);
+
+  const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+  const row = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setLabel('Sign In to Atlas')
+      .setURL('https://ks-atlas.com')
+      .setStyle(ButtonStyle.Link)
+      .setEmoji('🌐')
+  );
+  return interaction.editReply({ embeds: [embed], components: [row] });
+}
+
 module.exports = {
   handleKingdom,
   handleCompare,
@@ -885,4 +967,5 @@ module.exports = {
   handleCodes,
   handleRedeem,
   handleRedeemAll,
+  handleLink,
 };

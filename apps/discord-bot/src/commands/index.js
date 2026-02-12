@@ -170,6 +170,11 @@ const commands = [
         .setAutocomplete(true)
     ),
 
+  // /link
+  new SlashCommandBuilder()
+    .setName('link')
+    .setDescription('Link your Discord account to your Atlas profile'),
+
   // /help
   new SlashCommandBuilder()
     .setName('help')

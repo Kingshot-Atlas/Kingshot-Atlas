@@ -137,6 +137,12 @@ const AtlasBot: React.FC = () => {
       accentColor: '#a855f7'
     },
     {
+      command: 'link',
+      description: 'Connect your Discord account to your Atlas profile. Unlocks the Settler role, /redeem, and synced alt accounts.',
+      icon: '\ud83d\udd17',
+      accentColor: '#22c55e'
+    },
+    {
       command: 'multirally',
       description: 'Coordinate multiple rallies to hit a building at the same time. Enter players and march times, get the exact call order. No more guessing.',
       example: '/multirally target:King\'s Castle players:PlayerA:15,PlayerB:18',
@@ -504,7 +510,7 @@ const AtlasBot: React.FC = () => {
             }}>
               <div>
                 <p style={{ color: '#d1d5db', fontSize: isMobile ? '0.8rem' : '0.85rem', fontWeight: '600', marginBottom: '0.15rem' }}>
-                  {t('atlasBot.freeUsesPerDay', '3 free uses per day')}
+                  {t('atlasBot.freeUsesPerDay', '5 free uses per day')}
                 </p>
                 <p style={{ color: '#6b7280', fontSize: isMobile ? '0.7rem' : '0.75rem' }}>
                   {t('atlasBot.supportersUnlimited', 'Atlas Supporters get unlimited access — every rally, every KvK.')}

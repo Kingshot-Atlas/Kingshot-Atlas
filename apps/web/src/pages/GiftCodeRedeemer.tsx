@@ -15,6 +15,7 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 const CODES_CACHE_KEY = 'atlas_gift_codes_cache';
 const CODES_CACHE_TTL = 15 * 60 * 1000; // 15 minutes
 const ALT_ACCOUNTS_KEY = 'atlas_alt_accounts';
+const BULK_RESULTS_KEY = 'atlas_bulk_results';
 const MAX_ALT_ACCOUNTS = 10;
 
 interface AltAccount {
@@ -55,6 +56,23 @@ interface RedeemResult {
 }
 
 type RedeemOutcome = 'success' | 'expired' | 'already_redeemed' | 'invalid' | 'rate_limited' | 'not_login' | 'retryable';
+type BulkCodeOutcome = 'success' | 'expired' | 'already_redeemed' | 'invalid' | 'rate_limited' | 'not_login' | 'error';
+
+function getBulkCodeOutcome(cr: BulkCodeResult): BulkCodeOutcome {
+  if (cr.success) return 'success';
+  if (cr.err_code === 40007) return 'expired';
+  if (cr.err_code === 40005 || cr.err_code === 40008 || cr.err_code === 40011) return 'already_redeemed';
+  if (cr.err_code === 40014) return 'invalid';
+  if (cr.err_code === 40101) return 'rate_limited';
+  if (cr.message?.toLowerCase().includes('rate limit')) return 'rate_limited';
+  if (cr.message?.toLowerCase().includes('not login')) return 'not_login';
+  return 'error';
+}
+
+function isBulkRetryable(cr: BulkCodeResult): boolean {
+  const outcome = getBulkCodeOutcome(cr);
+  return outcome === 'rate_limited' || outcome === 'not_login' || outcome === 'error';
+}
 
 function getOutcome(result: RedeemResult | undefined): RedeemOutcome | null {
   if (!result || result.loading) return null;
@@ -109,9 +127,24 @@ const GiftCodeRedeemer: React.FC = () => {
   const [showSupporterPrompt, setShowSupporterPrompt] = useState(false);
   const [redeemingAllAccounts, setRedeemingAllAccounts] = useState(false);
   const [bulkRedeemProgress, setBulkRedeemProgress] = useState<{ current: number; total: number; currentAccount: string } | null>(null);
-  const [bulkResults, setBulkResults] = useState<BulkAccountResult[]>([]);
-  const [showBulkResults, setShowBulkResults] = useState(false);
-  const [expandedBulkAccounts, setExpandedBulkAccounts] = useState<Set<string>>(new Set());
+  const [bulkResults, setBulkResults] = useState<BulkAccountResult[]>(() => {
+    try {
+      const stored = sessionStorage.getItem(BULK_RESULTS_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch { return []; }
+  });
+  const [showBulkResults, setShowBulkResults] = useState(() => {
+    try { return !!sessionStorage.getItem(BULK_RESULTS_KEY); } catch { return false; }
+  });
+  const [expandedBulkAccounts, setExpandedBulkAccounts] = useState<Set<string>>(() => {
+    try {
+      const stored = sessionStorage.getItem(BULK_RESULTS_KEY);
+      if (!stored) return new Set<string>();
+      const results: BulkAccountResult[] = JSON.parse(stored);
+      return new Set(results.filter(r => r.failed > 0).map(r => r.playerId));
+    } catch { return new Set<string>(); }
+  });
+  const [retryingAccounts, setRetryingAccounts] = useState<Set<string>>(new Set());
   const [altsSyncedFromCloud, setAltsSyncedFromCloud] = useState(false);
 
   const freeAltLimit = 1;
@@ -542,6 +575,76 @@ const GiftCodeRedeemer: React.FC = () => {
     }
   }, [isSupporter, mainPlayerId, altAccounts, codes, results, redeemCodeForPlayer, playerId, redeemingAllAccounts, showToast, startCooldown]);
 
+  // Persist bulkResults to sessionStorage
+  useEffect(() => {
+    if (bulkResults.length > 0) {
+      try { sessionStorage.setItem(BULK_RESULTS_KEY, JSON.stringify(bulkResults)); } catch {}
+    } else {
+      try { sessionStorage.removeItem(BULK_RESULTS_KEY); } catch {}
+    }
+  }, [bulkResults]);
+
+  // Clear sessionStorage when user dismisses results
+  const dismissBulkResults = useCallback(() => {
+    setShowBulkResults(false);
+    setBulkResults([]);
+    try { sessionStorage.removeItem(BULK_RESULTS_KEY); } catch {}
+  }, []);
+
+  // Retry failed codes for a single account
+  const retryFailedForAccount = useCallback(async (targetPlayerId: string) => {
+    if (globalCooldown || retryingAccounts.has(targetPlayerId)) return;
+    const acctIdx = bulkResults.findIndex(r => r.playerId === targetPlayerId);
+    if (acctIdx === -1) return;
+    const acct = bulkResults[acctIdx]!;
+    const retryable = acct.codeResults.filter(isBulkRetryable);
+    if (retryable.length === 0) return;
+
+    setRetryingAccounts(prev => new Set(prev).add(targetPlayerId));
+    let rateLimited = false;
+
+    for (const cr of retryable) {
+      if (rateLimited) break;
+      const result = await redeemCodeForPlayer(cr.code, targetPlayerId);
+      // Update codeResults in place
+      setBulkResults(prev => prev.map(r => {
+        if (r.playerId !== targetPlayerId) return r;
+        const newCodes = r.codeResults.map(c =>
+          c.code === cr.code ? { code: cr.code, success: result.success, message: result.message, err_code: result.err_code } : c
+        );
+        const success = newCodes.filter(c => c.success).length;
+        const failed = newCodes.filter(c => !c.success).length;
+        const errors = [...new Set(newCodes.filter(c => !c.success).map(c => c.message))];
+        return { ...r, codeResults: newCodes, success, failed, errors };
+      }));
+      if (result.message?.toLowerCase().includes('rate limit')) {
+        rateLimited = true;
+      }
+      if (!rateLimited) await new Promise(resolve => setTimeout(resolve, 1500));
+    }
+
+    setRetryingAccounts(prev => { const n = new Set(prev); n.delete(targetPlayerId); return n; });
+    if (rateLimited) {
+      startCooldown(30);
+      showToast('Rate limited during retry. Try again in 30s.', 'error');
+    }
+  }, [bulkResults, globalCooldown, retryingAccounts, redeemCodeForPlayer, startCooldown, showToast]);
+
+  // Retry all failed codes across all accounts
+  const retryAllFailed = useCallback(async () => {
+    if (globalCooldown || retryingAccounts.size > 0) return;
+    const accountsWithRetryable = bulkResults.filter(r => r.codeResults.some(isBulkRetryable));
+    if (accountsWithRetryable.length === 0) return;
+
+    for (let i = 0; i < accountsWithRetryable.length; i++) {
+      if (globalCooldown) break;
+      await retryFailedForAccount(accountsWithRetryable[i]!.playerId);
+      if (i < accountsWithRetryable.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+    }
+  }, [bulkResults, globalCooldown, retryingAccounts, retryFailedForAccount]);
+
   // Not logged in
   if (!user) {
     return (
@@ -926,6 +1029,8 @@ const GiftCodeRedeemer: React.FC = () => {
           const totalFailed = bulkResults.reduce((s, r) => s + r.failed, 0);
           const totalCodes = totalSuccess + totalFailed;
           const allExpanded = bulkResults.every(r => expandedBulkAccounts.has(r.playerId));
+          const hasAnyRetryable = bulkResults.some(r => r.codeResults.some(isBulkRetryable));
+          const isRetryingAny = retryingAccounts.size > 0;
           return (
           <div style={{
             marginBottom: '0.75rem', padding: '0.6rem 0.75rem',
@@ -936,6 +1041,20 @@ const GiftCodeRedeemer: React.FC = () => {
                 BULK REDEEM RESULTS
               </span>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                {hasAnyRetryable && (
+                  <button
+                    onClick={retryAllFailed}
+                    disabled={globalCooldown || isRetryingAny}
+                    style={{
+                      background: 'none', border: '1px solid #f59e0b40', color: isRetryingAny ? '#f59e0b60' : '#f59e0b',
+                      cursor: (globalCooldown || isRetryingAny) ? 'default' : 'pointer', fontSize: '0.55rem',
+                      padding: '0.1rem 0.4rem', borderRadius: '4px', fontWeight: '600',
+                      opacity: (globalCooldown || isRetryingAny) ? 0.5 : 1,
+                    }}
+                  >
+                    {isRetryingAny ? '⟳ Retrying...' : '⟳ Retry All Failed'}
+                  </button>
+                )}
                 <button onClick={() => {
                   if (allExpanded) setExpandedBulkAccounts(new Set());
                   else setExpandedBulkAccounts(new Set(bulkResults.map(r => r.playerId)));
@@ -945,7 +1064,7 @@ const GiftCodeRedeemer: React.FC = () => {
                 }}>
                   {allExpanded ? 'Collapse All' : 'Expand All'}
                 </button>
-                <button onClick={() => setShowBulkResults(false)} style={{
+                <button onClick={dismissBulkResults} style={{
                   background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '0.7rem',
                 }}>✕</button>
               </div>
@@ -963,6 +1082,8 @@ const GiftCodeRedeemer: React.FC = () => {
                 const isExpanded = expandedBulkAccounts.has(r.playerId);
                 const borderC = r.success > 0 && r.failed === 0 ? '#22c55e15' : r.failed > 0 ? '#ef444415' : '#1a1a1a';
                 const bgC = r.success > 0 && r.failed === 0 ? '#22c55e06' : r.failed > 0 ? '#ef444406' : 'transparent';
+                const acctRetryable = r.codeResults.some(isBulkRetryable);
+                const isRetrying = retryingAccounts.has(r.playerId);
                 return (
                   <div key={r.playerId}>
                     <button
@@ -983,9 +1104,11 @@ const GiftCodeRedeemer: React.FC = () => {
                       }}
                     >
                       <span style={{ fontSize: '0.7rem', color: r.success > 0 && r.failed === 0 ? '#22c55e' : r.failed > 0 && r.success === 0 ? '#ef4444' : '#d1d5db' }}>
-                        {r.success > 0 && r.failed === 0 ? '✓' : r.failed > 0 && r.success === 0 ? '✗' : '◐'}
+                        {isRetrying ? '⟳' : r.success > 0 && r.failed === 0 ? '✓' : r.failed > 0 && r.success === 0 ? '✗' : '◐'}
                       </span>
-                      <span style={{ color: '#d1d5db', fontSize: '0.7rem', fontWeight: '600', flex: 1, textAlign: 'left' }}>{r.label}</span>
+                      <span style={{ color: isRetrying ? '#f59e0b' : '#d1d5db', fontSize: '0.7rem', fontWeight: '600', flex: 1, textAlign: 'left' }}>
+                        {r.label}{isRetrying ? ' (retrying...)' : ''}
+                      </span>
                       {r.success > 0 && (
                         <span style={{ color: '#22c55e', fontSize: '0.65rem', fontWeight: '600' }}>
                           {r.success} redeemed
@@ -1013,14 +1136,7 @@ const GiftCodeRedeemer: React.FC = () => {
                         backgroundColor: '#0a0a0a',
                       }}>
                         {r.codeResults.map(cr => {
-                          const crOutcome = cr.success ? 'success'
-                            : cr.err_code === 40007 ? 'expired'
-                            : (cr.err_code === 40005 || cr.err_code === 40008 || cr.err_code === 40011) ? 'already_redeemed'
-                            : cr.err_code === 40014 ? 'invalid'
-                            : cr.err_code === 40101 ? 'rate_limited'
-                            : cr.message?.toLowerCase().includes('rate limit') ? 'rate_limited'
-                            : cr.message?.toLowerCase().includes('not login') ? 'not_login'
-                            : 'error';
+                          const crOutcome = getBulkCodeOutcome(cr);
                           const statusIcon = crOutcome === 'success' ? '✓'
                             : crOutcome === 'already_redeemed' ? '⟳'
                             : crOutcome === 'expired' ? '⛔'
@@ -1052,6 +1168,28 @@ const GiftCodeRedeemer: React.FC = () => {
                             </div>
                           );
                         })}
+                        {/* Per-account Retry Failed button */}
+                        {acctRetryable && !isRetrying && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); retryFailedForAccount(r.playerId); }}
+                            disabled={globalCooldown || isRetryingAny}
+                            style={{
+                              width: '100%', marginTop: '0.25rem', padding: '0.25rem 0',
+                              background: 'none', border: '1px solid #f59e0b30',
+                              borderRadius: '4px', color: '#f59e0b', fontSize: '0.55rem',
+                              fontWeight: '600', cursor: (globalCooldown || isRetryingAny) ? 'default' : 'pointer',
+                              opacity: (globalCooldown || isRetryingAny) ? 0.4 : 1,
+                              transition: 'opacity 0.15s',
+                            }}
+                          >
+                            ⟳ Retry {r.codeResults.filter(isBulkRetryable).length} Failed Code{r.codeResults.filter(isBulkRetryable).length > 1 ? 's' : ''}
+                          </button>
+                        )}
+                        {isRetrying && (
+                          <div style={{ textAlign: 'center', padding: '0.25rem 0', color: '#f59e0b80', fontSize: '0.55rem' }}>
+                            Retrying...
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

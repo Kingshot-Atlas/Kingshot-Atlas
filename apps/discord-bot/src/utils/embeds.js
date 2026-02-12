@@ -362,7 +362,11 @@ function createHelpEmbed() {
         ].join('\n'),
       },
       {
-        name: '�🌐 Links',
+        name: '🔗 Account',
+        value: '`/link` - Link your Discord to your Atlas profile',
+      },
+      {
+        name: '🌐 Links',
         value: [
           `[Website](${config.urls.base})`,
           `[Rankings](${config.urls.rankings})`,
@@ -950,7 +954,7 @@ function createMultirallyUpsellEmbed() {
     .setColor(config.colors.gold)
     .setTitle('\u2694\ufe0f Daily Rally Credits Used')
     .setDescription([
-      "You've used all **3 free** `/multirally` uses for today.",
+      "You've used all **5 free** `/multirally` uses for today.",
       '',
       '**Atlas Supporters** get **unlimited** rally coordination \u2014 plus every other premium feature.',
       '',

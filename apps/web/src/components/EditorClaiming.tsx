@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { supabase } from '../lib/supabase';
 import { FONT_DISPLAY } from '../utils/styles';
+import { useToast } from './Toast';
 
 // =============================================
 // TYPES
@@ -698,6 +699,8 @@ const EditorClaiming: React.FC<{
   const [coEditorError, setCoEditorError] = useState<string | null>(null);
   const [coEditorRequestSent, setCoEditorRequestSent] = useState(false);
   const [acceptingInvite, setAcceptingInvite] = useState(false);
+  const [inviterName, setInviterName] = useState<string | null>(null);
+  const { showToast } = useToast();
 
   const loadMyClaim = useCallback(async () => {
     if (!supabase || !user) {
@@ -751,6 +754,47 @@ const EditorClaiming: React.FC<{
     loadMyClaim();
   }, [loadMyClaim]);
 
+  // Fetch inviter username when pending invite exists
+  useEffect(() => {
+    if (!supabase || !myClaim?.assigned_by) { setInviterName(null); return; }
+    const sb = supabase;
+    const fetchInviter = async () => {
+      const { data } = await sb
+        .from('profiles')
+        .select('linked_username, username')
+        .eq('id', myClaim.assigned_by!)
+        .single();
+      if (data) setInviterName(data.linked_username || data.username || null);
+    };
+    fetchInviter();
+  }, [myClaim?.assigned_by]);
+
+  // Real-time subscription: detect when editor approves our pending request
+  useEffect(() => {
+    if (!supabase || !user || !myClaim || myClaim.status !== 'pending' || myClaim.role !== 'co-editor') return;
+    const sb = supabase;
+    const channel = sb
+      .channel(`editor-claim-${myClaim.id}`)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'kingdom_editors',
+        filter: `id=eq.${myClaim.id}`,
+      }, (payload) => {
+        const updated = payload.new as EditorClaim & { status: string };
+        if (updated.status === 'active') {
+          showToast('Your co-editor request has been approved!', 'success');
+          loadMyClaim();
+          onEditorActivated?.();
+        } else if (updated.status === 'inactive') {
+          showToast('Your co-editor request was declined.', 'info');
+          loadMyClaim();
+        }
+      })
+      .subscribe();
+    return () => { sb.removeChannel(channel); };
+  }, [myClaim?.id, myClaim?.status, myClaim?.role]);
+
   if (!user) return null;
   if (loading) return <div style={{ color: '#6b7280', fontSize: '0.8rem', padding: '0.5rem 0' }}>{t('editor.checkingStatus', 'Checking editor status...')}</div>;
 
@@ -799,14 +843,19 @@ const EditorClaiming: React.FC<{
       if (!supabase || !myClaim) return;
       setAcceptingInvite(true);
       try {
-        await supabase
+        const { error } = await supabase
           .from('kingdom_editors')
           .update({ status: 'active', activated_at: new Date().toISOString() })
           .eq('id', myClaim.id);
+        if (error) {
+          showToast('Failed to accept invitation. Please try again.', 'error');
+          return;
+        }
+        showToast('Invitation accepted!', 'success');
         loadMyClaim();
         onEditorActivated?.();
       } catch {
-        // silent
+        showToast('Failed to accept invitation.', 'error');
       } finally {
         setAcceptingInvite(false);
       }
@@ -841,7 +890,9 @@ const EditorClaiming: React.FC<{
           </span>
         </div>
         <p style={{ color: '#9ca3af', fontSize: '0.7rem', margin: '0.2rem 0 0 0', lineHeight: 1.4 }}>
-          {t('editor.coEditorInviteDesc', "You've been invited to co-edit Kingdom {{kingdom}}'s recruiter dashboard.", { kingdom: myClaim.kingdom_number })}
+          {inviterName
+            ? t('editor.coEditorInviteDescBy', "{{inviter}} invited you to co-edit Kingdom {{kingdom}}'s recruiter dashboard.", { inviter: inviterName, kingdom: myClaim.kingdom_number })
+            : t('editor.coEditorInviteDesc', "You've been invited to co-edit Kingdom {{kingdom}}'s recruiter dashboard.", { kingdom: myClaim.kingdom_number })}
         </p>
         <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'center', marginTop: '0.5rem' }}>
           <button
@@ -965,6 +1016,7 @@ const EditorClaiming: React.FC<{
             .from('kingdom_editors')
             .update({ status: 'active', activated_at: new Date().toISOString() })
             .eq('id', existing.id);
+          showToast('Invite auto-accepted! You are now a co-editor.', 'success');
           loadMyClaim();
           onEditorActivated?.();
           setSubmittingCoEditor(false);

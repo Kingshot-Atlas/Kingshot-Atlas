@@ -116,6 +116,7 @@ const TransferBoard: React.FC = () => {
   const [appRefreshKey, setAppRefreshKey] = useState(0);
   const [showRecruiterDash, setShowRecruiterDash] = useState(false);
   const [isEditor, setIsEditor] = useState(false);
+  const [newAppCount, setNewAppCount] = useState(0);
   const [contributingToKingdom, setContributingToKingdom] = useState<number | null>(null);
   const [showContributionSuccess, setShowContributionSuccess] = useState(false);
   const [visibleCount, setVisibleCount] = useState(20);
@@ -347,11 +348,20 @@ const TransferBoard: React.FC = () => {
       if (!supabase || !user) return;
       const { data } = await supabase
         .from('kingdom_editors')
-        .select('id')
+        .select('id, kingdom_number')
         .eq('user_id', user.id)
         .eq('status', 'active')
         .single();
       setIsEditor(!!data);
+      if (data?.kingdom_number) {
+        // Fetch pending application count for badge
+        const { count } = await supabase
+          .from('transfer_applications')
+          .select('*', { count: 'exact', head: true })
+          .eq('kingdom_number', data.kingdom_number)
+          .eq('status', 'pending');
+        setNewAppCount(count || 0);
+      }
     };
     const countTransferees = async () => {
       if (!supabase) return;
@@ -1133,7 +1143,30 @@ const TransferBoard: React.FC = () => {
           <EditorClaiming onEditorActivated={() => setIsEditor(true)} />
           {isEditor && (
             <button
-              onClick={() => { trackFeature('Recruiter Dashboard Open'); setShowRecruiterDash(true); }}
+              onClick={() => {
+                trackFeature('Recruiter Dashboard Open');
+                setShowRecruiterDash(true);
+                setNewAppCount(0);
+                // Track weekly streak
+                const now = new Date();
+                const weekKey = `${now.getFullYear()}-W${Math.ceil(((now.getTime() - new Date(now.getFullYear(), 0, 1).getTime()) / 86400000 + new Date(now.getFullYear(), 0, 1).getDay() + 1) / 7)}`;
+                const streakData = JSON.parse(localStorage.getItem('atlas_editor_streak') || '{"weeks":[],"current":0}');
+                if (!streakData.weeks.includes(weekKey)) {
+                  streakData.weeks.push(weekKey);
+                  // Calculate current streak
+                  const sorted = streakData.weeks.sort().reverse();
+                  let streak = 1;
+                  for (let i = 1; i < sorted.length; i++) {
+                    const [y1, w1] = sorted[i - 1].split('-W').map(Number);
+                    const [y2, w2] = sorted[i].split('-W').map(Number);
+                    if ((y1 === y2 && w1 - w2 === 1) || (y1 - y2 === 1 && w2 === 52 && w1 === 1)) {
+                      streak++;
+                    } else break;
+                  }
+                  streakData.current = streak;
+                  localStorage.setItem('atlas_editor_streak', JSON.stringify(streakData));
+                }
+              }}
               style={{
                 padding: '0.6rem 1rem',
                 backgroundColor: '#a855f710',
@@ -1146,24 +1179,62 @@ const TransferBoard: React.FC = () => {
                 justifyContent: 'center',
                 gap: '0.35rem',
                 minHeight: '44px',
+                position: 'relative',
               }}
             >
               <span style={{ color: '#a855f7', fontSize: '0.75rem', fontWeight: '600' }}>
                 {t('transferHub.recruiterDashboard', 'Recruiter Dashboard')}
               </span>
-              <span style={{
-                padding: '0.15rem 0.6rem',
-                backgroundColor: '#a855f720',
-                border: '1px solid #a855f740',
-                borderRadius: '6px',
-                fontSize: '0.6rem',
-                color: '#a855f7',
-                fontWeight: '700',
-                textTransform: 'uppercase',
-                letterSpacing: '0.03em',
-              }}>
-                {t('transferHub.open', 'Open')}
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                <span style={{
+                  padding: '0.15rem 0.6rem',
+                  backgroundColor: '#a855f720',
+                  border: '1px solid #a855f740',
+                  borderRadius: '6px',
+                  fontSize: '0.6rem',
+                  color: '#a855f7',
+                  fontWeight: '700',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.03em',
+                }}>
+                  {t('transferHub.open', 'Open')}
+                </span>
+                {(() => {
+                  const streakData = JSON.parse(localStorage.getItem('atlas_editor_streak') || '{"weeks":[],"current":0}');
+                  return streakData.current >= 2 ? (
+                    <span style={{
+                      padding: '0.1rem 0.35rem',
+                      backgroundColor: '#f9731615',
+                      border: '1px solid #f9731630',
+                      borderRadius: '4px',
+                      fontSize: '0.55rem',
+                      color: '#f97316',
+                      fontWeight: '700',
+                    }}>
+                      🔥 {streakData.current}w
+                    </span>
+                  ) : null;
+                })()}
+              </div>
+              {newAppCount > 0 && (
+                <span style={{
+                  position: 'absolute',
+                  top: '-4px',
+                  right: '-4px',
+                  backgroundColor: '#ef4444',
+                  color: '#fff',
+                  fontSize: '0.6rem',
+                  fontWeight: '700',
+                  borderRadius: '999px',
+                  padding: '0.1rem 0.35rem',
+                  minWidth: '16px',
+                  textAlign: 'center',
+                  lineHeight: '1.2',
+                  boxShadow: '0 2px 6px rgba(239,68,68,0.4)',
+                }}>
+                  {newAppCount > 9 ? '9+' : newAppCount}
+                </span>
+              )}
             </button>
           )}
         </div>

@@ -3,16 +3,67 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
-## 2026-02-12 20:15 | Product Engineer | COMPLETED
-Task: Expandable per-code results in Bulk Redeem Results panel
+## 2026-02-12 21:10 | Product Engineer | COMPLETED
+Task: Homepage quick menu refinements, Gift Code navigation update, Discord Bot Atlas rebrand, /link command implementation, i18n sync
+Files: Header.tsx, Tools.tsx, QuickActions.tsx, GiftCodeLanding.tsx, AtlasBot.tsx, handlers.js, index.js, bot.js, embeds.js, 18 translation files
+Changes:
+1. **Gift Code Navigation** — Header dropdown (desktop+mobile) and /tools page card now link to `/gift-codes` landing page. CTA changed to "Learn More".
+2. **Brand Rename** — "Atlas Discord Bot" → "Discord Bot Atlas" across Header, /tools, QuickActions, and all 18 translation files (9 langs × src+public).
+3. **QuickActions rename** — Discord Bot button now shows "Discord / Bot Atlas" (2-line layout).
+4. **Discord /link command** — Full implementation: registered in index.js, handler with 3-state flow (linked/partial/not-linked), wired in bot.js dispatch, added to /help embed. Ephemeral replies with action buttons.
+5. **i18n** — quickAction.* keys (12 keys) translated to all 8 non-EN languages. Synced src→public.
+6. **KvK Battle Planner** — Verified trial config: TRIAL_END = Feb 25 00:00 UTC, "Try It Free" auto-removes after trial.
+Result: Build passes. Dev server running on port 3007. All changes local (uncommitted).
+
+## 2026-02-12 16:55 | Platform Engineer | COMPLETED
+Task: Fix co-editor invite acceptance loop bug (reported by CrabDragoons on K200)
+Files: RecruiterDashboard.tsx, EditorClaiming.tsx, Supabase migrations
+Changes:
+1. **Root cause:** Partial unique index `idx_one_active_editor_per_kingdom` on `(kingdom_number, role) WHERE status='active'` blocked multiple active co-editors per kingdom. When 2nd co-editor accepted invite, DB constraint violation silently failed (frontend didn't check error), then `loadDashboard()` found still-pending record → infinite loop.
+2. **DB fix:** Replaced index to only enforce uniqueness for `editor` role: `UNIQUE (kingdom_number) WHERE (status='active' AND role='editor')`. Co-editors now unrestricted.
+3. **Frontend fix:** Added error handling to accept buttons in both RecruiterDashboard.tsx and EditorClaiming.tsx — check `{ error }` from Supabase response, show error toast on failure instead of silently looping.
+4. **Defensive hardening:** Updated notifications INSERT RLS policy to include `editor_activated` and `fund_contribution` types (used by triggers).
+Result: Build passes. CrabDragoons can now accept the K200 co-editor invite.
+
+## 2026-02-12 20:45 | Product Engineer | COMPLETED
+Task: Co-Editor UX Hardening + Transfer Hub Editor Onboarding Polish
+Files: EditorClaiming.tsx, RecruiterDashboard.tsx, TransferBoard.tsx
+Changes:
+1. **Toast on auto-accept** — Both cross-cases (user requests when invited, editor invites self-requester) now show toast notifications
+2. **Real-time subscription** — EditorClaiming subscribes to `kingdom_editors` changes; instant UI update + toast when editor approves/declines pending request
+3. **"Invited by [username]"** — Invite acceptance card fetches inviter profile and shows their name
+4. **Co-editor removal** — Confirmation dialog with "Confirm Remove" / "Cancel", audit trail via editor_audit_log + notification to removed user
+5. **Last active status** — Co-editor cards in Invites tab show activity indicator (🟢 Active now, 🟡 Xm/Xh ago, ⚪ Xd ago)
+6. **Pending type indicator** — Shows "(invited)" vs "(self-requested)" on pending co-editor entries
+7. **Enhanced onboarding** — 5-step checklist: Claim Kingdom → Set Vibe & Bio → Fund Listing → Invite Co-Editor → Start Recruiting. Steps are clickable (navigate to relevant tab). Dynamic completion tracking.
+8. **New application badge** — Red badge on Recruiter Dashboard button shows pending application count (fetched from transfer_applications)
+9. **Editor activity streak** — localStorage-based weekly streak tracking. Shows 🔥 Xw badge on dashboard button after 2+ consecutive weeks
+Result: Build passes, deployed locally at localhost:3005
+
+## 2026-02-12 21:00 | Product Engineer | COMPLETED (LOCAL)
+Task: Gift Code Redeemer — Retry Failed + sessionStorage persistence
 Files: GiftCodeRedeemer.tsx
 Changes:
-1. **New `BulkCodeResult` interface** — Tracks per-code outcome (code, success, message, err_code) for each account
-2. **Extended `BulkAccountResult`** — Added `codeResults` array to store individual code results per account
-3. **Expandable chevron UI** — Each account row now has a ▶ chevron that rotates to ▼ when expanded, revealing per-code details
-4. **Per-code detail rows** — Show code name, status icon, and specific failure reason (already redeemed, expired, invalid, rate limited, not login, etc.)
-5. **Color-coded outcomes** — Success (green ✓), Already redeemed (yellow ⟳), Expired (gray ⛔), Invalid (red ✗), Rate limited (orange ⏱), Not login (orange 🔒)
-Result: Users can now see exactly why each code failed/succeeded for each account in the bulk redeem results
+1. **sessionStorage persistence** — `bulkResults` saved to `atlas_bulk_results` in sessionStorage; survives page refresh. Auto-restores on mount with failed accounts auto-expanded. Cleared when user dismisses (✕) results.
+2. **Retry All Failed button** — In bulk results header, retries all retryable codes across all accounts sequentially with 1.5s inter-code + 2s inter-account delays. Shows "⟳ Retrying..." state.
+3. **Per-account Retry button** — Inside each expanded account's detail section, shows "⟳ Retry N Failed Codes" only when retryable errors exist. Updates results inline without clearing existing successes.
+4. **Inline progress** — Account row shows spinning ⟳ icon and "(retrying...)" label during retry. Code results update in-place as each code completes.
+5. **Skip non-retryable** — `isBulkRetryable()` helper skips success/expired/already_redeemed/invalid codes. Only rate_limited, not_login, and network errors are retried.
+6. **DRY refactor** — Extracted `getBulkCodeOutcome()` and `isBulkRetryable()` helpers to eliminate duplicated outcome categorization logic.
+Result: Build passes locally. Ready for deploy.
+
+## 2026-02-12 20:30 | Product Engineer + Platform Engineer | COMPLETED + DEPLOYED
+Task: Gift Code Redeemer — expandable bulk results with failure details + rate limit fix + deploy
+Files: GiftCodeRedeemer.tsx, player_link.py, .env (reverted to production)
+Changes:
+1. **Rate limit root cause fix** — Backend `/redeem` rate limit bumped from 10/min to 30/min for bulk ops. Frontend bulk loop now uses local `rateLimited` flag instead of stale `globalCooldown` React state — immediately breaks both loops on 429
+2. **Expandable per-account results** — Chevron (▶) moved to right side of each account row, rotates on expand. Auto-expands accounts with failures
+3. **Summary count header** — Shows "X redeemed · Y failed across N accounts (X/total)" at top of results
+4. **Expand All / Collapse All toggle** — In bulk results header
+5. **Per-code detail rows** — Color-coded: success (green ✓), already redeemed (yellow ⟳), expired (gray ⛔), invalid (red ✗), rate limited (orange ⏱), not login (orange 🔒)
+6. **Timing optimization** — Inter-code delay reduced to 1.5s, inter-account delay added at 2s
+7. **Git cleanup** — Removed tracked pycache and .db files from repo
+Result: Deployed to production via git push to main (commit cc9f9a4)
 
 ## 2026-02-12 16:15 | Product Engineer | COMPLETED
 Task: Fix co-editor invite/request stuck state — users saw conflicting "request pending" + "invited" messages

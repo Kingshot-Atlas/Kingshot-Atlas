@@ -110,6 +110,8 @@ interface TeamMember {
   status: string;
   username?: string;
   linked_username?: string;
+  last_active_at?: string | null;
+  assigned_by?: string | null;
 }
 
 interface FundInfo {
@@ -539,6 +541,7 @@ const RecruiterDashboard: React.FC<{
     return !localStorage.getItem('atlas_recruiter_onboarded');
   });
   const [processingRequest, setProcessingRequest] = useState<string | null>(null);
+  const [removingCoEditor, setRemovingCoEditor] = useState<{ id: string; name: string } | null>(null);
   const [statusHistory, setStatusHistory] = useState<Array<{ id: string; old_status: string; new_status: string; submitted_at: string; status: string; submitted_by: string; submitter_name?: string }>>([]);
   const [loadingStatusHistory, setLoadingStatusHistory] = useState(false);
 
@@ -657,7 +660,7 @@ const RecruiterDashboard: React.FC<{
       // Get team members
       const { data: teamData } = await supabase
         .from('kingdom_editors')
-        .select('id, user_id, role, status')
+        .select('id, user_id, role, status, last_active_at, assigned_by')
         .eq('kingdom_number', editor.kingdom_number);
 
       if (teamData) {
@@ -1086,6 +1089,38 @@ const RecruiterDashboard: React.FC<{
     }
   };
 
+  const handleRemoveCoEditor = async (memberId: string, memberUserId: string) => {
+    if (!supabase || !user || !editorInfo) return;
+    try {
+      await supabase
+        .from('kingdom_editors')
+        .update({ status: 'inactive' })
+        .eq('id', memberId);
+      await supabase.from('notifications').insert({
+        user_id: memberUserId,
+        type: 'co_editor_invite',
+        title: 'Co-Editor Access Removed',
+        message: `Your co-editor access for Kingdom ${editorInfo.kingdom_number} has been removed by the editor.`,
+        link: '/transfer-hub',
+        metadata: { kingdom_number: editorInfo.kingdom_number, action: 'removed' },
+      });
+      await supabase.from('editor_audit_log').insert({
+        editor_id: memberId,
+        kingdom_number: editorInfo.kingdom_number,
+        action: 'remove',
+        performed_by: user.id,
+        target_user_id: memberUserId,
+        details: { source: 'recruiter_dashboard' },
+      });
+      trackFeature('Co-Editor Removed', { kingdom: editorInfo.kingdom_number });
+      showToast('Co-editor removed.', 'success');
+      setRemovingCoEditor(null);
+      loadDashboard();
+    } catch {
+      showToast('Failed to remove co-editor.', 'error');
+    }
+  };
+
   if (!user) return null;
 
   const pendingCoEditorRequests = team.filter((t) => t.role === 'co-editor' && t.status === 'pending');
@@ -1178,19 +1213,22 @@ const RecruiterDashboard: React.FC<{
             <p style={{ color: '#22d3ee', fontSize: '0.8rem', fontWeight: '700', margin: '0 0 0.6rem 0' }}>
               Getting Started as a Recruiter
             </p>
-            <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '0.5rem', flexWrap: 'wrap' }}>
               {[
-                { step: '1', icon: '👑', title: 'Claim Kingdom', desc: 'You\'re the editor — manage your kingdom\'s listing.', done: true },
-                { step: '2', icon: '💰', title: 'Fund Listing', desc: 'Boost visibility with a kingdom fund contribution.', done: (fund?.balance || 0) > 0 },
-                { step: '3', icon: '📩', title: 'Start Recruiting', desc: 'Toggle recruiting on, browse transferees, send invites.', done: fund?.is_recruiting || false },
+                { step: '1', icon: '👑', title: 'Claim Kingdom', desc: 'You\'re the editor — manage your listing.', done: true },
+                { step: '2', icon: '🎨', title: 'Set Vibe & Bio', desc: 'Add kingdom vibe and recruitment pitch.', done: !!(fund?.kingdom_vibe || fund?.recruitment_pitch), action: () => setActiveTab('profile') },
+                { step: '3', icon: '💰', title: 'Fund Listing', desc: 'Boost visibility with a contribution.', done: (fund?.balance || 0) > 0, action: () => setActiveTab('fund') },
+                { step: '4', icon: '👥', title: 'Invite Co-Editor', desc: 'Optional — add a co-editor to help.', done: team.some(t => t.role === 'co-editor' && (t.status === 'active' || t.status === 'pending')), action: () => setActiveTab('invites') },
+                { step: '5', icon: '📩', title: 'Start Recruiting', desc: 'Toggle recruiting on, send invites.', done: fund?.is_recruiting || false },
               ].map((s) => (
-                <div key={s.step} style={{
-                  flex: 1,
+                <div key={s.step} onClick={() => !s.done && s.action?.()}  style={{
+                  flex: 1, minWidth: isMobile ? 'auto' : '110px',
                   padding: '0.6rem',
                   backgroundColor: s.done ? '#22c55e08' : '#0a0a0a',
                   border: `1px solid ${s.done ? '#22c55e25' : '#1a1a1a'}`,
                   borderRadius: '8px',
                   textAlign: 'center',
+                  cursor: !s.done && s.action ? 'pointer' : 'default',
                 }}>
                   <div style={{ fontSize: '1.2rem', marginBottom: '0.2rem' }}>
                     {s.done ? '✅' : s.icon}
@@ -1264,11 +1302,16 @@ const RecruiterDashboard: React.FC<{
                   <button
                     onClick={async () => {
                       if (!supabase) return;
-                      await supabase
+                      const { error } = await supabase
                         .from('kingdom_editors')
                         .update({ status: 'active', activated_at: new Date().toISOString() })
                         .eq('id', pendingInvite.id);
+                      if (error) {
+                        showToast('Failed to accept invitation. Please try again.', 'error');
+                        return;
+                      }
                       showToast('Invitation accepted! Loading dashboard...', 'success');
+                      setPendingInvite(null);
                       loadDashboard();
                     }}
                     style={{
@@ -2583,7 +2626,7 @@ const RecruiterDashboard: React.FC<{
                             border: `1px solid ${member.status === 'pending' ? '#eab30820' : '#2a2a2a'}`,
                           }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                                 <Link
                                   to={`/profile/${member.user_id}`}
                                   style={{ color: '#fff', textDecoration: 'none', fontWeight: '600', fontSize: '0.85rem' }}
@@ -2602,15 +2645,88 @@ const RecruiterDashboard: React.FC<{
                                 }}>
                                   Co-Editor
                                 </span>
+                                {member.status === 'pending' && (
+                                  <span style={{ fontSize: '0.6rem', color: '#6b7280' }}>
+                                    {member.assigned_by ? '(invited)' : '(self-requested)'}
+                                  </span>
+                                )}
                               </div>
-                              <span style={{
-                                color: member.status === 'active' ? '#22c55e' : member.status === 'pending' ? '#eab308' : '#6b7280',
-                                fontSize: '0.7rem',
-                                textTransform: 'capitalize',
-                              }}>
-                                {member.status}
-                              </span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <span style={{
+                                  color: member.status === 'active' ? '#22c55e' : member.status === 'pending' ? '#eab308' : '#6b7280',
+                                  fontSize: '0.7rem',
+                                  textTransform: 'capitalize',
+                                }}>
+                                  {member.status}
+                                </span>
+                              </div>
                             </div>
+                            {/* Last active indicator for active co-editors */}
+                            {member.status === 'active' && member.last_active_at && (
+                              <div style={{ marginTop: '0.3rem', fontSize: '0.6rem', color: '#6b7280' }}>
+                                {(() => {
+                                  const diff = Date.now() - new Date(member.last_active_at).getTime();
+                                  const mins = Math.floor(diff / 60000);
+                                  const hrs = Math.floor(diff / 3600000);
+                                  const days = Math.floor(diff / 86400000);
+                                  if (mins < 5) return '🟢 Active now';
+                                  if (mins < 60) return `🟡 ${mins}m ago`;
+                                  if (hrs < 24) return `🟡 ${hrs}h ago`;
+                                  if (days < 7) return `⚪ ${days}d ago`;
+                                  return `⚪ ${days}d ago`;
+                                })()}
+                              </div>
+                            )}
+                            {/* Removal confirmation dialog */}
+                            {removingCoEditor?.id === member.id ? (
+                              <div style={{
+                                marginTop: '0.5rem', padding: '0.5rem',
+                                backgroundColor: '#ef444408', border: '1px solid #ef444420',
+                                borderRadius: '6px',
+                              }}>
+                                <p style={{ color: '#ef4444', fontSize: '0.7rem', margin: '0 0 0.4rem 0' }}>
+                                  Remove {member.linked_username || member.username || 'this co-editor'}? They will lose dashboard access.
+                                </p>
+                                <div style={{ display: 'flex', gap: '0.4rem' }}>
+                                  <button
+                                    onClick={() => handleRemoveCoEditor(member.id, member.user_id)}
+                                    style={{
+                                      flex: 1, padding: '0.4rem', backgroundColor: '#ef4444',
+                                      border: 'none', borderRadius: '6px',
+                                      color: '#fff', fontSize: '0.7rem', fontWeight: '600',
+                                      cursor: 'pointer', minHeight: '36px',
+                                    }}
+                                  >
+                                    Confirm Remove
+                                  </button>
+                                  <button
+                                    onClick={() => setRemovingCoEditor(null)}
+                                    style={{
+                                      flex: 1, padding: '0.4rem', backgroundColor: 'transparent',
+                                      border: '1px solid #2a2a2a', borderRadius: '6px',
+                                      color: '#9ca3af', fontSize: '0.7rem', fontWeight: '600',
+                                      cursor: 'pointer', minHeight: '36px',
+                                    }}
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              </div>
+                            ) : member.status === 'active' && editorInfo.role === 'editor' ? (
+                              <div style={{ marginTop: '0.4rem' }}>
+                                <button
+                                  onClick={() => setRemovingCoEditor({ id: member.id, name: member.linked_username || member.username || 'User' })}
+                                  style={{
+                                    padding: '0.3rem 0.6rem', backgroundColor: 'transparent',
+                                    border: '1px solid #ef444430', borderRadius: '5px',
+                                    color: '#ef4444', fontSize: '0.65rem', fontWeight: '500',
+                                    cursor: 'pointer', opacity: 0.7,
+                                  }}
+                                >
+                                  Remove Co-Editor
+                                </button>
+                              </div>
+                            ) : null}
                             {member.status === 'pending' && editorInfo.role === 'editor' && (
                               <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.5rem' }}>
                                 <button

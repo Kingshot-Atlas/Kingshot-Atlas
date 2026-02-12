@@ -191,7 +191,7 @@ const Tools: React.FC = () => {
 
   const tools: ToolCardProps[] = [
     {
-      title: t('tools.botTitle', 'Atlas Discord Bot'),
+      title: t('tools.botTitle', 'Discord Bot Atlas'),
       description: t('tools.botDesc', 'Bring kingdom intelligence directly to your Discord server. Look up kingdoms, compare matchups, and check rankings — without leaving Discord.'),
       tagline: t('tools.botTagline', 'Intel at your fingertips. No tab-switching.'),
       usageStat: t('tools.botStat', '10+ Discord servers'),
@@ -229,7 +229,8 @@ const Tools: React.FC = () => {
           <path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
         </svg>
       ),
-      href: '/tools/gift-codes',
+      ctaLabel: t('tools.learnMore', 'Learn More'),
+      href: '/gift-codes',
       accentColor: '#f59e0b'
     },
     {

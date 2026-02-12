@@ -43,6 +43,7 @@ const Ambassadors = lazy(() => import('./pages/Ambassadors'));
 const RallyCoordinator = lazy(() => import('./pages/RallyCoordinator'));
 const BattlePlannerLanding = lazy(() => import('./pages/BattlePlannerLanding'));
 const GiftCodeRedeemer = lazy(() => import('./pages/GiftCodeRedeemer'));
+const GiftCodeLanding = lazy(() => import('./pages/GiftCodeLanding'));
 const AuthCallback = lazy(() => import('./pages/AuthCallback'));
 
 // Loading fallback component
@@ -134,6 +135,7 @@ function AppContent() {
               <Route path="/ambassadors" element={<ErrorBoundary><Ambassadors /></ErrorBoundary>} />
               <Route path="/tools/battle-planner" element={<ErrorBoundary><BattlePlannerLanding /></ErrorBoundary>} />
               <Route path="/tools/kvk-battle-planner" element={<ErrorBoundary><RallyCoordinator /></ErrorBoundary>} />
+              <Route path="/gift-codes" element={<ErrorBoundary><GiftCodeLanding /></ErrorBoundary>} />
               <Route path="/tools/gift-codes" element={<ErrorBoundary><GiftCodeRedeemer /></ErrorBoundary>} />
               <Route path="/auth/callback" element={<ErrorBoundary><AuthCallback /></ErrorBoundary>} />
             </Routes>
