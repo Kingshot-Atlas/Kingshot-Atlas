@@ -1,5 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
+import { getAuthHeaders } from '../../services/authHeaders';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
 interface DailyRedemption {
   date: string;
@@ -31,14 +34,98 @@ interface GiftCodeStats {
   }>;
 }
 
+interface ActiveGiftCode {
+  id: string;
+  code: string;
+  rewards: string;
+  source: string;
+  is_active: boolean;
+  expire_date: string | null;
+  created_at: string;
+}
+
 export const GiftCodeAnalyticsTab: React.FC = () => {
   const [stats, setStats] = useState<GiftCodeStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | 'all'>('7d');
+  const [activeCodes, setActiveCodes] = useState<ActiveGiftCode[]>([]);
+  const [loadingCodes, setLoadingCodes] = useState(true);
+  const [newCode, setNewCode] = useState('');
+  const [newRewards, setNewRewards] = useState('');
+  const [newExpiry, setNewExpiry] = useState('');
+  const [addingCode, setAddingCode] = useState(false);
+  const [activeSection, setActiveSection] = useState<'manage' | 'analytics'>('manage');
+
+  const fetchActiveCodes = useCallback(async () => {
+    setLoadingCodes(true);
+    try {
+      if (!supabase) return;
+      const { data, error } = await supabase
+        .from('gift_codes')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      setActiveCodes(data || []);
+    } catch (err) {
+      console.error('Failed to fetch gift codes:', err);
+    } finally {
+      setLoadingCodes(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchActiveCodes();
+  }, [fetchActiveCodes]);
 
   useEffect(() => {
     fetchStats();
   }, [timeRange]);
+
+  const handleAddCode = async () => {
+    if (!newCode.trim()) return;
+    setAddingCode(true);
+    try {
+      const headers = await getAuthHeaders();
+      const res = await fetch(`${API_URL}/api/v1/player-link/gift-codes/add`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...headers },
+        body: JSON.stringify({
+          code: newCode.trim(),
+          rewards: newRewards.trim(),
+          expire_date: newExpiry || null,
+        }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setNewCode('');
+      setNewRewards('');
+      setNewExpiry('');
+      await fetchActiveCodes();
+    } catch (err) {
+      console.error('Failed to add gift code:', err);
+    } finally {
+      setAddingCode(false);
+    }
+  };
+
+  const handleDeactivate = async (code: string) => {
+    try {
+      if (!supabase) return;
+      await supabase.from('gift_codes').update({ is_active: false }).eq('code', code);
+      await fetchActiveCodes();
+    } catch (err) {
+      console.error('Failed to deactivate code:', err);
+    }
+  };
+
+  const handleActivate = async (code: string) => {
+    try {
+      if (!supabase) return;
+      await supabase.from('gift_codes').update({ is_active: true }).eq('code', code);
+      await fetchActiveCodes();
+    } catch (err) {
+      console.error('Failed to activate code:', err);
+    }
+  };
 
   const fetchStats = async () => {
     setLoading(true);
@@ -149,6 +236,178 @@ export const GiftCodeAnalyticsTab: React.FC = () => {
 
   return (
     <div>
+      {/* Section Toggle */}
+      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+        {(['manage', 'analytics'] as const).map(section => (
+          <button
+            key={section}
+            onClick={() => setActiveSection(section)}
+            style={{
+              padding: '0.4rem 0.8rem',
+              backgroundColor: activeSection === section ? '#22d3ee20' : 'transparent',
+              color: activeSection === section ? '#22d3ee' : '#6b7280',
+              border: activeSection === section ? '1px solid #22d3ee40' : '1px solid #2a2a2a',
+              borderRadius: '6px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              fontSize: '0.8rem',
+            }}
+          >
+            {section === 'manage' ? '🎁 Manage Codes' : '📊 Analytics'}
+          </button>
+        ))}
+      </div>
+
+      {/* Manage Codes Section */}
+      {activeSection === 'manage' && (
+        <div>
+          {/* Add New Code Form */}
+          <div style={{ padding: '1rem', backgroundColor: '#111116', borderRadius: '10px', border: '1px solid #2a2a2a', marginBottom: '1rem' }}>
+            <div style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 600, marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Add Gift Code
+            </div>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+              <div style={{ flex: '1 1 180px' }}>
+                <label style={{ fontSize: '0.65rem', color: '#6b7280', display: 'block', marginBottom: '0.2rem' }}>Code *</label>
+                <input
+                  value={newCode}
+                  onChange={e => setNewCode(e.target.value.toUpperCase())}
+                  placeholder="e.g. KINGSHOT2026"
+                  style={{
+                    width: '100%', padding: '0.4rem 0.6rem', backgroundColor: '#0a0a0a',
+                    border: '1px solid #2a2a2a', borderRadius: '6px', color: '#fff',
+                    fontSize: '0.8rem', fontFamily: 'monospace', boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+              <div style={{ flex: '1 1 200px' }}>
+                <label style={{ fontSize: '0.65rem', color: '#6b7280', display: 'block', marginBottom: '0.2rem' }}>Rewards (optional)</label>
+                <input
+                  value={newRewards}
+                  onChange={e => setNewRewards(e.target.value)}
+                  placeholder="e.g. 500 Diamonds, 2h Speedup"
+                  style={{
+                    width: '100%', padding: '0.4rem 0.6rem', backgroundColor: '#0a0a0a',
+                    border: '1px solid #2a2a2a', borderRadius: '6px', color: '#fff',
+                    fontSize: '0.8rem', boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+              <div style={{ flex: '0 0 160px' }}>
+                <label style={{ fontSize: '0.65rem', color: '#6b7280', display: 'block', marginBottom: '0.2rem' }}>Expiry Date (optional)</label>
+                <input
+                  type="date"
+                  value={newExpiry}
+                  onChange={e => setNewExpiry(e.target.value)}
+                  style={{
+                    width: '100%', padding: '0.4rem 0.6rem', backgroundColor: '#0a0a0a',
+                    border: '1px solid #2a2a2a', borderRadius: '6px', color: '#fff',
+                    fontSize: '0.8rem', boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+              <button
+                onClick={handleAddCode}
+                disabled={!newCode.trim() || addingCode}
+                style={{
+                  padding: '0.4rem 1rem',
+                  backgroundColor: newCode.trim() ? '#22c55e20' : '#1a1a1a',
+                  color: newCode.trim() ? '#22c55e' : '#4b5563',
+                  border: newCode.trim() ? '1px solid #22c55e40' : '1px solid #2a2a2a',
+                  borderRadius: '6px',
+                  fontWeight: 600,
+                  cursor: newCode.trim() ? 'pointer' : 'not-allowed',
+                  fontSize: '0.8rem',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {addingCode ? 'Adding...' : '+ Add Code'}
+              </button>
+            </div>
+            <div style={{ fontSize: '0.6rem', color: '#4b5563', marginTop: '0.5rem' }}>
+              Codes are automatically uppercased. Duplicates are handled via upsert (existing codes get updated).
+            </div>
+          </div>
+
+          {/* Active Codes List */}
+          <div style={{ padding: '1rem', backgroundColor: '#111116', borderRadius: '10px', border: '1px solid #2a2a2a' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+              <div style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                All Gift Codes ({activeCodes.length})
+              </div>
+              <button
+                onClick={fetchActiveCodes}
+                style={{ padding: '0.25rem 0.5rem', backgroundColor: 'transparent', border: '1px solid #2a2a2a', borderRadius: '4px', color: '#6b7280', fontSize: '0.7rem', cursor: 'pointer' }}
+              >
+                ↻ Refresh
+              </button>
+            </div>
+            {loadingCodes ? (
+              <div style={{ color: '#6b7280', fontSize: '0.8rem', padding: '1rem', textAlign: 'center' }}>Loading...</div>
+            ) : activeCodes.length === 0 ? (
+              <div style={{ color: '#4b5563', fontSize: '0.8rem', padding: '2rem', textAlign: 'center' }}>
+                No gift codes in database yet. Add one above or they'll auto-sync from kingshot.net.
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                {activeCodes.map(c => (
+                  <div key={c.id} style={{
+                    display: 'flex', alignItems: 'center', gap: '0.5rem',
+                    padding: '0.4rem 0.6rem', borderRadius: '6px',
+                    backgroundColor: c.is_active ? '#22c55e06' : '#ef444406',
+                    border: `1px solid ${c.is_active ? '#22c55e15' : '#ef444415'}`,
+                    fontSize: '0.75rem',
+                  }}>
+                    <span style={{
+                      width: '8px', height: '8px', borderRadius: '50%',
+                      backgroundColor: c.is_active ? '#22c55e' : '#ef4444',
+                      flexShrink: 0,
+                    }} />
+                    <span style={{ color: '#e5e7eb', fontFamily: 'monospace', fontWeight: 600, minWidth: '120px' }}>
+                      {c.code}
+                    </span>
+                    <span style={{ color: '#6b7280', flex: 1, fontSize: '0.7rem' }}>
+                      {c.rewards || '—'}
+                    </span>
+                    <span style={{
+                      padding: '0.15rem 0.4rem', borderRadius: '4px', fontSize: '0.6rem', fontWeight: 600,
+                      backgroundColor: c.source === 'manual' ? '#f59e0b15' : '#3b82f615',
+                      color: c.source === 'manual' ? '#f59e0b' : '#3b82f6',
+                      border: `1px solid ${c.source === 'manual' ? '#f59e0b30' : '#3b82f630'}`,
+                    }}>
+                      {c.source}
+                    </span>
+                    {c.expire_date && (
+                      <span style={{ color: '#4b5563', fontSize: '0.6rem' }}>
+                        exp {new Date(c.expire_date).toLocaleDateString()}
+                      </span>
+                    )}
+                    <button
+                      onClick={() => c.is_active ? handleDeactivate(c.code) : handleActivate(c.code)}
+                      style={{
+                        padding: '0.2rem 0.5rem',
+                        backgroundColor: c.is_active ? '#ef444410' : '#22c55e10',
+                        color: c.is_active ? '#ef4444' : '#22c55e',
+                        border: `1px solid ${c.is_active ? '#ef444430' : '#22c55e30'}`,
+                        borderRadius: '4px',
+                        fontSize: '0.6rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {c.is_active ? 'Deactivate' : 'Activate'}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Analytics Section */}
+      {activeSection === 'analytics' && (
+      <div>
       {/* Time Range Selector */}
       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
         {(['7d', '30d', 'all'] as const).map(range => (
@@ -302,6 +561,8 @@ export const GiftCodeAnalyticsTab: React.FC = () => {
           <p style={{ fontSize: '0.85rem' }}>No gift code redemption data yet.</p>
           <p style={{ fontSize: '0.7rem' }}>Data will appear once users start redeeming codes through Atlas.</p>
         </div>
+      )}
+      </div>
       )}
     </div>
   );

@@ -999,6 +999,20 @@ async def sync_settler_role(
     return result
 
 
+@router.get("/user-by-discord/{discord_id}")
+async def get_user_by_discord(discord_id: str, _: bool = Depends(require_bot_admin)):
+    """
+    Look up an Atlas user profile by their Discord ID.
+    Used by the /redeem bot command to find linked Kingshot accounts.
+    """
+    from api.supabase_client import get_user_by_discord_id
+    
+    user = get_user_by_discord_id(discord_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+
 @router.get("/linked-users")
 async def get_linked_users(_: bool = Depends(require_bot_admin)):
     """

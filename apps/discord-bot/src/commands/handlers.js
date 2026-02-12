@@ -513,28 +513,21 @@ async function handleMultirally(interaction) {
 }
 
 /**
- * /codes — Show active gift codes
+ * /codes — Show active gift codes (uses backend API)
  */
 async function handleCodes(interaction) {
   await interaction.deferReply();
 
   try {
-    const response = await fetch('https://kingshot.net/api/gift-codes', {
-      headers: { 'Accept': 'application/json' },
-      signal: AbortSignal.timeout(10000),
-    });
+    const activeCodes = await api.fetchGiftCodes();
 
-    if (!response.ok) {
+    if (!activeCodes || activeCodes.length === 0) {
       const errorEmbed = embeds.createErrorEmbed(
-        'Could not fetch gift codes.',
-        'The code source is temporarily unavailable. Try again later.'
+        'No active gift codes found.',
+        'Check back later — new codes are added regularly.\nYou can also redeem codes at [ks-atlas.com/gift-codes](https://ks-atlas.com/gift-codes).'
       );
       return interaction.editReply({ embeds: [errorEmbed] });
     }
-
-    const data = await response.json();
-    const codes = data?.data?.giftCodes || [];
-    const activeCodes = codes.filter(c => !c.is_expired);
 
     const embed = embeds.createGiftCodesEmbed(activeCodes);
     return interaction.editReply({ embeds: [embed] });
@@ -545,6 +538,128 @@ async function handleCodes(interaction) {
     );
     return interaction.editReply({ embeds: [errorEmbed] });
   }
+}
+
+/**
+ * Non-retryable err_codes — skip these during bulk redemption
+ */
+const NON_RETRYABLE_ERR_CODES = [40008, 40007, 40014, 40009, 20000];
+
+/**
+ * /redeem — Redeem all active gift codes for a linked Kingshot account
+ */
+async function handleRedeem(interaction) {
+  // 30-second cooldown per user
+  const remaining = checkCooldown('redeem', interaction.user.id, 30);
+  if (remaining > 0) {
+    return interaction.reply({
+      content: `\u23f3 Cooldown: try again in **${remaining}s**.`,
+      ephemeral: true,
+    });
+  }
+
+  await interaction.deferReply({ ephemeral: true });
+
+  // 1. Look up Atlas profile by Discord ID
+  const profile = await api.lookupUserByDiscordId(interaction.user.id);
+
+  if (!profile) {
+    const embed = embeds.createBaseEmbed()
+      .setTitle('\ud83d\udd17 Account Not Linked')
+      .setDescription(
+        'Your Discord account isn\'t linked to an Atlas profile yet.\n\n' +
+        '**How to link:**\n' +
+        '1. Go to [ks-atlas.com](https://ks-atlas.com) and sign in with Discord\n' +
+        '2. Go to your **Profile** page\n' +
+        '3. Click **Link Kingshot Account** and enter your Player ID\n\n' +
+        'Once linked, come back and use `/redeem` to auto-redeem all active codes!'
+      )
+      .setColor(0xfbbf24);
+    return interaction.editReply({ embeds: [embed] });
+  }
+
+  const playerId = profile.linked_player_id;
+  if (!playerId) {
+    const embed = embeds.createBaseEmbed()
+      .setTitle('\ud83c\udfae Kingshot Account Not Linked')
+      .setDescription(
+        'Your Atlas profile exists, but you haven\'t linked your Kingshot account yet.\n\n' +
+        'Go to [your Atlas profile](https://ks-atlas.com/profile) and click **Link Kingshot Account**.'
+      )
+      .setColor(0xfbbf24);
+    return interaction.editReply({ embeds: [embed] });
+  }
+
+  const playerName = profile.linked_username || profile.username || `Player ${playerId}`;
+
+  // 2. Fetch active gift codes
+  const codes = await api.fetchGiftCodes();
+  if (!codes || codes.length === 0) {
+    const embed = embeds.createBaseEmbed()
+      .setTitle('\ud83c\udf81 No Active Gift Codes')
+      .setDescription('There are no active gift codes right now. Check back later!')
+      .setColor(0x6b7280);
+    return interaction.editReply({ embeds: [embed] });
+  }
+
+  // 3. Redeem each code sequentially with ~5s delay
+  const embed = embeds.createBaseEmbed()
+    .setTitle('\ud83c\udf81 Redeeming Gift Codes')
+    .setDescription(`Redeeming **${codes.length}** code${codes.length > 1 ? 's' : ''} for **${playerName}**...\nThis may take a moment.`)
+    .setColor(0x3b82f6);
+
+  await interaction.editReply({ embeds: [embed] });
+
+  const results = [];
+  for (let i = 0; i < codes.length; i++) {
+    const code = codes[i].code;
+
+    const result = await api.redeemGiftCode(playerId, code);
+    const emoji = result.success ? '\u2705' : '\u274c';
+    let status = result.message || (result.success ? 'Success' : 'Failed');
+
+    // Classify outcome
+    if (result.err_code && NON_RETRYABLE_ERR_CODES.includes(result.err_code)) {
+      if (result.err_code === 40008 || result.err_code === 40014) status = 'Already redeemed';
+      else if (result.err_code === 40007) status = 'Expired';
+      else if (result.err_code === 40009) status = 'Invalid code';
+    }
+
+    results.push(`${emoji} \`${code}\` — ${status}`);
+
+    // Update progress embed every code
+    const progressEmbed = embeds.createBaseEmbed()
+      .setTitle('\ud83c\udf81 Redeeming Gift Codes')
+      .setDescription(`Progress: **${i + 1}/${codes.length}** for **${playerName}**`)
+      .addFields({ name: 'Results', value: results.join('\n') })
+      .setColor(0x3b82f6);
+
+    await interaction.editReply({ embeds: [progressEmbed] }).catch(() => {});
+
+    // Wait ~5 seconds between codes (except after last)
+    if (i < codes.length - 1) {
+      await new Promise(resolve => setTimeout(resolve, 5000));
+    }
+  }
+
+  // 4. Final summary
+  const successes = results.filter(r => r.startsWith('\u2705')).length;
+  const failures = results.filter(r => r.startsWith('\u274c')).length;
+
+  const finalColor = successes === codes.length ? 0x22c55e
+    : successes > 0 ? 0xfbbf24
+    : 0xef4444;
+
+  const finalEmbed = embeds.createBaseEmbed()
+    .setTitle('\ud83c\udf81 Gift Code Redemption Complete')
+    .setDescription(
+      `**${playerName}** — ${successes} succeeded, ${failures} failed\n\n` +
+      results.join('\n')
+    )
+    .setColor(finalColor)
+    .setFooter({ text: 'Kingshot Atlas \u2022 ks-atlas.com/gift-codes' });
+
+  return interaction.editReply({ embeds: [finalEmbed] });
 }
 
 module.exports = {
@@ -560,4 +675,5 @@ module.exports = {
   handlePredict,
   handleMultirally,
   handleCodes,
+  handleRedeem,
 };

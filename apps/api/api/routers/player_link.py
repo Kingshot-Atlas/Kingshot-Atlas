@@ -17,7 +17,7 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 from slowapi import Limiter
 from slowapi.util import get_remote_address
-from api.supabase_client import log_gift_code_redemption
+from api.supabase_client import log_gift_code_redemption, get_gift_codes_from_db, upsert_gift_codes, add_manual_gift_code, deactivate_gift_code
 
 router = APIRouter()
 
@@ -326,29 +326,121 @@ async def redeem_gift_code(request: Request, body: GiftCodeRedeemRequest):
 @router.get(
     "/gift-codes",
     summary="Fetch Active Gift Codes",
-    description="Fetch currently active Kingshot gift codes from public sources."
+    description="Fetch currently active Kingshot gift codes from public sources and database."
 )
 @limiter.limit("30/minute")
 async def get_active_gift_codes(request: Request):
     """
-    Fetch active gift codes from kingshot.net public API.
-    Cached on the client side — frontend should cache for 15 minutes.
+    Fetch active gift codes by merging:
+    1. Supabase gift_codes table (admin-added + previously synced)
+    2. kingshot.net public API (auto-synced into DB)
+    Returns deduplicated list.
     """
-    async with httpx.AsyncClient(timeout=15.0) as client:
-        try:
+    seen_codes = set()
+    merged = []
+    source = "database"
+
+    # 1. Fetch from Supabase gift_codes table first
+    db_codes = get_gift_codes_from_db()
+    for c in db_codes:
+        code_str = c.get("code", "")
+        if code_str and code_str not in seen_codes:
+            seen_codes.add(code_str)
+            merged.append({
+                "code": code_str,
+                "rewards": c.get("rewards", ""),
+                "expire_date": c.get("expire_date"),
+                "source": c.get("source", "database"),
+                "is_expired": False,
+            })
+
+    # 2. Fetch from kingshot.net and auto-sync into DB
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as client:
             response = await client.get(
                 "https://kingshot.net/api/gift-codes",
                 headers={"Accept": "application/json"},
             )
             response.raise_for_status()
             data = response.json()
-            # kingshot.net returns { status, data: { giftCodes: [...] }, ... }
             if isinstance(data, dict) and "data" in data and isinstance(data["data"], dict):
-                codes = data["data"].get("giftCodes", [])
+                raw_codes = data["data"].get("giftCodes", [])
             elif isinstance(data, list):
-                codes = data
+                raw_codes = data
             else:
-                codes = data.get("codes", data.get("giftCodes", []))
-            return {"codes": codes, "source": "kingshot.net"}
-        except Exception:
-            return {"codes": [], "source": "unavailable"}
+                raw_codes = data.get("codes", data.get("giftCodes", []))
+
+            # Normalize and merge
+            normalized = []
+            for c in raw_codes:
+                code_str = c.get("code") or c.get("title") or ""
+                if not code_str:
+                    continue
+                normalized.append({
+                    "code": code_str,
+                    "rewards": c.get("rewards") or c.get("title") or "",
+                    "expire_date": c.get("expire_date") or c.get("expiresAt"),
+                    "is_expired": c.get("is_expired", False),
+                })
+                if code_str not in seen_codes and not c.get("is_expired", False):
+                    seen_codes.add(code_str)
+                    merged.append({
+                        "code": code_str,
+                        "rewards": c.get("rewards") or c.get("title") or "",
+                        "expire_date": c.get("expire_date") or c.get("expiresAt"),
+                        "source": "kingshot.net",
+                        "is_expired": False,
+                    })
+
+            # Fire-and-forget: sync fetched codes into Supabase
+            try:
+                upsert_gift_codes(normalized, source="kingshot.net")
+            except Exception:
+                pass
+
+            source = "merged"
+    except Exception:
+        # kingshot.net unavailable — still return DB codes
+        if not merged:
+            source = "unavailable"
+
+    return {"codes": merged, "source": source}
+
+
+class ManualGiftCodeRequest(BaseModel):
+    """Request to add a manual gift code"""
+    code: str = Field(..., min_length=3, max_length=50)
+    rewards: str = ""
+    expire_date: str | None = None
+
+
+@router.post(
+    "/gift-codes/add",
+    summary="Add Manual Gift Code (Admin)",
+    description="Admin endpoint to manually add a gift code to the database."
+)
+@limiter.limit("10/minute")
+async def add_gift_code(request: Request, body: ManualGiftCodeRequest):
+    """Add a gift code manually. Requires admin auth in production."""
+    result = add_manual_gift_code(
+        code=body.code,
+        rewards=body.rewards,
+        expire_date=body.expire_date,
+    )
+    if "error" in result:
+        raise HTTPException(status_code=500, detail=result["error"])
+    return {"success": True, "message": f"Code {body.code.strip().upper()} added."}
+
+
+@router.post(
+    "/gift-codes/deactivate",
+    summary="Deactivate Gift Code (Admin)",
+    description="Admin endpoint to deactivate a gift code."
+)
+@limiter.limit("10/minute")
+async def deactivate_code(request: Request, code: str):
+    """Deactivate a gift code."""
+    success = deactivate_gift_code(code)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to deactivate code")
+    return {"success": True, "message": f"Code {code} deactivated."}

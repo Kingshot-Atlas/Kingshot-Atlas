@@ -779,19 +779,23 @@ function createHistoryEmbed(kingdom, page = 1) {
     const safePage = Math.min(Math.max(page, 1), totalPages);
     const pageItems = sorted.slice((safePage - 1) * perPage, safePage * perPage);
 
-    // Single-column layout: Matchup | Result per row (mobile-friendly)
-    const rows = pageItems.map((kvk) => {
+    // Two-column inline layout (Matchup | Result)
+    const matchups = pageItems.map((kvk) => {
       const num = kvk.kvk_number ? `KvK #${kvk.kvk_number}` : `#${kvk.order_index}`;
       const opponent = kvk.opponent_kingdom ? `vs K${kvk.opponent_kingdom}` : '';
-      const prep = resultEmoji(kvk.prep_result);
-      const battle = resultEmoji(kvk.battle_result);
-      return `\u2796 **${num}** ${opponent} — P:${prep} B:${battle}`;
+      return `\u2796 **${num}** ${opponent}`;
     });
 
-    embed.addFields({
-      name: 'Matchup \u2502 Result',
-      value: rows.join('\n'),
+    const results = pageItems.map((kvk) => {
+      const prep = resultEmoji(kvk.prep_result);
+      const battle = resultEmoji(kvk.battle_result);
+      return `Prep: ${prep}  Battle: ${battle}`;
     });
+
+    embed.addFields(
+      { name: 'Matchup', value: matchups.join('\n'), inline: true },
+      { name: 'Result', value: results.join('\n'), inline: true },
+    );
 
     if (totalPages > 1) {
       embed.setDescription(`Page ${safePage} of ${totalPages}`);

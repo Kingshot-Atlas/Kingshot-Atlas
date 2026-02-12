@@ -223,6 +223,58 @@ async function incrementMultirallyCredits(discordUserId, isSupporter) {
   }
 }
 
+/**
+ * Fetch active gift codes from backend API (merged: Supabase + kingshot.net)
+ */
+async function fetchGiftCodes() {
+  try {
+    const res = await fetchWithRetry(`${config.apiUrl}/api/v1/player-link/gift-codes`);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.codes || [];
+  } catch (e) {
+    console.error('[API] fetchGiftCodes error:', e.message);
+    return [];
+  }
+}
+
+/**
+ * Redeem a single gift code for a player via backend proxy
+ */
+async function redeemGiftCode(playerId, code) {
+  try {
+    const res = await fetchWithTimeout(`${config.apiUrl}/api/v1/player-link/redeem`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ player_id: playerId, code }),
+    }, 30000);
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      return { success: false, message: errData.detail?.error || `HTTP ${res.status}`, err_code: null };
+    }
+    return await res.json();
+  } catch (e) {
+    console.error(`[API] redeemGiftCode error (${code}):`, e.message);
+    return { success: false, message: e.message, err_code: null };
+  }
+}
+
+/**
+ * Look up an Atlas user profile by Discord ID
+ */
+async function lookupUserByDiscordId(discordId) {
+  try {
+    const res = await fetchWithTimeout(`${config.apiUrl}/api/v1/bot/user-by-discord/${discordId}`, {
+      headers: { 'X-API-Key': process.env.DISCORD_API_KEY || '' },
+    }, 15000);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) {
+    console.error(`[API] lookupUserByDiscordId error:`, e.message);
+    return null;
+  }
+}
+
 module.exports = {
   fetchKingdom,
   fetchLeaderboard,
@@ -231,4 +283,7 @@ module.exports = {
   fetchTopByPhase,
   checkMultirallyCredits,
   incrementMultirallyCredits,
+  fetchGiftCodes,
+  redeemGiftCode,
+  lookupUserByDiscordId,
 };

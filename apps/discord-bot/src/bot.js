@@ -834,6 +834,9 @@ client.on('interactionCreate', async (interaction) => {
       case 'codes':
         await handlers.handleCodes(interaction);
         break;
+      case 'redeem':
+        await handlers.handleRedeem(interaction);
+        break;
       case 'stats':
         await handlers.handleStats(interaction);
         break;

@@ -849,6 +849,103 @@ def log_gift_code_redemption(
         return False
 
 
+def get_gift_codes_from_db() -> list:
+    """Fetch all active gift codes from Supabase gift_codes table."""
+    client = get_supabase_admin()
+    if not client:
+        return []
+    try:
+        result = client.table("gift_codes").select("*").eq("is_active", True).execute()
+        return result.data or []
+    except Exception as e:
+        print(f"Error fetching gift codes: {e}")
+        return []
+
+
+def upsert_gift_codes(codes: list, source: str = "kingshot.net") -> bool:
+    """
+    Upsert gift codes into the gift_codes table.
+    Codes are matched by the 'code' column (UNIQUE).
+    Only updates if the code already exists and source matches.
+    """
+    client = get_supabase_admin()
+    if not client or not codes:
+        return False
+    try:
+        for c in codes:
+            row = {
+                "code": c.get("code", ""),
+                "rewards": c.get("rewards") or c.get("title") or "",
+                "source": source,
+                "is_active": not c.get("is_expired", False),
+            }
+            expire = c.get("expire_date") or c.get("expiresAt")
+            if expire:
+                row["expire_date"] = expire
+            if not row["code"]:
+                continue
+            # Upsert: insert or update on conflict
+            client.table("gift_codes").upsert(
+                row, on_conflict="code"
+            ).execute()
+        return True
+    except Exception as e:
+        print(f"Error upserting gift codes: {e}")
+        return False
+
+
+def add_manual_gift_code(code: str, rewards: str = "", expire_date: str = None, added_by: str = None) -> dict:
+    """Add a manually-entered gift code to the database."""
+    client = get_supabase_admin()
+    if not client:
+        return {"error": "Supabase not configured"}
+    try:
+        row = {
+            "code": code.strip().upper(),
+            "rewards": rewards,
+            "source": "manual",
+            "is_active": True,
+        }
+        if expire_date:
+            row["expire_date"] = expire_date
+        if added_by:
+            row["added_by"] = added_by
+        result = client.table("gift_codes").upsert(row, on_conflict="code").execute()
+        return {"success": True, "data": result.data}
+    except Exception as e:
+        return {"error": str(e)}
+
+
+def deactivate_gift_code(code: str) -> bool:
+    """Mark a gift code as inactive."""
+    client = get_supabase_admin()
+    if not client:
+        return False
+    try:
+        client.table("gift_codes").update({"is_active": False}).eq("code", code).execute()
+        return True
+    except Exception as e:
+        print(f"Error deactivating gift code: {e}")
+        return False
+
+
+def get_user_by_discord_id(discord_id: str) -> Optional[dict]:
+    """Look up a user profile by their Discord ID. Returns profile dict or None."""
+    client = get_supabase_admin()
+    if not client:
+        return None
+    try:
+        result = client.table("profiles").select(
+            "id, discord_id, linked_player_id, linked_username, username"
+        ).eq("discord_id", discord_id).limit(1).execute()
+        if result.data and len(result.data) > 0:
+            return result.data[0]
+        return None
+    except Exception as e:
+        print(f"Error looking up user by discord_id: {e}")
+        return None
+
+
 def get_users_with_linked_kingshot_and_discord() -> list:
     """
     Get all users who have both a linked Kingshot account AND a Discord account.
