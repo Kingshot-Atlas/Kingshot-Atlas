@@ -7,6 +7,7 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useToast } from '../components/Toast';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { ADMIN_USERNAMES } from '../utils/constants';
+import { supabase } from '../lib/supabase';
 
 // =============================================
 // TYPES
@@ -688,16 +689,28 @@ const PlayerModal: React.FC<{
   const [name, setName] = useState('');
   const [team, setTeam] = useState<'ally' | 'enemy'>(defaultTeam);
   const [marchTimes, setMarchTimes] = useState<MarchTimes>(DEFAULT_MARCH);
+  // Track which fields were manually entered (not estimated)
+  const [manualFields, setManualFields] = useState<Record<string, Set<string>>>({});
 
   useEffect(() => {
     if (editingPlayer) {
       setName(editingPlayer.name);
       setTeam(editingPlayer.team);
       setMarchTimes(editingPlayer.marchTimes);
+      // Mark all non-zero fields as manual on edit
+      const manual: Record<string, Set<string>> = {};
+      for (const [bKey, times] of Object.entries(editingPlayer.marchTimes)) {
+        const s = new Set<string>();
+        if (times.regular > 0) s.add('regular');
+        if (times.buffed > 0) s.add('buffed');
+        manual[bKey] = s;
+      }
+      setManualFields(manual);
     } else {
       setName('');
       setTeam(defaultTeam);
       setMarchTimes(DEFAULT_MARCH);
+      setManualFields({});
     }
   }, [editingPlayer, isOpen, defaultTeam]);
 
@@ -718,10 +731,48 @@ const PlayerModal: React.FC<{
 
   const updateMarch = (building: BuildingKey, type: MarchType, value: string) => {
     const num = parseInt(value) || 0;
-    setMarchTimes(prev => ({
-      ...prev,
-      [building]: { ...prev[building], [type]: Math.max(0, Math.min(120, num)) },
-    }));
+    const clamped = Math.max(0, Math.min(120, num));
+    const otherType: MarchType = type === 'regular' ? 'buffed' : 'regular';
+
+    // Track this field as manually entered
+    setManualFields(prev => {
+      const s = new Set(prev[building] || []);
+      if (clamped > 0) {
+        s.add(type);
+      } else {
+        s.delete(type);
+      }
+      return { ...prev, [building]: s };
+    });
+
+    setMarchTimes(prev => {
+      const current = prev[building];
+      const otherManual = manualFields[building]?.has(otherType);
+      const updated = { ...current, [type]: clamped };
+
+      // Auto-estimate counterpart only if not manually entered
+      if (clamped > 0 && !otherManual) {
+        if (type === 'regular') {
+          updated.buffed = estimateBuffed(clamped);
+        } else {
+          updated.regular = estimateRegular(clamped);
+        }
+      }
+      // If cleared, also clear the estimated counterpart
+      if (clamped === 0 && !otherManual) {
+        updated[otherType] = 0;
+      }
+
+      return { ...prev, [building]: updated };
+    });
+  };
+
+  const isEstimated = (building: BuildingKey, type: MarchType): boolean => {
+    const manual = manualFields[building];
+    if (!manual) return false;
+    // It's estimated if the value is > 0, this field wasn't manually set, but the other was
+    const otherType: MarchType = type === 'regular' ? 'buffed' : 'regular';
+    return !manual.has(type) && manual.has(otherType) && marchTimes[building][type] > 0;
   };
 
   const buildings: BuildingKey[] = ['castle', 'turret1', 'turret2', 'turret3', 'turret4'];
@@ -774,8 +825,11 @@ const PlayerModal: React.FC<{
           />
         </div>
 
-        <p style={{ color: '#6b7280', fontSize: '0.65rem', marginBottom: '0.75rem' }}>
-          March times in seconds (0–120). Regular and buffed — know both.
+        <p style={{ color: '#6b7280', fontSize: '0.65rem', marginBottom: '0.5rem' }}>
+          March times in seconds (0–120). Enter one — the other is estimated automatically.
+        </p>
+        <p style={{ color: '#f59e0b80', fontSize: '0.55rem', marginBottom: '0.75rem' }}>
+          ≈ = estimated (×1.55 ratio). Enter both to use exact values.
         </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -792,9 +846,14 @@ const PlayerModal: React.FC<{
                   value={marchTimes[b].regular || ''}
                   onChange={e => updateMarch(b, 'regular', e.target.value)}
                   placeholder="Regular"
-                  style={{ ...inputStyle, fontSize: '1rem', padding: '0.4rem 1.5rem 0.4rem 0.5rem' }}
+                  style={{
+                    ...inputStyle, fontSize: '1rem', padding: '0.4rem 1.5rem 0.4rem 0.5rem',
+                    ...(isEstimated(b, 'regular') ? { borderColor: '#f59e0b40', color: '#f59e0b' } : {}),
+                  }}
                 />
-                <span style={{ position: 'absolute', right: '6px', top: '50%', transform: 'translateY(-50%)', color: '#4b5563', fontSize: '0.55rem' }}>s</span>
+                <span style={{ position: 'absolute', right: '6px', top: '50%', transform: 'translateY(-50%)', color: isEstimated(b, 'regular') ? '#f59e0b' : '#4b5563', fontSize: '0.55rem' }}>
+                  {isEstimated(b, 'regular') ? '≈' : 's'}
+                </span>
               </div>
               <div style={{ position: 'relative' }}>
                 <input
@@ -802,9 +861,15 @@ const PlayerModal: React.FC<{
                   value={marchTimes[b].buffed || ''}
                   onChange={e => updateMarch(b, 'buffed', e.target.value)}
                   placeholder="Buffed ⚡"
-                  style={{ ...inputStyle, fontSize: '1rem', padding: '0.4rem 1.5rem 0.4rem 0.5rem', borderColor: '#22c55e30' }}
+                  style={{
+                    ...inputStyle, fontSize: '1rem', padding: '0.4rem 1.5rem 0.4rem 0.5rem',
+                    borderColor: isEstimated(b, 'buffed') ? '#f59e0b40' : '#22c55e30',
+                    ...(isEstimated(b, 'buffed') ? { color: '#f59e0b' } : {}),
+                  }}
                 />
-                <span style={{ position: 'absolute', right: '6px', top: '50%', transform: 'translateY(-50%)', color: '#22c55e', fontSize: '0.55rem' }}>⚡</span>
+                <span style={{ position: 'absolute', right: '6px', top: '50%', transform: 'translateY(-50%)', color: isEstimated(b, 'buffed') ? '#f59e0b' : '#22c55e', fontSize: '0.55rem' }}>
+                  {isEstimated(b, 'buffed') ? '≈' : '⚡'}
+                </span>
               </div>
             </div>
           ))}
@@ -901,14 +966,61 @@ const CallOrderOutput: React.FC<{
 // MAIN COMPONENT
 // =============================================
 
+const BUFF_MULTIPLIER = 1.55;
+
+const estimateBuffed = (regular: number): number => {
+  if (regular <= 0) return 0;
+  return Math.ceil(regular / BUFF_MULTIPLIER);
+};
+
+const estimateRegular = (buffed: number): number => {
+  if (buffed <= 0) return 0;
+  return Math.ceil(buffed * BUFF_MULTIPLIER);
+};
+
 const RallyCoordinator: React.FC = () => {
   const { t } = useTranslation();
   useDocumentTitle('KvK Battle Planner');
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const isMobile = useIsMobile();
 
   // Admin gate
   const isAdmin = !!(profile?.username && ADMIN_USERNAMES.includes(profile.username.toLowerCase()));
+
+  // Free trial: Feb 15 00:00 UTC → Feb 25 00:00 UTC
+  const TRIAL_START = new Date('2026-02-15T00:00:00Z').getTime();
+  const TRIAL_END = new Date('2026-02-25T00:00:00Z').getTime();
+  const isTrialActive = Date.now() >= TRIAL_START && Date.now() < TRIAL_END;
+
+  // Access gate: admin OR granted via battle_planner_access table OR free trial
+  const [hasAccess, setHasAccess] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (isAdmin || isTrialActive) {
+      setHasAccess(true);
+      return;
+    }
+    if (!user?.id || !supabase) {
+      setHasAccess(false);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data, error } = await supabase
+          .from('battle_planner_access')
+          .select('id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        if (!cancelled) {
+          setHasAccess(!error && !!data);
+        }
+      } catch {
+        if (!cancelled) setHasAccess(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [isAdmin, isTrialActive, user?.id]);
 
   // State: Unified player database (allies + enemies)
   const [players, setPlayers] = useState<RallyPlayer[]>(() => loadFromStorage(STORAGE_KEY_PLAYERS, []));
@@ -1234,23 +1346,41 @@ const RallyCoordinator: React.FC = () => {
   const clearQueue = useCallback(() => setRallyQueue([]), []);
   const clearCounterQueue = useCallback(() => setCounterQueue([]), []);
 
-  // Non-admin view
-  if (!isAdmin) {
+  // Loading state while checking access
+  if (hasAccess === null) {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>Loading...</div>
+      </div>
+    );
+  }
+
+  // No access — coming soon gate
+  if (!hasAccess) {
     return (
       <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
-        <div style={{ textAlign: 'center', maxWidth: '400px' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔒</div>
-          <h1 style={{ color: '#fff', fontSize: '1.5rem', fontFamily: FONT_DISPLAY, marginBottom: '0.75rem' }}>
-            KvK Rally Coordinator
-          </h1>
-          <p style={{ color: '#6b7280', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-            This tool is currently in development. Check back soon.
+        <div style={{ textAlign: 'center', maxWidth: '440px' }}>
+          <div style={{ fontSize: '3.5rem', marginBottom: '1rem' }}>⚔️</div>
+          <h2 style={{ color: '#fff', fontSize: '1.5rem', fontFamily: FONT_DISPLAY, marginBottom: '0.5rem', letterSpacing: '0.05em' }}>
+            <span style={{ color: '#fff' }}>KvK BATTLE </span>
+            <span style={neonGlow('#ef4444')}>COORDINATOR</span>
+          </h2>
+          <div style={{
+            display: 'inline-block', padding: '0.25rem 0.75rem', marginBottom: '1rem',
+            backgroundColor: '#ef444420', border: '1px solid #ef444440', borderRadius: '20px',
+            fontSize: '0.7rem', fontWeight: '700', color: '#ef4444', textTransform: 'uppercase', letterSpacing: '0.08em',
+          }}>
+            {t('common.comingSoon', 'Coming Soon')}
+          </div>
+          <p style={{ color: '#9ca3af', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '1.5rem' }}>
+            {t('rallyCoordinator.comingSoonDesc', 'Coordinate multi-rally strikes with surgical precision. Set march times, call orders, and hit windows — so your alliance lands together, every time. Currently in development.')}
           </p>
           <Link to="/tools" style={{
-            display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-            color: '#ef4444', textDecoration: 'none', fontSize: '0.85rem', fontWeight: '600',
+            display: 'inline-block', padding: '0.6rem 1.5rem',
+            backgroundColor: '#ef444420', border: '1px solid #ef444450', borderRadius: '8px',
+            color: '#ef4444', textDecoration: 'none', fontWeight: '600', fontSize: '0.9rem',
           }}>
-            {t('rallyCoordinator.backToTools')}
+            {t('rallyCoordinator.backToTools', '← Back to Tools')}
           </Link>
         </div>
       </div>
@@ -1340,37 +1470,7 @@ const RallyCoordinator: React.FC = () => {
     </div>
   );
 
-  // Non-admin coming soon gate
-  if (!isAdmin) {
-    return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
-        <div style={{ textAlign: 'center', maxWidth: '440px' }}>
-          <div style={{ fontSize: '3.5rem', marginBottom: '1rem' }}>⚔️</div>
-          <h2 style={{ color: '#fff', fontSize: '1.5rem', fontFamily: FONT_DISPLAY, marginBottom: '0.5rem', letterSpacing: '0.05em' }}>
-            <span style={{ color: '#fff' }}>KvK BATTLE </span>
-            <span style={neonGlow('#ef4444')}>COORDINATOR</span>
-          </h2>
-          <div style={{
-            display: 'inline-block', padding: '0.25rem 0.75rem', marginBottom: '1rem',
-            backgroundColor: '#ef444420', border: '1px solid #ef444440', borderRadius: '20px',
-            fontSize: '0.7rem', fontWeight: '700', color: '#ef4444', textTransform: 'uppercase', letterSpacing: '0.08em',
-          }}>
-            {t('common.comingSoon', 'Coming Soon')}
-          </div>
-          <p style={{ color: '#9ca3af', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '1.5rem' }}>
-            {t('rallyCoordinator.comingSoonDesc', 'Coordinate multi-rally strikes with surgical precision. Set march times, call orders, and hit windows — so your alliance lands together, every time. Currently in development.')}
-          </p>
-          <Link to="/tools" style={{
-            display: 'inline-block', padding: '0.6rem 1.5rem',
-            backgroundColor: '#ef444420', border: '1px solid #ef444450', borderRadius: '8px',
-            color: '#ef4444', textDecoration: 'none', fontWeight: '600', fontSize: '0.9rem',
-          }}>
-            {t('rallyCoordinator.backToTools', '← Back to Tools')}
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  // (access already checked above)
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a' }}>

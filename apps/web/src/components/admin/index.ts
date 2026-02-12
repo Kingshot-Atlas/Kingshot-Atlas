@@ -16,3 +16,4 @@ export { KvKErrorsTab } from './KvKErrorsTab';
 export { TransferStatusTab } from './TransferStatusTab';
 export { BotTelemetryTab } from './BotTelemetryTab';
 export { GiftCodeAnalyticsTab } from './GiftCodeAnalyticsTab';
+export { BattlePlannerAccessTab } from './BattlePlannerAccessTab';

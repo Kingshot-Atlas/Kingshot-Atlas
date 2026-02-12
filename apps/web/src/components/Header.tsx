@@ -486,26 +486,29 @@ const Header: React.FC = () => {
                   </svg>
                   {t('nav.atlasBot')}
                 </Link>
-                {/* 2. KvK Battle Coordinator (SOON) */}
-                <div
+                {/* 2. KvK Battle Coordinator */}
+                <Link
+                  to="/tools/battle-planner"
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: '0.75rem',
                     padding: '0.75rem 1rem',
                     borderRadius: '8px',
-                    color: '#4b5563',
+                    color: isActive('/tools/battle-planner') ? '#22d3ee' : '#fff',
+                    textDecoration: 'none',
                     fontSize: '0.85rem',
-                    cursor: 'default'
+                    transition: 'background-color 0.2s'
                   }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#ef4444', opacity: 0.5 }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#ef4444' }}>
                     <circle cx="12" cy="12" r="10"/>
                     <path d="M12 6v6l4 2"/>
                   </svg>
                   {t('nav.kvkBattleCoordinator')}
-                  <span style={{ fontSize: '0.6rem', backgroundColor: '#ef444420', color: '#ef4444', padding: '0.15rem 0.4rem', borderRadius: '4px', marginLeft: 'auto' }}>{t('common.soon')}</span>
-                </div>
+                </Link>
                 <div style={{ height: '1px', backgroundColor: '#2a2a2a', margin: '0.25rem 0' }} />
                 {/* 3. Gift Code Redeemer (LIVE) */}
                 <Link
@@ -1287,9 +1290,11 @@ const Header: React.FC = () => {
               >
                 <span style={{ color: '#333' }}>└</span> {t('nav.atlasBot')}
               </Link>
-              <div
+              <Link
+                to="/tools/battle-planner"
                 style={{
-                  color: '#4b5563',
+                  color: isActive('/tools/battle-planner') ? '#22d3ee' : '#6b7280',
+                  textDecoration: 'none',
                   fontSize: '0.9rem',
                   padding: '0.5rem 1rem 0.5rem 1.5rem',
                   borderRadius: '8px',
@@ -1299,8 +1304,7 @@ const Header: React.FC = () => {
                 }}
               >
                 <span style={{ color: '#333' }}>└</span> {t('nav.kvkBattleCoordinator')}
-                <span style={{ fontSize: '0.55rem', backgroundColor: '#ef444420', color: '#ef4444', padding: '0.1rem 0.3rem', borderRadius: '4px' }}>{t('common.soon')}</span>
-              </div>
+              </Link>
               <Link
                 to="/tools/gift-codes"
                 style={{

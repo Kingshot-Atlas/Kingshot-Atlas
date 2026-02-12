@@ -39,6 +39,7 @@ import {
   TransferStatusTab,
   BotTelemetryTab,
   GiftCodeAnalyticsTab,
+  BattlePlannerAccessTab,
   SkeletonGrid,
   type Submission,
   type Claim,
@@ -56,7 +57,7 @@ const AdminDashboard: React.FC = () => {
   const { showToast } = useToast();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [activeTab, setActiveTab] = useState<'analytics' | 'saas-metrics' | 'engagement' | 'webhooks' | 'data-sources' | 'discord-bot' | 'discord-roles' | 'referrals' | 'submissions' | 'new-kingdoms' | 'claims' | 'corrections' | 'kvk-errors' | 'import' | 'plausible' | 'transfer-status' | 'transfer-apps' | 'transfer-hub' | 'feedback' | 'email' | 'bot-telemetry' | 'gift-codes'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'saas-metrics' | 'engagement' | 'webhooks' | 'data-sources' | 'discord-bot' | 'discord-roles' | 'referrals' | 'submissions' | 'new-kingdoms' | 'claims' | 'corrections' | 'kvk-errors' | 'import' | 'plausible' | 'transfer-status' | 'transfer-apps' | 'transfer-hub' | 'feedback' | 'email' | 'bot-telemetry' | 'gift-codes' | 'battle-planner'>('analytics');
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [claims, setClaims] = useState<Claim[]>([]);
   const [transferSubmissions, setTransferSubmissions] = useState<StatusSubmission[]>([]);
@@ -1833,6 +1834,7 @@ const AdminDashboard: React.FC = () => {
           { id: 'webhooks', label: 'Webhooks', count: 0 },
           { id: 'data-sources', label: 'Data Sources', count: 0 },
           { id: 'gift-codes', label: 'Gift Codes', count: 0 },
+          { id: 'battle-planner', label: 'Battle Planner', count: 0 },
           { id: 'import', label: 'Import', count: 0 }
         ].map(tab => (
           <button
@@ -2009,6 +2011,8 @@ const AdminDashboard: React.FC = () => {
         <EmailTab />
       ) : activeTab === 'bot-telemetry' ? (
         <BotTelemetryTab />
+      ) : activeTab === 'battle-planner' ? (
+        <BattlePlannerAccessTab />
       ) : activeTab === 'gift-codes' ? (
         <GiftCodeAnalyticsTab />
       ) : activeTab === 'plausible' ? (
