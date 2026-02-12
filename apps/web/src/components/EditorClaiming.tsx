@@ -19,6 +19,7 @@ interface EditorClaim {
   required_endorsements: number;
   nominated_at: string | null;
   activated_at: string | null;
+  assigned_by: string | null;
 }
 
 interface Endorsement {
@@ -696,6 +697,7 @@ const EditorClaiming: React.FC<{
   const [submittingCoEditor, setSubmittingCoEditor] = useState(false);
   const [coEditorError, setCoEditorError] = useState<string | null>(null);
   const [coEditorRequestSent, setCoEditorRequestSent] = useState(false);
+  const [acceptingInvite, setAcceptingInvite] = useState(false);
 
   const loadMyClaim = useCallback(async () => {
     if (!supabase || !user) {
@@ -791,7 +793,87 @@ const EditorClaiming: React.FC<{
     );
   }
 
-  // Has a pending co-editor request
+  // Has a pending co-editor invite (editor invited this user — assigned_by is set)
+  if (myClaim?.status === 'pending' && myClaim?.role === 'co-editor' && myClaim?.assigned_by) {
+    const handleAcceptInvite = async () => {
+      if (!supabase || !myClaim) return;
+      setAcceptingInvite(true);
+      try {
+        await supabase
+          .from('kingdom_editors')
+          .update({ status: 'active', activated_at: new Date().toISOString() })
+          .eq('id', myClaim.id);
+        loadMyClaim();
+        onEditorActivated?.();
+      } catch {
+        // silent
+      } finally {
+        setAcceptingInvite(false);
+      }
+    };
+    const handleDeclineInvite = async () => {
+      if (!supabase || !myClaim) return;
+      setAcceptingInvite(true);
+      try {
+        await supabase
+          .from('kingdom_editors')
+          .update({ status: 'inactive' })
+          .eq('id', myClaim.id);
+        loadMyClaim();
+      } catch {
+        // silent
+      } finally {
+        setAcceptingInvite(false);
+      }
+    };
+    return (
+      <div style={{
+        backgroundColor: '#22c55e08',
+        border: '1px solid #22c55e25',
+        borderRadius: '10px',
+        padding: '0.75rem 1rem',
+        textAlign: 'center',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', marginBottom: '0.3rem' }}>
+          <span style={{ fontSize: '1rem' }}>🎉</span>
+          <span style={{ color: '#22c55e', fontWeight: '600', fontSize: '0.85rem' }}>
+            {t('editor.coEditorInvitation', 'Co-Editor Invitation')}
+          </span>
+        </div>
+        <p style={{ color: '#9ca3af', fontSize: '0.7rem', margin: '0.2rem 0 0 0', lineHeight: 1.4 }}>
+          {t('editor.coEditorInviteDesc', "You've been invited to co-edit Kingdom {{kingdom}}'s recruiter dashboard.", { kingdom: myClaim.kingdom_number })}
+        </p>
+        <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'center', marginTop: '0.5rem' }}>
+          <button
+            onClick={handleAcceptInvite}
+            disabled={acceptingInvite}
+            style={{
+              padding: '0.4rem 1rem', backgroundColor: '#22c55e15', border: '1px solid #22c55e40',
+              borderRadius: '6px', color: '#22c55e', fontSize: '0.75rem', fontWeight: '600',
+              cursor: acceptingInvite ? 'default' : 'pointer', minHeight: '36px',
+              opacity: acceptingInvite ? 0.5 : 1,
+            }}
+          >
+            {acceptingInvite ? '...' : t('editor.acceptInvite', 'Accept')}
+          </button>
+          <button
+            onClick={handleDeclineInvite}
+            disabled={acceptingInvite}
+            style={{
+              padding: '0.4rem 1rem', backgroundColor: '#ef444415', border: '1px solid #ef444440',
+              borderRadius: '6px', color: '#ef4444', fontSize: '0.75rem', fontWeight: '600',
+              cursor: acceptingInvite ? 'default' : 'pointer', minHeight: '36px',
+              opacity: acceptingInvite ? 0.5 : 1,
+            }}
+          >
+            {t('editor.declineInvite', 'Decline')}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Has a pending co-editor self-request (user applied — no assigned_by)
   if (myClaim?.status === 'pending' && myClaim?.role === 'co-editor') {
     return (
       <div style={{
@@ -866,13 +948,61 @@ const EditorClaiming: React.FC<{
       // Check for existing claim
       const { data: existing } = await supabase
         .from('kingdom_editors')
-        .select('id, status')
+        .select('id, status, assigned_by')
         .eq('kingdom_number', linkedKingdom)
         .eq('user_id', user.id)
         .maybeSingle();
 
       if (existing) {
-        setCoEditorError('You already have an editor claim for this kingdom.');
+        if (existing.status === 'active') {
+          setCoEditorError('You are already an active editor for this kingdom.');
+          setSubmittingCoEditor(false);
+          return;
+        }
+        if (existing.status === 'pending' && existing.assigned_by) {
+          // Editor already invited this user — auto-accept the invite
+          await supabase
+            .from('kingdom_editors')
+            .update({ status: 'active', activated_at: new Date().toISOString() })
+            .eq('id', existing.id);
+          loadMyClaim();
+          onEditorActivated?.();
+          setSubmittingCoEditor(false);
+          return;
+        }
+        if (existing.status === 'pending' && !existing.assigned_by) {
+          setCoEditorError('You already have a pending co-editor request for this kingdom.');
+          setSubmittingCoEditor(false);
+          return;
+        }
+        // Inactive — reuse the row
+        await supabase
+          .from('kingdom_editors')
+          .update({ status: 'pending', role: 'co-editor', assigned_by: null })
+          .eq('id', existing.id);
+        setCoEditorRequestSent(true);
+        loadMyClaim();
+
+        // Notify active editor(s)
+        const { data: activeEditors } = await supabase
+          .from('kingdom_editors')
+          .select('user_id')
+          .eq('kingdom_number', linkedKingdom)
+          .eq('status', 'active')
+          .eq('role', 'editor');
+
+        if (activeEditors?.length) {
+          const displayName = profile.linked_username || profile.username || 'A user';
+          const notifications = activeEditors.map(e => ({
+            user_id: e.user_id,
+            type: 'co_editor_request',
+            title: 'Co-Editor Request',
+            message: `${displayName} wants to become a co-editor for Kingdom ${linkedKingdom}.`,
+            link: '/transfer-hub',
+            metadata: { kingdom_number: linkedKingdom, requester_id: user.id },
+          }));
+          await supabase.from('notifications').insert(notifications);
+        }
         setSubmittingCoEditor(false);
         return;
       }

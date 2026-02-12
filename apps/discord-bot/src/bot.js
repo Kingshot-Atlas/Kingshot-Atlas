@@ -720,8 +720,8 @@ client.on('interactionCreate', async (interaction) => {
           .map(n => ({ name: `Kingdom ${n}`, value: n }));
         await interaction.respond(filtered);
       }
-      // /redeem code autocomplete — show active codes + "All" option
-      else if (interaction.commandName === 'redeem' && focused.name === 'code') {
+      // /redeem and /redeem-all code autocomplete — show active codes + "All" option
+      else if ((interaction.commandName === 'redeem' || interaction.commandName === 'redeem-all') && focused.name === 'code') {
         const typed = String(focused.value).toLowerCase();
         const api = require('./utils/api');
         const codes = await api.fetchGiftCodes();
@@ -853,6 +853,9 @@ client.on('interactionCreate', async (interaction) => {
         break;
       case 'redeem':
         await handlers.handleRedeem(interaction);
+        break;
+      case 'redeem-all':
+        await handlers.handleRedeemAll(interaction);
         break;
       case 'stats':
         await handlers.handleStats(interaction);

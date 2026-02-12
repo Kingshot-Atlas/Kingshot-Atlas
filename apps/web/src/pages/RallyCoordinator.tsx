@@ -494,6 +494,120 @@ const IntervalSlider: React.FC<{
   );
 };
 
+// --- Touch Drag-and-Drop Reorder Hook ---
+function useTouchDragReorder(onReorder: (from: number, to: number) => void) {
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [overIndex, setOverIndex] = useState<number | null>(null);
+  const ghostRef = useRef<HTMLDivElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const startPosRef = useRef<{ x: number; y: number } | null>(null);
+  const isDraggingRef = useRef(false);
+  const itemRectsRef = useRef<DOMRect[]>([]);
+
+  const cleanup = useCallback(() => {
+    if (ghostRef.current) {
+      ghostRef.current.remove();
+      ghostRef.current = null;
+    }
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+    isDraggingRef.current = false;
+    setDragIndex(null);
+    setOverIndex(null);
+  }, []);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent, index: number) => {
+    const touch = e.touches[0];
+    if (!touch) return;
+    startPosRef.current = { x: touch.clientX, y: touch.clientY };
+
+    longPressTimerRef.current = setTimeout(() => {
+      isDraggingRef.current = true;
+      setDragIndex(index);
+      try { navigator.vibrate?.(30); } catch { /* not supported */ }
+
+      // Cache item rects for hit testing
+      if (containerRef.current) {
+        const items = containerRef.current.querySelectorAll('[data-queue-item]');
+        itemRectsRef.current = Array.from(items).map(el => el.getBoundingClientRect());
+      }
+
+      // Create ghost
+      const target = e.currentTarget as HTMLElement;
+      const rect = target.getBoundingClientRect();
+      const ghost = document.createElement('div');
+      ghost.style.cssText = `
+        position:fixed; z-index:9999; pointer-events:none;
+        width:${rect.width}px; opacity:0.85; transform:scale(1.04);
+        border-radius:10px; box-shadow:0 8px 32px rgba(0,0,0,0.5);
+        transition:none;
+      `;
+      ghost.innerHTML = target.outerHTML;
+      document.body.appendChild(ghost);
+      ghost.style.left = `${rect.left}px`;
+      ghost.style.top = `${rect.top}px`;
+      ghostRef.current = ghost;
+    }, 200);
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    if (!touch) return;
+
+    // Cancel long-press if finger moved too far before activation
+    if (!isDraggingRef.current && startPosRef.current && longPressTimerRef.current) {
+      const dx = touch.clientX - startPosRef.current.x;
+      const dy = touch.clientY - startPosRef.current.y;
+      if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+        clearTimeout(longPressTimerRef.current);
+        longPressTimerRef.current = null;
+        return;
+      }
+    }
+
+    if (!isDraggingRef.current || !ghostRef.current) return;
+    e.preventDefault();
+
+    // Move ghost
+    ghostRef.current.style.left = `${touch.clientX - ghostRef.current.offsetWidth / 2}px`;
+    ghostRef.current.style.top = `${touch.clientY - 20}px`;
+
+    // Determine which slot we're over
+    const cy = touch.clientY;
+    let closest = -1;
+    let minDist = Infinity;
+    for (let i = 0; i < itemRectsRef.current.length; i++) {
+      const r = itemRectsRef.current[i]!;
+      const mid = r.top + r.height / 2;
+      const d = Math.abs(cy - mid);
+      if (d < minDist) { minDist = d; closest = i; }
+    }
+    if (closest >= 0) setOverIndex(closest);
+
+    // Auto-scroll near edges
+    const scrollParent = containerRef.current?.closest('[style*="overflow"]') || window;
+    if (cy < 100) (scrollParent === window ? window : scrollParent as HTMLElement).scrollBy?.({ top: -8, behavior: 'auto' });
+    if (cy > window.innerHeight - 100) (scrollParent === window ? window : scrollParent as HTMLElement).scrollBy?.({ top: 8, behavior: 'auto' });
+  }, []);
+
+  const handleTouchEnd = useCallback(() => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+    if (isDraggingRef.current && dragIndex != null && overIndex != null && dragIndex !== overIndex) {
+      onReorder(dragIndex, overIndex);
+      try { navigator.vibrate?.(15); } catch { /* not supported */ }
+    }
+    cleanup();
+  }, [dragIndex, overIndex, onReorder, cleanup]);
+
+  return { containerRef, dragIndex, overIndex, handleTouchStart, handleTouchMove, handleTouchEnd };
+}
+
 // --- Rally Queue Slot (with touch drag-and-drop + per-player buff toggle) ---
 const RallyQueueSlot: React.FC<{
   slot: RallySlot;
@@ -506,28 +620,47 @@ const RallyQueueSlot: React.FC<{
   color: string;
   isMobile: boolean;
   buffTimeRemaining?: number | null;
-}> = ({ slot, index, total, onRemove, onMoveUp, onMoveDown, onToggleBuff, color, isMobile, buffTimeRemaining }) => {
+  isDragOver?: boolean;
+  isBeingDragged?: boolean;
+  onTouchDragStart?: (e: React.TouchEvent) => void;
+  onTouchDragMove?: (e: React.TouchEvent) => void;
+  onTouchDragEnd?: () => void;
+}> = ({ slot, index, total, onRemove, onMoveUp, onMoveDown, onToggleBuff, color, isMobile, buffTimeRemaining, isDragOver, isBeingDragged, onTouchDragStart, onTouchDragMove, onTouchDragEnd }) => {
   const teamColor = slot.team === 'ally' ? ALLY_COLOR : ENEMY_COLOR;
   return (
     <div
+      data-queue-item
       draggable
       onDragStart={(e) => {
         e.dataTransfer.setData('queue-index', index.toString());
         e.dataTransfer.effectAllowed = 'move';
       }}
-      onTouchStart={(e) => {
-        const el = e.currentTarget as HTMLElement;
-        el.dataset.touchDragIndex = index.toString();
-      }}
+      onTouchStart={onTouchDragStart}
+      onTouchMove={onTouchDragMove}
+      onTouchEnd={onTouchDragEnd}
       style={{
         display: 'flex', alignItems: 'center', gap: isMobile ? '0.35rem' : '0.5rem',
         padding: isMobile ? '0.4rem' : '0.45rem 0.65rem',
-        backgroundColor: `${color}08`, border: `1px solid ${color}30`,
+        backgroundColor: isDragOver ? `${color}20` : `${color}08`,
+        border: `1px solid ${isDragOver ? `${color}70` : `${color}30`}`,
         borderLeft: `3px solid ${teamColor}`,
-        borderRadius: '10px', transition: 'all 0.2s',
+        borderRadius: '10px',
+        transition: isBeingDragged ? 'none' : 'all 0.15s',
         cursor: 'grab', touchAction: 'none',
+        opacity: isBeingDragged ? 0.3 : 1,
+        transform: isDragOver ? 'scale(1.02)' : 'none',
       }}
     >
+      {/* Drag handle for mobile */}
+      {isMobile && (
+        <span style={{
+          display: 'flex', flexDirection: 'column', gap: '2px', flexShrink: 0,
+          padding: '0.2rem 0.1rem', color: '#4b5563', fontSize: '0.5rem',
+          cursor: 'grab', touchAction: 'none', userSelect: 'none',
+        }}>
+          ⠿
+        </span>
+      )}
       <span style={{
         width: '22px', height: '22px', borderRadius: '50%',
         backgroundColor: `${color}25`, color: color,
@@ -1387,6 +1520,10 @@ const RallyCoordinator: React.FC = () => {
     );
   }
 
+  // Touch drag hooks for both queues
+  const rallyTouchDrag = useTouchDragReorder(moveInQueue);
+  const counterTouchDrag = useTouchDragReorder(moveInCounterQueue);
+
   // Shared queue drop zone renderer
   const renderQueueDropZone = (
     queue: RallySlot[],
@@ -1400,7 +1537,9 @@ const RallyCoordinator: React.FC = () => {
     accent: string,
     colors: string[],
     minPlayers: number,
-  ) => (
+  ) => {
+    const touchDrag = queueType === 'rally' ? rallyTouchDrag : counterTouchDrag;
+    return (
     <div
       onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; }}
       onDrop={onDrop}
@@ -1412,15 +1551,22 @@ const RallyCoordinator: React.FC = () => {
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
         <h3 style={cardHeader()}>{title}</h3>
-        {queue.length > 0 && (
-          <button onClick={onClear} style={{
-            padding: '0.15rem 0.4rem', backgroundColor: 'transparent',
-            border: '1px solid #2a2a2a', borderRadius: '5px',
-            color: '#6b7280', fontSize: '0.55rem', cursor: 'pointer',
-          }}>
-            Clear
-          </button>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          {isMobile && queue.length > 1 && (
+            <span style={{ color: '#4b5563', fontSize: '0.5rem', fontStyle: 'italic' }}>
+              Hold to drag
+            </span>
+          )}
+          {queue.length > 0 && (
+            <button onClick={onClear} style={{
+              padding: '0.15rem 0.4rem', backgroundColor: 'transparent',
+              border: '1px solid #2a2a2a', borderRadius: '5px',
+              color: '#6b7280', fontSize: '0.55rem', cursor: 'pointer',
+            }}>
+              Clear
+            </button>
+          )}
+        </div>
       </div>
 
       {queue.length === 0 ? (
@@ -1432,14 +1578,14 @@ const RallyCoordinator: React.FC = () => {
             {queueType === 'rally' ? '🎯' : '🛡️'}
           </div>
           <p style={{ fontSize: '0.65rem', textAlign: 'center' }}>
-            Drop players here or click to add
+            {isMobile ? 'Tap players above to add' : 'Drop players here or click to add'}
           </p>
           <p style={{ fontSize: '0.55rem', marginTop: '0.15rem' }}>
             {minPlayers > 1 ? `Min ${minPlayers} players` : 'Min 1 player'}
           </p>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+        <div ref={touchDrag.containerRef} style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
           {queue.map((slot, i) => (
             <RallyQueueSlot
               key={`${slot.playerId}-${i}`}
@@ -1457,6 +1603,11 @@ const RallyCoordinator: React.FC = () => {
                   ? Math.max(0, buffTimers[slot.playerId]! - tickNow)
                   : null
               }
+              isDragOver={touchDrag.overIndex === i && touchDrag.dragIndex !== i}
+              isBeingDragged={touchDrag.dragIndex === i}
+              onTouchDragStart={(e) => touchDrag.handleTouchStart(e, i)}
+              onTouchDragMove={touchDrag.handleTouchMove}
+              onTouchDragEnd={touchDrag.handleTouchEnd}
             />
           ))}
         </div>
@@ -1468,7 +1619,8 @@ const RallyCoordinator: React.FC = () => {
         </p>
       )}
     </div>
-  );
+    );
+  };
 
   // (access already checked above)
 
@@ -1916,6 +2068,23 @@ const RallyCoordinator: React.FC = () => {
             </span>
           </div>
         )}
+      </div>
+
+      {/* Community credit */}
+      <div style={{
+        marginTop: '2rem', paddingTop: '1rem',
+        borderTop: '1px solid #1a1a1a', textAlign: 'center',
+      }}>
+        <p style={{ color: '#4b5563', fontSize: '0.65rem', letterSpacing: '0.03em' }}>
+          ⚔️ Battle Planner concept by{' '}
+          <Link
+            to="/profile/57d266cf-9800-4a7d-a8a5-f2cbc616bc22"
+            style={{ color: '#22d3ee', textDecoration: 'none', fontWeight: '600', fontFamily: FONT_DISPLAY }}
+          >
+            bAdClimber
+          </Link>
+          {' '}— rallied the idea, we built the weapon.
+        </p>
       </div>
 
       {/* Modal */}

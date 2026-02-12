@@ -287,20 +287,36 @@ GIFT_CODE_MESSAGES = {
     summary="Redeem a Gift Code",
     description="Redeem a Kingshot gift code for a linked player account. Rate limited to prevent abuse."
 )
-@limiter.limit("10/minute")
+@limiter.limit("30/minute")
 async def redeem_gift_code(request: Request, body: GiftCodeRedeemRequest):
     """
     Proxy gift code redemption through Century Games API.
     
-    Rate limited to 10 redemptions per minute per IP.
+    Rate limited to 30 redemptions per minute per IP to support bulk
+    operations across multiple alt accounts (up to 10 alts × N codes).
     This is a convenience proxy — the user's game client would do the same thing.
     """
-    timestamp = str(int(time.time() * 1000))
-    params = {"fid": body.player_id, "cdk": body.code, "time": timestamp}
-    params["sign"] = generate_signature({"fid": body.player_id, "cdk": body.code, "time": timestamp})
-    
     async with httpx.AsyncClient(timeout=30.0) as client:
         try:
+            # Step 1: "Login" the player — Century Games requires a /player
+            # call in the same session before gift_code will work.
+            # Without this, the API returns "NOT LOGIN".
+            login_ts = str(int(time.time() * 1000))
+            login_params = {"fid": body.player_id, "time": login_ts}
+            login_params["sign"] = generate_signature({"fid": body.player_id, "time": login_ts})
+            await client.post(
+                f"{KINGSHOT_API_BASE}/player",
+                data=login_params,
+                headers={
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "Accept": "application/json",
+                }
+            )
+
+            # Step 2: Redeem the gift code (same session, cookies carry over)
+            timestamp = str(int(time.time() * 1000))
+            params = {"fid": body.player_id, "cdk": body.code, "time": timestamp}
+            params["sign"] = generate_signature({"fid": body.player_id, "cdk": body.code, "time": timestamp})
             response = await client.post(
                 f"{KINGSHOT_API_BASE}/gift_code",
                 data=params,
@@ -318,7 +334,15 @@ async def redeem_gift_code(request: Request, body: GiftCodeRedeemRequest):
             elif err_code == 0 or data.get("msg") == "success":
                 message, success = GIFT_CODE_MESSAGES[20000]
             else:
-                message = data.get("msg", "Unknown error occurred.")
+                raw_msg = data.get("msg", "Unknown error occurred.")
+                # Map common unmapped Century Games messages to friendly text
+                msg_upper = raw_msg.upper().strip()
+                if msg_upper in ("NOT LOGIN", "NOT_LOGIN", "NOTLOGIN"):
+                    message = "Player not found or hasn't logged in recently. Please open the game first, then try again."
+                elif "TIMEOUT" in msg_upper or "TIME OUT" in msg_upper:
+                    message = "Century Games server timed out. Try again in a moment."
+                else:
+                    message = raw_msg
                 success = False
             
             # Fire-and-forget analytics logging

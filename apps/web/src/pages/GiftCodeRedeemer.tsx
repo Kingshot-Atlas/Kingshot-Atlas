@@ -7,10 +7,38 @@ import { useToast } from '../components/Toast';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { useTranslation } from 'react-i18next';
 import { getAuthHeaders } from '../services/authHeaders';
+import { usePremium } from '../contexts/PremiumContext';
+import { supabase } from '../lib/supabase';
+import { analyticsService } from '../services/analyticsService';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 const CODES_CACHE_KEY = 'atlas_gift_codes_cache';
 const CODES_CACHE_TTL = 15 * 60 * 1000; // 15 minutes
+const ALT_ACCOUNTS_KEY = 'atlas_alt_accounts';
+const MAX_ALT_ACCOUNTS = 10;
+
+interface AltAccount {
+  player_id: string;
+  label: string;
+  hasError?: boolean;
+  lastRedeemed?: string; // ISO timestamp of last successful redemption
+}
+
+interface BulkCodeResult {
+  code: string;
+  success: boolean;
+  message: string;
+  err_code?: number;
+}
+
+interface BulkAccountResult {
+  playerId: string;
+  label: string;
+  success: number;
+  failed: number;
+  errors: string[];
+  codeResults: BulkCodeResult[];
+}
 
 interface GiftCode {
   code: string;
@@ -26,7 +54,7 @@ interface RedeemResult {
   err_code?: number;
 }
 
-type RedeemOutcome = 'success' | 'expired' | 'already_redeemed' | 'invalid' | 'rate_limited' | 'retryable';
+type RedeemOutcome = 'success' | 'expired' | 'already_redeemed' | 'invalid' | 'rate_limited' | 'not_login' | 'retryable';
 
 function getOutcome(result: RedeemResult | undefined): RedeemOutcome | null {
   if (!result || result.loading) return null;
@@ -39,6 +67,7 @@ function getOutcome(result: RedeemResult | undefined): RedeemOutcome | null {
   // Fallback: check message text for backwards compat
   if (result.message?.toLowerCase().includes('expired')) return 'expired';
   if (result.message?.toLowerCase().includes('already')) return 'already_redeemed';
+  if (result.message?.toLowerCase().includes('not login') || result.message?.toLowerCase().includes('hasn\'t logged in')) return 'not_login';
   return 'retryable';
 }
 
@@ -63,9 +92,85 @@ const GiftCodeRedeemer: React.FC = () => {
   const [globalCooldown, setGlobalCooldown] = useState(false);
   const [cooldownSeconds, setCooldownSeconds] = useState(0);
   const cooldownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const { isSupporter } = usePremium();
 
-  const playerId = profile?.linked_player_id;
-  const playerName = profile?.linked_username || profile?.username;
+  // Alt accounts (cloud-synced to Supabase, localStorage as cache)
+  const [altAccounts, setAltAccounts] = useState<AltAccount[]>(() => {
+    try {
+      const stored = localStorage.getItem(ALT_ACCOUNTS_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch { return []; }
+  });
+  const [showAltPanel, setShowAltPanel] = useState(false);
+  const [newAltId, setNewAltId] = useState('');
+  const [newAltLabel, setNewAltLabel] = useState('');
+  const [activePlayerId, setActivePlayerId] = useState<string | null>(null); // null = main account
+  const [customPlayerId, setCustomPlayerId] = useState('');
+  const [showSupporterPrompt, setShowSupporterPrompt] = useState(false);
+  const [redeemingAllAccounts, setRedeemingAllAccounts] = useState(false);
+  const [bulkRedeemProgress, setBulkRedeemProgress] = useState<{ current: number; total: number; currentAccount: string } | null>(null);
+  const [bulkResults, setBulkResults] = useState<BulkAccountResult[]>([]);
+  const [showBulkResults, setShowBulkResults] = useState(false);
+  const [expandedBulkAccounts, setExpandedBulkAccounts] = useState<Set<string>>(new Set());
+  const [altsSyncedFromCloud, setAltsSyncedFromCloud] = useState(false);
+
+  const freeAltLimit = 1;
+  const altLimit = isSupporter ? MAX_ALT_ACCOUNTS : freeAltLimit;
+
+  // Load alt accounts from Supabase on mount (cloud is source of truth)
+  useEffect(() => {
+    if (!user || !supabase) return;
+    const loadFromCloud = async () => {
+      try {
+        const { data, error } = await supabase!
+          .from('profiles')
+          .select('alt_accounts')
+          .eq('id', user.id)
+          .single();
+        if (error || !data) return;
+        const cloudAlts: AltAccount[] = data.alt_accounts || [];
+        if (cloudAlts.length > 0) {
+          // Cloud wins — merge lastRedeemed from localStorage if cloud entry is missing it
+          const localAlts: AltAccount[] = (() => { try { return JSON.parse(localStorage.getItem(ALT_ACCOUNTS_KEY) || '[]'); } catch { return []; } })();
+          const merged = cloudAlts.map(ca => {
+            const local = localAlts.find(la => la.player_id === ca.player_id);
+            return { ...ca, lastRedeemed: ca.lastRedeemed || local?.lastRedeemed };
+          });
+          setAltAccounts(merged);
+        } else {
+          // Cloud is empty — push localStorage alts to cloud (one-time migration)
+          const localAlts: AltAccount[] = (() => { try { return JSON.parse(localStorage.getItem(ALT_ACCOUNTS_KEY) || '[]'); } catch { return []; } })();
+          if (localAlts.length > 0) {
+            await supabase!.from('profiles').update({ alt_accounts: localAlts }).eq('id', user.id);
+          }
+        }
+        setAltsSyncedFromCloud(true);
+      } catch { /* silent */ }
+    };
+    loadFromCloud();
+  }, [user]);
+
+  // Persist alt accounts to localStorage + Supabase
+  useEffect(() => {
+    try { localStorage.setItem(ALT_ACCOUNTS_KEY, JSON.stringify(altAccounts)); } catch { /* quota */ }
+    // Sync to Supabase (debounced by React batching)
+    if (user && supabase && altsSyncedFromCloud) {
+      const clean = altAccounts.map(({ player_id, label, lastRedeemed }) => ({ player_id, label, lastRedeemed }));
+      supabase!.from('profiles').update({ alt_accounts: clean }).eq('id', user.id).then(() => {});
+    }
+  }, [altAccounts, user, altsSyncedFromCloud]);
+
+  const mainPlayerId = profile?.linked_player_id;
+  const mainPlayerName = profile?.linked_username || profile?.username;
+
+  // Active player ID: custom entry, alt account, or main
+  const playerId = customPlayerId.trim() || activePlayerId || mainPlayerId;
+  const playerName = activePlayerId
+    ? altAccounts.find(a => a.player_id === activePlayerId)?.label || `Alt ${activePlayerId}`
+    : customPlayerId.trim()
+      ? `Custom (${customPlayerId.trim()})`
+      : mainPlayerName;
+  const isUsingMainAccount = !customPlayerId.trim() && !activePlayerId;
 
   // Fetch active codes (forceRefresh bypasses cache)
   const fetchCodes = useCallback(async (forceRefresh = false) => {
@@ -254,8 +359,8 @@ const GiftCodeRedeemer: React.FC = () => {
     for (const code of unredeemed) {
       if (globalCooldown) break;
       await redeemCode(code.code);
-      // 1.5s delay between redemptions to avoid rate limits
-      await new Promise(r => setTimeout(r, 1500));
+      // 2s delay between redemptions to avoid rate limits
+      await new Promise(r => setTimeout(r, 2000));
     }
 
     setRedeemingAll(false);
@@ -271,6 +376,171 @@ const GiftCodeRedeemer: React.FC = () => {
 
   const allRedeemed = codes.length > 0 && codes.every(c => results.get(c.code)?.success);
   const redeemedCount = codes.filter(c => results.get(c.code)?.success).length;
+
+  // Alt account management
+  const addAltAccount = useCallback(() => {
+    const id = newAltId.trim();
+    if (!id || !/^\d{6,20}$/.test(id)) {
+      showToast('Player ID must be 6-20 digits', 'error');
+      return;
+    }
+    if (id === mainPlayerId) {
+      showToast('That\'s your main account', 'error');
+      return;
+    }
+    if (altAccounts.some(a => a.player_id === id)) {
+      showToast('Account already added', 'error');
+      return;
+    }
+    if (altAccounts.length >= altLimit) {
+      if (!isSupporter) {
+        showToast(`Free users get ${freeAltLimit} alt slot. Become a Supporter for up to ${MAX_ALT_ACCOUNTS}!`, 'info');
+      } else {
+        showToast(`Maximum ${MAX_ALT_ACCOUNTS} alt accounts`, 'error');
+      }
+      return;
+    }
+    setAltAccounts(prev => [...prev, { player_id: id, label: newAltLabel.trim() || `Alt ${prev.length + 1}` }]);
+    setNewAltId('');
+    setNewAltLabel('');
+    showToast('Alt account added', 'success');
+  }, [newAltId, newAltLabel, mainPlayerId, altAccounts, altLimit, isSupporter, showToast]);
+
+  const removeAltAccount = useCallback((id: string) => {
+    setAltAccounts(prev => prev.filter(a => a.player_id !== id));
+    if (activePlayerId === id) setActivePlayerId(null);
+  }, [activePlayerId]);
+
+  const moveAltAccount = useCallback((index: number, direction: 'up' | 'down') => {
+    setAltAccounts(prev => {
+      const next = [...prev];
+      const targetIdx = direction === 'up' ? index - 1 : index + 1;
+      if (targetIdx < 0 || targetIdx >= next.length) return prev;
+      [next[index], next[targetIdx]] = [next[targetIdx]!, next[index]!];
+      return next;
+    });
+  }, []);
+
+  // Redeem a code for a specific player ID
+  const redeemCodeForPlayer = useCallback(async (code: string, targetPlayerId: string): Promise<RedeemResult> => {
+    try {
+      const headers = await getAuthHeaders({ requireAuth: false });
+      const response = await fetch(`${API_BASE}/api/v1/player-link/redeem`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...headers },
+        body: JSON.stringify({ player_id: targetPlayerId, code }),
+      });
+
+      if (response.status === 429) {
+        startCooldown(30);
+        return { code, success: false, message: 'Rate limited. Cooldown active.' };
+      }
+
+      const data = await response.json();
+      return {
+        code,
+        success: data.success,
+        message: data.message || (data.detail?.error) || 'Unknown error',
+        err_code: data.err_code,
+      };
+    } catch {
+      return { code, success: false, message: 'Network error. Try again.' };
+    }
+  }, [startCooldown]);
+
+  // Bulk redeem all codes for all accounts (main + alts) — Supporter only
+  const redeemAllForAllAccounts = useCallback(async () => {
+    if (!isSupporter) {
+      setShowSupporterPrompt(true);
+      return;
+    }
+    if (!mainPlayerId || redeemingAllAccounts) return;
+    setRedeemingAllAccounts(true);
+    setExpandedBulkAccounts(new Set());
+
+    const allPlayerIds = [mainPlayerId, ...altAccounts.map(a => a.player_id)];
+    let totalSuccess = 0;
+    let totalAttempts = 0;
+    const accountResults: BulkAccountResult[] = [];
+
+    const unredeemed = codes.filter(c => {
+      const result = results.get(c.code);
+      if (!result) return true;
+      if (result.loading) return false;
+      const outcome = getOutcome(result);
+      return !isNonRetryable(outcome);
+    });
+
+    if (unredeemed.length === 0) {
+      setRedeemingAllAccounts(false);
+      showToast('No unredeemed codes to process', 'info');
+      return;
+    }
+
+    const totalOps = allPlayerIds.length * unredeemed.length;
+    let rateLimited = false; // local flag — React state is stale inside async loops
+
+    for (let pidIdx = 0; pidIdx < allPlayerIds.length; pidIdx++) {
+      if (rateLimited) break;
+      const pid = allPlayerIds[pidIdx]!;
+      const accountLabel = pid === mainPlayerId ? 'Main' : (altAccounts.find(a => a.player_id === pid)?.label || `Alt ${pid}`);
+      const acctResult: BulkAccountResult = { playerId: pid, label: accountLabel, success: 0, failed: 0, errors: [], codeResults: [] };
+
+      for (const code of unredeemed) {
+        if (rateLimited) break;
+        totalAttempts++;
+        setBulkRedeemProgress({ current: totalAttempts, total: totalOps, currentAccount: accountLabel });
+        const result = await redeemCodeForPlayer(code.code, pid);
+        acctResult.codeResults.push({ code: code.code, success: result.success, message: result.message, err_code: result.err_code });
+        if (result.success) {
+          totalSuccess++;
+          acctResult.success++;
+        } else {
+          acctResult.failed++;
+          const errMsg = result.message || 'Unknown';
+          if (!acctResult.errors.includes(errMsg)) acctResult.errors.push(errMsg);
+          // Detect rate limiting via message (since err_code may not be set for 429s)
+          if (result.message?.toLowerCase().includes('rate limit')) {
+            rateLimited = true;
+          }
+        }
+        // Update main results map for the currently active player
+        if (pid === playerId) {
+          setResults(prev => {
+            const next = new Map(prev);
+            next.set(code.code, result);
+            return next;
+          });
+        }
+        // Mark alt account errors (skip known non-error codes)
+        if (!result.success && result.err_code && ![40005, 40007, 40008, 40011].includes(result.err_code)) {
+          setAltAccounts(prev => prev.map(a => a.player_id === pid ? { ...a, hasError: true } : a));
+        } else if (result.success) {
+          setAltAccounts(prev => prev.map(a => a.player_id === pid ? { ...a, hasError: false, lastRedeemed: new Date().toISOString() } : a));
+        }
+        if (!rateLimited) await new Promise(r => setTimeout(r, 1500));
+      }
+      accountResults.push(acctResult);
+      // Extra delay between accounts to avoid rate limiting
+      if (pidIdx < allPlayerIds.length - 1 && !rateLimited) {
+        await new Promise(r => setTimeout(r, 2000));
+      }
+    }
+
+    setRedeemingAllAccounts(false);
+    setBulkRedeemProgress(null);
+    setBulkResults(accountResults);
+    setShowBulkResults(true);
+    // Auto-expand accounts that had failures
+    setExpandedBulkAccounts(new Set(accountResults.filter(r => r.failed > 0).map(r => r.playerId)));
+    if (rateLimited) {
+      startCooldown(30);
+      showToast(`Rate limited after ${totalSuccess}/${totalAttempts} codes. Retry in 30s.`, 'error');
+    } else {
+      startCooldown(10);
+      showToast(`Redeemed ${totalSuccess}/${totalAttempts} codes across ${allPlayerIds.length} accounts`, totalSuccess > 0 ? 'success' : 'error');
+    }
+  }, [isSupporter, mainPlayerId, altAccounts, codes, results, redeemCodeForPlayer, playerId, redeemingAllAccounts, showToast, startCooldown]);
 
   // Not logged in
   if (!user) {
@@ -288,17 +558,44 @@ const GiftCodeRedeemer: React.FC = () => {
     );
   }
 
-  // No linked player ID
-  if (!playerId) {
+  // No linked player ID — but allow custom entry
+  if (!mainPlayerId && !customPlayerId.trim()) {
     return (
       <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
         <div style={{ textAlign: 'center', maxWidth: '420px' }}>
           <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔗</div>
           <h2 style={{ color: '#fff', fontSize: '1.5rem', fontFamily: FONT_DISPLAY, marginBottom: '0.75rem' }}>{t('giftCodes.linkTitle', 'Link Your Account First')}</h2>
-          <p style={{ color: '#9ca3af', fontSize: '0.9rem', marginBottom: '1.5rem' }}>{t('giftCodes.linkDesc', 'To redeem codes, we need your Player ID. Link your Kingshot account in your profile settings.')}</p>
-          <Link to="/profile" style={{ display: 'inline-block', padding: '0.6rem 1.5rem', backgroundColor: '#f59e0b20', border: '1px solid #f59e0b50', borderRadius: '8px', color: '#f59e0b', textDecoration: 'none', fontWeight: '600', fontSize: '0.9rem' }}>
+          <p style={{ color: '#9ca3af', fontSize: '0.9rem', marginBottom: '1rem' }}>{t('giftCodes.linkDesc', 'To redeem codes, we need your Player ID. Link your Kingshot account in your profile settings.')}</p>
+          <Link to="/profile" style={{ display: 'inline-block', padding: '0.6rem 1.5rem', backgroundColor: '#f59e0b20', border: '1px solid #f59e0b50', borderRadius: '8px', color: '#f59e0b', textDecoration: 'none', fontWeight: '600', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
             {t('giftCodes.goToProfile', 'Go to Profile')}
           </Link>
+          <div style={{ marginTop: '1.5rem', borderTop: '1px solid #2a2a2a', paddingTop: '1.25rem' }}>
+            <p style={{ color: '#6b7280', fontSize: '0.75rem', marginBottom: '0.75rem' }}>Or enter a Player ID directly:</p>
+            <div style={{ display: 'flex', gap: '0.5rem', maxWidth: '320px', margin: '0 auto' }}>
+              <input
+                type="text"
+                value={customPlayerId}
+                onChange={e => setCustomPlayerId(e.target.value.replace(/\D/g, ''))}
+                placeholder="Player ID (digits)"
+                style={{
+                  flex: 1, padding: '0.5rem 0.75rem', borderRadius: '8px',
+                  border: '1px solid #333', backgroundColor: '#0a0a0a',
+                  color: '#e5e7eb', fontSize: '0.9rem', fontFamily: 'monospace', outline: 'none',
+                }}
+              />
+              <button
+                onClick={() => { if (/^\d{6,20}$/.test(customPlayerId.trim())) { /* will re-render with playerId set */ } else showToast('Enter a valid Player ID (6-20 digits)', 'error'); }}
+                disabled={!customPlayerId.trim()}
+                style={{
+                  padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid #f59e0b40',
+                  backgroundColor: '#f59e0b15', color: '#f59e0b', fontWeight: '600', fontSize: '0.8rem',
+                  cursor: customPlayerId.trim() ? 'pointer' : 'default', opacity: customPlayerId.trim() ? 1 : 0.5,
+                }}
+              >
+                Use ID
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -328,17 +625,24 @@ const GiftCodeRedeemer: React.FC = () => {
             {t('giftCodes.heroSubtitle', 'One click. Instant rewards. No copy-pasting.')}
           </p>
 
-          {/* Player info pill */}
+          {/* Active player info pill */}
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
             padding: '0.4rem 0.75rem', borderRadius: '20px',
-            backgroundColor: '#f59e0b12', border: '1px solid #f59e0b30',
-            fontSize: '0.75rem', color: '#f59e0b',
+            backgroundColor: isUsingMainAccount ? '#f59e0b12' : '#a855f712',
+            border: `1px solid ${isUsingMainAccount ? '#f59e0b30' : '#a855f730'}`,
+            fontSize: '0.75rem', color: isUsingMainAccount ? '#f59e0b' : '#a855f7',
           }}>
-            <span>🎮</span>
+            <span>{isUsingMainAccount ? '🎮' : '👤'}</span>
             <span style={{ fontWeight: '600' }}>{playerName}</span>
-            <span style={{ color: '#f59e0b80' }}>•</span>
-            <span style={{ color: '#f59e0b80' }}>ID: {playerId}</span>
+            <span style={{ color: isUsingMainAccount ? '#f59e0b80' : '#a855f780' }}>•</span>
+            <span style={{ color: isUsingMainAccount ? '#f59e0b80' : '#a855f780' }}>ID: {playerId}</span>
+            {!isUsingMainAccount && (
+              <button onClick={() => { setActivePlayerId(null); setCustomPlayerId(''); setResults(new Map()); }} style={{
+                background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer',
+                fontSize: '0.7rem', padding: '0 0.2rem',
+              }}>✕</button>
+            )}
           </div>
         </div>
       </div>
@@ -353,7 +657,243 @@ const GiftCodeRedeemer: React.FC = () => {
         .gift-action-btn:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.15); }
       `}</style>
 
+      {/* Supporter Prompt Modal */}
+      {showSupporterPrompt && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          backgroundColor: 'rgba(0,0,0,0.7)', padding: '1rem',
+        }} onClick={() => setShowSupporterPrompt(false)}>
+          <div onClick={e => e.stopPropagation()} style={{
+            backgroundColor: '#111111', borderRadius: '16px', border: '1px solid #f59e0b30',
+            padding: '1.5rem', maxWidth: '400px', width: '100%', textAlign: 'center',
+          }}>
+            <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>⭐</div>
+            <h3 style={{ color: '#fff', fontSize: '1.1rem', fontFamily: FONT_DISPLAY, marginBottom: '0.5rem' }}>
+              Atlas Supporter Perk
+            </h3>
+            <p style={{ color: '#9ca3af', fontSize: '0.85rem', marginBottom: '1rem', lineHeight: 1.5 }}>
+              Bulk redeeming codes for all your accounts at once is an Atlas Supporter perk.
+              Manage alt accounts and redeem everything with one tap.
+            </p>
+            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+              <button onClick={() => setShowSupporterPrompt(false)} style={{
+                padding: '0.5rem 1rem', backgroundColor: 'transparent', border: '1px solid #2a2a2a',
+                borderRadius: '8px', color: '#6b7280', fontSize: '0.8rem', cursor: 'pointer',
+              }}>
+                Maybe Later
+              </button>
+              <Link to="/support" style={{
+                padding: '0.5rem 1.25rem', backgroundColor: '#f59e0b', border: 'none',
+                borderRadius: '8px', color: '#000', fontWeight: '700', fontSize: '0.8rem',
+                textDecoration: 'none', display: 'inline-block',
+              }}>
+                Become a Supporter
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div style={{ maxWidth: '750px', margin: '0 auto', padding: isMobile ? '1rem' : '1.5rem' }}>
+
+        {/* Account Switcher + Alt Accounts */}
+        <div style={{
+          marginBottom: '0.75rem', padding: '0.75rem',
+          backgroundColor: '#111111', borderRadius: '12px', border: '1px solid #2a2a2a',
+        }}>
+          {/* Custom Player ID Input */}
+          <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', marginBottom: altAccounts.length > 0 || showAltPanel ? '0.6rem' : 0 }}>
+            <input
+              type="text"
+              value={customPlayerId}
+              onChange={e => { setCustomPlayerId(e.target.value.replace(/\D/g, '')); if (e.target.value) setActivePlayerId(null); }}
+              placeholder="Paste any Player ID to redeem for..."
+              style={{
+                flex: 1, padding: '0.45rem 0.65rem', borderRadius: '8px',
+                border: '1px solid #2a2a2a', backgroundColor: '#0a0a0a',
+                color: '#e5e7eb', fontSize: '0.8rem', fontFamily: 'monospace', outline: 'none',
+                transition: 'border-color 0.2s',
+              }}
+              onFocus={e => { e.target.style.borderColor = '#f59e0b40'; }}
+              onBlur={e => { e.target.style.borderColor = '#2a2a2a'; }}
+            />
+            {mainPlayerId && !isUsingMainAccount && (
+              <button onClick={() => { setCustomPlayerId(''); setActivePlayerId(null); setResults(new Map()); }} style={{
+                padding: '0.4rem 0.65rem', borderRadius: '8px', border: '1px solid #f59e0b30',
+                backgroundColor: '#f59e0b12', color: '#f59e0b', fontSize: '0.7rem', fontWeight: '600',
+                cursor: 'pointer', whiteSpace: 'nowrap',
+              }}>
+                ← Main
+              </button>
+            )}
+            <button
+              onClick={() => setShowAltPanel(!showAltPanel)}
+              style={{
+                padding: '0.4rem 0.65rem', borderRadius: '8px',
+                border: `1px solid ${isSupporter ? '#a855f730' : '#2a2a2a'}`,
+                backgroundColor: isSupporter ? '#a855f712' : 'transparent',
+                color: isSupporter ? '#a855f7' : '#9ca3af',
+                fontSize: '0.7rem', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap',
+                position: 'relative',
+              }}
+            >
+              👥 Alts
+              {altAccounts.length > 0 && (
+                <span style={{
+                  position: 'absolute', top: '-4px', right: '-4px',
+                  width: '16px', height: '16px', borderRadius: '50%',
+                  backgroundColor: '#a855f7', color: '#000', fontSize: '0.5rem', fontWeight: '700',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  {altAccounts.length}
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* Alt Account Quick-Switch Pills */}
+          {altAccounts.length > 0 && !showAltPanel && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
+              {altAccounts.map(alt => (
+                <button
+                  key={alt.player_id}
+                  onClick={() => { setActivePlayerId(alt.player_id); setCustomPlayerId(''); setResults(new Map()); }}
+                  style={{
+                    padding: '0.25rem 0.55rem', borderRadius: '16px',
+                    border: `1px solid ${activePlayerId === alt.player_id ? '#a855f760' : alt.hasError ? '#ef444440' : '#2a2a2a'}`,
+                    backgroundColor: activePlayerId === alt.player_id ? '#a855f718' : alt.hasError ? '#ef444408' : 'transparent',
+                    color: activePlayerId === alt.player_id ? '#a855f7' : alt.hasError ? '#ef4444' : '#9ca3af',
+                    fontSize: '0.65rem', fontWeight: '600', cursor: 'pointer',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  {alt.hasError && '⚠ '}{alt.label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Alt Accounts Management Panel */}
+          {showAltPanel && (
+            <div style={{
+              padding: '0.6rem', backgroundColor: '#0a0a0a', borderRadius: '10px',
+              border: '1px solid #a855f720',
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                <span style={{ color: '#a855f7', fontSize: '0.7rem', fontWeight: '700', letterSpacing: '0.05em' }}>
+                  ALT ACCOUNTS ({altAccounts.length}/{altLimit})
+                </span>
+                <button onClick={() => setShowAltPanel(false)} style={{
+                  background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '0.75rem',
+                }}>✕</button>
+              </div>
+
+              {/* Add new alt */}
+              <div style={{ display: 'flex', gap: '0.3rem', marginBottom: altAccounts.length > 0 ? '0.5rem' : 0 }}>
+                <input
+                  type="text"
+                  value={newAltId}
+                  onChange={e => setNewAltId(e.target.value.replace(/\D/g, ''))}
+                  placeholder="Player ID"
+                  style={{
+                    flex: 1, padding: '0.35rem 0.5rem', borderRadius: '6px',
+                    border: '1px solid #2a2a2a', backgroundColor: '#111111',
+                    color: '#e5e7eb', fontSize: '0.75rem', fontFamily: 'monospace', outline: 'none',
+                    minWidth: 0,
+                  }}
+                />
+                <input
+                  type="text"
+                  value={newAltLabel}
+                  onChange={e => setNewAltLabel(e.target.value)}
+                  placeholder="Label (optional)"
+                  style={{
+                    width: isMobile ? '90px' : '120px', padding: '0.35rem 0.5rem', borderRadius: '6px',
+                    border: '1px solid #2a2a2a', backgroundColor: '#111111',
+                    color: '#e5e7eb', fontSize: '0.75rem', outline: 'none',
+                  }}
+                />
+                <button onClick={addAltAccount} disabled={!newAltId.trim()} style={{
+                  padding: '0.35rem 0.6rem', borderRadius: '6px', border: 'none',
+                  backgroundColor: newAltId.trim() ? '#a855f7' : '#333',
+                  color: '#000', fontSize: '0.7rem', fontWeight: '700', cursor: newAltId.trim() ? 'pointer' : 'default',
+                }}>
+                  +
+                </button>
+              </div>
+
+              {/* Saved alts list */}
+              {altAccounts.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                  {altAccounts.map((alt, idx) => (
+                    <div key={alt.player_id} style={{
+                      display: 'flex', alignItems: 'center', gap: '0.3rem',
+                      padding: '0.3rem 0.5rem', borderRadius: '8px',
+                      backgroundColor: activePlayerId === alt.player_id ? '#a855f712' : 'transparent',
+                      border: `1px solid ${alt.hasError ? '#ef444430' : activePlayerId === alt.player_id ? '#a855f730' : '#1a1a1a'}`,
+                    }}>
+                      {/* Reorder buttons */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                        <button onClick={() => moveAltAccount(idx, 'up')} disabled={idx === 0} style={{
+                          background: 'none', border: 'none', color: idx === 0 ? '#1a1a1a' : '#4b5563',
+                          cursor: idx === 0 ? 'default' : 'pointer', fontSize: '0.5rem', padding: 0, lineHeight: 1,
+                        }}>▲</button>
+                        <button onClick={() => moveAltAccount(idx, 'down')} disabled={idx === altAccounts.length - 1} style={{
+                          background: 'none', border: 'none', color: idx === altAccounts.length - 1 ? '#1a1a1a' : '#4b5563',
+                          cursor: idx === altAccounts.length - 1 ? 'default' : 'pointer', fontSize: '0.5rem', padding: 0, lineHeight: 1,
+                        }}>▼</button>
+                      </div>
+                      <button onClick={() => { setActivePlayerId(alt.player_id); setCustomPlayerId(''); setResults(new Map()); setShowAltPanel(false); }} style={{
+                        flex: 1, background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer', padding: 0,
+                        display: 'flex', flexDirection: 'column', gap: '0.1rem',
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <span style={{ color: alt.hasError ? '#ef4444' : '#d1d5db', fontSize: '0.7rem', fontWeight: '600' }}>
+                            {alt.hasError ? '⚠ ' : ''}{alt.label}
+                          </span>
+                          <span style={{ color: '#4b5563', fontSize: '0.6rem', fontFamily: 'monospace' }}>
+                            {alt.player_id}
+                          </span>
+                        </div>
+                        {alt.lastRedeemed && (
+                          <span style={{ color: '#374151', fontSize: '0.5rem' }}>
+                            Last redeemed {new Date(alt.lastRedeemed).toLocaleDateString()}
+                          </span>
+                        )}
+                      </button>
+                      <button onClick={() => removeAltAccount(alt.player_id)} style={{
+                        background: 'none', border: 'none', color: '#4b5563', cursor: 'pointer',
+                        fontSize: '0.65rem', padding: '0.1rem 0.3rem',
+                      }}>🗑</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {altAccounts.length === 0 && (
+                <p style={{ color: '#4b5563', fontSize: '0.65rem', textAlign: 'center', padding: '0.5rem 0' }}>
+                  Add your alt Player IDs here for quick switching and bulk redemption.
+                </p>
+              )}
+
+              {/* Supporter teaser for free users */}
+              {!isSupporter && altAccounts.length >= freeAltLimit && (
+                <div style={{
+                  marginTop: '0.4rem', padding: '0.4rem 0.6rem', borderRadius: '8px',
+                  backgroundColor: '#f59e0b08', border: '1px solid #f59e0b15',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                }}>
+                  <span style={{ color: '#f59e0b90', fontSize: '0.6rem' }}>
+                    ⭐ Supporters get up to {MAX_ALT_ACCOUNTS} alt accounts + bulk redeem
+                  </span>
+                  <Link to="/support" onClick={() => analyticsService.trackFeatureUse('Alt Panel Upgrade CTA')} style={{ color: '#f59e0b', fontSize: '0.6rem', fontWeight: '700', textDecoration: 'none' }}>
+                    Upgrade
+                  </Link>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
         {/* Rate Limit Countdown Banner */}
         {globalCooldown && cooldownSeconds > 0 && (
@@ -379,6 +919,148 @@ const GiftCodeRedeemer: React.FC = () => {
             </div>
           </div>
         )}
+
+        {/* Bulk Redeem Results Summary */}
+        {showBulkResults && bulkResults.length > 0 && (() => {
+          const totalSuccess = bulkResults.reduce((s, r) => s + r.success, 0);
+          const totalFailed = bulkResults.reduce((s, r) => s + r.failed, 0);
+          const totalCodes = totalSuccess + totalFailed;
+          const allExpanded = bulkResults.every(r => expandedBulkAccounts.has(r.playerId));
+          return (
+          <div style={{
+            marginBottom: '0.75rem', padding: '0.6rem 0.75rem',
+            backgroundColor: '#111111', borderRadius: '10px', border: '1px solid #a855f720',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.15rem' }}>
+              <span style={{ color: '#a855f7', fontSize: '0.7rem', fontWeight: '700', letterSpacing: '0.05em' }}>
+                BULK REDEEM RESULTS
+              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <button onClick={() => {
+                  if (allExpanded) setExpandedBulkAccounts(new Set());
+                  else setExpandedBulkAccounts(new Set(bulkResults.map(r => r.playerId)));
+                }} style={{
+                  background: 'none', border: 'none', color: '#6b728090', cursor: 'pointer', fontSize: '0.55rem',
+                  padding: '0.1rem 0.3rem', borderRadius: '4px',
+                }}>
+                  {allExpanded ? 'Collapse All' : 'Expand All'}
+                </button>
+                <button onClick={() => setShowBulkResults(false)} style={{
+                  background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '0.7rem',
+                }}>✕</button>
+              </div>
+            </div>
+            {/* Summary line */}
+            <div style={{ fontSize: '0.6rem', color: '#6b7280', marginBottom: '0.4rem' }}>
+              {totalSuccess > 0 && <span style={{ color: '#22c55e' }}>{totalSuccess} redeemed</span>}
+              {totalSuccess > 0 && totalFailed > 0 && <span> · </span>}
+              {totalFailed > 0 && <span style={{ color: '#ef4444' }}>{totalFailed} failed</span>}
+              <span> across {bulkResults.length} account{bulkResults.length > 1 ? 's' : ''}</span>
+              {totalCodes > 0 && <span> ({totalSuccess}/{totalCodes})</span>}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              {bulkResults.map(r => {
+                const isExpanded = expandedBulkAccounts.has(r.playerId);
+                const borderC = r.success > 0 && r.failed === 0 ? '#22c55e15' : r.failed > 0 ? '#ef444415' : '#1a1a1a';
+                const bgC = r.success > 0 && r.failed === 0 ? '#22c55e06' : r.failed > 0 ? '#ef444406' : 'transparent';
+                return (
+                  <div key={r.playerId}>
+                    <button
+                      onClick={() => setExpandedBulkAccounts(prev => {
+                        const next = new Set(prev);
+                        if (next.has(r.playerId)) next.delete(r.playerId);
+                        else next.add(r.playerId);
+                        return next;
+                      })}
+                      style={{
+                        width: '100%', display: 'flex', alignItems: 'center', gap: '0.5rem',
+                        padding: '0.35rem 0.4rem', borderRadius: isExpanded ? '6px 6px 0 0' : '6px',
+                        backgroundColor: bgC,
+                        border: `1px solid ${borderC}`,
+                        borderBottom: isExpanded ? 'none' : undefined,
+                        cursor: 'pointer',
+                        transition: 'background-color 0.15s',
+                      }}
+                    >
+                      <span style={{ fontSize: '0.7rem', color: r.success > 0 && r.failed === 0 ? '#22c55e' : r.failed > 0 && r.success === 0 ? '#ef4444' : '#d1d5db' }}>
+                        {r.success > 0 && r.failed === 0 ? '✓' : r.failed > 0 && r.success === 0 ? '✗' : '◐'}
+                      </span>
+                      <span style={{ color: '#d1d5db', fontSize: '0.7rem', fontWeight: '600', flex: 1, textAlign: 'left' }}>{r.label}</span>
+                      {r.success > 0 && (
+                        <span style={{ color: '#22c55e', fontSize: '0.65rem', fontWeight: '600' }}>
+                          {r.success} redeemed
+                        </span>
+                      )}
+                      {r.failed > 0 && (
+                        <span style={{ color: '#ef4444', fontSize: '0.65rem' }}>
+                          {r.failed} failed
+                        </span>
+                      )}
+                      <span style={{
+                        fontSize: '0.55rem', color: '#6b7280',
+                        transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
+                        transition: 'transform 0.2s ease',
+                        display: 'inline-block', width: '12px', flexShrink: 0,
+                      }}>▶</span>
+                    </button>
+                    {isExpanded && r.codeResults.length > 0 && (
+                      <div style={{
+                        borderLeft: `1px solid ${borderC}`,
+                        borderRight: `1px solid ${borderC}`,
+                        borderBottom: `1px solid ${borderC}`,
+                        borderRadius: '0 0 6px 6px',
+                        padding: '0.25rem 0.4rem 0.35rem',
+                        backgroundColor: '#0a0a0a',
+                      }}>
+                        {r.codeResults.map(cr => {
+                          const crOutcome = cr.success ? 'success'
+                            : cr.err_code === 40007 ? 'expired'
+                            : (cr.err_code === 40005 || cr.err_code === 40008 || cr.err_code === 40011) ? 'already_redeemed'
+                            : cr.err_code === 40014 ? 'invalid'
+                            : cr.err_code === 40101 ? 'rate_limited'
+                            : cr.message?.toLowerCase().includes('rate limit') ? 'rate_limited'
+                            : cr.message?.toLowerCase().includes('not login') ? 'not_login'
+                            : 'error';
+                          const statusIcon = crOutcome === 'success' ? '✓'
+                            : crOutcome === 'already_redeemed' ? '⟳'
+                            : crOutcome === 'expired' ? '⛔'
+                            : crOutcome === 'invalid' ? '✗'
+                            : crOutcome === 'rate_limited' ? '⏱'
+                            : crOutcome === 'not_login' ? '🔒'
+                            : '✗';
+                          const statusColor = crOutcome === 'success' ? '#22c55e'
+                            : crOutcome === 'already_redeemed' ? '#eab308'
+                            : crOutcome === 'expired' ? '#6b7280'
+                            : crOutcome === 'rate_limited' ? '#f97316'
+                            : crOutcome === 'not_login' ? '#f97316'
+                            : '#ef4444';
+                          return (
+                            <div key={cr.code} style={{
+                              display: 'flex', alignItems: 'center', gap: '0.4rem',
+                              padding: '0.2rem 0.3rem',
+                              borderBottom: '1px solid #1a1a1a',
+                            }}>
+                              <span style={{ color: statusColor, fontSize: '0.6rem', width: '14px', textAlign: 'center', flexShrink: 0 }}>{statusIcon}</span>
+                              <span style={{
+                                color: '#9ca3af', fontSize: '0.6rem', fontFamily: 'monospace', fontWeight: '600',
+                                minWidth: '80px',
+                              }}>{cr.code}</span>
+                              <span style={{
+                                color: statusColor, fontSize: '0.55rem', flex: 1,
+                                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                              }}>{cr.message}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          );
+        })()}
 
         {/* Codes Grid — 3-column pill layout */}
         {loadingCodes ? (
@@ -437,24 +1119,29 @@ const GiftCodeRedeemer: React.FC = () => {
                 const borderColor = outcome === 'success' ? '#22c55e40'
                   : outcome === 'already_redeemed' ? '#eab30830'
                   : outcome === 'expired' ? '#ef444430'
+                  : outcome === 'not_login' ? '#f9731630'
                   : '#2a2a2a';
                 const bgColor = outcome === 'success' ? '#22c55e06'
                   : outcome === 'already_redeemed' ? '#eab30806'
+                  : outcome === 'not_login' ? '#f9731606'
                   : '#111111';
                 const codeColor = outcome === 'success' ? '#22c55e'
                   : outcome === 'already_redeemed' ? '#eab308'
                   : outcome === 'expired' ? '#6b7280'
+                  : outcome === 'not_login' ? '#f97316'
                   : '#e5e7eb';
 
                 const btnLabel = isLoading ? '...'
                   : outcome === 'success' ? `✓ ${t('giftCodes.redeemed', 'Redeemed')}`
                   : outcome === 'already_redeemed' ? `✓ ${t('giftCodes.alreadyRedeemed', 'Already Redeemed')}`
                   : outcome === 'expired' ? `⛔ ${t('giftCodes.expired', 'Expired')}`
+                  : outcome === 'not_login' ? '� Retry'
                   : outcome === 'invalid' || outcome === 'retryable' ? t('giftCodes.retry', 'Retry')
                   : t('giftCodes.redeem', 'Redeem');
                 const btnBg = outcome === 'success' ? '#22c55e'
                   : outcome === 'already_redeemed' ? '#eab308'
                   : outcome === 'expired' ? '#ef4444'
+                  : outcome === 'not_login' ? '#f97316'
                   : isLoading ? '#f59e0b60'
                   : '#f59e0b';
                 const btnTextColor = (outcome === 'success' || outcome === 'already_redeemed' || outcome === 'expired' || !isLoading) ? '#000' : '#000';
@@ -588,6 +1275,38 @@ const GiftCodeRedeemer: React.FC = () => {
                       ? t('giftCodes.cooldown', { seconds: cooldownSeconds, defaultValue: `Cooldown — ${cooldownSeconds}s` })
                       : `⚡ ${t('giftCodes.redeemAll', { count: codes.length, defaultValue: `Redeem All ${codes.length} Codes` })}`}
               </button>
+
+              {/* Redeem All for All Accounts — Supporter Perk */}
+              {altAccounts.length > 0 && (
+                <button
+                  onClick={redeemAllForAllAccounts}
+                  disabled={redeemingAllAccounts || allRedeemed || globalCooldown || !mainPlayerId}
+                  className="gift-action-btn"
+                  style={{
+                    width: '100%',
+                    padding: '0.6rem 1rem',
+                    borderRadius: '10px',
+                    border: isSupporter ? '1px solid #a855f750' : '1px solid #2a2a2a',
+                    backgroundColor: isSupporter ? '#a855f715' : '#111111',
+                    color: isSupporter ? '#a855f7' : '#4b5563',
+                    fontSize: '0.8rem',
+                    fontWeight: '700',
+                    fontFamily: FONT_DISPLAY,
+                    cursor: (redeemingAllAccounts || allRedeemed || globalCooldown) ? 'default' : 'pointer',
+                    opacity: (redeemingAllAccounts || globalCooldown) ? 0.6 : 1,
+                    transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                    letterSpacing: '0.03em',
+                  }}
+                >
+                  {redeemingAllAccounts && bulkRedeemProgress
+                    ? `${bulkRedeemProgress.currentAccount} (${bulkRedeemProgress.current}/${bulkRedeemProgress.total})...`
+                    : redeemingAllAccounts
+                      ? `Redeeming across ${1 + altAccounts.length} accounts...`
+                      : isSupporter
+                        ? `👥 Redeem All for ${1 + altAccounts.length} Accounts`
+                        : `🔒 Redeem All Accounts (Supporter)`}
+                </button>
+              )}
 
               {/* Copy All Codes */}
               <button

@@ -527,7 +527,7 @@ const RecruiterDashboard: React.FC<{
   const [transferees, setTransferees] = useState<TransfereeProfile[]>([]);
   const [loadingTransferees, setLoadingTransferees] = useState(false);
   const [hasMoreTransferees, setHasMoreTransferees] = useState(true);
-  const [pendingInvite, setPendingInvite] = useState<{ id: string; kingdom_number: number } | null>(null);
+  const [pendingInvite, setPendingInvite] = useState<{ id: string; kingdom_number: number; assigned_by: string | null } | null>(null);
   const [sentInviteIds, setSentInviteIds] = useState<Set<string>>(new Set());
   const [browseFilters, setBrowseFilters] = useState<{ minTc: string; minPower: string; language: string; sortBy: string }>({ minTc: '', minPower: '', language: '', sortBy: 'newest' });
   const [compareList, setCompareList] = useState<Set<string>>(new Set());
@@ -603,10 +603,10 @@ const RecruiterDashboard: React.FC<{
         .single();
 
       if (!editor) {
-        // Check for pending co-editor invitation
+        // Check for pending co-editor invitation or request
         const { data: pending } = await supabase
           .from('kingdom_editors')
-          .select('id, kingdom_number')
+          .select('id, kingdom_number, assigned_by')
           .eq('user_id', user.id)
           .eq('status', 'pending')
           .single();
@@ -944,7 +944,7 @@ const RecruiterDashboard: React.FC<{
       // Check for existing editor entry
       const { data: existing } = await supabase
         .from('kingdom_editors')
-        .select('id, status')
+        .select('id, status, assigned_by')
         .eq('user_id', profile.id)
         .eq('kingdom_number', editorInfo.kingdom_number)
         .maybeSingle();
@@ -954,8 +954,30 @@ const RecruiterDashboard: React.FC<{
           showToast('This player is already a co-editor.', 'error');
           return;
         }
-        if (existing.status === 'pending') {
+        if (existing.status === 'pending' && existing.assigned_by) {
           showToast('An invitation is already pending for this player.', 'error');
+          return;
+        }
+        if (existing.status === 'pending' && !existing.assigned_by) {
+          // User already self-requested — editor approving means auto-activate
+          await supabase
+            .from('kingdom_editors')
+            .update({ status: 'active', assigned_by: user?.id, activated_at: new Date().toISOString() })
+            .eq('id', existing.id);
+
+          await supabase.from('notifications').insert({
+            user_id: profile.id,
+            type: 'co_editor_invite',
+            title: 'Co-Editor Request Approved',
+            message: `Your co-editor request for Kingdom ${editorInfo.kingdom_number} has been approved! You now have access to the Recruiter Dashboard.`,
+            link: '/transfer-hub',
+            metadata: { kingdom_number: editorInfo.kingdom_number, action: 'approved' },
+          });
+
+          const displayName = profile.linked_username || profile.username || 'User';
+          showToast(`${displayName} had a pending request — approved and activated!`, 'success');
+          setCoEditorUserId('');
+          loadDashboard();
           return;
         }
         // Reactivate with pending status for acceptance
@@ -1232,7 +1254,7 @@ const RecruiterDashboard: React.FC<{
             backgroundColor: '#111111', borderRadius: '12px',
             border: '1px solid #2a2a2a',
           }}>
-            {pendingInvite ? (
+            {pendingInvite && pendingInvite.assigned_by ? (
               <>
                 <p style={{ color: '#fff', fontSize: '1rem', marginBottom: '0.5rem' }}>🎉 {t('recruiter.coEditorInvitation', 'Co-Editor Invitation')}</p>
                 <p style={{ color: '#6b7280', fontSize: '0.85rem', marginBottom: '1rem' }}>
@@ -1274,6 +1296,13 @@ const RecruiterDashboard: React.FC<{
                     {t('recruiter.decline', 'Decline')}
                   </button>
                 </div>
+              </>
+            ) : pendingInvite ? (
+              <>
+                <p style={{ color: '#fff', fontSize: '1rem', marginBottom: '0.5rem' }}>📨 {t('recruiter.coEditorRequestPending', 'Co-Editor Request Pending')}</p>
+                <p style={{ color: '#6b7280', fontSize: '0.85rem' }}>
+                  {t('recruiter.requestAwaitingApproval', 'Your request to co-edit Kingdom {{kingdom}} is pending editor approval. You\'ll be notified when it\'s reviewed.', { kingdom: pendingInvite.kingdom_number })}
+                </p>
               </>
             ) : (
               <>

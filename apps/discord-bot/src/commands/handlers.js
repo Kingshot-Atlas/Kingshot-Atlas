@@ -691,6 +691,185 @@ async function handleRedeem(interaction) {
   return interaction.editReply({ embeds: [finalEmbed] });
 }
 
+/**
+ * /redeem-all — Redeem gift codes for main account + all alt accounts (Supporter perk)
+ * Pulls alt_accounts from Supabase profile. Requires Supporter subscription.
+ */
+async function handleRedeemAll(interaction) {
+  // 60-second cooldown (longer since this redeems for many accounts)
+  const remaining = checkCooldown('redeem-all', interaction.user.id, 60);
+  if (remaining > 0) {
+    return interaction.reply({
+      content: `\u23f3 Cooldown: try again in **${remaining}s**.`,
+      ephemeral: true,
+    });
+  }
+
+  await interaction.deferReply({ ephemeral: true });
+
+  // 1. Look up Atlas profile by Discord ID (now includes alt_accounts + subscription_tier)
+  const profile = await api.lookupUserByDiscordId(interaction.user.id);
+
+  if (!profile) {
+    const embed = embeds.createBaseEmbed()
+      .setTitle('\ud83d\udd17 Account Not Linked')
+      .setDescription(
+        'Your Discord account isn\'t linked to an Atlas profile yet.\n\n' +
+        '**How to link:**\n' +
+        '1. Go to [ks-atlas.com](https://ks-atlas.com) and sign in with Discord\n' +
+        '2. Go to your **Profile** page\n' +
+        '3. Click **Link Kingshot Account** and enter your Player ID\n\n' +
+        'Once linked, use `/redeem-all` to redeem codes for all your accounts!'
+      )
+      .setColor(0xfbbf24);
+    return interaction.editReply({ embeds: [embed] });
+  }
+
+  // 2. Check Supporter status
+  const tier = profile.subscription_tier || 'free';
+  if (tier === 'free') {
+    const embed = embeds.createBaseEmbed()
+      .setTitle('\u2b50 Supporter Feature')
+      .setDescription(
+        '`/redeem-all` redeems codes for your **main account + all alt accounts** in one command.\n\n' +
+        'This is an **Atlas Supporter** perk.\n' +
+        'Upgrade at [ks-atlas.com/support](https://ks-atlas.com/support) to unlock it!\n\n' +
+        '*Tip: You can still use `/redeem` for your main account for free.*'
+      )
+      .setColor(0xf59e0b);
+    return interaction.editReply({ embeds: [embed] });
+  }
+
+  const mainPlayerId = profile.linked_player_id;
+  if (!mainPlayerId) {
+    const embed = embeds.createBaseEmbed()
+      .setTitle('\ud83c\udfae Kingshot Account Not Linked')
+      .setDescription(
+        'Your Atlas profile exists, but you haven\'t linked your Kingshot account yet.\n\n' +
+        'Go to [your Atlas profile](https://ks-atlas.com/profile) and click **Link Kingshot Account**.'
+      )
+      .setColor(0xfbbf24);
+    return interaction.editReply({ embeds: [embed] });
+  }
+
+  // 3. Build account list: main + alts
+  const altAccounts = Array.isArray(profile.alt_accounts) ? profile.alt_accounts : [];
+  const mainName = profile.linked_username || profile.username || `Player ${mainPlayerId}`;
+  const accounts = [
+    { player_id: mainPlayerId, label: mainName },
+    ...altAccounts.map(a => ({ player_id: a.player_id, label: a.label || `Alt ${a.player_id}` })),
+  ];
+
+  // 4. Determine which codes to redeem
+  const selectedCode = interaction.options.getString('code');
+  const redeemAll = !selectedCode || selectedCode === '__ALL__';
+
+  const allCodes = await api.fetchGiftCodes();
+  if (!allCodes || allCodes.length === 0) {
+    const embed = embeds.createBaseEmbed()
+      .setTitle('\ud83c\udf81 No Active Gift Codes')
+      .setDescription('There are no active gift codes right now. Check back later!')
+      .setColor(0x6b7280);
+    return interaction.editReply({ embeds: [embed] });
+  }
+
+  const codesToRedeem = redeemAll
+    ? allCodes
+    : allCodes.filter(c => c.code === selectedCode);
+
+  if (codesToRedeem.length === 0) {
+    const embed = embeds.createBaseEmbed()
+      .setTitle('\ud83c\udf81 Code Not Found')
+      .setDescription(`\`${selectedCode}\` isn't in the active codes list. Use \`/codes\` to see what's available.`)
+      .setColor(0xef4444);
+    return interaction.editReply({ embeds: [embed] });
+  }
+
+  // 5. Redeem for each account
+  const totalOps = accounts.length * codesToRedeem.length;
+  const startEmbed = embeds.createBaseEmbed()
+    .setTitle('\ud83c\udf81 Bulk Redemption Started')
+    .setDescription(
+      `Redeeming **${codesToRedeem.length}** code${codesToRedeem.length > 1 ? 's' : ''} for **${accounts.length}** account${accounts.length > 1 ? 's' : ''}...\n` +
+      `Total operations: **${totalOps}** — this may take a moment.`
+    )
+    .setColor(0x3b82f6);
+  await interaction.editReply({ embeds: [startEmbed] });
+
+  const accountResults = [];
+  let completedOps = 0;
+
+  for (const account of accounts) {
+    const results = [];
+    for (let i = 0; i < codesToRedeem.length; i++) {
+      const code = codesToRedeem[i].code;
+      const result = await api.redeemGiftCode(account.player_id, code);
+      const emoji = result.success ? '\u2705' : '\u274c';
+      let status = result.message || (result.success ? 'Success' : 'Failed');
+      if (result.err_code && NON_RETRYABLE_ERR_CODES.includes(result.err_code)) {
+        if (result.err_code === 40008 || result.err_code === 40014) status = 'Already redeemed';
+        else if (result.err_code === 40007) status = 'Expired';
+        else if (result.err_code === 40009) status = 'Invalid code';
+      }
+      results.push({ emoji, code, status });
+      completedOps++;
+
+      // Update progress every 3 operations to avoid rate limiting
+      if (completedOps % 3 === 0 || completedOps === totalOps) {
+        const progressEmbed = embeds.createBaseEmbed()
+          .setTitle('\ud83c\udf81 Bulk Redemption In Progress')
+          .setDescription(`Progress: **${completedOps}/${totalOps}** — currently: **${account.label}**`)
+          .setColor(0x3b82f6);
+        await interaction.editReply({ embeds: [progressEmbed] }).catch(() => {});
+      }
+
+      // 5s delay between codes
+      if (i < codesToRedeem.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 5000));
+      }
+    }
+    const successes = results.filter(r => r.emoji === '\u2705').length;
+    accountResults.push({ label: account.label, playerId: account.player_id, results, successes });
+
+    // 3s delay between accounts
+    if (accounts.indexOf(account) < accounts.length - 1) {
+      await new Promise(resolve => setTimeout(resolve, 3000));
+    }
+  }
+
+  // 6. Final summary
+  const totalSuccesses = accountResults.reduce((sum, a) => sum + a.successes, 0);
+  const totalFailures = completedOps - totalSuccesses;
+  const finalColor = totalSuccesses === totalOps ? 0x22c55e
+    : totalSuccesses > 0 ? 0xfbbf24
+    : 0xef4444;
+
+  const summaryLines = accountResults.map(a => {
+    const icon = a.successes === codesToRedeem.length ? '\u2705' : a.successes > 0 ? '\u26a0\ufe0f' : '\u274c';
+    const details = a.results.map(r => `  ${r.emoji} \`${r.code}\` — ${r.status}`).join('\n');
+    return `${icon} **${a.label}** (${a.successes}/${codesToRedeem.length})\n${details}`;
+  });
+
+  // Discord embed description limit is 4096 chars — truncate if needed
+  let description = `**${totalSuccesses}** succeeded, **${totalFailures}** failed across **${accounts.length}** accounts\n\n` + summaryLines.join('\n\n');
+  if (description.length > 4000) {
+    const shortSummary = accountResults.map(a => {
+      const icon = a.successes === codesToRedeem.length ? '\u2705' : a.successes > 0 ? '\u26a0\ufe0f' : '\u274c';
+      return `${icon} **${a.label}** — ${a.successes}/${codesToRedeem.length} succeeded`;
+    }).join('\n');
+    description = `**${totalSuccesses}** succeeded, **${totalFailures}** failed across **${accounts.length}** accounts\n\n` + shortSummary;
+  }
+
+  const timestamp = new Date().toLocaleString('en-US', { timeZone: 'UTC', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  const finalEmbed = embeds.createBaseEmbed()
+    .setTitle('\ud83c\udf81 Bulk Redemption Complete')
+    .setDescription(description)
+    .setColor(finalColor)
+    .setFooter({ text: `Kingshot Atlas \u2022 Redeemed ${timestamp} UTC` });
+
+  return interaction.editReply({ embeds: [finalEmbed] });
+}
+
 module.exports = {
   handleKingdom,
   handleCompare,
@@ -705,4 +884,5 @@ module.exports = {
   handleMultirally,
   handleCodes,
   handleRedeem,
+  handleRedeemAll,
 };

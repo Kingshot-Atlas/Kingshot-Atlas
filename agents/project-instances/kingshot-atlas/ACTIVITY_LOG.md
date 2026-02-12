@@ -3,6 +3,67 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-12 20:15 | Product Engineer | COMPLETED
+Task: Expandable per-code results in Bulk Redeem Results panel
+Files: GiftCodeRedeemer.tsx
+Changes:
+1. **New `BulkCodeResult` interface** — Tracks per-code outcome (code, success, message, err_code) for each account
+2. **Extended `BulkAccountResult`** — Added `codeResults` array to store individual code results per account
+3. **Expandable chevron UI** — Each account row now has a ▶ chevron that rotates to ▼ when expanded, revealing per-code details
+4. **Per-code detail rows** — Show code name, status icon, and specific failure reason (already redeemed, expired, invalid, rate limited, not login, etc.)
+5. **Color-coded outcomes** — Success (green ✓), Already redeemed (yellow ⟳), Expired (gray ⛔), Invalid (red ✗), Rate limited (orange ⏱), Not login (orange 🔒)
+Result: Users can now see exactly why each code failed/succeeded for each account in the bulk redeem results
+
+## 2026-02-12 16:15 | Product Engineer | COMPLETED
+Task: Fix co-editor invite/request stuck state — users saw conflicting "request pending" + "invited" messages
+Files: EditorClaiming.tsx, RecruiterDashboard.tsx
+Changes:
+1. **Root cause** — `assigned_by` field distinguishes invites (set) from self-requests (null), but neither component checked it
+2. **EditorClaiming.tsx** — Added `assigned_by` to `EditorClaim` interface. Split pending co-editor block: invites show Accept/Decline buttons, self-requests show "pending approval" message
+3. **RecruiterDashboard.tsx** — Updated `pendingInvite` state type + query to include `assigned_by`. Invites show Accept/Decline, self-requests show "pending approval" text
+4. **Cross-case sync** — Editor inviting a user who self-requested → auto-activates. User self-requesting when invited → auto-accepts. No more stuck states.
+Result: Both flows (editor→invite→user accepts, user→request→editor approves) now work cleanly without conflicts
+
+## 2026-02-12 18:00 | Product Engineer + Platform Engineer | COMPLETED
+Task: Alt Accounts Cloud Sync + Discord /redeem-all + Upgrade CTA Tracking
+Files: GiftCodeRedeemer.tsx, supabase_client.py, handlers.js, index.js, bot.js, FEATURES_IMPLEMENTED.md
+Changes:
+1. **Supabase migration** — Added `alt_accounts` JSONB column to `profiles` table (default `[]`). Source of truth for alt account data.
+2. **Cloud sync (frontend)** — GiftCodeRedeemer loads alts from Supabase on mount, merges `lastRedeemed` from localStorage. One-time migration pushes localStorage alts to cloud if cloud is empty. Saves to both localStorage (cache) + Supabase on every change.
+3. **Backend API update** — `get_user_by_discord_id()` now returns `alt_accounts` and `subscription_tier` so Discord bot can access them.
+4. **Discord `/redeem-all`** — New Supporter-only command. Redeems all active codes for main + all alt accounts. Progress embed, per-account results, 60s cooldown, 4000-char truncation safety. Free users see upgrade prompt.
+5. **Upgrade CTA tracking** — `analyticsService.trackFeatureUse('Alt Panel Upgrade CTA')` on free user "Upgrade" link click in alt panel teaser.
+6. **Command registration** — `/redeem-all` registered with code autocomplete (shared with `/redeem`). Wired into bot.js switch statement.
+Result: Alt accounts now persist across devices via Supabase. Discord Supporters can bulk-redeem for all accounts with one command. Conversion tracking enabled for alt panel upsell.
+
+## 2026-02-12 16:30 | Product Engineer | COMPLETED
+Task: Gift Code Redeemer — Full UX Polish + NOT LOGIN Root Cause Fix + Rally Coordinator Shoutout
+Files: GiftCodeRedeemer.tsx, player_link.py, RallyCoordinator.tsx
+Changes:
+1. **Fixed NOT LOGIN root cause** — Century Games API requires a `/api/player` "login" call before `/api/gift_code` will work. Added player verification step within same httpx session so cookies carry over. This was the actual bug — not an auth issue.
+2. **Per-account results summary** — Collapsible "BULK REDEEM RESULTS" card after bulk redeem showing per-account breakdown (✓3 redeemed, ✗1 failed) with unique error messages.
+3. **Drag-to-reorder alts** — Up/down arrow buttons on each alt account in the management panel, persisted via localStorage.
+4. **Last redeemed timestamp** — Each alt shows "Last redeemed [date]" in the panel, updated on successful bulk redemption.
+5. **Free tier preview** — Free users get 1 alt slot (previously 0). Alt panel opens for all users. Supporter teaser shown when free limit reached ("⭐ Supporters get up to 10 alt accounts + bulk redeem").
+6. **Rally Coordinator shoutout** — Creative citation for bAdClimber at bottom of Battle Planner page with link to his public profile: "⚔️ Battle Planner concept by bAdClimber — rallied the idea, we built the weapon."
+7. **10-second cooldown** — After bulk redeem completes, triggers 10s cooldown.
+8. **2s delay between claims** — Increased from 1.5s for rate limit safety.
+9. **Made not_login retryable** — Since backend fix resolves root cause, NOT LOGIN is now retryable (users can retry if edge case persists).
+Result: Gift Code Redeemer is now a polished, conversion-optimized feature with proper error handling, free tier teaser, and community attribution on Rally Coordinator.
+
+## 2026-02-12 15:30 | Product Engineer | COMPLETED
+Task: Gift Code Redeemer — Alt Account Bug Fixes + Hardening
+Files: GiftCodeRedeemer.tsx, player_link.py
+Changes:
+1. **Fixed "NOT LOGIN" error handling** — Added `not_login` outcome type with distinct orange styling and "🔑 Login Required" button label. Made it non-retryable so bulk/single redeem skips accounts that haven't logged in recently.
+2. **Fixed unredeemed filter bug** — `redeemAllForAllAccounts` used `outcome !== 'expired'` (would re-try already-redeemed codes). Fixed to `!isNonRetryable(outcome)` matching single-account `redeemAll`.
+3. **Added 10-second cooldown** — After bulk redeem all accounts completes, triggers a 10s cooldown to avoid hammering the Century Games API.
+4. **Per-account progress** — Bulk redeem button now shows which account is being processed and progress count (e.g., "Main (3/8)...").
+5. **Increased delay** — Between individual code redemptions from 1.5s to 2s for rate limit safety.
+6. **Backend "NOT LOGIN" mapping** — Verified backend already maps "NOT LOGIN" from Century Games to a friendly user message.
+7. **Early exit on empty** — Bulk redeem shows toast and exits early if no unredeemed codes remain.
+Result: Alt account redemption is more robust with proper error classification, rate limit protection, and user feedback.
+
 ## 2026-02-12 17:45 | Ops Lead | COMPLETED
 Task: SEO Content Expansion — Rankings FAQ Rich Snippets + hreflang Tags for 9 Languages
 Files: _middleware.ts, useStructuredData.ts, Leaderboards.tsx
