@@ -31,6 +31,51 @@ resend._domainkey         CNAME (Resend-provided)
 
 ---
 
+## Google Search Console Indexing Audit (2026-02-12)
+
+### GSC Status (as of 2026-02-09)
+- **443 indexed** / **1.09K not indexed** (29% indexing rate)
+- Soft 404: 31 pages
+- Server error (5xx): 2 pages
+- Alternate page with proper canonical tag: 6 pages
+- Discovered - currently not indexed: 903 pages
+- Crawled - currently not indexed: 150 pages
+- Page with redirect: 1 page (expected — legacy redirects)
+
+### Root Causes Identified & Fixed
+1. **Hardcoded canonical URL** — `<link rel="canonical" href="https://ks-atlas.com/" />` in index.html caused ALL pages to canonicalize to homepage → "Alternate page with canonical" issues. **REMOVED.**
+2. **useMetaTags didn't create canonical** — Hook only updated existing canonical, didn't create one if missing. **FIXED** to create `<link rel="canonical">` dynamically.
+3. **Transfer Hub crawlable** — Gated page showed "Coming Soon" to bots → soft 404s. **Added to robots.txt disallow.**
+4. **Missing sitemap entries** — `/ambassadors` and `/tools/gift-codes` were public but not in sitemap. **Added.**
+5. **Empty HTML shell** — `<div id="root"></div>` gave bots no content. **Added `<noscript>` fallback** with keyword-rich content and internal links.
+
+### Zero-Cost Edge-Side Meta Injection (Phase 2 — IMPLEMENTED 2026-02-12)
+- **Solution:** Two-tier SEO middleware in `functions/_middleware.ts` using Cloudflare HTMLRewriter
+- **Tier 1:** prerender.io (if `PRERENDER_TOKEN` set — optional paid upgrade)
+- **Tier 2:** Free edge-side meta injection (default, $0 cost):
+  - Detects search engine bots via user-agent
+  - Rewrites `<title>`, `<meta description>`, `<meta og:*>`, `<meta twitter:*>` per page
+  - Injects `<link rel="canonical">` and JSON-LD structured data into `<head>`
+  - For `/kingdom/:id`: Fetches live data from Supabase at the edge (1hr cache) → generates title with tier, win rate, KvK count
+  - For `/seasons/:id`: Season-specific meta
+  - For 13 static pages: Hardcoded meta matching `PAGE_META_TAGS` in `useMetaTags.ts`
+  - Falls back to generic meta with correct canonical for unknown paths
+- **Cost:** $0 — Cloudflare Pages Functions free tier (100K/day) + Supabase free tier
+- **What Google sees:** Every page now has unique title, description, canonical, OG tags, Twitter cards in the INITIAL HTML response (no JS needed)
+- **Env vars needed:** `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` (already set in Cloudflare Pages dashboard)
+- **Gotcha:** `_middleware.ts` uses Cloudflare Workers APIs (HTMLRewriter, PagesFunction) — IDE shows lint errors but these are runtime types available on Cloudflare's edge
+- **Gotcha:** If adding new static pages, add meta to BOTH `STATIC_META` in `_middleware.ts` AND `PAGE_META_TAGS` in `useMetaTags.ts`
+
+### Key SEO Rules
+- **NEVER** add a static `<link rel="canonical">` to index.html — the `useMetaTags` hook manages canonicals per-page
+- **Every public page** must call `useMetaTags()` with a `url` property to set proper canonical
+- **Gated pages** (auth-required, access-gated) must be in robots.txt `Disallow`
+- **All public routes** must be in the sitemap generator's `staticRoutes` array
+- **New static pages** must be added to `STATIC_META` in `_middleware.ts` for bot meta injection
+- **Dynamic pages** (kingdom, season) are handled automatically by the middleware
+
+---
+
 ## Dynamic Sitemap Generation (2026-02-08)
 
 `scripts/generate-sitemap.js` now queries Supabase REST API at build time:

@@ -37,7 +37,6 @@ interface GiftCodeStats {
 interface ActiveGiftCode {
   id: string;
   code: string;
-  rewards: string;
   source: string;
   is_active: boolean;
   expire_date: string | null;
@@ -51,7 +50,6 @@ export const GiftCodeAnalyticsTab: React.FC = () => {
   const [activeCodes, setActiveCodes] = useState<ActiveGiftCode[]>([]);
   const [loadingCodes, setLoadingCodes] = useState(true);
   const [newCode, setNewCode] = useState('');
-  const [newRewards, setNewRewards] = useState('');
   const [newExpiry, setNewExpiry] = useState('');
   const [addingCode, setAddingCode] = useState(false);
   const [activeSection, setActiveSection] = useState<'manage' | 'analytics'>('manage');
@@ -91,13 +89,11 @@ export const GiftCodeAnalyticsTab: React.FC = () => {
         headers: { 'Content-Type': 'application/json', ...headers },
         body: JSON.stringify({
           code: newCode.trim(),
-          rewards: newRewards.trim(),
           expire_date: newExpiry || null,
         }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setNewCode('');
-      setNewRewards('');
       setNewExpiry('');
       await fetchActiveCodes();
     } catch (err) {
@@ -280,19 +276,6 @@ export const GiftCodeAnalyticsTab: React.FC = () => {
                   }}
                 />
               </div>
-              <div style={{ flex: '1 1 200px' }}>
-                <label style={{ fontSize: '0.65rem', color: '#6b7280', display: 'block', marginBottom: '0.2rem' }}>Rewards (optional)</label>
-                <input
-                  value={newRewards}
-                  onChange={e => setNewRewards(e.target.value)}
-                  placeholder="e.g. 500 Diamonds, 2h Speedup"
-                  style={{
-                    width: '100%', padding: '0.4rem 0.6rem', backgroundColor: '#0a0a0a',
-                    border: '1px solid #2a2a2a', borderRadius: '6px', color: '#fff',
-                    fontSize: '0.8rem', boxSizing: 'border-box',
-                  }}
-                />
-              </div>
               <div style={{ flex: '0 0 160px' }}>
                 <label style={{ fontSize: '0.65rem', color: '#6b7280', display: 'block', marginBottom: '0.2rem' }}>Expiry Date (optional)</label>
                 <input
@@ -366,8 +349,8 @@ export const GiftCodeAnalyticsTab: React.FC = () => {
                     <span style={{ color: '#e5e7eb', fontFamily: 'monospace', fontWeight: 600, minWidth: '120px' }}>
                       {c.code}
                     </span>
-                    <span style={{ color: '#6b7280', flex: 1, fontSize: '0.7rem' }}>
-                      {c.rewards || '—'}
+                    <span style={{ color: '#6b7280', flex: 1, fontSize: '0.65rem' }}>
+                      {new Date(c.created_at).toLocaleDateString()}
                     </span>
                     <span style={{
                       padding: '0.15rem 0.4rem', borderRadius: '4px', fontSize: '0.6rem', fontWeight: 600,

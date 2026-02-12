@@ -13,6 +13,7 @@ import hashlib
 import time
 import os
 import httpx
+import asyncio
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 from slowapi import Limiter
@@ -20,6 +21,45 @@ from slowapi.util import get_remote_address
 from api.supabase_client import log_gift_code_redemption, get_gift_codes_from_db, get_deactivated_gift_codes, upsert_gift_codes, add_manual_gift_code, deactivate_gift_code, mark_gift_code_expired
 
 router = APIRouter()
+
+# Discord webhook for gift code notifications
+DISCORD_GIFT_CODES_WEBHOOK = os.getenv("DISCORD_GIFT_CODES_WEBHOOK", "")
+DISCORD_GIFT_CODES_ROLE_ID = os.getenv("DISCORD_GIFT_CODES_ROLE_ID", "1471516628125749319")
+
+
+async def notify_discord_new_gift_code(code: str):
+    """Fire-and-forget: send a Discord webhook embed for a new gift code."""
+    webhook_url = DISCORD_GIFT_CODES_WEBHOOK
+    if not webhook_url:
+        print("[gift-codes] DISCORD_GIFT_CODES_WEBHOOK not set — skipping notification")
+        return
+    try:
+        role_mention = f"<@&{DISCORD_GIFT_CODES_ROLE_ID}>" if DISCORD_GIFT_CODES_ROLE_ID else ""
+        embed = {
+            "title": "\U0001f381 New Gift Code",
+            "description": (
+                f"## `{code}`\n\n"
+                "\u26a1 Use `/redeem` right here in Discord\n"
+                "\U0001f310 Or one-click redeem at **[ks-atlas.com/tools/gift-codes](https://ks-atlas.com/tools/gift-codes)**\n\n"
+                "*Redeem before it expires!*"
+            ),
+            "color": 0xf59e0b,
+            "footer": {"text": "Kingshot Atlas \u2022 ks-atlas.com"},
+            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        }
+        payload = {
+            "content": role_mention,
+            "embeds": [embed],
+            "allowed_mentions": {"roles": [DISCORD_GIFT_CODES_ROLE_ID]} if DISCORD_GIFT_CODES_ROLE_ID else {},
+        }
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.post(webhook_url, json=payload)
+            if resp.status_code in (200, 204):
+                print(f"[gift-codes] \u2705 Discord notification sent for {code}")
+            else:
+                print(f"[gift-codes] \u26a0\ufe0f Discord webhook returned {resp.status_code}: {resp.text[:200]}")
+    except Exception as e:
+        print(f"[gift-codes] \u274c Discord notification failed for {code}: {e}")
 
 # Century Games API Configuration
 # Salt is loaded from environment variable with fallback to known public value
@@ -432,7 +472,12 @@ async def add_gift_code(request: Request, body: ManualGiftCodeRequest):
     )
     if "error" in result:
         raise HTTPException(status_code=500, detail=result["error"])
-    return {"success": True, "message": f"Code {body.code.strip().upper()} added."}
+
+    # Fire-and-forget: notify Discord about new code
+    clean_code = body.code.strip().upper()
+    asyncio.ensure_future(notify_discord_new_gift_code(clean_code))
+
+    return {"success": True, "message": f"Code {clean_code} added."}
 
 
 @router.post(

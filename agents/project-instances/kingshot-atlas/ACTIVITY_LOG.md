@@ -3,6 +3,45 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-12 16:45 | Ops Lead + Product Engineer | COMPLETED
+Task: Transfer Hub Bug Fixes + Zero-Cost SEO Prerendering + Comprehensive SEO Audit
+Files: TransferBoard.tsx, _middleware.ts, KvKSeasons.tsx, index.html, useMetaTags.ts, robots.txt, generate-sitemap.js
+Changes:
+**Transfer Hub Bugs (5 reported, 4 already fixed, 1 new fix):**
+1. Bug 1 (expiry text): Already fixed — says "72 hours" ✅
+2. Bug 2 (reactivate profiles): Already fixed — `is_active: true` in update payload ✅
+3. Bug 3 (last_active_at query): Already fixed — included in RecruiterDashboard select ✅
+4. Bug 4 (memoize match scores): **FIXED** — Added `matchScoreMap` useMemo pre-computing all match scores; listing render now does map lookup instead of recalculating. Also memoized `kingdomsWithFunds`/`kingdomsWithoutFunds` splits.
+5. Bug 5 (debounce last_active_at): Already fixed — localStorage 1hr debounce ✅
+
+**Zero-Cost SEO Prerendering (MAJOR):**
+6. **Built two-tier SEO middleware** in `_middleware.ts` using Cloudflare HTMLRewriter:
+   - Tier 1: prerender.io (if PRERENDER_TOKEN set)
+   - Tier 2: Free edge-side meta injection — rewrites `<title>`, `<meta description>`, `<meta og:*>`, `<meta twitter:*>`, injects `<link canonical>` and JSON-LD per page
+   - For `/kingdom/:id`: Fetches live data from Supabase at the edge (cached 1hr) to generate unique title with tier, win rate, and KvK count
+   - For `/seasons/:id`: Season-specific meta tags
+   - For 13 static pages: Hardcoded meta matching frontend PAGE_META_TAGS
+   - **Cost: $0** — uses Cloudflare's free tier (100K invocations/day) + Supabase free tier
+
+**Additional SEO Improvements:**
+7. Season-specific meta tags on KvKSeasons page (was using generic meta for all /seasons/:id URLs)
+8. Full SEO audit: All 15 public pages confirmed to have useMetaTags + useStructuredData + BreadcrumbList
+
+Result: Build passes. 4 files changed. The edge-side meta injection is the highest-impact SEO fix — Google will now see unique title, description, canonical, OG tags, and structured data for every page in the initial HTML, without needing a paid prerender service.
+
+## 2026-02-12 16:15 | Ops Lead | COMPLETED
+Task: Google Search Console Indexing Audit & Fixes
+Files: index.html, useMetaTags.ts, robots.txt, generate-sitemap.js
+Changes:
+1. **Analyzed** GSC screenshot: 1.09K not indexed vs 443 indexed (29% indexing rate)
+2. **Root cause 1 (CRITICAL):** Hardcoded `<link rel="canonical" href="https://ks-atlas.com/" />` in index.html caused ALL 1,326 pages to canonicalize to homepage. Removed it — useMetaTags hook now creates canonical dynamically per page.
+3. **Root cause 2:** useMetaTags didn't create canonical element if missing. Fixed to create `<link rel="canonical">` dynamically.
+4. **Root cause 3:** Transfer Hub (gated page) was crawlable — bots saw "Coming Soon" gate → soft 404s. Added `/transfer-hub` to robots.txt disallow.
+5. **Root cause 4:** `/ambassadors` and `/tools/gift-codes` (public pages) missing from sitemap. Added them.
+6. **Root cause 5:** Empty `<div id="root"></div>` gives bots zero content. Added `<noscript>` fallback with keyword-rich content and internal links.
+7. **Underlying issue:** SPA without prerendering — PRERENDER_TOKEN not set in Cloudflare. 903 "Discovered not indexed" pages are kingdom profiles that Google finds via sitemap but can't render meaningful content from. This needs prerender.io setup (separate task).
+Result: Build passes. 4 files changed. Fixes address canonical duplication (6 GSC issues), soft 404s (~31), and crawl budget waste. The 903 "Discovered not indexed" requires prerendering (Phase 2).
+
 ## 2026-02-12 16:02 | Ops Lead | COMPLETED
 Task: DMARC Report Analysis & SPF Alignment Fix
 Files: docs/INFRASTRUCTURE.md (added Email & DNS Authentication section), agents/ops-lead/LATEST_KNOWLEDGE.md (added DMARC knowledge)

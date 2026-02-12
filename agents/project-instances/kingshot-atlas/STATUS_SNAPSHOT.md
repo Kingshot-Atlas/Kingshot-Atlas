@@ -20,7 +20,7 @@
 | Accessibility | ✅ Enhanced | WCAG improvements, high contrast mode |
 | Sharing | ✅ Enhanced | PNG export, QR codes, embed codes, Discord formatting |
 | Discord Bot | ✅ Operational | Cloudflare Worker proxy bypasses IP ban. Settler + Supporter + Referral role auto-sync every 30min. Dual-auth (JWT + API key) on all admin endpoints. Rate limited 30req/60s. Persistent telemetry to Supabase `bot_telemetry`. Observability dashboard in Admin. Auto-cleanup (30d retention). Discord webhook alerts on critical events. |
-| SEO | ✅ Enhanced | Dynamic sitemap (1204 kingdoms live from Supabase), BreadcrumbList JSON-LD on all 11 public pages + kingdom profiles |
+| SEO | ✅ Enhanced | Dynamic sitemap (1328 URLs from Supabase), BreadcrumbList JSON-LD on all 15 public pages + kingdom profiles, edge-side meta injection for bots (HTMLRewriter), per-page canonicals, noscript fallback |
 | Codebase Health | ✅ Audited | Dead files removed, docs reorganized |
 
 ---
@@ -95,8 +95,8 @@
 
 ## Next Priorities
 
-1. **Implement Cloudflare Workers Prerendering** - See `/docs/SEO_PRERENDERING_STRATEGY.md`
-2. **Submit Sitemap to Google Search Console** - 1211 URLs ready
+1. ~~**Implement Cloudflare Workers Prerendering**~~ ✅ Done — Zero-cost edge-side meta injection via HTMLRewriter in `_middleware.ts`
+2. **Monitor GSC Indexing Rate** — Target 60%+ from current 29% over next 2-4 weeks
 3. **Integrate FilterPanel** into KingdomDirectory
 4. **Clear remaining ESLint warnings** - 11 eslint-disable comments remain
 

@@ -1060,15 +1060,16 @@ function createGiftCodesEmbed(codes) {
  * Short, sweet, Atlas personality
  */
 function createNewGiftCodeEmbed(code) {
-  const rewards = code.rewards ? `\n*${code.rewards}*` : '';
   return createBaseEmbed()
-    .setTitle('🎁 Fresh Code Dropped')
+    .setTitle('🎁 New Gift Code')
     .setColor(0xf59e0b)
     .setDescription([
-      `## \`${code.code}\`${rewards}`,
+      `## \`${code.code}\``,
       '',
       '⚡ Use `/redeem` right here in Discord',
-      `🌐 Or grab it at **[ks-atlas.com/tools/gift-codes](${config.urls.base}/tools/gift-codes)**`,
+      `🌐 Or one-click redeem at **[ks-atlas.com/tools/gift-codes](${config.urls.base}/tools/gift-codes)**`,
+      '',
+      '*Redeem before it expires!*',
     ].join('\n'))
     .setFooter({ text: config.bot.footerText })
     .setTimestamp();

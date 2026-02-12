@@ -727,22 +727,33 @@ const TransferBoard: React.FC = () => {
     action();
   };
 
+  // Pre-computed match scores for all filtered kingdoms (avoids recalculating in render loop)
+  const matchScoreMap = useMemo(() => {
+    if (mode !== 'transferring' || !transferProfile) return new Map<number, { score: number; details: MatchDetail[] }>();
+    const map = new Map<number, { score: number; details: MatchDetail[] }>();
+    for (const k of filteredKingdoms) {
+      const fund = fundMap.get(k.kingdom_number) || null;
+      map.set(k.kingdom_number, calculateMatchScore(k, fund));
+    }
+    return map;
+  }, [filteredKingdoms, fundMap, transferProfile, mode]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Memoized top matches for Recommended Kingdoms section
   const topMatches = useMemo(() => {
     if (!transferProfile || mode !== 'transferring') return [];
     return filteredKingdoms
       .map(k => {
         const f = fundMap.get(k.kingdom_number) || null;
-        const { score, details } = calculateMatchScore(k, f);
-        return { kingdom: k, fund: f, score, details };
+        const result = matchScoreMap.get(k.kingdom_number) || { score: 0, details: [] };
+        return { kingdom: k, fund: f, score: result.score, details: result.details };
       })
       .filter(m => m.score >= 50)
       .sort((a, b) => b.score - a.score)
       .slice(0, 3);
-  }, [filteredKingdoms, fundMap, transferProfile, mode]);
+  }, [filteredKingdoms, fundMap, transferProfile, mode, matchScoreMap]);
 
-  const kingdomsWithFunds = filteredKingdoms.filter((k) => fundMap.has(k.kingdom_number));
-  const kingdomsWithoutFunds = filteredKingdoms.filter((k) => !fundMap.has(k.kingdom_number));
+  const kingdomsWithFunds = useMemo(() => filteredKingdoms.filter((k) => fundMap.has(k.kingdom_number)), [filteredKingdoms, fundMap]);
+  const kingdomsWithoutFunds = useMemo(() => filteredKingdoms.filter((k) => !fundMap.has(k.kingdom_number)), [filteredKingdoms, fundMap]);
 
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto', padding: isMobile ? '0 0.25rem' : 0 }}>
@@ -1375,7 +1386,7 @@ const TransferBoard: React.FC = () => {
           {/* Funded kingdoms first */}
           {kingdomsWithFunds.map((kingdom) => {
             const fund = fundMap.get(kingdom.kingdom_number) || null;
-            const matchResult = mode === 'transferring' ? calculateMatchScore(kingdom, fund) : undefined;
+            const matchResult = matchScoreMap.get(kingdom.kingdom_number);
             return (
               <KingdomListingCard
                 key={kingdom.kingdom_number}
@@ -1409,7 +1420,7 @@ const TransferBoard: React.FC = () => {
           {/* Standard (unfunded) kingdoms — infinite scroll */}
           {kingdomsWithoutFunds.slice(0, visibleCount).map((kingdom) => {
             const fund = null;
-            const matchResult = mode === 'transferring' ? calculateMatchScore(kingdom, fund) : undefined;
+            const matchResult = matchScoreMap.get(kingdom.kingdom_number);
             return (
               <KingdomListingCard
                 key={kingdom.kingdom_number}

@@ -19,9 +19,14 @@ interface SeasonStats {
 
 const KvKSeasons: React.FC = () => {
   const { t } = useTranslation();
-  useMetaTags(PAGE_META_TAGS.kvkSeasons);
   const { seasonNumber } = useParams<{ seasonNumber?: string }>();
   const seasonNum = seasonNumber ? parseInt(seasonNumber) : null;
+  useMetaTags(seasonNum ? {
+    title: `KvK Season ${seasonNum} Results & Matchups - Kingshot Atlas`,
+    description: `KvK Season ${seasonNum} results: all matchups, winners, scores, and kingdom performance. Track how every kingdom performed in Season ${seasonNum}.`,
+    url: `https://ks-atlas.com/seasons/${seasonNum}`,
+    type: 'article',
+  } : PAGE_META_TAGS.kvkSeasons);
   useStructuredData({ type: 'BreadcrumbList', data: seasonNum ? getSeasonBreadcrumbs(seasonNum) : PAGE_BREADCRUMBS.seasons });
   const navigate = useNavigate();
   const isMobile = useIsMobile();
