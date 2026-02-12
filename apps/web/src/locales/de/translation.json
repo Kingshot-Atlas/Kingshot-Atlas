@@ -315,7 +315,21 @@
     "supporterDesc": "Der Kampfplaner ist bei Atlas Supporter enthalten — zusammen mit unbegrenztem /multirally, dem Supporter-Abzeichen, exklusivem Discord-Zugang und mehr. Ab $4,99/Monat.",
     "becomeSupporter": "Supporter Werden",
     "tryPlanner": "Planer Testen",
-    "allTools": "← Alle Werkzeuge"
+    "allTools": "← Alle Werkzeuge",
+    "communityCredit": "Großes Dankeschön an",
+    "communityCreditSuffix": "für die Idee zu diesem Feature. Von der Community gebaut, für die Community."
+  },
+  "battlePlannerBanner": {
+    "dismiss": "Kampfplaner-Banner schließen",
+    "title": "Der KvK Kampfplaner ist DA",
+    "newBadge": "NEU",
+    "desc": "Kostenloser Zugang für alle — probier ihn dieses Wochenende bei der Burgschlacht aus. Koordiniere Rallyes wie nie zuvor.",
+    "d": "T",
+    "h": "Std",
+    "m": "Min",
+    "s": "Sek",
+    "freeEnds": "Freier Zugang",
+    "cta": "Kampfplaner testen →"
   },
   "about": {
     "consistentPerformance": "konstante Leistung",

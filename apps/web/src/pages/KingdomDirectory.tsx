@@ -25,6 +25,7 @@ import { countActiveFilters, DEFAULT_FILTERS } from '../utils/kingdomStats';
 import { DataSyncIndicator } from '../components/DataSyncIndicator';
 import QuickActions from '../components/homepage/QuickActions';
 import TransferHubBanner from '../components/homepage/TransferHubBanner';
+import BattlePlannerBanner from '../components/homepage/BattlePlannerBanner';
 import MobileCountdowns from '../components/homepage/MobileCountdowns';
 import { useScrollDepth } from '../hooks/useScrollDepth';
 import { useTranslation } from 'react-i18next';
@@ -367,6 +368,9 @@ const KingdomDirectory: React.FC = () => {
 
       {/* Transfer Hub Banner - dismissable CTA */}
       <TransferHubBanner />
+
+      {/* Battle Planner Banner - dismissable launch CTA */}
+      <BattlePlannerBanner />
 
       {/* Search and Controls - Sticky */}
       <div style={{ 

@@ -315,7 +315,21 @@
     "supporterDesc": "El Planificador de Batalla está incluido con Atlas Supporter — junto con /multirally ilimitado, la insignia de Supporter, acceso exclusivo a Discord y más. Desde $4.99/mes.",
     "becomeSupporter": "Conviértete en Supporter",
     "tryPlanner": "Probar el Planificador",
-    "allTools": "← Todas las Herramientas"
+    "allTools": "← Todas las Herramientas",
+    "communityCredit": "Un gran agradecimiento a",
+    "communityCreditSuffix": "por impulsar esta idea. Creado por la comunidad, para la comunidad."
+  },
+  "battlePlannerBanner": {
+    "dismiss": "Cerrar banner del Planificador de Batalla",
+    "title": "El Planificador de Batalla KvK está AQUÍ",
+    "newBadge": "NUEVO",
+    "desc": "Acceso gratuito para todos — pruébalo en la Batalla del Castillo de este fin de semana. Coordina rallies como nunca antes.",
+    "d": "d",
+    "h": "h",
+    "m": "m",
+    "s": "s",
+    "freeEnds": "Acceso Gratuito",
+    "cta": "Probar Planificador →"
   },
   "about": {
     "consistentPerformance": "rendimiento consistente",

@@ -315,7 +315,21 @@
     "supporterDesc": "战斗规划器包含在 Atlas Supporter 中——还有无限次 /multirally、Supporter 徽章、专属 Discord 频道等。每月仅 $4.99 起。",
     "becomeSupporter": "成为 Supporter",
     "tryPlanner": "试用规划器",
-    "allTools": "← 所有工具"
+    "allTools": "← 所有工具",
+    "communityCredit": "特别感谢",
+    "communityCreditSuffix": "推动了这个创意的诞生。由社区打造，为社区服务。"
+  },
+  "battlePlannerBanner": {
+    "dismiss": "关闭战斗规划器横幅",
+    "title": "KvK 战斗规划器来了",
+    "newBadge": "新功能",
+    "desc": "所有人免费体验——这个周末的城堡战就试试吧。前所未有的集结协调。",
+    "d": "天",
+    "h": "时",
+    "m": "分",
+    "s": "秒",
+    "freeEnds": "免费体验",
+    "cta": "试用战斗规划器 →"
   },
   "about": {
     "consistentPerformance": "稳定的表现",

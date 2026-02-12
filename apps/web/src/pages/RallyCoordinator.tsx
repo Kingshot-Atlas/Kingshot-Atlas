@@ -1479,6 +1479,10 @@ const RallyCoordinator: React.FC = () => {
   const clearQueue = useCallback(() => setRallyQueue([]), []);
   const clearCounterQueue = useCallback(() => setCounterQueue([]), []);
 
+  // Touch drag hooks for both queues — MUST be before conditional returns (Rules of Hooks)
+  const rallyTouchDrag = useTouchDragReorder(moveInQueue);
+  const counterTouchDrag = useTouchDragReorder(moveInCounterQueue);
+
   // Loading state while checking access
   if (hasAccess === null) {
     return (
@@ -1519,10 +1523,6 @@ const RallyCoordinator: React.FC = () => {
       </div>
     );
   }
-
-  // Touch drag hooks for both queues
-  const rallyTouchDrag = useTouchDragReorder(moveInQueue);
-  const counterTouchDrag = useTouchDragReorder(moveInCounterQueue);
 
   // Shared queue drop zone renderer
   const renderQueueDropZone = (

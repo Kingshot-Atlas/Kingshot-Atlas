@@ -316,7 +316,21 @@
     "supporterDesc": "The Battle Planner is included with Atlas Supporter — along with unlimited /multirally, the Supporter badge, exclusive Discord access, and more. Starting at $4.99/month.",
     "becomeSupporter": "Become a Supporter",
     "tryPlanner": "Try the Planner",
-    "allTools": "← All Tools"
+    "allTools": "← All Tools",
+    "communityCredit": "Huge shoutout to",
+    "communityCreditSuffix": "for rallying this idea into existence. Built by the community, for the community."
+  },
+  "battlePlannerBanner": {
+    "dismiss": "Dismiss Battle Planner banner",
+    "title": "KvK Battle Planner is HERE",
+    "newBadge": "NEW",
+    "desc": "Free access for everyone — try it this weekend's Castle Battle. Coordinate rallies like never before.",
+    "d": "d",
+    "h": "h",
+    "m": "m",
+    "s": "s",
+    "freeEnds": "Free Access",
+    "cta": "Try Battle Planner →"
   },
   "about": {
     "consistentPerformance": "consistent performance",

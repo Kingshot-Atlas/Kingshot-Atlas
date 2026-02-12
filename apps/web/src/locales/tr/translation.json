@@ -315,7 +315,21 @@
     "supporterDesc": "Savaş Planlayıcı Atlas Supporter'a dahil — sınırsız /multirally, Supporter rozeti, özel Discord erişimi ve daha fazlasıyla birlikte. Ayda $4.99'dan başlayan fiyatlarla.",
     "becomeSupporter": "Supporter Ol",
     "tryPlanner": "Planlayıcıyı Dene",
-    "allTools": "← Tüm Araçlar"
+    "allTools": "← Tüm Araçlar",
+    "communityCredit": "Büyük teşekkürler",
+    "communityCreditSuffix": "bu fikri hayata geçirdiği için. Topluluk tarafından yapıldı, topluluk için."
+  },
+  "battlePlannerBanner": {
+    "dismiss": "Savaş Planlayıcı bannerını kapat",
+    "title": "KvK Savaş Planlayıcı BURADA",
+    "newBadge": "YENİ",
+    "desc": "Herkes için ücretsiz erişim — bu hafta sonu Kale Savaşı'nda deneyin. Eşi görülmemiş ralli koordinasyonu.",
+    "d": "g",
+    "h": "s",
+    "m": "dk",
+    "s": "sn",
+    "freeEnds": "Ücretsiz Erişim",
+    "cta": "Savaş Planlayıcıyı Dene →"
   },
   "about": {
     "consistentPerformance": "tutarlı performans",

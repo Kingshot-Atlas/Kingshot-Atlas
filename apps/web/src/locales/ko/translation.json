@@ -315,7 +315,21 @@
     "supporterDesc": "전투 플래너는 Atlas Supporter에 포함되어 있습니다 — 무제한 /multirally, Supporter 배지, 전용 Discord 채널 등과 함께. 월 $4.99부터.",
     "becomeSupporter": "Supporter 되기",
     "tryPlanner": "플래너 체험",
-    "allTools": "← 모든 도구"
+    "allTools": "← 모든 도구",
+    "communityCredit": "큰 감사를 드립니다",
+    "communityCreditSuffix": "이 아이디어를 현실로 만들어 주셔서. 커뮤니티가 만들고, 커뮤니티를 위해."
+  },
+  "battlePlannerBanner": {
+    "dismiss": "전투 플래너 배너 닫기",
+    "title": "KvK 전투 플래너 출시",
+    "newBadge": "신규",
+    "desc": "모두에게 무료 — 이번 주말 성 전투에서 사용해 보세요. 전례 없는 랠리 조율.",
+    "d": "일",
+    "h": "시",
+    "m": "분",
+    "s": "초",
+    "freeEnds": "무료 체험",
+    "cta": "전투 플래너 체험 →"
   },
   "about": {
     "consistentPerformance": "꾸준한 성적",

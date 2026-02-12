@@ -396,6 +396,18 @@ const BattlePlannerLanding: React.FC = () => {
           </div>
         </div>
 
+        {/* Community credit */}
+        <div style={{
+          textAlign: 'center', padding: '1rem 0', marginBottom: isMobile ? '1rem' : '1.5rem',
+        }}>
+          <p style={{ color: '#4b5563', fontSize: '0.75rem', letterSpacing: '0.03em', lineHeight: 1.6 }}>
+            ⚔️ {t('battlePlanner.communityCredit', 'Huge shoutout to')} <Link
+              to="/profile/57d266cf-9800-4a7d-a8a5-f2cbc616bc22"
+              style={{ color: '#22d3ee', textDecoration: 'none', fontWeight: 600, fontFamily: FONT_DISPLAY }}
+            >bAdClimber</Link> {t('battlePlanner.communityCreditSuffix', 'for rallying this idea into existence. Built by the community, for the community.')}
+          </p>
+        </div>
+
         {/* Back links */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', paddingBottom: '1rem' }}>
           <Link to="/tools" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: '0.8rem' }}>

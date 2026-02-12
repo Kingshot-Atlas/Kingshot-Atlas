@@ -315,7 +315,21 @@
     "supporterDesc": "مخطط المعارك متضمن مع Atlas Supporter — مع /multirally غير محدود، شارة Supporter، وصول Discord حصري والمزيد. ابتداءً من $4.99/شهر.",
     "becomeSupporter": "كن Supporter",
     "tryPlanner": "جرّب المخطط",
-    "allTools": "← جميع الأدوات"
+    "allTools": "← جميع الأدوات",
+    "communityCredit": "شكر كبير لـ",
+    "communityCreditSuffix": "لتحويل هذه الفكرة إلى واقع. صُنع بواسطة المجتمع، من أجل المجتمع."
+  },
+  "battlePlannerBanner": {
+    "dismiss": "إغلاق بانر مخطط المعارك",
+    "title": "مخطط معارك KvK هنا",
+    "newBadge": "جديد",
+    "desc": "وصول مجاني للجميع — جرّبه في معركة القلعة هذا الأسبوع. تنسيق الهجمات كما لم يحدث من قبل.",
+    "d": "ي",
+    "h": "س",
+    "m": "د",
+    "s": "ث",
+    "freeEnds": "وصول مجاني",
+    "cta": "جرّب المخطط →"
   },
   "about": {
     "consistentPerformance": "الأداء المستمر",
