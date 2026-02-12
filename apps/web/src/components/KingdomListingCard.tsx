@@ -57,6 +57,7 @@ export interface KingdomFund {
   nap_policy: boolean | null;
   sanctuary_distribution: boolean | null;
   castle_rotation: boolean | null;
+  updated_at?: string | null;
 }
 
 export interface KingdomReviewSummary {
@@ -307,6 +308,19 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
 
   // Transfer status
   const transferStatus = kingdom.most_recent_status || 'Unknown';
+
+  // Listing freshness helper
+  const getListingAge = (): { label: string; color: string } | null => {
+    if (!fund?.updated_at) return null;
+    const ms = Date.now() - new Date(fund.updated_at).getTime();
+    const days = Math.floor(ms / 86400000);
+    if (days < 1) return { label: t('listing.updatedToday', 'Updated today'), color: '#22c55e' };
+    if (days === 1) return { label: t('listing.updatedYesterday', 'Updated yesterday'), color: '#22c55e' };
+    if (days <= 7) return { label: t('listing.updatedDaysAgo', 'Updated {{days}}d ago', { days }), color: '#22c55e' };
+    if (days <= 30) return { label: t('listing.updatedDaysAgo', 'Updated {{days}}d ago', { days }), color: '#eab308' };
+    return { label: t('listing.updatedDaysAgo', 'Updated {{days}}d ago', { days }), color: '#ef4444' };
+  };
+  const listingAge = getListingAge();
 
   // Border styling
   const borderWidth = isGold ? 3 : isPremium ? 2 : 1;
@@ -609,6 +623,15 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
             </span>
           </SmartTooltip>
         </div>
+
+        {/* Listing freshness indicator */}
+        {listingAge && (
+          <div style={{ marginBottom: '0.4rem' }}>
+            <span style={{ fontSize: '0.6rem', color: listingAge.color, opacity: 0.8 }}>
+              {listingAge.label}
+            </span>
+          </div>
+        )}
 
         {/* 2-Column Layout: Performance | Characteristics */}
         <div style={{
