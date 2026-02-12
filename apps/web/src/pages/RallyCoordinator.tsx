@@ -903,7 +903,7 @@ const CallOrderOutput: React.FC<{
 
 const RallyCoordinator: React.FC = () => {
   const { t } = useTranslation();
-  useDocumentTitle('KvK Battle Coordinator');
+  useDocumentTitle('KvK Battle Planner');
   const { profile } = useAuth();
   const isMobile = useIsMobile();
 

@@ -238,7 +238,7 @@
     "compareDesc": "Herhangi bir krallığı ringe çıkar. Birebir istatistikler, galibiyet oranları ve Atlas Puanları. Veriler şampiyonu belirlesin.",
     "compareTagline": "Düşmanını tanı. Müttefiklerini seç.",
     "compareStat": "1.300+ krallık",
-    "rallyTitle": "KvK Savaş Koordinatörü",
+    "rallyTitle": "KvK Savaş Planlayıcı",
     "rallyDesc": "Rallilerini birlikte inecek şekilde zamanla. Vuruş sırası, yürüyüş süreleri ve gecikme aralıklarını ayarla — ittifakın tek vücut halinde saldırsın.",
     "rallyTagline": "Senkronize yıkım. Tahmin yok.",
     "appointmentTitle": "Randevu Planlayıcı",
@@ -1295,8 +1295,8 @@
     "prep": "Hazırlık"
   },
   "rallyCoordinator": {
-    "title": "KvK RALLİ",
-    "titleAccent": "KOORDİNATÖRÜ",
+    "title": "KvK SAVAŞ",
+    "titleAccent": "PLANLAYICI",
     "subtitle": "Senkronize yıkım. Tahmin yok.",
     "adminPreview": "YÖNETİCİ ÖNİZLEME",
     "backToTools": "← Araçlara Dön",

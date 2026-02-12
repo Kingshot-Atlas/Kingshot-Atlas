@@ -238,7 +238,7 @@
     "compareDesc": "Pon cualquier reino en el ring. Estadísticas cara a cara, tasas de victoria e Índices Atlas. Deja que los datos coronen al campeón.",
     "compareTagline": "Conoce a tu enemigo. Elige a tus aliados.",
     "compareStat": "1,300+ reinos",
-    "rallyTitle": "Coordinador de Batalla KvK",
+    "rallyTitle": "Planificador de Batalla KvK",
     "rallyDesc": "Sincroniza tus rallies para que lleguen juntos. Establece orden de ataque, tiempos de marcha y ventanas de retraso — para que tu alianza ataque como uno.",
     "rallyTagline": "Destrucción sincronizada. Sin adivinanzas.",
     "appointmentTitle": "Programador de Citas",
@@ -1295,8 +1295,8 @@
     "prep": "Preparación"
   },
   "rallyCoordinator": {
-    "title": "RALLY de KvK",
-    "titleAccent": "COORDINADOR",
+    "title": "BATALLA KvK",
+    "titleAccent": "PLANIFICADOR",
     "subtitle": "Destrucción sincronizada. Sin conjeturas.",
     "adminPreview": "VISTA PREVIA ADMIN",
     "backToTools": "← Volver a Herramientas",

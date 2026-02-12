@@ -238,7 +238,7 @@
     "compareDesc": "让任何王国一决高下。面对面数据、胜率和 Atlas 评分。让数据加冕冠军。",
     "compareTagline": "知己知彼。选择盟友。",
     "compareStat": "1,300+ 个王国",
-    "rallyTitle": "KvK 战斗协调器",
+    "rallyTitle": "KvK 战斗规划器",
     "rallyDesc": "让你的集结同时到达。设置攻击顺序、行军时间和延迟窗口——让你的联盟一起出击。",
     "rallyTagline": "同步打击。无需猜测。",
     "appointmentTitle": "预约调度器",
@@ -1295,8 +1295,8 @@
     "prep": "准备"
   },
   "rallyCoordinator": {
-    "title": "KvK集结",
-    "titleAccent": "协调器",
+    "title": "KvK战斗",
+    "titleAccent": "规划器",
     "subtitle": "同步毁灭，无需猜测。",
     "adminPreview": "管理员预览",
     "backToTools": "← 返回工具",

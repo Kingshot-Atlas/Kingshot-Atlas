@@ -238,7 +238,7 @@
     "compareDesc": "Schick beliebige Königreiche in den Ring. Direkte Statistiken, Siegraten und Atlas-Wertungen. Lass die Daten den Champion krönen.",
     "compareTagline": "Kenne deinen Feind. Wähle deine Verbündeten.",
     "compareStat": "1.300+ Königreiche",
-    "rallyTitle": "KvK-Kampfkoordinator",
+    "rallyTitle": "KvK-Kampfplaner",
     "rallyDesc": "Timen deine Rallys, damit sie gemeinsam ankommen. Lege Angriffsreihenfolge, Marschzeiten und Verzögerungen fest – damit deine Allianz als Einheit zuschlägt.",
     "rallyTagline": "Synchronisierte Zerstörung. Kein Rätselraten.",
     "appointmentTitle": "Terminplaner",
@@ -1295,8 +1295,8 @@
     "prep": "Vorbereitung"
   },
   "rallyCoordinator": {
-    "title": "KvK RALLY",
-    "titleAccent": "KOORDINATOR",
+    "title": "KvK KAMPF",
+    "titleAccent": "PLANER",
     "subtitle": "Synchrone Zerstörung. Kein Rätselraten.",
     "adminPreview": "ADMIN-VORSCHAU",
     "backToTools": "← Zurück zu Werkzeuge",

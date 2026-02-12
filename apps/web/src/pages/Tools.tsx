@@ -217,7 +217,7 @@ const Tools: React.FC = () => {
         </svg>
       ),
       comingSoon: !isAdmin,
-      href: isAdmin ? '/tools/rally-coordinator' : undefined,
+      href: isAdmin ? '/tools/kvk-battle-planner' : undefined,
       accentColor: '#ef4444'
     },
     {

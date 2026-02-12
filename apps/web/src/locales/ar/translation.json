@@ -238,7 +238,7 @@
     "compareDesc": "ضع أي ممالك في الحلبة. إحصائيات وجهاً لوجه ونسب فوز ونقاط Atlas.",
     "compareTagline": "اعرف عدوك. اختر حلفاءك.",
     "compareStat": "1,300+ مملكة",
-    "rallyTitle": "منسق معارك KvK",
+    "rallyTitle": "مخطط معارك KvK",
     "rallyDesc": "وقّت تجمعاتك لتصل معًا. حدد ترتيب الضرب وأوقات المسير.",
     "rallyTagline": "تدمير متزامن. بلا تخمين.",
     "appointmentTitle": "جدولة المواعيد",
@@ -1295,8 +1295,8 @@
     "prep": "تحضير"
   },
   "rallyCoordinator": {
-    "title": "تجمعات KvK",
-    "titleAccent": "المنسق",
+    "title": "معارك KvK",
+    "titleAccent": "المخطط",
     "subtitle": "تدمير متزامن. بلا تخمين.",
     "adminPreview": "معاينة الإدارة",
     "backToTools": "← العودة للأدوات",

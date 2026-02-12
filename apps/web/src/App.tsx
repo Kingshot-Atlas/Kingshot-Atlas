@@ -131,7 +131,7 @@ function AppContent() {
               <Route path="/transfer-board" element={<ErrorBoundary><TransferBoard /></ErrorBoundary>} /> {/* Legacy redirect */}
               <Route path="/atlas-bot" element={<ErrorBoundary><AtlasBot /></ErrorBoundary>} />
               <Route path="/ambassadors" element={<ErrorBoundary><Ambassadors /></ErrorBoundary>} />
-              <Route path="/tools/rally-coordinator" element={<ErrorBoundary><RallyCoordinator /></ErrorBoundary>} />
+              <Route path="/tools/kvk-battle-planner" element={<ErrorBoundary><RallyCoordinator /></ErrorBoundary>} />
               <Route path="/tools/gift-codes" element={<ErrorBoundary><GiftCodeRedeemer /></ErrorBoundary>} />
               <Route path="/auth/callback" element={<ErrorBoundary><AuthCallback /></ErrorBoundary>} />
             </Routes>

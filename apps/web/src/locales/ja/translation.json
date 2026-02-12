@@ -238,7 +238,7 @@
     "compareDesc": "どの王国でもリングに上げろ。勝率とAtlasスコアの直接対決。データが王者を決める。",
     "compareTagline": "敵を知り、味方を選べ。",
     "compareStat": "1,300以上の王国",
-    "rallyTitle": "KvKバトルコーディネーター",
+    "rallyTitle": "KvKバトルプランナー",
     "rallyDesc": "ラリーが同時に着弾するようタイミングを計算。攻撃順序、行軍時間、遅延を設定。",
     "rallyTagline": "シンクロ攻撃。推測不要。",
     "appointmentTitle": "予約スケジューラー",
@@ -1295,8 +1295,8 @@
     "prep": "Prep"
   },
   "rallyCoordinator": {
-    "title": "KvKラリー",
-    "titleAccent": "コーディネーター",
+    "title": "KvKバトル",
+    "titleAccent": "プランナー",
     "subtitle": "シンクロ攻撃。推測不要。",
     "adminPreview": "管理者プレビュー",
     "backToTools": "← ツールに戻る",

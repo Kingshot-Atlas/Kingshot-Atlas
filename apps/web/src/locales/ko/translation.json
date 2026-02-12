@@ -238,7 +238,7 @@
     "compareDesc": "어떤 왕국이든 링에 올려보세요. 일대일 통계, 승률, Atlas 점수. 데이터가 챔피언을 결정합니다.",
     "compareTagline": "적을 알고. 동맹을 선택하라.",
     "compareStat": "1,300+ 왕국",
-    "rallyTitle": "KvK 전투 코디네이터",
+    "rallyTitle": "KvK 전투 플래너",
     "rallyDesc": "랠리가 동시에 도착하도록 타이밍을 맞추세요. 타격 순서, 행군 시간, 지연 시간 설정 — 얼라이언스가 하나로 공격합니다.",
     "rallyTagline": "동기화된 파괴. 추측 제로.",
     "appointmentTitle": "어포인트먼트 스케줄러",
@@ -1295,8 +1295,8 @@
     "prep": "준비"
   },
   "rallyCoordinator": {
-    "title": "KvK 랠리",
-    "titleAccent": "코디네이터",
+    "title": "KvK 전투",
+    "titleAccent": "플래너",
     "subtitle": "동기화된 파괴. 추측 제로.",
     "adminPreview": "관리자 미리보기",
     "backToTools": "← 도구로 돌아가기",

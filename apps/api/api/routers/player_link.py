@@ -17,7 +17,7 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 from slowapi import Limiter
 from slowapi.util import get_remote_address
-from api.supabase_client import log_gift_code_redemption, get_gift_codes_from_db, upsert_gift_codes, add_manual_gift_code, deactivate_gift_code
+from api.supabase_client import log_gift_code_redemption, get_gift_codes_from_db, upsert_gift_codes, add_manual_gift_code, deactivate_gift_code, mark_gift_code_expired
 
 router = APIRouter()
 
@@ -299,6 +299,13 @@ async def redeem_gift_code(request: Request, body: GiftCodeRedeemRequest):
             except Exception:
                 pass  # Never block on analytics
             
+            # Auto-deactivate expired codes in DB
+            if err_code == 40007:
+                try:
+                    mark_gift_code_expired(body.code)
+                except Exception:
+                    pass
+
             return GiftCodeRedeemResponse(
                 success=success,
                 message=message,
@@ -348,7 +355,6 @@ async def get_active_gift_codes(request: Request):
             seen_codes.add(code_str)
             merged.append({
                 "code": code_str,
-                "rewards": c.get("rewards", ""),
                 "expire_date": c.get("expire_date"),
                 "source": c.get("source", "database"),
                 "is_expired": False,
@@ -378,7 +384,6 @@ async def get_active_gift_codes(request: Request):
                     continue
                 normalized.append({
                     "code": code_str,
-                    "rewards": c.get("rewards") or c.get("title") or "",
                     "expire_date": c.get("expire_date") or c.get("expiresAt"),
                     "is_expired": c.get("is_expired", False),
                 })
@@ -386,7 +391,6 @@ async def get_active_gift_codes(request: Request):
                     seen_codes.add(code_str)
                     merged.append({
                         "code": code_str,
-                        "rewards": c.get("rewards") or c.get("title") or "",
                         "expire_date": c.get("expire_date") or c.get("expiresAt"),
                         "source": "kingshot.net",
                         "is_expired": False,
@@ -410,7 +414,6 @@ async def get_active_gift_codes(request: Request):
 class ManualGiftCodeRequest(BaseModel):
     """Request to add a manual gift code"""
     code: str = Field(..., min_length=3, max_length=50)
-    rewards: str = ""
     expire_date: str | None = None
 
 
@@ -424,7 +427,6 @@ async def add_gift_code(request: Request, body: ManualGiftCodeRequest):
     """Add a gift code manually. Requires admin auth in production."""
     result = add_manual_gift_code(
         code=body.code,
-        rewards=body.rewards,
         expire_date=body.expire_date,
     )
     if "error" in result:

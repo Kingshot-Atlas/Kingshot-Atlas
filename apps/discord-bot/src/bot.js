@@ -728,7 +728,7 @@ client.on('interactionCreate', async (interaction) => {
         const choices = [
           { name: '🎁 All — Redeem every active code', value: '__ALL__' },
           ...codes.slice(0, 24).map(c => ({
-            name: `${c.code}${c.rewards ? ' — ' + c.rewards.slice(0, 40) : ''}`,
+            name: c.code,
             value: c.code,
           })),
         ].filter(c => !typed || c.name.toLowerCase().includes(typed) || c.value.toLowerCase().includes(typed));

@@ -875,7 +875,6 @@ def upsert_gift_codes(codes: list, source: str = "kingshot.net") -> bool:
         for c in codes:
             row = {
                 "code": c.get("code", ""),
-                "rewards": c.get("rewards") or c.get("title") or "",
                 "source": source,
                 "is_active": not c.get("is_expired", False),
             }
@@ -894,7 +893,7 @@ def upsert_gift_codes(codes: list, source: str = "kingshot.net") -> bool:
         return False
 
 
-def add_manual_gift_code(code: str, rewards: str = "", expire_date: str = None, added_by: str = None) -> dict:
+def add_manual_gift_code(code: str, expire_date: str = None, added_by: str = None) -> dict:
     """Add a manually-entered gift code to the database."""
     client = get_supabase_admin()
     if not client:
@@ -902,7 +901,6 @@ def add_manual_gift_code(code: str, rewards: str = "", expire_date: str = None, 
     try:
         row = {
             "code": code.strip().upper(),
-            "rewards": rewards,
             "source": "manual",
             "is_active": True,
         }
@@ -926,6 +924,20 @@ def deactivate_gift_code(code: str) -> bool:
         return True
     except Exception as e:
         print(f"Error deactivating gift code: {e}")
+        return False
+
+
+def mark_gift_code_expired(code: str) -> bool:
+    """Mark a gift code as expired/inactive when Century Games API returns err_code 40007."""
+    client = get_supabase_admin()
+    if not client:
+        return False
+    try:
+        client.table("gift_codes").update({"is_active": False}).eq("code", code).execute()
+        print(f"[gift-codes] Auto-deactivated expired code: {code}")
+        return True
+    except Exception as e:
+        print(f"Error marking gift code expired: {e}")
         return False
 
 

@@ -239,7 +239,7 @@
     "compareDesc": "Put any kingdoms in the ring. Head-to-head stats, win rates, and Atlas Scores. Let the data crown the champion.",
     "compareTagline": "Know your enemy. Choose your allies.",
     "compareStat": "1,300+ kingdoms",
-    "rallyTitle": "KvK Battle Coordinator",
+    "rallyTitle": "KvK Battle Planner",
     "rallyDesc": "Time your rallies to land together. Set hit order, march times, and delay windows — so your alliance strikes as one.",
     "rallyTagline": "Synchronized destruction. No guesswork.",
     "appointmentTitle": "Appointment Scheduler",
@@ -1316,7 +1316,7 @@
   },
   "rallyCoordinator": {
     "title": "KvK BATTLE",
-    "titleAccent": "COORDINATOR",
+    "titleAccent": "PLANNER",
     "subtitle": "Synchronized destruction. No guesswork.",
     "adminPreview": "ADMIN PREVIEW",
     "backToTools": "← Back to Tools",

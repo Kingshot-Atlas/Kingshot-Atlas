@@ -14,8 +14,6 @@ const CODES_CACHE_TTL = 15 * 60 * 1000; // 15 minutes
 
 interface GiftCode {
   code: string;
-  rewards?: string;
-  title?: string;
   expire_date?: string;
   is_expired?: boolean;
 }
@@ -123,7 +121,6 @@ const GiftCodeRedeemer: React.FC = () => {
         .filter((c: any) => !c.is_expired)
         .map((c: any) => ({
           code: c.code || c.title || '',
-          rewards: c.rewards || c.title || '',
           expire_date: c.expire_date || c.expiresAt,
         }))
         .filter((c: GiftCode) => c.code);
@@ -346,89 +343,17 @@ const GiftCodeRedeemer: React.FC = () => {
         </div>
       </div>
 
-      <div style={{ maxWidth: '700px', margin: '0 auto', padding: isMobile ? '1rem' : '1.5rem' }}>
+      {/* Keyframes for fancy animations */}
+      <style>{`
+        @keyframes giftPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(245,158,11,0); } 50% { box-shadow: 0 0 16px 2px rgba(245,158,11,0.15); } }
+        @keyframes giftShimmer { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
+        @keyframes giftPop { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .gift-pill:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
+        .gift-btn:hover:not(:disabled) { transform: scale(1.03); filter: brightness(1.2); }
+        .gift-action-btn:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.15); }
+      `}</style>
 
-        {/* Redeem All Button */}
-        {codes.length > 0 && (
-          <div style={{ marginBottom: '1rem' }}>
-            <button
-              onClick={redeemAll}
-              disabled={redeemingAll || allRedeemed || globalCooldown || !playerId}
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                borderRadius: '10px',
-                border: allRedeemed ? '1px solid #22c55e40' : '1px solid #f59e0b50',
-                backgroundColor: allRedeemed ? '#22c55e12' : '#f59e0b15',
-                color: allRedeemed ? '#22c55e' : '#f59e0b',
-                fontSize: '0.95rem',
-                fontWeight: '700',
-                fontFamily: FONT_DISPLAY,
-                cursor: (redeemingAll || allRedeemed || globalCooldown) ? 'default' : 'pointer',
-                opacity: (redeemingAll || globalCooldown) ? 0.6 : 1,
-                transition: 'all 0.2s ease',
-                letterSpacing: '0.03em',
-              }}
-            >
-              {allRedeemed
-                ? `✓ ${t('giftCodes.allRedeemed', { count: codes.length, defaultValue: `All ${codes.length} Codes Redeemed` })}`
-                : redeemingAll
-                  ? t('giftCodes.redeemingProgress', { done: redeemedCount, total: codes.length, defaultValue: `Redeeming... (${redeemedCount}/${codes.length})` })
-                  : globalCooldown
-                    ? t('giftCodes.cooldown', { seconds: cooldownSeconds, defaultValue: `Cooldown — ${cooldownSeconds}s` })
-                    : `⚡ ${t('giftCodes.redeemAll', { count: codes.length, defaultValue: `Redeem All ${codes.length} Codes` })}`}
-            </button>
-            {/* Copy All Codes */}
-            <button
-              onClick={() => {
-                const allCodes = codes.map(c => c.code).join('\n');
-                navigator.clipboard.writeText(allCodes).then(() => {
-                  setCopiedAll(true);
-                  showToast(t('giftCodes.copiedAll', { count: codes.length, defaultValue: `Copied ${codes.length} codes to clipboard` }), 'success');
-                  setTimeout(() => setCopiedAll(false), 2000);
-                }).catch(() => {
-                  showToast('Failed to copy', 'error');
-                });
-              }}
-              style={{
-                width: '100%',
-                marginTop: '0.4rem',
-                padding: '0.45rem',
-                borderRadius: '8px',
-                border: `1px solid ${copiedAll ? '#22c55e30' : '#2a2a2a'}`,
-                backgroundColor: copiedAll ? '#22c55e10' : 'transparent',
-                color: copiedAll ? '#22c55e' : '#6b7280',
-                fontSize: '0.75rem',
-                fontWeight: '500',
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              {copiedAll ? '✓ Copied!' : `📋 ${t('giftCodes.copyAll', 'Copy All Codes')}`}
-            </button>
-            {/* Refresh Codes */}
-            <button
-              onClick={() => fetchCodes(true)}
-              disabled={loadingCodes || redeemingAll}
-              style={{
-                width: '100%',
-                marginTop: '0.3rem',
-                padding: '0.35rem',
-                borderRadius: '8px',
-                border: '1px solid #1a1a1a',
-                backgroundColor: 'transparent',
-                color: '#4b5563',
-                fontSize: '0.7rem',
-                fontWeight: '500',
-                cursor: (loadingCodes || redeemingAll) ? 'default' : 'pointer',
-                opacity: (loadingCodes || redeemingAll) ? 0.4 : 1,
-                transition: 'all 0.15s ease',
-              }}
-            >
-              🔄 {t('giftCodes.refresh', 'Refresh Codes')}
-            </button>
-          </div>
-        )}
+      <div style={{ maxWidth: '750px', margin: '0 auto', padding: isMobile ? '1rem' : '1.5rem' }}>
 
         {/* Rate Limit Countdown Banner */}
         {globalCooldown && cooldownSeconds > 0 && (
@@ -455,12 +380,16 @@ const GiftCodeRedeemer: React.FC = () => {
           </div>
         )}
 
-        {/* Codes Grid */}
+        {/* Codes Grid — 3-column pill layout */}
         {loadingCodes ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+            gap: '0.75rem',
+          }}>
             {[1, 2, 3].map(i => (
               <div key={i} style={{
-                height: '72px', borderRadius: '10px', backgroundColor: '#111111',
+                height: '120px', borderRadius: '14px', backgroundColor: '#111111',
                 border: '1px solid #1a1a1a', animation: 'pulse 1.5s infinite',
               }} />
             ))}
@@ -479,136 +408,242 @@ const GiftCodeRedeemer: React.FC = () => {
             <button
               onClick={() => fetchCodes(true)}
               disabled={loadingCodes}
+              className="gift-action-btn"
               style={{
                 padding: '0.4rem 1rem', borderRadius: '8px',
                 border: '1px solid #f59e0b40', backgroundColor: '#f59e0b12',
                 color: '#f59e0b', fontSize: '0.8rem', fontWeight: '600',
                 cursor: loadingCodes ? 'default' : 'pointer', opacity: loadingCodes ? 0.5 : 1,
+                transition: 'all 0.2s ease',
               }}
             >
               🔄 {t('giftCodes.refresh', 'Refresh Codes')}
             </button>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            {codes.map((gc) => {
-              const result = results.get(gc.code);
-              const isLoading = result?.loading;
-              const outcome = getOutcome(result);
-              const locked = isNonRetryable(outcome);
+          <>
+            {/* 3-column pill grid */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile ? '1fr' : codes.length < 3 ? `repeat(${codes.length}, 1fr)` : 'repeat(3, 1fr)',
+              gap: '0.75rem',
+            }}>
+              {codes.map((gc, idx) => {
+                const result = results.get(gc.code);
+                const isLoading = result?.loading;
+                const outcome = getOutcome(result);
+                const locked = isNonRetryable(outcome);
 
-              // Outcome-specific styling
-              const borderColor = outcome === 'success' ? '#22c55e30'
-                : outcome === 'already_redeemed' ? '#eab30830'
-                : outcome === 'expired' ? '#ef444430'
-                : outcome === 'invalid' || outcome === 'retryable' ? '#ef444430'
-                : '#2a2a2a';
-              const bgColor = outcome === 'success' ? '#22c55e08'
-                : outcome === 'already_redeemed' ? '#eab30808'
-                : '#111111';
-              const codeColor = outcome === 'success' ? '#22c55e'
-                : outcome === 'already_redeemed' ? '#eab308'
-                : outcome === 'expired' ? '#6b7280'
-                : '#e5e7eb';
-              const msgColor = outcome === 'success' ? '#22c55e'
-                : outcome === 'already_redeemed' ? '#eab308'
-                : outcome === 'expired' ? '#ef4444'
-                : '#ef4444';
-              // Button label
-              const btnLabel = isLoading ? '...'
-                : outcome === 'success' ? '✓'
-                : outcome === 'already_redeemed' ? '✓'
-                : outcome === 'expired' ? '⛔'
-                : outcome === 'invalid' || outcome === 'retryable' ? t('giftCodes.retry', 'Retry')
-                : t('giftCodes.redeem', 'Redeem');
-              const btnBg = outcome === 'success' ? '#22c55e20'
-                : outcome === 'already_redeemed' ? '#eab30818'
-                : outcome === 'expired' ? '#ef444418'
-                : isLoading ? '#f59e0b10'
-                : '#f59e0b18';
-              const btnColor = outcome === 'success' ? '#22c55e'
-                : outcome === 'already_redeemed' ? '#eab308'
-                : outcome === 'expired' ? '#ef4444'
-                : isLoading ? '#f59e0b80'
-                : '#f59e0b';
+                const borderColor = outcome === 'success' ? '#22c55e40'
+                  : outcome === 'already_redeemed' ? '#eab30830'
+                  : outcome === 'expired' ? '#ef444430'
+                  : '#2a2a2a';
+                const bgColor = outcome === 'success' ? '#22c55e06'
+                  : outcome === 'already_redeemed' ? '#eab30806'
+                  : '#111111';
+                const codeColor = outcome === 'success' ? '#22c55e'
+                  : outcome === 'already_redeemed' ? '#eab308'
+                  : outcome === 'expired' ? '#6b7280'
+                  : '#e5e7eb';
 
-              return (
-                <div key={gc.code} style={{
-                  display: 'flex', alignItems: 'center', gap: '0.75rem',
-                  padding: isMobile ? '0.6rem 0.75rem' : '0.75rem 1rem',
-                  borderRadius: '10px',
-                  backgroundColor: bgColor,
-                  border: `1px solid ${borderColor}`,
-                  transition: 'all 0.2s ease',
-                  opacity: outcome === 'expired' ? 0.6 : 1,
-                }}>
-                  {/* Code info */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
+                const btnLabel = isLoading ? '...'
+                  : outcome === 'success' ? `✓ ${t('giftCodes.redeemed', 'Redeemed')}`
+                  : outcome === 'already_redeemed' ? `✓ ${t('giftCodes.alreadyRedeemed', 'Already Redeemed')}`
+                  : outcome === 'expired' ? `⛔ ${t('giftCodes.expired', 'Expired')}`
+                  : outcome === 'invalid' || outcome === 'retryable' ? t('giftCodes.retry', 'Retry')
+                  : t('giftCodes.redeem', 'Redeem');
+                const btnBg = outcome === 'success' ? '#22c55e'
+                  : outcome === 'already_redeemed' ? '#eab308'
+                  : outcome === 'expired' ? '#ef4444'
+                  : isLoading ? '#f59e0b60'
+                  : '#f59e0b';
+                const btnTextColor = (outcome === 'success' || outcome === 'already_redeemed' || outcome === 'expired' || !isLoading) ? '#000' : '#000';
+
+                const countdown = getExpirationCountdown(gc.expire_date);
+
+                return (
+                  <div
+                    key={gc.code}
+                    className="gift-pill"
+                    style={{
+                      display: 'flex', flexDirection: 'column', alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '1.25rem 0.75rem 1rem',
+                      borderRadius: '14px',
+                      backgroundColor: bgColor,
+                      border: `1px solid ${borderColor}`,
+                      transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                      animation: `giftPop 0.3s ease ${idx * 0.08}s both`,
+                      cursor: 'default',
+                      position: 'relative',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    {/* Shimmer overlay for active codes */}
+                    {!outcome && (
+                      <div style={{
+                        position: 'absolute', inset: 0, pointerEvents: 'none',
+                        background: 'linear-gradient(90deg, transparent, rgba(245,158,11,0.03), transparent)',
+                        backgroundSize: '200% 100%',
+                        animation: 'giftShimmer 3s ease infinite',
+                      }} />
+                    )}
+
+                    {/* Code text — centered */}
                     <div style={{
                       fontFamily: 'monospace',
-                      fontSize: isMobile ? '0.85rem' : '0.95rem',
-                      fontWeight: '600',
+                      fontSize: isMobile ? '1rem' : '1.1rem',
+                      fontWeight: '700',
                       color: codeColor,
-                      letterSpacing: '0.02em',
+                      letterSpacing: '0.04em',
                       textDecoration: outcome === 'expired' ? 'line-through' : 'none',
+                      textAlign: 'center',
+                      marginBottom: '0.15rem',
                     }}>
                       {gc.code}
                     </div>
-                    {gc.rewards && (
-                      <div style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.15rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {gc.rewards}
+
+                    {/* Expiration countdown */}
+                    {countdown && (
+                      <div style={{
+                        fontSize: '0.55rem', fontWeight: 600, marginBottom: '0.3rem',
+                        color: countdown === 'Expired' ? '#ef4444' : !countdown.includes('d') ? '#f59e0b' : '#6b7280',
+                      }}>
+                        {countdown === 'Expired' ? '⛔ Expired' : `⏳ ${countdown}`}
                       </div>
                     )}
-                    {(() => {
-                      const countdown = getExpirationCountdown(gc.expire_date);
-                      if (!countdown) return null;
-                      const isExpiredTimer = countdown === 'Expired';
-                      return (
-                        <div style={{
-                          fontSize: '0.6rem', marginTop: '0.15rem', fontWeight: 600,
-                          color: isExpiredTimer ? '#ef4444' : countdown.startsWith('0') || !countdown.includes('d') ? '#f59e0b' : '#6b7280',
-                        }}>
-                          {isExpiredTimer ? '⛔ Expired' : `⏳ ${countdown}`}
-                        </div>
-                      );
-                    })()}
+
+                    {/* Status message */}
                     {result && !isLoading && (
                       <div style={{
-                        fontSize: '0.65rem', marginTop: '0.2rem',
-                        color: msgColor,
+                        fontSize: '0.6rem', marginBottom: '0.3rem',
+                        color: outcome === 'success' ? '#22c55e' : outcome === 'already_redeemed' ? '#eab308' : '#ef4444',
+                        textAlign: 'center', maxWidth: '100%',
+                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                       }}>
                         {result.message}
                       </div>
                     )}
-                  </div>
 
-                  {/* Action button */}
-                  <button
-                    onClick={() => redeemCode(gc.code)}
-                    disabled={isLoading || locked || globalCooldown || redeemingAll}
-                    style={{
-                      flexShrink: 0,
-                      padding: '0.4rem 0.75rem',
-                      borderRadius: '6px',
-                      border: 'none',
-                      fontSize: '0.75rem',
-                      fontWeight: '600',
-                      cursor: (isLoading || locked || globalCooldown || redeemingAll) ? 'default' : 'pointer',
-                      backgroundColor: btnBg,
-                      color: btnColor,
-                      transition: 'all 0.15s ease',
-                      minWidth: '70px',
-                    }}
-                  >
-                    {btnLabel}
-                  </button>
-                </div>
-              );
-            })}
-          </div>
+                    {/* Redeem button — below code */}
+                    <button
+                      onClick={() => redeemCode(gc.code)}
+                      disabled={isLoading || locked || globalCooldown || redeemingAll}
+                      className="gift-btn"
+                      style={{
+                        marginTop: '0.5rem',
+                        padding: '0.4rem 1.25rem',
+                        borderRadius: '8px',
+                        border: 'none',
+                        fontSize: '0.7rem',
+                        fontWeight: '700',
+                        letterSpacing: '0.03em',
+                        cursor: (isLoading || locked || globalCooldown || redeemingAll) ? 'default' : 'pointer',
+                        backgroundColor: btnBg,
+                        color: btnTextColor,
+                        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                        opacity: (isLoading || globalCooldown) && !locked ? 0.6 : locked ? 0.7 : 1,
+                        minWidth: '90px',
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      {btnLabel}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Action Buttons — below codes, single column, centered */}
+            <div style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center',
+              gap: '0.5rem', marginTop: '1.25rem', maxWidth: '320px', marginLeft: 'auto', marginRight: 'auto',
+            }}>
+              {/* Redeem All */}
+              <button
+                onClick={redeemAll}
+                disabled={redeemingAll || allRedeemed || globalCooldown || !playerId}
+                className="gift-action-btn"
+                style={{
+                  width: '100%',
+                  padding: '0.65rem 1rem',
+                  borderRadius: '10px',
+                  border: allRedeemed ? '1px solid #22c55e40' : '1px solid #f59e0b50',
+                  backgroundColor: allRedeemed ? '#22c55e12' : '#f59e0b15',
+                  color: allRedeemed ? '#22c55e' : '#f59e0b',
+                  fontSize: '0.85rem',
+                  fontWeight: '700',
+                  fontFamily: FONT_DISPLAY,
+                  cursor: (redeemingAll || allRedeemed || globalCooldown) ? 'default' : 'pointer',
+                  opacity: (redeemingAll || globalCooldown) ? 0.6 : 1,
+                  transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                  letterSpacing: '0.03em',
+                }}
+              >
+                {allRedeemed
+                  ? `✓ ${t('giftCodes.allRedeemed', { count: codes.length, defaultValue: `All ${codes.length} Codes Redeemed` })}`
+                  : redeemingAll
+                    ? t('giftCodes.redeemingProgress', { done: redeemedCount, total: codes.length, defaultValue: `Redeeming... (${redeemedCount}/${codes.length})` })
+                    : globalCooldown
+                      ? t('giftCodes.cooldown', { seconds: cooldownSeconds, defaultValue: `Cooldown — ${cooldownSeconds}s` })
+                      : `⚡ ${t('giftCodes.redeemAll', { count: codes.length, defaultValue: `Redeem All ${codes.length} Codes` })}`}
+              </button>
+
+              {/* Copy All Codes */}
+              <button
+                onClick={() => {
+                  const allCodes = codes.map(c => c.code).join('\n');
+                  navigator.clipboard.writeText(allCodes).then(() => {
+                    setCopiedAll(true);
+                    showToast(t('giftCodes.copiedAll', { count: codes.length, defaultValue: `Copied ${codes.length} codes to clipboard` }), 'success');
+                    setTimeout(() => setCopiedAll(false), 2000);
+                  }).catch(() => {
+                    showToast('Failed to copy', 'error');
+                  });
+                }}
+                className="gift-action-btn"
+                style={{
+                  width: '100%',
+                  padding: '0.45rem 1rem',
+                  borderRadius: '8px',
+                  border: `1px solid ${copiedAll ? '#22c55e30' : '#2a2a2a'}`,
+                  backgroundColor: copiedAll ? '#22c55e10' : 'transparent',
+                  color: copiedAll ? '#22c55e' : '#6b7280',
+                  fontSize: '0.75rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                }}
+              >
+                {copiedAll ? '✓ Copied!' : `📋 ${t('giftCodes.copyAll', 'Copy All Codes')}`}
+              </button>
+
+              {/* Refresh Codes */}
+              <button
+                onClick={() => fetchCodes(true)}
+                disabled={loadingCodes || redeemingAll}
+                className="gift-action-btn"
+                style={{
+                  width: '100%',
+                  padding: '0.4rem 1rem',
+                  borderRadius: '8px',
+                  border: '1px solid #1a1a1a',
+                  backgroundColor: 'transparent',
+                  color: '#4b5563',
+                  fontSize: '0.7rem',
+                  fontWeight: '500',
+                  cursor: (loadingCodes || redeemingAll) ? 'default' : 'pointer',
+                  opacity: (loadingCodes || redeemingAll) ? 0.4 : 1,
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                🔄 {t('giftCodes.refresh', 'Refresh Codes')}
+              </button>
+            </div>
+          </>
         )}
 
-        {/* Manual Code Entry */}
+        {/* Manual Code Entry — below everything */}
         <div style={{
           marginTop: '1.25rem', padding: '1rem',
           backgroundColor: '#111111', borderRadius: '10px', border: '1px solid #2a2a2a',
@@ -633,11 +668,13 @@ const GiftCodeRedeemer: React.FC = () => {
                 fontSize: '0.85rem',
                 fontFamily: 'monospace',
                 outline: 'none',
+                transition: 'border-color 0.2s ease',
               }}
             />
             <button
               onClick={redeemManual}
               disabled={!manualCode.trim() || globalCooldown}
+              className="gift-action-btn"
               style={{
                 padding: '0.5rem 1rem',
                 borderRadius: '6px',
@@ -649,9 +686,10 @@ const GiftCodeRedeemer: React.FC = () => {
                 cursor: (!manualCode.trim() || globalCooldown) ? 'default' : 'pointer',
                 opacity: (!manualCode.trim() || globalCooldown) ? 0.5 : 1,
                 whiteSpace: 'nowrap',
+                transition: 'all 0.2s ease',
               }}
             >
-              Redeem
+              {t('giftCodes.redeem', 'Redeem')}
             </button>
           </div>
           {/* Show result for manual code */}
