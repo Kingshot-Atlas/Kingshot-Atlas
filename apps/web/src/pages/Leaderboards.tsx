@@ -631,8 +631,8 @@ const Leaderboards: React.FC = () => {
                   <button
                     onClick={() => setCustomKvkMin(Math.max(1, customKvkMin - 1))}
                     style={{
-                      width: isMobile ? '36px' : '30px',
-                      height: isMobile ? '36px' : '30px',
+                      width: isMobile ? '44px' : '30px',
+                      height: isMobile ? '44px' : '30px',
                       backgroundColor: '#131318',
                       border: '1px solid #2a2a2a',
                       borderRadius: '6px 0 0 6px',
@@ -645,8 +645,8 @@ const Leaderboards: React.FC = () => {
                     }}
                   >−</button>
                   <div style={{
-                    width: isMobile ? '36px' : '32px',
-                    height: isMobile ? '36px' : '30px',
+                    width: isMobile ? '44px' : '32px',
+                    height: isMobile ? '44px' : '30px',
                     backgroundColor: '#1a1a1a',
                     borderTop: '1px solid #2a2a2a',
                     borderBottom: '1px solid #2a2a2a',
@@ -660,8 +660,8 @@ const Leaderboards: React.FC = () => {
                   <button
                     onClick={() => setCustomKvkMin(Math.min(customKvkMax, customKvkMin + 1))}
                     style={{
-                      width: isMobile ? '36px' : '30px',
-                      height: isMobile ? '36px' : '30px',
+                      width: isMobile ? '44px' : '30px',
+                      height: isMobile ? '44px' : '30px',
                       backgroundColor: '#131318',
                       border: '1px solid #2a2a2a',
                       borderRadius: '0 6px 6px 0',
@@ -680,8 +680,8 @@ const Leaderboards: React.FC = () => {
                   <button
                     onClick={() => setCustomKvkMax(Math.max(customKvkMin, customKvkMax - 1))}
                     style={{
-                      width: isMobile ? '36px' : '30px',
-                      height: isMobile ? '36px' : '30px',
+                      width: isMobile ? '44px' : '30px',
+                      height: isMobile ? '44px' : '30px',
                       backgroundColor: '#131318',
                       border: '1px solid #2a2a2a',
                       borderRadius: '6px 0 0 6px',
@@ -694,8 +694,8 @@ const Leaderboards: React.FC = () => {
                     }}
                   >−</button>
                   <div style={{
-                    width: isMobile ? '36px' : '32px',
-                    height: isMobile ? '36px' : '30px',
+                    width: isMobile ? '44px' : '32px',
+                    height: isMobile ? '44px' : '30px',
                     backgroundColor: '#1a1a1a',
                     borderTop: '1px solid #2a2a2a',
                     borderBottom: '1px solid #2a2a2a',
@@ -709,8 +709,8 @@ const Leaderboards: React.FC = () => {
                   <button
                     onClick={() => setCustomKvkMax(customKvkMax + 1)}
                     style={{
-                      width: isMobile ? '36px' : '30px',
-                      height: isMobile ? '36px' : '30px',
+                      width: isMobile ? '44px' : '30px',
+                      height: isMobile ? '44px' : '30px',
                       backgroundColor: '#131318',
                       border: '1px solid #2a2a2a',
                       borderRadius: '0 6px 6px 0',

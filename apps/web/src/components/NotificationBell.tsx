@@ -165,8 +165,8 @@ const NotificationBell: React.FC = () => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          width: '36px',
-          height: '36px',
+          width: '44px',
+          height: '44px',
           backgroundColor: isOpen ? '#1a1a1a' : 'transparent',
           border: '1px solid transparent',
           borderRadius: '8px',
@@ -252,7 +252,8 @@ const NotificationBell: React.FC = () => {
                       color: '#22d3ee',
                       fontSize: '0.75rem',
                       cursor: 'pointer',
-                      padding: '0.25rem 0.5rem',
+                      padding: '0.5rem 0.75rem',
+                      minHeight: '36px',
                       borderRadius: '4px'
                     }}
                     onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#22d3ee15'}
@@ -269,7 +270,8 @@ const NotificationBell: React.FC = () => {
                     color: '#6b7280',
                     fontSize: '0.75rem',
                     cursor: 'pointer',
-                    padding: '0.25rem 0.5rem',
+                    padding: '0.5rem 0.75rem',
+                    minHeight: '36px',
                     borderRadius: '4px'
                   }}
                   onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'}

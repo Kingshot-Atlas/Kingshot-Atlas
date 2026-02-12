@@ -501,7 +501,12 @@ const KingdomProfile: React.FC = () => {
                 color: '#6b7280',
                 cursor: 'pointer',
                 fontSize: '0.75rem',
-                padding: '0.15rem 0.3rem',
+                padding: '0.5rem',
+                minWidth: '36px',
+                minHeight: '36px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
                 lineHeight: 1,
               }}
               aria-label="Dismiss"

@@ -419,7 +419,7 @@ const UserDirectory: React.FC = () => {
                 border: '1px solid #2a2a2a',
                 borderRadius: '8px',
                 color: '#fff',
-                fontSize: '0.95rem',
+                fontSize: '1rem',
                 outline: 'none',
                 transition: 'border-color 0.2s ease'
               }}
@@ -442,7 +442,7 @@ const UserDirectory: React.FC = () => {
                 border: '1px solid #2a2a2a',
                 borderRadius: '8px',
                 color: '#fff',
-                fontSize: '0.95rem',
+                fontSize: '1rem',
                 cursor: 'pointer',
                 appearance: 'none',
                 backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
@@ -468,7 +468,7 @@ const UserDirectory: React.FC = () => {
                   border: '1px solid #2a2a2a',
                   borderRadius: '8px',
                   color: '#fff',
-                  fontSize: '0.95rem',
+                  fontSize: '1rem',
                   cursor: 'pointer',
                   appearance: 'none',
                   backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
@@ -495,7 +495,7 @@ const UserDirectory: React.FC = () => {
                   border: '1px solid #2a2a2a',
                   borderRadius: '8px',
                   color: '#fff',
-                  fontSize: '0.95rem',
+                  fontSize: '1rem',
                   cursor: 'pointer',
                   appearance: 'none',
                   backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
@@ -534,7 +534,7 @@ const UserDirectory: React.FC = () => {
                     border: '1px solid #2a2a2a',
                     borderRadius: '8px',
                     color: '#fff',
-                    fontSize: '0.95rem',
+                    fontSize: '1rem',
                     outline: 'none',
                     minWidth: '160px',
                     backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
@@ -701,14 +701,15 @@ const UserDirectory: React.FC = () => {
             value={sortBy}
             onChange={e => { setSortBy(e.target.value as SortBy); setVisibleCount(PAGE_SIZE); }}
             style={{
-              padding: '0.35rem 0.6rem',
+              padding: '0.5rem 1.5rem 0.5rem 0.75rem',
               backgroundColor: '#111116',
               border: '1px solid #2a2a2a',
               borderRadius: '8px',
               color: '#9ca3af',
-              fontSize: '0.75rem',
+              fontSize: '1rem',
               cursor: 'pointer',
               outline: 'none',
+              minHeight: '44px',
             }}
           >
             <option value="role">{t('playerDirectory.sortRole', 'Sort: Role Priority')}</option>

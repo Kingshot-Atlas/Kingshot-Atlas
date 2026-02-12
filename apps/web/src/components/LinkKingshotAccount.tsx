@@ -220,8 +220,16 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail?.error || 'Failed to verify player');
+      let errorMessage = 'Failed to verify player';
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail?.error || errorMessage;
+      } catch {
+        // Response body wasn't valid JSON (e.g. Render cold start HTML, CORS error)
+        if (response.status === 429) errorMessage = 'Too many requests. Please wait a moment and try again.';
+        else if (response.status >= 500) errorMessage = 'Server is temporarily unavailable. Please try again in a moment.';
+      }
+      throw new Error(errorMessage);
     }
 
     return response.json();
@@ -237,8 +245,15 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail?.error || 'Failed to refresh player data');
+      let errorMessage = 'Failed to refresh player data';
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail?.error || errorMessage;
+      } catch {
+        if (response.status === 429) errorMessage = 'Too many requests. Please wait a moment.';
+        else if (response.status >= 500) errorMessage = 'Server is temporarily unavailable. Please try again.';
+      }
+      throw new Error(errorMessage);
     }
 
     return response.json();

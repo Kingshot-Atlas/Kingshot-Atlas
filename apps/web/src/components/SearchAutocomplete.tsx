@@ -137,7 +137,7 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
           border: `1px solid ${isFocused ? '#22d3ee' : '#2a2a2a'}`,
           borderRadius: showDropdown ? '8px 8px 0 0' : '8px',
           color: '#fff',
-          fontSize: '0.95rem',
+          fontSize: '1rem',
           outline: 'none',
           transition: 'border-color 0.2s ease'
         }}

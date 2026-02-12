@@ -158,30 +158,6 @@ const Header: React.FC = () => {
               </span>
             </div>
           )}
-          {isMobile && (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0' }}>
-              <span style={{ 
-                color: '#fff', 
-                fontSize: '0.65rem', 
-                fontWeight: 'bold', 
-                fontFamily: FONT_DISPLAY,
-                lineHeight: 1.1,
-                letterSpacing: '0.02em'
-              }}>
-                KINGSHOT
-              </span>
-              <span style={{ 
-                ...neonGlow('#22d3ee'), 
-                fontSize: '0.95rem', 
-                fontWeight: 'bold', 
-                fontFamily: FONT_DISPLAY,
-                lineHeight: 1,
-                letterSpacing: '0.02em'
-              }}>
-                ATLAS
-              </span>
-            </div>
-          )}
         </Link>
 
         {/* Countdowns - centered between logo and nav */}
@@ -230,8 +206,8 @@ const Header: React.FC = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: '36px',
-                height: '36px',
+                width: '44px',
+                height: '44px',
                 backgroundColor: '#5865F2',
                 borderRadius: '8px',
                 color: '#fff'
@@ -250,8 +226,8 @@ const Header: React.FC = () => {
                 onClick={() => setShowMobileLangMenu(!showMobileLangMenu)}
                 aria-label="Change language"
                 style={{
-                  width: '36px',
-                  height: '36px',
+                  width: '44px',
+                  height: '44px',
                   padding: 0,
                   backgroundColor: showMobileLangMenu ? '#22d3ee20' : 'transparent',
                   border: showMobileLangMenu ? '1px solid #22d3ee' : '1px solid #2a2a2a',
@@ -1115,7 +1091,10 @@ const Header: React.FC = () => {
           display: 'flex',
           flexDirection: 'column',
           gap: '0.5rem',
-          zIndex: 99
+          zIndex: 99,
+          maxHeight: 'calc(100vh - 56px)',
+          overflowY: 'auto',
+          WebkitOverflowScrolling: 'touch'
         }}>
           {/* Sign In / Profile - First Item - Show Kingshot account if linked */}
           {user ? (

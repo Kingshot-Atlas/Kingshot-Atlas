@@ -410,6 +410,7 @@ const KingdomDirectory: React.FC = () => {
                   justifyContent: 'center',
                   gap: '0.25rem',
                   padding: '0.6rem',
+                  minHeight: '44px',
                   backgroundColor: showFavoritesOnly ? '#22d3ee20' : '#0a0a0a',
                   border: `1px solid ${showFavoritesOnly ? '#22d3ee' : '#2a2a2a'}`,
                   borderRadius: '8px',
@@ -421,13 +422,13 @@ const KingdomDirectory: React.FC = () => {
                 <span>{showFavoritesOnly ? '★' : '☆'}</span>
                 {favorites.length > 0 && `(${favorites.length})`}
               </button>
-              <button onClick={() => setShowFilters(!showFilters)} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem', padding: '0.6rem', backgroundColor: showFilters ? '#2a2a2a' : '#0a0a0a', border: `1px solid ${countActiveFilters(filters) > 0 ? '#22d3ee50' : '#2a2a2a'}`, borderRadius: '8px', color: showFilters ? '#fff' : '#9ca3af', cursor: 'pointer', fontSize: '0.8rem', position: 'relative' }}>
+              <button onClick={() => setShowFilters(!showFilters)} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem', padding: '0.6rem', minHeight: '44px', backgroundColor: showFilters ? '#2a2a2a' : '#0a0a0a', border: `1px solid ${countActiveFilters(filters) > 0 ? '#22d3ee50' : '#2a2a2a'}`, borderRadius: '8px', color: showFilters ? '#fff' : '#9ca3af', cursor: 'pointer', fontSize: '0.8rem', position: 'relative' }}>
                 <svg style={{ width: '14px', height: '14px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                 </svg>
                 {t('common.filter')}{countActiveFilters(filters) > 0 && ` (${countActiveFilters(filters)})`}
               </button>
-              <select value={sort.sortBy} onChange={(e) => setSort({ ...sort, sortBy: e.target.value as SortOptions['sortBy'] })} style={{ flex: 1.5, padding: '0.6rem 1.5rem 0.6rem 0.5rem', backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '8px', color: '#fff', fontSize: '0.8rem', cursor: 'pointer', appearance: 'none', backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.3rem center', backgroundSize: '0.8rem' }}>
+              <select value={sort.sortBy} onChange={(e) => setSort({ ...sort, sortBy: e.target.value as SortOptions['sortBy'] })} style={{ flex: 1.5, padding: '0.6rem 1.5rem 0.6rem 0.5rem', minHeight: '44px', backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '8px', color: '#fff', fontSize: '1rem', cursor: 'pointer', appearance: 'none', backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.3rem center', backgroundSize: '0.8rem' }}>
                 <option value="overall_score">{t('stats.atlasScore')}</option>
                 <option value="kingdom_number">{t('home.sortKingdomNumber')}</option>
                 <option value="prep_win_rate">{t('stats.prepWR')}</option>
@@ -705,13 +706,14 @@ const KingdomDirectory: React.FC = () => {
                   key={kNum}
                   onClick={() => navigate(`/kingdom/${kNum}`)}
                   style={{
-                    padding: '0.25rem 0.5rem',
+                    padding: '0.4rem 0.6rem',
+                    minHeight: '36px',
                     backgroundColor: 'transparent',
                     border: '1px solid #2a2a2a',
                     borderRadius: '4px',
                     color: '#6b7280',
                     cursor: 'pointer',
-                    fontSize: '0.7rem',
+                    fontSize: '0.75rem',
                     fontWeight: '500',
                     transition: 'all 0.15s'
                   }}
@@ -733,9 +735,14 @@ const KingdomDirectory: React.FC = () => {
                   background: 'none', 
                   border: 'none', 
                   color: '#3a3a3a', 
-                  fontSize: '0.65rem', 
+                  fontSize: '0.75rem', 
                   cursor: 'pointer',
-                  padding: '0.25rem',
+                  padding: '0.5rem',
+                  minWidth: '36px',
+                  minHeight: '36px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                   marginLeft: '0.25rem'
                 }}
                 aria-label="Clear history"
@@ -752,7 +759,7 @@ const KingdomDirectory: React.FC = () => {
             {/* Kingdom Tier */}
             <div>
               <label style={{ fontSize: '0.85rem', color: '#9ca3af', display: 'block', marginBottom: '0.5rem' }}>{t('home.filterKingdomTier')}</label>
-              <select value={filters.tier || 'all'} onChange={(e) => setFilters({ ...filters, tier: e.target.value })} style={{ width: '100%', padding: '0.6rem', backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '6px', color: '#fff', fontSize: '0.85rem' }}>
+              <select value={filters.tier || 'all'} onChange={(e) => setFilters({ ...filters, tier: e.target.value })} style={{ width: '100%', padding: '0.6rem', backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '6px', color: '#fff', fontSize: '1rem' }}>
                 <option value="all">{t('tiers.allTiers')}</option>
                 <option value="S">{t('tiers.sDescription')}</option>
                 <option value="A">{t('tiers.aDescription')}</option>
@@ -764,7 +771,7 @@ const KingdomDirectory: React.FC = () => {
             {/* Transfer Status */}
             <div>
               <label style={{ fontSize: '0.85rem', color: '#9ca3af', display: 'block', marginBottom: '0.5rem' }}>{t('home.filterTransferStatus')}</label>
-              <select value={filters.status || 'all'} onChange={(e) => setFilters({ ...filters, status: e.target.value })} style={{ width: '100%', padding: '0.6rem', backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '6px', color: '#fff', fontSize: '0.85rem' }}>
+              <select value={filters.status || 'all'} onChange={(e) => setFilters({ ...filters, status: e.target.value })} style={{ width: '100%', padding: '0.6rem', backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '6px', color: '#fff', fontSize: '1rem' }}>
                 <option value="all">{t('home.allStatuses')}</option>
                 <option value="Leading">{t('home.statusLeading')}</option>
                 <option value="Ordinary">{t('home.statusOrdinary')}</option>
@@ -782,7 +789,7 @@ const KingdomDirectory: React.FC = () => {
                   value={filters.minKvKs || 0} 
                   onChange={(e) => setFilters({ ...filters, minKvKs: parseInt(e.target.value) || 0 })} 
                   placeholder="Min"
-                  style={{ width: '100%', padding: '0.6rem', backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '6px', color: '#fff', fontSize: '0.85rem', textAlign: 'center' }} 
+                  style={{ width: '100%', padding: '0.6rem', backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '6px', color: '#fff', fontSize: '1rem', textAlign: 'center' }} 
                 />
                 <span style={{ color: '#6b7280', fontSize: '0.85rem' }}>to</span>
                 <input 
@@ -792,7 +799,7 @@ const KingdomDirectory: React.FC = () => {
                   value={filters.maxKvKs === 99 ? '' : filters.maxKvKs} 
                   onChange={(e) => setFilters({ ...filters, maxKvKs: parseInt(e.target.value) || 99 })} 
                   placeholder="Max"
-                  style={{ width: '100%', padding: '0.6rem', backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '6px', color: '#fff', fontSize: '0.85rem', textAlign: 'center' }} 
+                  style={{ width: '100%', padding: '0.6rem', backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '6px', color: '#fff', fontSize: '1rem', textAlign: 'center' }} 
                 />
               </div>
             </div>
@@ -967,7 +974,9 @@ const KingdomDirectory: React.FC = () => {
             position: 'fixed',
             bottom: '1rem',
             left: '1rem',
-            padding: '0.75rem',
+            width: '44px',
+            height: '44px',
+            padding: 0,
             backgroundColor: '#111111',
             border: '1px solid #2a2a2a',
             borderRadius: '50%',

@@ -1339,22 +1339,27 @@ const Profile: React.FC = () => {
           <div id="link-kingshot-section" style={{ marginBottom: '1.5rem' }}>
             <LinkKingshotAccount
               onLink={async (playerData) => {
-                if (updateProfile && user) {
-                  const result = await updateProfile({
-                    ...viewedProfile,
-                    linked_player_id: playerData.player_id,
-                    linked_username: playerData.username,
-                    linked_avatar_url: playerData.avatar_url,
-                    linked_kingdom: playerData.kingdom,
-                    linked_tc_level: playerData.town_center_level,
-                    linked_last_synced: new Date().toISOString(),
-                  });
-                  if (!result.success) {
-                    showToast(result.error || 'Failed to link account', 'error');
-                    return;
+                try {
+                  if (updateProfile && user) {
+                    const result = await updateProfile({
+                      ...viewedProfile,
+                      linked_player_id: playerData.player_id,
+                      linked_username: playerData.username,
+                      linked_avatar_url: playerData.avatar_url,
+                      linked_kingdom: playerData.kingdom,
+                      linked_tc_level: playerData.town_center_level,
+                      linked_last_synced: new Date().toISOString(),
+                    });
+                    if (!result.success) {
+                      showToast(result.error || 'Failed to link account', 'error');
+                      return;
+                    }
+                    // Assign Settler role in Discord (fire and forget)
+                    discordService.syncSettlerRole(user.id, true).catch(() => {});
                   }
-                  // Assign Settler role in Discord (fire and forget)
-                  discordService.syncSettlerRole(user.id, true).catch(() => {});
+                } catch (err) {
+                  console.error('Link account error:', err);
+                  showToast('Failed to link account. Please try again.', 'error');
                 }
               }}
               onUnlink={() => {}}

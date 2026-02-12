@@ -571,7 +571,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       'username', 'display_name', 'email', 'avatar_url', 'home_kingdom', 'alliance_tag',
       'language', 'region', 'bio', 'theme_color', 'badge_style',
       'linked_player_id', 'linked_username', 'linked_avatar_url',
-      'linked_kingdom', 'linked_tc_level', 'subscription_tier',
+      'linked_kingdom', 'linked_tc_level', 'linked_last_synced', 'subscription_tier',
       'stripe_customer_id', 'stripe_subscription_id',
       'referred_by', 'referral_count', 'referral_tier'
     ];

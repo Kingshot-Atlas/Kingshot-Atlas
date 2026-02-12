@@ -665,7 +665,7 @@ const GiftCodeRedeemer: React.FC = () => {
                 border: '1px solid #333',
                 backgroundColor: '#0a0a0a',
                 color: '#e5e7eb',
-                fontSize: '0.85rem',
+                fontSize: '1rem',
                 fontFamily: 'monospace',
                 outline: 'none',
                 transition: 'border-color 0.2s ease',

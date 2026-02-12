@@ -261,8 +261,8 @@ const menuItemStyle: React.CSSProperties = {
 const inputStyle: React.CSSProperties = {
   padding: '0.5rem 0.75rem', backgroundColor: '#0a0a0a',
   border: '1px solid #2a2a2a', borderRadius: '8px',
-  color: '#fff', fontSize: '0.8rem', outline: 'none',
-  width: '100%', minHeight: '40px', boxSizing: 'border-box',
+  color: '#fff', fontSize: '1rem', outline: 'none',
+  width: '100%', minHeight: '44px', boxSizing: 'border-box',
 };
 
 const cancelBtnStyle: React.CSSProperties = {
@@ -792,7 +792,7 @@ const PlayerModal: React.FC<{
                   value={marchTimes[b].regular || ''}
                   onChange={e => updateMarch(b, 'regular', e.target.value)}
                   placeholder="Regular"
-                  style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', paddingRight: '1.5rem' }}
+                  style={{ ...inputStyle, fontSize: '1rem', padding: '0.4rem 1.5rem 0.4rem 0.5rem' }}
                 />
                 <span style={{ position: 'absolute', right: '6px', top: '50%', transform: 'translateY(-50%)', color: '#4b5563', fontSize: '0.55rem' }}>s</span>
               </div>
@@ -802,7 +802,7 @@ const PlayerModal: React.FC<{
                   value={marchTimes[b].buffed || ''}
                   onChange={e => updateMarch(b, 'buffed', e.target.value)}
                   placeholder="Buffed ⚡"
-                  style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', paddingRight: '1.5rem', borderColor: '#22c55e30' }}
+                  style={{ ...inputStyle, fontSize: '1rem', padding: '0.4rem 1.5rem 0.4rem 0.5rem', borderColor: '#22c55e30' }}
                 />
                 <span style={{ position: 'absolute', right: '6px', top: '50%', transform: 'translateY(-50%)', color: '#22c55e', fontSize: '0.55rem' }}>⚡</span>
               </div>
