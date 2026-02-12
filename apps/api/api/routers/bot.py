@@ -853,6 +853,93 @@ async def get_multirally_analytics(_: bool = Depends(require_bot_admin)):
         return {"error": "Failed to compute multirally analytics"}
 
 
+@router.get("/redeem-stats")
+async def get_redeem_stats(_: bool = Depends(require_bot_admin)):
+    """
+    Gift code redemption analytics from the gift_code_redemptions table.
+    Returns totals, success rates, top codes, and period breakdowns.
+    """
+    sb = get_supabase_admin()
+    if not sb:
+        return {"error": "Supabase not configured"}
+
+    now = datetime.now(timezone.utc)
+    day_ago = (now - timedelta(days=1)).isoformat()
+    week_ago = (now - timedelta(days=7)).isoformat()
+    month_ago = (now - timedelta(days=30)).isoformat()
+
+    try:
+        rows_resp = sb.table("gift_code_redemptions").select(
+            "code,player_id,success,error_code,message,created_at"
+        ).gte("created_at", month_ago).order("created_at", desc=True).limit(10000).execute()
+        rows = rows_resp.data or []
+
+        if not rows:
+            return {
+                "total": 0, "success_rate": 0, "unique_players": 0,
+                "today": {"total": 0, "success": 0, "failed": 0, "players": 0},
+                "week": {"total": 0, "success": 0, "failed": 0, "players": 0},
+                "month": {"total": 0, "success": 0, "failed": 0, "players": 0},
+                "top_codes": [], "error_breakdown": [],
+            }
+
+        def period_stats(data):
+            total = len(data)
+            success = sum(1 for r in data if r.get("success"))
+            failed = total - success
+            players = len(set(r.get("player_id", "") for r in data))
+            return {"total": total, "success": success, "failed": failed, "players": players}
+
+        r_today = [r for r in rows if r.get("created_at", "") >= day_ago]
+        r_week = [r for r in rows if r.get("created_at", "") >= week_ago]
+
+        total = len(rows)
+        successes = sum(1 for r in rows if r.get("success"))
+        success_rate = round((successes / total) * 100, 1) if total else 0
+        unique_players = len(set(r.get("player_id", "") for r in rows))
+
+        # Top codes by attempt count
+        code_map: Dict[str, Dict] = {}
+        for r in rows:
+            c = r.get("code", "")
+            if c not in code_map:
+                code_map[c] = {"attempts": 0, "successes": 0}
+            code_map[c]["attempts"] += 1
+            if r.get("success"):
+                code_map[c]["successes"] += 1
+        top_codes = sorted(
+            [{"code": k, "attempts": v["attempts"], "successes": v["successes"],
+              "success_rate": round((v["successes"] / v["attempts"]) * 100, 1) if v["attempts"] else 0}
+             for k, v in code_map.items()],
+            key=lambda x: x["attempts"], reverse=True
+        )[:10]
+
+        # Error code breakdown (failures only)
+        err_map: Dict[str, int] = {}
+        for r in rows:
+            if not r.get("success"):
+                err = str(r.get("error_code") or r.get("message") or "unknown")
+                err_map[err] = err_map.get(err, 0) + 1
+        error_breakdown = sorted(
+            [{"error": k, "count": v} for k, v in err_map.items()],
+            key=lambda x: x["count"], reverse=True
+        )[:8]
+
+        return {
+            "total": total,
+            "success_rate": success_rate,
+            "unique_players": unique_players,
+            "today": period_stats(r_today),
+            "week": period_stats(r_week),
+            "month": period_stats(rows),
+            "top_codes": top_codes,
+            "error_breakdown": error_breakdown,
+        }
+    except Exception as e:
+        print(f"ERROR in /redeem-stats: {e}")
+        return {"error": "Failed to compute redeem stats"}
+
+
 @router.get("/check-permissions/{guild_id}")
 async def check_guild_permissions(
     guild_id: str,

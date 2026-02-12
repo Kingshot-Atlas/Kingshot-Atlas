@@ -12,7 +12,18 @@ export default defineConfig({
         clientsClaim: true,     // Take control of all pages immediately
         cleanupOutdatedCaches: true, // Remove old caches on activation
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        navigateFallback: '/index.html',  // SPA: serve app shell for all navigation
+        navigateFallbackDenylist: [/^\/api\//, /^\/sw\.js$/],
         runtimeCaching: [
+          {
+            urlPattern: ({ request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',  // Always try network for HTML navigation
+            options: {
+              cacheName: 'pages-cache',
+              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 }, // 1 hour
+              networkTimeoutSeconds: 3, // Fall back to cache after 3s
+            }
+          },
           {
             urlPattern: /^https:\/\/api\.ks-atlas\.com\/.*/i,
             handler: 'CacheFirst',
@@ -64,7 +75,11 @@ export default defineConfig({
           vendor: ['react', 'react-dom'],
           router: ['react-router-dom'],
           query: ['@tanstack/react-query'],
-          ui: ['@headlessui/react', '@heroicons/react']
+          ui: ['@headlessui/react', '@heroicons/react'],
+          supabase: ['@supabase/supabase-js'],
+          sentry: ['@sentry/react'],
+          i18n: ['i18next', 'react-i18next', 'i18next-browser-languagedetector', 'i18next-http-backend'],
+          charts: ['recharts'],
         }
       }
     }

@@ -581,6 +581,7 @@ const GanttChart: React.FC<{
   title: string;
   colors: string[];
 }> = ({ rallies, isMobile, title, colors }) => {
+  const { t } = useTranslation();
   if (rallies.length === 0) return null;
 
   const maxTime = Math.max(...rallies.map(r => r.arrivalTime));
@@ -719,7 +720,7 @@ const PlayerModal: React.FC<{
     const num = parseInt(value) || 0;
     setMarchTimes(prev => ({
       ...prev,
-      [building]: { ...prev[building], [type]: Math.max(0, Math.min(600, num)) },
+      [building]: { ...prev[building], [type]: Math.max(0, Math.min(120, num)) },
     }));
   };
 
@@ -774,20 +775,20 @@ const PlayerModal: React.FC<{
         </div>
 
         <p style={{ color: '#6b7280', fontSize: '0.65rem', marginBottom: '0.75rem' }}>
-          March times in seconds. Enter regular and buffed (with march speed buff).
+          March times in seconds (0–120). Regular and buffed — know both.
         </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           {buildings.map(b => (
             <div key={b} style={{
-              display: 'grid', gridTemplateColumns: '80px 1fr 1fr', gap: '0.4rem', alignItems: 'center',
+              display: 'grid', gridTemplateColumns: '120px 1fr 1fr', gap: '0.4rem', alignItems: 'center',
             }}>
-              <span style={{ color: BUILDING_COLORS[b], fontSize: '0.7rem', fontWeight: '600' }}>
-                {BUILDING_SHORT[b]}
+              <span style={{ color: BUILDING_COLORS[b], fontSize: '0.65rem', fontWeight: '600' }}>
+                {BUILDING_LABELS[b]}
               </span>
               <div style={{ position: 'relative' }}>
                 <input
-                  type="number" min="0" max="600"
+                  type="number" min="0" max="120"
                   value={marchTimes[b].regular || ''}
                   onChange={e => updateMarch(b, 'regular', e.target.value)}
                   placeholder="Regular"
@@ -797,7 +798,7 @@ const PlayerModal: React.FC<{
               </div>
               <div style={{ position: 'relative' }}>
                 <input
-                  type="number" min="0" max="600"
+                  type="number" min="0" max="120"
                   value={marchTimes[b].buffed || ''}
                   onChange={e => updateMarch(b, 'buffed', e.target.value)}
                   placeholder="Buffed ⚡"
@@ -902,7 +903,7 @@ const CallOrderOutput: React.FC<{
 
 const RallyCoordinator: React.FC = () => {
   const { t } = useTranslation();
-  useDocumentTitle('KvK Rally Coordinator');
+  useDocumentTitle('KvK Battle Coordinator');
   const { profile } = useAuth();
   const isMobile = useIsMobile();
 
@@ -933,6 +934,7 @@ const RallyCoordinator: React.FC = () => {
   const [defaultTeam, setDefaultTeam] = useState<'ally' | 'enemy'>('ally');
   const [presetName, setPresetName] = useState('');
   const [showPresetSave, setShowPresetSave] = useState(false);
+  const [howToOpen, setHowToOpen] = useState(true);
 
   // State: Enemy buff timers (playerId -> expiry timestamp in ms)
   const [buffTimers, setBuffTimers] = useState<Record<string, number>>(() => {
@@ -1300,7 +1302,7 @@ const RallyCoordinator: React.FC = () => {
             {queueType === 'rally' ? '🎯' : '🛡️'}
           </div>
           <p style={{ fontSize: '0.65rem', textAlign: 'center' }}>
-            Drag or click players here
+            Drop players here or click to add
           </p>
           <p style={{ fontSize: '0.55rem', marginTop: '0.15rem' }}>
             {minPlayers > 1 ? `Min ${minPlayers} players` : 'Min 1 player'}
@@ -1332,11 +1334,43 @@ const RallyCoordinator: React.FC = () => {
 
       {queue.length > 0 && queue.length < minPlayers && (
         <p style={{ color: '#f59e0b', fontSize: '0.55rem', marginTop: '0.4rem', textAlign: 'center' }}>
-          Add {minPlayers - queue.length} more to calculate timings.
+          Need {minPlayers - queue.length} more to calculate timings.
         </p>
       )}
     </div>
   );
+
+  // Non-admin coming soon gate
+  if (!isAdmin) {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+        <div style={{ textAlign: 'center', maxWidth: '440px' }}>
+          <div style={{ fontSize: '3.5rem', marginBottom: '1rem' }}>⚔️</div>
+          <h2 style={{ color: '#fff', fontSize: '1.5rem', fontFamily: FONT_DISPLAY, marginBottom: '0.5rem', letterSpacing: '0.05em' }}>
+            <span style={{ color: '#fff' }}>KvK BATTLE </span>
+            <span style={neonGlow('#ef4444')}>COORDINATOR</span>
+          </h2>
+          <div style={{
+            display: 'inline-block', padding: '0.25rem 0.75rem', marginBottom: '1rem',
+            backgroundColor: '#ef444420', border: '1px solid #ef444440', borderRadius: '20px',
+            fontSize: '0.7rem', fontWeight: '700', color: '#ef4444', textTransform: 'uppercase', letterSpacing: '0.08em',
+          }}>
+            {t('common.comingSoon', 'Coming Soon')}
+          </div>
+          <p style={{ color: '#9ca3af', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '1.5rem' }}>
+            {t('rallyCoordinator.comingSoonDesc', 'Coordinate multi-rally strikes with surgical precision. Set march times, call orders, and hit windows — so your alliance lands together, every time. Currently in development.')}
+          </p>
+          <Link to="/tools" style={{
+            display: 'inline-block', padding: '0.6rem 1.5rem',
+            backgroundColor: '#ef444420', border: '1px solid #ef444450', borderRadius: '8px',
+            color: '#ef4444', textDecoration: 'none', fontWeight: '600', fontSize: '0.9rem',
+          }}>
+            {t('rallyCoordinator.backToTools', '← Back to Tools')}
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a' }}>
@@ -1472,102 +1506,136 @@ const RallyCoordinator: React.FC = () => {
 
               {players.length === 0 && (
                 <p style={{ color: '#4b5563', fontSize: '0.6rem', textAlign: 'center', padding: '0.75rem 0' }}>
-                  Add allies and enemies to start coordinating.
+                  Add your rally leaders. No guesswork.
                 </p>
               )}
 
               <p style={{ color: '#4b5563', fontSize: '0.5rem' }}>
-                Click allies → Rally Queue. Click enemies → Counter Queue. Right-click to edit/remove.
+                Allies → Rally Queue. Enemies → Counter Queue. Right-click to edit.
               </p>
             </div>
 
-            {/* 🏰 TARGET BUILDING */}
+            {/* 🏰 TARGET BUILDING + PRESETS (2 columns) */}
             <div style={{ ...CARD, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <h3 style={cardHeader()}>🏰 TARGET BUILDING</h3>
-              <BuildingSelector selected={selectedBuilding} onSelect={setSelectedBuilding} isMobile={isMobile} />
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+                gap: '0.75rem',
+              }}>
+                {/* Left: Target Building */}
+                <div>
+                  <h3 style={{ ...cardHeader(), marginBottom: '0.4rem' }}>🏰 TARGET BUILDING</h3>
+                  <BuildingSelector selected={selectedBuilding} onSelect={setSelectedBuilding} isMobile={isMobile} />
+                </div>
 
-              {/* Presets */}
-              <div style={{ borderTop: '1px solid #1a1a1a', paddingTop: '0.5rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
-                  <span style={{ fontSize: '0.6rem', color: '#9ca3af', fontWeight: '600' }}>{t('rallyCoordinator.presets')}</span>
-                  {rallyQueue.length >= 2 && (
-                    <button onClick={() => setShowPresetSave(!showPresetSave)} style={{
-                      padding: '0.15rem 0.35rem', backgroundColor: '#22c55e15',
-                      border: '1px solid #22c55e30', borderRadius: '4px',
-                      color: '#22c55e', fontSize: '0.5rem', fontWeight: '700', cursor: 'pointer',
-                    }}>
-                      💾 Save Current
-                    </button>
+                {/* Right: Presets */}
+                <div style={{
+                  ...(isMobile ? { borderTop: '1px solid #1a1a1a', paddingTop: '0.5rem' } : { borderLeft: '1px solid #1a1a1a', paddingLeft: '0.75rem' }),
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
+                    <h3 style={{ ...cardHeader(), marginBottom: 0 }}>💾 PRESETS</h3>
+                    {rallyQueue.length >= 2 && (
+                      <button onClick={() => setShowPresetSave(!showPresetSave)} style={{
+                        padding: '0.15rem 0.35rem', backgroundColor: '#22c55e15',
+                        border: '1px solid #22c55e30', borderRadius: '4px',
+                        color: '#22c55e', fontSize: '0.5rem', fontWeight: '700', cursor: 'pointer',
+                      }}>
+                        + Save Current
+                      </button>
+                    )}
+                  </div>
+                  {showPresetSave && (
+                    <div style={{ display: 'flex', gap: '0.3rem', marginBottom: '0.4rem' }}>
+                      <input
+                        value={presetName}
+                        onChange={e => setPresetName(e.target.value)}
+                        placeholder="Preset name..."
+                        style={{ ...inputStyle, fontSize: '0.6rem', padding: '0.25rem 0.4rem', minHeight: '28px', flex: 1 }}
+                      />
+                      <button onClick={savePreset} disabled={!presetName.trim()} style={{
+                        padding: '0.25rem 0.5rem', backgroundColor: '#22c55e',
+                        border: 'none', borderRadius: '5px',
+                        color: '#000', fontSize: '0.55rem', fontWeight: '700', cursor: 'pointer',
+                        opacity: presetName.trim() ? 1 : 0.4,
+                      }}>
+                        Save
+                      </button>
+                    </div>
+                  )}
+                  {presets.length === 0 ? (
+                    <p style={{ color: '#4b5563', fontSize: '0.55rem', textAlign: 'center', padding: '1rem 0' }}>
+                      No presets yet. Build a rally and save it here for instant recall.
+                    </p>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                      {presets.map(p => (
+                        <div key={p.id} style={{
+                          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                          padding: '0.25rem 0.4rem', backgroundColor: '#0a0a0a',
+                          border: '1px solid #1a1a1a', borderRadius: '6px',
+                        }}>
+                          <button onClick={() => loadPreset(p)} style={{
+                            background: 'none', border: 'none', color: '#d1d5db',
+                            fontSize: '0.6rem', fontWeight: '600', cursor: 'pointer', textAlign: 'left', flex: 1, padding: 0,
+                          }}>
+                            {p.name}
+                            <span style={{ color: '#4b5563', marginLeft: '0.3rem', fontSize: '0.5rem' }}>
+                              {BUILDING_SHORT[p.building]} · {p.slots.length} players
+                            </span>
+                          </button>
+                          <button onClick={() => deletePreset(p.id)} style={{
+                            background: 'none', border: 'none', color: '#4b5563',
+                            fontSize: '0.5rem', cursor: 'pointer', padding: '0 0.2rem',
+                          }}>✕</button>
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
-                {showPresetSave && (
-                  <div style={{ display: 'flex', gap: '0.3rem', marginBottom: '0.4rem' }}>
-                    <input
-                      value={presetName}
-                      onChange={e => setPresetName(e.target.value)}
-                      placeholder="Preset name..."
-                      style={{ ...inputStyle, fontSize: '0.6rem', padding: '0.25rem 0.4rem', minHeight: '28px', flex: 1 }}
-                    />
-                    <button onClick={savePreset} disabled={!presetName.trim()} style={{
-                      padding: '0.25rem 0.5rem', backgroundColor: '#22c55e',
-                      border: 'none', borderRadius: '5px',
-                      color: '#000', fontSize: '0.55rem', fontWeight: '700', cursor: 'pointer',
-                      opacity: presetName.trim() ? 1 : 0.4,
-                    }}>
-                      Save
-                    </button>
-                  </div>
-                )}
-                {presets.length === 0 ? (
-                  <p style={{ color: '#2a2a2a', fontSize: '0.55rem' }}>No presets saved yet.</p>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                    {presets.map(p => (
-                      <div key={p.id} style={{
-                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        padding: '0.25rem 0.4rem', backgroundColor: '#0a0a0a',
-                        border: '1px solid #1a1a1a', borderRadius: '6px',
-                      }}>
-                        <button onClick={() => loadPreset(p)} style={{
-                          background: 'none', border: 'none', color: '#d1d5db',
-                          fontSize: '0.6rem', fontWeight: '600', cursor: 'pointer', textAlign: 'left', flex: 1, padding: 0,
-                        }}>
-                          {p.name}
-                          <span style={{ color: '#4b5563', marginLeft: '0.3rem', fontSize: '0.5rem' }}>
-                            {BUILDING_SHORT[p.building]} · {p.slots.length} players
-                          </span>
-                        </button>
-                        <button onClick={() => deletePreset(p.id)} style={{
-                          background: 'none', border: 'none', color: '#4b5563',
-                          fontSize: '0.5rem', cursor: 'pointer', padding: '0 0.2rem',
-                        }}>✕</button>
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
             </div>
 
-            {/* 🔑 TIPS */}
+            {/* � HOW TO USE (collapsible, initially expanded) */}
             <div style={{ ...CARD }}>
-              <h3 style={cardHeader()}>🔑 TIPS</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', fontSize: '0.6rem' }}>
-                <div style={{ padding: '0.4rem', backgroundColor: '#22c55e08', borderRadius: '6px', border: '1px solid #22c55e15' }}>
-                  <span style={{ color: '#22c55e' }}>Tip:</span> <span style={{ color: '#6b7280' }}>Right-click players to edit march times.</span>
+              <button
+                onClick={() => setHowToOpen(prev => !prev)}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  width: '100%', padding: 0,
+                }}
+              >
+                <h3 style={{ ...cardHeader(), marginBottom: 0 }}>📖 HOW TO USE</h3>
+                <span style={{ color: '#6b7280', fontSize: '0.7rem', transition: 'transform 0.2s', transform: howToOpen ? 'rotate(0deg)' : 'rotate(-90deg)' }}>▼</span>
+              </button>
+              {howToOpen && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginTop: '0.5rem', fontSize: '0.6rem' }}>
+                  {[
+                    { num: '1', text: 'Add your rally leaders — allies and enemies.', color: '#3b82f6' },
+                    { num: '2', text: 'Set their march times for each building.', color: '#22c55e' },
+                    { num: '3', text: 'Click or drag players into the Rally Queue.', color: '#f59e0b' },
+                    { num: '4', text: 'Set the hit order — who lands first matters.', color: '#a855f7' },
+                    { num: '5', text: 'Do the same for the Counter Queue if needed.', color: '#ef4444' },
+                    { num: '6', text: 'Activate pet buff timers when applicable.', color: '#22d3ee' },
+                  ].map(step => (
+                    <div key={step.num} style={{
+                      display: 'flex', alignItems: 'center', gap: '0.5rem',
+                      padding: '0.4rem 0.5rem', backgroundColor: `${step.color}08`,
+                      borderRadius: '6px', border: `1px solid ${step.color}15`,
+                    }}>
+                      <span style={{
+                        width: '20px', height: '20px', borderRadius: '50%',
+                        backgroundColor: `${step.color}20`, color: step.color,
+                        fontSize: '0.6rem', fontWeight: '700',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                      }}>
+                        {step.num}
+                      </span>
+                      <span style={{ color: '#9ca3af' }}>{step.text}</span>
+                    </div>
+                  ))}
                 </div>
-                <div style={{ padding: '0.4rem', backgroundColor: '#3b82f608', borderRadius: '6px', border: '1px solid #3b82f615' }}>
-                  <span style={{ color: '#3b82f6' }}>Tip:</span> <span style={{ color: '#6b7280' }}>Buff timers persist across page refreshes.</span>
-                </div>
-                <div style={{ padding: '0.4rem', backgroundColor: '#f59e0b08', borderRadius: '6px', border: '1px solid #f59e0b15' }}>
-                  <span style={{ color: '#f59e0b' }}>Tip:</span> <span style={{ color: '#6b7280' }}>Chain hits stagger rallies for sustained pressure.</span>
-                </div>
-                <div style={{ padding: '0.4rem', backgroundColor: '#8b5cf608', borderRadius: '6px', border: '1px solid #8b5cf615' }}>
-                  <span style={{ color: '#8b5cf6' }}>Tip:</span> <span style={{ color: '#6b7280' }}>Save presets for your most-used rally configs.</span>
-                </div>
-                <div style={{ padding: '0.4rem', backgroundColor: '#ef444408', borderRadius: '6px', border: '1px solid #ef444415' }}>
-                  <span style={{ color: '#ef4444' }}>Tip:</span> <span style={{ color: '#6b7280' }}>The slowest marcher determines your rally timing.</span>
-                </div>
-              </div>
+              )}
             </div>
 
           </div>
@@ -1597,7 +1665,7 @@ const RallyCoordinator: React.FC = () => {
             ) : (
               <div style={{ ...CARD, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100px' }}>
                 <p style={{ color: '#2a2a2a', fontSize: '0.65rem', textAlign: 'center' }}>
-                  Add 2+ players to Rally Queue<br />to see call order
+                  Add 2+ players to Rally Queue<br />to generate call order
                 </p>
               </div>
             )}
@@ -1646,7 +1714,7 @@ const RallyCoordinator: React.FC = () => {
               ) : (
                 <div style={{ ...CARD, borderTopLeftRadius: 0, borderTopRightRadius: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80px' }}>
                   <p style={{ color: '#2a2a2a', fontSize: '0.65rem', textAlign: 'center' }}>
-                    Rally timeline will appear here
+                    Rally timeline appears here once you queue 2+ players
                   </p>
                 </div>
               )}
@@ -1679,7 +1747,7 @@ const RallyCoordinator: React.FC = () => {
             ) : (
               <div style={{ ...CARD, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100px' }}>
                 <p style={{ color: '#2a2a2a', fontSize: '0.65rem', textAlign: 'center' }}>
-                  Add players to Counter Queue<br />to see counter call order
+                  Add players to Counter Queue<br />to generate counter timing
                 </p>
               </div>
             )}
@@ -1728,7 +1796,7 @@ const RallyCoordinator: React.FC = () => {
               ) : (
                 <div style={{ ...CARD, borderTopLeftRadius: 0, borderTopRightRadius: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80px' }}>
                   <p style={{ color: '#2a2a2a', fontSize: '0.65rem', textAlign: 'center' }}>
-                    Counter timeline will appear here
+                    Counter timeline appears when you have players queued
                   </p>
                 </div>
               )}

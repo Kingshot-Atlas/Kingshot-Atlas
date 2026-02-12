@@ -88,6 +88,18 @@ interface MultirallyAnalytics {
   error?: string;
 }
 
+interface RedeemStats {
+  total: number;
+  success_rate: number;
+  unique_players: number;
+  today: { total: number; success: number; failed: number; players: number };
+  week: { total: number; success: number; failed: number; players: number };
+  month: { total: number; success: number; failed: number; players: number };
+  top_codes: Array<{ code: string; attempts: number; successes: number; success_rate: number }>;
+  error_breakdown: Array<{ error: string; count: number }>;
+  error?: string;
+}
+
 const COLORS = {
   primary: '#22d3ee',
   success: '#22c55e',
@@ -117,6 +129,7 @@ export const BotDashboard: React.FC = () => {
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [multirallyStats, setMultirallyStats] = useState<MultirallyStats | null>(null);
   const [multirallyAnalytics, setMultirallyAnalytics] = useState<MultirallyAnalytics | null>(null);
+  const [redeemStats, setRedeemStats] = useState<RedeemStats | null>(null);
   const [messageHistory, setMessageHistory] = useState<Array<{ id: string; channel: string; server: string; content: string; timestamp: string; hasEmbed: boolean }>>([]);
   const [messageTemplates] = useState([
     { name: 'KvK Reminder', content: '', embedTitle: 'KvK Reminder', embedDescription: 'KvK starts soon! Make sure your rallies are coordinated.\n\nUse `/multirally` to plan your hits.', useEmbed: true },
@@ -142,14 +155,16 @@ export const BotDashboard: React.FC = () => {
     setAnalyticsLoading(true);
     try {
       const headers = await botHeaders();
-      const [analyticsRes, mrStatsRes, mrAnalyticsRes] = await Promise.all([
+      const [analyticsRes, mrStatsRes, mrAnalyticsRes, redeemRes] = await Promise.all([
         fetch(`${API_URL}/api/v1/bot/analytics`, { headers }),
         fetch(`${API_URL}/api/v1/bot/multirally-stats`, { headers }),
         fetch(`${API_URL}/api/v1/bot/multirally-analytics`, { headers }),
+        fetch(`${API_URL}/api/v1/bot/redeem-stats`, { headers }),
       ]);
       if (analyticsRes.ok) setAnalytics(await analyticsRes.json());
       if (mrStatsRes.ok) setMultirallyStats(await mrStatsRes.json());
       if (mrAnalyticsRes.ok) setMultirallyAnalytics(await mrAnalyticsRes.json());
+      if (redeemRes.ok) setRedeemStats(await redeemRes.json());
     } catch (e) {
       console.error('Failed to load analytics:', e);
     } finally {
@@ -1286,6 +1301,99 @@ export const BotDashboard: React.FC = () => {
                           })}
                         </div>
                       </>
+                    )}
+                  </div>
+                )}
+
+                {/* Gift Code Redemption Stats — /redeem */}
+                {redeemStats && !redeemStats.error && (
+                  <div style={{ backgroundColor: COLORS.background, borderRadius: '12px', padding: '1.25rem', border: `1px solid ${COLORS.success}40` }}>
+                    <h3 style={{ color: '#fff', margin: '0 0 1rem', fontSize: '1rem' }}>
+                      <span style={{ color: COLORS.success }}>🎁</span> Gift Code Redemption — /redeem
+                    </h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
+                      {[
+                        { label: 'Total (30d)', value: redeemStats.total.toLocaleString(), color: COLORS.primary },
+                        { label: 'Success Rate', value: `${redeemStats.success_rate}%`, color: redeemStats.success_rate >= 50 ? COLORS.success : COLORS.danger },
+                        { label: 'Unique Players', value: redeemStats.unique_players.toLocaleString(), color: '#a855f7' },
+                      ].map(card => (
+                        <div key={card.label} style={{ backgroundColor: '#0a0a0f', borderRadius: '8px', padding: '0.75rem', border: `1px solid ${COLORS.border}` }}>
+                          <div style={{ fontSize: '0.65rem', color: COLORS.muted, textTransform: 'uppercase', marginBottom: '0.2rem' }}>{card.label}</div>
+                          <div style={{ fontSize: '1.25rem', fontWeight: '700', color: card.color }}>{card.value}</div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Period breakdown */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem', marginBottom: '1rem' }}>
+                      {[
+                        { label: 'Today', ...redeemStats.today },
+                        { label: '7 Days', ...redeemStats.week },
+                        { label: '30 Days', ...redeemStats.month },
+                      ].map(period => (
+                        <div key={period.label} style={{ backgroundColor: '#0a0a0f', borderRadius: '6px', padding: '0.6rem', textAlign: 'center', border: `1px solid ${COLORS.border}` }}>
+                          <div style={{ fontSize: '0.65rem', color: COLORS.muted, marginBottom: '0.2rem' }}>{period.label}</div>
+                          <div style={{ fontSize: '1rem', fontWeight: '600', color: '#fff' }}>{period.total}</div>
+                          <div style={{ fontSize: '0.6rem', color: COLORS.muted }}>
+                            <span style={{ color: COLORS.success }}>{period.success}✓</span>
+                            {' / '}
+                            <span style={{ color: COLORS.danger }}>{period.failed}✗</span>
+                            {' · '}
+                            {period.players} player{period.players !== 1 ? 's' : ''}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Top codes table */}
+                    {redeemStats.top_codes.length > 0 && (
+                      <div style={{ marginBottom: '0.75rem' }}>
+                        <div style={{ fontSize: '0.8rem', color: COLORS.muted, marginBottom: '0.5rem' }}>Top Codes</div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto auto', gap: '0.3rem 0.75rem', fontSize: '0.75rem' }}>
+                          <div style={{ color: '#4b5563', fontWeight: 600 }}>Code</div>
+                          <div style={{ color: '#4b5563', fontWeight: 600, textAlign: 'right' }}>Attempts</div>
+                          <div style={{ color: '#4b5563', fontWeight: 600, textAlign: 'right' }}>Success</div>
+                          <div style={{ color: '#4b5563', fontWeight: 600, textAlign: 'right' }}>Rate</div>
+                          {redeemStats.top_codes.map(tc => (
+                            <React.Fragment key={tc.code}>
+                              <div style={{ color: '#e5e7eb', fontFamily: 'monospace', fontSize: '0.7rem' }}>{tc.code}</div>
+                              <div style={{ color: COLORS.muted, textAlign: 'right' }}>{tc.attempts}</div>
+                              <div style={{ color: COLORS.success, textAlign: 'right' }}>{tc.successes}</div>
+                              <div style={{ textAlign: 'right', color: tc.success_rate >= 70 ? COLORS.success : tc.success_rate >= 40 ? COLORS.warning : COLORS.danger }}>
+                                {tc.success_rate.toFixed(0)}%
+                              </div>
+                            </React.Fragment>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Error breakdown */}
+                    {redeemStats.error_breakdown.length > 0 && (
+                      <div>
+                        <div style={{ fontSize: '0.8rem', color: COLORS.muted, marginBottom: '0.5rem' }}>Failure Breakdown</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                          {redeemStats.error_breakdown.map(eb => {
+                            const maxErr = redeemStats.error_breakdown[0]?.count || 1;
+                            return (
+                              <div key={eb.error} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <div style={{ width: '120px', flexShrink: 0, color: COLORS.danger, fontSize: '0.7rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{eb.error}</div>
+                                <div style={{ flex: 1, position: 'relative', height: '16px', backgroundColor: '#0a0a0f', borderRadius: '4px', overflow: 'hidden' }}>
+                                  <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${(eb.count / maxErr) * 100}%`, backgroundColor: COLORS.danger + '40', borderRadius: '4px' }} />
+                                  <div style={{ position: 'relative', padding: '0 0.5rem', lineHeight: '16px', fontSize: '0.65rem', color: COLORS.muted }}>{eb.count}</div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Empty state */}
+                    {redeemStats.total === 0 && (
+                      <div style={{ textAlign: 'center', padding: '1.5rem', color: '#4b5563', fontSize: '0.8rem' }}>
+                        No redemption data yet. Data appears when users redeem codes via Atlas or the /redeem bot command.
+                      </div>
                     )}
                   </div>
                 )}

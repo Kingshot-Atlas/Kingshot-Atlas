@@ -395,8 +395,8 @@ async def get_active_gift_codes(request: Request):
             # Fire-and-forget: sync fetched codes into Supabase
             try:
                 upsert_gift_codes(normalized, source="kingshot.net")
-            except Exception:
-                pass
+            except Exception as e:
+                print(f"[gift-codes] upsert sync failed: {e}")
 
             source = "merged"
     except Exception:

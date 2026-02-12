@@ -488,6 +488,7 @@ const Header: React.FC = () => {
                 boxShadow: '0 10px 40px rgba(0, 0, 0, 0.6)',
                 zIndex: 1000
               }}>
+                {/* 1. Atlas Discord Bot */}
                 <Link
                   to="/atlas-bot"
                   style={{
@@ -509,6 +510,50 @@ const Header: React.FC = () => {
                   </svg>
                   {t('nav.atlasBot')}
                 </Link>
+                {/* 2. KvK Battle Coordinator (SOON) */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    padding: '0.75rem 1rem',
+                    borderRadius: '8px',
+                    color: '#4b5563',
+                    fontSize: '0.85rem',
+                    cursor: 'default'
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#ef4444', opacity: 0.5 }}>
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M12 6v6l4 2"/>
+                  </svg>
+                  {t('nav.kvkBattleCoordinator')}
+                  <span style={{ fontSize: '0.6rem', backgroundColor: '#ef444420', color: '#ef4444', padding: '0.15rem 0.4rem', borderRadius: '4px', marginLeft: 'auto' }}>{t('common.soon')}</span>
+                </div>
+                <div style={{ height: '1px', backgroundColor: '#2a2a2a', margin: '0.25rem 0' }} />
+                {/* 3. Gift Code Redeemer (LIVE) */}
+                <Link
+                  to="/tools/gift-codes"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    padding: '0.75rem 1rem',
+                    borderRadius: '8px',
+                    color: isActive('/tools/gift-codes') ? '#22d3ee' : '#fff',
+                    textDecoration: 'none',
+                    fontSize: '0.85rem',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#f59e0b' }}>
+                    <path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7"/>
+                  </svg>
+                  {t('nav.giftCodeRedeemer')}
+                </Link>
+                {/* 4. Kingdom Comparison (LIVE) */}
                 <Link
                   to="/compare"
                   style={{
@@ -531,43 +576,7 @@ const Header: React.FC = () => {
                   {t('nav.kingdomComparison')}
                 </Link>
                 <div style={{ height: '1px', backgroundColor: '#2a2a2a', margin: '0.25rem 0' }} />
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.75rem',
-                    padding: '0.75rem 1rem',
-                    borderRadius: '8px',
-                    color: '#4b5563',
-                    fontSize: '0.85rem',
-                    cursor: 'default'
-                  }}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#f59e0b', opacity: 0.5 }}>
-                    <path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7"/>
-                  </svg>
-                  {t('nav.giftCodeRedeemer')}
-                  <span style={{ fontSize: '0.6rem', backgroundColor: '#f59e0b20', color: '#f59e0b', padding: '0.15rem 0.4rem', borderRadius: '4px', marginLeft: 'auto' }}>{t('common.soon')}</span>
-                </div>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.75rem',
-                    padding: '0.75rem 1rem',
-                    borderRadius: '8px',
-                    color: '#4b5563',
-                    fontSize: '0.85rem',
-                    cursor: 'default'
-                  }}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#10b981', opacity: 0.5 }}>
-                    <rect x="4" y="2" width="16" height="20" rx="2"/>
-                    <line x1="8" y1="6" x2="16" y2="6"/>
-                  </svg>
-                  {t('nav.gamingCalculators')}
-                  <span style={{ fontSize: '0.6rem', backgroundColor: '#10b98120', color: '#10b981', padding: '0.15rem 0.4rem', borderRadius: '4px', marginLeft: 'auto' }}>{t('common.soon')}</span>
-                </div>
+                {/* 5. Appointment Scheduler (SOON) */}
                 <div
                   style={{
                     display: 'flex',
@@ -588,6 +597,26 @@ const Header: React.FC = () => {
                   </svg>
                   {t('nav.appointmentScheduler')}
                   <span style={{ fontSize: '0.6rem', backgroundColor: '#a855f720', color: '#a855f7', padding: '0.15rem 0.4rem', borderRadius: '4px', marginLeft: 'auto' }}>{t('common.soon')}</span>
+                </div>
+                {/* 6. Gaming Calculators (SOON) */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    padding: '0.75rem 1rem',
+                    borderRadius: '8px',
+                    color: '#4b5563',
+                    fontSize: '0.85rem',
+                    cursor: 'default'
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#10b981', opacity: 0.5 }}>
+                    <rect x="4" y="2" width="16" height="20" rx="2"/>
+                    <line x1="8" y1="6" x2="16" y2="6"/>
+                  </svg>
+                  {t('nav.gamingCalculators')}
+                  <span style={{ fontSize: '0.6rem', backgroundColor: '#10b98120', color: '#10b981', padding: '0.15rem 0.4rem', borderRadius: '4px', marginLeft: 'auto' }}>{t('common.soon')}</span>
                 </div>
                 <div style={{ height: '1px', backgroundColor: '#2a2a2a', margin: '0.25rem 0' }} />
                 <Link
@@ -1279,6 +1308,35 @@ const Header: React.FC = () => {
               >
                 <span style={{ color: '#333' }}>└</span> {t('nav.atlasBot')}
               </Link>
+              <div
+                style={{
+                  color: '#4b5563',
+                  fontSize: '0.9rem',
+                  padding: '0.5rem 1rem 0.5rem 1.5rem',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}
+              >
+                <span style={{ color: '#333' }}>└</span> {t('nav.kvkBattleCoordinator')}
+                <span style={{ fontSize: '0.55rem', backgroundColor: '#ef444420', color: '#ef4444', padding: '0.1rem 0.3rem', borderRadius: '4px' }}>{t('common.soon')}</span>
+              </div>
+              <Link
+                to="/tools/gift-codes"
+                style={{
+                  color: isActive('/tools/gift-codes') ? '#22d3ee' : '#6b7280',
+                  textDecoration: 'none',
+                  fontSize: '0.9rem',
+                  padding: '0.5rem 1rem 0.5rem 1.5rem',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}
+              >
+                <span style={{ color: '#333' }}>└</span> {t('nav.giftCodeRedeemer')}
+              </Link>
               <Link
                 to="/compare"
                 style={{
@@ -1294,6 +1352,34 @@ const Header: React.FC = () => {
               >
                 <span style={{ color: '#333' }}>└</span> {t('nav.kingdomComparison')}
               </Link>
+              <div
+                style={{
+                  color: '#4b5563',
+                  fontSize: '0.9rem',
+                  padding: '0.5rem 1rem 0.5rem 1.5rem',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}
+              >
+                <span style={{ color: '#333' }}>└</span> {t('nav.appointmentScheduler')}
+                <span style={{ fontSize: '0.55rem', backgroundColor: '#a855f720', color: '#a855f7', padding: '0.1rem 0.3rem', borderRadius: '4px' }}>{t('common.soon')}</span>
+              </div>
+              <div
+                style={{
+                  color: '#4b5563',
+                  fontSize: '0.9rem',
+                  padding: '0.5rem 1rem 0.5rem 1.5rem',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}
+              >
+                <span style={{ color: '#333' }}>└</span> {t('nav.gamingCalculators')}
+                <span style={{ fontSize: '0.55rem', backgroundColor: '#10b98120', color: '#10b981', padding: '0.1rem 0.3rem', borderRadius: '4px' }}>{t('common.soon')}</span>
+              </div>
             </>
           )}
           <button

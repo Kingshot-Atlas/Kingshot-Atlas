@@ -69,21 +69,23 @@ const GiftCodeRedeemer: React.FC = () => {
   const playerId = profile?.linked_player_id;
   const playerName = profile?.linked_username || profile?.username;
 
-  // Fetch active codes
-  const fetchCodes = useCallback(async () => {
-    // Check cache first
-    try {
-      const cached = localStorage.getItem(CODES_CACHE_KEY);
-      if (cached) {
-        const { codes: cachedCodes, timestamp, source } = JSON.parse(cached);
-        if (Date.now() - timestamp < CODES_CACHE_TTL && cachedCodes?.length > 0) {
-          setCodes(cachedCodes);
-          setCodesSource(source);
-          setLoadingCodes(false);
-          return;
+  // Fetch active codes (forceRefresh bypasses cache)
+  const fetchCodes = useCallback(async (forceRefresh = false) => {
+    // Check cache first (skip if forcing refresh)
+    if (!forceRefresh) {
+      try {
+        const cached = localStorage.getItem(CODES_CACHE_KEY);
+        if (cached) {
+          const { codes: cachedCodes, timestamp, source } = JSON.parse(cached);
+          if (Date.now() - timestamp < CODES_CACHE_TTL && cachedCodes?.length > 0) {
+            setCodes(cachedCodes);
+            setCodesSource(source);
+            setLoadingCodes(false);
+            return;
+          }
         }
-      }
-    } catch { /* ignore cache errors */ }
+      } catch { /* ignore cache errors */ }
+    }
 
     setLoadingCodes(true);
     try {
@@ -113,6 +115,10 @@ const GiftCodeRedeemer: React.FC = () => {
         } catch { /* direct fetch also failed */ }
       }
 
+      if (rawCodes.length === 0) {
+        showToast(t('giftCodes.noCodesUnavailable', 'Could not fetch gift codes right now. Try again later.'), 'error');
+      }
+
       const fetchedCodes: GiftCode[] = rawCodes
         .filter((c: any) => !c.is_expired)
         .map((c: any) => ({
@@ -130,12 +136,15 @@ const GiftCodeRedeemer: React.FC = () => {
           source,
         }));
       }
+      if (forceRefresh && fetchedCodes.length > 0) {
+        showToast(t('giftCodes.refreshed', `Found ${fetchedCodes.length} active codes`), 'success');
+      }
     } catch {
-      // Silent — show empty state
+      showToast(t('giftCodes.noCodesUnavailable', 'Could not fetch gift codes right now. Try again later.'), 'error');
     } finally {
       setLoadingCodes(false);
     }
-  }, []);
+  }, [showToast, t]);
 
   useEffect(() => { fetchCodes(); }, [fetchCodes]);
 
@@ -397,6 +406,27 @@ const GiftCodeRedeemer: React.FC = () => {
             >
               {copiedAll ? '✓ Copied!' : `📋 ${t('giftCodes.copyAll', 'Copy All Codes')}`}
             </button>
+            {/* Refresh Codes */}
+            <button
+              onClick={() => fetchCodes(true)}
+              disabled={loadingCodes || redeemingAll}
+              style={{
+                width: '100%',
+                marginTop: '0.3rem',
+                padding: '0.35rem',
+                borderRadius: '8px',
+                border: '1px solid #1a1a1a',
+                backgroundColor: 'transparent',
+                color: '#4b5563',
+                fontSize: '0.7rem',
+                fontWeight: '500',
+                cursor: (loadingCodes || redeemingAll) ? 'default' : 'pointer',
+                opacity: (loadingCodes || redeemingAll) ? 0.4 : 1,
+                transition: 'all 0.15s ease',
+              }}
+            >
+              🔄 {t('giftCodes.refresh', 'Refresh Codes')}
+            </button>
           </div>
         )}
 
@@ -441,11 +471,23 @@ const GiftCodeRedeemer: React.FC = () => {
             backgroundColor: '#111111', borderRadius: '12px', border: '1px solid #2a2a2a',
           }}>
             <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>📭</div>
-            <p style={{ color: '#6b7280', fontSize: '0.85rem' }}>
+            <p style={{ color: '#6b7280', fontSize: '0.85rem', marginBottom: '1rem' }}>
               {codesSource === 'unavailable'
                 ? t('giftCodes.noCodesUnavailable', 'Could not fetch gift codes right now. Try again later or enter a code manually below.')
                 : t('giftCodes.noCodesEmpty', 'No active gift codes found right now. Check back later!')}
             </p>
+            <button
+              onClick={() => fetchCodes(true)}
+              disabled={loadingCodes}
+              style={{
+                padding: '0.4rem 1rem', borderRadius: '8px',
+                border: '1px solid #f59e0b40', backgroundColor: '#f59e0b12',
+                color: '#f59e0b', fontSize: '0.8rem', fontWeight: '600',
+                cursor: loadingCodes ? 'default' : 'pointer', opacity: loadingCodes ? 0.5 : 1,
+              }}
+            >
+              🔄 {t('giftCodes.refresh', 'Refresh Codes')}
+            </button>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
@@ -179,6 +179,18 @@ const Tools: React.FC = () => {
   const { profile } = useAuth();
   const isAdmin = !!(profile?.username && ADMIN_USERNAMES.includes(profile.username.toLowerCase()));
 
+  // Fetch active gift code count for badge
+  const [giftCodeCount, setGiftCodeCount] = useState<number | null>(null);
+  useEffect(() => {
+    const API_BASE = import.meta.env.VITE_API_URL || 'https://kingshot-atlas.onrender.com';
+    fetch(`${API_BASE}/api/v1/player-link/gift-codes`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.codes?.length) setGiftCodeCount(data.codes.filter((c: any) => !c.is_expired).length);
+      })
+      .catch(() => {});
+  }, []);
+
   const tools: ToolCardProps[] = [
     {
       title: t('tools.botTitle', 'Atlas Discord Bot'),
@@ -194,20 +206,7 @@ const Tools: React.FC = () => {
       accentColor: '#5865F2'
     },
     {
-      title: t('tools.compareTitle', 'Kingdom Comparison'),
-      description: t('tools.compareDesc', 'Put any kingdoms in the ring. Head-to-head stats, win rates, and Atlas Scores. Let the data crown the champion.'),
-      tagline: t('tools.compareTagline', 'Know your enemy. Choose your allies.'),
-      usageStat: t('tools.compareStat', '1,300+ kingdoms'),
-      icon: (
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M16 3h5v5M8 3H3v5M3 16v5h5M21 16v5h-5M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/>
-        </svg>
-      ),
-      href: '/compare',
-      accentColor: '#22d3ee'
-    },
-    {
-      title: t('tools.rallyTitle', 'KvK Rally Coordinator'),
+      title: t('tools.rallyTitle', 'KvK Battle Coordinator'),
       description: t('tools.rallyDesc', 'Time your rallies to land together. Set hit order, march times, and delay windows — so your alliance strikes as one.'),
       tagline: t('tools.rallyTagline', 'Synchronized destruction. No guesswork.'),
       icon: (
@@ -220,6 +219,32 @@ const Tools: React.FC = () => {
       comingSoon: !isAdmin,
       href: isAdmin ? '/tools/rally-coordinator' : undefined,
       accentColor: '#ef4444'
+    },
+    {
+      title: t('tools.giftTitle', 'Gift Code Redeemer'),
+      description: t('tools.giftDesc', 'Redeem gift codes with one click. No copy-pasting. Rewards go straight to your mailbox.'),
+      tagline: t('tools.giftTagline', 'Stop typing. Start claiming.'),
+      usageStat: giftCodeCount ? `${giftCodeCount} active codes` : undefined,
+      icon: (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
+        </svg>
+      ),
+      href: '/tools/gift-codes',
+      accentColor: '#f59e0b'
+    },
+    {
+      title: t('tools.compareTitle', 'Kingdom Comparison'),
+      description: t('tools.compareDesc', 'Put any kingdoms in the ring. Head-to-head stats, win rates, and Atlas Scores. Let the data crown the champion.'),
+      tagline: t('tools.compareTagline', 'Know your enemy. Choose your allies.'),
+      usageStat: t('tools.compareStat', '1,300+ kingdoms'),
+      icon: (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M16 3h5v5M8 3H3v5M3 16v5h5M21 16v5h-5M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/>
+        </svg>
+      ),
+      href: '/compare',
+      accentColor: '#22d3ee'
     },
     {
       title: t('tools.appointmentTitle', 'Appointment Scheduler'),
@@ -257,18 +282,6 @@ const Tools: React.FC = () => {
       ),
       comingSoon: true,
       accentColor: '#10b981'
-    },
-    {
-      title: t('tools.giftTitle', 'Gift Code Redeemer'),
-      description: t('tools.giftDesc', 'Redeem gift codes with one click. No copy-pasting. Rewards go straight to your mailbox.'),
-      tagline: t('tools.giftTagline', 'Stop typing. Start claiming.'),
-      icon: (
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
-        </svg>
-      ),
-      href: '/tools/gift-codes',
-      accentColor: '#f59e0b'
     }
   ];
 
