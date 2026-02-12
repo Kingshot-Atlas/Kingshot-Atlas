@@ -1615,5 +1615,33 @@
     "Bye": "부전승",
     "byeDesc": "이번 라운드 상대 없음",
     "noMatch": "대전 없음"
+  },
+  "giftCodes": {
+    "heroSubtitle": "원클릭. 즉시 보상. 복사 붙여넣기 없음.",
+    "signInTitle": "기프트 코드 사용",
+    "signInDesc": "로그인하고 Kingshot 계정을 연결하여 원클릭으로 기프트 코드를 사용하세요.",
+    "signIn": "로그인",
+    "linkTitle": "먼저 계정을 연결하세요",
+    "linkDesc": "코드를 사용하려면 플레이어 ID가 필요합니다. 프로필 설정에서 Kingshot 계정을 연결하세요.",
+    "goToProfile": "프로필로 이동",
+    "redeemAll": "{{count}}개 코드 모두 사용",
+    "redeemingProgress": "사용 중... ({{done}}/{{total}})",
+    "allRedeemed": "{{count}}개 코드 모두 사용 완료",
+    "cooldown": "대기 — {{seconds}}초",
+    "rateLimitedTitle": "요청 제한",
+    "rateLimitedDesc": "요청이 너무 많습니다. 잠시 기다려주세요.",
+    "noCodesUnavailable": "지금 기프트 코드를 가져올 수 없습니다. 나중에 다시 시도하거나 코드를 직접 입력하세요.",
+    "noCodesEmpty": "현재 활성화된 기프트 코드가 없습니다. 나중에 다시 확인하세요!",
+    "redeem": "사용",
+    "retry": "재시도",
+    "expired": "만료됨",
+    "manualEntry": "코드 직접 입력",
+    "manualPlaceholder": "예: KINGSHOT2026",
+    "howItWorks": "사용 방법:",
+    "howItWorksDesc": "Atlas가 연결된 플레이어 ID를 사용하여 Century Games 공식 기프트 코드 서비스에 코드를 전송합니다. 보상은 게임 내 우편함으로 직접 전달됩니다.",
+    "rateLimit": "제한:",
+    "rateLimitDesc": "분당 10개 코드.",
+    "codesSourced": "코드 출처: {{source}}.",
+    "backToTools": "도구로 돌아가기"
   }
 }

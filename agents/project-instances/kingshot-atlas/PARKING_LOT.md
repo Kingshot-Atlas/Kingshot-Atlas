@@ -124,19 +124,13 @@
 
 ### Gift Code Extraction & Bulk Redemption
 **Parked:** 2026-01-29  
-**Proposed By:** Atlas Director (research request)  
-**Why Parked:** Auto-redemption may conflict with "not a bot/automation tool" values; manual redemption is safer  
-**Revisit When:** Clear user demand for gift code utilities, automation policy reviewed  
-**Description:** Extract active gift codes from `kingshot.net/api/gift-codes` and provide bulk redemption tools  
-**Technical Details:**  
-- ✅ Easy: Public JSON API at `https://kingshot.net/api/gift-codes` returns active codes
-- ⚠️ Complex: Redemption requires browser automation (Selenium) due to Century Games form-based system
-- 📊 Existing: Kingshot.net already has bulk redeem feature and API
-- 🎯 Recommendation: Build notification/display system, avoid full automation
-**Implementation Options:**  
-1. Gift Code Tracker (low risk) - Display active codes with Discord notifications
-2. Bulk Redeem Helper (medium risk) - Generate instructions, manual redemption
-3. Alliance Code Manager (premium) - Track member redemption status
+**Unparked:** 2026-02-12 — **IMPLEMENTED** as Gift Code Redeemer  
+**Route:** `/tools/gift-codes`  
+**Implementation:** Full proxy redemption via `POST /api/v1/player-link/redeem`. Active codes auto-fetched from kingshot.net. One-click redeem + "Redeem All" bulk. 10/min rate limit. Requires linked Kingshot account.  
+**Remaining Ideas (not yet built):**  
+1. Discord bot `/codes` slash command for code notifications
+2. Alliance Code Manager (premium) — track member redemption status
+3. Supporter early-access to new codes (30min head start)
 
 ---
 

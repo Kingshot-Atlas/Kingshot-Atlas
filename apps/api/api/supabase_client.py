@@ -799,6 +799,56 @@ def get_supporter_users_with_discord() -> list:
         return []
 
 
+def log_gift_code_redemption(
+    player_id: str,
+    code: str,
+    success: bool,
+    error_code: Optional[int] = None,
+    message: Optional[str] = None,
+    user_id: Optional[str] = None,
+    ip_address: Optional[str] = None,
+) -> bool:
+    """
+    Log a gift code redemption attempt to Supabase for analytics.
+    
+    Args:
+        player_id: Kingshot player ID
+        code: Gift code attempted
+        success: Whether redemption succeeded
+        error_code: Century Games error code (if failed)
+        message: Human-readable result message
+        user_id: Supabase user ID (if authenticated)
+        ip_address: Client IP address
+        
+    Returns:
+        True if logged successfully
+    """
+    client = get_supabase_admin()
+    if not client:
+        return False
+    
+    try:
+        data = {
+            "player_id": player_id,
+            "code": code,
+            "success": success,
+        }
+        if error_code is not None:
+            data["error_code"] = error_code
+        if message:
+            data["message"] = message
+        if user_id:
+            data["user_id"] = user_id
+        if ip_address:
+            data["ip_address"] = ip_address
+        
+        client.table("gift_code_redemptions").insert(data).execute()
+        return True
+    except Exception as e:
+        print(f"Error logging gift code redemption: {e}")
+        return False
+
+
 def get_users_with_linked_kingshot_and_discord() -> list:
     """
     Get all users who have both a linked Kingshot account AND a Discord account.

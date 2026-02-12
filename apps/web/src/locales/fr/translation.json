@@ -1615,5 +1615,33 @@
     "Bye": "Exempt",
     "byeDesc": "Pas d'adversaire ce tour",
     "noMatch": "Pas de match"
+  },
+  "giftCodes": {
+    "heroSubtitle": "Un clic. Récompenses instantanées. Sans copier-coller.",
+    "signInTitle": "Échangeur de Codes",
+    "signInDesc": "Connectez-vous et liez votre compte Kingshot pour échanger des codes cadeaux en un clic.",
+    "signIn": "Se Connecter",
+    "linkTitle": "Liez Votre Compte D'abord",
+    "linkDesc": "Pour échanger des codes, nous avons besoin de votre ID Joueur. Liez votre compte Kingshot dans les paramètres de votre profil.",
+    "goToProfile": "Aller au Profil",
+    "redeemAll": "Échanger les {{count}} Codes",
+    "redeemingProgress": "Échange en cours... ({{done}}/{{total}})",
+    "allRedeemed": "Les {{count}} Codes Échangés",
+    "cooldown": "Attente — {{seconds}}s",
+    "rateLimitedTitle": "Limite Atteinte",
+    "rateLimitedDesc": "Trop de requêtes. Veuillez patienter.",
+    "noCodesUnavailable": "Impossible de récupérer les codes pour le moment. Réessayez plus tard ou entrez un code manuellement.",
+    "noCodesEmpty": "Aucun code actif pour le moment. Revenez plus tard !",
+    "redeem": "Échanger",
+    "retry": "Réessayer",
+    "expired": "Expiré",
+    "manualEntry": "Entrer un Code Manuellement",
+    "manualPlaceholder": "ex. KINGSHOT2026",
+    "howItWorks": "Comment ça marche :",
+    "howItWorksDesc": "Atlas envoie le code au service officiel de Century Games en votre nom, en utilisant votre ID Joueur lié. Les récompenses vont directement dans votre boîte aux lettres en jeu.",
+    "rateLimit": "Limite :",
+    "rateLimitDesc": "10 codes par minute.",
+    "codesSourced": "Codes provenant de {{source}}.",
+    "backToTools": "Retour aux Outils"
   }
 }

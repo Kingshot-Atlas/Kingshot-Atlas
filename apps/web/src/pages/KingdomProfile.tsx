@@ -443,6 +443,7 @@ const KingdomProfile: React.FC = () => {
         recentRankChange={recentRankChange}
         isLinked={!!profile?.linked_username}
         managedBy={managedBy}
+        isKingdomEditor={isKingdomEditor}
         onStatusModalOpen={() => {
           if (!user) {
             showToast(t('kingdomProfile.signInToSubmit', 'Please sign in to submit status updates'), 'error');

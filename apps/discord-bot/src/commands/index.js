@@ -141,6 +141,11 @@ const commands = [
         .setMaxValue(10)
     ),
 
+  // /codes
+  new SlashCommandBuilder()
+    .setName('codes')
+    .setDescription('Show active Kingshot gift codes you can redeem right now'),
+
   // /help
   new SlashCommandBuilder()
     .setName('help')

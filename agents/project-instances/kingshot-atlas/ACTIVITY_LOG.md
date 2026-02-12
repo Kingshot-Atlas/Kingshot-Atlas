@@ -3,6 +3,48 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-12 09:51 | Product Engineer | COMPLETED
+Task: Gift Code Outcome Handling + KvK History Embed Fix + i18n + SEO
+Files: GiftCodeRedeemer.tsx, embeds.js (discord-bot), 9x translation.json, useMetaTags.ts, GiftCodeAnalyticsTab.tsx, AdminDashboard.tsx, admin/index.ts
+Changes:
+1. **Gift code outcomes:** Added outcome classification (success/expired/already_redeemed/invalid/retryable) with distinct visual states per outcome — green ✓ for success, yellow ✓ for already redeemed, red ⛔ for expired, red Retry for errors. Non-retryable codes skipped during "Redeem All". Backend err_code now stored and used for classification.
+2. **KvK history Discord embed:** Merged Matchup + Result into single-column rows (`— P:✅ B:✅`) for mobile-friendly display. Abbreviated Prep→P, Battle→B.
+3. **i18n:** Added giftCodes translation keys to all 9 languages (EN/ES/FR/ZH/DE/KO/JA/AR/TR). Wired into GiftCodeRedeemer.tsx.
+4. **SEO:** Added giftCodes entry to PAGE_META_TAGS with OG/Twitter meta.
+5. **Admin:** New GiftCodeAnalyticsTab (redemptions, success rate, top codes, daily chart).
+6. **Rate limit UX:** Live cooldown countdown timer + banner.
+7. **Expiration countdown:** Shows time remaining on codes expiring within 7 days.
+Result: Build passes. All changes deployed via git push.
+
+## 2026-02-12 13:00 | Product + Platform Engineer | COMPLETED
+Task: Gift Code System — Discord Bot + Auto-Post + Redemption Analytics
+Files: bot.js, commands/index.js, commands/handlers.js, utils/embeds.js, config.js, scheduler.js (Discord bot), player_link.py, supabase_client.py (backend), GiftCodeRedeemer.tsx (frontend)
+Changes:
+1. **Frontend fix:** Gift codes page now falls back to direct kingshot.net fetch when backend proxy returns 404 (pre-deployment resilience). Fixed parser for kingshot.net's actual `data.giftCodes[]` response format.
+2. **Backend fix:** Updated gift codes parser in player_link.py to handle kingshot.net's nested `{ data: { giftCodes: [...] } }` response.
+3. **Discord `/codes` command:** New slash command shows active gift codes with copy-friendly formatting, code age, and redeem links. Added to command registry, handler, embeds, help embed, presence rotation, and bot routing.
+4. **Gift codes auto-post:** Scheduler polls kingshot.net every 30 min. Seeds known codes on first run (no restart spam). Posts new codes to `#gift-codes` channel via `DISCORD_GIFT_CODES_WEBHOOK`. Prunes expired codes from memory.
+5. **Redemption analytics:** Created `gift_code_redemptions` Supabase table (RLS enabled, indexed on user_id/code/created_at). Backend logs every redemption attempt (success/failure, error code, user, IP) via fire-and-forget `log_gift_code_redemption()`.
+Result: Frontend build passes. Supabase migration applied. Bot requires `REGISTER_COMMANDS=1` + `DISCORD_GIFT_CODES_WEBHOOK` env vars on next deploy.
+
+## 2026-02-12 08:30 | Product + Platform Engineer | COMPLETED
+Task: Gift Code Redeemer — One-Click Redemption Tool
+Files: player_link.py (backend), GiftCodeRedeemer.tsx (new), App.tsx, Tools.tsx, translation.json
+Changes:
+1. **Backend:** Added `POST /api/v1/player-link/redeem` endpoint — proxies gift code redemption to Century Games API. Rate limited 10/min per IP. Error code mapping for all known responses (success, expired, already redeemed, invalid, etc.). Added `GET /api/v1/player-link/gift-codes` to fetch active codes from kingshot.net.
+2. **Frontend:** New `/tools/gift-codes` page with: active codes auto-fetched (15min cache), one-click redeem per code, "Redeem All" bulk button with 1.5s delay between codes, manual code entry, player info pill, rate limit cooldown handling, loading/success/error states per code.
+3. **Routing:** Added lazy-loaded route in App.tsx. Updated Tools page card from "Coming Soon" to live link.
+4. **Guards:** Requires login + linked Kingshot account. Shows contextual prompts for both states.
+Result: Build passes. Frontend bundle: 10.86 kB code-split chunk.
+
+## 2026-02-11 22:31 | Product Engineer | COMPLETED
+Task: Editor Experience Polish — Status Indicator + Audit Trail
+Files: KingdomHeader.tsx, KingdomProfile.tsx, RecruiterDashboard.tsx
+Changes:
+1. **"You can update this" indicator:** Pencil icon + text shown next to Transfer Status badge on Kingdom Profile when viewer is an active editor/co-editor. Clicks open status modal.
+2. **Transfer Status change history:** Audit trail section at bottom of Recruiter Dashboard Profile tab. Shows old→new status, submitter name, date, approval status. Lazy-loaded on tab switch.
+Result: Build passes. Both UX enhancements live.
+
 ## 2026-02-11 22:05 | Product + Platform Engineer | COMPLETED
 Task: Treasury Fund Priority + Editor Transfer Status Control + Explorer Role Auto-Assign
 Files: TransferBoard.tsx, KingdomProfile.tsx, EditorClaiming.tsx (rollback), apps/discord-bot/src/bot.js

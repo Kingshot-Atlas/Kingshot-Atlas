@@ -1615,5 +1615,33 @@
     "Bye": "Bye",
     "byeDesc": "Bu turda rakip yok",
     "noMatch": "Eşleşme yok"
+  },
+  "giftCodes": {
+    "heroSubtitle": "Tek tık. Anında ödüller. Kopyala-yapıştır yok.",
+    "signInTitle": "Hediye Kodu Kullanıcı",
+    "signInDesc": "Giriş yapın ve Kingshot hesabınızı bağlayarak hediye kodlarını tek tıkla kullanın.",
+    "signIn": "Giriş Yap",
+    "linkTitle": "Önce Hesabınızı Bağlayın",
+    "linkDesc": "Kodları kullanmak için Oyuncu ID'nize ihtiyacımız var. Profil ayarlarınızdan Kingshot hesabınızı bağlayın.",
+    "goToProfile": "Profile Git",
+    "redeemAll": "Tüm {{count}} Kodu Kullan",
+    "redeemingProgress": "Kullanılıyor... ({{done}}/{{total}})",
+    "allRedeemed": "Tüm {{count}} Kod Kullanıldı",
+    "cooldown": "Bekleme — {{seconds}}sn",
+    "rateLimitedTitle": "Hız Sınırı",
+    "rateLimitedDesc": "Çok fazla istek. Lütfen bekleyin.",
+    "noCodesUnavailable": "Hediye kodları şu anda alınamıyor. Daha sonra tekrar deneyin veya manuel olarak kod girin.",
+    "noCodesEmpty": "Şu anda aktif hediye kodu yok. Daha sonra tekrar kontrol edin!",
+    "redeem": "Kullan",
+    "retry": "Tekrar Dene",
+    "expired": "Süresi Dolmuş",
+    "manualEntry": "Manuel Kod Girişi",
+    "manualPlaceholder": "ör. KINGSHOT2026",
+    "howItWorks": "Nasıl çalışır:",
+    "howItWorksDesc": "Atlas, bağlı Oyuncu ID'nizi kullanarak kodu sizin adınıza Century Games'in resmi hediye kodu servisine gönderir. Ödüller doğrudan oyun içi posta kutunuza gider.",
+    "rateLimit": "Hız sınırı:",
+    "rateLimitDesc": "Dakikada 10 kod.",
+    "codesSourced": "Kodların kaynağı: {{source}}.",
+    "backToTools": "Araçlara Dön"
   }
 }

@@ -1614,6 +1614,34 @@
     "Comeback": "Aufholjagd",
     "Bye": "Freilos",
     "byeDesc": "Kein Gegner in dieser Runde",
-    "noMatch": "Kein Kampf"
+    "noMatch": "Kein Spiel"
+  },
+  "giftCodes": {
+    "heroSubtitle": "Ein Klick. Sofortige Belohnungen. Kein Kopieren nötig.",
+    "signInTitle": "Geschenkcode-Einlöser",
+    "signInDesc": "Melde dich an und verknüpfe dein Kingshot-Konto, um Geschenkcodes mit einem Klick einzulösen.",
+    "signIn": "Anmelden",
+    "linkTitle": "Verknüpfe Zuerst Dein Konto",
+    "linkDesc": "Zum Einlösen von Codes brauchen wir deine Spieler-ID. Verknüpfe dein Kingshot-Konto in deinen Profileinstellungen.",
+    "goToProfile": "Zum Profil",
+    "redeemAll": "Alle {{count}} Codes Einlösen",
+    "redeemingProgress": "Einlösen... ({{done}}/{{total}})",
+    "allRedeemed": "Alle {{count}} Codes Eingelöst",
+    "cooldown": "Abklingzeit — {{seconds}}s",
+    "rateLimitedTitle": "Limit Erreicht",
+    "rateLimitedDesc": "Zu viele Anfragen. Bitte warten.",
+    "noCodesUnavailable": "Geschenkcodes konnten nicht abgerufen werden. Versuche es später oder gib einen Code manuell ein.",
+    "noCodesEmpty": "Derzeit keine aktiven Geschenkcodes. Schau später nochmal!",
+    "redeem": "Einlösen",
+    "retry": "Wiederholen",
+    "expired": "Abgelaufen",
+    "manualEntry": "Code Manuell Eingeben",
+    "manualPlaceholder": "z.B. KINGSHOT2026",
+    "howItWorks": "So funktioniert's:",
+    "howItWorksDesc": "Atlas sendet den Code in deinem Namen an den offiziellen Century Games Geschenkcode-Service mit deiner verknüpften Spieler-ID. Belohnungen gehen direkt in dein Spielpostfach.",
+    "rateLimit": "Limit:",
+    "rateLimitDesc": "10 Codes pro Minute.",
+    "codesSourced": "Codes von {{source}}.",
+    "backToTools": "Zurück zu Werkzeugen"
   }
 }

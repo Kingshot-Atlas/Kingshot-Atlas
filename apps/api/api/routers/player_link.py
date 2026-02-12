@@ -17,6 +17,7 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 from slowapi import Limiter
 from slowapi.util import get_remote_address
+from api.supabase_client import log_gift_code_redemption
 
 router = APIRouter()
 
@@ -37,6 +38,20 @@ limiter = Limiter(key_func=get_remote_address)
 class PlayerVerifyRequest(BaseModel):
     """Request model for player verification"""
     player_id: str = Field(..., min_length=6, max_length=20, pattern=r"^\d+$")
+
+
+class GiftCodeRedeemRequest(BaseModel):
+    """Request model for gift code redemption"""
+    player_id: str = Field(..., min_length=6, max_length=20, pattern=r"^\d+$")
+    code: str = Field(..., min_length=3, max_length=50)
+
+
+class GiftCodeRedeemResponse(BaseModel):
+    """Response model for gift code redemption"""
+    success: bool
+    message: str
+    code: str
+    err_code: int | None = None
 
 
 class PlayerProfileResponse(BaseModel):
@@ -211,3 +226,129 @@ async def refresh_player(request: Request, body: PlayerVerifyRequest):
         town_center_level=int(player_data.get("stove_lv", 0)),
         verified=True
     )
+
+
+# Gift code error code mapping
+GIFT_CODE_MESSAGES = {
+    20000: ("Success! Rewards sent to your in-game mailbox.", True),
+    40005: ("This code has already been fully used.", False),
+    40007: ("This code has expired.", False),
+    40008: ("You've already redeemed this code.", False),
+    40011: ("You've already redeemed this code.", False),
+    40014: ("Invalid code — code not found.", False),
+    40101: ("Too many attempts. Wait a moment and try again.", False),
+    40103: ("Verification failed. Please try again.", False),
+}
+
+
+@router.post(
+    "/redeem",
+    response_model=GiftCodeRedeemResponse,
+    summary="Redeem a Gift Code",
+    description="Redeem a Kingshot gift code for a linked player account. Rate limited to prevent abuse."
+)
+@limiter.limit("10/minute")
+async def redeem_gift_code(request: Request, body: GiftCodeRedeemRequest):
+    """
+    Proxy gift code redemption through Century Games API.
+    
+    Rate limited to 10 redemptions per minute per IP.
+    This is a convenience proxy — the user's game client would do the same thing.
+    """
+    timestamp = str(int(time.time() * 1000))
+    params = {"fid": body.player_id, "cdk": body.code, "time": timestamp}
+    params["sign"] = generate_signature({"fid": body.player_id, "cdk": body.code, "time": timestamp})
+    
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        try:
+            response = await client.post(
+                f"{KINGSHOT_API_BASE}/gift_code",
+                data=params,
+                headers={
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "Accept": "application/json",
+                }
+            )
+            data = response.json()
+            err_code = data.get("err_code", data.get("code", -1))
+            
+            # Map known error codes to messages
+            if err_code in GIFT_CODE_MESSAGES:
+                message, success = GIFT_CODE_MESSAGES[err_code]
+            elif err_code == 0 or data.get("msg") == "success":
+                message, success = GIFT_CODE_MESSAGES[20000]
+            else:
+                message = data.get("msg", "Unknown error occurred.")
+                success = False
+            
+            # Fire-and-forget analytics logging
+            try:
+                client_ip = get_remote_address(request)
+                # Extract user_id from Authorization header if present
+                auth_header = request.headers.get("authorization", "")
+                req_user_id = request.headers.get("x-user-id") if auth_header.startswith("Bearer ") else None
+                log_gift_code_redemption(
+                    player_id=body.player_id,
+                    code=body.code,
+                    success=success,
+                    error_code=err_code if not success else None,
+                    message=message,
+                    user_id=req_user_id,
+                    ip_address=client_ip,
+                )
+            except Exception:
+                pass  # Never block on analytics
+            
+            return GiftCodeRedeemResponse(
+                success=success,
+                message=message,
+                code=body.code,
+                err_code=err_code if not success else None
+            )
+            
+        except httpx.TimeoutException:
+            raise HTTPException(
+                status_code=504,
+                detail={"error": "Century Games API timeout", "code": "UPSTREAM_TIMEOUT"}
+            )
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 429:
+                raise HTTPException(
+                    status_code=429,
+                    detail={"error": "Rate limited by Century Games. Try again in 30 seconds.", "code": "RATE_LIMITED"}
+                )
+            raise HTTPException(
+                status_code=502,
+                detail={"error": "Century Games API error", "code": "UPSTREAM_ERROR"}
+            )
+
+
+@router.get(
+    "/gift-codes",
+    summary="Fetch Active Gift Codes",
+    description="Fetch currently active Kingshot gift codes from public sources."
+)
+@limiter.limit("30/minute")
+async def get_active_gift_codes(request: Request):
+    """
+    Fetch active gift codes from kingshot.net public API.
+    Cached on the client side — frontend should cache for 15 minutes.
+    """
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        try:
+            response = await client.get(
+                "https://kingshot.net/api/gift-codes",
+                headers={"Accept": "application/json"},
+            )
+            response.raise_for_status()
+            data = response.json()
+            # kingshot.net returns { status, data: { giftCodes: [...] }, ... }
+            if isinstance(data, dict) and "data" in data and isinstance(data["data"], dict):
+                codes = data["data"].get("giftCodes", [])
+            elif isinstance(data, list):
+                codes = data
+            else:
+                codes = data.get("codes", data.get("giftCodes", []))
+            return {"codes": codes, "source": "kingshot.net"}
+        except Exception:
+            return {"codes": [], "source": "unavailable"}

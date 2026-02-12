@@ -354,7 +354,11 @@ function createHelpEmbed() {
         value: '`/multirally <target> <players>` - Coordinate rally timing',
       },
       {
-        name: '🌐 Links',
+        name: '� Gift Codes',
+        value: '`/codes` - Show active gift codes to redeem',
+      },
+      {
+        name: '�🌐 Links',
         value: [
           `[Website](${config.urls.base})`,
           `[Rankings](${config.urls.rankings})`,
@@ -775,31 +779,19 @@ function createHistoryEmbed(kingdom, page = 1) {
     const safePage = Math.min(Math.max(page, 1), totalPages);
     const pageItems = sorted.slice((safePage - 1) * perPage, safePage * perPage);
 
-    // Build two-column layout
-    const matchups = pageItems.map((kvk) => {
+    // Single-column layout: Matchup | Result per row (mobile-friendly)
+    const rows = pageItems.map((kvk) => {
       const num = kvk.kvk_number ? `KvK #${kvk.kvk_number}` : `#${kvk.order_index}`;
       const opponent = kvk.opponent_kingdom ? `vs K${kvk.opponent_kingdom}` : '';
-      return `\u2796 **${num}** ${opponent}`;
-    });
-
-    const results = pageItems.map((kvk) => {
       const prep = resultEmoji(kvk.prep_result);
       const battle = resultEmoji(kvk.battle_result);
-      return `Prep: ${prep}  Battle: ${battle}`;
+      return `\u2796 **${num}** ${opponent} — P:${prep} B:${battle}`;
     });
 
-    embed.addFields(
-      {
-        name: 'Matchup',
-        value: matchups.join('\n'),
-        inline: true,
-      },
-      {
-        name: 'Result',
-        value: results.join('\n'),
-        inline: true,
-      }
-    );
+    embed.addFields({
+      name: 'Matchup \u2502 Result',
+      value: rows.join('\n'),
+    });
 
     if (totalPages > 1) {
       embed.setDescription(`Page ${safePage} of ${totalPages}`);
@@ -1017,6 +1009,77 @@ function createMultirallyHelpEmbed() {
     .setTimestamp();
 }
 
+/**
+ * Create gift codes embed
+ * Shows active gift codes with copy-friendly formatting
+ */
+function createGiftCodesEmbed(codes) {
+  const embed = createBaseEmbed()
+    .setTitle('🎁 Active Gift Codes')
+    .setColor(0xf59e0b);
+
+  if (!codes || codes.length === 0) {
+    embed.setDescription('No active gift codes right now. Check back later!');
+  } else {
+    const codeLines = codes.map((c, i) => {
+      const age = c.createdAt ? getCodeAge(c.createdAt) : '';
+      return `**${i + 1}.** \`${c.code}\`${age ? ` — *${age}*` : ''}`;
+    });
+
+    embed.setDescription([
+      codeLines.join('\n'),
+      '',
+      '**How to redeem:**',
+      `🌐 One-click redeem: [ks-atlas.com/tools/gift-codes](${config.urls.base}/tools/gift-codes)`,
+      '📱 In-game: Settings → Gift Code → paste code',
+    ].join('\n'));
+
+    // Copy-friendly block
+    const copyBlock = codes.map(c => c.code).join('\n');
+    embed.addFields({
+      name: '📋 Copy All Codes',
+      value: `\`\`\`\n${copyBlock}\n\`\`\``,
+    });
+  }
+
+  embed.setFooter({ text: `${config.bot.footerText} • Source: kingshot.net` });
+  embed.setTimestamp();
+  return embed;
+}
+
+/**
+ * Create gift codes notification embed for auto-posting new codes
+ */
+function createNewGiftCodeEmbed(code) {
+  return createBaseEmbed()
+    .setTitle('🎁 New Gift Code!')
+    .setColor(0xf59e0b)
+    .setDescription([
+      `A new gift code has been detected:`,
+      '',
+      `## \`${code.code}\``,
+      '',
+      `🌐 **[Redeem on Atlas](${config.urls.base}/tools/gift-codes)** — one click, instant rewards`,
+      '📱 Or in-game: Settings → Gift Code → paste code',
+    ].join('\n'))
+    .setFooter({ text: `${config.bot.footerText} • Source: kingshot.net` })
+    .setTimestamp();
+}
+
+/**
+ * Get human-readable age of a code
+ */
+function getCodeAge(createdAt) {
+  const created = new Date(createdAt);
+  const now = new Date();
+  const diffMs = now - created;
+  const hours = Math.floor(diffMs / (1000 * 60 * 60));
+  const days = Math.floor(hours / 24);
+  if (days > 0) return `${days}d ago`;
+  if (hours > 0) return `${hours}h ago`;
+  return 'just now';
+}
+
 module.exports = {
   getTier,
   getTierColor,
@@ -1044,4 +1107,6 @@ module.exports = {
   createPredictEmbed,
   createMultirallyUpsellEmbed,
   createMultirallyHelpEmbed,
+  createGiftCodesEmbed,
+  createNewGiftCodeEmbed,
 };

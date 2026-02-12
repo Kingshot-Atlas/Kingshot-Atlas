@@ -79,6 +79,21 @@ function initScheduler(client) {
 
   console.log('✅ Scheduled: Castle Battle end announcements (18:00 UTC Saturdays)');
 
+  // Gift code check every 30 minutes
+  cron.schedule('*/30 * * * *', async () => {
+    console.log('⏰ Checking for new gift codes...');
+    await checkAndPostNewGiftCodes();
+  }, {
+    timezone: 'UTC'
+  });
+
+  // Log webhook status for gift codes
+  if (config.giftCodesWebhook) {
+    console.log('✅ Scheduled: Gift code checks every 30 minutes');
+  } else {
+    console.warn('⚠️ DISCORD_GIFT_CODES_WEBHOOK not set - gift code auto-posting disabled');
+  }
+
   // Note: Immediate test runs on startup if webhook is configured
 }
 
@@ -347,6 +362,96 @@ async function postTestMessage() {
   }
 }
 
+// ============================================================================
+// GIFT CODE AUTO-POSTING
+// Polls kingshot.net every 30 min, posts new codes to #gift-codes channel
+// ============================================================================
+
+// Track known codes to detect new ones (persists in memory across checks)
+let knownGiftCodes = new Set();
+let giftCodeInitialized = false;
+
+/**
+ * Check for new gift codes and post to Discord if found
+ */
+async function checkAndPostNewGiftCodes() {
+  if (!config.giftCodesWebhook) return;
+
+  try {
+    const response = await fetch('https://kingshot.net/api/gift-codes', {
+      headers: { 'Accept': 'application/json' },
+      signal: AbortSignal.timeout(10000),
+    });
+
+    if (!response.ok) {
+      console.warn(`⚠️ Gift code fetch failed: ${response.status}`);
+      return;
+    }
+
+    const data = await response.json();
+    const codes = data?.data?.giftCodes || [];
+    const activeCodes = codes.filter(c => !c.is_expired && c.code);
+
+    if (!giftCodeInitialized) {
+      // First run: seed known codes without posting (avoid spam on restart)
+      activeCodes.forEach(c => knownGiftCodes.add(c.code));
+      giftCodeInitialized = true;
+      console.log(`🎁 Gift code tracker initialized with ${knownGiftCodes.size} known codes`);
+      return;
+    }
+
+    // Check for new codes
+    const newCodes = activeCodes.filter(c => !knownGiftCodes.has(c.code));
+
+    if (newCodes.length > 0) {
+      console.log(`🎁 ${newCodes.length} new gift code(s) detected!`);
+
+      for (const code of newCodes) {
+        knownGiftCodes.add(code.code);
+
+        const embed = embeds.createNewGiftCodeEmbed(code);
+
+        try {
+          const postResponse = await fetch(config.giftCodesWebhook, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              username: 'Atlas Gift Codes',
+              avatar_url: config.botAvatarUrl,
+              embeds: [embed.toJSON()],
+            }),
+          });
+
+          if (postResponse.ok) {
+            console.log(`✅ Posted new gift code: ${code.code}`);
+          } else {
+            console.error(`❌ Failed to post gift code ${code.code}: ${postResponse.status}`);
+          }
+        } catch (postError) {
+          console.error(`❌ Error posting gift code ${code.code}:`, postError.message);
+        }
+
+        // Small delay between posts to avoid webhook rate limits
+        if (newCodes.indexOf(code) < newCodes.length - 1) {
+          await new Promise(r => setTimeout(r, 1000));
+        }
+      }
+    } else {
+      console.log(`🎁 No new gift codes (${knownGiftCodes.size} known)`);
+    }
+
+    // Prune expired codes from known set
+    const activeCodeSet = new Set(activeCodes.map(c => c.code));
+    for (const known of knownGiftCodes) {
+      if (!activeCodeSet.has(known)) {
+        knownGiftCodes.delete(known);
+      }
+    }
+  } catch (error) {
+    console.error('❌ Error checking gift codes:', error.message);
+  }
+}
+
 module.exports = {
   initScheduler,
   triggerDailyUpdate,
@@ -355,4 +460,5 @@ module.exports = {
   getCurrentKvkInfo,
   postCastleBattleStartAnnouncement,
   postKvkBattleEndAnnouncement,
+  checkAndPostNewGiftCodes,
 };

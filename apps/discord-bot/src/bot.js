@@ -96,6 +96,7 @@ const presenceMessages = [
   '/predict | Matchup predictions',
   '/rankings | Top kingdoms',
   '/countdownkvk | Next KvK',
+  '/codes | Active gift codes',
 ];
 let presenceIndex = 0;
 let presenceTimer = null;
@@ -829,6 +830,9 @@ client.on('interactionCreate', async (interaction) => {
         break;
       case 'help':
         await handlers.handleHelp(interaction);
+        break;
+      case 'codes':
+        await handlers.handleCodes(interaction);
         break;
       case 'stats':
         await handlers.handleStats(interaction);

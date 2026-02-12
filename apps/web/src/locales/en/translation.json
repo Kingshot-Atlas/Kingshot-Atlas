@@ -248,7 +248,7 @@
     "calcDesc": "Resource planners, upgrade costs, speedup estimates. Math so you don't have to.",
     "calcTagline": "Calculate smarter. Grow faster.",
     "giftTitle": "Gift Code Redeemer",
-    "giftDesc": "Bulk redeem gift codes across all your accounts. One click. Multiple accounts. Zero hassle.",
+    "giftDesc": "Redeem gift codes with one click. No copy-pasting. Rewards go straight to your mailbox.",
     "giftTagline": "Stop typing. Start claiming."
   },
   "about": {
@@ -1635,5 +1635,33 @@
     "Bye": "Bye",
     "byeDesc": "No opponent this round",
     "noMatch": "No match"
+  },
+  "giftCodes": {
+    "heroSubtitle": "One click. Instant rewards. No copy-pasting.",
+    "signInTitle": "Gift Code Redeemer",
+    "signInDesc": "Sign in and link your Kingshot account to redeem gift codes with one click.",
+    "signIn": "Sign In",
+    "linkTitle": "Link Your Account First",
+    "linkDesc": "To redeem codes, we need your Player ID. Link your Kingshot account in your profile settings.",
+    "goToProfile": "Go to Profile",
+    "redeemAll": "Redeem All {{count}} Codes",
+    "redeemingProgress": "Redeeming... ({{done}}/{{total}})",
+    "allRedeemed": "All {{count}} Codes Redeemed",
+    "cooldown": "Cooldown — {{seconds}}s",
+    "rateLimitedTitle": "Rate Limited",
+    "rateLimitedDesc": "Too many requests. Please wait.",
+    "noCodesUnavailable": "Could not fetch gift codes right now. Try again later or enter a code manually below.",
+    "noCodesEmpty": "No active gift codes found right now. Check back later!",
+    "redeem": "Redeem",
+    "retry": "Retry",
+    "expired": "Expired",
+    "manualEntry": "Enter a Code Manually",
+    "manualPlaceholder": "e.g. KINGSHOT2026",
+    "howItWorks": "How it works:",
+    "howItWorksDesc": "Atlas sends the code to Century Games' official gift code service on your behalf, using your linked Player ID. Rewards go straight to your in-game mailbox.",
+    "rateLimit": "Rate limit:",
+    "rateLimitDesc": "10 codes per minute.",
+    "codesSourced": "Codes sourced from {{source}}.",
+    "backToTools": "Back to Tools"
   }
 }

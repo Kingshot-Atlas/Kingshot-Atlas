@@ -1615,5 +1615,33 @@
     "Bye": "Descanso",
     "byeDesc": "Sin oponente en esta ronda",
     "noMatch": "Sin enfrentamiento"
+  },
+  "giftCodes": {
+    "heroSubtitle": "Un clic. Recompensas instantáneas. Sin copiar y pegar.",
+    "signInTitle": "Canjeador de Códigos",
+    "signInDesc": "Inicia sesión y vincula tu cuenta de Kingshot para canjear códigos de regalo con un clic.",
+    "signIn": "Iniciar Sesión",
+    "linkTitle": "Vincula Tu Cuenta Primero",
+    "linkDesc": "Para canjear códigos, necesitamos tu ID de Jugador. Vincula tu cuenta de Kingshot en la configuración de tu perfil.",
+    "goToProfile": "Ir al Perfil",
+    "redeemAll": "Canjear los {{count}} Códigos",
+    "redeemingProgress": "Canjeando... ({{done}}/{{total}})",
+    "allRedeemed": "Los {{count}} Códigos Canjeados",
+    "cooldown": "Espera — {{seconds}}s",
+    "rateLimitedTitle": "Límite Alcanzado",
+    "rateLimitedDesc": "Demasiadas solicitudes. Por favor espera.",
+    "noCodesUnavailable": "No se pudieron obtener los códigos ahora. Intenta más tarde o ingresa un código manualmente.",
+    "noCodesEmpty": "No hay códigos activos en este momento. ¡Vuelve más tarde!",
+    "redeem": "Canjear",
+    "retry": "Reintentar",
+    "expired": "Expirado",
+    "manualEntry": "Ingresar un Código Manualmente",
+    "manualPlaceholder": "ej. KINGSHOT2026",
+    "howItWorks": "¿Cómo funciona?",
+    "howItWorksDesc": "Atlas envía el código al servicio oficial de Century Games en tu nombre, usando tu ID de Jugador vinculado. Las recompensas van directo a tu buzón del juego.",
+    "rateLimit": "Límite:",
+    "rateLimitDesc": "10 códigos por minuto.",
+    "codesSourced": "Códigos obtenidos de {{source}}.",
+    "backToTools": "Volver a Herramientas"
   }
 }

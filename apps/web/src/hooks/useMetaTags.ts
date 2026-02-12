@@ -225,6 +225,12 @@ export const PAGE_META_TAGS = {
     description: 'Submit KvK results and kingdom data to Kingshot Atlas. Help build the most accurate Kingshot database. Community-powered accuracy.',
     url: 'https://ks-atlas.com/contribute-data',
     type: 'website'
+  },
+  giftCodes: {
+    title: 'Kingshot Gift Code Redeemer - One Click Redemption',
+    description: 'Redeem Kingshot gift codes instantly with one click. No copy-pasting — rewards go straight to your in-game mailbox. Free tool by Kingshot Atlas.',
+    url: 'https://ks-atlas.com/tools/gift-codes',
+    type: 'website'
   }
 } as const satisfies Record<string, MetaTagsOptions>;
 

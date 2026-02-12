@@ -19,6 +19,7 @@ module.exports = {
   // Webhooks
   patchNotesWebhook: process.env.DISCORD_PATCH_NOTES_WEBHOOK,
   announcementsWebhook: process.env.DISCORD_ANNOUNCEMENTS_WEBHOOK,
+  giftCodesWebhook: process.env.DISCORD_GIFT_CODES_WEBHOOK,
 
   // API - MUST point to the backend API, not frontend
   apiUrl: process.env.API_URL || 'https://kingshot-atlas.onrender.com',

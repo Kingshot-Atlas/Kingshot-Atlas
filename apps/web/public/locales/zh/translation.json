@@ -1615,5 +1615,33 @@
     "Bye": "轮空",
     "byeDesc": "本轮无对手",
     "noMatch": "无对战"
+  },
+  "giftCodes": {
+    "heroSubtitle": "一键领取。即时奖励。无需复制粘贴。",
+    "signInTitle": "礼品码兑换",
+    "signInDesc": "登录并绑定你的Kingshot账号，一键兑换礼品码。",
+    "signIn": "登录",
+    "linkTitle": "请先绑定账号",
+    "linkDesc": "兑换礼品码需要你的玩家ID。请在个人资料设置中绑定你的Kingshot账号。",
+    "goToProfile": "前往个人资料",
+    "redeemAll": "兑换全部 {{count}} 个码",
+    "redeemingProgress": "兑换中... ({{done}}/{{total}})",
+    "allRedeemed": "全部 {{count}} 个码已兑换",
+    "cooldown": "冷却中 — {{seconds}}秒",
+    "rateLimitedTitle": "请求过多",
+    "rateLimitedDesc": "请求太频繁，请稍候。",
+    "noCodesUnavailable": "暂时无法获取礼品码。请稍后再试或手动输入。",
+    "noCodesEmpty": "目前没有可用的礼品码。请稍后再来！",
+    "redeem": "兑换",
+    "retry": "重试",
+    "expired": "已过期",
+    "manualEntry": "手动输入礼品码",
+    "manualPlaceholder": "例如 KINGSHOT2026",
+    "howItWorks": "使用说明：",
+    "howItWorksDesc": "Atlas代您向Century Games官方礼品码服务发送兑换请求，使用您绑定的玩家ID。奖励将直接发送到您的游戏邮箱。",
+    "rateLimit": "频率限制：",
+    "rateLimitDesc": "每分钟10个码。",
+    "codesSourced": "码来源：{{source}}。",
+    "backToTools": "返回工具"
   }
 }

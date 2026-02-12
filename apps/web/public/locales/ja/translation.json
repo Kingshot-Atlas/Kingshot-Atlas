@@ -1615,5 +1615,33 @@
     "Bye": "不戦勝",
     "byeDesc": "このラウンドの対戦相手なし",
     "noMatch": "対戦なし"
+  },
+  "giftCodes": {
+    "heroSubtitle": "ワンクリック。即座に報酬。コピペ不要。",
+    "signInTitle": "ギフトコード交換",
+    "signInDesc": "ログインしてKingshotアカウントをリンクすると、ワンクリックでギフトコードを使用できます。",
+    "signIn": "ログイン",
+    "linkTitle": "まずアカウントをリンク",
+    "linkDesc": "コードを使用するにはプレイヤーIDが必要です。プロフィール設定でKingshotアカウントをリンクしてください。",
+    "goToProfile": "プロフィールへ",
+    "redeemAll": "全{{count}}コードを使用",
+    "redeemingProgress": "使用中... ({{done}}/{{total}})",
+    "allRedeemed": "全{{count}}コード使用完了",
+    "cooldown": "クールダウン — {{seconds}}秒",
+    "rateLimitedTitle": "レート制限",
+    "rateLimitedDesc": "リクエストが多すぎます。お待ちください。",
+    "noCodesUnavailable": "現在ギフトコードを取得できません。後で再試行するか、手動でコードを入力してください。",
+    "noCodesEmpty": "現在有効なギフトコードはありません。後で確認してください！",
+    "redeem": "使用",
+    "retry": "再試行",
+    "expired": "期限切れ",
+    "manualEntry": "コードを手動入力",
+    "manualPlaceholder": "例: KINGSHOT2026",
+    "howItWorks": "仕組み：",
+    "howItWorksDesc": "AtlasがリンクされたプレイヤーIDを使用して、Century Games公式ギフトコードサービスにコードを送信します。報酬はゲーム内メールボックスに直接届きます。",
+    "rateLimit": "レート制限：",
+    "rateLimitDesc": "1分あたり10コード。",
+    "codesSourced": "コード提供元：{{source}}。",
+    "backToTools": "ツールに戻る"
   }
 }

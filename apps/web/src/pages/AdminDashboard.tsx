@@ -38,6 +38,7 @@ import {
   KvKErrorsTab,
   TransferStatusTab,
   BotTelemetryTab,
+  GiftCodeAnalyticsTab,
   SkeletonGrid,
   type Submission,
   type Claim,
@@ -55,7 +56,7 @@ const AdminDashboard: React.FC = () => {
   const { showToast } = useToast();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [activeTab, setActiveTab] = useState<'analytics' | 'saas-metrics' | 'engagement' | 'webhooks' | 'data-sources' | 'discord-bot' | 'discord-roles' | 'referrals' | 'submissions' | 'new-kingdoms' | 'claims' | 'corrections' | 'kvk-errors' | 'import' | 'plausible' | 'transfer-status' | 'transfer-apps' | 'transfer-hub' | 'feedback' | 'email' | 'bot-telemetry'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'saas-metrics' | 'engagement' | 'webhooks' | 'data-sources' | 'discord-bot' | 'discord-roles' | 'referrals' | 'submissions' | 'new-kingdoms' | 'claims' | 'corrections' | 'kvk-errors' | 'import' | 'plausible' | 'transfer-status' | 'transfer-apps' | 'transfer-hub' | 'feedback' | 'email' | 'bot-telemetry' | 'gift-codes'>('analytics');
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [claims, setClaims] = useState<Claim[]>([]);
   const [transferSubmissions, setTransferSubmissions] = useState<StatusSubmission[]>([]);
@@ -1831,6 +1832,7 @@ const AdminDashboard: React.FC = () => {
           { id: 'referrals', label: 'Referrals', count: 0 },
           { id: 'webhooks', label: 'Webhooks', count: 0 },
           { id: 'data-sources', label: 'Data Sources', count: 0 },
+          { id: 'gift-codes', label: 'Gift Codes', count: 0 },
           { id: 'import', label: 'Import', count: 0 }
         ].map(tab => (
           <button
@@ -2007,6 +2009,8 @@ const AdminDashboard: React.FC = () => {
         <EmailTab />
       ) : activeTab === 'bot-telemetry' ? (
         <BotTelemetryTab />
+      ) : activeTab === 'gift-codes' ? (
+        <GiftCodeAnalyticsTab />
       ) : activeTab === 'plausible' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           <div style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', border: '1px solid #2a2a2a' }}>

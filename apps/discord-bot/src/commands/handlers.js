@@ -512,6 +512,41 @@ async function handleMultirally(interaction) {
   return interaction.reply({ embeds: [embed], ephemeral: true });
 }
 
+/**
+ * /codes — Show active gift codes
+ */
+async function handleCodes(interaction) {
+  await interaction.deferReply();
+
+  try {
+    const response = await fetch('https://kingshot.net/api/gift-codes', {
+      headers: { 'Accept': 'application/json' },
+      signal: AbortSignal.timeout(10000),
+    });
+
+    if (!response.ok) {
+      const errorEmbed = embeds.createErrorEmbed(
+        'Could not fetch gift codes.',
+        'The code source is temporarily unavailable. Try again later.'
+      );
+      return interaction.editReply({ embeds: [errorEmbed] });
+    }
+
+    const data = await response.json();
+    const codes = data?.data?.giftCodes || [];
+    const activeCodes = codes.filter(c => !c.is_expired);
+
+    const embed = embeds.createGiftCodesEmbed(activeCodes);
+    return interaction.editReply({ embeds: [embed] });
+  } catch (error) {
+    const errorEmbed = embeds.createErrorEmbed(
+      'Failed to fetch gift codes.',
+      error.message || 'Unknown error'
+    );
+    return interaction.editReply({ embeds: [errorEmbed] });
+  }
+}
+
 module.exports = {
   handleKingdom,
   handleCompare,
@@ -524,4 +559,5 @@ module.exports = {
   handleHistory,
   handlePredict,
   handleMultirally,
+  handleCodes,
 };

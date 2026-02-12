@@ -539,6 +539,8 @@ const RecruiterDashboard: React.FC<{
     return !localStorage.getItem('atlas_recruiter_onboarded');
   });
   const [processingRequest, setProcessingRequest] = useState<string | null>(null);
+  const [statusHistory, setStatusHistory] = useState<Array<{ id: string; old_status: string; new_status: string; submitted_at: string; status: string; submitted_by: string; submitter_name?: string }>>([]);
+  const [loadingStatusHistory, setLoadingStatusHistory] = useState(false);
 
   useEffect(() => {
     loadDashboard();
@@ -555,6 +557,13 @@ const RecruiterDashboard: React.FC<{
   useEffect(() => {
     if (activeTab === 'fund' && editorInfo && contributions.length === 0) {
       loadContributions();
+    }
+  }, [activeTab, editorInfo]);
+
+  // Auto-load status history when Profile tab is selected
+  useEffect(() => {
+    if (activeTab === 'profile' && editorInfo && statusHistory.length === 0) {
+      loadStatusHistory();
     }
   }, [activeTab, editorInfo]);
 
@@ -763,6 +772,35 @@ const RecruiterDashboard: React.FC<{
       // silent
     } finally {
       setLoadingContributions(false);
+    }
+  };
+
+  const loadStatusHistory = async () => {
+    if (!supabase || !editorInfo) return;
+    setLoadingStatusHistory(true);
+    try {
+      const { data } = await supabase
+        .from('status_submissions')
+        .select('id, old_status, new_status, submitted_at, status, submitted_by')
+        .eq('kingdom_number', editorInfo.kingdom_number)
+        .order('submitted_at', { ascending: false })
+        .limit(15);
+
+      if (data && data.length > 0) {
+        const userIds = [...new Set(data.map(d => d.submitted_by).filter(Boolean))];
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, linked_username, username')
+          .in('id', userIds);
+        const profileMap = new Map(profiles?.map(p => [p.id, p.linked_username || p.username || 'Unknown']) || []);
+        setStatusHistory(data.map(d => ({ ...d, submitter_name: profileMap.get(d.submitted_by) || 'Unknown' })));
+      } else {
+        setStatusHistory([]);
+      }
+    } catch {
+      // silent
+    } finally {
+      setLoadingStatusHistory(false);
     }
   };
 
@@ -2357,6 +2395,56 @@ const RecruiterDashboard: React.FC<{
                     >
                       {savingProfile ? t('recruiter.saving', 'Saving...') : Object.keys(profileDraft).length === 0 ? t('recruiter.noChanges', 'No Changes') : t('recruiter.saveProfileChanges', 'Save Profile Changes')}
                     </button>
+
+                    {/* Transfer Status Change History */}
+                    <div style={{
+                      backgroundColor: '#111111', borderRadius: '10px',
+                      border: '1px solid #2a2a2a', padding: '0.75rem',
+                      marginTop: '0.5rem',
+                    }}>
+                      <span style={{ color: '#9ca3af', fontSize: '0.7rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        {t('recruiter.statusHistory', 'Transfer Status History')}
+                      </span>
+                      {loadingStatusHistory ? (
+                        <div style={{ color: '#6b7280', fontSize: '0.75rem', padding: '0.75rem 0', textAlign: 'center' }}>Loading...</div>
+                      ) : statusHistory.length === 0 ? (
+                        <div style={{ color: '#4b5563', fontSize: '0.7rem', padding: '0.75rem 0', textAlign: 'center', fontStyle: 'italic' }}>
+                          {t('recruiter.noStatusChanges', 'No status changes yet')}
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.5rem' }}>
+                          {statusHistory.map((entry) => {
+                            const isApproved = entry.status === 'approved';
+                            const isPending = entry.status === 'pending';
+                            const isRejected = entry.status === 'rejected';
+                            return (
+                              <div key={entry.id} style={{
+                                display: 'flex', alignItems: 'center', gap: '0.5rem',
+                                padding: '0.4rem 0.5rem', borderRadius: '6px',
+                                backgroundColor: '#0a0a0a', border: '1px solid #1a1a1a',
+                                fontSize: '0.7rem',
+                              }}>
+                                <span style={{ color: isApproved ? '#22c55e' : isPending ? '#eab308' : '#ef4444', fontSize: '0.75rem', flexShrink: 0 }}>
+                                  {isApproved ? '✓' : isPending ? '⏳' : '✕'}
+                                </span>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <span style={{ color: '#9ca3af' }}>{entry.old_status || 'Unannounced'}</span>
+                                  <span style={{ color: '#4b5563', margin: '0 0.25rem' }}>→</span>
+                                  <span style={{ color: '#e5e7eb', fontWeight: '500' }}>{entry.new_status}</span>
+                                  <span style={{ color: '#4b5563', marginLeft: '0.4rem' }}>
+                                    by {entry.submitter_name}
+                                  </span>
+                                </div>
+                                <span style={{ color: '#4b5563', fontSize: '0.6rem', flexShrink: 0, whiteSpace: 'nowrap' }}>
+                                  {new Date(entry.submitted_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                </span>
+                                {isRejected && <span style={{ color: '#ef4444', fontSize: '0.55rem', padding: '0.1rem 0.25rem', border: '1px solid #ef444430', borderRadius: '3px' }}>Rejected</span>}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
