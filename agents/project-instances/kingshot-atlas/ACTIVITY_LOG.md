@@ -3,6 +3,15 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-11 22:05 | Product + Platform Engineer | COMPLETED
+Task: Treasury Fund Priority + Editor Transfer Status Control + Explorer Role Auto-Assign
+Files: TransferBoard.tsx, KingdomProfile.tsx, EditorClaiming.tsx (rollback), apps/discord-bot/src/bot.js
+Changes:
+1. **Treasury fund priority:** Within same tier, kingdoms with higher fund balance now sort higher before falling back to Atlas Score. Rewards contributors.
+2. **Editor/co-editor transfer status control:** Active editors and co-editors can now change their kingdom's Transfer Status (Unannounced/Ordinary/Leading) without admin approval. Submissions are auto-approved via `isKingdomEditor` check in KingdomProfile.tsx. DB trigger `sync_status_to_kingdom()` auto-syncs to `kingdoms.most_recent_status`. Rolled back previous co-editor instant activation change — co-editors still require editor approval.
+3. **Explorer role auto-assign:** Discord bot now assigns Explorer role (`DISCORD_EXPLORER_ROLE_ID` env var) instantly to every new member on join. No eligibility check — everyone gets it.
+Result: Build passes. All 3 features implemented. Explorer role requires `DISCORD_EXPLORER_ROLE_ID` env var on Render.
+
 ## 2026-02-11 21:30 | Platform Engineer | COMPLETED
 Task: Stripe Subscription Metadata Fallback + Discord Role Admin Visibility
 Files: stripe.py, discord_role_sync.py, bot.py, supabase_client.py, DiscordRolesDashboard.tsx

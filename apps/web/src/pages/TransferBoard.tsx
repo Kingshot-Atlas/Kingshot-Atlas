@@ -610,10 +610,15 @@ const TransferBoard: React.FC = () => {
     switch (filters.sortBy) {
       case 'tier':
         result.sort((a, b) => {
-          const aTier = fundMap.get(a.kingdom_number)?.tier || 'standard';
-          const bTier = fundMap.get(b.kingdom_number)?.tier || 'standard';
+          const aFund = fundMap.get(a.kingdom_number);
+          const bFund = fundMap.get(b.kingdom_number);
+          const aTier = aFund?.tier || 'standard';
+          const bTier = bFund?.tier || 'standard';
           const tierDiff = (tierOrder[aTier as keyof typeof tierOrder] || 3) - (tierOrder[bTier as keyof typeof tierOrder] || 3);
           if (tierDiff !== 0) return tierDiff;
+          // Within same tier, higher fund balance gets priority
+          const balanceDiff = (bFund?.balance || 0) - (aFund?.balance || 0);
+          if (balanceDiff !== 0) return balanceDiff;
           return (b.atlas_score || 0) - (a.atlas_score || 0);
         });
         break;

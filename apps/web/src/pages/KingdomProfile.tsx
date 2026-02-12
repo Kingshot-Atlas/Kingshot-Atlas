@@ -155,6 +155,7 @@ const KingdomProfile: React.FC = () => {
   const [recentRankChange, setRecentRankChange] = useState<number | null>(null);
   const [visitDelta, setVisitDelta] = useState<number | null>(null);
   const [managedBy, setManagedBy] = useState<{ username: string; userId: string } | null>(null);
+  const [isKingdomEditor, setIsKingdomEditor] = useState(false);
 
   // Auto-refresh when KvK history changes for this kingdom via realtime
   const handleKvkHistoryUpdate = useCallback((updatedKingdom: number, kvkNumber: number) => {
@@ -208,7 +209,7 @@ const KingdomProfile: React.FC = () => {
     checkPending();
   }, [kingdomNumber]);
 
-  // Fetch active editor for "Managed by" display
+  // Fetch active editor for "Managed by" display + check if current user is editor/co-editor
   useEffect(() => {
     const fetchEditor = async () => {
       if (!kingdomNumber) return;
@@ -236,10 +237,25 @@ const KingdomProfile: React.FC = () => {
             });
           }
         }
+
+        // Check if current user is an active editor or co-editor for this kingdom
+        if (user) {
+          const { data: myEditorRole } = await supabase
+            .from('kingdom_editors')
+            .select('id')
+            .eq('kingdom_number', parseInt(kingdomNumber))
+            .eq('user_id', user.id)
+            .eq('status', 'active')
+            .limit(1)
+            .maybeSingle();
+          setIsKingdomEditor(!!myEditorRole);
+        } else {
+          setIsKingdomEditor(false);
+        }
       } catch { /* silent */ }
     };
     fetchEditor();
-  }, [kingdomNumber]);
+  }, [kingdomNumber, user]);
 
   // Fetch aggregate rating for structured data (SEO) - only available if 5+ reviews exist
   useEffect(() => {
@@ -260,17 +276,18 @@ const KingdomProfile: React.FC = () => {
     if (!user || !kingdom) return;
     
     const adminUser = isAdminUsername(profile?.linked_username) || isAdminUsername(profile?.username);
+    const canAutoApprove = adminUser || isKingdomEditor;
     await statusService.submitStatusUpdate(
       kingdom.kingdom_number,
       kingdom.most_recent_status || 'Unannounced',
       newStatus,
       notes,
       user.id,
-      adminUser
+      canAutoApprove
     );
     
-    showToast(adminUser ? 'Status update auto-approved!' : 'Status update submitted for review!', 'success');
-    setHasPendingSubmission(!adminUser);
+    showToast(canAutoApprove ? 'Status update auto-approved!' : 'Status update submitted for review!', 'success');
+    setHasPendingSubmission(!canAutoApprove);
   };
 
   useEffect(() => {

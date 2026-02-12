@@ -77,6 +77,9 @@ let supporterSyncTimer = null;
 let supporterSyncInitTimeout = null;
 let lastSupporterSync = null;
 
+// Explorer role — assigned to everyone who joins the Discord server
+const EXPLORER_ROLE_ID = process.env.DISCORD_EXPLORER_ROLE_ID || '';
+
 // Referral tier roles — Consul (10+ referrals) and Ambassador (20+ referrals)
 const CONSUL_ROLE_ID = process.env.DISCORD_CONSUL_ROLE_ID || '1470500049141235926';
 const AMBASSADOR_ROLE_ID = process.env.DISCORD_AMBASSADOR_ROLE_ID || '1466442919304237207';
@@ -944,6 +947,18 @@ client.on('guildMemberAdd', async (member) => {
     }
   } catch (error) {
     console.error('Failed to send welcome message:', error);
+  }
+
+  // Assign Explorer role to every new member instantly
+  if (EXPLORER_ROLE_ID) {
+    try {
+      if (!member.roles.cache.has(EXPLORER_ROLE_ID)) {
+        await member.roles.add(EXPLORER_ROLE_ID, 'Auto-assign: Explorer role for all new members');
+        console.log(`🧭 Explorer role assigned to ${member.user.username}`);
+      }
+    } catch (error) {
+      console.error(`Failed to assign Explorer role to ${member.user.username}:`, error.message);
+    }
   }
 
   // Check if this new member is eligible for Settler role
