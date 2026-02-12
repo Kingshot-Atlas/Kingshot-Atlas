@@ -294,6 +294,9 @@ async def handle_checkout_completed(session: dict):
 async def handle_subscription_updated(subscription: dict):
     """
     Handle subscription updates (upgrades, downgrades, renewals).
+    
+    Falls back to looking up user by stripe_customer_id if subscription
+    metadata is missing (e.g. subscriptions created via Payment Links).
     """
     subscription_id = subscription.get("id")
     customer_id = subscription.get("customer")
@@ -301,14 +304,32 @@ async def handle_subscription_updated(subscription: dict):
     tier = subscription.get("metadata", {}).get("tier")
     user_id = subscription.get("metadata", {}).get("user_id")
     
+    # Fallback: if metadata is empty, look up user by stripe_customer_id
+    if not user_id and customer_id:
+        print(f"WARNING: Subscription {subscription_id} has no user_id in metadata, looking up by customer_id={customer_id}")
+        profile = get_user_by_stripe_customer(customer_id)
+        if profile:
+            user_id = profile["id"]
+            tier = tier or profile.get("subscription_tier") or "supporter"
+            print(f"Found user {user_id} (tier={tier}) via stripe_customer_id fallback")
+        else:
+            print(f"WARNING: No user found for stripe customer {customer_id} — subscription {subscription_id} orphaned")
+    
+    if not tier:
+        tier = "supporter"
+    # Normalize legacy "pro" tier
+    if tier == "pro":
+        tier = "supporter"
+    
     print(f"Subscription updated: id={subscription_id}, status={status}, tier={tier}, user={user_id}")
     
-    # If subscription is active and we have a tier, update the user
-    if status == "active" and tier and user_id:
+    # If subscription is active and we have user info, update
+    if status == "active" and user_id:
         update_user_subscription(
             user_id=user_id,
             tier=tier,
             stripe_subscription_id=subscription_id,
+            stripe_customer_id=customer_id,
         )
         # Sync Discord role
         if is_discord_sync_configured():
@@ -320,8 +341,6 @@ async def handle_subscription_updated(subscription: dict):
     elif status in ("canceled", "unpaid", "past_due"):
         # If subscription is no longer active, check if we should downgrade
         if user_id:
-            # For past_due, we might want to give a grace period
-            # For now, only downgrade on explicit cancellation
             if status == "canceled":
                 update_user_subscription(user_id=user_id, tier="free")
                 print(f"Downgraded user {user_id} to free tier due to cancellation")

@@ -135,8 +135,8 @@ async def remove_role_from_member(discord_user_id: str, role_id: str) -> bool:
 
 async def sync_subscription_role(
     discord_user_id: str,
-    new_tier: Literal["free", "pro", "recruiter"],
-    old_tier: Optional[Literal["free", "pro", "recruiter"]] = None,
+    new_tier: Literal["free", "pro", "supporter", "recruiter"],
+    old_tier: Optional[Literal["free", "pro", "supporter", "recruiter"]] = None,
 ) -> dict:
     """
     Sync Discord roles based on subscription tier change.

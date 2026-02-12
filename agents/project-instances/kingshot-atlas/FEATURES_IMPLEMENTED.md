@@ -301,6 +301,8 @@
 | Stripe Role Sync | ✅ Verified | 2026-02-06 | Platform | Confirmed: Supporter/Recruiter roles sync on subscription change via stripe.py |
 | Supporter Role Periodic Sync | ✅ Live | 2026-02-11 | Platform | `syncSupporterRoles()` every 30min in bot.js. API: `/api/v1/bot/supporter-users`. Adds/removes Supporter role based on `subscription_tier=supporter` + `discord_id`. |
 | Discord Unlink Bug Fix | ✅ Live | 2026-02-11 | Platform | Hid unlink button for Discord-auth users (AuthContext auto-repopulates discord_id from OAuth metadata). `isDiscordAuth` prop on LinkDiscordAccount. |
+| Stripe Metadata Fallback | ✅ Live | 2026-02-11 | Platform | `handle_subscription_updated` falls back to `get_user_by_stripe_customer(customer_id)` when subscription metadata is empty (Payment Link subs). Warning logs on missing metadata. |
+| Supporter Role Admin Panel | ✅ Live | 2026-02-11 | Platform | DiscordRolesDashboard: Settler/Supporter tabs, Supporter stats card, per-user Sync buttons, Force Supporter Sync (bulk). API: `POST /bot/backfill-supporter-roles`, `POST /bot/sync-supporter-role`. |
 | Gateway Rate-Limit Fix | ✅ Live | 2026-02-06 | Platform | Login-first architecture, health always 200, internal retry with backoff (2/4/8/16/32min) |
 | Health Diagnostics | ✅ Live | 2026-02-06 | Platform | /health exposes disconnect codes, token validation, gateway status, login attempts |
 | Token Pre-Validation | ✅ Live | 2026-02-06 | Platform | Raw fetch to /users/@me and /gateway/bot before discord.js login |

@@ -946,6 +946,33 @@ async def log_command(
     return {"success": True}
 
 
+@router.post("/sync-supporter-role")
+async def sync_supporter_role_endpoint(
+    data: SyncSettlerRoleRequest,
+    _: bool = Depends(require_bot_admin)
+):
+    """
+    Sync the Supporter Discord role for a specific user (admin-only).
+    Looks up the user's subscription tier and discord_id, then assigns/removes
+    the Supporter role accordingly.
+    """
+    from api.supabase_client import get_user_profile
+    from api.discord_role_sync import sync_subscription_role
+    
+    profile = get_user_profile(data.user_id)
+    if not profile:
+        return {"success": False, "error": "User not found"}
+    
+    discord_id = profile.get("discord_id")
+    if not discord_id:
+        return {"success": False, "error": "User has no Discord account linked"}
+    
+    tier = profile.get("subscription_tier", "free")
+    
+    result = await sync_subscription_role(discord_id, tier)
+    return result
+
+
 @router.post("/sync-settler-role")
 async def sync_settler_role(
     data: SyncSettlerRoleRequest,
@@ -1080,6 +1107,83 @@ async def backfill_settler_roles(_: bool = Depends(require_bot_admin)):
     results["message"] = f"Backfill complete: {results['assigned']} assigned, {results['skipped']} skipped, {results['failed']} failed"
     
     print(f"Settler role backfill: {results['message']}")
+    
+    return results
+
+
+@router.post("/backfill-supporter-roles")
+async def backfill_supporter_roles(_: bool = Depends(require_bot_admin)):
+    """
+    Backfill Supporter Discord role for all users who have:
+    - An active supporter subscription (subscription_tier = 'supporter')
+    - A linked Discord account (discord_id)
+    
+    Admin-only endpoint for manual Supporter role sync.
+    """
+    from api.supabase_client import get_supporter_users_with_discord
+    from api.discord_role_sync import sync_subscription_role
+    
+    users = get_supporter_users_with_discord()
+    
+    if not users:
+        return {
+            "success": True,
+            "message": "No eligible supporter users found",
+            "total": 0,
+            "assigned": 0,
+            "skipped": 0,
+            "failed": 0,
+        }
+    
+    results = {
+        "total": len(users),
+        "assigned": 0,
+        "skipped": 0,
+        "failed": 0,
+        "details": [],
+    }
+    
+    for user in users:
+        discord_id = user.get("discord_id")
+        user_id = user.get("id")
+        username = user.get("linked_username") or user.get("username") or "Unknown"
+        
+        if not discord_id:
+            results["skipped"] += 1
+            continue
+        
+        try:
+            result = await sync_subscription_role(discord_id, "supporter")
+            
+            if result.get("success"):
+                results["assigned"] += 1
+                results["details"].append({
+                    "user_id": user_id,
+                    "username": username,
+                    "status": "assigned",
+                })
+            else:
+                results["skipped"] += 1
+                results["details"].append({
+                    "user_id": user_id,
+                    "username": username,
+                    "status": "skipped",
+                    "reason": result.get("error", "Unknown"),
+                })
+        except Exception as e:
+            print(f"ERROR in /backfill-supporter-roles for user {user_id}: {e}")
+            results["failed"] += 1
+            results["details"].append({
+                "user_id": user_id,
+                "username": username,
+                "status": "failed",
+                "error": "Discord API call failed",
+            })
+    
+    results["success"] = results["failed"] == 0
+    results["message"] = f"Supporter backfill: {results['assigned']} assigned, {results['skipped']} skipped, {results['failed']} failed"
+    
+    print(f"Supporter role backfill: {results['message']}")
     
     return results
 

@@ -3,6 +3,17 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-11 21:30 | Platform Engineer | COMPLETED
+Task: Stripe Subscription Metadata Fallback + Discord Role Admin Visibility
+Files: stripe.py, discord_role_sync.py, bot.py, supabase_client.py, DiscordRolesDashboard.tsx
+Changes:
+1. **Stripe metadata fallback:** `handle_subscription_updated` now falls back to `get_user_by_stripe_customer(customer_id)` when subscription metadata is empty (Payment Link subs). Normalizes tier and logs warnings.
+2. **Stripe audit:** Found 2/3 active Atlas subscriptions with empty metadata (StormRunner650, ctamarti). Ko-fi sub (da_kirbs) has Ko-fi metadata. All 3 users already matched in Supabase profiles.
+3. **Admin Supporter section:** DiscordRolesDashboard now has Settler/Supporter tabs with counts, per-user Sync buttons, and Force Supporter Sync (bulk backfill).
+4. **API endpoints:** `POST /bot/backfill-supporter-roles` (admin bulk assign), `POST /bot/sync-supporter-role` (admin single-user sync).
+5. **Type fix:** `sync_subscription_role` type hints updated to include `"supporter"` literal.
+Result: Build passes. Future webhook events with missing metadata will auto-resolve via customer_id lookup.
+
 ## 2026-02-11 21:00 | Platform Engineer | COMPLETED
 Task: Discord Unlink/Relink Bug Fix + Supporter Role Periodic Sync
 Files: LinkDiscordAccount.tsx, Profile.tsx, supabase_client.py, bot.py (API), bot.js (Discord bot)
