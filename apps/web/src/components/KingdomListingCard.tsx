@@ -430,7 +430,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
           gap: '0.5rem', marginBottom: '0.2rem', flexWrap: 'wrap',
         }}>
           {/* Left: Kingdom Name + Score Tier chip */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', ...(isPremium ? { backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: '8px', padding: '0.25rem 0.5rem' } : {}) }}>
             <Link
               to={`/kingdom/${kingdom.kingdom_number}`}
               style={{
@@ -503,7 +503,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
           </div>
 
           {/* Right: Recruiting badge + Match Score */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flexWrap: 'wrap', justifyContent: 'flex-end', ...(isPremium ? { backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: '8px', padding: '0.2rem 0.4rem' } : {}) }}>
             {fund?.is_recruiting && (
               <div style={{
                 display: 'flex', alignItems: 'center', gap: '0.3rem',
@@ -588,7 +588,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
         </div>
 
         {/* Transfer Status below name — with SmartTooltip */}
-        <div style={{ marginBottom: '0.6rem' }}>
+        <div style={{ marginBottom: '0.6rem', ...(isPremium ? { backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: '6px', padding: '0.2rem 0.5rem', display: 'inline-block' } : {}) }}>
           <SmartTooltip
             accentColor={transferStatus === 'Leading' ? colors.gold : transferStatus === 'Ordinary' ? '#c0c0c0' : '#6b7280'}
             maxWidth={260}
@@ -626,8 +626,8 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
 
         {/* Listing freshness indicator */}
         {listingAge && (
-          <div style={{ marginBottom: '0.4rem' }}>
-            <span style={{ fontSize: '0.6rem', color: listingAge.color, opacity: 0.8 }}>
+          <div style={{ marginBottom: '0.4rem', ...(isPremium ? { backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: '6px', padding: '0.15rem 0.45rem', display: 'inline-block' } : {}) }}>
+            <span style={{ fontSize: '0.6rem', color: listingAge.color, opacity: isPremium ? 1 : 0.8 }}>
               {listingAge.label}
             </span>
           </div>

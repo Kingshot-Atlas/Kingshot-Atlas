@@ -22,6 +22,7 @@ import ModeToggle from '../components/transfer/ModeToggle';
 import FilterPanel, { FilterState, defaultFilters } from '../components/transfer/FilterPanel';
 import { useToast } from '../components/Toast';
 import KingdomCompare from '../components/transfer/KingdomCompare';
+import { TRANSFER_GROUPS, getTransferGroup, getTransferGroupOptions, areTransferGroupsOutdated, getTransferGroupLabel } from '../config/transferGroups';
 
 // =============================================
 // TYPES (KingdomData, KingdomFund, KingdomReviewSummary, BoardMode, MatchDetail, formatTCLevel
@@ -50,27 +51,8 @@ interface UserTransferProfile {
 
 // RECRUITMENT_TAG_OPTIONS and LANGUAGE_OPTIONS moved to ../components/transfer/FilterPanel
 
-// =============================================
-// TRANSFER GROUPS — Update these when new event groups are announced
-// Set TRANSFER_GROUPS_ACTIVE = true when event is live, false otherwise
-// =============================================
-
-const TRANSFER_GROUPS_ACTIVE = false; // Set to true when transfer groups are announced
-
-// Last known transfer groups (update with each new event)
-const TRANSFER_GROUPS: Array<[number, number]> = [
-  [1, 6],
-  [7, 115],
-  [116, 417],
-  [418, 587],
-  [588, 674],
-  [675, 846],
-];
-
-// Find which transfer group a kingdom belongs to
-const getTransferGroup = (kingdomNumber: number): [number, number] | null => {
-  return TRANSFER_GROUPS.find(([min, max]) => kingdomNumber >= min && kingdomNumber <= max) || null;
-};
+// Transfer Groups are now imported from ../config/transferGroups.ts
+// Update that file when new event groups are announced.
 
 // EntryModal and ModeToggle extracted to ../components/transfer/
 
@@ -520,11 +502,29 @@ const TransferBoard: React.FC = () => {
     return map;
   }, [reviewSummaries]);
 
-  // Determine user's transfer group
+  // Determine user's transfer group (always active — groups come from central config)
   const userTransferGroup = useMemo(() => {
-    if (!TRANSFER_GROUPS_ACTIVE || !profile?.linked_kingdom) return null;
+    if (!profile?.linked_kingdom) return null;
     return getTransferGroup(profile.linked_kingdom);
   }, [profile?.linked_kingdom]);
+
+  // Transfer group filter state (for manual selection when not linked)
+  const [transferGroupFilter, setTransferGroupFilter] = useState<string>('auto');
+
+  // Effective transfer group for filtering
+  const effectiveTransferGroup = useMemo(() => {
+    if (transferGroupFilter === 'all') return null;
+    if (transferGroupFilter === 'auto' && userTransferGroup) return userTransferGroup;
+    if (transferGroupFilter !== 'auto' && transferGroupFilter !== 'all') {
+      const parts = transferGroupFilter.split('-');
+      const min = parseInt(parts[0] || '', 10);
+      const max = parseInt(parts[1] || '', 10);
+      if (!isNaN(min) && !isNaN(max)) return [min, max] as [number, number];
+    }
+    return null;
+  }, [transferGroupFilter, userTransferGroup]);
+
+  const transferGroupsOutdated = areTransferGroupsOutdated();
 
   // Lightweight match score for sorting (no details array allocation)
   const calculateMatchScoreForSort = (_kingdom: KingdomData, fund: KingdomFund | null): number => {
@@ -569,9 +569,9 @@ const TransferBoard: React.FC = () => {
       result = result.filter((k) => String(k.kingdom_number).includes(q));
     }
 
-    // Transfer group filter — only show kingdoms in user's transfer group
-    if (TRANSFER_GROUPS_ACTIVE && userTransferGroup) {
-      const [min, max] = userTransferGroup;
+    // Transfer group filter — show kingdoms in selected/auto transfer group
+    if (mode === 'transferring' && effectiveTransferGroup) {
+      const [min, max] = effectiveTransferGroup;
       result = result.filter((k) => k.kingdom_number >= min && k.kingdom_number <= max);
     }
 
@@ -1394,30 +1394,76 @@ const TransferBoard: React.FC = () => {
         </div>
       )}
 
-      {/* Transfer Group Banner */}
-      {TRANSFER_GROUPS_ACTIVE && (
+      {/* Transfer Group Filter — shown in "I'm Transferring" mode */}
+      {mode === 'transferring' && TRANSFER_GROUPS.length > 0 && (
         <div style={{
-          padding: '0.6rem 1rem',
+          padding: '0.75rem 1rem',
           backgroundColor: '#22d3ee08',
           border: '1px solid #22d3ee20',
           borderRadius: '10px',
           marginBottom: '1rem',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-          fontSize: '0.8rem',
         }}>
-          <span style={{ fontSize: '1rem' }}>🔀</span>
-          {userTransferGroup ? (
-            <span style={{ color: colors.textSecondary }}>
-              <span style={{ color: '#22d3ee', fontWeight: '600' }}>Transfer Group Active</span>
-              {' — '}Showing kingdoms {userTransferGroup[0]}–{userTransferGroup[1]} (your group)
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            flexWrap: 'wrap',
+          }}>
+            <span style={{ fontSize: '1rem' }}>🔀</span>
+            <span style={{ color: '#22d3ee', fontWeight: '600', fontSize: '0.8rem' }}>
+              {t('transferHub.transferGroup', 'Transfer Group')}
             </span>
-          ) : (
-            <span style={{ color: colors.textSecondary }}>
-              <span style={{ color: '#eab308', fontWeight: '600' }}>Transfer Groups Active</span>
-              {' — '}<Link to="/profile" style={{ color: '#22d3ee', textDecoration: 'underline' }}>Link your kingdom</Link> to see only your transfer group
-            </span>
+            <select
+              value={transferGroupFilter}
+              onChange={(e) => setTransferGroupFilter(e.target.value)}
+              style={{
+                padding: '0.35rem 0.6rem',
+                backgroundColor: colors.bg,
+                border: `1px solid ${colors.border}`,
+                borderRadius: '6px',
+                color: colors.text,
+                fontSize: isMobile ? '1rem' : '0.8rem',
+                minHeight: '36px',
+                cursor: 'pointer',
+              }}
+            >
+              {userTransferGroup && (
+                <option value="auto">
+                  {t('transferHub.myGroup', 'My Group')} ({getTransferGroupLabel(userTransferGroup)})
+                </option>
+              )}
+              <option value="all">{t('transferHub.allGroups', 'All Groups')}</option>
+              {getTransferGroupOptions().map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+            {effectiveTransferGroup && (
+              <span style={{ color: colors.textSecondary, fontSize: '0.75rem' }}>
+                — {t('transferHub.showingKingdoms', 'Showing kingdoms')} {effectiveTransferGroup[0]}–{effectiveTransferGroup[1]}
+              </span>
+            )}
+            {!userTransferGroup && (
+              <Link to="/profile" style={{ color: '#22d3ee', textDecoration: 'underline', fontSize: '0.75rem', marginLeft: '0.25rem' }}>
+                {t('transferHub.linkKingdom', 'Link your kingdom for auto-filter')}
+              </Link>
+            )}
+          </div>
+          {transferGroupsOutdated && (
+            <div style={{
+              marginTop: '0.5rem',
+              padding: '0.35rem 0.6rem',
+              backgroundColor: '#eab30810',
+              border: '1px solid #eab30825',
+              borderRadius: '6px',
+              fontSize: '0.7rem',
+              color: '#eab308',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+            }}>
+              <span>⚠️</span>
+              {t('transferHub.groupsOutdated', 'These groups are from the last Transfer Event and may change before the next one.')}
+            </div>
           )}
         </div>
       )}

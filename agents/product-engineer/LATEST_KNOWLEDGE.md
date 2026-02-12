@@ -1,6 +1,6 @@
 # Product Engineer — Latest Knowledge
 
-**Last Updated:** 2026-01-29  
+**Last Updated:** 2026-02-12  
 **Purpose:** Current best practices for React development and UX implementation
 
 ---
@@ -718,5 +718,32 @@ const pointsNeeded = threshold - calculateAtlasScore(stats).finalScore;
 ### Eligibility
 - **To get a referral link**: Must have linked Kingshot account with TC25+
 - **For a referral to verify**: Referred user must link account with TC20+
+
+---
+
+## Transfer Groups — Site-Wide Filter (2026-02-12)
+
+### Architecture
+- **Central config:** `src/config/transferGroups.ts` — single source of truth
+- **Update process:** Edit `TRANSFER_GROUPS` array and `TRANSFER_GROUPS_UPDATED_AT` date
+- Groups change every Transfer Event (~8 weeks). Amount of groups AND ranges can both change.
+
+### Where It's Used
+| Page | Component | Behavior |
+|------|-----------|----------|
+| Home Directory | `KingdomDirectory.tsx` | Dropdown in quick filter chips (desktop) + full-width select (mobile) |
+| Kingdom Rankings | `Leaderboards.tsx` | Dropdown next to KvK Experience filter |
+| Player Directory | `UserDirectory.tsx` | Dropdown in tier filter chips row |
+| Transfer Hub | `TransferBoard.tsx` | Auto-detects user's group from linked kingdom. Manual override dropdown. Outdated disclaimer. Only in "I'm Transferring" mode. |
+
+### Key Functions
+- `getTransferGroup(kingdomNumber)` — returns `[min, max]` or null
+- `getTransferGroupOptions()` — returns label/value pairs for dropdowns
+- `parseTransferGroupValue(value)` — parses "min-max" string back to range
+- `filterByTransferGroup(items, groupValue)` — generic filter helper
+- `areTransferGroupsOutdated()` — true when ~7 weeks since last update
+
+### Outdated Disclaimer
+Shows automatically when `TRANSFER_GROUPS_UPDATED_AT` is older than `TRANSFER_CYCLE_DAYS - DISCLAIMER_BUFFER_DAYS` (49 days). Disappears when config is updated with new groups.
 
 *Updated by Product Engineer based on current React best practices.*

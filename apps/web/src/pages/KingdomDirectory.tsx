@@ -29,6 +29,7 @@ import BattlePlannerBanner from '../components/homepage/BattlePlannerBanner';
 import MobileCountdowns from '../components/homepage/MobileCountdowns';
 import { useScrollDepth } from '../hooks/useScrollDepth';
 import { useTranslation } from 'react-i18next';
+import { getTransferGroupOptions, parseTransferGroupValue } from '../config/transferGroups';
 
 const KingdomDirectory: React.FC = () => {
   const { t } = useTranslation();
@@ -89,6 +90,7 @@ const KingdomDirectory: React.FC = () => {
   
   const [showPostKvKModal, setShowPostKvKModal] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false); // Closed by default
+  const [transferGroupFilter, setTransferGroupFilter] = useState<string>('all');
 
   // Handler for KvK submission - requires login + linked Kingshot account + TC20+
   const handleSubmitKvKClick = () => {
@@ -261,9 +263,16 @@ const KingdomDirectory: React.FC = () => {
     if (filters.status && filters.status !== 'all') {
       result = result.filter(k => k.most_recent_status === filters.status);
     }
+
+    // Transfer group filter
+    const tgRange = parseTransferGroupValue(transferGroupFilter);
+    if (tgRange) {
+      const [min, max] = tgRange;
+      result = result.filter(k => k.kingdom_number >= min && k.kingdom_number <= max);
+    }
     
     return result;
-  }, [allKingdoms, debouncedSearch, filters, showFavoritesOnly, favorites]);
+  }, [allKingdoms, debouncedSearch, filters, showFavoritesOnly, favorites, transferGroupFilter]);
 
   // Helper to get calculated outcome stats for sorting
   const getOutcomeValue = (k: Kingdom, field: string): number => {
@@ -404,6 +413,7 @@ const KingdomDirectory: React.FC = () => {
 
           {/* Mobile Controls Row */}
           {isMobile ? (
+            <>
             <div style={{ display: 'flex', gap: '0.5rem', width: '100%', justifyContent: 'space-between' }}>
               <button
                 onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
@@ -444,6 +454,33 @@ const KingdomDirectory: React.FC = () => {
                 <option value="invasions">{t('stats.invasions')}</option>
               </select>
             </div>
+            {/* Transfer Group filter - Mobile */}
+            <select
+              value={transferGroupFilter}
+              onChange={(e) => setTransferGroupFilter(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '0.6rem 1.5rem 0.6rem 0.5rem',
+                minHeight: '44px',
+                backgroundColor: transferGroupFilter !== 'all' ? '#22d3ee10' : '#0a0a0a',
+                border: `1px solid ${transferGroupFilter !== 'all' ? '#22d3ee40' : '#2a2a2a'}`,
+                borderRadius: '8px',
+                color: transferGroupFilter !== 'all' ? '#22d3ee' : '#9ca3af',
+                fontSize: '1rem',
+                cursor: 'pointer',
+                appearance: 'none',
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'right 0.3rem center',
+                backgroundSize: '0.8rem',
+              }}
+            >
+              <option value="all">🔀 {t('home.allTransferGroups', 'Transfer Group')}</option>
+              {getTransferGroupOptions().map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+            </>
           ) : (
           <>
           {/* Favorites Toggle */}
@@ -633,6 +670,34 @@ const KingdomDirectory: React.FC = () => {
               80%+ Battle
             </button>
             
+            <span style={{ color: '#2a2a2a', margin: '0 0.25rem' }}>|</span>
+
+            {/* Transfer Group Filter */}
+            <select
+              value={transferGroupFilter}
+              onChange={(e) => setTransferGroupFilter(e.target.value)}
+              style={{
+                padding: '0.3rem 1.4rem 0.3rem 0.5rem',
+                backgroundColor: transferGroupFilter !== 'all' ? '#22d3ee15' : 'transparent',
+                border: `1px solid ${transferGroupFilter !== 'all' ? '#22d3ee' : '#3a3a3a'}`,
+                borderRadius: '16px',
+                color: transferGroupFilter !== 'all' ? '#22d3ee' : '#6b7280',
+                cursor: 'pointer',
+                fontSize: '0.75rem',
+                fontWeight: '500',
+                appearance: 'none',
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'right 0.3rem center',
+                backgroundSize: '0.6rem',
+              }}
+            >
+              <option value="all">{t('home.allTransferGroups', 'Transfer Group')}</option>
+              {getTransferGroupOptions().map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+
             <span style={{ color: '#2a2a2a', margin: '0 0.25rem' }}>|</span>
             
             {/* Experience Chips */}

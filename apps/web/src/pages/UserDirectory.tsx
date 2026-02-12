@@ -10,6 +10,7 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
 import { useTranslation } from 'react-i18next';
+import { getTransferGroupOptions, parseTransferGroupValue } from '../config/transferGroups';
 
 // Get username color based on subscription tier (including admin)
 const getUsernameColor = (tier: SubscriptionTier | null | undefined): string => {
@@ -56,6 +57,7 @@ const UserDirectory: React.FC = () => {
   const [filterValue, setFilterValue] = useState(urlKingdom || '');
   const [tierFilter, setTierFilter] = useState<'all' | 'admin' | 'supporter' | 'ambassador' | 'consul' | 'recruiter' | 'scout'>('all');
   const [sortBy, setSortBy] = useState<SortBy>('role');
+  const [transferGroupFilter, setTransferGroupFilter] = useState<string>('all');
   const PAGE_SIZE = 25;
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -244,6 +246,15 @@ const UserDirectory: React.FC = () => {
         }
       }
       
+      // Transfer group filter
+      if (transferGroupFilter !== 'all') {
+        const tgRange = parseTransferGroupValue(transferGroupFilter);
+        if (tgRange) {
+          const [min, max] = tgRange;
+          if (!user.linked_kingdom || user.linked_kingdom < min || user.linked_kingdom > max) return false;
+        }
+      }
+
       switch (filterBy) {
         case 'alliance':
           return !filterValue || user.alliance_tag === filterValue;
@@ -274,7 +285,7 @@ const UserDirectory: React.FC = () => {
         }
       }
     });
-  }, [users, searchQuery, tierFilter, filterBy, filterValue, sortBy]);
+  }, [users, searchQuery, tierFilter, filterBy, filterValue, sortBy, transferGroupFilter]);
 
   const neonGlow = (color: string) => ({
     color: color,
@@ -627,8 +638,34 @@ const UserDirectory: React.FC = () => {
           </div>
         </div>
 
-        {/* Tier Filter Chips + My Kingdom button */}
+        {/* Transfer Group + Tier Filter Chips + My Kingdom button */}
         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+          {/* Transfer Group filter */}
+          <select
+            value={transferGroupFilter}
+            onChange={(e) => { setTransferGroupFilter(e.target.value); setVisibleCount(PAGE_SIZE); }}
+            style={{
+              padding: '0.4rem 1.6rem 0.4rem 0.6rem',
+              backgroundColor: transferGroupFilter !== 'all' ? '#22d3ee15' : 'transparent',
+              border: `1px solid ${transferGroupFilter !== 'all' ? '#22d3ee' : '#2a2a2a'}`,
+              borderRadius: '20px',
+              color: transferGroupFilter !== 'all' ? '#22d3ee' : '#6b7280',
+              cursor: 'pointer',
+              fontSize: '0.75rem',
+              fontWeight: transferGroupFilter !== 'all' ? '600' : '400',
+              appearance: 'none',
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'right 0.4rem center',
+              backgroundSize: '0.6rem',
+            }}
+          >
+            <option value="all">🔀 {t('playerDirectory.transferGroup', 'Transfer Group')}</option>
+            {getTransferGroupOptions().map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+          <span style={{ color: '#2a2a2a' }}>|</span>
           {([
             { key: 'all' as const, label: 'All Players', color: '#6b7280' },
             { key: 'admin' as const, label: '👑 Admin', color: subscriptionColors.admin },

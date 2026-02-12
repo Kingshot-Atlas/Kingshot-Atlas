@@ -15,6 +15,7 @@ import { useStructuredData, PAGE_BREADCRUMBS, RANKINGS_FAQ_DATA } from '../hooks
 import { scoreHistoryService, RankMover } from '../services/scoreHistoryService';
 import { useScrollDepth } from '../hooks/useScrollDepth';
 import { useTranslation } from 'react-i18next';
+import { getTransferGroupOptions, parseTransferGroupValue } from '../config/transferGroups';
 
 const Leaderboards: React.FC = () => {
   const { t } = useTranslation();
@@ -32,6 +33,7 @@ const Leaderboards: React.FC = () => {
   const [rankMovers, setRankMovers] = useState<{ climbers: RankMover[]; fallers: RankMover[] } | null>(null);
   const isMobile = useIsMobile();
   const { tier, isSupporter } = usePremium();
+  const [transferGroupFilter, setTransferGroupFilter] = useState<string>('all');
   const { trackFeature } = useAnalytics();
   
   // Tier-based leaderboard limits: anonymous=10, free=25, supporter=unlimited
@@ -72,14 +74,23 @@ const Leaderboards: React.FC = () => {
     return { min: Number(minStr) || 0, max: Number(maxStr) || Infinity };
   }, [kvkFilter, customKvkMin, customKvkMax]);
 
-  // Filter kingdoms by KvK count
+  // Filter kingdoms by KvK count and transfer group
   const filteredKingdoms = useMemo(() => {
-    if (kvkFilter === 'all') return kingdoms;
-    return kingdoms.filter(k => {
+    let result = kingdoms;
+
+    // Transfer group filter
+    const tgRange = parseTransferGroupValue(transferGroupFilter);
+    if (tgRange) {
+      const [min, max] = tgRange;
+      result = result.filter(k => k.kingdom_number >= min && k.kingdom_number <= max);
+    }
+
+    if (kvkFilter === 'all') return result;
+    return result.filter(k => {
       const kvkCount = k.total_kvks || (k.recent_kvks?.length || 0);
       return kvkCount >= kvkRange.min && kvkCount <= kvkRange.max;
     });
-  }, [kingdoms, kvkFilter, kvkRange]);
+  }, [kingdoms, kvkFilter, kvkRange, transferGroupFilter]);
 
   // Build set of filtered kingdom numbers for rank movers filtering
   const filteredKingdomNumbers = useMemo(() => {
@@ -565,6 +576,36 @@ const Leaderboards: React.FC = () => {
                     {t('rankings.topN', { count })}
                   </button>
                 ))}
+              </div>
+
+              {/* Transfer Group filter */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <span style={{ color: '#6b7280', fontSize: isMobile ? '0.72rem' : '0.8rem' }}>🔀</span>
+                <select
+                  value={transferGroupFilter}
+                  onChange={(e) => setTransferGroupFilter(e.target.value)}
+                  style={{
+                    padding: isMobile ? '0.5rem 1.8rem 0.5rem 0.6rem' : '0.45rem 1.6rem 0.45rem 0.5rem',
+                    minHeight: isMobile ? '44px' : 'auto',
+                    backgroundColor: transferGroupFilter !== 'all' ? '#22d3ee10' : '#0a0a0a',
+                    border: `1px solid ${transferGroupFilter !== 'all' ? '#22d3ee40' : '#2a2a2a'}`,
+                    borderRadius: '8px',
+                    color: transferGroupFilter !== 'all' ? '#22d3ee' : '#6b7280',
+                    cursor: 'pointer',
+                    fontSize: isMobile ? '0.7rem' : '0.78rem',
+                    fontWeight: transferGroupFilter !== 'all' ? '600' : '400',
+                    appearance: 'none',
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'right 0.4rem center',
+                    backgroundSize: '0.7rem',
+                  }}
+                >
+                  <option value="all">{t('rankings.allGroups', 'All Groups')}</option>
+                  {getTransferGroupOptions().map((opt) => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
               </div>
 
               {/* KvK Experience filter — preset chips */}

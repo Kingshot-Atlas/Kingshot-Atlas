@@ -3,6 +3,16 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-12 22:20 | Design Lead | COMPLETED
+Task: Rally Planner readability improvements — remove Admin Preview chip, boost font sizes + contrast
+Files: apps/web/src/pages/RallyCoordinator.tsx
+Changes:
+1. **Removed Admin Preview chip** — No longer necessary now that free trial is active.
+2. **Font size increases** — Bumped ~50 font-size values across the entire component (desktop only where isMobile ternary exists). Card headers 0.8→0.9rem, player names 0.73→0.8rem, queue slots 0.75→0.82rem, config buttons 0.55→0.65rem, call order items +0.1rem, how-to steps 0.6→0.7rem, interval slider labels +0.1rem, Gantt chart labels +0.1rem, modal fields +0.1rem.
+3. **Contrast improvements** — Upgraded dim gray text (#4b5563→#6b7280, #6b7280→#9ca3af) for hint text, placeholder text, labels, and community credit. Placeholder empty-state text bumped from #2a2a2a→#4b5563.
+4. **Mobile preserved** — All isMobile ternary values kept at original sizes; only desktop branch bumped.
+Result: Better readability on desktop without breaking mobile layout.
+
 ## 2026-02-12 21:10 | Product Engineer | COMPLETED
 Task: Homepage quick menu refinements, Gift Code navigation update, Discord Bot Atlas rebrand, /link command implementation, i18n sync
 Files: Header.tsx, Tools.tsx, QuickActions.tsx, GiftCodeLanding.tsx, AtlasBot.tsx, handlers.js, index.js, bot.js, embeds.js, 18 translation files

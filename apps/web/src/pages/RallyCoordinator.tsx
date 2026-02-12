@@ -230,14 +230,14 @@ const CARD: React.CSSProperties = {
 };
 
 const cardHeader = (color: string = '#fff'): React.CSSProperties => ({
-  color, fontSize: '0.8rem', fontWeight: '700', fontFamily: FONT_DISPLAY, marginBottom: '0.5rem',
+  color, fontSize: '0.9rem', fontWeight: '700', fontFamily: FONT_DISPLAY, marginBottom: '0.5rem',
 });
 
 const arrowBtnStyle = (active: boolean): React.CSSProperties => ({
   width: '24px', height: '24px', borderRadius: '4px',
   backgroundColor: 'transparent', border: 'none',
   color: active ? '#9ca3af' : '#2a2a2a', cursor: active ? 'pointer' : 'default',
-  fontSize: '0.6rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
+  fontSize: '0.65rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
   padding: 0,
 });
 
@@ -256,7 +256,7 @@ const formatCountdown = (ms: number): string => {
 const menuItemStyle: React.CSSProperties = {
   display: 'block', width: '100%', padding: '0.5rem 0.75rem',
   backgroundColor: 'transparent', border: 'none', color: '#d1d5db',
-  fontSize: '0.75rem', cursor: 'pointer', textAlign: 'left',
+  fontSize: '0.8rem', cursor: 'pointer', textAlign: 'left',
 };
 
 const inputStyle: React.CSSProperties = {
@@ -310,7 +310,7 @@ const BuildingSelector: React.FC<{
           backgroundColor: isSelected ? `${color}25` : '#0a0a0a',
           border: `2px solid ${isSelected ? color : '#2a2a2a'}`,
           color: isSelected ? color : '#6b7280',
-          fontSize: isMobile ? '0.6rem' : '0.65rem',
+          fontSize: isMobile ? '0.6rem' : '0.7rem',
           fontWeight: isSelected ? '700' : '600',
           cursor: 'pointer',
           transition: 'all 0.2s',
@@ -322,7 +322,7 @@ const BuildingSelector: React.FC<{
           boxShadow: isSelected ? `0 0 12px ${color}30` : 'none',
         }}
       >
-        <span style={{ fontSize: isMobile ? '0.75rem' : '0.85rem' }}>
+        <span style={{ fontSize: isMobile ? '0.75rem' : '0.9rem' }}>
           {key === 'castle' ? '🏰' : '🗼'}
         </span>
         <span>{BUILDING_SHORT[key]}</span>
@@ -378,7 +378,7 @@ const PlayerPill: React.FC<{
           cursor: isInQueue ? 'not-allowed' : 'grab',
           opacity: isInQueue ? 0.4 : 1,
           transition: 'all 0.2s',
-          fontSize: isMobile ? '0.68rem' : '0.73rem',
+          fontSize: isMobile ? '0.68rem' : '0.8rem',
           color: isInQueue ? '#4b5563' : '#fff',
           userSelect: 'none',
           minHeight: '34px',
@@ -394,7 +394,7 @@ const PlayerPill: React.FC<{
         }} />
         <span style={{ fontWeight: '600' }}>{player.name}</span>
         {marchTime > 0 && (
-          <span style={{ color: '#9ca3af', fontSize: '0.6rem' }}>
+          <span style={{ color: '#9ca3af', fontSize: '0.65rem' }}>
             {marchTime}s
           </span>
         )}
@@ -458,8 +458,8 @@ const IntervalSlider: React.FC<{
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
-        <span style={{ color: '#9ca3af', fontSize: '0.65rem' }}>{t('rallyCoordinator.intervalLabel')}</span>
-        <span style={{ color: accentColor, fontSize: '0.7rem', fontWeight: '700' }}>{value}s</span>
+        <span style={{ color: '#9ca3af', fontSize: '0.75rem' }}>{t('rallyCoordinator.intervalLabel')}</span>
+        <span style={{ color: accentColor, fontSize: '0.8rem', fontWeight: '700' }}>{value}s</span>
       </div>
       <div
         ref={sliderRef}
@@ -487,8 +487,8 @@ const IntervalSlider: React.FC<{
         }} />
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2px' }}>
-        <span style={{ color: '#4b5563', fontSize: '0.5rem' }}>{min}s</span>
-        <span style={{ color: '#4b5563', fontSize: '0.5rem' }}>{max}s</span>
+        <span style={{ color: '#6b7280', fontSize: '0.6rem' }}>{min}s</span>
+        <span style={{ color: '#6b7280', fontSize: '0.6rem' }}>{max}s</span>
       </div>
     </div>
   );
@@ -670,10 +670,10 @@ const RallyQueueSlot: React.FC<{
         {index + 1}
       </span>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <span style={{ color: '#fff', fontSize: isMobile ? '0.7rem' : '0.75rem', fontWeight: '600' }}>
+        <span style={{ color: '#fff', fontSize: isMobile ? '0.8rem' : '1rem', fontWeight: '600' }}>
           {slot.playerName}
         </span>
-        <span style={{ color: '#6b7280', fontSize: '0.6rem', marginLeft: '0.4rem' }}>
+        <span style={{ color: '#9ca3af', fontSize: '0.75rem', marginLeft: '0.4rem' }}>
           {slot.marchTime}s
         </span>
       </div>
@@ -684,13 +684,13 @@ const RallyQueueSlot: React.FC<{
           border: `1px solid ${slot.useBuffed ? '#22c55e50' : '#2a2a2a'}`,
           borderRadius: '4px', cursor: 'pointer',
           color: slot.useBuffed ? '#22c55e' : '#6b7280',
-          fontSize: '0.55rem', fontWeight: '600',
+          fontSize: '0.6rem', fontWeight: '600',
         }}>
           {slot.useBuffed ? '⚡' : '🏃'}
         </button>
         {buffTimeRemaining != null && buffTimeRemaining > 0 && (
           <span style={{
-            color: '#f59e0b', fontSize: '0.5rem', fontWeight: '600',
+            color: '#f59e0b', fontSize: '0.6rem', fontWeight: '600',
             padding: '0.1rem 0.25rem', backgroundColor: '#f59e0b15',
             border: '1px solid #f59e0b30', borderRadius: '3px',
             whiteSpace: 'nowrap',
@@ -745,7 +745,7 @@ const GanttChart: React.FC<{
           }}>
             <span style={{
               position: 'absolute', bottom: 0, left: '-12px',
-              color: '#4b5563', fontSize: '0.5rem', whiteSpace: 'nowrap',
+              color: '#6b7280', fontSize: '0.6rem', whiteSpace: 'nowrap',
             }}>
               {formatTime(t)}
             </span>
@@ -766,7 +766,7 @@ const GanttChart: React.FC<{
               <div style={{
                 position: 'absolute', right: '100%', marginRight: '6px',
                 width: leftLabelWidth - 6, textAlign: 'right',
-                color: '#d1d5db', fontSize: isMobile ? '0.55rem' : '0.6rem',
+                color: '#d1d5db', fontSize: isMobile ? '0.55rem' : '0.7rem',
                 fontWeight: '600', lineHeight: `${barHeight}px`,
                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
               }}>
@@ -780,7 +780,7 @@ const GanttChart: React.FC<{
                 borderRadius: '4px',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
-                <span style={{ color: '#000', fontSize: '0.5rem', fontWeight: '700' }}>
+                <span style={{ color: '#000', fontSize: '0.6rem', fontWeight: '700' }}>
                   {r.marchTime}s
                 </span>
               </div>
@@ -799,11 +799,11 @@ const GanttChart: React.FC<{
       <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.4rem', justifyContent: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
           <div style={{ width: '12px', height: '8px', backgroundColor: colors[0] ?? '#3b82f6', borderRadius: '2px' }} />
-          <span style={{ color: '#6b7280', fontSize: '0.55rem' }}>{t('rallyCoordinator.march')}</span>
+          <span style={{ color: '#9ca3af', fontSize: '0.65rem' }}>{t('rallyCoordinator.march')}</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
           <div style={{ width: '2px', height: '10px', backgroundColor: '#fff', boxShadow: '0 0 4px #fff' }} />
-          <span style={{ color: '#6b7280', fontSize: '0.55rem' }}>Hit</span>
+          <span style={{ color: '#9ca3af', fontSize: '0.65rem' }}>Hit</span>
         </div>
       </div>
     </div>
@@ -938,7 +938,7 @@ const PlayerModal: React.FC<{
               border: `1px solid ${team === t ? (t === 'ally' ? `${ALLY_COLOR}50` : `${ENEMY_COLOR}50`) : '#2a2a2a'}`,
               borderRadius: '8px', cursor: 'pointer',
               color: team === t ? (t === 'ally' ? ALLY_COLOR : ENEMY_COLOR) : '#6b7280',
-              fontSize: '0.7rem', fontWeight: '600',
+              fontSize: '0.8rem', fontWeight: '600',
             }}>
               {t === 'ally' ? '🛡️ Ally' : '💀 Enemy'}
             </button>
@@ -946,7 +946,7 @@ const PlayerModal: React.FC<{
         </div>
 
         <div style={{ marginBottom: '1rem' }}>
-          <label style={{ color: '#9ca3af', fontSize: '0.7rem', fontWeight: '600', display: 'block', marginBottom: '0.3rem' }}>
+          <label style={{ color: '#9ca3af', fontSize: '0.8rem', fontWeight: '600', display: 'block', marginBottom: '0.3rem' }}>
             Player Name
           </label>
           <input
@@ -958,10 +958,10 @@ const PlayerModal: React.FC<{
           />
         </div>
 
-        <p style={{ color: '#6b7280', fontSize: '0.65rem', marginBottom: '0.5rem' }}>
+        <p style={{ color: '#9ca3af', fontSize: '0.75rem', marginBottom: '0.5rem' }}>
           March times in seconds (0–120). Enter one — the other is estimated automatically.
         </p>
-        <p style={{ color: '#f59e0b80', fontSize: '0.55rem', marginBottom: '0.75rem' }}>
+        <p style={{ color: '#f59e0b', fontSize: '0.65rem', marginBottom: '0.75rem' }}>
           ≈ = estimated (×1.55 ratio). Enter both to use exact values.
         </p>
 
@@ -970,7 +970,7 @@ const PlayerModal: React.FC<{
             <div key={b} style={{
               display: 'grid', gridTemplateColumns: '120px 1fr 1fr', gap: '0.4rem', alignItems: 'center',
             }}>
-              <span style={{ color: BUILDING_COLORS[b], fontSize: '0.65rem', fontWeight: '600' }}>
+              <span style={{ color: BUILDING_COLORS[b], fontSize: '0.75rem', fontWeight: '600' }}>
                 {BUILDING_LABELS[b]}
               </span>
               <div style={{ position: 'relative' }}>
@@ -984,7 +984,7 @@ const PlayerModal: React.FC<{
                     ...(isEstimated(b, 'regular') ? { borderColor: '#f59e0b40', color: '#f59e0b' } : {}),
                   }}
                 />
-                <span style={{ position: 'absolute', right: '6px', top: '50%', transform: 'translateY(-50%)', color: isEstimated(b, 'regular') ? '#f59e0b' : '#4b5563', fontSize: '0.55rem' }}>
+                <span style={{ position: 'absolute', right: '6px', top: '50%', transform: 'translateY(-50%)', color: isEstimated(b, 'regular') ? '#f59e0b' : '#6b7280', fontSize: '0.65rem' }}>
                   {isEstimated(b, 'regular') ? '≈' : 's'}
                 </span>
               </div>
@@ -1000,7 +1000,7 @@ const PlayerModal: React.FC<{
                     ...(isEstimated(b, 'buffed') ? { color: '#f59e0b' } : {}),
                   }}
                 />
-                <span style={{ position: 'absolute', right: '6px', top: '50%', transform: 'translateY(-50%)', color: isEstimated(b, 'buffed') ? '#f59e0b' : '#22c55e', fontSize: '0.55rem' }}>
+                <span style={{ position: 'absolute', right: '6px', top: '50%', transform: 'translateY(-50%)', color: isEstimated(b, 'buffed') ? '#f59e0b' : '#22c55e', fontSize: '0.65rem' }}>
                   {isEstimated(b, 'buffed') ? '≈' : '⚡'}
                 </span>
               </div>
@@ -1060,7 +1060,7 @@ const CallOrderOutput: React.FC<{
         <button onClick={handleCopy} style={{
           padding: '0.2rem 0.5rem', backgroundColor: `${accentColor}20`,
           border: `1px solid ${accentColor}40`, borderRadius: '6px',
-          color: accentColor, fontSize: '0.6rem', fontWeight: '600', cursor: 'pointer',
+          color: accentColor, fontSize: '0.7rem', fontWeight: '600', cursor: 'pointer',
         }}>
           📋 Copy
         </button>
@@ -1074,14 +1074,14 @@ const CallOrderOutput: React.FC<{
           }}>
             <span style={{
               color: colors[i % colors.length],
-              fontWeight: '700', fontSize: '0.7rem', minWidth: '18px',
+              fontWeight: '700', fontSize: '0.8rem', minWidth: '18px',
             }}>
               {i + 1}.
             </span>
-            <span style={{ color: '#fff', fontWeight: '600', fontSize: '0.73rem', flex: 1 }}>
+            <span style={{ color: '#fff', fontWeight: '600', fontSize: '0.82rem', flex: 1 }}>
               {r.name}
             </span>
-            <span style={{ color: '#d1d5db', fontSize: '0.65rem' }}>
+            <span style={{ color: '#d1d5db', fontSize: '0.75rem' }}>
               {r.startDelay === 0 ? (
                 <span style={{ color: '#22c55e', fontWeight: '700' }}>{t('rallyCoordinator.callNow')}</span>
               ) : (
@@ -1553,7 +1553,7 @@ const RallyCoordinator: React.FC = () => {
         <h3 style={cardHeader()}>{title}</h3>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
           {isMobile && queue.length > 1 && (
-            <span style={{ color: '#4b5563', fontSize: '0.5rem', fontStyle: 'italic' }}>
+            <span style={{ color: '#6b7280', fontSize: '0.6rem', fontStyle: 'italic' }}>
               Hold to drag
             </span>
           )}
@@ -1561,7 +1561,7 @@ const RallyCoordinator: React.FC = () => {
             <button onClick={onClear} style={{
               padding: '0.15rem 0.4rem', backgroundColor: 'transparent',
               border: '1px solid #2a2a2a', borderRadius: '5px',
-              color: '#6b7280', fontSize: '0.55rem', cursor: 'pointer',
+              color: '#9ca3af', fontSize: '0.65rem', cursor: 'pointer',
             }}>
               Clear
             </button>
@@ -1572,15 +1572,15 @@ const RallyCoordinator: React.FC = () => {
       {queue.length === 0 ? (
         <div style={{
           display: 'flex', flexDirection: 'column', alignItems: 'center',
-          justifyContent: 'center', padding: '1.5rem 0.75rem', color: '#4b5563',
+          justifyContent: 'center', padding: '1.5rem 0.75rem', color: '#6b7280',
         }}>
           <div style={{ fontSize: '1.5rem', marginBottom: '0.4rem', opacity: 0.4 }}>
             {queueType === 'rally' ? '🎯' : '🛡️'}
           </div>
-          <p style={{ fontSize: '0.65rem', textAlign: 'center' }}>
+          <p style={{ fontSize: '0.75rem', textAlign: 'center' }}>
             {isMobile ? 'Tap players above to add' : 'Drop players here or click to add'}
           </p>
-          <p style={{ fontSize: '0.55rem', marginTop: '0.15rem' }}>
+          <p style={{ fontSize: '0.65rem', marginTop: '0.15rem' }}>
             {minPlayers > 1 ? `Min ${minPlayers} players` : 'Min 1 player'}
           </p>
         </div>
@@ -1614,7 +1614,7 @@ const RallyCoordinator: React.FC = () => {
       )}
 
       {queue.length > 0 && queue.length < minPlayers && (
-        <p style={{ color: '#f59e0b', fontSize: '0.55rem', marginTop: '0.4rem', textAlign: 'center' }}>
+        <p style={{ color: '#f59e0b', fontSize: '0.65rem', marginTop: '0.4rem', textAlign: 'center' }}>
           Need {minPlayers - queue.length} more to calculate timings.
         </p>
       )}
@@ -1633,7 +1633,7 @@ const RallyCoordinator: React.FC = () => {
         background: 'linear-gradient(180deg, #111111 0%, #0a0a0a 100%)',
       }}>
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
-          <Link to="/tools" style={{ color: '#6b7280', fontSize: '0.7rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', marginBottom: '0.5rem' }}>
+          <Link to="/tools" style={{ color: '#9ca3af', fontSize: '0.8rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', marginBottom: '0.5rem' }}>
             {t('rallyCoordinator.backToTools')}
           </Link>
           <h1 style={{
@@ -1643,17 +1643,9 @@ const RallyCoordinator: React.FC = () => {
             <span style={{ color: '#fff' }}>{t('rallyCoordinator.title')}</span>
             <span style={{ ...neonGlow('#ef4444'), marginLeft: '0.4rem' }}>{t('rallyCoordinator.titleAccent')}</span>
           </h1>
-          <p style={{ color: '#6b7280', fontSize: isMobile ? '0.7rem' : '0.8rem' }}>
+          <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.75rem' : '0.9rem' }}>
             {t('rallyCoordinator.subtitle')}
           </p>
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-            padding: '0.15rem 0.5rem', backgroundColor: '#f59e0b15',
-            border: '1px solid #f59e0b30', borderRadius: '20px',
-            marginTop: '0.4rem',
-          }}>
-            <span style={{ color: '#f59e0b', fontSize: '0.55rem', fontWeight: '700' }}>{t('rallyCoordinator.adminPreview')}</span>
-          </div>
         </div>
       </div>
 
@@ -1687,14 +1679,14 @@ const RallyCoordinator: React.FC = () => {
                   <button onClick={() => { setEditingPlayer(null); setDefaultTeam('ally'); setPlayerModalOpen(true); }} style={{
                     padding: '0.2rem 0.4rem', backgroundColor: `${ALLY_COLOR}15`,
                     border: `1px solid ${ALLY_COLOR}30`, borderRadius: '5px',
-                    color: ALLY_COLOR, fontSize: '0.55rem', fontWeight: '700', cursor: 'pointer',
+                    color: ALLY_COLOR, fontSize: '0.65rem', fontWeight: '700', cursor: 'pointer',
                   }}>
                     {t('rallyCoordinator.addAlly')}
                   </button>
                   <button onClick={() => { setEditingPlayer(null); setDefaultTeam('enemy'); setPlayerModalOpen(true); }} style={{
                     padding: '0.2rem 0.4rem', backgroundColor: `${ENEMY_COLOR}15`,
                     border: `1px solid ${ENEMY_COLOR}30`, borderRadius: '5px',
-                    color: ENEMY_COLOR, fontSize: '0.55rem', fontWeight: '700', cursor: 'pointer',
+                    color: ENEMY_COLOR, fontSize: '0.65rem', fontWeight: '700', cursor: 'pointer',
                   }}>
                     {t('rallyCoordinator.addEnemy')}
                   </button>
@@ -1709,7 +1701,7 @@ const RallyCoordinator: React.FC = () => {
                     border: `1px solid ${marchType === mt ? (mt === 'buffed' ? '#22c55e40' : `${ALLY_COLOR}40`) : '#2a2a2a'}`,
                     borderRadius: '6px', cursor: 'pointer',
                     color: marchType === mt ? (mt === 'buffed' ? '#22c55e' : ALLY_COLOR) : '#6b7280',
-                    fontSize: '0.6rem', fontWeight: '600',
+                    fontSize: '0.7rem', fontWeight: '600',
                   }}>
                     {mt === 'buffed' ? '⚡ Buffed' : '🏃 Regular'}
                   </button>
@@ -1718,7 +1710,7 @@ const RallyCoordinator: React.FC = () => {
 
               {allies.length > 0 && (
                 <div>
-                  <div style={{ fontSize: '0.55rem', color: ALLY_COLOR, fontWeight: '700', marginBottom: '0.25rem', letterSpacing: '0.05em' }}>{t('rallyCoordinator.allies')}</div>
+                  <div style={{ fontSize: '0.65rem', color: ALLY_COLOR, fontWeight: '700', marginBottom: '0.25rem', letterSpacing: '0.05em' }}>{t('rallyCoordinator.allies')}</div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
                     {allies.map(p => (
                       <PlayerPill
@@ -1738,7 +1730,7 @@ const RallyCoordinator: React.FC = () => {
 
               {enemies.length > 0 && (
                 <div>
-                  <div style={{ fontSize: '0.55rem', color: ENEMY_COLOR, fontWeight: '700', marginBottom: '0.25rem', letterSpacing: '0.05em' }}>{t('rallyCoordinator.enemies')}</div>
+                  <div style={{ fontSize: '0.65rem', color: ENEMY_COLOR, fontWeight: '700', marginBottom: '0.25rem', letterSpacing: '0.05em' }}>{t('rallyCoordinator.enemies')}</div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
                     {enemies.map(p => (
                       <PlayerPill
@@ -1757,12 +1749,12 @@ const RallyCoordinator: React.FC = () => {
               )}
 
               {players.length === 0 && (
-                <p style={{ color: '#4b5563', fontSize: '0.6rem', textAlign: 'center', padding: '0.75rem 0' }}>
+                <p style={{ color: '#6b7280', fontSize: '0.7rem', textAlign: 'center', padding: '0.75rem 0' }}>
                   Add your rally leaders. No guesswork.
                 </p>
               )}
 
-              <p style={{ color: '#4b5563', fontSize: '0.5rem' }}>
+              <p style={{ color: '#6b7280', fontSize: '0.65rem' }}>
                 Allies → Rally Queue. Enemies → Counter Queue. Right-click to edit.
               </p>
             </div>
@@ -1790,7 +1782,7 @@ const RallyCoordinator: React.FC = () => {
                       <button onClick={() => setShowPresetSave(!showPresetSave)} style={{
                         padding: '0.15rem 0.35rem', backgroundColor: '#22c55e15',
                         border: '1px solid #22c55e30', borderRadius: '4px',
-                        color: '#22c55e', fontSize: '0.5rem', fontWeight: '700', cursor: 'pointer',
+                        color: '#22c55e', fontSize: '0.6rem', fontWeight: '700', cursor: 'pointer',
                       }}>
                         + Save Current
                       </button>
@@ -1802,12 +1794,12 @@ const RallyCoordinator: React.FC = () => {
                         value={presetName}
                         onChange={e => setPresetName(e.target.value)}
                         placeholder="Preset name..."
-                        style={{ ...inputStyle, fontSize: '0.6rem', padding: '0.25rem 0.4rem', minHeight: '28px', flex: 1 }}
+                        style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.25rem 0.4rem', minHeight: '28px', flex: 1 }}
                       />
                       <button onClick={savePreset} disabled={!presetName.trim()} style={{
                         padding: '0.25rem 0.5rem', backgroundColor: '#22c55e',
                         border: 'none', borderRadius: '5px',
-                        color: '#000', fontSize: '0.55rem', fontWeight: '700', cursor: 'pointer',
+                        color: '#000', fontSize: '0.65rem', fontWeight: '700', cursor: 'pointer',
                         opacity: presetName.trim() ? 1 : 0.4,
                       }}>
                         Save
@@ -1815,7 +1807,7 @@ const RallyCoordinator: React.FC = () => {
                     </div>
                   )}
                   {presets.length === 0 ? (
-                    <p style={{ color: '#4b5563', fontSize: '0.55rem', textAlign: 'center', padding: '1rem 0' }}>
+                    <p style={{ color: '#6b7280', fontSize: '0.65rem', textAlign: 'center', padding: '1rem 0' }}>
                       No presets yet. Build a rally and save it here for instant recall.
                     </p>
                   ) : (
@@ -1828,16 +1820,16 @@ const RallyCoordinator: React.FC = () => {
                         }}>
                           <button onClick={() => loadPreset(p)} style={{
                             background: 'none', border: 'none', color: '#d1d5db',
-                            fontSize: '0.6rem', fontWeight: '600', cursor: 'pointer', textAlign: 'left', flex: 1, padding: 0,
+                            fontSize: '0.7rem', fontWeight: '600', cursor: 'pointer', textAlign: 'left', flex: 1, padding: 0,
                           }}>
                             {p.name}
-                            <span style={{ color: '#4b5563', marginLeft: '0.3rem', fontSize: '0.5rem' }}>
+                            <span style={{ color: '#6b7280', marginLeft: '0.3rem', fontSize: '0.6rem' }}>
                               {BUILDING_SHORT[p.building]} · {p.slots.length} players
                             </span>
                           </button>
                           <button onClick={() => deletePreset(p.id)} style={{
-                            background: 'none', border: 'none', color: '#4b5563',
-                            fontSize: '0.5rem', cursor: 'pointer', padding: '0 0.2rem',
+                            background: 'none', border: 'none', color: '#6b7280',
+                            fontSize: '0.6rem', cursor: 'pointer', padding: '0 0.2rem',
                           }}>✕</button>
                         </div>
                       ))}
@@ -1861,7 +1853,7 @@ const RallyCoordinator: React.FC = () => {
                 <span style={{ color: '#6b7280', fontSize: '0.7rem', transition: 'transform 0.2s', transform: howToOpen ? 'rotate(0deg)' : 'rotate(-90deg)' }}>▼</span>
               </button>
               {howToOpen && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginTop: '0.5rem', fontSize: '0.6rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginTop: '0.5rem', fontSize: '0.7rem' }}>
                   {[
                     { num: '1', text: 'Add your rally leaders — allies and enemies.', color: '#3b82f6' },
                     { num: '2', text: 'Set their march times for each building.', color: '#22c55e' },
@@ -1878,7 +1870,7 @@ const RallyCoordinator: React.FC = () => {
                       <span style={{
                         width: '20px', height: '20px', borderRadius: '50%',
                         backgroundColor: `${step.color}20`, color: step.color,
-                        fontSize: '0.6rem', fontWeight: '700',
+                        fontSize: '0.65rem', fontWeight: '700',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                       }}>
                         {step.num}
@@ -1916,7 +1908,7 @@ const RallyCoordinator: React.FC = () => {
               />
             ) : (
               <div style={{ ...CARD, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100px' }}>
-                <p style={{ color: '#2a2a2a', fontSize: '0.65rem', textAlign: 'center' }}>
+                <p style={{ color: '#4b5563', fontSize: '0.75rem', textAlign: 'center' }}>
                   Add 2+ players to Rally Queue<br />to generate call order
                 </p>
               </div>
@@ -1934,7 +1926,7 @@ const RallyCoordinator: React.FC = () => {
                       border: `1px solid ${hitMode === 'simultaneous' ? `${ALLY_COLOR}50` : '#2a2a2a'}`,
                       borderRadius: '7px', cursor: 'pointer',
                       color: hitMode === 'simultaneous' ? ALLY_COLOR : '#6b7280',
-                      fontSize: '0.55rem', fontWeight: '600',
+                      fontSize: '0.65rem', fontWeight: '600',
                     }}>
                       💥 Simultaneous
                     </button>
@@ -1944,7 +1936,7 @@ const RallyCoordinator: React.FC = () => {
                       border: `1px solid ${hitMode === 'interval' ? `${ALLY_COLOR}50` : '#2a2a2a'}`,
                       borderRadius: '7px', cursor: 'pointer',
                       color: hitMode === 'interval' ? ALLY_COLOR : '#6b7280',
-                      fontSize: '0.55rem', fontWeight: '600',
+                      fontSize: '0.65rem', fontWeight: '600',
                     }}>
                       🔗 Chain Hits
                     </button>
@@ -1965,7 +1957,7 @@ const RallyCoordinator: React.FC = () => {
                 </div>
               ) : (
                 <div style={{ ...CARD, borderTopLeftRadius: 0, borderTopRightRadius: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80px' }}>
-                  <p style={{ color: '#2a2a2a', fontSize: '0.65rem', textAlign: 'center' }}>
+                  <p style={{ color: '#4b5563', fontSize: '0.75rem', textAlign: 'center' }}>
                     Rally timeline appears here once you queue 2+ players
                   </p>
                 </div>
@@ -1998,7 +1990,7 @@ const RallyCoordinator: React.FC = () => {
               />
             ) : (
               <div style={{ ...CARD, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100px' }}>
-                <p style={{ color: '#2a2a2a', fontSize: '0.65rem', textAlign: 'center' }}>
+                <p style={{ color: '#4b5563', fontSize: '0.75rem', textAlign: 'center' }}>
                   Add players to Counter Queue<br />to generate counter timing
                 </p>
               </div>
@@ -2016,7 +2008,7 @@ const RallyCoordinator: React.FC = () => {
                       border: `1px solid ${counterHitMode === 'simultaneous' ? `${ENEMY_COLOR}50` : '#2a2a2a'}`,
                       borderRadius: '7px', cursor: 'pointer',
                       color: counterHitMode === 'simultaneous' ? ENEMY_COLOR : '#6b7280',
-                      fontSize: '0.55rem', fontWeight: '600',
+                      fontSize: '0.65rem', fontWeight: '600',
                     }}>
                       💥 Simultaneous
                     </button>
@@ -2026,7 +2018,7 @@ const RallyCoordinator: React.FC = () => {
                       border: `1px solid ${counterHitMode === 'interval' ? `${ENEMY_COLOR}50` : '#2a2a2a'}`,
                       borderRadius: '7px', cursor: 'pointer',
                       color: counterHitMode === 'interval' ? ENEMY_COLOR : '#6b7280',
-                      fontSize: '0.55rem', fontWeight: '600',
+                      fontSize: '0.65rem', fontWeight: '600',
                     }}>
                       🔗 Chain Hits
                     </button>
@@ -2047,7 +2039,7 @@ const RallyCoordinator: React.FC = () => {
                 </div>
               ) : (
                 <div style={{ ...CARD, borderTopLeftRadius: 0, borderTopRightRadius: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80px' }}>
-                  <p style={{ color: '#2a2a2a', fontSize: '0.65rem', textAlign: 'center' }}>
+                  <p style={{ color: '#4b5563', fontSize: '0.75rem', textAlign: 'center' }}>
                     Counter timeline appears when you have players queued
                   </p>
                 </div>
@@ -2063,7 +2055,7 @@ const RallyCoordinator: React.FC = () => {
             padding: '0.4rem 0.6rem', backgroundColor: '#f59e0b10',
             border: '1px solid #f59e0b25', borderRadius: '8px', marginTop: '0.75rem',
           }}>
-            <span style={{ color: '#f59e0b', fontSize: '0.65rem' }}>
+            <span style={{ color: '#f59e0b', fontSize: '0.75rem' }}>
               ⚠️ Some players have march times over 100s — double-check those values.
             </span>
           </div>
@@ -2080,16 +2072,16 @@ const RallyCoordinator: React.FC = () => {
           padding: '0.4rem 0.85rem', borderRadius: '20px',
           border: '1px solid #22d3ee25', backgroundColor: '#22d3ee08',
         }}>
-          <span style={{ color: '#4b5563', fontSize: '0.7rem', letterSpacing: '0.03em' }}>
+          <span style={{ color: '#6b7280', fontSize: '0.8rem', letterSpacing: '0.03em' }}>
             ⚔️ {t('battlePlanner.communityCredit', 'Huge shoutout to')}
           </span>
           <Link
             to="/profile/57d266cf-9800-4a7d-a8a5-f2cbc616bc22"
-            style={{ color: '#22d3ee', textDecoration: 'none', fontWeight: '600', fontFamily: FONT_DISPLAY, fontSize: '0.7rem' }}
+            style={{ color: '#22d3ee', textDecoration: 'none', fontWeight: '600', fontFamily: FONT_DISPLAY, fontSize: '0.8rem' }}
           >
             bAdClimber
           </Link>
-          <span style={{ color: '#4b5563', fontSize: '0.7rem', letterSpacing: '0.03em' }}>
+          <span style={{ color: '#6b7280', fontSize: '0.8rem', letterSpacing: '0.03em' }}>
             {t('battlePlanner.communityCreditSuffix', 'for rallying this idea into existence. Built by the community, for the community.')}
           </span>
         </div>

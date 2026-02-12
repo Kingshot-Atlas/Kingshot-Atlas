@@ -44,12 +44,14 @@ const SupportAtlas: React.FC = () => {
   }, [isCanceled, setSearchParams]);
 
   const supporterPerks = [
-    { icon: '⭐', text: t('support.perk1Title', 'Supporter Badge'), desc: t('support.perk1Desc', 'Pink badge on your profile') },
-    { icon: '💜', text: t('support.perk2Title', 'Discord Supporter Role'), desc: t('support.perk2Desc', 'Exclusive pink role in Discord') },
-    { icon: '⚔️', text: t('support.perk3Title', 'Unlimited Premium Bot Commands'), desc: t('support.perk3Desc', 'Unlimited /multirally and future premium commands (free users get 3/day)') },
-    { icon: '🎙️', text: t('support.perk4Title', 'Exclusive Discord Channel'), desc: t('support.perk4Desc', 'Access to supporter-only discussions') },
-    { icon: '🚀', text: t('support.perk5Title', 'Early Access to New Features'), desc: t('support.perk5Desc', 'Be the first to try upcoming tools') },
-    { icon: '🚫', text: t('support.perk6Title', 'Ad-Free Experience'), desc: t('support.perk6Desc', 'Clean, distraction-free browsing') },
+    { icon: '⭐', text: t('support.perk1Title', 'Supporter Badge'), desc: t('support.perk1Desc', 'Pink badge on your profile — flex on the leaderboards') },
+    { icon: '💜', text: t('support.perk2Title', 'Discord Supporter Role'), desc: t('support.perk2Desc', 'Exclusive pink role in Discord — stand out in chat') },
+    { icon: '⚔️', text: t('support.perk3Title', 'KvK Battle Planner Access'), desc: t('support.perk3Desc', 'Full access to the Rally Coordinator and future premium tools') },
+    { icon: '🤖', text: t('support.perk4Title', 'Unlimited Bot Commands'), desc: t('support.perk4Desc', 'Unlimited /multirally and premium Discord bot commands (free: 3/day)') },
+    { icon: '🎙️', text: t('support.perk5Title', 'Exclusive Discord Channel'), desc: t('support.perk5Desc', 'Access to supporter-only discussions and early previews') },
+    { icon: '🚀', text: t('support.perk6Title', 'Early Access'), desc: t('support.perk6Desc', 'First to try new features before public release') },
+    { icon: '📊', text: t('support.perk7Title', 'Full Leaderboard Rankings'), desc: t('support.perk7Desc', 'Unlock unlimited kingdom rankings (free: Top 25)') },
+    { icon: '🚫', text: t('support.perk8Title', 'Ad-Free Experience'), desc: t('support.perk8Desc', 'Clean, distraction-free browsing') },
   ];
 
   const handleStripeCheckout = () => {
@@ -93,7 +95,7 @@ const SupportAtlas: React.FC = () => {
             <span style={{ ...neonGlow('#FF6B8A'), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>ATLAS</span>
           </h1>
           <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.85rem' : '0.95rem', marginBottom: '0.75rem', maxWidth: '500px', margin: '0 auto 0.75rem' }}>
-            {t('support.heroDesc', 'Atlas is a community project built by players, for players. Your support keeps the lights on and new features coming.')}
+            {t('support.heroDesc', 'Atlas is built by players who got tired of guessing. Your support keeps the data flowing, the tools sharp, and the community thriving.')}
           </p>
           {!isMobile && (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
@@ -263,7 +265,7 @@ const SupportAtlas: React.FC = () => {
             {t('support.cancelAnytime', 'Cancel anytime • Manage via Stripe')}
           </p>
           <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.85rem' : '0.9rem', lineHeight: 1.6, marginBottom: '1.5rem', maxWidth: '500px', margin: '0 auto 1.5rem' }}>
-            {t('support.getPerks', 'Get the Supporter Badge, Discord role, ad-free experience, and help fund Atlas development.')}
+            {t('support.getPerks', 'Badge, Battle Planner, unlimited bot commands, ad-free — and the satisfaction of funding the tools you actually use.')}
           </p>
 
           {/* Animated Supporter Badge Preview */}
@@ -481,26 +483,6 @@ const SupportAtlas: React.FC = () => {
           </div>
         </section>
 
-        {/* Coming Soon Teaser */}
-        <section style={{ 
-          marginBottom: '2.5rem',
-          backgroundColor: '#111111', 
-          padding: isMobile ? '1.25rem' : '1.5rem', 
-          borderRadius: '12px',
-          border: '1px solid #a855f730',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
-            <span style={{ fontSize: '1.25rem' }}>🚀</span>
-            <h3 style={{ color: '#a855f7', fontWeight: '600', fontSize: '1rem', margin: 0 }}>
-              {t('support.comingSoonRecruiter', 'Coming Soon: Atlas Recruiter')}
-            </h3>
-          </div>
-          <p style={{ color: '#9ca3af', fontSize: '0.85rem', lineHeight: 1.6, margin: 0 }}>
-            Designed for alliance leaders and kingdom managers. Claim your kingdom, manage your public profile, 
-            track recruitment interest, and more. Stay tuned!
-          </p>
-        </section>
-
         {/* Why Support */}
         <section style={{ marginBottom: '2.5rem' }}>
           <h2 style={{ 
@@ -554,7 +536,7 @@ const SupportAtlas: React.FC = () => {
             {t('support.otherWays', 'Other Ways to Help')}
           </h3>
           <p style={{ color: '#9ca3af', fontSize: '0.85rem', lineHeight: 1.6, marginBottom: '1rem' }}>
-            {t('support.cantDonate', "Not everyone can donate, and that's totally fine! Here's how you can still help:")}
+            {t('support.cantDonate', "Money isn't everything. Seriously — these help just as much:")}
           </p>
           <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '0.75rem' }}>
             <Link to="/contribute-data" style={{
