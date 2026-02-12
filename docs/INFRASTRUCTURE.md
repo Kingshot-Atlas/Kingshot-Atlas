@@ -1,6 +1,6 @@
 # Infrastructure Reference
 
-**Last Updated:** 2026-02-06  
+**Last Updated:** 2026-02-12  
 **Owner:** Ops Lead
 
 ---
@@ -184,6 +184,43 @@ Update these files when infrastructure changes:
 | `docs/LAUNCH_CHECKLIST.md` | Setup instructions |
 | `docs/DISCORD_BOT.md` | API URL |
 | `apps/api/RENDER_DEPLOY.md` | Deploy instructions |
+
+---
+
+## Email & DNS Authentication
+
+### Email Flow
+- **Outbound:** Resend API (Amazon SES) → `support@ks-atlas.com`
+- **Inbound:** Cloudflare Email Routing → `atlas-email-worker` → Supabase `support_emails` table
+
+### DNS Records (Cloudflare)
+
+| Type | Name | Value | Purpose |
+|------|------|-------|---------|
+| TXT | `_dmarc` | `v=DMARC1; p=quarantine; rua=mailto:gatreno.investing@gmail.com; pct=100; adkim=s; aspf=r` | DMARC policy |
+| TXT | `ks-atlas.com` | `v=spf1 include:_spf.mx.cloudflare.net ~all` | SPF for inbound (Cloudflare Email Routing) |
+| TXT | `send.ks-atlas.com` | `v=spf1 include:amazonses.com ~all` | SPF for outbound (Resend/SES) |
+| CNAME | `resend._domainkey` | *(Resend-provided value)* | DKIM signing for outbound emails |
+| MX | `ks-atlas.com` | `route1/2/3.mx.cloudflare.net` | Inbound email routing |
+
+### DMARC Alignment Notes
+- **DKIM alignment:** strict (`adkim=s`) — DKIM domain must exactly match From header
+- **SPF alignment:** relaxed (`aspf=r`) — SPF domain can be a subdomain of From header
+- **Why relaxed SPF:** Resend uses `send.ks-atlas.com` as envelope-from, but From header is `ks-atlas.com`. Strict SPF alignment would fail because `send.ks-atlas.com ≠ ks-atlas.com`. Relaxed allows subdomain matching.
+- **DMARC reports:** Sent to `gatreno.investing@gmail.com` (via `rua` tag)
+
+### Troubleshooting Email Auth
+```bash
+# Check DMARC record
+dig TXT _dmarc.ks-atlas.com +short
+
+# Check SPF records
+dig TXT ks-atlas.com +short
+dig TXT send.ks-atlas.com +short
+
+# Check DKIM
+dig CNAME resend._domainkey.ks-atlas.com +short
+```
 
 ---
 

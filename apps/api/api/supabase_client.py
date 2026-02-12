@@ -862,6 +862,19 @@ def get_gift_codes_from_db() -> list:
         return []
 
 
+def get_deactivated_gift_codes() -> set:
+    """Fetch codes marked is_active=False so they can be excluded from external sources."""
+    client = get_supabase_admin()
+    if not client:
+        return set()
+    try:
+        result = client.table("gift_codes").select("code").eq("is_active", False).execute()
+        return {r["code"] for r in (result.data or [])}
+    except Exception as e:
+        print(f"Error fetching deactivated gift codes: {e}")
+        return set()
+
+
 def upsert_gift_codes(codes: list, source: str = "kingshot.net") -> bool:
     """
     Upsert gift codes into the gift_codes table.

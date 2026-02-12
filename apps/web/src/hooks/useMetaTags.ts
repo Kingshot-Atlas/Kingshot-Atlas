@@ -75,9 +75,14 @@ export const useMetaTags = (options: MetaTagsOptions) => {
 
     if (url) {
       updateMeta('og:url', url);
-      // Update canonical link
-      const canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement;
-      if (canonical) canonical.href = url;
+      // Update or create canonical link
+      let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement;
+      if (!canonical) {
+        canonical = document.createElement('link');
+        canonical.setAttribute('rel', 'canonical');
+        document.head.appendChild(canonical);
+      }
+      canonical.href = url;
     }
 
     updateMeta('og:type', type);
@@ -93,6 +98,11 @@ export const useMetaTags = (options: MetaTagsOptions) => {
       updateTwitterMeta('twitter:title', originalTwitterTitle);
       updateTwitterMeta('twitter:description', originalTwitterDescription);
       updateTwitterMeta('twitter:image', originalTwitterImage);
+      // Update canonical to current URL on cleanup (avoid stale homepage canonical)
+      const canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement;
+      if (canonical) {
+        canonical.href = `https://ks-atlas.com${window.location.pathname}`;
+      }
     };
   }, [options]);
 };

@@ -17,7 +17,7 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 from slowapi import Limiter
 from slowapi.util import get_remote_address
-from api.supabase_client import log_gift_code_redemption, get_gift_codes_from_db, upsert_gift_codes, add_manual_gift_code, deactivate_gift_code, mark_gift_code_expired
+from api.supabase_client import log_gift_code_redemption, get_gift_codes_from_db, get_deactivated_gift_codes, upsert_gift_codes, add_manual_gift_code, deactivate_gift_code, mark_gift_code_expired
 
 router = APIRouter()
 
@@ -344,6 +344,7 @@ async def get_active_gift_codes(request: Request):
     Returns deduplicated list.
     """
     seen_codes = set()
+    blocked_codes = get_deactivated_gift_codes()  # codes marked inactive in DB
     merged = []
     source = "database"
 
@@ -387,7 +388,7 @@ async def get_active_gift_codes(request: Request):
                     "expire_date": c.get("expire_date") or c.get("expiresAt"),
                     "is_expired": c.get("is_expired", False),
                 })
-                if code_str not in seen_codes and not c.get("is_expired", False):
+                if code_str not in seen_codes and code_str not in blocked_codes and not c.get("is_expired", False):
                     seen_codes.add(code_str)
                     merged.append({
                         "code": code_str,

@@ -3,6 +3,17 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-12 16:02 | Ops Lead | COMPLETED
+Task: DMARC Report Analysis & SPF Alignment Fix
+Files: docs/INFRASTRUCTURE.md (added Email & DNS Authentication section), agents/ops-lead/LATEST_KNOWLEDGE.md (added DMARC knowledge)
+Changes:
+1. **Analyzed** Google DMARC aggregate report for ks-atlas.com (Feb 11 period)
+2. **Identified** SPF alignment failure: `aspf=s` (strict) rejects `send.ks-atlas.com` subdomain used by Resend
+3. **Fix required:** Change `aspf=s` → `aspf=r` (relaxed) in `_dmarc` TXT record on Cloudflare DNS
+4. **Documented** full email DNS auth records in INFRASTRUCTURE.md
+5. **Documented** DMARC knowledge and troubleshooting in Ops Lead LATEST_KNOWLEDGE.md
+Result: DNS change must be applied manually in Cloudflare Dashboard. No code changes needed. Build passes.
+
 ## 2026-02-12 14:45 | Product + Platform Engineer | COMPLETED
 Task: Gift Code System v2 — Full Pipeline Overhaul
 Files: config.js, scheduler.js, bot.js, commands/index.js, commands/handlers.js, utils/embeds.js (Discord bot), GiftCodeRedeemer.tsx, AtlasBot.tsx, GiftCodeAnalyticsTab.tsx (frontend)

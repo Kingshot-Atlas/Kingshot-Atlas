@@ -8,6 +8,7 @@ Disallow: /admin
 Disallow: /auth/
 Disallow: /profile
 Disallow: /components
+Disallow: /transfer-hub
 
 # Disallow legacy URLs (301 redirects exist, but save crawl budget)
 Disallow: /leaderboards

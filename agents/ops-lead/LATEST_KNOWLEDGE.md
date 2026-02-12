@@ -1,7 +1,33 @@
 # Ops Lead — Latest Knowledge
 
-**Last Updated:** 2026-02-08  
+**Last Updated:** 2026-02-12  
 **Purpose:** Current best practices for DevOps, deployment, SEO, and analytics
+
+---
+
+## DMARC & Email Authentication (2026-02-12)
+
+### DMARC Report from Google
+Google sends daily DMARC aggregate reports to the `rua` email in the DMARC record. These reports show how emails from `ks-atlas.com` performed authentication checks.
+
+### SPF Alignment Issue (Fixed 2026-02-12)
+- **Problem:** `aspf=s` (strict) in DMARC record caused SPF alignment failures
+- **Why:** Resend uses `send.ks-atlas.com` as envelope-from, but From header is `ks-atlas.com`. Strict requires exact match.
+- **Impact:** Low — DKIM passed alignment, so emails were delivered. But if DKIM ever broke, all emails would be quarantined.
+- **Fix:** Changed `aspf=s` → `aspf=r` (relaxed) in `_dmarc` TXT record on Cloudflare DNS
+- **DKIM stays strict (`adkim=s`)** — DKIM domain (`ks-atlas.com`) exactly matches From header
+
+### Current DNS Auth Records
+```
+_dmarc.ks-atlas.com       TXT  v=DMARC1; p=quarantine; rua=mailto:gatreno.investing@gmail.com; pct=100; adkim=s; aspf=r
+ks-atlas.com              TXT  v=spf1 include:_spf.mx.cloudflare.net ~all
+send.ks-atlas.com         TXT  v=spf1 include:amazonses.com ~all
+resend._domainkey         CNAME (Resend-provided)
+```
+
+### Key IPs
+- `54.240.9.36`, `54.240.9.37` — Amazon SES (Resend's sending infrastructure)
+- These are legitimate outbound email IPs
 
 ---
 
