@@ -5,8 +5,8 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { useTranslation } from 'react-i18next';
 
-// Free trial config: Feb 15 00:00 UTC → Feb 25 00:00 UTC (10 days)
-const TRIAL_START = new Date('2026-02-15T00:00:00Z').getTime();
+// Free trial config: Feb 12 00:00 UTC → Feb 25 00:00 UTC
+const TRIAL_START = new Date('2026-02-12T00:00:00Z').getTime();
 const TRIAL_END = new Date('2026-02-25T00:00:00Z').getTime();
 
 const getTrialState = () => {

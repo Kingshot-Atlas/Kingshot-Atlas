@@ -1120,8 +1120,8 @@ const RallyCoordinator: React.FC = () => {
   // Admin gate
   const isAdmin = !!(profile?.username && ADMIN_USERNAMES.includes(profile.username.toLowerCase()));
 
-  // Free trial: Feb 15 00:00 UTC → Feb 25 00:00 UTC
-  const TRIAL_START = new Date('2026-02-15T00:00:00Z').getTime();
+  // Free trial: Feb 12 00:00 UTC → Feb 25 00:00 UTC
+  const TRIAL_START = new Date('2026-02-12T00:00:00Z').getTime();
   const TRIAL_END = new Date('2026-02-25T00:00:00Z').getTime();
   const isTrialActive = Date.now() >= TRIAL_START && Date.now() < TRIAL_END;
 
