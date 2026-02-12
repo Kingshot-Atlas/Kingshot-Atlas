@@ -15,6 +15,8 @@ module.exports = {
   // Channel IDs
   botChannelId: process.env.BOT_CHANNEL_ID,
   updatesChannelId: process.env.UPDATES_CHANNEL_ID,
+  giftCodesChannelId: process.env.DISCORD_GIFT_CODES_CHANNEL_ID || '1471516156639576177',
+  giftCodesRoleId: process.env.DISCORD_GIFT_CODES_ROLE_ID || '1471516628125749319',
 
   // Webhooks
   patchNotesWebhook: process.env.DISCORD_PATCH_NOTES_WEBHOOK,

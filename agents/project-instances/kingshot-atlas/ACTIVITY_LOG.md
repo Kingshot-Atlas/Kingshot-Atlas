@@ -3,6 +3,20 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-12 14:45 | Product + Platform Engineer | COMPLETED
+Task: Gift Code System v2 — Full Pipeline Overhaul
+Files: config.js, scheduler.js, bot.js, commands/index.js, commands/handlers.js, utils/embeds.js (Discord bot), GiftCodeRedeemer.tsx, AtlasBot.tsx, GiftCodeAnalyticsTab.tsx (frontend)
+Changes:
+1. **Supabase RLS:** Added authenticated user write policy on gift_codes. Auto-deactivate trigger for expired codes. Standalone `deactivate_expired_gift_codes()` function.
+2. **Scheduler overhaul:** Gift code polling now hits backend API (auto-syncs kingshot.net→Supabase DB). Posts to #giftcodes channel (ID: 1471516156639576177) via bot client with @Giftcodes role mention (ID: 1471516628125749319). Atlas personality copy mentioning `/redeem` + website. Webhook fallback.
+3. **`/redeem` upgrade:** Optional `code` string option with autocomplete dropdown showing all active codes + "All" option. Usage tracking via `logger.syncToApi()`. Last redeemed timestamp in footer.
+4. **`/codes` upgrade:** "Redeem on Atlas" link button added to response.
+5. **`/help` embed:** Updated Gift Codes section with `/codes`, `/redeem`, and `/redeem <code>`.
+6. **AtlasBot page:** Added `/multirally`, `/codes`, and `/redeem` command cards.
+7. **Frontend:** "Copy All Codes" clipboard button on GiftCodeRedeemer.
+8. **Admin Dashboard:** Gift code management UI (add/deactivate/view codes with source badges) + analytics sub-tabs.
+Result: Build passes. Slash commands need re-registration on next deploy (`npm run register`).
+
 ## 2026-02-12 09:51 | Product Engineer | COMPLETED
 Task: Gift Code Outcome Handling + KvK History Embed Fix + i18n + SEO
 Files: GiftCodeRedeemer.tsx, embeds.js (discord-bot), 9x translation.json, useMetaTags.ts, GiftCodeAnalyticsTab.tsx, AdminDashboard.tsx, admin/index.ts

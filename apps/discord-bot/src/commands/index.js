@@ -146,10 +146,17 @@ const commands = [
     .setName('codes')
     .setDescription('Show active Kingshot gift codes you can redeem right now'),
 
-  // /redeem
+  // /redeem [code]
   new SlashCommandBuilder()
     .setName('redeem')
-    .setDescription('Redeem all active gift codes for your linked Kingshot account'),
+    .setDescription('Redeem gift codes for your linked Kingshot account')
+    .addStringOption(option =>
+      option
+        .setName('code')
+        .setDescription('Pick a specific code or "All" to redeem everything')
+        .setRequired(false)
+        .setAutocomplete(true)
+    ),
 
   // /help
   new SlashCommandBuilder()

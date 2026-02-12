@@ -15,6 +15,9 @@
  * /predict <k1> <k2> - Matchup prediction
  * /countdownkvk      - Time until next KvK
  * /countdowntransfer - Time until next Transfer Event
+ * /codes             - Show active gift codes
+ * /redeem [code]     - Redeem gift codes (single or all)
+ * /multirally        - Coordinate rally timing
  * /help              - Show all commands
  * 
  * Setup:
@@ -716,6 +719,20 @@ client.on('interactionCreate', async (interaction) => {
           .slice(0, 25)
           .map(n => ({ name: `Kingdom ${n}`, value: n }));
         await interaction.respond(filtered);
+      }
+      // /redeem code autocomplete — show active codes + "All" option
+      else if (interaction.commandName === 'redeem' && focused.name === 'code') {
+        const typed = String(focused.value).toLowerCase();
+        const api = require('./utils/api');
+        const codes = await api.fetchGiftCodes();
+        const choices = [
+          { name: '🎁 All — Redeem every active code', value: '__ALL__' },
+          ...codes.slice(0, 24).map(c => ({
+            name: `${c.code}${c.rewards ? ' — ' + c.rewards.slice(0, 40) : ''}`,
+            value: c.code,
+          })),
+        ].filter(c => !typed || c.name.toLowerCase().includes(typed) || c.value.toLowerCase().includes(typed));
+        await interaction.respond(choices.slice(0, 25));
       }
     } catch (e) {
       console.error('Autocomplete error:', e.message);

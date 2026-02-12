@@ -135,6 +135,26 @@ const AtlasBot: React.FC = () => {
       description: 'Countdown to the next Transfer Event. Plan your move before the window opens — or miss it entirely.',
       icon: '\ud83d\udd04',
       accentColor: '#a855f7'
+    },
+    {
+      command: 'multirally',
+      description: 'Coordinate multiple rallies to hit a building at the same time. Enter players and march times, get the exact call order. No more guessing.',
+      example: '/multirally target:King\'s Castle players:PlayerA:15,PlayerB:18',
+      icon: '\u2694\ufe0f',
+      accentColor: '#ef4444'
+    },
+    {
+      command: 'codes',
+      description: 'See every active gift code in one place. Copy-friendly format, ready to paste in-game or redeem on Atlas.',
+      icon: '\ud83c\udf81',
+      accentColor: '#f59e0b'
+    },
+    {
+      command: 'redeem',
+      description: 'One command, all codes redeemed. Link your Kingshot account on Atlas, then /redeem does the rest. Pick a specific code or hit "All" — your call.',
+      example: '/redeem code:All',
+      icon: '\u26a1',
+      accentColor: '#22c55e'
     }
   ];
 

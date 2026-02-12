@@ -14,6 +14,9 @@ const embeds = require('./utils/embeds');
 function initScheduler(client) {
   console.log('📅 Initializing scheduled tasks...');
 
+  // Store client reference for gift code channel posting
+  giftCodeClient = client;
+
   // Log webhook status
   if (config.patchNotesWebhook) {
     console.log('✅ Patch notes webhook configured');
@@ -364,43 +367,55 @@ async function postTestMessage() {
 
 // ============================================================================
 // GIFT CODE AUTO-POSTING
-// Polls kingshot.net every 30 min, posts new codes to #gift-codes channel
+// Polls backend API every 30 min (which merges kingshot.net + Supabase DB),
+// posts new codes to #giftcodes channel with @Giftcodes role mention
 // ============================================================================
 
 // Track known codes to detect new ones (persists in memory across checks)
 let knownGiftCodes = new Set();
 let giftCodeInitialized = false;
+let giftCodeClient = null; // Set by initScheduler
 
 /**
- * Check for new gift codes and post to Discord if found
+ * Check for new gift codes and post to Discord if found.
+ * Uses the backend API which auto-syncs kingshot.net → Supabase.
  */
 async function checkAndPostNewGiftCodes() {
-  if (!config.giftCodesWebhook) return;
+  const channelId = config.giftCodesChannelId;
+  const roleId = config.giftCodesRoleId;
+  const hasChannel = giftCodeClient && channelId;
+  const hasWebhook = config.giftCodesWebhook;
+
+  if (!hasChannel && !hasWebhook) {
+    console.warn('⚠️ No gift codes channel or webhook configured');
+    return;
+  }
 
   try {
-    const response = await fetch('https://kingshot.net/api/gift-codes', {
+    // Fetch from backend API (triggers kingshot.net sync + DB merge)
+    const apiUrl = config.apiUrl;
+    const response = await fetch(`${apiUrl}/api/v1/player-link/gift-codes`, {
       headers: { 'Accept': 'application/json' },
-      signal: AbortSignal.timeout(10000),
+      signal: AbortSignal.timeout(15000),
     });
 
     if (!response.ok) {
-      console.warn(`⚠️ Gift code fetch failed: ${response.status}`);
+      console.warn(`⚠️ Gift code API fetch failed: ${response.status}`);
       return;
     }
 
     const data = await response.json();
-    const codes = data?.data?.giftCodes || [];
-    const activeCodes = codes.filter(c => !c.is_expired && c.code);
+    const activeCodes = (data.codes || []).filter(c => c.code && !c.is_expired);
 
     if (!giftCodeInitialized) {
       // First run: seed known codes without posting (avoid spam on restart)
       activeCodes.forEach(c => knownGiftCodes.add(c.code));
       giftCodeInitialized = true;
-      console.log(`🎁 Gift code tracker initialized with ${knownGiftCodes.size} known codes`);
+      console.log(`🎁 Gift code tracker initialized with ${knownGiftCodes.size} known codes (source: ${data.source})`);
       return;
     }
 
-    // Check for new codes
+    // Detect new codes
     const newCodes = activeCodes.filter(c => !knownGiftCodes.has(c.code));
 
     if (newCodes.length > 0) {
@@ -409,38 +424,53 @@ async function checkAndPostNewGiftCodes() {
       for (const code of newCodes) {
         knownGiftCodes.add(code.code);
 
-        const embed = embeds.createNewGiftCodeEmbed(code);
-
-        try {
-          const postResponse = await fetch(config.giftCodesWebhook, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              username: 'Atlas Gift Codes',
-              avatar_url: config.botAvatarUrl,
-              embeds: [embed.toJSON()],
-            }),
-          });
-
-          if (postResponse.ok) {
-            console.log(`✅ Posted new gift code: ${code.code}`);
-          } else {
-            console.error(`❌ Failed to post gift code ${code.code}: ${postResponse.status}`);
+        // Post to #giftcodes channel via bot client (preferred)
+        if (hasChannel) {
+          try {
+            const channel = await giftCodeClient.channels.fetch(channelId);
+            if (channel) {
+              const embed = embeds.createNewGiftCodeEmbed(code);
+              const roleMention = roleId ? `<@&${roleId}>` : '';
+              await channel.send({
+                content: roleMention,
+                embeds: [embed],
+                allowedMentions: { roles: roleId ? [roleId] : [] },
+              });
+              console.log(`✅ Posted new gift code to #giftcodes: ${code.code}`);
+            }
+          } catch (channelErr) {
+            console.error(`❌ Failed to post to #giftcodes channel: ${channelErr.message}`);
           }
-        } catch (postError) {
-          console.error(`❌ Error posting gift code ${code.code}:`, postError.message);
+        }
+        // Fallback: webhook
+        else if (hasWebhook) {
+          try {
+            const embed = embeds.createNewGiftCodeEmbed(code);
+            await fetch(config.giftCodesWebhook, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                username: 'Atlas',
+                avatar_url: config.botAvatarUrl,
+                embeds: [embed.toJSON()],
+              }),
+            });
+            console.log(`✅ Posted new gift code via webhook: ${code.code}`);
+          } catch (webhookErr) {
+            console.error(`❌ Webhook post failed for ${code.code}:`, webhookErr.message);
+          }
         }
 
-        // Small delay between posts to avoid webhook rate limits
+        // Small delay between posts
         if (newCodes.indexOf(code) < newCodes.length - 1) {
-          await new Promise(r => setTimeout(r, 1000));
+          await new Promise(r => setTimeout(r, 1500));
         }
       }
     } else {
-      console.log(`🎁 No new gift codes (${knownGiftCodes.size} known)`);
+      console.log(`🎁 No new gift codes (${knownGiftCodes.size} known, source: ${data.source})`);
     }
 
-    // Prune expired codes from known set
+    // Prune expired/removed codes from known set
     const activeCodeSet = new Set(activeCodes.map(c => c.code));
     for (const known of knownGiftCodes) {
       if (!activeCodeSet.has(known)) {

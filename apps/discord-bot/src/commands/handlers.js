@@ -530,7 +530,15 @@ async function handleCodes(interaction) {
     }
 
     const embed = embeds.createGiftCodesEmbed(activeCodes);
-    return interaction.editReply({ embeds: [embed] });
+    const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setLabel('Redeem on Atlas')
+        .setURL('https://ks-atlas.com/tools/gift-codes')
+        .setStyle(ButtonStyle.Link)
+        .setEmoji('🌐')
+    );
+    return interaction.editReply({ embeds: [embed], components: [row] });
   } catch (error) {
     const errorEmbed = embeds.createErrorEmbed(
       'Failed to fetch gift codes.',
@@ -546,7 +554,9 @@ async function handleCodes(interaction) {
 const NON_RETRYABLE_ERR_CODES = [40008, 40007, 40014, 40009, 20000];
 
 /**
- * /redeem — Redeem all active gift codes for a linked Kingshot account
+ * /redeem [code] — Redeem gift codes for a linked Kingshot account
+ * If code is omitted or '__ALL__', redeems all active codes.
+ * If a specific code is provided, redeems just that one.
  */
 async function handleRedeem(interaction) {
   // 30-second cooldown per user
@@ -559,6 +569,9 @@ async function handleRedeem(interaction) {
   }
 
   await interaction.deferReply({ ephemeral: true });
+
+  // Track usage
+  logger.syncToApi('redeem', interaction.guildId || 'DM', interaction.user.id);
 
   // 1. Look up Atlas profile by Discord ID
   const profile = await api.lookupUserByDiscordId(interaction.user.id);
@@ -592,9 +605,12 @@ async function handleRedeem(interaction) {
 
   const playerName = profile.linked_username || profile.username || `Player ${playerId}`;
 
-  // 2. Fetch active gift codes
-  const codes = await api.fetchGiftCodes();
-  if (!codes || codes.length === 0) {
+  // 2. Determine which codes to redeem
+  const selectedCode = interaction.options.getString('code');
+  const redeemAll = !selectedCode || selectedCode === '__ALL__';
+
+  const allCodes = await api.fetchGiftCodes();
+  if (!allCodes || allCodes.length === 0) {
     const embed = embeds.createBaseEmbed()
       .setTitle('\ud83c\udf81 No Active Gift Codes')
       .setDescription('There are no active gift codes right now. Check back later!')
@@ -602,17 +618,29 @@ async function handleRedeem(interaction) {
     return interaction.editReply({ embeds: [embed] });
   }
 
-  // 3. Redeem each code sequentially with ~5s delay
-  const embed = embeds.createBaseEmbed()
+  const codesToRedeem = redeemAll
+    ? allCodes
+    : allCodes.filter(c => c.code === selectedCode);
+
+  if (codesToRedeem.length === 0) {
+    const embed = embeds.createBaseEmbed()
+      .setTitle('\ud83c\udf81 Code Not Found')
+      .setDescription(`\`${selectedCode}\` isn't in the active codes list. Use \`/codes\` to see what's available.`)
+      .setColor(0xef4444);
+    return interaction.editReply({ embeds: [embed] });
+  }
+
+  // 3. Redeem sequentially with ~5s delay
+  const startEmbed = embeds.createBaseEmbed()
     .setTitle('\ud83c\udf81 Redeeming Gift Codes')
-    .setDescription(`Redeeming **${codes.length}** code${codes.length > 1 ? 's' : ''} for **${playerName}**...\nThis may take a moment.`)
+    .setDescription(`Redeeming **${codesToRedeem.length}** code${codesToRedeem.length > 1 ? 's' : ''} for **${playerName}**...\nThis may take a moment.`)
     .setColor(0x3b82f6);
 
-  await interaction.editReply({ embeds: [embed] });
+  await interaction.editReply({ embeds: [startEmbed] });
 
   const results = [];
-  for (let i = 0; i < codes.length; i++) {
-    const code = codes[i].code;
+  for (let i = 0; i < codesToRedeem.length; i++) {
+    const code = codesToRedeem[i].code;
 
     const result = await api.redeemGiftCode(playerId, code);
     const emoji = result.success ? '\u2705' : '\u274c';
@@ -630,14 +658,14 @@ async function handleRedeem(interaction) {
     // Update progress embed every code
     const progressEmbed = embeds.createBaseEmbed()
       .setTitle('\ud83c\udf81 Redeeming Gift Codes')
-      .setDescription(`Progress: **${i + 1}/${codes.length}** for **${playerName}**`)
+      .setDescription(`Progress: **${i + 1}/${codesToRedeem.length}** for **${playerName}**`)
       .addFields({ name: 'Results', value: results.join('\n') })
       .setColor(0x3b82f6);
 
     await interaction.editReply({ embeds: [progressEmbed] }).catch(() => {});
 
     // Wait ~5 seconds between codes (except after last)
-    if (i < codes.length - 1) {
+    if (i < codesToRedeem.length - 1) {
       await new Promise(resolve => setTimeout(resolve, 5000));
     }
   }
@@ -646,10 +674,11 @@ async function handleRedeem(interaction) {
   const successes = results.filter(r => r.startsWith('\u2705')).length;
   const failures = results.filter(r => r.startsWith('\u274c')).length;
 
-  const finalColor = successes === codes.length ? 0x22c55e
+  const finalColor = successes === codesToRedeem.length ? 0x22c55e
     : successes > 0 ? 0xfbbf24
     : 0xef4444;
 
+  const timestamp = new Date().toLocaleString('en-US', { timeZone: 'UTC', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
   const finalEmbed = embeds.createBaseEmbed()
     .setTitle('\ud83c\udf81 Gift Code Redemption Complete')
     .setDescription(
@@ -657,7 +686,7 @@ async function handleRedeem(interaction) {
       results.join('\n')
     )
     .setColor(finalColor)
-    .setFooter({ text: 'Kingshot Atlas \u2022 ks-atlas.com/gift-codes' });
+    .setFooter({ text: `Kingshot Atlas \u2022 Redeemed ${timestamp} UTC` });
 
   return interaction.editReply({ embeds: [finalEmbed] });
 }

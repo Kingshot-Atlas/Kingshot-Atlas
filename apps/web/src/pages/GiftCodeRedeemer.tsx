@@ -61,6 +61,7 @@ const GiftCodeRedeemer: React.FC = () => {
   const [results, setResults] = useState<Map<string, RedeemResult>>(new Map());
   const [redeemingAll, setRedeemingAll] = useState(false);
   const [manualCode, setManualCode] = useState('');
+  const [copiedAll, setCopiedAll] = useState(false);
   const [globalCooldown, setGlobalCooldown] = useState(false);
   const [cooldownSeconds, setCooldownSeconds] = useState(0);
   const cooldownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -367,6 +368,34 @@ const GiftCodeRedeemer: React.FC = () => {
                   : globalCooldown
                     ? t('giftCodes.cooldown', { seconds: cooldownSeconds, defaultValue: `Cooldown — ${cooldownSeconds}s` })
                     : `⚡ ${t('giftCodes.redeemAll', { count: codes.length, defaultValue: `Redeem All ${codes.length} Codes` })}`}
+            </button>
+            {/* Copy All Codes */}
+            <button
+              onClick={() => {
+                const allCodes = codes.map(c => c.code).join('\n');
+                navigator.clipboard.writeText(allCodes).then(() => {
+                  setCopiedAll(true);
+                  showToast(t('giftCodes.copiedAll', { count: codes.length, defaultValue: `Copied ${codes.length} codes to clipboard` }), 'success');
+                  setTimeout(() => setCopiedAll(false), 2000);
+                }).catch(() => {
+                  showToast('Failed to copy', 'error');
+                });
+              }}
+              style={{
+                width: '100%',
+                marginTop: '0.4rem',
+                padding: '0.45rem',
+                borderRadius: '8px',
+                border: `1px solid ${copiedAll ? '#22c55e30' : '#2a2a2a'}`,
+                backgroundColor: copiedAll ? '#22c55e10' : 'transparent',
+                color: copiedAll ? '#22c55e' : '#6b7280',
+                fontSize: '0.75rem',
+                fontWeight: '500',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              {copiedAll ? '✓ Copied!' : `📋 ${t('giftCodes.copyAll', 'Copy All Codes')}`}
             </button>
           </div>
         )}

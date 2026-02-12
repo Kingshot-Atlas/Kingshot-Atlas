@@ -354,8 +354,12 @@ function createHelpEmbed() {
         value: '`/multirally <target> <players>` - Coordinate rally timing',
       },
       {
-        name: '� Gift Codes',
-        value: '`/codes` - Show active gift codes to redeem',
+        name: '\ud83c\udf81 Gift Codes',
+        value: [
+          '`/codes` - Show active gift codes',
+          '`/redeem` - Auto-redeem all codes for your linked account',
+          '`/redeem <code>` - Redeem a specific code',
+        ].join('\n'),
       },
       {
         name: '�🌐 Links',
@@ -1053,20 +1057,20 @@ function createGiftCodesEmbed(codes) {
 
 /**
  * Create gift codes notification embed for auto-posting new codes
+ * Short, sweet, Atlas personality
  */
 function createNewGiftCodeEmbed(code) {
+  const rewards = code.rewards ? `\n*${code.rewards}*` : '';
   return createBaseEmbed()
-    .setTitle('🎁 New Gift Code!')
+    .setTitle('🎁 Fresh Code Dropped')
     .setColor(0xf59e0b)
     .setDescription([
-      `A new gift code has been detected:`,
+      `## \`${code.code}\`${rewards}`,
       '',
-      `## \`${code.code}\``,
-      '',
-      `🌐 **[Redeem on Atlas](${config.urls.base}/tools/gift-codes)** — one click, instant rewards`,
-      '📱 Or in-game: Settings → Gift Code → paste code',
+      '⚡ Use `/redeem` right here in Discord',
+      `🌐 Or grab it at **[ks-atlas.com/tools/gift-codes](${config.urls.base}/tools/gift-codes)**`,
     ].join('\n'))
-    .setFooter({ text: `${config.bot.footerText} • Source: kingshot.net` })
+    .setFooter({ text: config.bot.footerText })
     .setTimestamp();
 }
 
