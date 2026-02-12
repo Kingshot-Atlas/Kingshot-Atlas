@@ -116,6 +116,17 @@ const STATIC_META: Record<string, PageMeta> = {
     description: 'Find the best Kingshot kingdoms ranked S-Tier to D-Tier. Kingdom rankings updated after every KvK. Scout top kingdoms before Transfer Events.',
     url: 'https://ks-atlas.com/rankings',
     type: 'website',
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: [
+        { '@type': 'Question', name: 'What are the best Kingshot kingdoms?', acceptedAnswer: { '@type': 'Answer', text: 'The best Kingshot kingdoms are ranked S-Tier on Atlas, scoring 57+ out of 100. Rankings are based on the Atlas Score — a Bayesian rating system that weighs KvK battle win rates, preparation performance, recent form, and experience. Check the Kingdom Rankings page for the live tier list.' } },
+        { '@type': 'Question', name: 'How are Kingshot kingdom rankings calculated?', acceptedAnswer: { '@type': 'Answer', text: 'Kingdom rankings use the Atlas Score (v3.1), a composite rating from 0-100 based on: battle win rate (55% weight), preparation win rate (45% weight), recent form multiplier, streak bonuses, and experience factor. Kingdoms are then placed into tiers: S (≥57), A (≥47), B (≥38), C (≥29), D (<29).' } },
+        { '@type': 'Question', name: 'What is S-Tier in Kingshot Atlas?', acceptedAnswer: { '@type': 'Answer', text: 'S-Tier is the highest ranking tier in Kingshot Atlas, reserved for the top ~3% of kingdoms that score 57 or above. These kingdoms have consistently strong KvK battle and preparation win rates across multiple seasons.' } },
+        { '@type': 'Question', name: 'How often are Kingshot kingdom rankings updated?', acceptedAnswer: { '@type': 'Answer', text: 'Kingdom rankings are updated after every KvK (Kingdom vs Kingdom) event, typically within 24-48 hours. Community members can also submit KvK results which are reviewed by Atlas admins before being incorporated.' } },
+        { '@type': 'Question', name: 'How do I find a good kingdom before a Transfer Event?', acceptedAnswer: { '@type': 'Answer', text: 'Use the Kingdom Rankings to filter by tier, KvK experience, and win rate. Compare kingdoms side-by-side on the Compare page, then visit the Transfer Hub to see which kingdoms are actively recruiting and apply directly with your Transfer Profile.' } },
+      ],
+    },
   },
   '/compare': {
     title: 'Compare Kingshot Kingdoms - Head-to-Head Scouting',
@@ -294,10 +305,18 @@ class MetaContentRewriter {
   element(element: Element) { element.setAttribute('content', this.content); }
 }
 
+// All supported languages — mirrors SUPPORTED_LANGUAGES in i18n.ts
+const SUPPORTED_LANGS = ['en', 'es', 'fr', 'zh', 'de', 'ko', 'ja', 'ar', 'tr'];
+
 class HeadInjector {
   private html: string;
   constructor(meta: PageMeta) {
     let html = `\n<link rel="canonical" href="${meta.url}">`;
+    // hreflang tags for all supported languages (SPA with client-side detection)
+    html += `\n<link rel="alternate" hreflang="x-default" href="${meta.url}">`;
+    for (const lang of SUPPORTED_LANGS) {
+      html += `\n<link rel="alternate" hreflang="${lang}" href="${meta.url}">`;
+    }
     if (meta.jsonLd) {
       html += `\n<script type="application/ld+json">${JSON.stringify(meta.jsonLd)}</script>`;
     }

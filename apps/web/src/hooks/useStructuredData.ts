@@ -206,6 +206,33 @@ export const ABOUT_FAQ_DATA: FAQItem[] = [
 ];
 
 /**
+ * Pre-defined FAQ data for Rankings page — targets featured snippets
+ * for "best kingdoms", "kingdom rankings", "top tier" queries.
+ */
+export const RANKINGS_FAQ_DATA: FAQItem[] = [
+  {
+    question: 'What are the best Kingshot kingdoms?',
+    answer: 'The best Kingshot kingdoms are ranked S-Tier on Atlas, scoring 57+ out of 100. Rankings are based on the Atlas Score — a Bayesian rating system that weighs KvK battle win rates, preparation performance, recent form, and experience. Check the Kingdom Rankings page for the live tier list.',
+  },
+  {
+    question: 'How are Kingshot kingdom rankings calculated?',
+    answer: 'Kingdom rankings use the Atlas Score (v3.1), a composite rating from 0-100 based on: battle win rate (55% weight), preparation win rate (45% weight), recent form multiplier, streak bonuses, and experience factor. Kingdoms are then placed into tiers: S (≥57), A (≥47), B (≥38), C (≥29), D (<29).',
+  },
+  {
+    question: 'What is S-Tier in Kingshot Atlas?',
+    answer: 'S-Tier is the highest ranking tier in Kingshot Atlas, reserved for the top ~3% of kingdoms that score 57 or above. These kingdoms have consistently strong KvK battle and preparation win rates across multiple seasons.',
+  },
+  {
+    question: 'How often are Kingshot kingdom rankings updated?',
+    answer: 'Kingdom rankings are updated after every KvK (Kingdom vs Kingdom) event, typically within 24-48 hours. Community members can also submit KvK results which are reviewed by Atlas admins before being incorporated.',
+  },
+  {
+    question: 'How do I find a good kingdom before a Transfer Event?',
+    answer: 'Use the Kingdom Rankings to filter by tier, KvK experience, and win rate. Compare kingdoms side-by-side on the Compare page, then visit the Transfer Hub to see which kingdoms are actively recruiting and apply directly with your Transfer Profile.',
+  },
+];
+
+/**
  * Pre-defined breadcrumb data for key pages.
  * Google displays breadcrumbs in search results, improving CTR.
  */

@@ -11,7 +11,7 @@ import { usePremium } from '../contexts/PremiumContext';
 import { neonGlow, FONT_DISPLAY, statTypeStyles } from '../utils/styles';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
-import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
+import { useStructuredData, PAGE_BREADCRUMBS, RANKINGS_FAQ_DATA } from '../hooks/useStructuredData';
 import { scoreHistoryService, RankMover } from '../services/scoreHistoryService';
 import { useScrollDepth } from '../hooks/useScrollDepth';
 import { useTranslation } from 'react-i18next';
@@ -21,6 +21,7 @@ const Leaderboards: React.FC = () => {
   useDocumentTitle('Kingdom Rankings');
   useMetaTags(PAGE_META_TAGS.leaderboards);
   useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.rankings });
+  useStructuredData({ type: 'FAQPage', data: RANKINGS_FAQ_DATA });
   useScrollDepth('Rankings');
   const [kingdoms, setKingdoms] = useState<Kingdom[]>([]);
   const [loading, setLoading] = useState(true);

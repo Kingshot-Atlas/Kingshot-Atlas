@@ -3,6 +3,16 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-12 17:15 | Product Engineer | COMPLETED
+Task: Transfer Hub UX Polish — Loading Skeletons + Listing Freshness Indicator
+Files: RecruiterDashboard.tsx, KingdomListingCard.tsx
+Changes:
+1. **RecruiterDashboard loading skeletons** — Replaced "Loading dashboard..." text with proper skeleton cards mimicking the actual dashboard layout (stats row, recruiting toggle, tab nav, application cards with avatar/name/tags placeholders). Uses consistent `skeleton-pulse` animation.
+2. **Listing freshness indicator** — Added `updated_at` to `KingdomFund` interface. KingdomListingCard now shows "Updated today/yesterday/Xd ago" below Transfer Status. Color-coded: green (<7d), yellow (<30d), red (>30d). Gives transferees a trust signal about how actively maintained a listing is.
+3. **Pre-task analysis:** Confirmed 3 of 5 Transfer Hub Polish tasks were already done (Last Active on transferee Browse tab, onboarding tooltip tour, Transfer Hub metrics in Admin). Only skeletons + listing freshness were genuinely missing.
+4. **Deployed to production** — Committed and pushed to main.
+Result: Build passes. 2 files changed, 63 insertions. Deployed to production.
+
 ## 2026-02-12 16:45 | Ops Lead + Product Engineer | COMPLETED
 Task: Transfer Hub Bug Fixes + Zero-Cost SEO Prerendering + Comprehensive SEO Audit
 Files: TransferBoard.tsx, _middleware.ts, KvKSeasons.tsx, index.html, useMetaTags.ts, robots.txt, generate-sitemap.js
