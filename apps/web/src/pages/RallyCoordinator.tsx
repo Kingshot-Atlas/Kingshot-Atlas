@@ -2072,19 +2072,27 @@ const RallyCoordinator: React.FC = () => {
 
       {/* Community credit */}
       <div style={{
-        marginTop: '2rem', paddingTop: '1rem',
-        borderTop: '1px solid #1a1a1a', textAlign: 'center',
+        marginTop: '2rem', paddingTop: '1rem', paddingBottom: '2rem',
+        textAlign: 'center',
       }}>
-        <p style={{ color: '#4b5563', fontSize: '0.65rem', letterSpacing: '0.03em' }}>
-          ⚔️ Battle Planner concept by{' '}
+        <div style={{
+          display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+          padding: '0.4rem 0.85rem', borderRadius: '20px',
+          border: '1px solid #22d3ee25', backgroundColor: '#22d3ee08',
+        }}>
+          <span style={{ color: '#4b5563', fontSize: '0.7rem', letterSpacing: '0.03em' }}>
+            ⚔️ {t('battlePlanner.communityCredit', 'Huge shoutout to')}
+          </span>
           <Link
             to="/profile/57d266cf-9800-4a7d-a8a5-f2cbc616bc22"
-            style={{ color: '#22d3ee', textDecoration: 'none', fontWeight: '600', fontFamily: FONT_DISPLAY }}
+            style={{ color: '#22d3ee', textDecoration: 'none', fontWeight: '600', fontFamily: FONT_DISPLAY, fontSize: '0.7rem' }}
           >
             bAdClimber
           </Link>
-          {' '}— rallied the idea, we built the weapon.
-        </p>
+          <span style={{ color: '#4b5563', fontSize: '0.7rem', letterSpacing: '0.03em' }}>
+            {t('battlePlanner.communityCreditSuffix', 'for rallying this idea into existence. Built by the community, for the community.')}
+          </span>
+        </div>
       </div>
 
       {/* Modal */}
