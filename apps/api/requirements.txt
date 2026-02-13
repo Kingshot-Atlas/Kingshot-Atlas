@@ -5,7 +5,7 @@ sqlalchemy>=2.0.36
 python-dotenv>=1.0.1
 pydantic[email]>=2.10.0
 passlib[bcrypt]>=1.7.4
-bcrypt==4.0.1  # Pin for Python 3.13 compatibility with passlib
+bcrypt==5.0.0  # Pin for Python 3.13 compatibility with passlib
 python-jose[cryptography]>=3.3.0
 python-multipart>=0.0.17
 slowapi>=0.1.9
