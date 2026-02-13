@@ -101,7 +101,10 @@
     "favorites": "お気に入り",
     "clearFilters": "フィルターをクリア",
     "linkToSubmit": "結果を送信するにはKingshotアカウントをリンクしてください",
-    "browseAll": "すべての王国を見る"
+    "browseAll": "すべての王国を見る",
+    "allTransferGroups": "移転グループ",
+    "clearAll": "すべてクリア",
+    "filtersCleared": "すべてのフィルターをクリア"
   },
   "kingdomCard": {
     "yourKingdom": "あなたの王国",
@@ -144,6 +147,7 @@
     "opponent": "対戦相手",
     "result": "結果",
     "viewTransferListing": "トランスファーリスティングを見る",
+    "managedBy": "管理者",
     "atlasScore": "Atlasスコア",
     "atlasScoreDesc": "経験と安定性を評価",
     "atlasRank": "Atlasランク",
@@ -174,7 +178,8 @@
     "referrals": "紹介",
     "region": "地域",
     "townCenter": "タウンセンター",
-    "viewProfile": "プロフィールを見る"
+    "viewProfile": "プロフィールを見る",
+    "youCanUpdate": "更新できます"
   },
   "rankings": {
     "subtitle": "誰が支配しているのか？データは嘘をつかない。",
@@ -317,7 +322,11 @@
     "tryPlanner": "プランナーを試す",
     "allTools": "← すべてのツール",
     "communityCredit": "大きな感謝を",
-    "communityCreditSuffix": "このアイデアを実現してくれたことに。コミュニティによる、コミュニティのためのツール。"
+    "communityCreditSuffix": "このアイデアを実現してくれたことに。コミュニティによる、コミュニティのためのツール。",
+    "accessUnlocked": "アクセス解除済み",
+    "supporterConfirm": "Atlas Supporterとしてフルアクセスがあります。",
+    "supporterThanks": "バトルプランナーへのフルアクセスがあります。",
+    "supporterThanksDesc": "Atlasのご支援ありがとうございます。プランナーに直接移動して、次の城攻撃を調整してください。"
   },
   "battlePlannerBanner": {
     "dismiss": "バトルプランナーバナーを閉じる",
@@ -465,7 +474,11 @@
     "free5Title": "詳細な王国プロフィール",
     "free5Desc": "完全な統計とパフォーマンス履歴",
     "free6Title": "イベントカレンダー",
-    "free6Desc": "KvKとトランスファーイベントのスケジュール"
+    "free6Desc": "KvKとトランスファーイベントのスケジュール",
+    "perk7Desc": "無制限の王国ランキングを解除（無料：トップ25）",
+    "perk7Title": "完全ランキング",
+    "perk8Desc": "クリーンで邪魔のないブラウジング",
+    "perk8Title": "広告なし体験"
   },
   "changelog": {
     "new": "新機能",
@@ -654,7 +667,9 @@
     "allCaughtUp": "すべて確認済みです！",
     "markAllRead": "すべて既読にする",
     "clearAll": "すべてクリア",
-    "justNow": "たった今"
+    "justNow": "たった今",
+    "coEditorRequests": "共同エディターリクエスト",
+    "coEditorRequestsDesc": "誰かがあなたの王国の共同エディターをリクエストしたときに通知を受け取ります"
   },
   "feedback": {
     "title": "フィードバック",
@@ -828,7 +843,8 @@
     "noPlayersFound": "プレイヤーが見つかりません",
     "noPlayersDesc": "検索条件やフィルターを調整してプレイヤーを見つけてください。",
     "loadingUsers": "ユーザーを読み込み中...",
-    "memberSince": "メンバー登録日"
+    "memberSince": "メンバー登録日",
+    "transferGroup": "移転グループ"
   },
   "kingdomDirectory": {
     "showing": "表示中",
@@ -1161,7 +1177,19 @@
       "minMatchScore": "最低マッチスコア",
       "activelyRecruiting": "リクルート中のみ",
       "clearFilters": "フィルターをクリア"
-    }
+    },
+    "allGroups": "すべてのグループ",
+    "compare": {
+      "clear": "クリア",
+      "compareNow": "比較",
+      "selected": "選択済み",
+      "title": "王国比較"
+    },
+    "groupsOutdated": "これらのグループは前回の移転イベントのもので、次回前に変更される可能性があります。",
+    "linkKingdom": "自動フィルターのために王国をリンク",
+    "myGroup": "マイグループ",
+    "showingKingdoms": "王国を表示中",
+    "transferGroup": "移転グループ"
   },
   "listing": {
     "allianceEventTimes": "アライアンスイベント時間",
@@ -1223,7 +1251,10 @@
     "viewProfile": "プロフィールを見る",
     "fund": "ファンド",
     "applyToTransfer": "移籍応募",
-    "yourKingdom": "あなたの王国"
+    "yourKingdom": "あなたの王国",
+    "updatedDaysAgo": "{{days}}日前に更新",
+    "updatedToday": "今日更新",
+    "updatedYesterday": "昨日更新"
   },
   "editor": {
     "activated": "有効化完了！",
@@ -1264,7 +1295,24 @@
     "becomeEditor": "王国エディターになる",
     "claimKingdomDesc": "王国{{kingdom}}を主張してリクルートリスティングを管理。",
     "linkFirst": "まずKingshotアカウントをリンクしてから王国を主張してください。",
-    "claimKingdom": "王国を主張"
+    "claimKingdom": "王国を主張",
+    "becomeCoEditor": "共同エディターになる",
+    "becomeCoEditorDesc": "王国{{kingdom}}には既にエディターがいます。共同エディターとして参加し、Transfer Hubリスティングの管理をお手伝いください。",
+    "coEditorSlotsUsed": "({{count}}/{{max}} 共同エディター枚使用中)",
+    "noEndorsementsRequired": "推薦は不要です。エディターにリクエストが通知されます。",
+    "requestCoEditor": "共同エディターをリクエスト",
+    "requesting": "リクエスト中...",
+    "coEditorRequestSent": "共同エディターリクエスト送信済み",
+    "coEditorRequestPending": "王国{{kingdom}}の共同編集リクエストはエディターの承認待ちです。審査後に通知されます。",
+    "requestJustSent": "リクエストが送信されました！エディターに通知済みです。",
+    "tcRequiredCoEditor": "共同エディターになるにはTCレベル20以上が必要です。",
+    "linkAccountCoEditor": "共同エディターになるにはまずKingshotアカウントをリンクしてください。",
+    "maxCoEditors": "この王国は最大{{max}}人の共同エディターに達しています。",
+    "acceptInvite": "承諾",
+    "coEditorInvitation": "共同編集者招待",
+    "coEditorInviteDesc": "王国 {{kingdom}} のリクルートダッシュボードの共同編集に招待されました。",
+    "coEditorInviteDescBy": "{{inviter}} が王国 {{kingdom}} のリクルートダッシュボードの共同編集に招待しました。",
+    "declineInvite": "辞退"
   },
   "recruiter": {
     "loading": "ダッシュボードを読み込み中...",
@@ -1339,6 +1387,11 @@
     "saving": "保存中...",
     "noChanges": "変更なし",
     "saveProfileChanges": "プロフィール変更を保存",
+    "approveCoEditor": "✓ 承認",
+    "declineCoEditor": "✕ 拒否",
+    "coEditorApproved": "共同エディターリクエストが承認されました！",
+    "coEditorDeclined": "共同エディターリクエストが拒否されました。",
+    "coEditorRequestFailed": "共同エディターリクエストの処理に失敗しました。",
     "editor": "エディター",
     "coEditor": "共同エディター",
     "currentCoEditors": "現在の共同エディター",
@@ -1354,7 +1407,11 @@
     "contributionHistory": "貢献履歴",
     "noContributions": "貢献はまだありません。貢献リンクを王国メンバーと共有しましょう！",
     "noKingdomFund": "王国ファンドはまだありません",
-    "startFundDesc": "王国ファンドを開始してティア特典を解除しリスティングの可視性を向上。"
+    "startFundDesc": "王国ファンドを開始してティア特典を解除しリスティングの可視性を向上。",
+    "coEditorRequestPending": "共同編集者リクエスト保留中",
+    "noStatusChanges": "まだステータス変更なし",
+    "requestAwaitingApproval": "王国 {{kingdom}} の共同編集リクエストはエディター承認待ちです。レビューされ次第通知されます。",
+    "statusHistory": "移転ステータス履歴"
   },
   "applications": {
     "applyTo": "応募先",
@@ -1460,7 +1517,8 @@
     "callNow": "今すぐ呼集",
     "copy": "コピー",
     "regular": "通常",
-    "buffed": "バフ済み"
+    "buffed": "バフ済み",
+    "comingSoonDesc": "外科的精度でマルチラリー攻撃を調整。行軍時間、コール順序、ヒットウィンドウを設定 — アライアンスが毎回一緒に到着するように。現在開発中。"
   },
   "missingData": {
     "contributeTitle": "データ",
@@ -1788,6 +1846,71 @@
     "rateLimit": "レート制限：",
     "rateLimitDesc": "1分あたり10コード。",
     "codesSourced": "コード提供元：{{source}}。",
-    "backToTools": "ツールに戻る"
+    "backToTools": "ツールに戻る",
+    "alreadyRedeemed": "引換済み",
+    "copiedAll": "{{count}}個のコードをクリップボードにコピー",
+    "copyAll": "すべてのコードをコピー",
+    "redeemed": "引換済み",
+    "refresh": "コードを更新",
+    "refreshed": "{{count}}個のアクティブコードを発見"
+  },
+  "giftCodeLanding": {
+    "allTools": "← すべてのツール",
+    "becomeSupporter": "Supporterになる",
+    "featAlt": "サブアカウント対応",
+    "featAltDesc": "サブアカがありますか？最大10アカウントを追加し、ワンクリックですべてのコードを引き換えます。Supporter限定。",
+    "featAuto": "アクティブコード自動検出",
+    "featAutoDesc": "Atlasがゲーム内のすべてのアクティブなギフトコードを自動取得します。DiscordやRedditで探す必要はありません。",
+    "featCloud": "クラウド同期アカウント",
+    "featCloudDesc": "サブアカウントがクラウドに同期されます。デバイスを変えても、ブラウザを消しても、設定はいつもそこにあります。",
+    "featDiscord": "Discord統合",
+    "featDiscordDesc": "Discordで/codesを使ってアクティブコードを確認。/redeemでブラウザなしで引き換え。Atlas Botが処理します。",
+    "featOneClick": "ワンクリック引換",
+    "featOneClickDesc": "「すべて引換」を押すと、すべてのコードが即座にアカウントに適用されます。コピペ不要。入力ミスなし。",
+    "featSmart": "スマートリトライ",
+    "featSmartDesc": "レート制限？引換済み？期限切れ？Atlasがすべての結果を追跡し、本当にリトライが必要なものだけリトライします。",
+    "freeF1": "すべてのアクティブコードを表示",
+    "freeF2": "ワンクリックですべて引換",
+    "freeF3": "クリップボードにコードをコピー",
+    "freeF4": "手動コード入力",
+    "freeF5": "サブアカウント1枠",
+    "freeF6": "Discordで/codes & /redeem",
+    "freeNote": "すべてのAtlasユーザーに無料。Kingshotアカウントをリンクして開始。",
+    "freeTier": "無料",
+    "freeVsSupporter": "無料 vs. Supporter",
+    "heroSubtitle": "コードを1つずつ入力するのはやめましょう。Atlasが見つけ、ワンクリックで報酬がメールボックスに届きます。",
+    "heroTitle1": "ギフトコード",
+    "heroTitle2": "引換ツール",
+    "howItWorks1": "使い方",
+    "howItWorks2": "",
+    "orUseBot": "またはDiscordで /redeem を使用",
+    "pageTitle": "ギフトコード引換ツール",
+    "problemDesc": "ギフトコードはSNS投稿、ゲームイベント、クリエイターパートナーシップ、記念イベントから来ます。すぐに期限が切れます。1つ逃すと、無料のスピードアップ、ジェム、リソースが永遠に失われます。",
+    "problemTitle": "新しいギフトコードが出ました。3つ逃しました。",
+    "punchline": "無料リソースを無駄にしないでください。",
+    "redeemNow": "今すぐコードを引換",
+    "solutionDesc": "Atlasがすべてのソースを監視し、すべてのアクティブコードを一箇所に集めます。引換ツールを開き、ボタンを1つ押すだけ。入力不要。報酬を逃しません。",
+    "step1": "アカウントをリンク",
+    "step1Desc": "Atlasにサインインし、プロフィール設定でKingshotプレイヤーIDをリンクしてください。",
+    "step2": "アクティブコードを表示",
+    "step2Desc": "Atlasが有効期限タイマー付きですべてのアクティブギフトコードを表示します。常に最新。",
+    "step3": "引換 & 受取",
+    "step3Desc": "「すべて引換」を押すとコードが即座に適用されます。ゲーム内メールボックスを確認してください。",
+    "supF1": "無料機能すべて含む",
+    "supF2": "最大10サブアカウント",
+    "supF3": "全アカウント一括引換",
+    "supF4": "クラウド同期サブリスト",
+    "supF5": "アカウント別結果追跡",
+    "supF6": "失敗コードのスマートリトライ",
+    "supporterBadge": "Atlas Supporter特典",
+    "supporterDesc": "サブアカウント用自動コード引換はAtlas Supporterに含まれます — バトルプランナー、無制限/multirallyなども。$4.99/月から。",
+    "supporterNote": "10個のサブを手動管理？毎回40以上のコードを入力する必要があります。Supporterはワンクリック。",
+    "supporterTier": "Supporter",
+    "supporterTitle": "10アカウント。ワンクリック。すべてのコード。",
+    "threeSteps": "3ステップ。入力ゼロ。すべての報酬。",
+    "tryFree": "無料で試す",
+    "whyAtlas1": "なぜ",
+    "whyAtlas2": "ATLASか",
+    "whySubtitle": "手動でコードを入力するのは2024年のことだから。"
   }
 }

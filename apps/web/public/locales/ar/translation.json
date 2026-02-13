@@ -101,7 +101,10 @@
     "favorites": "المفضلة",
     "clearFilters": "مسح التصفية",
     "linkToSubmit": "يرجى ربط حساب Kingshot لإرسال النتائج",
-    "browseAll": "تصفح جميع الممالك"
+    "browseAll": "تصفح جميع الممالك",
+    "allTransferGroups": "مجموعة النقل",
+    "clearAll": "مسح الكل",
+    "filtersCleared": "تم مسح جميع الفلاتر"
   },
   "kingdomCard": {
     "yourKingdom": "مملكتك",
@@ -144,6 +147,7 @@
     "opponent": "الخصم",
     "result": "النتيجة",
     "viewTransferListing": "عرض قائمة الانتقال",
+    "managedBy": "يديره",
     "atlasScore": "نقاط Atlas",
     "atlasScoreDesc": "يكافئ الخبرة والثبات",
     "atlasRank": "ترتيب Atlas",
@@ -174,7 +178,8 @@
     "referrals": "الإحالات",
     "region": "المنطقة",
     "townCenter": "مركز المدينة",
-    "viewProfile": "عرض الملف"
+    "viewProfile": "عرض الملف",
+    "youCanUpdate": "يمكنك تحديث هذا"
   },
   "rankings": {
     "subtitle": "من يتصدر؟ البيانات لا تكذب.",
@@ -317,7 +322,11 @@
     "tryPlanner": "جرّب المخطط",
     "allTools": "← جميع الأدوات",
     "communityCredit": "شكر كبير لـ",
-    "communityCreditSuffix": "لتحويل هذه الفكرة إلى واقع. صُنع بواسطة المجتمع، من أجل المجتمع."
+    "communityCreditSuffix": "لتحويل هذه الفكرة إلى واقع. صُنع بواسطة المجتمع، من أجل المجتمع.",
+    "accessUnlocked": "تم فتح الوصول",
+    "supporterConfirm": "لديك وصول كامل كداعم Atlas.",
+    "supporterThanks": "لديك وصول كامل إلى مخطط المعركة.",
+    "supporterThanksDesc": "شكراً لدعمك Atlas. انتقل مباشرة إلى المخطط ونسق هجومك القادم على القلعة."
   },
   "battlePlannerBanner": {
     "dismiss": "إغلاق بانر مخطط المعارك",
@@ -465,7 +474,11 @@
     "free5Title": "ملفات ممالك مفصلة",
     "free5Desc": "إحصائيات كاملة وسجل أداء",
     "free6Title": "تقويم الأحداث",
-    "free6Desc": "جداول KvK وأحداث الانتقال"
+    "free6Desc": "جداول KvK وأحداث الانتقال",
+    "perk7Desc": "فتح تصنيفات غير محدودة (مجاني: أفضل 25)",
+    "perk7Title": "تصنيفات كاملة",
+    "perk8Desc": "تصفح نظيف بدون إعلانات",
+    "perk8Title": "تجربة بدون إعلانات"
   },
   "changelog": {
     "new": "جديد",
@@ -654,7 +667,9 @@
     "allCaughtUp": "أنت على اطلاع بكل شيء!",
     "markAllRead": "تحديد الكل كمقروء",
     "clearAll": "مسح الكل",
-    "justNow": "الآن"
+    "justNow": "الآن",
+    "coEditorRequests": "طلبات المحرر المشارك",
+    "coEditorRequestsDesc": "احصل على إشعار عندما يطلب شخص ما أن يكون محررًا مشاركًا لمملكتك"
   },
   "feedback": {
     "title": "ملاحظات",
@@ -687,6 +702,12 @@
     "submitReview": "إرسال المراجعة",
     "loading": "جارٍ تحميل المراجعات...",
     "reviewCount": "{{count}} مراجعة",
+    "reviewCount_zero": "لا مراجعات",
+    "reviewCount_one": "مراجعة واحدة",
+    "reviewCount_two": "مراجعتان",
+    "reviewCount_few": "{{count}} مراجعات",
+    "reviewCount_many": "{{count}} مراجعة",
+    "reviewCount_other": "{{count}} مراجعة",
     "moreNeeded": "{{count}} مراجعة إضافية مطلوبة لشارة تقييم Google",
     "badgeEarned": "هذه المملكة مؤهلة لشارة تقييم Google",
     "sortBy": "ترتيب حسب:",
@@ -828,7 +849,8 @@
     "noPlayersFound": "لم يتم العثور على لاعبين",
     "noPlayersDesc": "جرب تعديل البحث أو التصفية للعثور على لاعبين.",
     "loadingUsers": "جارٍ تحميل المستخدمين...",
-    "memberSince": "عضو منذ"
+    "memberSince": "عضو منذ",
+    "transferGroup": "مجموعة النقل"
   },
   "kingdomDirectory": {
     "showing": "عرض",
@@ -1161,7 +1183,19 @@
       "minMatchScore": "أدنى نقاط توافق",
       "activelyRecruiting": "التجنيد النشط فقط",
       "clearFilters": "مسح التصفيات"
-    }
+    },
+    "allGroups": "جميع المجموعات",
+    "compare": {
+      "clear": "مسح",
+      "compareNow": "مقارنة",
+      "selected": "محدد",
+      "title": "مقارنة الممالك"
+    },
+    "groupsOutdated": "هذه المجموعات من حدث النقل الأخير وقد تتغير قبل الحدث القادم.",
+    "linkKingdom": "اربط مملكتك للفلتر التلقائي",
+    "myGroup": "مجموعتي",
+    "showingKingdoms": "عرض الممالك",
+    "transferGroup": "مجموعة النقل"
   },
   "listing": {
     "allianceEventTimes": "أوقات أحداث التحالف",
@@ -1213,6 +1247,12 @@
     "sanctuaryDistribution": "توزيع الملاذ",
     "castleRotation": "تناوب القلعة",
     "reviewCount": "{{count}} مراجعة",
+    "reviewCount_zero": "لا مراجعات",
+    "reviewCount_one": "مراجعة واحدة",
+    "reviewCount_two": "مراجعتان",
+    "reviewCount_few": "{{count}} مراجعات",
+    "reviewCount_many": "{{count}} مراجعة",
+    "reviewCount_other": "{{count}} مراجعة",
     "fundedListingsPromo": "✨ القوائم الممولة تحصل على إطارات لامعة وتوهجات ورؤية أكثر",
     "share": "مشاركة",
     "linkCopied": "تم نسخ الرابط!",
@@ -1223,7 +1263,10 @@
     "viewProfile": "عرض الملف",
     "fund": "تمويل",
     "applyToTransfer": "التقديم للانتقال",
-    "yourKingdom": "مملكتك"
+    "yourKingdom": "مملكتك",
+    "updatedDaysAgo": "محدّث منذ {{days}} يوم",
+    "updatedToday": "محدّث اليوم",
+    "updatedYesterday": "محدّث أمس"
   },
   "editor": {
     "activated": "تم التفعيل!",
@@ -1264,7 +1307,24 @@
     "becomeEditor": "كن محرر مملكة",
     "claimKingdomDesc": "ادّعِ المملكة {{kingdom}} لإدارة قائمة التجنيد.",
     "linkFirst": "اربط حساب Kingshot أولاً، ثم ادّعِ مملكتك.",
-    "claimKingdom": "ادّعِ المملكة"
+    "claimKingdom": "ادّعِ المملكة",
+    "becomeCoEditor": "كن محررًا مشاركًا",
+    "becomeCoEditorDesc": "المملكة {{kingdom}} لديها محرر بالفعل. انضم كمحرر مشارك للمساعدة في إدارة قائمة Transfer Hub.",
+    "coEditorSlotsUsed": "({{count}}/{{max}} من مقاعد المحرر المشارك مستخدمة)",
+    "noEndorsementsRequired": "لا توصيات مطلوبة. سيتم إخطار المحرر بطلبك.",
+    "requestCoEditor": "طلب محرر مشارك",
+    "requesting": "جارٍ الطلب...",
+    "coEditorRequestSent": "تم إرسال طلب المحرر المشارك",
+    "coEditorRequestPending": "طلبك للتحرير المشترك للمملكة {{kingdom}} بانتظار موافقة المحرر. سيتم إخطارك عند المراجعة.",
+    "requestJustSent": "تم إرسال الطلب! تم إخطار المحرر.",
+    "tcRequiredCoEditor": "مطلوب مستوى TC 20+ لتصبح محررًا مشاركًا.",
+    "linkAccountCoEditor": "اربط حساب Kingshot أولاً لتصبح محررًا مشاركًا.",
+    "maxCoEditors": "وصلت هذه المملكة إلى الحد الأقصى {{max}} محررين مشاركين.",
+    "acceptInvite": "قبول",
+    "coEditorInvitation": "دعوة محرر مشارك",
+    "coEditorInviteDesc": "تمت دعوتك للتحرير المشترك للوحة تجنيد المملكة {{kingdom}}.",
+    "coEditorInviteDescBy": "{{inviter}} دعاك للتحرير المشترك للوحة تجنيد المملكة {{kingdom}}.",
+    "declineInvite": "رفض"
   },
   "recruiter": {
     "loading": "جارٍ تحميل اللوحة...",
@@ -1339,6 +1399,11 @@
     "saving": "جارٍ الحفظ...",
     "noChanges": "لا تغييرات",
     "saveProfileChanges": "حفظ تغييرات الملف",
+    "approveCoEditor": "✓ موافقة",
+    "declineCoEditor": "✕ رفض",
+    "coEditorApproved": "تمت الموافقة على طلب المحرر المشارك!",
+    "coEditorDeclined": "تم رفض طلب المحرر المشارك.",
+    "coEditorRequestFailed": "فشل في معالجة طلب المحرر المشارك.",
     "editor": "محرر",
     "coEditor": "محرر مشارك",
     "currentCoEditors": "المحررون المشاركون الحاليون",
@@ -1354,7 +1419,11 @@
     "contributionHistory": "سجل المساهمات",
     "noContributions": "لا مساهمات بعد. شارك رابط المساهمة مع أعضاء مملكتك!",
     "noKingdomFund": "لا صندوق مملكة بعد",
-    "startFundDesc": "ابدأ صندوق مملكة لفتح مزايا الفئة وتعزيز رؤية قائمتك."
+    "startFundDesc": "ابدأ صندوق مملكة لفتح مزايا الفئة وتعزيز رؤية قائمتك.",
+    "coEditorRequestPending": "طلب محرر مشارك معلق",
+    "noStatusChanges": "لا تغييرات في الحالة بعد",
+    "requestAwaitingApproval": "طلبك للتحرير المشترك للمملكة {{kingdom}} بانتظار موافقة المحرر. سيتم إخطارك عند المراجعة.",
+    "statusHistory": "سجل حالة النقل"
   },
   "applications": {
     "applyTo": "التقديم على",
@@ -1460,7 +1529,8 @@
     "callNow": "نداء الآن",
     "copy": "نسخ",
     "regular": "عادي",
-    "buffed": "معزز"
+    "buffed": "معزز",
+    "comingSoonDesc": "نسق هجمات الحشد المتعددة بدقة جراحية. حدد أوقات المسيرة وأوامر النداء ونوافذ الضرب. قيد التطوير حالياً."
   },
   "missingData": {
     "contributeTitle": "ساهم",
@@ -1576,9 +1646,17 @@
     "loadingKingdom": "جارٍ تحميل K-{{num}}...",
     "kingdomNotFound": "K-{{num}} غير موجودة في قاعدة البيانات",
     "remove": "إزالة",
+    "viewAllFavorites_zero": "▼ لا مفضلات",
     "viewAllFavorites_one": "▼ عرض المفضلة ({{count}})",
+    "viewAllFavorites_two": "▼ عرض المفضلتين ({{count}})",
+    "viewAllFavorites_few": "▼ عرض {{count}} مفضلات",
+    "viewAllFavorites_many": "▼ عرض {{count}} مفضلة",
     "viewAllFavorites_other": "▼ عرض جميع المفضلات ({{count}})",
+    "viewAllReviews_zero": "▼ لا مراجعات",
     "viewAllReviews_one": "▼ عرض المراجعة ({{count}})",
+    "viewAllReviews_two": "▼ عرض المراجعتين ({{count}})",
+    "viewAllReviews_few": "▼ عرض {{count}} مراجعات",
+    "viewAllReviews_many": "▼ عرض {{count}} مراجعة",
     "viewAllReviews_other": "▼ عرض جميع المراجعات ({{count}})"
   },
   "submissionHistory": {
@@ -1624,8 +1702,12 @@
     "selectKingdoms": "اختر ممالك للتحليل:",
     "kingdoms_count": "{{count}} ممالك",
     "selectToView": "اختر ممالك أعلاه لعرض إحصائيات التحالف",
-    "kingdoms_count_one": "({{count}} مملكة)",
-    "kingdoms_count_other": "({{count}} ممالك)"
+    "kingdoms_count_zero": "(لا ممالك)",
+    "kingdoms_count_one": "(مملكة {{count}})",
+    "kingdoms_count_two": "(مملكتان)",
+    "kingdoms_count_few": "({{count}} ممالك)",
+    "kingdoms_count_many": "({{count}} مملكة)",
+    "kingdoms_count_other": "({{count}} مملكة)"
   },
   "leaderboardPosition": {
     "kingdom": "المملكة",
@@ -1788,6 +1870,71 @@
     "rateLimit": "الحد:",
     "rateLimitDesc": "10 أكواد في الدقيقة.",
     "codesSourced": "مصدر الأكواد: {{source}}.",
-    "backToTools": "العودة للأدوات"
+    "backToTools": "العودة للأدوات",
+    "alreadyRedeemed": "مسترد بالفعل",
+    "copiedAll": "تم نسخ {{count}} رمز إلى الحافظة",
+    "copyAll": "نسخ جميع الرموز",
+    "redeemed": "مسترد",
+    "refresh": "تحديث الرموز",
+    "refreshed": "تم العثور على {{count}} رمز نشط"
+  },
+  "giftCodeLanding": {
+    "allTools": "← جميع الأدوات",
+    "becomeSupporter": "كن داعماً",
+    "featAlt": "دعم الحسابات البديلة",
+    "featAltDesc": "لديك حسابات بديلة؟ أضف حتى 10 حسابات واسترد جميع الرموز بنقرة واحدة. للداعمين فقط.",
+    "featAuto": "كشف تلقائي للرموز النشطة",
+    "featAutoDesc": "يجلب Atlas تلقائياً كل رمز هدية نشط من اللعبة. لا حاجة للبحث في Discord أو Reddit.",
+    "featCloud": "حسابات متزامنة سحابياً",
+    "featCloudDesc": "حساباتك البديلة تتزامن مع السحابة. غيّر جهازك أو امسح متصفحك — إعداداتك دائماً هناك.",
+    "featDiscord": "تكامل Discord",
+    "featDiscordDesc": "استخدم /codes في Discord لرؤية الرموز النشطة. استخدم /redeem لاستردادها بدون فتح متصفح.",
+    "featOneClick": "استرداد بنقرة واحدة",
+    "featOneClickDesc": "اضغط \"استرداد الكل\" وكل رمز يُطبق على حسابك فوراً. بدون نسخ ولصق. بدون أخطاء كتابة.",
+    "featSmart": "إعادة محاولة ذكية",
+    "featSmartDesc": "محدود السرعة؟ مسترد بالفعل؟ منتهي الصلاحية؟ يتتبع Atlas كل نتيجة ويعيد المحاولة فقط لما يحتاج فعلاً.",
+    "freeF1": "عرض جميع الرموز النشطة",
+    "freeF2": "استرداد الكل بنقرة واحدة",
+    "freeF3": "نسخ الرموز إلى الحافظة",
+    "freeF4": "إدخال رمز يدوي",
+    "freeF5": "خانة حساب بديل واحدة",
+    "freeF6": "/codes و /redeem في Discord",
+    "freeNote": "مجاني لجميع مستخدمي Atlas. اربط حسابك في Kingshot للبدء.",
+    "freeTier": "مجاني",
+    "freeVsSupporter": "مجاني مقابل Supporter",
+    "heroSubtitle": "توقف عن كتابة الرموز واحداً تلو الآخر. Atlas يجدها، تنقر مرة واحدة، المكافآت تصل لصندوقك.",
+    "heroTitle1": "مسترد",
+    "heroTitle2": "رموز الهدايا",
+    "howItWorks1": "كيف",
+    "howItWorks2": "يعمل",
+    "orUseBot": "أو استخدم /redeem في Discord",
+    "pageTitle": "مسترد رموز الهدايا",
+    "problemDesc": "رموز الهدايا تأتي من منشورات وسائل التواصل وأحداث اللعبة وشراكات المبدعين والاحتفالات. تنتهي صلاحيتها بسرعة. فوّت واحداً وتلك التسريعات والجواهر والموارد المجانية ستذهب للأبد.",
+    "problemTitle": "رموز هدايا جديدة ظهرت. فاتتك 3 منها.",
+    "punchline": "توقف عن ترك الموارد المجانية على الطاولة.",
+    "redeemNow": "استرد الرموز الآن",
+    "solutionDesc": "يراقب Atlas جميع المصادر ويجمع كل رمز نشط في مكان واحد. افتح المسترد، اضغط زراً واحداً، وكل رمز يُطبق.",
+    "step1": "اربط حسابك",
+    "step1Desc": "سجل دخولك في Atlas واربط معرف لاعب Kingshot في إعدادات الملف الشخصي.",
+    "step2": "عرض الرموز النشطة",
+    "step2Desc": "يعرض Atlas كل رمز هدية نشط مع مؤقتات انتهاء الصلاحية. محدّث دائماً.",
+    "step3": "استرد واجمع",
+    "step3Desc": "اضغط \"استرداد الكل\" — الرموز تُطبق فوراً. تحقق من صندوق بريدك في اللعبة.",
+    "supF1": "كل ما في المجاني",
+    "supF2": "حتى 10 حسابات بديلة",
+    "supF3": "استرداد جماعي لجميع الحسابات",
+    "supF4": "قائمة بدائل متزامنة سحابياً",
+    "supF5": "تتبع النتائج لكل حساب",
+    "supF6": "إعادة محاولة ذكية للرموز الفاشلة",
+    "supporterBadge": "ميزة Atlas Supporter",
+    "supporterDesc": "المسترد التلقائي للحسابات البديلة مضمن مع Atlas Supporter — مع مخطط المعركة و/multirally غير محدود والمزيد. ابتداءً من $4.99/شهر.",
+    "supporterNote": "تدير 10 بدائل يدوياً؟ هذا أكثر من 40 رمز للكتابة كل مرة. الداعمون ينقرون مرة واحدة.",
+    "supporterTier": "Supporter",
+    "supporterTitle": "10 حسابات. نقرة واحدة. كل رمز.",
+    "threeSteps": "ثلاث خطوات. صفر كتابة. كل المكافآت.",
+    "tryFree": "جرب مجاناً",
+    "whyAtlas1": "لماذا",
+    "whyAtlas2": "ATLAS",
+    "whySubtitle": "لأن كتابة الرموز يدوياً أصبحت من الماضي."
   }
 }

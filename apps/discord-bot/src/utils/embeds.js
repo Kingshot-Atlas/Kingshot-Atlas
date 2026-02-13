@@ -797,7 +797,7 @@ function createHistoryEmbed(kingdom, page = 1) {
     const results = pageItems.map((kvk) => {
       const prep = resultEmoji(kvk.prep_result);
       const battle = resultEmoji(kvk.battle_result);
-      return `Prep: ${prep}  Battle: ${battle}`;
+      return `Pre: ${prep}  Bat: ${battle}`;
     });
 
     embed.addFields(

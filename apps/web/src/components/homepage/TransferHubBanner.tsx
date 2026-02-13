@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '../../hooks/useMediaQuery';
 import { useTranslation } from 'react-i18next';
 import { useAnalytics } from '../../hooks/useAnalytics';
-import { getTransferStatus } from '../KvKCountdown';
 
 const DISMISS_KEY = 'kingshot_transfer_banner_dismissed';
 const DISMISS_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // Re-show after 7 days
@@ -18,14 +17,6 @@ const TransferHubBanner: React.FC = () => {
     if (!ts) return false;
     return Date.now() - parseInt(ts, 10) < DISMISS_DURATION_MS;
   });
-  const [transferStatus, setTransferStatus] = useState(getTransferStatus());
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTransferStatus(getTransferStatus());
-    }, 60000); // Update every minute
-    return () => clearInterval(timer);
-  }, []);
 
   const handleDismiss = () => {
     localStorage.setItem(DISMISS_KEY, Date.now().toString());
@@ -34,13 +25,6 @@ const TransferHubBanner: React.FC = () => {
   };
 
   if (dismissed) return null;
-
-  const formatTime = (days: number, hours: number) => {
-    if (days > 0) return `${days}d ${hours}h`;
-    return `${hours}h`;
-  };
-
-  const isLive = transferStatus.phase !== 'countdown';
 
   return (
     <div style={{
@@ -107,56 +91,26 @@ const TransferHubBanner: React.FC = () => {
               <path d="M17 20L21 16L17 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               <path d="M21 16H9C6.23858 16 4 13.7614 4 11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             </svg>
-            {isLive ? t('transferBanner.eventLive', 'Transfer Event is LIVE') : t('transferBanner.lookingToTransfer', 'Looking to transfer?')}
+            {t('transferBanner.lookingToTransfer', 'Looking to transfer?')}
           </h3>
           <p style={{
             color: '#9ca3af',
             fontSize: isMobile ? '0.75rem' : '0.85rem',
             margin: 0,
           }}>
-            {isLive
-              ? <>{t('transferBanner.phaseActivePrefix', 'The ')}<span style={{ color: '#22c55e', fontWeight: 600 }}>{transferStatus.phaseName}</span>{t('transferBanner.phaseActiveSuffix', ' phase is active now.')}</>
-              : <>{t('transferBanner.findPerfect', 'Find the perfect kingdom for you. No more blind transfers.')}</>
-            }
+            {t('transferBanner.findPerfect', 'Find the perfect kingdom for you. No more blind transfers.')}
           </p>
         </div>
 
         {/* Actions */}
         <div style={{
           display: 'flex',
-          alignItems: isMobile ? 'center' : 'center',
+          alignItems: 'center',
           gap: isMobile ? '0.5rem' : '1rem',
           position: 'relative',
           zIndex: 1,
           width: isMobile ? '100%' : 'auto',
         }}>
-          <div style={{
-            padding: isMobile ? '0.4rem 0.6rem' : '0.5rem 0.75rem',
-            background: '#0a0a0a',
-            border: '1px solid #22c55e30',
-            borderRadius: '8px',
-            textAlign: 'center',
-            flexShrink: 0,
-          }}>
-            <div style={{
-              color: '#22c55e',
-              fontSize: isMobile ? '0.85rem' : '1.1rem',
-              fontWeight: 'bold',
-              fontVariantNumeric: 'tabular-nums',
-              fontFamily: 'monospace',
-              lineHeight: 1.2,
-            }}>
-              {formatTime(transferStatus.timeLeft.days, transferStatus.timeLeft.hours)}
-            </div>
-            <div style={{
-              color: '#6b7280',
-              fontSize: '0.6rem',
-              textTransform: 'uppercase',
-              lineHeight: 1.2,
-            }}>
-              {isLive ? transferStatus.phaseName : t('transferBanner.nextTransfer', 'Next Transfer')}
-            </div>
-          </div>
           <button
             onClick={() => {
               trackFeature('Transfer Banner CTA Clicked');

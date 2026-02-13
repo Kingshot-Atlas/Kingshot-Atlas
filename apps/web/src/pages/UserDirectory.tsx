@@ -56,8 +56,21 @@ const UserDirectory: React.FC = () => {
   const [filterBy, setFilterBy] = useState<'all' | 'alliance' | 'region' | 'kingdom'>(urlKingdom ? 'kingdom' : 'all');
   const [filterValue, setFilterValue] = useState(urlKingdom || '');
   const [tierFilter, setTierFilter] = useState<'all' | 'admin' | 'supporter' | 'ambassador' | 'consul' | 'recruiter' | 'scout'>('all');
-  const [sortBy, setSortBy] = useState<SortBy>('role');
-  const [transferGroupFilter, setTransferGroupFilter] = useState<string>('all');
+  const [sortBy, _setSortBy] = useState<SortBy>(() => {
+    const saved = localStorage.getItem('kingshot_players_sortBy');
+    return saved && ['role', 'joined', 'kingdom', 'tc'].includes(saved) ? saved as SortBy : 'role';
+  });
+  const setSortBy = (val: SortBy) => {
+    _setSortBy(val);
+    localStorage.setItem('kingshot_players_sortBy', val);
+  };
+  const [transferGroupFilter, _setTransferGroupFilter] = useState<string>(() => {
+    return localStorage.getItem('kingshot_transferGroup') || 'all';
+  });
+  const setTransferGroupFilter = (val: string) => {
+    _setTransferGroupFilter(val);
+    localStorage.setItem('kingshot_transferGroup', val);
+  };
   const PAGE_SIZE = 25;
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const sentinelRef = useRef<HTMLDivElement>(null);

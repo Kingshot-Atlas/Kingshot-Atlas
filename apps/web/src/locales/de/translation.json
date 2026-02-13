@@ -101,7 +101,10 @@
     "favorites": "Favoriten",
     "clearFilters": "Filter löschen",
     "linkToSubmit": "Verknüpfe dein Kingshot-Konto, um Ergebnisse einzureichen",
-    "browseAll": "Alle Königreiche durchsuchen"
+    "browseAll": "Alle Königreiche durchsuchen",
+    "allTransferGroups": "Transfer-Gruppe",
+    "clearAll": "Alles Löschen",
+    "filtersCleared": "Alle Filter gelöscht"
   },
   "kingdomCard": {
     "yourKingdom": "DEIN KÖNIGREICH",
@@ -144,6 +147,7 @@
     "opponent": "Gegner",
     "result": "Ergebnis",
     "viewTransferListing": "Transfer-Eintrag ansehen",
+    "managedBy": "Verwaltet von",
     "atlasScore": "Atlas-Wertung",
     "atlasScoreDesc": "Belohnt Erfahrung und Konstanz",
     "atlasRank": "Atlas-Rang",
@@ -174,7 +178,8 @@
     "referrals": "Empfehlungen",
     "region": "Region",
     "townCenter": "Stadtzentrum",
-    "viewProfile": "Profil ansehen"
+    "viewProfile": "Profil ansehen",
+    "youCanUpdate": "Du kannst dies aktualisieren"
   },
   "rankings": {
     "subtitle": "Wer dominiert? Die Daten lügen nicht.",
@@ -317,7 +322,11 @@
     "tryPlanner": "Planer Testen",
     "allTools": "← Alle Werkzeuge",
     "communityCredit": "Großes Dankeschön an",
-    "communityCreditSuffix": "für die Idee zu diesem Feature. Von der Community gebaut, für die Community."
+    "communityCreditSuffix": "für die Idee zu diesem Feature. Von der Community gebaut, für die Community.",
+    "accessUnlocked": "Zugang Freigeschaltet",
+    "supporterConfirm": "Du hast vollen Zugang als Atlas Supporter.",
+    "supporterThanks": "Du hast vollen Zugang zum Schlachtplaner.",
+    "supporterThanksDesc": "Danke für deine Unterstützung von Atlas. Gehe direkt zum Planer und koordiniere deinen nächsten Burgnangriff."
   },
   "battlePlannerBanner": {
     "dismiss": "Kampfplaner-Banner schließen",
@@ -465,7 +474,11 @@
     "free5Title": "Detaillierte Königreich-Profile",
     "free5Desc": "Vollständige Statistiken und Leistungsverlauf",
     "free6Title": "Event-Kalender",
-    "free6Desc": "KvK- und Transfer-Event-Zeitpläne"
+    "free6Desc": "KvK- und Transfer-Event-Zeitpläne",
+    "perk7Desc": "Unbegrenzte Königreich-Rankings freischalten (kostenlos: Top 25)",
+    "perk7Title": "Vollständige Ranglisten",
+    "perk8Desc": "Sauberes, ablenkungsfreies Surfen",
+    "perk8Title": "Werbefrei"
   },
   "changelog": {
     "new": "Neu",
@@ -654,7 +667,9 @@
     "allCaughtUp": "Du bist auf dem neuesten Stand!",
     "markAllRead": "Alle als gelesen markieren",
     "clearAll": "Alle löschen",
-    "justNow": "Gerade eben"
+    "justNow": "Gerade eben",
+    "coEditorRequests": "Co-Redakteur-Anfragen",
+    "coEditorRequestsDesc": "Werde benachrichtigt, wenn jemand Co-Redakteur deines Königreichs werden möchte"
   },
   "feedback": {
     "title": "Feedback",
@@ -828,7 +843,8 @@
     "noPlayersFound": "Keine Spieler gefunden",
     "noPlayersDesc": "Passe deine Suche oder Filter an, um Spieler zu finden.",
     "loadingUsers": "Benutzer werden geladen...",
-    "memberSince": "Mitglied seit"
+    "memberSince": "Mitglied seit",
+    "transferGroup": "Transfer-Gruppe"
   },
   "kingdomDirectory": {
     "showing": "Zeige",
@@ -1161,7 +1177,19 @@
       "minMatchScore": "Min. Match-Wertung",
       "activelyRecruiting": "Nur aktiv rekrutierend",
       "clearFilters": "Filter löschen"
-    }
+    },
+    "allGroups": "Alle Gruppen",
+    "compare": {
+      "clear": "Löschen",
+      "compareNow": "Vergleichen",
+      "selected": "ausgewählt",
+      "title": "Königreich-Vergleich"
+    },
+    "groupsOutdated": "Diese Gruppen stammen vom letzten Transfer-Event und können sich vor dem nächsten ändern.",
+    "linkKingdom": "Verknüpfe dein Königreich für Auto-Filter",
+    "myGroup": "Meine Gruppe",
+    "showingKingdoms": "Zeige Königreiche",
+    "transferGroup": "Transfer-Gruppe"
   },
   "listing": {
     "allianceEventTimes": "Allianz-Event-Zeiten",
@@ -1223,7 +1251,10 @@
     "viewProfile": "Profil ansehen",
     "fund": "Finanzieren",
     "applyToTransfer": "Für Transfer bewerben",
-    "yourKingdom": "Dein Königreich"
+    "yourKingdom": "Dein Königreich",
+    "updatedDaysAgo": "Vor {{days}}T aktualisiert",
+    "updatedToday": "Heute aktualisiert",
+    "updatedYesterday": "Gestern aktualisiert"
   },
   "editor": {
     "activated": "Aktiviert!",
@@ -1264,7 +1295,24 @@
     "becomeEditor": "Werde Königreich-Redakteur",
     "claimKingdomDesc": "Beanspruche Königreich {{kingdom}}, um dessen Rekrutierungs-Eintrag zu verwalten.",
     "linkFirst": "Verknüpfe zuerst dein Kingshot-Konto, dann beanspruche dein Königreich.",
-    "claimKingdom": "Königreich beanspruchen"
+    "claimKingdom": "Königreich beanspruchen",
+    "becomeCoEditor": "Co-Redakteur werden",
+    "becomeCoEditorDesc": "Königreich {{kingdom}} hat bereits einen Redakteur. Tritt als Co-Redakteur bei, um den Transfer Hub-Eintrag zu verwalten.",
+    "coEditorSlotsUsed": "({{count}}/{{max}} Co-Redakteur-Plätze belegt)",
+    "noEndorsementsRequired": "Keine Bestätigungen erforderlich. Der Redakteur wird über deine Anfrage benachrichtigt.",
+    "requestCoEditor": "Co-Redakteur anfragen",
+    "requesting": "Wird angefragt...",
+    "coEditorRequestSent": "Co-Redakteur-Anfrage gesendet",
+    "coEditorRequestPending": "Deine Anfrage, Königreich {{kingdom}} mitzubearbeiten, wartet auf Genehmigung. Du wirst benachrichtigt, wenn sie geprüft wird.",
+    "requestJustSent": "Anfrage gesendet! Der Redakteur wurde benachrichtigt.",
+    "tcRequiredCoEditor": "TC-Stufe 20+ erforderlich, um Co-Redakteur zu werden.",
+    "linkAccountCoEditor": "Verknüpfe zuerst dein Kingshot-Konto, um Co-Redakteur zu werden.",
+    "maxCoEditors": "Dieses Königreich hat die maximale Anzahl von {{max}} Co-Redakteuren erreicht.",
+    "acceptInvite": "Annehmen",
+    "coEditorInvitation": "Co-Editor Einladung",
+    "coEditorInviteDesc": "Du wurdest eingeladen, das Rekrutierungs-Dashboard von Königreich {{kingdom}} mitzubearbeiten.",
+    "coEditorInviteDescBy": "{{inviter}} hat dich eingeladen, das Rekrutierungs-Dashboard von Königreich {{kingdom}} mitzubearbeiten.",
+    "declineInvite": "Ablehnen"
   },
   "recruiter": {
     "loading": "Dashboard wird geladen...",
@@ -1339,6 +1387,11 @@
     "saving": "Wird gespeichert...",
     "noChanges": "Keine Änderungen",
     "saveProfileChanges": "Profiländerungen speichern",
+    "approveCoEditor": "✓ Genehmigen",
+    "declineCoEditor": "✕ Ablehnen",
+    "coEditorApproved": "Co-Redakteur-Anfrage genehmigt!",
+    "coEditorDeclined": "Co-Redakteur-Anfrage abgelehnt.",
+    "coEditorRequestFailed": "Fehler bei der Verarbeitung der Co-Redakteur-Anfrage.",
     "editor": "Redakteur",
     "coEditor": "Co-Redakteur",
     "currentCoEditors": "Aktuelle Co-Redakteure",
@@ -1354,7 +1407,11 @@
     "contributionHistory": "Beitragsverlauf",
     "noContributions": "Noch keine Beiträge. Teile den Beitrags-Link mit deinen Königreich-Mitgliedern!",
     "noKingdomFund": "Noch kein Königreich-Fonds",
-    "startFundDesc": "Starte einen Königreich-Fonds, um Stufen-Vorteile freizuschalten und die Sichtbarkeit deines Eintrags zu erhöhen."
+    "startFundDesc": "Starte einen Königreich-Fonds, um Stufen-Vorteile freizuschalten und die Sichtbarkeit deines Eintrags zu erhöhen.",
+    "coEditorRequestPending": "Co-Editor Anfrage Ausstehend",
+    "noStatusChanges": "Noch keine Statusänderungen",
+    "requestAwaitingApproval": "Deine Anfrage zum Co-Editieren von Königreich {{kingdom}} wartet auf Genehmigung. Du wirst benachrichtigt, wenn sie geprüft wird.",
+    "statusHistory": "Transfer-Status Verlauf"
   },
   "applications": {
     "applyTo": "Bewerben bei",
@@ -1460,7 +1517,8 @@
     "callNow": "JETZT RUFEN",
     "copy": "Kopieren",
     "regular": "Normal",
-    "buffed": "Verbessert"
+    "buffed": "Verbessert",
+    "comingSoonDesc": "Koordiniere Multi-Rally-Angriffe mit chirurgischer Präzision. Setze Marschzeiten, Aufruffolgen und Trefferfenster — damit deine Allianz jedes Mal zusammen ankommt. Derzeit in Entwicklung."
   },
   "missingData": {
     "contributeTitle": "DATEN",
@@ -1788,6 +1846,71 @@
     "rateLimit": "Limit:",
     "rateLimitDesc": "10 Codes pro Minute.",
     "codesSourced": "Codes von {{source}}.",
-    "backToTools": "Zurück zu Werkzeugen"
+    "backToTools": "Zurück zu Werkzeugen",
+    "alreadyRedeemed": "Bereits Eingelöst",
+    "copiedAll": "{{count}} Codes in Zwischenablage kopiert",
+    "copyAll": "Alle Codes Kopieren",
+    "redeemed": "Eingelöst",
+    "refresh": "Codes Aktualisieren",
+    "refreshed": "{{count}} aktive Codes gefunden"
+  },
+  "giftCodeLanding": {
+    "allTools": "← Alle Werkzeuge",
+    "becomeSupporter": "Supporter werden",
+    "featAlt": "Alt-Account Unterstützung",
+    "featAltDesc": "Alt-Accounts? Füge bis zu 10 Konten hinzu und löse alle Codes auf jedem mit einem Klick ein. Nur für Supporter.",
+    "featAuto": "Automatische Code-Erkennung",
+    "featAutoDesc": "Atlas holt automatisch jeden aktiven Geschenkcode aus dem Spiel. Kein Suchen auf Discord oder Reddit.",
+    "featCloud": "Cloud-Synchronisierte Konten",
+    "featCloudDesc": "Deine Alt-Accounts werden in der Cloud synchronisiert. Gerät wechseln, Browser löschen — dein Setup wartet immer auf dich.",
+    "featDiscord": "Discord Integration",
+    "featDiscordDesc": "Nutze /codes in Discord um aktive Codes zu sehen. Nutze /redeem um sie ohne Browser einzulösen. Atlas Bot erledigt das.",
+    "featOneClick": "Ein-Klick Einlösung",
+    "featOneClickDesc": "Drücke \"Alle Einlösen\" und jeder Code wird sofort auf dein Konto angewendet. Kein Kopieren. Keine Tippfehler.",
+    "featSmart": "Intelligente Wiederholung",
+    "featSmartDesc": "Ratenlimit? Bereits eingelöst? Abgelaufen? Atlas verfolgt jedes Ergebnis und versucht nur das erneut, was wirklich nötig ist.",
+    "freeF1": "Alle aktiven Codes anzeigen",
+    "freeF2": "Alle mit einem Klick einlösen",
+    "freeF3": "Codes in Zwischenablage kopieren",
+    "freeF4": "Manuelle Code-Eingabe",
+    "freeF5": "1 Alt-Account Platz",
+    "freeF6": "/codes & /redeem in Discord",
+    "freeNote": "Kostenlos für alle Atlas-Nutzer. Verknüpfe dein Kingshot-Konto zum Starten.",
+    "freeTier": "Kostenlos",
+    "freeVsSupporter": "Kostenlos vs. Supporter",
+    "heroSubtitle": "Hör auf, Codes einzeln einzutippen. Atlas findet sie, du klickst einmal, Belohnungen landen im Postfach. Fertig.",
+    "heroTitle1": "GESCHENKCODE",
+    "heroTitle2": "EINLÖSER",
+    "howItWorks1": "SO",
+    "howItWorks2": "FUNKTIONIERT'S",
+    "orUseBot": "Oder /redeem in Discord nutzen",
+    "pageTitle": "Geschenkcode-Einlöser",
+    "problemDesc": "Geschenkcodes kommen aus Social Media, Spielevents, Creator-Partnerschaften und Meilensteinen. Sie laufen schnell ab. Einen verpassen und diese kostenlosen Speedups, Gems und Ressourcen sind für immer weg.",
+    "problemTitle": "Neue Geschenkcodes erschienen. Du hast 3 verpasst.",
+    "punchline": "Lass keine kostenlosen Ressourcen liegen.",
+    "redeemNow": "Codes Jetzt Einlösen",
+    "solutionDesc": "Atlas überwacht alle Quellen und sammelt jeden aktiven Code an einem Ort. Öffne den Einlöser, drücke einen Knopf, und jeder Code wird angewendet. Kein Tippen. Keine verpassten Belohnungen.",
+    "step1": "Konto Verknüpfen",
+    "step1Desc": "Melde dich bei Atlas an und verknüpfe deine Kingshot Spieler-ID in den Profileinstellungen.",
+    "step2": "Aktive Codes Anzeigen",
+    "step2Desc": "Atlas zeigt jeden aktiven Geschenkcode mit Ablauf-Timer. Immer aktuell.",
+    "step3": "Einlösen & Abholen",
+    "step3Desc": "Drücke \"Alle Einlösen\" — Codes werden sofort angewendet. Prüfe dein Spielpostfach für Belohnungen.",
+    "supF1": "Alles aus Kostenlos",
+    "supF2": "Bis zu 10 Alt-Accounts",
+    "supF3": "Masseneinlösung aller Konten",
+    "supF4": "Cloud-synchronisierte Alt-Liste",
+    "supF5": "Ergebnisverfolgung pro Konto",
+    "supF6": "Intelligente Wiederholung bei fehlgeschlagenen Codes",
+    "supporterBadge": "Atlas Supporter Vorteil",
+    "supporterDesc": "Der automatische Code-Einlöser für Alt-Accounts ist bei Atlas Supporter inklusive — zusammen mit dem Schlachtplaner, unbegrenztem /multirally und mehr. Ab 4,99$/Monat.",
+    "supporterNote": "10 Alts manuell verwalten? Das sind über 40 Codes zum Eintippen jedes Mal. Supporter klicken einmal.",
+    "supporterTier": "Supporter",
+    "supporterTitle": "10 Konten. Ein Klick. Jeder Code.",
+    "threeSteps": "Drei Schritte. Null Tippen. Alle Belohnungen.",
+    "tryFree": "Kostenlos Testen",
+    "whyAtlas1": "WARUM",
+    "whyAtlas2": "ATLAS",
+    "whySubtitle": "Weil Codes manuell eintippen so 2024 ist."
   }
 }

@@ -947,10 +947,33 @@ client.on('guildMemberAdd', async (member) => {
   console.log(`👋 New member: ${member.user.username} joined ${member.guild.name}`);
   
   try {
-    // Find the #welcome channel
-    const welcomeChannel = member.guild.channels.cache.find(
-      ch => ch.name === 'welcome' && ch.isTextBased()
-    );
+    // Fetch channels from API to ensure fresh data (cache may be stale/empty)
+    let channels;
+    try {
+      channels = await member.guild.channels.fetch();
+    } catch (fetchErr) {
+      console.error(`Failed to fetch channels for ${member.guild.name}:`, fetchErr.message);
+      channels = member.guild.channels.cache; // fallback to cache
+    }
+    
+    // Find the welcome channel — configurable via env, with fallback patterns
+    const welcomeChannelName = process.env.DISCORD_WELCOME_CHANNEL || 'welcome';
+    const welcomePatterns = [welcomeChannelName, 'welcome', 'welcomes', 'welcome-chat', '👋welcome', '👋-welcome'];
+    
+    let welcomeChannel = null;
+    for (const pattern of welcomePatterns) {
+      welcomeChannel = channels.find(
+        ch => ch.name === pattern && ch.isTextBased()
+      );
+      if (welcomeChannel) break;
+    }
+    
+    // Broader fallback: any channel containing 'welcome' in the name
+    if (!welcomeChannel) {
+      welcomeChannel = channels.find(
+        ch => ch.name.includes('welcome') && ch.isTextBased()
+      );
+    }
     
     if (welcomeChannel) {
       const embeds = require('./utils/embeds');
@@ -975,7 +998,10 @@ client.on('guildMemberAdd', async (member) => {
       const welcomeEmbed = embeds.createWelcomeEmbed(displayName);
       // Tag the member in message content so they get a notification
       await welcomeChannel.send({ content: `<@${member.user.id}>`, embeds: [welcomeEmbed] });
-      console.log(`✅ Sent welcome message for ${member.user.username} (display: ${displayName})`);
+      console.log(`✅ Sent welcome message for ${member.user.username} in #${welcomeChannel.name} (display: ${displayName})`);
+    } else {
+      const channelNames = channels.map(ch => ch.name).filter(Boolean);
+      console.warn(`⚠️ No welcome channel found in ${member.guild.name}. Available text channels: ${channelNames.slice(0, 15).join(', ')}`);
     }
   } catch (error) {
     console.error('Failed to send welcome message:', error);

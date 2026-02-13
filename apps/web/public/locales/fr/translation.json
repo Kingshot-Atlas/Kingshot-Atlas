@@ -101,7 +101,10 @@
     "favorites": "Favoris",
     "clearFilters": "Effacer les filtres",
     "linkToSubmit": "Liez votre compte Kingshot pour soumettre des résultats",
-    "browseAll": "Parcourir tous les royaumes"
+    "browseAll": "Parcourir tous les royaumes",
+    "allTransferGroups": "Groupe de Transfert",
+    "clearAll": "Tout Effacer",
+    "filtersCleared": "Tous les filtres effacés"
   },
   "kingdomCard": {
     "yourKingdom": "VOTRE ROYAUME",
@@ -144,6 +147,7 @@
     "opponent": "Adversaire",
     "result": "Résultat",
     "viewTransferListing": "Voir l'Annonce de Transfert",
+    "managedBy": "Géré par",
     "atlasScore": "Score Atlas",
     "atlasScoreDesc": "Récompense l'expérience et la régularité",
     "atlasRank": "Rang Atlas",
@@ -174,7 +178,8 @@
     "referrals": "Parrainages",
     "region": "Région",
     "townCenter": "Centre-ville",
-    "viewProfile": "Voir le Profil"
+    "viewProfile": "Voir le Profil",
+    "youCanUpdate": "Vous pouvez mettre à jour"
   },
   "rankings": {
     "subtitle": "Qui domine ? Les données ne mentent pas.",
@@ -317,7 +322,11 @@
     "tryPlanner": "Essayer le Planificateur",
     "allTools": "← Tous les Outils",
     "communityCredit": "Un immense merci à",
-    "communityCreditSuffix": "pour avoir lancé cette idée. Créé par la communauté, pour la communauté."
+    "communityCreditSuffix": "pour avoir lancé cette idée. Créé par la communauté, pour la communauté.",
+    "accessUnlocked": "Accès Débloqué",
+    "supporterConfirm": "Vous avez un accès complet en tant qu'Atlas Supporter.",
+    "supporterThanks": "Vous avez un accès complet au Planificateur de Bataille.",
+    "supporterThanksDesc": "Merci de soutenir Atlas. Allez directement au planificateur et coordonnez votre prochain assaut de château."
   },
   "battlePlannerBanner": {
     "dismiss": "Fermer la bannière du Planificateur de Bataille",
@@ -465,7 +474,11 @@
     "free5Title": "Profils Détaillés des Royaumes",
     "free5Desc": "Stats complètes et historique de performance",
     "free6Title": "Calendrier des Événements",
-    "free6Desc": "Horaires des KvK et des Événements de Transfert"
+    "free6Desc": "Horaires des KvK et des Événements de Transfert",
+    "perk7Desc": "Débloquez les classements illimités (gratuit : Top 25)",
+    "perk7Title": "Classements Complets",
+    "perk8Desc": "Navigation propre et sans distractions",
+    "perk8Title": "Sans Publicités"
   },
   "changelog": {
     "new": "Nouveau",
@@ -654,7 +667,9 @@
     "allCaughtUp": "Vous êtes à jour !",
     "markAllRead": "Tout marquer comme lu",
     "clearAll": "Tout effacer",
-    "justNow": "À l'instant"
+    "justNow": "À l'instant",
+    "coEditorRequests": "Demandes de Co-Éditeur",
+    "coEditorRequestsDesc": "Recevez une notification quand quelqu'un demande à devenir co-éditeur de votre royaume"
   },
   "feedback": {
     "title": "Retours",
@@ -828,7 +843,8 @@
     "noPlayersFound": "Aucun joueur trouvé",
     "noPlayersDesc": "Essayez d'ajuster votre recherche ou vos filtres pour trouver des joueurs.",
     "loadingUsers": "Chargement des joueurs...",
-    "memberSince": "Membre depuis"
+    "memberSince": "Membre depuis",
+    "transferGroup": "Groupe de Transfert"
   },
   "kingdomDirectory": {
     "showing": "Affichage de",
@@ -1161,7 +1177,19 @@
       "minMatchScore": "Compatibilité Minimum",
       "activelyRecruiting": "Recrutement Actif Uniquement",
       "clearFilters": "Effacer les Filtres"
-    }
+    },
+    "allGroups": "Tous les Groupes",
+    "compare": {
+      "clear": "Effacer",
+      "compareNow": "Comparer",
+      "selected": "sélectionnés",
+      "title": "Comparaison de Royaumes"
+    },
+    "groupsOutdated": "Ces groupes datent du dernier Événement de Transfert et peuvent changer avant le prochain.",
+    "linkKingdom": "Liez votre royaume pour le filtre auto",
+    "myGroup": "Mon Groupe",
+    "showingKingdoms": "Affichage des royaumes",
+    "transferGroup": "Groupe de Transfert"
   },
   "listing": {
     "allianceEventTimes": "Horaires des Événements d'Alliance",
@@ -1223,7 +1251,10 @@
     "viewProfile": "Voir le Profil",
     "fund": "Financer",
     "applyToTransfer": "Postuler au Transfert",
-    "yourKingdom": "Votre Royaume"
+    "yourKingdom": "Votre Royaume",
+    "updatedDaysAgo": "Mis à jour il y a {{days}}j",
+    "updatedToday": "Mis à jour aujourd'hui",
+    "updatedYesterday": "Mis à jour hier"
   },
   "editor": {
     "activated": "Activé !",
@@ -1264,7 +1295,24 @@
     "becomeEditor": "Devenir Éditeur de Royaume",
     "claimKingdomDesc": "Revendiquez le Royaume {{kingdom}} pour gérer son annonce de recrutement.",
     "linkFirst": "Liez d'abord votre compte Kingshot, puis revendiquez votre royaume.",
-    "claimKingdom": "Revendiquer le Royaume"
+    "claimKingdom": "Revendiquer le Royaume",
+    "becomeCoEditor": "Devenir Co-Éditeur",
+    "becomeCoEditorDesc": "Le Royaume {{kingdom}} a déjà un éditeur. Rejoignez en tant que co-éditeur pour aider à gérer l'annonce du Transfer Hub.",
+    "coEditorSlotsUsed": "({{count}}/{{max}} places de co-éditeur utilisées)",
+    "noEndorsementsRequired": "Aucun parrainage requis. L'éditeur sera notifié de votre demande.",
+    "requestCoEditor": "Demander Co-Éditeur",
+    "requesting": "Demande en cours...",
+    "coEditorRequestSent": "Demande de Co-Éditeur Envoyée",
+    "coEditorRequestPending": "Votre demande pour co-éditer le Royaume {{kingdom}} est en attente d'approbation. Vous serez notifié lors de l'examen.",
+    "requestJustSent": "Demande envoyée ! L'éditeur a été notifié.",
+    "tcRequiredCoEditor": "Niveau TC 20+ requis pour devenir co-éditeur.",
+    "linkAccountCoEditor": "Liez d'abord votre compte Kingshot pour devenir co-éditeur.",
+    "maxCoEditors": "Ce royaume a atteint le maximum de {{max}} co-éditeurs.",
+    "acceptInvite": "Accepter",
+    "coEditorInvitation": "Invitation de Co-Éditeur",
+    "coEditorInviteDesc": "Vous avez été invité à co-éditer le tableau de recrutement du Royaume {{kingdom}}.",
+    "coEditorInviteDescBy": "{{inviter}} vous a invité à co-éditer le tableau de recrutement du Royaume {{kingdom}}.",
+    "declineInvite": "Refuser"
   },
   "recruiter": {
     "loading": "Chargement du tableau de bord...",
@@ -1339,6 +1387,11 @@
     "saving": "Enregistrement...",
     "noChanges": "Aucun Changement",
     "saveProfileChanges": "Enregistrer les Modifications du Profil",
+    "approveCoEditor": "✓ Approuver",
+    "declineCoEditor": "✕ Refuser",
+    "coEditorApproved": "Demande de co-éditeur approuvée !",
+    "coEditorDeclined": "Demande de co-éditeur refusée.",
+    "coEditorRequestFailed": "Échec du traitement de la demande de co-éditeur.",
     "editor": "Éditeur",
     "coEditor": "Co-Éditeur",
     "currentCoEditors": "Co-Éditeurs Actuels",
@@ -1354,7 +1407,11 @@
     "contributionHistory": "Historique des Contributions",
     "noContributions": "Pas encore de contributions. Partagez le lien de contribution avec les membres de votre royaume !",
     "noKingdomFund": "Pas Encore de Fonds de Royaume",
-    "startFundDesc": "Démarrez un Fonds de Royaume pour débloquer les avantages de tier et augmenter la visibilité de votre annonce."
+    "startFundDesc": "Démarrez un Fonds de Royaume pour débloquer les avantages de tier et augmenter la visibilité de votre annonce.",
+    "coEditorRequestPending": "Demande de Co-Éditeur en Attente",
+    "noStatusChanges": "Aucun changement de statut",
+    "requestAwaitingApproval": "Votre demande de co-éditer le Royaume {{kingdom}} est en attente d'approbation. Vous serez notifié lors de l'examen.",
+    "statusHistory": "Historique du Statut de Transfert"
   },
   "applications": {
     "applyTo": "Postuler à",
@@ -1460,7 +1517,8 @@
     "callNow": "APPELER MAINTENANT",
     "copy": "Copier",
     "regular": "Normal",
-    "buffed": "Amélioré"
+    "buffed": "Amélioré",
+    "comingSoonDesc": "Coordonnez des frappes multi-rally avec une précision chirurgicale. Définissez les temps de marche, ordres d'appel et fenêtres d'attaque — pour que votre alliance arrive ensemble, à chaque fois. En cours de développement."
   },
   "missingData": {
     "contributeTitle": "CONTRIBUER",
@@ -1788,6 +1846,71 @@
     "rateLimit": "Limite :",
     "rateLimitDesc": "10 codes par minute.",
     "codesSourced": "Codes provenant de {{source}}.",
-    "backToTools": "Retour aux Outils"
+    "backToTools": "Retour aux Outils",
+    "alreadyRedeemed": "Déjà Échangé",
+    "copiedAll": "{{count}} codes copiés dans le presse-papier",
+    "copyAll": "Copier Tous les Codes",
+    "redeemed": "Échangé",
+    "refresh": "Actualiser les Codes",
+    "refreshed": "{{count}} codes actifs trouvés"
+  },
+  "giftCodeLanding": {
+    "allTools": "← Tous les Outils",
+    "becomeSupporter": "Devenir Supporter",
+    "featAlt": "Support Multi-Comptes",
+    "featAltDesc": "Des alts ? Ajoutez jusqu'à 10 comptes et échangez tous les codes sur chacun d'un seul clic. Supporters uniquement.",
+    "featAuto": "Détection Auto des Codes",
+    "featAutoDesc": "Atlas récupère automatiquement chaque code cadeau actif du jeu. Plus besoin de chercher dans Discord ou Reddit.",
+    "featCloud": "Comptes Synchronisés dans le Cloud",
+    "featCloudDesc": "Vos comptes alt se synchronisent dans le cloud. Changez d'appareil, videz votre navigateur — votre configuration est toujours là.",
+    "featDiscord": "Intégration Discord",
+    "featDiscordDesc": "Utilisez /codes dans Discord pour voir les codes actifs. Utilisez /redeem pour les échanger sans ouvrir de navigateur.",
+    "featOneClick": "Échange en Un Clic",
+    "featOneClickDesc": "Appuyez sur \"Tout Échanger\" et chaque code est appliqué instantanément. Pas de copier-coller. Pas d'erreurs de frappe.",
+    "featSmart": "Réessai Intelligent",
+    "featSmartDesc": "Limité ? Déjà échangé ? Expiré ? Atlas suit chaque résultat et ne réessaie que ce qui en a vraiment besoin.",
+    "freeF1": "Voir tous les codes actifs",
+    "freeF2": "Tout échanger en un clic",
+    "freeF3": "Copier les codes dans le presse-papier",
+    "freeF4": "Saisie manuelle de codes",
+    "freeF5": "1 emplacement de compte alt",
+    "freeF6": "/codes et /redeem dans Discord",
+    "freeNote": "Gratuit pour tous les utilisateurs Atlas. Liez votre compte Kingshot pour commencer.",
+    "freeTier": "Gratuit",
+    "freeVsSupporter": "Gratuit vs. Supporter",
+    "heroSubtitle": "Arrêtez de taper les codes un par un. Atlas les trouve, vous cliquez une fois, les récompenses arrivent dans votre boîte. Terminé.",
+    "heroTitle1": "ÉCHANGE DE",
+    "heroTitle2": "CODES",
+    "howItWorks1": "COMMENT ÇA",
+    "howItWorks2": "MARCHE",
+    "orUseBot": "Ou Utilisez /redeem dans Discord",
+    "pageTitle": "Échangeur de Codes Cadeaux",
+    "problemDesc": "Les codes cadeaux viennent des réseaux sociaux, événements du jeu, partenariats avec des créateurs et célébrations. Ils expirent vite. En manquer un et ces accélérations, gemmes et ressources gratuites sont perdues à jamais.",
+    "problemTitle": "De nouveaux codes sont sortis. Vous en avez manqué 3.",
+    "punchline": "Arrêtez de laisser des ressources gratuites sur la table.",
+    "redeemNow": "Échanger les Codes",
+    "solutionDesc": "Atlas surveille toutes les sources et rassemble chaque code actif au même endroit. Ouvrez l'échangeur, cliquez un bouton, et chaque code est appliqué. Sans taper. Sans récompenses manquées.",
+    "step1": "Liez Votre Compte",
+    "step1Desc": "Connectez-vous à Atlas et liez votre ID Joueur Kingshot dans les paramètres de profil.",
+    "step2": "Voir les Codes Actifs",
+    "step2Desc": "Atlas affiche chaque code cadeau actif avec des minuteries d'expiration. Toujours à jour.",
+    "step3": "Échanger et Récupérer",
+    "step3Desc": "Appuyez sur \"Tout Échanger\" — les codes sont appliqués instantanément. Vérifiez votre boîte aux lettres du jeu.",
+    "supF1": "Tout ce qui est Gratuit",
+    "supF2": "Jusqu'à 10 comptes alt",
+    "supF3": "Échange groupé tous comptes",
+    "supF4": "Liste d'alts synchronisée dans le cloud",
+    "supF5": "Suivi des résultats par compte",
+    "supF6": "Réessai intelligent pour codes échoués",
+    "supporterBadge": "Avantage Atlas Supporter",
+    "supporterDesc": "L'échange automatique de codes pour comptes alt est inclus avec Atlas Supporter — avec le Planificateur de Bataille, /multirally illimité, et plus. À partir de 4,99$/mois.",
+    "supporterNote": "Gérer 10 alts manuellement ? C'est plus de 40 codes à taper à chaque fois. Les Supporters cliquent une fois.",
+    "supporterTier": "Supporter",
+    "supporterTitle": "10 comptes. Un clic. Chaque code.",
+    "threeSteps": "Trois étapes. Zéro frappe. Toutes les récompenses.",
+    "tryFree": "Essayer Gratuitement",
+    "whyAtlas1": "POURQUOI",
+    "whyAtlas2": "ATLAS",
+    "whySubtitle": "Parce que taper des codes manuellement, c'est tellement 2024."
   }
 }

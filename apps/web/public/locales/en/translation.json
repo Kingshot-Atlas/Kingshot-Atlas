@@ -101,7 +101,10 @@
     "favorites": "Favorites",
     "clearFilters": "Clear filters",
     "linkToSubmit": "Please link your Kingshot account to submit results",
-    "browseAll": "Browse all kingdoms"
+    "browseAll": "Browse all kingdoms",
+    "allTransferGroups": "Transfer Group",
+    "clearAll": "Clear All",
+    "filtersCleared": "All filters cleared"
   },
   "kingdomCard": {
     "yourKingdom": "YOUR KINGDOM",
@@ -175,7 +178,8 @@
     "referrals": "Referrals",
     "region": "Region",
     "townCenter": "Town Center",
-    "viewProfile": "View Profile"
+    "viewProfile": "View Profile",
+    "youCanUpdate": "You can update this"
   },
   "rankings": {
     "subtitle": "Who's dominating? The data doesn't lie.",
@@ -318,7 +322,11 @@
     "tryPlanner": "Try the Planner",
     "allTools": "← All Tools",
     "communityCredit": "Huge shoutout to",
-    "communityCreditSuffix": "for rallying this idea into existence. Built by the community, for the community."
+    "communityCreditSuffix": "for rallying this idea into existence. Built by the community, for the community.",
+    "accessUnlocked": "Access Unlocked",
+    "supporterConfirm": "You have full access as an Atlas Supporter.",
+    "supporterThanks": "You have full access to the Battle Planner.",
+    "supporterThanksDesc": "Thank you for supporting Atlas. Jump straight into the planner and coordinate your next castle hit."
   },
   "battlePlannerBanner": {
     "dismiss": "Dismiss Battle Planner banner",
@@ -466,7 +474,11 @@
     "free5Title": "Detailed Kingdom Profiles",
     "free5Desc": "Full stats and performance history",
     "free6Title": "Event Calendar",
-    "free6Desc": "KvK and Transfer Event schedules"
+    "free6Desc": "KvK and Transfer Event schedules",
+    "perk7Desc": "Unlock unlimited kingdom rankings (free: Top 25)",
+    "perk7Title": "Full Leaderboard Rankings",
+    "perk8Desc": "Clean, distraction-free browsing",
+    "perk8Title": "Ad-Free Experience"
   },
   "changelog": {
     "new": "New",
@@ -831,7 +843,8 @@
     "noPlayersFound": "No players found",
     "noPlayersDesc": "Try adjusting your search or filters to find players.",
     "loadingUsers": "Loading users...",
-    "memberSince": "Member since"
+    "memberSince": "Member since",
+    "transferGroup": "Transfer Group"
   },
   "kingdomDirectory": {
     "showing": "Showing",
@@ -1164,7 +1177,19 @@
       "minMatchScore": "Min Match Score",
       "activelyRecruiting": "Actively Recruiting Only",
       "clearFilters": "Clear Filters"
-    }
+    },
+    "allGroups": "All Groups",
+    "compare": {
+      "clear": "Clear",
+      "compareNow": "Compare",
+      "selected": "selected",
+      "title": "Kingdom Comparison"
+    },
+    "groupsOutdated": "These groups are from the last Transfer Event and may change before the next one.",
+    "linkKingdom": "Link your kingdom for auto-filter",
+    "myGroup": "My Group",
+    "showingKingdoms": "Showing kingdoms",
+    "transferGroup": "Transfer Group"
   },
   "listing": {
     "allianceEventTimes": "Alliance Event Times",
@@ -1226,7 +1251,10 @@
     "viewProfile": "View Profile",
     "fund": "Fund",
     "applyToTransfer": "Apply to Transfer",
-    "yourKingdom": "Your Kingdom"
+    "yourKingdom": "Your Kingdom",
+    "updatedDaysAgo": "Updated {{days}}d ago",
+    "updatedToday": "Updated today",
+    "updatedYesterday": "Updated yesterday"
   },
   "editor": {
     "activated": "Activated!",
@@ -1279,7 +1307,12 @@
     "requestJustSent": "Request just sent! The editor has been notified.",
     "tcRequiredCoEditor": "TC Level 20+ required to become a co-editor.",
     "linkAccountCoEditor": "Link your Kingshot account first to become a co-editor.",
-    "maxCoEditors": "This kingdom has reached the maximum of {{max}} co-editors."
+    "maxCoEditors": "This kingdom has reached the maximum of {{max}} co-editors.",
+    "acceptInvite": "Accept",
+    "coEditorInvitation": "Co-Editor Invitation",
+    "coEditorInviteDesc": "You've been invited to co-edit Kingdom {{kingdom}}'s recruiter dashboard.",
+    "coEditorInviteDescBy": "{{inviter}} invited you to co-edit Kingdom {{kingdom}}'s recruiter dashboard.",
+    "declineInvite": "Decline"
   },
   "recruiter": {
     "loading": "Loading dashboard...",
@@ -1374,7 +1407,11 @@
     "declineCoEditor": "✕ Decline",
     "coEditorApproved": "Co-editor request approved!",
     "coEditorDeclined": "Co-editor request declined.",
-    "coEditorRequestFailed": "Failed to process co-editor request."
+    "coEditorRequestFailed": "Failed to process co-editor request.",
+    "coEditorRequestPending": "Co-Editor Request Pending",
+    "noStatusChanges": "No status changes yet",
+    "requestAwaitingApproval": "Your request to co-edit Kingdom {{kingdom}} is pending editor approval. You'll be notified when it's reviewed.",
+    "statusHistory": "Transfer Status History"
   },
   "applications": {
     "applyTo": "Apply to",
@@ -1480,7 +1517,8 @@
     "callNow": "CALL NOW",
     "copy": "Copy",
     "regular": "Regular",
-    "buffed": "Buffed"
+    "buffed": "Buffed",
+    "comingSoonDesc": "Coordinate multi-rally strikes with surgical precision. Set march times, call orders, and hit windows — so your alliance lands together, every time. Currently in development."
   },
   "missingData": {
     "contributeTitle": "CONTRIBUTE",
@@ -1808,6 +1846,71 @@
     "rateLimit": "Rate limit:",
     "rateLimitDesc": "10 codes per minute.",
     "codesSourced": "Codes sourced from {{source}}.",
-    "backToTools": "Back to Tools"
+    "backToTools": "Back to Tools",
+    "alreadyRedeemed": "Already Redeemed",
+    "copiedAll": "Copied {{count}} codes to clipboard",
+    "copyAll": "Copy All Codes",
+    "redeemed": "Redeemed",
+    "refresh": "Refresh Codes",
+    "refreshed": "Found {{count}} active codes"
+  },
+  "giftCodeLanding": {
+    "allTools": "← All Tools",
+    "becomeSupporter": "Become a Supporter",
+    "featAlt": "Alt Account Support",
+    "featAltDesc": "Got alts? Add up to 10 accounts and redeem all codes across every one of them with a single button. Supporters only.",
+    "featAuto": "Auto-Detect Active Codes",
+    "featAutoDesc": "Atlas pulls every active gift code from the game — automatically. No hunting through Discord servers or Reddit threads.",
+    "featCloud": "Cloud-Synced Accounts",
+    "featCloudDesc": "Your alt accounts sync to the cloud. Switch devices, clear your browser — your setup is always there waiting for you.",
+    "featDiscord": "Discord Integration",
+    "featDiscordDesc": "Use /codes in Discord to see active codes. Use /redeem to redeem them without opening a browser. Atlas Bot handles it.",
+    "featOneClick": "One-Click Redeem",
+    "featOneClickDesc": "Hit \"Redeem All\" and every code gets applied to your account instantly. No copy-pasting. No typing errors. Just rewards in your mailbox.",
+    "featSmart": "Smart Retry Logic",
+    "featSmartDesc": "Rate-limited? Already redeemed? Expired? Atlas tracks every result and only retries what actually needs retrying. No wasted attempts.",
+    "freeF1": "View all active codes",
+    "freeF2": "One-click redeem all",
+    "freeF3": "Copy codes to clipboard",
+    "freeF4": "Manual code entry",
+    "freeF5": "1 alt account slot",
+    "freeF6": "/codes & /redeem in Discord",
+    "freeNote": "Free for all Atlas users. Link your Kingshot account to get started.",
+    "freeTier": "Free",
+    "freeVsSupporter": "Free vs. Supporter",
+    "heroSubtitle": "Stop typing codes one by one. Atlas finds them, you click once, rewards land in your mailbox. Done.",
+    "heroTitle1": "GIFT CODE",
+    "heroTitle2": "REDEEMER",
+    "howItWorks1": "HOW IT",
+    "howItWorks2": "WORKS",
+    "orUseBot": "Or Use /redeem in Discord",
+    "pageTitle": "Gift Code Redeemer",
+    "problemDesc": "Gift codes come from social media posts, in-game events, creator partnerships, and milestone celebrations. They expire fast. Miss one and those free speedups, gems, and resources are gone forever.",
+    "problemTitle": "New gift codes dropped. You missed 3 of them.",
+    "punchline": "Stop leaving free resources on the table.",
+    "redeemNow": "Redeem Codes Now",
+    "solutionDesc": "Atlas monitors all sources and aggregates every active code in one place. Open the redeemer, click one button, and every code gets applied. No typing. No missed rewards. No expired opportunities.",
+    "step1": "Link Your Account",
+    "step1Desc": "Sign in to Atlas and link your Kingshot Player ID in your profile settings.",
+    "step2": "View Active Codes",
+    "step2Desc": "Atlas shows every active gift code with expiration timers. Always up to date.",
+    "step3": "Redeem & Collect",
+    "step3Desc": "Hit \"Redeem All\" — codes get applied instantly. Check your in-game mailbox for rewards.",
+    "supF1": "Everything in Free",
+    "supF2": "Up to 10 alt accounts",
+    "supF3": "Bulk redeem all accounts",
+    "supF4": "Cloud-synced alt list",
+    "supF5": "Per-account result tracking",
+    "supF6": "Smart retry for failed codes",
+    "supporterBadge": "Atlas Supporter Perk",
+    "supporterDesc": "The Gift Code Auto-Redeemer for alt accounts is included with Atlas Supporter — along with the Battle Planner, unlimited /multirally, and more. Starting at $4.99/month.",
+    "supporterNote": "Managing 10 alts manually? That's 40+ codes to type every time. Supporters click once.",
+    "supporterTier": "Supporter",
+    "supporterTitle": "10 accounts. One click. Every code.",
+    "threeSteps": "Three steps. Zero typing. All rewards.",
+    "tryFree": "Try It Free",
+    "whyAtlas1": "WHY USE",
+    "whyAtlas2": "ATLAS",
+    "whySubtitle": "Because typing codes manually is so 2024."
   }
 }

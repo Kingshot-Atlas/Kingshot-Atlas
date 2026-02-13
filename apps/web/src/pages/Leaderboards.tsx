@@ -26,14 +26,33 @@ const Leaderboards: React.FC = () => {
   useScrollDepth('Rankings');
   const [kingdoms, setKingdoms] = useState<Kingdom[]>([]);
   const [loading, setLoading] = useState(true);
-  const [displayCount, setDisplayCount] = useState<5 | 10 | 25>(5);
-  const [kvkFilter, setKvkFilter] = useState<string>('all');
+  const [displayCount, _setDisplayCount] = useState<5 | 10 | 25>(() => {
+    const saved = localStorage.getItem('kingshot_rankings_displayCount');
+    return saved && [5, 10, 25].includes(Number(saved)) ? Number(saved) as 5 | 10 | 25 : 5;
+  });
+  const setDisplayCount = (val: 5 | 10 | 25) => {
+    _setDisplayCount(val);
+    localStorage.setItem('kingshot_rankings_displayCount', String(val));
+  };
+  const [kvkFilter, _setKvkFilter] = useState<string>(() => {
+    return localStorage.getItem('kingshot_rankings_kvkFilter') || 'all';
+  });
+  const setKvkFilter = (val: string) => {
+    _setKvkFilter(val);
+    localStorage.setItem('kingshot_rankings_kvkFilter', val);
+  };
   const [customKvkMin, setCustomKvkMin] = useState<number>(1);
   const [customKvkMax, setCustomKvkMax] = useState<number>(15);
   const [rankMovers, setRankMovers] = useState<{ climbers: RankMover[]; fallers: RankMover[] } | null>(null);
   const isMobile = useIsMobile();
   const { tier, isSupporter } = usePremium();
-  const [transferGroupFilter, setTransferGroupFilter] = useState<string>('all');
+  const [transferGroupFilter, _setTransferGroupFilter] = useState<string>(() => {
+    return localStorage.getItem('kingshot_transferGroup') || 'all';
+  });
+  const setTransferGroupFilter = (val: string) => {
+    _setTransferGroupFilter(val);
+    localStorage.setItem('kingshot_transferGroup', val);
+  };
   const { trackFeature } = useAnalytics();
   
   // Tier-based leaderboard limits: anonymous=10, free=25, supporter=unlimited
@@ -94,9 +113,9 @@ const Leaderboards: React.FC = () => {
 
   // Build set of filtered kingdom numbers for rank movers filtering
   const filteredKingdomNumbers = useMemo(() => {
-    if (kvkFilter === 'all') return null; // null = no filter
+    if (kvkFilter === 'all' && transferGroupFilter === 'all') return null; // null = no filter
     return new Set(filteredKingdoms.map(k => k.kingdom_number));
-  }, [filteredKingdoms, kvkFilter]);
+  }, [filteredKingdoms, kvkFilter, transferGroupFilter]);
 
   // Filtered rank movers — respect both kvkFilter and displayCount
   const filteredRankMovers = useMemo(() => {

@@ -65,10 +65,17 @@ const KingdomDirectory: React.FC = () => {
     tier: 'all',
     minAtlasScore: 0
   });
-  const [sort, setSort] = useState<SortOptions>({
-    sortBy: 'overall_score',
-    order: 'desc'
+  const [sort, _setSort] = useState<SortOptions>(() => {
+    const prefs = loadPreferences();
+    return {
+      sortBy: (prefs.sortBy as SortOptions['sortBy']) || 'overall_score',
+      order: (prefs.sortOrder as 'asc' | 'desc') || 'desc'
+    };
   });
+  const setSort = (newSort: SortOptions) => {
+    _setSort(newSort);
+    savePreferences({ sortBy: newSort.sortBy, sortOrder: newSort.order });
+  };
   
   
   const { favorites, toggleFavorite: contextToggleFavorite } = useFavoritesContext();
@@ -90,7 +97,13 @@ const KingdomDirectory: React.FC = () => {
   
   const [showPostKvKModal, setShowPostKvKModal] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false); // Closed by default
-  const [transferGroupFilter, setTransferGroupFilter] = useState<string>('all');
+  const [transferGroupFilter, _setTransferGroupFilter] = useState<string>(() => {
+    return localStorage.getItem('kingshot_transferGroup') || 'all';
+  });
+  const setTransferGroupFilter = (val: string) => {
+    _setTransferGroupFilter(val);
+    localStorage.setItem('kingshot_transferGroup', val);
+  };
 
   // Handler for KvK submission - requires login + linked Kingshot account + TC20+
   const handleSubmitKvKClick = () => {
@@ -233,6 +246,18 @@ const KingdomDirectory: React.FC = () => {
     }
   }, [showToast, user, navigate, favorites, contextToggleFavorite]);
 
+  const hasAnyFilter = countActiveFilters(filters) > 0 || transferGroupFilter !== 'all' || sort.sortBy !== 'overall_score' || sort.order !== 'desc' || debouncedSearch.trim() !== '' || showFavoritesOnly;
+  const clearAllFilters = () => {
+    setFilters(DEFAULT_FILTERS);
+    setSort({ sortBy: 'overall_score', order: 'desc' });
+    setTransferGroupFilter('all');
+    setSearchQuery('');
+    setShowFavoritesOnly(false);
+    localStorage.removeItem('kingshot_rankings_kvkFilter');
+    localStorage.removeItem('kingshot_rankings_displayCount');
+    showToast(t('home.filtersCleared', 'All filters cleared'), 'info');
+  };
+
   const filteredKingdoms = useMemo(() => {
     let result = [...allKingdoms];
     
@@ -335,6 +360,19 @@ const KingdomDirectory: React.FC = () => {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a', paddingBottom: '100px' }}>
+      <style>{`
+        @keyframes chipPop {
+          0% { transform: scale(0.92); opacity: 0.7; }
+          60% { transform: scale(1.05); }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        .filter-chip-active { animation: chipPop 0.2s ease-out; }
+        @keyframes clearSlide {
+          from { opacity: 0; transform: translateY(-4px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .clear-all-btn { animation: clearSlide 0.2s ease-out; }
+      `}</style>
       {/* Hero Section with Particles - Compact */}
       <div style={{ 
         padding: isMobile ? '1.25rem 1rem 1rem' : '1.75rem 2rem 1.25rem',
@@ -480,6 +518,12 @@ const KingdomDirectory: React.FC = () => {
                 <option value="invasions">{t('stats.invasions')}</option>
               </select>
             </div>
+            {hasAnyFilter && (
+              <button className="clear-all-btn" onClick={clearAllFilters} style={{ width: '100%', padding: '0.5rem', minHeight: '36px', backgroundColor: '#ef444415', border: '1px solid #ef444450', borderRadius: '8px', color: '#ef4444', cursor: 'pointer', fontSize: '0.75rem', fontWeight: '600', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem' }}>
+                <svg style={{ width: '12px', height: '12px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                {t('home.clearAll', 'Clear All')}
+              </button>
+            )}
             </>
           ) : (
           <>
@@ -566,6 +610,7 @@ const KingdomDirectory: React.FC = () => {
           <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', alignItems: 'center' }}>
             {/* S-Tier */}
             <button
+              className={filters.tier === 'S' ? 'filter-chip-active' : ''}
               onClick={() => setFilters(f => ({ ...f, tier: f.tier === 'S' ? 'all' : 'S' }))}
               style={{
                 padding: '0.3rem 0.6rem',
@@ -583,6 +628,7 @@ const KingdomDirectory: React.FC = () => {
             </button>
             {/* A-Tier */}
             <button
+              className={filters.tier === 'A' ? 'filter-chip-active' : ''}
               onClick={() => setFilters(f => ({ ...f, tier: f.tier === 'A' ? 'all' : 'A' }))}
               style={{
                 padding: '0.3rem 0.6rem',
@@ -603,6 +649,7 @@ const KingdomDirectory: React.FC = () => {
             
             {/* 100% Prep */}
             <button
+              className={filters.minPrepWinRate === 1 ? 'filter-chip-active' : ''}
               onClick={() => setFilters(f => ({ ...f, minPrepWinRate: f.minPrepWinRate === 1 ? 0 : 1 }))}
               style={{
                 padding: '0.3rem 0.6rem',
@@ -620,6 +667,7 @@ const KingdomDirectory: React.FC = () => {
             </button>
             {/* 80%+ Prep */}
             <button
+              className={filters.minPrepWinRate === 0.8 ? 'filter-chip-active' : ''}
               onClick={() => setFilters(f => ({ ...f, minPrepWinRate: f.minPrepWinRate === 0.8 ? 0 : 0.8 }))}
               style={{
                 padding: '0.3rem 0.6rem',
@@ -637,6 +685,7 @@ const KingdomDirectory: React.FC = () => {
             </button>
             {/* 100% Battle */}
             <button
+              className={filters.minBattleWinRate === 1 ? 'filter-chip-active' : ''}
               onClick={() => setFilters(f => ({ ...f, minBattleWinRate: f.minBattleWinRate === 1 ? 0 : 1 }))}
               style={{
                 padding: '0.3rem 0.6rem',
@@ -654,6 +703,7 @@ const KingdomDirectory: React.FC = () => {
             </button>
             {/* 80%+ Battle */}
             <button
+              className={filters.minBattleWinRate === 0.8 ? 'filter-chip-active' : ''}
               onClick={() => setFilters(f => ({ ...f, minBattleWinRate: f.minBattleWinRate === 0.8 ? 0 : 0.8 }))}
               style={{
                 padding: '0.3rem 0.6rem',
@@ -837,10 +887,15 @@ const KingdomDirectory: React.FC = () => {
               <input type="range" min="0" max="100" value={(filters.minBattleWinRate || 0) * 100} onChange={(e) => setFilters({ ...filters, minBattleWinRate: parseInt(e.target.value) / 100 })} style={{ width: '100%', height: '6px', appearance: 'none', backgroundColor: '#1f1f1f', borderRadius: '3px', cursor: 'pointer' }} />
             </div>
             {/* Reset */}
-            <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0.5rem' }}>
               <button onClick={() => setFilters(DEFAULT_FILTERS)} style={{ padding: '0.6rem 1.25rem', backgroundColor: countActiveFilters(filters) > 0 ? '#ef444420' : 'transparent', border: `1px solid ${countActiveFilters(filters) > 0 ? '#ef4444' : '#3a3a3a'}`, borderRadius: '6px', color: countActiveFilters(filters) > 0 ? '#ef4444' : '#9ca3af', cursor: 'pointer', fontSize: '0.85rem', fontWeight: countActiveFilters(filters) > 0 ? '500' : 'normal', transition: 'all 0.2s' }}>
                 {t('home.clearFilters')}{countActiveFilters(filters) > 0 && ` (${countActiveFilters(filters)})`}
               </button>
+              {hasAnyFilter && (
+                <button className="clear-all-btn" onClick={clearAllFilters} style={{ padding: '0.6rem 1.25rem', backgroundColor: '#ef444420', border: '1px solid #ef4444', borderRadius: '6px', color: '#ef4444', cursor: 'pointer', fontSize: '0.85rem', fontWeight: '600', transition: 'all 0.2s' }}>
+                  {t('home.clearAll', 'Clear All')}
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -902,9 +957,9 @@ const KingdomDirectory: React.FC = () => {
                       'No kingdoms available.'
                   }
                 </p>
-                {(countActiveFilters(filters) > 0 || debouncedSearch) && (
+                {hasAnyFilter && (
                   <button
-                    onClick={() => { setFilters(DEFAULT_FILTERS); setSearchQuery(''); }}
+                    onClick={clearAllFilters}
                     style={{
                       padding: '0.75rem 1.5rem',
                       backgroundColor: '#22d3ee20',

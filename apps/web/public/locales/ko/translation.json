@@ -101,7 +101,10 @@
     "favorites": "즐겨찾기",
     "clearFilters": "필터 초기화",
     "linkToSubmit": "결과를 제출하려면 Kingshot 계정을 연동하세요",
-    "browseAll": "모든 왕국 탐색"
+    "browseAll": "모든 왕국 탐색",
+    "allTransferGroups": "이전 그룹",
+    "clearAll": "모두 지우기",
+    "filtersCleared": "모든 필터 초기화됨"
   },
   "kingdomCard": {
     "yourKingdom": "내 왕국",
@@ -144,6 +147,7 @@
     "opponent": "상대",
     "result": "결과",
     "viewTransferListing": "이적 목록 보기",
+    "managedBy": "관리자",
     "atlasScore": "Atlas 점수",
     "atlasScoreDesc": "경험과 꾸준함에 보상",
     "atlasRank": "Atlas 순위",
@@ -174,7 +178,8 @@
     "referrals": "추천",
     "region": "지역",
     "townCenter": "타운센터",
-    "viewProfile": "프로필 보기"
+    "viewProfile": "프로필 보기",
+    "youCanUpdate": "업데이트할 수 있습니다"
   },
   "rankings": {
     "subtitle": "누가 지배하고 있나? 데이터는 거짓말하지 않습니다.",
@@ -317,7 +322,11 @@
     "tryPlanner": "플래너 체험",
     "allTools": "← 모든 도구",
     "communityCredit": "큰 감사를 드립니다",
-    "communityCreditSuffix": "이 아이디어를 현실로 만들어 주셔서. 커뮤니티가 만들고, 커뮤니티를 위해."
+    "communityCreditSuffix": "이 아이디어를 현실로 만들어 주셔서. 커뮤니티가 만들고, 커뮤니티를 위해.",
+    "accessUnlocked": "접근 해제됨",
+    "supporterConfirm": "Atlas Supporter로서 전체 접근 권한이 있습니다.",
+    "supporterThanks": "배틀 플래너에 대한 전체 접근 권한이 있습니다.",
+    "supporterThanksDesc": "Atlas를 지원해 주셔서 감사합니다. 플래너로 바로 이동하여 다음 성 공격을 조율하세요."
   },
   "battlePlannerBanner": {
     "dismiss": "전투 플래너 배너 닫기",
@@ -465,7 +474,11 @@
     "free5Title": "상세 왕국 프로필",
     "free5Desc": "전체 통계 및 성적 기록",
     "free6Title": "이벤트 캘린더",
-    "free6Desc": "KvK 및 이적 이벤트 일정"
+    "free6Desc": "KvK 및 이적 이벤트 일정",
+    "perk7Desc": "무제한 왕국 랭킹 해제 (무료: 상위 25)",
+    "perk7Title": "전체 순위표",
+    "perk8Desc": "깔끔하고 방해 없는 브라우징",
+    "perk8Title": "광고 없음"
   },
   "changelog": {
     "new": "새로운",
@@ -654,7 +667,9 @@
     "allCaughtUp": "모두 확인했습니다!",
     "markAllRead": "모두 읽음",
     "clearAll": "모두 지우기",
-    "justNow": "방금"
+    "justNow": "방금",
+    "coEditorRequests": "공동 편집자 요청",
+    "coEditorRequestsDesc": "누군가 당신의 왕국 공동 편집자를 요청하면 알림을 받습니다"
   },
   "feedback": {
     "title": "피드백",
@@ -828,7 +843,8 @@
     "noPlayersFound": "플레이어를 찾을 수 없음",
     "noPlayersDesc": "검색 또는 필터를 조정해 보세요.",
     "loadingUsers": "사용자 로딩 중...",
-    "memberSince": "가입일"
+    "memberSince": "가입일",
+    "transferGroup": "이전 그룹"
   },
   "kingdomDirectory": {
     "showing": "표시",
@@ -1161,7 +1177,19 @@
       "minMatchScore": "최소 매치 점수",
       "activelyRecruiting": "활발히 모집 중만",
       "clearFilters": "필터 초기화"
-    }
+    },
+    "allGroups": "모든 그룹",
+    "compare": {
+      "clear": "지우기",
+      "compareNow": "비교",
+      "selected": "선택됨",
+      "title": "왕국 비교"
+    },
+    "groupsOutdated": "이 그룹은 마지막 이전 이벤트의 것이며 다음 이벤트 전에 변경될 수 있습니다.",
+    "linkKingdom": "자동 필터를 위해 왕국을 연결하세요",
+    "myGroup": "내 그룹",
+    "showingKingdoms": "왕국 표시 중",
+    "transferGroup": "이전 그룹"
   },
   "listing": {
     "allianceEventTimes": "얼라이언스 이벤트 시간",
@@ -1223,7 +1251,10 @@
     "viewProfile": "프로필 보기",
     "fund": "펀딩",
     "applyToTransfer": "이적 지원",
-    "yourKingdom": "내 왕국"
+    "yourKingdom": "내 왕국",
+    "updatedDaysAgo": "{{days}}일 전 업데이트",
+    "updatedToday": "오늘 업데이트",
+    "updatedYesterday": "어제 업데이트"
   },
   "editor": {
     "activated": "활성화됨!",
@@ -1264,7 +1295,24 @@
     "becomeEditor": "왕국 편집자 되기",
     "claimKingdomDesc": "왕국 {{kingdom}}을 클레임하여 모집 목록을 관리하세요.",
     "linkFirst": "먼저 Kingshot 계정을 연동한 후 왕국을 클레임하세요.",
-    "claimKingdom": "왕국 클레임"
+    "claimKingdom": "왕국 클레임",
+    "becomeCoEditor": "공동 편집자 되기",
+    "becomeCoEditorDesc": "왕국 {{kingdom}}에 이미 편집자가 있습니다. 공동 편집자로 참여하여 Transfer Hub 목록 관리를 도와주세요.",
+    "coEditorSlotsUsed": "({{count}}/{{max}} 공동 편집자 자리 사용 중)",
+    "noEndorsementsRequired": "추천이 필요 없습니다. 편집자에게 요청이 전달됩니다.",
+    "requestCoEditor": "공동 편집자 요청",
+    "requesting": "요청 중...",
+    "coEditorRequestSent": "공동 편집자 요청 전송됨",
+    "coEditorRequestPending": "왕국 {{kingdom}} 공동 편집 요청이 편집자 승인 대기 중입니다. 검토 후 알림을 받습니다.",
+    "requestJustSent": "요청이 전송되었습니다! 편집자에게 알림이 전달되었습니다.",
+    "tcRequiredCoEditor": "공동 편집자가 되려면 TC 레벨 20+ 이상이 필요합니다.",
+    "linkAccountCoEditor": "공동 편집자가 되려면 먼저 Kingshot 계정을 연동하세요.",
+    "maxCoEditors": "이 왕국은 최대 {{max}}명의 공동 편집자에 도달했습니다.",
+    "acceptInvite": "수락",
+    "coEditorInvitation": "공동 편집자 초대",
+    "coEditorInviteDesc": "왕국 {{kingdom}}의 모집 대시보드를 공동 편집하도록 초대받았습니다.",
+    "coEditorInviteDescBy": "{{inviter}}님이 왕국 {{kingdom}}의 모집 대시보드를 공동 편집하도록 초대했습니다.",
+    "declineInvite": "거절"
   },
   "recruiter": {
     "loading": "대시보드 로딩 중...",
@@ -1339,6 +1387,11 @@
     "saving": "저장 중...",
     "noChanges": "변경 없음",
     "saveProfileChanges": "프로필 변경사항 저장",
+    "approveCoEditor": "✓ 승인",
+    "declineCoEditor": "✕ 거절",
+    "coEditorApproved": "공동 편집자 요청이 승인되었습니다!",
+    "coEditorDeclined": "공동 편집자 요청이 거절되었습니다.",
+    "coEditorRequestFailed": "공동 편집자 요청 처리에 실패했습니다.",
     "editor": "편집자",
     "coEditor": "공동 편집자",
     "currentCoEditors": "현재 공동 편집자",
@@ -1354,7 +1407,11 @@
     "contributionHistory": "기여 기록",
     "noContributions": "아직 기여 없음. 기여 링크를 왕국 멤버와 공유하세요!",
     "noKingdomFund": "아직 왕국 펀드 없음",
-    "startFundDesc": "왕국 펀드를 시작하여 등급 혜택을 잠금 해제하고 목록 가시성을 높이세요."
+    "startFundDesc": "왕국 펀드를 시작하여 등급 혜택을 잠금 해제하고 목록 가시성을 높이세요.",
+    "coEditorRequestPending": "공동 편집자 요청 대기 중",
+    "noStatusChanges": "아직 상태 변경 없음",
+    "requestAwaitingApproval": "왕국 {{kingdom}}의 공동 편집 요청이 편집자 승인을 기다리고 있습니다. 검토되면 알림을 받게 됩니다.",
+    "statusHistory": "이전 상태 기록"
   },
   "applications": {
     "applyTo": "지원 대상",
@@ -1460,7 +1517,8 @@
     "callNow": "지금 호출",
     "copy": "복사",
     "regular": "일반",
-    "buffed": "버프됨"
+    "buffed": "버프됨",
+    "comingSoonDesc": "외과적 정밀도로 멀티 랠리 공격을 조율하세요. 행군 시간, 호출 순서, 타격 창을 설정하세요. 현재 개발 중."
   },
   "missingData": {
     "contributeTitle": "데이터",
@@ -1788,6 +1846,71 @@
     "rateLimit": "제한:",
     "rateLimitDesc": "분당 10개 코드.",
     "codesSourced": "코드 출처: {{source}}.",
-    "backToTools": "도구로 돌아가기"
+    "backToTools": "도구로 돌아가기",
+    "alreadyRedeemed": "이미 교환됨",
+    "copiedAll": "{{count}}개 코드가 클립보드에 복사됨",
+    "copyAll": "모든 코드 복사",
+    "redeemed": "교환됨",
+    "refresh": "코드 새로고침",
+    "refreshed": "{{count}}개 활성 코드 발견"
+  },
+  "giftCodeLanding": {
+    "allTools": "← 모든 도구",
+    "becomeSupporter": "Supporter 되기",
+    "featAlt": "부캐 계정 지원",
+    "featAltDesc": "부캐가 있나요? 최대 10개 계정을 추가하고 한 번의 클릭으로 모든 코드를 교환하세요. Supporter 전용.",
+    "featAuto": "활성 코드 자동 감지",
+    "featAutoDesc": "Atlas가 게임의 모든 활성 선물 코드를 자동으로 가져옵니다. Discord나 Reddit에서 찾을 필요가 없습니다.",
+    "featCloud": "클라우드 동기화 계정",
+    "featCloudDesc": "부캐 계정이 클라우드에 동기화됩니다. 기기를 바꾸거나 브라우저를 지워도 설정이 항상 있습니다.",
+    "featDiscord": "Discord 통합",
+    "featDiscordDesc": "Discord에서 /codes로 활성 코드를 확인하세요. /redeem으로 브라우저 없이 교환하세요.",
+    "featOneClick": "원클릭 교환",
+    "featOneClickDesc": "\"모두 교환\"을 누르면 모든 코드가 즉시 적용됩니다. 복사 붙여넣기 없이. 오타 없이.",
+    "featSmart": "스마트 재시도",
+    "featSmartDesc": "속도 제한? 이미 교환? 만료? Atlas가 모든 결과를 추적하고 실제로 재시도가 필요한 것만 재시도합니다.",
+    "freeF1": "모든 활성 코드 보기",
+    "freeF2": "원클릭으로 모두 교환",
+    "freeF3": "클립보드에 코드 복사",
+    "freeF4": "수동 코드 입력",
+    "freeF5": "부캐 계정 1개",
+    "freeF6": "Discord에서 /codes & /redeem",
+    "freeNote": "모든 Atlas 사용자 무료. Kingshot 계정을 연결하여 시작하세요.",
+    "freeTier": "무료",
+    "freeVsSupporter": "무료 vs. Supporter",
+    "heroSubtitle": "코드를 하나씩 입력하지 마세요. Atlas가 찾고, 한 번 클릭하면 보상이 우편함에 도착합니다.",
+    "heroTitle1": "선물 코드",
+    "heroTitle2": "교환기",
+    "howItWorks1": "사용",
+    "howItWorks2": "방법",
+    "orUseBot": "또는 Discord에서 /redeem 사용",
+    "pageTitle": "선물 코드 교환기",
+    "problemDesc": "선물 코드는 SNS 게시물, 게임 이벤트, 크리에이터 파트너십, 기념행사에서 나옵니다. 빠르게 만료됩니다. 하나를 놓치면 무료 가속, 보석, 자원이 영원히 사라집니다.",
+    "problemTitle": "새 선물 코드가 나왔습니다. 3개를 놓쳤습니다.",
+    "punchline": "무료 자원을 낭비하지 마세요.",
+    "redeemNow": "지금 코드 교환",
+    "solutionDesc": "Atlas가 모든 소스를 모니터링하고 모든 활성 코드를 한 곳에 모읍니다. 교환기를 열고 버튼 하나를 누르면 모든 코드가 적용됩니다.",
+    "step1": "계정 연결",
+    "step1Desc": "Atlas에 로그인하고 프로필 설정에서 Kingshot 플레이어 ID를 연결하세요.",
+    "step2": "활성 코드 보기",
+    "step2Desc": "Atlas가 만료 타이머와 함께 모든 활성 선물 코드를 표시합니다. 항상 최신 상태.",
+    "step3": "교환 & 수령",
+    "step3Desc": "\"모두 교환\"을 누르면 코드가 즉시 적용됩니다. 게임 내 우편함을 확인하세요.",
+    "supF1": "무료 기능 전체 포함",
+    "supF2": "최대 10개 부캐 계정",
+    "supF3": "모든 계정 일괄 교환",
+    "supF4": "클라우드 동기화 부캐 목록",
+    "supF5": "계정별 결과 추적",
+    "supF6": "실패한 코드 스마트 재시도",
+    "supporterBadge": "Atlas Supporter 혜택",
+    "supporterDesc": "부캐 자동 코드 교환기는 Atlas Supporter에 포함됩니다 — 배틀 플래너, 무제한 /multirally 등과 함께. $4.99/월부터.",
+    "supporterNote": "10개 부캐를 수동으로 관리하나요? 매번 40개 이상의 코드를 입력해야 합니다. Supporter는 한 번만 클릭.",
+    "supporterTier": "Supporter",
+    "supporterTitle": "10개 계정. 한 번 클릭. 모든 코드.",
+    "threeSteps": "세 단계. 입력 제로. 모든 보상.",
+    "tryFree": "무료 체험",
+    "whyAtlas1": "왜",
+    "whyAtlas2": "ATLAS인가",
+    "whySubtitle": "수동으로 코드를 입력하는 건 2024년의 일이니까요."
   }
 }

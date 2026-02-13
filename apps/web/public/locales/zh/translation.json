@@ -101,7 +101,10 @@
     "favorites": "收藏",
     "clearFilters": "清除筛选",
     "linkToSubmit": "请关联您的 Kingshot 账户以提交结果",
-    "browseAll": "浏览所有王国"
+    "browseAll": "浏览所有王国",
+    "allTransferGroups": "转移分组",
+    "clearAll": "清除全部",
+    "filtersCleared": "所有筛选已清除"
   },
   "kingdomCard": {
     "yourKingdom": "你的王国",
@@ -144,6 +147,7 @@
     "opponent": "对手",
     "result": "结果",
     "viewTransferListing": "查看转服信息",
+    "managedBy": "管理者",
     "atlasScore": "Atlas 评分",
     "atlasScoreDesc": "奖励经验和稳定性",
     "atlasRank": "Atlas 排名",
@@ -174,7 +178,8 @@
     "referrals": "推荐",
     "region": "地区",
     "townCenter": "城镇中心",
-    "viewProfile": "查看资料"
+    "viewProfile": "查看资料",
+    "youCanUpdate": "您可以更新此内容"
   },
   "rankings": {
     "subtitle": "谁在称霸？数据不会说谎。",
@@ -317,7 +322,11 @@
     "tryPlanner": "试用规划器",
     "allTools": "← 所有工具",
     "communityCredit": "特别感谢",
-    "communityCreditSuffix": "推动了这个创意的诞生。由社区打造，为社区服务。"
+    "communityCreditSuffix": "推动了这个创意的诞生。由社区打造，为社区服务。",
+    "accessUnlocked": "已解锁访问",
+    "supporterConfirm": "您已拥有Atlas Supporter的完整访问权限。",
+    "supporterThanks": "您已拥有战斗规划器的完整访问权限。",
+    "supporterThanksDesc": "感谢您支持Atlas。直接进入规划器，协调您的下一次城堡攻击。"
   },
   "battlePlannerBanner": {
     "dismiss": "关闭战斗规划器横幅",
@@ -465,7 +474,11 @@
     "free5Title": "详细王国资料",
     "free5Desc": "完整数据和表现历史",
     "free6Title": "活动日历",
-    "free6Desc": "KvK 和转服活动时间表"
+    "free6Desc": "KvK 和转服活动时间表",
+    "perk7Desc": "解锁无限王国排名（免费：前25名）",
+    "perk7Title": "完整排行榜",
+    "perk8Desc": "干净、无干扰的浏览体验",
+    "perk8Title": "无广告体验"
   },
   "changelog": {
     "new": "新增",
@@ -654,7 +667,9 @@
     "allCaughtUp": "你已全部查看！",
     "markAllRead": "全部标为已读",
     "clearAll": "清除全部",
-    "justNow": "刚刚"
+    "justNow": "刚刚",
+    "coEditorRequests": "共同编辑申请",
+    "coEditorRequestsDesc": "当有人申请成为你王国的共同编辑时收到通知"
   },
   "feedback": {
     "title": "反馈",
@@ -828,7 +843,8 @@
     "noPlayersFound": "未找到玩家",
     "noPlayersDesc": "请尝试调整搜索或筛选条件以查找玩家。",
     "loadingUsers": "加载用户中...",
-    "memberSince": "注册时间"
+    "memberSince": "注册时间",
+    "transferGroup": "转移分组"
   },
   "kingdomDirectory": {
     "showing": "显示",
@@ -1161,7 +1177,19 @@
       "minMatchScore": "最低匹配分数",
       "activelyRecruiting": "仅显示积极招募",
       "clearFilters": "清除筛选"
-    }
+    },
+    "allGroups": "所有分组",
+    "compare": {
+      "clear": "清除",
+      "compareNow": "比较",
+      "selected": "已选择",
+      "title": "王国对比"
+    },
+    "groupsOutdated": "这些分组来自上次转移活动，下次活动前可能会变更。",
+    "linkKingdom": "绑定王国以自动筛选",
+    "myGroup": "我的分组",
+    "showingKingdoms": "显示王国",
+    "transferGroup": "转移分组"
   },
   "listing": {
     "allianceEventTimes": "联盟活动时间",
@@ -1223,7 +1251,10 @@
     "viewProfile": "查看资料",
     "fund": "注资",
     "applyToTransfer": "申请转服",
-    "yourKingdom": "你的王国"
+    "yourKingdom": "你的王国",
+    "updatedDaysAgo": "{{days}}天前更新",
+    "updatedToday": "今天更新",
+    "updatedYesterday": "昨天更新"
   },
   "editor": {
     "activated": "已激活！",
@@ -1264,7 +1295,24 @@
     "becomeEditor": "成为王国编辑者",
     "claimKingdomDesc": "认领王国 {{kingdom}} 以管理其招募信息。",
     "linkFirst": "请先关联你的 Kingshot 账户，然后认领你的王国。",
-    "claimKingdom": "认领王国"
+    "claimKingdom": "认领王国",
+    "becomeCoEditor": "成为共同编辑",
+    "becomeCoEditorDesc": "王国 {{kingdom}} 已有编辑者。加入为共同编辑以协助管理 Transfer Hub 信息。",
+    "coEditorSlotsUsed": "({{count}}/{{max}} 个共同编辑名额已用)",
+    "noEndorsementsRequired": "无需推荐。编辑者将收到你的申请通知。",
+    "requestCoEditor": "申请共同编辑",
+    "requesting": "申请中...",
+    "coEditorRequestSent": "共同编辑申请已发送",
+    "coEditorRequestPending": "你申请共同编辑王国 {{kingdom}} 正等待编辑者批准。审核后将通知你。",
+    "requestJustSent": "申请已发送！编辑者已收到通知。",
+    "tcRequiredCoEditor": "需要 TC 20+ 才能成为共同编辑。",
+    "linkAccountCoEditor": "请先关联你的 Kingshot 账户才能成为共同编辑。",
+    "maxCoEditors": "该王国已达到最大 {{max}} 名共同编辑。",
+    "acceptInvite": "接受",
+    "coEditorInvitation": "联合编辑邀请",
+    "coEditorInviteDesc": "您已被邀请联合编辑王国 {{kingdom}} 的招募面板。",
+    "coEditorInviteDescBy": "{{inviter}} 邀请您联合编辑王国 {{kingdom}} 的招募面板。",
+    "declineInvite": "拒绝"
   },
   "recruiter": {
     "loading": "加载面板中...",
@@ -1339,6 +1387,11 @@
     "saving": "保存中...",
     "noChanges": "无更改",
     "saveProfileChanges": "保存资料更改",
+    "approveCoEditor": "✓ 批准",
+    "declineCoEditor": "✕ 拒绝",
+    "coEditorApproved": "共同编辑申请已批准！",
+    "coEditorDeclined": "共同编辑申请已拒绝。",
+    "coEditorRequestFailed": "处理共同编辑申请失败。",
     "editor": "编辑者",
     "coEditor": "共同编辑者",
     "currentCoEditors": "当前共同编辑者",
@@ -1354,7 +1407,11 @@
     "contributionHistory": "捐助历史",
     "noContributions": "暂无捐助。与你的王国成员分享捐助链接！",
     "noKingdomFund": "暂无王国基金",
-    "startFundDesc": "启动王国基金以解锁等级权益并提升招募信息可见度。"
+    "startFundDesc": "启动王国基金以解锁等级权益并提升招募信息可见度。",
+    "coEditorRequestPending": "联合编辑请求待处理",
+    "noStatusChanges": "暂无状态变更",
+    "requestAwaitingApproval": "您申请联合编辑王国 {{kingdom}} 的请求正在等待编辑审批。审核后将通知您。",
+    "statusHistory": "转移状态历史"
   },
   "applications": {
     "applyTo": "申请",
@@ -1460,7 +1517,8 @@
     "callNow": "立即呼叫",
     "copy": "复制",
     "regular": "普通",
-    "buffed": "增益"
+    "buffed": "增益",
+    "comingSoonDesc": "以外科手术般的精度协调多线集结攻击。设置行军时间、召集顺序和打击窗口——让您的联盟每次都能同时到达。正在开发中。"
   },
   "missingData": {
     "contributeTitle": "贡献",
@@ -1788,6 +1846,71 @@
     "rateLimit": "频率限制：",
     "rateLimitDesc": "每分钟10个码。",
     "codesSourced": "码来源：{{source}}。",
-    "backToTools": "返回工具"
+    "backToTools": "返回工具",
+    "alreadyRedeemed": "已兑换",
+    "copiedAll": "已复制{{count}}个代码到剪贴板",
+    "copyAll": "复制所有代码",
+    "redeemed": "已兑换",
+    "refresh": "刷新代码",
+    "refreshed": "找到{{count}}个活跃代码"
+  },
+  "giftCodeLanding": {
+    "allTools": "← 所有工具",
+    "becomeSupporter": "成为Supporter",
+    "featAlt": "多账号支持",
+    "featAltDesc": "有小号？添加最多10个账号，一键兑换所有代码。仅限Supporter。",
+    "featAuto": "自动检测活跃代码",
+    "featAutoDesc": "Atlas自动获取游戏中每个活跃的礼品代码。无需在Discord服务器或Reddit中寻找。",
+    "featCloud": "云同步账号",
+    "featCloudDesc": "您的小号账号同步到云端。切换设备、清除浏览器——您的设置始终在那里等您。",
+    "featDiscord": "Discord集成",
+    "featDiscordDesc": "在Discord中使用/codes查看活跃代码。使用/redeem无需打开浏览器即可兑换。Atlas Bot处理一切。",
+    "featOneClick": "一键兑换",
+    "featOneClickDesc": "点击\"全部兑换\"，每个代码立即应用到您的账号。无需复制粘贴。无需手动输入。",
+    "featSmart": "智能重试",
+    "featSmartDesc": "限速？已兑换？已过期？Atlas跟踪每个结果，只重试真正需要重试的。",
+    "freeF1": "查看所有活跃代码",
+    "freeF2": "一键全部兑换",
+    "freeF3": "复制代码到剪贴板",
+    "freeF4": "手动输入代码",
+    "freeF5": "1个小号账号位",
+    "freeF6": "Discord中的/codes和/redeem",
+    "freeNote": "所有Atlas用户免费使用。绑定您的Kingshot账号即可开始。",
+    "freeTier": "免费",
+    "freeVsSupporter": "免费 vs. Supporter",
+    "heroSubtitle": "不要再逐个输入代码了。Atlas找到它们，您点击一次，奖励送到您的邮箱。搞定。",
+    "heroTitle1": "礼品代码",
+    "heroTitle2": "兑换器",
+    "howItWorks1": "如何",
+    "howItWorks2": "使用",
+    "orUseBot": "或在Discord中使用 /redeem",
+    "pageTitle": "礼品代码兑换器",
+    "problemDesc": "礼品代码来自社交媒体帖子、游戏内事件、创作者合作和里程碑庆祝活动。它们过期很快。错过一个，那些免费的加速、宝石和资源就永远消失了。",
+    "problemTitle": "新的礼品代码已发布。您错过了3个。",
+    "punchline": "不要再白白浪费免费资源了。",
+    "redeemNow": "立即兑换代码",
+    "solutionDesc": "Atlas监控所有来源并将每个活跃代码汇集在一处。打开兑换器，点击一个按钮，每个代码都会被应用。无需输入。不错过奖励。",
+    "step1": "绑定您的账号",
+    "step1Desc": "登录Atlas并在个人资料设置中绑定您的Kingshot玩家ID。",
+    "step2": "查看活跃代码",
+    "step2Desc": "Atlas显示每个活跃礼品代码及其过期倒计时。始终保持最新。",
+    "step3": "兑换并领取",
+    "step3Desc": "点击\"全部兑换\"——代码立即生效。检查您的游戏内邮箱领取奖励。",
+    "supF1": "免费版所有功能",
+    "supF2": "最多10个小号账号",
+    "supF3": "批量兑换所有账号",
+    "supF4": "云同步小号列表",
+    "supF5": "每账号结果跟踪",
+    "supF6": "失败代码智能重试",
+    "supporterBadge": "Atlas Supporter特权",
+    "supporterDesc": "小号的自动兑换代码功能包含在Atlas Supporter中——还有战斗规划器、无限/multirally等。起价$4.99/月。",
+    "supporterNote": "手动管理10个小号？每次要输入40多个代码。Supporter只需点击一次。",
+    "supporterTier": "Supporter",
+    "supporterTitle": "10个账号。一次点击。每个代码。",
+    "threeSteps": "三个步骤。零输入。所有奖励。",
+    "tryFree": "免费试用",
+    "whyAtlas1": "为什么使用",
+    "whyAtlas2": "ATLAS",
+    "whySubtitle": "因为手动输入代码已经是2024年的事了。"
   }
 }

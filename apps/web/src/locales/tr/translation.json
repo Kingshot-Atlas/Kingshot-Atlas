@@ -101,7 +101,10 @@
     "favorites": "Favoriler",
     "clearFilters": "Filtreleri temizle",
     "linkToSubmit": "Sonuç göndermek için Kingshot hesabınızı bağlayın",
-    "browseAll": "Tüm krallıklara göz at"
+    "browseAll": "Tüm krallıklara göz at",
+    "allTransferGroups": "Transfer Grubu",
+    "clearAll": "Tümünü Temizle",
+    "filtersCleared": "Tüm filtreler temizlendi"
   },
   "kingdomCard": {
     "yourKingdom": "KRALLIĞIN",
@@ -144,6 +147,7 @@
     "opponent": "Rakip",
     "result": "Sonuç",
     "viewTransferListing": "Transfer İlanını Gör",
+    "managedBy": "Yöneten",
     "atlasScore": "Atlas Puanı",
     "atlasScoreDesc": "Deneyim ve tutarlılığı ödüllendirir",
     "atlasRank": "Atlas Sıralaması",
@@ -174,7 +178,8 @@
     "referrals": "Referanslar",
     "region": "Bölge",
     "townCenter": "Town Center",
-    "viewProfile": "Profili Gör"
+    "viewProfile": "Profili Gör",
+    "youCanUpdate": "Bunu güncelleyebilirsiniz"
   },
   "rankings": {
     "subtitle": "Kim hükmünü sürüyor? Veriler yalan söylemez.",
@@ -193,7 +198,7 @@
   },
   "seasons": {
     "selectSeason": "Sezon seç",
-    "subtitle": "Savaşları yeniden yaşa. Her eşleşme toplam Atlas Puanına göre sıralanmış\u2014hangi krallıkların ateşi olduğunu gör.",
+    "subtitle": "Savaşları yeniden yaşa. Her eşleşme toplam Atlas Puanına göre sıralanmış—hangi krallıkların ateşi olduğunu gör.",
     "browseBySeason": "Sezona Göre Göz At",
     "allTimeGreatest": "Tüm Zamanların En İyileri",
     "loadingData": "Savaş alanı verileri yükleniyor...",
@@ -205,7 +210,7 @@
     "combinedPowerTitle": "Toplam Güç Seviyesi Nedir?",
     "combinedPowerDesc": "Eşleşmeye giren her iki krallığın Atlas Puanlarının toplamı. Yüksek puanlar = kanıtlanmış krallıklar arasındaki daha rekabetçi savaşlar. Efsaneler böyle doğar.",
     "scoreTimingTitle": "Puan Zamanlaması",
-    "scoreTimingDesc": "Puanlar, savaş başlamadan önceki her krallığın Atlas Puanını yansıtır\u2014o noktaya kadarki sicillerine dayanarak. Geriye dönük bakış yok, sadece ham savaş öncesi güç."
+    "scoreTimingDesc": "Puanlar, savaş başlamadan önceki her krallığın Atlas Puanını yansıtır—o noktaya kadarki sicillerine dayanarak. Geriye dönük bakış yok, sadece ham savaş öncesi güç."
   },
   "compare": {
     "heroTitle1": "KRALLIK",
@@ -317,7 +322,11 @@
     "tryPlanner": "Planlayıcıyı Dene",
     "allTools": "← Tüm Araçlar",
     "communityCredit": "Büyük teşekkürler",
-    "communityCreditSuffix": "bu fikri hayata geçirdiği için. Topluluk tarafından yapıldı, topluluk için."
+    "communityCreditSuffix": "bu fikri hayata geçirdiği için. Topluluk tarafından yapıldı, topluluk için.",
+    "accessUnlocked": "Erişim Açıldı",
+    "supporterConfirm": "Atlas Supporter olarak tam erişiminiz var.",
+    "supporterThanks": "Savaş Planlayıcısına tam erişiminiz var.",
+    "supporterThanksDesc": "Atlas'ı desteklediğiniz için teşekkürler. Planlayıcıya gidin ve bir sonraki kale saldırınızı koordine edin."
   },
   "battlePlannerBanner": {
     "dismiss": "Savaş Planlayıcı bannerını kapat",
@@ -465,7 +474,11 @@
     "free5Title": "Detaylı Krallık Profilleri",
     "free5Desc": "Tam istatistikler ve performans geçmişi",
     "free6Title": "Etkinlik Takvimi",
-    "free6Desc": "KvK ve Transfer Etkinlik programları"
+    "free6Desc": "KvK ve Transfer Etkinlik programları",
+    "perk7Desc": "Sınırsız krallık sıralamaları (ücretsiz: İlk 25)",
+    "perk7Title": "Tam Sıralama Tablosu",
+    "perk8Desc": "Temiz, dikkat dağıtmayan gezinme",
+    "perk8Title": "Reklamsız Deneyim"
   },
   "changelog": {
     "new": "Yeni",
@@ -654,7 +667,9 @@
     "allCaughtUp": "Hepsini okudunuz!",
     "markAllRead": "Tümünü okundu işaretle",
     "clearAll": "Tümünü temizle",
-    "justNow": "Az önce"
+    "justNow": "Az önce",
+    "coEditorRequests": "Yardımcı Editör Talepleri",
+    "coEditorRequestsDesc": "Birisi krallığınız için yardımcı editör olmayı talep ettiğinde bildirim alın"
   },
   "feedback": {
     "title": "Geri Bildirim",
@@ -828,7 +843,8 @@
     "noPlayersFound": "Oyuncu bulunamadı",
     "noPlayersDesc": "Oyuncu bulmak için aramanızı veya filtrelerinizi ayarlamayı deneyin.",
     "loadingUsers": "Kullanıcılar yükleniyor...",
-    "memberSince": "Üyelik tarihi"
+    "memberSince": "Üyelik tarihi",
+    "transferGroup": "Transfer Grubu"
   },
   "kingdomDirectory": {
     "showing": "Gösterilen",
@@ -1161,7 +1177,19 @@
       "minMatchScore": "Min Eşleşme Puanı",
       "activelyRecruiting": "Sadece Aktif İşe Alanlar",
       "clearFilters": "Filtreleri Temizle"
-    }
+    },
+    "allGroups": "Tüm Gruplar",
+    "compare": {
+      "clear": "Temizle",
+      "compareNow": "Karşılaştır",
+      "selected": "seçili",
+      "title": "Krallık Karşılaştırma"
+    },
+    "groupsOutdated": "Bu gruplar son Transfer Etkinliğinden olup bir sonrakinden önce değişebilir.",
+    "linkKingdom": "Otomatik filtre için krallığınızı bağlayın",
+    "myGroup": "Grubum",
+    "showingKingdoms": "Krallıklar gösteriliyor",
+    "transferGroup": "Transfer Grubu"
   },
   "listing": {
     "allianceEventTimes": "İttifak Etkinlik Zamanları",
@@ -1223,7 +1251,10 @@
     "viewProfile": "Profili Gör",
     "fund": "Fonla",
     "applyToTransfer": "Transfer İçin Başvur",
-    "yourKingdom": "Krallığınız"
+    "yourKingdom": "Krallığınız",
+    "updatedDaysAgo": "{{days}} gün önce güncellendi",
+    "updatedToday": "Bugün güncellendi",
+    "updatedYesterday": "Dün güncellendi"
   },
   "editor": {
     "activated": "Aktifleştirildi!",
@@ -1264,7 +1295,24 @@
     "becomeEditor": "Krallık Editörü Ol",
     "claimKingdomDesc": "İşe alma ilanını yönetmek için Krallık {{kingdom}}'ı talep edin.",
     "linkFirst": "Önce Kingshot hesabınızı bağlayın, sonra krallığınızı talep edin.",
-    "claimKingdom": "Krallığı Talep Et"
+    "claimKingdom": "Krallığı Talep Et",
+    "becomeCoEditor": "Yardımcı Editör Ol",
+    "becomeCoEditorDesc": "Krallık {{kingdom}} zaten bir editöre sahip. Transfer Hub ilanını yönetmeye yardımcı olmak için yardımcı editör olarak katılın.",
+    "coEditorSlotsUsed": "({{count}}/{{max}} yardımcı editör yeri kullanılıyor)",
+    "noEndorsementsRequired": "Onay gerekmiyor. Editör talebiniz hakkında bilgilendirilecek.",
+    "requestCoEditor": "Yardımcı Editör Talep Et",
+    "requesting": "Talep ediliyor...",
+    "coEditorRequestSent": "Yardımcı Editör Talebi Gönderildi",
+    "coEditorRequestPending": "Krallık {{kingdom}} için yardımcı editör talebiniz editör onayı bekliyor. İncelendiğinde bilgilendirileceksiniz.",
+    "requestJustSent": "Talep gönderildi! Editör bilgilendirildi.",
+    "tcRequiredCoEditor": "Yardımcı editör olmak için TC Seviye 20+ gereklidir.",
+    "linkAccountCoEditor": "Yardımcı editör olmak için önce Kingshot hesabınızı bağlayın.",
+    "maxCoEditors": "Bu krallık maksimum {{max}} yardımcı editöre ulaştı.",
+    "acceptInvite": "Kabul Et",
+    "coEditorInvitation": "Ortak Editör Daveti",
+    "coEditorInviteDesc": "Krallık {{kingdom}} işe alım panelini ortak düzenlemeye davet edildiniz.",
+    "coEditorInviteDescBy": "{{inviter}} sizi Krallık {{kingdom}} işe alım panelini ortak düzenlemeye davet etti.",
+    "declineInvite": "Reddet"
   },
   "recruiter": {
     "loading": "Panel yükleniyor...",
@@ -1339,6 +1387,11 @@
     "saving": "Kaydediliyor...",
     "noChanges": "Değişiklik Yok",
     "saveProfileChanges": "Profil Değişikliklerini Kaydet",
+    "approveCoEditor": "✓ Onayla",
+    "declineCoEditor": "✕ Reddet",
+    "coEditorApproved": "Yardımcı editör talebi onaylandı!",
+    "coEditorDeclined": "Yardımcı editör talebi reddedildi.",
+    "coEditorRequestFailed": "Yardımcı editör talebi işlenemedi.",
     "editor": "Editör",
     "coEditor": "Yardımcı Editör",
     "currentCoEditors": "Mevcut Yardımcı Editörler",
@@ -1354,7 +1407,11 @@
     "contributionHistory": "Katkı Geçmişi",
     "noContributions": "Henüz katkı yok. Katkı bağlantısını krallık üyelerinizle paylaşın!",
     "noKingdomFund": "Henüz Krallık Fonu Yok",
-    "startFundDesc": "Seviye avantajlarını açmak ve ilan görünürlüğünüzü artırmak için Krallık Fonu başlatın."
+    "startFundDesc": "Seviye avantajlarını açmak ve ilan görünürlüğünüzü artırmak için Krallık Fonu başlatın.",
+    "coEditorRequestPending": "Ortak Editör Talebi Beklemede",
+    "noStatusChanges": "Henüz durum değişikliği yok",
+    "requestAwaitingApproval": "Krallık {{kingdom}} ortak editörlük talebiniz editör onayını bekliyor. İncelendiğinde bilgilendirileceksiniz.",
+    "statusHistory": "Transfer Durum Geçmişi"
   },
   "applications": {
     "applyTo": "Başvur:",
@@ -1460,7 +1517,8 @@
     "callNow": "ŞİMDİ ÇAĞIR",
     "copy": "Kopyala",
     "regular": "Normal",
-    "buffed": "Bufflı"
+    "buffed": "Bufflı",
+    "comingSoonDesc": "Çoklu rally saldırılarını cerrahi hassasiyetle koordine edin. Yürüyüş süreleri, çağrı sıraları ve vuruş pencereleri ayarlayın. Şu anda geliştirme aşamasında."
   },
   "missingData": {
     "contributeTitle": "VERİ",
@@ -1788,6 +1846,71 @@
     "rateLimit": "Hız sınırı:",
     "rateLimitDesc": "Dakikada 10 kod.",
     "codesSourced": "Kodların kaynağı: {{source}}.",
-    "backToTools": "Araçlara Dön"
+    "backToTools": "Araçlara Dön",
+    "alreadyRedeemed": "Zaten Kullanıldı",
+    "copiedAll": "{{count}} kod panoya kopyalandı",
+    "copyAll": "Tüm Kodları Kopyala",
+    "redeemed": "Kullanıldı",
+    "refresh": "Kodları Yenile",
+    "refreshed": "{{count}} aktif kod bulundu"
+  },
+  "giftCodeLanding": {
+    "allTools": "← Tüm Araçlar",
+    "becomeSupporter": "Supporter Ol",
+    "featAlt": "Alternatif Hesap Desteği",
+    "featAltDesc": "Alt hesaplarınız mı var? 10 hesaba kadar ekleyin ve tek tıkla tüm kodları kullanın. Sadece Supporter'lar için.",
+    "featAuto": "Aktif Kod Otomatik Algılama",
+    "featAutoDesc": "Atlas oyundaki her aktif hediye kodunu otomatik olarak alır. Discord veya Reddit'te aramaya gerek yok.",
+    "featCloud": "Bulut Senkronize Hesaplar",
+    "featCloudDesc": "Alt hesaplarınız buluta senkronize edilir. Cihaz değiştirin, tarayıcıyı temizleyin — ayarlarınız her zaman orada.",
+    "featDiscord": "Discord Entegrasyonu",
+    "featDiscordDesc": "Discord'da /codes ile aktif kodları görün. /redeem ile tarayıcı açmadan kullanın. Atlas Bot halleder.",
+    "featOneClick": "Tek Tıkla Kullanım",
+    "featOneClickDesc": "\"Tümünü Kullan\"a basın ve her kod anında hesabınıza uygulanır. Kopyala yapıştır yok. Yazım hatası yok.",
+    "featSmart": "Akıllı Yeniden Deneme",
+    "featSmartDesc": "Hız sınırı? Zaten kullanılmış? Süresi dolmuş? Atlas her sonucu takip eder ve sadece gerçekten gerekeni yeniden dener.",
+    "freeF1": "Tüm aktif kodları görüntüle",
+    "freeF2": "Tek tıkla tümünü kullan",
+    "freeF3": "Kodları panoya kopyala",
+    "freeF4": "Manuel kod girişi",
+    "freeF5": "1 alt hesap yuvası",
+    "freeF6": "Discord'da /codes ve /redeem",
+    "freeNote": "Tüm Atlas kullanıcıları için ücretsiz. Başlamak için Kingshot hesabınızı bağlayın.",
+    "freeTier": "Ücretsiz",
+    "freeVsSupporter": "Ücretsiz vs. Supporter",
+    "heroSubtitle": "Kodları tek tek yazmayı bırakın. Atlas bulur, siz bir kez tıklarsınız, ödüller posta kutunuza gelir. Bitti.",
+    "heroTitle1": "HEDİYE KODU",
+    "heroTitle2": "KULLANCI",
+    "howItWorks1": "NASIL",
+    "howItWorks2": "ÇALIŞIR",
+    "orUseBot": "Veya Discord'da /redeem Kullanın",
+    "pageTitle": "Hediye Kodu Kullanıcı",
+    "problemDesc": "Hediye kodları sosyal medya paylaşımlarından, oyun içi etkinliklerden, içerik üretici ortaklıklarından ve kutlamalardan gelir. Hızla süreleri dolar. Birini kaçırın ve o ücretsiz hızlandırmalar, mücevherler ve kaynaklar sonsuza dek gider.",
+    "problemTitle": "Yeni hediye kodları çıktı. 3 tanesini kaçırdınız.",
+    "punchline": "Bedava kaynakları boşa harcamayı bırakın.",
+    "redeemNow": "Kodları Şimdi Kullan",
+    "solutionDesc": "Atlas tüm kaynakları izler ve her aktif kodu tek yerde toplar. Kullanıcıyı açın, bir düğmeye basın ve her kod uygulanır. Yazmaya gerek yok. Kaçan ödül yok.",
+    "step1": "Hesabınızı Bağlayın",
+    "step1Desc": "Atlas'a giriş yapın ve profil ayarlarında Kingshot Oyuncu Kimliğinizi bağlayın.",
+    "step2": "Aktif Kodları Görüntüle",
+    "step2Desc": "Atlas her aktif hediye kodunu süre sayaçlarıyla gösterir. Her zaman güncel.",
+    "step3": "Kullan ve Topla",
+    "step3Desc": "\"Tümünü Kullan\"a basın — kodlar anında uygulanır. Oyun içi posta kutunuzu kontrol edin.",
+    "supF1": "Ücretsiz'deki her şey",
+    "supF2": "10 alt hesaba kadar",
+    "supF3": "Tüm hesaplarda toplu kullanım",
+    "supF4": "Bulut senkronize alt listesi",
+    "supF5": "Hesap başına sonuç takibi",
+    "supF6": "Başarısız kodlar için akıllı yeniden deneme",
+    "supporterBadge": "Atlas Supporter Avantajı",
+    "supporterDesc": "Alt hesaplar için Otomatik Kod Kullanıcı Atlas Supporter'a dahildir — Savaş Planlayıcısı, sınırsız /multirally ve daha fazlasıyla birlikte. Aylık $4.99'dan başlayan fiyatlarla.",
+    "supporterNote": "10 alt hesabı manuel yönetmek mi? Her seferinde 40'tan fazla kod yazmak demek. Supporter'lar bir kez tıklar.",
+    "supporterTier": "Supporter",
+    "supporterTitle": "10 hesap. Bir tık. Her kod.",
+    "threeSteps": "Üç adım. Sıfır yazma. Tüm ödüller.",
+    "tryFree": "Ücretsiz Dene",
+    "whyAtlas1": "NEDEN",
+    "whyAtlas2": "ATLAS",
+    "whySubtitle": "Çünkü kodları manuel yazmak artık 2024'te kaldı."
   }
 }
