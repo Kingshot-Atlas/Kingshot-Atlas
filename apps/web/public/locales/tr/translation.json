@@ -268,8 +268,11 @@
     "calcDesc": "Kaynak planlayıcıları, yükseltme maliyetleri, hızlandırma tahminleri. Senin yerine matematik yapar.",
     "calcTagline": "Daha akıllı hesapla. Daha hızlı büyü.",
     "giftTitle": "Hediye Kodu Kullanıcı",
-    "giftDesc": "Tüm hesaplarında toplu hediye kodu kullan. Tek tıklama. Birden fazla hesap. Sıfır zahmet.",
-    "giftTagline": "Yazmayı bırak. Almaya başla."
+    "giftDesc": "Hediye kodlarını tek tıkla kullan. Kopyala-yapıştır yok. Ödüller doğrudan posta kutuna gelir.",
+    "giftTagline": "Yazmayı bırak. Toplamaya başla.",
+    "transferTitle": "Transfer Hub",
+    "transferDesc": "Bir sonraki krallığını bul — ya da doğru oyuncuları. Listelere göz at, transfer profili oluştur ve doğrudan başvur. Artık kör transferler yok.",
+    "transferTagline": "Gerçek veriler. Gerçek başvurular. Sıfır tahmin."
   },
   "battlePlanner": {
     "pageTitle": "KvK Savaş Planlayıcı",

@@ -269,7 +269,10 @@
     "calcTagline": "Calculate smarter. Grow faster.",
     "giftTitle": "Gift Code Redeemer",
     "giftDesc": "Redeem gift codes with one click. No copy-pasting. Rewards go straight to your mailbox.",
-    "giftTagline": "Stop typing. Start claiming."
+    "giftTagline": "Stop typing. Start claiming.",
+    "transferTitle": "Transfer Hub",
+    "transferDesc": "Find your next kingdom — or find the right players. Browse listings, create a transfer profile, and apply directly. No more blind transfers.",
+    "transferTagline": "Real data. Real applications. Zero guesswork."
   },
   "battlePlanner": {
     "pageTitle": "KvK Battle Planner",

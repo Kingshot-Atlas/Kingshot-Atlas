@@ -267,9 +267,12 @@
     "calcTitle": "Calculatrices de Jeu",
     "calcDesc": "Planificateurs de ressources, coûts d'amélioration, estimations d'accélération. Les maths pour que vous n'ayez pas à les faire.",
     "calcTagline": "Calculez plus intelligemment. Progressez plus vite.",
-    "giftTitle": "Échangeur de Codes Cadeau",
-    "giftDesc": "Échangez des codes cadeau en masse sur tous vos comptes. Un clic. Plusieurs comptes. Zéro tracas.",
-    "giftTagline": "Arrêtez de taper. Commencez à réclamer."
+    "giftTitle": "Échangeur de Codes",
+    "giftDesc": "Échangez des codes cadeaux en un clic. Sans copier-coller. Les récompenses arrivent directement dans votre boîte.",
+    "giftTagline": "Arrêtez de taper. Commencez à réclamer.",
+    "transferTitle": "Centre de Transferts",
+    "transferDesc": "Trouvez votre prochain royaume — ou les bons joueurs. Parcourez les annonces, créez un profil de transfert et postulez directement. Fini les transferts à l'aveugle.",
+    "transferTagline": "Données réelles. Candidatures réelles. Zéro approximation."
   },
   "battlePlanner": {
     "pageTitle": "Planificateur de Bataille KvK",

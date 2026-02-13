@@ -267,9 +267,12 @@
     "calcTitle": "游戏计算器",
     "calcDesc": "资源规划器、升级成本、加速估算。我们来算，你来赢。",
     "calcTagline": "聪明计算。快速成长。",
-    "giftTitle": "礼品码兑换",
-    "giftDesc": "批量兑换所有账户的礼品码。一键操作。多个账户。零麻烦。",
-    "giftTagline": "别再手动输入。开始领取。"
+    "giftTitle": "礼品码兑换器",
+    "giftDesc": "一键兑换礼品码。无需复制粘贴。奖励直达邮箱。",
+    "giftTagline": "别打字了。开始领取吧。",
+    "transferTitle": "转服中心",
+    "transferDesc": "找到你的下一个王国——或找到合适的玩家。浏览列表、创建转服档案、直接申请。告别盲目转服。",
+    "transferTagline": "真实数据。真实申请。零猜测。"
   },
   "battlePlanner": {
     "pageTitle": "KvK 战斗规划器",
