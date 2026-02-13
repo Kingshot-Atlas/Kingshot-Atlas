@@ -442,6 +442,32 @@ const KingdomDirectory: React.FC = () => {
                 </svg>
                 {t('common.filter')}{countActiveFilters(filters) > 0 && ` (${countActiveFilters(filters)})`}
               </button>
+              {/* Transfer Group filter - Mobile */}
+              <select
+                value={transferGroupFilter}
+                onChange={(e) => setTransferGroupFilter(e.target.value)}
+                style={{
+                  flex: 1.2,
+                  padding: '0.6rem 1.5rem 0.6rem 0.5rem',
+                  minHeight: '44px',
+                  backgroundColor: transferGroupFilter !== 'all' ? '#22d3ee10' : '#0a0a0a',
+                  border: `1px solid ${transferGroupFilter !== 'all' ? '#22d3ee40' : '#2a2a2a'}`,
+                  borderRadius: '8px',
+                  color: transferGroupFilter !== 'all' ? '#22d3ee' : '#9ca3af',
+                  fontSize: '0.8rem',
+                  cursor: 'pointer',
+                  appearance: 'none',
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'right 0.3rem center',
+                  backgroundSize: '0.8rem',
+                }}
+              >
+                <option value="all">{t('home.allTransferGroups', 'Transfer Group')}</option>
+                {getTransferGroupOptions().map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
               <select value={sort.sortBy} onChange={(e) => setSort({ ...sort, sortBy: e.target.value as SortOptions['sortBy'] })} style={{ flex: 1.5, padding: '0.6rem 1.5rem 0.6rem 0.5rem', minHeight: '44px', backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '8px', color: '#fff', fontSize: '1rem', cursor: 'pointer', appearance: 'none', backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.3rem center', backgroundSize: '0.8rem' }}>
                 <option value="overall_score">{t('stats.atlasScore')}</option>
                 <option value="kingdom_number">{t('home.sortKingdomNumber')}</option>
@@ -454,32 +480,6 @@ const KingdomDirectory: React.FC = () => {
                 <option value="invasions">{t('stats.invasions')}</option>
               </select>
             </div>
-            {/* Transfer Group filter - Mobile */}
-            <select
-              value={transferGroupFilter}
-              onChange={(e) => setTransferGroupFilter(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.6rem 1.5rem 0.6rem 0.5rem',
-                minHeight: '44px',
-                backgroundColor: transferGroupFilter !== 'all' ? '#22d3ee10' : '#0a0a0a',
-                border: `1px solid ${transferGroupFilter !== 'all' ? '#22d3ee40' : '#2a2a2a'}`,
-                borderRadius: '8px',
-                color: transferGroupFilter !== 'all' ? '#22d3ee' : '#9ca3af',
-                fontSize: '1rem',
-                cursor: 'pointer',
-                appearance: 'none',
-                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
-                backgroundRepeat: 'no-repeat',
-                backgroundPosition: 'right 0.3rem center',
-                backgroundSize: '0.8rem',
-              }}
-            >
-              <option value="all">🔀 {t('home.allTransferGroups', 'Transfer Group')}</option>
-              {getTransferGroupOptions().map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
             </>
           ) : (
           <>
@@ -697,58 +697,6 @@ const KingdomDirectory: React.FC = () => {
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
-
-            <span style={{ color: '#2a2a2a', margin: '0 0.25rem' }}>|</span>
-            
-            {/* Experience Chips */}
-            <button
-              onClick={() => setFilters(f => (f.minKvKs === 1 && f.maxKvKs === 3) ? { ...f, minKvKs: 0, maxKvKs: 99 } : { ...f, minKvKs: 1, maxKvKs: 3 })}
-              style={{
-                padding: '0.3rem 0.6rem',
-                backgroundColor: (filters.minKvKs === 1 && filters.maxKvKs === 3) ? '#a855f720' : 'transparent',
-                border: `1px solid ${(filters.minKvKs === 1 && filters.maxKvKs === 3) ? '#a855f7' : '#3a3a3a'}`,
-                borderRadius: '16px',
-                color: (filters.minKvKs === 1 && filters.maxKvKs === 3) ? '#a855f7' : '#6b7280',
-                cursor: 'pointer',
-                fontSize: '0.75rem',
-                fontWeight: '500',
-                transition: 'all 0.2s'
-              }}
-            >
-              1-3 KvKs
-            </button>
-            <button
-              onClick={() => setFilters(f => (f.minKvKs === 4 && f.maxKvKs === 6) ? { ...f, minKvKs: 0, maxKvKs: 99 } : { ...f, minKvKs: 4, maxKvKs: 6 })}
-              style={{
-                padding: '0.3rem 0.6rem',
-                backgroundColor: (filters.minKvKs === 4 && filters.maxKvKs === 6) ? '#22d3ee20' : 'transparent',
-                border: `1px solid ${(filters.minKvKs === 4 && filters.maxKvKs === 6) ? '#22d3ee' : '#3a3a3a'}`,
-                borderRadius: '16px',
-                color: (filters.minKvKs === 4 && filters.maxKvKs === 6) ? '#22d3ee' : '#6b7280',
-                cursor: 'pointer',
-                fontSize: '0.75rem',
-                fontWeight: '500',
-                transition: 'all 0.2s'
-              }}
-            >
-              4-6 KvKs
-            </button>
-            <button
-              onClick={() => setFilters(f => (f.minKvKs === 7 && f.maxKvKs === 9) ? { ...f, minKvKs: 0, maxKvKs: 99 } : { ...f, minKvKs: 7, maxKvKs: 9 })}
-              style={{
-                padding: '0.3rem 0.6rem',
-                backgroundColor: (filters.minKvKs === 7 && filters.maxKvKs === 9) ? '#22c55e20' : 'transparent',
-                border: `1px solid ${(filters.minKvKs === 7 && filters.maxKvKs === 9) ? '#22c55e' : '#3a3a3a'}`,
-                borderRadius: '16px',
-                color: (filters.minKvKs === 7 && filters.maxKvKs === 9) ? '#22c55e' : '#6b7280',
-                cursor: 'pointer',
-                fontSize: '0.75rem',
-                fontWeight: '500',
-                transition: 'all 0.2s'
-              }}
-            >
-              7-9 KvKs
-            </button>
           </div>
           )}
         </div>

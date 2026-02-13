@@ -3,6 +3,15 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-12 23:57 | Product Engineer | COMPLETED
+Task: Fix Battle Planner premium gating — Supporters seeing "Become a Supporter" messaging
+Files: RallyCoordinator.tsx, BattlePlannerLanding.tsx, BattlePlannerBanner.tsx
+Changes:
+1. **RallyCoordinator.tsx** — Added `usePremium()` check to access gate. Supporters now get instant access without needing manual `battle_planner_access` DB entry. Previously only checked: admin, trial, DB table.
+2. **BattlePlannerLanding.tsx** — Made Supporter-aware via `usePremium()`. Supporters see "Launch the Planner" CTA, "Access Unlocked" badge (green), and thank-you messaging. Non-supporters still see "Become a Supporter" CTA.
+3. **BattlePlannerBanner.tsx** — Changed homepage banner CTA from `/tools/kvk-battle-planner` (direct tool) to `/tools/battle-planner` (landing page) for consistent funnel.
+Result: Supporters no longer see confusing "become a supporter" messaging. All entry points (homepage banner, quick actions, header, tools page) now route through landing page properly.
+
 ## 2026-02-12 22:20 | Design Lead | COMPLETED
 Task: Rally Planner readability improvements — remove Admin Preview chip, boost font sizes + contrast
 Files: apps/web/src/pages/RallyCoordinator.tsx

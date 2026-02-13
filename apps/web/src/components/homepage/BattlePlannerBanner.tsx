@@ -169,7 +169,7 @@ const BattlePlannerBanner: React.FC = () => {
           <button
             onClick={() => {
               trackFeature('Battle Planner Banner CTA Clicked');
-              navigate('/tools/kvk-battle-planner');
+              navigate('/tools/battle-planner');
             }}
             style={{
               padding: isMobile ? '0.6rem 1rem' : '0.65rem 1.25rem',

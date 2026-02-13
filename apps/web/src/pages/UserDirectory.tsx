@@ -660,7 +660,7 @@ const UserDirectory: React.FC = () => {
               backgroundSize: '0.6rem',
             }}
           >
-            <option value="all">🔀 {t('playerDirectory.transferGroup', 'Transfer Group')}</option>
+            <option value="all">{t('playerDirectory.transferGroup', 'Transfer Group')}</option>
             {getTransferGroupOptions().map((opt) => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
             ))}

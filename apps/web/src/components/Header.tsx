@@ -170,7 +170,7 @@ const Header: React.FC = () => {
 
         {/* Mobile Menu Button + Discord */}
         {isMobile && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             {/* Support Atlas Button - vertical column layout on mobile */}
             <Link
               to="/support"
@@ -322,7 +322,7 @@ const Header: React.FC = () => {
 
         {/* Desktop Nav */}
         {!isMobile && (
-        <nav style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+        <nav style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <Link
             to="/"
             style={{

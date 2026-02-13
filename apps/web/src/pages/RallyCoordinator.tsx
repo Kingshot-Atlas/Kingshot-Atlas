@@ -2,6 +2,7 @@ import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { usePremium } from '../contexts/PremiumContext';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useToast } from '../components/Toast';
@@ -1115,6 +1116,7 @@ const RallyCoordinator: React.FC = () => {
   const { t } = useTranslation();
   useDocumentTitle('KvK Battle Planner');
   const { profile, user } = useAuth();
+  const { isSupporter, isAdmin: isPremiumAdmin } = usePremium();
   const isMobile = useIsMobile();
 
   // Admin gate
@@ -1125,11 +1127,11 @@ const RallyCoordinator: React.FC = () => {
   const TRIAL_END = new Date('2026-02-25T00:00:00Z').getTime();
   const isTrialActive = Date.now() >= TRIAL_START && Date.now() < TRIAL_END;
 
-  // Access gate: admin OR granted via battle_planner_access table OR free trial
+  // Access gate: admin OR supporter OR granted via battle_planner_access table OR free trial
   const [hasAccess, setHasAccess] = useState<boolean | null>(null);
 
   useEffect(() => {
-    if (isAdmin || isTrialActive) {
+    if (isAdmin || isPremiumAdmin || isSupporter || isTrialActive) {
       setHasAccess(true);
       return;
     }
@@ -1153,7 +1155,7 @@ const RallyCoordinator: React.FC = () => {
       }
     })();
     return () => { cancelled = true; };
-  }, [isAdmin, isTrialActive, user?.id]);
+  }, [isAdmin, isPremiumAdmin, isSupporter, isTrialActive, user?.id]);
 
   // State: Unified player database (allies + enemies)
   const [players, setPlayers] = useState<RallyPlayer[]>(() => loadFromStorage(STORAGE_KEY_PLAYERS, []));

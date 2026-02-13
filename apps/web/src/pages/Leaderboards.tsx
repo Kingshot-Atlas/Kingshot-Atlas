@@ -579,34 +579,31 @@ const Leaderboards: React.FC = () => {
               </div>
 
               {/* Transfer Group filter */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <span style={{ color: '#6b7280', fontSize: isMobile ? '0.72rem' : '0.8rem' }}>🔀</span>
-                <select
-                  value={transferGroupFilter}
-                  onChange={(e) => setTransferGroupFilter(e.target.value)}
-                  style={{
-                    padding: isMobile ? '0.5rem 1.8rem 0.5rem 0.6rem' : '0.45rem 1.6rem 0.45rem 0.5rem',
-                    minHeight: isMobile ? '44px' : 'auto',
-                    backgroundColor: transferGroupFilter !== 'all' ? '#22d3ee10' : '#0a0a0a',
-                    border: `1px solid ${transferGroupFilter !== 'all' ? '#22d3ee40' : '#2a2a2a'}`,
-                    borderRadius: '8px',
-                    color: transferGroupFilter !== 'all' ? '#22d3ee' : '#6b7280',
-                    cursor: 'pointer',
-                    fontSize: isMobile ? '0.7rem' : '0.78rem',
-                    fontWeight: transferGroupFilter !== 'all' ? '600' : '400',
-                    appearance: 'none',
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'right 0.4rem center',
-                    backgroundSize: '0.7rem',
-                  }}
-                >
-                  <option value="all">{t('rankings.allGroups', 'All Groups')}</option>
-                  {getTransferGroupOptions().map((opt) => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ))}
-                </select>
-              </div>
+              <select
+                value={transferGroupFilter}
+                onChange={(e) => setTransferGroupFilter(e.target.value)}
+                style={{
+                  padding: isMobile ? '0.5rem 1.8rem 0.5rem 0.6rem' : '0.45rem 1.6rem 0.45rem 0.5rem',
+                  minHeight: isMobile ? '44px' : 'auto',
+                  backgroundColor: transferGroupFilter !== 'all' ? '#22d3ee15' : 'transparent',
+                  border: `1px solid ${transferGroupFilter !== 'all' ? '#22d3ee' : '#3a3a3a'}`,
+                  borderRadius: '16px',
+                  color: transferGroupFilter !== 'all' ? '#22d3ee' : '#6b7280',
+                  cursor: 'pointer',
+                  fontSize: isMobile ? '0.7rem' : '0.78rem',
+                  fontWeight: transferGroupFilter !== 'all' ? '600' : '500',
+                  appearance: 'none',
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'right 0.4rem center',
+                  backgroundSize: '0.7rem',
+                }}
+              >
+                <option value="all">{t('home.allTransferGroups', 'Transfer Group')}</option>
+                {getTransferGroupOptions().map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
 
               {/* KvK Experience filter — preset chips */}
               <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '0.4rem' : '0.5rem', flexWrap: 'wrap', justifyContent: 'center' }}>

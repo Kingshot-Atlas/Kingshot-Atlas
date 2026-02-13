@@ -4,6 +4,7 @@ import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { useTranslation } from 'react-i18next';
+import { usePremium } from '../contexts/PremiumContext';
 
 // Free trial config: Feb 12 00:00 UTC → Feb 25 00:00 UTC
 const TRIAL_START = new Date('2026-02-12T00:00:00Z').getTime();
@@ -29,6 +30,8 @@ const BattlePlannerLanding: React.FC = () => {
   const { t } = useTranslation();
   useDocumentTitle(t('battlePlanner.pageTitle', 'KvK Battle Planner'));
   const isMobile = useIsMobile();
+  const { isSupporter, isAdmin } = usePremium();
+  const hasFullAccess = isSupporter || isAdmin;
   const [trial, setTrial] = useState(getTrialState());
 
   useEffect(() => {
@@ -192,27 +195,33 @@ const BattlePlannerLanding: React.FC = () => {
                 boxShadow: '0 4px 20px rgba(239, 68, 68, 0.35)',
               }}
             >
-              ⚔️ {trial.status === 'active'
-                ? t('battlePlanner.tryFree', 'Try It Free')
-                : t('battlePlanner.launchPlanner', 'Launch the Planner')}
+              ⚔️ {hasFullAccess
+                ? t('battlePlanner.launchPlanner', 'Launch the Planner')
+                : trial.status === 'active'
+                  ? t('battlePlanner.tryFree', 'Try It Free')
+                  : t('battlePlanner.launchPlanner', 'Launch the Planner')}
             </Link>
-            <Link
-              to="/support"
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-                padding: '0.75rem 1.5rem', backgroundColor: 'transparent',
-                border: '1px solid #FF6B8A40', borderRadius: '8px',
-                color: '#FF6B8A', fontWeight: 600,
-                fontSize: isMobile ? '0.9rem' : '0.95rem', textDecoration: 'none',
-              }}
-            >
-              {t('battlePlanner.getSupporter', 'Get Supporter Access')}
-            </Link>
+            {!hasFullAccess && (
+              <Link
+                to="/support"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+                  padding: '0.75rem 1.5rem', backgroundColor: 'transparent',
+                  border: '1px solid #FF6B8A40', borderRadius: '8px',
+                  color: '#FF6B8A', fontWeight: 600,
+                  fontSize: isMobile ? '0.9rem' : '0.95rem', textDecoration: 'none',
+                }}
+              >
+                {t('battlePlanner.getSupporter', 'Get Supporter Access')}
+              </Link>
+            )}
           </div>
           <p style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.75rem' }}>
-            {trial.status === 'active'
-              ? t('battlePlanner.trialNote', 'Free for everyone during the trial period. No account required.')
-              : t('battlePlanner.supporterPerk', 'Available with Atlas Supporter subscription.')}
+            {hasFullAccess
+              ? t('battlePlanner.supporterConfirm', 'You have full access as an Atlas Supporter.')
+              : trial.status === 'active'
+                ? t('battlePlanner.trialNote', 'Free for everyone during the trial period. No account required.')
+                : t('battlePlanner.supporterPerk', 'Available with Atlas Supporter subscription.')}
           </p>
 
           {!isMobile && (
@@ -340,59 +349,87 @@ const BattlePlannerLanding: React.FC = () => {
           marginBottom: isMobile ? '2rem' : '3rem',
           padding: isMobile ? '1.5rem' : '2rem',
           backgroundColor: '#111111', borderRadius: '16px',
-          border: '1px solid #FF6B8A30', textAlign: 'center',
-          background: 'linear-gradient(135deg, #111111 0%, #FF6B8A08 100%)',
+          border: hasFullAccess ? '1px solid #22c55e30' : '1px solid #FF6B8A30', textAlign: 'center',
+          background: hasFullAccess
+            ? 'linear-gradient(135deg, #111111 0%, #22c55e08 100%)'
+            : 'linear-gradient(135deg, #111111 0%, #FF6B8A08 100%)',
         }}>
           <span style={{
-            fontSize: '0.65rem', fontWeight: 700, color: '#FF6B8A',
-            backgroundColor: '#FF6B8A18', border: '1px solid #FF6B8A30',
+            fontSize: '0.65rem', fontWeight: 700,
+            color: hasFullAccess ? '#22c55e' : '#FF6B8A',
+            backgroundColor: hasFullAccess ? '#22c55e18' : '#FF6B8A18',
+            border: hasFullAccess ? '1px solid #22c55e30' : '1px solid #FF6B8A30',
             padding: '0.2rem 0.6rem', borderRadius: '4px',
             letterSpacing: '0.05em', textTransform: 'uppercase',
             display: 'inline-block', marginBottom: '0.75rem',
           }}>
-            {t('battlePlanner.supporterBadge', 'Atlas Supporter Perk')}
+            {hasFullAccess
+              ? t('battlePlanner.accessUnlocked', 'Access Unlocked')
+              : t('battlePlanner.supporterBadge', 'Atlas Supporter Perk')}
           </span>
           <h3 style={{
             fontSize: isMobile ? '1.1rem' : '1.25rem', fontWeight: 'bold',
             color: '#fff', marginBottom: '0.5rem', fontFamily: FONT_DISPLAY,
           }}>
-            {t('battlePlanner.supporterTitle', 'Your alliance deserves better coordination.')}
+            {hasFullAccess
+              ? t('battlePlanner.supporterThanks', 'You have full access to the Battle Planner.')
+              : t('battlePlanner.supporterTitle', 'Your alliance deserves better coordination.')}
           </h3>
           <p style={{
             color: '#9ca3af', fontSize: isMobile ? '0.8rem' : '0.85rem',
             marginBottom: '1.25rem', maxWidth: '450px', margin: '0 auto 1.25rem', lineHeight: 1.6,
           }}>
-            {t('battlePlanner.supporterDesc', 'The Battle Planner is included with Atlas Supporter — along with unlimited /multirally, the Supporter badge, exclusive Discord access, and more. Starting at $4.99/month.')}
+            {hasFullAccess
+              ? t('battlePlanner.supporterThanksDesc', 'Thank you for supporting Atlas. Jump straight into the planner and coordinate your next castle hit.')
+              : t('battlePlanner.supporterDesc', 'The Battle Planner is included with Atlas Supporter — along with unlimited /multirally, the Supporter badge, exclusive Discord access, and more. Starting at $4.99/month.')}
           </p>
           <div style={{
             display: 'flex', flexDirection: isMobile ? 'column' : 'row',
             gap: '0.75rem', justifyContent: 'center', alignItems: 'center',
           }}>
-            <Link
-              to="/support"
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-                padding: '0.75rem 1.5rem', backgroundColor: '#FF6B8A',
-                border: 'none', borderRadius: '8px', color: '#fff',
-                fontWeight: 600, fontSize: isMobile ? '0.9rem' : '0.95rem',
-                textDecoration: 'none', transition: 'all 0.2s ease',
-                boxShadow: '0 4px 15px rgba(255, 107, 138, 0.3)',
-              }}
-            >
-              {t('battlePlanner.becomeSupporter', 'Become a Supporter')}
-            </Link>
-            <Link
-              to="/tools/kvk-battle-planner"
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-                padding: '0.75rem 1.5rem', backgroundColor: 'transparent',
-                border: '1px solid #ef444440', borderRadius: '8px',
-                color: '#ef4444', fontWeight: 600,
-                fontSize: isMobile ? '0.9rem' : '0.95rem', textDecoration: 'none',
-              }}
-            >
-              {t('battlePlanner.tryPlanner', 'Try the Planner')}
-            </Link>
+            {hasFullAccess ? (
+              <Link
+                to="/tools/kvk-battle-planner"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+                  padding: '0.75rem 1.5rem', backgroundColor: '#22c55e',
+                  border: 'none', borderRadius: '8px', color: '#fff',
+                  fontWeight: 600, fontSize: isMobile ? '0.9rem' : '0.95rem',
+                  textDecoration: 'none', transition: 'all 0.2s ease',
+                  boxShadow: '0 4px 15px rgba(34, 197, 94, 0.3)',
+                }}
+              >
+                ⚔️ {t('battlePlanner.launchPlanner', 'Launch the Planner')}
+              </Link>
+            ) : (
+              <>
+                <Link
+                  to="/support"
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+                    padding: '0.75rem 1.5rem', backgroundColor: '#FF6B8A',
+                    border: 'none', borderRadius: '8px', color: '#fff',
+                    fontWeight: 600, fontSize: isMobile ? '0.9rem' : '0.95rem',
+                    textDecoration: 'none', transition: 'all 0.2s ease',
+                    boxShadow: '0 4px 15px rgba(255, 107, 138, 0.3)',
+                  }}
+                >
+                  {t('battlePlanner.becomeSupporter', 'Become a Supporter')}
+                </Link>
+                <Link
+                  to="/tools/kvk-battle-planner"
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+                    padding: '0.75rem 1.5rem', backgroundColor: 'transparent',
+                    border: '1px solid #ef444440', borderRadius: '8px',
+                    color: '#ef4444', fontWeight: 600,
+                    fontSize: isMobile ? '0.9rem' : '0.95rem', textDecoration: 'none',
+                  }}
+                >
+                  {t('battlePlanner.tryPlanner', 'Try the Planner')}
+                </Link>
+              </>
+            )}
           </div>
         </div>
 
