@@ -15,7 +15,7 @@ interface EditorClaim {
   kingdom_number: number;
   user_id: string;
   role: 'editor' | 'co-editor';
-  status: 'pending' | 'active' | 'inactive' | 'suspended';
+  status: 'pending' | 'active' | 'inactive' | 'suspended' | 'cancelled';
   endorsement_count: number;
   required_endorsements: number;
   nominated_at: string | null;
@@ -769,9 +769,10 @@ const EditorClaiming: React.FC<{
     fetchInviter();
   }, [myClaim?.assigned_by]);
 
-  // Real-time subscription: detect when editor approves our pending request
+  // Real-time subscription: detect status changes on our pending claim
+  // Covers: co-editor approval/decline AND editor nomination cancellation
   useEffect(() => {
-    if (!supabase || !user || !myClaim || myClaim.status !== 'pending' || myClaim.role !== 'co-editor') return;
+    if (!supabase || !user || !myClaim || myClaim.status !== 'pending') return;
     const sb = supabase;
     const channel = sb
       .channel(`editor-claim-${myClaim.id}`)
@@ -783,17 +784,24 @@ const EditorClaiming: React.FC<{
       }, (payload) => {
         const updated = payload.new as EditorClaim & { status: string };
         if (updated.status === 'active') {
-          showToast('Your co-editor request has been approved!', 'success');
+          if (myClaim.role === 'co-editor') {
+            showToast('Your co-editor request has been approved!', 'success');
+          } else {
+            showToast('Your editor claim has been activated!', 'success');
+          }
           loadMyClaim();
           onEditorActivated?.();
         } else if (updated.status === 'inactive') {
           showToast('Your co-editor request was declined.', 'info');
           loadMyClaim();
+        } else if (updated.status === 'cancelled') {
+          showToast('Your editor nomination was cancelled — another editor was endorsed. You can apply as Co-Editor.', 'info');
+          loadMyClaim();
         }
       })
       .subscribe();
     return () => { sb.removeChannel(channel); };
-  }, [myClaim?.id, myClaim?.status, myClaim?.role]);
+  }, [myClaim?.id, myClaim?.status]);
 
   if (!user) return null;
   if (loading) return <div style={{ color: '#6b7280', fontSize: '0.8rem', padding: '0.5rem 0' }}>{t('editor.checkingStatus', 'Checking editor status...')}</div>;
@@ -1125,6 +1133,52 @@ const EditorClaiming: React.FC<{
   const isLinked = !!profile?.linked_player_id;
   const meetsTcReq = (profile?.linked_tc_level || 0) >= 20;
   const canBeCoEditor = isLinked && meetsTcReq && linkedKingdom && hasActiveEditor && coEditorCount < MAX_CO_EDITORS_PER_KINGDOM;
+
+  // Editor nomination was cancelled (another editor won the endorsement race)
+  // Only show if cancelled claim is for user's current kingdom (skip if they transferred)
+  if (myClaim?.status === 'cancelled' && myClaim?.role === 'editor' && myClaim.kingdom_number === linkedKingdom) {
+    return (
+      <div style={{
+        backgroundColor: '#ef444408',
+        border: '1px solid #ef444425',
+        borderRadius: '10px',
+        padding: '0.75rem 1rem',
+        textAlign: 'center',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', marginBottom: '0.3rem' }}>
+          <span style={{ fontSize: '1rem' }}>🚫</span>
+          <span style={{ color: '#ef4444', fontWeight: '600', fontSize: '0.85rem' }}>
+            {t('editor.nominationCancelled', 'Nomination Cancelled')}
+          </span>
+        </div>
+        <p style={{ color: '#9ca3af', fontSize: '0.75rem', margin: '0.2rem 0 0.5rem 0', lineHeight: 1.4 }}>
+          {t('editor.anotherEditorEndorsed', 'Another user was endorsed as editor for Kingdom {{kingdom}}. You can still contribute by becoming a Co-Editor.', { kingdom: myClaim.kingdom_number })}
+        </p>
+        {hasActiveEditor && canBeCoEditor && (
+          <button
+            onClick={handleBecomeCoEditor}
+            disabled={submittingCoEditor}
+            style={{
+              padding: '0.5rem 1.25rem',
+              backgroundColor: submittingCoEditor ? '#a855f730' : '#a855f7',
+              border: 'none',
+              borderRadius: '8px',
+              color: submittingCoEditor ? '#6b7280' : '#fff',
+              fontSize: '0.8rem',
+              fontWeight: '600',
+              cursor: submittingCoEditor ? 'not-allowed' : 'pointer',
+              minHeight: '44px',
+            }}
+          >
+            {submittingCoEditor ? t('editor.requesting', 'Requesting...') : t('editor.applyAsCoEditor', 'Apply as Co-Editor')}
+          </button>
+        )}
+        {coEditorError && (
+          <div style={{ marginTop: '0.4rem', color: '#ef4444', fontSize: '0.7rem' }}>{coEditorError}</div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>

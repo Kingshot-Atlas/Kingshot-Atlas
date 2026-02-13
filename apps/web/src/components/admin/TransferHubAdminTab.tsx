@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
+import { colors } from '../../utils/styles';
 
 // =============================================
 // TYPES
@@ -36,6 +37,7 @@ interface KingdomFund {
   main_language: string | null;
   min_tc_level: number | null;
   min_power_million: number | null;
+  admin_tier_override: string | null;
   created_at: string;
   updated_at: string;
   last_depletion_at: string | null;
@@ -102,17 +104,18 @@ type SubTab = 'overview' | 'editors' | 'co-editors' | 'funds' | 'profiles' | 'au
 // =============================================
 
 const TIER_COLORS: Record<string, { bg: string; border: string; text: string }> = {
-  gold: { bg: '#fbbf2415', border: '#fbbf2440', text: '#fbbf24' },
-  silver: { bg: '#9ca3af15', border: '#9ca3af40', text: '#9ca3af' },
-  bronze: { bg: '#cd7f3215', border: '#cd7f3240', text: '#cd7f32' },
-  standard: { bg: '#6b728015', border: '#6b728040', text: '#6b7280' },
+  gold: { bg: `${colors.gold}15`, border: `${colors.gold}40`, text: colors.gold },
+  silver: { bg: `${colors.textSecondary}15`, border: `${colors.textSecondary}40`, text: colors.textSecondary },
+  bronze: { bg: `${colors.bronze}15`, border: `${colors.bronze}40`, text: colors.bronze },
+  standard: { bg: `${colors.textMuted}15`, border: `${colors.textMuted}40`, text: colors.textMuted },
 };
 
 const STATUS_COLORS: Record<string, { bg: string; border: string; text: string }> = {
-  active: { bg: '#22c55e15', border: '#22c55e40', text: '#22c55e' },
-  pending: { bg: '#eab30815', border: '#eab30840', text: '#eab308' },
-  inactive: { bg: '#6b728015', border: '#6b728040', text: '#6b7280' },
-  suspended: { bg: '#ef444415', border: '#ef444440', text: '#ef4444' },
+  active: { bg: `${colors.success}15`, border: `${colors.success}40`, text: colors.success },
+  pending: { bg: `${colors.warning}15`, border: `${colors.warning}40`, text: colors.warning },
+  inactive: { bg: `${colors.textMuted}15`, border: `${colors.textMuted}40`, text: colors.textMuted },
+  suspended: { bg: `${colors.error}15`, border: `${colors.error}40`, text: colors.error },
+  cancelled: { bg: '#ef444415', border: '#ef444440', text: '#ef4444' },
 };
 
 // =============================================
@@ -484,6 +487,81 @@ export const TransferHubAdminTab: React.FC = () => {
     }
   };
 
+  const grantTierOverride = async (fundId: string, _kingdomNumber: number, tier: string) => {
+    if (!supabase) return;
+    setActionLoading(fundId);
+    try {
+      const { error } = await supabase
+        .from('kingdom_funds')
+        .update({ admin_tier_override: tier })
+        .eq('id', fundId);
+      if (error) { console.error('Grant tier failed:', error); return; }
+      await fetchFunds();
+    } catch (err) {
+      console.error('Error granting tier:', err);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const revokeTierOverride = async (fundId: string) => {
+    if (!supabase) return;
+    setActionLoading(fundId);
+    try {
+      const { error } = await supabase
+        .from('kingdom_funds')
+        .update({ admin_tier_override: null })
+        .eq('id', fundId);
+      if (error) { console.error('Revoke tier failed:', error); return; }
+      await fetchFunds();
+    } catch (err) {
+      console.error('Error revoking tier:', err);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const grantTierToNewKingdom = async (kingdomNumber: number, tier: string) => {
+    if (!supabase) return;
+    setActionLoading('new-kingdom');
+    try {
+      // Check if fund entry already exists
+      const { data: existing } = await supabase
+        .from('kingdom_funds')
+        .select('id')
+        .eq('kingdom_number', kingdomNumber)
+        .maybeSingle();
+
+      if (existing) {
+        // Update existing entry
+        const { error } = await supabase
+          .from('kingdom_funds')
+          .update({ admin_tier_override: tier })
+          .eq('id', existing.id);
+        if (error) { console.error('Grant tier to existing fund failed:', error); return; }
+      } else {
+        // Create new fund entry with override
+        const { error } = await supabase
+          .from('kingdom_funds')
+          .insert({
+            kingdom_number: kingdomNumber,
+            balance: 0,
+            tier: tier,
+            total_contributed: 0,
+            contributor_count: 0,
+            is_recruiting: false,
+            admin_tier_override: tier,
+          });
+        if (error) { console.error('Create fund with tier failed:', error); return; }
+      }
+      await fetchFunds();
+    } catch (err) {
+      console.error('Error granting tier to kingdom:', err);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const subTabs: { id: SubTab; label: string; icon: string }[] = [
     { id: 'overview', label: 'Overview', icon: '📊' },
     { id: 'editors', label: 'Editor Claims', icon: '👑' },
@@ -503,9 +581,9 @@ export const TransferHubAdminTab: React.FC = () => {
             onClick={() => setSubTab(tab.id)}
             style={{
               padding: '0.4rem 0.75rem',
-              backgroundColor: subTab === tab.id ? '#a855f720' : 'transparent',
-              color: subTab === tab.id ? '#a855f7' : '#6b7280',
-              border: subTab === tab.id ? '1px solid #a855f740' : '1px solid transparent',
+              backgroundColor: subTab === tab.id ? `${colors.purple}20` : 'transparent',
+              color: subTab === tab.id ? colors.purple : colors.textMuted,
+              border: subTab === tab.id ? `1px solid ${colors.purple}40` : '1px solid transparent',
               borderRadius: '6px',
               fontWeight: 500,
               cursor: 'pointer',
@@ -525,9 +603,9 @@ export const TransferHubAdminTab: React.FC = () => {
             marginLeft: 'auto',
             padding: '0.3rem 0.6rem',
             background: 'none',
-            border: '1px solid #2a2a2a',
+            border: `1px solid ${colors.border}`,
             borderRadius: '4px',
-            color: '#6b7280',
+            color: colors.textMuted,
             cursor: 'pointer',
             fontSize: '0.7rem',
           }}
@@ -537,7 +615,7 @@ export const TransferHubAdminTab: React.FC = () => {
       </div>
 
       {loading && !stats ? (
-        <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>Loading Transfer Hub data...</div>
+        <div style={{ textAlign: 'center', padding: '2rem', color: colors.textMuted }}>Loading Transfer Hub data...</div>
       ) : subTab === 'overview' ? (
         <OverviewTab stats={stats} />
       ) : subTab === 'editors' ? (
@@ -563,7 +641,7 @@ export const TransferHubAdminTab: React.FC = () => {
           onPromote={promoteToEditor}
         />
       ) : subTab === 'funds' ? (
-        <FundsTab funds={funds} timeAgo={timeAgo} />
+        <FundsTab funds={funds} timeAgo={timeAgo} onGrantTier={grantTierOverride} onRevokeTier={revokeTierOverride} onGrantNewKingdom={grantTierToNewKingdom} actionLoading={actionLoading} />
       ) : subTab === 'profiles' ? (
         <ProfilesTab profiles={profiles} timeAgo={timeAgo} />
       ) : subTab === 'audit-log' ? (
@@ -578,16 +656,16 @@ export const TransferHubAdminTab: React.FC = () => {
 // =============================================
 
 const OverviewTab: React.FC<{ stats: TransferHubStats | null }> = ({ stats }) => {
-  if (!stats) return <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>No data</div>;
+  if (!stats) return <div style={{ textAlign: 'center', padding: '2rem', color: colors.textMuted }}>No data</div>;
 
   const cards = [
-    { label: 'Editor Claims', value: stats.totalEditors, sub: `${stats.pendingEditors} pending · ${stats.activeEditors} active`, color: '#a855f7', icon: '👑' },
-    { label: 'Kingdom Funds', value: stats.totalFunds, sub: `$${stats.totalFundBalance.toFixed(2)} balance · $${stats.totalContributed.toFixed(2)} contributed`, color: '#fbbf24', icon: '💰' },
-    { label: 'Recruiting', value: stats.recruitingKingdoms, sub: 'kingdoms actively recruiting', color: '#22c55e', icon: '📢' },
-    { label: 'Transfer Profiles', value: stats.totalProfiles, sub: `${stats.activeProfiles} active`, color: '#3b82f6', icon: '🔄' },
-    { label: 'Applications', value: stats.totalApplications, sub: `${stats.pendingApplications} pending · ${stats.acceptedApplications} accepted`, color: '#22d3ee', icon: '📨' },
-    { label: 'Invites Sent', value: stats.totalInvites, sub: 'recruiter-initiated', color: '#f97316', icon: '✉️' },
-    { label: 'Profile Views', value: stats.totalProfileViews, sub: 'transfer profile impressions', color: '#ec4899', icon: '👁️' },
+    { label: 'Editor Claims', value: stats.totalEditors, sub: `${stats.pendingEditors} pending · ${stats.activeEditors} active`, color: colors.purple, icon: '👑' },
+    { label: 'Kingdom Funds', value: stats.totalFunds, sub: `$${stats.totalFundBalance.toFixed(2)} balance · $${stats.totalContributed.toFixed(2)} contributed`, color: colors.gold, icon: '💰' },
+    { label: 'Recruiting', value: stats.recruitingKingdoms, sub: 'kingdoms actively recruiting', color: colors.success, icon: '📢' },
+    { label: 'Transfer Profiles', value: stats.totalProfiles, sub: `${stats.activeProfiles} active`, color: colors.blue, icon: '🔄' },
+    { label: 'Applications', value: stats.totalApplications, sub: `${stats.pendingApplications} pending · ${stats.acceptedApplications} accepted`, color: colors.primary, icon: '📨' },
+    { label: 'Invites Sent', value: stats.totalInvites, sub: 'recruiter-initiated', color: colors.orange, icon: '✉️' },
+    { label: 'Profile Views', value: stats.totalProfileViews, sub: 'transfer profile impressions', color: colors.pink, icon: '👁️' },
   ];
 
   return (
@@ -595,29 +673,29 @@ const OverviewTab: React.FC<{ stats: TransferHubStats | null }> = ({ stats }) =>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
         {cards.map((card, i) => (
           <div key={i} style={{
-            backgroundColor: '#111116',
+            backgroundColor: colors.cardAlt,
             borderRadius: '10px',
             padding: '1rem',
-            border: '1px solid #2a2a2a',
+            border: `1px solid ${colors.border}`,
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
               <span>{card.icon}</span>
-              <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>{card.label}</span>
+              <span style={{ color: colors.textMuted, fontSize: '0.75rem' }}>{card.label}</span>
             </div>
             <div style={{ fontSize: '1.5rem', fontWeight: 700, color: card.color }}>{card.value}</div>
-            <div style={{ color: '#4b5563', fontSize: '0.7rem', marginTop: '0.25rem' }}>{card.sub}</div>
+            <div style={{ color: colors.textMuted, fontSize: '0.7rem', marginTop: '0.25rem' }}>{card.sub}</div>
           </div>
         ))}
       </div>
 
       {/* Health Indicators */}
       <div style={{
-        backgroundColor: '#111116',
+        backgroundColor: colors.cardAlt,
         borderRadius: '10px',
         padding: '1rem',
-        border: '1px solid #2a2a2a',
+        border: `1px solid ${colors.border}`,
       }}>
-        <h4 style={{ color: '#fff', margin: '0 0 0.75rem', fontSize: '0.85rem' }}>Transfer Hub Health</h4>
+        <h4 style={{ color: colors.text, margin: '0 0 0.75rem', fontSize: '0.85rem' }}>Transfer Hub Health</h4>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           {[
             { label: 'Pending editor claims need attention', count: stats.pendingEditors, severity: stats.pendingEditors > 5 ? 'warning' : stats.pendingEditors > 0 ? 'info' : 'ok' },
@@ -632,11 +710,11 @@ const OverviewTab: React.FC<{ stats: TransferHubStats | null }> = ({ stats }) =>
             }}>
               <div style={{
                 width: '8px', height: '8px', borderRadius: '50%',
-                backgroundColor: item.severity === 'ok' ? '#22c55e' : item.severity === 'info' ? '#eab308' : '#ef4444',
+                backgroundColor: item.severity === 'ok' ? colors.success : item.severity === 'info' ? colors.warning : colors.error,
               }} />
-              <span style={{ color: '#9ca3af' }}>{item.label}</span>
+              <span style={{ color: colors.textSecondary }}>{item.label}</span>
               <span style={{
-                color: item.severity === 'ok' ? '#22c55e' : item.severity === 'info' ? '#eab308' : '#ef4444',
+                color: item.severity === 'ok' ? colors.success : item.severity === 'info' ? colors.warning : colors.error,
                 fontWeight: 600,
               }}>
                 {item.count}
@@ -652,10 +730,10 @@ const OverviewTab: React.FC<{ stats: TransferHubStats | null }> = ({ stats }) =>
 // Shared action button styles
 const actionBtn = (bg: string, border: string, color: string, disabled?: boolean): React.CSSProperties => ({
   padding: '0.2rem 0.5rem',
-  backgroundColor: disabled ? '#1a1a1f' : bg,
-  border: `1px solid ${disabled ? '#2a2a2a' : border}`,
+  backgroundColor: disabled ? colors.surfaceHover : bg,
+  border: `1px solid ${disabled ? colors.border : border}`,
   borderRadius: '4px',
-  color: disabled ? '#4b5563' : color,
+  color: disabled ? colors.textMuted : color,
   fontSize: '0.6rem',
   fontWeight: 600,
   cursor: disabled ? 'not-allowed' : 'pointer',
@@ -671,8 +749,8 @@ const ConfirmDialog: React.FC<{
 }> = ({ action, loading, onConfirm, onCancel }) => (
   <div style={{
     padding: '0.5rem 0.75rem',
-    backgroundColor: '#ef444410',
-    border: '1px solid #ef444430',
+    backgroundColor: `${colors.error}10`,
+    border: `1px solid ${colors.error}30`,
     borderRadius: '6px',
     marginTop: '0.5rem',
     display: 'flex',
@@ -680,17 +758,17 @@ const ConfirmDialog: React.FC<{
     gap: '0.5rem',
     fontSize: '0.7rem',
   }}>
-    <span style={{ color: '#ef4444' }}>
+    <span style={{ color: colors.error }}>
       {action.action === 'remove' ? `Remove ${action.name}?` : `${action.action} ${action.name}?`}
     </span>
     <button
       onClick={onConfirm}
       disabled={loading}
-      style={actionBtn('#ef444420', '#ef444440', '#ef4444', loading)}
+      style={actionBtn(`${colors.error}20`, `${colors.error}40`, colors.error, loading)}
     >
       {loading ? '...' : 'Confirm'}
     </button>
-    <button onClick={onCancel} style={actionBtn('transparent', '#2a2a2a', '#6b7280')}>
+    <button onClick={onCancel} style={actionBtn('transparent', colors.border, colors.textMuted)}>
       Cancel
     </button>
   </div>
@@ -711,25 +789,25 @@ const EditorsTab: React.FC<EditorsTabProps> = ({
   editors, timeAgo, actionLoading, confirmAction, onConfirmAction, onUpdateStatus, onRemove, onBulkDeactivate,
 }) => {
   if (editors.length === 0) {
-    return <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>No editor claims yet</div>;
+    return <div style={{ textAlign: 'center', padding: '2rem', color: colors.textMuted }}>No editor claims yet</div>;
   }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+        <div style={{ color: colors.textMuted, fontSize: '0.75rem' }}>
           {editors.length} total claim{editors.length !== 1 ? 's' : ''} · {editors.filter(e => e.status === 'pending').length} pending · {editors.filter(e => e.status === 'active').length} active
         </div>
         <button
           onClick={onBulkDeactivate}
           disabled={actionLoading === 'bulk'}
-          style={actionBtn('#6b728010', '#6b728040', '#6b7280', actionLoading === 'bulk')}
+          style={actionBtn(`${colors.textMuted}10`, `${colors.textMuted}40`, colors.textMuted, actionLoading === 'bulk')}
         >
           {actionLoading === 'bulk' ? 'Processing...' : 'Deactivate 30d+ Inactive'}
         </button>
       </div>
       {editors.map(editor => {
-        const sc = STATUS_COLORS[editor.status] ?? { bg: '#eab30815', border: '#eab30840', text: '#eab308' };
+        const sc = STATUS_COLORS[editor.status] ?? { bg: `${colors.warning}15`, border: `${colors.warning}40`, text: colors.warning };
         const endorsementPct = editor.required_endorsements > 0
           ? Math.min(100, (editor.endorsement_count / editor.required_endorsements) * 100)
           : 0;
@@ -737,15 +815,15 @@ const EditorsTab: React.FC<EditorsTabProps> = ({
         const isLoading = actionLoading === editor.id;
         return (
           <div key={editor.id} style={{
-            backgroundColor: '#111116',
+            backgroundColor: colors.cardAlt,
             borderRadius: '10px',
-            border: '1px solid #2a2a2a',
+            border: `1px solid ${colors.border}`,
             padding: '1rem',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                  <span style={{ color: '#fff', fontWeight: 600, fontSize: '0.9rem' }}>{displayName}</span>
+                  <span style={{ color: colors.text, fontWeight: 600, fontSize: '0.9rem' }}>{displayName}</span>
                   <span style={{
                     padding: '0.1rem 0.4rem',
                     backgroundColor: sc.bg,
@@ -760,19 +838,19 @@ const EditorsTab: React.FC<EditorsTabProps> = ({
                   </span>
                   <span style={{
                     padding: '0.1rem 0.4rem',
-                    backgroundColor: '#22d3ee15',
-                    border: '1px solid #22d3ee40',
+                    backgroundColor: `${colors.primary}15`,
+                    border: `1px solid ${colors.primary}40`,
                     borderRadius: '4px',
                     fontSize: '0.65rem',
                     fontWeight: 600,
-                    color: '#22d3ee',
+                    color: colors.primary,
                     textTransform: 'capitalize',
                   }}>
                     {editor.role}
                   </span>
                 </div>
-                <div style={{ display: 'flex', gap: '0.75rem', fontSize: '0.7rem', color: '#6b7280' }}>
-                  <span>Claiming <strong style={{ color: '#22d3ee' }}>K{editor.kingdom_number}</strong></span>
+                <div style={{ display: 'flex', gap: '0.75rem', fontSize: '0.7rem', color: colors.textMuted }}>
+                  <span>Claiming <strong style={{ color: colors.primary }}>K{editor.kingdom_number}</strong></span>
                   {editor.linked_kingdom && <span>Home: K{editor.linked_kingdom}</span>}
                   {editor.linked_tc_level && <span>TC{editor.linked_tc_level > 30 ? '30+' : editor.linked_tc_level}</span>}
                   <span>Nominated {timeAgo(editor.nominated_at)}</span>
@@ -785,20 +863,20 @@ const EditorsTab: React.FC<EditorsTabProps> = ({
                   <button
                     onClick={() => onUpdateStatus(editor.id, 'active', editor.user_id, editor.kingdom_number, `Your editor claim for Kingdom ${editor.kingdom_number} has been activated by an admin.`)}
                     disabled={isLoading}
-                    style={actionBtn('#22c55e15', '#22c55e40', '#22c55e', isLoading)}
+                    style={actionBtn(`${colors.success}15`, `${colors.success}40`, colors.success, isLoading)}
                   >Activate</button>
                 )}
                 {editor.status !== 'suspended' && editor.status !== 'pending' && (
                   <button
                     onClick={() => onUpdateStatus(editor.id, 'suspended', editor.user_id, editor.kingdom_number, `Your editor role for Kingdom ${editor.kingdom_number} has been suspended by an admin.`)}
                     disabled={isLoading}
-                    style={actionBtn('#eab30815', '#eab30840', '#eab308', isLoading)}
+                    style={actionBtn(`${colors.warning}15`, `${colors.warning}40`, colors.warning, isLoading)}
                   >Suspend</button>
                 )}
                 <button
                   onClick={() => onConfirmAction({ id: editor.id, action: 'remove', name: displayName })}
                   disabled={isLoading}
-                  style={actionBtn('#ef444415', '#ef444440', '#ef4444', isLoading)}
+                  style={actionBtn(`${colors.error}15`, `${colors.error}40`, colors.error, isLoading)}
                 >Remove</button>
               </div>
             </div>
@@ -816,9 +894,9 @@ const EditorsTab: React.FC<EditorsTabProps> = ({
             {/* Endorsement Progress */}
             <div style={{ marginTop: '0.5rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
-                <span style={{ color: '#9ca3af', fontSize: '0.75rem' }}>Endorsements</span>
+                <span style={{ color: colors.textSecondary, fontSize: '0.75rem' }}>Endorsements</span>
                 <span style={{
-                  color: endorsementPct >= 100 ? '#22c55e' : '#eab308',
+                  color: endorsementPct >= 100 ? colors.success : colors.warning,
                   fontSize: '0.75rem',
                   fontWeight: 600,
                 }}>
@@ -827,14 +905,14 @@ const EditorsTab: React.FC<EditorsTabProps> = ({
               </div>
               <div style={{
                 height: '6px',
-                backgroundColor: '#1a1a1f',
+                backgroundColor: colors.surfaceHover,
                 borderRadius: '3px',
                 overflow: 'hidden',
               }}>
                 <div style={{
                   height: '100%',
                   width: `${endorsementPct}%`,
-                  backgroundColor: endorsementPct >= 100 ? '#22c55e' : endorsementPct >= 50 ? '#eab308' : '#ef4444',
+                  backgroundColor: endorsementPct >= 100 ? colors.success : endorsementPct >= 50 ? colors.warning : colors.error,
                   borderRadius: '3px',
                   transition: 'width 0.3s ease',
                 }} />
@@ -846,11 +924,11 @@ const EditorsTab: React.FC<EditorsTabProps> = ({
               <div style={{
                 display: 'flex', gap: '0.5rem', marginTop: '0.5rem', alignItems: 'center',
                 padding: '0.4rem 0.6rem',
-                backgroundColor: '#a855f708',
-                border: '1px solid #a855f720',
+                backgroundColor: `${colors.purple}08`,
+                border: `1px solid ${colors.purple}20`,
                 borderRadius: '6px',
               }}>
-                <span style={{ color: '#a855f7', fontSize: '0.65rem', fontWeight: 500 }}>Test endorsement flow:</span>
+                <span style={{ color: colors.purple, fontSize: '0.65rem', fontWeight: 500 }}>Test endorsement flow:</span>
                 <button
                   onClick={() => {
                     const link = `${window.location.origin}/transfer-hub?endorse=${editor.id}`;
@@ -861,10 +939,10 @@ const EditorsTab: React.FC<EditorsTabProps> = ({
                   id={`copy-btn-${editor.id}`}
                   style={{
                     padding: '0.15rem 0.5rem',
-                    backgroundColor: '#a855f715',
-                    border: '1px solid #a855f730',
+                    backgroundColor: `${colors.purple}15`,
+                    border: `1px solid ${colors.purple}30`,
                     borderRadius: '4px',
-                    color: '#a855f7',
+                    color: colors.purple,
                     fontSize: '0.6rem',
                     fontWeight: 600,
                     cursor: 'pointer',
@@ -874,10 +952,10 @@ const EditorsTab: React.FC<EditorsTabProps> = ({
                   onClick={() => window.open(`/transfer-hub?endorse=${editor.id}`, '_blank')}
                   style={{
                     padding: '0.15rem 0.5rem',
-                    backgroundColor: '#22d3ee15',
-                    border: '1px solid #22d3ee30',
+                    backgroundColor: `${colors.primary}15`,
+                    border: `1px solid ${colors.primary}30`,
                     borderRadius: '4px',
-                    color: '#22d3ee',
+                    color: colors.primary,
                     fontSize: '0.6rem',
                     fontWeight: 600,
                     cursor: 'pointer',
@@ -887,7 +965,7 @@ const EditorsTab: React.FC<EditorsTabProps> = ({
             )}
 
             {/* Timeline */}
-            <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem', fontSize: '0.65rem', color: '#4b5563' }}>
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem', fontSize: '0.65rem', color: colors.textMuted }}>
               {editor.activated_at && <span>Activated {timeAgo(editor.activated_at)}</span>}
               {editor.last_active_at && <span>Last active {timeAgo(editor.last_active_at)}</span>}
             </div>
@@ -913,29 +991,29 @@ const CoEditorsTab: React.FC<CoEditorsTabProps> = ({
   editors, timeAgo, actionLoading, confirmAction, onConfirmAction, onUpdateStatus, onRemove, onPromote,
 }) => {
   if (editors.length === 0) {
-    return <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>No co-editors yet</div>;
+    return <div style={{ textAlign: 'center', padding: '2rem', color: colors.textMuted }}>No co-editors yet</div>;
   }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-      <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+      <div style={{ color: colors.textMuted, fontSize: '0.75rem' }}>
         {editors.length} co-editor{editors.length !== 1 ? 's' : ''} · {editors.filter(e => e.status === 'pending').length} pending · {editors.filter(e => e.status === 'active').length} active
       </div>
       {editors.map(editor => {
-        const sc = STATUS_COLORS[editor.status] ?? { bg: '#eab30815', border: '#eab30840', text: '#eab308' };
+        const sc = STATUS_COLORS[editor.status] ?? { bg: `${colors.warning}15`, border: `${colors.warning}40`, text: colors.warning };
         const displayName = editor.linked_username || editor.username || 'Unknown';
         const isLoading = actionLoading === editor.id;
         return (
           <div key={editor.id} style={{
-            backgroundColor: '#111116',
+            backgroundColor: colors.cardAlt,
             borderRadius: '10px',
-            border: '1px solid #2a2a2a',
+            border: `1px solid ${colors.border}`,
             padding: '1rem',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                  <span style={{ color: '#fff', fontWeight: 600, fontSize: '0.9rem' }}>{displayName}</span>
+                  <span style={{ color: colors.text, fontWeight: 600, fontSize: '0.9rem' }}>{displayName}</span>
                   <span style={{
                     padding: '0.1rem 0.4rem',
                     backgroundColor: sc.bg,
@@ -950,18 +1028,18 @@ const CoEditorsTab: React.FC<CoEditorsTabProps> = ({
                   </span>
                   <span style={{
                     padding: '0.1rem 0.4rem',
-                    backgroundColor: '#a855f715',
-                    border: '1px solid #a855f740',
+                    backgroundColor: `${colors.purple}15`,
+                    border: `1px solid ${colors.purple}40`,
                     borderRadius: '4px',
                     fontSize: '0.65rem',
                     fontWeight: 600,
-                    color: '#a855f7',
+                    color: colors.purple,
                   }}>
                     Co-Editor
                   </span>
                 </div>
-                <div style={{ display: 'flex', gap: '0.75rem', fontSize: '0.7rem', color: '#6b7280' }}>
-                  <span>Kingdom <strong style={{ color: '#22d3ee' }}>K{editor.kingdom_number}</strong></span>
+                <div style={{ display: 'flex', gap: '0.75rem', fontSize: '0.7rem', color: colors.textMuted }}>
+                  <span>Kingdom <strong style={{ color: colors.primary }}>K{editor.kingdom_number}</strong></span>
                   {editor.linked_kingdom && <span>Home: K{editor.linked_kingdom}</span>}
                   {editor.linked_tc_level && <span>TC{editor.linked_tc_level > 30 ? '30+' : editor.linked_tc_level}</span>}
                   <span>Nominated {timeAgo(editor.nominated_at)}</span>
@@ -974,25 +1052,25 @@ const CoEditorsTab: React.FC<CoEditorsTabProps> = ({
                   <button
                     onClick={() => onUpdateStatus(editor.id, 'active', editor.user_id, editor.kingdom_number, `Your co-editor role for Kingdom ${editor.kingdom_number} has been activated by an admin.`)}
                     disabled={isLoading}
-                    style={actionBtn('#22c55e15', '#22c55e40', '#22c55e', isLoading)}
+                    style={actionBtn(`${colors.success}15`, `${colors.success}40`, colors.success, isLoading)}
                   >Activate</button>
                 )}
                 <button
                   onClick={() => onConfirmAction({ id: editor.id, action: 'promote', name: displayName })}
                   disabled={isLoading}
-                  style={actionBtn('#22d3ee15', '#22d3ee40', '#22d3ee', isLoading)}
+                  style={actionBtn(`${colors.primary}15`, `${colors.primary}40`, colors.primary, isLoading)}
                 >Promote to Editor</button>
                 {editor.status !== 'suspended' && editor.status !== 'pending' && (
                   <button
                     onClick={() => onUpdateStatus(editor.id, 'suspended', editor.user_id, editor.kingdom_number, `Your co-editor role for Kingdom ${editor.kingdom_number} has been suspended by an admin.`)}
                     disabled={isLoading}
-                    style={actionBtn('#eab30815', '#eab30840', '#eab308', isLoading)}
+                    style={actionBtn(`${colors.warning}15`, `${colors.warning}40`, colors.warning, isLoading)}
                   >Suspend</button>
                 )}
                 <button
                   onClick={() => onConfirmAction({ id: editor.id, action: 'remove', name: displayName })}
                   disabled={isLoading}
-                  style={actionBtn('#ef444415', '#ef444440', '#ef4444', isLoading)}
+                  style={actionBtn(`${colors.error}15`, `${colors.error}40`, colors.error, isLoading)}
                 >Remove</button>
               </div>
             </div>
@@ -1014,7 +1092,7 @@ const CoEditorsTab: React.FC<CoEditorsTabProps> = ({
             )}
 
             {/* Timeline */}
-            <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem', fontSize: '0.65rem', color: '#4b5563' }}>
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem', fontSize: '0.65rem', color: colors.textMuted }}>
               {editor.activated_at && <span>Activated {timeAgo(editor.activated_at)}</span>}
               {editor.last_active_at && <span>Last active {timeAgo(editor.last_active_at)}</span>}
             </div>
@@ -1025,52 +1103,167 @@ const CoEditorsTab: React.FC<CoEditorsTabProps> = ({
   );
 };
 
-const FundsTab: React.FC<{ funds: KingdomFund[]; timeAgo: (d: string | null) => string }> = ({ funds, timeAgo }) => {
-  if (funds.length === 0) {
-    return <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>No kingdom funds yet</div>;
-  }
+interface FundsTabProps {
+  funds: KingdomFund[];
+  timeAgo: (d: string | null) => string;
+  onGrantTier: (fundId: string, kingdomNumber: number, tier: string) => void;
+  onRevokeTier: (fundId: string) => void;
+  onGrantNewKingdom: (kingdomNumber: number, tier: string) => void;
+  actionLoading: string | null;
+}
+
+const FundsTab: React.FC<FundsTabProps> = ({ funds, timeAgo, onGrantTier, onRevokeTier, onGrantNewKingdom, actionLoading }) => {
+  const [grantKingdom, setGrantKingdom] = useState('');
+  const [grantTier, setGrantTier] = useState('gold');
+  const [showGrantForm, setShowGrantForm] = useState(false);
 
   const totalBalance = funds.reduce((sum, f) => sum + parseFloat(f.balance || '0'), 0);
   const totalContributed = funds.reduce((sum, f) => sum + parseFloat(f.total_contributed || '0'), 0);
+  const overrideCount = funds.filter(f => f.admin_tier_override).length;
+
+  const handleGrantNew = () => {
+    const kn = parseInt(grantKingdom, 10);
+    if (isNaN(kn) || kn <= 0) return;
+    onGrantNewKingdom(kn, grantTier);
+    setGrantKingdom('');
+    setShowGrantForm(false);
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
       {/* Summary Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem' }}>
-        <div style={{ backgroundColor: '#111116', padding: '0.75rem', borderRadius: '10px', border: '1px solid #2a2a2a', textAlign: 'center' }}>
-          <div style={{ color: '#22c55e', fontWeight: 700, fontSize: '1.25rem' }}>${totalBalance.toFixed(2)}</div>
-          <div style={{ color: '#6b7280', fontSize: '0.7rem' }}>Current Balance</div>
+        <div style={{ backgroundColor: colors.cardAlt, padding: '0.75rem', borderRadius: '10px', border: `1px solid ${colors.border}`, textAlign: 'center' }}>
+          <div style={{ color: colors.success, fontWeight: 700, fontSize: '1.25rem' }}>${totalBalance.toFixed(2)}</div>
+          <div style={{ color: colors.textMuted, fontSize: '0.7rem' }}>Current Balance</div>
         </div>
-        <div style={{ backgroundColor: '#111116', padding: '0.75rem', borderRadius: '10px', border: '1px solid #2a2a2a', textAlign: 'center' }}>
-          <div style={{ color: '#a855f7', fontWeight: 700, fontSize: '1.25rem' }}>${totalContributed.toFixed(2)}</div>
-          <div style={{ color: '#6b7280', fontSize: '0.7rem' }}>All-Time Contributed</div>
+        <div style={{ backgroundColor: colors.cardAlt, padding: '0.75rem', borderRadius: '10px', border: `1px solid ${colors.border}`, textAlign: 'center' }}>
+          <div style={{ color: colors.purple, fontWeight: 700, fontSize: '1.25rem' }}>${totalContributed.toFixed(2)}</div>
+          <div style={{ color: colors.textMuted, fontSize: '0.7rem' }}>All-Time Contributed</div>
         </div>
-        <div style={{ backgroundColor: '#111116', padding: '0.75rem', borderRadius: '10px', border: '1px solid #2a2a2a', textAlign: 'center' }}>
-          <div style={{ color: '#fbbf24', fontWeight: 700, fontSize: '1.25rem' }}>{funds.length}</div>
-          <div style={{ color: '#6b7280', fontSize: '0.7rem' }}>Kingdoms with Funds</div>
+        <div style={{ backgroundColor: colors.cardAlt, padding: '0.75rem', borderRadius: '10px', border: `1px solid ${colors.border}`, textAlign: 'center' }}>
+          <div style={{ color: colors.gold, fontWeight: 700, fontSize: '1.25rem' }}>{funds.length}</div>
+          <div style={{ color: colors.textMuted, fontSize: '0.7rem' }}>Kingdoms with Funds</div>
         </div>
-        <div style={{ backgroundColor: '#111116', padding: '0.75rem', borderRadius: '10px', border: '1px solid #2a2a2a', textAlign: 'center' }}>
-          <div style={{ color: '#22d3ee', fontWeight: 700, fontSize: '1.25rem' }}>{funds.filter(f => f.is_recruiting).length}</div>
-          <div style={{ color: '#6b7280', fontSize: '0.7rem' }}>Actively Recruiting</div>
+        <div style={{ backgroundColor: colors.cardAlt, padding: '0.75rem', borderRadius: '10px', border: `1px solid ${colors.border}`, textAlign: 'center' }}>
+          <div style={{ color: colors.primary, fontWeight: 700, fontSize: '1.25rem' }}>{overrideCount}</div>
+          <div style={{ color: colors.textMuted, fontSize: '0.7rem' }}>Admin Tier Overrides</div>
         </div>
       </div>
 
+      {/* Grant Tier to Kingdom */}
+      <div style={{
+        backgroundColor: colors.cardAlt,
+        borderRadius: '10px',
+        border: `1px solid ${colors.gold}30`,
+        padding: '0.75rem 1rem',
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ fontSize: '0.85rem' }}>👑</span>
+            <span style={{ color: colors.gold, fontWeight: 600, fontSize: '0.8rem' }}>Grant Tier to Kingdom</span>
+          </div>
+          <button
+            onClick={() => setShowGrantForm(!showGrantForm)}
+            style={{
+              padding: '0.3rem 0.7rem',
+              backgroundColor: showGrantForm ? `${colors.error}15` : `${colors.gold}15`,
+              border: `1px solid ${showGrantForm ? `${colors.error}40` : `${colors.gold}40`}`,
+              borderRadius: '6px',
+              color: showGrantForm ? colors.error : colors.gold,
+              fontSize: '0.7rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            {showGrantForm ? 'Cancel' : '+ Grant Tier'}
+          </button>
+        </div>
+
+        {showGrantForm && (
+          <div style={{
+            display: 'flex',
+            gap: '0.5rem',
+            marginTop: '0.75rem',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+          }}>
+            <input
+              type="number"
+              placeholder="Kingdom #"
+              value={grantKingdom}
+              onChange={e => setGrantKingdom(e.target.value)}
+              style={{
+                padding: '0.4rem 0.6rem',
+                backgroundColor: colors.bg,
+                border: `1px solid ${colors.border}`,
+                borderRadius: '6px',
+                color: colors.text,
+                fontSize: '0.8rem',
+                width: '100px',
+              }}
+            />
+            <select
+              value={grantTier}
+              onChange={e => setGrantTier(e.target.value)}
+              style={{
+                padding: '0.4rem 0.6rem',
+                backgroundColor: colors.bg,
+                border: `1px solid ${colors.border}`,
+                borderRadius: '6px',
+                color: colors.text,
+                fontSize: '0.8rem',
+              }}
+            >
+              <option value="gold">Gold</option>
+              <option value="silver">Silver</option>
+              <option value="bronze">Bronze</option>
+            </select>
+            <button
+              onClick={handleGrantNew}
+              disabled={!grantKingdom || actionLoading === 'new-kingdom'}
+              style={{
+                padding: '0.4rem 0.8rem',
+                backgroundColor: `${colors.gold}20`,
+                border: `1px solid ${colors.gold}50`,
+                borderRadius: '6px',
+                color: colors.gold,
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                cursor: !grantKingdom ? 'not-allowed' : 'pointer',
+                opacity: !grantKingdom ? 0.5 : 1,
+              }}
+            >
+              {actionLoading === 'new-kingdom' ? 'Granting...' : 'Grant'}
+            </button>
+            <span style={{ color: colors.textMuted, fontSize: '0.65rem' }}>
+              Creates fund entry if needed. Override persists through depletion cycles.
+            </span>
+          </div>
+        )}
+      </div>
+
       {/* Fund List */}
-      {funds.map(fund => {
-        const tc = TIER_COLORS[fund.tier] ?? { bg: '#6b728015', border: '#6b728040', text: '#6b7280' };
+      {funds.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '2rem', color: colors.textMuted }}>No kingdom funds yet. Use "Grant Tier" above to add one.</div>
+      ) : funds.map(fund => {
+        const displayTier = fund.admin_tier_override || fund.tier;
+        const tc = TIER_COLORS[displayTier] ?? { bg: `${colors.textMuted}15`, border: `${colors.textMuted}40`, text: colors.textMuted };
         const balance = parseFloat(fund.balance || '0');
         const contributed = parseFloat(fund.total_contributed || '0');
+        const isOverridden = !!fund.admin_tier_override;
+        const isLoading = actionLoading === fund.id;
 
         return (
           <div key={fund.id} style={{
-            backgroundColor: '#111116',
+            backgroundColor: colors.cardAlt,
             borderRadius: '10px',
-            border: `1px solid ${tc.border}`,
+            border: `1px solid ${isOverridden ? `${colors.gold}40` : tc.border}`,
             padding: '1rem',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ color: '#fff', fontWeight: 700, fontSize: '1rem' }}>K{fund.kingdom_number}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <span style={{ color: colors.text, fontWeight: 700, fontSize: '1rem' }}>K{fund.kingdom_number}</span>
                 <span style={{
                   padding: '0.1rem 0.5rem',
                   backgroundColor: tc.bg,
@@ -1081,61 +1274,105 @@ const FundsTab: React.FC<{ funds: KingdomFund[]; timeAgo: (d: string | null) => 
                   color: tc.text,
                   textTransform: 'uppercase',
                 }}>
-                  {fund.tier}
+                  {displayTier}
                 </span>
+                {isOverridden && (
+                  <span style={{
+                    padding: '0.1rem 0.4rem',
+                    backgroundColor: `${colors.gold}10`,
+                    border: `1px solid ${colors.gold}30`,
+                    borderRadius: '4px',
+                    fontSize: '0.6rem',
+                    fontWeight: 600,
+                    color: colors.gold,
+                  }}>
+                    ADMIN OVERRIDE
+                  </span>
+                )}
                 {fund.is_recruiting && (
                   <span style={{
                     padding: '0.1rem 0.4rem',
-                    backgroundColor: '#22c55e15',
-                    border: '1px solid #22c55e40',
+                    backgroundColor: `${colors.success}15`,
+                    border: `1px solid ${colors.success}40`,
                     borderRadius: '4px',
                     fontSize: '0.65rem',
                     fontWeight: 600,
-                    color: '#22c55e',
+                    color: colors.success,
                   }}>
                     Recruiting
                   </span>
                 )}
                 {fund.atlas_score && (
-                  <span style={{ color: '#22d3ee', fontSize: '0.75rem', fontWeight: 600 }}>
+                  <span style={{ color: colors.primary, fontSize: '0.75rem', fontWeight: 600 }}>
                     💎 {parseFloat(fund.atlas_score).toFixed(1)}
                   </span>
                 )}
               </div>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ color: '#22c55e', fontWeight: 700, fontSize: '1.1rem' }}>
-                  ${balance.toFixed(2)}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                {/* Tier Action Buttons */}
+                {isOverridden ? (
+                  <button
+                    onClick={() => onRevokeTier(fund.id)}
+                    disabled={isLoading}
+                    style={actionBtn(`${colors.error}15`, `${colors.error}40`, colors.error, isLoading)}
+                  >
+                    {isLoading ? '...' : 'Revoke Override'}
+                  </button>
+                ) : (
+                  <div style={{ display: 'flex', gap: '0.25rem' }}>
+                    {['gold', 'silver', 'bronze'].map(t => {
+                      const tColors = TIER_COLORS[t] ?? { bg: '#6b728015', border: '#6b728040', text: '#6b7280' };
+                      return (
+                        <button
+                          key={t}
+                          onClick={() => onGrantTier(fund.id, fund.kingdom_number, t)}
+                          disabled={isLoading || fund.tier === t}
+                          style={{
+                            ...actionBtn(tColors.bg, tColors.border, tColors.text, isLoading || fund.tier === t),
+                            textTransform: 'capitalize',
+                          }}
+                        >
+                          {t}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ color: colors.success, fontWeight: 700, fontSize: '1.1rem' }}>
+                    ${balance.toFixed(2)}
+                  </div>
+                  <div style={{ color: colors.textMuted, fontSize: '0.65rem' }}>current balance</div>
                 </div>
-                <div style={{ color: '#4b5563', fontSize: '0.65rem' }}>current balance</div>
               </div>
             </div>
 
             {/* Details Grid */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.5rem', marginTop: '0.5rem', fontSize: '0.75rem' }}>
               <div>
-                <span style={{ color: '#6b7280' }}>All-time: </span>
-                <span style={{ color: '#a855f7', fontWeight: 600 }}>${contributed.toFixed(2)}</span>
+                <span style={{ color: colors.textMuted }}>All-time: </span>
+                <span style={{ color: colors.purple, fontWeight: 600 }}>${contributed.toFixed(2)}</span>
               </div>
               <div>
-                <span style={{ color: '#6b7280' }}>Contributors: </span>
-                <span style={{ color: '#fff' }}>{fund.contributor_count}</span>
+                <span style={{ color: colors.textMuted }}>Contributors: </span>
+                <span style={{ color: colors.text }}>{fund.contributor_count}</span>
               </div>
               {fund.main_language && (
                 <div>
-                  <span style={{ color: '#6b7280' }}>Language: </span>
-                  <span style={{ color: '#fff' }}>{fund.main_language}</span>
+                  <span style={{ color: colors.textMuted }}>Language: </span>
+                  <span style={{ color: colors.text }}>{fund.main_language}</span>
                 </div>
               )}
               {fund.min_tc_level && (
                 <div>
-                  <span style={{ color: '#6b7280' }}>Min TC: </span>
-                  <span style={{ color: '#fff' }}>{fund.min_tc_level}</span>
+                  <span style={{ color: colors.textMuted }}>Min TC: </span>
+                  <span style={{ color: colors.text }}>{fund.min_tc_level}</span>
                 </div>
               )}
               {fund.min_power_million && (
                 <div>
-                  <span style={{ color: '#6b7280' }}>Min Power: </span>
-                  <span style={{ color: '#fff' }}>{fund.min_power_million}M</span>
+                  <span style={{ color: colors.textMuted }}>Min Power: </span>
+                  <span style={{ color: colors.text }}>{fund.min_power_million}M</span>
                 </div>
               )}
             </div>
@@ -1144,10 +1381,10 @@ const FundsTab: React.FC<{ funds: KingdomFund[]; timeAgo: (d: string | null) => 
               <div style={{
                 marginTop: '0.5rem',
                 padding: '0.5rem 0.75rem',
-                backgroundColor: '#0a0a0a',
+                backgroundColor: colors.bg,
                 borderRadius: '6px',
                 fontSize: '0.75rem',
-                color: '#9ca3af',
+                color: colors.textSecondary,
                 fontStyle: 'italic',
                 borderLeft: `2px solid ${tc.text}`,
               }}>
@@ -1155,7 +1392,7 @@ const FundsTab: React.FC<{ funds: KingdomFund[]; timeAgo: (d: string | null) => 
               </div>
             )}
 
-            <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem', fontSize: '0.65rem', color: '#4b5563' }}>
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem', fontSize: '0.65rem', color: colors.textMuted }}>
               <span>Created {timeAgo(fund.created_at)}</span>
               <span>Updated {timeAgo(fund.updated_at)}</span>
               {fund.last_depletion_at && <span>Last depletion {timeAgo(fund.last_depletion_at)}</span>}
@@ -1189,71 +1426,71 @@ const ProfilesTab: React.FC<{ profiles: TransferProfile[]; timeAgo: (d: string |
           onChange={e => setSearch(e.target.value)}
           style={{
             padding: '0.5rem 0.75rem',
-            backgroundColor: '#111116',
-            border: '1px solid #2a2a2a',
+            backgroundColor: colors.cardAlt,
+            border: `1px solid ${colors.border}`,
             borderRadius: '8px',
-            color: '#fff',
+            color: colors.text,
             fontSize: '0.8rem',
             flex: 1,
             minWidth: '200px',
           }}
         />
-        <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+        <span style={{ color: colors.textMuted, fontSize: '0.75rem' }}>
           {filtered.length} profile{filtered.length !== 1 ? 's' : ''} · {profiles.filter(p => p.is_active).length} active
         </span>
       </div>
 
       {filtered.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
+        <div style={{ textAlign: 'center', padding: '2rem', color: colors.textMuted }}>
           {search ? 'No profiles match your search' : 'No transfer profiles yet'}
         </div>
       ) : (
         filtered.map(profile => (
           <div key={profile.id} style={{
-            backgroundColor: '#111116',
+            backgroundColor: colors.cardAlt,
             borderRadius: '10px',
-            border: '1px solid #2a2a2a',
+            border: `1px solid ${colors.border}`,
             padding: '1rem',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                  <span style={{ color: '#fff', fontWeight: 600, fontSize: '0.9rem' }}>
+                  <span style={{ color: colors.text, fontWeight: 600, fontSize: '0.9rem' }}>
                     {profile.is_anonymous ? '(Anonymous)' : (profile.profile_username || profile.username)}
                   </span>
                   <span style={{
                     padding: '0.1rem 0.4rem',
-                    backgroundColor: profile.is_active ? '#22c55e15' : '#ef444415',
-                    border: `1px solid ${profile.is_active ? '#22c55e40' : '#ef444440'}`,
+                    backgroundColor: profile.is_active ? `${colors.success}15` : `${colors.error}15`,
+                    border: `1px solid ${profile.is_active ? `${colors.success}40` : `${colors.error}40`}`,
                     borderRadius: '4px',
                     fontSize: '0.65rem',
                     fontWeight: 600,
-                    color: profile.is_active ? '#22c55e' : '#ef4444',
+                    color: profile.is_active ? colors.success : colors.error,
                   }}>
                     {profile.is_active ? 'Active' : 'Inactive'}
                   </span>
                   {profile.is_anonymous && (
                     <span style={{
                       padding: '0.1rem 0.4rem',
-                      backgroundColor: '#6b728015',
-                      border: '1px solid #6b728040',
+                      backgroundColor: `${colors.textMuted}15`,
+                      border: `1px solid ${colors.textMuted}40`,
                       borderRadius: '4px',
                       fontSize: '0.65rem',
-                      color: '#6b7280',
+                      color: colors.textMuted,
                     }}>
                       Anonymous
                     </span>
                   )}
                 </div>
-                <div style={{ display: 'flex', gap: '0.75rem', fontSize: '0.7rem', color: '#6b7280', flexWrap: 'wrap' }}>
-                  <span>From <strong style={{ color: '#22d3ee' }}>K{profile.current_kingdom}</strong></span>
+                <div style={{ display: 'flex', gap: '0.75rem', fontSize: '0.7rem', color: colors.textMuted, flexWrap: 'wrap' }}>
+                  <span>From <strong style={{ color: colors.primary }}>K{profile.current_kingdom}</strong></span>
                   <span>TC{profile.tc_level > 30 ? '30+' : profile.tc_level}</span>
                   {profile.power_million && <span>{profile.power_million}M power</span>}
                   <span>{profile.main_language}</span>
                   <span>Group: {profile.group_size}</span>
                 </div>
               </div>
-              <div style={{ textAlign: 'right', fontSize: '0.65rem', color: '#4b5563' }}>
+              <div style={{ textAlign: 'right', fontSize: '0.65rem', color: colors.textMuted }}>
                 <div>Last active {timeAgo(profile.last_active_at)}</div>
                 <div>Created {timeAgo(profile.created_at)}</div>
               </div>
@@ -1265,11 +1502,11 @@ const ProfilesTab: React.FC<{ profiles: TransferProfile[]; timeAgo: (d: string |
                 {profile.looking_for.map(tag => (
                   <span key={tag} style={{
                     padding: '0.1rem 0.4rem',
-                    backgroundColor: '#3b82f615',
-                    border: '1px solid #3b82f630',
+                    backgroundColor: `${colors.blue}15`,
+                    border: `1px solid ${colors.blue}30`,
                     borderRadius: '4px',
                     fontSize: '0.6rem',
-                    color: '#3b82f6',
+                    color: colors.blue,
                   }}>
                     {tag.replace(/_/g, ' ')}
                   </span>
@@ -1281,10 +1518,10 @@ const ProfilesTab: React.FC<{ profiles: TransferProfile[]; timeAgo: (d: string |
               <div style={{
                 marginTop: '0.5rem',
                 padding: '0.5rem 0.75rem',
-                backgroundColor: '#0a0a0a',
+                backgroundColor: colors.bg,
                 borderRadius: '6px',
                 fontSize: '0.75rem',
-                color: '#9ca3af',
+                color: colors.textSecondary,
                 fontStyle: 'italic',
               }}>
                 {profile.player_bio}
@@ -1302,17 +1539,17 @@ const ProfilesTab: React.FC<{ profiles: TransferProfile[]; timeAgo: (d: string |
 // =============================================
 
 const ACTION_LABELS: Record<string, { label: string; color: string; icon: string }> = {
-  activate: { label: 'Activated', color: '#22c55e', icon: '✅' },
-  suspend: { label: 'Suspended', color: '#ef4444', icon: '⏸️' },
-  remove: { label: 'Removed', color: '#ef4444', icon: '🗑️' },
-  promote: { label: 'Promoted', color: '#a855f7', icon: '⬆️' },
+  activate: { label: 'Activated', color: colors.success, icon: '✅' },
+  suspend: { label: 'Suspended', color: colors.error, icon: '⏸️' },
+  remove: { label: 'Removed', color: colors.error, icon: '🗑️' },
+  promote: { label: 'Promoted', color: colors.purple, icon: '⬆️' },
   bulk_deactivate: { label: 'Bulk Deactivated', color: '#f97316', icon: '📦' },
-  approve: { label: 'Approved', color: '#22c55e', icon: '✓' },
-  reject: { label: 'Rejected', color: '#ef4444', icon: '✕' },
+  approve: { label: 'Approved', color: colors.success, icon: '✓' },
+  reject: { label: 'Rejected', color: colors.error, icon: '✕' },
   self_nominate: { label: 'Self-Nominated', color: '#eab308', icon: '🙋' },
-  invite: { label: 'Invited', color: '#3b82f6', icon: '✉️' },
-  expire: { label: 'Expired', color: '#6b7280', icon: '⏰' },
-  cascade_delete: { label: 'Cascade Deleted', color: '#6b7280', icon: '🔗' },
+  invite: { label: 'Invited', color: colors.blue, icon: '✉️' },
+  expire: { label: 'Expired', color: colors.textMuted, icon: '⏰' },
+  cascade_delete: { label: 'Cascade Deleted', color: colors.textMuted, icon: '🔗' },
 };
 
 const AuditLogTab: React.FC<{
@@ -1340,17 +1577,17 @@ const AuditLogTab: React.FC<{
       {/* Header + Filters */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span style={{ color: '#fff', fontSize: '0.9rem', fontWeight: '600' }}>📋 Audit Log</span>
-          <span style={{ color: '#4b5563', fontSize: '0.7rem' }}>({filtered.length} entries)</span>
+          <span style={{ color: colors.text, fontSize: '0.9rem', fontWeight: '600' }}>📋 Audit Log</span>
+          <span style={{ color: colors.textMuted, fontSize: '0.7rem' }}>({filtered.length} entries)</span>
         </div>
         <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>
           <button
             onClick={() => setFilter('all')}
             style={{
               padding: '0.2rem 0.5rem',
-              backgroundColor: filter === 'all' ? '#a855f720' : 'transparent',
-              color: filter === 'all' ? '#a855f7' : '#6b7280',
-              border: filter === 'all' ? '1px solid #a855f740' : '1px solid #2a2a2a',
+              backgroundColor: filter === 'all' ? `${colors.purple}20` : 'transparent',
+              color: filter === 'all' ? colors.purple : colors.textMuted,
+              border: filter === 'all' ? `1px solid ${colors.purple}40` : `1px solid ${colors.border}`,
               borderRadius: '4px',
               fontSize: '0.65rem',
               cursor: 'pointer',
@@ -1359,7 +1596,7 @@ const AuditLogTab: React.FC<{
             All
           </button>
           {actionTypes.map(action => {
-            const meta = ACTION_LABELS[action] || { label: action, color: '#6b7280', icon: '•' };
+            const meta = ACTION_LABELS[action] || { label: action, color: colors.textMuted, icon: '•' };
             return (
               <button
                 key={action}
@@ -1367,8 +1604,8 @@ const AuditLogTab: React.FC<{
                 style={{
                   padding: '0.2rem 0.5rem',
                   backgroundColor: filter === action ? `${meta.color}20` : 'transparent',
-                  color: filter === action ? meta.color : '#6b7280',
-                  border: filter === action ? `1px solid ${meta.color}40` : '1px solid #2a2a2a',
+                  color: filter === action ? meta.color : colors.textMuted,
+                  border: filter === action ? `1px solid ${meta.color}40` : `1px solid ${colors.border}`,
                   borderRadius: '4px',
                   fontSize: '0.65rem',
                   cursor: 'pointer',
@@ -1383,24 +1620,24 @@ const AuditLogTab: React.FC<{
 
       {/* Entries */}
       {loading && entries.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>Loading audit log...</div>
+        <div style={{ textAlign: 'center', padding: '2rem', color: colors.textMuted }}>Loading audit log...</div>
       ) : filtered.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280', fontSize: '0.8rem' }}>
+        <div style={{ textAlign: 'center', padding: '2rem', color: colors.textMuted, fontSize: '0.8rem' }}>
           No audit log entries{filter !== 'all' ? ` for "${filter}"` : ''}.
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
           {filtered.map(entry => {
-            const meta = ACTION_LABELS[entry.action] || { label: entry.action, color: '#6b7280', icon: '•' };
+            const meta = ACTION_LABELS[entry.action] || { label: entry.action, color: colors.textMuted, icon: '•' };
             return (
               <div key={entry.id} style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.75rem',
                 padding: '0.6rem 0.75rem',
-                backgroundColor: '#111116',
+                backgroundColor: colors.cardAlt,
                 borderRadius: '8px',
-                border: '1px solid #1a1a1a',
+                border: `1px solid ${colors.surfaceHover}`,
                 fontSize: '0.75rem',
               }}>
                 {/* Action badge */}
@@ -1422,12 +1659,12 @@ const AuditLogTab: React.FC<{
 
                 {/* Details */}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ color: '#d1d5db', fontSize: '0.75rem' }}>
-                    <span style={{ color: '#22d3ee', fontWeight: '500' }}>{entry.performer_name}</span>
+                  <div style={{ color: colors.textSecondary, fontSize: '0.75rem' }}>
+                    <span style={{ color: colors.primary, fontWeight: '500' }}>{entry.performer_name}</span>
                     {' → '}
-                    <span style={{ color: '#fff', fontWeight: '500' }}>{entry.target_name}</span>
+                    <span style={{ color: colors.text, fontWeight: '500' }}>{entry.target_name}</span>
                   </div>
-                  <div style={{ color: '#4b5563', fontSize: '0.65rem', marginTop: '0.1rem' }}>
+                  <div style={{ color: colors.textMuted, fontSize: '0.65rem', marginTop: '0.1rem' }}>
                     K{entry.kingdom_number}
                     {entry.details?.source ? <> · {String(entry.details.source).replace(/_/g, ' ')}</> : null}
                     {entry.details?.reason ? <> · {String(entry.details.reason).replace(/_/g, ' ')}</> : null}
@@ -1435,7 +1672,7 @@ const AuditLogTab: React.FC<{
                 </div>
 
                 {/* Time */}
-                <span style={{ color: '#4b5563', fontSize: '0.6rem', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                <span style={{ color: colors.textMuted, fontSize: '0.6rem', whiteSpace: 'nowrap', flexShrink: 0 }}>
                   {timeAgo(entry.created_at)}
                 </span>
               </div>
