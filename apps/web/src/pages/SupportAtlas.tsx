@@ -48,7 +48,7 @@ const SupportAtlas: React.FC = () => {
     { icon: '⭐', text: t('support.perk1Title', 'Supporter Badge'), desc: t('support.perk1Desc', 'Pink badge on your profile — flex on the leaderboards') },
     { icon: '💜', text: t('support.perk2Title', 'Discord Supporter Role'), desc: t('support.perk2Desc', 'Exclusive pink role in Discord — stand out in chat') },
     { icon: '⚔️', text: t('support.perk3Title', 'KvK Battle Planner Access'), desc: t('support.perk3Desc', 'Full access to the Rally Coordinator and future premium tools') },
-    { icon: '🤖', text: t('support.perk4Title', 'Unlimited Bot Commands'), desc: t('support.perk4Desc', 'Unlimited /multirally and premium Discord bot commands (free: 3/day)') },
+    { icon: '🤖', text: t('support.perk4Title', 'Unlimited Bot Commands'), desc: t('support.perk4Desc', 'Unlimited /multirally and premium Discord bot commands (free: 5/day)') },
     { icon: '🎙️', text: t('support.perk5Title', 'Exclusive Discord Channel'), desc: t('support.perk5Desc', 'Access to supporter-only discussions and early previews') },
     { icon: '🚀', text: t('support.perk6Title', 'Early Access'), desc: t('support.perk6Desc', 'First to try new features before public release') },
     { icon: '📊', text: t('support.perk7Title', 'Full Leaderboard Rankings'), desc: t('support.perk7Desc', 'Unlock unlimited kingdom rankings (free: Top 25)') },

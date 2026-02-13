@@ -84,7 +84,7 @@ const QuickActions: React.FC = () => {
   const iconSize = isMobile ? 16 : 20;
 
   const ACTIONS: QuickAction[] = [
-    { label: 'Transfer Hub', line1: t('quickAction.transferHub_1', 'Transfer'), line2: t('quickAction.transferHub_2', 'Hub'), path: '/transfer-hub', color: '#22c55e', icon: <TransferHubIcon size={iconSize} /> },
+    { label: 'Transfer Hub', line1: t('quickAction.transferHub_1', 'Transfer'), line2: t('quickAction.transferHub_2', 'Hub'), path: '/transfer-hub/about', color: '#22c55e', icon: <TransferHubIcon size={iconSize} /> },
     { label: 'KvK Battle Planner', line1: t('quickAction.battlePlanner_1', 'KvK Battle'), line2: t('quickAction.battlePlanner_2', 'Planner'), path: '/tools/battle-planner', color: '#ef4444', icon: <BattlePlannerIcon size={iconSize} /> },
     { label: 'Discord Bot Atlas', line1: t('quickAction.atlasBot_1', 'Discord'), line2: t('quickAction.atlasBot_2', 'Bot Atlas'), path: '/atlas-bot', color: '#5865F2', icon: <AtlasBotIcon size={iconSize} /> },
     { label: 'Gift Code Redeemer', line1: t('quickAction.giftCode_1', 'Gift Code'), line2: t('quickAction.giftCode_2', 'Redeemer'), path: '/gift-codes', color: '#f59e0b', icon: <GiftCodeIcon size={iconSize} /> },

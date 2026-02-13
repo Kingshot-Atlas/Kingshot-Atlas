@@ -267,9 +267,12 @@
     "calcTitle": "Spielrechner",
     "calcDesc": "Ressourcenplaner, Upgrade-Kosten, Beschleunigungsrechner. Mathe, damit du es nicht machen musst.",
     "calcTagline": "Klüger rechnen. Schneller wachsen.",
-    "giftTitle": "Geschenkcode einlösen",
-    "giftDesc": "Geschenkcodes auf allen Konten gleichzeitig einlösen. Ein Klick. Mehrere Konten. Null Aufwand.",
-    "giftTagline": "Schluss mit Tippen. Anfangen einzulösen."
+    "giftTitle": "Geschenkcode-Einlöser",
+    "giftDesc": "Löse Geschenkcodes mit einem Klick ein. Kein Kopieren und Einfügen. Belohnungen direkt in deinem Postfach.",
+    "giftTagline": "Hör auf zu tippen. Fang an einzulösen.",
+    "transferTitle": "Transfer-Hub",
+    "transferDesc": "Finde dein nächstes Königreich — oder die richtigen Spieler. Durchsuche Angebote, erstelle ein Transfer-Profil und bewirb dich direkt. Keine blinden Transfers mehr.",
+    "transferTagline": "Echte Daten. Echte Bewerbungen. Null Rätselraten."
   },
   "battlePlanner": {
     "pageTitle": "KvK-Kampfplaner",

@@ -159,12 +159,12 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isActive, user, profile, isAdmi
       <button
         onClick={() => setShowMobileToolsMenu(!showMobileToolsMenu)}
         style={{
-          color: (isActive('/tools') || isActive('/compare') || isActive('/atlas-bot')) ? '#22d3ee' : '#9ca3af',
+          color: (isActive('/tools') || isActive('/compare') || isActive('/atlas-bot') || isActive('/transfer-hub') || isActive('/transfer-hub/about')) ? '#22d3ee' : '#9ca3af',
           textDecoration: 'none',
           fontSize: '1rem',
           padding: '0.75rem 1rem',
           borderRadius: '8px',
-          backgroundColor: (isActive('/tools') || isActive('/compare') || isActive('/atlas-bot')) ? '#111' : 'transparent',
+          backgroundColor: (isActive('/tools') || isActive('/compare') || isActive('/atlas-bot') || isActive('/transfer-hub') || isActive('/transfer-hub/about')) ? '#111' : 'transparent',
           border: 'none',
           width: '100%',
           textAlign: 'left',
@@ -181,11 +181,14 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isActive, user, profile, isAdmi
       </button>
       {showMobileToolsMenu && (
         <>
-          <Link to="/atlas-bot" style={{ color: isActive('/atlas-bot') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.9rem', padding: '0.5rem 1rem 0.5rem 1.5rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ color: '#333' }}>└</span> {t('nav.atlasBot')}
+          <Link to="/transfer-hub/about" style={{ color: (isActive('/transfer-hub') || isActive('/transfer-hub/about')) ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.9rem', padding: '0.5rem 1rem 0.5rem 1.5rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ color: '#333' }}>└</span> {t('nav.transferHub')}
           </Link>
           <Link to="/tools/battle-planner" style={{ color: isActive('/tools/battle-planner') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.9rem', padding: '0.5rem 1rem 0.5rem 1.5rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span style={{ color: '#333' }}>└</span> {t('nav.kvkBattleCoordinator')}
+          </Link>
+          <Link to="/atlas-bot" style={{ color: isActive('/atlas-bot') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.9rem', padding: '0.5rem 1rem 0.5rem 1.5rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ color: '#333' }}>└</span> {t('nav.atlasBot')}
           </Link>
           <Link to="/gift-codes" style={{ color: isActive('/gift-codes') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.9rem', padding: '0.5rem 1rem 0.5rem 1.5rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span style={{ color: '#333' }}>└</span> {t('nav.giftCodeRedeemer')}
@@ -208,12 +211,12 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isActive, user, profile, isAdmi
       <button
         onClick={() => setShowMobileCommunityMenu(!showMobileCommunityMenu)}
         style={{
-          color: (isActive('/players') || isActive('/about') || isActive('/contribute-data') || isActive('/transfer-hub') || isActive('/ambassadors')) ? '#22d3ee' : '#9ca3af',
+          color: (isActive('/players') || isActive('/about') || isActive('/contribute-data') || isActive('/ambassadors')) ? '#22d3ee' : '#9ca3af',
           textDecoration: 'none',
           fontSize: '1rem',
           padding: '0.75rem 1rem',
           borderRadius: '8px',
-          backgroundColor: (isActive('/players') || isActive('/about') || isActive('/contribute-data') || isActive('/transfer-hub') || isActive('/ambassadors')) ? '#111' : 'transparent',
+          backgroundColor: (isActive('/players') || isActive('/about') || isActive('/contribute-data') || isActive('/ambassadors')) ? '#111' : 'transparent',
           border: 'none',
           width: '100%',
           textAlign: 'left',
@@ -230,9 +233,6 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isActive, user, profile, isAdmi
       </button>
       {showMobileCommunityMenu && (
         <>
-          <Link to="/transfer-hub" style={{ color: isActive('/transfer-hub') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.9rem', padding: '0.5rem 1rem 0.5rem 1.5rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ color: '#333' }}>└</span> {t('nav.transferHub')}
-          </Link>
           <Link to="/players" style={{ color: isActive('/players') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.9rem', padding: '0.5rem 1rem 0.5rem 1.5rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span style={{ color: '#333' }}>└</span> {t('nav.playerDirectory')}
           </Link>

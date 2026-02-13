@@ -262,14 +262,17 @@
     "rallyDesc": "Sincroniza tus rallies para que lleguen juntos. Establece orden de ataque, tiempos de marcha y ventanas de retraso — para que tu alianza ataque como uno.",
     "rallyTagline": "Destrucción sincronizada. Sin adivinanzas.",
     "appointmentTitle": "Programador de Citas",
-    "appointmentDesc": "Programa las Citas del Rey en tu reino durante la Fase de Preparación. Maximiza las ranuras de buff, evita superposiciones y aprovecha cada 30 minutos.",
+    "appointmentDesc": "Programa las Citas del Rey en todo tu reino durante la Fase de Preparación. Maximiza los espacios de buff, evita solapamientos y aprovecha cada 30 minutos.",
     "appointmentTagline": "La precisión gana guerras.",
     "calcTitle": "Calculadoras de Juego",
-    "calcDesc": "Planificadores de recursos, costos de mejora, estimaciones de aceleración. Matemáticas para que tú no tengas que hacerlas.",
+    "calcDesc": "Planificadores de recursos, costes de mejora, estimaciones de aceleración. Matemáticas para que no tengas que hacerlas.",
     "calcTagline": "Calcula más inteligente. Crece más rápido.",
-    "giftTitle": "Canjeador de Códigos de Regalo",
-    "giftDesc": "Canjea códigos de regalo en masa en todas tus cuentas. Un clic. Múltiples cuentas. Cero complicaciones.",
-    "giftTagline": "Deja de teclear. Empieza a canjear."
+    "giftTitle": "Canjeador de Códigos",
+    "giftDesc": "Canjea códigos de regalo con un clic. Sin copiar y pegar. Las recompensas van directo a tu buzón.",
+    "giftTagline": "Deja de escribir. Empieza a reclamar.",
+    "transferTitle": "Centro de Transferencias",
+    "transferDesc": "Encuentra tu próximo reino — o a los jugadores adecuados. Explora listados, crea un perfil de transferencia y postula directamente. Se acabaron las transferencias a ciegas.",
+    "transferTagline": "Datos reales. Postulaciones reales. Cero adivinanzas."
   },
   "battlePlanner": {
     "pageTitle": "Planificador de Batalla KvK",

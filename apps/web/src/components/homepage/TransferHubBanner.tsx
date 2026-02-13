@@ -114,7 +114,7 @@ const TransferHubBanner: React.FC = () => {
           <button
             onClick={() => {
               trackFeature('Transfer Banner CTA Clicked');
-              navigate('/transfer-hub');
+              navigate('/transfer-hub/about');
             }}
             style={{
               padding: isMobile ? '0.6rem 1rem' : '0.65rem 1.25rem',
