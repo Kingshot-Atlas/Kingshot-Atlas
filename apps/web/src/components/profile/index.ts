@@ -1,3 +1,10 @@
 export { default as MiniKingdomCard } from './MiniKingdomCard';
 export { default as ReviewCard } from './ReviewCard';
 export { default as AllianceBadge } from './AllianceBadge';
+export { default as ProfileEditForm } from './ProfileEditForm';
+export type { EditForm } from './ProfileEditForm';
+export { default as ProfileStatsGrid } from './ProfileStatsGrid';
+export { default as AvatarWithFallback } from './AvatarWithFallback';
+export { default as ProfileLoadingFallback } from './ProfileLoadingFallback';
+export { default as SubscriptionSection } from './SubscriptionSection';
+export { getTierBorderColor, getAuthProvider } from './profileUtils';

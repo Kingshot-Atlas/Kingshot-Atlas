@@ -4,21 +4,24 @@ Endpoints for Discord OAuth, webhooks (patch notes, announcements, etc.)
 """
 
 import os
+import logging
 import httpx
 from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, Depends, Header, Request
 from pydantic import BaseModel, Field
 from typing import List, Optional
+from api.config import DISCORD_API_KEY, ENVIRONMENT, ADMIN_EMAILS
+
+logger = logging.getLogger("atlas.discord")
 
 router = APIRouter()
 
-# Discord OAuth2 configuration
+# Discord OAuth2 configuration (module-specific)
 DISCORD_CLIENT_ID = os.getenv("DISCORD_CLIENT_ID", "")
 DISCORD_CLIENT_SECRET = os.getenv("DISCORD_CLIENT_SECRET", "")
 
 # Webhook URL from environment
 DISCORD_WEBHOOK_URL = os.getenv("DISCORD_PATCH_NOTES_WEBHOOK")
-DISCORD_API_KEY = os.getenv("DISCORD_API_KEY")  # Simple API key for auth
 
 # Brand colors
 COLORS = {
@@ -67,11 +70,6 @@ class StatusRequest(BaseModel):
     message: str = Field(..., description="Status message")
 
 
-ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
-
-# Admin emails for JWT verification (shared with admin.py / bot.py)
-_default_admin_emails = 'gatreno@gmail.com,gatreno.investing@gmail.com'
-ADMIN_EMAILS = [e.strip() for e in os.getenv("ADMIN_EMAILS", _default_admin_emails).split(',') if e.strip()]
 
 
 def _verify_discord_api_key(x_api_key: Optional[str]) -> bool:
@@ -154,7 +152,7 @@ def log_discord_link_attempt(
             "user_agent": user_agent
         }).execute()
     except Exception as e:
-        print(f"Failed to log Discord link attempt: {e}")
+        logger.error("Failed to log Discord link attempt: %s", e)
 
 
 @router.post("/callback")
@@ -204,7 +202,7 @@ async def discord_oauth_callback(
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Auth error: {e}")
+        logger.error("Auth error: %s", e)
         log_discord_link_attempt(supabase, None, None, None, "failed",
                                   "auth_error", str(e), ip_address, user_agent)
         raise HTTPException(status_code=401, detail="Invalid token")
@@ -225,7 +223,7 @@ async def discord_oauth_callback(
         
         if token_response.status_code != 200:
             error_text = token_response.text
-            print(f"Discord token exchange failed: {error_text}")
+            logger.error("Discord token exchange failed: %s", error_text)
             log_discord_link_attempt(supabase, user_id, None, None, "failed",
                                       "token_exchange_failed", error_text[:500], ip_address, user_agent)
             raise HTTPException(status_code=400, detail="Failed to exchange Discord code")
@@ -246,7 +244,7 @@ async def discord_oauth_callback(
         
         if user_response.status_code != 200:
             error_text = user_response.text
-            print(f"Discord user fetch failed: {error_text}")
+            logger.error("Discord user fetch failed: %s", error_text)
             log_discord_link_attempt(supabase, user_id, None, None, "failed",
                                       "user_fetch_failed", error_text[:500], ip_address, user_agent)
             raise HTTPException(status_code=400, detail="Failed to get Discord user info")
@@ -270,14 +268,14 @@ async def discord_oauth_callback(
         }).eq("id", user_id).execute()
         
         if not result.data:
-            print(f"Profile update returned no data for user {user_id} - profile may not exist")
+            logger.warning("Profile update returned no data for user %s - profile may not exist", user_id)
             log_discord_link_attempt(supabase, user_id, discord_id, discord_username, "failed",
                                       "profile_not_found", f"No profile found for user {user_id}", ip_address, user_agent)
             raise HTTPException(status_code=404, detail="Profile not found - please sign out and sign in again")
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Failed to update profile: {e}")
+        logger.error("Failed to update profile: %s", e)
         log_discord_link_attempt(supabase, user_id, discord_id, discord_username, "failed",
                                   "profile_update_failed", str(e), ip_address, user_agent)
         raise HTTPException(status_code=500, detail="Failed to save Discord info")
@@ -286,7 +284,7 @@ async def discord_oauth_callback(
     log_discord_link_attempt(supabase, user_id, discord_id, discord_username, "success",
                               None, None, ip_address, user_agent)
     
-    print(f"Discord linked: user={user_id}, discord_id={discord_id}, username={discord_username}")
+    logger.info("Discord linked: user=%s, discord_id=%s, username=%s", user_id, discord_id, discord_username)
     
     return {
         "success": True,
@@ -335,7 +333,7 @@ async def get_discord_link_attempts(
             "success_rate": round(success_count / len(attempts) * 100, 1) if attempts else 0
         }
     except Exception as e:
-        print(f"Failed to fetch link attempts: {e}")
+        logger.error("Failed to fetch link attempts: %s", e)
         raise HTTPException(status_code=500, detail="Failed to fetch link attempts")
 
 

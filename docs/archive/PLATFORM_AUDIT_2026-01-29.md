@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL — 2026-01-29** | Platform has migrated (Supabase, Cloudflare Pages, Render). See `INFRASTRUCTURE.md` for current architecture.
+
 # Platform Engineering Audit Report
 
 **Date:** 2026-01-29  

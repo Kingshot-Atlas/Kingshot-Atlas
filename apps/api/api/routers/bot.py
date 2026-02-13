@@ -5,32 +5,29 @@ Endpoints for managing the Atlas Discord bot from the admin dashboard
 
 import os
 import asyncio
+import logging
 import httpx
 from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, HTTPException, Depends, Header, Request
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 import hashlib
+from api.config import DISCORD_BOT_TOKEN, DISCORD_API_KEY, DISCORD_API_PROXY, DISCORD_PROXY_KEY, ENVIRONMENT, ADMIN_EMAILS
 from api.supabase_client import get_supabase_admin
+
+logger = logging.getLogger("atlas.bot")
 
 router = APIRouter()
 
-# Discord Bot Token for API calls
-DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
-DISCORD_API_KEY = os.getenv("DISCORD_API_KEY")
-
-# Cloudflare Worker proxy to bypass Render IP bans (Error 1015)
-DISCORD_API_PROXY = os.getenv("DISCORD_API_PROXY", "")
-DISCORD_PROXY_KEY = os.getenv("DISCORD_PROXY_KEY", "")
+# Discord API base URL (proxy if configured, else direct)
 DISCORD_API_BASE = DISCORD_API_PROXY or "https://discord.com"
 
 # Startup warning if proxy is not configured
 if not DISCORD_API_PROXY:
-    print("⚠️  WARNING: DISCORD_API_PROXY not set. Discord API calls will go directly to discord.com.")
-    print("   Render's shared IP may get Cloudflare Error 1015 (IP ban).")
-    print("   Set DISCORD_API_PROXY=https://atlas-discord-proxy.gatreno-investing.workers.dev")
+    logger.warning("DISCORD_API_PROXY not set. Discord API calls will go directly to discord.com. "
+                   "Render's shared IP may get Cloudflare Error 1015 (IP ban).")
 else:
-    print(f"✅ Discord API proxy configured: {DISCORD_API_PROXY[:40]}...")
+    logger.info("Discord API proxy configured: %s...", DISCORD_API_PROXY[:40])
 
 
 # ---------------------------------------------------------------------------
@@ -171,11 +168,6 @@ COLORS = {
 }
 
 
-ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
-
-# Admin emails for JWT verification (shared with admin.py)
-_default_admin_emails = 'gatreno@gmail.com,gatreno.investing@gmail.com'
-ADMIN_EMAILS = [e.strip() for e in os.getenv("ADMIN_EMAILS", _default_admin_emails).split(',') if e.strip()]
 
 # In-memory rate limiter for bot admin endpoints
 _rate_limit_store: Dict[str, list] = {}
@@ -402,7 +394,7 @@ async def get_bot_status(_: bool = Depends(require_bot_admin)):
         _cache.set("bot_status", result, ttl_seconds=300)
         return result
     except Exception as e:
-        print(f"ERROR in /status: {e}")
+        logger.error("Error in /status: %s", e)
         return {
             "status": "error",
             "message": "Failed to connect to Discord API",
@@ -456,7 +448,7 @@ async def get_bot_servers(_: bool = Depends(require_bot_admin)):
         _cache.set("servers_list", result, ttl_seconds=300)
         return result
     except Exception as e:
-        print(f"ERROR in /servers: {e}")
+        logger.error("Error in /servers: %s", e)
         return {"servers": [], "total": 0, "error": "Failed to fetch server list"}
 
 
@@ -499,7 +491,7 @@ async def get_server_channels(server_id: str, _: bool = Depends(require_bot_admi
     except HTTPException:
         raise
     except Exception as e:
-        print(f"ERROR in /servers/channels: {e}")
+        logger.error("Error in /servers/channels: %s", e)
         raise HTTPException(status_code=500, detail="Failed to fetch channels")
 
 
@@ -554,7 +546,7 @@ async def send_message(data: SendMessageRequest, _: bool = Depends(require_bot_a
     except HTTPException:
         raise
     except Exception as e:
-        print(f"ERROR in /send-message: {e}")
+        logger.error("Error in /send-message: %s", e)
         raise HTTPException(status_code=500, detail="Failed to send message")
 
 
@@ -615,7 +607,7 @@ async def get_bot_stats(_: bool = Depends(require_bot_admin)):
                     reverse=True
                 )[:5]
             except Exception as e:
-                print(f"WARNING: Failed to read command stats from Supabase: {e}")
+                logger.warning("Failed to read command stats from Supabase: %s", e)
         
         return {
             "status": "online",
@@ -625,7 +617,7 @@ async def get_bot_stats(_: bool = Depends(require_bot_admin)):
             "top_commands": top_commands
         }
     except Exception as e:
-        print(f"ERROR in /stats: {e}")
+        logger.error("Error in /stats: %s", e)
         return {
             "status": "error",
             "message": "Failed to fetch bot statistics",
@@ -756,7 +748,7 @@ async def get_bot_analytics(_: bool = Depends(require_bot_admin)):
             "time_series": time_series,
         }
     except Exception as e:
-        print(f"ERROR in /analytics: {e}")
+        logger.error("Error in /analytics: %s", e)
         return {"error": "Failed to compute analytics"}
 
 
@@ -807,7 +799,7 @@ async def log_multirally(
                 "is_supporter": data.is_supporter,
             }).execute()
         except Exception as e:
-            print(f"WARNING: Failed to log multirally analytics: {e}")
+            logger.warning("Failed to log multirally analytics: %s", e)
 
     return {"success": True}
 
@@ -849,7 +841,7 @@ async def get_multirally_analytics(_: bool = Depends(require_bot_admin)):
             "supporter_ratio": round(supporters / total * 100, 1) if total else 0,
         }
     except Exception as e:
-        print(f"ERROR in /multirally-analytics: {e}")
+        logger.error("Error in /multirally-analytics: %s", e)
         return {"error": "Failed to compute multirally analytics"}
 
 
@@ -936,7 +928,7 @@ async def get_redeem_stats(_: bool = Depends(require_bot_admin)):
             "error_breakdown": error_breakdown,
         }
     except Exception as e:
-        print(f"ERROR in /redeem-stats: {e}")
+        logger.error("Error in /redeem-stats: %s", e)
         return {"error": "Failed to compute redeem stats"}
 
 
@@ -1028,7 +1020,7 @@ async def log_command(
                 row["latency_ms"] = data.latency_ms
             client.table("bot_command_usage").insert(row).execute()
         except Exception as e:
-            print(f"WARNING: Failed to log command to Supabase: {e}")
+            logger.warning("Failed to log command to Supabase: %s", e)
     
     return {"success": True}
 
@@ -1195,7 +1187,7 @@ async def backfill_settler_roles(_: bool = Depends(require_bot_admin)):
                     "reason": result.get("error", "Unknown"),
                 })
         except Exception as e:
-            print(f"ERROR in /backfill-settler-roles for user {user_id}: {e}")
+            logger.error("Error in /backfill-settler-roles for user %s: %s", user_id, e)
             results["failed"] += 1
             results["details"].append({
                 "user_id": user_id,
@@ -1207,7 +1199,7 @@ async def backfill_settler_roles(_: bool = Depends(require_bot_admin)):
     results["success"] = results["failed"] == 0
     results["message"] = f"Backfill complete: {results['assigned']} assigned, {results['skipped']} skipped, {results['failed']} failed"
     
-    print(f"Settler role backfill: {results['message']}")
+    logger.info("Settler role backfill: %s", results['message'])
     
     return results
 
@@ -1272,7 +1264,7 @@ async def backfill_supporter_roles(_: bool = Depends(require_bot_admin)):
                     "reason": result.get("error", "Unknown"),
                 })
         except Exception as e:
-            print(f"ERROR in /backfill-supporter-roles for user {user_id}: {e}")
+            logger.error("Error in /backfill-supporter-roles for user %s: %s", user_id, e)
             results["failed"] += 1
             results["details"].append({
                 "user_id": user_id,
@@ -1284,7 +1276,7 @@ async def backfill_supporter_roles(_: bool = Depends(require_bot_admin)):
     results["success"] = results["failed"] == 0
     results["message"] = f"Supporter backfill: {results['assigned']} assigned, {results['skipped']} skipped, {results['failed']} failed"
     
-    print(f"Supporter role backfill: {results['message']}")
+    logger.info("Supporter role backfill: %s", results['message'])
     
     return results
 
@@ -1312,7 +1304,7 @@ async def leave_server(server_id: str, _: bool = Depends(require_bot_admin)):
     except HTTPException:
         raise
     except Exception as e:
-        print(f"ERROR in /leave-server: {e}")
+        logger.error("Error in /leave-server: %s", e)
         raise HTTPException(status_code=500, detail="Failed to leave server")
 
 
@@ -1440,7 +1432,7 @@ async def discord_diagnostic(_: bool = Depends(require_bot_admin)):
                 }
                     
     except Exception as e:
-        print(f"ERROR in /discord-diagnostic: {e}")
+        logger.error("Error in /discord-diagnostic: %s", e)
         results["tests"]["connection"] = {
             "status": "FAIL",
             "error": "Discord API connection failed"
@@ -1510,7 +1502,7 @@ async def check_multirally_credits(
             "is_supporter": False,
         }
     except Exception as e:
-        print(f"WARNING: Failed to check multirally credits: {e}")
+        logger.warning("Failed to check multirally credits: %s", e)
         return {"allowed": True, "remaining": MULTIRALLY_DAILY_LIMIT, "is_supporter": False}
 
 
@@ -1556,7 +1548,7 @@ async def increment_multirally_credits(
         remaining = max(0, MULTIRALLY_DAILY_LIMIT - new_count) if not data.is_supporter else -1
         return {"success": True, "usage_count": new_count, "remaining": remaining}
     except Exception as e:
-        print(f"WARNING: Failed to increment multirally credits: {e}")
+        logger.warning("Failed to increment multirally credits: %s", e)
         return {"success": False, "error": str(e)}
 
 
@@ -1629,7 +1621,7 @@ async def get_bot_telemetry(
 
         return {"events": events, "summary": summary}
     except Exception as e:
-        print(f"ERROR in /telemetry: {e}")
+        logger.error("Error in /telemetry: %s", e)
         return {"events": [], "summary": {}, "error": str(e)}
 
 
@@ -1694,5 +1686,5 @@ async def get_multirally_stats(
             "month": {"uses": month_uses, "users": month_users},
         }
     except Exception as e:
-        print(f"ERROR in /multirally-stats: {e}")
+        logger.error("Error in /multirally-stats: %s", e)
         return {"error": str(e)}

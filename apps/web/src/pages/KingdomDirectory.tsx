@@ -20,7 +20,7 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { useAuth } from '../contexts/AuthContext';
 import { useFavoritesContext } from '../contexts/FavoritesContext';
-import { neonGlow } from '../utils/styles';
+import { neonGlow, colors } from '../utils/styles';
 import { countActiveFilters, DEFAULT_FILTERS } from '../utils/kingdomStats';
 import { DataSyncIndicator } from '../components/DataSyncIndicator';
 import QuickActions from '../components/homepage/QuickActions';
@@ -359,7 +359,7 @@ const KingdomDirectory: React.FC = () => {
   }, [displayCount, filteredKingdoms.length, loading, loadingMore, handleLoadMore]);
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a', paddingBottom: '100px' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: colors.bg, paddingBottom: '100px' }}>
       <style>{`
         @keyframes chipPop {
           0% { transform: scale(0.92); opacity: 0.7; }
@@ -392,7 +392,7 @@ const KingdomDirectory: React.FC = () => {
             <span style={{ color: '#fff' }}>KINGSHOT</span>
             <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>ATLAS</span>
           </h1>
-          <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.75rem' : '0.85rem', marginBottom: '0.75rem', lineHeight: 1.6, fontStyle: 'italic' }}>
+          <p style={{ color: colors.textSecondary, fontSize: isMobile ? '0.75rem' : '0.85rem', marginBottom: '0.75rem', lineHeight: 1.6, fontStyle: 'italic' }}>
             {t('home.subtitle').split('\n').map((line, i) => <React.Fragment key={i}>{i > 0 && <br />}{line}</React.Fragment>)}
           </p>
           
@@ -424,7 +424,7 @@ const KingdomDirectory: React.FC = () => {
         position: 'sticky', 
         top: isMobile ? '56px' : '60px', 
         zIndex: 50, 
-        backgroundColor: '#0a0a0a', 
+        backgroundColor: colors.bg, 
         paddingTop: isMobile ? '0.5rem' : '1rem',
         paddingBottom: '0.5rem'
       }}>
@@ -480,32 +480,6 @@ const KingdomDirectory: React.FC = () => {
                 </svg>
                 {t('common.filter')}{countActiveFilters(filters) > 0 && ` (${countActiveFilters(filters)})`}
               </button>
-              {/* Transfer Group filter - Mobile */}
-              <select
-                value={transferGroupFilter}
-                onChange={(e) => setTransferGroupFilter(e.target.value)}
-                style={{
-                  flex: 1.2,
-                  padding: '0.6rem 1.5rem 0.6rem 0.5rem',
-                  minHeight: '44px',
-                  backgroundColor: transferGroupFilter !== 'all' ? '#22d3ee10' : '#0a0a0a',
-                  border: `1px solid ${transferGroupFilter !== 'all' ? '#22d3ee40' : '#2a2a2a'}`,
-                  borderRadius: '8px',
-                  color: transferGroupFilter !== 'all' ? '#22d3ee' : '#9ca3af',
-                  fontSize: '0.8rem',
-                  cursor: 'pointer',
-                  appearance: 'none',
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
-                  backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'right 0.3rem center',
-                  backgroundSize: '0.8rem',
-                }}
-              >
-                <option value="all">{t('home.allTransferGroups', 'Transfer Group')}</option>
-                {getTransferGroupOptions().map((opt) => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
               <select value={sort.sortBy} onChange={(e) => setSort({ ...sort, sortBy: e.target.value as SortOptions['sortBy'] })} style={{ flex: 1.5, padding: '0.6rem 1.5rem 0.6rem 0.5rem', minHeight: '44px', backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '8px', color: '#fff', fontSize: '1rem', cursor: 'pointer', appearance: 'none', backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.3rem center', backgroundSize: '0.8rem' }}>
                 <option value="overall_score">{t('stats.atlasScore')}</option>
                 <option value="kingdom_number">{t('home.sortKingdomNumber')}</option>
@@ -549,7 +523,7 @@ const KingdomDirectory: React.FC = () => {
           </button>
 
           {/* View Toggle */}
-          <div style={{ display: 'flex', backgroundColor: '#0a0a0a', borderRadius: '8px', padding: '4px' }}>
+          <div style={{ display: 'flex', backgroundColor: colors.bg, borderRadius: '8px', padding: '4px' }}>
             <button onClick={() => setViewMode('grid')} style={{ padding: '0.6rem', backgroundColor: viewMode === 'grid' ? '#2a2a2a' : 'transparent', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background-color 0.2s' }}>
               <svg style={{ width: '18px', height: '18px', color: viewMode === 'grid' ? '#fff' : '#6b7280' }} fill="currentColor" viewBox="0 0 24 24">
                 <path d="M4 4h4v4H4V4zm6 0h4v4h-4V4zm6 0h4v4h-4V4zM4 10h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4zM4 16h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4z" />
@@ -572,7 +546,7 @@ const KingdomDirectory: React.FC = () => {
 
           {/* Sort Dropdown */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ color: '#6b7280', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>{t('home.sortLabel')}</span>
+            <span style={{ color: colors.textMuted, fontSize: '0.9rem', whiteSpace: 'nowrap' }}>{t('home.sortLabel')}</span>
             <select value={sort.sortBy} onChange={(e) => setSort({ ...sort, sortBy: e.target.value as SortOptions['sortBy'] })} style={{ padding: '0.75rem 2rem 0.75rem 1rem', backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '8px', color: '#fff', fontSize: '0.9rem', cursor: 'pointer', appearance: 'none', backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1rem' }}>
               <option value="overall_score">{t('stats.atlasScore')}</option>
               <option value="kingdom_number">{t('home.sortKingdomNumber')}</option>
@@ -598,12 +572,38 @@ const KingdomDirectory: React.FC = () => {
         {/* Results Count + Quick Filter Chips - Below Search */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem', marginTop: '0.75rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <span style={{ color: '#6b7280', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
+            <span style={{ color: colors.textMuted, fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
               {t('kingdomDirectory.showing', 'Showing')} <span style={{ ...neonGlow('#22d3ee'), fontWeight: '600' }}>{displayedKingdoms.length}</span> {t('kingdomDirectory.of', 'of')} {filteredKingdoms.length} {t('kingdomDirectory.kingdoms', 'kingdoms')}
               {showFavoritesOnly && <span style={{ color: '#22d3ee' }}> (Favorites)</span>}
             </span>
             <DataSyncIndicator compact />
           </div>
+          {/* Transfer Group filter - Mobile (in results count row) */}
+          {isMobile && (
+            <select
+              value={transferGroupFilter}
+              onChange={(e) => setTransferGroupFilter(e.target.value)}
+              style={{
+                padding: '0.4rem 1.4rem 0.4rem 0.5rem',
+                backgroundColor: transferGroupFilter !== 'all' ? '#22d3ee10' : '#0a0a0a',
+                border: `1px solid ${transferGroupFilter !== 'all' ? '#22d3ee40' : '#2a2a2a'}`,
+                borderRadius: '6px',
+                color: transferGroupFilter !== 'all' ? '#22d3ee' : '#9ca3af',
+                fontSize: '0.75rem',
+                cursor: 'pointer',
+                appearance: 'none',
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'right 0.3rem center',
+                backgroundSize: '0.7rem',
+              }}
+            >
+              <option value="all">{t('home.allTransferGroups', 'Transfer Group')}</option>
+              {getTransferGroupOptions().map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          )}
           
           {/* Quick Filter Chips - Desktop only */}
           {!isMobile && (
@@ -778,7 +778,7 @@ const KingdomDirectory: React.FC = () => {
                     backgroundColor: 'transparent',
                     border: '1px solid #2a2a2a',
                     borderRadius: '4px',
-                    color: '#6b7280',
+                    color: colors.textMuted,
                     cursor: 'pointer',
                     fontSize: '0.75rem',
                     fontWeight: '500',
@@ -923,7 +923,7 @@ const KingdomDirectory: React.FC = () => {
                   </svg>
                 </div>
                 <h3 style={{ color: '#fff', fontSize: '1.25rem', marginBottom: '0.5rem' }}>{t('home.noFavoritesTitle')}</h3>
-                <p style={{ color: '#9ca3af', fontSize: '0.9rem', maxWidth: '420px', margin: '0 auto 1.5rem', lineHeight: '1.5' }}>
+                <p style={{ color: colors.textSecondary, fontSize: '0.9rem', maxWidth: '420px', margin: '0 auto 1.5rem', lineHeight: '1.5' }}>
                   Track the kingdoms that matter to you. Click the <span style={{ color: '#ef4444' }}>★</span> on any kingdom card to add it to your watchlist.
                 </p>
                 <button
@@ -949,7 +949,7 @@ const KingdomDirectory: React.FC = () => {
               <>
                 <div style={{ fontSize: '3rem', marginBottom: '1rem', opacity: 0.5 }}>🔍</div>
                 <h3 style={{ color: '#fff', fontSize: '1.25rem', marginBottom: '0.5rem' }}>{t('home.noKingdomsTitle')}</h3>
-                <p style={{ color: '#6b7280', fontSize: '0.9rem', marginBottom: '1.5rem', maxWidth: '400px', margin: '0 auto 1.5rem' }}>
+                <p style={{ color: colors.textMuted, fontSize: '0.9rem', marginBottom: '1.5rem', maxWidth: '400px', margin: '0 auto 1.5rem' }}>
                   {debouncedSearch ? 
                     `No kingdoms match "${debouncedSearch}". Try a different search term.` :
                     countActiveFilters(filters) > 0 ?
@@ -1023,7 +1023,7 @@ const KingdomDirectory: React.FC = () => {
         {/* Loading indicator for infinite scroll */}
         {loadingMore && displayCount < filteredKingdoms.length && (
           <div style={{ textAlign: 'center', padding: '2rem' }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: '#6b7280' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: colors.textMuted }}>
               <span className="loading-spinner" style={{ width: '20px', height: '20px', borderWidth: '2px' }} />
               <span>Loading more kingdoms...</span>
             </div>
@@ -1032,7 +1032,7 @@ const KingdomDirectory: React.FC = () => {
         
         {/* End of list indicator */}
         {displayCount >= filteredKingdoms.length && filteredKingdoms.length > 0 && !loading && (
-          <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280', fontSize: '0.9rem' }}>
+          <div style={{ textAlign: 'center', padding: '2rem', color: colors.textMuted, fontSize: '0.9rem' }}>
             {t('kingdomDirectory.showingAll', 'Showing all')} {filteredKingdoms.length} {t('kingdomDirectory.kingdoms', 'kingdoms')}
           </div>
         )}
@@ -1111,8 +1111,8 @@ const KingdomDirectory: React.FC = () => {
           top: '56px',
           bottom: 0,
           width: '320px',
-          backgroundColor: '#0a0a0a',
-          borderLeft: '1px solid #2a2a2a',
+          backgroundColor: colors.bg,
+          borderLeft: `1px solid ${colors.border}`,
           padding: '1rem',
           overflowY: 'auto',
           zIndex: 80

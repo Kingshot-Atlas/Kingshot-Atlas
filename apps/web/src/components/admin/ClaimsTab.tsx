@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Claim } from './types';
+import { colors } from '../../utils/styles';
 
 interface ClaimsTabProps {
   claims: Claim[];
@@ -23,7 +24,7 @@ export const ClaimsTab: React.FC<ClaimsTabProps> = ({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       {claims.map((claim) => (
-        <div key={claim.id} style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', border: '1px solid #2a2a2a' }}>
+        <div key={claim.id} style={{ backgroundColor: colors.cardAlt, borderRadius: '12px', padding: '1.5rem', border: '1px solid #2a2a2a' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
             <span style={{ color: '#22d3ee', fontWeight: 600, fontSize: '1.25rem' }}>Kingdom {claim.kingdom_number}</span>
             <div style={{ 

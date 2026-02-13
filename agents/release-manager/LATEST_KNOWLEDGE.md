@@ -1,6 +1,6 @@
 # Release Manager — Latest Knowledge
 
-**Last Updated:** 2026-01-28  
+**Last Updated:** 2026-02-13  
 **Purpose:** Best practices for release communications and patch notes
 
 ---
@@ -105,48 +105,36 @@ Examples:
 
 ---
 
-## Changelog Format
+## Changelog Architecture (ADR-020, 2026-02-13)
 
-### Recommended Structure
-```markdown
-# Changelog
-
-All notable changes to Kingshot Atlas.
-
-## [2026-01-28]
-
-### ✨ New
-- Player power history chart
-- Kingdom event countdown timers
-
-### 🐛 Fixed
-- Search with special characters
-- Timezone display in KvK schedule
-
-### 🔧 Improved
-- Faster player card loading
-- Better mobile navigation
-
----
-
-## [2026-01-25]
-
-### ✨ New
-- Player search functionality
-
-### 🐛 Fixed
-- Alliance name display
-
----
+### Single Source of Truth
+```
+apps/web/src/data/changelog.json  ← EDIT THIS (add entry at top)
+        │
+        ├──→ Changelog.tsx (imports JSON, renders React page)
+        │
+        └──→ npm run changelog:sync → docs/CHANGELOG.md (auto-generated)
 ```
 
-### Version Numbers (Optional)
-If using semantic versioning:
+### How to Add a Changelog Entry
+1. Edit `apps/web/src/data/changelog.json` — add new object at top of array
+2. Format: `{ "date": "Month DD, YYYY", "version": "X.Y.Z", "new": [...], "fixed": [...], "improved": [...] }`
+3. Run `npm run changelog:sync` from `apps/web/` to regenerate CHANGELOG.md
+4. Run `npm run changelog:check` to verify sync (also runs in CI)
+
+### Gotchas
+- **DO NOT** edit `Changelog.tsx` inline data — it imports from JSON
+- **DO NOT** edit `docs/CHANGELOG.md` manually — it gets overwritten by sync
+- Multiple same-day entries (e.g., "Jan 29 (Evening)") are merged in markdown output
+- Entries before 2026-02-01 are excluded from sync checks
+- Feb 14, 2026 is in the allow-list (internal refactoring, not user-facing)
+- CI runs `lint:consistency:strict` which catches date drift
+
+### Version Numbers
+Using semantic versioning:
 - **Major (1.0.0):** Breaking changes or major features
 - **Minor (0.1.0):** New features
 - **Patch (0.0.1):** Bug fixes
-
-For Kingshot Atlas, date-based releases are fine.
 
 ---
 

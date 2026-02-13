@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useToast } from './Toast';
 import { colors, neonGlow, transition, subscriptionColors } from '../utils/styles';
-import { Button } from './shared';
+import { Button, Card } from './shared';
 import { supabase } from '../lib/supabase';
 import { useTranslation } from 'react-i18next';
 
@@ -345,13 +345,10 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
   // If already linked, show linked account view
   if (linkedPlayer) {
     return (
-      <div
-        style={{
-          backgroundColor: colors.card,
-          borderRadius: '16px',
-          padding: isMobile ? '1rem' : '1.5rem',
-          border: `1px solid ${colors.success}40`,
-        }}
+      <Card
+        borderColor={`${colors.success}40`}
+        padding={{ mobile: '1rem', desktop: '1.5rem' }}
+        style={{ backgroundColor: colors.card, borderRadius: '16px' }}
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
           <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '600', color: colors.text }}>
@@ -510,20 +507,17 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
             {error}
           </div>
         )}
-      </div>
+      </Card>
     );
   }
 
   // Preview mode - show fetched data for confirmation
   if (previewData) {
     return (
-      <div
-        style={{
-          backgroundColor: colors.card,
-          borderRadius: '16px',
-          padding: isMobile ? '1rem' : '1.5rem',
-          border: `1px solid ${colors.primary}40`,
-        }}
+      <Card
+        borderColor={`${colors.primary}40`}
+        padding={{ mobile: '1rem', desktop: '1.5rem' }}
+        style={{ backgroundColor: colors.card, borderRadius: '16px' }}
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
           <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '600', color: colors.text }}>
@@ -613,19 +607,15 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
             {t('common.cancel', 'Cancel')}
           </button>
         </div>
-      </div>
+      </Card>
     );
   }
 
   // Default: Input mode
   return (
-    <div
-      style={{
-        backgroundColor: colors.card,
-        borderRadius: '16px',
-        padding: isMobile ? '1rem' : '1.5rem',
-        border: `1px solid ${colors.border}`,
-      }}
+    <Card
+      padding={{ mobile: '1rem', desktop: '1.5rem' }}
+      style={{ backgroundColor: colors.card, borderRadius: '16px' }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
         <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '600', color: colors.text }}>
@@ -731,7 +721,7 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
       >
         {isLoading ? t('linkAccount.verifying', 'Verifying...') : t('linkAccount.verifyPlayerId', 'Verify Player ID')}
       </Button>
-    </div>
+    </Card>
   );
 };
 

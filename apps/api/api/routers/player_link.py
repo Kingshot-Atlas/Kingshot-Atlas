@@ -12,6 +12,7 @@ Endpoints:
 import hashlib
 import time
 import os
+import logging
 import httpx
 import asyncio
 from fastapi import APIRouter, HTTPException, Request
@@ -19,6 +20,8 @@ from pydantic import BaseModel, Field
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from api.supabase_client import log_gift_code_redemption, get_gift_codes_from_db, get_deactivated_gift_codes, upsert_gift_codes, add_manual_gift_code, deactivate_gift_code, mark_gift_code_expired
+
+logger = logging.getLogger("atlas.player_link")
 
 router = APIRouter()
 
@@ -31,7 +34,7 @@ async def notify_discord_new_gift_code(code: str):
     """Fire-and-forget: send a Discord webhook embed for a new gift code."""
     webhook_url = DISCORD_GIFT_CODES_WEBHOOK
     if not webhook_url:
-        print("[gift-codes] DISCORD_GIFT_CODES_WEBHOOK not set — skipping notification")
+        logger.info("[gift-codes] DISCORD_GIFT_CODES_WEBHOOK not set — skipping notification")
         return
     try:
         role_mention = f"<@&{DISCORD_GIFT_CODES_ROLE_ID}>" if DISCORD_GIFT_CODES_ROLE_ID else ""
@@ -55,11 +58,11 @@ async def notify_discord_new_gift_code(code: str):
         async with httpx.AsyncClient(timeout=10.0) as client:
             resp = await client.post(webhook_url, json=payload)
             if resp.status_code in (200, 204):
-                print(f"[gift-codes] \u2705 Discord notification sent for {code}")
+                logger.info("[gift-codes] Discord notification sent for %s", code)
             else:
-                print(f"[gift-codes] \u26a0\ufe0f Discord webhook returned {resp.status_code}: {resp.text[:200]}")
+                logger.warning("[gift-codes] Discord webhook returned %s: %s", resp.status_code, resp.text[:200])
     except Exception as e:
-        print(f"[gift-codes] \u274c Discord notification failed for {code}: {e}")
+        logger.error("[gift-codes] Discord notification failed for %s: %s", code, e)
 
 # Century Games API Configuration
 # Salt is loaded from environment variable with fallback to known public value
@@ -465,7 +468,7 @@ async def get_active_gift_codes(request: Request):
             try:
                 upsert_gift_codes(normalized, source="kingshot.net")
             except Exception as e:
-                print(f"[gift-codes] upsert sync failed: {e}")
+                logger.error("[gift-codes] upsert sync failed: %s", e)
 
             source = "merged"
     except Exception:

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 import { getAuthHeaders } from '../../services/authHeaders';
 import { useTranslation } from 'react-i18next';
+import { colors } from '../../utils/styles';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
@@ -218,7 +219,7 @@ export const GiftCodeAnalyticsTab: React.FC = () => {
 
   if (loading) {
     return (
-      <div style={{ padding: '2rem', color: '#6b7280', textAlign: 'center' }}>
+      <div style={{ padding: '2rem', color: colors.textMuted, textAlign: 'center' }}>
         Loading gift code analytics...
       </div>
     );
@@ -226,7 +227,7 @@ export const GiftCodeAnalyticsTab: React.FC = () => {
 
   if (!stats) {
     return (
-      <div style={{ padding: '2rem', color: '#6b7280', textAlign: 'center' }}>
+      <div style={{ padding: '2rem', color: colors.textMuted, textAlign: 'center' }}>
         Failed to load analytics data.
       </div>
     );
@@ -242,9 +243,9 @@ export const GiftCodeAnalyticsTab: React.FC = () => {
             onClick={() => setActiveSection(section)}
             style={{
               padding: '0.4rem 0.8rem',
-              backgroundColor: activeSection === section ? '#22d3ee20' : 'transparent',
-              color: activeSection === section ? '#22d3ee' : '#6b7280',
-              border: activeSection === section ? '1px solid #22d3ee40' : '1px solid #2a2a2a',
+              backgroundColor: activeSection === section ? `${colors.primary}20` : 'transparent',
+              color: activeSection === section ? colors.primary : colors.textMuted,
+              border: activeSection === section ? `1px solid ${colors.primary}40` : `1px solid ${colors.border}`,
               borderRadius: '6px',
               fontWeight: 600,
               cursor: 'pointer',
@@ -260,33 +261,33 @@ export const GiftCodeAnalyticsTab: React.FC = () => {
       {activeSection === 'manage' && (
         <div>
           {/* Add New Code Form */}
-          <div style={{ padding: '1rem', backgroundColor: '#111116', borderRadius: '10px', border: '1px solid #2a2a2a', marginBottom: '1rem' }}>
-            <div style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 600, marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          <div style={{ padding: '1rem', backgroundColor: colors.cardAlt, borderRadius: '10px', border: `1px solid ${colors.border}`, marginBottom: '1rem' }}>
+            <div style={{ fontSize: '0.75rem', color: colors.textSecondary, fontWeight: 600, marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Add Gift Code
             </div>
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
               <div style={{ flex: '1 1 180px' }}>
-                <label style={{ fontSize: '0.65rem', color: '#6b7280', display: 'block', marginBottom: '0.2rem' }}>Code *</label>
+                <label style={{ fontSize: '0.65rem', color: colors.textMuted, display: 'block', marginBottom: '0.2rem' }}>Code *</label>
                 <input
                   value={newCode}
                   onChange={e => setNewCode(e.target.value.toUpperCase())}
                   placeholder="e.g. KINGSHOT2026"
                   style={{
-                    width: '100%', padding: '0.4rem 0.6rem', backgroundColor: '#0a0a0a',
-                    border: '1px solid #2a2a2a', borderRadius: '6px', color: '#fff',
+                    width: '100%', padding: '0.4rem 0.6rem', backgroundColor: colors.bg,
+                    border: `1px solid ${colors.border}`, borderRadius: '6px', color: colors.text,
                     fontSize: '0.8rem', fontFamily: 'monospace', boxSizing: 'border-box',
                   }}
                 />
               </div>
               <div style={{ flex: '0 0 160px' }}>
-                <label style={{ fontSize: '0.65rem', color: '#6b7280', display: 'block', marginBottom: '0.2rem' }}>Expiry Date (optional)</label>
+                <label style={{ fontSize: '0.65rem', color: colors.textMuted, display: 'block', marginBottom: '0.2rem' }}>Expiry Date (optional)</label>
                 <input
                   type="date"
                   value={newExpiry}
                   onChange={e => setNewExpiry(e.target.value)}
                   style={{
-                    width: '100%', padding: '0.4rem 0.6rem', backgroundColor: '#0a0a0a',
-                    border: '1px solid #2a2a2a', borderRadius: '6px', color: '#fff',
+                    width: '100%', padding: '0.4rem 0.6rem', backgroundColor: colors.bg,
+                    border: `1px solid ${colors.border}`, borderRadius: '6px', color: colors.text,
                     fontSize: '0.8rem', boxSizing: 'border-box',
                   }}
                 />
@@ -296,9 +297,9 @@ export const GiftCodeAnalyticsTab: React.FC = () => {
                 disabled={!newCode.trim() || addingCode}
                 style={{
                   padding: '0.4rem 1rem',
-                  backgroundColor: newCode.trim() ? '#22c55e20' : '#1a1a1a',
-                  color: newCode.trim() ? '#22c55e' : '#4b5563',
-                  border: newCode.trim() ? '1px solid #22c55e40' : '1px solid #2a2a2a',
+                  backgroundColor: newCode.trim() ? `${colors.success}20` : colors.surfaceHover,
+                  color: newCode.trim() ? colors.success : colors.textMuted,
+                  border: newCode.trim() ? `1px solid ${colors.success}40` : `1px solid ${colors.border}`,
                   borderRadius: '6px',
                   fontWeight: 600,
                   cursor: newCode.trim() ? 'pointer' : 'not-allowed',
@@ -309,28 +310,28 @@ export const GiftCodeAnalyticsTab: React.FC = () => {
                 {addingCode ? 'Adding...' : '+ Add Code'}
               </button>
             </div>
-            <div style={{ fontSize: '0.6rem', color: '#4b5563', marginTop: '0.5rem' }}>
+            <div style={{ fontSize: '0.6rem', color: colors.textMuted, marginTop: '0.5rem' }}>
               Codes are automatically uppercased. Duplicates are handled via upsert (existing codes get updated).
             </div>
           </div>
 
           {/* Active Codes List */}
-          <div style={{ padding: '1rem', backgroundColor: '#111116', borderRadius: '10px', border: '1px solid #2a2a2a' }}>
+          <div style={{ padding: '1rem', backgroundColor: colors.cardAlt, borderRadius: '10px', border: `1px solid ${colors.border}` }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-              <div style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <div style={{ fontSize: '0.75rem', color: colors.textSecondary, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 All Gift Codes ({activeCodes.length})
               </div>
               <button
                 onClick={fetchActiveCodes}
-                style={{ padding: '0.25rem 0.5rem', backgroundColor: 'transparent', border: '1px solid #2a2a2a', borderRadius: '4px', color: '#6b7280', fontSize: '0.7rem', cursor: 'pointer' }}
+                style={{ padding: '0.25rem 0.5rem', backgroundColor: 'transparent', border: `1px solid ${colors.border}`, borderRadius: '4px', color: colors.textMuted, fontSize: '0.7rem', cursor: 'pointer' }}
               >
                 ↻ Refresh
               </button>
             </div>
             {loadingCodes ? (
-              <div style={{ color: '#6b7280', fontSize: '0.8rem', padding: '1rem', textAlign: 'center' }}>Loading...</div>
+              <div style={{ color: colors.textMuted, fontSize: '0.8rem', padding: '1rem', textAlign: 'center' }}>Loading...</div>
             ) : activeCodes.length === 0 ? (
-              <div style={{ color: '#4b5563', fontSize: '0.8rem', padding: '2rem', textAlign: 'center' }}>
+              <div style={{ color: colors.textMuted, fontSize: '0.8rem', padding: '2rem', textAlign: 'center' }}>
                 No gift codes in database yet. Add one above or they'll auto-sync from kingshot.net.
               </div>
             ) : (
@@ -339,31 +340,31 @@ export const GiftCodeAnalyticsTab: React.FC = () => {
                   <div key={c.id} style={{
                     display: 'flex', alignItems: 'center', gap: '0.5rem',
                     padding: '0.4rem 0.6rem', borderRadius: '6px',
-                    backgroundColor: c.is_active ? '#22c55e06' : '#ef444406',
-                    border: `1px solid ${c.is_active ? '#22c55e15' : '#ef444415'}`,
+                    backgroundColor: c.is_active ? `${colors.success}06` : `${colors.error}06`,
+                    border: `1px solid ${c.is_active ? `${colors.success}15` : `${colors.error}15`}`,
                     fontSize: '0.75rem',
                   }}>
                     <span style={{
                       width: '8px', height: '8px', borderRadius: '50%',
-                      backgroundColor: c.is_active ? '#22c55e' : '#ef4444',
+                      backgroundColor: c.is_active ? colors.success : colors.error,
                       flexShrink: 0,
                     }} />
-                    <span style={{ color: '#e5e7eb', fontFamily: 'monospace', fontWeight: 600, minWidth: '120px' }}>
+                    <span style={{ color: colors.text, fontFamily: 'monospace', fontWeight: 600, minWidth: '120px' }}>
                       {c.code}
                     </span>
-                    <span style={{ color: '#6b7280', flex: 1, fontSize: '0.65rem' }}>
+                    <span style={{ color: colors.textMuted, flex: 1, fontSize: '0.65rem' }}>
                       {new Date(c.created_at).toLocaleDateString()}
                     </span>
                     <span style={{
                       padding: '0.15rem 0.4rem', borderRadius: '4px', fontSize: '0.6rem', fontWeight: 600,
-                      backgroundColor: c.source === 'manual' ? '#f59e0b15' : '#3b82f615',
-                      color: c.source === 'manual' ? '#f59e0b' : '#3b82f6',
-                      border: `1px solid ${c.source === 'manual' ? '#f59e0b30' : '#3b82f630'}`,
+                      backgroundColor: c.source === 'manual' ? `${colors.orange}15` : `${colors.blue}15`,
+                      color: c.source === 'manual' ? colors.orange : colors.blue,
+                      border: `1px solid ${c.source === 'manual' ? `${colors.orange}30` : `${colors.blue}30`}`,
                     }}>
                       {c.source}
                     </span>
                     {c.expire_date && (
-                      <span style={{ color: '#4b5563', fontSize: '0.6rem' }}>
+                      <span style={{ color: colors.textMuted, fontSize: '0.6rem' }}>
                         exp {new Date(c.expire_date).toLocaleDateString()}
                       </span>
                     )}
@@ -371,9 +372,9 @@ export const GiftCodeAnalyticsTab: React.FC = () => {
                       onClick={() => c.is_active ? handleDeactivate(c.code) : handleActivate(c.code)}
                       style={{
                         padding: '0.2rem 0.5rem',
-                        backgroundColor: c.is_active ? '#ef444410' : '#22c55e10',
-                        color: c.is_active ? '#ef4444' : '#22c55e',
-                        border: `1px solid ${c.is_active ? '#ef444430' : '#22c55e30'}`,
+                        backgroundColor: c.is_active ? `${colors.error}10` : `${colors.success}10`,
+                        color: c.is_active ? colors.error : colors.success,
+                        border: `1px solid ${c.is_active ? `${colors.error}30` : `${colors.success}30`}`,
                         borderRadius: '4px',
                         fontSize: '0.6rem',
                         fontWeight: 600,
@@ -401,9 +402,9 @@ export const GiftCodeAnalyticsTab: React.FC = () => {
             onClick={() => setTimeRange(range)}
             style={{
               padding: '0.35rem 0.7rem',
-              backgroundColor: timeRange === range ? '#f59e0b20' : 'transparent',
-              color: timeRange === range ? '#f59e0b' : '#6b7280',
-              border: timeRange === range ? '1px solid #f59e0b40' : '1px solid transparent',
+              backgroundColor: timeRange === range ? `${colors.orange}20` : 'transparent',
+              color: timeRange === range ? colors.orange : colors.textMuted,
+              border: timeRange === range ? `1px solid ${colors.orange}40` : '1px solid transparent',
               borderRadius: '6px',
               fontWeight: 500,
               cursor: 'pointer',
@@ -418,16 +419,16 @@ export const GiftCodeAnalyticsTab: React.FC = () => {
       {/* Stats Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
         {[
-          { label: 'Last 24h', value: stats.total24h.toString(), color: '#22d3ee' },
-          { label: 'Total Redemptions', value: stats.totalAll.toString(), color: '#f59e0b' },
-          { label: 'Success Rate', value: `${stats.successRate.toFixed(1)}%`, color: stats.successRate >= 50 ? '#22c55e' : '#ef4444' },
-          { label: 'Unique Players', value: stats.uniquePlayers.toString(), color: '#a855f7' },
+          { label: 'Last 24h', value: stats.total24h.toString(), color: colors.primary },
+          { label: 'Total Redemptions', value: stats.totalAll.toString(), color: colors.orange },
+          { label: 'Success Rate', value: `${stats.successRate.toFixed(1)}%`, color: stats.successRate >= 50 ? colors.success : colors.error },
+          { label: 'Unique Players', value: stats.uniquePlayers.toString(), color: colors.purple },
         ].map(card => (
           <div key={card.label} style={{
-            padding: '0.75rem', backgroundColor: '#111116', borderRadius: '10px',
-            border: '1px solid #2a2a2a',
+            padding: '0.75rem', backgroundColor: colors.cardAlt, borderRadius: '10px',
+            border: `1px solid ${colors.border}`,
           }}>
-            <div style={{ fontSize: '0.65rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.3rem' }}>
+            <div style={{ fontSize: '0.65rem', color: colors.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.3rem' }}>
               {card.label}
             </div>
             <div style={{ fontSize: '1.3rem', fontWeight: 700, color: card.color }}>
@@ -439,8 +440,8 @@ export const GiftCodeAnalyticsTab: React.FC = () => {
 
       {/* Daily Redemptions Chart (simple bar visualization) */}
       {stats.dailyRedemptions.length > 0 && (
-        <div style={{ marginBottom: '1.25rem', padding: '1rem', backgroundColor: '#111116', borderRadius: '10px', border: '1px solid #2a2a2a' }}>
-          <div style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 600, marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        <div style={{ marginBottom: '1.25rem', padding: '1rem', backgroundColor: colors.cardAlt, borderRadius: '10px', border: `1px solid ${colors.border}` }}>
+          <div style={{ fontSize: '0.75rem', color: colors.textSecondary, fontWeight: 600, marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             Redemptions / Day
           </div>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: '3px', height: '80px' }}>
@@ -456,7 +457,7 @@ export const GiftCodeAnalyticsTab: React.FC = () => {
                     flex: 1,
                     height: `${height}%`,
                     borderRadius: '3px 3px 0 0',
-                    background: `linear-gradient(180deg, #22c55e ${successPct}%, #ef4444 ${successPct}%)`,
+                    background: `linear-gradient(180deg, ${colors.success} ${successPct}%, ${colors.error} ${successPct}%)`,
                     minWidth: '6px',
                     cursor: 'pointer',
                     opacity: 0.8,
@@ -469,14 +470,14 @@ export const GiftCodeAnalyticsTab: React.FC = () => {
             })}
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.3rem' }}>
-            <span style={{ fontSize: '0.55rem', color: '#4b5563' }}>
+            <span style={{ fontSize: '0.55rem', color: colors.textMuted }}>
               {stats.dailyRedemptions.slice(-14)[0]?.date}
             </span>
             <div style={{ display: 'flex', gap: '0.75rem' }}>
-              <span style={{ fontSize: '0.55rem', color: '#22c55e' }}>■ Success</span>
-              <span style={{ fontSize: '0.55rem', color: '#ef4444' }}>■ Failed</span>
+              <span style={{ fontSize: '0.55rem', color: colors.success }}>■ Success</span>
+              <span style={{ fontSize: '0.55rem', color: colors.error }}>■ Failed</span>
             </div>
-            <span style={{ fontSize: '0.55rem', color: '#4b5563' }}>
+            <span style={{ fontSize: '0.55rem', color: colors.textMuted }}>
               {stats.dailyRedemptions.slice(-14)[stats.dailyRedemptions.slice(-14).length - 1]?.date}
             </span>
           </div>
@@ -485,23 +486,23 @@ export const GiftCodeAnalyticsTab: React.FC = () => {
 
       {/* Top Codes Table */}
       {stats.topCodes.length > 0 && (
-        <div style={{ marginBottom: '1.25rem', padding: '1rem', backgroundColor: '#111116', borderRadius: '10px', border: '1px solid #2a2a2a' }}>
-          <div style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 600, marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        <div style={{ marginBottom: '1.25rem', padding: '1rem', backgroundColor: colors.cardAlt, borderRadius: '10px', border: `1px solid ${colors.border}` }}>
+          <div style={{ fontSize: '0.75rem', color: colors.textSecondary, fontWeight: 600, marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             Top Codes
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto auto', gap: '0.4rem 1rem', fontSize: '0.75rem' }}>
-            <div style={{ color: '#4b5563', fontWeight: 600 }}>{t('admin.code', 'Code')}</div>
-            <div style={{ color: '#4b5563', fontWeight: 600, textAlign: 'right' }}>{t('admin.attempts', 'Attempts')}</div>
-            <div style={{ color: '#4b5563', fontWeight: 600, textAlign: 'right' }}>{t('admin.success', 'Success')}</div>
-            <div style={{ color: '#4b5563', fontWeight: 600, textAlign: 'right' }}>{t('admin.rate', 'Rate')}</div>
+            <div style={{ color: colors.textMuted, fontWeight: 600 }}>{t('admin.code', 'Code')}</div>
+            <div style={{ color: colors.textMuted, fontWeight: 600, textAlign: 'right' }}>{t('admin.attempts', 'Attempts')}</div>
+            <div style={{ color: colors.textMuted, fontWeight: 600, textAlign: 'right' }}>{t('admin.success', 'Success')}</div>
+            <div style={{ color: colors.textMuted, fontWeight: 600, textAlign: 'right' }}>{t('admin.rate', 'Rate')}</div>
             {stats.topCodes.map(tc => (
               <React.Fragment key={tc.code}>
-                <div style={{ color: '#e5e7eb', fontFamily: 'monospace', fontSize: '0.7rem' }}>{tc.code}</div>
-                <div style={{ color: '#9ca3af', textAlign: 'right' }}>{tc.attempts}</div>
-                <div style={{ color: '#22c55e', textAlign: 'right' }}>{tc.successes}</div>
+                <div style={{ color: colors.text, fontFamily: 'monospace', fontSize: '0.7rem' }}>{tc.code}</div>
+                <div style={{ color: colors.textSecondary, textAlign: 'right' }}>{tc.attempts}</div>
+                <div style={{ color: colors.success, textAlign: 'right' }}>{tc.successes}</div>
                 <div style={{
                   textAlign: 'right',
-                  color: tc.successRate >= 70 ? '#22c55e' : tc.successRate >= 40 ? '#f59e0b' : '#ef4444',
+                  color: tc.successRate >= 70 ? colors.success : tc.successRate >= 40 ? colors.orange : colors.error,
                 }}>
                   {tc.successRate.toFixed(0)}%
                 </div>
@@ -513,8 +514,8 @@ export const GiftCodeAnalyticsTab: React.FC = () => {
 
       {/* Recent Redemptions */}
       {stats.recentRedemptions.length > 0 && (
-        <div style={{ padding: '1rem', backgroundColor: '#111116', borderRadius: '10px', border: '1px solid #2a2a2a' }}>
-          <div style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 600, marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        <div style={{ padding: '1rem', backgroundColor: colors.cardAlt, borderRadius: '10px', border: `1px solid ${colors.border}` }}>
+          <div style={{ fontSize: '0.75rem', color: colors.textSecondary, fontWeight: 600, marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             Recent Redemptions
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
@@ -522,15 +523,15 @@ export const GiftCodeAnalyticsTab: React.FC = () => {
               <div key={i} style={{
                 display: 'flex', alignItems: 'center', gap: '0.5rem',
                 padding: '0.35rem 0.5rem', borderRadius: '6px',
-                backgroundColor: r.success ? '#22c55e08' : '#ef444408',
+                backgroundColor: r.success ? `${colors.success}08` : `${colors.error}08`,
                 fontSize: '0.7rem',
               }}>
-                <span style={{ color: r.success ? '#22c55e' : '#ef4444', fontWeight: 600, width: '12px' }}>
+                <span style={{ color: r.success ? colors.success : colors.error, fontWeight: 600, width: '12px' }}>
                   {r.success ? '✓' : '✗'}
                 </span>
-                <span style={{ color: '#e5e7eb', fontFamily: 'monospace', minWidth: '100px' }}>{r.code}</span>
-                <span style={{ color: '#6b7280', flex: 1 }}>Player {r.player_id.slice(0, 6)}...</span>
-                <span style={{ color: '#4b5563', fontSize: '0.6rem' }}>
+                <span style={{ color: colors.text, fontFamily: 'monospace', minWidth: '100px' }}>{r.code}</span>
+                <span style={{ color: colors.textMuted, flex: 1 }}>Player {r.player_id.slice(0, 6)}...</span>
+                <span style={{ color: colors.textMuted, fontSize: '0.6rem' }}>
                   {new Date(r.created_at).toLocaleString()}
                 </span>
               </div>
@@ -541,7 +542,7 @@ export const GiftCodeAnalyticsTab: React.FC = () => {
 
       {/* Empty State */}
       {stats.totalAll === 0 && (
-        <div style={{ textAlign: 'center', padding: '3rem', color: '#4b5563' }}>
+        <div style={{ textAlign: 'center', padding: '3rem', color: colors.textMuted }}>
           <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📭</div>
           <p style={{ fontSize: '0.85rem' }}>No gift code redemption data yet.</p>
           <p style={{ fontSize: '0.7rem' }}>Data will appear once users start redeeming codes through Atlas.</p>

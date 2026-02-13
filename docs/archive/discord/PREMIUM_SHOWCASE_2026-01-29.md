@@ -1,5 +1,7 @@
 # Premium Showcase Post — January 29, 2026
 
+> ⚠️ **HISTORICAL DOCUMENT (2026-01-29)** — Tier names outdated. Current tier: Atlas Supporter ($4.99/mo or $49.99/yr). Atlas Recruiter removed 2026-02-13.
+
 **Channel:** #premium-showcase  
 **Purpose:** Create FOMO, demonstrate premium value
 

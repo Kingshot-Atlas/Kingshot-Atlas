@@ -1,5 +1,5 @@
 """
-Stripe payment router for Atlas Supporter/Recruiter subscriptions.
+Stripe payment router for Atlas Supporter subscriptions.
 
 Handles:
 - Checkout session creation
@@ -7,46 +7,43 @@ Handles:
 - Subscription status queries
 """
 import os
+import logging
 import stripe
 from fastapi import APIRouter, HTTPException, Request, Header
 from pydantic import BaseModel
 from typing import Optional
 from slowapi import Limiter
 from slowapi.util import get_remote_address
-from api.supabase_client import update_user_subscription, get_user_by_stripe_customer, get_user_profile, log_webhook_event, credit_kingdom_fund
+from api.config import STRIPE_SECRET_KEY, FRONTEND_URL
+from api.supabase_client import update_user_subscription, get_user_by_stripe_customer, get_user_by_email, get_user_profile, log_webhook_event, is_webhook_event_processed, credit_kingdom_fund
 from api.email_service import send_welcome_email, send_cancellation_email, send_payment_failed_email
 from api.discord_role_sync import sync_user_discord_role, is_discord_sync_configured
 import time
+
+logger = logging.getLogger("atlas.stripe")
 
 router = APIRouter()
 limiter = Limiter(key_func=get_remote_address)
 
 # Stripe configuration
-STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
 
 if STRIPE_SECRET_KEY:
     stripe.api_key = STRIPE_SECRET_KEY
 
 # Price IDs for each tier/billing cycle (live mode)
-# Updated Feb 3, 2026 - new payment links
 # Note: These should be set via environment variables in production (Render)
-# Atlas Supporter: $4.99/month (no yearly option)
-# Atlas Recruiter: $19.99/month or $159.99/year
+# Atlas Supporter: $4.99/month or $49.99/year
 PRICE_IDS = {
-    "pro_monthly": os.getenv("STRIPE_SUPPORTER_MONTHLY_PRICE", "price_1SuX3zL7R9uCnPH3m4PyIrNI"),
-    "pro_yearly": os.getenv("STRIPE_SUPPORTER_YEARLY_PRICE", ""),  # No yearly option for Supporter
-    "recruiter_monthly": os.getenv("STRIPE_RECRUITER_MONTHLY_PRICE", "price_1SuX57L7R9uCnPH30D6ar75H"),
-    "recruiter_yearly": os.getenv("STRIPE_RECRUITER_YEARLY_PRICE", "price_1SuX5OL7R9uCnPH3QJBqlFNh"),
+    "supporter_monthly": os.getenv("STRIPE_SUPPORTER_MONTHLY_PRICE", "price_1SuX3zL7R9uCnPH3m4PyIrNI"),
+    "supporter_yearly": os.getenv("STRIPE_SUPPORTER_YEARLY_PRICE", "price_1T0NX1L7R9uCnPH37QoS7mqE"),
 }
 
-# Frontend URLs
-FRONTEND_URL = os.getenv("FRONTEND_URL", "https://ks-atlas.com")
 
 
 class CheckoutRequest(BaseModel):
     """Request body for creating a checkout session."""
-    tier: str  # "pro" or "recruiter"
+    tier: str  # "supporter"
     billing_cycle: str  # "monthly" or "yearly"
     user_id: str  # Supabase user ID
     user_email: Optional[str] = None
@@ -78,10 +75,10 @@ async def create_checkout_session(request: Request, checkout: CheckoutRequest):
         )
     
     # Validate tier
-    if checkout.tier not in ["pro", "recruiter"]:
+    if checkout.tier not in ["supporter"]:
         raise HTTPException(
             status_code=400,
-            detail={"error": "Invalid tier. Must be 'pro' or 'recruiter'", "code": "INVALID_TIER"}
+            detail={"error": "Invalid tier. Must be 'supporter'", "code": "INVALID_TIER"}
         )
     
     # Validate billing cycle
@@ -177,6 +174,11 @@ async def stripe_webhook(
     event_type = event["type"]
     data = event["data"]["object"]
     
+    # Idempotency guard: skip if already processed (prevents duplicate processing on Stripe retries)
+    if is_webhook_event_processed(event_id):
+        logger.info("Skipping already-processed webhook event %s", event_id)
+        return {"received": True, "already_processed": True}
+    
     # Extract user and customer IDs for logging
     user_id = data.get("client_reference_id") or data.get("metadata", {}).get("user_id")
     customer_id = data.get("customer")
@@ -234,7 +236,13 @@ async def stripe_webhook(
             user_id=user_id,
             customer_id=customer_id,
         )
-        print(f"Webhook processing failed for {event_id}: {error_message}")
+        logger.error("Webhook processing failed for %s: %s", event_id, error_message)
+        # Report to Sentry for alerting
+        try:
+            import sentry_sdk
+            sentry_sdk.capture_exception(e)
+        except ImportError:
+            pass
     
     return {"received": True}
 
@@ -248,17 +256,26 @@ async def handle_checkout_completed(session: dict):
     """
     user_id = session.get("client_reference_id") or session.get("metadata", {}).get("user_id")
     tier = session.get("metadata", {}).get("tier", "supporter")
-    # Normalize legacy "pro" tier to "supporter"
-    if tier == "pro":
+    if tier not in ("supporter", "free"):
         tier = "supporter"
     subscription_id = session.get("subscription")
     customer_id = session.get("customer")
     
+    # Fallback: look up user by customer email if no user_id from metadata
     if not user_id:
-        print(f"WARNING: No user_id in checkout session {session.get('id')}")
+        customer_email = session.get("customer_email") or session.get("customer_details", {}).get("email")
+        if customer_email:
+            logger.info("No user_id in checkout session %s, trying email fallback: %s", session.get('id'), customer_email)
+            profile = get_user_by_email(customer_email)
+            if profile:
+                user_id = profile["id"]
+                logger.info("Found user %s via email fallback", user_id)
+    
+    if not user_id:
+        logger.warning("No user_id in checkout session %s (no client_reference_id, no metadata, no email match)", session.get('id'))
         return
     
-    print(f"Checkout completed: user={user_id}, tier={tier}, subscription={subscription_id}")
+    logger.info("Checkout completed: user=%s, tier=%s, subscription=%s", user_id, tier, subscription_id)
     
     # Update user's subscription tier in Supabase
     success = update_user_subscription(
@@ -269,15 +286,15 @@ async def handle_checkout_completed(session: dict):
     )
     
     if success:
-        print(f"Successfully updated subscription for user {user_id} to {tier}")
+        logger.info("Successfully updated subscription for user %s to %s", user_id, tier)
         
         # Sync Discord role (non-blocking, best effort)
         if is_discord_sync_configured():
             try:
                 discord_result = await sync_user_discord_role(user_id, tier)
-                print(f"Discord role sync result: {discord_result}")
+                logger.info("Discord role sync result: %s", discord_result)
             except Exception as e:
-                print(f"Discord role sync failed (non-blocking): {e}")
+                logger.warning("Discord role sync failed (non-blocking): %s", e)
         
         # Send welcome email
         profile = get_user_profile(user_id)
@@ -288,7 +305,7 @@ async def handle_checkout_completed(session: dict):
                 tier=tier
             )
     else:
-        print(f"Failed to update subscription for user {user_id}")
+        logger.error("Failed to update subscription for user %s", user_id)
 
 
 async def handle_subscription_updated(subscription: dict):
@@ -306,22 +323,19 @@ async def handle_subscription_updated(subscription: dict):
     
     # Fallback: if metadata is empty, look up user by stripe_customer_id
     if not user_id and customer_id:
-        print(f"WARNING: Subscription {subscription_id} has no user_id in metadata, looking up by customer_id={customer_id}")
+        logger.warning("Subscription %s has no user_id in metadata, looking up by customer_id=%s", subscription_id, customer_id)
         profile = get_user_by_stripe_customer(customer_id)
         if profile:
             user_id = profile["id"]
             tier = tier or profile.get("subscription_tier") or "supporter"
-            print(f"Found user {user_id} (tier={tier}) via stripe_customer_id fallback")
+            logger.info("Found user %s (tier=%s) via stripe_customer_id fallback", user_id, tier)
         else:
-            print(f"WARNING: No user found for stripe customer {customer_id} — subscription {subscription_id} orphaned")
+            logger.warning("No user found for stripe customer %s — subscription %s orphaned", customer_id, subscription_id)
     
-    if not tier:
-        tier = "supporter"
-    # Normalize legacy "pro" tier
-    if tier == "pro":
+    if not tier or tier not in ("supporter", "free"):
         tier = "supporter"
     
-    print(f"Subscription updated: id={subscription_id}, status={status}, tier={tier}, user={user_id}")
+    logger.info("Subscription updated: id=%s, status=%s, tier=%s, user=%s", subscription_id, status, tier, user_id)
     
     # If subscription is active and we have user info, update
     if status == "active" and user_id:
@@ -335,22 +349,22 @@ async def handle_subscription_updated(subscription: dict):
         if is_discord_sync_configured():
             try:
                 discord_result = await sync_user_discord_role(user_id, tier)
-                print(f"Discord role sync result: {discord_result}")
+                logger.info("Discord role sync result: %s", discord_result)
             except Exception as e:
-                print(f"Discord role sync failed (non-blocking): {e}")
+                logger.warning("Discord role sync failed (non-blocking): %s", e)
     elif status in ("canceled", "unpaid", "past_due"):
         # If subscription is no longer active, check if we should downgrade
         if user_id:
             if status == "canceled":
                 update_user_subscription(user_id=user_id, tier="free")
-                print(f"Downgraded user {user_id} to free tier due to cancellation")
+                logger.info("Downgraded user %s to free tier due to cancellation", user_id)
                 # Remove Discord roles
                 if is_discord_sync_configured():
                     try:
                         discord_result = await sync_user_discord_role(user_id, "free", tier)
-                        print(f"Discord role sync (removal) result: {discord_result}")
+                        logger.info("Discord role sync (removal) result: %s", discord_result)
                     except Exception as e:
-                        print(f"Discord role sync failed (non-blocking): {e}")
+                        logger.warning("Discord role sync failed (non-blocking): %s", e)
 
 
 async def handle_subscription_deleted(subscription: dict):
@@ -362,7 +376,7 @@ async def handle_subscription_deleted(subscription: dict):
     user_id = subscription.get("metadata", {}).get("user_id")
     previous_tier = subscription.get("metadata", {}).get("tier", "supporter")
     
-    print(f"Subscription deleted: id={subscription_id}, user={user_id}")
+    logger.info("Subscription deleted: id=%s, user=%s", subscription_id, user_id)
     
     profile = None
     
@@ -370,29 +384,29 @@ async def handle_subscription_deleted(subscription: dict):
     if user_id:
         profile = get_user_profile(user_id)
         update_user_subscription(user_id=user_id, tier="free")
-        print(f"Downgraded user {user_id} to free tier")
+        logger.info("Downgraded user %s to free tier", user_id)
         # Remove Discord roles
         if is_discord_sync_configured():
             try:
                 discord_result = await sync_user_discord_role(user_id, "free", previous_tier)
-                print(f"Discord role sync (removal) result: {discord_result}")
+                logger.info("Discord role sync (removal) result: %s", discord_result)
             except Exception as e:
-                print(f"Discord role sync failed (non-blocking): {e}")
+                logger.warning("Discord role sync failed (non-blocking): %s", e)
     elif customer_id:
         # Look up user by Stripe customer ID
         profile = get_user_by_stripe_customer(customer_id)
         if profile:
             update_user_subscription(user_id=profile["id"], tier="free")
-            print(f"Downgraded user {profile['id']} to free tier (found by customer ID)")
+            logger.info("Downgraded user %s to free tier (found by customer ID)", profile['id'])
             # Remove Discord roles
             if is_discord_sync_configured():
                 try:
                     discord_result = await sync_user_discord_role(profile["id"], "free", previous_tier)
-                    print(f"Discord role sync (removal) result: {discord_result}")
+                    logger.info("Discord role sync (removal) result: %s", discord_result)
                 except Exception as e:
-                    print(f"Discord role sync failed (non-blocking): {e}")
+                    logger.warning("Discord role sync failed (non-blocking): %s", e)
         else:
-            print(f"Could not find user for Stripe customer {customer_id}")
+            logger.warning("Could not find user for Stripe customer %s", customer_id)
     
     # Send cancellation email
     if profile and profile.get("email"):
@@ -411,7 +425,7 @@ async def handle_payment_failed(invoice: dict):
     customer_id = invoice.get("customer")
     attempt_count = invoice.get("attempt_count", 0)
     
-    print(f"Payment failed: subscription={subscription_id}, customer={customer_id}, attempt={attempt_count}")
+    logger.warning("Payment failed: subscription=%s, customer=%s, attempt=%s", subscription_id, customer_id, attempt_count)
     
     # Send payment failed email on first attempt
     if attempt_count == 1 and customer_id:
@@ -439,23 +453,23 @@ async def handle_kingdom_fund_payment(session: dict):
     # Parse client_reference_id: kf_{kingdom_number}_{user_id}
     parts = client_ref.split("_", 2)
     if len(parts) < 3:
-        print(f"WARNING: Invalid kingdom fund client_reference_id: {client_ref}")
+        logger.warning("Invalid kingdom fund client_reference_id: %s", client_ref)
         return
     
     try:
         kingdom_number = int(parts[1])
     except (ValueError, IndexError):
-        print(f"WARNING: Could not parse kingdom number from: {client_ref}")
+        logger.warning("Could not parse kingdom number from: %s", client_ref)
         return
     
     user_id = parts[2] if parts[2] != "anon" else None
     amount_dollars = amount_total / 100.0
     
     if amount_dollars <= 0:
-        print(f"WARNING: Zero/negative amount for kingdom fund payment: {amount_total}")
+        logger.warning("Zero/negative amount for kingdom fund payment: %s", amount_total)
         return
     
-    print(f"Kingdom Fund payment: kingdom={kingdom_number}, amount=${amount_dollars}, user={user_id}")
+    logger.info("Kingdom Fund payment: kingdom=%d, amount=$%s, user=%s", kingdom_number, amount_dollars, user_id)
     
     success = credit_kingdom_fund(
         kingdom_number=kingdom_number,
@@ -465,9 +479,9 @@ async def handle_kingdom_fund_payment(session: dict):
     )
     
     if success:
-        print(f"Successfully credited kingdom {kingdom_number} fund with ${amount_dollars}")
+        logger.info("Successfully credited kingdom %d fund with $%s", kingdom_number, amount_dollars)
     else:
-        print(f"Failed to credit kingdom {kingdom_number} fund")
+        logger.error("Failed to credit kingdom %d fund", kingdom_number)
 
 
 @router.get("/subscription/{user_id}")
@@ -532,7 +546,7 @@ async def stripe_health_check():
         "stripe_configured": bool(STRIPE_SECRET_KEY),
         "webhook_configured": bool(STRIPE_WEBHOOK_SECRET),
         "frontend_url": FRONTEND_URL,
-        "price_ids_configured": bool(PRICE_IDS.get("pro_monthly")),
+        "price_ids_configured": bool(PRICE_IDS.get("supporter_monthly")),
     }
 
 
@@ -660,8 +674,7 @@ async def sync_subscription(request: Request, sync_request: SyncRequest):
             sub = subscriptions.data[0]
             # Determine tier from price metadata or default to supporter
             tier = sub.get("metadata", {}).get("tier", "supporter")
-            # Normalize legacy "pro" tier to "supporter"
-            if tier == "pro":
+            if tier not in ("supporter", "free"):
                 tier = "supporter"
             
             # Update the user's subscription in Supabase

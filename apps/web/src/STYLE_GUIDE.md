@@ -63,15 +63,147 @@ const MyComponent = () => {
 ## Card Styling
 
 ### Border Colors
-- **Default card border**: `#2a2a2a` (slightly lighter than background for contrast)
+- **Default card border**: `colors.border` (`#2a2a2a`) — slightly lighter than background for contrast
 - **Hover state border**: Use accent color with 50% opacity (e.g., `#22d3ee50`)
-- **Card background**: `#131318` or `#111111`
-- **Page background**: `#0a0a0a`
+- **Card background**: `colors.card` (`#131318`) or `colors.surface` (`#111111`)
+- **Page background**: `colors.bg` (`#0a0a0a`)
 
 ### Example
 ```tsx
-border: `1px solid ${isHovered ? '#22d3ee50' : '#2a2a2a'}`
+border: `1px solid ${isHovered ? '#22d3ee50' : colors.border}`
 ```
+
+---
+
+## Hardcoded Hex → Design Token Mapping
+
+**Always use design tokens from `utils/styles.ts` instead of raw hex values in inline styles.**
+
+| Hex Value | Design Token | Category | Notes |
+|-----------|-------------|----------|-------|
+| `#0a0a0a` | `colors.bg` | Background | Page / modal backgrounds |
+| `#111111` | `colors.surface` | Background | Card surfaces, elevated areas |
+| `#131318` | `colors.card` | Background | Card component default |
+| `#1a1a1a` | `colors.surfaceHover` | Background | Hover states on surfaces |
+| `#1f1f1f` | `colors.borderSubtle` | Border | Subtle dividers |
+| `#2a2a2a` | `colors.border` | Border | Default borders |
+| `#3a3a3a` | `colors.borderStrong` | Border | Emphasized borders |
+| `#ffffff` / `#fff` | `colors.text` | Text | Primary text |
+| `#9ca3af` | `colors.textSecondary` | Text | Secondary / descriptive text |
+| `#6b7280` | `colors.textMuted` | Text | Muted / disabled text |
+| `#22d3ee` | `colors.primary` | Brand | Primary accent (cyan) |
+| `#22c55e` | `colors.success` | Brand | Success states (green) |
+| `#eab308` | `colors.warning` | Brand | Warnings (yellow) |
+| `#ef4444` | `colors.error` | Brand | Errors (red) |
+| `#f97316` | `colors.orange` | Brand | Orange accent |
+| `#a855f7` | `colors.purple` | Brand | Purple accent |
+| `#3b82f6` | `colors.blue` | Brand | Blue accent |
+| `#fbbf24` | `colors.gold` | Brand | Gold / achievement |
+| `#f59e0b` | `colors.amber` | Brand | Amber accent (admin gold, warm CTA) |
+| `#ec4899` | `colors.pink` | Brand | Pink accent (billing, profile views) |
+| `#cd7f32` | `colors.bronze` | Brand | Bronze tier |
+
+### Opacity Variants (Template Literal Pattern)
+
+Use template literals to combine a token with a hex opacity suffix:
+
+```tsx
+// ✅ Correct — token + opacity suffix
+backgroundColor: `${colors.primary}20`   // 12% opacity cyan
+border: `1px solid ${colors.error}40`     // 25% opacity red
+
+// ❌ Wrong — hardcoded hex with opacity
+backgroundColor: '#22d3ee20'
+border: '1px solid #ef444440'
+```
+
+### Ternary Expressions
+
+Replace both branches when matching tokens exist:
+
+```tsx
+// ✅ Correct
+color: isActive ? colors.success : colors.error
+backgroundColor: isActive ? `${colors.success}20` : `${colors.error}20`
+
+// ❌ Wrong
+color: isActive ? '#22c55e' : '#ef4444'
+```
+
+### When NOT to Replace
+- **SVG `stroke`/`fill` attributes** in embedded inline SVGs — acceptable to keep as hex
+- **CSS `url()` encoded colors** (e.g., SVG data URIs in `backgroundImage`) — hex is required
+- **One-off colors** with no matching token (e.g., `#a24cf3` ambassador purple) — document as exceptions
+- **Gradient shade variations** (e.g., `#b87333`, `#da8a45` bronze shades in shimmer gradients) — acceptable as hex
+- **Chart/palette arrays** (e.g., `BAR_COLORS`, `RALLY_COLORS`) — isolated color arrays for data visualization
+
+### Migration Coverage
+
+The following admin tab components have been fully migrated to design tokens:
+
+| Component | Status |
+|-----------|--------|
+| `EmailTab.tsx` | ✅ Migrated |
+| `AnalyticsOverview.tsx` | ✅ Migrated |
+| `BattlePlannerAccessTab.tsx` | ✅ Migrated |
+| `CorrectionsTab.tsx` | ✅ Migrated |
+| `FeedbackTab.tsx` | ✅ Migrated |
+| `NewKingdomsTab.tsx` | ✅ Migrated |
+| `TransferHubAdminTab.tsx` | ✅ Migrated |
+| `GiftCodeAnalyticsTab.tsx` | ✅ Migrated |
+| `KvKErrorsTab.tsx` | ✅ Already tokenized |
+| `SubmissionsTab.tsx` | ✅ Already tokenized |
+
+**Pages & Components (newly migrated this session):**
+
+| Component | Status |
+|-----------|--------|
+| `GiftCodeRedeemer.tsx` | ✅ Migrated (amber, purple tokens) |
+| `SupportAtlas.tsx` | ✅ Migrated (amber token) |
+| `BattlePlannerLanding.tsx` | ✅ Migrated (amber, error tokens) |
+| `Profile.tsx` | ✅ Migrated (amber token) |
+| `KvKSeasons.tsx` | ✅ Migrated (bronze, gold, borderStrong tokens) |
+| `KingdomListingCard.tsx` | ✅ Migrated (bronze token) |
+| `KingdomFundContribute.tsx` | ✅ Migrated (gold, bronze, textSecondary, textMuted tokens) |
+| `KingdomCompare.tsx` | ✅ Migrated (gold, bronze, textMuted tokens) |
+| `KingdomProfileTab.tsx` | ✅ Migrated (bronze, gold, textSecondary, textMuted tokens) |
+| `RecruiterDashboard.tsx` | ✅ Migrated (pink, bronze, gold tier colors) |
+
+**Services:**
+
+| Service | Status |
+|---------|--------|
+| `dataFreshnessService.ts` | ✅ Migrated (success, amber, orange, error, textMuted) |
+| `notificationService.ts` | ✅ Migrated (success, error, amber, primary, purple, warning) |
+
+**Utilities:**
+
+| Utility | Status |
+|---------|--------|
+| `sharing.ts` | ✅ Migrated (gold, bronze, textSecondary fund colors) |
+
+Previously migrated: `KingdomPlayers`, `LinkKingshotAccount`, `KingdomReviews`, `SubmissionHistory`, `KingdomDirectory`, `MissingDataRegistry`.
+
+---
+
+## Tailwind ↔ Design Token Alignment
+
+The Tailwind config (`tailwind.config.js`) and `utils/styles.ts` define the **same color values** and are kept in sync:
+
+| Tailwind Class | `colors.*` Token | Value |
+|----------------|-----------------|-------|
+| `bg-bg` | `colors.bg` | `#0a0a0a` |
+| `bg-surface` | `colors.surface` | `#111111` |
+| `bg-card` | `colors.card` | `#131318` |
+| `bg-surface-hover` | `colors.surfaceHover` | `#1a1a1a` |
+| `border-border` | `colors.border` | `#2a2a2a` |
+| `border-border-subtle` | `colors.borderSubtle` | `#1f1f1f` |
+| `text-text-primary` | `colors.text` | `#ffffff` |
+| `text-text-secondary` | `colors.textSecondary` | `#9ca3af` |
+| `text-text-muted` | `colors.textMuted` | `#6b7280` |
+| `text-primary` | `colors.primary` | `#22d3ee` |
+
+> **Rule:** When adding a new color to `utils/styles.ts`, also add the matching entry in `tailwind.config.js` under `theme.extend.colors`. This keeps both systems in sync.
 
 ---
 
@@ -307,9 +439,10 @@ const neonGlow = (color: string) => ({
 | Tier | Color | Hex | Icon | Usage |
 |------|-------|-----|------|-------|
 | **Admin** | Gold | `#f59e0b` | 👑 | Admin badges, borders, **username colors**, avatar borders, role indicators |
-| **Atlas Recruiter** | Purple | `#a855f7` | 💜 | Recruiter buttons, badges, price text, role indicators |
 | **Atlas Supporter** | Pink | `#FF6B8A` | 💖 | Supporter buttons, badges, price text, role indicators |
 | **Free** | Gray/White | `#6b7280` / `#ffffff` | - | Default text, no special styling |
+
+> **⚠️ DEPRECATED:** The "Atlas Recruiter" tier (Purple `#a855f7`) was removed in v1.5.0 (2026-02-08). Code may still handle `'recruiter'` internally for backward compatibility with existing DB rows, but no new users can subscribe to this tier. Do not create new UI for the recruiter tier.
 
 ### Admin-Specific Rules
 - **No "Manage Subscription" button** - Admin is not a subscription tier, so the subscription management button should be hidden
@@ -326,14 +459,10 @@ const neonGlow = (color: string) => ({
 <button style={{ backgroundColor: '#FF6B8A', color: '#000' }}>Become a Supporter</button>
 <span style={{ color: '#FF6B8A' }}>$4.99/month</span>
 
-// Recruiter tier styling (Purple)
-<button style={{ backgroundColor: '#a855f7', color: '#000' }}>Upgrade to Recruiter</button>
-<span style={{ color: '#a855f7' }}>$19.99/month</span>
 ```
 
 ### Role Badges
 - **Admin badge**: Gold background/border with crown icon (👑)
-- **Recruiter badge**: Purple background with dark text, purple heart icon (💜)
 - **Supporter badge**: Pink background with dark text, pink heart icon (💖)
 
 ### ⚠️ IMPORTANT: Badge Display Names (Internal vs Display)
@@ -342,8 +471,8 @@ The internal tier name `'pro'` should ALWAYS display as **"SUPPORTER"** in user-
 | Internal Tier | Display Name | Badge Text |
 |---------------|--------------|------------|
 | `'admin'` | Admin | `ADMIN` or `👑 ADMIN` |
-| `'recruiter'` | Recruiter | `RECRUITER` or `💜 RECRUITER` |
 | `'pro'` | **Supporter** | `SUPPORTER` or `💖 SUPPORTER` (NOT "PRO") |
+| `'recruiter'` | ~~Recruiter~~ | DEPRECATED — kept for backward compat only |
 | `'free'` | - | No badge |
 
 **Why?** "Pro" was rebranded to "Supporter" in v1.5.0. The internal tier name remains `'pro'` for backward compatibility, but all user-facing text must say "SUPPORTER".
@@ -380,7 +509,7 @@ When showing buttons to unlock Supporter features (e.g., Multi-Compare), use thi
   Unlock Feature
 </Link>
 
-// ❌ WRONG: Cyan is for Recruiter, not Supporter
+// ❌ WRONG: Don't use cyan gradient for Supporter buttons
 background: 'linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%)'
 ```
 
@@ -434,11 +563,9 @@ For subtle "Become a Supporter" messaging:
 
 **Key Rules:**
 1. **Supporter = Pink (`#FF6B8A`)** - Always use pink for Supporter features
-2. **Recruiter = Cyan (`#22d3ee`)** - Always use cyan for Recruiter features
-3. **Text color on solid pink buttons**: Always `#000` (black)
-4. **Text color on solid cyan buttons**: Use `#000` (black)
-5. **Star icon (★)**: Use for Supporter badges
-6. **Crown icon (👑)**: Use for Recruiter badges
+2. **Text color on solid pink buttons**: Always `#000` (black)
+3. **Star icon (★)**: Use for Supporter badges
+4. **Crown icon (👑)**: Reserved for Admin badges
 
 ---
 
@@ -450,8 +577,8 @@ When displaying usernames in public-facing contexts (e.g., Linked Kingshot Accou
 |------|-------|-----|--------|
 | **Free** | White | `#ffffff` | Plain text, no glow |
 | **Supporter** | Pink | `#FF6B8A` | With neon glow effect |
-| **Recruiter** | Purple | `#a855f7` | With neon glow effect |
 | **Admin** | Gold | `#f59e0b` | With neon glow effect |
+| ~~Recruiter~~ | ~~Purple~~ | ~~`#a855f7`~~ | DEPRECATED — backward compat only |
 
 ### Implementation
 
@@ -483,8 +610,7 @@ const getUsernameColor = (tier: 'free' | 'pro' | 'recruiter'): string => {
 ### Key Rules:
 1. **Free users** get white (`#ffffff`) usernames with no glow effect
 2. **Supporter users** get pink (`#FF6B8A`) usernames with neon glow
-3. **Recruiter users** get cyan (`#22d3ee`) usernames with neon glow
-4. Avatar borders should match the username color for consistency
+3. Avatar borders should match the username color for consistency
 5. This coloring applies to public-facing displays (viewable by other users)
 
 ---
@@ -497,8 +623,9 @@ When displaying user avatars in public-facing contexts (e.g., public profiles, p
 |------|-------|-----|-------|
 | **Free** | White | `#ffffff` | Default border, no glow |
 | **Supporter** | Pink | `#FF6B8A` | Pink border with subtle glow |
-| **Recruiter** | Purple | `#a855f7` | Purple border with subtle glow |
 | **Admin** | Gold | `#f59e0b` | Gold border with subtle glow |
+
+> Recruiter tier (Purple `#a855f7`) is DEPRECATED — code handles it for backward compat only.
 
 ### Implementation
 
@@ -861,11 +988,21 @@ import { Card } from '../components/shared';
 |------|------|---------|-------------|
 | `hoverable` | boolean | false | Enable hover effects |
 | `accentColor` | string | `#22d3ee` | Hover border color |
-| `padding` | `'none'` \| `'sm'` \| `'md'` \| `'lg'` | `'md'` | Padding preset |
-| `variant` | `'default'` \| `'elevated'` | `'default'` | Card variant |
+| `borderColor` | string | `colors.border` | Static border color |
+| `marginBottom` | string | - | Bottom margin (e.g. `'1rem'`) |
+| `padding` | `'none'` \| `'sm'` \| `'md'` \| `'lg'` \| `{ mobile, desktop }` | `'md'` | Padding preset or responsive object |
+| `variant` | `'default'` \| `'elevated'` \| `'outlined'` | `'default'` | Card variant |
 | `onClick` | function | - | Click handler |
 | `style` | CSSProperties | - | Additional styles |
 | `className` | string | - | Additional classes |
+
+### Responsive Padding
+Pass an object with `mobile` and `desktop` keys for responsive padding:
+```tsx
+<Card padding={{ mobile: '1rem', desktop: '1.5rem 2rem' }}>
+  Adapts to screen size
+</Card>
+```
 
 ---
 
@@ -1007,4 +1144,76 @@ const { color, emoji, label } = statTypeStyles.atlasScore;
 
 ---
 
-*Last Updated: 2026-02-06 by Design Lead — Added Stat Type Colors & Emojis (SOURCE OF TRUTH)*
+## Shared Component Library (`components/shared/`)
+
+The shared component library is the **single source of truth** for reusable UI primitives. Always check here before creating inline equivalents.
+
+### Actively Used Components
+
+| Component | File | Consumers | Usage |
+|-----------|------|-----------|-------|
+| **SmartTooltip** | `SmartTooltip.tsx` | 16 files | Preferred tooltip — auto-positions, mobile-aware, portal-rendered |
+| **TierBadge** | `TierBadge.tsx` | 2 files | S/A/B/C/D tier badge with color coding |
+| **Button** | `Button.tsx` | 3 files | Styled button with variants (primary/secondary/ghost), sizes, loading state |
+| **Chip** | `Chip.tsx` | 1 file | Color-coded label chip with variants (primary/success/warning/error/purple/gold) |
+| **TierChip** | `Chip.tsx` | 1 file | Pre-configured Chip for tier display (S/A/B/C/D) |
+| **StatBox** | `StatBox.tsx` | 1 file | Stat display card with label, value, color |
+
+### Available But Unadopted Components
+
+These are well-designed components that **should be used** instead of inline recreations:
+
+| Component | File | What It Replaces |
+|-----------|------|------------------|
+| **Card** | `Card.tsx` | Inline `div` with `backgroundColor: colors.surface, border, borderRadius` patterns |
+| **Input** | `Input.tsx` | Inline `<input style={{...}}>` with manual focus/error states |
+| **TextArea** | `TextArea.tsx` | Inline `<textarea style={{...}}>` |
+| **Select** | `Select.tsx` | Inline `<select style={{...}}>` |
+| **Toggle** | `Toggle.tsx` | Custom toggle switches built from scratch in each component |
+| **Checkbox** | `Toggle.tsx` | Custom checkbox implementations |
+
+### Import Pattern
+
+```tsx
+// ✅ CORRECT: Import from barrel
+import { SmartTooltip, Button, TierBadge } from './shared';
+import { Card, Input, Select } from '../components/shared';
+
+// ✅ ALSO CORRECT: Direct import for tree-shaking
+import SmartTooltip from './shared/SmartTooltip';
+
+// ❌ WRONG: Recreating card styling inline
+<div style={{
+  backgroundColor: '#1a1a1a',
+  border: '1px solid #2a2a2a',
+  borderRadius: '8px',
+  padding: '1rem'
+}}>
+
+// ✅ RIGHT: Use the shared Card component
+<Card padding="md" hoverable>
+  Content here
+</Card>
+```
+
+### Anti-Patterns to Avoid
+
+1. **Inline card recreation** — Don't build card-like containers with inline `backgroundColor`/`border`/`borderRadius`. Use `<Card>` instead.
+2. **Manual tooltip state** — Don't create `useState` + `onMouseEnter`/`onMouseLeave` tooltip logic. Use `<SmartTooltip>` instead.
+3. **Hardcoded button styles** — Don't style `<button>` elements manually. Use `<Button variant="primary">` instead.
+4. **Custom input styling** — Don't add focus rings, error states, and labels to `<input>` elements manually. Use `<Input>` instead.
+5. **One-off toggle switches** — Don't build toggle/switch UI from scratch. Use `<Toggle>` instead.
+
+### Deleted Components (for reference)
+
+| Component | Why Removed | Replacement |
+|-----------|-------------|-------------|
+| `Tooltip.tsx` | Superseded | `SmartTooltip.tsx` (auto-positioning, portal) |
+| `WinRateBar.tsx` | Never adopted | Inline win rate displays in components |
+| `SupporterChip` | Never used | `SupporterBadge.tsx` (standalone component) |
+| `VerifiedChip` | Never used | Inline verified indicators |
+| `RecruiterChip` | Tier removed | Recruiter tier eliminated in v1.5.0 refactor |
+
+---
+
+*Last Updated: 2026-02-13 by Design Lead — Added Shared Component Library audit, removed dead components*

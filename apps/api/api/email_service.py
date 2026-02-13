@@ -11,12 +11,14 @@ Email Types:
 - Payment failed alert
 """
 import os
+import logging
 from typing import Optional
 import httpx
+from api.config import RESEND_API_KEY, FRONTEND_URL
 
-RESEND_API_KEY = os.getenv("RESEND_API_KEY")
+logger = logging.getLogger("atlas.email")
+
 FROM_EMAIL = os.getenv("FROM_EMAIL", "Atlas <noreply@ks-atlas.com>")
-FRONTEND_URL = os.getenv("FRONTEND_URL", "https://ks-atlas.com")
 
 
 def is_email_configured() -> bool:
@@ -43,7 +45,7 @@ async def send_email(
         True if sent successfully
     """
     if not RESEND_API_KEY:
-        print(f"Email not configured. Would send to {to}: {subject}")
+        logger.info("Email not configured. Would send to %s: %s", to, subject)
         return False
     
     try:
@@ -64,14 +66,14 @@ async def send_email(
             )
             
             if response.status_code == 200:
-                print(f"Email sent to {to}: {subject}")
+                logger.info("Email sent to %s: %s", to, subject)
                 return True
             else:
-                print(f"Email failed ({response.status_code}): {response.text}")
+                logger.error("Email failed (%s): %s", response.status_code, response.text)
                 return False
                 
     except Exception as e:
-        print(f"Email error: {e}")
+        logger.error("Email error: %s", e)
         return False
 
 

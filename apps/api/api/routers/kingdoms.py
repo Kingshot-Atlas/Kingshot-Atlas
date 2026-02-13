@@ -1,3 +1,4 @@
+import logging
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, asc, func
@@ -6,6 +7,8 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 from database import get_db
 from models import Kingdom, KVKRecord
+
+logger = logging.getLogger("atlas.kingdoms")
 from schemas import Kingdom as KingdomSchema, KingdomProfile, PaginatedResponse
 from api.supabase_client import (
     get_kingdom_from_supabase, 
@@ -14,9 +17,6 @@ from api.supabase_client import (
     get_supabase_admin
 )
 import math
-import logging
-
-logger = logging.getLogger(__name__)
 
 router = APIRouter()
 limiter = Limiter(key_func=get_remote_address)
@@ -176,7 +176,7 @@ def get_kingdom_profile(kingdom_number: int, db: Session = Depends(get_db)):
             try:
                 recent_kvks = get_kvk_history_from_supabase(kingdom_number, limit=50)
             except Exception as kvk_err:
-                print(f"KvK history error for {kingdom_number}: {kvk_err}")
+                logger.error("KvK history error for %d: %s", kingdom_number, kvk_err)
                 recent_kvks = []
             
             # Map atlas_score to overall_score for API compatibility
@@ -193,7 +193,7 @@ def get_kingdom_profile(kingdom_number: int, db: Session = Depends(get_db)):
                 else:
                     supabase_kingdom['rank'] = 0
             except Exception as rank_err:
-                print(f"Rank calculation error for {kingdom_number}: {rank_err}")
+                logger.error("Rank calculation error for %d: %s", kingdom_number, rank_err)
                 supabase_kingdom['rank'] = 0
             supabase_kingdom['recent_kvks'] = recent_kvks
             supabase_kingdom['last_updated'] = supabase_kingdom.get('last_updated') or supabase_kingdom.get('updated_at')
@@ -202,9 +202,7 @@ def get_kingdom_profile(kingdom_number: int, db: Session = Depends(get_db)):
             # Remove any None values that might cause serialization issues
             return {k: v for k, v in supabase_kingdom.items() if v is not None or k in ['recent_kvks']}
     except Exception as e:
-        print(f"Error fetching kingdom {kingdom_number} from Supabase: {e}")
-        import traceback
-        traceback.print_exc()
+        logger.exception("Error fetching kingdom %d from Supabase", kingdom_number)
         # Fall through to SQLite fallback
     
     # ADR-011: If Supabase failed, return 503 instead of falling back to stale SQLite data

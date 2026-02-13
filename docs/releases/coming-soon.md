@@ -1,6 +1,6 @@
 # Coming Soon to Atlas 🔮
 
-**Last Updated:** 2026-01-29  
+**Last Updated:** 2026-02-13  
 **Status:** Active Development
 
 ---
@@ -9,20 +9,13 @@
 
 ## 🚀 In Active Development
 
-Features currently being built:
-
-### Claim Your Kingdom
-**Status:** Almost Ready  
-**Why:** Let players officially verify they're leaders of their kingdom  
-**What you get:** Verified badge, exclusive insights, recruiter tools
-
 ### Advanced Matchup Predictions
 **Status:** In Progress  
 **Why:** Know your odds before KvK even starts  
 **What you get:** Win probability, historical matchup analysis, strategic recommendations
 
 ### Kingdom Activity Tracking
-**Status:** Testing  
+**Status:** Research  
 **Why:** See which kingdoms are rising and which are falling  
 **What you get:** Activity trends, growth indicators, "hot" and "cold" kingdom flags
 
@@ -30,11 +23,9 @@ Features currently being built:
 
 ## 💡 On the Roadmap
 
-Features planned but not started:
-
 ### Alliance Tools
 **Why:** Coordinate with your alliance before transfer events  
-**When:** After Claim Kingdom launches
+**When:** After Transfer Hub matures
 
 ### Push Notifications
 **Why:** Never miss a KvK or Transfer Event  
@@ -48,13 +39,15 @@ Features planned but not started:
 
 ## 🎯 Recently Shipped
 
-What just dropped:
-
-- ✅ **Multi-Compare (5 kingdoms)** — Pro users can now compare up to 5 kingdoms
-- ✅ **QR Code Sharing** — Share kingdom profiles instantly
-- ✅ **Discord Bot** — 9 slash commands for instant kingdom data
-- ✅ **Atlas Score Breakdown** — See exactly how scores are calculated
-- ✅ **Streak Achievements** — 🔥 Unstoppable, ⚡ Dominant, 💪 On Fire badges
+- ✅ **Gift Code Redeemer** — One-click redemption + bulk redeem for alt accounts
+- ✅ **Transfer Hub** — Kingdom listings, recruiter dashboard, kingdom fund, editor system
+- ✅ **9 Languages** — EN/ES/FR/ZH/DE/KO/JA/AR/TR with 1,442 translated keys
+- ✅ **KvK Battle Planner** — Real-time rally coordination tool (Supporter feature)
+- ✅ **Edge-Side SEO & Prerender** — Unique meta tags per page at $0 cost via Cloudflare HTMLRewriter, hreflang for 9 languages
+- ✅ **Discord Bot Atlas** — 12 slash commands including /redeem-all, /codes, /link
+- ✅ **Co-Editor System** — Self-nominate, approve/reject, audit trail, auto-expire
+- ✅ **KvK Seasons** — Browse matchups by season with Combined Score rankings
+- ✅ **Atlas Score v3.1** — Bayesian scoring on 0-100 scale with S/A/B/C/D tiers
 
 ---
 

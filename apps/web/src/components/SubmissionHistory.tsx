@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { contributorService, type ContributorStats, type UserNotification } from '../services/contributorService';
 import { useToast } from './Toast';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { colors } from '../utils/styles';
 
 interface DataCorrection {
   id: string;
@@ -154,7 +155,7 @@ const SubmissionHistory: React.FC<{ userId?: string; themeColor?: string }> = ({
       backgroundColor: '#111116',
       borderRadius: '16px',
       padding: '1.5rem',
-      border: '1px solid #2a2a2a'
+      border: `1px solid ${colors.border}`
     }}>
       <h3 style={{ color: '#fff', fontSize: '1rem', fontWeight: '600', marginBottom: '1rem', textAlign: 'center' }}>
         {t('submissionHistory.myContributions')}
@@ -163,25 +164,25 @@ const SubmissionHistory: React.FC<{ userId?: string; themeColor?: string }> = ({
       {/* Stats Summary */}
       {stats && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem', marginBottom: '1rem' }}>
-          <div style={{ padding: '0.5rem', backgroundColor: '#0a0a0a', borderRadius: '8px', textAlign: 'center' }}>
+          <div style={{ padding: '0.5rem', backgroundColor: colors.bg, borderRadius: '8px', textAlign: 'center' }}>
             <div style={{ fontSize: '1.25rem', fontWeight: '700', color: themeColor }}>
               {stats.totals.approved}
             </div>
-            <div style={{ fontSize: '0.65rem', color: '#6b7280' }}>{t('submissionHistory.approved')}</div>
+            <div style={{ fontSize: '0.65rem', color: colors.textMuted }}>{t('submissionHistory.approved')}</div>
           </div>
-          <div style={{ padding: '0.5rem', backgroundColor: '#0a0a0a', borderRadius: '8px', textAlign: 'center' }}>
+          <div style={{ padding: '0.5rem', backgroundColor: colors.bg, borderRadius: '8px', textAlign: 'center' }}>
             <div style={{ fontSize: '1.25rem', fontWeight: '700', color: '#fbbf24' }}>
               {stats.totals.pending}
             </div>
-            <div style={{ fontSize: '0.65rem', color: '#6b7280' }}>{t('submissionHistory.pending')}</div>
+            <div style={{ fontSize: '0.65rem', color: colors.textMuted }}>{t('submissionHistory.pending')}</div>
           </div>
-          <div style={{ padding: '0.5rem', backgroundColor: '#0a0a0a', borderRadius: '8px', textAlign: 'center' }}>
+          <div style={{ padding: '0.5rem', backgroundColor: colors.bg, borderRadius: '8px', textAlign: 'center' }}>
             <div style={{ fontSize: '1.25rem', fontWeight: '700', color: '#22c55e' }}>{stats.reputation}</div>
-            <div style={{ fontSize: '0.65rem', color: '#6b7280' }}>{t('submissionHistory.reputation')}</div>
+            <div style={{ fontSize: '0.65rem', color: colors.textMuted }}>{t('submissionHistory.reputation')}</div>
           </div>
-          <div style={{ padding: '0.5rem', backgroundColor: '#0a0a0a', borderRadius: '8px', textAlign: 'center' }}>
+          <div style={{ padding: '0.5rem', backgroundColor: colors.bg, borderRadius: '8px', textAlign: 'center' }}>
             <div style={{ fontSize: '1.25rem', fontWeight: '700', color: '#a855f7' }}>{stats.badges.length}</div>
-            <div style={{ fontSize: '0.65rem', color: '#6b7280' }}>{t('submissionHistory.badges')}</div>
+            <div style={{ fontSize: '0.65rem', color: colors.textMuted }}>{t('submissionHistory.badges')}</div>
           </div>
         </div>
       )}
@@ -231,14 +232,14 @@ const SubmissionHistory: React.FC<{ userId?: string; themeColor?: string }> = ({
       {activeTab === 'submissions' && (
         <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
           {allSubmissions.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280', fontSize: '0.85rem' }}>
+            <div style={{ textAlign: 'center', padding: '2rem', color: colors.textMuted, fontSize: '0.85rem' }}>
               {t('submissionHistory.noSubmissions')}
             </div>
           ) : (
             allSubmissions.map((item) => (
               <div key={item.id} style={{
                 padding: '0.75rem',
-                backgroundColor: '#0a0a0a',
+                backgroundColor: colors.bg,
                 borderRadius: '8px',
                 marginBottom: '0.5rem',
                 border: '1px solid #1a1a1f'
@@ -258,9 +259,9 @@ const SubmissionHistory: React.FC<{ userId?: string; themeColor?: string }> = ({
                     {item.status.toUpperCase()}
                   </span>
                 </div>
-                <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                <div style={{ fontSize: '0.75rem', color: colors.textMuted }}>
                   {new Date(item.date).toLocaleDateString()}
-                  {item.review_notes && <span style={{ color: '#9ca3af' }}> • {item.review_notes}</span>}
+                  {item.review_notes && <span style={{ color: colors.textSecondary }}> • {item.review_notes}</span>}
                 </div>
                 {/* C3: Appeal button for rejected items */}
                 {item.status === 'rejected' && !item.appeal && (
@@ -300,7 +301,7 @@ const SubmissionHistory: React.FC<{ userId?: string; themeColor?: string }> = ({
               backgroundColor: 'transparent',
               border: '1px solid #3a3a3a',
               borderRadius: '6px',
-              color: '#9ca3af',
+              color: colors.textSecondary,
               fontSize: '0.75rem',
               cursor: 'pointer'
             }}>
@@ -308,7 +309,7 @@ const SubmissionHistory: React.FC<{ userId?: string; themeColor?: string }> = ({
             </button>
           )}
           {notifications.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280', fontSize: '0.85rem' }}>
+            <div style={{ textAlign: 'center', padding: '2rem', color: colors.textMuted, fontSize: '0.85rem' }}>
               {t('submissionHistory.noNotifications')}
             </div>
           ) : (
@@ -331,8 +332,8 @@ const SubmissionHistory: React.FC<{ userId?: string; themeColor?: string }> = ({
                   </span>
                   {!notif.read && <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: themeColor }} />}
                 </div>
-                <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{notif.message}</div>
-                <div style={{ fontSize: '0.65rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                <div style={{ fontSize: '0.75rem', color: colors.textSecondary }}>{notif.message}</div>
+                <div style={{ fontSize: '0.65rem', color: colors.textMuted, marginTop: '0.25rem' }}>
                   {new Date(notif.createdAt).toLocaleDateString()}
                 </div>
               </div>
@@ -344,7 +345,7 @@ const SubmissionHistory: React.FC<{ userId?: string; themeColor?: string }> = ({
       {activeTab === 'badges' && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem' }}>
           {stats?.badges.length === 0 ? (
-            <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '2rem', color: '#6b7280', fontSize: '0.85rem' }}>
+            <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '2rem', color: colors.textMuted, fontSize: '0.85rem' }}>
               {t('submissionHistory.noBadges')}
             </div>
           ) : (
@@ -353,7 +354,7 @@ const SubmissionHistory: React.FC<{ userId?: string; themeColor?: string }> = ({
               return (
                 <div key={badgeId} style={{
                   padding: '0.75rem',
-                  backgroundColor: '#0a0a0a',
+                  backgroundColor: colors.bg,
                   borderRadius: '8px',
                   border: '1px solid #1a1a1f',
                   display: 'flex',
@@ -363,7 +364,7 @@ const SubmissionHistory: React.FC<{ userId?: string; themeColor?: string }> = ({
                   <span style={{ fontSize: '1.5rem' }}>{badge.icon}</span>
                   <div>
                     <div style={{ color: '#fff', fontSize: '0.8rem', fontWeight: 600 }}>{badge.name}</div>
-                    <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>{badge.description}</div>
+                    <div style={{ color: colors.textMuted, fontSize: '0.65rem' }}>{badge.description}</div>
                   </div>
                 </div>
               );
@@ -384,15 +385,15 @@ const SubmissionHistory: React.FC<{ userId?: string; themeColor?: string }> = ({
           zIndex: 1000
         }} onClick={() => setAppealModal(null)}>
           <div style={{
-            backgroundColor: '#131318',
+            backgroundColor: colors.card,
             borderRadius: '16px',
-            border: '1px solid #2a2a2a',
+            border: `1px solid ${colors.border}`,
             padding: '1.5rem',
             maxWidth: '400px',
             width: '90%'
           }} onClick={(e) => e.stopPropagation()}>
             <h3 style={{ color: '#fff', fontSize: '1rem', marginBottom: '1rem' }}>{t('submissionHistory.appealRejection')}</h3>
-            <p style={{ color: '#9ca3af', fontSize: '0.85rem', marginBottom: '1rem' }}>
+            <p style={{ color: colors.textSecondary, fontSize: '0.85rem', marginBottom: '1rem' }}>
               {t('submissionHistory.appealExplain')}
             </p>
             <textarea
@@ -403,8 +404,8 @@ const SubmissionHistory: React.FC<{ userId?: string; themeColor?: string }> = ({
               style={{
                 width: '100%',
                 padding: '0.75rem',
-                backgroundColor: '#0a0a0a',
-                border: '1px solid #2a2a2a',
+                backgroundColor: colors.bg,
+                border: `1px solid ${colors.border}`,
                 borderRadius: '8px',
                 color: '#fff',
                 fontSize: '0.85rem',
@@ -418,7 +419,7 @@ const SubmissionHistory: React.FC<{ userId?: string; themeColor?: string }> = ({
                 backgroundColor: 'transparent',
                 border: '1px solid #3a3a3a',
                 borderRadius: '6px',
-                color: '#9ca3af',
+                color: colors.textSecondary,
                 cursor: 'pointer'
               }}>{t('submissionHistory.cancel')}</button>
               <button onClick={submitAppeal} style={{

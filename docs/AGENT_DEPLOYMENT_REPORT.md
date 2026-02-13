@@ -1,5 +1,9 @@
 # Agent Deployment Report
 
+> ⚠️ **HISTORICAL DOCUMENT (2026-01-28)** — Tier names and pricing in this document are outdated.
+> Current tiers: Free + Atlas Supporter ($4.99/mo or $49.99/yr). Atlas Recruiter tier was removed 2026-02-13.
+> See `MONETIZATION_STRATEGY.md` and `FEATURES_IMPLEMENTED.md` for current state.
+
 **Date:** 2026-01-28  
 **Deployed Agents:** Manager, Monetization, Security Review  
 **Status:** ✅ Complete (Pending User Review Before Production)

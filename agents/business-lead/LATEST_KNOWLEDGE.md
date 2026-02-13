@@ -1,21 +1,48 @@
 # Business Lead — Latest Knowledge
 
-**Last Updated:** 2026-01-29  
+**Last Updated:** 2026-02-13  
 **Purpose:** Current best practices, market context, and strategic insights
 
 ---
 
 ## Kingshot Atlas Business Context
 
-### Current State
-- **Product:** Kingdom analytics platform for King of Avalon players
-- **Monetization:** Premium tier (details in `/apps/web/src/pages/Upgrade.tsx`)
-- **Target Users:** Competitive KoA players who want data-driven KvK decisions
+### Current State (2026-02-13)
+- **Product:** Kingdom analytics platform for Kingshot players
+- **Monetization:** 2-tier model: Free + Atlas Supporter ($4.99/mo or $49.99/yr)
+- **Recruiter tier:** FULLY REMOVED from codebase + Stripe product archived (2026-02-13)
+- **Target Users:** Competitive Kingshot players who want data-driven KvK decisions
 - **Market Position:** "Stop guessing. Start winning."
 
+### Revenue Metrics (Live)
+| Metric | Value |
+|--------|-------|
+| **Active Subscribers** | 6 |
+| **MRR** | ~$29.95 |
+| **Available Balance** | $61.39 |
+| **Pending Balance** | $56.52 |
+| **Annual Price** | $49.99/yr (live on /support page, default toggle) |
+
+### Subscription Breakdown
+| Price | Subscribers | Product |
+|-------|-------------|----------|
+| $4.99/mo (Supporter) | 5 | Atlas Supporter (prod_TsHdTjVrFBUmrO) |
+| $49.99/yr (Supporter) | 0 | Atlas Supporter (prod_TsHdTjVrFBUmrO) |
+
+> **Resolved (2026-02-13):** Generic $5/mo subscriber migrated to $4.99/mo Supporter price. Generic product archived.
+
+### Stripe Products
+| Product | Status | Action Needed |
+|---------|--------|---------------|
+| Atlas Supporter (prod_TsHdTjVrFBUmrO) | ✅ Active | None |
+| Kingdom Fund Contribution (prod_TvsIYrR0SeTEU7) | ✅ Active | None |
+| Atlas Recruiter (prod_TsHejwlbCw1jtw) | ✅ Archived | Done (2026-02-13) |
+| Subscription to Kingshot Atlas (prod_TxN9fiBv1fVkBG) | ✅ Archived | Migrated subscriber to Supporter, then archived (2026-02-13) |
+
 ### Value Proposition
-- Free: Basic kingdom data, limited comparisons
-- Premium: Full analytics, unlimited comparisons, advanced features
+- **Free:** Kingdom data, KvK history, rankings, community reviews, basic compare (2 kingdoms), Transfer Hub browsing
+- **Supporter ($4.99/mo or $49.99/yr):** Battle planner, score deltas, unlimited compare, unlimited /redeem-all, ad-free, supporter badge + Discord role, unlimited bot commands
+- **Kingdom Fund:** One-time contributions ($5/$10/$25/$50) boost kingdom listing visibility
 
 ---
 

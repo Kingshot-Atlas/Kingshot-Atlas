@@ -5,7 +5,10 @@ This client uses the service role key to bypass Row Level Security,
 enabling admin operations like updating user subscription tiers.
 """
 import os
+import logging
 from typing import Optional
+
+logger = logging.getLogger("atlas.supabase")
 
 # Try to import supabase, gracefully handle if not installed
 try:
@@ -53,7 +56,7 @@ def update_user_subscription(
     
     Args:
         user_id: Supabase user ID
-        tier: Subscription tier ('free', 'pro', 'recruiter')
+        tier: Subscription tier ('free' or 'supporter')
         stripe_customer_id: Stripe customer ID
         stripe_subscription_id: Stripe subscription ID
         source: Subscription source ('stripe', 'kofi', 'manual')
@@ -63,7 +66,7 @@ def update_user_subscription(
     """
     client = get_supabase_admin()
     if not client:
-        print(f"WARNING: Supabase not configured, cannot update subscription for {user_id}")
+        logger.warning("Supabase not configured, cannot update subscription for %s", user_id)
         return False
     
     try:
@@ -88,7 +91,7 @@ def update_user_subscription(
         result = client.table("profiles").update(update_data).eq("id", user_id).execute()
         
         if result.data:
-            print(f"Updated subscription for user {user_id}: tier={tier}")
+            logger.info("Updated subscription for user %s: tier=%s", user_id, tier)
             # Send welcome notification on first subscription
             if tier != "free" and "subscription_started_at" in update_data:
                 try:
@@ -100,14 +103,14 @@ def update_user_subscription(
                         link="/support",
                     )
                 except Exception as notif_err:
-                    print(f"Non-fatal: Could not send welcome notification: {notif_err}")
+                    logger.warning("Non-fatal: Could not send welcome notification: %s", notif_err)
             return True
         else:
-            print(f"No profile found for user {user_id}")
+            logger.warning("No profile found for user %s", user_id)
             return False
             
     except Exception as e:
-        print(f"Error updating subscription for {user_id}: {e}")
+        logger.error("Error updating subscription for %s: %s", user_id, e)
         return False
 
 
@@ -129,7 +132,7 @@ def get_user_profile(user_id: str) -> Optional[dict]:
         result = client.table("profiles").select("*").eq("id", user_id).single().execute()
         return result.data
     except Exception as e:
-        print(f"Error fetching profile for {user_id}: {e}")
+        logger.error("Error fetching profile for %s: %s", user_id, e)
         return None
 
 
@@ -151,7 +154,55 @@ def get_user_by_stripe_customer(customer_id: str) -> Optional[dict]:
         result = client.table("profiles").select("*").eq("stripe_customer_id", customer_id).single().execute()
         return result.data
     except Exception as e:
-        print(f"Error fetching user by Stripe customer {customer_id}: {e}")
+        logger.error("Error fetching user by Stripe customer %s: %s", customer_id, e)
+        return None
+
+
+def is_webhook_event_processed(event_id: str) -> bool:
+    """
+    Check if a webhook event has already been successfully processed.
+    Used as an idempotency guard to prevent duplicate processing on retries.
+    
+    Args:
+        event_id: Stripe event ID (evt_xxx)
+        
+    Returns:
+        True if the event was already processed
+    """
+    client = get_supabase_admin()
+    if not client:
+        return False
+    
+    try:
+        result = client.table("webhook_events").select("status").eq("event_id", event_id).eq("status", "processed").execute()
+        return bool(result.data)
+    except Exception as e:
+        logger.warning("Error checking webhook idempotency for %s: %s", event_id, e)
+        return False
+
+
+def get_user_by_email(email: str) -> Optional[dict]:
+    """
+    Find a user by their email address.
+    Used as a fallback when client_reference_id and stripe_customer_id are unavailable.
+    
+    Args:
+        email: User's email address
+        
+    Returns:
+        User profile dict or None
+    """
+    client = get_supabase_admin()
+    if not client:
+        return None
+    
+    try:
+        result = client.table("profiles").select("*").eq("email", email).limit(1).execute()
+        if result.data:
+            return result.data[0]
+        return None
+    except Exception as e:
+        logger.error("Error fetching user by email %s: %s", email, e)
         return None
 
 
@@ -183,7 +234,7 @@ def log_webhook_event(
     """
     client = get_supabase_admin()
     if not client:
-        print(f"WARNING: Supabase not configured, cannot log webhook {event_id}")
+        logger.warning("Supabase not configured, cannot log webhook %s", event_id)
         return False
     
     try:
@@ -211,7 +262,7 @@ def log_webhook_event(
         return bool(result.data)
         
     except Exception as e:
-        print(f"Error logging webhook event {event_id}: {e}")
+        logger.error("Error logging webhook event %s: %s", event_id, e)
         return False
 
 
@@ -247,7 +298,7 @@ def get_webhook_events(
         return result.data or []
         
     except Exception as e:
-        print(f"Error fetching webhook events: {e}")
+        logger.error("Error fetching webhook events: %s", e)
         return []
 
 
@@ -266,16 +317,16 @@ def recalculate_kingdom_in_supabase(kingdom_number: int) -> bool:
     """
     client = get_supabase_admin()
     if not client:
-        print(f"WARNING: Supabase not configured, cannot recalculate kingdom {kingdom_number}")
+        logger.warning("Supabase not configured, cannot recalculate kingdom %s", kingdom_number)
         return False
     
     try:
         # Call the RPC function to recalculate kingdom stats
         result = client.rpc('recalculate_kingdom_stats', {'p_kingdom_number': kingdom_number}).execute()
-        print(f"Recalculated kingdom {kingdom_number} stats in Supabase")
+        logger.info("Recalculated kingdom %d stats in Supabase", kingdom_number)
         return True
     except Exception as e:
-        print(f"Error recalculating kingdom {kingdom_number} in Supabase: {e}")
+        logger.error("Error recalculating kingdom %d in Supabase: %s", kingdom_number, e)
         # Fallback: Try to update directly if RPC fails
         return _update_kingdom_stats_directly(client, kingdom_number)
 
@@ -352,11 +403,11 @@ def _update_kingdom_stats_directly(client, kingdom_number: int) -> bool:
         }
         
         client.table('kingdoms').upsert(update_data, on_conflict='kingdom_number').execute()
-        print(f"Directly updated kingdom {kingdom_number} in Supabase kingdoms table")
+        logger.info("Directly updated kingdom %d in Supabase kingdoms table", kingdom_number)
         return True
         
     except Exception as e:
-        print(f"Error updating kingdom {kingdom_number} directly: {e}")
+        logger.error("Error updating kingdom %d directly: %s", kingdom_number, e)
         return False
 
 
@@ -381,7 +432,7 @@ def get_kingdom_from_supabase(kingdom_number: int) -> Optional[dict]:
             return result.data[0]
         return None
     except Exception as e:
-        print(f"Error fetching kingdom {kingdom_number} from Supabase: {e}")
+        logger.error("Error fetching kingdom %d from Supabase: %s", kingdom_number, e)
         return None
 
 
@@ -423,7 +474,7 @@ def get_kingdoms_from_supabase(
         
         return kingdoms
     except Exception as e:
-        print(f"Error fetching kingdoms from Supabase: {e}")
+        logger.error("Error fetching kingdoms from Supabase: %s", e)
         return []
 
 
@@ -448,7 +499,7 @@ def get_kvk_history_from_supabase(kingdom_number: int, limit: int = 10) -> list:
         ).order('kvk_number', desc=True).limit(limit).execute()
         return result.data or []
     except Exception as e:
-        print(f"Error fetching KvK history for kingdom {kingdom_number}: {e}")
+        logger.error("Error fetching KvK history for kingdom %d: %s", kingdom_number, e)
         return []
 
 
@@ -488,7 +539,7 @@ def _check_notification_preference(client, user_id: str, notification_type: str)
         # Default to True if key not present
         return prefs.get(pref_key, True) is not False
     except Exception as e:
-        print(f"Error checking notification preference for {user_id}: {e}")
+        logger.error("Error checking notification preference for %s: %s", user_id, e)
         return True  # Fail open — send the notification
 
 
@@ -517,12 +568,12 @@ def create_notification(
     """
     client = get_supabase_admin()
     if not client:
-        print(f"WARNING: Supabase not configured, cannot create notification for {user_id}")
+        logger.warning("Supabase not configured, cannot create notification for %s", user_id)
         return False
     
     # Check user preference before creating notification
     if not _check_notification_preference(client, user_id, notification_type):
-        print(f"Notification skipped for {user_id}: {notification_type} (disabled by preference)")
+        logger.info("Notification skipped for %s: %s (disabled by preference)", user_id, notification_type)
         return True  # Return True — preference was respected, not an error
     
     try:
@@ -543,7 +594,7 @@ def create_notification(
         return bool(result.data)
         
     except Exception as e:
-        print(f"Error creating notification for {user_id}: {e}")
+        logger.error("Error creating notification for %s: %s", user_id, e)
         return False
 
 
@@ -569,7 +620,7 @@ def notify_admins(
     """
     client = get_supabase_admin()
     if not client:
-        print("WARNING: Supabase not configured, cannot notify admins")
+        logger.warning("Supabase not configured, cannot notify admins")
         return 0
     
     try:
@@ -578,7 +629,7 @@ def notify_admins(
         admin_ids = [row["id"] for row in (result.data or [])]
         
         if not admin_ids:
-            print("No admins found to notify")
+            logger.info("No admins found to notify")
             return 0
         
         # Create notification for each admin
@@ -599,11 +650,11 @@ def notify_admins(
         
         # Batch insert
         client.table("notifications").insert(notifications).execute()
-        print(f"Notified {len(admin_ids)} admins: {title}")
+        logger.info("Notified %d admins: %s", len(admin_ids), title)
         return len(admin_ids)
         
     except Exception as e:
-        print(f"Error notifying admins: {e}")
+        logger.error("Error notifying admins: %s", e)
         return 0
 
 
@@ -639,7 +690,7 @@ def get_webhook_stats() -> dict:
         }
         
     except Exception as e:
-        print(f"Error fetching webhook stats: {e}")
+        logger.error("Error fetching webhook stats: %s", e)
         return {"total_24h": 0, "processed": 0, "failed": 0, "failure_rate": 0, "health": "unknown"}
 
 
@@ -664,7 +715,7 @@ def credit_kingdom_fund(
     """
     client = get_supabase_admin()
     if not client:
-        print(f"WARNING: Supabase not configured, cannot credit fund for kingdom {kingdom_number}")
+        logger.warning("Supabase not configured, cannot credit fund for kingdom %d", kingdom_number)
         return False
 
     try:
@@ -751,13 +802,13 @@ def credit_kingdom_fund(
                     },
                 }).execute()
         except Exception as notify_err:
-            print(f"Non-blocking: failed to notify editor for K{kingdom_number}: {notify_err}")
+            logger.warning("Non-blocking: failed to notify editor for K%d: %s", kingdom_number, notify_err)
 
-        print(f"Credited kingdom {kingdom_number} fund: +${amount} -> ${new_balance} (tier: {new_tier})")
+        logger.info("Credited kingdom %d fund: +$%s -> $%s (tier: %s)", kingdom_number, amount, new_balance, new_tier)
         return True
 
     except Exception as e:
-        print(f"Error crediting kingdom fund {kingdom_number}: {e}")
+        logger.error("Error crediting kingdom fund %d: %s", kingdom_number, e)
         return False
 
 
@@ -782,7 +833,7 @@ def get_supporter_users_with_discord() -> list:
     """
     client = get_supabase_admin()
     if not client:
-        print("WARNING: Supabase not configured")
+        logger.warning("Supabase not configured")
         return []
     
     try:
@@ -791,11 +842,11 @@ def get_supporter_users_with_discord() -> list:
         ).eq("subscription_tier", "supporter").not_.is_("discord_id", "null").execute()
         
         users = result.data or []
-        print(f"Found {len(users)} supporter users with Discord accounts")
+        logger.info("Found %d supporter users with Discord accounts", len(users))
         return users
         
     except Exception as e:
-        print(f"Error fetching supporter users: {e}")
+        logger.error("Error fetching supporter users: %s", e)
         return []
 
 
@@ -845,7 +896,7 @@ def log_gift_code_redemption(
         client.table("gift_code_redemptions").insert(data).execute()
         return True
     except Exception as e:
-        print(f"Error logging gift code redemption: {e}")
+        logger.error("Error logging gift code redemption: %s", e)
         return False
 
 
@@ -858,7 +909,7 @@ def get_gift_codes_from_db() -> list:
         result = client.table("gift_codes").select("*").eq("is_active", True).execute()
         return result.data or []
     except Exception as e:
-        print(f"Error fetching gift codes: {e}")
+        logger.error("Error fetching gift codes: %s", e)
         return []
 
 
@@ -871,7 +922,7 @@ def get_deactivated_gift_codes() -> set:
         result = client.table("gift_codes").select("code").eq("is_active", False).execute()
         return {r["code"] for r in (result.data or [])}
     except Exception as e:
-        print(f"Error fetching deactivated gift codes: {e}")
+        logger.error("Error fetching deactivated gift codes: %s", e)
         return set()
 
 
@@ -902,7 +953,7 @@ def upsert_gift_codes(codes: list, source: str = "kingshot.net") -> bool:
             ).execute()
         return True
     except Exception as e:
-        print(f"Error upserting gift codes: {e}")
+        logger.error("Error upserting gift codes: %s", e)
         return False
 
 
@@ -936,7 +987,7 @@ def deactivate_gift_code(code: str) -> bool:
         client.table("gift_codes").update({"is_active": False}).eq("code", code).execute()
         return True
     except Exception as e:
-        print(f"Error deactivating gift code: {e}")
+        logger.error("Error deactivating gift code: %s", e)
         return False
 
 
@@ -947,10 +998,10 @@ def mark_gift_code_expired(code: str) -> bool:
         return False
     try:
         client.table("gift_codes").update({"is_active": False}).eq("code", code).execute()
-        print(f"[gift-codes] Auto-deactivated expired code: {code}")
+        logger.info("[gift-codes] Auto-deactivated expired code: %s", code)
         return True
     except Exception as e:
-        print(f"Error marking gift code expired: {e}")
+        logger.error("Error marking gift code expired: %s", e)
         return False
 
 
@@ -967,7 +1018,7 @@ def get_user_by_discord_id(discord_id: str) -> Optional[dict]:
             return result.data[0]
         return None
     except Exception as e:
-        print(f"Error looking up user by discord_id: {e}")
+        logger.error("Error looking up user by discord_id: %s", e)
         return None
 
 
@@ -981,7 +1032,7 @@ def get_users_with_linked_kingshot_and_discord() -> list:
     """
     client = get_supabase_admin()
     if not client:
-        print("WARNING: Supabase not configured")
+        logger.warning("Supabase not configured")
         return []
     
     try:
@@ -992,9 +1043,9 @@ def get_users_with_linked_kingshot_and_discord() -> list:
         ).not_.is_("linked_player_id", "null").not_.is_("discord_id", "null").execute()
         
         users = result.data or []
-        print(f"Found {len(users)} users with linked Kingshot and Discord accounts")
+        logger.info("Found %d users with linked Kingshot and Discord accounts", len(users))
         return users
         
     except Exception as e:
-        print(f"Error fetching linked users: {e}")
+        logger.error("Error fetching linked users: %s", e)
         return []

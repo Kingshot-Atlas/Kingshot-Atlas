@@ -12,8 +12,9 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
 import { supabase } from '../lib/supabase';
+import { Button } from '../components/shared/Button';
 import { CURRENT_KVK, KVK_CONFIG } from '../constants';
-import { FONT_DISPLAY } from '../utils/styles';
+import { FONT_DISPLAY, colors } from '../utils/styles';
 
 const TOTAL_KINGDOMS = KVK_CONFIG.TOTAL_KINGDOMS;
 
@@ -183,11 +184,11 @@ const MissingDataRegistry: React.FC = () => {
     return (
       <div style={{ 
         minHeight: '100vh', 
-        backgroundColor: '#0a0a0a', 
+        backgroundColor: colors.bg, 
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'center',
-        color: '#fff'
+        color: colors.text
       }}>
         Loading registry...
       </div>
@@ -197,7 +198,7 @@ const MissingDataRegistry: React.FC = () => {
   return (
     <div style={{ 
       minHeight: '100vh', 
-      backgroundColor: '#0a0a0a', 
+      backgroundColor: colors.bg, 
       padding: '2rem 1rem',
       maxWidth: '1200px',
       margin: '0 auto'
@@ -205,7 +206,7 @@ const MissingDataRegistry: React.FC = () => {
       {/* Header */}
       <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
         <h1 style={{ 
-          color: '#fff', 
+          color: colors.text, 
           fontSize: '1.75rem', 
           fontWeight: '700',
           marginBottom: '0.75rem',
@@ -217,7 +218,7 @@ const MissingDataRegistry: React.FC = () => {
         }}>
           {t('missingData.contributeTitle')} <span style={{ color: '#22d3ee', textShadow: '0 0 8px #22d3ee40, 0 0 12px #22d3ee20' }}>{t('missingData.contributeTitleAccent')}</span>
         </h1>
-        <p style={{ color: '#9ca3af', fontSize: '0.95rem', maxWidth: '650px', margin: '0 auto', lineHeight: 1.6 }}>
+        <p style={{ color: colors.textSecondary, fontSize: '0.95rem', maxWidth: '650px', margin: '0 auto', lineHeight: 1.6 }}>
           {t('missingData.subtitle')}
           <br />
           <span style={{ color: '#fbbf24' }}>{t('missingData.linkedEarn')}</span>
@@ -242,23 +243,14 @@ const MissingDataRegistry: React.FC = () => {
             <div style={{ color: '#fbbf24', fontWeight: '600', marginBottom: '0.25rem' }}>
               {t('missingData.signInPrompt')}
             </div>
-            <div style={{ color: '#9ca3af', fontSize: '0.85rem' }}>
+            <div style={{ color: colors.textSecondary, fontSize: '0.85rem' }}>
               {t('missingData.signInDesc')}
             </div>
           </div>
           <Link to="/profile" style={{ textDecoration: 'none' }}>
-            <button style={{
-              backgroundColor: '#fbbf24',
-              color: '#0a0a0a',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '0.6rem 1.25rem',
-              fontWeight: '600',
-              cursor: 'pointer',
-              fontSize: '0.85rem'
-            }}>
+            <Button variant="primary" size="md" style={{ backgroundColor: '#fbbf24', color: '#0a0a0a' }}>
               {t('missingData.signIn')}
-            </button>
+            </Button>
           </Link>
         </div>
       )}
@@ -280,23 +272,14 @@ const MissingDataRegistry: React.FC = () => {
             <div style={{ color: '#22d3ee', fontWeight: '600', marginBottom: '0.25rem' }}>
               {t('missingData.linkPrompt')}
             </div>
-            <div style={{ color: '#9ca3af', fontSize: '0.85rem' }}>
+            <div style={{ color: colors.textSecondary, fontSize: '0.85rem' }}>
               {t('missingData.linkDesc')}
             </div>
           </div>
           <Link to="/profile" style={{ textDecoration: 'none' }}>
-            <button style={{
-              backgroundColor: '#22d3ee',
-              color: '#0a0a0a',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '0.6rem 1.25rem',
-              fontWeight: '600',
-              cursor: 'pointer',
-              fontSize: '0.85rem'
-            }}>
+            <Button variant="primary" size="md" style={{ backgroundColor: '#22d3ee', color: '#0a0a0a' }}>
               {t('missingData.linkAccount')}
-            </button>
+            </Button>
           </Link>
         </div>
       )}
@@ -318,7 +301,7 @@ const MissingDataRegistry: React.FC = () => {
           <div style={{ color: '#22c55e', fontSize: '1.5rem', fontWeight: '700' }}>
             {stats.withData}
           </div>
-          <div style={{ color: '#9ca3af', fontSize: '0.75rem' }}>{t('missingData.kingdomsTracked')}</div>
+          <div style={{ color: colors.textSecondary, fontSize: '0.75rem' }}>{t('missingData.kingdomsTracked')}</div>
         </div>
         <div style={{
           backgroundColor: '#1a1a1f',
@@ -330,7 +313,7 @@ const MissingDataRegistry: React.FC = () => {
           <div style={{ color: '#f97316', fontSize: '1.5rem', fontWeight: '700' }}>
             {stats.totalMissing}
           </div>
-          <div style={{ color: '#9ca3af', fontSize: '0.75rem' }}>{t('missingData.needData')}</div>
+          <div style={{ color: colors.textSecondary, fontSize: '0.75rem' }}>{t('missingData.needData')}</div>
         </div>
         <div style={{
           backgroundColor: '#1a1a1f',
@@ -342,7 +325,7 @@ const MissingDataRegistry: React.FC = () => {
           <div style={{ color: '#22d3ee', fontSize: '1.5rem', fontWeight: '700' }}>
             {stats.missingKvk10}
           </div>
-          <div style={{ color: '#9ca3af', fontSize: '0.75rem' }}>Missing KvK #{CURRENT_KVK}</div>
+          <div style={{ color: colors.textSecondary, fontSize: '0.75rem' }}>Missing KvK #{CURRENT_KVK}</div>
         </div>
         <div style={{
           backgroundColor: '#1a1a1f',
@@ -354,7 +337,7 @@ const MissingDataRegistry: React.FC = () => {
           <div style={{ color: '#a855f7', fontSize: '1.5rem', fontWeight: '700' }}>
             {stats.totalKingdoms - stats.withData}
           </div>
-          <div style={{ color: '#9ca3af', fontSize: '0.75rem' }}>{t('missingData.notInAtlas')}</div>
+          <div style={{ color: colors.textSecondary, fontSize: '0.75rem' }}>{t('missingData.notInAtlas')}</div>
         </div>
       </div>
 
@@ -489,7 +472,7 @@ const MissingDataRegistry: React.FC = () => {
                     Kingdom {kingdom.kingdom_number}
                   </h3>
                 </Link>
-                <div style={{ color: '#6b7280', fontSize: '0.8rem', marginTop: '0.25rem' }}>
+                <div style={{ color: colors.textMuted, fontSize: '0.8rem', marginTop: '0.25rem' }}>
                   {kingdom.totalKvks} KvKs recorded • Eligible since KvK #{kingdom.firstEligibleKvk || 1}
                 </div>
               </div>
@@ -507,7 +490,7 @@ const MissingDataRegistry: React.FC = () => {
 
             {/* Missing KvKs */}
             <div style={{ marginBottom: '1rem' }}>
-              <div style={{ color: '#6b7280', fontSize: '0.75rem', marginBottom: '0.5rem' }}>
+              <div style={{ color: colors.textMuted, fontSize: '0.75rem', marginBottom: '0.5rem' }}>
                 {t('missingData.missingKvksLabel')}:
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
@@ -515,7 +498,7 @@ const MissingDataRegistry: React.FC = () => {
                   <KvKBadge key={kvk} kvk={kvk} isLatest={kvk === CURRENT_KVK} />
                 ))}
                 {kingdom.missingKvks.length > 8 && (
-                  <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                  <span style={{ color: colors.textMuted, fontSize: '0.75rem' }}>
                     +{kingdom.missingKvks.length - 8} more
                   </span>
                 )}
@@ -558,7 +541,7 @@ const MissingDataRegistry: React.FC = () => {
         <div style={{
           textAlign: 'center',
           padding: '3rem',
-          color: '#6b7280'
+          color: colors.textMuted
         }}>
           <div style={{ color: '#22d3ee', fontSize: '1rem', fontWeight: '600', marginBottom: '0.25rem' }}>{t('missingData.allClear')}</div>
           <div>{t('missingData.noMatch')}</div>
@@ -581,28 +564,28 @@ const MissingDataRegistry: React.FC = () => {
             <div style={{ fontSize: '1.5rem' }}>🥉</div>
             <div>
               <div style={{ color: '#fff', fontWeight: '500', fontSize: '0.9rem' }}>{t('missingData.dataScout')}</div>
-              <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>{t('missingData.dataScoutDesc')}</div>
+              <div style={{ color: colors.textMuted, fontSize: '0.75rem' }}>{t('missingData.dataScoutDesc')}</div>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <div style={{ fontSize: '1.5rem' }}>🥈</div>
             <div>
               <div style={{ color: '#fff', fontWeight: '500', fontSize: '0.9rem' }}>{t('missingData.dataHunter')}</div>
-              <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>{t('missingData.dataHunterDesc')}</div>
+              <div style={{ color: colors.textMuted, fontSize: '0.75rem' }}>{t('missingData.dataHunterDesc')}</div>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <div style={{ fontSize: '1.5rem' }}>🥇</div>
             <div>
               <div style={{ color: '#fff', fontWeight: '500', fontSize: '0.9rem' }}>{t('missingData.dataMaster')}</div>
-              <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>{t('missingData.dataMasterDesc')}</div>
+              <div style={{ color: colors.textMuted, fontSize: '0.75rem' }}>{t('missingData.dataMasterDesc')}</div>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <div style={{ fontSize: '1.5rem' }}>💎</div>
             <div>
               <div style={{ color: '#fff', fontWeight: '500', fontSize: '0.9rem' }}>{t('missingData.atlasLegend')}</div>
-              <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>{t('missingData.atlasLegendDesc')}</div>
+              <div style={{ color: colors.textMuted, fontSize: '0.75rem' }}>{t('missingData.atlasLegendDesc')}</div>
             </div>
           </div>
         </div>

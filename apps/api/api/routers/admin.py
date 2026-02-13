@@ -9,8 +9,9 @@ import logging
 import stripe
 from fastapi import APIRouter, HTTPException, Request, Header, Depends
 from pydantic import BaseModel
+from api.config import STRIPE_SECRET_KEY, ADMIN_EMAILS, RESEND_API_KEY, ENVIRONMENT
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("atlas.admin")
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from typing import Optional, List, Dict, Any
@@ -77,16 +78,11 @@ PLAUSIBLE_API_KEY = os.getenv("PLAUSIBLE_API_KEY", "")
 PLAUSIBLE_SITE_ID = os.getenv("PLAUSIBLE_SITE_ID", "ks-atlas.com")
 
 # Stripe configuration
-STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
 if STRIPE_SECRET_KEY:
     stripe.api_key = STRIPE_SECRET_KEY
 
 # Admin API key for authentication
 ADMIN_API_KEY = os.getenv("ADMIN_API_KEY", "")
-
-# Admin emails (shared with submissions router)
-_default_admin_emails = 'gatreno@gmail.com,gatreno.investing@gmail.com'
-ADMIN_EMAILS = [e.strip() for e in os.getenv("ADMIN_EMAILS", _default_admin_emails).split(',') if e.strip()]
 
 
 def verify_admin(api_key: Optional[str]) -> bool:
@@ -1545,7 +1541,6 @@ async def increment_current_kvk(x_admin_key: Optional[str] = Header(None), autho
 # EMAIL SYSTEM (support@ks-atlas.com)
 # =============================================
 
-RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
 SUPPORT_EMAIL = os.getenv("SUPPORT_EMAIL", "support@ks-atlas.com")
 
 
@@ -1691,6 +1686,26 @@ async def mark_email_read(
     try:
         result = client.table("support_emails").update({"status": "read"}).eq("id", email_id).execute()
         return {"success": True, "email": result.data[0] if result.data else None}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/email/{email_id}")
+async def delete_email(
+    email_id: str,
+    x_admin_key: Optional[str] = Header(None),
+    authorization: Optional[str] = Header(None)
+):
+    """Delete an email from the support inbox."""
+    require_admin(x_admin_key, authorization)
+    
+    client = get_supabase_admin()
+    if not client:
+        raise HTTPException(status_code=500, detail="Supabase not configured")
+    
+    try:
+        result = client.table("support_emails").delete().eq("id", email_id).execute()
+        return {"success": True, "deleted": bool(result.data)}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -1882,8 +1897,7 @@ async def send_weekly_digest(
     if not client:
         raise HTTPException(status_code=500, detail="Supabase not configured")
     
-    resend_key = os.environ.get("RESEND_API_KEY")
-    if not resend_key:
+    if not RESEND_API_KEY:
         raise HTTPException(status_code=500, detail="RESEND_API_KEY not configured")
     
     try:
@@ -1910,7 +1924,7 @@ Unread Emails: {unread_emails.count or 0}
         async with httpx.AsyncClient() as http:
             res = await http.post(
                 "https://api.resend.com/emails",
-                headers={"Authorization": f"Bearer {resend_key}", "Content-Type": "application/json"},
+                headers={"Authorization": f"Bearer {RESEND_API_KEY}", "Content-Type": "application/json"},
                 json={
                     "from": "Kingshot Atlas <support@ks-atlas.com>",
                     "to": ["support@ks-atlas.com"],

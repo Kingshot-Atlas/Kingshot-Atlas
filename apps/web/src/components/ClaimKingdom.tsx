@@ -78,15 +78,15 @@ const ClaimKingdom: React.FC<ClaimKingdomProps> = ({ kingdomNumber, isOpen, onCl
           {t('claimKingdom.description')}
         </p>
 
-        {/* Recruiter Tier Note */}
+        {/* Linked Account Note */}
         <div style={{
           padding: '0.75rem',
-          backgroundColor: '#a855f710',
+          backgroundColor: '#22d3ee10',
           borderRadius: '8px',
           marginBottom: '1.5rem'
         }}>
           <p style={{ color: '#6b7280', fontSize: '0.8rem', margin: 0 }}>
-            {t('claimKingdom.recruiterNote')}
+            {t('claimKingdom.linkedNote', 'Link your Kingshot account to claim your kingdom.')}
           </p>
         </div>
 

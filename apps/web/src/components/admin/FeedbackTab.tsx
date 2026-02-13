@@ -1,5 +1,6 @@
 import React from 'react';
 import { downloadCSV } from '../../utils/csvExport';
+import { colors } from '../../utils/styles';
 
 interface FeedbackItem {
   id: string;
@@ -35,11 +36,11 @@ export const FeedbackTab: React.FC<FeedbackTabProps> = ({ items, counts, onUpdat
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
           {(['new', 'reviewed', 'in_progress', 'resolved', 'closed'] as const).map(status => {
             const count = counts[status];
-            const colors: Record<string, string> = { new: '#fbbf24', reviewed: '#22d3ee', in_progress: '#a855f7', resolved: '#22c55e', closed: '#6b7280' };
+            const statusColors: Record<string, string> = { new: colors.gold, reviewed: colors.primary, in_progress: colors.purple, resolved: colors.success, closed: colors.textMuted };
             return (
-              <div key={status} style={{ backgroundColor: '#111116', padding: '0.75rem 1rem', borderRadius: '8px', border: '1px solid #2a2a2a', minWidth: '80px', textAlign: 'center' }}>
-                <div style={{ color: colors[status], fontWeight: 700, fontSize: '1.25rem' }}>{count}</div>
-                <div style={{ color: '#6b7280', fontSize: '0.7rem', textTransform: 'capitalize' }}>{status.replace('_', ' ')}</div>
+              <div key={status} style={{ backgroundColor: colors.cardAlt, padding: '0.75rem 1rem', borderRadius: '8px', border: `1px solid ${colors.border}`, minWidth: '80px', textAlign: 'center' }}>
+                <div style={{ color: statusColors[status], fontWeight: 700, fontSize: '1.25rem' }}>{count}</div>
+                <div style={{ color: colors.textMuted, fontSize: '0.7rem', textTransform: 'capitalize' }}>{status.replace('_', ' ')}</div>
               </div>
             );
           })}
@@ -51,8 +52,8 @@ export const FeedbackTab: React.FC<FeedbackTabProps> = ({ items, counts, onUpdat
               'feedback'
             )}
             style={{
-              background: 'none', border: '1px solid #2a2a2a', borderRadius: '4px',
-              color: '#6b7280', padding: '0.3rem 0.6rem', cursor: 'pointer', fontSize: '0.7rem', flexShrink: 0,
+              background: 'none', border: `1px solid ${colors.border}`, borderRadius: '4px',
+              color: colors.textMuted, padding: '0.3rem 0.6rem', cursor: 'pointer', fontSize: '0.7rem', flexShrink: 0,
             }}
           >
             📥 Export CSV
@@ -61,74 +62,74 @@ export const FeedbackTab: React.FC<FeedbackTabProps> = ({ items, counts, onUpdat
       </div>
 
       {items.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
+        <div style={{ textAlign: 'center', padding: '2rem', color: colors.textMuted }}>
           No feedback found
         </div>
       ) : (
         items.map((item) => (
-          <div key={item.id} style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1rem', border: '1px solid #2a2a2a' }}>
+          <div key={item.id} style={{ backgroundColor: colors.cardAlt, borderRadius: '12px', padding: '1rem', border: `1px solid ${colors.border}` }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                 <span style={{ fontSize: '1.25rem' }}>
                   {item.type === 'bug' ? '🐛' : item.type === 'feature' ? '✨' : '💭'}
                 </span>
-                <span style={{ color: '#fff', fontWeight: 600, textTransform: 'capitalize' }}>{item.type}</span>
+                <span style={{ color: colors.text, fontWeight: 600, textTransform: 'capitalize' }}>{item.type}</span>
                 <span style={{ 
                   padding: '0.2rem 0.5rem', 
                   borderRadius: '4px', 
                   fontSize: '0.7rem', 
                   fontWeight: 600,
-                  backgroundColor: item.status === 'new' ? '#fbbf2420' : item.status === 'resolved' ? '#22c55e20' : '#22d3ee20',
-                  color: item.status === 'new' ? '#fbbf24' : item.status === 'resolved' ? '#22c55e' : '#22d3ee'
+                  backgroundColor: item.status === 'new' ? `${colors.gold}20` : item.status === 'resolved' ? `${colors.success}20` : `${colors.primary}20`,
+                  color: item.status === 'new' ? colors.gold : item.status === 'resolved' ? colors.success : colors.primary
                 }}>
                   {item.status.replace('_', ' ')}
                 </span>
               </div>
-              <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+              <span style={{ color: colors.textMuted, fontSize: '0.75rem' }}>
                 {new Date(item.created_at).toLocaleDateString()} {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </span>
             </div>
             
-            <p style={{ color: '#e5e7eb', fontSize: '0.9rem', marginBottom: '0.75rem', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
+            <p style={{ color: colors.textSecondary, fontSize: '0.9rem', marginBottom: '0.75rem', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
               {item.message}
             </p>
             
             {item.email && (
-              <div style={{ fontSize: '0.75rem', color: '#9ca3af', marginBottom: '0.5rem' }}>
-                📧 <a href={`mailto:${item.email}`} style={{ color: '#22d3ee' }}>{item.email}</a>
+              <div style={{ fontSize: '0.75rem', color: colors.textSecondary, marginBottom: '0.5rem' }}>
+                📧 <a href={`mailto:${item.email}`} style={{ color: colors.primary }}>{item.email}</a>
               </div>
             )}
             
             {item.page_url && (
-              <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.5rem' }}>
+              <div style={{ fontSize: '0.75rem', color: colors.textMuted, marginBottom: '0.5rem' }}>
                 📍 {item.page_url.replace(window.location.origin, '')}
               </div>
             )}
 
             {item.admin_notes && (
-              <div style={{ backgroundColor: '#0a0a0a', padding: '0.5rem 0.75rem', borderRadius: '6px', marginBottom: '0.75rem', fontSize: '0.8rem' }}>
-                <span style={{ color: '#6b7280' }}>Admin notes:</span> <span style={{ color: '#9ca3af' }}>{item.admin_notes}</span>
+              <div style={{ backgroundColor: colors.bg, padding: '0.5rem 0.75rem', borderRadius: '6px', marginBottom: '0.75rem', fontSize: '0.8rem' }}>
+                <span style={{ color: colors.textMuted }}>Admin notes:</span> <span style={{ color: colors.textSecondary }}>{item.admin_notes}</span>
               </div>
             )}
             
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
               {item.status === 'new' && (
-                <button onClick={() => onUpdateStatus(item.id, 'reviewed')} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#22d3ee20', border: '1px solid #22d3ee50', borderRadius: '6px', color: '#22d3ee', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 500 }}>
+                <button onClick={() => onUpdateStatus(item.id, 'reviewed')} style={{ padding: '0.4rem 0.75rem', backgroundColor: `${colors.primary}20`, border: `1px solid ${colors.primary}50`, borderRadius: '6px', color: colors.primary, cursor: 'pointer', fontSize: '0.75rem', fontWeight: 500 }}>
                   ✓ Mark Reviewed
                 </button>
               )}
               {(item.status === 'new' || item.status === 'reviewed') && (
-                <button onClick={() => onUpdateStatus(item.id, 'in_progress')} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#a855f720', border: '1px solid #a855f750', borderRadius: '6px', color: '#a855f7', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 500 }}>
+                <button onClick={() => onUpdateStatus(item.id, 'in_progress')} style={{ padding: '0.4rem 0.75rem', backgroundColor: `${colors.purple}20`, border: `1px solid ${colors.purple}50`, borderRadius: '6px', color: colors.purple, cursor: 'pointer', fontSize: '0.75rem', fontWeight: 500 }}>
                   🔧 In Progress
                 </button>
               )}
               {item.status !== 'resolved' && item.status !== 'closed' && (
-                <button onClick={() => onUpdateStatus(item.id, 'resolved')} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#22c55e20', border: '1px solid #22c55e50', borderRadius: '6px', color: '#22c55e', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 500 }}>
+                <button onClick={() => onUpdateStatus(item.id, 'resolved')} style={{ padding: '0.4rem 0.75rem', backgroundColor: `${colors.success}20`, border: `1px solid ${colors.success}50`, borderRadius: '6px', color: colors.success, cursor: 'pointer', fontSize: '0.75rem', fontWeight: 500 }}>
                   ✅ Resolved
                 </button>
               )}
               {item.status !== 'closed' && (
-                <button onClick={() => onUpdateStatus(item.id, 'closed')} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#6b728020', border: '1px solid #6b728050', borderRadius: '6px', color: '#6b7280', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 500 }}>
+                <button onClick={() => onUpdateStatus(item.id, 'closed')} style={{ padding: '0.4rem 0.75rem', backgroundColor: `${colors.textMuted}20`, border: `1px solid ${colors.textMuted}50`, borderRadius: '6px', color: colors.textMuted, cursor: 'pointer', fontSize: '0.75rem', fontWeight: 500 }}>
                   ✕ Close
                 </button>
               )}
@@ -139,7 +140,7 @@ export const FeedbackTab: React.FC<FeedbackTabProps> = ({ items, counts, onUpdat
                     `Re: ${item.type.charAt(0).toUpperCase() + item.type.slice(1)} Feedback — Kingshot Atlas`,
                     `Hi,\n\nThank you for your ${item.type} feedback:\n> ${item.message.substring(0, 200)}${item.message.length > 200 ? '...' : ''}\n\n`
                   )}
-                  style={{ padding: '0.4rem 0.75rem', backgroundColor: '#22d3ee10', border: '1px solid #22d3ee40', borderRadius: '6px', color: '#22d3ee', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 500 }}
+                  style={{ padding: '0.4rem 0.75rem', backgroundColor: `${colors.primary}10`, border: `1px solid ${colors.primary}40`, borderRadius: '6px', color: colors.primary, cursor: 'pointer', fontSize: '0.75rem', fontWeight: 500 }}
                 >
                   📧 Reply via Email
                 </button>

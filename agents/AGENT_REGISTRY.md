@@ -1,7 +1,7 @@
 # Agent Registry
 
-**Last Updated:** 2026-01-29  
-**Version:** 3.4 (Added Data Quality, Frontend Testing, Activity Curator sub-agents)
+**Last Updated:** 2026-02-13  
+**Version:** 3.5 (Refreshed agent capabilities for Feb 2026 development sprint)
 
 ---
 
@@ -83,6 +83,8 @@ Kingshot Atlas is run by a professional team of specialized AI agents, structure
 | Prep Phase / Battle Phase | Preparation Phase / Combat Phase |
 | Transfer Event | Migration Event |
 | Atlas Score | Rating / Points |
+| Atlas Supporter | Atlas Pro, Atlas Recruiter |
+| Transfer Hub | Transfer Board |
 | Domination | Double win |
 | Invasion | Double loss |
 | S-Tier, A-Tier, etc. | Top tier, high tier |
@@ -94,15 +96,15 @@ Kingshot Atlas is run by a professional team of specialized AI agents, structure
 | Agent | Role | Domain | Invoke When |
 |-------|------|--------|-------------|
 | **Atlas Director** | CEO | Strategy, orchestration, reporting | Starting work, status checks, multi-agent tasks |
-| **Product Engineer** | Core Dev | Features, UX, React, data integration | Building features, user-facing logic, components |
+| **Product Engineer** | Core Dev | Features, UX, React, i18n, data integration | Building features, user-facing logic, components, Transfer Hub, Gift Codes, Battle Planner |
 | ↳ **Frontend Testing Specialist** | Sub-agent | E2E testing, component testing, regression prevention | Test coverage, CI integration, quality gates |
-| **Platform Engineer** | Tech Lead | API, security, performance, architecture | Backend work, security, optimization |
+| **Platform Engineer** | Tech Lead | API, security, performance, architecture, structured logging | Backend work, security, optimization, centralized config, Supabase functions |
 | ↳ **Security Specialist** | Sub-agent | Vulnerability assessment, pen testing, incident response | Security audits, threat modeling, compliance |
 | ↳ **Data Quality Specialist** | Sub-agent | Data validation, quality assurance, submission review | Data audits, import pipelines, accuracy verification |
-| **Design Lead** | Creative | UI design, styling, content, brand | Visual work, CSS, content, responsive design, **brand enforcement** |
-| **Ops Lead** | DevOps | CI/CD, deployment, SEO, analytics | Deployment, monitoring, SEO, infrastructure |
-| **Business Lead** | Revenue | Monetization, growth, market research | Pricing, conversion, user growth, competitive analysis |
-| **Release Manager** | Comms | Patch notes, changelog, announcements | Every 3 days, user communications |
+| **Design Lead** | Creative | UI design, styling, design tokens, content, brand | Visual work, CSS, design token system, responsive design, **brand enforcement** |
+| **Ops Lead** | DevOps | CI/CD, deployment, SEO, analytics, consistency lint | Deployment, monitoring, SEO, infrastructure, CI quality gates |
+| **Business Lead** | Revenue | Monetization, growth, market research, Stripe | Pricing (monthly + annual plans), conversion, user growth, Kingdom Fund |
+| **Release Manager** | Comms | Patch notes, changelog, doc freshness, announcements | Every 3 days, user communications, documentation audits |
 | ↳ **Discord Community Manager** | Sub-agent | Discord optimization, community engagement, bot management | Discord audits, engagement strategy, server improvements |
 | ↳ **Activity Curator** | Sub-agent | Daily updates, coming soon, user-friendly changelogs | Daily digest, development communications, engagement content |
 
@@ -166,7 +168,7 @@ Kingshot Atlas is run by a professional team of specialized AI agents, structure
 
 | Agent | Owns (Writes) | Reads | Never Touches |
 |-------|---------------|-------|---------------|
-| **Director** | Coordination files, STATE_PACKET | Everything | Code (delegates) |
+| **Director** | Coordination files, STATUS_SNAPSHOT | Everything | Code (delegates) |
 | **Product Engineer** | `/apps/web/src/` (components, logic) | Specs, worklogs | CSS-only, API |
 | ↳ **Frontend Testing Specialist** | `/apps/web/tests/`, test configs | All frontend code | Production code (tests only) |
 | **Platform Engineer** | `/apps/api/`, build config, types | Architecture docs | UI components |
@@ -174,7 +176,7 @@ Kingshot Atlas is run by a professional team of specialized AI agents, structure
 | **Design Lead** | CSS, design tokens, content, `/docs/BRAND_GUIDE.md` | Style guide | Component logic |
 | **Ops Lead** | CI/CD, deployment, SEO config | Monitoring data | Feature code |
 | **Business Lead** | Pricing strategy, growth docs, marketing copy | Analytics, user feedback | Code implementation |
-| **Release Manager** | `/docs/releases/`, CHANGELOG | All worklogs (read-only) | Everything else |
+| **Release Manager** | `/docs/releases/`, `changelog.json`, CHANGELOG.md (auto-gen) | All worklogs (read-only) | Everything else |
 | ↳ **Discord Community Manager** | Discord strategy docs, bot templates | Bot logs, server data | Code implementation (advises only) |
 | ↳ **Activity Curator** | `/docs/releases/daily/`, coming-soon.md | ACTIVITY_LOG, worklogs | Final patch notes (drafts only) |
 

@@ -7,7 +7,7 @@ Run this SQL in your Supabase SQL Editor:
 ```sql
 -- Add subscription columns to profiles table
 ALTER TABLE profiles 
-ADD COLUMN IF NOT EXISTS subscription_tier TEXT DEFAULT 'free' CHECK (subscription_tier IN ('free', 'supporter', 'recruiter')),
+ADD COLUMN IF NOT EXISTS subscription_tier TEXT DEFAULT 'free' CHECK (subscription_tier IN ('free', 'supporter')),
 ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT,
 ADD COLUMN IF NOT EXISTS subscription_expires_at TIMESTAMPTZ,
 ADD COLUMN IF NOT EXISTS subscription_status TEXT DEFAULT 'inactive' CHECK (subscription_status IN ('inactive', 'active', 'canceled', 'past_due'));
@@ -38,10 +38,6 @@ In your Stripe Dashboard, create the following products:
 ### Atlas Supporter
 - **Monthly:** $4.99/month (payment link in `VITE_STRIPE_PRO_MONTHLY_LINK`)
 
-### Atlas Recruiter  
-- **Monthly:** $19.99/month (payment link in `VITE_STRIPE_RECRUITER_MONTHLY_LINK`)
-- **Yearly:** $159.99/year (payment link in `VITE_STRIPE_RECRUITER_YEARLY_LINK`)
-
 ## 4. Environment Variables
 
 Add to your `.env` file:
@@ -50,8 +46,6 @@ Add to your `.env` file:
 # Stripe Configuration
 VITE_STRIPE_PUBLISHABLE_KEY=pk_live_xxx
 VITE_STRIPE_SUPPORTER_MONTHLY=price_xxx
-VITE_STRIPE_RECRUITER_MONTHLY=price_xxx
-VITE_STRIPE_RECRUITER_YEARLY=price_xxx
 VITE_STRIPE_PORTAL_URL=https://billing.stripe.com/p/login/xxx
 ```
 

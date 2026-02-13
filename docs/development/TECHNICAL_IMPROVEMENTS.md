@@ -78,14 +78,8 @@ class Base(DeclarativeBase):
 
 ### 🟡 Medium Priority Improvements
 
-#### 6. Alembic Migrations Initialized
-**Files:** `apps/api/alembic/`
-
-Created migration infrastructure:
-- `alembic.ini` - Configuration
-- `alembic/env.py` - Environment setup with model imports
-- `alembic/script.py.mako` - Migration template
-- `alembic/versions/` - Migration storage
+#### 6. ~~Alembic Migrations~~ (Removed)
+**Status:** Removed — never used (zero migrations created). SQLite schema is managed by `Base.metadata.create_all()` on each Render deploy. Supabase schema is managed via Supabase migrations. Alembic was dead weight.
 
 #### 7. API Service Modularization
 **Files:** `apps/web/src/services/`
@@ -138,20 +132,9 @@ npm run test:e2e:ui              # Interactive UI mode
 npm run test:e2e:headed          # See browser
 ```
 
-### Database Migrations
-```bash
-cd apps/api
-source venv/bin/activate
-
-# Create initial migration
-alembic revision --autogenerate -m "Initial migration"
-
-# Apply migrations
-alembic upgrade head
-
-# Rollback
-alembic downgrade -1
-```
+### Database Schema Changes
+- **SQLite (API):** Update `models.py` — Render's ephemeral storage recreates the DB on each deploy via `create_all()`
+- **Supabase (PostgreSQL):** Use Supabase migrations via dashboard or MCP tools
 
 ---
 
@@ -181,9 +164,9 @@ alembic downgrade -1
 | `tests/test_kingdoms.py` | New - kingdom tests |
 | `tests/test_auth.py` | New - auth tests |
 | `tests/test_submissions.py` | New - submission tests |
-| `alembic.ini` | New - migration config |
-| `alembic/env.py` | New - migration environment |
-| `alembic/script.py.mako` | New - migration template |
+| ~~`alembic.ini`~~ | Removed — never used |
+| ~~`alembic/env.py`~~ | Removed — never used |
+| ~~`alembic/script.py.mako`~~ | Removed — never used |
 
 ### Frontend (`apps/web/`)
 | File | Change |

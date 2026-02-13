@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getAuthHeaders } from '../../services/authHeaders';
+import { colors } from '../../utils/styles';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
@@ -30,22 +31,22 @@ interface EmailStats {
 }
 
 const STATUS_COLORS: Record<string, { bg: string; border: string; text: string }> = {
-  unread: { bg: '#fbbf2420', border: '#fbbf2450', text: '#fbbf24' },
-  read: { bg: '#6b728020', border: '#6b728050', text: '#6b7280' },
-  replied: { bg: '#22c55e20', border: '#22c55e50', text: '#22c55e' },
-  sent: { bg: '#22d3ee20', border: '#22d3ee50', text: '#22d3ee' },
-  draft: { bg: '#a855f720', border: '#a855f750', text: '#a855f7' },
-  failed: { bg: '#ef444420', border: '#ef444450', text: '#ef4444' },
+  unread: { bg: `${colors.gold}20`, border: `${colors.gold}50`, text: colors.gold },
+  read: { bg: `${colors.textMuted}20`, border: `${colors.textMuted}50`, text: colors.textMuted },
+  replied: { bg: `${colors.success}20`, border: `${colors.success}50`, text: colors.success },
+  sent: { bg: `${colors.primary}20`, border: `${colors.primary}50`, text: colors.primary },
+  draft: { bg: `${colors.purple}20`, border: `${colors.purple}50`, text: colors.purple },
+  failed: { bg: `${colors.error}20`, border: `${colors.error}50`, text: colors.error },
 };
 
 const CATEGORY_COLORS: Record<string, { bg: string; text: string; label: string }> = {
-  bug_report: { bg: '#ef444420', text: '#ef4444', label: 'Bug' },
-  feature_request: { bg: '#a855f720', text: '#a855f7', label: 'Feature' },
-  feedback: { bg: '#22c55e20', text: '#22c55e', label: 'Feedback' },
-  transfer: { bg: '#f9731620', text: '#f97316', label: 'Transfer' },
-  score_inquiry: { bg: '#eab30820', text: '#eab308', label: 'Score' },
-  billing: { bg: '#ec489920', text: '#ec4899', label: 'Billing' },
-  general: { bg: '#6b728020', text: '#6b7280', label: 'General' },
+  bug_report: { bg: `${colors.error}20`, text: colors.error, label: 'Bug' },
+  feature_request: { bg: `${colors.purple}20`, text: colors.purple, label: 'Feature' },
+  feedback: { bg: `${colors.success}20`, text: colors.success, label: 'Feedback' },
+  transfer: { bg: `${colors.orange}20`, text: colors.orange, label: 'Transfer' },
+  score_inquiry: { bg: `${colors.warning}20`, text: colors.warning, label: 'Score' },
+  billing: { bg: `${colors.pink}20`, text: colors.pink, label: 'Billing' },
+  general: { bg: `${colors.textMuted}20`, text: colors.textMuted, label: 'General' },
 };
 
 function timeAgo(dateStr: string): string {
@@ -237,6 +238,24 @@ export const EmailTab: React.FC = () => {
     setView('compose');
   };
 
+  const deleteEmail = async (emailId: string) => {
+    if (!confirm('Delete this email permanently?')) return;
+    try {
+      const authHeaders = await getAuthHeaders({ requireAuth: false });
+      const res = await fetch(`${API_URL}/api/v1/admin/email/${emailId}`, {
+        method: 'DELETE',
+        headers: authHeaders,
+      });
+      if (res.ok) {
+        if (selectedEmail?.id === emailId) setSelectedEmail(null);
+        fetchEmails();
+        fetchStats();
+      }
+    } catch (err) {
+      console.error('Failed to delete email:', err);
+    }
+  };
+
   const selectEmail = (email: SupportEmail) => {
     setSelectedEmail(email);
     if (email.status === 'unread') {
@@ -247,11 +266,11 @@ export const EmailTab: React.FC = () => {
   // Stats bar
   const StatBadge: React.FC<{ label: string; count: number; color: string }> = ({ label, count, color }) => (
     <div style={{ 
-      backgroundColor: '#111116', padding: '0.5rem 0.75rem', borderRadius: '8px', 
-      border: '1px solid #2a2a2a', textAlign: 'center', minWidth: '60px' 
+      backgroundColor: colors.cardAlt, padding: '0.5rem 0.75rem', borderRadius: '8px', 
+      border: `1px solid ${colors.border}`, textAlign: 'center', minWidth: '60px' 
     }}>
       <div style={{ color, fontWeight: 700, fontSize: '1.1rem' }}>{count}</div>
-      <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>{label}</div>
+      <div style={{ color: colors.textMuted, fontSize: '0.65rem' }}>{label}</div>
     </div>
   );
 
@@ -260,17 +279,17 @@ export const EmailTab: React.FC = () => {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          <h3 style={{ color: '#fff', margin: 0, fontSize: '1.1rem' }}>📧 Support Email</h3>
-          <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>support@ks-atlas.com</span>
+          <h3 style={{ color: colors.text, margin: 0, fontSize: '1.1rem' }}>📧 Support Email</h3>
+          <span style={{ color: colors.textMuted, fontSize: '0.8rem' }}>support@ks-atlas.com</span>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <button 
             onClick={() => { setView('inbox'); setSelectedEmail(null); }} 
             style={{ 
               padding: '0.4rem 0.75rem', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 500,
-              backgroundColor: view === 'inbox' ? '#22d3ee20' : 'transparent',
-              color: view === 'inbox' ? '#22d3ee' : '#6b7280',
-              border: view === 'inbox' ? '1px solid #22d3ee40' : '1px solid #2a2a2a',
+              backgroundColor: view === 'inbox' ? `${colors.primary}20` : 'transparent',
+              color: view === 'inbox' ? colors.primary : colors.textMuted,
+              border: view === 'inbox' ? `1px solid ${colors.primary}40` : `1px solid ${colors.border}`,
             }}
           >
             Inbox
@@ -279,9 +298,9 @@ export const EmailTab: React.FC = () => {
             onClick={() => { setView('compose'); setSelectedEmail(null); resetCompose(); }} 
             style={{ 
               padding: '0.4rem 0.75rem', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 500,
-              backgroundColor: view === 'compose' ? '#22c55e20' : 'transparent',
-              color: view === 'compose' ? '#22c55e' : '#6b7280',
-              border: view === 'compose' ? '1px solid #22c55e40' : '1px solid #2a2a2a',
+              backgroundColor: view === 'compose' ? `${colors.success}20` : 'transparent',
+              color: view === 'compose' ? colors.success : colors.textMuted,
+              border: view === 'compose' ? `1px solid ${colors.success}40` : `1px solid ${colors.border}`,
             }}
           >
             ✏️ Compose
@@ -290,7 +309,7 @@ export const EmailTab: React.FC = () => {
             onClick={() => { fetchEmails(); fetchStats(); }} 
             style={{ 
               padding: '0.4rem 0.75rem', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem',
-              backgroundColor: 'transparent', color: '#6b7280', border: '1px solid #2a2a2a',
+              backgroundColor: 'transparent', color: colors.textMuted, border: `1px solid ${colors.border}`,
             }}
           >
             ↻ Refresh
@@ -301,22 +320,22 @@ export const EmailTab: React.FC = () => {
       {/* Stats */}
       {stats && (
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          <StatBadge label="Total" count={stats.total} color="#fff" />
-          <StatBadge label="Unread" count={stats.unread} color="#fbbf24" />
-          <StatBadge label="Inbound" count={stats.inbound} color="#a855f7" />
-          <StatBadge label="Sent" count={stats.sent} color="#22d3ee" />
-          <StatBadge label="Failed" count={stats.failed} color="#ef4444" />
+          <StatBadge label="Total" count={stats.total} color={colors.text} />
+          <StatBadge label="Unread" count={stats.unread} color={colors.gold} />
+          <StatBadge label="Inbound" count={stats.inbound} color={colors.purple} />
+          <StatBadge label="Sent" count={stats.sent} color={colors.primary} />
+          <StatBadge label="Failed" count={stats.failed} color={colors.error} />
           {stats.avg_response_minutes != null && (
             <div style={{ 
-              backgroundColor: '#111116', padding: '0.5rem 0.75rem', borderRadius: '8px', 
-              border: '1px solid #2a2a2a', textAlign: 'center', minWidth: '60px' 
+              backgroundColor: colors.cardAlt, padding: '0.5rem 0.75rem', borderRadius: '8px', 
+              border: `1px solid ${colors.border}`, textAlign: 'center', minWidth: '60px' 
             }}>
-              <div style={{ color: '#22c55e', fontWeight: 700, fontSize: '1.1rem' }}>
+              <div style={{ color: colors.success, fontWeight: 700, fontSize: '1.1rem' }}>
                 {stats.avg_response_minutes < 60
                   ? `${stats.avg_response_minutes}m`
                   : `${(Math.round(stats.avg_response_minutes / 60 * 10) / 10)}h`}
               </div>
-              <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>{t('admin.avgReply', 'Avg Reply')}</div>
+              <div style={{ color: colors.textMuted, fontSize: '0.65rem' }}>{t('admin.avgReply', 'Avg Reply')}</div>
             </div>
           )}
         </div>
@@ -333,8 +352,8 @@ export const EmailTab: React.FC = () => {
               onKeyDown={(e) => { if (e.key === 'Enter') fetchEmails(); }}
               placeholder="Search emails by subject, body, or sender..."
               style={{
-                width: '100%', padding: '0.5rem 0.75rem', backgroundColor: '#0a0a0a',
-                border: '1px solid #2a2a2a', borderRadius: '6px', color: '#fff', fontSize: '0.85rem',
+                width: '100%', padding: '0.5rem 0.75rem', backgroundColor: colors.bg,
+                border: `1px solid ${colors.border}`, borderRadius: '6px', color: colors.text, fontSize: '0.85rem',
                 outline: 'none', boxSizing: 'border-box',
               }}
             />
@@ -345,32 +364,32 @@ export const EmailTab: React.FC = () => {
             {(['all', 'inbound', 'outbound'] as const).map(f => (
               <button key={f} onClick={() => setFilter(f)} style={{
                 padding: '0.3rem 0.6rem', borderRadius: '6px', cursor: 'pointer', fontSize: '0.75rem',
-                backgroundColor: filter === f ? '#22d3ee20' : 'transparent',
-                color: filter === f ? '#22d3ee' : '#6b7280',
-                border: filter === f ? '1px solid #22d3ee40' : '1px solid transparent',
+                backgroundColor: filter === f ? `${colors.primary}20` : 'transparent',
+                color: filter === f ? colors.primary : colors.textMuted,
+                border: filter === f ? `1px solid ${colors.primary}40` : '1px solid transparent',
                 textTransform: 'capitalize',
               }}>
                 {f}
               </button>
             ))}
-            <span style={{ borderLeft: '1px solid #2a2a2a', margin: '0 0.25rem' }} />
+            <span style={{ borderLeft: `1px solid ${colors.border}`, margin: '0 0.25rem' }} />
             {(['all', 'unread', 'read', 'replied', 'sent', 'failed'] as const).map(s => (
               <button key={s} onClick={() => setStatusFilter(s)} style={{
                 padding: '0.3rem 0.6rem', borderRadius: '6px', cursor: 'pointer', fontSize: '0.75rem',
-                backgroundColor: statusFilter === s ? '#22d3ee20' : 'transparent',
-                color: statusFilter === s ? '#22d3ee' : '#6b7280',
-                border: statusFilter === s ? '1px solid #22d3ee40' : '1px solid transparent',
+                backgroundColor: statusFilter === s ? `${colors.primary}20` : 'transparent',
+                color: statusFilter === s ? colors.primary : colors.textMuted,
+                border: statusFilter === s ? `1px solid ${colors.primary}40` : '1px solid transparent',
                 textTransform: 'capitalize',
               }}>
                 {s}
               </button>
             ))}
-            <span style={{ borderLeft: '1px solid #2a2a2a', margin: '0 0.25rem' }} />
+            <span style={{ borderLeft: `1px solid ${colors.border}`, margin: '0 0.25rem' }} />
             <button onClick={() => setGroupByThread(!groupByThread)} style={{
               padding: '0.3rem 0.6rem', borderRadius: '6px', cursor: 'pointer', fontSize: '0.75rem',
-              backgroundColor: groupByThread ? '#a855f720' : 'transparent',
-              color: groupByThread ? '#a855f7' : '#6b7280',
-              border: groupByThread ? '1px solid #a855f740' : '1px solid transparent',
+              backgroundColor: groupByThread ? `${colors.purple}20` : 'transparent',
+              color: groupByThread ? colors.purple : colors.textMuted,
+              border: groupByThread ? `1px solid ${colors.purple}40` : '1px solid transparent',
             }}>
               {groupByThread ? '🔗 Threaded' : '🔗 Thread'}
             </button>
@@ -381,30 +400,30 @@ export const EmailTab: React.FC = () => {
             {/* List */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', maxHeight: '600px', overflowY: 'auto' }}>
               {loading ? (
-                <div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>Loading...</div>
+                <div style={{ padding: '2rem', textAlign: 'center', color: colors.textMuted }}>Loading...</div>
               ) : emails.length === 0 ? (
-                <div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>
+                <div style={{ padding: '2rem', textAlign: 'center', color: colors.textMuted }}>
                   No emails yet. Emails to support@ks-atlas.com will appear here once Email Routing is configured.
                 </div>
               ) : (
                 groupedEmails.map(email => {
                   const isSelected = selectedEmail?.id === email.id;
                   const isUnread = email.status === 'unread';
-                  const sc = STATUS_COLORS[email.status] ?? { bg: '#6b728020', border: '#6b728050', text: '#6b7280' };
+                  const sc = STATUS_COLORS[email.status] ?? { bg: `${colors.textMuted}20`, border: `${colors.textMuted}50`, text: colors.textMuted };
                   return (
                     <div 
                       key={email.id} 
                       onClick={() => selectEmail(email)}
                       style={{ 
                         padding: '0.75rem', borderRadius: '8px', cursor: 'pointer',
-                        backgroundColor: isSelected ? '#1a1a2a' : '#111116',
-                        border: isSelected ? '1px solid #22d3ee40' : '1px solid #1a1a1f',
-                        borderLeft: isUnread ? '3px solid #fbbf24' : '3px solid transparent',
+                        backgroundColor: isSelected ? '#1a1a2a' : colors.cardAlt,
+                        border: isSelected ? `1px solid ${colors.primary}40` : `1px solid ${colors.borderSubtle}`,
+                        borderLeft: isUnread ? `3px solid ${colors.gold}` : '3px solid transparent',
                       }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
                         <span style={{ 
-                          color: isUnread ? '#fff' : '#9ca3af', fontWeight: isUnread ? 600 : 400, fontSize: '0.85rem',
+                          color: isUnread ? colors.text : colors.textSecondary, fontWeight: isUnread ? 600 : 400, fontSize: '0.85rem',
                           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '70%'
                         }}>
                           {email.direction === 'inbound' ? email.from_email : `→ ${email.to_email}`}
@@ -416,8 +435,8 @@ export const EmailTab: React.FC = () => {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <span style={{
                           padding: '0.1rem 0.35rem', borderRadius: '3px', fontSize: '0.6rem', fontWeight: 600,
-                          backgroundColor: email.direction === 'inbound' ? '#a855f715' : '#22d3ee15',
-                          color: email.direction === 'inbound' ? '#a855f7' : '#22d3ee',
+                          backgroundColor: email.direction === 'inbound' ? `${colors.purple}15` : `${colors.primary}15`,
+                          color: email.direction === 'inbound' ? colors.purple : colors.primary,
                         }}>
                           {email.direction === 'inbound' ? '↓ IN' : '↑ OUT'}
                         </span>
@@ -440,7 +459,7 @@ export const EmailTab: React.FC = () => {
                           ) : null;
                         })()}
                         <span style={{ 
-                          color: isUnread ? '#e5e7eb' : '#6b7280', fontSize: '0.8rem',
+                          color: isUnread ? '#e5e7eb' : colors.textMuted, fontSize: '0.8rem',
                           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                           fontWeight: isUnread ? 500 : 400,
                         }}>
@@ -456,60 +475,93 @@ export const EmailTab: React.FC = () => {
             {/* Detail */}
             {selectedEmail && (
               <div style={{ 
-                backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', 
-                border: '1px solid #2a2a2a', overflowY: 'auto', maxHeight: '600px' 
+                backgroundColor: colors.cardAlt, borderRadius: '12px', padding: '1.5rem', 
+                border: `1px solid ${colors.border}`, overflowY: 'auto', maxHeight: '600px' 
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                  <h4 style={{ color: '#fff', margin: 0, fontSize: '1rem', lineHeight: 1.4 }}>
+                  <h4 style={{ color: colors.text, margin: 0, fontSize: '1rem', lineHeight: 1.4 }}>
                     {selectedEmail.subject || '(no subject)'}
                   </h4>
                   <button onClick={() => setSelectedEmail(null)} style={{
-                    background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '1.2rem', padding: 0,
+                    background: 'none', border: 'none', color: colors.textMuted, cursor: 'pointer', fontSize: '1.2rem', padding: 0,
                   }}>×</button>
                 </div>
 
                 <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', fontSize: '0.8rem' }}>
                   <div>
-                    <span style={{ color: '#6b7280' }}>From: </span>
-                    <span style={{ color: '#22d3ee' }}>{selectedEmail.from_email}</span>
+                    <span style={{ color: colors.textMuted }}>From: </span>
+                    <span style={{ color: colors.primary }}>{selectedEmail.from_email}</span>
                   </div>
                   <div>
-                    <span style={{ color: '#6b7280' }}>To: </span>
-                    <span style={{ color: '#9ca3af' }}>{selectedEmail.to_email}</span>
+                    <span style={{ color: colors.textMuted }}>To: </span>
+                    <span style={{ color: colors.textSecondary }}>{selectedEmail.to_email}</span>
                   </div>
                   <div>
-                    <span style={{ color: '#6b7280' }}>
+                    <span style={{ color: colors.textMuted }}>
                       {new Date(selectedEmail.created_at).toLocaleString()}
                     </span>
                   </div>
                 </div>
 
-                <div style={{ 
-                  backgroundColor: '#0a0a0a', borderRadius: '8px', padding: '1rem', 
-                  border: '1px solid #1a1a1f', marginBottom: '1rem',
-                  whiteSpace: 'pre-wrap', color: '#e5e7eb', fontSize: '0.875rem', lineHeight: 1.6,
-                  maxHeight: '350px', overflowY: 'auto',
-                }}>
-                  {selectedEmail.body_text || '(empty)'}
-                </div>
-
-                {selectedEmail.direction === 'inbound' && (
-                  <button onClick={() => startReply(selectedEmail)} style={{
-                    padding: '0.5rem 1rem', backgroundColor: '#22c55e', color: '#fff',
-                    border: 'none', borderRadius: '6px', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem',
+                {selectedEmail.body_html ? (
+                  <div style={{
+                    backgroundColor: '#fff', borderRadius: '8px', padding: '1rem',
+                    border: `1px solid ${colors.borderSubtle}`, marginBottom: '1rem',
+                    maxHeight: '350px', overflowY: 'auto', color: '#000',
                   }}>
-                    ↩ Reply
-                  </button>
+                    <iframe
+                      srcDoc={selectedEmail.body_html}
+                      title="Email content"
+                      sandbox="allow-same-origin"
+                      style={{
+                        width: '100%', minHeight: '200px', border: 'none',
+                        backgroundColor: '#fff', colorScheme: 'light',
+                      }}
+                      onLoad={(e) => {
+                        const iframe = e.target as HTMLIFrameElement;
+                        if (iframe.contentDocument?.body) {
+                          iframe.style.height = iframe.contentDocument.body.scrollHeight + 20 + 'px';
+                        }
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div style={{
+                    backgroundColor: colors.bg, borderRadius: '8px', padding: '1rem',
+                    border: `1px solid ${colors.borderSubtle}`, marginBottom: '1rem',
+                    whiteSpace: 'pre-wrap', color: '#e5e7eb', fontSize: '0.875rem', lineHeight: 1.6,
+                    maxHeight: '350px', overflowY: 'auto',
+                  }}>
+                    {selectedEmail.body_text || '(empty)'}
+                  </div>
                 )}
+
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  {selectedEmail.direction === 'inbound' && (
+                    <button onClick={() => startReply(selectedEmail)} style={{
+                      padding: '0.5rem 1rem', backgroundColor: colors.success, color: colors.text,
+                      border: 'none', borderRadius: '6px', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem',
+                    }}>
+                      ↩ Reply
+                    </button>
+                  )}
+                  <button onClick={() => deleteEmail(selectedEmail.id)} style={{
+                    padding: '0.5rem 1rem', backgroundColor: `${colors.error}20`,
+                    color: colors.error, border: `1px solid ${colors.error}40`,
+                    borderRadius: '6px', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem',
+                  }}>
+                    🗑 Delete
+                  </button>
+                </div>
               </div>
             )}
           </div>
         </>
       ) : (
         /* Compose View */
-        <div style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', border: '1px solid #2a2a2a' }}>
+        <div style={{ backgroundColor: colors.cardAlt, borderRadius: '12px', padding: '1.5rem', border: `1px solid ${colors.border}` }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <h4 style={{ color: '#fff', margin: 0 }}>
+            <h4 style={{ color: colors.text, margin: 0 }}>
               {replyingTo ? `↩ Replying to ${replyingTo.from_email}` : '✏️ New Email'}
             </h4>
             {/* S1.5: Canned responses selector from Supabase */}
@@ -529,8 +581,8 @@ export const EmailTab: React.FC = () => {
                 e.target.value = '';
               }}
               style={{
-                padding: '0.35rem 0.6rem', backgroundColor: '#0a0a0a',
-                border: '1px solid #2a2a2a', borderRadius: '6px', color: '#6b7280',
+                padding: '0.35rem 0.6rem', backgroundColor: colors.bg,
+                border: `1px solid ${colors.border}`, borderRadius: '6px', color: colors.textMuted,
                 fontSize: '0.8rem', cursor: 'pointer',
               }}
             >
@@ -543,45 +595,45 @@ export const EmailTab: React.FC = () => {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             <div>
-              <label style={{ color: '#6b7280', fontSize: '0.8rem', display: 'block', marginBottom: '0.25rem' }}>To</label>
+              <label style={{ color: colors.textMuted, fontSize: '0.8rem', display: 'block', marginBottom: '0.25rem' }}>To</label>
               <input
                 type="email"
                 value={composeTo}
                 onChange={(e) => setComposeTo(e.target.value)}
                 placeholder="recipient@example.com"
                 style={{
-                  width: '100%', padding: '0.6rem', backgroundColor: '#0a0a0a',
-                  border: '1px solid #2a2a2a', borderRadius: '6px', color: '#fff', fontSize: '0.9rem',
+                  width: '100%', padding: '0.6rem', backgroundColor: colors.bg,
+                  border: `1px solid ${colors.border}`, borderRadius: '6px', color: colors.text, fontSize: '0.9rem',
                   outline: 'none', boxSizing: 'border-box',
                 }}
               />
             </div>
 
             <div>
-              <label style={{ color: '#6b7280', fontSize: '0.8rem', display: 'block', marginBottom: '0.25rem' }}>{t('admin.subject', 'Subject')}</label>
+              <label style={{ color: colors.textMuted, fontSize: '0.8rem', display: 'block', marginBottom: '0.25rem' }}>{t('admin.subject', 'Subject')}</label>
               <input
                 type="text"
                 value={composeSubject}
                 onChange={(e) => setComposeSubject(e.target.value)}
                 placeholder="Email subject"
                 style={{
-                  width: '100%', padding: '0.6rem', backgroundColor: '#0a0a0a',
-                  border: '1px solid #2a2a2a', borderRadius: '6px', color: '#fff', fontSize: '0.9rem',
+                  width: '100%', padding: '0.6rem', backgroundColor: colors.bg,
+                  border: `1px solid ${colors.border}`, borderRadius: '6px', color: colors.text, fontSize: '0.9rem',
                   outline: 'none', boxSizing: 'border-box',
                 }}
               />
             </div>
 
             <div>
-              <label style={{ color: '#6b7280', fontSize: '0.8rem', display: 'block', marginBottom: '0.25rem' }}>{t('admin.message', 'Message')}</label>
+              <label style={{ color: colors.textMuted, fontSize: '0.8rem', display: 'block', marginBottom: '0.25rem' }}>{t('admin.message', 'Message')}</label>
               <textarea
                 value={composeBody}
                 onChange={(e) => setComposeBody(e.target.value)}
                 placeholder="Write your message..."
                 rows={12}
                 style={{
-                  width: '100%', padding: '0.75rem', backgroundColor: '#0a0a0a',
-                  border: '1px solid #2a2a2a', borderRadius: '6px', color: '#fff', fontSize: '0.9rem',
+                  width: '100%', padding: '0.75rem', backgroundColor: colors.bg,
+                  border: `1px solid ${colors.border}`, borderRadius: '6px', color: colors.text, fontSize: '0.9rem',
                   outline: 'none', resize: 'vertical', lineHeight: 1.6, fontFamily: 'inherit',
                   boxSizing: 'border-box',
                 }}
@@ -590,8 +642,8 @@ export const EmailTab: React.FC = () => {
 
             <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
               <button onClick={() => { resetCompose(); setView('inbox'); }} style={{
-                padding: '0.5rem 1rem', backgroundColor: 'transparent', color: '#6b7280',
-                border: '1px solid #2a2a2a', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem',
+                padding: '0.5rem 1rem', backgroundColor: 'transparent', color: colors.textMuted,
+                border: `1px solid ${colors.border}`, borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem',
               }}>
                 Cancel
               </button>
@@ -599,7 +651,7 @@ export const EmailTab: React.FC = () => {
                 onClick={handleSend}
                 disabled={sending || !composeTo || !composeSubject || !composeBody}
                 style={{
-                  padding: '0.5rem 1.25rem', backgroundColor: '#22c55e', color: '#fff',
+                  padding: '0.5rem 1.25rem', backgroundColor: colors.success, color: colors.text,
                   border: 'none', borderRadius: '6px', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem',
                   opacity: (sending || !composeTo || !composeSubject || !composeBody) ? 0.5 : 1,
                 }}
@@ -612,10 +664,10 @@ export const EmailTab: React.FC = () => {
           {/* Setup Notice */}
           <div style={{
             marginTop: '1.5rem', padding: '1rem', backgroundColor: '#fbbf2410',
-            border: '1px solid #fbbf2430', borderRadius: '8px', fontSize: '0.8rem', color: '#fbbf24',
+            border: '1px solid #fbbf2430', borderRadius: '8px', fontSize: '0.8rem', color: colors.gold,
           }}>
             <strong>Setup Required:</strong> To send emails, configure <code>RESEND_API_KEY</code> in your backend environment. 
-            Sign up free at <a href="https://resend.com" target="_blank" rel="noopener noreferrer" style={{ color: '#22d3ee' }}>resend.com</a> (3,000 emails/month free). 
+            Sign up free at <a href="https://resend.com" target="_blank" rel="noopener noreferrer" style={{ color: colors.primary }}>resend.com</a> (3,000 emails/month free). 
             To receive emails, enable Cloudflare Email Routing and deploy the Email Worker.
           </div>
         </div>

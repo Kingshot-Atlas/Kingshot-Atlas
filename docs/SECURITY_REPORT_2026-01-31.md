@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL — 2026-01-31** | Security posture has changed (Supabase RLS, admin JWT auth, rate limiting added). See `SECURITY_PRACTICES.md` for current state.
+
 # Security Assessment Report
 **Date:** January 31, 2026  
 **System:** Kingshot Atlas  

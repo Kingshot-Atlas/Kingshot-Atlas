@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { useIsMobile } from '../hooks/useMediaQuery';
-import { neonGlow, FONT_DISPLAY } from '../utils/styles';
+import { neonGlow, FONT_DISPLAY, colors } from '../utils/styles';
 
 // =============================================
 // STRIPE PAYMENT LINKS (Kingdom Fund Contribution)
@@ -55,10 +55,10 @@ const getTierFromBalance = (balance: number): string => {
 };
 
 const TIER_COLORS: Record<string, string> = {
-  gold: '#fbbf24',
-  silver: '#9ca3af',
-  bronze: '#cd7f32',
-  standard: '#4b5563',
+  gold: colors.gold,
+  silver: colors.textSecondary,
+  bronze: colors.bronze,
+  standard: colors.textMuted,
 };
 
 const TIER_BENEFITS: Record<string, string[]> = {

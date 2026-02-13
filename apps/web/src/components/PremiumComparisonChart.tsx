@@ -4,7 +4,7 @@ import { KingdomProfile } from '../types';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { usePremium } from '../contexts/PremiumContext';
 import ComparisonRadarChart from './ComparisonRadarChart';
-import ProBadge from './ProBadge';
+import SupporterBadge from './SupporterBadge';
 
 interface PremiumComparisonChartProps {
   kingdoms: KingdomProfile[];
@@ -141,7 +141,7 @@ const PremiumComparisonChart: React.FC<PremiumComparisonChartProps> = ({
         
         {!canViewAll && showUpgradePrompt ? (
           <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <ProBadge size="sm" />
+            <SupporterBadge size="sm" />
             Upgrade for {kingdoms.length}-Way Comparison
           </span>
         ) : (
@@ -187,7 +187,7 @@ const PremiumComparisonChart: React.FC<PremiumComparisonChartProps> = ({
             }}>
               ⚡ Premium Multi-Kingdom Analysis
             </h4>
-            <ProBadge size="sm" />
+            <SupporterBadge size="sm" />
           </div>
           
           <p style={{ 

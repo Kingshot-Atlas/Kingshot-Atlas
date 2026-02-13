@@ -7,11 +7,12 @@ export const STRIPE_CONFIG = {
   publishableKey: import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '',
   
   // Payment Link IDs (direct links - no backend needed)
-  // Note: "pro" tier is now displayed as "Atlas Supporter" to users
+  // Atlas Supporter: monthly ($4.99/mo) and yearly ($49.99/yr)
+  // New env vars: VITE_STRIPE_SUPPORTER_*; legacy VITE_STRIPE_PRO_* kept for backward compat
   paymentLinks: {
     supporter: {
-      monthly: import.meta.env.VITE_STRIPE_PRO_MONTHLY_LINK || 'https://buy.stripe.com/dRm8wQ2Fe2ye7dC3n9eZ206',
-      yearly: import.meta.env.VITE_STRIPE_PRO_YEARLY_LINK || '',
+      monthly: import.meta.env.VITE_STRIPE_SUPPORTER_MONTHLY_LINK || import.meta.env.VITE_STRIPE_PRO_MONTHLY_LINK || 'https://buy.stripe.com/dRm8wQ2Fe2ye7dC3n9eZ206',
+      yearly: import.meta.env.VITE_STRIPE_SUPPORTER_YEARLY_LINK || import.meta.env.VITE_STRIPE_PRO_YEARLY_LINK || 'https://buy.stripe.com/3cIcN67Zy3CifK8cXJeZ20b',
     },
   },
   

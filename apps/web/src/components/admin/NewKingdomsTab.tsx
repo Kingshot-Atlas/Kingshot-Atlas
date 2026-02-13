@@ -1,5 +1,6 @@
 import React from 'react';
 import type { NewKingdomSubmission } from './types';
+import { colors } from '../../utils/styles';
 
 interface NewKingdomsTabProps {
   submissions: NewKingdomSubmission[];
@@ -16,22 +17,22 @@ export const NewKingdomsTab: React.FC<NewKingdomsTabProps> = ({
 }) => {
   if (submissions.length === 0) {
     return (
-      <div style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', border: '1px solid #2a2a2a' }}>
-        <h3 style={{ color: '#fff', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+      <div style={{ backgroundColor: colors.cardAlt, borderRadius: '12px', padding: '1.5rem', border: `1px solid ${colors.border}` }}>
+        <h3 style={{ color: colors.text, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           🏰 New Kingdom Submissions
         </h3>
-        <p style={{ color: '#6b7280', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
+        <p style={{ color: colors.textMuted, fontSize: '0.85rem', marginBottom: '1.5rem' }}>
           Review and approve new kingdoms submitted by linked users.
         </p>
         <div style={{ 
-          backgroundColor: '#1a1a1f', 
+          backgroundColor: colors.surfaceHover, 
           borderRadius: '8px', 
           padding: '2rem', 
           textAlign: 'center',
-          border: '1px dashed #2a2a2a'
+          border: `1px dashed ${colors.border}`
         }}>
           <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📭</div>
-          <div style={{ color: '#6b7280' }}>No {filter} kingdom submissions</div>
+          <div style={{ color: colors.textMuted }}>No {filter} kingdom submissions</div>
         </div>
       </div>
     );
@@ -40,11 +41,11 @@ export const NewKingdomsTab: React.FC<NewKingdomsTabProps> = ({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       {submissions.map((sub) => (
-        <div key={sub.id} style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', border: '1px solid #2a2a2a' }}>
+        <div key={sub.id} style={{ backgroundColor: colors.cardAlt, borderRadius: '12px', padding: '1.5rem', border: `1px solid ${colors.border}` }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
             <div>
-              <span style={{ color: '#22d3ee', fontWeight: 600, fontSize: '1.1rem' }}>Kingdom {sub.kingdom_number}</span>
-              <span style={{ color: '#6b7280', marginLeft: '0.75rem', fontSize: '0.85rem' }}>
+              <span style={{ color: colors.primary, fontWeight: 600, fontSize: '1.1rem' }}>Kingdom {sub.kingdom_number}</span>
+              <span style={{ color: colors.textMuted, marginLeft: '0.75rem', fontSize: '0.85rem' }}>
                 {sub.first_kvk_id === null 
                   ? 'No KvK yet' 
                   : `First KvK: #${sub.first_kvk_id} • ${sub.kvk_history.length} KvK${sub.kvk_history.length !== 1 ? 's' : ''} submitted`
@@ -53,8 +54,8 @@ export const NewKingdomsTab: React.FC<NewKingdomsTabProps> = ({
             </div>
             <div style={{ 
               padding: '0.25rem 0.75rem',
-              backgroundColor: sub.status === 'pending' ? '#fbbf2420' : sub.status === 'approved' ? '#22c55e20' : '#ef444420',
-              color: sub.status === 'pending' ? '#fbbf24' : sub.status === 'approved' ? '#22c55e' : '#ef4444',
+              backgroundColor: sub.status === 'pending' ? `${colors.gold}20` : sub.status === 'approved' ? `${colors.success}20` : `${colors.error}20`,
+              color: sub.status === 'pending' ? colors.gold : sub.status === 'approved' ? colors.success : colors.error,
               borderRadius: '9999px',
               fontSize: '0.75rem',
               fontWeight: 600
@@ -68,17 +69,17 @@ export const NewKingdomsTab: React.FC<NewKingdomsTabProps> = ({
             {sub.first_kvk_id === null ? (
               <div style={{ 
                 padding: '0.75rem 1rem',
-                backgroundColor: '#fbbf2410',
-                border: '1px solid #fbbf2430',
+                backgroundColor: `${colors.gold}10`,
+                border: `1px solid ${colors.gold}30`,
                 borderRadius: '8px',
                 fontSize: '0.85rem',
-                color: '#fbbf24'
+                color: colors.gold
               }}>
                 This kingdom has not had their first KvK yet. They will be added with no history.
               </div>
             ) : (
               <>
-                <div style={{ color: '#9ca3af', fontSize: '0.75rem', marginBottom: '0.5rem' }}>
+                <div style={{ color: colors.textSecondary, fontSize: '0.75rem', marginBottom: '0.5rem' }}>
                   KvK HISTORY (from #{sub.first_kvk_id})
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
@@ -88,14 +89,14 @@ export const NewKingdomsTab: React.FC<NewKingdomsTabProps> = ({
                       alignItems: 'center',
                       gap: '0.25rem',
                       padding: '0.25rem 0.5rem',
-                      backgroundColor: '#1a1a1f',
+                      backgroundColor: colors.surfaceHover,
                       borderRadius: '6px',
                       fontSize: '0.8rem'
                     }}>
-                      <span style={{ color: '#22d3ee' }}>#{kvk.kvk}</span>
-                      <span style={{ color: kvk.prep === 'W' ? '#22c55e' : '#ef4444' }}>{kvk.prep}</span>
-                      <span style={{ color: '#4a4a4a' }}>/</span>
-                      <span style={{ color: kvk.battle === 'W' ? '#22c55e' : '#ef4444' }}>{kvk.battle}</span>
+                      <span style={{ color: colors.primary }}>#{kvk.kvk}</span>
+                      <span style={{ color: kvk.prep === 'W' ? colors.success : colors.error }}>{kvk.prep}</span>
+                      <span style={{ color: colors.border }}>/</span>
+                      <span style={{ color: kvk.battle === 'W' ? colors.success : colors.error }}>{kvk.battle}</span>
                     </div>
                   ))}
                 </div>
@@ -103,8 +104,8 @@ export const NewKingdomsTab: React.FC<NewKingdomsTabProps> = ({
             )}
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #2a2a2a', paddingTop: '1rem' }}>
-            <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: `1px solid ${colors.border}`, paddingTop: '1rem' }}>
+            <div style={{ color: colors.textMuted, fontSize: '0.75rem' }}>
               By {sub.submitted_by}{sub.submitted_by_kingdom ? ` (K${sub.submitted_by_kingdom})` : ''} • {new Date(sub.created_at).toLocaleDateString()}
             </div>
             
@@ -114,8 +115,8 @@ export const NewKingdomsTab: React.FC<NewKingdomsTabProps> = ({
                   onClick={() => onApprove(sub)}
                   style={{
                     padding: '0.5rem 1rem',
-                    backgroundColor: '#22c55e',
-                    color: '#fff',
+                    backgroundColor: colors.success,
+                    color: colors.text,
                     border: 'none',
                     borderRadius: '6px',
                     fontWeight: 600,
@@ -129,9 +130,9 @@ export const NewKingdomsTab: React.FC<NewKingdomsTabProps> = ({
                   onClick={() => onReject(sub.id)}
                   style={{
                     padding: '0.5rem 1rem',
-                    backgroundColor: '#ef444420',
-                    color: '#ef4444',
-                    border: '1px solid #ef4444',
+                    backgroundColor: `${colors.error}20`,
+                    color: colors.error,
+                    border: `1px solid ${colors.error}`,
                     borderRadius: '6px',
                     fontWeight: 600,
                     cursor: 'pointer',
@@ -144,7 +145,7 @@ export const NewKingdomsTab: React.FC<NewKingdomsTabProps> = ({
             )}
 
             {sub.status === 'rejected' && sub.review_notes && (
-              <div style={{ color: '#ef4444', fontSize: '0.8rem' }}>
+              <div style={{ color: colors.error, fontSize: '0.8rem' }}>
                 Reason: {sub.review_notes}
               </div>
             )}

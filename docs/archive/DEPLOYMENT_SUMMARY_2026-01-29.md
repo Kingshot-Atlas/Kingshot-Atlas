@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL — 2026-01-29** | Infrastructure has since migrated to Cloudflare Pages + Render. See `STATUS_SNAPSHOT.md` for current state.
+
 # Deployment Summary - January 29, 2026
 
 ## 🎯 **Mission Accomplished**

@@ -5,6 +5,7 @@ import { useIsMobile } from '../hooks/useMediaQuery';
 import { colors, neonGlow } from '../utils/styles';
 import { getDisplayTier, SUBSCRIPTION_COLORS, SubscriptionTier, ReferralTier } from '../utils/constants';
 import ReferralBadge from './ReferralBadge';
+import { Card } from './shared';
 import { useTranslation } from 'react-i18next';
 
 interface PlayerProfile {
@@ -122,15 +123,9 @@ const KingdomPlayers: React.FC<KingdomPlayersProps> = ({
 
   if (loading) {
     return (
-      <div style={{
-        backgroundColor: colors.surface,
-        borderRadius: '12px',
-        padding: '1rem',
-        marginBottom: '1.5rem',
-        border: `1px solid ${colors.border}`,
-      }}>
+      <Card marginBottom="1.5rem">
         <div style={{ color: colors.textMuted, fontSize: '0.85rem' }}>{t('kingdomPlayers.loading', 'Loading players...')}</div>
-      </div>
+      </Card>
     );
   }
 
@@ -138,19 +133,17 @@ const KingdomPlayers: React.FC<KingdomPlayersProps> = ({
 
   if (players.length === 0) {
     return (
-      <div style={{
-        backgroundColor: colors.surface,
-        borderRadius: '12px',
-        padding: isMobile ? '1.25rem' : '1.5rem',
-        marginBottom: '1.5rem',
-        border: `1px solid ${themeColor}20`,
-        textAlign: 'center',
-      }}>
+      <Card
+        borderColor={`${themeColor}20`}
+        marginBottom="1.5rem"
+        padding={{ mobile: '1.25rem', desktop: '1.5rem' }}
+        style={{ textAlign: 'center' }}
+      >
         <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>👀</div>
         <p style={{ color: colors.text, fontSize: '0.9rem', fontWeight: '600', margin: '0 0 0.25rem' }}>
           {t('kingdomPlayers.noUsers', 'No Atlas users from Kingdom {{num}} yet.', { num: kingdomNumber })}
         </p>
-        <p style={{ color: '#6b7280', fontSize: '0.8rem', margin: '0 0 0.75rem', lineHeight: 1.5 }}>
+        <p style={{ color: colors.textMuted, fontSize: '0.8rem', margin: '0 0 0.75rem', lineHeight: 1.5 }}>
           {t('kingdomPlayers.inviteThem', 'Know someone here? Invite them — every referral counts toward your Ambassador rank.')}
         </p>
         <Link
@@ -172,18 +165,16 @@ const KingdomPlayers: React.FC<KingdomPlayersProps> = ({
         >
           {t('kingdomPlayers.referFriend', '🔗 Refer a Friend')}
         </Link>
-      </div>
+      </Card>
     );
   }
 
   return (
-    <div style={{
-      backgroundColor: colors.surface,
-      borderRadius: '12px',
-      padding: isMobile ? '1rem' : '1.25rem',
-      marginBottom: '1.5rem',
-      border: `1px solid ${themeColor}30`,
-    }}>
+    <Card
+      borderColor={`${themeColor}30`}
+      marginBottom="1.5rem"
+      padding={{ mobile: '1rem', desktop: '1.25rem' }}
+    >
       <h3 style={{ 
         margin: 0, 
         marginBottom: '1rem',
@@ -346,7 +337,7 @@ const KingdomPlayers: React.FC<KingdomPlayersProps> = ({
           {t('kingdomPlayers.showing', 'Showing {{count}} of {{total}} players', { count: players.length, total: totalCount })}
         </span>
       </div>
-    </div>
+    </Card>
   );
 };
 

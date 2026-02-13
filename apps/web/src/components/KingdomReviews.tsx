@@ -34,7 +34,7 @@ const getAvatarBorderColor = (tier: SubscriptionTier): string => {
   switch (tier) {
     case 'admin': return SUBSCRIPTION_COLORS.admin;
     case 'supporter': return SUBSCRIPTION_COLORS.supporter;
-    default: return '#ffffff';
+    default: return colors.text;
   }
 };
 
@@ -304,11 +304,11 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
   if (compact) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem' }}>
-        <span style={{ color: '#6b7280' }}>{t('reviews.label', 'Reviews:')}</span>
+        <span style={{ color: colors.textMuted }}>{t('reviews.label', 'Reviews:')}</span>
         {avgRating ? (
           <>
             <span style={{ color: '#fbbf24' }}>{'★'.repeat(Math.round(Number(avgRating)))}</span>
-            <span style={{ color: '#9ca3af' }}>({reviews.length})</span>
+            <span style={{ color: colors.textSecondary }}>({reviews.length})</span>
           </>
         ) : (
           <span style={{ color: '#4a4a4a' }}>{t('reviews.noReviewsYet', 'No reviews yet')}</span>
@@ -319,13 +319,13 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
 
   return (
     <div style={{ 
-      backgroundColor: '#111111', 
+      backgroundColor: colors.surface, 
       borderRadius: '12px', 
       padding: '1.25rem', 
-      border: '1px solid #2a2a2a' 
+      border: `1px solid ${colors.border}` 
     }}>
       <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
-        <h3 style={{ color: '#fff', fontSize: '1rem', fontWeight: '600', margin: 0 }}>
+        <h3 style={{ color: colors.text, fontSize: '1rem', fontWeight: '600', margin: 0 }}>
           {t('reviews.communityReviews', 'Community Reviews')}
           {avgRating && (
             <span style={{ marginLeft: '0.75rem', fontSize: '0.85rem', color: '#fbbf24' }}>
@@ -346,7 +346,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                   backgroundColor: showForm ? '#2a2a2a' : '#22d3ee',
                   border: 'none',
                   borderRadius: '8px',
-                  color: '#fff',
+                  color: colors.text,
                   fontSize: '0.8rem',
                   cursor: 'pointer'
                 }}
@@ -378,7 +378,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                 style={{ 
                   display: 'block',
                   marginTop: '0.5rem',
-                  color: '#6b7280', 
+                  color: colors.textMuted, 
                   fontSize: '0.75rem', 
                   fontStyle: 'italic',
                   textDecoration: 'none'
@@ -394,7 +394,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                 style={{ 
                   display: 'block',
                   marginTop: '0.5rem',
-                  color: '#6b7280', 
+                  color: colors.textMuted, 
                   fontSize: '0.75rem', 
                   fontStyle: 'italic'
                 }}
@@ -408,7 +408,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                 style={{ 
                   display: 'block',
                   marginTop: '0.5rem',
-                  color: '#6b7280', 
+                  color: colors.textMuted, 
                   fontSize: '0.75rem', 
                   fontStyle: 'italic'
                 }}
@@ -437,11 +437,11 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
 
       {showForm && user && canSubmitNewReview && (
         <div style={{ 
-          backgroundColor: '#0a0a0a', 
+          backgroundColor: colors.bg, 
           borderRadius: '8px', 
           padding: '1rem', 
           marginBottom: '1rem',
-          border: '1px solid #2a2a2a'
+          border: `1px solid ${colors.border}`
         }}>
           {/* Show linked Kingshot account profile */}
           {(() => {
@@ -459,14 +459,14 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                 padding: '0.5rem',
                 backgroundColor: '#151515',
                 borderRadius: '6px',
-                border: '1px solid #2a2a2a'
+                border: `1px solid ${colors.border}`
               }}>
                 {/* Avatar with tier-colored border */}
                 <div style={{
                   width: '32px',
                   height: '32px',
                   borderRadius: '50%',
-                  backgroundColor: '#1a1a1a',
+                  backgroundColor: colors.surfaceHover,
                   border: `2px solid ${avatarBorderColor}`,
                   display: 'flex',
                   alignItems: 'center',
@@ -533,7 +533,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
             );
           })()}
           <div style={{ marginBottom: '0.75rem' }}>
-            <span style={{ color: '#6b7280', fontSize: '0.8rem', marginRight: '0.5rem' }}>{t('reviews.rating', 'Rating:')}</span>
+            <span style={{ color: colors.textMuted, fontSize: '0.8rem', marginRight: '0.5rem' }}>{t('reviews.rating', 'Rating:')}</span>
             {[1,2,3,4,5].map(n => (
               <button
                 key={n}
@@ -560,9 +560,9 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
               width: '100%',
               padding: '0.5rem',
               backgroundColor: '#151515',
-              border: '1px solid #2a2a2a',
+              border: `1px solid ${colors.border}`,
               borderRadius: '6px',
-              color: '#fff',
+              color: colors.text,
               minHeight: '80px',
               resize: 'vertical',
               fontSize: '0.85rem',
@@ -584,19 +584,19 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
           {/* Review preview */}
           {newReview.comment.trim().length >= MIN_COMMENT_LENGTH && (
             <div style={{
-              backgroundColor: '#0a0a0a',
-              border: '1px solid #2a2a2a',
+              backgroundColor: colors.bg,
+              border: `1px solid ${colors.border}`,
               borderRadius: '6px',
               padding: '0.5rem 0.75rem',
               marginBottom: '0.75rem'
             }}>
-              <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('reviews.preview', 'Preview')}</div>
+              <div style={{ fontSize: '0.65rem', color: colors.textMuted, marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('reviews.preview', 'Preview')}</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.25rem' }}>
                 <span style={{ color: '#fbbf24', fontSize: '0.75rem' }}>
                   {'★'.repeat(newReview.rating)}{'☆'.repeat(5 - newReview.rating)}
                 </span>
               </div>
-              <p style={{ color: '#9ca3af', fontSize: '0.8rem', lineHeight: 1.4, margin: 0 }}>
+              <p style={{ color: colors.textSecondary, fontSize: '0.8rem', lineHeight: 1.4, margin: 0 }}>
                 {newReview.comment.trim()}
               </p>
             </div>
@@ -612,7 +612,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                 backgroundColor: newReview.comment.trim() && newReview.comment.length >= MIN_COMMENT_LENGTH && !submitting ? '#22d3ee' : '#2a2a2a',
                 border: 'none',
                 borderRadius: '6px',
-                color: '#fff',
+                color: colors.text,
                 cursor: newReview.comment.trim() && newReview.comment.length >= MIN_COMMENT_LENGTH && !submitting ? 'pointer' : 'not-allowed',
                 fontSize: isMobile ? '0.9rem' : '0.85rem'
               }}
@@ -625,7 +625,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
 
       {/* Loading state */}
       {loading && (
-        <div style={{ color: '#6b7280', fontSize: '0.85rem', textAlign: 'center', padding: '1rem' }}>
+        <div style={{ color: colors.textMuted, fontSize: '0.85rem', textAlign: 'center', padding: '1rem' }}>
           {t('reviews.loading', 'Loading reviews...')}
         </div>
       )}
@@ -633,11 +633,11 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
       {/* Rating breakdown stats */}
       {!loading && reviewStats && reviewStats.totalReviews > 0 && (
         <div style={{ 
-          backgroundColor: '#0a0a0a', 
+          backgroundColor: colors.bg, 
           borderRadius: '8px', 
           padding: '0.75rem', 
           marginBottom: '0.75rem',
-          border: '1px solid #2a2a2a'
+          border: `1px solid ${colors.border}`
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
             {/* Average rating */}
@@ -645,7 +645,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
               <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#fbbf24' }}>
                 {reviewStats.avgRating.toFixed(1)}
               </div>
-              <div style={{ fontSize: '0.7rem', color: '#6b7280' }}>
+              <div style={{ fontSize: '0.7rem', color: colors.textMuted }}>
                 {t('reviews.reviewCount', '{{count}} review', { count: reviewStats.totalReviews }) + (reviewStats.totalReviews !== 1 ? 's' : '')}
               </div>
             </div>
@@ -659,11 +659,11 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                   : 0;
                 return (
                   <div key={rating} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.15rem' }}>
-                    <span style={{ fontSize: '0.65rem', color: '#6b7280', width: '12px' }}>{rating}</span>
+                    <span style={{ fontSize: '0.65rem', color: colors.textMuted, width: '12px' }}>{rating}</span>
                     <div style={{ 
                       flex: 1, 
                       height: '6px', 
-                      backgroundColor: '#2a2a2a', 
+                      backgroundColor: colors.border, 
                       borderRadius: '3px',
                       overflow: 'hidden'
                     }}>
@@ -701,7 +701,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                 <div style={{
                   marginTop: '0.25rem',
                   height: '4px',
-                  backgroundColor: '#2a2a2a',
+                  backgroundColor: colors.border,
                   borderRadius: '2px',
                   overflow: 'hidden'
                 }}>
@@ -741,7 +741,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
       {/* Featured Review - Most helpful review highlighted */}
       {!loading && featuredReview && featuredReview.helpful_count >= 2 && (
         <div style={{ 
-          backgroundColor: '#0a0a0a', 
+          backgroundColor: colors.bg, 
           borderRadius: '8px', 
           padding: '0.75rem', 
           marginBottom: '0.75rem',
@@ -752,7 +752,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
             position: 'absolute',
             top: '-0.5rem',
             left: '0.75rem',
-            backgroundColor: '#111111',
+            backgroundColor: colors.surface,
             padding: '0 0.5rem',
             fontSize: '0.6rem',
             fontWeight: '600',
@@ -776,7 +776,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
               </span>
             </div>
           </div>
-          <p style={{ color: '#9ca3af', fontSize: '0.8rem', lineHeight: 1.5, margin: '0.5rem 0 0' }}>
+          <p style={{ color: colors.textSecondary, fontSize: '0.8rem', lineHeight: 1.5, margin: '0.5rem 0 0' }}>
             {featuredReview.comment.length > 200 
               ? featuredReview.comment.substring(0, 200) + '...' 
               : featuredReview.comment}
@@ -793,7 +793,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
           marginBottom: '0.75rem',
           flexWrap: 'wrap'
         }}>
-          <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>{t('reviews.sortBy', 'Sort by:')}</span>
+          <span style={{ fontSize: '0.75rem', color: colors.textMuted }}>{t('reviews.sortBy', 'Sort by:')}</span>
           {([
             { value: 'newest', label: t('reviews.newest', 'Newest') },
             { value: 'helpful', label: t('reviews.mostHelpful', 'Most Helpful') },
@@ -824,7 +824,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
       {!loading && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           {sortedReviews.length === 0 ? (
-            <div style={{ color: '#6b7280', fontSize: '0.85rem', textAlign: 'center', padding: '1rem' }}>
+            <div style={{ color: colors.textMuted, fontSize: '0.85rem', textAlign: 'center', padding: '1rem' }}>
               {t('reviews.beFirst', 'No reviews yet. Be the first to share your experience!')}
             </div>
           ) : (
@@ -841,7 +841,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
               
               return (
                 <div key={review.id} style={{
-                  backgroundColor: '#0a0a0a',
+                  backgroundColor: colors.bg,
                   borderRadius: '8px',
                   padding: '0.75rem',
                   border: isOwnReview ? '1px solid #22d3ee30' : '1px solid #2a2a2a'
@@ -850,7 +850,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                     // Edit mode
                     <div>
                       <div style={{ marginBottom: '0.75rem' }}>
-                        <span style={{ color: '#6b7280', fontSize: '0.8rem', marginRight: '0.5rem' }}>{t('reviews.rating', 'Rating:')}</span>
+                        <span style={{ color: colors.textMuted, fontSize: '0.8rem', marginRight: '0.5rem' }}>{t('reviews.rating', 'Rating:')}</span>
                         {[1,2,3,4,5].map(n => (
                           <button
                             key={n}
@@ -873,9 +873,9 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                           width: '100%',
                           padding: '0.5rem',
                           backgroundColor: '#151515',
-                          border: '1px solid #2a2a2a',
+                          border: `1px solid ${colors.border}`,
                           borderRadius: '6px',
-                          color: '#fff',
+                          color: colors.text,
                           minHeight: '60px',
                           resize: 'vertical',
                           fontSize: '0.8rem',
@@ -903,7 +903,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                             backgroundColor: '#22d3ee',
                             border: 'none',
                             borderRadius: '4px',
-                            color: '#fff',
+                            color: colors.text,
                             fontSize: isMobile ? '0.8rem' : '0.75rem',
                             cursor: 'pointer'
                           }}
@@ -915,10 +915,10 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                           style={{
                             padding: isMobile ? '0.5rem 1rem' : '0.3rem 0.75rem',
                             minHeight: isMobile ? '44px' : 'auto',
-                            backgroundColor: '#2a2a2a',
+                            backgroundColor: colors.border,
                             border: 'none',
                             borderRadius: '4px',
-                            color: '#9ca3af',
+                            color: colors.textSecondary,
                             fontSize: isMobile ? '0.8rem' : '0.75rem',
                             cursor: 'pointer'
                           }}
@@ -947,7 +947,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                             width: '28px',
                             height: '28px',
                             borderRadius: '50%',
-                            backgroundColor: '#1a1a1a',
+                            backgroundColor: colors.surfaceHover,
                             border: `2px solid ${avatarBorderColor}`,
                             display: 'flex',
                             alignItems: 'center',
@@ -985,10 +985,10 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                             <span style={{
                               fontSize: '0.6rem',
                               padding: '0.1rem 0.3rem',
-                              backgroundColor: '#1a1a1a',
+                              backgroundColor: colors.surfaceHover,
                               border: '1px solid #3a3a3a',
                               borderRadius: '3px',
-                              color: '#6b7280',
+                              color: colors.textMuted,
                             }}>
                               K{review.author_linked_kingdom}
                             </span>
@@ -1050,7 +1050,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                         </span>
                       </div>
                       
-                      <p style={{ color: '#9ca3af', fontSize: '0.8rem', lineHeight: 1.5, margin: 0 }}>
+                      <p style={{ color: colors.textSecondary, fontSize: '0.8rem', lineHeight: 1.5, margin: 0 }}>
                         {review.comment}
                       </p>
                       
@@ -1102,7 +1102,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                               style={{
                                 background: 'none',
                                 border: 'none',
-                                color: '#6b7280',
+                                color: colors.textMuted,
                                 fontSize: '0.7rem',
                                 cursor: 'pointer',
                                 padding: '0.2rem 0.4rem'
@@ -1122,7 +1122,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                             style={{
                               background: 'none',
                               border: 'none',
-                              color: '#6b7280',
+                              color: colors.textMuted,
                               fontSize: '0.7rem',
                               cursor: 'pointer',
                               padding: '0.2rem 0.4rem'
@@ -1161,7 +1161,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                                 style={{
                                   background: 'none',
                                   border: 'none',
-                                  color: '#6b7280',
+                                  color: colors.textMuted,
                                   fontSize: '0.7rem',
                                   cursor: 'pointer',
                                   padding: '0.2rem 0.4rem'
@@ -1218,7 +1218,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                                   {new Date(reply.created_at).toLocaleDateString()}
                                 </span>
                               </div>
-                              <p style={{ color: '#9ca3af', fontSize: '0.75rem', lineHeight: 1.4, margin: 0 }}>
+                              <p style={{ color: colors.textSecondary, fontSize: '0.75rem', lineHeight: 1.4, margin: 0 }}>
                                 {reply.reply_text}
                               </p>
                             </div>
@@ -1237,9 +1237,9 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                               width: '100%',
                               padding: '0.5rem',
                               backgroundColor: '#151515',
-                              border: '1px solid #2a2a2a',
+                              border: `1px solid ${colors.border}`,
                               borderRadius: '6px',
-                              color: '#fff',
+                              color: colors.text,
                               minHeight: '50px',
                               resize: 'vertical',
                               fontSize: '0.75rem',
@@ -1251,10 +1251,10 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                               onClick={() => { setReplyingToId(null); setReplyText(''); }}
                               style={{
                                 padding: '0.3rem 0.6rem',
-                                backgroundColor: '#2a2a2a',
+                                backgroundColor: colors.border,
                                 border: 'none',
                                 borderRadius: '4px',
-                                color: '#9ca3af',
+                                color: colors.textSecondary,
                                 fontSize: '0.7rem',
                                 cursor: 'pointer'
                               }}
@@ -1269,7 +1269,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                                 backgroundColor: replyText.length >= 5 ? '#22d3ee' : '#2a2a2a',
                                 border: 'none',
                                 borderRadius: '4px',
-                                color: '#fff',
+                                color: colors.text,
                                 fontSize: '0.7rem',
                                 cursor: replyText.length >= 5 ? 'pointer' : 'not-allowed'
                               }}
@@ -1330,29 +1330,29 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
           <div
             onClick={(e) => e.stopPropagation()}
             style={{
-              backgroundColor: '#111111',
-              border: '1px solid #2a2a2a',
+              backgroundColor: colors.surface,
+              border: `1px solid ${colors.border}`,
               borderRadius: '12px',
               padding: '1.25rem',
               width: '100%',
               maxWidth: '400px'
             }}
           >
-            <h4 style={{ color: '#fff', fontSize: '0.95rem', margin: '0 0 1rem', fontWeight: '600' }}>
+            <h4 style={{ color: colors.text, fontSize: '0.95rem', margin: '0 0 1rem', fontWeight: '600' }}>
               🚩 {t('reviews.reportReview', 'Report Review')}
             </h4>
             <div style={{ marginBottom: '0.75rem' }}>
-              <label style={{ display: 'block', color: '#6b7280', fontSize: '0.75rem', marginBottom: '0.35rem' }}>{t('reviews.reason', 'Reason')}</label>
+              <label style={{ display: 'block', color: colors.textMuted, fontSize: '0.75rem', marginBottom: '0.35rem' }}>{t('reviews.reason', 'Reason')}</label>
               <select
                 value={reportReason}
                 onChange={(e) => setReportReason(e.target.value as ReportReason)}
                 style={{
                   width: '100%',
                   padding: '0.5rem',
-                  backgroundColor: '#0a0a0a',
-                  border: '1px solid #2a2a2a',
+                  backgroundColor: colors.bg,
+                  border: `1px solid ${colors.border}`,
                   borderRadius: '6px',
-                  color: '#fff',
+                  color: colors.text,
                   fontSize: '0.8rem'
                 }}
               >
@@ -1364,7 +1364,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
               </select>
             </div>
             <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', color: '#6b7280', fontSize: '0.75rem', marginBottom: '0.35rem' }}>{t('reviews.detailsOptional', 'Details (optional)')}</label>
+              <label style={{ display: 'block', color: colors.textMuted, fontSize: '0.75rem', marginBottom: '0.35rem' }}>{t('reviews.detailsOptional', 'Details (optional)')}</label>
               <textarea
                 value={reportDetails}
                 onChange={(e) => setReportDetails(e.target.value)}
@@ -1373,10 +1373,10 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                 style={{
                   width: '100%',
                   padding: '0.5rem',
-                  backgroundColor: '#0a0a0a',
-                  border: '1px solid #2a2a2a',
+                  backgroundColor: colors.bg,
+                  border: `1px solid ${colors.border}`,
                   borderRadius: '6px',
-                  color: '#fff',
+                  color: colors.text,
                   fontSize: '0.8rem',
                   minHeight: '60px',
                   resize: 'vertical'
@@ -1388,10 +1388,10 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                 onClick={() => setReportingReviewId(null)}
                 style={{
                   padding: '0.5rem 1rem',
-                  backgroundColor: '#2a2a2a',
+                  backgroundColor: colors.border,
                   border: 'none',
                   borderRadius: '6px',
-                  color: '#9ca3af',
+                  color: colors.textSecondary,
                   fontSize: '0.8rem',
                   cursor: 'pointer'
                 }}
@@ -1406,7 +1406,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                   backgroundColor: submittingReport ? '#2a2a2a' : '#ef4444',
                   border: 'none',
                   borderRadius: '6px',
-                  color: '#fff',
+                  color: colors.text,
                   fontSize: '0.8rem',
                   cursor: submittingReport ? 'not-allowed' : 'pointer'
                 }}

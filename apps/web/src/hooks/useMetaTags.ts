@@ -241,6 +241,12 @@ export const PAGE_META_TAGS = {
     description: 'Redeem Kingshot gift codes instantly with one click. No copy-pasting — rewards go straight to your in-game mailbox. Free tool by Kingshot Atlas.',
     url: 'https://ks-atlas.com/tools/gift-codes',
     type: 'website'
+  },
+  transferHubLanding: {
+    title: 'Kingshot Transfer Hub - Find Your Next Kingdom or Recruit Players',
+    description: 'The Kingshot Transfer Hub: browse recruiting kingdoms, create a transfer profile, apply directly. Recruiters set up listings and receive applications. 100% free, powered by real data.',
+    url: 'https://ks-atlas.com/transfer-hub/about',
+    type: 'website'
   }
 } as const satisfies Record<string, MetaTagsOptions>;
 

@@ -1,6 +1,6 @@
 # Features Implemented
 
-**Last Updated:** 2026-02-06  
+**Last Updated:** 2026-02-15  
 **Purpose:** Prevent duplicate work by tracking what's already built.
 
 ---
@@ -35,7 +35,7 @@
 | Support Atlas | `/support`, `/upgrade`, `/pro` | ✅ Live | Business | Community support page (formerly Upgrade) |
 | Changelog | `/changelog` | ✅ Live | Release | Version history and updates |
 | Atlas Bot | `/atlas-bot` | ✅ Live | Design + Product | Dedicated Atlas Discord Bot page with commands, features, invite CTA (2026-02-07) |
-| Transfer Board | `/transfer-board` | 🔨 In Progress | Product + Business | Kingdom listings, transfer profiles, applications. Coming Soon tag. (2026-02-06) |
+| Transfer Hub | `/transfer-hub` | ✅ Live | Product + Business | Kingdom listings, editor claiming, recruiter dashboard, kingdom fund, transfer profiles, applications, match scoring. Open to all linked users. (2026-02-09, renamed from Transfer Board 2026-02-07) |
 
 ---
 
@@ -201,7 +201,7 @@
 | Checkout Success/Error UX | ✅ Live | Platform | Success/canceled/error messages on Upgrade page |
 | Customer Portal Integration | ✅ Live | Platform | API-based portal session for subscription management |
 | Support Prompts | ✅ Live | Business | `UpgradePrompt.tsx` gentle support nudges |
-| Supporter Badge | ✅ Live | Design | `ProBadge.tsx` visual indicator (renamed to Supporter) |
+| Supporter Badge | ✅ Live | Design | `SupporterBadge.tsx` visual indicator |
 | Ad Banners | ✅ Live | Business | `AdBanner.tsx` for free tier |
 
 ---
@@ -345,7 +345,7 @@
 
 | Feature | Status | Date | Agent | Notes |
 |---------|--------|------|-------|-------|
-| Stripe-Based Subscription Counts | ✅ Live | 2026-01-31 | Platform | Uses Stripe as source of truth for Pro/Recruiter counts |
+| Stripe-Based Subscription Counts | ✅ Live | 2026-01-31 | Platform | Uses Stripe as source of truth for subscription counts |
 | Admin Subscription Sync | ✅ Live | 2026-01-31 | Platform | POST /api/v1/admin/subscriptions/sync-all |
 | Sync with Stripe Button | ✅ Live | 2026-01-31 | Platform | One-click reconciliation in User Breakdown section |
 | Feedback Tab | ✅ Live | 2026-02-02 | Product | View/manage user feedback with status workflow |
@@ -372,6 +372,7 @@
 | S3.3: Weekly Digest Email | ✅ Live | 2026-02-11 | Platform | POST `/email/weekly-digest` compiles stats and sends via Resend |
 | S3.4: Trend Sparklines | ✅ Live | 2026-02-11 | Product | Inline SVG sparklines on key metric cards in AnalyticsOverview |
 | S3.5: Date Range Picker | ✅ Live | 2026-02-11 | Product | Date range inputs + 7d/14d/30d quick buttons in AnalyticsOverview |
+| Admin Gold Tier Grant/Revoke | ✅ Live | 2026-02-13 | Product + Ops | Grant/revoke Gold/Silver/Bronze tier override to any kingdom from Admin Dashboard → Transfer Hub → Funds tab. DB trigger `enforce_admin_tier_override` preserves override through depletion cycles. Can grant to kingdoms without existing fund entries (creates one). "ADMIN OVERRIDE" badge shown on overridden funds. |
 
 ---
 
@@ -382,6 +383,11 @@
 | GitHub Actions CI | ✅ Live | 2026-01 | Ops | Lint, test, build pipeline |
 | Playwright E2E Tests | ✅ Live | 2026-02-02 | Product | E2E tests in CI with artifact uploads |
 | Lighthouse Audit | ✅ Live | 2026-01 | Ops | Performance monitoring |
+| CI Hardening: npm ci | ✅ Live | 2026-02-13 | Ops | Replaced `npm install` with `npm ci` in lint-and-test + build jobs for deterministic installs |
+| CI Hardening: npm Cache | ✅ Live | 2026-02-13 | Ops | Added npm cache to lint-and-test + build jobs via `actions/setup-node` cache option |
+| CI Hardening: E2E Quality Gate | ✅ Live | 2026-02-13 | Ops | Removed `continue-on-error: true` from E2E job — failures now block merges |
+| CI Hardening: Lighthouse Quality Gate | ✅ Live | 2026-02-13 | Ops | Removed `continue-on-error: true` from Lighthouse step — regressions now fail the build |
+| Deploy Notifications (Discord) | ✅ Live | 2026-02-13 | Ops | `deploy-notify` job posts to Discord webhook on push to main. Shows all job statuses. Requires `DISCORD_DEPLOY_WEBHOOK_URL` secret |
 
 ---
 
@@ -422,7 +428,7 @@
 
 ---
 
-## Planned / Not Yet Built
+## Extended Feature Registry
 
 | Feature | Status | Notes |
 |---------|--------|-------|
@@ -437,7 +443,7 @@
 | Transfer Hub — Application Auto-Expiry | ✅ Built | Edge Function `expire-transfer-applications` expires pending/viewed/interested apps past `expires_at`. Cron runs daily at 06:00 UTC via pg_cron (2026-02-07) |
 | Transfer Hub — RLS Policies | ✅ Built | 3 new policies: editor UPDATE on kingdom_funds (profile editing), editor INSERT on kingdom_editors (co-editor invites), editor UPDATE on kingdom_editors (co-editor management). Full audit on all 6 tables (2026-02-07) |
 | Transfer Hub — Editor Role Management | ✅ Built | Admin action buttons (Activate/Suspend/Remove) on editor & co-editor cards. Promote to Editor on co-editors. Bulk deactivate 30d+ inactive. Confirmation dialogs for destructive actions. Notifications on every status change. (2026-02-11) |
-| Transfer Hub — Co-Editor Self-Nomination | ✅ Built | "Become a Co-Editor" CTA on EditorClaiming when kingdom has active editor. No endorsements required. Max 2 co-editors/kingdom enforced. Slot counter shown. Editor approval flow via notifications. TC20+ required. (2026-02-11) |
+| Transfer Hub — Co-Editor Self-Nomination | ✅ Built | "Become a Co-Editor" CTA on EditorClaiming when kingdom has active editor. No endorsements required. Max 2 co-editors/kingdom enforced. Slot counter shown. Editor approval flow via notifications. TC20+ required. Realtime sync: applicant sees approval/decline instantly via Supabase Realtime on their claim; editor sees new co-editor requests AND transfer applications instantly via Realtime subscription on RecruiterDashboard (INSERT+UPDATE on kingdom_editors + transfer_applications). Silent refresh avoids skeleton flash. Purple badge on Recruiter Dashboard button shows pending co-editor count (outside dashboard). Analytics funnel: `Co-Editor Request Submitted` → `Co-Editor Request Response`. Auto-expire verified: pg_cron `expire_pending_coeditor_requests()` runs daily at 07:00 UTC. (2026-02-11, Realtime+polish 2026-02-13) |
 | Transfer Hub — Co-Editors Admin Tab | ✅ Built | Dedicated 🤝 Co-Editors sub-tab in Transfer Hub admin. No endorsement data shown. Purple badge (#a855f7). Separated from Editor Claims tab. (2026-02-11) |
 | Transfer Hub — Editor Role Enhancements | ✅ Built | Approve/Reject buttons for pending co-editor requests in RecruiterDashboard. Pending count badge on Co-Editors tab. Co-editor request notification preference. "Managed by [editor]" on kingdom profile header. RLS for co-editor self-nomination. Rate limit (1/user/day). Admin audit log table. Auto-expire pending requests after 7 days (pg_cron). Removal cascade trigger. (2026-02-11) |
 | Kingdom Ambassador Program | 🚧 Planned | Full spec at `/docs/KINGDOM_AMBASSADOR_PROGRAM.md` — 3-phase rollout, 1 per kingdom, referral tracking |
@@ -534,7 +540,7 @@
 | Brand Rename: Discord Bot Atlas | ✅ Live | "Atlas Discord Bot" renamed to "Discord Bot Atlas" across: Header dropdown, /tools page, QuickActions homepage, AtlasBot.tsx page title area, and all 18 translation files (9 languages × src + public). tools.botTitle fallback updated. (2026-02-12) |
 | Multirally 5 Free Uses/Day | ✅ Live | `MULTIRALLY_DAILY_LIMIT` increased from 3 to 5 in `handlers.js`. AtlasBot.tsx and all 18 translation files (src + public × 9 languages) updated. More generous free tier to drive adoption before Supporter upsell. (2026-02-13) |
 | i18n — quickAction Keys (8 langs) | ✅ Live | quickAction.* translation keys (12 keys: transferHub, battlePlanner, atlasBot, giftCode, rankings, kvkSeasons × line1/line2) added to ES, FR, ZH, DE, KO, JA, AR, TR. Synced src→public via i18n:sync. (2026-02-12) |
-| Component Refactoring | 🚧 Planned | KingdomCard, ProfileFeatures too large |
+| Component Refactoring Phase 3 | ✅ Done | Product | RecruiterDashboard.tsx 1761→765 lines (extracted ApplicationCard, CoEditorsTab, FundTab; removed duplicate types). RallyCoordinator.tsx 1072→997 lines (extracted QueueDropZone). Header.tsx already 346 lines from prior refactoring. New files: `recruiter/ApplicationCard.tsx`, `recruiter/CoEditorsTab.tsx`, `recruiter/FundTab.tsx`, `rally/QueueDropZone.tsx`. Zero regressions — vite build clean. (2026-02-16) |
 | Multi-Kingdom Share/Export | 🚧 Planned | ShareButton still uses 2-kingdom format |
 
 ---

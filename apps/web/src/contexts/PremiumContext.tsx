@@ -142,8 +142,8 @@ export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children })
 
       // Check local cache first
       const cached = localStorage.getItem(PREMIUM_KEY);
-      if (cached && (cached === 'supporter' || cached === 'pro' || cached === 'recruiter')) {
-        setTier('supporter'); // Normalize legacy cached values
+      if (cached === 'supporter') {
+        setTier('supporter');
       }
 
       // Fetch from Supabase if configured
@@ -157,8 +157,7 @@ export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children })
 
           if (!error && data?.subscription_tier) {
             const fetchedTier = data.subscription_tier;
-            // Normalize legacy tier values (pro/recruiter → supporter)
-            if (fetchedTier === 'pro' || fetchedTier === 'recruiter' || fetchedTier === 'supporter') {
+            if (fetchedTier === 'supporter') {
               setTier('supporter');
               localStorage.setItem(PREMIUM_KEY, 'supporter');
             } else {

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import PostKvKSubmission from './PostKvKSubmission';
+import { Button } from './shared';
 import { useTranslation } from 'react-i18next';
 
 interface MissingKvKPromptProps {
@@ -38,22 +39,6 @@ const MissingKvKPrompt: React.FC<MissingKvKPromptProps> = ({
     textAlign: 'center'
   };
 
-  const buttonStyle: React.CSSProperties = {
-    padding: '0.5rem 1rem',
-    borderRadius: '6px',
-    fontWeight: '600',
-    fontSize: '0.85rem',
-    cursor: 'pointer',
-    transition: 'all 0.2s',
-    border: 'none'
-  };
-
-  const primaryButtonStyle: React.CSSProperties = {
-    ...buttonStyle,
-    backgroundColor: '#22d3ee',
-    color: '#0a0a0a'
-  };
-
   // Case 1: Not logged in
   if (!isLoggedIn) {
     return (
@@ -65,9 +50,9 @@ const MissingKvKPrompt: React.FC<MissingKvKPromptProps> = ({
           {t('missingKvk.signInToHelp', "Help complete this kingdom's history! Sign in to submit results.")}
         </p>
         <Link to="/profile" style={{ textDecoration: 'none' }}>
-          <button style={primaryButtonStyle}>
+          <Button size="sm">
             {t('missingKvk.signInToSubmit', 'Sign In to Submit')}
-          </button>
+          </Button>
         </Link>
       </div>
     );
@@ -84,9 +69,9 @@ const MissingKvKPrompt: React.FC<MissingKvKPromptProps> = ({
           {t('missingKvk.linkToSubmit', 'Link your Kingshot account to submit KvK results.')}
         </p>
         <Link to="/profile" style={{ textDecoration: 'none' }}>
-          <button style={primaryButtonStyle}>
+          <Button size="sm">
             {t('missingKvk.linkAccount', 'Link Kingshot Account')}
-          </button>
+          </Button>
         </Link>
       </div>
     );
@@ -120,12 +105,9 @@ const MissingKvKPrompt: React.FC<MissingKvKPromptProps> = ({
             : t('missingKvk.knowResult', "Know this kingdom's KvK result? Help complete the data.")
           }
         </p>
-        <button 
-          style={primaryButtonStyle}
-          onClick={() => setShowSubmitModal(true)}
-        >
+        <Button size="sm" onClick={() => setShowSubmitModal(true)}>
           {t('missingKvk.submitResult', '📊 Submit KvK #{{num}} Result', { num: kvkNumber })}
-        </button>
+        </Button>
       </div>
 
       <PostKvKSubmission

@@ -3,7 +3,7 @@
 **Role:** Communications & Release Specialist  
 **Domain:** Patch Notes, Changelogs, User Communications, Discord Integration  
 **Version:** 1.0  
-**Last Updated:** 2026-01-28
+**Last Updated:** 2026-02-13
 
 ---
 
@@ -102,7 +102,8 @@ Before creating any communications, verify alignment with `/docs/VISION.md`:
 ### I Own ✅
 ```
 /docs/releases/                  → All patch notes
-/docs/CHANGELOG.md               → Cumulative changelog
+/apps/web/src/data/changelog.json → Single source of truth for changelog data
+/docs/CHANGELOG.md               → Auto-generated from changelog.json (do not edit manually)
 /docs/ANNOUNCEMENTS.md           → User announcements (if exists)
 Discord messages (future)        → Automated posts
 ```
@@ -203,22 +204,24 @@ Starting from project inception, patch notes are due every 3rd day. The Director
 
 ### Changelog Maintenance
 ```
-1. After each patch notes publication:
-   - Prepend new entries to CHANGELOG.md
-   - Maintain reverse chronological order
-   - Include date headers
+IMPORTANT: Changelog data lives in a SINGLE source of truth:
+  apps/web/src/data/changelog.json
 
-2. Format:
-   ## [YYYY-MM-DD]
-   ### ✨ New
-   - Entry 1
-   - Entry 2
-   
-   ### 🐛 Fixed
-   - Entry 1
-   
-   ### 🔧 Improved
-   - Entry 1
+DO NOT edit Changelog.tsx inline data — it imports from the JSON.
+DO NOT edit docs/CHANGELOG.md manually — it is auto-generated.
+
+1. After each patch notes publication:
+   - Edit src/data/changelog.json — add new entry at TOP of array
+   - Entry format: { "date": "Month DD, YYYY", "version": "X.Y.Z",
+     "new": [...], "fixed": [...], "improved": [...] }
+   - Run: npm run changelog:sync (regenerates docs/CHANGELOG.md)
+   - Verify: npm run changelog:check (confirms sync)
+
+2. The React page (Changelog.tsx) and markdown (CHANGELOG.md) both
+   derive from changelog.json automatically. No manual duplication.
+
+3. CI runs changelog:check via consistency-lint --strict.
+   Missing entries will fail the build.
 ```
 
 ---
@@ -426,7 +429,8 @@ Full details: `/docs/DISCORD_BOT.md`
 | File | Purpose | Update Frequency |
 |------|---------|------------------|
 | `/docs/releases/PATCH_NOTES_*.md` | Individual patch notes | Every 3 days |
-| `/docs/CHANGELOG.md` | Cumulative changelog | After each patch notes |
+| `/apps/web/src/data/changelog.json` | Single source of truth for changelog | After each patch notes |
+| `/docs/CHANGELOG.md` | Auto-generated from changelog.json | Run `npm run changelog:sync` |
 | `/docs/releases/README.md` | Index of all releases | As needed |
 
 ---

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import { colors } from '../../utils/styles';
 
 interface AccessEntry {
   id: string;
@@ -160,20 +161,20 @@ export const BattlePlannerAccessTab: React.FC = () => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       {/* Header */}
       <div style={{
-        backgroundColor: '#111116', borderRadius: '12px', padding: '1.25rem',
-        border: '1px solid #2a2a2a',
+        backgroundColor: colors.cardAlt, borderRadius: '12px', padding: '1.25rem',
+        border: `1px solid ${colors.border}`,
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
           <div>
-            <h3 style={{ color: '#fff', margin: 0, fontSize: '1rem' }}>⚔️ KvK Battle Planner Access</h3>
-            <p style={{ color: '#6b7280', fontSize: '0.8rem', margin: '0.25rem 0 0' }}>
+            <h3 style={{ color: colors.text, margin: 0, fontSize: '1rem' }}>⚔️ KvK Battle Planner Access</h3>
+            <p style={{ color: colors.textMuted, fontSize: '0.8rem', margin: '0.25rem 0 0' }}>
               Grant or revoke access to the Battle Planner for specific linked Kingshot users.
             </p>
           </div>
           <div style={{
-            padding: '0.3rem 0.75rem', backgroundColor: '#ef444420',
-            border: '1px solid #ef444440', borderRadius: '20px',
-            color: '#ef4444', fontSize: '0.75rem', fontWeight: 600,
+            padding: '0.3rem 0.75rem', backgroundColor: `${colors.error}20`,
+            border: `1px solid ${colors.error}40`, borderRadius: '20px',
+            color: colors.error, fontSize: '0.75rem', fontWeight: 600,
           }}>
             {accessList.length} user{accessList.length !== 1 ? 's' : ''}
           </div>
@@ -187,15 +188,15 @@ export const BattlePlannerAccessTab: React.FC = () => {
             onChange={e => handleSearch(e.target.value)}
             placeholder="Search by Kingshot username..."
             style={{
-              width: '100%', padding: '0.6rem 0.75rem', backgroundColor: '#0a0a0a',
-              border: '1px solid #2a2a2a', borderRadius: '8px', color: '#fff',
+              width: '100%', padding: '0.6rem 0.75rem', backgroundColor: colors.bg,
+              border: `1px solid ${colors.border}`, borderRadius: '8px', color: colors.text,
               fontSize: '0.85rem', outline: 'none', boxSizing: 'border-box',
             }}
           />
           {searching && (
             <span style={{
               position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)',
-              color: '#6b7280', fontSize: '0.7rem',
+              color: colors.textMuted, fontSize: '0.7rem',
             }}>
               Searching...
             </span>
@@ -205,7 +206,7 @@ export const BattlePlannerAccessTab: React.FC = () => {
           {searchResults.length > 0 && (
             <div style={{
               position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50,
-              marginTop: '4px', backgroundColor: '#111116', border: '1px solid #2a2a2a',
+              marginTop: '4px', backgroundColor: colors.cardAlt, border: `1px solid ${colors.border}`,
               borderRadius: '8px', overflow: 'hidden', boxShadow: '0 8px 24px rgba(0,0,0,0.6)',
               maxHeight: '280px', overflowY: 'auto',
             }}>
@@ -217,8 +218,8 @@ export const BattlePlannerAccessTab: React.FC = () => {
                   style={{
                     display: 'flex', alignItems: 'center', gap: '0.6rem',
                     width: '100%', padding: '0.6rem 0.75rem', backgroundColor: 'transparent',
-                    border: 'none', borderBottom: '1px solid #1a1a1a', cursor: 'pointer',
-                    textAlign: 'left', color: '#fff', transition: 'background-color 0.15s',
+                    border: 'none', borderBottom: `1px solid ${colors.surfaceHover}`, cursor: 'pointer',
+                    textAlign: 'left', color: colors.text, transition: 'background-color 0.15s',
                   }}
                   onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#1a1a2a')}
                   onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
@@ -234,7 +235,7 @@ export const BattlePlannerAccessTab: React.FC = () => {
                   ) : (
                     <div style={{
                       width: '28px', height: '28px', borderRadius: '50%',
-                      backgroundColor: '#2a2a2a', display: 'flex', alignItems: 'center',
+                      backgroundColor: colors.border, display: 'flex', alignItems: 'center',
                       justifyContent: 'center', flexShrink: 0, fontSize: '0.7rem',
                     }}>
                       👤
@@ -244,14 +245,14 @@ export const BattlePlannerAccessTab: React.FC = () => {
                     <div style={{ fontWeight: 600, fontSize: '0.8rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {result.linked_username}
                     </div>
-                    <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>
+                    <div style={{ color: colors.textMuted, fontSize: '0.65rem' }}>
                       K{result.linked_kingdom || '?'} · TC{result.linked_tc_level || '?'} · @{result.username}
                     </div>
                   </div>
                   <span style={{
-                    padding: '0.2rem 0.5rem', backgroundColor: '#22c55e20',
-                    border: '1px solid #22c55e40', borderRadius: '6px',
-                    color: '#22c55e', fontSize: '0.65rem', fontWeight: 600, flexShrink: 0,
+                    padding: '0.2rem 0.5rem', backgroundColor: `${colors.success}20`,
+                    border: `1px solid ${colors.success}40`, borderRadius: '6px',
+                    color: colors.success, fontSize: '0.65rem', fontWeight: 600, flexShrink: 0,
                   }}>
                     {adding === result.id ? '...' : '+ Grant'}
                   </span>
@@ -264,11 +265,11 @@ export const BattlePlannerAccessTab: React.FC = () => {
           {searchQuery.trim().length >= 2 && !searching && searchResults.length === 0 && (
             <div style={{
               position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50,
-              marginTop: '4px', backgroundColor: '#111116', border: '1px solid #2a2a2a',
+              marginTop: '4px', backgroundColor: colors.cardAlt, border: `1px solid ${colors.border}`,
               borderRadius: '8px', padding: '0.75rem', textAlign: 'center',
               boxShadow: '0 8px 24px rgba(0,0,0,0.6)',
             }}>
-              <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>
+              <span style={{ color: colors.textMuted, fontSize: '0.8rem' }}>
                 No linked Kingshot users found matching "{searchQuery}"
               </span>
             </div>
@@ -278,21 +279,21 @@ export const BattlePlannerAccessTab: React.FC = () => {
 
       {/* Access List */}
       <div style={{
-        backgroundColor: '#111116', borderRadius: '12px', padding: '1.25rem',
-        border: '1px solid #2a2a2a',
+        backgroundColor: colors.cardAlt, borderRadius: '12px', padding: '1.25rem',
+        border: `1px solid ${colors.border}`,
       }}>
-        <h4 style={{ color: '#fff', margin: '0 0 0.75rem', fontSize: '0.9rem' }}>
+        <h4 style={{ color: colors.text, margin: '0 0 0.75rem', fontSize: '0.9rem' }}>
           Authorized Users
         </h4>
 
         {loading ? (
-          <div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280', fontSize: '0.8rem' }}>
+          <div style={{ padding: '2rem', textAlign: 'center', color: colors.textMuted, fontSize: '0.8rem' }}>
             Loading...
           </div>
         ) : accessList.length === 0 ? (
           <div style={{
-            padding: '2rem', textAlign: 'center', color: '#4b5563',
-            fontSize: '0.8rem', border: '1px dashed #2a2a2a', borderRadius: '8px',
+            padding: '2rem', textAlign: 'center', color: colors.textMuted,
+            fontSize: '0.8rem', border: `1px dashed ${colors.border}`, borderRadius: '8px',
           }}>
             No users have Battle Planner access yet. Search above to grant access.
           </div>
@@ -303,8 +304,8 @@ export const BattlePlannerAccessTab: React.FC = () => {
                 key={entry.id}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '0.6rem',
-                  padding: '0.5rem 0.65rem', backgroundColor: '#0a0a0a',
-                  border: '1px solid #1a1a1a', borderRadius: '8px',
+                  padding: '0.5rem 0.65rem', backgroundColor: colors.bg,
+                  border: `1px solid ${colors.surfaceHover}`, borderRadius: '8px',
                 }}
               >
                 {/* Avatar */}
@@ -318,7 +319,7 @@ export const BattlePlannerAccessTab: React.FC = () => {
                 ) : (
                   <div style={{
                     width: '32px', height: '32px', borderRadius: '50%',
-                    backgroundColor: '#2a2a2a', display: 'flex', alignItems: 'center',
+                    backgroundColor: colors.border, display: 'flex', alignItems: 'center',
                     justifyContent: 'center', flexShrink: 0, fontSize: '0.8rem',
                   }}>
                     👤
@@ -326,10 +327,10 @@ export const BattlePlannerAccessTab: React.FC = () => {
                 )}
 
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 600, fontSize: '0.85rem', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div style={{ fontWeight: 600, fontSize: '0.85rem', color: colors.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {entry.linked_username}
                   </div>
-                  <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>
+                  <div style={{ color: colors.textMuted, fontSize: '0.65rem' }}>
                     K{entry.linked_kingdom || '?'} · TC{entry.linked_tc_level || '?'} · @{entry.username} · Added {formatDate(entry.created_at)}
                   </div>
                 </div>
@@ -338,9 +339,9 @@ export const BattlePlannerAccessTab: React.FC = () => {
                   onClick={() => revokeAccess(entry.id)}
                   disabled={removing === entry.id}
                   style={{
-                    padding: '0.25rem 0.6rem', backgroundColor: '#ef444415',
-                    border: '1px solid #ef444430', borderRadius: '6px',
-                    color: '#ef4444', fontSize: '0.65rem', fontWeight: 600,
+                    padding: '0.25rem 0.6rem', backgroundColor: `${colors.error}15`,
+                    border: `1px solid ${colors.error}30`, borderRadius: '6px',
+                    color: colors.error, fontSize: '0.65rem', fontWeight: 600,
                     cursor: removing === entry.id ? 'not-allowed' : 'pointer',
                     flexShrink: 0, opacity: removing === entry.id ? 0.5 : 1,
                   }}

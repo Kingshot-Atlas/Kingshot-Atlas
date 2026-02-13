@@ -25,8 +25,8 @@
 
 | Date | Trigger | Files Changed | Report | Status |
 |------|---------|---------------|--------|--------|
-| 2026-01-26 | Initial review | Full repo | [CODE_REVIEW_2026-01-26.md](./reviews/CODE_REVIEW_2026-01-26.md) | ✅ Complete |
-| 2026-01-26 | Post-fix verify | `auth.py`, `requirements.txt` | [CODE_REVIEW_2026-01-26_v2.md](./reviews/CODE_REVIEW_2026-01-26_v2.md) | ✅ Complete |
+| 2026-01-26 | Initial review | Full repo | [CODE_REVIEW_2026-01-26.md](./archive/reviews/CODE_REVIEW_2026-01-26.md) | ✅ Complete |
+| 2026-01-26 | Post-fix verify | `auth.py`, `requirements.txt` | [CODE_REVIEW_2026-01-26_v2.md](./archive/reviews/CODE_REVIEW_2026-01-26_v2.md) | ✅ Complete |
 
 **Next Run:** After 5-10 more file changes
 
@@ -34,7 +34,7 @@
 
 | Date | Trigger | Report | Status |
 |------|---------|--------|--------|
-| 2026-01-26 | Pre-release audit | [SECURITY_REVIEW_2026-01-26.md](./reviews/SECURITY_REVIEW_2026-01-26.md) | ✅ Complete |
+| 2026-01-26 | Pre-release audit | [SECURITY_REVIEW_2026-01-26.md](./archive/reviews/SECURITY_REVIEW_2026-01-26.md) | ✅ Complete |
 
 **Findings:** 3 Critical, 3 High, 4 Medium vulnerabilities  
 **Next Run:** After blockers are fixed, before any deployment
@@ -57,7 +57,7 @@
 
 | Date | Trigger | Report | Status |
 |------|---------|--------|--------|
-| 2026-01-26 | Major fixes complete | [ARCH_REVIEW_2026-01-26.md](./reviews/ARCH_REVIEW_2026-01-26.md) | ✅ Complete |
+| 2026-01-26 | Major fixes complete | [ARCH_REVIEW_2026-01-26.md](./archive/reviews/ARCH_REVIEW_2026-01-26.md) | ✅ Complete |
 
 **Findings:** Architecture appropriate for MVP, scaling path documented  
 **Next Run:** When major infrastructure changes proposed
@@ -66,7 +66,7 @@
 
 | Date | Trigger | Report | Status |
 |------|---------|--------|--------|
-| 2026-01-26 | Pre-production | [PERF_COST_REVIEW_2026-01-26.md](./reviews/PERF_COST_REVIEW_2026-01-26.md) | ✅ Complete |
+| 2026-01-26 | Pre-production | [PERF_COST_REVIEW_2026-01-26.md](./archive/reviews/PERF_COST_REVIEW_2026-01-26.md) | ✅ Complete |
 
 **Findings:** N+1 queries, missing indexes, bundle size opportunities  
 **Next Run:** After performance fixes implemented
@@ -123,12 +123,12 @@
 
 | Document | Purpose | Last Updated |
 |----------|---------|--------------|
-| [CODE_REVIEW_2026-01-26.md](./reviews/CODE_REVIEW_2026-01-26.md) | Code quality issues | 2026-01-26 |
-| [SECURITY_REVIEW_2026-01-26.md](./reviews/SECURITY_REVIEW_2026-01-26.md) | Security vulnerabilities | 2026-01-26 |
+| [CODE_REVIEW_2026-01-26.md](./archive/reviews/CODE_REVIEW_2026-01-26.md) | Code quality issues | 2026-01-26 |
+| [SECURITY_REVIEW_2026-01-26.md](./archive/reviews/SECURITY_REVIEW_2026-01-26.md) | Security vulnerabilities | 2026-01-26 |
 | [BLOCKER_FIXES.md](./BLOCKER_FIXES.md) | Step-by-step fix guide (COMPLETED) | 2026-01-26 |
-| [CODE_REVIEW_2026-01-26_v2.md](./reviews/CODE_REVIEW_2026-01-26_v2.md) | Post-fix verification | 2026-01-26 |
-| [PERF_COST_REVIEW_2026-01-26.md](./reviews/PERF_COST_REVIEW_2026-01-26.md) | Performance/cost roadmap | 2026-01-26 |
-| [ARCH_REVIEW_2026-01-26.md](./reviews/ARCH_REVIEW_2026-01-26.md) | Architecture assessment | 2026-01-26 |
+| [CODE_REVIEW_2026-01-26_v2.md](./archive/reviews/CODE_REVIEW_2026-01-26_v2.md) | Post-fix verification | 2026-01-26 |
+| [PERF_COST_REVIEW_2026-01-26.md](./archive/reviews/PERF_COST_REVIEW_2026-01-26.md) | Performance/cost roadmap | 2026-01-26 |
+| [ARCH_REVIEW_2026-01-26.md](./archive/reviews/ARCH_REVIEW_2026-01-26.md) | Architecture assessment | 2026-01-26 |
 
 ---
 

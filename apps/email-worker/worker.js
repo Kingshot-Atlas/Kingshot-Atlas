@@ -68,6 +68,7 @@ export default {
 
     // Read the raw email body
     let bodyText = "";
+    let bodyHtml = "";
     try {
       const reader = message.raw.getReader();
       const decoder = new TextDecoder();
@@ -96,9 +97,20 @@ export default {
         }
       }
 
+      // Extract HTML body from raw email
+      const htmlMatch = raw.match(
+        /Content-Type:\s*text\/html[^\r\n]*\r?\n(?:Content-Transfer-Encoding:[^\r\n]*\r?\n)?\r?\n([\s\S]*?)(?:\r?\n--)/i
+      );
+      if (htmlMatch) {
+        bodyHtml = htmlMatch[1].trim();
+      }
+
       // Truncate to 50KB to prevent abuse
       if (bodyText.length > 50000) {
         bodyText = bodyText.substring(0, 50000) + "\n... [truncated]";
+      }
+      if (bodyHtml.length > 100000) {
+        bodyHtml = bodyHtml.substring(0, 100000);
       }
     } catch (e) {
       bodyText = `[Error reading email body: ${e.message}]`;
@@ -134,6 +146,7 @@ export default {
               to_email: to,
               subject: subject,
               body_text: bodyText,
+              ...(bodyHtml ? { body_html: bodyHtml } : {}),
               status: "unread",
               metadata: {
                 message_id: message.headers.get("message-id"),

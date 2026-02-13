@@ -1,6 +1,7 @@
 # Monetization Strategy for Kingshot Atlas
 
 **Created:** 2026-01-27  
+**Updated:** 2026-02-15  
 **Target:** Quick revenue with user-friendly approach
 
 ---
@@ -38,17 +39,8 @@ Kingshot Atlas should monetize through a **freemium model** with optional premiu
 | **Early Access** | Be first to try new features | ✅ Live |
 | **Ad-Free Experience** | Clean, distraction-free browsing | ✅ Live |
 
-### Recruiter Tier — **Atlas Recruiter** ($19.99/month or $159.99/year)
-*Goal: Alliance recruiters and kingdom managers*
-
-| Feature | Value Proposition | Status |
-|---------|-------------------|--------|
-| All Supporter features | ✅ | ✅ Live |
-| **Claim Kingdom** | Official kingdom representative badge | ✅ Live |
-| **Recruiter Dashboard** | Track kingdom views, profile engagement | 🛠️ Coming Soon |
-| **Custom Kingdom Banner** | Upload alliance banner for profile | 🛠️ Coming Soon |
-| **Recruit Inbox** | Receive transfer interest from players | 🛠️ Coming Soon |
-| **Discord Recruiter Role** | Exclusive cyan role & badge in Discord | ✅ Live |
+### ~~Recruiter Tier~~ (REMOVED 2026-02-13)
+*Recruiter tier was removed. Kingdom claiming, recruiter dashboard, and transfer tools are now available to all linked users via the Transfer Hub. This simplifies the tier structure and increases engagement.*
 
 ---
 
@@ -101,11 +93,11 @@ Kingshot Atlas should monetize through a **freemium model** with optional premiu
 - **Community-focused:** Support the project, get recognition
 - **Low barrier:** Easy impulse decision for gamers
 
-### Why $19.99/month for Recruiters
-- **B2B pricing:** Business expense for alliance leaders
-- **Exclusive features:** Kingdom claiming is high-value
-- **Social proof:** Recruiter badge builds trust
-- **Yearly option:** $159.99/year (33% savings)
+### Why $49.99/year for Annual Supporters
+- **~17% savings** vs monthly ($59.88/yr → $49.99/yr)
+- **Commitment signal:** Annual subscribers churn less
+- **Higher LTV:** $49.99 upfront vs $4.99×12 risk
+- **Default option:** Support page defaults to yearly toggle
 
 ---
 
@@ -113,11 +105,11 @@ Kingshot Atlas should monetize through a **freemium model** with optional premiu
 
 Assuming 1,000 monthly active users after 3 months:
 
-| Scenario | Supporter (3% convert) | Recruiter (0.5% convert) | Monthly Revenue |
+| Scenario | Supporter Monthly (3%) | Supporter Annual (1%) | Monthly Revenue |
 |----------|------------------------|--------------------------|------------------|
-| Conservative | 30 × $4.99 | 5 × $19.99 | $250/month |
-| Moderate | 50 × $4.99 | 10 × $19.99 | $450/month |
-| Optimistic | 100 × $4.99 | 20 × $19.99 | $900/month |
+| Conservative | 30 × $4.99 | 10 × $4.17 | $191/month |
+| Moderate | 50 × $4.99 | 20 × $4.17 | $333/month |
+| Optimistic | 100 × $4.99 | 50 × $4.17 | $708/month |
 
 ---
 
@@ -146,21 +138,19 @@ Assuming 1,000 monthly active users after 3 months:
 npm install @stripe/stripe-js
 ```
 
-1. Create Stripe account
-2. Add products: Atlas Pro, Atlas Recruiter
-3. Implement Checkout redirect
-4. Store subscription status in user profile
-5. Check status on protected features
+1. ✅ Create Stripe account
+2. ✅ Add product: Atlas Supporter ($4.99/mo, $49.99/yr)
+3. ✅ Implement Payment Link checkout
+4. ✅ Store subscription status in user profile
+5. ✅ Check status on protected features
 
 ### Premium Feature Gates
 ```typescript
-// Example: Check premium status (Supporter or Recruiter)
-const isSupporter = user?.subscription_tier === 'pro' || user?.subscription_tier === 'recruiter';
+// Check premium status
+const isSupporter = user?.subscription_tier === 'supporter';
 
 // In component
-{isPro ? <PremiumFeature /> : <UpgradePrompt feature="Feature Name" />}
-
-// Note: KvK History is now FREE for all users - no gating required
+{isSupporter ? <PremiumFeature /> : <UpgradePrompt feature="Feature Name" />}
 ```
 
 ---
@@ -168,7 +158,7 @@ const isSupporter = user?.subscription_tier === 'pro' || user?.subscription_tier
 ## Marketing Angles
 
 ### For Players
-> "Find your forever kingdom. Atlas Pro gives you the complete picture."
+> "Stop guessing. Start winning. Atlas Supporter unlocks the full picture."
 
 ### For Recruiters
 > "Attract top talent. Show them your kingdom's true strength."
@@ -180,13 +170,17 @@ const isSupporter = user?.subscription_tier === 'pro' || user?.subscription_tier
 
 ## Next Steps
 
-1. [ ] Add Ko-fi button to About page (immediate)
-2. [ ] Create "Pro" feature badges in UI
-3. [ ] Set up Stripe account
-4. [ ] Design upgrade prompts (non-intrusive)
-5. [ ] Implement premium feature checks in AuthContext
-6. [ ] Build subscription management UI
+1. [x] Add Ko-fi button to About page
+2. [x] Create Supporter feature badges in UI
+3. [x] Set up Stripe account + webhook
+4. [x] Design upgrade prompts (non-intrusive)
+5. [x] Implement premium feature checks in PremiumContext
+6. [x] Build subscription management UI (Stripe Customer Portal)
+7. [x] Launch annual plan ($49.99/yr)
+8. [x] Kingdom Fund contributions (community treasury)
+9. [ ] Automated welcome/retention email flows
+10. [ ] Expand Kingdom Fund features (weekly depletion, tier perks)
 
 ---
 
-*Strategy by Business & Maintenance Specialist*
+*Strategy by Business Lead*

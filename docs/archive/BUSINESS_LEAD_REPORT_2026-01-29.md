@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL — 2026-01-29** | Pricing model has changed (Recruiter tier removed, Atlas Supporter is current). See `LATEST_KNOWLEDGE.md` for current revenue data.
+
 # Business Lead Monetization Audit Report
 
 **Date:** 2026-01-29  

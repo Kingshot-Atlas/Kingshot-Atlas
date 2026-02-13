@@ -2,11 +2,14 @@
 Feedback API Router
 Handles user feedback submission and retrieval
 """
+import logging
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 from datetime import datetime
 import os
+
+logger = logging.getLogger("atlas.feedback")
 
 router = APIRouter(prefix="/api/feedback", tags=["feedback"])
 
@@ -70,7 +73,7 @@ async def submit_feedback(feedback: FeedbackSubmission):
                     )
         except Exception as e:
             # Log error but don't fail - fall through to success
-            print(f"Error storing feedback in Supabase: {e}")
+            logger.error("Error storing feedback in Supabase: %s", e)
     
     # If Supabase unavailable, still return success
     # (feedback could be logged elsewhere or we accept the loss)
@@ -114,5 +117,5 @@ async def get_feedback_stats():
             "by_status": by_status
         }
     except Exception as e:
-        print(f"Error getting feedback stats: {e}")
+        logger.error("Error getting feedback stats: %s", e)
         return {"total": 0, "by_type": {}, "by_status": {}, "error": str(e)}

@@ -7,19 +7,19 @@ import AuthModal from '../components/AuthModal';
 import ProfileFeatures from '../components/ProfileFeatures';
 import LinkKingshotAccount from '../components/LinkKingshotAccount';
 import LinkDiscordAccount from '../components/LinkDiscordAccount';
-import NotificationPreferences from '../components/NotificationPreferences';
 import PlayersFromMyKingdom from '../components/PlayersFromMyKingdom';
+import { ProfileEditForm, ProfileStatsGrid, AvatarWithFallback, ProfileLoadingFallback, SubscriptionSection, getTierBorderColor, getAuthProvider } from '../components/profile';
+import type { EditForm } from '../components/profile';
 import ReferralStats from '../components/ReferralStats';
 import ReferralBadge from '../components/ReferralBadge';
 import ProfileCompletionProgress from '../components/ProfileCompletionProgress';
 import TransferReadinessScore from '../components/TransferReadinessScore';
 import KingdomLeaderboardPosition from '../components/KingdomLeaderboardPosition';
 import { ReferralTier, getHighestTierColor, SUBSCRIPTION_COLORS } from '../utils/constants';
-import { useAuth, getCacheBustedAvatarUrl, UserProfile, getDisplayName } from '../contexts/AuthContext';
+import { useAuth, UserProfile, getDisplayName } from '../contexts/AuthContext';
 import { usePremium } from '../contexts/PremiumContext';
 import { useToast } from '../components/Toast';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
-import { getCustomerPortalUrl, createPortalSession } from '../lib/stripe';
 import { discordService } from '../services/discordService';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useIsMobile } from '../hooks/useMediaQuery';
@@ -27,231 +27,17 @@ import { neonGlow } from '../utils/styles';
 import { isRandomUsername } from '../utils/randomUsername';
 import { useTranslation } from 'react-i18next';
 
-// Convert TC level to display string (TC 31+ becomes TG tiers)
-// Source of truth: /docs/TC_TG_NAMING.md
-const formatTCLevel = (level: number | null | undefined): string => {
-  if (!level) return '';
-  if (level <= 30) return `TC ${level}`;
-  if (level <= 34) return 'TC 30';
-  const tgTier = Math.floor((level - 35) / 5) + 1;
-  return `TG${tgTier}`;
-};
 
-// Get border color for avatar based on subscription tier
-// Supporter = Pink, Admin = Gold
-const getTierBorderColor = (tier: string): string => {
-  switch (tier) {
-    case 'admin': return '#f59e0b';       // Gold - Admin
-    case 'supporter':
-    case 'pro':                           // Legacy
-    case 'recruiter':                     // Legacy
-      return '#FF6B8A';                   // Pink - Atlas Supporter
-    default: return '#ffffff';            // White
-  }
-};
-
-// Globe icon SVG for unlinked users (matches Atlas logo)
-const GlobeIcon: React.FC<{ size: number; pulse?: boolean }> = ({ size, pulse = false }) => (
-  <div style={{ 
-    animation: pulse ? 'globePulse 2s ease-in-out infinite' : 'none',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center'
-  }}>
-    <style>{`
-      @keyframes globePulse {
-        0%, 100% { transform: scale(1); opacity: 1; }
-        50% { transform: scale(1.1); opacity: 0.8; }
-      }
-    `}</style>
-    <svg 
-      width={size * 0.5} 
-      height={size * 0.5} 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="1.5" 
-      strokeLinecap="round" 
-      strokeLinejoin="round"
-    >
-      <circle cx="12" cy="12" r="10" />
-      <path d="M2 12h20" />
-      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-    </svg>
-  </div>
-);
-
-// Avatar component with error handling and fallback
-const AvatarWithFallback: React.FC<{
-  avatarUrl?: string;
-  username?: string;
-  size: number;
-  themeColor: string;
-  badgeStyle?: string;
-  showGlobeDefault?: boolean;
-  onClick?: () => void;
-}> = ({ avatarUrl, username, size, themeColor, badgeStyle = 'default', showGlobeDefault = false, onClick }) => {
-  const [imgError, setImgError] = useState(false);
-  const [imgLoaded, setImgLoaded] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
-
-  const getBadgeStyle = (style: string, color: string) => {
-    switch (style) {
-      case 'gradient':
-        return { background: `linear-gradient(135deg, ${color} 0%, ${color}80 100%)` };
-      case 'outline':
-        return { backgroundColor: 'transparent', border: `2px solid ${color}` };
-      case 'glow':
-        return { backgroundColor: color, boxShadow: `0 0 20px ${color}60` };
-      default:
-        return { backgroundColor: color };
-    }
-  };
-
-  // Show globe icon for unlinked users, or letter fallback if linked but image failed
-  if (!avatarUrl || imgError || avatarUrl === '') {
-    return (
-      <div style={{ position: 'relative' }}>
-        <div 
-          onClick={onClick}
-          onMouseEnter={() => onClick && setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-          style={{
-            width: `${size}px`,
-            height: `${size}px`,
-            borderRadius: '50%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: `${size * 0.4}px`,
-            color: showGlobeDefault ? '#22d3ee' : '#000',
-            fontWeight: 'bold',
-            cursor: onClick ? 'pointer' : 'default',
-            backgroundColor: showGlobeDefault ? '#0a0a0a' : undefined,
-            border: showGlobeDefault ? '2px solid #22d3ee' : undefined,
-            transform: isHovered && onClick ? 'scale(1.05)' : 'scale(1)',
-            boxShadow: isHovered && onClick ? '0 0 20px rgba(34, 211, 238, 0.5)' : 'none',
-            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-            ...(!showGlobeDefault ? getBadgeStyle(badgeStyle, themeColor) : {})
-          }}>
-          {showGlobeDefault ? <GlobeIcon size={size} pulse={true} /> : (username?.[0]?.toUpperCase() ?? '?')}
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div style={{ position: 'relative', width: `${size}px`, height: `${size}px` }}>
-      {!imgLoaded && (
-        <div style={{
-          position: 'absolute',
-          width: `${size}px`,
-          height: `${size}px`,
-          borderRadius: '50%',
-          backgroundColor: '#1a1a1a',
-          animation: 'pulse 1.5s ease-in-out infinite',
-        }} />
-      )}
-      <img 
-        src={getCacheBustedAvatarUrl(avatarUrl)} 
-        alt="Avatar"
-        style={{
-          width: `${size}px`,
-          height: `${size}px`,
-          borderRadius: '50%',
-          objectFit: 'cover',
-          border: `2px solid ${themeColor}`,
-          opacity: imgLoaded ? 1 : 0,
-          transition: 'opacity 0.2s ease-in-out'
-        }}
-        onLoad={() => setImgLoaded(true)}
-        onError={() => {
-          console.error('Avatar failed to load:', avatarUrl);
-          setImgError(true);
-        }}
-        referrerPolicy="no-referrer"
-      />
-    </div>
-  );
-};
-
-const LANGUAGES = [
-  'English', 'Spanish', 'Portuguese', 'French', 'German', 'Italian', 
-  'Russian', 'Chinese', 'Japanese', 'Korean', 'Arabic', 'Turkish',
-  'Vietnamese', 'Thai', 'Indonesian', 'Polish', 'Dutch', 'Other'
-];
-
-const REGIONS = ['Americas', 'Europe', 'Asia', 'Oceania'];
-
-interface EditForm {
-  alliance_tag: string;
-  language: string;
-  region: string;
-  bio: string;
-  show_coordinates: boolean;
-  coordinates: string;
-}
-
-// Get auth provider from user metadata
-const getAuthProvider = (user: { app_metadata?: { provider?: string; providers?: string[] } } | null): 'discord' | 'google' | 'email' | null => {
-  if (!user) return null;
-  const provider = user.app_metadata?.provider || user.app_metadata?.providers?.[0];
-  if (provider === 'discord') return 'discord';
-  if (provider === 'google') return 'google';
-  if (provider === 'email') return 'email';
-  return null;
-};
-
-// Fallback for the "user logged in but profile not loaded" race condition.
-// After 8 seconds, offers a retry instead of spinning forever.
-const ProfileLoadingFallback: React.FC = () => {
-  const { t } = useTranslation();
-  const [timedOut, setTimedOut] = useState(false);
-  useEffect(() => {
-    const timer = setTimeout(() => setTimedOut(true), 8000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (timedOut) {
-    return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '1.5rem', padding: '2rem' }}>
-        <div style={{ color: '#9ca3af', fontSize: '1rem', textAlign: 'center' }}>
-          {t('profile.profileSlowLoad', 'Profile is taking a while to load.')}
-        </div>
-        <button
-          onClick={() => window.location.reload()}
-          style={{
-            padding: '0.75rem 1.5rem',
-            background: 'linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%)',
-            border: 'none',
-            borderRadius: '8px',
-            color: '#000',
-            fontWeight: 'bold',
-            cursor: 'pointer'
-          }}
-        >
-          {t('profile.reloadPage', 'Reload Page')}
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ color: '#6b7280' }}>{t('profile.loadingProfile', 'Loading profile...')}</div>
-    </div>
-  );
-};
+// Extracted to components/profile/: AvatarWithFallback, ProfileLoadingFallback, getTierBorderColor, getAuthProvider
 
 const Profile: React.FC = () => {
   const { t } = useTranslation();
   const { userId } = useParams<{ userId?: string }>();
   useDocumentTitle(userId ? t('profile.publicProfile', 'User Profile') : t('common.myProfile', 'My Profile'));
   const { user, profile, loading, updateProfile, refreshLinkedPlayer } = useAuth();
-  const { tierName, isSupporter, isAdmin } = usePremium();
+  const { isSupporter, isAdmin } = usePremium();
   const { showToast } = useToast();
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [managingSubscription, setManagingSubscription] = useState(false);
   const isMobile = useIsMobile();
   const [viewedProfile, setViewedProfile] = useState<UserProfile | null>(null);
   const [isViewingOther, setIsViewingOther] = useState(false);
@@ -437,10 +223,6 @@ const Profile: React.FC = () => {
     }
   };
 
-  const handleAllianceTagChange = (value: string) => {
-    const cleaned = value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 3).toUpperCase();
-    setEditForm({ ...editForm, alliance_tag: cleaned });
-  };
 
   if (loading) {
     return (
@@ -530,32 +312,6 @@ const Profile: React.FC = () => {
       </div>
     );
   }
-
-  const selectStyle = {
-    width: '100%',
-    padding: '0.75rem 1rem',
-    backgroundColor: '#0a0a0a',
-    border: '1px solid #2a2a2a',
-    borderRadius: '8px',
-    color: '#fff',
-    fontSize: '1rem',
-    cursor: 'pointer',
-    appearance: 'none' as const,
-    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
-    backgroundRepeat: 'no-repeat',
-    backgroundPosition: 'right 0.75rem center',
-    backgroundSize: '1rem'
-  };
-
-  const inputStyle = {
-    width: '100%',
-    padding: '0.75rem 1rem',
-    backgroundColor: '#0a0a0a',
-    border: '1px solid #2a2a2a',
-    borderRadius: '8px',
-    color: '#fff',
-    fontSize: '1rem'
-  };
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a' }}>
@@ -651,202 +407,21 @@ const Profile: React.FC = () => {
           border: `1px solid ${themeColor}30`
         }}>
           {isEditing && !isViewingOther ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              {/* Alliance Tag, Language, Region — 3-column row */}
-              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: isMobile ? '0.75rem' : '1rem' }}>
-                <div>
-                  <label style={{ color: '#9ca3af', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>{t('profile.allianceTagLabel', 'Alliance Tag (3 chars)')}</label>
-                  <input
-                    type="text"
-                    value={editForm.alliance_tag}
-                    onChange={(e) => handleAllianceTagChange(e.target.value)}
-                    placeholder="e.g. TWS"
-                    maxLength={3}
-                    style={{ ...inputStyle, textTransform: 'uppercase', letterSpacing: '0.1em' }}
-                  />
-                </div>
-                <div>
-                  <label style={{ color: '#9ca3af', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>{t('profile.mainLanguageLabel', 'Main Language')}</label>
-                  <select
-                    value={editForm.language}
-                    onChange={(e) => setEditForm({ ...editForm, language: e.target.value })}
-                    style={selectStyle}
-                  >
-                    <option value="">{t('profile.selectLanguage', 'Select language')}</option>
-                    {LANGUAGES.map(lang => (
-                      <option key={lang} value={lang}>{lang}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label style={{ color: '#9ca3af', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>{t('profile.regionLabel', 'Region')}</label>
-                  <select
-                    value={editForm.region}
-                    onChange={(e) => setEditForm({ ...editForm, region: e.target.value })}
-                    style={selectStyle}
-                  >
-                    <option value="">{t('profile.selectRegion', 'Select region')}</option>
-                    {REGIONS.map(r => (
-                      <option key={r} value={r}>{r}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Bio */}
-              <div>
-                <label style={{ color: '#9ca3af', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>{t('profile.bioLabel', 'Bio')}</label>
-                <textarea
-                  value={editForm.bio}
-                  onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
-                  placeholder={t('profile.bioPlaceholder', 'Tell us about yourself...')}
-                  rows={3}
-                  style={{
-                    ...inputStyle,
-                    resize: 'vertical'
-                  }}
-                />
-              </div>
-
-              {/* In-Game Coordinates Toggle */}
-              <div>
-                <div
-                  onClick={() => setEditForm({ ...editForm, show_coordinates: !editForm.show_coordinates })}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '0.75rem 1rem',
-                    backgroundColor: editForm.show_coordinates ? `${themeColor}10` : '#0a0a0a',
-                    border: `1px solid ${editForm.show_coordinates ? `${themeColor}40` : '#2a2a2a'}`,
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                    minHeight: '48px',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <div>
-                      <div style={{ color: '#fff', fontSize: '0.85rem', fontWeight: '500' }}>{t('profile.showCoordinates', 'Show In-Game Coordinates')}</div>
-                      <div style={{ color: '#6b7280', fontSize: '0.7rem' }}>{t('profile.showCoordinatesDesc', 'Let other Atlas users find you in-game')}</div>
-                    </div>
-                  </div>
-                  <div style={{
-                    width: '36px',
-                    height: '20px',
-                    borderRadius: '10px',
-                    backgroundColor: editForm.show_coordinates ? themeColor : '#3a3a3a',
-                    position: 'relative',
-                    transition: 'background-color 0.2s',
-                    flexShrink: 0,
-                  }}>
-                    <div style={{
-                      width: '16px',
-                      height: '16px',
-                      borderRadius: '50%',
-                      backgroundColor: '#fff',
-                      position: 'absolute',
-                      top: '2px',
-                      left: editForm.show_coordinates ? '18px' : '2px',
-                      transition: 'left 0.2s',
-                    }} />
-                  </div>
-                </div>
-
-                {editForm.show_coordinates && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.75rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                      <span style={{ color: '#9ca3af', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>Kingdom:</span>
-                      <input
-                        type="number"
-                        min="1"
-                        max="9999"
-                        value={profileCoordKingdom}
-                        onChange={(e) => setProfileCoordKingdom(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                        placeholder="—"
-                        style={{
-                          ...inputStyle,
-                          width: '5rem',
-                          textAlign: 'center',
-                          padding: '0.6rem 0.4rem',
-                          backgroundColor: profileCoordKingdom && viewedProfile?.linked_kingdom ? `${themeColor}08` : '#0a0a0a',
-                        }}
-                        readOnly={!!viewedProfile?.linked_kingdom}
-                      />
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                      <span style={{ color: '#9ca3af', fontSize: '0.75rem' }}>X:</span>
-                      <input
-                        type="number"
-                        min="0"
-                        max="1199"
-                        value={profileCoordX}
-                        onChange={(e) => setProfileCoordX(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                        placeholder="0-1199"
-                        style={{
-                          ...inputStyle,
-                          width: '5.5rem',
-                          textAlign: 'center',
-                          padding: '0.6rem 0.4rem',
-                        }}
-                      />
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                      <span style={{ color: '#9ca3af', fontSize: '0.75rem' }}>Y:</span>
-                      <input
-                        type="number"
-                        min="0"
-                        max="1199"
-                        value={profileCoordY}
-                        onChange={(e) => setProfileCoordY(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                        placeholder="0-1199"
-                        style={{
-                          ...inputStyle,
-                          width: '5.5rem',
-                          textAlign: 'center',
-                          padding: '0.6rem 0.4rem',
-                        }}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Notification Preferences - inside edit mode */}
-              <NotificationPreferences />
-
-              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-                <button
-                  onClick={handleSave}
-                  style={{
-                    padding: '0.75rem 1.5rem',
-                    background: `linear-gradient(135deg, ${themeColor} 0%, ${themeColor}cc 100%)`,
-                    border: 'none',
-                    borderRadius: '8px',
-                    color: '#000',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                    minHeight: '48px',
-                  }}
-                >
-                  {t('profile.saveProfile', 'Save Profile')}
-                </button>
-                <button
-                  onClick={() => setIsEditing(false)}
-                  style={{
-                    padding: '0.75rem 1.5rem',
-                    backgroundColor: 'transparent',
-                    border: '1px solid #3a3a3a',
-                    borderRadius: '8px',
-                    color: '#9ca3af',
-                    cursor: 'pointer',
-                    minHeight: '48px',
-                  }}
-                >
-                  {t('common.cancel', 'Cancel')}
-                </button>
-              </div>
-            </div>
+            <ProfileEditForm
+              editForm={editForm}
+              setEditForm={setEditForm}
+              profileCoordKingdom={profileCoordKingdom}
+              setProfileCoordKingdom={setProfileCoordKingdom}
+              profileCoordX={profileCoordX}
+              setProfileCoordX={setProfileCoordX}
+              profileCoordY={profileCoordY}
+              setProfileCoordY={setProfileCoordY}
+              viewedProfile={viewedProfile}
+              themeColor={themeColor}
+              isMobile={isMobile}
+              onSave={handleSave}
+              onCancel={() => setIsEditing(false)}
+            />
         ) : (
           <div>
             {/* Profile Header - different layout for public vs own profile */}
@@ -1145,106 +720,8 @@ const Profile: React.FC = () => {
               </div>
             )}
 
-            {/* Profile Details - Different layout for public vs own profile */}
-            {isViewingOther ? (
-              // Public profile: Kingdom, Alliance, Player ID | TC level, Language, Region
-              <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '0.5rem' : '0.75rem', marginBottom: isMobile ? '1rem' : '1.5rem' }}>
-                {/* Row 1: Kingdom, Alliance, Player ID */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: isMobile ? '0.5rem' : '1rem' }}>
-                  {viewedProfile?.linked_kingdom ? (
-                    <Link to={`/kingdom/${viewedProfile.linked_kingdom}`} style={{ textDecoration: 'none' }}>
-                      <div style={{ padding: isMobile ? '0.5rem' : '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a', cursor: 'pointer', transition: 'border-color 0.2s', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                        <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>{t('profile.kingdom', 'Kingdom')}</div>
-                        <div style={{ fontSize: isMobile ? '1rem' : '1.25rem', fontWeight: '700', color: '#fff' }}>{viewedProfile.linked_kingdom}</div>
-                      </div>
-                    </Link>
-                  ) : (
-                    <div style={{ padding: isMobile ? '0.5rem' : '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                      <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>{t('profile.kingdom', 'Kingdom')}</div>
-                      <div style={{ fontSize: isMobile ? '1rem' : '1.25rem', fontWeight: '700', color: '#4a4a4a' }}>—</div>
-                    </div>
-                  )}
-                  <div style={{ padding: isMobile ? '0.5rem' : '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>{t('profile.alliance', 'Alliance')}</div>
-                    <div style={{ fontSize: isMobile ? '1rem' : '1.25rem', fontWeight: '700', color: viewedProfile?.alliance_tag ? '#fff' : '#4a4a4a' }}>
-                      {viewedProfile?.alliance_tag ? `[${viewedProfile.alliance_tag}]` : '—'}
-                    </div>
-                  </div>
-                  <div style={{ padding: isMobile ? '0.5rem' : '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>{t('profile.playerId', 'Player ID')}</div>
-                    <div style={{ fontSize: isMobile ? '0.85rem' : '1.25rem', fontWeight: '700', color: viewedProfile?.linked_player_id ? '#fff' : '#4a4a4a' }}>{viewedProfile?.linked_player_id || '—'}</div>
-                  </div>
-                </div>
-                {/* Row 2: TC Level, Language, Region */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: isMobile ? '0.5rem' : '1rem' }}>
-                  <div style={{ padding: isMobile ? '0.5rem' : '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>{t('profile.townCenter', 'Town Center')}</div>
-                    <div style={{ fontSize: isMobile ? '1rem' : '1.25rem', fontWeight: '700', color: viewedProfile?.linked_tc_level ? '#fff' : '#4a4a4a' }}>{viewedProfile?.linked_tc_level ? formatTCLevel(viewedProfile.linked_tc_level) : '—'}</div>
-                  </div>
-                  <div style={{ padding: isMobile ? '0.5rem' : '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>{t('profile.language', 'Language')}</div>
-                    <div style={{ fontSize: isMobile ? '1rem' : '1.25rem', fontWeight: '700', color: viewedProfile?.language ? '#fff' : '#4a4a4a' }}>
-                      {viewedProfile?.language || '—'}
-                    </div>
-                  </div>
-                  <div style={{ padding: isMobile ? '0.5rem' : '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>{t('profile.region', 'Region')}</div>
-                    <div style={{ fontSize: isMobile ? '1rem' : '1.25rem', fontWeight: '700', color: viewedProfile?.region ? '#fff' : '#4a4a4a' }}>
-                      {viewedProfile?.region || '—'}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              // Own profile: 2x3 grid matching public profile layout
-              <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '0.5rem' : '0.75rem', marginBottom: isMobile ? '1rem' : '1.5rem' }}>
-                {/* Row 1: Kingdom, Alliance, Player ID */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: isMobile ? '0.5rem' : '1rem' }}>
-                  {viewedProfile?.linked_kingdom ? (
-                    <Link to={`/kingdom/${viewedProfile.linked_kingdom}`} style={{ textDecoration: 'none' }}>
-                      <div style={{ padding: isMobile ? '0.5rem' : '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a', cursor: 'pointer', transition: 'border-color 0.2s', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                        <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>{t('profile.kingdom', 'Kingdom')}</div>
-                        <div style={{ fontSize: isMobile ? '1rem' : '1.25rem', fontWeight: '700', color: '#fff' }}>{viewedProfile.linked_kingdom}</div>
-                      </div>
-                    </Link>
-                  ) : (
-                    <div style={{ padding: isMobile ? '0.5rem' : '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                      <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>{t('profile.kingdom', 'Kingdom')}</div>
-                      <div style={{ fontSize: isMobile ? '1rem' : '1.25rem', fontWeight: '700', color: '#4a4a4a' }}>—</div>
-                    </div>
-                  )}
-                  <div style={{ padding: isMobile ? '0.5rem' : '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>{t('profile.alliance', 'Alliance')}</div>
-                    <div style={{ fontSize: isMobile ? '1rem' : '1.25rem', fontWeight: '700', color: viewedProfile?.alliance_tag ? '#fff' : '#4a4a4a' }}>
-                      {viewedProfile?.alliance_tag ? `[${viewedProfile.alliance_tag}]` : '—'}
-                    </div>
-                  </div>
-                  <div style={{ padding: isMobile ? '0.5rem' : '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>{t('profile.playerId', 'Player ID')}</div>
-                    <div style={{ fontSize: isMobile ? '0.85rem' : '1.25rem', fontWeight: '700', color: viewedProfile?.linked_player_id ? '#fff' : '#4a4a4a' }}>{viewedProfile?.linked_player_id || '—'}</div>
-                  </div>
-                </div>
-                {/* Row 2: TC Level, Language, Region */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: isMobile ? '0.5rem' : '1rem' }}>
-                  <div style={{ padding: isMobile ? '0.5rem' : '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>{t('profile.townCenter', 'Town Center')}</div>
-                    <div style={{ fontSize: isMobile ? '1rem' : '1.25rem', fontWeight: '700', color: viewedProfile?.linked_tc_level ? '#fff' : '#4a4a4a' }}>{viewedProfile?.linked_tc_level ? formatTCLevel(viewedProfile.linked_tc_level) : '—'}</div>
-                  </div>
-                  <div style={{ padding: isMobile ? '0.5rem' : '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>{t('profile.language', 'Language')}</div>
-                    <div style={{ fontSize: isMobile ? '1rem' : '1.25rem', fontWeight: '700', color: viewedProfile?.language ? '#fff' : '#4a4a4a' }}>
-                      {viewedProfile?.language || '—'}
-                    </div>
-                  </div>
-                  <div style={{ padding: isMobile ? '0.5rem' : '0.875rem', minHeight: '48px', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #2a2a2a', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>{t('profile.region', 'Region')}</div>
-                    <div style={{ fontSize: isMobile ? '1rem' : '1.25rem', fontWeight: '700', color: viewedProfile?.region ? '#fff' : '#4a4a4a' }}>
-                      {viewedProfile?.region || '—'}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+            {/* Profile Details - Stats Grid */}
+            <ProfileStatsGrid viewedProfile={viewedProfile} isMobile={isMobile} />
           </div>
         )}
 
@@ -1392,154 +869,7 @@ const Profile: React.FC = () => {
 
         {/* 4. Subscription Status - only show for own profile */}
         {!isViewingOther && user && (
-          <div style={{
-            backgroundColor: '#111111',
-            borderRadius: '12px',
-            padding: isMobile ? '1rem' : '1.25rem',
-            marginBottom: '1.5rem',
-            border: `1px solid ${isSupporter ? themeColor : '#2a2a2a'}30`,
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-              <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: '600', color: '#fff', width: '100%', textAlign: 'center' }}>
-                {t('profile.subscription', 'Subscription')}
-              </h3>
-            </div>
-            <div style={{ textAlign: 'center', marginBottom: '0.75rem' }}>
-              <div style={{
-                display: 'inline-block',
-                padding: '0.25rem 0.75rem',
-                backgroundColor: isAdmin ? '#ef444420' 
-                  : isSupporter ? '#22d3ee20' 
-                  : '#3a3a3a20',
-                borderRadius: '9999px',
-                fontSize: '0.75rem',
-                fontWeight: '600',
-                color: isAdmin ? '#ef4444' 
-                  : isSupporter ? '#22d3ee' 
-                  : '#9ca3af',
-              }}>
-                {tierName}
-              </div>
-            </div>
-            
-            <div style={{ 
-              display: 'flex', 
-              flexDirection: 'column',
-              alignItems: 'center', 
-              gap: '0.75rem',
-            }}>
-              <p style={{ color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.85rem', margin: 0, lineHeight: 1.5, textAlign: 'center' }}>
-                {isAdmin 
-                  ? t('profile.adminAccess', 'You have full admin access to all features.')
-                  : isSupporter 
-                  ? t('profile.supporterAccess', 'You have full access to Atlas Supporter features. Thanks for backing the project.')
-                  : t('profile.freeAccess', 'Stop guessing. Get deeper insights, unlimited bot commands, and support the platform that helps you win.')}
-              </p>
-              
-              {isSupporter && !isAdmin ? (
-                <button
-                  onClick={async () => {
-                    if (!user) return;
-                    setManagingSubscription(true);
-                    try {
-                      const portalUrl = await createPortalSession(user.id);
-                      window.location.href = portalUrl;
-                    } catch (error) {
-                      console.warn('API portal failed, trying direct URL:', error);
-                      const directPortalUrl = getCustomerPortalUrl();
-                      if (directPortalUrl && directPortalUrl !== '/profile') {
-                        window.location.href = directPortalUrl;
-                      } else {
-                        alert(t('profile.portalError', 'Unable to open subscription management. Please email support@ks-atlas.com for assistance.'));
-                      }
-                    } finally {
-                      setManagingSubscription(false);
-                    }
-                  }}
-                  disabled={managingSubscription}
-                  style={{
-                    padding: isMobile ? '0.75rem 1rem' : '0.5rem 1rem',
-                    minHeight: isMobile ? '48px' : 'auto',
-                    width: isMobile ? '100%' : 'auto',
-                    backgroundColor: 'transparent',
-                    border: `1px solid ${themeColor}50`,
-                    borderRadius: '10px',
-                    color: themeColor,
-                    fontSize: isMobile ? '0.9rem' : '0.85rem',
-                    fontWeight: '500',
-                    cursor: managingSubscription ? 'wait' : 'pointer',
-                    opacity: managingSubscription ? 0.7 : 1,
-                    WebkitTapHighlightColor: 'transparent'
-                  }}
-                >
-                  {managingSubscription ? t('support.opening') : t('support.manageSubscription')}
-                </button>
-              ) : !isAdmin ? (
-                <div style={{ 
-                  display: 'flex', 
-                  flexDirection: 'column',
-                  alignItems: 'center', 
-                  gap: '0.5rem', 
-                  width: isMobile ? '100%' : 'auto'
-                }}>
-                  <Link
-                    to="/support"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      padding: isMobile ? '0.75rem 1.5rem' : '0.5rem 1.25rem',
-                      minHeight: isMobile ? '48px' : 'auto',
-                      background: `linear-gradient(135deg, ${themeColor} 0%, ${themeColor}cc 100%)`,
-                      borderRadius: '10px',
-                      color: '#000',
-                      fontSize: isMobile ? '0.9rem' : '0.85rem',
-                      fontWeight: '600',
-                      textDecoration: 'none',
-                      WebkitTapHighlightColor: 'transparent'
-                    }}
-                  >
-                    {t('profile.becomeSupporter', 'Become an Atlas Supporter')}
-                  </Link>
-                  <button
-                    onClick={async () => {
-                      if (!user) return;
-                      setManagingSubscription(true);
-                      try {
-                        const { syncSubscription } = await import('../lib/stripe');
-                        const result = await syncSubscription(user.id);
-                        if (result.synced && result.tier !== 'free') {
-                          showToast(result.message || 'Subscription synced!', 'success');
-                          window.location.reload();
-                        } else {
-                          showToast(result.message || 'No active subscription found.', 'info');
-                        }
-                      } catch (error) {
-                        console.error('Sync error:', error);
-                        showToast('Unable to sync subscription. Please email support@ks-atlas.com', 'error');
-                      } finally {
-                        setManagingSubscription(false);
-                      }
-                    }}
-                    disabled={managingSubscription}
-                    style={{
-                      padding: isMobile ? '0.625rem 0.75rem' : '0.5rem 0.75rem',
-                      minHeight: isMobile ? '44px' : 'auto',
-                      backgroundColor: 'transparent',
-                      border: 'none',
-                      color: '#6b7280',
-                      fontSize: isMobile ? '0.8rem' : '0.75rem',
-                      cursor: managingSubscription ? 'wait' : 'pointer',
-                      textDecoration: 'underline',
-                      WebkitTapHighlightColor: 'transparent'
-                    }}
-                  >
-                    {managingSubscription ? t('profile.syncing', 'Syncing...') : t('profile.subscriptionNotShowing', 'Subscription not showing?')}
-                  </button>
-                </div>
-              ) : null}
-            </div>
-          </div>
+          <SubscriptionSection themeColor={themeColor} isMobile={isMobile} />
         )}
 
         {/* 5. Referral Program - only show for own profile */}

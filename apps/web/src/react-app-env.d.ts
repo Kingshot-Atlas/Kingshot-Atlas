@@ -5,16 +5,13 @@ interface ImportMetaEnv {
   readonly VITE_SUPABASE_URL: string;
   readonly VITE_SUPABASE_ANON_KEY: string;
   
-  // Stripe
+  // Stripe — Atlas Supporter tier
   readonly VITE_STRIPE_PUBLISHABLE_KEY?: string;
-  readonly VITE_STRIPE_PRO_MONTHLY?: string;
-  readonly VITE_STRIPE_PRO_YEARLY?: string;
-  readonly VITE_STRIPE_RECRUITER_MONTHLY?: string;
-  readonly VITE_STRIPE_RECRUITER_YEARLY?: string;
-  readonly VITE_STRIPE_PRO_MONTHLY_LINK: string;
-  readonly VITE_STRIPE_PRO_YEARLY_LINK: string;
-  readonly VITE_STRIPE_RECRUITER_MONTHLY_LINK: string;
-  readonly VITE_STRIPE_RECRUITER_YEARLY_LINK: string;
+  readonly VITE_STRIPE_SUPPORTER_MONTHLY_LINK?: string;
+  readonly VITE_STRIPE_SUPPORTER_YEARLY_LINK?: string;
+  // Legacy names (kept for backward compat with existing Cloudflare Pages env vars)
+  readonly VITE_STRIPE_PRO_MONTHLY_LINK?: string;
+  readonly VITE_STRIPE_PRO_YEARLY_LINK?: string;
   readonly VITE_STRIPE_PORTAL_URL?: string;
   
   // API

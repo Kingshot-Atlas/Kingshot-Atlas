@@ -64,6 +64,7 @@ export const colors = {
   bg: '#0a0a0a',
   surface: '#111111',
   card: '#131318',
+  cardAlt: '#111116',
   surfaceHover: '#1a1a1a',
   
   // Borders
@@ -83,9 +84,12 @@ export const colors = {
   warning: '#eab308',
   error: '#ef4444',
   orange: '#f97316',
+  amber: '#f59e0b',
   purple: '#a855f7',
+  pink: '#ec4899',
   blue: '#3b82f6',
   gold: '#fbbf24',
+  bronze: '#cd7f32',
   discord: '#5865F2',
 } as const;
 

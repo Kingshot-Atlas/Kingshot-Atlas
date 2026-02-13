@@ -4,8 +4,8 @@ from sqlalchemy.orm import sessionmaker, DeclarativeBase
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./kingshot_atlas.db")
 
-# Handle Supabase/Railway PostgreSQL URL format
-# They use postgres:// but SQLAlchemy needs postgresql://
+# Dual-DB: SQLite by default (local dev + Render ephemeral storage)
+# PostgreSQL when DATABASE_URL is set (Supabase uses postgres:// which SQLAlchemy needs as postgresql://)
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 

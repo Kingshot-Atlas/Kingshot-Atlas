@@ -61,9 +61,6 @@ coverage/
 .coverage
 htmlcov/
 
-# Netlify
-.netlify/
-
 # Misc
 *.bak
 *.tmp

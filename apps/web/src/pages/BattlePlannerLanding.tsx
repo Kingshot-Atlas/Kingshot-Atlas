@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
-import { neonGlow, FONT_DISPLAY } from '../utils/styles';
+import { neonGlow, FONT_DISPLAY, colors } from '../utils/styles';
 import { useTranslation } from 'react-i18next';
 import { usePremium } from '../contexts/PremiumContext';
 
@@ -100,7 +100,7 @@ const BattlePlannerLanding: React.FC = () => {
       {/* Free Trial Banner */}
       {trial.status === 'active' && (
         <div style={{
-          background: 'linear-gradient(90deg, #ef444420, #f59e0b20, #ef444420)',
+          background: `linear-gradient(90deg, ${colors.error}20, ${colors.amber}20, ${colors.error}20)`,
           borderBottom: '1px solid #ef444440',
           padding: isMobile ? '0.6rem 1rem' : '0.7rem 2rem',
           textAlign: 'center',
@@ -111,7 +111,7 @@ const BattlePlannerLanding: React.FC = () => {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             gap: isMobile ? '0.4rem' : '0.75rem', flexWrap: 'wrap',
           }}>
-            <span style={{ fontSize: isMobile ? '0.8rem' : '0.85rem', color: '#f59e0b', fontWeight: 700 }}>
+            <span style={{ fontSize: isMobile ? '0.8rem' : '0.85rem', color: colors.amber, fontWeight: 700 }}>
               🔥 {t('battlePlanner.trialBanner', 'FREE ACCESS — Try it now!')}
             </span>
             <div style={{

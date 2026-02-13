@@ -6,6 +6,7 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
 import { useTranslation } from 'react-i18next';
+import changelogJson from '../data/changelog.json';
 
 interface ChangelogEntry {
   date: string;
@@ -15,134 +16,7 @@ interface ChangelogEntry {
   improved?: string[];
 }
 
-const changelogData: ChangelogEntry[] = [
-  {
-    date: 'February 5, 2026',
-    version: '1.6.0',
-    new: [
-      '⚔️ KvK Seasons page — Browse matchups by season, Combined Score rankings, All-Time Greatest battles',
-      '📈 Atlas Score History — Interactive chart showing how any kingdom\'s score evolved across every KvK',
-    ],
-    fixed: [
-      'KvK Seasons phase winners — Now correctly shows who won Prep and Battle phases',
-      'Score history accuracy — Charts use correct formula matching database',
-      'KvK corrections — Only approved corrections apply to displayed data',
-      'Duplicate submission check — Fixed query that was checking wrong table',
-    ],
-    improved: [
-      '🏰 Kingdom Profile layout — Reorganized sections with Expand/Collapse All button',
-      '📊 Atlas Score Breakdown — 6 donut charts with point contributions that add up',
-      '🎮 Atlas Score Simulator — Cleaner interface for "what if" scenarios',
-      '🎯 Path to Next Tier — Clearer requirements, removed misleading buffer section',
-      '🔢 Atlas Score precision — Now shows 2 decimal places everywhere (10.43 vs 10.4)',
-      '📝 KvK outcome labels — Domination, Invasion, Reversal, Comeback',
-      '🔒 Security hardening — Admin auth, database RLS, CSP reporting',
-    ],
-  },
-  {
-    date: 'February 3, 2026',
-    version: '1.5.0',
-    new: [
-      '💛 Atlas Supporter — Atlas Pro rebranded. Same features, clearer name. Support at ks-atlas.com/support',
-      '🔔 In-app notifications — Real-time alerts when your submissions are approved or need attention',
-      '🤖 Atlas Discord bot — Use /kingdom and /compare commands right in your server',
-      '💬 Feedback widget — Report bugs or request features from any page',
-    ],
-    fixed: [
-      'Discord bot stability — Fixed 4+ days of intermittent 502/503 errors',
-      'Profile bio saves correctly — No more changes lost after refresh',
-      'Mobile Discord login — Clear guidance that OAuth opens in browser',
-      'Missing KvK chip — Now shows on both desktop and mobile',
-    ],
-    improved: [
-      '👤 My Profile redesign — Centered avatar, tier-colored borders, bio section, display name privacy',
-      '👁️ Public profiles — Cleaner display with Kingshot avatar/username',
-      '🏰 Kingdom profiles — Bye outcome support, score freshness indicator',
-      '📊 Contribute data — Submissions now sync across all your devices',
-      '⚡ Faster page loads — Removed ~2MB of legacy data, added skeleton loaders',
-    ],
-  },
-  {
-    date: 'January 30, 2026',
-    version: '1.4.0',
-    new: [
-      '🆓 KvK History is now FREE — Full battle history for all users. No paywall.',
-      '💳 Stripe payments live — Upgrade to Pro or Recruiter with real checkout.',
-      '⚖️ Compare limits updated — Anonymous: login required | Free: 2 | Pro/Recruiter: 5',
-    ],
-    fixed: [
-      'Atlas Score accuracy — Fixed formula bug deflating scores by ~10%',
-      'Player verification — "Failed to verify" error resolved',
-      'Kingdom profiles — No more "Kingdom not found" for valid kingdoms',
-      'Profile page — Fixed race condition showing wrong error',
-    ],
-    improved: [
-      'Upgrade page redesign with accurate feature comparison',
-      'Tier thresholds unified across website and Discord bot',
-    ],
-  },
-  {
-    date: 'January 29, 2026 (Night)',
-    version: '1.3.0',
-    new: [
-      '📅 Daily updates now post to Discord at 02:00 UTC — never miss a change',
-      '🔮 "Coming Soon" page — see what\'s cooking before anyone else',
-      '🧪 Frontend testing infrastructure — more stable releases ahead',
-      '📊 Data quality monitoring — your data, bulletproof',
-    ],
-    improved: [
-      'Streamlined agent system with 3 new specialists',
-      'Activity tracking for transparent development',
-    ],
-  },
-  {
-    date: 'January 29, 2026 (Evening)',
-    version: '1.2.0',
-    new: [
-      '⚖️ Multi-Compare now supports 5 kingdoms — Pro users, go wild',
-      '🎭 Discord roles dropping soon for Pro & Recruiter subscribers',
-      '🏰 Claim Kingdom preview — verify you\'re the real deal',
-    ],
-    improved: [
-      'Radar charts got a glow-up — cleaner, centered, sexier',
-      'Stat labels are bolder — no more squinting',
-      'Quick Compare icon swapped to ⚖️ — because balance matters',
-      'Cinzel font finally loading right — titles look royal now',
-    ],
-    fixed: [
-      'Pro badge only shows when you\'re actually logged in (oops)',
-      'Removed vaporware from upgrade page — honesty policy',
-    ],
-  },
-  {
-    date: 'January 29, 2026',
-    version: '1.1.0',
-    new: [
-      '🤖 Atlas Discord bot is LIVE — 9 slash commands at your fingertips',
-      '📢 Auto patch notes in Discord — updates delivered fresh',
-      '🔍 /kingdom command — lookup any kingdom without leaving Discord',
-      '⚔️ /compare command — head-to-head matchups on demand',
-      '⏰ /countdown command — know exactly when KvK drops',
-    ],
-    improved: [
-      'Discord webhooks for instant notifications',
-      'Mobile comparison views actually work now',
-    ],
-  },
-  {
-    date: 'January 28, 2026',
-    version: '1.0.0',
-    new: [
-      '🎉 Atlas goes live — stop guessing, start winning',
-      '🏆 1,190 kingdoms tracked and scored',
-      '📊 Atlas Score system — S/A/B/C/D tiers at a glance',
-    ],
-    improved: [
-      'Complete backend overhaul for speed',
-      'Agent team restructured for faster updates',
-    ],
-  },
-];
+const changelogData: ChangelogEntry[] = changelogJson;
 
 const Changelog: React.FC = () => {
   const { t } = useTranslation();

@@ -76,13 +76,12 @@ Built by a Kingdom 172 player who was tired of making transfer decisions based o
 | Warning | `#eab308` | Prep phase, caution |
 | Error | `#ef4444` | Losses, negative stats |
 | Orange | `#f97316` | Battle phase |
-| Purple | `#a855f7` | Recruiter tier, reversals |
+| Purple | `#a855f7` | Reversals, ambassador tier |
 
 ### Subscription Tier Colors
 | Tier | Color | Hex | Icon |
 |------|-------|-----|------|
-| **Atlas Pro** | Cyan | `#22d3ee` | ⭐ Star |
-| **Atlas Recruiter** | Purple | `#a855f7` | 👑 Crown |
+| **Atlas Supporter** | Cyan | `#22d3ee` | ⭐ Star |
 
 These colors must be used consistently across:
 - Pricing cards and buttons

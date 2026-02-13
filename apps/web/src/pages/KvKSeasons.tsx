@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { scoreHistoryService, MatchupWithScores } from '../services/scoreHistoryService';
-import { neonGlow } from '../utils/styles';
+import { neonGlow, colors } from '../utils/styles';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
@@ -147,7 +147,7 @@ const KvKSeasons: React.FC = () => {
           box-shadow: 0 0 16px #9ca3af40, 0 4px 20px rgba(0, 0, 0, 0.4) !important;
         }
         .kvk-card:nth-child(3):hover {
-          box-shadow: 0 0 16px #cd7f3240, 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+          box-shadow: 0 0 16px ${colors.bronze}40, 0 4px 20px rgba(0, 0, 0, 0.4) !important;
         }
         .kingdom-row:hover {
           background-color: #1a1a1f !important;
@@ -367,16 +367,16 @@ const KvKSeasons: React.FC = () => {
                 
                 // Get border color for top 3 cards
                 const getCardBorder = (rank: number) => {
-                  if (rank === 1) return '2px solid #fbbf24'; // Gold
+                  if (rank === 1) return `2px solid ${colors.gold}`; // Gold
                   if (rank === 2) return '2px solid #9ca3af'; // Silver
-                  if (rank === 3) return '2px solid #cd7f32'; // Bronze
-                  return '1px solid #3a3a3a';
+                  if (rank === 3) return `2px solid ${colors.bronze}`; // Bronze
+                  return `1px solid ${colors.borderStrong}`;
                 };
                 
                 const getCardGlow = (rank: number) => {
-                  if (rank === 1) return '0 0 12px #fbbf2440, 0 0 4px #fbbf2420';
+                  if (rank === 1) return `0 0 12px ${colors.gold}40, 0 0 4px ${colors.gold}20`;
                   if (rank === 2) return '0 0 10px #9ca3af30';
-                  if (rank === 3) return '0 0 10px #cd7f3230';
+                  if (rank === 3) return `0 0 10px ${colors.bronze}30`;
                   return 'none';
                 };
                 

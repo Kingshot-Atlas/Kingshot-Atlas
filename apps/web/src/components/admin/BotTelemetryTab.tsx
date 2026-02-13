@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getAuthHeaders } from '../../services/authHeaders';
+import { colors } from '../../utils/styles';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
@@ -43,9 +44,9 @@ interface TelemetryResponse {
 // ============================================================================
 
 const SEVERITY_STYLES: Record<string, { bg: string; border: string; text: string; dot: string }> = {
-  info: { bg: '#6b728015', border: '#6b728040', text: '#9ca3af', dot: '#6b7280' },
-  warn: { bg: '#eab30815', border: '#eab30840', text: '#eab308', dot: '#eab308' },
-  error: { bg: '#ef444415', border: '#ef444440', text: '#ef4444', dot: '#ef4444' },
+  info: { bg: `${colors.textMuted}15`, border: `${colors.textMuted}40`, text: colors.textSecondary, dot: colors.textMuted },
+  warn: { bg: `${colors.warning}15`, border: `${colors.warning}40`, text: colors.warning, dot: colors.warning },
+  error: { bg: `${colors.error}15`, border: `${colors.error}40`, text: colors.error, dot: colors.error },
   critical: { bg: '#dc262620', border: '#dc262660', text: '#fca5a5', dot: '#dc2626' },
 };
 
@@ -151,21 +152,21 @@ export const BotTelemetryTab: React.FC = () => {
       {summary && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem' }}>
           {[
-            { label: t('admin.totalEvents', 'Total Events'), value: summary.total_events, color: '#22d3ee', icon: '📊' },
-            { label: t('admin.crashes24h', 'Crashes (24h)'), value: summary.crashes_24h, color: summary.crashes_24h > 0 ? '#ef4444' : '#22c55e', icon: '💥' },
-            { label: t('admin.memoryWarnings', 'Memory Warnings'), value: summary.memory_warnings, color: summary.memory_warnings > 0 ? '#eab308' : '#22c55e', icon: '🧠' },
-            { label: t('admin.disconnects', 'Disconnects'), value: summary.disconnects, color: summary.disconnects > 2 ? '#eab308' : '#22c55e', icon: '⚡' },
-            { label: t('admin.restarts', 'Restarts'), value: summary.restarts, color: summary.restarts > 3 ? '#eab308' : '#22c55e', icon: '🚀' },
+            { label: t('admin.totalEvents', 'Total Events'), value: summary.total_events, color: colors.primary, icon: '📊' },
+            { label: t('admin.crashes24h', 'Crashes (24h)'), value: summary.crashes_24h, color: summary.crashes_24h > 0 ? colors.error : colors.success, icon: '💥' },
+            { label: t('admin.memoryWarnings', 'Memory Warnings'), value: summary.memory_warnings, color: summary.memory_warnings > 0 ? colors.warning : colors.success, icon: '🧠' },
+            { label: t('admin.disconnects', 'Disconnects'), value: summary.disconnects, color: summary.disconnects > 2 ? colors.warning : colors.success, icon: '⚡' },
+            { label: t('admin.restarts', 'Restarts'), value: summary.restarts, color: summary.restarts > 3 ? colors.warning : colors.success, icon: '🚀' },
           ].map((card, i) => (
             <div key={i} style={{
-              backgroundColor: '#111116',
+              backgroundColor: colors.cardAlt,
               borderRadius: '10px',
               padding: '1rem',
-              border: '1px solid #2a2a2a',
+              border: `1px solid ${colors.border}`,
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.3rem' }}>
                 <span style={{ fontSize: '0.9rem' }}>{card.icon}</span>
-                <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>{card.label}</span>
+                <span style={{ color: colors.textMuted, fontSize: '0.75rem' }}>{card.label}</span>
               </div>
               <div style={{
                 fontSize: '1.5rem',
@@ -182,16 +183,16 @@ export const BotTelemetryTab: React.FC = () => {
       {/* Severity Breakdown Bar */}
       {summary && summary.total_events > 0 && (
         <div style={{
-          backgroundColor: '#111116',
+          backgroundColor: colors.cardAlt,
           borderRadius: '10px',
           padding: '0.75rem 1rem',
-          border: '1px solid #2a2a2a',
+          border: `1px solid ${colors.border}`,
           display: 'flex',
           alignItems: 'center',
           gap: '0.75rem',
           flexWrap: 'wrap',
         }}>
-          <span style={{ color: '#6b7280', fontSize: '0.75rem', fontWeight: 500 }}>Severity:</span>
+          <span style={{ color: colors.textMuted, fontSize: '0.75rem', fontWeight: 500 }}>Severity:</span>
           <div style={{ display: 'flex', flex: 1, height: '8px', borderRadius: '4px', overflow: 'hidden', minWidth: '100px' }}>
             {(['info', 'warn', 'error', 'critical'] as const).map(s => {
               const count = summary?.severity_counts?.[s] || 0;
@@ -276,9 +277,9 @@ export const BotTelemetryTab: React.FC = () => {
             marginLeft: 'auto',
             padding: '0.35rem 0.7rem',
             background: 'none',
-            border: '1px solid #2a2a2a',
+            border: `1px solid ${colors.border}`,
             borderRadius: '6px',
-            color: '#6b7280',
+            color: colors.textMuted,
             cursor: 'pointer',
             fontSize: '0.75rem',
           }}
@@ -291,10 +292,10 @@ export const BotTelemetryTab: React.FC = () => {
       {error && (
         <div style={{
           padding: '0.75rem 1rem',
-          backgroundColor: '#ef444415',
-          border: '1px solid #ef444440',
+          backgroundColor: `${colors.error}15`,
+          border: `1px solid ${colors.error}40`,
           borderRadius: '8px',
-          color: '#ef4444',
+          color: colors.error,
           fontSize: '0.85rem',
         }}>
           {error}
@@ -303,9 +304,9 @@ export const BotTelemetryTab: React.FC = () => {
 
       {/* Event List */}
       {loading && !data ? (
-        <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>Loading telemetry...</div>
+        <div style={{ textAlign: 'center', padding: '2rem', color: colors.textMuted }}>Loading telemetry...</div>
       ) : events.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
+        <div style={{ textAlign: 'center', padding: '2rem', color: colors.textMuted }}>
           No telemetry events found. The bot may not have logged any events yet, or SUPABASE_URL/SUPABASE_SERVICE_KEY may not be set on Render.
         </div>
       ) : (
@@ -321,7 +322,7 @@ export const BotTelemetryTab: React.FC = () => {
                 key={event.id}
                 onClick={() => setExpandedEvent(isExpanded ? null : event.id)}
                 style={{
-                  backgroundColor: sev?.bg ?? '#111116',
+                  backgroundColor: sev?.bg ?? colors.cardAlt,
                   border: `1px solid ${sev?.border ?? '#2a2a2a'}`,
                   borderRadius: '8px',
                   padding: '0.75rem 1rem',
@@ -344,43 +345,43 @@ export const BotTelemetryTab: React.FC = () => {
                   }}>
                     {event.severity}
                   </span>
-                  <span style={{ color: '#fff', fontSize: '0.85rem', fontWeight: 500 }}>
+                  <span style={{ color: colors.text, fontSize: '0.85rem', fontWeight: 500 }}>
                     {event.event_type.replace(/_/g, ' ')}
                   </span>
-                  <span style={{ color: '#6b7280', fontSize: '0.75rem', marginLeft: 'auto' }}>
+                  <span style={{ color: colors.textMuted, fontSize: '0.75rem', marginLeft: 'auto' }}>
                     {timeAgo(event.created_at)}
                   </span>
                 </div>
 
                 {/* Message */}
-                <div style={{ color: '#9ca3af', fontSize: '0.8rem', marginTop: '0.3rem' }}>
+                <div style={{ color: colors.textSecondary, fontSize: '0.8rem', marginTop: '0.3rem' }}>
                   {event.message}
                 </div>
 
                 {/* Quick Stats Row */}
                 <div style={{ display: 'flex', gap: '1rem', marginTop: '0.4rem', flexWrap: 'wrap' }}>
                   {event.memory_mb !== null && (
-                    <span style={{ color: '#6b7280', fontSize: '0.7rem' }}>
+                    <span style={{ color: colors.textMuted, fontSize: '0.7rem' }}>
                       💾 {event.memory_mb}MB
                     </span>
                   )}
                   {event.process_uptime_seconds !== null && (
-                    <span style={{ color: '#6b7280', fontSize: '0.7rem' }}>
+                    <span style={{ color: colors.textMuted, fontSize: '0.7rem' }}>
                       ⏱️ {formatUptime(event.process_uptime_seconds)}
                     </span>
                   )}
                   {event.discord_ws_status !== null && (
-                    <span style={{ color: '#6b7280', fontSize: '0.7rem' }}>
+                    <span style={{ color: colors.textMuted, fontSize: '0.7rem' }}>
                       🔌 {WS_STATUS_NAMES[event.discord_ws_status] || `WS:${event.discord_ws_status}`}
                     </span>
                   )}
                   {event.discord_guilds !== null && (
-                    <span style={{ color: '#6b7280', fontSize: '0.7rem' }}>
+                    <span style={{ color: colors.textMuted, fontSize: '0.7rem' }}>
                       🏰 {event.discord_guilds} guilds
                     </span>
                   )}
                   {event.discord_ping !== null && (
-                    <span style={{ color: '#6b7280', fontSize: '0.7rem' }}>
+                    <span style={{ color: colors.textMuted, fontSize: '0.7rem' }}>
                       📶 {event.discord_ping}ms
                     </span>
                   )}
@@ -391,11 +392,11 @@ export const BotTelemetryTab: React.FC = () => {
                   <div style={{
                     marginTop: '0.5rem',
                     padding: '0.5rem',
-                    backgroundColor: '#0a0a0a',
+                    backgroundColor: colors.bg,
                     borderRadius: '6px',
                     fontSize: '0.7rem',
                     fontFamily: 'monospace',
-                    color: '#9ca3af',
+                    color: colors.textSecondary,
                     whiteSpace: 'pre-wrap',
                     wordBreak: 'break-all',
                   }}>
@@ -403,7 +404,7 @@ export const BotTelemetryTab: React.FC = () => {
                   </div>
                 )}
                 {isExpanded && (
-                  <div style={{ color: '#4b5563', fontSize: '0.65rem', marginTop: '0.3rem' }}>
+                  <div style={{ color: colors.textMuted, fontSize: '0.65rem', marginTop: '0.3rem' }}>
                     {new Date(event.created_at).toLocaleString()} • ID: {event.id.slice(0, 8)}
                   </div>
                 )}
@@ -430,9 +431,9 @@ export const BotTelemetryTab: React.FC = () => {
 
 const selectStyle: React.CSSProperties = {
   padding: '0.35rem 0.6rem',
-  backgroundColor: '#111116',
-  color: '#fff',
-  border: '1px solid #2a2a2a',
+  backgroundColor: colors.cardAlt,
+  color: colors.text,
+  border: `1px solid ${colors.border}`,
   borderRadius: '6px',
   fontSize: '0.75rem',
   cursor: 'pointer',

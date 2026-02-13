@@ -28,30 +28,26 @@ Go to [Stripe Dashboard → Products](https://dashboard.stripe.com/products)
    - Amount: **$4.99**
    - Billing period: **Monthly**
    - Click **Save**
-   - Copy the Price ID (e.g., `price_1ABC123...`)
+   - Copy the Price ID (e.g., `price_1SuX3zL7R9uCnPH3m4PyIrNI`)
 
-### Create "Atlas Recruiter" Product
-
-1. Click **+ Add product**
-2. Fill in:
-   - **Name:** Atlas Recruiter
-   - **Description:** Alliance recruiter tools for Kingshot Atlas
-
-3. Add **Monthly Price:** **$19.99** → Copy Price ID
-4. Add **Yearly Price:** **$159.99** → Copy Price ID
+4. Add **Yearly Price:**
+   - Click **Add another price**
+   - Amount: **$49.99**
+   - Billing period: **Yearly**
+   - Click **Save**
+   - Copy the Price ID (e.g., `price_1T0NX1L7R9uCnPH37QoS7mqE`)
 
 ---
 
 ## Step 3: Add Payment Links to .env (1 min)
 
 ```env
-# Atlas Supporter: $4.99/month
+# Atlas Supporter payment links
 VITE_STRIPE_PRO_MONTHLY_LINK=https://buy.stripe.com/dRm8wQ2Fe2ye7dC3n9eZ206
-VITE_STRIPE_PRO_YEARLY_LINK=
-# Atlas Recruiter: $19.99/month, $159.99/year
-VITE_STRIPE_RECRUITER_MONTHLY_LINK=https://buy.stripe.com/eVqaEY93C8WC2Xm3n9eZ204
-VITE_STRIPE_RECRUITER_YEARLY_LINK=https://buy.stripe.com/bJebJ23Ji0q62Xm8HteZ205
+VITE_STRIPE_PRO_YEARLY_LINK=https://buy.stripe.com/3cIcN67Zy3CifK8cXJeZ20b
 ```
+
+> **Note:** Env var names still use `PRO` for backward compatibility but the tier is branded "Atlas Supporter".
 
 ---
 
@@ -95,25 +91,25 @@ Run this SQL in your [Supabase SQL Editor](https://supabase.com/dashboard):
 ```sql
 -- Add subscription columns to profiles
 ALTER TABLE profiles 
-ADD COLUMN IF NOT EXISTS subscription_tier TEXT DEFAULT 'free' 
-  CHECK (subscription_tier IN ('free', 'supporter', 'recruiter')),
+ADD COLUMN IF NOT EXISTS subscription_tier TEXT DEFAULT 'free',
 ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT,
 ADD COLUMN IF NOT EXISTS subscription_expires_at TIMESTAMPTZ,
-ADD COLUMN IF NOT EXISTS subscription_status TEXT DEFAULT 'inactive' 
-  CHECK (subscription_status IN ('inactive', 'active', 'canceled', 'past_due'));
+ADD COLUMN IF NOT EXISTS subscription_status TEXT DEFAULT 'inactive';
 
 -- Create indexes
 CREATE INDEX IF NOT EXISTS idx_profiles_subscription_tier ON profiles(subscription_tier);
 CREATE INDEX IF NOT EXISTS idx_profiles_stripe_customer ON profiles(stripe_customer_id);
 ```
 
+> **Note:** No CHECK constraint on `subscription_tier` — the app validates tiers in code (`free` or `supporter`).
+
 ---
 
 ## Step 7: Test It
 
-1. Run `npm start` in `/apps/web`
-2. Go to `/upgrade`
-3. Click a subscription button
+1. Run `npm run dev` in `/apps/web`
+2. Go to `/support`
+3. Toggle between Monthly/Yearly and click the subscribe button
 4. You should be redirected to Stripe checkout (or Ko-fi as fallback)
 
 ---
@@ -134,15 +130,49 @@ Without a backend webhook, you'll need to manually update user tiers:
 
 ---
 
-## Future: Automatic Webhooks
+## Automatic Webhooks (LIVE)
 
-When you deploy a backend API, set up webhooks:
+Stripe webhooks are configured and automatically update user tiers.
 
-1. [Stripe Webhooks](https://dashboard.stripe.com/webhooks) → Add endpoint
-2. URL: `https://your-api.com/api/stripe/webhook`
-3. Events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`
+### Webhook Endpoint
+- **URL:** `https://kingshot-atlas.onrender.com/api/v1/stripe/webhook`
+- **Source:** `apps/api/api/routers/stripe.py`
 
-This will automatically update user tiers when they subscribe/cancel.
+### Events Handled
+| Event | Action |
+|-------|--------|
+| `checkout.session.completed` | Activate supporter tier, send welcome email, sync Discord role |
+| `customer.subscription.updated` | Sync tier changes (upgrade/downgrade/renewal) |
+| `customer.subscription.deleted` | Downgrade to free, send cancellation email, remove Discord role |
+| `invoice.payment_failed` | Send payment failed email (first attempt only) |
+
+### Required Env Vars (Render Dashboard)
+- `STRIPE_SECRET_KEY` — Stripe secret key
+- `STRIPE_WEBHOOK_SECRET` — Webhook signing secret (from Stripe Dashboard → Webhooks)
+
+### Stripe CLI Testing (Local Development)
+```bash
+# Install Stripe CLI: https://stripe.com/docs/stripe-cli
+# Login to your Stripe account
+stripe login
+
+# Forward webhook events to local API
+stripe listen --forward-to localhost:8000/api/v1/stripe/webhook
+
+# Copy the webhook signing secret from the output (whsec_...)
+# Set it as STRIPE_WEBHOOK_SECRET in your .env
+
+# In another terminal, trigger test events:
+stripe trigger checkout.session.completed
+stripe trigger customer.subscription.updated
+stripe trigger customer.subscription.deleted
+stripe trigger invoice.payment_failed
+```
+
+### Monitoring
+- Webhook events are logged to the `webhook_events` table in Supabase
+- View in Admin Dashboard → Webhook Monitor tab
+- Health check: `GET /api/v1/stripe/health`
 
 ---
 
@@ -151,5 +181,14 @@ This will automatically update user tiers when they subscribe/cancel.
 | Tier | Monthly | Yearly | Features |
 |------|---------|--------|----------|
 | Free | $0 | $0 | 2 compare, full history, basic features |
-| Supporter | $4.99 | — | Supporter badge, Discord role, ad-free, early access |
-| Recruiter | $19.99 | $159.99 | All Supporter perks + claim kingdom, recruiter dashboard |
+| Supporter | $4.99/mo | $49.99/yr (~$4.17/mo, save 17%) | Supporter badge, Discord role, ad-free, early access, battle planner, unlimited bot commands |
+
+### Stripe IDs
+| Resource | ID |
+|----------|----|
+| Product: Atlas Supporter | `prod_TsHdTjVrFBUmrO` |
+| Price: Monthly ($4.99/mo) | `price_1SuX3zL7R9uCnPH3m4PyIrNI` |
+| Price: Yearly ($49.99/yr) | `price_1T0NX1L7R9uCnPH37QoS7mqE` |
+| Payment Link: Monthly | `https://buy.stripe.com/dRm8wQ2Fe2ye7dC3n9eZ206` |
+| Payment Link: Yearly | `https://buy.stripe.com/3cIcN67Zy3CifK8cXJeZ20b` |
+| Product: Kingdom Fund | `prod_TvsIYrR0SeTEU7` |

@@ -8,26 +8,25 @@
 
 ## 1. Bugs & Errors Found
 
-### 1.1 ⚠️ Application expiry text mismatch
-- **Location:** `TransferApplications.tsx:257` says "Applications expire after **14 days**"
-- **Actual:** DB default `expires_at` is `now() + '72:00:00'` (3 days)
-- **Impact:** Users expect 14 days but applications expire after 72 hours. Misleading.
-- **Fix:** Change copy to "Applications expire after 72 hours" or update DB default to 14 days.
+### 1.1 ✅ Application expiry text mismatch — FIXED
+- **Location:** `TransferApplications.tsx:276`
+- **Status:** Fixed. Now correctly says "Applications expire after 72 hours if not responded to."
+- **Verified:** 2026-02-13
 
-### 1.2 ⚠️ Access gate link is the same for both conditions
-- **Location:** `TransferBoard.tsx:940` — `Link to={!user ? '/profile' : '/profile'}`
-- **Impact:** The ternary is a no-op. Both signed-out and linked-but-not-linked users go to `/profile`. Signed-out users should probably go to an auth modal or `/profile` with a sign-in prompt.
-- **Fix:** Minor — remove the ternary or route unauthenticated users to trigger the auth modal.
+### 1.2 ✅ Access gate link duplicate ternary — FIXED
+- **Location:** `TransferBoard.tsx` (formerly line 940)
+- **Status:** Fixed. The duplicate ternary `!user ? '/profile' : '/profile'` has been removed. Recruiter gate at line 1117 now routes to `/profile` directly.
+- **Verified:** 2026-02-13
 
-### 1.3 ⚠️ TransferProfileForm loads inactive profiles too
-- **Location:** `TransferProfileForm.tsx:192-196` — `.select('*').eq('user_id', user.id).single()`
-- **Impact:** If a user has a deactivated profile (from auto-deactivation), the form loads it and treats it as existing. The user would update it but `is_active` stays `false` because the update doesn't set `is_active: true`.
-- **Fix:** Add `.eq('is_active', true)` to the query, OR set `is_active: true` on update to reactivate.
+### 1.3 ✅ TransferProfileForm loads inactive profiles — FIXED
+- **Location:** `TransferProfileForm.tsx:406` and `TransferBoard.tsx:285`
+- **Status:** Fixed. TransferBoard query now includes `.eq('is_active', true)`, and TransferProfileForm sets `is_active: true` on update to reactivate deactivated profiles.
+- **Verified:** 2026-02-13
 
-### 1.4 ⚠️ Recruiter application profile fetch missing `last_active_at`
-- **Location:** `RecruiterDashboard.tsx:596` — The query that fetches profiles for incoming applications doesn't include `last_active_at`.
-- **Impact:** TypeScript won't error because it's cast, but `last_active_at` will be `undefined` on application profile cards.
-- **Fix:** Add `last_active_at` to the profile select in the applications fetch (line 596).
+### 1.4 ✅ Recruiter application profile fetch missing `last_active_at` — FIXED
+- **Location:** `RecruiterDashboard.tsx:480`
+- **Status:** Fixed. The profile select query now includes `last_active_at`.
+- **Verified:** 2026-02-13
 
 ---
 
@@ -56,16 +55,20 @@
 
 ## 3. Performance Concerns
 
-### 3.1 Top Matches section recalculates on every render
-- The Recommended Kingdoms section calls `calculateMatchScore` for all `filteredKingdoms` in an IIFE inside JSX. This runs on every re-render.
-- **Fix:** Wrap in `useMemo` keyed on `filteredKingdoms`, `fundMap`, and `transferProfile`.
+### 3.1 ✅ Top Matches section recalculates on every render — FIXED
+- **Status:** Fixed. `calculateMatchScore` results are now wrapped in `useMemo` keyed on `filteredKingdoms`, `fundMap`, `transferProfile`, and `mode` (TransferBoard.tsx:744-750).
+- **Verified:** 2026-02-13
 
-### 3.2 TransferBoard.tsx is 1500+ lines
-- The file includes EntryModal, ModeToggle, FilterPanel, and the main page component. This is a maintenance concern but not a user-facing issue.
+### 3.2 ✅ TransferBoard.tsx size reduction — ADDRESSED
+- EntryModal, ModeToggle, FilterPanel, KingdomCompare, EndorsementOverlay already extracted to `components/transfer/`.
+- Match score calculations (`calculateMatchScore`, `calculateMatchScoreForSort`) extracted to `utils/matchScore.ts`.
+- TransferProfileCTA (~127 lines), ContributionSuccessModal (~72 lines), TransferAuthGate (~62 lines) extracted to `components/transfer/`.
+- **Current:** 1444 lines (down from 1766, -322 total). Remaining bulk is page-level orchestration (state, data fetching, filter/sort logic, JSX routing).
+- **Status:** Addressed. Below 1500-line threshold. Further reduction would require custom hooks for data-fetching (higher-risk refactor).
 
-### 3.3 `last_active_at` touch fires on every Transfer Hub visit
-- The silent update runs every time the page loads. For active users visiting daily, this creates unnecessary DB writes.
-- **Fix:** Add a debounce — only touch if last touch was >1 hour ago (check client-side).
+### 3.3 ✅ `last_active_at` touch debounced — FIXED
+- **Status:** Fixed. TransferBoard.tsx:289-294 now debounces via `localStorage` — only touches if last touch was >1 hour ago.
+- **Verified:** 2026-02-13
 
 ---
 

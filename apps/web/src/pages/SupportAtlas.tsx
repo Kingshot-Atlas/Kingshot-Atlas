@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useIsMobile } from '../hooks/useMediaQuery';
-import { neonGlow, FONT_DISPLAY } from '../utils/styles';
+import { neonGlow, FONT_DISPLAY, colors } from '../utils/styles';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
@@ -21,6 +21,7 @@ const SupportAtlas: React.FC = () => {
   const { tier, isAdmin, refreshSubscription } = usePremium();
   const [searchParams, setSearchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('yearly');
   
   const isSuccess = searchParams.get('success') === 'true';
   const isCanceled = searchParams.get('canceled') === 'true';
@@ -59,7 +60,7 @@ const SupportAtlas: React.FC = () => {
       alert('Please sign in to become a Supporter');
       return;
     }
-    const checkoutUrl = getCheckoutUrl('supporter', 'monthly', user.id);
+    const checkoutUrl = getCheckoutUrl('supporter', billingCycle, user.id);
     window.location.href = checkoutUrl;
   };
 
@@ -137,15 +138,15 @@ const SupportAtlas: React.FC = () => {
           <div style={{
             marginBottom: '1.5rem',
             padding: '1rem 1.25rem',
-            backgroundColor: '#f59e0b15',
-            border: '1px solid #f59e0b50',
+            backgroundColor: `${colors.amber}15`,
+            border: `1px solid ${colors.amber}50`,
             borderRadius: '10px',
             display: 'flex',
             alignItems: 'center',
             gap: '0.75rem'
           }}>
             <span style={{ fontSize: '1.25rem' }}>ℹ️</span>
-            <div style={{ color: '#f59e0b', fontSize: '0.9rem' }}>
+            <div style={{ color: colors.amber, fontSize: '0.9rem' }}>
               {t('support.canceledMsg', 'No worries — you can support anytime. We appreciate you being here!')}
             </div>
           </div>
@@ -253,14 +254,99 @@ const SupportAtlas: React.FC = () => {
           }}>
             {t('support.supporterTier')}
           </h2>
+          {/* Billing Cycle Toggle */}
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            marginBottom: '1rem',
+            padding: '0.35rem',
+            backgroundColor: '#1a1a1a',
+            borderRadius: '10px',
+            border: '1px solid #2a2a2a',
+          }}>
+            <button
+              onClick={() => setBillingCycle('monthly')}
+              style={{
+                padding: '0.5rem 1.25rem',
+                borderRadius: '8px',
+                border: 'none',
+                fontSize: '0.85rem',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                backgroundColor: billingCycle === 'monthly' ? '#FF6B8A' : 'transparent',
+                color: billingCycle === 'monthly' ? '#000' : '#9ca3af',
+              }}
+            >
+              {t('support.monthly', 'Monthly')}
+            </button>
+            <button
+              onClick={() => setBillingCycle('yearly')}
+              style={{
+                padding: '0.5rem 1.25rem',
+                borderRadius: '8px',
+                border: 'none',
+                fontSize: '0.85rem',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                backgroundColor: billingCycle === 'yearly' ? '#FF6B8A' : 'transparent',
+                color: billingCycle === 'yearly' ? '#000' : '#9ca3af',
+                position: 'relative',
+              }}
+            >
+              {t('support.yearly', 'Yearly')}
+              <span style={{
+                position: 'absolute',
+                top: '-8px',
+                right: '-12px',
+                padding: '0.1rem 0.35rem',
+                backgroundColor: '#f59e0b',
+                color: '#000',
+                fontSize: '0.55rem',
+                fontWeight: '800',
+                borderRadius: '3px',
+                lineHeight: 1.3,
+                letterSpacing: '0.03em',
+                whiteSpace: 'nowrap',
+              }}>
+                {t('support.bestValue', 'Best Value')}
+              </span>
+            </button>
+            {billingCycle === 'yearly' && (
+              <span style={{
+                padding: '0.2rem 0.5rem',
+                backgroundColor: '#22c55e20',
+                color: '#22c55e',
+                fontSize: '0.7rem',
+                fontWeight: '700',
+                borderRadius: '4px',
+                whiteSpace: 'nowrap',
+              }}>
+                {t('support.savePercent', 'SAVE 17%')}
+              </span>
+            )}
+          </div>
+
+          {/* Price Display */}
           <div style={{ 
             fontSize: isMobile ? '1.75rem' : '2rem', 
             fontWeight: 'bold', 
             color: '#FF6B8A', 
-            marginBottom: '0.5rem' 
+            marginBottom: '0.25rem' 
           }}>
-            $4.99<span style={{ fontSize: '0.9rem', color: '#6b7280', fontWeight: 'normal' }}>/month</span>
+            {billingCycle === 'monthly' ? (
+              <>$4.99<span style={{ fontSize: '0.9rem', color: '#6b7280', fontWeight: 'normal' }}>/month</span></>
+            ) : (
+              <>$49.99<span style={{ fontSize: '0.9rem', color: '#6b7280', fontWeight: 'normal' }}>/year</span></>
+            )}
           </div>
+          {billingCycle === 'yearly' && (
+            <p style={{ color: '#22c55e', fontSize: '0.8rem', marginBottom: '0.5rem', fontWeight: '500' }}>
+              {t('support.yearlySavings', '$4.17/mo — save $9.89 vs monthly')}
+            </p>
+          )}
           <p style={{ color: '#6b7280', fontSize: '0.8rem', marginBottom: '1rem' }}>
             {t('support.cancelAnytime', 'Cancel anytime • Manage via Stripe')}
           </p>

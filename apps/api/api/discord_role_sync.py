@@ -16,22 +16,19 @@ Requirements:
 - Guild Members privileged intent must be enabled
 """
 import os
+import logging
 import httpx
 from typing import Optional, Literal
+from api.config import DISCORD_BOT_TOKEN, DISCORD_API_PROXY, DISCORD_PROXY_KEY
 
-# Discord Bot configuration
-DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
+logger = logging.getLogger("atlas.discord_sync")
+
+# Discord guild & role configuration (module-specific, not shared)
 DISCORD_GUILD_ID = os.getenv("DISCORD_GUILD_ID")
-
-# Role IDs for each subscription tier (set these in Render environment)
 DISCORD_SUPPORTER_ROLE_ID = os.getenv("DISCORD_SUPPORTER_ROLE_ID")
 DISCORD_RECRUITER_ROLE_ID = os.getenv("DISCORD_RECRUITER_ROLE_ID")
-# Settler role - given to users who link their Kingshot account
 DISCORD_SETTLER_ROLE_ID = os.getenv("DISCORD_SETTLER_ROLE_ID", "1466442878585934102")
 
-# Cloudflare Worker proxy to bypass Render IP bans (Error 1015)
-DISCORD_API_PROXY = os.getenv("DISCORD_API_PROXY", "")
-DISCORD_PROXY_KEY = os.getenv("DISCORD_PROXY_KEY", "")
 DISCORD_API_BASE = f"{DISCORD_API_PROXY}/api/v10" if DISCORD_API_PROXY else "https://discord.com/api/v10"
 
 
@@ -56,7 +53,7 @@ async def add_role_to_member(discord_user_id: str, role_id: str) -> bool:
         True if successful, False otherwise
     """
     if not DISCORD_BOT_TOKEN or not DISCORD_GUILD_ID:
-        print("Discord role sync not configured")
+        logger.warning("Discord role sync not configured")
         return False
     
     url = f"{DISCORD_API_BASE}/guilds/{DISCORD_GUILD_ID}/members/{discord_user_id}/roles/{role_id}"
@@ -72,22 +69,21 @@ async def add_role_to_member(discord_user_id: str, role_id: str) -> bool:
             response = await client.put(url, headers=headers)
             
         if response.status_code == 204:
-            print(f"✅ Added role {role_id} to Discord user {discord_user_id}")
+            logger.info("Added role %s to Discord user %s", role_id, discord_user_id)
             return True
         elif response.status_code == 404:
-            print(f"⚠️ Discord user {discord_user_id} not found in guild {DISCORD_GUILD_ID}")
+            logger.warning("Discord user %s not found in guild %s", discord_user_id, DISCORD_GUILD_ID)
             return False
         elif response.status_code == 403:
-            print(f"❌ Bot lacks permission to manage roles. Status: 403 - {response.text}")
-            print(f"   Guild: {DISCORD_GUILD_ID}, User: {discord_user_id}, Role: {role_id}")
+            logger.error("Bot lacks permission to manage roles. Status: 403 - %s (Guild: %s, User: %s, Role: %s)",
+                         response.text, DISCORD_GUILD_ID, discord_user_id, role_id)
             return False
         else:
-            print(f"❌ Failed to add role: {response.status_code} - {response.text}")
-            print(f"   URL: {url}")
+            logger.error("Failed to add role: %s - %s (URL: %s)", response.status_code, response.text, url)
             return False
             
     except Exception as e:
-        print(f"❌ Discord API error adding role: {e}")
+        logger.error("Discord API error adding role: %s", e)
         return False
 
 
@@ -103,7 +99,7 @@ async def remove_role_from_member(discord_user_id: str, role_id: str) -> bool:
         True if successful, False otherwise
     """
     if not DISCORD_BOT_TOKEN or not DISCORD_GUILD_ID:
-        print("Discord role sync not configured")
+        logger.warning("Discord role sync not configured")
         return False
     
     url = f"{DISCORD_API_BASE}/guilds/{DISCORD_GUILD_ID}/members/{discord_user_id}/roles/{role_id}"
@@ -118,18 +114,18 @@ async def remove_role_from_member(discord_user_id: str, role_id: str) -> bool:
             response = await client.delete(url, headers=headers)
             
         if response.status_code == 204:
-            print(f"✅ Removed role {role_id} from Discord user {discord_user_id}")
+            logger.info("Removed role %s from Discord user %s", role_id, discord_user_id)
             return True
         elif response.status_code == 404:
             # User not in guild or doesn't have role - that's fine
-            print(f"⚠️ Discord user {discord_user_id} not in guild or doesn't have role")
+            logger.info("Discord user %s not in guild or doesn't have role", discord_user_id)
             return True
         else:
-            print(f"❌ Failed to remove role: {response.status_code} - {response.text}")
+            logger.error("Failed to remove role: %s - %s", response.status_code, response.text)
             return False
             
     except Exception as e:
-        print(f"❌ Discord API error removing role: {e}")
+        logger.error("Discord API error removing role: %s", e)
         return False
 
 
@@ -368,7 +364,7 @@ async def sync_settler_role_for_user(user_id: str, is_linking: bool = True) -> d
     
     # Log the sync attempt
     action = "link" if is_linking else "unlink"
-    print(f"Settler role sync ({action}) for user {user_id}: {result}")
+    logger.info("Settler role sync (%s) for user %s: %s", action, user_id, result)
     
     return result
 
@@ -413,6 +409,6 @@ async def sync_user_discord_role(user_id: str, new_tier: str, old_tier: Optional
     )
     
     # Log the sync attempt
-    print(f"Discord role sync for user {user_id}: {result}")
+    logger.info("Discord role sync for user %s: %s", user_id, result)
     
     return result

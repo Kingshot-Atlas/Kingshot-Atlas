@@ -5,6 +5,7 @@ import { useIsMobile } from '../hooks/useMediaQuery';
 import { supabase } from '../lib/supabase';
 import { FONT_DISPLAY } from '../utils/styles';
 import { useToast } from './Toast';
+import { useAnalytics } from '../hooks/useAnalytics';
 
 // =============================================
 // TYPES
@@ -701,6 +702,7 @@ const EditorClaiming: React.FC<{
   const [acceptingInvite, setAcceptingInvite] = useState(false);
   const [inviterName, setInviterName] = useState<string | null>(null);
   const { showToast } = useToast();
+  const { trackFeature } = useAnalytics();
 
   const loadMyClaim = useCallback(async () => {
     if (!supabase || !user) {
@@ -1041,6 +1043,7 @@ const EditorClaiming: React.FC<{
           .update({ status: 'pending', role: 'co-editor', assigned_by: null })
           .eq('id', existing.id);
         setCoEditorRequestSent(true);
+        trackFeature('Co-Editor Request Submitted', { kingdom: linkedKingdom, source: 'reactivation' });
         loadMyClaim();
 
         // Notify active editor(s)
@@ -1106,6 +1109,7 @@ const EditorClaiming: React.FC<{
       }
 
       setCoEditorRequestSent(true);
+      trackFeature('Co-Editor Request Submitted', { kingdom: linkedKingdom, source: 'self_nomination' });
       loadMyClaim();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to submit co-editor request';

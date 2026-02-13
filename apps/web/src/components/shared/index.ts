@@ -1,13 +1,14 @@
-export { default as Tooltip } from './Tooltip';
+// === ACTIVELY USED COMPONENTS ===
 export { default as SmartTooltip } from './SmartTooltip';
 export { default as TierBadge } from './TierBadge';
-export { default as WinRateBar } from './WinRateBar';
 export { default as StatBox } from './StatBox';
-export { default as Card } from './Card';
 export { Button } from './Button';
 export type { ButtonProps, ButtonVariant, ButtonSize } from './Button';
-export { Chip, TierChip, ProChip, SupporterChip, RecruiterChip, VerifiedChip } from './Chip';
+export { Chip, TierChip } from './Chip';
 export type { ChipProps, ChipVariant, ChipSize } from './Chip';
+
+// === AVAILABLE BUT UNADOPTED (well-designed, should replace inline recreations) ===
+export { default as Card } from './Card';
 export { Input } from './Input';
 export type { InputProps } from './Input';
 export { TextArea } from './TextArea';

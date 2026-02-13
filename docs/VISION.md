@@ -1,7 +1,7 @@
 # Kingshot Atlas — Vision & Mission
 
-**Last Updated:** 2026-01-29  
-**Version:** 1.0
+**Last Updated:** 2026-02-15  
+**Version:** 1.1
 
 ---
 

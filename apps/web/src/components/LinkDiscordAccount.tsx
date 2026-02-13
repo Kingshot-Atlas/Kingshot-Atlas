@@ -138,9 +138,6 @@ const LinkDiscordAccount: React.FC<LinkDiscordAccountProps> = ({
               <span style={{ color: '#FF6B8A' }}>*</span> {t('discord.supporterRole', 'Atlas Supporter role for subscribers')}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#6b7280', fontSize: '0.8rem' }}>
-              <span style={{ color: '#a855f7' }}>*</span> {t('discord.recruiterRole', 'Atlas Recruiter role for affiliates')}
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#6b7280', fontSize: '0.8rem' }}>
               <span style={{ color: '#f97316' }}>*</span> {t('discord.archivistRole', 'Atlas Archivist role for top contributors')}
             </div>
           </div>

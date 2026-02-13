@@ -6,19 +6,20 @@ Connect Kingshot Atlas website with the Discord server to automatically sync rol
 
 ## Integration Points
 
-### 1. Atlas Pro Subscribers
-**Trigger:** User purchases Atlas Pro subscription via Stripe
-**Discord Role:** `Atlas Pro` (cyan color, #22d3ee)
+### 1. Atlas Supporter Subscribers
+**Trigger:** User purchases Atlas Supporter subscription via Stripe ($4.99/mo or $49.99/yr)
+**Discord Role:** `Supporter` (cyan color, #22d3ee)
 **Implementation:**
 - Stripe webhook → Backend API → Discord Bot grants role
 - Requires user to have linked Discord account
+- `syncSupporterRoles()` runs every 30min as periodic sync
 
-### 2. Atlas Recruiter (Affiliate Program)
-**Trigger:** User generates 3+ successful referrals
-**Discord Role:** `Atlas Recruiter` (purple color, #a855f7)
+### 2. Ambassador Network (Referral Program)
+**Trigger:** User reaches referral tier thresholds (Scout 2+, Recruiter 5+, Consul 10+, Ambassador 20+)
+**Discord Role:** Consul and Ambassador tiers get Discord roles
 **Implementation:**
-- Track referrals in database
-- Backend API → Discord Bot grants role when threshold met
+- Referral tracking in `referrals` table with anti-gaming protections
+- Discord bot auto-syncs Consul/Ambassador roles every 30min
 
 ### 3. Data Contributors (NEW)
 **Trigger:** User reaches 25 approved data contributions (Atlas Legend badge)
@@ -134,9 +135,9 @@ CREATE TABLE discord_role_sync_log (
 3. ⏳ Create Discord OAuth2 link flow on website
 4. ⏳ Update Discord bot to accept role-grant API calls
 
-### Phase 2: Pro Subscriber Sync
+### Phase 2: Supporter Subscriber Sync ✅
 1. Stripe webhook handler → check if user has Discord linked
-2. If yes, call Discord bot to grant `Atlas Pro` role
+2. If yes, call Discord bot to grant `Supporter` role
 3. Handle subscription cancellation (remove role)
 
 ### Phase 3: Contributor Sync

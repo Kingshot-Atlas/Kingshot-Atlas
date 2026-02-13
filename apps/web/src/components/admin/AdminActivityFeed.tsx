@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getAuthHeaders } from '../../services/authHeaders';
+import { colors } from '../../utils/styles';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
@@ -70,7 +71,7 @@ export const AdminActivityFeed: React.FC = () => {
         textAlign: 'center',
         color: '#6b7280',
         fontSize: '0.85rem',
-        backgroundColor: '#111116',
+        backgroundColor: colors.cardAlt,
         borderRadius: '12px',
         border: '1px solid #2a2a2a'
       }}>
@@ -81,7 +82,7 @@ export const AdminActivityFeed: React.FC = () => {
 
   return (
     <div style={{
-      backgroundColor: '#111116',
+      backgroundColor: colors.cardAlt,
       borderRadius: '12px',
       border: '1px solid #2a2a2a',
       overflow: 'hidden'

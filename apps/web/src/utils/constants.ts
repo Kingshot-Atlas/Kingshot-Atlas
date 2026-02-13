@@ -6,7 +6,7 @@
  */
 
 // Subscription tier type - includes admin as a display tier
-// Legacy DB values 'pro' and 'recruiter' are normalized to 'supporter' by getDisplayTier()
+// Only 'supporter' tier exists for paid users; 'admin' is a display-only tier
 export type SubscriptionTier = 'free' | 'supporter' | 'admin';
 
 // Admin users - usernames that have admin access
@@ -58,25 +58,19 @@ export const getAccessTier = (
   username: string | null | undefined
 ): 'free' | 'supporter' => {
   if (isAdminUsername(username)) return 'supporter'; // Full access
-  // Normalize legacy tier values
-  if (tier === 'pro' || tier === 'recruiter' || tier === 'supporter') return 'supporter';
+  if (tier === 'supporter') return 'supporter';
   return 'free';
 };
 
 // Get effective tier for DISPLAY purposes (admins show as "admin")
-// Accepts legacy DB values (pro, recruiter) and normalizes to supporter
 export const getDisplayTier = (
   tier: string | null | undefined,
   username: string | null | undefined
 ): SubscriptionTier => {
   if (isAdminUsername(username)) return 'admin';
-  // Normalize legacy tier values
-  if (tier === 'pro' || tier === 'recruiter' || tier === 'supporter') return 'supporter';
+  if (tier === 'supporter') return 'supporter';
   return 'free';
 };
-
-// Legacy alias for backward compatibility
-export const getEffectiveTier = getAccessTier;
 
 // ─── Referral Tier System ───
 export type ReferralTier = 'scout' | 'recruiter' | 'consul' | 'ambassador';
@@ -130,8 +124,6 @@ export const isReferralEligible = (profile: { linked_player_id?: string | null; 
 export const getTierBorderColor = (tier: string | null | undefined): string => {
   switch (tier) {
     case 'supporter':
-    case 'pro':        // Legacy
-    case 'recruiter':  // Legacy
       return SUBSCRIPTION_COLORS.supporter;
     case 'admin': return SUBSCRIPTION_COLORS.admin;
     default: return '#ffffff'; // White for free users

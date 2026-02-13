@@ -3,6 +3,8 @@
  * Handles PNG export, link generation, and clipboard operations
  */
 
+import { colors } from './styles';
+
 export interface ShareData {
   title: string;
   text: string;
@@ -564,7 +566,7 @@ export const generateTransferListingCard = async (
   }
 
   if (fundTier && fundTier !== 'standard') {
-    const fundColors: Record<string, string> = { gold: '#fbbf24', silver: '#9ca3af', bronze: '#cd7f32' };
+    const fundColors: Record<string, string> = { gold: colors.gold, silver: colors.textSecondary, bronze: colors.bronze };
     ctx.fillStyle = '#9ca3af';
     ctx.font = '12px system-ui, -apple-system, sans-serif';
     ctx.fillText('Fund Tier', infoX, 140);

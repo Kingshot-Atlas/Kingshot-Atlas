@@ -1,4 +1,9 @@
 import os
+import logging
+import secrets
+
+logger = logging.getLogger("atlas.api")
+
 try:
     import sentry_sdk
     SENTRY_AVAILABLE = True
@@ -27,37 +32,20 @@ if SENTRY_AVAILABLE and SENTRY_DSN:
 
 Base.metadata.create_all(bind=engine)
 
-def run_migrations():
-    """Run any pending schema migrations for existing tables"""
-    from sqlalchemy import text
-    db = SessionLocal()
-    try:
-        # Add screenshot2_url column if it doesn't exist (added 2026-02-01)
-        try:
-            db.execute(text("ALTER TABLE kvk_submissions ADD COLUMN screenshot2_url TEXT"))
-            db.commit()
-            print("Migration: Added screenshot2_url column to kvk_submissions")
-        except Exception:
-            db.rollback()  # Column already exists, ignore
-    finally:
-        db.close()
-
-run_migrations()
-
 def ensure_data_loaded():
     """Check if database has data, import if empty (handles Render's ephemeral storage)"""
     db = SessionLocal()
     try:
         count = db.query(Kingdom).count()
         if count == 0:
-            print("Database empty, importing data...")
+            logger.info("Database empty, importing data...")
             from import_data import import_kingdoms_data
             import_kingdoms_data()
-            print("Data import completed on startup")
+            logger.info("Data import completed on startup")
         else:
-            print(f"Database has {count} kingdoms")
+            logger.info("Database has %d kingdoms", count)
     except Exception as e:
-        print(f"Error checking/importing data: {e}")
+        logger.error("Error checking/importing data: %s", e)
     finally:
         db.close()
 
@@ -81,7 +69,7 @@ LOCALHOST_ORIGIN_REGEX = r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$"
 app = FastAPI(
     title="Kingshot Atlas API",
     description="Backend API for Kingshot Atlas kingdom data",
-    version="1.0.4"  # CORS: added Cloudflare Pages origin
+    version="2.0.0"
 )
 
 # Add rate limiter to app state
@@ -128,7 +116,6 @@ async def add_headers(request: Request, call_next):
     response = await call_next(request)
     
     # Generate nonce for CSP (for inline scripts/styles)
-    import secrets
     nonce = secrets.token_urlsafe(16)
     
     # Security headers (2025 standards)
@@ -145,7 +132,7 @@ async def add_headers(request: Request, call_next):
         f"style-src 'self' 'nonce-{nonce}' https://fonts.googleapis.com",
         "img-src 'self' data: https: blob: https://*.akamaized.net https://*.centurygame.com https://cdn.discordapp.com https://*.googleusercontent.com https://lh3.googleusercontent.com",
         "font-src 'self' https://fonts.gstatic.com",
-        "connect-src 'self' https://*.supabase.co https://*.sentry.io https://api.stripe.com https://plausible.io wss://*.supabase.co https://*.railway.app https://*.onrender.com https://kingshot-giftcode.centurygame.com",
+        "connect-src 'self' https://*.supabase.co https://*.sentry.io https://api.stripe.com https://plausible.io wss://*.supabase.co https://*.onrender.com https://kingshot-giftcode.centurygame.com",
         "frame-src https://*.stripe.com",
         "frame-ancestors 'none'",
         "base-uri 'self'",
@@ -181,7 +168,7 @@ async def csp_report(request: Request):
         body = await request.json()
         # Log CSP violations for monitoring (don't store sensitive data)
         violation = body.get("csp-report", {})
-        print(f"CSP Violation: {violation.get('violated-directive')} on {violation.get('document-uri')}")
+        logger.warning("CSP Violation: %s on %s", violation.get('violated-directive'), violation.get('document-uri'))
     except Exception:
         pass  # Silently ignore malformed reports
     return {"status": "received"}

@@ -4,6 +4,7 @@
  */
 
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { colors } from '../utils/styles';
 
 export interface DataFreshnessStatus {
   source: string;
@@ -215,11 +216,11 @@ class DataFreshnessService {
    */
   getStalenessColor(staleness: string): string {
     switch (staleness) {
-      case 'fresh': return '#22c55e';
-      case 'aging': return '#f59e0b';
-      case 'stale': return '#f97316';
-      case 'critical': return '#ef4444';
-      default: return '#6b7280';
+      case 'fresh': return colors.success;
+      case 'aging': return colors.amber;
+      case 'stale': return colors.orange;
+      case 'critical': return colors.error;
+      default: return colors.textMuted;
     }
   }
 

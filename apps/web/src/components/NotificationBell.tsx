@@ -112,17 +112,59 @@ const NotificationBell: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen]);
 
-  const handleNotificationClick = async (notification: Notification) => {
-    if (!notification.read) {
-      await notificationService.markAsRead(notification.id);
-      setNotifications(prev => 
-        prev.map(n => n.id === notification.id ? { ...n, read: true } : n)
-      );
-      setUnreadCount(prev => Math.max(0, prev - 1));
+  const resolveNotificationLink = (notification: Notification): string | null => {
+    if (notification.link) return notification.link;
+    const meta = notification.metadata || {};
+    const kn = meta.kingdom_number as number | undefined;
+    switch (notification.type) {
+      case 'admin_new_submission':
+        return '/admin?tab=kvk-submissions';
+      case 'admin_new_claim':
+        return '/admin?tab=claims';
+      case 'admin_new_transfer':
+      case 'admin_new_correction':
+        return '/admin?tab=transfer-hub';
+      case 'submission_approved':
+        return kn ? `/kingdom/${kn}` : '/profile';
+      case 'submission_rejected':
+        return '/submit-result';
+      case 'claim_verified':
+      case 'claim_rejected':
+        return '/profile';
+      case 'fund_contribution':
+        return '/transfer-hub';
+      case 'new_application':
+      case 'application_status':
+      case 'application_expiring':
+      case 'co_editor_invite':
+      case 'co_editor_request':
+      case 'editor_activated':
+      case 'endorsement_received':
+        return '/transfer-hub';
+      case 'referral_verified':
+        return '/profile';
+      case 'favorite_score_change':
+        return kn ? `/kingdom/${kn}` : '/';
+      case 'system_announcement':
+        return '/';
+      default:
+        return '/';
     }
-    
-    if (notification.link) {
-      navigate(notification.link);
+  };
+
+  const handleGroupClick = async (group: GroupedNotification) => {
+    const unreadInGroup = group.notifications.filter(n => !n.read);
+    if (unreadInGroup.length > 0) {
+      await Promise.all(unreadInGroup.map(n => notificationService.markAsRead(n.id)));
+      const unreadIds = new Set(unreadInGroup.map(n => n.id));
+      setNotifications(prev =>
+        prev.map(n => unreadIds.has(n.id) ? { ...n, read: true } : n)
+      );
+      setUnreadCount(prev => Math.max(0, prev - unreadInGroup.length));
+    }
+    const link = resolveNotificationLink(group.latestNotification);
+    if (link) {
+      navigate(link);
     }
     setIsOpen(false);
   };
@@ -312,7 +354,7 @@ const NotificationBell: React.FC = () => {
                 return (
                   <button
                     key={group.key}
-                    onClick={() => handleNotificationClick(notification)}
+                    onClick={() => handleGroupClick(group)}
                     style={{
                       width: '100%',
                       display: 'flex',

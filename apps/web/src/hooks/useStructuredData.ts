@@ -251,6 +251,7 @@ export const PAGE_BREADCRUMBS = {
   atlasBot: [HOME_CRUMB, { name: 'Atlas Bot', url: 'https://ks-atlas.com/atlas-bot' }],
   transferHub: [HOME_CRUMB, { name: 'Transfer Hub', url: 'https://ks-atlas.com/transfer-hub' }],
   ambassadors: [HOME_CRUMB, { name: 'Ambassador Network', url: 'https://ks-atlas.com/ambassadors' }],
+  transferHubLanding: [HOME_CRUMB, { name: 'Transfer Hub', url: 'https://ks-atlas.com/transfer-hub' }, { name: 'About', url: 'https://ks-atlas.com/transfer-hub/about' }],
 };
 
 /**

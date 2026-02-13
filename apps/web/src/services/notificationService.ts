@@ -3,6 +3,8 @@
  * Notifications are stored in Supabase and displayed via NotificationBell component
  */
 
+import { colors } from '../utils/styles';
+
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { logger } from '../utils/logger';
 
@@ -304,39 +306,39 @@ class NotificationService {
     switch (type) {
       case 'submission_approved':
       case 'claim_verified':
-        return '#22c55e'; // green
+        return colors.success; // green
       case 'submission_rejected':
       case 'claim_rejected':
-        return '#ef4444'; // red
+        return colors.error; // red
       case 'admin_new_transfer':
       case 'admin_new_submission':
       case 'admin_new_claim':
       case 'admin_new_correction':
-        return '#f59e0b'; // amber
+        return colors.amber; // amber
       case 'system_announcement':
-        return '#22d3ee'; // cyan
+        return colors.primary; // cyan
       case 'favorite_score_change':
-        return '#a855f7'; // purple
+        return colors.purple; // purple
       case 'referral_verified':
-        return '#a24cf3'; // ambassador purple
+        return '#a24cf3'; // ambassador purple (one-off)
       case 'new_application':
-        return '#eab308'; // yellow
+        return colors.warning; // yellow
       case 'application_status':
-        return '#22d3ee'; // cyan
+        return colors.primary; // cyan
       case 'co_editor_invite':
-        return '#a855f7'; // purple
+        return colors.purple; // purple
       case 'fund_contribution':
-        return '#22c55e'; // green
+        return colors.success; // green
       case 'application_expiring':
-        return '#f59e0b'; // amber
+        return colors.amber; // amber
       case 'endorsement_received':
-        return '#a855f7'; // purple
+        return colors.purple; // purple
       case 'editor_activated':
-        return '#22c55e'; // green
+        return colors.success; // green
       case 'co_editor_request':
-        return '#a855f7'; // purple
+        return colors.purple; // purple
       default:
-        return '#9ca3af'; // gray
+        return colors.textSecondary; // gray
     }
   }
 

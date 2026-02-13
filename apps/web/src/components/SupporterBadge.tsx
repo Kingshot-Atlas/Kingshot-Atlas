@@ -1,10 +1,10 @@
 import React from 'react';
 
-interface ProBadgeProps {
+interface SupporterBadgeProps {
   size?: 'sm' | 'md' | 'lg';
 }
 
-const ProBadge: React.FC<ProBadgeProps> = ({ size = 'sm' }) => {
+const SupporterBadge: React.FC<SupporterBadgeProps> = ({ size = 'sm' }) => {
   const color = '#FF6B8A'; // Supporter=Pink
   const label = 'SUPPORTER';
   const icon = '💖';
@@ -38,4 +38,4 @@ const ProBadge: React.FC<ProBadgeProps> = ({ size = 'sm' }) => {
   );
 };
 
-export default ProBadge;
+export default SupporterBadge;

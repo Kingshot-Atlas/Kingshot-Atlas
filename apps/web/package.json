@@ -69,7 +69,11 @@
     "i18n:add": "node scripts/i18n-add-language.js",
     "i18n:check": "node scripts/i18n-check-hardcoded.js",
     "i18n:diff": "node scripts/i18n-diff.js",
-    "i18n:snapshot": "node scripts/i18n-diff.js --snapshot"
+    "i18n:snapshot": "node scripts/i18n-diff.js --snapshot",
+    "lint:consistency": "node scripts/consistency-lint.js",
+    "lint:consistency:strict": "node scripts/consistency-lint.js --strict",
+    "changelog:sync": "node scripts/generate-changelog-md.js --write",
+    "changelog:check": "node scripts/generate-changelog-md.js --check"
   },
   "browserslist": {
     "production": [

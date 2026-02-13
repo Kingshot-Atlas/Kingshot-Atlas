@@ -842,5 +842,59 @@ When user A's action needs to modify user B's data (e.g., endorser incrementing 
 
 ---
 
+## Stripe Webhook Architecture (2026-02-13)
+
+### Endpoint
+- `POST /api/v1/stripe/webhook` — in `apps/api/api/routers/stripe.py`
+- Mounted via `main.py`: `app.include_router(stripe.router, prefix="/api/v1/stripe")`
+
+### Events Handled
+| Event | Handler | Action |
+|-------|---------|--------|
+| `checkout.session.completed` | `handle_checkout_completed` | Activate supporter tier, welcome email, Discord role sync |
+| `customer.subscription.updated` | `handle_subscription_updated` | Sync tier (active/canceled/past_due), Discord role sync |
+| `customer.subscription.deleted` | `handle_subscription_deleted` | Downgrade to free, cancellation email, Discord role removal |
+| `invoice.payment_failed` | `handle_payment_failed` | Payment failed email (first attempt only) |
+
+### User Resolution (3-layer fallback)
+1. `client_reference_id` from Payment Link URL (`?client_reference_id={user_id}`)
+2. `metadata.user_id` from Checkout Session / Subscription metadata
+3. Email fallback: `customer_email` → `get_user_by_email()` lookup in profiles table
+
+### Idempotency
+- `is_webhook_event_processed(event_id)` checks `webhook_events` table before processing
+- Stripe retries are safely skipped if event already has `status=processed`
+- `log_webhook_event()` uses `UPSERT ON CONFLICT event_id` for logging
+
+### Error Handling
+- All webhook failures logged to `webhook_events` with `status=failed` and `error_message`
+- Sentry `capture_exception()` called on webhook processing failures
+- Webhook always returns `{"received": True}` (200 OK) to prevent Stripe retries on app-level errors
+
+### Health Check
+- `GET /api/v1/stripe/health` returns `stripe_configured`, `webhook_configured`, `price_ids_configured`
+- Use to verify `STRIPE_WEBHOOK_SECRET` is set on Render
+
+### Key Gotchas
+- **Payment Links:** Frontend appends `?client_reference_id={userId}` to Payment Link URLs (`stripe.ts:71`). Stripe passes this through to `checkout.session.completed` webhook.
+- **Kingdom Fund:** `checkout.session.completed` with `client_reference_id` starting with `kf_` routes to `handle_kingdom_fund_payment` instead.
+- **`stripe.error.*`** still works in stripe>=8 as backward-compat aliases. Will need migration when deprecated.
+- **Email fallback** only works if user's Supabase profile email matches Stripe checkout email.
+
+### Required Env Vars (Render Dashboard)
+- `STRIPE_SECRET_KEY` — Stripe secret key (for API calls)
+- `STRIPE_WEBHOOK_SECRET` — Webhook signing secret (for signature verification)
+
+### Testing with Stripe CLI
+```bash
+stripe listen --forward-to localhost:8000/api/v1/stripe/webhook
+stripe trigger checkout.session.completed
+stripe trigger customer.subscription.updated
+stripe trigger customer.subscription.deleted
+stripe trigger invoice.payment_failed
+```
+
+---
+
 *Updated by Platform Engineer based on current backend best practices.*
-*Last audit: 2026-02-10*
+*Last audit: 2026-02-13*

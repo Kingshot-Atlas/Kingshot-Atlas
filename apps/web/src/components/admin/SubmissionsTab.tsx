@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { Submission } from './types';
 import { useTranslation } from 'react-i18next';
+import { colors } from '../../utils/styles';
 
 interface SubmissionsTabProps {
   submissions: Submission[];
@@ -41,11 +42,11 @@ const ImageModal: React.FC<{ src: string; onClose: () => void }> = ({ src, onClo
         top: '1rem',
         right: '1rem',
         background: 'rgba(0,0,0,0.8)',
-        border: '1px solid #3a3a3a',
+        border: `1px solid ${colors.borderStrong}`,
         borderRadius: '50%',
         width: '40px',
         height: '40px',
-        color: '#fff',
+        color: colors.text,
         cursor: 'pointer',
         fontSize: '1.5rem'
       }}
@@ -65,7 +66,7 @@ export const SubmissionsTab: React.FC<SubmissionsTabProps> = ({
 
   if (submissions.length === 0) {
     return (
-      <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
+      <div style={{ textAlign: 'center', padding: '2rem', color: colors.textMuted }}>
         No {filter} submissions
       </div>
     );
@@ -86,18 +87,18 @@ export const SubmissionsTab: React.FC<SubmissionsTabProps> = ({
       
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         {submissions.map((sub) => (
-          <div key={sub.id} style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', border: '1px solid #2a2a2a' }}>
+          <div key={sub.id} style={{ backgroundColor: colors.cardAlt, borderRadius: '12px', padding: '1.5rem', border: `1px solid ${colors.border}` }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
               <div>
-                <span style={{ color: '#22d3ee', fontWeight: 600 }}>K{sub.kingdom_number}</span>
-                <span style={{ color: '#6b7280' }}> vs </span>
-                <span style={{ color: '#f97316', fontWeight: 600 }}>K{sub.opponent_kingdom}</span>
-                <span style={{ color: '#6b7280', marginLeft: '1rem' }}>KvK #{sub.kvk_number}</span>
+                <span style={{ color: colors.primary, fontWeight: 600 }}>K{sub.kingdom_number}</span>
+                <span style={{ color: colors.textMuted }}> vs </span>
+                <span style={{ color: colors.orange, fontWeight: 600 }}>K{sub.opponent_kingdom}</span>
+                <span style={{ color: colors.textMuted, marginLeft: '1rem' }}>KvK #{sub.kvk_number}</span>
               </div>
               <div style={{ 
                 padding: '0.25rem 0.75rem',
-                backgroundColor: sub.status === 'pending' ? '#fbbf2420' : sub.status === 'approved' ? '#22c55e20' : '#ef444420',
-                color: sub.status === 'pending' ? '#fbbf24' : sub.status === 'approved' ? '#22c55e' : '#ef4444',
+                backgroundColor: sub.status === 'pending' ? `${colors.gold}20` : sub.status === 'approved' ? `${colors.success}20` : `${colors.error}20`,
+                color: sub.status === 'pending' ? colors.gold : sub.status === 'approved' ? colors.success : colors.error,
                 borderRadius: '9999px',
                 fontSize: '0.75rem',
                 fontWeight: 600
@@ -108,14 +109,14 @@ export const SubmissionsTab: React.FC<SubmissionsTabProps> = ({
             
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
               <div>
-                <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>Prep: </span>
-                <span style={{ color: sub.prep_result === 'W' ? '#22c55e' : '#ef4444', fontWeight: 600 }}>
+                <span style={{ color: colors.textMuted, fontSize: '0.875rem' }}>Prep: </span>
+                <span style={{ color: sub.prep_result === 'W' ? colors.success : colors.error, fontWeight: 600 }}>
                   {sub.prep_result === 'W' ? 'Win' : 'Loss'}
                 </span>
               </div>
               <div>
-                <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>Battle: </span>
-                <span style={{ color: sub.battle_result === 'W' ? '#22c55e' : '#ef4444', fontWeight: 600 }}>
+                <span style={{ color: colors.textMuted, fontSize: '0.875rem' }}>Battle: </span>
+                <span style={{ color: sub.battle_result === 'W' ? colors.success : colors.error, fontWeight: 600 }}>
                   {sub.battle_result === 'W' ? 'Win' : 'Loss'}
                 </span>
               </div>
@@ -126,11 +127,11 @@ export const SubmissionsTab: React.FC<SubmissionsTabProps> = ({
             {sub.screenshot_url && !isValidImageUrl(sub.screenshot_url) && (
               <div style={{ 
                 padding: '0.75rem', 
-                backgroundColor: '#3b82f610', 
-                border: '1px solid #3b82f630',
+                backgroundColor: `${colors.blue}10`, 
+                border: `1px solid ${colors.blue}30`,
                 borderRadius: '8px',
                 marginBottom: '1rem',
-                color: '#60a5fa',
+                color: colors.blue,
                 fontSize: '0.8rem'
               }}>
                 📷 Screenshot was submitted but storage was unavailable. You can still review this submission based on the KvK data provided.
@@ -143,7 +144,7 @@ export const SubmissionsTab: React.FC<SubmissionsTabProps> = ({
                     onClick={() => setViewingImage(sub.screenshot_url!)}
                     style={{
                       cursor: 'zoom-in',
-                      border: '1px solid #2a2a2a',
+                      border: `1px solid ${colors.border}`,
                       borderRadius: '8px',
                       overflow: 'hidden',
                       position: 'relative'
@@ -164,7 +165,7 @@ export const SubmissionsTab: React.FC<SubmissionsTabProps> = ({
                       left: 0,
                       right: 0,
                       backgroundColor: 'rgba(0,0,0,0.7)',
-                      color: '#9ca3af',
+                      color: colors.textSecondary,
                       fontSize: '0.6rem',
                       padding: '0.15rem 0.25rem',
                       textAlign: 'center'
@@ -178,7 +179,7 @@ export const SubmissionsTab: React.FC<SubmissionsTabProps> = ({
                     onClick={() => setViewingImage(sub.screenshot2_url!)}
                     style={{
                       cursor: 'zoom-in',
-                      border: '1px solid #2a2a2a',
+                      border: `1px solid ${colors.border}`,
                       borderRadius: '8px',
                       overflow: 'hidden',
                       position: 'relative'
@@ -199,7 +200,7 @@ export const SubmissionsTab: React.FC<SubmissionsTabProps> = ({
                       left: 0,
                       right: 0,
                       backgroundColor: 'rgba(0,0,0,0.7)',
-                      color: '#9ca3af',
+                      color: colors.textSecondary,
                       fontSize: '0.6rem',
                       padding: '0.15rem 0.25rem',
                       textAlign: 'center'
@@ -212,33 +213,33 @@ export const SubmissionsTab: React.FC<SubmissionsTabProps> = ({
             )}
 
             {sub.notes && (
-              <div style={{ color: '#9ca3af', fontSize: '0.875rem', marginBottom: '1rem' }}>
+              <div style={{ color: colors.textSecondary, fontSize: '0.875rem', marginBottom: '1rem' }}>
                 Notes: {sub.notes}
               </div>
             )}
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #2a2a2a', paddingTop: '1rem', marginTop: '0.5rem' }}>
-              <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: `1px solid ${colors.border}`, paddingTop: '1rem', marginTop: '0.5rem' }}>
+              <div style={{ color: colors.textMuted, fontSize: '0.75rem' }}>
                 By{' '}
                 {sub.submitter_name ? (
                   <Link 
                     to={`/players?search=${encodeURIComponent(sub.submitter_name)}`}
-                    style={{ color: '#22d3ee', textDecoration: 'none' }}
+                    style={{ color: colors.primary, textDecoration: 'none' }}
                   >
                     {sub.submitter_name}
                   </Link>
                 ) : (
-                  <span style={{ color: '#ef4444' }}>{t('admin.anonymous', 'Anonymous')}</span>
+                  <span style={{ color: colors.error }}>{t('admin.anonymous', 'Anonymous')}</span>
                 )}
                 {' '}• {new Date(sub.created_at).toLocaleDateString()}
               </div>
               
               {sub.status === 'pending' && (
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <button onClick={() => onReview(sub.id, 'approved')} style={{ padding: '0.5rem 1rem', backgroundColor: '#22c55e', color: '#ffffff', border: 'none', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }}>
+                  <button onClick={() => onReview(sub.id, 'approved')} style={{ padding: '0.5rem 1rem', backgroundColor: colors.success, color: colors.text, border: 'none', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }}>
                     Approve
                   </button>
-                  <button onClick={() => onReview(sub.id, 'rejected')} style={{ padding: '0.5rem 1rem', backgroundColor: '#ef4444', color: '#ffffff', border: 'none', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }}>
+                  <button onClick={() => onReview(sub.id, 'rejected')} style={{ padding: '0.5rem 1rem', backgroundColor: colors.error, color: colors.text, border: 'none', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }}>
                     Reject
                   </button>
                 </div>

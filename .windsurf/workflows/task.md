@@ -21,6 +21,11 @@ Before starting work:
 - **Query Supabase** — If task involves database, use `mcp3_list_tables` to check current schema
 - If already done, inform user and suggest alternatives
 
+### Consistency Check (runs every task)
+Run `node apps/web/scripts/consistency-lint.js` from project root.
+If warnings appear, briefly note them to the user before starting work.
+This catches: banned terms (e.g., "Atlas Pro"), stale docs, oversized components, eslint-disable creep.
+
 ### Supabase State Check (for database-related tasks)
 ```
 Use mcp3_list_tables with project_id: qdczmafwcvnwfvixxbwg

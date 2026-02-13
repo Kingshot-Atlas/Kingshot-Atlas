@@ -183,7 +183,7 @@ Update these files when infrastructure changes:
 | `docs/DEPLOYMENT.md` | URLs table |
 | `docs/LAUNCH_CHECKLIST.md` | Setup instructions |
 | `docs/DISCORD_BOT.md` | API URL |
-| `apps/api/RENDER_DEPLOY.md` | Deploy instructions |
+| `apps/api/README.md` | Deploy instructions, architecture, routers |
 
 ---
 

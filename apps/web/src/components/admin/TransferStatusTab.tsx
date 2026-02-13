@@ -1,4 +1,5 @@
 import React from 'react';
+import { colors } from '../../utils/styles';
 
 interface TransferSubmission {
   id: string;
@@ -28,7 +29,7 @@ export const TransferStatusTab: React.FC<TransferStatusTabProps> = ({
         </div>
       ) : (
         transferSubmissions.map((sub) => (
-          <div key={sub.id} style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', border: '1px solid #2a2a2a' }}>
+          <div key={sub.id} style={{ backgroundColor: colors.cardAlt, borderRadius: '12px', padding: '1.5rem', border: '1px solid #2a2a2a' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
               <span style={{ color: '#22d3ee', fontWeight: 600, fontSize: '1.25rem' }}>Kingdom {sub.kingdom_number}</span>
               <div style={{ 

@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL — 2026-01-29** | Discord bot has been completely overhauled (CF Worker proxy, 10+ commands, telemetry, role sync). See bot `SPECIALIST.md` for current state.
+
 # Discord Community Manager — Evaluation Report
 
 **Agent:** Discord Community Manager  

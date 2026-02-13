@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL — 2026-01-31** | Codebase has evolved significantly since this audit. See `ACTIVITY_LOG.md` for recent changes.
+
 # Comprehensive Code Audit Report
 
 **Date:** 2026-01-31  

@@ -196,7 +196,7 @@ npm run build
 
 ### Database Connection Failed
 - Check `DATABASE_URL` format (must start with `postgresql://`)
-- Verify Supabase allows connections from Railway/Render IPs
+- Verify Supabase allows connections from Render IPs
 
 ### Auth Not Working
 - Check Supabase redirect URLs include your production domain

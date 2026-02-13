@@ -3,7 +3,7 @@
  * Displays user's KvK data correction contributions on their profile
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 interface CorrectionStats {
@@ -29,7 +29,7 @@ export function UserCorrectionStats({ userId, username: _username, themeColor = 
   const [stats, setStats] = useState<CorrectionStats | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchCorrectionStats = async () => {
+  const fetchCorrectionStats = useCallback(async () => {
     if (!isSupabaseConfigured || !supabase) {
       setStats({ totalSubmitted: 0, totalApproved: 0, pendingReview: 0, recentCorrections: [] });
       setLoading(false);
@@ -89,11 +89,11 @@ export function UserCorrectionStats({ userId, username: _username, themeColor = 
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId]);
 
   useEffect(() => {
     fetchCorrectionStats();
-  }, [userId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [fetchCorrectionStats]);
 
   if (loading) {
     return (

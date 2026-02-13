@@ -1,9 +1,12 @@
+import logging
 import pandas as pd
 import sys
 import os
 from sqlalchemy.orm import Session
 from database import SessionLocal, engine
 from models import Kingdom, KVKRecord, Base
+
+logger = logging.getLogger("atlas.import_data")
 
 def import_kingdoms_data():
     # Drop and recreate tables to ensure schema is up-to-date
@@ -51,7 +54,7 @@ def import_kingdoms_data():
             db.add(kingdom)
         
         db.commit()
-        print(f"Imported {len(kingdoms_df)} kingdoms")
+        logger.info("Imported %d kingdoms", len(kingdoms_df))
         
         # Import ALL KVK records (full history for kingdom profiles)
         kvks_df = pd.read_csv(f"{kingdoms_path}kingdoms_all_kvks.csv")
@@ -69,12 +72,12 @@ def import_kingdoms_data():
             db.add(kvk_record)
         
         db.commit()
-        print(f"Imported {len(kvks_df)} KVK records (full history)")
+        logger.info("Imported %d KVK records (full history)", len(kvks_df))
         
-        print("Data import completed successfully!")
+        logger.info("Data import completed successfully!")
         
     except Exception as e:
-        print(f"Error importing data: {e}")
+        logger.error("Error importing data: %s", e)
         db.rollback()
         raise
     finally:

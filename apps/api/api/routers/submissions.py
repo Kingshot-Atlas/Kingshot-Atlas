@@ -11,8 +11,9 @@ import secrets
 from jose import jwt, JWTError
 from pydantic import BaseModel, Field
 from typing import Literal
+from api.config import ADMIN_EMAILS
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("atlas.submissions")
 
 from database import get_db
 from models import KVKSubmission, KVKRecord, Kingdom, KingdomClaim, User
@@ -175,9 +176,6 @@ def verify_supabase_jwt(token: str) -> Optional[str]:
     return None
 
 
-# Admin emails from environment variable (comma-separated) or fallback to defaults
-_default_admin_emails = 'gatreno@gmail.com,gatreno.investing@gmail.com'
-ADMIN_EMAILS = [e.strip() for e in os.getenv("ADMIN_EMAILS", _default_admin_emails).split(',') if e.strip()]
 
 def verify_moderator_role(user_id: str, db: Session, user_email: str = None) -> bool:
     """Verify user has moderator or admin role. Returns True if authorized."""

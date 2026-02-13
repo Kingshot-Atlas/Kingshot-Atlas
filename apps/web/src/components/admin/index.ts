@@ -1,5 +1,7 @@
 // Admin Dashboard Components
 export * from './types';
+export { AdminHeader } from './AdminHeader';
+export { AdminTabNav } from './AdminTabNav';
 export { AnalyticsOverview } from './AnalyticsOverview';
 export { SubmissionsTab } from './SubmissionsTab';
 export { NewKingdomsTab } from './NewKingdomsTab';
@@ -17,3 +19,6 @@ export { TransferStatusTab } from './TransferStatusTab';
 export { BotTelemetryTab } from './BotTelemetryTab';
 export { GiftCodeAnalyticsTab } from './GiftCodeAnalyticsTab';
 export { BattlePlannerAccessTab } from './BattlePlannerAccessTab';
+export { default as ImportTab } from './ImportTab';
+export { default as PlausibleTab } from './PlausibleTab';
+export { default as RejectModal } from './RejectModal';

@@ -91,7 +91,7 @@ export const formatTCLevel = (tcLevel: number): string => {
 const TIER_COLORS: Record<string, string> = {
   gold: colors.gold,
   silver: colors.textSecondary,
-  bronze: '#cd7f32',
+  bronze: colors.bronze,
   standard: colors.textMuted,
 };
 
@@ -399,7 +399,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
           : isSilver
           ? { background: `linear-gradient(180deg, #c0c0c005 0%, ${colors.surface} 25%, ${colors.surface} 100%)` }
           : isBronze
-          ? { background: `linear-gradient(180deg, #cd7f3206 0%, ${colors.surface} 35%, ${colors.surface} 100%)` }
+          ? { background: `linear-gradient(180deg, ${colors.bronze}06 0%, ${colors.surface} 35%, ${colors.surface} 100%)` }
           : { backgroundColor: colors.surface }),
         borderRadius: hasWrapper ? '12px' : '14px',
         overflow: 'hidden',
@@ -475,7 +475,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
                       {t('listing.fundDescription', 'Kingdoms fund their listing to unlock better visibility and features.')}
                     </div>
                     <div style={{ color: '#6b7280', lineHeight: 1.8, display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>
-                      <div>🥉 <span style={{ color: '#cd7f32' }}>Bronze $25+</span> — {t('listing.bronzePerks', 'Shimmer border · requirements · vibes')}</div>
+                      <div>🥉 <span style={{ color: colors.bronze }}>Bronze $25+</span> — {t('listing.bronzePerks', 'Shimmer border · requirements · vibes')}</div>
                       <div>🥈 <span style={{ color: '#9ca3af' }}>Silver $50+</span> — {t('listing.silverPerks', '+ Silver glow · bio · event times')}</div>
                       <div>🥇 <span style={{ color: colors.gold }}>Gold $100+</span> — {t('listing.goldPerks', '+ Gold glow · highlight · priority')}</div>
                     </div>
@@ -1191,7 +1191,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
         }
         .tier-chip-bronze {
           animation: tierChipWarm 5s ease-in-out infinite;
-          text-shadow: 0 0 3px #cd7f3240;
+          text-shadow: 0 0 3px ${colors.bronze}40;
         }
       `}</style>
     </div>
@@ -1256,7 +1256,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
           padding: '2px',
           borderRadius: '14px',
           scrollMarginTop: '80px',
-          background: 'linear-gradient(135deg, #cd7f32, #b87333, #da8a45, #a0682d, #cd7f32, #b87333, #cd7f32)',
+          background: `linear-gradient(135deg, ${colors.bronze}, #b87333, #da8a45, #a0682d, ${colors.bronze}, #b87333, ${colors.bronze})`,
           backgroundSize: '300% 300%',
           animation: 'goldShimmer 6s ease-in-out infinite',
           boxShadow: '0 2px 8px rgba(0,0,0,0.3)',

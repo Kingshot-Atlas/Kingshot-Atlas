@@ -33,7 +33,6 @@ const UserDirectory = lazy(() => import('./pages/UserDirectory'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const SupportAtlas = lazy(() => import('./pages/SupportAtlas'));
 const Changelog = lazy(() => import('./pages/Changelog'));
-const ComponentsDemo = lazy(() => import('./pages/ComponentsDemo'));
 const MissingDataRegistry = lazy(() => import('./pages/MissingDataRegistry'));
 const DiscordCallback = lazy(() => import('./pages/DiscordCallback'));
 const KvKSeasons = lazy(() => import('./pages/KvKSeasons'));
@@ -44,6 +43,7 @@ const RallyCoordinator = lazy(() => import('./pages/RallyCoordinator'));
 const BattlePlannerLanding = lazy(() => import('./pages/BattlePlannerLanding'));
 const GiftCodeRedeemer = lazy(() => import('./pages/GiftCodeRedeemer'));
 const GiftCodeLanding = lazy(() => import('./pages/GiftCodeLanding'));
+const TransferHubLanding = lazy(() => import('./pages/TransferHubLanding'));
 const AuthCallback = lazy(() => import('./pages/AuthCallback'));
 
 // Loading fallback component
@@ -124,7 +124,6 @@ function AppContent() {
               <Route path="/upgrade" element={<ErrorBoundary><SupportAtlas /></ErrorBoundary>} />
               <Route path="/pro" element={<ErrorBoundary><SupportAtlas /></ErrorBoundary>} />
               <Route path="/changelog" element={<ErrorBoundary><Changelog /></ErrorBoundary>} />
-              <Route path="/components" element={<ErrorBoundary><ComponentsDemo /></ErrorBoundary>} />
               <Route path="/contribute-data" element={<ErrorBoundary><MissingDataRegistry /></ErrorBoundary>} />
               <Route path="/auth/discord/callback" element={<ErrorBoundary><DiscordCallback /></ErrorBoundary>} />
               <Route path="/seasons" element={<ErrorBoundary><KvKSeasons /></ErrorBoundary>} />
@@ -136,6 +135,7 @@ function AppContent() {
               <Route path="/tools/battle-planner" element={<ErrorBoundary><BattlePlannerLanding /></ErrorBoundary>} />
               <Route path="/tools/kvk-battle-planner" element={<ErrorBoundary><RallyCoordinator /></ErrorBoundary>} />
               <Route path="/gift-codes" element={<ErrorBoundary><GiftCodeLanding /></ErrorBoundary>} />
+              <Route path="/transfer-hub/about" element={<ErrorBoundary><TransferHubLanding /></ErrorBoundary>} />
               <Route path="/tools/gift-codes" element={<ErrorBoundary><GiftCodeRedeemer /></ErrorBoundary>} />
               <Route path="/auth/callback" element={<ErrorBoundary><AuthCallback /></ErrorBoundary>} />
             </Routes>

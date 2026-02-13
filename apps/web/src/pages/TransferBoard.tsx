@@ -7,14 +7,14 @@ import { supabase } from '../lib/supabase';
 import TransferProfileForm from '../components/TransferProfileForm';
 import { ApplyModal, MyApplicationsTracker } from '../components/TransferApplications';
 import RecruiterDashboard from '../components/RecruiterDashboard';
-import EditorClaiming, { EndorseButton } from '../components/EditorClaiming';
+import EditorClaiming from '../components/EditorClaiming';
 import KingdomFundContribute from '../components/KingdomFundContribute';
 import { useTranslation } from 'react-i18next';
 import { neonGlow, FONT_DISPLAY, colors } from '../utils/styles';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
-import KingdomListingCard, { KingdomData, KingdomFund, KingdomReviewSummary, BoardMode, MatchDetail, formatTCLevel } from '../components/KingdomListingCard';
+import KingdomListingCard, { KingdomData, KingdomFund, KingdomReviewSummary, BoardMode, MatchDetail } from '../components/KingdomListingCard';
 import { useScrollDepth } from '../hooks/useScrollDepth';
 import TransferHubGuide from '../components/TransferHubGuide';
 import EntryModal from '../components/transfer/EntryModal';
@@ -22,7 +22,12 @@ import ModeToggle from '../components/transfer/ModeToggle';
 import FilterPanel, { FilterState, defaultFilters } from '../components/transfer/FilterPanel';
 import { useToast } from '../components/Toast';
 import KingdomCompare from '../components/transfer/KingdomCompare';
+import EndorsementOverlay from '../components/transfer/EndorsementOverlay';
+import TransferProfileCTA from '../components/transfer/TransferProfileCTA';
+import ContributionSuccessModal from '../components/transfer/ContributionSuccessModal';
+import TransferAuthGate from '../components/transfer/TransferAuthGate';
 import { TRANSFER_GROUPS, getTransferGroup, getTransferGroupOptions, areTransferGroupsOutdated, getTransferGroupLabel } from '../config/transferGroups';
+import { calculateMatchScore as calcMatchScore, calculateMatchScoreForSort as calcMatchScoreForSort } from '../utils/matchScore';
 
 // =============================================
 // TYPES (KingdomData, KingdomFund, KingdomReviewSummary, BoardMode, MatchDetail, formatTCLevel
@@ -99,6 +104,7 @@ const TransferBoard: React.FC = () => {
   const [showRecruiterDash, setShowRecruiterDash] = useState(false);
   const [isEditor, setIsEditor] = useState(false);
   const [newAppCount, setNewAppCount] = useState(0);
+  const [pendingCoEditorCount, setPendingCoEditorCount] = useState(0);
   const [contributingToKingdom, setContributingToKingdom] = useState<number | null>(null);
   const [showContributionSuccess, setShowContributionSuccess] = useState(false);
   const [visibleCount, setVisibleCount] = useState(20);
@@ -343,6 +349,14 @@ const TransferBoard: React.FC = () => {
           .eq('kingdom_number', data.kingdom_number)
           .eq('status', 'pending');
         setNewAppCount(count || 0);
+        // Fetch pending co-editor request count for badge
+        const { count: coEditorCount } = await supabase
+          .from('kingdom_editors')
+          .select('*', { count: 'exact', head: true })
+          .eq('kingdom_number', data.kingdom_number)
+          .eq('role', 'co-editor')
+          .eq('status', 'pending');
+        setPendingCoEditorCount(coEditorCount || 0);
       }
     };
     const countTransferees = async () => {
@@ -526,28 +540,9 @@ const TransferBoard: React.FC = () => {
 
   const transferGroupsOutdated = areTransferGroupsOutdated();
 
-  // Lightweight match score for sorting (no details array allocation)
-  const calculateMatchScoreForSort = (_kingdom: KingdomData, fund: KingdomFund | null): number => {
-    if (!transferProfile || !fund) return 0;
-    let matched = 0;
-    let total = 0;
-    const minPower = fund.min_power_million || (fund.min_power_range ? parseInt(fund.min_power_range, 10) || 0 : 0);
-    if (minPower > 0) { total++; if (transferProfile.power_million >= minPower) matched++; }
-    if (fund.min_tc_level && fund.min_tc_level > 0) { total++; if (transferProfile.tc_level >= fund.min_tc_level) matched++; }
-    if (fund.main_language) { total++; if (fund.main_language === transferProfile.main_language || (fund.secondary_languages || []).includes(transferProfile.main_language) || fund.main_language === (transferProfile.secondary_languages?.[0] || '')) matched++; }
-    if (fund.kingdom_vibe && fund.kingdom_vibe.length > 0 && transferProfile.looking_for.length > 0) { total++; if (transferProfile.looking_for.some(v => fund.kingdom_vibe.includes(v))) matched++; }
-    if (total === 0) {
-      // Fallback: soft heuristic when no explicit requirements set
-      let fallback = 0, fallbackTotal = 0;
-      if (fund.main_language) { fallbackTotal++; if (fund.main_language === transferProfile.main_language) fallback++; }
-      if (fund.kingdom_vibe && fund.kingdom_vibe.length > 0 && transferProfile.looking_for.length > 0) {
-        fallbackTotal++; if (transferProfile.looking_for.some(v => fund.kingdom_vibe.includes(v))) fallback++;
-      }
-      if (fund.is_recruiting) { fallbackTotal++; fallback++; }
-      return fallbackTotal === 0 ? 0 : Math.round((fallback / fallbackTotal) * 100);
-    }
-    return Math.round((matched / total) * 100);
-  };
+  // Match score for sorting — delegated to utils/matchScore.ts
+  const calculateMatchScoreForSort = (kingdom: KingdomData, fund: KingdomFund | null): number =>
+    calcMatchScoreForSort(kingdom, fund, transferProfile);
 
   // Filter and sort kingdoms
   const filteredKingdoms = useMemo(() => {
@@ -656,78 +651,9 @@ const TransferBoard: React.FC = () => {
     return result;
   }, [kingdoms, filters, fundMap, mode, profile?.linked_kingdom, userTransferGroup, searchQuery, transferProfile]);
 
-  // Calculate match score for transferring mode
-  const calculateMatchScore = (_kingdom: KingdomData, fund: KingdomFund | null): { score: number; details: MatchDetail[] } => {
-    if (!transferProfile || !fund) return { score: 0, details: [] };
-
-    const details: MatchDetail[] = [];
-    let matched = 0;
-    let total = 0;
-
-    // 1. Power check
-    const minPower = fund.min_power_million || (fund.min_power_range ? parseInt(fund.min_power_range, 10) || 0 : 0);
-    if (minPower > 0) {
-      total++;
-      const powerOk = transferProfile.power_million >= minPower;
-      if (powerOk) matched++;
-      details.push({ label: 'Power', matched: powerOk, detail: powerOk ? `${transferProfile.power_million}M ≥ ${minPower}M required` : `${transferProfile.power_million}M < ${minPower}M required` });
-    }
-
-    // 2. TC Level check
-    if (fund.min_tc_level && fund.min_tc_level > 0) {
-      total++;
-      const tcOk = transferProfile.tc_level >= fund.min_tc_level;
-      if (tcOk) matched++;
-      details.push({ label: 'TC Level', matched: tcOk, detail: tcOk ? `${formatTCLevel(transferProfile.tc_level)} ≥ ${formatTCLevel(fund.min_tc_level)} required` : `${formatTCLevel(transferProfile.tc_level)} < ${formatTCLevel(fund.min_tc_level)} required` });
-    }
-
-    // 3. Language check
-    if (fund.main_language) {
-      total++;
-      const langMatch = fund.main_language === transferProfile.main_language
-        || (fund.secondary_languages || []).includes(transferProfile.main_language)
-        || fund.main_language === (transferProfile.secondary_languages?.[0] || '');
-      if (langMatch) matched++;
-      details.push({ label: 'Language', matched: langMatch, detail: langMatch ? `${transferProfile.main_language} matches` : `${transferProfile.main_language} ≠ ${fund.main_language}` });
-    }
-
-    // 4. Kingdom Vibe / Looking For overlap
-    if (fund.kingdom_vibe && fund.kingdom_vibe.length > 0 && transferProfile.looking_for.length > 0) {
-      total++;
-      const overlap = transferProfile.looking_for.filter(v => fund.kingdom_vibe.includes(v));
-      const vibeMatch = overlap.length > 0;
-      if (vibeMatch) matched++;
-      details.push({ label: 'Vibe Match', matched: vibeMatch, detail: vibeMatch ? `${overlap.length} shared: ${overlap.join(', ')}` : 'No overlapping vibes' });
-    }
-
-    if (total === 0) {
-      // Fallback heuristic when no explicit min requirements are set
-      const fbDetails: MatchDetail[] = [];
-      let fbMatched = 0, fbTotal = 0;
-      if (fund.main_language) {
-        fbTotal++;
-        const langOk = fund.main_language === transferProfile.main_language
-          || (fund.secondary_languages || []).includes(transferProfile.main_language);
-        if (langOk) fbMatched++;
-        fbDetails.push({ label: 'Language', matched: langOk, detail: langOk ? `${transferProfile.main_language} matches` : `${transferProfile.main_language} ≠ ${fund.main_language}` });
-      }
-      if (fund.kingdom_vibe && fund.kingdom_vibe.length > 0 && transferProfile.looking_for.length > 0) {
-        fbTotal++;
-        const overlap = transferProfile.looking_for.filter(v => fund.kingdom_vibe.includes(v));
-        const vibeOk = overlap.length > 0;
-        if (vibeOk) fbMatched++;
-        fbDetails.push({ label: 'Vibe Match', matched: vibeOk, detail: vibeOk ? `${overlap.length} shared: ${overlap.join(', ')}` : 'No overlapping vibes' });
-      }
-      if (fund.is_recruiting) {
-        fbTotal++; fbMatched++;
-        fbDetails.push({ label: 'Recruiting', matched: true, detail: 'Kingdom is actively recruiting' });
-      }
-      if (fbTotal === 0) return { score: 0, details: [] };
-      return { score: Math.round((fbMatched / fbTotal) * 100), details: fbDetails };
-    }
-    const score = Math.round((matched / total) * 100);
-    return { score, details };
-  };
+  // Match score with details — delegated to utils/matchScore.ts
+  const calculateMatchScore = (kingdom: KingdomData, fund: KingdomFund | null): { score: number; details: MatchDetail[] } =>
+    calcMatchScore(kingdom, fund, transferProfile);
 
   // Auth helpers — browsing is open to all, actions require login + linked account
   const hasLinkedAccount = !!profile?.linked_player_id;
@@ -899,134 +825,16 @@ const TransferBoard: React.FC = () => {
       )}
 
       {/* Transfer Profile CTA (only in transferring mode) */}
-      {mode === 'transferring' && (() => {
-        // Calculate profile completeness
-        const tp = transferProfile;
-        const profilePct = tp ? (() => {
-          const checks = [
-            tp.power_million > 0,
-            !!tp.main_language,
-            !!tp.kvk_availability,
-            !!tp.saving_for_kvk,
-            tp.looking_for.length > 0,
-            !!tp.group_size,
-            !!tp.player_bio?.trim(),
-            tp.play_schedule.length > 0,
-            !!tp.contact_method,
-            !!tp.visible_to_recruiters,
-          ];
-          return Math.round((checks.filter(Boolean).length / checks.length) * 100);
-        })() : 0;
-        const isIncomplete = hasTransferProfile && profilePct < 100;
-        const barColor = profilePct >= 80 ? '#22c55e' : profilePct >= 50 ? '#fbbf24' : '#22d3ee';
-
-        return (
-          <div style={{
-            backgroundColor: '#22d3ee08',
-            border: '1px solid #22d3ee25',
-            borderRadius: '12px',
-            padding: isMobile ? '0.75rem' : '1rem',
-            marginBottom: '1rem',
-            display: 'flex',
-            alignItems: isMobile ? 'flex-start' : 'center',
-            justifyContent: 'space-between',
-            gap: '0.75rem',
-            flexDirection: isMobile ? 'column' : 'row',
-          }}>
-            <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ color: '#22d3ee', fontWeight: '600', fontSize: '0.85rem' }}>
-                  {hasTransferProfile ? t('transferHub.profileActive', 'Your Transfer Profile is Active') : t('transferHub.createProfile', 'Create Your Transfer Profile')}
-                </span>
-                {isIncomplete && (
-                  <span style={{
-                    padding: '0.1rem 0.4rem',
-                    backgroundColor: `${barColor}15`,
-                    border: `1px solid ${barColor}30`,
-                    borderRadius: '4px',
-                    fontSize: '0.65rem',
-                    fontWeight: '700',
-                    color: barColor,
-                  }}>
-                    {profilePct}%
-                  </span>
-                )}
-              </div>
-              <p style={{ color: '#6b7280', fontSize: '0.75rem', margin: '0.2rem 0 0 0' }}>
-                {isIncomplete
-                  ? t('transferHub.completeForBetter', 'Complete your profile for better Match Scores and more recruiter visibility.')
-                  : hasTransferProfile
-                    ? t('transferHub.profileVisible', 'Kingdoms can see your profile when you apply. You can edit it anytime.')
-                    : t('transferHub.setupProfile', 'Set up your profile so kingdoms know what you bring to the table.')}
-              </p>
-              {hasTransferProfile && profileViewCount > 0 && (
-                <div style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
-                  marginTop: '0.35rem',
-                  padding: '0.15rem 0.5rem',
-                  backgroundColor: '#a855f710',
-                  border: '1px solid #a855f725',
-                  borderRadius: '6px',
-                  fontSize: '0.65rem',
-                  color: '#a855f7',
-                }}>
-                  <span>👀</span>
-                  <span style={{ fontWeight: '700' }}>{profileViewCount}</span>
-                  <span>{t('transferHub.kingdomsViewedProfile', '{{count}} kingdom(s) viewed your profile', { count: profileViewCount })}</span>
-                </div>
-              )}
-              {hasTransferProfile && activeAppCount >= 2 && (
-                <div style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
-                  marginTop: '0.35rem',
-                  padding: '0.15rem 0.5rem',
-                  backgroundColor: activeAppCount >= 3 ? '#ef444410' : '#f59e0b10',
-                  border: `1px solid ${activeAppCount >= 3 ? '#ef444425' : '#f59e0b25'}`,
-                  borderRadius: '6px',
-                  fontSize: '0.65rem',
-                  color: activeAppCount >= 3 ? '#ef4444' : '#f59e0b',
-                  fontWeight: '600',
-                }}>
-                  📋 {t('transferHub.appSlotsUsed', '{{count}}/3 application slots used', { count: activeAppCount })}{activeAppCount >= 3 ? ' — ' + t('transferHub.withdrawToApply', 'withdraw one to apply again') : ''}
-                </div>
-              )}
-              {isIncomplete && (
-                <div style={{
-                  width: '100%', maxWidth: '200px', height: '4px',
-                  backgroundColor: '#1a1a1a', borderRadius: '2px',
-                  overflow: 'hidden', marginTop: '0.4rem',
-                }}>
-                  <div style={{
-                    width: `${profilePct}%`, height: '100%',
-                    backgroundColor: barColor, borderRadius: '2px',
-                    transition: 'width 0.3s ease',
-                  }} />
-                </div>
-              )}
-            </div>
-            <button
-              onClick={() => requireAuth(() => { setScrollToIncomplete(!!isIncomplete); setShowProfileForm(true); })}
-              style={{
-                padding: '0.5rem 1rem',
-                backgroundColor: hasTransferProfile ? 'transparent' : '#22d3ee',
-                border: hasTransferProfile ? '1px solid #22d3ee40' : 'none',
-                borderRadius: '8px',
-                color: hasTransferProfile ? '#22d3ee' : '#000',
-                fontSize: '0.8rem',
-                fontWeight: '600',
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                minHeight: '44px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              {isIncomplete ? t('transferHub.completeProfile', 'Complete Profile') : hasTransferProfile ? t('transferHub.editProfile', 'Edit Profile') : t('transferHub.createProfileBtn', 'Create Profile')}
-            </button>
-          </div>
-        );
-      })()}
+      {mode === 'transferring' && (
+        <TransferProfileCTA
+          hasTransferProfile={hasTransferProfile}
+          transferProfile={transferProfile}
+          profileViewCount={profileViewCount}
+          activeAppCount={activeAppCount}
+          isMobile={isMobile}
+          onEditProfile={(scrollToInc) => requireAuth(() => { setScrollToIncomplete(scrollToInc); setShowProfileForm(true); })}
+        />
+      )}
 
       {/* Transfer Profile Form Modal */}
       {showProfileForm && (
@@ -1216,24 +1024,41 @@ const TransferBoard: React.FC = () => {
                   ) : null;
                 })()}
               </div>
-              {newAppCount > 0 && (
-                <span style={{
-                  position: 'absolute',
-                  top: '-4px',
-                  right: '-4px',
-                  backgroundColor: '#ef4444',
-                  color: '#fff',
-                  fontSize: '0.6rem',
-                  fontWeight: '700',
-                  borderRadius: '999px',
-                  padding: '0.1rem 0.35rem',
-                  minWidth: '16px',
-                  textAlign: 'center',
-                  lineHeight: '1.2',
-                  boxShadow: '0 2px 6px rgba(239,68,68,0.4)',
-                }}>
-                  {newAppCount > 9 ? '9+' : newAppCount}
-                </span>
+              {(newAppCount > 0 || pendingCoEditorCount > 0) && (
+                <div style={{ position: 'absolute', top: '-4px', right: '-4px', display: 'flex', gap: '0.2rem' }}>
+                  {newAppCount > 0 && (
+                    <span style={{
+                      backgroundColor: '#ef4444',
+                      color: '#fff',
+                      fontSize: '0.6rem',
+                      fontWeight: '700',
+                      borderRadius: '999px',
+                      padding: '0.1rem 0.35rem',
+                      minWidth: '16px',
+                      textAlign: 'center',
+                      lineHeight: '1.2',
+                      boxShadow: '0 2px 6px rgba(239,68,68,0.4)',
+                    }}>
+                      {newAppCount > 9 ? '9+' : newAppCount}
+                    </span>
+                  )}
+                  {pendingCoEditorCount > 0 && (
+                    <span style={{
+                      backgroundColor: '#a855f7',
+                      color: '#fff',
+                      fontSize: '0.6rem',
+                      fontWeight: '700',
+                      borderRadius: '999px',
+                      padding: '0.1rem 0.35rem',
+                      minWidth: '16px',
+                      textAlign: 'center',
+                      lineHeight: '1.2',
+                      boxShadow: '0 2px 6px rgba(168,85,247,0.4)',
+                    }}>
+                      {pendingCoEditorCount > 9 ? '9+' : pendingCoEditorCount}
+                    </span>
+                  )}
+                </div>
               )}
             </button>
           )}
@@ -1257,76 +1082,10 @@ const TransferBoard: React.FC = () => {
 
       {/* Contribution Success Overlay */}
       {showContributionSuccess && (
-        <div
-          style={{
-            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.9)',
-            display: 'flex', alignItems: isMobile ? 'flex-end' : 'center', justifyContent: 'center',
-            zIndex: 1100, padding: isMobile ? 0 : '1rem',
-          }}
-          onClick={() => setShowContributionSuccess(false)}
-        >
-          <div
-            style={{
-              backgroundColor: '#111111', border: '1px solid #22c55e30',
-              borderRadius: isMobile ? '16px 16px 0 0' : '16px',
-              padding: isMobile ? '2rem 1.5rem' : '2.5rem',
-              maxWidth: '450px', width: '100%',
-              textAlign: 'center',
-              boxShadow: '0 0 40px #22c55e10',
-              paddingBottom: isMobile ? 'max(2rem, env(safe-area-inset-bottom))' : '2.5rem',
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div style={{
-              width: '60px', height: '60px', borderRadius: '50%',
-              backgroundColor: '#22c55e15', border: '2px solid #22c55e40',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              margin: '0 auto 1rem',
-              fontSize: '1.5rem',
-            }}>
-              ✓
-            </div>
-            <h2 style={{
-              fontFamily: FONT_DISPLAY, fontSize: '1.3rem',
-              color: '#fff', margin: '0 0 0.5rem 0',
-            }}>
-              {t('transferHub.contributionSuccess', 'Contribution Successful!')}
-            </h2>
-            <p style={{ color: '#9ca3af', fontSize: '0.9rem', margin: '0 0 0.75rem 0', lineHeight: 1.5 }}>
-              {t('transferHub.contributionThankYou', 'Thank you for supporting your kingdom\'s Transfer Hub listing. Your contribution helps the fund grow and unlocks better listing features.')}
-            </p>
-            <div style={{
-              padding: '0.75rem', backgroundColor: '#0a0a0a',
-              borderRadius: '10px', border: '1px solid #2a2a2a',
-              marginBottom: '1rem',
-            }}>
-              <span style={{ color: '#6b7280', fontSize: '0.7rem' }}>{t('transferHub.whatHappensNext', 'What happens next?')}</span>
-              <ul style={{ color: '#d1d5db', fontSize: '0.8rem', margin: '0.5rem 0 0 0', padding: '0 0 0 1.2rem', lineHeight: 1.8, textAlign: 'left' }}>
-                <li>{t('transferHub.paymentProcessed', 'Your payment is processed by Stripe')}</li>
-                <li>{t('transferHub.balanceUpdated', 'The kingdom fund balance is updated automatically')}</li>
-                <li>{t('transferHub.tierUpgrade', 'If the fund reaches a new tier, the listing upgrades')}</li>
-                <li>{t('transferHub.fundDepletes', 'Fund depletes ~$5/week to stay active')}</li>
-              </ul>
-            </div>
-            <button
-              onClick={() => setShowContributionSuccess(false)}
-              style={{
-                padding: '0.6rem 2rem',
-                backgroundColor: '#22c55e15',
-                border: '1px solid #22c55e40',
-                borderRadius: '10px',
-                color: '#22c55e',
-                fontWeight: '600',
-                fontSize: '0.9rem',
-                cursor: 'pointer',
-                minHeight: '44px',
-              }}
-            >
-              {t('transferHub.continueBrowsing', 'Continue Browsing')}
-            </button>
-          </div>
-        </div>
+        <ContributionSuccessModal
+          isMobile={isMobile}
+          onClose={() => setShowContributionSuccess(false)}
+        />
       )}
 
       {/* Recommended Kingdoms (transferring mode, profile exists) */}
@@ -1600,275 +1359,33 @@ const TransferBoard: React.FC = () => {
       )}
       {/* Endorsement Overlay Modal */}
       {endorseClaimId && (
-        <div
-          style={{
-            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.9)',
-            display: 'flex', alignItems: isMobile ? 'flex-end' : 'center', justifyContent: 'center',
-            zIndex: 1100, padding: isMobile ? 0 : '1rem',
-          }}
-          onClick={() => {
+        <EndorsementOverlay
+          endorseClaimId={endorseClaimId}
+          endorseClaimData={endorseClaimData}
+          endorseLoading={endorseLoading}
+          user={user}
+          linkedPlayerId={profile?.linked_player_id}
+          onClose={() => {
             setEndorseClaimId(null);
             setEndorseClaimData(null);
-            // Clean URL
-            const params = new URLSearchParams(window.location.search);
-            params.delete('endorse');
-            const newUrl = params.toString()
-              ? `${window.location.pathname}?${params.toString()}`
-              : window.location.pathname;
-            window.history.replaceState({}, '', newUrl);
           }}
-        >
-          <div
-            style={{
-              backgroundColor: '#111111', border: '1px solid #22c55e30',
-              borderRadius: isMobile ? '16px 16px 0 0' : '16px',
-              padding: isMobile ? '1.5rem 1.25rem' : '2rem',
-              maxWidth: '480px', width: '100%',
-              paddingBottom: isMobile ? 'max(1.5rem, env(safe-area-inset-bottom))' : '2rem',
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {endorseLoading ? (
-              <div style={{ textAlign: 'center', padding: '2rem 0' }}>
-                <div style={{ color: '#6b7280', fontSize: '0.85rem' }}>{t('transferHub.loadingEndorsement', 'Loading endorsement details...')}</div>
-              </div>
-            ) : !endorseClaimData ? (
-              <div style={{ textAlign: 'center', padding: '1.5rem 0' }}>
-                <div style={{
-                  width: '50px', height: '50px', borderRadius: '50%',
-                  backgroundColor: '#ef444415', border: '2px solid #ef444430',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  margin: '0 auto 1rem', fontSize: '1.3rem',
-                }}>✗</div>
-                <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: '1.1rem', color: '#fff', margin: '0 0 0.5rem 0' }}>
-                  {t('transferHub.endorsementNotFound', 'Endorsement Not Found')}
-                </h2>
-                <p style={{ color: '#9ca3af', fontSize: '0.85rem', margin: '0 0 1rem 0' }}>
-                  {t('transferHub.endorsementInvalid', 'This endorsement link may be invalid or expired.')}
-                </p>
-                <button
-                  onClick={() => {
-                    setEndorseClaimId(null);
-                    const params = new URLSearchParams(window.location.search);
-                    params.delete('endorse');
-                    window.history.replaceState({}, '', params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname);
-                  }}
-                  style={{
-                    padding: '0.6rem 1.5rem', backgroundColor: '#22d3ee15',
-                    border: '1px solid #22d3ee40', borderRadius: '8px',
-                    color: '#22d3ee', fontWeight: '600', fontSize: '0.85rem', cursor: 'pointer',
-                    minHeight: '44px',
-                  }}
-                >{t('transferHub.continueToHub', 'Continue to Transfer Hub')}</button>
-              </div>
-            ) : endorseClaimData.status !== 'pending' ? (
-              <div style={{ textAlign: 'center', padding: '1.5rem 0' }}>
-                <div style={{
-                  width: '50px', height: '50px', borderRadius: '50%',
-                  backgroundColor: endorseClaimData.status === 'active' ? '#22c55e15' : '#6b728015',
-                  border: `2px solid ${endorseClaimData.status === 'active' ? '#22c55e30' : '#6b728030'}`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  margin: '0 auto 1rem', fontSize: '1.3rem',
-                }}>{endorseClaimData.status === 'active' ? '✓' : '—'}</div>
-                <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: '1.1rem', color: '#fff', margin: '0 0 0.5rem 0' }}>
-                  {endorseClaimData.status === 'active' ? t('transferHub.alreadyActivated', 'Already Activated!') : t('transferHub.claimNoLongerActive', 'Claim No Longer Active')}
-                </h2>
-                <p style={{ color: '#9ca3af', fontSize: '0.85rem', margin: '0 0 1rem 0' }}>
-                  {endorseClaimData.status === 'active'
-                    ? t('transferHub.nowEditor', '{{name}} is now the editor of Kingdom {{num}}.', { name: endorseClaimData.nominee_linked_username || endorseClaimData.nominee_username, num: endorseClaimData.kingdom_number })
-                    : t('transferHub.noLongerAccepting', 'This editor claim is no longer accepting endorsements.')}
-                </p>
-                <button
-                  onClick={() => {
-                    setEndorseClaimId(null);
-                    const params = new URLSearchParams(window.location.search);
-                    params.delete('endorse');
-                    window.history.replaceState({}, '', params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname);
-                  }}
-                  style={{
-                    padding: '0.6rem 1.5rem', backgroundColor: '#22d3ee15',
-                    border: '1px solid #22d3ee40', borderRadius: '8px',
-                    color: '#22d3ee', fontWeight: '600', fontSize: '0.85rem', cursor: 'pointer',
-                    minHeight: '44px',
-                  }}
-                >{t('transferHub.continueToHub', 'Continue to Transfer Hub')}</button>
-              </div>
-            ) : !user ? (
-              /* Not logged in — prompt to sign in */
-              <div style={{ textAlign: 'center', padding: '1rem 0' }}>
-                <div style={{
-                  width: '50px', height: '50px', borderRadius: '50%',
-                  backgroundColor: '#a855f715', border: '2px solid #a855f730',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  margin: '0 auto 1rem', fontSize: '1.3rem',
-                }}>🗳️</div>
-                <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: '1.1rem', color: '#fff', margin: '0 0 0.5rem 0' }}>
-                  Endorse {endorseClaimData.nominee_linked_username || endorseClaimData.nominee_username}
-                </h2>
-                <p style={{ color: '#9ca3af', fontSize: '0.85rem', margin: '0 0 0.5rem 0', lineHeight: 1.5 }}>
-                  <span style={{ color: '#a855f7', fontWeight: 600 }}>{endorseClaimData.nominee_linked_username || endorseClaimData.nominee_username}</span> is claiming
-                  Kingdom <strong style={{ color: '#22d3ee' }}>{endorseClaimData.kingdom_number}</strong> and needs endorsements from kingdom members.
-                </p>
-                <div style={{
-                  padding: '0.5rem 0.75rem', backgroundColor: '#0a0a0a',
-                  borderRadius: '8px', border: '1px solid #2a2a2a',
-                  marginBottom: '1rem', fontSize: '0.8rem', color: '#6b7280',
-                }}>
-                  {endorseClaimData.endorsement_count}/{endorseClaimData.required_endorsements} endorsements
-                </div>
-                <p style={{ color: '#f59e0b', fontSize: '0.8rem', margin: '0 0 1rem 0' }}>
-                  {t('transferHub.signInToEndorse', 'Sign in to endorse this candidate.')}
-                </p>
-                <Link
-                  to="/profile"
-                  onClick={() => {
-                    if (endorseClaimId) localStorage.setItem('atlas_pending_endorsement', endorseClaimId);
-                  }}
-                  style={{
-                    display: 'inline-block', padding: '0.6rem 1.5rem',
-                    backgroundColor: '#a855f7', color: '#fff', borderRadius: '8px',
-                    fontWeight: '600', fontSize: '0.85rem', textDecoration: 'none',
-                    minHeight: '44px', lineHeight: '44px',
-                  }}
-                >{t('transferHub.signInToEndorseBtn', 'Sign In to Endorse')}</Link>
-                <p style={{ color: '#6b7280', fontSize: '0.7rem', margin: '0.75rem 0 0 0', lineHeight: 1.4 }}>
-                  {t('transferHub.afterSignIn', 'After signing in, return to the Transfer Hub to complete your endorsement.')}
-                </p>
-              </div>
-            ) : !profile?.linked_player_id ? (
-              /* Logged in but not linked — prompt to link */
-              <div style={{ textAlign: 'center', padding: '1rem 0' }}>
-                <div style={{
-                  width: '50px', height: '50px', borderRadius: '50%',
-                  backgroundColor: '#f59e0b15', border: '2px solid #f59e0b30',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  margin: '0 auto 1rem', fontSize: '1.3rem',
-                }}>🔗</div>
-                <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: '1.1rem', color: '#fff', margin: '0 0 0.5rem 0' }}>
-                  Link Your Kingshot Account
-                </h2>
-                <p style={{ color: '#9ca3af', fontSize: '0.85rem', margin: '0 0 0.5rem 0', lineHeight: 1.5 }}>
-                  To endorse <span style={{ color: '#a855f7', fontWeight: 600 }}>{endorseClaimData.nominee_linked_username || endorseClaimData.nominee_username}</span> for
-                  Kingdom <strong style={{ color: '#22d3ee' }}>{endorseClaimData.kingdom_number}</strong>, you need to link your in-game account first.
-                </p>
-                <p style={{ color: '#6b7280', fontSize: '0.75rem', margin: '0 0 1rem 0' }}>
-                  {t('transferHub.verifiesKingdom', 'This verifies which kingdom you belong to and your TC level.')}
-                </p>
-                <Link
-                  to="/profile"
-                  onClick={() => {
-                    if (endorseClaimId) localStorage.setItem('atlas_pending_endorsement', endorseClaimId);
-                  }}
-                  style={{
-                    display: 'inline-block', padding: '0.6rem 1.5rem',
-                    backgroundColor: '#f59e0b', color: '#000', borderRadius: '8px',
-                    fontWeight: '600', fontSize: '0.85rem', textDecoration: 'none',
-                    minHeight: '44px', lineHeight: '44px',
-                  }}
-                >{t('transferHub.linkAccountBtn', 'Link Account')}</Link>
-                <p style={{ color: '#6b7280', fontSize: '0.7rem', margin: '0.75rem 0 0 0', lineHeight: 1.4 }}>
-                  {t('transferHub.afterLinking', 'After linking, return to the Transfer Hub to complete your endorsement.')}
-                </p>
-              </div>
-            ) : (
-              /* Logged in and linked — show the EndorseButton */
-              <div style={{ padding: '0.5rem 0' }}>
-                <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
-                  <div style={{
-                    width: '50px', height: '50px', borderRadius: '50%',
-                    backgroundColor: '#22c55e15', border: '2px solid #22c55e30',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    margin: '0 auto 0.75rem', fontSize: '1.3rem',
-                  }}>🗳️</div>
-                  <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: '1.1rem', color: '#fff', margin: '0 0 0.25rem 0' }}>
-                    Endorse for K{endorseClaimData.kingdom_number}
-                  </h2>
-                  <p style={{ color: '#9ca3af', fontSize: '0.8rem', margin: '0 0 0.5rem 0' }}>
-                    <span style={{ color: '#a855f7', fontWeight: 600 }}>{endorseClaimData.nominee_linked_username || endorseClaimData.nominee_username}</span> needs
-                    {' '}{endorseClaimData.required_endorsements - endorseClaimData.endorsement_count} more endorsement{endorseClaimData.required_endorsements - endorseClaimData.endorsement_count !== 1 ? 's' : ''}
-                  </p>
-                </div>
-                <EndorseButton
-                  claimId={endorseClaimData.id}
-                  kingdomNumber={endorseClaimData.kingdom_number}
-                  nomineeName={endorseClaimData.nominee_linked_username || endorseClaimData.nominee_username}
-                  onEndorsed={() => {
-                    // Refresh claim data to update count
-                    setEndorseClaimData(prev => prev ? {
-                      ...prev,
-                      endorsement_count: prev.endorsement_count + 1,
-                    } : null);
-                  }}
-                />
-              </div>
-            )}
-          </div>
-        </div>
+          onEndorsed={() => {
+            setEndorseClaimData(prev => prev ? {
+              ...prev,
+              endorsement_count: prev.endorsement_count + 1,
+            } : null);
+          }}
+        />
       )}
 
       {/* Auth Gate Modal */}
       {showAuthGate && (
-        <div
-          style={{
-            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.85)',
-            display: 'flex', alignItems: isMobile ? 'flex-end' : 'center', justifyContent: 'center',
-            zIndex: 1100, padding: isMobile ? 0 : '1rem',
-          }}
-          onClick={() => setShowAuthGate(null)}
-        >
-          <div
-            style={{
-              backgroundColor: '#111111', border: '1px solid #22d3ee30',
-              borderRadius: isMobile ? '16px 16px 0 0' : '16px',
-              padding: isMobile ? '2rem 1.5rem' : '2.5rem',
-              maxWidth: '420px', width: '100%',
-              textAlign: 'center',
-              paddingBottom: isMobile ? 'max(2rem, env(safe-area-inset-bottom))' : '2.5rem',
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div style={{
-              width: '50px', height: '50px', borderRadius: '50%',
-              backgroundColor: '#22d3ee10', border: '2px solid #22d3ee30',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              margin: '0 auto 1rem', fontSize: '1.3rem',
-            }}>
-              {showAuthGate === 'login' ? '🔒' : '🔗'}
-            </div>
-            <h2 style={{
-              fontFamily: FONT_DISPLAY, fontSize: '1.1rem',
-              color: '#fff', margin: '0 0 0.5rem 0',
-            }}>
-              {showAuthGate === 'login' ? t('transferHub.signInRequired', 'Sign In Required') : t('transferHub.linkYourAccount', 'Link Your Account')}
-            </h2>
-            <p style={{ color: '#9ca3af', fontSize: '0.85rem', margin: '0 0 1.25rem 0', lineHeight: 1.5 }}>
-              {showAuthGate === 'login'
-                ? (endorseClaimId
-                    ? t('transferHub.signInEndorseCandidate', 'Sign in to endorse this editor candidate.')
-                    : t('transferHub.signInApplyTransfers', 'Sign in to apply for transfers, create your profile, and manage recruitment.'))
-                : (endorseClaimId
-                    ? t('transferHub.linkToVerifyEndorse', 'Link your Kingshot account to verify your kingdom and endorse.')
-                    : t('transferHub.linkToAccess', 'Link your Kingshot account to apply for transfers and access all Transfer Hub features.'))}
-            </p>
-            <Link
-              to="/profile"
-              onClick={() => {
-                if (endorseClaimId) localStorage.setItem('atlas_pending_endorsement', endorseClaimId);
-                setShowAuthGate(null);
-              }}
-              style={{
-                display: 'inline-block', padding: '0.6rem 1.5rem',
-                backgroundColor: '#22d3ee', color: '#000', borderRadius: '8px',
-                fontWeight: '600', fontSize: '0.85rem', textDecoration: 'none',
-                minHeight: '44px', lineHeight: '44px',
-              }}
-            >
-              {showAuthGate === 'login' ? t('common.signIn', 'Sign In') : t('transferHub.goToProfile', 'Go to Profile')}
-            </Link>
-          </div>
-        </div>
+        <TransferAuthGate
+          gateType={showAuthGate}
+          isMobile={isMobile}
+          endorseClaimId={endorseClaimId}
+          onClose={() => setShowAuthGate(null)}
+        />
       )}
 
       {/* Floating Compare Bar */}

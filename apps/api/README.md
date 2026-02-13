@@ -1,248 +1,127 @@
 # Kingshot Atlas API
 
-Backend API for Kingshot Atlas kingdom data analysis and comparison.
+Backend API for the Kingshot Atlas kingdom intelligence platform. Hosted on **Render** at `https://kingshot-atlas.onrender.com`.
 
-## Features
+## Architecture
 
-- **Kingdom Management**: List, filter, and view kingdom profiles
-- **Leaderboards**: Multiple sorting options for kingdom rankings
-- **Comparison Tools**: Compare multiple kingdoms side-by-side
-- **Authentication**: Role-based user system (placeholder implementation)
-- **Data Import**: CSV import script for kingdom data
+**Dual-database design:**
+- **SQLite** (`kingshot_atlas.db`) — Kingdom stats, KvK records, submissions (local to API, ephemeral on Render)
+- **Supabase** (PostgreSQL) — User profiles, auth, transfers, reviews, notifications, scores, Discord data, 30+ tables with RLS
 
-## Quick Start
+On each Render deploy, SQLite is recreated via `Base.metadata.create_all()` and populated from CSV via `ensure_data_loaded()`.
 
-### 1. Install Dependencies
+## Quick Start (Local Development)
 
 ```bash
-cd /Users/giovanni/projects/ai/Kingshot\ Atlas/apps/api
+cd apps/api
 pip install -r requirements.txt
-```
-
-### 2. Import Data
-
-```bash
-python import_data.py
-```
-
-This will:
-- Create SQLite database (`kingshot_atlas.db`)
-- Import kingdoms summary data
-- Import KVK records
-- Set up database tables
-
-### 3. Run the API Server
-
-```bash
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+cp .env.example .env  # Configure environment variables
+python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 The API will be available at `http://localhost:8000`
 
-## API Endpoints
+**Interactive docs:** [http://localhost:8000/docs](http://localhost:8000/docs) (Swagger) or [http://localhost:8000/redoc](http://localhost:8000/redoc) (ReDoc)
 
-### Kingdoms
+## API Routers (12 mounted)
 
-- `GET /api/kingdoms` - List all kingdoms with filters and sorting
-  - Query parameters: `search`, `status`, `minKvks`, `minPrepWR`, `minBattleWR`, `sort`, `order`
-- `GET /api/kingdoms/{kingdom_number}` - Get detailed kingdom profile with recent KVKs
+All endpoints are prefixed with `/api/v1/` unless noted.
 
-### Leaderboard
+| Router | Prefix | Description |
+|--------|--------|-------------|
+| `kingdoms.py` | `/api/v1/kingdoms` | List, search, filter, get kingdom profiles |
+| `auth.py` | `/api/v1/auth` | Supabase JWT verification |
+| `leaderboard.py` | `/api/v1/leaderboard` | Multi-category rankings |
+| `compare.py` | `/api/v1/compare` | Side-by-side kingdom comparisons |
+| `submissions.py` | `/api/v1/submissions` | Post-KvK and status submissions with moderation |
+| `agent.py` | `/api/v1/agent` | Agent system endpoints |
+| `discord.py` | `/api/v1/discord` | Discord OAuth, role sync, webhooks |
+| `player_link.py` | `/api/v1/player-link` | Kingshot account linking via Century Games API |
+| `stripe.py` | `/api/v1/stripe` | Checkout, webhooks, portal, subscription management |
+| `admin.py` | `/api/v1/admin` | Admin dashboard, analytics, email, audit log |
+| `bot.py` | `/api/v1/bot` | Discord bot status, commands, telemetry, role sync |
+| `feedback.py` | `/api/feedback` | User feedback submission |
 
-- `GET /api/leaderboard` - Get ranked list of kingdoms
-  - Query parameters: `sort_by`, `limit`, `offset`
-- `GET /api/leaderboard/top-by-status` - Get top kingdoms by status
+## Authentication
 
-### Comparison
+- **User auth:** Supabase JWT tokens verified via `Authorization: Bearer <token>` header
+- **Admin auth:** Dual-auth — JWT (verified against `ADMIN_EMAILS` + `profiles.is_admin`) OR `X-Admin-Key` / `X-API-Key`
+- **Bot auth:** Dual-auth — JWT (admin) OR `X-API-Key` (server-to-server)
+- **Frontend pattern:** All API calls use shared `getAuthHeaders()` utility for fresh JWTs
 
-- `GET /api/compare` - Compare multiple kingdoms
-  - Query parameter: `kingdoms` (comma-separated, e.g., "K123,K456")
-- `GET /api/compare/head-to-head` - Head-to-head comparison between two kingdoms
-  - Query parameters: `kingdom1`, `kingdom2`
+## Security
 
-### Authentication (Placeholder)
+- **Rate limiting:** `slowapi` (global) + in-memory per-IP limits on admin/bot endpoints
+- **CORS:** Restricted to `ks-atlas.com`, `ks-atlas.pages.dev`, localhost (regex)
+- **Headers:** CSP, HSTS, X-Frame-Options DENY, Referrer-Policy, Permissions-Policy
+- **GZip:** Responses > 1KB auto-compressed
+- **Sentry:** Optional error monitoring (gracefully skipped if not installed)
 
-- `POST /api/auth/register` - Register new user
-- `POST /api/auth/token` - Login and get access token
-- `GET /api/auth/me` - Get current user info
-- `POST /api/auth/logout` - Logout
-- `GET /api/auth/admin-only` - Admin-only endpoint
-- `GET /api/auth/moderator-only` - Moderator-only endpoint
-
-## API Documentation
-
-Once running, visit:
-- Swagger UI: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
-
-## Testing
-
-### Basic API Tests
-
-```bash
-# Health check
-curl http://localhost:8000/health
-
-# List kingdoms
-curl "http://localhost:8000/api/kingdoms?sort=overall_score&order=desc&limit=10"
-
-# Get specific kingdom
-curl http://localhost:8000/api/kingdoms/1
-
-# Get leaderboard
-curl "http://localhost:8000/api/leaderboard?sort_by=overall_score&limit=5"
-
-# Compare kingdoms
-curl "http://localhost:8000/api/compare?kingdoms=1,2,3"
-```
-
-### Authentication Tests
-
-```bash
-# Register user
-curl -X POST "http://localhost:8000/api/auth/register" \
-  -H "Content-Type: application/json" \
-  -d '{"username": "testuser", "email": "test@example.com", "password": "testpass"}'
-
-# Login
-curl -X POST "http://localhost:8000/api/auth/token" \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "username=testuser&password=testpass"
-```
-
-## Database Schema
-
-### Kingdoms Table
-- `kingdom_number` (PK) - Kingdom identifier
-- `total_kvks` - Total KVK battles participated
-- `prep_wins/losses` - Preparation phase win/loss record
-- `prep_win_rate` - Preparation win percentage
-- `prep_streak` - Current preparation win streak
-- `battle_wins/losses` - Battle phase win/loss record
-- `battle_win_rate` - Battle win percentage
-- `battle_streak` - Current battle win streak
-- `most_recent_status` - Current kingdom status
-- `overall_score` - Combined performance score
-
-### KVK Records Table
-- `id` (PK) - Record identifier
-- `kingdom_number` - Kingdom reference
-- `kvk_number` - KVK event number
-- `opponent_kingdom` - Opponent kingdom number
-- `prep_result` - Preparation phase result (W/L)
-- `battle_result` - Battle phase result (W/L)
-- `overall_result` - Overall result (W/L)
-- `date_or_order_index` - Event date or order
-
-### Users Table
-- `id` (PK) - User identifier
-- `username` - Unique username
-- `email` - Unique email
-- `hashed_password` - Hashed password
-- `role` - User role (user/moderator/admin)
-- `is_active` - Account status
-- `created_at` - Registration timestamp
-
-## Configuration
-
-### Environment Variables
-
-- `DATABASE_URL` - Database connection string (default: SQLite)
-  - SQLite: `sqlite:///./kingshot_atlas.db`
-  - PostgreSQL: `postgresql://user:password@localhost/dbname`
-
-### Database Setup (PostgreSQL)
-
-If using PostgreSQL instead of SQLite:
-
-1. Install PostgreSQL driver:
-```bash
-pip install psycopg2-binary
-```
-
-2. Set DATABASE_URL:
-```bash
-export DATABASE_URL="postgresql://username:password@localhost/kingshot_atlas"
-```
-
-3. Create database and run import script.
-
-## Development
-
-### Project Structure
+## Project Structure
 
 ```
 apps/api/
-├── main.py              # FastAPI application entry point
-├── database.py          # Database configuration
-├── models.py            # SQLAlchemy models
-├── schemas.py           # Pydantic schemas
-├── import_data.py       # CSV import script
+├── main.py                 # FastAPI app, CORS, middleware, security headers
+├── database.py             # SQLAlchemy engine (SQLite default, PostgreSQL support)
+├── models.py               # SQLAlchemy models (Kingdom, KVKRecord, KVKSubmission, etc.)
+├── schemas.py              # Pydantic request/response schemas
+├── import_data.py          # CSV → SQLite data import
+├── rate_limiter.py         # Rate limiting utilities
+├── render.yaml             # Render service configuration
+├── Procfile                # Render process command
+├── requirements.txt        # Python dependencies
 ├── api/
 │   └── routers/
-│       ├── kingdoms.py  # Kingdom endpoints
-│       ├── leaderboard.py # Leaderboard endpoints
-│       ├── compare.py   # Comparison endpoints
-│       └── auth.py      # Authentication endpoints
-├── requirements.txt     # Python dependencies
-└── README.md           # This file
+│       ├── kingdoms.py     # Kingdom CRUD, search, filters
+│       ├── auth.py         # JWT verification
+│       ├── leaderboard.py  # Rankings
+│       ├── compare.py      # Kingdom comparison
+│       ├── submissions.py  # KvK/status submissions + moderation
+│       ├── agent.py        # Agent system
+│       ├── discord.py      # Discord integration
+│       ├── player_link.py  # Kingshot account linking
+│       ├── stripe.py       # Payments, webhooks
+│       ├── admin.py        # Admin dashboard APIs
+│       ├── bot.py          # Discord bot APIs
+│       └── feedback.py     # User feedback
+├── scripts/                # Utility scripts
+├── tests/                  # pytest test suite
+└── data/                   # CSV data files for import
 ```
 
-### Adding New Endpoints
+## Environment Variables
 
-1. Create new router in `api/routers/`
-2. Define schemas in `schemas.py`
-3. Add models in `models.py` if needed
-4. Include router in `main.py`
+See `.env.example` for the full list. Key variables:
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `DATABASE_URL` | No | SQLite default; set for PostgreSQL |
+| `SUPABASE_URL` | Yes | Supabase project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | Yes | Supabase service role key |
+| `SUPABASE_JWT_SECRET` | Yes | For local JWT verification |
+| `ADMIN_EMAILS` | Yes | Comma-separated admin email list |
+| `STRIPE_SECRET_KEY` | Yes | Stripe API key |
+| `STRIPE_WEBHOOK_SECRET` | Yes | Stripe webhook signing secret |
+| `DISCORD_API_PROXY` | Yes | Cloudflare Worker proxy URL |
+| `DISCORD_PROXY_KEY` | Yes | Proxy authentication key |
+| `SENTRY_DSN` | No | Sentry error monitoring |
+| `ENVIRONMENT` | No | `production` or `development` |
+
+## Testing
+
+```bash
+cd apps/api
+pytest                     # Run all tests
+pytest --cov=api           # With coverage
+pytest tests/test_api.py   # Specific test file
+```
 
 ## Deployment
 
-### Docker (Optional)
+Hosted on **Render** (`https://kingshot-atlas.onrender.com`). Auto-deploys from `main` branch.
 
-```dockerfile
-FROM python:3.11-slim
+- **Runtime:** Python 3.12 (see `runtime.txt`)
+- **Start command:** See `Procfile`
+- **Config:** See `render.yaml`
 
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-
-COPY . .
-EXPOSE 8000
-
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
-```
-
-### Production Considerations
-
-- Use PostgreSQL instead of SQLite for production
-- Implement proper JWT authentication
-- Add rate limiting
-- Set up proper CORS origins
-- Add logging and monitoring
-- Use environment variables for secrets
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Import Error**: Make sure CSV files exist in `../../data/processed/`
-2. **Database Lock**: Stop the server before re-running import script
-3. **Module Not Found**: Run from the `apps/api` directory
-4. **Port Already in Use**: Change port with `--port 8001`
-
-### Data Validation
-
-The import script validates:
-- Kingdom numbers are integers
-- Win rates are between 0 and 1
-- Required fields are present
-- Data types match expected formats
-
-## Support
-
-For issues or questions:
-1. Check the API documentation at `/docs`
-2. Verify data files exist and are properly formatted
-3. Ensure all dependencies are installed
-4. Check database connection and permissions
-# Data updated: Thu Jan 29 23:59:11 AST 2026
+Render uses ephemeral storage — the SQLite database is recreated on each deploy via `create_all()` + CSV import. No migration tool is needed for SQLite schema changes; updating `models.py` is sufficient. Persistent data lives in Supabase (schema managed via Supabase migrations).

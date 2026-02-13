@@ -37,6 +37,17 @@ Remove your row from the table when work is complete.
 
 ---
 
+## Permanent Ownership
+
+These files have permanent owners and should not be claimed by other agents without coordination.
+
+| File | Owner | Notes |
+|------|-------|-------|
+| `apps/web/src/data/changelog.json` | Release Manager | Single source of truth for changelog. See ADR-020. |
+| `docs/CHANGELOG.md` | Release Manager | Auto-generated — do not edit manually. Run `npm run changelog:sync`. |
+
+---
+
 ## Claim History (Last 7 Days)
 
 | File | Agent | Claimed | Released | Task |

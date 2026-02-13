@@ -118,12 +118,38 @@ export type AdminTab =
   | 'engagement' 
   | 'webhooks' 
   | 'data-sources' 
+  | 'discord-bot'
+  | 'discord-roles'
+  | 'referrals'
   | 'submissions' 
   | 'new-kingdoms' 
   | 'claims' 
   | 'corrections' 
   | 'kvk-errors' 
   | 'import' 
-  | 'users' 
   | 'plausible' 
-  | 'transfer-status';
+  | 'transfer-status'
+  | 'transfer-apps'
+  | 'transfer-hub'
+  | 'feedback'
+  | 'email'
+  | 'bot-telemetry'
+  | 'gift-codes'
+  | 'battle-planner';
+
+export type AdminCategory = 'analytics' | 'review' | 'transfer' | 'system';
+
+export interface PendingCounts {
+  submissions: number;
+  claims: number;
+  corrections: number;
+  transfers: number;
+  kvkErrors: number;
+  feedback: number;
+}
+
+export interface ApiHealth {
+  api: 'ok' | 'error' | 'loading';
+  supabase: 'ok' | 'error' | 'loading';
+  stripe: 'ok' | 'error' | 'loading';
+}

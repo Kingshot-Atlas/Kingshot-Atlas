@@ -4,7 +4,7 @@ import { useIsMobile } from '../hooks/useMediaQuery';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/Toast';
-import { neonGlow, FONT_DISPLAY } from '../utils/styles';
+import { neonGlow, FONT_DISPLAY, colors } from '../utils/styles';
 import { useTranslation } from 'react-i18next';
 import { getAuthHeaders } from '../services/authHeaders';
 import { usePremium } from '../contexts/PremiumContext';
@@ -648,12 +648,12 @@ const GiftCodeRedeemer: React.FC = () => {
   // Not logged in
   if (!user) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+      <div style={{ minHeight: '100vh', backgroundColor: colors.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
         <div style={{ textAlign: 'center', maxWidth: '400px' }}>
           <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎁</div>
-          <h2 style={{ color: '#fff', fontSize: '1.5rem', fontFamily: FONT_DISPLAY, marginBottom: '0.75rem' }}>{t('giftCodes.signInTitle', 'Gift Code Redeemer')}</h2>
-          <p style={{ color: '#9ca3af', fontSize: '0.9rem', marginBottom: '1.5rem' }}>{t('giftCodes.signInDesc', 'Sign in and link your Kingshot account to redeem gift codes with one click.')}</p>
-          <Link to="/profile" style={{ display: 'inline-block', padding: '0.6rem 1.5rem', backgroundColor: '#f59e0b20', border: '1px solid #f59e0b50', borderRadius: '8px', color: '#f59e0b', textDecoration: 'none', fontWeight: '600', fontSize: '0.9rem' }}>
+          <h2 style={{ color: colors.text, fontSize: '1.5rem', fontFamily: FONT_DISPLAY, marginBottom: '0.75rem' }}>{t('giftCodes.signInTitle', 'Gift Code Redeemer')}</h2>
+          <p style={{ color: colors.textSecondary, fontSize: '0.9rem', marginBottom: '1.5rem' }}>{t('giftCodes.signInDesc', 'Sign in and link your Kingshot account to redeem gift codes with one click.')}</p>
+          <Link to="/profile" style={{ display: 'inline-block', padding: '0.6rem 1.5rem', backgroundColor: `${colors.amber}20`, border: `1px solid ${colors.amber}50`, borderRadius: '8px', color: colors.amber, textDecoration: 'none', fontWeight: '600', fontSize: '0.9rem' }}>
             {t('giftCodes.signIn', 'Sign In')}
           </Link>
         </div>
@@ -664,16 +664,16 @@ const GiftCodeRedeemer: React.FC = () => {
   // No linked player ID — but allow custom entry
   if (!mainPlayerId && !customPlayerId.trim()) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+      <div style={{ minHeight: '100vh', backgroundColor: colors.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
         <div style={{ textAlign: 'center', maxWidth: '420px' }}>
           <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔗</div>
-          <h2 style={{ color: '#fff', fontSize: '1.5rem', fontFamily: FONT_DISPLAY, marginBottom: '0.75rem' }}>{t('giftCodes.linkTitle', 'Link Your Account First')}</h2>
-          <p style={{ color: '#9ca3af', fontSize: '0.9rem', marginBottom: '1rem' }}>{t('giftCodes.linkDesc', 'To redeem codes, we need your Player ID. Link your Kingshot account in your profile settings.')}</p>
-          <Link to="/profile" style={{ display: 'inline-block', padding: '0.6rem 1.5rem', backgroundColor: '#f59e0b20', border: '1px solid #f59e0b50', borderRadius: '8px', color: '#f59e0b', textDecoration: 'none', fontWeight: '600', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+          <h2 style={{ color: colors.text, fontSize: '1.5rem', fontFamily: FONT_DISPLAY, marginBottom: '0.75rem' }}>{t('giftCodes.linkTitle', 'Link Your Account First')}</h2>
+          <p style={{ color: colors.textSecondary, fontSize: '0.9rem', marginBottom: '1rem' }}>{t('giftCodes.linkDesc', 'To redeem codes, we need your Player ID. Link your Kingshot account in your profile settings.')}</p>
+          <Link to="/profile" style={{ display: 'inline-block', padding: '0.6rem 1.5rem', backgroundColor: `${colors.amber}20`, border: `1px solid ${colors.amber}50`, borderRadius: '8px', color: colors.amber, textDecoration: 'none', fontWeight: '600', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
             {t('giftCodes.goToProfile', 'Go to Profile')}
           </Link>
           <div style={{ marginTop: '1.5rem', borderTop: '1px solid #2a2a2a', paddingTop: '1.25rem' }}>
-            <p style={{ color: '#6b7280', fontSize: '0.75rem', marginBottom: '0.75rem' }}>Or enter a Player ID directly:</p>
+            <p style={{ color: colors.textMuted, fontSize: '0.75rem', marginBottom: '0.75rem' }}>Or enter a Player ID directly:</p>
             <div style={{ display: 'flex', gap: '0.5rem', maxWidth: '320px', margin: '0 auto' }}>
               <input
                 type="text"
@@ -682,7 +682,7 @@ const GiftCodeRedeemer: React.FC = () => {
                 placeholder="Player ID (digits)"
                 style={{
                   flex: 1, padding: '0.5rem 0.75rem', borderRadius: '8px',
-                  border: '1px solid #333', backgroundColor: '#0a0a0a',
+                  border: '1px solid #333', backgroundColor: colors.bg,
                   color: '#e5e7eb', fontSize: '0.9rem', fontFamily: 'monospace', outline: 'none',
                 }}
               />
@@ -690,8 +690,8 @@ const GiftCodeRedeemer: React.FC = () => {
                 onClick={() => { if (/^\d{6,20}$/.test(customPlayerId.trim())) { /* will re-render with playerId set */ } else showToast('Enter a valid Player ID (6-20 digits)', 'error'); }}
                 disabled={!customPlayerId.trim()}
                 style={{
-                  padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid #f59e0b40',
-                  backgroundColor: '#f59e0b15', color: '#f59e0b', fontWeight: '600', fontSize: '0.8rem',
+                  padding: '0.5rem 1rem', borderRadius: '8px', border: `1px solid ${colors.amber}40`,
+                  backgroundColor: `${colors.amber}15`, color: colors.amber, fontWeight: '600', fontSize: '0.8rem',
                   cursor: customPlayerId.trim() ? 'pointer' : 'default', opacity: customPlayerId.trim() ? 1 : 0.5,
                 }}
               >
@@ -705,7 +705,7 @@ const GiftCodeRedeemer: React.FC = () => {
   }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: colors.bg }}>
       {/* Hero */}
       <div style={{
         padding: isMobile ? '1.5rem 1rem 1rem' : '2rem 2rem 1.25rem',
@@ -721,10 +721,10 @@ const GiftCodeRedeemer: React.FC = () => {
             fontFamily: FONT_DISPLAY,
             letterSpacing: '0.05em',
           }}>
-            <span style={{ color: '#fff' }}>GIFT CODE</span>
-            <span style={{ ...neonGlow('#f59e0b'), marginLeft: '0.5rem' }}>REDEEMER</span>
+            <span style={{ color: colors.text }}>GIFT CODE</span>
+            <span style={{ ...neonGlow(colors.amber), marginLeft: '0.5rem' }}>REDEEMER</span>
           </h1>
-          <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.8rem' : '0.9rem', marginBottom: '0.75rem' }}>
+          <p style={{ color: colors.textSecondary, fontSize: isMobile ? '0.8rem' : '0.9rem', marginBottom: '0.75rem' }}>
             {t('giftCodes.heroSubtitle', 'One click. Instant rewards. No copy-pasting.')}
           </p>
 
@@ -732,17 +732,17 @@ const GiftCodeRedeemer: React.FC = () => {
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
             padding: '0.4rem 0.75rem', borderRadius: '20px',
-            backgroundColor: isUsingMainAccount ? '#f59e0b12' : '#a855f712',
-            border: `1px solid ${isUsingMainAccount ? '#f59e0b30' : '#a855f730'}`,
-            fontSize: '0.75rem', color: isUsingMainAccount ? '#f59e0b' : '#a855f7',
+            backgroundColor: isUsingMainAccount ? `${colors.amber}12` : `${colors.purple}12`,
+            border: `1px solid ${isUsingMainAccount ? `${colors.amber}30` : `${colors.purple}30`}`,
+            fontSize: '0.75rem', color: isUsingMainAccount ? colors.amber : colors.purple,
           }}>
             <span>{isUsingMainAccount ? '🎮' : '👤'}</span>
             <span style={{ fontWeight: '600' }}>{playerName}</span>
-            <span style={{ color: isUsingMainAccount ? '#f59e0b80' : '#a855f780' }}>•</span>
-            <span style={{ color: isUsingMainAccount ? '#f59e0b80' : '#a855f780' }}>ID: {playerId}</span>
+            <span style={{ color: isUsingMainAccount ? `${colors.amber}80` : `${colors.purple}80` }}>•</span>
+            <span style={{ color: isUsingMainAccount ? `${colors.amber}80` : `${colors.purple}80` }}>ID: {playerId}</span>
             {!isUsingMainAccount && (
               <button onClick={() => { setActivePlayerId(null); setCustomPlayerId(''); setResults(new Map()); }} style={{
-                background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer',
+                background: 'none', border: 'none', color: colors.textMuted, cursor: 'pointer',
                 fontSize: '0.7rem', padding: '0 0.2rem',
               }}>✕</button>
             )}
@@ -767,26 +767,26 @@ const GiftCodeRedeemer: React.FC = () => {
           backgroundColor: 'rgba(0,0,0,0.7)', padding: '1rem',
         }} onClick={() => setShowSupporterPrompt(false)}>
           <div onClick={e => e.stopPropagation()} style={{
-            backgroundColor: '#111111', borderRadius: '16px', border: '1px solid #f59e0b30',
+            backgroundColor: colors.surface, borderRadius: '16px', border: `1px solid ${colors.amber}30`,
             padding: '1.5rem', maxWidth: '400px', width: '100%', textAlign: 'center',
           }}>
             <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>⭐</div>
-            <h3 style={{ color: '#fff', fontSize: '1.1rem', fontFamily: FONT_DISPLAY, marginBottom: '0.5rem' }}>
+            <h3 style={{ color: colors.text, fontSize: '1.1rem', fontFamily: FONT_DISPLAY, marginBottom: '0.5rem' }}>
               Atlas Supporter Perk
             </h3>
-            <p style={{ color: '#9ca3af', fontSize: '0.85rem', marginBottom: '1rem', lineHeight: 1.5 }}>
+            <p style={{ color: colors.textSecondary, fontSize: '0.85rem', marginBottom: '1rem', lineHeight: 1.5 }}>
               Bulk redeeming codes for all your accounts at once is an Atlas Supporter perk.
               Manage alt accounts and redeem everything with one tap.
             </p>
             <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
               <button onClick={() => setShowSupporterPrompt(false)} style={{
-                padding: '0.5rem 1rem', backgroundColor: 'transparent', border: '1px solid #2a2a2a',
-                borderRadius: '8px', color: '#6b7280', fontSize: '0.8rem', cursor: 'pointer',
+                padding: '0.5rem 1rem', backgroundColor: 'transparent', border: `1px solid ${colors.border}`,
+                borderRadius: '8px', color: colors.textMuted, fontSize: '0.8rem', cursor: 'pointer',
               }}>
                 Maybe Later
               </button>
               <Link to="/support" style={{
-                padding: '0.5rem 1.25rem', backgroundColor: '#f59e0b', border: 'none',
+                padding: '0.5rem 1.25rem', backgroundColor: colors.amber, border: 'none',
                 borderRadius: '8px', color: '#000', fontWeight: '700', fontSize: '0.8rem',
                 textDecoration: 'none', display: 'inline-block',
               }}>
@@ -802,7 +802,7 @@ const GiftCodeRedeemer: React.FC = () => {
         {/* Account Switcher + Alt Accounts */}
         <div style={{
           marginBottom: '0.75rem', padding: '0.75rem',
-          backgroundColor: '#111111', borderRadius: '12px', border: '1px solid #2a2a2a',
+          backgroundColor: colors.surface, borderRadius: '12px', border: `1px solid ${colors.border}`,
         }}>
           {/* Custom Player ID Input */}
           <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', marginBottom: altAccounts.length > 0 || showAltPanel ? '0.6rem' : 0 }}>
@@ -813,17 +813,17 @@ const GiftCodeRedeemer: React.FC = () => {
               placeholder="Paste any Player ID to redeem for..."
               style={{
                 flex: 1, padding: '0.45rem 0.65rem', borderRadius: '8px',
-                border: '1px solid #2a2a2a', backgroundColor: '#0a0a0a',
+                border: `1px solid ${colors.border}`, backgroundColor: colors.bg,
                 color: '#e5e7eb', fontSize: '0.8rem', fontFamily: 'monospace', outline: 'none',
                 transition: 'border-color 0.2s',
               }}
-              onFocus={e => { e.target.style.borderColor = '#f59e0b40'; }}
+              onFocus={e => { e.target.style.borderColor = `${colors.amber}40`; }}
               onBlur={e => { e.target.style.borderColor = '#2a2a2a'; }}
             />
             {mainPlayerId && !isUsingMainAccount && (
               <button onClick={() => { setCustomPlayerId(''); setActivePlayerId(null); setResults(new Map()); }} style={{
-                padding: '0.4rem 0.65rem', borderRadius: '8px', border: '1px solid #f59e0b30',
-                backgroundColor: '#f59e0b12', color: '#f59e0b', fontSize: '0.7rem', fontWeight: '600',
+                padding: '0.4rem 0.65rem', borderRadius: '8px', border: `1px solid ${colors.amber}30`,
+                backgroundColor: `${colors.amber}12`, color: colors.amber, fontSize: '0.7rem', fontWeight: '600',
                 cursor: 'pointer', whiteSpace: 'nowrap',
               }}>
                 ← Main
@@ -879,7 +879,7 @@ const GiftCodeRedeemer: React.FC = () => {
           {/* Alt Accounts Management Panel */}
           {showAltPanel && (
             <div style={{
-              padding: '0.6rem', backgroundColor: '#0a0a0a', borderRadius: '10px',
+              padding: '0.6rem', backgroundColor: colors.bg, borderRadius: '10px',
               border: '1px solid #a855f720',
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
@@ -887,7 +887,7 @@ const GiftCodeRedeemer: React.FC = () => {
                   ALT ACCOUNTS ({altAccounts.length}/{altLimit})
                 </span>
                 <button onClick={() => setShowAltPanel(false)} style={{
-                  background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '0.75rem',
+                  background: 'none', border: 'none', color: colors.textMuted, cursor: 'pointer', fontSize: '0.75rem',
                 }}>✕</button>
               </div>
 
@@ -900,7 +900,7 @@ const GiftCodeRedeemer: React.FC = () => {
                   placeholder="Player ID"
                   style={{
                     flex: 1, padding: '0.35rem 0.5rem', borderRadius: '6px',
-                    border: '1px solid #2a2a2a', backgroundColor: '#111111',
+                    border: `1px solid ${colors.border}`, backgroundColor: colors.surface,
                     color: '#e5e7eb', fontSize: '0.75rem', fontFamily: 'monospace', outline: 'none',
                     minWidth: 0,
                   }}
@@ -912,7 +912,7 @@ const GiftCodeRedeemer: React.FC = () => {
                   placeholder="Label (optional)"
                   style={{
                     width: isMobile ? '90px' : '120px', padding: '0.35rem 0.5rem', borderRadius: '6px',
-                    border: '1px solid #2a2a2a', backgroundColor: '#111111',
+                    border: `1px solid ${colors.border}`, backgroundColor: colors.surface,
                     color: '#e5e7eb', fontSize: '0.75rem', outline: 'none',
                   }}
                 />
@@ -983,13 +983,13 @@ const GiftCodeRedeemer: React.FC = () => {
               {!isSupporter && altAccounts.length >= freeAltLimit && (
                 <div style={{
                   marginTop: '0.4rem', padding: '0.4rem 0.6rem', borderRadius: '8px',
-                  backgroundColor: '#f59e0b08', border: '1px solid #f59e0b15',
+                  backgroundColor: `${colors.amber}08`, border: `1px solid ${colors.amber}15`,
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 }}>
-                  <span style={{ color: '#f59e0b90', fontSize: '0.6rem' }}>
+                  <span style={{ color: `${colors.amber}90`, fontSize: '0.6rem' }}>
                     ⭐ Supporters get up to {MAX_ALT_ACCOUNTS} alt accounts + bulk redeem
                   </span>
-                  <Link to="/support" onClick={() => analyticsService.trackFeatureUse('Alt Panel Upgrade CTA')} style={{ color: '#f59e0b', fontSize: '0.6rem', fontWeight: '700', textDecoration: 'none' }}>
+                  <Link to="/support" onClick={() => analyticsService.trackFeatureUse('Alt Panel Upgrade CTA')} style={{ color: colors.amber, fontSize: '0.6rem', fontWeight: '700', textDecoration: 'none' }}>
                     Upgrade
                   </Link>
                 </div>
@@ -1034,7 +1034,7 @@ const GiftCodeRedeemer: React.FC = () => {
           return (
           <div style={{
             marginBottom: '0.75rem', padding: '0.6rem 0.75rem',
-            backgroundColor: '#111111', borderRadius: '10px', border: '1px solid #a855f720',
+            backgroundColor: colors.surface, borderRadius: '10px', border: '1px solid #a855f720',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.15rem' }}>
               <span style={{ color: '#a855f7', fontSize: '0.7rem', fontWeight: '700', letterSpacing: '0.05em' }}>
@@ -1046,7 +1046,7 @@ const GiftCodeRedeemer: React.FC = () => {
                     onClick={retryAllFailed}
                     disabled={globalCooldown || isRetryingAny}
                     style={{
-                      background: 'none', border: '1px solid #f59e0b40', color: isRetryingAny ? '#f59e0b60' : '#f59e0b',
+                      background: 'none', border: `1px solid ${colors.amber}40`, color: isRetryingAny ? `${colors.amber}60` : colors.amber,
                       cursor: (globalCooldown || isRetryingAny) ? 'default' : 'pointer', fontSize: '0.55rem',
                       padding: '0.1rem 0.4rem', borderRadius: '4px', fontWeight: '600',
                       opacity: (globalCooldown || isRetryingAny) ? 0.5 : 1,
@@ -1065,12 +1065,12 @@ const GiftCodeRedeemer: React.FC = () => {
                   {allExpanded ? 'Collapse All' : 'Expand All'}
                 </button>
                 <button onClick={dismissBulkResults} style={{
-                  background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '0.7rem',
+                  background: 'none', border: 'none', color: colors.textMuted, cursor: 'pointer', fontSize: '0.7rem',
                 }}>✕</button>
               </div>
             </div>
             {/* Summary line */}
-            <div style={{ fontSize: '0.6rem', color: '#6b7280', marginBottom: '0.4rem' }}>
+            <div style={{ fontSize: '0.6rem', color: colors.textMuted, marginBottom: '0.4rem' }}>
               {totalSuccess > 0 && <span style={{ color: '#22c55e' }}>{totalSuccess} redeemed</span>}
               {totalSuccess > 0 && totalFailed > 0 && <span> · </span>}
               {totalFailed > 0 && <span style={{ color: '#ef4444' }}>{totalFailed} failed</span>}
@@ -1106,7 +1106,7 @@ const GiftCodeRedeemer: React.FC = () => {
                       <span style={{ fontSize: '0.7rem', color: r.success > 0 && r.failed === 0 ? '#22c55e' : r.failed > 0 && r.success === 0 ? '#ef4444' : '#d1d5db' }}>
                         {isRetrying ? '⟳' : r.success > 0 && r.failed === 0 ? '✓' : r.failed > 0 && r.success === 0 ? '✗' : '◐'}
                       </span>
-                      <span style={{ color: isRetrying ? '#f59e0b' : '#d1d5db', fontSize: '0.7rem', fontWeight: '600', flex: 1, textAlign: 'left' }}>
+                      <span style={{ color: isRetrying ? colors.amber : '#d1d5db', fontSize: '0.7rem', fontWeight: '600', flex: 1, textAlign: 'left' }}>
                         {r.label}{isRetrying ? ' (retrying...)' : ''}
                       </span>
                       {r.success > 0 && (
@@ -1120,7 +1120,7 @@ const GiftCodeRedeemer: React.FC = () => {
                         </span>
                       )}
                       <span style={{
-                        fontSize: '0.55rem', color: '#6b7280',
+                        fontSize: '0.55rem', color: colors.textMuted,
                         transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
                         transition: 'transform 0.2s ease',
                         display: 'inline-block', width: '12px', flexShrink: 0,
@@ -1133,7 +1133,7 @@ const GiftCodeRedeemer: React.FC = () => {
                         borderBottom: `1px solid ${borderC}`,
                         borderRadius: '0 0 6px 6px',
                         padding: '0.25rem 0.4rem 0.35rem',
-                        backgroundColor: '#0a0a0a',
+                        backgroundColor: colors.bg,
                       }}>
                         {r.codeResults.map(cr => {
                           const crOutcome = getBulkCodeOutcome(cr);
@@ -1158,7 +1158,7 @@ const GiftCodeRedeemer: React.FC = () => {
                             }}>
                               <span style={{ color: statusColor, fontSize: '0.6rem', width: '14px', textAlign: 'center', flexShrink: 0 }}>{statusIcon}</span>
                               <span style={{
-                                color: '#9ca3af', fontSize: '0.6rem', fontFamily: 'monospace', fontWeight: '600',
+                                color: colors.textSecondary, fontSize: '0.6rem', fontFamily: 'monospace', fontWeight: '600',
                                 minWidth: '80px',
                               }}>{cr.code}</span>
                               <span style={{
@@ -1175,8 +1175,8 @@ const GiftCodeRedeemer: React.FC = () => {
                             disabled={globalCooldown || isRetryingAny}
                             style={{
                               width: '100%', marginTop: '0.25rem', padding: '0.25rem 0',
-                              background: 'none', border: '1px solid #f59e0b30',
-                              borderRadius: '4px', color: '#f59e0b', fontSize: '0.55rem',
+                              background: 'none', border: `1px solid ${colors.amber}30`,
+                              borderRadius: '4px', color: colors.amber, fontSize: '0.55rem',
                               fontWeight: '600', cursor: (globalCooldown || isRetryingAny) ? 'default' : 'pointer',
                               opacity: (globalCooldown || isRetryingAny) ? 0.4 : 1,
                               transition: 'opacity 0.15s',
@@ -1186,7 +1186,7 @@ const GiftCodeRedeemer: React.FC = () => {
                           </button>
                         )}
                         {isRetrying && (
-                          <div style={{ textAlign: 'center', padding: '0.25rem 0', color: '#f59e0b80', fontSize: '0.55rem' }}>
+                          <div style={{ textAlign: 'center', padding: '0.25rem 0', color: `${colors.amber}80`, fontSize: '0.55rem' }}>
                             Retrying...
                           </div>
                         )}
@@ -1209,7 +1209,7 @@ const GiftCodeRedeemer: React.FC = () => {
           }}>
             {[1, 2, 3].map(i => (
               <div key={i} style={{
-                height: '120px', borderRadius: '14px', backgroundColor: '#111111',
+                height: '120px', borderRadius: '14px', backgroundColor: colors.surface,
                 border: '1px solid #1a1a1a', animation: 'pulse 1.5s infinite',
               }} />
             ))}
@@ -1217,10 +1217,10 @@ const GiftCodeRedeemer: React.FC = () => {
         ) : codes.length === 0 ? (
           <div style={{
             textAlign: 'center', padding: '2rem',
-            backgroundColor: '#111111', borderRadius: '12px', border: '1px solid #2a2a2a',
+            backgroundColor: colors.surface, borderRadius: '12px', border: `1px solid ${colors.border}`,
           }}>
             <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>📭</div>
-            <p style={{ color: '#6b7280', fontSize: '0.85rem', marginBottom: '1rem' }}>
+            <p style={{ color: colors.textMuted, fontSize: '0.85rem', marginBottom: '1rem' }}>
               {codesSource === 'unavailable'
                 ? t('giftCodes.noCodesUnavailable', 'Could not fetch gift codes right now. Try again later or enter a code manually below.')
                 : t('giftCodes.noCodesEmpty', 'No active gift codes found right now. Check back later!')}
@@ -1231,8 +1231,8 @@ const GiftCodeRedeemer: React.FC = () => {
               className="gift-action-btn"
               style={{
                 padding: '0.4rem 1rem', borderRadius: '8px',
-                border: '1px solid #f59e0b40', backgroundColor: '#f59e0b12',
-                color: '#f59e0b', fontSize: '0.8rem', fontWeight: '600',
+                border: `1px solid ${colors.amber}40`, backgroundColor: `${colors.amber}12`,
+                color: colors.amber, fontSize: '0.8rem', fontWeight: '600',
                 cursor: loadingCodes ? 'default' : 'pointer', opacity: loadingCodes ? 0.5 : 1,
                 transition: 'all 0.2s ease',
               }}
@@ -1280,8 +1280,8 @@ const GiftCodeRedeemer: React.FC = () => {
                   : outcome === 'already_redeemed' ? '#eab308'
                   : outcome === 'expired' ? '#ef4444'
                   : outcome === 'not_login' ? '#f97316'
-                  : isLoading ? '#f59e0b60'
-                  : '#f59e0b';
+                  : isLoading ? `${colors.amber}60`
+                  : colors.amber;
                 const btnTextColor = (outcome === 'success' || outcome === 'already_redeemed' || outcome === 'expired' || !isLoading) ? '#000' : '#000';
 
                 const countdown = getExpirationCountdown(gc.expire_date);
@@ -1332,7 +1332,7 @@ const GiftCodeRedeemer: React.FC = () => {
                     {countdown && (
                       <div style={{
                         fontSize: '0.55rem', fontWeight: 600, marginBottom: '0.3rem',
-                        color: countdown === 'Expired' ? '#ef4444' : !countdown.includes('d') ? '#f59e0b' : '#6b7280',
+                        color: countdown === 'Expired' ? colors.error : !countdown.includes('d') ? colors.amber : colors.textMuted,
                       }}>
                         {countdown === 'Expired' ? '⛔ Expired' : `⏳ ${countdown}`}
                       </div>
@@ -1393,9 +1393,9 @@ const GiftCodeRedeemer: React.FC = () => {
                   width: '100%',
                   padding: '0.65rem 1rem',
                   borderRadius: '10px',
-                  border: allRedeemed ? '1px solid #22c55e40' : '1px solid #f59e0b50',
-                  backgroundColor: allRedeemed ? '#22c55e12' : '#f59e0b15',
-                  color: allRedeemed ? '#22c55e' : '#f59e0b',
+                  border: allRedeemed ? `1px solid ${colors.success}40` : `1px solid ${colors.amber}50`,
+                  backgroundColor: allRedeemed ? `${colors.success}12` : `${colors.amber}15`,
+                  color: allRedeemed ? colors.success : colors.amber,
                   fontSize: '0.85rem',
                   fontWeight: '700',
                   fontFamily: FONT_DISPLAY,
@@ -1503,9 +1503,9 @@ const GiftCodeRedeemer: React.FC = () => {
         {/* Manual Code Entry — below everything */}
         <div style={{
           marginTop: '1.25rem', padding: '1rem',
-          backgroundColor: '#111111', borderRadius: '10px', border: '1px solid #2a2a2a',
+          backgroundColor: colors.surface, borderRadius: '10px', border: `1px solid ${colors.border}`,
         }}>
-          <span style={{ color: '#9ca3af', fontSize: '0.7rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          <span style={{ color: colors.textSecondary, fontSize: '0.7rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             {t('giftCodes.manualEntry', 'Enter a Code Manually')}
           </span>
           <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
@@ -1520,7 +1520,7 @@ const GiftCodeRedeemer: React.FC = () => {
                 padding: '0.5rem 0.75rem',
                 borderRadius: '6px',
                 border: '1px solid #333',
-                backgroundColor: '#0a0a0a',
+                backgroundColor: colors.bg,
                 color: '#e5e7eb',
                 fontSize: '1rem',
                 fontFamily: 'monospace',
@@ -1535,9 +1535,9 @@ const GiftCodeRedeemer: React.FC = () => {
               style={{
                 padding: '0.5rem 1rem',
                 borderRadius: '6px',
-                border: '1px solid #f59e0b40',
-                backgroundColor: '#f59e0b15',
-                color: '#f59e0b',
+                border: `1px solid ${colors.amber}40`,
+                backgroundColor: `${colors.amber}15`,
+                color: colors.amber,
                 fontSize: '0.8rem',
                 fontWeight: '600',
                 cursor: (!manualCode.trim() || globalCooldown) ? 'default' : 'pointer',
@@ -1566,20 +1566,20 @@ const GiftCodeRedeemer: React.FC = () => {
         {/* Info Section */}
         <div style={{
           marginTop: '1.25rem', padding: '0.75rem 1rem',
-          backgroundColor: '#111111', borderRadius: '10px', border: '1px solid #1a1a1a',
+          backgroundColor: colors.surface, borderRadius: '10px', border: '1px solid #1a1a1a',
           fontSize: '0.7rem', color: '#4b5563', lineHeight: 1.6,
         }}>
           <p style={{ marginBottom: '0.3rem' }}>
-            <strong style={{ color: '#6b7280' }}>{t('giftCodes.howItWorks', 'How it works:')}</strong> {t('giftCodes.howItWorksDesc', "Atlas sends the code to Century Games' official gift code service on your behalf, using your linked Player ID. Rewards go straight to your in-game mailbox.")}
+            <strong style={{ color: colors.textMuted }}>{t('giftCodes.howItWorks', 'How it works:')}</strong> {t('giftCodes.howItWorksDesc', "Atlas sends the code to Century Games' official gift code service on your behalf, using your linked Player ID. Rewards go straight to your in-game mailbox.")}
           </p>
           <p style={{ margin: 0 }}>
-            <strong style={{ color: '#6b7280' }}>{t('giftCodes.rateLimit', 'Rate limit:')}</strong> {t('giftCodes.rateLimitDesc', '10 codes per minute.')} {codesSource && codesSource !== 'unavailable' && t('giftCodes.codesSourced', { source: codesSource, defaultValue: `Codes sourced from ${codesSource}.` })}
+            <strong style={{ color: colors.textMuted }}>{t('giftCodes.rateLimit', 'Rate limit:')}</strong> {t('giftCodes.rateLimitDesc', '10 codes per minute.')} {codesSource && codesSource !== 'unavailable' && t('giftCodes.codesSourced', { source: codesSource, defaultValue: `Codes sourced from ${codesSource}.` })}
           </p>
         </div>
 
         {/* Back links */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', marginTop: '1.5rem', paddingBottom: '1rem' }}>
-          <Link to="/tools" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: '0.8rem' }}>
+          <Link to="/tools" style={{ color: colors.textSecondary, textDecoration: 'none', fontSize: '0.8rem' }}>
             ← {t('giftCodes.backToTools', 'Back to Tools')}
           </Link>
           <Link to="/" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: '0.8rem' }}>

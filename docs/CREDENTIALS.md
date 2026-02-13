@@ -9,13 +9,14 @@
 ## Stripe (Live Mode)
 - **Dashboard:** https://dashboard.stripe.com
 
-### Products (Updated Feb 3, 2026)
+### Products (Updated Feb 15, 2026)
 
 | Product | Price | Billing | Payment Link |
 |---------|-------|---------|--------------|
 | Atlas Supporter | $4.99 | Monthly | https://buy.stripe.com/dRm8wQ2Fe2ye7dC3n9eZ206 |
-| Atlas Recruiter | $19.99 | Monthly | https://buy.stripe.com/eVqaEY93C8WC2Xm3n9eZ204 |
-| Atlas Recruiter | $159.99 | Yearly | https://buy.stripe.com/bJebJ23Ji0q62Xm8HteZ205 |
+| Atlas Supporter | $49.99 | Yearly | https://buy.stripe.com/3cIcN67Zy3CifK8cXJeZ20b |
+
+*Atlas Recruiter tier archived 2026-02-13. Kingdom Fund contribution links in STRIPE_QUICK_SETUP.md.*
 
 ## GitHub
 - **Repo:** https://github.com/Kingshot-Atlas/Kingshot-Atlas
@@ -27,7 +28,7 @@
 - **URL:** https://ko-fi.com/ksatlas
 
 ## Domain
-- **Primary:** kingshot-atlas.com (if registered)
+- **Primary:** ks-atlas.com
 
 ## Hosting
 - **Frontend:** Cloudflare Pages

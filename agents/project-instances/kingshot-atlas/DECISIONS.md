@@ -1,6 +1,6 @@
 # Architectural Decisions Record (ADR)
 
-**Last Updated:** 2026-01-29  
+**Last Updated:** 2026-02-15  
 **Purpose:** Document key decisions to prevent re-litigation and provide context for future work.
 
 ---
@@ -98,7 +98,7 @@ Need a modern, maintainable frontend with good developer experience.
 ## ADR-004: Netlify for Frontend Deployment
 
 **Date:** 2026-01 (Initial)  
-**Status:** ✅ Accepted  
+**Status:** ❌ Superseded by ADR-019 (Cloudflare Pages Migration)  
 **Deciders:** Owner
 
 ### Context
@@ -114,6 +114,7 @@ Deploy to Netlify with:
 - ✅ Simple deployment workflow
 - ✅ Good CDN performance
 - ⚠️ Build minutes limit on free tier
+- ❌ **Superseded 2026-02-01** — Migrated to Cloudflare Pages. Netlify site deleted.
 
 ---
 
@@ -453,33 +454,9 @@ Key functions:
 
 ---
 
-## Template for New Decisions
+## ADR-013b: FavoritesContext as Single Source of Truth for Favorites State
 
-```markdown
-## ADR-XXX: [Title]
-
-**Date:** YYYY-MM-DD  
-**Status:** 🟡 Proposed / ✅ Accepted / ❌ Rejected / 🔄 Superseded  
-**Deciders:** [Who made this decision]
-
-### Context
-[Why is this decision needed?]
-
-### Decision
-[What was decided]
-
-### Alternatives Considered
-- [Option A] — [Why rejected]
-- [Option B] — [Why rejected]
-
-### Consequences
-- ✅ [Positive outcome]
-- ⚠️ [Tradeoff or risk]
-```
-
----
-
-## ADR-013: FavoritesContext as Single Source of Truth for Favorites State
+> *Note: Numbered 013b due to original ADR-013 (Score History Table) already existing.*
 
 **Date:** 2026-02-06  
 **Status:** ✅ Accepted  
@@ -625,6 +602,212 @@ Implement a **community-funded Transfer Board** with these pillars:
 - ADR-007: Premium/Freemium Model
 - ADR-010: Supabase as Single Source of Truth
 - ADR-012: Atlas Scores Must Come From Supabase
+
+---
+
+## ADR-016: Atlas Score v3.1 — Linear Remapping to 0-100 Scale
+
+**Date:** 2026-02-07  
+**Status:** ✅ Accepted  
+**Deciders:** Platform Engineer, Owner
+
+### Context
+Atlas Score v3.0 used a 0-100 base scale, but the multipliers (streak, recent form) were designed for the original 0-10 base. This caused score inflation — 7 kingdoms were tied at exactly 100.00, making the ranking meaningless at the top.
+
+### Decision
+Keep the internal formula on a 0-10 base scale (same as v2.1), then scale the final output by ×(100/15) for the 0-100 display range. Multipliers remain on the original scale. Tier thresholds recalibrated: S≥57, A≥47, B≥38, C≥29, D<29.
+
+### Key Details
+- PostgreSQL `calculate_atlas_score()` is the ONLY place the formula lives (ADR-012)
+- All 1,204 kingdoms rescored, `score_history` backfilled
+- Top score: K231 at 82.39 (previously 100.00)
+- Frontend `formula_version` updated to `3.1.0`
+
+### Consequences
+- ✅ No kingdoms tied at 100 — proper differentiation at the top
+- ✅ Multipliers work correctly on their designed scale
+- ✅ Tier distribution matches expected percentiles
+- ⚠️ Required bulk recalculation of all kingdoms and historical entries
+
+### Related ADRs
+- ADR-005: Bayesian Atlas Score Algorithm
+- ADR-012: Atlas Scores Must Come From Supabase
+
+---
+
+## ADR-017: Internationalization (i18n) — 9-Language Support
+
+**Date:** 2026-02-11  
+**Status:** ✅ Accepted  
+**Deciders:** Product Engineer, Owner
+
+### Context
+Kingshot Atlas serves a global player base. Originally English-only, users in non-English-speaking kingdoms had no localized experience.
+
+### Decision
+Implement i18n using `react-i18next` with:
+- 9 languages: EN, ES, FR, ZH, DE, KO, JA, AR, TR
+- Dual translation files: `src/locales/` (app) + `public/locales/` (SEO/prerender)
+- Language switcher in header with flag icons
+- `hreflang` meta tags for SEO via edge-side injection
+- `/i18n-translate` workflow for bulk translation with quality checks
+- `i18n-diff` script to detect missing/stale keys across all languages
+
+### Alternatives Considered
+- **Server-side i18n** — Rejected: adds latency, Cloudflare Pages is static
+- **Third-party i18n service (Crowdin, Lokalise)** — Rejected: cost, complexity for <20 languages
+- **Auto-translate only** — Rejected: gaming terminology needs manual review
+
+### Consequences
+- ✅ 9 languages covering ~80% of global Kingshot player base
+- ✅ SEO benefit from hreflang tags
+- ✅ Lightweight — translation files are JSON, no runtime cost
+- ⚠️ Translation maintenance: new keys must be added to all 9 languages
+- ⚠️ `i18next@25.8.5` has TypeScript 5 peer dep — requires `.npmrc` workaround until TS upgrade
+
+---
+
+## ADR-018: Gift Code Redeemer Architecture
+
+**Date:** 2026-02-12  
+**Status:** ✅ Accepted  
+**Deciders:** Product Engineer, Platform Engineer
+
+### Context
+Players manually visit kingshot.net to redeem gift codes — tedious process requiring login, navigation, and per-code entry. Atlas can automate this since linked accounts provide Century Games credentials.
+
+### Decision
+Build a gift code pipeline:
+- **Data source:** Backend scrapes `kingshot.net` gift codes page (15min cache), merged with manual entries in Supabase `gift_codes` table
+- **Redemption:** Backend proxies to Century Games API via `POST /api/v1/player-link/redeem` (rate limited 10/min)
+- **Alt accounts:** Stored in `profiles.alt_accounts` JSONB column (Supabase as source of truth, localStorage as cache)
+- **Discord integration:** `/codes` (view), `/redeem` (single), `/redeem-all` (Supporter-only bulk)
+- **Analytics:** `gift_code_redemptions` table tracks every attempt
+- **Auto-post:** Bot polls every 30min, posts new codes to `#giftcodes` channel
+
+### Alternatives Considered
+- **Browser extension** — Rejected: maintenance burden, cross-browser compat
+- **Direct API (no backend proxy)** — Rejected: exposes Century Games API to frontend, no rate limiting
+- **Manual code list only** — Rejected: doesn't solve the redemption friction
+
+### Consequences
+- ✅ One-click redemption eliminates manual friction
+- ✅ Bulk redeem for alt accounts (Supporter upsell)
+- ✅ Discord commands bring value without visiting website
+- ✅ Analytics provide insight into code usage patterns
+- ⚠️ Depends on Century Games API stability ("NOT LOGIN" error requires session management)
+- ⚠️ Rate limiting critical to avoid API abuse
+
+### Related ADRs
+- ADR-007: Premium/Freemium Model (Supporter-gated bulk features)
+- ADR-001: Supabase for Auth & User Data (alt accounts storage)
+
+---
+
+## ADR-019: Cloudflare Pages Migration (Supersedes ADR-004)
+
+**Date:** 2026-02-01  
+**Status:** ✅ Accepted  
+**Deciders:** Owner, Ops Lead
+
+### Context
+Netlify free tier build minutes were a constraint, and the project needed better edge capabilities (Workers, HTMLRewriter for SEO, Email Routing).
+
+### Decision
+Migrate frontend from Netlify to Cloudflare Pages:
+- **Project name:** `kingshot-atlas`
+- **Domains:** `ks-atlas.com`, `kingshot-atlas.pages.dev`
+- **Build:** Node 20, `npm ci` in `apps/web/` root
+- **Edge:** `_middleware.ts` with HTMLRewriter for bot-specific meta injection
+- **Email:** Cloudflare Email Routing → `atlas-email-worker` Worker → Supabase
+- **Proxy:** `atlas-discord-proxy` Worker for Discord API rate limit bypass
+- **Auto-deploy:** Push to `main` triggers CF Pages build
+
+### Alternatives Considered
+- **Stay on Netlify** — Free tier limits, no Workers ecosystem
+- **Vercel** — Good DX but no email routing, higher cost at scale
+- **Self-hosted (VPS)** — More control but operational burden
+
+### Consequences
+- ✅ Unlimited builds, generous free tier
+- ✅ Workers ecosystem (email, Discord proxy, SEO prerender)
+- ✅ Global CDN with edge compute
+- ⚠️ `npm ci` strict peer deps required `.npmrc` workaround for i18next/TypeScript conflict
+- ⚠️ Netlify site deleted 2026-02-01 — no rollback
+
+### Related ADRs
+- ADR-004: Netlify (superseded)
+
+---
+
+## ADR-020: Changelog Single Source of Truth — changelog.json
+
+**Date:** 2026-02-13  
+**Status:** ✅ Accepted  
+**Deciders:** Owner, Release Manager, Ops Lead
+
+### Context
+Changelog data was duplicated in two places: `Changelog.tsx` (React component with inline data array) and `docs/CHANGELOG.md` (hand-written markdown). They drifted out of sync — the markdown was missing 5 dates that existed in the React page. Manual synchronization was error-prone and unsustainable.
+
+### Decision
+Extract changelog data into a single source of truth: `apps/web/src/data/changelog.json`.
+
+**Architecture:**
+- `changelog.json` — **Single source of truth** (owned by Release Manager)
+- `Changelog.tsx` — Imports from JSON via `import changelogJson from '../data/changelog.json'`
+- `docs/CHANGELOG.md` — Auto-generated by `scripts/generate-changelog-md.js --write`
+- `consistency-lint.js` check #8 — Detects date drift between JSON and markdown
+
+**Workflow:**
+1. Release Manager edits `changelog.json` (add entry at top of array)
+2. Run `npm run changelog:sync` to regenerate CHANGELOG.md
+3. CI runs `npm run lint:consistency:strict` which detects any drift
+
+**Intentional exclusions:**
+- Entries before 2026-02-01 are excluded from sync checks (predate CHANGELOG.md)
+- Feb 14, 2026 is in the allow-list (internal refactoring, not user-facing)
+
+### Alternatives Considered
+- **Keep both manually synced** — Error-prone, already failed (5 missing dates)
+- **Keep CHANGELOG.md as richer hand-edited doc** — More detail per entry but guaranteed drift
+- **Generate Changelog.tsx from markdown** — Markdown is harder to parse reliably than JSON
+
+### Consequences
+- ✅ Zero drift between React page and markdown changelog
+- ✅ CI enforces sync via consistency-lint --strict
+- ✅ Changelog.tsx reduced from ~290 lines to ~20 lines (import + type)
+- ✅ Adding a changelog entry is a single JSON edit + one npm script
+- ⚠️ CHANGELOG.md loses manual section headings (e.g., "### 🔒 Security") — all entries are categorized as New/Fixed/Improved only
+- ⚠️ Multiple same-day entries (e.g., Jan 29 Night/Evening/Base) are merged in markdown output
+
+### Related ADRs
+- ADR-017: i18n (changelog entries are English-only; JSON structure is i18n-ready if needed)
+
+---
+
+## Template for New Decisions
+
+```markdown
+## ADR-XXX: [Title]
+
+**Date:** YYYY-MM-DD  
+**Status:** 🟡 Proposed / ✅ Accepted / ❌ Rejected / 🔄 Superseded  
+**Deciders:** [Who made this decision]
+
+### Context
+[Why is this decision needed?]
+
+### Decision
+[What was decided]
+
+### Alternatives Considered
+- [Option A] — [Why rejected]
+- [Option B] — [Why rejected]
+
+### Consequences
+- ✅ [Positive outcome]
+- ⚠️ [Tradeoff or risk]
+```
 
 ---
 
