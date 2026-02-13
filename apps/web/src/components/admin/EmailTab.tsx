@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getAuthHeaders } from '../../services/authHeaders';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
@@ -69,6 +70,7 @@ interface CannedResponse {
 }
 
 export const EmailTab: React.FC = () => {
+  const { t } = useTranslation();
   const [emails, setEmails] = useState<SupportEmail[]>([]);
   const [stats, setStats] = useState<EmailStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -314,7 +316,7 @@ export const EmailTab: React.FC = () => {
                   ? `${stats.avg_response_minutes}m`
                   : `${(Math.round(stats.avg_response_minutes / 60 * 10) / 10)}h`}
               </div>
-              <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>Avg Reply</div>
+              <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>{t('admin.avgReply', 'Avg Reply')}</div>
             </div>
           )}
         </div>
@@ -556,7 +558,7 @@ export const EmailTab: React.FC = () => {
             </div>
 
             <div>
-              <label style={{ color: '#6b7280', fontSize: '0.8rem', display: 'block', marginBottom: '0.25rem' }}>Subject</label>
+              <label style={{ color: '#6b7280', fontSize: '0.8rem', display: 'block', marginBottom: '0.25rem' }}>{t('admin.subject', 'Subject')}</label>
               <input
                 type="text"
                 value={composeSubject}
@@ -571,7 +573,7 @@ export const EmailTab: React.FC = () => {
             </div>
 
             <div>
-              <label style={{ color: '#6b7280', fontSize: '0.8rem', display: 'block', marginBottom: '0.25rem' }}>Message</label>
+              <label style={{ color: '#6b7280', fontSize: '0.8rem', display: 'block', marginBottom: '0.25rem' }}>{t('admin.message', 'Message')}</label>
               <textarea
                 value={composeBody}
                 onChange={(e) => setComposeBody(e.target.value)}

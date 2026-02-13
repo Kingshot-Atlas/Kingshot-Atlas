@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { AnalyticsData } from './types';
 import { analyticsService } from '../../services/analyticsService';
 import ProBadge from '../ProBadge';
@@ -44,6 +45,7 @@ export const AnalyticsOverview: React.FC<AnalyticsOverviewProps> = ({
   onIncrementKvK,
   onGrantSubscription
 }) => {
+  const { t } = useTranslation();
   const homepageCTR = useMemo(() => analyticsService.getHomepageCTR(), [analytics]);
   const [grantEmail, setGrantEmail] = useState('');
   const [grantSource, setGrantSource] = useState<'kofi' | 'manual' | 'stripe'>('kofi');
@@ -110,10 +112,10 @@ export const AnalyticsOverview: React.FC<AnalyticsOverviewProps> = ({
       {/* Key Metrics with S3.4 Sparklines */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
         {[
-          { label: analytics.bounceRate ? 'Visitors (30d)' : 'Total Events', value: (analytics.bounceRate ? analytics.uniqueVisitors : analytics.totalVisits).toLocaleString(), color: '#22d3ee', icon: '👁️', sparkData: Array.isArray(analytics.pageViews) ? analytics.pageViews.slice(0, 7).map(p => p.views) : [] },
+          { label: analytics.bounceRate ? t('admin.visitors30d', 'Visitors (30d)') : t('admin.totalEvents', 'Total Events'), value: (analytics.bounceRate ? analytics.uniqueVisitors : analytics.totalVisits).toLocaleString(), color: '#22d3ee', icon: '👁️', sparkData: Array.isArray(analytics.pageViews) ? analytics.pageViews.slice(0, 7).map(p => p.views) : [] },
           { label: analytics.bounceRate ? 'Page Views (30d)' : 'Page Views', value: (analytics.totalPageViews ?? (Array.isArray(analytics.pageViews) ? analytics.pageViews.length : 0)).toLocaleString(), color: '#a855f7', icon: '📄', sparkData: Array.isArray(analytics.pageViews) ? analytics.pageViews.map(p => p.views) : [] },
-          { label: 'Total Users', value: analytics.userStats.total.toLocaleString(), color: '#22c55e', icon: '👥', sparkData: [analytics.userStats.free, analytics.userStats.kingshot_linked, analytics.userStats.pro, analytics.userStats.recruiter].filter(v => v > 0) },
-          { label: 'Monthly Revenue', value: `$${analytics.revenue.monthly.toFixed(2)}`, color: '#fbbf24', icon: '💰', sparkData: analytics.revenue.recentPayments ? analytics.revenue.recentPayments.slice(0, 7).map((p: { amount: number }) => p.amount) : [] },
+          { label: t('admin.totalUsers', 'Total Users'), value: analytics.userStats.total.toLocaleString(), color: '#22c55e', icon: '👥', sparkData: [analytics.userStats.free, analytics.userStats.kingshot_linked, analytics.userStats.pro, analytics.userStats.recruiter].filter(v => v > 0) },
+          { label: t('admin.monthlyRevenue', 'Monthly Revenue'), value: `$${analytics.revenue.monthly.toFixed(2)}`, color: '#fbbf24', icon: '💰', sparkData: analytics.revenue.recentPayments ? analytics.revenue.recentPayments.slice(0, 7).map((p: { amount: number }) => p.amount) : [] },
         ].map((metric, i) => (
           <div key={i} style={{
             backgroundColor: '#111116',
@@ -160,10 +162,10 @@ export const AnalyticsOverview: React.FC<AnalyticsOverviewProps> = ({
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '1rem' }}>
           {[
-            { label: 'Free Users', value: analytics.userStats.free, color: '#6b7280' },
-            { label: 'Kingshot Linked', value: analytics.userStats.kingshot_linked, color: '#f59e0b' },
-            { label: 'Atlas Supporter', value: analytics.userStats.pro, color: '#FF6B8A' },
-            { label: 'Atlas Recruiter', value: analytics.userStats.recruiter, color: '#22d3ee' },
+            { label: t('admin.freeUsers', 'Free Users'), value: analytics.userStats.free, color: '#6b7280' },
+            { label: t('admin.kingshotLinked', 'Kingshot Linked'), value: analytics.userStats.kingshot_linked, color: '#f59e0b' },
+            { label: t('admin.atlasSupporter', 'Atlas Supporter'), value: analytics.userStats.pro, color: '#FF6B8A' },
+            { label: t('admin.atlasRecruiter', 'Atlas Recruiter'), value: analytics.userStats.recruiter, color: '#22d3ee' },
           ].map((tier, i) => (
             <div key={i} style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '1.5rem', fontWeight: '700', color: tier.color }}>{tier.value}</div>
@@ -346,9 +348,9 @@ export const AnalyticsOverview: React.FC<AnalyticsOverviewProps> = ({
         <h3 style={{ color: '#fff', marginBottom: '1rem', fontSize: '1rem' }}>📝 Submissions</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
           {[
-            { label: 'Pending', value: analytics.submissions.pending, color: '#fbbf24' },
-            { label: 'Approved', value: analytics.submissions.approved, color: '#22c55e' },
-            { label: 'Rejected', value: analytics.submissions.rejected, color: '#ef4444' },
+            { label: t('admin.pending', 'Pending'), value: analytics.submissions.pending, color: '#fbbf24' },
+            { label: t('admin.approved', 'Approved'), value: analytics.submissions.approved, color: '#22c55e' },
+            { label: t('admin.rejected', 'Rejected'), value: analytics.submissions.rejected, color: '#ef4444' },
           ].map((stat, i) => (
             <div key={i} style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '1.5rem', fontWeight: '700', color: stat.color }}>{stat.value}</div>

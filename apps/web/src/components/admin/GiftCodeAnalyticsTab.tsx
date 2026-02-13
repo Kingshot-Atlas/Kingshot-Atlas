@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 import { getAuthHeaders } from '../../services/authHeaders';
+import { useTranslation } from 'react-i18next';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
@@ -44,6 +45,7 @@ interface ActiveGiftCode {
 }
 
 export const GiftCodeAnalyticsTab: React.FC = () => {
+  const { t } = useTranslation();
   const [stats, setStats] = useState<GiftCodeStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | 'all'>('7d');
@@ -488,10 +490,10 @@ export const GiftCodeAnalyticsTab: React.FC = () => {
             Top Codes
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto auto', gap: '0.4rem 1rem', fontSize: '0.75rem' }}>
-            <div style={{ color: '#4b5563', fontWeight: 600 }}>Code</div>
-            <div style={{ color: '#4b5563', fontWeight: 600, textAlign: 'right' }}>Attempts</div>
-            <div style={{ color: '#4b5563', fontWeight: 600, textAlign: 'right' }}>Success</div>
-            <div style={{ color: '#4b5563', fontWeight: 600, textAlign: 'right' }}>Rate</div>
+            <div style={{ color: '#4b5563', fontWeight: 600 }}>{t('admin.code', 'Code')}</div>
+            <div style={{ color: '#4b5563', fontWeight: 600, textAlign: 'right' }}>{t('admin.attempts', 'Attempts')}</div>
+            <div style={{ color: '#4b5563', fontWeight: 600, textAlign: 'right' }}>{t('admin.success', 'Success')}</div>
+            <div style={{ color: '#4b5563', fontWeight: 600, textAlign: 'right' }}>{t('admin.rate', 'Rate')}</div>
             {stats.topCodes.map(tc => (
               <React.Fragment key={tc.code}>
                 <div style={{ color: '#e5e7eb', fontFamily: 'monospace', fontSize: '0.7rem' }}>{tc.code}</div>

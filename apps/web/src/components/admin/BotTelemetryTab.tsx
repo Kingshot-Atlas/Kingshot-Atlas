@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getAuthHeaders } from '../../services/authHeaders';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
@@ -81,6 +82,7 @@ const WS_STATUS_NAMES: Record<number, string> = {
 // ============================================================================
 
 export const BotTelemetryTab: React.FC = () => {
+  const { t } = useTranslation();
   const [data, setData] = useState<TelemetryResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -149,11 +151,11 @@ export const BotTelemetryTab: React.FC = () => {
       {summary && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem' }}>
           {[
-            { label: 'Total Events', value: summary.total_events, color: '#22d3ee', icon: '📊' },
-            { label: 'Crashes (24h)', value: summary.crashes_24h, color: summary.crashes_24h > 0 ? '#ef4444' : '#22c55e', icon: '💥' },
-            { label: 'Memory Warnings', value: summary.memory_warnings, color: summary.memory_warnings > 0 ? '#eab308' : '#22c55e', icon: '🧠' },
-            { label: 'Disconnects', value: summary.disconnects, color: summary.disconnects > 2 ? '#eab308' : '#22c55e', icon: '⚡' },
-            { label: 'Restarts', value: summary.restarts, color: summary.restarts > 3 ? '#eab308' : '#22c55e', icon: '🚀' },
+            { label: t('admin.totalEvents', 'Total Events'), value: summary.total_events, color: '#22d3ee', icon: '📊' },
+            { label: t('admin.crashes24h', 'Crashes (24h)'), value: summary.crashes_24h, color: summary.crashes_24h > 0 ? '#ef4444' : '#22c55e', icon: '💥' },
+            { label: t('admin.memoryWarnings', 'Memory Warnings'), value: summary.memory_warnings, color: summary.memory_warnings > 0 ? '#eab308' : '#22c55e', icon: '🧠' },
+            { label: t('admin.disconnects', 'Disconnects'), value: summary.disconnects, color: summary.disconnects > 2 ? '#eab308' : '#22c55e', icon: '⚡' },
+            { label: t('admin.restarts', 'Restarts'), value: summary.restarts, color: summary.restarts > 3 ? '#eab308' : '#22c55e', icon: '🚀' },
           ].map((card, i) => (
             <div key={i} style={{
               backgroundColor: '#111116',
@@ -244,11 +246,11 @@ export const BotTelemetryTab: React.FC = () => {
           onChange={e => setSeverityFilter(e.target.value)}
           style={selectStyle}
         >
-          <option value="all">All Severity</option>
-          <option value="info">Info</option>
-          <option value="warn">Warning</option>
-          <option value="error">Error</option>
-          <option value="critical">Critical</option>
+          <option value="all">{t('admin.allSeverity', 'All Severity')}</option>
+          <option value="info">{t('admin.info', 'Info')}</option>
+          <option value="warn">{t('admin.warning', 'Warning')}</option>
+          <option value="error">{t('admin.error', 'Error')}</option>
+          <option value="critical">{t('admin.critical', 'Critical')}</option>
         </select>
         <select
           value={eventFilter}

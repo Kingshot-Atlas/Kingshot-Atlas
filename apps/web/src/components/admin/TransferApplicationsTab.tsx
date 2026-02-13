@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../../lib/supabase';
 
 interface TransferApp {
@@ -38,6 +39,7 @@ const STATUS_COLORS: Record<string, { bg: string; border: string; text: string }
 };
 
 export const TransferApplicationsTab: React.FC = () => {
+  const { t } = useTranslation();
   const [apps, setApps] = useState<TransferApp[]>([]);
   const [analytics, setAnalytics] = useState<TransferAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
@@ -180,29 +182,29 @@ export const TransferApplicationsTab: React.FC = () => {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.75rem' }}>
           <div style={{ backgroundColor: '#111116', padding: '1rem', borderRadius: '10px', border: '1px solid #2a2a2a', textAlign: 'center' }}>
             <div style={{ color: '#22d3ee', fontWeight: 700, fontSize: '1.5rem' }}>{analytics.total}</div>
-            <div style={{ color: '#6b7280', fontSize: '0.7rem' }}>Total Applications</div>
+            <div style={{ color: '#6b7280', fontSize: '0.7rem' }}>{t('admin.totalApplications', 'Total Applications')}</div>
           </div>
           <div style={{ backgroundColor: '#111116', padding: '1rem', borderRadius: '10px', border: '1px solid #2a2a2a', textAlign: 'center' }}>
             <div style={{ color: '#eab308', fontWeight: 700, fontSize: '1.5rem' }}>{analytics.byStatus['pending'] || 0}</div>
-            <div style={{ color: '#6b7280', fontSize: '0.7rem' }}>Pending</div>
+            <div style={{ color: '#6b7280', fontSize: '0.7rem' }}>{t('admin.pending', 'Pending')}</div>
           </div>
           <div style={{ backgroundColor: '#111116', padding: '1rem', borderRadius: '10px', border: '1px solid #2a2a2a', textAlign: 'center' }}>
             <div style={{ color: '#22c55e', fontWeight: 700, fontSize: '1.5rem' }}>{analytics.byStatus['accepted'] || 0}</div>
-            <div style={{ color: '#6b7280', fontSize: '0.7rem' }}>Accepted</div>
+            <div style={{ color: '#6b7280', fontSize: '0.7rem' }}>{t('admin.accepted', 'Accepted')}</div>
           </div>
           <div style={{ backgroundColor: '#111116', padding: '1rem', borderRadius: '10px', border: '1px solid #2a2a2a', textAlign: 'center' }}>
             <div style={{ color: '#ef4444', fontWeight: 700, fontSize: '1.5rem' }}>{analytics.byStatus['declined'] || 0}</div>
-            <div style={{ color: '#6b7280', fontSize: '0.7rem' }}>Declined</div>
+            <div style={{ color: '#6b7280', fontSize: '0.7rem' }}>{t('admin.declined', 'Declined')}</div>
           </div>
           <div style={{ backgroundColor: '#111116', padding: '1rem', borderRadius: '10px', border: '1px solid #2a2a2a', textAlign: 'center' }}>
             <div style={{ color: '#4b5563', fontWeight: 700, fontSize: '1.5rem' }}>{analytics.expiredCount}</div>
-            <div style={{ color: '#6b7280', fontSize: '0.7rem' }}>Expired</div>
+            <div style={{ color: '#6b7280', fontSize: '0.7rem' }}>{t('admin.expired', 'Expired')}</div>
           </div>
           <div style={{ backgroundColor: '#111116', padding: '1rem', borderRadius: '10px', border: '1px solid #2a2a2a', textAlign: 'center' }}>
             <div style={{ color: '#a855f7', fontWeight: 700, fontSize: '1.5rem' }}>
               {analytics.avgResponseTimeHours !== null ? `${analytics.avgResponseTimeHours.toFixed(1)}h` : '—'}
             </div>
-            <div style={{ color: '#6b7280', fontSize: '0.7rem' }}>Avg Response Time</div>
+            <div style={{ color: '#6b7280', fontSize: '0.7rem' }}>{t('admin.avgResponseTime', 'Avg Response Time')}</div>
           </div>
         </div>
       )}

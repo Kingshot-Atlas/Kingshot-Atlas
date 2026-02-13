@@ -3,6 +3,7 @@
  * Industry-grade SaaS metrics visualization
  */
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   AreaChart, Area, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -316,6 +317,7 @@ export const SubscriptionPieChart: React.FC<{
 
 // Main Analytics Dashboard Component
 export const AnalyticsDashboard: React.FC = () => {
+  const { t } = useTranslation();
   const [kpis, setKpis] = useState<KPI | null>(null);
   const [mrrHistory, setMrrHistory] = useState<MRRDataPoint[]>([]);
   const [forecast, setForecast] = useState<{ current_mrr: number; forecast: ForecastDataPoint[] } | null>(null);
@@ -434,7 +436,7 @@ export const AnalyticsDashboard: React.FC = () => {
           alignItems: 'center'
         }}>
           <span>⚠️ {error}</span>
-          <button onClick={() => { setError(null); fetchAllData(); }} style={{ background: 'none', border: '1px solid #ef444450', borderRadius: '4px', color: '#ef4444', padding: '0.2rem 0.5rem', cursor: 'pointer', fontSize: '0.75rem' }}>Retry</button>
+          <button onClick={() => { setError(null); fetchAllData(); }} style={{ background: 'none', border: '1px solid #ef444450', borderRadius: '4px', color: '#ef4444', padding: '0.2rem 0.5rem', cursor: 'pointer', fontSize: '0.75rem' }}>{t('admin.retry', 'Retry')}</button>
         </div>
       )}
       {/* Header with Tabs and Export */}

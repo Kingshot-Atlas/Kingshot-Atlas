@@ -791,7 +791,7 @@ function createHistoryEmbed(kingdom, page = 1) {
     const matchups = pageItems.map((kvk) => {
       const num = kvk.kvk_number ? `KvK #${kvk.kvk_number}` : `#${kvk.order_index}`;
       const opponent = kvk.opponent_kingdom ? `vs K${kvk.opponent_kingdom}` : '';
-      return `\u2796 **${num}** ${opponent}`;
+      return `**${num}** ${opponent}`;
     });
 
     const results = pageItems.map((kvk) => {

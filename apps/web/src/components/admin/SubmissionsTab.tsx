@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { Submission } from './types';
+import { useTranslation } from 'react-i18next';
 
 interface SubmissionsTabProps {
   submissions: Submission[];
@@ -60,6 +61,7 @@ export const SubmissionsTab: React.FC<SubmissionsTabProps> = ({
   onReview
 }) => {
   const [viewingImage, setViewingImage] = useState<string | null>(null);
+  const { t } = useTranslation();
 
   if (submissions.length === 0) {
     return (
@@ -226,7 +228,7 @@ export const SubmissionsTab: React.FC<SubmissionsTabProps> = ({
                     {sub.submitter_name}
                   </Link>
                 ) : (
-                  <span style={{ color: '#ef4444' }}>Anonymous</span>
+                  <span style={{ color: '#ef4444' }}>{t('admin.anonymous', 'Anonymous')}</span>
                 )}
                 {' '}• {new Date(sub.created_at).toLocaleDateString()}
               </div>

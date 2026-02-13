@@ -91,6 +91,9 @@ jobs:
       - name: i18n Validation
         run: npm run validate:i18n
 
+      - name: i18n Hardcoded String Check
+        run: npm run i18n:check -- --strict
+
       - name: Security audit (npm)
         run: |
           # Fail build on critical/high vulnerabilities in production dependencies

@@ -1,5 +1,6 @@
 import React from 'react';
 import type { KvKError } from './types';
+import { useTranslation } from 'react-i18next';
 import { downloadCSV } from '../../utils/csvExport';
 
 interface KvKErrorsTabProps {
@@ -19,6 +20,7 @@ export const KvKErrorsTab: React.FC<KvKErrorsTabProps> = ({
   onReviewError, onRejectOpen, onSelectAllPending,
   onToggleItem, onBulkReview, onClearSelection,
 }) => {
+  const { t } = useTranslation();
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       {/* CSV export */}
@@ -122,7 +124,7 @@ export const KvKErrorsTab: React.FC<KvKErrorsTabProps> = ({
                       <div style={{ color: '#ef4444', fontSize: '0.7rem', marginBottom: '0.5rem', fontWeight: 600 }}>❌ CURRENT (WRONG)</div>
                       <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem' }}>
                         <div>
-                          <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>Prep</div>
+                          <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>{t('admin.prep', 'Prep')}</div>
                           <div style={{ 
                             color: error.current_data.prep_result === 'Win' ? '#22c55e' : '#ef4444',
                             textDecoration: willFlipPrep ? 'line-through' : 'none',
@@ -132,7 +134,7 @@ export const KvKErrorsTab: React.FC<KvKErrorsTabProps> = ({
                           </div>
                         </div>
                         <div>
-                          <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>Battle</div>
+                          <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>{t('admin.battle', 'Battle')}</div>
                           <div style={{ 
                             color: error.current_data.battle_result === 'Win' ? '#22c55e' : '#ef4444',
                             textDecoration: willFlipBattle ? 'line-through' : 'none',
@@ -150,7 +152,7 @@ export const KvKErrorsTab: React.FC<KvKErrorsTabProps> = ({
                       <div style={{ color: '#22c55e', fontSize: '0.7rem', marginBottom: '0.5rem', fontWeight: 600 }}>✓ AFTER APPROVAL</div>
                       <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem' }}>
                         <div>
-                          <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>Prep</div>
+                          <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>{t('admin.prep', 'Prep')}</div>
                           <div style={{ 
                             color: newPrep === 'Win' ? '#22c55e' : '#ef4444',
                             fontWeight: willFlipPrep ? 700 : 400
@@ -160,7 +162,7 @@ export const KvKErrorsTab: React.FC<KvKErrorsTabProps> = ({
                           </div>
                         </div>
                         <div>
-                          <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>Battle</div>
+                          <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>{t('admin.battle', 'Battle')}</div>
                           <div style={{ 
                             color: newBattle === 'Win' ? '#22c55e' : '#ef4444',
                             fontWeight: willFlipBattle ? 700 : 400
@@ -170,7 +172,7 @@ export const KvKErrorsTab: React.FC<KvKErrorsTabProps> = ({
                           </div>
                         </div>
                         <div>
-                          <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>Result</div>
+                          <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>{t('admin.result', 'Result')}</div>
                           <div style={{ 
                             color: newOverall === 'Domination' ? '#22c55e' : newOverall === 'Invasion' ? '#ef4444' : '#fbbf24',
                             fontWeight: 600,

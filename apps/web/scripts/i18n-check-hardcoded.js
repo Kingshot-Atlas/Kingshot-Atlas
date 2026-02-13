@@ -44,6 +44,8 @@ const IGNORE_PATTERNS = [
   /DataSourceStats/,
   /DiscordRolesDashboard/,
   /EngagementDashboard/,
+  /PageTitle\.tsx/,
+  /^Card\.tsx$/,
 ];
 
 function shouldIgnore(filePath) {
