@@ -1,6 +1,6 @@
 # Governance Checklist
 
-**Last Updated:** 2026-01-26 (v4 - FINAL)  
+**Last Updated:** 2026-02-14 (v5 - Refreshed)  
 **Governance Agent Status:** Active
 
 ---
@@ -99,11 +99,11 @@
 | ID | Issue | File | Status |
 |----|-------|------|--------|
 | m-001 | Inconsistent power tier thresholds | `api.ts`, `KingdomDirectory.tsx` | 🟡 OPEN |
-| m-002 | Missing React error boundaries | `App.tsx` | 🟡 OPEN |
-| m-003 | Large component files (>400 lines) | Multiple | 🟡 OPEN |
+| m-002 | ~~Missing React error boundaries~~ | `App.tsx` | ✅ FIXED | `ErrorBoundary.tsx` implemented (2026-02) |
+| m-003 | ~~Large component files (>400 lines)~~ | Multiple | ✅ ADDRESSED | Refactoring Phases 1-3 complete. 20 files baselined, key pages reduced (AdminDashboard, TransferBoard, Profile, RecruiterDashboard 814→275, RallyCoordinator 997→392). Header (1631) remains. |
 | m-004 | Missing frontend validation | `KingdomDirectory.tsx` | 🟡 OPEN |
-| m-005 | Missing security headers | `api/main.py` | 🟡 OPEN |
-| m-006 | SQLite in production path | `api/database.py` | 🟡 OPEN |
+| m-005 | ~~Missing security headers~~ | `api/main.py`, `_headers` | ✅ FIXED | CSP, HSTS, X-Frame-Options in `apps/web/public/_headers` + API middleware (2026-02) |
+| m-006 | SQLite in production path | `api/database.py` | 🟡 OPEN | Acknowledged in ADR-023 (Dual Database Architecture) |
 
 ---
 
@@ -133,6 +133,8 @@
 ---
 
 ## Notes
+
+- **2026-02-14 (v5):** Refreshed open issues tracker. m-002 (error boundaries), m-003 (large components), m-005 (security headers) now resolved. m-006 acknowledged in ADR-023.
 
 - **2026-01-26 (v4 FINAL):** All production fixes complete. CORS restricted, rate limiting added, N+1 queries fixed, database indexes added, Architecture Review complete. **STATUS: PRODUCTION READY (MVP)**
 

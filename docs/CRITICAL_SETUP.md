@@ -138,8 +138,8 @@ NOTIFY pgrst, 'reload config';
 
 ### Environment Variables Required
 ```
-REACT_APP_SUPABASE_URL=https://your-project.supabase.co
-REACT_APP_SUPABASE_ANON_KEY=your-anon-key
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
 ```
 
 ## 🔄 Deployment Process
@@ -176,6 +176,6 @@ REACT_APP_SUPABASE_ANON_KEY=your-anon-key
 
 ---
 
-**Last Updated:** 2026-01-29  
+**Last Updated:** 2026-02-14  
 **Purpose:** Prevent common Kingshot Atlas setup issues  
 **Audience:** All agents working on Kingshot Atlas

@@ -3,6 +3,20 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-20 11:00 | Business Lead | COMPLETED
+Task: Monetization & Growth Strategy — Ad-Free removal, 4-stage onboarding funnel, churn recovery, Kingdom Fund growth
+Files: `SupportAtlas.tsx`, `PremiumContext.tsx`, `AdBanner.tsx`, `App.tsx`, `KingdomProfile.tsx`, `Profile.tsx`, `Tools.tsx`, `KingdomDirectory.tsx`, `KingdomFundContribute.tsx`, `useRallyCoordinator.ts` (modified); `useOnboardingTracker.ts`, `SignupNudgeBar.tsx`, `WelcomeToAtlas.tsx`, `BattlePlannerTrialTooltip.tsx`, `ConversionBanner.tsx`, `CancelSurvey.tsx` (new)
+Changes:
+1. **Ad-Free Perk Removed** — Deleted "Ad-Free Experience" from supporter perks list, set `adFree: false` in PremiumContext, updated AdBanner self-promo copy
+2. **Stage 1: Anonymous Signup Nudge** — `SignupNudgeBar.tsx` fixed bottom bar after 3+ kingdom profile views. Profile view tracking in `KingdomProfile.tsx` via localStorage
+3. **Stage 2: Welcome to Atlas** — `WelcomeToAtlas.tsx` one-time screen after linking Kingshot account, showing kingdom score, KvK rivals, favorites watchlist
+4. **Stage 3: Battle Planner Trial** — `BattlePlannerTrialTooltip.tsx` on Tools page for engaged free users (3+ sessions, has favorites). 1-hour trial with `useRallyCoordinator.ts` access gate bypass. Activates after Feb 25
+5. **Stage 4: Conversion Banner** — `ConversionBanner.tsx` on homepage for active free users (3+ sessions/week), 30-day dismiss cooldown
+6. **Onboarding Tracker Hook** — `useOnboardingTracker.ts` — shared localStorage-based tracking for all stages (profile views, sessions, dismissals, trial state)
+7. **Churn Recovery** — `/cancel-survey` page with 6 cancel reasons, optional freetext, pause offer, annual billing pitch. `churn_surveys` Supabase table with RLS
+8. **Kingdom Fund Alliance Pitch** — Added "Your kingdom needs $X more to reach [tier] — that's $Y per alliance member" to `KingdomFundContribute.tsx`
+Result: Build passes ✅. No existing features broken. All components self-contained with graceful degradation.
+
 ## 2026-02-19 10:00 | Platform Engineer | COMPLETED
 Task: React Query Migration Phase 1 (ADR-022) — convert data-fetching useEffect patterns to useQuery hooks
 Files: `src/hooks/useAdminQueries.ts` (new), `src/hooks/__tests__/useAdminQueries.test.ts` (new), `src/components/WebhookMonitor.tsx`, `src/components/admin/TransferApplicationsTab.tsx`, `src/pages/AdminDashboard.tsx`, `src/pages/Admin.tsx`, `src/contexts/PremiumContext.tsx`, `DECISIONS.md`, `STATUS_SNAPSHOT.md`

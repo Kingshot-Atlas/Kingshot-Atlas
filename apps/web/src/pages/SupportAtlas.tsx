@@ -53,7 +53,6 @@ const SupportAtlas: React.FC = () => {
     { icon: '🎙️', text: t('support.perk5Title', 'Exclusive Discord Channel'), desc: t('support.perk5Desc', 'Access to supporter-only discussions and early previews') },
     { icon: '🚀', text: t('support.perk6Title', 'Early Access'), desc: t('support.perk6Desc', 'First to try new features before public release') },
     { icon: '📊', text: t('support.perk7Title', 'Full Leaderboard Rankings'), desc: t('support.perk7Desc', 'Unlock unlimited kingdom rankings (free: Top 25)') },
-    { icon: '🚫', text: t('support.perk8Title', 'Ad-Free Experience'), desc: t('support.perk8Desc', 'Clean, distraction-free browsing') },
   ];
 
   const handleStripeCheckout = () => {

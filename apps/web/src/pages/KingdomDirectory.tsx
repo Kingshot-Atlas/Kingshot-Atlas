@@ -27,6 +27,7 @@ import { DataSyncIndicator } from '../components/DataSyncIndicator';
 import QuickActions from '../components/homepage/QuickActions';
 import TransferHubBanner from '../components/homepage/TransferHubBanner';
 import BattlePlannerBanner from '../components/homepage/BattlePlannerBanner';
+import ConversionBanner from '../components/ConversionBanner';
 import MobileCountdowns from '../components/homepage/MobileCountdowns';
 import { useScrollDepth } from '../hooks/useScrollDepth';
 import { useTranslation } from 'react-i18next';
@@ -419,6 +420,9 @@ const KingdomDirectory: React.FC = () => {
 
       {/* Battle Planner Banner - dismissable launch CTA */}
       <BattlePlannerBanner />
+
+      {/* Stage 4: Conversion banner for active free users */}
+      <ConversionBanner />
 
       {/* Search and Controls - Sticky */}
       <div style={{ 

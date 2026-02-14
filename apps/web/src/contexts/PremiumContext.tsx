@@ -58,7 +58,7 @@ const TIER_FEATURES: Record<SubscriptionTier, PremiumFeatures> = {
     multiCompare: 5, // Supporters can compare 5
     submitData: true,
     scoreSimulator: true,
-    adFree: true,
+    adFree: false,
     supporterBadge: true,
     earlyAccess: true,
   },

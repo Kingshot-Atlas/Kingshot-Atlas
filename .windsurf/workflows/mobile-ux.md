@@ -306,7 +306,7 @@ Analyze each page in this order (by complexity/traffic):
 ### High Priority (Complex layouts, high traffic)
 1. `KingdomDirectory.tsx` - Grid of cards, filters, search
 2. `KingdomProfile.tsx` - Complex layout, stats, charts
-3. `Leaderboards.tsx` - Tables, filters, tabs
+3. `Rankings.tsx` - Tables, filters, tabs
 4. `CompareKingdoms.tsx` - Side-by-side comparison
 5. `Profile.tsx` - User profile, settings, tabs
 6. `KvKSeasons.tsx` - Tables, history data
@@ -314,9 +314,9 @@ Analyze each page in this order (by complexity/traffic):
 ### Medium Priority
 7. `Tools.tsx` - Multiple tool cards
 8. `SupportAtlas.tsx` - Pricing cards, tiers
-9. `Upgrade.tsx` - Pricing, features
-10. `About.tsx` - Content sections
-11. `MetaAnalysis.tsx` - Charts, data visualization
+9. `About.tsx` - Content sections
+10. `GiftCodeLanding.tsx` - Marketing landing page
+11. `Ambassadors.tsx` - Referral directory
 
 ### Lower Priority (Simpler layouts)
 12. `UserDirectory.tsx` - User list/grid
@@ -479,5 +479,5 @@ A page passes mobile UX audit when:
 
 ---
 
-*Last Updated: 2026-02-05*
+*Last Updated: 2026-02-14*
 *Workflow Author: UX Designer Agent*

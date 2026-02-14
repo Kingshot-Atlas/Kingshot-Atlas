@@ -109,7 +109,7 @@ const SelfPromoAd: React.FC<{ tier: string; isMobile: boolean }> = ({ tier, isMo
         <div style={{ color: '#6b7280', fontSize: isMobile ? '0.75rem' : '0.8rem' }}>
           {tier === 'anonymous' 
             ? 'Create a free account to unlock watchlists, submissions, and more'
-            : 'Full KvK history, ad-free experience, and premium features'
+            : 'Unlimited rankings, Battle Planner access, and premium features'
           }
         </div>
       </div>

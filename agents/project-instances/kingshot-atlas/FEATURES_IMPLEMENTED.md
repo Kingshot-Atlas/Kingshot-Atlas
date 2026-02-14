@@ -1,6 +1,6 @@
 # Features Implemented
 
-**Last Updated:** 2026-02-15  
+**Last Updated:** 2026-02-20  
 **Purpose:** Prevent duplicate work by tracking what's already built.
 
 ---
@@ -204,6 +204,10 @@
 | Support Prompts | ✅ Live | Business | `UpgradePrompt.tsx` gentle support nudges |
 | Supporter Badge | ✅ Live | Design | `SupporterBadge.tsx` visual indicator |
 | Ad Banners | ✅ Live | Business | `AdBanner.tsx` for free tier |
+| Ad-Free Perk Removed | ✅ Live | Business | Removed misleading "Ad-Free Experience" from supporter perks, set `adFree: false` in PremiumContext, updated AdBanner copy (2026-02-20) |
+| Onboarding Funnel (4 Stages) | ✅ Live | Business | Stage 1: `SignupNudgeBar.tsx` — bottom bar nudge for anon users after 3+ profile views. Stage 2: `WelcomeToAtlas.tsx` — one-time welcome screen after linking Kingshot account showing kingdom score, rivals, favorites. Stage 3: `BattlePlannerTrialTooltip.tsx` — 1-hour free Battle Planner trial for engaged free users (3+ sessions, has favorites, activates after Feb 25). Stage 4: `ConversionBanner.tsx` — supporter pitch for active users (3+ sessions/week), dismissable with 30-day cooldown. All tracking via `useOnboardingTracker.ts` hook using localStorage. (2026-02-20) |
+| Cancel Survey (Churn Recovery) | ✅ Live | Business | `/cancel-survey` page with exit survey (6 reasons + freetext), pause subscription offer, annual billing downgrade offer. `churn_surveys` Supabase table with RLS. (2026-02-20) |
+| Kingdom Fund Alliance Pitch | ✅ Live | Business | `KingdomFundContribute.tsx` — shows "Your kingdom needs $X more to reach [tier]" with per-alliance-member cost breakdown ($X/100 members). Encourages collective contributions. (2026-02-20) |
 
 ---
 

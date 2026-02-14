@@ -6,6 +6,7 @@ import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { useTranslation } from 'react-i18next';
+import BattlePlannerTrialTooltip from '../components/BattlePlannerTrialTooltip';
 
 interface ToolCardProps {
   title: string;
@@ -348,6 +349,9 @@ const Tools: React.FC = () => {
         margin: '0 auto', 
         padding: isMobile ? '1rem' : '2rem'
       }}>
+        {/* Stage 3: Battle Planner trial tooltip for engaged free users */}
+        <BattlePlannerTrialTooltip />
+
         <div style={{
           display: 'grid',
           gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',

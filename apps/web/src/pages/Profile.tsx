@@ -14,6 +14,7 @@ import type { EditForm } from '../components/profile';
 import ReferralStats from '../components/ReferralStats';
 import ReferralBadge from '../components/ReferralBadge';
 import ProfileCompletionProgress from '../components/ProfileCompletionProgress';
+import WelcomeToAtlas from '../components/WelcomeToAtlas';
 import TransferReadinessScore from '../components/TransferReadinessScore';
 import KingdomLeaderboardPosition from '../components/KingdomLeaderboardPosition';
 import { ReferralTier, getHighestTierColor, SUBSCRIPTION_COLORS } from '../utils/constants';
@@ -46,6 +47,7 @@ const Profile: React.FC = () => {
   const [referredByUsername, setReferredByUsername] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [hasShownWelcome, setHasShownWelcome] = useState(false);
+  const [showWelcomeScreen, setShowWelcomeScreen] = useState(false);
   const [editForm, setEditForm] = useState<EditForm>({
     alliance_tag: '',
     language: '',
@@ -814,6 +816,17 @@ const Profile: React.FC = () => {
           </div>
         )}
 
+        {/* Welcome to Atlas screen - shown after first account linking */}
+        {!isViewingOther && showWelcomeScreen && (
+          <WelcomeToAtlas
+            kingdomNumber={viewedProfile?.linked_kingdom || null}
+            onDismiss={() => {
+              setShowWelcomeScreen(false);
+              try { localStorage.setItem('atlas_onboarding_welcomeScreenShown', 'true'); } catch {}
+            }}
+          />
+        )}
+
         {/* 1. Profile Completion Progress - only show for own profile */}
         {!isViewingOther && (
           <ProfileCompletionProgress 
@@ -845,6 +858,11 @@ const Profile: React.FC = () => {
                     }
                     // Assign Settler role in Discord (fire and forget)
                     discordService.syncSettlerRole(user.id, true).catch(() => {});
+                    // Show Welcome to Atlas screen if first time linking
+                    const welcomeKey = `atlas_onboarding_welcomeScreenShown`;
+                    if (!localStorage.getItem(welcomeKey) || localStorage.getItem(welcomeKey) === 'false') {
+                      setShowWelcomeScreen(true);
+                    }
                   }
                 } catch (err) {
                   logger.error('Link account error:', err);

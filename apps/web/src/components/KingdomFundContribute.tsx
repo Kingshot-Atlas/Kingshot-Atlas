@@ -254,6 +254,38 @@ const KingdomFundContribute: React.FC<{
           </div>
         )}
 
+        {/* Alliance-wide pitch */}
+        {currentTier !== 'gold' && (() => {
+          const nextTier = currentTier === 'standard' ? 'bronze' : currentTier === 'bronze' ? 'silver' : 'gold';
+          const nextThreshold = TIER_THRESHOLDS[nextTier as keyof typeof TIER_THRESHOLDS];
+          const amountNeeded = Math.max(0, nextThreshold - currentBalance);
+          const perMember = (amountNeeded / 100).toFixed(2);
+          return amountNeeded > 0 ? (
+            <div style={{
+              padding: '0.75rem',
+              backgroundColor: '#22d3ee08',
+              border: '1px solid #22d3ee20',
+              borderRadius: '10px',
+              marginBottom: '1rem',
+              textAlign: 'center',
+            }}>
+              <p style={{ color: '#d1d5db', fontSize: '0.75rem', margin: '0 0 0.25rem', lineHeight: 1.4 }}>
+                {t('kingdomFund.alliancePitch', {
+                  amount: amountNeeded,
+                  tier: nextTier.charAt(0).toUpperCase() + nextTier.slice(1),
+                  defaultValue: `Your kingdom needs $${amountNeeded} more to reach ${nextTier.charAt(0).toUpperCase() + nextTier.slice(1)} tier`,
+                })}
+              </p>
+              <p style={{ color: '#22d3ee', fontSize: '0.7rem', fontWeight: '600', margin: 0 }}>
+                {t('kingdomFund.perMember', {
+                  amount: perMember,
+                  defaultValue: `That's just $${perMember} per alliance member`,
+                })}
+              </p>
+            </div>
+          ) : null;
+        })()}
+
         {/* How It Works */}
         <div style={{
           padding: '0.6rem 0.75rem',

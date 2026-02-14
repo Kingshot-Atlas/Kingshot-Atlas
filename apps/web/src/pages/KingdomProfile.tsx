@@ -259,6 +259,13 @@ const KingdomProfile: React.FC = () => {
         localStorage.setItem(visitKey, data.overall_score.toString());
       }
 
+      // Track profile view for onboarding nudge (Stage 1)
+      try {
+        const countKey = 'atlas_onboarding_profileViewCount';
+        const current = parseInt(localStorage.getItem(countKey) || '0', 10);
+        localStorage.setItem(countKey, String(current + 1));
+      } catch { /* localStorage unavailable */ }
+
       // Save to recently viewed and track achievement
       const recentKey = 'kingshot_recently_viewed';
       const saved = localStorage.getItem(recentKey);

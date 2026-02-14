@@ -1,6 +1,6 @@
 # Infrastructure Reference
 
-**Last Updated:** 2026-02-12  
+**Last Updated:** 2026-02-14  
 **Owner:** Ops Lead
 
 ---
@@ -20,7 +20,7 @@
 ### Supabase Schema
 
 **profiles table** (subscription columns added 2026-01-30):
-- `subscription_tier` TEXT DEFAULT 'free' — User's subscription tier (free/supporter/recruiter)
+- `subscription_tier` TEXT DEFAULT 'free' — User's subscription tier (free/supporter)
 - `stripe_customer_id` TEXT — Stripe customer ID for billing
 - `stripe_subscription_id` TEXT — Active Stripe subscription ID
 

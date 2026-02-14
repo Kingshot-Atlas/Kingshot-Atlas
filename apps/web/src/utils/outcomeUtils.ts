@@ -150,6 +150,15 @@ export function getOutcomeDisplay(outcome: StandardOutcome): {
         emoji: '💀',
         description: 'Lost both Prep and Battle phases'
       };
+    case 'Bye':
+      return {
+        label: 'Bye',
+        abbrev: 'B',
+        color: '#6b7280',
+        bgColor: '#6b728015',
+        emoji: '⏭️',
+        description: 'No opponent this round'
+      };
   }
 }
 
@@ -162,6 +171,7 @@ export function getInverseOutcome(outcome: StandardOutcome): StandardOutcome {
     case 'Invasion': return 'Domination';
     case 'Reversal': return 'Comeback';
     case 'Comeback': return 'Reversal';
+    case 'Bye': return 'Bye';
   }
 }
 

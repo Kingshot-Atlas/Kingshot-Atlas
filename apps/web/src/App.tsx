@@ -9,6 +9,7 @@ import RouteErrorBoundary from './components/RouteErrorBoundary';
 import { ToastProvider } from './components/Toast';
 import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
 import FeedbackWidget from './components/FeedbackWidget';
+import SignupNudgeBar from './components/SignupNudgeBar';
 import { useKeyboardShortcuts, useKeyboardHelp } from './hooks/useKeyboardShortcuts';
 import { usePageTracking } from './hooks/useAnalytics';
 import { useKingdomsRealtime } from './hooks/useKingdomsRealtime';
@@ -45,6 +46,7 @@ const GiftCodeRedeemer = lazy(() => import('./pages/GiftCodeRedeemer'));
 const GiftCodeLanding = lazy(() => import('./pages/GiftCodeLanding'));
 const TransferHubLanding = lazy(() => import('./pages/TransferHubLanding'));
 const AuthCallback = lazy(() => import('./pages/AuthCallback'));
+const CancelSurvey = lazy(() => import('./pages/CancelSurvey'));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -138,11 +140,13 @@ function AppContent() {
               <Route path="/transfer-hub/about" element={<ErrorBoundary><TransferHubLanding /></ErrorBoundary>} />
               <Route path="/tools/gift-codes" element={<ErrorBoundary><GiftCodeRedeemer /></ErrorBoundary>} />
               <Route path="/auth/callback" element={<ErrorBoundary><AuthCallback /></ErrorBoundary>} />
+              <Route path="/cancel-survey" element={<ErrorBoundary><CancelSurvey /></ErrorBoundary>} />
             </Routes>
           </Suspense>
         </PageTransition>
       </main>
       <FeedbackWidget />
+      <SignupNudgeBar />
     </div>
   );
 }

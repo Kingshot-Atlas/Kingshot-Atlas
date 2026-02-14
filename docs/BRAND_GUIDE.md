@@ -1,7 +1,7 @@
 # Kingshot Atlas Brand Guide
 
-**Version:** 1.0  
-**Last Updated:** 2026-01-29
+**Version:** 1.1  
+**Last Updated:** 2026-02-14
 
 ---
 
@@ -90,7 +90,7 @@ These colors must be used consistently across:
 - Marketing materials and landing pages
 
 ### Typography
-- **Display:** Cinzel (headings, kingdom names)
+- **Display:** Trajan Pro (headings, kingdom names, logo — premium serif feel)
 - **Body:** Inter (readable, modern)
 - **Data:** Orbitron (scores, numbers)
 
