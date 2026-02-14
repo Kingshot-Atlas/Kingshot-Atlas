@@ -8,6 +8,7 @@ import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData'
 import { useAuth } from '../contexts/AuthContext';
 import { usePremium } from '../contexts/PremiumContext';
 import SupportButton from '../components/SupportButton';
+import { logger } from '../utils/logger';
 import { getCheckoutUrl } from '../lib/stripe';
 import { useTranslation } from 'react-i18next';
 
@@ -180,7 +181,7 @@ const SupportAtlas: React.FC = () => {
                   const portalUrl = await import('../lib/stripe').then(m => m.createPortalSession(user.id));
                   window.location.href = portalUrl;
                 } catch (error) {
-                  console.error('Portal error:', error);
+                  logger.error('Portal error:', error);
                   setIsLoading(false);
                 }
               }}

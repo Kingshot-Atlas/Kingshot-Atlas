@@ -6,6 +6,7 @@
 
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { calculateOutcome, flipResult as flipResultUtil } from '../utils/outcomeUtils';
+import { logger } from '../utils/logger';
 
 export interface KvKCorrection {
   id: string | number;
@@ -51,7 +52,7 @@ class KvKCorrectionService {
         .eq('status', 'approved');
 
       if (error) {
-        console.warn('Failed to fetch corrections from Supabase:', error.message);
+        logger.warn('Failed to fetch corrections from Supabase:', error.message);
         return this.getLocalCorrections();
       }
 
@@ -80,7 +81,7 @@ class KvKCorrectionService {
 
       return result;
     } catch (err) {
-      console.warn('Error fetching corrections:', err);
+      logger.warn('Error fetching corrections:', err);
       return this.getLocalCorrections();
     }
   }
@@ -164,7 +165,7 @@ class KvKCorrectionService {
     corrected_battle?: string;
   }, approvedBy: string): Promise<boolean> {
     if (!kvkError.kvk_number || !kvkError.current_data) {
-      console.warn('Cannot apply correction: missing kvk_number or current_data');
+      logger.warn('Cannot apply correction: missing kvk_number or current_data');
       return false;
     }
 
@@ -189,7 +190,7 @@ class KvKCorrectionService {
       correctedBattle = kvkError.current_data.battle_result; // Keep unchanged
     }
     
-    console.log(`Applying correction for K${kvkError.kingdom_number} KvK#${kvkError.kvk_number}: error_type=${kvkError.error_type}, prep ${kvkError.current_data.prep_result}→${correctedPrep}, battle ${kvkError.current_data.battle_result}→${correctedBattle}`);
+    logger.log(`Applying correction for K${kvkError.kingdom_number} KvK#${kvkError.kvk_number}: error_type=${kvkError.error_type}, prep ${kvkError.current_data.prep_result}→${correctedPrep}, battle ${kvkError.current_data.battle_result}→${correctedBattle}`);
     const overallResult = this.calculateOverallResult(correctedPrep, correctedBattle);
 
     // Try to write to Supabase first
@@ -208,9 +209,9 @@ class KvKCorrectionService {
           .eq('kvk_number', kvkError.kvk_number);
 
         if (historyError) {
-          console.error('Failed to update kvk_history:', historyError);
+          logger.error('Failed to update kvk_history:', historyError);
         } else {
-          console.log(`✅ Updated kvk_history for K${kvkError.kingdom_number} KvK#${kvkError.kvk_number}`);
+          logger.log(`✅ Updated kvk_history for K${kvkError.kingdom_number} KvK#${kvkError.kvk_number}`);
         }
 
         // Also update opponent's record (inverse results)
@@ -229,9 +230,9 @@ class KvKCorrectionService {
           .eq('kvk_number', kvkError.kvk_number);
 
         if (oppHistoryError) {
-          console.error('Failed to update opponent kvk_history:', oppHistoryError);
+          logger.error('Failed to update opponent kvk_history:', oppHistoryError);
         } else {
-          console.log(`✅ Updated opponent kvk_history for K${kvkError.current_data.opponent} KvK#${kvkError.kvk_number}`);
+          logger.log(`✅ Updated opponent kvk_history for K${kvkError.current_data.opponent} KvK#${kvkError.kvk_number}`);
         }
 
         // Store correction record for audit trail
@@ -253,7 +254,7 @@ class KvKCorrectionService {
           }, { onConflict: 'kingdom_number,kvk_number' });
 
         if (mainError) {
-          console.error('Failed to save correction record:', mainError);
+          logger.error('Failed to save correction record:', mainError);
         }
 
         // Store opponent's correction record
@@ -280,7 +281,7 @@ class KvKCorrectionService {
         
         return true;
       } catch (err) {
-        console.error('Supabase correction error:', err);
+        logger.error('Supabase correction error:', err);
       }
     }
 
@@ -347,7 +348,7 @@ class KvKCorrectionService {
       
       return true;
     } catch (error) {
-      console.error('Failed to apply KvK correction:', error);
+      logger.error('Failed to apply KvK correction:', error);
       return false;
     }
   }
@@ -385,7 +386,7 @@ class KvKCorrectionService {
 
       localStorage.setItem(KVK_CORRECTIONS_KEY, JSON.stringify(corrections));
     } catch (error) {
-      console.error('Failed to apply opponent correction:', error);
+      logger.error('Failed to apply opponent correction:', error);
     }
   }
 
@@ -412,7 +413,7 @@ class KvKCorrectionService {
       
       localStorage.setItem(KVK_CORRECTIONS_KEY, JSON.stringify(filtered));
     } catch (error) {
-      console.error('Failed to remove KvK correction:', error);
+      logger.error('Failed to remove KvK correction:', error);
     }
   }
 
@@ -506,7 +507,7 @@ class KvKCorrectionService {
         .order('corrected_at', { ascending: false });
 
       if (error) {
-        console.error('Failed to fetch pending corrections:', error);
+        logger.error('Failed to fetch pending corrections:', error);
         return [];
       }
 
@@ -529,7 +530,7 @@ class KvKCorrectionService {
         review_notes: c.review_notes
       }));
     } catch (err) {
-      console.error('Error fetching pending corrections:', err);
+      logger.error('Error fetching pending corrections:', err);
       return [];
     }
   }
@@ -624,7 +625,7 @@ class KvKCorrectionService {
         .select('status');
 
       if (error) {
-        console.error('Failed to fetch correction stats:', error);
+        logger.error('Failed to fetch correction stats:', error);
         return { pending: 0, approved: 0, rejected: 0, total: 0 };
       }
 
@@ -637,7 +638,7 @@ class KvKCorrectionService {
 
       return stats;
     } catch (err) {
-      console.error('Error fetching correction stats:', err);
+      logger.error('Error fetching correction stats:', err);
       return { pending: 0, approved: 0, rejected: 0, total: 0 };
     }
   }

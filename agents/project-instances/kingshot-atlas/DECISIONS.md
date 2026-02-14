@@ -785,6 +785,159 @@ Extract changelog data into a single source of truth: `apps/web/src/data/changel
 
 ---
 
+## ADR-021: Admin API Package Extraction
+
+**Date:** 2026-02-16  
+**Status:** ✅ Accepted  
+**Deciders:** Platform Engineer
+
+### Context
+`admin.py` was a single 1941-line, 73KB file containing all admin API endpoints — analytics, exports, webhooks, subscriptions, scores, KvK config, and email system. This made navigation, code review, and maintainability difficult.
+
+### Decision
+Split `admin.py` into a Python package `admin/` with 8 sub-modules:
+- `_shared.py` — Authentication, rate limiting, audit logging (shared by all modules)
+- `analytics.py` — Subscription stats, revenue, MRR, churn, forecast, cohort, KPIs, Plausible
+- `exports.py` — CSV exports (subscribers, revenue)
+- `webhooks.py` — Webhook events, audit log, webhook health
+- `subscriptions.py` — Sync-all, manual grant, grant-by-email
+- `scores.py` — Score recalculation, distribution, movers
+- `config_routes.py` — KvK configuration management
+- `email_routes.py` — Support email system, templates, churn alerts, weekly digest
+
+`__init__.py` re-exports a combined `router` so `main.py` requires zero changes.
+
+### Alternatives Considered
+- Keep as single file — Too large, poor DX
+- Split into completely separate routers with different prefixes — Would break existing API paths
+
+### Consequences
+- ✅ Each module is 100–300 lines, easily reviewable
+- ✅ Zero breaking changes — all 35 routes preserved with identical paths
+- ✅ `main.py` import unchanged (`from api.routers import admin`)
+- ⚠️ Shared state (`_current_admin_info`, `_rate_limit_store`) lives in `_shared.py` — works for single-process deployment
+
+---
+
+## ADR-022: React Query Migration (Phase 1 Complete)
+
+**Date:** 2026-02-16 (Updated 2026-02-19)  
+**Status:** ✅ Phase 1 Complete  
+**Deciders:** Product Engineer, Platform Engineer
+
+### Context
+The frontend had 16 `eslint-disable react-hooks/exhaustive-deps` comments, many suppressing warnings on manual `useEffect` data-fetching patterns.
+
+### Decision
+Migrate data-fetching `useEffect` patterns to `useQuery` hooks incrementally. Non-fetch patterns (canvas animations, keyboard shortcuts, useMemo) are intentional and remain as-is.
+
+### Phase 1 Completed (2026-02-19)
+1. ✅ `@tanstack/react-query` already installed, `QueryClientProvider` wraps app
+2. ✅ Created `src/hooks/useAdminQueries.ts` — centralized admin query hooks with query key factory
+3. ✅ Converted 6 data-fetching eslint-disable patterns to `useQuery`:
+   - `WebhookMonitor.tsx` — webhook events + stats with 30s polling
+   - `TransferApplicationsTab.tsx` — transfer apps + analytics
+   - `AdminDashboard.tsx` — pending counts (60s poll), unread emails (30s poll), feedback
+   - `Admin.tsx` — submissions, claims, pending counts
+   - `PremiumContext.tsx` — subscription tier with cache + Supabase fetch
+4. ✅ Existing hooks: `useKingdoms.ts` already uses React Query pattern
+
+### Remaining (9 eslint-disable comments — all non-fetch, intentional)
+- `RadarChart.tsx`, `ComparisonRadarChart.tsx` — canvas animation cleanup
+- `PremiumComparisonChart.tsx` — useMemo optimization
+- `KingdomDirectory.tsx` — keyboard event listener
+- `AuthContext.tsx` — conditional side effect (refreshLinkedPlayer)
+- `AdminDashboard.tsx` (3) — analytics polling, keyboard shortcuts, tab dispatch
+- `Admin.tsx` (1) — localStorage corrections fetch
+
+### Consequences
+- ✅ Eliminated 7 data-fetching `eslint-disable` comments (16 → 9)
+- ✅ Automatic cache invalidation, retry, and background refresh for admin data
+- ✅ Reduced boilerplate in WebhookMonitor and TransferApplicationsTab significantly
+- ✅ PremiumContext now uses React Query with proper cache management
+- ⚠️ Phase 2 (mutations) still pending — review/approve actions still use manual fetch
+
+---
+
+## ADR-023: Dual Database Architecture (Known Debt)
+
+**Date:** 2026-02-16  
+**Status:** 🟡 Acknowledged  
+**Deciders:** Platform Engineer
+
+### Context
+The system uses two databases:
+1. **Supabase (PostgreSQL)** — User profiles, auth, reviews, transfers, referrals, admin audit log, webhook events, support emails, kingdom funds
+2. **SQLite** (`kingshot_atlas.db`) — Kingdom data, KvK records (the FastAPI backend)
+
+ADR-010 declared Supabase as single source of truth, and ADR-011 removed SQLite writes. However, the SQLite database still serves kingdom reads for the FastAPI API. This means kingdom data updates require manual SQLite file updates on the Render deployment.
+
+### Decision
+Accept the dual-database architecture for now. A full migration to Supabase-only would require:
+1. Migrating `kingdoms` and `kvk_history` tables to Supabase
+2. Updating all FastAPI endpoints to use Supabase client instead of SQLAlchemy
+3. Removing SQLAlchemy, `database.py`, and `models.py`
+4. Adding a proper migration framework (Supabase migrations or similar)
+
+### Consequences
+- ⚠️ Kingdom data updates are manual (upload new `.db` file to Render)
+- ⚠️ No migration framework for SQLite schema changes
+- ✅ SQLite reads are extremely fast (no network hop)
+- ✅ Supabase handles all user-facing writes with RLS
+
+---
+
+## ADR-024: Frontend Console Logging Standard
+
+**Date:** 2026-02-16  
+**Status:** ✅ Accepted  
+**Deciders:** Product Engineer
+
+### Context
+The frontend had 60+ raw `console.log/warn/error/info/debug` calls scattered across components, services, and utilities. In production, these leak implementation details to browser DevTools and are not captured by error monitoring (Sentry).
+
+### Decision
+All frontend logging MUST use the `logger` utility from `apps/web/src/utils/logger.ts`:
+- `logger.log()`, `logger.info()`, `logger.debug()` — Only emit in development (`import.meta.env.DEV`)
+- `logger.warn()` — Only emit in development
+- `logger.error()` — Always emits (captured by Sentry in production)
+
+Raw `console.*` calls are banned. The consistency lint enforces this.
+
+### Consequences
+- ✅ Clean production console — no debug noise
+- ✅ Errors still surface for monitoring
+- ✅ Single point to add structured logging later
+
+---
+
+## ADR-025: Test Coverage Strategy (Deferred)
+
+**Date:** 2026-02-16  
+**Status:** 🟡 Proposed  
+**Deciders:** Platform Engineer
+
+### Context
+The project currently has no automated test suite. The backend has 12 routers and 100+ endpoints. The frontend has 40+ components. Manual testing is performed via local builds and browser verification.
+
+### Decision
+Defer comprehensive test coverage as a dedicated task. When executed:
+1. **Backend:** Add pytest with FastAPI TestClient for critical admin and submission endpoints
+2. **Frontend:** Add Vitest + React Testing Library for core components (KingdomCard, AuthContext, StatusSubmission)
+3. **E2E:** Consider Playwright for critical user flows (login, submit KvK, view leaderboard)
+
+### Priority Order
+1. Backend API tests (highest ROI — catches regression in score calculation, subscription sync)
+2. Frontend component tests (medium ROI — catches UI regressions)
+3. E2E tests (lower ROI for current scale, but valuable for auth flows)
+
+### Consequences
+- ⚠️ No automated regression detection until implemented
+- ✅ Manual build verification catches TypeScript and build errors
+- ✅ Consistency lint catches structural regressions
+
+---
+
 ## Template for New Decisions
 
 ```markdown

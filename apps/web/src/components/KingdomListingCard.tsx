@@ -6,6 +6,7 @@ import { useIsMobile } from '../hooks/useMediaQuery';
 import { FONT_DISPLAY, statTypeStyles, colors } from '../utils/styles';
 import { getPowerTier } from '../utils/atlasScoreFormula';
 import SmartTooltip from './shared/SmartTooltip';
+import { logger } from '../utils/logger';
 import { generateTransferListingDiscordMessage, generateTransferListingCard, copyToClipboard, copyImageToClipboard, shareImageOnMobile, downloadBlob, isMobileDevice } from '../utils/sharing';
 import { isReferralEligible } from '../utils/constants';
 
@@ -384,7 +385,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
       setCopiedImage(true);
       setTimeout(() => setCopiedImage(false), 2000);
     } catch (err) {
-      console.error('Failed to generate listing card:', err);
+      logger.error('Failed to generate listing card:', err);
     }
   };
 

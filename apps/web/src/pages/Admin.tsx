@@ -3,31 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/Toast';
 import { logger } from '../utils/logger';
 import { getAuthHeaders } from '../services/authHeaders';
-
-interface Submission {
-  id: number;
-  submitter_id: string;
-  submitter_name: string | null;
-  kingdom_number: number;
-  kvk_number: number;
-  opponent_kingdom: number;
-  prep_result: string;
-  battle_result: string;
-  date_or_order_index: string | null;
-  screenshot_url: string | null;
-  notes: string | null;
-  status: string;
-  created_at: string;
-}
-
-interface Claim {
-  id: number;
-  kingdom_number: number;
-  user_id: string;
-  status: string;
-  verification_code: string | null;
-  created_at: string;
-}
+import { useAdminPendingCounts, useAdminSubmissions, useAdminClaims, useInvalidateAdmin } from '../hooks/useAdminQueries';
 
 interface DataCorrection {
   id: string;
@@ -50,73 +26,24 @@ const Admin: React.FC = () => {
   const { showToast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState<'submissions' | 'claims' | 'corrections' | 'import'>('submissions');
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [claims, setClaims] = useState<Claim[]>([]);
   const [corrections, setCorrections] = useState<DataCorrection[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('pending');
   const [importData, setImportData] = useState<string>('');
-  const [pendingCounts, setPendingCounts] = useState<{ submissions: number; claims: number; corrections: number }>({ submissions: 0, claims: 0, corrections: 0 });
 
-  // Fetch pending counts on mount
-  useEffect(() => {
-    fetchPendingCounts();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // React Query hooks (ADR-022 migration)
+  const { data: rqPendingCounts } = useAdminPendingCounts(true);
+  const pendingCounts = { submissions: rqPendingCounts?.submissions ?? 0, claims: rqPendingCounts?.claims ?? 0, corrections: rqPendingCounts?.corrections ?? 0 };
+  const { data: submissions = [] } = useAdminSubmissions(filter, activeTab === 'submissions');
+  const { data: claims = [] } = useAdminClaims(filter, activeTab === 'claims');
+  const { invalidateSubmissions } = useInvalidateAdmin();
 
   useEffect(() => {
-    if (activeTab === 'submissions') {
-      fetchSubmissions();
-    } else if (activeTab === 'claims') {
-      fetchClaims();
-    } else if (activeTab === 'corrections') {
+    if (activeTab === 'corrections') {
       fetchCorrections();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, filter]);
-
-  const fetchPendingCounts = async () => {
-    // Fetch corrections count from localStorage
-    try {
-      const stored = localStorage.getItem(CORRECTIONS_KEY);
-      const all: DataCorrection[] = stored ? JSON.parse(stored) : [];
-      const pendingCorrections = all.filter(c => c.status === 'pending').length;
-      
-      // Fetch submissions and claims counts from API
-      let pendingSubmissions = 0;
-      let pendingClaims = 0;
-      
-      try {
-        const authHeaders = await getAuthHeaders({ requireAuth: false });
-        const submissionsRes = await fetch(`${API_URL}/api/v1/submissions?status=pending`, {
-          headers: authHeaders
-        });
-        if (submissionsRes.ok) {
-          const data = await submissionsRes.json();
-          pendingSubmissions = Array.isArray(data) ? data.length : 0;
-        }
-      } catch { /* API might not be available */ }
-      
-      try {
-        const authHeaders = await getAuthHeaders({ requireAuth: false });
-        const claimsRes = await fetch(`${API_URL}/api/v1/claims?status=pending`, {
-          headers: authHeaders
-        });
-        if (claimsRes.ok) {
-          const data = await claimsRes.json();
-          pendingClaims = Array.isArray(data) ? data.length : 0;
-        }
-      } catch { /* API might not be available */ }
-      
-      setPendingCounts({
-        submissions: pendingSubmissions,
-        claims: pendingClaims,
-        corrections: pendingCorrections
-      });
-    } catch (error) {
-      console.error('Failed to fetch pending counts:', error);
-    }
-  };
 
   const fetchCorrections = () => {
     setLoading(true);
@@ -126,7 +53,7 @@ const Admin: React.FC = () => {
       const filtered = filter === 'all' ? all : all.filter(c => c.status === filter);
       setCorrections(filtered);
     } catch (error) {
-      console.error('Failed to fetch corrections:', error);
+      logger.error('Failed to fetch corrections:', error);
     } finally {
       setLoading(false);
     }
@@ -139,7 +66,6 @@ const Admin: React.FC = () => {
     localStorage.setItem(CORRECTIONS_KEY, JSON.stringify(updated));
     showToast(`Correction ${status}`, 'success');
     fetchCorrections();
-    fetchPendingCounts(); // Update badge counts
   };
 
   const handleBulkImport = () => {
@@ -183,49 +109,6 @@ const Admin: React.FC = () => {
     reader.readAsText(file);
   };
 
-  const fetchSubmissions = async () => {
-    setLoading(true);
-    logger.log('[Admin] Fetching submissions with filter:', filter);
-    try {
-      const url = `${API_URL}/api/v1/submissions?status=${filter}`;
-      logger.log('[Admin] Fetch URL:', url);
-      const authHeaders = await getAuthHeaders({ requireAuth: false });
-      const response = await fetch(url, {
-        headers: authHeaders
-      });
-      logger.log('[Admin] Response status:', response.status, response.ok);
-      if (response.ok) {
-        const data = await response.json();
-        logger.log('[Admin] Submissions received:', data.length, data);
-        setSubmissions(data);
-      } else {
-        const errorText = await response.text();
-        console.error('[Admin] Error response:', errorText);
-      }
-    } catch (error) {
-      console.error('Failed to fetch submissions:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchClaims = async () => {
-    setLoading(true);
-    try {
-      const authHeaders = await getAuthHeaders({ requireAuth: false });
-      const response = await fetch(`${API_URL}/api/v1/claims?status=${filter}`, {
-        headers: authHeaders
-      });
-      if (response.ok) {
-        setClaims(await response.json());
-      }
-    } catch (error) {
-      console.error('Failed to fetch claims:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const reviewSubmission = async (id: number, status: 'approved' | 'rejected') => {
     try {
       const authHeaders = await getAuthHeaders();
@@ -239,7 +122,7 @@ const Admin: React.FC = () => {
       });
       if (response.ok) {
         showToast(`Submission ${status}`, 'success');
-        fetchSubmissions();
+        invalidateSubmissions();
       } else {
         showToast('Failed to review submission', 'error');
       }
@@ -257,7 +140,7 @@ const Admin: React.FC = () => {
       });
       if (response.ok) {
         showToast('Claim verified', 'success');
-        fetchClaims();
+        invalidateSubmissions();
       } else {
         showToast('Failed to verify claim', 'error');
       }

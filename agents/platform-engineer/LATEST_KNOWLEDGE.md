@@ -87,6 +87,32 @@ SELECT * FROM bot_telemetry WHERE severity IN ('error', 'critical') ORDER BY cre
 
 **Admin component:** `ReferralIntelligence.tsx` replaced `ReferralFunnel.tsx` in admin dashboard. 4-section tabbed analytics: Overview, How People Found Atlas, Top Referrers, Recent Activity.
 
+## Referral Smoothing & Universal Links (2026-02-16)
+
+**Problem:** Referral tracking only worked via `ShareButton` on kingdom/compare pages. URL bar stayed cluttered with `?ref=`. No way to share any arbitrary page with referral code.
+
+**Changes:**
+
+1. **URL cleanup after capture:** `AuthContext.tsx` now calls `window.history.replaceState()` to strip `?ref=` and `?src=` from the address bar after storing them in localStorage. Other query params (e.g., `?kingdom=231`) are preserved.
+
+2. **Landing page tracking:** New `REFERRAL_LANDING_KEY` in localStorage stores the pathname the referred user first landed on. New `landing_page` text column added to `referrals` table (migration: `add_landing_page_to_referrals`). Included in the referral INSERT on signup. Cleaned from localStorage after processing.
+
+3. **`useReferralLink` hook** (`hooks/useReferralLink.ts`): Universal hook for any component to generate referral-aware URLs. Returns `{ eligible, referralUrl, refCode, copyCurrentPageLink, getReferralUrl }`. Uses `useLocation()` for current page awareness.
+
+4. **Global "Copy Referral Link" button:** Added to `UserMenu.tsx` (desktop) and `MobileMenu.tsx` (mobile) for referral-eligible users. Purple link icon, switches to green checkmark on copy. Tracked via `trackFeature('Referral Link Copied', { source: 'user_menu' | 'mobile_menu' })`.
+
+5. **ShareButton fallback fix:** The `else` branch in `handleCopyLink` now appends `?ref=` to `window.location.href` for eligible users, instead of sharing a bare URL. This ensures ANY page shared via ShareButton includes the referral code.
+
+**Full deferred attribution flow (confirmed working):**
+1. Referrer shares any link with `?ref=X` (via UserMenu, MobileMenu, ShareButton, or manually)
+2. Referred user clicks link → `?ref=X` captured in localStorage → URL cleaned
+3. User browses freely across any number of pages (localStorage persists)
+4. User signs up → referral record created with `status: 'pending'`, `landing_page`, `source`
+5. User links Kingshot account (TC20+) → `verify_pending_referral` trigger fires
+6. Trigger verifies referral, updates referrer's `referral_count`/`referral_tier`
+7. Trigger inserts `referral_verified` notification for referrer
+8. Referrer's `NotificationBell` receives instant notification via Supabase Realtime channel
+
 ---
 
 ## Bot Admin Auth Pattern (2026-02-08)

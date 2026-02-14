@@ -354,7 +354,7 @@ class NotificationService {
       const { data, error } = await supabase
         .from('user_data')
         .select('settings')
-        .single();
+        .maybeSingle();
 
       if (error || !data?.settings?.notification_preferences) {
         return { ...DEFAULT_NOTIFICATION_PREFERENCES };
@@ -387,7 +387,7 @@ class NotificationService {
       const { data: current } = await supabase
         .from('user_data')
         .select('settings')
-        .single();
+        .maybeSingle();
 
       const currentSettings = current?.settings || {};
       const updatedSettings = {

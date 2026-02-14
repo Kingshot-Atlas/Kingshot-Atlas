@@ -10,6 +10,7 @@ import {
   PieChart, Pie, Cell, Legend
 } from 'recharts';
 import { getAuthHeaders } from '../services/authHeaders';
+import { logger } from '../utils/logger';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
@@ -368,7 +369,7 @@ export const AnalyticsDashboard: React.FC = () => {
         setError(`Failed to load: ${failedEndpoints.join(', ')}`);
       }
     } catch (error) {
-      console.error('Failed to fetch analytics:', error);
+      logger.error('Failed to fetch analytics:', error);
       setError('Failed to connect to API');
     } finally {
       setLoading(false);
@@ -395,7 +396,7 @@ export const AnalyticsDashboard: React.FC = () => {
         setError(`Export failed: ${response.status}`);
       }
     } catch (error) {
-      console.error('Export failed:', error);
+      logger.error('Export failed:', error);
       setError('Export failed: network error');
     }
   };

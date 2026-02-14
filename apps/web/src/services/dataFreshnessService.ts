@@ -5,6 +5,7 @@
 
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { colors } from '../utils/styles';
+import { logger } from '../utils/logger';
 
 export interface DataFreshnessStatus {
   source: string;
@@ -60,7 +61,7 @@ class DataFreshnessService {
         .limit(1);
 
       if (error) {
-        console.error('Failed to fetch freshness data:', error);
+        logger.error('Failed to fetch freshness data:', error);
         return this.getOfflineStatus();
       }
 
@@ -79,7 +80,7 @@ class DataFreshnessService {
       
       return status;
     } catch (err) {
-      console.error('Error checking data freshness:', err);
+      logger.error('Error checking data freshness:', err);
       return this.getOfflineStatus();
     }
   }

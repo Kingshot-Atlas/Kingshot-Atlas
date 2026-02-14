@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getAuthHeaders } from '../../services/authHeaders';
 import { colors } from '../../utils/styles';
+import { logger } from '../../utils/logger';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
@@ -50,7 +51,7 @@ export const AdminActivityFeed: React.FC = () => {
         setEntries(data.entries || []);
       }
     } catch (e) {
-      console.error('Failed to fetch audit log:', e);
+      logger.error('Failed to fetch audit log:', e);
     } finally {
       setLoading(false);
     }

@@ -74,6 +74,7 @@ export const useAuth = () => {
 const PROFILE_KEY = 'kingshot_profile';
 const REFERRAL_KEY = 'kingshot_referral_code';
 const REFERRAL_SOURCE_KEY = 'kingshot_referral_source';
+const REFERRAL_LANDING_KEY = 'kingshot_referral_landing';
 
 // Strip any existing cache-busting params from avatar URL (for clean storage)
 const getCleanAvatarUrl = (url: string | undefined): string => {
@@ -130,12 +131,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const isConfigured = isSupabaseConfigured;
 
   // Capture ?ref= and ?src= params from URL and store in localStorage for later use during signup
+  // Also stores the landing page path for analytics and cleans the URL after capture
   useEffect(() => {
     try {
       const params = new URLSearchParams(window.location.search);
       const refCode = params.get('ref');
       if (refCode && refCode.trim()) {
         localStorage.setItem(REFERRAL_KEY, refCode.trim());
+        localStorage.setItem(REFERRAL_LANDING_KEY, window.location.pathname);
         const srcParam = params.get('src');
         if (srcParam && ['review', 'transfer'].includes(srcParam.trim())) {
           const sourceMap: Record<string, string> = { review: 'review_invite', transfer: 'transfer_listing' };
@@ -143,6 +146,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         } else {
           localStorage.setItem(REFERRAL_SOURCE_KEY, 'referral_link');
         }
+        // Clean ?ref= and ?src= from URL bar so it looks clean while browsing
+        params.delete('ref');
+        params.delete('src');
+        const cleanSearch = params.toString();
+        const cleanUrl = window.location.pathname + (cleanSearch ? `?${cleanSearch}` : '') + window.location.hash;
+        window.history.replaceState(null, '', cleanUrl);
       }
     } catch { /* ignore */ }
   }, []);
@@ -307,7 +316,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 .from('profiles')
                 .select('id')
                 .eq('linked_username', storedRefCode)
-                .single();
+                .maybeSingle();
               
               if (referrer && referrer.id !== created.id) {
                 // Capture IP for abuse detection (best-effort, non-blocking)
@@ -318,6 +327,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 } catch { /* IP capture is best-effort */ }
                 // Create the referral record (pending until referred user links account)
                 const storedSource = localStorage.getItem(REFERRAL_SOURCE_KEY) || 'referral_link';
+                const storedLanding = localStorage.getItem(REFERRAL_LANDING_KEY) || '/';
                 await supabase.from('referrals').insert({
                   referrer_user_id: referrer.id,
                   referred_user_id: created.id,
@@ -325,6 +335,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                   status: 'pending',
                   signup_ip: signupIp,
                   source: storedSource,
+                  landing_page: storedLanding,
                 });
                 // Update profile with referred_by
                 await supabase.from('profiles').update({ referred_by: storedRefCode }).eq('id', created.id);
@@ -335,6 +346,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }
             localStorage.removeItem(REFERRAL_KEY);
             localStorage.removeItem(REFERRAL_SOURCE_KEY);
+            localStorage.removeItem(REFERRAL_LANDING_KEY);
           }
           // Merge created profile with any cached linked player data
           const cached = localStorage.getItem(PROFILE_KEY);

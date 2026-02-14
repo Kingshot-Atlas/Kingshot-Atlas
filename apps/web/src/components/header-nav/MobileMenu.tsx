@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getCacheBustedAvatarUrl, UserProfile } from '../../contexts/AuthContext';
 import { getDisplayTier, SUBSCRIPTION_COLORS } from '../../utils/constants';
+import { useReferralLink } from '../../hooks/useReferralLink';
+import { useAnalytics } from '../../hooks/useAnalytics';
 
 const DISCORD_INVITE = import.meta.env.VITE_DISCORD_INVITE || 'https://discord.gg/cajcacDzGd';
 
@@ -21,6 +23,9 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isActive, user, profile, isAdmi
   const [showMobileToolsMenu, setShowMobileToolsMenu] = useState(false);
   const [showMobileCommunityMenu, setShowMobileCommunityMenu] = useState(false);
   const [showMobileRankingsMenu, setShowMobileRankingsMenu] = useState(false);
+  const [refCopied, setRefCopied] = useState(false);
+  const { eligible: referralEligible, copyCurrentPageLink } = useReferralLink();
+  const { trackFeature } = useAnalytics();
 
   const chevronStyle = (open: boolean): React.CSSProperties => ({
     transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
@@ -297,6 +302,47 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isActive, user, profile, isAdmi
         </svg>
         {t('common.joinDiscord')}
       </a>
+
+      {/* Copy Referral Link */}
+      {user && referralEligible && (
+        <button
+          onClick={async () => {
+            const ok = await copyCurrentPageLink();
+            if (ok) {
+              setRefCopied(true);
+              trackFeature('Referral Link Copied', { source: 'mobile_menu' });
+              setTimeout(() => setRefCopied(false), 2000);
+            }
+          }}
+          style={{
+            color: refCopied ? '#22c55e' : '#a855f7',
+            textDecoration: 'none',
+            fontSize: '1rem',
+            padding: '0.75rem 1rem',
+            borderRadius: '8px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            backgroundColor: refCopied ? '#22c55e15' : '#a855f715',
+            border: `1px solid ${refCopied ? '#22c55e40' : '#a855f740'}`,
+            width: '100%',
+            cursor: 'pointer',
+            textAlign: 'left',
+            transition: 'all 0.2s'
+          }}
+        >
+          {refCopied ? (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          ) : (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+            </svg>
+          )}
+          {refCopied ? t('common.copied', 'Copied!') : t('referral.copyLink', 'Copy Referral Link')}
+        </button>
+      )}
 
       {/* Sign Out */}
       {user && (

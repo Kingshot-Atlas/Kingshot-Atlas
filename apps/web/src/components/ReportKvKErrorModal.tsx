@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useToast } from './Toast';
 import { contributorService } from '../services/contributorService';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { logger } from '../utils/logger';
 
 interface ReportKvKErrorModalProps {
   kingdomNumber: number;
@@ -102,7 +103,7 @@ const ReportKvKErrorModal: React.FC<ReportKvKErrorModalProps> = ({
         });
 
       if (error) {
-        console.error('Failed to submit KvK error:', error.message, error.code, error.details, error.hint);
+        logger.error('Failed to submit KvK error:', error.message, error.code, error.details, error.hint);
         throw new Error(`Failed to submit: ${error.message}`);
       }
 
@@ -115,7 +116,7 @@ const ReportKvKErrorModal: React.FC<ReportKvKErrorModalProps> = ({
       onClose();
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      console.error('KvK error submission failed:', errorMessage, err);
+      logger.error('KvK error submission failed:', errorMessage, err);
       showToast(t('reportKvkError.failedToast'), 'error');
     } finally {
       setSubmitting(false);

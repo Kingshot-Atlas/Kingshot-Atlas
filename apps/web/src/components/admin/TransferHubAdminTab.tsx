@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { colors } from '../../utils/styles';
+import { logger } from '../../utils/logger';
 
 // =============================================
 // TYPES
@@ -158,7 +159,7 @@ export const TransferHubAdminTab: React.FC = () => {
       .from('kingdom_editors')
       .select('*')
       .order('created_at', { ascending: false });
-    if (error) { console.error('Error fetching editors:', error); return; }
+    if (error) { logger.error('Error fetching editors:', error); return; }
     if (!data || data.length === 0) { setEditors([]); return; }
 
     // Enrich with profile data
@@ -184,7 +185,7 @@ export const TransferHubAdminTab: React.FC = () => {
       .from('kingdom_funds')
       .select('*')
       .order('balance', { ascending: false });
-    if (error) { console.error('Error fetching funds:', error); return; }
+    if (error) { logger.error('Error fetching funds:', error); return; }
     if (!data || data.length === 0) { setFunds([]); return; }
 
     // Enrich with kingdom atlas score
@@ -207,7 +208,7 @@ export const TransferHubAdminTab: React.FC = () => {
       .from('transfer_profiles')
       .select('*')
       .order('last_active_at', { ascending: false });
-    if (error) { console.error('Error fetching profiles:', error); return; }
+    if (error) { logger.error('Error fetching profiles:', error); return; }
     if (!data || data.length === 0) { setProfiles([]); return; }
 
     // Enrich with auth profile username
@@ -258,7 +259,7 @@ export const TransferHubAdminTab: React.FC = () => {
         totalProfileViews: viewsRes.count || 0,
       });
     } catch (err) {
-      console.error('Error fetching stats:', err);
+      logger.error('Error fetching stats:', err);
     }
   };
 
@@ -270,7 +271,7 @@ export const TransferHubAdminTab: React.FC = () => {
         .select('*')
         .order('created_at', { ascending: false })
         .limit(100);
-      if (error) { console.error('Error fetching audit log:', error); return; }
+      if (error) { logger.error('Error fetching audit log:', error); return; }
       if (!data || data.length === 0) { setAuditLog([]); return; }
 
       // Enrich with performer and target names
@@ -296,7 +297,7 @@ export const TransferHubAdminTab: React.FC = () => {
         target_name: e.target_user_id ? profileMap.get(e.target_user_id) || 'Unknown' : '—',
       })));
     } catch (err) {
-      console.error('Error fetching audit log:', err);
+      logger.error('Error fetching audit log:', err);
     }
   };
 
@@ -324,7 +325,7 @@ export const TransferHubAdminTab: React.FC = () => {
         .update(updateData)
         .eq('id', editorId);
 
-      if (error) { console.error('Status update failed:', error); return; }
+      if (error) { logger.error('Status update failed:', error); return; }
 
       // Notify the editor
       await supabase.from('notifications').insert({
@@ -348,7 +349,7 @@ export const TransferHubAdminTab: React.FC = () => {
 
       await fetchEditors();
     } catch (err) {
-      console.error('Error updating editor status:', err);
+      logger.error('Error updating editor status:', err);
     } finally {
       setActionLoading(null);
       setConfirmAction(null);
@@ -364,7 +365,7 @@ export const TransferHubAdminTab: React.FC = () => {
         .delete()
         .eq('id', editorId);
 
-      if (error) { console.error('Remove failed:', error); return; }
+      if (error) { logger.error('Remove failed:', error); return; }
 
       await supabase.from('notifications').insert({
         user_id: editorUserId,
@@ -387,7 +388,7 @@ export const TransferHubAdminTab: React.FC = () => {
 
       await fetchEditors();
     } catch (err) {
-      console.error('Error removing editor:', err);
+      logger.error('Error removing editor:', err);
     } finally {
       setActionLoading(null);
       setConfirmAction(null);
@@ -403,7 +404,7 @@ export const TransferHubAdminTab: React.FC = () => {
         .update({ role: 'editor', status: 'active', activated_at: new Date().toISOString() })
         .eq('id', editorId);
 
-      if (error) { console.error('Promote failed:', error); return; }
+      if (error) { logger.error('Promote failed:', error); return; }
 
       await supabase.from('notifications').insert({
         user_id: editorUserId,
@@ -426,7 +427,7 @@ export const TransferHubAdminTab: React.FC = () => {
 
       await fetchEditors();
     } catch (err) {
-      console.error('Error promoting editor:', err);
+      logger.error('Error promoting editor:', err);
     } finally {
       setActionLoading(null);
       setConfirmAction(null);
@@ -481,7 +482,7 @@ export const TransferHubAdminTab: React.FC = () => {
 
       await fetchEditors();
     } catch (err) {
-      console.error('Bulk deactivate error:', err);
+      logger.error('Bulk deactivate error:', err);
     } finally {
       setActionLoading(null);
     }
@@ -495,10 +496,10 @@ export const TransferHubAdminTab: React.FC = () => {
         .from('kingdom_funds')
         .update({ admin_tier_override: tier })
         .eq('id', fundId);
-      if (error) { console.error('Grant tier failed:', error); return; }
+      if (error) { logger.error('Grant tier failed:', error); return; }
       await fetchFunds();
     } catch (err) {
-      console.error('Error granting tier:', err);
+      logger.error('Error granting tier:', err);
     } finally {
       setActionLoading(null);
     }
@@ -512,10 +513,10 @@ export const TransferHubAdminTab: React.FC = () => {
         .from('kingdom_funds')
         .update({ admin_tier_override: null })
         .eq('id', fundId);
-      if (error) { console.error('Revoke tier failed:', error); return; }
+      if (error) { logger.error('Revoke tier failed:', error); return; }
       await fetchFunds();
     } catch (err) {
-      console.error('Error revoking tier:', err);
+      logger.error('Error revoking tier:', err);
     } finally {
       setActionLoading(null);
     }
@@ -538,7 +539,7 @@ export const TransferHubAdminTab: React.FC = () => {
           .from('kingdom_funds')
           .update({ admin_tier_override: tier })
           .eq('id', existing.id);
-        if (error) { console.error('Grant tier to existing fund failed:', error); return; }
+        if (error) { logger.error('Grant tier to existing fund failed:', error); return; }
       } else {
         // Create new fund entry with override
         const { error } = await supabase
@@ -552,11 +553,11 @@ export const TransferHubAdminTab: React.FC = () => {
             is_recruiting: false,
             admin_tier_override: tier,
           });
-        if (error) { console.error('Create fund with tier failed:', error); return; }
+        if (error) { logger.error('Create fund with tier failed:', error); return; }
       }
       await fetchFunds();
     } catch (err) {
-      console.error('Error granting tier to kingdom:', err);
+      logger.error('Error granting tier to kingdom:', err);
     } finally {
       setActionLoading(null);
     }

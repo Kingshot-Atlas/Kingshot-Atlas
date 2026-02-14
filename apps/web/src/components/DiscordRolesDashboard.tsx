@@ -3,6 +3,7 @@
  * Admin interface for managing Discord role assignments
  */
 import React, { useState, useEffect } from 'react';
+import { logger } from '../utils/logger';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
@@ -84,7 +85,7 @@ export const DiscordRolesDashboard: React.FC = () => {
         setLinkedUsers(data.users || []);
       }
     } catch (error) {
-      console.error('Failed to load linked users:', error);
+      logger.error('Failed to load linked users:', error);
     } finally {
       setLoading(false);
     }
@@ -98,7 +99,7 @@ export const DiscordRolesDashboard: React.FC = () => {
         setSupporterUsers(data.users || []);
       }
     } catch (error) {
-      console.error('Failed to load supporter users:', error);
+      logger.error('Failed to load supporter users:', error);
     }
   };
 
@@ -111,9 +112,9 @@ export const DiscordRolesDashboard: React.FC = () => {
         body: JSON.stringify({ user_id: userId, is_linking: true })
       });
       const result = await res.json();
-      if (!result.success) console.warn('Supporter sync failed for user:', result.error);
+      if (!result.success) logger.warn('Supporter sync failed for user:', result.error);
     } catch (error) {
-      console.error('Supporter user sync failed:', error);
+      logger.error('Supporter user sync failed:', error);
     } finally {
       setSyncingUser(null);
     }
@@ -131,7 +132,7 @@ export const DiscordRolesDashboard: React.FC = () => {
       setSupporterBackfillResult(result);
       await loadSupporterUsers();
     } catch (error) {
-      console.error('Supporter backfill failed:', error);
+      logger.error('Supporter backfill failed:', error);
       setSupporterBackfillResult({
         success: false,
         message: 'Failed to run supporter backfill',
@@ -155,7 +156,7 @@ export const DiscordRolesDashboard: React.FC = () => {
       // Reload users to see updated status
       await loadLinkedUsers();
     } catch (error) {
-      console.error('Backfill failed:', error);
+      logger.error('Backfill failed:', error);
       setBackfillResult({
         success: false,
         message: 'Failed to run backfill',
@@ -186,7 +187,7 @@ export const DiscordRolesDashboard: React.FC = () => {
           : u
       ));
     } catch (error) {
-      console.error('Sync failed:', error);
+      logger.error('Sync failed:', error);
     } finally {
       setSyncingUser(null);
     }

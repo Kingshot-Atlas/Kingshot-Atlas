@@ -5,6 +5,7 @@ import { apiService, dataLoadError } from '../services/api';
 import { incrementStat } from '../components/UserAchievements';
 import { DataLoadError } from '../components/DataLoadError';
 import { LeaderboardSkeleton } from '../components/Skeleton';
+import { logger } from '../utils/logger';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { usePremium } from '../contexts/PremiumContext';
@@ -79,7 +80,7 @@ const Leaderboards: React.FC = () => {
       setKingdoms(data);
       setRankMovers(movers);
     } catch (error) {
-      console.error('Failed to load leaderboard:', error);
+      logger.error('Failed to load leaderboard:', error);
     } finally {
       setLoading(false);
     }

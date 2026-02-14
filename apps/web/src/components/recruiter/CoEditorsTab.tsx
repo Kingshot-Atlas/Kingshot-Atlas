@@ -41,7 +41,7 @@ const CoEditorsTab: React.FC<CoEditorsTabProps> = ({ editorInfo, team, onReloadD
         .from('profiles')
         .select('id, linked_kingdom, linked_tc_level, username, linked_username')
         .eq('linked_player_id', coEditorUserId.trim())
-        .single();
+        .maybeSingle();
 
       if (!profile) {
         showToast('No player found with that ID. Make sure they have linked their account.', 'error');

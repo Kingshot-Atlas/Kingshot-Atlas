@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import ParticleEffect from '../components/ParticleEffect';
 import UserAchievements from '../components/UserAchievements';
 import SubmissionHistory from '../components/SubmissionHistory';
@@ -8,6 +8,7 @@ import ProfileFeatures from '../components/ProfileFeatures';
 import LinkKingshotAccount from '../components/LinkKingshotAccount';
 import LinkDiscordAccount from '../components/LinkDiscordAccount';
 import PlayersFromMyKingdom from '../components/PlayersFromMyKingdom';
+import { logger } from '../utils/logger';
 import { ProfileEditForm, ProfileStatsGrid, AvatarWithFallback, ProfileLoadingFallback, SubscriptionSection, getTierBorderColor, getAuthProvider } from '../components/profile';
 import type { EditForm } from '../components/profile';
 import ReferralStats from '../components/ReferralStats';
@@ -61,6 +62,16 @@ const Profile: React.FC = () => {
 
   const themeColor = viewedProfile?.theme_color || '#22d3ee';
   
+  // Discord linked toast — detect ?discord=linked after redirect from DiscordCallback
+  const [searchParams, setSearchParams] = useSearchParams();
+  useEffect(() => {
+    if (searchParams.get('discord') === 'linked') {
+      showToast('Discord account linked successfully! 🎉', 'success');
+      searchParams.delete('discord');
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams, showToast]);
+
   // Welcome toast for new users (random username = new user)
   useEffect(() => {
     if (!hasShownWelcome && profile && !userId && isRandomUsername(profile.username)) {
@@ -145,7 +156,7 @@ const Profile: React.FC = () => {
               return;
             }
           } catch (err) {
-            console.error('Failed to fetch profile:', err);
+            logger.error('Failed to fetch profile:', err);
           }
         }
 
@@ -836,7 +847,7 @@ const Profile: React.FC = () => {
                     discordService.syncSettlerRole(user.id, true).catch(() => {});
                   }
                 } catch (err) {
-                  console.error('Link account error:', err);
+                  logger.error('Link account error:', err);
                   showToast('Failed to link account. Please try again.', 'error');
                 }
               }}

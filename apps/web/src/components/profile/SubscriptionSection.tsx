@@ -5,6 +5,7 @@ import { usePremium } from '../../contexts/PremiumContext';
 import { useToast } from '../Toast';
 import { getCustomerPortalUrl, createPortalSession } from '../../lib/stripe';
 import { useTranslation } from 'react-i18next';
+import { logger } from '../../utils/logger';
 
 interface SubscriptionSectionProps {
   themeColor: string;
@@ -72,7 +73,7 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({ themeColor, i
                 const portalUrl = await createPortalSession(user.id);
                 window.location.href = portalUrl;
               } catch (error) {
-                console.warn('API portal failed, trying direct URL:', error);
+                logger.warn('API portal failed, trying direct URL:', error);
                 const directPortalUrl = getCustomerPortalUrl();
                 if (directPortalUrl && directPortalUrl !== '/profile') {
                   window.location.href = directPortalUrl;
@@ -142,7 +143,7 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({ themeColor, i
                     showToast(result.message || 'No active subscription found.', 'info');
                   }
                 } catch (error) {
-                  console.error('Sync error:', error);
+                  logger.error('Sync error:', error);
                   showToast('Unable to sync subscription. Please email support@ks-atlas.com', 'error');
                 } finally {
                   setManagingSubscription(false);

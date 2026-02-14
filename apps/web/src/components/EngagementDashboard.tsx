@@ -10,6 +10,7 @@
  * - Heatmap reveals peak usage times for deployment/maintenance planning
  */
 import React, { useState, useEffect } from 'react';
+import { logger } from '../utils/logger';
 import {
   AreaChart, Area, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -279,7 +280,7 @@ export const EngagementDashboard: React.FC = () => {
       const data = analyticsService.getEngagementMetrics();
       setMetrics(data);
     } catch (error) {
-      console.error('Failed to load engagement metrics:', error);
+      logger.error('Failed to load engagement metrics:', error);
     } finally {
       setLoading(false);
     }

@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { logger } from '../utils/logger';
 
 interface CorrectionStats {
   totalSubmitted: number;
@@ -44,7 +45,7 @@ export function UserCorrectionStats({ userId, username: _username, themeColor = 
         .eq('submitted_by', userId);
 
       if (approvedError) {
-        console.warn('Failed to fetch correction stats:', approvedError);
+        logger.warn('Failed to fetch correction stats:', approvedError);
         setStats({ totalSubmitted: 0, totalApproved: 0, pendingReview: 0, recentCorrections: [] });
         setLoading(false);
         return;
@@ -79,7 +80,7 @@ export function UserCorrectionStats({ userId, username: _username, themeColor = 
         ].slice(0, 5),
       });
     } catch (err) {
-      console.warn('Error fetching correction stats:', err);
+      logger.warn('Error fetching correction stats:', err);
       setStats({
         totalSubmitted: 0,
         totalApproved: 0,

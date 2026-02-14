@@ -1,5 +1,6 @@
 // Discord OAuth2 Integration Service
 import { supabase } from '../lib/supabase';
+import { logger } from '../utils/logger';
 
 const DISCORD_CLIENT_ID = import.meta.env.VITE_DISCORD_CLIENT_ID || '';
 
@@ -61,26 +62,44 @@ class DiscordService {
         return { success: false, error: 'Not authenticated' };
       }
 
-      // Call backend to exchange code for user info and store it
+      // Call backend with retry (handles transient 400s from Discord token exchange)
       const API_URL = import.meta.env.VITE_API_URL || 'https://kingshot-atlas.onrender.com';
-      const session = await supabase.auth.getSession();
-      const response = await fetch(`${API_URL}/api/v1/discord/callback`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.data.session?.access_token}`,
-        },
-        body: JSON.stringify({ code, redirect_uri: getDiscordRedirectUri() }),
-      });
+      const MAX_RETRIES = 2;
+      let lastError = 'Failed to link Discord';
 
-      if (!response.ok) {
-        const error = await response.json();
-        return { success: false, error: error.detail || 'Failed to link Discord' };
+      for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+        if (attempt > 0) {
+          // Exponential backoff: 1s, 2s
+          await new Promise(r => setTimeout(r, attempt * 1000));
+          logger.info(`Discord callback retry attempt ${attempt}/${MAX_RETRIES}`);
+        }
+
+        const session = await supabase.auth.getSession();
+        const response = await fetch(`${API_URL}/api/v1/discord/callback`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.data.session?.access_token}`,
+          },
+          body: JSON.stringify({ code, redirect_uri: getDiscordRedirectUri() }),
+        });
+
+        if (response.ok) {
+          return { success: true };
+        }
+
+        const error = await response.json().catch(() => ({ detail: `HTTP ${response.status}` }));
+        lastError = error.detail || 'Failed to link Discord';
+
+        // Don't retry on auth errors (401) or config errors (503) — only transient failures
+        if (response.status === 401 || response.status === 503) {
+          return { success: false, error: lastError };
+        }
       }
 
-      return { success: true };
+      return { success: false, error: lastError };
     } catch (error) {
-      console.error('Discord callback error:', error);
+      logger.error('Discord callback error:', error);
       return { success: false, error: 'Failed to link Discord account' };
     }
   }
@@ -114,7 +133,7 @@ class DiscordService {
 
       return { success: true };
     } catch (error) {
-      console.error('Discord unlink error:', error);
+      logger.error('Discord unlink error:', error);
       return { success: false, error: 'Failed to unlink Discord account' };
     }
   }
@@ -151,7 +170,7 @@ class DiscordService {
 
       if (!response.ok) {
         const error = await response.json();
-        console.warn('Settler role sync failed:', error);
+        logger.warn('Settler role sync failed:', error);
         // Don't fail the linking process if role sync fails
         return { success: false, error: error.detail || 'Failed to sync Discord role' };
       }
@@ -159,14 +178,14 @@ class DiscordService {
       const result = await response.json();
       
       if (result.skipped) {
-        console.info('Settler role sync skipped:', result.reason);
+        logger.info('Settler role sync skipped:', result.reason);
         return { success: true, skipped: true };
       }
 
-      console.info('Settler role synced:', result);
+      logger.info('Settler role synced:', result);
       return { success: result.success };
     } catch (error) {
-      console.error('Settler role sync error:', error);
+      logger.error('Settler role sync error:', error);
       // Don't fail the linking process if role sync fails
       return { success: false, error: 'Failed to sync Discord role' };
     }

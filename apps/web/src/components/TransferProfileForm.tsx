@@ -198,7 +198,7 @@ const TransferProfileForm: React.FC<{
           .from('transfer_profiles')
           .select('*')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
         if (data && !fetchError) {
           setExistingProfile(data as ExistingProfile);

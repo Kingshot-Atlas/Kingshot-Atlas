@@ -7,6 +7,7 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import type { KvKCorrection } from './kvkCorrectionService';
 import { normalizeOutcome } from '../utils/outcomeUtils';
+import { logger } from '../utils/logger';
 
 export interface KvKHistoryRecord {
   kingdom_number: number;
@@ -90,7 +91,7 @@ class KvKHistoryService {
       
       store.put(serialized);
     } catch (err) {
-      console.warn('Failed to save to IndexedDB:', err);
+      logger.warn('Failed to save to IndexedDB:', err);
     }
   }
 
@@ -166,7 +167,7 @@ class KvKHistoryService {
             .range(offset, offset + batchSize - 1);
           
           if (batchError) {
-            console.warn('Supabase KvK batch fetch failed:', batchError);
+            logger.warn('Supabase KvK batch fetch failed:', batchError);
             hasMore = false;
             continue;
           }
@@ -197,7 +198,7 @@ class KvKHistoryService {
           return records;
         }
       } catch (err) {
-        console.warn('Supabase KvK fetch failed, trying IndexedDB fallback:', err);
+        logger.warn('Supabase KvK fetch failed, trying IndexedDB fallback:', err);
         // Try IndexedDB as offline fallback only when Supabase fails
         const indexedDBCache = await this.loadFromIndexedDB();
         if (indexedDBCache) {
@@ -376,7 +377,7 @@ class KvKHistoryService {
       const store = tx.objectStore('cache');
       store.delete(INDEXEDDB_CACHE_KEY);
     } catch (err) {
-      console.warn('Failed to clear IndexedDB cache:', err);
+      logger.warn('Failed to clear IndexedDB cache:', err);
     }
   }
 }

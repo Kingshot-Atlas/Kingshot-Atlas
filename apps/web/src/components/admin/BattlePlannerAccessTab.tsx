@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { colors } from '../../utils/styles';
+import { logger } from '../../utils/logger';
 
 interface AccessEntry {
   id: string;
@@ -71,7 +72,7 @@ export const BattlePlannerAccessTab: React.FC = () => {
         setAccessList([]);
       }
     } catch (err) {
-      console.error('Failed to fetch battle planner access list:', err);
+      logger.error('Failed to fetch battle planner access list:', err);
     } finally {
       setLoading(false);
     }
@@ -104,7 +105,7 @@ export const BattlePlannerAccessTab: React.FC = () => {
       const existingIds = new Set(accessList.map(a => a.user_id));
       setSearchResults((data || []).filter(d => !existingIds.has(d.id)));
     } catch (err) {
-      console.error('Search failed:', err);
+      logger.error('Search failed:', err);
       setSearchResults([]);
     } finally {
       setSearching(false);
@@ -125,7 +126,7 @@ export const BattlePlannerAccessTab: React.FC = () => {
       setSearchResults([]);
       await fetchAccessList();
     } catch (err) {
-      console.error('Failed to grant access:', err);
+      logger.error('Failed to grant access:', err);
     } finally {
       setAdding(null);
     }
@@ -143,7 +144,7 @@ export const BattlePlannerAccessTab: React.FC = () => {
       if (error) throw error;
       await fetchAccessList();
     } catch (err) {
-      console.error('Failed to revoke access:', err);
+      logger.error('Failed to revoke access:', err);
     } finally {
       setRemoving(null);
     }

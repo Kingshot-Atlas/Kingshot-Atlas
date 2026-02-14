@@ -3,6 +3,7 @@
  * Admin interface for managing Atlas Discord bot
  */
 import React, { useState, useEffect } from 'react';
+import { logger } from '../utils/logger';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
@@ -166,7 +167,7 @@ export const BotDashboard: React.FC = () => {
       if (mrAnalyticsRes.ok) setMultirallyAnalytics(await mrAnalyticsRes.json());
       if (redeemRes.ok) setRedeemStats(await redeemRes.json());
     } catch (e) {
-      console.error('Failed to load analytics:', e);
+      logger.error('Failed to load analytics:', e);
     } finally {
       setAnalyticsLoading(false);
     }
@@ -205,7 +206,7 @@ export const BotDashboard: React.FC = () => {
         }
       }
     } catch (error) {
-      console.error('Failed to load bot data:', error);
+      logger.error('Failed to load bot data:', error);
       setServerError(String(error));
     } finally {
       setLoading(false);
@@ -220,7 +221,7 @@ export const BotDashboard: React.FC = () => {
         setChannels(data.channels || []);
       }
     } catch (error) {
-      console.error('Failed to load channels:', error);
+      logger.error('Failed to load channels:', error);
     }
   };
 
@@ -301,7 +302,7 @@ export const BotDashboard: React.FC = () => {
         }
       }
     } catch (error) {
-      console.error('Failed to send message:', error);
+      logger.error('Failed to send message:', error);
       alert('Failed to send message');
     } finally {
       setSending(false);
@@ -354,7 +355,7 @@ export const BotDashboard: React.FC = () => {
           }, ...prev].slice(0, 20));
         }
       } catch (e) {
-        console.error('Scheduled message failed:', e);
+        logger.error('Scheduled message failed:', e);
       }
       // Remove from queue
       setScheduledMessages(prev => prev.filter(m => m.id !== id));
@@ -406,7 +407,7 @@ export const BotDashboard: React.FC = () => {
         alert('Failed to leave server');
       }
     } catch (error) {
-      console.error('Failed to leave server:', error);
+      logger.error('Failed to leave server:', error);
     }
   };
 

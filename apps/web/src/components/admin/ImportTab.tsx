@@ -7,6 +7,7 @@ import { apiService } from '../../services/api';
 import { kvkHistoryService } from '../../services/kvkHistoryService';
 import { supabase } from '../../lib/supabase';
 import { colors } from '../../utils/styles';
+import { logger } from '../../utils/logger';
 
 // Helper to create empty kingdom records
 const createEmptyKingdom = (kingdomNumber: number) => ({
@@ -225,7 +226,7 @@ const ImportTab: React.FC = () => {
         await executeImport(freshRows, [], missingKingdoms);
       }
     } catch (error) {
-      console.error('Duplicate check error:', error);
+      logger.error('Duplicate check error:', error);
       showToast('Error checking for duplicates', 'error');
     } finally {
       setImportProcessing(false);
@@ -256,7 +257,7 @@ const ImportTab: React.FC = () => {
             .from('kingdoms')
             .upsert(batch, { onConflict: 'kingdom_number' });
           if (createError) {
-            console.error('Failed to create missing kingdoms:', createError);
+            logger.error('Failed to create missing kingdoms:', createError);
             showToast(`Warning: Could not create some missing kingdoms`, 'error');
           }
         }
@@ -271,7 +272,7 @@ const ImportTab: React.FC = () => {
       // Disable expensive triggers during bulk insert
       setImportProgress({ current: completedOps, total: totalOps, phase: 'Preparing bulk insert...' });
       const { error: disableErr } = await supabase.rpc('disable_kvk_triggers');
-      if (disableErr) console.error('Could not disable triggers (non-fatal):', disableErr);
+      if (disableErr) logger.error('Could not disable triggers (non-fatal):', disableErr);
 
       // Phase 2: Insert fresh rows in batches
       if (freshRows.length > 0) {
@@ -280,7 +281,7 @@ const ImportTab: React.FC = () => {
           const batch = freshRows.slice(i, i + batchSize);
           const { error } = await supabase.from('kvk_history').insert(batch);
           if (error) {
-            console.error('Insert error:', error);
+            logger.error('Insert error:', error);
             await supabase.rpc('enable_kvk_triggers');
             showToast(`Insert failed at row ${i + 1}: ${error.message}`, 'error');
             setImportProcessing(false);
@@ -301,7 +302,7 @@ const ImportTab: React.FC = () => {
             .from('kvk_history')
             .upsert(batch, { onConflict: 'kingdom_number,kvk_number', ignoreDuplicates: false });
           if (error) {
-            console.error('Upsert error:', error);
+            logger.error('Upsert error:', error);
             await supabase.rpc('enable_kvk_triggers');
             showToast(`Replace failed at row ${i + 1}: ${error.message}`, 'error');
             setImportProcessing(false);
@@ -315,7 +316,7 @@ const ImportTab: React.FC = () => {
 
       // Re-enable triggers before recalc phases
       const { error: enableErr } = await supabase.rpc('enable_kvk_triggers');
-      if (enableErr) console.error('Could not re-enable triggers:', enableErr);
+      if (enableErr) logger.error('Could not re-enable triggers:', enableErr);
 
       // Phase 4: Log to import_history
       const kvkNums = [...new Set([...freshRows, ...replaceRows].map(r => r.kvk_number as number))];
@@ -335,7 +336,7 @@ const ImportTab: React.FC = () => {
       setImportProgress({ current: completedOps, total: totalOps, phase: 'Recalculating Atlas Scores...' });
       const { data: recalcData, error: recalcError } = await supabase.rpc('recalculate_all_kingdom_scores');
       const recalcUpdated = recalcError ? 0 : (recalcData?.[0]?.updated_count ?? 0);
-      if (recalcError) console.error('Auto-recalc error (non-fatal):', recalcError);
+      if (recalcError) logger.error('Auto-recalc error (non-fatal):', recalcError);
 
       // Phase 6: Auto-backfill score_history via edge function
       let backfillCreated = 0;
@@ -345,7 +346,7 @@ const ImportTab: React.FC = () => {
           body: { kvk_number: kvk }
         });
         if (bfError) {
-          console.error(`Backfill error for KvK #${kvk} (non-fatal):`, bfError);
+          logger.error(`Backfill error for KvK #${kvk} (non-fatal):`, bfError);
         } else {
           backfillCreated += bfData?.created ?? 0;
         }
@@ -362,7 +363,7 @@ const ImportTab: React.FC = () => {
             body: { kvk_number: kvk, action: 'recalculate_ranks', offset }
           });
           if (rankError) {
-            console.error(`Rank recalc error for KvK #${kvk} (non-fatal):`, rankError);
+            logger.error(`Rank recalc error for KvK #${kvk} (non-fatal):`, rankError);
             hasMore = false;
           } else {
             ranksFixed += rankData?.updated ?? 0;
@@ -398,7 +399,7 @@ const ImportTab: React.FC = () => {
         fetchImportHistory();
       }, 1500);
     } catch (error) {
-      console.error('Import error:', error);
+      logger.error('Import error:', error);
       if (supabase) await supabase.rpc('enable_kvk_triggers');
       showToast('Import failed unexpectedly', 'error');
     } finally {
@@ -413,7 +414,7 @@ const ImportTab: React.FC = () => {
     try {
       const { data: recalcData, error: recalcError } = await supabase.rpc('recalculate_all_kingdom_scores');
       if (recalcError) {
-        console.error('Recalc error:', recalcError);
+        logger.error('Recalc error:', recalcError);
         showToast(`Score recalculation failed: ${recalcError.message}`, 'error');
         setRecalculating(false);
         return;
@@ -423,7 +424,7 @@ const ImportTab: React.FC = () => {
 
       const { data: rankData, error: rankError } = await supabase.rpc('verify_and_fix_rank_consistency');
       if (rankError) {
-        console.error('Rank fix error:', rankError);
+        logger.error('Rank fix error:', rankError);
         showToast(`Ranks fix failed: ${rankError.message}`, 'error');
       }
       const ranksFixed = rankData?.filter((r: Record<string, unknown>) => (r.mismatches_found as number) > 0)
@@ -436,7 +437,7 @@ const ImportTab: React.FC = () => {
       setRecalcResult({ updated, avgScore: parseFloat(String(avgScore)), ranksFixed });
       showToast(`Recalculated ${updated} kingdoms (avg score: ${avgScore}). ${ranksFixed} rank(s) fixed.`, 'success');
     } catch (error) {
-      console.error('Recalc error:', error);
+      logger.error('Recalc error:', error);
       showToast('Score recalculation failed', 'error');
     } finally {
       setRecalculating(false);
@@ -479,7 +480,7 @@ const ImportTab: React.FC = () => {
           .upsert(batch, { onConflict: 'kingdom_number' });
         
         if (error) {
-          console.error('Batch insert error:', error);
+          logger.error('Batch insert error:', error);
           showToast(`Error creating kingdoms: ${error.message}`, 'error');
           return;
         }
@@ -492,7 +493,7 @@ const ImportTab: React.FC = () => {
       
       showToast(`✅ Created ${created} empty kingdom profiles (${startNum}-${endNum})`, 'success');
     } catch (error) {
-      console.error('Bulk create kingdoms error:', error);
+      logger.error('Bulk create kingdoms error:', error);
       showToast('Failed to create kingdoms', 'error');
     }
   };

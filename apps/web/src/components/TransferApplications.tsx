@@ -85,7 +85,7 @@ const ApplyModal: React.FC<{
         .from('transfer_profiles')
         .select('id')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (profileError || !profile) {
         setError('You need a transfer profile before applying. Create one first.');

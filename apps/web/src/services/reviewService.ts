@@ -1,5 +1,6 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { UserProfile } from '../contexts/AuthContext';
+import { logger } from '../utils/logger';
 
 const getSupabase = () => {
   if (!isSupabaseConfigured || !supabase) {
@@ -105,7 +106,7 @@ export const reviewService = {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching reviews:', error);
+      logger.error('Error fetching reviews:', error);
       return [];
     }
 
@@ -189,7 +190,7 @@ export const reviewService = {
       .single();
 
     if (error) {
-      console.error('Error creating review:', error);
+      logger.error('Error creating review:', error);
       return { success: false, error: 'Failed to submit review' };
     }
 
@@ -222,7 +223,7 @@ export const reviewService = {
       .eq('user_id', userId); // RLS also enforces this
 
     if (error) {
-      console.error('Error updating review:', error);
+      logger.error('Error updating review:', error);
       return { success: false, error: 'Failed to update review' };
     }
 
@@ -239,7 +240,7 @@ export const reviewService = {
       .eq('id', reviewId);
 
     if (error) {
-      console.error('Error deleting review:', error);
+      logger.error('Error deleting review:', error);
       return { success: false, error: 'Failed to delete review' };
     }
 
@@ -263,7 +264,7 @@ export const reviewService = {
         .eq('user_id', userId);
 
       if (error) {
-        console.error('Error removing vote:', error);
+        logger.error('Error removing vote:', error);
         return { success: false, error: 'Failed to remove vote', newVoteState: true };
       }
       return { success: true, newVoteState: false };
@@ -281,7 +282,7 @@ export const reviewService = {
         if (error.code === '23505') {
           return { success: true, newVoteState: true }; // Already voted
         }
-        console.error('Error adding vote:', error);
+        logger.error('Error adding vote:', error);
         return { success: false, error: 'Failed to add vote', newVoteState: false };
       }
       return { success: true, newVoteState: true };
@@ -303,7 +304,7 @@ export const reviewService = {
       .single();
 
     if (error && error.code !== 'PGRST116') { // PGRST116 = no rows
-      console.error('Error checking existing review:', error);
+      logger.error('Error checking existing review:', error);
     }
 
     return !!data;
@@ -320,7 +321,7 @@ export const reviewService = {
       .limit(limit);
 
     if (error) {
-      console.error('Error fetching all reviews:', error);
+      logger.error('Error fetching all reviews:', error);
       return [];
     }
 
@@ -369,7 +370,7 @@ export const reviewService = {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching user reviews:', error);
+      logger.error('Error fetching user reviews:', error);
       return [];
     }
 
@@ -411,7 +412,7 @@ export const reviewService = {
       .order('created_at', { ascending: true });
 
     if (error) {
-      console.error('Error fetching replies:', error);
+      logger.error('Error fetching replies:', error);
       return [];
     }
 
@@ -453,7 +454,7 @@ export const reviewService = {
       .single();
 
     if (error) {
-      console.error('Error creating reply:', error);
+      logger.error('Error creating reply:', error);
       return { success: false, error: 'Failed to submit reply' };
     }
 
@@ -470,7 +471,7 @@ export const reviewService = {
       .eq('id', replyId);
 
     if (error) {
-      console.error('Error deleting reply:', error);
+      logger.error('Error deleting reply:', error);
       return { success: false, error: 'Failed to delete reply' };
     }
 
@@ -495,7 +496,7 @@ export const reviewService = {
     const { data, error } = await query;
 
     if (error) {
-      console.error('Error fetching notifications:', error);
+      logger.error('Error fetching notifications:', error);
       return [];
     }
 
@@ -512,7 +513,7 @@ export const reviewService = {
       .eq('id', notificationId);
 
     if (error) {
-      console.error('Error marking notification read:', error);
+      logger.error('Error marking notification read:', error);
       return { success: false };
     }
 
@@ -530,7 +531,7 @@ export const reviewService = {
       .eq('is_read', false);
 
     if (error) {
-      console.error('Error marking all notifications read:', error);
+      logger.error('Error marking all notifications read:', error);
       return { success: false };
     }
 
@@ -548,7 +549,7 @@ export const reviewService = {
       .eq('is_read', false);
 
     if (error) {
-      console.error('Error fetching notification count:', error);
+      logger.error('Error fetching notification count:', error);
       return 0;
     }
 
@@ -597,10 +598,9 @@ export const reviewService = {
       .gt('helpful_count', 0)
       .order('helpful_count', { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
 
-    if (error) {
-      // No featured review found (likely no reviews with helpful votes)
+    if (error || !data) {
       return null;
     }
 
@@ -629,7 +629,7 @@ export const reviewService = {
       if (error.code === '23505') {
         return { success: false, error: 'You have already reported this review' };
       }
-      console.error('Error reporting review:', error);
+      logger.error('Error reporting review:', error);
       return { success: false, error: 'Failed to submit report' };
     }
 

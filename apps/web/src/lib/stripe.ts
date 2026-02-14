@@ -1,6 +1,8 @@
 // Stripe configuration for subscription management
 // See /docs/STRIPE_QUICK_SETUP.md for setup instructions
 
+import { logger } from '../utils/logger';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
 export const STRIPE_CONFIG = {
@@ -50,6 +52,7 @@ export const createCheckoutSession = async (
   
   if (!response.ok) {
     const error = await response.json();
+    logger.error(error.detail?.error || 'Failed to create checkout session');
     throw new Error(error.detail?.error || 'Failed to create checkout session');
   }
   
@@ -88,7 +91,7 @@ export const getCheckoutUrlAsync = async (
     const { checkout_url } = await createCheckoutSession(tier, billingCycle, userId, userEmail);
     return checkout_url;
   } catch (error) {
-    console.warn('API checkout failed, falling back to payment link:', error);
+    logger.error('API checkout failed, falling back to payment link:', error);
     // Fallback to direct payment link or Ko-fi
     return getCheckoutUrl(tier, billingCycle, userId);
   }
@@ -111,6 +114,7 @@ export const createPortalSession = async (userId: string): Promise<string> => {
   
   if (!response.ok) {
     const error = await response.json();
+    logger.error(error.detail?.error || 'Failed to create portal session');
     throw new Error(error.detail?.error || 'Failed to create portal session');
   }
   
@@ -134,6 +138,7 @@ export const syncSubscription = async (userId: string): Promise<{
   
   if (!response.ok) {
     const error = await response.json();
+    logger.error(error.detail?.error || 'Failed to sync subscription');
     throw new Error(error.detail?.error || 'Failed to sync subscription');
   }
   

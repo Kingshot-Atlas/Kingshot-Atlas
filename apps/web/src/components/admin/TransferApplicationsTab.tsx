@@ -1,33 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { supabase } from '../../lib/supabase';
 import { colors } from '../../utils/styles';
-
-interface TransferApp {
-  id: string;
-  transfer_profile_id: string;
-  applicant_user_id: string;
-  kingdom_number: number;
-  status: string;
-  applied_at: string;
-  viewed_at: string | null;
-  responded_at: string | null;
-  expires_at: string;
-  // Joined fields
-  applicant_username?: string;
-  applicant_kingdom?: number | null;
-  profile_tc_level?: number;
-  profile_power_million?: number;
-  profile_main_language?: string;
-}
-
-interface TransferAnalytics {
-  total: number;
-  byStatus: Record<string, number>;
-  byKingdom: { kingdom_number: number; count: number }[];
-  avgResponseTimeHours: number | null;
-  expiredCount: number;
-}
+import { useTransferApplications, useTransferAnalytics } from '../../hooks/useAdminQueries';
 
 const STATUS_COLORS: Record<string, { bg: string; border: string; text: string }> = {
   pending: { bg: `${colors.warning}10`, border: `${colors.warning}30`, text: colors.warning },
@@ -41,123 +15,11 @@ const STATUS_COLORS: Record<string, { bg: string; border: string; text: string }
 
 export const TransferApplicationsTab: React.FC = () => {
   const { t } = useTranslation();
-  const [apps, setApps] = useState<TransferApp[]>([]);
-  const [analytics, setAnalytics] = useState<TransferAnalytics | null>(null);
-  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('all');
   const [search, setSearch] = useState('');
 
-  useEffect(() => {
-    fetchApplications();
-    fetchAnalytics();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filter]);
-
-  const fetchApplications = async () => {
-    if (!supabase) return;
-    setLoading(true);
-    try {
-      let query = supabase
-        .from('transfer_applications')
-        .select('*')
-        .order('applied_at', { ascending: false })
-        .limit(200);
-
-      if (filter !== 'all') {
-        query = query.eq('status', filter);
-      }
-
-      const { data, error } = await query;
-      if (error) {
-        console.error('Error fetching transfer applications:', error);
-        setApps([]);
-        return;
-      }
-
-      // Enrich with profile data
-      if (data && data.length > 0) {
-        const profileIds = [...new Set(data.map(a => a.transfer_profile_id))];
-        const userIds = [...new Set(data.map(a => a.applicant_user_id))];
-
-        const [profilesRes, usersRes] = await Promise.all([
-          supabase.from('transfer_profiles').select('id, username, current_kingdom, tc_level, power_million, main_language').in('id', profileIds),
-          supabase.from('profiles').select('id, username, linked_kingdom').in('id', userIds),
-        ]);
-
-        const profileMap = new Map(profilesRes.data?.map(p => [p.id, p]) || []);
-        const userMap = new Map(usersRes.data?.map(u => [u.id, u]) || []);
-
-        const enriched: TransferApp[] = data.map(a => {
-          const tp = profileMap.get(a.transfer_profile_id);
-          const up = userMap.get(a.applicant_user_id);
-          return {
-            ...a,
-            applicant_username: tp?.username || up?.username || 'Unknown',
-            applicant_kingdom: tp?.current_kingdom || up?.linked_kingdom || null,
-            profile_tc_level: tp?.tc_level,
-            profile_power_million: tp?.power_million,
-            profile_main_language: tp?.main_language,
-          };
-        });
-        setApps(enriched);
-      } else {
-        setApps([]);
-      }
-    } catch (err) {
-      console.error('Error:', err);
-      setApps([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchAnalytics = async () => {
-    if (!supabase) return;
-    try {
-      const { data, error } = await supabase
-        .from('transfer_applications')
-        .select('id, status, kingdom_number, applied_at, responded_at, expires_at');
-
-      if (error || !data) return;
-
-      const byStatus: Record<string, number> = {};
-      const byKingdomMap: Record<number, number> = {};
-      let respondedCount = 0;
-      let totalResponseMs = 0;
-      let expiredCount = 0;
-
-      for (const app of data) {
-        byStatus[app.status] = (byStatus[app.status] || 0) + 1;
-        byKingdomMap[app.kingdom_number] = (byKingdomMap[app.kingdom_number] || 0) + 1;
-
-        if (app.responded_at && app.applied_at) {
-          const diff = new Date(app.responded_at).getTime() - new Date(app.applied_at).getTime();
-          if (diff > 0) {
-            totalResponseMs += diff;
-            respondedCount++;
-          }
-        }
-        if (app.status === 'expired' || (app.expires_at && new Date(app.expires_at) < new Date() && app.status === 'pending')) {
-          expiredCount++;
-        }
-      }
-
-      const byKingdom = Object.entries(byKingdomMap)
-        .map(([k, count]) => ({ kingdom_number: parseInt(k), count }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 10);
-
-      setAnalytics({
-        total: data.length,
-        byStatus,
-        byKingdom,
-        avgResponseTimeHours: respondedCount > 0 ? totalResponseMs / respondedCount / (1000 * 60 * 60) : null,
-        expiredCount,
-      });
-    } catch (err) {
-      console.error('Analytics error:', err);
-    }
-  };
+  const { data: apps = [], isLoading: loading } = useTransferApplications(filter, true);
+  const { data: analytics = null } = useTransferAnalytics(true);
 
   const filteredApps = search
     ? apps.filter(a =>

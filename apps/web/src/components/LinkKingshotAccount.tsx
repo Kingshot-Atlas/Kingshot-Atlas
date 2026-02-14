@@ -5,6 +5,7 @@ import { colors, neonGlow, transition, subscriptionColors } from '../utils/style
 import { Button, Card } from './shared';
 import { supabase } from '../lib/supabase';
 import { useTranslation } from 'react-i18next';
+import { logger } from '../utils/logger';
 
 // Get username color based on subscription tier (includes admin)
 const getUsernameColor = (tier: string): string => {
@@ -46,7 +47,7 @@ const KingshotAvatar: React.FC<{
     if (!url || imgLoaded || imgError) return;
     const timeout = setTimeout(() => {
       if (!imgLoaded) {
-        console.warn('Kingshot avatar timeout, showing fallback:', url);
+        logger.warn('Kingshot avatar timeout, showing fallback:', url);
         setImgError(true);
       }
     }, 5000);
@@ -107,7 +108,7 @@ const KingshotAvatar: React.FC<{
         }}
         onLoad={() => setImgLoaded(true)}
         onError={() => {
-          console.error('Kingshot avatar failed to load:', url);
+          logger.error('Kingshot avatar failed to load:', url);
           setImgError(true);
         }}
         referrerPolicy="no-referrer"

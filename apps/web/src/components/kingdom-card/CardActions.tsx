@@ -2,6 +2,7 @@ import React, { useState, memo } from 'react';
 import { Kingdom } from '../../types';
 import { useIsMobile } from '../../hooks/useMediaQuery';
 import { useTranslation } from 'react-i18next';
+import { logger } from '../../utils/logger';
 
 interface CardActionsProps {
   kingdom: Kingdom;
@@ -80,7 +81,7 @@ const CardActions: React.FC<CardActionsProps> = ({
           link.click();
         }
       } catch (err) {
-        console.error('Failed to generate image:', err);
+        logger.error('Failed to generate image:', err);
       }
     }
   };

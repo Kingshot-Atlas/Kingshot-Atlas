@@ -6,6 +6,7 @@
  */
 
 import { CURRENT_KVK as DEFAULT_CURRENT_KVK } from '../constants';
+import { logger } from '../utils/logger';
 import { getAuthHeaders } from './authHeaders';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
@@ -41,7 +42,7 @@ export async function getCurrentKvK(): Promise<number> {
     });
     
     if (!response.ok) {
-      console.warn('[ConfigService] Failed to fetch current KvK, using default');
+      logger.warn('[ConfigService] Failed to fetch current KvK, using default');
       return DEFAULT_CURRENT_KVK;
     }
     
@@ -53,7 +54,7 @@ export async function getCurrentKvK(): Promise<number> {
     
     return data.current_kvk;
   } catch (error) {
-    console.warn('[ConfigService] Error fetching current KvK:', error);
+    logger.warn('[ConfigService] Error fetching current KvK:', error);
     return DEFAULT_CURRENT_KVK;
   }
 }

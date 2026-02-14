@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { REFERRAL_TIER_COLORS, REFERRAL_TIER_LABELS, ReferralTier } from '../utils/constants';
+import { logger } from '../utils/logger';
 
 interface ReferralMetrics {
   totalReferrals: number;
@@ -114,7 +115,7 @@ export const ReferralFunnel: React.FC = () => {
         sourceBreakdown: Array.from(sourceCounts.entries()).map(([source, count]) => ({ source, count })),
       });
     } catch (err) {
-      console.error('Failed to fetch referral metrics:', err);
+      logger.error('Failed to fetch referral metrics:', err);
     } finally {
       setLoading(false);
     }

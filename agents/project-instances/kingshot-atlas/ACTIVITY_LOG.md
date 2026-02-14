@@ -3,6 +3,64 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-19 10:00 | Platform Engineer | COMPLETED
+Task: React Query Migration Phase 1 (ADR-022) — convert data-fetching useEffect patterns to useQuery hooks
+Files: `src/hooks/useAdminQueries.ts` (new), `src/hooks/__tests__/useAdminQueries.test.ts` (new), `src/components/WebhookMonitor.tsx`, `src/components/admin/TransferApplicationsTab.tsx`, `src/pages/AdminDashboard.tsx`, `src/pages/Admin.tsx`, `src/contexts/PremiumContext.tsx`, `DECISIONS.md`, `STATUS_SNAPSHOT.md`
+Changes:
+1. **Created `useAdminQueries.ts`** — 12 React Query hooks with query key factory: pending counts (60s poll), unread emails (30s poll), submissions, claims, feedback, webhook events/stats, transfer applications/analytics
+2. **WebhookMonitor.tsx** — Replaced manual fetch + setInterval with `useWebhookEvents` + `useWebhookStats` hooks (auto 30s polling)
+3. **TransferApplicationsTab.tsx** — Removed ~160 lines of inline fetch logic, replaced with `useTransferApplications` + `useTransferAnalytics`
+4. **AdminDashboard.tsx** — Converted pending counts, unread email count, and feedback to React Query hooks. Removed `fetchPendingCounts`, `fetchFeedback`, `fetchFeedbackCounts` functions. All mutation call sites use `invalidatePendingCounts()` / `invalidateFeedback()`
+5. **Admin.tsx** — Converted submissions + claims to `useAdminSubmissions` / `useAdminClaims`. Removed old fetch functions
+6. **PremiumContext.tsx** — Converted subscription tier fetch to `useQuery` with cache + `useMemo` admin detection. `refreshSubscription` now uses `queryClient.invalidateQueries`
+7. **Tests** — 5 tests passing: query key structure, enabled/disabled behavior, invalidation functions
+8. **ADR-022** updated to "Phase 1 Complete", **STATUS_SNAPSHOT** updated
+Result: Build passes ✅, tsc --noEmit clean ✅, 5 tests pass ✅. eslint-disable count: 16 → 9 (remaining are non-fetch: canvas, keyboard, useMemo).
+
+## 2026-02-14 09:30 | Platform Engineer | COMPLETED
+Task: Auth hardening, codebase-wide .single() audit, Transfer Hub polish, Discord UX improvements
+Files: `AuthCallback.tsx`, `discordService.ts`, `TransferReadinessScore.tsx`, `TransferHubLanding.tsx`, `Profile.tsx`, `EditorClaiming.tsx`, `RecruiterDashboard.tsx`, `UserAchievements.tsx`, `TransferApplications.tsx`, `TransferProfileForm.tsx`, `CoEditorsTab.tsx`, `notificationService.ts`, `reviewService.ts`, `AuthContext.tsx`, `TransferBoard.tsx`
+Changes:
+1. **AuthCallback.tsx** — Added Sentry breadcrumbs (mount, redirect, timeout), session polling every 2s (multi-tab fix), "Try Again" button, helpful error context message
+2. **Codebase .single() audit** — Fixed 17 risky `.single()` → `.maybeSingle()` across 9 files (prevents 406 PostgREST errors when 0 rows returned)
+3. **discordService.ts** — Added retry logic with exponential backoff (up to 2 retries) for Discord link callback, handles transient 400s
+4. **TransferReadinessScore.tsx** — Added skeleton loading state with pulsing animation
+5. **TransferHubLanding.tsx** — Added `rocketFloat` CSS animation for hero rocket emoji
+6. **Profile.tsx** — Added "Discord linked successfully" toast on redirect from DiscordCallback (?discord=linked param)
+7. **Transfer Hub audit** — Verified all queries have proper error handling, no additional fixes needed
+Result: Build passes ✅. 15 files changed, zero breaking changes.
+
+## 2026-02-16 | Platform Engineer | COMPLETED
+Task: Backend refactor — admin.py extraction (73KB → 8 sub-modules) + ADR documentation + ESLint audit
+Files: `api/routers/admin/` (new package: `__init__.py`, `_shared.py`, `analytics.py`, `exports.py`, `webhooks.py`, `subscriptions.py`, `scores.py`, `config_routes.py`, `email_routes.py`), `DECISIONS.md`
+Changes:
+1. **Extracted** `admin.py` (1941 lines, 73KB) into `admin/` package with 8 sub-modules — each 100–300 lines
+2. **Verified** all 35 admin routes load correctly, `main.py` import unchanged
+3. **Audited** 16 `eslint-disable` comments — all `react-hooks/exhaustive-deps`, all intentional fetch-on-mount patterns blocked on React Query migration
+4. **Documented** ADR-021 (Admin API Package Extraction), ADR-022 (React Query Migration — deferred), ADR-023 (Dual Database Architecture — acknowledged), ADR-024 (Frontend Console Logging Standard), ADR-025 (Test Coverage Strategy — deferred)
+Result: Backend import verified ✅. Zero breaking changes — all API paths preserved. 5 ADRs added to DECISIONS.md.
+
+## 2026-02-16 | Product Engineer | COMPLETED
+Task: Frontend console.log cleanup — replace all raw console.* calls with logger.ts utility + CORS header fix
+Files: 30+ frontend files modified across `components/`, `pages/`, `services/`, `utils/`, `lib/`
+Changes:
+1. **Replaced** 60+ `console.log/warn/error/info/debug` calls with `logger.*` equivalents across entire frontend
+2. **Fixed** `logger.loginfo` and `logger.warnlog` collisions from `replace_all` operation in `discordService.ts` and `sharing.ts`
+3. **Fixed** misplaced `logger` imports in `EngagementDashboard.tsx` and `outcomeUtils.ts` (inside JSDoc comments)
+4. **Removed** `X-User-Id` from CORS `allow_headers` in `main.py` (security: misleading header in production)
+5. **Verified** zero remaining `console.*` calls in frontend codebase via grep
+Result: Build passes ✅ (`npm run build` + `npx tsc --noEmit`). Production console is now clean — only errors emit.
+
+## 2026-02-14 09:15 | Platform Engineer | COMPLETED
+Task: Fix 4 user-reported bugs — rocket emoji, auth callback timeout, Discord login, transfer_profiles 406
+Files: `TransferHubLanding.tsx`, `AuthCallback.tsx`, `TransferReadinessScore.tsx`, `TransferBoard.tsx`
+Changes:
+1. **Fixed** corrupted rocket emoji (�) in Transfer Hub landing page hero icon and CTA button
+2. **Fixed** "Sign-in is taking longer than expected" for multi-tab and slow mobile users — added session polling every 2s + increased timeout from 10s to 20s in AuthCallback
+3. **Fixed** transfer_profiles 406 error — changed `.single()` to `.maybeSingle()` in TransferReadinessScore (thrown when user has no transfer profile yet)
+4. **Fixed** same `.single()` → `.maybeSingle()` in TransferBoard for both transfer_profiles and kingdom_editors queries
+Result: Build passes ✅. All 4 bugs addressed. Discord callback 400 is transient (OAuth code expiry/reuse) — no code change needed, user confirmed it self-resolved on retry.
+
 ## 2026-02-13 17:06 | Product Engineer | COMPLETED
 Task: Co-Editor & Recruiter Dashboard polish — Realtime, badges, analytics, verification
 Files: `RecruiterDashboard.tsx`, `TransferBoard.tsx`, `EditorClaiming.tsx` + Supabase Realtime publication

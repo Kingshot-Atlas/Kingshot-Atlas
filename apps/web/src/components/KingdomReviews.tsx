@@ -6,6 +6,7 @@ import { getDisplayTier, SUBSCRIPTION_COLORS, SubscriptionTier, ReferralTier, is
 import ReferralBadge from './ReferralBadge';
 import { colors, neonGlow } from '../utils/styles';
 import { reviewService, ReviewWithVoteStatus, ReviewReply, Review, ReportReason } from '../services/reviewService';
+import { logger } from '../utils/logger';
 import { isSupabaseConfigured } from '../lib/supabase';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useTranslation } from 'react-i18next';
@@ -94,7 +95,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
         setHasExistingReview(hasReview);
       }
     } catch (err) {
-      console.error('Error loading reviews:', err);
+      logger.error('Error loading reviews:', err);
     } finally {
       setLoading(false);
     }

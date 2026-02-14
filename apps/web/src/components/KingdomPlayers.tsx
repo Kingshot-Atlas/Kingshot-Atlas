@@ -6,6 +6,7 @@ import { colors, neonGlow } from '../utils/styles';
 import { getDisplayTier, SUBSCRIPTION_COLORS, SubscriptionTier, ReferralTier } from '../utils/constants';
 import ReferralBadge from './ReferralBadge';
 import { Card } from './shared';
+import { logger } from '../utils/logger';
 import { useTranslation } from 'react-i18next';
 
 interface PlayerProfile {
@@ -111,7 +112,7 @@ const KingdomPlayers: React.FC<KingdomPlayersProps> = ({
 
         setPlayers(sortedPlayers);
       } catch (err) {
-        console.error('Failed to fetch kingdom players:', err);
+        logger.error('Failed to fetch kingdom players:', err);
         setError('Failed to load players');
       } finally {
         setLoading(false);

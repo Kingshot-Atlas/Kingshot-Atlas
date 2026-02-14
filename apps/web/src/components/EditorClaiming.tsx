@@ -129,7 +129,7 @@ const NominateForm: React.FC<{
         .select('id, status')
         .eq('kingdom_number', linkedKingdom)
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (existingClaim) {
         setError('You already have an editor claim for this kingdom.');
@@ -143,7 +143,7 @@ const NominateForm: React.FC<{
         .eq('kingdom_number', linkedKingdom)
         .eq('status', 'active')
         .eq('role', 'editor')
-        .single();
+        .maybeSingle();
 
       if (activeEditor) {
         setError('This kingdom already has an active primary editor.');
@@ -571,7 +571,7 @@ const EndorseButton: React.FC<{
       .select('id')
       .eq('editor_claim_id', claimId)
       .eq('endorser_user_id', user.id)
-      .single();
+      .maybeSingle();
     setAlreadyEndorsed(!!data);
   }, [user, claimId]);
 
@@ -716,7 +716,7 @@ const EditorClaiming: React.FC<{
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       setMyClaim(data || null);
     } catch {
@@ -765,7 +765,7 @@ const EditorClaiming: React.FC<{
         .from('profiles')
         .select('linked_username, username')
         .eq('id', myClaim.assigned_by!)
-        .single();
+        .maybeSingle();
       if (data) setInviterName(data.linked_username || data.username || null);
     };
     fetchInviter();

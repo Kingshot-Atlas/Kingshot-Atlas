@@ -6,10 +6,8 @@
  * - Failed webhooks = lost revenue and broken subscriptions
  * - Health indicator prevents issues from going unnoticed
  */
-import React, { useState, useEffect } from 'react';
-import { getAuthHeaders } from '../services/authHeaders';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+import React, { useState } from 'react';
+import { useWebhookEvents, useWebhookStats } from '../hooks/useAdminQueries';
 
 interface WebhookEvent {
   id: string;
@@ -236,49 +234,14 @@ const EventRow: React.FC<{ event: WebhookEvent }> = ({ event }) => {
 
 // Main Webhook Monitor Component
 export const WebhookMonitor: React.FC = () => {
-  const [events, setEvents] = useState<WebhookEvent[]>([]);
-  const [stats, setStats] = useState<WebhookStats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'processed' | 'failed'>('all');
 
-  useEffect(() => {
-    loadData();
-    const interval = setInterval(loadData, 30000); // Refresh every 30s
-    return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filter]);
+  const { data: events = [], isLoading: eventsLoading, error: eventsError, refetch: refetchEvents } = useWebhookEvents(filter);
+  const { data: stats = null, error: statsError, refetch: refetchStats } = useWebhookStats();
 
-  const loadData = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const authHeaders = await getAuthHeaders({ requireAuth: false });
-      const opts = { headers: authHeaders };
-      const statusParam = filter !== 'all' ? `&status=${filter}` : '';
-      const [eventsRes, statsRes] = await Promise.all([
-        fetch(`${API_URL}/api/v1/admin/webhooks/events?limit=50${statusParam}`, opts),
-        fetch(`${API_URL}/api/v1/admin/webhooks/stats`, opts)
-      ]);
-
-      if (eventsRes.ok) {
-        const data = await eventsRes.json();
-        setEvents(data.events || []);
-      } else {
-        setError(`Events: ${eventsRes.status}`);
-      }
-      if (statsRes.ok) {
-        setStats(await statsRes.json());
-      } else {
-        setError(prev => prev ? `${prev}, Stats: ${statsRes.status}` : `Stats: ${statsRes.status}`);
-      }
-    } catch (error) {
-      console.error('Failed to load webhook data:', error);
-      setError('Failed to connect to API');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const loading = eventsLoading;
+  const error = eventsError || statsError ? 'Failed to load webhook data' : null;
+  const loadData = () => { refetchEvents(); refetchStats(); };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -296,7 +259,7 @@ export const WebhookMonitor: React.FC = () => {
           alignItems: 'center'
         }}>
           <span>⚠️ {error}</span>
-          <button onClick={() => { setError(null); loadData(); }} style={{ background: 'none', border: '1px solid #ef444450', borderRadius: '4px', color: '#ef4444', padding: '0.2rem 0.5rem', cursor: 'pointer', fontSize: '0.75rem' }}>Retry</button>
+          <button onClick={() => { loadData(); }} style={{ background: 'none', border: '1px solid #ef444450', borderRadius: '4px', color: '#ef4444', padding: '0.2rem 0.5rem', cursor: 'pointer', fontSize: '0.75rem' }}>Retry</button>
         </div>
       )}
       {/* Header */}

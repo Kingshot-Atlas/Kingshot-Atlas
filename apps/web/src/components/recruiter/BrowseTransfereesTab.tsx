@@ -8,6 +8,7 @@ import { FONT_DISPLAY, colors } from '../../utils/styles';
 import { useToast } from '../Toast';
 import type { EditorInfo, FundInfo, TransfereeProfile } from './types';
 import { formatTCLevel, LANGUAGE_OPTIONS, inputStyle } from './types';
+import { getTransferGroup, getTransferGroupLabel } from '../../config/transferGroups';
 
 const BROWSE_PAGE_SIZE = 25;
 
@@ -22,6 +23,9 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
   const { t } = useTranslation();
   const { showToast } = useToast();
   const { trackFeature } = useAnalytics();
+
+  // Determine recruiter's transfer group for filtering
+  const transferGroup = editorInfo ? getTransferGroup(editorInfo.kingdom_number) : null;
 
   const [transferees, setTransferees] = useState<TransfereeProfile[]>([]);
   const [loadingTransferees, setLoadingTransferees] = useState(false);
@@ -51,7 +55,9 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
         table: 'transfer_profiles',
       }, (payload) => {
         const newProfile = payload.new as TransfereeProfile;
-        if (newProfile.is_active && newProfile.visible_to_recruiters && newProfile.current_kingdom !== editorInfo?.kingdom_number) {
+        // Filter by transfer group + exclude own kingdom
+        const inGroup = !transferGroup || (newProfile.current_kingdom >= transferGroup[0] && newProfile.current_kingdom <= transferGroup[1]);
+        if (newProfile.is_active && newProfile.visible_to_recruiters && newProfile.current_kingdom !== editorInfo?.kingdom_number && inGroup) {
           setTransferees(prev => [newProfile, ...prev]);
         }
       })
@@ -71,12 +77,19 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
     setLoadingTransferees(true);
     try {
       const offset = loadMore ? transferees.length : 0;
-      const { data } = await supabase
+      let query = supabase
         .from('transfer_profiles')
         .select('id, username, current_kingdom, tc_level, power_million, power_range, main_language, kvk_availability, saving_for_kvk, group_size, player_bio, looking_for, is_anonymous, is_active, visible_to_recruiters, last_active_at')
         .eq('is_active', true)
         .eq('visible_to_recruiters', true)
-        .neq('current_kingdom', editorInfo.kingdom_number)
+        .neq('current_kingdom', editorInfo.kingdom_number);
+
+      // Filter by transfer group — only show players from kingdoms in the same group
+      if (transferGroup) {
+        query = query.gte('current_kingdom', transferGroup[0]).lte('current_kingdom', transferGroup[1]);
+      }
+
+      const { data } = await query
         .order('created_at', { ascending: false })
         .range(offset, offset + BROWSE_PAGE_SIZE - 1);
       const results = (data as TransfereeProfile[]) || [];
@@ -108,6 +121,27 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
 
   return (
     <div>
+      {/* Transfer Group Info Banner */}
+      {transferGroup && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '0.4rem',
+          padding: '0.4rem 0.75rem',
+          backgroundColor: '#22d3ee08',
+          border: '1px solid #22d3ee20',
+          borderRadius: '8px',
+          marginBottom: '0.75rem',
+          fontSize: '0.7rem',
+        }}>
+          <span>🔀</span>
+          <span style={{ color: '#22d3ee', fontWeight: '600' }}>
+            {t('recruiter.transferGroupFilter', 'Transfer Group')}: {getTransferGroupLabel(transferGroup)}
+          </span>
+          <span style={{ color: colors.textMuted }}>
+            {t('recruiter.showingPlayersInGroup', 'Showing players from kingdoms in your transfer group')}
+          </span>
+        </div>
+      )}
+
       {/* Budget Banner */}
       {fund && (
         <div style={{

@@ -4,6 +4,7 @@ import { useIsMobile } from '../hooks/useMediaQuery';
 import { triggerHaptic } from '../hooks/useHaptic';
 import { colors } from '../utils/styles';
 import { Button } from './shared';
+import { logger } from '../utils/logger';
 
 interface ShareComparisonScreenshotProps {
   targetRef: React.RefObject<HTMLElement | null>;
@@ -40,7 +41,7 @@ const ShareComparisonScreenshot: React.FC<ShareComparisonScreenshotProps> = ({
       canvasRef.current = canvas;
       return canvas;
     } catch (error) {
-      console.error('Screenshot capture failed:', error);
+      logger.error('Screenshot capture failed:', error);
       return null;
     } finally {
       setIsCapturing(false);
@@ -113,7 +114,7 @@ const ShareComparisonScreenshot: React.FC<ShareComparisonScreenshotProps> = ({
           } catch (err) {
             // User cancelled or share failed
             if ((err as Error).name !== 'AbortError') {
-              console.error('Share failed:', err);
+              logger.error('Share failed:', err);
             }
           }
         }
@@ -133,7 +134,7 @@ const ShareComparisonScreenshot: React.FC<ShareComparisonScreenshotProps> = ({
           canvasRef.current = null; // Clear the canvas ref to prevent duplicate references
           return;
         } catch (err) {
-          console.error('Clipboard write failed:', err);
+          logger.error('Clipboard write failed:', err);
         }
       }
       

@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { isReferralEligible } from '../utils/constants';
 import { useTranslation } from 'react-i18next';
 import { incrementStat } from './UserAchievements';
+import { logger } from '../utils/logger';
 import {
   copyToClipboard,
   copyImageToClipboard,
@@ -86,7 +87,14 @@ const ShareButton: React.FC<ShareButtonProps> = ({ type, kingdomData, compareDat
       if (refParam) params.ref = refParam;
       url = generateShareUrl('/compare', params);
     } else {
-      url = window.location.href;
+      // For any other page, still append ?ref= if eligible
+      if (refParam) {
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.set('ref', refParam);
+        url = currentUrl.toString();
+      } else {
+        url = window.location.href;
+      }
     }
 
     const success = await copyToClipboard(url);
@@ -153,7 +161,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({ type, kingdomData, compareDat
         trackFeature('Share Image Downloaded', { type });
       }
     } catch (err) {
-      console.error('Failed to generate image:', err);
+      logger.error('Failed to generate image:', err);
     }
   }, [type, kingdomData, compareData, showFeedback, trackFeature, isMobile]);
 
@@ -188,7 +196,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({ type, kingdomData, compareDat
       showFeedback('downloaded');
       trackFeature('Share Image Downloaded', { type });
     } catch (err) {
-      console.error('Failed to generate image:', err);
+      logger.error('Failed to generate image:', err);
     }
   }, [type, kingdomData, compareData, showFeedback, trackFeature]);
 

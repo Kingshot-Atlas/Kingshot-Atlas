@@ -9,6 +9,8 @@
  * - Invasion: L+L (lost both phases)
  */
 
+import { logger } from './logger';
+
 export type StandardOutcome = 'Domination' | 'Reversal' | 'Comeback' | 'Invasion' | 'Bye';
 export type PrepResult = 'W' | 'L' | 'B';
 export type BattleResult = 'W' | 'L' | 'B';
@@ -95,7 +97,7 @@ export function normalizeOutcome(outcome: string | null | undefined, prep?: stri
     
     default:
       // Unknown value - try to infer from prep/battle if available
-      console.warn(`Unknown outcome value: "${outcome}"`);
+      logger.warn(`Unknown outcome value: "${outcome}"`);
       return 'Invasion';
   }
 }

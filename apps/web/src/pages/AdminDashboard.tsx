@@ -1,5 +1,6 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useAdminPendingCounts, useUnreadEmailCount, useAdminFeedback, useAdminFeedbackCounts, useInvalidateAdmin } from '../hooks/useAdminQueries';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/Toast';
 import { kingdomKeys } from '../hooks/useKingdoms';
@@ -47,7 +48,7 @@ import {
   RejectModal,
   SkeletonGrid,
   type AdminTab,
-  type PendingCounts,
+
   type ApiHealth,
   type Submission,
   type Claim,
@@ -64,6 +65,10 @@ const AdminDashboard: React.FC = () => {
   const { user, profile } = useAuth();
   const { showToast } = useToast();
   const queryClient = useQueryClient();
+
+  // Check if user is admin (must be declared before React Query hooks that depend on it)
+  const isAdmin = profile?.username && ADMIN_USERNAMES.includes(profile.username.toLowerCase());
+
   const [activeTab, setActiveTab] = useState<AdminTab>('analytics');
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [claims, setClaims] = useState<Claim[]>([]);
@@ -78,25 +83,20 @@ const AdminDashboard: React.FC = () => {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('pending');
-  const [pendingCounts, setPendingCounts] = useState<PendingCounts>({ submissions: 0, claims: 0, corrections: 0, transfers: 0, kvkErrors: 0, feedback: 0 });
-  const [feedbackItems, setFeedbackItems] = useState<Array<{ id: string; type: string; message: string; email: string | null; status: string; page_url: string | null; created_at: string; admin_notes: string | null }>>([]); 
-  const [feedbackCounts, setFeedbackCounts] = useState<{ new: number; reviewed: number; in_progress: number; resolved: number; closed: number }>({ new: 0, reviewed: 0, in_progress: 0, resolved: 0, closed: 0 });
+  // React Query hooks for polling data (ADR-022 migration)
+  const { data: pendingCounts = { submissions: 0, claims: 0, corrections: 0, transfers: 0, kvkErrors: 0, feedback: 0 } } = useAdminPendingCounts(!!isAdmin);
+  const { data: unreadEmailCount = 0 } = useUnreadEmailCount(!!isAdmin);
+  const { data: feedbackItems = [] } = useAdminFeedback(filter, !!isAdmin && activeTab === 'feedback');
+  const { data: feedbackCounts = { new: 0, reviewed: 0, in_progress: 0, resolved: 0, closed: 0 } } = useAdminFeedbackCounts(!!isAdmin);
+  const { invalidateFeedback, invalidatePendingCounts } = useInvalidateAdmin();
   const [syncingSubscriptions, setSyncingSubscriptions] = useState(false);
   const [currentKvK, setCurrentKvK] = useState<number>(CURRENT_KVK);
   const [incrementingKvK, setIncrementingKvK] = useState(false);
   const [apiHealth, setApiHealth] = useState<ApiHealth>({ api: 'loading', supabase: 'loading', stripe: 'loading' });
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
-  const [unreadEmailCount, setUnreadEmailCount] = useState(0);
   const [dashboardSearch, setDashboardSearch] = useState('');
 
-  // Check if user is admin
-  const isAdmin = profile?.username && ADMIN_USERNAMES.includes(profile.username.toLowerCase());
-
-  // Fetch pending counts on mount
-  useEffect(() => {
-    if (isAdmin) fetchPendingCounts();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAdmin]);
+  // Pending counts now managed by useAdminPendingCounts React Query hook
 
   // Fetch current KvK from API on mount
   useEffect(() => {
@@ -110,31 +110,13 @@ const AdminDashboard: React.FC = () => {
     if (!isAdmin || activeTab !== 'analytics') return;
     const interval = setInterval(() => {
       fetchAnalytics();
-      fetchPendingCounts();
+      invalidatePendingCounts();
     }, 60000);
     return () => clearInterval(interval);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdmin, activeTab]);
 
-  // S1.2: Poll unread email count every 30 seconds
-  const fetchUnreadEmailCount = async () => {
-    try {
-      const authHeaders = await getAuthHeaders({ requireAuth: false });
-      const res = await fetch(`${API_URL}/api/v1/admin/email/stats`, { headers: authHeaders });
-      if (res.ok) {
-        const data = await res.json();
-        setUnreadEmailCount(data.unread || 0);
-      }
-    } catch { /* silent */ }
-  };
-
-  useEffect(() => {
-    if (!isAdmin) return;
-    fetchUnreadEmailCount();
-    const interval = setInterval(fetchUnreadEmailCount, 30000);
-    return () => clearInterval(interval);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAdmin]);
+  // Unread email count now managed by useUnreadEmailCount React Query hook (30s polling)
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -175,9 +157,7 @@ const AdminDashboard: React.FC = () => {
       fetchKvkErrors();
     } else if (activeTab === 'new-kingdoms') {
       fetchNewKingdomSubmissions();
-    } else if (activeTab === 'feedback') {
-      fetchFeedback();
-      fetchFeedbackCounts();
+    // feedback tab is now handled by useAdminFeedback/useAdminFeedbackCounts React Query hooks
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, filter, isAdmin]);
@@ -198,13 +178,13 @@ const AdminDashboard: React.FC = () => {
       const { data, error } = await query;
       
       if (error) {
-        console.error('Error fetching new kingdom submissions:', error);
+        logger.error('Error fetching new kingdom submissions:', error);
         showToast('Failed to load submissions', 'error');
       } else {
         setNewKingdomSubmissions(data || []);
       }
     } catch (err) {
-      console.error('Error:', err);
+      logger.error('Error:', err);
     } finally {
       setLoading(false);
     }
@@ -253,7 +233,7 @@ const AdminDashboard: React.FC = () => {
           .insert(kvkRecords);
         
         if (kvkError) {
-          console.error('KvK history insert error:', kvkError);
+          logger.error('KvK history insert error:', kvkError);
           // Don't fail the whole approval - kingdom was created
         }
       }
@@ -276,7 +256,7 @@ const AdminDashboard: React.FC = () => {
       showToast(`Kingdom ${submission.kingdom_number} created ${kvkMsg}`, 'success');
       fetchNewKingdomSubmissions();
     } catch (err) {
-      console.error('Approve error:', err);
+      logger.error('Approve error:', err);
       showToast('Failed to approve submission', 'error');
     }
   };
@@ -301,139 +281,12 @@ const AdminDashboard: React.FC = () => {
       setRejectReason('');
       fetchNewKingdomSubmissions();
     } catch (err) {
-      console.error('Reject error:', err);
+      logger.error('Reject error:', err);
       showToast('Failed to reject submission', 'error');
     }
   };
 
-  const fetchPendingCounts = async () => {
-    try {
-      // Corrections from Supabase
-      let pendingCorrections = 0;
-      if (supabase) {
-        const { count } = await supabase
-          .from('data_corrections')
-          .select('*', { count: 'exact', head: true })
-          .eq('status', 'pending');
-        pendingCorrections = count || 0;
-      }
-      
-      // Transfer status from Supabase (source of truth)
-      let pendingTransfers = 0;
-      try {
-        const transfers = await statusService.fetchAllSubmissions('pending');
-        pendingTransfers = transfers.length;
-      } catch { /* Supabase might not be available */ }
-      
-      // Submissions and claims from API
-      let pendingSubmissions = 0;
-      let pendingClaims = 0;
-      
-      try {
-        const authHeaders = await getAuthHeaders({ requireAuth: false });
-        const submissionsRes = await fetch(`${API_URL}/api/v1/submissions?status=pending`, {
-          headers: authHeaders
-        });
-        if (submissionsRes.ok) {
-          const data = await submissionsRes.json();
-          pendingSubmissions = Array.isArray(data) ? data.length : 0;
-        }
-      } catch { /* API might not be available */ }
-      
-      try {
-        const authHeaders = await getAuthHeaders({ requireAuth: false });
-        const claimsRes = await fetch(`${API_URL}/api/v1/claims?status=pending`, {
-          headers: authHeaders
-        });
-        if (claimsRes.ok) {
-          const data = await claimsRes.json();
-          pendingClaims = Array.isArray(data) ? data.length : 0;
-        }
-      } catch { /* API might not be available */ }
-      
-      // KvK errors from Supabase
-      let pendingKvkErrors = 0;
-      if (supabase) {
-        const { count } = await supabase
-          .from('kvk_errors')
-          .select('*', { count: 'exact', head: true })
-          .eq('status', 'pending');
-        pendingKvkErrors = count || 0;
-      }
-      
-      // Feedback count from Supabase
-      let pendingFeedback = 0;
-      if (supabase) {
-        try {
-          const { count } = await supabase
-            .from('feedback')
-            .select('*', { count: 'exact', head: true })
-            .eq('status', 'new');
-          pendingFeedback = count || 0;
-        } catch { /* Table might not exist yet */ }
-      }
-
-      setPendingCounts({
-        submissions: pendingSubmissions,
-        claims: pendingClaims,
-        corrections: pendingCorrections,
-        transfers: pendingTransfers,
-        kvkErrors: pendingKvkErrors,
-        feedback: pendingFeedback
-      });
-    } catch (error) {
-      console.error('Failed to fetch pending counts:', error);
-    }
-  };
-
-  const fetchFeedback = async () => {
-    if (!supabase) return;
-    setLoading(true);
-    try {
-      let query = supabase
-        .from('feedback')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (filter === 'pending') {
-        query = query.eq('status', 'new');
-      } else if (filter !== 'all') {
-        query = query.eq('status', filter);
-      }
-      
-      const { data, error } = await query.limit(100);
-      if (error) throw error;
-      setFeedbackItems(data || []);
-    } catch (error) {
-      logger.error('Failed to fetch feedback:', error);
-      showToast('Failed to load feedback', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchFeedbackCounts = async () => {
-    if (!supabase) return;
-    try {
-      // Fetch all feedback to count by status (independent of filter)
-      const { data, error } = await supabase
-        .from('feedback')
-        .select('status');
-      
-      if (error) throw error;
-      
-      const counts = { new: 0, reviewed: 0, in_progress: 0, resolved: 0, closed: 0 };
-      (data || []).forEach(item => {
-        const status = item.status as keyof typeof counts;
-        if (status in counts) {
-          counts[status]++;
-        }
-      });
-      setFeedbackCounts(counts);
-    } catch (error) {
-      logger.error('Failed to fetch feedback counts:', error);
-    }
-  };
+  // invalidatePendingCounts, fetchFeedback, fetchFeedbackCounts now handled by React Query hooks
 
   const updateFeedbackStatus = async (id: string, status: string, adminNotes?: string) => {
     if (!supabase) return;
@@ -451,9 +304,7 @@ const AdminDashboard: React.FC = () => {
       if (error) throw error;
       
       showToast('Feedback updated', 'success');
-      fetchFeedback();
-      fetchFeedbackCounts();
-      fetchPendingCounts();
+      invalidateFeedback(); // React Query invalidation replaces manual refetch
     } catch (error) {
       logger.error('Failed to update feedback:', error);
       showToast('Failed to update feedback', 'error');
@@ -562,7 +413,7 @@ const AdminDashboard: React.FC = () => {
       setAnalytics(realData);
       setLastRefreshed(new Date());
     } catch (error) {
-      console.error('Failed to fetch analytics:', error);
+      logger.error('Failed to fetch analytics:', error);
     } finally {
       setLoading(false);
     }
@@ -579,7 +430,7 @@ const AdminDashboard: React.FC = () => {
         showToast(result.error || 'Failed to increment KvK', 'error');
       }
     } catch (error) {
-      console.error('Failed to increment KvK:', error);
+      logger.error('Failed to increment KvK:', error);
       showToast('Failed to increment KvK', 'error');
     } finally {
       setIncrementingKvK(false);
@@ -608,7 +459,7 @@ const AdminDashboard: React.FC = () => {
         showToast('Failed to sync subscriptions', 'error');
       }
     } catch (error) {
-      console.error('Failed to sync subscriptions:', error);
+      logger.error('Failed to sync subscriptions:', error);
       showToast('Failed to sync subscriptions', 'error');
     } finally {
       setSyncingSubscriptions(false);
@@ -660,7 +511,7 @@ const AdminDashboard: React.FC = () => {
       const { data, error } = await query;
       
       if (error) {
-        console.error('Failed to fetch corrections:', error);
+        logger.error('Failed to fetch corrections:', error);
         setCorrections([]);
       } else {
         setCorrections((data || []).map(c => ({
@@ -680,7 +531,7 @@ const AdminDashboard: React.FC = () => {
         })));
       }
     } catch (error) {
-      console.error('Failed to fetch corrections:', error);
+      logger.error('Failed to fetch corrections:', error);
       setCorrections([]);
     } finally {
       setLoading(false);
@@ -730,7 +581,7 @@ const AdminDashboard: React.FC = () => {
     }
     
     fetchCorrections();
-    fetchPendingCounts();
+    invalidatePendingCounts();
     setRejectModalOpen(null);
     setRejectReason('');
   };
@@ -755,7 +606,7 @@ const AdminDashboard: React.FC = () => {
       const { data, error } = await query;
       
       if (error) {
-        console.error('Failed to fetch KvK errors:', error);
+        logger.error('Failed to fetch KvK errors:', error);
         setKvkErrors([]);
       } else {
         setKvkErrors((data || []).map(e => ({
@@ -776,7 +627,7 @@ const AdminDashboard: React.FC = () => {
         })));
       }
     } catch (error) {
-      console.error('Failed to fetch KvK errors:', error);
+      logger.error('Failed to fetch KvK errors:', error);
       setKvkErrors([]);
     } finally {
       setLoading(false);
@@ -836,7 +687,7 @@ const AdminDashboard: React.FC = () => {
       : `KvK error report rejected`;
     showToast(toastMsg, 'success');
     fetchKvkErrors();
-    fetchPendingCounts();
+    invalidatePendingCounts();
     setRejectModalOpen(null);
     setRejectReason('');
   };
@@ -910,7 +761,7 @@ const AdminDashboard: React.FC = () => {
     showToast(`${selectedItems.size} corrections ${status}`, 'success');
     setSelectedItems(new Set());
     fetchCorrections();
-    fetchPendingCounts();
+    invalidatePendingCounts();
   };
 
   const bulkReviewKvkErrors = async (status: 'approved' | 'rejected') => {
@@ -936,7 +787,7 @@ const AdminDashboard: React.FC = () => {
     showToast(`${selectedItems.size} KvK errors ${status}`, 'success');
     setSelectedItems(new Set());
     fetchKvkErrors();
-    fetchPendingCounts();
+    invalidatePendingCounts();
   };
 
   const fetchSubmissions = async () => {
@@ -950,7 +801,7 @@ const AdminDashboard: React.FC = () => {
         setSubmissions(await response.json());
       }
     } catch (error) {
-      console.error('Failed to fetch submissions:', error);
+      logger.error('Failed to fetch submissions:', error);
     } finally {
       setLoading(false);
     }
@@ -967,7 +818,7 @@ const AdminDashboard: React.FC = () => {
         setClaims(await response.json());
       }
     } catch (error) {
-      console.error('Failed to fetch claims:', error);
+      logger.error('Failed to fetch claims:', error);
     } finally {
       setLoading(false);
     }
@@ -996,7 +847,7 @@ const AdminDashboard: React.FC = () => {
           showToast(`Submission ${status}`, 'success');
         }
         fetchSubmissions();
-        fetchPendingCounts();
+        invalidatePendingCounts();
       } else {
         showToast('Failed to review submission', 'error');
       }
@@ -1015,7 +866,7 @@ const AdminDashboard: React.FC = () => {
       if (response.ok) {
         showToast('Claim verified', 'success');
         fetchClaims();
-        fetchPendingCounts();
+        invalidatePendingCounts();
       } else {
         showToast('Failed to verify claim', 'error');
       }
@@ -1033,7 +884,7 @@ const AdminDashboard: React.FC = () => {
       const submissions = await statusService.fetchAllSubmissions(statusFilter);
       setTransferSubmissions(submissions);
     } catch (error) {
-      console.error('Failed to fetch transfer submissions:', error);
+      logger.error('Failed to fetch transfer submissions:', error);
       showToast('Failed to load transfer submissions', 'error');
     } finally {
       setLoading(false);
@@ -1051,7 +902,7 @@ const AdminDashboard: React.FC = () => {
       apiService.reloadData();
       showToast(`Transfer status ${status}`, 'success');
       fetchTransferSubmissions();
-      fetchPendingCounts();
+      invalidatePendingCounts();
     } catch (error) {
       showToast('Error reviewing transfer submission', 'error');
     }

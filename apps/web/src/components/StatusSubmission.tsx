@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { neonGlow } from '../utils/styles';
 import { SessionExpiredError, DuplicateSubmissionError } from '../services/statusService';
+import { logger } from '../utils/logger';
 
 interface StatusSubmissionProps {
   kingdomNumber: number;
@@ -51,7 +52,7 @@ const StatusSubmission: React.FC<StatusSubmissionProps> = ({
       await onSubmit(selectedStatus, notes);
       onClose();
     } catch (err) {
-      console.error('Status submission error:', err);
+      logger.error('Status submission error:', err);
       
       if (err instanceof SessionExpiredError) {
         setErrorType('session');

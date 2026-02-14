@@ -8,6 +8,7 @@ import KingdomCard from '../components/KingdomCard';
 import ParticleEffect from '../components/ParticleEffect';
 import LazyCard from '../components/LazyCard';
 import { useToast } from '../components/Toast';
+import { logger } from '../utils/logger';
 import SkeletonCard from '../components/SkeletonCard';
 import KingdomTable from '../components/KingdomTable';
 import SearchAutocomplete from '../components/SearchAutocomplete';
@@ -221,7 +222,7 @@ const KingdomDirectory: React.FC = () => {
         const data = await apiService.getKingdoms(undefined, sort);
         setAllKingdoms(data);
       } catch (error) {
-        console.error('Failed to load kingdoms:', error);
+        logger.error('Failed to load kingdoms:', error);
         showToast('Failed to load kingdoms', 'error');
       } finally {
         setLoading(false);

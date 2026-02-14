@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import * as Sentry from '@sentry/react';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 /**
@@ -19,32 +20,62 @@ const AuthCallback: React.FC = () => {
     }
 
     let cancelled = false;
+    let pollCount = 0;
+
+    Sentry.addBreadcrumb({
+      category: 'auth',
+      message: 'AuthCallback mounted',
+      data: { hasHash: window.location.hash.length > 1 },
+      level: 'info',
+    });
+
+    const redirect = () => {
+      if (!cancelled) {
+        cancelled = true;
+        Sentry.addBreadcrumb({
+          category: 'auth',
+          message: 'AuthCallback redirect to profile',
+          data: { pollCount },
+          level: 'info',
+        });
+        navigate('/profile', { replace: true });
+      }
+    };
+
+    // Timeout: 20s to accommodate slow mobile connections
     const timeoutId = setTimeout(() => {
       if (!cancelled) {
+        Sentry.addBreadcrumb({
+          category: 'auth',
+          message: 'AuthCallback timeout reached',
+          data: { pollCount, hasHash: window.location.hash.length > 1 },
+          level: 'warning',
+        });
         setError('Sign-in is taking longer than expected. Please try again.');
       }
-    }, 10000);
+    }, 20000);
 
     // Listen for auth state changes (fires when Supabase processes the hash)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (cancelled) return;
-      if (session) {
-        navigate('/profile', { replace: true });
-      }
+      if (session) redirect();
     });
 
-    // Also check if session is already established (hash processed before listener was set up)
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (cancelled) return;
-      if (session) {
-        navigate('/profile', { replace: true });
-      }
-    });
+    // Poll for session every 2s — handles multi-tab race conditions
+    // where onAuthStateChange may not fire (e.g. session already exists
+    // from another tab, or hash was consumed before listener was set up)
+    const pollSession = async () => {
+      pollCount++;
+      const { data: { session } } = await supabase!.auth.getSession();
+      if (session) redirect();
+    };
+    pollSession();
+    const pollId = setInterval(pollSession, 2000);
 
     return () => {
       cancelled = true;
       subscription.unsubscribe();
       clearTimeout(timeoutId);
+      clearInterval(pollId);
     };
   }, [navigate]);
 
@@ -61,9 +92,12 @@ const AuthCallback: React.FC = () => {
         padding: '2rem'
       }}>
         <div style={{ color: '#ef4444', fontSize: '1.1rem', textAlign: 'center' }}>{error}</div>
-        <div style={{ display: 'flex', gap: '1rem' }}>
+        <p style={{ color: '#6b7280', fontSize: '0.85rem', textAlign: 'center', maxWidth: '360px', lineHeight: 1.5 }}>
+          This can happen on slow connections or when multiple tabs are open. Try signing in again.
+        </p>
+        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
           <button
-            onClick={() => navigate('/profile', { replace: true })}
+            onClick={() => { window.location.href = '/'; }}
             style={{
               padding: '0.75rem 1.5rem',
               background: 'linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%)',
@@ -74,10 +108,10 @@ const AuthCallback: React.FC = () => {
               cursor: 'pointer'
             }}
           >
-            Go to Profile
+            Try Again
           </button>
           <button
-            onClick={() => window.location.href = '/'}
+            onClick={() => navigate('/profile', { replace: true })}
             style={{
               padding: '0.75rem 1.5rem',
               backgroundColor: 'transparent',
@@ -87,7 +121,7 @@ const AuthCallback: React.FC = () => {
               cursor: 'pointer'
             }}
           >
-            Back to Home
+            Go to Profile
           </button>
         </div>
       </div>

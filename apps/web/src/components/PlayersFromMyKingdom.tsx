@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { getDisplayTier, SUBSCRIPTION_COLORS, SubscriptionTier } from '../utils/constants';
 import { neonGlow } from '../utils/styles';
+import { logger } from '../utils/logger';
 
 interface PlayerProfile {
   id: string;
@@ -77,7 +78,7 @@ const PlayersFromMyKingdom: React.FC<PlayersFromMyKingdomProps> = ({
 
         setPlayers(data || []);
       } catch (err) {
-        console.error('Failed to fetch players:', err);
+        logger.error('Failed to fetch players:', err);
         setError('Failed to load players');
       } finally {
         setLoading(false);

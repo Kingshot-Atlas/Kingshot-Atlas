@@ -8,6 +8,7 @@ import { apiService, dataLoadError } from '../services/api';
 import { DataLoadError } from '../components/DataLoadError';
 import { KingdomProfileSkeleton } from '../components/Skeleton';
 import { statusService } from '../services/statusService';
+import { logger } from '../utils/logger';
 import { useKingdomsRealtime } from '../hooks/useKingdomsRealtime';
 import KingdomReviews from '../components/KingdomReviews';
 import StatusSubmission from '../components/StatusSubmission';
@@ -67,7 +68,7 @@ const KingdomProfile: React.FC = () => {
   // Auto-refresh when KvK history changes for this kingdom via realtime
   const handleKvkHistoryUpdate = useCallback((updatedKingdom: number, kvkNumber: number) => {
     if (kingdomNumber && updatedKingdom === parseInt(kingdomNumber)) {
-      console.log(`Realtime: KvK history updated for K${updatedKingdom} #${kvkNumber}, refreshing...`);
+      logger.log(`Realtime: KvK history updated for K${updatedKingdom} #${kvkNumber}, refreshing...`);
       setRefreshKey(prev => prev + 1);
     }
   }, [kingdomNumber]);
@@ -268,7 +269,7 @@ const KingdomProfile: React.FC = () => {
       recent = [id, ...recent.filter(k => k !== id)].slice(0, 10);
       localStorage.setItem(recentKey, JSON.stringify(recent));
     } catch (error) {
-      console.error('Failed to load kingdom profile:', error);
+      logger.error('Failed to load kingdom profile:', error);
     } finally {
       setLoading(false);
     }

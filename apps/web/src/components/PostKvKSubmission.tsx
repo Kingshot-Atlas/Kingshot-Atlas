@@ -215,7 +215,7 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
         } catch {
           errorDetail = errorText || `HTTP ${response.status}`;
         }
-        console.error('[KvK Submit] Error response:', { status: response.status, body: errorText });
+        logger.error('[KvK Submit] Error response:', { status: response.status, body: errorText });
         throw new Error(errorDetail);
       }
 
@@ -240,7 +240,7 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
       clearScreenshot2();
       onClose();
     } catch (err) {
-      console.error('[KvK Submit] Caught error:', err);
+      logger.error('[KvK Submit] Caught error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to submit. Please try again.';
       showToast(errorMessage, 'error');
     } finally {

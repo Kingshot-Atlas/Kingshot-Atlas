@@ -215,7 +215,7 @@ function scheduleSyncToSupabase(stats: UserStats) {
         .from('user_data')
         .select('settings')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
       const currentSettings = (existing?.settings as Record<string, unknown>) || {};
       await supabase
         .from('user_data')
@@ -238,7 +238,7 @@ export const hydrateFromSupabase = async () => {
       .from('user_data')
       .select('settings')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
     const cloudStats = (data?.settings as Record<string, unknown>)?.achievements as UserStats | undefined;
     if (cloudStats) {
       // Merge: take the max of local and cloud for each stat (never lose progress)

@@ -5,6 +5,7 @@ import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { ReferralTier, REFERRAL_TIER_COLORS, REFERRAL_TIER_LABELS, REFERRAL_TIER_THRESHOLDS } from '../utils/constants';
 import ReferralBadge from '../components/ReferralBadge';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { logger } from '../utils/logger';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
 import { useIsMobile } from '../hooks/useMediaQuery';
@@ -79,7 +80,7 @@ const Ambassadors: React.FC = () => {
           .order('referral_count', { ascending: false });
 
         if (error) {
-          console.error('Failed to fetch ambassadors:', error);
+          logger.error('Failed to fetch ambassadors:', error);
           return;
         }
 
@@ -114,7 +115,7 @@ const Ambassadors: React.FC = () => {
           setGlobalSourceCounts(globalCounts);
         }
       } catch (err) {
-        console.error('Failed to fetch ambassadors:', err);
+        logger.error('Failed to fetch ambassadors:', err);
       } finally {
         setLoading(false);
       }

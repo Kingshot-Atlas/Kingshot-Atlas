@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getAuthHeaders } from '../../services/authHeaders';
 import { colors } from '../../utils/styles';
+import { logger } from '../../utils/logger';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
@@ -105,7 +106,7 @@ export const EmailTab: React.FC = () => {
         setEmails(data.emails || []);
       }
     } catch (err) {
-      console.error('Failed to fetch emails:', err);
+      logger.error('Failed to fetch emails:', err);
     }
     setLoading(false);
   }, [filter, statusFilter, searchQuery]);
@@ -154,7 +155,7 @@ export const EmailTab: React.FC = () => {
         setStats(await res.json());
       }
     } catch (err) {
-      console.error('Failed to fetch email stats:', err);
+      logger.error('Failed to fetch email stats:', err);
     }
   }, []);
 
@@ -186,7 +187,7 @@ export const EmailTab: React.FC = () => {
       fetchEmails();
       fetchStats();
     } catch (err) {
-      console.error('Failed to mark email as read:', err);
+      logger.error('Failed to mark email as read:', err);
     }
   };
 
@@ -218,7 +219,7 @@ export const EmailTab: React.FC = () => {
         }
       }
     } catch (err) {
-      console.error('Failed to send email:', err);
+      logger.error('Failed to send email:', err);
     }
     setSending(false);
   };
@@ -252,7 +253,7 @@ export const EmailTab: React.FC = () => {
         fetchStats();
       }
     } catch (err) {
-      console.error('Failed to delete email:', err);
+      logger.error('Failed to delete email:', err);
     }
   };
 

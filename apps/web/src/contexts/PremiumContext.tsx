@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode, useMemo, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { logger } from '../utils/logger';
 import { useAuth } from './AuthContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
@@ -101,50 +102,39 @@ const PREMIUM_KEY = 'kingshot_premium_tier';
 
 export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { user, profile } = useAuth();
-  const [tier, setTier] = useState<SubscriptionTier>('anonymous');
-  const [isAdminUser, setIsAdminUser] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
-  const fetchSubscription = async () => {
-      // Not logged in = anonymous
+  // Derive admin status from user metadata (no fetch needed)
+  const isAdminUser = useMemo(() => {
+    if (!user) return false;
+    const emailPrefix = user.email?.split('@')[0]?.toLowerCase();
+    const preferredUsername = user.user_metadata?.preferred_username?.toLowerCase();
+    const fullName = user.user_metadata?.full_name?.toLowerCase();
+    const userName = user.user_metadata?.name?.toLowerCase();
+    return (
+      ADMIN_EMAILS.includes(user.email?.toLowerCase() || '') ||
+      ADMIN_USERNAMES.includes(emailPrefix || '') ||
+      ADMIN_USERNAMES.includes(preferredUsername || '') ||
+      ADMIN_USERNAMES.includes(fullName || '') ||
+      ADMIN_USERNAMES.includes(userName || '')
+    );
+  }, [user]);
+
+  // React Query hook for subscription tier (ADR-022 migration)
+  const { data: fetchedTier, isLoading: loading } = useQuery({
+    queryKey: ['subscription', user?.id],
+    queryFn: async (): Promise<SubscriptionTier> => {
       if (!user) {
-        setTier('anonymous');
         localStorage.removeItem(PREMIUM_KEY);
-        setLoading(false);
-        return;
+        return 'anonymous';
       }
-
-      // Check if user is admin - admins get ALL features (Supporter tier)
-      const emailPrefix = user.email?.split('@')[0]?.toLowerCase();
-      const preferredUsername = user.user_metadata?.preferred_username?.toLowerCase();
-      const fullName = user.user_metadata?.full_name?.toLowerCase();
-      const userName = user.user_metadata?.name?.toLowerCase();
-      
-      const isAdmin = 
-        ADMIN_EMAILS.includes(user.email?.toLowerCase() || '') ||
-        ADMIN_USERNAMES.includes(emailPrefix || '') ||
-        ADMIN_USERNAMES.includes(preferredUsername || '') ||
-        ADMIN_USERNAMES.includes(fullName || '') ||
-        ADMIN_USERNAMES.includes(userName || '');
-      
-      if (isAdmin) {
+      if (isAdminUser) {
         logger.info('Admin user detected, granting full access:', user.email);
-        setIsAdminUser(true);
-        setTier('supporter'); // Full access
-        setLoading(false);
-        return;
-      } else {
-        setIsAdminUser(false);
+        return 'supporter';
       }
-
-      // Logged in - default to free
-      setTier('free');
-
-      // Check local cache first
+      // Check local cache first for instant UI
       const cached = localStorage.getItem(PREMIUM_KEY);
-      if (cached === 'supporter') {
-        setTier('supporter');
-      }
+      let result: SubscriptionTier = cached === 'supporter' ? 'supporter' : 'free';
 
       // Fetch from Supabase if configured
       if (isSupabaseConfigured && supabase) {
@@ -154,36 +144,34 @@ export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children })
             .select('subscription_tier')
             .eq('id', user.id)
             .single();
-
           if (!error && data?.subscription_tier) {
-            const fetchedTier = data.subscription_tier;
-            if (fetchedTier === 'supporter') {
-              setTier('supporter');
+            if (data.subscription_tier === 'supporter') {
+              result = 'supporter';
               localStorage.setItem(PREMIUM_KEY, 'supporter');
             } else {
-              setTier('free');
+              result = 'free';
+              localStorage.removeItem(PREMIUM_KEY);
             }
           }
         } catch (err) {
           logger.warn('Failed to fetch subscription tier:', err);
         }
       }
+      return result;
+    },
+    enabled: true, // Always run, handles null user internally
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    placeholderData: (prev) => prev, // Keep previous data during refetch
+  });
 
-    setLoading(false);
-  };
+  const tier: SubscriptionTier = fetchedTier ?? (user ? 'free' : 'anonymous');
 
-  useEffect(() => {
-    fetchSubscription();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
-  
   // Manual refresh function for after checkout completion
-  const refreshSubscription = async () => {
+  const refreshSubscription = useCallback(async () => {
     if (user) {
-      setLoading(true);
-      await fetchSubscription();
+      await queryClient.invalidateQueries({ queryKey: ['subscription', user.id] });
     }
-  };
+  }, [user, queryClient]);
 
   // Override multiCompare for linked users: linked accounts get 5 slots regardless of tier
   const isLinked = !!profile?.linked_username;

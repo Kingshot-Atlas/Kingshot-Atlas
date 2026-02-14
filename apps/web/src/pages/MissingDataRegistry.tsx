@@ -8,6 +8,7 @@ import { Kingdom } from '../types';
 import PostKvKSubmission from '../components/PostKvKSubmission';
 import { useToast } from '../components/Toast';
 import { useIsMobile } from '../hooks/useMediaQuery';
+import { logger } from '../utils/logger';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
@@ -99,7 +100,7 @@ const MissingDataRegistry: React.FC = () => {
         const data = await apiService.getKingdoms();
         setKingdoms(data);
       } catch (err) {
-        console.error('Failed to load kingdoms:', err);
+        logger.error('Failed to load kingdoms:', err);
       } finally {
         setLoading(false);
       }
@@ -705,7 +706,7 @@ const AddKingdomModal: React.FC<{
         });
 
       if (error) {
-        console.error('Submission error:', error);
+        logger.error('Submission error:', error);
         if (error.code === '23505') {
           showToast('A submission for this kingdom is already pending', 'error');
         } else {
@@ -715,7 +716,7 @@ const AddKingdomModal: React.FC<{
         onSuccess();
       }
     } catch (err) {
-      console.error('Submission failed:', err);
+      logger.error('Submission failed:', err);
       showToast('Failed to submit. Try again later.', 'error');
     } finally {
       setSubmitting(false);

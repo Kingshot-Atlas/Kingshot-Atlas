@@ -8,6 +8,7 @@ import TransferProfileForm from '../components/TransferProfileForm';
 import { ApplyModal, MyApplicationsTracker } from '../components/TransferApplications';
 import RecruiterDashboard from '../components/RecruiterDashboard';
 import EditorClaiming from '../components/EditorClaiming';
+import { logger } from '../utils/logger';
 import KingdomFundContribute from '../components/KingdomFundContribute';
 import { useTranslation } from 'react-i18next';
 import { neonGlow, FONT_DISPLAY, colors } from '../utils/styles';
@@ -249,7 +250,7 @@ const TransferBoard: React.FC = () => {
           nominee_linked_username: nomineeProfile?.linked_username || null,
         });
       } catch (err) {
-        console.error('Error fetching endorsement claim:', err);
+        logger.error('Error fetching endorsement claim:', err);
         setEndorseClaimData(null);
       } finally {
         setEndorseLoading(false);
@@ -288,7 +289,7 @@ const TransferBoard: React.FC = () => {
         .select('id, power_million, tc_level, main_language, secondary_languages, looking_for, kvk_availability, saving_for_kvk, group_size, player_bio, play_schedule, contact_method, visible_to_recruiters')
         .eq('user_id', user.id)
         .eq('is_active', true)
-        .single();
+        .maybeSingle();
       setHasTransferProfile(!!data);
       if (data) {
         // Touch last_active_at silently (debounced — max once per hour)
@@ -339,7 +340,7 @@ const TransferBoard: React.FC = () => {
         .select('id, kingdom_number')
         .eq('user_id', user.id)
         .eq('status', 'active')
-        .single();
+        .maybeSingle();
       setIsEditor(!!data);
       if (data?.kingdom_number) {
         // Fetch pending application count for badge
@@ -444,7 +445,7 @@ const TransferBoard: React.FC = () => {
           setReviewSummaries(summaries);
         }
       } catch (err) {
-        console.error('Transfer Hub data load error:', err);
+        logger.error('Transfer Hub data load error:', err);
       } finally {
         setLoading(false);
       }
@@ -688,7 +689,17 @@ const TransferBoard: React.FC = () => {
       .slice(0, 3);
   }, [filteredKingdoms, fundMap, transferProfile, mode, matchScoreMap]);
 
-  const kingdomsWithFunds = useMemo(() => filteredKingdoms.filter((k) => fundMap.has(k.kingdom_number)), [filteredKingdoms, fundMap]);
+  const kingdomsWithFunds = useMemo(() => {
+    const funded = filteredKingdoms.filter((k) => fundMap.has(k.kingdom_number));
+    const tierOrder: Record<string, number> = { gold: 0, silver: 1, bronze: 2, standard: 3 };
+    return funded.sort((a, b) => {
+      const aTier = fundMap.get(a.kingdom_number)?.tier || 'standard';
+      const bTier = fundMap.get(b.kingdom_number)?.tier || 'standard';
+      const tierDiff = (tierOrder[aTier] ?? 3) - (tierOrder[bTier] ?? 3);
+      if (tierDiff !== 0) return tierDiff;
+      return 0;
+    });
+  }, [filteredKingdoms, fundMap]);
   const kingdomsWithoutFunds = useMemo(() => filteredKingdoms.filter((k) => !fundMap.has(k.kingdom_number)), [filteredKingdoms, fundMap]);
 
   return (

@@ -19,14 +19,29 @@ const TransferReadinessScore: React.FC<{
         .select('power_million, tc_level, main_language, secondary_languages, looking_for, kvk_availability, saving_for_kvk, group_size, player_bio, play_schedule, contact_method, contact_discord, contact_coordinates, visible_to_recruiters')
         .eq('user_id', userId)
         .eq('is_active', true)
-        .single();
+        .maybeSingle();
       setTransferProfile(data);
       setLoading(false);
     };
     fetchProfile();
   }, [userId]);
 
-  if (loading) return null;
+  if (loading) return (
+    <div style={{
+      backgroundColor: '#111111',
+      borderRadius: '12px',
+      padding: isMobile ? '1rem' : '1.25rem',
+      marginBottom: '1.5rem',
+      border: '1px solid #2a2a2a',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+        <div style={{ width: '20px', height: '20px', borderRadius: '50%', backgroundColor: '#1a1a1a', animation: 'skeletonPulse 1.5s ease-in-out infinite' }} />
+        <div style={{ width: '120px', height: '14px', borderRadius: '4px', backgroundColor: '#1a1a1a', animation: 'skeletonPulse 1.5s ease-in-out infinite' }} />
+      </div>
+      <div style={{ width: '100%', height: '8px', borderRadius: '4px', backgroundColor: '#1a1a1a', animation: 'skeletonPulse 1.5s ease-in-out infinite' }} />
+      <style>{`@keyframes skeletonPulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.8; } }`}</style>
+    </div>
+  );
 
   // No transfer profile yet — show CTA
   if (!transferProfile) {

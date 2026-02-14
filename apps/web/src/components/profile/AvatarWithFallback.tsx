@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { getCacheBustedAvatarUrl } from '../../contexts/AuthContext';
+import { logger } from '../../utils/logger';
 
 // Globe icon SVG for unlinked users (matches Atlas logo)
 const GlobeIcon: React.FC<{ size: number; pulse?: boolean }> = ({ size, pulse = false }) => (
@@ -116,7 +117,7 @@ const AvatarWithFallback: React.FC<{
         }}
         onLoad={() => setImgLoaded(true)}
         onError={() => {
-          console.error('Avatar failed to load:', avatarUrl);
+          logger.error('Avatar failed to load:', avatarUrl);
           setImgError(true);
         }}
         referrerPolicy="no-referrer"

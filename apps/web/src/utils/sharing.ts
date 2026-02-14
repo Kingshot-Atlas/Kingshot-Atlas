@@ -4,6 +4,7 @@
  */
 
 import { colors } from './styles';
+import { logger } from './logger';
 
 export interface ShareData {
   title: string;
@@ -31,7 +32,7 @@ export const copyToClipboard = async (text: string): Promise<boolean> => {
     document.body.removeChild(textArea);
     return true;
   } catch (err) {
-    console.error('Failed to copy:', err);
+    logger.error('Failed to copy:', err);
     return false;
   }
 };
@@ -58,7 +59,7 @@ export const copyImageToClipboard = async (blob: Blob, filename?: string): Promi
       return true;
     }
   } catch (err) {
-    console.log('Clipboard API not available, trying alternatives:', err);
+    logger.warn('Clipboard API not available, trying alternatives:', err);
   }
 
   // On mobile, try Web Share API with file support
@@ -74,7 +75,7 @@ export const copyImageToClipboard = async (blob: Blob, filename?: string): Promi
     } catch (err) {
       // User cancelled or share failed - this is expected sometimes
       if ((err as Error).name !== 'AbortError') {
-        console.log('Web Share with file not available:', err);
+        logger.warn('Web Share with file not available:', err);
       }
     }
   }
@@ -104,7 +105,7 @@ export const shareImageOnMobile = async (blob: Blob, filename: string, title?: s
     }
   } catch (err) {
     if ((err as Error).name !== 'AbortError') {
-      console.error('Share failed:', err);
+      logger.error('Share failed:', err);
     }
   }
   return false;
@@ -416,7 +417,7 @@ export const shareNative = async (data: ShareData): Promise<boolean> => {
       return true;
     } catch (err) {
       if ((err as Error).name !== 'AbortError') {
-        console.error('Share failed:', err);
+        logger.error('Share failed:', err);
       }
       return false;
     }

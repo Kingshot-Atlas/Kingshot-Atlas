@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { notificationService, type Notification } from '../services/notificationService';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useTranslation } from 'react-i18next';
+import { logger } from '../utils/logger';
 
 interface GroupedNotification {
   key: string;
@@ -68,7 +69,7 @@ const NotificationBell: React.FC = () => {
       setUnreadCount(count);
       setLastChecked(new Date());
     } catch (err) {
-      console.error('Failed to fetch notifications:', err);
+      logger.error('Failed to fetch notifications:', err);
     } finally {
       setLoading(false);
     }

@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getCacheBustedAvatarUrl, UserProfile } from '../../contexts/AuthContext';
+import { useReferralLink } from '../../hooks/useReferralLink';
+import { useAnalytics } from '../../hooks/useAnalytics';
 
 interface UserMenuProps {
   user: boolean;
@@ -14,6 +16,9 @@ interface UserMenuProps {
 const UserMenu: React.FC<UserMenuProps> = ({ user, profile, isAdmin, onSignIn, onSignOut }) => {
   const { t } = useTranslation();
   const [showLoginMenu, setShowLoginMenu] = useState(false);
+  const [refCopied, setRefCopied] = useState(false);
+  const { eligible: referralEligible, copyCurrentPageLink } = useReferralLink();
+  const { trackFeature } = useAnalytics();
 
   return (
     <div style={{ position: 'relative' }}>
@@ -137,6 +142,46 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, profile, isAdmin, onSignIn, o
               </svg>
               {t('common.admin')}
             </Link>
+          )}
+          {referralEligible && (
+            <button
+              onClick={async () => {
+                const ok = await copyCurrentPageLink();
+                if (ok) {
+                  setRefCopied(true);
+                  trackFeature('Referral Link Copied', { source: 'user_menu' });
+                  setTimeout(() => setRefCopied(false), 2000);
+                }
+              }}
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                padding: '0.75rem 1rem',
+                backgroundColor: 'transparent',
+                border: 'none',
+                borderRadius: '8px',
+                color: refCopied ? '#22c55e' : '#a855f7',
+                cursor: 'pointer',
+                fontSize: '0.9rem',
+                textAlign: 'left',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+            >
+              {refCopied ? (
+                <svg style={{ width: '18px', height: '18px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              ) : (
+                <svg style={{ width: '18px', height: '18px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                </svg>
+              )}
+              {refCopied ? t('common.copied', 'Copied!') : t('referral.copyLink', 'Copy Referral Link')}
+            </button>
           )}
           <div style={{ height: '1px', backgroundColor: '#2a2a2a', margin: '0.25rem 0' }} />
           <button

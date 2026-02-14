@@ -7,12 +7,13 @@ import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData'
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { useTranslation } from 'react-i18next';
 
-const ACCENT = '#22d3ee';
-const ACCENT_DIM = '#22d3ee15';
-const ACCENT_BORDER = '#22d3ee30';
+const ACCENT = '#22c55e';
+const ACCENT_DIM = '#22c55e15';
+const ACCENT_BORDER = '#22c55e30';
 const FUND_GOLD = '#f59e0b';
 const FUND_SILVER = '#94a3b8';
 const FUND_BRONZE = '#cd7f32';
+const FUND_STANDARD = '#6b7280';
 
 const TransferHubLanding: React.FC = () => {
   const { t } = useTranslation();
@@ -80,12 +81,22 @@ const TransferHubLanding: React.FC = () => {
 
   const fundTiers = [
     {
+      tier: t('transferHubLanding.standard', 'Standard (Free)'),
+      color: FUND_STANDARD,
+      min: '$0',
+      perks: [
+        t('transferHubLanding.standardPerk1', 'Basic listing with Atlas Score & stats'),
+        t('transferHubLanding.standardPerk2', 'Community reviews from players'),
+      ],
+    },
+    {
       tier: t('transferHubLanding.bronze', 'Bronze'),
       color: FUND_BRONZE,
       min: '$25+',
       perks: [
-        t('transferHubLanding.bronzePerk1', 'Bronze badge on listing'),
-        t('transferHubLanding.bronzePerk2', 'Higher in search results'),
+        t('transferHubLanding.bronzePerk1v2', 'Min TC & Power requirements shown'),
+        t('transferHubLanding.bronzePerk2v2', 'Browse transferee profiles'),
+        t('transferHubLanding.bronzePerk3', 'Kingdom Policies & Vibe tags'),
       ],
     },
     {
@@ -93,8 +104,10 @@ const TransferHubLanding: React.FC = () => {
       color: FUND_SILVER,
       min: '$50+',
       perks: [
-        t('transferHubLanding.silverPerk1', 'Silver badge + all Bronze perks'),
-        t('transferHubLanding.silverPerk2', 'Send invites to top players'),
+        t('transferHubLanding.silverIncludes', 'Everything in Bronze'),
+        t('transferHubLanding.silverPerk1v3', 'Send invites to transferees'),
+        t('transferHubLanding.silverPerk2v2', 'Kingdom Bio & Language display'),
+        t('transferHubLanding.silverPerk3', 'Alliance Event Times schedule'),
       ],
     },
     {
@@ -102,8 +115,10 @@ const TransferHubLanding: React.FC = () => {
       color: FUND_GOLD,
       min: '$100+',
       perks: [
-        t('transferHubLanding.goldPerk1', 'Gold badge + all Silver perks'),
-        t('transferHubLanding.goldPerk2', 'Priority placement at the top'),
+        t('transferHubLanding.goldIncludes', 'Everything in Silver'),
+        t('transferHubLanding.goldPerk1v3', '5 bonus invites per cycle'),
+        t('transferHubLanding.goldPerk2v2', 'Gold glow on your listing'),
+        t('transferHubLanding.goldPerk3', 'Priority placement in searches'),
       ],
     },
   ];
@@ -114,7 +129,7 @@ const TransferHubLanding: React.FC = () => {
       <div style={{
         padding: isMobile ? '2rem 1rem 1.5rem' : '3rem 2rem 2rem',
         textAlign: 'center',
-        background: 'linear-gradient(180deg, #0a1a1f 0%, #0a0a0a 100%)',
+        background: 'linear-gradient(180deg, #0a1f0f 0%, #0a0a0a 100%)',
         position: 'relative', overflow: 'hidden',
       }}>
         <div style={{ position: 'relative', zIndex: 1, maxWidth: '700px', margin: '0 auto' }}>
@@ -124,9 +139,9 @@ const TransferHubLanding: React.FC = () => {
             border: `2px solid ${ACCENT_BORDER}`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             margin: '0 auto 1.25rem',
-            boxShadow: `0 0 30px rgba(34, 211, 238, 0.15), 0 0 60px rgba(34, 211, 238, 0.08)`,
+            boxShadow: `0 0 30px rgba(34, 197, 94, 0.15), 0 0 60px rgba(34, 197, 94, 0.08)`,
           }}>
-            <span style={{ fontSize: isMobile ? '1.75rem' : '2.25rem' }}>🔄</span>
+            <span style={{ fontSize: isMobile ? '1.75rem' : '2.25rem', display: 'inline-block', animation: 'rocketFloat 3s ease-in-out infinite' }}>🚀</span>
           </div>
 
           <h1 style={{
@@ -157,22 +172,10 @@ const TransferHubLanding: React.FC = () => {
                 color: '#0a0a0a', fontWeight: 700,
                 fontSize: isMobile ? '0.95rem' : '1rem', textDecoration: 'none',
                 transition: 'all 0.2s ease',
-                boxShadow: `0 4px 20px rgba(34, 211, 238, 0.35)`,
+                boxShadow: `0 4px 20px rgba(34, 197, 94, 0.35)`,
               }}
             >
-              🔄 {t('transferHubLanding.openHub', 'Open the Transfer Hub')}
-            </Link>
-            <Link
-              to="/atlas-bot"
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-                padding: '0.75rem 1.5rem', backgroundColor: 'transparent',
-                border: '1px solid #5865F240', borderRadius: '8px',
-                color: '#5865F2', fontWeight: 600,
-                fontSize: isMobile ? '0.9rem' : '0.95rem', textDecoration: 'none',
-              }}
-            >
-              {t('transferHubLanding.orDiscord', 'Or Use /kingdom in Discord')}
+              🚀 {t('transferHubLanding.openHub', 'Open the Transfer Hub')}
             </Link>
           </div>
           <p style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.75rem' }}>
@@ -441,10 +444,10 @@ const TransferHubLanding: React.FC = () => {
                 border: 'none', borderRadius: '8px', color: '#0a0a0a',
                 fontWeight: 600, fontSize: isMobile ? '0.9rem' : '0.95rem',
                 textDecoration: 'none', transition: 'all 0.2s ease',
-                boxShadow: `0 4px 15px rgba(34, 211, 238, 0.3)`,
+                boxShadow: `0 4px 15px rgba(34, 197, 94, 0.3)`,
               }}
             >
-              🔄 {t('transferHubLanding.ctaButton', 'Enter the Transfer Hub')}
+              � {t('transferHubLanding.ctaButton', 'Enter the Transfer Hub')}
             </Link>
             <Link
               to="/"
@@ -471,6 +474,12 @@ const TransferHubLanding: React.FC = () => {
           </Link>
         </div>
       </div>
+      <style>{`
+        @keyframes rocketFloat {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-6px); }
+        }
+      `}</style>
     </div>
   );
 };

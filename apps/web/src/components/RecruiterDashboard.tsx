@@ -107,7 +107,7 @@ const RecruiterDashboard: React.FC<{
         .select('*')
         .eq('user_id', user.id)
         .eq('status', 'active')
-        .single();
+        .maybeSingle();
 
       if (!editor) {
         // Check for pending co-editor invitation or request
@@ -116,7 +116,7 @@ const RecruiterDashboard: React.FC<{
           .select('id, kingdom_number, assigned_by')
           .eq('user_id', user.id)
           .eq('status', 'pending')
-          .single();
+          .maybeSingle();
         if (pending) {
           setPendingInvite(pending);
         }
@@ -188,7 +188,7 @@ const RecruiterDashboard: React.FC<{
         .from('kingdom_funds')
         .select('kingdom_number, balance, tier, is_recruiting, recruitment_pitch, what_we_offer, what_we_want, min_tc_level, min_power_range, min_power_million, main_language, secondary_languages, event_times, contact_link, recruitment_tags, highlighted_stats, kingdom_vibe, nap_policy, sanctuary_distribution, castle_rotation, alliance_events')
         .eq('kingdom_number', editor.kingdom_number)
-        .single();
+        .maybeSingle();
 
       if (fundData) setFund(fundData);
 

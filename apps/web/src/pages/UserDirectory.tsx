@@ -102,7 +102,7 @@ const UserDirectory: React.FC = () => {
             setAllKingdoms(data.map(k => k.kingdom_number));
           }
         } catch (err) {
-          console.error('[PlayerDirectory] Failed to fetch kingdoms:', err);
+          logger.error('[PlayerDirectory] Failed to fetch kingdoms:', err);
         }
       }
     };
@@ -127,7 +127,7 @@ const UserDirectory: React.FC = () => {
           logger.log('[PlayerDirectory] Query result:', { data, error, count: data?.length });
 
           if (error) {
-            console.error('[PlayerDirectory] Supabase error:', error);
+            logger.error('[PlayerDirectory] Supabase error:', error);
           }
 
           if (data && data.length > 0) {
@@ -136,7 +136,7 @@ const UserDirectory: React.FC = () => {
             return;
           }
         } catch (err) {
-          console.error('[PlayerDirectory] Failed to fetch users:', err);
+          logger.error('[PlayerDirectory] Failed to fetch users:', err);
         }
       }
 

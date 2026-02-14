@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabase';
 import { getAuthHeaders } from '../../services/authHeaders';
 import { useTranslation } from 'react-i18next';
 import { colors } from '../../utils/styles';
+import { logger } from '../../utils/logger';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
@@ -68,7 +69,7 @@ export const GiftCodeAnalyticsTab: React.FC = () => {
       if (error) throw error;
       setActiveCodes(data || []);
     } catch (err) {
-      console.error('Failed to fetch gift codes:', err);
+      logger.error('Failed to fetch gift codes:', err);
     } finally {
       setLoadingCodes(false);
     }
@@ -100,7 +101,7 @@ export const GiftCodeAnalyticsTab: React.FC = () => {
       setNewExpiry('');
       await fetchActiveCodes();
     } catch (err) {
-      console.error('Failed to add gift code:', err);
+      logger.error('Failed to add gift code:', err);
     } finally {
       setAddingCode(false);
     }
@@ -112,7 +113,7 @@ export const GiftCodeAnalyticsTab: React.FC = () => {
       await supabase.from('gift_codes').update({ is_active: false }).eq('code', code);
       await fetchActiveCodes();
     } catch (err) {
-      console.error('Failed to deactivate code:', err);
+      logger.error('Failed to deactivate code:', err);
     }
   };
 
@@ -122,7 +123,7 @@ export const GiftCodeAnalyticsTab: React.FC = () => {
       await supabase.from('gift_codes').update({ is_active: true }).eq('code', code);
       await fetchActiveCodes();
     } catch (err) {
-      console.error('Failed to activate code:', err);
+      logger.error('Failed to activate code:', err);
     }
   };
 
@@ -211,7 +212,7 @@ export const GiftCodeAnalyticsTab: React.FC = () => {
         recentRedemptions,
       });
     } catch (err) {
-      console.error('Failed to fetch gift code stats:', err);
+      logger.error('Failed to fetch gift code stats:', err);
     } finally {
       setLoading(false);
     }
