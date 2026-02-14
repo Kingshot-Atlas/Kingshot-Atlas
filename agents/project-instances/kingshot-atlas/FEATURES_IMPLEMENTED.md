@@ -36,6 +36,7 @@
 | Changelog | `/changelog` | ✅ Live | Release | Version history and updates |
 | Atlas Bot | `/atlas-bot` | ✅ Live | Design + Product | Dedicated Atlas Discord Bot page with commands, features, invite CTA (2026-02-07) |
 | Transfer Hub | `/transfer-hub` | ✅ Live | Product + Business | Kingdom listings, editor claiming, recruiter dashboard, kingdom fund, transfer profiles, applications, match scoring. Open to all linked users. (2026-02-09, renamed from Transfer Board 2026-02-07) |
+| Kingdom Communities | `/kingdoms/communities` | ✅ Live | Product | Ranks kingdoms by # of linked TC20+ Atlas users. Incentivizes kingdom-wide signup. Shows fund tier badges, Atlas Score, rank. (2026-02-14) |
 
 ---
 
@@ -208,6 +209,12 @@
 | Onboarding Funnel (4 Stages) | ✅ Live | Business | Stage 1: `SignupNudgeBar.tsx` — bottom bar nudge for anon users after 3+ profile views. Stage 2: `WelcomeToAtlas.tsx` — one-time welcome screen after linking Kingshot account showing kingdom score, rivals, favorites. Stage 3: `BattlePlannerTrialTooltip.tsx` — 1-hour free Battle Planner trial for engaged free users (3+ sessions, has favorites, activates after Feb 25). Stage 4: `ConversionBanner.tsx` — supporter pitch for active users (3+ sessions/week), dismissable with 30-day cooldown. All tracking via `useOnboardingTracker.ts` hook using localStorage. (2026-02-20) |
 | Cancel Survey (Churn Recovery) | ✅ Live | Business | `/cancel-survey` page with exit survey (6 reasons + freetext), pause subscription offer, annual billing downgrade offer. `churn_surveys` Supabase table with RLS. (2026-02-20) |
 | Kingdom Fund Alliance Pitch | ✅ Live | Business | `KingdomFundContribute.tsx` — shows "Your kingdom needs $X more to reach [tier]" with per-alliance-member cost breakdown ($X/100 members). Encourages collective contributions. (2026-02-20) |
+| Gilded Badge System | ✅ Live | Product + Design | Users from Gold-tier Kingdom Fund kingdoms get "GILDED" badge (#ffc30b gold color), colored username, avatar border across Player Directory, KingdomPlayers, KingdomReviews, PlayersFromMyKingdom, LinkKingshotAccount. Priority: Admin > Gilded > Supporter. `getDisplayTier()` checks `goldKingdoms` set. (2026-02-14) |
+| Admin Card Redesign | ✅ Live | Design | Admin cards in Player Directory get subtle cyan gradient bg, enhanced glow, cyan (#22d3ee) border. Distinguished from regular user cards. (2026-02-14) |
+| Gold Tier: +2 Alliance Slots | ✅ Live | Product | Gold tier now gives 5 alliance slots (3 base + 2 gold bonus) instead of +5 invites. Managed in `KingdomProfileTab.tsx`. (2026-02-14) |
+| Gold Tier: Alliance Details | ✅ Live | Product | Gold-only section in KingdomProfileTab for per-alliance main language and open spots. `alliance_details` field on `FundInfo`. (2026-02-14) |
+| Gold Tier: CSV Download | ✅ Live | Product | Gold tier recruiters can download approved applicants as CSV from InboxTab. Includes username, kingdom, TC, power, language, date. (2026-02-14) |
+| Alliance Info Rename | ✅ Live | Product | "Alliance Event Times" renamed to "Alliance Information" across KingdomListingCard, KingdomProfileTab, KingdomFundContribute, TransferHubLanding. (2026-02-14) |
 
 ---
 
@@ -315,6 +322,7 @@
 | Token Pre-Validation | ✅ Live | 2026-02-06 | Platform | Raw fetch to /users/@me and /gateway/bot before discord.js login |
 | Bot Analytics Dashboard | ✅ Live | 2026-02-07 | Product + Platform | Analytics tab in BotDashboard: 24h/7d/30d period selector, summary cards (commands, unique users, avg/p95 latency), command usage bar chart with unique user counts, server activity breakdown, latency-by-command table (avg/p50/p95), daily activity bar chart. API: `/api/v1/bot/analytics` endpoint. DB: `latency_ms` column in `bot_command_usage` |
 | Per-Command Latency Tracking | ✅ Live | 2026-02-07 | Platform | Bot measures response time per command, sends `latency_ms` via `syncToApi()` to Supabase. Color-coded in dashboard (green <1s, yellow 1-2s, red >2s) |
+| Gilded Role Periodic Sync | ✅ Live | 2026-02-14 | Platform | `syncGildedRoles()` every 30min in bot.js. API: `/api/v1/bot/gilded-users` fetches Gold-tier kingdom users with Discord. Adds/removes Gilded role (ID: `1472230516823556260`). |
 | AtlasBot Page Copy Rewrite | ✅ Live | 2026-02-07 | Design | All 8 command descriptions rewritten with brand voice (competitive, analytical, direct). Feature cards and CTA updated. /help excluded from public listing |
 | Premium Commands Section | ✅ Live | 2026-02-09 | Product | /multirally moved to dedicated "PREMIUM COMMANDS" section with full-width card, detailed how-it-works, 3-step flow, 3 free daily credits callout, Supporter CTA. "Free. Always." → "Free Core" |
 | Multirally Credit Enforcement | ✅ Live | 2026-02-09 | Platform + Product | Persistent credit tracking via `multirally_usage` Supabase table. API: `/bot/multirally-credits/check`, `/increment`, `/multirally-stats`. Bot uses API-backed credits with in-memory fallback. BotDashboard: premium stats section (total/supporter/free uses, upsell impressions, conversion signal). Support page: "Unlimited Premium Bot Commands" perk added |

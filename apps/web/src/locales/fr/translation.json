@@ -58,7 +58,8 @@
     "playerDirectory": "Répertoire des Joueurs",
     "ambassadors": "Ambassadeurs",
     "contributeData": "Contribuer des Données",
-    "aboutAtlas": "À Propos d'Atlas"
+    "aboutAtlas": "À Propos d'Atlas",
+    "kingdomCommunities": "Communautés de Royaumes"
   },
   "stats": {
     "atlasScore": "Score Atlas",
@@ -1995,6 +1996,18 @@
     "ctaButton": "Entrer dans le Transfer Hub",
     "browseKingdoms": "Parcourir Tous les Royaumes",
     "allTools": "← Tous les Outils"
+  },
+  "kingdomCommunities": {
+    "title": "Communautés de Royaumes",
+    "heroTitle1": "COMMUNAUTÉS",
+    "heroTitle2": "DE ROYAUMES",
+    "heroSubtitle": "Les royaumes les plus actifs sur Atlas. Plus grande communauté = renseignement plus fort.",
+    "heroStats": "{{kingdoms}} royaumes · {{players}} joueurs vérifiés",
+    "searchPlaceholder": "Rechercher par numéro de royaume...",
+    "ctaTitle": "Mobilisez votre royaume pour grimper au classement",
+    "ctaDescription": "Chaque joueur lié avec TC20+ compte pour le rang communautaire de votre royaume. Invitez votre alliance — plus votre présence est grande, plus l'intelligence Atlas de votre royaume est forte.",
+    "noResults": "Aucun royaume trouvé",
+    "footer": "Seuls les joueurs ayant lié leur compte Kingshot avec TC20+ sont comptés. Les classements se mettent à jour en temps réel."
   },
   "admin": {
     "anonymous": "Anonyme",

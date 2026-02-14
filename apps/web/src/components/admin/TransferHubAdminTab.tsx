@@ -106,7 +106,7 @@ type SubTab = 'overview' | 'editors' | 'co-editors' | 'funds' | 'profiles' | 'au
 
 const TIER_COLORS: Record<string, { bg: string; border: string; text: string }> = {
   gold: { bg: `${colors.gold}15`, border: `${colors.gold}40`, text: colors.gold },
-  silver: { bg: `${colors.textSecondary}15`, border: `${colors.textSecondary}40`, text: colors.textSecondary },
+  silver: { bg: '#d1d5db15', border: '#d1d5db40', text: '#d1d5db' },
   bronze: { bg: `${colors.bronze}15`, border: `${colors.bronze}40`, text: colors.bronze },
   standard: { bg: `${colors.textMuted}15`, border: `${colors.textMuted}40`, text: colors.textMuted },
 };
@@ -563,6 +563,49 @@ export const TransferHubAdminTab: React.FC = () => {
     }
   };
 
+  const addFundsToKingdom = async (kingdomNumber: number, amount: number) => {
+    if (!supabase || amount <= 0) return;
+    setActionLoading('add-funds');
+    try {
+      // Check if fund entry exists
+      const { data: existing } = await supabase
+        .from('kingdom_funds')
+        .select('id, balance, total_contributed')
+        .eq('kingdom_number', kingdomNumber)
+        .maybeSingle();
+
+      if (existing) {
+        const newBalance = parseFloat(existing.balance || '0') + amount;
+        const newTotal = parseFloat(existing.total_contributed || '0') + amount;
+        // Determine tier based on new balance
+        const newTier = newBalance >= 100 ? 'gold' : newBalance >= 50 ? 'silver' : newBalance >= 25 ? 'bronze' : 'standard';
+        const { error } = await supabase
+          .from('kingdom_funds')
+          .update({ balance: newBalance, total_contributed: newTotal, tier: newTier })
+          .eq('id', existing.id);
+        if (error) { logger.error('Add funds failed:', error); return; }
+      } else {
+        const newTier = amount >= 100 ? 'gold' : amount >= 50 ? 'silver' : amount >= 25 ? 'bronze' : 'standard';
+        const { error } = await supabase
+          .from('kingdom_funds')
+          .insert({
+            kingdom_number: kingdomNumber,
+            balance: amount,
+            tier: newTier,
+            total_contributed: amount,
+            contributor_count: 1,
+            is_recruiting: false,
+          });
+        if (error) { logger.error('Create fund with balance failed:', error); return; }
+      }
+      await fetchFunds();
+    } catch (err) {
+      logger.error('Error adding funds to kingdom:', err);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const subTabs: { id: SubTab; label: string; icon: string }[] = [
     { id: 'overview', label: 'Overview', icon: '📊' },
     { id: 'editors', label: 'Editor Claims', icon: '👑' },
@@ -642,7 +685,7 @@ export const TransferHubAdminTab: React.FC = () => {
           onPromote={promoteToEditor}
         />
       ) : subTab === 'funds' ? (
-        <FundsTab funds={funds} timeAgo={timeAgo} onGrantTier={grantTierOverride} onRevokeTier={revokeTierOverride} onGrantNewKingdom={grantTierToNewKingdom} actionLoading={actionLoading} />
+        <FundsTab funds={funds} timeAgo={timeAgo} onGrantTier={grantTierOverride} onRevokeTier={revokeTierOverride} onGrantNewKingdom={grantTierToNewKingdom} onAddFunds={addFundsToKingdom} actionLoading={actionLoading} />
       ) : subTab === 'profiles' ? (
         <ProfilesTab profiles={profiles} timeAgo={timeAgo} />
       ) : subTab === 'audit-log' ? (
@@ -1110,13 +1153,18 @@ interface FundsTabProps {
   onGrantTier: (fundId: string, kingdomNumber: number, tier: string) => void;
   onRevokeTier: (fundId: string) => void;
   onGrantNewKingdom: (kingdomNumber: number, tier: string) => void;
+  onAddFunds: (kingdomNumber: number, amount: number) => Promise<void>;
   actionLoading: string | null;
 }
 
-const FundsTab: React.FC<FundsTabProps> = ({ funds, timeAgo, onGrantTier, onRevokeTier, onGrantNewKingdom, actionLoading }) => {
+const FundsTab: React.FC<FundsTabProps> = ({ funds, timeAgo, onGrantTier, onRevokeTier, onGrantNewKingdom, onAddFunds, actionLoading }) => {
   const [grantKingdom, setGrantKingdom] = useState('');
   const [grantTier, setGrantTier] = useState('gold');
   const [showGrantForm, setShowGrantForm] = useState(false);
+  const [showAddFundsForm, setShowAddFundsForm] = useState(false);
+  const [addFundsKingdom, setAddFundsKingdom] = useState('');
+  const [addFundsAmount, setAddFundsAmount] = useState('');
+  const [addingFunds, setAddingFunds] = useState(false);
 
   const totalBalance = funds.reduce((sum, f) => sum + parseFloat(f.balance || '0'), 0);
   const totalContributed = funds.reduce((sum, f) => sum + parseFloat(f.total_contributed || '0'), 0);
@@ -1239,6 +1287,112 @@ const FundsTab: React.FC<FundsTabProps> = ({ funds, timeAgo, onGrantTier, onRevo
             </button>
             <span style={{ color: colors.textMuted, fontSize: '0.65rem' }}>
               Creates fund entry if needed. Override persists through depletion cycles.
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Add Funds to Kingdom */}
+      <div style={{
+        backgroundColor: colors.cardAlt,
+        borderRadius: '10px',
+        border: `1px solid ${colors.success}30`,
+        padding: '0.75rem 1rem',
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ fontSize: '0.85rem' }}>💰</span>
+            <span style={{ color: colors.success, fontWeight: 600, fontSize: '0.8rem' }}>Add Funds to Kingdom</span>
+          </div>
+          <button
+            onClick={() => setShowAddFundsForm(!showAddFundsForm)}
+            style={{
+              padding: '0.3rem 0.7rem',
+              backgroundColor: showAddFundsForm ? `${colors.error}15` : `${colors.success}15`,
+              border: `1px solid ${showAddFundsForm ? `${colors.error}40` : `${colors.success}40`}`,
+              borderRadius: '6px',
+              color: showAddFundsForm ? colors.error : colors.success,
+              fontSize: '0.7rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            {showAddFundsForm ? 'Cancel' : '+ Add Funds'}
+          </button>
+        </div>
+
+        {showAddFundsForm && (
+          <div style={{
+            display: 'flex',
+            gap: '0.5rem',
+            marginTop: '0.75rem',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+          }}>
+            <input
+              type="number"
+              placeholder="Kingdom #"
+              value={addFundsKingdom}
+              onChange={e => setAddFundsKingdom(e.target.value)}
+              style={{
+                padding: '0.4rem 0.6rem',
+                backgroundColor: colors.bg,
+                border: `1px solid ${colors.border}`,
+                borderRadius: '6px',
+                color: colors.text,
+                fontSize: '0.8rem',
+                width: '100px',
+              }}
+            />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+              <span style={{ color: colors.success, fontWeight: 600, fontSize: '0.9rem' }}>$</span>
+              <input
+                type="number"
+                placeholder="Amount"
+                value={addFundsAmount}
+                onChange={e => setAddFundsAmount(e.target.value)}
+                min="0"
+                step="5"
+                style={{
+                  padding: '0.4rem 0.6rem',
+                  backgroundColor: colors.bg,
+                  border: `1px solid ${colors.border}`,
+                  borderRadius: '6px',
+                  color: colors.text,
+                  fontSize: '0.8rem',
+                  width: '100px',
+                }}
+              />
+            </div>
+            <button
+              onClick={async () => {
+                const kn = parseInt(addFundsKingdom, 10);
+                const amt = parseFloat(addFundsAmount);
+                if (isNaN(kn) || kn <= 0 || isNaN(amt) || amt <= 0) return;
+                setAddingFunds(true);
+                await onAddFunds(kn, amt);
+                setAddingFunds(false);
+                setAddFundsKingdom('');
+                setAddFundsAmount('');
+                setShowAddFundsForm(false);
+              }}
+              disabled={!addFundsKingdom || !addFundsAmount || addingFunds || actionLoading === 'add-funds'}
+              style={{
+                padding: '0.4rem 0.8rem',
+                backgroundColor: `${colors.success}20`,
+                border: `1px solid ${colors.success}50`,
+                borderRadius: '6px',
+                color: colors.success,
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                cursor: (!addFundsKingdom || !addFundsAmount) ? 'not-allowed' : 'pointer',
+                opacity: (!addFundsKingdom || !addFundsAmount) ? 0.5 : 1,
+              }}
+            >
+              {addingFunds ? 'Adding...' : 'Add Funds'}
+            </button>
+            <span style={{ color: colors.textMuted, fontSize: '0.65rem' }}>
+              Increases balance & total contributed. Tier auto-updates based on new balance.
             </span>
           </div>
         )}

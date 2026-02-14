@@ -91,7 +91,7 @@ export const formatTCLevel = (tcLevel: number): string => {
 
 const TIER_COLORS: Record<string, string> = {
   gold: colors.gold,
-  silver: colors.textSecondary,
+  silver: '#d1d5db',
   bronze: colors.bronze,
   standard: colors.textMuted,
 };
@@ -112,7 +112,7 @@ const VIBE_LABELS: Record<string, string> = {
 };
 
 // =============================================
-// ALLIANCE EVENT TIMES GRID
+// ALLIANCE INFORMATION GRID
 // =============================================
 
 const EVENT_TYPE_LABELS: Record<string, string> = {
@@ -134,7 +134,7 @@ const convertUtcToLocal = (utcTime: string): string => {
   return utcDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
 };
 
-const AllianceEventTimesGrid: React.FC<{
+const AllianceInfoGrid: React.FC<{
   allianceEvents: {
     alliances: string[];
     schedule: Record<string, string[][]>;
@@ -156,7 +156,7 @@ const AllianceEventTimesGrid: React.FC<{
     <div style={{ marginBottom: '0.6rem' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
         <span style={{ color: colors.textMuted, fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-          {t('listing.allianceEventTimes', 'Alliance Event Times')}
+          {t('listing.allianceInfo', 'Alliance Information')}
         </span>
         <button
           onClick={() => setShowLocal(!showLocal)}
@@ -477,8 +477,8 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
                     </div>
                     <div style={{ color: '#6b7280', lineHeight: 1.8, display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>
                       <div>🥉 <span style={{ color: colors.bronze }}>Bronze $25+</span> — {t('listing.bronzePerks', 'Shimmer border · requirements · vibes')}</div>
-                      <div>🥈 <span style={{ color: '#9ca3af' }}>Silver $50+</span> — {t('listing.silverPerks', '+ Silver glow · bio · event times')}</div>
-                      <div>🥇 <span style={{ color: colors.gold }}>Gold $100+</span> — {t('listing.goldPerks', '+ Gold glow · highlight · priority')}</div>
+                      <div>🥈 <span style={{ color: '#d1d5db' }}>Silver $50+</span> — {t('listing.silverPerks', '+ Silver glow · bio · alliance info')}</div>
+                      <div>🥇 <span style={{ color: colors.gold }}>Gold $100+</span> — {t('listing.goldPerksV2', '+ Gilded badge · +2 slots · priority')}</div>
                     </div>
                   </div>
                 }
@@ -929,9 +929,9 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
               </div>
             )}
 
-            {/* Alliance Event Times Table */}
+            {/* Alliance Information Table */}
             {fund && fund.alliance_events && fund.alliance_events.alliances && fund.alliance_events.alliances.length > 0 && (
-              <AllianceEventTimesGrid allianceEvents={fund.alliance_events} />
+              <AllianceInfoGrid allianceEvents={fund.alliance_events} />
             )}
 
             {/* Community Reviews — moved here from primary view */}

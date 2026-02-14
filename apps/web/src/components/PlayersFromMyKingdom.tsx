@@ -6,6 +6,7 @@ import { useIsMobile } from '../hooks/useMediaQuery';
 import { getDisplayTier, SUBSCRIPTION_COLORS, SubscriptionTier } from '../utils/constants';
 import { neonGlow } from '../utils/styles';
 import { logger } from '../utils/logger';
+import { useGoldKingdoms } from '../hooks/useGoldKingdoms';
 
 interface PlayerProfile {
   id: string;
@@ -21,10 +22,11 @@ interface PlayerProfile {
   subscription_tier: string | null;
 }
 
-// Get username color based on display tier
+// Get username color based on display tier (includes admin and gilded)
 const getUsernameColor = (tier: SubscriptionTier): string => {
   switch (tier) {
     case 'admin': return SUBSCRIPTION_COLORS.admin;
+    case 'gilded': return SUBSCRIPTION_COLORS.gilded;
     case 'supporter': return SUBSCRIPTION_COLORS.supporter;
     default: return '#ffffff'; // White for free users
   }
@@ -48,6 +50,7 @@ const PlayersFromMyKingdom: React.FC<PlayersFromMyKingdomProps> = ({
 }) => {
   const { profile, user } = useAuth();
   const isMobile = useIsMobile();
+  const goldKingdoms = useGoldKingdoms();
   const [players, setPlayers] = useState<PlayerProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -150,9 +153,9 @@ const PlayersFromMyKingdom: React.FC<PlayersFromMyKingdomProps> = ({
         }}>
           {players.map((player) => {
           // Use linked_username for admin check since that's the Kingshot identity
-          const displayTier = getDisplayTier(player.subscription_tier, player.linked_username || player.username);
+          const displayTier = getDisplayTier(player.subscription_tier, player.linked_username || player.username, player.linked_kingdom, goldKingdoms);
           const usernameColor = getUsernameColor(displayTier);
-          const isPaidOrAdmin = displayTier === 'supporter' || displayTier === 'admin';
+          const isPaidOrAdmin = displayTier === 'supporter' || displayTier === 'admin' || displayTier === 'gilded';
           // Use Kingshot account data if available, fallback to OAuth data
           const displayName = player.linked_username || player.username || 'Anonymous';
           const displayAvatar = player.linked_avatar_url || player.avatar_url;
@@ -256,6 +259,19 @@ const PlayersFromMyKingdom: React.FC<PlayersFromMyKingdomProps> = ({
                         fontWeight: '600',
                       }}>
                         ADMIN
+                      </span>
+                    )}
+                    {displayTier === 'gilded' && (
+                      <span style={{
+                        fontSize: '0.6rem',
+                        padding: '0.1rem 0.3rem',
+                        backgroundColor: `${SUBSCRIPTION_COLORS.gilded}15`,
+                        border: `1px solid ${SUBSCRIPTION_COLORS.gilded}40`,
+                        borderRadius: '3px',
+                        color: SUBSCRIPTION_COLORS.gilded,
+                        fontWeight: '600',
+                      }}>
+                        GILDED
                       </span>
                     )}
                     {displayTier === 'supporter' && (

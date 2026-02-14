@@ -58,7 +58,8 @@
     "playerDirectory": "دليل اللاعبين",
     "ambassadors": "السفراء",
     "contributeData": "المساهمة بالبيانات",
-    "aboutAtlas": "عن Atlas"
+    "aboutAtlas": "عن Atlas",
+    "kingdomCommunities": "مجتمعات الممالك"
   },
   "stats": {
     "atlasScore": "نقاط Atlas",
@@ -2019,6 +2020,18 @@
     "ctaButton": "ادخل مركز الانتقال",
     "browseKingdoms": "تصفح جميع الممالك",
     "allTools": "← جميع الأدوات"
+  },
+  "kingdomCommunities": {
+    "title": "مجتمعات الممالك",
+    "heroTitle1": "مجتمعات",
+    "heroTitle2": "الممالك",
+    "heroSubtitle": "أكثر الممالك نشاطاً في Atlas. مجتمع أكبر = استخبارات أقوى.",
+    "heroStats": "{{kingdoms}} مملكة · {{players}} لاعب موثق",
+    "searchPlaceholder": "البحث برقم المملكة...",
+    "ctaTitle": "حشد مملكتك لتسلق التصنيفات",
+    "ctaDescription": "كل لاعب مرتبط بمستوى TC20+ يُحتسب في ترتيب مجتمع مملكتك. ادعُ تحالفك — كلما زاد حضورك، زادت قوة استخبارات Atlas لمملكتك.",
+    "noResults": "لم يتم العثور على ممالك",
+    "footer": "يتم احتساب اللاعبين الذين ربطوا حساب Kingshot بمستوى TC20+ فقط. يتم تحديث التصنيفات في الوقت الفعلي."
   },
   "admin": {
     "anonymous": "مجهول",

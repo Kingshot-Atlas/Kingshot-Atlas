@@ -91,7 +91,7 @@ const TransferHubBanner: React.FC = () => {
               <path d="M17 20L21 16L17 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               <path d="M21 16H9C6.23858 16 4 13.7614 4 11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             </svg>
-            {t('transferBanner.lookingToTransfer', 'Looking to transfer?')}
+            {t('transferBanner.lookingToTransfer', 'Looking to transfer or recruit?')}
           </h3>
           <p style={{
             color: '#9ca3af',

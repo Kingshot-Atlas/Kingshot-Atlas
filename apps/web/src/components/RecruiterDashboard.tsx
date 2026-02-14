@@ -243,6 +243,7 @@ const RecruiterDashboard: React.FC<{
                 filteredApps={filteredApps}
                 handleStatusChange={handleStatusChange}
                 updating={updating}
+                fundTier={fund?.tier}
               />
             )}
 

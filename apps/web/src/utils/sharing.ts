@@ -567,7 +567,7 @@ export const generateTransferListingCard = async (
   }
 
   if (fundTier && fundTier !== 'standard') {
-    const fundColors: Record<string, string> = { gold: colors.gold, silver: colors.textSecondary, bronze: colors.bronze };
+    const fundColors: Record<string, string> = { gold: colors.gold, silver: '#d1d5db', bronze: colors.bronze };
     ctx.fillStyle = '#9ca3af';
     ctx.font = '12px system-ui, -apple-system, sans-serif';
     ctx.fillText('Fund Tier', infoX, 140);

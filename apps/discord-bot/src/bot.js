@@ -80,6 +80,12 @@ let supporterSyncTimer = null;
 let supporterSyncInitTimeout = null;
 let lastSupporterSync = null;
 
+// Gilded role — assigned to users from Gold-tier Kingdom Fund kingdoms
+const GILDED_ROLE_ID = process.env.DISCORD_GILDED_ROLE_ID || '1472230516823556260';
+let gildedSyncTimer = null;
+let gildedSyncInitTimeout = null;
+let lastGildedSync = null;
+
 // Explorer role — assigned to everyone who joins the Discord server
 const EXPLORER_ROLE_ID = process.env.DISCORD_EXPLORER_ROLE_ID || '';
 
@@ -271,6 +277,26 @@ const healthServer = http.createServer(async (req, res) => {
     diagnosticCacheTime = now;
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify(diag, null, 2));
+  } else if (req.url === '/trigger-gilded-sync' || req.url?.startsWith('/trigger-gilded-sync?')) {
+    // Manual trigger for Gilded role sync — secured with DIAGNOSTIC_API_KEY
+    const diagKey = process.env.DIAGNOSTIC_API_KEY;
+    if (diagKey) {
+      const url = new URL(req.url, `http://localhost:${HEALTH_PORT}`);
+      const providedKey = url.searchParams.get('key') || req.headers['x-diagnostic-key'];
+      if (providedKey !== diagKey) {
+        res.writeHead(403, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Forbidden — provide ?key= or X-Diagnostic-Key header' }));
+        return;
+      }
+    }
+    console.log('✨ Manual Gilded sync triggered via HTTP');
+    syncGildedRoles().then(() => {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ status: 'ok', message: 'Gilded role sync completed', lastSync: lastGildedSync }));
+    }).catch(err => {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ status: 'error', message: err.message }));
+    });
   } else if (req.url === '/') {
     res.writeHead(200, { 'Content-Type': 'text/plain' });
     res.end('Atlas Discord Bot - Use /health for status');
@@ -421,6 +447,17 @@ client.on('ready', async () => {
     console.log(`💎 Supporter role sync scheduled (every ${SETTLER_SYNC_INTERVAL / 60000} min)`);
   } else {
     console.log('⚠️ DISCORD_SUPPORTER_ROLE_ID not set — Supporter role sync disabled');
+  }
+
+  // Start Gilded role sync (first run after 150s, then every 30 min)
+  if (GILDED_ROLE_ID) {
+    if (gildedSyncInitTimeout) clearTimeout(gildedSyncInitTimeout);
+    if (gildedSyncTimer) clearInterval(gildedSyncTimer);
+    gildedSyncInitTimeout = setTimeout(() => syncGildedRoles(), 150_000);
+    gildedSyncTimer = setInterval(() => syncGildedRoles(), SETTLER_SYNC_INTERVAL);
+    console.log(`✨ Gilded role sync scheduled (every ${SETTLER_SYNC_INTERVAL / 60000} min)`);
+  } else {
+    console.log('⚠️ DISCORD_GILDED_ROLE_ID not set — Gilded role sync disabled');
   }
 
   // Rotating bot presence (guard against duplicate timers on reconnect)
@@ -1321,6 +1358,87 @@ async function syncSupporterRoles() {
     console.log(`💎 Supporter sync done in ${elapsed}ms: +${assigned} -${removed} =${alreadyHas} already`);
   } catch (err) {
     console.error('💎 Supporter sync error:', err.message);
+  }
+}
+
+/**
+ * Gilded Role Sync — assigns the Gilded Discord role to users from Gold-tier Kingdom Fund kingdoms.
+ * Fetches gold kingdoms from the API, then checks which Discord-linked users belong to those kingdoms.
+ * Runs on the same interval as Settler sync.
+ */
+async function syncGildedRoles() {
+  if (!botReady || !client.guilds.cache.size) {
+    console.log('✨ Gilded sync skipped (bot not ready)');
+    return;
+  }
+  if (!GILDED_ROLE_ID) {
+    console.log('✨ Gilded sync skipped (DISCORD_GILDED_ROLE_ID not set)');
+    return;
+  }
+
+  console.log('✨ Gilded role sync starting...');
+  const startTime = Date.now();
+
+  try {
+    const res = await fetch(`${config.apiUrl}/api/v1/bot/gilded-users`);
+    if (!res.ok) {
+      console.error(`✨ Gilded sync: API returned ${res.status}`);
+      return;
+    }
+    const data = await res.json();
+    const gildedUsers = data.users || [];
+    const gildedDiscordIds = new Set(gildedUsers.map(u => u.discord_id).filter(Boolean));
+
+    console.log(`✨ ${gildedDiscordIds.size} gilded users from API`);
+
+    const guild = client.guilds.cache.get(config.guildId);
+    if (!guild) {
+      console.error('✨ Gilded sync: guild not found in cache');
+      return;
+    }
+
+    await guild.members.fetch();
+
+    let assigned = 0;
+    let removed = 0;
+    let alreadyHas = 0;
+
+    // Assign to eligible members who don't have it
+    for (const discordId of gildedDiscordIds) {
+      const member = guild.members.cache.get(discordId);
+      if (!member) continue;
+      if (member.roles.cache.has(GILDED_ROLE_ID)) {
+        alreadyHas++;
+        continue;
+      }
+      try {
+        await member.roles.add(GILDED_ROLE_ID, 'Auto-assign: Gold-tier Kingdom Fund member on ks-atlas.com');
+        assigned++;
+        console.log(`   ✨ +Gilded: ${member.user.username}`);
+      } catch (err) {
+        console.error(`   ❌ Failed to assign Gilded to ${member.user.username}: ${err.message}`);
+      }
+    }
+
+    // Remove from members who have the role but are no longer eligible
+    const gildedMembers = guild.members.cache.filter(m => m.roles.cache.has(GILDED_ROLE_ID));
+    for (const [memberId, member] of gildedMembers) {
+      if (!gildedDiscordIds.has(memberId) && !member.user.bot) {
+        try {
+          await member.roles.remove(GILDED_ROLE_ID, 'Auto-remove: kingdom no longer Gold-tier on ks-atlas.com');
+          removed++;
+          console.log(`   ✨ -Gilded: ${member.user.username}`);
+        } catch (err) {
+          console.error(`   ❌ Failed to remove Gilded from ${member.user.username}: ${err.message}`);
+        }
+      }
+    }
+
+    const elapsed = Date.now() - startTime;
+    lastGildedSync = new Date().toISOString();
+    console.log(`✨ Gilded sync done in ${elapsed}ms: +${assigned} -${removed} =${alreadyHas} already`);
+  } catch (err) {
+    console.error('✨ Gilded sync error:', err.message);
   }
 }
 

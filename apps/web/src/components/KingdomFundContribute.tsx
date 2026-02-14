@@ -56,7 +56,7 @@ const getTierFromBalance = (balance: number): string => {
 
 const TIER_COLORS: Record<string, string> = {
   gold: colors.gold,
-  silver: colors.textSecondary,
+  silver: '#d1d5db',
   bronze: colors.bronze,
   standard: colors.textMuted,
 };
@@ -64,8 +64,8 @@ const TIER_COLORS: Record<string, string> = {
 const TIER_BENEFITS: Record<string, string[]> = {
   standard: ['Basic listing with Atlas Score & stats', 'Community reviews from players'],
   bronze: ['Min TC & Power requirements shown', 'Browse transferee profiles', 'Kingdom Policies & Vibe tags'],
-  silver: ['All Bronze benefits', 'Send invites to transferees', 'Kingdom Bio & Language display', 'Alliance Event Times'],
-  gold: ['All Silver benefits', '5 bonus invites per cycle', 'Gold glow on listing', 'Top listing priority'],
+  silver: ['All Bronze benefits', 'Send invites to transferees', 'Kingdom Bio & Language display', 'Alliance Information schedule'],
+  gold: ['All Silver benefits', '+2 alliance slots (5 total)', 'Gilded badge for all kingdom users', 'Gold glow + priority placement'],
 };
 
 // =============================================

@@ -11,12 +11,14 @@ import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
 import { useTranslation } from 'react-i18next';
 import { getTransferGroupOptions, parseTransferGroupValue } from '../config/transferGroups';
+import { useGoldKingdoms } from '../hooks/useGoldKingdoms';
 
-// Get username color based on subscription tier (including admin)
+// Get username color based on subscription tier (including admin and gilded)
 const getUsernameColor = (tier: SubscriptionTier | null | undefined): string => {
   switch (tier) {
-    case 'supporter': return subscriptionColors.supporter;
     case 'admin': return subscriptionColors.admin;
+    case 'gilded': return subscriptionColors.gilded;
+    case 'supporter': return subscriptionColors.supporter;
     default: return colors.text;
   }
 };
@@ -45,6 +47,7 @@ const UserDirectory: React.FC = () => {
   useMetaTags(PAGE_META_TAGS.players);
   useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.players });
   const { user: currentUser } = useAuth();
+  const goldKingdoms = useGoldKingdoms();
   const [searchParams] = useSearchParams();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [allKingdoms, setAllKingdoms] = useState<number[]>([]);
@@ -55,7 +58,7 @@ const UserDirectory: React.FC = () => {
   const urlKingdom = searchParams.get('kingdom');
   const [filterBy, setFilterBy] = useState<'all' | 'alliance' | 'region' | 'kingdom'>(urlKingdom ? 'kingdom' : 'all');
   const [filterValue, setFilterValue] = useState(urlKingdom || '');
-  const [tierFilter, setTierFilter] = useState<'all' | 'admin' | 'supporter' | 'ambassador' | 'consul' | 'recruiter' | 'scout'>('all');
+  const [tierFilter, setTierFilter] = useState<'all' | 'admin' | 'gilded' | 'supporter' | 'ambassador' | 'consul' | 'recruiter' | 'scout'>('all');
   const [sortBy, _setSortBy] = useState<SortBy>(() => {
     const saved = localStorage.getItem('kingshot_players_sortBy');
     return saved && ['role', 'joined', 'kingdom', 'tc'].includes(saved) ? saved as SortBy : 'role';
@@ -210,10 +213,11 @@ const UserDirectory: React.FC = () => {
 
   // Compute tier counts for filter chip badges
   const tierCounts = React.useMemo(() => {
-    const counts: Record<string, number> = { all: users.length, admin: 0, supporter: 0, ambassador: 0, consul: 0, recruiter: 0, scout: 0 };
+    const counts: Record<string, number> = { all: users.length, admin: 0, gilded: 0, supporter: 0, ambassador: 0, consul: 0, recruiter: 0, scout: 0 };
     users.forEach(u => {
-      const dt = getDisplayTier(u.subscription_tier, u.linked_username || u.username);
+      const dt = getDisplayTier(u.subscription_tier, u.linked_username || u.username, u.linked_kingdom, goldKingdoms);
       if (dt === 'admin') counts.admin!++;
+      if (dt === 'gilded') counts.gilded!++;
       if (dt === 'supporter') counts.supporter!++;
       const rt = u.referral_tier as string | null;
       if (rt === 'ambassador') counts.ambassador!++;
@@ -227,17 +231,14 @@ const UserDirectory: React.FC = () => {
   // Current user's kingdom for "My Kingdom" filter
   const myKingdom = (currentUser as UserProfile | null)?.linked_kingdom;
 
-  // Sort helper
+  // Sort helper — Admin > Supporters > Ambassadors > everyone else alphabetical
   const getUserPriority = (u: UserProfile): number => {
-    const dt = getDisplayTier(u.subscription_tier, u.linked_username || u.username);
+    const dt = getDisplayTier(u.subscription_tier, u.linked_username || u.username, u.linked_kingdom, goldKingdoms);
     if (dt === 'admin') return 0;
     if (dt === 'supporter') return 1;
     const rt = u.referral_tier as string | null;
     if (rt === 'ambassador') return 2;
-    if (rt === 'consul') return 3;
-    if (rt === 'recruiter') return 4;
-    if (rt === 'scout') return 5;
-    return 6;
+    return 3;
   };
 
   const filteredUsers = React.useMemo(() => {
@@ -251,8 +252,8 @@ const UserDirectory: React.FC = () => {
 
       // Tier filter - subscription tiers and referral tiers
       if (tierFilter !== 'all') {
-        if (tierFilter === 'admin' || tierFilter === 'supporter') {
-          const userDisplayTier = getDisplayTier(user.subscription_tier, user.linked_username || user.username);
+        if (tierFilter === 'admin' || tierFilter === 'gilded' || tierFilter === 'supporter') {
+          const userDisplayTier = getDisplayTier(user.subscription_tier, user.linked_username || user.username, user.linked_kingdom, goldKingdoms);
           if (userDisplayTier !== tierFilter) return false;
         } else {
           if (user.referral_tier !== tierFilter) return false;
@@ -681,7 +682,8 @@ const UserDirectory: React.FC = () => {
           <span style={{ color: '#2a2a2a' }}>|</span>
           {([
             { key: 'all' as const, label: 'All Players', color: '#6b7280' },
-            { key: 'admin' as const, label: '👑 Admin', color: subscriptionColors.admin },
+            { key: 'admin' as const, label: '⚡ Admin', color: subscriptionColors.admin },
+            { key: 'gilded' as const, label: '✨ Gilded', color: subscriptionColors.gilded },
             { key: 'supporter' as const, label: '💖 Supporter', color: subscriptionColors.supporter },
             { key: 'ambassador' as const, label: '🟣 Ambassador', color: '#a24cf3' },
             { key: 'consul' as const, label: '🟣 Consul', color: '#b890dd' },
@@ -793,7 +795,7 @@ const UserDirectory: React.FC = () => {
             gap: isMobile ? '1rem' : '1.5rem' 
           }}>
             {filteredUsers.slice(0, visibleCount).map(user => {
-              const displayTier = getDisplayTier(user.subscription_tier, user.linked_username || user.username);
+              const displayTier = getDisplayTier(user.subscription_tier, user.linked_username || user.username, user.linked_kingdom, goldKingdoms);
               // Use unified priority: Admin > Supporter > Ambassador > Consul > Recruiter > Scout > Free
               const refTier = user.referral_tier as ReferralTier | null;
               const { color: tierColor, hasGlow } = getHighestTierColor(displayTier, refTier);
@@ -807,25 +809,37 @@ const UserDirectory: React.FC = () => {
                 }}
               >
                 <div style={{
-                  backgroundColor: '#111116',
+                  backgroundColor: displayTier === 'admin' ? '#0d1520' : '#111116',
+                  background: displayTier === 'admin' 
+                    ? `linear-gradient(135deg, #0d1520 0%, #111116 50%, #0d1520 100%)` 
+                    : undefined,
                   borderRadius: '12px',
                   padding: isMobile ? '1rem' : '1.5rem',
-                  border: `2px solid ${tierColor}40`,
+                  border: displayTier === 'admin' 
+                    ? `2px solid ${subscriptionColors.admin}60` 
+                    : `2px solid ${tierColor}40`,
                   transition: 'transform 0.2s, border-color 0.2s, box-shadow 0.2s',
                   cursor: 'pointer',
                   height: '100%',
                   display: 'flex',
-                  flexDirection: 'column'
+                  flexDirection: 'column',
+                  ...(displayTier === 'admin' ? { 
+                    boxShadow: `0 0 20px ${subscriptionColors.admin}15, inset 0 1px 0 ${subscriptionColors.admin}10` 
+                  } : {})
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = 'translateY(-4px)';
-                  e.currentTarget.style.borderColor = tierColor;
-                  e.currentTarget.style.boxShadow = `0 4px 20px ${tierColor}30`;
+                  e.currentTarget.style.borderColor = displayTier === 'admin' ? subscriptionColors.admin : tierColor;
+                  e.currentTarget.style.boxShadow = displayTier === 'admin' 
+                    ? `0 4px 30px ${subscriptionColors.admin}30, 0 0 40px ${subscriptionColors.admin}10` 
+                    : `0 4px 20px ${tierColor}30`;
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.borderColor = `${tierColor}40`;
-                  e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.borderColor = displayTier === 'admin' ? `${subscriptionColors.admin}60` : `${tierColor}40`;
+                  e.currentTarget.style.boxShadow = displayTier === 'admin' 
+                    ? `0 0 20px ${subscriptionColors.admin}15, inset 0 1px 0 ${subscriptionColors.admin}10` 
+                    : 'none';
                 }}
                 >
                   {/* Player Header - Avatar + Info */}
@@ -906,7 +920,20 @@ const UserDirectory: React.FC = () => {
                             color: subscriptionColors.admin,
                             fontWeight: '600',
                           }}>
-                            👑 ADMIN
+                            ⚡ ADMIN
+                          </span>
+                        )}
+                        {displayTier === 'gilded' && (
+                          <span style={{
+                            fontSize: '0.6rem',
+                            padding: '0.15rem 0.4rem',
+                            backgroundColor: `${subscriptionColors.gilded}15`,
+                            border: `1px solid ${subscriptionColors.gilded}40`,
+                            borderRadius: '4px',
+                            color: subscriptionColors.gilded,
+                            fontWeight: '600',
+                          }}>
+                            ✨ GILDED
                           </span>
                         )}
                         {displayTier === 'supporter' && (

@@ -11,7 +11,7 @@ import { correctionService } from '../services/correctionService';
 import { kvkCorrectionService } from '../services/kvkCorrectionService';
 import { kvkHistoryService } from '../services/kvkHistoryService';
 // Lazy load heavy dashboard components for code splitting
-const AnalyticsDashboard = lazy(() => import('../components/AnalyticsCharts').then(m => ({ default: m.AnalyticsDashboard })));
+// AnalyticsDashboard removed — revenue data moved to Finance tab
 const EngagementDashboard = lazy(() => import('../components/EngagementDashboard').then(m => ({ default: m.EngagementDashboard })));
 const WebhookMonitor = lazy(() => import('../components/WebhookMonitor').then(m => ({ default: m.WebhookMonitor })));
 const DataSourceStats = lazy(() => import('../components/DataSourceStats').then(m => ({ default: m.DataSourceStats })));
@@ -29,6 +29,7 @@ import {
   AdminHeader,
   AdminTabNav,
   AnalyticsOverview, 
+  FinanceTab,
   SubmissionsTab, 
   NewKingdomsTab, 
   ClaimsTab,
@@ -43,6 +44,7 @@ import {
   BotTelemetryTab,
   GiftCodeAnalyticsTab,
   BattlePlannerAccessTab,
+  SpotlightTab,
   ImportTab,
   PlausibleTab,
   RejectModal,
@@ -129,10 +131,9 @@ const AdminDashboard: React.FC = () => {
         case 'r': fetchAnalytics(); break;
         case '1': setActiveTab('analytics'); break;
         case '2': setActiveTab('submissions'); break;
-        case '3': setActiveTab('claims'); break;
-        case '4': setActiveTab('transfer-hub'); break;
-        case '5': setActiveTab('feedback'); break;
-        case '6': setActiveTab('import'); break;
+        case '3': setActiveTab('transfer-hub'); break;
+        case '4': setActiveTab('finance'); break;
+        case '5': setActiveTab('email'); break;
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -933,10 +934,11 @@ const AdminDashboard: React.FC = () => {
 
   // Determine active category based on current tab
   const getActiveCategory = () => {
-    if (['analytics', 'saas-metrics', 'engagement', 'plausible'].includes(activeTab)) return 'analytics';
+    if (['analytics', 'engagement', 'plausible'].includes(activeTab)) return 'overview';
     if (['submissions', 'new-kingdoms', 'claims', 'corrections', 'kvk-errors'].includes(activeTab)) return 'review';
     if (['transfer-hub', 'transfer-status', 'transfer-apps'].includes(activeTab)) return 'transfer';
-    return 'system';
+    if (['finance'].includes(activeTab)) return 'finance';
+    return 'operations';
   };
   const activeCategory = getActiveCategory();
   const totalPending = pendingCounts.submissions + pendingCounts.claims + pendingCounts.corrections + pendingCounts.transfers + pendingCounts.kvkErrors + pendingCounts.feedback;
@@ -1011,17 +1013,18 @@ const AdminDashboard: React.FC = () => {
             currentKvK={currentKvK}
             incrementingKvK={incrementingKvK}
             onIncrementKvK={handleIncrementKvK}
-            onGrantSubscription={handleGrantSubscription}
           />
           {/* Admin Activity Feed */}
           <div style={{ marginTop: '1.5rem' }}>
             <AdminActivityFeed />
           </div>
         </>
-      ) : activeTab === 'saas-metrics' ? (
-        <Suspense fallback={<div style={{ padding: '2rem', color: '#6b7280' }}>Loading analytics...</div>}>
-          <AnalyticsDashboard />
-        </Suspense>
+      ) : activeTab === 'finance' ? (
+        <FinanceTab
+          syncingSubscriptions={syncingSubscriptions}
+          onSyncSubscriptions={syncSubscriptions}
+          onGrantSubscription={handleGrantSubscription}
+        />
       ) : activeTab === 'engagement' ? (
         <Suspense fallback={<div style={{ padding: '2rem', color: '#6b7280' }}>Loading engagement...</div>}>
           <EngagementDashboard />
@@ -1121,6 +1124,8 @@ const AdminDashboard: React.FC = () => {
             sessionStorage.setItem('email_prefill', JSON.stringify({ to: email, subject, body }));
           }}
         />
+      ) : activeTab === 'spotlight' ? (
+        <SpotlightTab />
       ) : activeTab === 'import' ? (
         <ImportTab />
       ) : null}

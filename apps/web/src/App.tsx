@@ -10,6 +10,7 @@ import { ToastProvider } from './components/Toast';
 import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
 import FeedbackWidget from './components/FeedbackWidget';
 import SignupNudgeBar from './components/SignupNudgeBar';
+import CampaignNotificationBanner from './components/CampaignNotificationBanner';
 import { useKeyboardShortcuts, useKeyboardHelp } from './hooks/useKeyboardShortcuts';
 import { usePageTracking } from './hooks/useAnalytics';
 import { useKingdomsRealtime } from './hooks/useKingdomsRealtime';
@@ -47,6 +48,7 @@ const GiftCodeLanding = lazy(() => import('./pages/GiftCodeLanding'));
 const TransferHubLanding = lazy(() => import('./pages/TransferHubLanding'));
 const AuthCallback = lazy(() => import('./pages/AuthCallback'));
 const CancelSurvey = lazy(() => import('./pages/CancelSurvey'));
+const KingdomCommunities = lazy(() => import('./pages/KingdomCommunities'));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -106,6 +108,7 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-bg">
       <Header />
+      <CampaignNotificationBanner />
       <KeyboardShortcutsModal isOpen={showHelp} onClose={closeHelp} />
       <main className="container mx-auto px-4 py-8">
         <PageTransition>
@@ -141,6 +144,7 @@ function AppContent() {
               <Route path="/tools/gift-codes" element={<ErrorBoundary><GiftCodeRedeemer /></ErrorBoundary>} />
               <Route path="/auth/callback" element={<ErrorBoundary><AuthCallback /></ErrorBoundary>} />
               <Route path="/cancel-survey" element={<ErrorBoundary><CancelSurvey /></ErrorBoundary>} />
+              <Route path="/kingdoms/communities" element={<ErrorBoundary><KingdomCommunities /></ErrorBoundary>} />
             </Routes>
           </Suspense>
         </PageTransition>

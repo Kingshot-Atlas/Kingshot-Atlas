@@ -1,13 +1,8 @@
-import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { AnalyticsData } from './types';
 import { analyticsService } from '../../services/analyticsService';
-import SupporterBadge from '../SupporterBadge';
-import { downloadCSV } from '../../utils/csvExport';
-import { getAuthHeaders } from '../../services/authHeaders';
 import { colors } from '../../utils/styles';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
 // S3.4: Inline SVG sparkline component
 const Sparkline: React.FC<{ data: number[]; color: string; width?: number; height?: number }> = ({ data, color, width = 80, height = 24 }) => {
@@ -34,7 +29,6 @@ interface AnalyticsOverviewProps {
   currentKvK: number;
   incrementingKvK: boolean;
   onIncrementKvK: () => void;
-  onGrantSubscription?: (email: string, tier: string, source: string, reason: string) => Promise<{ success: boolean; message: string }>;
 }
 
 export const AnalyticsOverview: React.FC<AnalyticsOverviewProps> = ({
@@ -44,35 +38,9 @@ export const AnalyticsOverview: React.FC<AnalyticsOverviewProps> = ({
   currentKvK,
   incrementingKvK,
   onIncrementKvK,
-  onGrantSubscription
 }) => {
   const { t } = useTranslation();
   const homepageCTR = useMemo(() => analyticsService.getHomepageCTR(), [analytics]);
-  const [grantEmail, setGrantEmail] = useState('');
-  const [grantSource, setGrantSource] = useState<'kofi' | 'manual' | 'stripe'>('kofi');
-  const [grantReason, setGrantReason] = useState('');
-  const [grantLoading, setGrantLoading] = useState(false);
-  const [grantResult, setGrantResult] = useState<{ success: boolean; message: string } | null>(null);
-
-  // S3.2: Churn alerts
-  const [churnAlerts, setChurnAlerts] = useState<Array<{ event_id: string; customer_id: string; canceled_at: string; reason: string }>>([]);
-  const fetchChurnAlerts = useCallback(async () => {
-    try {
-      const authHeaders = await getAuthHeaders({ requireAuth: false });
-      const res = await fetch(`${API_URL}/api/v1/admin/churn-alerts`, { headers: authHeaders });
-      if (res.ok) {
-        const data = await res.json();
-        setChurnAlerts(data.cancellations || []);
-      }
-    } catch { /* silent */ }
-  }, []);
-  useEffect(() => { fetchChurnAlerts(); }, [fetchChurnAlerts]);
-
-  // S3.5: Date range state
-  const [dateRange, setDateRange] = useState<{ from: string; to: string }>({
-    from: new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0] ?? '',
-    to: new Date().toISOString().split('T')[0] ?? '',
-  });
 
   if (!analytics) {
     return <div style={{ textAlign: 'center', padding: '2rem', color: colors.textMuted }}>Loading analytics...</div>;
@@ -80,36 +48,6 @@ export const AnalyticsOverview: React.FC<AnalyticsOverviewProps> = ({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      {/* S3.5: Date Range Picker */}
-      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
-        <span style={{ color: colors.textMuted, fontSize: '0.8rem' }}>Date Range:</span>
-        <input
-          type="date"
-          value={dateRange.from}
-          onChange={(e) => setDateRange(prev => ({ ...prev, from: e.target.value }))}
-          style={{ padding: '0.3rem 0.5rem', backgroundColor: colors.cardAlt, border: `1px solid ${colors.border}`, borderRadius: '6px', color: colors.text, fontSize: '0.8rem' }}
-        />
-        <span style={{ color: colors.textMuted }}>—</span>
-        <input
-          type="date"
-          value={dateRange.to}
-          onChange={(e) => setDateRange(prev => ({ ...prev, to: e.target.value }))}
-          style={{ padding: '0.3rem 0.5rem', backgroundColor: colors.cardAlt, border: `1px solid ${colors.border}`, borderRadius: '6px', color: colors.text, fontSize: '0.8rem' }}
-        />
-        {[7, 14, 30].map(days => (
-          <button
-            key={days}
-            onClick={() => setDateRange({ from: new Date(Date.now() - days * 86400000).toISOString().split('T')[0] ?? '', to: new Date().toISOString().split('T')[0] ?? '' })}
-            style={{
-              padding: '0.25rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', cursor: 'pointer',
-              backgroundColor: 'transparent', color: colors.textMuted, border: `1px solid ${colors.border}`,
-            }}
-          >
-            {days}d
-          </button>
-        ))}
-      </div>
-
       {/* Key Metrics with S3.4 Sparklines */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
         {[
@@ -175,132 +113,6 @@ export const AnalyticsOverview: React.FC<AnalyticsOverviewProps> = ({
         </div>
       </div>
 
-      {/* Manual Subscription Grant */}
-      {onGrantSubscription && (
-        <div style={{ backgroundColor: colors.cardAlt, borderRadius: '12px', padding: '1.5rem', border: `1px solid ${'#FF6B8A'}40` }}>
-          <h3 style={{ color: colors.text, fontSize: '1rem', margin: '0 0 0.5rem 0' }}>💖 Manual Supporter Grant</h3>
-          <p style={{ color: colors.textSecondary, fontSize: '0.8rem', marginBottom: '1rem' }}>
-            Grant or revoke Supporter perks for Ko-Fi subscribers or manual grants. Updates badge + Discord role.
-          </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <input
-              type="email"
-              placeholder="User email address"
-              value={grantEmail}
-              onChange={e => { setGrantEmail(e.target.value); setGrantResult(null); }}
-              style={{
-                padding: '0.6rem 0.75rem',
-                backgroundColor: colors.bg,
-                border: `1px solid ${colors.border}`,
-                borderRadius: '8px',
-                color: colors.text,
-                fontSize: '0.85rem',
-                outline: 'none',
-              }}
-            />
-            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-              <span style={{ color: colors.textSecondary, fontSize: '0.8rem' }}>Source:</span>
-              {(['kofi', 'manual', 'stripe'] as const).map(src => (
-                <button
-                  key={src}
-                  onClick={() => setGrantSource(src)}
-                  style={{
-                    padding: '0.3rem 0.65rem',
-                    backgroundColor: grantSource === src ? '#FF6B8A20' : 'transparent',
-                    border: `1px solid ${grantSource === src ? '#FF6B8A' : colors.border}`,
-                    borderRadius: '6px',
-                    color: grantSource === src ? '#FF6B8A' : colors.textMuted,
-                    fontSize: '0.75rem',
-                    cursor: 'pointer',
-                    textTransform: 'capitalize',
-                  }}
-                >
-                  {src === 'kofi' ? 'Ko-Fi' : src}
-                </button>
-              ))}
-            </div>
-            <input
-              type="text"
-              placeholder="Reason (optional)"
-              value={grantReason}
-              onChange={e => setGrantReason(e.target.value)}
-              style={{
-                padding: '0.5rem 0.75rem',
-                backgroundColor: colors.bg,
-                border: `1px solid ${colors.border}`,
-                borderRadius: '8px',
-                color: colors.text,
-                fontSize: '0.8rem',
-                outline: 'none',
-              }}
-            />
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button
-                onClick={async () => {
-                  if (!grantEmail.trim()) return;
-                  setGrantLoading(true);
-                  setGrantResult(null);
-                  const result = await onGrantSubscription(grantEmail.trim(), 'supporter', grantSource, grantReason);
-                  setGrantResult(result);
-                  setGrantLoading(false);
-                  if (result.success) { setGrantEmail(''); setGrantReason(''); }
-                }}
-                disabled={grantLoading || !grantEmail.trim()}
-                style={{
-                  flex: 1,
-                  padding: '0.6rem',
-                  backgroundColor: grantLoading ? '#374151' : `${colors.success}20`,
-                  color: grantLoading ? colors.textMuted : colors.success,
-                  border: `1px solid ${colors.success}60`,
-                  borderRadius: '8px',
-                  fontSize: '0.85rem',
-                  fontWeight: '600',
-                  cursor: grantLoading || !grantEmail.trim() ? 'not-allowed' : 'pointer',
-                }}
-              >
-                {grantLoading ? '⏳ Processing...' : '✅ Grant Supporter'}
-              </button>
-              <button
-                onClick={async () => {
-                  if (!grantEmail.trim()) return;
-                  setGrantLoading(true);
-                  setGrantResult(null);
-                  const result = await onGrantSubscription(grantEmail.trim(), 'free', grantSource, grantReason || 'Revoked');
-                  setGrantResult(result);
-                  setGrantLoading(false);
-                  if (result.success) { setGrantEmail(''); setGrantReason(''); }
-                }}
-                disabled={grantLoading || !grantEmail.trim()}
-                style={{
-                  padding: '0.6rem 1rem',
-                  backgroundColor: grantLoading ? '#374151' : `${colors.error}20`,
-                  color: grantLoading ? colors.textMuted : colors.error,
-                  border: `1px solid ${colors.error}60`,
-                  borderRadius: '8px',
-                  fontSize: '0.85rem',
-                  fontWeight: '600',
-                  cursor: grantLoading || !grantEmail.trim() ? 'not-allowed' : 'pointer',
-                }}
-              >
-                Revoke
-              </button>
-            </div>
-            {grantResult && (
-              <div style={{
-                padding: '0.5rem 0.75rem',
-                backgroundColor: grantResult.success ? `${colors.success}10` : `${colors.error}10`,
-                border: `1px solid ${grantResult.success ? `${colors.success}40` : `${colors.error}40`}`,
-                borderRadius: '8px',
-                color: grantResult.success ? colors.success : colors.error,
-                fontSize: '0.8rem',
-              }}>
-                {grantResult.message}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
       {/* KvK Management */}
       <div style={{ backgroundColor: colors.cardAlt, borderRadius: '12px', padding: '1.5rem', border: `1px solid ${'#8b5cf6'}40` }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
@@ -359,145 +171,6 @@ export const AnalyticsOverview: React.FC<AnalyticsOverviewProps> = ({
           ))}
         </div>
       </div>
-
-      {/* Revenue */}
-      <div style={{ backgroundColor: colors.cardAlt, borderRadius: '12px', padding: '1.5rem', border: `1px solid ${colors.border}` }}>
-        <h3 style={{ color: colors.text, marginBottom: '1rem', fontSize: '1rem' }}>💰 Revenue & Subscriptions</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '1.5rem', fontWeight: '700', color: colors.success }}>${analytics.revenue.monthly.toFixed(2)}</div>
-            <div style={{ fontSize: '0.8rem', color: colors.textMuted }}>MRR</div>
-          </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '1.5rem', fontWeight: '700', color: colors.gold }}>${analytics.revenue.total.toFixed(2)}</div>
-            <div style={{ fontSize: '0.8rem', color: colors.textMuted }}>Total Revenue</div>
-          </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '1.5rem', fontWeight: '700', color: colors.purple }}>{analytics.revenue.activeSubscriptions || 0}</div>
-            <div style={{ fontSize: '0.8rem', color: colors.textMuted }}>Active Subs</div>
-          </div>
-        </div>
-        
-        {/* Subscription Breakdown */}
-        {analytics.revenue.subscriptions.length > 0 && (
-          <div style={{ borderTop: `1px solid ${colors.border}`, paddingTop: '1rem', marginBottom: '1rem' }}>
-            <div style={{ fontSize: '0.85rem', color: colors.textSecondary, marginBottom: '0.5rem' }}>By Tier:</div>
-            {analytics.revenue.subscriptions.map((sub, i) => (
-              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.25rem' }}>
-                <span style={{ color: colors.text }}>{sub.tier}</span>
-                <span style={{ color: colors.primary, fontWeight: '600' }}>{sub.count}</span>
-              </div>
-            ))}
-          </div>
-        )}
-        
-        {/* Recent Payments */}
-        <div style={{ borderTop: `1px solid ${colors.border}`, paddingTop: '1rem' }}>
-          <div style={{ fontSize: '0.85rem', color: colors.textSecondary, marginBottom: '0.5rem' }}>Recent Payments:</div>
-          {analytics.revenue.recentPayments && analytics.revenue.recentPayments.length > 0 ? (
-            analytics.revenue.recentPayments.slice(0, 5).map((payment, i) => (
-              <div key={i} style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center',
-                padding: '0.4rem 0',
-                borderBottom: i < 4 ? `1px solid ${colors.borderSubtle}` : 'none'
-              }}>
-                <div>
-                  <span style={{ color: colors.success, fontWeight: '600' }}>${payment.amount.toFixed(2)}</span>
-                  <span style={{ color: colors.textMuted, fontSize: '0.75rem', marginLeft: '0.5rem' }}>
-                    {new Date(payment.date).toLocaleDateString()}
-                  </span>
-                </div>
-                {payment.customer_email && (
-                  <span style={{ color: colors.textSecondary, fontSize: '0.75rem' }}>
-                    {payment.customer_email.substring(0, 20)}...
-                  </span>
-                )}
-              </div>
-            ))
-          ) : (
-            <div style={{ color: colors.textMuted, fontSize: '0.85rem', fontStyle: 'italic' }}>No payments yet</div>
-          )}
-        </div>
-      </div>
-
-      {/* Recent Subscribers */}
-      {analytics.recentSubscribers && analytics.recentSubscribers.length > 0 && (
-        <div style={{ backgroundColor: colors.cardAlt, borderRadius: '12px', padding: '1.5rem', border: `1px solid ${colors.border}` }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <h3 style={{ color: colors.text, fontSize: '1rem', margin: 0 }}>🎉 Recent Subscribers</h3>
-            <button
-              onClick={() => downloadCSV(
-                analytics.recentSubscribers!.map(s => ({ username: s.username, tier: s.tier, supporting_since: s.created_at })),
-                'subscribers'
-              )}
-              style={{
-                background: 'none', border: `1px solid ${colors.border}`, borderRadius: '4px',
-                color: colors.textMuted, padding: '0.2rem 0.5rem', cursor: 'pointer', fontSize: '0.7rem',
-              }}
-            >
-              📥 Export CSV
-            </button>
-          </div>
-          {analytics.recentSubscribers.slice(0, 5).map((sub, i) => {
-            const subDate = new Date(sub.created_at);
-            const daysAgo = Math.floor((Date.now() - subDate.getTime()) / 86400000);
-            const durationLabel = daysAgo < 1 ? 'Today' : daysAgo === 1 ? '1 day' : daysAgo < 30 ? `${daysAgo} days` : `${Math.floor(daysAgo / 30)} mo`;
-            const sinceLabel = `Since ${subDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
-            return (
-              <div key={i} style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center',
-                padding: '0.6rem 0',
-                borderBottom: i < 4 ? `1px solid ${colors.borderSubtle}` : 'none'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span style={{ color: colors.text, fontWeight: 500 }}>{sub.username}</span>
-                  <SupporterBadge size="sm" />
-                  <span style={{ 
-                    padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.6rem', fontWeight: 600,
-                    backgroundColor: `${colors.success}15`, color: colors.success,
-                  }}>
-                    {durationLabel}
-                  </span>
-                </div>
-                <span style={{ color: colors.textSecondary, fontSize: '0.75rem' }}>
-                  {sinceLabel}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* S3.2: Churn Alerts */}
-      {churnAlerts.length > 0 && (
-        <div style={{ backgroundColor: colors.cardAlt, borderRadius: '12px', padding: '1.5rem', border: '1px solid #ef444430' }}>
-          <h3 style={{ color: colors.error, fontSize: '1rem', margin: '0 0 1rem 0' }}>⚠️ Subscriber Churn ({churnAlerts.length})</h3>
-          {churnAlerts.slice(0, 5).map((alert, i) => (
-            <div key={alert.event_id || i} style={{
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              padding: '0.5rem 0', borderBottom: i < Math.min(churnAlerts.length, 5) - 1 ? `1px solid ${colors.borderSubtle}` : 'none',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ color: colors.error, fontSize: '0.8rem' }}>✕</span>
-                <span style={{ color: colors.text, fontSize: '0.85rem' }}>{alert.customer_id}</span>
-                <span style={{
-                  padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.6rem', fontWeight: 600,
-                  backgroundColor: `${colors.error}15`, color: colors.error,
-                }}>
-                  {alert.reason}
-                </span>
-              </div>
-              <span style={{ color: colors.textMuted, fontSize: '0.75rem' }}>
-                {new Date(alert.canceled_at).toLocaleDateString()}
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
 
       {/* Top Pages */}
       <div style={{ backgroundColor: colors.cardAlt, borderRadius: '12px', padding: '1.5rem', border: `1px solid ${colors.border}` }}>

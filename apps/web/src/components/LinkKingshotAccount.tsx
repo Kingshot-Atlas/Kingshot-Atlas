@@ -7,10 +7,11 @@ import { supabase } from '../lib/supabase';
 import { useTranslation } from 'react-i18next';
 import { logger } from '../utils/logger';
 
-// Get username color based on subscription tier (includes admin)
+// Get username color based on subscription tier (includes admin and gilded)
 const getUsernameColor = (tier: string): string => {
   switch (tier) {
-    case 'admin': return '#ef4444'; // Admin = red
+    case 'admin': return subscriptionColors.admin;     // Cyan
+    case 'gilded': return subscriptionColors.gilded;   // Gold
     case 'supporter':
     case 'pro':        // Legacy
     case 'recruiter':  // Legacy

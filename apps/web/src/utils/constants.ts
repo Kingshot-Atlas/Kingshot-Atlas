@@ -5,9 +5,10 @@
  * Always import from here to ensure consistency.
  */
 
-// Subscription tier type - includes admin as a display tier
-// Only 'supporter' tier exists for paid users; 'admin' is a display-only tier
-export type SubscriptionTier = 'free' | 'supporter' | 'admin';
+// Subscription tier type - includes admin and gilded as display tiers
+// Only 'supporter' tier exists for paid users; 'admin' and 'gilded' are display-only tiers
+// 'gilded' = user is from a Gold-tier Kingdom Fund kingdom
+export type SubscriptionTier = 'free' | 'supporter' | 'gilded' | 'admin';
 
 // Admin users - usernames that have admin access
 // SINGLE SOURCE OF TRUTH: Admins have full access but display as "Admin"
@@ -15,17 +16,19 @@ export const ADMIN_USERNAMES: readonly string[] = ['gatreno'];
 export const ADMIN_EMAILS: readonly string[] = ['gatreno@gmail.com'];
 
 // Subscription colors - SINGLE SOURCE OF TRUTH for tier styling
-// Supporter = Pink, Admin = Gold
+// Supporter = Pink, Gilded = Gold (#ffc30b), Admin = Cyan (#22d3ee)
 export const SUBSCRIPTION_COLORS = {
   free: '#6b7280',      // Gray
   supporter: '#FF6B8A', // Pink - Atlas Supporter
-  admin: '#f59e0b',     // Gold - Admin
+  gilded: '#ffc30b',    // Gold - Gilded (from Gold-tier Kingdom Fund)
+  admin: '#22d3ee',     // Cyan - Admin
 } as const;
 
 // BADGE DISPLAY NAMES - Use these for user-facing badge text
 export const TIER_DISPLAY_NAMES = {
   free: null,           // No badge for free users
   supporter: 'SUPPORTER',
+  gilded: 'GILDED',     // Users from Gold-tier Kingdom Fund kingdoms
   admin: 'ADMIN',
 } as const;
 
@@ -62,13 +65,17 @@ export const getAccessTier = (
   return 'free';
 };
 
-// Get effective tier for DISPLAY purposes (admins show as "admin")
+// Get effective tier for DISPLAY purposes (admins show as "admin", gold kingdom users as "gilded")
+// Pass goldKingdoms set to enable gilded detection
 export const getDisplayTier = (
   tier: string | null | undefined,
-  username: string | null | undefined
+  username: string | null | undefined,
+  linkedKingdom?: number | null,
+  goldKingdoms?: Set<number>
 ): SubscriptionTier => {
   if (isAdminUsername(username)) return 'admin';
   if (tier === 'supporter') return 'supporter';
+  if (linkedKingdom && goldKingdoms && goldKingdoms.has(linkedKingdom)) return 'gilded';
   return 'free';
 };
 
@@ -120,18 +127,19 @@ export const isReferralEligible = (profile: { linked_player_id?: string | null; 
 };
 
 // Get tier color for UI elements (borders, buttons) - white for free, colored for paid
-// Supporter = Pink, Admin = Gold
+// Supporter = Pink, Gilded = Gold, Admin = Cyan
 export const getTierBorderColor = (tier: string | null | undefined): string => {
   switch (tier) {
     case 'supporter':
       return SUBSCRIPTION_COLORS.supporter;
+    case 'gilded': return SUBSCRIPTION_COLORS.gilded;
     case 'admin': return SUBSCRIPTION_COLORS.admin;
     default: return '#ffffff'; // White for free users
   }
 };
 
 // Get the HIGHEST priority tier color considering both subscription and referral tiers.
-// Priority: Admin > Supporter > Ambassador > Consul > Recruiter > Scout > Free
+// Priority: Admin > Gilded > Supporter > Ambassador > Consul > Recruiter > Scout > Free
 // This ensures paid subscription tiers outrank referral tiers (e.g. Supporter > Recruiter).
 export const getHighestTierColor = (
   subscriptionDisplayTier: SubscriptionTier | string,
@@ -142,13 +150,14 @@ export const getHighestTierColor = (
 
   // Subscription tier priority
   if (subscriptionDisplayTier === 'admin') priorities.push({ priority: 0, color: SUBSCRIPTION_COLORS.admin });
-  else if (subscriptionDisplayTier === 'supporter') priorities.push({ priority: 1, color: SUBSCRIPTION_COLORS.supporter });
+  else if (subscriptionDisplayTier === 'gilded') priorities.push({ priority: 1, color: SUBSCRIPTION_COLORS.gilded });
+  else if (subscriptionDisplayTier === 'supporter') priorities.push({ priority: 2, color: SUBSCRIPTION_COLORS.supporter });
 
   // Referral tier priority
-  if (referralTier === 'ambassador') priorities.push({ priority: 2, color: REFERRAL_TIER_COLORS.ambassador });
-  else if (referralTier === 'consul') priorities.push({ priority: 3, color: REFERRAL_TIER_COLORS.consul });
-  else if (referralTier === 'recruiter') priorities.push({ priority: 4, color: REFERRAL_TIER_COLORS.recruiter });
-  else if (referralTier === 'scout') priorities.push({ priority: 5, color: REFERRAL_TIER_COLORS.scout });
+  if (referralTier === 'ambassador') priorities.push({ priority: 3, color: REFERRAL_TIER_COLORS.ambassador });
+  else if (referralTier === 'consul') priorities.push({ priority: 4, color: REFERRAL_TIER_COLORS.consul });
+  else if (referralTier === 'recruiter') priorities.push({ priority: 5, color: REFERRAL_TIER_COLORS.recruiter });
+  else if (referralTier === 'scout') priorities.push({ priority: 6, color: REFERRAL_TIER_COLORS.scout });
 
   if (priorities.length === 0) return { color: '#ffffff', hasGlow: false };
 

@@ -5,6 +5,7 @@ import { getCacheBustedAvatarUrl, UserProfile } from '../../contexts/AuthContext
 import { getDisplayTier, SUBSCRIPTION_COLORS } from '../../utils/constants';
 import { useReferralLink } from '../../hooks/useReferralLink';
 import { useAnalytics } from '../../hooks/useAnalytics';
+import { useGoldKingdoms } from '../../hooks/useGoldKingdoms';
 
 const DISCORD_INVITE = import.meta.env.VITE_DISCORD_INVITE || 'https://discord.gg/cajcacDzGd';
 
@@ -26,6 +27,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isActive, user, profile, isAdmi
   const [refCopied, setRefCopied] = useState(false);
   const { eligible: referralEligible, copyCurrentPageLink } = useReferralLink();
   const { trackFeature } = useAnalytics();
+  const goldKingdoms = useGoldKingdoms();
 
   const chevronStyle = (open: boolean): React.CSSProperties => ({
     transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
@@ -52,7 +54,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isActive, user, profile, isAdmi
       {/* Sign In / Profile */}
       {user ? (
         (() => {
-          const displayTier = getDisplayTier(profile?.subscription_tier, profile?.username);
+          const displayTier = getDisplayTier(profile?.subscription_tier, profile?.username, profile?.linked_kingdom, goldKingdoms);
           const usernameColor = SUBSCRIPTION_COLORS[displayTier as keyof typeof SUBSCRIPTION_COLORS] || '#ffffff';
           const displayName = profile?.linked_username || profile?.username || t('common.myProfile');
           const displayAvatar = profile?.linked_avatar_url || profile?.avatar_url;
@@ -216,12 +218,12 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isActive, user, profile, isAdmi
       <button
         onClick={() => setShowMobileCommunityMenu(!showMobileCommunityMenu)}
         style={{
-          color: (isActive('/players') || isActive('/about') || isActive('/contribute-data') || isActive('/ambassadors')) ? '#22d3ee' : '#9ca3af',
+          color: (isActive('/players') || isActive('/about') || isActive('/contribute-data') || isActive('/ambassadors') || isActive('/kingdoms/communities')) ? '#22d3ee' : '#9ca3af',
           textDecoration: 'none',
           fontSize: '1rem',
           padding: '0.75rem 1rem',
           borderRadius: '8px',
-          backgroundColor: (isActive('/players') || isActive('/about') || isActive('/contribute-data') || isActive('/ambassadors')) ? '#111' : 'transparent',
+          backgroundColor: (isActive('/players') || isActive('/about') || isActive('/contribute-data') || isActive('/ambassadors') || isActive('/kingdoms/communities')) ? '#111' : 'transparent',
           border: 'none',
           width: '100%',
           textAlign: 'left',
@@ -240,6 +242,9 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isActive, user, profile, isAdmi
         <>
           <Link to="/players" style={{ color: isActive('/players') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.9rem', padding: '0.5rem 1rem 0.5rem 1.5rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span style={{ color: '#333' }}>└</span> {t('nav.playerDirectory')}
+          </Link>
+          <Link to="/kingdoms/communities" style={{ color: isActive('/kingdoms/communities') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.9rem', padding: '0.5rem 1rem 0.5rem 1.5rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ color: '#333' }}>└</span> {t('nav.kingdomCommunities', 'Kingdom Communities')}
           </Link>
           <Link to="/ambassadors" style={{ color: isActive('/ambassadors') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.9rem', padding: '0.5rem 1rem 0.5rem 1.5rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span style={{ color: '#333' }}>└</span> {t('nav.ambassadors')}

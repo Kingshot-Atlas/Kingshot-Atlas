@@ -233,8 +233,7 @@ export function useRecruiterDashboard(): RecruiterDashboardState & RecruiterDash
   const getInviteBudget = useCallback(() => {
     if (!editorInfo || !fund) return { total: 35, used: usedInvites, bonus: 0 };
     const base = 35;
-    const bonus = fund.tier === 'gold' ? 5 : 0;
-    return { total: base + bonus, used: usedInvites, bonus };
+    return { total: base, used: usedInvites, bonus: 0 };
   }, [editorInfo, fund, usedInvites]);
 
   const handleStatusChange = useCallback(async (applicationId: string, newStatus: string) => {

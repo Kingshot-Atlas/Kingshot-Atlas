@@ -111,7 +111,8 @@ export const tierColors = {
 export const subscriptionColors = {
   free: '#6b7280',      // Gray
   supporter: '#FF6B8A', // Pink - Atlas Supporter
-  admin: '#f59e0b',     // Gold - Admin
+  gilded: '#ffc30b',    // Gold - Gilded (Gold-tier Kingdom Fund)
+  admin: '#22d3ee',     // Cyan - Admin
 } as const;
 
 /**
@@ -123,6 +124,7 @@ export const getSubscriptionColor = (tier: string): string => {
     case 'pro':        // Legacy
     case 'recruiter':  // Legacy
       return subscriptionColors.supporter;
+    case 'gilded': return subscriptionColors.gilded;
     case 'admin': return subscriptionColors.admin;
     default: return colors.textSecondary;
   }

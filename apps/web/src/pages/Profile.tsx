@@ -17,7 +17,7 @@ import ProfileCompletionProgress from '../components/ProfileCompletionProgress';
 import WelcomeToAtlas from '../components/WelcomeToAtlas';
 import TransferReadinessScore from '../components/TransferReadinessScore';
 import KingdomLeaderboardPosition from '../components/KingdomLeaderboardPosition';
-import { ReferralTier, getHighestTierColor, SUBSCRIPTION_COLORS } from '../utils/constants';
+import { ReferralTier, getHighestTierColor, SUBSCRIPTION_COLORS, getDisplayTier } from '../utils/constants';
 import { useAuth, UserProfile, getDisplayName } from '../contexts/AuthContext';
 import { usePremium } from '../contexts/PremiumContext';
 import { useToast } from '../components/Toast';
@@ -28,6 +28,7 @@ import { useIsMobile } from '../hooks/useMediaQuery';
 import { neonGlow } from '../utils/styles';
 import { isRandomUsername } from '../utils/randomUsername';
 import { useTranslation } from 'react-i18next';
+import { useGoldKingdoms } from '../hooks/useGoldKingdoms';
 
 
 // Extracted to components/profile/: AvatarWithFallback, ProfileLoadingFallback, getTierBorderColor, getAuthProvider
@@ -38,6 +39,7 @@ const Profile: React.FC = () => {
   useDocumentTitle(userId ? t('profile.publicProfile', 'User Profile') : t('common.myProfile', 'My Profile'));
   const { user, profile, loading, updateProfile, refreshLinkedPlayer } = useAuth();
   const { isSupporter, isAdmin } = usePremium();
+  const goldKingdoms = useGoldKingdoms();
   const { showToast } = useToast();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const isMobile = useIsMobile();
@@ -136,12 +138,8 @@ const Profile: React.FC = () => {
             if (!error && data) {
               setViewedProfile(data as UserProfile);
               setIsViewingOther(true);
-              // Set subscription tier from profile data - check is_admin first
-              if (data.is_admin) {
-                setViewedUserTier('admin');
-              } else {
-                setViewedUserTier(data.subscription_tier || 'free');
-              }
+              // Set subscription tier from profile data - use getDisplayTier for gilded detection
+              setViewedUserTier(getDisplayTier(data.subscription_tier, data.linked_username, data.linked_kingdom, goldKingdoms));
 
               // Fetch "Referred by" info if profile was created within 30 days
               if (data.referred_by && data.created_at) {
@@ -170,10 +168,11 @@ const Profile: React.FC = () => {
       // Don't set to null if profile hasn't loaded yet (prevents "Profile Not Found" flash)
       if (profile) {
         setViewedProfile(profile);
+        setViewedUserTier(getDisplayTier(profile.subscription_tier, profile.linked_username, profile.linked_kingdom, goldKingdoms));
       }
       setIsViewingOther(false);
     }
-  }, [userId, profile]);
+  }, [userId, profile, goldKingdoms]);
 
   useEffect(() => {
     if (viewedProfile && !isViewingOther) {

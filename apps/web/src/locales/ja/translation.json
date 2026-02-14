@@ -58,7 +58,8 @@
     "playerDirectory": "プレイヤー一覧",
     "ambassadors": "アンバサダー",
     "contributeData": "データ提供",
-    "aboutAtlas": "Atlasについて"
+    "aboutAtlas": "Atlasについて",
+    "kingdomCommunities": "王国コミュニティ"
   },
   "stats": {
     "atlasScore": "Atlasスコア",
@@ -1995,6 +1996,18 @@
     "ctaButton": "トランスファーハブに入る",
     "browseKingdoms": "すべての王国を閲覧",
     "allTools": "← すべてのツール"
+  },
+  "kingdomCommunities": {
+    "title": "王国コミュニティ",
+    "heroTitle1": "王国",
+    "heroTitle2": "コミュニティ",
+    "heroSubtitle": "Atlasで最もアクティブな王国。コミュニティが大きいほど情報力が強い。",
+    "heroStats": "{{kingdoms}}王国 · {{players}}名の認証プレイヤー",
+    "searchPlaceholder": "王国番号で検索...",
+    "ctaTitle": "王国を動員してランキングを上げよう",
+    "ctaDescription": "TC20+のリンク済みプレイヤー全員が王国のコミュニティランクに反映されます。同盟を招待しましょう — 存在感が大きいほど、王国のAtlas情報力が強くなります。",
+    "noResults": "王国が見つかりません",
+    "footer": "KingshotアカウントをリンクしたTC20+のプレイヤーのみがカウントされます。ランキングはリアルタイムで更新されます。"
   },
   "admin": {
     "anonymous": "匿名",

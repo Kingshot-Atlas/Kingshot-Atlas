@@ -135,9 +135,11 @@ export type AdminTab =
   | 'email'
   | 'bot-telemetry'
   | 'gift-codes'
-  | 'battle-planner';
+  | 'battle-planner'
+  | 'spotlight'
+  | 'finance';
 
-export type AdminCategory = 'analytics' | 'review' | 'transfer' | 'system';
+export type AdminCategory = 'overview' | 'review' | 'transfer' | 'finance' | 'operations';
 
 export interface PendingCounts {
   submissions: number;

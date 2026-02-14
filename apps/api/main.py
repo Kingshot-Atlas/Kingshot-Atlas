@@ -85,8 +85,8 @@ app.add_middleware(
     allow_origins=ALLOWED_ORIGINS,
     allow_origin_regex=LOCALHOST_ORIGIN_REGEX,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE"],
-    allow_headers=["Authorization", "Content-Type"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "X-User-Id", "X-User-Email", "X-Admin-Key"],
 )
 
 app.include_router(kingdoms.router, prefix="/api/v1", tags=["kingdoms"])

@@ -58,7 +58,8 @@
     "playerDirectory": "Player Directory",
     "ambassadors": "Ambassadors",
     "contributeData": "Contribute Data",
-    "aboutAtlas": "About Atlas"
+    "aboutAtlas": "About Atlas",
+    "kingdomCommunities": "Kingdom Communities"
   },
   "stats": {
     "atlasScore": "Atlas Score",
@@ -887,7 +888,7 @@
   },
   "transferBanner": {
     "eventLive": "Transfer Event is LIVE",
-    "lookingToTransfer": "Looking to transfer?",
+    "lookingToTransfer": "Looking to transfer or recruit?",
     "phaseActivePrefix": "The ",
     "phaseActiveSuffix": " phase is active now.",
     "findPerfect": "Find the perfect kingdom for you. No more blind transfers.",
@@ -1995,6 +1996,18 @@
     "ctaButton": "Enter the Transfer Hub",
     "browseKingdoms": "Browse All Kingdoms",
     "allTools": "← All Tools"
+  },
+  "kingdomCommunities": {
+    "title": "Kingdom Communities",
+    "heroTitle1": "KINGDOM",
+    "heroTitle2": "COMMUNITIES",
+    "heroSubtitle": "The most active kingdoms on Atlas. Bigger community = stronger intelligence.",
+    "heroStats": "{{kingdoms}} kingdoms · {{players}} verified players",
+    "searchPlaceholder": "Search by kingdom number...",
+    "ctaTitle": "Rally your kingdom to climb the ranks",
+    "ctaDescription": "Every linked player with TC20+ counts toward your kingdom's community rank. Invite your alliance — the bigger your presence, the stronger your kingdom's Atlas intelligence.",
+    "noResults": "No kingdoms found",
+    "footer": "Only players who have linked their Kingshot account with TC20+ are counted. Rankings update in real-time."
   },
   "admin": {
     "anonymous": "Anonymous",

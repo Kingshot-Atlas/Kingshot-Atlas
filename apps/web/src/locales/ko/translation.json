@@ -58,7 +58,8 @@
     "playerDirectory": "플레이어 디렉토리",
     "ambassadors": "앰배서더",
     "contributeData": "데이터 기여",
-    "aboutAtlas": "Atlas 소개"
+    "aboutAtlas": "Atlas 소개",
+    "kingdomCommunities": "왕국 커뮤니티"
   },
   "stats": {
     "atlasScore": "Atlas 점수",
@@ -1995,6 +1996,18 @@
     "ctaButton": "이적 허브 입장",
     "browseKingdoms": "모든 왕국 탐색",
     "allTools": "← 모든 도구"
+  },
+  "kingdomCommunities": {
+    "title": "왕국 커뮤니티",
+    "heroTitle1": "왕국",
+    "heroTitle2": "커뮤니티",
+    "heroSubtitle": "Atlas에서 가장 활발한 왕국들. 더 큰 커뮤니티 = 더 강한 정보력.",
+    "heroStats": "{{kingdoms}}개 왕국 · {{players}}명 인증 플레이어",
+    "searchPlaceholder": "왕국 번호로 검색...",
+    "ctaTitle": "왕국을 동원하여 순위를 올리세요",
+    "ctaDescription": "TC20+ 연동 플레이어 모두가 왕국 커뮤니티 순위에 반영됩니다. 동맹을 초대하세요 — 존재감이 클수록 왕국의 Atlas 정보력이 강해집니다.",
+    "noResults": "왕국을 찾을 수 없습니다",
+    "footer": "Kingshot 계정을 연동한 TC20+ 플레이어만 집계됩니다. 순위는 실시간으로 업데이트됩니다."
   },
   "admin": {
     "anonymous": "익명",

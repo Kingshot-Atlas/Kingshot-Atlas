@@ -58,7 +58,8 @@
     "playerDirectory": "玩家目录",
     "ambassadors": "大使",
     "contributeData": "贡献数据",
-    "aboutAtlas": "关于 Atlas"
+    "aboutAtlas": "关于 Atlas",
+    "kingdomCommunities": "王国社区"
   },
   "stats": {
     "atlasScore": "Atlas 评分",
@@ -1995,6 +1996,18 @@
     "ctaButton": "进入转移中心",
     "browseKingdoms": "浏览所有王国",
     "allTools": "← 所有工具"
+  },
+  "kingdomCommunities": {
+    "title": "王国社区",
+    "heroTitle1": "王国",
+    "heroTitle2": "社区",
+    "heroSubtitle": "Atlas 上最活跃的王国。社区越大 = 情报越强。",
+    "heroStats": "{{kingdoms}} 个王国 · {{players}} 名已验证玩家",
+    "searchPlaceholder": "按王国编号搜索...",
+    "ctaTitle": "动员你的王国来提升排名",
+    "ctaDescription": "每位 TC20+ 的已绑定玩家都计入你王国的社区排名。邀请你的联盟 — 你的存在感越大，你王国的 Atlas 情报就越强。",
+    "noResults": "未找到王国",
+    "footer": "仅统计已绑定 Kingshot 账号且 TC20+ 的玩家。排名实时更新。"
   },
   "admin": {
     "anonymous": "匿名",

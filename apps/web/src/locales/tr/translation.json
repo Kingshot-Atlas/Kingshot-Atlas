@@ -58,7 +58,8 @@
     "playerDirectory": "Oyuncu Rehberi",
     "ambassadors": "Elçiler",
     "contributeData": "Veri Katkısı",
-    "aboutAtlas": "Atlas Hakkında"
+    "aboutAtlas": "Atlas Hakkında",
+    "kingdomCommunities": "Krallık Toplulukları"
   },
   "stats": {
     "atlasScore": "Atlas Puanı",
@@ -1995,6 +1996,18 @@
     "ctaButton": "Transfer Hub'a Gir",
     "browseKingdoms": "Tüm Krallıkları Keşfet",
     "allTools": "← Tüm Araçlar"
+  },
+  "kingdomCommunities": {
+    "title": "Krallık Toplulukları",
+    "heroTitle1": "KRALLIK",
+    "heroTitle2": "TOPLULUKLARI",
+    "heroSubtitle": "Atlas'taki en aktif krallıklar. Daha büyük topluluk = daha güçlü istihbarat.",
+    "heroStats": "{{kingdoms}} krallık · {{players}} doğrulanmış oyuncu",
+    "searchPlaceholder": "Krallık numarasına göre ara...",
+    "ctaTitle": "Krallığınızı sıralamada yükseltmek için harekete geçirin",
+    "ctaDescription": "TC20+ bağlı her oyuncu krallığınızın topluluk sıralamasına katkıda bulunur. İttifakınızı davet edin — varlığınız ne kadar büyükse, krallığınızın Atlas istihbaratı o kadar güçlü.",
+    "noResults": "Krallık bulunamadı",
+    "footer": "Yalnızca TC20+ ile Kingshot hesabını bağlayan oyuncular sayılır. Sıralamalar gerçek zamanlı güncellenir."
   },
   "admin": {
     "anonymous": "Anonim",

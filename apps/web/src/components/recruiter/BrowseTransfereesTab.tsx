@@ -68,8 +68,7 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
   const getInviteBudget = () => {
     if (!editorInfo || !fund) return { total: 35, used: usedInvites, bonus: 0 };
     const base = 35;
-    const bonus = fund.tier === 'gold' ? 5 : 0;
-    return { total: base + bonus, used: usedInvites, bonus };
+    return { total: base, used: usedInvites, bonus: 0 };
   };
 
   const loadTransferees = async (loadMore = false) => {

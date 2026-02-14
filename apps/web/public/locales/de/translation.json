@@ -58,7 +58,8 @@
     "playerDirectory": "Spielerverzeichnis",
     "ambassadors": "Botschafter",
     "contributeData": "Daten beitragen",
-    "aboutAtlas": "Über Atlas"
+    "aboutAtlas": "Über Atlas",
+    "kingdomCommunities": "Königreich-Gemeinschaften"
   },
   "stats": {
     "atlasScore": "Atlas-Wertung",
@@ -1995,6 +1996,18 @@
     "ctaButton": "Transfer Hub betreten",
     "browseKingdoms": "Alle Königreiche durchsuchen",
     "allTools": "← Alle Werkzeuge"
+  },
+  "kingdomCommunities": {
+    "title": "Königreich-Gemeinschaften",
+    "heroTitle1": "KÖNIGREICH",
+    "heroTitle2": "GEMEINSCHAFTEN",
+    "heroSubtitle": "Die aktivsten Königreiche auf Atlas. Größere Gemeinschaft = stärkere Aufklärung.",
+    "heroStats": "{{kingdoms}} Königreiche · {{players}} verifizierte Spieler",
+    "searchPlaceholder": "Nach Königreichsnummer suchen...",
+    "ctaTitle": "Mobilisiere dein Königreich, um aufzusteigen",
+    "ctaDescription": "Jeder verknüpfte Spieler mit TC20+ zählt für den Gemeinschaftsrang deines Königreichs. Lade deine Allianz ein — je größer deine Präsenz, desto stärker die Atlas-Aufklärung deines Königreichs.",
+    "noResults": "Keine Königreiche gefunden",
+    "footer": "Nur Spieler, die ihr Kingshot-Konto mit TC20+ verknüpft haben, werden gezählt. Rankings aktualisieren sich in Echtzeit."
   },
   "admin": {
     "anonymous": "Anonym",

@@ -8,6 +8,7 @@ import ReferralBadge from './ReferralBadge';
 import { Card } from './shared';
 import { logger } from '../utils/logger';
 import { useTranslation } from 'react-i18next';
+import { useGoldKingdoms } from '../hooks/useGoldKingdoms';
 
 interface PlayerProfile {
   id: string;
@@ -22,25 +23,27 @@ interface PlayerProfile {
   referral_tier: string | null;
 }
 
-// Get combined sort priority: admin=0, supporter=1, ambassador=2, consul=3, recruiter=4, scout=5, free=6
+// Get combined sort priority: admin=0, gilded=1, supporter=2, ambassador=3, consul=4, recruiter=5, scout=6, free=7
 const getCombinedSortPriority = (subTier: SubscriptionTier, refTier: string | null): number => {
   if (subTier === 'admin') return 0;
-  if (subTier === 'supporter') return 1;
+  if (subTier === 'gilded') return 1;
+  if (subTier === 'supporter') return 2;
   switch (refTier) {
-    case 'ambassador': return 2;
-    case 'consul': return 3;
-    case 'recruiter': return 4;
-    case 'scout': return 5;
-    default: return 6;
+    case 'ambassador': return 3;
+    case 'consul': return 4;
+    case 'recruiter': return 5;
+    case 'scout': return 6;
+    default: return 7;
   }
 };
 
 // Get avatar border color (full color, not opacity)
 const getAvatarBorderColor = (tier: SubscriptionTier): string => {
   switch (tier) {
-    case 'admin': return SUBSCRIPTION_COLORS.admin;      // Gold
+    case 'admin': return SUBSCRIPTION_COLORS.admin;        // Cyan
+    case 'gilded': return SUBSCRIPTION_COLORS.gilded;      // Gold
     case 'supporter': return SUBSCRIPTION_COLORS.supporter; // Pink
-    default: return '#ffffff';                           // White
+    default: return '#ffffff';                             // White
   }
 };
 
@@ -49,10 +52,11 @@ interface KingdomPlayersProps {
   themeColor?: string;
 }
 
-// Get username color based on display tier (includes admin)
+// Get username color based on display tier (includes admin and gilded)
 const getUsernameColor = (tier: SubscriptionTier): string => {
   switch (tier) {
     case 'admin': return SUBSCRIPTION_COLORS.admin;
+    case 'gilded': return SUBSCRIPTION_COLORS.gilded;
     case 'supporter': return SUBSCRIPTION_COLORS.supporter;
     default: return colors.text;
   }
@@ -64,6 +68,7 @@ const KingdomPlayers: React.FC<KingdomPlayersProps> = ({
 }) => {
   const isMobile = useIsMobile();
   const { t } = useTranslation();
+  const goldKingdoms = useGoldKingdoms();
   const [players, setPlayers] = useState<PlayerProfile[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -101,7 +106,7 @@ const KingdomPlayers: React.FC<KingdomPlayersProps> = ({
         // Sort by tier (admin > recruiter > pro > free) then alphabetically
         const sortedPlayers = (data || []).map(player => ({
           ...player,
-          displayTier: getDisplayTier(player.subscription_tier, player.linked_username || player.username)
+          displayTier: getDisplayTier(player.subscription_tier, player.linked_username || player.username, kingdomNumber, goldKingdoms)
         })).sort((a, b) => {
           const tierDiff = getCombinedSortPriority(a.displayTier, a.referral_tier) - getCombinedSortPriority(b.displayTier, b.referral_tier);
           if (tierDiff !== 0) return tierDiff;
@@ -194,9 +199,9 @@ const KingdomPlayers: React.FC<KingdomPlayersProps> = ({
       }}>
         {players.map((player) => {
           // Use linked_username for admin check since that's the Kingshot identity
-          const displayTier = getDisplayTier(player.subscription_tier, player.linked_username || player.username);
+          const displayTier = getDisplayTier(player.subscription_tier, player.linked_username || player.username, kingdomNumber, goldKingdoms);
           const usernameColor = getUsernameColor(displayTier);
-          const isPaidOrAdmin = displayTier === 'supporter' || displayTier === 'admin';
+          const isPaidOrAdmin = displayTier === 'supporter' || displayTier === 'admin' || displayTier === 'gilded';
           
           return (
             <Link 
@@ -293,6 +298,19 @@ const KingdomPlayers: React.FC<KingdomPlayersProps> = ({
                       fontWeight: '600',
                     }}>
                       ADMIN
+                    </span>
+                  )}
+                  {displayTier === 'gilded' && (
+                    <span style={{
+                      fontSize: '0.6rem',
+                      padding: '0.1rem 0.3rem',
+                      backgroundColor: `${SUBSCRIPTION_COLORS.gilded}15`,
+                      border: `1px solid ${SUBSCRIPTION_COLORS.gilded}40`,
+                      borderRadius: '3px',
+                      color: SUBSCRIPTION_COLORS.gilded,
+                      fontWeight: '600',
+                    }}>
+                      GILDED
                     </span>
                   )}
                   {displayTier === 'supporter' && (

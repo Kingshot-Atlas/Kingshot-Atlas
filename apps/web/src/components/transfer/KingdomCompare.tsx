@@ -17,7 +17,7 @@ interface KingdomCompareProps {
 }
 
 const TIER_ORDER: Record<string, number> = { gold: 4, silver: 3, bronze: 2, standard: 1 };
-const TIER_COLORS: Record<string, string> = { gold: colors.gold, silver: '#c0c0c0', bronze: colors.bronze, standard: colors.textMuted };
+const TIER_COLORS: Record<string, string> = { gold: colors.gold, silver: '#d1d5db', bronze: colors.bronze, standard: colors.textMuted };
 
 const KingdomCompare: React.FC<KingdomCompareProps> = ({ kingdoms, funds, onClose, onRemove, onApply }) => {
   const { t } = useTranslation();

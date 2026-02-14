@@ -381,10 +381,10 @@ const DesktopNav: React.FC<DesktopNavProps> = ({ isActive, user, changeLanguage,
       >
         <button
           style={{
-            color: (isActive('/players') || isActive('/about') || isActive('/contribute-data') || isActive('/ambassadors')) ? '#22d3ee' : '#9ca3af',
+            color: (isActive('/players') || isActive('/about') || isActive('/contribute-data') || isActive('/ambassadors') || isActive('/kingdoms/communities')) ? '#22d3ee' : '#9ca3af',
             textDecoration: 'none',
             fontSize: '0.9rem',
-            fontWeight: (isActive('/players') || isActive('/about') || isActive('/contribute-data') || isActive('/ambassadors')) ? '600' : '400',
+            fontWeight: (isActive('/players') || isActive('/about') || isActive('/contribute-data') || isActive('/ambassadors') || isActive('/kingdoms/communities')) ? '600' : '400',
             transition: 'color 0.2s',
             display: 'flex',
             alignItems: 'center',
@@ -393,7 +393,7 @@ const DesktopNav: React.FC<DesktopNavProps> = ({ isActive, user, changeLanguage,
             border: 'none',
             cursor: 'pointer',
             padding: 0,
-            ...((isActive('/players') || isActive('/about') || isActive('/contribute-data') || isActive('/ambassadors')) ? neonGlow('#22d3ee') : {})
+            ...((isActive('/players') || isActive('/about') || isActive('/contribute-data') || isActive('/ambassadors') || isActive('/kingdoms/communities')) ? neonGlow('#22d3ee') : {})
           }}
         >
           {t('nav.community')}
@@ -440,6 +440,30 @@ const DesktopNav: React.FC<DesktopNavProps> = ({ isActive, user, changeLanguage,
                 <path d="M16 3.13a4 4 0 0 1 0 7.75" />
               </svg>
               {t('nav.playerDirectory')}
+            </Link>
+            <Link
+              to="/kingdoms/communities"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                padding: '0.75rem 1rem',
+                borderRadius: '8px',
+                color: isActive('/kingdoms/communities') ? '#22d3ee' : '#fff',
+                textDecoration: 'none',
+                fontSize: '0.85rem',
+                transition: 'background-color 0.2s'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#ffc30b' }}>
+                <path d="M3 21h18"/>
+                <path d="M5 21V7l8-4v18"/>
+                <path d="M19 21V11l-6-4"/>
+                <path d="M9 9v.01M9 12v.01M9 15v.01M9 18v.01"/>
+              </svg>
+              {t('nav.kingdomCommunities', 'Kingdom Communities')}
             </Link>
             <Link
               to="/ambassadors"

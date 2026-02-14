@@ -65,45 +65,45 @@ export const AdminTabNav: React.FC<AdminTabNavProps> = ({
       backgroundColor: '#111116',
       padding: '0.25rem',
       borderRadius: '8px',
-      width: 'fit-content'
+      width: 'fit-content',
+      flexWrap: 'wrap',
     }}>
       {[
-        { id: 'analytics', label: 'Analytics', icon: '📊' },
-        { id: 'review', label: 'Review', icon: '📋', count: pendingCounts.submissions + pendingCounts.claims + pendingCounts.corrections + pendingCounts.kvkErrors },
-        { id: 'transfer', label: 'Transfer Hub', icon: '🔄', count: pendingCounts.transfers },
-        { id: 'system', label: 'System', icon: '⚙️', count: pendingCounts.feedback }
+        { id: 'overview' as AdminCategory, label: 'Overview', color: '#22d3ee', defaultTab: 'analytics' as AdminTab },
+        { id: 'review' as AdminCategory, label: 'Review', color: '#f97316', defaultTab: 'submissions' as AdminTab, count: pendingCounts.submissions + pendingCounts.claims + pendingCounts.corrections + pendingCounts.kvkErrors },
+        { id: 'transfer' as AdminCategory, label: 'Transfers', color: '#a855f7', defaultTab: 'transfer-hub' as AdminTab, count: pendingCounts.transfers },
+        { id: 'finance' as AdminCategory, label: 'Finance', color: '#22c55e', defaultTab: 'finance' as AdminTab },
+        { id: 'operations' as AdminCategory, label: 'Operations', color: '#eab308', defaultTab: 'email' as AdminTab, count: pendingCounts.feedback + unreadEmailCount },
       ].map(cat => (
         <button
           key={cat.id}
-          onClick={() => {
-            if (cat.id === 'analytics') onTabChange('analytics');
-            else if (cat.id === 'review') onTabChange('submissions');
-            else if (cat.id === 'transfer') onTabChange('transfer-hub');
-            else onTabChange('email');
-          }}
+          onClick={() => onTabChange(cat.defaultTab)}
           style={{
-            padding: '0.5rem 1rem',
-            backgroundColor: activeCategory === cat.id ? '#22d3ee' : 'transparent',
+            padding: '0.5rem 0.85rem',
+            backgroundColor: activeCategory === cat.id ? cat.color : 'transparent',
             color: activeCategory === cat.id ? '#0a0a0a' : '#9ca3af',
             border: 'none',
             borderRadius: '6px',
             fontWeight: 600,
             cursor: 'pointer',
-            fontSize: '0.85rem',
+            fontSize: '0.8rem',
             display: 'flex',
             alignItems: 'center',
-            gap: '0.4rem'
+            gap: '0.35rem',
+            transition: 'all 0.15s',
           }}
         >
           {cat.label}
           {(cat.count ?? 0) > 0 && (
             <span style={{
               backgroundColor: activeCategory === cat.id ? '#0a0a0a' : '#fbbf24',
-              color: activeCategory === cat.id ? '#22d3ee' : '#0a0a0a',
-              fontSize: '0.65rem',
+              color: activeCategory === cat.id ? cat.color : '#0a0a0a',
+              fontSize: '0.6rem',
               fontWeight: 700,
-              padding: '0.15rem 0.4rem',
-              borderRadius: '9999px'
+              padding: '0.1rem 0.35rem',
+              borderRadius: '9999px',
+              minWidth: '16px',
+              textAlign: 'center',
             }}>
               {cat.count}
             </span>
@@ -121,11 +121,10 @@ export const AdminTabNav: React.FC<AdminTabNavProps> = ({
       paddingBottom: '0.75rem',
       borderBottom: '1px solid #1a1a1a'
     }}>
-      {activeCategory === 'analytics' && [
-        { id: 'analytics', label: 'Overview' },
-        { id: 'saas-metrics', label: 'Revenue' },
+      {activeCategory === 'overview' && [
+        { id: 'analytics', label: 'Dashboard' },
         { id: 'engagement', label: 'Engagement' },
-        { id: 'plausible', label: 'Live Traffic' }
+        { id: 'plausible', label: 'Live Traffic' },
       ].map(tab => (
         <SubTabButton
           key={tab.id}
@@ -140,7 +139,7 @@ export const AdminTabNav: React.FC<AdminTabNavProps> = ({
         { id: 'new-kingdoms', label: 'New Kingdoms', count: 0 },
         { id: 'claims', label: 'Claims', count: pendingCounts.claims },
         { id: 'corrections', label: 'Corrections', count: pendingCounts.corrections },
-        { id: 'kvk-errors', label: 'KvK Errors', count: pendingCounts.kvkErrors }
+        { id: 'kvk-errors', label: 'KvK Errors', count: pendingCounts.kvkErrors },
       ].map(tab => (
         <SubTabButton
           key={tab.id}
@@ -148,13 +147,14 @@ export const AdminTabNav: React.FC<AdminTabNavProps> = ({
           label={tab.label}
           count={tab.count}
           isActive={activeTab === tab.id}
+          accentColor="#f97316"
           onClick={() => onTabChange(tab.id as AdminTab)}
         />
       ))}
       {activeCategory === 'transfer' && [
         { id: 'transfer-hub', label: 'Overview', count: 0 },
         { id: 'transfer-status', label: 'Status Submissions', count: pendingCounts.transfers },
-        { id: 'transfer-apps', label: 'Applications', count: 0 }
+        { id: 'transfer-apps', label: 'Applications', count: 0 },
       ].map(tab => (
         <SubTabButton
           key={tab.id}
@@ -166,18 +166,28 @@ export const AdminTabNav: React.FC<AdminTabNavProps> = ({
           onClick={() => onTabChange(tab.id as AdminTab)}
         />
       ))}
-      {activeCategory === 'system' && [
+      {activeCategory === 'finance' && (
+        <SubTabButton
+          id="finance"
+          label="Revenue · Expenses · P&L · Subscribers"
+          isActive={activeTab === 'finance'}
+          accentColor="#22c55e"
+          onClick={() => onTabChange('finance')}
+        />
+      )}
+      {activeCategory === 'operations' && [
         { id: 'email', label: 'Email', count: unreadEmailCount },
         { id: 'feedback', label: 'Feedback', count: pendingCounts.feedback },
-        { id: 'discord-bot', label: 'Discord Bot', count: 0 },
-        { id: 'bot-telemetry', label: 'Bot Telemetry', count: 0 },
-        { id: 'discord-roles', label: 'Discord Roles', count: 0 },
+        { id: 'discord-bot', label: 'Discord', count: 0 },
+        { id: 'bot-telemetry', label: 'Bot Health', count: 0 },
+        { id: 'discord-roles', label: 'Roles', count: 0 },
         { id: 'referrals', label: 'Referrals', count: 0 },
+        { id: 'gift-codes', label: 'Gift Codes', count: 0 },
+        { id: 'spotlight', label: 'Spotlight', count: 0 },
+        { id: 'battle-planner', label: 'Battle Planner', count: 0 },
+        { id: 'import', label: 'Import', count: 0 },
         { id: 'webhooks', label: 'Webhooks', count: 0 },
         { id: 'data-sources', label: 'Data Sources', count: 0 },
-        { id: 'gift-codes', label: 'Gift Codes', count: 0 },
-        { id: 'battle-planner', label: 'Battle Planner', count: 0 },
-        { id: 'import', label: 'Import', count: 0 }
       ].map(tab => (
         <SubTabButton
           key={tab.id}
@@ -185,6 +195,7 @@ export const AdminTabNav: React.FC<AdminTabNavProps> = ({
           label={tab.label}
           count={tab.count}
           isActive={activeTab === tab.id}
+          accentColor="#eab308"
           onClick={() => onTabChange(tab.id as AdminTab)}
         />
       ))}

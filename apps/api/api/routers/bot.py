@@ -1124,6 +1124,46 @@ async def get_supporter_users(_: bool = Depends(require_bot_admin)):
     }
 
 
+@router.get("/gilded-users")
+async def get_gilded_users(_: bool = Depends(require_bot_admin)):
+    """
+    Get all users who belong to a Gold-tier Kingdom Fund kingdom AND have a Discord account.
+    Used by the Discord bot for periodic Gilded role sync.
+    """
+    sb = get_supabase_admin()
+    if not sb:
+        return {"users": [], "total": 0, "error": "Supabase not configured"}
+
+    try:
+        # Step 1: Get all Gold-tier kingdom numbers
+        funds_resp = sb.table("kingdom_funds").select("kingdom_number").eq("tier", "gold").execute()
+        gold_kingdoms = [f["kingdom_number"] for f in (funds_resp.data or [])]
+
+        if not gold_kingdoms:
+            return {"users": [], "total": 0}
+
+        # Step 2: Get all users linked to those kingdoms who have Discord
+        profiles_resp = sb.table("profiles").select(
+            "id, discord_id, linked_username, linked_kingdom"
+        ).in_("linked_kingdom", gold_kingdoms).not_.is_("discord_id", "null").not_.is_("linked_username", "null").execute()
+
+        users = [
+            {
+                "user_id": p["id"],
+                "discord_id": p["discord_id"],
+                "username": p.get("linked_username"),
+                "kingdom": p.get("linked_kingdom"),
+            }
+            for p in (profiles_resp.data or [])
+            if p.get("discord_id")
+        ]
+
+        return {"users": users, "total": len(users)}
+    except Exception as e:
+        logger.error("Error in /gilded-users: %s", e)
+        return {"users": [], "total": 0, "error": str(e)}
+
+
 @router.post("/backfill-settler-roles")
 async def backfill_settler_roles(_: bool = Depends(require_bot_admin)):
     """
@@ -1279,6 +1319,68 @@ async def backfill_supporter_roles(_: bool = Depends(require_bot_admin)):
     logger.info("Supporter role backfill: %s", results['message'])
     
     return results
+
+
+@router.post("/backfill-gilded-roles")
+async def backfill_gilded_roles(_: bool = Depends(require_bot_admin)):
+    """
+    Backfill Gilded Discord role for all users who belong to Gold-tier Kingdom Fund kingdoms
+    and have a linked Discord account. Admin-only endpoint for manual Gilded role sync.
+    """
+    from api.discord_role_sync import add_role_to_member, DISCORD_GILDED_ROLE_ID
+
+    if not DISCORD_GILDED_ROLE_ID:
+        return {"success": False, "message": "DISCORD_GILDED_ROLE_ID not configured", "total": 0, "assigned": 0, "skipped": 0, "failed": 0}
+
+    sb = get_supabase_admin()
+    if not sb:
+        return {"success": False, "message": "Supabase not configured", "total": 0, "assigned": 0, "skipped": 0, "failed": 0}
+
+    try:
+        # Get gold kingdom numbers
+        funds_resp = sb.table("kingdom_funds").select("kingdom_number").eq("tier", "gold").execute()
+        gold_kingdoms = [f["kingdom_number"] for f in (funds_resp.data or [])]
+
+        if not gold_kingdoms:
+            return {"success": True, "message": "No gold-tier kingdoms found", "total": 0, "assigned": 0, "skipped": 0, "failed": 0}
+
+        # Get users linked to gold kingdoms with Discord
+        profiles_resp = sb.table("profiles").select(
+            "id, discord_id, linked_username, linked_kingdom"
+        ).in_("linked_kingdom", gold_kingdoms).not_.is_("discord_id", "null").not_.is_("linked_username", "null").execute()
+
+        users = [p for p in (profiles_resp.data or []) if p.get("discord_id")]
+
+        if not users:
+            return {"success": True, "message": "No eligible gilded users found", "total": 0, "assigned": 0, "skipped": 0, "failed": 0}
+
+        results = {"total": len(users), "assigned": 0, "skipped": 0, "failed": 0, "details": [], "gold_kingdoms": gold_kingdoms}
+
+        for user in users:
+            discord_id = user["discord_id"]
+            username = user.get("linked_username") or "Unknown"
+            kingdom = user.get("linked_kingdom")
+
+            try:
+                success = await add_role_to_member(discord_id, DISCORD_GILDED_ROLE_ID)
+                if success:
+                    results["assigned"] += 1
+                    results["details"].append({"username": username, "kingdom": kingdom, "status": "assigned"})
+                else:
+                    results["skipped"] += 1
+                    results["details"].append({"username": username, "kingdom": kingdom, "status": "skipped"})
+            except Exception as e:
+                results["failed"] += 1
+                results["details"].append({"username": username, "kingdom": kingdom, "status": "failed", "error": str(e)})
+
+        results["success"] = results["failed"] == 0
+        results["message"] = f"Gilded backfill: {results['assigned']} assigned, {results['skipped']} skipped, {results['failed']} failed"
+        logger.info("Gilded role backfill: %s", results['message'])
+        return results
+
+    except Exception as e:
+        logger.error("Error in /backfill-gilded-roles: %s", e)
+        return {"success": False, "message": str(e), "total": 0, "assigned": 0, "skipped": 0, "failed": 0}
 
 
 @router.post("/leave-server/{server_id}")

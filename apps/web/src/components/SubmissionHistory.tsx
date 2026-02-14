@@ -269,12 +269,13 @@ const SubmissionHistory: React.FC<{ userId?: string; themeColor?: string }> = ({
                     onClick={() => setAppealModal({ type: item.type, id: item.id })}
                     style={{
                       marginTop: '0.5rem',
-                      padding: '0.3rem 0.6rem',
+                      padding: '0.4rem 0.75rem',
+                      minHeight: '44px',
                       backgroundColor: '#fbbf2420',
                       border: '1px solid #fbbf2450',
                       borderRadius: '4px',
                       color: '#fbbf24',
-                      fontSize: '0.7rem',
+                      fontSize: '0.75rem',
                       cursor: 'pointer'
                     }}
                   >
@@ -298,6 +299,7 @@ const SubmissionHistory: React.FC<{ userId?: string; themeColor?: string }> = ({
             <button onClick={markAllRead} style={{
               marginBottom: '0.75rem',
               padding: '0.4rem 0.75rem',
+              minHeight: '44px',
               backgroundColor: 'transparent',
               border: '1px solid #3a3a3a',
               borderRadius: '6px',
@@ -416,6 +418,7 @@ const SubmissionHistory: React.FC<{ userId?: string; themeColor?: string }> = ({
             <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
               <button onClick={() => setAppealModal(null)} style={{
                 padding: '0.5rem 1rem',
+                minHeight: '44px',
                 backgroundColor: 'transparent',
                 border: '1px solid #3a3a3a',
                 borderRadius: '6px',
@@ -424,6 +427,7 @@ const SubmissionHistory: React.FC<{ userId?: string; themeColor?: string }> = ({
               }}>{t('submissionHistory.cancel')}</button>
               <button onClick={submitAppeal} style={{
                 padding: '0.5rem 1rem',
+                minHeight: '44px',
                 backgroundColor: '#fbbf24',
                 border: 'none',
                 borderRadius: '6px',

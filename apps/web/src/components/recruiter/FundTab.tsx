@@ -85,7 +85,7 @@ const FundTab: React.FC<FundTabProps> = ({ fund, editorInfo }) => {
         <div>
           <span style={{ color: colors.textMuted, fontSize: '0.65rem' }}>{t('recruiter.tier', 'Tier')}</span>
           <div style={{
-            color: fund.tier === 'gold' ? colors.gold : fund.tier === 'silver' ? colors.textSecondary : fund.tier === 'bronze' ? colors.bronze : colors.textMuted,
+            color: fund.tier === 'gold' ? colors.gold : fund.tier === 'silver' ? '#d1d5db' : fund.tier === 'bronze' ? colors.bronze : colors.textMuted,
             fontWeight: 'bold', fontSize: '1.2rem',
             textTransform: 'capitalize',
           }}>

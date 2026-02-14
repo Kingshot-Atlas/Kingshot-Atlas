@@ -80,9 +80,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     };
 
     // Mobile touch target adjustment
-    if (isMobile && size === 'sm') {
-      inputStyle.minHeight = '44px';
-      inputStyle.fontSize = '16px'; // Prevents iOS zoom
+    if (isMobile) {
+      inputStyle.fontSize = '16px'; // Prevents iOS zoom on all sizes
+      if (size === 'sm') {
+        inputStyle.minHeight = '44px';
+      }
     }
 
     const iconStyle: React.CSSProperties = {

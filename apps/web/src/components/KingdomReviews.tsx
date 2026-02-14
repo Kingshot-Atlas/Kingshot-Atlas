@@ -11,6 +11,7 @@ import { isSupabaseConfigured } from '../lib/supabase';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useTranslation } from 'react-i18next';
 import { incrementStat } from './UserAchievements';
+import { useGoldKingdoms } from '../hooks/useGoldKingdoms';
 
 interface KingdomReviewsProps {
   kingdomNumber: number;
@@ -21,10 +22,11 @@ const MIN_TC_LEVEL = 20;
 const MIN_COMMENT_LENGTH = 10;
 const MAX_COMMENT_LENGTH = 200;
 
-// Get username color based on display tier
+// Get username color based on display tier (includes admin and gilded)
 const getUsernameColor = (tier: SubscriptionTier): string => {
   switch (tier) {
     case 'admin': return SUBSCRIPTION_COLORS.admin;
+    case 'gilded': return SUBSCRIPTION_COLORS.gilded;
     case 'supporter': return SUBSCRIPTION_COLORS.supporter;
     default: return colors.text;
   }
@@ -34,6 +36,7 @@ const getUsernameColor = (tier: SubscriptionTier): string => {
 const getAvatarBorderColor = (tier: SubscriptionTier): string => {
   switch (tier) {
     case 'admin': return SUBSCRIPTION_COLORS.admin;
+    case 'gilded': return SUBSCRIPTION_COLORS.gilded;
     case 'supporter': return SUBSCRIPTION_COLORS.supporter;
     default: return colors.text;
   }
@@ -45,6 +48,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
   const { t } = useTranslation();
   const isMobile = useIsMobile();
   const { user, profile } = useAuth();
+  const goldKingdoms = useGoldKingdoms();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [reviews, setReviews] = useState<ReviewWithVoteStatus[]>([]);
   const [loading, setLoading] = useState(true);
@@ -446,7 +450,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
         }}>
           {/* Show linked Kingshot account profile */}
           {(() => {
-            const displayTier = getDisplayTier(profile?.subscription_tier, profile?.linked_username);
+            const displayTier = getDisplayTier(profile?.subscription_tier, profile?.linked_username, profile?.linked_kingdom, goldKingdoms);
             const usernameColor = getUsernameColor(displayTier);
             const avatarBorderColor = getAvatarBorderColor(displayTier);
             const isPaidOrAdmin = displayTier === 'supporter' || displayTier === 'admin';
@@ -831,7 +835,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
           ) : (
             sortedReviews.slice(0, 10).map(review => {
               // Get tier for display - use linked username for admin check
-              const displayTier = getDisplayTier(review.author_subscription_tier, review.author_linked_username);
+              const displayTier = getDisplayTier(review.author_subscription_tier, review.author_linked_username, review.author_linked_kingdom, goldKingdoms);
               const usernameColor = getUsernameColor(displayTier);
               const avatarBorderColor = getAvatarBorderColor(displayTier);
               const isPaidOrAdmin = displayTier === 'supporter' || displayTier === 'admin';

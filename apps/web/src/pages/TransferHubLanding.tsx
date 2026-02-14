@@ -11,7 +11,7 @@ const ACCENT = '#22c55e';
 const ACCENT_DIM = '#22c55e15';
 const ACCENT_BORDER = '#22c55e30';
 const FUND_GOLD = '#f59e0b';
-const FUND_SILVER = '#94a3b8';
+const FUND_SILVER = '#d1d5db';
 const FUND_BRONZE = '#cd7f32';
 const FUND_STANDARD = '#6b7280';
 
@@ -107,7 +107,7 @@ const TransferHubLanding: React.FC = () => {
         t('transferHubLanding.silverIncludes', 'Everything in Bronze'),
         t('transferHubLanding.silverPerk1v3', 'Send invites to transferees'),
         t('transferHubLanding.silverPerk2v2', 'Kingdom Bio & Language display'),
-        t('transferHubLanding.silverPerk3', 'Alliance Event Times schedule'),
+        t('transferHubLanding.silverPerk3v2', 'Alliance Information schedule'),
       ],
     },
     {
@@ -116,9 +116,9 @@ const TransferHubLanding: React.FC = () => {
       min: '$100+',
       perks: [
         t('transferHubLanding.goldIncludes', 'Everything in Silver'),
-        t('transferHubLanding.goldPerk1v3', '5 bonus invites per cycle'),
-        t('transferHubLanding.goldPerk2v2', 'Gold glow on your listing'),
-        t('transferHubLanding.goldPerk3', 'Priority placement in searches'),
+        t('transferHubLanding.goldPerk1v4', '+2 alliance slots (5 total)'),
+        t('transferHubLanding.goldPerk2v3', 'Gilded badge for all kingdom users'),
+        t('transferHubLanding.goldPerk3v2', 'Gold glow + priority placement'),
       ],
     },
   ];
