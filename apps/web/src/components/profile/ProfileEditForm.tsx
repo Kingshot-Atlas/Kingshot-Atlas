@@ -73,7 +73,7 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
   };
 
   const handleAllianceTagChange = (value: string) => {
-    const cleaned = value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 3).toUpperCase();
+    const cleaned = value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 3);
     setEditForm(prev => ({ ...prev, alliance_tag: cleaned }));
   };
 
@@ -87,9 +87,9 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
             type="text"
             value={editForm.alliance_tag}
             onChange={(e) => handleAllianceTagChange(e.target.value)}
-            placeholder="e.g. TWS"
+            placeholder="e.g. TWs"
             maxLength={3}
-            style={{ ...inputStyle, textTransform: 'uppercase', letterSpacing: '0.1em' }}
+            style={{ ...inputStyle, letterSpacing: '0.1em' }}
           />
         </div>
         <div>

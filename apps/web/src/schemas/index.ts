@@ -71,7 +71,7 @@ export const UserProfileSchema = z.object({
 export const ProfileEditSchema = z.object({
   username: z.string().min(1, 'Username is required').max(50, 'Username too long'),
   home_kingdom: z.number().min(1).max(9999).nullable(),
-  alliance_tag: z.string().max(10, 'Alliance tag too long').transform(val => val.toUpperCase()),
+  alliance_tag: z.string().max(10, 'Alliance tag too long'),
   language: z.string(),
   region: z.string(),
   bio: z.string().max(500, 'Bio too long'),

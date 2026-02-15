@@ -43,11 +43,12 @@ const MESSAGE_POOLS: Record<SpotlightReason, string[]> = {
   booster: BOOSTER_MESSAGES,
 };
 
-const getRandomMessage = (reason: SpotlightReason, discordUsername: string): string => {
+const getRandomMessage = (reason: SpotlightReason, discordUsername: string, discordUserId: string): string => {
   const pool = MESSAGE_POOLS[reason];
   const idx = Math.floor(Math.random() * pool.length);
   const template = pool[idx] ?? pool[0] ?? '';
-  return template.replace(/\{user\}/g, discordUsername);
+  const mention = discordUserId.trim() ? `<@${discordUserId.trim()}>` : `**${discordUsername}**`;
+  return template.replace(/\{user\}/g, mention);
 };
 
 type SpotlightMode = 'template' | 'custom';
@@ -55,6 +56,7 @@ type SpotlightMode = 'template' | 'custom';
 export const SpotlightTab: React.FC = () => {
   const [mode, setMode] = useState<SpotlightMode>('template');
   const [discordUsername, setDiscordUsername] = useState('');
+  const [discordUserId, setDiscordUserId] = useState('');
   const [reason, setReason] = useState<SpotlightReason>('supporter');
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
@@ -62,19 +64,19 @@ export const SpotlightTab: React.FC = () => {
   const [customMessage, setCustomMessage] = useState('');
 
   const generatePreview = () => {
-    if (!discordUsername.trim()) return;
-    setPreview(getRandomMessage(reason, discordUsername.trim()));
+    if (!discordUsername.trim() && !discordUserId.trim()) return;
+    setPreview(getRandomMessage(reason, discordUsername.trim(), discordUserId.trim()));
   };
 
   const regeneratePreview = () => {
-    if (!discordUsername.trim()) return;
-    setPreview(getRandomMessage(reason, discordUsername.trim()));
+    if (!discordUsername.trim() && !discordUserId.trim()) return;
+    setPreview(getRandomMessage(reason, discordUsername.trim(), discordUserId.trim()));
   };
 
   const sendSpotlight = async (messageContent?: string) => {
     const content = messageContent || preview;
     if (!content.trim()) return;
-    if (mode === 'template' && (!discordUsername.trim() || !preview)) return;
+    if (mode === 'template' && ((!discordUsername.trim() && !discordUserId.trim()) || !preview)) return;
     setSending(true);
     setResult(null);
 
@@ -95,6 +97,7 @@ export const SpotlightTab: React.FC = () => {
         setResult({ success: true, message: 'Spotlight message sent successfully!' });
         if (mode === 'template') {
           setDiscordUsername('');
+          setDiscordUserId('');
           setPreview('');
         } else {
           setCustomMessage('');
@@ -189,6 +192,42 @@ export const SpotlightTab: React.FC = () => {
                 />
               </div>
 
+              {/* Discord User ID (for real mention/ping) */}
+              <div>
+                <label style={{ color: colors.textSecondary, fontSize: '0.75rem', fontWeight: 600, display: 'block', marginBottom: '0.3rem' }}>
+                  Discord User ID
+                  <span style={{ color: colors.textMuted, fontWeight: 400, marginLeft: '0.3rem', fontSize: '0.65rem' }}>(for @mention notification)</span>
+                </label>
+                <input
+                  type="text"
+                  value={discordUserId}
+                  onChange={(e) => {
+                    setDiscordUserId(e.target.value.replace(/[^0-9]/g, ''));
+                    setPreview('');
+                  }}
+                  placeholder="e.g. 123456789012345678"
+                  style={{
+                    width: '100%',
+                    padding: '0.5rem 0.75rem',
+                    backgroundColor: colors.bg,
+                    border: `1px solid ${colors.border}`,
+                    borderRadius: '6px',
+                    color: colors.text,
+                    fontSize: '0.85rem',
+                    outline: 'none',
+                    fontFamily: 'monospace',
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = colors.primary}
+                  onBlur={(e) => e.target.style.borderColor = colors.border}
+                />
+                <p style={{ color: colors.textMuted, fontSize: '0.6rem', margin: '0.25rem 0 0 0', lineHeight: 1.4 }}>
+                  {discordUserId.trim()
+                    ? `✅ Will ping the user with a real @mention notification`
+                    : `💡 Right-click user in Discord → Copy User ID. Without this, the message won't ping them.`
+                  }
+                </p>
+              </div>
+
               {/* Reason */}
               <div>
                 <label style={{ color: colors.textSecondary, fontSize: '0.75rem', fontWeight: 600, display: 'block', marginBottom: '0.3rem' }}>
@@ -223,16 +262,16 @@ export const SpotlightTab: React.FC = () => {
               {/* Generate Preview */}
               <button
                 onClick={preview ? regeneratePreview : generatePreview}
-                disabled={!discordUsername.trim()}
+                disabled={!discordUsername.trim() && !discordUserId.trim()}
                 style={{
                   padding: '0.5rem 1rem',
-                  backgroundColor: discordUsername.trim() ? `${config.color}20` : `${colors.textMuted}10`,
-                  border: `1px solid ${discordUsername.trim() ? `${config.color}40` : colors.border}`,
+                  backgroundColor: (discordUsername.trim() || discordUserId.trim()) ? `${config.color}20` : `${colors.textMuted}10`,
+                  border: `1px solid ${(discordUsername.trim() || discordUserId.trim()) ? `${config.color}40` : colors.border}`,
                   borderRadius: '8px',
-                  color: discordUsername.trim() ? config.color : colors.textMuted,
+                  color: (discordUsername.trim() || discordUserId.trim()) ? config.color : colors.textMuted,
                   fontSize: '0.8rem',
                   fontWeight: 600,
-                  cursor: discordUsername.trim() ? 'pointer' : 'not-allowed',
+                  cursor: (discordUsername.trim() || discordUserId.trim()) ? 'pointer' : 'not-allowed',
                   width: 'fit-content',
                 }}
               >

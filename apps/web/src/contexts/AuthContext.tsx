@@ -566,7 +566,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (!user) return { success: false, error: 'Not logged in' };
 
     if (updates.alliance_tag) {
-      updates.alliance_tag = updates.alliance_tag.slice(0, 3).toUpperCase();
+      updates.alliance_tag = updates.alliance_tag.replace(/[^a-zA-Z0-9]/g, '').slice(0, 3);
     }
 
     // Always update local state and localStorage first (optimistic update)

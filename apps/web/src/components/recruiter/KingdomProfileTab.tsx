@@ -493,7 +493,7 @@ const KingdomProfileTab: React.FC<KingdomProfileTabProps> = ({ fund, editorInfo,
         {(() => {
           const EVENT_TYPES = [
             { key: 'bear_hunt', label: 'Bear Hunt', slots: 2 },
-            { key: 'viking_vengeance', label: 'Viking Vengeance', slots: 1 },
+            { key: 'viking_vengeance', label: 'Viking Vengeance', slots: 2 },
             { key: 'swordland_showdown', label: 'Swordland Showdown', slots: 2 },
             { key: 'tri_alliance_clash', label: 'Tri-Alliance Clash', slots: 2 },
           ];
@@ -534,7 +534,7 @@ const KingdomProfileTab: React.FC<KingdomProfileTabProps> = ({ fund, editorInfo,
           };
 
           const updateAllianceTag = (idx: number, val: string) => {
-            const newAlliances = alliances.map((a, i) => i === idx ? val.toUpperCase() : a);
+            const newAlliances = alliances.map((a, i) => i === idx ? val.replace(/[^a-zA-Z0-9]/g, '').slice(0, 6) : a);
             updateData(newAlliances, schedule);
           };
 
