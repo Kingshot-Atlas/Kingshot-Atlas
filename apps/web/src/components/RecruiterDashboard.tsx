@@ -14,6 +14,7 @@ import {
   NoEditorState,
   InboxTab,
   TeamTab,
+  WatchlistTab,
   useRecruiterDashboard,
 } from './recruiter';
 
@@ -198,7 +199,7 @@ const RecruiterDashboard: React.FC<{
               padding: '0.25rem',
               marginBottom: '1rem',
             }}>
-              {(['inbox', 'browse', 'profile', 'team', 'invites', 'fund'] as const).map((tab) => (
+              {(['inbox', 'browse', 'profile', 'team', 'watchlist', 'fund'] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => {
@@ -207,12 +208,12 @@ const RecruiterDashboard: React.FC<{
                   }}
                   style={{
                     flex: 1,
-                    padding: '0.5rem',
+                    padding: '0.4rem 0.25rem',
                     backgroundColor: activeTab === tab ? '#22d3ee15' : 'transparent',
                     border: activeTab === tab ? '1px solid #22d3ee30' : '1px solid transparent',
                     borderRadius: '8px',
                     color: activeTab === tab ? '#22d3ee' : '#6b7280',
-                    fontSize: isMobile ? '0.65rem' : '0.75rem',
+                    fontSize: isMobile ? '0.6rem' : '0.7rem',
                     fontWeight: activeTab === tab ? '600' : '400',
                     cursor: 'pointer',
                     position: 'relative',
@@ -220,13 +221,16 @@ const RecruiterDashboard: React.FC<{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
+                    lineHeight: 1.2,
+                    textAlign: 'center',
                   }}
                 >
                   {tab === 'inbox' ? `${t('recruiter.inbox', 'Inbox')}${pendingCount > 0 ? ` (${pendingCount})` : ''}` :
-                   tab === 'browse' ? t('recruiter.browse', 'Browse') :
+                   tab === 'browse' ? <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}><span>Find</span><span>Recruits</span></span> :
                    tab === 'profile' ? t('recruiter.profile', 'Profile') :
-                   tab === 'team' ? t('recruiter.team', 'Team') :
-                   tab === 'invites' ? (<>{t('recruiter.coEditors', 'Co-Editors')}{pendingCoEditorRequests.length > 0 && <span style={{ marginLeft: '0.3rem', backgroundColor: '#eab308', color: '#000', borderRadius: '50%', width: '16px', height: '16px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.55rem', fontWeight: 'bold' }}>{pendingCoEditorRequests.length}</span>}</>) : t('recruiter.fund', 'Fund')}
+                   tab === 'team' ? (<>{t('recruiter.team', 'Team')}{pendingCoEditorRequests.length > 0 && <span style={{ marginLeft: '0.3rem', backgroundColor: '#eab308', color: '#000', borderRadius: '50%', width: '16px', height: '16px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.55rem', fontWeight: 'bold' }}>{pendingCoEditorRequests.length}</span>}</>) :
+                   tab === 'watchlist' ? <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}><span>Watch</span><span>list</span></span> :
+                   t('recruiter.fund', 'Fund')}
                 </button>
               ))}
             </div>
@@ -257,14 +261,19 @@ const RecruiterDashboard: React.FC<{
               <KingdomProfileTab fund={fund} editorInfo={editorInfo} onFundUpdate={setFund} />
             )}
 
-            {/* TAB: Team */}
+            {/* TAB: Team (merged Team + Co-Editors) */}
             {activeTab === 'team' && (
-              <TeamTab team={team} />
+              <>
+                <TeamTab team={team} />
+                <div style={{ marginTop: '1rem' }}>
+                  <CoEditorsTab editorInfo={editorInfo} team={team} onReloadDashboard={loadDashboard} />
+                </div>
+              </>
             )}
 
-            {/* TAB: Co-Editors (Invites) */}
-            {activeTab === 'invites' && (
-              <CoEditorsTab editorInfo={editorInfo} team={team} onReloadDashboard={loadDashboard} />
+            {/* TAB: Watchlist */}
+            {activeTab === 'watchlist' && (
+              <WatchlistTab editorInfo={editorInfo} />
             )}
 
             {/* TAB: Fund */}

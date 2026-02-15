@@ -21,11 +21,12 @@ const AuthCallback: React.FC = () => {
 
     let cancelled = false;
     let pollCount = 0;
+    const hasHash = window.location.hash.length > 1;
 
     Sentry.addBreadcrumb({
       category: 'auth',
       message: 'AuthCallback mounted',
-      data: { hasHash: window.location.hash.length > 1 },
+      data: { hasHash },
       level: 'info',
     });
 
@@ -42,16 +43,38 @@ const AuthCallback: React.FC = () => {
       }
     };
 
+    // If no hash fragment, the user likely landed here from another tab that
+    // already consumed the OAuth token, or via direct navigation.
+    // Check for existing session immediately and redirect fast.
+    if (!hasHash) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          redirect();
+        } else {
+          // No hash AND no session — can't complete sign-in
+          setError('Sign-in is taking longer than expected. Please try again.');
+        }
+      });
+      return () => { cancelled = true; };
+    }
+
     // Timeout: 20s to accommodate slow mobile connections
     const timeoutId = setTimeout(() => {
       if (!cancelled) {
         Sentry.addBreadcrumb({
           category: 'auth',
           message: 'AuthCallback timeout reached',
-          data: { pollCount, hasHash: window.location.hash.length > 1 },
+          data: { pollCount, hasHash },
           level: 'warning',
         });
-        setError('Sign-in is taking longer than expected. Please try again.');
+        // Last-resort: check if session landed via another tab while we waited
+        supabase!.auth.getSession().then(({ data: { session } }) => {
+          if (session) {
+            redirect();
+          } else {
+            setError('Sign-in is taking longer than expected. Please try again.');
+          }
+        });
       }
     }, 20000);
 
@@ -60,7 +83,7 @@ const AuthCallback: React.FC = () => {
       if (session) redirect();
     });
 
-    // Poll for session every 2s — handles multi-tab race conditions
+    // Poll for session every 1.5s — handles multi-tab race conditions
     // where onAuthStateChange may not fire (e.g. session already exists
     // from another tab, or hash was consumed before listener was set up)
     const pollSession = async () => {
@@ -69,7 +92,7 @@ const AuthCallback: React.FC = () => {
       if (session) redirect();
     };
     pollSession();
-    const pollId = setInterval(pollSession, 2000);
+    const pollId = setInterval(pollSession, 1500);
 
     return () => {
       cancelled = true;
@@ -97,7 +120,7 @@ const AuthCallback: React.FC = () => {
         </p>
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
           <button
-            onClick={() => { window.location.href = '/'; }}
+            onClick={() => navigate('/profile', { replace: true })}
             style={{
               padding: '0.75rem 1.5rem',
               background: 'linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%)',
@@ -108,10 +131,10 @@ const AuthCallback: React.FC = () => {
               cursor: 'pointer'
             }}
           >
-            Try Again
+            Go to Profile
           </button>
           <button
-            onClick={() => navigate('/profile', { replace: true })}
+            onClick={() => { window.location.href = '/'; }}
             style={{
               padding: '0.75rem 1.5rem',
               backgroundColor: 'transparent',
@@ -121,7 +144,7 @@ const AuthCallback: React.FC = () => {
               cursor: 'pointer'
             }}
           >
-            Go to Profile
+            Back to Home
           </button>
         </div>
       </div>

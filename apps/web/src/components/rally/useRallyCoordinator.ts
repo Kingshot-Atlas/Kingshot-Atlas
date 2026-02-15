@@ -115,11 +115,33 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
     } catch { return false; }
   })();
 
-  // Access gate — Gold kingdoms, admins, trial users, or explicitly granted
+  // Editor/Co-Editor gate: active editors get Battle Planner access (like PrepScheduler)
+  const [isEditorOrCoEditor, setIsEditorOrCoEditor] = useState(false);
+
+  useEffect(() => {
+    if (!user?.id || !supabase) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from('kingdom_editors')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .maybeSingle();
+        if (!cancelled) setIsEditorOrCoEditor(!!data);
+      } catch {
+        if (!cancelled) setIsEditorOrCoEditor(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [user?.id]);
+
+  // Access gate — Gold kingdoms, admins, editors/co-editors, trial users, or explicitly granted
   const [hasAccess, setHasAccess] = useState<boolean | null>(null);
 
   useEffect(() => {
-    if (isAdmin || isPremiumAdmin || isGoldKingdom || isTrialActive || hasOnboardingTrial) {
+    if (isAdmin || isPremiumAdmin || isGoldKingdom || isEditorOrCoEditor || isTrialActive || hasOnboardingTrial) {
       setHasAccess(true);
       return;
     }
@@ -143,7 +165,7 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
       }
     })();
     return () => { cancelled = true; };
-  }, [isAdmin, isPremiumAdmin, isGoldKingdom, isTrialActive, hasOnboardingTrial, user?.id]);
+  }, [isAdmin, isPremiumAdmin, isGoldKingdom, isEditorOrCoEditor, isTrialActive, hasOnboardingTrial, user?.id]);
 
   // State: Unified player database (allies + enemies)
   const [players, setPlayers] = useState<RallyPlayer[]>(() => loadFromStorage(STORAGE_KEY_PLAYERS, []));

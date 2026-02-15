@@ -12,7 +12,7 @@ export interface RecruiterDashboardState {
   fund: FundInfo | null;
   loading: boolean;
   updating: string | null;
-  activeTab: 'inbox' | 'browse' | 'team' | 'invites' | 'fund' | 'profile';
+  activeTab: 'inbox' | 'browse' | 'team' | 'invites' | 'fund' | 'profile' | 'watchlist';
   filterStatus: string;
   usedInvites: number;
   pendingInvite: { id: string; kingdom_number: number; assigned_by: string | null } | null;

@@ -8,5 +8,6 @@ export { default as RecruiterSkeleton } from './RecruiterSkeleton';
 export { default as NoEditorState } from './NoEditorState';
 export { default as InboxTab } from './InboxTab';
 export { default as TeamTab } from './TeamTab';
+export { default as WatchlistTab } from './WatchlistTab';
 export { useRecruiterDashboard } from './useRecruiterDashboard';
 export * from './types';

@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { usePremium } from '../contexts/PremiumContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useGoldKingdoms } from '../hooks/useGoldKingdoms';
+import { supabase } from '../lib/supabase';
 
 // Free trial config: Feb 12 00:00 UTC → Feb 25 00:00 UTC
 const TRIAL_START = new Date('2026-02-12T00:00:00Z').getTime();
@@ -33,11 +34,25 @@ const BattlePlannerLanding: React.FC = () => {
   useDocumentTitle(t('battlePlanner.pageTitle', 'KvK Battle Planner'));
   const isMobile = useIsMobile();
   const { isAdmin } = usePremium();
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const goldKingdoms = useGoldKingdoms();
   const isGoldKingdom = !!(profile?.linked_kingdom && goldKingdoms.has(profile.linked_kingdom));
-  const hasFullAccess = isGoldKingdom || isAdmin;
+  const [isEditorOrCoEditor, setIsEditorOrCoEditor] = useState(false);
+  const hasFullAccess = isGoldKingdom || isAdmin || isEditorOrCoEditor;
   const [trial, setTrial] = useState(getTrialState());
+
+  useEffect(() => {
+    if (!user?.id || !supabase) return;
+    (async () => {
+      const { data } = await supabase
+        .from('kingdom_editors')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .maybeSingle();
+      setIsEditorOrCoEditor(!!data);
+    })();
+  }, [user?.id]);
 
   useEffect(() => {
     const id = window.setInterval(() => setTrial(getTrialState()), 1000);

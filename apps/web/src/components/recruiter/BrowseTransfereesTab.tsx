@@ -36,6 +36,54 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
   const [sentInviteIds, setSentInviteIds] = useState<Set<string>>(new Set());
   const [usedInvites, setUsedInvites] = useState(0);
   const [invitedProfileIds, setInvitedProfileIds] = useState<Set<string>>(new Set());
+  const [savedToWatchlist, setSavedToWatchlist] = useState<Set<string>>(new Set());
+
+  // Load existing watchlist IDs so we can show "Saved" state
+  useEffect(() => {
+    if (!supabase || !user || !editorInfo) return;
+    (async () => {
+      const { data } = await supabase
+        .from('recruiter_watchlist')
+        .select('transfer_profile_id')
+        .eq('recruiter_user_id', user.id)
+        .eq('kingdom_number', editorInfo.kingdom_number)
+        .not('transfer_profile_id', 'is', null);
+      if (data) {
+        setSavedToWatchlist(new Set(data.map((d: { transfer_profile_id: string }) => d.transfer_profile_id).filter(Boolean)));
+      }
+    })();
+  }, [user, editorInfo]);
+
+  const saveToWatchlist = async (tp: TransfereeProfile) => {
+    if (!supabase || !user || !editorInfo) return;
+    try {
+      const { error } = await supabase.from('recruiter_watchlist').insert({
+        recruiter_user_id: user.id,
+        kingdom_number: editorInfo.kingdom_number,
+        player_name: tp.is_anonymous ? `Anon-${tp.id.slice(0, 6)}` : (tp.username || 'Unknown'),
+        tc_level: tp.tc_level,
+        power_range: tp.power_million ? `${tp.power_million}M` : (tp.power_range || null),
+        language: tp.main_language || null,
+        notes: '',
+        target_event: 'next',
+        source: 'browse',
+        transfer_profile_id: tp.id,
+      });
+      if (error) {
+        if (error.code === '23505') {
+          showToast('Already on your watchlist.', 'error');
+        } else {
+          showToast('Failed to save.', 'error');
+        }
+        return;
+      }
+      setSavedToWatchlist(prev => new Set(prev).add(tp.id));
+      showToast('Saved to watchlist for future event!', 'success');
+      trackFeature('Watchlist Save', { kingdom: editorInfo.kingdom_number, source: 'browse' });
+    } catch {
+      showToast('Failed to save.', 'error');
+    }
+  };
 
   // Fetch already-invited/accepted profile IDs so we can hide them from browse
   useEffect(() => {
@@ -491,24 +539,43 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
                   </p>
                 )}
 
-                {/* Compare + Send Invite Row */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'space-between' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer', fontSize: '0.65rem', color: compareList.has(tp.id) ? '#a855f7' : '#6b7280' }}>
-                    <input
-                      type="checkbox"
-                      checked={compareList.has(tp.id)}
-                      onChange={() => {
-                        setCompareList(prev => {
-                          const next = new Set(prev);
-                          if (next.has(tp.id)) next.delete(tp.id);
-                          else if (next.size < 4) next.add(tp.id);
-                          return next;
-                        });
+                {/* Compare + Save for Later + Send Invite Row */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer', fontSize: '0.65rem', color: compareList.has(tp.id) ? '#a855f7' : '#6b7280' }}>
+                      <input
+                        type="checkbox"
+                        checked={compareList.has(tp.id)}
+                        onChange={() => {
+                          setCompareList(prev => {
+                            const next = new Set(prev);
+                            if (next.has(tp.id)) next.delete(tp.id);
+                            else if (next.size < 4) next.add(tp.id);
+                            return next;
+                          });
+                        }}
+                        style={{ accentColor: '#a855f7' }}
+                      />
+                      {t('recruiter.compare', 'Compare')}
+                    </label>
+                    <button
+                      disabled={savedToWatchlist.has(tp.id)}
+                      onClick={() => saveToWatchlist(tp)}
+                      style={{
+                        padding: '0.2rem 0.45rem',
+                        backgroundColor: savedToWatchlist.has(tp.id) ? '#22c55e08' : '#eab30808',
+                        border: `1px solid ${savedToWatchlist.has(tp.id) ? '#22c55e25' : '#eab30820'}`,
+                        borderRadius: '4px',
+                        color: savedToWatchlist.has(tp.id) ? '#22c55e' : '#eab308',
+                        fontSize: '0.6rem',
+                        fontWeight: '600',
+                        cursor: savedToWatchlist.has(tp.id) ? 'default' : 'pointer',
+                        minHeight: '28px',
                       }}
-                      style={{ accentColor: '#a855f7' }}
-                    />
-                    {t('recruiter.compare', 'Compare')}
-                  </label>
+                    >
+                      {savedToWatchlist.has(tp.id) ? '✓ Saved' : '📋 Save for Later'}
+                    </button>
+                  </div>
                 {canSendInvite ? (
                   <button
                     disabled={budgetLeft <= 0 || sentInviteIds.has(tp.id)}

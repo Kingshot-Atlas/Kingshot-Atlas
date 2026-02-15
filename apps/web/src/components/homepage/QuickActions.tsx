@@ -24,13 +24,10 @@ const TransferHubIcon: React.FC<{ size?: number }> = ({ size = 20 }) => (
 
 const BattlePlannerIcon: React.FC<{ size?: number }> = ({ size = 20 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M6.5 2L2 6.5L6.5 11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M2 6.5H10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    <path d="M17.5 2L22 6.5L17.5 11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M22 6.5H14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    <rect x="8" y="14" width="8" height="8" rx="1.5" stroke="currentColor" strokeWidth="2" />
-    <path d="M12 14V11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    <circle cx="12" cy="18" r="1.5" fill="currentColor" />
+    <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2" />
+    <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
+    <path d="M12 3v3M12 18v3M3 12h3M18 12h3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    <path d="M5.6 5.6l2.15 2.15M16.25 16.25l2.15 2.15M5.6 18.4l2.15-2.15M16.25 7.75l2.15-2.15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
   </svg>
 );
 

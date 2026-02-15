@@ -6,9 +6,14 @@ Allow: /
 Disallow: /api/
 Disallow: /admin
 Disallow: /auth/
-Disallow: /profile
 Disallow: /components
-Disallow: /transfer-hub
+
+# Allow public profiles but block user's own profile page
+Allow: /profile/
+Disallow: /profile$
+
+# Transfer Hub is public — allow crawling
+# (kingdom-specific pages like /transfer-hub?kingdom=123 are valuable for SEO)
 
 # Disallow legacy URLs (301 redirects exist, but save crawl budget)
 Disallow: /leaderboards
