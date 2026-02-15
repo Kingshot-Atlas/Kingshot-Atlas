@@ -330,6 +330,7 @@
 | Bot Observability Dashboard | ✅ Live | 2026-02-11 | Platform | `BotTelemetryTab` in Admin Dashboard (System > Bot Telemetry). Summary cards, severity bar, filterable event list, expandable metadata. API: `GET /api/v1/bot/telemetry`. Auto-refresh 60s. |
 | Bot Telemetry Auto-Cleanup | ✅ Live | 2026-02-11 | Platform | pg_cron `bot-telemetry-cleanup` runs weekly Sunday 03:00 UTC, deletes rows >30 days old. |
 | Bot Critical Event Alerts | ✅ Ready | 2026-02-11 | Platform | `notify_critical_bot_event()` trigger fires on error/critical INSERT to `bot_telemetry`. Posts Discord embed via pg_net. Webhook URL from vault secret `bot_alerts_discord_webhook`. |
+| Spotlight Automation | ✅ Live | 2026-02-20 | Product | Full rewrite of `SpotlightTab.tsx`: 3 sub-tabs (Compose/Pending/History), 10+ random messages per role (supporter/ambassador/booster), avatar=AtlasBotAvatar.webp, name="Atlas", auto-populate Discord User ID from Supabase profiles, Discord `<@ID>` mention syntax. Backend: `send_spotlight_to_discord()` helper, `_log_spotlight_history()`, `POST /bot/process-pending-spotlights`. Auto-trigger on Supporter subscription (stripe.py `handle_checkout_completed`). Ambassador auto-trigger via DB trigger `spotlight_on_ambassador` on `referral_tier` change. Supabase: `spotlight_history` table with RLS (admin-only). Mobile UX: 44px touch targets, responsive layout. |
 
 ---
 
