@@ -1261,6 +1261,8 @@
     "nap": "NAP",
     "sanctuaryDistribution": "Sanctuary Distribution",
     "castleRotation": "Castle Rotation",
+    "availableSlots": "Available Slots",
+    "detail": "Detail",
     "reviewCount": "{{count}} review(s)",
     "fundedListingsPromo": "✨ Funded listings get shimmer borders, glow effects & more visibility",
     "share": "Share",

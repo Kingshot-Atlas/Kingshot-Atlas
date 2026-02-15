@@ -38,7 +38,9 @@
     "rankings_1": "王国",
     "rankings_2": "排名",
     "kvkSeasons_1": "KvK",
-    "kvkSeasons_2": "赛季"
+    "kvkSeasons_2": "赛季",
+    "prepScheduler_1": "KvK 备战",
+    "prepScheduler_2": "调度器"
   },
   "nav": {
     "home": "首页",
@@ -52,6 +54,7 @@
     "gamingCalculators": "游戏计算器",
     "kvkBattleCoordinator": "KvK 战斗协调器",
     "appointmentScheduler": "预约调度器",
+    "kvkPrepScheduler": "KvK 备战调度器",
     "viewAllTools": "查看所有工具 →",
     "community": "社区",
     "transferHub": "转服中心",
@@ -262,7 +265,8 @@
     "rallyTitle": "KvK 战斗规划器",
     "rallyDesc": "让你的集结同时到达。设置攻击顺序、行军时间和延迟窗口——让你的联盟一起出击。",
     "rallyTagline": "同步打击。无需猜测。",
-    "appointmentTitle": "预约调度器",
+    "appointmentTitle": "KvK 备战调度器",
+    "goldTierFeature": "黄金等级王国功能",
     "appointmentDesc": "在准备阶段为你的王国安排国王预约。最大化增益时段，避免重叠，让每 30 分钟都有价值。",
     "appointmentTagline": "精准赢得战争。",
     "calcTitle": "游戏计算器",
@@ -1257,6 +1261,8 @@
     "nap": "NAP",
     "sanctuaryDistribution": "避难所分配",
     "castleRotation": "城堡轮换",
+    "availableSlots": "可用名额",
+    "detail": "详情",
     "reviewCount": "{{count}} 条评价",
     "fundedListingsPromo": "✨ 资助的招募信息获得闪光边框、光效和更高可见度",
     "share": "分享",

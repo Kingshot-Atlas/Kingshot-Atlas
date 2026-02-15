@@ -59,6 +59,7 @@ export interface KingdomFund {
   nap_policy: boolean | null;
   sanctuary_distribution: boolean | null;
   castle_rotation: boolean | null;
+  alliance_details: Record<string, { language?: string; secondary_language?: string; spots?: number }> | null;
   updated_at?: string | null;
 }
 
@@ -133,6 +134,91 @@ const convertUtcToLocal = (utcTime: string): string => {
   const now = new Date();
   const utcDate = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes));
   return utcDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+};
+
+const AllianceDetailsGrid: React.FC<{
+  alliances: string[];
+  allianceDetails: Record<string, { language?: string; secondary_language?: string; spots?: number }>;
+}> = ({ alliances, allianceDetails }) => {
+  const { t } = useTranslation();
+
+  const DETAIL_ROWS: { key: string; label: string; render: (detail: { language?: string; secondary_language?: string; spots?: number } | undefined) => string }[] = [
+    { key: 'language', label: t('listing.mainLanguage', 'Main Language'), render: (d) => d?.language || '—' },
+    { key: 'secondary_language', label: t('listing.secondaryLanguage', 'Secondary Language'), render: (d) => d?.secondary_language || '—' },
+    { key: 'spots', label: t('listing.availableSlots', 'Available Slots'), render: (d) => d?.spots != null ? String(d.spots) : '—' },
+  ];
+
+  return (
+    <div style={{ marginBottom: '0.6rem' }}>
+      <div style={{
+        border: `1px solid ${colors.border}`,
+        borderRadius: '6px',
+        overflow: 'hidden',
+      }}>
+        {/* Header row */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: `1fr ${alliances.map(() => '1fr').join(' ')}`,
+          backgroundColor: colors.surface,
+          borderBottom: `1px solid ${colors.border}`,
+        }}>
+          <div style={{ padding: '0.3rem 0.4rem', fontSize: '0.55rem', color: colors.textMuted, fontWeight: '600' }}>
+            {t('listing.detail', 'Detail')}
+          </div>
+          {alliances.map((tag, i) => (
+            <div key={i} style={{
+              padding: '0.3rem 0.4rem',
+              fontSize: '0.55rem',
+              color: colors.primary,
+              fontWeight: '700',
+              textAlign: 'center',
+              borderLeft: `1px solid ${colors.border}`,
+            }}>
+              {tag}
+            </div>
+          ))}
+        </div>
+        {/* Data rows */}
+        {DETAIL_ROWS.map((row, rowIdx) => (
+          <div key={row.key} style={{
+            display: 'grid',
+            gridTemplateColumns: `1fr ${alliances.map(() => '1fr').join(' ')}`,
+            borderBottom: rowIdx < DETAIL_ROWS.length - 1 ? `1px solid ${colors.border}` : 'none',
+          }}>
+            <div style={{
+              padding: '0.3rem 0.4rem',
+              fontSize: '0.55rem',
+              color: colors.textSecondary,
+              fontWeight: '500',
+              display: 'flex',
+              alignItems: 'center',
+            }}>
+              {row.label}
+            </div>
+            {alliances.map((tag, aIdx) => {
+              const detail = allianceDetails[tag];
+              const value = row.render(detail);
+              return (
+                <div key={aIdx} style={{
+                  padding: '0.25rem 0.3rem',
+                  fontSize: '0.6rem',
+                  color: value !== '—' ? colors.text : colors.textMuted,
+                  fontWeight: '500',
+                  textAlign: 'center',
+                  borderLeft: `1px solid ${colors.border}`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                  {value}
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 };
 
 const AllianceInfoGrid: React.FC<{
@@ -942,6 +1028,11 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
             {/* Alliance Information Table */}
             {fund && fund.alliance_events && fund.alliance_events.alliances && fund.alliance_events.alliances.length > 0 && (
               <AllianceInfoGrid allianceEvents={fund.alliance_events} />
+            )}
+
+            {/* Alliance Details Table (Language & Slots) */}
+            {fund && fund.alliance_events && fund.alliance_events.alliances && fund.alliance_events.alliances.length > 0 && fund.alliance_details && Object.keys(fund.alliance_details).length > 0 && (
+              <AllianceDetailsGrid alliances={fund.alliance_events.alliances} allianceDetails={fund.alliance_details} />
             )}
 
             {/* Community Reviews — moved here from primary view */}

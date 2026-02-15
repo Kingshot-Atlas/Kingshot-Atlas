@@ -1261,6 +1261,8 @@
     "nap": "NAP",
     "sanctuaryDistribution": "Distribution des Sanctuaires",
     "castleRotation": "Rotation du Château",
+    "availableSlots": "Places Disponibles",
+    "detail": "Détail",
     "reviewCount": "{{count}} avis",
     "fundedListingsPromo": "✨ Les annonces financées obtiennent des bordures scintillantes, des effets de lumière et plus de visibilité",
     "share": "Partager",

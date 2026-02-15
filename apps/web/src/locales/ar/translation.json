@@ -1267,6 +1267,8 @@
     "nap": "NAP",
     "sanctuaryDistribution": "توزيع الملاذ",
     "castleRotation": "تناوب القلعة",
+    "availableSlots": "الأماكن المتاحة",
+    "detail": "التفاصيل",
     "reviewCount": "{{count}} مراجعة",
     "reviewCount_zero": "لا مراجعات",
     "reviewCount_one": "مراجعة واحدة",

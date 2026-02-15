@@ -1261,6 +1261,8 @@
     "nap": "NAP",
     "sanctuaryDistribution": "サンクチュアリ分布",
     "castleRotation": "キャッスルローテーション",
+    "availableSlots": "空きスロット",
+    "detail": "詳細",
     "reviewCount": "{{count}}件のレビュー",
     "fundedListingsPromo": "✨ ファンド付きリスティングはシマーボーダー、グローエフェクト等でより目立ちます",
     "share": "共有",

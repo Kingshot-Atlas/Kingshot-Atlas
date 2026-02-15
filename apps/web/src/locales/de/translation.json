@@ -1261,6 +1261,8 @@
     "nap": "NAP",
     "sanctuaryDistribution": "Schutzgebiet-Verteilung",
     "castleRotation": "Burg-Rotation",
+    "availableSlots": "Verfügbare Plätze",
+    "detail": "Detail",
     "reviewCount": "{{count}} Bewertung(en)",
     "fundedListingsPromo": "✨ Finanzierte Einträge erhalten Schimmer-Rahmen, Glüheffekte & mehr Sichtbarkeit",
     "share": "Teilen",

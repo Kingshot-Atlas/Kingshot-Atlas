@@ -35,6 +35,22 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
   const [showCompare, setShowCompare] = useState(false);
   const [sentInviteIds, setSentInviteIds] = useState<Set<string>>(new Set());
   const [usedInvites, setUsedInvites] = useState(0);
+  const [invitedProfileIds, setInvitedProfileIds] = useState<Set<string>>(new Set());
+
+  // Fetch already-invited/accepted profile IDs so we can hide them from browse
+  useEffect(() => {
+    if (!supabase || !editorInfo) return;
+    (async () => {
+      const { data } = await supabase
+        .from('transfer_invites')
+        .select('recipient_profile_id, status')
+        .eq('kingdom_number', editorInfo.kingdom_number)
+        .in('status', ['pending', 'accepted']);
+      if (data) {
+        setInvitedProfileIds(new Set(data.map((d: { recipient_profile_id: string }) => d.recipient_profile_id)));
+      }
+    })();
+  }, [editorInfo]);
 
   // Auto-load transferees on mount
   useEffect(() => {
@@ -57,7 +73,7 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
         const newProfile = payload.new as TransfereeProfile;
         // Filter by transfer group + exclude own kingdom
         const inGroup = !transferGroup || (newProfile.current_kingdom >= transferGroup[0] && newProfile.current_kingdom <= transferGroup[1]);
-        if (newProfile.is_active && newProfile.visible_to_recruiters && newProfile.current_kingdom !== editorInfo?.kingdom_number && inGroup) {
+        if (newProfile.is_active && newProfile.visible_to_recruiters && newProfile.current_kingdom !== editorInfo?.kingdom_number && inGroup && !invitedProfileIds.has(newProfile.id)) {
           setTransferees(prev => [newProfile, ...prev]);
         }
       })
@@ -91,7 +107,7 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
       const { data } = await query
         .order('created_at', { ascending: false })
         .range(offset, offset + BROWSE_PAGE_SIZE - 1);
-      const results = (data as TransfereeProfile[]) || [];
+      const results = ((data as TransfereeProfile[]) || []).filter(tp => !invitedProfileIds.has(tp.id));
       if (loadMore) {
         setTransferees(prev => [...prev, ...results]);
       } else {
@@ -523,6 +539,8 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
                         } else {
                           setUsedInvites(prev => prev + 1);
                           setSentInviteIds(prev => new Set(prev).add(tp.id));
+                          setInvitedProfileIds(prev => new Set(prev).add(tp.id));
+                          setTransferees(prev => prev.filter(t => t.id !== tp.id));
                           trackFeature('Invite Sent', { kingdom: editorInfo.kingdom_number });
                           showToast('Invite sent!', 'success');
                           // Notify the transferee

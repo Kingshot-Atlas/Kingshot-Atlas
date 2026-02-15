@@ -38,7 +38,9 @@
     "rankings_1": "Krallık",
     "rankings_2": "Sıralaması",
     "kvkSeasons_1": "KvK",
-    "kvkSeasons_2": "Sezonları"
+    "kvkSeasons_2": "Sezonları",
+    "prepScheduler_1": "KvK Hazırlık",
+    "prepScheduler_2": "Planlayıcı"
   },
   "nav": {
     "home": "Ana Sayfa",
@@ -52,6 +54,7 @@
     "gamingCalculators": "Oyun Hesaplayıcıları",
     "kvkBattleCoordinator": "KvK Savaş Koordinatörü",
     "appointmentScheduler": "Randevu Planlayıcı",
+    "kvkPrepScheduler": "KvK Hazırlık Planlayıcı",
     "viewAllTools": "Tüm Araçları Gör →",
     "community": "Topluluk",
     "transferHub": "Transfer Merkezi",
@@ -262,7 +265,8 @@
     "rallyTitle": "KvK Savaş Planlayıcı",
     "rallyDesc": "Rallilerini birlikte inecek şekilde zamanla. Vuruş sırası, yürüyüş süreleri ve gecikme aralıklarını ayarla — ittifakın tek vücut halinde saldırsın.",
     "rallyTagline": "Senkronize yıkım. Tahmin yok.",
-    "appointmentTitle": "Randevu Planlayıcı",
+    "appointmentTitle": "KvK Hazırlık Planlayıcı",
+    "goldTierFeature": "Altın Seviye Krallık Özelliği",
     "appointmentDesc": "Hazırlık Aşaması sırasında krallığın genelinde Kral Randevularını planla. Buff slotlarını maksimize et, çakışmayı önle ve her 30 dakikayı değerlendir.",
     "appointmentTagline": "Hassasiyet savaşları kazanır.",
     "calcTitle": "Oyun Hesaplayıcıları",
@@ -1257,6 +1261,8 @@
     "nap": "NAP",
     "sanctuaryDistribution": "Sığınak Dağılımı",
     "castleRotation": "Kale Rotasyonu",
+    "availableSlots": "Mevcut Yerler",
+    "detail": "Detay",
     "reviewCount": "{{count}} yorum",
     "fundedListingsPromo": "✨ Fonlanmış ilanlar parıltılı kenarlık, parlama efektleri ve daha fazla görünürlük alır",
     "share": "Paylaş",

@@ -1261,6 +1261,8 @@
     "nap": "NAP",
     "sanctuaryDistribution": "避难所分配",
     "castleRotation": "城堡轮换",
+    "availableSlots": "可用名额",
+    "detail": "详情",
     "reviewCount": "{{count}} 条评价",
     "fundedListingsPromo": "✨ 资助的招募信息获得闪光边框、光效和更高可见度",
     "share": "分享",

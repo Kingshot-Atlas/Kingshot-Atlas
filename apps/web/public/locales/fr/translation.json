@@ -38,7 +38,9 @@
     "rankings_1": "Classement",
     "rankings_2": "Royaumes",
     "kvkSeasons_1": "Saisons",
-    "kvkSeasons_2": "KvK"
+    "kvkSeasons_2": "KvK",
+    "prepScheduler_1": "Planificateur",
+    "prepScheduler_2": "Prep KvK"
   },
   "nav": {
     "home": "Accueil",
@@ -52,6 +54,7 @@
     "gamingCalculators": "Calculatrices",
     "kvkBattleCoordinator": "Coordinateur de Bataille KvK",
     "appointmentScheduler": "Planificateur de Rendez-vous",
+    "kvkPrepScheduler": "Planificateur Prep KvK",
     "viewAllTools": "Voir Tous les Outils →",
     "community": "Communauté",
     "transferHub": "Centre de Transferts",
@@ -262,7 +265,8 @@
     "rallyTitle": "Planificateur de Bataille KvK",
     "rallyDesc": "Synchronisez vos rallies pour qu'ils arrivent ensemble. Définissez l'ordre d'attaque, les temps de marche et les délais — pour que votre alliance frappe d'un seul coup.",
     "rallyTagline": "Destruction synchronisée. Zéro approximation.",
-    "appointmentTitle": "Planificateur de Rendez-vous",
+    "appointmentTitle": "Planificateur Prep KvK",
+    "goldTierFeature": "Fonctionnalité Royaume Niveau Or",
     "appointmentDesc": "Planifiez les Rendez-vous du Roi pendant la Phase de Préparation. Maximisez les créneaux de buff, évitez les chevauchements et tirez le meilleur de chaque 30 minutes.",
     "appointmentTagline": "La précision gagne les guerres.",
     "calcTitle": "Calculatrices de Jeu",
@@ -1257,6 +1261,8 @@
     "nap": "NAP",
     "sanctuaryDistribution": "Distribution des Sanctuaires",
     "castleRotation": "Rotation du Château",
+    "availableSlots": "Places Disponibles",
+    "detail": "Détail",
     "reviewCount": "{{count}} avis",
     "fundedListingsPromo": "✨ Les annonces financées obtiennent des bordures scintillantes, des effets de lumière et plus de visibilité",
     "share": "Partager",

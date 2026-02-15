@@ -1261,6 +1261,8 @@
     "nap": "NAP",
     "sanctuaryDistribution": "Distribución de Santuario",
     "castleRotation": "Rotación de Castillo",
+    "availableSlots": "Plazas Disponibles",
+    "detail": "Detalle",
     "reviewCount": "{{count}} reseña(s)",
     "fundedListingsPromo": "✨ Los listados financiados obtienen bordes brillantes, efectos de brillo y más visibilidad",
     "share": "Compartir",

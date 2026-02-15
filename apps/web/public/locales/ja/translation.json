@@ -38,7 +38,9 @@
     "rankings_1": "王国",
     "rankings_2": "ランキング",
     "kvkSeasons_1": "KvK",
-    "kvkSeasons_2": "シーズン"
+    "kvkSeasons_2": "シーズン",
+    "prepScheduler_1": "KvK準備",
+    "prepScheduler_2": "スケジューラー"
   },
   "nav": {
     "home": "ホーム",
@@ -52,6 +54,7 @@
     "gamingCalculators": "ゲーム計算機",
     "kvkBattleCoordinator": "KvKバトルコーディネーター",
     "appointmentScheduler": "予約スケジューラー",
+    "kvkPrepScheduler": "KvK準備スケジューラー",
     "viewAllTools": "すべてのツールを見る →",
     "community": "コミュニティ",
     "transferHub": "トランスファーハブ",
@@ -262,7 +265,8 @@
     "rallyTitle": "KvKバトルプランナー",
     "rallyDesc": "ラリーが同時に着弾するようタイミングを計算。攻撃順序、行軍時間、遅延を設定。",
     "rallyTagline": "シンクロ攻撃。推測不要。",
-    "appointmentTitle": "予約スケジューラー",
+    "appointmentTitle": "KvK準備スケジューラー",
+    "goldTierFeature": "ゴールドティア王国機能",
     "appointmentDesc": "Prepフェーズ中の王のアポイントメントをスケジュール。バフ枠を最大化し、重複を避けよう。",
     "appointmentTagline": "精密さが戦争を制す。",
     "calcTitle": "ゲーム計算機",
@@ -1257,6 +1261,8 @@
     "nap": "NAP",
     "sanctuaryDistribution": "サンクチュアリ分布",
     "castleRotation": "キャッスルローテーション",
+    "availableSlots": "空きスロット",
+    "detail": "詳細",
     "reviewCount": "{{count}}件のレビュー",
     "fundedListingsPromo": "✨ ファンド付きリスティングはシマーボーダー、グローエフェクト等でより目立ちます",
     "share": "共有",

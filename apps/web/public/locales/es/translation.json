@@ -38,7 +38,9 @@
     "rankings_1": "Clasificación",
     "rankings_2": "de Reinos",
     "kvkSeasons_1": "Temporadas",
-    "kvkSeasons_2": "KvK"
+    "kvkSeasons_2": "KvK",
+    "prepScheduler_1": "Programador",
+    "prepScheduler_2": "KvK Prep"
   },
   "nav": {
     "home": "Inicio",
@@ -52,6 +54,7 @@
     "gamingCalculators": "Calculadoras",
     "kvkBattleCoordinator": "Coordinador de Batalla KvK",
     "appointmentScheduler": "Agenda de Citas",
+    "kvkPrepScheduler": "Programador de Preparación KvK",
     "viewAllTools": "Ver Todas las Herramientas →",
     "community": "Comunidad",
     "transferHub": "Centro de Transferencias",
@@ -262,7 +265,8 @@
     "rallyTitle": "Planificador de Batalla KvK",
     "rallyDesc": "Sincroniza tus rallies para que lleguen juntos. Establece orden de ataque, tiempos de marcha y ventanas de retraso — para que tu alianza ataque como uno.",
     "rallyTagline": "Destrucción sincronizada. Sin adivinanzas.",
-    "appointmentTitle": "Programador de Citas",
+    "appointmentTitle": "Programador de Preparación KvK",
+    "goldTierFeature": "Función de Reino Nivel Oro",
     "appointmentDesc": "Programa las Citas del Rey en todo tu reino durante la Fase de Preparación. Maximiza los espacios de buff, evita solapamientos y aprovecha cada 30 minutos.",
     "appointmentTagline": "La precisión gana guerras.",
     "calcTitle": "Calculadoras de Juego",
@@ -1257,6 +1261,8 @@
     "nap": "NAP",
     "sanctuaryDistribution": "Distribución de Santuario",
     "castleRotation": "Rotación de Castillo",
+    "availableSlots": "Plazas Disponibles",
+    "detail": "Detalle",
     "reviewCount": "{{count}} reseña(s)",
     "fundedListingsPromo": "✨ Los listados financiados obtienen bordes brillantes, efectos de brillo y más visibilidad",
     "share": "Compartir",

@@ -38,7 +38,9 @@
     "rankings_1": "تصنيفات",
     "rankings_2": "الممالك",
     "kvkSeasons_1": "مواسم",
-    "kvkSeasons_2": "KvK"
+    "kvkSeasons_2": "KvK",
+    "prepScheduler_1": "جدولة التحضير",
+    "prepScheduler_2": "KvK"
   },
   "nav": {
     "home": "الرئيسية",
@@ -52,6 +54,7 @@
     "gamingCalculators": "حاسبات اللعبة",
     "kvkBattleCoordinator": "منسق معارك KvK",
     "appointmentScheduler": "جدولة المواعيد",
+    "kvkPrepScheduler": "جدولة تحضير KvK",
     "viewAllTools": "عرض جميع الأدوات ←",
     "community": "المجتمع",
     "transferHub": "مركز الانتقال",
@@ -262,7 +265,8 @@
     "rallyTitle": "مخطط معارك KvK",
     "rallyDesc": "وقّت تجمعاتك لتصل معًا. حدد ترتيب الضرب وأوقات المسير.",
     "rallyTagline": "تدمير متزامن. بلا تخمين.",
-    "appointmentTitle": "جدولة المواعيد",
+    "appointmentTitle": "جدولة تحضير KvK",
+    "goldTierFeature": "ميزة مملكة المستوى الذهبي",
     "appointmentDesc": "جدوِل مواعيد الملك عبر مملكتك خلال مرحلة التحضير.",
     "appointmentTagline": "الدقة تربح الحروب.",
     "calcTitle": "حاسبات اللعبة",
@@ -1263,6 +1267,8 @@
     "nap": "NAP",
     "sanctuaryDistribution": "توزيع الملاذ",
     "castleRotation": "تناوب القلعة",
+    "availableSlots": "الأماكن المتاحة",
+    "detail": "التفاصيل",
     "reviewCount": "{{count}} مراجعة",
     "reviewCount_zero": "لا مراجعات",
     "reviewCount_one": "مراجعة واحدة",
