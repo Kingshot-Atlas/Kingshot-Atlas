@@ -18,6 +18,7 @@ interface ToolCardProps {
   accentColor: string;
   usageStat?: string;
   ctaLabel?: string;
+  goldTierBadge?: boolean;
 }
 
 const ToolCard: React.FC<ToolCardProps> = ({ 
@@ -29,7 +30,8 @@ const ToolCard: React.FC<ToolCardProps> = ({
   comingSoon,
   accentColor,
   usageStat,
-  ctaLabel 
+  ctaLabel,
+  goldTierBadge 
 }) => {
   const isMobile = useIsMobile();
   const { t } = useTranslation();
@@ -79,7 +81,26 @@ const ToolCard: React.FC<ToolCardProps> = ({
           {t('common.comingSoon')}
         </div>
       )}
-      {usageStat && !comingSoon && (
+      {goldTierBadge && !comingSoon && (
+        <div style={{
+          position: 'absolute',
+          top: '12px',
+          right: '12px',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '0.25rem',
+          padding: '0.2rem 0.55rem',
+          backgroundColor: '#ffc30b15',
+          border: '1px solid #ffc30b30',
+          borderRadius: '20px',
+          fontSize: '0.6rem',
+          fontWeight: '700',
+          color: '#ffc30b'
+        }}>
+          👑 Gold Tier
+        </div>
+      )}
+      {usageStat && !comingSoon && !goldTierBadge && (
         <div style={{
           position: 'absolute',
           top: '12px',
@@ -220,7 +241,26 @@ const Tools: React.FC = () => {
         </svg>
       ),
       href: '/tools/battle-planner',
-      accentColor: '#ef4444'
+      accentColor: '#ef4444',
+      goldTierBadge: true
+    },
+    {
+      title: t('tools.appointmentTitle', 'KvK Prep Scheduler'),
+      description: t('tools.appointmentDesc', 'Coordinate Castle Appointments for KvK Prep Phase. Collect player speedups & availability, then auto-assign optimal buff slots. Make every 30 minutes count.'),
+      tagline: t('tools.appointmentTagline', 'Precision wins wars.'),
+      icon: (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+          <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/>
+        </svg>
+      ),
+      href: '/tools/prep-scheduler-info',
+      ctaLabel: t('tools.learnMore', 'Learn More'),
+      accentColor: '#a855f7',
+      goldTierBadge: true
     },
     {
       title: t('tools.botTitle', 'Discord Bot Atlas'),
@@ -262,23 +302,6 @@ const Tools: React.FC = () => {
       ),
       href: '/compare',
       accentColor: '#22d3ee'
-    },
-    {
-      title: t('tools.appointmentTitle', 'KvK Prep Scheduler'),
-      description: t('tools.appointmentDesc', 'Coordinate Castle Appointments for KvK Prep Phase. Collect player speedups & availability, then auto-assign optimal buff slots. Make every 30 minutes count.'),
-      tagline: t('tools.appointmentTagline', 'Precision wins wars.'),
-      icon: (
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-          <line x1="16" y1="2" x2="16" y2="6"/>
-          <line x1="8" y1="2" x2="8" y2="6"/>
-          <line x1="3" y1="10" x2="21" y2="10"/>
-          <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/>
-        </svg>
-      ),
-      href: '/tools/prep-scheduler-info',
-      ctaLabel: t('tools.learnMore', 'Learn More'),
-      accentColor: '#a855f7'
     },
     {
       title: t('tools.calcTitle', 'Gaming Calculators'),

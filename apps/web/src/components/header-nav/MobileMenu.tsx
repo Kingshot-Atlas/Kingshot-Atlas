@@ -194,6 +194,9 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isActive, user, profile, isAdmi
           <Link to="/tools/battle-planner" style={{ color: isActive('/tools/battle-planner') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.9rem', padding: '0.5rem 1rem 0.5rem 1.5rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span style={{ color: '#333' }}>└</span> {t('nav.kvkBattleCoordinator')}
           </Link>
+          <Link to="/tools/prep-scheduler-info" style={{ color: isActive('/tools/prep-scheduler') || isActive('/tools/prep-scheduler-info') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.9rem', padding: '0.5rem 1rem 0.5rem 1.5rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ color: '#333' }}>└</span> {t('nav.kvkPrepScheduler', 'KvK Prep Scheduler')}
+          </Link>
           <Link to="/atlas-bot" style={{ color: isActive('/atlas-bot') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.9rem', padding: '0.5rem 1rem 0.5rem 1.5rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span style={{ color: '#333' }}>└</span> {t('nav.atlasBot')}
           </Link>
@@ -202,9 +205,6 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isActive, user, profile, isAdmi
           </Link>
           <Link to="/compare" style={{ color: isActive('/compare') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.9rem', padding: '0.5rem 1rem 0.5rem 1.5rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span style={{ color: '#333' }}>└</span> {t('nav.kingdomComparison')}
-          </Link>
-          <Link to="/tools/prep-scheduler-info" style={{ color: isActive('/tools/prep-scheduler') || isActive('/tools/prep-scheduler-info') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.9rem', padding: '0.5rem 1rem 0.5rem 1.5rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ color: '#333' }}>└</span> {t('nav.kvkPrepScheduler', 'KvK Prep Scheduler')}
           </Link>
           <div style={{ color: '#4b5563', fontSize: '0.9rem', padding: '0.5rem 1rem 0.5rem 1.5rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span style={{ color: '#333' }}>└</span> {t('nav.gamingCalculators')}

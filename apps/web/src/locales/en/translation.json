@@ -38,7 +38,9 @@
     "rankings_1": "Kingdom",
     "rankings_2": "Rankings",
     "kvkSeasons_1": "KvK",
-    "kvkSeasons_2": "Seasons"
+    "kvkSeasons_2": "Seasons",
+    "prepScheduler_1": "KvK Prep",
+    "prepScheduler_2": "Scheduler"
   },
   "nav": {
     "home": "Home",
@@ -52,6 +54,7 @@
     "giftCodeRedeemer": "Gift Code Redeemer",
     "gamingCalculators": "Gaming Calculators",
     "appointmentScheduler": "Appointment Scheduler",
+    "kvkPrepScheduler": "KvK Prep Scheduler",
     "viewAllTools": "View All Tools →",
     "community": "Community",
     "transferHub": "Transfer Hub",
@@ -262,8 +265,9 @@
     "rallyTitle": "KvK Battle Planner",
     "rallyDesc": "Time your rallies to land together. Set hit order, march times, and delay windows — so your alliance strikes as one.",
     "rallyTagline": "Synchronized destruction. No guesswork.",
-    "appointmentTitle": "Appointment Scheduler",
-    "appointmentDesc": "Schedule King's Appointments across your kingdom during Prep Phase. Maximize buff slots, avoid overlap, and make every 30 minutes count.",
+    "appointmentTitle": "KvK Prep Scheduler",
+    "appointmentDesc": "Coordinate Castle Appointments for KvK Prep Phase. Collect player speedups & availability, then auto-assign optimal buff slots. Make every 30 minutes count.",
+    "goldTierFeature": "Gold Tier Kingdom Feature",
     "appointmentTagline": "Precision wins wars.",
     "calcTitle": "Gaming Calculators",
     "calcDesc": "Resource planners, upgrade costs, speedup estimates. Math so you don't have to.",

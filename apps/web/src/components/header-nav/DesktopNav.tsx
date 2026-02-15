@@ -238,7 +238,32 @@ const DesktopNav: React.FC<DesktopNavProps> = ({ isActive, user, changeLanguage,
               </svg>
               {t('nav.kvkBattleCoordinator')}
             </Link>
-            {/* 3. Atlas Discord Bot */}
+            {/* 3. KvK Prep Scheduler */}
+            <Link
+              to="/tools/prep-scheduler-info"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                padding: '0.75rem 1rem',
+                borderRadius: '8px',
+                color: isActive('/tools/prep-scheduler') || isActive('/tools/prep-scheduler-info') ? '#22d3ee' : '#fff',
+                textDecoration: 'none',
+                fontSize: '0.85rem',
+                transition: 'background-color 0.2s'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#a855f7' }}>
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+              {t('nav.kvkPrepScheduler', 'KvK Prep Scheduler')}
+            </Link>
+            {/* 4. Atlas Discord Bot */}
             <Link
               to="/atlas-bot"
               style={{
@@ -283,7 +308,7 @@ const DesktopNav: React.FC<DesktopNavProps> = ({ isActive, user, changeLanguage,
               </svg>
               {t('nav.giftCodeRedeemer')}
             </Link>
-            {/* 5. Kingdom Comparison */}
+            {/* 6. Kingdom Comparison */}
             <Link
               to="/compare"
               style={{
@@ -306,31 +331,6 @@ const DesktopNav: React.FC<DesktopNavProps> = ({ isActive, user, changeLanguage,
               {t('nav.kingdomComparison')}
             </Link>
             <div style={{ height: '1px', backgroundColor: '#2a2a2a', margin: '0.25rem 0' }} />
-            {/* 6. KvK Prep Scheduler */}
-            <Link
-              to="/tools/prep-scheduler-info"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                padding: '0.75rem 1rem',
-                borderRadius: '8px',
-                color: isActive('/tools/prep-scheduler') || isActive('/tools/prep-scheduler-info') ? '#22d3ee' : '#fff',
-                textDecoration: 'none',
-                fontSize: '0.85rem',
-                transition: 'background-color 0.2s'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#a855f7' }}>
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                <line x1="16" y1="2" x2="16" y2="6"/>
-                <line x1="8" y1="2" x2="8" y2="6"/>
-                <line x1="3" y1="10" x2="21" y2="10"/>
-              </svg>
-              {t('nav.kvkPrepScheduler', 'KvK Prep Scheduler')}
-            </Link>
             {/* 7. Gaming Calculators (SOON) */}
             <div
               style={{

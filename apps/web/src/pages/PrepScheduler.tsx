@@ -273,8 +273,12 @@ const PrepScheduler: React.FC = () => {
   const [createKvkNumber, setCreateKvkNumber] = useState<number>(0);
   const [createNotes, setCreateNotes] = useState('');
 
-  // Prep Manager assignment state
+  // Prep Manager assignment state (multi-manager)
   const [assignManagerInput, setAssignManagerInput] = useState('');
+  const [managerSearchResults, setManagerSearchResults] = useState<{ id: string; linked_username: string; username: string; linked_player_id: string | null }[]>([]);
+  const [managers, setManagers] = useState<{ id: string; user_id: string; username: string }[]>([]);
+  const [showManagerDropdown, setShowManagerDropdown] = useState(false);
+  const managerSearchRef = useRef<HTMLDivElement>(null);
   // Kingdom schedules for "Fill The Form" CTA on landing
   const [kingdomSchedules, setKingdomSchedules] = useState<PrepSchedule[]>([]);
 
@@ -296,10 +300,17 @@ const PrepScheduler: React.FC = () => {
   const fetchMySchedules = useCallback(async () => {
     if (!user?.id || !supabase) return;
     try {
-      // Fetch schedules where user is creator OR prep_manager
+      // Fetch schedules where user is creator OR prep_manager (legacy) OR in managers table
       const { data: created } = await supabase.from('prep_schedules').select('*').eq('created_by', user.id).order('created_at', { ascending: false });
       const { data: managed } = await supabase.from('prep_schedules').select('*').eq('prep_manager_id', user.id).order('created_at', { ascending: false });
-      const all = [...(created || []), ...(managed || [])];
+      const { data: mgrLinks } = await supabase.from('prep_schedule_managers').select('schedule_id').eq('user_id', user.id);
+      let managedNew: PrepSchedule[] = [];
+      if (mgrLinks && mgrLinks.length > 0) {
+        const ids = mgrLinks.map(m => m.schedule_id);
+        const { data: mgrSchedules } = await supabase.from('prep_schedules').select('*').in('id', ids).order('created_at', { ascending: false });
+        managedNew = mgrSchedules || [];
+      }
+      const all = [...(created || []), ...(managed || []), ...managedNew];
       const unique = all.filter((s, i, arr) => arr.findIndex(x => x.id === s.id) === i);
       setMySchedules(unique);
     } catch (err) { logger.error('Failed to fetch schedules:', err); }
@@ -323,11 +334,13 @@ const PrepScheduler: React.FC = () => {
           const isEditor = (editors || []).some(e => e.user_id === user.id);
           setIsEditorOrCoEditor(isEditor || isCreator);
         }
-        // Fetch manager username if set
+        // Fetch manager username if set (legacy single manager)
         if (data.prep_manager_id) {
           const { data: mgr } = await supabase.from('profiles').select('linked_username, username').eq('id', data.prep_manager_id).single();
           if (mgr) setManagerUsername(mgr.linked_username || mgr.username || '');
         }
+        // Fetch multi-managers from junction table
+        await fetchManagers(data.id);
       }
     } catch (err) { logger.error('Failed to fetch schedule:', err); }
   }, [user?.id]);
@@ -351,6 +364,97 @@ const PrepScheduler: React.FC = () => {
       setAssignments(data || []);
     } catch (err) { logger.error('Failed to fetch assignments:', err); }
   }, []);
+
+  const fetchManagers = useCallback(async (schedId: string) => {
+    if (!supabase) return;
+    try {
+      const { data: mgrRows } = await supabase.from('prep_schedule_managers').select('id, user_id').eq('schedule_id', schedId);
+      if (mgrRows && mgrRows.length > 0) {
+        const userIds = mgrRows.map(m => m.user_id);
+        const { data: profiles } = await supabase.from('profiles').select('id, linked_username, username').in('id', userIds);
+        const mgrs = mgrRows.map(m => {
+          const p = (profiles || []).find(pr => pr.id === m.user_id);
+          return { id: m.id, user_id: m.user_id, username: p?.linked_username || p?.username || 'Unknown' };
+        });
+        setManagers(mgrs);
+        // Also check if current user is in the managers list
+        if (user?.id && mgrs.some(m => m.user_id === user.id)) {
+          setIsManager(true);
+        }
+      } else {
+        setManagers([]);
+      }
+    } catch (err) { logger.error('Failed to fetch managers:', err); }
+  }, [user?.id]);
+
+  const searchUsers = useCallback(async (query: string) => {
+    if (!supabase || query.length < 2) { setManagerSearchResults([]); setShowManagerDropdown(false); return; }
+    try {
+      // Search by linked_username or linked_player_id
+      const { data } = await supabase.from('profiles')
+        .select('id, linked_username, username, linked_player_id')
+        .or(`linked_username.ilike.%${query}%,linked_player_id.ilike.%${query}%,username.ilike.%${query}%`)
+        .limit(8);
+      setManagerSearchResults(data || []);
+      setShowManagerDropdown((data || []).length > 0);
+    } catch { setManagerSearchResults([]); }
+  }, []);
+
+  const addManager = async (userId: string, username: string) => {
+    if (!supabase || !schedule || !user?.id) return;
+    // Check if already added
+    if (managers.some(m => m.user_id === userId)) { setAssignManagerInput(''); setShowManagerDropdown(false); return; }
+    try {
+      const { data, error } = await supabase.from('prep_schedule_managers').insert({
+        schedule_id: schedule.id, user_id: userId, assigned_by: user.id,
+      }).select().single();
+      if (error) throw error;
+      if (data) {
+        setManagers(prev => [...prev, { id: data.id, user_id: userId, username }]);
+        // Also update legacy prep_manager_id if it's the first manager
+        if (!schedule.prep_manager_id) {
+          await supabase.from('prep_schedules').update({ prep_manager_id: userId }).eq('id', schedule.id);
+          setSchedule({ ...schedule, prep_manager_id: userId });
+          setManagerUsername(username);
+        }
+      }
+      setAssignManagerInput('');
+      setShowManagerDropdown(false);
+    } catch (err) { logger.error('Failed to add manager:', err); alert('Failed to add manager.'); }
+  };
+
+  const removeManagerById = async (mgrId: string, userId: string) => {
+    if (!supabase || !schedule) return;
+    try {
+      await supabase.from('prep_schedule_managers').delete().eq('id', mgrId);
+      setManagers(prev => prev.filter(m => m.id !== mgrId));
+      // If removing the legacy prep_manager, update to next manager or null
+      if (schedule.prep_manager_id === userId) {
+        const remaining = managers.filter(m => m.id !== mgrId);
+        const nextId = remaining.length > 0 ? remaining[0]!.user_id : null;
+        await supabase.from('prep_schedules').update({ prep_manager_id: nextId }).eq('id', schedule.id);
+        setSchedule({ ...schedule, prep_manager_id: nextId });
+        setManagerUsername(remaining.length > 0 ? remaining[0]!.username : '');
+      }
+    } catch (err) { logger.error('Failed to remove manager:', err); }
+  };
+
+  // Click outside to close manager dropdown
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (managerSearchRef.current && !managerSearchRef.current.contains(e.target as Node)) {
+        setShowManagerDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  // Debounced search
+  useEffect(() => {
+    const timer = setTimeout(() => { if (assignManagerInput.trim().length >= 2) searchUsers(assignManagerInput.trim()); }, 300);
+    return () => clearTimeout(timer);
+  }, [assignManagerInput, searchUsers]);
 
   const prefillForm = (sub: PrepSubmission) => {
     setFormUsername(sub.username);
@@ -436,32 +540,28 @@ const PrepScheduler: React.FC = () => {
     setSaving(false);
   };
 
-  const assignPrepManager = async () => {
-    if (!supabase || !schedule || !assignManagerInput.trim()) return;
-    setSaving(true);
+  const archiveSchedule = async () => {
+    if (!supabase || !schedule) return;
+    if (!confirm('Archive this schedule? It will no longer accept submissions.')) return;
     try {
-      // Find user by linked_username
-      const { data: found } = await supabase.from('profiles').select('id, linked_username, username')
-        .ilike('linked_username', assignManagerInput.trim()).single();
-      if (!found) { alert('Player not found. Make sure they have a linked Kingshot account on Atlas.'); setSaving(false); return; }
-      const { error } = await supabase.from('prep_schedules').update({ prep_manager_id: found.id }).eq('id', schedule.id);
-      if (error) throw error;
-      setManagerUsername(found.linked_username || found.username || '');
-      setSchedule({ ...schedule, prep_manager_id: found.id });
-      setAssignManagerInput('');
-      alert(`${found.linked_username || found.username} has been assigned as Prep Manager.`);
-    } catch (err) { logger.error('Failed to assign manager:', err); alert('Failed to assign manager.'); }
-    setSaving(false);
+      await supabase.from('prep_schedules').update({ status: 'archived' }).eq('id', schedule.id);
+      setSchedule({ ...schedule, status: 'archived' });
+      alert('Schedule archived.');
+    } catch (err) { logger.error('Failed to archive:', err); }
   };
 
-  const removePrepManager = async () => {
-    if (!supabase || !schedule) return;
-    if (!confirm('Remove the current Prep Manager?')) return;
-    try {
-      await supabase.from('prep_schedules').update({ prep_manager_id: null }).eq('id', schedule.id);
-      setSchedule({ ...schedule, prep_manager_id: null });
-      setManagerUsername('');
-    } catch (err) { logger.error('Failed to remove manager:', err); }
+  const exportOptedOut = (day: Day) => {
+    const skipped = submissions.filter(s => isSkippedDay(s, day));
+    if (skipped.length === 0) { alert(`No opted-out players for ${DAY_LABELS[day]}.`); return; }
+    const rows = ['Username,Alliance,Reason'];
+    for (const s of skipped) rows.push(`${s.username},${s.alliance_tag || ''},Opted out of ${DAY_LABELS[day]}`);
+    const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `opted-out-${day}-K${schedule?.kingdom_number || ''}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   const uploadScreenshot = async (): Promise<string | null> => {
@@ -709,7 +809,16 @@ const PrepScheduler: React.FC = () => {
             </div>
           )}
 
-          {user && (
+          {user && !profile?.is_admin && !kingdomSchedules.length && mySchedules.length === 0 && (
+            <div style={{ ...cardStyle, marginBottom: '1.5rem', borderColor: '#f59e0b30', backgroundColor: '#f59e0b08' }}>
+              <h3 style={{ color: '#f59e0b', fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.5rem' }}>🔒 Admin-Only Access</h3>
+              <p style={{ color: colors.textMuted, fontSize: '0.8rem', lineHeight: 1.5 }}>
+                The KvK Prep Scheduler is currently available to administrators only. If your kingdom has an active schedule, you'll see it here automatically.
+              </p>
+            </div>
+          )}
+
+          {user && profile?.is_admin && (
             <div style={{ ...cardStyle, marginBottom: '1.5rem' }}>
               <h3 style={{ color: colors.text, fontSize: '1rem', marginBottom: '0.75rem', fontWeight: 700 }}>📋 Create New Schedule</h3>
               <p style={{ color: colors.textMuted, fontSize: '0.75rem', marginBottom: '1rem', lineHeight: 1.5 }}>
@@ -788,6 +897,30 @@ const PrepScheduler: React.FC = () => {
 
         <div style={{ maxWidth: '600px', margin: '0 auto', padding: isMobile ? '1rem' : '1.5rem' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {/* View My Slot — show if player has been assigned a slot */}
+            {existingSubmission && assignments.filter(a => a.submission_id === existingSubmission.id).length > 0 && (
+              <div style={{ ...cardStyle, borderColor: '#22c55e30', backgroundColor: '#22c55e08' }}>
+                <h4 style={{ color: '#22c55e', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.5rem' }}>🗓️ Your Assigned Slots</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                  {DAYS.map(day => {
+                    const mySlots = assignments.filter(a => a.submission_id === existingSubmission.id && a.day === day);
+                    if (mySlots.length === 0) return null;
+                    const buffType = day === 'monday' ? schedule.monday_buff : day === 'tuesday' ? schedule.tuesday_buff : schedule.thursday_buff;
+                    return (
+                      <div key={day} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.35rem 0.5rem', backgroundColor: `${DAY_COLORS[day]}10`, borderRadius: '6px', border: `1px solid ${DAY_COLORS[day]}20` }}>
+                        <span style={{ color: DAY_COLORS[day], fontSize: '0.8rem', fontWeight: 600, minWidth: '70px' }}>{DAY_LABELS[day]}</span>
+                        <span style={{ color: colors.textMuted, fontSize: '0.7rem' }}>{DAY_BUFF_LABELS[buffType]}</span>
+                        <span style={{ marginLeft: 'auto', color: DAY_COLORS[day], fontSize: '0.8rem', fontWeight: 700, fontFamily: 'monospace' }}>
+                          {mySlots.map(s => s.slot_time).join(', ')} UTC
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <p style={{ color: colors.textMuted, fontSize: '0.7rem', marginTop: '0.5rem' }}>Be online at these times to receive the buff. Contact your Prep Manager if you need to change slots.</p>
+              </div>
+            )}
+
             {/* Username & Alliance */}
             <div style={cardStyle}>
               <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '0.75rem' }}>
@@ -921,37 +1054,82 @@ const PrepScheduler: React.FC = () => {
                 </h1>
                 <p style={{ color: colors.textMuted, fontSize: '0.75rem', margin: '0.25rem 0 0' }}>
                   {submissions.length} submissions · {assignedCount}/48 slots for {DAY_LABELS[activeDay]}
+                  {(() => { const skipCount = submissions.filter(s => isSkippedDay(s, activeDay)).length; return skipCount > 0 ? <span style={{ color: '#f59e0b' }}> · {skipCount} skipped {DAY_LABELS[activeDay]}</span> : null; })()}
                   {managerUsername && <span> · Manager: <span style={{ color: '#a855f7' }}>{managerUsername}</span></span>}
+                  {schedule.status === 'archived' && <span style={{ marginLeft: '0.5rem', padding: '0.1rem 0.4rem', backgroundColor: `${colors.textMuted}20`, borderRadius: '4px', fontSize: '0.65rem', color: colors.textMuted }}>ARCHIVED</span>}
                 </p>
               </div>
               <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                 <button onClick={copyShareLink} style={{ padding: '0.4rem 0.75rem', backgroundColor: `${colors.primary}15`, border: `1px solid ${colors.primary}30`, borderRadius: '6px', color: colors.primary, fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>🔗 Copy Form Link</button>
                 <button onClick={() => exportToSpreadsheet(submissions, assignments, schedule)} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#22c55e15', border: '1px solid #22c55e30', borderRadius: '6px', color: '#22c55e', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>📊 Export CSV</button>
+                <button onClick={() => exportOptedOut(activeDay)} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#f59e0b15', border: '1px solid #f59e0b30', borderRadius: '6px', color: '#f59e0b', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>📋 Opted-Out CSV</button>
                 <button onClick={() => setView('form')} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#a855f715', border: '1px solid #a855f730', borderRadius: '6px', color: '#a855f7', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>📝 View Form</button>
+                {schedule.status === 'active' && isEditorOrCoEditor && (
+                  <button onClick={archiveSchedule} style={{ padding: '0.4rem 0.75rem', backgroundColor: `${colors.textMuted}10`, border: `1px solid ${colors.border}`, borderRadius: '6px', color: colors.textMuted, fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>📦 Archive</button>
+                )}
               </div>
             </div>
           </div>
         </div>
 
         <div style={{ maxWidth: '1200px', margin: '0 auto', padding: isMobile ? '0.75rem' : '1rem 2rem' }}>
-          {/* Prep Manager Assignment (editor/co-editor only) */}
+          {/* Prep Manager Assignment (editor/co-editor only) — Multi-manager with search */}
           {isEditorOrCoEditor && (
             <div style={{ ...cardStyle, marginBottom: '1rem', borderColor: '#a855f730' }}>
-              <h4 style={{ color: '#a855f7', fontSize: '0.8rem', fontWeight: 700, marginBottom: '0.5rem' }}>👤 Prep Manager Assignment</h4>
-              {schedule.prep_manager_id ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span style={{ color: colors.text, fontSize: '0.8rem' }}>Current: <strong style={{ color: '#a855f7' }}>{managerUsername}</strong></span>
-                  <button onClick={removePrepManager} style={{ padding: '0.2rem 0.5rem', backgroundColor: `${colors.error}15`, border: `1px solid ${colors.error}30`, borderRadius: '4px', color: colors.error, fontSize: '0.7rem', cursor: 'pointer' }}>Remove</button>
-                </div>
-              ) : (
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                  <input value={assignManagerInput} onChange={(e) => setAssignManagerInput(e.target.value)} placeholder="Player username" style={{ ...inputStyle, width: '200px' }} />
-                  <button onClick={assignPrepManager} disabled={saving || !assignManagerInput.trim()}
-                    style={{ padding: '0.4rem 0.75rem', backgroundColor: '#a855f715', border: '1px solid #a855f730', borderRadius: '6px', color: '#a855f7', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>
-                    Assign
-                  </button>
+              <h4 style={{ color: '#a855f7', fontSize: '0.8rem', fontWeight: 700, marginBottom: '0.5rem' }}>👤 Prep Managers</h4>
+              {/* Current managers chips */}
+              {managers.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '0.5rem' }}>
+                  {managers.map(mgr => (
+                    <div key={mgr.id} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', padding: '0.2rem 0.5rem', backgroundColor: '#a855f715', border: '1px solid #a855f730', borderRadius: '20px' }}>
+                      <span style={{ color: '#a855f7', fontSize: '0.75rem', fontWeight: 600 }}>{mgr.username}</span>
+                      <button onClick={() => removeManagerById(mgr.id, mgr.user_id)} style={{ background: 'none', border: 'none', color: colors.error, cursor: 'pointer', fontSize: '0.8rem', padding: '0 0.1rem', lineHeight: 1 }}>×</button>
+                    </div>
+                  ))}
                 </div>
               )}
+              {/* Search input with autocomplete dropdown */}
+              <div ref={managerSearchRef} style={{ position: 'relative' }}>
+                <input
+                  value={assignManagerInput}
+                  onChange={(e) => setAssignManagerInput(e.target.value)}
+                  onFocus={() => { if (managerSearchResults.length > 0) setShowManagerDropdown(true); }}
+                  placeholder="Search by username or player ID..."
+                  style={{ ...inputStyle, width: isMobile ? '100%' : '280px' }}
+                />
+                {showManagerDropdown && managerSearchResults.length > 0 && (
+                  <div style={{
+                    position: 'absolute', top: '100%', left: 0, right: isMobile ? 0 : 'auto',
+                    width: isMobile ? '100%' : '280px', backgroundColor: '#1a1a1a', border: `1px solid ${colors.border}`,
+                    borderRadius: '8px', marginTop: '2px', zIndex: 50, maxHeight: '200px', overflowY: 'auto',
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+                  }}>
+                    {managerSearchResults.map(u => {
+                      const alreadyAdded = managers.some(m => m.user_id === u.id);
+                      return (
+                        <button
+                          key={u.id}
+                          onClick={() => !alreadyAdded && addManager(u.id, u.linked_username || u.username)}
+                          disabled={alreadyAdded}
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%',
+                            padding: '0.5rem 0.75rem', background: 'none', border: 'none', borderBottom: `1px solid ${colors.borderSubtle}`,
+                            color: alreadyAdded ? colors.textMuted : colors.text, fontSize: '0.8rem', textAlign: 'left',
+                            cursor: alreadyAdded ? 'default' : 'pointer', opacity: alreadyAdded ? 0.5 : 1,
+                          }}
+                          onMouseEnter={(e) => { if (!alreadyAdded) e.currentTarget.style.backgroundColor = '#252525'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+                        >
+                          <span style={{ fontWeight: 600 }}>{u.linked_username || u.username}</span>
+                          {u.linked_player_id && <span style={{ color: colors.textMuted, fontSize: '0.7rem' }}>ID: {u.linked_player_id}</span>}
+                          {alreadyAdded && <span style={{ marginLeft: 'auto', color: '#a855f7', fontSize: '0.65rem' }}>✓ Added</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+              {managers.length === 0 && <p style={{ color: colors.textMuted, fontSize: '0.7rem', marginTop: '0.35rem' }}>No managers assigned yet. Search and add Prep Managers above.</p>}
             </div>
           )}
 

@@ -38,7 +38,9 @@
     "rankings_1": "Königreich-",
     "rankings_2": "Ranglisten",
     "kvkSeasons_1": "KvK-",
-    "kvkSeasons_2": "Saisons"
+    "kvkSeasons_2": "Saisons",
+    "prepScheduler_1": "KvK-Prep",
+    "prepScheduler_2": "Planer"
   },
   "nav": {
     "home": "Startseite",
@@ -52,6 +54,7 @@
     "gamingCalculators": "Spielrechner",
     "kvkBattleCoordinator": "KvK-Kampfkoordinator",
     "appointmentScheduler": "Terminplaner",
+    "kvkPrepScheduler": "KvK-Prep-Planer",
     "viewAllTools": "Alle Werkzeuge anzeigen →",
     "community": "Community",
     "transferHub": "Transfer-Zentrum",
@@ -262,7 +265,8 @@
     "rallyTitle": "KvK-Kampfplaner",
     "rallyDesc": "Timen deine Rallys, damit sie gemeinsam ankommen. Lege Angriffsreihenfolge, Marschzeiten und Verzögerungen fest – damit deine Allianz als Einheit zuschlägt.",
     "rallyTagline": "Synchronisierte Zerstörung. Kein Rätselraten.",
-    "appointmentTitle": "Terminplaner",
+    "appointmentTitle": "KvK-Prep-Planer",
+    "goldTierFeature": "Gold-Stufe Königreich-Funktion",
     "appointmentDesc": "Plane die Königstermine in deinem Königreich während der Vorbereitungsphase. Maximiere Buff-Slots, vermeide Überschneidungen und nutze jede halbe Stunde.",
     "appointmentTagline": "Präzision gewinnt Kriege.",
     "calcTitle": "Spielrechner",

@@ -96,17 +96,20 @@ const PrepSchedulerLanding: React.FC = () => {
             color: '#9ca3af', fontSize: isMobile ? '0.95rem' : '1.1rem',
             maxWidth: '520px', margin: '0 auto 0.5rem', lineHeight: 1.6,
           }}>
-            Stop losing Prep Phase points to disorganized buff scheduling. Atlas turns chaos into a precision-timed machine.
+            Your Gold Tier kingdom earned elite tools. Stop losing Prep Phase points to disorganized buff scheduling — Atlas turns chaos into a precision-timed machine that maximizes every 30-minute slot.
           </p>
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
             padding: '0.25rem 0.75rem', backgroundColor: '#ffc30b15',
-            border: '1px solid #ffc30b30', borderRadius: '20px', marginBottom: '1.25rem',
+            border: '1px solid #ffc30b30', borderRadius: '20px', marginBottom: '0.5rem',
           }}>
             <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#ffc30b' }}>
-              👑 EXCLUSIVE TO GOLD TIER KINGDOMS
+              👑 GOLD TIER KINGDOM FEATURE
             </span>
           </div>
+          <p style={{ color: '#6b7280', fontSize: '0.75rem', maxWidth: '400px', margin: '0 auto 1.25rem', lineHeight: 1.5 }}>
+            Reach Gold Tier through the Kingdom Fund to unlock this and other premium kingdom tools.
+          </p>
 
           {/* CTA */}
           <div style={{

@@ -38,7 +38,9 @@
     "rankings_1": "왕국",
     "rankings_2": "랭킹",
     "kvkSeasons_1": "KvK",
-    "kvkSeasons_2": "시즌"
+    "kvkSeasons_2": "시즌",
+    "prepScheduler_1": "KvK 준비",
+    "prepScheduler_2": "스케줄러"
   },
   "nav": {
     "home": "홈",
@@ -52,6 +54,7 @@
     "gamingCalculators": "게임 계산기",
     "kvkBattleCoordinator": "KvK 전투 코디네이터",
     "appointmentScheduler": "예약 스케줄러",
+    "kvkPrepScheduler": "KvK 준비 스케줄러",
     "viewAllTools": "모든 도구 보기 →",
     "community": "커뮤니티",
     "transferHub": "이적 허브",
@@ -262,7 +265,8 @@
     "rallyTitle": "KvK 전투 플래너",
     "rallyDesc": "랠리가 동시에 도착하도록 타이밍을 맞추세요. 타격 순서, 행군 시간, 지연 시간 설정 — 얼라이언스가 하나로 공격합니다.",
     "rallyTagline": "동기화된 파괴. 추측 제로.",
-    "appointmentTitle": "어포인트먼트 스케줄러",
+    "appointmentTitle": "KvK 준비 스케줄러",
+    "goldTierFeature": "골드 등급 왕국 기능",
     "appointmentDesc": "준비 단계 동안 왕국 전체의 왕의 약속을 예약하세요. 버프 슬롯을 최대화하고, 겹침을 방지하고, 매 30분을 활용하세요.",
     "appointmentTagline": "정밀함이 전쟁을 이긴다.",
     "calcTitle": "게임 계산기",
