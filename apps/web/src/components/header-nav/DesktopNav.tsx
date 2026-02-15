@@ -159,15 +159,15 @@ const DesktopNav: React.FC<DesktopNavProps> = ({ isActive, user, changeLanguage,
         <Link
           to="/tools"
           style={{
-            color: (isActive('/tools') || isActive('/compare') || isActive('/atlas-bot') || isActive('/transfer-hub') || isActive('/transfer-hub/about')) ? '#22d3ee' : '#9ca3af',
+            color: (isActive('/tools') || isActive('/compare') || isActive('/atlas-bot') || isActive('/transfer-hub') || isActive('/transfer-hub/about') || isActive('/tools/prep-scheduler') || isActive('/tools/prep-scheduler-info')) ? '#22d3ee' : '#9ca3af',
             textDecoration: 'none',
             fontSize: '0.9rem',
-            fontWeight: (isActive('/tools') || isActive('/compare') || isActive('/atlas-bot') || isActive('/transfer-hub') || isActive('/transfer-hub/about')) ? '600' : '400',
+            fontWeight: (isActive('/tools') || isActive('/compare') || isActive('/atlas-bot') || isActive('/transfer-hub') || isActive('/transfer-hub/about') || isActive('/tools/prep-scheduler') || isActive('/tools/prep-scheduler-info')) ? '600' : '400',
             transition: 'color 0.2s',
             display: 'flex',
             alignItems: 'center',
             gap: '0.25rem',
-            ...((isActive('/tools') || isActive('/compare') || isActive('/atlas-bot') || isActive('/transfer-hub') || isActive('/transfer-hub/about')) ? neonGlow('#22d3ee') : {})
+            ...((isActive('/tools') || isActive('/compare') || isActive('/atlas-bot') || isActive('/transfer-hub') || isActive('/transfer-hub/about') || isActive('/tools/prep-scheduler') || isActive('/tools/prep-scheduler-info')) ? neonGlow('#22d3ee') : {})
           }}
         >
           {t('nav.tools')}
@@ -306,28 +306,31 @@ const DesktopNav: React.FC<DesktopNavProps> = ({ isActive, user, changeLanguage,
               {t('nav.kingdomComparison')}
             </Link>
             <div style={{ height: '1px', backgroundColor: '#2a2a2a', margin: '0.25rem 0' }} />
-            {/* 6. Appointment Scheduler (SOON) */}
-            <div
+            {/* 6. KvK Prep Scheduler */}
+            <Link
+              to="/tools/prep-scheduler-info"
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.75rem',
                 padding: '0.75rem 1rem',
                 borderRadius: '8px',
-                color: '#4b5563',
+                color: isActive('/tools/prep-scheduler') || isActive('/tools/prep-scheduler-info') ? '#22d3ee' : '#fff',
+                textDecoration: 'none',
                 fontSize: '0.85rem',
-                cursor: 'default'
+                transition: 'background-color 0.2s'
               }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#a855f7', opacity: 0.5 }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#a855f7' }}>
                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
                 <line x1="16" y1="2" x2="16" y2="6"/>
                 <line x1="8" y1="2" x2="8" y2="6"/>
                 <line x1="3" y1="10" x2="21" y2="10"/>
               </svg>
-              {t('nav.appointmentScheduler')}
-              <span style={{ fontSize: '0.6rem', backgroundColor: '#a855f720', color: '#a855f7', padding: '0.15rem 0.4rem', borderRadius: '4px', marginLeft: 'auto' }}>{t('common.soon')}</span>
-            </div>
+              {t('nav.kvkPrepScheduler', 'KvK Prep Scheduler')}
+            </Link>
             {/* 7. Gaming Calculators (SOON) */}
             <div
               style={{

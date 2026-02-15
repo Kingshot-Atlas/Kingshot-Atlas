@@ -49,6 +49,8 @@ const TransferHubLanding = lazy(() => import('./pages/TransferHubLanding'));
 const AuthCallback = lazy(() => import('./pages/AuthCallback'));
 const CancelSurvey = lazy(() => import('./pages/CancelSurvey'));
 const KingdomCommunities = lazy(() => import('./pages/KingdomCommunities'));
+const PrepScheduler = lazy(() => import('./pages/PrepScheduler'));
+const PrepSchedulerLanding = lazy(() => import('./pages/PrepSchedulerLanding'));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -145,6 +147,9 @@ function AppContent() {
               <Route path="/auth/callback" element={<ErrorBoundary><AuthCallback /></ErrorBoundary>} />
               <Route path="/cancel-survey" element={<ErrorBoundary><CancelSurvey /></ErrorBoundary>} />
               <Route path="/kingdoms/communities" element={<ErrorBoundary><KingdomCommunities /></ErrorBoundary>} />
+              <Route path="/tools/prep-scheduler-info" element={<ErrorBoundary><PrepSchedulerLanding /></ErrorBoundary>} />
+              <Route path="/tools/prep-scheduler" element={<ErrorBoundary><PrepScheduler /></ErrorBoundary>} />
+              <Route path="/tools/prep-scheduler/:scheduleId" element={<ErrorBoundary><PrepScheduler /></ErrorBoundary>} />
             </Routes>
           </Suspense>
         </PageTransition>

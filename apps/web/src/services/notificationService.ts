@@ -39,7 +39,8 @@ export type NotificationType =
   | 'application_expiring'
   | 'endorsement_received'
   | 'editor_activated'
-  | 'co_editor_request';
+  | 'co_editor_request'
+  | 'prep_schedule_form';
 
 export interface NotificationPreferences {
   score_changes: boolean;
@@ -294,6 +295,8 @@ class NotificationService {
         return '👑';
       case 'co_editor_request':
         return '🙋';
+      case 'prep_schedule_form':
+        return '📅';
       default:
         return '🔔';
     }
@@ -337,6 +340,8 @@ class NotificationService {
         return colors.success; // green
       case 'co_editor_request':
         return colors.purple; // purple
+      case 'prep_schedule_form':
+        return '#a855f7'; // prep purple
       default:
         return colors.textSecondary; // gray
     }

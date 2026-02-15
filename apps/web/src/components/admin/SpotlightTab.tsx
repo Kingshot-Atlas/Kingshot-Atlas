@@ -50,12 +50,16 @@ const getRandomMessage = (reason: SpotlightReason, discordUsername: string): str
   return template.replace(/\{user\}/g, discordUsername);
 };
 
+type SpotlightMode = 'template' | 'custom';
+
 export const SpotlightTab: React.FC = () => {
+  const [mode, setMode] = useState<SpotlightMode>('template');
   const [discordUsername, setDiscordUsername] = useState('');
   const [reason, setReason] = useState<SpotlightReason>('supporter');
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
   const [preview, setPreview] = useState('');
+  const [customMessage, setCustomMessage] = useState('');
 
   const generatePreview = () => {
     if (!discordUsername.trim()) return;
@@ -67,8 +71,10 @@ export const SpotlightTab: React.FC = () => {
     setPreview(getRandomMessage(reason, discordUsername.trim()));
   };
 
-  const sendSpotlight = async () => {
-    if (!discordUsername.trim() || !preview) return;
+  const sendSpotlight = async (messageContent?: string) => {
+    const content = messageContent || preview;
+    if (!content.trim()) return;
+    if (mode === 'template' && (!discordUsername.trim() || !preview)) return;
     setSending(true);
     setResult(null);
 
@@ -78,7 +84,7 @@ export const SpotlightTab: React.FC = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({
-          content: preview,
+          content: content,
           username: 'Atlas Spotlight',
           avatar_url: 'https://ks-atlas.com/atlas-logo.png',
         }),
@@ -87,8 +93,12 @@ export const SpotlightTab: React.FC = () => {
       const data = await response.json();
       if (response.ok && data.success) {
         setResult({ success: true, message: 'Spotlight message sent successfully!' });
-        setDiscordUsername('');
-        setPreview('');
+        if (mode === 'template') {
+          setDiscordUsername('');
+          setPreview('');
+        } else {
+          setCustomMessage('');
+        }
       } else {
         setResult({ success: false, message: `Failed: ${data.detail || response.statusText}` });
       }
@@ -119,153 +129,274 @@ export const SpotlightTab: React.FC = () => {
         </p>
       </div>
 
-      {/* Form */}
-      <div style={{
-        backgroundColor: colors.cardAlt,
-        borderRadius: '10px',
-        border: `1px solid ${colors.border}`,
-        padding: '1rem',
-      }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          {/* Discord Username */}
-          <div>
-            <label style={{ color: colors.textSecondary, fontSize: '0.75rem', fontWeight: 600, display: 'block', marginBottom: '0.3rem' }}>
-              Discord Username
-            </label>
-            <input
-              type="text"
-              value={discordUsername}
-              onChange={(e) => {
-                setDiscordUsername(e.target.value);
-                setPreview('');
-              }}
-              placeholder="e.g. @username or username#1234"
-              style={{
-                width: '100%',
-                padding: '0.5rem 0.75rem',
-                backgroundColor: colors.bg,
-                border: `1px solid ${colors.border}`,
-                borderRadius: '6px',
-                color: colors.text,
-                fontSize: '0.85rem',
-                outline: 'none',
-              }}
-              onFocus={(e) => e.target.style.borderColor = colors.primary}
-              onBlur={(e) => e.target.style.borderColor = colors.border}
-            />
-          </div>
+      {/* Mode Toggle */}
+      <div style={{ display: 'flex', gap: '0.5rem' }}>
+        {(['template', 'custom'] as SpotlightMode[]).map(m => (
+          <button
+            key={m}
+            onClick={() => { setMode(m); setResult(null); }}
+            style={{
+              padding: '0.4rem 0.85rem',
+              backgroundColor: mode === m ? `${colors.primary}20` : 'transparent',
+              border: `1px solid ${mode === m ? `${colors.primary}40` : colors.border}`,
+              borderRadius: '6px',
+              color: mode === m ? colors.primary : colors.textMuted,
+              fontSize: '0.8rem',
+              fontWeight: mode === m ? 600 : 400,
+              cursor: 'pointer',
+            }}
+          >
+            {m === 'template' ? '🎨 Template Message' : '✏️ Custom Message'}
+          </button>
+        ))}
+      </div>
 
-          {/* Reason */}
-          <div>
-            <label style={{ color: colors.textSecondary, fontSize: '0.75rem', fontWeight: 600, display: 'block', marginBottom: '0.3rem' }}>
-              Reason
-            </label>
-            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-              {(Object.entries(REASON_CONFIG) as [SpotlightReason, typeof config][]).map(([key, cfg]) => (
-                <button
-                  key={key}
-                  onClick={() => { setReason(key); setPreview(''); }}
-                  style={{
-                    padding: '0.4rem 0.75rem',
-                    backgroundColor: reason === key ? `${cfg.color}20` : 'transparent',
-                    border: `1px solid ${reason === key ? `${cfg.color}50` : colors.border}`,
-                    borderRadius: '6px',
-                    color: reason === key ? cfg.color : colors.textMuted,
-                    fontSize: '0.8rem',
-                    fontWeight: reason === key ? 600 : 400,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.3rem',
+      {mode === 'template' ? (
+        <>
+          {/* Template Form */}
+          <div style={{
+            backgroundColor: colors.cardAlt,
+            borderRadius: '10px',
+            border: `1px solid ${colors.border}`,
+            padding: '1rem',
+          }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {/* Discord Username */}
+              <div>
+                <label style={{ color: colors.textSecondary, fontSize: '0.75rem', fontWeight: 600, display: 'block', marginBottom: '0.3rem' }}>
+                  Discord Username
+                </label>
+                <input
+                  type="text"
+                  value={discordUsername}
+                  onChange={(e) => {
+                    setDiscordUsername(e.target.value);
+                    setPreview('');
                   }}
-                >
-                  <span>{cfg.emoji}</span>
-                  {cfg.label}
-                </button>
-              ))}
+                  placeholder="e.g. @username or username#1234"
+                  style={{
+                    width: '100%',
+                    padding: '0.5rem 0.75rem',
+                    backgroundColor: colors.bg,
+                    border: `1px solid ${colors.border}`,
+                    borderRadius: '6px',
+                    color: colors.text,
+                    fontSize: '0.85rem',
+                    outline: 'none',
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = colors.primary}
+                  onBlur={(e) => e.target.style.borderColor = colors.border}
+                />
+              </div>
+
+              {/* Reason */}
+              <div>
+                <label style={{ color: colors.textSecondary, fontSize: '0.75rem', fontWeight: 600, display: 'block', marginBottom: '0.3rem' }}>
+                  Reason
+                </label>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  {(Object.entries(REASON_CONFIG) as [SpotlightReason, typeof config][]).map(([key, cfg]) => (
+                    <button
+                      key={key}
+                      onClick={() => { setReason(key); setPreview(''); }}
+                      style={{
+                        padding: '0.4rem 0.75rem',
+                        backgroundColor: reason === key ? `${cfg.color}20` : 'transparent',
+                        border: `1px solid ${reason === key ? `${cfg.color}50` : colors.border}`,
+                        borderRadius: '6px',
+                        color: reason === key ? cfg.color : colors.textMuted,
+                        fontSize: '0.8rem',
+                        fontWeight: reason === key ? 600 : 400,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.3rem',
+                      }}
+                    >
+                      <span>{cfg.emoji}</span>
+                      {cfg.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Generate Preview */}
+              <button
+                onClick={preview ? regeneratePreview : generatePreview}
+                disabled={!discordUsername.trim()}
+                style={{
+                  padding: '0.5rem 1rem',
+                  backgroundColor: discordUsername.trim() ? `${config.color}20` : `${colors.textMuted}10`,
+                  border: `1px solid ${discordUsername.trim() ? `${config.color}40` : colors.border}`,
+                  borderRadius: '8px',
+                  color: discordUsername.trim() ? config.color : colors.textMuted,
+                  fontSize: '0.8rem',
+                  fontWeight: 600,
+                  cursor: discordUsername.trim() ? 'pointer' : 'not-allowed',
+                  width: 'fit-content',
+                }}
+              >
+                {preview ? '🔄 Regenerate Message' : '✨ Generate Preview'}
+              </button>
             </div>
           </div>
 
-          {/* Generate Preview */}
-          <button
-            onClick={preview ? regeneratePreview : generatePreview}
-            disabled={!discordUsername.trim()}
-            style={{
-              padding: '0.5rem 1rem',
-              backgroundColor: discordUsername.trim() ? `${config.color}20` : `${colors.textMuted}10`,
-              border: `1px solid ${discordUsername.trim() ? `${config.color}40` : colors.border}`,
-              borderRadius: '8px',
-              color: discordUsername.trim() ? config.color : colors.textMuted,
-              fontSize: '0.8rem',
-              fontWeight: 600,
-              cursor: discordUsername.trim() ? 'pointer' : 'not-allowed',
-              width: 'fit-content',
-            }}
-          >
-            {preview ? '🔄 Regenerate Message' : '✨ Generate Preview'}
-          </button>
-        </div>
-      </div>
+          {/* Preview */}
+          {preview && (
+            <div style={{
+              backgroundColor: '#2b2d31',
+              borderRadius: '10px',
+              border: `1px solid ${config.color}30`,
+              padding: '1rem',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                <div style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '50%',
+                  backgroundColor: colors.primary,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  color: '#000',
+                }}>A</div>
+                <span style={{ color: config.color, fontWeight: 600, fontSize: '0.85rem' }}>Atlas Spotlight</span>
+                <span style={{ color: '#72767d', fontSize: '0.65rem' }}>Today</span>
+              </div>
+              <div style={{ color: '#dcddde', fontSize: '0.85rem', lineHeight: 1.6, paddingLeft: '2.25rem' }}>
+                {preview}
+              </div>
 
-      {/* Preview */}
-      {preview && (
+              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem', paddingLeft: '2.25rem' }}>
+                <button
+                  onClick={() => sendSpotlight()}
+                  disabled={sending}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    backgroundColor: sending ? `${colors.success}10` : `${colors.success}20`,
+                    border: `1px solid ${colors.success}50`,
+                    borderRadius: '6px',
+                    color: colors.success,
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    cursor: sending ? 'not-allowed' : 'pointer',
+                    opacity: sending ? 0.6 : 1,
+                  }}
+                >
+                  {sending ? 'Sending...' : '📢 Send to #spotlight'}
+                </button>
+                <button
+                  onClick={regeneratePreview}
+                  style={{
+                    padding: '0.5rem 0.75rem',
+                    backgroundColor: 'transparent',
+                    border: `1px solid ${colors.border}`,
+                    borderRadius: '6px',
+                    color: colors.textMuted,
+                    fontSize: '0.8rem',
+                    cursor: 'pointer',
+                  }}
+                >
+                  🔄 Different Message
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+      ) : (
+        /* Custom Message Mode */
         <div style={{
-          backgroundColor: '#2b2d31',
+          backgroundColor: colors.cardAlt,
           borderRadius: '10px',
-          border: `1px solid ${config.color}30`,
+          border: `1px solid ${colors.border}`,
           padding: '1rem',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-            <div style={{
-              width: '28px',
-              height: '28px',
-              borderRadius: '50%',
-              backgroundColor: colors.primary,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '0.75rem',
-              fontWeight: 700,
-              color: '#000',
-            }}>A</div>
-            <span style={{ color: config.color, fontWeight: 600, fontSize: '0.85rem' }}>Atlas Spotlight</span>
-            <span style={{ color: '#72767d', fontSize: '0.65rem' }}>Today</span>
-          </div>
-          <div style={{ color: '#dcddde', fontSize: '0.85rem', lineHeight: 1.6, paddingLeft: '2.25rem' }}>
-            {preview}
-          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div>
+              <label style={{ color: colors.textSecondary, fontSize: '0.75rem', fontWeight: 600, display: 'block', marginBottom: '0.3rem' }}>
+                Message Content
+              </label>
+              <p style={{ color: colors.textMuted, fontSize: '0.7rem', margin: '0 0 0.4rem 0', lineHeight: 1.5 }}>
+                Write any message to send to #spotlight. Supports Discord markdown: **bold**, *italic*, __underline__, ~~strikethrough~~.
+              </p>
+              <textarea
+                value={customMessage}
+                onChange={(e) => setCustomMessage(e.target.value)}
+                placeholder="Write your spotlight message here... Use **bold** for emphasis."
+                rows={6}
+                style={{
+                  width: '100%',
+                  padding: '0.6rem 0.75rem',
+                  backgroundColor: colors.bg,
+                  border: `1px solid ${colors.border}`,
+                  borderRadius: '6px',
+                  color: colors.text,
+                  fontSize: '0.85rem',
+                  outline: 'none',
+                  resize: 'vertical',
+                  lineHeight: 1.6,
+                  fontFamily: 'inherit',
+                  boxSizing: 'border-box',
+                }}
+                onFocus={(e) => e.target.style.borderColor = colors.primary}
+                onBlur={(e) => e.target.style.borderColor = colors.border}
+              />
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.25rem' }}>
+                <span style={{ color: colors.textMuted, fontSize: '0.65rem' }}>
+                  {customMessage.length} / 2000 characters
+                </span>
+              </div>
+            </div>
 
-          <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem', paddingLeft: '2.25rem' }}>
+            {/* Custom Preview */}
+            {customMessage.trim() && (
+              <div style={{
+                backgroundColor: '#2b2d31',
+                borderRadius: '8px',
+                padding: '0.75rem',
+                border: `1px solid ${colors.border}`,
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
+                  <div style={{
+                    width: '24px',
+                    height: '24px',
+                    borderRadius: '50%',
+                    backgroundColor: colors.primary,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '0.65rem',
+                    fontWeight: 700,
+                    color: '#000',
+                  }}>A</div>
+                  <span style={{ color: colors.primary, fontWeight: 600, fontSize: '0.8rem' }}>Atlas Spotlight</span>
+                  <span style={{ color: '#72767d', fontSize: '0.6rem' }}>Today</span>
+                </div>
+                <div style={{ color: '#dcddde', fontSize: '0.8rem', lineHeight: 1.6, paddingLeft: '2rem', whiteSpace: 'pre-wrap' }}>
+                  {customMessage}
+                </div>
+              </div>
+            )}
+
             <button
-              onClick={sendSpotlight}
-              disabled={sending}
+              onClick={() => sendSpotlight(customMessage)}
+              disabled={sending || !customMessage.trim() || customMessage.length > 2000}
               style={{
                 padding: '0.5rem 1rem',
-                backgroundColor: sending ? `${colors.success}10` : `${colors.success}20`,
-                border: `1px solid ${colors.success}50`,
-                borderRadius: '6px',
-                color: colors.success,
+                backgroundColor: (customMessage.trim() && !sending) ? `${colors.success}20` : `${colors.textMuted}10`,
+                border: `1px solid ${(customMessage.trim() && !sending) ? `${colors.success}50` : colors.border}`,
+                borderRadius: '8px',
+                color: (customMessage.trim() && !sending) ? colors.success : colors.textMuted,
                 fontSize: '0.8rem',
                 fontWeight: 600,
-                cursor: sending ? 'not-allowed' : 'pointer',
+                cursor: (customMessage.trim() && !sending) ? 'pointer' : 'not-allowed',
+                width: 'fit-content',
                 opacity: sending ? 0.6 : 1,
               }}
             >
               {sending ? 'Sending...' : '📢 Send to #spotlight'}
-            </button>
-            <button
-              onClick={regeneratePreview}
-              style={{
-                padding: '0.5rem 0.75rem',
-                backgroundColor: 'transparent',
-                border: `1px solid ${colors.border}`,
-                borderRadius: '6px',
-                color: colors.textMuted,
-                fontSize: '0.8rem',
-                cursor: 'pointer',
-              }}
-            >
-              🔄 Different Message
             </button>
           </div>
         </div>

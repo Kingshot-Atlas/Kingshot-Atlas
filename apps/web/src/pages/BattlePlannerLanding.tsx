@@ -5,6 +5,8 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { neonGlow, FONT_DISPLAY, colors } from '../utils/styles';
 import { useTranslation } from 'react-i18next';
 import { usePremium } from '../contexts/PremiumContext';
+import { useAuth } from '../contexts/AuthContext';
+import { useGoldKingdoms } from '../hooks/useGoldKingdoms';
 
 // Free trial config: Feb 12 00:00 UTC → Feb 25 00:00 UTC
 const TRIAL_START = new Date('2026-02-12T00:00:00Z').getTime();
@@ -30,8 +32,11 @@ const BattlePlannerLanding: React.FC = () => {
   const { t } = useTranslation();
   useDocumentTitle(t('battlePlanner.pageTitle', 'KvK Battle Planner'));
   const isMobile = useIsMobile();
-  const { isSupporter, isAdmin } = usePremium();
-  const hasFullAccess = isSupporter || isAdmin;
+  const { isAdmin } = usePremium();
+  const { profile } = useAuth();
+  const goldKingdoms = useGoldKingdoms();
+  const isGoldKingdom = !!(profile?.linked_kingdom && goldKingdoms.has(profile.linked_kingdom));
+  const hasFullAccess = isGoldKingdom || isAdmin;
   const [trial, setTrial] = useState(getTrialState());
 
   useEffect(() => {
@@ -139,7 +144,7 @@ const BattlePlannerLanding: React.FC = () => {
               ))}
             </div>
             <span style={{ color: '#9ca3af', fontSize: isMobile ? '0.65rem' : '0.75rem' }}>
-              {t('battlePlanner.trialEnds', 'before Supporter-only access')}
+              {t('battlePlanner.trialEnds', 'before Gold-tier-only access')}
             </span>
           </div>
         </div>
@@ -203,25 +208,25 @@ const BattlePlannerLanding: React.FC = () => {
             </Link>
             {!hasFullAccess && (
               <Link
-                to="/support"
+                to="/transfer-hub"
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
                   padding: '0.75rem 1.5rem', backgroundColor: 'transparent',
-                  border: '1px solid #FF6B8A40', borderRadius: '8px',
-                  color: '#FF6B8A', fontWeight: 600,
+                  border: '1px solid #ffc30b40', borderRadius: '8px',
+                  color: '#ffc30b', fontWeight: 600,
                   fontSize: isMobile ? '0.9rem' : '0.95rem', textDecoration: 'none',
                 }}
               >
-                {t('battlePlanner.getSupporter', 'Get Supporter Access')}
+                {t('battlePlanner.getGoldAccess', 'How to Reach Gold Tier')}
               </Link>
             )}
           </div>
           <p style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.75rem' }}>
             {hasFullAccess
-              ? t('battlePlanner.supporterConfirm', 'You have full access as an Atlas Supporter.')
+              ? t('battlePlanner.goldConfirm', 'You have full access as a Gold Tier kingdom member.')
               : trial.status === 'active'
                 ? t('battlePlanner.trialNote', 'Free for everyone during the trial period. No account required.')
-                : t('battlePlanner.supporterPerk', 'Available with Atlas Supporter subscription.')}
+                : t('battlePlanner.goldPerk', 'Available for Gold Tier kingdoms. Contribute to the Kingdom Fund to unlock.')}
           </p>
 
           {!isMobile && (
@@ -344,44 +349,44 @@ const BattlePlannerLanding: React.FC = () => {
           </p>
         </div>
 
-        {/* Supporter CTA */}
+        {/* Gold Kingdom CTA */}
         <div style={{
           marginBottom: isMobile ? '2rem' : '3rem',
           padding: isMobile ? '1.5rem' : '2rem',
           backgroundColor: '#111111', borderRadius: '16px',
-          border: hasFullAccess ? '1px solid #22c55e30' : '1px solid #FF6B8A30', textAlign: 'center',
+          border: hasFullAccess ? '1px solid #22c55e30' : '1px solid #ffc30b30', textAlign: 'center',
           background: hasFullAccess
             ? 'linear-gradient(135deg, #111111 0%, #22c55e08 100%)'
-            : 'linear-gradient(135deg, #111111 0%, #FF6B8A08 100%)',
+            : 'linear-gradient(135deg, #111111 0%, #ffc30b08 100%)',
         }}>
           <span style={{
             fontSize: '0.65rem', fontWeight: 700,
-            color: hasFullAccess ? '#22c55e' : '#FF6B8A',
-            backgroundColor: hasFullAccess ? '#22c55e18' : '#FF6B8A18',
-            border: hasFullAccess ? '1px solid #22c55e30' : '1px solid #FF6B8A30',
+            color: hasFullAccess ? '#22c55e' : '#ffc30b',
+            backgroundColor: hasFullAccess ? '#22c55e18' : '#ffc30b18',
+            border: hasFullAccess ? '1px solid #22c55e30' : '1px solid #ffc30b30',
             padding: '0.2rem 0.6rem', borderRadius: '4px',
             letterSpacing: '0.05em', textTransform: 'uppercase',
             display: 'inline-block', marginBottom: '0.75rem',
           }}>
             {hasFullAccess
               ? t('battlePlanner.accessUnlocked', 'Access Unlocked')
-              : t('battlePlanner.supporterBadge', 'Atlas Supporter Perk')}
+              : t('battlePlanner.goldBadge', 'Gold Tier Kingdom Feature')}
           </span>
           <h3 style={{
             fontSize: isMobile ? '1.1rem' : '1.25rem', fontWeight: 'bold',
             color: '#fff', marginBottom: '0.5rem', fontFamily: FONT_DISPLAY,
           }}>
             {hasFullAccess
-              ? t('battlePlanner.supporterThanks', 'You have full access to the Battle Planner.')
-              : t('battlePlanner.supporterTitle', 'Your alliance deserves better coordination.')}
+              ? t('battlePlanner.goldThanks', 'You have full access to the Battle Planner.')
+              : t('battlePlanner.goldTitle', 'Your alliance deserves better coordination.')}
           </h3>
           <p style={{
             color: '#9ca3af', fontSize: isMobile ? '0.8rem' : '0.85rem',
             marginBottom: '1.25rem', maxWidth: '450px', margin: '0 auto 1.25rem', lineHeight: 1.6,
           }}>
             {hasFullAccess
-              ? t('battlePlanner.supporterThanksDesc', 'Thank you for supporting Atlas. Jump straight into the planner and coordinate your next castle hit.')
-              : t('battlePlanner.supporterDesc', 'The Battle Planner is included with Atlas Supporter — along with unlimited /multirally, the Supporter badge, exclusive Discord access, and more. Starting at $4.99/month.')}
+              ? t('battlePlanner.goldThanksDesc', 'Your kingdom has earned Gold Tier status. Jump straight into the planner and coordinate your next castle hit.')
+              : t('battlePlanner.goldDesc', 'The Battle Planner is available for Gold Tier kingdoms. Help your kingdom reach Gold by contributing to the Kingdom Fund on the Transfer Hub.')}
           </p>
           <div style={{
             display: 'flex', flexDirection: isMobile ? 'column' : 'row',
@@ -404,17 +409,17 @@ const BattlePlannerLanding: React.FC = () => {
             ) : (
               <>
                 <Link
-                  to="/support"
+                  to="/transfer-hub"
                   style={{
                     display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-                    padding: '0.75rem 1.5rem', backgroundColor: '#FF6B8A',
-                    border: 'none', borderRadius: '8px', color: '#fff',
+                    padding: '0.75rem 1.5rem', backgroundColor: '#ffc30b',
+                    border: 'none', borderRadius: '8px', color: '#0a0a0a',
                     fontWeight: 600, fontSize: isMobile ? '0.9rem' : '0.95rem',
                     textDecoration: 'none', transition: 'all 0.2s ease',
-                    boxShadow: '0 4px 15px rgba(255, 107, 138, 0.3)',
+                    boxShadow: '0 4px 15px rgba(255, 195, 11, 0.3)',
                   }}
                 >
-                  {t('battlePlanner.becomeSupporter', 'Become a Supporter')}
+                  {t('battlePlanner.reachGold', 'Reach Gold Tier')}
                 </Link>
                 <Link
                   to="/tools/kvk-battle-planner"

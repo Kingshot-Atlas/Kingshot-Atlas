@@ -116,7 +116,7 @@ const BattlePlannerTrialTooltip: React.FC = () => {
             {t('bpTrial.offerTitle', 'Planning a rally?')}
           </div>
           <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.75rem' : '0.8rem', margin: '0 0 0.75rem', lineHeight: 1.4 }}>
-            {t('bpTrial.offerDesc', 'The Battle Planner calculates timing so your rallies hit together. Supporter perk — try it free for 1 hour.')}
+            {t('bpTrial.offerDesc', 'The Battle Planner calculates timing so your rallies hit together. Gold Tier kingdom feature — try it free for 1 hour.')}
           </p>
           <button
             onClick={startBpTrial}

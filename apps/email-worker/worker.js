@@ -80,14 +80,24 @@ export default {
         if (value) raw += decoder.decode(value, { stream: !done });
       }
 
-      // Extract plain text from raw email (simple extraction)
-      // Look for Content-Type: text/plain section
-      const plainMatch = raw.match(
-        /Content-Type:\s*text\/plain[^\r\n]*\r?\n\r?\n([\s\S]*?)(?:\r?\n--|\r?\n\r?\n--)/i
-      );
-      if (plainMatch) {
-        bodyText = plainMatch[1].trim();
-      } else {
+      // Helper: extract a MIME part body after its Content-Type header
+      // Handles optional Content-Transfer-Encoding and other MIME headers before the blank line
+      function extractMimePart(rawStr, contentType) {
+        const re = new RegExp(
+          'Content-Type:\\s*' + contentType + '[^\\r\\n]*\\r?\\n' +
+          '(?:[^\\r\\n]+\\r?\\n)*?' +  // skip any additional MIME headers (Content-Transfer-Encoding, etc.)
+          '\\r?\\n' +                    // blank line separating headers from body
+          '([\\s\\S]*?)' +
+          '(?:\\r?\\n--)',               // boundary marker
+          'i'
+        );
+        const match = rawStr.match(re);
+        return match ? match[1].trim() : '';
+      }
+
+      // Extract plain text from raw email
+      bodyText = extractMimePart(raw, 'text/plain');
+      if (!bodyText) {
         // Fallback: take everything after the headers
         const headerEnd = raw.indexOf("\r\n\r\n");
         if (headerEnd > -1) {
@@ -98,12 +108,7 @@ export default {
       }
 
       // Extract HTML body from raw email
-      const htmlMatch = raw.match(
-        /Content-Type:\s*text\/html[^\r\n]*\r?\n(?:Content-Transfer-Encoding:[^\r\n]*\r?\n)?\r?\n([\s\S]*?)(?:\r?\n--)/i
-      );
-      if (htmlMatch) {
-        bodyHtml = htmlMatch[1].trim();
-      }
+      bodyHtml = extractMimePart(raw, 'text/html');
 
       // Truncate to 50KB to prevent abuse
       if (bodyText.length > 50000) {

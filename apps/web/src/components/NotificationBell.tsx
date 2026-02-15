@@ -146,8 +146,10 @@ const NotificationBell: React.FC = () => {
         return '/profile';
       case 'favorite_score_change':
         return kn ? `/kingdom/${kn}` : '/';
+      case 'prep_schedule_form':
+        return notification.link || '/tools/prep-scheduler';
       case 'system_announcement':
-        return '/';
+        return notification.link || '/';
       default:
         return '/';
     }

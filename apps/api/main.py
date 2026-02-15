@@ -2,6 +2,10 @@ import os
 import logging
 import secrets
 
+# Load .env file before any module reads os.getenv()
+from dotenv import load_dotenv
+load_dotenv()
+
 logger = logging.getLogger("atlas.api")
 
 try:

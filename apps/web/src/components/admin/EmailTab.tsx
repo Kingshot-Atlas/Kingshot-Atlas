@@ -504,38 +504,50 @@ export const EmailTab: React.FC = () => {
                   </div>
                 </div>
 
-                {selectedEmail.body_html ? (
-                  <div style={{
-                    backgroundColor: '#fff', borderRadius: '8px', padding: '1rem',
-                    border: `1px solid ${colors.borderSubtle}`, marginBottom: '1rem',
-                    maxHeight: '350px', overflowY: 'auto', color: '#000',
-                  }}>
-                    <iframe
-                      srcDoc={selectedEmail.body_html}
-                      title="Email content"
-                      sandbox="allow-same-origin"
-                      style={{
-                        width: '100%', minHeight: '200px', border: 'none',
-                        backgroundColor: '#fff', colorScheme: 'light',
-                      }}
-                      onLoad={(e) => {
-                        const iframe = e.target as HTMLIFrameElement;
-                        if (iframe.contentDocument?.body) {
-                          iframe.style.height = iframe.contentDocument.body.scrollHeight + 20 + 'px';
-                        }
-                      }}
-                    />
-                  </div>
-                ) : (
-                  <div style={{
-                    backgroundColor: colors.bg, borderRadius: '8px', padding: '1rem',
-                    border: `1px solid ${colors.borderSubtle}`, marginBottom: '1rem',
-                    whiteSpace: 'pre-wrap', color: '#e5e7eb', fontSize: '0.875rem', lineHeight: 1.6,
-                    maxHeight: '350px', overflowY: 'auto',
-                  }}>
-                    {selectedEmail.body_text || '(empty)'}
-                  </div>
-                )}
+                {(() => {
+                  // Determine the best content to render
+                  const htmlContent = selectedEmail.body_html || '';
+                  const textContent = selectedEmail.body_text || '';
+                  const textLooksLikeHtml = /^\s*(<(!DOCTYPE|html|head|body|div|p|table|tr|td)\b)/i.test(textContent);
+                  const renderAsHtml = htmlContent || textLooksLikeHtml;
+                  const iframeSrc = htmlContent || (textLooksLikeHtml ? textContent : '');
+
+                  if (renderAsHtml && iframeSrc) {
+                    return (
+                      <div style={{
+                        backgroundColor: '#fff', borderRadius: '8px', padding: '0.5rem',
+                        border: `1px solid ${colors.borderSubtle}`, marginBottom: '1rem',
+                        maxHeight: '400px', overflowY: 'auto', color: '#000',
+                      }}>
+                        <iframe
+                          srcDoc={iframeSrc}
+                          title="Email content"
+                          sandbox="allow-same-origin"
+                          style={{
+                            width: '100%', minHeight: '200px', border: 'none',
+                            backgroundColor: '#fff', colorScheme: 'light',
+                          }}
+                          onLoad={(e) => {
+                            const iframe = e.target as HTMLIFrameElement;
+                            if (iframe.contentDocument?.body) {
+                              iframe.style.height = Math.min(iframe.contentDocument.body.scrollHeight + 20, 600) + 'px';
+                            }
+                          }}
+                        />
+                      </div>
+                    );
+                  }
+                  return (
+                    <div style={{
+                      backgroundColor: colors.bg, borderRadius: '8px', padding: '1rem',
+                      border: `1px solid ${colors.borderSubtle}`, marginBottom: '1rem',
+                      whiteSpace: 'pre-wrap', color: '#e5e7eb', fontSize: '0.875rem', lineHeight: 1.6,
+                      maxHeight: '350px', overflowY: 'auto',
+                    }}>
+                      {textContent || '(empty)'}
+                    </div>
+                  );
+                })()}
 
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   {selectedEmail.direction === 'inbound' && (
