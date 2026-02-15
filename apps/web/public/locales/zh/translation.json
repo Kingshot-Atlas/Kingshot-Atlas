@@ -444,7 +444,7 @@
     "savePercent": "节省 17%",
     "yearlySavings": "每月 $4.17 — 比月付节省 $9.89",
     "cancelAnytime": "随时取消 • 通过 Stripe 管理",
-    "getPerks": "获得支持者徽章、Discord 角色、无广告体验，并帮助资助 Atlas 的开发。",
+    "getPerks": "徽章、战斗规划器、无限机器人命令、批量兑换礼品码——以及资助你真正使用的工具的满足感。",
     "becomeSupporter": "成为支持者",
     "signInToSubscribe": "登录以订阅",
     "giveMore": "想给更多？订阅后可在 Stripe 门户中增加金额。",
@@ -464,14 +464,14 @@
     "perk1Desc": "个人资料上的粉色徽章",
     "perk2Title": "Discord 支持者角色",
     "perk2Desc": "Discord 中的专属粉色角色",
-    "perk3Title": "无限高级机器人命令",
-    "perk3Desc": "无限使用 /multirally 和未来高级命令（免费用户每天 3 次）",
-    "perk4Title": "专属 Discord 频道",
-    "perk4Desc": "访问支持者专属讨论区",
-    "perk5Title": "优先体验新功能",
-    "perk5Desc": "第一时间试用即将推出的工具",
-    "perk6Title": "无广告体验",
-    "perk6Desc": "干净、无干扰的浏览",
+    "perk3Title": "KvK 战斗规划器",
+    "perk3Desc": "完全访问集结协调器——规划集结、追踪行军、协调攻击",
+    "perk4Title": "无限机器人命令",
+    "perk4Desc": "无限使用 /multirally 和高级 Discord 机器人命令（免费：5次/天）",
+    "perk5Title": "专属 Discord 频道",
+    "perk5Desc": "访问支持者专属讨论区和抢先预览",
+    "perk6Title": "抢先体验",
+    "perk6Desc": "在公开发布前第一个试用新功能",
     "free1Title": "完整 KvK 历史",
     "free1Desc": "每场比赛，每个结果，每个王国",
     "free2Title": "Atlas 评分与排名",
@@ -486,8 +486,10 @@
     "free6Desc": "KvK 和转服活动时间表",
     "perk7Desc": "解锁无限王国排名（免费：前25名）",
     "perk7Title": "完整排行榜",
-    "perk8Desc": "干净、无干扰的浏览体验",
-    "perk8Title": "无广告体验"
+    "perk8Title": "批量兑换礼品码",
+    "perk8Desc": "一键为所有小号批量兑换礼品码",
+    "perk9Title": "增强对比",
+    "perk9Desc": "并排对比多达5个王国（免费：3个）"
   },
   "changelog": {
     "new": "新增",
@@ -1052,7 +1054,13 @@
     "dataRefreshed": "玩家数据已刷新！",
     "refreshFailed": "刷新失败",
     "refreshError": "刷新数据失败",
-    "accountUnlinked": "账户已取消关联"
+    "accountUnlinked": "账户已取消关联",
+    "securityTitle": "您的数据是安全的",
+    "securityNoPassword": "我们绝不会要求或存储您的游戏密码",
+    "securityReadOnly": "只读访问 — 我们仅获取您的公开资料（名称、头像、王国）",
+    "securityNoGameAccess": "我们无法以任何方式访问、修改或控制您的游戏账户",
+    "securityUnlink": "您可以随时取消关联 — 您的数据将立即从我们的服务器中删除",
+    "securityOpenSource": "Atlas 由社区构建且透明 — 我们的代码公开供审查"
   },
   "transferHub": {
     "heroTitle1": "转服",
@@ -1861,7 +1869,10 @@
     "copyAll": "复制所有代码",
     "redeemed": "已兑换",
     "refresh": "刷新代码",
-    "refreshed": "找到{{count}}个活跃代码"
+    "refreshed": "找到{{count}}个活跃代码",
+    "redeemingAlts": "兑换中...",
+    "redeemAllAlts": "全部{{count}}个账户",
+    "redeemAllAltsLocked": "所有账户"
   },
   "giftCodeLanding": {
     "allTools": "← 所有工具",

@@ -444,7 +444,7 @@
     "savePercent": "17%お得",
     "yearlySavings": "月あたり$4.17 — 月額より$9.89お得",
     "cancelAnytime": "いつでもキャンセル可能 • Stripeで管理",
-    "getPerks": "サポーターバッジ、Discordロール、広告なし体験を取得し、Atlas開発を支援。",
+    "getPerks": "バッジ、バトルプランナー、無制限Botコマンド、一括コード引き換え——そして実際に使うツールを支援する満足感。",
     "becomeSupporter": "サポーターになる",
     "signInToSubscribe": "サインインして登録",
     "giveMore": "もっとサポートしたい？登録後にStripeポータルで金額を増やせます。",
@@ -464,14 +464,14 @@
     "perk1Desc": "プロフィールにピンクバッジ",
     "perk2Title": "Discordサポーターロール",
     "perk2Desc": "Discord限定ピンクロール",
-    "perk3Title": "無制限プレミアムBotコマンド",
-    "perk3Desc": "無制限の/multirallyと将来のプレミアムコマンド（無料ユーザーは1日3回）",
-    "perk4Title": "限定Discordチャンネル",
-    "perk4Desc": "サポーター専用ディスカッションにアクセス",
-    "perk5Title": "新機能への早期アクセス",
-    "perk5Desc": "新ツールを最初に試せる",
-    "perk6Title": "広告なし体験",
-    "perk6Desc": "クリーンで集中できるブラウジング",
+    "perk3Title": "KvKバトルプランナー",
+    "perk3Desc": "ラリーコーディネーターへのフルアクセス——ラリー計画、行軍追跡、攻撃調整",
+    "perk4Title": "無制限Botコマンド",
+    "perk4Desc": "無制限/multirallyとプレミアムDiscord Botコマンド（無料: 5回/日）",
+    "perk5Title": "限定Discordチャンネル",
+    "perk5Desc": "サポーター専用ディスカッションと先行プレビューにアクセス",
+    "perk6Title": "早期アクセス",
+    "perk6Desc": "公開前に新機能を最初に体験",
     "free1Title": "完全なKvK履歴",
     "free1Desc": "すべての試合、すべての結果、すべての王国",
     "free2Title": "Atlasスコア＆ランキング",
@@ -486,8 +486,10 @@
     "free6Desc": "KvKとトランスファーイベントのスケジュール",
     "perk7Desc": "無制限の王国ランキングを解除（無料：トップ25）",
     "perk7Title": "完全ランキング",
-    "perk8Desc": "クリーンで邪魔のないブラウジング",
-    "perk8Title": "広告なし体験"
+    "perk8Title": "一括コード引き換え",
+    "perk8Desc": "全サブアカウントのギフトコードをワンクリックで引き換え",
+    "perk9Title": "強化比較",
+    "perk9Desc": "最大5つの王国を並べて比較（無料: 3つ）"
   },
   "changelog": {
     "new": "新機能",
@@ -1052,7 +1054,13 @@
     "dataRefreshed": "プレイヤーデータを更新しました！",
     "refreshFailed": "更新に失敗しました",
     "refreshError": "データの更新に失敗しました",
-    "accountUnlinked": "アカウントのリンクを解除しました"
+    "accountUnlinked": "アカウントのリンクを解除しました",
+    "securityTitle": "あなたのデータは安全です",
+    "securityNoPassword": "ゲームのパスワードを要求・保存することは一切ありません",
+    "securityReadOnly": "読み取り専用アクセス — 公開プロフィール（名前、アバター、王国）のみ取得します",
+    "securityNoGameAccess": "いかなる方法でもゲームアカウントにアクセス、変更、制御することはできません",
+    "securityUnlink": "いつでもリンクを解除できます — データは即座にサーバーから削除されます",
+    "securityOpenSource": "Atlasはコミュニティが作り、透明性があります — コードはレビュー用に公開されています"
   },
   "transferHub": {
     "heroTitle1": "トランスファー",
@@ -1861,7 +1869,10 @@
     "copyAll": "すべてのコードをコピー",
     "redeemed": "引換済み",
     "refresh": "コードを更新",
-    "refreshed": "{{count}}個のアクティブコードを発見"
+    "refreshed": "{{count}}個のアクティブコードが見つかりました",
+    "redeemingAlts": "交換中...",
+    "redeemAllAlts": "全{{count}}アカウント",
+    "redeemAllAltsLocked": "全アカウント"
   },
   "giftCodeLanding": {
     "allTools": "← すべてのツール",

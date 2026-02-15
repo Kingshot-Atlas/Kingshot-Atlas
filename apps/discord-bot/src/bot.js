@@ -96,6 +96,60 @@ let referralSyncTimer = null;
 let referralSyncInitTimeout = null;
 let lastReferralSync = null;
 
+// Spotlight webhook — auto-post celebration messages when roles are assigned
+const SPOTLIGHT_WEBHOOK_URL = process.env.DISCORD_SPOTLIGHT_WEBHOOK_URL || '';
+
+// Spotlight message templates by role type
+const SPOTLIGHT_MESSAGES = {
+  supporter: [
+    '🎉 **{user}** just became an **Atlas Supporter**! 💎 Thank you for powering the Atlas!',
+    '💎 Huge shoutout to **{user}** — our newest **Atlas Supporter**! Your support keeps the data flowing. 🚀',
+    '⭐ **{user}** has joined the Supporter ranks! 💎 Welcome to the inner circle — you make Atlas possible. 🙏',
+  ],
+  ambassador: [
+    '🏛️ **{user}** just reached **Ambassador** status! 🎉 20+ referrals — that\'s legendary recruitment!',
+    '🎉 Everyone welcome **{user}** as our newest **Ambassador**! 🏛️ Their referral game is elite. 👑',
+    '🏛️ Incredible! **{user}** is now an **Ambassador** — 20+ players brought to Atlas! 🔥 True community leader.',
+  ],
+  booster: [
+    '🚀 **{user}** just **boosted** the server! 💜 Thank you for the extra sparkle!',
+    '💜 Shoutout to **{user}** for the **server boost**! 🚀 You\'re making this community shine!',
+    '🎉 **{user}** dropped a **server boost**! 💜🚀 The community appreciates you!',
+  ],
+};
+
+/**
+ * Send an auto-spotlight message to the #spotlight channel via webhook.
+ * @param {'supporter'|'ambassador'|'booster'} roleType
+ * @param {string} username - Discord display name
+ */
+async function sendSpotlightMessage(roleType, username) {
+  if (!SPOTLIGHT_WEBHOOK_URL) return;
+  const templates = SPOTLIGHT_MESSAGES[roleType];
+  if (!templates || templates.length === 0) return;
+
+  const message = templates[Math.floor(Math.random() * templates.length)].replace('{user}', username);
+
+  try {
+    const res = await fetch(SPOTLIGHT_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        content: message,
+        username: 'Atlas Spotlight',
+        avatar_url: 'https://ks-atlas.com/atlas-logo.png',
+      }),
+    });
+    if (res.ok || res.status === 204) {
+      console.log(`🔦 Spotlight sent for ${roleType}: ${username}`);
+    } else {
+      console.error(`🔦 Spotlight webhook failed (${res.status}) for ${username}`);
+    }
+  } catch (err) {
+    console.error(`🔦 Spotlight webhook error for ${username}: ${err.message}`);
+  }
+}
+
 // Presence rotation state (module-level to guard against reconnect leaks)
 const presenceMessages = [
   '/help | ks-atlas.com',
@@ -1064,6 +1118,21 @@ client.on('guildMemberAdd', async (member) => {
   }
 });
 
+// Event: Member update — detect server boosts for auto-spotlight
+client.on('guildMemberUpdate', async (oldMember, newMember) => {
+  try {
+    const wasBoosting = oldMember.premiumSince !== null;
+    const isBoosting = newMember.premiumSince !== null;
+    if (!wasBoosting && isBoosting) {
+      console.log(`🚀 ${newMember.user.username} just boosted the server!`);
+      sendSpotlightMessage('booster', newMember.displayName || newMember.user.username).catch(() => {});
+    }
+  } catch (err) {
+    // Non-critical — don't let spotlight errors affect member updates
+    console.error('Boost detection error:', err.message);
+  }
+});
+
 // ============================================================================
 // SETTLER ROLE AUTO-ASSIGNMENT
 // Queries API for users with linked Discord + Kingshot accounts,
@@ -1253,6 +1322,8 @@ async function syncReferralRoles() {
           await member.roles.add(AMBASSADOR_ROLE_ID, 'Auto-assign: 20+ verified referrals on ks-atlas.com');
           changes++;
           console.log(`   🏛️ +Ambassador: ${member.user.username}`);
+          // Auto-spotlight for new ambassadors
+          sendSpotlightMessage('ambassador', member.displayName || member.user.username).catch(() => {});
         } catch (err) {
           console.error(`   ❌ Failed +Ambassador ${member.user.username}: ${err.message}`);
         }
@@ -1334,6 +1405,8 @@ async function syncSupporterRoles() {
         await member.roles.add(SUPPORTER_ROLE_ID, 'Auto-assign: Atlas Supporter subscriber on ks-atlas.com');
         assigned++;
         console.log(`   💎 +Supporter: ${member.user.username}`);
+        // Auto-spotlight for new supporters
+        sendSpotlightMessage('supporter', member.displayName || member.user.username).catch(() => {});
       } catch (err) {
         console.error(`   ❌ Failed to assign Supporter to ${member.user.username}: ${err.message}`);
       }

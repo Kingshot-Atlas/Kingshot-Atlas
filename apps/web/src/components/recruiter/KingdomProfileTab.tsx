@@ -151,15 +151,16 @@ const KingdomProfileTab: React.FC<KingdomProfileTabProps> = ({ fund, editorInfo,
 
     setSavingProfile(true);
     try {
+      const updatePayload = { ...profileDraft, updated_at: new Date().toISOString() };
       const { error } = await supabase
         .from('kingdom_funds')
-        .update(profileDraft)
+        .update(updatePayload)
         .eq('kingdom_number', editorInfo.kingdom_number);
 
       if (error) {
         showToast('Failed to save profile: ' + error.message, 'error');
       } else {
-        onFundUpdate({ ...fund, ...profileDraft } as FundInfo);
+        onFundUpdate({ ...fund, ...updatePayload } as FundInfo);
         setProfileDraft({});
         showToast('Kingdom profile updated!', 'success');
       }
@@ -393,59 +394,76 @@ const KingdomProfileTab: React.FC<KingdomProfileTabProps> = ({ fund, editorInfo,
         </div>
       </ProfileField>
 
-      {/* Alliance Language & Spots (Gold only) */}
-      {fund.tier === 'gold' && (
-        <ProfileField label="Alliance Details (Gold)" tierRequired="gold" currentTier={fund.tier}>
-          <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.4rem' }}>
-            Set language and open spots for each alliance. Visible on your listing.
-          </div>
-          {(() => {
-            const events = profileDraft.alliance_events ?? fund.alliance_events ?? { alliances: [], schedule: {} };
-            const alliances = events.alliances || [];
-            const allianceDetails = profileDraft.alliance_details ?? fund.alliance_details ?? {};
+      {/* Alliance Details (Silver+) — language, secondary language, open spots per alliance */}
+      <ProfileField label="Alliance Details" tierRequired="silver" currentTier={fund.tier}>
+        <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.4rem' }}>
+          Set language, secondary language, and open spots for each alliance. Visible on your listing.
+        </div>
+        {(() => {
+          const events = profileDraft.alliance_events ?? fund.alliance_events ?? { alliances: [], schedule: {} };
+          const alliances = events.alliances || [];
+          const allianceDetails = profileDraft.alliance_details ?? fund.alliance_details ?? {};
 
-            if (alliances.length === 0) {
-              return (
-                <div style={{ color: '#4b5563', fontSize: '0.7rem', fontStyle: 'italic', textAlign: 'center', padding: '0.5rem' }}>
-                  Add alliances in Alliance Information below first
-                </div>
-              );
-            }
-
+          if (alliances.length === 0) {
             return (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {alliances.map((tag: string, idx: number) => {
-                  const key = tag || `alliance_${idx}`;
-                  const detail = (allianceDetails as Record<string, { language?: string; spots?: number }>)[key] || {};
-                  return (
-                    <div key={idx} style={{
-                      padding: '0.5rem',
-                      backgroundColor: '#0a0a0a',
-                      border: '1px solid #2a2a2a',
-                      borderRadius: '6px',
-                    }}>
-                      <div style={{ color: '#ffc30b', fontSize: '0.7rem', fontWeight: '600', marginBottom: '0.3rem' }}>
-                        [{tag || `Alliance ${idx + 1}`}]
+              <div style={{ color: '#4b5563', fontSize: '0.7rem', fontStyle: 'italic', textAlign: 'center', padding: '0.5rem' }}>
+                Add alliances in Alliance Information below first
+              </div>
+            );
+          }
+
+          type AllianceDetail = { language?: string; secondary_language?: string; spots?: number };
+          const updateDetail = (key: string, field: keyof AllianceDetail, value: string | number | undefined) => {
+            const updated = { ...allianceDetails as Record<string, AllianceDetail> };
+            const current = updated[key] || {};
+            updated[key] = { ...current, [field]: value };
+            setProfileDraft(d => ({ ...d, alliance_details: updated }));
+          };
+
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              {alliances.map((tag: string, idx: number) => {
+                const key = tag || `alliance_${idx}`;
+                const detail = (allianceDetails as Record<string, AllianceDetail>)[key] || {};
+                return (
+                  <div key={idx} style={{
+                    padding: '0.5rem',
+                    backgroundColor: '#0a0a0a',
+                    border: '1px solid #2a2a2a',
+                    borderRadius: '6px',
+                  }}>
+                    <div style={{ color: '#22d3ee', fontSize: '0.7rem', fontWeight: '600', marginBottom: '0.3rem' }}>
+                      [{tag || `Alliance ${idx + 1}`}]
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                      <div style={{ flex: 1, minWidth: '100px' }}>
+                        <span style={{ color: '#6b7280', fontSize: '0.6rem' }}>Main Language</span>
+                        <select
+                          value={detail.language || ''}
+                          onChange={(e) => updateDetail(key, 'language', e.target.value || undefined)}
+                          style={inputStyle}
+                        >
+                          <option value="">Select...</option>
+                          {LANGUAGE_OPTIONS.map(lang => (
+                            <option key={lang} value={lang}>{lang}</option>
+                          ))}
+                        </select>
                       </div>
-                      <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <div style={{ flex: 1 }}>
-                          <span style={{ color: '#6b7280', fontSize: '0.6rem' }}>Main Language</span>
-                          <select
-                            value={detail.language || ''}
-                            onChange={(e) => {
-                              const updated = { ...allianceDetails as Record<string, { language?: string; spots?: number }> };
-                              updated[key] = { ...detail, language: e.target.value || undefined };
-                              setProfileDraft(d => ({ ...d, alliance_details: updated }));
-                            }}
-                            style={inputStyle}
-                          >
-                            <option value="">Select...</option>
-                            {LANGUAGE_OPTIONS.map(lang => (
-                              <option key={lang} value={lang}>{lang}</option>
-                            ))}
-                          </select>
-                        </div>
-                        <div style={{ width: '100px' }}>
+                      <div style={{ flex: 1, minWidth: '100px' }}>
+                        <span style={{ color: '#6b7280', fontSize: '0.6rem' }}>Secondary Language</span>
+                        <select
+                          value={detail.secondary_language || ''}
+                          onChange={(e) => updateDetail(key, 'secondary_language', e.target.value || undefined)}
+                          style={inputStyle}
+                        >
+                          <option value="">None</option>
+                          {LANGUAGE_OPTIONS.filter(l => l !== detail.language).map(lang => (
+                            <option key={lang} value={lang}>{lang}</option>
+                          ))}
+                        </select>
+                      </div>
+                      {fund.tier === 'gold' && (
+                        <div style={{ width: '90px' }}>
                           <span style={{ color: '#6b7280', fontSize: '0.6rem' }}>Open Spots</span>
                           <input
                             type="number"
@@ -454,23 +472,21 @@ const KingdomProfileTab: React.FC<KingdomProfileTabProps> = ({ fund, editorInfo,
                             value={detail.spots ?? ''}
                             onChange={(e) => {
                               const val = Math.min(100, Math.max(0, parseInt(e.target.value) || 0));
-                              const updated = { ...allianceDetails as Record<string, { language?: string; spots?: number }> };
-                              updated[key] = { ...detail, spots: val };
-                              setProfileDraft(d => ({ ...d, alliance_details: updated }));
+                              updateDetail(key, 'spots', val);
                             }}
                             placeholder="0-100"
                             style={inputStyle}
                           />
                         </div>
-                      </div>
+                      )}
                     </div>
-                  );
-                })}
-              </div>
-            );
-          })()}
-        </ProfileField>
-      )}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
+      </ProfileField>
 
       {/* Alliance Information (Silver+) — table format */}
       <ProfileField label="Alliance Information (UTC)" tierRequired="silver" currentTier={fund.tier}>
@@ -540,6 +556,28 @@ const KingdomProfileTab: React.FC<KingdomProfileTabProps> = ({ fund, editorInfo,
                   <div key={idx} style={{ flex: 1 }}>
                     <span style={{ color: '#6b7280', fontSize: '0.6rem' }}>Alliance {idx + 1}</span>
                     <div style={{ display: 'flex', gap: '0.2rem' }}>
+                      {idx > 0 && (
+                        <button onClick={() => {
+                          const newAlliances = [...alliances];
+                          const tmpA = newAlliances[idx]!;
+                          newAlliances[idx] = newAlliances[idx - 1]!;
+                          newAlliances[idx - 1] = tmpA;
+                          const newSchedule = { ...schedule };
+                          EVENT_TYPES.forEach(et => {
+                            const arr = [...(newSchedule[et.key] || [])];
+                            if (arr[idx] !== undefined && arr[idx - 1] !== undefined) {
+                              const tmpS = arr[idx]!;
+                              arr[idx] = arr[idx - 1]!;
+                              arr[idx - 1] = tmpS;
+                            }
+                            newSchedule[et.key] = arr;
+                          });
+                          updateData(newAlliances, newSchedule);
+                        }} style={{
+                          padding: '0.2rem 0.3rem', backgroundColor: '#22d3ee08', border: '1px solid #22d3ee20',
+                          borderRadius: '4px', color: '#22d3ee', fontSize: '0.55rem', cursor: 'pointer', minHeight: '32px',
+                        }} title="Move left">◀</button>
+                      )}
                       <input
                         type="text"
                         value={tag}
@@ -548,6 +586,28 @@ const KingdomProfileTab: React.FC<KingdomProfileTabProps> = ({ fund, editorInfo,
                         placeholder={`Tag ${idx + 1}`}
                         style={{ ...inputStyle, flex: 1 }}
                       />
+                      {idx < alliances.length - 1 && (
+                        <button onClick={() => {
+                          const newAlliances = [...alliances];
+                          const tmpA = newAlliances[idx]!;
+                          newAlliances[idx] = newAlliances[idx + 1]!;
+                          newAlliances[idx + 1] = tmpA;
+                          const newSchedule = { ...schedule };
+                          EVENT_TYPES.forEach(et => {
+                            const arr = [...(newSchedule[et.key] || [])];
+                            if (arr[idx] !== undefined && arr[idx + 1] !== undefined) {
+                              const tmpS = arr[idx]!;
+                              arr[idx] = arr[idx + 1]!;
+                              arr[idx + 1] = tmpS;
+                            }
+                            newSchedule[et.key] = arr;
+                          });
+                          updateData(newAlliances, newSchedule);
+                        }} style={{
+                          padding: '0.2rem 0.3rem', backgroundColor: '#22d3ee08', border: '1px solid #22d3ee20',
+                          borderRadius: '4px', color: '#22d3ee', fontSize: '0.55rem', cursor: 'pointer', minHeight: '32px',
+                        }} title="Move right">▶</button>
+                      )}
                       <button onClick={() => removeAlliance(idx)} style={{
                         padding: '0.2rem 0.4rem', backgroundColor: '#ef444410', border: '1px solid #ef444425',
                         borderRadius: '4px', color: '#ef4444', fontSize: '0.6rem', cursor: 'pointer', minHeight: '32px',

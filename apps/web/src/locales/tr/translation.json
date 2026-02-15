@@ -444,7 +444,7 @@
     "savePercent": "%17 TASARRUF",
     "yearlySavings": "Ayda $4,17 — aylığa kıyasla $9,89 tasarruf",
     "cancelAnytime": "İstediğiniz zaman iptal edin • Stripe üzerinden yönetin",
-    "getPerks": "Destekçi Rozeti, Discord rolü, reklamsız deneyim alın ve Atlas geliştirmesini fonlayın.",
+    "getPerks": "Rozet, Savaş Planlayıcı, sınırsız bot komutları, toplu kod kullanımı — ve gerçekten kullandığınız araçları finanse etmenin memnuniyeti.",
     "becomeSupporter": "Destekçi Ol",
     "signInToSubscribe": "Abone Olmak İçin Giriş Yap",
     "giveMore": "Daha fazla vermek mi istiyorsunuz? Abone olduktan sonra Stripe portalında miktarınızı artırabilirsiniz.",
@@ -464,14 +464,14 @@
     "perk1Desc": "Profilinizde pembe rozet",
     "perk2Title": "Discord Destekçi Rolü",
     "perk2Desc": "Discord'da özel pembe rol",
-    "perk3Title": "Sınırsız Premium Bot Komutları",
-    "perk3Desc": "Sınırsız /multirally ve gelecek premium komutlar (ücretsiz kullanıcılar günde 3)",
-    "perk4Title": "Özel Discord Kanalı",
-    "perk4Desc": "Sadece destekçilere özel tartışmalara erişim",
-    "perk5Title": "Yeni Özelliklere Erken Erişim",
-    "perk5Desc": "Yaklaşan araçları ilk deneyen siz olun",
-    "perk6Title": "Reklamsız Deneyim",
-    "perk6Desc": "Temiz, dikkat dağıtmayan gezinme",
+    "perk3Title": "KvK Savaş Planlayıcı",
+    "perk3Desc": "Rally Koordinatörü'ne tam erişim — rally planla, yürüyüş takip et, saldırıları koordine et",
+    "perk4Title": "Sınırsız Bot Komutları",
+    "perk4Desc": "Sınırsız /multirally ve premium Discord bot komutları (ücretsiz: 5/gün)",
+    "perk5Title": "Özel Discord Kanalı",
+    "perk5Desc": "Destekçilere özel tartışmalara ve önizlemelere erişim",
+    "perk6Title": "Erken Erişim",
+    "perk6Desc": "Herkesten önce yeni özellikleri deneyin",
     "free1Title": "Tam KvK Geçmişi",
     "free1Desc": "Her maç, her sonuç, her krallık",
     "free2Title": "Atlas Puanı ve Sıralamalar",
@@ -486,8 +486,10 @@
     "free6Desc": "KvK ve Transfer Etkinlik programları",
     "perk7Desc": "Sınırsız krallık sıralamaları (ücretsiz: İlk 25)",
     "perk7Title": "Tam Sıralama Tablosu",
-    "perk8Desc": "Temiz, dikkat dağıtmayan gezinme",
-    "perk8Title": "Reklamsız Deneyim"
+    "perk8Title": "Toplu Kod Kullanımı",
+    "perk8Desc": "Tüm alt hesaplarınız için hediye kodlarını tek tıkla kullanın",
+    "perk9Title": "Gelişmiş Karşılaştırma",
+    "perk9Desc": "En fazla 5 krallığı yan yana karşılaştırın (ücretsiz: 3)"
   },
   "changelog": {
     "new": "Yeni",
@@ -1052,7 +1054,13 @@
     "dataRefreshed": "Oyuncu verisi yenilendi!",
     "refreshFailed": "Yenileme başarısız",
     "refreshError": "Veri yenilenemedi",
-    "accountUnlinked": "Hesap bağlantısı kesildi"
+    "accountUnlinked": "Hesap bağlantısı kesildi",
+    "securityTitle": "Verileriniz Güvende",
+    "securityNoPassword": "Oyun şifrenizi asla istemez veya saklamayız",
+    "securityReadOnly": "Salt okunur erişim — yalnızca herkese açık profilinizi (ad, avatar, krallık) alırız",
+    "securityNoGameAccess": "Oyun hesabınıza hiçbir şekilde erişemez, değiştiremez veya kontrol edemeyiz",
+    "securityUnlink": "Bağlantıyı istediğiniz zaman kaldırabilirsiniz — verileriniz sunucularımızdan anında silinir",
+    "securityOpenSource": "Atlas topluluk tarafından oluşturulmuştur ve şeffaftır — kodumuz incelemeye açıktır"
   },
   "transferHub": {
     "heroTitle1": "TRANSFER",
@@ -1861,7 +1869,10 @@
     "copyAll": "Tüm Kodları Kopyala",
     "redeemed": "Kullanıldı",
     "refresh": "Kodları Yenile",
-    "refreshed": "{{count}} aktif kod bulundu"
+    "refreshed": "{{count}} aktif kod bulundu",
+    "redeemingAlts": "Kullanılıyor...",
+    "redeemAllAlts": "Tüm {{count}} Hesap",
+    "redeemAllAltsLocked": "Tüm Hesaplar"
   },
   "giftCodeLanding": {
     "allTools": "← Tüm Araçlar",

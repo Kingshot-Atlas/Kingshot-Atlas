@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { colors } from '../../utils/styles';
+import { getAuthHeaders } from '../../services/authHeaders';
 
-const SPOTLIGHT_WEBHOOK_URL = 'https://discord.com/api/webhooks/1472325616748597453/pjuRSuTl0IexNDjIfIOndpPNI37COh67dWjGw-GGEijXHOdGSbSxrF4erO4De7FqGr17';
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
 type SpotlightReason = 'supporter' | 'ambassador' | 'booster';
 
@@ -72,9 +73,10 @@ export const SpotlightTab: React.FC = () => {
     setResult(null);
 
     try {
-      const response = await fetch(SPOTLIGHT_WEBHOOK_URL, {
+      const authHeaders = await getAuthHeaders();
+      const response = await fetch(`${API_URL}/api/v1/bot/spotlight`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({
           content: preview,
           username: 'Atlas Spotlight',
@@ -82,13 +84,13 @@ export const SpotlightTab: React.FC = () => {
         }),
       });
 
-      if (response.ok || response.status === 204) {
+      const data = await response.json();
+      if (response.ok && data.success) {
         setResult({ success: true, message: 'Spotlight message sent successfully!' });
         setDiscordUsername('');
         setPreview('');
       } else {
-        const errorText = await response.text();
-        setResult({ success: false, message: `Failed: ${response.status} - ${errorText}` });
+        setResult({ success: false, message: `Failed: ${data.detail || response.statusText}` });
       }
     } catch (err) {
       setResult({ success: false, message: `Error: ${err instanceof Error ? err.message : 'Unknown error'}` });

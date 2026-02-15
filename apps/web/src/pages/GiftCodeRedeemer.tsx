@@ -145,6 +145,7 @@ const GiftCodeRedeemer: React.FC = () => {
     } catch { return new Set<string>(); }
   });
   const [retryingAccounts, setRetryingAccounts] = useState<Set<string>>(new Set());
+  const [redeemingCodeForAlts, setRedeemingCodeForAlts] = useState<Set<string>>(new Set());
   const [altsSyncedFromCloud, setAltsSyncedFromCloud] = useState(false);
 
   const freeAltLimit = 1;
@@ -480,6 +481,69 @@ const GiftCodeRedeemer: React.FC = () => {
       return { code, success: false, message: 'Network error. Try again.' };
     }
   }, [startCooldown]);
+
+  // Redeem a single code for all accounts (main + alts) — Supporter only
+  const redeemCodeForAllAlts = useCallback(async (code: string) => {
+    if (!isSupporter) {
+      setShowSupporterPrompt(true);
+      return;
+    }
+    if (!mainPlayerId || redeemingCodeForAlts.has(code)) return;
+
+    setRedeemingCodeForAlts(prev => new Set(prev).add(code));
+
+    const allPlayerIds = [mainPlayerId, ...altAccounts.map(a => a.player_id)];
+    let successCount = 0;
+    let failCount = 0;
+    let rateLimited = false;
+
+    for (let i = 0; i < allPlayerIds.length; i++) {
+      if (rateLimited) break;
+      const pid = allPlayerIds[i]!;
+      const result = await redeemCodeForPlayer(code, pid);
+
+      if (result.success) {
+        successCount++;
+      } else {
+        failCount++;
+        if (result.message?.toLowerCase().includes('rate limit')) {
+          rateLimited = true;
+        }
+      }
+
+      // Update main results map for the currently active player
+      if (pid === playerId) {
+        setResults(prev => {
+          const next = new Map(prev);
+          next.set(code, result);
+          return next;
+        });
+      }
+
+      // Update alt account status
+      if (!result.success && result.err_code && ![40005, 40007, 40008, 40011].includes(result.err_code)) {
+        setAltAccounts(prev => prev.map(a => a.player_id === pid ? { ...a, hasError: true } : a));
+      } else if (result.success) {
+        setAltAccounts(prev => prev.map(a => a.player_id === pid ? { ...a, hasError: false, lastRedeemed: new Date().toISOString() } : a));
+      }
+
+      if (!rateLimited && i < allPlayerIds.length - 1) await new Promise(r => setTimeout(r, 1500));
+    }
+
+    setRedeemingCodeForAlts(prev => {
+      const next = new Set(prev);
+      next.delete(code);
+      return next;
+    });
+
+    if (rateLimited) {
+      startCooldown(30);
+      showToast(`Rate limited after ${successCount}/${successCount + failCount} accounts. Retry in 30s.`, 'error');
+    } else {
+      startCooldown(5);
+      showToast(`${code}: Redeemed for ${successCount}/${allPlayerIds.length} accounts`, successCount > 0 ? 'success' : 'error');
+    }
+  }, [isSupporter, mainPlayerId, altAccounts, redeemCodeForPlayer, playerId, redeemingCodeForAlts, showToast, startCooldown]);
 
   // Bulk redeem all codes for all accounts (main + alts) — Supporter only
   const redeemAllForAllAccounts = useCallback(async () => {
@@ -1374,6 +1438,36 @@ const GiftCodeRedeemer: React.FC = () => {
                     >
                       {btnLabel}
                     </button>
+
+                    {/* Redeem for all alts — purple button (Supporter perk) */}
+                    {altAccounts.length > 0 && !locked && (
+                      <button
+                        onClick={() => redeemCodeForAllAlts(gc.code)}
+                        disabled={isLoading || globalCooldown || redeemingAll || redeemingCodeForAlts.has(gc.code) || redeemingAllAccounts}
+                        className="gift-btn"
+                        style={{
+                          marginTop: '0.3rem',
+                          padding: '0.3rem 0.9rem',
+                          borderRadius: '6px',
+                          border: isSupporter ? '1px solid #a855f740' : '1px solid #2a2a2a',
+                          backgroundColor: isSupporter ? '#a855f718' : 'transparent',
+                          fontSize: '0.55rem',
+                          fontWeight: '600',
+                          letterSpacing: '0.02em',
+                          cursor: (isLoading || globalCooldown || redeemingAll || redeemingCodeForAlts.has(gc.code)) ? 'default' : 'pointer',
+                          color: isSupporter ? '#a855f7' : '#4b5563',
+                          transition: 'all 0.2s ease',
+                          opacity: (isLoading || globalCooldown || redeemingCodeForAlts.has(gc.code)) ? 0.5 : 1,
+                          minWidth: '90px',
+                        }}
+                      >
+                        {redeemingCodeForAlts.has(gc.code)
+                          ? t('giftCodes.redeemingAlts', 'Redeeming...')
+                          : isSupporter
+                            ? `👥 ${t('giftCodes.redeemAllAlts', { count: 1 + altAccounts.length, defaultValue: `All ${1 + altAccounts.length} Accounts` })}`
+                            : `🔒 ${t('giftCodes.redeemAllAltsLocked', 'All Accounts')}`}
+                      </button>
+                    )}
                   </div>
                 );
               })}

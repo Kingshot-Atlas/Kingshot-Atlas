@@ -177,6 +177,34 @@ export const FinanceTab: React.FC<FinanceTabProps> = ({
     }
   }, []);
 
+  // Compute per-transaction Stripe fees from revenue payment data (virtual entries, not stored in DB)
+  const stripeFeeEntries: Expense[] = useMemo(() => {
+    if (!revenue?.recentPayments?.length) return [];
+    return revenue.recentPayments.map((p, i) => {
+      const fee = Math.round((p.amount * 0.029 + 0.30) * 100) / 100;
+      return {
+        id: `stripe-fee-${i}`,
+        category: 'api',
+        vendor: 'Stripe',
+        description: `Processing fee on $${p.amount.toFixed(2)} payment${p.customer_email ? ` (${p.customer_email})` : ''}`,
+        amount: fee,
+        currency: 'USD',
+        date: typeof p.date === 'string' ? p.date.split('T')[0] || '' : new Date(p.date).toISOString().split('T')[0] || '',
+        is_recurring: false,
+        recurring_interval: null,
+        recurring_next_date: null,
+        receipt_url: null,
+        notes: '2.9% + $0.30 per transaction (auto-computed from Stripe payments)',
+        created_at: '',
+      };
+    });
+  }, [revenue]);
+
+  // All expenses = DB expenses + auto-computed Stripe fees
+  const allExpenses = useMemo(() => {
+    return [...expenses, ...stripeFeeEntries].sort((a, b) => b.date.localeCompare(a.date));
+  }, [expenses, stripeFeeEntries]);
+
   useEffect(() => {
     fetchRevenue();
     fetchExpenses();
@@ -275,13 +303,13 @@ export const FinanceTab: React.FC<FinanceTabProps> = ({
     const now = new Date();
     const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     
-    // One-time expenses this month
-    const oneTimeThisMonth = expenses
+    // One-time expenses this month (includes auto-computed Stripe fees)
+    const oneTimeThisMonth = allExpenses
       .filter(e => !e.is_recurring && e.date.startsWith(thisMonth))
       .reduce((sum, e) => sum + e.amount, 0);
 
     // Recurring expenses (monthly equivalent)
-    const recurringMonthly = expenses
+    const recurringMonthly = allExpenses
       .filter(e => e.is_recurring)
       .reduce((sum, e) => {
         if (e.recurring_interval === 'monthly') return sum + e.amount;
@@ -291,21 +319,21 @@ export const FinanceTab: React.FC<FinanceTabProps> = ({
       }, 0);
 
     return oneTimeThisMonth + recurringMonthly;
-  }, [expenses]);
+  }, [allExpenses]);
 
   const totalExpensesAllTime = useMemo(() => {
-    return expenses.reduce((sum, e) => sum + e.amount, 0);
-  }, [expenses]);
+    return allExpenses.reduce((sum, e) => sum + e.amount, 0);
+  }, [allExpenses]);
 
   const expensesByCategory = useMemo(() => {
     const map = new Map<string, number>();
-    expenses.forEach(e => {
+    allExpenses.forEach(e => {
       map.set(e.category, (map.get(e.category) || 0) + e.amount);
     });
     return Array.from(map.entries())
       .map(([category, total]) => ({ category, total, config: getCategoryConfig(category) }))
       .sort((a, b) => b.total - a.total);
-  }, [expenses]);
+  }, [allExpenses]);
 
   const netProfit = (revenue?.mrr || 0) - monthlyExpenses;
 
@@ -696,7 +724,7 @@ export const FinanceTab: React.FC<FinanceTabProps> = ({
       <div style={{ backgroundColor: colors.cardAlt, borderRadius: '10px', padding: '1rem', border: `1px solid ${colors.border}` }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
           <div style={{ fontSize: '0.75rem', color: colors.textSecondary, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            All Expenses ({expenses.length})
+            All Expenses ({allExpenses.length})
           </div>
           <div style={{ display: 'flex', gap: '0.4rem' }}>
             <button onClick={fetchExpenses} style={{ background: 'none', border: `1px solid ${colors.border}`, borderRadius: '4px', color: colors.textMuted, padding: '0.15rem 0.4rem', cursor: 'pointer', fontSize: '0.65rem' }}>
@@ -715,19 +743,20 @@ export const FinanceTab: React.FC<FinanceTabProps> = ({
 
         {loadingExpenses ? (
           <div style={{ padding: '2rem', textAlign: 'center', color: colors.textMuted, fontSize: '0.8rem' }}>Loading...</div>
-        ) : expenses.length === 0 ? (
+        ) : allExpenses.length === 0 ? (
           <div style={{ padding: '2rem', textAlign: 'center', color: colors.textMuted, fontSize: '0.8rem', border: `1px dashed ${colors.border}`, borderRadius: '8px' }}>
             No expenses logged yet. Click "+ Add Expense" to start tracking.
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-            {expenses.map(expense => {
+            {allExpenses.map(expense => {
               const cat = getCategoryConfig(expense.category);
+              const isVirtual = expense.id.startsWith('stripe-fee-');
               return (
                 <div key={expense.id} style={{
                   display: 'flex', alignItems: 'center', gap: '0.6rem',
-                  padding: '0.5rem 0.6rem', backgroundColor: colors.bg,
-                  border: `1px solid ${colors.surfaceHover}`, borderRadius: '8px',
+                  padding: '0.5rem 0.6rem', backgroundColor: isVirtual ? `${colors.primary}05` : colors.bg,
+                  border: `1px solid ${isVirtual ? `${colors.primary}15` : colors.surfaceHover}`, borderRadius: '8px',
                 }}>
                   <span style={{ fontSize: '0.85rem', width: '24px', textAlign: 'center' }}>{cat.icon}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
@@ -736,6 +765,11 @@ export const FinanceTab: React.FC<FinanceTabProps> = ({
                       {expense.is_recurring && (
                         <span style={{ padding: '0.05rem 0.3rem', borderRadius: '4px', fontSize: '0.55rem', fontWeight: 600, backgroundColor: `${colors.purple}15`, color: colors.purple, border: `1px solid ${colors.purple}30` }}>
                           {expense.recurring_interval}
+                        </span>
+                      )}
+                      {isVirtual && (
+                        <span style={{ padding: '0.05rem 0.3rem', borderRadius: '4px', fontSize: '0.55rem', fontWeight: 600, backgroundColor: `${colors.primary}15`, color: colors.primary, border: `1px solid ${colors.primary}30` }}>
+                          auto
                         </span>
                       )}
                     </div>
@@ -751,10 +785,12 @@ export const FinanceTab: React.FC<FinanceTabProps> = ({
                   <span style={{ color: colors.textMuted, fontSize: '0.65rem', whiteSpace: 'nowrap' }}>
                     {new Date(expense.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                   </span>
-                  <div style={{ display: 'flex', gap: '0.2rem' }}>
-                    <button onClick={() => handleEditExpense(expense)} style={actionBtnStyle} title="Edit">✏️</button>
-                    <button onClick={() => handleDeleteExpense(expense.id)} style={{ ...actionBtnStyle, color: colors.error }} title="Delete">🗑️</button>
-                  </div>
+                  {!isVirtual && (
+                    <div style={{ display: 'flex', gap: '0.2rem' }}>
+                      <button onClick={() => handleEditExpense(expense)} style={actionBtnStyle} title="Edit">✏️</button>
+                      <button onClick={() => handleDeleteExpense(expense.id)} style={{ ...actionBtnStyle, color: colors.error }} title="Delete">🗑️</button>
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -802,10 +838,15 @@ export const FinanceTab: React.FC<FinanceTabProps> = ({
             </div>
             <div style={{ paddingLeft: '1rem', display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
               {expensesByCategory.length > 0 ? expensesByCategory.map((item, i) => {
-                const monthlyEq = expenses
+                const now = new Date();
+                const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                const monthlyEq = allExpenses
                   .filter(e => e.category === item.category)
                   .reduce((sum, e) => {
-                    if (!e.is_recurring) return sum; // only recurring for monthly view
+                    if (!e.is_recurring) {
+                      // Include one-time expenses from this month (e.g. Stripe fees)
+                      return sum + (e.date.startsWith(thisMonth) ? e.amount : 0);
+                    }
                     if (e.recurring_interval === 'monthly') return sum + e.amount;
                     if (e.recurring_interval === 'quarterly') return sum + e.amount / 3;
                     if (e.recurring_interval === 'yearly') return sum + e.amount / 12;

@@ -444,7 +444,7 @@
     "savePercent": "17% 절약",
     "yearlySavings": "월 $4.17 — 월간 대비 $9.89 절약",
     "cancelAnytime": "언제든 취소 가능 • Stripe를 통해 관리",
-    "getPerks": "서포터 배지, 디스코드 역할, 광고 없는 경험을 얻고 Atlas 개발을 후원하세요.",
+    "getPerks": "배지, 전투 플래너, 무제한 봇 명령어, 대량 코드 교환 — 그리고 당신이 실제로 사용하는 도구를 후원하는 만족감.",
     "becomeSupporter": "서포터 되기",
     "signInToSubscribe": "구독하려면 로그인하세요",
     "giveMore": "더 많이 기부하고 싶으신가요? 구독 후 Stripe 포탈에서 금액을 변경할 수 있습니다.",
@@ -464,14 +464,14 @@
     "perk1Desc": "프로필에 핑크 배지",
     "perk2Title": "디스코드 서포터 역할",
     "perk2Desc": "디스코드에서 독점 핑크 역할",
-    "perk3Title": "무제한 프리미엄 봇 명령어",
-    "perk3Desc": "/multirally 및 향후 프리미엄 명령어 무제한 (무료 사용자는 일 3회)",
-    "perk4Title": "독점 디스코드 채널",
-    "perk4Desc": "서포터 전용 토론 접근",
-    "perk5Title": "새 기능 얼리 액세스",
-    "perk5Desc": "다가오는 도구를 가장 먼저 사용",
-    "perk6Title": "광고 없는 경험",
-    "perk6Desc": "깔끔하고 방해 없는 브라우징",
+    "perk3Title": "KvK 전투 플래너",
+    "perk3Desc": "랠리 코디네이터 전체 액세스 — 랠리 계획, 행군 추적, 공격 조율",
+    "perk4Title": "무제한 봇 명령어",
+    "perk4Desc": "무제한 /multirally 및 프리미엄 디스코드 봇 명령어 (무료: 5회/일)",
+    "perk5Title": "독점 디스코드 채널",
+    "perk5Desc": "서포터 전용 토론 및 미리보기 접근",
+    "perk6Title": "얼리 액세스",
+    "perk6Desc": "공개 출시 전 새 기능을 가장 먼저 사용",
     "free1Title": "전체 KvK 기록",
     "free1Desc": "모든 매치, 모든 결과, 모든 왕국",
     "free2Title": "Atlas 점수 & 랭킹",
@@ -486,8 +486,10 @@
     "free6Desc": "KvK 및 이적 이벤트 일정",
     "perk7Desc": "무제한 왕국 랭킹 해제 (무료: 상위 25)",
     "perk7Title": "전체 순위표",
-    "perk8Desc": "깔끔하고 방해 없는 브라우징",
-    "perk8Title": "광고 없음"
+    "perk8Title": "대량 코드 교환",
+    "perk8Desc": "모든 부계정의 선물 코드를 한 번에 교환 — 원클릭",
+    "perk9Title": "향상된 비교",
+    "perk9Desc": "최대 5개 왕국을 나란히 비교 (무료: 3개)"
   },
   "changelog": {
     "new": "새로운",
@@ -1052,7 +1054,13 @@
     "dataRefreshed": "플레이어 데이터 새로고침됨!",
     "refreshFailed": "새로고침 실패",
     "refreshError": "데이터 새로고침 실패",
-    "accountUnlinked": "계정 연동 해제됨"
+    "accountUnlinked": "계정 연동 해제됨",
+    "securityTitle": "당신의 데이터는 안전합니다",
+    "securityNoPassword": "게임 비밀번호를 절대 요청하거나 저장하지 않습니다",
+    "securityReadOnly": "읽기 전용 접근 — 공개 프로필(이름, 아바타, 왕국)만 가져옵니다",
+    "securityNoGameAccess": "어떤 방식으로도 게임 계정에 접근, 수정 또는 제어할 수 없습니다",
+    "securityUnlink": "언제든지 연동을 해제할 수 있으며 — 데이터는 즉시 서버에서 삭제됩니다",
+    "securityOpenSource": "Atlas는 커뮤니티가 만들고 투명합니다 — 코드는 공개 검토 가능합니다"
   },
   "transferHub": {
     "heroTitle1": "이적",
@@ -1861,7 +1869,10 @@
     "copyAll": "모든 코드 복사",
     "redeemed": "교환됨",
     "refresh": "코드 새로고침",
-    "refreshed": "{{count}}개 활성 코드 발견"
+    "refreshed": "활성 코드 {{count}}개 발견",
+    "redeemingAlts": "교환 중...",
+    "redeemAllAlts": "전체 {{count}}개 계정",
+    "redeemAllAltsLocked": "모든 계정"
   },
   "giftCodeLanding": {
     "allTools": "← 모든 도구",

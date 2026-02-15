@@ -1,5 +1,8 @@
 # Cloudflare Pages Redirects
 
+# www → non-www redirect (fixes 522 for www.ks-atlas.com)
+https://www.ks-atlas.com/*  https://ks-atlas.com/:splat  301
+
 # 301 redirects for legacy/renamed URLs (fixes GSC "Page with redirect")
 /leaderboards     /rankings        301
 /transfer-board   /transfer-hub    301

@@ -48,8 +48,10 @@ const SupportAtlas: React.FC = () => {
   const supporterPerks = [
     { icon: '⭐', text: t('support.perk1Title', 'Supporter Badge'), desc: t('support.perk1Desc', 'Pink badge on your profile — flex on the leaderboards') },
     { icon: '💜', text: t('support.perk2Title', 'Discord Supporter Role'), desc: t('support.perk2Desc', 'Exclusive pink role in Discord — stand out in chat') },
-    { icon: '⚔️', text: t('support.perk3Title', 'KvK Battle Planner Access'), desc: t('support.perk3Desc', 'Full access to the Rally Coordinator and future premium tools') },
+    { icon: '⚔️', text: t('support.perk3Title', 'KvK Battle Planner'), desc: t('support.perk3Desc', 'Full access to the Rally Coordinator — plan rallies, track marches, coordinate hits') },
     { icon: '🤖', text: t('support.perk4Title', 'Unlimited Bot Commands'), desc: t('support.perk4Desc', 'Unlimited /multirally and premium Discord bot commands (free: 5/day)') },
+    { icon: '🎁', text: t('support.perk8Title', 'Gift Code Bulk Redeem'), desc: t('support.perk8Desc', 'Redeem gift codes for all your alt accounts at once — one click') },
+    { icon: '⚖️', text: t('support.perk9Title', 'Enhanced Compare'), desc: t('support.perk9Desc', 'Compare up to 5 kingdoms side-by-side (free: 3)') },
     { icon: '🎙️', text: t('support.perk5Title', 'Exclusive Discord Channel'), desc: t('support.perk5Desc', 'Access to supporter-only discussions and early previews') },
     { icon: '🚀', text: t('support.perk6Title', 'Early Access'), desc: t('support.perk6Desc', 'First to try new features before public release') },
     { icon: '📊', text: t('support.perk7Title', 'Full Leaderboard Rankings'), desc: t('support.perk7Desc', 'Unlock unlimited kingdom rankings (free: Top 25)') },
@@ -351,7 +353,7 @@ const SupportAtlas: React.FC = () => {
             {t('support.cancelAnytime', 'Cancel anytime • Manage via Stripe')}
           </p>
           <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.85rem' : '0.9rem', lineHeight: 1.6, marginBottom: '1.5rem', maxWidth: '500px', margin: '0 auto 1.5rem' }}>
-            {t('support.getPerks', 'Badge, Battle Planner, unlimited bot commands, ad-free — and the satisfaction of funding the tools you actually use.')}
+            {t('support.getPerks', 'Badge, Battle Planner, unlimited bot commands, bulk gift code redeem — and the satisfaction of funding the tools you actually use.')}
           </p>
 
           {/* Animated Supporter Badge Preview */}

@@ -153,7 +153,7 @@ export function useRecruiterDashboard(): RecruiterDashboardState & RecruiterDash
       // Get fund info
       const { data: fundData } = await supabase
         .from('kingdom_funds')
-        .select('kingdom_number, balance, tier, is_recruiting, recruitment_pitch, what_we_offer, what_we_want, min_tc_level, min_power_range, min_power_million, main_language, secondary_languages, event_times, contact_link, recruitment_tags, highlighted_stats, kingdom_vibe, nap_policy, sanctuary_distribution, castle_rotation, alliance_events')
+        .select('kingdom_number, balance, tier, is_recruiting, recruitment_pitch, what_we_offer, what_we_want, min_tc_level, min_power_range, min_power_million, main_language, secondary_languages, event_times, contact_link, recruitment_tags, highlighted_stats, kingdom_vibe, nap_policy, sanctuary_distribution, castle_rotation, alliance_events, alliance_details, updated_at')
         .eq('kingdom_number', editor.kingdom_number)
         .maybeSingle();
 
@@ -164,12 +164,12 @@ export function useRecruiterDashboard(): RecruiterDashboardState & RecruiterDash
         .rpc('get_used_invites', { p_kingdom_number: editor.kingdom_number });
       if (usedData != null) setUsedInvites(usedData);
 
-      // Get listing views (last 30 days) for analytics
+      // Get listing views (last 30 days) — count unique users who viewed this kingdom's listing
       const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
       const { count: viewCount } = await supabase
-        .from('transfer_profile_views')
+        .from('kingdom_listing_views')
         .select('id', { count: 'exact', head: true })
-        .eq('viewer_kingdom_number', editor.kingdom_number)
+        .eq('kingdom_number', editor.kingdom_number)
         .gte('viewed_at', thirtyDaysAgo);
       setListingViews(viewCount || 0);
     } catch {

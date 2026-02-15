@@ -723,6 +723,46 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
       >
         {isLoading ? t('linkAccount.verifying', 'Verifying...') : t('linkAccount.verifyPlayerId', 'Verify Player ID')}
       </Button>
+
+      {/* Privacy & Security Trust Section */}
+      <div
+        style={{
+          marginTop: '1.25rem',
+          padding: '0.85rem 1rem',
+          borderRadius: '10px',
+          backgroundColor: `${colors.success}06`,
+          border: `1px solid ${colors.success}20`,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
+          <span style={{ fontSize: '0.85rem' }}>🔒</span>
+          <span style={{ fontSize: '0.8rem', fontWeight: '700', color: colors.success }}>
+            {t('linkAccount.securityTitle', 'Your Data is Safe')}
+          </span>
+        </div>
+        <ul style={{ margin: 0, paddingLeft: '1.25rem', fontSize: '0.75rem', color: colors.textSecondary, lineHeight: 1.7, listStyleType: 'none' }}>
+          <li style={{ position: 'relative', paddingLeft: '0.25rem' }}>
+            <span style={{ position: 'absolute', left: '-1.1rem', color: colors.success }}>✓</span>
+            {t('linkAccount.securityNoPassword', 'We never ask for or store your game password')}
+          </li>
+          <li style={{ position: 'relative', paddingLeft: '0.25rem' }}>
+            <span style={{ position: 'absolute', left: '-1.1rem', color: colors.success }}>✓</span>
+            {t('linkAccount.securityReadOnly', 'Read-only access — we only fetch your public profile (name, avatar, kingdom)')}
+          </li>
+          <li style={{ position: 'relative', paddingLeft: '0.25rem' }}>
+            <span style={{ position: 'absolute', left: '-1.1rem', color: colors.success }}>✓</span>
+            {t('linkAccount.securityNoGameAccess', 'We cannot access, modify, or control your game account in any way')}
+          </li>
+          <li style={{ position: 'relative', paddingLeft: '0.25rem' }}>
+            <span style={{ position: 'absolute', left: '-1.1rem', color: colors.success }}>✓</span>
+            {t('linkAccount.securityUnlink', 'You can unlink at any time — your data is deleted from our servers instantly')}
+          </li>
+          <li style={{ position: 'relative', paddingLeft: '0.25rem' }}>
+            <span style={{ position: 'absolute', left: '-1.1rem', color: colors.success }}>✓</span>
+            {t('linkAccount.securityOpenSource', 'Atlas is community-built and transparent — our code is open for review')}
+          </li>
+        </ul>
+      </div>
     </Card>
   );
 };

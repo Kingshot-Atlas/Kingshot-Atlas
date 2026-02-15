@@ -444,7 +444,7 @@
     "savePercent": "17% SPAREN",
     "yearlySavings": "$4,17/Monat — spare $9,89 vs monatlich",
     "cancelAnytime": "Jederzeit kündbar • Verwaltung über Stripe",
-    "getPerks": "Erhalte das Supporter-Abzeichen, Discord-Rolle, werbefreie Erfahrung und hilf bei der Atlas-Entwicklung.",
+    "getPerks": "Abzeichen, Kampfplaner, unbegrenzte Bot-Befehle, Massen-Code-Einlösung — und die Zufriedenheit, die Werkzeuge zu finanzieren, die du wirklich nutzt.",
     "becomeSupporter": "Supporter werden",
     "signInToSubscribe": "Anmelden zum Abonnieren",
     "giveMore": "Willst du mehr geben? Du kannst deinen Betrag im Stripe-Portal nach dem Abonnieren erhöhen.",
@@ -464,14 +464,14 @@
     "perk1Desc": "Pinkes Abzeichen auf deinem Profil",
     "perk2Title": "Discord Supporter-Rolle",
     "perk2Desc": "Exklusive pinke Rolle in Discord",
-    "perk3Title": "Unbegrenzte Premium-Bot-Befehle",
-    "perk3Desc": "Unbegrenzter /multirally und zukünftige Premium-Befehle (kostenlose Nutzer: 3/Tag)",
-    "perk4Title": "Exklusiver Discord-Kanal",
-    "perk4Desc": "Zugang zu Supporter-exklusiven Diskussionen",
-    "perk5Title": "Frühzeitiger Zugang zu neuen Funktionen",
-    "perk5Desc": "Sei der Erste, der kommende Werkzeuge ausprobiert",
-    "perk6Title": "Werbefreie Erfahrung",
-    "perk6Desc": "Sauberes, ablenkungsfreies Surfen",
+    "perk3Title": "KvK-Kampfplaner",
+    "perk3Desc": "Voller Zugang zum Rally-Koordinator — plane Rallies, verfolge Märsche, koordiniere Angriffe",
+    "perk4Title": "Unbegrenzte Bot-Befehle",
+    "perk4Desc": "Unbegrenzter /multirally und Premium-Discord-Bot-Befehle (kostenlos: 5/Tag)",
+    "perk5Title": "Exklusiver Discord-Kanal",
+    "perk5Desc": "Zugang zu Supporter-exklusiven Diskussionen und Vorschauen",
+    "perk6Title": "Frühzeitiger Zugang",
+    "perk6Desc": "Sei der Erste bei neuen Funktionen vor der öffentlichen Veröffentlichung",
     "free1Title": "Vollständiger KvK-Verlauf",
     "free1Desc": "Jedes Duell, jedes Ergebnis, jedes Königreich",
     "free2Title": "Atlas-Wertung & Ranglisten",
@@ -486,8 +486,10 @@
     "free6Desc": "KvK- und Transfer-Event-Zeitpläne",
     "perk7Desc": "Unbegrenzte Königreich-Rankings freischalten (kostenlos: Top 25)",
     "perk7Title": "Vollständige Ranglisten",
-    "perk8Desc": "Sauberes, ablenkungsfreies Surfen",
-    "perk8Title": "Werbefrei"
+    "perk8Title": "Massen-Code-Einlösung",
+    "perk8Desc": "Löse Geschenkcodes für alle deine Alt-Accounts auf einmal ein — ein Klick",
+    "perk9Title": "Erweiterter Vergleich",
+    "perk9Desc": "Vergleiche bis zu 5 Königreiche nebeneinander (kostenlos: 3)"
   },
   "changelog": {
     "new": "Neu",
@@ -1052,7 +1054,13 @@
     "dataRefreshed": "Spielerdaten aktualisiert!",
     "refreshFailed": "Aktualisierung fehlgeschlagen",
     "refreshError": "Daten konnten nicht aktualisiert werden",
-    "accountUnlinked": "Kontoverknüpfung aufgehoben"
+    "accountUnlinked": "Kontoverknüpfung aufgehoben",
+    "securityTitle": "Deine Daten sind sicher",
+    "securityNoPassword": "Wir fragen niemals nach deinem Spielpasswort und speichern es nicht",
+    "securityReadOnly": "Nur Lesezugriff — wir rufen nur dein öffentliches Profil ab (Name, Avatar, Königreich)",
+    "securityNoGameAccess": "Wir können in keiner Weise auf dein Spielkonto zugreifen, es ändern oder kontrollieren",
+    "securityUnlink": "Du kannst die Verknüpfung jederzeit aufheben — deine Daten werden sofort von unseren Servern gelöscht",
+    "securityOpenSource": "Atlas wird von der Community entwickelt und ist transparent — unser Code ist zur Überprüfung offen"
   },
   "transferHub": {
     "heroTitle1": "TRANSFER-",
@@ -1861,7 +1869,10 @@
     "copyAll": "Alle Codes Kopieren",
     "redeemed": "Eingelöst",
     "refresh": "Codes Aktualisieren",
-    "refreshed": "{{count}} aktive Codes gefunden"
+    "refreshed": "{{count}} aktive Codes gefunden",
+    "redeemingAlts": "Wird eingelöst...",
+    "redeemAllAlts": "Alle {{count}} Konten",
+    "redeemAllAltsLocked": "Alle Konten"
   },
   "giftCodeLanding": {
     "allTools": "← Alle Werkzeuge",

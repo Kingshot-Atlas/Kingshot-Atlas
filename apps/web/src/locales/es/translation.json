@@ -444,7 +444,7 @@
     "savePercent": "AHORRA 17%",
     "yearlySavings": "$4.17/mes — ahorra $9.89 vs mensual",
     "cancelAnytime": "Cancela cuando quieras • Gestiona vía Stripe",
-    "getPerks": "Obtén la insignia de Supporter, rol de Discord, experiencia sin anuncios y ayuda a financiar el desarrollo de Atlas.",
+    "getPerks": "Insignia, Planificador de Batalla, comandos de bot ilimitados, canje masivo de códigos — y la satisfacción de financiar las herramientas que realmente usas.",
     "becomeSupporter": "Hazte Supporter",
     "signInToSubscribe": "Inicia Sesión para Suscribirte",
     "giveMore": "¿Quieres dar más? Puedes aumentar tu monto en el portal de Stripe después de suscribirte.",
@@ -464,14 +464,14 @@
     "perk1Desc": "Insignia rosa en tu perfil",
     "perk2Title": "Rol de Supporter en Discord",
     "perk2Desc": "Rol rosa exclusivo en Discord",
-    "perk3Title": "Comandos Premium Ilimitados",
-    "perk3Desc": "Ilimitado /multirally y futuros comandos premium (usuarios gratis tienen 3/día)",
-    "perk4Title": "Canal Exclusivo de Discord",
-    "perk4Desc": "Acceso a discusiones solo para supporters",
-    "perk5Title": "Acceso Anticipado a Nuevas Funciones",
-    "perk5Desc": "Sé el primero en probar las nuevas herramientas",
-    "perk6Title": "Experiencia Sin Anuncios",
-    "perk6Desc": "Navegación limpia y sin distracciones",
+    "perk3Title": "Planificador de Batalla KvK",
+    "perk3Desc": "Acceso completo al Coordinador de Rallies — planifica ataques, rastrea marchas, coordina golpes",
+    "perk4Title": "Comandos de Bot Ilimitados",
+    "perk4Desc": "Ilimitado /multirally y comandos premium de Discord (gratis: 5/día)",
+    "perk5Title": "Canal Exclusivo de Discord",
+    "perk5Desc": "Acceso a discusiones solo para supporters y avances",
+    "perk6Title": "Acceso Anticipado",
+    "perk6Desc": "Sé el primero en probar nuevas funciones antes del lanzamiento público",
     "free1Title": "Historial Completo de KvK",
     "free1Desc": "Cada partida, cada resultado, cada reino",
     "free2Title": "Índice Atlas y Rankings",
@@ -486,8 +486,10 @@
     "free6Desc": "Horarios de KvK y Eventos de Transferencia",
     "perk7Desc": "Desbloquea rankings ilimitados (gratis: Top 25)",
     "perk7Title": "Rankings Completos",
-    "perk8Desc": "Navegación limpia y sin distracciones",
-    "perk8Title": "Sin Anuncios"
+    "perk8Title": "Canje Masivo de Códigos",
+    "perk8Desc": "Canjea códigos de regalo para todas tus cuentas alternativas de una vez",
+    "perk9Title": "Comparación Mejorada",
+    "perk9Desc": "Compara hasta 5 reinos lado a lado (gratis: 3)"
   },
   "changelog": {
     "new": "Nuevo",
@@ -1052,7 +1054,13 @@
     "dataRefreshed": "¡Datos del jugador actualizados!",
     "refreshFailed": "Actualización fallida",
     "refreshError": "Error al actualizar datos",
-    "accountUnlinked": "Cuenta desvinculada"
+    "accountUnlinked": "Cuenta desvinculada",
+    "securityTitle": "Tus datos están seguros",
+    "securityNoPassword": "Nunca pedimos ni almacenamos tu contraseña del juego",
+    "securityReadOnly": "Acceso de solo lectura — solo obtenemos tu perfil público (nombre, avatar, reino)",
+    "securityNoGameAccess": "No podemos acceder, modificar ni controlar tu cuenta de juego de ninguna manera",
+    "securityUnlink": "Puedes desvincular en cualquier momento — tus datos se eliminan de nuestros servidores al instante",
+    "securityOpenSource": "Atlas es creado por la comunidad y transparente — nuestro código está abierto para revisión"
   },
   "transferHub": {
     "heroTitle1": "CENTRO DE",
@@ -1861,7 +1869,10 @@
     "copyAll": "Copiar Todos los Códigos",
     "redeemed": "Canjeado",
     "refresh": "Actualizar Códigos",
-    "refreshed": "{{count}} códigos activos encontrados"
+    "refreshed": "Se encontraron {{count}} códigos activos",
+    "redeemingAlts": "Canjeando...",
+    "redeemAllAlts": "Todas las {{count}} Cuentas",
+    "redeemAllAltsLocked": "Todas las Cuentas"
   },
   "giftCodeLanding": {
     "allTools": "← Todas las Herramientas",

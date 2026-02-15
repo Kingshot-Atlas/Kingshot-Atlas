@@ -444,7 +444,7 @@
     "savePercent": "SAVE 17%",
     "yearlySavings": "$4.17/mo — save $9.89 vs monthly",
     "cancelAnytime": "Cancel anytime • Manage via Stripe",
-    "getPerks": "Get the Supporter Badge, Discord role, ad-free experience, and help fund Atlas development.",
+    "getPerks": "Badge, Battle Planner, unlimited bot commands, bulk gift code redeem — and the satisfaction of funding the tools you actually use.",
     "becomeSupporter": "Become a Supporter",
     "signInToSubscribe": "Sign In to Subscribe",
     "giveMore": "Want to give more? You can increase your amount in the Stripe portal after subscribing.",
@@ -464,14 +464,14 @@
     "perk1Desc": "Pink badge on your profile",
     "perk2Title": "Discord Supporter Role",
     "perk2Desc": "Exclusive pink role in Discord",
-    "perk3Title": "Unlimited Premium Bot Commands",
-    "perk3Desc": "Unlimited /multirally and future premium commands (free users get 5/day)",
-    "perk4Title": "Exclusive Discord Channel",
-    "perk4Desc": "Access to supporter-only discussions",
-    "perk5Title": "Early Access to New Features",
-    "perk5Desc": "Be the first to try upcoming tools",
-    "perk6Title": "Ad-Free Experience",
-    "perk6Desc": "Clean, distraction-free browsing",
+    "perk3Title": "KvK Battle Planner",
+    "perk3Desc": "Full access to the Rally Coordinator — plan rallies, track marches, coordinate hits",
+    "perk4Title": "Unlimited Bot Commands",
+    "perk4Desc": "Unlimited /multirally and premium Discord bot commands (free: 5/day)",
+    "perk5Title": "Exclusive Discord Channel",
+    "perk5Desc": "Access to supporter-only discussions and early previews",
+    "perk6Title": "Early Access",
+    "perk6Desc": "First to try new features before public release",
     "free1Title": "Full KvK History",
     "free1Desc": "Every match, every result, every kingdom",
     "free2Title": "Atlas Score & Rankings",
@@ -486,8 +486,10 @@
     "free6Desc": "KvK and Transfer Event schedules",
     "perk7Desc": "Unlock unlimited kingdom rankings (free: Top 25)",
     "perk7Title": "Full Leaderboard Rankings",
-    "perk8Desc": "Clean, distraction-free browsing",
-    "perk8Title": "Ad-Free Experience"
+    "perk8Title": "Gift Code Bulk Redeem",
+    "perk8Desc": "Redeem gift codes for all your alt accounts at once — one click",
+    "perk9Title": "Enhanced Compare",
+    "perk9Desc": "Compare up to 5 kingdoms side-by-side (free: 3)"
   },
   "changelog": {
     "new": "New",
@@ -1052,7 +1054,13 @@
     "dataRefreshed": "Player data refreshed!",
     "refreshFailed": "Refresh failed",
     "refreshError": "Failed to refresh data",
-    "accountUnlinked": "Account unlinked"
+    "accountUnlinked": "Account unlinked",
+    "securityTitle": "Your Data is Safe",
+    "securityNoPassword": "We never ask for or store your game password",
+    "securityReadOnly": "Read-only access — we only fetch your public profile (name, avatar, kingdom)",
+    "securityNoGameAccess": "We cannot access, modify, or control your game account in any way",
+    "securityUnlink": "You can unlink at any time — your data is deleted from our servers instantly",
+    "securityOpenSource": "Atlas is community-built and transparent — our code is open for review"
   },
   "transferHub": {
     "heroTitle1": "TRANSFER",
@@ -1861,7 +1869,10 @@
     "copyAll": "Copy All Codes",
     "redeemed": "Redeemed",
     "refresh": "Refresh Codes",
-    "refreshed": "Found {{count}} active codes"
+    "refreshed": "Found {{count}} active codes",
+    "redeemingAlts": "Redeeming...",
+    "redeemAllAlts": "All {{count}} Accounts",
+    "redeemAllAltsLocked": "All Accounts"
   },
   "giftCodeLanding": {
     "allTools": "← All Tools",

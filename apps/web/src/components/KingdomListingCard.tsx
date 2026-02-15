@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
@@ -9,6 +9,7 @@ import SmartTooltip from './shared/SmartTooltip';
 import { logger } from '../utils/logger';
 import { generateTransferListingDiscordMessage, generateTransferListingCard, copyToClipboard, copyImageToClipboard, shareImageOnMobile, downloadBlob, isMobileDevice } from '../utils/sharing';
 import { isReferralEligible } from '../utils/constants';
+import { supabase } from '../lib/supabase';
 
 // =============================================
 // TYPES (shared with TransferBoard)
@@ -268,7 +269,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
   const [copiedDiscord, setCopiedDiscord] = useState(false);
   const [copiedImage, setCopiedImage] = useState(false);
   const isMobile = useIsMobile();
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
   const refParam = profile && isReferralEligible(profile) && profile.linked_username
     ? profile.linked_username : null;
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
@@ -288,6 +289,15 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
   const canFundKingdom = profile?.linked_kingdom === kingdom.kingdom_number;
   // Prevent applying to own kingdom
   const isOwnKingdom = profile?.linked_kingdom === kingdom.kingdom_number;
+
+  // Track kingdom listing view (fire-and-forget, one per user per kingdom per day)
+  useEffect(() => {
+    if (!supabase || !user || isOwnKingdom) return;
+    supabase.from('kingdom_listing_views').upsert({
+      kingdom_number: kingdom.kingdom_number,
+      viewer_user_id: user.id,
+    }, { onConflict: 'kingdom_number,viewer_user_id,view_date', ignoreDuplicates: true }).then(() => {});
+  }, [kingdom.kingdom_number, user, isOwnKingdom]);
 
   const toggleSection = (section: string) => {
     setExpandedSection(expandedSection === section ? null : section);

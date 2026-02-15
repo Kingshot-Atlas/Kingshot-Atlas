@@ -550,6 +550,57 @@ async def send_message(data: SendMessageRequest, _: bool = Depends(require_bot_a
         raise HTTPException(status_code=500, detail="Failed to send message")
 
 
+class SpotlightRequest(BaseModel):
+    """Request model for sending a spotlight message via Discord webhook"""
+    content: str = Field(..., description="Message content to send")
+    username: str = Field(default="Atlas Spotlight", description="Webhook display name")
+    avatar_url: Optional[str] = Field(default=None, description="Webhook avatar URL")
+
+
+SPOTLIGHT_WEBHOOK_URL = os.getenv("DISCORD_SPOTLIGHT_WEBHOOK_URL", "")
+
+
+@router.post("/spotlight")
+async def send_spotlight(data: SpotlightRequest, _: bool = Depends(require_bot_admin)):
+    """
+    Send a spotlight message to the #spotlight Discord channel via webhook.
+    Proxies the webhook call server-side to avoid browser CORS issues.
+    """
+    webhook_url = SPOTLIGHT_WEBHOOK_URL
+    if not webhook_url:
+        raise HTTPException(status_code=503, detail="Spotlight webhook URL not configured")
+
+    if not data.content.strip():
+        raise HTTPException(status_code=400, detail="Message content cannot be empty")
+
+    try:
+        payload: Dict[str, Any] = {
+            "content": data.content,
+            "username": data.username,
+        }
+        if data.avatar_url:
+            payload["avatar_url"] = data.avatar_url
+
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            response = await client.post(webhook_url, json=payload)
+
+        if response.status_code in (200, 204):
+            return {"success": True, "message": "Spotlight message sent successfully"}
+        else:
+            logger.error("Spotlight webhook failed: %s %s", response.status_code, response.text[:200])
+            raise HTTPException(
+                status_code=response.status_code,
+                detail=f"Discord webhook returned {response.status_code}"
+            )
+    except httpx.TimeoutException:
+        raise HTTPException(status_code=504, detail="Discord webhook timed out")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error in /spotlight: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to send spotlight message")
+
+
 @router.get("/stats")
 async def get_bot_stats(_: bool = Depends(require_bot_admin)):
     """

@@ -444,7 +444,7 @@
     "savePercent": "ÉCONOMISEZ 17%",
     "yearlySavings": "4,17 $/mois — économisez 9,89 $ vs mensuel",
     "cancelAnytime": "Résiliez à tout moment • Gérez via Stripe",
-    "getPerks": "Obtenez le badge Supporter, le rôle Discord, l'expérience sans publicité et aidez à financer le développement d'Atlas.",
+    "getPerks": "Badge, Planificateur de Bataille, commandes bot illimitées, échange de codes en masse — et la satisfaction de financer les outils que vous utilisez vraiment.",
     "becomeSupporter": "Devenir Supporter",
     "signInToSubscribe": "Connectez-vous pour vous Abonner",
     "giveMore": "Envie de donner plus ? Vous pouvez augmenter votre montant dans le portail Stripe après votre abonnement.",
@@ -464,14 +464,14 @@
     "perk1Desc": "Badge rose sur votre profil",
     "perk2Title": "Rôle Supporter Discord",
     "perk2Desc": "Rôle rose exclusif sur Discord",
-    "perk3Title": "Commandes Premium Illimitées",
-    "perk3Desc": "/multirally illimité et futures commandes premium (les utilisateurs gratuits ont 3/jour)",
-    "perk4Title": "Canal Discord Exclusif",
-    "perk4Desc": "Accès aux discussions réservées aux supporters",
-    "perk5Title": "Accès Anticipé aux Nouvelles Fonctionnalités",
-    "perk5Desc": "Soyez le premier à essayer les nouveaux outils",
-    "perk6Title": "Expérience Sans Publicité",
-    "perk6Desc": "Navigation propre et sans distraction",
+    "perk3Title": "Planificateur de Bataille KvK",
+    "perk3Desc": "Accès complet au Coordinateur de Rallies — planifiez des rallies, suivez les marches, coordonnez les frappes",
+    "perk4Title": "Commandes Bot Illimitées",
+    "perk4Desc": "/multirally illimité et commandes premium Discord (gratuit : 5/jour)",
+    "perk5Title": "Canal Discord Exclusif",
+    "perk5Desc": "Accès aux discussions et aperçus réservés aux supporters",
+    "perk6Title": "Accès Anticipé",
+    "perk6Desc": "Premier à essayer les nouvelles fonctionnalités avant le lancement public",
     "free1Title": "Historique KvK Complet",
     "free1Desc": "Chaque match, chaque résultat, chaque royaume",
     "free2Title": "Score Atlas et Classements",
@@ -486,8 +486,10 @@
     "free6Desc": "Horaires des KvK et des Événements de Transfert",
     "perk7Desc": "Débloquez les classements illimités (gratuit : Top 25)",
     "perk7Title": "Classements Complets",
-    "perk8Desc": "Navigation propre et sans distractions",
-    "perk8Title": "Sans Publicités"
+    "perk8Title": "Échange de Codes en Masse",
+    "perk8Desc": "Échangez des codes cadeaux pour tous vos comptes alternatifs d'un seul clic",
+    "perk9Title": "Comparaison Améliorée",
+    "perk9Desc": "Comparez jusqu'à 5 royaumes côte à côte (gratuit : 3)"
   },
   "changelog": {
     "new": "Nouveau",
@@ -1052,7 +1054,13 @@
     "dataRefreshed": "Données du joueur actualisées !",
     "refreshFailed": "Actualisation échouée",
     "refreshError": "Échec de l'actualisation des données",
-    "accountUnlinked": "Compte délié"
+    "accountUnlinked": "Compte délié",
+    "securityTitle": "Vos données sont en sécurité",
+    "securityNoPassword": "Nous ne demandons ni ne stockons jamais votre mot de passe de jeu",
+    "securityReadOnly": "Accès en lecture seule — nous récupérons uniquement votre profil public (nom, avatar, royaume)",
+    "securityNoGameAccess": "Nous ne pouvons en aucun cas accéder, modifier ou contrôler votre compte de jeu",
+    "securityUnlink": "Vous pouvez délier à tout moment — vos données sont supprimées de nos serveurs instantanément",
+    "securityOpenSource": "Atlas est créé par la communauté et transparent — notre code est ouvert à la consultation"
   },
   "transferHub": {
     "heroTitle1": "CENTRE DE",
@@ -1861,7 +1869,10 @@
     "copyAll": "Copier Tous les Codes",
     "redeemed": "Échangé",
     "refresh": "Actualiser les Codes",
-    "refreshed": "{{count}} codes actifs trouvés"
+    "refreshed": "{{count}} codes actifs trouvés",
+    "redeemingAlts": "Échange en cours...",
+    "redeemAllAlts": "Les {{count}} Comptes",
+    "redeemAllAltsLocked": "Tous les Comptes"
   },
   "giftCodeLanding": {
     "allTools": "← Tous les Outils",
