@@ -18,6 +18,7 @@ from api.config import STRIPE_SECRET_KEY, FRONTEND_URL
 from api.supabase_client import update_user_subscription, get_user_by_stripe_customer, get_user_by_email, get_user_profile, log_webhook_event, is_webhook_event_processed, credit_kingdom_fund
 from api.email_service import send_welcome_email, send_cancellation_email, send_payment_failed_email
 from api.discord_role_sync import sync_user_discord_role, is_discord_sync_configured
+from api.routers.bot import send_spotlight_to_discord, _build_spotlight_message, _log_spotlight_history
 import time
 
 logger = logging.getLogger("atlas.stripe")
@@ -304,6 +305,28 @@ async def handle_checkout_completed(session: dict):
                 username=profile.get("username", "Champion"),
                 tier=tier
             )
+        
+        # Auto-trigger Spotlight for new Supporter (non-blocking, best effort)
+        if tier == "supporter":
+            try:
+                if not profile:
+                    profile = get_user_profile(user_id)
+                discord_username = (profile or {}).get("discord_username") or (profile or {}).get("display_name") or (profile or {}).get("username") or "A new champion"
+                discord_user_id = (profile or {}).get("discord_id") or ""
+                spotlight_msg = _build_spotlight_message("supporter", discord_username, discord_user_id)
+                spotlight_ok = await send_spotlight_to_discord(spotlight_msg)
+                _log_spotlight_history(
+                    reason="supporter",
+                    message=spotlight_msg,
+                    discord_username=discord_username,
+                    discord_user_id=discord_user_id,
+                    user_id=user_id,
+                    auto_triggered=True,
+                    status="sent" if spotlight_ok else "failed",
+                )
+                logger.info("Supporter auto-spotlight %s for user %s", "sent" if spotlight_ok else "failed", user_id)
+            except Exception as e:
+                logger.warning("Supporter auto-spotlight failed (non-blocking): %s", e)
     else:
         logger.error("Failed to update subscription for user %s", user_id)
 

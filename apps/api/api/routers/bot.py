@@ -12,6 +12,7 @@ from fastapi import APIRouter, HTTPException, Depends, Header, Request
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 import hashlib
+import random
 from api.config import DISCORD_BOT_TOKEN, DISCORD_API_KEY, DISCORD_API_PROXY, DISCORD_PROXY_KEY, ENVIRONMENT, ADMIN_EMAILS
 from api.supabase_client import get_supabase_admin
 
@@ -599,6 +600,164 @@ async def send_spotlight(data: SpotlightRequest, _: bool = Depends(require_bot_a
     except Exception as e:
         logger.error("Error in /spotlight: %s", e)
         raise HTTPException(status_code=500, detail="Failed to send spotlight message")
+
+
+SPOTLIGHT_AVATAR_URL = "https://ks-atlas.com/AtlasBotAvatar.webp"
+SPOTLIGHT_BOT_NAME = "Atlas"
+
+SPOTLIGHT_TEMPLATES: Dict[str, list] = {
+    "supporter": [
+        "🎉 A new legend rises! {user} just became an **Atlas Supporter**! Your belief in this community fuels everything we build. From the bottom of our hearts — thank you. 💎",
+        "⚡ {user} just leveled up to **Atlas Supporter**! Every kingdom, every score, every feature — you make it possible. We don't take that for granted. Thank you! 💎",
+        "🌟 Shoutout to {user} for becoming an **Atlas Supporter**! You're not just supporting a tool — you're investing in the competitive Kingshot community. That means the world. 💎",
+        "💎 {user} has joined the ranks of **Atlas Supporters**! The intelligence gets stronger, the tools get sharper — all because of people like you. Thank you for believing in Atlas!",
+        "🏆 Big moment! {user} just subscribed as an **Atlas Supporter**! Your contribution keeps this community-powered project alive and growing. We salute you! 💎",
+        "✨ Welcome to the Supporter family, {user}! Your support means more kingdoms tracked, better tools, and a stronger community. Atlas wouldn't be Atlas without you. 💎",
+        "🔥 {user} just unlocked **Atlas Supporter** status! You're powering the tools that thousands of players rely on every day. That's legendary. Thank you! 💎",
+        "💪 The Atlas army grows stronger! {user} just joined as an **Atlas Supporter**. Your backing keeps the scoreboard running and the data flowing. We appreciate you! 💎",
+        "🎯 {user} has stepped up as an **Atlas Supporter**! You're the reason we can keep building the best kingdom intelligence out there. Massive respect. 💎",
+        "⭐ A new Supporter enters the arena! {user}, your contribution goes straight into making Atlas better for every player. From all of us — thank you! 💎",
+    ],
+    "ambassador": [
+        "🏛️ {user} has earned the title of **Atlas Ambassador**! By spreading the word and bringing players into the fold, you've proven yourself a true champion of this community. 🙌",
+        "⚡ A new **Ambassador** has emerged! {user} has been rallying players and building bridges across kingdoms. Your referrals strengthen us all. Thank you! 🏛️",
+        "🌟 Hats off to {user} — our newest **Atlas Ambassador**! You didn't just join the community, you grew it. That kind of dedication doesn't go unnoticed. 🏛️",
+        "🏛️ {user} just unlocked **Ambassador** status! Every player you've brought to Atlas makes our intelligence network stronger. You're a legend. Keep building! 💜",
+        "👑 {user} has been crowned an **Atlas Ambassador**! Your dedication to growing this community is unmatched. Twenty referrals and counting — you're a force of nature! 🏛️",
+        "🔥 From player to legend — {user} just became an **Atlas Ambassador**! You've brought an incredible number of players into the fold. The community salutes you! 🏛️",
+        "💜 {user} is now officially an **Atlas Ambassador**! Your tireless work spreading the word about Atlas has made a real difference. We couldn't do this without you. 🏛️",
+        "🏛️ Bow before {user}, our newest **Atlas Ambassador**! You've proven that one person truly can grow a community. Your referrals are legendary. 👏",
+        "🌍 {user} just reached **Ambassador** tier! By connecting players across kingdoms, you've helped build something bigger than any one kingdom. Thank you, Ambassador! 🏛️",
+        "⭐ {user} has achieved **Atlas Ambassador** status! Your passion for this community shines through every referral. We're honored to have you leading the charge! 🏛️",
+    ],
+}
+
+
+def _build_spotlight_message(reason: str, discord_username: str, discord_user_id: str = "") -> str:
+    """Build a random spotlight message for the given reason."""
+    templates = SPOTLIGHT_TEMPLATES.get(reason, SPOTLIGHT_TEMPLATES["supporter"])
+    template = random.choice(templates)
+    mention = f"<@{discord_user_id}>" if discord_user_id else f"**{discord_username}**"
+    return template.replace("{user}", mention)
+
+
+async def send_spotlight_to_discord(content: str) -> bool:
+    """Send a spotlight message to Discord via webhook. Returns True on success."""
+    webhook_url = SPOTLIGHT_WEBHOOK_URL
+    if not webhook_url:
+        logger.warning("Spotlight webhook URL not configured, skipping auto-spotlight")
+        return False
+
+    try:
+        payload = {
+            "content": content,
+            "username": SPOTLIGHT_BOT_NAME,
+            "avatar_url": SPOTLIGHT_AVATAR_URL,
+        }
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            response = await client.post(webhook_url, json=payload)
+        if response.status_code in (200, 204):
+            logger.info("Auto-spotlight sent successfully")
+            return True
+        else:
+            logger.error("Auto-spotlight webhook failed: %s %s", response.status_code, response.text[:200])
+            return False
+    except Exception as e:
+        logger.error("Error sending auto-spotlight: %s", e)
+        return False
+
+
+def _log_spotlight_history(
+    reason: str,
+    message: str,
+    discord_username: str = "",
+    discord_user_id: str = "",
+    user_id: str = "",
+    auto_triggered: bool = True,
+    status: str = "sent",
+    error_message: str = "",
+) -> bool:
+    """Log a spotlight to the spotlight_history table."""
+    sb = get_supabase_admin()
+    if not sb:
+        return False
+    try:
+        data: Dict[str, Any] = {
+            "reason": reason,
+            "message": message,
+            "auto_triggered": auto_triggered,
+            "status": status,
+        }
+        if discord_username:
+            data["discord_username"] = discord_username
+        if discord_user_id:
+            data["discord_user_id"] = discord_user_id
+        if user_id:
+            data["user_id"] = user_id
+        if status == "sent":
+            data["sent_at"] = datetime.now(timezone.utc).isoformat()
+        if error_message:
+            data["error_message"] = error_message
+        sb.table("spotlight_history").insert(data).execute()
+        return True
+    except Exception as e:
+        logger.error("Error logging spotlight history: %s", e)
+        return False
+
+
+@router.post("/process-pending-spotlights")
+async def process_pending_spotlights(_: bool = Depends(require_bot_admin)):
+    """
+    Process all pending auto-triggered spotlights.
+    Generates messages and sends them to Discord, then updates status.
+    """
+    sb = get_supabase_admin()
+    if not sb:
+        raise HTTPException(status_code=503, detail="Supabase not configured")
+
+    try:
+        result = sb.table("spotlight_history").select("*").eq("status", "pending").order("created_at").execute()
+        pending = result.data or []
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch pending spotlights: {e}")
+
+    sent_count = 0
+    failed_count = 0
+
+    for entry in pending:
+        reason = entry.get("reason", "supporter")
+        username = entry.get("discord_username") or "Unknown"
+        user_id_val = entry.get("discord_user_id") or ""
+        message = _build_spotlight_message(reason, username, user_id_val)
+
+        success = await send_spotlight_to_discord(message)
+        new_status = "sent" if success else "failed"
+
+        try:
+            update_data: Dict[str, Any] = {
+                "status": new_status,
+                "message": message,
+            }
+            if success:
+                update_data["sent_at"] = datetime.now(timezone.utc).isoformat()
+                sent_count += 1
+            else:
+                update_data["error_message"] = "Webhook delivery failed"
+                failed_count += 1
+            sb.table("spotlight_history").update(update_data).eq("id", entry["id"]).execute()
+        except Exception as e:
+            logger.error("Failed to update spotlight %s: %s", entry["id"], e)
+            failed_count += 1
+
+        # Small delay to avoid webhook rate limits
+        await asyncio.sleep(1)
+
+    return {
+        "success": True,
+        "processed": len(pending),
+        "sent": sent_count,
+        "failed": failed_count,
+    }
 
 
 @router.get("/stats")
