@@ -18,6 +18,7 @@ interface GuildSettings {
   gift_code_alerts: boolean;
   gift_code_channel_id: string | null;
   gift_code_custom_message: string | null;
+  gift_code_role_id: string | null;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -43,7 +44,7 @@ interface GuildAdmin {
   id: string;
   guild_id: string;
   user_id: string;
-  role: 'owner' | 'admin';
+  role: 'owner' | 'admin' | 'blocked';
   created_at: string;
   username?: string;
 }
@@ -62,7 +63,7 @@ interface EventHistoryRow {
 
 type EventType = 'bear_hunt' | 'viking_vengeance' | 'swordland_showdown' | 'tri_alliance_clash';
 interface TimeSlot { hour: number; minute: number; day?: number; }
-type DashTab = 'events' | 'settings' | 'admins' | 'history';
+type DashTab = 'events' | 'settings' | 'access' | 'history';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -443,11 +444,12 @@ const BotDashboard: React.FC = () => {
   const [fetchingGuilds, setFetchingGuilds] = useState(false);
   const [setupErr, setSetupErr] = useState('');
   const [registeringId, setRegisteringId] = useState<string | null>(null);
-  const [adminInput, setAdminInput] = useState('');
-  const [addingAdmin, setAddingAdmin] = useState(false);
-  const [adminSuggestions, setAdminSuggestions] = useState<{ id: string; discord_username: string; username: string; discord_id: string }[]>([]);
-  const [adminSearchOpen, setAdminSearchOpen] = useState(false);
-  const adminSearchRef = useRef<HTMLDivElement>(null);
+  const [blockInput, setBlockInput] = useState('');
+  const [blockingUser, setBlockingUser] = useState(false);
+  const [blockSuggestions, setBlockSuggestions] = useState<{ id: string; discord_username: string; username: string; discord_id: string }[]>([]);
+  const [blockSearchOpen, setBlockSearchOpen] = useState(false);
+  const blockSearchRef = useRef<HTMLDivElement>(null);
+  const [removingGuild, setRemovingGuild] = useState<string | null>(null);
   const [dChannels, setDChannels] = useState<DiscordChannel[]>([]);
   const [dRoles, setDRoles] = useState<DiscordRole[]>([]);
   const [dCategories, setDCategories] = useState<DiscordCategory[]>([]);
@@ -592,54 +594,72 @@ const BotDashboard: React.FC = () => {
     if (error) { flash('Save failed', false); loadGuilds(); }
   };
 
-  const searchAdminUsers = useCallback(async (q: string) => {
-    if (!supabase || q.length < 2) { setAdminSuggestions([]); return; }
+  const searchBlockUsers = useCallback(async (q: string) => {
+    if (!supabase || q.length < 2) { setBlockSuggestions([]); return; }
     const { data } = await supabase.from('profiles')
       .select('id, username, discord_username, discord_id')
       .not('discord_id', 'is', null)
       .ilike('discord_username', `%${q}%`)
       .limit(10);
-    setAdminSuggestions((data || []).filter(p => !admins.some(a => a.user_id === p.id)) as typeof adminSuggestions);
+    setBlockSuggestions((data || []).filter(p => !admins.some(a => a.user_id === p.id)) as typeof blockSuggestions);
   }, [admins]);
 
   useEffect(() => {
-    const handler = (e: MouseEvent) => { if (adminSearchRef.current && !adminSearchRef.current.contains(e.target as Node)) setAdminSearchOpen(false); };
+    const handler = (e: MouseEvent) => { if (blockSearchRef.current && !blockSearchRef.current.contains(e.target as Node)) setBlockSearchOpen(false); };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const addAdmin = async (userId?: string) => {
+  const blockUser = async (userId?: string) => {
     if (!supabase || !guild) return;
     const targetId = userId;
-    if (!targetId && !adminInput.trim()) return;
-    setAddingAdmin(true);
+    if (!targetId && !blockInput.trim()) return;
+    setBlockingUser(true);
     try {
       let p: { id: string; username: string; discord_id: string | null; discord_username: string | null } | null = null;
       if (targetId) {
         const { data } = await supabase.from('profiles').select('id, username, discord_id, discord_username').eq('id', targetId).single();
         p = data;
       } else {
-        const { data } = await supabase.from('profiles').select('id, username, discord_id, discord_username').ilike('discord_username', adminInput.trim()).single();
+        const { data } = await supabase.from('profiles').select('id, username, discord_id, discord_username').ilike('discord_username', blockInput.trim()).single();
         p = data;
       }
       if (!p) { flash('User not found.', false); return; }
       if (!p.discord_id) { flash('User has no Discord linked.', false); return; }
-      if (admins.some(a => a.user_id === p!.id)) { flash('Already an admin.', false); return; }
-      const { error } = await supabase.from('bot_guild_admins').insert({ guild_id: guild.guild_id, user_id: p.id, role: 'admin' });
+      if (admins.some(a => a.user_id === p!.id && a.role === 'owner')) { flash('Cannot block the owner.', false); return; }
+      if (admins.some(a => a.user_id === p!.id && a.role === 'blocked')) { flash('Already blocked.', false); return; }
+      // Remove any existing admin entry first, then insert as blocked
+      const existing = admins.find(a => a.user_id === p!.id);
+      if (existing) await supabase.from('bot_guild_admins').delete().eq('id', existing.id);
+      const { error } = await supabase.from('bot_guild_admins').insert({ guild_id: guild.guild_id, user_id: p.id, role: 'blocked' });
       if (error) { flash(error.message, false); return; }
-      flash(`Added ${p.discord_username || p.username}`); setAdminInput(''); setAdminSuggestions([]); setAdminSearchOpen(false); await loadAdm(guild.guild_id);
+      flash(`Blocked ${p.discord_username || p.username}`); setBlockInput(''); setBlockSuggestions([]); setBlockSearchOpen(false); await loadAdm(guild.guild_id);
     } catch { flash('Failed', false); }
-    finally { setAddingAdmin(false); }
+    finally { setBlockingUser(false); }
   };
 
-  const rmAdmin = async (aid: string, uid: string) => {
+  const unblockUser = async (aid: string) => {
     if (!supabase || !guild) return;
-    const a = admins.find(x => x.id === aid);
-    if (a?.role === 'owner') { flash('Cannot remove owner', false); return; }
-    if (uid === user?.id) { flash('Cannot remove yourself', false); return; }
     const { error } = await supabase.from('bot_guild_admins').delete().eq('id', aid);
     if (error) { flash('Failed', false); return; }
-    flash('Removed'); await loadAdm(guild.guild_id);
+    flash('Unblocked'); await loadAdm(guild.guild_id);
+  };
+
+  const removeGuild = async (gid: string) => {
+    if (!supabase || !user) return;
+    setRemovingGuild(gid);
+    try {
+      // Delete admins, events, history, then settings
+      await supabase.from('bot_guild_admins').delete().eq('guild_id', gid);
+      await supabase.from('bot_event_history').delete().eq('guild_id', gid);
+      await supabase.from('bot_alliance_events').delete().eq('guild_id', gid);
+      const { error } = await supabase.from('bot_guild_settings').delete().eq('guild_id', gid);
+      if (error) { flash('Failed to remove server', false); return; }
+      setGuilds(p => p.filter(g => g.guild_id !== gid));
+      if (selGuild === gid) setSelGuild(guilds.find(g => g.guild_id !== gid)?.guild_id || null);
+      flash('Server removed');
+    } catch { flash('Failed', false); }
+    finally { setRemovingGuild(null); }
   };
 
   // ─── Test Messages ──────────────────────────────────────────────────────
@@ -851,7 +871,7 @@ const BotDashboard: React.FC = () => {
   const tabs: { id: DashTab; label: string; icon: string }[] = [
     { id: 'events', label: 'Events', icon: '⚔️' },
     { id: 'settings', label: 'Settings', icon: '⚙️' },
-    { id: 'admins', label: 'Admins', icon: '👥' },
+    { id: 'access', label: 'Access', icon: '�' },
     { id: 'history', label: 'History', icon: '📋' },
   ];
 
@@ -892,7 +912,7 @@ const BotDashboard: React.FC = () => {
             { l: 'Active Reminders', v: String(activeEv), c: colors.success },
             { l: 'Configured', v: `${events.filter(e => e.time_slots.length > 0).length}/4`, c: colors.primary },
             { l: 'Gift Codes', v: guild?.gift_code_alerts ? 'ON' : 'OFF', c: guild?.gift_code_alerts ? colors.success : colors.textMuted },
-            { l: 'Admins', v: String(admins.length), c: colors.textMuted },
+            { l: 'Blocked', v: String(admins.filter(a => a.role === 'blocked').length), c: admins.some(a => a.role === 'blocked') ? colors.error : colors.textMuted },
           ].map(s => (
             <div key={s.l} style={{ backgroundColor: colors.surface, borderRadius: 10, border: `1px solid ${colors.border}`, padding: '0.75rem', textAlign: 'center' }}>
               <div style={{ color: s.c, fontSize: '1.1rem', fontWeight: 700, fontFamily: "'JetBrains Mono', monospace" }}>{s.v}</div>
@@ -983,11 +1003,46 @@ const BotDashboard: React.FC = () => {
                           )}
                         </div>
                       )}
+                    <div>
+                      <label style={lS}>ROLE TO MENTION <span style={{ fontWeight: 400, color: colors.textMuted }}>(optional)</span></label>
+                      {dRoles.length > 0 || loadingDiscord ? (
+                        <SearchableSelect value={guild.gift_code_role_id} onChange={v => upGuild({ gift_code_role_id: v })} options={dRoles.map(r => ({ id: r.id, name: r.name, color: r.color }))} placeholder="No role mention" loading={loadingDiscord} accentColor={colors.success} />
+                      ) : (
+                        <input type="text" value={guild.gift_code_role_id || ''} onChange={e => upGuild({ gift_code_role_id: e.target.value || null })} placeholder="Role ID (optional)" style={iS} />
+                      )}
+                    </div>
                     </div>
                   </div>
                 )}
               </div>
             </div>
+
+            {/* Connected Servers */}
+            <div style={{ backgroundColor: colors.surface, borderRadius: 12, border: `1px solid ${colors.border}`, padding: mob ? '1rem' : '1.25rem', marginTop: '1.25rem' }}>
+              <h3 style={{ color: colors.text, fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.5rem' }}>🖥️ Connected Servers</h3>
+              <p style={{ color: colors.textMuted, fontSize: '0.7rem', marginBottom: '0.75rem' }}>Servers registered with Atlas Bot. Remove a server to disconnect it completely.</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                {guilds.map(g => (
+                  <div key={g.guild_id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.6rem 0.8rem', backgroundColor: g.guild_id === selGuild ? `${colors.primary}08` : '#0f0f0f', borderRadius: 8, border: `1px solid ${g.guild_id === selGuild ? colors.primary + '30' : colors.border}` }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
+                      {g.guild_icon_url ? <img src={g.guild_icon_url} alt="" style={{ width: 28, height: 28, borderRadius: '50%' }} /> : <div style={{ width: 28, height: 28, borderRadius: '50%', backgroundColor: colors.border, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', color: colors.textMuted, flexShrink: 0 }}>{g.guild_name.charAt(0)}</div>}
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ color: colors.text, fontSize: '0.8rem', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.guild_name}</div>
+                        <div style={{ color: colors.textMuted, fontSize: '0.6rem' }}>{g.guild_id === selGuild ? 'Currently viewing' : ''}</div>
+                      </div>
+                    </div>
+                    {g.created_by === user?.id && (
+                      <button onClick={() => { if (confirm(`Remove ${g.guild_name}? This deletes all events, settings, and history for this server.`)) removeGuild(g.guild_id); }}
+                        disabled={removingGuild === g.guild_id}
+                        style={{ padding: '0.3rem 0.6rem', backgroundColor: 'transparent', border: `1px solid ${colors.error}40`, borderRadius: 6, color: colors.error, fontSize: '0.65rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                        {removingGuild === g.guild_id ? '...' : '✕ Remove'}
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
             <div style={{ backgroundColor: colors.surface, borderRadius: 12, border: `1px solid ${colors.primary}20`, padding: mob ? '1rem' : '1.25rem', marginTop: '1.25rem', background: `linear-gradient(135deg, ${colors.surface} 0%, ${colors.primary}05 100%)` }}>
               <h3 style={{ color: colors.text, fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.6rem' }}>💡 How It Works</h3>
               <div style={{ display: 'grid', gridTemplateColumns: mob ? '1fr' : 'repeat(3,1fr)', gap: '0.75rem' }}>
@@ -1048,50 +1103,70 @@ const BotDashboard: React.FC = () => {
           </div>
         )}
 
-        {/* Admins Tab */}
-        {tab === 'admins' && guild && (
+        {/* Access Control Tab */}
+        {tab === 'access' && guild && (
           <div>
             <h2 style={{ color: colors.text, fontSize: mob ? '1rem' : '1.1rem', fontWeight: 700, marginBottom: '0.75rem', fontFamily: FONT_DISPLAY }}>
-              <span style={{ color: '#fff' }}>SERVER</span><span style={{ ...neonGlow('#a855f7'), marginLeft: '0.3rem' }}>ADMINS</span>
+              <span style={{ color: '#fff' }}>ACCESS</span><span style={{ ...neonGlow('#a855f7'), marginLeft: '0.3rem' }}>CONTROL</span>
             </h2>
-            <p style={{ color: colors.textMuted, fontSize: '0.8rem', marginBottom: '1rem' }}>Admins can edit reminders and settings. Only add users with <strong style={{ color: colors.text }}>Manage Server</strong> Discord permission.</p>
-            <div style={{ backgroundColor: colors.surface, borderRadius: 12, border: `1px solid ${colors.border}`, padding: mob ? '1rem' : '1.25rem', marginBottom: '1rem' }}>
-              <label style={lS}>ADD BY DISCORD USERNAME</label>
-              <div ref={adminSearchRef} style={{ position: 'relative', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                <div style={{ position: 'relative', flex: 1 }}>
-                  <input type="text" value={adminInput} onChange={e => { setAdminInput(e.target.value); setAdminSearchOpen(true); searchAdminUsers(e.target.value); }}
-                    onFocus={() => { if (adminInput.length >= 2) setAdminSearchOpen(true); }}
-                    onKeyDown={e => { if (e.key === 'Enter') addAdmin(); }} placeholder="Discord username" style={iS} />
-                  {adminSearchOpen && adminSuggestions.length > 0 && (
-                    <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50, marginTop: 4, backgroundColor: '#1a1a1a', border: `1px solid ${colors.border}`, borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.6)', maxHeight: 180, overflowY: 'auto' }}>
-                      {adminSuggestions.map(s => (
-                        <button key={s.id} onClick={() => { addAdmin(s.id); }}
-                          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%', padding: '0.45rem 0.6rem', border: 'none', borderBottom: `1px solid ${colors.borderSubtle}`, backgroundColor: 'transparent', color: colors.text, fontSize: '0.8rem', cursor: 'pointer', textAlign: 'left' }}>
-                          <span style={{ fontSize: '0.85rem' }}>🎮</span>
-                          <div>
-                            <div style={{ fontWeight: 600, fontSize: '0.8rem' }}>{s.discord_username}</div>
-                            <div style={{ color: colors.textMuted, fontSize: '0.65rem' }}>Atlas: {s.username}</div>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <button onClick={() => addAdmin()} disabled={!adminInput.trim() || addingAdmin} style={{ padding: '0.5rem 1rem', backgroundColor: adminInput.trim() ? '#a855f7' : colors.border, border: 'none', borderRadius: 8, color: adminInput.trim() ? '#fff' : colors.textMuted, fontSize: '0.8rem', fontWeight: 600, cursor: adminInput.trim() ? 'pointer' : 'default', whiteSpace: 'nowrap' }}>{addingAdmin ? '...' : '+ Add'}</button>
+            <div style={{ backgroundColor: `${colors.primary}08`, borderRadius: 10, border: `1px solid ${colors.primary}20`, padding: '0.75rem 1rem', marginBottom: '1rem' }}>
+              <div style={{ color: colors.text, fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.25rem' }}>🔓 Who can access this dashboard?</div>
+              <div style={{ color: colors.textMuted, fontSize: '0.75rem', lineHeight: 1.5 }}>
+                Anyone with <strong style={{ color: colors.text }}>Manage Server</strong> permission in your Discord server can access this dashboard — no setup needed. The server owner can block specific users below.
               </div>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              {admins.map(a => (
-                <div key={a.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: colors.surface, borderRadius: 10, border: `1px solid ${colors.border}`, padding: '0.75rem 1rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <span style={{ fontSize: '1rem' }}>{a.role === 'owner' ? '👑' : '🛡️'}</span>
-                    <div><div style={{ color: colors.text, fontSize: '0.85rem', fontWeight: 600 }}>{a.username}</div><div style={{ color: colors.textMuted, fontSize: '0.65rem' }}>{a.role === 'owner' ? 'Owner' : 'Admin'} • {ago(a.created_at)}</div></div>
+            {guild.created_by === user?.id && (
+              <div style={{ backgroundColor: colors.surface, borderRadius: 12, border: `1px solid ${colors.border}`, padding: mob ? '1rem' : '1.25rem', marginBottom: '1rem' }}>
+                <label style={lS}>BLOCK A USER</label>
+                <p style={{ color: colors.textMuted, fontSize: '0.7rem', marginBottom: '0.5rem' }}>Blocked users cannot access this server's dashboard even if they have Manage Server permission.</p>
+                <div ref={blockSearchRef} style={{ position: 'relative', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <div style={{ position: 'relative', flex: 1 }}>
+                    <input type="text" value={blockInput} onChange={e => { setBlockInput(e.target.value); setBlockSearchOpen(true); searchBlockUsers(e.target.value); }}
+                      onFocus={() => { if (blockInput.length >= 2) setBlockSearchOpen(true); }}
+                      onKeyDown={e => { if (e.key === 'Enter') blockUser(); }} placeholder="Discord username" style={iS} />
+                    {blockSearchOpen && blockSuggestions.length > 0 && (
+                      <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50, marginTop: 4, backgroundColor: '#1a1a1a', border: `1px solid ${colors.border}`, borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.6)', maxHeight: 180, overflowY: 'auto' }}>
+                        {blockSuggestions.map(s => (
+                          <button key={s.id} onClick={() => { blockUser(s.id); }}
+                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%', padding: '0.45rem 0.6rem', border: 'none', borderBottom: `1px solid ${colors.borderSubtle}`, backgroundColor: 'transparent', color: colors.text, fontSize: '0.8rem', cursor: 'pointer', textAlign: 'left' }}>
+                            <span style={{ fontSize: '0.85rem' }}>🎮</span>
+                            <div>
+                              <div style={{ fontWeight: 600, fontSize: '0.8rem' }}>{s.discord_username}</div>
+                              <div style={{ color: colors.textMuted, fontSize: '0.65rem' }}>Atlas: {s.username}</div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  {a.role !== 'owner' && a.user_id !== user?.id && (
-                    <button onClick={() => rmAdmin(a.id, a.user_id)} style={{ padding: '0.3rem 0.6rem', backgroundColor: 'transparent', border: `1px solid ${colors.error}40`, borderRadius: 6, color: colors.error, fontSize: '0.7rem', fontWeight: 600, cursor: 'pointer' }}>Remove</button>
-                  )}
+                  <button onClick={() => blockUser()} disabled={!blockInput.trim() || blockingUser} style={{ padding: '0.5rem 1rem', backgroundColor: blockInput.trim() ? colors.error : colors.border, border: 'none', borderRadius: 8, color: blockInput.trim() ? '#fff' : colors.textMuted, fontSize: '0.8rem', fontWeight: 600, cursor: blockInput.trim() ? 'pointer' : 'default', whiteSpace: 'nowrap' }}>{blockingUser ? '...' : '🚫 Block'}</button>
                 </div>
-              ))}
+              </div>
+            )}
+            {admins.filter(a => a.role === 'blocked').length > 0 && (
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={lS}>BLOCKED USERS</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  {admins.filter(a => a.role === 'blocked').map(a => (
+                    <div key={a.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: colors.surface, borderRadius: 10, border: `1px solid ${colors.error}20`, padding: '0.65rem 1rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span style={{ fontSize: '0.9rem' }}>�</span>
+                        <div><div style={{ color: colors.text, fontSize: '0.8rem', fontWeight: 600 }}>{a.username}</div><div style={{ color: colors.textMuted, fontSize: '0.6rem' }}>Blocked • {ago(a.created_at)}</div></div>
+                      </div>
+                      {guild.created_by === user?.id && (
+                        <button onClick={() => unblockUser(a.id)} style={{ padding: '0.3rem 0.6rem', backgroundColor: 'transparent', border: `1px solid ${colors.success}40`, borderRadius: 6, color: colors.success, fontSize: '0.7rem', fontWeight: 600, cursor: 'pointer' }}>Unblock</button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div style={{ backgroundColor: colors.surface, borderRadius: 10, border: `1px solid ${colors.border}`, padding: '0.85rem 1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                <span style={{ fontSize: '0.9rem' }}>👑</span>
+                <div><div style={{ color: colors.text, fontSize: '0.8rem', fontWeight: 600 }}>Server Owner</div><div style={{ color: colors.textMuted, fontSize: '0.6rem' }}>{admins.find(a => a.role === 'owner')?.username || 'You'}</div></div>
+              </div>
+              <div style={{ color: colors.textMuted, fontSize: '0.7rem', lineHeight: 1.4 }}>The owner who registered this server. Only the owner can block/unblock users and remove the server.</div>
             </div>
           </div>
         )}

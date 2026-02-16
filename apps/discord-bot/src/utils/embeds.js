@@ -1063,19 +1063,23 @@ function createGiftCodesEmbed(codes) {
  * Create gift codes notification embed for auto-posting new codes
  * Short, sweet, Atlas personality
  */
-function createNewGiftCodeEmbed(code) {
+function createNewGiftCodeEmbed(code, customMessage) {
+  const lines = [];
+  if (customMessage) lines.push(customMessage, '');
+  lines.push(
+    `## \`${code.code}\``,
+    '',
+    '⚡ Use `/redeem` right here in Discord',
+    `🌐 Or one-click redeem at **[ks-atlas.com/tools/gift-codes](${config.urls.base}/tools/gift-codes)**`,
+    '',
+    '*Redeem before it expires!*',
+  );
   return createBaseEmbed()
     .setTitle('🎁 New Gift Code')
-    .setColor(0xf59e0b)
-    .setDescription([
-      `## \`${code.code}\``,
-      '',
-      '⚡ Use `/redeem` right here in Discord',
-      `🌐 Or one-click redeem at **[ks-atlas.com/tools/gift-codes](${config.urls.base}/tools/gift-codes)**`,
-      '',
-      '*Redeem before it expires!*',
-    ].join('\n'))
-    .setFooter({ text: config.bot.footerText })
+    .setURL(`${config.urls.base}/tools/gift-codes`)
+    .setColor(0x22c55e)
+    .setDescription(lines.join('\n'))
+    .setFooter({ text: 'Brought to you by Atlas · ks-atlas.com' })
     .setTimestamp();
 }
 

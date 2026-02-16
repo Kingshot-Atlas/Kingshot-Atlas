@@ -387,15 +387,11 @@ let giftCodeClient = null; // Set by initScheduler
 /**
  * Check for new gift codes and post to Discord if found.
  * Uses the backend API which auto-syncs kingshot.net → Supabase.
+ * Posts to ALL guilds that have gift_code_alerts=true in bot_guild_settings.
  */
 async function checkAndPostNewGiftCodes() {
-  const channelId = config.giftCodesChannelId;
-  const roleId = config.giftCodesRoleId;
-  const hasChannel = giftCodeClient && channelId;
-  const hasWebhook = config.giftCodesWebhook;
-
-  if (!hasChannel && !hasWebhook) {
-    console.warn('⚠️ No gift codes channel or webhook configured');
+  if (!giftCodeClient) {
+    console.warn('⚠️ Gift code client not initialized');
     return;
   }
 
@@ -427,49 +423,83 @@ async function checkAndPostNewGiftCodes() {
     const newCodes = activeCodes.filter(c => !knownGiftCodes.has(c.code));
 
     if (newCodes.length > 0) {
-      console.log(`🎁 ${newCodes.length} new gift code(s) detected!`);
+      console.log(`🎁 ${newCodes.length} new gift code(s) detected! Posting to all configured guilds...`);
+
+      // Fetch all guilds with gift code alerts enabled from Supabase
+      let guilds = [];
+      const supabaseUrl = process.env.SUPABASE_URL;
+      const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
+      if (supabaseUrl && supabaseKey) {
+        try {
+          const guildRes = await fetch(`${supabaseUrl}/rest/v1/bot_guild_settings?gift_code_alerts=eq.true&select=guild_id,guild_name,gift_code_channel_id,reminder_channel_id,gift_code_role_id,gift_code_custom_message`, {
+            headers: {
+              'apikey': supabaseKey,
+              'Authorization': `Bearer ${supabaseKey}`,
+              'Content-Type': 'application/json',
+            },
+            signal: AbortSignal.timeout(10000),
+          });
+          if (guildRes.ok) guilds = await guildRes.json();
+        } catch (e) {
+          console.error('❌ Failed to fetch guild settings for gift codes:', e.message);
+        }
+      }
 
       for (const code of newCodes) {
         knownGiftCodes.add(code.code);
 
-        // Post to #giftcodes channel via bot client (preferred)
-        if (hasChannel) {
+        // Post to each guild's configured channel
+        for (const guild of guilds) {
+          const channelId = guild.gift_code_channel_id || guild.reminder_channel_id;
+          if (!channelId) continue;
+
           try {
             const channel = await giftCodeClient.channels.fetch(channelId);
+            if (!channel) continue;
+
+            // Build embed with per-guild custom message
+            const customMsg = guild.gift_code_custom_message || '';
+            const embed = embeds.createNewGiftCodeEmbed(code, customMsg);
+            const roleId = guild.gift_code_role_id;
+            const roleMention = roleId ? `<@&${roleId}>` : '';
+
+            await channel.send({
+              content: roleMention || undefined,
+              embeds: [embed],
+              allowedMentions: roleId ? { roles: [roleId] } : undefined,
+            });
+            console.log(`✅ Posted gift code ${code.code} to ${guild.guild_name} (#${channelId})`);
+          } catch (channelErr) {
+            console.error(`❌ Failed to post gift code to ${guild.guild_name} (${channelId}): ${channelErr.message}`);
+          }
+
+          // Small delay between guild posts
+          await new Promise(r => setTimeout(r, 500));
+        }
+
+        // Also post to Atlas Discord's hardcoded channel (backward compat)
+        const atlasChannelId = config.giftCodesChannelId;
+        const atlasRoleId = config.giftCodesRoleId;
+        const alreadyPosted = guilds.some(g => (g.gift_code_channel_id || g.reminder_channel_id) === atlasChannelId);
+        if (atlasChannelId && !alreadyPosted) {
+          try {
+            const channel = await giftCodeClient.channels.fetch(atlasChannelId);
             if (channel) {
               const embed = embeds.createNewGiftCodeEmbed(code);
-              const roleMention = roleId ? `<@&${roleId}>` : '';
+              const roleMention = atlasRoleId ? `<@&${atlasRoleId}>` : '';
               await channel.send({
                 content: roleMention,
                 embeds: [embed],
-                allowedMentions: { roles: roleId ? [roleId] : [] },
+                allowedMentions: { roles: atlasRoleId ? [atlasRoleId] : [] },
               });
-              console.log(`✅ Posted new gift code to #giftcodes: ${code.code}`);
+              console.log(`✅ Posted gift code ${code.code} to Atlas Discord`);
             }
-          } catch (channelErr) {
-            console.error(`❌ Failed to post to #giftcodes channel: ${channelErr.message}`);
-          }
-        }
-        // Fallback: webhook
-        else if (hasWebhook) {
-          try {
-            const embed = embeds.createNewGiftCodeEmbed(code);
-            await fetch(config.giftCodesWebhook, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                username: 'Atlas',
-                avatar_url: config.botAvatarUrl,
-                embeds: [embed.toJSON()],
-              }),
-            });
-            console.log(`✅ Posted new gift code via webhook: ${code.code}`);
-          } catch (webhookErr) {
-            console.error(`❌ Webhook post failed for ${code.code}:`, webhookErr.message);
+          } catch (err) {
+            console.error(`❌ Failed to post to Atlas Discord: ${err.message}`);
           }
         }
 
-        // Small delay between posts
+        // Delay between codes
         if (newCodes.indexOf(code) < newCodes.length - 1) {
           await new Promise(r => setTimeout(r, 1500));
         }
