@@ -3,6 +3,17 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-22 14:00 | Product Engineer | COMPLETED
+Task: Bot Dashboard v2 — 500 fix, alliance reminders, multi-guild, permissions, event history
+Files: `allianceReminders.js` (new), `scheduler.js` (modified), `BotDashboard.tsx` (rewritten), Edge Function `verify-guild-permissions` (deployed)
+Changes:
+1. **500 Error Fix** — Supabase trigger functions `fn_bot_guild_auto_owner` and `fn_bot_guild_default_events` recreated with `SET search_path = public` (SECURITY DEFINER issue).
+2. **Schema Updates** — Migration: `last_reminded_at` column, `bot_event_history` table with RLS, `reminder_minutes_before` CHECK (0-60), performance indexes.
+3. **Alliance Reminders Module** — `allianceReminders.js`: reads enabled events from Supabase every minute via cron, checks event day (Bear Hunt every-2-days, biweekly, monthly cycles via `reference_date`), sends Discord embeds with role mentions, updates `last_reminded_at`, logs to `bot_event_history`. Wired into `scheduler.js`.
+4. **Permission Verification** — Edge Function `verify-guild-permissions`: checks Discord MANAGE_GUILD permission via bot token before allowing server registration.
+5. **Dashboard Rewrite** — Multi-guild support, tab navigation (Events/Settings/Admins/History), timezone toggle (UTC+local), admin management by Atlas username, event history log, custom 0-60min reminder input, reference date picker, Bear Hunt corrected to "Every 2 Days".
+Result: Build passes ✅. Committed and pushed to main.
+
 ## 2026-02-21 22:30 | Product Engineer | COMPLETED
 Task: Nearby Kingdoms transfer group filter, PrepScheduler minutes display, Atlas Bot Dashboard
 Files: `SimilarKingdoms.tsx` (modified), `PrepScheduler.tsx` (modified), `BotDashboard.tsx` (new), `App.tsx` (modified), `AtlasBot.tsx` (modified)
