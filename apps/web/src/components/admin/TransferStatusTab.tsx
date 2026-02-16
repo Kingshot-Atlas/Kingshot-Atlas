@@ -8,6 +8,7 @@ interface TransferSubmission {
   new_status: string;
   notes: string | null;
   status: 'pending' | 'approved' | 'rejected';
+  submitted_by_name?: string;
   submitted_at: string;
   reviewed_at?: string | null;
 }
@@ -63,6 +64,7 @@ export const TransferStatusTab: React.FC<TransferStatusTabProps> = ({
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #2a2a2a', paddingTop: '1rem' }}>
               <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                {sub.submitted_by_name && <span style={{ color: '#9ca3af' }}>by <strong style={{ color: '#d1d5db' }}>{sub.submitted_by_name}</strong> • </span>}
                 Submitted {new Date(sub.submitted_at).toLocaleDateString()}
                 {sub.reviewed_at && ` • Reviewed ${new Date(sub.reviewed_at).toLocaleDateString()}`}
               </div>

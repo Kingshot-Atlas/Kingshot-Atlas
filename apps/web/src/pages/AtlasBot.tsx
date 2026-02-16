@@ -609,6 +609,85 @@ const AtlasBot: React.FC = () => {
           </div>
         </div>
 
+        {/* Server Dashboard */}
+        <div style={{ marginBottom: isMobile ? '2rem' : '3rem' }}>
+          <h2 style={{
+            fontSize: isMobile ? '1.1rem' : '1.35rem',
+            fontWeight: 'bold',
+            color: '#fff',
+            marginBottom: '0.4rem',
+            fontFamily: FONT_DISPLAY,
+            textAlign: 'center'
+          }}>
+            <span style={{ color: '#fff' }}>SERVER</span>
+            <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.4rem' }}>DASHBOARD</span>
+          </h2>
+          <p style={{
+            color: '#6b7280',
+            fontSize: isMobile ? '0.8rem' : '0.85rem',
+            textAlign: 'center',
+            marginBottom: '1.5rem'
+          }}>
+            {t('atlasBot.dashboardSubtitle', 'Your server, your rules. Configure everything from one place.')}
+          </p>
+
+          <div style={{
+            backgroundColor: '#111111',
+            borderRadius: '16px',
+            border: '1px solid #22d3ee20',
+            padding: isMobile ? '1.25rem' : '1.75rem',
+            background: 'linear-gradient(135deg, #111111 0%, #22d3ee05 100%)',
+            marginBottom: '1rem'
+          }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
+              gap: '1rem',
+              marginBottom: '1.25rem'
+            }}>
+              {[
+                { icon: '🎁', title: t('atlasBot.dashGiftCodes', 'Gift Code Alerts'), desc: t('atlasBot.dashGiftCodesDesc', 'New codes drop — your server knows instantly. Auto-posted to your channel with optional role pings.') },
+                { icon: '🗓️', title: t('atlasBot.dashEventReminders', 'Alliance Event Reminders'), desc: t('atlasBot.dashEventRemindersDesc', 'Bear Hunt, Viking Vengeance, Swordland Showdown, Tri-Alliance Clash — timed reminders so nobody misses the fight.') },
+                { icon: '🖥️', title: t('atlasBot.dashMultiServer', 'Multi-Server Management'), desc: t('atlasBot.dashMultiServerDesc', 'Run multiple Discord servers? Switch between them seamlessly. One dashboard, all your setups.') },
+                { icon: '🔐', title: t('atlasBot.dashAccessControl', 'Access Control'), desc: t('atlasBot.dashAccessControlDesc', 'Block specific users from your dashboard. Only the right people manage your server\'s bot config.') },
+              ].map((f) => (
+                <div key={f.title} style={{
+                  display: 'flex', alignItems: 'flex-start', gap: '0.75rem',
+                }}>
+                  <span style={{ fontSize: '1.25rem', lineHeight: 1, flexShrink: 0 }}>{f.icon}</span>
+                  <div>
+                    <h4 style={{ color: '#fff', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.2rem' }}>{f.title}</h4>
+                    <p style={{ color: '#9ca3af', fontSize: '0.75rem', lineHeight: 1.5 }}>{f.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <Link
+              to="/atlas-bot/dashboard"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                padding: '0.6rem 1.25rem',
+                backgroundColor: '#22d3ee15',
+                border: '1px solid #22d3ee40',
+                borderRadius: '8px',
+                color: '#22d3ee',
+                fontWeight: '600',
+                fontSize: isMobile ? '0.8rem' : '0.85rem',
+                textDecoration: 'none',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              ⚙️ {t('atlasBot.openDashboard', 'Open the Dashboard')}
+            </Link>
+            <p style={{ color: '#4b5563', fontSize: '0.7rem', marginTop: '0.5rem' }}>
+              {t('atlasBot.dashSupporterNote', 'Available to Atlas Supporters. Invite the bot first, then configure from here.')}
+            </p>
+          </div>
+        </div>
+
         {/* Bottom CTA */}
         <div style={{
           padding: isMobile ? '1.5rem' : '2rem',

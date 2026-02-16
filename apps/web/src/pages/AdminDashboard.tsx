@@ -48,6 +48,7 @@ import {
   ImportTab,
   PlausibleTab,
   RejectModal,
+  KvKBulkMatchupTab,
   SkeletonGrid,
   type AdminTab,
 
@@ -671,7 +672,7 @@ const AdminDashboard: React.FC = () => {
     // The trigger notify_user_on_kvk_error_review handles this
     
     // Apply KvK correction to data if approved (writes to Supabase kvk_history)
-    if (status === 'approved' && kvkError?.current_data) {
+    if (status === 'approved' && kvkError && (kvkError.current_data || kvkError.corrected_data)) {
       const success = await kvkCorrectionService.applyCorrectionAsync(kvkError, profile?.username || 'admin');
       if (success) {
         // Invalidate all caches to ensure fresh data everywhere
@@ -683,8 +684,9 @@ const AdminDashboard: React.FC = () => {
       }
     }
     
+    const oppLabel = kvkError?.corrected_data?.opponent ?? kvkError?.current_data?.opponent;
     const toastMsg = status === 'approved' 
-      ? `✅ KvK #${kvkError?.kvk_number} correction applied! Data updated for K${kvkError?.kingdom_number} and K${kvkError?.current_data?.opponent}`
+      ? `✅ KvK #${kvkError?.kvk_number} correction applied! Data updated for K${kvkError?.kingdom_number}${oppLabel ? ` and K${oppLabel}` : ''}`
       : `KvK error report rejected`;
     showToast(toastMsg, 'success');
     fetchKvkErrors();
@@ -935,7 +937,7 @@ const AdminDashboard: React.FC = () => {
   // Determine active category based on current tab
   const getActiveCategory = () => {
     if (['analytics', 'engagement', 'plausible'].includes(activeTab)) return 'overview';
-    if (['submissions', 'new-kingdoms', 'claims', 'corrections', 'kvk-errors'].includes(activeTab)) return 'review';
+    if (['submissions', 'new-kingdoms', 'claims', 'corrections', 'kvk-errors', 'kvk-bulk'].includes(activeTab)) return 'review';
     if (['transfer-hub', 'transfer-status', 'transfer-apps'].includes(activeTab)) return 'transfer';
     if (['finance'].includes(activeTab)) return 'finance';
     return 'operations';
@@ -1092,6 +1094,8 @@ const AdminDashboard: React.FC = () => {
           onBulkReview={bulkReviewKvkErrors}
           onClearSelection={clearSelection}
         />
+      ) : activeTab === 'kvk-bulk' ? (
+        <KvKBulkMatchupTab />
       ) : activeTab === 'transfer-hub' ? (
         <TransferHubAdminTab />
       ) : activeTab === 'transfer-status' ? (

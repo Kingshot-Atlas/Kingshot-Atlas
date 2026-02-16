@@ -63,7 +63,7 @@ interface EventHistoryRow {
 
 type EventType = 'bear_hunt' | 'viking_vengeance' | 'swordland_showdown' | 'tri_alliance_clash';
 interface TimeSlot { hour: number; minute: number; day?: number; }
-type DashTab = 'events' | 'settings' | 'access' | 'history';
+type DashTab = 'notifications' | 'servers' | 'access' | 'history';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -438,7 +438,8 @@ const BotDashboard: React.FC = () => {
   const [admins, setAdmins] = useState<GuildAdmin[]>([]);
   const [hist, setHist] = useState<EventHistoryRow[]>([]);
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
-  const [tab, setTab] = useState<DashTab>('events');
+  const [tab, setTab] = useState<DashTab>('notifications');
+  const [giftCodeOpen, setGiftCodeOpen] = useState(false);
   const [showLocal, setShowLocal] = useState(false);
   const [discordGuilds, setDiscordGuilds] = useState<{guild_id: string; guild_name: string; guild_icon: string | null}[]>([]);
   const [fetchingGuilds, setFetchingGuilds] = useState(false);
@@ -869,9 +870,9 @@ const BotDashboard: React.FC = () => {
 
   const activeEv = events.filter(e => e.enabled && e.time_slots.length > 0).length;
   const tabs: { id: DashTab; label: string; icon: string }[] = [
-    { id: 'events', label: 'Events', icon: '⚔️' },
-    { id: 'settings', label: 'Settings', icon: '⚙️' },
-    { id: 'access', label: 'Access', icon: '�' },
+    { id: 'notifications', label: 'Notifications', icon: '📣' },
+    { id: 'servers', label: 'Servers', icon: '🖥️' },
+    { id: 'access', label: 'Access', icon: '🔐' },
     { id: 'history', label: 'History', icon: '📋' },
   ];
 
@@ -897,7 +898,7 @@ const BotDashboard: React.FC = () => {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             {canMultiServer && (
-              <button onClick={() => { setTab('settings'); fetchDiscordGuilds(); }} style={{ color: colors.textMuted, fontSize: '0.7rem', padding: '0.35rem 0.6rem', borderRadius: 6, border: `1px solid ${colors.border}`, cursor: 'pointer', backgroundColor: 'transparent' }}>+ Server</button>
+              <button onClick={() => { setTab('servers'); fetchDiscordGuilds(); }} style={{ color: colors.textMuted, fontSize: '0.7rem', padding: '0.35rem 0.6rem', borderRadius: 6, border: `1px solid ${colors.border}`, cursor: 'pointer', backgroundColor: 'transparent' }}>+ Server</button>
             )}
             <button onClick={() => setShowLocal(!showLocal)} style={{ color: colors.textMuted, fontSize: '0.7rem', padding: '0.35rem 0.6rem', borderRadius: 6, border: `1px solid ${colors.border}`, cursor: 'pointer', backgroundColor: showLocal ? `${colors.primary}15` : 'transparent' }}>{showLocal ? '🕐 Local' : '🌐 UTC'}</button>
             <Link to="/atlas-bot" style={{ color: colors.textMuted, textDecoration: 'none', fontSize: '0.75rem', padding: '0.4rem 0.7rem', borderRadius: 6, border: `1px solid ${colors.border}` }}>← Bot</Link>
@@ -928,70 +929,75 @@ const BotDashboard: React.FC = () => {
           ))}
         </div>
 
-        {/* Events Tab */}
-        {tab === 'events' && (
+        {/* Notifications Tab */}
+        {tab === 'notifications' && guild && (
           <div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
               <h2 style={{ color: colors.text, fontSize: mob ? '1rem' : '1.1rem', fontWeight: 700, margin: 0, fontFamily: FONT_DISPLAY }}>
-                <span style={{ color: '#fff' }}>ALLIANCE</span><span style={{ ...neonGlow(colors.orange), marginLeft: '0.3rem' }}>EVENTS</span>
+                <span style={{ color: '#fff' }}>NOTIFICATION</span><span style={{ ...neonGlow(colors.primary), marginLeft: '0.3rem' }}>CENTER</span>
               </h2>
               <span style={{ color: colors.textMuted, fontSize: '0.7rem' }}>Auto-saves</span>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              {sortedEvents.map(ev => <EvCard key={ev.id} ev={ev} onUp={u => upEv(ev.id, u)} mob={mob} local={showLocal} channels={dChannels} roles={dRoles} categories={dCategories} loadingDiscord={loadingDiscord} guildChannelId={guild?.reminder_channel_id || null} onTest={sendTestEvent} testing={testingEvent === ev.id} testResult={testResults[ev.id] || null} />)}
-              {events.length === 0 && <div style={{ backgroundColor: colors.surface, borderRadius: 12, border: `1px solid ${colors.border}`, padding: '2rem', textAlign: 'center', color: colors.textMuted, fontSize: '0.85rem' }}>No events configured. Try refreshing.</div>}
-            </div>
-          </div>
-        )}
 
-        {/* Settings Tab */}
-        {tab === 'settings' && guild && (
-          <div>
-            <h2 style={{ color: colors.text, fontSize: mob ? '1rem' : '1.1rem', fontWeight: 700, marginBottom: '0.75rem', fontFamily: FONT_DISPLAY }}>
-              <span style={{ color: '#fff' }}>GENERAL</span><span style={{ ...neonGlow(colors.primary), marginLeft: '0.3rem' }}>SETTINGS</span>
-            </h2>
-            <div style={{ backgroundColor: colors.surface, borderRadius: 12, border: `1px solid ${colors.border}`, padding: mob ? '1rem' : '1.25rem' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <div>
-                  <label style={lS}>DEFAULT REMINDER CHANNEL</label>
-                  {dChannels.length > 0 || loadingDiscord ? (
-                    <SearchableSelect value={guild.reminder_channel_id} onChange={v => upGuild({ reminder_channel_id: v })} options={dChannels.map(c => ({ id: c.id, name: c.name, category: '' }))} placeholder="Select a channel" loading={loadingDiscord} />
-                  ) : (
-                    <input type="text" value={guild.reminder_channel_id || ''} onChange={e => upGuild({ reminder_channel_id: e.target.value || null })} placeholder="Channel ID" style={iS} />
-                  )}
+            {/* Default Reminder Channel */}
+            <div style={{ backgroundColor: colors.surface, borderRadius: 12, border: `1px solid ${colors.border}`, padding: mob ? '1rem' : '1.25rem', marginBottom: '1rem' }}>
+              <label style={lS}>DEFAULT REMINDER CHANNEL</label>
+              <p style={{ color: colors.textMuted, fontSize: '0.7rem', marginBottom: '0.5rem', marginTop: 0 }}>All alerts and reminders go here unless overridden individually.</p>
+              {dChannels.length > 0 || loadingDiscord ? (
+                <SearchableSelect value={guild.reminder_channel_id} onChange={v => upGuild({ reminder_channel_id: v })} options={dChannels.map(c => ({ id: c.id, name: c.name, category: '' }))} placeholder="Select a channel" loading={loadingDiscord} />
+              ) : (
+                <input type="text" value={guild.reminder_channel_id || ''} onChange={e => upGuild({ reminder_channel_id: e.target.value || null })} placeholder="Channel ID" style={iS} />
+              )}
+            </div>
+
+            {/* 🚨 Alerts Section */}
+            <div style={{ marginBottom: '1.25rem' }}>
+              <h3 style={{ color: colors.text, fontSize: mob ? '0.9rem' : '0.95rem', fontWeight: 700, marginBottom: '0.6rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                🚨 Alerts
+              </h3>
+
+              {/* Gift Code Alerts — pill toggle style like EvCard */}
+              <div style={{ backgroundColor: colors.surface, borderRadius: 12, border: `1px solid ${guild.gift_code_alerts ? `${colors.success}30` : colors.border}`, overflow: 'hidden', transition: 'border-color 0.2s' }}>
+                <div onClick={() => setGiftCodeOpen(!giftCodeOpen)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: mob ? '0.85rem' : '1rem 1.25rem', cursor: 'pointer', userSelect: 'none' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flex: 1, minWidth: 0 }}>
+                    <span style={{ fontSize: mob ? '1.25rem' : '1.5rem' }}>🎁</span>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                        <span style={{ color: colors.text, fontWeight: 700, fontSize: mob ? '0.9rem' : '0.95rem' }}>Gift Code Alerts</span>
+                      </div>
+                      <div style={{ color: colors.textMuted, fontSize: '0.7rem', marginTop: '0.15rem' }}>Auto-post new gift codes to your server</div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <Dot on={guild.gift_code_alerts} />
+                    <Tog on={guild.gift_code_alerts} set={v => upGuild({ gift_code_alerts: v })} c={colors.success} />
+                    <span style={{ color: colors.textMuted, fontSize: '0.8rem', transition: 'transform 0.2s', transform: giftCodeOpen ? 'rotate(180deg)' : '' }}>▼</span>
+                  </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', backgroundColor: '#0f0f0f', borderRadius: 8, border: `1px solid ${colors.borderSubtle}` }}>
-                  <div><div style={{ color: colors.text, fontSize: '0.85rem', fontWeight: 600 }}>🎁 Gift Code Alerts</div><div style={{ color: colors.textMuted, fontSize: '0.7rem', marginTop: '0.15rem' }}>Auto-post new gift codes</div></div>
-                  <Tog on={guild.gift_code_alerts} set={v => upGuild({ gift_code_alerts: v })} c={colors.success} />
-                </div>
-                {guild.gift_code_alerts && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                    <div>
-                      <label style={lS}>GIFT CODE CHANNEL <span style={{ fontWeight: 400, color: colors.textMuted }}>(optional)</span></label>
+                {giftCodeOpen && (
+                  <div style={{ padding: mob ? '0 0.85rem 0.85rem' : '0 1.25rem 1.25rem', borderTop: `1px solid ${colors.borderSubtle}`, paddingTop: '1rem' }}>
+                    <div style={{ marginBottom: '1rem' }}>
+                      <label style={lS}>GIFT CODE CHANNEL <span style={{ fontWeight: 400, color: colors.textMuted }}>(optional override)</span></label>
                       {dChannels.length > 0 || loadingDiscord ? (
                         <SearchableSelect value={guild.gift_code_channel_id} onChange={v => upGuild({ gift_code_channel_id: v })} options={dChannels.map(c => ({ id: c.id, name: c.name, category: '' }))} placeholder="Uses default channel" loading={loadingDiscord} accentColor={colors.success} />
                       ) : (
                         <input type="text" value={guild.gift_code_channel_id || ''} onChange={e => upGuild({ gift_code_channel_id: e.target.value || null })} placeholder="Uses default channel" style={iS} />
                       )}
                     </div>
-                    <div>
-                      <label style={lS}>GIFT CODE MESSAGE</label>
-                      <textarea
-                        value={guild.gift_code_custom_message || ''}
-                        onChange={e => upGuild({ gift_code_custom_message: e.target.value || null })}
-                        placeholder={DEFAULT_GIFT_CODE_MESSAGE}
-                        rows={2}
-                        style={{ ...iS, width: '100%', maxWidth: '100%', resize: 'vertical', minHeight: 48, fontFamily: 'inherit', fontSize: '0.8rem', lineHeight: 1.4 }}
-                      />
-                      {guild.gift_code_custom_message && (
-                        <button onClick={() => upGuild({ gift_code_custom_message: null })} style={{ marginTop: '0.25rem', padding: '0.2rem 0.5rem', backgroundColor: 'transparent', border: `1px solid ${colors.border}`, borderRadius: 4, color: colors.textMuted, fontSize: '0.65rem', cursor: 'pointer' }}>Reset to Default</button>
+                    <div style={{ marginBottom: '1rem' }}>
+                      <label style={lS}>ROLE TO MENTION <span style={{ fontWeight: 400, color: colors.textMuted }}>(optional)</span></label>
+                      {dRoles.length > 0 || loadingDiscord ? (
+                        <SearchableSelect value={guild.gift_code_role_id} onChange={v => upGuild({ gift_code_role_id: v })} options={dRoles.map(r => ({ id: r.id, name: r.name, color: r.color }))} placeholder="No role mention" loading={loadingDiscord} accentColor={colors.success} />
+                      ) : (
+                        <input type="text" value={guild.gift_code_role_id || ''} onChange={e => upGuild({ gift_code_role_id: e.target.value || null })} placeholder="Role ID (optional)" style={iS} />
                       )}
                     </div>
-                    <div>
+                    <div style={{ borderTop: `1px solid ${colors.borderSubtle}`, paddingTop: '0.75rem' }}>
                       <button onClick={sendTestGiftCode} disabled={testingGiftCode || !(guild.gift_code_channel_id || guild.reminder_channel_id)}
-                        style={{ padding: '0.45rem 0.9rem', backgroundColor: testingGiftCode ? colors.border : `${colors.success}20`, border: `1px solid ${colors.success}40`, borderRadius: 8, color: testingGiftCode ? colors.textMuted : colors.success, fontSize: '0.8rem', fontWeight: 600, cursor: testingGiftCode || !(guild.gift_code_channel_id || guild.reminder_channel_id) ? 'default' : 'pointer', width: '100%' }}>
+                        style={{ padding: '0.5rem 1rem', backgroundColor: testingGiftCode ? colors.border : `${colors.success}20`, border: `1px solid ${colors.success}40`, borderRadius: 8, color: testingGiftCode ? colors.textMuted : colors.success, fontSize: '0.8rem', fontWeight: 600, cursor: testingGiftCode || !(guild.gift_code_channel_id || guild.reminder_channel_id) ? 'default' : 'pointer', width: '100%' }}>
                         {testingGiftCode ? '⏳ Sending...' : '🧪 Send Test Gift Code Alert'}
                       </button>
+                      {!(guild.gift_code_channel_id || guild.reminder_channel_id) && <div style={{ color: colors.textMuted, fontSize: '0.65rem', marginTop: '0.3rem' }}>Set a reminder channel first.</div>}
                       {giftCodeTestResult && (
                         <div style={{ marginTop: '0.5rem', padding: '0.6rem 0.8rem', borderRadius: 8, backgroundColor: giftCodeTestResult.ok ? `${colors.success}10` : `${colors.error}10`, border: `1px solid ${giftCodeTestResult.ok ? colors.success : colors.error}30` }}>
                           <div style={{ color: giftCodeTestResult.ok ? colors.success : colors.error, fontSize: '0.8rem', fontWeight: 600 }}>{giftCodeTestResult.ok ? '✅' : '❌'} {giftCodeTestResult.msg}</div>
@@ -1003,36 +1009,49 @@ const BotDashboard: React.FC = () => {
                           )}
                         </div>
                       )}
-                    <div>
-                      <label style={lS}>ROLE TO MENTION <span style={{ fontWeight: 400, color: colors.textMuted }}>(optional)</span></label>
-                      {dRoles.length > 0 || loadingDiscord ? (
-                        <SearchableSelect value={guild.gift_code_role_id} onChange={v => upGuild({ gift_code_role_id: v })} options={dRoles.map(r => ({ id: r.id, name: r.name, color: r.color }))} placeholder="No role mention" loading={loadingDiscord} accentColor={colors.success} />
-                      ) : (
-                        <input type="text" value={guild.gift_code_role_id || ''} onChange={e => upGuild({ gift_code_role_id: e.target.value || null })} placeholder="Role ID (optional)" style={iS} />
-                      )}
-                    </div>
                     </div>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Connected Servers */}
-            <div style={{ backgroundColor: colors.surface, borderRadius: 12, border: `1px solid ${colors.border}`, padding: mob ? '1rem' : '1.25rem', marginTop: '1.25rem' }}>
-              <h3 style={{ color: colors.text, fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.5rem' }}>🖥️ Connected Servers</h3>
-              <p style={{ color: colors.textMuted, fontSize: '0.7rem', marginBottom: '0.75rem' }}>Servers registered with Atlas Bot. Remove a server to disconnect it completely.</p>
+            {/* 🗓️ Alliance Events Section */}
+            <div>
+              <h3 style={{ color: colors.text, fontSize: mob ? '0.9rem' : '0.95rem', fontWeight: 700, marginBottom: '0.6rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                🗓️ Reminders
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {sortedEvents.map(ev => <EvCard key={ev.id} ev={ev} onUp={u => upEv(ev.id, u)} mob={mob} local={showLocal} channels={dChannels} roles={dRoles} categories={dCategories} loadingDiscord={loadingDiscord} guildChannelId={guild?.reminder_channel_id || null} onTest={sendTestEvent} testing={testingEvent === ev.id} testResult={testResults[ev.id] || null} />)}
+                {events.length === 0 && <div style={{ backgroundColor: colors.surface, borderRadius: 12, border: `1px solid ${colors.border}`, padding: '2rem', textAlign: 'center', color: colors.textMuted, fontSize: '0.85rem' }}>No events configured. Try refreshing.</div>}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Servers Tab */}
+        {tab === 'servers' && guild && (
+          <div>
+            <h2 style={{ color: colors.text, fontSize: mob ? '1rem' : '1.1rem', fontWeight: 700, marginBottom: '0.75rem', fontFamily: FONT_DISPLAY }}>
+              <span style={{ color: '#fff' }}>CONNECTED</span><span style={{ ...neonGlow(colors.primary), marginLeft: '0.3rem' }}>SERVERS</span>
+            </h2>
+
+            {/* Server list — tap to switch */}
+            <div style={{ backgroundColor: colors.surface, borderRadius: 12, border: `1px solid ${colors.border}`, padding: mob ? '1rem' : '1.25rem', marginBottom: '1.25rem' }}>
+              <p style={{ color: colors.textMuted, fontSize: '0.7rem', marginBottom: '0.75rem', marginTop: 0 }}>Tap a server to switch. Remove to disconnect completely.</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                 {guilds.map(g => (
-                  <div key={g.guild_id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.6rem 0.8rem', backgroundColor: g.guild_id === selGuild ? `${colors.primary}08` : '#0f0f0f', borderRadius: 8, border: `1px solid ${g.guild_id === selGuild ? colors.primary + '30' : colors.border}` }}>
+                  <div key={g.guild_id}
+                    onClick={() => setSelGuild(g.guild_id)}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.6rem 0.8rem', backgroundColor: g.guild_id === selGuild ? `${colors.primary}08` : '#0f0f0f', borderRadius: 8, border: `1px solid ${g.guild_id === selGuild ? colors.primary + '30' : colors.border}`, cursor: 'pointer', transition: 'border-color 0.2s' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
                       {g.guild_icon_url ? <img src={g.guild_icon_url} alt="" style={{ width: 28, height: 28, borderRadius: '50%' }} /> : <div style={{ width: 28, height: 28, borderRadius: '50%', backgroundColor: colors.border, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', color: colors.textMuted, flexShrink: 0 }}>{g.guild_name.charAt(0)}</div>}
                       <div style={{ minWidth: 0 }}>
                         <div style={{ color: colors.text, fontSize: '0.8rem', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.guild_name}</div>
-                        <div style={{ color: colors.textMuted, fontSize: '0.6rem' }}>{g.guild_id === selGuild ? 'Currently viewing' : ''}</div>
+                        <div style={{ color: g.guild_id === selGuild ? colors.primary : colors.textMuted, fontSize: '0.6rem' }}>{g.guild_id === selGuild ? '● Currently viewing' : g.guild_id}</div>
                       </div>
                     </div>
                     {g.created_by === user?.id && (
-                      <button onClick={() => { if (confirm(`Remove ${g.guild_name}? This deletes all events, settings, and history for this server.`)) removeGuild(g.guild_id); }}
+                      <button onClick={(e) => { e.stopPropagation(); if (confirm(`Remove ${g.guild_name}? This deletes all events, settings, and history for this server.`)) removeGuild(g.guild_id); }}
                         disabled={removingGuild === g.guild_id}
                         style={{ padding: '0.3rem 0.6rem', backgroundColor: 'transparent', border: `1px solid ${colors.error}40`, borderRadius: 6, color: colors.error, fontSize: '0.65rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
                         {removingGuild === g.guild_id ? '...' : '✕ Remove'}
@@ -1043,22 +1062,10 @@ const BotDashboard: React.FC = () => {
               </div>
             </div>
 
-            <div style={{ backgroundColor: colors.surface, borderRadius: 12, border: `1px solid ${colors.primary}20`, padding: mob ? '1rem' : '1.25rem', marginTop: '1.25rem', background: `linear-gradient(135deg, ${colors.surface} 0%, ${colors.primary}05 100%)` }}>
-              <h3 style={{ color: colors.text, fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.6rem' }}>💡 How It Works</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: mob ? '1fr' : 'repeat(3,1fr)', gap: '0.75rem' }}>
-                {[{ t: 'Set Times', d: 'Add event times (UTC).', i: '⏰' }, { t: 'Choose Channel', d: 'Set reminder channel.', i: '📢' }, { t: 'Get Reminded', d: 'Bot pings before events.', i: '🔔' }].map(x => (
-                  <div key={x.t} style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
-                    <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>{x.i}</span>
-                    <div><div style={{ color: colors.text, fontSize: '0.8rem', fontWeight: 600 }}>{x.t}</div><div style={{ color: colors.textMuted, fontSize: '0.7rem', lineHeight: 1.4 }}>{x.d}</div></div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Multi-server: Add Another Server (Supporters & Admins) */}
+            {/* Add Server */}
             {canMultiServer && (
-              <div style={{ backgroundColor: colors.surface, borderRadius: 12, border: `1px solid ${colors.border}`, padding: mob ? '1rem' : '1.25rem', marginTop: '1.25rem' }}>
-                <h3 style={{ color: colors.text, fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.35rem' }}>🌐 Manage Multiple Servers</h3>
+              <div style={{ backgroundColor: colors.surface, borderRadius: 12, border: `1px solid ${colors.border}`, padding: mob ? '1rem' : '1.25rem', marginBottom: '1.25rem' }}>
+                <h3 style={{ color: colors.text, fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.35rem' }}>+ Add a Server</h3>
                 <p style={{ color: colors.textMuted, fontSize: '0.75rem', marginBottom: '0.75rem' }}>As a Supporter, you can manage bot settings for multiple Discord servers.</p>
 
                 {discordGuilds.length === 0 && !fetchingGuilds && (
@@ -1094,7 +1101,7 @@ const BotDashboard: React.FC = () => {
             )}
 
             {!canMultiServer && guilds.length >= 1 && (
-              <div style={{ backgroundColor: colors.surface, borderRadius: 12, border: `1px solid #FF6B8A20`, padding: mob ? '1rem' : '1.25rem', marginTop: '1.25rem' }}>
+              <div style={{ backgroundColor: colors.surface, borderRadius: 12, border: `1px solid #FF6B8A20`, padding: mob ? '1rem' : '1.25rem' }}>
                 <h3 style={{ color: colors.text, fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.35rem' }}>🌐 Multiple Servers</h3>
                 <p style={{ color: colors.textMuted, fontSize: '0.75rem', marginBottom: '0.5rem' }}>Manage bot settings across multiple Discord servers.</p>
                 <Link to="/support" style={{ color: '#FF6B8A', textDecoration: 'none', fontSize: '0.8rem', fontWeight: 600 }}>Become a Supporter →</Link>

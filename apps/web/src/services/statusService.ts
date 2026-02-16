@@ -49,6 +49,7 @@ export interface StatusSubmission {
   new_status: string;
   notes: string;
   submitted_by: string;
+  submitted_by_name?: string;
   submitted_at: string;
   status: 'pending' | 'approved' | 'rejected';
   reviewed_by?: string;
@@ -339,7 +340,7 @@ class StatusService {
 
     let query = supabase!
       .from('status_submissions')
-      .select('*')
+      .select('*, submitter:profiles!status_submissions_submitted_by_fkey(username, display_name)')
       .order('submitted_at', { ascending: false });
 
     if (statusFilter && statusFilter !== 'all') {
@@ -463,6 +464,7 @@ class StatusService {
   }
 
   private mapSubmission(d: Record<string, unknown>): StatusSubmission {
+    const submitter = d.submitter as { username?: string; display_name?: string } | null;
     return {
       id: d.id as string,
       kingdom_number: d.kingdom_number as number,
@@ -470,6 +472,7 @@ class StatusService {
       new_status: d.new_status as string,
       notes: (d.notes as string) || '',
       submitted_by: d.submitted_by as string,
+      submitted_by_name: submitter?.display_name || submitter?.username || undefined,
       submitted_at: d.submitted_at as string,
       status: d.status as 'pending' | 'approved' | 'rejected',
       reviewed_by: d.reviewed_by as string | undefined,

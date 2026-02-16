@@ -11,6 +11,7 @@ import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
 import FeedbackWidget from './components/FeedbackWidget';
 import SignupNudgeBar from './components/SignupNudgeBar';
 import CampaignNotificationBanner from './components/CampaignNotificationBanner';
+import KvKPhaseBanner from './components/KvKPhaseBanner';
 import { useKeyboardShortcuts, useKeyboardHelp } from './hooks/useKeyboardShortcuts';
 import { usePageTracking } from './hooks/useAnalytics';
 import { useKingdomsRealtime } from './hooks/useKingdomsRealtime';
@@ -111,6 +112,7 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-bg">
       <Header />
+      <KvKPhaseBanner />
       <CampaignNotificationBanner />
       <KeyboardShortcutsModal isOpen={showHelp} onClose={closeHelp} />
       <main className="container mx-auto px-4 py-8">

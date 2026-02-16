@@ -7,6 +7,9 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { useStructuredData, PAGE_BREADCRUMBS, getSeasonBreadcrumbs } from '../hooks/useStructuredData';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../contexts/AuthContext';
+import { CURRENT_KVK } from '../constants';
+import KvKMatchupSubmission from '../components/KvKMatchupSubmission';
 
 interface SeasonStats {
   totalMatchups: number;
@@ -19,6 +22,8 @@ interface SeasonStats {
 
 const KvKSeasons: React.FC = () => {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const [showMatchupModal, setShowMatchupModal] = useState(false);
   const { seasonNumber } = useParams<{ seasonNumber?: string }>();
   const seasonNum = seasonNumber ? parseInt(seasonNumber) : null;
   useMetaTags(seasonNum ? {
@@ -225,6 +230,29 @@ const KvKSeasons: React.FC = () => {
         >
           📅 {t('seasons.browseBySeason', 'Browse by Season')}
         </button>
+        {user && (
+          <button
+            onClick={() => setShowMatchupModal(true)}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem',
+              padding: isMobile ? '0.75rem 1.25rem' : '0.6rem 1.25rem',
+              minHeight: isMobile ? '44px' : 'auto',
+              backgroundColor: '#131318',
+              border: '1px solid #22c55e40',
+              borderRadius: '8px',
+              color: '#22c55e',
+              cursor: 'pointer',
+              fontWeight: '600',
+              fontSize: '0.9rem',
+              transition: 'all 0.2s'
+            }}
+          >
+            📋 {t('seasons.addMatchup', 'Add Matchup')}
+          </button>
+        )}
         <button
           onClick={() => setView('all-time')}
           style={{
@@ -330,16 +358,17 @@ const KvKSeasons: React.FC = () => {
               gap: isMobile ? '0.5rem' : '1rem'
             }}>
               {displayedMatchups.map((matchup, index) => {
-                // Kingdom 1's prep/battle results (W or L)
+                // Kingdom 1's prep/battle results (W, L, or null for partial)
                 const k1PrepResult = matchup.prep_result;
                 const k1BattleResult = matchup.battle_result;
-                // Kingdom 2's results are the opposite
+                // Kingdom 2's results are the opposite (null stays null)
                 const k2PrepResult = k1PrepResult === 'W' ? 'L' : k1PrepResult === 'L' ? 'W' : k1PrepResult;
                 const k2BattleResult = k1BattleResult === 'W' ? 'L' : k1BattleResult === 'L' ? 'W' : k1BattleResult;
+                const isPartial = matchup.is_partial;
                 
                 // Determine outcome based on prep/battle results for each kingdom
                 // W/W = Domination (green 👑), L/W = Comeback (blue 💪), W/L = Reversal (purple 🔄), L/L = Invasion (red 💀)
-                const getKingdomOutcome = (prepResult: string | undefined, battleResult: string | undefined) => {
+                const getKingdomOutcome = (prepResult: string | null | undefined, battleResult: string | null | undefined) => {
                   if (prepResult === 'W' && battleResult === 'W') {
                     return { type: 'Domination', emoji: '👑', bg: '#22c55e20', color: '#22c55e' };
                   } else if (prepResult === 'L' && battleResult === 'W') {
@@ -360,9 +389,11 @@ const KvKSeasons: React.FC = () => {
                   if (rank === 1) return '🥇 1st';
                   if (rank === 2) return '🥈 2nd';
                   if (rank === 3) return '🥉 3rd';
-                  const s = ['th', 'st', 'nd', 'rd'];
+                  const s = ['th', 'st', 'nd', 'rd'] as const;
                   const v = rank % 100;
-                  return rank + (s[(v - 20) % 10] || s[v] || s[0]);
+                  const idx = (v - 20) % 10;
+                  const suffix = (idx >= 0 && idx < s.length ? s[idx] : undefined) ?? (v < s.length ? s[v] : undefined) ?? 'th';
+                  return `${rank}${suffix}`;
                 };
                 
                 // Get border color for top 3 cards
@@ -387,12 +418,23 @@ const KvKSeasons: React.FC = () => {
                     style={{
                       backgroundColor: '#131318',
                       borderRadius: '10px',
-                      border: getCardBorder(index + 1),
-                      boxShadow: getCardGlow(index + 1),
+                      border: isPartial ? '1px dashed #6b728050' : getCardBorder(index + 1),
+                      boxShadow: isPartial ? 'none' : getCardGlow(index + 1),
                       overflow: 'hidden',
-                      transition: 'transform 0.2s ease, box-shadow 0.2s ease'
+                      transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                      opacity: isPartial ? 0.85 : 1
                     }}
                   >
+                    {/* Partial badge */}
+                    {isPartial && (
+                      <div style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem',
+                        padding: '0.3rem', backgroundColor: '#eab30810',
+                        borderBottom: '1px solid #eab30820', fontSize: '0.65rem', color: '#eab308'
+                      }}>
+                        {!k1PrepResult && !k1BattleResult ? '🔗 Matchup Only' : !k1BattleResult ? '🛡️ Prep Done — Awaiting Battle' : '⏳ Pending'}
+                      </div>
+                    )}
                     {/* Header: Rank + Combined Score */}
                     <div style={{ 
                       display: 'flex', 
@@ -433,7 +475,7 @@ const KvKSeasons: React.FC = () => {
                           fontWeight: '600',
                           fontSize: '0.9rem'
                         }}>
-                          {matchup.combined_score.toFixed(2)}
+                          {(matchup.combined_score ?? 0).toFixed(2)}
                         </span>
                       </div>
                     </div>
@@ -673,6 +715,20 @@ const KvKSeasons: React.FC = () => {
         </div>
       </div>
       </div>
+
+      {/* KvK Matchup Submission Modal */}
+      <KvKMatchupSubmission
+        isOpen={showMatchupModal}
+        onClose={() => setShowMatchupModal(false)}
+        defaultKvkNumber={selectedSeason ?? CURRENT_KVK}
+        onSuccess={() => {
+          // Reload matchups after successful submission
+          scoreHistoryService.clearCache();
+          if (selectedSeason) {
+            scoreHistoryService.getSeasonMatchups(selectedSeason).then(m => setMatchups(m));
+          }
+        }}
+      />
     </div>
   );
 };

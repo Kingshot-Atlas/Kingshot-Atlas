@@ -63,9 +63,10 @@ export interface MatchupWithScores {
   kingdom2_battle_record: string;
   combined_score: number;
   winner: number | null;
-  outcome: string;
-  prep_result: string;
-  battle_result: string;
+  outcome: string | null;
+  prep_result: string | null;
+  battle_result: string | null;
+  is_partial?: boolean;
 }
 
 interface CachedData<T> {
@@ -240,7 +241,7 @@ class ScoreHistoryService {
       const matchups: MatchupWithScores[] = [];
 
       for (const record of kvkRecords) {
-        // Skip bye records
+        // Skip bye records (but allow partial records with null prep/battle)
         if (record.opponent_kingdom === 0 || record.prep_result === 'B') continue;
 
         const k1 = Math.min(record.kingdom_number, record.opponent_kingdom);
@@ -278,10 +279,12 @@ class ScoreHistoryService {
         // Determine prep/battle results from highK's (kingdom1) perspective
         // record.prep_result is from record.kingdom_number's perspective
         // If record.kingdom_number is highK, keep as-is; otherwise flip W<->L
-        const flipResult = (result: string) => result === 'W' ? 'L' : result === 'L' ? 'W' : result;
+        // Handle null results for partial submissions
+        const flipResult = (result: string | null) => result === 'W' ? 'L' : result === 'L' ? 'W' : result;
         const isRecordFromHighK = record.kingdom_number === highK;
-        const adjustedPrepResult = isRecordFromHighK ? record.prep_result : flipResult(record.prep_result);
-        const adjustedBattleResult = isRecordFromHighK ? record.battle_result : flipResult(record.battle_result);
+        const adjustedPrepResult = record.prep_result ? (isRecordFromHighK ? record.prep_result : flipResult(record.prep_result)) : null;
+        const adjustedBattleResult = record.battle_result ? (isRecordFromHighK ? record.battle_result : flipResult(record.battle_result)) : null;
+        const isPartial = !record.prep_result || !record.battle_result;
 
         matchups.push({
           kvk_number: kvkNumber,
@@ -299,9 +302,10 @@ class ScoreHistoryService {
           kingdom2_battle_record: '',
           combined_score: highScore + lowScore,
           winner,
-          outcome: record.overall_result,
+          outcome: record.overall_result || null,
           prep_result: adjustedPrepResult,
-          battle_result: adjustedBattleResult
+          battle_result: adjustedBattleResult,
+          is_partial: isPartial
         });
       }
 
@@ -500,10 +504,12 @@ class ScoreHistoryService {
         // Determine prep/battle results from highK's (kingdom1) perspective
         // record.prep_result is from record.kingdom_number's perspective
         // If record.kingdom_number is highK, keep as-is; otherwise flip W<->L
-        const flipResult = (result: string) => result === 'W' ? 'L' : result === 'L' ? 'W' : result;
+        // Handle null results for partial submissions
+        const flipResult = (result: string | null) => result === 'W' ? 'L' : result === 'L' ? 'W' : result;
         const isRecordFromHighK = record.kingdom_number === highK;
-        const adjustedPrepResult = isRecordFromHighK ? record.prep_result : flipResult(record.prep_result);
-        const adjustedBattleResult = isRecordFromHighK ? record.battle_result : flipResult(record.battle_result);
+        const adjustedPrepResult = record.prep_result ? (isRecordFromHighK ? record.prep_result : flipResult(record.prep_result)) : null;
+        const adjustedBattleResult = record.battle_result ? (isRecordFromHighK ? record.battle_result : flipResult(record.battle_result)) : null;
+        const isPartial = !record.prep_result || !record.battle_result;
 
         matchups.push({
           kvk_number: record.kvk_number,
@@ -521,9 +527,10 @@ class ScoreHistoryService {
           kingdom2_battle_record: lowRecords ? `${lowRecords.battleWins}-${lowRecords.battleLosses}` : '',
           combined_score: highScore + lowScore,
           winner,
-          outcome: record.overall_result,
+          outcome: record.overall_result || null,
           prep_result: adjustedPrepResult,
-          battle_result: adjustedBattleResult
+          battle_result: adjustedBattleResult,
+          is_partial: isPartial
         });
       }
 

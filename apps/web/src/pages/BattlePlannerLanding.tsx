@@ -2,32 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
-import { neonGlow, FONT_DISPLAY, colors } from '../utils/styles';
+import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { useTranslation } from 'react-i18next';
 import { usePremium } from '../contexts/PremiumContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useGoldKingdoms } from '../hooks/useGoldKingdoms';
 import { supabase } from '../lib/supabase';
 
-// Free trial config: Feb 12 00:00 UTC → Feb 25 00:00 UTC
-const TRIAL_START = new Date('2026-02-12T00:00:00Z').getTime();
-const TRIAL_END = new Date('2026-02-25T00:00:00Z').getTime();
-
-const getTrialState = () => {
-  const now = Date.now();
-  if (now < TRIAL_START) return { status: 'before' as const, remaining: 0 };
-  if (now >= TRIAL_END) return { status: 'ended' as const, remaining: 0 };
-  return { status: 'active' as const, remaining: TRIAL_END - now };
-};
-
-const formatCountdown = (ms: number) => {
-  const totalSec = Math.max(0, Math.floor(ms / 1000));
-  const days = Math.floor(totalSec / 86400);
-  const hours = Math.floor((totalSec % 86400) / 3600);
-  const minutes = Math.floor((totalSec % 3600) / 60);
-  const seconds = totalSec % 60;
-  return { days, hours, minutes, seconds };
-};
 
 const BattlePlannerLanding: React.FC = () => {
   const { t } = useTranslation();
@@ -39,7 +20,6 @@ const BattlePlannerLanding: React.FC = () => {
   const isGoldKingdom = !!(profile?.linked_kingdom && goldKingdoms.has(profile.linked_kingdom));
   const [isEditorOrCoEditor, setIsEditorOrCoEditor] = useState(false);
   const hasFullAccess = isGoldKingdom || isAdmin || isEditorOrCoEditor;
-  const [trial, setTrial] = useState(getTrialState());
 
   useEffect(() => {
     if (!user?.id || !supabase) return;
@@ -53,13 +33,6 @@ const BattlePlannerLanding: React.FC = () => {
       setIsEditorOrCoEditor(!!data);
     })();
   }, [user?.id]);
-
-  useEffect(() => {
-    const id = window.setInterval(() => setTrial(getTrialState()), 1000);
-    return () => clearInterval(id);
-  }, []);
-
-  const countdown = formatCountdown(trial.remaining);
 
   const features = [
     {
@@ -117,54 +90,6 @@ const BattlePlannerLanding: React.FC = () => {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a' }}>
-      {/* Free Trial Banner */}
-      {trial.status === 'active' && (
-        <div style={{
-          background: `linear-gradient(90deg, ${colors.error}20, ${colors.amber}20, ${colors.error}20)`,
-          borderBottom: '1px solid #ef444440',
-          padding: isMobile ? '0.6rem 1rem' : '0.7rem 2rem',
-          textAlign: 'center',
-          position: 'relative',
-          overflow: 'hidden',
-        }}>
-          <div style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            gap: isMobile ? '0.4rem' : '0.75rem', flexWrap: 'wrap',
-          }}>
-            <span style={{ fontSize: isMobile ? '0.8rem' : '0.85rem', color: colors.amber, fontWeight: 700 }}>
-              🔥 {t('battlePlanner.trialBanner', 'FREE ACCESS — Try it now!')}
-            </span>
-            <div style={{
-              display: 'flex', gap: '0.35rem', alignItems: 'center',
-            }}>
-              {[
-                { val: countdown.days, label: t('battlePlanner.days', 'd') },
-                { val: countdown.hours, label: t('battlePlanner.hours', 'h') },
-                { val: countdown.minutes, label: t('battlePlanner.minutes', 'm') },
-                { val: countdown.seconds, label: t('battlePlanner.seconds', 's') },
-              ].map((u, i) => (
-                <React.Fragment key={i}>
-                  <div style={{
-                    backgroundColor: '#0a0a0a', borderRadius: '4px',
-                    padding: '0.15rem 0.35rem', minWidth: '32px', textAlign: 'center',
-                    border: '1px solid #ef444430',
-                  }}>
-                    <span style={{ color: '#fff', fontSize: isMobile ? '0.75rem' : '0.85rem', fontWeight: 700, fontFamily: 'monospace' }}>
-                      {String(u.val).padStart(2, '0')}
-                    </span>
-                    <span style={{ color: '#6b7280', fontSize: '0.5rem', marginLeft: '1px' }}>{u.label}</span>
-                  </div>
-                  {i < 3 && <span style={{ color: '#ef4444', fontSize: '0.7rem', fontWeight: 700 }}>:</span>}
-                </React.Fragment>
-              ))}
-            </div>
-            <span style={{ color: '#9ca3af', fontSize: isMobile ? '0.65rem' : '0.75rem' }}>
-              {t('battlePlanner.trialEnds', 'before Gold-tier-only access')}
-            </span>
-          </div>
-        </div>
-      )}
-
       {/* Hero */}
       <div style={{
         padding: isMobile ? '2rem 1rem 1.5rem' : '3rem 2rem 2rem',
@@ -215,11 +140,7 @@ const BattlePlannerLanding: React.FC = () => {
                 boxShadow: '0 4px 20px rgba(239, 68, 68, 0.35)',
               }}
             >
-              ⚔️ {hasFullAccess
-                ? t('battlePlanner.launchPlanner', 'Launch the Planner')
-                : trial.status === 'active'
-                  ? t('battlePlanner.tryFree', 'Try It Free')
-                  : t('battlePlanner.launchPlanner', 'Launch the Planner')}
+              ⚔️ {t('battlePlanner.launchPlanner', 'Launch the Planner')}
             </Link>
             {!hasFullAccess && (
               <Link
@@ -239,9 +160,7 @@ const BattlePlannerLanding: React.FC = () => {
           <p style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.75rem' }}>
             {hasFullAccess
               ? t('battlePlanner.goldConfirm', 'You have full access as a Gold Tier kingdom member.')
-              : trial.status === 'active'
-                ? t('battlePlanner.trialNote', 'Free for everyone during the trial period. No account required.')
-                : t('battlePlanner.goldPerk', 'Available for Gold Tier kingdoms. Contribute to the Kingdom Fund to unlock.')}
+              : t('battlePlanner.goldPerk', 'Available for Gold Tier kingdoms. Contribute to the Kingdom Fund to unlock.')}
           </p>
 
           {!isMobile && (

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
-import { ReferralTier, REFERRAL_TIER_COLORS, REFERRAL_TIER_LABELS, REFERRAL_TIER_THRESHOLDS } from '../utils/constants';
+import { ReferralTier, REFERRAL_TIER_COLORS } from '../utils/constants';
 import ReferralBadge from '../components/ReferralBadge';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { logger } from '../utils/logger';
@@ -160,7 +160,7 @@ const Ambassadors: React.FC = () => {
           margin: '0 0 0.5rem',
           letterSpacing: '-0.02em',
         }}>
-          🏛️ {t('ambassadors.title', 'Ambassador Network')}
+          <span style={{ color: '#fff' }}>Atlas</span>{' '}<span style={{ color: '#a24cf3' }}>Ambassadors</span>
         </h1>
         <p style={{
           color: '#9ca3af',
@@ -185,34 +185,6 @@ const Ambassadors: React.FC = () => {
           </div>
         )}
 
-        {/* Tier legend */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          gap: isMobile ? '0.5rem' : '1rem',
-          marginTop: '1.25rem',
-          flexWrap: 'wrap',
-        }}>
-          {(['ambassador', 'consul', 'recruiter', 'scout'] as ReferralTier[]).map(tier => (
-            <div key={tier} style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-              fontSize: '0.7rem',
-              color: '#9ca3af',
-            }}>
-              <div style={{
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                backgroundColor: REFERRAL_TIER_COLORS[tier],
-                ...(tier === 'ambassador' ? { boxShadow: `0 0 6px ${REFERRAL_TIER_COLORS[tier]}60` } : {}),
-              }} />
-              <span>{REFERRAL_TIER_LABELS[tier]}</span>
-              <span style={{ color: '#4a4a4a' }}>({REFERRAL_TIER_THRESHOLDS[tier]}+)</span>
-            </div>
-          ))}
-        </div>
       </div>
 
       {/* Tier Perks — What You Unlock */}

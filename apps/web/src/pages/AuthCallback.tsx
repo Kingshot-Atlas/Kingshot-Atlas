@@ -12,6 +12,18 @@ import { supabase, isSupabaseConfigured } from '../lib/supabase';
 const AuthCallback: React.FC = () => {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
+  const [showRetry, setShowRetry] = useState(false);
+
+  const retryLogin = () => {
+    // Clear stale session data and redirect to profile to re-trigger OAuth
+    if (supabase) {
+      supabase.auth.signOut().then(() => {
+        window.location.href = '/profile';
+      });
+    } else {
+      window.location.href = '/profile';
+    }
+  };
 
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase) {
@@ -21,6 +33,7 @@ const AuthCallback: React.FC = () => {
 
     let cancelled = false;
     let pollCount = 0;
+    let manualAttempted = false;
     const hasHash = window.location.hash.length > 1;
 
     Sentry.addBreadcrumb({
@@ -43,6 +56,26 @@ const AuthCallback: React.FC = () => {
       }
     };
 
+    // Fallback: manually parse hash and call setSession if detectSessionInUrl failed
+    const tryManualSession = async () => {
+      if (manualAttempted || cancelled || !hasHash) return;
+      manualAttempted = true;
+      try {
+        const hash = window.location.hash.substring(1);
+        const params = new URLSearchParams(hash);
+        const accessToken = params.get('access_token');
+        const refreshToken = params.get('refresh_token');
+        if (accessToken && refreshToken) {
+          Sentry.addBreadcrumb({ category: 'auth', message: 'Attempting manual setSession', level: 'info' });
+          const { data, error: sessErr } = await supabase!.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+          if (data?.session && !sessErr) redirect();
+        }
+      } catch { /* ignore manual fallback errors */ }
+    };
+
     // If no hash fragment, the user likely landed here from another tab that
     // already consumed the OAuth token, or via direct navigation.
     // Check for existing session immediately and redirect fast.
@@ -51,14 +84,16 @@ const AuthCallback: React.FC = () => {
         if (session) {
           redirect();
         } else {
-          // No hash AND no session — can't complete sign-in
           setError('Sign-in is taking longer than expected. Please try again.');
         }
       });
       return () => { cancelled = true; };
     }
 
-    // Timeout: 20s to accommodate slow mobile connections
+    // Show retry button after 6s
+    const retryTimerId = setTimeout(() => { if (!cancelled) setShowRetry(true); }, 6000);
+
+    // Timeout: 12s
     const timeoutId = setTimeout(() => {
       if (!cancelled) {
         Sentry.addBreadcrumb({
@@ -67,7 +102,6 @@ const AuthCallback: React.FC = () => {
           data: { pollCount, hasHash },
           level: 'warning',
         });
-        // Last-resort: check if session landed via another tab while we waited
         supabase!.auth.getSession().then(({ data: { session } }) => {
           if (session) {
             redirect();
@@ -76,7 +110,7 @@ const AuthCallback: React.FC = () => {
           }
         });
       }
-    }, 20000);
+    }, 12000);
 
     // Listen for auth state changes (fires when Supabase processes the hash)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -84,12 +118,15 @@ const AuthCallback: React.FC = () => {
     });
 
     // Poll for session every 1.5s — handles multi-tab race conditions
-    // where onAuthStateChange may not fire (e.g. session already exists
-    // from another tab, or hash was consumed before listener was set up)
     const pollSession = async () => {
       pollCount++;
       const { data: { session } } = await supabase!.auth.getSession();
-      if (session) redirect();
+      if (session) {
+        redirect();
+      } else if (pollCount >= 3 && !manualAttempted) {
+        // After 4.5s, try manual hash parsing as fallback
+        tryManualSession();
+      }
     };
     pollSession();
     const pollId = setInterval(pollSession, 1500);
@@ -98,6 +135,7 @@ const AuthCallback: React.FC = () => {
       cancelled = true;
       subscription.unsubscribe();
       clearTimeout(timeoutId);
+      clearTimeout(retryTimerId);
       clearInterval(pollId);
     };
   }, [navigate]);
@@ -170,6 +208,23 @@ const AuthCallback: React.FC = () => {
         animation: 'authSpin 0.8s linear infinite'
       }} />
       <div style={{ color: '#9ca3af', fontSize: '1rem' }}>Signing you in...</div>
+      {showRetry && (
+        <button
+          onClick={retryLogin}
+          style={{
+            marginTop: '0.5rem',
+            padding: '0.5rem 1.25rem',
+            backgroundColor: 'transparent',
+            border: '1px solid #3a3a3a',
+            borderRadius: '8px',
+            color: '#9ca3af',
+            cursor: 'pointer',
+            fontSize: '0.85rem'
+          }}
+        >
+          Taking too long? Retry
+        </button>
+      )}
       <style>{`
         @keyframes authSpin {
           to { transform: rotate(360deg); }

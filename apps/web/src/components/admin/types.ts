@@ -53,6 +53,11 @@ export interface KvKError {
     prep_result: string;
     battle_result: string;
   } | null;
+  corrected_data?: {
+    opponent?: number;
+    prep_result?: string;
+    battle_result?: string;
+  } | null;
   description: string;
   submitted_by: string;
   submitted_by_name: string;
@@ -137,7 +142,8 @@ export type AdminTab =
   | 'gift-codes'
   | 'battle-planner'
   | 'spotlight'
-  | 'finance';
+  | 'finance'
+  | 'kvk-bulk';
 
 export type AdminCategory = 'overview' | 'review' | 'transfer' | 'finance' | 'operations';
 

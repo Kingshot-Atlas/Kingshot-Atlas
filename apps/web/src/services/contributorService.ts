@@ -237,7 +237,7 @@ class ContributorService {
   /**
    * Check for duplicate pending submission in Supabase
    */
-  async checkDuplicate(type: 'correction' | 'kvkError', data: Record<string, unknown>): Promise<{ isDuplicate: boolean; existingId?: string }> {
+  async checkDuplicate(type: 'correction' | 'kvkError' | 'dataCorrection', data: Record<string, unknown>): Promise<{ isDuplicate: boolean; existingId?: string }> {
     if (!isSupabaseConfigured || !supabase) {
       return { isDuplicate: false };
     }
@@ -255,6 +255,21 @@ class ContributorService {
         return { 
           isDuplicate: (existing?.length || 0) > 0, 
           existingId: existing?.[0]?.id?.toString() 
+        };
+      }
+
+      if (type === 'dataCorrection') {
+        const { data: existing } = await supabase
+          .from('data_corrections')
+          .select('id')
+          .eq('kingdom_number', data.kingdom_number as number)
+          .eq('field', data.field as string)
+          .eq('status', 'pending')
+          .limit(1);
+
+        return {
+          isDuplicate: (existing?.length || 0) > 0,
+          existingId: existing?.[0]?.id?.toString()
         };
       }
 

@@ -96,102 +96,88 @@ export const KvKErrorsTab: React.FC<KvKErrorsTabProps> = ({
               </div>
             </div>
             
-            {error.current_data && (() => {
-              const willFlipPrep = error.error_type === 'wrong_prep_result' || error.error_type === 'wrong_both_results';
-              const willFlipBattle = error.error_type === 'wrong_battle_result' || error.error_type === 'wrong_both_results';
-              const newPrep = willFlipPrep 
-                ? (error.current_data.prep_result === 'Win' ? 'Loss' : 'Win')
-                : error.current_data.prep_result;
-              const newBattle = willFlipBattle
-                ? (error.current_data.battle_result === 'Win' ? 'Loss' : 'Win')
-                : error.current_data.battle_result;
-              const prepWin = newPrep === 'Win';
-              const battleWin = newBattle === 'Win';
-              const newOverall = prepWin && battleWin ? 'Domination' 
-                : !prepWin && battleWin ? 'Comeback'
-                : prepWin && !battleWin ? 'Prep Only'
-                : 'Invasion';
-              
-              return (
-                <div style={{ 
-                  marginBottom: '1rem',
-                  padding: '0.75rem',
-                  backgroundColor: colors.bg,
-                  borderRadius: '8px',
-                  border: `1px solid ${colors.borderSubtle}`
-                }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: '0.75rem', alignItems: 'center' }}>
-                    <div>
-                      <div style={{ color: colors.error, fontSize: '0.7rem', marginBottom: '0.5rem', fontWeight: 600 }}>❌ CURRENT (WRONG)</div>
-                      <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem' }}>
-                        <div>
-                          <div style={{ color: colors.textMuted, fontSize: '0.65rem' }}>{t('admin.prep', 'Prep')}</div>
-                          <div style={{ 
-                            color: error.current_data.prep_result === 'Win' ? colors.success : colors.error,
-                            textDecoration: willFlipPrep ? 'line-through' : 'none',
-                            opacity: willFlipPrep ? 0.5 : 1
-                          }}>
-                            {error.current_data.prep_result === 'Win' ? 'W' : 'L'}
-                          </div>
+            {/* Correction preview */}
+            {(() => {
+              const cd = error.current_data;
+              const corr = error.corrected_data;
+              const flipR = (r: string) => r === 'W' || r === 'Win' ? 'L' : r === 'L' || r === 'Loss' ? 'W' : r;
+              const normR = (r: string) => r === 'Win' ? 'W' : r === 'Loss' ? 'L' : r;
+              const colorR = (r: string) => r === 'W' || r === 'Win' ? colors.success : r === 'L' || r === 'Loss' ? colors.error : colors.textMuted;
+              const isFlip = error.error_type === 'wrong_prep_result' || error.error_type === 'wrong_battle_result' || error.error_type === 'wrong_both_results';
+
+              // For flip types with current_data
+              if (isFlip && cd) {
+                const willFlipPrep = error.error_type === 'wrong_prep_result' || error.error_type === 'wrong_both_results';
+                const willFlipBattle = error.error_type === 'wrong_battle_result' || error.error_type === 'wrong_both_results';
+                const newPrep = willFlipPrep ? flipR(cd.prep_result) : normR(cd.prep_result);
+                const newBattle = willFlipBattle ? flipR(cd.battle_result) : normR(cd.battle_result);
+                return (
+                  <div style={{ marginBottom: '1rem', padding: '0.75rem', backgroundColor: colors.bg, borderRadius: '8px', border: `1px solid ${colors.borderSubtle}` }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: '0.75rem', alignItems: 'center' }}>
+                      <div>
+                        <div style={{ color: colors.error, fontSize: '0.7rem', marginBottom: '0.5rem', fontWeight: 600 }}>❌ CURRENT</div>
+                        <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem' }}>
+                          <div><div style={{ color: colors.textMuted, fontSize: '0.65rem' }}>Prep</div><div style={{ color: colorR(cd.prep_result), textDecoration: willFlipPrep ? 'line-through' : 'none', opacity: willFlipPrep ? 0.5 : 1 }}>{normR(cd.prep_result)}</div></div>
+                          <div><div style={{ color: colors.textMuted, fontSize: '0.65rem' }}>Battle</div><div style={{ color: colorR(cd.battle_result), textDecoration: willFlipBattle ? 'line-through' : 'none', opacity: willFlipBattle ? 0.5 : 1 }}>{normR(cd.battle_result)}</div></div>
                         </div>
-                        <div>
-                          <div style={{ color: colors.textMuted, fontSize: '0.65rem' }}>{t('admin.battle', 'Battle')}</div>
-                          <div style={{ 
-                            color: error.current_data.battle_result === 'Win' ? colors.success : colors.error,
-                            textDecoration: willFlipBattle ? 'line-through' : 'none',
-                            opacity: willFlipBattle ? 0.5 : 1
-                          }}>
-                            {error.current_data.battle_result === 'Win' ? 'W' : 'L'}
-                          </div>
+                      </div>
+                      <div style={{ color: colors.primary, fontSize: '1.5rem', fontWeight: 700 }}>→</div>
+                      <div>
+                        <div style={{ color: colors.success, fontSize: '0.7rem', marginBottom: '0.5rem', fontWeight: 600 }}>✓ AFTER APPROVAL</div>
+                        <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem' }}>
+                          <div><div style={{ color: colors.textMuted, fontSize: '0.65rem' }}>Prep</div><div style={{ color: colorR(newPrep), fontWeight: willFlipPrep ? 700 : 400 }}>{newPrep}{willFlipPrep && <span style={{ color: colors.gold, marginLeft: '0.25rem' }}>⚡</span>}</div></div>
+                          <div><div style={{ color: colors.textMuted, fontSize: '0.65rem' }}>Battle</div><div style={{ color: colorR(newBattle), fontWeight: willFlipBattle ? 700 : 400 }}>{newBattle}{willFlipBattle && <span style={{ color: colors.gold, marginLeft: '0.25rem' }}>⚡</span>}</div></div>
                         </div>
                       </div>
                     </div>
-                    
-                    <div style={{ color: colors.primary, fontSize: '1.5rem', fontWeight: 700 }}>→</div>
-                    
+                    <div style={{ marginTop: '0.75rem', paddingTop: '0.5rem', borderTop: `1px solid ${colors.borderSubtle}`, color: colors.textMuted, fontSize: '0.75rem' }}>
+                      vs <span style={{ color: colors.primary }}>K{cd.opponent}</span> • Also updates K{cd.opponent}&apos;s record (inverse)
+                    </div>
+                  </div>
+                );
+              }
+
+              // For wrong_opponent
+              if (error.error_type === 'wrong_opponent' && cd && corr?.opponent !== undefined) {
+                return (
+                  <div style={{ marginBottom: '1rem', padding: '0.75rem', backgroundColor: colors.bg, borderRadius: '8px', border: `1px solid ${colors.borderSubtle}` }}>
+                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', fontSize: '0.85rem' }}>
+                      <span style={{ color: colors.textMuted }}>Opponent:</span>
+                      <span style={{ color: colors.error, textDecoration: 'line-through', opacity: 0.5 }}>{cd.opponent === 0 ? 'Bye' : `K${cd.opponent}`}</span>
+                      <span style={{ color: colors.primary, fontWeight: 700 }}>→</span>
+                      <span style={{ color: colors.success, fontWeight: 700 }}>{corr.opponent === 0 ? 'Bye' : `K${corr.opponent}`}</span>
+                    </div>
+                  </div>
+                );
+              }
+
+              // For missing_kvk or everything_wrong with corrected_data
+              if ((error.error_type === 'missing_kvk' || error.error_type === 'everything_wrong') && corr?.opponent !== undefined && corr.prep_result && corr.battle_result) {
+                return (
+                  <div style={{ marginBottom: '1rem', padding: '0.75rem', backgroundColor: colors.bg, borderRadius: '8px', border: `1px solid ${colors.borderSubtle}` }}>
+                    {cd && (
+                      <div style={{ marginBottom: '0.75rem' }}>
+                        <div style={{ color: colors.error, fontSize: '0.7rem', marginBottom: '0.25rem', fontWeight: 600 }}>❌ CURRENT</div>
+                        <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem', color: colors.textMuted }}>
+                          <span>vs {cd.opponent === 0 ? 'Bye' : `K${cd.opponent}`}</span>
+                          <span>Prep: {normR(cd.prep_result)}</span>
+                          <span>Battle: {normR(cd.battle_result)}</span>
+                        </div>
+                      </div>
+                    )}
                     <div>
-                      <div style={{ color: colors.success, fontSize: '0.7rem', marginBottom: '0.5rem', fontWeight: 600 }}>✓ AFTER APPROVAL</div>
-                      <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem' }}>
-                        <div>
-                          <div style={{ color: colors.textMuted, fontSize: '0.65rem' }}>{t('admin.prep', 'Prep')}</div>
-                          <div style={{ 
-                            color: newPrep === 'Win' ? colors.success : colors.error,
-                            fontWeight: willFlipPrep ? 700 : 400
-                          }}>
-                            {newPrep === 'Win' ? 'W' : 'L'}
-                            {willFlipPrep && <span style={{ color: colors.gold, marginLeft: '0.25rem' }}>⚡</span>}
-                          </div>
-                        </div>
-                        <div>
-                          <div style={{ color: colors.textMuted, fontSize: '0.65rem' }}>{t('admin.battle', 'Battle')}</div>
-                          <div style={{ 
-                            color: newBattle === 'Win' ? colors.success : colors.error,
-                            fontWeight: willFlipBattle ? 700 : 400
-                          }}>
-                            {newBattle === 'Win' ? 'W' : 'L'}
-                            {willFlipBattle && <span style={{ color: colors.gold, marginLeft: '0.25rem' }}>⚡</span>}
-                          </div>
-                        </div>
-                        <div>
-                          <div style={{ color: colors.textMuted, fontSize: '0.65rem' }}>{t('admin.result', 'Result')}</div>
-                          <div style={{ 
-                            color: newOverall === 'Domination' ? colors.success : newOverall === 'Invasion' ? colors.error : colors.gold,
-                            fontWeight: 600,
-                            fontSize: '0.75rem'
-                          }}>
-                            {newOverall}
-                          </div>
-                        </div>
+                      <div style={{ color: colors.success, fontSize: '0.7rem', marginBottom: '0.25rem', fontWeight: 600 }}>{error.error_type === 'missing_kvk' ? '+ NEW RECORD' : '✓ CORRECTED'}</div>
+                      <div style={{ display: 'flex', gap: '1rem', fontSize: '0.85rem' }}>
+                        <span>vs <span style={{ color: colors.primary, fontWeight: 600 }}>{corr.opponent === 0 ? 'Bye' : `K${corr.opponent}`}</span></span>
+                        <span>Prep: <span style={{ color: colorR(corr.prep_result), fontWeight: 600 }}>{corr.prep_result}</span></span>
+                        <span>Battle: <span style={{ color: colorR(corr.battle_result), fontWeight: 600 }}>{corr.battle_result}</span></span>
                       </div>
                     </div>
                   </div>
-                  
-                  <div style={{ marginTop: '0.75rem', paddingTop: '0.5rem', borderTop: `1px solid ${colors.borderSubtle}`, color: colors.textMuted, fontSize: '0.75rem' }}>
-                    vs <span style={{ color: colors.primary }}>K{error.current_data.opponent}</span>
-                    {' '}• Also updates K{error.current_data.opponent}&apos;s record (inverse)
-                  </div>
-                </div>
-              );
+                );
+              }
+
+              return null;
             })()}
 
             <div style={{ color: colors.text, fontSize: '0.875rem', marginBottom: '1rem', padding: '0.75rem', backgroundColor: colors.surfaceHover, borderRadius: '6px' }}>

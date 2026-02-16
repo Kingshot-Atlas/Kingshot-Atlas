@@ -172,6 +172,6 @@ export function useDataFreshness() {
     source,
     lastUpdated,
     kingdomCount,
-    isStale: lastUpdated ? (Date.now() - lastUpdated.getTime()) > 10 * 60 * 1000 : false, // 10 min
+    isStale: lastUpdated ? (Date.now() - lastUpdated.getTime()) > 30 * 60 * 1000 : false, // 30 min
   };
 }

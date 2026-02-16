@@ -27,6 +27,7 @@ export const TRANSFER_GROUPS: Array<[number, number]> = [
   [418, 587],
   [588, 674],
   [675, 846],
+  [847, 99999],
 ];
 
 /**
@@ -72,7 +73,8 @@ export const getTransferGroup = (kingdomNumber: number): [number, number] | null
  * e.g., "K1–K6" or "K7–K115"
  */
 export const getTransferGroupLabel = (group: [number, number]): string => {
-  return `K${group[0]}–K${group[1]}`;
+  if (group[1] >= 99999) return `K${group[0]}+`;
+  return `K${group[0]}\u2013K${group[1]}`;
 };
 
 /**
@@ -116,5 +118,5 @@ export const filterByTransferGroup = <T extends { kingdom_number: number }>(
  * Kingdoms above this are not yet eligible for transfers.
  */
 export const MAX_TRANSFER_KINGDOM = TRANSFER_GROUPS.length > 0
-  ? Math.max(...TRANSFER_GROUPS.map(([, max]) => max))
+  ? Math.max(...TRANSFER_GROUPS.filter(([, max]) => max < 99999).map(([, max]) => max))
   : 0;

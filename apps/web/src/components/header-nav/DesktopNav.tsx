@@ -503,12 +503,11 @@ const DesktopNav: React.FC<DesktopNavProps> = ({ isActive, user, changeLanguage,
               onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'}
               onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#a24cf3' }}>
-                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-                <path d="M2 17l10 5 10-5"/>
-                <path d="M2 12l10 5 10-5"/>
-              </svg>
-              {t('nav.ambassadors')}
+              <span style={{ fontSize: '1rem', lineHeight: 1 }}>🏛️</span>
+              <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
+                <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>Atlas</span>
+                <span style={{ fontSize: '0.7rem', color: '#9ca3af' }}>Ambassadors</span>
+              </span>
             </Link>
             <Link
               to="/contribute-data"

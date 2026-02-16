@@ -3,6 +3,42 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-24 | Product Engineer | COMPLETED
+Task: Bot Dashboard v4 — Gift code role mentions, access control redesign, connected servers
+Files: `apps/web/src/pages/BotDashboard.tsx` (modified), `apps/discord-bot/src/scheduler.js` (modified), `apps/discord-bot/src/utils/embeds.js` (modified)
+DB Migration: `add_gift_code_role_id_and_blocked_role` — added `gift_code_role_id` column to `bot_guild_settings`, added `blocked` role to `bot_guild_admins` constraint.
+Changes:
+1. **Gift Code Role Mention** — New `gift_code_role_id` column + searchable role dropdown in Settings tab. Bot includes `<@&roleId>` mention when auto-posting gift codes.
+2. **Gift Code Multi-Guild Auto-Post** — `scheduler.js` now queries ALL guilds with `gift_code_alerts=true` from Supabase and posts to each guild's configured channel with per-guild custom message + role mention. Atlas Discord hardcoded channel kept as backward compat fallback.
+3. **Gift Code Embed Update** — `createNewGiftCodeEmbed()` now accepts optional `customMessage`, uses green color (#22c55e), title links to /tools/gift-codes, updated footer branding.
+4. **Access Control Tab** — Replaced "Admins" tab with "Access Control". Anyone with Discord Manage Server permission gets access by default. Server owner can block specific users via Discord username search. Blocked users stored as `role='blocked'` in `bot_guild_admins`.
+5. **Connected Servers** — New section in Settings tab showing all registered servers with remove capability. Only the server owner can remove a server (cascading delete of events, history, admins).
+6. **Stats Bar** — Shows "Blocked" count instead of "Admins" count.
+Result: Build passes ✅. Pushed to main (8020191), deploying via Cloudflare Pages CI/CD.
+
+## 2026-02-16 14:30 | Product Engineer | COMPLETED
+Task: Bot Dashboard — Simplified embeds, Discord username admin search, Supporter gate
+Files: `apps/web/src/pages/BotDashboard.tsx` (modified), `apps/discord-bot/src/allianceReminders.js` (modified)
+Changes:
+1. **Simplified Event Embeds** — Test message embeds now show: title="🐻 Bear Hunt starting soon!", description="Rally your alliance!\nJoin us at 14:00 UTC.", footer="Brought to you by Atlas · ks-atlas.com". Title links to ks-atlas.com. Removed fields (Kingdom Intel, Rankings). Same format for all 4 events.
+2. **Gift Code Embed** — Shows code prominently + "Redeem with 1 click in Atlas!" markdown link to /tools/gift-codes.
+3. **Discord Username Admin Search** — Admin tab now searches by `discord_username` with live dropdown suggestions (replaces Atlas username text input). Shows Discord username + Atlas username for each suggestion.
+4. **Supporter-Only Gate** — Non-supporters see upsell page listing features (event reminders, gift codes, test messages, multi-server). Links to /support.
+5. **Bot Embed Format** — `allianceReminders.js` updated to match simpler embed layout: clean title, short description + "Join us at HH:MM UTC.", footer with Atlas branding.
+6. **Admin List** — Now displays Discord usernames instead of Atlas usernames.
+Result: Build passes ✅. Pushed to main, deploying via Cloudflare Pages CI/CD.
+
+## 2026-02-22 18:00 | Product Engineer | COMPLETED
+Task: 3 bug fixes — Bot Dashboard auto-detect guilds, data corrections table, SignupNudgeBar
+Files: `BotDashboard.tsx` (modified), `SignupNudgeBar.tsx` (modified), `ReportDataModal.tsx` (modified), `contributorService.ts` (modified), Edge Function `verify-guild-permissions` v2 (deployed)
+Changes:
+1. **Bot Dashboard RLS Fix** — Circular RLS dependency between `bot_guild_settings` ↔ `bot_guild_admins` caused 500 errors. Created SECURITY DEFINER helpers `fn_is_bot_guild_admin()` and `fn_is_bot_guild_creator()` to break the cycle. All bot table policies recreated.
+2. **Bot Dashboard Auto-Detect Guilds** — Replaced manual Server ID form with "Detect My Servers" button. Edge Function v2 supports `action: 'list-guilds'` — lists all bot guilds where user has MANAGE_GUILD permission. Shows guild cards with icon, name, ID, and Register button.
+3. **Data Corrections Table** — Created missing `data_corrections` table (was referenced but never existed, causing 404). RLS: users see own submissions, admins see all + can update. Admin corrections auto-approved.
+4. **Duplicate Check Fix** — `ReportDataModal` was calling `checkDuplicate('correction')` which queries `kvk_corrections` with `kvk_number=undefined`. Added `'dataCorrection'` type to `contributorService.checkDuplicate()` that queries `data_corrections` by field.
+5. **SignupNudgeBar Fix** — X button didn't dismiss (missing `setVisible(false)`). Bar showed to logged-in users (useEffect didn't reset visible state). Added else branch + direct visibility toggle.
+Result: Build passes ✅. Changes remain local (uncommitted).
+
 ## 2026-02-22 14:00 | Product Engineer | COMPLETED
 Task: Bot Dashboard v2 — 500 fix, alliance reminders, multi-guild, permissions, event history
 Files: `allianceReminders.js` (new), `scheduler.js` (modified), `BotDashboard.tsx` (rewritten), Edge Function `verify-guild-permissions` (deployed)

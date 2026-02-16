@@ -83,7 +83,7 @@ const ReportDataModal: React.FC<ReportDataModalProps> = ({ kingdom, isOpen, onCl
     try {
       // B4: Check for duplicates
       for (const c of corrections) {
-        const duplicate = await contributorService.checkDuplicate('correction', {
+        const duplicate = await contributorService.checkDuplicate('dataCorrection', {
           kingdom_number: kingdom.kingdom_number,
           field: c.field,
           suggested_value: c.suggestedValue
@@ -101,10 +101,9 @@ const ReportDataModal: React.FC<ReportDataModalProps> = ({ kingdom, isOpen, onCl
       }
 
       // Insert each correction into Supabase
+      const isAdmin = profile?.is_admin === true;
       for (const c of corrections) {
-        const { error } = await supabase
-          .from('data_corrections')
-          .insert({
+        const payload: Record<string, unknown> = {
             kingdom_number: kingdom.kingdom_number,
             field: c.field,
             current_value: c.currentValue,
@@ -112,8 +111,17 @@ const ReportDataModal: React.FC<ReportDataModalProps> = ({ kingdom, isOpen, onCl
             reason: notes || '',
             submitted_by: user?.id,
             submitted_by_name: profile?.username || 'Anonymous',
-            status: 'pending'
-          });
+            status: isAdmin ? 'approved' : 'pending',
+          };
+        if (isAdmin) {
+          payload.reviewed_by = user?.id;
+          payload.reviewed_by_name = profile?.username || 'admin';
+          payload.reviewed_at = new Date().toISOString();
+          payload.review_notes = 'Auto-approved (admin submission)';
+        }
+        const { error } = await supabase
+          .from('data_corrections')
+          .insert(payload);
 
         if (error) {
           logger.error('Failed to submit data correction:', error.message);

@@ -17,6 +17,8 @@ const SignupNudgeBar: React.FC = () => {
       const timer = setTimeout(() => setVisible(true), 500);
       return () => clearTimeout(timer);
     }
+    // Hide immediately if user logged in or dismissed
+    setVisible(false);
     return undefined;
   }, [user, profileViewCount, signupNudgeDismissed]);
 
@@ -73,7 +75,7 @@ const SignupNudgeBar: React.FC = () => {
       </Link>
       
       <button
-        onClick={dismissSignupNudge}
+        onClick={() => { setVisible(false); dismissSignupNudge(); }}
         aria-label="Dismiss"
         style={{
           background: 'none',

@@ -161,132 +161,177 @@ class KvKCorrectionService {
       prep_result: string;
       battle_result: string;
     } | null;
+    corrected_data?: {
+      opponent?: number;
+      prep_result?: string;
+      battle_result?: string;
+    } | null;
     corrected_prep?: string;
     corrected_battle?: string;
   }, approvedBy: string): Promise<boolean> {
-    if (!kvkError.kvk_number || !kvkError.current_data) {
-      logger.warn('Cannot apply correction: missing kvk_number or current_data');
+    if (!kvkError.kvk_number) {
+      logger.warn('Cannot apply correction: missing kvk_number');
       return false;
     }
 
-    // Determine which fields to flip based on error_type
-    // Only flip the field that was reported as incorrect
-    let correctedPrep: string;
-    let correctedBattle: string;
-    
-    if (kvkError.corrected_prep) {
-      correctedPrep = kvkError.corrected_prep;
-    } else if (kvkError.error_type === 'wrong_prep_result' || kvkError.error_type === 'wrong_both_results') {
-      correctedPrep = this.flipResult(kvkError.current_data.prep_result);
-    } else {
-      correctedPrep = kvkError.current_data.prep_result; // Keep unchanged
+    if (!isSupabaseConfigured || !supabase) {
+      logger.warn('Cannot apply correction: Supabase not configured');
+      return false;
     }
-    
-    if (kvkError.corrected_battle) {
-      correctedBattle = kvkError.corrected_battle;
-    } else if (kvkError.error_type === 'wrong_battle_result' || kvkError.error_type === 'wrong_both_results') {
-      correctedBattle = this.flipResult(kvkError.current_data.battle_result);
-    } else {
-      correctedBattle = kvkError.current_data.battle_result; // Keep unchanged
-    }
-    
-    logger.log(`Applying correction for K${kvkError.kingdom_number} KvK#${kvkError.kvk_number}: error_type=${kvkError.error_type}, prep ${kvkError.current_data.prep_result}→${correctedPrep}, battle ${kvkError.current_data.battle_result}→${correctedBattle}`);
-    const overallResult = this.calculateOverallResult(correctedPrep, correctedBattle);
 
-    // Try to write to Supabase first
-    if (isSupabaseConfigured && supabase) {
-      try {
-        // CRITICAL: Update kvk_history table directly (source of truth)
-        // This ensures the correction is immediately visible everywhere
-        const { error: historyError } = await supabase
-          .from('kvk_history')
-          .update({
-            prep_result: correctedPrep,
-            battle_result: correctedBattle,
-            overall_result: overallResult
-          })
-          .eq('kingdom_number', kvkError.kingdom_number)
-          .eq('kvk_number', kvkError.kvk_number);
+    try {
+      const errorType = kvkError.error_type || '';
+      const cd = kvkError.corrected_data;
 
-        if (historyError) {
-          logger.error('Failed to update kvk_history:', historyError);
-        } else {
-          logger.log(`✅ Updated kvk_history for K${kvkError.kingdom_number} KvK#${kvkError.kvk_number}`);
-        }
-
-        // Also update opponent's record (inverse results)
-        const oppPrep = this.flipResult(correctedPrep);
-        const oppBattle = this.flipResult(correctedBattle);
-        const oppOverall = this.calculateOverallResult(oppPrep, oppBattle);
-
-        const { error: oppHistoryError } = await supabase
-          .from('kvk_history')
-          .update({
-            prep_result: oppPrep,
-            battle_result: oppBattle,
-            overall_result: oppOverall
-          })
-          .eq('kingdom_number', kvkError.current_data.opponent)
-          .eq('kvk_number', kvkError.kvk_number);
-
-        if (oppHistoryError) {
-          logger.error('Failed to update opponent kvk_history:', oppHistoryError);
-        } else {
-          logger.log(`✅ Updated opponent kvk_history for K${kvkError.current_data.opponent} KvK#${kvkError.kvk_number}`);
-        }
-
-        // Store correction record for audit trail
-        const { error: mainError } = await supabase
-          .from('kvk_corrections')
-          .upsert({
-            kingdom_number: kvkError.kingdom_number,
-            kvk_number: kvkError.kvk_number,
-            opponent_kingdom: kvkError.current_data.opponent,
-            original_prep_result: kvkError.current_data.prep_result,
-            original_battle_result: kvkError.current_data.battle_result,
-            corrected_prep_result: correctedPrep,
-            corrected_battle_result: correctedBattle,
-            corrected_overall_result: overallResult,
-            status: 'approved',
-            corrected_by: approvedBy,
-            reviewed_at: new Date().toISOString(),
-            notes: `Correction approved from error report ${kvkError.id}`
-          }, { onConflict: 'kingdom_number,kvk_number' });
-
-        if (mainError) {
-          logger.error('Failed to save correction record:', mainError);
-        }
-
-        // Store opponent's correction record
-        await supabase
-          .from('kvk_corrections')
-          .upsert({
-            kingdom_number: kvkError.current_data.opponent,
-            kvk_number: kvkError.kvk_number,
-            opponent_kingdom: kvkError.kingdom_number,
-            original_prep_result: this.flipResult(kvkError.current_data.prep_result),
-            original_battle_result: this.flipResult(kvkError.current_data.battle_result),
-            corrected_prep_result: oppPrep,
-            corrected_battle_result: oppBattle,
-            corrected_overall_result: oppOverall,
-            status: 'approved',
-            corrected_by: approvedBy,
-            reviewed_at: new Date().toISOString(),
-            notes: `Inverse correction for K${kvkError.kingdom_number}`
-          }, { onConflict: 'kingdom_number,kvk_number' });
-
-        // Invalidate all caches to pick up changes immediately
-        this.correctionsCache = null;
-        this.lastFetchTime = 0;
+      // ── Handle wrong_opponent: update opponent_kingdom on kvk_history ──
+      if (errorType === 'wrong_opponent' && cd?.opponent !== undefined && kvkError.current_data) {
+        const newOpp = cd.opponent;
+        const oldOpp = kvkError.current_data.opponent;
+        logger.log(`Applying opponent correction for K${kvkError.kingdom_number} KvK#${kvkError.kvk_number}: opponent ${oldOpp}→${newOpp}`);
         
+        await supabase.from('kvk_history').update({ opponent_kingdom: newOpp })
+          .eq('kingdom_number', kvkError.kingdom_number).eq('kvk_number', kvkError.kvk_number);
+        if (oldOpp && oldOpp !== 0) {
+          await supabase.from('kvk_history').update({ opponent_kingdom: 0 })
+            .eq('kingdom_number', oldOpp).eq('kvk_number', kvkError.kvk_number).eq('opponent_kingdom', kvkError.kingdom_number);
+        }
+        if (newOpp !== 0) {
+          await supabase.from('kvk_history').update({ opponent_kingdom: kvkError.kingdom_number })
+            .eq('kingdom_number', newOpp).eq('kvk_number', kvkError.kvk_number);
+        }
+        this.correctionsCache = null; this.lastFetchTime = 0;
         return true;
-      } catch (err) {
-        logger.error('Supabase correction error:', err);
       }
-    }
 
-    // Fallback to localStorage
-    return this.applyCorrection(kvkError, approvedBy);
+      // ── Handle missing_kvk: insert new kvk_history rows ──
+      if (errorType === 'missing_kvk' && cd?.opponent !== undefined && cd.prep_result && cd.battle_result) {
+        const opp = cd.opponent;
+        const overall = this.calculateOverallResult(cd.prep_result, cd.battle_result);
+        logger.log(`Inserting missing KvK for K${kvkError.kingdom_number} KvK#${kvkError.kvk_number}: vs ${opp} (${cd.prep_result}/${cd.battle_result})`);
+        
+        await supabase.from('kvk_history').insert({
+          kingdom_number: kvkError.kingdom_number, kvk_number: kvkError.kvk_number,
+          opponent_kingdom: opp, prep_result: cd.prep_result, battle_result: cd.battle_result, overall_result: overall,
+        });
+        if (opp !== 0) {
+          const oppOverall = this.calculateOverallResult(this.flipResult(cd.prep_result), this.flipResult(cd.battle_result));
+          await supabase.from('kvk_history').insert({
+            kingdom_number: opp, kvk_number: kvkError.kvk_number, opponent_kingdom: kvkError.kingdom_number,
+            prep_result: this.flipResult(cd.prep_result), battle_result: this.flipResult(cd.battle_result), overall_result: oppOverall,
+          });
+        }
+        this.correctionsCache = null; this.lastFetchTime = 0;
+        return true;
+      }
+
+      // ── Handle everything_wrong: full update ──
+      if (errorType === 'everything_wrong' && cd?.opponent !== undefined && cd.prep_result && cd.battle_result && kvkError.current_data) {
+        const opp = cd.opponent;
+        const oldOpp = kvkError.current_data.opponent;
+        const overall = this.calculateOverallResult(cd.prep_result, cd.battle_result);
+        logger.log(`Applying full correction for K${kvkError.kingdom_number} KvK#${kvkError.kvk_number}`);
+        
+        await supabase.from('kvk_history').update({
+          opponent_kingdom: opp, prep_result: cd.prep_result, battle_result: cd.battle_result, overall_result: overall,
+        }).eq('kingdom_number', kvkError.kingdom_number).eq('kvk_number', kvkError.kvk_number);
+        
+        if (oldOpp && oldOpp !== 0) {
+          await supabase.from('kvk_history').delete()
+            .eq('kingdom_number', oldOpp).eq('kvk_number', kvkError.kvk_number).eq('opponent_kingdom', kvkError.kingdom_number);
+        }
+        if (opp !== 0) {
+          const oppOverall = this.calculateOverallResult(this.flipResult(cd.prep_result), this.flipResult(cd.battle_result));
+          await supabase.from('kvk_history').upsert({
+            kingdom_number: opp, kvk_number: kvkError.kvk_number, opponent_kingdom: kvkError.kingdom_number,
+            prep_result: this.flipResult(cd.prep_result), battle_result: this.flipResult(cd.battle_result), overall_result: oppOverall,
+          }, { onConflict: 'kingdom_number,kvk_number' });
+        }
+        this.correctionsCache = null; this.lastFetchTime = 0;
+        return true;
+      }
+
+      // ── Handle flip types (wrong_prep, wrong_battle, wrong_both) ──
+      if (!kvkError.current_data) {
+        logger.warn('Cannot apply flip correction: missing current_data');
+        return false;
+      }
+
+      let correctedPrep: string;
+      let correctedBattle: string;
+      
+      if (kvkError.corrected_prep) {
+        correctedPrep = kvkError.corrected_prep;
+      } else if (errorType === 'wrong_prep_result' || errorType === 'wrong_both_results') {
+        correctedPrep = this.flipResult(kvkError.current_data.prep_result);
+      } else {
+        correctedPrep = kvkError.current_data.prep_result;
+      }
+      
+      if (kvkError.corrected_battle) {
+        correctedBattle = kvkError.corrected_battle;
+      } else if (errorType === 'wrong_battle_result' || errorType === 'wrong_both_results') {
+        correctedBattle = this.flipResult(kvkError.current_data.battle_result);
+      } else {
+        correctedBattle = kvkError.current_data.battle_result;
+      }
+      
+      logger.log(`Applying correction for K${kvkError.kingdom_number} KvK#${kvkError.kvk_number}: error_type=${errorType}, prep ${kvkError.current_data.prep_result}→${correctedPrep}, battle ${kvkError.current_data.battle_result}→${correctedBattle}`);
+      const overallResult = this.calculateOverallResult(correctedPrep, correctedBattle);
+
+      const { error: historyError } = await supabase
+        .from('kvk_history')
+        .update({ prep_result: correctedPrep, battle_result: correctedBattle, overall_result: overallResult })
+        .eq('kingdom_number', kvkError.kingdom_number)
+        .eq('kvk_number', kvkError.kvk_number);
+
+      if (historyError) {
+        logger.error('Failed to update kvk_history:', historyError);
+      } else {
+        logger.log(`✅ Updated kvk_history for K${kvkError.kingdom_number} KvK#${kvkError.kvk_number}`);
+      }
+
+      const oppPrep = this.flipResult(correctedPrep);
+      const oppBattle = this.flipResult(correctedBattle);
+      const oppOverall = this.calculateOverallResult(oppPrep, oppBattle);
+
+      const { error: oppHistoryError } = await supabase
+        .from('kvk_history')
+        .update({ prep_result: oppPrep, battle_result: oppBattle, overall_result: oppOverall })
+        .eq('kingdom_number', kvkError.current_data.opponent)
+        .eq('kvk_number', kvkError.kvk_number);
+
+      if (oppHistoryError) {
+        logger.error('Failed to update opponent kvk_history:', oppHistoryError);
+      } else {
+        logger.log(`✅ Updated opponent kvk_history for K${kvkError.current_data.opponent} KvK#${kvkError.kvk_number}`);
+      }
+
+      // Store correction records for audit trail
+      await supabase.from('kvk_corrections').upsert({
+        kingdom_number: kvkError.kingdom_number, kvk_number: kvkError.kvk_number,
+        opponent_kingdom: kvkError.current_data.opponent,
+        original_prep_result: kvkError.current_data.prep_result, original_battle_result: kvkError.current_data.battle_result,
+        corrected_prep_result: correctedPrep, corrected_battle_result: correctedBattle, corrected_overall_result: overallResult,
+        status: 'approved', corrected_by: approvedBy, reviewed_at: new Date().toISOString(),
+        notes: `Correction approved from error report ${kvkError.id}`
+      }, { onConflict: 'kingdom_number,kvk_number' });
+
+      await supabase.from('kvk_corrections').upsert({
+        kingdom_number: kvkError.current_data.opponent, kvk_number: kvkError.kvk_number,
+        opponent_kingdom: kvkError.kingdom_number,
+        original_prep_result: this.flipResult(kvkError.current_data.prep_result), original_battle_result: this.flipResult(kvkError.current_data.battle_result),
+        corrected_prep_result: oppPrep, corrected_battle_result: oppBattle, corrected_overall_result: oppOverall,
+        status: 'approved', corrected_by: approvedBy, reviewed_at: new Date().toISOString(),
+        notes: `Inverse correction for K${kvkError.kingdom_number}`
+      }, { onConflict: 'kingdom_number,kvk_number' });
+
+      this.correctionsCache = null;
+      this.lastFetchTime = 0;
+      return true;
+    } catch (err) {
+      logger.error('Supabase correction error:', err);
+      return false;
+    }
   }
 
   /**

@@ -24,3 +24,4 @@ export { SpotlightTab } from './SpotlightTab';
 export { default as ImportTab } from './ImportTab';
 export { default as PlausibleTab } from './PlausibleTab';
 export { default as RejectModal } from './RejectModal';
+export { default as KvKBulkMatchupTab } from './KvKBulkMatchupTab';
