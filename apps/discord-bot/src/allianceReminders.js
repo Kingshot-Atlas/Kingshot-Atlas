@@ -144,6 +144,9 @@ async function checkAndSendReminders(client) {
       if (!isEventDay(event.event_type, event.reference_date, now)) continue;
 
       for (const slot of event.time_slots) {
+        // Support per-day slots (e.g. Viking Vengeance: Tuesday=2, Thursday=4)
+        if (slot.day !== undefined && slot.day !== null && slot.day !== now.getUTCDay()) continue;
+
         const eventMinutes = slot.hour * 60 + slot.minute;
         let reminderMinutes = eventMinutes - (event.reminder_minutes_before || 0);
         // Handle midnight wrap (e.g. event at 00:05 with 10min reminder → 23:55)
@@ -185,15 +188,23 @@ async function sendReminder(client, event, guild, slot, channelId, now) {
     const channel = await client.channels.fetch(channelId);
     if (!channel) throw new Error(`Channel ${channelId} not found`);
 
+    // Use custom message if configured, otherwise default
+    const customMsg = event.custom_message;
+    const defaultMessages = {
+      bear_hunt: 'Rally your alliance and hunt together!',
+      viking_vengeance: 'Time to fight for glory!',
+      swordland_showdown: 'Ready your blades and fight for dominance!',
+      tri_alliance_clash: 'Coordinate with your allies!',
+    };
+    const baseMsg = customMsg || defaultMessages[event.event_type] || `${meta.label} is starting soon!`;
+    const description = `${baseMsg}\nJoin us at **${timeStr}**.`;
+
     const embed = new EmbedBuilder()
-      .setTitle(`${meta.emoji} ${meta.label} — Starting Soon!`)
-      .setDescription(
-        minsBefore > 0
-          ? `**${meta.label}** starts in **${minsBefore} minute${minsBefore === 1 ? '' : 's'}** at **${timeStr}**!\nGet your alliance ready! ⚔️`
-          : `**${meta.label}** is starting **now** at **${timeStr}**!\nTime to fight! ⚔️`
-      )
+      .setTitle(`${meta.emoji} ${meta.label} starting soon!`)
+      .setURL('https://ks-atlas.com')
+      .setDescription(description)
       .setColor(meta.color)
-      .setFooter({ text: `${config.bot.footerText} • Alliance Events` })
+      .setFooter({ text: 'Brought to you by Atlas · ks-atlas.com' })
       .setTimestamp();
 
     const roleMention = event.role_id ? `<@&${event.role_id}>` : '';
