@@ -3,6 +3,22 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-21 22:30 | Product Engineer | COMPLETED
+Task: Nearby Kingdoms transfer group filter, PrepScheduler minutes display, Atlas Bot Dashboard
+Files: `SimilarKingdoms.tsx` (modified), `PrepScheduler.tsx` (modified), `BotDashboard.tsx` (new), `App.tsx` (modified), `AtlasBot.tsx` (modified)
+Changes:
+1. **Nearby Kingdoms Transfer Group Filter** — SimilarKingdoms now compares within same transfer group instead of ±50 range. Uses `getTransferGroup()` from config. Tooltip updated to show group label.
+2. **PrepScheduler Minutes Display** — `formatMinutes()` now always shows minutes (e.g. `10,000m`) instead of `6d 22h 40m`.
+3. **Atlas Bot Dashboard** — New `/atlas-bot/dashboard` page with full guild management:
+   - Supabase tables: `bot_guild_settings`, `bot_guild_admins`, `bot_alliance_events` with RLS
+   - Auto-triggers: owner auto-insert, default event creation on guild registration
+   - 4 Alliance Event cards (Bear Hunt, Viking Vengeance, Swordland Showdown, Tri-Alliance Clash)
+   - Time slot editor (UTC), reminder advance config (5/10/15/30/60m), channel/role overrides
+   - Gift Code Alerts toggle, status strip, How It Works section
+   - Auth gates: sign-in + Discord link required
+   - "Manage Your Server" link on AtlasBot landing page
+Result: Build passes ✅. Two commits pushed to main.
+
 ## 2026-02-20 11:00 | Business Lead | COMPLETED
 Task: Monetization & Growth Strategy — Ad-Free removal, 4-stage onboarding funnel, churn recovery, Kingdom Fund growth
 Files: `SupportAtlas.tsx`, `PremiumContext.tsx`, `AdBanner.tsx`, `App.tsx`, `KingdomProfile.tsx`, `Profile.tsx`, `Tools.tsx`, `KingdomDirectory.tsx`, `KingdomFundContribute.tsx`, `useRallyCoordinator.ts` (modified); `useOnboardingTracker.ts`, `SignupNudgeBar.tsx`, `WelcomeToAtlas.tsx`, `BattlePlannerTrialTooltip.tsx`, `ConversionBanner.tsx`, `CancelSurvey.tsx` (new)
