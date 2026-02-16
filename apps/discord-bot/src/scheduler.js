@@ -6,6 +6,7 @@
 const cron = require('node-cron');
 const config = require('./config');
 const embeds = require('./utils/embeds');
+const { checkAndSendReminders } = require('./allianceReminders');
 
 /**
  * Initialize all scheduled tasks
@@ -97,7 +98,14 @@ function initScheduler(client) {
     console.warn('⚠️ DISCORD_GIFT_CODES_WEBHOOK not set - gift code auto-posting disabled');
   }
 
-  // Note: Immediate test runs on startup if webhook is configured
+  // Alliance Event Reminders — every minute, checks Supabase for upcoming events
+  cron.schedule('* * * * *', async () => {
+    await checkAndSendReminders(client);
+  }, {
+    timezone: 'UTC'
+  });
+
+  console.log('✅ Scheduled: Alliance event reminders (every minute)');
 }
 
 /**
