@@ -1,8 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { AnalyticsData } from './types';
 import { analyticsService } from '../../services/analyticsService';
 import { colors } from '../../utils/styles';
+import { supabase } from '../../lib/supabase';
 
 // S3.4: Inline SVG sparkline component
 const Sparkline: React.FC<{ data: number[]; color: string; width?: number; height?: number }> = ({ data, color, width = 80, height = 24 }) => {
@@ -19,6 +20,46 @@ const Sparkline: React.FC<{ data: number[]; color: string; width?: number; heigh
     <svg width={width} height={height} style={{ display: 'block', opacity: 0.7 }}>
       <polyline fill="none" stroke={color} strokeWidth="1.5" points={points} />
     </svg>
+  );
+};
+
+// Prep Scheduler usage analytics for admin dashboard
+const PrepSchedulerStats: React.FC = () => {
+  const [stats, setStats] = useState<{ schedules: number; submissions: number; assignments: number; kingdoms: number } | null>(null);
+  useEffect(() => {
+    if (!supabase) return;
+    (async () => {
+      try {
+        const [{ count: schedCount }, { count: subCount }, { count: assignCount }] = await Promise.all([
+          supabase.from('prep_schedules').select('*', { count: 'exact', head: true }),
+          supabase.from('prep_submissions').select('*', { count: 'exact', head: true }),
+          supabase.from('prep_slot_assignments').select('*', { count: 'exact', head: true }),
+        ]);
+        const { data: kingdoms } = await supabase.from('prep_schedules').select('kingdom_number');
+        const uniqueKingdoms = new Set((kingdoms || []).map((k: { kingdom_number: number }) => k.kingdom_number));
+        setStats({ schedules: schedCount || 0, submissions: subCount || 0, assignments: assignCount || 0, kingdoms: uniqueKingdoms.size });
+      } catch { /* silent */ }
+    })();
+  }, []);
+
+  if (!stats) return null;
+  return (
+    <div style={{ backgroundColor: colors.cardAlt, borderRadius: '12px', padding: '1.5rem', border: `1px solid #a855f730` }}>
+      <h3 style={{ color: colors.text, marginBottom: '1rem', fontSize: '1rem' }}>📅 Prep Scheduler Usage</h3>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
+        {[
+          { label: 'Schedules', value: stats.schedules, color: '#a855f7' },
+          { label: 'Submissions', value: stats.submissions, color: '#22d3ee' },
+          { label: 'Assignments', value: stats.assignments, color: '#22c55e' },
+          { label: 'Kingdoms', value: stats.kingdoms, color: '#f59e0b' },
+        ].map((s, i) => (
+          <div key={i} style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: '1.5rem', fontWeight: '700', color: s.color }}>{s.value}</div>
+            <div style={{ fontSize: '0.8rem', color: colors.textMuted }}>{s.label}</div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 };
 
@@ -171,6 +212,9 @@ export const AnalyticsOverview: React.FC<AnalyticsOverviewProps> = ({
           ))}
         </div>
       </div>
+
+      {/* Prep Scheduler Usage */}
+      <PrepSchedulerStats />
 
       {/* Top Pages */}
       <div style={{ backgroundColor: colors.cardAlt, borderRadius: '12px', padding: '1.5rem', border: `1px solid ${colors.border}` }}>

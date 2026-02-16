@@ -172,7 +172,29 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_OUT' && !session && supabase) {
+        // Another tab may have refreshed the token, invalidating this tab's session.
+        // Re-check localStorage for a valid session before clearing state.
+        try {
+          const { data } = await supabase.auth.getSession();
+          if (data.session) {
+            // Another tab refreshed successfully — use that session instead of logging out
+            setSession(data.session);
+            setUser(data.session.user);
+            fetchOrCreateProfile(data.session.user);
+            userDataService.setUserId(data.session.user.id);
+            return;
+          }
+        } catch { /* fall through to sign-out */ }
+        setSession(null);
+        setUser(null);
+        setProfile(null);
+        userDataService.setUserId(null);
+        setLoading(false);
+        return;
+      }
+
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -186,7 +208,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     });
 
-    return () => subscription.unsubscribe();
+    // Re-validate session when tab becomes visible (handles multi-tab token refresh)
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState === 'visible' && supabase) {
+        try {
+          const { data } = await supabase.auth.getSession();
+          if (data.session) {
+            setSession(data.session);
+            setUser(data.session.user);
+          }
+        } catch { /* silent */ }
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      subscription.unsubscribe();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
 
   // Set Sentry user context when profile changes

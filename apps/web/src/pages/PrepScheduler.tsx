@@ -21,6 +21,7 @@ interface PrepSchedule {
   tuesday_buff: string;
   thursday_buff: string;
   notes: string | null;
+  deadline: string | null;
   created_at: string;
 }
 
@@ -91,6 +92,34 @@ for (let h = 0; h < 24; h++) {
   for (let m = 0; m < 60; m += 30) {
     TIME_SLOTS.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
   }
+}
+
+// ─── Timezone Helpers ──────────────────────────────────────────────────
+const USER_TZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+const UTC_OFFSET_HOURS = -(new Date().getTimezoneOffset() / 60);
+const TZ_ABBR = USER_TZ.split('/').pop()?.replace(/_/g, ' ') || USER_TZ;
+
+function utcSlotToLocal(utcSlot: string): string {
+  // Convert "HH:MM" UTC to local time string
+  const [h, m] = utcSlot.split(':').map(Number);
+  const d = new Date();
+  d.setUTCHours(h ?? 0, m ?? 0, 0, 0);
+  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+}
+
+// ─── Deadline Helpers ──────────────────────────────────────────────────
+function getDeadlineCountdown(deadline: string | null): { text: string; urgent: boolean; expired: boolean } | null {
+  if (!deadline) return null;
+  const now = Date.now();
+  const dl = new Date(deadline).getTime();
+  const diff = dl - now;
+  if (diff <= 0) return { text: 'Deadline passed', urgent: true, expired: true };
+  const days = Math.floor(diff / 86400000);
+  const hours = Math.floor((diff % 86400000) / 3600000);
+  const mins = Math.floor((diff % 3600000) / 60000);
+  if (days > 0) return { text: `${days}d ${hours}h left`, urgent: days < 1, expired: false };
+  if (hours > 0) return { text: `${hours}h ${mins}m left`, urgent: hours < 6, expired: false };
+  return { text: `${mins}m left`, urgent: true, expired: false };
 }
 
 // ─── Utility Functions ─────────────────────────────────────────────────
@@ -216,12 +245,12 @@ const TimeRangePicker: React.FC<{
         <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <select value={range[0] || '10:00'} onChange={(e) => updateRange(idx, 0, e.target.value)}
             style={{ padding: '0.4rem 0.5rem', backgroundColor: colors.bg, border: `1px solid ${colors.border}`, borderRadius: '6px', color: colors.text, fontSize: '0.8rem' }}>
-            {TIME_SLOTS.map(t => <option key={t} value={t}>{t}</option>)}
+            {TIME_SLOTS.map(t => <option key={t} value={t}>{t} UTC ({utcSlotToLocal(t)})</option>)}
           </select>
           <span style={{ color: colors.textMuted, fontSize: '0.8rem' }}>to</span>
           <select value={range[1] || '12:00'} onChange={(e) => updateRange(idx, 1, e.target.value)}
             style={{ padding: '0.4rem 0.5rem', backgroundColor: colors.bg, border: `1px solid ${colors.border}`, borderRadius: '6px', color: colors.text, fontSize: '0.8rem' }}>
-            {TIME_SLOTS.map(t => <option key={t} value={t}>{t}</option>)}
+            {TIME_SLOTS.map(t => <option key={t} value={t}>{t} UTC ({utcSlotToLocal(t)})</option>)}
           </select>
           <button onClick={() => removeRange(idx)} style={{ background: 'none', border: 'none', color: colors.error, cursor: 'pointer', fontSize: '1rem', padding: '0 0.25rem' }}>×</button>
         </div>
@@ -279,6 +308,7 @@ const PrepScheduler: React.FC = () => {
   const [createKingdom, setCreateKingdom] = useState<number>(0);
   const [createKvkNumber, setCreateKvkNumber] = useState<number>(0);
   const [createNotes, setCreateNotes] = useState('');
+  const [createDeadline, setCreateDeadline] = useState('');
 
   // Prep Manager assignment state (multi-manager)
   const [assignManagerInput, setAssignManagerInput] = useState('');
@@ -519,6 +549,23 @@ const PrepScheduler: React.FC = () => {
     init();
   }, [scheduleId, profile]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Auto-close form when deadline is reached
+  useEffect(() => {
+    if (!schedule?.deadline || schedule.status !== 'active' || !supabase) return;
+    const sb = supabase;
+    const check = () => {
+      const countdown = getDeadlineCountdown(schedule.deadline);
+      if (countdown?.expired) {
+        sb.from('prep_schedules').update({ status: 'closed' }).eq('id', schedule.id).then(() => {
+          setSchedule(prev => prev ? { ...prev, status: 'closed' } : prev);
+        });
+      }
+    };
+    check();
+    const interval = setInterval(check, 30000); // check every 30s
+    return () => clearInterval(interval);
+  }, [schedule?.id, schedule?.deadline, schedule?.status]);
+
   // Determine view
   useEffect(() => {
     if (!scheduleId) { setView('landing'); return; }
@@ -539,6 +586,7 @@ const PrepScheduler: React.FC = () => {
       const { data, error } = await supabase.from('prep_schedules').insert({
         kingdom_number: createKingdom, created_by: user.id,
         kvk_number: createKvkNumber || null, notes: createNotes || null,
+        deadline: createDeadline ? new Date(createDeadline).toISOString() : null,
       }).select().single();
       if (error) throw error;
       if (data) {
@@ -708,10 +756,29 @@ const PrepScheduler: React.FC = () => {
   };
 
   const removeAssignment = async (assignmentId: string) => {
-    if (!supabase) return;
+    if (!supabase || !schedule || !user?.id) return;
     try {
+      // Find the assignment details before deleting (for waitlist auto-promotion)
+      const toRemove = assignments.find(a => a.id === assignmentId);
       await supabase.from('prep_slot_assignments').delete().eq('id', assignmentId);
-      if (schedule) await fetchAssignments(schedule.id);
+
+      // Waitlist auto-promotion: find next best unassigned player for that day
+      if (toRemove) {
+        const day = toRemove.day as Day;
+        const slotTime = toRemove.slot_time;
+        const currentAssignedIds = new Set(assignments.filter(a => a.day === day && a.id !== assignmentId).map(a => a.submission_id));
+        const availKey = `${day}_availability` as keyof PrepSubmission;
+        const candidates = submissions
+          .filter(s => !currentAssignedIds.has(s.id) && !isSkippedDay(s, day))
+          .filter(s => { const avail = (s[availKey] as string[][] | undefined) || []; return isSlotInAvailability(slotTime, avail); })
+          .sort((a, b) => getEffectiveSpeedups(b, day, schedule) - getEffectiveSpeedups(a, day, schedule));
+        const next = candidates[0];
+        if (next) {
+          await supabase.from('prep_slot_assignments').insert({ schedule_id: schedule.id, submission_id: next.id, day, slot_time: slotTime, assigned_by: user.id });
+        }
+      }
+
+      await fetchAssignments(schedule.id);
     } catch (err) { logger.error('Failed to remove assignment:', err); }
   };
 
@@ -910,6 +977,11 @@ const PrepScheduler: React.FC = () => {
                   <label style={labelStyle}>Notes for Players (optional)</label>
                   <textarea value={createNotes} onChange={(e) => setCreateNotes(e.target.value)} placeholder="Any instructions or reminders..." rows={3} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.5 }} />
                 </div>
+                <div>
+                  <label style={labelStyle}>Submission Deadline (optional)</label>
+                  <input type="datetime-local" value={createDeadline} onChange={(e) => setCreateDeadline(e.target.value)} style={inputStyle} />
+                  <p style={{ color: colors.textMuted, fontSize: '0.65rem', marginTop: '0.2rem' }}>Form will auto-close when the deadline is reached. Uses your local timezone.</p>
+                </div>
                 <button onClick={createSchedule} disabled={saving || !createKingdom || !goldKingdoms.has(createKingdom)}
                   style={{ padding: '0.6rem 1.25rem', backgroundColor: createKingdom && goldKingdoms.has(createKingdom) ? '#a855f720' : `${colors.textMuted}10`, border: `1px solid ${createKingdom && goldKingdoms.has(createKingdom) ? '#a855f750' : colors.border}`, borderRadius: '8px', color: createKingdom && goldKingdoms.has(createKingdom) ? '#a855f7' : colors.textMuted, fontSize: '0.85rem', fontWeight: 600, cursor: createKingdom && goldKingdoms.has(createKingdom) ? 'pointer' : 'not-allowed', width: 'fit-content', opacity: saving ? 0.6 : 1 }}>
                   {saving ? 'Creating...' : '✨ Create Schedule'}
@@ -958,6 +1030,11 @@ const PrepScheduler: React.FC = () => {
           </h1>
           {schedule.kvk_number && <p style={{ color: '#9ca3af', fontSize: '0.85rem' }}>KvK #{schedule.kvk_number}</p>}
           {schedule.notes && <p style={{ color: '#a855f7', fontSize: '0.8rem', fontStyle: 'italic', marginTop: '0.5rem', maxWidth: '500px', margin: '0.5rem auto 0' }}>{schedule.notes}</p>}
+          {(() => { const dl = getDeadlineCountdown(schedule.deadline); return dl && !dl.expired ? (
+            <div style={{ marginTop: '0.5rem', padding: '0.3rem 0.8rem', backgroundColor: dl.urgent ? '#ef444415' : '#f59e0b15', border: `1px solid ${dl.urgent ? '#ef444430' : '#f59e0b30'}`, borderRadius: '20px', display: 'inline-block' }}>
+              <span style={{ color: dl.urgent ? '#ef4444' : '#f59e0b', fontSize: '0.75rem', fontWeight: 600 }}>⏰ {dl.text}</span>
+            </div>
+          ) : null; })()}
           {schedule.status === 'closed' && (
             <div style={{ marginTop: '0.5rem', padding: '0.3rem 0.8rem', backgroundColor: '#ef444415', border: '1px solid #ef444430', borderRadius: '20px', display: 'inline-block' }}>
               <span style={{ color: '#ef4444', fontSize: '0.75rem', fontWeight: 600 }}>🔒 Form is closed — no new submissions or changes allowed</span>
@@ -1054,7 +1131,7 @@ const PrepScheduler: React.FC = () => {
                   </label>
                   {!isSkipped && (
                     <>
-                      <p style={{ color: colors.textMuted, fontSize: '0.7rem', marginBottom: '0.5rem' }}>Select up to 3 time ranges when you can play (UTC).</p>
+                      <p style={{ color: colors.textMuted, fontSize: '0.7rem', marginBottom: '0.5rem' }}>Select up to 3 time ranges when you can play (UTC). <span style={{ color: '#a855f7' }}>Your timezone: {TZ_ABBR} (UTC{UTC_OFFSET_HOURS >= 0 ? '+' : ''}{UTC_OFFSET_HOURS})</span></p>
                       <TimeRangePicker
                         ranges={day === 'monday' ? mondayAvail : day === 'tuesday' ? tuesdayAvail : thursdayAvail}
                         onChange={day === 'monday' ? setMondayAvail : day === 'tuesday' ? setTuesdayAvail : setThursdayAvail}
@@ -1223,6 +1300,7 @@ const PrepScheduler: React.FC = () => {
                   {schedule.status === 'closed' && <span style={{ marginLeft: '0.5rem', padding: '0.1rem 0.4rem', backgroundColor: '#ef444420', borderRadius: '4px', fontSize: '0.65rem', color: '#ef4444', fontWeight: 600 }}>🔒 FORM CLOSED</span>}
                   {schedule.is_locked && <span style={{ marginLeft: '0.5rem', padding: '0.1rem 0.4rem', backgroundColor: '#22c55e20', borderRadius: '4px', fontSize: '0.65rem', color: '#22c55e', fontWeight: 600 }}>✅ LOCKED IN</span>}
                   {changeRequests.filter(r => r.status === 'pending').length > 0 && <span style={{ marginLeft: '0.5rem', padding: '0.1rem 0.4rem', backgroundColor: '#ef444420', borderRadius: '4px', fontSize: '0.65rem', color: '#ef4444', fontWeight: 600 }}>🔔 {changeRequests.filter(r => r.status === 'pending').length} change request{changeRequests.filter(r => r.status === 'pending').length !== 1 ? 's' : ''}</span>}
+                  {(() => { const dl = getDeadlineCountdown(schedule.deadline); return dl ? <span style={{ marginLeft: '0.5rem', padding: '0.1rem 0.4rem', backgroundColor: dl.urgent ? '#ef444420' : '#f59e0b20', borderRadius: '4px', fontSize: '0.65rem', color: dl.urgent ? '#ef4444' : '#f59e0b', fontWeight: 600 }}>⏰ {dl.text}</span> : null; })()}
                 </p>
               </div>
               <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>

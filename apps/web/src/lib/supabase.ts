@@ -11,7 +11,8 @@ export const supabase: SupabaseClient | null = isSupabaseConfigured
       auth: {
         autoRefreshToken: true,
         persistSession: true,
-        detectSessionInUrl: true
+        detectSessionInUrl: true,
+        flowType: 'pkce',
       }
     })
   : null;

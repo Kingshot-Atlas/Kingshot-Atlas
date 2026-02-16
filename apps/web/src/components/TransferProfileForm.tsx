@@ -399,45 +399,19 @@ const TransferProfileForm: React.FC<{
         kvk_participation: formData.kvk_availability,
       };
 
-      if (existingProfile) {
-        const { error: updateError } = await supabase
-          .from('transfer_profiles')
-          .update({
-            is_active: true,
-            last_active_at: new Date().toISOString(),
-            username: formData.username,
-            current_kingdom: formData.current_kingdom,
-            tc_level: formData.tc_level,
-            power_million: formData.power_million,
-            main_language: formData.main_language,
-            secondary_languages: formData.secondary_languages,
-            play_schedule: formData.play_schedule,
-            kvk_availability: formData.kvk_availability,
-            saving_for_kvk: formData.saving_for_kvk,
-            looking_for: formData.looking_for,
-            group_size: formData.group_size,
-            player_bio: formData.player_bio,
-            contact_method: formData.contact_method,
-            contact_discord: formData.contact_discord,
-            contact_coordinates: composedCoords,
-            is_anonymous: formData.is_anonymous,
-            visible_to_recruiters: formData.visible_to_recruiters,
-            contact_info: formData.contact_method === 'discord' ? formData.contact_discord : formData.contact_method === 'in_game' ? composedCoords : `${formData.contact_discord} | ${composedCoords}`,
-            power_range: `${formData.power_million}M`,
-            kvk_participation: formData.kvk_availability,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', existingProfile.id);
+      const upsertPayload = {
+        ...payload,
+        is_active: true,
+        last_active_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
 
-        if (updateError) throw updateError;
-      } else {
-        const { error: insertError } = await supabase
-          .from('transfer_profiles')
-          .insert(payload);
+      const { error: upsertError } = await supabase
+        .from('transfer_profiles')
+        .upsert(upsertPayload, { onConflict: 'user_id' });
 
-        if (insertError) throw insertError;
-        trackFeature('Transfer Funnel: Profile Created');
-      }
+      if (upsertError) throw upsertError;
+      if (!existingProfile) trackFeature('Transfer Funnel: Profile Created');
 
       onSaved();
     } catch (err: unknown) {
