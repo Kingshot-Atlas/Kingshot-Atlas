@@ -14,7 +14,6 @@ import KingdomTable from '../components/KingdomTable';
 import SearchAutocomplete from '../components/SearchAutocomplete';
 import EventCalendar from '../components/EventCalendar';
 import PostKvKSubmission from '../components/PostKvKSubmission';
-import HotRightNow from '../components/HotRightNow';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { usePreferences } from '../hooks/useUrlState';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
@@ -1120,9 +1119,6 @@ const KingdomDirectory: React.FC = () => {
           overflowY: 'auto',
           zIndex: 80
         }}>
-          {/* Hot Right Now */}
-          <HotRightNow kingdoms={allKingdoms} recentlyViewed={recentlyViewed} limit={6} />
-          
           <EventCalendar />
           
           <button

@@ -16,6 +16,7 @@ interface PrepSchedule {
   prep_manager_id: string | null;
   kvk_number: number | null;
   status: 'active' | 'closed' | 'archived';
+  is_locked: boolean;
   monday_buff: string;
   tuesday_buff: string;
   thursday_buff: string;
@@ -41,6 +42,20 @@ interface PrepSubmission {
   skip_monday: boolean;
   skip_tuesday: boolean;
   skip_thursday: boolean;
+  speedup_changed_at: string | null;
+  previous_speedups: { general: number; training: number; construction: number; research: number; changed_at: string } | null;
+  created_at: string;
+}
+
+interface ChangeRequest {
+  id: string;
+  schedule_id: string;
+  submission_id: string;
+  user_id: string;
+  request_type: 'cant_attend' | 'change_slot' | 'other';
+  day: Day | null;
+  message: string | null;
+  status: 'pending' | 'acknowledged' | 'resolved';
   created_at: string;
 }
 
@@ -273,6 +288,14 @@ const PrepScheduler: React.FC = () => {
   const managerSearchRef = useRef<HTMLDivElement>(null);
   // Kingdom schedules for "Fill The Form" CTA on landing
   const [kingdomSchedules, setKingdomSchedules] = useState<PrepSchedule[]>([]);
+  // Change requests state
+  const [changeRequests, setChangeRequests] = useState<ChangeRequest[]>([]);
+  const [showChangeRequestForm, setShowChangeRequestForm] = useState(false);
+  const [changeRequestDay, setChangeRequestDay] = useState<Day>('monday');
+  const [changeRequestType, setChangeRequestType] = useState<'cant_attend' | 'change_slot' | 'other'>('cant_attend');
+  const [changeRequestMessage, setChangeRequestMessage] = useState('');
+  // Non-qualifying popup
+  const [showNonQualifyingPopup, setShowNonQualifyingPopup] = useState(false);
 
   // ─── Styles ────────────────────────────────────────────────────────
   const inputStyle: React.CSSProperties = {
@@ -473,6 +496,7 @@ const PrepScheduler: React.FC = () => {
         await fetchSchedule(scheduleId);
         await fetchSubmissions(scheduleId);
         await fetchAssignments(scheduleId);
+        await fetchChangeRequests(scheduleId);
       } else {
         await fetchMySchedules();
       }
@@ -532,6 +556,28 @@ const PrepScheduler: React.FC = () => {
     setSaving(false);
   };
 
+  const closeOrReopenForm = async () => {
+    if (!supabase || !schedule) return;
+    const newStatus = schedule.status === 'closed' ? 'active' : 'closed';
+    const msg = newStatus === 'closed' ? 'Close the form? No new submissions or edits will be allowed.' : 'Reopen the form for submissions?';
+    if (!confirm(msg)) return;
+    try {
+      await supabase.from('prep_schedules').update({ status: newStatus }).eq('id', schedule.id);
+      setSchedule({ ...schedule, status: newStatus });
+    } catch (err) { logger.error('Failed to update status:', err); }
+  };
+
+  const toggleLock = async () => {
+    if (!supabase || !schedule) return;
+    const newLocked = !schedule.is_locked;
+    const msg = newLocked ? 'Lock the schedule? This marks it as finalized.' : 'Unlock the schedule?';
+    if (!confirm(msg)) return;
+    try {
+      await supabase.from('prep_schedules').update({ is_locked: newLocked }).eq('id', schedule.id);
+      setSchedule({ ...schedule, is_locked: newLocked });
+    } catch (err) { logger.error('Failed to toggle lock:', err); }
+  };
+
   const archiveSchedule = async () => {
     if (!supabase || !schedule) return;
     if (!confirm('Archive this schedule? It will no longer accept submissions.')) return;
@@ -540,6 +586,37 @@ const PrepScheduler: React.FC = () => {
       setSchedule({ ...schedule, status: 'archived' });
       alert('Schedule archived.');
     } catch (err) { logger.error('Failed to archive:', err); }
+  };
+
+  const fetchChangeRequests = useCallback(async (schedId: string) => {
+    if (!supabase) return;
+    try {
+      const { data } = await supabase.from('prep_change_requests').select('*').eq('schedule_id', schedId).order('created_at', { ascending: false });
+      setChangeRequests(data || []);
+    } catch (err) { logger.error('Failed to fetch change requests:', err); }
+  }, []);
+
+  const submitChangeRequest = async () => {
+    if (!supabase || !user?.id || !schedule || !existingSubmission) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase.from('prep_change_requests').insert({
+        schedule_id: schedule.id, submission_id: existingSubmission.id, user_id: user.id,
+        request_type: changeRequestType, day: changeRequestDay, message: changeRequestMessage.trim() || null,
+      });
+      if (error) throw error;
+      alert('Change request submitted! Your Prep Manager will be notified.');
+      setShowChangeRequestForm(false); setChangeRequestMessage('');
+    } catch (err) { logger.error('Failed to submit change request:', err); alert('Failed to submit request.'); }
+    setSaving(false);
+  };
+
+  const acknowledgeChangeRequest = async (reqId: string) => {
+    if (!supabase || !user?.id) return;
+    try {
+      await supabase.from('prep_change_requests').update({ status: 'resolved', resolved_at: new Date().toISOString(), resolved_by: user.id }).eq('id', reqId);
+      setChangeRequests(prev => prev.map(r => r.id === reqId ? { ...r, status: 'resolved' as const } : r));
+    } catch (err) { logger.error('Failed to acknowledge:', err); }
   };
 
   const exportOptedOut = (day: Day) => {
@@ -801,25 +878,26 @@ const PrepScheduler: React.FC = () => {
             </div>
           )}
 
-          {user && !profile?.is_admin && !kingdomSchedules.length && mySchedules.length === 0 && (
-            <div style={{ ...cardStyle, marginBottom: '1.5rem', borderColor: '#f59e0b30', backgroundColor: '#f59e0b08' }}>
-              <h3 style={{ color: '#f59e0b', fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.5rem' }}>🔒 Admin-Only Access</h3>
+          {user && profile?.linked_kingdom && !goldKingdoms.has(profile.linked_kingdom) && !kingdomSchedules.length && mySchedules.length === 0 && (
+            <div style={{ ...cardStyle, marginBottom: '1.5rem', borderColor: '#ffc30b30', backgroundColor: '#ffc30b08' }}>
+              <h3 style={{ color: '#ffc30b', fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.5rem' }}>� Gold Tier Required</h3>
               <p style={{ color: colors.textMuted, fontSize: '0.8rem', lineHeight: 1.5 }}>
-                The KvK Prep Scheduler is currently available to administrators only. If your kingdom has an active schedule, you'll see it here automatically.
+                The KvK Prep Scheduler is available for Gold Tier kingdoms. Encourage your kingdom to reach Gold tier through the Kingdom Fund to unlock this tool!
               </p>
             </div>
           )}
 
-          {user && profile?.is_admin && (
+          {user && (profile?.is_admin || (profile?.linked_kingdom && goldKingdoms.has(profile.linked_kingdom))) && (
             <div style={{ ...cardStyle, marginBottom: '1.5rem' }}>
               <h3 style={{ color: colors.text, fontSize: '1rem', marginBottom: '0.75rem', fontWeight: 700 }}>📋 Create New Schedule</h3>
               <p style={{ color: colors.textMuted, fontSize: '0.75rem', marginBottom: '1rem', lineHeight: 1.5 }}>
-                Create a Prep Schedule for your Gold Tier kingdom. You'll get a shareable link for players. Only Editors/Co-Editors can create schedules.
+                Create a Prep Schedule for your Gold Tier kingdom. You'll get a shareable link for players to submit their availability and speedups.
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 <div>
                   <label style={labelStyle}>Kingdom Number *</label>
-                  <input type="number" value={createKingdom || ''} onChange={(e) => setCreateKingdom(parseInt(e.target.value) || 0)} placeholder="e.g. 172" style={inputStyle} />
+                  <input type="number" value={createKingdom || ''} readOnly={!!profile?.linked_kingdom} style={{ ...inputStyle, ...(profile?.linked_kingdom ? { opacity: 0.7, cursor: 'not-allowed', backgroundColor: '#1a1a1a' } : {}) }} onChange={(e) => { if (!profile?.linked_kingdom) setCreateKingdom(parseInt(e.target.value) || 0); }} placeholder="e.g. 172" />
+                  {profile?.linked_kingdom && <p style={{ color: colors.textMuted, fontSize: '0.65rem', marginTop: '0.2rem' }}>Auto-filled from your linked kingdom.</p>}
                   {createKingdom > 0 && !goldKingdoms.has(createKingdom) && (
                     <p style={{ color: colors.error, fontSize: '0.7rem', marginTop: '0.25rem' }}>⚠️ Kingdom {createKingdom} is not Gold Tier. Only Gold Tier kingdoms can use this tool.</p>
                   )}
@@ -880,7 +958,12 @@ const PrepScheduler: React.FC = () => {
           </h1>
           {schedule.kvk_number && <p style={{ color: '#9ca3af', fontSize: '0.85rem' }}>KvK #{schedule.kvk_number}</p>}
           {schedule.notes && <p style={{ color: '#a855f7', fontSize: '0.8rem', fontStyle: 'italic', marginTop: '0.5rem', maxWidth: '500px', margin: '0.5rem auto 0' }}>{schedule.notes}</p>}
-          {existingSubmission && (
+          {schedule.status === 'closed' && (
+            <div style={{ marginTop: '0.5rem', padding: '0.3rem 0.8rem', backgroundColor: '#ef444415', border: '1px solid #ef444430', borderRadius: '20px', display: 'inline-block' }}>
+              <span style={{ color: '#ef4444', fontSize: '0.75rem', fontWeight: 600 }}>🔒 Form is closed — no new submissions or changes allowed</span>
+            </div>
+          )}
+          {existingSubmission && schedule.status !== 'closed' && (
             <div style={{ marginTop: '0.5rem', padding: '0.3rem 0.8rem', backgroundColor: '#22c55e15', border: '1px solid #22c55e30', borderRadius: '20px', display: 'inline-block' }}>
               <span style={{ color: '#22c55e', fontSize: '0.75rem', fontWeight: 600 }}>✅ Editing your existing response</span>
             </div>
@@ -909,7 +992,21 @@ const PrepScheduler: React.FC = () => {
                     );
                   })}
                 </div>
-                <p style={{ color: colors.textMuted, fontSize: '0.7rem', marginTop: '0.5rem' }}>Be online at these times to receive the buff. Contact your Prep Manager if you need to change slots.</p>
+                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                  <p style={{ color: colors.textMuted, fontSize: '0.7rem', margin: 0 }}>Be online at these times to receive the buff.</p>
+                  <button onClick={() => setShowChangeRequestForm(true)} style={{ padding: '0.25rem 0.6rem', backgroundColor: '#f59e0b15', border: '1px solid #f59e0b30', borderRadius: '4px', color: '#f59e0b', fontSize: '0.7rem', fontWeight: 600, cursor: 'pointer' }}>🔄 Request Change</button>
+                </div>
+              </div>
+            )}
+
+            {/* Non-qualifying popup — show when user has submission but NO slots assigned and schedule is locked */}
+            {existingSubmission && schedule.is_locked && assignments.filter(a => a.submission_id === existingSubmission.id).length === 0 && !showNonQualifyingPopup && (
+              <div style={{ ...cardStyle, borderColor: '#ef444430', backgroundColor: '#ef444408' }}>
+                <h4 style={{ color: '#ef4444', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.5rem' }}>❌ You were not assigned a slot</h4>
+                <p style={{ color: colors.textMuted, fontSize: '0.75rem', marginBottom: '0.5rem', lineHeight: 1.5 }}>
+                  The schedule has been locked and you did not receive an appointment slot. This may be due to the 48-user limit per day or scheduling conflicts.
+                </p>
+                <button onClick={() => setShowNonQualifyingPopup(true)} style={{ padding: '0.4rem 0.8rem', backgroundColor: '#a855f715', border: '1px solid #a855f730', borderRadius: '6px', color: '#a855f7', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>📊 View Report</button>
               </div>
             )}
 
@@ -1015,16 +1112,90 @@ const PrepScheduler: React.FC = () => {
             </div>
 
             {/* Submit */}
-            <button onClick={submitForm} disabled={saving || !formUsername.trim()}
-              style={{ padding: '0.75rem 1.5rem', backgroundColor: '#a855f720', border: '1px solid #a855f750', borderRadius: '10px', color: '#a855f7', fontSize: '0.9rem', fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1 }}>
-              {saving ? 'Submitting...' : existingSubmission ? '✏️ Update Submission' : '📤 Submit'}
-            </button>
+            {schedule.status === 'closed' ? (
+              <div style={{ padding: '0.75rem 1.5rem', backgroundColor: '#ef444410', border: '1px solid #ef444430', borderRadius: '10px', textAlign: 'center' }}>
+                <span style={{ color: '#ef4444', fontSize: '0.85rem', fontWeight: 600 }}>🔒 Form is closed — submissions are locked</span>
+              </div>
+            ) : (
+              <button onClick={submitForm} disabled={saving || !formUsername.trim()}
+                style={{ padding: '0.75rem 1.5rem', backgroundColor: '#a855f720', border: '1px solid #a855f750', borderRadius: '10px', color: '#a855f7', fontSize: '0.9rem', fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1 }}>
+                {saving ? 'Submitting...' : existingSubmission ? '✏️ Update Submission' : '📤 Submit'}
+              </button>
+            )}
 
             <div style={{ textAlign: 'center', marginTop: '0.5rem' }}>
               <Link to="/tools" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: '0.8rem' }}>← Back to Tools</Link>
             </div>
           </div>
         </div>
+
+        {/* Change Request Modal */}
+        {showChangeRequestForm && existingSubmission && (
+          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999, padding: '1rem' }} onClick={() => setShowChangeRequestForm(false)}>
+            <div onClick={e => e.stopPropagation()} style={{ backgroundColor: colors.surface, border: `1px solid ${colors.border}`, borderRadius: '12px', padding: '1.25rem', width: '100%', maxWidth: '400px' }}>
+              <h4 style={{ color: colors.text, fontSize: '0.95rem', margin: '0 0 1rem', fontWeight: 600 }}>🔄 Request Slot Change</h4>
+              <div style={{ marginBottom: '0.75rem' }}>
+                <label style={labelStyle}>Type</label>
+                <select value={changeRequestType} onChange={e => setChangeRequestType(e.target.value as 'cant_attend' | 'change_slot' | 'other')} style={{ ...inputStyle, width: '100%' }}>
+                  <option value="cant_attend">❌ Can't attend my assigned slot</option>
+                  <option value="change_slot">🔄 Need a different time</option>
+                  <option value="other">💬 Other</option>
+                </select>
+              </div>
+              <div style={{ marginBottom: '0.75rem' }}>
+                <label style={labelStyle}>Day</label>
+                <select value={changeRequestDay} onChange={e => setChangeRequestDay(e.target.value as Day)} style={{ ...inputStyle, width: '100%' }}>
+                  {DAYS.map(d => <option key={d} value={d}>{DAY_LABELS[d]}</option>)}
+                </select>
+              </div>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={labelStyle}>Message (optional)</label>
+                <textarea value={changeRequestMessage} onChange={e => setChangeRequestMessage(e.target.value)} placeholder="Explain your situation..." rows={3} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit' }} />
+              </div>
+              <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                <button onClick={() => setShowChangeRequestForm(false)} style={{ padding: '0.5rem 1rem', backgroundColor: colors.border, border: 'none', borderRadius: '6px', color: colors.textSecondary, fontSize: '0.8rem', cursor: 'pointer' }}>Cancel</button>
+                <button onClick={submitChangeRequest} disabled={saving} style={{ padding: '0.5rem 1rem', backgroundColor: '#a855f720', border: '1px solid #a855f750', borderRadius: '6px', color: '#a855f7', fontSize: '0.8rem', fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer' }}>{saving ? 'Sending...' : 'Submit Request'}</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Non-Qualifying Report Popup */}
+        {showNonQualifyingPopup && existingSubmission && schedule && (
+          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999, padding: '1rem' }} onClick={() => setShowNonQualifyingPopup(false)}>
+            <div onClick={e => e.stopPropagation()} style={{ backgroundColor: colors.surface, border: `1px solid ${colors.border}`, borderRadius: '12px', padding: '1.25rem', width: '100%', maxWidth: '420px' }}>
+              <h4 style={{ color: colors.text, fontSize: '0.95rem', margin: '0 0 0.75rem', fontWeight: 600 }}>📊 Your Prep Report</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {DAYS.map(day => {
+                  const isSkipped = isSkippedDay(existingSubmission, day);
+                  const effective = getEffectiveSpeedups(existingSubmission, day, schedule);
+                  const buffType = day === 'monday' ? schedule.monday_buff : day === 'tuesday' ? schedule.tuesday_buff : schedule.thursday_buff;
+                  const availKey = `${day}_availability` as keyof PrepSubmission;
+                  const avail = (existingSubmission[availKey] as string[][] | undefined) || [];
+                  const hasSlot = assignments.some(a => a.submission_id === existingSubmission.id && a.day === day);
+                  return (
+                    <div key={day} style={{ padding: '0.5rem', borderRadius: '6px', border: `1px solid ${isSkipped ? colors.border : hasSlot ? '#22c55e30' : '#ef444430'}`, backgroundColor: isSkipped ? `${colors.textMuted}05` : hasSlot ? '#22c55e08' : '#ef444408' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                        <span style={{ color: isSkipped ? colors.textMuted : hasSlot ? '#22c55e' : '#ef4444', fontSize: '0.8rem', fontWeight: 700 }}>{DAY_LABELS[day]}</span>
+                        <span style={{ color: colors.textMuted, fontSize: '0.65rem' }}>{DAY_BUFF_LABELS[buffType]}</span>
+                        <span style={{ marginLeft: 'auto', fontSize: '0.7rem', fontWeight: 600, color: isSkipped ? '#f59e0b' : hasSlot ? '#22c55e' : '#ef4444' }}>
+                          {isSkipped ? '⏭ Opted Out' : hasSlot ? '✅ Qualified' : '❌ Not Selected'}
+                        </span>
+                      </div>
+                      {!isSkipped && (
+                        <div style={{ display: 'flex', gap: '0.75rem', fontSize: '0.7rem', color: colors.textMuted }}>
+                          <span>Speedups: {formatMinutes(effective)}</span>
+                          <span>Availability: {avail.length > 0 ? formatAvailRanges(avail) : 'None'}</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              <button onClick={() => setShowNonQualifyingPopup(false)} style={{ marginTop: '1rem', padding: '0.5rem 1rem', backgroundColor: colors.border, border: 'none', borderRadius: '6px', color: colors.textSecondary, fontSize: '0.8rem', cursor: 'pointer', width: '100%' }}>Close</button>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -1049,6 +1220,9 @@ const PrepScheduler: React.FC = () => {
                   {(() => { const skipCount = submissions.filter(s => isSkippedDay(s, activeDay)).length; return skipCount > 0 ? <span style={{ color: '#f59e0b' }}> · {skipCount} skipped {DAY_LABELS[activeDay]}</span> : null; })()}
                   {managerUsername && <span> · Manager: <span style={{ color: '#a855f7' }}>{managerUsername}</span></span>}
                   {schedule.status === 'archived' && <span style={{ marginLeft: '0.5rem', padding: '0.1rem 0.4rem', backgroundColor: `${colors.textMuted}20`, borderRadius: '4px', fontSize: '0.65rem', color: colors.textMuted }}>ARCHIVED</span>}
+                  {schedule.status === 'closed' && <span style={{ marginLeft: '0.5rem', padding: '0.1rem 0.4rem', backgroundColor: '#ef444420', borderRadius: '4px', fontSize: '0.65rem', color: '#ef4444', fontWeight: 600 }}>🔒 FORM CLOSED</span>}
+                  {schedule.is_locked && <span style={{ marginLeft: '0.5rem', padding: '0.1rem 0.4rem', backgroundColor: '#22c55e20', borderRadius: '4px', fontSize: '0.65rem', color: '#22c55e', fontWeight: 600 }}>✅ LOCKED IN</span>}
+                  {changeRequests.filter(r => r.status === 'pending').length > 0 && <span style={{ marginLeft: '0.5rem', padding: '0.1rem 0.4rem', backgroundColor: '#ef444420', borderRadius: '4px', fontSize: '0.65rem', color: '#ef4444', fontWeight: 600 }}>🔔 {changeRequests.filter(r => r.status === 'pending').length} change request{changeRequests.filter(r => r.status === 'pending').length !== 1 ? 's' : ''}</span>}
                 </p>
               </div>
               <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
@@ -1056,6 +1230,12 @@ const PrepScheduler: React.FC = () => {
                 <button onClick={() => exportToSpreadsheet(submissions, assignments, schedule)} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#22c55e15', border: '1px solid #22c55e30', borderRadius: '6px', color: '#22c55e', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>📊 Export CSV</button>
                 <button onClick={() => exportOptedOut(activeDay)} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#f59e0b15', border: '1px solid #f59e0b30', borderRadius: '6px', color: '#f59e0b', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>📋 Opted-Out CSV</button>
                 <button onClick={() => setView('form')} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#a855f715', border: '1px solid #a855f730', borderRadius: '6px', color: '#a855f7', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>📝 View Form</button>
+                {schedule.status !== 'archived' && (isEditorOrCoEditor || isManager) && (
+                  <button onClick={closeOrReopenForm} style={{ padding: '0.4rem 0.75rem', backgroundColor: schedule.status === 'closed' ? '#22c55e15' : '#ef444415', border: `1px solid ${schedule.status === 'closed' ? '#22c55e30' : '#ef444430'}`, borderRadius: '6px', color: schedule.status === 'closed' ? '#22c55e' : '#ef4444', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>{schedule.status === 'closed' ? '🔓 Reopen Form' : '🔒 Close Form'}</button>
+                )}
+                {schedule.status !== 'archived' && (isEditorOrCoEditor || isManager) && (
+                  <button onClick={toggleLock} style={{ padding: '0.4rem 0.75rem', backgroundColor: schedule.is_locked ? '#f59e0b15' : '#22c55e15', border: `1px solid ${schedule.is_locked ? '#f59e0b30' : '#22c55e30'}`, borderRadius: '6px', color: schedule.is_locked ? '#f59e0b' : '#22c55e', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>{schedule.is_locked ? '🔓 Unlock Schedule' : '✅ Lock In Schedule'}</button>
+                )}
                 {schedule.status === 'active' && isEditorOrCoEditor && (
                   <button onClick={archiveSchedule} style={{ padding: '0.4rem 0.75rem', backgroundColor: `${colors.textMuted}10`, border: `1px solid ${colors.border}`, borderRadius: '6px', color: colors.textMuted, fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>📦 Archive</button>
                 )}
@@ -1125,6 +1305,27 @@ const PrepScheduler: React.FC = () => {
             </div>
           )}
 
+          {/* Change Requests Panel */}
+          {(isManager || isEditorOrCoEditor) && changeRequests.filter(r => r.status === 'pending').length > 0 && (
+            <div style={{ ...cardStyle, marginBottom: '1rem', borderColor: '#ef444430', backgroundColor: '#ef444408' }}>
+              <h4 style={{ color: '#ef4444', fontSize: '0.8rem', fontWeight: 700, marginBottom: '0.5rem' }}>🔔 Pending Change Requests</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                {changeRequests.filter(r => r.status === 'pending').map(req => {
+                  const sub = submissions.find(s => s.id === req.submission_id);
+                  return (
+                    <div key={req.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.6rem', backgroundColor: '#1a1a1a', borderRadius: '6px', border: '1px solid #2a2a2a', flexWrap: 'wrap' }}>
+                      <span style={{ color: '#ef4444', fontSize: '0.7rem', fontWeight: 600 }}>{req.request_type === 'cant_attend' ? '❌' : req.request_type === 'change_slot' ? '🔄' : '💬'}</span>
+                      <span style={{ color: colors.text, fontSize: '0.75rem', fontWeight: 600 }}>{sub?.username || 'Unknown'}</span>
+                      {req.day && <span style={{ color: DAY_COLORS[req.day as Day], fontSize: '0.65rem' }}>{DAY_LABELS[req.day as Day]}</span>}
+                      <span style={{ color: colors.textMuted, fontSize: '0.7rem', flex: 1 }}>{req.message || req.request_type.replace('_', ' ')}</span>
+                      <button onClick={() => acknowledgeChangeRequest(req.id)} style={{ padding: '0.2rem 0.5rem', backgroundColor: '#22c55e15', border: '1px solid #22c55e30', borderRadius: '4px', color: '#22c55e', fontSize: '0.65rem', fontWeight: 600, cursor: 'pointer' }}>✓ Resolve</button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Day Tabs */}
           <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
             {DAYS.map(day => {
@@ -1181,6 +1382,7 @@ const PrepScheduler: React.FC = () => {
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
                   <thead><tr style={{ borderBottom: `1px solid ${colors.border}` }}>
+                    <th style={{ textAlign: 'center', padding: '0.4rem', color: colors.textMuted, fontWeight: 600, width: '30px' }}>#</th>
                     <th style={{ textAlign: 'left', padding: '0.4rem', color: colors.textMuted, fontWeight: 600 }}>Alliance</th>
                     <th style={{ textAlign: 'left', padding: '0.4rem', color: colors.textMuted, fontWeight: 600 }}>Username</th>
                     <th style={{ textAlign: 'right', padding: '0.4rem', color: colors.textMuted, fontWeight: 600 }}>Speedups</th>
@@ -1194,11 +1396,15 @@ const PrepScheduler: React.FC = () => {
                       const assignment = dayAssignments.find(a => a.submission_id === sub.id);
                       const availKey = `${activeDay}_availability` as keyof PrepSubmission;
                       const avail = (sub[availKey] as string[][] | undefined) || [];
+                      const rank = idx + 1;
+                      const isBeyondCutoff = rank > 48;
+                      const hasChanged = !!sub.speedup_changed_at;
                       return (
-                        <tr key={sub.id} style={{ borderBottom: `1px solid ${colors.borderSubtle}`, backgroundColor: assignment ? `${DAY_COLORS[activeDay]}08` : idx >= 48 ? `${colors.error}05` : 'transparent' }}>
+                        <tr key={sub.id} style={{ borderBottom: `1px solid ${isBeyondCutoff ? '#ef444430' : colors.borderSubtle}`, backgroundColor: isBeyondCutoff ? '#ef444410' : assignment ? `${DAY_COLORS[activeDay]}08` : 'transparent' }}>
+                          <td style={{ padding: '0.4rem', textAlign: 'center', color: isBeyondCutoff ? '#ef4444' : DAY_COLORS[activeDay], fontWeight: 700, fontSize: '0.7rem' }}>{rank}{isBeyondCutoff && <span title="Beyond 48-user cutoff" style={{ display: 'block', fontSize: '0.5rem', color: '#ef4444' }}>WAIT</span>}</td>
                           <td style={{ padding: '0.4rem', color: colors.textMuted }}>{sub.alliance_tag || '—'}</td>
-                          <td style={{ padding: '0.4rem', color: assignment ? colors.text : colors.textMuted, fontWeight: assignment ? 500 : 400 }}>{sub.username}</td>
-                          <td style={{ padding: '0.4rem', textAlign: 'right', color: DAY_COLORS[activeDay], fontWeight: 600 }}>{formatMinutes(effective)}</td>
+                          <td style={{ padding: '0.4rem', color: isBeyondCutoff ? '#ef4444' : assignment ? colors.text : colors.textMuted, fontWeight: assignment ? 500 : 400 }}>{sub.username}{hasChanged && <span title={`Speedups changed ${new Date(sub.speedup_changed_at!).toLocaleDateString()}`} style={{ marginLeft: '0.3rem', color: '#f59e0b', fontSize: '0.65rem', cursor: 'help' }}>⚠️</span>}</td>
+                          <td style={{ padding: '0.4rem', textAlign: 'right', color: isBeyondCutoff ? '#ef4444' : DAY_COLORS[activeDay], fontWeight: 600 }}>{formatMinutes(effective)}</td>
                           <td style={{ padding: '0.4rem', textAlign: 'center' }}>
                             {sub.screenshot_url ? (
                               <a href={sub.screenshot_url} target="_blank" rel="noopener noreferrer" style={{ color: '#22c55e', fontSize: '0.7rem' }}>📷</a>

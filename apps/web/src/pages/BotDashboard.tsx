@@ -279,7 +279,8 @@ const EvCard: React.FC<{
   onTest: (ev: AllianceEvent) => void;
   testing: boolean;
   testResult: { ok: boolean; msg: string; steps?: string[] } | null;
-}> = ({ ev, onUp, mob, local, channels, roles, categories, loadingDiscord, guildChannelId, onTest, testing, testResult }) => {
+  guildId: string | null;
+}> = ({ ev, onUp, mob, local, channels, roles, categories, loadingDiscord, guildChannelId, guildId, onTest, testing, testResult }) => {
   const m = EVENT_META[ev.event_type];
   const [open, setOpen] = useState(false);
   const [cMins, setCMins] = useState('');
@@ -293,9 +294,10 @@ const EvCard: React.FC<{
     return channels.map(c => ({ id: c.id, name: c.name, category: catMap.get(c.parent_id || '') || '' }));
   }, [channels, categories]);
 
-  const roleOpts = useMemo(() =>
-    roles.map(r => ({ id: r.id, name: r.name, color: r.color })),
-  [roles]);
+  const roleOpts = useMemo(() => [
+    ...(guildId ? [{ id: guildId, name: '@everyone', color: 0 }] : []),
+    ...roles.map(r => ({ id: r.id, name: r.name, color: r.color })),
+  ], [roles, guildId]);
 
   const fmtSlotSummary = () => {
     if (ev.time_slots.length === 0) return null;
@@ -312,7 +314,7 @@ const EvCard: React.FC<{
   const slotSummary = fmtSlotSummary();
 
   return (
-    <div style={{ backgroundColor: colors.surface, borderRadius: 12, border: `1px solid ${ev.enabled ? `${m.color}30` : colors.border}`, overflow: 'hidden', transition: 'border-color 0.2s' }}>
+    <div style={{ backgroundColor: colors.surface, borderRadius: 12, border: `1px solid ${ev.enabled ? `${m.color}30` : colors.border}`, transition: 'border-color 0.2s' }}>
       <div onClick={() => setOpen(!open)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: mob ? '0.85rem' : '1rem 1.25rem', cursor: 'pointer', userSelect: 'none' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flex: 1, minWidth: 0 }}>
           <span style={{ fontSize: mob ? '1.25rem' : '1.5rem' }}>{m.icon}</span>
@@ -957,7 +959,7 @@ const BotDashboard: React.FC = () => {
               </h3>
 
               {/* Gift Code Alerts — pill toggle style like EvCard */}
-              <div style={{ backgroundColor: colors.surface, borderRadius: 12, border: `1px solid ${guild.gift_code_alerts ? `${colors.success}30` : colors.border}`, overflow: 'hidden', transition: 'border-color 0.2s' }}>
+              <div style={{ backgroundColor: colors.surface, borderRadius: 12, border: `1px solid ${guild.gift_code_alerts ? `${colors.success}30` : colors.border}`, transition: 'border-color 0.2s' }}>
                 <div onClick={() => setGiftCodeOpen(!giftCodeOpen)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: mob ? '0.85rem' : '1rem 1.25rem', cursor: 'pointer', userSelect: 'none' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flex: 1, minWidth: 0 }}>
                     <span style={{ fontSize: mob ? '1.25rem' : '1.5rem' }}>🎁</span>
@@ -987,7 +989,7 @@ const BotDashboard: React.FC = () => {
                     <div style={{ marginBottom: '1rem' }}>
                       <label style={lS}>ROLE TO MENTION <span style={{ fontWeight: 400, color: colors.textMuted }}>(optional)</span></label>
                       {dRoles.length > 0 || loadingDiscord ? (
-                        <SearchableSelect value={guild.gift_code_role_id} onChange={v => upGuild({ gift_code_role_id: v })} options={dRoles.map(r => ({ id: r.id, name: r.name, color: r.color }))} placeholder="No role mention" loading={loadingDiscord} accentColor={colors.success} />
+                        <SearchableSelect value={guild.gift_code_role_id} onChange={v => upGuild({ gift_code_role_id: v })} options={[...(guild.guild_id ? [{ id: guild.guild_id, name: '@everyone', color: 0 }] : []), ...dRoles.map(r => ({ id: r.id, name: r.name, color: r.color }))]} placeholder="No role mention" loading={loadingDiscord} accentColor={colors.success} />
                       ) : (
                         <input type="text" value={guild.gift_code_role_id || ''} onChange={e => upGuild({ gift_code_role_id: e.target.value || null })} placeholder="Role ID (optional)" style={iS} />
                       )}
@@ -1021,7 +1023,7 @@ const BotDashboard: React.FC = () => {
                 🗓️ Reminders
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                {sortedEvents.map(ev => <EvCard key={ev.id} ev={ev} onUp={u => upEv(ev.id, u)} mob={mob} local={showLocal} channels={dChannels} roles={dRoles} categories={dCategories} loadingDiscord={loadingDiscord} guildChannelId={guild?.reminder_channel_id || null} onTest={sendTestEvent} testing={testingEvent === ev.id} testResult={testResults[ev.id] || null} />)}
+                {sortedEvents.map(ev => <EvCard key={ev.id} ev={ev} onUp={u => upEv(ev.id, u)} mob={mob} local={showLocal} channels={dChannels} roles={dRoles} categories={dCategories} loadingDiscord={loadingDiscord} guildChannelId={guild?.reminder_channel_id || null} guildId={guild?.guild_id || null} onTest={sendTestEvent} testing={testingEvent === ev.id} testResult={testResults[ev.id] || null} />)}
                 {events.length === 0 && <div style={{ backgroundColor: colors.surface, borderRadius: 12, border: `1px solid ${colors.border}`, padding: '2rem', textAlign: 'center', color: colors.textMuted, fontSize: '0.85rem' }}>No events configured. Try refreshing.</div>}
               </div>
             </div>

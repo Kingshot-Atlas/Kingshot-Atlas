@@ -663,28 +663,30 @@ const AtlasBot: React.FC = () => {
               ))}
             </div>
 
-            <Link
-              to="/atlas-bot/dashboard"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.4rem',
-                padding: '0.6rem 1.25rem',
-                backgroundColor: '#22d3ee15',
-                border: '1px solid #22d3ee40',
-                borderRadius: '8px',
-                color: '#22d3ee',
-                fontWeight: '600',
-                fontSize: isMobile ? '0.8rem' : '0.85rem',
-                textDecoration: 'none',
-                transition: 'all 0.2s ease',
-              }}
-            >
-              ⚙️ {t('atlasBot.openDashboard', 'Open the Dashboard')}
-            </Link>
-            <p style={{ color: '#4b5563', fontSize: '0.7rem', marginTop: '0.5rem' }}>
-              {t('atlasBot.dashSupporterNote', 'Available to Atlas Supporters. Invite the bot first, then configure from here.')}
-            </p>
+            <div style={{ textAlign: 'center' }}>
+              <Link
+                to="/atlas-bot/dashboard"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  padding: '0.6rem 1.25rem',
+                  backgroundColor: '#22d3ee15',
+                  border: '1px solid #22d3ee40',
+                  borderRadius: '8px',
+                  color: '#22d3ee',
+                  fontWeight: '600',
+                  fontSize: isMobile ? '0.8rem' : '0.85rem',
+                  textDecoration: 'none',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                ⚙️ {t('atlasBot.openDashboard', 'Open the Dashboard')}
+              </Link>
+              <p style={{ color: '#4b5563', fontSize: '0.7rem', marginTop: '0.5rem' }}>
+                {t('atlasBot.dashSupporterNote', 'Available to Atlas Supporters. Invite the bot first, then configure from here.')}
+              </p>
+            </div>
           </div>
         </div>
 

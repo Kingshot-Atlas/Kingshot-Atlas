@@ -19,11 +19,15 @@ const ConversionBanner: React.FC = () => {
 
   return (
     <div style={{
+      maxWidth: '1200px',
+      margin: '0 auto',
+      padding: isMobile ? '0 0.75rem 0.5rem' : '0 2rem 0.75rem',
+    }}>
+    <div style={{
       backgroundColor: '#111111',
       border: '1px solid #FF6B8A30',
       borderRadius: '12px',
       padding: isMobile ? '0.75rem 1rem' : '1rem 1.25rem',
-      marginBottom: '1rem',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
@@ -74,6 +78,7 @@ const ConversionBanner: React.FC = () => {
           ✕
         </button>
       </div>
+    </div>
     </div>
   );
 };
