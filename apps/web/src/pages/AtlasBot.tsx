@@ -257,10 +257,30 @@ const AtlasBot: React.FC = () => {
           <p style={{
             color: '#6b7280',
             fontSize: '0.75rem',
-            marginTop: '0.75rem'
+            marginTop: '0.75rem',
+            marginBottom: '0.75rem'
           }}>
             {t('atlasBot.freeForAll', 'Free for all Discord servers')}
           </p>
+          <Link
+            to="/atlas-bot/dashboard"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              padding: '0.55rem 1.25rem',
+              backgroundColor: 'transparent',
+              border: '1px solid #22d3ee40',
+              borderRadius: '8px',
+              color: '#22d3ee',
+              fontWeight: '600',
+              fontSize: isMobile ? '0.8rem' : '0.85rem',
+              textDecoration: 'none',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            ⚙️ Manage Your Server
+          </Link>
 
           {!isMobile && (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', marginTop: '1.5rem' }}>

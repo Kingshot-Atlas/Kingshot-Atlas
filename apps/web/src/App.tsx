@@ -51,6 +51,7 @@ const CancelSurvey = lazy(() => import('./pages/CancelSurvey'));
 const KingdomCommunities = lazy(() => import('./pages/KingdomCommunities'));
 const PrepScheduler = lazy(() => import('./pages/PrepScheduler'));
 const PrepSchedulerLanding = lazy(() => import('./pages/PrepSchedulerLanding'));
+const BotDashboard = lazy(() => import('./pages/BotDashboard'));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -150,6 +151,7 @@ function AppContent() {
               <Route path="/tools/prep-scheduler-info" element={<ErrorBoundary><PrepSchedulerLanding /></ErrorBoundary>} />
               <Route path="/tools/prep-scheduler" element={<ErrorBoundary><PrepScheduler /></ErrorBoundary>} />
               <Route path="/tools/prep-scheduler/:scheduleId" element={<ErrorBoundary><PrepScheduler /></ErrorBoundary>} />
+              <Route path="/atlas-bot/dashboard" element={<ErrorBoundary><BotDashboard /></ErrorBoundary>} />
             </Routes>
           </Suspense>
         </PageTransition>
