@@ -35,6 +35,20 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isActive, user, profile, isAdmi
   });
 
   return (
+    <>
+    {/* Backdrop overlay — tap to close */}
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed',
+        top: '56px',
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        zIndex: 98,
+      }}
+    />
     <div style={{
       position: 'absolute',
       top: '56px',
@@ -43,13 +57,15 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isActive, user, profile, isAdmi
       backgroundColor: '#0a0a0a',
       borderBottom: '1px solid #2a2a2a',
       padding: '1rem',
+      paddingBottom: 'max(1rem, env(safe-area-inset-bottom))',
       display: 'flex',
       flexDirection: 'column',
       gap: '0.5rem',
       zIndex: 99,
       maxHeight: 'calc(100vh - 56px)',
       overflowY: 'auto',
-      WebkitOverflowScrolling: 'touch'
+      WebkitOverflowScrolling: 'touch',
+      animation: 'fadeIn 0.15s ease-out'
     }}>
       {/* Sign In / Profile */}
       {user ? (
@@ -379,6 +395,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isActive, user, profile, isAdmi
       )}
       <div style={{ height: '1px', backgroundColor: '#1f1f1f', margin: '0.5rem 0' }} />
     </div>
+    </>
   );
 };
 

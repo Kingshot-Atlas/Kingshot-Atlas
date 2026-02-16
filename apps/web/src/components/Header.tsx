@@ -73,6 +73,30 @@ const Header: React.FC = () => {
   useEffect(() => {
     setShowMobileMenu(false);
   }, [location.pathname]);
+
+  // Lock body scroll when mobile menu is open (preserves scroll position)
+  useEffect(() => {
+    if (showMobileMenu) {
+      const scrollY = window.scrollY;
+      document.body.style.top = `-${scrollY}px`;
+      document.body.classList.add('menu-open');
+    } else {
+      const scrollY = document.body.style.top;
+      document.body.classList.remove('menu-open');
+      document.body.style.top = '';
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY || '0') * -1);
+      }
+    }
+    return () => {
+      const scrollY = document.body.style.top;
+      document.body.classList.remove('menu-open');
+      document.body.style.top = '';
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY || '0') * -1);
+      }
+    };
+  }, [showMobileMenu]);
   
   const isActive = (path: string) => location.pathname === path;
 

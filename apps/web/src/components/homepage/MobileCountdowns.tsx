@@ -35,14 +35,14 @@ const MobileCountdowns: React.FC = () => {
       {/* KvK Pill */}
       <div style={{
         flex: 1,
-        padding: '0.5rem 0.6rem',
+        padding: '0.55rem 0.65rem',
         borderRadius: '10px',
         background: `${kvkStatus.color}08`,
         border: `1px solid ${kvkStatus.color}25`,
         textAlign: 'center',
       }}>
         <div style={{
-          fontSize: '0.6rem',
+          fontSize: '0.65rem',
           color: '#9ca3af',
           textTransform: 'uppercase',
           marginBottom: '0.15rem',
@@ -55,7 +55,7 @@ const MobileCountdowns: React.FC = () => {
           {kvkIsLive && (
             <span style={{
               color: kvkStatus.color,
-              fontSize: '0.55rem',
+              fontSize: '0.6rem',
               fontWeight: 700,
               animation: 'pulse 2s infinite',
             }}>
@@ -65,7 +65,7 @@ const MobileCountdowns: React.FC = () => {
         </div>
         <div style={{
           color: kvkStatus.color,
-          fontSize: '0.8rem',
+          fontSize: '0.85rem',
           fontWeight: 600,
           fontFamily: 'monospace',
           fontVariantNumeric: 'tabular-nums',
@@ -77,14 +77,14 @@ const MobileCountdowns: React.FC = () => {
       {/* Transfer Pill */}
       <div style={{
         flex: 1,
-        padding: '0.5rem 0.6rem',
+        padding: '0.55rem 0.65rem',
         borderRadius: '10px',
         background: `${transferStatus.color}08`,
         border: `1px solid ${transferStatus.color}25`,
         textAlign: 'center',
       }}>
         <div style={{
-          fontSize: '0.6rem',
+          fontSize: '0.65rem',
           color: '#9ca3af',
           textTransform: 'uppercase',
           marginBottom: '0.15rem',
@@ -97,7 +97,7 @@ const MobileCountdowns: React.FC = () => {
           {transferIsLive && (
             <span style={{
               color: transferStatus.color,
-              fontSize: '0.55rem',
+              fontSize: '0.6rem',
               fontWeight: 700,
               animation: 'pulse 2s infinite',
             }}>
@@ -107,7 +107,7 @@ const MobileCountdowns: React.FC = () => {
         </div>
         <div style={{
           color: transferStatus.color,
-          fontSize: '0.8rem',
+          fontSize: '0.85rem',
           fontWeight: 600,
           fontFamily: 'monospace',
           fontVariantNumeric: 'tabular-nums',

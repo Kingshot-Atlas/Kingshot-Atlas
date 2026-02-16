@@ -116,15 +116,7 @@ function formatAvailRanges(ranges: string[][]): string {
 }
 
 function formatMinutes(totalMinutes: number): string {
-  if (totalMinutes < 60) return `${totalMinutes}m`;
-  const hours = Math.floor(totalMinutes / 60);
-  const mins = totalMinutes % 60;
-  if (hours >= 24) {
-    const days = Math.floor(hours / 24);
-    const remHours = hours % 24;
-    return `${days}d ${remHours}h${mins > 0 ? ` ${mins}m` : ''}`;
-  }
-  return `${hours}h${mins > 0 ? ` ${mins}m` : ''}`;
+  return `${totalMinutes.toLocaleString()}m`;
 }
 
 function isSkippedDay(sub: PrepSubmission, day: Day): boolean {

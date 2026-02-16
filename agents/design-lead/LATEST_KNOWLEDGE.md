@@ -406,4 +406,46 @@ Biggest Climbers/Fallers use a proper `<table>` layout:
 
 ---
 
+## Mobile UX Refinement Patterns (2026-02-16)
+
+### Body Scroll Lock for Overlays
+When opening mobile menus/modals, lock body scroll while preserving position:
+```tsx
+// Save scroll position, lock, restore on close
+const scrollY = window.scrollY;
+document.body.style.top = `-${scrollY}px`;
+document.body.classList.add('menu-open');
+// On close: restore
+const top = document.body.style.top;
+document.body.classList.remove('menu-open');
+document.body.style.top = '';
+window.scrollTo(0, parseInt(top || '0') * -1);
+```
+CSS: `body.menu-open { overflow: hidden; position: fixed; width: 100%; height: 100%; }`
+
+### Touch Target Scoping
+Global `min-height: 44px` on ALL buttons bloats inline elements. Scope it:
+```css
+button:not(.inline-action):not(.chip),
+[role="button"]:not(.inline-action):not(.chip) { min-height: 44px; }
+```
+Add `.inline-action` or `.chip` class to small decorative buttons/badges.
+
+### Minimum Font Sizes
+- **Never below 0.65rem (10.4px)** on mobile
+- Labels/badges: 0.65rem minimum
+- Body text: 0.75rem minimum  
+- Countdown timers: 0.85rem with monospace
+
+### Sticky Element Performance
+Add `will-change: transform` and `contain: layout style` to sticky elements for smoother mobile scrolling.
+
+### Range Input Mobile Styling
+Style range input thumbs to 24px diameter with brand color for touch-friendliness.
+
+### Backdrop Overlay Pattern
+Always add a semi-transparent backdrop behind mobile menus so users can tap outside to dismiss.
+
+---
+
 *Updated by Design Lead based on current design best practices.*

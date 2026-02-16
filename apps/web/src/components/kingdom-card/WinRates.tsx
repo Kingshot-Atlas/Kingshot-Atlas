@@ -69,10 +69,10 @@ const WinRates: React.FC<WinRatesProps> = ({
             {t('stats.currentStreak')}: {prepLossStreak}L
           </div>
         )}
-        <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.3rem' }}>
+        <div style={{ fontSize: '0.7rem', color: '#6b7280', marginBottom: '0.3rem' }}>
           {t('stats.bestStreak')}: {prepBestStreak}W
         </div>
-        <div style={{ height: '4px', backgroundColor: '#2a2a30', borderRadius: '2px', overflow: 'hidden' }}>
+        <div style={{ height: '5px', backgroundColor: '#2a2a30', borderRadius: '2px', overflow: 'hidden' }}>
           <div style={{
             height: '100%',
             width: `${prepWinRate * 100}%`,
@@ -114,10 +114,10 @@ const WinRates: React.FC<WinRatesProps> = ({
             {t('stats.currentStreak')}: {battleLossStreak}L
           </div>
         )}
-        <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.3rem' }}>
+        <div style={{ fontSize: '0.7rem', color: '#6b7280', marginBottom: '0.3rem' }}>
           {t('stats.bestStreak')}: {battleBestStreak}W
         </div>
-        <div style={{ height: '4px', backgroundColor: '#2a2a30', borderRadius: '2px', overflow: 'hidden' }}>
+        <div style={{ height: '5px', backgroundColor: '#2a2a30', borderRadius: '2px', overflow: 'hidden' }}>
           <div style={{
             height: '100%',
             width: `${battleWinRate * 100}%`,

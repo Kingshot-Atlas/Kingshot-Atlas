@@ -391,7 +391,7 @@ const PendingClaimView: React.FC<{
           backgroundColor: '#eab30815',
           border: '1px solid #eab30830',
           borderRadius: '4px',
-          fontSize: '0.6rem',
+          fontSize: '0.65rem',
           color: '#eab308',
           fontWeight: 'bold',
         }}>

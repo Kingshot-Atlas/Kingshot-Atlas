@@ -158,7 +158,7 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
           boxShadow: '0 4px 20px #22d3ee20, inset 0 -8px 16px #22d3ee08',
         }}>
           <span style={{
-            fontSize: '0.7rem',
+            fontSize: '0.75rem',
             fontWeight: '800',
             color: '#22d3ee',
             letterSpacing: '0.18em',
@@ -186,7 +186,7 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
           boxShadow: '0 4px 20px #ef444420, inset 0 -8px 16px #ef444408',
         }}>
           <span style={{
-            fontSize: '0.7rem',
+            fontSize: '0.75rem',
             fontWeight: '800',
             color: '#ef4444',
             letterSpacing: '0.18em',
@@ -301,7 +301,7 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
             accentColor={missingDataColor}
             maxWidth={180}
             content={
-              <div style={{ fontSize: '0.65rem' }}>
+              <div style={{ fontSize: '0.7rem' }}>
                 <span style={{ fontWeight: '600', color: missingDataColor }}>{t('kingdomCard.missingKvK', 'Missing KvK #{{num}}', { num: CURRENT_KVK })}</span>
                 <span style={{ color: colors.textMuted, marginInlineStart: '0.25rem' }}>— {t('kingdomCard.tapToSubmit', 'tap to submit')}</span>
               </div>
@@ -318,11 +318,11 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '0.25rem',
-                padding: '0.2rem 0.5rem',
-                borderRadius: '4px',
+                padding: '0.35rem 0.6rem',
+                borderRadius: '6px',
                 backgroundColor: `${missingDataColor}15`,
                 border: `1px solid ${missingDataColor}40`,
-                fontSize: '0.6rem',
+                fontSize: '0.65rem',
                 fontWeight: 500,
                 color: missingDataColor,
                 cursor: 'pointer',

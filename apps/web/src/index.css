@@ -326,17 +326,35 @@ select:focus-visible {
   }
 }
 
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Tap highlight control for mobile */
+* {
+  -webkit-tap-highlight-color: rgba(34, 211, 238, 0.1);
+}
+
 /* Mobile-First Responsive Utilities */
 @media (max-width: 768px) {
-  /* Improve touch targets on mobile */
-  button, a, [role="button"] {
+  /* Touch targets: only standalone interactive elements, not inline links/badges */
+  button:not(.inline-action):not(.chip),
+  [role="button"]:not(.inline-action):not(.chip) {
     min-height: 44px;
-    min-width: 44px;
   }
   
   /* Prevent horizontal overflow */
   body {
     overflow-x: hidden;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
   }
   
   /* Better table scrolling on mobile */
@@ -364,6 +382,41 @@ select:focus-visible {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+  
+  /* Range input touch-friendly styling */
+  input[type="range"] {
+    height: 24px;
+    cursor: pointer;
+  }
+  
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    border: 2px solid var(--color-bg);
+    box-shadow: 0 0 6px rgba(34, 211, 238, 0.3);
+    cursor: pointer;
+  }
+  
+  input[type="range"]::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    border: 2px solid var(--color-bg);
+    box-shadow: 0 0 6px rgba(34, 211, 238, 0.3);
+    cursor: pointer;
+  }
+}
+
+/* Body scroll lock for mobile menu overlay */
+body.menu-open {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+  height: 100%;
 }
 
 /* Safe area insets for notched devices */

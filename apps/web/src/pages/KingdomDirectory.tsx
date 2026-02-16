@@ -427,7 +427,9 @@ const KingdomDirectory: React.FC = () => {
         zIndex: 50, 
         backgroundColor: colors.bg, 
         paddingTop: isMobile ? '0.5rem' : '1rem',
-        paddingBottom: '0.5rem'
+        paddingBottom: '0.5rem',
+        willChange: 'transform',
+        contain: 'layout style',
       }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', padding: isMobile ? '0 0.75rem' : '0 2rem' }}>
         <div style={{ 
@@ -481,7 +483,7 @@ const KingdomDirectory: React.FC = () => {
                 </svg>
                 {t('common.filter')}{countActiveFilters(filters) > 0 && ` (${countActiveFilters(filters)})`}
               </button>
-              <select value={sort.sortBy} onChange={(e) => setSort({ ...sort, sortBy: e.target.value as SortOptions['sortBy'] })} style={{ flex: 1.5, padding: '0.6rem 1.5rem 0.6rem 0.5rem', minHeight: '44px', backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '8px', color: '#fff', fontSize: '1rem', cursor: 'pointer', appearance: 'none', backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.3rem center', backgroundSize: '0.8rem' }}>
+              <select value={sort.sortBy} onChange={(e) => setSort({ ...sort, sortBy: e.target.value as SortOptions['sortBy'] })} style={{ flex: 1.5, padding: '0.6rem 1.5rem 0.6rem 0.5rem', minHeight: '44px', backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '8px', color: '#fff', fontSize: '0.85rem', cursor: 'pointer', appearance: 'none', backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.3rem center', backgroundSize: '0.8rem' }}>
                 <option value="overall_score">{t('stats.atlasScore')}</option>
                 <option value="kingdom_number">{t('home.sortKingdomNumber')}</option>
                 <option value="prep_win_rate">{t('stats.prepWR')}</option>

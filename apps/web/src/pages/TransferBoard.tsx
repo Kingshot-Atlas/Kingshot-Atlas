@@ -1432,7 +1432,7 @@ const TransferBoard: React.FC = () => {
                 color: colors.textMuted,
                 fontSize: '0.7rem',
                 cursor: 'pointer',
-                minHeight: '36px',
+                minHeight: '44px',
               }}
             >
               {t('transferHub.compare.clear', 'Clear')}

@@ -125,8 +125,8 @@ const QuickActions: React.FC = () => {
               display: 'flex',
               flexDirection: 'row',
               alignItems: 'center',
-              gap: isMobile ? '0.35rem' : '0.5rem',
-              padding: isMobile ? '0.55rem 0.4rem' : '0.7rem 0.55rem',
+              gap: isMobile ? '0.4rem' : '0.5rem',
+              padding: isMobile ? '0.6rem 0.5rem' : '0.7rem 0.55rem',
               background: '#111',
               border: '1px solid #2a2a2a',
               borderRadius: '10px',
@@ -146,9 +146,9 @@ const QuickActions: React.FC = () => {
             }}
           >
             <div style={{
-              width: isMobile ? '28px' : '34px',
-              height: isMobile ? '28px' : '34px',
-              minWidth: isMobile ? '28px' : '34px',
+              width: isMobile ? '32px' : '34px',
+              height: isMobile ? '32px' : '34px',
+              minWidth: isMobile ? '32px' : '34px',
               borderRadius: '8px',
               backgroundColor: `${action.color}12`,
               display: 'flex',
@@ -166,7 +166,7 @@ const QuickActions: React.FC = () => {
               overflow: 'hidden',
             }}>
               <span style={{
-                fontSize: isMobile ? '0.6rem' : '0.72rem',
+                fontSize: isMobile ? '0.65rem' : '0.72rem',
                 color: '#d1d5db',
                 fontWeight: 600,
                 whiteSpace: 'nowrap',
@@ -174,7 +174,7 @@ const QuickActions: React.FC = () => {
                 {action.line1}
               </span>
               <span style={{
-                fontSize: isMobile ? '0.6rem' : '0.72rem',
+                fontSize: isMobile ? '0.65rem' : '0.72rem',
                 color: '#d1d5db',
                 fontWeight: 600,
                 whiteSpace: 'nowrap',

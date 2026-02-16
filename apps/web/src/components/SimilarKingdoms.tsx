@@ -4,6 +4,7 @@ import { Kingdom, getPowerTier } from '../types';
 import { getTierColor, colors } from '../utils/styles';
 import SmartTooltip from './shared/SmartTooltip';
 import { useTranslation } from 'react-i18next';
+import { getTransferGroup, getTransferGroupLabel } from '../config/transferGroups';
 
 interface SimilarKingdomsProps {
   currentKingdom: Kingdom;
@@ -18,18 +19,18 @@ const SimilarKingdoms: React.FC<SimilarKingdomsProps> = ({
 }) => {
   const { t } = useTranslation();
   
+  const transferGroup = useMemo(() => getTransferGroup(currentKingdom.kingdom_number), [currentKingdom.kingdom_number]);
+
   const similarKingdoms = useMemo(() => {
     const currentTier = getPowerTier(currentKingdom.overall_score);
-    const currentNum = currentKingdom.kingdom_number;
     
-    // Only compare with kingdoms within ±50 range
-    const minKingdom = currentNum - 50;
-    const maxKingdom = currentNum + 50;
-    
-    // Calculate similarity as a percentage (100% = identical)
+    // Only compare with kingdoms within the same transfer group
     const scored = allKingdoms
       .filter(k => k.kingdom_number !== currentKingdom.kingdom_number)
-      .filter(k => k.kingdom_number >= minKingdom && k.kingdom_number <= maxKingdom)
+      .filter(k => {
+        if (!transferGroup) return false;
+        return k.kingdom_number >= transferGroup[0] && k.kingdom_number <= transferGroup[1];
+      })
       .map(k => {
         // Weighted similarity calculation
         // Atlas Score similarity (max 100 point difference in data, weight: 40%)
@@ -59,7 +60,7 @@ const SimilarKingdoms: React.FC<SimilarKingdomsProps> = ({
       .slice(0, limit);
 
     return scored;
-  }, [currentKingdom, allKingdoms, limit]);
+  }, [currentKingdom, allKingdoms, limit, transferGroup]);
 
   if (similarKingdoms.length === 0) return null;
 
@@ -78,7 +79,7 @@ const SimilarKingdoms: React.FC<SimilarKingdomsProps> = ({
           content={
             <div style={{ fontSize: '0.7rem' }}>
               <div style={{ color: colors.primary, fontWeight: 'bold', marginBottom: '2px' }}>{t('similarKingdoms.howItWorks', 'How it works')}</div>
-              <div style={{ color: '#9ca3af' }}>Similar Atlas Score, win rates, and tier within ±50 of K-{currentKingdom.kingdom_number}</div>
+              <div style={{ color: '#9ca3af' }}>{transferGroup ? `Compared within transfer group ${getTransferGroupLabel(transferGroup)}` : 'No transfer group found for this kingdom'}</div>
             </div>
           }
         >
