@@ -686,78 +686,22 @@ function createPremiumShowcaseEmbed(showcaseData) {
 }
 
 /**
- * Welcome message variations - keeps things fresh
+ * Create welcome embed for new members
+ * Concise cyan embed — max ~5 visual rows
+ * @param {string} generalChannel - Dynamic channel mention for #general
+ * @param {string} commandsChannel - Dynamic channel mention for #atlas-commands
  */
-const welcomeVariations = [
-  {
-    title: 'Welcome to Kingshot Atlas! 🏰',
-    greeting: (name) => `Hey ${name}! **Stop guessing. Start winning.**`,
-    tagline: "We're a community of competitive players who make decisions with data, not rumors.",
-    footer: 'Built by Kingdom 172 — Data-driven dominance.'
-  },
-  {
-    title: 'A New Challenger Appears! ⚔️',
-    greeting: (name) => `${name} has entered the arena. **Ready to dominate?**`,
-    tagline: 'Here, we turn data into victories. No more blind decisions.',
-    footer: 'Know your enemy. Choose your allies. Dominate KvK.'
-  },
-  {
-    title: 'Welcome, Strategist! 🎯',
-    greeting: (name) => `${name}, you've found the right place. **Real data. Real results.**`,
-    tagline: "Tired of Discord rumors? We deal in facts, not hearsay.",
-    footer: 'No more blind migrations. Just wins.'
-  },
-  {
-    title: 'The Atlas Awaits! 🗺️',
-    greeting: (name) => `${name} joins the ranks. **Time to level up your game.**`,
-    tagline: 'Every kingdom. Every stat. Every advantage you need.',
-    footer: 'Data-driven dominance starts here.'
-  },
-  {
-    title: 'New Recruit Spotted! 👀',
-    greeting: (name) => `${name} is here. **Let's get you winning.**`,
-    tagline: 'We built the tool we wished existed. Now it\'s yours.',
-    footer: 'By players, for players.'
-  }
-];
-
-/**
- * Create welcome embed for new members with varied messages
- */
-function createWelcomeEmbed(memberName) {
-  // Pick a random variation
-  const variation = welcomeVariations[Math.floor(Math.random() * welcomeVariations.length)];
-  
+function createWelcomeEmbed(generalChannel, commandsChannel) {
   const embed = new EmbedBuilder()
     .setColor(config.colors.primary)
-    .setTitle(variation.title)
     .setDescription([
-      variation.greeting(memberName),
+      `**Every kingdom. Every stat. No guesswork.**`,
       '',
-      variation.tagline,
+      `💬 Say hello in ${generalChannel}`,
+      `🤖 Try \`/kingdom\` in ${commandsChannel}`,
+      `🌐 Visit [ks-atlas.com](https://ks-atlas.com)`,
     ].join('\n'))
-    .addFields(
-      {
-        name: '🚀 Quick Start',
-        value: [
-          '• Check out #rules',
-          '• Try `/kingdom YOUR_NUMBER`',
-          '• Browse [ks-atlas.com](https://ks-atlas.com)',
-        ].join('\n'),
-        inline: true,
-      },
-      {
-        name: '💬 Join In',
-        value: [
-          '• Chat in #general',
-          '• Ideas → #suggestions',
-          '• Bugs → #bugs',
-        ].join('\n'),
-        inline: true,
-      }
-    )
-    .setFooter({ text: variation.footer })
-    .setTimestamp();
+    .setFooter({ text: 'By the community, for the community.' });
 
   return embed;
 }

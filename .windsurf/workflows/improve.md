@@ -37,17 +37,8 @@ Look for:
 - **Performance:** Unnecessary re-renders, missing memoization, memory leaks
 - **Dead code:** Unused imports, unreachable branches
 
-### 3. Recommend Top 5 Improvements
-Present to the user BEFORE implementing:
-- **Title** — What it is
-- **Description** — What's wrong and what the fix looks like
-- **Why it matters** — Impact on end users
-- **Risk level** — Low/Medium/High chance of breaking something
-
-Prioritize: Bugs > UX gaps > i18n gaps > Type safety > Performance > Polish
-
-### 4. Implement Carefully
-For each improvement:
+### 3. Implement Improvements from User Prompt
+If the user provided specific improvements to implement:
 
 **⚠️ SAFETY RULES:**
 - Make minimal, focused edits — no unnecessary refactors
@@ -61,20 +52,20 @@ For each improvement:
 2. If new i18n keys are needed, add EN keys first
 3. Verify the edit doesn't break other components that import from the same module
 
-### 5. i18n Sync (if new strings were added)
+### 4. i18n Sync (if new strings were added)
 Follow the `/i18n-translate` workflow:
 1. Add EN keys to `src/locales/en/translation.json`
 2. Translate to all 8 languages (ES, FR, ZH, DE, KO, JA, AR, TR)
 3. Sync to `public/locales/` via `npm run i18n:sync` or manual copy
 4. Validate with `npm run i18n:diff` if available
 
-### 6. Bug Check Before Build
+### 5. Bug Check Before Build
 Before running the build:
 - Grep for obvious issues: `console.log` (should use logger), `alert(`, `confirm(`
 - Check that all imports resolve (no typos in import paths)
 - Verify no circular dependencies were introduced
 
-### 7. Local Build Verification
+### 6. Local Build Verification
 // turbo
 ```bash
 cd /Users/giovanni/projects/ai/Kingshot\ Atlas/apps/web && npm run build
@@ -89,6 +80,37 @@ cd /Users/giovanni/projects/ai/Kingshot\ Atlas/apps/web && npm run build
 ### If build succeeds:
 - Task is complete — changes remain local (uncommitted)
 - Ready for user review
+
+### 7. Recommend Next 5 Improvements
+
+⚠️ **THIS STEP IS MANDATORY. YOU MUST ALWAYS COMPLETE THIS STEP BEFORE ENDING THE SESSION.**
+⚠️ **DO NOT SKIP THIS STEP. DO NOT END THE CONVERSATION WITHOUT OUTPUTTING THESE 5 SUGGESTIONS.**
+⚠️ **If you are running low on context, output the suggestions IMMEDIATELY before anything else.**
+
+After ALL implementation and build verification is done, you MUST present **exactly 5 recommended next improvements** for the user to evaluate. These are NOT auto-implemented — they are suggestions for the user's next prompt.
+
+**Rules:**
+- Output exactly 5 suggestions, no more, no fewer
+- Each must be specific and actionable (not vague)
+- Each must reference a specific file, component, or system
+- Prioritize: Bugs > Accessibility > UX gaps > i18n gaps > Type safety > Performance > Polish
+- These suggestions should be contextually related to the feature you just worked on
+
+**Format each recommendation as:**
+```
+**[N]. [Title]** (Risk: Low/Medium/High)
+- **What:** [1 sentence describing the issue or opportunity]
+- **Fix:** [1 sentence describing what the fix looks like]
+- **Why:** [1 sentence on user/business impact]
+```
+
+**Example:**
+```
+**1. Add undo support for queue reorder** (Risk: Low)
+- **What:** Users can accidentally reorder the queue with no way to undo
+- **Fix:** Store previous queue state and show an undo toast for 5 seconds after each reorder
+- **Why:** Prevents frustration during time-sensitive rally coordination
+```
 
 ### 8. DO NOT commit or deploy unless the user explicitly says "commit", "deploy", or "ship".
 

@@ -27,7 +27,10 @@ export const BuildingSelector: React.FC<{
     return (
       <button
         key={key}
+        className="rally-focusable"
         onClick={() => onSelect(key)}
+        aria-label={`${BUILDING_LABELS[key]}${isSelected ? ' (selected)' : ''}`}
+        aria-pressed={isSelected}
         style={{
           position: 'absolute',
           top: row * (size + gap),
@@ -37,7 +40,7 @@ export const BuildingSelector: React.FC<{
           borderRadius: key === 'castle' ? '12px' : '10px',
           backgroundColor: isSelected ? `${color}25` : '#0a0a0a',
           border: `2px solid ${isSelected ? color : '#2a2a2a'}`,
-          color: isSelected ? color : '#6b7280',
+          color: isSelected ? color : '#9ca3af',
           fontSize: isMobile ? '0.6rem' : '0.7rem',
           fontWeight: isSelected ? '700' : '600',
           cursor: 'pointer',
@@ -50,7 +53,7 @@ export const BuildingSelector: React.FC<{
           boxShadow: isSelected ? `0 0 12px ${color}30` : 'none',
         }}
       >
-        <span style={{ fontSize: isMobile ? '0.75rem' : '0.9rem' }}>
+        <span style={{ fontSize: isMobile ? '0.75rem' : '0.9rem' }} aria-hidden="true">
           {key === 'castle' ? '🏰' : '🗼'}
         </span>
         <span>{BUILDING_SHORT[key]}</span>
@@ -59,7 +62,7 @@ export const BuildingSelector: React.FC<{
   };
 
   return (
-    <div style={{ position: 'relative', width: containerSize, height: containerSize, margin: '0 auto' }}>
+    <div role="group" aria-label="Target building selector" style={{ position: 'relative', width: containerSize, height: containerSize, margin: '0 auto' }}>
       {buildingButton('turret4', 0, 1)}
       {buildingButton('turret2', 1, 0)}
       {buildingButton('castle', 1, 1)}
@@ -77,15 +80,34 @@ export const PlayerPill: React.FC<{
   onAdd: () => void;
   onEdit: () => void;
   onRemoveFromDb: () => void;
+  onDuplicate?: () => void;
   isMobile: boolean;
   hasActiveBuffTimer?: boolean;
-}> = ({ player, marchTime, isInQueue, onAdd, onEdit, onRemoveFromDb, isMobile, hasActiveBuffTimer }) => {
+}> = ({ player, marchTime, isInQueue, onAdd, onEdit, onRemoveFromDb, onDuplicate, isMobile, hasActiveBuffTimer }) => {
+  const { t } = useTranslation();
   const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
   const teamColor = player.team === 'ally' ? ALLY_COLOR : ENEMY_COLOR;
 
+  // Close menu on click outside
+  useEffect(() => {
+    if (!showMenu) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setShowMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showMenu]);
+
   return (
-    <div style={{ position: 'relative' }}>
+    <div ref={menuRef} style={{ position: 'relative' }}>
       <div
+        role="button"
+        tabIndex={isInQueue ? -1 : 0}
+        aria-label={`${player.name} — ${marchTime}s march${isInQueue ? ' (in queue)' : '. Click to add to queue'}`}
+        aria-disabled={isInQueue}
         draggable={!isInQueue}
         onDragStart={(e) => {
           if (!isInQueue) {
@@ -94,6 +116,10 @@ export const PlayerPill: React.FC<{
           }
         }}
         onClick={() => !isInQueue && onAdd()}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (!isInQueue) onAdd(); }
+          if (e.key === 'Escape') setShowMenu(false);
+        }}
         onContextMenu={(e) => { e.preventDefault(); setShowMenu(!showMenu); }}
         style={{
           display: 'inline-flex',
@@ -107,7 +133,7 @@ export const PlayerPill: React.FC<{
           opacity: isInQueue ? 0.4 : 1,
           transition: 'all 0.2s',
           fontSize: isMobile ? '0.68rem' : '0.8rem',
-          color: isInQueue ? '#4b5563' : '#fff',
+          color: isInQueue ? '#6b7280' : '#fff',
           userSelect: 'none',
           minHeight: '34px',
           ...(hasActiveBuffTimer ? {
@@ -115,6 +141,7 @@ export const PlayerPill: React.FC<{
             animation: 'buffTimerPulse 2s ease-in-out infinite',
           } : {}),
         }}
+        className="rally-focusable"
       >
         <span style={{
           width: '6px', height: '6px', borderRadius: '50%',
@@ -128,14 +155,17 @@ export const PlayerPill: React.FC<{
         )}
       </div>
       {showMenu && (
-        <div style={{
+        <div role="menu" aria-label={`Actions for ${player.name}`} style={{
           position: 'absolute', bottom: '100%', left: 0, zIndex: 50,
           marginBottom: '4px', backgroundColor: '#1a1a1a', border: '1px solid #2a2a2a',
           borderRadius: '8px', overflow: 'hidden', minWidth: '120px',
           boxShadow: '0 8px 24px rgba(0,0,0,0.6)',
         }}>
-          <button onClick={() => { onEdit(); setShowMenu(false); }} style={menuItemStyle}>✏️ Edit</button>
-          <button onClick={() => { onRemoveFromDb(); setShowMenu(false); }} style={{ ...menuItemStyle, color: '#ef4444' }}>🗑️ Remove</button>
+          <button role="menuitem" className="rally-focusable" onClick={() => { onEdit(); setShowMenu(false); }} style={menuItemStyle}>✏️ {t('rallyCoordinator.editMenu', 'Edit')}</button>
+          {onDuplicate && (
+            <button role="menuitem" className="rally-focusable" onClick={() => { onDuplicate(); setShowMenu(false); }} style={menuItemStyle}>📋 {t('rallyCoordinator.copyBtn', 'Copy')}</button>
+          )}
+          <button role="menuitem" className="rally-focusable" onClick={() => { onRemoveFromDb(); setShowMenu(false); }} style={{ ...menuItemStyle, color: '#ef4444' }}>🗑️ {t('rallyCoordinator.removeMenu', 'Remove')}</button>
         </div>
       )}
     </div>
@@ -183,6 +213,15 @@ export const IntervalSlider: React.FC<{
   const range = max - min;
   const pct = range > 0 ? ((value - min) / range) * 100 : 0;
 
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    let newVal = value;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowUp') { newVal = Math.min(max, value + 1); e.preventDefault(); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') { newVal = Math.max(min, value - 1); e.preventDefault(); }
+    if (e.key === 'Home') { newVal = min; e.preventDefault(); }
+    if (e.key === 'End') { newVal = max; e.preventDefault(); }
+    if (newVal !== value) onChange(newVal);
+  }, [value, min, max, onChange]);
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
@@ -191,6 +230,15 @@ export const IntervalSlider: React.FC<{
       </div>
       <div
         ref={sliderRef}
+        role="slider"
+        tabIndex={0}
+        aria-label={t('rallyCoordinator.intervalLabel', 'Interval between hits')}
+        aria-valuemin={min}
+        aria-valuemax={max}
+        aria-valuenow={value}
+        aria-valuetext={`${value} seconds`}
+        className="rally-focusable"
+        onKeyDown={handleKeyDown}
         onMouseDown={(e) => { setDragging(true); updateValue(e.clientX); }}
         onTouchStart={(e) => { setDragging(true); updateValue(e.touches[0]?.clientX ?? 0); }}
         style={{
@@ -215,8 +263,8 @@ export const IntervalSlider: React.FC<{
         }} />
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2px' }}>
-        <span style={{ color: '#6b7280', fontSize: '0.6rem' }}>{min}s</span>
-        <span style={{ color: '#6b7280', fontSize: '0.6rem' }}>{max}s</span>
+        <span style={{ color: '#9ca3af', fontSize: '0.6rem' }}>{min}s</span>
+        <span style={{ color: '#9ca3af', fontSize: '0.6rem' }}>{max}s</span>
       </div>
     </div>
   );
@@ -355,10 +403,19 @@ export const RallyQueueSlot: React.FC<{
   onTouchDragEnd?: () => void;
 }> = ({ slot, index, total, onRemove, onMoveUp, onMoveDown, onToggleBuff, color, isMobile, buffTimeRemaining, isDragOver, isBeingDragged, onTouchDragStart, onTouchDragMove, onTouchDragEnd }) => {
   const teamColor = slot.team === 'ally' ? ALLY_COLOR : ENEMY_COLOR;
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.altKey && e.key === 'ArrowUp' && index > 0) { e.preventDefault(); onMoveUp(); }
+    else if (e.altKey && e.key === 'ArrowDown' && index < total - 1) { e.preventDefault(); onMoveDown(); }
+    else if (e.key === 'Delete') { e.preventDefault(); onRemove(); }
+  };
   return (
     <div
       data-queue-item
+      tabIndex={0}
+      role="listitem"
+      aria-label={`${index + 1}. ${slot.playerName}, ${slot.marchTime}s. Alt+Arrow to reorder, Delete to remove.`}
       draggable
+      onKeyDown={handleKeyDown}
       onDragStart={(e) => {
         e.dataTransfer.setData('queue-index', index.toString());
         e.dataTransfer.effectAllowed = 'move';
@@ -382,11 +439,14 @@ export const RallyQueueSlot: React.FC<{
       {/* Drag handle for mobile */}
       {isMobile && (
         <span style={{
-          display: 'flex', flexDirection: 'column', gap: '2px', flexShrink: 0,
-          padding: '0.2rem 0.1rem', color: '#4b5563', fontSize: '0.5rem',
+          display: 'flex', flexDirection: 'column', gap: '3px', flexShrink: 0,
+          padding: '0.4rem 0.3rem', color: '#6b7280', minWidth: '28px', minHeight: '44px',
           cursor: 'grab', touchAction: 'none', userSelect: 'none',
+          alignItems: 'center', justifyContent: 'center',
         }}>
-          ⠿
+          <span style={{ display: 'block', width: '16px', height: '2px', backgroundColor: '#4b5563', borderRadius: '1px' }} />
+          <span style={{ display: 'block', width: '16px', height: '2px', backgroundColor: '#4b5563', borderRadius: '1px' }} />
+          <span style={{ display: 'block', width: '16px', height: '2px', backgroundColor: '#4b5563', borderRadius: '1px' }} />
         </span>
       )}
       <span style={{
@@ -406,14 +466,21 @@ export const RallyQueueSlot: React.FC<{
         </span>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', flexShrink: 0 }}>
-        <button onClick={onToggleBuff} style={{
-          padding: '0.15rem 0.35rem',
-          backgroundColor: slot.useBuffed ? '#22c55e20' : 'transparent',
-          border: `1px solid ${slot.useBuffed ? '#22c55e50' : '#2a2a2a'}`,
-          borderRadius: '4px', cursor: 'pointer',
-          color: slot.useBuffed ? '#22c55e' : '#6b7280',
-          fontSize: '0.6rem', fontWeight: '600',
-        }}>
+        <button
+          onClick={onToggleBuff}
+          className="rally-focusable"
+          aria-label={slot.useBuffed ? 'Using buffed march speed. Click to switch to regular' : 'Using regular march speed. Click to switch to buffed'}
+          aria-pressed={slot.useBuffed}
+          style={{
+            padding: '0.15rem 0.35rem', minWidth: '28px', minHeight: '28px',
+            backgroundColor: slot.useBuffed ? '#22c55e20' : 'transparent',
+            border: `1px solid ${slot.useBuffed ? '#22c55e50' : '#2a2a2a'}`,
+            borderRadius: '4px', cursor: 'pointer',
+            color: slot.useBuffed ? '#22c55e' : '#9ca3af',
+            fontSize: '0.6rem', fontWeight: '600',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+        >
           {slot.useBuffed ? '⚡' : '🏃'}
         </button>
         {buffTimeRemaining != null && buffTimeRemaining > 0 && (
@@ -427,10 +494,10 @@ export const RallyQueueSlot: React.FC<{
           </span>
         )}
       </div>
-      <div style={{ display: 'flex', gap: '1px', flexShrink: 0 }}>
-        <button onClick={onMoveUp} disabled={index === 0} style={arrowBtnStyle(index > 0)}>▲</button>
-        <button onClick={onMoveDown} disabled={index === total - 1} style={arrowBtnStyle(index < total - 1)}>▼</button>
-        <button onClick={onRemove} style={{ ...arrowBtnStyle(true), color: '#ef4444' }}>✕</button>
+      <div style={{ display: 'flex', gap: isMobile ? '4px' : '1px', flexShrink: 0 }}>
+        <button onClick={onMoveUp} disabled={index === 0} className="rally-focusable" aria-label={`Move ${slot.playerName} up`} style={arrowBtnStyle(index > 0, isMobile)}>▲</button>
+        <button onClick={onMoveDown} disabled={index === total - 1} className="rally-focusable" aria-label={`Move ${slot.playerName} down`} style={arrowBtnStyle(index < total - 1, isMobile)}>▼</button>
+        <button onClick={onRemove} className="rally-focusable" aria-label={`Remove ${slot.playerName} from queue`} style={{ ...arrowBtnStyle(true, isMobile), color: '#ef4444' }}>✕</button>
       </div>
     </div>
   );
@@ -460,10 +527,14 @@ export const GanttChart: React.FC<{
   for (let t = 0; t <= maxTime; t += markerInterval) markers.push(t);
 
   return (
-    <div style={{
-      backgroundColor: '#0a0a0a', borderRadius: '10px', border: '1px solid #2a2a2a',
-      padding: isMobile ? '0.6rem' : '0.75rem', overflow: 'hidden',
-    }}>
+    <div
+      role="img"
+      aria-label={`${title}: ${rallies.length} rallies visualized on a Gantt timeline`}
+      style={{
+        backgroundColor: '#0a0a0a', borderRadius: '10px', border: '1px solid #2a2a2a',
+        padding: isMobile ? '0.6rem' : '0.75rem', overflow: 'hidden',
+      }}
+    >
       <h4 style={cardHeader()}>{title}</h4>
       <div style={{ position: 'relative', height: chartHeight, marginLeft: leftLabelWidth }}>
         {markers.map(t => (
@@ -524,14 +595,14 @@ export const GanttChart: React.FC<{
         })}
       </div>
 
-      <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.4rem', justifyContent: 'center' }}>
+      <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.4rem', justifyContent: 'center' }} aria-hidden="true">
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
           <div style={{ width: '12px', height: '8px', backgroundColor: colors[0] ?? '#3b82f6', borderRadius: '2px' }} />
-          <span style={{ color: '#9ca3af', fontSize: '0.65rem' }}>{t('rallyCoordinator.march')}</span>
+          <span style={{ color: '#d1d5db', fontSize: '0.65rem' }}>{t('rallyCoordinator.march')}</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
           <div style={{ width: '2px', height: '10px', backgroundColor: '#fff', boxShadow: '0 0 4px #fff' }} />
-          <span style={{ color: '#9ca3af', fontSize: '0.65rem' }}>Hit</span>
+          <span style={{ color: '#d1d5db', fontSize: '0.65rem' }}>{t('rallyCoordinator.hit')}</span>
         </div>
       </div>
     </div>
@@ -552,6 +623,7 @@ export const PlayerModal: React.FC<{
   const [marchTimes, setMarchTimes] = useState<MarchTimes>(DEFAULT_MARCH);
   // Track which fields were manually entered (not estimated)
   const [manualFields, setManualFields] = useState<Record<string, Set<string>>>({});
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (editingPlayer) {
@@ -574,6 +646,34 @@ export const PlayerModal: React.FC<{
       setManualFields({});
     }
   }, [editingPlayer, isOpen, defaultTeam]);
+
+  // Focus trap: keep Tab cycling within the dialog
+  useEffect(() => {
+    if (!isOpen || !dialogRef.current) return;
+    const dialog = dialogRef.current;
+    const getFocusable = () => dialog.querySelectorAll<HTMLElement>(
+      'button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    );
+    // Auto-focus first input
+    const timer = setTimeout(() => {
+      const first = dialog.querySelector<HTMLElement>('input');
+      first?.focus();
+    }, 50);
+    const handleTrap = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return;
+      const focusable = getFocusable();
+      if (focusable.length === 0) return;
+      const first = focusable[0]!;
+      const last = focusable[focusable.length - 1]!;
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault(); last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault(); first.focus();
+      }
+    };
+    dialog.addEventListener('keydown', handleTrap);
+    return () => { clearTimeout(timer); dialog.removeEventListener('keydown', handleTrap); };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -639,66 +739,79 @@ export const PlayerModal: React.FC<{
   const buildings: BuildingKey[] = ['castle', 'turret1', 'turret2', 'turret3', 'turret4'];
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 1000,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      backgroundColor: 'rgba(0,0,0,0.7)', padding: '1rem',
-    }} onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} style={{
-        backgroundColor: '#111111', borderRadius: '16px',
-        border: `1px solid ${teamColor}30`,
-        padding: '1.5rem', maxWidth: '480px', width: '100%',
-        maxHeight: '85vh', overflowY: 'auto',
-      }}>
-        <h3 style={{
+    <div
+      style={{
+        position: 'fixed', inset: 0, zIndex: 1000,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        backgroundColor: 'rgba(0,0,0,0.7)', padding: '1rem',
+      }}
+      onClick={onClose}
+      onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }}
+    >
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="player-modal-title"
+        onClick={e => e.stopPropagation()}
+        style={{
+          backgroundColor: '#111111', borderRadius: '16px',
+          border: `1px solid ${teamColor}30`,
+          padding: '1.5rem', maxWidth: '480px', width: '100%',
+          maxHeight: '85vh', overflowY: 'auto',
+        }}
+      >
+        <h3 id="player-modal-title" style={{
           color: '#fff', fontSize: '1rem', fontWeight: '700', marginBottom: '1rem',
           fontFamily: FONT_DISPLAY,
         }}>
-          {editingPlayer ? 'Edit' : 'Add'} Player
+          {editingPlayer ? t('rallyCoordinator.editPlayer', 'Edit Player') : t('rallyCoordinator.addPlayerTitle', 'Add Player')}
         </h3>
 
         {/* Team toggle */}
         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
-          {(['ally', 'enemy'] as const).map(t => (
-            <button key={t} onClick={() => setTeam(t)} style={{
+          {(['ally', 'enemy'] as const).map(tm => (
+            <button key={tm} onClick={() => setTeam(tm)} style={{
               flex: 1, padding: '0.4rem',
-              backgroundColor: team === t ? (t === 'ally' ? `${ALLY_COLOR}20` : `${ENEMY_COLOR}20`) : 'transparent',
-              border: `1px solid ${team === t ? (t === 'ally' ? `${ALLY_COLOR}50` : `${ENEMY_COLOR}50`) : '#2a2a2a'}`,
+              backgroundColor: team === tm ? (tm === 'ally' ? `${ALLY_COLOR}20` : `${ENEMY_COLOR}20`) : 'transparent',
+              border: `1px solid ${team === tm ? (tm === 'ally' ? `${ALLY_COLOR}50` : `${ENEMY_COLOR}50`) : '#2a2a2a'}`,
               borderRadius: '8px', cursor: 'pointer',
-              color: team === t ? (t === 'ally' ? ALLY_COLOR : ENEMY_COLOR) : '#6b7280',
+              color: team === tm ? (tm === 'ally' ? ALLY_COLOR : ENEMY_COLOR) : '#6b7280',
               fontSize: '0.8rem', fontWeight: '600',
             }}>
-              {t === 'ally' ? '🛡️ Ally' : '💀 Enemy'}
+              {tm === 'ally' ? `🛡️ ${t('rallyCoordinator.allyLabel', 'Ally')}` : `💀 ${t('rallyCoordinator.enemyLabel', 'Enemy')}`}
             </button>
           ))}
         </div>
 
         <div style={{ marginBottom: '1rem' }}>
           <label style={{ color: '#9ca3af', fontSize: '0.8rem', fontWeight: '600', display: 'block', marginBottom: '0.3rem' }}>
-            Player Name
+            {t('rallyCoordinator.playerNameLabel', 'Player Name')}
           </label>
           <input
             value={name}
             onChange={e => setName(e.target.value)}
-            placeholder="Player name"
+            placeholder={t('rallyCoordinator.playerNamePlaceholder', 'Player name')}
             style={{ ...inputStyle, borderColor: `${teamColor}30` }}
             autoFocus
           />
         </div>
 
         <p style={{ color: '#9ca3af', fontSize: '0.75rem', marginBottom: '0.5rem' }}>
-          March times in seconds (0–120). Enter one — the other is estimated automatically.
+          {t('rallyCoordinator.marchTimesHelp', 'March times in seconds (0–120). Enter one — the other is estimated automatically.')}
         </p>
         <p style={{ color: '#f59e0b', fontSize: '0.65rem', marginBottom: '0.75rem' }}>
-          ≈ = estimated (×1.55 ratio). Enter both to use exact values.
+          {t('rallyCoordinator.marchTimesEstimate', '≈ = estimated (×1.55 ratio). Enter both to use exact values.')}
         </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           {buildings.map(b => (
             <div key={b} style={{
-              display: 'grid', gridTemplateColumns: '120px 1fr 1fr', gap: '0.4rem', alignItems: 'center',
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '0.4rem', alignItems: 'center',
             }}>
-              <span style={{ color: BUILDING_COLORS[b], fontSize: '0.75rem', fontWeight: '600' }}>
+              <span style={{ color: BUILDING_COLORS[b], fontSize: '0.75rem', fontWeight: '600', gridColumn: '1 / -1' }}>
                 {BUILDING_LABELS[b]}
               </span>
               <div style={{ position: 'relative' }}>
@@ -737,8 +850,8 @@ export const PlayerModal: React.FC<{
         </div>
 
         <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.25rem', justifyContent: 'flex-end' }}>
-          <button onClick={onClose} style={cancelBtnStyle}>{t('rallyCoordinator.cancel')}</button>
-          <button onClick={handleSave} disabled={!name.trim()} style={{
+          <button onClick={onClose} className="rally-focusable" style={cancelBtnStyle}>{t('rallyCoordinator.cancel')}</button>
+          <button onClick={handleSave} disabled={!name.trim()} className="rally-focusable" style={{
             ...saveBtnStyle,
             backgroundColor: teamColor,
             opacity: name.trim() ? 1 : 0.4,
@@ -755,28 +868,45 @@ export const PlayerModal: React.FC<{
 export const CallOrderOutput: React.FC<{
   rallies: CalculatedRally[];
   building: BuildingKey;
-  gap: number;
   isMobile: boolean;
   title: string;
   colors: string[];
   accentColor: string;
-}> = ({ rallies, building, gap, isMobile, title, colors, accentColor }) => {
+}> = ({ rallies, building, isMobile, title, colors, accentColor }) => {
   const { t } = useTranslation();
+  const [copied, setCopied] = useState(false);
   if (rallies.length === 0) return null;
 
-  const copyText = [
-    `=== ${title}: ${BUILDING_LABELS[building]} ===`,
-    `Gap: ${gap}s | Fill: 5min`,
-    '',
-    ...rallies.map((r, i) => {
-      const timing = r.startDelay === 0
-        ? 'CALL NOW (T+0s)'
-        : `Call at T+${r.startDelay}s`;
-      return `${i + 1}. ${r.name} — ${timing} | March: ${r.marchTime}s | Hits at T+${r.arrivalTime}s`;
-    }),
-  ].join('\n');
+  const buildCopyText = () => {
+    // Compute a "Start at" time in UTC: now + 30s, rounded UP to next :00 or :30
+    const now = new Date();
+    const bufferMs = 30_000; // 30 seconds minimum buffer
+    const target = now.getTime() + bufferMs;
+    const roundTo = 30_000; // round to 30-second intervals
+    const rounded = Math.ceil(target / roundTo) * roundTo;
+    const startTime = new Date(rounded);
+    const hh = String(startTime.getUTCHours()).padStart(2, '0');
+    const mm = String(startTime.getUTCMinutes()).padStart(2, '0');
+    const ss = String(startTime.getUTCSeconds()).padStart(2, '0');
 
-  const handleCopy = () => { navigator.clipboard.writeText(copyText); };
+    return [
+      `📢 RALLY ORDER: ${BUILDING_LABELS[building]}`,
+      '',
+      ...rallies.map((r, i) =>
+        `${i + 1}. ${r.name} — Call at T+${r.startDelay}s`
+      ),
+      '',
+      `Start at ${hh}:${mm}:${ss} UTC`,
+    ].join('\n');
+  };
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(buildCopyText());
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch { /* clipboard not available */ }
+  };
 
   return (
     <div style={{
@@ -786,11 +916,15 @@ export const CallOrderOutput: React.FC<{
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
         <h4 style={cardHeader()}>{title}</h4>
         <button onClick={handleCopy} style={{
-          padding: '0.2rem 0.5rem', backgroundColor: `${accentColor}20`,
-          border: `1px solid ${accentColor}40`, borderRadius: '6px',
-          color: accentColor, fontSize: '0.7rem', fontWeight: '600', cursor: 'pointer',
+          padding: '0.2rem 0.5rem',
+          backgroundColor: copied ? '#22c55e20' : `${accentColor}20`,
+          border: `1px solid ${copied ? '#22c55e40' : `${accentColor}40`}`,
+          borderRadius: '6px',
+          color: copied ? '#22c55e' : accentColor,
+          fontSize: '0.7rem', fontWeight: '600', cursor: 'pointer',
+          transition: 'all 0.2s',
         }}>
-          📋 Copy
+          {copied ? `✓ ${t('rallyCoordinator.copied', 'Copied')}` : `📋 ${t('rallyCoordinator.copyBtn', 'Copy')}`}
         </button>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>

@@ -5,10 +5,12 @@ interface Toast {
   id: string;
   message: string;
   type: 'success' | 'error' | 'info';
+  onAction?: () => void;
+  actionLabel?: string;
 }
 
 interface ToastContextType {
-  showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
+  showToast: (message: string, type?: 'success' | 'error' | 'info', duration?: number, onAction?: () => void, actionLabel?: string) => void;
 }
 
 const ToastContext = createContext<ToastContextType | null>(null);
@@ -25,13 +27,13 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [toasts, setToasts] = useState<Toast[]>([]);
   const isMobile = useIsMobile();
 
-  const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'success') => {
+  const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'success', duration: number = 3000, onAction?: () => void, actionLabel?: string) => {
     const id = Math.random().toString(36).substr(2, 9);
-    setToasts(prev => [...prev, { id, message, type }]);
+    setToasts(prev => [...prev, { id, message, type, onAction, actionLabel }]);
     
     setTimeout(() => {
       setToasts(prev => prev.filter(t => t.id !== id));
-    }, 3000);
+    }, duration);
   }, []);
 
   const removeToast = (id: string) => {
@@ -88,7 +90,10 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 cursor: 'pointer',
                 minHeight: '44px'
               }}
-              onClick={() => removeToast(toast.id)}
+              onClick={() => {
+                if (toast.onAction) toast.onAction();
+                removeToast(toast.id);
+              }}
             >
               <div style={{
                 width: '24px',
@@ -104,7 +109,16 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               }}>
                 {style.icon}
               </div>
-              <span style={{ color: '#fff', fontSize: '0.9rem' }}>{toast.message}</span>
+              <span style={{ color: '#fff', fontSize: '0.9rem', flex: 1 }}>{toast.message}</span>
+              {toast.actionLabel && (
+                <span style={{
+                  color: style.bg, fontSize: '0.8rem', fontWeight: '700',
+                  padding: '0.2rem 0.5rem', backgroundColor: `${style.bg}20`,
+                  borderRadius: '6px', whiteSpace: 'nowrap',
+                }}>
+                  {toast.actionLabel}
+                </span>
+              )}
             </div>
           );
         })}

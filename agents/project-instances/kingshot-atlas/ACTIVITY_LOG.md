@@ -3,6 +3,55 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-17 15:30 | Product Engineer | COMPLETED
+Task: Rally session persistence + EvCard countdown + Rally UTC timestamp
+Files: `useRallyCoordinator.ts`, `BotDashboard.tsx`, `RallySubComponents.tsx`, `RallyCoordinator.tsx`
+Changes:
+1. **Rally session persistence** — Created `rally_sessions` Supabase table (user_id unique, jsonb session_data, RLS). Added auto-restore on mount and debounced auto-save (2s) to `useRallyCoordinator.ts`. Persists building, hitMode, interval, rallyQueue, counterQueue, counterHitMode, counterInterval.
+2. **EvCard countdown** — Added `getNextFireTime()` helper combining next event dates with time slots to find exact next fire timestamp. Added `fmtCountdown()` for human-readable display. EvCard now shows "fires in 2h 14m" next to the date, ticking every 60s.
+3. **Rally copy text UTC** — Changed `getHours()`/`getMinutes()`/`getSeconds()` to UTC equivalents and appended " UTC" label to the Start At timestamp.
+Result: Build passes ✅. Supabase migration applied.
+
+## 2026-02-17 | Product Engineer | COMPLETED
+Task: Fix Bot Dashboard event date timezone bugs + Rally copy text overhaul
+Files: `BotDashboard.tsx`, `RallySubComponents.tsx`, `RallyCoordinator.tsx`
+Changes:
+1. **getNextEventDates() timezone fix** — Root cause: local-timezone methods (`getDate`, `setDate`, `getDay`) on UTC-stored dates caused off-by-one day errors for non-UTC users. Rewrote entire function using UTC methods (`getUTCDate`, `setUTCDate`, `getUTCDay`). Added `todayUTC()` helper for date-only comparison (includes today if it's an event day).
+2. **fmtDate() UTC fix** — Replaced `toLocaleDateString` with manual UTC formatting to prevent timezone-shifted display.
+3. **Bear Hunt** — Ref 2/17 now correctly shows Feb 17 (today), Feb 19, Feb 21... instead of Feb 18, Feb 20, Feb 22.
+4. **Swordland Showdown** — Now correctly shows Feb 22 (first Sunday) instead of Mar 1.
+5. **Tri-Alliance Clash** — Now correctly shows Feb 21 (first Saturday) instead of Mar 14.
+6. **Rally copy text overhaul** — Shortened header (`📢 RALLY ORDER: Building`), removed Gap/Fill line, removed march/hit details from player lines. Added "Start at HH:MM:SS" footer with 30s buffer rounded to :00/:30 intervals for text-based coordination.
+7. **Removed unused `gap` prop** from `CallOrderOutput` component interface.
+Result: Build passes ✅. 31 isEventDay() unit tests pass.
+
+## 2026-02-18 | Product Engineer | COMPLETED
+Task: Rally Coordinator i18n + Bot Dashboard Alliance Events + UI Fixes + Workflow Fix
+Files: `BotDashboard.tsx`, `BotTelemetryTab.tsx`, `Profile.tsx`, `RallyCoordinator.tsx`, `bot.js`, `embeds.js`, `locales/*/translation.json` (×9), `improve.md`, `isEventDay.test.js`
+Changes:
+1. **Public Profile header typo** — Fixed duplicate "PROFILE" text by using granular i18n keys (`myWord`, `publicWord`, `profileWord`).
+2. **Battle Planner shoutout layout** — Refactored from inline-flex spans to flowing paragraph with inline Link for proper mobile wrapping.
+3. **Discord welcome message** — Rewrote as concise cyan embed: tagline + 3 action items + footer. Text message mentions user. No title for compact layout.
+4. **Rally Coordinator i18n** — Audited ~47 missing keys under `rallyCoordinator` and translated all to 8 languages (ES/FR/ZH/DE/KO/JA/AR/TR). Ran i18n:sync + snapshot.
+5. **Bot Dashboard: Next event date preview** — Added `getNextEventDates()` helper. EvCard header now shows next event date. "Verify Schedule" button lists next 5 dates.
+6. **Bot Dashboard: NULL reference_date validation** — Toggle blocks enabling when reference_date is missing. Warning banner shown in expanded card.
+7. **Bot Health: NULL reference_date warning** — BotTelemetryTab queries `bot_alliance_events` for enabled events with NULL reference_date and shows warning banner.
+8. **isEventDay() unit tests** — Created 31 tests covering bear_hunt, viking_vengeance, swordland_showdown, tri_alliance_clash, and edge cases. All pass.
+9. **Fixed /improve workflow** — Added triple-warning emphasis, explicit rules, and example to ensure 5 suggestions are always generated.
+Result: Build passes ✅. 31 unit tests pass.
+
+## 2026-02-17 | Product Engineer | COMPLETED
+Task: Rally Coordinator Accessibility Phase 2 + Alliance Event Date Fix
+Files: `RallySubComponents.tsx`, `useRallyCoordinator.ts`, `RallyCoordinator.tsx`, `BuffConfirmPopup.tsx`, `BotDashboard.tsx`, `locales/*/translation.json` (×9)
+Changes:
+1. **Alliance event reference dates** — Set correct reference_date in Supabase for all 3 guilds: Viking Vengeance (Feb 24), Swordland Showdown (Feb 22), Tri-Alliance Clash (Feb 21). Fixed bug where NULL reference_date caused reminders to fire every matching weekday instead of biweekly.
+2. **i18n empty-state keys** — Added 7 new keys (`emptyPlayersTitle`, `emptyPlayersGuide`, `emptyStep1-3`, `emptyRallyTitle`, `emptyCounterTitle`) to all 8 non-EN languages (ES/FR/ZH/DE/KO/JA/AR/TR).
+3. **Focus trap in PlayerModal** — Tab key now cycles within dialog, auto-focuses name input on open.
+4. **Screen reader queue announcements** — Added `lastAnnouncement` state to hook, visually-hidden `aria-live="polite"` region announces player add/remove.
+5. **Keyboard reordering** — Queue items now support Alt+ArrowUp/Down to reorder, Delete to remove. Added `tabIndex`, `role="listitem"`, descriptive `aria-label`.
+6. **Reduced-motion support** — `@media (prefers-reduced-motion: reduce)` disables all animations. `@media (forced-colors: active)` ensures focus rings and button borders work in Windows High Contrast.
+Result: Build passes. 5 pre-existing consistency lint warnings (unchanged).
+
 ## 2026-02-17 | Product Engineer | COMPLETED
 Task: KvK Prep Scheduler — 8 bug fixes
 Files: `PrepScheduler.tsx`

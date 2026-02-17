@@ -37,6 +37,7 @@ export interface RallyCoordinatorState {
   buffConfirmPopup: { queueType: 'rally' | 'counter'; index: number } | null;
   tickNow: number;
   hasAccess: boolean | null;
+  lastAnnouncement: string;
 }
 
 export interface RallyCoordinatorActions {
@@ -64,11 +65,15 @@ export interface RallyCoordinatorActions {
   handleCounterDrop: (e: React.DragEvent) => void;
   handleSavePlayer: (player: RallyPlayer) => void;
   handleDeletePlayer: (id: string) => void;
+  exportPlayers: () => void;
+  importPlayers: (jsonStr: string) => void;
+  duplicatePlayer: (id: string) => void;
   savePreset: () => void;
   loadPreset: (preset: RallyPreset) => void;
   deletePreset: (id: string) => void;
   clearQueue: () => void;
   clearCounterQueue: () => void;
+  setLastAnnouncement: (msg: string) => void;
 }
 
 export interface RallyCoordinatorDerived {
@@ -83,6 +88,8 @@ export interface RallyCoordinatorDerived {
   isAdmin: boolean;
   rallyTouchDrag: ReturnType<typeof useTouchDragReorder>;
   counterTouchDrag: ReturnType<typeof useTouchDragReorder>;
+  rallyQueueRef: React.RefObject<HTMLDivElement | null>;
+  counterQueueRef: React.RefObject<HTMLDivElement | null>;
 }
 
 export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorActions & RallyCoordinatorDerived {
@@ -96,11 +103,6 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
 
   // Gold kingdom gate: user's linked kingdom must be Gold tier
   const isGoldKingdom = !!(profile?.linked_kingdom && goldKingdoms.has(profile.linked_kingdom));
-
-  // Free trial: Feb 12 00:00 UTC → Feb 25 00:00 UTC
-  const TRIAL_START = new Date('2026-02-12T00:00:00Z').getTime();
-  const TRIAL_END = new Date('2026-02-25T00:00:00Z').getTime();
-  const isTrialActive = Date.now() >= TRIAL_START && Date.now() < TRIAL_END;
 
   // Onboarding 1-hour trial check (Stage 3)
   const hasOnboardingTrial = (() => {
@@ -141,7 +143,7 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
   const [hasAccess, setHasAccess] = useState<boolean | null>(null);
 
   useEffect(() => {
-    if (isAdmin || isPremiumAdmin || isGoldKingdom || isEditorOrCoEditor || isTrialActive || hasOnboardingTrial) {
+    if (isAdmin || isPremiumAdmin || isGoldKingdom || isEditorOrCoEditor || hasOnboardingTrial) {
       setHasAccess(true);
       return;
     }
@@ -165,7 +167,7 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
       }
     })();
     return () => { cancelled = true; };
-  }, [isAdmin, isPremiumAdmin, isGoldKingdom, isEditorOrCoEditor, isTrialActive, hasOnboardingTrial, user?.id]);
+  }, [isAdmin, isPremiumAdmin, isGoldKingdom, isEditorOrCoEditor, hasOnboardingTrial, user?.id]);
 
   // State: Unified player database (allies + enemies)
   const [players, setPlayers] = useState<RallyPlayer[]>(() => loadFromStorage(STORAGE_KEY_PLAYERS, []));
@@ -185,13 +187,52 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
   const [counterHitMode, setCounterHitMode] = useState<HitMode>('simultaneous');
   const [counterInterval, setCounterInterval] = useState(1);
 
+  // Session recovery: restore from Supabase on mount
+  const sessionRestoredRef = useRef(false);
+  useEffect(() => {
+    if (!user?.id || !supabase || sessionRestoredRef.current) return;
+    sessionRestoredRef.current = true;
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from('rally_sessions')
+          .select('session_data')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        if (!data?.session_data) return;
+        const s = data.session_data as {
+          building?: BuildingKey; hitMode?: HitMode; interval?: number;
+          rallyQueue?: RallySlot[]; counterQueue?: RallySlot[];
+          counterHitMode?: HitMode; counterInterval?: number;
+        };
+        if (s.building) setSelectedBuilding(s.building);
+        if (s.hitMode) setHitMode(s.hitMode);
+        if (typeof s.interval === 'number') setInterval(s.interval);
+        if (s.counterHitMode) setCounterHitMode(s.counterHitMode);
+        if (typeof s.counterInterval === 'number') setCounterInterval(s.counterInterval);
+        if (Array.isArray(s.rallyQueue) && s.rallyQueue.length > 0) setRallyQueue(s.rallyQueue);
+        if (Array.isArray(s.counterQueue) && s.counterQueue.length > 0) setCounterQueue(s.counterQueue);
+      } catch { /* silent — localStorage still works as fallback */ }
+    })();
+  }, [user?.id]);
+
   // State: Modals
   const [playerModalOpen, setPlayerModalOpen] = useState(false);
   const [editingPlayer, setEditingPlayer] = useState<RallyPlayer | null>(null);
   const [defaultTeam, setDefaultTeam] = useState<'ally' | 'enemy'>('ally');
   const [presetName, setPresetName] = useState('');
   const [showPresetSave, setShowPresetSave] = useState(false);
-  const [howToOpen, setHowToOpen] = useState(true);
+  const [howToOpen, setHowToOpen] = useState(() => {
+    try {
+      const saved = localStorage.getItem('atlas_rally_howToOpen');
+      return saved === null ? true : saved === 'true';
+    } catch { return true; }
+  });
+
+  // Persist howToOpen state
+  useEffect(() => {
+    try { localStorage.setItem('atlas_rally_howToOpen', String(howToOpen)); } catch { /* noop */ }
+  }, [howToOpen]);
 
   // State: Enemy buff timers (playerId -> expiry timestamp in ms)
   const [buffTimers, setBuffTimers] = useState<Record<string, number>>(() => {
@@ -206,10 +247,29 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
   const [buffConfirmPopup, setBuffConfirmPopup] = useState<{ queueType: 'rally' | 'counter'; index: number } | null>(null);
   const [tickNow, setTickNow] = useState(Date.now());
 
-  // Persist
+  // Persist (localStorage)
   useEffect(() => { saveToStorage(STORAGE_KEY_PLAYERS, players); }, [players]);
   useEffect(() => { saveToStorage(STORAGE_KEY_PRESETS, presets); }, [presets]);
   useEffect(() => { saveToStorage(STORAGE_KEY_BUFF_TIMERS, buffTimers); }, [buffTimers]);
+
+  // Session recovery: debounced auto-save to Supabase
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (!user?.id || !supabase || !sessionRestoredRef.current) return;
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => {
+      const sessionData = {
+        building: selectedBuilding, hitMode, interval,
+        rallyQueue, counterQueue, counterHitMode, counterInterval,
+      };
+      supabase!.from('rally_sessions').upsert({
+        user_id: user.id,
+        session_data: sessionData,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'user_id' }).then(() => { /* silent */ });
+    }, 2000); // 2s debounce
+    return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current); };
+  }, [user?.id, selectedBuilding, hitMode, interval, rallyQueue, counterQueue, counterHitMode, counterInterval]);
 
   // Tick every second when buff timers are active
   useEffect(() => {
@@ -299,6 +359,12 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
     return mt.regular;
   }, [selectedBuilding]);
 
+  // Scroll refs for auto-scroll on mobile
+  const rallyQueueRef = useRef<HTMLDivElement>(null);
+  const counterQueueRef = useRef<HTMLDivElement>(null);
+
+  const [lastAnnouncement, setLastAnnouncement] = useState('');
+
   // Add player to rally queue
   const addToQueue = useCallback((player: RallyPlayer, useBuffed: boolean = false) => {
     if (queuedPlayerIds.has(player.id)) return;
@@ -311,6 +377,11 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
       team: player.team,
       useBuffed,
     }]);
+    setLastAnnouncement(`${player.name} added to rally queue`);
+    // Auto-scroll to rally queue on mobile after a tick
+    requestAnimationFrame(() => {
+      rallyQueueRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
   }, [queuedPlayerIds, getMarchTime]);
 
   // Add player to counter-rally queue
@@ -325,15 +396,28 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
       team: player.team,
       useBuffed,
     }]);
+    setLastAnnouncement(`${player.name} added to counter queue`);
+    // Auto-scroll to counter queue on mobile after a tick
+    requestAnimationFrame(() => {
+      counterQueueRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
   }, [counterQueuedIds, getMarchTime]);
 
   // Queue operations
   const removeFromQueue = useCallback((index: number) => {
-    setRallyQueue(prev => prev.filter((_, i) => i !== index));
+    setRallyQueue(prev => {
+      const removed = prev[index];
+      if (removed) setLastAnnouncement(`${removed.playerName} removed from rally queue`);
+      return prev.filter((_, i) => i !== index);
+    });
   }, []);
 
   const removeFromCounterQueue = useCallback((index: number) => {
-    setCounterQueue(prev => prev.filter((_, i) => i !== index));
+    setCounterQueue(prev => {
+      const removed = prev[index];
+      if (removed) setLastAnnouncement(`${removed.playerName} removed from counter queue`);
+      return prev.filter((_, i) => i !== index);
+    });
   }, []);
 
   const moveInQueue = useCallback((from: number, to: number) => {
@@ -416,6 +500,57 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
     setCounterQueue(updateQueue);
   }, [selectedBuilding, players]);
 
+  // Player export/import
+  const exportPlayers = useCallback(() => {
+    const data = JSON.stringify(players, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `battle-planner-players-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Player database exported', 'success');
+  }, [players, showToast]);
+
+  const importPlayers = useCallback((jsonStr: string) => {
+    try {
+      const parsed = JSON.parse(jsonStr);
+      if (!Array.isArray(parsed)) throw new Error('Invalid format');
+      const valid = parsed.filter(
+        (p: unknown): p is RallyPlayer =>
+          typeof p === 'object' && p !== null &&
+          'id' in p && 'name' in p && 'team' in p && 'marchTimes' in p
+      );
+      if (valid.length === 0) {
+        showToast('No valid players found in file', 'error');
+        return;
+      }
+      setPlayers(prev => {
+        const existingIds = new Set(prev.map(p => p.id));
+        const newPlayers = valid.filter(p => !existingIds.has(p.id));
+        const merged = [...prev, ...newPlayers];
+        showToast(`Imported ${newPlayers.length} new player(s) (${valid.length - newPlayers.length} duplicates skipped)`, 'success');
+        return merged;
+      });
+    } catch {
+      showToast('Failed to import — invalid JSON file', 'error');
+    }
+  }, [showToast]);
+
+  // Duplicate player
+  const duplicatePlayer = useCallback((id: string) => {
+    const original = players.find(p => p.id === id);
+    if (!original) return;
+    const copy: RallyPlayer = {
+      ...original,
+      id: `p_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      name: `${original.name} (copy)`,
+    };
+    setPlayers(prev => [...prev, copy]);
+    showToast(`📋 ${copy.name} created`, 'success');
+  }, [players, showToast]);
+
   // Player DB handlers
   const handleSavePlayer = useCallback((player: RallyPlayer) => {
     setPlayers(prev => {
@@ -430,15 +565,50 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
     setEditingPlayer(null);
   }, []);
 
+  const deleteUndoRef = useRef<{ timer: ReturnType<typeof setTimeout>; id: string } | null>(null);
+
   const handleDeletePlayer = useCallback((id: string) => {
+    const deletedPlayer = players.find(p => p.id === id);
+    if (!deletedPlayer) return;
+
+    // Immediately remove from UI
     setPlayers(prev => prev.filter(p => p.id !== id));
     setRallyQueue(prev => prev.filter(s => s.playerId !== id));
     setCounterQueue(prev => prev.filter(s => s.playerId !== id));
-  }, []);
+
+    // Cancel any previous undo timer
+    if (deleteUndoRef.current) {
+      clearTimeout(deleteUndoRef.current.timer);
+      deleteUndoRef.current = null;
+    }
+
+    // Store for potential undo
+    const timer = setTimeout(() => {
+      deleteUndoRef.current = null;
+    }, 5000);
+    deleteUndoRef.current = { timer, id };
+
+    // Show undo toast with action button
+    showToast(
+      `${deletedPlayer.name} deleted`,
+      'info',
+      5000,
+      () => {
+        // Undo: restore the player
+        if (deleteUndoRef.current?.id === id) {
+          clearTimeout(deleteUndoRef.current.timer);
+          deleteUndoRef.current = null;
+          setPlayers(prev => [...prev, deletedPlayer]);
+          showToast(`↩️ ${deletedPlayer.name} restored`, 'success');
+        }
+      },
+      'Undo'
+    );
+  }, [players, showToast]);
 
   // Preset handlers
   const savePreset = useCallback(() => {
-    if (!presetName.trim() || rallyQueue.length === 0) return;
+    if (!presetName.trim() || (rallyQueue.length === 0 && counterQueue.length === 0)) return;
     const preset: RallyPreset = {
       id: `preset_${Date.now()}`,
       name: presetName.trim(),
@@ -446,32 +616,42 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
       hitMode,
       interval,
       slots: rallyQueue.map(s => ({ playerId: s.playerId, useBuffed: s.useBuffed })),
+      counterSlots: counterQueue.length > 0 ? counterQueue.map(s => ({ playerId: s.playerId, useBuffed: s.useBuffed })) : undefined,
+      counterHitMode: counterQueue.length > 0 ? counterHitMode : undefined,
+      counterInterval: counterQueue.length > 0 ? counterInterval : undefined,
     };
     setPresets(prev => [...prev, preset]);
     setPresetName('');
     setShowPresetSave(false);
-  }, [presetName, rallyQueue, selectedBuilding, hitMode, interval]);
+  }, [presetName, rallyQueue, counterQueue, selectedBuilding, hitMode, interval, counterHitMode, counterInterval]);
 
   const loadPreset = useCallback((preset: RallyPreset) => {
     setSelectedBuilding(preset.building);
     setHitMode(preset.hitMode);
     setInterval(preset.interval);
-    const newQueue: RallySlot[] = preset.slots
-      .map(s => {
-        const player = players.find(p => p.id === s.playerId);
-        if (!player) return null;
-        const mt = player.marchTimes[preset.building][s.useBuffed ? 'buffed' : 'regular'];
-        if (mt <= 0) return null;
-        return {
-          playerId: player.id,
-          playerName: player.name,
-          marchTime: mt,
-          team: player.team,
-          useBuffed: s.useBuffed,
-        };
-      })
-      .filter((s): s is RallySlot => s !== null);
-    setRallyQueue(newQueue);
+    const resolveSlots = (slots: { playerId: string; useBuffed: boolean }[]): RallySlot[] =>
+      slots
+        .map(s => {
+          const player = players.find(p => p.id === s.playerId);
+          if (!player) return null;
+          const mt = player.marchTimes[preset.building][s.useBuffed ? 'buffed' : 'regular'];
+          if (mt <= 0) return null;
+          return {
+            playerId: player.id,
+            playerName: player.name,
+            marchTime: mt,
+            team: player.team,
+            useBuffed: s.useBuffed,
+          };
+        })
+        .filter((s): s is RallySlot => s !== null);
+    setRallyQueue(resolveSlots(preset.slots));
+    // Restore counter queue if saved
+    if (preset.counterSlots && preset.counterSlots.length > 0) {
+      setCounterQueue(resolveSlots(preset.counterSlots));
+      if (preset.counterHitMode) setCounterHitMode(preset.counterHitMode);
+      if (preset.counterInterval != null) setCounterInterval(preset.counterInterval);
+    }
   }, [players]);
 
   const deletePreset = useCallback((id: string) => {
@@ -493,7 +673,7 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
     playerModalOpen, editingPlayer, defaultTeam,
     presetName, showPresetSave, howToOpen,
     buffTimers, buffConfirmPopup, tickNow,
-    hasAccess,
+    hasAccess, lastAnnouncement,
     // Actions
     setSelectedBuilding, setHitMode, setInterval, setMarchType,
     setCounterHitMode, setCounterInterval,
@@ -506,8 +686,9 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
     toggleBuff,
     handleDrop, handleCounterDrop,
     handleSavePlayer, handleDeletePlayer,
+    exportPlayers, importPlayers, duplicatePlayer,
     savePreset, loadPreset, deletePreset,
-    clearQueue, clearCounterQueue,
+    clearQueue, clearCounterQueue, setLastAnnouncement,
     // Derived
     allies, enemies,
     gap, cGap,
@@ -515,5 +696,6 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
     queuedPlayerIds, counterQueuedIds,
     isAdmin,
     rallyTouchDrag, counterTouchDrag,
+    rallyQueueRef, counterQueueRef,
   };
 }

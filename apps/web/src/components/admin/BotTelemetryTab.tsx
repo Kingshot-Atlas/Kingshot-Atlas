@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getAuthHeaders } from '../../services/authHeaders';
 import { colors } from '../../utils/styles';
+import { supabase } from '../../lib/supabase';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
@@ -93,6 +94,22 @@ export const BotTelemetryTab: React.FC = () => {
   const [expandedEvent, setExpandedEvent] = useState<string | null>(null);
   const [gildedSyncing, setGildedSyncing] = useState(false);
   const [gildedSyncResult, setGildedSyncResult] = useState<string | null>(null);
+  const [nullRefDateEvents, setNullRefDateEvents] = useState<{ event_type: string; guild_id: string }[]>([]);
+
+  // Check for enabled alliance events with NULL reference_date
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data: rows } = await supabase!
+          .from('bot_alliance_events')
+          .select('event_type, guild_id')
+          .eq('enabled', true)
+          .is('reference_date', null)
+          .neq('event_type', 'bear_hunt');
+        if (rows && rows.length > 0) setNullRefDateEvents(rows);
+      } catch { /* non-critical */ }
+    })();
+  }, []);
 
   const fetchTelemetry = useCallback(async () => {
     setLoading(true);
@@ -179,6 +196,25 @@ export const BotTelemetryTab: React.FC = () => {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* NULL reference_date warning */}
+      {nullRefDateEvents.length > 0 && (
+        <div style={{ padding: '0.75rem 1rem', backgroundColor: `${colors.warning}12`, border: `1px solid ${colors.warning}35`, borderRadius: 10 }}>
+          <div style={{ color: colors.warning, fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.3rem' }}>⚠️ Alliance Events Missing Reference Date</div>
+          <div style={{ color: colors.textMuted, fontSize: '0.75rem', lineHeight: 1.5 }}>
+            {nullRefDateEvents.length} enabled event{nullRefDateEvents.length > 1 ? 's' : ''} ha{nullRefDateEvents.length > 1 ? 've' : 's'} no reference date set.
+            Without a reference date, reminders will fire on <strong style={{ color: colors.warning }}>every matching weekday</strong> instead of following the correct biweekly/monthly cycle.
+            Fix in Bot Dashboard → Alliance Events.
+          </div>
+          <div style={{ marginTop: '0.4rem', display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+            {nullRefDateEvents.map((ev, i) => (
+              <span key={i} style={{ fontSize: '0.7rem', padding: '0.15rem 0.5rem', backgroundColor: `${colors.warning}20`, borderRadius: 4, color: colors.warning, fontWeight: 600 }}>
+                {ev.event_type.replace(/_/g, ' ')}
+              </span>
+            ))}
+          </div>
         </div>
       )}
 

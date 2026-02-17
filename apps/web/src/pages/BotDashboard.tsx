@@ -120,6 +120,110 @@ const fmtLocal = (s: TimeSlot) => { const d = new Date(); d.setUTCHours(s.hour, 
 
 const ago = (iso: string) => { const d = Math.floor((Date.now() - new Date(iso).getTime())/60000); return d < 1 ? 'just now' : d < 60 ? `${d}m ago` : d < 1440 ? `${Math.floor(d/60)}h ago` : `${Math.floor(d/1440)}d ago`; };
 
+/** Helper: get UTC midnight for today */
+function todayUTC(): Date {
+  const n = new Date();
+  return new Date(Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate()));
+}
+
+/** Compute next N event dates from reference_date for a given event type (all UTC) */
+function getNextEventDates(eventType: EventType, referenceDate: string | null, count: number = 5): Date[] {
+  if (!referenceDate) return [];
+  const ref = new Date(referenceDate);
+  ref.setUTCHours(0, 0, 0, 0);
+  const today = todayUTC();
+  const dates: Date[] = [];
+
+  if (eventType === 'bear_hunt') {
+    // Every 2 days from reference (ref date itself is an event day)
+    const diffDays = Math.floor((today.getTime() - ref.getTime()) / 86400000);
+    const cycleStart = diffDays >= 0 ? diffDays - (diffDays % 2) : 0;
+    for (let i = 0; dates.length < count; i++) {
+      const d = new Date(ref);
+      d.setUTCDate(d.getUTCDate() + cycleStart + i * 2);
+      if (d >= today) dates.push(d);
+      if (i > 365) break;
+    }
+  } else if (eventType === 'viking_vengeance') {
+    // Tuesday(2) & Thursday(4), every 2 weeks from reference
+    const refWeekStart = new Date(ref);
+    refWeekStart.setUTCDate(refWeekStart.getUTCDate() - refWeekStart.getUTCDay());
+    const diffWeeks = Math.floor((today.getTime() - refWeekStart.getTime()) / (7 * 86400000));
+    const cycleWeek = diffWeeks >= 0 ? diffWeeks - (diffWeeks % 2) : 0;
+    for (let w = cycleWeek; dates.length < count; w += 2) {
+      for (const dayOff of [2, 4]) { // Tue, Thu
+        const d = new Date(refWeekStart);
+        d.setUTCDate(d.getUTCDate() + w * 7 + dayOff);
+        if (d >= today) dates.push(d);
+      }
+      if (w > 200) break;
+    }
+    dates.sort((a, b) => a.getTime() - b.getTime());
+    dates.splice(count);
+  } else if (eventType === 'swordland_showdown') {
+    // Sunday(0), every 2 weeks from reference
+    const refSunday = new Date(ref);
+    refSunday.setUTCDate(refSunday.getUTCDate() - refSunday.getUTCDay());
+    const diffWeeks = Math.floor((today.getTime() - refSunday.getTime()) / (7 * 86400000));
+    const cycleWeek = diffWeeks >= 0 ? diffWeeks - (diffWeeks % 2) : 0;
+    for (let w = cycleWeek; dates.length < count; w += 2) {
+      const d = new Date(refSunday);
+      d.setUTCDate(d.getUTCDate() + w * 7);
+      if (d >= today) dates.push(d);
+      if (w > 200) break;
+    }
+  } else if (eventType === 'tri_alliance_clash') {
+    // Saturday(6), every 4 weeks from reference
+    const refSat = new Date(ref);
+    refSat.setUTCDate(refSat.getUTCDate() - ((refSat.getUTCDay() + 1) % 7));
+    const diffWeeks = Math.floor((today.getTime() - refSat.getTime()) / (7 * 86400000));
+    const cycleWeek = diffWeeks >= 0 ? diffWeeks - (diffWeeks % 4) : 0;
+    for (let w = cycleWeek; dates.length < count; w += 4) {
+      const d = new Date(refSat);
+      d.setUTCDate(d.getUTCDate() + w * 7);
+      if (d >= today) dates.push(d);
+      if (w > 200) break;
+    }
+  }
+  return dates;
+}
+
+const fmtDate = (d: Date) => {
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return `${days[d.getUTCDay()]}, ${months[d.getUTCMonth()]} ${d.getUTCDate()}`;
+};
+
+/** Compute the next fire timestamp from event dates + time slots */
+function getNextFireTime(nextDates: Date[], timeSlots: TimeSlot[], eventType: EventType): Date | null {
+  if (nextDates.length === 0 || timeSlots.length === 0) return null;
+  const now = new Date();
+  for (const date of nextDates) {
+    const dayOfWeek = date.getUTCDay();
+    const slots = eventType === 'viking_vengeance'
+      ? timeSlots.filter(s => s.day === dayOfWeek)
+      : timeSlots;
+    const sorted = [...slots].sort((a, b) => a.hour * 60 + a.minute - (b.hour * 60 + b.minute));
+    for (const slot of sorted) {
+      const fire = new Date(date);
+      fire.setUTCHours(slot.hour, slot.minute, 0, 0);
+      if (fire > now) return fire;
+    }
+  }
+  return null;
+}
+
+/** Format a countdown in ms to human-readable */
+function fmtCountdown(ms: number): string {
+  if (ms <= 0) return 'now';
+  const totalMin = Math.floor(ms / 60000);
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  if (h >= 24) { const d = Math.floor(h / 24); return `${d}d ${h % 24}h`; }
+  if (h > 0) return `${h}h ${m}m`;
+  return `${m}m`;
+}
+
 const iS: React.CSSProperties = { width: '100%', maxWidth: '300px', backgroundColor: '#1a1a1a', border: `1px solid ${colors.border}`, borderRadius: '8px', color: colors.text, padding: '0.5rem 0.7rem', fontSize: '0.8rem', fontFamily: "'JetBrains Mono', monospace", outline: 'none', boxSizing: 'border-box' as const };
 const lS: React.CSSProperties = { color: colors.textSecondary, fontSize: '0.75rem', fontWeight: 600, display: 'block' as const, marginBottom: '0.35rem' };
 
@@ -284,10 +388,23 @@ const EvCard: React.FC<{
   const m = EVENT_META[ev.event_type];
   const [open, setOpen] = useState(false);
   const [cMins, setCMins] = useState('');
+  const [showSchedule, setShowSchedule] = useState(false);
   const isBearHunt = ev.event_type === 'bear_hunt';
   const isViking = ev.event_type === 'viking_vengeance';
   const isFixedSlot = ev.event_type === 'swordland_showdown' || ev.event_type === 'tri_alliance_clash';
   const effectiveChannel = ev.channel_id || guildChannelId;
+  const nextDates = useMemo(() => getNextEventDates(ev.event_type, ev.reference_date, 5), [ev.event_type, ev.reference_date]);
+  const missingRefDate = !isBearHunt && !ev.reference_date;
+
+  // Live countdown: tick every 60s to update "fires in X"
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    if (!ev.enabled || nextDates.length === 0 || ev.time_slots.length === 0) return;
+    const id = window.setInterval(() => setTick(t => t + 1), 60_000);
+    return () => clearInterval(id);
+  }, [ev.enabled, nextDates.length, ev.time_slots.length]);
+  const nextFire = ev.enabled ? getNextFireTime(nextDates, ev.time_slots, ev.event_type) : null;
+  const countdownMs = nextFire ? nextFire.getTime() - Date.now() : 0;
 
   const channelOpts = useMemo(() => {
     const catMap = new Map(categories.map(c => [c.id, c.name]));
@@ -328,11 +445,23 @@ const EvCard: React.FC<{
                 {slotSummary}
               </div>
             )}
+            {nextDates.length > 0 && ev.enabled && (
+              <div style={{ color: colors.textMuted, fontSize: '0.65rem', marginTop: '0.15rem' }}>
+                Next: <span style={{ color: m.color }}>{fmtDate(nextDates[0]!)}</span>
+                {countdownMs > 0 && <span style={{ color: colors.textMuted }}> · fires in {fmtCountdown(countdownMs)}</span>}
+              </div>
+            )}
+            {missingRefDate && ev.enabled && (
+              <div style={{ color: colors.warning, fontSize: '0.65rem', marginTop: '0.15rem' }}>⚠️ Missing reference date</div>
+            )}
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <Dot on={ev.enabled && ev.time_slots.length > 0} />
-          <Tog on={ev.enabled} set={v => onUp({ enabled: v })} c={m.color} />
+          <Tog on={ev.enabled} set={v => {
+            if (v && missingRefDate) { setOpen(true); return; }
+            onUp({ enabled: v });
+          }} c={m.color} />
           <span style={{ color: colors.textMuted, fontSize: '0.8rem', transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : '' }}>▼</span>
         </div>
       </div>
@@ -399,6 +528,33 @@ const EvCard: React.FC<{
               <input type="text" value={ev.role_id || ''} onChange={e => onUp({ role_id: e.target.value || null })} placeholder="Role ID or select from dropdown" style={iS} />
             )}
           </div>
+          {/* Verify Schedule */}
+          {ev.reference_date && (
+            <div style={{ marginBottom: '1rem' }}>
+              <button onClick={() => setShowSchedule(!showSchedule)} style={{ padding: '0.4rem 0.8rem', backgroundColor: 'transparent', border: `1px solid ${m.color}40`, borderRadius: 6, color: m.color, fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>
+                📅 {showSchedule ? 'Hide' : 'Verify'} Schedule
+              </button>
+              {showSchedule && nextDates.length > 0 && (
+                <div style={{ marginTop: '0.5rem', padding: '0.6rem', backgroundColor: `${m.color}08`, borderRadius: 8, border: `1px solid ${m.color}20` }}>
+                  <div style={{ fontSize: '0.7rem', color: colors.textMuted, marginBottom: '0.35rem', fontWeight: 600 }}>NEXT 5 EVENT DATES</div>
+                  {nextDates.map((d, i) => (
+                    <div key={i} style={{ fontSize: '0.8rem', color: i === 0 ? m.color : colors.text, fontFamily: "'JetBrains Mono', monospace", padding: '0.15rem 0' }}>
+                      {i === 0 ? '→ ' : '  '}{fmtDate(d)}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {showSchedule && nextDates.length === 0 && (
+                <div style={{ marginTop: '0.4rem', color: colors.warning, fontSize: '0.75rem' }}>⚠️ No upcoming dates found. Check reference date.</div>
+              )}
+            </div>
+          )}
+          {missingRefDate && (
+            <div style={{ marginBottom: '1rem', padding: '0.6rem', backgroundColor: `${colors.warning}10`, borderRadius: 8, border: `1px solid ${colors.warning}30` }}>
+              <div style={{ color: colors.warning, fontSize: '0.75rem', fontWeight: 600 }}>⚠️ Reference date not set</div>
+              <div style={{ color: colors.textMuted, fontSize: '0.7rem', marginTop: '0.2rem' }}>This event cannot fire without a reference date. Contact admin to set it in the database.</div>
+            </div>
+          )}
           <div style={{ borderTop: `1px solid ${colors.borderSubtle}`, paddingTop: '0.75rem' }}>
             <button onClick={() => onTest(ev)} disabled={testing || !effectiveChannel}
               style={{ padding: '0.5rem 1rem', backgroundColor: testing ? colors.border : `${m.color}20`, border: `1px solid ${m.color}40`, borderRadius: 8, color: testing ? colors.textMuted : m.color, fontSize: '0.8rem', fontWeight: 600, cursor: testing || !effectiveChannel ? 'default' : 'pointer', width: '100%' }}>

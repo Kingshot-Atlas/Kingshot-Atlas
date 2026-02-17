@@ -48,6 +48,9 @@ export interface RallyPreset {
   hitMode: HitMode;
   interval: number;
   slots: { playerId: string; useBuffed: boolean }[];
+  counterSlots?: { playerId: string; useBuffed: boolean }[];
+  counterHitMode?: HitMode;
+  counterInterval?: number;
 }
 
 // =============================================
@@ -111,6 +114,13 @@ export const BUFF_MULTIPLIER = 1.55;
 // SHARED STYLES
 // =============================================
 
+export const focusRingStyle = `
+  .rally-focusable:focus-visible {
+    outline: 2px solid #60a5fa;
+    outline-offset: 2px;
+  }
+`;
+
 export const CARD: React.CSSProperties = {
   backgroundColor: '#111111', borderRadius: '14px',
   border: '1px solid #2a2a2a', padding: '0.75rem',
@@ -120,11 +130,12 @@ export const cardHeader = (color: string = '#fff'): React.CSSProperties => ({
   color, fontSize: '0.9rem', fontWeight: '700', fontFamily: FONT_DISPLAY, marginBottom: '0.5rem',
 });
 
-export const arrowBtnStyle = (active: boolean): React.CSSProperties => ({
-  width: '24px', height: '24px', borderRadius: '4px',
-  backgroundColor: 'transparent', border: 'none',
-  color: active ? '#9ca3af' : '#2a2a2a', cursor: active ? 'pointer' : 'default',
-  fontSize: '0.65rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
+export const arrowBtnStyle = (active: boolean, isMobile: boolean = false): React.CSSProperties => ({
+  width: isMobile ? '44px' : '28px', height: isMobile ? '44px' : '28px', borderRadius: isMobile ? '8px' : '4px',
+  backgroundColor: isMobile ? (active ? '#ffffff08' : 'transparent') : 'transparent',
+  border: isMobile ? `1px solid ${active ? '#2a2a2a' : '#1a1a1a'}` : 'none',
+  color: active ? '#d1d5db' : '#374151', cursor: active ? 'pointer' : 'default',
+  fontSize: isMobile ? '0.8rem' : '0.7rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
   padding: 0,
 });
 
@@ -132,6 +143,7 @@ export const menuItemStyle: React.CSSProperties = {
   display: 'block', width: '100%', padding: '0.5rem 0.75rem',
   backgroundColor: 'transparent', border: 'none', color: '#d1d5db',
   fontSize: '0.8rem', cursor: 'pointer', textAlign: 'left',
+  minHeight: '44px', lineHeight: '1.5',
 };
 
 export const inputStyle: React.CSSProperties = {

@@ -343,7 +343,7 @@ const Profile: React.FC = () => {
             marginBottom: '0.5rem',
             fontFamily: "'Cinzel', 'Times New Roman', serif"
           }}>
-            <span style={{ color: '#fff' }}>{isViewingOther ? t('profile.publicProfile', 'PUBLIC') : 'MY'}</span>
+            <span style={{ color: '#fff' }}>{isViewingOther ? t('profile.publicWord', 'PUBLIC') : t('profile.myWord', 'MY')}</span>
             <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>{t('profile.profileWord', 'PROFILE')}</span>
           </h1>
           {!isViewingOther && (
