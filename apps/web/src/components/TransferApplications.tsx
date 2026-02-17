@@ -746,9 +746,9 @@ const MyApplicationsTracker: React.FC<{
             return (
               <div key={app.id} style={{
                 display: 'flex',
-                alignItems: isMobile ? 'flex-start' : 'center',
+                alignItems: (isMobile || app.status === 'accepted') ? 'flex-start' : 'center',
                 justifyContent: 'space-between',
-                flexDirection: isMobile ? 'column' : 'row',
+                flexDirection: (isMobile || app.status === 'accepted') ? 'column' : 'row',
                 gap: '0.5rem',
                 padding: '0.6rem 0.75rem',
                 backgroundColor: '#0a0a0a',

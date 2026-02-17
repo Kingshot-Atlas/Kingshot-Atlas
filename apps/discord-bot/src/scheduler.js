@@ -106,6 +106,9 @@ function initScheduler(client) {
   });
 
   console.log('✅ Scheduled: Alliance event reminders (every minute)');
+
+  // One-time announcements — fire on startup, guarded against duplicates
+  setTimeout(() => postOneTimeAnnouncement(), 10000);
 }
 
 /**
@@ -517,6 +520,81 @@ async function checkAndPostNewGiftCodes() {
     }
   } catch (error) {
     console.error('❌ Error checking gift codes:', error.message);
+  }
+}
+
+/**
+ * One-time announcement — posts once then never again.
+ * Uses Supabase bot_telemetry to track whether it has been sent.
+ */
+async function postOneTimeAnnouncement() {
+  const ANNOUNCEMENT_KEY = 'kingdom_communities_campaign_2026';
+  if (!config.announcementsWebhook) {
+    console.warn('⚠️ No announcements webhook — skipping one-time announcement');
+    return;
+  }
+
+  // Check if already sent via Supabase bot_telemetry
+  try {
+    const SUPABASE_URL = process.env.SUPABASE_URL;
+    const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
+    if (SUPABASE_URL && SUPABASE_KEY) {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/bot_telemetry?event_type=eq.one_time_announcement&metadata->>key=eq.${ANNOUNCEMENT_KEY}&select=id&limit=1`,
+        {
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+          },
+        }
+      );
+      if (res.ok) {
+        const rows = await res.json();
+        if (rows.length > 0) {
+          console.log(`📢 One-time announcement "${ANNOUNCEMENT_KEY}" already sent — skipping`);
+          return;
+        }
+      }
+    }
+  } catch { /* proceed anyway if check fails */ }
+
+  // Post the announcement
+  try {
+    const response = await fetch(config.announcementsWebhook, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: 'Atlas',
+        avatar_url: config.botAvatarUrl,
+        content: '@everyone\n\n📢 **KINGDOM COMMUNITIES IS LIVE — with real rewards.**\n\nAtlas now ranks kingdoms by verified player count. The bigger your community, the higher you climb.\n\n⚡ **Campaign: Top 3 kingdoms win Fund tier upgrades.**\n🥇 Gold (or $100 Fund) · 🥈 Silver (or $50 Fund) · 🥉 Bronze (or $25 Fund)\n\n**How:** Get your kingdom on Atlas → Link accounts (TC20+) → Most verified players wins.\n**⏰ Ends: February 21st, 00:00 UTC**\n\nRally your alliance. No tricks — just numbers. → https://ks-atlas.com/kingdoms/communities',
+      }),
+    });
+
+    if (response.ok) {
+      console.log(`✅ One-time announcement "${ANNOUNCEMENT_KEY}" posted to #announcements`);
+      // Log to Supabase so we don't post again
+      const SUPABASE_URL = process.env.SUPABASE_URL;
+      const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
+      if (SUPABASE_URL && SUPABASE_KEY) {
+        await fetch(`${SUPABASE_URL}/rest/v1/bot_telemetry`, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal',
+          },
+          body: JSON.stringify({
+            event_type: 'one_time_announcement',
+            metadata: { key: ANNOUNCEMENT_KEY },
+          }),
+        }).catch(() => {});
+      }
+    } else {
+      console.error(`❌ Failed to post one-time announcement: ${response.status}`);
+    }
+  } catch (error) {
+    console.error('❌ Error posting one-time announcement:', error.message);
   }
 }
 

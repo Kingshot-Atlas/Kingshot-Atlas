@@ -933,10 +933,10 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
                 </div>
                 {(isSilver || isGold) && fund?.recruitment_pitch ? (
                   <p style={{
-                    color: colors.textSecondary,
-                    fontSize: '0.7rem',
+                    color: '#e5e7eb',
+                    fontSize: '0.8rem',
                     margin: 0,
-                    lineHeight: 1.4,
+                    lineHeight: 1.5,
                     fontStyle: 'italic',
                     wordBreak: 'break-word',
                   }}>

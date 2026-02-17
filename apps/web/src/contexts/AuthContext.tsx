@@ -208,7 +208,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     });
 
-    // Re-validate session when tab becomes visible (handles multi-tab token refresh)
+    // Re-validate session AND re-fetch profile when tab becomes visible
+    // (handles multi-tab token refresh + cross-device profile sync)
     const handleVisibilityChange = async () => {
       if (document.visibilityState === 'visible' && supabase) {
         try {
@@ -216,6 +217,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           if (data.session) {
             setSession(data.session);
             setUser(data.session.user);
+            // Re-fetch profile from Supabase to pick up changes from other devices
+            const { data: freshProfile, error: profileError } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', data.session.user.id)
+              .single();
+            if (!profileError && freshProfile) {
+              setProfile(freshProfile as UserProfile);
+              localStorage.setItem(PROFILE_KEY, JSON.stringify(freshProfile));
+            }
           }
         } catch { /* silent */ }
       }
@@ -617,6 +628,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return { success: true }; // Local-only mode
     }
 
+    // Refresh the session before writing to Supabase — prevents stale JWT failures
+    // (handles long-idle tabs where the auto-refresh timer may not have fired)
+    try {
+      await supabase.auth.getSession();
+    } catch { /* best-effort */ }
+
     // Send updates to Supabase, filtering out fields that don't exist in the database
     const dbFields = [
       'username', 'display_name', 'email', 'avatar_url', 'home_kingdom', 'alliance_tag',
@@ -624,7 +641,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       'linked_player_id', 'linked_username', 'linked_avatar_url',
       'linked_kingdom', 'linked_tc_level', 'linked_last_synced', 'subscription_tier',
       'stripe_customer_id', 'stripe_subscription_id',
-      'referred_by', 'referral_count', 'referral_tier'
+      'referred_by', 'referral_count', 'referral_tier',
+      'show_coordinates', 'coordinates'
     ];
     
     const dbUpdates = Object.fromEntries(

@@ -109,7 +109,7 @@ const TransferBoard: React.FC = () => {
   const [contributingToKingdom, setContributingToKingdom] = useState<number | null>(null);
   const [showContributionSuccess, setShowContributionSuccess] = useState(false);
   const [visibleCount, setVisibleCount] = useState(20);
-  const [activeTransfereeCount, setActiveTransfereeCount] = useState(0);
+  const [atlasPlayerCount, setAtlasPlayerCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [highlightedKingdom, setHighlightedKingdom] = useState<number | null>(null);
   const [profileViewCount, setProfileViewCount] = useState(0);
@@ -360,19 +360,17 @@ const TransferBoard: React.FC = () => {
         setPendingCoEditorCount(coEditorCount || 0);
       }
     };
-    const countTransferees = async () => {
+    const countAtlasPlayers = async () => {
       if (!supabase) return;
       const { count } = await supabase
-        .from('transfer_profiles')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_active', true)
-        .eq('visible_to_recruiters', true);
-      setActiveTransfereeCount(count || 0);
+        .from('profiles')
+        .select('*', { count: 'exact', head: true });
+      setAtlasPlayerCount(count || 0);
     };
     checkProfile();
     countActiveApps();
     checkEditor();
-    countTransferees();
+    countAtlasPlayers();
   }, [user, appRefreshKey]);
 
   // Load kingdom data from Supabase
@@ -804,34 +802,36 @@ const TransferBoard: React.FC = () => {
         <ModeToggle mode={mode} onChange={handleModeChange} />
       </div>
 
-      {/* Transfer Hub Stats */}
-      {!loading && (
+      {/* Atlas Player Count */}
+      {!loading && atlasPlayerCount > 0 && (
         <div style={{
           display: 'flex',
-          gap: isMobile ? '0.5rem' : '0.75rem',
-          marginBottom: '1rem',
           justifyContent: 'center',
+          marginBottom: '1rem',
         }}>
-          {[
-            { label: t('transferHub.kingdoms', 'Kingdoms'), value: kingdoms.length, icon: '🏰' },
-            { label: t('transferHub.recruiting', 'Recruiting'), value: funds.filter(f => f.is_recruiting).length, icon: '📢', color: '#22c55e' },
-            { label: t('transferHub.transferees', 'Transferees'), value: activeTransfereeCount, icon: '🚀', color: '#22d3ee' },
-          ].map((stat) => (
-            <div key={stat.label} style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-              padding: '0.35rem 0.65rem',
-              backgroundColor: '#111111',
-              border: `1px solid ${colors.border}`,
-              borderRadius: '8px',
-              fontSize: '0.75rem',
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '0.5rem 1.2rem',
+            background: 'linear-gradient(135deg, #22d3ee08 0%, #a855f708 100%)',
+            border: '1px solid #22d3ee20',
+            borderRadius: '12px',
+          }}>
+            <span style={{ fontSize: '1rem' }}>🌍</span>
+            <span style={{ color: colors.textSecondary, fontSize: '0.8rem', fontWeight: '500' }}>
+              {t('transferHub.playersInAtlas', 'Kingshot Players in Atlas:')}
+            </span>
+            <span style={{
+              color: '#22d3ee',
+              fontSize: '1.1rem',
+              fontWeight: '800',
+              fontFamily: FONT_DISPLAY,
+              letterSpacing: '0.02em',
             }}>
-              <span style={{ fontSize: '0.85rem' }}>{stat.icon}</span>
-              <span style={{ color: stat.color || colors.text, fontWeight: '700' }}>{stat.value}</span>
-              <span style={{ color: colors.textMuted, fontSize: '0.7rem' }}>{stat.label}</span>
-            </div>
-          ))}
+              {atlasPlayerCount.toLocaleString()}
+            </span>
+          </div>
         </div>
       )}
 
