@@ -28,6 +28,9 @@
 
 | Task | Owner | Status |
 |------|-------|--------|
+| Prep Scheduler Mobile UX Pass (Batch 3) | Product Engineer | ✅ Complete — iOS auto-zoom fix, TimeRangePicker stacked mobile layout, collapsible manager actions, short day tab labels, collapsible slot grid. 11 new i18n keys × 9 langs × 2 dirs. |
+| Prep Scheduler Improvements (Batch 2) | Product Engineer | ✅ Complete — Parallel init fetch, i18n deadline countdown, i18n toast labels, empty state landing, duplicate schedule prevention. 8 new i18n keys × 9 langs × 2 dirs. |
+| Discord Welcome Message Overhaul | Product Engineer | ✅ Complete — Embedded → plain text, 20 variations with Atlas voice, user mention, dynamic channel mentions, Explorer role preserved. |
 | Component Refactoring Phase 3 | Product Engineer | ✅ Complete — RecruiterDashboard (814→275) and RallyCoordinator (997→392) split into hooks + sub-components |
 | Console.log Cleanup | Product Engineer | ✅ Complete — 60+ calls replaced with logger.ts across 30+ files |
 | Admin.py Extraction | Platform Engineer | ✅ Complete — 1941-line file → 8 sub-modules, 35 routes preserved |

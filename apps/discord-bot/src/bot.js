@@ -1069,29 +1069,40 @@ client.on('guildMemberAdd', async (member) => {
     }
     
     if (welcomeChannel) {
-      const embeds = require('./utils/embeds');
+      // Resolve channel mentions by finding actual channel IDs
+      const generalCh = channels.find(ch => ch.name && ch.name.includes('general') && ch.isTextBased() && !ch.name.includes('welcome'));
+      const commandsCh = channels.find(ch => ch.name && ch.name.includes('atlas-commands') && ch.isTextBased());
+      const gen = generalCh ? `<#${generalCh.id}>` : '#💬-general';
+      const cmd = commandsCh ? `<#${commandsCh.id}>` : '#🤖-atlas-commands';
       
-      // Try to look up their profile name from linked accounts
-      let displayName = member.displayName || member.user.username;
-      try {
-        const res = await fetch(`${config.apiUrl}/api/v1/bot/linked-users`);
-        if (res.ok) {
-          const data = await res.json();
-          const linked = (data.users || []).find(u => u.discord_id === member.user.id);
-          if (linked && linked.linked_username) {
-            displayName = linked.linked_username;
-          } else if (linked && linked.username) {
-            displayName = linked.username;
-          }
-        }
-      } catch (e) {
-        console.log(`Could not look up profile name for ${member.user.username}: ${e.message}`);
-      }
+      // Plain text welcome — pick a random variation, mention the user directly
+      const welcomeVariations = [
+        (tag) => `${tag} just landed. Welcome to **Kingshot Atlas** — where data wins wars. Jump into ${gen}, try \`/kingdom\` in ${cmd}, and check out https://ks-atlas.com`,
+        (tag) => `${tag} welcome to the Atlas. We don't guess here — we **dominate with data**. Chat in ${gen}, run \`/kingdom\` in ${cmd}, or explore https://ks-atlas.com`,
+        (tag) => `New recruit spotted: ${tag}. You're in the right place. **Real stats. Real strategy.** Say hi in ${gen} and try \`/kingdom\` in ${cmd} — or browse https://ks-atlas.com`,
+        (tag) => `${tag} has entered the arena. **Stop guessing. Start winning.** Drop by ${gen}, use \`/kingdom\` in ${cmd}, and visit https://ks-atlas.com`,
+        (tag) => `Welcome ${tag}! Atlas is built by players, for players. **Data-driven dominance starts here.** Say hey in ${gen}, try \`/kingdom\` in ${cmd}, or check https://ks-atlas.com`,
+        (tag) => `${tag} — welcome aboard. We track every kingdom so you don't have to. **No rumors, just data.** Hit up ${gen}, run \`/kingdom\` in ${cmd}, or visit https://ks-atlas.com`,
+        (tag) => `Look who's here — ${tag}. Ready to make smarter moves? **The Atlas has your back.** Start in ${gen}, try \`/kingdom\` in ${cmd}, and explore https://ks-atlas.com`,
+        (tag) => `${tag} joins the ranks. Every kingdom. Every stat. **Every advantage you need.** Chat in ${gen}, use \`/kingdom\` in ${cmd}, or browse https://ks-atlas.com`,
+        (tag) => `A new challenger appears: ${tag}. We turn data into victories here. **No more blind decisions.** Say hi in ${gen}, try \`/kingdom\` in ${cmd}, or visit https://ks-atlas.com`,
+        (tag) => `${tag} — welcome to the community that sees everything. **Know your enemy. Choose your allies.** Jump into ${gen}, run \`/kingdom\` in ${cmd}, or check https://ks-atlas.com`,
+        (tag) => `${tag} is here. Let's get you winning. **We built the tool we wished existed — now it's yours.** Chat in ${gen}, try \`/kingdom\` in ${cmd}, or visit https://ks-atlas.com`,
+        (tag) => `Welcome ${tag} to Kingshot Atlas. **Tired of Discord rumors? We deal in facts.** Drop into ${gen}, use \`/kingdom\` in ${cmd}, and check https://ks-atlas.com`,
+        (tag) => `${tag} reporting for duty. **Your kingdom intel starts here.** Say hey in ${gen}, try \`/kingdom\` in ${cmd}, or explore https://ks-atlas.com`,
+        (tag) => `The Atlas grows: welcome ${tag}. **Smarter migrations, better KvKs, real data.** Start in ${gen}, run \`/kingdom\` in ${cmd}, or visit https://ks-atlas.com`,
+        (tag) => `${tag} — you found us. **The scoreboard doesn't lie.** Come chat in ${gen}, try \`/kingdom\` in ${cmd}, and browse https://ks-atlas.com`,
+        (tag) => `${tag} just dropped in. **Welcome to data-driven RoK.** Say hi in ${gen}, use \`/kingdom\` in ${cmd}, or check https://ks-atlas.com`,
+        (tag) => `New face alert: ${tag}. We track kingdoms so you can **pick fights you'll win**. Chat in ${gen}, try \`/kingdom\` in ${cmd}, or visit https://ks-atlas.com`,
+        (tag) => `${tag} — welcome. No more blind migrations. **Just wins.** Jump into ${gen}, run \`/kingdom\` in ${cmd}, and explore https://ks-atlas.com`,
+        (tag) => `Glad you're here, ${tag}. **Every stat, every kingdom, one Atlas.** Say hey in ${gen}, try \`/kingdom\` in ${cmd}, or visit https://ks-atlas.com`,
+        (tag) => `${tag} has arrived. **The community that plays with data, not guesses.** Start in ${gen}, use \`/kingdom\` in ${cmd}, or check https://ks-atlas.com`,
+      ];
       
-      const welcomeEmbed = embeds.createWelcomeEmbed(displayName);
-      // Tag the member in message content so they get a notification
-      await welcomeChannel.send({ content: `<@${member.user.id}>`, embeds: [welcomeEmbed] });
-      console.log(`✅ Sent welcome message for ${member.user.username} in #${welcomeChannel.name} (display: ${displayName})`);
+      const variation = welcomeVariations[Math.floor(Math.random() * welcomeVariations.length)];
+      const mention = `<@${member.user.id}>`;
+      await welcomeChannel.send(variation(mention));
+      console.log(`✅ Sent welcome message for ${member.user.username} in #${welcomeChannel.name}`);
     } else {
       const channelNames = channels.map(ch => ch.name).filter(Boolean);
       console.warn(`⚠️ No welcome channel found in ${member.guild.name}. Available text channels: ${channelNames.slice(0, 15).join(', ')}`);
