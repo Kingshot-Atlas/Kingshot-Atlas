@@ -4,6 +4,30 @@
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
 ## 2026-02-17 | Product Engineer | COMPLETED
+Task: KvK Prep Scheduler — 8 bug fixes
+Files: `PrepScheduler.tsx`
+Changes:
+1. **Deadline urgency logic** — `days < 1` was always false when `days > 0` (integer). Fixed to `days <= 1` so deadlines within 24h show urgent styling.
+2. **Broken emoji** — Corrupted character on Gold Tier Required heading replaced with proper 👑 emoji.
+3. **Table colSpan** — Empty state `colSpan={6}` didn't match the 7-column table. Fixed to `colSpan={7}`.
+4. **Timezone abbreviation** — `TZ_ABBR` was showing city names (e.g., "New York") instead of proper abbreviations (e.g., "EST"). Now uses `Intl.DateTimeFormat` with `timeZoneName: 'short'`.
+5. **Memory leak** — `URL.createObjectURL` for screenshot previews was never revoked. Now revokes previous blob URL when selecting a new file.
+6. **Missing maxLength** — Added `maxLength={500}` to `createNotes` and `changeRequestMessage` textareas for security parity.
+7. **Type safety** — Changed `err: any` to `err: unknown` with proper `instanceof Error` check.
+Result: Build passes ✅. Zero new errors. Deployed.
+
+## 2026-02-17 | Product Engineer | COMPLETED
+Task: Transfer Hub i18n — 80 new keys across 9 languages, prop mutation fix, maxLength security
+Files: `ApplicationCard.tsx`, `RateKingdomModal.tsx`, `TransfereeAppCard.tsx`, `InboxTab.tsx`, `TransfereeDashboard.tsx`, 9 locale files (src + public)
+Changes:
+1. Fixed prop mutation bug in ApplicationCard (was mutating `application.recruiter_note` directly).
+2. Added `maxLength={500}` to recruiter note textarea.
+3. Added i18n to 5 Transfer Hub components (~90 hardcoded strings replaced with `t()` calls).
+4. Added 80 new translation keys in 3 sections (appCard, rateKingdom, transfereeDash) to all 9 languages.
+5. Synced src/locales → public/locales for runtime loading.
+Result: Build passes ✅. Zero new errors. Deployed.
+
+## 2026-02-17 | Product Engineer | COMPLETED
 Task: Transfer Hub Phase 5 — Tier badge removal, persistent read tracking, expiry auto-cleanup, transferee messaging, smart recommendations, outcome tracking
 Files: `KingdomListingCard.tsx` (tier badge removed), `useRecruiterDashboard.ts` (persistent read tracking), `RecruiterDashboard.tsx` (unread badges), `TransfereeDashboard.tsx` (messaging UI, expiry warnings, outcome tracking), `BrowseTransfereesTab.tsx` (smart recommendations), `ApplicationCard.tsx` (mark-as-read)
 DB Migrations: `add_message_read_status` (persistent read tracking table), `application_expiry_cron` (pg_cron + expire_overdue_transfers + get_expiring_soon RPC + expiry_warnings_sent), `create_transfer_outcomes` (outcome tracking table with RLS)
