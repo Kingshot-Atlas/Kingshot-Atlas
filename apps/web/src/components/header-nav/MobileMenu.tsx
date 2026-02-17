@@ -259,7 +259,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isActive, user, profile, isAdmi
             <span style={{ color: '#333' }}>└</span> {t('nav.playerDirectory')}
           </Link>
           <Link to="/kingdoms/communities" style={{ color: isActive('/kingdoms/communities') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.9rem', padding: '0.5rem 1rem 0.5rem 1.5rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ color: '#333' }}>└</span> {t('nav.kingdomCommunities', 'Kingdom Communities')}
+            <span style={{ color: '#333' }}>└</span> {t('nav.kingdomCommunities', 'Kingdom Colonies')}
           </Link>
           <Link to="/ambassadors" style={{ color: isActive('/ambassadors') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.9rem', padding: '0.5rem 1rem 0.5rem 1.5rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span style={{ color: '#333' }}>└</span> {t('nav.ambassadors')}

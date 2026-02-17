@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../contexts/AuthContext';
 import { useIsMobile } from '../../hooks/useMediaQuery';
 import { useAnalytics } from '../../hooks/useAnalytics';
 import { useToast } from '../Toast';
 import { supabase } from '../../lib/supabase';
 import { colors } from '../../utils/styles';
+import { logger } from '../../utils/logger';
 import type { EditorInfo } from './types';
 import { formatTCLevel, inputStyle } from './types';
 
@@ -24,6 +26,26 @@ interface WatchlistItem {
   created_at: string;
 }
 
+// ─── Query Keys ─────────────────────────────────────────────
+const watchlistKeys = {
+  all: ['watchlist'] as const,
+  list: (userId: string, kingdomNumber: number) =>
+    [...watchlistKeys.all, 'list', userId, kingdomNumber] as const,
+};
+
+// ─── Fetch Function ─────────────────────────────────────────
+async function fetchWatchlistItems(userId: string, kingdomNumber: number): Promise<WatchlistItem[]> {
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from('recruiter_watchlist')
+    .select('*')
+    .eq('recruiter_user_id', userId)
+    .eq('kingdom_number', kingdomNumber)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return (data as WatchlistItem[]) || [];
+}
+
 interface WatchlistTabProps {
   editorInfo: EditorInfo;
 }
@@ -33,9 +55,20 @@ const WatchlistTab: React.FC<WatchlistTabProps> = ({ editorInfo }) => {
   const isMobile = useIsMobile();
   const { showToast } = useToast();
   const { trackFeature } = useAnalytics();
+  const queryClient = useQueryClient();
 
-  const [items, setItems] = useState<WatchlistItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryKey = watchlistKeys.list(user?.id || '', editorInfo.kingdom_number);
+
+  // ─── React Query: watchlist items ─────────────────────────
+  const { data: items = [], isLoading: loading } = useQuery({
+    queryKey,
+    queryFn: () => fetchWatchlistItems(user!.id, editorInfo.kingdom_number),
+    enabled: !!user,
+    staleTime: 60 * 1000,
+    retry: 2,
+  });
+
+  // UI-only state
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editNotes, setEditNotes] = useState('');
@@ -51,28 +84,6 @@ const WatchlistTab: React.FC<WatchlistTabProps> = ({ editorInfo }) => {
   const [formNotes, setFormNotes] = useState('');
   const [formEvent, setFormEvent] = useState('next');
   const [saving, setSaving] = useState(false);
-
-  const fetchWatchlist = useCallback(async () => {
-    if (!supabase || !user) return;
-    setLoading(true);
-    try {
-      const { data } = await supabase
-        .from('recruiter_watchlist')
-        .select('*')
-        .eq('recruiter_user_id', user.id)
-        .eq('kingdom_number', editorInfo.kingdom_number)
-        .order('created_at', { ascending: false });
-      setItems(data || []);
-    } catch {
-      // silent
-    } finally {
-      setLoading(false);
-    }
-  }, [user, editorInfo.kingdom_number]);
-
-  useEffect(() => {
-    fetchWatchlist();
-  }, [fetchWatchlist]);
 
   const handleAdd = async () => {
     if (!supabase || !user || !formName.trim()) return;
@@ -100,8 +111,9 @@ const WatchlistTab: React.FC<WatchlistTabProps> = ({ editorInfo }) => {
       }
       showToast('Player added to watchlist!', 'success');
       resetForm();
-      fetchWatchlist();
-    } catch {
+      queryClient.invalidateQueries({ queryKey });
+    } catch (err) {
+      logger.error('WatchlistTab: addToWatchlist failed', err);
       showToast('Failed to add to watchlist.', 'error');
     } finally {
       setSaving(false);
@@ -110,23 +122,45 @@ const WatchlistTab: React.FC<WatchlistTabProps> = ({ editorInfo }) => {
 
   const handleUpdateNotes = async (id: string) => {
     if (!supabase) return;
+    // Optimistic update
+    const prev = queryClient.getQueryData<WatchlistItem[]>(queryKey);
+    queryClient.setQueryData<WatchlistItem[]>(queryKey, (old) =>
+      (old || []).map(i => i.id === id ? { ...i, notes: editNotes } : i)
+    );
+    setEditingId(null);
     try {
-      await supabase.from('recruiter_watchlist').update({ notes: editNotes, updated_at: new Date().toISOString() }).eq('id', id);
-      setItems(prev => prev.map(i => i.id === id ? { ...i, notes: editNotes } : i));
-      setEditingId(null);
-      showToast('Notes updated.', 'success');
-    } catch {
+      const { error } = await supabase.from('recruiter_watchlist').update({ notes: editNotes, updated_at: new Date().toISOString() }).eq('id', id);
+      if (error) {
+        if (prev) queryClient.setQueryData(queryKey, prev);
+        showToast('Failed to update notes.', 'error');
+      } else {
+        showToast('Notes updated.', 'success');
+      }
+    } catch (err) {
+      if (prev) queryClient.setQueryData(queryKey, prev);
+      logger.error('WatchlistTab: updateNotes failed', err);
       showToast('Failed to update notes.', 'error');
     }
   };
 
   const handleRemove = async (id: string) => {
     if (!supabase) return;
+    // Optimistic remove
+    const prev = queryClient.getQueryData<WatchlistItem[]>(queryKey);
+    queryClient.setQueryData<WatchlistItem[]>(queryKey, (old) =>
+      (old || []).filter(i => i.id !== id)
+    );
     try {
-      await supabase.from('recruiter_watchlist').delete().eq('id', id);
-      setItems(prev => prev.filter(i => i.id !== id));
-      showToast('Removed from watchlist.', 'success');
-    } catch {
+      const { error } = await supabase.from('recruiter_watchlist').delete().eq('id', id);
+      if (error) {
+        if (prev) queryClient.setQueryData(queryKey, prev);
+        showToast('Failed to remove.', 'error');
+      } else {
+        showToast('Removed from watchlist.', 'success');
+      }
+    } catch (err) {
+      if (prev) queryClient.setQueryData(queryKey, prev);
+      logger.error('WatchlistTab: removeFromWatchlist failed', err);
       showToast('Failed to remove.', 'error');
     }
   };
@@ -178,7 +212,8 @@ const WatchlistTab: React.FC<WatchlistTabProps> = ({ editorInfo }) => {
           metadata: { kingdom_number: editorInfo.kingdom_number },
         });
       }
-    } catch {
+    } catch (err) {
+      logger.error('WatchlistTab: sendInvite failed', err);
       showToast('Failed to send invite.', 'error');
     } finally {
       setSendingInviteId(null);

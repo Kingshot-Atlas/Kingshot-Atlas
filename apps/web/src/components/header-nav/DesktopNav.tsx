@@ -485,7 +485,7 @@ const DesktopNav: React.FC<DesktopNavProps> = ({ isActive, user, changeLanguage,
                 <path d="M19 21V11l-6-4"/>
                 <path d="M9 9v.01M9 12v.01M9 15v.01M9 18v.01"/>
               </svg>
-              {t('nav.kingdomCommunities', 'Kingdom Communities')}
+              {t('nav.kingdomCommunities', 'Kingdom Colonies')}
             </Link>
             <Link
               to="/ambassadors"
@@ -503,11 +503,14 @@ const DesktopNav: React.FC<DesktopNavProps> = ({ isActive, user, changeLanguage,
               onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'}
               onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             >
-              <span style={{ fontSize: '1rem', lineHeight: 1 }}>🏛️</span>
-              <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
-                <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>Atlas</span>
-                <span style={{ fontSize: '0.7rem', color: '#9ca3af' }}>Ambassadors</span>
-              </span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#a855f7' }}>
+                <path d="M3 21h18"/>
+                <path d="M5 21V7l7-4 7 4v14"/>
+                <path d="M9 21v-4h6v4"/>
+                <path d="M9 10h1"/>
+                <path d="M14 10h1"/>
+              </svg>
+              {t('nav.ambassadors')}
             </Link>
             <Link
               to="/contribute-data"
@@ -573,10 +576,9 @@ const DesktopNav: React.FC<DesktopNavProps> = ({ isActive, user, changeLanguage,
               onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'}
               onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#9ca3af' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#9ca3af' }}>
                 <circle cx="12" cy="12" r="10"/>
-                <line x1="12" y1="16" x2="12" y2="12"/>
-                <line x1="12" y1="8" x2="12.01" y2="8"/>
+                <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
               </svg>
               {t('nav.aboutAtlas')}
             </Link>

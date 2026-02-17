@@ -1,58 +1,213 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { useIsMobile } from '../../hooks/useMediaQuery';
 import { useAnalytics } from '../../hooks/useAnalytics';
 import { supabase } from '../../lib/supabase';
 import { FONT_DISPLAY, colors } from '../../utils/styles';
+import { logger } from '../../utils/logger';
 import { useToast } from '../Toast';
 import type { EditorInfo, FundInfo, TransfereeProfile } from './types';
 import { formatTCLevel, LANGUAGE_OPTIONS, inputStyle } from './types';
 import { getTransferGroup, getTransferGroupLabel } from '../../config/transferGroups';
+import RecommendedSection from './RecommendedSection';
 
 const BROWSE_PAGE_SIZE = 25;
+
+interface BrowseFilters {
+  minTc: string;
+  minPower: string;
+  language: string;
+  sortBy: string;
+}
+
+const EMPTY_FILTERS: BrowseFilters = { minTc: '', minPower: '', language: '', sortBy: 'newest' };
+
+// ─── Query Keys ─────────────────────────────────────────────
+const browseKeys = {
+  all: ['browseTransferees'] as const,
+  transferees: (kingdomNumber: number, groupRange: [number, number] | null, filters: BrowseFilters) =>
+    [...browseKeys.all, 'list', kingdomNumber, groupRange, filters] as const,
+  watchlistIds: (userId: string, kingdomNumber: number) =>
+    [...browseKeys.all, 'watchlistIds', userId, kingdomNumber] as const,
+  invitedIds: (kingdomNumber: number) =>
+    [...browseKeys.all, 'invitedIds', kingdomNumber] as const,
+};
+
+// ─── Fetch Functions ────────────────────────────────────────
+async function fetchTransfereePage(
+  kingdomNumber: number,
+  transferGroup: [number, number] | null,
+  filters: BrowseFilters,
+  pageParam: number,
+): Promise<TransfereeProfile[]> {
+  if (!supabase) return [];
+  let query = supabase
+    .from('transfer_profiles')
+    .select('id, username, current_kingdom, tc_level, power_million, power_range, main_language, kvk_availability, saving_for_kvk, group_size, player_bio, looking_for, is_anonymous, is_active, visible_to_recruiters, last_active_at')
+    .eq('is_active', true)
+    .eq('visible_to_recruiters', true)
+    .neq('current_kingdom', kingdomNumber);
+
+  if (transferGroup) {
+    query = query.gte('current_kingdom', transferGroup[0]).lte('current_kingdom', transferGroup[1]);
+  }
+
+  // Server-side filters
+  if (filters.minTc) {
+    query = query.gte('tc_level', parseInt(filters.minTc, 10));
+  }
+  if (filters.minPower) {
+    query = query.gte('power_million', parseInt(filters.minPower, 10));
+  }
+  if (filters.language) {
+    query = query.eq('main_language', filters.language);
+  }
+
+  // Server-side sorting
+  if (filters.sortBy === 'power_desc') {
+    query = query.order('power_million', { ascending: false, nullsFirst: false });
+  } else if (filters.sortBy === 'tc_desc') {
+    query = query.order('tc_level', { ascending: false });
+  } else {
+    query = query.order('created_at', { ascending: false });
+  }
+
+  const { data, error } = await query
+    .range(pageParam, pageParam + BROWSE_PAGE_SIZE - 1);
+  if (error) throw error;
+  return (data as TransfereeProfile[]) || [];
+}
+
+async function fetchWatchlistIds(userId: string, kingdomNumber: number): Promise<Set<string>> {
+  if (!supabase) return new Set();
+  const { data } = await supabase
+    .from('recruiter_watchlist')
+    .select('transfer_profile_id')
+    .eq('recruiter_user_id', userId)
+    .eq('kingdom_number', kingdomNumber)
+    .not('transfer_profile_id', 'is', null);
+  return new Set((data || []).map((d: { transfer_profile_id: string }) => d.transfer_profile_id).filter(Boolean));
+}
+
+async function fetchInvitedProfileIds(kingdomNumber: number): Promise<Set<string>> {
+  if (!supabase) return new Set();
+  const { data } = await supabase
+    .from('transfer_invites')
+    .select('recipient_profile_id, status')
+    .eq('kingdom_number', kingdomNumber)
+    .in('status', ['pending', 'accepted']);
+  return new Set((data || []).map((d: { recipient_profile_id: string }) => d.recipient_profile_id));
+}
 
 interface BrowseTransfereesTabProps {
   fund: FundInfo | null;
   editorInfo: EditorInfo | null;
+  initialUsedInvites?: number;
 }
 
-const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, editorInfo }) => {
+const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, editorInfo, initialUsedInvites = 0 }) => {
   const { user } = useAuth();
   const isMobile = useIsMobile();
   const { t } = useTranslation();
   const { showToast } = useToast();
   const { trackFeature } = useAnalytics();
+  const queryClient = useQueryClient();
 
   // Determine recruiter's transfer group for filtering
   const transferGroup = editorInfo ? getTransferGroup(editorInfo.kingdom_number) : null;
+  const kingdomNumber = editorInfo?.kingdom_number ?? 0;
 
-  const [transferees, setTransferees] = useState<TransfereeProfile[]>([]);
-  const [loadingTransferees, setLoadingTransferees] = useState(false);
-  const [hasMoreTransferees, setHasMoreTransferees] = useState(true);
-  const [browseFilters, setBrowseFilters] = useState<{ minTc: string; minPower: string; language: string; sortBy: string }>({ minTc: '', minPower: '', language: '', sortBy: 'newest' });
+  // UI-only state (declared before useInfiniteQuery so filters are available in query key)
+  const [browseFilters, setBrowseFilters] = useState<BrowseFilters>(EMPTY_FILTERS);
   const [compareList, setCompareList] = useState<Set<string>>(new Set());
   const [showCompare, setShowCompare] = useState(false);
   const [sentInviteIds, setSentInviteIds] = useState<Set<string>>(new Set());
-  const [usedInvites, setUsedInvites] = useState(0);
-  const [invitedProfileIds, setInvitedProfileIds] = useState<Set<string>>(new Set());
-  const [savedToWatchlist, setSavedToWatchlist] = useState<Set<string>>(new Set());
+  const [usedInvites, setUsedInvites] = useState(initialUsedInvites);
+  const [selectedForInvite, setSelectedForInvite] = useState<Set<string>>(new Set());
+  const [bulkInviting, setBulkInviting] = useState(false);
 
-  // Load existing watchlist IDs so we can show "Saved" state
+  // Sync when parent provides updated count from DB
   useEffect(() => {
-    if (!supabase || !user || !editorInfo) return;
-    (async () => {
-      const { data } = await supabase
-        .from('recruiter_watchlist')
-        .select('transfer_profile_id')
-        .eq('recruiter_user_id', user.id)
-        .eq('kingdom_number', editorInfo.kingdom_number)
-        .not('transfer_profile_id', 'is', null);
-      if (data) {
-        setSavedToWatchlist(new Set(data.map((d: { transfer_profile_id: string }) => d.transfer_profile_id).filter(Boolean)));
-      }
-    })();
-  }, [user, editorInfo]);
+    setUsedInvites(initialUsedInvites);
+  }, [initialUsedInvites]);
+
+  // ─── React Query: watchlist IDs ────────────────────────────
+  const { data: savedToWatchlist = new Set<string>() } = useQuery({
+    queryKey: browseKeys.watchlistIds(user?.id || '', kingdomNumber),
+    queryFn: () => fetchWatchlistIds(user!.id, kingdomNumber),
+    enabled: !!user && !!editorInfo,
+    staleTime: 60 * 1000,
+  });
+
+  // ─── React Query: invited profile IDs ──────────────────────
+  const { data: invitedProfileIds = new Set<string>() } = useQuery({
+    queryKey: browseKeys.invitedIds(kingdomNumber),
+    queryFn: () => fetchInvitedProfileIds(kingdomNumber),
+    enabled: !!editorInfo,
+    staleTime: 60 * 1000,
+  });
+
+  // ─── React Query: infinite transferee list (server-side filtered) ─────
+  const {
+    data: infiniteData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading: loadingTransferees,
+  } = useInfiniteQuery({
+    queryKey: browseKeys.transferees(kingdomNumber, transferGroup, browseFilters),
+    queryFn: ({ pageParam }) => fetchTransfereePage(kingdomNumber, transferGroup, browseFilters, pageParam),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => {
+      if (!lastPage || lastPage.length < BROWSE_PAGE_SIZE) return undefined;
+      return allPages.reduce((total, page) => total + page.length, 0);
+    },
+    enabled: !!editorInfo && !!fund,
+    staleTime: 30 * 1000,
+    retry: 2,
+  });
+
+  // Flatten pages and filter out invited profiles
+  const transferees = useMemo(() => {
+    const all = infiniteData?.pages.flat() ?? [];
+    return all.filter(tp => !invitedProfileIds.has(tp.id));
+  }, [infiniteData, invitedProfileIds]);
+
+  // Record profile views when new pages load (fire-and-forget)
+  useEffect(() => {
+    if (!supabase || !user || !editorInfo || !infiniteData?.pages.length) return;
+    const lastPage = infiniteData.pages[infiniteData.pages.length - 1];
+    if (lastPage && lastPage.length > 0) {
+      const views = lastPage.map(tp => ({
+        transfer_profile_id: tp.id,
+        viewer_user_id: user.id,
+        viewer_kingdom_number: editorInfo.kingdom_number,
+      }));
+      supabase.from('transfer_profile_views').upsert(views, {
+        onConflict: 'transfer_profile_id,viewer_user_id,view_date',
+        ignoreDuplicates: true,
+      }).then(() => {});
+    }
+  }, [infiniteData?.pages.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Real-time subscription for new transferee profiles — invalidate cache
+  useEffect(() => {
+    if (!supabase) return;
+    const sb = supabase;
+    const channel = sb
+      .channel('browse-transferees')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'transfer_profiles',
+      }, () => {
+        queryClient.invalidateQueries({ queryKey: browseKeys.all });
+      })
+      .subscribe();
+    return () => { sb.removeChannel(channel); };
+  }, [kingdomNumber, queryClient]);
 
   const saveToWatchlist = async (tp: TransfereeProfile) => {
     if (!supabase || !user || !editorInfo) return;
@@ -77,109 +232,75 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
         }
         return;
       }
-      setSavedToWatchlist(prev => new Set(prev).add(tp.id));
+      // Optimistically update watchlist IDs cache
+      queryClient.setQueryData<Set<string>>(browseKeys.watchlistIds(user.id, kingdomNumber), (prev) =>
+        new Set(prev).add(tp.id)
+      );
       showToast('Saved to watchlist for future event!', 'success');
       trackFeature('Watchlist Save', { kingdom: editorInfo.kingdom_number, source: 'browse' });
-    } catch {
+    } catch (err) {
+      logger.error('BrowseTransfereesTab: saveToWatchlist failed', err);
       showToast('Failed to save.', 'error');
     }
   };
 
-  // Fetch already-invited/accepted profile IDs so we can hide them from browse
-  useEffect(() => {
-    if (!supabase || !editorInfo) return;
-    (async () => {
-      const { data } = await supabase
-        .from('transfer_invites')
-        .select('recipient_profile_id, status')
-        .eq('kingdom_number', editorInfo.kingdom_number)
-        .in('status', ['pending', 'accepted']);
-      if (data) {
-        setInvitedProfileIds(new Set(data.map((d: { recipient_profile_id: string }) => d.recipient_profile_id)));
-      }
-    })();
-  }, [editorInfo]);
-
-  // Auto-load transferees on mount
-  useEffect(() => {
-    if (editorInfo && fund && transferees.length === 0) {
-      loadTransferees();
-    }
-  }, [editorInfo, fund]);
-
-  // Real-time subscription for new transferee profiles
-  useEffect(() => {
-    if (!supabase) return;
+  const handleBulkInvite = async () => {
+    if (!supabase || !user || !editorInfo || selectedForInvite.size === 0) return;
     const sb = supabase;
-    const channel = sb
-      .channel('browse-transferees')
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'transfer_profiles',
-      }, (payload) => {
-        const newProfile = payload.new as TransfereeProfile;
-        // Filter by transfer group + exclude own kingdom
-        const inGroup = !transferGroup || (newProfile.current_kingdom >= transferGroup[0] && newProfile.current_kingdom <= transferGroup[1]);
-        if (newProfile.is_active && newProfile.visible_to_recruiters && newProfile.current_kingdom !== editorInfo?.kingdom_number && inGroup && !invitedProfileIds.has(newProfile.id)) {
-          setTransferees(prev => [newProfile, ...prev]);
-        }
-      })
-      .subscribe();
-    return () => { sb.removeChannel(channel); };
-  }, []);
+    const budget = getInviteBudget();
+    const budgetLeft = budget.total - budget.used;
+    const ids = Array.from(selectedForInvite).slice(0, budgetLeft);
+    if (ids.length === 0) { showToast('No invite budget remaining.', 'error'); return; }
+    setBulkInviting(true);
+    let sent = 0;
+    try {
+      const results = await Promise.all(ids.map(async (profileId) => {
+        const { data: existing } = await sb
+          .from('transfer_invites')
+          .select('id')
+          .eq('kingdom_number', editorInfo.kingdom_number)
+          .eq('recipient_profile_id', profileId)
+          .eq('status', 'pending')
+          .maybeSingle();
+        if (existing) return false;
+        const { error } = await sb.from('transfer_invites').insert({
+          kingdom_number: editorInfo.kingdom_number,
+          sender_user_id: user.id,
+          recipient_profile_id: profileId,
+        });
+        return !error;
+      }));
+      sent = results.filter(Boolean).length;
+      if (sent > 0) {
+        setUsedInvites(prev => prev + sent);
+        setSentInviteIds(prev => {
+          const next = new Set(prev);
+          ids.forEach(id => next.add(id));
+          return next;
+        });
+        queryClient.setQueryData<Set<string>>(browseKeys.invitedIds(kingdomNumber), (prev) => {
+          const next = new Set(prev);
+          ids.forEach(id => next.add(id));
+          return next;
+        });
+        trackFeature('Bulk Invite Sent', { kingdom: editorInfo.kingdom_number, count: sent });
+        showToast(`${sent} invite${sent > 1 ? 's' : ''} sent!`, 'success');
+      } else {
+        showToast('All selected players already have pending invites.', 'error');
+      }
+    } catch (err) {
+      logger.error('BrowseTransfereesTab: bulk invite failed', err);
+      showToast('Some invites failed to send.', 'error');
+    } finally {
+      setSelectedForInvite(new Set());
+      setBulkInviting(false);
+    }
+  };
 
   const getInviteBudget = () => {
     if (!editorInfo || !fund) return { total: 35, used: usedInvites, bonus: 0 };
     const base = 35;
     return { total: base, used: usedInvites, bonus: 0 };
-  };
-
-  const loadTransferees = async (loadMore = false) => {
-    if (!supabase || !editorInfo || !fund) return;
-    setLoadingTransferees(true);
-    try {
-      const offset = loadMore ? transferees.length : 0;
-      let query = supabase
-        .from('transfer_profiles')
-        .select('id, username, current_kingdom, tc_level, power_million, power_range, main_language, kvk_availability, saving_for_kvk, group_size, player_bio, looking_for, is_anonymous, is_active, visible_to_recruiters, last_active_at')
-        .eq('is_active', true)
-        .eq('visible_to_recruiters', true)
-        .neq('current_kingdom', editorInfo.kingdom_number);
-
-      // Filter by transfer group — only show players from kingdoms in the same group
-      if (transferGroup) {
-        query = query.gte('current_kingdom', transferGroup[0]).lte('current_kingdom', transferGroup[1]);
-      }
-
-      const { data } = await query
-        .order('created_at', { ascending: false })
-        .range(offset, offset + BROWSE_PAGE_SIZE - 1);
-      const results = ((data as TransfereeProfile[]) || []).filter(tp => !invitedProfileIds.has(tp.id));
-      if (loadMore) {
-        setTransferees(prev => [...prev, ...results]);
-      } else {
-        setTransferees(results);
-      }
-      setHasMoreTransferees(results.length === BROWSE_PAGE_SIZE);
-
-      // Record profile views (fire-and-forget, one per profile per day)
-      if (results.length > 0 && user) {
-        const views = results.map(tp => ({
-          transfer_profile_id: tp.id,
-          viewer_user_id: user.id,
-          viewer_kingdom_number: editorInfo.kingdom_number,
-        }));
-        supabase.from('transfer_profile_views').upsert(views, {
-          onConflict: 'transfer_profile_id,viewer_user_id,view_date',
-          ignoreDuplicates: true,
-        }).then(() => {});
-      }
-    } catch {
-      // silent
-    } finally {
-      setLoadingTransferees(false);
-    }
   };
 
   return (
@@ -219,12 +340,52 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
             {t('recruiter.inviteBudget', 'Invite Budget')}: <strong style={{ color: colors.text }}>{getInviteBudget().total - getInviteBudget().used}</strong> {t('recruiter.remaining', 'remaining')}
             {getInviteBudget().bonus > 0 && <span style={{ color: colors.gold, fontSize: '0.6rem' }}> (+{getInviteBudget().bonus} Gold bonus)</span>}
           </span>
-          <button onClick={() => loadTransferees()} style={{
+          <button onClick={() => queryClient.invalidateQueries({ queryKey: browseKeys.transferees(kingdomNumber, transferGroup, browseFilters) })} style={{
             padding: '0.25rem 0.5rem', backgroundColor: '#22d3ee10', border: '1px solid #22d3ee25',
             borderRadius: '6px', color: '#22d3ee', fontSize: '0.65rem', cursor: 'pointer', minHeight: '32px',
           }}>
             ↻ {t('recruiter.refresh', 'Refresh')}
           </button>
+        </div>
+      )}
+
+      {/* Bulk Invite Action Bar */}
+      {selectedForInvite.size > 0 && (
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '0.4rem 0.75rem',
+          backgroundColor: '#a855f712',
+          border: '1px solid #a855f730',
+          borderRadius: '8px',
+          marginBottom: '0.75rem',
+        }}>
+          <span style={{ color: '#a855f7', fontSize: '0.75rem', fontWeight: '600' }}>
+            {selectedForInvite.size} selected
+          </span>
+          <div style={{ display: 'flex', gap: '0.4rem' }}>
+            <button
+              onClick={() => setSelectedForInvite(new Set())}
+              style={{
+                padding: '0.25rem 0.5rem', backgroundColor: 'transparent',
+                border: '1px solid #6b728025', borderRadius: '6px',
+                color: '#9ca3af', fontSize: '0.65rem', cursor: 'pointer', minHeight: '32px',
+              }}
+            >
+              {t('recruiter.clearSelection', 'Clear')}
+            </button>
+            <button
+              onClick={handleBulkInvite}
+              disabled={bulkInviting}
+              style={{
+                padding: '0.25rem 0.75rem', backgroundColor: '#a855f7',
+                border: 'none', borderRadius: '6px',
+                color: '#fff', fontSize: '0.65rem', fontWeight: '700', cursor: bulkInviting ? 'wait' : 'pointer',
+                minHeight: '32px', opacity: bulkInviting ? 0.6 : 1,
+              }}
+            >
+              {bulkInviting ? t('recruiter.sending', 'Sending...') : t('recruiter.sendInvites', `Send ${selectedForInvite.size} Invite${selectedForInvite.size > 1 ? 's' : ''}`)}
+            </button>
+          </div>
         </div>
       )}
 
@@ -334,53 +495,43 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
         </div>
       )}
 
+      {/* Recommended for You */}
+      {!loadingTransferees && (
+        <RecommendedSection
+          transferees={transferees}
+          fund={fund}
+          sentInviteIds={sentInviteIds}
+          canInvite={!!fund && ['silver', 'gold'].includes(fund.tier) && getInviteBudget().total - getInviteBudget().used > 0}
+          onSelectForInvite={(id) => setSelectedForInvite(prev => { const next = new Set(prev); next.add(id); return next; })}
+        />
+      )}
+
       {(() => {
-        // Apply browse filters
-        const filtered = transferees.filter(tp => {
-          if (browseFilters.minTc) {
-            const min = parseInt(browseFilters.minTc);
-            if ((tp.tc_level || 0) < min) return false;
-          }
-          if (browseFilters.minPower) {
-            const min = parseInt(browseFilters.minPower);
-            if ((tp.power_million || 0) < min) return false;
-          }
-          if (browseFilters.language) {
-            if (tp.main_language !== browseFilters.language) return false;
-          }
-          return true;
-        });
-        // Apply sorting
-        if (browseFilters.sortBy === 'power_desc') {
-          filtered.sort((a, b) => (b.power_million || 0) - (a.power_million || 0));
-        } else if (browseFilters.sortBy === 'tc_desc') {
-          filtered.sort((a, b) => (b.tc_level || 0) - (a.tc_level || 0));
-        }
-        // 'newest' is default order from Supabase (created_at desc)
+        const hasActiveFilters = !!(browseFilters.minTc || browseFilters.minPower || browseFilters.language);
 
         if (loadingTransferees) return (
           <div style={{ textAlign: 'center', padding: '2rem 0', color: '#6b7280' }}>{t('recruiter.loadingTransferees', 'Loading transferees...')}</div>
         );
-        if (filtered.length === 0) return (
+        if (transferees.length === 0) return (
           <div style={{
             textAlign: 'center', padding: '2.5rem 1rem',
             backgroundColor: '#111111', borderRadius: '12px',
             border: '1px solid #2a2a2a',
           }}>
             <div style={{ fontSize: '2rem', marginBottom: '0.5rem', opacity: 0.5 }}>
-              {transferees.length > 0 ? '🔍' : '📭'}
+              {hasActiveFilters ? '🔍' : '📭'}
             </div>
             <p style={{ color: '#d1d5db', fontSize: '0.9rem', fontWeight: '600', marginBottom: '0.3rem' }}>
-              {transferees.length > 0 ? t('recruiter.noTransfereesMatch', 'No transferees match your filters') : t('recruiter.noActiveProfiles', 'No active transfer profiles yet')}
+              {hasActiveFilters ? t('recruiter.noTransfereesMatch', 'No transferees match your filters') : t('recruiter.noActiveProfiles', 'No active transfer profiles yet')}
             </p>
-            <p style={{ color: '#6b7280', fontSize: '0.75rem', marginBottom: transferees.length > 0 ? '0.75rem' : 0 }}>
-              {transferees.length > 0
+            <p style={{ color: '#6b7280', fontSize: '0.75rem', marginBottom: hasActiveFilters ? '0.75rem' : 0 }}>
+              {hasActiveFilters
                 ? t('recruiter.tryAdjustingFilters', 'Try adjusting your filters to broaden results.')
                 : t('recruiter.playersWillAppear', 'Players who are looking to transfer will appear here once they create a profile.')}
             </p>
-            {transferees.length > 0 && (
+            {hasActiveFilters && (
               <button
-                onClick={() => setBrowseFilters({ minTc: '', minPower: '', language: '', sortBy: browseFilters.sortBy })}
+                onClick={() => setBrowseFilters({ ...EMPTY_FILTERS, sortBy: browseFilters.sortBy })}
                 style={{
                   padding: '0.4rem 1rem', backgroundColor: '#a855f710',
                   border: '1px solid #a855f725', borderRadius: '6px',
@@ -395,7 +546,7 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
         );
 
         // Compute match scores for "Recommended for you"
-        const withScores = fund ? filtered.map(tp => {
+        const withScores = fund ? transferees.map(tp => {
           let matched = 0, total = 0;
           const minPwr = fund.min_power_million || 0;
           if (minPwr > 0) { total++; if ((tp.power_million || 0) >= minPwr) matched++; }
@@ -440,8 +591,8 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
               </div>
             </div>
           )}
-          <span style={{ color: '#4b5563', fontSize: '0.65rem' }}>{filtered.length} transferee{filtered.length !== 1 ? 's' : ''}{browseFilters.minTc || browseFilters.minPower || browseFilters.language ? ' (filtered)' : ''}</span>
-          {filtered.map((tp) => {
+          <span style={{ color: '#4b5563', fontSize: '0.65rem' }}>{transferees.length} transferee{transferees.length !== 1 ? 's' : ''}{browseFilters.minTc || browseFilters.minPower || browseFilters.language ? ' (filtered)' : ''}</span>
+          {transferees.map((tp: TransfereeProfile) => {
             const isAnon = tp.is_anonymous as boolean;
             const canSeeDetails = fund && ['bronze', 'silver', 'gold'].includes(fund.tier);
             const canSendInvite = fund && ['silver', 'gold'].includes(fund.tier);
@@ -456,6 +607,18 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
                 {/* Header */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    {canSendInvite && budgetLeft > 0 && !sentInviteIds.has(tp.id) && (
+                      <input
+                        type="checkbox"
+                        checked={selectedForInvite.has(tp.id)}
+                        onChange={() => setSelectedForInvite(prev => {
+                          const next = new Set(prev);
+                          if (next.has(tp.id)) next.delete(tp.id); else next.add(tp.id);
+                          return next;
+                        })}
+                        style={{ accentColor: '#a855f7', cursor: 'pointer' }}
+                      />
+                    )}
                     <span style={{ color: colors.text, fontWeight: '600', fontSize: '0.85rem' }}>
                       {isAnon ? '🔒 Anonymous' : (tp.username || 'Unknown')}
                     </span>
@@ -606,8 +769,10 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
                         } else {
                           setUsedInvites(prev => prev + 1);
                           setSentInviteIds(prev => new Set(prev).add(tp.id));
-                          setInvitedProfileIds(prev => new Set(prev).add(tp.id));
-                          setTransferees(prev => prev.filter(t => t.id !== tp.id));
+                          // Update invited IDs cache so the profile is filtered out
+                          queryClient.setQueryData<Set<string>>(browseKeys.invitedIds(kingdomNumber), (prev) =>
+                            new Set(prev).add(tp.id)
+                          );
                           trackFeature('Invite Sent', { kingdom: editorInfo.kingdom_number });
                           showToast('Invite sent!', 'success');
                           // Notify the transferee
@@ -627,7 +792,8 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
                             });
                           }
                         }
-                      } catch {
+                      } catch (err) {
+                        logger.error('BrowseTransfereesTab: sendInvite failed', err);
                         showToast('Failed to send invite.', 'error');
                       }
                     }}
@@ -659,10 +825,10 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
       })()}
 
       {/* Load More Button */}
-      {hasMoreTransferees && !loadingTransferees && transferees.length > 0 && (
+      {hasNextPage && !isFetchingNextPage && transferees.length > 0 && (
         <div style={{ textAlign: 'center', padding: '1rem 0' }}>
           <button
-            onClick={() => loadTransferees(true)}
+            onClick={() => fetchNextPage()}
             style={{
               padding: '0.5rem 1.5rem',
               backgroundColor: '#22d3ee10',
@@ -679,7 +845,7 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
           </button>
         </div>
       )}
-      {loadingTransferees && transferees.length > 0 && (
+      {isFetchingNextPage && (
         <div style={{ textAlign: 'center', padding: '1rem 0', color: '#6b7280', fontSize: '0.8rem' }}>
           {t('recruiter.loadingMore', 'Loading more...')}
         </div>

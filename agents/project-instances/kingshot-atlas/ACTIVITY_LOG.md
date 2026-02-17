@@ -3,6 +3,65 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-17 | Product Engineer | COMPLETED
+Task: Transfer Hub Phase 5 — Tier badge removal, persistent read tracking, expiry auto-cleanup, transferee messaging, smart recommendations, outcome tracking
+Files: `KingdomListingCard.tsx` (tier badge removed), `useRecruiterDashboard.ts` (persistent read tracking), `RecruiterDashboard.tsx` (unread badges), `TransfereeDashboard.tsx` (messaging UI, expiry warnings, outcome tracking), `BrowseTransfereesTab.tsx` (smart recommendations), `ApplicationCard.tsx` (mark-as-read)
+DB Migrations: `add_message_read_status` (persistent read tracking table), `application_expiry_cron` (pg_cron + expire_overdue_transfers + get_expiring_soon RPC + expiry_warnings_sent), `create_transfer_outcomes` (outcome tracking table with RLS)
+Changes:
+1. **Tier Badge Removal** — Removed S/A/B/C/D tier badge from KingdomListingCard in Transfer Hub. Cleaned up unused SCORE_TIER_COLORS, scoreTierColor, tierLetter, isSTier.
+2. **Persistent Read Tracking** — New `message_read_status` table (application_id, user_id, last_read_at). Replaced 48h heuristic unread counts in both recruiter and transferee dashboards with accurate per-application read tracking. ApplicationCard upserts read status when messages panel opens.
+3. **Application Expiry Auto-Cleanup** — pg_cron job runs hourly to auto-expire overdue applications/invites. `get_expiring_soon` RPC returns items expiring within 24h. TransfereeDashboard shows expiry warning banner with countdown.
+4. **Transferee-Side Messaging** — Full message thread UI in TransfereeDashboard application cards with real-time Supabase subscription, send/receive, auto-scroll, mark-as-read on open.
+5. **Smart Invite Recommendations** — "Recommended for You" horizontal scroll section at top of Browse Transferees. Reverse match scoring (power 30%, TC 25%, language 25%, vibe 20%) against fund requirements. Shows top 8 matches ≥50% score with quick invite button.
+6. **Transfer Outcome Tracking** — New `transfer_outcomes` table. Accepted application cards show "Did you transfer?" prompt with Yes/No. Tracks did_transfer, satisfaction_rating, feedback. Outcomes fetched on load to show submitted status.
+Result: Build passes ✅. Zero errors.
+
+## 2026-02-17 | Platform Engineer | COMPLETED
+Task: Transfer Hub Phase 4 — WatchlistTab React Query, invite management, recruiter notes, server-side filters, analytics dashboard
+Files: `WatchlistTab.tsx` (refactored), `SentInvitesPanel.tsx` (new), `RecruiterAnalyticsTab.tsx` (new), `ApplicationCard.tsx` (modified), `BrowseTransfereesTab.tsx` (modified), `RecruiterDashboard.tsx` (modified), `useRecruiterDashboard.ts` (modified), `types.ts` (modified), `index.ts` (modified)
+DB Migrations: `create_expire_invites_cron` (pg_cron + expire_stale_invites function), `add_recruiter_note_to_applications` (recruiter_note column)
+Changes:
+1. **WatchlistTab → React Query** — Replaced useState+useEffect with useQuery (60s staleTime). Add/remove/update-notes use optimistic cache patching with rollback on error.
+2. **Invite Management** — New SentInvitesPanel component: view sent invites, cancel pending, re-send expired/declined/cancelled. pg_cron job expires stale invites daily at 00:10 UTC with recipient notification.
+3. **Recruiter Private Notes** — Added recruiter_note column to transfer_applications. ApplicationCard shows inline editable note per application (purple 🔒 section). Saved directly to Supabase.
+4. **Server-Side Filters** — BrowseTransfereesTab filters (min TC, min power, language, sort) now pushed to Supabase query. Filters included in React Query key for automatic refetch. Removed client-side filter/sort IIFE.
+5. **Recruiter Analytics Tab** — New tab showing: avg response time, accept rate, invite success rate, listing views, profiles browsed, application/invite breakdowns with progress bars, applications-per-week bar chart, actionable improvement tips.
+Result: Build passes ✅. Zero errors.
+
+## 2026-02-17 | Platform Engineer | COMPLETED
+Task: Transfer Hub Phase 3 — useInfiniteQuery migration, optimistic UI, tab skeletons, application expiry cron
+Files: `apps/web/src/components/recruiter/BrowseTransfereesTab.tsx` (major refactor), `apps/web/src/components/recruiter/useRecruiterDashboard.ts` (modified), `apps/web/src/components/recruiter/TabSkeletons.tsx` (new), `apps/web/src/components/RecruiterDashboard.tsx` (modified), `apps/web/src/components/recruiter/index.ts` (modified)
+DB Migration: `create_expire_applications_cron` — pg_cron job + `expire_stale_applications()` function.
+Changes:
+1. **BrowseTransfereesTab → useInfiniteQuery** — Replaced manual useState+useEffect pagination with `useInfiniteQuery` (offset-based, 25/page). Watchlist IDs and invited profile IDs now use `useQuery` with 60s staleTime. Real-time subscription invalidates cache instead of mutating state. Invite sends and watchlist saves use `queryClient.setQueryData` for optimistic cache patching.
+2. **Optimistic UI for Status Changes** — `handleStatusChange` now patches cache immediately before server call. Previous state is snapshotted for rollback. On server/network error, cache reverts and error toast shown. Status changes feel instant.
+3. **Tab Skeleton Loaders** — Created `TabSkeletons.tsx` with 6 tab-specific skeletons (Inbox, Browse, Profile, Team, Watchlist, Fund). Each matches the real tab's layout. Integrated into RecruiterDashboard with brief skeleton flash on first tab switch.
+4. **Application Expiry Auto-Cleanup** — Created `expire_stale_applications()` PL/pgSQL function (SECURITY DEFINER). Marks pending/viewed applications as 'expired' when `expires_at < now()`. Inserts notification for each affected applicant. Scheduled via pg_cron daily at 00:05 UTC.
+Result: Build passes ✅. Zero errors.
+
+## 2026-02-16 22:30 | Platform Engineer | COMPLETED
+Task: Transfer Hub Phase 2 — RecruiterDashboard React Query, decline confirmation, kingdom pagination, error logging
+Files: `apps/web/src/components/recruiter/useRecruiterDashboard.ts` (major refactor), `apps/web/src/components/recruiter/ApplicationCard.tsx` (modified), `apps/web/src/hooks/useTransferHubQueries.ts` (modified), `apps/web/src/components/recruiter/BrowseTransfereesTab.tsx` (modified), `apps/web/src/components/recruiter/WatchlistTab.tsx` (modified), `apps/web/src/components/recruiter/FundTab.tsx` (modified), `apps/web/src/components/recruiter/KingdomProfileTab.tsx` (modified), `apps/web/src/components/recruiter/CoEditorsTab.tsx` (modified)
+Changes:
+1. **RecruiterDashboard React Query Migration** — Extracted `fetchRecruiterDashboard` function, replaced useState+useEffect with `useQuery` (30s staleTime, 2 retries). Mutations use `patchCache` for optimistic cache updates. Real-time subscriptions call `refetch()` instead of `loadDashboard(true)`. Same return interface preserved — zero consumer changes needed.
+2. **Decline Confirmation Dialog** — ApplicationCard now shows inline "Decline this application? [Yes, Decline] [Cancel]" confirmation before executing decline. Prevents accidental irreversible declines.
+3. **Two-Phase Kingdom Pagination** — `useTransferKingdoms` now fetches funded kingdoms first (~100 rows, fast), then all ~1300 kingdoms in background. `isLoading` only blocks on funded kingdoms, cutting initial payload by ~80%.
+4. **Profile Completeness Indicator** — ALREADY EXISTED in TransferProfileCTA.tsx (progress bar, percentage badge, missing fields list). Skipped.
+5. **Silent Catch → Logger** — Replaced 15 silent `catch {}` blocks across 6 recruiter files with `logger.error()` calls. All errors now surface in Sentry.
+Result: Build passes ✅. Local dev server running.
+
+## 2026-02-16 22:00 | Platform Engineer | COMPLETED
+Task: Transfer Hub — React Query migration, server-side review aggregation, error boundaries, applicant notifications
+Files: `apps/web/src/hooks/useTransferHubQueries.ts` (new), `apps/web/src/components/transfer/TransferHubErrorFallback.tsx` (new), `apps/web/src/pages/TransferBoard.tsx` (modified), `apps/web/src/components/recruiter/useRecruiterDashboard.ts` (modified)
+DB Migration: `create_kingdom_review_summaries_view` — Supabase view aggregating kingdom_reviews per kingdom (avg_rating, review_count, top_review_comment, top_review_author).
+Changes:
+1. **React Query Migration** — Created `useTransferHubQueries.ts` with 7 hooks (useTransferKingdoms, useTransferFunds, useTransferReviewSummaries, useUserTransferProfile, useActiveAppCount, useEditorStatus, useAtlasPlayerCount) + invalidation helpers. Replaced ~90 lines of raw useEffect data-fetching in TransferBoard.tsx. Benefits: automatic caching (staleTime 1-10min), retry on failure, deduplication, refetch on window focus.
+2. **Server-side Review Aggregation** — Created `kingdom_review_summaries` Supabase view replacing ~40 lines of client-side aggregation. View computes avg_rating, review_count, and selects top review by helpful_count per kingdom.
+3. **Error Boundaries** — Added `TransferHubErrorFallback` component with section-aware retry UI. Wrapped RecruiterDashboard modal and Kingdom Listings section with ErrorBoundary + fallback. Crashes in sub-sections no longer take down the entire Transfer Hub.
+4. **Applicant 'Viewed' Notification** — Added `viewed` status to notification dispatch in useRecruiterDashboard.ts. Transferees now get notified when their application is viewed (in addition to existing interested/accepted/declined notifications).
+5. **Prior Bug Fixes** (from evaluation): Fixed stale closure in BrowseTransfereesTab real-time subscription, missing is_active filter in ApplyModal, wrong useMemo dependency in TransferBoard, 4-column grid for 1 stat in InboxTab.
+Result: Build passes ✅. Local dev server running.
+
 ## 2026-02-24 | Product Engineer | COMPLETED
 Task: Bot Dashboard v4 — Gift code role mentions, access control redesign, connected servers
 Files: `apps/web/src/pages/BotDashboard.tsx` (modified), `apps/discord-bot/src/scheduler.js` (modified), `apps/discord-bot/src/utils/embeds.js` (modified)

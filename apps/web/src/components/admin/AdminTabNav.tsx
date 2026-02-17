@@ -156,6 +156,7 @@ export const AdminTabNav: React.FC<AdminTabNavProps> = ({
         { id: 'transfer-hub', label: 'Overview', count: 0 },
         { id: 'transfer-status', label: 'Status Submissions', count: pendingCounts.transfers },
         { id: 'transfer-apps', label: 'Applications', count: 0 },
+        { id: 'transfer-outcomes', label: 'Outcomes', count: 0 },
       ].map(tab => (
         <SubTabButton
           key={tab.id}

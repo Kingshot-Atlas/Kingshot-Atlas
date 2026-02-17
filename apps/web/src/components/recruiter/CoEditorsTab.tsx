@@ -6,6 +6,7 @@ import { useAnalytics } from '../../hooks/useAnalytics';
 import { useToast } from '../Toast';
 import { supabase } from '../../lib/supabase';
 import { colors } from '../../utils/styles';
+import { logger } from '../../utils/logger';
 import type { EditorInfo, TeamMember } from './types';
 import { inputStyle } from './types';
 
@@ -136,7 +137,8 @@ const CoEditorsTab: React.FC<CoEditorsTabProps> = ({ editorInfo, team, onReloadD
       showToast(`Invitation sent to ${displayName}! They need to accept it.`, 'success');
       setCoEditorUserId('');
       onReloadDashboard();
-    } catch {
+    } catch (err) {
+      logger.error('CoEditorsTab: inviteCoEditor failed', err);
       showToast('Failed to invite co-editor.', 'error');
     } finally {
       setInvitingCoEditor(false);
@@ -194,7 +196,8 @@ const CoEditorsTab: React.FC<CoEditorsTabProps> = ({ editorInfo, team, onReloadD
       }
       trackFeature('Co-Editor Request Response', { action: approve ? 'approve' : 'reject', kingdom: editorInfo.kingdom_number });
       onReloadDashboard();
-    } catch {
+    } catch (err) {
+      logger.error('CoEditorsTab: processCoEditorRequest failed', err);
       showToast('Failed to process co-editor request.', 'error');
     } finally {
       setProcessingRequest(null);
@@ -228,7 +231,8 @@ const CoEditorsTab: React.FC<CoEditorsTabProps> = ({ editorInfo, team, onReloadD
       showToast('Co-editor removed.', 'success');
       setRemovingCoEditor(null);
       onReloadDashboard();
-    } catch {
+    } catch (err) {
+      logger.error('CoEditorsTab: removeCoEditor failed', err);
       showToast('Failed to remove co-editor.', 'error');
     }
   };

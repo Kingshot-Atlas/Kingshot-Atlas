@@ -25,30 +25,21 @@ import { useToast } from '../components/Toast';
 import KingdomCompare from '../components/transfer/KingdomCompare';
 import EndorsementOverlay from '../components/transfer/EndorsementOverlay';
 import TransferProfileCTA from '../components/transfer/TransferProfileCTA';
+import TransfereeDashboard from '../components/transfer/TransfereeDashboard';
 import ContributionSuccessModal from '../components/transfer/ContributionSuccessModal';
 import TransferAuthGate from '../components/transfer/TransferAuthGate';
+import TransferHubErrorFallback from '../components/transfer/TransferHubErrorFallback';
+import ErrorBoundary from '../components/ErrorBoundary';
 import { TRANSFER_GROUPS, getTransferGroup, getTransferGroupOptions, areTransferGroupsOutdated, getTransferGroupLabel } from '../config/transferGroups';
 import { calculateMatchScore as calcMatchScore, calculateMatchScoreForSort as calcMatchScoreForSort } from '../utils/matchScore';
+import { useTransferKingdoms, useTransferFunds, useTransferReviewSummaries, useUserTransferProfile, useActiveAppCount, useEditorStatus, useAtlasPlayerCount, useInvalidateTransferHub } from '../hooks/useTransferHubQueries';
 
 // =============================================
 // TYPES (KingdomData, KingdomFund, KingdomReviewSummary, BoardMode, MatchDetail, formatTCLevel
 // are imported from ../components/KingdomListingCard)
 // =============================================
 
-interface UserTransferProfile {
-  power_million: number;
-  tc_level: number;
-  main_language: string;
-  secondary_languages: string[];
-  looking_for: string[];
-  kvk_availability: string;
-  saving_for_kvk: string;
-  group_size: string;
-  player_bio: string;
-  play_schedule: unknown[];
-  contact_method: string;
-  visible_to_recruiters: boolean;
-}
+// UserTransferProfile type is now defined in useTransferHubQueries.ts
 
 // =============================================
 // CONSTANTS
@@ -89,30 +80,37 @@ const TransferBoard: React.FC = () => {
     return !localStorage.getItem('atlas_transfer_hub_visited');
   });
 
-  // Data state
-  const [kingdoms, setKingdoms] = useState<KingdomData[]>([]);
-  const [funds, setFunds] = useState<KingdomFund[]>([]);
-  const [reviewSummaries, setReviewSummaries] = useState<KingdomReviewSummary[]>([]);
-  const [loading, setLoading] = useState(true);
+  // ─── React Query data hooks ──────────────────────────────────
+  const { data: kingdoms = [], isLoading: kingdomsLoading } = useTransferKingdoms();
+  const { data: funds = [], isLoading: fundsLoading } = useTransferFunds();
+  const { data: reviewSummaries = [] } = useTransferReviewSummaries();
+  const userProfileQuery = useUserTransferProfile(user?.id);
+  const activeAppCountQuery = useActiveAppCount(user?.id);
+  const editorStatusQuery = useEditorStatus(user?.id);
+  const { data: atlasPlayerCount = 0 } = useAtlasPlayerCount();
+  const invalidate = useInvalidateTransferHub();
+
+  // Derived from React Query
+  const loading = kingdomsLoading || fundsLoading;
+  const hasTransferProfile = userProfileQuery.data?.hasProfile ?? false;
+  const transferProfile = userProfileQuery.data?.profile ?? null;
+  const profileViewCount = userProfileQuery.data?.profileViewCount ?? 0;
+  const activeAppCount = activeAppCountQuery.data ?? 0;
+  const isEditor = editorStatusQuery.data?.isEditor ?? false;
+  const newAppCount = editorStatusQuery.data?.newAppCount ?? 0;
+  const pendingCoEditorCount = editorStatusQuery.data?.pendingCoEditorCount ?? 0;
+
+  // UI-only state (not data-fetching)
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const [showProfileForm, setShowProfileForm] = useState(false);
   const [scrollToIncomplete, setScrollToIncomplete] = useState(false);
-  const [hasTransferProfile, setHasTransferProfile] = useState(false);
-  const [transferProfile, setTransferProfile] = useState<UserTransferProfile | null>(null);
   const [applyingToKingdom, setApplyingToKingdom] = useState<number | null>(null);
-  const [activeAppCount, setActiveAppCount] = useState(0);
-  const [appRefreshKey, setAppRefreshKey] = useState(0);
   const [showRecruiterDash, setShowRecruiterDash] = useState(false);
-  const [isEditor, setIsEditor] = useState(false);
-  const [newAppCount, setNewAppCount] = useState(0);
-  const [pendingCoEditorCount, setPendingCoEditorCount] = useState(0);
   const [contributingToKingdom, setContributingToKingdom] = useState<number | null>(null);
   const [showContributionSuccess, setShowContributionSuccess] = useState(false);
   const [visibleCount, setVisibleCount] = useState(20);
-  const [atlasPlayerCount, setAtlasPlayerCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [highlightedKingdom, setHighlightedKingdom] = useState<number | null>(null);
-  const [profileViewCount, setProfileViewCount] = useState(0);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const [showAuthGate, setShowAuthGate] = useState<'login' | 'link' | null>(null);
   const [endorseClaimId, setEndorseClaimId] = useState<string | null>(null);
@@ -280,177 +278,9 @@ const TransferBoard: React.FC = () => {
     setVisibleCount(20);
   }, [filters, mode]);
 
-  // Check if user has a transfer profile + count active applications + editor status
-  useEffect(() => {
-    const checkProfile = async () => {
-      if (!supabase || !user) return;
-      const { data } = await supabase
-        .from('transfer_profiles')
-        .select('id, power_million, tc_level, main_language, secondary_languages, looking_for, kvk_availability, saving_for_kvk, group_size, player_bio, play_schedule, contact_method, visible_to_recruiters')
-        .eq('user_id', user.id)
-        .eq('is_active', true)
-        .maybeSingle();
-      setHasTransferProfile(!!data);
-      if (data) {
-        // Touch last_active_at silently (debounced — max once per hour)
-        const lastTouch = localStorage.getItem('atlas_tp_last_active_touch');
-        if (!lastTouch || Date.now() - parseInt(lastTouch, 10) > 3600000) {
-          supabase.from('transfer_profiles').update({ last_active_at: new Date().toISOString() }).eq('id', data.id).then(() => {});
-          localStorage.setItem('atlas_tp_last_active_touch', String(Date.now()));
-        }
-        setTransferProfile({
-          power_million: data.power_million || 0,
-          tc_level: data.tc_level || 0,
-          main_language: data.main_language || 'English',
-          secondary_languages: data.secondary_languages || [],
-          looking_for: data.looking_for || [],
-          kvk_availability: data.kvk_availability || '',
-          saving_for_kvk: data.saving_for_kvk || '',
-          group_size: data.group_size || '',
-          player_bio: data.player_bio || '',
-          play_schedule: data.play_schedule || [],
-          contact_method: data.contact_method || '',
-          visible_to_recruiters: !!data.visible_to_recruiters,
-        });
-        // Fetch distinct kingdom view count
-        const { data: viewRows } = await supabase
-          .from('transfer_profile_views')
-          .select('viewer_kingdom_number')
-          .eq('transfer_profile_id', data.id);
-        const uniqueKingdoms = new Set((viewRows || []).map((v: { viewer_kingdom_number: number }) => v.viewer_kingdom_number));
-        setProfileViewCount(uniqueKingdoms.size);
-      } else {
-        setTransferProfile(null);
-        setProfileViewCount(0);
-      }
-    };
-    const countActiveApps = async () => {
-      if (!supabase || !user) return;
-      const { count } = await supabase
-        .from('transfer_applications')
-        .select('*', { count: 'exact', head: true })
-        .eq('applicant_user_id', user.id)
-        .in('status', ['pending', 'viewed', 'interested']);
-      setActiveAppCount(count || 0);
-    };
-    const checkEditor = async () => {
-      if (!supabase || !user) return;
-      const { data } = await supabase
-        .from('kingdom_editors')
-        .select('id, kingdom_number')
-        .eq('user_id', user.id)
-        .eq('status', 'active')
-        .maybeSingle();
-      setIsEditor(!!data);
-      if (data?.kingdom_number) {
-        // Fetch pending application count for badge
-        const { count } = await supabase
-          .from('transfer_applications')
-          .select('*', { count: 'exact', head: true })
-          .eq('kingdom_number', data.kingdom_number)
-          .eq('status', 'pending');
-        setNewAppCount(count || 0);
-        // Fetch pending co-editor request count for badge
-        const { count: coEditorCount } = await supabase
-          .from('kingdom_editors')
-          .select('*', { count: 'exact', head: true })
-          .eq('kingdom_number', data.kingdom_number)
-          .eq('role', 'co-editor')
-          .eq('status', 'pending');
-        setPendingCoEditorCount(coEditorCount || 0);
-      }
-    };
-    const countAtlasPlayers = async () => {
-      if (!supabase) return;
-      const { count } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true });
-      setAtlasPlayerCount(count || 0);
-    };
-    checkProfile();
-    countActiveApps();
-    checkEditor();
-    countAtlasPlayers();
-  }, [user, appRefreshKey]);
+  // User data is now fetched via React Query hooks above (useUserTransferProfile, useActiveAppCount, useEditorStatus, useAtlasPlayerCount)
 
-  // Load kingdom data from Supabase
-  useEffect(() => {
-    const loadData = async () => {
-      if (!supabase) {
-        setLoading(false);
-        return;
-      }
-      setLoading(true);
-      try {
-        // Fetch kingdoms with scores (from Supabase single source of truth)
-        const { data: kingdomData, error: kError } = await supabase
-          .from('kingdoms')
-          .select('kingdom_number, atlas_score, current_rank, total_kvks, prep_wins, prep_losses, prep_win_rate, battle_wins, battle_losses, battle_win_rate, dominations, comebacks, reversals, invasions, most_recent_status')
-          .order('current_rank', { ascending: true });
-
-        if (kError) throw kError;
-        setKingdoms(kingdomData || []);
-
-        // Fetch kingdom funds
-        const { data: fundData, error: fError } = await supabase
-          .from('kingdom_funds')
-          .select('*');
-
-        if (!fError) setFunds(fundData || []);
-
-        // Fetch review summaries (aggregate from kingdom_reviews)
-        const { data: reviewData, error: rError } = await supabase
-          .from('kingdom_reviews')
-          .select('kingdom_number, rating, comment, author_linked_username, helpful_count');
-
-        if (!rError && reviewData) {
-          const summaryMap = new Map<number, {
-            ratings: number[];
-            topComment: string | null;
-            topAuthor: string | null;
-            topHelpful: number;
-          }>();
-
-          reviewData.forEach((r: { kingdom_number: number; rating: number; comment: string; author_linked_username: string; helpful_count: number }) => {
-            const existing = summaryMap.get(r.kingdom_number);
-            if (!existing) {
-              summaryMap.set(r.kingdom_number, {
-                ratings: [r.rating],
-                topComment: r.comment,
-                topAuthor: r.author_linked_username,
-                topHelpful: r.helpful_count || 0,
-              });
-            } else {
-              existing.ratings.push(r.rating);
-              if ((r.helpful_count || 0) > existing.topHelpful) {
-                existing.topComment = r.comment;
-                existing.topAuthor = r.author_linked_username;
-                existing.topHelpful = r.helpful_count || 0;
-              }
-            }
-          });
-
-          const summaries: KingdomReviewSummary[] = [];
-          summaryMap.forEach((val, kn) => {
-            summaries.push({
-              kingdom_number: kn,
-              avg_rating: val.ratings.reduce((a, b) => a + b, 0) / val.ratings.length,
-              review_count: val.ratings.length,
-              top_review_comment: val.topComment,
-              top_review_author: val.topAuthor,
-            });
-          });
-          setReviewSummaries(summaries);
-        }
-      } catch (err) {
-        logger.error('Transfer Hub data load error:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
-  }, []);
+  // Kingdom data (kingdoms, funds, reviewSummaries) is now fetched via React Query hooks above
 
   // Ensure highlighted kingdom is visible in the unfunded list (expand visibleCount if needed)
   useEffect(() => {
@@ -648,7 +478,7 @@ const TransferBoard: React.FC = () => {
     }
 
     return result;
-  }, [kingdoms, filters, fundMap, mode, profile?.linked_kingdom, userTransferGroup, searchQuery, transferProfile]);
+  }, [kingdoms, filters, fundMap, mode, profile?.linked_kingdom, effectiveTransferGroup, searchQuery, transferProfile]);
 
   // Match score with details — delegated to utils/matchScore.ts
   const calculateMatchScore = (kingdom: KingdomData, fund: KingdomFund | null): { score: number; details: MatchDetail[] } =>
@@ -835,8 +665,8 @@ const TransferBoard: React.FC = () => {
         </div>
       )}
 
-      {/* Transfer Profile CTA (only in transferring mode) */}
-      {mode === 'transferring' && (
+      {/* Transfer Profile CTA (only in transferring mode, only when user has NO profile yet) */}
+      {mode === 'transferring' && !hasTransferProfile && (
         <TransferProfileCTA
           hasTransferProfile={hasTransferProfile}
           transferProfile={transferProfile}
@@ -854,7 +684,7 @@ const TransferBoard: React.FC = () => {
           onSaved={() => {
             setShowProfileForm(false);
             setScrollToIncomplete(false);
-            setHasTransferProfile(true);
+            if (user) { invalidate.invalidateUserProfile(user.id); }
           }}
           scrollToIncomplete={scrollToIncomplete}
         />
@@ -867,17 +697,23 @@ const TransferBoard: React.FC = () => {
           onClose={() => setApplyingToKingdom(null)}
           onApplied={() => {
             setApplyingToKingdom(null);
-            setAppRefreshKey((k) => k + 1);
+            if (user) { invalidate.invalidateActiveApps(user.id); invalidate.invalidateUserProfile(user.id); }
           }}
           activeCount={activeAppCount}
           hasProfile={hasTransferProfile}
         />
       )}
 
-      {/* My Applications Tracker (transferring mode only) */}
-      {mode === 'transferring' && user && (
+      {/* Transferee Dashboard (transferring mode only) */}
+      {mode === 'transferring' && user && hasTransferProfile && (
+        <TransfereeDashboard
+          onEditProfile={(scrollToInc) => { setScrollToIncomplete(scrollToInc); setShowProfileForm(true); }}
+          onWithdraw={() => { if (user) invalidate.invalidateActiveApps(user.id); }}
+        />
+      )}
+      {mode === 'transferring' && user && !hasTransferProfile && (
         <MyApplicationsTracker
-          onWithdraw={() => setAppRefreshKey((k) => k + 1)}
+          onWithdraw={() => { if (user) invalidate.invalidateActiveApps(user.id); }}
         />
       )}
 
@@ -959,13 +795,13 @@ const TransferBoard: React.FC = () => {
           maxWidth: isMobile ? '100%' : '500px',
           margin: '0 auto 1rem',
         }}>
-          <EditorClaiming onEditorActivated={() => setIsEditor(true)} />
+          <EditorClaiming onEditorActivated={() => { if (user) invalidate.invalidateEditorStatus(user.id); }} />
           {isEditor && (
             <button
               onClick={() => {
                 trackFeature('Recruiter Dashboard Open');
                 setShowRecruiterDash(true);
-                setNewAppCount(0);
+                // Badge count will refresh via React Query on next focus
                 // Track weekly streak
                 const now = new Date();
                 const weekKey = `${now.getFullYear()}-W${Math.ceil(((now.getTime() - new Date(now.getFullYear(), 0, 1).getTime()) / 86400000 + new Date(now.getFullYear(), 0, 1).getDay() + 1) / 7)}`;
@@ -1078,7 +914,12 @@ const TransferBoard: React.FC = () => {
 
       {/* Recruiter Dashboard Modal */}
       {showRecruiterDash && (
-        <RecruiterDashboard onClose={() => setShowRecruiterDash(false)} />
+        <ErrorBoundary
+          fallback={<TransferHubErrorFallback section="Recruiter Dashboard" onRetry={() => { setShowRecruiterDash(false); setTimeout(() => setShowRecruiterDash(true), 100); }} />}
+          context={{ section: 'RecruiterDashboard', mode }}
+        >
+          <RecruiterDashboard onClose={() => setShowRecruiterDash(false)} />
+        </ErrorBoundary>
       )}
 
       {/* Kingdom Fund Contribution Modal */}
@@ -1100,6 +941,10 @@ const TransferBoard: React.FC = () => {
       )}
 
       {/* Recommended Kingdoms (transferring mode, profile exists) */}
+      <ErrorBoundary
+        fallback={<TransferHubErrorFallback section="Recommended Kingdoms" onRetry={() => window.location.reload()} />}
+        context={{ section: 'RecommendedKingdoms', mode }}
+      >
       {mode === 'transferring' && hasTransferProfile && transferProfile && !loading && topMatches.length > 0 && (
         <div style={{ marginBottom: '1rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
@@ -1368,6 +1213,7 @@ const TransferBoard: React.FC = () => {
           )}
         </div>
       )}
+      </ErrorBoundary>
       {/* Endorsement Overlay Modal */}
       {endorseClaimId && (
         <EndorsementOverlay

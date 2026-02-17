@@ -85,6 +85,7 @@ const ApplyModal: React.FC<{
         .from('transfer_profiles')
         .select('id')
         .eq('user_id', user.id)
+        .eq('is_active', true)
         .maybeSingle();
 
       if (profileError || !profile) {

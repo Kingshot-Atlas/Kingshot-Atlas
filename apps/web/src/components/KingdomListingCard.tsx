@@ -98,14 +98,7 @@ const TIER_COLORS: Record<string, string> = {
   standard: colors.textMuted,
 };
 
-const SCORE_TIER_COLORS: Record<string, string> = {
-  S: colors.gold,
-  A: colors.success,
-  B: colors.blue,
-  C: colors.orange,
-  D: colors.error,
-  F: colors.textMuted,
-};
+// SCORE_TIER_COLORS removed — tier badge no longer shown in Transfer Hub
 
 const VIBE_LABELS: Record<string, string> = {
   competitive: 'Competitive', casual: 'Casual', kvk_focused: 'KvK-focused',
@@ -364,7 +357,6 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
   const fundTier = fund?.tier || 'standard';
   const tierColor = TIER_COLORS[fundTier];
   const scoreTier = getPowerTier(kingdom.atlas_score || 0);
-  const scoreTierColor = SCORE_TIER_COLORS[scoreTier] || '#6b7280';
   const isGold = fundTier === 'gold';
   const isSilver = fundTier === 'silver';
   const isBronze = fundTier === 'bronze';
@@ -398,10 +390,6 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
     }
     return stars;
   };
-
-  // Score tier letter for chip
-  const tierLetter = scoreTier.charAt(0);
-  const isSTier = scoreTier === 'S';
 
   // Transfer status
   const transferStatus = kingdom.most_recent_status || 'Unknown';
@@ -541,24 +529,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
             >
               {t('common.kingdom', 'Kingdom')} {kingdom.kingdom_number}
             </Link>
-            <span
-              className={isSTier ? 's-tier-badge' : undefined}
-              style={{
-                padding: '0.1rem 0.4rem',
-                backgroundColor: `${scoreTierColor}20`,
-                border: `1px solid ${scoreTierColor}50`,
-                borderRadius: '4px',
-                fontSize: '0.65rem',
-                fontWeight: 'bold',
-                color: scoreTierColor,
-                ...(isSTier ? {
-                  boxShadow: `0 0 8px ${scoreTierColor}40`,
-                  textShadow: `0 0 6px ${scoreTierColor}60`,
-                } : {}),
-              }}
-            >
-              {tierLetter}
-            </span>
+            {/* Tier badge removed from Transfer Hub — score shown in details section */}
             {isPremium && (
               <SmartTooltip
                 accentColor={tierColor}
@@ -631,8 +602,24 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
                       <div style={{ fontSize: '0.7rem', fontWeight: '600', color: '#fff', marginBottom: '0.3rem' }}>
                         {t('listing.matchBreakdown', 'Match Breakdown')}
                       </div>
-                      <div style={{ fontSize: '0.7rem', color: '#9ca3af', marginBottom: '0.35rem', lineHeight: 1.4 }}>
-                        {t('listing.matchBreakdownDesc', 'How well this kingdom fits your Transfer Profile preferences.')}
+                      {/* Weight bar visualization */}
+                      <div style={{ display: 'flex', height: '4px', borderRadius: '2px', overflow: 'hidden', marginBottom: '0.35rem', gap: '1px' }}>
+                        <div style={{ width: '30%', backgroundColor: '#f97316' }} title="Power 30%" />
+                        <div style={{ width: '25%', backgroundColor: '#eab308' }} title="TC Level 25%" />
+                        <div style={{ width: '25%', backgroundColor: '#22d3ee' }} title="Language 25%" />
+                        <div style={{ width: '20%', backgroundColor: '#a855f7' }} title="Vibe 20%" />
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem', marginBottom: '0.4rem' }}>
+                        {[
+                          { label: '⚡ Power', w: '30%', c: '#f97316' },
+                          { label: '🏅 TC', w: '25%', c: '#eab308' },
+                          { label: '🌐 Lang', w: '25%', c: '#22d3ee' },
+                          { label: '✨ Vibe', w: '20%', c: '#a855f7' },
+                        ].map(f => (
+                          <span key={f.label} style={{ fontSize: '0.55rem', color: f.c, padding: '0.05rem 0.25rem', backgroundColor: `${f.c}12`, border: `1px solid ${f.c}25`, borderRadius: '3px' }}>
+                            {f.label} {f.w}
+                          </span>
+                        ))}
                       </div>
                       {matchDetails.map((d, i) => (
                         <div key={i} style={{ fontSize: '0.7rem', color: d.matched ? '#22c55e' : '#ef4444', lineHeight: 1.6 }}>
@@ -720,6 +707,21 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
             </span>
           </SmartTooltip>
         </div>
+
+        {/* Compact Rating Display */}
+        {reviewSummary && reviewSummary.review_count > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.4rem', ...(isPremium ? { backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: '6px', padding: '0.15rem 0.45rem', display: 'inline-flex' } : {}) }}>
+            <div style={{ display: 'flex', gap: '0.05rem', fontSize: '0.65rem' }}>
+              {renderStars(reviewSummary.avg_rating)}
+            </div>
+            <span style={{ fontSize: '0.65rem', color: colors.text, fontWeight: '600' }}>
+              {reviewSummary.avg_rating.toFixed(1)}
+            </span>
+            <span style={{ fontSize: '0.55rem', color: colors.textMuted }}>
+              ({reviewSummary.review_count})
+            </span>
+          </div>
+        )}
 
         {/* Listing freshness indicator */}
         {listingAge && (

@@ -32,21 +32,6 @@ const Header: React.FC = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const isMobile = useIsMobile();
 
-  // Count persisted active filters for mobile badge
-  const activeFilterCount = (() => {
-    let count = 0;
-    try {
-      if (localStorage.getItem('kingshot_transferGroup') && localStorage.getItem('kingshot_transferGroup') !== 'all') count++;
-      const prefs = localStorage.getItem('kingshot_preferences');
-      if (prefs) {
-        const p = JSON.parse(prefs);
-        if (p.sortBy && p.sortBy !== 'overall_score') count++;
-        if (p.sortOrder && p.sortOrder !== 'desc') count++;
-      }
-      if (localStorage.getItem('kingshot_rankings_kvkFilter') && localStorage.getItem('kingshot_rankings_kvkFilter') !== 'all') count++;
-    } catch { /* ignore */ }
-    return count;
-  })();
 
   // Close mobile language menu on outside click
   useEffect(() => {
@@ -302,26 +287,6 @@ const Header: React.FC = () => {
                 position: 'relative'
               }}
             >
-              {activeFilterCount > 0 && (
-                <span style={{
-                  position: 'absolute',
-                  top: '4px',
-                  right: '4px',
-                  width: '16px',
-                  height: '16px',
-                  borderRadius: '50%',
-                  backgroundColor: '#22d3ee',
-                  color: '#000',
-                  fontSize: '0.6rem',
-                  fontWeight: 'bold',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  lineHeight: 1
-                }}>
-                  {activeFilterCount}
-                </span>
-              )}
               {showMobileMenu ? (
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M6 18L18 6M6 6l12 12" />

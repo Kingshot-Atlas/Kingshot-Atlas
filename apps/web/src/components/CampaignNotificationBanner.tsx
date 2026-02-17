@@ -71,7 +71,7 @@ const CampaignNotificationBanner: React.FC = () => {
               gap: '0.4rem',
               flexWrap: 'wrap',
             }}>
-              Kingdom Communities Campaign
+              Kingdom Colonies Campaign
               <span style={{
                 fontSize: '0.55rem',
                 padding: '0.1rem 0.35rem',

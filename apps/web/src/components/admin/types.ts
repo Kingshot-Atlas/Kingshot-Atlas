@@ -136,6 +136,7 @@ export type AdminTab =
   | 'transfer-status'
   | 'transfer-apps'
   | 'transfer-hub'
+  | 'transfer-outcomes'
   | 'feedback'
   | 'email'
   | 'bot-telemetry'

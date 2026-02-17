@@ -1,6 +1,5 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useIsMobile } from '../../hooks/useMediaQuery';
 import { colors } from '../../utils/styles';
 import { ApplicationCard } from './index';
 import type { IncomingApplication } from './types';
@@ -40,6 +39,7 @@ interface InboxTabProps {
   handleStatusChange: (applicationId: string, newStatus: string) => Promise<void>;
   updating: string | null;
   fundTier?: string;
+  perAppUnreadCounts?: Record<string, number>;
 }
 
 const InboxTab: React.FC<InboxTabProps> = ({
@@ -53,21 +53,51 @@ const InboxTab: React.FC<InboxTabProps> = ({
   handleStatusChange,
   updating,
   fundTier,
+  perAppUnreadCounts,
 }) => {
   const { t } = useTranslation();
-  const isMobile = useIsMobile();
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkUpdating, setBulkUpdating] = useState(false);
+
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const toggleAll = useCallback(() => {
+    if (selectedIds.size === filteredApps.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredApps.map(a => a.id)));
+    }
+  }, [selectedIds.size, filteredApps]);
+
+  const handleBulkAction = useCallback(async (newStatus: string) => {
+    if (selectedIds.size === 0 || bulkUpdating) return;
+    setBulkUpdating(true);
+    try {
+      const promises = Array.from(selectedIds).map(id => handleStatusChange(id, newStatus));
+      await Promise.all(promises);
+      setSelectedIds(new Set());
+    } finally {
+      setBulkUpdating(false);
+    }
+  }, [selectedIds, bulkUpdating, handleStatusChange]);
 
   return (
     <div>
       {/* Editor Analytics Stats */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
+        gridTemplateColumns: '1fr',
         gap: '0.5rem',
         marginBottom: '0.75rem',
       }}>
         {[
-          { label: 'Profile Views', value: listingViews, sub: 'last 30 days', color: colors.pink, icon: '👁️' },
+          { label: t('recruiter.profileViews', 'Profile Views'), value: listingViews, sub: t('recruiter.last30Days', 'last 30 days'), color: colors.pink, icon: '👁️' },
         ].map((stat, i) => (
           <div key={i} style={{
             backgroundColor: colors.card,
@@ -157,8 +187,64 @@ const InboxTab: React.FC<InboxTabProps> = ({
             <polyline points="7 10 12 15 17 10"/>
             <line x1="12" y1="15" x2="12" y2="3"/>
           </svg>
-          Download CSV ({approvedApps.length} approved)
+          {t('recruiter.downloadCsv', 'Download CSV')} ({approvedApps.length} {t('recruiter.approved', 'approved')})
         </button>
+      )}
+
+      {/* Bulk Select Bar */}
+      {filteredApps.length > 1 && filterStatus === 'active' && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '0.5rem',
+          marginBottom: '0.5rem', padding: '0.4rem 0.6rem',
+          backgroundColor: selectedIds.size > 0 ? '#3b82f608' : 'transparent',
+          border: `1px solid ${selectedIds.size > 0 ? '#3b82f625' : 'transparent'}`,
+          borderRadius: '8px', transition: 'all 0.15s',
+        }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer', fontSize: '0.7rem', color: colors.textSecondary }}>
+            <input
+              type="checkbox"
+              checked={selectedIds.size === filteredApps.length && filteredApps.length > 0}
+              onChange={toggleAll}
+              style={{ accentColor: '#3b82f6', width: '14px', height: '14px' }}
+            />
+            {t('recruiter.selectAll', 'Select All')} ({selectedIds.size}/{filteredApps.length})
+          </label>
+          {selectedIds.size > 0 && (
+            <div style={{ display: 'flex', gap: '0.3rem', marginLeft: 'auto' }}>
+              {['viewed', 'interested', 'declined'].map(status => {
+                const fallbackColor = { bg: '#3b82f615', border: '#3b82f630', text: '#3b82f6' };
+                const btnColors: Record<string, { bg: string; border: string; text: string }> = {
+                  viewed: fallbackColor,
+                  interested: { bg: '#a855f715', border: '#a855f730', text: '#a855f7' },
+                  declined: { bg: '#ef444415', border: '#ef444430', text: '#ef4444' },
+                };
+                const c = btnColors[status] || fallbackColor;
+                return (
+                  <button
+                    key={status}
+                    onClick={() => handleBulkAction(status)}
+                    disabled={bulkUpdating}
+                    style={{
+                      padding: '0.25rem 0.5rem',
+                      backgroundColor: c.bg,
+                      border: `1px solid ${c.border}`,
+                      borderRadius: '5px',
+                      color: c.text,
+                      fontSize: '0.6rem',
+                      fontWeight: '600',
+                      cursor: bulkUpdating ? 'not-allowed' : 'pointer',
+                      opacity: bulkUpdating ? 0.5 : 1,
+                      textTransform: 'capitalize',
+                      minHeight: '28px',
+                    }}
+                  >
+                    {bulkUpdating ? '...' : status === 'viewed' ? t('appCard.markViewed', 'Mark Viewed') : status.charAt(0).toUpperCase() + status.slice(1)}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
       )}
 
       {filteredApps.length === 0 ? (
@@ -174,12 +260,24 @@ const InboxTab: React.FC<InboxTabProps> = ({
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           {filteredApps.map((app) => (
-            <ApplicationCard
-              key={app.id}
-              application={app}
-              onStatusChange={handleStatusChange}
-              updating={updating}
-            />
+            <div key={app.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.4rem' }}>
+              {filterStatus === 'active' && filteredApps.length > 1 && (
+                <input
+                  type="checkbox"
+                  checked={selectedIds.has(app.id)}
+                  onChange={() => toggleSelect(app.id)}
+                  style={{ accentColor: '#3b82f6', width: '14px', height: '14px', marginTop: '0.85rem', flexShrink: 0 }}
+                />
+              )}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <ApplicationCard
+                  application={app}
+                  onStatusChange={handleStatusChange}
+                  updating={updating}
+                  unreadCount={perAppUnreadCounts?.[app.id] || 0}
+                />
+              </div>
+            </div>
           ))}
         </div>
       )}

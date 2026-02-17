@@ -5,6 +5,7 @@ import { useAnalytics } from '../../hooks/useAnalytics';
 import { useToast } from '../Toast';
 import { supabase } from '../../lib/supabase';
 import { neonGlow, colors } from '../../utils/styles';
+import { logger } from '../../utils/logger';
 import { isReferralEligible } from '../../utils/constants';
 import type { EditorInfo, FundInfo } from './types';
 
@@ -38,8 +39,8 @@ const FundTab: React.FC<FundTabProps> = ({ fund, editorInfo }) => {
         .order('created_at', { ascending: false })
         .limit(20);
       setContributions(data || []);
-    } catch {
-      // silent
+    } catch (err) {
+      logger.error('FundTab: fetchContributions failed', err);
     } finally {
       setLoadingContributions(false);
     }

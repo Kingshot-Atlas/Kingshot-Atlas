@@ -64,10 +64,10 @@ const getCardStyle = (tier: string, tierColor: string): React.CSSProperties => {
 const KingdomCommunities: React.FC = () => {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
-  useDocumentTitle(t('kingdomCommunities.title', 'Kingdom Communities'));
+  useDocumentTitle(t('kingdomCommunities.title', 'Kingdom Colonies'));
   useMetaTags({
-    title: 'Kingdom Communities | Kingshot Atlas',
-    description: 'Discover the most active kingdoms on Atlas. See which kingdoms have the biggest communities of competitive Kingshot players.',
+    title: 'Kingdom Colonies | Kingshot Atlas',
+    description: 'Discover the most active kingdoms on Atlas. See which kingdoms have the biggest colonies of competitive Kingshot players.',
     url: '/kingdoms/communities',
   });
 
@@ -218,11 +218,11 @@ const KingdomCommunities: React.FC = () => {
           }}>
             <span style={{ color: '#fff' }}>{t('kingdomCommunities.heroTitle1', 'KINGDOM')}</span>
             <span style={{ ...neonGlow(colors.primary), marginLeft: '0.5rem', fontSize: isMobile ? '1.6rem' : '2.25rem' }}>
-              {t('kingdomCommunities.heroTitle2', 'COMMUNITIES')}
+              {t('kingdomCommunities.heroTitle2', 'COLONIES')}
             </span>
           </h1>
           <p style={{ color: colors.textMuted, fontSize: isMobile ? '0.8rem' : '0.9rem', marginBottom: '0.5rem', lineHeight: 1.6 }}>
-            {t('kingdomCommunities.heroSubtitle', 'The most active kingdoms on Atlas. Bigger community = stronger intelligence.')}
+            {t('kingdomCommunities.heroSubtitle', 'The most active kingdoms on Atlas. Bigger colony = stronger intelligence.')}
           </p>
           <p style={{ color: colors.textMuted, fontSize: '0.75rem', marginBottom: '0.75rem' }}>
             <span style={{ color: colors.primary, fontWeight: '700' }}>{communities.length}</span> {t('kingdomCommunities.statsKingdoms', 'kingdoms')} · <span style={{ color: colors.primary, fontWeight: '700' }}>{totalPlayers}</span> {t('kingdomCommunities.statsPlayers', 'verified players')}
@@ -270,7 +270,7 @@ const KingdomCommunities: React.FC = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <span style={{ fontSize: '1.1rem' }}>⚡</span>
               <span style={{ fontWeight: '700', fontSize: isMobile ? '0.85rem' : '0.95rem', color: '#f59e0b' }}>
-                KINGDOM COMMUNITIES CAMPAIGN
+                KINGDOM COLONIES CAMPAIGN
               </span>
               <span style={{
                 fontSize: '0.6rem',
@@ -367,7 +367,7 @@ const KingdomCommunities: React.FC = () => {
             {t('kingdomCommunities.ctaTitle', 'Rally your kingdom to climb the ranks')}
           </p>
           <p style={{ color: colors.textMuted, fontSize: '0.75rem', margin: 0, lineHeight: 1.5 }}>
-            {t('kingdomCommunities.ctaDescription', 'Every linked player with TC20+ counts toward your kingdom\'s community rank. Invite your alliance — the bigger your presence, the stronger your kingdom\'s Atlas intelligence.')}
+            {t('kingdomCommunities.ctaDescription', 'Every linked player with TC20+ counts toward your kingdom\'s colony rank. Invite your alliance — the bigger your presence, the stronger your kingdom\'s Atlas intelligence.')}
           </p>
         </div>
 

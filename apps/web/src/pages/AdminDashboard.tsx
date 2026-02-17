@@ -49,6 +49,7 @@ import {
   PlausibleTab,
   RejectModal,
   KvKBulkMatchupTab,
+  TransferOutcomesTab,
   SkeletonGrid,
   type AdminTab,
 
@@ -938,7 +939,7 @@ const AdminDashboard: React.FC = () => {
   const getActiveCategory = () => {
     if (['analytics', 'engagement', 'plausible'].includes(activeTab)) return 'overview';
     if (['submissions', 'new-kingdoms', 'claims', 'corrections', 'kvk-errors', 'kvk-bulk'].includes(activeTab)) return 'review';
-    if (['transfer-hub', 'transfer-status', 'transfer-apps'].includes(activeTab)) return 'transfer';
+    if (['transfer-hub', 'transfer-status', 'transfer-apps', 'transfer-outcomes'].includes(activeTab)) return 'transfer';
     if (['finance'].includes(activeTab)) return 'finance';
     return 'operations';
   };
@@ -1106,6 +1107,8 @@ const AdminDashboard: React.FC = () => {
         />
       ) : activeTab === 'transfer-apps' ? (
         <TransferApplicationsTab />
+      ) : activeTab === 'transfer-outcomes' ? (
+        <TransferOutcomesTab />
       ) : activeTab === 'email' ? (
         <EmailTab />
       ) : activeTab === 'bot-telemetry' ? (

@@ -35,6 +35,9 @@
 | ADR Documentation | Platform Engineer | ✅ Complete — ADR-021 through ADR-025 added to DECISIONS.md |
 | TypeScript 5.x Upgrade | Platform Engineer | ✅ Complete — package.json has ~5.7.0, .npmrc workaround can be removed |
 | React Query Migration Phase 1 | Platform Engineer | ✅ Complete — 6 data-fetch useEffects → useQuery hooks (ADR-022) |
+| React Query Migration Phase 2 (Transfer Hub) | Platform Engineer | ✅ Complete — 7 hooks in useTransferHubQueries.ts, server-side review view, error boundaries, applicant notifications |
+| Transfer Hub Phase 3 (Recruiter + Polish) | Platform Engineer | ✅ Complete — RecruiterDashboard React Query, decline confirmation, two-phase kingdom pagination, 15 silent catch→logger |
+| Transfer Hub Phase 5 (Enhancements) | Product Engineer | ✅ Complete — Tier badge removal, persistent read tracking, expiry auto-cleanup, transferee messaging, smart recommendations, outcome tracking |
 
 ---
 
@@ -42,6 +45,7 @@
 
 | When | Agent | Task |
 |------|-------|------|
+| 2026-02-17 | Product Engineer | Transfer Hub Phase 5 — 6 features: tier badge removal, persistent read tracking (message_read_status table), application expiry auto-cleanup (pg_cron hourly), transferee-side messaging UI with real-time, smart invite recommendations (reverse match scoring), transfer outcome tracking (transfer_outcomes table). 3 DB migrations. |
 | 2026-02-20 | Business Lead | Monetization & Growth — Ad-Free perk removed, 4-stage onboarding funnel (SignupNudgeBar, WelcomeToAtlas, BattlePlannerTrialTooltip, ConversionBanner), cancel survey with churn recovery (/cancel-survey), Kingdom Fund alliance pitch |
 | 2026-02-19 | Product Engineer | Component refactoring Phase 3 — RecruiterDashboard (814→275 lines, 6 extractions: useRecruiterDashboard hook, RecruiterOnboarding, RecruiterSkeleton, NoEditorState, InboxTab, TeamTab) and RallyCoordinator (997→392 lines, 3 extractions: useRallyCoordinator hook, RallyPlayersColumn, BuffConfirmPopup) |
 | 2026-02-19 | Platform Engineer | React Query migration Phase 1 — created useAdminQueries.ts, converted WebhookMonitor, TransferApplicationsTab, AdminDashboard (3), Admin (2), PremiumContext to useQuery hooks. ADR-022 updated. |

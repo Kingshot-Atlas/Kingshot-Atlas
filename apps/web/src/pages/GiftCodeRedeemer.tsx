@@ -13,7 +13,7 @@ import { analyticsService } from '../services/analyticsService';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 const CODES_CACHE_KEY = 'atlas_gift_codes_cache';
-const CODES_CACHE_TTL = 15 * 60 * 1000; // 15 minutes
+const CODES_CACHE_TTL = 2 * 60 * 1000; // 2 minutes
 const ALT_ACCOUNTS_KEY = 'atlas_alt_accounts';
 const BULK_RESULTS_KEY = 'atlas_bulk_results';
 const MAX_ALT_ACCOUNTS = 10;
@@ -207,7 +207,7 @@ const GiftCodeRedeemer: React.FC = () => {
   const isUsingMainAccount = !customPlayerId.trim() && !activePlayerId;
 
   // Fetch active codes (forceRefresh bypasses cache)
-  const fetchCodes = useCallback(async (forceRefresh = false) => {
+  const fetchCodes = useCallback(async (forceRefresh = false, silent = false) => {
     // Check cache first (skip if forcing refresh)
     if (!forceRefresh) {
       try {
@@ -272,7 +272,7 @@ const GiftCodeRedeemer: React.FC = () => {
           source,
         }));
       }
-      if (forceRefresh && fetchedCodes.length > 0) {
+      if (forceRefresh && !silent && fetchedCodes.length > 0) {
         showToast(t('giftCodes.refreshed', `Found ${fetchedCodes.length} active codes`), 'success');
       }
     } catch {
@@ -282,7 +282,7 @@ const GiftCodeRedeemer: React.FC = () => {
     }
   }, [showToast, t]);
 
-  useEffect(() => { fetchCodes(); }, [fetchCodes]);
+  useEffect(() => { fetchCodes(true, true); }, [fetchCodes]);
 
   // Cleanup cooldown timer on unmount
   useEffect(() => {

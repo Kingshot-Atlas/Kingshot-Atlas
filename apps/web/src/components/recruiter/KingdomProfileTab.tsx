@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '../../hooks/useMediaQuery';
 import { supabase } from '../../lib/supabase';
 import { colors } from '../../utils/styles';
+import { logger } from '../../utils/logger';
 import { moderateText } from '../../utils/contentModeration';
 import { useToast } from '../Toast';
 import type { EditorInfo, FundInfo } from './types';
@@ -126,8 +127,8 @@ const KingdomProfileTab: React.FC<KingdomProfileTabProps> = ({ fund, editorInfo,
       } else {
         setStatusHistory([]);
       }
-    } catch {
-      // silent
+    } catch (err) {
+      logger.error('KingdomProfileTab: fetchStatusHistory failed', err);
     } finally {
       setLoadingStatusHistory(false);
     }
@@ -164,7 +165,8 @@ const KingdomProfileTab: React.FC<KingdomProfileTabProps> = ({ fund, editorInfo,
         setProfileDraft({});
         showToast('Kingdom profile updated!', 'success');
       }
-    } catch {
+    } catch (err) {
+      logger.error('KingdomProfileTab: saveProfile failed', err);
       showToast('Failed to save profile.', 'error');
     } finally {
       setSavingProfile(false);
