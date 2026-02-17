@@ -107,8 +107,8 @@ function initScheduler(client) {
 
   console.log('✅ Scheduled: Alliance event reminders (every minute)');
 
-  // One-time announcements — fire on startup, guarded against duplicates
-  setTimeout(() => postOneTimeAnnouncement(), 10000);
+  // One-time announcements — DISABLED: only send when explicitly requested by admin
+  // setTimeout(() => postOneTimeAnnouncement(), 10000);
 }
 
 /**
