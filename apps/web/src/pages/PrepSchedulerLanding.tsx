@@ -104,11 +104,11 @@ const PrepSchedulerLanding: React.FC = () => {
             border: '1px solid #ffc30b30', borderRadius: '20px', marginBottom: '0.5rem',
           }}>
             <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#ffc30b' }}>
-              👑 GOLD TIER KINGDOM FEATURE
+              👑 {t('prepLanding.goldTierBadge', 'GOLD TIER KINGDOM FEATURE')}
             </span>
           </div>
           <p style={{ color: '#6b7280', fontSize: '0.75rem', maxWidth: '400px', margin: '0 auto 1.25rem', lineHeight: 1.5 }}>
-            Reach Gold Tier through the Kingdom Fund to unlock this and other premium kingdom tools.
+            {t('prepLanding.goldTierNote', 'Reach Gold Tier through the Kingdom Fund to unlock this and other premium kingdom tools.')}
           </p>
 
           {/* CTA */}
@@ -128,7 +128,7 @@ const PrepSchedulerLanding: React.FC = () => {
                 boxShadow: '0 4px 20px rgba(168, 85, 247, 0.35)',
               }}
             >
-              📅 Open the Scheduler
+              📅 {t('prepLanding.openScheduler', 'Open the Scheduler')}
             </Link>
           </div>
           <p style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.75rem' }}>
@@ -341,7 +341,7 @@ const PrepSchedulerLanding: React.FC = () => {
                 boxShadow: '0 4px 15px rgba(168, 85, 247, 0.3)',
               }}
             >
-              📅 Get Started
+              📅 {t('prepLanding.getStarted', 'Get Started')}
             </Link>
           </div>
         </div>
