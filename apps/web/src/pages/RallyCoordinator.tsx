@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { useIsMobile } from '../hooks/useMediaQuery';
+import { useIsMobile, useIsTablet } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import {
-  BUILDING_LABELS, ALLY_COLOR, ENEMY_COLOR,
+  ALLY_COLOR, ENEMY_COLOR,
   RALLY_COLORS, COUNTER_COLORS,
   CARD, cardHeader, focusRingStyle,
+  getBuildingLabel,
   IntervalSlider, GanttChart, PlayerModal, CallOrderOutput,
   QueueDropZone,
   RallyPlayersColumn, BuffConfirmPopup,
@@ -19,10 +20,59 @@ const RallyCoordinator: React.FC = () => {
   useDocumentTitle('KvK Battle Planner');
   const isMobile = useIsMobile();
 
+  const isTablet = useIsTablet();
   const rc = useRallyCoordinator();
 
   // Mobile tab state
   const [mobileTab, setMobileTab] = useState<'players' | 'rally' | 'counter'>('players');
+
+  // Tab badge animation — flash when queue counts change from another tab
+  const prevRallyCount = useRef(rc.rallyQueue.length);
+  const prevCounterCount = useRef(rc.counterQueue.length);
+  const [flashRally, setFlashRally] = useState(false);
+  const [flashCounter, setFlashCounter] = useState(false);
+  useEffect(() => {
+    if (rc.rallyQueue.length !== prevRallyCount.current && mobileTab !== 'rally') {
+      setFlashRally(true);
+      const timer = setTimeout(() => setFlashRally(false), 600);
+      prevRallyCount.current = rc.rallyQueue.length;
+      return () => clearTimeout(timer);
+    }
+    prevRallyCount.current = rc.rallyQueue.length;
+    return undefined;
+  }, [rc.rallyQueue.length, mobileTab]);
+  useEffect(() => {
+    if (rc.counterQueue.length !== prevCounterCount.current && mobileTab !== 'counter') {
+      setFlashCounter(true);
+      const timer = setTimeout(() => setFlashCounter(false), 600);
+      prevCounterCount.current = rc.counterQueue.length;
+      return () => clearTimeout(timer);
+    }
+    prevCounterCount.current = rc.counterQueue.length;
+    return undefined;
+  }, [rc.counterQueue.length, mobileTab]);
+
+  // Tab swipe gesture
+  const tabOrder: ('players' | 'rally' | 'counter')[] = ['players', 'rally', 'counter'];
+  const swipeStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
+  const handleSwipeStart = useCallback((e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    if (touch) swipeStartRef.current = { x: touch.clientX, y: touch.clientY, time: Date.now() };
+  }, []);
+  const handleSwipeEnd = useCallback((e: React.TouchEvent) => {
+    if (!swipeStartRef.current) return;
+    const touch = e.changedTouches[0];
+    if (!touch) return;
+    const dx = touch.clientX - swipeStartRef.current.x;
+    const dy = touch.clientY - swipeStartRef.current.y;
+    const dt = Date.now() - swipeStartRef.current.time;
+    swipeStartRef.current = null;
+    // Must be horizontal, fast, and far enough
+    if (Math.abs(dx) < 60 || Math.abs(dy) > Math.abs(dx) * 0.7 || dt > 400) return;
+    const curIdx = tabOrder.indexOf(mobileTab);
+    if (dx < 0 && curIdx < tabOrder.length - 1) setMobileTab(tabOrder[curIdx + 1]!);
+    if (dx > 0 && curIdx > 0) setMobileTab(tabOrder[curIdx - 1]!);
+  }, [mobileTab]);
 
   // Loading state while checking access
   if (rc.hasAccess === null) {
@@ -96,6 +146,11 @@ const RallyCoordinator: React.FC = () => {
           0%, 100% { box-shadow: 0 0 8px #f59e0b30; }
           50% { box-shadow: 0 0 14px #f59e0b50; }
         }
+        @keyframes tabBadgeFlash {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.15); filter: brightness(1.4); }
+          100% { transform: scale(1); }
+        }
         @keyframes dropZonePulse {
           0%, 100% { border-color: #2a2a2a; box-shadow: none; }
           50% { border-color: #4b5563; box-shadow: inset 0 0 12px #ffffff06; }
@@ -132,48 +187,71 @@ const RallyCoordinator: React.FC = () => {
       }}>
         {/* Mobile Tab Bar */}
         {isMobile && (
-          <div role="tablist" aria-label="Battle planner sections" style={{
-            display: 'flex', gap: '4px', marginBottom: '0.75rem',
-            position: 'sticky', top: 0, zIndex: 20,
-            backgroundColor: '#0a0a0a', padding: '0.5rem 0',
-            borderBottom: '1px solid #1a1a1a',
-          }}>
-            {([
-              { key: 'players' as const, label: t('battlePlanner.tabPlayers', 'Players'), icon: '👥', color: '#fff', count: rc.players.length },
-              { key: 'rally' as const, label: t('battlePlanner.tabRally', 'Rally'), icon: '⚔️', color: ALLY_COLOR, count: rc.rallyQueue.length },
-              { key: 'counter' as const, label: t('battlePlanner.tabCounter', 'Counter'), icon: '🛡️', color: ENEMY_COLOR, count: rc.counterQueue.length },
-            ]).map(tab => (
-              <button
-                key={tab.key}
-                role="tab"
-                aria-selected={mobileTab === tab.key}
-                aria-controls={`panel-${tab.key}`}
-                className="rally-focusable"
-                onClick={() => setMobileTab(tab.key)}
-                style={{
-                  flex: 1, padding: '0.5rem 0.25rem',
-                  backgroundColor: mobileTab === tab.key ? `${tab.color}15` : 'transparent',
-                  border: `1px solid ${mobileTab === tab.key ? `${tab.color}50` : '#2a2a2a'}`,
-                  borderRadius: '10px', cursor: 'pointer',
-                  color: mobileTab === tab.key ? tab.color : '#9ca3af',
-                  fontSize: '0.75rem', fontWeight: '700',
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
-                  minHeight: '52px', justifyContent: 'center',
-                  transition: 'all 0.2s',
-                }}
-              >
-                <span style={{ fontSize: '1rem' }} aria-hidden="true">{tab.icon}</span>
-                <span>{tab.label}{tab.count > 0 ? ` (${tab.count})` : ''}</span>
-              </button>
-            ))}
-          </div>
+          <>
+            <div role="tablist" aria-label="Battle planner sections" style={{
+              display: 'flex', gap: '4px', marginBottom: '0.5rem',
+              position: 'sticky', top: 0, zIndex: 20,
+              backgroundColor: '#0a0a0a', padding: '0.5rem 0',
+              borderBottom: '1px solid #1a1a1a',
+            }}>
+              {([
+                { key: 'players' as const, label: t('battlePlanner.tabPlayers', 'Players'), icon: '👥', color: '#fff', count: rc.players.length, flash: false },
+                { key: 'rally' as const, label: t('battlePlanner.tabRally', 'Rally'), icon: '⚔️', color: ALLY_COLOR, count: rc.rallyQueue.length, flash: flashRally },
+                { key: 'counter' as const, label: t('battlePlanner.tabCounter', 'Counter'), icon: '🛡️', color: ENEMY_COLOR, count: rc.counterQueue.length, flash: flashCounter },
+              ]).map(tab => (
+                <button
+                  key={tab.key}
+                  role="tab"
+                  aria-selected={mobileTab === tab.key}
+                  aria-controls={`panel-${tab.key}`}
+                  className="rally-focusable"
+                  onClick={() => setMobileTab(tab.key)}
+                  style={{
+                    flex: 1, padding: '0.5rem 0.25rem',
+                    backgroundColor: mobileTab === tab.key ? `${tab.color}15` : 'transparent',
+                    border: `1px solid ${mobileTab === tab.key ? `${tab.color}50` : '#2a2a2a'}`,
+                    borderRadius: '10px', cursor: 'pointer',
+                    color: mobileTab === tab.key ? tab.color : '#9ca3af',
+                    fontSize: '0.75rem', fontWeight: '700',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
+                    minHeight: '52px', justifyContent: 'center',
+                    transition: 'all 0.2s',
+                    animation: tab.flash ? 'tabBadgeFlash 0.6s ease' : 'none',
+                  }}
+                >
+                  <span style={{ fontSize: '1rem' }} aria-hidden="true">{tab.icon}</span>
+                  <span>{tab.label}{tab.count > 0 ? ` (${tab.count})` : ''}</span>
+                </button>
+              ))}
+            </div>
+            {/* Mobile context bar — shows building + queue info on Rally/Counter tabs */}
+            {mobileTab !== 'players' && (
+              <div style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '0.35rem 0.6rem', marginBottom: '0.5rem',
+                backgroundColor: '#111111', borderRadius: '8px',
+                border: '1px solid #2a2a2a', fontSize: '0.7rem',
+              }}>
+                <span style={{ color: '#9ca3af' }}>
+                  🏰 {getBuildingLabel(rc.selectedBuilding, t)}
+                </span>
+                <span style={{ color: '#6b7280' }}>
+                  ⚔️ {rc.rallyQueue.length} &nbsp;|&nbsp; 🛡️ {rc.counterQueue.length}
+                </span>
+              </div>
+            )}
+          </>
         )}
 
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr',
-          gap: '0.75rem',
-        }}>
+        <div
+          onTouchStart={isMobile ? handleSwipeStart : undefined}
+          onTouchEnd={isMobile ? handleSwipeEnd : undefined}
+          style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile ? '1fr' : isTablet ? '1fr 1fr' : '1fr 1fr 1fr',
+            gap: '0.75rem',
+          }}
+        >
 
           {/* ===== COLUMN 1: PLAYERS ===== */}
           {(!isMobile || mobileTab === 'players') && <RallyPlayersColumn
@@ -222,7 +300,7 @@ const RallyCoordinator: React.FC = () => {
               onToggleBuff={(i: number) => rc.toggleBuff('rally', i)}
               onClear={rc.clearQueue}
               queueType="rally"
-              title={`⚔️ RALLY QUEUE — ${BUILDING_LABELS[rc.selectedBuilding]}`}
+              title={`⚔️ RALLY QUEUE — ${getBuildingLabel(rc.selectedBuilding, t)}`}
               accent={ALLY_COLOR}
               colors={RALLY_COLORS}
               minPlayers={2}
@@ -328,7 +406,7 @@ const RallyCoordinator: React.FC = () => {
               onToggleBuff={(i: number) => rc.toggleBuff('counter', i)}
               onClear={rc.clearCounterQueue}
               queueType="counter"
-              title={`🛡️ COUNTER QUEUE — ${BUILDING_LABELS[rc.selectedBuilding]}`}
+              title={`🛡️ COUNTER QUEUE — ${getBuildingLabel(rc.selectedBuilding, t)}`}
               accent={ENEMY_COLOR}
               colors={COUNTER_COLORS}
               minPlayers={1}
@@ -387,6 +465,33 @@ const RallyCoordinator: React.FC = () => {
                   {rc.counterHitMode === 'interval' && (
                     <IntervalSlider value={rc.counterInterval} onChange={rc.setCounterInterval} accentColor={ENEMY_COLOR} />
                   )}
+                  {/* Counter auto-timing: arrive X seconds after enemy */}
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: '0.4rem',
+                    marginTop: '0.3rem', padding: '0.3rem 0.4rem',
+                    backgroundColor: rc.counterAutoOffset > 0 ? `${ENEMY_COLOR}10` : 'transparent',
+                    border: `1px solid ${rc.counterAutoOffset > 0 ? `${ENEMY_COLOR}30` : '#1a1a1a'}`,
+                    borderRadius: '7px',
+                  }}>
+                    <span style={{ color: '#9ca3af', fontSize: '0.6rem', whiteSpace: 'nowrap' }}>
+                      {t('rallyCoordinator.arriveAfter', 'Arrive')}
+                    </span>
+                    <input
+                      type="number" min="0" max="30"
+                      value={rc.counterAutoOffset || ''}
+                      onChange={e => rc.setCounterAutoOffset(Math.max(0, Math.min(30, parseInt(e.target.value) || 0)))}
+                      placeholder="0"
+                      style={{
+                        width: '42px', padding: '0.15rem 0.25rem',
+                        backgroundColor: '#0a0a0a', border: `1px solid ${rc.counterAutoOffset > 0 ? `${ENEMY_COLOR}40` : '#2a2a2a'}`,
+                        borderRadius: '4px', color: rc.counterAutoOffset > 0 ? ENEMY_COLOR : '#9ca3af',
+                        fontSize: '0.7rem', fontWeight: 600, textAlign: 'center',
+                      }}
+                    />
+                    <span style={{ color: '#9ca3af', fontSize: '0.6rem', whiteSpace: 'nowrap' }}>
+                      {t('rallyCoordinator.secondsAfterEnemy', 's after rally hits')}
+                    </span>
+                  </div>
                 </div>
               </div>
               {rc.calculatedCounters.length >= 1 ? (

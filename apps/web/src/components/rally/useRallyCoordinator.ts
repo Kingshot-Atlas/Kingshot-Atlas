@@ -27,6 +27,7 @@ export interface RallyCoordinatorState {
   counterQueue: RallySlot[];
   counterHitMode: HitMode;
   counterInterval: number;
+  counterAutoOffset: number;
   playerModalOpen: boolean;
   editingPlayer: RallyPlayer | null;
   defaultTeam: 'ally' | 'enemy';
@@ -47,6 +48,7 @@ export interface RallyCoordinatorActions {
   setMarchType: (m: MarchType) => void;
   setCounterHitMode: (m: HitMode) => void;
   setCounterInterval: (n: number) => void;
+  setCounterAutoOffset: (n: number) => void;
   setPlayerModalOpen: (open: boolean) => void;
   setEditingPlayer: (p: RallyPlayer | null) => void;
   setDefaultTeam: (t: 'ally' | 'enemy') => void;
@@ -186,6 +188,7 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
   const [counterQueue, setCounterQueue] = useState<RallySlot[]>([]);
   const [counterHitMode, setCounterHitMode] = useState<HitMode>('simultaneous');
   const [counterInterval, setCounterInterval] = useState(1);
+  const [counterAutoOffset, setCounterAutoOffset] = useState(0);
 
   // Session recovery: restore from Supabase on mount
   const sessionRestoredRef = useRef(false);
@@ -225,7 +228,9 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
   const [howToOpen, setHowToOpen] = useState(() => {
     try {
       const saved = localStorage.getItem('atlas_rally_howToOpen');
-      return saved === null ? true : saved === 'true';
+      if (saved !== null) return saved === 'true';
+      // Default: collapsed on mobile, open on desktop
+      return window.innerWidth >= 768;
     } catch { return true; }
   });
 
@@ -343,10 +348,23 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
     () => calculateRallyTimings(rallyQueue, gap),
     [rallyQueue, gap]
   );
-  const calculatedCounters = useMemo(
-    () => calculateRallyTimings(counterQueue, cGap),
-    [counterQueue, cGap]
-  );
+  const calculatedCounters = useMemo(() => {
+    const base = calculateRallyTimings(counterQueue, cGap);
+    if (counterAutoOffset > 0 && calculatedRallies.length > 0 && base.length > 0) {
+      const lastRallyArrival = Math.max(...calculatedRallies.map(r => r.arrivalTime));
+      const targetArrival = lastRallyArrival + counterAutoOffset;
+      const firstCounterArrival = Math.min(...base.map(c => c.arrivalTime));
+      const shift = targetArrival - firstCounterArrival;
+      if (shift > 0) {
+        return base.map(c => ({
+          ...c,
+          startDelay: c.startDelay + shift,
+          arrivalTime: c.arrivalTime + shift,
+        }));
+      }
+    }
+    return base;
+  }, [counterQueue, cGap, counterAutoOffset, calculatedRallies]);
 
   // Player IDs in queues
   const queuedPlayerIds = useMemo(() => new Set(rallyQueue.map(s => s.playerId)), [rallyQueue]);
@@ -669,14 +687,14 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
     // State
     players, presets,
     selectedBuilding, hitMode, interval, marchType,
-    rallyQueue, counterQueue, counterHitMode, counterInterval,
+    rallyQueue, counterQueue, counterHitMode, counterInterval, counterAutoOffset,
     playerModalOpen, editingPlayer, defaultTeam,
     presetName, showPresetSave, howToOpen,
     buffTimers, buffConfirmPopup, tickNow,
     hasAccess, lastAnnouncement,
     // Actions
     setSelectedBuilding, setHitMode, setInterval, setMarchType,
-    setCounterHitMode, setCounterInterval,
+    setCounterHitMode, setCounterInterval, setCounterAutoOffset,
     setPlayerModalOpen, setEditingPlayer, setDefaultTeam,
     setPresetName, setShowPresetSave, setHowToOpen,
     setBuffConfirmPopup,

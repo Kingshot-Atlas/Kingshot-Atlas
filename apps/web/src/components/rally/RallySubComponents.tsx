@@ -5,10 +5,11 @@ import type {
   BuildingKey, MarchTimes, MarchType, RallyPlayer, RallySlot, CalculatedRally,
 } from './types';
 import {
-  BUILDING_LABELS, BUILDING_SHORT, BUILDING_COLORS, DEFAULT_MARCH,
+  BUILDING_COLORS, DEFAULT_MARCH,
   ALLY_COLOR, ENEMY_COLOR,
   arrowBtnStyle, menuItemStyle, inputStyle, cancelBtnStyle, saveBtnStyle, cardHeader,
   formatTime, formatCountdown, estimateBuffed, estimateRegular,
+  getBuildingLabel, getBuildingShort,
 } from './types';
 
 // --- Building Selector ---
@@ -17,6 +18,7 @@ export const BuildingSelector: React.FC<{
   onSelect: (b: BuildingKey) => void;
   isMobile: boolean;
 }> = ({ selected, onSelect, isMobile }) => {
+  const { t } = useTranslation();
   const size = isMobile ? 48 : 54;
   const gap = isMobile ? 4 : 6;
   const containerSize = size * 3 + gap * 2;
@@ -29,7 +31,7 @@ export const BuildingSelector: React.FC<{
         key={key}
         className="rally-focusable"
         onClick={() => onSelect(key)}
-        aria-label={`${BUILDING_LABELS[key]}${isSelected ? ' (selected)' : ''}`}
+        aria-label={`${getBuildingLabel(key, t)}${isSelected ? ' (selected)' : ''}`}
         aria-pressed={isSelected}
         style={{
           position: 'absolute',
@@ -56,7 +58,7 @@ export const BuildingSelector: React.FC<{
         <span style={{ fontSize: isMobile ? '0.75rem' : '0.9rem' }} aria-hidden="true">
           {key === 'castle' ? '🏰' : '🗼'}
         </span>
-        <span>{BUILDING_SHORT[key]}</span>
+        <span>{getBuildingShort(key, t)}</span>
       </button>
     );
   };
@@ -565,7 +567,7 @@ export const GanttChart: React.FC<{
               <div style={{
                 position: 'absolute', right: '100%', marginRight: '6px',
                 width: leftLabelWidth - 6, textAlign: 'right',
-                color: '#d1d5db', fontSize: isMobile ? '0.55rem' : '0.7rem',
+                color: '#d1d5db', fontSize: isMobile ? '0.65rem' : '0.7rem',
                 fontWeight: '600', lineHeight: `${barHeight}px`,
                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
               }}>
@@ -812,7 +814,7 @@ export const PlayerModal: React.FC<{
               gap: '0.4rem', alignItems: 'center',
             }}>
               <span style={{ color: BUILDING_COLORS[b], fontSize: '0.75rem', fontWeight: '600', gridColumn: '1 / -1' }}>
-                {BUILDING_LABELS[b]}
+                {getBuildingLabel(b, t)}
               </span>
               <div style={{ position: 'relative' }}>
                 <input
@@ -878,25 +880,24 @@ export const CallOrderOutput: React.FC<{
   if (rallies.length === 0) return null;
 
   const buildCopyText = () => {
-    // Compute a "Start at" time in UTC: now + 30s, rounded UP to next :00 or :30
+    // Compute base start time in UTC: now + 30s, rounded UP to next :30
     const now = new Date();
-    const bufferMs = 30_000; // 30 seconds minimum buffer
+    const bufferMs = 30_000;
     const target = now.getTime() + bufferMs;
-    const roundTo = 30_000; // round to 30-second intervals
+    const roundTo = 30_000;
     const rounded = Math.ceil(target / roundTo) * roundTo;
-    const startTime = new Date(rounded);
-    const hh = String(startTime.getUTCHours()).padStart(2, '0');
-    const mm = String(startTime.getUTCMinutes()).padStart(2, '0');
-    const ss = String(startTime.getUTCSeconds()).padStart(2, '0');
+
+    const formatUTC = (ms: number) => {
+      const d = new Date(ms);
+      return `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}:${String(d.getUTCSeconds()).padStart(2, '0')} UTC`;
+    };
 
     return [
-      `📢 RALLY ORDER: ${BUILDING_LABELS[building]}`,
+      `📢 RALLY ORDER: ${getBuildingLabel(building, t)}`,
       '',
-      ...rallies.map((r, i) =>
-        `${i + 1}. ${r.name} — Call at T+${r.startDelay}s`
+      ...rallies.map((r) =>
+        `${r.name} — ${formatUTC(rounded + r.startDelay * 1000)}`
       ),
-      '',
-      `Start at ${hh}:${mm}:${ss} UTC`,
     ].join('\n');
   };
 
@@ -916,7 +917,8 @@ export const CallOrderOutput: React.FC<{
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
         <h4 style={cardHeader()}>{title}</h4>
         <button onClick={handleCopy} style={{
-          padding: '0.2rem 0.5rem',
+          padding: isMobile ? '0.4rem 0.75rem' : '0.2rem 0.5rem',
+          minHeight: isMobile ? '44px' : 'auto',
           backgroundColor: copied ? '#22c55e20' : `${accentColor}20`,
           border: `1px solid ${copied ? '#22c55e40' : `${accentColor}40`}`,
           borderRadius: '6px',

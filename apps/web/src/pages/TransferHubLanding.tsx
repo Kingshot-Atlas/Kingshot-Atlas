@@ -79,48 +79,28 @@ const TransferHubLanding: React.FC = () => {
     },
   ];
 
-  const fundTiers = [
-    {
-      tier: t('transferHubLanding.standard', 'Standard (Free)'),
-      color: FUND_STANDARD,
-      min: '$0',
-      perks: [
-        t('transferHubLanding.standardPerk1', 'Basic listing with Atlas Score & stats'),
-        t('transferHubLanding.standardPerk2', 'Community reviews from players'),
-      ],
-    },
-    {
-      tier: t('transferHubLanding.bronze', 'Bronze'),
-      color: FUND_BRONZE,
-      min: '$25+',
-      perks: [
-        t('transferHubLanding.bronzePerk1v2', 'Min TC & Power requirements shown'),
-        t('transferHubLanding.bronzePerk2v2', 'Browse transferee profiles'),
-        t('transferHubLanding.bronzePerk3', 'Kingdom Policies & Vibe tags'),
-      ],
-    },
-    {
-      tier: t('transferHubLanding.silver', 'Silver'),
-      color: FUND_SILVER,
-      min: '$50+',
-      perks: [
-        t('transferHubLanding.silverIncludes', 'Everything in Bronze'),
-        t('transferHubLanding.silverPerk1v3', 'Send invites to transferees'),
-        t('transferHubLanding.silverPerk2v2', 'Kingdom Bio & Language display'),
-        t('transferHubLanding.silverPerk3v2', 'Alliance Information schedule'),
-      ],
-    },
-    {
-      tier: t('transferHubLanding.gold', 'Gold'),
-      color: FUND_GOLD,
-      min: '$100+',
-      perks: [
-        t('transferHubLanding.goldIncludes', 'Everything in Silver'),
-        t('transferHubLanding.goldPerk1v4', '+2 alliance slots (5 total)'),
-        t('transferHubLanding.goldPerk2v3', 'Gilded badge for all kingdom users'),
-        t('transferHubLanding.goldPerk3v2', 'Gold glow + priority placement'),
-      ],
-    },
+  // Comparison table rows: feature name + which tiers include it
+  const comparisonRows: { feature: string; standard: boolean; bronze: boolean; silver: boolean; gold: boolean; highlight?: boolean }[] = [
+    { feature: t('transferHubLanding.cmpBasicListing', 'Basic listing with Atlas Score & stats'), standard: true, bronze: true, silver: true, gold: true },
+    { feature: t('transferHubLanding.cmpReviews', 'Community reviews from players'), standard: true, bronze: true, silver: true, gold: true },
+    { feature: t('transferHubLanding.cmpMinReqs', 'Min TC & Power requirements shown'), standard: false, bronze: true, silver: true, gold: true },
+    { feature: t('transferHubLanding.cmpBrowseProfiles', 'Browse transferee profiles'), standard: false, bronze: true, silver: true, gold: true },
+    { feature: t('transferHubLanding.cmpVibeTags', 'Kingdom Policies & Vibe tags'), standard: false, bronze: true, silver: true, gold: true },
+    { feature: t('transferHubLanding.cmpInvites', 'Send invites to transferees'), standard: false, bronze: false, silver: true, gold: true },
+    { feature: t('transferHubLanding.cmpBioLang', 'Kingdom Bio & Language display'), standard: false, bronze: false, silver: true, gold: true },
+    { feature: t('transferHubLanding.cmpAlliance', 'Alliance Information schedule'), standard: false, bronze: false, silver: true, gold: true },
+    { feature: t('transferHubLanding.cmpSlots', '+2 alliance slots (5 total)'), standard: false, bronze: false, silver: false, gold: true },
+    { feature: t('transferHubLanding.cmpBadge', 'Gilded badge for all kingdom users'), standard: false, bronze: false, silver: false, gold: true },
+    { feature: t('transferHubLanding.cmpGlow', 'Gold glow + priority placement'), standard: false, bronze: false, silver: false, gold: true },
+    { feature: t('transferHubLanding.cmpPrepScheduler', 'KvK Prep Scheduler access'), standard: false, bronze: false, silver: false, gold: true, highlight: true },
+    { feature: t('transferHubLanding.cmpBattlePlanner', 'KvK Battle Planner access'), standard: false, bronze: false, silver: false, gold: true, highlight: true },
+  ];
+
+  const tierColumns = [
+    { key: 'standard' as const, label: t('transferHubLanding.standard', 'Standard'), color: FUND_STANDARD, price: t('transferHubLanding.priceFree', 'Free'), recommended: false },
+    { key: 'bronze' as const, label: t('transferHubLanding.bronze', 'Bronze'), color: FUND_BRONZE, price: '$25+', recommended: false },
+    { key: 'silver' as const, label: t('transferHubLanding.silver', 'Silver'), color: FUND_SILVER, price: '$50+', recommended: false },
+    { key: 'gold' as const, label: t('transferHubLanding.gold', 'Gold'), color: FUND_GOLD, price: '$100+', recommended: true },
   ];
 
   return (
@@ -310,11 +290,11 @@ const TransferHubLanding: React.FC = () => {
           </div>
         </div>
 
-        {/* Kingdom Fund Tiers */}
+        {/* Kingdom Fund Tiers — Comparison Table */}
         <div style={{
           marginBottom: isMobile ? '2rem' : '3rem',
           backgroundColor: '#111111', borderRadius: '16px',
-          border: `1px solid ${ACCENT_BORDER}`, padding: isMobile ? '1.25rem' : '1.75rem',
+          border: `1px solid ${ACCENT_BORDER}`, padding: isMobile ? '1rem' : '1.75rem',
           background: `linear-gradient(135deg, #111111 0%, ${ACCENT_DIM} 100%)`,
         }}>
           <h2 style={{
@@ -330,41 +310,139 @@ const TransferHubLanding: React.FC = () => {
             {t('transferHubLanding.fundDesc', 'Recruiting is a team effort. Anyone in your kingdom can chip in to boost the listing. Funds deplete slowly over time, so active kingdoms stay on top.')}
           </p>
 
-          <div style={{
-            display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
-            gap: isMobile ? '0.75rem' : '1rem',
-          }}>
-            {fundTiers.map((tier) => (
-              <div key={tier.tier} style={{
-                backgroundColor: '#0a0a0a', borderRadius: '12px',
-                border: `1px solid ${tier.color}30`,
-                padding: isMobile ? '1rem' : '1.25rem', textAlign: 'center',
-              }}>
-                <div style={{
-                  fontSize: '0.65rem', fontWeight: 700, color: tier.color,
-                  backgroundColor: `${tier.color}18`, border: `1px solid ${tier.color}30`,
-                  padding: '0.15rem 0.5rem', borderRadius: '4px', display: 'inline-block',
-                  marginBottom: '0.5rem', letterSpacing: '0.05em', textTransform: 'uppercase',
+          {/* Mobile: stacked cards per tier */}
+          {isMobile ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {tierColumns.map((tier) => (
+                <div key={tier.key} style={{
+                  backgroundColor: '#0a0a0a', borderRadius: '12px',
+                  border: `1px solid ${tier.recommended ? `${tier.color}60` : `${tier.color}30`}`,
+                  padding: '1rem', position: 'relative', overflow: 'hidden',
+                  ...(tier.recommended ? { boxShadow: `0 0 20px ${tier.color}15` } : {}),
                 }}>
-                  {tier.tier}
+                  {tier.recommended && (
+                    <div style={{
+                      position: 'absolute', top: 0, left: 0, right: 0, height: '3px',
+                      background: `linear-gradient(90deg, ${tier.color}, ${tier.color}80)`,
+                    }} />
+                  )}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.6rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span style={{
+                        fontSize: '0.6rem', fontWeight: 700, color: tier.color,
+                        backgroundColor: `${tier.color}18`, border: `1px solid ${tier.color}30`,
+                        padding: '0.1rem 0.4rem', borderRadius: '4px',
+                        letterSpacing: '0.05em', textTransform: 'uppercase',
+                      }}>
+                        {tier.label}
+                      </span>
+                      {tier.recommended && (
+                        <span style={{ fontSize: '0.55rem', color: tier.color, fontWeight: 700 }}>
+                          {t('transferHubLanding.recommended', 'RECOMMENDED')}
+                        </span>
+                      )}
+                    </div>
+                    <span style={{ color: '#fff', fontSize: '1rem', fontWeight: 700 }}>{tier.price}</span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                    {comparisonRows.filter(row => row[tier.key]).map((row, i) => (
+                      <div key={i} style={{
+                        display: 'flex', alignItems: 'center', gap: '0.35rem',
+                        fontSize: '0.72rem', color: row.highlight ? tier.color : '#d1d5db',
+                        fontWeight: row.highlight ? 600 : 400,
+                      }}>
+                        <span style={{ color: tier.color, flexShrink: 0, fontSize: '0.6rem' }}>✓</span>
+                        {row.feature}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div style={{ color: '#fff', fontSize: isMobile ? '1rem' : '1.1rem', fontWeight: 700, marginBottom: '0.5rem' }}>
-                  {tier.min}
-                </div>
-                <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                  {tier.perks.map((perk, i) => (
-                    <li key={i} style={{
-                      color: '#d1d5db', fontSize: isMobile ? '0.72rem' : '0.78rem',
-                      padding: '0.25rem 0', display: 'flex', alignItems: 'flex-start', gap: '0.4rem',
-                      justifyContent: 'center',
+              ))}
+            </div>
+          ) : (
+            /* Desktop: comparison table grid */
+            <div style={{ overflowX: 'auto' }}>
+              {/* Tier headers */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr repeat(4, 100px)',
+                gap: '2px', marginBottom: '2px',
+              }}>
+                <div />
+                {tierColumns.map(tier => (
+                  <div key={tier.key} style={{
+                    textAlign: 'center', padding: '0.75rem 0.25rem',
+                    backgroundColor: tier.recommended ? `${tier.color}12` : '#0a0a0a',
+                    borderRadius: '10px 10px 0 0',
+                    border: tier.recommended ? `1px solid ${tier.color}40` : '1px solid #1a1a1a',
+                    borderBottom: 'none', position: 'relative',
+                  }}>
+                    {tier.recommended && (
+                      <div style={{
+                        position: 'absolute', top: '-1px', left: '50%', transform: 'translateX(-50%)',
+                        fontSize: '0.5rem', fontWeight: 700, color: '#0a0a0a',
+                        backgroundColor: tier.color, padding: '0.05rem 0.4rem',
+                        borderRadius: '0 0 6px 6px', letterSpacing: '0.05em',
+                      }}>
+                        {t('transferHubLanding.recommended', 'BEST VALUE')}
+                      </div>
+                    )}
+                    <div style={{
+                      fontSize: '0.6rem', fontWeight: 700, color: tier.color,
+                      textTransform: 'uppercase', letterSpacing: '0.05em',
+                      marginTop: tier.recommended ? '0.3rem' : 0,
                     }}>
-                      <span style={{ color: tier.color, flexShrink: 0 }}>✓</span> {perk}
-                    </li>
-                  ))}
-                </ul>
+                      {tier.label}
+                    </div>
+                    <div style={{ color: '#fff', fontSize: '1rem', fontWeight: 700, marginTop: '0.15rem' }}>
+                      {tier.price}
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+
+              {/* Feature rows */}
+              {comparisonRows.map((row, ri) => (
+                <div key={ri} style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr repeat(4, 100px)',
+                  gap: '2px',
+                }}>
+                  <div style={{
+                    padding: '0.35rem 0.5rem',
+                    fontSize: '0.75rem',
+                    color: row.highlight ? FUND_GOLD : '#d1d5db',
+                    fontWeight: row.highlight ? 600 : 400,
+                    backgroundColor: ri % 2 === 0 ? '#0d0d0d' : 'transparent',
+                    borderRadius: '4px 0 0 4px',
+                    display: 'flex', alignItems: 'center',
+                  }}>
+                    {row.feature}
+                  </div>
+                  {tierColumns.map(tier => {
+                    const included = row[tier.key];
+                    return (
+                      <div key={tier.key} style={{
+                        textAlign: 'center', padding: '0.35rem 0.25rem',
+                        backgroundColor: tier.recommended
+                          ? (ri % 2 === 0 ? `${tier.color}08` : `${tier.color}04`)
+                          : (ri % 2 === 0 ? '#0d0d0d' : 'transparent'),
+                        borderLeft: tier.recommended ? `1px solid ${tier.color}20` : '1px solid #1a1a1a08',
+                        borderRight: tier.recommended ? `1px solid ${tier.color}20` : 'none',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        {included ? (
+                          <span style={{ color: tier.color, fontSize: '0.85rem', fontWeight: 700 }}>✓</span>
+                        ) : (
+                          <span style={{ color: '#333', fontSize: '0.75rem' }}>—</span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          )}
 
           <p style={{
             color: '#6b7280', fontSize: isMobile ? '0.7rem' : '0.75rem',

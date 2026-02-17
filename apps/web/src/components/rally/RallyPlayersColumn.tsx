@@ -2,8 +2,9 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { BuildingKey, MarchType, RallyPlayer, RallyPreset, RallySlot } from './types';
 import {
-  ALLY_COLOR, ENEMY_COLOR, BUILDING_SHORT,
+  ALLY_COLOR, ENEMY_COLOR,
   CARD, cardHeader, inputStyle,
+  getBuildingShort,
 } from './types';
 import { BuildingSelector, PlayerPill } from './RallySubComponents';
 
@@ -267,7 +268,7 @@ const RallyPlayersColumn: React.FC<RallyPlayersColumnProps> = ({
                     }}>
                       {p.name}
                       <span style={{ color: '#6b7280', marginLeft: '0.3rem', fontSize: '0.6rem' }}>
-                        {BUILDING_SHORT[p.building]} · {p.slots.length} players
+                        {getBuildingShort(p.building, t)} · {p.slots.length} players
                       </span>
                     </button>
                     <button onClick={() => onDeletePreset(p.id)} className="rally-focusable" aria-label={`Delete preset ${p.name}`} style={{
