@@ -97,7 +97,12 @@ for (let h = 0; h < 24; h++) {
 // ─── Timezone Helpers ──────────────────────────────────────────────────
 const USER_TZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
 const UTC_OFFSET_HOURS = -(new Date().getTimezoneOffset() / 60);
-const TZ_ABBR = USER_TZ.split('/').pop()?.replace(/_/g, ' ') || USER_TZ;
+const TZ_ABBR = (() => {
+  try {
+    const parts = new Intl.DateTimeFormat('en', { timeZoneName: 'short' }).formatToParts(new Date());
+    return parts.find(p => p.type === 'timeZoneName')?.value || USER_TZ.split('/').pop()?.replace(/_/g, ' ') || USER_TZ;
+  } catch { return USER_TZ.split('/').pop()?.replace(/_/g, ' ') || USER_TZ; }
+})();
 
 function utcSlotToLocal(utcSlot: string): string {
   // Convert "HH:MM" UTC to local time string
@@ -117,7 +122,7 @@ function getDeadlineCountdown(deadline: string | null): { text: string; urgent: 
   const days = Math.floor(diff / 86400000);
   const hours = Math.floor((diff % 86400000) / 3600000);
   const mins = Math.floor((diff % 3600000) / 60000);
-  if (days > 0) return { text: `${days}d ${hours}h left`, urgent: days < 1, expired: false };
+  if (days > 0) return { text: `${days}d ${hours}h left`, urgent: days <= 1, expired: false };
   if (hours > 0) return { text: `${hours}h ${mins}m left`, urgent: hours < 6, expired: false };
   return { text: `${mins}m left`, urgent: true, expired: false };
 }
@@ -722,7 +727,7 @@ const PrepScheduler: React.FC = () => {
       }
       alert(existingSubmission ? 'Submission updated!' : 'Submission received! Your Prep Manager will assign you a slot.');
       await fetchSubmissions(scheduleId);
-    } catch (err: any) { logger.error('Failed to submit:', err); alert(`Failed: ${err?.message || 'Unknown error'}`); }
+    } catch (err: unknown) { logger.error('Failed to submit:', err); alert(`Failed: ${err instanceof Error ? err.message : 'Unknown error'}`); }
     setSaving(false);
   };
 
@@ -832,6 +837,7 @@ const PrepScheduler: React.FC = () => {
     if (!validTypes.includes(file.type)) { alert('Please upload a JPEG, PNG, GIF, or WebP image.'); return; }
     if (file.size > 5 * 1024 * 1024) { alert('Image must be under 5MB.'); return; }
     setScreenshotFile(file);
+    if (screenshotPreview && screenshotPreview.startsWith('blob:')) URL.revokeObjectURL(screenshotPreview);
     setScreenshotPreview(URL.createObjectURL(file));
   };
 
@@ -947,7 +953,7 @@ const PrepScheduler: React.FC = () => {
 
           {user && profile?.linked_kingdom && !goldKingdoms.has(profile.linked_kingdom) && !kingdomSchedules.length && mySchedules.length === 0 && (
             <div style={{ ...cardStyle, marginBottom: '1.5rem', borderColor: '#ffc30b30', backgroundColor: '#ffc30b08' }}>
-              <h3 style={{ color: '#ffc30b', fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.5rem' }}>� Gold Tier Required</h3>
+              <h3 style={{ color: '#ffc30b', fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.5rem' }}>👑 Gold Tier Required</h3>
               <p style={{ color: colors.textMuted, fontSize: '0.8rem', lineHeight: 1.5 }}>
                 The KvK Prep Scheduler is available for Gold Tier kingdoms. Encourage your kingdom to reach Gold tier through the Kingdom Fund to unlock this tool!
               </p>
@@ -975,7 +981,7 @@ const PrepScheduler: React.FC = () => {
                 </div>
                 <div>
                   <label style={labelStyle}>Notes for Players (optional)</label>
-                  <textarea value={createNotes} onChange={(e) => setCreateNotes(e.target.value)} placeholder="Any instructions or reminders..." rows={3} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.5 }} />
+                  <textarea value={createNotes} onChange={(e) => setCreateNotes(e.target.value)} placeholder="Any instructions or reminders..." rows={3} maxLength={500} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.5 }} />
                 </div>
                 <div>
                   <label style={labelStyle}>Submission Deadline (optional)</label>
@@ -1227,7 +1233,7 @@ const PrepScheduler: React.FC = () => {
               </div>
               <div style={{ marginBottom: '1rem' }}>
                 <label style={labelStyle}>Message (optional)</label>
-                <textarea value={changeRequestMessage} onChange={e => setChangeRequestMessage(e.target.value)} placeholder="Explain your situation..." rows={3} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit' }} />
+                <textarea value={changeRequestMessage} onChange={e => setChangeRequestMessage(e.target.value)} placeholder="Explain your situation..." rows={3} maxLength={500} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit' }} />
               </div>
               <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
                 <button onClick={() => setShowChangeRequestForm(false)} style={{ padding: '0.5rem 1rem', backgroundColor: colors.border, border: 'none', borderRadius: '6px', color: colors.textSecondary, fontSize: '0.8rem', cursor: 'pointer' }}>Cancel</button>
@@ -1500,7 +1506,7 @@ const PrepScheduler: React.FC = () => {
                       );
                     })}
                     {daySubmissions.length === 0 && (
-                      <tr><td colSpan={6} style={{ padding: '1rem', textAlign: 'center', color: colors.textMuted }}>No submissions for {DAY_LABELS[activeDay]}.</td></tr>
+                      <tr><td colSpan={7} style={{ padding: '1rem', textAlign: 'center', color: colors.textMuted }}>No submissions for {DAY_LABELS[activeDay]}.</td></tr>
                     )}
                   </tbody>
                 </table>
