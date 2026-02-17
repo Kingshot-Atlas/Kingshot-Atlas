@@ -488,12 +488,8 @@
     "free5Desc": "Full stats and performance history",
     "free6Title": "Event Calendar",
     "free6Desc": "KvK and Transfer Event schedules",
-    "perk7Desc": "Unlock unlimited kingdom rankings (free: Top 25)",
-    "perk7Title": "Full Leaderboard Rankings",
     "perk8Title": "Gift Code Bulk Redeem",
-    "perk8Desc": "Redeem gift codes for all your alt accounts at once — one click",
-    "perk9Title": "Enhanced Compare",
-    "perk9Desc": "Compare up to 5 kingdoms side-by-side (free: 3)"
+    "perk8Desc": "Redeem gift codes for all your alt accounts at once — one click"
   },
   "changelog": {
     "new": "New",

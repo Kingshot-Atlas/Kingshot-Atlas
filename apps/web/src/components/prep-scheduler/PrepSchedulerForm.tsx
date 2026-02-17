@@ -7,7 +7,7 @@ import {
   Day, DAYS, DAY_COLORS, TZ_ABBR, UTC_OFFSET_HOURS,
   getDayLabel, getBuffLabel,
 } from './types';
-import { getDeadlineCountdown, getEffectiveSpeedups, formatMinutes, formatAvailRanges, isSkippedDay } from './utils';
+import { getDeadlineCountdown, formatDeadlineUTC, getEffectiveSpeedups, formatMinutes, formatAvailRanges, isSkippedDay } from './utils';
 import TimeRangePicker from './TimeRangePicker';
 
 interface PrepSchedulerFormProps {
@@ -86,9 +86,12 @@ const PrepSchedulerForm: React.FC<PrepSchedulerFormProps> = (props) => {
         </h1>
         {schedule.kvk_number && <p style={{ color: '#9ca3af', fontSize: '0.85rem' }}>KvK #{schedule.kvk_number}</p>}
         {schedule.notes && <p style={{ color: '#a855f7', fontSize: '0.8rem', fontStyle: 'italic', marginTop: '0.5rem', maxWidth: '500px', margin: '0.5rem auto 0' }}>{schedule.notes}</p>}
-        {(() => { const dl = getDeadlineCountdown(schedule.deadline, t); return dl && !dl.expired ? (
-          <div style={{ marginTop: '0.5rem', padding: '0.3rem 0.8rem', backgroundColor: dl.urgent ? '#ef444415' : '#f59e0b15', border: `1px solid ${dl.urgent ? '#ef444430' : '#f59e0b30'}`, borderRadius: '20px', display: 'inline-block' }}>
-            <span style={{ color: dl.urgent ? '#ef4444' : '#f59e0b', fontSize: '0.75rem', fontWeight: 600 }}>⏰ {dl.text}</span>
+        {(() => { const dl = getDeadlineCountdown(schedule.deadline, t); const utcLabel = formatDeadlineUTC(schedule.deadline); return dl && !dl.expired ? (
+          <div style={{ marginTop: '0.5rem', display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '0.15rem' }}>
+            <div style={{ padding: '0.3rem 0.8rem', backgroundColor: dl.urgent ? '#ef444415' : '#f59e0b15', border: `1px solid ${dl.urgent ? '#ef444430' : '#f59e0b30'}`, borderRadius: '20px' }}>
+              <span style={{ color: dl.urgent ? '#ef4444' : '#f59e0b', fontSize: '0.75rem', fontWeight: 600 }}>⏰ {dl.text}</span>
+            </div>
+            {utcLabel && <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>{utcLabel}</span>}
           </div>
         ) : null; })()}
         {schedule.status === 'closed' && (

@@ -40,6 +40,8 @@ const PrepScheduler: React.FC = () => {
         mySchedules={hook.mySchedules}
         kingdomSchedules={hook.kingdomSchedules}
         navigate={hook.navigate}
+        isEditorOrCoEditor={hook.isEditorOrCoEditor}
+        isManager={hook.isManager}
         createKingdom={hook.createKingdom}
         setCreateKingdom={hook.setCreateKingdom}
         createKvkNumber={hook.createKvkNumber}
@@ -127,6 +129,7 @@ const PrepScheduler: React.FC = () => {
           closeOrReopenForm={hook.closeOrReopenForm}
           toggleLock={hook.toggleLock}
           archiveSchedule={hook.archiveSchedule}
+          deleteSchedule={hook.deleteSchedule}
           runAutoAssign={hook.runAutoAssign}
           assignSlot={hook.assignSlot}
           removeAssignment={hook.removeAssignment}

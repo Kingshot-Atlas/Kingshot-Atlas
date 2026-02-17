@@ -376,7 +376,7 @@ const GiftCodeLanding: React.FC = () => {
             color: '#9ca3af', fontSize: isMobile ? '0.8rem' : '0.85rem',
             marginBottom: '1.25rem', maxWidth: '450px', margin: '0 auto 1.25rem', lineHeight: 1.6,
           }}>
-            {t('giftCodeLanding.supporterDesc', 'The Gift Code Auto-Redeemer for alt accounts is included with Atlas Supporter — along with unlimited /multirally, enhanced compare, and more. Starting at $4.99/month.')}
+            {t('giftCodeLanding.supporterDesc', 'The Gift Code Auto-Redeemer for alt accounts is included with Atlas Supporter — along with unlimited /multirally, exclusive Discord perks, and more. Starting at $4.99/month.')}
           </p>
           <div style={{
             display: 'flex', flexDirection: isMobile ? 'column' : 'row',

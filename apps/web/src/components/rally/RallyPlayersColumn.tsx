@@ -59,7 +59,7 @@ const RallyPlayersColumn: React.FC<RallyPlayersColumnProps> = ({
   const { t } = useTranslation();
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '0.75rem' : '0.75rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
 
       {/* Rally Leaders */}
       <div role="region" aria-label="Rally leaders" style={{ ...CARD, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -67,7 +67,7 @@ const RallyPlayersColumn: React.FC<RallyPlayersColumnProps> = ({
           <h3 style={cardHeader()}>👥 RALLY LEADERS</h3>
           <div style={{ display: 'flex', gap: '4px' }}>
             <button onClick={onAddAlly} className="rally-focusable" aria-label="Add an ally rally leader" style={{
-              padding: '0.3rem 0.5rem', minHeight: '32px',
+              padding: isMobile ? '0.4rem 0.6rem' : '0.3rem 0.5rem', minHeight: isMobile ? '44px' : '32px',
               backgroundColor: `${ALLY_COLOR}15`,
               border: `1px solid ${ALLY_COLOR}30`, borderRadius: '5px',
               color: ALLY_COLOR, fontSize: '0.65rem', fontWeight: '700', cursor: 'pointer',
@@ -75,7 +75,7 @@ const RallyPlayersColumn: React.FC<RallyPlayersColumnProps> = ({
               {t('rallyCoordinator.addAlly')}
             </button>
             <button onClick={onAddEnemy} className="rally-focusable" aria-label="Add an enemy rally leader" style={{
-              padding: '0.3rem 0.5rem', minHeight: '32px',
+              padding: isMobile ? '0.4rem 0.6rem' : '0.3rem 0.5rem', minHeight: isMobile ? '44px' : '32px',
               backgroundColor: `${ENEMY_COLOR}15`,
               border: `1px solid ${ENEMY_COLOR}30`, borderRadius: '5px',
               color: ENEMY_COLOR, fontSize: '0.65rem', fontWeight: '700', cursor: 'pointer',

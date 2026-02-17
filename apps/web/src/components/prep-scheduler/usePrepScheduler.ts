@@ -116,6 +116,29 @@ export function usePrepScheduler() {
     try {
       const { data } = await supabase.from('prep_schedules').select('*').eq('id', id).single();
       if (data) {
+        // Check if creator was authorized (Editor, Co-Editor, Prep Manager, or admin)
+        const { data: creatorEditors } = await supabase.from('kingdom_editors').select('id')
+          .eq('user_id', data.created_by).eq('kingdom_number', data.kingdom_number).eq('status', 'active');
+        const { data: creatorMgrLinks } = await supabase.from('prep_schedule_managers').select('id')
+          .eq('user_id', data.created_by).limit(1);
+        const { data: creatorProfile } = await supabase.from('profiles').select('is_admin')
+          .eq('id', data.created_by).single();
+        const creatorIsEditor = (creatorEditors && creatorEditors.length > 0);
+        const creatorIsManager = data.prep_manager_id === data.created_by || (creatorMgrLinks && creatorMgrLinks.length > 0);
+        const creatorIsAdmin = creatorProfile?.is_admin === true;
+        if (!creatorIsEditor && !creatorIsManager && !creatorIsAdmin) {
+          // Delete unauthorized schedule
+          logger.info(`Deleting schedule ${data.id} created by unauthorized user ${data.created_by}`);
+          await supabase.from('prep_change_requests').delete().eq('schedule_id', data.id);
+          await supabase.from('prep_slot_assignments').delete().eq('schedule_id', data.id);
+          await supabase.from('prep_submissions').delete().eq('schedule_id', data.id);
+          await supabase.from('prep_schedule_managers').delete().eq('schedule_id', data.id);
+          await supabase.from('prep_schedules').delete().eq('id', data.id);
+          showToast(t('prepScheduler.toastUnauthorizedDeleted', 'This schedule was created by an unauthorized user and has been removed.'), 'error');
+          navigate('/tools/prep-scheduler');
+          return;
+        }
+
         setSchedule(data);
         const isCreator = data.created_by === user?.id;
         const isPrepManager = data.prep_manager_id === user?.id;
@@ -278,6 +301,19 @@ export function usePrepScheduler() {
             setKingdomSchedules(ks || []);
           } catch { /* silent */ }
         }
+        // Check editor/co-editor status for landing view (schedule creation gate)
+        if (user?.id && supabase && !scheduleId) {
+          try {
+            const { data: editors } = await supabase.from('kingdom_editors').select('*')
+              .eq('user_id', user.id).eq('status', 'active');
+            if (editors && editors.length > 0) setIsEditorOrCoEditor(true);
+          } catch { /* silent */ }
+          // Check if user is a manager of any schedule
+          try {
+            const { data: mgrLinks } = await supabase.from('prep_schedule_managers').select('id').eq('user_id', user.id).limit(1);
+            if (mgrLinks && mgrLinks.length > 0) setIsManager(true);
+          } catch { /* silent */ }
+        }
       }
       setLoading(false);
     };
@@ -329,6 +365,10 @@ export function usePrepScheduler() {
   // ─── Actions (alert → showToast, confirm → pendingConfirm) ────────
   const createSchedule = async () => {
     if (!supabase || !user?.id || !createKingdom) return;
+    if (!profile?.is_admin && !isEditorOrCoEditor && !isManager) {
+      showToast(t('prepScheduler.toastRoleRequired', 'Only Editors, Co-Editors, and Prep Managers can create schedules.'), 'error');
+      return;
+    }
     if (!goldKingdoms.has(createKingdom)) {
       showToast(t('prepScheduler.toastGoldOnly', 'Only Gold Tier kingdoms can use the KvK Prep Scheduler.'), 'error');
       return;
@@ -406,6 +446,28 @@ export function usePrepScheduler() {
           setSchedule({ ...schedule, status: 'archived' });
           showToast(t('prepScheduler.toastArchived', 'Schedule archived.'), 'success');
         } catch (err) { logger.error('Failed to archive:', err); showToast(t('prepScheduler.toastArchiveFailed', 'Failed to archive schedule.'), 'error'); }
+      },
+    });
+  };
+
+  const deleteSchedule = () => {
+    if (!supabase || !schedule) return;
+    if (schedule.status !== 'archived') {
+      showToast(t('prepScheduler.toastDeleteOnlyArchived', 'Only archived schedules can be deleted.'), 'error');
+      return;
+    }
+    setPendingConfirm({
+      message: t('prepScheduler.confirmDelete', 'Permanently delete this archived schedule? All submissions, assignments, and change requests will be removed. This cannot be undone.'),
+      onConfirm: async () => {
+        try {
+          await supabase!.from('prep_change_requests').delete().eq('schedule_id', schedule.id);
+          await supabase!.from('prep_slot_assignments').delete().eq('schedule_id', schedule.id);
+          await supabase!.from('prep_submissions').delete().eq('schedule_id', schedule.id);
+          await supabase!.from('prep_schedule_managers').delete().eq('schedule_id', schedule.id);
+          await supabase!.from('prep_schedules').delete().eq('id', schedule.id);
+          showToast(t('prepScheduler.toastDeleted', 'Schedule deleted.'), 'success');
+          navigate('/tools/prep-scheduler');
+        } catch (err) { logger.error('Failed to delete schedule:', err); showToast(t('prepScheduler.toastDeleteFailed', 'Failed to delete schedule.'), 'error'); }
       },
     });
   };
@@ -679,7 +741,7 @@ export function usePrepScheduler() {
     // Computed
     dayAssignments, daySubmissions, unassignedPlayers, availabilityGaps,
     // Actions
-    createSchedule, closeOrReopenForm, toggleLock, archiveSchedule,
+    createSchedule, closeOrReopenForm, toggleLock, archiveSchedule, deleteSchedule,
     submitForm, submitChangeRequest, acknowledgeChangeRequest,
     runAutoAssign, assignSlot, removeAssignment,
     copyShareLink, exportScheduleCSV, exportOptedOut,

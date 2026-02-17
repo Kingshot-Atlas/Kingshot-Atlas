@@ -136,6 +136,7 @@ const RallyCoordinator: React.FC = () => {
             display: 'flex', gap: '4px', marginBottom: '0.75rem',
             position: 'sticky', top: 0, zIndex: 20,
             backgroundColor: '#0a0a0a', padding: '0.5rem 0',
+            borderBottom: '1px solid #1a1a1a',
           }}>
             {([
               { key: 'players' as const, label: t('battlePlanner.tabPlayers', 'Players'), icon: '👥', color: '#fff', count: rc.players.length },
@@ -171,7 +172,7 @@ const RallyCoordinator: React.FC = () => {
         <div style={{
           display: 'grid',
           gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr',
-          gap: isMobile ? '0.75rem' : '0.75rem',
+          gap: '0.75rem',
         }}>
 
           {/* ===== COLUMN 1: PLAYERS ===== */}
@@ -210,7 +211,7 @@ const RallyCoordinator: React.FC = () => {
           />}
 
           {/* ===== COLUMN 2: RALLY ===== */}
-          {(!isMobile || mobileTab === 'rally') && <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '0.75rem' : '0.75rem' }}>
+          {(!isMobile || mobileTab === 'rally') && <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
 
             {/* Rally Queue */}
             <QueueDropZone
@@ -316,7 +317,7 @@ const RallyCoordinator: React.FC = () => {
           </div>}
 
           {/* ===== COLUMN 3: COUNTER ===== */}
-          {(!isMobile || mobileTab === 'counter') && <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '0.75rem' : '0.75rem' }}>
+          {(!isMobile || mobileTab === 'counter') && <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
 
             {/* 🛡️ COUNTER QUEUE */}
             <QueueDropZone

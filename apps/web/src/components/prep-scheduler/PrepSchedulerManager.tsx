@@ -9,7 +9,7 @@ import {
   getDayLabel, getDayLabelShort,
 } from './types';
 import {
-  getDeadlineCountdown, getEffectiveSpeedups, formatMinutes, formatAvailRanges,
+  getDeadlineCountdown, formatDeadlineUTC, getEffectiveSpeedups, formatMinutes, formatAvailRanges,
   isSlotInAvailability, isSkippedDay,
 } from './utils';
 
@@ -45,6 +45,7 @@ interface PrepSchedulerManagerProps {
   closeOrReopenForm: () => void;
   toggleLock: () => void;
   archiveSchedule: () => void;
+  deleteSchedule: () => void;
   runAutoAssign: (day: Day) => Promise<void>;
   assignSlot: (day: Day, slotTime: string, submissionId: string) => Promise<void>;
   removeAssignment: (assignmentId: string) => Promise<void>;
@@ -63,7 +64,7 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
     managers, assignManagerInput, setAssignManagerInput, managerSearchResults,
     showManagerDropdown, setShowManagerDropdown, managerSearchRef,
     copyShareLink, exportScheduleCSV, exportOptedOut,
-    setView, closeOrReopenForm, toggleLock, archiveSchedule,
+    setView, closeOrReopenForm, toggleLock, archiveSchedule, deleteSchedule,
     runAutoAssign, assignSlot, removeAssignment,
     acknowledgeChangeRequest, addManager, removeManagerById,
   } = props;
@@ -106,7 +107,7 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
                 {schedule.status === 'closed' && <span style={{ padding: '0.1rem 0.4rem', backgroundColor: '#ef444420', borderRadius: '4px', fontSize: '0.65rem', color: '#ef4444', fontWeight: 600 }}>🔒 {t('prepScheduler.formClosedTag', 'FORM CLOSED')}</span>}
                 {schedule.is_locked && <span style={{ padding: '0.1rem 0.4rem', backgroundColor: '#22c55e20', borderRadius: '4px', fontSize: '0.65rem', color: '#22c55e', fontWeight: 600 }}>✅ {t('prepScheduler.lockedIn', 'LOCKED IN')}</span>}
                 {pendingRequests.length > 0 && <span style={{ padding: '0.1rem 0.4rem', backgroundColor: '#ef444420', borderRadius: '4px', fontSize: '0.65rem', color: '#ef4444', fontWeight: 600 }}>🔔 {pendingRequests.length} {t('prepScheduler.changeRequests', 'change requests')}</span>}
-                {(() => { const dl = getDeadlineCountdown(schedule.deadline, t); return dl ? <span style={{ padding: '0.1rem 0.4rem', backgroundColor: dl.urgent ? '#ef444420' : '#f59e0b20', borderRadius: '4px', fontSize: '0.65rem', color: dl.urgent ? '#ef4444' : '#f59e0b', fontWeight: 600 }}>⏰ {dl.text}</span> : null; })()}
+                {(() => { const dl = getDeadlineCountdown(schedule.deadline, t); const utcLabel = formatDeadlineUTC(schedule.deadline); return dl ? <><span style={{ padding: '0.1rem 0.4rem', backgroundColor: dl.urgent ? '#ef444420' : '#f59e0b20', borderRadius: '4px', fontSize: '0.65rem', color: dl.urgent ? '#ef4444' : '#f59e0b', fontWeight: 600 }}>⏰ {dl.text}</span>{utcLabel && <span style={{ fontSize: '0.6rem', color: '#6b7280' }}>{utcLabel}</span>}</> : null; })()}
               </p>
             </div>
             {/* Action buttons — collapsible on mobile */}
@@ -134,6 +135,9 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
                     {schedule.status === 'active' && isEditorOrCoEditor && (
                       <button onClick={archiveSchedule} style={{ padding: '0.5rem 0.75rem', backgroundColor: `${colors.textMuted}10`, border: `1px solid ${colors.border}`, borderRadius: '6px', color: colors.textMuted, fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', textAlign: 'left', minHeight: '40px' }}>📦 {t('prepScheduler.archive', 'Archive')}</button>
                     )}
+                    {schedule.status === 'archived' && (isEditorOrCoEditor || isManager) && (
+                      <button onClick={deleteSchedule} style={{ padding: '0.5rem 0.75rem', backgroundColor: '#ef444415', border: '1px solid #ef444430', borderRadius: '6px', color: '#ef4444', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', textAlign: 'left', minHeight: '40px' }}>🗑️ {t('prepScheduler.deleteSchedule', 'Delete Schedule')}</button>
+                    )}
                   </div>
                 )}
               </div>
@@ -151,6 +155,9 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
                 )}
                 {schedule.status === 'active' && isEditorOrCoEditor && (
                   <button onClick={archiveSchedule} style={{ padding: '0.4rem 0.75rem', backgroundColor: `${colors.textMuted}10`, border: `1px solid ${colors.border}`, borderRadius: '6px', color: colors.textMuted, fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>📦 {t('prepScheduler.archive', 'Archive')}</button>
+                )}
+                {schedule.status === 'archived' && (isEditorOrCoEditor || isManager) && (
+                  <button onClick={deleteSchedule} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#ef444415', border: '1px solid #ef444430', borderRadius: '6px', color: '#ef4444', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>🗑️ {t('prepScheduler.deleteSchedule', 'Delete Schedule')}</button>
                 )}
               </div>
             )}

@@ -12,6 +12,8 @@ interface PrepSchedulerListProps {
   mySchedules: PrepSchedule[];
   kingdomSchedules: PrepSchedule[];
   navigate: (path: string) => void;
+  isEditorOrCoEditor: boolean;
+  isManager: boolean;
   // Create schedule props
   createKingdom: number;
   setCreateKingdom: (v: number) => void;
@@ -27,6 +29,7 @@ interface PrepSchedulerListProps {
 
 const PrepSchedulerList: React.FC<PrepSchedulerListProps> = ({
   isMobile, user, profile, goldKingdoms, mySchedules, kingdomSchedules, navigate,
+  isEditorOrCoEditor, isManager,
   createKingdom, setCreateKingdom, createKvkNumber, setCreateKvkNumber,
   createNotes, setCreateNotes, createDeadline, setCreateDeadline,
   createSchedule, saving,
@@ -109,8 +112,8 @@ const PrepSchedulerList: React.FC<PrepSchedulerListProps> = ({
           </div>
         )}
 
-        {/* Create New Schedule */}
-        {user && (profile?.is_admin || (profile?.linked_kingdom && goldKingdoms.has(profile.linked_kingdom))) && (
+        {/* Create New Schedule — only Editors, Co-Editors, Prep Managers, or admins */}
+        {user && (profile?.is_admin || ((isEditorOrCoEditor || isManager) && profile?.linked_kingdom && goldKingdoms.has(profile.linked_kingdom))) && (
           <div style={{ ...cardStyle, marginBottom: '1.5rem' }}>
             <h3 style={{ color: colors.text, fontSize: '1rem', marginBottom: '0.75rem', fontWeight: 700 }}>📋 {t('prepScheduler.createSchedule', 'Create New Schedule')}</h3>
             <p style={{ color: colors.textMuted, fontSize: '0.75rem', marginBottom: '1rem', lineHeight: 1.5 }}>

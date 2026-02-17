@@ -8,6 +8,14 @@ export function utcSlotToLocal(utcSlot: string): string {
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
 }
 
+export function formatDeadlineUTC(deadline: string | null): string {
+  if (!deadline) return '';
+  const d = new Date(deadline);
+  const utcStr = `${String(d.getUTCFullYear()).slice(2)}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')} ${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')} UTC`;
+  const localStr = d.toLocaleString([], { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false });
+  return `${utcStr} (${localStr} local)`;
+}
+
 export function getDeadlineCountdown(deadline: string | null, t?: (key: string, fallback: string, opts?: Record<string, unknown>) => string): { text: string; urgent: boolean; expired: boolean } | null {
   if (!deadline) return null;
   const now = Date.now();
