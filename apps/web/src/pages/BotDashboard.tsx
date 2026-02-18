@@ -61,19 +61,20 @@ interface EventHistoryRow {
   time_slot: TimeSlot | null;
 }
 
-type EventType = 'bear_hunt' | 'viking_vengeance' | 'swordland_showdown' | 'tri_alliance_clash';
+type EventType = 'bear_hunt' | 'viking_vengeance' | 'swordland_showdown' | 'tri_alliance_clash' | 'arena';
 interface TimeSlot { hour: number; minute: number; day?: number; }
 type DashTab = 'notifications' | 'servers' | 'access' | 'history';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
-const EVENT_ORDER: EventType[] = ['bear_hunt', 'viking_vengeance', 'swordland_showdown', 'tri_alliance_clash'];
+const EVENT_ORDER: EventType[] = ['bear_hunt', 'viking_vengeance', 'swordland_showdown', 'tri_alliance_clash', 'arena'];
 
 const EVENT_META: Record<EventType, { label: string; icon: string; color: string; tag: string; maxSlots: number; defaultMessage: string }> = {
   bear_hunt:          { label: 'Bear Hunt',          icon: '🐻', color: '#f59e0b', tag: 'Every 2 days',  maxSlots: 4, defaultMessage: 'Rally your alliance and hunt together!' },
   viking_vengeance:   { label: 'Viking Vengeance',   icon: '🪓', color: '#ef4444', tag: 'Tuesday & Thursday, every 2 weeks', maxSlots: 2, defaultMessage: 'Time to fight for glory!' },
   swordland_showdown: { label: 'Swordland Showdown', icon: '⚔️',  color: '#a855f7', tag: 'Sunday, every 2 weeks', maxSlots: 2, defaultMessage: 'Ready your blades and fight for dominance!' },
   tri_alliance_clash: { label: 'Tri-Alliance Clash', icon: '🛡️',  color: '#3b82f6', tag: 'Saturday, every 4 weeks',    maxSlots: 2, defaultMessage: 'Coordinate with your allies!' },
+  arena:              { label: 'Arena',               icon: '🏟️', color: '#22d3ee', tag: 'Daily, before midnight reset', maxSlots: 1, defaultMessage: 'Arena resets at midnight UTC! Use your attempts before they expire.' },
 };
 
 const FIXED_EVENT_TIMES: TimeSlot[] = [
@@ -183,6 +184,13 @@ function getNextEventDates(eventType: EventType, referenceDate: string | null, c
       d.setUTCDate(d.getUTCDate() + w * 7);
       if (d >= today) dates.push(d);
       if (w > 200) break;
+    }
+  } else if (eventType === 'arena') {
+    // Daily — next N days starting from today
+    for (let i = 0; dates.length < count && i < 365; i++) {
+      const d = new Date(today);
+      d.setUTCDate(d.getUTCDate() + i);
+      dates.push(d);
     }
   }
   return dates;
@@ -390,11 +398,15 @@ const EvCard: React.FC<{
   const [cMins, setCMins] = useState('');
   const [showSchedule, setShowSchedule] = useState(false);
   const isBearHunt = ev.event_type === 'bear_hunt';
+  const isArena = ev.event_type === 'arena';
   const isViking = ev.event_type === 'viking_vengeance';
   const isFixedSlot = ev.event_type === 'swordland_showdown' || ev.event_type === 'tri_alliance_clash';
   const effectiveChannel = ev.channel_id || guildChannelId;
-  const nextDates = useMemo(() => getNextEventDates(ev.event_type, ev.reference_date, 5), [ev.event_type, ev.reference_date]);
-  const missingRefDate = !isBearHunt && !ev.reference_date;
+  const nextDates = useMemo(() => isArena
+    ? getNextEventDates('arena', new Date().toISOString(), 5)
+    : getNextEventDates(ev.event_type, ev.reference_date, 5),
+    [ev.event_type, ev.reference_date, isArena]);
+  const missingRefDate = !isBearHunt && !isArena && !ev.reference_date;
 
   // Live countdown: tick every 60s to update "fires in X"
   const [, setTick] = useState(0);

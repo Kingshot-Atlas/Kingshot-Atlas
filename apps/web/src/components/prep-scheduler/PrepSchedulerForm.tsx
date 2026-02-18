@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { colors, neonGlow, FONT_DISPLAY } from '../../utils/styles';
@@ -43,6 +43,135 @@ interface PrepSchedulerFormProps {
   // Non-qualifying popup
   showNonQualifyingPopup: boolean; setShowNonQualifyingPopup: (v: boolean) => void;
 }
+
+// ─── Speedup Section with Advanced Slider Mode ──────────────────────────────
+
+const SPEEDUP_TYPES = [
+  { key: 'general' as const, icon: '🔧', color: '#a855f7', i18nKey: 'prepScheduler.general', fallback: 'General' },
+  { key: 'training' as const, icon: '⚔️', color: '#ef4444', i18nKey: 'prepScheduler.training', fallback: 'Training' },
+  { key: 'construction' as const, icon: '🏗️', color: '#f59e0b', i18nKey: 'prepScheduler.construction', fallback: 'Construction' },
+  { key: 'research' as const, icon: '🔬', color: '#3b82f6', i18nKey: 'prepScheduler.research', fallback: 'Research' },
+] as const;
+
+const SpeedupSection: React.FC<{
+  isMobile: boolean;
+  generalSpeedups: number; setGeneralSpeedups: (v: number) => void;
+  trainingSpeedups: number; setTrainingSpeedups: (v: number) => void;
+  constructionSpeedups: number; setConstructionSpeedups: (v: number) => void;
+  researchSpeedups: number; setResearchSpeedups: (v: number) => void;
+  inputStyle: React.CSSProperties; labelStyle: React.CSSProperties; cardStyle: React.CSSProperties;
+  t: (key: string, fallback: string) => string;
+}> = ({ isMobile, generalSpeedups, setGeneralSpeedups, trainingSpeedups, setTrainingSpeedups, constructionSpeedups, setConstructionSpeedups, researchSpeedups, setResearchSpeedups, inputStyle, labelStyle, cardStyle, t }) => {
+  const [advancedMode, setAdvancedMode] = useState(false);
+
+  type SpeedupKey = 'general' | 'training' | 'construction' | 'research';
+  const values: Record<SpeedupKey, number> = { general: generalSpeedups, training: trainingSpeedups, construction: constructionSpeedups, research: researchSpeedups };
+  const setters: Record<SpeedupKey, (v: number) => void> = { general: setGeneralSpeedups, training: setTrainingSpeedups, construction: setConstructionSpeedups, research: setResearchSpeedups };
+  const total = useMemo(() => generalSpeedups + trainingSpeedups + constructionSpeedups + researchSpeedups, [generalSpeedups, trainingSpeedups, constructionSpeedups, researchSpeedups]);
+
+  const pct = (v: number) => total > 0 ? Math.round((v / total) * 100) : 0;
+
+  const formatTime = (mins: number) => {
+    if (mins < 60) return `${mins}m`;
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return m > 0 ? `${h}h ${m}m` : `${h}h`;
+  };
+
+  return (
+    <div style={cardStyle}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+        <label style={{ ...labelStyle, marginBottom: 0, fontSize: '0.85rem' }}>⏱️ {t('prepScheduler.speedups', 'Speedups (in minutes)')}</label>
+        <button
+          onClick={() => setAdvancedMode(!advancedMode)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '0.3rem',
+            background: advancedMode ? '#a855f710' : 'none',
+            border: `1px solid ${advancedMode ? '#a855f740' : colors.border}`,
+            borderRadius: '5px', padding: '0.2rem 0.5rem',
+            color: advancedMode ? '#a855f7' : colors.textMuted,
+            fontSize: '0.65rem', fontWeight: 600, cursor: 'pointer',
+            transition: 'all 0.2s',
+          }}
+        >
+          📊 {advancedMode ? t('prepScheduler.simpleMode', 'Simple') : t('prepScheduler.advancedMode', 'Advanced')}
+        </button>
+      </div>
+      <p style={{ color: colors.textMuted, fontSize: '0.7rem', marginBottom: '0.75rem' }}>{t('prepScheduler.speedupsDesc', 'Total minutes of each speedup type you plan to use this KvK Prep Phase.')}</p>
+
+      {/* Number inputs — always visible */}
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '0.75rem' }}>
+        {SPEEDUP_TYPES.map(st => (
+          <div key={st.key}>
+            <label style={labelStyle}>{st.icon} {t(st.i18nKey, st.fallback)}</label>
+            <input type="number" value={values[st.key] || ''} onChange={(e) => setters[st.key](parseInt(e.target.value) || 0)} placeholder="0" style={inputStyle} min={0} />
+          </div>
+        ))}
+      </div>
+
+      {/* Advanced mode: percentage sliders + visual distribution */}
+      {advancedMode && (
+        <div style={{ marginTop: '1rem', paddingTop: '0.75rem', borderTop: `1px solid ${colors.border}` }}>
+          {/* Total summary */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.6rem' }}>
+            <span style={{ color: colors.textSecondary, fontSize: '0.75rem', fontWeight: 600 }}>
+              {t('prepScheduler.totalSpeedups', 'Total')}: <span style={{ color: '#a855f7', fontFamily: "'JetBrains Mono', monospace" }}>{formatTime(total)}</span>
+            </span>
+            {total > 0 && (
+              <span style={{ color: colors.textMuted, fontSize: '0.65rem' }}>
+                {t('prepScheduler.distribution', 'Distribution')} ↓
+              </span>
+            )}
+          </div>
+
+          {/* Visual distribution bar */}
+          {total > 0 && (
+            <div style={{ display: 'flex', height: '8px', borderRadius: '4px', overflow: 'hidden', marginBottom: '0.75rem', backgroundColor: `${colors.border}` }}>
+              {SPEEDUP_TYPES.map(st => {
+                const p = pct(values[st.key]);
+                return p > 0 ? (
+                  <div key={st.key} style={{ width: `${p}%`, backgroundColor: st.color, transition: 'width 0.3s ease' }} title={`${t(st.i18nKey, st.fallback)}: ${p}%`} />
+                ) : null;
+              })}
+            </div>
+          )}
+
+          {/* Per-type slider bars */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            {SPEEDUP_TYPES.map(st => {
+              const v = values[st.key];
+              const p = pct(v);
+              const maxSlider = Math.max(total * 2, 10000); // Slider max = 2x total or 10k mins
+              return (
+                <div key={st.key}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
+                    <span style={{ color: st.color, fontSize: '0.7rem', fontWeight: 600 }}>{st.icon} {t(st.i18nKey, st.fallback)}</span>
+                    <span style={{ color: colors.textMuted, fontSize: '0.65rem', fontFamily: "'JetBrains Mono', monospace" }}>
+                      {formatTime(v)} {total > 0 && <span style={{ color: st.color }}>({p}%)</span>}
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={maxSlider}
+                    step={30}
+                    value={v}
+                    onChange={(e) => setters[st.key](parseInt(e.target.value) || 0)}
+                    style={{
+                      width: '100%', height: '6px', appearance: 'none', WebkitAppearance: 'none',
+                      background: `linear-gradient(to right, ${st.color} 0%, ${st.color} ${(v / maxSlider) * 100}%, ${colors.border} ${(v / maxSlider) * 100}%, ${colors.border} 100%)`,
+                      borderRadius: '3px', outline: 'none', cursor: 'pointer',
+                    }}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const PrepSchedulerForm: React.FC<PrepSchedulerFormProps> = (props) => {
   const { t } = useTranslation();
@@ -205,16 +334,15 @@ const PrepSchedulerForm: React.FC<PrepSchedulerFormProps> = (props) => {
           })}
 
           {/* Speedups */}
-          <div style={cardStyle}>
-            <label style={{ ...labelStyle, marginBottom: '0.5rem', fontSize: '0.85rem' }}>⏱️ {t('prepScheduler.speedups', 'Speedups (in minutes)')}</label>
-            <p style={{ color: colors.textMuted, fontSize: '0.7rem', marginBottom: '0.75rem' }}>{t('prepScheduler.speedupsDesc', 'Total minutes of each speedup type you plan to use this KvK Prep Phase.')}</p>
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '0.75rem' }}>
-              <div><label style={labelStyle}>🔧 {t('prepScheduler.general', 'General')}</label><input type="number" value={generalSpeedups || ''} onChange={(e) => setGeneralSpeedups(parseInt(e.target.value) || 0)} placeholder="0" style={inputStyle} min={0} /></div>
-              <div><label style={labelStyle}>⚔️ {t('prepScheduler.training', 'Training')}</label><input type="number" value={trainingSpeedups || ''} onChange={(e) => setTrainingSpeedups(parseInt(e.target.value) || 0)} placeholder="0" style={inputStyle} min={0} /></div>
-              <div><label style={labelStyle}>🏗️ {t('prepScheduler.construction', 'Construction')}</label><input type="number" value={constructionSpeedups || ''} onChange={(e) => setConstructionSpeedups(parseInt(e.target.value) || 0)} placeholder="0" style={inputStyle} min={0} /></div>
-              <div><label style={labelStyle}>🔬 {t('prepScheduler.research', 'Research')}</label><input type="number" value={researchSpeedups || ''} onChange={(e) => setResearchSpeedups(parseInt(e.target.value) || 0)} placeholder="0" style={inputStyle} min={0} /></div>
-            </div>
-          </div>
+          <SpeedupSection
+            isMobile={isMobile}
+            generalSpeedups={generalSpeedups} setGeneralSpeedups={setGeneralSpeedups}
+            trainingSpeedups={trainingSpeedups} setTrainingSpeedups={setTrainingSpeedups}
+            constructionSpeedups={constructionSpeedups} setConstructionSpeedups={setConstructionSpeedups}
+            researchSpeedups={researchSpeedups} setResearchSpeedups={setResearchSpeedups}
+            inputStyle={inputStyle} labelStyle={labelStyle} cardStyle={cardStyle}
+            t={t}
+          />
 
           {/* General Speedup Target */}
           <div style={cardStyle}>

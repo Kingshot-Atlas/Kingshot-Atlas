@@ -33,8 +33,8 @@
     "battlePlanner_2": "플래너",
     "atlasBot_1": "Discord",
     "atlasBot_2": "Bot Atlas",
-    "giftCode_1": "기프트 코드",
-    "giftCode_2": "교환",
+    "giftCode_1": "기프트",
+    "giftCode_2": "코드",
     "rankings_1": "왕국",
     "rankings_2": "랭킹",
     "kvkSeasons_1": "KvK",
@@ -2293,7 +2293,11 @@
     "markViewed": "확인됨으로 표시",
     "cancelApproval": "승인 취소",
     "translate": "번역",
+    "translating": "번역 중...",
     "hideTranslation": "번역 숨기기",
+    "translateAll": "모두 번역",
+    "translationOn": "번역 켜짐",
+    "machineTranslation": "기계 번역 · 정확하지 않을 수 있음",
     "moveToWatchlist": "관심 목록으로 이동",
     "addedToWatchlist": "관심 목록에 추가됨"
   },
@@ -2520,7 +2524,11 @@
     "goldTierRequiredDesc": "KvK 준비 스케줄러는 골드 등급 왕국에서 사용할 수 있습니다. 왕국 기금을 통해 골드 등급에 도달하도록 독려하세요!",
     "editingResponse": "기존 응답 수정 중",
     "viewReport": "보고서 보기",
-    "autoFilled": "연결된 왕국에서 자동 입력되었습니다."
+    "autoFilled": "연결된 왕국에서 자동 입력되었습니다.",
+    "simpleMode": "간단",
+    "advancedMode": "고급",
+    "totalSpeedups": "합계",
+    "distribution": "분포"
   },
   "prepLanding": {
     "featAutoAssign": "자동 슬롯 배정",

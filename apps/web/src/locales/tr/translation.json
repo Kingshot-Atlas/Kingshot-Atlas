@@ -33,8 +33,8 @@
     "battlePlanner_2": "Planlayıcı",
     "atlasBot_1": "Discord",
     "atlasBot_2": "Bot Atlas",
-    "giftCode_1": "Hediye Kodu",
-    "giftCode_2": "Kullan",
+    "giftCode_1": "Hediye",
+    "giftCode_2": "Kodları",
     "rankings_1": "Krallık",
     "rankings_2": "Sıralaması",
     "kvkSeasons_1": "KvK",
@@ -2293,7 +2293,11 @@
     "markViewed": "Görüldü Olarak İşaretle",
     "cancelApproval": "Onayı İptal Et",
     "translate": "Çevir",
+    "translating": "Çevriliyor...",
     "hideTranslation": "Çeviriyi gizle",
+    "translateAll": "Tümünü Çevir",
+    "translationOn": "Çeviri AÇIK",
+    "machineTranslation": "Makine çevirisi · doğru olmayabilir",
     "moveToWatchlist": "İzleme Listesine Taşı",
     "addedToWatchlist": "İzleme Listesine Eklendi"
   },
@@ -2520,7 +2524,11 @@
     "goldTierRequiredDesc": "KvK Hazırlık Zamanlayıcısı Altın Seviye krallıklar için kullanılabilir. Krallığınızı Krallık Fonu aracılığıyla Altın Seviyeye ulaşmaya teşvik edin!",
     "editingResponse": "Mevcut yanıtınız düzenleniyor",
     "viewReport": "Raporu Görüntüle",
-    "autoFilled": "Bağlı krallığınızdan otomatik dolduruldu."
+    "autoFilled": "Bağlı krallığınızdan otomatik dolduruldu.",
+    "simpleMode": "Basit",
+    "advancedMode": "Gelişmiş",
+    "totalSpeedups": "Toplam",
+    "distribution": "Dağılım"
   },
   "prepLanding": {
     "featAutoAssign": "Otomatik Slot Ataması",

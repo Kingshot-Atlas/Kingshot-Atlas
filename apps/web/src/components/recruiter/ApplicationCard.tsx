@@ -5,7 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { colors } from '../../utils/styles';
 import { logger } from '../../utils/logger';
-import { translateMessage } from '../../utils/translateMessage';
+import { translateMessage, getBrowserLanguage } from '../../utils/translateMessage';
 import type { IncomingApplication } from './types';
 import { formatTCLevel, STATUS_ACTIONS, STATUS_LABELS, inputStyle } from './types';
 
@@ -44,7 +44,9 @@ const ApplicationCard: React.FC<{
   // Translation state
   const [translations, setTranslations] = useState<Record<string, string>>({});
   const [translatingId, setTranslatingId] = useState<string | null>(null);
-  const browserLang = (navigator.language || 'en').split('-')[0] || 'en';
+  const [translateAll, setTranslateAll] = useState(false);
+  const [translatingAll, setTranslatingAll] = useState(false);
+  const browserLang = getBrowserLanguage();
   // Outcome tracking state
   const [showOutcomePrompt, setShowOutcomePrompt] = useState(false);
   const [outcomeSubmitting, setOutcomeSubmitting] = useState(false);
@@ -112,6 +114,26 @@ const ApplicationCard: React.FC<{
   }, [messages.length]);
 
   // Check if recruiter already submitted outcome for this application
+  // Auto-translate all messages when translateAll is toggled on
+  useEffect(() => {
+    if (!translateAll || messages.length === 0 || browserLang === 'en') return;
+    const untranslated = messages.filter(m => m.sender_user_id !== user?.id && !translations[m.id]);
+    if (untranslated.length === 0) return;
+    let cancelled = false;
+    setTranslatingAll(true);
+    (async () => {
+      for (const msg of untranslated) {
+        if (cancelled) break;
+        try {
+          const result = await translateMessage(msg.message, browserLang);
+          if (!cancelled) setTranslations(prev => ({ ...prev, [msg.id]: result }));
+        } catch { /* logged in util */ }
+      }
+      if (!cancelled) setTranslatingAll(false);
+    })();
+    return () => { cancelled = true; setTranslatingAll(false); };
+  }, [translateAll, messages.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     if (application.status !== 'accepted' || !supabase || !user) return;
     supabase
@@ -485,6 +507,38 @@ const ApplicationCard: React.FC<{
                 maxHeight: '200px',
                 overflowY: 'auto',
               }}>
+                {/* Translate All toggle + disclaimer */}
+                {messages.length > 0 && browserLang !== 'en' && messages.some(m => m.sender_user_id !== user?.id) && (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem', paddingBottom: '0.3rem', borderBottom: '1px solid #ffffff08' }}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (translateAll) {
+                          setTranslateAll(false);
+                          setTranslations({});
+                        } else {
+                          setTranslateAll(true);
+                        }
+                      }}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '0.3rem',
+                        background: translateAll ? '#a78bfa15' : 'none',
+                        border: `1px solid ${translateAll ? '#a78bfa40' : '#ffffff15'}`,
+                        borderRadius: '5px', padding: '0.2rem 0.5rem',
+                        color: translateAll ? '#a78bfa' : '#6b7280',
+                        fontSize: '0.6rem', fontWeight: '600', cursor: 'pointer',
+                        transition: 'all 0.2s',
+                      }}
+                    >
+                      {translatingAll ? '⏳' : '🌐'} {translateAll ? t('appCard.translationOn', 'Translation ON') : t('appCard.translateAll', 'Translate All')}
+                    </button>
+                    {translateAll && (
+                      <span style={{ color: '#6b7280', fontSize: '0.5rem', fontStyle: 'italic' }}>
+                        {t('appCard.machineTranslation', 'Machine translation · may not be accurate')}
+                      </span>
+                    )}
+                  </div>
+                )}
                 {messages.length === 0 && (
                   <p style={{ color: colors.textMuted, fontSize: '0.7rem', textAlign: 'center', margin: '0.5rem 0' }}>
                     {t('appCard.noMessagesYet', 'No messages yet. Start the conversation.')}
@@ -533,7 +587,7 @@ const ApplicationCard: React.FC<{
                               disabled={translatingId === msg.id}
                               style={{ background: 'none', border: 'none', color: translated ? '#a78bfa' : '#6b7280', fontSize: '0.48rem', cursor: 'pointer', padding: '0 0.15rem', fontWeight: 600, opacity: translatingId === msg.id ? 0.5 : 1 }}
                             >
-                              {translatingId === msg.id ? '...' : translated ? t('appCard.hideTranslation', 'Hide translation') : `🌐 ${t('appCard.translate', 'Translate')}`}
+                              {translatingId === msg.id ? `⏳ ${t('appCard.translating', 'Translating...')}` : translated ? t('appCard.hideTranslation', 'Hide translation') : `🌐 ${t('appCard.translate', 'Translate')}`}
                             </button>
                           )}
                         </div>

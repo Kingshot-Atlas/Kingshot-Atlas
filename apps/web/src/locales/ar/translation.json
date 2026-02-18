@@ -2317,7 +2317,11 @@
     "markViewed": "تحديد كمُشاهَد",
     "cancelApproval": "إلغاء الموافقة",
     "translate": "ترجمة",
+    "translating": "جارٍ الترجمة...",
     "hideTranslation": "إخفاء الترجمة",
+    "translateAll": "ترجمة الكل",
+    "translationOn": "الترجمة مُفعّلة",
+    "machineTranslation": "ترجمة آلية · قد لا تكون دقيقة",
     "moveToWatchlist": "نقل إلى قائمة المتابعة",
     "addedToWatchlist": "تمت الإضافة إلى قائمة المتابعة"
   },
@@ -2544,7 +2548,11 @@
     "goldTierRequiredDesc": "مجدول إعداد KvK متاح لممالك المستوى الذهبي. شجع مملكتك على الوصول للمستوى الذهبي عبر صندوق المملكة!",
     "editingResponse": "تعديل ردك الحالي",
     "viewReport": "عرض التقرير",
-    "autoFilled": "تم الملء تلقائياً من مملكتك المرتبطة."
+    "autoFilled": "تم الملء تلقائياً من مملكتك المرتبطة.",
+    "simpleMode": "بسيط",
+    "advancedMode": "متقدم",
+    "totalSpeedups": "المجموع",
+    "distribution": "التوزيع"
   },
   "prepLanding": {
     "featAutoAssign": "تعيين تلقائي للفترات",

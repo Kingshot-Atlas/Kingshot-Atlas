@@ -33,8 +33,8 @@
     "battlePlanner_2": "プランナー",
     "atlasBot_1": "Discord",
     "atlasBot_2": "Bot Atlas",
-    "giftCode_1": "ギフトコード",
-    "giftCode_2": "交換",
+    "giftCode_1": "ギフト",
+    "giftCode_2": "コード",
     "rankings_1": "王国",
     "rankings_2": "ランキング",
     "kvkSeasons_1": "KvK",
@@ -2293,7 +2293,11 @@
     "markViewed": "閲覧済みにする",
     "cancelApproval": "承認を取り消す",
     "translate": "翻訳",
+    "translating": "翻訳中...",
     "hideTranslation": "翻訳を非表示",
+    "translateAll": "すべて翻訳",
+    "translationOn": "翻訳オン",
+    "machineTranslation": "機械翻訳 · 正確でない場合があります",
     "moveToWatchlist": "ウォッチリストに移動",
     "addedToWatchlist": "ウォッチリストに追加済み"
   },
@@ -2520,7 +2524,11 @@
     "goldTierRequiredDesc": "KvKプレップスケジューラーはゴールドティア王国で利用可能です。王国ファンドを通じてゴールドティアに到達するよう王国を励ましましょう！",
     "editingResponse": "既存の回答を編集中",
     "viewReport": "レポートを見る",
-    "autoFilled": "リンクされた王国から自動入力されました。"
+    "autoFilled": "リンクされた王国から自動入力されました。",
+    "simpleMode": "シンプル",
+    "advancedMode": "詳細",
+    "totalSpeedups": "合計",
+    "distribution": "分布"
   },
   "prepLanding": {
     "featAutoAssign": "自動スロット割り当て",

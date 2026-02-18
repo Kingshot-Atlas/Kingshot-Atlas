@@ -2293,7 +2293,11 @@
     "markViewed": "Marquer comme Vu",
     "cancelApproval": "Annuler l'Approbation",
     "translate": "Traduire",
+    "translating": "Traduction en cours...",
     "hideTranslation": "Masquer la traduction",
+    "translateAll": "Tout Traduire",
+    "translationOn": "Traduction ACTIVÉE",
+    "machineTranslation": "Traduction automatique · peut ne pas être exacte",
     "moveToWatchlist": "Déplacer vers la Liste de Suivi",
     "addedToWatchlist": "Ajouté à la Liste de Suivi"
   },
@@ -2520,7 +2524,11 @@
     "goldTierRequiredDesc": "Le Planificateur de Prep KvK est disponible pour les royaumes Niveau Or. Encouragez votre royaume à atteindre le Niveau Or via le Fonds du Royaume !",
     "editingResponse": "Modification de votre réponse existante",
     "viewReport": "Voir le Rapport",
-    "autoFilled": "Rempli automatiquement depuis votre royaume lié."
+    "autoFilled": "Rempli automatiquement depuis votre royaume lié.",
+    "simpleMode": "Simple",
+    "advancedMode": "Avancé",
+    "totalSpeedups": "Total",
+    "distribution": "Répartition"
   },
   "prepLanding": {
     "featAutoAssign": "Assignation Automatique des Créneaux",

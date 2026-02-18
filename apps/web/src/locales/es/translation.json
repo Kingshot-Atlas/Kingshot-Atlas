@@ -2293,7 +2293,11 @@
     "markViewed": "Marcar como Visto",
     "cancelApproval": "Cancelar Aprobación",
     "translate": "Traducir",
+    "translating": "Traduciendo...",
     "hideTranslation": "Ocultar traducción",
+    "translateAll": "Traducir Todo",
+    "translationOn": "Traducción ACTIVADA",
+    "machineTranslation": "Traducción automática · puede no ser precisa",
     "moveToWatchlist": "Mover a Lista de Seguimiento",
     "addedToWatchlist": "Agregado a Lista de Seguimiento"
   },
@@ -2520,7 +2524,11 @@
     "goldTierRequiredDesc": "El Programador de Prep KvK está disponible para reinos de Nivel Oro. ¡Anima a tu reino a alcanzar el Nivel Oro a través del Fondo del Reino para desbloquear esta herramienta!",
     "editingResponse": "Editando tu respuesta existente",
     "viewReport": "Ver Reporte",
-    "autoFilled": "Autocompletado desde tu reino vinculado."
+    "autoFilled": "Autocompletado desde tu reino vinculado.",
+    "simpleMode": "Simple",
+    "advancedMode": "Avanzado",
+    "totalSpeedups": "Total",
+    "distribution": "Distribución"
   },
   "prepLanding": {
     "featAutoAssign": "Asignación Automática de Turnos",

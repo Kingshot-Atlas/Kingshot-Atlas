@@ -35,6 +35,7 @@ const config = require('./config');
 const commands = require('./commands');
 const handlers = require('./commands/handlers');
 const logger = require('./utils/logger');
+const { createWelcomeEmbed } = require('./utils/embeds');
 const scheduler = require('./scheduler');
 const telemetry = require('./telemetry');
 

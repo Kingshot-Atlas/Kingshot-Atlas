@@ -33,8 +33,8 @@
     "battlePlanner_2": "Planner",
     "atlasBot_1": "Discord",
     "atlasBot_2": "Bot Atlas",
-    "giftCode_1": "Gift Code",
-    "giftCode_2": "Redeemer",
+    "giftCode_1": "Gift",
+    "giftCode_2": "Codes",
     "rankings_1": "Kingdom",
     "rankings_2": "Rankings",
     "kvkSeasons_1": "KvK",
@@ -2218,7 +2218,11 @@
     "markViewed": "Mark Viewed",
     "cancelApproval": "Cancel Approval",
     "translate": "Translate",
+    "translating": "Translating...",
     "hideTranslation": "Hide translation",
+    "translateAll": "Translate All",
+    "translationOn": "Translation ON",
+    "machineTranslation": "Machine translation · may not be accurate",
     "moveToWatchlist": "Move to Watchlist",
     "addedToWatchlist": "Added to Watchlist"
   },
@@ -2445,7 +2449,11 @@
     "goldTierRequiredDesc": "The KvK Prep Scheduler is available for Gold Tier kingdoms. Encourage your kingdom to reach Gold tier through the Kingdom Fund to unlock this tool!",
     "editingResponse": "Editing your existing response",
     "viewReport": "View Report",
-    "autoFilled": "Auto-filled from your linked kingdom."
+    "autoFilled": "Auto-filled from your linked kingdom.",
+    "simpleMode": "Simple",
+    "advancedMode": "Advanced",
+    "totalSpeedups": "Total",
+    "distribution": "Distribution"
   },
   "prepLanding": {
     "featAutoAssign": "Automated Slot Assignment",

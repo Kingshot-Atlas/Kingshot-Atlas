@@ -3,6 +3,24 @@
 import { logger } from './logger';
 
 const CACHE = new Map<string, string>();
+const STORAGE_KEY = 'atlas_translation_cache';
+
+// Hydrate in-memory cache from sessionStorage on load
+try {
+  const stored = sessionStorage.getItem(STORAGE_KEY);
+  if (stored) {
+    const entries: [string, string][] = JSON.parse(stored);
+    entries.forEach(([k, v]) => CACHE.set(k, v));
+  }
+} catch { /* ignore parse errors */ }
+
+function persistCache() {
+  try {
+    // Keep max 200 entries to avoid storage bloat
+    const entries = [...CACHE.entries()].slice(-200);
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+  } catch { /* storage full or unavailable */ }
+}
 
 export async function translateMessage(text: string, targetLang: string): Promise<string> {
   if (!text.trim()) return text;
@@ -26,6 +44,7 @@ export async function translateMessage(text: string, targetLang: string): Promis
     const translated = data?.responseData?.translatedText;
     if (translated && translated !== text) {
       CACHE.set(cacheKey, translated);
+      persistCache();
       return translated;
     }
     return text;

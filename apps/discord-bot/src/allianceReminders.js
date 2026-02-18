@@ -10,6 +10,7 @@
  *   viking_vengeance   — Biweekly: Tuesday & Thursday
  *   swordland_showdown — Biweekly: Sunday
  *   tri_alliance_clash — Monthly (every 4 weeks): Saturday
+ *   arena              — Daily (before midnight reset)
  * 
  * Requires env vars: SUPABASE_URL, SUPABASE_SERVICE_KEY
  */
@@ -29,6 +30,7 @@ const EVENT_DISPLAY = {
   viking_vengeance:   { label: 'Viking Vengeance',   emoji: '⚔️',  color: 0xef4444 },
   swordland_showdown: { label: 'Swordland Showdown', emoji: '🗡️',  color: 0xa855f7 },
   tri_alliance_clash: { label: 'Tri-Alliance Clash', emoji: '🛡️',  color: 0x3b82f6 },
+  arena:              { label: 'Arena',               emoji: '🏟️', color: 0x22d3ee },
 };
 
 // ─── Event Cycles ────────────────────────────────────────────────────────────
@@ -38,6 +40,7 @@ const EVENT_CYCLES = {
   viking_vengeance:   { type: 'biweekly',      weekDays: [2, 4] },   // Tue, Thu
   swordland_showdown: { type: 'biweekly',      weekDays: [0] },      // Sun
   tri_alliance_clash: { type: 'monthly',        weekDays: [6], cycleWeeks: 4 }, // Sat, every 4 weeks
+  arena:              { type: 'daily' },                              // Every day
 };
 
 // ─── Supabase REST Helper ────────────────────────────────────────────────────
@@ -100,6 +103,9 @@ function isEventDay(eventType, referenceDate, now) {
       const diffWeeks = Math.floor((today - ref) / (7 * 86400000));
       return diffWeeks >= 0 && diffWeeks % cycle.cycleWeeks === 0;
     }
+
+    case 'daily':
+      return true; // Fires every day
 
     default:
       return false;
@@ -195,6 +201,7 @@ async function sendReminder(client, event, guild, slot, channelId, now) {
       viking_vengeance: 'Time to fight for glory!',
       swordland_showdown: 'Ready your blades and fight for dominance!',
       tri_alliance_clash: 'Coordinate with your allies!',
+      arena: 'Arena resets at midnight UTC! Use your attempts before they expire.',
     };
     const baseMsg = customMsg || defaultMessages[event.event_type] || `${meta.label} is starting soon!`;
     const description = `${baseMsg}\nJoin us at **${timeStr}**.`;

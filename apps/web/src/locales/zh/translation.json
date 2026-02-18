@@ -33,8 +33,8 @@
     "battlePlanner_2": "规划器",
     "atlasBot_1": "Discord",
     "atlasBot_2": "Bot Atlas",
-    "giftCode_1": "礼品码",
-    "giftCode_2": "兑换",
+    "giftCode_1": "礼品",
+    "giftCode_2": "码",
     "rankings_1": "王国",
     "rankings_2": "排名",
     "kvkSeasons_1": "KvK",
@@ -2293,7 +2293,11 @@
     "markViewed": "标记为已查看",
     "cancelApproval": "取消批准",
     "translate": "翻译",
+    "translating": "翻译中...",
     "hideTranslation": "隐藏翻译",
+    "translateAll": "全部翻译",
+    "translationOn": "翻译已开启",
+    "machineTranslation": "机器翻译 · 可能不准确",
     "moveToWatchlist": "移至关注列表",
     "addedToWatchlist": "已添加至关注列表"
   },
@@ -2520,7 +2524,11 @@
     "goldTierRequiredDesc": "KvK准备排程器适用于黄金等级王国。鼓励你的王国通过王国基金达到黄金等级来解锁此工具！",
     "editingResponse": "正在编辑你的现有回复",
     "viewReport": "查看报告",
-    "autoFilled": "已从你关联的王国自动填充。"
+    "autoFilled": "已从你关联的王国自动填充。",
+    "simpleMode": "简单",
+    "advancedMode": "高级",
+    "totalSpeedups": "总计",
+    "distribution": "分布"
   },
   "prepLanding": {
     "featAutoAssign": "自动时段分配",

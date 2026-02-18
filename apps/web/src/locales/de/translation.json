@@ -33,8 +33,8 @@
     "battlePlanner_2": "planer",
     "atlasBot_1": "Discord",
     "atlasBot_2": "Bot Atlas",
-    "giftCode_1": "Geschenkcode",
-    "giftCode_2": "einlösen",
+    "giftCode_1": "Geschenk-",
+    "giftCode_2": "codes",
     "rankings_1": "Königreich-",
     "rankings_2": "Ranglisten",
     "kvkSeasons_1": "KvK-",
@@ -2293,7 +2293,11 @@
     "markViewed": "Als gesehen markieren",
     "cancelApproval": "Genehmigung aufheben",
     "translate": "Übersetzen",
+    "translating": "Übersetze...",
     "hideTranslation": "Übersetzung ausblenden",
+    "translateAll": "Alle übersetzen",
+    "translationOn": "Übersetzung EIN",
+    "machineTranslation": "Maschinelle Übersetzung · möglicherweise nicht genau",
     "moveToWatchlist": "Zur Beobachtungsliste verschieben",
     "addedToWatchlist": "Zur Beobachtungsliste hinzugefügt"
   },
@@ -2520,7 +2524,11 @@
     "goldTierRequiredDesc": "Der KvK-Prep-Planer ist für Gold-Rang-Königreiche verfügbar. Ermutigen Sie Ihr Königreich, den Gold-Rang über den Königreichsfonds zu erreichen!",
     "editingResponse": "Bearbeitung Ihrer bestehenden Antwort",
     "viewReport": "Bericht anzeigen",
-    "autoFilled": "Automatisch aus Ihrem verknüpften Königreich ausgefüllt."
+    "autoFilled": "Automatisch aus Ihrem verknüpften Königreich ausgefüllt.",
+    "simpleMode": "Einfach",
+    "advancedMode": "Erweitert",
+    "totalSpeedups": "Gesamt",
+    "distribution": "Verteilung"
   },
   "prepLanding": {
     "featAutoAssign": "Automatische Slot-Zuweisung",
