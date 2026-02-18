@@ -24,7 +24,9 @@
     "kingdom": "مملكة",
     "wins": "انتصارات",
     "losses": "هزائم",
-    "clear": "مسح"
+    "clear": "مسح",
+    "allTools": "← جميع الأدوات",
+    "copied": "تم النسخ!"
   },
   "quickAction": {
     "transferHub_1": "مركز",
@@ -62,7 +64,8 @@
     "ambassadors": "السفراء",
     "contributeData": "المساهمة بالبيانات",
     "aboutAtlas": "عن Atlas",
-    "kingdomCommunities": "مستعمرات الممالك"
+    "kingdomCommunities": "مستعمرات الممالك",
+    "giftCodes": "رموز الهدايا"
   },
   "stats": {
     "atlasScore": "نقاط Atlas",
@@ -183,7 +186,8 @@
     "region": "المنطقة",
     "townCenter": "مركز المدينة",
     "viewProfile": "عرض الملف",
-    "youCanUpdate": "يمكنك تحديث هذا"
+    "youCanUpdate": "يمكنك تحديث هذا",
+    "chipInToFund": "المساهمة في الصندوق"
   },
   "rankings": {
     "subtitle": "من يتصدر؟ البيانات لا تكذب.",
@@ -214,7 +218,8 @@
     "combinedPowerTitle": "ما هو مستوى القوة المجمعة؟",
     "combinedPowerDesc": "مجموع نقاط Atlas لكلتا المملكتين عند دخول المواجهة. نقاط أعلى = معارك أكثر تنافسية.",
     "scoreTimingTitle": "توقيت النقاط",
-    "scoreTimingDesc": "تعكس النقاط نقاط Atlas لكل مملكة قبل بدء المعركة — بناءً على سجلها حتى تلك اللحظة."
+    "scoreTimingDesc": "تعكس النقاط نقاط Atlas لكل مملكة قبل بدء المعركة — بناءً على سجلها حتى تلك اللحظة.",
+    "addMatchup": "إضافة مواجهة"
   },
   "compare": {
     "heroTitle1": "مقارنة",
@@ -335,7 +340,20 @@
     "accessUnlocked": "تم فتح الوصول",
     "supporterConfirm": "لديك وصول كامل كداعم Atlas.",
     "supporterThanks": "لديك وصول كامل إلى مخطط المعركة.",
-    "supporterThanksDesc": "شكراً لدعمك Atlas. انتقل مباشرة إلى المخطط ونسق هجومك القادم على القلعة."
+    "supporterThanksDesc": "شكراً لدعمك Atlas. انتقل مباشرة إلى المخطط ونسق هجومك القادم على القلعة.",
+    "accessRequired": "مطلوب المستوى الذهبي",
+    "getGoldAccess": "كيفية الوصول للمستوى الذهبي",
+    "goldBadge": "ميزة المملكة الذهبية",
+    "goldConfirm": "لديك وصول كامل كعضو في مملكة ذهبية.",
+    "goldDesc": "مخطط المعركة متاح لممالك المستوى الذهبي. ساهم في صندوق المملكة.",
+    "goldPerk": "متاح لممالك المستوى الذهبي. ساهم في صندوق المملكة.",
+    "goldThanks": "لديك وصول كامل لمخطط المعركة.",
+    "goldThanksDesc": "حققت مملكتك المستوى الذهبي. انتقل مباشرة إلى المخطط.",
+    "goldTitle": "تحالفك يستحق تنسيقاً أفضل.",
+    "reachGold": "الوصول للمستوى الذهبي",
+    "tabCounter": "هجوم مضاد",
+    "tabPlayers": "لاعبون",
+    "tabRally": "تجمع"
   },
   "battlePlannerBanner": {
     "dismiss": "إغلاق بانر مخطط المعارك",
@@ -490,12 +508,8 @@
     "free5Desc": "إحصائيات كاملة وسجل أداء",
     "free6Title": "تقويم الأحداث",
     "free6Desc": "جداول KvK وأحداث الانتقال",
-    "perk7Desc": "فتح تصنيفات غير محدودة (مجاني: أفضل 25)",
-    "perk7Title": "تصنيفات كاملة",
     "perk8Title": "استبدال الأكواد بالجملة",
     "perk8Desc": "استبدل أكواد الهدايا لجميع حساباتك البديلة دفعة واحدة",
-    "perk9Title": "مقارنة محسّنة",
-    "perk9Desc": "قارن حتى 5 ممالك جنباً إلى جنب (مجاني: 3)",
     "perk10Title": "لوحة تحكم بوت Atlas",
     "perk10Desc": "مركز القيادة الخاص بك. إعداد التذكيرات وتنبيهات الأكواد وإدارة عدة سيرفرات — كل ذلك من شاشة واحدة."
   },
@@ -681,7 +695,8 @@
     "signInFailed": "فشل تسجيل الدخول. يرجى المحاولة مرة أخرى.",
     "discordOpensInBrowser": "يفتح Discord في متصفحك",
     "discordBrowserHint": "Discord يتطلب تسجيل الدخول عبر المتصفح للأمان.",
-    "oauthDisclaimer": "نستخدم مزودي OAuth لمنع الحسابات المزيفة."
+    "oauthDisclaimer": "نستخدم مزودي OAuth لمنع الحسابات المزيفة.",
+    "termsLink": "بالتسجيل توافق على شروط الخدمة"
   },
   "notifications": {
     "title": "الإشعارات",
@@ -723,12 +738,6 @@
     "submitReview": "إرسال المراجعة",
     "loading": "جارٍ تحميل المراجعات...",
     "reviewCount": "{{count}} مراجعة",
-    "reviewCount_zero": "لا مراجعات",
-    "reviewCount_one": "مراجعة واحدة",
-    "reviewCount_two": "مراجعتان",
-    "reviewCount_few": "{{count}} مراجعات",
-    "reviewCount_many": "{{count}} مراجعة",
-    "reviewCount_other": "{{count}} مراجعة",
     "moreNeeded": "{{count}} مراجعة إضافية مطلوبة لشارة تقييم Google",
     "badgeEarned": "هذه المملكة مؤهلة لشارة تقييم Google",
     "sortBy": "ترتيب حسب:",
@@ -1339,7 +1348,8 @@
       "minAtlasScore": "أدنى نقاط Atlas",
       "minMatchScore": "أدنى نقاط توافق",
       "activelyRecruiting": "التجنيد النشط فقط",
-      "clearFilters": "مسح التصفيات"
+      "clearFilters": "مسح التصفيات",
+      "applyFilters": "تطبيق الفلاتر"
     },
     "allGroups": "جميع المجموعات",
     "compare": {
@@ -1352,7 +1362,29 @@
     "linkKingdom": "اربط مملكتك للفلتر التلقائي",
     "myGroup": "مجموعتي",
     "showingKingdoms": "عرض الممالك",
-    "transferGroup": "مجموعة النقل"
+    "transferGroup": "مجموعة النقل",
+    "error": {
+      "description": "حدث خطأ أثناء تحميل مركز النقل.",
+      "retry": "إعادة المحاولة",
+      "title": "خطأ في التحميل"
+    },
+    "field": {
+      "bio": "السيرة",
+      "contact": "الاتصال",
+      "groupSize": "حجم المجموعة",
+      "kvkAvail": "توفر حرب الممالك",
+      "language": "اللغة",
+      "lookingFor": "يبحث عن",
+      "power": "القوة",
+      "savingFor": "يدخر من أجل",
+      "schedule": "الجدول",
+      "visibility": "الرؤية"
+    },
+    "missingFields": "حقول مطلوبة مفقودة",
+    "nominationCancelled": "تم إلغاء الترشيح",
+    "nominationCancelledDesc": "تم إلغاء ترشيحك كمحرر مشارك.",
+    "playersInAtlas": "لاعبون في أطلس",
+    "tapToComplete": "انقر للإكمال →"
   },
   "listing": {
     "allianceEventTimes": "أوقات أحداث التحالف",
@@ -1406,12 +1438,6 @@
     "availableSlots": "الأماكن المتاحة",
     "detail": "التفاصيل",
     "reviewCount": "{{count}} مراجعة",
-    "reviewCount_zero": "لا مراجعات",
-    "reviewCount_one": "مراجعة واحدة",
-    "reviewCount_two": "مراجعتان",
-    "reviewCount_few": "{{count}} مراجعات",
-    "reviewCount_many": "{{count}} مراجعة",
-    "reviewCount_other": "{{count}} مراجعة",
     "fundedListingsPromo": "✨ القوائم الممولة تحصل على إطارات لامعة وتوهجات ورؤية أكثر",
     "share": "مشاركة",
     "linkCopied": "تم نسخ الرابط!",
@@ -1425,7 +1451,11 @@
     "yourKingdom": "مملكتك",
     "updatedDaysAgo": "محدّث منذ {{days}} يوم",
     "updatedToday": "محدّث اليوم",
-    "updatedYesterday": "محدّث أمس"
+    "updatedYesterday": "محدّث أمس",
+    "allianceInfo": "معلومات التحالف",
+    "goldPerksV2": "مزايا المستوى الذهبي",
+    "hideDetails": "إخفاء التفاصيل",
+    "seeDetails": "عرض التفاصيل"
   },
   "editor": {
     "activated": "تم التفعيل!",
@@ -1483,7 +1513,10 @@
     "coEditorInvitation": "دعوة محرر مشارك",
     "coEditorInviteDesc": "تمت دعوتك للتحرير المشترك للوحة تجنيد المملكة {{kingdom}}.",
     "coEditorInviteDescBy": "{{inviter}} دعاك للتحرير المشترك للوحة تجنيد المملكة {{kingdom}}.",
-    "declineInvite": "رفض"
+    "declineInvite": "رفض",
+    "anotherEditorEndorsed": "محرر آخر أيد هذه المملكة.",
+    "applyAsCoEditor": "التقدم كمحرر مشارك",
+    "nominationCancelled": "تم إلغاء الترشيح"
   },
   "recruiter": {
     "loading": "جارٍ تحميل اللوحة...",
@@ -1584,7 +1617,19 @@
     "coEditorRequestPending": "طلب محرر مشارك معلق",
     "noStatusChanges": "لا تغييرات في الحالة بعد",
     "requestAwaitingApproval": "طلبك للتحرير المشترك للمملكة {{kingdom}} بانتظار موافقة المحرر. سيتم إخطارك عند المراجعة.",
-    "statusHistory": "سجل حالة النقل"
+    "statusHistory": "سجل حالة النقل",
+    "analytics": "تحليلات",
+    "basedOnListing": "بناءً على معايير إعلانك",
+    "clearSelection": "مسح التحديد",
+    "downloadCsv": "تحميل CSV",
+    "last30Days": "آخر 30 يوم",
+    "profileViews": "مشاهدات الملف",
+    "selectAll": "تحديد الكل",
+    "sendInvites": "إرسال الدعوات",
+    "sending": "جارٍ الإرسال...",
+    "showingPlayersInGroup": "عرض اللاعبين في مجموعتك",
+    "transferGroupFilter": "مجموعة النقل",
+    "watchlist": "قائمة المراقبة"
   },
   "applications": {
     "applyTo": "التقديم على",
@@ -1748,7 +1793,10 @@
     "howToStep3": "انقر أو اسحب اللاعبين إلى قائمة التجمع.",
     "howToStep4": "حدد ترتيب الهجوم — من يصل أولاً مهم.",
     "howToStep5": "افعل نفس الشيء لقائمة المضاد إذا لزم الأمر.",
-    "howToStep6": "فعّل مؤقتات تعزيز الحيوان الأليف عند الحاجة."
+    "howToStep6": "فعّل مؤقتات تعزيز الحيوان الأليف عند الحاجة.",
+    "accessDeniedDesc": "تحتاج المستوى الذهبي لاستخدام منسق التجمع.",
+    "arriveAfter": "الوصول بعد",
+    "secondsAfterEnemy": "ثوانٍ بعد العدو"
   },
   "missingData": {
     "contributeTitle": "ساهم",
@@ -1864,17 +1912,9 @@
     "loadingKingdom": "جارٍ تحميل K-{{num}}...",
     "kingdomNotFound": "K-{{num}} غير موجودة في قاعدة البيانات",
     "remove": "إزالة",
-    "viewAllFavorites_zero": "▼ لا مفضلات",
     "viewAllFavorites_one": "▼ عرض المفضلة ({{count}})",
-    "viewAllFavorites_two": "▼ عرض المفضلتين ({{count}})",
-    "viewAllFavorites_few": "▼ عرض {{count}} مفضلات",
-    "viewAllFavorites_many": "▼ عرض {{count}} مفضلة",
     "viewAllFavorites_other": "▼ عرض جميع المفضلات ({{count}})",
-    "viewAllReviews_zero": "▼ لا مراجعات",
     "viewAllReviews_one": "▼ عرض المراجعة ({{count}})",
-    "viewAllReviews_two": "▼ عرض المراجعتين ({{count}})",
-    "viewAllReviews_few": "▼ عرض {{count}} مراجعات",
-    "viewAllReviews_many": "▼ عرض {{count}} مراجعة",
     "viewAllReviews_other": "▼ عرض جميع المراجعات ({{count}})"
   },
   "submissionHistory": {
@@ -1920,11 +1960,7 @@
     "selectKingdoms": "اختر ممالك للتحليل:",
     "kingdoms_count": "{{count}} ممالك",
     "selectToView": "اختر ممالك أعلاه لعرض إحصائيات التحالف",
-    "kingdoms_count_zero": "(لا ممالك)",
     "kingdoms_count_one": "(مملكة {{count}})",
-    "kingdoms_count_two": "(مملكتان)",
-    "kingdoms_count_few": "({{count}} ممالك)",
-    "kingdoms_count_many": "({{count}} مملكة)",
     "kingdoms_count_other": "({{count}} مملكة)"
   },
   "leaderboardPosition": {
@@ -1982,7 +2018,9 @@
     "contribute": "المساهمة بـ ${{amount}}",
     "selectAmount": "اختر مبلغًا",
     "securePayment": "المدفوعات تُعالج بأمان عبر Stripe",
-    "toTier": "← فئة {{tier}}"
+    "toTier": "← فئة {{tier}}",
+    "alliancePitch": "اطلب من تحالفك المساهمة — التوظيف يفيد الجميع في المملكة.",
+    "perMember": "لكل عضو"
   },
   "reportData": {
     "title": "الإبلاغ عن بيانات خاطئة",
@@ -2063,100 +2101,35 @@
     "noMatch": "لا مباراة"
   },
   "giftCodes": {
-    "heroSubtitle": "نقرة واحدة. مكافآت فورية. بدون نسخ ولصق.",
-    "signInTitle": "استرداد أكواد الهدايا",
-    "signInDesc": "سجل الدخول واربط حساب Kingshot الخاص بك لاسترداد أكواد الهدايا بنقرة واحدة.",
-    "signIn": "تسجيل الدخول",
-    "linkTitle": "اربط حسابك أولاً",
-    "linkDesc": "لاسترداد الأكواد، نحتاج معرف اللاعب الخاص بك. اربط حساب Kingshot في إعدادات ملفك الشخصي.",
-    "goToProfile": "الذهاب للملف الشخصي",
-    "redeemAll": "استرداد جميع الأكواد ({{count}})",
-    "redeemingProgress": "جاري الاسترداد... ({{done}}/{{total}})",
-    "allRedeemed": "تم استرداد جميع الأكواد ({{count}})",
-    "cooldown": "انتظار — {{seconds}} ثانية",
-    "rateLimitedTitle": "تم تجاوز الحد",
-    "rateLimitedDesc": "طلبات كثيرة جداً. يرجى الانتظار.",
     "noCodesUnavailable": "تعذر جلب أكواد الهدايا الآن. حاول لاحقاً أو أدخل كوداً يدوياً.",
     "noCodesEmpty": "لا توجد أكواد هدايا نشطة حالياً. عد لاحقاً!",
-    "redeem": "استرداد",
-    "retry": "إعادة المحاولة",
-    "expired": "منتهي الصلاحية",
-    "manualEntry": "إدخال كود يدوياً",
-    "manualPlaceholder": "مثال: KINGSHOT2026",
-    "howItWorks": "كيف يعمل:",
-    "howItWorksDesc": "يرسل Atlas الكود إلى خدمة أكواد الهدايا الرسمية من Century Games نيابة عنك، باستخدام معرف اللاعب المرتبط. المكافآت تصل مباشرة إلى صندوق بريد اللعبة.",
-    "rateLimit": "الحد:",
-    "rateLimitDesc": "10 أكواد في الدقيقة.",
     "codesSourced": "مصدر الأكواد: {{source}}.",
     "backToTools": "العودة للأدوات",
-    "alreadyRedeemed": "مسترد بالفعل",
     "copiedAll": "تم نسخ {{count}} رمز إلى الحافظة",
     "copyAll": "نسخ جميع الرموز",
-    "redeemed": "مسترد",
     "refresh": "تحديث الرموز",
     "refreshed": "تم العثور على {{count}} رمز نشط",
-    "redeemingAlts": "جارٍ الاسترداد...",
-    "redeemAllAlts": "جميع الحسابات ({{count}})",
-    "redeemAllAltsLocked": "جميع الحسابات"
-  },
-  "giftCodeLanding": {
-    "allTools": "← جميع الأدوات",
-    "becomeSupporter": "كن داعماً",
-    "featAlt": "دعم الحسابات البديلة",
-    "featAltDesc": "لديك حسابات بديلة؟ أضف حتى 10 حسابات واسترد جميع الرموز بنقرة واحدة. للداعمين فقط.",
-    "featAuto": "كشف تلقائي للرموز النشطة",
-    "featAutoDesc": "يجلب Atlas تلقائياً كل رمز هدية نشط من اللعبة. لا حاجة للبحث في Discord أو Reddit.",
-    "featCloud": "حسابات متزامنة سحابياً",
-    "featCloudDesc": "حساباتك البديلة تتزامن مع السحابة. غيّر جهازك أو امسح متصفحك — إعداداتك دائماً هناك.",
-    "featDiscord": "تكامل Discord",
-    "featDiscordDesc": "استخدم /codes في Discord لرؤية الرموز النشطة. استخدم /redeem لاستردادها بدون فتح متصفح.",
-    "featOneClick": "استرداد بنقرة واحدة",
-    "featOneClickDesc": "اضغط \"استرداد الكل\" وكل رمز يُطبق على حسابك فوراً. بدون نسخ ولصق. بدون أخطاء كتابة.",
-    "featSmart": "إعادة محاولة ذكية",
-    "featSmartDesc": "محدود السرعة؟ مسترد بالفعل؟ منتهي الصلاحية؟ يتتبع Atlas كل نتيجة ويعيد المحاولة فقط لما يحتاج فعلاً.",
-    "freeF1": "عرض جميع الرموز النشطة",
-    "freeF2": "استرداد الكل بنقرة واحدة",
-    "freeF3": "نسخ الرموز إلى الحافظة",
-    "freeF4": "إدخال رمز يدوي",
-    "freeF5": "خانة حساب بديل واحدة",
-    "freeF6": "/codes و /redeem في Discord",
-    "freeNote": "مجاني لجميع مستخدمي Atlas. اربط حسابك في Kingshot للبدء.",
-    "freeTier": "مجاني",
-    "freeVsSupporter": "مجاني مقابل Supporter",
-    "heroSubtitle": "توقف عن كتابة الرموز واحداً تلو الآخر. Atlas يجدها، تنقر مرة واحدة، المكافآت تصل لصندوقك.",
-    "heroTitle1": "مسترد",
-    "heroTitle2": "رموز الهدايا",
-    "howItWorks1": "كيف",
-    "howItWorks2": "يعمل",
-    "orUseBot": "أو استخدم /redeem في Discord",
-    "pageTitle": "مسترد رموز الهدايا",
-    "problemDesc": "رموز الهدايا تأتي من منشورات وسائل التواصل وأحداث اللعبة وشراكات المبدعين والاحتفالات. تنتهي صلاحيتها بسرعة. فوّت واحداً وتلك التسريعات والجواهر والموارد المجانية ستذهب للأبد.",
-    "problemTitle": "رموز هدايا جديدة ظهرت. فاتتك 3 منها.",
-    "punchline": "توقف عن ترك الموارد المجانية على الطاولة.",
-    "redeemNow": "استرد الرموز الآن",
-    "solutionDesc": "يراقب Atlas جميع المصادر ويجمع كل رمز نشط في مكان واحد. افتح المسترد، اضغط زراً واحداً، وكل رمز يُطبق.",
-    "step1": "اربط حسابك",
-    "step1Desc": "سجل دخولك في Atlas واربط معرف لاعب Kingshot في إعدادات الملف الشخصي.",
-    "step2": "عرض الرموز النشطة",
-    "step2Desc": "يعرض Atlas كل رمز هدية نشط مع مؤقتات انتهاء الصلاحية. محدّث دائماً.",
-    "step3": "استرد واجمع",
-    "step3Desc": "اضغط \"استرداد الكل\" — الرموز تُطبق فوراً. تحقق من صندوق بريدك في اللعبة.",
-    "supF1": "كل ما في المجاني",
-    "supF2": "حتى 10 حسابات بديلة",
-    "supF3": "استرداد جماعي لجميع الحسابات",
-    "supF4": "قائمة بدائل متزامنة سحابياً",
-    "supF5": "تتبع النتائج لكل حساب",
-    "supF6": "إعادة محاولة ذكية للرموز الفاشلة",
-    "supporterBadge": "ميزة Atlas Supporter",
-    "supporterDesc": "المسترد التلقائي للحسابات البديلة مضمن مع Atlas Supporter — مع مخطط المعركة و/multirally غير محدود والمزيد. ابتداءً من $4.99/شهر.",
-    "supporterNote": "تدير 10 بدائل يدوياً؟ هذا أكثر من 40 رمز للكتابة كل مرة. الداعمون ينقرون مرة واحدة.",
-    "supporterTier": "Supporter",
-    "supporterTitle": "10 حسابات. نقرة واحدة. كل رمز.",
-    "threeSteps": "ثلاث خطوات. صفر كتابة. كل المكافآت.",
-    "tryFree": "جرب مجاناً",
-    "whyAtlas1": "لماذا",
-    "whyAtlas2": "ATLAS",
-    "whySubtitle": "لأن كتابة الرموز يدوياً أصبحت من الماضي."
+    "androidInGame": "افتح Kingshot ← الملف الشخصي ← الإعدادات ← رمز الهدية ← لصق واستبدال",
+    "iosNote": "يجب على لاعبي iOS الاستبدال عبر موقع Kingshot.",
+    "iosRedeemSite": "استبدل على الموقع",
+    "iosStep1": "انتقل إلى موقع استبدال Kingshot",
+    "iosStep2": "سجل الدخول بحسابك",
+    "iosStep3": "الصق رمز الهدية",
+    "iosStep4": "اضغط استبدال",
+    "iosWeb": "استبدال iOS",
+    "pageTitle": "رموز الهدايا",
+    "heroSubtitleDisplay": "استبدل رموز هدايا Kingshot مباشرة من أطلس",
+    "codeCopied": "تم نسخ الرمز!",
+    "copiedShort": "تم النسخ!",
+    "copy": "نسخ",
+    "allCopied": "تم نسخ جميع الرموز!",
+    "howToRedeem": "كيفية الاستبدال",
+    "step1": "انسخ الرمز أعلاه",
+    "step2": "افتح Kingshot على جهازك",
+    "step3": "انتقل إلى الملف الشخصي ← الإعدادات ← رمز الهدية",
+    "step4": "الصق الرمز واضغط استبدال",
+    "aboutCodes": "حول رموز الهدايا",
+    "aboutCodesDesc": "تنشر Century Games رموز هدايا بشكل دوري تمنح موارد مجانية داخل اللعبة."
   },
   "transferHubLanding": {
     "pageTitle": "مركز الانتقال — ابحث عن مملكتك التالية",
@@ -2231,7 +2204,28 @@
     "ctaDesc": "سواء كنت تبحث عن وطن جديد أو لاعبين أقوياء — مركز الانتقال يربطك بالتوافق المناسب. بلا تكلفة، بلا فخ.",
     "ctaButton": "ادخل مركز الانتقال",
     "browseKingdoms": "تصفح جميع الممالك",
-    "allTools": "← جميع الأدوات"
+    "allTools": "← جميع الأدوات",
+    "cmpAlliance": "جدول معلومات التحالف",
+    "cmpBadge": "شارة ذهبية لجميع مستخدمي المملكة",
+    "cmpBasicListing": "إدراج أساسي مع نقاط أطلس والإحصائيات",
+    "cmpBattlePlanner": "الوصول لمخطط معركة حرب الممالك",
+    "cmpBioLang": "سيرة المملكة واللغة",
+    "cmpBrowseProfiles": "تصفح ملفات المنتقلين",
+    "cmpGlow": "توهج ذهبي + أولوية في الترتيب",
+    "cmpInvites": "إرسال دعوات للمنتقلين",
+    "cmpMinReqs": "عرض متطلبات الحد الأدنى للقوة",
+    "cmpPrepScheduler": "الوصول لجدولة إعداد حرب الممالك",
+    "cmpReviews": "تقييمات المجتمع",
+    "cmpSlots": "+2 خانات تحالف (5 إجمالاً)",
+    "cmpVibeTags": "سياسات المملكة وعلامات الأجواء",
+    "fundSubtitle": "التوظيف جهد جماعي. أي شخص في مملكتك يمكنه المساهمة.",
+    "priceFree": "مجاني",
+    "recommended": "موصى به",
+    "tierBronze": "برونزي",
+    "tierFree": "(مجاني)",
+    "tierGold": "ذهبي",
+    "tierSilver": "فضي",
+    "tierStandard": "عادي"
   },
   "kingdomCommunities": {
     "title": "مجتمعات الممالك",
@@ -2243,7 +2237,9 @@
     "ctaTitle": "حشد مملكتك لتسلق التصنيفات",
     "ctaDescription": "كل لاعب مرتبط بمستوى TC20+ يُحتسب في ترتيب مجتمع مملكتك. ادعُ تحالفك — كلما زاد حضورك، زادت قوة استخبارات Atlas لمملكتك.",
     "noResults": "لم يتم العثور على ممالك",
-    "footer": "يتم احتساب اللاعبين الذين ربطوا حساب Kingshot بمستوى TC20+ فقط. يتم تحديث التصنيفات في الوقت الفعلي."
+    "footer": "يتم احتساب اللاعبين الذين ربطوا حساب Kingshot بمستوى TC20+ فقط. يتم تحديث التصنيفات في الوقت الفعلي.",
+    "statsKingdoms": "ممالك",
+    "statsPlayers": "لاعبون"
   },
   "admin": {
     "anonymous": "مجهول",
@@ -2374,7 +2370,10 @@
     "withdraw": "سحب",
     "didYouTransfer": "هل انتقلت؟",
     "outcomeSubmitted": "تم إرسال النتيجة",
-    "messages": "الرسائل"
+    "messages": "الرسائل",
+    "noMessages": "لا رسائل بعد. ابدأ المحادثة!",
+    "send": "إرسال",
+    "typeMessage": "اكتب رسالة..."
   },
   "prepScheduler": {
     "loading": "جاري التحميل...",
@@ -2555,7 +2554,62 @@
     "simpleMode": "بسيط",
     "advancedMode": "متقدم",
     "totalSpeedups": "المجموع",
-    "distribution": "التوزيع"
+    "distribution": "التوزيع",
+    "activeSchedule": "جدول نشط",
+    "activeScheduleDesc": "مملكتك لديها جدول إعداد نشط.",
+    "addTimeRange": "إضافة نطاق زمني",
+    "backToTools": "← العودة إلى الأدوات",
+    "beOnline": "كن متصلاً خلال فترتك المخصصة",
+    "changeScreenshot": "تغيير لقطة الشاشة",
+    "copyFrom": "نسخ من",
+    "createScheduleBtn": "إنشاء جدول",
+    "day": "يوم",
+    "deadlineHintUTC": "الموعد النهائي بتوقيت UTC",
+    "dontNeedBuff": "لا أحتاج فترة تعزيز",
+    "editDeadline": "تعديل الموعد النهائي",
+    "fillForm": "املأ النموذج أدناه",
+    "formClosedLocked": "النموذج مغلق",
+    "goldTierOnly": "المستوى الذهبي فقط",
+    "linkBtn": "مشاركة الرابط",
+    "linkDesc": "شارك هذا الرابط مع أعضاء مملكتك",
+    "linkReturnHint": "سيعود اللاعبون هنا بعد الإرسال",
+    "messageOptional": "رسالة (اختياري)",
+    "messagePlaceholder": "ملاحظات للمدير...",
+    "mySchedules": "جداولي",
+    "needDifferentTime": "تحتاج وقتاً مختلفاً؟",
+    "none": "لا شيء",
+    "notAssigned": "غير مخصص",
+    "notAssignedDesc": "لم يتم تخصيص فترة لك بعد.",
+    "notGoldTier": "مملكتك تحتاج المستوى الذهبي لاستخدام المجدول.",
+    "notSelected": "غير محدد",
+    "notesForPlayers": "ملاحظات للاعبين",
+    "notesPlaceholder": "تعليمات لأعضاء مملكتك...",
+    "optedOut": "انسحب",
+    "pageTitle": "جدولة الإعداد",
+    "qualified": "مؤهل",
+    "redirectNote": "ستتم إعادة توجيهك بعد الإرسال",
+    "requestSlotChange": "طلب تغيير الفترة",
+    "screenshotDesc": "ارفع لقطة شاشة لتسريعاتك",
+    "screenshotProof": "إثبات لقطة الشاشة",
+    "sending": "جارٍ الإرسال...",
+    "setDeadline": "تحديد الموعد النهائي",
+    "signInBtn": "سجل الدخول للإرسال",
+    "signInDesc": "سجل الدخول لإرسال توفرك",
+    "speedupsDesc": "كم عدد التسريعات لديك؟",
+    "submissionDeadline": "موعد الإرسال النهائي",
+    "submitting": "جارٍ الإرسال...",
+    "subtitle": "نسق مرحلة الإعداد لحرب الممالك",
+    "timezoneHint": "الأوقات بتوقيتك المحلي",
+    "to": "إلى",
+    "toastAllianceRequired": "مطلوب علامة التحالف",
+    "toastDeadlineFailed": "فشل تحديث الموعد النهائي",
+    "toastDeadlineUpdated": "تم تحديث الموعد النهائي.",
+    "type": "نوع",
+    "updateSubmission": "تحديث الإرسال",
+    "usernamePlaceholder": "اسمك في اللعبة",
+    "yourPrepReport": "تقرير إعدادك",
+    "yourSlots": "فتراتك",
+    "yourTimezone": "منطقتك الزمنية"
   },
   "prepLanding": {
     "featAutoAssign": "تعيين تلقائي للفترات",
@@ -2597,7 +2651,12 @@
     "whoPlayersDesc": "يملؤون النموذج. يقدمون المسرعات والتوفر والإثبات. يُعينون فترة 30 دقيقة. يحضرون ويعززون.",
     "getStarted": "ابدأ الآن",
     "ctaTitle": "مستعد لتنظيم مملكتك؟",
-    "ctaDesc": "لا يجب أن تكون مرحلة الإعداد في مملكتك فوضى. المجدول يحولها إلى عملية مبسطة تعتمد على البيانات."
+    "ctaDesc": "لا يجب أن تكون مرحلة الإعداد في مملكتك فوضى. المجدول يحولها إلى عملية مبسطة تعتمد على البيانات.",
+    "goldBadge": "ميزة المستوى الذهبي",
+    "goldDesc": "جدولة الإعداد متاحة لممالك المستوى الذهبي.",
+    "goldTitle": "نظم مرحلة الإعداد لمملكتك",
+    "whoManagers": "مديرو الإعداد",
+    "whoManagersDesc": "معينون من المحررين لإدارة العمليات اليومية. مراجعة المشاركات وتعيين الفترات تلقائياً وتصدير الجداول."
   },
   "tos": {
     "pageTitle": "شروط الخدمة"
@@ -2606,9 +2665,63 @@
     "pageTitle": "سياسة الخصوصية"
   },
   "footer": {
-    "trademark": "Kingshot\u2122 هي علامة تجارية لشركة Century Games. جميع محتويات ومواد اللعبة هي علامات تجارية وحقوق نشر لمالكيها. Kingshot Atlas مشروع مستقل للمعجبين — غير تابع أو معتمد أو ممول أو موافق عليه من Century Games.",
+    "trademark": "Kingshot™ هي علامة تجارية لشركة Century Games. جميع محتويات ومواد اللعبة هي علامات تجارية وحقوق نشر لمالكيها. Kingshot Atlas مشروع مستقل للمعجبين — غير تابع أو معتمد أو ممول أو موافق عليه من Century Games.",
     "about": "حول",
     "terms": "الشروط",
     "privacy": "الخصوصية"
+  },
+  "bpTrial": {
+    "activeDesc": "لديك وصول لمخطط المعركة خلال فترة التجربة.",
+    "activeTitle": "التجربة نشطة",
+    "offerDesc": "جرب مخطط المعركة مجاناً لمدة 24 ساعة.",
+    "offerTitle": "تجربة مجانية متاحة",
+    "openPlanner": "فتح المخطط",
+    "startTrial": "بدء التجربة المجانية"
+  },
+  "cancelSurvey": {
+    "annualOffer": "التبديل للسنوي وتوفير 17%",
+    "backToAtlas": "العودة إلى أطلس",
+    "feedbackPlaceholder": "أخبرنا كيف يمكننا التحسين...",
+    "heading": "نأسف لرؤيتك تغادر",
+    "pauseButton": "إيقاف مؤقت بدلاً من ذلك",
+    "pauseOffer": "غير مستعد للإلغاء؟ أوقف اشتراكك مؤقتاً لمدة 3 أشهر.",
+    "reasonTitle": "لماذا تلغي الاشتراك؟",
+    "skip": "تخطي",
+    "subheading": "قبل المغادرة، ساعدنا في تحسين أطلس.",
+    "submit": "إرسال وإلغاء",
+    "submitting": "جارٍ الإرسال...",
+    "switchAnnual": "التبديل للاشتراك السنوي",
+    "thankYou": "شكراً لملاحظاتك",
+    "thankYouDesc": "تم إلغاء اشتراكك. ستحتفظ بالوصول حتى نهاية فترة الفوترة.",
+    "title": "إلغاء الاشتراك"
+  },
+  "conversion": {
+    "cta": "كن مؤيداً",
+    "subtitle": "ادعم أطلس وافتح الميزات المميزة",
+    "title": "افتح المزيد مع أطلس داعم"
+  },
+  "onboarding": {
+    "signUpFree": "سجل مجاناً",
+    "signupNudge": "أنشئ حساباً مجانياً لفتح جميع الميزات"
+  },
+  "referral": {
+    "copyLink": "نسخ الرابط"
+  },
+  "welcome": {
+    "favoritesDesc": "تتبع الممالك التي تهمك واحصل على إشعارات عند تغير النتائج",
+    "favoritesTitle": "قائمة المفضلة",
+    "rivalsDesc": "تحقق من خصومك السابقين والمواجهات القادمة",
+    "rivalsTitle": "منافسوك في حرب الممالك",
+    "scoreDesc": "شاهد ترتيب K{{num}} بين أكثر من 1,300 مملكة",
+    "scoreDescGeneric": "شاهد ترتيب مملكتك بين أكثر من 1,300 مملكة",
+    "scoreTitle": "نقاط أطلس لمملكتك",
+    "seeRivals": "عرض المنافسين",
+    "startTracking": "ابدأ التتبع",
+    "subtitle": "حسابك مرتبط. إليك ما يقدمه أطلس لك.",
+    "title": "مرحباً بك في أطلس",
+    "viewScore": "عرض النتيجة"
+  },
+  "kvkSubmit": {
+    "screenshotDisclaimer": "أؤكد أن لقطات الشاشة هذه هي التقاطاتي الخاصة من اللعبة. أفهم أن جميع محتويات اللعبة ملك لـ Century Games وأمنح Kingshot Atlas إذناً بتخزينها وعرضها لأغراض بيانات المجتمع."
   }
 }

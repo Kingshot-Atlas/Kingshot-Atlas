@@ -24,7 +24,9 @@
     "kingdom": "Kingdom",
     "wins": "Wins",
     "losses": "Losses",
-    "clear": "Clear"
+    "clear": "Clear",
+    "allTools": "← All Tools",
+    "copied": "Copied!"
   },
   "quickAction": {
     "transferHub_1": "Transfer",
@@ -184,7 +186,8 @@
     "region": "Region",
     "townCenter": "Town Center",
     "viewProfile": "View Profile",
-    "youCanUpdate": "You can update this"
+    "youCanUpdate": "You can update this",
+    "chipInToFund": "Chip In to Fund"
   },
   "rankings": {
     "subtitle": "Who's dominating? The data doesn't lie.",
@@ -215,7 +218,8 @@
     "combinedPowerTitle": "What is Combined Power Level?",
     "combinedPowerDesc": "The sum of both kingdoms' Atlas Scores going into the matchup. Higher scores = more competitive battles between proven kingdoms. This is how legends are made.",
     "scoreTimingTitle": "Score Timing",
-    "scoreTimingDesc": "Scores reflect each kingdom's Atlas Score before the battle began—based on their track record up to that point. No hindsight, just raw pre-battle power."
+    "scoreTimingDesc": "Scores reflect each kingdom's Atlas Score before the battle began—based on their track record up to that point. No hindsight, just raw pre-battle power.",
+    "addMatchup": "Add Matchup"
   },
   "compare": {
     "heroTitle1": "KINGDOM",
@@ -336,7 +340,20 @@
     "accessUnlocked": "Access Unlocked",
     "supporterConfirm": "You have full access as an Atlas Supporter.",
     "supporterThanks": "You have full access to the Battle Planner.",
-    "supporterThanksDesc": "Thank you for supporting Atlas. Jump straight into the planner and coordinate your next castle hit."
+    "supporterThanksDesc": "Thank you for supporting Atlas. Jump straight into the planner and coordinate your next castle hit.",
+    "accessRequired": "Gold Tier Required",
+    "getGoldAccess": "How to Reach Gold Tier",
+    "goldBadge": "Gold Tier Kingdom Feature",
+    "goldConfirm": "You have full access as a Gold Tier kingdom member.",
+    "goldDesc": "The Battle Planner is available for Gold Tier kingdoms. Help your kingdom reach Gold by contributing to the Kingdom Fund on the Transfer Hub.",
+    "goldPerk": "Available for Gold Tier kingdoms. Contribute to the Kingdom Fund to unlock.",
+    "goldThanks": "You have full access to the Battle Planner.",
+    "goldThanksDesc": "Your kingdom has earned Gold Tier status. Jump straight into the planner and coordinate your next castle hit.",
+    "goldTitle": "Your alliance deserves better coordination.",
+    "reachGold": "Reach Gold Tier",
+    "tabCounter": "Counter",
+    "tabPlayers": "Players",
+    "tabRally": "Rally"
   },
   "battlePlannerBanner": {
     "dismiss": "Dismiss Battle Planner banner",
@@ -1331,7 +1348,8 @@
       "minAtlasScore": "Min Atlas Score",
       "minMatchScore": "Min Match Score",
       "activelyRecruiting": "Actively Recruiting Only",
-      "clearFilters": "Clear Filters"
+      "clearFilters": "Clear Filters",
+      "applyFilters": "Apply Filters"
     },
     "allGroups": "All Groups",
     "compare": {
@@ -1344,7 +1362,29 @@
     "linkKingdom": "Link your kingdom for auto-filter",
     "myGroup": "My Group",
     "showingKingdoms": "Showing kingdoms",
-    "transferGroup": "Transfer Group"
+    "transferGroup": "Transfer Group",
+    "error": {
+      "description": "Something went wrong loading the Transfer Hub.",
+      "retry": "Try Again",
+      "title": "Error Loading Transfer Hub"
+    },
+    "field": {
+      "bio": "Bio",
+      "contact": "Contact",
+      "groupSize": "Group Size",
+      "kvkAvail": "KvK Availability",
+      "language": "Language",
+      "lookingFor": "Looking For",
+      "power": "Power",
+      "savingFor": "Saving For",
+      "schedule": "Schedule",
+      "visibility": "Visibility"
+    },
+    "missingFields": "Missing required fields",
+    "nominationCancelled": "Nomination Cancelled",
+    "nominationCancelledDesc": "Your co-editor nomination has been cancelled.",
+    "playersInAtlas": "Players in Atlas",
+    "tapToComplete": "Tap to complete →"
   },
   "listing": {
     "allianceEventTimes": "Alliance Event Times",
@@ -1411,7 +1451,11 @@
     "yourKingdom": "Your Kingdom",
     "updatedDaysAgo": "Updated {{days}}d ago",
     "updatedToday": "Updated today",
-    "updatedYesterday": "Updated yesterday"
+    "updatedYesterday": "Updated yesterday",
+    "allianceInfo": "Alliance Information",
+    "goldPerksV2": "Gold Tier Perks",
+    "hideDetails": "Hide Details",
+    "seeDetails": "See Details"
   },
   "editor": {
     "activated": "Activated!",
@@ -1469,7 +1513,10 @@
     "coEditorInvitation": "Co-Editor Invitation",
     "coEditorInviteDesc": "You've been invited to co-edit Kingdom {{kingdom}}'s recruiter dashboard.",
     "coEditorInviteDescBy": "{{inviter}} invited you to co-edit Kingdom {{kingdom}}'s recruiter dashboard.",
-    "declineInvite": "Decline"
+    "declineInvite": "Decline",
+    "anotherEditorEndorsed": "Another editor has endorsed this kingdom.",
+    "applyAsCoEditor": "Apply as Co-Editor",
+    "nominationCancelled": "Nomination cancelled"
   },
   "recruiter": {
     "loading": "Loading dashboard...",
@@ -1570,7 +1617,19 @@
     "coEditorRequestPending": "Co-Editor Request Pending",
     "noStatusChanges": "No status changes yet",
     "requestAwaitingApproval": "Your request to co-edit Kingdom {{kingdom}} is pending editor approval. You'll be notified when it's reviewed.",
-    "statusHistory": "Transfer Status History"
+    "statusHistory": "Transfer Status History",
+    "analytics": "Analytics",
+    "basedOnListing": "Based on your listing criteria",
+    "clearSelection": "Clear Selection",
+    "downloadCsv": "Download CSV",
+    "last30Days": "Last 30 Days",
+    "profileViews": "Profile Views",
+    "selectAll": "Select All",
+    "sendInvites": "Send Invites",
+    "sending": "Sending...",
+    "showingPlayersInGroup": "Showing players in your transfer group",
+    "transferGroupFilter": "Transfer Group",
+    "watchlist": "Watchlist"
   },
   "applications": {
     "applyTo": "Apply to",
@@ -1734,7 +1793,10 @@
     "howToStep3": "Click or drag players into the Rally Queue.",
     "howToStep4": "Set the hit order — who lands first matters.",
     "howToStep5": "Do the same for the Counter Queue if needed.",
-    "howToStep6": "Activate pet buff timers when applicable."
+    "howToStep6": "Activate pet buff timers when applicable.",
+    "accessDeniedDesc": "You need Gold Tier access to use the Rally Coordinator.",
+    "arriveAfter": "Arrive after",
+    "secondsAfterEnemy": "seconds after enemy"
   },
   "missingData": {
     "contributeTitle": "CONTRIBUTE",
@@ -1956,7 +2018,9 @@
     "contribute": "Contribute ${{amount}}",
     "selectAmount": "Select an amount",
     "securePayment": "Payments processed securely by Stripe",
-    "toTier": "→ {{tier}} tier"
+    "toTier": "→ {{tier}} tier",
+    "alliancePitch": "Ask your alliance to chip in — recruiting benefits everyone in the kingdom.",
+    "perMember": "per member"
   },
   "reportData": {
     "title": "Report Incorrect Data",
@@ -2057,7 +2121,15 @@
     "aboutCodes": "About codes:",
     "aboutCodesDesc": "Gift codes are released by Century Games through social media, events, and partnerships. Atlas aggregates them so you never miss one.",
     "codesSourced": "Codes sourced from {{source}}.",
-    "backToTools": "Back to Tools"
+    "backToTools": "Back to Tools",
+    "androidInGame": "Open Kingshot → Profile → Settings → Gift Code → Paste & Redeem",
+    "iosNote": "iOS players must redeem via the Kingshot website due to App Store restrictions.",
+    "iosRedeemSite": "Redeem on Kingshot Website",
+    "iosStep1": "Go to the Kingshot redemption website",
+    "iosStep2": "Log in with your game account",
+    "iosStep3": "Paste the gift code",
+    "iosStep4": "Tap Redeem",
+    "iosWeb": "iOS Redemption"
   },
   "transferHubLanding": {
     "pageTitle": "Transfer Hub — Find Your Next Kingdom",
@@ -2132,7 +2204,28 @@
     "ctaDesc": "Whether you're looking for a new home or looking for strong players — the Transfer Hub connects you with the right match. No cost, no catch.",
     "ctaButton": "Enter the Transfer Hub",
     "browseKingdoms": "Browse All Kingdoms",
-    "allTools": "← All Tools"
+    "allTools": "← All Tools",
+    "cmpAlliance": "Alliance Information schedule",
+    "cmpBadge": "Gilded badge for all kingdom users",
+    "cmpBasicListing": "Basic listing with Atlas Score & stats",
+    "cmpBattlePlanner": "KvK Battle Planner access",
+    "cmpBioLang": "Kingdom Bio & Language display",
+    "cmpBrowseProfiles": "Browse transferee profiles",
+    "cmpGlow": "Gold glow + priority placement",
+    "cmpInvites": "Send invites to transferees",
+    "cmpMinReqs": "Min TC & Power requirements shown",
+    "cmpPrepScheduler": "KvK Prep Scheduler access",
+    "cmpReviews": "Community reviews from players",
+    "cmpSlots": "+2 alliance slots (5 total)",
+    "cmpVibeTags": "Kingdom Policies & Vibe tags",
+    "fundSubtitle": "Recruiting is a team effort. Anyone in your kingdom can chip in to boost the listing.",
+    "priceFree": "Free",
+    "recommended": "RECOMMENDED",
+    "tierBronze": "Bronze",
+    "tierFree": "(Free)",
+    "tierGold": "Gold",
+    "tierSilver": "Silver",
+    "tierStandard": "Standard"
   },
   "kingdomCommunities": {
     "title": "Kingdom Colonies",
@@ -2144,7 +2237,9 @@
     "ctaTitle": "Rally your kingdom to climb the ranks",
     "ctaDescription": "Every linked player with TC20+ counts toward your kingdom's colony rank. Invite your alliance — the bigger your presence, the stronger your kingdom's Atlas intelligence.",
     "noResults": "No kingdoms found",
-    "footer": "Only players who have linked their Kingshot account with TC20+ are counted. Rankings update in real-time."
+    "footer": "Only players who have linked their Kingshot account with TC20+ are counted. Rankings update in real-time.",
+    "statsKingdoms": "Kingdoms",
+    "statsPlayers": "Players"
   },
   "admin": {
     "anonymous": "Anonymous",
@@ -2275,7 +2370,10 @@
     "withdraw": "Withdraw",
     "didYouTransfer": "Did you transfer?",
     "outcomeSubmitted": "Outcome submitted",
-    "messages": "Messages"
+    "messages": "Messages",
+    "noMessages": "No messages yet. Start the conversation!",
+    "send": "Send",
+    "typeMessage": "Type a message..."
   },
   "prepScheduler": {
     "loading": "Loading...",
@@ -2456,7 +2554,62 @@
     "simpleMode": "Simple",
     "advancedMode": "Advanced",
     "totalSpeedups": "Total",
-    "distribution": "Distribution"
+    "distribution": "Distribution",
+    "activeSchedule": "Active Schedule",
+    "activeScheduleDesc": "Your kingdom has an active prep schedule.",
+    "addTimeRange": "Add Time Range",
+    "backToTools": "← Back to Tools",
+    "beOnline": "Be online during your assigned slot",
+    "changeScreenshot": "Change Screenshot",
+    "copyFrom": "Copy from",
+    "createScheduleBtn": "Create Schedule",
+    "day": "Day",
+    "deadlineHintUTC": "Deadline is in UTC",
+    "dontNeedBuff": "I don't need a buff slot",
+    "editDeadline": "Edit Deadline",
+    "fillForm": "Fill out the form below",
+    "formClosedLocked": "Form is closed",
+    "goldTierOnly": "Gold Tier Only",
+    "linkBtn": "Share Link",
+    "linkDesc": "Share this link with your kingdom members",
+    "linkReturnHint": "Players will return here after submitting",
+    "messageOptional": "Message (optional)",
+    "messagePlaceholder": "Any notes for the manager...",
+    "mySchedules": "My Schedules",
+    "needDifferentTime": "Need a different time?",
+    "none": "None",
+    "notAssigned": "Not Assigned",
+    "notAssignedDesc": "You haven't been assigned a slot yet.",
+    "notGoldTier": "Your kingdom needs Gold Tier to use the Prep Scheduler.",
+    "notSelected": "Not Selected",
+    "notesForPlayers": "Notes for Players",
+    "notesPlaceholder": "Instructions for your kingdom members...",
+    "optedOut": "Opted Out",
+    "pageTitle": "Prep Scheduler",
+    "qualified": "Qualified",
+    "redirectNote": "You'll be redirected after submitting",
+    "requestSlotChange": "Request Slot Change",
+    "screenshotDesc": "Upload a screenshot of your speedups",
+    "screenshotProof": "Screenshot Proof",
+    "sending": "Sending...",
+    "setDeadline": "Set Deadline",
+    "signInBtn": "Sign In to Submit",
+    "signInDesc": "Sign in to submit your prep availability",
+    "speedupsDesc": "How many speedups do you have?",
+    "submissionDeadline": "Submission Deadline",
+    "submitting": "Submitting...",
+    "subtitle": "Coordinate your kingdom's KvK prep phase",
+    "timezoneHint": "Times shown in your local timezone",
+    "to": "to",
+    "toastAllianceRequired": "Alliance tag is required",
+    "toastDeadlineFailed": "Failed to update deadline",
+    "toastDeadlineUpdated": "Deadline updated.",
+    "type": "Type",
+    "updateSubmission": "Update Submission",
+    "usernamePlaceholder": "Your in-game name",
+    "yourPrepReport": "Your Prep Report",
+    "yourSlots": "Your Slots",
+    "yourTimezone": "Your Timezone"
   },
   "prepLanding": {
     "featAutoAssign": "Automated Slot Assignment",
@@ -2498,7 +2651,12 @@
     "whoPlayersDesc": "Fill out the form. Submit speedups, availability, and proof. Get assigned a 30-minute slot. Show up and buff.",
     "getStarted": "Get Started",
     "ctaTitle": "Ready to organize your kingdom?",
-    "ctaDesc": "Your kingdom's Prep Phase doesn't have to be chaos. The Scheduler turns it into a streamlined, data-driven process."
+    "ctaDesc": "Your kingdom's Prep Phase doesn't have to be chaos. The Scheduler turns it into a streamlined, data-driven process.",
+    "goldBadge": "Gold Tier Feature",
+    "goldDesc": "The Prep Scheduler is available for Gold Tier kingdoms.",
+    "goldTitle": "Organize Your Kingdom's Prep Phase",
+    "whoManagers": "Prep Managers",
+    "whoManagersDesc": "Assigned by Editors to run the day-to-day. Review submissions, auto-assign slots, export schedules, handle change requests."
   },
   "kvkSubmit": {
     "screenshotDisclaimer": "I confirm these screenshots are my own in-game captures. I understand that all game content depicted is the property of Century Games, and I grant Kingshot Atlas permission to store and display them for community data purposes."
@@ -2510,9 +2668,60 @@
     "pageTitle": "Privacy Policy"
   },
   "footer": {
-    "trademark": "Kingshot\u2122 is a trademark of Century Games. All game content and materials are trademarks and copyrights of their respective owners. Kingshot Atlas is an independent fan project \u2014 not affiliated with, endorsed, sponsored, or approved by Century Games.",
+    "trademark": "Kingshot™ is a trademark of Century Games. All game content and materials are trademarks and copyrights of their respective owners. Kingshot Atlas is an independent fan project — not affiliated with, endorsed, sponsored, or approved by Century Games.",
     "about": "About",
     "terms": "Terms",
     "privacy": "Privacy"
+  },
+  "bpTrial": {
+    "activeDesc": "You have access to the Battle Planner during your trial period.",
+    "activeTitle": "Trial Active",
+    "offerDesc": "Try the Battle Planner free for 24 hours. No payment required.",
+    "offerTitle": "Free Trial Available",
+    "openPlanner": "Open Planner",
+    "startTrial": "Start Free Trial"
+  },
+  "cancelSurvey": {
+    "annualOffer": "Switch to annual and save 17%",
+    "backToAtlas": "Back to Atlas",
+    "feedbackPlaceholder": "Tell us what we could do better...",
+    "heading": "We're sorry to see you go",
+    "pauseButton": "Pause Instead",
+    "pauseOffer": "Not ready to cancel? Pause your subscription for up to 3 months.",
+    "reasonTitle": "Why are you cancelling?",
+    "skip": "Skip",
+    "subheading": "Before you go, help us improve Atlas for everyone.",
+    "submit": "Submit & Cancel",
+    "submitting": "Submitting...",
+    "switchAnnual": "Switch to Annual",
+    "thankYou": "Thank you for your feedback",
+    "thankYouDesc": "Your subscription has been cancelled. You'll retain access until the end of your billing period.",
+    "title": "Cancel Subscription"
+  },
+  "conversion": {
+    "cta": "Become a Supporter",
+    "subtitle": "Support Atlas and unlock premium features",
+    "title": "Unlock More with Atlas Supporter"
+  },
+  "onboarding": {
+    "signUpFree": "Sign Up Free",
+    "signupNudge": "Create a free account to unlock all features"
+  },
+  "referral": {
+    "copyLink": "Copy Link"
+  },
+  "welcome": {
+    "favoritesDesc": "Track kingdoms you care about and get notified when scores change",
+    "favoritesTitle": "Your Favorites Watchlist",
+    "rivalsDesc": "Check your past opponents and upcoming matchups",
+    "rivalsTitle": "Your KvK Rivals",
+    "scoreDesc": "See how K{{num}} ranks among 1,300+ kingdoms",
+    "scoreDescGeneric": "See how your kingdom ranks among 1,300+ kingdoms",
+    "scoreTitle": "Your Kingdom's Atlas Score",
+    "seeRivals": "See Rivals",
+    "startTracking": "Start Tracking",
+    "subtitle": "Your account is linked. Here's what Atlas has for you.",
+    "title": "Welcome to Atlas",
+    "viewScore": "View Score"
   }
 }

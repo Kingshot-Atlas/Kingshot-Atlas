@@ -24,7 +24,9 @@
     "kingdom": "Royaume",
     "wins": "Victoires",
     "losses": "Défaites",
-    "clear": "Effacer"
+    "clear": "Effacer",
+    "allTools": "← Tous les outils",
+    "copied": "Copié !"
   },
   "quickAction": {
     "transferHub_1": "Centre de",
@@ -62,7 +64,8 @@
     "ambassadors": "Ambassadeurs",
     "contributeData": "Contribuer des Données",
     "aboutAtlas": "À Propos d'Atlas",
-    "kingdomCommunities": "Colonies de Royaumes"
+    "kingdomCommunities": "Colonies de Royaumes",
+    "giftCodes": "Codes Cadeaux"
   },
   "stats": {
     "atlasScore": "Score Atlas",
@@ -183,7 +186,8 @@
     "region": "Région",
     "townCenter": "Centre-ville",
     "viewProfile": "Voir le Profil",
-    "youCanUpdate": "Vous pouvez mettre à jour"
+    "youCanUpdate": "Vous pouvez mettre à jour",
+    "chipInToFund": "Contribuer au Fonds"
   },
   "rankings": {
     "subtitle": "Qui domine ? Les données ne mentent pas.",
@@ -214,7 +218,8 @@
     "combinedPowerTitle": "Qu'est-ce que le Niveau de Puissance Combiné ?",
     "combinedPowerDesc": "La somme des Scores Atlas des deux royaumes entrant dans l'affrontement. Des scores plus élevés = des batailles plus compétitives entre royaumes éprouvés. C'est ainsi que naissent les légendes.",
     "scoreTimingTitle": "Moment du Score",
-    "scoreTimingDesc": "Les scores reflètent le Score Atlas de chaque royaume avant le début de la bataille — basé sur leur historique jusqu'à ce moment. Pas de recul, juste la puissance brute d'avant-bataille."
+    "scoreTimingDesc": "Les scores reflètent le Score Atlas de chaque royaume avant le début de la bataille — basé sur leur historique jusqu'à ce moment. Pas de recul, juste la puissance brute d'avant-bataille.",
+    "addMatchup": "Ajouter un affrontement"
   },
   "compare": {
     "heroTitle1": "COMPARAISON DE",
@@ -335,7 +340,20 @@
     "accessUnlocked": "Accès Débloqué",
     "supporterConfirm": "Vous avez un accès complet en tant qu'Atlas Supporter.",
     "supporterThanks": "Vous avez un accès complet au Planificateur de Bataille.",
-    "supporterThanksDesc": "Merci de soutenir Atlas. Allez directement au planificateur et coordonnez votre prochain assaut de château."
+    "supporterThanksDesc": "Merci de soutenir Atlas. Allez directement au planificateur et coordonnez votre prochain assaut de château.",
+    "accessRequired": "Niveau Gold requis",
+    "getGoldAccess": "Comment atteindre le niveau Gold",
+    "goldBadge": "Fonction royaume Gold",
+    "goldConfirm": "Vous avez un accès complet en tant que membre d'un royaume Gold.",
+    "goldDesc": "Le Planificateur de Bataille est disponible pour les royaumes Gold. Contribuez au Fonds du Royaume.",
+    "goldPerk": "Disponible pour les royaumes Gold. Contribuez au Fonds du Royaume.",
+    "goldThanks": "Vous avez un accès complet au Planificateur de Bataille.",
+    "goldThanksDesc": "Votre royaume a atteint le niveau Gold. Accédez directement au planificateur.",
+    "goldTitle": "Votre alliance mérite une meilleure coordination.",
+    "reachGold": "Atteindre le niveau Gold",
+    "tabCounter": "Contre",
+    "tabPlayers": "Joueurs",
+    "tabRally": "Rally"
   },
   "battlePlannerBanner": {
     "dismiss": "Fermer la bannière du Planificateur de Bataille",
@@ -490,12 +508,8 @@
     "free5Desc": "Stats complètes et historique de performance",
     "free6Title": "Calendrier des Événements",
     "free6Desc": "Horaires des KvK et des Événements de Transfert",
-    "perk7Desc": "Débloquez les classements illimités (gratuit : Top 25)",
-    "perk7Title": "Classements Complets",
     "perk8Title": "Échange de Codes en Masse",
     "perk8Desc": "Échangez des codes cadeaux pour tous vos comptes alternatifs d'un seul clic",
-    "perk9Title": "Comparaison Améliorée",
-    "perk9Desc": "Comparez jusqu'à 5 royaumes côte à côte (gratuit : 3)",
     "perk10Title": "Tableau de Bord du Bot Atlas",
     "perk10Desc": "Votre centre de commande. Configurez les rappels, les alertes de codes cadeaux et gérez plusieurs serveurs — le tout depuis un seul écran."
   },
@@ -681,7 +695,8 @@
     "signInFailed": "Échec de la connexion. Veuillez réessayer ou vérifier votre connexion.",
     "discordOpensInBrowser": "Ouvre Discord dans votre navigateur",
     "discordBrowserHint": "Discord nécessite une connexion via le navigateur pour la sécurité. Cochez \"Se souvenir de moi\" pour des connexions plus rapides. Vous serez redirigé automatiquement.",
-    "oauthDisclaimer": "Nous utilisons des fournisseurs OAuth pour prévenir les comptes de spam."
+    "oauthDisclaimer": "Nous utilisons des fournisseurs OAuth pour prévenir les comptes de spam.",
+    "termsLink": "En vous inscrivant, vous acceptez nos Conditions d'utilisation"
   },
   "notifications": {
     "title": "Notifications",
@@ -1333,7 +1348,8 @@
       "minAtlasScore": "Score Atlas Minimum",
       "minMatchScore": "Compatibilité Minimum",
       "activelyRecruiting": "Recrutement Actif Uniquement",
-      "clearFilters": "Effacer les Filtres"
+      "clearFilters": "Effacer les Filtres",
+      "applyFilters": "Appliquer les filtres"
     },
     "allGroups": "Tous les Groupes",
     "compare": {
@@ -1346,7 +1362,29 @@
     "linkKingdom": "Liez votre royaume pour le filtre auto",
     "myGroup": "Mon Groupe",
     "showingKingdoms": "Affichage des royaumes",
-    "transferGroup": "Groupe de Transfert"
+    "transferGroup": "Groupe de Transfert",
+    "error": {
+      "description": "Un problème est survenu lors du chargement du Hub de Transfert.",
+      "retry": "Réessayer",
+      "title": "Erreur de chargement"
+    },
+    "field": {
+      "bio": "Bio",
+      "contact": "Contact",
+      "groupSize": "Taille du groupe",
+      "kvkAvail": "Disponibilité KvK",
+      "language": "Langue",
+      "lookingFor": "Recherche",
+      "power": "Puissance",
+      "savingFor": "Économise pour",
+      "schedule": "Horaire",
+      "visibility": "Visibilité"
+    },
+    "missingFields": "Champs obligatoires manquants",
+    "nominationCancelled": "Nomination annulée",
+    "nominationCancelledDesc": "Votre nomination de co-éditeur a été annulée.",
+    "playersInAtlas": "Joueurs dans Atlas",
+    "tapToComplete": "Appuyez pour compléter →"
   },
   "listing": {
     "allianceEventTimes": "Horaires des Événements d'Alliance",
@@ -1413,7 +1451,11 @@
     "yourKingdom": "Votre Royaume",
     "updatedDaysAgo": "Mis à jour il y a {{days}}j",
     "updatedToday": "Mis à jour aujourd'hui",
-    "updatedYesterday": "Mis à jour hier"
+    "updatedYesterday": "Mis à jour hier",
+    "allianceInfo": "Informations d'alliance",
+    "goldPerksV2": "Avantages Gold",
+    "hideDetails": "Masquer les détails",
+    "seeDetails": "Voir les détails"
   },
   "editor": {
     "activated": "Activé !",
@@ -1471,7 +1513,10 @@
     "coEditorInvitation": "Invitation de Co-Éditeur",
     "coEditorInviteDesc": "Vous avez été invité à co-éditer le tableau de recrutement du Royaume {{kingdom}}.",
     "coEditorInviteDescBy": "{{inviter}} vous a invité à co-éditer le tableau de recrutement du Royaume {{kingdom}}.",
-    "declineInvite": "Refuser"
+    "declineInvite": "Refuser",
+    "anotherEditorEndorsed": "Un autre éditeur a approuvé ce royaume.",
+    "applyAsCoEditor": "Postuler comme co-éditeur",
+    "nominationCancelled": "Nomination annulée"
   },
   "recruiter": {
     "loading": "Chargement du tableau de bord...",
@@ -1572,7 +1617,19 @@
     "coEditorRequestPending": "Demande de Co-Éditeur en Attente",
     "noStatusChanges": "Aucun changement de statut",
     "requestAwaitingApproval": "Votre demande de co-éditer le Royaume {{kingdom}} est en attente d'approbation. Vous serez notifié lors de l'examen.",
-    "statusHistory": "Historique du Statut de Transfert"
+    "statusHistory": "Historique du Statut de Transfert",
+    "analytics": "Analytique",
+    "basedOnListing": "Basé sur vos critères d'annonce",
+    "clearSelection": "Effacer la sélection",
+    "downloadCsv": "Télécharger CSV",
+    "last30Days": "30 derniers jours",
+    "profileViews": "Vues du profil",
+    "selectAll": "Tout sélectionner",
+    "sendInvites": "Envoyer des invitations",
+    "sending": "Envoi en cours...",
+    "showingPlayersInGroup": "Affichage des joueurs dans votre groupe",
+    "transferGroupFilter": "Groupe de transfert",
+    "watchlist": "Liste de suivi"
   },
   "applications": {
     "applyTo": "Postuler à",
@@ -1736,7 +1793,10 @@
     "howToStep3": "Cliquez ou glissez les joueurs dans la File de Rallye.",
     "howToStep4": "Définissez l'ordre d'attaque — qui arrive en premier compte.",
     "howToStep5": "Faites de même pour la File de Contre si nécessaire.",
-    "howToStep6": "Activez les minuteurs d'amélioration de familier si applicable."
+    "howToStep6": "Activez les minuteurs d'amélioration de familier si applicable.",
+    "accessDeniedDesc": "Vous avez besoin du niveau Gold pour utiliser le Coordinateur de Rally.",
+    "arriveAfter": "Arriver après",
+    "secondsAfterEnemy": "secondes après l'ennemi"
   },
   "missingData": {
     "contributeTitle": "CONTRIBUER",
@@ -1958,7 +2018,9 @@
     "contribute": "Contribuer ${{amount}}",
     "selectAmount": "Sélectionnez un montant",
     "securePayment": "Paiements sécurisés par Stripe",
-    "toTier": "→ tier {{tier}}"
+    "toTier": "→ tier {{tier}}",
+    "alliancePitch": "Demandez à votre alliance de contribuer — le recrutement profite à tout le royaume.",
+    "perMember": "par membre"
   },
   "reportData": {
     "title": "Signaler des Données Incorrectes",
@@ -2039,100 +2101,35 @@
     "noMatch": "Pas de match"
   },
   "giftCodes": {
-    "heroSubtitle": "Un clic. Récompenses instantanées. Sans copier-coller.",
-    "signInTitle": "Échangeur de Codes",
-    "signInDesc": "Connectez-vous et liez votre compte Kingshot pour échanger des codes cadeaux en un clic.",
-    "signIn": "Se Connecter",
-    "linkTitle": "Liez Votre Compte D'abord",
-    "linkDesc": "Pour échanger des codes, nous avons besoin de votre ID Joueur. Liez votre compte Kingshot dans les paramètres de votre profil.",
-    "goToProfile": "Aller au Profil",
-    "redeemAll": "Échanger les {{count}} Codes",
-    "redeemingProgress": "Échange en cours... ({{done}}/{{total}})",
-    "allRedeemed": "Les {{count}} Codes Échangés",
-    "cooldown": "Attente — {{seconds}}s",
-    "rateLimitedTitle": "Limite Atteinte",
-    "rateLimitedDesc": "Trop de requêtes. Veuillez patienter.",
     "noCodesUnavailable": "Impossible de récupérer les codes pour le moment. Réessayez plus tard ou entrez un code manuellement.",
     "noCodesEmpty": "Aucun code actif pour le moment. Revenez plus tard !",
-    "redeem": "Échanger",
-    "retry": "Réessayer",
-    "expired": "Expiré",
-    "manualEntry": "Entrer un Code Manuellement",
-    "manualPlaceholder": "ex. KINGSHOT2026",
-    "howItWorks": "Comment ça marche :",
-    "howItWorksDesc": "Atlas envoie le code au service officiel de Century Games en votre nom, en utilisant votre ID Joueur lié. Les récompenses vont directement dans votre boîte aux lettres en jeu.",
-    "rateLimit": "Limite :",
-    "rateLimitDesc": "10 codes par minute.",
     "codesSourced": "Codes provenant de {{source}}.",
     "backToTools": "Retour aux Outils",
-    "alreadyRedeemed": "Déjà Échangé",
     "copiedAll": "{{count}} codes copiés dans le presse-papier",
     "copyAll": "Copier Tous les Codes",
-    "redeemed": "Échangé",
     "refresh": "Actualiser les Codes",
     "refreshed": "{{count}} codes actifs trouvés",
-    "redeemingAlts": "Échange en cours...",
-    "redeemAllAlts": "Les {{count}} Comptes",
-    "redeemAllAltsLocked": "Tous les Comptes"
-  },
-  "giftCodeLanding": {
-    "allTools": "← Tous les Outils",
-    "becomeSupporter": "Devenir Supporter",
-    "featAlt": "Support Multi-Comptes",
-    "featAltDesc": "Des alts ? Ajoutez jusqu'à 10 comptes et échangez tous les codes sur chacun d'un seul clic. Supporters uniquement.",
-    "featAuto": "Détection Auto des Codes",
-    "featAutoDesc": "Atlas récupère automatiquement chaque code cadeau actif du jeu. Plus besoin de chercher dans Discord ou Reddit.",
-    "featCloud": "Comptes Synchronisés dans le Cloud",
-    "featCloudDesc": "Vos comptes alt se synchronisent dans le cloud. Changez d'appareil, videz votre navigateur — votre configuration est toujours là.",
-    "featDiscord": "Intégration Discord",
-    "featDiscordDesc": "Utilisez /codes dans Discord pour voir les codes actifs. Utilisez /redeem pour les échanger sans ouvrir de navigateur.",
-    "featOneClick": "Échange en Un Clic",
-    "featOneClickDesc": "Appuyez sur \"Tout Échanger\" et chaque code est appliqué instantanément. Pas de copier-coller. Pas d'erreurs de frappe.",
-    "featSmart": "Réessai Intelligent",
-    "featSmartDesc": "Limité ? Déjà échangé ? Expiré ? Atlas suit chaque résultat et ne réessaie que ce qui en a vraiment besoin.",
-    "freeF1": "Voir tous les codes actifs",
-    "freeF2": "Tout échanger en un clic",
-    "freeF3": "Copier les codes dans le presse-papier",
-    "freeF4": "Saisie manuelle de codes",
-    "freeF5": "1 emplacement de compte alt",
-    "freeF6": "/codes et /redeem dans Discord",
-    "freeNote": "Gratuit pour tous les utilisateurs Atlas. Liez votre compte Kingshot pour commencer.",
-    "freeTier": "Gratuit",
-    "freeVsSupporter": "Gratuit vs. Supporter",
-    "heroSubtitle": "Arrêtez de taper les codes un par un. Atlas les trouve, vous cliquez une fois, les récompenses arrivent dans votre boîte. Terminé.",
-    "heroTitle1": "ÉCHANGE DE",
-    "heroTitle2": "CODES",
-    "howItWorks1": "COMMENT ÇA",
-    "howItWorks2": "MARCHE",
-    "orUseBot": "Ou Utilisez /redeem dans Discord",
-    "pageTitle": "Échangeur de Codes Cadeaux",
-    "problemDesc": "Les codes cadeaux viennent des réseaux sociaux, événements du jeu, partenariats avec des créateurs et célébrations. Ils expirent vite. En manquer un et ces accélérations, gemmes et ressources gratuites sont perdues à jamais.",
-    "problemTitle": "De nouveaux codes sont sortis. Vous en avez manqué 3.",
-    "punchline": "Arrêtez de laisser des ressources gratuites sur la table.",
-    "redeemNow": "Échanger les Codes",
-    "solutionDesc": "Atlas surveille toutes les sources et rassemble chaque code actif au même endroit. Ouvrez l'échangeur, cliquez un bouton, et chaque code est appliqué. Sans taper. Sans récompenses manquées.",
-    "step1": "Liez Votre Compte",
-    "step1Desc": "Connectez-vous à Atlas et liez votre ID Joueur Kingshot dans les paramètres de profil.",
-    "step2": "Voir les Codes Actifs",
-    "step2Desc": "Atlas affiche chaque code cadeau actif avec des minuteries d'expiration. Toujours à jour.",
-    "step3": "Échanger et Récupérer",
-    "step3Desc": "Appuyez sur \"Tout Échanger\" — les codes sont appliqués instantanément. Vérifiez votre boîte aux lettres du jeu.",
-    "supF1": "Tout ce qui est Gratuit",
-    "supF2": "Jusqu'à 10 comptes alt",
-    "supF3": "Échange groupé tous comptes",
-    "supF4": "Liste d'alts synchronisée dans le cloud",
-    "supF5": "Suivi des résultats par compte",
-    "supF6": "Réessai intelligent pour codes échoués",
-    "supporterBadge": "Avantage Atlas Supporter",
-    "supporterDesc": "L'échange automatique de codes pour comptes alt est inclus avec Atlas Supporter — avec le Planificateur de Bataille, /multirally illimité, et plus. À partir de 4,99$/mois.",
-    "supporterNote": "Gérer 10 alts manuellement ? C'est plus de 40 codes à taper à chaque fois. Les Supporters cliquent une fois.",
-    "supporterTier": "Supporter",
-    "supporterTitle": "10 comptes. Un clic. Chaque code.",
-    "threeSteps": "Trois étapes. Zéro frappe. Toutes les récompenses.",
-    "tryFree": "Essayer Gratuitement",
-    "whyAtlas1": "POURQUOI",
-    "whyAtlas2": "ATLAS",
-    "whySubtitle": "Parce que taper des codes manuellement, c'est tellement 2024."
+    "androidInGame": "Ouvrez Kingshot → Profil → Paramètres → Code cadeau → Coller et échanger",
+    "iosNote": "Les joueurs iOS doivent échanger via le site Kingshot.",
+    "iosRedeemSite": "Échanger sur le site web",
+    "iosStep1": "Allez sur le site d'échange Kingshot",
+    "iosStep2": "Connectez-vous avec votre compte",
+    "iosStep3": "Collez le code cadeau",
+    "iosStep4": "Appuyez sur Échanger",
+    "iosWeb": "Échange iOS",
+    "pageTitle": "Codes Cadeaux",
+    "heroSubtitleDisplay": "Échangez des codes cadeaux Kingshot directement depuis Atlas",
+    "codeCopied": "Code copié !",
+    "copiedShort": "Copié !",
+    "copy": "Copier",
+    "allCopied": "Tous les codes copiés !",
+    "howToRedeem": "Comment échanger",
+    "step1": "Copiez le code ci-dessus",
+    "step2": "Ouvrez Kingshot sur votre appareil",
+    "step3": "Allez dans Profil → Paramètres → Code cadeau",
+    "step4": "Collez le code et appuyez sur Échanger",
+    "aboutCodes": "À propos des codes cadeaux",
+    "aboutCodesDesc": "Century Games publie régulièrement des codes cadeaux offrant des ressources gratuites en jeu."
   },
   "transferHubLanding": {
     "pageTitle": "Transfer Hub — Trouvez Votre Prochain Royaume",
@@ -2207,7 +2204,28 @@
     "ctaDesc": "Que vous cherchiez un nouveau foyer ou des joueurs forts — le Transfer Hub vous connecte avec la bonne correspondance. Sans coût, sans piège.",
     "ctaButton": "Entrer dans le Transfer Hub",
     "browseKingdoms": "Parcourir Tous les Royaumes",
-    "allTools": "← Tous les Outils"
+    "allTools": "← Tous les Outils",
+    "cmpAlliance": "Informations d'alliance planifiées",
+    "cmpBadge": "Badge doré pour tous les utilisateurs du royaume",
+    "cmpBasicListing": "Annonce basique avec Atlas Score et statistiques",
+    "cmpBattlePlanner": "Accès au Planificateur de Bataille KvK",
+    "cmpBioLang": "Bio et langue du royaume",
+    "cmpBrowseProfiles": "Parcourir les profils de transfert",
+    "cmpGlow": "Éclat doré + placement prioritaire",
+    "cmpInvites": "Envoyer des invitations aux transferts",
+    "cmpMinReqs": "Exigences min. TC et puissance affichées",
+    "cmpPrepScheduler": "Accès au Planificateur de Préparation KvK",
+    "cmpReviews": "Avis de la communauté",
+    "cmpSlots": "+2 emplacements d'alliance (5 au total)",
+    "cmpVibeTags": "Politiques du royaume et tags d'ambiance",
+    "fundSubtitle": "Le recrutement est un effort d'équipe. N'importe qui dans votre royaume peut contribuer.",
+    "priceFree": "Gratuit",
+    "recommended": "RECOMMANDÉ",
+    "tierBronze": "Bronze",
+    "tierFree": "(Gratuit)",
+    "tierGold": "Or",
+    "tierSilver": "Argent",
+    "tierStandard": "Standard"
   },
   "kingdomCommunities": {
     "title": "Communautés de Royaumes",
@@ -2219,7 +2237,9 @@
     "ctaTitle": "Mobilisez votre royaume pour grimper au classement",
     "ctaDescription": "Chaque joueur lié avec TC20+ compte pour le rang communautaire de votre royaume. Invitez votre alliance — plus votre présence est grande, plus l'intelligence Atlas de votre royaume est forte.",
     "noResults": "Aucun royaume trouvé",
-    "footer": "Seuls les joueurs ayant lié leur compte Kingshot avec TC20+ sont comptés. Les classements se mettent à jour en temps réel."
+    "footer": "Seuls les joueurs ayant lié leur compte Kingshot avec TC20+ sont comptés. Les classements se mettent à jour en temps réel.",
+    "statsKingdoms": "Royaumes",
+    "statsPlayers": "Joueurs"
   },
   "admin": {
     "anonymous": "Anonyme",
@@ -2350,7 +2370,10 @@
     "withdraw": "Retirer",
     "didYouTransfer": "Avez-vous été transféré ?",
     "outcomeSubmitted": "Résultat soumis",
-    "messages": "Messages"
+    "messages": "Messages",
+    "noMessages": "Pas encore de messages. Lancez la conversation !",
+    "send": "Envoyer",
+    "typeMessage": "Tapez un message..."
   },
   "prepScheduler": {
     "loading": "Chargement...",
@@ -2531,7 +2554,62 @@
     "simpleMode": "Simple",
     "advancedMode": "Avancé",
     "totalSpeedups": "Total",
-    "distribution": "Répartition"
+    "distribution": "Répartition",
+    "activeSchedule": "Planning actif",
+    "activeScheduleDesc": "Votre royaume a un planning de préparation actif.",
+    "addTimeRange": "Ajouter une plage horaire",
+    "backToTools": "← Retour aux outils",
+    "beOnline": "Soyez en ligne pendant votre créneau assigné",
+    "changeScreenshot": "Changer la capture",
+    "copyFrom": "Copier depuis",
+    "createScheduleBtn": "Créer un planning",
+    "day": "Jour",
+    "deadlineHintUTC": "La date limite est en UTC",
+    "dontNeedBuff": "Je n'ai pas besoin d'un créneau de buff",
+    "editDeadline": "Modifier la date limite",
+    "fillForm": "Remplissez le formulaire",
+    "formClosedLocked": "Le formulaire est fermé",
+    "goldTierOnly": "Niveau Gold uniquement",
+    "linkBtn": "Partager le lien",
+    "linkDesc": "Partagez ce lien avec les membres de votre royaume",
+    "linkReturnHint": "Les joueurs reviendront ici après soumission",
+    "messageOptional": "Message (optionnel)",
+    "messagePlaceholder": "Notes pour le gestionnaire...",
+    "mySchedules": "Mes plannings",
+    "needDifferentTime": "Besoin d'un autre horaire ?",
+    "none": "Aucun",
+    "notAssigned": "Non assigné",
+    "notAssignedDesc": "Aucun créneau ne vous a été assigné.",
+    "notGoldTier": "Votre royaume doit être Gold pour utiliser le Planificateur.",
+    "notSelected": "Non sélectionné",
+    "notesForPlayers": "Notes pour les joueurs",
+    "notesPlaceholder": "Instructions pour les membres...",
+    "optedOut": "Décliné",
+    "pageTitle": "Planificateur de Préparation",
+    "qualified": "Qualifié",
+    "redirectNote": "Vous serez redirigé après soumission",
+    "requestSlotChange": "Demander un changement de créneau",
+    "screenshotDesc": "Téléchargez une capture de vos accélérations",
+    "screenshotProof": "Capture de preuve",
+    "sending": "Envoi en cours...",
+    "setDeadline": "Définir la date limite",
+    "signInBtn": "Connectez-vous pour soumettre",
+    "signInDesc": "Connectez-vous pour soumettre votre disponibilité",
+    "speedupsDesc": "Combien d'accélérations avez-vous ?",
+    "submissionDeadline": "Date limite de soumission",
+    "submitting": "Soumission...",
+    "subtitle": "Coordonnez la phase de préparation de votre royaume",
+    "timezoneHint": "Horaires dans votre fuseau horaire",
+    "to": "à",
+    "toastAllianceRequired": "Le tag d'alliance est requis",
+    "toastDeadlineFailed": "Échec de la mise à jour de la date limite",
+    "toastDeadlineUpdated": "Date limite mise à jour.",
+    "type": "Type",
+    "updateSubmission": "Mettre à jour la soumission",
+    "usernamePlaceholder": "Votre nom en jeu",
+    "yourPrepReport": "Votre rapport de préparation",
+    "yourSlots": "Vos créneaux",
+    "yourTimezone": "Votre fuseau horaire"
   },
   "prepLanding": {
     "featAutoAssign": "Assignation Automatique des Créneaux",
@@ -2573,7 +2651,12 @@
     "whoPlayersDesc": "Remplissent le formulaire. Soumettent accélérateurs, disponibilité et preuves. Se voient assigner un créneau de 30 minutes. Se présentent et buffent.",
     "getStarted": "Commencer",
     "ctaTitle": "Prêt à organiser votre royaume ?",
-    "ctaDesc": "La Phase de Prep de votre royaume n'a pas à être le chaos. Le Planificateur la transforme en un processus optimisé basé sur les données."
+    "ctaDesc": "La Phase de Prep de votre royaume n'a pas à être le chaos. Le Planificateur la transforme en un processus optimisé basé sur les données.",
+    "goldBadge": "Fonction Gold",
+    "goldDesc": "Le Planificateur de Préparation est disponible pour les royaumes Gold.",
+    "goldTitle": "Organisez la phase de préparation de votre royaume",
+    "whoManagers": "Gestionnaires de Préparation",
+    "whoManagersDesc": "Assignés par les Éditeurs pour gérer le quotidien. Examinent les soumissions, assignent automatiquement les créneaux, exportent les plannings."
   },
   "tos": {
     "pageTitle": "Conditions d'Utilisation"
@@ -2582,9 +2665,63 @@
     "pageTitle": "Politique de Confidentialité"
   },
   "footer": {
-    "trademark": "Kingshot\u2122 est une marque déposée de Century Games. Tout le contenu et les matériaux du jeu sont des marques déposées et des droits d'auteur de leurs propriétaires respectifs. Kingshot Atlas est un projet de fans indépendant — non affilié, approuvé, sponsorisé ou approuvé par Century Games.",
+    "trademark": "Kingshot™ est une marque déposée de Century Games. Tout le contenu et les matériaux du jeu sont des marques déposées et des droits d'auteur de leurs propriétaires respectifs. Kingshot Atlas est un projet de fans indépendant — non affilié, approuvé, sponsorisé ou approuvé par Century Games.",
     "about": "À propos",
     "terms": "Conditions",
     "privacy": "Confidentialité"
+  },
+  "bpTrial": {
+    "activeDesc": "Vous avez accès au Planificateur pendant votre période d'essai.",
+    "activeTitle": "Essai actif",
+    "offerDesc": "Essayez le Planificateur gratuitement pendant 24 heures.",
+    "offerTitle": "Essai gratuit disponible",
+    "openPlanner": "Ouvrir le planificateur",
+    "startTrial": "Commencer l'essai gratuit"
+  },
+  "cancelSurvey": {
+    "annualOffer": "Passez à l'annuel et économisez 17%",
+    "backToAtlas": "Retour à Atlas",
+    "feedbackPlaceholder": "Dites-nous ce que nous pourrions améliorer...",
+    "heading": "Nous sommes désolés de vous voir partir",
+    "pauseButton": "Mettre en pause",
+    "pauseOffer": "Pas prêt à annuler ? Mettez en pause jusqu'à 3 mois.",
+    "reasonTitle": "Pourquoi annulez-vous ?",
+    "skip": "Passer",
+    "subheading": "Avant de partir, aidez-nous à améliorer Atlas.",
+    "submit": "Envoyer et annuler",
+    "submitting": "Envoi en cours...",
+    "switchAnnual": "Passer à l'annuel",
+    "thankYou": "Merci pour vos commentaires",
+    "thankYouDesc": "Votre abonnement a été annulé. Vous conserverez l'accès jusqu'à la fin de la période.",
+    "title": "Annuler l'abonnement"
+  },
+  "conversion": {
+    "cta": "Devenir Supporter",
+    "subtitle": "Soutenez Atlas et débloquez les fonctionnalités premium",
+    "title": "Débloquez plus avec Atlas Supporter"
+  },
+  "onboarding": {
+    "signUpFree": "Inscrivez-vous gratuitement",
+    "signupNudge": "Créez un compte gratuit pour débloquer toutes les fonctionnalités"
+  },
+  "referral": {
+    "copyLink": "Copier le lien"
+  },
+  "welcome": {
+    "favoritesDesc": "Suivez les royaumes qui vous intéressent et recevez des notifications",
+    "favoritesTitle": "Votre liste de favoris",
+    "rivalsDesc": "Consultez vos anciens adversaires et prochains affrontements",
+    "rivalsTitle": "Vos rivaux KvK",
+    "scoreDesc": "Voyez comment K{{num}} se classe parmi plus de 1 300 royaumes",
+    "scoreDescGeneric": "Voyez comment votre royaume se classe parmi plus de 1 300 royaumes",
+    "scoreTitle": "Atlas Score de votre royaume",
+    "seeRivals": "Voir les rivaux",
+    "startTracking": "Commencer à suivre",
+    "subtitle": "Votre compte est lié. Voici ce qu'Atlas a pour vous.",
+    "title": "Bienvenue sur Atlas",
+    "viewScore": "Voir le score"
+  },
+  "kvkSubmit": {
+    "screenshotDisclaimer": "Je confirme que ces captures d'écran sont mes propres captures en jeu. Je comprends que tout le contenu du jeu est la propriété de Century Games et j'autorise Kingshot Atlas à les stocker et afficher à des fins communautaires."
   }
 }

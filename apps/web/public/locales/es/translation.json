@@ -24,7 +24,9 @@
     "kingdom": "Reino",
     "wins": "Victorias",
     "losses": "Derrotas",
-    "clear": "Limpiar"
+    "clear": "Limpiar",
+    "allTools": "← Todas las herramientas",
+    "copied": "¡Copiado!"
   },
   "quickAction": {
     "transferHub_1": "Centro de",
@@ -62,7 +64,8 @@
     "ambassadors": "Embajadores",
     "contributeData": "Contribuir Datos",
     "aboutAtlas": "Sobre Atlas",
-    "kingdomCommunities": "Colonias de Reinos"
+    "kingdomCommunities": "Colonias de Reinos",
+    "giftCodes": "Códigos de Regalo"
   },
   "stats": {
     "atlasScore": "Índice Atlas",
@@ -183,7 +186,8 @@
     "region": "Región",
     "townCenter": "Centro de Ciudad",
     "viewProfile": "Ver Perfil",
-    "youCanUpdate": "Puedes actualizar esto"
+    "youCanUpdate": "Puedes actualizar esto",
+    "chipInToFund": "Contribuir al Fondo"
   },
   "rankings": {
     "subtitle": "¿Quién domina? Los datos no mienten.",
@@ -214,7 +218,8 @@
     "combinedPowerTitle": "¿Qué es el Nivel de Poder Combinado?",
     "combinedPowerDesc": "La suma de los Índices Atlas de ambos reinos al entrar al enfrentamiento. Puntuaciones más altas = batallas más competitivas entre reinos probados. Así se forjan las leyendas.",
     "scoreTimingTitle": "Momento de la Puntuación",
-    "scoreTimingDesc": "Las puntuaciones reflejan el Índice Atlas de cada reino antes de que comenzara la batalla—basado en su historial hasta ese momento. Sin retrospectiva, solo poder puro pre-batalla."
+    "scoreTimingDesc": "Las puntuaciones reflejan el Índice Atlas de cada reino antes de que comenzara la batalla—basado en su historial hasta ese momento. Sin retrospectiva, solo poder puro pre-batalla.",
+    "addMatchup": "Agregar enfrentamiento"
   },
   "compare": {
     "heroTitle1": "COMPARACIÓN DE",
@@ -335,7 +340,20 @@
     "accessUnlocked": "Acceso Desbloqueado",
     "supporterConfirm": "Tienes acceso completo como Atlas Supporter.",
     "supporterThanks": "Tienes acceso completo al Planificador de Batalla.",
-    "supporterThanksDesc": "Gracias por apoyar a Atlas. Ve directo al planificador y coordina tu próximo ataque al castillo."
+    "supporterThanksDesc": "Gracias por apoyar a Atlas. Ve directo al planificador y coordina tu próximo ataque al castillo.",
+    "accessRequired": "Se requiere nivel Gold",
+    "getGoldAccess": "Cómo alcanzar el nivel Gold",
+    "goldBadge": "Función de reino Gold",
+    "goldConfirm": "Tienes acceso completo como miembro de reino Gold.",
+    "goldDesc": "El Planificador de Batalla está disponible para reinos Gold. Contribuye al Fondo del Reino en el Centro de Transferencias.",
+    "goldPerk": "Disponible para reinos Gold. Contribuye al Fondo del Reino.",
+    "goldThanks": "Tienes acceso completo al Planificador de Batalla.",
+    "goldThanksDesc": "Tu reino ha alcanzado el nivel Gold. Entra directamente al planificador.",
+    "goldTitle": "Tu alianza merece mejor coordinación.",
+    "reachGold": "Alcanzar nivel Gold",
+    "tabCounter": "Contra",
+    "tabPlayers": "Jugadores",
+    "tabRally": "Rally"
   },
   "battlePlannerBanner": {
     "dismiss": "Cerrar banner del Planificador de Batalla",
@@ -490,12 +508,8 @@
     "free5Desc": "Estadísticas completas e historial de rendimiento",
     "free6Title": "Calendario de Eventos",
     "free6Desc": "Horarios de KvK y Eventos de Transferencia",
-    "perk7Desc": "Desbloquea rankings ilimitados (gratis: Top 25)",
-    "perk7Title": "Rankings Completos",
     "perk8Title": "Canje Masivo de Códigos",
     "perk8Desc": "Canjea códigos de regalo para todas tus cuentas alternativas de una vez",
-    "perk9Title": "Comparación Mejorada",
-    "perk9Desc": "Compara hasta 5 reinos lado a lado (gratis: 3)",
     "perk10Title": "Panel de Control del Bot Atlas",
     "perk10Desc": "Tu centro de comando. Configura recordatorios, alertas de códigos de regalo y gestiona múltiples servidores — todo desde una pantalla."
   },
@@ -681,7 +695,8 @@
     "signInFailed": "Error al iniciar sesión. Por favor inténtalo de nuevo o verifica tu conexión.",
     "discordOpensInBrowser": "Abre Discord en tu navegador",
     "discordBrowserHint": "Discord requiere inicio de sesión en el navegador por seguridad. Marca \"Recuérdame\" para inicios de sesión más rápidos. Serás redirigido automáticamente.",
-    "oauthDisclaimer": "Usamos proveedores de OAuth para prevenir cuentas de spam."
+    "oauthDisclaimer": "Usamos proveedores de OAuth para prevenir cuentas de spam.",
+    "termsLink": "Al registrarte aceptas nuestros Términos de Servicio"
   },
   "notifications": {
     "title": "Notificaciones",
@@ -1333,7 +1348,8 @@
       "minAtlasScore": "Índice Atlas Mínimo",
       "minMatchScore": "Compatibilidad Mínima",
       "activelyRecruiting": "Solo Reclutando Activamente",
-      "clearFilters": "Borrar Filtros"
+      "clearFilters": "Borrar Filtros",
+      "applyFilters": "Aplicar filtros"
     },
     "allGroups": "Todos los Grupos",
     "compare": {
@@ -1346,7 +1362,29 @@
     "linkKingdom": "Vincula tu reino para filtro automático",
     "myGroup": "Mi Grupo",
     "showingKingdoms": "Mostrando reinos",
-    "transferGroup": "Grupo de Transferencia"
+    "transferGroup": "Grupo de Transferencia",
+    "error": {
+      "description": "Algo salió mal al cargar el Centro de Transferencias.",
+      "retry": "Reintentar",
+      "title": "Error al cargar"
+    },
+    "field": {
+      "bio": "Biografía",
+      "contact": "Contacto",
+      "groupSize": "Tamaño del grupo",
+      "kvkAvail": "Disponibilidad KvK",
+      "language": "Idioma",
+      "lookingFor": "Buscando",
+      "power": "Poder",
+      "savingFor": "Ahorrando para",
+      "schedule": "Horario",
+      "visibility": "Visibilidad"
+    },
+    "missingFields": "Faltan campos obligatorios",
+    "nominationCancelled": "Nominación cancelada",
+    "nominationCancelledDesc": "Tu nominación de co-editor ha sido cancelada.",
+    "playersInAtlas": "Jugadores en Atlas",
+    "tapToComplete": "Toca para completar →"
   },
   "listing": {
     "allianceEventTimes": "Horarios de Eventos de Alianza",
@@ -1413,7 +1451,11 @@
     "yourKingdom": "Tu Reino",
     "updatedDaysAgo": "Actualizado hace {{days}}d",
     "updatedToday": "Actualizado hoy",
-    "updatedYesterday": "Actualizado ayer"
+    "updatedYesterday": "Actualizado ayer",
+    "allianceInfo": "Información de alianza",
+    "goldPerksV2": "Ventajas Gold",
+    "hideDetails": "Ocultar detalles",
+    "seeDetails": "Ver detalles"
   },
   "editor": {
     "activated": "¡Activado!",
@@ -1471,7 +1513,10 @@
     "coEditorInvitation": "Invitación de Co-Editor",
     "coEditorInviteDesc": "Has sido invitado a co-editar el panel de reclutamiento del Reino {{kingdom}}.",
     "coEditorInviteDescBy": "{{inviter}} te invitó a co-editar el panel de reclutamiento del Reino {{kingdom}}.",
-    "declineInvite": "Rechazar"
+    "declineInvite": "Rechazar",
+    "anotherEditorEndorsed": "Otro editor ha respaldado este reino.",
+    "applyAsCoEditor": "Solicitar como co-editor",
+    "nominationCancelled": "Nominación cancelada"
   },
   "recruiter": {
     "loading": "Cargando panel...",
@@ -1572,7 +1617,19 @@
     "coEditorRequestPending": "Solicitud de Co-Editor Pendiente",
     "noStatusChanges": "Sin cambios de estado aún",
     "requestAwaitingApproval": "Tu solicitud para co-editar el Reino {{kingdom}} está pendiente de aprobación. Se te notificará cuando sea revisada.",
-    "statusHistory": "Historial de Estado de Transferencia"
+    "statusHistory": "Historial de Estado de Transferencia",
+    "analytics": "Análisis",
+    "basedOnListing": "Basado en tus criterios de anuncio",
+    "clearSelection": "Limpiar selección",
+    "downloadCsv": "Descargar CSV",
+    "last30Days": "Últimos 30 días",
+    "profileViews": "Visitas al perfil",
+    "selectAll": "Seleccionar todo",
+    "sendInvites": "Enviar invitaciones",
+    "sending": "Enviando...",
+    "showingPlayersInGroup": "Mostrando jugadores en tu grupo",
+    "transferGroupFilter": "Grupo de transferencia",
+    "watchlist": "Lista de seguimiento"
   },
   "applications": {
     "applyTo": "Aplicar a",
@@ -1736,7 +1793,10 @@
     "howToStep3": "Haz clic o arrastra jugadores a la Cola de Rally.",
     "howToStep4": "Establece el orden de ataque — quién llega primero importa.",
     "howToStep5": "Haz lo mismo para la Cola de Contra si es necesario.",
-    "howToStep6": "Activa temporizadores de mejora de mascota cuando corresponda."
+    "howToStep6": "Activa temporizadores de mejora de mascota cuando corresponda.",
+    "accessDeniedDesc": "Necesitas acceso Gold para usar el Coordinador de Rally.",
+    "arriveAfter": "Llegar después de",
+    "secondsAfterEnemy": "segundos después del enemigo"
   },
   "missingData": {
     "contributeTitle": "CONTRIBUIR",
@@ -1958,7 +2018,9 @@
     "contribute": "Contribuir ${{amount}}",
     "selectAmount": "Selecciona un monto",
     "securePayment": "Pagos procesados de forma segura por Stripe",
-    "toTier": "→ tier {{tier}}"
+    "toTier": "→ tier {{tier}}",
+    "alliancePitch": "Pide a tu alianza que contribuya — reclutar beneficia a todo el reino.",
+    "perMember": "por miembro"
   },
   "reportData": {
     "title": "Reportar Datos Incorrectos",
@@ -2039,100 +2101,35 @@
     "noMatch": "Sin enfrentamiento"
   },
   "giftCodes": {
-    "heroSubtitle": "Un clic. Recompensas instantáneas. Sin copiar y pegar.",
-    "signInTitle": "Canjeador de Códigos",
-    "signInDesc": "Inicia sesión y vincula tu cuenta de Kingshot para canjear códigos de regalo con un clic.",
-    "signIn": "Iniciar Sesión",
-    "linkTitle": "Vincula Tu Cuenta Primero",
-    "linkDesc": "Para canjear códigos, necesitamos tu ID de Jugador. Vincula tu cuenta de Kingshot en la configuración de tu perfil.",
-    "goToProfile": "Ir al Perfil",
-    "redeemAll": "Canjear los {{count}} Códigos",
-    "redeemingProgress": "Canjeando... ({{done}}/{{total}})",
-    "allRedeemed": "Los {{count}} Códigos Canjeados",
-    "cooldown": "Espera — {{seconds}}s",
-    "rateLimitedTitle": "Límite Alcanzado",
-    "rateLimitedDesc": "Demasiadas solicitudes. Por favor espera.",
     "noCodesUnavailable": "No se pudieron obtener los códigos ahora. Intenta más tarde o ingresa un código manualmente.",
     "noCodesEmpty": "No hay códigos activos en este momento. ¡Vuelve más tarde!",
-    "redeem": "Canjear",
-    "retry": "Reintentar",
-    "expired": "Expirado",
-    "manualEntry": "Ingresar un Código Manualmente",
-    "manualPlaceholder": "ej. KINGSHOT2026",
-    "howItWorks": "¿Cómo funciona?",
-    "howItWorksDesc": "Atlas envía el código al servicio oficial de Century Games en tu nombre, usando tu ID de Jugador vinculado. Las recompensas van directo a tu buzón del juego.",
-    "rateLimit": "Límite:",
-    "rateLimitDesc": "10 códigos por minuto.",
     "codesSourced": "Códigos obtenidos de {{source}}.",
     "backToTools": "Volver a Herramientas",
-    "alreadyRedeemed": "Ya Canjeado",
     "copiedAll": "{{count}} códigos copiados al portapapeles",
     "copyAll": "Copiar Todos los Códigos",
-    "redeemed": "Canjeado",
     "refresh": "Actualizar Códigos",
     "refreshed": "Se encontraron {{count}} códigos activos",
-    "redeemingAlts": "Canjeando...",
-    "redeemAllAlts": "Todas las {{count}} Cuentas",
-    "redeemAllAltsLocked": "Todas las Cuentas"
-  },
-  "giftCodeLanding": {
-    "allTools": "← Todas las Herramientas",
-    "becomeSupporter": "Hazte Supporter",
-    "featAlt": "Soporte para Cuentas Alt",
-    "featAltDesc": "¿Tienes alts? Añade hasta 10 cuentas y canjea todos los códigos en cada una con un solo botón. Solo para Supporters.",
-    "featAuto": "Detección Automática de Códigos",
-    "featAutoDesc": "Atlas obtiene automáticamente cada código de regalo activo del juego. Sin buscar en servidores de Discord o hilos de Reddit.",
-    "featCloud": "Cuentas Sincronizadas en la Nube",
-    "featCloudDesc": "Tus cuentas alt se sincronizan en la nube. Cambia de dispositivo, borra tu navegador — tu configuración siempre estará ahí.",
-    "featDiscord": "Integración con Discord",
-    "featDiscordDesc": "Usa /codes en Discord para ver códigos activos. Usa /redeem para canjearlos sin abrir un navegador. Atlas Bot se encarga.",
-    "featOneClick": "Canje con Un Clic",
-    "featOneClickDesc": "Pulsa \"Canjear Todo\" y cada código se aplica a tu cuenta al instante. Sin copiar y pegar. Sin errores de escritura.",
-    "featSmart": "Reintento Inteligente",
-    "featSmartDesc": "¿Límite de velocidad? ¿Ya canjeado? ¿Expirado? Atlas rastrea cada resultado y solo reintenta lo que realmente necesita reintento.",
-    "freeF1": "Ver todos los códigos activos",
-    "freeF2": "Canjear todo con un clic",
-    "freeF3": "Copiar códigos al portapapeles",
-    "freeF4": "Entrada manual de códigos",
-    "freeF5": "1 espacio para cuenta alt",
-    "freeF6": "/codes y /redeem en Discord",
-    "freeNote": "Gratis para todos los usuarios de Atlas. Vincula tu cuenta de Kingshot para empezar.",
-    "freeTier": "Gratis",
-    "freeVsSupporter": "Gratis vs. Supporter",
-    "heroSubtitle": "Deja de escribir códigos uno por uno. Atlas los encuentra, tú haces clic una vez, las recompensas llegan a tu buzón. Listo.",
-    "heroTitle1": "CANJEO DE",
-    "heroTitle2": "CÓDIGOS",
-    "howItWorks1": "CÓMO",
-    "howItWorks2": "FUNCIONA",
-    "orUseBot": "O Usa /redeem en Discord",
-    "pageTitle": "Canjeador de Códigos de Regalo",
-    "problemDesc": "Los códigos de regalo vienen de publicaciones en redes sociales, eventos del juego, colaboraciones con creadores y celebraciones. Expiran rápido. Pierde uno y esos speedups, gemas y recursos gratis se van para siempre.",
-    "problemTitle": "Nuevos códigos de regalo aparecieron. Te perdiste 3.",
-    "punchline": "Deja de dejar recursos gratis en la mesa.",
-    "redeemNow": "Canjear Códigos Ahora",
-    "solutionDesc": "Atlas monitorea todas las fuentes y agrega cada código activo en un solo lugar. Abre el canjeador, pulsa un botón, y cada código se aplica. Sin escribir. Sin recompensas perdidas.",
-    "step1": "Vincula Tu Cuenta",
-    "step1Desc": "Inicia sesión en Atlas y vincula tu ID de Jugador de Kingshot en la configuración de perfil.",
-    "step2": "Ver Códigos Activos",
-    "step2Desc": "Atlas muestra cada código de regalo activo con temporizadores de expiración. Siempre actualizado.",
-    "step3": "Canjear y Recoger",
-    "step3Desc": "Pulsa \"Canjear Todo\" — los códigos se aplican al instante. Revisa tu buzón del juego para las recompensas.",
-    "supF1": "Todo lo de Gratis",
-    "supF2": "Hasta 10 cuentas alt",
-    "supF3": "Canje masivo en todas las cuentas",
-    "supF4": "Lista de alts sincronizada en la nube",
-    "supF5": "Seguimiento de resultados por cuenta",
-    "supF6": "Reintento inteligente para códigos fallidos",
-    "supporterBadge": "Beneficio Atlas Supporter",
-    "supporterDesc": "El Auto-Canjeador de Códigos para cuentas alt está incluido con Atlas Supporter — junto con el Planificador de Batalla, /multirally ilimitado, y más. Desde $4.99/mes.",
-    "supporterNote": "¿Gestionando 10 alts manualmente? Son más de 40 códigos para escribir cada vez. Los Supporters hacen clic una vez.",
-    "supporterTier": "Supporter",
-    "supporterTitle": "10 cuentas. Un clic. Cada código.",
-    "threeSteps": "Tres pasos. Cero escritura. Todas las recompensas.",
-    "tryFree": "Pruébalo Gratis",
-    "whyAtlas1": "POR QUÉ USAR",
-    "whyAtlas2": "ATLAS",
-    "whySubtitle": "Porque escribir códigos manualmente es muy del 2024."
+    "androidInGame": "Abre Kingshot → Perfil → Ajustes → Código de regalo → Pegar y canjear",
+    "iosNote": "Los jugadores de iOS deben canjear a través del sitio web de Kingshot.",
+    "iosRedeemSite": "Canjear en el sitio web",
+    "iosStep1": "Ve al sitio de canje de Kingshot",
+    "iosStep2": "Inicia sesión con tu cuenta",
+    "iosStep3": "Pega el código de regalo",
+    "iosStep4": "Toca Canjear",
+    "iosWeb": "Canje iOS",
+    "pageTitle": "Códigos de Regalo",
+    "heroSubtitleDisplay": "Canjea códigos de regalo de Kingshot directamente desde Atlas",
+    "codeCopied": "¡Código copiado!",
+    "copiedShort": "¡Copiado!",
+    "copy": "Copiar",
+    "allCopied": "¡Todos los códigos copiados!",
+    "howToRedeem": "Cómo canjear",
+    "step1": "Copia el código arriba",
+    "step2": "Abre Kingshot en tu dispositivo",
+    "step3": "Ve a Perfil → Ajustes → Código de regalo",
+    "step4": "Pega el código y toca Canjear",
+    "aboutCodes": "Sobre los códigos de regalo",
+    "aboutCodesDesc": "Century Games publica códigos de regalo periódicamente que otorgan recursos gratuitos en el juego."
   },
   "transferHubLanding": {
     "pageTitle": "Transfer Hub — Encuentra Tu Próximo Reino",
@@ -2207,7 +2204,28 @@
     "ctaDesc": "Ya sea que busques un nuevo hogar o jugadores fuertes — el Transfer Hub te conecta con la opción correcta. Sin costo, sin trampa.",
     "ctaButton": "Entrar al Transfer Hub",
     "browseKingdoms": "Explorar Todos los Reinos",
-    "allTools": "← Todas las Herramientas"
+    "allTools": "← Todas las Herramientas",
+    "cmpAlliance": "Horario de información de alianza",
+    "cmpBadge": "Insignia dorada para todos los usuarios del reino",
+    "cmpBasicListing": "Anuncio básico con Atlas Score y estadísticas",
+    "cmpBattlePlanner": "Acceso al Planificador de Batalla KvK",
+    "cmpBioLang": "Biografía e idioma del reino",
+    "cmpBrowseProfiles": "Explorar perfiles de transferencias",
+    "cmpGlow": "Brillo dorado + posición prioritaria",
+    "cmpInvites": "Enviar invitaciones a transferencias",
+    "cmpMinReqs": "Requisitos mínimos de TC y poder mostrados",
+    "cmpPrepScheduler": "Acceso al Programador de Prep KvK",
+    "cmpReviews": "Reseñas de la comunidad",
+    "cmpSlots": "+2 espacios de alianza (5 en total)",
+    "cmpVibeTags": "Políticas del reino y etiquetas de ambiente",
+    "fundSubtitle": "Reclutar es un esfuerzo de equipo. Cualquiera en tu reino puede contribuir.",
+    "priceFree": "Gratis",
+    "recommended": "RECOMENDADO",
+    "tierBronze": "Bronce",
+    "tierFree": "(Gratis)",
+    "tierGold": "Oro",
+    "tierSilver": "Plata",
+    "tierStandard": "Estándar"
   },
   "kingdomCommunities": {
     "title": "Comunidades de Reinos",
@@ -2219,7 +2237,9 @@
     "ctaTitle": "Moviliza tu reino para escalar posiciones",
     "ctaDescription": "Cada jugador vinculado con TC20+ cuenta para el rango comunitario de tu reino. Invita a tu alianza — cuanto mayor sea tu presencia, más fuerte será la inteligencia Atlas de tu reino.",
     "noResults": "No se encontraron reinos",
-    "footer": "Solo se cuentan los jugadores que han vinculado su cuenta de Kingshot con TC20+. Los rankings se actualizan en tiempo real."
+    "footer": "Solo se cuentan los jugadores que han vinculado su cuenta de Kingshot con TC20+. Los rankings se actualizan en tiempo real.",
+    "statsKingdoms": "Reinos",
+    "statsPlayers": "Jugadores"
   },
   "admin": {
     "anonymous": "Anónimo",
@@ -2350,7 +2370,10 @@
     "withdraw": "Retirar",
     "didYouTransfer": "¿Te transferiste?",
     "outcomeSubmitted": "Resultado enviado",
-    "messages": "Mensajes"
+    "messages": "Mensajes",
+    "noMessages": "Sin mensajes aún. ¡Inicia la conversación!",
+    "send": "Enviar",
+    "typeMessage": "Escribe un mensaje..."
   },
   "prepScheduler": {
     "loading": "Cargando...",
@@ -2531,7 +2554,62 @@
     "simpleMode": "Simple",
     "advancedMode": "Avanzado",
     "totalSpeedups": "Total",
-    "distribution": "Distribución"
+    "distribution": "Distribución",
+    "activeSchedule": "Horario activo",
+    "activeScheduleDesc": "Tu reino tiene un horario de prep activo.",
+    "addTimeRange": "Agregar rango de tiempo",
+    "backToTools": "← Volver a herramientas",
+    "beOnline": "Estar en línea durante tu turno asignado",
+    "changeScreenshot": "Cambiar captura",
+    "copyFrom": "Copiar de",
+    "createScheduleBtn": "Crear horario",
+    "day": "Día",
+    "deadlineHintUTC": "La fecha límite está en UTC",
+    "dontNeedBuff": "No necesito turno de buff",
+    "editDeadline": "Editar fecha límite",
+    "fillForm": "Completa el formulario",
+    "formClosedLocked": "El formulario está cerrado",
+    "goldTierOnly": "Solo nivel Gold",
+    "linkBtn": "Compartir enlace",
+    "linkDesc": "Comparte este enlace con los miembros de tu reino",
+    "linkReturnHint": "Los jugadores volverán aquí después de enviar",
+    "messageOptional": "Mensaje (opcional)",
+    "messagePlaceholder": "Notas para el gestor...",
+    "mySchedules": "Mis horarios",
+    "needDifferentTime": "¿Necesitas otro horario?",
+    "none": "Ninguno",
+    "notAssigned": "No asignado",
+    "notAssignedDesc": "Aún no se te ha asignado un turno.",
+    "notGoldTier": "Tu reino necesita nivel Gold para usar el Programador.",
+    "notSelected": "No seleccionado",
+    "notesForPlayers": "Notas para jugadores",
+    "notesPlaceholder": "Instrucciones para los miembros...",
+    "optedOut": "Rechazado",
+    "pageTitle": "Programador de Prep",
+    "qualified": "Calificado",
+    "redirectNote": "Serás redirigido después de enviar",
+    "requestSlotChange": "Solicitar cambio de turno",
+    "screenshotDesc": "Sube una captura de tus aceleradores",
+    "screenshotProof": "Captura de prueba",
+    "sending": "Enviando...",
+    "setDeadline": "Establecer fecha límite",
+    "signInBtn": "Iniciar sesión para enviar",
+    "signInDesc": "Inicia sesión para enviar tu disponibilidad",
+    "speedupsDesc": "¿Cuántos aceleradores tienes?",
+    "submissionDeadline": "Fecha límite de envío",
+    "submitting": "Enviando...",
+    "subtitle": "Coordina la fase de prep de tu reino",
+    "timezoneHint": "Horarios en tu zona horaria local",
+    "to": "a",
+    "toastAllianceRequired": "Se requiere etiqueta de alianza",
+    "toastDeadlineFailed": "Error al actualizar la fecha límite",
+    "toastDeadlineUpdated": "Fecha límite actualizada.",
+    "type": "Tipo",
+    "updateSubmission": "Actualizar envío",
+    "usernamePlaceholder": "Tu nombre en el juego",
+    "yourPrepReport": "Tu informe de prep",
+    "yourSlots": "Tus turnos",
+    "yourTimezone": "Tu zona horaria"
   },
   "prepLanding": {
     "featAutoAssign": "Asignación Automática de Turnos",
@@ -2573,7 +2651,12 @@
     "whoPlayersDesc": "Llenan el formulario. Envían aceleradores, disponibilidad y pruebas. Se les asigna un turno de 30 minutos. Aparecen y aplican buff.",
     "getStarted": "Comenzar",
     "ctaTitle": "¿Listo para organizar tu reino?",
-    "ctaDesc": "La Fase de Prep de tu reino no tiene que ser caos. El Programador la convierte en un proceso optimizado basado en datos."
+    "ctaDesc": "La Fase de Prep de tu reino no tiene que ser caos. El Programador la convierte en un proceso optimizado basado en datos.",
+    "goldBadge": "Función Gold",
+    "goldDesc": "El Programador de Prep está disponible para reinos Gold.",
+    "goldTitle": "Organiza la fase de preparación de tu reino",
+    "whoManagers": "Gestores de Preparación",
+    "whoManagersDesc": "Asignados por los Editores para gestionar el día a día. Revisan envíos, asignan turnos automáticamente, exportan horarios."
   },
   "tos": {
     "pageTitle": "Términos de Servicio"
@@ -2582,9 +2665,63 @@
     "pageTitle": "Política de Privacidad"
   },
   "footer": {
-    "trademark": "Kingshot\u2122 es una marca registrada de Century Games. Todo el contenido y materiales del juego son marcas registradas y derechos de autor de sus respectivos propietarios. Kingshot Atlas es un proyecto de fans independiente — no afiliado, respaldado, patrocinado ni aprobado por Century Games.",
+    "trademark": "Kingshot™ es una marca registrada de Century Games. Todo el contenido y materiales del juego son marcas registradas y derechos de autor de sus respectivos propietarios. Kingshot Atlas es un proyecto de fans independiente — no afiliado, respaldado, patrocinado ni aprobado por Century Games.",
     "about": "Acerca de",
     "terms": "Términos",
     "privacy": "Privacidad"
+  },
+  "bpTrial": {
+    "activeDesc": "Tienes acceso al Planificador durante tu periodo de prueba.",
+    "activeTitle": "Prueba activa",
+    "offerDesc": "Prueba el Planificador gratis por 24 horas.",
+    "offerTitle": "Prueba gratuita disponible",
+    "openPlanner": "Abrir planificador",
+    "startTrial": "Iniciar prueba gratuita"
+  },
+  "cancelSurvey": {
+    "annualOffer": "Cambia a anual y ahorra 17%",
+    "backToAtlas": "Volver a Atlas",
+    "feedbackPlaceholder": "Cuéntanos qué podemos mejorar...",
+    "heading": "Lamentamos verte ir",
+    "pauseButton": "Pausar en su lugar",
+    "pauseOffer": "¿No quieres cancelar? Pausa tu suscripción hasta 3 meses.",
+    "reasonTitle": "¿Por qué cancelas?",
+    "skip": "Omitir",
+    "subheading": "Antes de irte, ayúdanos a mejorar Atlas.",
+    "submit": "Enviar y cancelar",
+    "submitting": "Enviando...",
+    "switchAnnual": "Cambiar a anual",
+    "thankYou": "Gracias por tus comentarios",
+    "thankYouDesc": "Tu suscripción ha sido cancelada. Mantendrás acceso hasta el final del periodo.",
+    "title": "Cancelar suscripción"
+  },
+  "conversion": {
+    "cta": "Hazte Supporter",
+    "subtitle": "Apoya Atlas y desbloquea funciones premium",
+    "title": "Desbloquea más con Atlas Supporter"
+  },
+  "onboarding": {
+    "signUpFree": "Regístrate gratis",
+    "signupNudge": "Crea una cuenta gratuita para desbloquear todas las funciones"
+  },
+  "referral": {
+    "copyLink": "Copiar enlace"
+  },
+  "welcome": {
+    "favoritesDesc": "Sigue los reinos que te importan y recibe notificaciones",
+    "favoritesTitle": "Tu lista de favoritos",
+    "rivalsDesc": "Revisa tus oponentes anteriores y próximos enfrentamientos",
+    "rivalsTitle": "Tus rivales de KvK",
+    "scoreDesc": "Mira cómo K{{num}} se clasifica entre más de 1,300 reinos",
+    "scoreDescGeneric": "Mira cómo tu reino se clasifica entre más de 1,300 reinos",
+    "scoreTitle": "Atlas Score de tu reino",
+    "seeRivals": "Ver rivales",
+    "startTracking": "Empezar a seguir",
+    "subtitle": "Tu cuenta está vinculada. Esto es lo que Atlas tiene para ti.",
+    "title": "Bienvenido a Atlas",
+    "viewScore": "Ver puntuación"
+  },
+  "kvkSubmit": {
+    "screenshotDisclaimer": "Confirmo que estas capturas son propias del juego. Entiendo que todo el contenido del juego es propiedad de Century Games y autorizo a Kingshot Atlas a almacenarlas y mostrarlas para fines comunitarios."
   }
 }

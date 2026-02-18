@@ -24,7 +24,9 @@
     "kingdom": "王国",
     "wins": "胜",
     "losses": "负",
-    "clear": "清除"
+    "clear": "清除",
+    "allTools": "← 所有工具",
+    "copied": "已复制！"
   },
   "quickAction": {
     "transferHub_1": "转服",
@@ -62,7 +64,8 @@
     "ambassadors": "大使",
     "contributeData": "贡献数据",
     "aboutAtlas": "关于 Atlas",
-    "kingdomCommunities": "王国殖民地"
+    "kingdomCommunities": "王国殖民地",
+    "giftCodes": "礼品码"
   },
   "stats": {
     "atlasScore": "Atlas 评分",
@@ -183,7 +186,8 @@
     "region": "地区",
     "townCenter": "城镇中心",
     "viewProfile": "查看资料",
-    "youCanUpdate": "您可以更新此内容"
+    "youCanUpdate": "您可以更新此内容",
+    "chipInToFund": "为基金贡献"
   },
   "rankings": {
     "subtitle": "谁在称霸？数据不会说谎。",
@@ -214,7 +218,8 @@
     "combinedPowerTitle": "什么是综合战力？",
     "combinedPowerDesc": "对战双方 Atlas 评分的总和。分数越高 = 经过验证的强国之间更激烈的战斗。传奇由此诞生。",
     "scoreTimingTitle": "评分时间",
-    "scoreTimingDesc": "评分反映每个王国在战斗开始前的 Atlas 评分——基于它们到那时为止的战绩。没有后见之明，只有纯粹的赛前战力。"
+    "scoreTimingDesc": "评分反映每个王国在战斗开始前的 Atlas 评分——基于它们到那时为止的战绩。没有后见之明，只有纯粹的赛前战力。",
+    "addMatchup": "添加对战"
   },
   "compare": {
     "heroTitle1": "王国",
@@ -335,7 +340,20 @@
     "accessUnlocked": "已解锁访问",
     "supporterConfirm": "您已拥有Atlas Supporter的完整访问权限。",
     "supporterThanks": "您已拥有战斗规划器的完整访问权限。",
-    "supporterThanksDesc": "感谢您支持Atlas。直接进入规划器，协调您的下一次城堡攻击。"
+    "supporterThanksDesc": "感谢您支持Atlas。直接进入规划器，协调您的下一次城堡攻击。",
+    "accessRequired": "需要黄金级别",
+    "getGoldAccess": "如何达到黄金级别",
+    "goldBadge": "黄金级别王国功能",
+    "goldConfirm": "作为黄金级别王国成员，您拥有完全访问权限。",
+    "goldDesc": "战斗规划器适用于黄金级别王国。在转移中心为王国基金做出贡献。",
+    "goldPerk": "适用于黄金级别王国。为王国基金做出贡献。",
+    "goldThanks": "您拥有战斗规划器的完全访问权限。",
+    "goldThanksDesc": "您的王国已达到黄金级别。直接进入规划器。",
+    "goldTitle": "您的联盟值得更好的协调。",
+    "reachGold": "达到黄金级别",
+    "tabCounter": "反击",
+    "tabPlayers": "玩家",
+    "tabRally": "集结"
   },
   "battlePlannerBanner": {
     "dismiss": "关闭战斗规划器横幅",
@@ -490,12 +508,8 @@
     "free5Desc": "完整数据和表现历史",
     "free6Title": "活动日历",
     "free6Desc": "KvK 和转服活动时间表",
-    "perk7Desc": "解锁无限王国排名（免费：前25名）",
-    "perk7Title": "完整排行榜",
     "perk8Title": "批量兑换礼品码",
     "perk8Desc": "一键为所有小号批量兑换礼品码",
-    "perk9Title": "增强对比",
-    "perk9Desc": "并排对比多达5个王国（免费：3个）",
     "perk10Title": "Atlas 机器人控制台",
     "perk10Desc": "你的指挥中心。配置提醒、礼品码提醒并管理多个服务器 — 全部在一个屏幕上完成。"
   },
@@ -681,7 +695,8 @@
     "signInFailed": "登录失败。请重试或检查你的连接。",
     "discordOpensInBrowser": "在浏览器中打开Discord",
     "discordBrowserHint": "Discord需要通过浏览器登录以确保安全。勾选\"记住我\"可加快今后的登录速度。你将被自动重定向回来。",
-    "oauthDisclaimer": "我们使用OAuth提供商来防止垃圾账户。"
+    "oauthDisclaimer": "我们使用OAuth提供商来防止垃圾账户。",
+    "termsLink": "注册即表示您同意我们的服务条款"
   },
   "notifications": {
     "title": "通知",
@@ -1333,7 +1348,8 @@
       "minAtlasScore": "最低 Atlas 评分",
       "minMatchScore": "最低匹配分数",
       "activelyRecruiting": "仅显示积极招募",
-      "clearFilters": "清除筛选"
+      "clearFilters": "清除筛选",
+      "applyFilters": "应用筛选"
     },
     "allGroups": "所有分组",
     "compare": {
@@ -1346,7 +1362,29 @@
     "linkKingdom": "绑定王国以自动筛选",
     "myGroup": "我的分组",
     "showingKingdoms": "显示王国",
-    "transferGroup": "转移分组"
+    "transferGroup": "转移分组",
+    "error": {
+      "description": "加载转移中心时出现问题。",
+      "retry": "重试",
+      "title": "加载错误"
+    },
+    "field": {
+      "bio": "简介",
+      "contact": "联系方式",
+      "groupSize": "团队规模",
+      "kvkAvail": "KvK可用性",
+      "language": "语言",
+      "lookingFor": "寻找",
+      "power": "战力",
+      "savingFor": "储备中",
+      "schedule": "时间表",
+      "visibility": "可见性"
+    },
+    "missingFields": "缺少必填字段",
+    "nominationCancelled": "提名已取消",
+    "nominationCancelledDesc": "您的副编辑提名已被取消。",
+    "playersInAtlas": "Atlas中的玩家",
+    "tapToComplete": "点击完成 →"
   },
   "listing": {
     "allianceEventTimes": "联盟活动时间",
@@ -1413,7 +1451,11 @@
     "yourKingdom": "你的王国",
     "updatedDaysAgo": "{{days}}天前更新",
     "updatedToday": "今天更新",
-    "updatedYesterday": "昨天更新"
+    "updatedYesterday": "昨天更新",
+    "allianceInfo": "联盟信息",
+    "goldPerksV2": "黄金特权",
+    "hideDetails": "隐藏详情",
+    "seeDetails": "查看详情"
   },
   "editor": {
     "activated": "已激活！",
@@ -1471,7 +1513,10 @@
     "coEditorInvitation": "联合编辑邀请",
     "coEditorInviteDesc": "您已被邀请联合编辑王国 {{kingdom}} 的招募面板。",
     "coEditorInviteDescBy": "{{inviter}} 邀请您联合编辑王国 {{kingdom}} 的招募面板。",
-    "declineInvite": "拒绝"
+    "declineInvite": "拒绝",
+    "anotherEditorEndorsed": "另一位编辑已为此王国背书。",
+    "applyAsCoEditor": "申请成为副编辑",
+    "nominationCancelled": "提名已取消"
   },
   "recruiter": {
     "loading": "加载面板中...",
@@ -1572,7 +1617,19 @@
     "coEditorRequestPending": "联合编辑请求待处理",
     "noStatusChanges": "暂无状态变更",
     "requestAwaitingApproval": "您申请联合编辑王国 {{kingdom}} 的请求正在等待编辑审批。审核后将通知您。",
-    "statusHistory": "转移状态历史"
+    "statusHistory": "转移状态历史",
+    "analytics": "分析",
+    "basedOnListing": "基于您的招募条件",
+    "clearSelection": "清除选择",
+    "downloadCsv": "下载CSV",
+    "last30Days": "最近30天",
+    "profileViews": "资料浏览量",
+    "selectAll": "全选",
+    "sendInvites": "发送邀请",
+    "sending": "发送中...",
+    "showingPlayersInGroup": "显示您转移组中的玩家",
+    "transferGroupFilter": "转移分组",
+    "watchlist": "关注列表"
   },
   "applications": {
     "applyTo": "申请",
@@ -1736,7 +1793,10 @@
     "howToStep3": "点击或拖动玩家到集结队列。",
     "howToStep4": "设置攻击顺序——先到达的很重要。",
     "howToStep5": "如有需要，对反击队列做同样操作。",
-    "howToStep6": "适时激活宠物增益计时器。"
+    "howToStep6": "适时激活宠物增益计时器。",
+    "accessDeniedDesc": "您需要黄金级别才能使用集结协调器。",
+    "arriveAfter": "到达时间晚于",
+    "secondsAfterEnemy": "秒后于敌方"
   },
   "missingData": {
     "contributeTitle": "贡献",
@@ -1958,7 +2018,9 @@
     "contribute": "贡献 ${{amount}}",
     "selectAmount": "选择金额",
     "securePayment": "由Stripe安全处理支付",
-    "toTier": "→ {{tier}} 等级"
+    "toTier": "→ {{tier}} 等级",
+    "alliancePitch": "请求联盟成员贡献——招募对整个王国有益。",
+    "perMember": "每成员"
   },
   "reportData": {
     "title": "报告不正确的数据",
@@ -2039,100 +2101,35 @@
     "noMatch": "无对战"
   },
   "giftCodes": {
-    "heroSubtitle": "一键领取。即时奖励。无需复制粘贴。",
-    "signInTitle": "礼品码兑换",
-    "signInDesc": "登录并绑定你的Kingshot账号，一键兑换礼品码。",
-    "signIn": "登录",
-    "linkTitle": "请先绑定账号",
-    "linkDesc": "兑换礼品码需要你的玩家ID。请在个人资料设置中绑定你的Kingshot账号。",
-    "goToProfile": "前往个人资料",
-    "redeemAll": "兑换全部 {{count}} 个码",
-    "redeemingProgress": "兑换中... ({{done}}/{{total}})",
-    "allRedeemed": "全部 {{count}} 个码已兑换",
-    "cooldown": "冷却中 — {{seconds}}秒",
-    "rateLimitedTitle": "请求过多",
-    "rateLimitedDesc": "请求太频繁，请稍候。",
     "noCodesUnavailable": "暂时无法获取礼品码。请稍后再试或手动输入。",
     "noCodesEmpty": "目前没有可用的礼品码。请稍后再来！",
-    "redeem": "兑换",
-    "retry": "重试",
-    "expired": "已过期",
-    "manualEntry": "手动输入礼品码",
-    "manualPlaceholder": "例如 KINGSHOT2026",
-    "howItWorks": "使用说明：",
-    "howItWorksDesc": "Atlas代您向Century Games官方礼品码服务发送兑换请求，使用您绑定的玩家ID。奖励将直接发送到您的游戏邮箱。",
-    "rateLimit": "频率限制：",
-    "rateLimitDesc": "每分钟10个码。",
     "codesSourced": "码来源：{{source}}。",
     "backToTools": "返回工具",
-    "alreadyRedeemed": "已兑换",
     "copiedAll": "已复制{{count}}个代码到剪贴板",
     "copyAll": "复制所有代码",
-    "redeemed": "已兑换",
     "refresh": "刷新代码",
     "refreshed": "找到{{count}}个活跃代码",
-    "redeemingAlts": "兑换中...",
-    "redeemAllAlts": "全部{{count}}个账户",
-    "redeemAllAltsLocked": "所有账户"
-  },
-  "giftCodeLanding": {
-    "allTools": "← 所有工具",
-    "becomeSupporter": "成为Supporter",
-    "featAlt": "多账号支持",
-    "featAltDesc": "有小号？添加最多10个账号，一键兑换所有代码。仅限Supporter。",
-    "featAuto": "自动检测活跃代码",
-    "featAutoDesc": "Atlas自动获取游戏中每个活跃的礼品代码。无需在Discord服务器或Reddit中寻找。",
-    "featCloud": "云同步账号",
-    "featCloudDesc": "您的小号账号同步到云端。切换设备、清除浏览器——您的设置始终在那里等您。",
-    "featDiscord": "Discord集成",
-    "featDiscordDesc": "在Discord中使用/codes查看活跃代码。使用/redeem无需打开浏览器即可兑换。Atlas Bot处理一切。",
-    "featOneClick": "一键兑换",
-    "featOneClickDesc": "点击\"全部兑换\"，每个代码立即应用到您的账号。无需复制粘贴。无需手动输入。",
-    "featSmart": "智能重试",
-    "featSmartDesc": "限速？已兑换？已过期？Atlas跟踪每个结果，只重试真正需要重试的。",
-    "freeF1": "查看所有活跃代码",
-    "freeF2": "一键全部兑换",
-    "freeF3": "复制代码到剪贴板",
-    "freeF4": "手动输入代码",
-    "freeF5": "1个小号账号位",
-    "freeF6": "Discord中的/codes和/redeem",
-    "freeNote": "所有Atlas用户免费使用。绑定您的Kingshot账号即可开始。",
-    "freeTier": "免费",
-    "freeVsSupporter": "免费 vs. Supporter",
-    "heroSubtitle": "不要再逐个输入代码了。Atlas找到它们，您点击一次，奖励送到您的邮箱。搞定。",
-    "heroTitle1": "礼品代码",
-    "heroTitle2": "兑换器",
-    "howItWorks1": "如何",
-    "howItWorks2": "使用",
-    "orUseBot": "或在Discord中使用 /redeem",
-    "pageTitle": "礼品代码兑换器",
-    "problemDesc": "礼品代码来自社交媒体帖子、游戏内事件、创作者合作和里程碑庆祝活动。它们过期很快。错过一个，那些免费的加速、宝石和资源就永远消失了。",
-    "problemTitle": "新的礼品代码已发布。您错过了3个。",
-    "punchline": "不要再白白浪费免费资源了。",
-    "redeemNow": "立即兑换代码",
-    "solutionDesc": "Atlas监控所有来源并将每个活跃代码汇集在一处。打开兑换器，点击一个按钮，每个代码都会被应用。无需输入。不错过奖励。",
-    "step1": "绑定您的账号",
-    "step1Desc": "登录Atlas并在个人资料设置中绑定您的Kingshot玩家ID。",
-    "step2": "查看活跃代码",
-    "step2Desc": "Atlas显示每个活跃礼品代码及其过期倒计时。始终保持最新。",
-    "step3": "兑换并领取",
-    "step3Desc": "点击\"全部兑换\"——代码立即生效。检查您的游戏内邮箱领取奖励。",
-    "supF1": "免费版所有功能",
-    "supF2": "最多10个小号账号",
-    "supF3": "批量兑换所有账号",
-    "supF4": "云同步小号列表",
-    "supF5": "每账号结果跟踪",
-    "supF6": "失败代码智能重试",
-    "supporterBadge": "Atlas Supporter特权",
-    "supporterDesc": "小号的自动兑换代码功能包含在Atlas Supporter中——还有战斗规划器、无限/multirally等。起价$4.99/月。",
-    "supporterNote": "手动管理10个小号？每次要输入40多个代码。Supporter只需点击一次。",
-    "supporterTier": "Supporter",
-    "supporterTitle": "10个账号。一次点击。每个代码。",
-    "threeSteps": "三个步骤。零输入。所有奖励。",
-    "tryFree": "免费试用",
-    "whyAtlas1": "为什么使用",
-    "whyAtlas2": "ATLAS",
-    "whySubtitle": "因为手动输入代码已经是2024年的事了。"
+    "androidInGame": "打开Kingshot → 个人资料 → 设置 → 礼品码 → 粘贴并兑换",
+    "iosNote": "iOS玩家必须通过Kingshot网站兑换。",
+    "iosRedeemSite": "在网站兑换",
+    "iosStep1": "前往Kingshot兑换网站",
+    "iosStep2": "用游戏账号登录",
+    "iosStep3": "粘贴礼品码",
+    "iosStep4": "点击兑换",
+    "iosWeb": "iOS兑换",
+    "pageTitle": "礼品码",
+    "heroSubtitleDisplay": "直接从Atlas兑换Kingshot礼品码",
+    "codeCopied": "代码已复制！",
+    "copiedShort": "已复制！",
+    "copy": "复制",
+    "allCopied": "所有代码已复制！",
+    "howToRedeem": "如何兑换",
+    "step1": "复制上方代码",
+    "step2": "在设备上打开Kingshot",
+    "step3": "前往 个人资料 → 设置 → 礼品码",
+    "step4": "粘贴代码并点击兑换",
+    "aboutCodes": "关于礼品码",
+    "aboutCodesDesc": "Century Games定期发布礼品码，可获得免费游戏内资源。"
   },
   "transferHubLanding": {
     "pageTitle": "转移中心 — 找到你的下一个王国",
@@ -2207,7 +2204,28 @@
     "ctaDesc": "无论你在寻找新家还是强力玩家——转移中心帮你找到最佳匹配。免费，无套路。",
     "ctaButton": "进入转移中心",
     "browseKingdoms": "浏览所有王国",
-    "allTools": "← 所有工具"
+    "allTools": "← 所有工具",
+    "cmpAlliance": "联盟信息日程",
+    "cmpBadge": "王国所有用户的金色徽章",
+    "cmpBasicListing": "包含Atlas评分和统计的基本列表",
+    "cmpBattlePlanner": "KvK战斗规划器权限",
+    "cmpBioLang": "王国简介和语言显示",
+    "cmpBrowseProfiles": "浏览转移者资料",
+    "cmpGlow": "金色光效+优先展示",
+    "cmpInvites": "向转移者发送邀请",
+    "cmpMinReqs": "显示最低TC和战力要求",
+    "cmpPrepScheduler": "KvK备战调度器权限",
+    "cmpReviews": "社区评价",
+    "cmpSlots": "+2联盟位（共5个）",
+    "cmpVibeTags": "王国政策和氛围标签",
+    "fundSubtitle": "招募是团队的努力。王国中的任何人都可以贡献。",
+    "priceFree": "免费",
+    "recommended": "推荐",
+    "tierBronze": "青铜",
+    "tierFree": "（免费）",
+    "tierGold": "黄金",
+    "tierSilver": "白银",
+    "tierStandard": "标准"
   },
   "kingdomCommunities": {
     "title": "王国社区",
@@ -2219,7 +2237,9 @@
     "ctaTitle": "动员你的王国来提升排名",
     "ctaDescription": "每位 TC20+ 的已绑定玩家都计入你王国的社区排名。邀请你的联盟 — 你的存在感越大，你王国的 Atlas 情报就越强。",
     "noResults": "未找到王国",
-    "footer": "仅统计已绑定 Kingshot 账号且 TC20+ 的玩家。排名实时更新。"
+    "footer": "仅统计已绑定 Kingshot 账号且 TC20+ 的玩家。排名实时更新。",
+    "statsKingdoms": "王国",
+    "statsPlayers": "玩家"
   },
   "admin": {
     "anonymous": "匿名",
@@ -2350,7 +2370,10 @@
     "withdraw": "撤回",
     "didYouTransfer": "你转移了吗？",
     "outcomeSubmitted": "结果已提交",
-    "messages": "消息"
+    "messages": "消息",
+    "noMessages": "暂无消息。开始对话吧！",
+    "send": "发送",
+    "typeMessage": "输入消息..."
   },
   "prepScheduler": {
     "loading": "加载中...",
@@ -2531,7 +2554,62 @@
     "simpleMode": "简单",
     "advancedMode": "高级",
     "totalSpeedups": "总计",
-    "distribution": "分布"
+    "distribution": "分布",
+    "activeSchedule": "活动计划",
+    "activeScheduleDesc": "您的王国有一个活跃的备战计划。",
+    "addTimeRange": "添加时间段",
+    "backToTools": "← 返回工具",
+    "beOnline": "在分配的时段内在线",
+    "changeScreenshot": "更换截图",
+    "copyFrom": "复制自",
+    "createScheduleBtn": "创建计划",
+    "day": "天",
+    "deadlineHintUTC": "截止时间为UTC",
+    "dontNeedBuff": "我不需要增益时段",
+    "editDeadline": "编辑截止时间",
+    "fillForm": "填写下方表格",
+    "formClosedLocked": "表格已关闭",
+    "goldTierOnly": "仅限黄金级别",
+    "linkBtn": "分享链接",
+    "linkDesc": "与您的王国成员分享此链接",
+    "linkReturnHint": "玩家提交后将返回此处",
+    "messageOptional": "留言（可选）",
+    "messagePlaceholder": "给管理者的留言...",
+    "mySchedules": "我的计划",
+    "needDifferentTime": "需要不同的时间？",
+    "none": "无",
+    "notAssigned": "未分配",
+    "notAssignedDesc": "您还未被分配时段。",
+    "notGoldTier": "您的王国需要黄金级别才能使用备战调度器。",
+    "notSelected": "未选择",
+    "notesForPlayers": "给玩家的说明",
+    "notesPlaceholder": "给王国成员的说明...",
+    "optedOut": "已退出",
+    "pageTitle": "备战调度器",
+    "qualified": "合格",
+    "redirectNote": "提交后将自动跳转",
+    "requestSlotChange": "请求更换时段",
+    "screenshotDesc": "上传您的加速截图",
+    "screenshotProof": "截图证明",
+    "sending": "发送中...",
+    "setDeadline": "设置截止时间",
+    "signInBtn": "登录后提交",
+    "signInDesc": "登录以提交您的备战信息",
+    "speedupsDesc": "您有多少加速？",
+    "submissionDeadline": "提交截止时间",
+    "submitting": "提交中...",
+    "subtitle": "协调您王国的备战阶段",
+    "timezoneHint": "时间以您当地时区显示",
+    "to": "至",
+    "toastAllianceRequired": "需要联盟标签",
+    "toastDeadlineFailed": "更新截止时间失败",
+    "toastDeadlineUpdated": "截止时间已更新。",
+    "type": "类型",
+    "updateSubmission": "更新提交",
+    "usernamePlaceholder": "您的游戏内名称",
+    "yourPrepReport": "您的备战报告",
+    "yourSlots": "您的时段",
+    "yourTimezone": "您的时区"
   },
   "prepLanding": {
     "featAutoAssign": "自动时段分配",
@@ -2573,7 +2651,12 @@
     "whoPlayersDesc": "填写表单。提交加速道具、可用时间和证明。被分配一个30分钟时段。按时出现并施加增益。",
     "getStarted": "开始使用",
     "ctaTitle": "准备好组织你的王国了吗？",
-    "ctaDesc": "你王国的准备阶段不必是混乱的。排程器将其转变为基于数据的精简流程。"
+    "ctaDesc": "你王国的准备阶段不必是混乱的。排程器将其转变为基于数据的精简流程。",
+    "goldBadge": "黄金功能",
+    "goldDesc": "备战调度器适用于黄金级别王国。",
+    "goldTitle": "组织您王国的备战阶段",
+    "whoManagers": "备战管理者",
+    "whoManagersDesc": "由编辑指派负责日常管理。审核提交、自动分配时段、导出时间表。"
   },
   "tos": {
     "pageTitle": "服务条款"
@@ -2582,9 +2665,63 @@
     "pageTitle": "隐私政策"
   },
   "footer": {
-    "trademark": "Kingshot\u2122 是 Century Games 的商标。所有游戏内容和素材均为其各自所有者的商标和版权。Kingshot Atlas 是一个独立的粉丝项目——与 Century Games 无关，未获其认可、赞助或批准。",
+    "trademark": "Kingshot™ 是 Century Games 的商标。所有游戏内容和素材均为其各自所有者的商标和版权。Kingshot Atlas 是一个独立的粉丝项目——与 Century Games 无关，未获其认可、赞助或批准。",
     "about": "关于",
     "terms": "条款",
     "privacy": "隐私"
+  },
+  "bpTrial": {
+    "activeDesc": "试用期间您可以使用战斗规划器。",
+    "activeTitle": "试用中",
+    "offerDesc": "免费试用战斗规划器24小时。",
+    "offerTitle": "免费试用",
+    "openPlanner": "打开规划器",
+    "startTrial": "开始免费试用"
+  },
+  "cancelSurvey": {
+    "annualOffer": "切换到年付节省17%",
+    "backToAtlas": "返回Atlas",
+    "feedbackPlaceholder": "告诉我们可以改进的地方...",
+    "heading": "很遗憾看到您离开",
+    "pauseButton": "改为暂停",
+    "pauseOffer": "还不想取消？暂停订阅最多3个月。",
+    "reasonTitle": "取消原因是什么？",
+    "skip": "跳过",
+    "subheading": "离开前，帮助我们改进Atlas。",
+    "submit": "提交并取消",
+    "submitting": "提交中...",
+    "switchAnnual": "切换到年付",
+    "thankYou": "感谢您的反馈",
+    "thankYouDesc": "您的订阅已取消。您将保留访问权限直到计费周期结束。",
+    "title": "取消订阅"
+  },
+  "conversion": {
+    "cta": "成为支持者",
+    "subtitle": "支持Atlas并解锁高级功能",
+    "title": "使用Atlas Supporter解锁更多"
+  },
+  "onboarding": {
+    "signUpFree": "免费注册",
+    "signupNudge": "创建免费账户以解锁所有功能"
+  },
+  "referral": {
+    "copyLink": "复制链接"
+  },
+  "welcome": {
+    "favoritesDesc": "追踪您关注的王国并在评分变化时收到通知",
+    "favoritesTitle": "您的收藏列表",
+    "rivalsDesc": "查看您的过去对手和即将到来的对战",
+    "rivalsTitle": "您的KvK对手",
+    "scoreDesc": "查看K{{num}}在1,300+王国中的排名",
+    "scoreDescGeneric": "查看您的王国在1,300+王国中的排名",
+    "scoreTitle": "您王国的Atlas评分",
+    "seeRivals": "查看对手",
+    "startTracking": "开始追踪",
+    "subtitle": "您的账户已关联。以下是Atlas为您准备的内容。",
+    "title": "欢迎来到Atlas",
+    "viewScore": "查看评分"
+  },
+  "kvkSubmit": {
+    "screenshotDisclaimer": "我确认这些截图是我自己的游戏截图。我了解所有游戏内容均为Century Games的财产，并授权Kingshot Atlas存储和展示这些截图用于社区数据目的。"
   }
 }

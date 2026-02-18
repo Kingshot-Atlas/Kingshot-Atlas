@@ -1,7 +1,12 @@
 -- Security Fixes Migration
 -- Date: 2026-02-05
 -- From: Security Assessment Report
--- 
+--
+-- NOTE: This is a HISTORICAL migration document. The live database functions
+-- may have been updated since (e.g., Atlas Score v3.1 uses 0-100 scale).
+-- Source of truth: calculate_atlas_score() in Supabase.
+-- See DECISIONS.md ADR-012 for full formula details.
+--
 -- IMPORTANT: These fixes are safe for the data flow:
 -- - Supabase `kingdoms` table remains source of truth
 -- - Admin approval → kvk_history INSERT → trigger recalculates kingdoms
@@ -33,7 +38,7 @@ WITH CHECK (true);
 -- Note: We need to recreate functions with SET search_path
 -- This prevents search path manipulation attacks
 
--- 1. get_tier_from_percentile
+-- 1. get_tier_from_percentile (LEGACY — not used by v3.1 scoring)
 CREATE OR REPLACE FUNCTION public.get_tier_from_percentile(percentile NUMERIC)
 RETURNS VARCHAR(1)
 LANGUAGE plpgsql
@@ -45,8 +50,7 @@ BEGIN
     ELSIF percentile >= 75 THEN RETURN 'A';
     ELSIF percentile >= 50 THEN RETURN 'B';
     ELSIF percentile >= 25 THEN RETURN 'C';
-    ELSIF percentile >= 10 THEN RETURN 'D';
-    ELSE RETURN 'F';
+    ELSE RETURN 'D';
     END IF;
 END;
 $$;
@@ -59,11 +63,12 @@ SECURITY INVOKER
 SET search_path = public, pg_temp
 AS $$
 BEGIN
-    -- Tier thresholds matching frontend atlasScoreFormula.ts
-    IF score >= 8.9 THEN RETURN 'S';       -- Top 3% - Elite
-    ELSIF score >= 7.8 THEN RETURN 'A';    -- Top 10% - Formidable
-    ELSIF score >= 6.4 THEN RETURN 'B';    -- Top 25% - Competitive
-    ELSIF score >= 4.7 THEN RETURN 'C';    -- Top 50% - Developing
+    -- Tier thresholds for Atlas Score v3.1 (0-100 scale)
+    -- See DECISIONS.md ADR-012 and atlasScoreFormula.ts
+    IF score >= 57 THEN RETURN 'S';        -- Top ~3% - Elite
+    ELSIF score >= 47 THEN RETURN 'A';     -- Top ~10% - Formidable
+    ELSIF score >= 38 THEN RETURN 'B';     -- Top ~25% - Competitive
+    ELSIF score >= 29 THEN RETURN 'C';     -- Top ~50% - Developing
     ELSE RETURN 'D';                        -- Bottom 50% - Struggling
     END IF;
 END;

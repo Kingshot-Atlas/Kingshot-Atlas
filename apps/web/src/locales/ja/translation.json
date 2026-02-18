@@ -24,7 +24,9 @@
     "kingdom": "王国",
     "wins": "勝利",
     "losses": "敗北",
-    "clear": "クリア"
+    "clear": "クリア",
+    "allTools": "← すべてのツール",
+    "copied": "コピーしました！"
   },
   "quickAction": {
     "transferHub_1": "トランスファー",
@@ -62,7 +64,8 @@
     "ambassadors": "アンバサダー",
     "contributeData": "データ提供",
     "aboutAtlas": "Atlasについて",
-    "kingdomCommunities": "王国コロニー"
+    "kingdomCommunities": "王国コロニー",
+    "giftCodes": "ギフトコード"
   },
   "stats": {
     "atlasScore": "Atlasスコア",
@@ -183,7 +186,8 @@
     "region": "地域",
     "townCenter": "タウンセンター",
     "viewProfile": "プロフィールを見る",
-    "youCanUpdate": "更新できます"
+    "youCanUpdate": "更新できます",
+    "chipInToFund": "基金に貢献"
   },
   "rankings": {
     "subtitle": "誰が支配しているのか？データは嘘をつかない。",
@@ -214,7 +218,8 @@
     "combinedPowerTitle": "合計パワーレベルとは？",
     "combinedPowerDesc": "マッチアップに入る両王国のAtlasスコアの合計。スコアが高いほど、実力ある王国同士の激戦を意味します。",
     "scoreTimingTitle": "スコアのタイミング",
-    "scoreTimingDesc": "スコアは戦闘開始前の各王国のAtlasスコアを反映。それまでの実績に基づいた純粋な戦前のパワー。"
+    "scoreTimingDesc": "スコアは戦闘開始前の各王国のAtlasスコアを反映。それまでの実績に基づいた純粋な戦前のパワー。",
+    "addMatchup": "マッチアップを追加"
   },
   "compare": {
     "heroTitle1": "王国",
@@ -335,7 +340,20 @@
     "accessUnlocked": "アクセス解除済み",
     "supporterConfirm": "Atlas Supporterとしてフルアクセスがあります。",
     "supporterThanks": "バトルプランナーへのフルアクセスがあります。",
-    "supporterThanksDesc": "Atlasのご支援ありがとうございます。プランナーに直接移動して、次の城攻撃を調整してください。"
+    "supporterThanksDesc": "Atlasのご支援ありがとうございます。プランナーに直接移動して、次の城攻撃を調整してください。",
+    "accessRequired": "ゴールドティア必須",
+    "getGoldAccess": "ゴールドティアへの到達方法",
+    "goldBadge": "ゴールドティア王国機能",
+    "goldConfirm": "ゴールドティア王国メンバーとして全機能にアクセスできます。",
+    "goldDesc": "バトルプランナーはゴールドティア王国で利用可能です。王国基金に貢献してください。",
+    "goldPerk": "ゴールドティア王国で利用可能。王国基金に貢献してアンロック。",
+    "goldThanks": "バトルプランナーへの完全アクセスがあります。",
+    "goldThanksDesc": "あなたの王国はゴールドティアを獲得しました。すぐにプランナーを開始できます。",
+    "goldTitle": "あなたの同盟はより良い連携に値します。",
+    "reachGold": "ゴールドティアに到達",
+    "tabCounter": "カウンター",
+    "tabPlayers": "プレイヤー",
+    "tabRally": "ラリー"
   },
   "battlePlannerBanner": {
     "dismiss": "バトルプランナーバナーを閉じる",
@@ -490,12 +508,8 @@
     "free5Desc": "完全な統計とパフォーマンス履歴",
     "free6Title": "イベントカレンダー",
     "free6Desc": "KvKとトランスファーイベントのスケジュール",
-    "perk7Desc": "無制限の王国ランキングを解除（無料：トップ25）",
-    "perk7Title": "完全ランキング",
     "perk8Title": "一括コード引き換え",
     "perk8Desc": "全サブアカウントのギフトコードをワンクリックで引き換え",
-    "perk9Title": "強化比較",
-    "perk9Desc": "最大5つの王国を並べて比較（無料: 3つ）",
     "perk10Title": "Atlas ボットダッシュボード",
     "perk10Desc": "あなたのコマンドセンター。リマインダー、ギフトコードアラートを設定し、複数のサーバーを管理 — すべて一つの画面で。"
   },
@@ -681,7 +695,8 @@
     "signInFailed": "サインインに失敗しました。もう一度試すか、接続を確認してください。",
     "discordOpensInBrowser": "ブラウザでDiscordを開きます",
     "discordBrowserHint": "セキュリティのため、Discordはブラウザログインが必要です。「ログインを保持」をチェックすると次回以降速くなります。",
-    "oauthDisclaimer": "スパムアカウント防止のためOAuthプロバイダーを使用しています。"
+    "oauthDisclaimer": "スパムアカウント防止のためOAuthプロバイダーを使用しています。",
+    "termsLink": "登録することで利用規約に同意したことになります"
   },
   "notifications": {
     "title": "通知",
@@ -1333,7 +1348,8 @@
       "minAtlasScore": "最低Atlasスコア",
       "minMatchScore": "最低マッチスコア",
       "activelyRecruiting": "リクルート中のみ",
-      "clearFilters": "フィルターをクリア"
+      "clearFilters": "フィルターをクリア",
+      "applyFilters": "フィルターを適用"
     },
     "allGroups": "すべてのグループ",
     "compare": {
@@ -1346,7 +1362,29 @@
     "linkKingdom": "自動フィルターのために王国をリンク",
     "myGroup": "マイグループ",
     "showingKingdoms": "王国を表示中",
-    "transferGroup": "移転グループ"
+    "transferGroup": "移転グループ",
+    "error": {
+      "description": "トランスファーハブの読み込み中にエラーが発生しました。",
+      "retry": "再試行",
+      "title": "読み込みエラー"
+    },
+    "field": {
+      "bio": "自己紹介",
+      "contact": "連絡先",
+      "groupSize": "グループ規模",
+      "kvkAvail": "KvK参加可否",
+      "language": "言語",
+      "lookingFor": "探しているもの",
+      "power": "戦力",
+      "savingFor": "貯蓄中",
+      "schedule": "スケジュール",
+      "visibility": "公開設定"
+    },
+    "missingFields": "必須項目が不足しています",
+    "nominationCancelled": "推薦キャンセル",
+    "nominationCancelledDesc": "共同エディターの推薦がキャンセルされました。",
+    "playersInAtlas": "Atlas内のプレイヤー",
+    "tapToComplete": "タップして完了 →"
   },
   "listing": {
     "allianceEventTimes": "アライアンスイベント時間",
@@ -1413,7 +1451,11 @@
     "yourKingdom": "あなたの王国",
     "updatedDaysAgo": "{{days}}日前に更新",
     "updatedToday": "今日更新",
-    "updatedYesterday": "昨日更新"
+    "updatedYesterday": "昨日更新",
+    "allianceInfo": "同盟情報",
+    "goldPerksV2": "ゴールドティア特典",
+    "hideDetails": "詳細を隠す",
+    "seeDetails": "詳細を見る"
   },
   "editor": {
     "activated": "有効化完了！",
@@ -1471,7 +1513,10 @@
     "coEditorInvitation": "共同編集者招待",
     "coEditorInviteDesc": "王国 {{kingdom}} のリクルートダッシュボードの共同編集に招待されました。",
     "coEditorInviteDescBy": "{{inviter}} が王国 {{kingdom}} のリクルートダッシュボードの共同編集に招待しました。",
-    "declineInvite": "辞退"
+    "declineInvite": "辞退",
+    "anotherEditorEndorsed": "他のエディターがこの王国を承認しました。",
+    "applyAsCoEditor": "共同エディターとして申請",
+    "nominationCancelled": "推薦キャンセル"
   },
   "recruiter": {
     "loading": "ダッシュボードを読み込み中...",
@@ -1572,7 +1617,19 @@
     "coEditorRequestPending": "共同編集者リクエスト保留中",
     "noStatusChanges": "まだステータス変更なし",
     "requestAwaitingApproval": "王国 {{kingdom}} の共同編集リクエストはエディター承認待ちです。レビューされ次第通知されます。",
-    "statusHistory": "移転ステータス履歴"
+    "statusHistory": "移転ステータス履歴",
+    "analytics": "アナリティクス",
+    "basedOnListing": "リスティング条件に基づく",
+    "clearSelection": "選択を解除",
+    "downloadCsv": "CSVダウンロード",
+    "last30Days": "過去30日",
+    "profileViews": "プロフィール閲覧数",
+    "selectAll": "すべて選択",
+    "sendInvites": "招待を送信",
+    "sending": "送信中...",
+    "showingPlayersInGroup": "グループ内のプレイヤーを表示",
+    "transferGroupFilter": "移籍グループ",
+    "watchlist": "ウォッチリスト"
   },
   "applications": {
     "applyTo": "応募先",
@@ -1736,7 +1793,10 @@
     "howToStep3": "プレイヤーをクリックまたはドラッグしてラリーキューに追加。",
     "howToStep4": "攻撃順序を設定 — 誰が先に到着するかが重要。",
     "howToStep5": "必要ならカウンターキューも同様に。",
-    "howToStep6": "該当する場合はペットバフタイマーを有効化。"
+    "howToStep6": "該当する場合はペットバフタイマーを有効化。",
+    "accessDeniedDesc": "ラリーコーディネーターにはゴールドティアが必要です。",
+    "arriveAfter": "到着時刻",
+    "secondsAfterEnemy": "敵の後の秒数"
   },
   "missingData": {
     "contributeTitle": "データ",
@@ -1958,7 +2018,9 @@
     "contribute": "${{amount}}を貢献",
     "selectAmount": "金額を選択",
     "securePayment": "決済はStripeで安全に処理されます",
-    "toTier": "→ {{tier}}ティア"
+    "toTier": "→ {{tier}}ティア",
+    "alliancePitch": "同盟に貢献を依頼しましょう — 募集は王国全体の利益です。",
+    "perMember": "メンバーあたり"
   },
   "reportData": {
     "title": "データの誤りを報告",
@@ -2039,100 +2101,35 @@
     "noMatch": "対戦なし"
   },
   "giftCodes": {
-    "heroSubtitle": "ワンクリック。即座に報酬。コピペ不要。",
-    "signInTitle": "ギフトコード交換",
-    "signInDesc": "ログインしてKingshotアカウントをリンクすると、ワンクリックでギフトコードを使用できます。",
-    "signIn": "ログイン",
-    "linkTitle": "まずアカウントをリンク",
-    "linkDesc": "コードを使用するにはプレイヤーIDが必要です。プロフィール設定でKingshotアカウントをリンクしてください。",
-    "goToProfile": "プロフィールへ",
-    "redeemAll": "全{{count}}コードを使用",
-    "redeemingProgress": "使用中... ({{done}}/{{total}})",
-    "allRedeemed": "全{{count}}コード使用完了",
-    "cooldown": "クールダウン — {{seconds}}秒",
-    "rateLimitedTitle": "レート制限",
-    "rateLimitedDesc": "リクエストが多すぎます。お待ちください。",
     "noCodesUnavailable": "現在ギフトコードを取得できません。後で再試行するか、手動でコードを入力してください。",
     "noCodesEmpty": "現在有効なギフトコードはありません。後で確認してください！",
-    "redeem": "使用",
-    "retry": "再試行",
-    "expired": "期限切れ",
-    "manualEntry": "コードを手動入力",
-    "manualPlaceholder": "例: KINGSHOT2026",
-    "howItWorks": "仕組み：",
-    "howItWorksDesc": "AtlasがリンクされたプレイヤーIDを使用して、Century Games公式ギフトコードサービスにコードを送信します。報酬はゲーム内メールボックスに直接届きます。",
-    "rateLimit": "レート制限：",
-    "rateLimitDesc": "1分あたり10コード。",
     "codesSourced": "コード提供元：{{source}}。",
     "backToTools": "ツールに戻る",
-    "alreadyRedeemed": "引換済み",
     "copiedAll": "{{count}}個のコードをクリップボードにコピー",
     "copyAll": "すべてのコードをコピー",
-    "redeemed": "引換済み",
     "refresh": "コードを更新",
     "refreshed": "{{count}}個のアクティブコードが見つかりました",
-    "redeemingAlts": "交換中...",
-    "redeemAllAlts": "全{{count}}アカウント",
-    "redeemAllAltsLocked": "全アカウント"
-  },
-  "giftCodeLanding": {
-    "allTools": "← すべてのツール",
-    "becomeSupporter": "Supporterになる",
-    "featAlt": "サブアカウント対応",
-    "featAltDesc": "サブアカがありますか？最大10アカウントを追加し、ワンクリックですべてのコードを引き換えます。Supporter限定。",
-    "featAuto": "アクティブコード自動検出",
-    "featAutoDesc": "Atlasがゲーム内のすべてのアクティブなギフトコードを自動取得します。DiscordやRedditで探す必要はありません。",
-    "featCloud": "クラウド同期アカウント",
-    "featCloudDesc": "サブアカウントがクラウドに同期されます。デバイスを変えても、ブラウザを消しても、設定はいつもそこにあります。",
-    "featDiscord": "Discord統合",
-    "featDiscordDesc": "Discordで/codesを使ってアクティブコードを確認。/redeemでブラウザなしで引き換え。Atlas Botが処理します。",
-    "featOneClick": "ワンクリック引換",
-    "featOneClickDesc": "「すべて引換」を押すと、すべてのコードが即座にアカウントに適用されます。コピペ不要。入力ミスなし。",
-    "featSmart": "スマートリトライ",
-    "featSmartDesc": "レート制限？引換済み？期限切れ？Atlasがすべての結果を追跡し、本当にリトライが必要なものだけリトライします。",
-    "freeF1": "すべてのアクティブコードを表示",
-    "freeF2": "ワンクリックですべて引換",
-    "freeF3": "クリップボードにコードをコピー",
-    "freeF4": "手動コード入力",
-    "freeF5": "サブアカウント1枠",
-    "freeF6": "Discordで/codes & /redeem",
-    "freeNote": "すべてのAtlasユーザーに無料。Kingshotアカウントをリンクして開始。",
-    "freeTier": "無料",
-    "freeVsSupporter": "無料 vs. Supporter",
-    "heroSubtitle": "コードを1つずつ入力するのはやめましょう。Atlasが見つけ、ワンクリックで報酬がメールボックスに届きます。",
-    "heroTitle1": "ギフトコード",
-    "heroTitle2": "引換ツール",
-    "howItWorks1": "使い方",
-    "howItWorks2": "",
-    "orUseBot": "またはDiscordで /redeem を使用",
-    "pageTitle": "ギフトコード引換ツール",
-    "problemDesc": "ギフトコードはSNS投稿、ゲームイベント、クリエイターパートナーシップ、記念イベントから来ます。すぐに期限が切れます。1つ逃すと、無料のスピードアップ、ジェム、リソースが永遠に失われます。",
-    "problemTitle": "新しいギフトコードが出ました。3つ逃しました。",
-    "punchline": "無料リソースを無駄にしないでください。",
-    "redeemNow": "今すぐコードを引換",
-    "solutionDesc": "Atlasがすべてのソースを監視し、すべてのアクティブコードを一箇所に集めます。引換ツールを開き、ボタンを1つ押すだけ。入力不要。報酬を逃しません。",
-    "step1": "アカウントをリンク",
-    "step1Desc": "Atlasにサインインし、プロフィール設定でKingshotプレイヤーIDをリンクしてください。",
-    "step2": "アクティブコードを表示",
-    "step2Desc": "Atlasが有効期限タイマー付きですべてのアクティブギフトコードを表示します。常に最新。",
-    "step3": "引換 & 受取",
-    "step3Desc": "「すべて引換」を押すとコードが即座に適用されます。ゲーム内メールボックスを確認してください。",
-    "supF1": "無料機能すべて含む",
-    "supF2": "最大10サブアカウント",
-    "supF3": "全アカウント一括引換",
-    "supF4": "クラウド同期サブリスト",
-    "supF5": "アカウント別結果追跡",
-    "supF6": "失敗コードのスマートリトライ",
-    "supporterBadge": "Atlas Supporter特典",
-    "supporterDesc": "サブアカウント用自動コード引換はAtlas Supporterに含まれます — バトルプランナー、無制限/multirallyなども。$4.99/月から。",
-    "supporterNote": "10個のサブを手動管理？毎回40以上のコードを入力する必要があります。Supporterはワンクリック。",
-    "supporterTier": "Supporter",
-    "supporterTitle": "10アカウント。ワンクリック。すべてのコード。",
-    "threeSteps": "3ステップ。入力ゼロ。すべての報酬。",
-    "tryFree": "無料で試す",
-    "whyAtlas1": "なぜ",
-    "whyAtlas2": "ATLASか",
-    "whySubtitle": "手動でコードを入力するのは2024年のことだから。"
+    "androidInGame": "Kingshot → プロフィール → 設定 → ギフトコード → 貼り付けて交換",
+    "iosNote": "iOSプレイヤーはKingshotウェブサイトで交換する必要があります。",
+    "iosRedeemSite": "ウェブサイトで交換",
+    "iosStep1": "Kingshot交換サイトに移動",
+    "iosStep2": "ゲームアカウントでログイン",
+    "iosStep3": "ギフトコードを貼り付け",
+    "iosStep4": "交換をタップ",
+    "iosWeb": "iOS交換",
+    "pageTitle": "ギフトコード",
+    "heroSubtitleDisplay": "AtlasからKingshotギフトコードを直接交換",
+    "codeCopied": "コードをコピーしました！",
+    "copiedShort": "コピー済み！",
+    "copy": "コピー",
+    "allCopied": "すべてのコードをコピーしました！",
+    "howToRedeem": "交換方法",
+    "step1": "上のコードをコピー",
+    "step2": "デバイスでKingshotを開く",
+    "step3": "プロフィール → 設定 → ギフトコードへ移動",
+    "step4": "コードを貼り付けて交換をタップ",
+    "aboutCodes": "ギフトコードについて",
+    "aboutCodesDesc": "Century Gamesは無料のゲーム内リソースがもらえるギフトコードを定期的に公開しています。"
   },
   "transferHubLanding": {
     "pageTitle": "トランスファーハブ — 次の王国を見つけよう",
@@ -2207,7 +2204,28 @@
     "ctaDesc": "新しい拠点を探すにも、強いプレイヤーを探すにも — トランスファーハブが最適なマッチを実現。無料、罠なし。",
     "ctaButton": "トランスファーハブに入る",
     "browseKingdoms": "すべての王国を閲覧",
-    "allTools": "← すべてのツール"
+    "allTools": "← すべてのツール",
+    "cmpAlliance": "同盟情報スケジュール",
+    "cmpBadge": "王国全ユーザーのゴールドバッジ",
+    "cmpBasicListing": "Atlasスコアと統計の基本リスティング",
+    "cmpBattlePlanner": "KvKバトルプランナーアクセス",
+    "cmpBioLang": "王国プロフィールと言語表示",
+    "cmpBrowseProfiles": "移籍者プロフィールを閲覧",
+    "cmpGlow": "ゴールドグロー+優先配置",
+    "cmpInvites": "移籍者に招待を送信",
+    "cmpMinReqs": "最小TC・戦力要件を表示",
+    "cmpPrepScheduler": "KvK準備スケジューラーアクセス",
+    "cmpReviews": "コミュニティレビュー",
+    "cmpSlots": "+2同盟スロット（合計5）",
+    "cmpVibeTags": "王国ポリシーと雰囲気タグ",
+    "fundSubtitle": "募集はチームの努力です。王国の誰でも貢献できます。",
+    "priceFree": "無料",
+    "recommended": "おすすめ",
+    "tierBronze": "ブロンズ",
+    "tierFree": "（無料）",
+    "tierGold": "ゴールド",
+    "tierSilver": "シルバー",
+    "tierStandard": "スタンダード"
   },
   "kingdomCommunities": {
     "title": "王国コミュニティ",
@@ -2219,7 +2237,9 @@
     "ctaTitle": "王国を動員してランキングを上げよう",
     "ctaDescription": "TC20+のリンク済みプレイヤー全員が王国のコミュニティランクに反映されます。同盟を招待しましょう — 存在感が大きいほど、王国のAtlas情報力が強くなります。",
     "noResults": "王国が見つかりません",
-    "footer": "KingshotアカウントをリンクしたTC20+のプレイヤーのみがカウントされます。ランキングはリアルタイムで更新されます。"
+    "footer": "KingshotアカウントをリンクしたTC20+のプレイヤーのみがカウントされます。ランキングはリアルタイムで更新されます。",
+    "statsKingdoms": "王国",
+    "statsPlayers": "プレイヤー"
   },
   "admin": {
     "anonymous": "匿名",
@@ -2350,7 +2370,10 @@
     "withdraw": "取り下げ",
     "didYouTransfer": "移籍しましたか？",
     "outcomeSubmitted": "結果送信済み",
-    "messages": "メッセージ"
+    "messages": "メッセージ",
+    "noMessages": "メッセージはまだありません。会話を始めましょう！",
+    "send": "送信",
+    "typeMessage": "メッセージを入力..."
   },
   "prepScheduler": {
     "loading": "読み込み中...",
@@ -2531,7 +2554,62 @@
     "simpleMode": "シンプル",
     "advancedMode": "詳細",
     "totalSpeedups": "合計",
-    "distribution": "分布"
+    "distribution": "分布",
+    "activeSchedule": "アクティブスケジュール",
+    "activeScheduleDesc": "王国にアクティブな準備スケジュールがあります。",
+    "addTimeRange": "時間帯を追加",
+    "backToTools": "← ツールに戻る",
+    "beOnline": "割り当てスロット中はオンラインに",
+    "changeScreenshot": "スクリーンショットを変更",
+    "copyFrom": "コピー元",
+    "createScheduleBtn": "スケジュール作成",
+    "day": "日",
+    "deadlineHintUTC": "締切はUTCです",
+    "dontNeedBuff": "バフスロットは不要です",
+    "editDeadline": "締切を編集",
+    "fillForm": "下のフォームに記入",
+    "formClosedLocked": "フォームは締め切られました",
+    "goldTierOnly": "ゴールドティア限定",
+    "linkBtn": "リンクを共有",
+    "linkDesc": "王国メンバーとこのリンクを共有",
+    "linkReturnHint": "送信後プレイヤーはここに戻ります",
+    "messageOptional": "メッセージ（任意）",
+    "messagePlaceholder": "マネージャーへのメモ...",
+    "mySchedules": "マイスケジュール",
+    "needDifferentTime": "別の時間が必要ですか？",
+    "none": "なし",
+    "notAssigned": "未割り当て",
+    "notAssignedDesc": "まだスロットが割り当てられていません。",
+    "notGoldTier": "王国がゴールドティアでないと利用できません。",
+    "notSelected": "未選択",
+    "notesForPlayers": "プレイヤーへの注意",
+    "notesPlaceholder": "王国メンバーへの指示...",
+    "optedOut": "オプトアウト",
+    "pageTitle": "準備スケジューラー",
+    "qualified": "資格あり",
+    "redirectNote": "送信後リダイレクトされます",
+    "requestSlotChange": "スロット変更リクエスト",
+    "screenshotDesc": "加速アイテムのスクリーンショットをアップロード",
+    "screenshotProof": "スクリーンショット証明",
+    "sending": "送信中...",
+    "setDeadline": "締切を設定",
+    "signInBtn": "ログインして提出",
+    "signInDesc": "準備の空き状況を提出するにはログインしてください",
+    "speedupsDesc": "加速アイテムはいくつありますか？",
+    "submissionDeadline": "提出締切",
+    "submitting": "提出中...",
+    "subtitle": "王国のKvK準備フェーズを調整",
+    "timezoneHint": "ローカルタイムゾーンで表示",
+    "to": "〜",
+    "toastAllianceRequired": "同盟タグが必要です",
+    "toastDeadlineFailed": "締切の更新に失敗しました",
+    "toastDeadlineUpdated": "締切が更新されました。",
+    "type": "タイプ",
+    "updateSubmission": "提出を更新",
+    "usernamePlaceholder": "ゲーム内の名前",
+    "yourPrepReport": "あなたの準備レポート",
+    "yourSlots": "あなたのスロット",
+    "yourTimezone": "あなたのタイムゾーン"
   },
   "prepLanding": {
     "featAutoAssign": "自動スロット割り当て",
@@ -2573,7 +2651,12 @@
     "whoPlayersDesc": "フォームに記入。スピードアップ、空き時間、証明を提出。30分スロットが割り当てられる。出席してバフ。",
     "getStarted": "始める",
     "ctaTitle": "王国を組織する準備はできましたか？",
-    "ctaDesc": "王国のプレップフェーズが混沌である必要はありません。スケジューラーがデータ駆動の効率的なプロセスに変えます。"
+    "ctaDesc": "王国のプレップフェーズが混沌である必要はありません。スケジューラーがデータ駆動の効率的なプロセスに変えます。",
+    "goldBadge": "ゴールドティア機能",
+    "goldDesc": "準備スケジューラーはゴールドティア王国で利用可能です。",
+    "goldTitle": "王国の準備フェーズを整理しましょう",
+    "whoManagers": "準備マネージャー",
+    "whoManagersDesc": "エディターが割り当てた日常管理者。提出物の確認、スロットの自動割り当て、スケジュールのエクスポート。"
   },
   "tos": {
     "pageTitle": "利用規約"
@@ -2582,9 +2665,63 @@
     "pageTitle": "プライバシーポリシー"
   },
   "footer": {
-    "trademark": "Kingshot\u2122はCentury Gamesの商標です。すべてのゲームコンテンツと素材はそれぞれの所有者の商標および著作権です。Kingshot Atlasは独立したファンプロジェクトです — Century Gamesとは提携、承認、後援、または承認されていません。",
+    "trademark": "Kingshot™はCentury Gamesの商標です。すべてのゲームコンテンツと素材はそれぞれの所有者の商標および著作権です。Kingshot Atlasは独立したファンプロジェクトです — Century Gamesとは提携、承認、後援、または承認されていません。",
     "about": "概要",
     "terms": "利用規約",
     "privacy": "プライバシー"
+  },
+  "bpTrial": {
+    "activeDesc": "トライアル期間中はバトルプランナーにアクセスできます。",
+    "activeTitle": "トライアル中",
+    "offerDesc": "バトルプランナーを24時間無料でお試しください。",
+    "offerTitle": "無料トライアル利用可能",
+    "openPlanner": "プランナーを開く",
+    "startTrial": "無料トライアルを開始"
+  },
+  "cancelSurvey": {
+    "annualOffer": "年間プランに切り替えて17%節約",
+    "backToAtlas": "Atlasに戻る",
+    "feedbackPlaceholder": "改善点を教えてください...",
+    "heading": "ご解約は残念です",
+    "pauseButton": "代わりに一時停止",
+    "pauseOffer": "解約の準備ができていませんか？最大3か月一時停止できます。",
+    "reasonTitle": "解約の理由は？",
+    "skip": "スキップ",
+    "subheading": "Atlas改善のためにフィードバックをお願いします。",
+    "submit": "送信して解約",
+    "submitting": "送信中...",
+    "switchAnnual": "年間プランに切り替え",
+    "thankYou": "フィードバックありがとうございます",
+    "thankYouDesc": "サブスクリプションが解約されました。請求期間終了までアクセスが維持されます。",
+    "title": "サブスクリプション解約"
+  },
+  "conversion": {
+    "cta": "サポーターになる",
+    "subtitle": "Atlasを支援してプレミアム機能をアンロック",
+    "title": "Atlas Supporterでもっとアンロック"
+  },
+  "onboarding": {
+    "signUpFree": "無料登録",
+    "signupNudge": "無料アカウントを作成してすべての機能をアンロック"
+  },
+  "referral": {
+    "copyLink": "リンクをコピー"
+  },
+  "welcome": {
+    "favoritesDesc": "気になる王国を追跡してスコア変更の通知を受け取る",
+    "favoritesTitle": "お気に入りリスト",
+    "rivalsDesc": "過去の対戦相手と今後のマッチアップを確認",
+    "rivalsTitle": "KvKライバル",
+    "scoreDesc": "K{{num}}が1,300以上の王国の中でどの位置か確認",
+    "scoreDescGeneric": "あなたの王国が1,300以上の王国の中でどの位置か確認",
+    "scoreTitle": "王国のAtlasスコア",
+    "seeRivals": "ライバルを見る",
+    "startTracking": "追跡を開始",
+    "subtitle": "アカウントがリンクされました。Atlasがあなたに用意した内容です。",
+    "title": "Atlasへようこそ",
+    "viewScore": "スコアを見る"
+  },
+  "kvkSubmit": {
+    "screenshotDisclaimer": "これらのスクリーンショットが自分のゲーム内キャプチャであることを確認します。すべてのゲームコンテンツはCentury Gamesの所有物であり、Kingshot Atlasがコミュニティデータ目的で保存・表示することを許可します。"
   }
 }

@@ -24,7 +24,9 @@
     "kingdom": "Königreich",
     "wins": "Siege",
     "losses": "Niederlagen",
-    "clear": "Löschen"
+    "clear": "Löschen",
+    "allTools": "← Alle Werkzeuge",
+    "copied": "Kopiert!"
   },
   "quickAction": {
     "transferHub_1": "Transfer-",
@@ -62,7 +64,8 @@
     "ambassadors": "Botschafter",
     "contributeData": "Daten beitragen",
     "aboutAtlas": "Über Atlas",
-    "kingdomCommunities": "Königreich-Kolonien"
+    "kingdomCommunities": "Königreich-Kolonien",
+    "giftCodes": "Geschenkcodes"
   },
   "stats": {
     "atlasScore": "Atlas-Wertung",
@@ -183,7 +186,8 @@
     "region": "Region",
     "townCenter": "Stadtzentrum",
     "viewProfile": "Profil ansehen",
-    "youCanUpdate": "Du kannst dies aktualisieren"
+    "youCanUpdate": "Du kannst dies aktualisieren",
+    "chipInToFund": "Zum Fonds beitragen"
   },
   "rankings": {
     "subtitle": "Wer dominiert? Die Daten lügen nicht.",
@@ -214,7 +218,8 @@
     "combinedPowerTitle": "Was ist das kombinierte Stärkeniveau?",
     "combinedPowerDesc": "Die Summe der Atlas-Wertungen beider Königreiche vor dem Duell. Höhere Wertungen = wettbewerbsfähigere Schlachten zwischen bewährten Königreichen. So entstehen Legenden.",
     "scoreTimingTitle": "Wertungszeitpunkt",
-    "scoreTimingDesc": "Die Wertungen spiegeln die Atlas-Wertung jedes Königreichs vor Beginn der Schlacht wider—basierend auf ihrer Bilanz bis dahin. Keine Rückschau, nur pure Vor-Schlacht-Stärke."
+    "scoreTimingDesc": "Die Wertungen spiegeln die Atlas-Wertung jedes Königreichs vor Beginn der Schlacht wider—basierend auf ihrer Bilanz bis dahin. Keine Rückschau, nur pure Vor-Schlacht-Stärke.",
+    "addMatchup": "Begegnung hinzufügen"
   },
   "compare": {
     "heroTitle1": "KÖNIGREICH-",
@@ -335,7 +340,20 @@
     "accessUnlocked": "Zugang Freigeschaltet",
     "supporterConfirm": "Du hast vollen Zugang als Atlas Supporter.",
     "supporterThanks": "Du hast vollen Zugang zum Schlachtplaner.",
-    "supporterThanksDesc": "Danke für deine Unterstützung von Atlas. Gehe direkt zum Planer und koordiniere deinen nächsten Burgnangriff."
+    "supporterThanksDesc": "Danke für deine Unterstützung von Atlas. Gehe direkt zum Planer und koordiniere deinen nächsten Burgnangriff.",
+    "accessRequired": "Gold-Stufe erforderlich",
+    "getGoldAccess": "So erreichen Sie die Gold-Stufe",
+    "goldBadge": "Gold-Stufe Königreich-Funktion",
+    "goldConfirm": "Sie haben vollen Zugriff als Gold-Stufe Mitglied.",
+    "goldDesc": "Der Kampfplaner ist für Gold-Stufe Königreiche verfügbar. Tragen Sie zum Königreichsfonds bei.",
+    "goldPerk": "Verfügbar für Gold-Stufe Königreiche. Zum Königreichsfonds beitragen.",
+    "goldThanks": "Sie haben vollen Zugriff auf den Kampfplaner.",
+    "goldThanksDesc": "Ihr Königreich hat die Gold-Stufe erreicht. Starten Sie direkt den Planer.",
+    "goldTitle": "Ihre Allianz verdient bessere Koordination.",
+    "reachGold": "Gold-Stufe erreichen",
+    "tabCounter": "Konter",
+    "tabPlayers": "Spieler",
+    "tabRally": "Rally"
   },
   "battlePlannerBanner": {
     "dismiss": "Kampfplaner-Banner schließen",
@@ -490,12 +508,8 @@
     "free5Desc": "Vollständige Statistiken und Leistungsverlauf",
     "free6Title": "Event-Kalender",
     "free6Desc": "KvK- und Transfer-Event-Zeitpläne",
-    "perk7Desc": "Unbegrenzte Königreich-Rankings freischalten (kostenlos: Top 25)",
-    "perk7Title": "Vollständige Ranglisten",
     "perk8Title": "Massen-Code-Einlösung",
     "perk8Desc": "Löse Geschenkcodes für alle deine Alt-Accounts auf einmal ein — ein Klick",
-    "perk9Title": "Erweiterter Vergleich",
-    "perk9Desc": "Vergleiche bis zu 5 Königreiche nebeneinander (kostenlos: 3)",
     "perk10Title": "Atlas Bot Dashboard",
     "perk10Desc": "Dein Kontrollzentrum. Erinnerungen, Geschenkcode-Benachrichtigungen und mehrere Server verwalten — alles auf einem Bildschirm."
   },
@@ -681,7 +695,8 @@
     "signInFailed": "Anmeldung fehlgeschlagen. Bitte erneut versuchen oder Verbindung prüfen.",
     "discordOpensInBrowser": "Öffnet Discord in deinem Browser",
     "discordBrowserHint": "Discord erfordert eine Browser-Anmeldung aus Sicherheitsgründen. Aktiviere \"Angemeldet bleiben\" für schnellere zukünftige Logins. Du wirst automatisch zurückgeleitet.",
-    "oauthDisclaimer": "Wir verwenden OAuth-Anbieter zur Vermeidung von Spam-Konten."
+    "oauthDisclaimer": "Wir verwenden OAuth-Anbieter zur Vermeidung von Spam-Konten.",
+    "termsLink": "Mit der Registrierung akzeptieren Sie unsere Nutzungsbedingungen"
   },
   "notifications": {
     "title": "Benachrichtigungen",
@@ -1333,7 +1348,8 @@
       "minAtlasScore": "Min. Atlas-Wertung",
       "minMatchScore": "Min. Match-Wertung",
       "activelyRecruiting": "Nur aktiv rekrutierend",
-      "clearFilters": "Filter löschen"
+      "clearFilters": "Filter löschen",
+      "applyFilters": "Filter anwenden"
     },
     "allGroups": "Alle Gruppen",
     "compare": {
@@ -1346,7 +1362,29 @@
     "linkKingdom": "Verknüpfe dein Königreich für Auto-Filter",
     "myGroup": "Meine Gruppe",
     "showingKingdoms": "Zeige Königreiche",
-    "transferGroup": "Transfer-Gruppe"
+    "transferGroup": "Transfer-Gruppe",
+    "error": {
+      "description": "Beim Laden des Transfer Hubs ist ein Fehler aufgetreten.",
+      "retry": "Erneut versuchen",
+      "title": "Ladefehler"
+    },
+    "field": {
+      "bio": "Biografie",
+      "contact": "Kontakt",
+      "groupSize": "Gruppengröße",
+      "kvkAvail": "KvK-Verfügbarkeit",
+      "language": "Sprache",
+      "lookingFor": "Sucht nach",
+      "power": "Stärke",
+      "savingFor": "Spart für",
+      "schedule": "Zeitplan",
+      "visibility": "Sichtbarkeit"
+    },
+    "missingFields": "Pflichtfelder fehlen",
+    "nominationCancelled": "Nominierung abgebrochen",
+    "nominationCancelledDesc": "Ihre Co-Editor-Nominierung wurde abgebrochen.",
+    "playersInAtlas": "Spieler in Atlas",
+    "tapToComplete": "Tippen zum Vervollständigen →"
   },
   "listing": {
     "allianceEventTimes": "Allianz-Event-Zeiten",
@@ -1413,7 +1451,11 @@
     "yourKingdom": "Dein Königreich",
     "updatedDaysAgo": "Vor {{days}}T aktualisiert",
     "updatedToday": "Heute aktualisiert",
-    "updatedYesterday": "Gestern aktualisiert"
+    "updatedYesterday": "Gestern aktualisiert",
+    "allianceInfo": "Allianz-Informationen",
+    "goldPerksV2": "Gold-Stufe Vorteile",
+    "hideDetails": "Details ausblenden",
+    "seeDetails": "Details anzeigen"
   },
   "editor": {
     "activated": "Aktiviert!",
@@ -1471,7 +1513,10 @@
     "coEditorInvitation": "Co-Editor Einladung",
     "coEditorInviteDesc": "Du wurdest eingeladen, das Rekrutierungs-Dashboard von Königreich {{kingdom}} mitzubearbeiten.",
     "coEditorInviteDescBy": "{{inviter}} hat dich eingeladen, das Rekrutierungs-Dashboard von Königreich {{kingdom}} mitzubearbeiten.",
-    "declineInvite": "Ablehnen"
+    "declineInvite": "Ablehnen",
+    "anotherEditorEndorsed": "Ein anderer Editor hat dieses Königreich bestätigt.",
+    "applyAsCoEditor": "Als Co-Editor bewerben",
+    "nominationCancelled": "Nominierung abgebrochen"
   },
   "recruiter": {
     "loading": "Dashboard wird geladen...",
@@ -1572,7 +1617,19 @@
     "coEditorRequestPending": "Co-Editor Anfrage Ausstehend",
     "noStatusChanges": "Noch keine Statusänderungen",
     "requestAwaitingApproval": "Deine Anfrage zum Co-Editieren von Königreich {{kingdom}} wartet auf Genehmigung. Du wirst benachrichtigt, wenn sie geprüft wird.",
-    "statusHistory": "Transfer-Status Verlauf"
+    "statusHistory": "Transfer-Status Verlauf",
+    "analytics": "Analytik",
+    "basedOnListing": "Basierend auf Ihren Anzeigenkriterien",
+    "clearSelection": "Auswahl aufheben",
+    "downloadCsv": "CSV herunterladen",
+    "last30Days": "Letzte 30 Tage",
+    "profileViews": "Profilaufrufe",
+    "selectAll": "Alle auswählen",
+    "sendInvites": "Einladungen senden",
+    "sending": "Wird gesendet...",
+    "showingPlayersInGroup": "Spieler in Ihrer Gruppe",
+    "transferGroupFilter": "Transfergruppe",
+    "watchlist": "Merkliste"
   },
   "applications": {
     "applyTo": "Bewerben bei",
@@ -1736,7 +1793,10 @@
     "howToStep3": "Klicke oder ziehe Spieler in die Rally-Warteschlange.",
     "howToStep4": "Lege die Angriffsreihenfolge fest — wer zuerst ankommt, zählt.",
     "howToStep5": "Mache das Gleiche für die Konter-Warteschlange falls nötig.",
-    "howToStep6": "Aktiviere Haustier-Buff-Timer wenn zutreffend."
+    "howToStep6": "Aktiviere Haustier-Buff-Timer wenn zutreffend.",
+    "accessDeniedDesc": "Sie brauchen Gold-Stufe für den Rally-Koordinator.",
+    "arriveAfter": "Ankunft nach",
+    "secondsAfterEnemy": "Sekunden nach dem Feind"
   },
   "missingData": {
     "contributeTitle": "DATEN",
@@ -1958,7 +2018,9 @@
     "contribute": "${{amount}} beitragen",
     "selectAmount": "Betrag auswählen",
     "securePayment": "Zahlungen sicher verarbeitet durch Stripe",
-    "toTier": "→ {{tier}}-Tier"
+    "toTier": "→ {{tier}}-Tier",
+    "alliancePitch": "Bitten Sie Ihre Allianz mitzumachen — Rekrutierung nützt dem ganzen Königreich.",
+    "perMember": "pro Mitglied"
   },
   "reportData": {
     "title": "Falsche Daten melden",
@@ -2039,100 +2101,35 @@
     "noMatch": "Kein Spiel"
   },
   "giftCodes": {
-    "heroSubtitle": "Ein Klick. Sofortige Belohnungen. Kein Kopieren nötig.",
-    "signInTitle": "Geschenkcode-Einlöser",
-    "signInDesc": "Melde dich an und verknüpfe dein Kingshot-Konto, um Geschenkcodes mit einem Klick einzulösen.",
-    "signIn": "Anmelden",
-    "linkTitle": "Verknüpfe Zuerst Dein Konto",
-    "linkDesc": "Zum Einlösen von Codes brauchen wir deine Spieler-ID. Verknüpfe dein Kingshot-Konto in deinen Profileinstellungen.",
-    "goToProfile": "Zum Profil",
-    "redeemAll": "Alle {{count}} Codes Einlösen",
-    "redeemingProgress": "Einlösen... ({{done}}/{{total}})",
-    "allRedeemed": "Alle {{count}} Codes Eingelöst",
-    "cooldown": "Abklingzeit — {{seconds}}s",
-    "rateLimitedTitle": "Limit Erreicht",
-    "rateLimitedDesc": "Zu viele Anfragen. Bitte warten.",
     "noCodesUnavailable": "Geschenkcodes konnten nicht abgerufen werden. Versuche es später oder gib einen Code manuell ein.",
     "noCodesEmpty": "Derzeit keine aktiven Geschenkcodes. Schau später nochmal!",
-    "redeem": "Einlösen",
-    "retry": "Wiederholen",
-    "expired": "Abgelaufen",
-    "manualEntry": "Code Manuell Eingeben",
-    "manualPlaceholder": "z.B. KINGSHOT2026",
-    "howItWorks": "So funktioniert's:",
-    "howItWorksDesc": "Atlas sendet den Code in deinem Namen an den offiziellen Century Games Geschenkcode-Service mit deiner verknüpften Spieler-ID. Belohnungen gehen direkt in dein Spielpostfach.",
-    "rateLimit": "Limit:",
-    "rateLimitDesc": "10 Codes pro Minute.",
     "codesSourced": "Codes von {{source}}.",
     "backToTools": "Zurück zu Werkzeugen",
-    "alreadyRedeemed": "Bereits Eingelöst",
     "copiedAll": "{{count}} Codes in Zwischenablage kopiert",
     "copyAll": "Alle Codes Kopieren",
-    "redeemed": "Eingelöst",
     "refresh": "Codes Aktualisieren",
     "refreshed": "{{count}} aktive Codes gefunden",
-    "redeemingAlts": "Wird eingelöst...",
-    "redeemAllAlts": "Alle {{count}} Konten",
-    "redeemAllAltsLocked": "Alle Konten"
-  },
-  "giftCodeLanding": {
-    "allTools": "← Alle Werkzeuge",
-    "becomeSupporter": "Supporter werden",
-    "featAlt": "Alt-Account Unterstützung",
-    "featAltDesc": "Alt-Accounts? Füge bis zu 10 Konten hinzu und löse alle Codes auf jedem mit einem Klick ein. Nur für Supporter.",
-    "featAuto": "Automatische Code-Erkennung",
-    "featAutoDesc": "Atlas holt automatisch jeden aktiven Geschenkcode aus dem Spiel. Kein Suchen auf Discord oder Reddit.",
-    "featCloud": "Cloud-Synchronisierte Konten",
-    "featCloudDesc": "Deine Alt-Accounts werden in der Cloud synchronisiert. Gerät wechseln, Browser löschen — dein Setup wartet immer auf dich.",
-    "featDiscord": "Discord Integration",
-    "featDiscordDesc": "Nutze /codes in Discord um aktive Codes zu sehen. Nutze /redeem um sie ohne Browser einzulösen. Atlas Bot erledigt das.",
-    "featOneClick": "Ein-Klick Einlösung",
-    "featOneClickDesc": "Drücke \"Alle Einlösen\" und jeder Code wird sofort auf dein Konto angewendet. Kein Kopieren. Keine Tippfehler.",
-    "featSmart": "Intelligente Wiederholung",
-    "featSmartDesc": "Ratenlimit? Bereits eingelöst? Abgelaufen? Atlas verfolgt jedes Ergebnis und versucht nur das erneut, was wirklich nötig ist.",
-    "freeF1": "Alle aktiven Codes anzeigen",
-    "freeF2": "Alle mit einem Klick einlösen",
-    "freeF3": "Codes in Zwischenablage kopieren",
-    "freeF4": "Manuelle Code-Eingabe",
-    "freeF5": "1 Alt-Account Platz",
-    "freeF6": "/codes & /redeem in Discord",
-    "freeNote": "Kostenlos für alle Atlas-Nutzer. Verknüpfe dein Kingshot-Konto zum Starten.",
-    "freeTier": "Kostenlos",
-    "freeVsSupporter": "Kostenlos vs. Supporter",
-    "heroSubtitle": "Hör auf, Codes einzeln einzutippen. Atlas findet sie, du klickst einmal, Belohnungen landen im Postfach. Fertig.",
-    "heroTitle1": "GESCHENKCODE",
-    "heroTitle2": "EINLÖSER",
-    "howItWorks1": "SO",
-    "howItWorks2": "FUNKTIONIERT'S",
-    "orUseBot": "Oder /redeem in Discord nutzen",
-    "pageTitle": "Geschenkcode-Einlöser",
-    "problemDesc": "Geschenkcodes kommen aus Social Media, Spielevents, Creator-Partnerschaften und Meilensteinen. Sie laufen schnell ab. Einen verpassen und diese kostenlosen Speedups, Gems und Ressourcen sind für immer weg.",
-    "problemTitle": "Neue Geschenkcodes erschienen. Du hast 3 verpasst.",
-    "punchline": "Lass keine kostenlosen Ressourcen liegen.",
-    "redeemNow": "Codes Jetzt Einlösen",
-    "solutionDesc": "Atlas überwacht alle Quellen und sammelt jeden aktiven Code an einem Ort. Öffne den Einlöser, drücke einen Knopf, und jeder Code wird angewendet. Kein Tippen. Keine verpassten Belohnungen.",
-    "step1": "Konto Verknüpfen",
-    "step1Desc": "Melde dich bei Atlas an und verknüpfe deine Kingshot Spieler-ID in den Profileinstellungen.",
-    "step2": "Aktive Codes Anzeigen",
-    "step2Desc": "Atlas zeigt jeden aktiven Geschenkcode mit Ablauf-Timer. Immer aktuell.",
-    "step3": "Einlösen & Abholen",
-    "step3Desc": "Drücke \"Alle Einlösen\" — Codes werden sofort angewendet. Prüfe dein Spielpostfach für Belohnungen.",
-    "supF1": "Alles aus Kostenlos",
-    "supF2": "Bis zu 10 Alt-Accounts",
-    "supF3": "Masseneinlösung aller Konten",
-    "supF4": "Cloud-synchronisierte Alt-Liste",
-    "supF5": "Ergebnisverfolgung pro Konto",
-    "supF6": "Intelligente Wiederholung bei fehlgeschlagenen Codes",
-    "supporterBadge": "Atlas Supporter Vorteil",
-    "supporterDesc": "Der automatische Code-Einlöser für Alt-Accounts ist bei Atlas Supporter inklusive — zusammen mit dem Schlachtplaner, unbegrenztem /multirally und mehr. Ab 4,99$/Monat.",
-    "supporterNote": "10 Alts manuell verwalten? Das sind über 40 Codes zum Eintippen jedes Mal. Supporter klicken einmal.",
-    "supporterTier": "Supporter",
-    "supporterTitle": "10 Konten. Ein Klick. Jeder Code.",
-    "threeSteps": "Drei Schritte. Null Tippen. Alle Belohnungen.",
-    "tryFree": "Kostenlos Testen",
-    "whyAtlas1": "WARUM",
-    "whyAtlas2": "ATLAS",
-    "whySubtitle": "Weil Codes manuell eintippen so 2024 ist."
+    "androidInGame": "Öffne Kingshot → Profil → Einstellungen → Geschenkcode → Einfügen und einlösen",
+    "iosNote": "iOS-Spieler müssen über die Kingshot-Website einlösen.",
+    "iosRedeemSite": "Auf der Website einlösen",
+    "iosStep1": "Gehe zur Kingshot-Einlöseseite",
+    "iosStep2": "Mit deinem Konto anmelden",
+    "iosStep3": "Geschenkcode einfügen",
+    "iosStep4": "Einlösen tippen",
+    "iosWeb": "iOS-Einlösung",
+    "pageTitle": "Geschenkcodes",
+    "heroSubtitleDisplay": "Lösen Sie Kingshot-Geschenkcodes direkt von Atlas ein",
+    "codeCopied": "Code kopiert!",
+    "copiedShort": "Kopiert!",
+    "copy": "Kopieren",
+    "allCopied": "Alle Codes kopiert!",
+    "howToRedeem": "So lösen Sie ein",
+    "step1": "Kopieren Sie den Code oben",
+    "step2": "Öffnen Sie Kingshot auf Ihrem Gerät",
+    "step3": "Gehe zu Profil → Einstellungen → Geschenkcode",
+    "step4": "Fügen Sie den Code ein und tippen Sie auf Einlösen",
+    "aboutCodes": "Über Geschenkcodes",
+    "aboutCodesDesc": "Century Games veröffentlicht regelmäßig Geschenkcodes, die kostenlose In-Game-Ressourcen bieten."
   },
   "transferHubLanding": {
     "pageTitle": "Transfer Hub — Finde Dein Nächstes Königreich",
@@ -2207,7 +2204,28 @@
     "ctaDesc": "Ob du ein neues Zuhause oder starke Spieler suchst — der Transfer Hub verbindet dich mit dem richtigen Match. Kostenlos, ohne Haken.",
     "ctaButton": "Transfer Hub betreten",
     "browseKingdoms": "Alle Königreiche durchsuchen",
-    "allTools": "← Alle Werkzeuge"
+    "allTools": "← Alle Werkzeuge",
+    "cmpAlliance": "Allianz-Informationsplan",
+    "cmpBadge": "Goldenes Abzeichen für alle Königreichsmitglieder",
+    "cmpBasicListing": "Grundeintrag mit Atlas Score und Statistiken",
+    "cmpBattlePlanner": "Zugang zum KvK-Kampfplaner",
+    "cmpBioLang": "Königreich-Bio und Sprache",
+    "cmpBrowseProfiles": "Transfer-Profile durchsuchen",
+    "cmpGlow": "Goldenes Leuchten + Prioritätsplatzierung",
+    "cmpInvites": "Einladungen an Transferspieler senden",
+    "cmpMinReqs": "Min. TC und Stärke-Anforderungen angezeigt",
+    "cmpPrepScheduler": "Zugang zum KvK-Vorbereitungsplaner",
+    "cmpReviews": "Community-Bewertungen",
+    "cmpSlots": "+2 Allianz-Slots (5 insgesamt)",
+    "cmpVibeTags": "Königreichspolitik und Vibe-Tags",
+    "fundSubtitle": "Rekrutierung ist Teamarbeit. Jeder in Ihrem Königreich kann beitragen.",
+    "priceFree": "Kostenlos",
+    "recommended": "EMPFOHLEN",
+    "tierBronze": "Bronze",
+    "tierFree": "(Kostenlos)",
+    "tierGold": "Gold",
+    "tierSilver": "Silber",
+    "tierStandard": "Standard"
   },
   "kingdomCommunities": {
     "title": "Königreich-Gemeinschaften",
@@ -2219,7 +2237,9 @@
     "ctaTitle": "Mobilisiere dein Königreich, um aufzusteigen",
     "ctaDescription": "Jeder verknüpfte Spieler mit TC20+ zählt für den Gemeinschaftsrang deines Königreichs. Lade deine Allianz ein — je größer deine Präsenz, desto stärker die Atlas-Aufklärung deines Königreichs.",
     "noResults": "Keine Königreiche gefunden",
-    "footer": "Nur Spieler, die ihr Kingshot-Konto mit TC20+ verknüpft haben, werden gezählt. Rankings aktualisieren sich in Echtzeit."
+    "footer": "Nur Spieler, die ihr Kingshot-Konto mit TC20+ verknüpft haben, werden gezählt. Rankings aktualisieren sich in Echtzeit.",
+    "statsKingdoms": "Königreiche",
+    "statsPlayers": "Spieler"
   },
   "admin": {
     "anonymous": "Anonym",
@@ -2350,7 +2370,10 @@
     "withdraw": "Zurückziehen",
     "didYouTransfer": "Haben Sie gewechselt?",
     "outcomeSubmitted": "Ergebnis eingereicht",
-    "messages": "Nachrichten"
+    "messages": "Nachrichten",
+    "noMessages": "Noch keine Nachrichten. Starten Sie die Unterhaltung!",
+    "send": "Senden",
+    "typeMessage": "Nachricht schreiben..."
   },
   "prepScheduler": {
     "loading": "Laden...",
@@ -2531,7 +2554,62 @@
     "simpleMode": "Einfach",
     "advancedMode": "Erweitert",
     "totalSpeedups": "Gesamt",
-    "distribution": "Verteilung"
+    "distribution": "Verteilung",
+    "activeSchedule": "Aktiver Zeitplan",
+    "activeScheduleDesc": "Ihr Königreich hat einen aktiven Vorbereitungsplan.",
+    "addTimeRange": "Zeitbereich hinzufügen",
+    "backToTools": "← Zurück zu Werkzeugen",
+    "beOnline": "Während Ihres zugewiesenen Slots online sein",
+    "changeScreenshot": "Screenshot ändern",
+    "copyFrom": "Kopieren von",
+    "createScheduleBtn": "Zeitplan erstellen",
+    "day": "Tag",
+    "deadlineHintUTC": "Frist ist in UTC",
+    "dontNeedBuff": "Ich brauche keinen Buff-Slot",
+    "editDeadline": "Frist bearbeiten",
+    "fillForm": "Formular ausfüllen",
+    "formClosedLocked": "Formular ist geschlossen",
+    "goldTierOnly": "Nur Gold-Stufe",
+    "linkBtn": "Link teilen",
+    "linkDesc": "Teilen Sie diesen Link mit Ihren Königreichsmitgliedern",
+    "linkReturnHint": "Spieler kehren nach dem Absenden hierher zurück",
+    "messageOptional": "Nachricht (optional)",
+    "messagePlaceholder": "Hinweise für den Manager...",
+    "mySchedules": "Meine Zeitpläne",
+    "needDifferentTime": "Andere Zeit benötigt?",
+    "none": "Keine",
+    "notAssigned": "Nicht zugewiesen",
+    "notAssignedDesc": "Ihnen wurde noch kein Slot zugewiesen.",
+    "notGoldTier": "Ihr Königreich braucht Gold-Stufe für den Planer.",
+    "notSelected": "Nicht ausgewählt",
+    "notesForPlayers": "Hinweise für Spieler",
+    "notesPlaceholder": "Anweisungen für Ihre Mitglieder...",
+    "optedOut": "Abgelehnt",
+    "pageTitle": "Vorbereitungsplaner",
+    "qualified": "Qualifiziert",
+    "redirectNote": "Sie werden nach dem Absenden weitergeleitet",
+    "requestSlotChange": "Slotwechsel anfordern",
+    "screenshotDesc": "Laden Sie einen Screenshot Ihrer Beschleunigungen hoch",
+    "screenshotProof": "Screenshot-Nachweis",
+    "sending": "Wird gesendet...",
+    "setDeadline": "Frist festlegen",
+    "signInBtn": "Anmelden zum Absenden",
+    "signInDesc": "Melden Sie sich an, um Ihre Verfügbarkeit zu senden",
+    "speedupsDesc": "Wie viele Beschleunigungen haben Sie?",
+    "submissionDeadline": "Einreichungsfrist",
+    "submitting": "Wird eingereicht...",
+    "subtitle": "Koordinieren Sie die KvK-Vorbereitungsphase Ihres Königreichs",
+    "timezoneHint": "Zeiten in Ihrer lokalen Zeitzone",
+    "to": "bis",
+    "toastAllianceRequired": "Allianz-Tag erforderlich",
+    "toastDeadlineFailed": "Frist konnte nicht aktualisiert werden",
+    "toastDeadlineUpdated": "Frist aktualisiert.",
+    "type": "Typ",
+    "updateSubmission": "Einreichung aktualisieren",
+    "usernamePlaceholder": "Ihr Spielname",
+    "yourPrepReport": "Ihr Vorbereitungsbericht",
+    "yourSlots": "Ihre Slots",
+    "yourTimezone": "Ihre Zeitzone"
   },
   "prepLanding": {
     "featAutoAssign": "Automatische Slot-Zuweisung",
@@ -2573,7 +2651,12 @@
     "whoPlayersDesc": "Füllen das Formular aus. Reichen Beschleuniger, Verfügbarkeit und Nachweise ein. Bekommen einen 30-Minuten-Slot zugewiesen. Erscheinen und buffen.",
     "getStarted": "Loslegen",
     "ctaTitle": "Bereit, Ihr Königreich zu organisieren?",
-    "ctaDesc": "Die Prep-Phase Ihres Königreichs muss kein Chaos sein. Der Planer verwandelt sie in einen datengesteuerten Prozess."
+    "ctaDesc": "Die Prep-Phase Ihres Königreichs muss kein Chaos sein. Der Planer verwandelt sie in einen datengesteuerten Prozess.",
+    "goldBadge": "Gold-Stufe Funktion",
+    "goldDesc": "Der Vorbereitungsplaner ist für Gold-Stufe Königreiche verfügbar.",
+    "goldTitle": "Organisieren Sie die Vorbereitungsphase Ihres Königreichs",
+    "whoManagers": "Vorbereitungsmanager",
+    "whoManagersDesc": "Von Editoren zugewiesen für das Tagesgeschäft. Einreichungen prüfen, Slots automatisch zuweisen, Zeitpläne exportieren."
   },
   "tos": {
     "pageTitle": "Nutzungsbedingungen"
@@ -2582,9 +2665,63 @@
     "pageTitle": "Datenschutzrichtlinie"
   },
   "footer": {
-    "trademark": "Kingshot\u2122 ist eine Marke von Century Games. Alle Spielinhalte und -materialien sind Marken und Urheberrechte ihrer jeweiligen Eigentümer. Kingshot Atlas ist ein unabhängiges Fan-Projekt — nicht verbunden mit, unterstützt, gesponsert oder genehmigt von Century Games.",
+    "trademark": "Kingshot™ ist eine Marke von Century Games. Alle Spielinhalte und -materialien sind Marken und Urheberrechte ihrer jeweiligen Eigentümer. Kingshot Atlas ist ein unabhängiges Fan-Projekt — nicht verbunden mit, unterstützt, gesponsert oder genehmigt von Century Games.",
     "about": "Über uns",
     "terms": "AGB",
     "privacy": "Datenschutz"
+  },
+  "bpTrial": {
+    "activeDesc": "Sie haben während der Testphase Zugriff auf den Kampfplaner.",
+    "activeTitle": "Testphase aktiv",
+    "offerDesc": "Testen Sie den Kampfplaner 24 Stunden kostenlos.",
+    "offerTitle": "Kostenlose Testversion verfügbar",
+    "openPlanner": "Planer öffnen",
+    "startTrial": "Kostenlose Testversion starten"
+  },
+  "cancelSurvey": {
+    "annualOffer": "Jährlich wechseln und 17% sparen",
+    "backToAtlas": "Zurück zu Atlas",
+    "feedbackPlaceholder": "Sagen Sie uns, was wir besser machen können...",
+    "heading": "Es tut uns leid, Sie gehen zu sehen",
+    "pauseButton": "Stattdessen pausieren",
+    "pauseOffer": "Nicht bereit zu kündigen? Pausieren Sie Ihr Abo bis zu 3 Monate.",
+    "reasonTitle": "Warum kündigen Sie?",
+    "skip": "Überspringen",
+    "subheading": "Bevor Sie gehen, helfen Sie uns, Atlas zu verbessern.",
+    "submit": "Absenden und kündigen",
+    "submitting": "Wird gesendet...",
+    "switchAnnual": "Zu jährlich wechseln",
+    "thankYou": "Vielen Dank für Ihr Feedback",
+    "thankYouDesc": "Ihr Abo wurde gekündigt. Der Zugang bleibt bis zum Ende der Abrechnungsperiode.",
+    "title": "Abo kündigen"
+  },
+  "conversion": {
+    "cta": "Supporter werden",
+    "subtitle": "Unterstützen Sie Atlas und schalten Sie Premium-Funktionen frei",
+    "title": "Mehr freischalten mit Atlas Supporter"
+  },
+  "onboarding": {
+    "signUpFree": "Kostenlos registrieren",
+    "signupNudge": "Erstellen Sie ein kostenloses Konto, um alle Funktionen freizuschalten"
+  },
+  "referral": {
+    "copyLink": "Link kopieren"
+  },
+  "welcome": {
+    "favoritesDesc": "Verfolgen Sie Königreiche und erhalten Sie Benachrichtigungen bei Änderungen",
+    "favoritesTitle": "Ihre Favoritenliste",
+    "rivalsDesc": "Überprüfen Sie frühere Gegner und kommende Begegnungen",
+    "rivalsTitle": "Ihre KvK-Rivalen",
+    "scoreDesc": "Sehen Sie wie K{{num}} unter 1.300+ Königreichen abschneidet",
+    "scoreDescGeneric": "Sehen Sie wie Ihr Königreich unter 1.300+ Königreichen abschneidet",
+    "scoreTitle": "Atlas Score Ihres Königreichs",
+    "seeRivals": "Rivalen ansehen",
+    "startTracking": "Jetzt verfolgen",
+    "subtitle": "Ihr Konto ist verknüpft. Hier ist, was Atlas für Sie hat.",
+    "title": "Willkommen bei Atlas",
+    "viewScore": "Score anzeigen"
+  },
+  "kvkSubmit": {
+    "screenshotDisclaimer": "Ich bestätige, dass diese Screenshots meine eigenen In-Game-Aufnahmen sind. Ich verstehe, dass alle Spielinhalte Eigentum von Century Games sind, und erteile Kingshot Atlas die Erlaubnis, sie für Community-Zwecke zu speichern und anzuzeigen."
   }
 }
