@@ -395,6 +395,7 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
       team: player.team,
       useBuffed,
     }]);
+    if ('vibrate' in navigator) navigator.vibrate(30);
     setLastAnnouncement(`${player.name} added to rally queue`);
     // Auto-scroll to rally queue on mobile after a tick
     requestAnimationFrame(() => {
@@ -414,6 +415,7 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
       team: player.team,
       useBuffed,
     }]);
+    if ('vibrate' in navigator) navigator.vibrate(30);
     setLastAnnouncement(`${player.name} added to counter queue`);
     // Auto-scroll to counter queue on mobile after a tick
     requestAnimationFrame(() => {
@@ -428,6 +430,7 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
       if (removed) setLastAnnouncement(`${removed.playerName} removed from rally queue`);
       return prev.filter((_, i) => i !== index);
     });
+    if ('vibrate' in navigator) navigator.vibrate([15, 30, 15]);
   }, []);
 
   const removeFromCounterQueue = useCallback((index: number) => {
@@ -436,6 +439,7 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
       if (removed) setLastAnnouncement(`${removed.playerName} removed from counter queue`);
       return prev.filter((_, i) => i !== index);
     });
+    if ('vibrate' in navigator) navigator.vibrate([15, 30, 15]);
   }, []);
 
   const moveInQueue = useCallback((from: number, to: number) => {

@@ -206,15 +206,10 @@ const ApplicationCard: React.FC<{
           gap: '0.5rem',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', gap: isMobile ? '0.25rem' : '0.5rem', flex: 1, minWidth: 0, flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
           <span style={{ color: colors.text, fontWeight: '600', fontSize: '0.85rem' }}>
             {isAnon ? `🔒 ${t('appCard.anonymousApplicant', 'Anonymous Applicant')}` : (profile?.username || t('appCard.unknownPlayer', 'Unknown Player'))}
           </span>
-          {profile && (
-            <span style={{ color: colors.textSecondary, fontSize: '0.7rem' }}>
-              Kingdom {profile.current_kingdom} • {formatTCLevel(profile.tc_level)} • {profile.power_million ? `${profile.power_million}M` : profile.power_range}
-            </span>
-          )}
           <span style={{
             padding: '0.1rem 0.4rem',
             backgroundColor: `${statusInfo.color}15`,
@@ -227,6 +222,11 @@ const ApplicationCard: React.FC<{
           }}>
             {statusInfo.label}
           </span>
+          {profile && (
+            <span style={{ color: colors.textSecondary, fontSize: '0.7rem', ...(isMobile ? { width: '100%', marginTop: '0.1rem' } : {}) }}>
+              Kingdom {profile.current_kingdom} • {formatTCLevel(profile.tc_level)} • {profile.power_million ? `${profile.power_million}M` : profile.power_range}
+            </span>
+          )}
           {application.status === 'accepted' && profile?.linked_player_id && (
             <span style={{ color: colors.textMuted, fontSize: '0.6rem' }}>
               ID: <span style={{ color: '#22d3ee', fontWeight: '600' }}>{profile.linked_player_id}</span>
@@ -514,7 +514,7 @@ const ApplicationCard: React.FC<{
                 backgroundColor: '#0a0a0a',
                 border: `1px solid ${colors.border}`,
                 borderRadius: '8px',
-                maxHeight: '200px',
+                maxHeight: isMobile ? '260px' : '200px',
                 overflowY: 'auto',
               }}>
                 {/* Translate All toggle + disclaimer */}
@@ -615,7 +615,7 @@ const ApplicationCard: React.FC<{
                     onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
                     onClick={(e) => e.stopPropagation()}
                     placeholder={t('appCard.typeMessage', 'Type a message...')}
-                    style={{ ...inputStyle, flex: 1, fontSize: '0.7rem', minHeight: '32px', padding: '0.3rem 0.5rem' }}
+                    style={{ ...inputStyle, flex: 1, fontSize: isMobile ? '1rem' : '0.7rem', minHeight: isMobile ? '44px' : '32px', padding: '0.3rem 0.5rem' }}
                   />
                   <button
                     onClick={(e) => { e.stopPropagation(); sendMessage(); }}

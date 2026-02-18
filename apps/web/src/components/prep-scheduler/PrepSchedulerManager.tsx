@@ -86,9 +86,7 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
   const [deadlineInput, setDeadlineInput] = useState(() => {
     if (!schedule.deadline) return '';
     const d = new Date(schedule.deadline);
-    const offset = d.getTimezoneOffset();
-    const local = new Date(d.getTime() - offset * 60000);
-    return local.toISOString().slice(0, 16);
+    return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}T${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`;
   });
 
   const assignedCount = dayAssignments.length;
@@ -121,8 +119,29 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
                   <button onClick={() => setEditingDeadline(true)} style={{ background: 'none', border: 'none', color: '#a855f7', fontSize: '0.6rem', cursor: 'pointer', padding: '0.1rem 0.3rem', fontWeight: 600 }}>✏️ {schedule.deadline ? t('prepScheduler.editDeadline', 'Edit Deadline') : t('prepScheduler.setDeadline', 'Set Deadline')}</button>
                 )}
                 {editingDeadline && updateDeadline && (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
-                    <input type="datetime-local" value={deadlineInput} onChange={(e) => setDeadlineInput(e.target.value)} style={{ padding: '0.15rem 0.3rem', backgroundColor: colors.bg, border: `1px solid ${colors.border}`, borderRadius: '4px', color: colors.text, fontSize: '0.6rem' }} />
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', flexWrap: 'wrap' }}>
+                    <input type="date" value={deadlineInput ? deadlineInput.split('T')[0] : ''} onChange={(e) => {
+                      const date = e.target.value;
+                      if (!date) { setDeadlineInput(''); return; }
+                      const tp = deadlineInput ? deadlineInput.split('T')[1] || '00:00' : '00:00';
+                      setDeadlineInput(`${date}T${tp}`);
+                    }} style={{ padding: '0.15rem 0.3rem', backgroundColor: colors.bg, border: `1px solid ${colors.border}`, borderRadius: '4px', color: colors.text, fontSize: '0.6rem' }} />
+                    <select value={deadlineInput ? String(parseInt(deadlineInput.split('T')[1]?.split(':')[0] || '0')) : '0'} onChange={(e) => {
+                      const dp = deadlineInput ? deadlineInput.split('T')[0] : new Date().toISOString().split('T')[0];
+                      const mn = deadlineInput ? deadlineInput.split('T')[1]?.split(':')[1] || '00' : '00';
+                      setDeadlineInput(`${dp}T${String(e.target.value).padStart(2, '0')}:${mn}`);
+                    }} style={{ padding: '0.15rem 0.2rem', backgroundColor: colors.bg, border: `1px solid ${colors.border}`, borderRadius: '4px', color: colors.text, fontSize: '0.6rem', minWidth: 40, textAlign: 'center' }}>
+                      {Array.from({ length: 24 }, (_, i) => <option key={i} value={i}>{String(i).padStart(2, '0')}</option>)}
+                    </select>
+                    <span style={{ color: colors.textMuted, fontWeight: 700, fontSize: '0.6rem' }}>:</span>
+                    <select value={deadlineInput ? String(parseInt(deadlineInput.split('T')[1]?.split(':')[1] || '0')) : '0'} onChange={(e) => {
+                      const dp = deadlineInput ? deadlineInput.split('T')[0] : new Date().toISOString().split('T')[0];
+                      const hr = deadlineInput ? deadlineInput.split('T')[1]?.split(':')[0] || '00' : '00';
+                      setDeadlineInput(`${dp}T${hr}:${String(e.target.value).padStart(2, '0')}`);
+                    }} style={{ padding: '0.15rem 0.2rem', backgroundColor: colors.bg, border: `1px solid ${colors.border}`, borderRadius: '4px', color: colors.text, fontSize: '0.6rem', minWidth: 40, textAlign: 'center' }}>
+                      {[0, 15, 30, 45].map(m => <option key={m} value={m}>{String(m).padStart(2, '0')}</option>)}
+                    </select>
+                    <span style={{ color: colors.textMuted, fontSize: '0.55rem', fontWeight: 600 }}>UTC</span>
                     <button onClick={async () => { await updateDeadline(deadlineInput); setEditingDeadline(false); }} disabled={saving} style={{ background: 'none', border: '1px solid #a855f730', borderRadius: '4px', color: '#a855f7', fontSize: '0.55rem', cursor: 'pointer', padding: '0.15rem 0.35rem', fontWeight: 600 }}>{saving ? '...' : '✓'}</button>
                     <button onClick={() => setEditingDeadline(false)} style={{ background: 'none', border: 'none', color: colors.textMuted, fontSize: '0.55rem', cursor: 'pointer', padding: '0.15rem 0.2rem' }}>✗</button>
                   </span>

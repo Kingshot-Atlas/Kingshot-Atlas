@@ -362,12 +362,41 @@ const GiftCodes: React.FC = () => {
           <h3 style={{ color: colors.amber, fontSize: '0.8rem', fontWeight: '700', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             {t('giftCodes.howToRedeem', 'How to Redeem')}
           </h3>
+
+          {/* Android / In-Game */}
+          <p style={{ color: colors.textMuted, fontSize: '0.7rem', fontWeight: 600, margin: '0.5rem 0 0.25rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            📱 {t('giftCodes.androidInGame', 'Android (In-Game)')}
+          </p>
           <ol style={{ margin: 0, paddingLeft: '1.25rem', color: colors.textSecondary, fontSize: '0.8rem', lineHeight: 1.8 }}>
             <li>{t('giftCodes.step1', 'Copy the code above')}</li>
             <li>{t('giftCodes.step2', 'Open Kingshot and go to Settings (gear icon)')}</li>
             <li>{t('giftCodes.step3', 'Tap "Gift Code" and paste the code')}</li>
             <li>{t('giftCodes.step4', 'Tap Redeem — rewards appear in your mailbox')}</li>
           </ol>
+
+          {/* iOS / Web */}
+          <p style={{ color: colors.textMuted, fontSize: '0.7rem', fontWeight: 600, margin: '0.75rem 0 0.25rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            🍎 {t('giftCodes.iosWeb', 'iOS (Web Redeem)')}
+          </p>
+          <ol style={{ margin: 0, paddingLeft: '1.25rem', color: colors.textSecondary, fontSize: '0.8rem', lineHeight: 1.8 }}>
+            <li>{t('giftCodes.iosStep1', 'Copy the code above')}</li>
+            <li>
+              {t('giftCodes.iosStep2', 'Visit the')}{' '}
+              <a
+                href="https://ks-giftcode.centurygame.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: colors.amber, textDecoration: 'underline' }}
+              >
+                {t('giftCodes.iosRedeemSite', 'official Kingshot Gift Code page')}
+              </a>
+            </li>
+            <li>{t('giftCodes.iosStep3', 'Log in with your account and paste the code')}</li>
+            <li>{t('giftCodes.iosStep4', 'Rewards appear in your in-game mailbox')}</li>
+          </ol>
+          <p style={{ color: colors.textMuted, fontSize: '0.7rem', marginTop: '0.5rem', fontStyle: 'italic' }}>
+            {t('giftCodes.iosNote', 'iOS users cannot redeem gift codes in-game — use the web link above instead.')}
+          </p>
         </div>
 
         {/* Info Section */}

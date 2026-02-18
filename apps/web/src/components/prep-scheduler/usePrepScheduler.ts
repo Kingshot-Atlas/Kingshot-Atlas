@@ -392,7 +392,7 @@ export function usePrepScheduler() {
       const { data, error } = await supabase.from('prep_schedules').insert({
         kingdom_number: createKingdom, created_by: user.id,
         kvk_number: createKvkNumber || null, notes: createNotes || null,
-        deadline: createDeadline ? new Date(createDeadline).toISOString() : null,
+        deadline: createDeadline ? new Date(createDeadline + 'Z').toISOString() : null,
       }).select().single();
       if (error) throw error;
       if (data) {
@@ -445,7 +445,7 @@ export function usePrepScheduler() {
     if (!supabase || !schedule) return;
     setSaving(true);
     try {
-      const deadlineISO = newDeadline ? new Date(newDeadline).toISOString() : null;
+      const deadlineISO = newDeadline ? new Date(newDeadline + 'Z').toISOString() : null;
       await supabase.from('prep_schedules').update({ deadline: deadlineISO }).eq('id', schedule.id);
       setSchedule({ ...schedule, deadline: deadlineISO });
       showToast(t('prepScheduler.toastDeadlineUpdated', 'Deadline updated.'), 'success');

@@ -59,13 +59,12 @@ SECURITY INVOKER
 SET search_path = public, pg_temp
 AS $$
 BEGIN
-    -- Tier thresholds based on score ranges (0-15 scale)
-    IF score >= 12.0 THEN RETURN 'S';      -- Top tier: 12+
-    ELSIF score >= 10.0 THEN RETURN 'A';   -- Strong: 10-12
-    ELSIF score >= 7.5 THEN RETURN 'B';    -- Above average: 7.5-10
-    ELSIF score >= 5.0 THEN RETURN 'C';    -- Average: 5-7.5
-    ELSIF score >= 2.5 THEN RETURN 'D';    -- Below average: 2.5-5
-    ELSE RETURN 'F';                        -- Weak: <2.5
+    -- Tier thresholds matching frontend atlasScoreFormula.ts
+    IF score >= 8.9 THEN RETURN 'S';       -- Top 3% - Elite
+    ELSIF score >= 7.8 THEN RETURN 'A';    -- Top 10% - Formidable
+    ELSIF score >= 6.4 THEN RETURN 'B';    -- Top 25% - Competitive
+    ELSIF score >= 4.7 THEN RETURN 'C';    -- Top 50% - Developing
+    ELSE RETURN 'D';                        -- Bottom 50% - Struggling
     END IF;
 END;
 $$;

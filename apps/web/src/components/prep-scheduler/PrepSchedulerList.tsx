@@ -148,13 +148,38 @@ const PrepSchedulerList: React.FC<PrepSchedulerListProps> = ({
               </div>
               <div>
                 <label style={labelStyle}>{t('prepScheduler.submissionDeadline', 'Submission Deadline (optional)')}</label>
-                <input type="datetime-local" value={createDeadline} onChange={(e) => setCreateDeadline(e.target.value)} style={inputStyle} />
-                {createDeadline && (() => { const d = new Date(createDeadline); if (isNaN(d.getTime())) return null; const utcH = String(d.getUTCHours()).padStart(2, '0'); const utcM = String(d.getUTCMinutes()).padStart(2, '0'); const utcDate = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`; const hr12 = d.getHours() % 12 || 12; const ampm = d.getHours() < 12 ? 'am' : 'pm'; const localMin = String(d.getMinutes()).padStart(2, '0'); return (
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <input type="date" value={createDeadline ? createDeadline.split('T')[0] : ''} onChange={(e) => {
+                    const date = e.target.value;
+                    if (!date) { setCreateDeadline(''); return; }
+                    const timePart = createDeadline ? createDeadline.split('T')[1] || '00:00' : '00:00';
+                    setCreateDeadline(`${date}T${timePart}`);
+                  }} style={{ ...inputStyle, width: 'auto', flex: '1 1 140px' }} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                    <select value={createDeadline ? String(parseInt(createDeadline.split('T')[1]?.split(':')[0] || '0')) : '0'} onChange={(e) => {
+                      const datePart = createDeadline ? createDeadline.split('T')[0] : new Date().toISOString().split('T')[0];
+                      const min = createDeadline ? createDeadline.split('T')[1]?.split(':')[1] || '00' : '00';
+                      setCreateDeadline(`${datePart}T${String(e.target.value).padStart(2, '0')}:${min}`);
+                    }} disabled={!createDeadline} style={{ ...inputStyle, width: 'auto', minWidth: 56, textAlign: 'center', opacity: createDeadline ? 1 : 0.4 }}>
+                      {Array.from({ length: 24 }, (_, i) => <option key={i} value={i}>{String(i).padStart(2, '0')}</option>)}
+                    </select>
+                    <span style={{ color: colors.textMuted, fontWeight: 700 }}>:</span>
+                    <select value={createDeadline ? String(parseInt(createDeadline.split('T')[1]?.split(':')[1] || '0')) : '0'} onChange={(e) => {
+                      const datePart = createDeadline ? createDeadline.split('T')[0] : new Date().toISOString().split('T')[0];
+                      const hr = createDeadline ? createDeadline.split('T')[1]?.split(':')[0] || '00' : '00';
+                      setCreateDeadline(`${datePart}T${hr}:${String(e.target.value).padStart(2, '0')}`);
+                    }} disabled={!createDeadline} style={{ ...inputStyle, width: 'auto', minWidth: 56, textAlign: 'center', opacity: createDeadline ? 1 : 0.4 }}>
+                      {[0, 15, 30, 45].map(m => <option key={m} value={m}>{String(m).padStart(2, '0')}</option>)}
+                    </select>
+                    <span style={{ color: colors.textMuted, fontSize: '0.75rem', fontWeight: 600 }}>UTC</span>
+                  </div>
+                </div>
+                {createDeadline && (() => { const parts = createDeadline.split('T'); const dp = parts[0]; const tp = parts[1]; if (!dp || !tp) return null; const tParts = tp.split(':').map(Number); const hr = tParts[0] ?? 0; const mn = tParts[1] ?? 0; const dParts = dp.split('-'); const utc = new Date(Date.UTC(+(dParts[0] ?? '0'), +(dParts[1] ?? '1') - 1, +(dParts[2] ?? '1'), hr, mn)); if (isNaN(utc.getTime())) return null; const localH = String(utc.getHours()).padStart(2, '0'); const localM = String(utc.getMinutes()).padStart(2, '0'); return (
                   <p style={{ color: '#a855f7', fontSize: '0.65rem', marginTop: '0.25rem', fontWeight: 600 }}>
-                    → {utcDate} {utcH}:{utcM} UTC ({hr12}:{localMin}{ampm} local)
+                    → {dp} {String(hr).padStart(2, '0')}:{String(mn).padStart(2, '0')} UTC ({localH}:{localM} local)
                   </p>
                 ); })()}
-                <p style={{ color: colors.textMuted, fontSize: '0.65rem', marginTop: '0.2rem' }}>{t('prepScheduler.deadlineHint', 'Enter the deadline in your local time. It will be stored and displayed in 24-hour UTC format.')}</p>
+                <p style={{ color: colors.textMuted, fontSize: '0.65rem', marginTop: '0.2rem' }}>{t('prepScheduler.deadlineHintUTC', 'Select the deadline date and time in 24-hour UTC format.')}</p>
               </div>
               <button onClick={createSchedule} disabled={saving || !createKingdom || !goldKingdoms.has(createKingdom)}
                 style={{ padding: '0.6rem 1.25rem', backgroundColor: createKingdom && goldKingdoms.has(createKingdom) ? '#a855f720' : `${colors.textMuted}10`, border: `1px solid ${createKingdom && goldKingdoms.has(createKingdom) ? '#a855f750' : colors.border}`, borderRadius: '8px', color: createKingdom && goldKingdoms.has(createKingdom) ? '#a855f7' : colors.textMuted, fontSize: '0.85rem', fontWeight: 600, cursor: createKingdom && goldKingdoms.has(createKingdom) ? 'pointer' : 'not-allowed', width: 'fit-content', opacity: saving ? 0.6 : 1 }}>

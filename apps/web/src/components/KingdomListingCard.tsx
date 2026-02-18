@@ -353,6 +353,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
     ? profile.linked_username : null;
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [isHovered, setIsHovered] = useState(false);
+  const [mobileExpanded, setMobileExpanded] = useState(false);
 
   const fundTier = fund?.tier || 'standard';
   const tierColor = TIER_COLORS[fundTier];
@@ -753,13 +754,61 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
           </div>
         )}
 
-        {/* 2-Column Layout: Performance | Characteristics */}
+        {/* Mobile Condensed Stats Row */}
+        {isMobile && !mobileExpanded && (
+          <div style={{ marginBottom: '0.4rem' }}>
+            <div style={{
+              display: 'flex', flexWrap: 'wrap', gap: '0.3rem', marginBottom: '0.4rem',
+              backgroundColor: colors.bg, borderRadius: '8px', padding: '0.5rem',
+            }}>
+              {[
+                { label: t('listing.atlasScore', 'Atlas Score'), value: kingdom.atlas_score ? `${kingdom.atlas_score.toFixed(1)} (#${kingdom.current_rank || '—'})` : '—', color: '#22d3ee' },
+                { label: t('listing.kvks', 'KvKs'), value: `${kingdom.total_kvks || 0}`, color: colors.text },
+                { label: t('listing.prepWinRate', 'Prep'), value: kingdom.prep_win_rate != null ? `${(kingdom.prep_win_rate * 100).toFixed(0)}%` : '—', color: statTypeStyles.prepPhase.color },
+                { label: t('listing.battleWinRate', 'Battle'), value: kingdom.battle_win_rate != null ? `${(kingdom.battle_win_rate * 100).toFixed(0)}%` : '—', color: statTypeStyles.battlePhase.color },
+              ].map(s => (
+                <div key={s.label} style={{ flex: '1 1 45%', textAlign: 'center', padding: '0.2rem 0.15rem' }}>
+                  <div style={{ fontSize: '0.5rem', color: colors.textMuted, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{s.label}</div>
+                  <div style={{ fontSize: '0.75rem', fontWeight: '600', color: s.color }}>{s.value}</div>
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={() => setMobileExpanded(true)}
+              style={{
+                width: '100%', padding: '0.4rem', backgroundColor: 'transparent',
+                border: `1px solid ${colors.border}`, borderRadius: '6px',
+                color: colors.textSecondary, fontSize: '0.7rem', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem',
+              }}
+            >
+              {t('listing.seeDetails', 'See details')}
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+          </div>
+        )}
+
+        {/* 2-Column Layout: Performance | Characteristics — always on desktop, toggle on mobile */}
         <div style={{
-          display: 'grid',
+          display: (!isMobile || mobileExpanded) ? 'grid' : 'none',
           gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
           gap: isMobile ? '0.5rem' : '0.6rem',
           marginBottom: '0.6rem',
         }}>
+          {isMobile && mobileExpanded && (
+            <button
+              onClick={() => setMobileExpanded(false)}
+              style={{
+                gridColumn: '1 / -1', padding: '0.35rem', backgroundColor: 'transparent',
+                border: `1px solid ${colors.border}`, borderRadius: '6px',
+                color: colors.textSecondary, fontSize: '0.7rem', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem',
+              }}
+            >
+              {t('listing.hideDetails', 'Hide details')}
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 15l-6-6-6 6"/></svg>
+            </button>
+          )}
           {/* Performance Section — 2x4 grid */}
           <div style={{
             backgroundColor: colors.bg,

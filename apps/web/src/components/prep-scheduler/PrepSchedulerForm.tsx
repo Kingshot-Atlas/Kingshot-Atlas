@@ -192,6 +192,19 @@ const PrepSchedulerForm: React.FC<PrepSchedulerFormProps> = (props) => {
     showNonQualifyingPopup, setShowNonQualifyingPopup,
   } = props;
 
+  // Progress tracking for mobile
+  const formProgress = useMemo(() => {
+    const steps = [
+      { done: !!formUsername.trim() && !!formAlliance.trim() },
+      { done: skipMonday || mondayAvail.some(r => r[0] && r[1]) },
+      { done: skipTuesday || tuesdayAvail.some(r => r[0] && r[1]) },
+      { done: skipThursday || thursdayAvail.some(r => r[0] && r[1]) },
+      { done: generalSpeedups > 0 || trainingSpeedups > 0 || constructionSpeedups > 0 || researchSpeedups > 0 },
+      { done: !!generalTarget },
+    ];
+    return { completed: steps.filter(s => s.done).length, total: steps.length };
+  }, [formUsername, formAlliance, skipMonday, skipTuesday, skipThursday, mondayAvail, tuesdayAvail, thursdayAvail, generalSpeedups, trainingSpeedups, constructionSpeedups, researchSpeedups, generalTarget]);
+
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '0.5rem 0.75rem', backgroundColor: colors.bg,
     border: `1px solid ${colors.border}`, borderRadius: '6px', color: colors.text,
@@ -234,6 +247,25 @@ const PrepSchedulerForm: React.FC<PrepSchedulerFormProps> = (props) => {
           </div>
         )}
       </div>
+
+      {/* Mobile Progress Indicator */}
+      {isMobile && (
+        <div style={{ maxWidth: '600px', margin: '0 auto', padding: '0 1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+            <div style={{ flex: 1, height: '4px', borderRadius: '2px', backgroundColor: colors.border, overflow: 'hidden' }}>
+              <div style={{
+                width: `${(formProgress.completed / formProgress.total) * 100}%`,
+                height: '100%', borderRadius: '2px',
+                backgroundColor: formProgress.completed === formProgress.total ? '#22c55e' : '#a855f7',
+                transition: 'width 0.3s ease',
+              }} />
+            </div>
+            <span style={{ color: formProgress.completed === formProgress.total ? '#22c55e' : colors.textMuted, fontSize: '0.65rem', fontWeight: 600, whiteSpace: 'nowrap' }}>
+              {formProgress.completed}/{formProgress.total}
+            </span>
+          </div>
+        </div>
+      )}
 
       <div style={{ maxWidth: '600px', margin: '0 auto', padding: isMobile ? '1rem' : '1.5rem' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -377,23 +409,68 @@ const PrepSchedulerForm: React.FC<PrepSchedulerFormProps> = (props) => {
             )}
           </div>
 
-          {/* Submit */}
-          {schedule.status === 'closed' ? (
-            <div style={{ padding: '0.75rem 1.5rem', backgroundColor: '#ef444410', border: '1px solid #ef444430', borderRadius: '10px', textAlign: 'center' }}>
-              <span style={{ color: '#ef4444', fontSize: '0.85rem', fontWeight: 600 }}>🔒 {t('prepScheduler.formClosedLocked', 'Form is closed — submissions are locked')}</span>
-            </div>
-          ) : (
-            <button onClick={submitForm} disabled={saving || !formUsername.trim()}
-              style={{ padding: '0.75rem 1.5rem', backgroundColor: '#a855f720', border: '1px solid #a855f750', borderRadius: '10px', color: '#a855f7', fontSize: '0.9rem', fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1 }}>
-              {saving ? t('prepScheduler.submitting', 'Submitting...') : existingSubmission ? `✏️ ${t('prepScheduler.updateSubmission', 'Update Submission')}` : `📤 ${t('prepScheduler.submit', 'Submit')}`}
-            </button>
+          {/* Submit — inline on desktop, spacer + sticky bar on mobile */}
+          {!isMobile && (
+            <>
+              {schedule.status === 'closed' ? (
+                <div style={{ padding: '0.75rem 1.5rem', backgroundColor: '#ef444410', border: '1px solid #ef444430', borderRadius: '10px', textAlign: 'center' }}>
+                  <span style={{ color: '#ef4444', fontSize: '0.85rem', fontWeight: 600 }}>🔒 {t('prepScheduler.formClosedLocked', 'Form is closed — submissions are locked')}</span>
+                </div>
+              ) : (
+                <button onClick={submitForm} disabled={saving || !formUsername.trim()}
+                  style={{ padding: '0.75rem 1.5rem', backgroundColor: '#a855f720', border: '1px solid #a855f750', borderRadius: '10px', color: '#a855f7', fontSize: '0.9rem', fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1 }}>
+                  {saving ? t('prepScheduler.submitting', 'Submitting...') : existingSubmission ? `✏️ ${t('prepScheduler.updateSubmission', 'Update Submission')}` : `📤 ${t('prepScheduler.submit', 'Submit')}`}
+                </button>
+              )}
+            </>
           )}
+
+          {/* Spacer for mobile sticky bar */}
+          {isMobile && <div style={{ height: '70px' }} />}
 
           <div style={{ textAlign: 'center', marginTop: '0.5rem' }}>
             <Link to="/tools" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: '0.8rem' }}>← {t('prepScheduler.backToTools', 'Back to Tools')}</Link>
           </div>
         </div>
       </div>
+
+      {/* Mobile Sticky Submit Bar */}
+      {isMobile && schedule.status !== 'closed' && (
+        <div style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50,
+          padding: '0.75rem 1rem',
+          backgroundColor: 'rgba(10, 10, 10, 0.95)',
+          borderTop: '1px solid #a855f730',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+        }}>
+          <button onClick={submitForm} disabled={saving || !formUsername.trim()}
+            style={{
+              width: '100%', padding: '0.85rem 1.5rem',
+              backgroundColor: '#a855f720', border: '1px solid #a855f750',
+              borderRadius: '10px', color: '#a855f7', fontSize: '1rem',
+              fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer',
+              opacity: (saving || !formUsername.trim()) ? 0.5 : 1,
+              minHeight: '50px',
+            }}>
+            {saving ? t('prepScheduler.submitting', 'Submitting...') : existingSubmission ? `✏️ ${t('prepScheduler.updateSubmission', 'Update Submission')}` : `📤 ${t('prepScheduler.submit', 'Submit')}`}
+          </button>
+        </div>
+      )}
+      {isMobile && schedule.status === 'closed' && (
+        <div style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50,
+          padding: '0.75rem 1rem',
+          backgroundColor: 'rgba(10, 10, 10, 0.95)',
+          borderTop: '1px solid #ef444430',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+        }}>
+          <div style={{ padding: '0.75rem 1.5rem', backgroundColor: '#ef444410', border: '1px solid #ef444430', borderRadius: '10px', textAlign: 'center' }}>
+            <span style={{ color: '#ef4444', fontSize: '0.85rem', fontWeight: 600 }}>🔒 {t('prepScheduler.formClosedLocked', 'Form is closed — submissions are locked')}</span>
+          </div>
+        </div>
+      )}
 
       {/* Change Request Modal */}
       {showChangeRequestForm && existingSubmission && (
