@@ -258,6 +258,7 @@
     "botDesc": "Bring kingdom intelligence directly to your Discord server. Look up kingdoms, compare matchups, and check rankings — without leaving Discord.",
     "botTagline": "Intel at your fingertips. No tab-switching.",
     "botStat": "10+ Discord servers",
+    "botStatDynamic": "{{count}} Discord servers",
     "compareTitle": "Kingdom Comparison",
     "compareDesc": "Put any kingdoms in the ring. Head-to-head stats, win rates, and Atlas Scores. Let the data crown the champion.",
     "compareTagline": "Know your enemy. Choose your allies.",

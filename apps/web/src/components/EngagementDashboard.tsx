@@ -267,20 +267,73 @@ const UserJourneyFunnel: React.FC<{ data: { step: string; users: number; dropoff
 export const EngagementDashboard: React.FC = () => {
   const [metrics, setMetrics] = useState<EngagementMetrics | null>(null);
   const [loading, setLoading] = useState(true);
+  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
 
   useEffect(() => {
     loadMetrics();
-    const interval = setInterval(loadMetrics, 30000); // Refresh every 30s
+    const interval = setInterval(loadMetrics, 60000); // Refresh every 60s
     return () => clearInterval(interval);
   }, []);
 
-  const loadMetrics = () => {
+  const loadMetrics = async () => {
     setLoading(true);
     try {
+      // Primary: fetch real engagement data from Supabase
+      const { supabase } = await import('../lib/supabase');
+      if (supabase) {
+        const { data: sbData, error } = await supabase.rpc('get_engagement_metrics');
+        if (!error && sbData) {
+          const sb = sbData as Record<string, unknown>;
+          const dailyRaw = (sb.daily_activity || []) as Array<{ day: string; users: number }>;
+          const heatmapRaw = (sb.hourly_heatmap || []) as Array<{ day: number; hour: number; count: number }>;
+
+          // Fill missing days in daily activity for smooth chart
+          const dailyMap = new Map<string, number>();
+          dailyRaw.forEach(d => dailyMap.set(d.day, d.users));
+          const now = new Date();
+          const dailyActivity: { date: string; users: number; sessions: number; duration: number }[] = [];
+          for (let i = 29; i >= 0; i--) {
+            const date = new Date(now.getTime() - i * 86400000);
+            const dateStr = date.toISOString().split('T')[0]!;
+            dailyActivity.push({ date: dateStr, users: dailyMap.get(dateStr) || 0, sessions: 0, duration: 0 });
+          }
+
+          // Merge with local feature/journey data for those sections
+          const localData = analyticsService.getEngagementMetrics();
+
+          const dau = (sb.dau as number) || 0;
+          const wau = (sb.wau as number) || 0;
+          const mau = (sb.mau as number) || 0;
+          const dauWauRatio = wau > 0 ? Math.round((dau / wau) * 100) : 0;
+
+          setMetrics({
+            dau,
+            wau,
+            mau,
+            dauWauRatio,
+            avgSessionDuration: localData.avgSessionDuration,
+            avgSessionsPerDay: localData.avgSessionsPerDay,
+            dailyActivity,
+            hourlyHeatmap: heatmapRaw,
+            featureAdoption: localData.featureAdoption,
+            userJourney: localData.userJourney,
+          });
+          setLastRefresh(new Date());
+          setLoading(false);
+          return;
+        }
+      }
+      // Fallback: use local analytics if Supabase unavailable
       const data = analyticsService.getEngagementMetrics();
       setMetrics(data);
+      setLastRefresh(new Date());
     } catch (error) {
       logger.error('Failed to load engagement metrics:', error);
+      // Fallback to local
+      try {
+        const data = analyticsService.getEngagementMetrics();
+        setMetrics(data);
+      } catch { /* silent */ }
     } finally {
       setLoading(false);
     }
@@ -450,7 +503,7 @@ export const EngagementDashboard: React.FC = () => {
 
       {/* Last Updated */}
       <div style={{ textAlign: 'center', color: COLORS.muted, fontSize: '0.75rem' }}>
-        Last updated: {new Date().toLocaleTimeString()} • Auto-refreshes every 30s
+        Last updated: {lastRefresh.toLocaleTimeString()} • Auto-refreshes every 60s • Source: Supabase Auth
       </div>
     </div>
   );

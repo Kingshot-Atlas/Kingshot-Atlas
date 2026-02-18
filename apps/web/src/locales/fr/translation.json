@@ -258,6 +258,7 @@
     "botDesc": "Apportez l'intelligence des royaumes directement sur votre serveur Discord. Recherchez des royaumes, comparez les affrontements et consultez les classements — sans quitter Discord.",
     "botTagline": "Le renseignement à portée de main. Sans changer d'onglet.",
     "botStat": "10+ serveurs Discord",
+    "botStatDynamic": "{{count}} serveurs Discord",
     "compareTitle": "Comparaison de Royaumes",
     "compareDesc": "Mettez n'importe quel royaume sur le ring. Stats face à face, taux de victoire et Scores Atlas. Laissez les données couronner le champion.",
     "compareTagline": "Connaissez votre ennemi. Choisissez vos alliés.",

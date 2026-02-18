@@ -18,6 +18,7 @@ const DataSourceStats = lazy(() => import('../components/DataSourceStats').then(
 const BotDashboard = lazy(() => import('../components/BotDashboard').then(m => ({ default: m.BotDashboard })));
 const DiscordRolesDashboard = lazy(() => import('../components/DiscordRolesDashboard').then(m => ({ default: m.DiscordRolesDashboard })));
 const ReferralIntelligence = lazy(() => import('../components/ReferralIntelligence'));
+const UserHeatmap = lazy(() => import('../components/admin/UserHeatmap').then(m => ({ default: m.UserHeatmap })));
 import { ADMIN_USERNAMES } from '../utils/constants';
 import { supabase } from '../lib/supabase';
 import { logger } from '../utils/logger';
@@ -937,7 +938,7 @@ const AdminDashboard: React.FC = () => {
 
   // Determine active category based on current tab
   const getActiveCategory = () => {
-    if (['analytics', 'engagement', 'plausible'].includes(activeTab)) return 'overview';
+    if (['analytics', 'engagement', 'user-heatmap', 'plausible'].includes(activeTab)) return 'overview';
     if (['submissions', 'new-kingdoms', 'claims', 'corrections', 'kvk-errors', 'kvk-bulk'].includes(activeTab)) return 'review';
     if (['transfer-hub', 'transfer-status', 'transfer-apps', 'transfer-outcomes'].includes(activeTab)) return 'transfer';
     if (['finance'].includes(activeTab)) return 'finance';
@@ -1031,6 +1032,10 @@ const AdminDashboard: React.FC = () => {
       ) : activeTab === 'engagement' ? (
         <Suspense fallback={<div style={{ padding: '2rem', color: '#6b7280' }}>Loading engagement...</div>}>
           <EngagementDashboard />
+        </Suspense>
+      ) : activeTab === 'user-heatmap' ? (
+        <Suspense fallback={<div style={{ padding: '2rem', color: '#6b7280' }}>Loading heatmap...</div>}>
+          <UserHeatmap />
         </Suspense>
       ) : activeTab === 'webhooks' ? (
         <Suspense fallback={<div style={{ padding: '2rem', color: '#6b7280' }}>Loading webhooks...</div>}>

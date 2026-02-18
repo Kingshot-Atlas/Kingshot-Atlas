@@ -84,6 +84,7 @@ const KingdomProfile: React.FC = () => {
   const [showReportModal, setShowReportModal] = useState(false);
   const [showKvKErrorModal, setShowKvKErrorModal] = useState(false);
   const [showFundModal, setShowFundModal] = useState(false);
+  const [fundData, setFundData] = useState<{ balance: number; tier: string } | null>(null);
   const location = useLocation();
   
   // Auto-open fund modal when visiting /kingdom/{number}/fund
@@ -92,6 +93,26 @@ const KingdomProfile: React.FC = () => {
       setShowFundModal(true);
     }
   }, [location.pathname, kingdom]);
+
+  // Fetch kingdom fund data for contribute modal
+  useEffect(() => {
+    const fetchFund = async () => {
+      if (!kingdomNumber) return;
+      try {
+        const { supabase } = await import('../lib/supabase');
+        if (!supabase) return;
+        const { data } = await supabase
+          .from('kingdom_funds')
+          .select('balance, tier')
+          .eq('kingdom_number', parseInt(kingdomNumber))
+          .maybeSingle();
+        if (data) {
+          setFundData({ balance: Number(data.balance) || 0, tier: data.tier || 'standard' });
+        }
+      } catch { /* silent */ }
+    };
+    fetchFund();
+  }, [kingdomNumber, showFundModal]);
 
   // Expand/collapse all state for collapsible sections
   const [breakdownExpanded, setBreakdownExpanded] = useState(false);
@@ -748,8 +769,8 @@ const KingdomProfile: React.FC = () => {
       {showFundModal && kingdom && (
         <KingdomFundContribute
           kingdomNumber={kingdom.kingdom_number}
-          currentBalance={0}
-          currentTier={'standard'}
+          currentBalance={fundData?.balance ?? 0}
+          currentTier={fundData?.tier ?? 'standard'}
           onClose={() => {
             setShowFundModal(false);
             // If we came from /fund route, navigate back to the profile

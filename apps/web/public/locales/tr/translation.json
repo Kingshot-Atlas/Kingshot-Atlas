@@ -258,6 +258,7 @@
     "botDesc": "Krallık istihbaratını doğrudan Discord sunucuna getir. Krallıkları ara, eşleşmeleri karşılaştır ve sıralamaları kontrol et — Discord'dan ayrılmadan.",
     "botTagline": "Parmaklarının ucunda istihbarat. Sekme değiştirme yok.",
     "botStat": "10+ Discord sunucusu",
+    "botStatDynamic": "{{count}} Discord sunucusu",
     "compareTitle": "Krallık Karşılaştırma",
     "compareDesc": "Herhangi bir krallığı ringe çıkar. Birebir istatistikler, galibiyet oranları ve Atlas Puanları. Veriler şampiyonu belirlesin.",
     "compareTagline": "Düşmanını tanı. Müttefiklerini seç.",

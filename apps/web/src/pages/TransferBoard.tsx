@@ -926,7 +926,7 @@ const TransferBoard: React.FC = () => {
       {contributingToKingdom !== null && (
         <KingdomFundContribute
           kingdomNumber={contributingToKingdom}
-          currentBalance={fundMap.get(contributingToKingdom)?.balance || 0}
+          currentBalance={Number(fundMap.get(contributingToKingdom)?.balance) || 0}
           currentTier={fundMap.get(contributingToKingdom)?.tier || 'standard'}
           onClose={() => setContributingToKingdom(null)}
         />

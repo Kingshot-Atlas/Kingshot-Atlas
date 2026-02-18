@@ -258,6 +258,7 @@
     "botDesc": "أحضر معلومات الممالك مباشرة إلى سيرفر Discord.",
     "botTagline": "المعلومات في متناول يدك. لا تبديل تبويبات.",
     "botStat": "10+ سيرفرات Discord",
+    "botStatDynamic": "{{count}} سيرفر Discord",
     "compareTitle": "مقارنة الممالك",
     "compareDesc": "ضع أي ممالك في الحلبة. إحصائيات وجهاً لوجه ونسب فوز ونقاط Atlas.",
     "compareTagline": "اعرف عدوك. اختر حلفاءك.",

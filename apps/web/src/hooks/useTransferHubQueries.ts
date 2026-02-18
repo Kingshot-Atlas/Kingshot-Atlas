@@ -271,7 +271,8 @@ async function fetchAtlasPlayerCount(): Promise<number> {
   if (!supabase) return 0;
   const { count } = await supabase
     .from('profiles')
-    .select('*', { count: 'exact', head: true });
+    .select('*', { count: 'exact', head: true })
+    .not('linked_player_id', 'is', null);
   return count || 0;
 }
 

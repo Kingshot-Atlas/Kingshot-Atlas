@@ -258,6 +258,7 @@
     "botDesc": "Lleva la inteligencia de reinos directamente a tu servidor de Discord. Busca reinos, compara enfrentamientos y consulta rankings — sin salir de Discord.",
     "botTagline": "Intel al alcance de tu mano. Sin cambiar de pestaña.",
     "botStat": "10+ servidores de Discord",
+    "botStatDynamic": "{{count}} servidores de Discord",
     "compareTitle": "Comparación de Reinos",
     "compareDesc": "Pon cualquier reino en el ring. Estadísticas cara a cara, tasas de victoria e Índices Atlas. Deja que los datos coronen al campeón.",
     "compareTagline": "Conoce a tu enemigo. Elige a tus aliados.",

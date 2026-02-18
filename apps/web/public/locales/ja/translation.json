@@ -258,6 +258,7 @@
     "botDesc": "王国の情報をDiscordサーバーに直接届けよう。王国の検索、マッチアップの比較、ランキングの確認 — Discordを離れずに。",
     "botTagline": "指先で情報を。タブ切り替え不要。",
     "botStat": "10以上のDiscordサーバー",
+    "botStatDynamic": "{{count}}のDiscordサーバー",
     "compareTitle": "王国比較",
     "compareDesc": "どの王国でもリングに上げろ。勝率とAtlasスコアの直接対決。データが王者を決める。",
     "compareTagline": "敵を知り、味方を選べ。",

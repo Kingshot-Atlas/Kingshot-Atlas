@@ -456,7 +456,28 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
         scoreTier,
         fund?.is_recruiting || false,
         fund?.main_language || undefined,
-        fund?.tier || undefined
+        fund?.tier || undefined,
+        {
+          rank: kingdom.current_rank || 0,
+          totalKvks: kingdom.total_kvks || 0,
+          prepWinRate: kingdom.prep_win_rate || 0,
+          battleWinRate: kingdom.battle_win_rate || 0,
+          dominations: kingdom.dominations || 0,
+          comebacks: kingdom.comebacks || 0,
+          reversals: kingdom.reversals || 0,
+          invasions: kingdom.invasions || 0,
+          secondaryLanguage: fund?.secondary_languages?.[0] || undefined,
+          minPower: minPowerDisplay || undefined,
+          minTcLevel: fund?.min_tc_level || undefined,
+          transferStatus: kingdom.most_recent_status || undefined,
+          kingdomVibe: fund?.kingdom_vibe || undefined,
+          recruitmentPitch: fund?.recruitment_pitch || undefined,
+          allianceNames: fund?.alliance_events?.alliances || undefined,
+          allianceSchedule: fund?.alliance_events?.schedule || undefined,
+          napPolicy: fund?.nap_policy || undefined,
+          sanctuaryDistribution: fund?.sanctuary_distribution || undefined,
+          castleRotation: fund?.castle_rotation || undefined,
+        }
       );
       const filename = `kingdom-${kingdom.kingdom_number}-listing.png`;
       if (isMobileDevice()) {

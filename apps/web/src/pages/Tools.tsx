@@ -201,6 +201,10 @@ const Tools: React.FC = () => {
 
   // Fetch active gift code count for badge
   const [giftCodeCount, setGiftCodeCount] = useState<number | null>(null);
+  // Fetch Discord server count for bot card
+  const [discordServerCount, setDiscordServerCount] = useState<number | null>(null);
+  // Fetch linked Kingshot player count for Transfer Hub card
+  const [playerCount, setPlayerCount] = useState<number | null>(null);
   useEffect(() => {
     const API_BASE = import.meta.env.VITE_API_URL || 'https://kingshot-atlas.onrender.com';
     fetch(`${API_BASE}/api/v1/player-link/gift-codes`)
@@ -209,6 +213,26 @@ const Tools: React.FC = () => {
         if (data?.codes?.length) setGiftCodeCount(data.codes.filter((c: any) => !c.is_expired).length);
       })
       .catch(() => {});
+    // Fetch Discord server count from bot API (requires auth headers)
+    import('../services/authHeaders').then(({ getAuthHeaders }) => {
+      getAuthHeaders({ requireAuth: false }).then(headers => {
+        fetch(`${API_BASE}/api/v1/bot/status`, { headers })
+          .then(r => r.ok ? r.json() : null)
+          .then(data => {
+            if (data?.server_count) setDiscordServerCount(data.server_count);
+          })
+          .catch(() => {});
+      });
+    }).catch(() => {});
+    // Fetch linked player count from Supabase
+    import('../lib/supabase').then(({ supabase }) => {
+      if (!supabase) return;
+      supabase.from('profiles').select('id', { count: 'exact', head: true })
+        .not('linked_player_id', 'is', null)
+        .then(({ count }) => {
+          if (count) setPlayerCount(count);
+        });
+    }).catch(() => {});
   }, []);
 
   const tools: ToolCardProps[] = [
@@ -216,6 +240,7 @@ const Tools: React.FC = () => {
       title: t('tools.transferTitle', 'Transfer Hub'),
       description: t('tools.transferDesc', 'Find your next kingdom — or find the right players. Browse listings, create a transfer profile, and apply directly. No more blind transfers.'),
       tagline: t('tools.transferTagline', 'Real data. Real applications. Zero guesswork.'),
+      usageStat: playerCount ? `${playerCount.toLocaleString()} Kingshot Players` : undefined,
       ctaLabel: t('tools.learnMore', 'Learn More'),
       icon: (
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -268,10 +293,10 @@ const Tools: React.FC = () => {
       goldTierBadge: true
     },
     {
-      title: t('tools.botTitle', 'Discord Bot Atlas'),
+      title: t('tools.botTitle', 'Atlas Discord Bot'),
       description: t('tools.botDesc', 'Bring kingdom intelligence directly to your Discord server. Look up kingdoms, compare matchups, and check rankings — without leaving Discord.'),
       tagline: t('tools.botTagline', 'Intel at your fingertips. No tab-switching.'),
-      usageStat: t('tools.botStat', '10+ Discord servers'),
+      usageStat: discordServerCount ? t('tools.botStatDynamic', '{{count}} Discord servers', { count: discordServerCount }) : t('tools.botStat', '10+ Discord servers'),
       ctaLabel: t('tools.learnMore', 'Learn More'),
       icon: (
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

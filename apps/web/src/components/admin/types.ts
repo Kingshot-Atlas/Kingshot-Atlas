@@ -121,6 +121,7 @@ export type AdminTab =
   | 'analytics' 
   | 'saas-metrics' 
   | 'engagement' 
+  | 'user-heatmap'
   | 'webhooks' 
   | 'data-sources' 
   | 'discord-bot'

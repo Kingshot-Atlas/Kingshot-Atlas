@@ -258,6 +258,7 @@
     "botDesc": "Bringe Königreich-Informationen direkt in deinen Discord-Server. Königreiche nachschlagen, Duelle vergleichen und Ranglisten prüfen – ohne Discord zu verlassen.",
     "botTagline": "Informationen auf Knopfdruck. Kein Tab-Wechsel.",
     "botStat": "10+ Discord-Server",
+    "botStatDynamic": "{{count}} Discord-Server",
     "compareTitle": "Königreich-Vergleich",
     "compareDesc": "Schick beliebige Königreiche in den Ring. Direkte Statistiken, Siegraten und Atlas-Wertungen. Lass die Daten den Champion krönen.",
     "compareTagline": "Kenne deinen Feind. Wähle deine Verbündeten.",
