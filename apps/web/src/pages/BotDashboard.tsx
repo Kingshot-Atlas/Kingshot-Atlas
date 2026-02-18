@@ -67,14 +67,14 @@ type DashTab = 'notifications' | 'servers' | 'access' | 'history';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
-const EVENT_ORDER: EventType[] = ['bear_hunt', 'viking_vengeance', 'swordland_showdown', 'tri_alliance_clash', 'arena'];
+const EVENT_ORDER: EventType[] = ['arena', 'bear_hunt', 'viking_vengeance', 'swordland_showdown', 'tri_alliance_clash'];
 
 const EVENT_META: Record<EventType, { label: string; icon: string; color: string; tag: string; maxSlots: number; defaultMessage: string }> = {
   bear_hunt:          { label: 'Bear Hunt',          icon: '🐻', color: '#f59e0b', tag: 'Every 2 days',  maxSlots: 4, defaultMessage: 'Rally your alliance and hunt together!' },
   viking_vengeance:   { label: 'Viking Vengeance',   icon: '🪓', color: '#ef4444', tag: 'Tuesday & Thursday, every 2 weeks', maxSlots: 2, defaultMessage: 'Time to fight for glory!' },
   swordland_showdown: { label: 'Swordland Showdown', icon: '⚔️',  color: '#a855f7', tag: 'Sunday, every 2 weeks', maxSlots: 2, defaultMessage: 'Ready your blades and fight for dominance!' },
   tri_alliance_clash: { label: 'Tri-Alliance Clash', icon: '🛡️',  color: '#3b82f6', tag: 'Saturday, every 4 weeks',    maxSlots: 2, defaultMessage: 'Coordinate with your allies!' },
-  arena:              { label: 'Arena',               icon: '🏟️', color: '#22d3ee', tag: 'Daily, before midnight reset', maxSlots: 1, defaultMessage: 'Arena resets at midnight UTC! Use your attempts before they expire.' },
+  arena:              { label: 'Arena',               icon: '🏟️', color: '#22d3ee', tag: 'Daily, before midnight reset', maxSlots: 1, defaultMessage: 'Use all your attempts before reset!' },
 };
 
 const FIXED_EVENT_TIMES: TimeSlot[] = [
@@ -100,6 +100,7 @@ const getFixSteps = (error: string): string[] => {
 };
 
 const REMINDER_PRESETS = [0, 5, 10, 15, 30, 60, 120];
+const ARENA_REMINDER_PRESETS = [3, 5, 10, 15];
 
 // Fixed reference dates for non-Bear-Hunt events (known game schedule)
 const FIXED_REFERENCE_DATES: Partial<Record<EventType, string>> = {
@@ -505,15 +506,17 @@ const EvCard: React.FC<{
           <div style={{ marginBottom: '1rem' }}>
             <label style={lS}>REMIND BEFORE</label>
             <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', alignItems: 'center' }}>
-              {REMINDER_PRESETS.map(n => (
+              {(isArena ? ARENA_REMINDER_PRESETS : REMINDER_PRESETS).map(n => (
                 <button key={n} onClick={() => onUp({ reminder_minutes_before: n })} style={{ padding: '0.3rem 0.6rem', borderRadius: 6, border: `1px solid ${ev.reminder_minutes_before === n ? m.color : colors.border}`, backgroundColor: ev.reminder_minutes_before === n ? `${m.color}15` : 'transparent', color: ev.reminder_minutes_before === n ? m.color : colors.textMuted, fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>{`${n}m`}</button>
               ))}
-              <input type="number" min={0} max={1440} placeholder="Custom" value={cMins} onChange={e => setCMins(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') { const x = parseInt(cMins); if (!isNaN(x) && x >= 0 && x <= 1440) { onUp({ reminder_minutes_before: x }); setCMins(''); } } }}
-                style={{ ...iS, width: 72, maxWidth: 72, textAlign: 'center', fontSize: '0.75rem', padding: '0.3rem' }} />
-              <span style={{ color: colors.textMuted, fontSize: '0.65rem' }}>min</span>
+              {!isArena && <>
+                <input type="number" min={0} max={1440} placeholder="Custom" value={cMins} onChange={e => setCMins(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') { const x = parseInt(cMins); if (!isNaN(x) && x >= 0 && x <= 1440) { onUp({ reminder_minutes_before: x }); setCMins(''); } } }}
+                  style={{ ...iS, width: 72, maxWidth: 72, textAlign: 'center', fontSize: '0.75rem', padding: '0.3rem' }} />
+                <span style={{ color: colors.textMuted, fontSize: '0.65rem' }}>min</span>
+              </>}
             </div>
-            {!REMINDER_PRESETS.includes(ev.reminder_minutes_before) && ev.reminder_minutes_before > 0 && <div style={{ color: m.color, fontSize: '0.7rem', marginTop: '0.3rem' }}>Current: {ev.reminder_minutes_before}m before</div>}
+            {!(isArena ? ARENA_REMINDER_PRESETS : REMINDER_PRESETS).includes(ev.reminder_minutes_before) && ev.reminder_minutes_before > 0 && <div style={{ color: m.color, fontSize: '0.7rem', marginTop: '0.3rem' }}>Current: {ev.reminder_minutes_before}m before</div>}
           </div>
           {isBearHunt && (
             <div style={{ marginBottom: '1rem' }}>
@@ -977,7 +980,7 @@ const BotDashboard: React.FC = () => {
         <h1 style={{ fontSize: mob ? '1.5rem' : '2rem', fontWeight: 'bold', marginBottom: '0.5rem', fontFamily: FONT_DISPLAY }}>
           <span style={{ color: '#fff' }}>BOT</span><span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.4rem' }}>DASHBOARD</span>
         </h1>
-        <p style={{ color: colors.textSecondary, fontSize: mob ? '0.85rem' : '0.95rem', maxWidth: 500, margin: '0 auto' }}>Manage Alliance Event Reminders and Gift Code alerts.</p>
+        <p style={{ color: colors.textSecondary, fontSize: mob ? '0.85rem' : '0.95rem', maxWidth: 500, margin: '0 auto' }}>Manage Alliance Event Reminders and Gift Codes.</p>
       </div>
       <div style={{ maxWidth: 550, margin: '2rem auto', padding: mob ? '0 1rem' : '0 2rem' }}>
         <div style={{ backgroundColor: colors.surface, borderRadius: 16, border: `1px solid ${colors.border}`, padding: mob ? '1.25rem' : '1.75rem' }}>
@@ -1133,7 +1136,7 @@ const BotDashboard: React.FC = () => {
                     <span style={{ fontSize: mob ? '1.25rem' : '1.5rem' }}>🎁</span>
                     <div style={{ minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                        <span style={{ color: colors.text, fontWeight: 700, fontSize: mob ? '0.9rem' : '0.95rem' }}>Gift Code Alerts</span>
+                        <span style={{ color: colors.text, fontWeight: 700, fontSize: mob ? '0.9rem' : '0.95rem' }}>Gift Codes</span>
                       </div>
                       <div style={{ color: colors.textMuted, fontSize: '0.7rem', marginTop: '0.15rem' }}>Auto-post new gift codes to your server</div>
                     </div>

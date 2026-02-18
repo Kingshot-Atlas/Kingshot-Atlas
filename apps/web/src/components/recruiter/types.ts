@@ -83,6 +83,7 @@ export interface IncomingApplication {
   expires_at: string;
   applicant_note: string | null;
   recruiter_note: string | null;
+  preferred_alliance: string | null;
   // Joined from transfer_profiles + profiles
   profile?: {
     user_id: string;

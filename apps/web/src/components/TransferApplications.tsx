@@ -57,6 +57,23 @@ const ApplyModal: React.FC<{
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [applicantNote, setApplicantNote] = useState('');
+  const [alliances, setAlliances] = useState<string[]>([]);
+  const [preferredAlliance, setPreferredAlliance] = useState('any');
+
+  // Fetch kingdom alliance info on mount
+  useEffect(() => {
+    if (!supabase || !kingdomNumber) return;
+    (async () => {
+      const { data } = await supabase
+        .from('kingdom_funds')
+        .select('alliance_events')
+        .eq('kingdom_number', kingdomNumber)
+        .maybeSingle();
+      if (data?.alliance_events?.alliances?.length) {
+        setAlliances(data.alliance_events.alliances);
+      }
+    })();
+  }, [kingdomNumber]);
 
   const isOwnKingdom = profile?.linked_kingdom === kingdomNumber;
   const slotsRemaining = MAX_ACTIVE_APPLICATIONS - activeCount;
@@ -116,6 +133,7 @@ const ApplyModal: React.FC<{
           applicant_user_id: user.id,
           kingdom_number: kingdomNumber,
           applicant_note: applicantNote.trim() || null,
+          preferred_alliance: alliances.length > 0 && preferredAlliance !== 'any' ? preferredAlliance : null,
         });
 
       if (insertError) {
@@ -304,6 +322,42 @@ const ApplyModal: React.FC<{
                 {applicantNote.length}/300
               </div>
             </div>
+
+            {alliances.length > 0 && (
+              <div style={{ marginBottom: '0.75rem' }}>
+                <label style={{ display: 'block', color: colors.textSecondary, fontSize: '0.75rem', marginBottom: '0.3rem', fontWeight: '500' }}>
+                  {t('applications.preferredAlliance', 'Preferred Alliance')} <span style={{ color: '#6b7280', fontWeight: '400' }}>({t('applications.optional', 'optional')})</span>
+                </label>
+                <select
+                  value={preferredAlliance}
+                  onChange={(e) => setPreferredAlliance(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '0.6rem 0.75rem',
+                    backgroundColor: colors.bg,
+                    border: `1px solid ${colors.border}`,
+                    borderRadius: '8px',
+                    color: colors.text,
+                    fontSize: '0.8rem',
+                    fontFamily: 'inherit',
+                    outline: 'none',
+                    cursor: 'pointer',
+                    appearance: 'none',
+                    WebkitAppearance: 'none',
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'right 0.75rem center',
+                    paddingRight: '2rem',
+                    minHeight: '44px',
+                  }}
+                >
+                  <option value="any">{t('applications.anyAlliance', 'Any Alliance')}</option>
+                  {alliances.map((a) => (
+                    <option key={a} value={a}>{a}</option>
+                  ))}
+                </select>
+              </div>
+            )}
           </>
         )}
 

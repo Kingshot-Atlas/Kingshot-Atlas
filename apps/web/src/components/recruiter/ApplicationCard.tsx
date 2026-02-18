@@ -334,7 +334,7 @@ const ApplicationCard: React.FC<{
             </div>
           )}
 
-          {application.applicant_note && (
+          {(application.applicant_note || application.preferred_alliance) && (
             <div style={{
               marginTop: '0.5rem',
               padding: '0.5rem 0.75rem',
@@ -342,10 +342,20 @@ const ApplicationCard: React.FC<{
               border: '1px solid #22d3ee15',
               borderRadius: '8px',
             }}>
-              <span style={{ color: '#22d3ee', fontSize: '0.65rem', fontWeight: '600' }}>📝 {t('appCard.applicantNote', 'Applicant Note')}</span>
-              <p style={{ color: '#d1d5db', fontSize: '0.78rem', margin: '0.2rem 0 0 0', lineHeight: 1.4 }}>
-                {application.applicant_note}
-              </p>
+              {application.applicant_note && (
+                <>
+                  <span style={{ color: '#22d3ee', fontSize: '0.65rem', fontWeight: '600' }}>📝 {t('appCard.applicantNote', 'Applicant Note')}</span>
+                  <p style={{ color: '#d1d5db', fontSize: '0.78rem', margin: '0.2rem 0 0 0', lineHeight: 1.4 }}>
+                    {application.applicant_note}
+                  </p>
+                </>
+              )}
+              {application.preferred_alliance && (
+                <div style={{ marginTop: application.applicant_note ? '0.4rem' : 0 }}>
+                  <span style={{ color: '#a855f7', fontSize: '0.65rem', fontWeight: '600' }}>🏰 {t('appCard.preferredAlliance', 'Preferred Alliance')}</span>
+                  <span style={{ color: '#d1d5db', fontSize: '0.78rem', marginLeft: '0.4rem' }}>{application.preferred_alliance}</span>
+                </div>
+              )}
             </div>
           )}
 

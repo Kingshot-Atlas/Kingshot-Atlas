@@ -201,13 +201,14 @@ async function sendReminder(client, event, guild, slot, channelId, now) {
       viking_vengeance: 'Time to fight for glory!',
       swordland_showdown: 'Ready your blades and fight for dominance!',
       tri_alliance_clash: 'Coordinate with your allies!',
-      arena: 'Arena resets at midnight UTC! Use your attempts before they expire.',
+      arena: 'Use all your attempts before reset!',
     };
     const baseMsg = customMsg || defaultMessages[event.event_type] || `${meta.label} is starting soon!`;
-    const description = `${baseMsg}\nJoin us at **${timeStr}**.`;
+    const isArenaEvent = event.event_type === 'arena';
+    const description = isArenaEvent ? baseMsg : `${baseMsg}\nJoin us at **${timeStr}**.`;
 
     const embed = new EmbedBuilder()
-      .setTitle(`${meta.emoji} ${meta.label} starting soon!`)
+      .setTitle(isArenaEvent ? `${meta.emoji} Arena ending soon!` : `${meta.emoji} ${meta.label} starting soon!`)
       .setURL('https://ks-atlas.com')
       .setDescription(description)
       .setColor(meta.color)

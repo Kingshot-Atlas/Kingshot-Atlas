@@ -493,41 +493,25 @@ client.on('ready', async () => {
   if (selfPingTimer) clearInterval(selfPingTimer);
   startSelfPing();
 
-  // Start Settler role sync (first run after 60s, then every 30 min)
+  // Unified role sync — runs all syncs SEQUENTIALLY to share a single
+  // guild.members.fetch() call (cached 5 min) and avoid opcode 8 rate limits.
+  // First run after 60s, then every 30 min.
+  async function runAllRoleSyncs() {
+    console.log('🔄 Starting unified role sync...');
+    await syncSettlerRoles();
+    await syncReferralRoles();
+    if (SUPPORTER_ROLE_ID) await syncSupporterRoles();
+    if (GILDED_ROLE_ID) await syncGildedRoles();
+    console.log('🔄 Unified role sync complete');
+  }
+
   if (settlerSyncInitTimeout) clearTimeout(settlerSyncInitTimeout);
   if (settlerSyncTimer) clearInterval(settlerSyncTimer);
-  settlerSyncInitTimeout = setTimeout(() => syncSettlerRoles(), 60_000);
-  settlerSyncTimer = setInterval(() => syncSettlerRoles(), SETTLER_SYNC_INTERVAL);
-  console.log(`🎖️ Settler role sync scheduled (every ${SETTLER_SYNC_INTERVAL / 60000} min)`);
-
-  // Start Referral role sync (first run after 90s, then every 30 min)
-  if (referralSyncInitTimeout) clearTimeout(referralSyncInitTimeout);
-  if (referralSyncTimer) clearInterval(referralSyncTimer);
-  referralSyncInitTimeout = setTimeout(() => syncReferralRoles(), 90_000);
-  referralSyncTimer = setInterval(() => syncReferralRoles(), SETTLER_SYNC_INTERVAL);
-  console.log(`🏛️ Referral role sync scheduled (Consul/Ambassador, every ${SETTLER_SYNC_INTERVAL / 60000} min)`);
-
-  // Start Supporter role sync (first run after 120s, then every 30 min)
-  if (SUPPORTER_ROLE_ID) {
-    if (supporterSyncInitTimeout) clearTimeout(supporterSyncInitTimeout);
-    if (supporterSyncTimer) clearInterval(supporterSyncTimer);
-    supporterSyncInitTimeout = setTimeout(() => syncSupporterRoles(), 120_000);
-    supporterSyncTimer = setInterval(() => syncSupporterRoles(), SETTLER_SYNC_INTERVAL);
-    console.log(`💎 Supporter role sync scheduled (every ${SETTLER_SYNC_INTERVAL / 60000} min)`);
-  } else {
-    console.log('⚠️ DISCORD_SUPPORTER_ROLE_ID not set — Supporter role sync disabled');
-  }
-
-  // Start Gilded role sync (first run after 150s, then every 30 min)
-  if (GILDED_ROLE_ID) {
-    if (gildedSyncInitTimeout) clearTimeout(gildedSyncInitTimeout);
-    if (gildedSyncTimer) clearInterval(gildedSyncTimer);
-    gildedSyncInitTimeout = setTimeout(() => syncGildedRoles(), 150_000);
-    gildedSyncTimer = setInterval(() => syncGildedRoles(), SETTLER_SYNC_INTERVAL);
-    console.log(`✨ Gilded role sync scheduled (every ${SETTLER_SYNC_INTERVAL / 60000} min)`);
-  } else {
-    console.log('⚠️ DISCORD_GILDED_ROLE_ID not set — Gilded role sync disabled');
-  }
+  settlerSyncInitTimeout = setTimeout(() => runAllRoleSyncs(), 60_000);
+  settlerSyncTimer = setInterval(() => runAllRoleSyncs(), SETTLER_SYNC_INTERVAL);
+  console.log(`� Unified role sync scheduled (Settler + Referral + Supporter + Gilded, every ${SETTLER_SYNC_INTERVAL / 60000} min)`);
+  if (!SUPPORTER_ROLE_ID) console.log('⚠️ DISCORD_SUPPORTER_ROLE_ID not set — Supporter role sync disabled');
+  if (!GILDED_ROLE_ID) console.log('⚠️ DISCORD_GILDED_ROLE_ID not set — Gilded role sync disabled');
 
   // Rotating bot presence (guard against duplicate timers on reconnect)
   if (presenceTimer) clearInterval(presenceTimer);
@@ -1142,6 +1126,27 @@ client.on('guildMemberUpdate', async (oldMember, newMember) => {
 });
 
 // ============================================================================
+// CACHED GUILD MEMBERS FETCH — prevents opcode 8 rate limiting
+// Each guild.members.fetch() sends REQUEST_GUILD_MEMBERS (opcode 8) to the
+// gateway. When 4+ syncs run within minutes of each other, Discord rate-limits
+// this. Solution: cache the result for 5 minutes and share across all syncs.
+// ============================================================================
+let _cachedMembers = null;
+let _cachedMembersTime = 0;
+const MEMBERS_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+async function fetchGuildMembersCached(guild) {
+  const now = Date.now();
+  if (_cachedMembers && (now - _cachedMembersTime) < MEMBERS_CACHE_TTL) {
+    return _cachedMembers;
+  }
+  _cachedMembers = await guild.members.fetch();
+  _cachedMembersTime = now;
+  console.log(`📋 Guild members cache refreshed (${_cachedMembers.size} members)`);
+  return _cachedMembers;
+}
+
+// ============================================================================
 // SETTLER ROLE AUTO-ASSIGNMENT
 // Queries API for users with linked Discord + Kingshot accounts,
 // then assigns the Settler role to eligible guild members.
@@ -1197,8 +1202,8 @@ async function syncSettlerRoles() {
       return;
     }
 
-    // Fetch all members (needed for role checks)
-    await guild.members.fetch();
+    // Fetch all members (cached to prevent opcode 8 rate limiting)
+    await fetchGuildMembersCached(guild);
 
     let assigned = 0;
     let removed = 0;
@@ -1288,8 +1293,8 @@ async function syncReferralRoles() {
       return;
     }
 
-    // Members already fetched by settler sync if it ran first, but ensure
-    await guild.members.fetch();
+    // Members cached to prevent opcode 8 rate limiting
+    await fetchGuildMembersCached(guild);
 
     let changes = 0;
 
@@ -1395,7 +1400,7 @@ async function syncSupporterRoles() {
       return;
     }
 
-    await guild.members.fetch();
+    await fetchGuildMembersCached(guild);
 
     let assigned = 0;
     let removed = 0;
@@ -1478,7 +1483,7 @@ async function syncGildedRoles() {
       return;
     }
 
-    await guild.members.fetch();
+    await fetchGuildMembersCached(guild);
 
     let assigned = 0;
     let removed = 0;
