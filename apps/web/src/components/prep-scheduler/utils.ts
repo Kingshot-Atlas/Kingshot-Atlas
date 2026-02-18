@@ -5,14 +5,19 @@ export function utcSlotToLocal(utcSlot: string): string {
   const [h, m] = utcSlot.split(':').map(Number);
   const d = new Date();
   d.setUTCHours(h ?? 0, m ?? 0, 0, 0);
-  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+  const hr12 = d.getHours() % 12 || 12;
+  const ampm = d.getHours() < 12 ? 'am' : 'pm';
+  const min = String(d.getMinutes()).padStart(2, '0');
+  return `${hr12}:${min}${ampm}`;
 }
 
 export function formatDeadlineUTC(deadline: string | null): string {
   if (!deadline) return '';
   const d = new Date(deadline);
   const utcStr = `${String(d.getUTCFullYear()).slice(2)}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')} ${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')} UTC`;
-  const localStr = d.toLocaleString([], { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false });
+  const hr12 = d.getHours() % 12 || 12;
+  const ampm = d.getHours() < 12 ? 'am' : 'pm';
+  const localStr = `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')} ${hr12}:${String(d.getMinutes()).padStart(2, '0')}${ampm}`;
   return `${utcStr} (${localStr} local)`;
 }
 

@@ -106,47 +106,76 @@ const FundTab: React.FC<FundTabProps> = ({ fund, editorInfo }) => {
         </p>
       </div>
 
-      {/* Tier Benefits Summary */}
-      <div style={{ marginTop: '0.75rem', padding: '0.75rem', backgroundColor: colors.bg, borderRadius: '8px' }}>
-        <span style={{ color: colors.textSecondary, fontSize: '0.65rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-          {t('recruiter.tierBenefits', 'Tier Benefits')}
-        </span>
-        <div style={{ marginTop: '0.4rem', display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
-          {[
-            { label: t('transferHubLanding.cmpBasicListing', 'Basic listing with Atlas Score & stats'), tier: 'standard' },
-            { label: t('transferHubLanding.cmpReviews', 'Community reviews from players'), tier: 'standard' },
-            { label: t('transferHubLanding.cmpMinReqs', 'Min TC & Power requirements shown'), tier: 'bronze' },
-            { label: t('transferHubLanding.cmpBrowseProfiles', 'Browse transferee profiles'), tier: 'bronze' },
-            { label: t('transferHubLanding.cmpVibeTags', 'Kingdom Policies & Vibe tags'), tier: 'bronze' },
-            { label: t('transferHubLanding.cmpInvites', 'Send invites to transferees'), tier: 'silver' },
-            { label: t('transferHubLanding.cmpBioLang', 'Kingdom Bio & Language display'), tier: 'silver' },
-            { label: t('transferHubLanding.cmpAlliance', 'Alliance Information schedule'), tier: 'silver' },
-            { label: t('transferHubLanding.cmpSlots', '+2 alliance slots (5 total)'), tier: 'gold' },
-            { label: t('transferHubLanding.cmpBadge', 'Gilded badge for all kingdom users'), tier: 'gold' },
-            { label: t('transferHubLanding.cmpGlow', 'Gold glow + priority placement'), tier: 'gold' },
-            { label: t('transferHubLanding.cmpPrepScheduler', 'KvK Prep Scheduler access'), tier: 'gold' },
-            { label: t('transferHubLanding.cmpBattlePlanner', 'KvK Battle Planner access'), tier: 'gold' },
-          ].map((item, i) => {
-            const tierOrder = ['standard', 'bronze', 'silver', 'gold'];
-            const currentIdx = tierOrder.indexOf(fund.tier);
-            const requiredIdx = tierOrder.indexOf(item.tier);
-            const unlocked = currentIdx >= requiredIdx;
-            const tierColor = item.tier === 'gold' ? (colors.gold || '#ffc30b') : item.tier === 'silver' ? '#d1d5db' : item.tier === 'bronze' ? (colors.bronze || '#cd7f32') : '#ffffff';
-            return (
-              <div key={i} style={{
-                display: 'flex', alignItems: 'center', gap: '0.3rem',
-                fontSize: '0.68rem',
-                color: unlocked ? tierColor : '#4b5563',
-                fontWeight: unlocked && item.tier !== 'standard' ? 600 : 400,
-                opacity: unlocked ? 1 : 0.5,
-              }}>
-                <span style={{ fontSize: '0.55rem', flexShrink: 0 }}>{unlocked ? '✓' : '✗'}</span>
-                {item.label}
+      {/* Tier Comparison Table — matches Transfer Hub landing page */}
+      {(() => {
+        const tiers = [
+          { key: 'standard', label: t('transferHubLanding.tierStandard', 'Standard'), sub: t('transferHubLanding.tierFree', '(Free)'), price: t('transferHubLanding.priceFree', 'Free'), color: colors.textMuted },
+          { key: 'bronze', label: t('transferHubLanding.tierBronze', 'Bronze'), sub: '', price: '$25+', color: colors.bronze || '#cd7f32' },
+          { key: 'silver', label: t('transferHubLanding.tierSilver', 'Silver'), sub: '', price: '$50+', color: '#d1d5db' },
+          { key: 'gold', label: t('transferHubLanding.tierGold', 'Gold'), sub: '', price: '$100+', color: colors.gold || '#ffc30b' },
+        ];
+        const features: { label: string; minTier: string }[] = [
+          { label: t('transferHubLanding.cmpBasicListing', 'Basic listing with Atlas Score & stats'), minTier: 'standard' },
+          { label: t('transferHubLanding.cmpReviews', 'Community reviews from players'), minTier: 'standard' },
+          { label: t('transferHubLanding.cmpMinReqs', 'Min TC & Power requirements shown'), minTier: 'bronze' },
+          { label: t('transferHubLanding.cmpBrowseProfiles', 'Browse transferee profiles'), minTier: 'bronze' },
+          { label: t('transferHubLanding.cmpVibeTags', 'Kingdom Policies & Vibe tags'), minTier: 'bronze' },
+          { label: t('transferHubLanding.cmpInvites', 'Send invites to transferees'), minTier: 'silver' },
+          { label: t('transferHubLanding.cmpBioLang', 'Kingdom Bio & Language display'), minTier: 'silver' },
+          { label: t('transferHubLanding.cmpAlliance', 'Alliance Information schedule'), minTier: 'silver' },
+          { label: t('transferHubLanding.cmpSlots', '+2 alliance slots (5 total)'), minTier: 'gold' },
+          { label: t('transferHubLanding.cmpBadge', 'Gilded badge for all kingdom users'), minTier: 'gold' },
+          { label: t('transferHubLanding.cmpGlow', 'Gold glow + priority placement'), minTier: 'gold' },
+          { label: t('transferHubLanding.cmpPrepScheduler', 'KvK Prep Scheduler access'), minTier: 'gold' },
+          { label: t('transferHubLanding.cmpBattlePlanner', 'KvK Battle Planner access'), minTier: 'gold' },
+        ];
+        const tierOrder = ['standard', 'bronze', 'silver', 'gold'];
+        const isTierUnlocked = (featureTier: string, colTier: string) => tierOrder.indexOf(colTier) >= tierOrder.indexOf(featureTier);
+        const getTierColor = (tier: string) => tier === 'gold' ? (colors.gold || '#ffc30b') : tier === 'silver' ? '#d1d5db' : tier === 'bronze' ? (colors.bronze || '#cd7f32') : '#ffffff';
+
+        return (
+          <div style={{ marginTop: '0.75rem', borderRadius: '10px', border: `1px solid ${colors.border}`, overflow: 'hidden', backgroundColor: '#0d0d0d' }}>
+            <div style={{ padding: '0.75rem 0.75rem 0.5rem', textAlign: 'center' }}>
+              <h3 style={{ color: colors.text, fontSize: '0.9rem', fontWeight: 700, margin: 0 }}>
+                {t('recruiter.fundTierComparison', 'Kingdom Fund: Boost Your Listing')}
+              </h3>
+              <p style={{ color: colors.textMuted, fontSize: '0.6rem', margin: '0.25rem 0 0', lineHeight: 1.4 }}>
+                {t('transferHubLanding.fundSubtitle', 'Recruiting is a team effort. Anyone in your kingdom can chip in to boost the listing.')}
+              </p>
+            </div>
+            {/* Tier Header Row */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr repeat(4, 50px)', gap: 0, padding: '0 0.25rem', borderBottom: `1px solid ${colors.border}` }}>
+              <div />
+              {tiers.map(tier => (
+                <div key={tier.key} style={{ textAlign: 'center', padding: '0.35rem 0.15rem', borderLeft: tier.key === fund.tier ? `1px solid ${tier.color}40` : 'none', borderRight: tier.key === fund.tier ? `1px solid ${tier.color}40` : 'none', borderTop: tier.key === fund.tier ? `2px solid ${tier.color}` : 'none', backgroundColor: tier.key === fund.tier ? `${tier.color}08` : 'transparent' }}>
+                  <div style={{ color: tier.color, fontSize: '0.5rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.03em' }}>{tier.label}</div>
+                  <div style={{ color: colors.text, fontSize: '0.6rem', fontWeight: 700 }}>{tier.price}</div>
+                </div>
+              ))}
+            </div>
+            {/* Feature Rows */}
+            {features.map((feat, i) => (
+              <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr repeat(4, 50px)', gap: 0, padding: '0 0.25rem', borderBottom: i < features.length - 1 ? `1px solid ${colors.border}05` : 'none', backgroundColor: i % 2 === 0 ? '#0d0d0d' : '#111111' }}>
+                <div style={{ padding: '0.3rem 0.35rem', fontSize: '0.58rem', color: getTierColor(feat.minTier), fontWeight: feat.minTier !== 'standard' ? 600 : 400, display: 'flex', alignItems: 'center' }}>{feat.label}</div>
+                {tiers.map(tier => {
+                  const unlocked = isTierUnlocked(feat.minTier, tier.key);
+                  return (
+                    <div key={tier.key} style={{ textAlign: 'center', padding: '0.3rem 0', display: 'flex', alignItems: 'center', justifyContent: 'center', borderLeft: tier.key === fund.tier ? `1px solid ${tier.color}40` : 'none', borderRight: tier.key === fund.tier ? `1px solid ${tier.color}40` : 'none', backgroundColor: tier.key === fund.tier ? `${tier.color}05` : 'transparent' }}>
+                      <span style={{ fontSize: '0.65rem', color: unlocked ? '#f59e0b' : '#333' }}>{unlocked ? '✓' : '—'}</span>
+                    </div>
+                  );
+                })}
               </div>
-            );
-          })}
-        </div>
-      </div>
+            ))}
+            {/* Current tier indicator */}
+            <div style={{ padding: '0.4rem 0.5rem', textAlign: 'center', borderTop: `1px solid ${colors.border}` }}>
+              <p style={{ color: colors.textMuted, fontSize: '0.55rem', margin: 0, fontStyle: 'italic' }}>
+                {t('transferHubLanding.fundNote', 'Depositing is 100% optional. The Transfer Hub is free for everyone. Fund tiers just give your kingdom extra visibility.')}
+              </p>
+            </div>
+          </div>
+        );
+      })()}
       <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>
         <button
           onClick={() => {

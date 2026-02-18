@@ -489,7 +489,9 @@
     "free6Title": "Event Calendar",
     "free6Desc": "KvK and Transfer Event schedules",
     "perk8Title": "Gift Code Bulk Redeem",
-    "perk8Desc": "Redeem gift codes for all your alt accounts at once — one click"
+    "perk8Desc": "Redeem gift codes for all your alt accounts at once — one click",
+    "perk10Title": "Atlas Bot Dashboard",
+    "perk10Desc": "Your command center. Configure reminders, gift code alerts, and manage multiple servers — all from one screen."
   },
   "changelog": {
     "new": "New",
@@ -1456,6 +1458,7 @@
     "toggleToAppear": "Toggle on to appear in transfer searches",
     "inbox": "Inbox",
     "browse": "Browse",
+    "candidates": "Candidates",
     "profile": "Profile",
     "coEditors": "Co-Editors",
     "active": "Active",
@@ -1504,6 +1507,7 @@
     "startFundToEdit": "Start a Kingdom Fund to edit your listing profile",
     "contributeToUnlock": "Contribute to your kingdom fund to unlock tier features and customize your listing.",
     "fundTierBenefits": "Fund Tier Benefits",
+    "fundTierComparison": "Kingdom Fund: Boost Your Listing",
     "minTCLevel": "Min TC Level",
     "minPowerMillions": "Min Power (in Millions)",
     "mainLanguage": "Main Language",
@@ -2254,7 +2258,11 @@
     "declineConfirm": "Decline this application?",
     "yesDecline": "Yes, Decline",
     "markViewed": "Mark Viewed",
-    "cancelApproval": "Cancel Approval"
+    "cancelApproval": "Cancel Approval",
+    "translate": "Translate",
+    "hideTranslation": "Hide translation",
+    "moveToWatchlist": "Move to Watchlist",
+    "addedToWatchlist": "Added to Watchlist"
   },
   "rateKingdom": {
     "title": "Rate Kingdom {{num}}",

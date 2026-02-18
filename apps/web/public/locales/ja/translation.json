@@ -493,7 +493,9 @@
     "perk8Title": "一括コード引き換え",
     "perk8Desc": "全サブアカウントのギフトコードをワンクリックで引き換え",
     "perk9Title": "強化比較",
-    "perk9Desc": "最大5つの王国を並べて比較（無料: 3つ）"
+    "perk9Desc": "最大5つの王国を並べて比較（無料: 3つ）",
+    "perk10Title": "Atlas ボットダッシュボード",
+    "perk10Desc": "あなたのコマンドセンター。リマインダー、ギフトコードアラートを設定し、複数のサーバーを管理 — すべて一つの画面で。"
   },
   "changelog": {
     "new": "新機能",
@@ -1458,6 +1460,7 @@
     "toggleToAppear": "オンにするとトランスファー検索に表示されます",
     "inbox": "受信箱",
     "browse": "閲覧",
+    "candidates": "候補者",
     "profile": "プロフィール",
     "coEditors": "共同エディター",
     "active": "アクティブ",
@@ -1506,6 +1509,7 @@
     "startFundToEdit": "王国ファンドを開始してリスティングプロフィールを編集",
     "contributeToUnlock": "王国ファンドに貢献してティア機能を解除しリスティングをカスタマイズ。",
     "fundTierBenefits": "ファンドティア特典",
+    "fundTierComparison": "王国ファンド：リスティングをブースト",
     "minTCLevel": "最低TCレベル",
     "minPowerMillions": "最低パワー（百万単位）",
     "mainLanguage": "メイン言語",
@@ -2256,7 +2260,11 @@
     "declineConfirm": "この応募を辞退しますか？",
     "yesDecline": "はい、辞退",
     "markViewed": "閲覧済みにする",
-    "cancelApproval": "承認を取り消す"
+    "cancelApproval": "承認を取り消す",
+    "translate": "翻訳",
+    "hideTranslation": "翻訳を非表示",
+    "moveToWatchlist": "ウォッチリストに移動",
+    "addedToWatchlist": "ウォッチリストに追加済み"
   },
   "rateKingdom": {
     "title": "王国 {{num}} を評価",

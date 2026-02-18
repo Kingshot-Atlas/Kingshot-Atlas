@@ -493,7 +493,9 @@
     "perk8Title": "Canje Masivo de Códigos",
     "perk8Desc": "Canjea códigos de regalo para todas tus cuentas alternativas de una vez",
     "perk9Title": "Comparación Mejorada",
-    "perk9Desc": "Compara hasta 5 reinos lado a lado (gratis: 3)"
+    "perk9Desc": "Compara hasta 5 reinos lado a lado (gratis: 3)",
+    "perk10Title": "Panel de Control del Bot Atlas",
+    "perk10Desc": "Tu centro de comando. Configura recordatorios, alertas de códigos de regalo y gestiona múltiples servidores — todo desde una pantalla."
   },
   "changelog": {
     "new": "Nuevo",
@@ -1458,6 +1460,7 @@
     "toggleToAppear": "Activa para aparecer en búsquedas de transferencia",
     "inbox": "Bandeja de Entrada",
     "browse": "Explorar",
+    "candidates": "Candidatos",
     "profile": "Perfil",
     "coEditors": "Co-Editores",
     "active": "Activo",
@@ -1506,6 +1509,7 @@
     "startFundToEdit": "Inicia un Fondo de Reino para editar tu perfil de listado",
     "contributeToUnlock": "Contribuye a tu fondo de reino para desbloquear beneficios de nivel y personalizar tu listado.",
     "fundTierBenefits": "Beneficios del Nivel de Fondo",
+    "fundTierComparison": "Fondo del Reino: Potencia tu Listado",
     "minTCLevel": "Nivel TC Mínimo",
     "minPowerMillions": "Poder Mín (en Millones)",
     "mainLanguage": "Idioma Principal",
@@ -2256,7 +2260,11 @@
     "declineConfirm": "¿Rechazar esta solicitud?",
     "yesDecline": "Sí, Rechazar",
     "markViewed": "Marcar como Visto",
-    "cancelApproval": "Cancelar Aprobación"
+    "cancelApproval": "Cancelar Aprobación",
+    "translate": "Traducir",
+    "hideTranslation": "Ocultar traducción",
+    "moveToWatchlist": "Mover a Lista de Seguimiento",
+    "addedToWatchlist": "Agregado a Lista de Seguimiento"
   },
   "rateKingdom": {
     "title": "Calificar Reino {{num}}",

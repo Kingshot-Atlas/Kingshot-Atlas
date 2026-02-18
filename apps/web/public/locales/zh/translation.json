@@ -493,7 +493,9 @@
     "perk8Title": "批量兑换礼品码",
     "perk8Desc": "一键为所有小号批量兑换礼品码",
     "perk9Title": "增强对比",
-    "perk9Desc": "并排对比多达5个王国（免费：3个）"
+    "perk9Desc": "并排对比多达5个王国（免费：3个）",
+    "perk10Title": "Atlas 机器人控制台",
+    "perk10Desc": "你的指挥中心。配置提醒、礼品码提醒并管理多个服务器 — 全部在一个屏幕上完成。"
   },
   "changelog": {
     "new": "新增",
@@ -1458,6 +1460,7 @@
     "toggleToAppear": "开启以出现在转服搜索中",
     "inbox": "收件箱",
     "browse": "浏览",
+    "candidates": "候选人",
     "profile": "资料",
     "coEditors": "共同编辑者",
     "active": "活跃",
@@ -1506,6 +1509,7 @@
     "startFundToEdit": "启动王国基金以编辑你的招募资料",
     "contributeToUnlock": "向王国基金捐助以解锁等级功能并自定义你的招募信息。",
     "fundTierBenefits": "基金等级权益",
+    "fundTierComparison": "王国基金：提升你的招募信息",
     "minTCLevel": "最低 TC 等级",
     "minPowerMillions": "最低战力（百万）",
     "mainLanguage": "主要语言",
@@ -2256,7 +2260,11 @@
     "declineConfirm": "拒绝此申请？",
     "yesDecline": "是的，拒绝",
     "markViewed": "标记为已查看",
-    "cancelApproval": "取消批准"
+    "cancelApproval": "取消批准",
+    "translate": "翻译",
+    "hideTranslation": "隐藏翻译",
+    "moveToWatchlist": "移至关注列表",
+    "addedToWatchlist": "已添加至关注列表"
   },
   "rateKingdom": {
     "title": "评价王国 {{num}}",

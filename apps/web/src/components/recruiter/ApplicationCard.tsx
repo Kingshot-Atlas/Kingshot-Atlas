@@ -5,6 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { colors } from '../../utils/styles';
 import { logger } from '../../utils/logger';
+import { translateMessage } from '../../utils/translateMessage';
 import type { IncomingApplication } from './types';
 import { formatTCLevel, STATUS_ACTIONS, STATUS_LABELS, inputStyle } from './types';
 
@@ -40,6 +41,10 @@ const ApplicationCard: React.FC<{
   // Watchlist move state
   const [movingToWatchlist, setMovingToWatchlist] = useState(false);
   const [movedToWatchlist, setMovedToWatchlist] = useState(false);
+  // Translation state
+  const [translations, setTranslations] = useState<Record<string, string>>({});
+  const [translatingId, setTranslatingId] = useState<string | null>(null);
+  const browserLang = (navigator.language || 'en').split('-')[0] || 'en';
   // Outcome tracking state
   const [showOutcomePrompt, setShowOutcomePrompt] = useState(false);
   const [outcomeSubmitting, setOutcomeSubmitting] = useState(false);
@@ -487,6 +492,7 @@ const ApplicationCard: React.FC<{
                 )}
                 {messages.map(msg => {
                   const isMe = msg.sender_user_id === user?.id;
+                  const translated = translations[msg.id];
                   return (
                     <div key={msg.id} style={{
                       display: 'flex',
@@ -503,9 +509,34 @@ const ApplicationCard: React.FC<{
                         <p style={{ color: '#d1d5db', fontSize: '0.72rem', margin: 0, lineHeight: 1.4, wordBreak: 'break-word' }}>
                           {msg.message}
                         </p>
-                        <span style={{ color: '#4b5563', fontSize: '0.5rem', display: 'block', textAlign: isMe ? 'right' : 'left', marginTop: '0.1rem' }}>
-                          {new Date(msg.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-                        </span>
+                        {translated && (
+                          <p style={{ color: '#a78bfa', fontSize: '0.68rem', margin: '0.15rem 0 0', lineHeight: 1.4, wordBreak: 'break-word', fontStyle: 'italic', borderTop: '1px solid #ffffff10', paddingTop: '0.15rem' }}>
+                            {translated}
+                          </p>
+                        )}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: isMe ? 'flex-end' : 'flex-start', gap: '0.3rem', marginTop: '0.1rem' }}>
+                          <span style={{ color: '#4b5563', fontSize: '0.5rem' }}>
+                            {new Date(msg.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                          {!isMe && (
+                            <button
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                if (translated) { setTranslations(prev => { const n = { ...prev }; delete n[msg.id]; return n; }); return; }
+                                setTranslatingId(msg.id);
+                                try {
+                                  const result = await translateMessage(msg.message, browserLang);
+                                  setTranslations(prev => ({ ...prev, [msg.id]: result }));
+                                } catch { /* toast handled in util */ }
+                                setTranslatingId(null);
+                              }}
+                              disabled={translatingId === msg.id}
+                              style={{ background: 'none', border: 'none', color: translated ? '#a78bfa' : '#6b7280', fontSize: '0.48rem', cursor: 'pointer', padding: '0 0.15rem', fontWeight: 600, opacity: translatingId === msg.id ? 0.5 : 1 }}
+                            >
+                              {translatingId === msg.id ? '...' : translated ? t('appCard.hideTranslation', 'Hide translation') : `🌐 ${t('appCard.translate', 'Translate')}`}
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   );

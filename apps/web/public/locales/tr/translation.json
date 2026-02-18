@@ -493,7 +493,9 @@
     "perk8Title": "Toplu Kod Kullanımı",
     "perk8Desc": "Tüm alt hesaplarınız için hediye kodlarını tek tıkla kullanın",
     "perk9Title": "Gelişmiş Karşılaştırma",
-    "perk9Desc": "En fazla 5 krallığı yan yana karşılaştırın (ücretsiz: 3)"
+    "perk9Desc": "En fazla 5 krallığı yan yana karşılaştırın (ücretsiz: 3)",
+    "perk10Title": "Atlas Bot Kontrol Paneli",
+    "perk10Desc": "Komuta merkeziniz. Hatırlatıcıları, hediye kodu uyarılarını yapılandırın ve birden fazla sunucuyu yönetin — tek ekrandan."
   },
   "changelog": {
     "new": "Yeni",
@@ -1458,6 +1460,7 @@
     "toggleToAppear": "Transfer aramalarında görünmek için açın",
     "inbox": "Gelen Kutusu",
     "browse": "Göz At",
+    "candidates": "Adaylar",
     "profile": "Profil",
     "coEditors": "Yardımcı Editörler",
     "active": "Aktif",
@@ -1506,6 +1509,7 @@
     "startFundToEdit": "İlan profilinizi düzenlemek için Krallık Fonu başlatın",
     "contributeToUnlock": "Seviye özelliklerini açmak ve ilanınızı özelleştirmek için krallık fonunuza katkıda bulunun.",
     "fundTierBenefits": "Fon Seviyesi Avantajları",
+    "fundTierComparison": "Krallık Fonu: İlanınızı Güçlendirin",
     "minTCLevel": "Min TC Seviyesi",
     "minPowerMillions": "Min Güç (Milyon)",
     "mainLanguage": "Ana Dil",
@@ -2256,7 +2260,11 @@
     "declineConfirm": "Bu başvuruyu reddet?",
     "yesDecline": "Evet, Reddet",
     "markViewed": "Görüldü Olarak İşaretle",
-    "cancelApproval": "Onayı İptal Et"
+    "cancelApproval": "Onayı İptal Et",
+    "translate": "Çevir",
+    "hideTranslation": "Çeviriyi gizle",
+    "moveToWatchlist": "İzleme Listesine Taşı",
+    "addedToWatchlist": "İzleme Listesine Eklendi"
   },
   "rateKingdom": {
     "title": "Krallık {{num}} Değerlendir",

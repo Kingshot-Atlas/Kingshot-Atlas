@@ -105,7 +105,15 @@ export function usePrepScheduler() {
         const { data: mgrSchedules } = await supabase.from('prep_schedules').select('*').in('id', ids).order('created_at', { ascending: false });
         managedNew = mgrSchedules || [];
       }
-      const all = [...(created || []), ...(managed || []), ...managedNew];
+      // Also include schedules for kingdoms where user is an editor/co-editor
+      let editorSchedules: PrepSchedule[] = [];
+      const { data: editorRoles } = await supabase.from('kingdom_editors').select('kingdom_number').eq('user_id', user.id).eq('status', 'active');
+      if (editorRoles && editorRoles.length > 0) {
+        const kNums = editorRoles.map(e => e.kingdom_number);
+        const { data: edSch } = await supabase.from('prep_schedules').select('*').in('kingdom_number', kNums).order('created_at', { ascending: false });
+        editorSchedules = edSch || [];
+      }
+      const all = [...(created || []), ...(managed || []), ...managedNew, ...editorSchedules];
       const unique = all.filter((s, i, arr) => arr.findIndex(x => x.id === s.id) === i);
       setMySchedules(unique);
     } catch (err) { logger.error('Failed to fetch schedules:', err); }
@@ -138,13 +146,16 @@ export function usePrepScheduler() {
         setSchedule(data);
         const isCreator = data.created_by === user?.id;
         const isPrepManager = data.prep_manager_id === user?.id;
-        setIsManager(isCreator || isPrepManager);
         if (user?.id) {
           const { data: editors } = await supabase.from('kingdom_editors').select('*')
             .eq('kingdom_number', data.kingdom_number).eq('status', 'active');
           setEditorRecords(editors || []);
           const isEditor = (editors || []).some(e => e.user_id === user.id);
           setIsEditorOrCoEditor(isEditor || isCreator);
+          // All editors/co-editors and prep managers can fully manage the schedule
+          setIsManager(isCreator || isPrepManager || isEditor);
+        } else {
+          setIsManager(isCreator || isPrepManager);
         }
         if (data.prep_manager_id) {
           const { data: mgr } = await supabase.from('profiles').select('linked_username, username').eq('id', data.prep_manager_id).single();
@@ -371,12 +382,10 @@ export function usePrepScheduler() {
     }
     setSaving(true);
     try {
-      // Check for existing active schedule for this kingdom (+KvK)
-      const dupQuery = supabase.from('prep_schedules').select('id').eq('kingdom_number', createKingdom).eq('status', 'active');
-      if (createKvkNumber) dupQuery.eq('kvk_number', createKvkNumber);
-      const { data: existing } = await dupQuery;
+      // Only 1 active schedule per kingdom at a time
+      const { data: existing } = await supabase.from('prep_schedules').select('id').eq('kingdom_number', createKingdom).eq('status', 'active');
       if (existing && existing.length > 0) {
-        showToast(t('prepScheduler.toastDuplicateSchedule', 'An active schedule already exists for this kingdom{{kvk}}. Close or archive it first.', { kvk: createKvkNumber ? ` (KvK #${createKvkNumber})` : '' }), 'error');
+        showToast(t('prepScheduler.toastDuplicateSchedule', 'An active schedule already exists for this kingdom. Close or archive it first.'), 'error');
         setSaving(false);
         return;
       }

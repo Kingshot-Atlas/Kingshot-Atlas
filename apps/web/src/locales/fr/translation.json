@@ -493,7 +493,9 @@
     "perk8Title": "Échange de Codes en Masse",
     "perk8Desc": "Échangez des codes cadeaux pour tous vos comptes alternatifs d'un seul clic",
     "perk9Title": "Comparaison Améliorée",
-    "perk9Desc": "Comparez jusqu'à 5 royaumes côte à côte (gratuit : 3)"
+    "perk9Desc": "Comparez jusqu'à 5 royaumes côte à côte (gratuit : 3)",
+    "perk10Title": "Tableau de Bord du Bot Atlas",
+    "perk10Desc": "Votre centre de commande. Configurez les rappels, les alertes de codes cadeaux et gérez plusieurs serveurs — le tout depuis un seul écran."
   },
   "changelog": {
     "new": "Nouveau",
@@ -1458,6 +1460,7 @@
     "toggleToAppear": "Activez pour apparaître dans les recherches de transfert",
     "inbox": "Boîte de Réception",
     "browse": "Parcourir",
+    "candidates": "Candidats",
     "profile": "Profil",
     "coEditors": "Co-Éditeurs",
     "active": "Actif",
@@ -1506,6 +1509,7 @@
     "startFundToEdit": "Démarrez un Fonds de Royaume pour modifier votre profil d'annonce",
     "contributeToUnlock": "Contribuez à votre fonds de royaume pour débloquer les avantages de tier et personnaliser votre annonce.",
     "fundTierBenefits": "Avantages du Tier de Fonds",
+    "fundTierComparison": "Fonds du Royaume : Boostez Votre Annonce",
     "minTCLevel": "Niveau TC Minimum",
     "minPowerMillions": "Puissance Min (en Millions)",
     "mainLanguage": "Langue Principale",
@@ -2256,7 +2260,11 @@
     "declineConfirm": "Refuser cette candidature ?",
     "yesDecline": "Oui, Refuser",
     "markViewed": "Marquer comme Vu",
-    "cancelApproval": "Annuler l'Approbation"
+    "cancelApproval": "Annuler l'Approbation",
+    "translate": "Traduire",
+    "hideTranslation": "Masquer la traduction",
+    "moveToWatchlist": "Déplacer vers la Liste de Suivi",
+    "addedToWatchlist": "Ajouté à la Liste de Suivi"
   },
   "rateKingdom": {
     "title": "Évaluer le Royaume {{num}}",

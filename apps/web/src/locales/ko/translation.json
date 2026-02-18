@@ -493,7 +493,9 @@
     "perk8Title": "대량 코드 교환",
     "perk8Desc": "모든 부계정의 선물 코드를 한 번에 교환 — 원클릭",
     "perk9Title": "향상된 비교",
-    "perk9Desc": "최대 5개 왕국을 나란히 비교 (무료: 3개)"
+    "perk9Desc": "최대 5개 왕국을 나란히 비교 (무료: 3개)",
+    "perk10Title": "Atlas 봇 대시보드",
+    "perk10Desc": "당신의 커맨드 센터. 알림, 선물 코드 알림을 구성하고 여러 서버를 관리하세요 — 한 화면에서 모두."
   },
   "changelog": {
     "new": "새로운",
@@ -1458,6 +1460,7 @@
     "toggleToAppear": "토글하여 이적 검색에 표시",
     "inbox": "받은 편지함",
     "browse": "탐색",
+    "candidates": "후보자",
     "profile": "프로필",
     "coEditors": "공동 편집자",
     "active": "활성",
@@ -1506,6 +1509,7 @@
     "startFundToEdit": "왕국 펀드를 시작하여 목록 프로필을 편집하세요",
     "contributeToUnlock": "왕국 펀드에 기여하여 등급 기능을 잠금 해제하고 목록을 맞춤화하세요.",
     "fundTierBenefits": "펀드 등급 혜택",
+    "fundTierComparison": "왕국 펀드: 목록 부스트",
     "minTCLevel": "최소 TC 레벨",
     "minPowerMillions": "최소 전투력 (백만 단위)",
     "mainLanguage": "주 언어",
@@ -2256,7 +2260,11 @@
     "declineConfirm": "이 지원을 거절하시겠습니까?",
     "yesDecline": "예, 거절",
     "markViewed": "확인됨으로 표시",
-    "cancelApproval": "승인 취소"
+    "cancelApproval": "승인 취소",
+    "translate": "번역",
+    "hideTranslation": "번역 숨기기",
+    "moveToWatchlist": "관심 목록으로 이동",
+    "addedToWatchlist": "관심 목록에 추가됨"
   },
   "rateKingdom": {
     "title": "왕국 {{num}} 평가",

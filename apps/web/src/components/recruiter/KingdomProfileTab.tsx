@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useIsMobile } from '../../hooks/useMediaQuery';
 import { supabase } from '../../lib/supabase';
 import { colors } from '../../utils/styles';
 import { logger } from '../../utils/logger';
@@ -22,12 +21,6 @@ const KINGDOM_VIBE_OPTIONS = [
   { value: 'beginner_friendly', label: 'Beginner-friendly', emoji: '🌱' },
 ];
 
-const TIER_INFO = [
-  { tier: 'Standard', cost: '$0', color: colors.textMuted, features: ['Basic listing with Atlas Score & stats', 'Community reviews from players'] },
-  { tier: 'Bronze', cost: '$25+', color: colors.bronze, features: ['Min TC & Power requirements shown', 'Browse transferee profiles', 'Kingdom Policies & Vibe tags'] },
-  { tier: 'Silver', cost: '$50+', color: colors.textSecondary, features: ['Everything in Bronze', 'Send invites to transferees', 'Kingdom Bio & Language display', 'Alliance Information schedule'] },
-  { tier: 'Gold', cost: '$100+', color: colors.gold, features: ['Everything in Silver', '+2 alliance slots (5 total)', 'Gilded badge for all kingdom users', 'Priority placement in searches'] },
-];
 
 // =============================================
 // PROFILE FIELD WRAPPER
@@ -89,7 +82,6 @@ interface KingdomProfileTabProps {
 }
 
 const KingdomProfileTab: React.FC<KingdomProfileTabProps> = ({ fund, editorInfo, onFundUpdate }) => {
-  const isMobile = useIsMobile();
   const { t } = useTranslation();
   const { showToast } = useToast();
 
@@ -192,40 +184,6 @@ const KingdomProfileTab: React.FC<KingdomProfileTabProps> = ({ fund, editorInfo,
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-      {/* Tier Info */}
-      <div style={{
-        backgroundColor: '#111111', borderRadius: '10px',
-        border: '1px solid #2a2a2a', padding: '0.75rem',
-      }}>
-        <span style={{ color: '#9ca3af', fontSize: '0.7rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('recruiter.fundTierBenefits', 'Fund Tier Benefits')}</span>
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '0.5rem', marginTop: '0.5rem' }}>
-          {TIER_INFO.map((t) => {
-            const isCurrentTier = t.tier.toLowerCase() === fund.tier;
-            return (
-              <div key={t.tier} style={{
-                padding: '0.5rem 0.6rem',
-                borderRadius: '8px',
-                border: isCurrentTier ? `1px solid ${t.color}50` : '1px solid #1a1a1a',
-                backgroundColor: isCurrentTier ? `${t.color}08` : '#0a0a0a',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ color: t.color, fontWeight: 'bold', fontSize: '0.8rem' }}>{t.tier}</span>
-                  <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>{t.cost}</span>
-                </div>
-                <div style={{ marginTop: '0.25rem' }}>
-                  {t.features.map((f) => (
-                    <div key={f} style={{ color: '#9ca3af', fontSize: '0.65rem', lineHeight: 1.5 }}>• {f}</div>
-                  ))}
-                </div>
-                {isCurrentTier && (
-                  <span style={{ display: 'inline-block', marginTop: '0.3rem', padding: '0.1rem 0.3rem', backgroundColor: `${t.color}20`, borderRadius: '3px', fontSize: '0.55rem', color: t.color, fontWeight: 'bold' }}>CURRENT</span>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
       {/* Kingdom Vibe (Bronze+) — pick up to 3 */}
       <ProfileField label="Kingdom Vibe (pick up to 3)" tierRequired="bronze" currentTier={fund.tier}>
         <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>

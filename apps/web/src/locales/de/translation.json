@@ -493,7 +493,9 @@
     "perk8Title": "Massen-Code-Einlösung",
     "perk8Desc": "Löse Geschenkcodes für alle deine Alt-Accounts auf einmal ein — ein Klick",
     "perk9Title": "Erweiterter Vergleich",
-    "perk9Desc": "Vergleiche bis zu 5 Königreiche nebeneinander (kostenlos: 3)"
+    "perk9Desc": "Vergleiche bis zu 5 Königreiche nebeneinander (kostenlos: 3)",
+    "perk10Title": "Atlas Bot Dashboard",
+    "perk10Desc": "Dein Kontrollzentrum. Erinnerungen, Geschenkcode-Benachrichtigungen und mehrere Server verwalten — alles auf einem Bildschirm."
   },
   "changelog": {
     "new": "Neu",
@@ -1458,6 +1460,7 @@
     "toggleToAppear": "Aktivieren, um in Transfer-Suchen zu erscheinen",
     "inbox": "Posteingang",
     "browse": "Durchsuchen",
+    "candidates": "Kandidaten",
     "profile": "Profil",
     "coEditors": "Co-Redakteure",
     "active": "Aktiv",
@@ -1506,6 +1509,7 @@
     "startFundToEdit": "Starte einen Königreich-Fonds, um dein Eintragsprofil zu bearbeiten",
     "contributeToUnlock": "Trage zu deinem Königreich-Fonds bei, um Stufen-Vorteile freizuschalten und deinen Eintrag anzupassen.",
     "fundTierBenefits": "Fonds-Stufen-Vorteile",
+    "fundTierComparison": "Königreich-Fonds: Boost dein Inserat",
     "minTCLevel": "Min. TC-Stufe",
     "minPowerMillions": "Min. Stärke (in Millionen)",
     "mainLanguage": "Hauptsprache",
@@ -2256,7 +2260,11 @@
     "declineConfirm": "Diese Bewerbung ablehnen?",
     "yesDecline": "Ja, ablehnen",
     "markViewed": "Als gesehen markieren",
-    "cancelApproval": "Genehmigung aufheben"
+    "cancelApproval": "Genehmigung aufheben",
+    "translate": "Übersetzen",
+    "hideTranslation": "Übersetzung ausblenden",
+    "moveToWatchlist": "Zur Beobachtungsliste verschieben",
+    "addedToWatchlist": "Zur Beobachtungsliste hinzugefügt"
   },
   "rateKingdom": {
     "title": "Königreich {{num}} bewerten",

@@ -147,14 +147,14 @@ const PrepSchedulerList: React.FC<PrepSchedulerListProps> = ({
                 <textarea value={createNotes} onChange={(e) => setCreateNotes(e.target.value)} placeholder={t('prepScheduler.notesPlaceholder', 'Any instructions or reminders...')} rows={3} maxLength={500} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.5 }} />
               </div>
               <div>
-                <label style={labelStyle}>{t('prepScheduler.submissionDeadline', 'Submission Deadline (optional)')} <span style={{ color: colors.textMuted, fontWeight: 400 }}>(UTC{(() => { const o = -new Date().getTimezoneOffset(); const h = Math.floor(Math.abs(o) / 60); const m = Math.abs(o) % 60; return `${o >= 0 ? '+' : '-'}${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`; })()})</span></label>
+                <label style={labelStyle}>{t('prepScheduler.submissionDeadline', 'Submission Deadline (optional)')}</label>
                 <input type="datetime-local" value={createDeadline} onChange={(e) => setCreateDeadline(e.target.value)} style={inputStyle} />
-                {createDeadline && (() => { const d = new Date(createDeadline); return !isNaN(d.getTime()) ? (
+                {createDeadline && (() => { const d = new Date(createDeadline); if (isNaN(d.getTime())) return null; const utcH = String(d.getUTCHours()).padStart(2, '0'); const utcM = String(d.getUTCMinutes()).padStart(2, '0'); const utcDate = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`; const hr12 = d.getHours() % 12 || 12; const ampm = d.getHours() < 12 ? 'am' : 'pm'; const localMin = String(d.getMinutes()).padStart(2, '0'); return (
                   <p style={{ color: '#a855f7', fontSize: '0.65rem', marginTop: '0.25rem', fontWeight: 600 }}>
-                    → UTC: {d.toISOString().replace('T', ' ').slice(0, 16)} UTC
+                    → {utcDate} {utcH}:{utcM} UTC ({hr12}:{localMin}{ampm} local)
                   </p>
-                ) : null; })()}
-                <p style={{ color: colors.textMuted, fontSize: '0.65rem', marginTop: '0.2rem' }}>{t('prepScheduler.deadlineHint', 'Enter the deadline in your local time. It will be stored and displayed in UTC.')}</p>
+                ); })()}
+                <p style={{ color: colors.textMuted, fontSize: '0.65rem', marginTop: '0.2rem' }}>{t('prepScheduler.deadlineHint', 'Enter the deadline in your local time. It will be stored and displayed in 24-hour UTC format.')}</p>
               </div>
               <button onClick={createSchedule} disabled={saving || !createKingdom || !goldKingdoms.has(createKingdom)}
                 style={{ padding: '0.6rem 1.25rem', backgroundColor: createKingdom && goldKingdoms.has(createKingdom) ? '#a855f720' : `${colors.textMuted}10`, border: `1px solid ${createKingdom && goldKingdoms.has(createKingdom) ? '#a855f750' : colors.border}`, borderRadius: '8px', color: createKingdom && goldKingdoms.has(createKingdom) ? '#a855f7' : colors.textMuted, fontSize: '0.85rem', fontWeight: 600, cursor: createKingdom && goldKingdoms.has(createKingdom) ? 'pointer' : 'not-allowed', width: 'fit-content', opacity: saving ? 0.6 : 1 }}>
