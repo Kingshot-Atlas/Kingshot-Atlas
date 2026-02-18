@@ -40,6 +40,7 @@ interface InboxTabProps {
   updating: string | null;
   fundTier?: string;
   perAppUnreadCounts?: Record<string, number>;
+  kingdomNumber?: number;
 }
 
 const InboxTab: React.FC<InboxTabProps> = ({
@@ -54,6 +55,7 @@ const InboxTab: React.FC<InboxTabProps> = ({
   updating,
   fundTier,
   perAppUnreadCounts,
+  kingdomNumber,
 }) => {
   const { t } = useTranslation();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -275,6 +277,7 @@ const InboxTab: React.FC<InboxTabProps> = ({
                   onStatusChange={handleStatusChange}
                   updating={updating}
                   unreadCount={perAppUnreadCounts?.[app.id] || 0}
+                  kingdomNumber={kingdomNumber}
                 />
               </div>
             </div>

@@ -136,6 +136,7 @@ const PrepScheduler: React.FC = () => {
           acknowledgeChangeRequest={hook.acknowledgeChangeRequest}
           addManager={hook.addManager}
           removeManagerById={hook.removeManagerById}
+          updateDeadline={hook.updateDeadline}
         />
         {hook.pendingConfirm && <ConfirmDialog confirm={hook.pendingConfirm} onDismiss={() => hook.setPendingConfirm(null)} />}
       </>

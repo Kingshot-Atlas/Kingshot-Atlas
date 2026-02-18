@@ -127,14 +127,10 @@ export function usePrepScheduler() {
         const creatorIsManager = data.prep_manager_id === data.created_by || (creatorMgrLinks && creatorMgrLinks.length > 0);
         const creatorIsAdmin = creatorProfile?.is_admin === true;
         if (!creatorIsEditor && !creatorIsManager && !creatorIsAdmin) {
-          // Delete unauthorized schedule
-          logger.info(`Deleting schedule ${data.id} created by unauthorized user ${data.created_by}`);
-          await supabase.from('prep_change_requests').delete().eq('schedule_id', data.id);
-          await supabase.from('prep_slot_assignments').delete().eq('schedule_id', data.id);
-          await supabase.from('prep_submissions').delete().eq('schedule_id', data.id);
-          await supabase.from('prep_schedule_managers').delete().eq('schedule_id', data.id);
-          await supabase.from('prep_schedules').delete().eq('id', data.id);
-          showToast(t('prepScheduler.toastUnauthorizedDeleted', 'This schedule was created by an unauthorized user and has been removed.'), 'error');
+          // Flag unauthorized schedule for admin review instead of hard-deleting
+          logger.info(`Flagging schedule ${data.id} created by unauthorized user ${data.created_by}`);
+          await supabase.from('prep_schedules').update({ status: 'flagged', flagged_at: new Date().toISOString() }).eq('id', data.id);
+          showToast(t('prepScheduler.toastScheduleFlagged', 'This schedule was created by an unauthorized user and has been flagged for admin review.'), 'error');
           navigate('/tools/prep-scheduler');
           return;
         }
@@ -434,6 +430,21 @@ export function usePrepScheduler() {
         } catch (err) { logger.error('Failed to toggle lock:', err); showToast(t('prepScheduler.toastLockFailed', 'Failed to update lock status.'), 'error'); }
       },
     });
+  };
+
+  const updateDeadline = async (newDeadline: string) => {
+    if (!supabase || !schedule) return;
+    setSaving(true);
+    try {
+      const deadlineISO = newDeadline ? new Date(newDeadline).toISOString() : null;
+      await supabase.from('prep_schedules').update({ deadline: deadlineISO }).eq('id', schedule.id);
+      setSchedule({ ...schedule, deadline: deadlineISO });
+      showToast(t('prepScheduler.toastDeadlineUpdated', 'Deadline updated.'), 'success');
+    } catch (err) {
+      logger.error('Failed to update deadline:', err);
+      showToast(t('prepScheduler.toastDeadlineFailed', 'Failed to update deadline.'), 'error');
+    }
+    setSaving(false);
   };
 
   const archiveSchedule = () => {
@@ -741,7 +752,7 @@ export function usePrepScheduler() {
     // Computed
     dayAssignments, daySubmissions, unassignedPlayers, availabilityGaps,
     // Actions
-    createSchedule, closeOrReopenForm, toggleLock, archiveSchedule, deleteSchedule,
+    createSchedule, closeOrReopenForm, toggleLock, archiveSchedule, deleteSchedule, updateDeadline,
     submitForm, submitChangeRequest, acknowledgeChangeRequest,
     runAutoAssign, assignSlot, removeAssignment,
     copyShareLink, exportScheduleCSV, exportOptedOut,

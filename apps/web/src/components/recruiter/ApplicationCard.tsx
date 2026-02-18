@@ -20,7 +20,9 @@ const ApplicationCard: React.FC<{
   onStatusChange: (id: string, newStatus: string) => void;
   updating: string | null;
   unreadCount?: number;
-}> = ({ application, onStatusChange, updating, unreadCount = 0 }) => {
+  kingdomNumber?: number;
+  onMovedToWatchlist?: () => void;
+}> = ({ application, onStatusChange, updating, unreadCount = 0, kingdomNumber, onMovedToWatchlist }) => {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
   const { user } = useAuth();
@@ -35,6 +37,9 @@ const ApplicationCard: React.FC<{
   const [sendingMsg, setSendingMsg] = useState(false);
   const [showMessages, setShowMessages] = useState(false);
   const msgEndRef = useRef<HTMLDivElement>(null);
+  // Watchlist move state
+  const [movingToWatchlist, setMovingToWatchlist] = useState(false);
+  const [movedToWatchlist, setMovedToWatchlist] = useState(false);
   // Outcome tracking state
   const [showOutcomePrompt, setShowOutcomePrompt] = useState(false);
   const [outcomeSubmitting, setOutcomeSubmitting] = useState(false);
@@ -385,6 +390,63 @@ const ApplicationCard: React.FC<{
               </p>
             )}
           </div>
+
+          {/* Move to Watchlist */}
+          {kingdomNumber && profile && !movedToWatchlist && ['pending', 'viewed', 'interested'].includes(application.status) && (
+            <button
+              onClick={async (e) => {
+                e.stopPropagation();
+                if (!supabase || !user || movingToWatchlist) return;
+                setMovingToWatchlist(true);
+                try {
+                  const { error } = await supabase.from('recruiter_watchlist').insert({
+                    recruiter_user_id: user.id,
+                    kingdom_number: kingdomNumber,
+                    player_name: profile.username || 'Unknown',
+                    player_id: profile.linked_player_id || null,
+                    tc_level: profile.tc_level || null,
+                    power_range: profile.power_range || (profile.power_million ? `${profile.power_million}M` : null),
+                    language: profile.main_language || null,
+                    notes: `From application (${new Date(application.applied_at).toLocaleDateString()}). ${application.recruiter_note || ''}`.trim(),
+                    target_event: 'next',
+                    source: 'application',
+                    transfer_profile_id: application.transfer_profile_id,
+                  });
+                  if (error) {
+                    if (error.code === '23505') {
+                      setMovedToWatchlist(true);
+                    } else {
+                      logger.error('ApplicationCard: move to watchlist failed', error);
+                    }
+                  } else {
+                    setMovedToWatchlist(true);
+                    onMovedToWatchlist?.();
+                  }
+                } catch (err) {
+                  logger.error('ApplicationCard: move to watchlist failed', err);
+                } finally {
+                  setMovingToWatchlist(false);
+                }
+              }}
+              disabled={movingToWatchlist}
+              style={{
+                marginTop: '0.5rem',
+                display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+                background: 'none', border: `1px solid #eab30830`,
+                borderRadius: '6px', padding: '0.3rem 0.6rem',
+                color: '#eab308', fontSize: '0.65rem', fontWeight: '600',
+                cursor: movingToWatchlist ? 'not-allowed' : 'pointer',
+                opacity: movingToWatchlist ? 0.5 : 1,
+              }}
+            >
+              {movingToWatchlist ? '...' : `👁️ ${t('appCard.moveToWatchlist', 'Move to Watchlist')}`}
+            </button>
+          )}
+          {movedToWatchlist && (
+            <span style={{ marginTop: '0.5rem', display: 'block', color: '#eab308', fontSize: '0.65rem', fontWeight: '600' }}>
+              ✓ {t('appCard.addedToWatchlist', 'Added to Watchlist')}
+            </span>
+          )}
 
           {/* Message Thread */}
           <div style={{ marginTop: '0.5rem' }}>

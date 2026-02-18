@@ -222,6 +222,8 @@ const RecruiterDashboard: React.FC<{
               borderRadius: '10px',
               padding: '0.25rem',
               marginBottom: '1rem',
+              overflowX: 'auto',
+              WebkitOverflowScrolling: 'touch',
             }}>
               {(['inbox', 'browse', 'profile', 'team', 'watchlist', 'fund', 'analytics'] as const).map((tab) => (
                 <button
@@ -231,8 +233,8 @@ const RecruiterDashboard: React.FC<{
                     trackFeature('Recruiter Tab Switch', { tab });
                   }}
                   style={{
-                    flex: 1,
-                    padding: '0.4rem 0.25rem',
+                    flex: isMobile ? 'none' : 1,
+                    padding: isMobile ? '0.4rem 0.5rem' : '0.4rem 0.25rem',
                     backgroundColor: activeTab === tab ? '#22d3ee15' : 'transparent',
                     border: activeTab === tab ? '1px solid #22d3ee30' : '1px solid transparent',
                     borderRadius: '8px',
@@ -245,17 +247,16 @@ const RecruiterDashboard: React.FC<{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    lineHeight: 1.2,
-                    textAlign: 'center',
+                    whiteSpace: 'nowrap',
                   }}
                 >
                   {tab === 'inbox' ? (<>{t('recruiter.inbox', 'Inbox')}{pendingCount > 0 ? ` (${pendingCount})` : ''}{unreadMessageCount > 0 && <span style={{ marginLeft: '0.25rem', backgroundColor: '#ef4444', color: '#fff', borderRadius: '50%', width: '16px', height: '16px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.5rem', fontWeight: 'bold' }}>{unreadMessageCount > 9 ? '9+' : unreadMessageCount}</span>}</>) :
-                   tab === 'browse' ? <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}><span>Find</span><span>Recruits</span></span> :
+                   tab === 'browse' ? t('recruiter.browse', 'Browse') :
                    tab === 'profile' ? t('recruiter.profile', 'Profile') :
                    tab === 'team' ? (<>{t('recruiter.team', 'Team')}{pendingCoEditorRequests.length > 0 && <span style={{ marginLeft: '0.3rem', backgroundColor: '#eab308', color: '#000', borderRadius: '50%', width: '16px', height: '16px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.55rem', fontWeight: 'bold' }}>{pendingCoEditorRequests.length}</span>}</>) :
-                   tab === 'watchlist' ? <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}><span>Watch</span><span>list</span></span> :
+                   tab === 'watchlist' ? t('recruiter.watchlist', 'Watchlist') :
                    tab === 'fund' ? t('recruiter.fund', 'Fund') :
-                   <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}><span>Ana</span><span>lytics</span></span>}
+                   t('recruiter.analytics', 'Analytics')}
                 </button>
               ))}
             </div>
@@ -274,6 +275,7 @@ const RecruiterDashboard: React.FC<{
                 updating={updating}
                 fundTier={fund?.tier}
                 perAppUnreadCounts={perAppUnreadCounts}
+                kingdomNumber={editorInfo?.kingdom_number}
               />
             )}
 

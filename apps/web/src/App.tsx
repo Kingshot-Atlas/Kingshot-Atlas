@@ -121,6 +121,7 @@ function AppContent() {
             <Routes>
               <Route path="/" element={<ErrorBoundary><KingdomDirectory /></ErrorBoundary>} />
               <Route path="/kingdom/:kingdomNumber" element={<RouteErrorBoundary><KingdomProfile /></RouteErrorBoundary>} />
+              <Route path="/kingdom/:kingdomNumber/fund" element={<RouteErrorBoundary><KingdomProfile /></RouteErrorBoundary>} />
               <Route path="/compare" element={<ErrorBoundary><CompareKingdoms /></ErrorBoundary>} />
               <Route path="/tools" element={<ErrorBoundary><Tools /></ErrorBoundary>} />
               <Route path="/rankings" element={<ErrorBoundary><Leaderboards /></ErrorBoundary>} />

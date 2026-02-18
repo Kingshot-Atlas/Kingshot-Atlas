@@ -105,6 +105,48 @@ const FundTab: React.FC<FundTabProps> = ({ fund, editorInfo }) => {
           Share the kingdom link to encourage contributions.
         </p>
       </div>
+
+      {/* Tier Benefits Summary */}
+      <div style={{ marginTop: '0.75rem', padding: '0.75rem', backgroundColor: colors.bg, borderRadius: '8px' }}>
+        <span style={{ color: colors.textSecondary, fontSize: '0.65rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          {t('recruiter.tierBenefits', 'Tier Benefits')}
+        </span>
+        <div style={{ marginTop: '0.4rem', display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+          {[
+            { label: t('transferHubLanding.cmpBasicListing', 'Basic listing with Atlas Score & stats'), tier: 'standard' },
+            { label: t('transferHubLanding.cmpReviews', 'Community reviews from players'), tier: 'standard' },
+            { label: t('transferHubLanding.cmpMinReqs', 'Min TC & Power requirements shown'), tier: 'bronze' },
+            { label: t('transferHubLanding.cmpBrowseProfiles', 'Browse transferee profiles'), tier: 'bronze' },
+            { label: t('transferHubLanding.cmpVibeTags', 'Kingdom Policies & Vibe tags'), tier: 'bronze' },
+            { label: t('transferHubLanding.cmpInvites', 'Send invites to transferees'), tier: 'silver' },
+            { label: t('transferHubLanding.cmpBioLang', 'Kingdom Bio & Language display'), tier: 'silver' },
+            { label: t('transferHubLanding.cmpAlliance', 'Alliance Information schedule'), tier: 'silver' },
+            { label: t('transferHubLanding.cmpSlots', '+2 alliance slots (5 total)'), tier: 'gold' },
+            { label: t('transferHubLanding.cmpBadge', 'Gilded badge for all kingdom users'), tier: 'gold' },
+            { label: t('transferHubLanding.cmpGlow', 'Gold glow + priority placement'), tier: 'gold' },
+            { label: t('transferHubLanding.cmpPrepScheduler', 'KvK Prep Scheduler access'), tier: 'gold' },
+            { label: t('transferHubLanding.cmpBattlePlanner', 'KvK Battle Planner access'), tier: 'gold' },
+          ].map((item, i) => {
+            const tierOrder = ['standard', 'bronze', 'silver', 'gold'];
+            const currentIdx = tierOrder.indexOf(fund.tier);
+            const requiredIdx = tierOrder.indexOf(item.tier);
+            const unlocked = currentIdx >= requiredIdx;
+            const tierColor = item.tier === 'gold' ? (colors.gold || '#ffc30b') : item.tier === 'silver' ? '#d1d5db' : item.tier === 'bronze' ? (colors.bronze || '#cd7f32') : '#ffffff';
+            return (
+              <div key={i} style={{
+                display: 'flex', alignItems: 'center', gap: '0.3rem',
+                fontSize: '0.68rem',
+                color: unlocked ? tierColor : '#4b5563',
+                fontWeight: unlocked && item.tier !== 'standard' ? 600 : 400,
+                opacity: unlocked ? 1 : 0.5,
+              }}>
+                <span style={{ fontSize: '0.55rem', flexShrink: 0 }}>{unlocked ? '✓' : '✗'}</span>
+                {item.label}
+              </div>
+            );
+          })}
+        </div>
+      </div>
       <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>
         <button
           onClick={() => {

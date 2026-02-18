@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { KingdomProfile as KingdomProfileType, getPowerTier } from '../types';
 import { incrementStat } from '../components/UserAchievements';
 import { getAchievements } from '../components/kingdom-card/AchievementBadges';
@@ -35,6 +35,7 @@ import { reviewService } from '../services/reviewService';
 import { scoreHistoryService } from '../services/scoreHistoryService';
 import { analyticsService } from '../services/analyticsService';
 import { useScrollDepth } from '../hooks/useScrollDepth';
+import KingdomFundContribute from '../components/KingdomFundContribute';
 import { useTranslation } from 'react-i18next';
 
 const KingdomProfile: React.FC = () => {
@@ -82,7 +83,16 @@ const KingdomProfile: React.FC = () => {
   const [hasPendingSubmission, setHasPendingSubmission] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [showKvKErrorModal, setShowKvKErrorModal] = useState(false);
+  const [showFundModal, setShowFundModal] = useState(false);
+  const location = useLocation();
   
+  // Auto-open fund modal when visiting /kingdom/{number}/fund
+  useEffect(() => {
+    if (location.pathname.endsWith('/fund') && kingdom) {
+      setShowFundModal(true);
+    }
+  }, [location.pathname, kingdom]);
+
   // Expand/collapse all state for collapsible sections
   const [breakdownExpanded, setBreakdownExpanded] = useState(false);
   const [scoreHistoryExpanded, setScoreHistoryExpanded] = useState(false);
@@ -642,6 +652,27 @@ const KingdomProfile: React.FC = () => {
 
 
           <button
+            onClick={() => setShowFundModal(true)}
+            style={{
+              padding: isMobile ? '0.75rem 1.5rem' : '0.75rem 2rem',
+              backgroundColor: '#22c55e15',
+              border: '1px solid #22c55e30',
+              borderRadius: '10px',
+              color: '#22c55e',
+              fontWeight: '600',
+              fontSize: '0.85rem',
+              cursor: 'pointer',
+              width: isMobile ? '100%' : 'auto',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.4rem',
+            }}
+          >
+            💰 {t('kingdomProfile.chipInToFund', 'Chip In to Fund')}
+          </button>
+
+          <button
             onClick={() => navigate(`/compare?kingdoms=${kingdom.kingdom_number},`)}
             style={{
               padding: isMobile ? '1rem 2rem' : '1rem 2.5rem',
@@ -712,6 +743,22 @@ const KingdomProfile: React.FC = () => {
         />
       )}
 
+
+      {/* Kingdom Fund Contribution Modal */}
+      {showFundModal && kingdom && (
+        <KingdomFundContribute
+          kingdomNumber={kingdom.kingdom_number}
+          currentBalance={0}
+          currentTier={'standard'}
+          onClose={() => {
+            setShowFundModal(false);
+            // If we came from /fund route, navigate back to the profile
+            if (location.pathname.endsWith('/fund')) {
+              navigate(`/kingdom/${kingdom.kingdom_number}`, { replace: true });
+            }
+          }}
+        />
+      )}
 
       {/* KvK Error Report Modal */}
       {kingdom && (

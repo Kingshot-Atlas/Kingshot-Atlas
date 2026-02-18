@@ -112,6 +112,16 @@ const PrepSchedulerList: React.FC<PrepSchedulerListProps> = ({
           </div>
         )}
 
+        {/* Permission info banner for non-editors with Gold Tier kingdoms */}
+        {user && profile?.linked_kingdom && goldKingdoms.has(profile.linked_kingdom) && !profile?.is_admin && !isEditorOrCoEditor && !isManager && (
+          <div style={{ ...cardStyle, marginBottom: '1.5rem', borderColor: '#a855f730', backgroundColor: '#a855f708', display: 'flex', alignItems: 'flex-start', gap: '0.6rem' }}>
+            <span style={{ fontSize: '1rem', flexShrink: 0 }}>ℹ️</span>
+            <p style={{ color: colors.textMuted, fontSize: '0.8rem', lineHeight: 1.5, margin: 0 }}>
+              {t('prepScheduler.noPermissionBanner', 'Only Editors, Co-Editors, and Prep Managers can create schedules. Ask your kingdom leadership for access.')}
+            </p>
+          </div>
+        )}
+
         {/* Create New Schedule — only Editors, Co-Editors, Prep Managers, or admins */}
         {user && (profile?.is_admin || ((isEditorOrCoEditor || isManager) && profile?.linked_kingdom && goldKingdoms.has(profile.linked_kingdom))) && (
           <div style={{ ...cardStyle, marginBottom: '1.5rem' }}>
@@ -137,9 +147,14 @@ const PrepSchedulerList: React.FC<PrepSchedulerListProps> = ({
                 <textarea value={createNotes} onChange={(e) => setCreateNotes(e.target.value)} placeholder={t('prepScheduler.notesPlaceholder', 'Any instructions or reminders...')} rows={3} maxLength={500} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.5 }} />
               </div>
               <div>
-                <label style={labelStyle}>{t('prepScheduler.submissionDeadline', 'Submission Deadline (optional)')}</label>
+                <label style={labelStyle}>{t('prepScheduler.submissionDeadline', 'Submission Deadline (optional)')} <span style={{ color: colors.textMuted, fontWeight: 400 }}>(UTC{(() => { const o = -new Date().getTimezoneOffset(); const h = Math.floor(Math.abs(o) / 60); const m = Math.abs(o) % 60; return `${o >= 0 ? '+' : '-'}${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`; })()})</span></label>
                 <input type="datetime-local" value={createDeadline} onChange={(e) => setCreateDeadline(e.target.value)} style={inputStyle} />
-                <p style={{ color: colors.textMuted, fontSize: '0.65rem', marginTop: '0.2rem' }}>{t('prepScheduler.deadlineHint', 'Form will auto-close when the deadline is reached. Uses your local timezone.')}</p>
+                {createDeadline && (() => { const d = new Date(createDeadline); return !isNaN(d.getTime()) ? (
+                  <p style={{ color: '#a855f7', fontSize: '0.65rem', marginTop: '0.25rem', fontWeight: 600 }}>
+                    → UTC: {d.toISOString().replace('T', ' ').slice(0, 16)} UTC
+                  </p>
+                ) : null; })()}
+                <p style={{ color: colors.textMuted, fontSize: '0.65rem', marginTop: '0.2rem' }}>{t('prepScheduler.deadlineHint', 'Enter the deadline in your local time. It will be stored and displayed in UTC.')}</p>
               </div>
               <button onClick={createSchedule} disabled={saving || !createKingdom || !goldKingdoms.has(createKingdom)}
                 style={{ padding: '0.6rem 1.25rem', backgroundColor: createKingdom && goldKingdoms.has(createKingdom) ? '#a855f720' : `${colors.textMuted}10`, border: `1px solid ${createKingdom && goldKingdoms.has(createKingdom) ? '#a855f750' : colors.border}`, borderRadius: '8px', color: createKingdom && goldKingdoms.has(createKingdom) ? '#a855f7' : colors.textMuted, fontSize: '0.85rem', fontWeight: 600, cursor: createKingdom && goldKingdoms.has(createKingdom) ? 'pointer' : 'not-allowed', width: 'fit-content', opacity: saving ? 0.6 : 1 }}>

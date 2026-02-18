@@ -79,28 +79,30 @@ const TransferHubLanding: React.FC = () => {
     },
   ];
 
-  // Comparison table rows: feature name + which tiers include it
-  const comparisonRows: { feature: string; standard: boolean; bronze: boolean; silver: boolean; gold: boolean; highlight?: boolean }[] = [
-    { feature: t('transferHubLanding.cmpBasicListing', 'Basic listing with Atlas Score & stats'), standard: true, bronze: true, silver: true, gold: true },
-    { feature: t('transferHubLanding.cmpReviews', 'Community reviews from players'), standard: true, bronze: true, silver: true, gold: true },
-    { feature: t('transferHubLanding.cmpMinReqs', 'Min TC & Power requirements shown'), standard: false, bronze: true, silver: true, gold: true },
-    { feature: t('transferHubLanding.cmpBrowseProfiles', 'Browse transferee profiles'), standard: false, bronze: true, silver: true, gold: true },
-    { feature: t('transferHubLanding.cmpVibeTags', 'Kingdom Policies & Vibe tags'), standard: false, bronze: true, silver: true, gold: true },
-    { feature: t('transferHubLanding.cmpInvites', 'Send invites to transferees'), standard: false, bronze: false, silver: true, gold: true },
-    { feature: t('transferHubLanding.cmpBioLang', 'Kingdom Bio & Language display'), standard: false, bronze: false, silver: true, gold: true },
-    { feature: t('transferHubLanding.cmpAlliance', 'Alliance Information schedule'), standard: false, bronze: false, silver: true, gold: true },
-    { feature: t('transferHubLanding.cmpSlots', '+2 alliance slots (5 total)'), standard: false, bronze: false, silver: false, gold: true },
-    { feature: t('transferHubLanding.cmpBadge', 'Gilded badge for all kingdom users'), standard: false, bronze: false, silver: false, gold: true },
-    { feature: t('transferHubLanding.cmpGlow', 'Gold glow + priority placement'), standard: false, bronze: false, silver: false, gold: true },
-    { feature: t('transferHubLanding.cmpPrepScheduler', 'KvK Prep Scheduler access'), standard: false, bronze: false, silver: false, gold: true, highlight: true },
-    { feature: t('transferHubLanding.cmpBattlePlanner', 'KvK Battle Planner access'), standard: false, bronze: false, silver: false, gold: true, highlight: true },
+  // Comparison table rows: feature name + which tiers include it + minTier for color-coding
+  const comparisonRows: { feature: string; standard: boolean; bronze: boolean; silver: boolean; gold: boolean; minTier: 'standard' | 'bronze' | 'silver' | 'gold' }[] = [
+    { feature: t('transferHubLanding.cmpBasicListing', 'Basic listing with Atlas Score & stats'), standard: true, bronze: true, silver: true, gold: true, minTier: 'standard' },
+    { feature: t('transferHubLanding.cmpReviews', 'Community reviews from players'), standard: true, bronze: true, silver: true, gold: true, minTier: 'standard' },
+    { feature: t('transferHubLanding.cmpMinReqs', 'Min TC & Power requirements shown'), standard: false, bronze: true, silver: true, gold: true, minTier: 'bronze' },
+    { feature: t('transferHubLanding.cmpBrowseProfiles', 'Browse transferee profiles'), standard: false, bronze: true, silver: true, gold: true, minTier: 'bronze' },
+    { feature: t('transferHubLanding.cmpVibeTags', 'Kingdom Policies & Vibe tags'), standard: false, bronze: true, silver: true, gold: true, minTier: 'bronze' },
+    { feature: t('transferHubLanding.cmpInvites', 'Send invites to transferees'), standard: false, bronze: false, silver: true, gold: true, minTier: 'silver' },
+    { feature: t('transferHubLanding.cmpBioLang', 'Kingdom Bio & Language display'), standard: false, bronze: false, silver: true, gold: true, minTier: 'silver' },
+    { feature: t('transferHubLanding.cmpAlliance', 'Alliance Information schedule'), standard: false, bronze: false, silver: true, gold: true, minTier: 'silver' },
+    { feature: t('transferHubLanding.cmpSlots', '+2 alliance slots (5 total)'), standard: false, bronze: false, silver: false, gold: true, minTier: 'gold' },
+    { feature: t('transferHubLanding.cmpBadge', 'Gilded badge for all kingdom users'), standard: false, bronze: false, silver: false, gold: true, minTier: 'gold' },
+    { feature: t('transferHubLanding.cmpGlow', 'Gold glow + priority placement'), standard: false, bronze: false, silver: false, gold: true, minTier: 'gold' },
+    { feature: t('transferHubLanding.cmpPrepScheduler', 'KvK Prep Scheduler access'), standard: false, bronze: false, silver: false, gold: true, minTier: 'gold' },
+    { feature: t('transferHubLanding.cmpBattlePlanner', 'KvK Battle Planner access'), standard: false, bronze: false, silver: false, gold: true, minTier: 'gold' },
   ];
+
+  const TIER_COLORS: Record<string, string> = { standard: '#ffffff', bronze: FUND_BRONZE, silver: FUND_SILVER, gold: FUND_GOLD };
 
   const tierColumns = [
     { key: 'standard' as const, label: t('transferHubLanding.standard', 'Standard'), color: FUND_STANDARD, price: t('transferHubLanding.priceFree', 'Free'), recommended: false },
     { key: 'bronze' as const, label: t('transferHubLanding.bronze', 'Bronze'), color: FUND_BRONZE, price: '$25+', recommended: false },
     { key: 'silver' as const, label: t('transferHubLanding.silver', 'Silver'), color: FUND_SILVER, price: '$50+', recommended: false },
-    { key: 'gold' as const, label: t('transferHubLanding.gold', 'Gold'), color: FUND_GOLD, price: '$100+', recommended: true },
+    { key: 'gold' as const, label: t('transferHubLanding.gold', 'Gold'), color: FUND_GOLD, price: '$100+', recommended: false },
   ];
 
   return (
@@ -348,8 +350,9 @@ const TransferHubLanding: React.FC = () => {
                     {comparisonRows.filter(row => row[tier.key]).map((row, i) => (
                       <div key={i} style={{
                         display: 'flex', alignItems: 'center', gap: '0.35rem',
-                        fontSize: '0.72rem', color: row.highlight ? tier.color : '#d1d5db',
-                        fontWeight: row.highlight ? 600 : 400,
+                        fontSize: '0.72rem',
+                        color: TIER_COLORS[row.minTier] || '#d1d5db',
+                        fontWeight: row.minTier !== 'standard' ? 600 : 400,
                       }}>
                         <span style={{ color: tier.color, flexShrink: 0, fontSize: '0.6rem' }}>✓</span>
                         {row.feature}
@@ -411,8 +414,8 @@ const TransferHubLanding: React.FC = () => {
                   <div style={{
                     padding: '0.35rem 0.5rem',
                     fontSize: '0.75rem',
-                    color: row.highlight ? FUND_GOLD : '#d1d5db',
-                    fontWeight: row.highlight ? 600 : 400,
+                    color: TIER_COLORS[row.minTier] || '#d1d5db',
+                    fontWeight: row.minTier !== 'standard' ? 600 : 400,
                     backgroundColor: ri % 2 === 0 ? '#0d0d0d' : 'transparent',
                     borderRadius: '4px 0 0 4px',
                     display: 'flex', alignItems: 'center',
@@ -525,7 +528,7 @@ const TransferHubLanding: React.FC = () => {
                 boxShadow: `0 4px 15px rgba(34, 197, 94, 0.3)`,
               }}
             >
-              � {t('transferHubLanding.ctaButton', 'Enter the Transfer Hub')}
+              🚀 {t('transferHubLanding.ctaButton', 'Enter the Transfer Hub')}
             </Link>
             <Link
               to="/"

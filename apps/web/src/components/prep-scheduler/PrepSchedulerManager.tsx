@@ -52,6 +52,7 @@ interface PrepSchedulerManagerProps {
   acknowledgeChangeRequest: (reqId: string) => Promise<void>;
   addManager: (userId: string, username: string) => Promise<void>;
   removeManagerById: (mgrId: string, userId: string) => Promise<void>;
+  updateDeadline?: (newDeadline: string) => Promise<void>;
 }
 
 const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
@@ -66,7 +67,7 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
     copyShareLink, exportScheduleCSV, exportOptedOut,
     setView, closeOrReopenForm, toggleLock, archiveSchedule, deleteSchedule,
     runAutoAssign, assignSlot, removeAssignment,
-    acknowledgeChangeRequest, addManager, removeManagerById,
+    acknowledgeChangeRequest, addManager, removeManagerById, updateDeadline,
   } = props;
 
   const cardStyle: React.CSSProperties = {
@@ -81,6 +82,14 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
 
   const [showAllActions, setShowAllActions] = useState(false);
   const [showAllSlots, setShowAllSlots] = useState(false);
+  const [editingDeadline, setEditingDeadline] = useState(false);
+  const [deadlineInput, setDeadlineInput] = useState(() => {
+    if (!schedule.deadline) return '';
+    const d = new Date(schedule.deadline);
+    const offset = d.getTimezoneOffset();
+    const local = new Date(d.getTime() - offset * 60000);
+    return local.toISOString().slice(0, 16);
+  });
 
   const assignedCount = dayAssignments.length;
   const pendingRequests = changeRequests.filter(r => r.status === 'pending');
@@ -108,6 +117,16 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
                 {schedule.is_locked && <span style={{ padding: '0.1rem 0.4rem', backgroundColor: '#22c55e20', borderRadius: '4px', fontSize: '0.65rem', color: '#22c55e', fontWeight: 600 }}>✅ {t('prepScheduler.lockedIn', 'LOCKED IN')}</span>}
                 {pendingRequests.length > 0 && <span style={{ padding: '0.1rem 0.4rem', backgroundColor: '#ef444420', borderRadius: '4px', fontSize: '0.65rem', color: '#ef4444', fontWeight: 600 }}>🔔 {pendingRequests.length} {t('prepScheduler.changeRequests', 'change requests')}</span>}
                 {(() => { const dl = getDeadlineCountdown(schedule.deadline, t); const utcLabel = formatDeadlineUTC(schedule.deadline); return dl ? <><span style={{ padding: '0.1rem 0.4rem', backgroundColor: dl.urgent ? '#ef444420' : '#f59e0b20', borderRadius: '4px', fontSize: '0.65rem', color: dl.urgent ? '#ef4444' : '#f59e0b', fontWeight: 600 }}>⏰ {dl.text}</span>{utcLabel && <span style={{ fontSize: '0.6rem', color: '#6b7280' }}>{utcLabel}</span>}</> : null; })()}
+                {(isEditorOrCoEditor || isManager) && updateDeadline && !editingDeadline && (
+                  <button onClick={() => setEditingDeadline(true)} style={{ background: 'none', border: 'none', color: '#a855f7', fontSize: '0.6rem', cursor: 'pointer', padding: '0.1rem 0.3rem', fontWeight: 600 }}>✏️ {schedule.deadline ? t('prepScheduler.editDeadline', 'Edit Deadline') : t('prepScheduler.setDeadline', 'Set Deadline')}</button>
+                )}
+                {editingDeadline && updateDeadline && (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                    <input type="datetime-local" value={deadlineInput} onChange={(e) => setDeadlineInput(e.target.value)} style={{ padding: '0.15rem 0.3rem', backgroundColor: colors.bg, border: `1px solid ${colors.border}`, borderRadius: '4px', color: colors.text, fontSize: '0.6rem' }} />
+                    <button onClick={async () => { await updateDeadline(deadlineInput); setEditingDeadline(false); }} disabled={saving} style={{ background: 'none', border: '1px solid #a855f730', borderRadius: '4px', color: '#a855f7', fontSize: '0.55rem', cursor: 'pointer', padding: '0.15rem 0.35rem', fontWeight: 600 }}>{saving ? '...' : '✓'}</button>
+                    <button onClick={() => setEditingDeadline(false)} style={{ background: 'none', border: 'none', color: colors.textMuted, fontSize: '0.55rem', cursor: 'pointer', padding: '0.15rem 0.2rem' }}>✗</button>
+                  </span>
+                )}
               </p>
             </div>
             {/* Action buttons — collapsible on mobile */}
