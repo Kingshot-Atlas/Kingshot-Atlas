@@ -14,7 +14,7 @@ import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
 import { supabase } from '../lib/supabase';
 import { Button } from '../components/shared/Button';
-import { CURRENT_KVK, KVK_CONFIG } from '../constants';
+import { CURRENT_KVK, HIGHEST_KINGDOM_IN_KVK, KVK_CONFIG } from '../constants';
 import { FONT_DISPLAY, colors } from '../utils/styles';
 
 const TOTAL_KINGDOMS = KVK_CONFIG.TOTAL_KINGDOMS;
@@ -115,6 +115,13 @@ const MissingDataRegistry: React.FC = () => {
       const existingKvks = kingdom.recent_kvks?.map(k => k.kvk_number) || [];
       const missingKvks: number[] = [];
       
+      // Skip fresh kingdoms that have never participated in any KvK
+      // If a kingdom is above HIGHEST_KINGDOM_IN_KVK and has no KvK data,
+      // it's too new to have participated — don't flag it as missing
+      if (existingKvks.length === 0 && kingdom.kingdom_number > HIGHEST_KINGDOM_IN_KVK) {
+        continue;
+      }
+
       // Determine the first KvK this kingdom was eligible for
       // A kingdom's first recorded KvK indicates when it became eligible
       // KvKs before that aren't "missing" - the kingdom didn't exist yet

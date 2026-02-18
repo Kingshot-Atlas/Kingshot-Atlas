@@ -19,7 +19,7 @@ import StatusSubmission from './StatusSubmission';
 import { statusService } from '../services/statusService';
 import { useToast } from './Toast';
 import { isAdminUsername } from '../utils/constants';
-import { CURRENT_KVK } from '../constants';
+import { CURRENT_KVK, HIGHEST_KINGDOM_IN_KVK } from '../constants';
 import { useTranslation } from 'react-i18next';
 
 interface KingdomCardProps {
@@ -105,11 +105,14 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
   const powerTier = kingdom.power_tier ?? getPowerTier(kingdom.overall_score);
 
   // Check if kingdom is missing latest KvK data
+  // Fresh kingdoms above HIGHEST_KINGDOM_IN_KVK with no history are NOT missing — they're too new
   const isMissingLatestKvK = useMemo(() => {
-    if (!kingdom.recent_kvks || kingdom.recent_kvks.length === 0) return true;
+    if (!kingdom.recent_kvks || kingdom.recent_kvks.length === 0) {
+      return kingdom.kingdom_number <= HIGHEST_KINGDOM_IN_KVK;
+    }
     const hasLatestKvK = kingdom.recent_kvks.some(kvk => kvk.kvk_number === CURRENT_KVK);
     return !hasLatestKvK;
-  }, [kingdom.recent_kvks]);
+  }, [kingdom.recent_kvks, kingdom.kingdom_number]);
 
   // Unique color for missing data chip (violet)
   const missingDataColor = '#8b5cf6';

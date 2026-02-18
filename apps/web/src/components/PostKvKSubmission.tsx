@@ -42,6 +42,7 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
   const [screenshot2, setScreenshot2] = useState<File | null>(null);
   const [screenshotPreview2, setScreenshotPreview2] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [screenshotDisclaimer, setScreenshotDisclaimer] = useState(false);
 
   // Sync kingdom when modal opens with new default and auto-focus opponent
   useEffect(() => {
@@ -122,7 +123,9 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
   const userIsAdmin = isAdminUsername(profile?.linked_username) || isAdminUsername(profile?.username);
 
   const isFormValid = () => {
-    return kingdomNumber && opponentKingdom && prepResult && battleResult && (screenshot || userIsAdmin);
+    const hasScreenshot = screenshot || screenshot2;
+    const disclaimerOk = !hasScreenshot || screenshotDisclaimer;
+    return kingdomNumber && opponentKingdom && prepResult && battleResult && (screenshot || userIsAdmin) && disclaimerOk;
   };
 
   const handleSubmit = async () => {
@@ -620,6 +623,34 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
             />
           </div>
         </div>
+
+        {/* Screenshot Ownership Disclaimer */}
+        {(screenshot || screenshot2) && (
+          <label
+            style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '0.5rem',
+              marginTop: '0.75rem',
+              padding: '0.65rem 0.75rem',
+              backgroundColor: '#0a0a0a',
+              border: `1px solid ${screenshotDisclaimer ? '#22c55e30' : '#2a2a2a'}`,
+              borderRadius: '8px',
+              cursor: 'pointer',
+              transition: 'border-color 0.2s',
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={screenshotDisclaimer}
+              onChange={(e) => setScreenshotDisclaimer(e.target.checked)}
+              style={{ marginTop: '0.15rem', accentColor: '#22c55e', cursor: 'pointer' }}
+            />
+            <span style={{ color: '#9ca3af', fontSize: '0.7rem', lineHeight: 1.5 }}>
+              {t('kvkSubmit.screenshotDisclaimer', 'I confirm these screenshots are my own in-game captures. I understand that all game content depicted is the property of Century Games, and I grant Kingshot Atlas permission to store and display them for community data purposes.')}
+            </span>
+          </label>
+        )}
 
         {/* Actions */}
         <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '1.5rem' }}>

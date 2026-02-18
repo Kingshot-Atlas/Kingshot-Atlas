@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import MissingKvKPrompt from '../MissingKvKPrompt';
 import SmartTooltip from '../shared/SmartTooltip';
 import { getOutcome, OUTCOMES } from '../../utils/outcomes';
-import { CURRENT_KVK } from '../../constants';
+import { CURRENT_KVK, HIGHEST_KINGDOM_IN_KVK } from '../../constants';
 import { useTranslation } from 'react-i18next';
 
 interface KvKRecord {
@@ -95,12 +95,14 @@ const KvKHistoryTable: React.FC<KvKHistoryTableProps> = ({
         </button>
       </div>
       
-      {/* Missing Latest KvK Prompt */}
-      <MissingKvKPrompt
-        kingdomNumber={kingdomNumber}
-        kvkNumber={CURRENT_KVK}
-        existingKvkNumbers={allKvks.map(k => k.kvk_number)}
-      />
+      {/* Missing Latest KvK Prompt — hide for fresh kingdoms too new to have participated */}
+      {!(allKvks.length === 0 && kingdomNumber > HIGHEST_KINGDOM_IN_KVK) && (
+        <MissingKvKPrompt
+          kingdomNumber={kingdomNumber}
+          kvkNumber={CURRENT_KVK}
+          existingKvkNumbers={allKvks.map(k => k.kvk_number)}
+        />
+      )}
       
       {/* KvK Table */}
       <div style={{ overflowX: 'auto' }}>

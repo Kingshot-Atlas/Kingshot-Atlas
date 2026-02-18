@@ -16,7 +16,6 @@
  * /countdownkvk      - Time until next KvK
  * /countdowntransfer - Time until next Transfer Event
  * /codes             - Show active gift codes
- * /redeem [code]     - Redeem gift codes (single or all)
  * /multirally        - Coordinate rally timing
  * /help              - Show all commands
  * 
@@ -98,6 +97,9 @@ let lastReferralSync = null;
 
 // Spotlight webhook — auto-post celebration messages when roles are assigned
 const SPOTLIGHT_WEBHOOK_URL = process.env.DISCORD_SPOTLIGHT_WEBHOOK_URL || '';
+
+// Welcome channel — prefer channel ID over name matching for reliability
+const WELCOME_CHANNEL_ID = process.env.DISCORD_WELCOME_CHANNEL_ID || '';
 
 // Spotlight message templates by role type — {user} is replaced with <@discordId> mention
 const SPOTLIGHT_MESSAGES = {
@@ -236,6 +238,10 @@ const healthServer = http.createServer(async (req, res) => {
         lastSettlerSync: lastSettlerSync,
         lastReferralSync: lastReferralSync,
         lastSupporterSync: lastSupporterSync,
+        lastGildedSync: lastGildedSync,
+        spotlightWebhookSet: !!SPOTLIGHT_WEBHOOK_URL,
+        welcomeChannelIdSet: !!WELCOME_CHANNEL_ID,
+        explorerRoleIdSet: !!EXPLORER_ROLE_ID,
       },
       process: {
         uptime: Math.floor(uptime),
@@ -418,6 +424,12 @@ if (!config.token || !config.clientId) {
 
 console.log('✅ Configuration validated');
 console.log(`   Token length: ${config.token.length} chars`);
+if (!SPOTLIGHT_WEBHOOK_URL) {
+  console.warn('⚠️ DISCORD_SPOTLIGHT_WEBHOOK_URL not set — spotlight messages disabled');
+}
+if (!WELCOME_CHANNEL_ID) {
+  console.warn('⚠️ DISCORD_WELCOME_CHANNEL_ID not set — welcome messages will use name matching fallback');
+}
 
 // Initialize Discord client
 // GuildMembers intent is REQUIRED for: role assignment, welcome messages, member events
@@ -946,12 +958,6 @@ client.on('interactionCreate', async (interaction) => {
       case 'codes':
         await handlers.handleCodes(interaction);
         break;
-      case 'redeem':
-        await handlers.handleRedeem(interaction);
-        break;
-      case 'redeem-all':
-        await handlers.handleRedeemAll(interaction);
-        break;
       case 'link':
         await handlers.handleLink(interaction);
         break;
@@ -1049,23 +1055,35 @@ client.on('guildMemberAdd', async (member) => {
       channels = member.guild.channels.cache; // fallback to cache
     }
     
-    // Find the welcome channel — configurable via env, with fallback patterns
-    const welcomeChannelName = process.env.DISCORD_WELCOME_CHANNEL || 'welcome';
-    const welcomePatterns = [welcomeChannelName, 'welcome', 'welcomes', 'welcome-chat', '👋welcome', '👋-welcome'];
-    
+    // Find the welcome channel — prefer channel ID (most reliable), then name patterns
     let welcomeChannel = null;
-    for (const pattern of welcomePatterns) {
-      welcomeChannel = channels.find(
-        ch => ch.name === pattern && ch.isTextBased()
-      );
-      if (welcomeChannel) break;
+    
+    // Priority 1: Explicit channel ID (set DISCORD_WELCOME_CHANNEL_ID on Render)
+    if (WELCOME_CHANNEL_ID) {
+      welcomeChannel = channels.get(WELCOME_CHANNEL_ID);
+      if (!welcomeChannel) {
+        console.warn(`⚠️ DISCORD_WELCOME_CHANNEL_ID=${WELCOME_CHANNEL_ID} not found in ${member.guild.name}`);
+      }
     }
     
-    // Broader fallback: any channel containing 'welcome' in the name
+    // Priority 2: Name matching with configurable patterns
     if (!welcomeChannel) {
-      welcomeChannel = channels.find(
-        ch => ch.name.includes('welcome') && ch.isTextBased()
-      );
+      const welcomeChannelName = process.env.DISCORD_WELCOME_CHANNEL || 'welcome';
+      const welcomePatterns = [welcomeChannelName, 'welcome', 'welcomes', 'welcome-chat', '👋welcome', '👋-welcome'];
+      
+      for (const pattern of welcomePatterns) {
+        welcomeChannel = channels.find(
+          ch => ch.name === pattern && ch.isTextBased()
+        );
+        if (welcomeChannel) break;
+      }
+      
+      // Broader fallback: any channel containing 'welcome' in the name
+      if (!welcomeChannel) {
+        welcomeChannel = channels.find(
+          ch => ch.name && ch.name.includes('welcome') && ch.isTextBased()
+        );
+      }
     }
     
     if (welcomeChannel) {

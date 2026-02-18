@@ -154,7 +154,7 @@ const PrepSchedulerForm: React.FC<PrepSchedulerFormProps> = (props) => {
                 <input type="text" value={formUsername} onChange={(e) => setFormUsername(e.target.value)} placeholder={t('prepScheduler.usernamePlaceholder', 'In-game username')} style={inputStyle} />
               </div>
               <div>
-                <label style={labelStyle}>{t('prepScheduler.alliance', 'Alliance')}</label>
+                <label style={labelStyle}>{t('prepScheduler.alliance', 'Alliance')} *</label>
                 <input type="text" value={formAlliance} onChange={(e) => setFormAlliance(e.target.value)} placeholder="e.g. ABC" style={inputStyle} />
               </div>
             </div>

@@ -412,6 +412,7 @@
     "to": "부터",
     "cosmosCredit": "이 프로젝트를 가능하게 한 원본 KvK 기록 스프레드시트를 정리해 주셔서 감사합니다. 최고의 커뮤니티 노력입니다.",
     "disclaimer": "Kingshot Atlas는 독립적인 팬 프로젝트입니다. Kingshot 개발사와 관련이 없으며 후원받지 않습니다. 우리는 그저 게임을 사랑하는 플레이어입니다.",
+    "trademarkNotice": "Kingshot는 Century Games의 상표입니다. 모든 게임 콘텐츠와 자료는 Century Games 및 그 라이선스 제공자의 상표 및 저작권입니다. Kingshot Atlas는 Century Games와 제휴, 보증, 후원 또는 승인 관계가 없습니다. 본 플랫폼의 모든 KvK 데이터는 커뮤니티에서 제공됩니다.",
     "transferHubDesc2": "가 Kingshot에서 가장 큰 결정에 실제 데이터를 제공합니다.",
     "forPlayers": "이적하는 플레이어를 위해",
     "forPlayersDesc": "Atlas 점수, KvK 기록, 커뮤니티 리뷰로 모든 왕국을 탐색하세요. 이적 프로필을 만들고 직접 지원하며 지원 상황을 추적하세요. 매치 점수가 어떤 왕국이 당신의 플레이 스타일에 맞는지 보여줍니다.",
@@ -572,7 +573,9 @@
     "syncing": "동기화 중...",
     "subscriptionNotShowing": "구독이 표시되지 않나요?",
     "myProfile": "내 프로필",
+    "myWord": "내",
     "publicProfile": "공개 프로필",
+    "publicWord": "공개",
     "profileWord": "프로필",
     "commandCenter": "왕국 정보를 위한 커맨드 센터",
     "linkBannerTitle": "Kingshot 계정 연결",
@@ -1171,6 +1174,33 @@
     "securityNoGameAccess": "어떤 방식으로도 게임 계정에 접근, 수정 또는 제어할 수 없습니다",
     "securityUnlink": "언제든지 연동을 해제할 수 있으며 — 데이터는 즉시 서버에서 삭제됩니다",
     "securityOpenSource": "Atlas는 커뮤니티가 만들고 투명합니다 — 코드는 공개 검토 가능합니다"
+  },
+  "accountSwitcher": {
+    "title": "연동된 계정",
+    "accountCount": "개 계정",
+    "active": "활성",
+    "switch": "전환",
+    "switching": "전환 중...",
+    "switchedTo": "{{name}} (K{{kingdom}})으로 전환됨",
+    "switchFailed": "계정 전환 실패",
+    "remove": "제거",
+    "removed": "계정 제거됨",
+    "cantRemoveActive": "이 계정을 제거하기 전에 다른 계정으로 전환하세요",
+    "addAccount": "다른 계정 추가",
+    "add": "추가",
+    "added": "계정 추가됨: {{name}} (K{{kingdom}})",
+    "addFailed": "계정 추가 실패",
+    "alreadyAdded": "이 계정은 이미 연동되어 있습니다",
+    "addHint": "다른 게임 계정의 플레이어 ID를 입력하세요. 간단한 소유권 확인이 이어집니다.",
+    "next": "다음",
+    "verifyOwnership": "소유권 확인",
+    "verifyWhy": "다른 플레이어의 계정을 허위로 주장하는 것을 방지합니다.",
+    "verifyInstructions": "이 계정이 본인 소유임을 증명하려면, 게임 내 이름에 이 코드를 임시로 추가하세요:",
+    "verifyNote": "예시: \"{{name}} {{code}}\" — 확인 후 제거할 수 있습니다.",
+    "verifyNow": "이름을 변경했습니다 — 확인",
+    "checking": "확인 중...",
+    "codeNotFound": "게임 내 이름에서 코드 \"{{code}}\"를 찾을 수 없습니다. 이름을 변경하고 잠시 후 다시 시도하세요.",
+    "verified": "소유권 확인 완료! 계정 추가됨: {{name}} (K{{kingdom}})"
   },
   "transferHub": {
     "heroTitle1": "이적",
@@ -2533,5 +2563,17 @@
     "getStarted": "시작하기",
     "ctaTitle": "왕국을 조직할 준비가 되셨나요?",
     "ctaDesc": "왕국의 준비 단계가 혼란일 필요는 없습니다. 스케줄러가 데이터 기반의 효율적인 프로세스로 바꿔줍니다."
+  },
+  "tos": {
+    "pageTitle": "이용약관"
+  },
+  "privacy": {
+    "pageTitle": "개인정보 처리방침"
+  },
+  "footer": {
+    "trademark": "Kingshot\u2122는 Century Games의 상표입니다. 모든 게임 콘텐츠와 자료는 각 소유자의 상표 및 저작권입니다. Kingshot Atlas는 독립적인 팬 프로젝트입니다 — Century Games와 제휴, 보증, 후원 또는 승인 관계가 없습니다.",
+    "about": "소개",
+    "terms": "이용약관",
+    "privacy": "개인정보"
   }
 }

@@ -325,7 +325,7 @@ const DesktopNav: React.FC<DesktopNavProps> = ({ isActive, user, changeLanguage,
                 <path d="M7.5 10C7.5 10 6 8.5 6 7C6 5.5 7.5 4 9 5C10.5 6 12 10 12 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                 <path d="M16.5 10C16.5 10 18 8.5 18 7C18 5.5 16.5 4 15 5C13.5 6 12 10 12 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
               </svg>
-              {t('nav.giftCodeRedeemer')}
+              {t('nav.giftCodes', 'Gift Codes')}
             </Link>
             {/* 6. Kingdom Comparison */}
             <Link

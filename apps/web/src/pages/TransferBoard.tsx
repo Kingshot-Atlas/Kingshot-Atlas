@@ -734,20 +734,23 @@ const TransferBoard: React.FC = () => {
           <p style={{ color: '#6b7280', fontSize: '0.8rem', marginBottom: '1rem', maxWidth: '400px', margin: '0 auto 1rem' }}>
             {t('transferHub.signInRecruitDesc', 'Sign in and link your Kingshot account to claim your kingdom, set up your listing, and review transfer applications.')}
           </p>
-          <Link to="/auth" style={{
-            display: 'inline-block',
-            padding: '0.6rem 1.5rem',
-            backgroundColor: '#a855f7',
-            color: '#fff',
-            borderRadius: '8px',
-            fontWeight: '600',
-            fontSize: '0.85rem',
-            textDecoration: 'none',
-            minHeight: '44px',
-            lineHeight: '44px',
-          }}>
+          <button
+            onClick={() => setShowAuthGate('login')}
+            style={{
+              display: 'inline-block',
+              padding: '0.6rem 1.5rem',
+              backgroundColor: '#a855f7',
+              color: '#fff',
+              borderRadius: '8px',
+              fontWeight: '600',
+              fontSize: '0.85rem',
+              border: 'none',
+              cursor: 'pointer',
+              minHeight: '44px',
+              lineHeight: '44px',
+            }}>
             {t('common.signIn', 'Sign In')}
-          </Link>
+          </button>
         </div>
       )}
 

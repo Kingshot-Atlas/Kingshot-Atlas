@@ -412,6 +412,7 @@
     "to": "bis",
     "cosmosCredit": "für das Zusammenstellen der ursprünglichen KvK-Verlauf-Tabelle, die dieses Projekt ermöglicht hat. Gemeinschaftsarbeit vom Feinsten.",
     "disclaimer": "Kingshot Atlas ist ein unabhängiges Fan-Projekt. Wir sind weder mit den Entwicklern von Kingshot verbunden noch von ihnen unterstützt. Wir sind einfach Spieler, die das Spiel lieben.",
+    "trademarkNotice": "Kingshot ist eine Marke von Century Games. Alle Spielinhalte und -materialien sind Marken und Urheberrechte von Century Games und seinen Lizenzgebern. Kingshot Atlas ist nicht mit Century Games verbunden, wird nicht von Century Games unterstützt, gesponsert oder genehmigt. Alle KvK-Daten auf dieser Plattform stammen aus der Community.",
     "transferHubDesc2": "liefert echte Daten für die wichtigste Entscheidung in Kingshot.",
     "forPlayers": "Für transferierende Spieler",
     "forPlayersDesc": "Durchsuche jedes Königreich mit Atlas-Wertungen, KvK-Bilanzen und Community-Bewertungen. Erstelle ein Transfer-Profil, bewirb dich direkt und verfolge deine Bewerbungen. Match-Wertungen zeigen, welche Königreiche zu deinem Spielstil passen.",
@@ -572,7 +573,9 @@
     "syncing": "Synchronisieren...",
     "subscriptionNotShowing": "Abo wird nicht angezeigt?",
     "myProfile": "MEIN PROFIL",
+    "myWord": "MEIN",
     "publicProfile": "ÖFFENTLICHES PROFIL",
+    "publicWord": "ÖFFENTLICH",
     "profileWord": "PROFIL",
     "commandCenter": "Dein Kommandozentrum für Königreich-Informationen",
     "linkBannerTitle": "Verknüpfe dein Kingshot-Konto",
@@ -1171,6 +1174,33 @@
     "securityNoGameAccess": "Wir können in keiner Weise auf dein Spielkonto zugreifen, es ändern oder kontrollieren",
     "securityUnlink": "Du kannst die Verknüpfung jederzeit aufheben — deine Daten werden sofort von unseren Servern gelöscht",
     "securityOpenSource": "Atlas wird von der Community entwickelt und ist transparent — unser Code ist zur Überprüfung offen"
+  },
+  "accountSwitcher": {
+    "title": "Verknüpfte Konten",
+    "accountCount": "Konto/Konten",
+    "active": "AKTIV",
+    "switch": "Wechseln",
+    "switching": "Wechsle...",
+    "switchedTo": "Gewechselt zu {{name}} (K{{kingdom}})",
+    "switchFailed": "Kontowechsel fehlgeschlagen",
+    "remove": "Entfernen",
+    "removed": "Konto entfernt",
+    "cantRemoveActive": "Wechsle zuerst zu einem anderen Konto",
+    "addAccount": "Weiteres Konto Hinzufügen",
+    "add": "Hinzufügen",
+    "added": "Konto hinzugefügt: {{name}} (K{{kingdom}})",
+    "addFailed": "Konto konnte nicht hinzugefügt werden",
+    "alreadyAdded": "Dieses Konto ist bereits verknüpft",
+    "addHint": "Gib die Spieler-ID deines anderen Spielkontos ein. Eine schnelle Verifizierung folgt.",
+    "next": "Weiter",
+    "verifyOwnership": "Besitz Verifizieren",
+    "verifyWhy": "Dies verhindert, dass Spieler die Konten anderer fälschlich beanspruchen.",
+    "verifyInstructions": "Um zu beweisen, dass dir dieses Konto gehört, füge diesen Code vorübergehend in deinen Spielnamen ein:",
+    "verifyNote": "Beispiel: \"{{name}} {{code}}\" — du kannst ihn nach der Verifizierung entfernen.",
+    "verifyNow": "Ich habe meinen Namen geändert — Verifizieren",
+    "checking": "Prüfe...",
+    "codeNotFound": "Code \"{{code}}\" nicht in deinem Spielnamen gefunden. Ändere deinen Namen, warte einen Moment und versuche es erneut.",
+    "verified": "Besitz verifiziert! Konto hinzugefügt: {{name}} (K{{kingdom}})"
   },
   "transferHub": {
     "heroTitle1": "TRANSFER-",
@@ -2533,5 +2563,17 @@
     "getStarted": "Loslegen",
     "ctaTitle": "Bereit, Ihr Königreich zu organisieren?",
     "ctaDesc": "Die Prep-Phase Ihres Königreichs muss kein Chaos sein. Der Planer verwandelt sie in einen datengesteuerten Prozess."
+  },
+  "tos": {
+    "pageTitle": "Nutzungsbedingungen"
+  },
+  "privacy": {
+    "pageTitle": "Datenschutzrichtlinie"
+  },
+  "footer": {
+    "trademark": "Kingshot\u2122 ist eine Marke von Century Games. Alle Spielinhalte und -materialien sind Marken und Urheberrechte ihrer jeweiligen Eigentümer. Kingshot Atlas ist ein unabhängiges Fan-Projekt — nicht verbunden mit, unterstützt, gesponsert oder genehmigt von Century Games.",
+    "about": "Über uns",
+    "terms": "AGB",
+    "privacy": "Datenschutz"
   }
 }

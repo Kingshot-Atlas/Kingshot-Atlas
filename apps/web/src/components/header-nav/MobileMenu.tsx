@@ -217,7 +217,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isActive, user, profile, isAdmi
             <span style={{ color: '#333' }}>└</span> {t('nav.atlasBot')}
           </Link>
           <Link to="/gift-codes" style={{ color: isActive('/gift-codes') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.9rem', padding: '0.5rem 1rem 0.5rem 1.5rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ color: '#333' }}>└</span> {t('nav.giftCodeRedeemer')}
+            <span style={{ color: '#333' }}>└</span> {t('nav.giftCodes', 'Gift Codes')}
           </Link>
           <Link to="/compare" style={{ color: isActive('/compare') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.9rem', padding: '0.5rem 1rem 0.5rem 1.5rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span style={{ color: '#333' }}>└</span> {t('nav.kingdomComparison')}

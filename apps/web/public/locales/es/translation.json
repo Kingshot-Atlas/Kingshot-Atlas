@@ -412,6 +412,7 @@
     "to": "a",
     "cosmosCredit": "por compilar la hoja de cálculo original del Historial KvK que hizo posible este proyecto. Esfuerzo comunitario en su máxima expresión.",
     "disclaimer": "Kingshot Atlas es un proyecto de fans independiente. No estamos afiliados ni respaldados por los desarrolladores de Kingshot. Solo somos jugadores que aman el juego.",
+    "trademarkNotice": "Kingshot es una marca registrada de Century Games. Todo el contenido y materiales del juego son marcas registradas y derechos de autor de Century Games y sus licenciantes. Kingshot Atlas no está afiliado, respaldado, patrocinado ni aprobado por Century Games. Todos los datos de KvK en esta plataforma son proporcionados por la comunidad.",
     "transferHubDesc2": "pone datos reales detrás de la decisión más grande en Kingshot.",
     "forPlayers": "Para Jugadores que Transfieren",
     "forPlayersDesc": "Explora cada reino con Índices Atlas, registros KvK y reseñas de la comunidad. Crea un Perfil de Transferencia, aplica directamente y rastrea tus aplicaciones. Los Puntajes de Compatibilidad muestran qué reinos encajan con tu estilo de juego.",
@@ -572,7 +573,9 @@
     "syncing": "Sincronizando...",
     "subscriptionNotShowing": "¿La suscripción no aparece?",
     "myProfile": "MI PERFIL",
+    "myWord": "MI",
     "publicProfile": "PERFIL PÚBLICO",
+    "publicWord": "PÚBLICO",
     "profileWord": "PERFIL",
     "commandCenter": "Tu centro de comando para inteligencia de reinos",
     "linkBannerTitle": "Vincula tu cuenta de Kingshot",
@@ -1171,6 +1174,33 @@
     "securityNoGameAccess": "No podemos acceder, modificar ni controlar tu cuenta de juego de ninguna manera",
     "securityUnlink": "Puedes desvincular en cualquier momento — tus datos se eliminan de nuestros servidores al instante",
     "securityOpenSource": "Atlas es creado por la comunidad y transparente — nuestro código está abierto para revisión"
+  },
+  "accountSwitcher": {
+    "title": "Cuentas Vinculadas",
+    "accountCount": "cuenta(s)",
+    "active": "ACTIVA",
+    "switch": "Cambiar",
+    "switching": "Cambiando...",
+    "switchedTo": "Cambiado a {{name}} (K{{kingdom}})",
+    "switchFailed": "Error al cambiar de cuenta",
+    "remove": "Eliminar",
+    "removed": "Cuenta eliminada",
+    "cantRemoveActive": "Cambia a otra cuenta antes de eliminar esta",
+    "addAccount": "Agregar Otra Cuenta",
+    "add": "Agregar",
+    "added": "Cuenta agregada: {{name}} (K{{kingdom}})",
+    "addFailed": "Error al agregar cuenta",
+    "alreadyAdded": "Esta cuenta ya está vinculada",
+    "addHint": "Ingresa el ID de jugador de tu otra cuenta en el juego. Se realizará una verificación rápida.",
+    "next": "Siguiente",
+    "verifyOwnership": "Verificar Propiedad",
+    "verifyWhy": "Esto evita que jugadores reclamen falsamente las cuentas de otros.",
+    "verifyInstructions": "Para demostrar que eres el dueño de esta cuenta, agrega temporalmente este código en tu nombre del juego:",
+    "verifyNote": "Ejemplo: \"{{name}} {{code}}\" — puedes eliminarlo después de la verificación.",
+    "verifyNow": "Cambié Mi Nombre — Verificar",
+    "checking": "Verificando...",
+    "codeNotFound": "Código \"{{code}}\" no encontrado en tu nombre del juego. Cambia tu nombre para incluirlo, espera un momento e intenta de nuevo.",
+    "verified": "¡Propiedad verificada! Cuenta agregada: {{name}} (K{{kingdom}})"
   },
   "transferHub": {
     "heroTitle1": "CENTRO DE",
@@ -2533,5 +2563,17 @@
     "getStarted": "Comenzar",
     "ctaTitle": "¿Listo para organizar tu reino?",
     "ctaDesc": "La Fase de Prep de tu reino no tiene que ser caos. El Programador la convierte en un proceso optimizado basado en datos."
+  },
+  "tos": {
+    "pageTitle": "Términos de Servicio"
+  },
+  "privacy": {
+    "pageTitle": "Política de Privacidad"
+  },
+  "footer": {
+    "trademark": "Kingshot\u2122 es una marca registrada de Century Games. Todo el contenido y materiales del juego son marcas registradas y derechos de autor de sus respectivos propietarios. Kingshot Atlas es un proyecto de fans independiente — no afiliado, respaldado, patrocinado ni aprobado por Century Games.",
+    "about": "Acerca de",
+    "terms": "Términos",
+    "privacy": "Privacidad"
   }
 }

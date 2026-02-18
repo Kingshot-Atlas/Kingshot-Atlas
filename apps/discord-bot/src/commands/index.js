@@ -144,31 +144,7 @@ const commands = [
   // /codes
   new SlashCommandBuilder()
     .setName('codes')
-    .setDescription('Show active Kingshot gift codes you can redeem right now'),
-
-  // /redeem [code]
-  new SlashCommandBuilder()
-    .setName('redeem')
-    .setDescription('Redeem gift codes for your linked Kingshot account')
-    .addStringOption(option =>
-      option
-        .setName('code')
-        .setDescription('Pick a specific code or "All" to redeem everything')
-        .setRequired(false)
-        .setAutocomplete(true)
-    ),
-
-  // /redeem-all — Supporter perk: redeem for main + all alt accounts
-  new SlashCommandBuilder()
-    .setName('redeem-all')
-    .setDescription('Redeem all active codes for your main + alt accounts (Supporter perk)')
-    .addStringOption(option =>
-      option
-        .setName('code')
-        .setDescription('Pick a specific code or leave empty for all active codes')
-        .setRequired(false)
-        .setAutocomplete(true)
-    ),
+    .setDescription('Show active Kingshot gift codes — copy and redeem in-game'),
 
   // /link
   new SlashCommandBuilder()

@@ -412,6 +412,7 @@
     "to": "至",
     "cosmosCredit": "感谢他整理的原始 KvK 历史电子表格，使这个项目成为可能。社区合作的典范。",
     "disclaimer": "Kingshot Atlas 是一个独立的粉丝项目。我们与 Kingshot 的开发商没有关联，也未获得其认可。我们只是热爱这款游戏的玩家。",
+    "trademarkNotice": "Kingshot 是 Century Games 的商标。所有游戏内容和素材均为 Century Games 及其许可方的商标和版权。Kingshot Atlas 与 Century Games 无关，未获其认可、赞助或批准。本平台所有 KvK 数据均来自社区提交。",
     "transferHubDesc2": "用真实数据支撑 Kingshot 中最重要的决定。",
     "forPlayers": "转服玩家专区",
     "forPlayersDesc": "浏览每个王国的 Atlas 评分、KvK 战绩和社区评价。创建转服资料、直接申请并跟踪你的申请。匹配分数显示哪些王国适合你的玩法风格。",
@@ -572,7 +573,9 @@
     "syncing": "同步中...",
     "subscriptionNotShowing": "订阅未显示？",
     "myProfile": "我的资料",
+    "myWord": "我的",
     "publicProfile": "公开资料",
+    "publicWord": "公开",
     "profileWord": "资料",
     "commandCenter": "你的王国情报指挥中心",
     "linkBannerTitle": "关联你的 Kingshot 账号",
@@ -1171,6 +1174,33 @@
     "securityNoGameAccess": "我们无法以任何方式访问、修改或控制您的游戏账户",
     "securityUnlink": "您可以随时取消关联 — 您的数据将立即从我们的服务器中删除",
     "securityOpenSource": "Atlas 由社区构建且透明 — 我们的代码公开供审查"
+  },
+  "accountSwitcher": {
+    "title": "已关联账号",
+    "accountCount": "个账号",
+    "active": "当前",
+    "switch": "切换",
+    "switching": "切换中...",
+    "switchedTo": "已切换到 {{name}} (K{{kingdom}})",
+    "switchFailed": "切换账号失败",
+    "remove": "移除",
+    "removed": "账号已移除",
+    "cantRemoveActive": "请先切换到其他账号再移除此账号",
+    "addAccount": "添加其他账号",
+    "add": "添加",
+    "added": "已添加账号：{{name}} (K{{kingdom}})",
+    "addFailed": "添加账号失败",
+    "alreadyAdded": "此账号已关联",
+    "addHint": "输入你另一个游戏账号的玩家ID，随后将进行快速验证。",
+    "next": "下一步",
+    "verifyOwnership": "验证所有权",
+    "verifyWhy": "这可以防止玩家虚假认领他人的账号。",
+    "verifyInstructions": "为证明你拥有此账号，请暂时在你的游戏名中添加此代码：",
+    "verifyNote": "示例：\"{{name}} {{code}}\" — 验证后可以移除。",
+    "verifyNow": "我已更改名字 — 验证",
+    "checking": "检查中...",
+    "codeNotFound": "在你的游戏名中未找到代码 \"{{code}}\"。请更改名字包含此代码，稍等片刻后重试。",
+    "verified": "所有权已验证！账号已添加：{{name}} (K{{kingdom}})"
   },
   "transferHub": {
     "heroTitle1": "转服",
@@ -2533,5 +2563,17 @@
     "getStarted": "开始使用",
     "ctaTitle": "准备好组织你的王国了吗？",
     "ctaDesc": "你王国的准备阶段不必是混乱的。排程器将其转变为基于数据的精简流程。"
+  },
+  "tos": {
+    "pageTitle": "服务条款"
+  },
+  "privacy": {
+    "pageTitle": "隐私政策"
+  },
+  "footer": {
+    "trademark": "Kingshot\u2122 是 Century Games 的商标。所有游戏内容和素材均为其各自所有者的商标和版权。Kingshot Atlas 是一个独立的粉丝项目——与 Century Games 无关，未获其认可、赞助或批准。",
+    "about": "关于",
+    "terms": "条款",
+    "privacy": "隐私"
   }
 }

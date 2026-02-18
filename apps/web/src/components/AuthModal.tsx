@@ -254,7 +254,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         )}
 
         <p style={{ color: '#6b7280', fontSize: '0.8rem', textAlign: 'center', marginTop: '1.5rem', lineHeight: '1.5' }}>
-          {t('auth.termsAgreement', 'By signing in, you agree to our Terms of Service and Privacy Policy.')}
+          {t('auth.termsAgreement', 'By signing in, you agree to our')}{' '}
+          <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: '#22d3ee', textDecoration: 'none' }}>{t('auth.termsLink', 'Terms of Service')}</a>.
           <br />
           <span style={{ fontSize: '0.75rem', color: '#4b5563' }}>
             {t('auth.oauthDisclaimer', 'We use OAuth providers to prevent spam accounts.')}

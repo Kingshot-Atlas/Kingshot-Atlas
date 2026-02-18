@@ -795,11 +795,42 @@ const ImportTab: React.FC = () => {
         <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid #2a2a2a' }}>
           <h4 style={{ color: colors.text, marginBottom: '0.75rem' }}>Bulk Create Empty Kingdoms</h4>
           <p style={{ color: colors.textMuted, fontSize: '0.8rem', marginBottom: '1rem' }}>
-            Create placeholder kingdom profiles with no KvK data. Useful for adding all kingdoms that participated in a KvK.
+            Create all empty kingdom profiles from K1 up to the number you enter. Skips any kingdoms that already exist. New kingdoms are added daily — increase this number as needed.
           </p>
-          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-            <button onClick={() => handleBulkCreateKingdoms(1, 1304)} style={{ padding: '0.6rem 1.25rem', backgroundColor: `${colors.purple}20`, border: `1px solid ${colors.purple}50`, borderRadius: '8px', color: colors.purple, cursor: 'pointer', fontWeight: 500, fontSize: '0.85rem' }}>Create Kingdoms 1-1304</button>
-            <button onClick={() => handleBulkCreateKingdoms(1305, 1500)} style={{ padding: '0.6rem 1.25rem', backgroundColor: `${colors.textMuted}20`, border: `1px solid ${colors.textMuted}50`, borderRadius: '8px', color: colors.textSecondary, cursor: 'pointer', fontWeight: 500, fontSize: '0.85rem' }}>Create 1305-1500</button>
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <span style={{ color: colors.textSecondary, fontSize: '0.85rem' }}>Create kingdoms up to K</span>
+            <input
+              type="number"
+              min={1}
+              max={9999}
+              defaultValue={1500}
+              id="bulk-kingdom-max"
+              style={{
+                width: '80px',
+                padding: '0.5rem 0.75rem',
+                backgroundColor: colors.bg,
+                border: `1px solid ${colors.border}`,
+                borderRadius: '6px',
+                color: colors.text,
+                fontSize: '0.9rem',
+                fontWeight: 600,
+                textAlign: 'center',
+              }}
+            />
+            <button
+              onClick={() => {
+                const input = document.getElementById('bulk-kingdom-max') as HTMLInputElement;
+                const maxNum = parseInt(input?.value || '0', 10);
+                if (!maxNum || maxNum < 1) {
+                  showToast('Enter a valid kingdom number', 'error');
+                  return;
+                }
+                handleBulkCreateKingdoms(1, maxNum);
+              }}
+              style={{ padding: '0.6rem 1.25rem', backgroundColor: `${colors.purple}20`, border: `1px solid ${colors.purple}50`, borderRadius: '8px', color: colors.purple, cursor: 'pointer', fontWeight: 500, fontSize: '0.85rem' }}
+            >
+              Create Missing Kingdoms
+            </button>
           </div>
         </div>
       )}

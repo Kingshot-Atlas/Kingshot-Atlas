@@ -412,6 +412,7 @@
     "to": "から",
     "cosmosCredit": "が作成したオリジナルのKvK履歴スプレッドシートのおかげでこのプロジェクトが実現しました。",
     "disclaimer": "Kingshot Atlasは独立したファンプロジェクトです。Kingshotの開発者とは提携も推薦もされていません。",
+    "trademarkNotice": "KingshotはCentury Gamesの商標です。すべてのゲームコンテンツと素材はCentury Gamesおよびそのライセンサーの商標および著作権です。Kingshot AtlasはCentury Gamesと提携、承認、後援、または承認されていません。本プラットフォームのすべてのKvKデータはコミュニティから提供されたものです。",
     "transferHubDesc2": "がKingshotで最大の決断に本物のデータを提供する。",
     "forPlayers": "移籍するプレイヤー向け",
     "forPlayersDesc": "Atlasスコア、KvK記録、コミュニティレビュー付きですべての王国を閲覧。トランスファープロフィールを作成し、直接応募。",
@@ -572,7 +573,9 @@
     "syncing": "同期中...",
     "subscriptionNotShowing": "サブスクリプションが表示されない？",
     "myProfile": "マイプロフィール",
+    "myWord": "マイ",
     "publicProfile": "公開プロフィール",
+    "publicWord": "公開",
     "profileWord": "プロフィール",
     "commandCenter": "王国情報のコマンドセンター",
     "linkBannerTitle": "Kingshotアカウントを連携",
@@ -1171,6 +1174,33 @@
     "securityNoGameAccess": "いかなる方法でもゲームアカウントにアクセス、変更、制御することはできません",
     "securityUnlink": "いつでもリンクを解除できます — データは即座にサーバーから削除されます",
     "securityOpenSource": "Atlasはコミュニティが作り、透明性があります — コードはレビュー用に公開されています"
+  },
+  "accountSwitcher": {
+    "title": "連携アカウント",
+    "accountCount": "アカウント",
+    "active": "アクティブ",
+    "switch": "切替",
+    "switching": "切替中...",
+    "switchedTo": "{{name}} (K{{kingdom}}) に切り替えました",
+    "switchFailed": "アカウントの切替に失敗しました",
+    "remove": "削除",
+    "removed": "アカウントを削除しました",
+    "cantRemoveActive": "このアカウントを削除する前に別のアカウントに切り替えてください",
+    "addAccount": "別のアカウントを追加",
+    "add": "追加",
+    "added": "アカウントを追加: {{name}} (K{{kingdom}})",
+    "addFailed": "アカウントの追加に失敗しました",
+    "alreadyAdded": "このアカウントは既に連携されています",
+    "addHint": "もう一つのゲームアカウントのプレイヤーIDを入力。簡単な所有権確認が続きます。",
+    "next": "次へ",
+    "verifyOwnership": "所有権を確認",
+    "verifyWhy": "他のプレイヤーのアカウントを不正に主張することを防ぎます。",
+    "verifyInstructions": "このアカウントの所有者であることを証明するため、ゲーム内の名前にこのコードを一時的に追加してください：",
+    "verifyNote": "例：\"{{name}} {{code}}\" — 確認後に削除できます。",
+    "verifyNow": "名前を変更しました — 確認",
+    "checking": "確認中...",
+    "codeNotFound": "ゲーム内の名前にコード \"{{code}}\" が見つかりません。名前を変更してしばらく待ってから再試行してください。",
+    "verified": "所有権確認完了！アカウント追加：{{name}} (K{{kingdom}})"
   },
   "transferHub": {
     "heroTitle1": "トランスファー",
@@ -2533,5 +2563,17 @@
     "getStarted": "始める",
     "ctaTitle": "王国を組織する準備はできましたか？",
     "ctaDesc": "王国のプレップフェーズが混沌である必要はありません。スケジューラーがデータ駆動の効率的なプロセスに変えます。"
+  },
+  "tos": {
+    "pageTitle": "利用規約"
+  },
+  "privacy": {
+    "pageTitle": "プライバシーポリシー"
+  },
+  "footer": {
+    "trademark": "Kingshot\u2122はCentury Gamesの商標です。すべてのゲームコンテンツと素材はそれぞれの所有者の商標および著作権です。Kingshot Atlasは独立したファンプロジェクトです — Century Gamesとは提携、承認、後援、または承認されていません。",
+    "about": "概要",
+    "terms": "利用規約",
+    "privacy": "プライバシー"
   }
 }

@@ -412,6 +412,7 @@
     "to": "ile",
     "cosmosCredit": "bu projeyi mümkün kılan orijinal KvK Geçmişi tablosunu derlediği için. En iyi haliyle topluluk çabası.",
     "disclaimer": "Kingshot Atlas bağımsız bir hayran projesidir. Kingshot geliştiricileriyle bağlantılı değiliz ve onlar tarafından onaylanmış değiliz. Sadece oyunu seven oyuncularız.",
+    "trademarkNotice": "Kingshot, Century Games'in ticari markasıdır. Tüm oyun içerikleri ve materyalleri Century Games ve lisans verenlerinin ticari markaları ve telif haklarıdır. Kingshot Atlas, Century Games ile bağlantılı, onaylanmış, sponsorlu veya onaylanmış değildir. Bu platformdaki tüm KvK verileri topluluk tarafından sağlanmaktadır.",
     "transferHubDesc2": "Kingshot'taki en büyük kararın arkasına gerçek veri koyar.",
     "forPlayers": "Transfer Eden Oyuncular İçin",
     "forPlayersDesc": "Atlas Puanları, KvK kayıtları ve topluluk yorumlarıyla her krallığa göz atın. Transfer Profili oluşturun, doğrudan başvurun ve başvurularınızı takip edin. Eşleşme Puanları hangi krallıkların oyun tarzınıza uyduğunu gösterir.",
@@ -572,7 +573,9 @@
     "syncing": "Senkronize ediliyor...",
     "subscriptionNotShowing": "Abonelik görünmüyor mu?",
     "myProfile": "PROFİLİM",
+    "myWord": "BENİM",
     "publicProfile": "HERKESE AÇIK PROFİL",
+    "publicWord": "HERKESE AÇIK",
     "profileWord": "PROFİL",
     "commandCenter": "Krallık istihbaratı için komuta merkezin",
     "linkBannerTitle": "Kingshot hesabını bağla",
@@ -1171,6 +1174,33 @@
     "securityNoGameAccess": "Oyun hesabınıza hiçbir şekilde erişemez, değiştiremez veya kontrol edemeyiz",
     "securityUnlink": "Bağlantıyı istediğiniz zaman kaldırabilirsiniz — verileriniz sunucularımızdan anında silinir",
     "securityOpenSource": "Atlas topluluk tarafından oluşturulmuştur ve şeffaftır — kodumuz incelemeye açıktır"
+  },
+  "accountSwitcher": {
+    "title": "Bağlı Hesaplar",
+    "accountCount": "hesap",
+    "active": "AKTİF",
+    "switch": "Geçiş",
+    "switching": "Geçiş yapılıyor...",
+    "switchedTo": "{{name}} (K{{kingdom}}) hesabına geçildi",
+    "switchFailed": "Hesap geçişi başarısız",
+    "remove": "Kaldır",
+    "removed": "Hesap kaldırıldı",
+    "cantRemoveActive": "Bu hesabı kaldırmadan önce başka bir hesaba geçin",
+    "addAccount": "Başka Hesap Ekle",
+    "add": "Ekle",
+    "added": "Hesap eklendi: {{name}} (K{{kingdom}})",
+    "addFailed": "Hesap eklenemedi",
+    "alreadyAdded": "Bu hesap zaten bağlı",
+    "addHint": "Diğer oyun hesabınızın Oyuncu ID'sini girin. Hızlı bir sahiplik doğrulaması yapılacak.",
+    "next": "İleri",
+    "verifyOwnership": "Sahipliği Doğrula",
+    "verifyWhy": "Bu, oyuncuların başkalarının hesaplarını sahte olarak talep etmesini önler.",
+    "verifyInstructions": "Bu hesabın size ait olduğunu kanıtlamak için, oyun içi adınıza bu kodu geçici olarak ekleyin:",
+    "verifyNote": "Örnek: \"{{name}} {{code}}\" — doğrulamadan sonra kaldırabilirsiniz.",
+    "verifyNow": "Adımı Değiştirdim — Doğrula",
+    "checking": "Kontrol ediliyor...",
+    "codeNotFound": "Oyun içi adınızda \"{{code}}\" kodu bulunamadı. Adınızı değiştirin, bir süre bekleyin ve tekrar deneyin.",
+    "verified": "Sahiplik doğrulandı! Hesap eklendi: {{name}} (K{{kingdom}})"
   },
   "transferHub": {
     "heroTitle1": "TRANSFER",
@@ -2533,5 +2563,17 @@
     "getStarted": "Başlayın",
     "ctaTitle": "Krallığınızı organize etmeye hazır mısınız?",
     "ctaDesc": "Krallığınızın Hazırlık Aşaması kaos olmak zorunda değil. Zamanlayıcı onu veriye dayalı, düzenli bir süreçe dönüştürür."
+  },
+  "tos": {
+    "pageTitle": "Kullanım Şartları"
+  },
+  "privacy": {
+    "pageTitle": "Gizlilik Politikası"
+  },
+  "footer": {
+    "trademark": "Kingshot\u2122, Century Games'in ticari markasıdır. Tüm oyun içerikleri ve materyalleri ilgili sahiplerinin ticari markaları ve telif haklarıdır. Kingshot Atlas bağımsız bir hayran projesidir — Century Games ile bağlantılı, onaylanmış, sponsorlu veya onaylanmış değildir.",
+    "about": "Hakkında",
+    "terms": "Şartlar",
+    "privacy": "Gizlilik"
   }
 }

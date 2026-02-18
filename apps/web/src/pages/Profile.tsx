@@ -6,6 +6,7 @@ import SubmissionHistory from '../components/SubmissionHistory';
 import AuthModal from '../components/AuthModal';
 import ProfileFeatures from '../components/ProfileFeatures';
 import LinkKingshotAccount from '../components/LinkKingshotAccount';
+import AccountSwitcher from '../components/AccountSwitcher';
 import LinkDiscordAccount from '../components/LinkDiscordAccount';
 import PlayersFromMyKingdom from '../components/PlayersFromMyKingdom';
 import { logger } from '../utils/logger';
@@ -855,6 +856,19 @@ const Profile: React.FC = () => {
                       showToast(result.error || 'Failed to link account', 'error');
                       return;
                     }
+                    // Sync to player_accounts table
+                    if (supabase) {
+                      supabase.from('player_accounts').upsert({
+                        user_id: user.id,
+                        player_id: playerData.player_id,
+                        username: playerData.username,
+                        avatar_url: playerData.avatar_url,
+                        kingdom: playerData.kingdom,
+                        tc_level: playerData.town_center_level,
+                        is_active: true,
+                        last_synced: new Date().toISOString(),
+                      }, { onConflict: 'player_id' }).then(() => {});
+                    }
                     // Assign Settler role in Discord (fire and forget)
                     discordService.syncSettlerRole(user.id, true).catch(() => {});
                     // Show Welcome to Atlas screen if first time linking
@@ -872,6 +886,13 @@ const Profile: React.FC = () => {
               linkedPlayer={null}
               subscriptionTier={isAdmin ? 'admin' : isSupporter ? 'supporter' : 'free'}
             />
+          </div>
+        )}
+
+        {/* 2b. Account Switcher - show for own profile when linked */}
+        {!isViewingOther && viewedProfile?.linked_username && (
+          <div style={{ marginBottom: '1.5rem' }}>
+            <AccountSwitcher onSwitch={() => window.location.reload()} />
           </div>
         )}
 

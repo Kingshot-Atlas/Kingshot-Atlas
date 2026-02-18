@@ -546,6 +546,7 @@ export function usePrepScheduler() {
   const submitForm = async () => {
     if (!supabase || !user?.id || !scheduleId) return;
     if (!formUsername.trim()) { showToast(t('prepScheduler.toastUsernameRequired', 'Please enter your username.'), 'error'); return; }
+    if (!formAlliance.trim()) { showToast(t('prepScheduler.toastAllianceRequired', 'Please enter your alliance tag.'), 'error'); return; }
     const hasAvail = (!skipMonday && mondayAvail.length > 0) || (!skipTuesday && tuesdayAvail.length > 0) || (!skipThursday && thursdayAvail.length > 0);
     if (!hasAvail && !(skipMonday && skipTuesday && skipThursday)) {
       showToast(t('prepScheduler.toastAvailabilityRequired', 'Please add availability for at least one day, or mark all days as skipped.'), 'error'); return;
@@ -571,6 +572,12 @@ export function usePrepScheduler() {
         if (error) throw error;
       }
       showToast(existingSubmission ? t('prepScheduler.toastSubmissionUpdated', 'Submission updated!') : t('prepScheduler.toastSubmissionReceived', 'Submission received! Your Prep Manager will assign you a slot.'), 'success');
+      // Auto-update profile alliance_tag if it was empty and user provided one
+      if (formAlliance.trim() && profile && !profile.alliance_tag) {
+        try {
+          await supabase.from('profiles').update({ alliance_tag: formAlliance.trim() }).eq('id', user.id);
+        } catch { /* silent — non-critical */ }
+      }
       await fetchSubmissions(scheduleId);
     } catch (err: unknown) { logger.error('Failed to submit:', err); showToast(t('prepScheduler.toastSubmitFailed', 'Failed: {{error}}', { error: err instanceof Error ? err.message : 'Unknown error' }), 'error'); }
     setSaving(false);

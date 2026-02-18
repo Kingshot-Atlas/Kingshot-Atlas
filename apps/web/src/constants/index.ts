@@ -80,8 +80,16 @@ export const KVK_CONFIG = {
   /** Days between KvK cycles */
   CYCLE_DAYS: 28,
   /** Total known kingdoms in the game */
-  TOTAL_KINGDOMS: 1621,
+  TOTAL_KINGDOMS: 1699,
+  /**
+   * Highest kingdom number that participated in CURRENT_KVK.
+   * Kingdoms above this number with no KvK history are treated as "too new"
+   * and excluded from missing-data checks.
+   * UPDATE THIS AFTER EACH KVK alongside CURRENT_KVK.
+   */
+  HIGHEST_KINGDOM_IN_KVK: 1304,
 } as const;
 
-// Convenience export for direct import
+// Convenience exports for direct import
 export const CURRENT_KVK = KVK_CONFIG.CURRENT_KVK;
+export const HIGHEST_KINGDOM_IN_KVK = KVK_CONFIG.HIGHEST_KINGDOM_IN_KVK;

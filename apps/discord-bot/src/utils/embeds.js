@@ -355,11 +355,7 @@ function createHelpEmbed() {
       },
       {
         name: '\ud83c\udf81 Gift Codes',
-        value: [
-          '`/codes` - Show active gift codes',
-          '`/redeem` - Auto-redeem all codes for your linked account',
-          '`/redeem <code>` - Redeem a specific code',
-        ].join('\n'),
+        value: '`/codes` - Show active gift codes (copy & redeem in-game)',
       },
       {
         name: '🔗 Account',
@@ -985,9 +981,9 @@ function createGiftCodesEmbed(codes) {
     embed.setDescription([
       codeLines.join('\n'),
       '',
-      '**How to redeem:**',
-      `🌐 One-click redeem: [ks-atlas.com/tools/gift-codes](${config.urls.base}/tools/gift-codes)`,
-      '📱 In-game: Settings → Gift Code → paste code',
+      '**View all codes:**',
+      `\ud83c\udf10 [ks-atlas.com/gift-codes](${config.urls.base}/gift-codes)`,
+      '\ud83d\udcf1 In-game: Settings \u2192 Gift Code \u2192 paste code',
     ].join('\n'));
 
     // Copy-friendly block
@@ -1013,14 +1009,14 @@ function createNewGiftCodeEmbed(code, customMessage) {
   lines.push(
     `## \`${code.code}\``,
     '',
-    '⚡ Use `/redeem` right here in Discord',
-    `🌐 Or one-click redeem at **[ks-atlas.com/tools/gift-codes](${config.urls.base}/tools/gift-codes)**`,
+    `\ud83c\udf10 View all codes at **[ks-atlas.com/gift-codes](${config.urls.base}/gift-codes)**`,
+    '\u26a1 Use `/codes` in Discord to see active codes',
     '',
-    '*Redeem before it expires!*',
+    '*Copy and redeem in-game before it expires!*',
   );
   return createBaseEmbed()
     .setTitle('🎁 New Gift Code')
-    .setURL(`${config.urls.base}/tools/gift-codes`)
+    .setURL(`${config.urls.base}/gift-codes`)
     .setColor(0x22c55e)
     .setDescription(lines.join('\n'))
     .setFooter({ text: 'Brought to you by Atlas · ks-atlas.com' })

@@ -3,6 +3,43 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-21 | Product Engineer | COMPLETED
+Task: ToS Gift Code Overhaul — Remove auto-redeem, add screenshot disclaimer, create Terms of Service
+Files: 20+ files across web, api, discord-bot
+Changes:
+1. **New GiftCodes.tsx** — Replaced GiftCodeRedeemer with display-only page. Shows active codes with copy buttons, "How to Redeem" in-game instructions. No auto-redeem, no player ID, no alt accounts.
+2. **Removed /redeem & /redeem-all Discord commands** — Deleted command definitions (index.js), handlers (handlers.js ~320 lines removed), API util (redeemGiftCode), bot routing (bot.js). /codes command kept with updated "View on Atlas" button.
+3. **Backend /redeem endpoint deprecated** — Returns deprecation notice instead of proxying to Century Games API. Backwards compatible for stale clients.
+4. **Removed Gift Code Bulk Redeem supporter perk** — Removed from SupportAtlas.tsx perks list.
+5. **Screenshot ownership disclaimer** — Added checkbox to PostKvKSubmission.tsx. Required when screenshots are attached. Confirms user ownership + Century Games copyright acknowledgment.
+6. **Terms of Service page** — New TermsOfService.tsx at /terms. 13 sections covering acceptance, IP, user content, subscriptions, data, prohibited conduct, disclaimers, liability, termination, contact.
+7. **ToS linked in auth + footer** — AuthModal now links "Terms of Service" to /terms. SiteFooter shows "Terms" link.
+8. **Navigation updated** — DesktopNav, MobileMenu, QuickActions, Tools.tsx all renamed from "Gift Code Redeemer" to "Gift Codes" with updated descriptions.
+9. **Discord bot embeds updated** — /help, gift code notification, /codes embed all remove redeem language, point to /gift-codes URL.
+10. **i18n updated** — Replaced giftCodes + giftCodeLanding sections in translation.json. Added kvkSubmit.screenshotDisclaimer, tos, footer.terms keys.
+11. **CenturyGames ToS reference** — Saved to docs/CENTURYGAMES_TOS_REFERENCE.md.
+Dead code: GiftCodeRedeemer.tsx and GiftCodeLanding.tsx no longer imported — safe to delete at commit time.
+
+## 2026-02-21 | Product Engineer | COMPLETED
+Task: Multi-Account & Login Refinement — Undo email magic link + polish AccountSwitcher verification
+Files: `AuthModal.tsx`, `AuthContext.tsx`, `AccountSwitcher.tsx`, 9× `translation.json`
+Changes:
+1. **Removed email magic link login** — Stripped `signInWithMagicLink` from AuthContext interface/implementation/value. Removed email input UI, divider, and magic link sent state from AuthModal. Only Google + Discord OAuth remain.
+2. **Removed magic link i18n keys** — Deleted 7 keys (`or`, `continueWithEmail`, `emailPlaceholder`, `sendLink`, `invalidEmail`, `magicLinkSent`, `magicLinkSentDesc`) from all 9 locale files (EN/ES/FR/DE/ZH/KO/JA/AR/TR).
+3. **AccountSwitcher UX polish** — Added `verifyWhy` explanation ("This prevents players from falsely claiming others' accounts") in verification challenge step. Updated `addHint` to mention upcoming ownership check. Added null-safe fallback for `pendingPlayer.kingdom` and `town_center_level` display.
+4. **Confirmed verification scope** — Verified that name verification challenge is already correctly scoped to additional accounts only (first link via LinkKingshotAccount has no verification). Profile.tsx syncs initial link to `player_accounts` table.
+5. **i18n for new keys** — Translated `verifyWhy` and updated `addHint` to all 9 locales.
+Result: Build passes ✅. Consistency lint: 6 pre-existing warnings (unchanged). No new issues.
+
+## 2026-02-18 10:10 | Atlas Director | COMPLETED
+Task: CenturyGames ToS compliance audit + legal protection quick wins
+Files: `About.tsx`, `SiteFooter.tsx` (rewritten), `App.tsx`, `locales/en/translation.json`
+Changes:
+1. **Strengthened About page disclaimer** — Added explicit Century Games trademark attribution paragraph below existing fan project disclaimer
+2. **Site-wide footer with IP attribution** — Rewrote `SiteFooter.tsx` with trademark notice visible on every page; already imported in App.tsx
+3. **Added i18n keys** — `about.trademarkNotice`, `footer.trademark`, `footer.about` for all new legal text
+Result: Build passes ✅. No features affected. Full risk assessment + action list delivered.
+
 ## 2026-02-17 15:30 | Product Engineer | COMPLETED
 Task: Rally session persistence + EvCard countdown + Rally UTC timestamp
 Files: `useRallyCoordinator.ts`, `BotDashboard.tsx`, `RallySubComponents.tsx`, `RallyCoordinator.tsx`

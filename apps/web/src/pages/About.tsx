@@ -276,8 +276,11 @@ const About: React.FC = () => {
               {' '}{t('about.cosmosCredit', 'for compiling the original KvK History spreadsheet that made this project possible. Community effort at its finest.')}
             </p>
           </div>
-          <p style={{ color: '#6b7280', fontSize: isMobile ? '0.85rem' : '0.9rem', lineHeight: 1.7 }}>
+          <p style={{ color: '#6b7280', fontSize: isMobile ? '0.85rem' : '0.9rem', lineHeight: 1.7, marginBottom: '0.75rem' }}>
             {t('about.disclaimer', 'Kingshot Atlas is an independent fan project. We\'re not affiliated with or endorsed by the developers of Kingshot. We\'re just players who love the game.')}
+          </p>
+          <p style={{ color: '#4b5563', fontSize: isMobile ? '0.75rem' : '0.8rem', lineHeight: 1.6 }}>
+            {t('about.trademarkNotice', 'Kingshot is a trademark of Century Games. All game content and materials are trademarks and copyrights of Century Games and its licensors. Kingshot Atlas is not affiliated with, endorsed, sponsored, or approved by Century Games. All KvK data on this platform is community-sourced and user-submitted.')}
           </p>
         </section>
 

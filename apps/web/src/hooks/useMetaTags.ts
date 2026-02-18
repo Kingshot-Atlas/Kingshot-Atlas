@@ -237,9 +237,9 @@ export const PAGE_META_TAGS = {
     type: 'website'
   },
   giftCodes: {
-    title: 'Kingshot Gift Code Redeemer - One Click Redemption',
-    description: 'Redeem Kingshot gift codes instantly with one click. No copy-pasting — rewards go straight to your in-game mailbox. Free tool by Kingshot Atlas.',
-    url: 'https://ks-atlas.com/tools/gift-codes',
+    title: 'Kingshot Gift Codes - Never Miss Free Rewards',
+    description: 'Every active Kingshot gift code in one place. Copy codes and redeem them in-game — never miss free rewards again. Free tool by Kingshot Atlas.',
+    url: 'https://ks-atlas.com/gift-codes',
     type: 'website'
   },
   transferHubLanding: {

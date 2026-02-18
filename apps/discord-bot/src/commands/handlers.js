@@ -524,7 +524,7 @@ async function handleCodes(interaction) {
     if (!activeCodes || activeCodes.length === 0) {
       const errorEmbed = embeds.createErrorEmbed(
         'No active gift codes found.',
-        'Check back later — new codes are added regularly.\nYou can also redeem codes at [ks-atlas.com/gift-codes](https://ks-atlas.com/gift-codes).'
+        'Check back later — new codes are added regularly.\nYou can also view codes at [ks-atlas.com/gift-codes](https://ks-atlas.com/gift-codes).'
       );
       return interaction.editReply({ embeds: [errorEmbed] });
     }
@@ -533,8 +533,8 @@ async function handleCodes(interaction) {
     const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
-        .setLabel('Redeem on Atlas')
-        .setURL('https://ks-atlas.com/tools/gift-codes')
+        .setLabel('View on Atlas')
+        .setURL('https://ks-atlas.com/gift-codes')
         .setStyle(ButtonStyle.Link)
         .setEmoji('🌐')
     );
@@ -548,327 +548,7 @@ async function handleCodes(interaction) {
   }
 }
 
-/**
- * Non-retryable err_codes — skip these during bulk redemption
- */
-const NON_RETRYABLE_ERR_CODES = [40008, 40007, 40014, 40009, 20000];
 
-/**
- * /redeem [code] — Redeem gift codes for a linked Kingshot account
- * If code is omitted or '__ALL__', redeems all active codes.
- * If a specific code is provided, redeems just that one.
- */
-async function handleRedeem(interaction) {
-  // 30-second cooldown per user
-  const remaining = checkCooldown('redeem', interaction.user.id, 30);
-  if (remaining > 0) {
-    return interaction.reply({
-      content: `\u23f3 Cooldown: try again in **${remaining}s**.`,
-      ephemeral: true,
-    });
-  }
-
-  await interaction.deferReply({ ephemeral: true });
-
-  // Track usage
-  logger.syncToApi('redeem', interaction.guildId || 'DM', interaction.user.id);
-
-  // 1. Look up Atlas profile by Discord ID
-  const profile = await api.lookupUserByDiscordId(interaction.user.id);
-
-  if (!profile) {
-    const embed = embeds.createBaseEmbed()
-      .setTitle('\ud83d\udd17 Account Not Linked')
-      .setDescription(
-        'Your Discord account isn\'t linked to an Atlas profile yet.\n\n' +
-        '**How to link:**\n' +
-        '1. Go to [ks-atlas.com](https://ks-atlas.com) and sign in with Discord\n' +
-        '2. Go to your **Profile** page\n' +
-        '3. Click **Link Kingshot Account** and enter your Player ID\n\n' +
-        'Once linked, come back and use `/redeem` to auto-redeem all active codes!'
-      )
-      .setColor(0xfbbf24);
-    return interaction.editReply({ embeds: [embed] });
-  }
-
-  const playerId = profile.linked_player_id;
-  if (!playerId) {
-    const embed = embeds.createBaseEmbed()
-      .setTitle('\ud83c\udfae Kingshot Account Not Linked')
-      .setDescription(
-        'Your Atlas profile exists, but you haven\'t linked your Kingshot account yet.\n\n' +
-        'Go to [your Atlas profile](https://ks-atlas.com/profile) and click **Link Kingshot Account**.'
-      )
-      .setColor(0xfbbf24);
-    return interaction.editReply({ embeds: [embed] });
-  }
-
-  const playerName = profile.linked_username || profile.username || `Player ${playerId}`;
-
-  // 2. Determine which codes to redeem
-  const selectedCode = interaction.options.getString('code');
-  const redeemAll = !selectedCode || selectedCode === '__ALL__';
-
-  const allCodes = await api.fetchGiftCodes();
-  if (!allCodes || allCodes.length === 0) {
-    const embed = embeds.createBaseEmbed()
-      .setTitle('\ud83c\udf81 No Active Gift Codes')
-      .setDescription('There are no active gift codes right now. Check back later!')
-      .setColor(0x6b7280);
-    return interaction.editReply({ embeds: [embed] });
-  }
-
-  const codesToRedeem = redeemAll
-    ? allCodes
-    : allCodes.filter(c => c.code === selectedCode);
-
-  if (codesToRedeem.length === 0) {
-    const embed = embeds.createBaseEmbed()
-      .setTitle('\ud83c\udf81 Code Not Found')
-      .setDescription(`\`${selectedCode}\` isn't in the active codes list. Use \`/codes\` to see what's available.`)
-      .setColor(0xef4444);
-    return interaction.editReply({ embeds: [embed] });
-  }
-
-  // 3. Redeem sequentially with ~5s delay
-  const startEmbed = embeds.createBaseEmbed()
-    .setTitle('\ud83c\udf81 Redeeming Gift Codes')
-    .setDescription(`Redeeming **${codesToRedeem.length}** code${codesToRedeem.length > 1 ? 's' : ''} for **${playerName}**...\nThis may take a moment.`)
-    .setColor(0x3b82f6);
-
-  await interaction.editReply({ embeds: [startEmbed] });
-
-  const results = [];
-  for (let i = 0; i < codesToRedeem.length; i++) {
-    const code = codesToRedeem[i].code;
-
-    const result = await api.redeemGiftCode(playerId, code);
-    const emoji = result.success ? '\u2705' : '\u274c';
-    let status = result.message || (result.success ? 'Success' : 'Failed');
-
-    // Classify outcome
-    if (result.err_code && NON_RETRYABLE_ERR_CODES.includes(result.err_code)) {
-      if (result.err_code === 40008 || result.err_code === 40014) status = 'Already redeemed';
-      else if (result.err_code === 40007) status = 'Expired';
-      else if (result.err_code === 40009) status = 'Invalid code';
-    }
-
-    results.push(`${emoji} \`${code}\` — ${status}`);
-
-    // Update progress embed every code
-    const progressEmbed = embeds.createBaseEmbed()
-      .setTitle('\ud83c\udf81 Redeeming Gift Codes')
-      .setDescription(`Progress: **${i + 1}/${codesToRedeem.length}** for **${playerName}**`)
-      .addFields({ name: 'Results', value: results.join('\n') })
-      .setColor(0x3b82f6);
-
-    await interaction.editReply({ embeds: [progressEmbed] }).catch(() => {});
-
-    // Wait ~5 seconds between codes (except after last)
-    if (i < codesToRedeem.length - 1) {
-      await new Promise(resolve => setTimeout(resolve, 5000));
-    }
-  }
-
-  // 4. Final summary
-  const successes = results.filter(r => r.startsWith('\u2705')).length;
-  const failures = results.filter(r => r.startsWith('\u274c')).length;
-
-  const finalColor = successes === codesToRedeem.length ? 0x22c55e
-    : successes > 0 ? 0xfbbf24
-    : 0xef4444;
-
-  const timestamp = new Date().toLocaleString('en-US', { timeZone: 'UTC', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-  const finalEmbed = embeds.createBaseEmbed()
-    .setTitle('\ud83c\udf81 Gift Code Redemption Complete')
-    .setDescription(
-      `**${playerName}** — ${successes} succeeded, ${failures} failed\n\n` +
-      results.join('\n')
-    )
-    .setColor(finalColor)
-    .setFooter({ text: `Kingshot Atlas \u2022 Redeemed ${timestamp} UTC` });
-
-  return interaction.editReply({ embeds: [finalEmbed] });
-}
-
-/**
- * /redeem-all — Redeem gift codes for main account + all alt accounts (Supporter perk)
- * Pulls alt_accounts from Supabase profile. Requires Supporter subscription.
- */
-async function handleRedeemAll(interaction) {
-  // 60-second cooldown (longer since this redeems for many accounts)
-  const remaining = checkCooldown('redeem-all', interaction.user.id, 60);
-  if (remaining > 0) {
-    return interaction.reply({
-      content: `\u23f3 Cooldown: try again in **${remaining}s**.`,
-      ephemeral: true,
-    });
-  }
-
-  await interaction.deferReply({ ephemeral: true });
-
-  // 1. Look up Atlas profile by Discord ID (now includes alt_accounts + subscription_tier)
-  const profile = await api.lookupUserByDiscordId(interaction.user.id);
-
-  if (!profile) {
-    const embed = embeds.createBaseEmbed()
-      .setTitle('\ud83d\udd17 Account Not Linked')
-      .setDescription(
-        'Your Discord account isn\'t linked to an Atlas profile yet.\n\n' +
-        '**How to link:**\n' +
-        '1. Go to [ks-atlas.com](https://ks-atlas.com) and sign in with Discord\n' +
-        '2. Go to your **Profile** page\n' +
-        '3. Click **Link Kingshot Account** and enter your Player ID\n\n' +
-        'Once linked, use `/redeem-all` to redeem codes for all your accounts!'
-      )
-      .setColor(0xfbbf24);
-    return interaction.editReply({ embeds: [embed] });
-  }
-
-  // 2. Check Supporter status
-  const tier = profile.subscription_tier || 'free';
-  if (tier === 'free') {
-    const embed = embeds.createBaseEmbed()
-      .setTitle('\u2b50 Supporter Feature')
-      .setDescription(
-        '`/redeem-all` redeems codes for your **main account + all alt accounts** in one command.\n\n' +
-        'This is an **Atlas Supporter** perk.\n' +
-        'Upgrade at [ks-atlas.com/support](https://ks-atlas.com/support) to unlock it!\n\n' +
-        '*Tip: You can still use `/redeem` for your main account for free.*'
-      )
-      .setColor(0xf59e0b);
-    return interaction.editReply({ embeds: [embed] });
-  }
-
-  const mainPlayerId = profile.linked_player_id;
-  if (!mainPlayerId) {
-    const embed = embeds.createBaseEmbed()
-      .setTitle('\ud83c\udfae Kingshot Account Not Linked')
-      .setDescription(
-        'Your Atlas profile exists, but you haven\'t linked your Kingshot account yet.\n\n' +
-        'Go to [your Atlas profile](https://ks-atlas.com/profile) and click **Link Kingshot Account**.'
-      )
-      .setColor(0xfbbf24);
-    return interaction.editReply({ embeds: [embed] });
-  }
-
-  // 3. Build account list: main + alts
-  const altAccounts = Array.isArray(profile.alt_accounts) ? profile.alt_accounts : [];
-  const mainName = profile.linked_username || profile.username || `Player ${mainPlayerId}`;
-  const accounts = [
-    { player_id: mainPlayerId, label: mainName },
-    ...altAccounts.map(a => ({ player_id: a.player_id, label: a.label || `Alt ${a.player_id}` })),
-  ];
-
-  // 4. Determine which codes to redeem
-  const selectedCode = interaction.options.getString('code');
-  const redeemAll = !selectedCode || selectedCode === '__ALL__';
-
-  const allCodes = await api.fetchGiftCodes();
-  if (!allCodes || allCodes.length === 0) {
-    const embed = embeds.createBaseEmbed()
-      .setTitle('\ud83c\udf81 No Active Gift Codes')
-      .setDescription('There are no active gift codes right now. Check back later!')
-      .setColor(0x6b7280);
-    return interaction.editReply({ embeds: [embed] });
-  }
-
-  const codesToRedeem = redeemAll
-    ? allCodes
-    : allCodes.filter(c => c.code === selectedCode);
-
-  if (codesToRedeem.length === 0) {
-    const embed = embeds.createBaseEmbed()
-      .setTitle('\ud83c\udf81 Code Not Found')
-      .setDescription(`\`${selectedCode}\` isn't in the active codes list. Use \`/codes\` to see what's available.`)
-      .setColor(0xef4444);
-    return interaction.editReply({ embeds: [embed] });
-  }
-
-  // 5. Redeem for each account
-  const totalOps = accounts.length * codesToRedeem.length;
-  const startEmbed = embeds.createBaseEmbed()
-    .setTitle('\ud83c\udf81 Bulk Redemption Started')
-    .setDescription(
-      `Redeeming **${codesToRedeem.length}** code${codesToRedeem.length > 1 ? 's' : ''} for **${accounts.length}** account${accounts.length > 1 ? 's' : ''}...\n` +
-      `Total operations: **${totalOps}** — this may take a moment.`
-    )
-    .setColor(0x3b82f6);
-  await interaction.editReply({ embeds: [startEmbed] });
-
-  const accountResults = [];
-  let completedOps = 0;
-
-  for (const account of accounts) {
-    const results = [];
-    for (let i = 0; i < codesToRedeem.length; i++) {
-      const code = codesToRedeem[i].code;
-      const result = await api.redeemGiftCode(account.player_id, code);
-      const emoji = result.success ? '\u2705' : '\u274c';
-      let status = result.message || (result.success ? 'Success' : 'Failed');
-      if (result.err_code && NON_RETRYABLE_ERR_CODES.includes(result.err_code)) {
-        if (result.err_code === 40008 || result.err_code === 40014) status = 'Already redeemed';
-        else if (result.err_code === 40007) status = 'Expired';
-        else if (result.err_code === 40009) status = 'Invalid code';
-      }
-      results.push({ emoji, code, status });
-      completedOps++;
-
-      // Update progress every 3 operations to avoid rate limiting
-      if (completedOps % 3 === 0 || completedOps === totalOps) {
-        const progressEmbed = embeds.createBaseEmbed()
-          .setTitle('\ud83c\udf81 Bulk Redemption In Progress')
-          .setDescription(`Progress: **${completedOps}/${totalOps}** — currently: **${account.label}**`)
-          .setColor(0x3b82f6);
-        await interaction.editReply({ embeds: [progressEmbed] }).catch(() => {});
-      }
-
-      // 5s delay between codes
-      if (i < codesToRedeem.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 5000));
-      }
-    }
-    const successes = results.filter(r => r.emoji === '\u2705').length;
-    accountResults.push({ label: account.label, playerId: account.player_id, results, successes });
-
-    // 3s delay between accounts
-    if (accounts.indexOf(account) < accounts.length - 1) {
-      await new Promise(resolve => setTimeout(resolve, 3000));
-    }
-  }
-
-  // 6. Final summary
-  const totalSuccesses = accountResults.reduce((sum, a) => sum + a.successes, 0);
-  const totalFailures = completedOps - totalSuccesses;
-  const finalColor = totalSuccesses === totalOps ? 0x22c55e
-    : totalSuccesses > 0 ? 0xfbbf24
-    : 0xef4444;
-
-  const summaryLines = accountResults.map(a => {
-    const icon = a.successes === codesToRedeem.length ? '\u2705' : a.successes > 0 ? '\u26a0\ufe0f' : '\u274c';
-    const details = a.results.map(r => `  ${r.emoji} \`${r.code}\` — ${r.status}`).join('\n');
-    return `${icon} **${a.label}** (${a.successes}/${codesToRedeem.length})\n${details}`;
-  });
-
-  // Discord embed description limit is 4096 chars — truncate if needed
-  let description = `**${totalSuccesses}** succeeded, **${totalFailures}** failed across **${accounts.length}** accounts\n\n` + summaryLines.join('\n\n');
-  if (description.length > 4000) {
-    const shortSummary = accountResults.map(a => {
-      const icon = a.successes === codesToRedeem.length ? '\u2705' : a.successes > 0 ? '\u26a0\ufe0f' : '\u274c';
-      return `${icon} **${a.label}** — ${a.successes}/${codesToRedeem.length} succeeded`;
-    }).join('\n');
-    description = `**${totalSuccesses}** succeeded, **${totalFailures}** failed across **${accounts.length}** accounts\n\n` + shortSummary;
-  }
-
-  const timestamp = new Date().toLocaleString('en-US', { timeZone: 'UTC', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-  const finalEmbed = embeds.createBaseEmbed()
-    .setTitle('\ud83c\udf81 Bulk Redemption Complete')
-    .setDescription(description)
-    .setColor(finalColor)
-    .setFooter({ text: `Kingshot Atlas \u2022 Redeemed ${timestamp} UTC` });
-
-  return interaction.editReply({ embeds: [finalEmbed] });
-}
 
 /**
  * /link — Guide users to link their Discord account to their Atlas profile.
@@ -890,8 +570,7 @@ async function handleLink(interaction) {
       .setDescription(
         `Your Discord is linked to **${playerName}** (ID: \`${profile.linked_player_id}\`).\n\n` +
         '**What you can do:**\n' +
-        '• `/redeem` — Redeem gift codes for your account\n' +
-        '• `/redeem-all` — Redeem for all alt accounts (Supporter)\n' +
+        '• `/codes` — View active gift codes\n' +
         '• Settler role is auto-assigned on next sync\n\n' +
         'To change your linked account, visit [your Atlas profile](https://ks-atlas.com/profile).'
       )
@@ -908,7 +587,7 @@ async function handleLink(interaction) {
         '1. Go to [your Atlas profile](https://ks-atlas.com/profile)\n' +
         '2. Click **Link Kingshot Account**\n' +
         '3. Enter your Player ID (found in-game under Settings > Account)\n\n' +
-        'Once linked, you\'ll unlock `/redeem`, the Settler role, and cloud-synced alt accounts.'
+        'Once linked, you\'ll unlock the Settler role and cloud-synced alt accounts.'
       )
       .setColor(0xfbbf24);
 
@@ -930,9 +609,8 @@ async function handleLink(interaction) {
       'Connect your Discord to Atlas to unlock powerful features:\n\n' +
       '**What you get:**\n' +
       '• 🎖️ **Settler role** — automatic Discord role\n' +
-      '• 🎁 **`/redeem`** — one-click gift code redemption\n' +
-      '• ☁️ **Cloud sync** — alt accounts saved across devices\n' +
-      '• ⚔️ **`/redeem-all`** — bulk redeem for all accounts (Supporter)\n\n' +
+      '• 🎁 **`/codes`** — view active gift codes\n' +
+      '• ☁️ **Cloud sync** — alt accounts saved across devices\n\n' +
       '**How to link (takes 30 seconds):**\n' +
       '1. Go to [ks-atlas.com](https://ks-atlas.com) and **Sign in with Discord**\n' +
       '2. Go to your **Profile** page\n' +
@@ -965,7 +643,5 @@ module.exports = {
   handlePredict,
   handleMultirally,
   handleCodes,
-  handleRedeem,
-  handleRedeemAll,
   handleLink,
 };

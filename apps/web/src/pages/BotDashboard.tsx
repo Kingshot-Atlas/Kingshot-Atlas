@@ -882,8 +882,8 @@ const BotDashboard: React.FC = () => {
           channel_id: channelId,
           embed: {
             title: '🎁 New Gift Code!',
-            url: 'https://ks-atlas.com/tools/gift-codes',
-            description: `${msg}\n\nNew gift code released: \`TESTCODE123\`\n\n[Redeem with 1 click in Atlas!](https://ks-atlas.com/tools/gift-codes)\n\n*This is a test — not a real code.*`,
+            url: 'https://ks-atlas.com/gift-codes',
+            description: `${msg}\n\nNew gift code released: \`TESTCODE123\`\n\n[View codes on Atlas](https://ks-atlas.com/gift-codes)\n\n*This is a test — not a real code.*`,
             color: 0x22c55e,
             footer: { text: 'Brought to you by Atlas · ks-atlas.com' },
           },

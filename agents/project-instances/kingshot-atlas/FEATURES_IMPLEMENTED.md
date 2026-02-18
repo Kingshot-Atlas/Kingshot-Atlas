@@ -64,7 +64,7 @@
 | Feature | Status | Agent | Notes |
 |---------|--------|-------|-------|
 | User Authentication | ✅ Live | Platform | Supabase auth via `AuthContext.tsx` |
-| Auth Modal | ✅ Live | Product | `AuthModal.tsx` login/signup flow |
+| Auth Modal | ✅ Live | Product | `AuthModal.tsx` login/signup flow. Google + Discord OAuth only (email magic link removed 2026-02-21 to prevent spam accounts). |
 | User Profiles | ✅ Live | Product | Settings, preferences, linked accounts |
 | Kingshot Player Linking | ✅ Live | Product | `LinkKingshotAccount.tsx` - link to in-game ID |
 | Player ID Uniqueness Constraint | ✅ Live | Platform | UNIQUE constraint on `profiles.linked_player_id`. Two-layer defense: frontend pre-check + DB constraint. Error handling in AuthContext + Profile.tsx (2026-02-09) |
@@ -89,6 +89,8 @@
 | Click-to-Link Flow | ✅ Live | Product | Avatar/username click scrolls to Link Kingshot section (2026-02-02) |
 | My Profile Layout Redesign | ✅ Live | Product | Centered avatar/username matching Public Profile, 2x3 info grid (2026-02-02) |
 | Profile Action Buttons | ✅ Live | Product | Edit Profile + Link/Unlink buttons in top-right corner (2026-02-02) |
+| Multi-Account Switcher | ✅ Live | Product | `AccountSwitcher.tsx` — manage multiple linked Kingshot accounts. Switch active account, add/remove accounts. Name verification challenge for additional accounts only (not first link) to prevent false ID claiming. `player_accounts` Supabase table with RLS. 18 i18n keys × 9 languages. (2026-02-21) |
+| Email Magic Link Login | ❌ Removed | Product | Removed 2026-02-21 to prevent spam accounts. `signInWithMagicLink` stripped from AuthContext + AuthModal. 7 i18n keys removed from all 9 locales. Only Google + Discord OAuth remain. |
 
 ---
 

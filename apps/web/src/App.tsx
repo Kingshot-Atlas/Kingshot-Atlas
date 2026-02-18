@@ -10,6 +10,7 @@ import { ToastProvider } from './components/Toast';
 import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
 import FeedbackWidget from './components/FeedbackWidget';
 import SignupNudgeBar from './components/SignupNudgeBar';
+import SiteFooter from './components/SiteFooter';
 import CampaignNotificationBanner from './components/CampaignNotificationBanner';
 import KvKPhaseBanner from './components/KvKPhaseBanner';
 import { useKeyboardShortcuts, useKeyboardHelp } from './hooks/useKeyboardShortcuts';
@@ -44,8 +45,7 @@ const AtlasBot = lazy(() => import('./pages/AtlasBot'));
 const Ambassadors = lazy(() => import('./pages/Ambassadors'));
 const RallyCoordinator = lazy(() => import('./pages/RallyCoordinator'));
 const BattlePlannerLanding = lazy(() => import('./pages/BattlePlannerLanding'));
-const GiftCodeRedeemer = lazy(() => import('./pages/GiftCodeRedeemer'));
-const GiftCodeLanding = lazy(() => import('./pages/GiftCodeLanding'));
+const GiftCodes = lazy(() => import('./pages/GiftCodes'));
 const TransferHubLanding = lazy(() => import('./pages/TransferHubLanding'));
 const AuthCallback = lazy(() => import('./pages/AuthCallback'));
 const CancelSurvey = lazy(() => import('./pages/CancelSurvey'));
@@ -53,6 +53,8 @@ const KingdomCommunities = lazy(() => import('./pages/KingdomCommunities'));
 const PrepScheduler = lazy(() => import('./pages/PrepScheduler'));
 const PrepSchedulerLanding = lazy(() => import('./pages/PrepSchedulerLanding'));
 const BotDashboard = lazy(() => import('./pages/BotDashboard'));
+const TermsOfService = lazy(() => import('./pages/TermsOfService'));
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -145,9 +147,9 @@ function AppContent() {
               <Route path="/ambassadors" element={<ErrorBoundary><Ambassadors /></ErrorBoundary>} />
               <Route path="/tools/battle-planner" element={<ErrorBoundary><BattlePlannerLanding /></ErrorBoundary>} />
               <Route path="/tools/kvk-battle-planner" element={<ErrorBoundary><RallyCoordinator /></ErrorBoundary>} />
-              <Route path="/gift-codes" element={<ErrorBoundary><GiftCodeLanding /></ErrorBoundary>} />
+              <Route path="/gift-codes" element={<ErrorBoundary><GiftCodes /></ErrorBoundary>} />
+              <Route path="/tools/gift-codes" element={<ErrorBoundary><GiftCodes /></ErrorBoundary>} /> {/* Legacy redirect */}
               <Route path="/transfer-hub/about" element={<ErrorBoundary><TransferHubLanding /></ErrorBoundary>} />
-              <Route path="/tools/gift-codes" element={<ErrorBoundary><GiftCodeRedeemer /></ErrorBoundary>} />
               <Route path="/auth/callback" element={<ErrorBoundary><AuthCallback /></ErrorBoundary>} />
               <Route path="/cancel-survey" element={<ErrorBoundary><CancelSurvey /></ErrorBoundary>} />
               <Route path="/kingdoms/communities" element={<ErrorBoundary><KingdomCommunities /></ErrorBoundary>} />
@@ -155,10 +157,13 @@ function AppContent() {
               <Route path="/tools/prep-scheduler" element={<ErrorBoundary><PrepScheduler /></ErrorBoundary>} />
               <Route path="/tools/prep-scheduler/:scheduleId" element={<ErrorBoundary><PrepScheduler /></ErrorBoundary>} />
               <Route path="/atlas-bot/dashboard" element={<ErrorBoundary><BotDashboard /></ErrorBoundary>} />
+              <Route path="/terms" element={<ErrorBoundary><TermsOfService /></ErrorBoundary>} />
+              <Route path="/privacy" element={<ErrorBoundary><PrivacyPolicy /></ErrorBoundary>} />
             </Routes>
           </Suspense>
         </PageTransition>
       </main>
+      <SiteFooter />
       <FeedbackWidget />
       <SignupNudgeBar />
     </div>

@@ -42,9 +42,9 @@ async def notify_discord_new_gift_code(code: str):
             "title": "\U0001f381 New Gift Code",
             "description": (
                 f"## `{code}`\n\n"
-                "\u26a1 Use `/redeem` right here in Discord\n"
-                "\U0001f310 Or one-click redeem at **[ks-atlas.com/tools/gift-codes](https://ks-atlas.com/tools/gift-codes)**\n\n"
-                "*Redeem before it expires!*"
+                "\U0001f310 View all codes at **[ks-atlas.com/gift-codes](https://ks-atlas.com/gift-codes)**\n"
+                "\u26a1 Use `/codes` in Discord to see active codes\n\n"
+                "*Copy and redeem in-game before it expires!*"
             ),
             "color": 0xf59e0b,
             "footer": {"text": "Kingshot Atlas \u2022 ks-atlas.com"},
@@ -287,114 +287,22 @@ GIFT_CODE_MESSAGES = {
 @router.post(
     "/redeem",
     response_model=GiftCodeRedeemResponse,
-    summary="Redeem a Gift Code",
-    description="Redeem a Kingshot gift code for a linked player account. Rate limited to prevent abuse."
+    summary="[DEPRECATED] Redeem a Gift Code",
+    description="This endpoint has been deprecated. Please redeem gift codes in-game via Settings → Gift Code.",
+    deprecated=True,
 )
-@limiter.limit("30/minute")
 async def redeem_gift_code(request: Request, body: GiftCodeRedeemRequest):
     """
-    Proxy gift code redemption through Century Games API.
-    
-    Rate limited to 30 redemptions per minute per IP to support bulk
-    operations across multiple alt accounts (up to 10 alts × N codes).
-    This is a convenience proxy — the user's game client would do the same thing.
+    DEPRECATED: Auto-redeem functionality has been removed.
+    Users should redeem codes in-game via Settings → Gift Code.
+    This endpoint returns a deprecation notice for backwards compatibility.
     """
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        try:
-            # Step 1: "Login" the player — Century Games requires a /player
-            # call in the same session before gift_code will work.
-            # Without this, the API returns "NOT LOGIN".
-            login_ts = str(int(time.time() * 1000))
-            login_params = {"fid": body.player_id, "time": login_ts}
-            login_params["sign"] = generate_signature({"fid": body.player_id, "time": login_ts})
-            await client.post(
-                f"{KINGSHOT_API_BASE}/player",
-                data=login_params,
-                headers={
-                    "Content-Type": "application/x-www-form-urlencoded",
-                    "Accept": "application/json",
-                }
-            )
-
-            # Step 2: Redeem the gift code (same session, cookies carry over)
-            timestamp = str(int(time.time() * 1000))
-            params = {"fid": body.player_id, "cdk": body.code, "time": timestamp}
-            params["sign"] = generate_signature({"fid": body.player_id, "cdk": body.code, "time": timestamp})
-            response = await client.post(
-                f"{KINGSHOT_API_BASE}/gift_code",
-                data=params,
-                headers={
-                    "Content-Type": "application/x-www-form-urlencoded",
-                    "Accept": "application/json",
-                }
-            )
-            data = response.json()
-            err_code = data.get("err_code", data.get("code", -1))
-            
-            # Map known error codes to messages
-            if err_code in GIFT_CODE_MESSAGES:
-                message, success = GIFT_CODE_MESSAGES[err_code]
-            elif err_code == 0 or data.get("msg") == "success":
-                message, success = GIFT_CODE_MESSAGES[20000]
-            else:
-                raw_msg = data.get("msg", "Unknown error occurred.")
-                # Map common unmapped Century Games messages to friendly text
-                msg_upper = raw_msg.upper().strip()
-                if msg_upper in ("NOT LOGIN", "NOT_LOGIN", "NOTLOGIN"):
-                    message = "Player not found or hasn't logged in recently. Please open the game first, then try again."
-                elif "TIMEOUT" in msg_upper or "TIME OUT" in msg_upper:
-                    message = "Century Games server timed out. Try again in a moment."
-                else:
-                    message = raw_msg
-                success = False
-            
-            # Fire-and-forget analytics logging
-            try:
-                client_ip = get_remote_address(request)
-                # Extract user_id from Authorization header if present
-                auth_header = request.headers.get("authorization", "")
-                req_user_id = request.headers.get("x-user-id") if auth_header.startswith("Bearer ") else None
-                log_gift_code_redemption(
-                    player_id=body.player_id,
-                    code=body.code,
-                    success=success,
-                    error_code=err_code if not success else None,
-                    message=message,
-                    user_id=req_user_id,
-                    ip_address=client_ip,
-                )
-            except Exception:
-                pass  # Never block on analytics
-            
-            # Auto-deactivate expired codes in DB
-            if err_code == 40007:
-                try:
-                    mark_gift_code_expired(body.code)
-                except Exception:
-                    pass
-
-            return GiftCodeRedeemResponse(
-                success=success,
-                message=message,
-                code=body.code,
-                err_code=err_code if not success else None
-            )
-            
-        except httpx.TimeoutException:
-            raise HTTPException(
-                status_code=504,
-                detail={"error": "Century Games API timeout", "code": "UPSTREAM_TIMEOUT"}
-            )
-        except httpx.HTTPStatusError as e:
-            if e.response.status_code == 429:
-                raise HTTPException(
-                    status_code=429,
-                    detail={"error": "Rate limited by Century Games. Try again in 30 seconds.", "code": "RATE_LIMITED"}
-                )
-            raise HTTPException(
-                status_code=502,
-                detail={"error": "Century Games API error", "code": "UPSTREAM_ERROR"}
-            )
+    return GiftCodeRedeemResponse(
+        success=False,
+        message="Auto-redeem has been removed. Please redeem codes in-game: Settings → Gift Code. View active codes at ks-atlas.com/gift-codes",
+        code=body.code,
+        err_code=None,
+    )
 
 
 @router.get(

@@ -239,27 +239,6 @@ async function fetchGiftCodes() {
 }
 
 /**
- * Redeem a single gift code for a player via backend proxy
- */
-async function redeemGiftCode(playerId, code) {
-  try {
-    const res = await fetchWithTimeout(`${config.apiUrl}/api/v1/player-link/redeem`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ player_id: playerId, code }),
-    }, 30000);
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      return { success: false, message: errData.detail?.error || `HTTP ${res.status}`, err_code: null };
-    }
-    return await res.json();
-  } catch (e) {
-    console.error(`[API] redeemGiftCode error (${code}):`, e.message);
-    return { success: false, message: e.message, err_code: null };
-  }
-}
-
-/**
  * Look up an Atlas user profile by Discord ID
  */
 async function lookupUserByDiscordId(discordId) {
@@ -284,6 +263,5 @@ module.exports = {
   checkMultirallyCredits,
   incrementMultirallyCredits,
   fetchGiftCodes,
-  redeemGiftCode,
   lookupUserByDiscordId,
 };

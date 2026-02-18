@@ -314,9 +314,9 @@ const Tools: React.FC = () => {
       accentColor: '#5865F2'
     },
     {
-      title: t('tools.giftTitle', 'Gift Code Redeemer'),
-      description: t('tools.giftDesc', 'Redeem gift codes with one click. No copy-pasting. Rewards go straight to your mailbox.'),
-      tagline: t('tools.giftTagline', 'Stop typing. Start claiming.'),
+      title: t('tools.giftTitle', 'Gift Codes'),
+      description: t('tools.giftDesc', 'Every active Kingshot gift code in one place. Copy codes and redeem them in-game — never miss free rewards again.'),
+      tagline: t('tools.giftTagline', 'Never miss a code. Ever.'),
       usageStat: giftCodeCount ? `${giftCodeCount} active codes` : undefined,
       icon: (
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
