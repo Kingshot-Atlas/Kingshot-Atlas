@@ -72,6 +72,21 @@ async function getConfig(messageId) {
 }
 
 /**
+ * Resolve the emoji string from a reaction event.
+ * - Unicode emojis: reaction.emoji.id is null → use toString() to get the character (e.g. '😀')
+ * - Custom emojis: reaction.emoji.id is set → use '<:name:id>' format
+ */
+function resolveEmoji(reactionEmoji) {
+  if (reactionEmoji.id) {
+    // Custom emoji: <:name:id> or <a:name:id> for animated
+    const animated = reactionEmoji.animated ? 'a' : '';
+    return `<${animated}:${reactionEmoji.name}:${reactionEmoji.id}>`;
+  }
+  // Unicode emoji: toString() returns the actual character
+  return reactionEmoji.toString();
+}
+
+/**
  * Find the role_id for a given emoji in the config
  */
 function findRoleForEmoji(config, emoji) {
@@ -98,9 +113,12 @@ async function handleReactionAdd(reaction, user, client) {
   const config = await getConfig(messageId);
   if (!config) return;
 
-  const emoji = reaction.emoji.name;
+  const emoji = resolveEmoji(reaction.emoji);
   const roleId = findRoleForEmoji(config, emoji);
-  if (!roleId) return;
+  if (!roleId) {
+    logger.debug?.(`reactionRoles: no mapping for emoji ${emoji} on message ${messageId}`);
+    return;
+  }
 
   try {
     const guild = client.guilds.cache.get(config.guild_id) || await client.guilds.fetch(config.guild_id);
@@ -128,7 +146,7 @@ async function handleReactionRemove(reaction, user, client) {
   const config = await getConfig(messageId);
   if (!config) return;
 
-  const emoji = reaction.emoji.name;
+  const emoji = resolveEmoji(reaction.emoji);
   const roleId = findRoleForEmoji(config, emoji);
   if (!roleId) return;
 

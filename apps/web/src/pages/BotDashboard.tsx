@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
@@ -233,6 +234,7 @@ const RoleAssignerCard: React.FC<{
 
 const BotDashboard: React.FC = () => {
   useDocumentTitle('Bot Dashboard — Atlas');
+  const { t } = useTranslation();
   const { user, profile } = useAuth();
   const mob = useIsMobile();
   const { isSupporter, isAdmin } = usePremium();
@@ -961,17 +963,21 @@ const BotDashboard: React.FC = () => {
               </button>
             </div>
 
-            {/* Setup Instructions */}
+            {/* Requirements Checklist */}
             <div style={{ backgroundColor: '#a855f708', borderRadius: 12, border: '1px solid #a855f720', padding: mob ? '0.85rem' : '1rem 1.25rem', marginBottom: '1rem' }}>
-              <div style={{ color: '#a855f7', fontSize: '0.8rem', fontWeight: 700, marginBottom: '0.5rem' }}>📋 Setup Guide</div>
-              <div style={{ color: colors.textMuted, fontSize: '0.72rem', lineHeight: 1.6 }}>
-                <div style={{ marginBottom: '0.3rem' }}><strong style={{ color: colors.text }}>1.</strong> Create a role assigner below and pick a channel.</div>
-                <div style={{ marginBottom: '0.3rem' }}><strong style={{ color: colors.text }}>2.</strong> Customize the title, message, and add emoji → role mappings.</div>
-                <div style={{ marginBottom: '0.3rem' }}><strong style={{ color: colors.text }}>3.</strong> Click <strong style={{ color: '#a855f7' }}>Deploy</strong> — Atlas Bot will post the message and add reactions.</div>
-                <div style={{ marginBottom: '0.3rem' }}><strong style={{ color: colors.text }}>4.</strong> When users react, they get the role. When they remove the reaction, the role is removed.</div>
-                <div style={{ marginTop: '0.5rem', padding: '0.4rem 0.6rem', backgroundColor: '#f59e0b10', border: '1px solid #f59e0b25', borderRadius: 6 }}>
-                  <span style={{ color: '#f59e0b', fontSize: '0.68rem' }}>⚠️ <strong>Important:</strong> Atlas Bot's role must be <em>above</em> the roles it assigns in Server Settings → Roles. Otherwise Discord will block the assignment.</span>
-                </div>
+              <div style={{ color: '#a855f7', fontSize: '0.8rem', fontWeight: 700, marginBottom: '0.5rem' }}>{t('botDashboard.requirementsTitle', '✅ Requirements')}</div>
+              <div style={{ color: colors.textMuted, fontSize: '0.72rem', lineHeight: 1.7, marginBottom: '0.6rem' }}>
+                <div style={{ marginBottom: '0.25rem' }}><strong style={{ color: colors.text }}>1.</strong> {t('botDashboard.reqBotInServer', 'Atlas Bot must be in your Discord server.')}</div>
+                <div style={{ marginBottom: '0.25rem' }}><strong style={{ color: colors.text }}>2.</strong> {t('botDashboard.reqBotRoleAbove', 'Atlas Bot\'s role must be above the roles it assigns.')} <span style={{ color: colors.textMuted }}>{t('botDashboard.reqBotRoleAboveHint', '(Server Settings → Roles → drag Atlas Bot higher)')}</span></div>
+                <div style={{ marginBottom: '0.25rem' }}><strong style={{ color: colors.text }}>3.</strong> {t('botDashboard.reqManageRoles', 'Atlas Bot needs the "Manage Roles" permission.')}</div>
+                <div style={{ marginBottom: '0.25rem' }}><strong style={{ color: colors.text }}>4.</strong> {t('botDashboard.reqAddReactions', 'Atlas Bot needs the "Add Reactions" permission in the target channel.')}</div>
+              </div>
+              <div style={{ color: '#a855f7', fontSize: '0.8rem', fontWeight: 700, marginBottom: '0.5rem' }}>📋 {t('botDashboard.setupGuide', 'Setup Guide')}</div>
+              <div style={{ color: colors.textMuted, fontSize: '0.72rem', lineHeight: 1.7 }}>
+                <div style={{ marginBottom: '0.25rem' }}><strong style={{ color: colors.text }}>1.</strong> {t('botDashboard.setupStep1')}</div>
+                <div style={{ marginBottom: '0.25rem' }}><strong style={{ color: colors.text }}>2.</strong> {t('botDashboard.setupStep2')}</div>
+                <div style={{ marginBottom: '0.25rem' }}><strong style={{ color: colors.text }}>3.</strong> {t('botDashboard.setupStep3', { deploy: t('botDashboard.setupStep3Deploy') })}</div>
+                <div style={{ marginBottom: '0.25rem' }}><strong style={{ color: colors.text }}>4.</strong> {t('botDashboard.setupStep4')}</div>
               </div>
             </div>
 

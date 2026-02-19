@@ -10,6 +10,7 @@
     "webhook:test": "node src/webhook-test.js"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.39.3",
     "discord.js": "^14.14.1",
     "dotenv": "^16.3.1",
     "node-cron": "^3.0.3",
