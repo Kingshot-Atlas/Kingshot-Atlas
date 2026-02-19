@@ -6,72 +6,13 @@ import { colors } from '../../utils/styles';
 import { logger } from '../../utils/logger';
 import { downloadCSV } from '../../utils/csvExport';
 import SupporterBadge from '../SupporterBadge';
+import {
+  type Expense, type RevenueData, type ChurnAlert, type FinanceSection,
+  SECTIONS, EXPENSE_CATEGORIES, getCategoryConfig, getNextRecurringDate,
+  inputStyle, actionBtnStyle,
+} from './FinanceTabHelpers';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
-
-// ─── Types ───────────────────────────────────────────────────────────────────
-
-interface FinanceSection {
-  id: 'revenue' | 'expenses' | 'pnl' | 'subscribers';
-  label: string;
-  icon: string;
-}
-
-interface Expense {
-  id: string;
-  category: string;
-  vendor: string;
-  description: string;
-  amount: number;
-  currency: string;
-  date: string;
-  is_recurring: boolean;
-  recurring_interval: string | null;
-  recurring_next_date: string | null;
-  receipt_url: string | null;
-  notes: string | null;
-  created_at: string;
-}
-
-interface RevenueData {
-  mrr: number;
-  total: number;
-  activeSubscriptions: number;
-  subscriptions: { tier: string; count: number }[];
-  recentPayments: { amount: number; currency: string; date: string; customer_email?: string }[];
-  recentSubscribers: { username: string; tier: string; created_at: string }[];
-  stripeBalance: { available: number; pending: number };
-}
-
-interface ChurnAlert {
-  event_id: string;
-  customer_id: string;
-  canceled_at: string;
-  reason: string;
-}
-
-// ─── Constants ───────────────────────────────────────────────────────────────
-
-const SECTIONS: FinanceSection[] = [
-  { id: 'revenue', label: 'Revenue', icon: '💰' },
-  { id: 'expenses', label: 'Expenses', icon: '📤' },
-  { id: 'pnl', label: 'P&L', icon: '📊' },
-  { id: 'subscribers', label: 'Subscribers', icon: '👥' },
-];
-
-const EXPENSE_CATEGORIES: { value: string; label: string; icon: string; color: string }[] = [
-  { value: 'hosting', label: 'Hosting', icon: '🖥️', color: '#3b82f6' },
-  { value: 'domain', label: 'Domain', icon: '🌐', color: '#8b5cf6' },
-  { value: 'database', label: 'Database', icon: '🗄️', color: '#22c55e' },
-  { value: 'marketing', label: 'Marketing', icon: '📢', color: '#f97316' },
-  { value: 'tools', label: 'Tools & SaaS', icon: '🔧', color: '#eab308' },
-  { value: 'api', label: 'API Services', icon: '🔌', color: '#06b6d4' },
-  { value: 'design', label: 'Design', icon: '🎨', color: '#ec4899' },
-  { value: 'other', label: 'Other', icon: '📦', color: '#6b7280' },
-];
-
-const getCategoryConfig = (cat: string) =>
-  EXPENSE_CATEGORIES.find(c => c.value === cat) || EXPENSE_CATEGORIES[EXPENSE_CATEGORIES.length - 1]!;
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
@@ -1062,6 +1003,187 @@ export const FinanceTab: React.FC<FinanceTabProps> = ({
     </div>
   );
 
+  // ─── KvK #11 Promo Section ─────────────────────────────────────────────
+
+  // Promo date constants — promo started Feb 19, ends Feb 28 22:00 UTC
+  const PROMO_START = '2026-02-19T00:00:00Z';
+  const PROMO_END = '2026-02-28T22:00:00Z';
+  const promoActive = Date.now() < new Date(PROMO_END).getTime();
+
+  const [promoData, setPromoData] = useState<{
+    fundedKingdoms: { kingdom_number: number; tier: string; balance: number; total_contributed: number; contributor_count: number; updated_at: string }[];
+    tierConversions: { kingdom_number: number; tier: string; balance: number; updated_at: string }[];
+    loading: boolean;
+  }>({ fundedKingdoms: [], tierConversions: [], loading: true });
+
+  const fetchPromoData = useCallback(async () => {
+    if (!supabase) return;
+    setPromoData(prev => ({ ...prev, loading: true }));
+    try {
+      // All kingdoms with fund activity updated during promo window
+      const { data: funds } = await supabase
+        .from('kingdom_funds')
+        .select('kingdom_number, tier, balance, total_contributed, contributor_count, updated_at')
+        .gte('updated_at', PROMO_START)
+        .gt('total_contributed', 0)
+        .order('total_contributed', { ascending: false });
+
+      // Silver and Gold kingdoms (potential conversions)
+      const { data: tiered } = await supabase
+        .from('kingdom_funds')
+        .select('kingdom_number, tier, balance, updated_at')
+        .in('tier', ['silver', 'gold'])
+        .order('tier', { ascending: false });
+
+      setPromoData({
+        fundedKingdoms: funds || [],
+        tierConversions: tiered || [],
+        loading: false,
+      });
+    } catch (err) {
+      logger.error('Failed to fetch promo data:', err);
+      setPromoData(prev => ({ ...prev, loading: false }));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeSection === 'promo') fetchPromoData();
+  }, [activeSection, fetchPromoData]);
+
+  const renderPromo = () => {
+    if (promoData.loading) {
+      return <div style={{ padding: '2rem', textAlign: 'center', color: colors.textMuted }}>Loading promo data...</div>;
+    }
+
+    const silverCount = promoData.tierConversions.filter(k => k.tier === 'silver').length;
+    const goldCount = promoData.tierConversions.filter(k => k.tier === 'gold').length;
+    const totalPromoContributions = promoData.fundedKingdoms.reduce((sum, k) => sum + Number(k.total_contributed), 0);
+    const totalContributors = promoData.fundedKingdoms.reduce((sum, k) => sum + (k.contributor_count || 0), 0);
+
+    const tierColor = (tier: string) => tier === 'gold' ? '#ffc30b' : tier === 'silver' ? '#d1d5db' : tier === 'bronze' ? '#cd7f32' : '#6b7280';
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        {/* Promo Status */}
+        <div style={{
+          padding: '0.75rem 1rem',
+          backgroundColor: promoActive ? '#22c55e10' : '#f9731610',
+          border: `1px solid ${promoActive ? '#22c55e30' : '#f9731630'}`,
+          borderRadius: '8px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          fontSize: '0.8rem',
+        }}>
+          <span style={{ fontSize: '0.6rem', padding: '0.1rem 0.35rem', backgroundColor: promoActive ? '#22c55e20' : '#f9731620', border: `1px solid ${promoActive ? '#22c55e40' : '#f9731640'}`, borderRadius: '3px', color: promoActive ? '#22c55e' : '#f97316', fontWeight: 700 }}>
+            {promoActive ? 'ACTIVE' : 'ENDED'}
+          </span>
+          <span style={{ color: colors.textSecondary }}>
+            Silver Tier → Gold Tools promo • Ends Feb 28 at 22:00 UTC
+          </span>
+        </div>
+
+        {/* Key Metrics */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.75rem' }}>
+          {[
+            { label: 'Silver Kingdoms', value: silverCount.toString(), color: '#d1d5db', icon: '🥈' },
+            { label: 'Gold Kingdoms', value: goldCount.toString(), color: '#ffc30b', icon: '🥇' },
+            { label: 'Promo Contributions', value: `$${totalPromoContributions.toFixed(2)}`, color: '#22c55e', icon: '💰' },
+            { label: 'Total Contributors', value: totalContributors.toString(), color: '#a855f7', icon: '👥' },
+          ].map((metric, i) => (
+            <div key={i} style={{
+              backgroundColor: colors.cardAlt, borderRadius: '10px', padding: '1rem',
+              border: `1px solid ${colors.border}`,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
+                <span style={{ fontSize: '0.9rem' }}>{metric.icon}</span>
+                <span style={{ color: colors.textMuted, fontSize: '0.7rem' }}>{metric.label}</span>
+              </div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 700, color: metric.color }}>{metric.value}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Tier Breakdown */}
+        <div style={{
+          backgroundColor: colors.cardAlt, borderRadius: '10px', padding: '1rem',
+          border: `1px solid ${colors.border}`,
+        }}>
+          <h4 style={{ color: colors.text, fontSize: '0.85rem', marginBottom: '0.75rem' }}>Current Silver & Gold Kingdoms</h4>
+          {promoData.tierConversions.length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+              {promoData.tierConversions.map(k => (
+                <div key={k.kingdom_number} style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '0.5rem 0.75rem', backgroundColor: colors.bg, borderRadius: '6px',
+                  border: `1px solid ${colors.border}`,
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span style={{ fontWeight: 600, color: colors.text, fontSize: '0.8rem' }}>K{k.kingdom_number}</span>
+                    <span style={{
+                      fontSize: '0.6rem', padding: '0.1rem 0.3rem', borderRadius: '3px',
+                      backgroundColor: `${tierColor(k.tier)}20`, color: tierColor(k.tier),
+                      fontWeight: 700, textTransform: 'uppercase',
+                    }}>{k.tier}</span>
+                  </div>
+                  <span style={{ color: colors.textMuted, fontSize: '0.75rem' }}>
+                    ${Number(k.balance).toFixed(2)} balance
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{ padding: '1rem', textAlign: 'center', color: colors.textMuted, fontSize: '0.8rem' }}>No Silver or Gold kingdoms yet</div>
+          )}
+        </div>
+
+        {/* Fund Activity During Promo */}
+        <div style={{
+          backgroundColor: colors.cardAlt, borderRadius: '10px', padding: '1rem',
+          border: `1px solid ${colors.border}`,
+        }}>
+          <h4 style={{ color: colors.text, fontSize: '0.85rem', marginBottom: '0.75rem' }}>Fund Activity During Promo</h4>
+          {promoData.fundedKingdoms.length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+              {promoData.fundedKingdoms.map(k => {
+                const updDate = new Date(k.updated_at);
+                return (
+                  <div key={k.kingdom_number} style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '0.5rem 0.75rem', backgroundColor: colors.bg, borderRadius: '6px',
+                    border: `1px solid ${colors.border}`,
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span style={{ fontWeight: 600, color: colors.text, fontSize: '0.8rem' }}>K{k.kingdom_number}</span>
+                      <span style={{
+                        fontSize: '0.6rem', padding: '0.1rem 0.3rem', borderRadius: '3px',
+                        backgroundColor: `${tierColor(k.tier)}20`, color: tierColor(k.tier),
+                        fontWeight: 700, textTransform: 'uppercase',
+                      }}>{k.tier}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <span style={{ color: '#22c55e', fontSize: '0.75rem', fontWeight: 600 }}>
+                        ${Number(k.total_contributed).toFixed(2)}
+                      </span>
+                      <span style={{ color: colors.textMuted, fontSize: '0.65rem' }}>
+                        {k.contributor_count} contributor{k.contributor_count !== 1 ? 's' : ''}
+                      </span>
+                      <span style={{ color: colors.textMuted, fontSize: '0.65rem' }}>
+                        {updDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div style={{ padding: '1rem', textAlign: 'center', color: colors.textMuted, fontSize: '0.8rem' }}>No fund activity during promo period yet</div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   // ─── Main Render ────────────────────────────────────────────────────────
 
   return (
@@ -1071,39 +1193,9 @@ export const FinanceTab: React.FC<FinanceTabProps> = ({
       {activeSection === 'expenses' && renderExpenses()}
       {activeSection === 'pnl' && renderPnL()}
       {activeSection === 'subscribers' && renderSubscribers()}
+      {activeSection === 'promo' && renderPromo()}
     </div>
   );
-};
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function getNextRecurringDate(dateStr: string, interval: string): string {
-  const d = new Date(dateStr + 'T00:00:00');
-  if (interval === 'monthly') d.setMonth(d.getMonth() + 1);
-  else if (interval === 'quarterly') d.setMonth(d.getMonth() + 3);
-  else if (interval === 'yearly') d.setFullYear(d.getFullYear() + 1);
-  return d.toISOString().split('T')[0] ?? dateStr;
-}
-
-const inputStyle: React.CSSProperties = {
-  width: '100%',
-  padding: '0.45rem 0.65rem',
-  backgroundColor: colors.bg,
-  border: `1px solid ${colors.border}`,
-  borderRadius: '6px',
-  color: colors.text,
-  fontSize: '0.8rem',
-  outline: 'none',
-  boxSizing: 'border-box',
-};
-
-const actionBtnStyle: React.CSSProperties = {
-  background: 'none',
-  border: 'none',
-  cursor: 'pointer',
-  fontSize: '0.7rem',
-  padding: '0.2rem',
-  opacity: 0.7,
 };
 
 export default FinanceTab;

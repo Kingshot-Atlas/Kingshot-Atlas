@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/Toast';
 import { logger } from '../utils/logger';
@@ -38,14 +38,7 @@ const Admin: React.FC = () => {
   const { data: claims = [] } = useAdminClaims(filter, activeTab === 'claims');
   const { invalidateSubmissions } = useInvalidateAdmin();
 
-  useEffect(() => {
-    if (activeTab === 'corrections') {
-      fetchCorrections();
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, filter]);
-
-  const fetchCorrections = () => {
+  const fetchCorrections = useCallback(() => {
     setLoading(true);
     try {
       const stored = localStorage.getItem(CORRECTIONS_KEY);
@@ -57,7 +50,13 @@ const Admin: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter]);
+
+  useEffect(() => {
+    if (activeTab === 'corrections') {
+      fetchCorrections();
+    }
+  }, [activeTab, filter, fetchCorrections]);
 
   const reviewCorrection = (id: string, status: 'approved' | 'rejected') => {
     const stored = localStorage.getItem(CORRECTIONS_KEY);

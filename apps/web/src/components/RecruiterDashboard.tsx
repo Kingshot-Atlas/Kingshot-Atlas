@@ -63,7 +63,7 @@ const RecruiterDashboard: React.FC<{
         return () => clearTimeout(timer);
       }
     }
-  }, [activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activeTab, prevTab, tabReady]);
 
   if (!user) return null;
 

@@ -3,6 +3,29 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-19 | Platform Engineer | COMPLETED
+Task: Fix "infinite recursion detected in policy for relation kingdom_editors" when adding Co-Editor
+Files: Supabase migration `fix_kingdom_editors_rls_infinite_recursion`
+Changes:
+1. **Root cause:** 3 RLS policies on `kingdom_editors` had self-referencing `EXISTS(SELECT 1 FROM kingdom_editors ...)` subqueries — PostgreSQL's recursion detector flagged them at plan time.
+2. **Fix:** Created `SECURITY DEFINER` functions `is_active_editor_for_kingdom(int, uuid)` and `kingdom_has_active_editor(int)` to bypass RLS for the self-referencing check.
+3. **Rewrote 3 policies:** `editors_insert_coeditor`, `coeditor_self_nominate`, `editors_update_coeditor` — now call the helper functions instead of inline EXISTS.
+4. **DB-only fix** — live immediately, no frontend deploy needed.
+Result: Co-editor invite flow works again. User [505]Carrot can retry.
+
+## 2026-02-19 | Business Lead + Product Engineer | COMPLETED
+Task: KvK #11 Silver Tier Promotion — 50% discount, Silver kingdoms get Gold tools until Feb 28 22:00 UTC
+Files: useKvk11Promo.ts (NEW), useRallyCoordinator.ts, usePrepScheduler.ts, BattlePlannerLanding.tsx, Kvk11PromoBanner.tsx (NEW), KingdomDirectory.tsx, FinanceTab.tsx, KVK11_SILVER_PROMO_DISCORD.md (NEW)
+Changes:
+1. **useKvk11Promo hook** — Time-gated Silver tier access. Fetches silver kingdoms from `kingdom_funds`, exposes `hasPromoAccess(kingdomNumber)`. Auto-expires Feb 28 22:00 UTC. Cached globally like useGoldKingdoms.
+2. **Battle Planner access gate** — `useRallyCoordinator.ts` now checks `hasSilverPromoAccess` alongside Gold/Admin/Editor/Trial.
+3. **Prep Scheduler access gate** — `usePrepScheduler.ts` `createSchedule()` now allows Silver kingdoms during promo.
+4. **BattlePlannerLanding** — `hasFullAccess` includes Silver promo check.
+5. **Kvk11PromoBanner** — Homepage banner (below Quick Actions, above Transfer Hub) with countdown timer, `trackFeature('KvK11 Promo CTA')` analytics, directs logged-in users to `/kingdom/{number}/fund`. Dismissable, auto-hides after promo expires.
+6. **Discord announcement draft** — Saved to `docs/announcements/KVK11_SILVER_PROMO_DISCORD.md` for owner review.
+7. **Promo Performance Tracking** — `FinanceTab.tsx` gets new "KvK #11 Promo" section (5th tab) showing: Silver/Gold kingdom counts, promo-period contributions, contributor counts, tier breakdown, and fund activity timeline.
+Result: Build passes. All changes local (uncommitted). Promo auto-disables after deadline — zero cleanup needed.
+
 ## 2026-02-18 | Product Engineer | COMPLETED
 Task: Multi-fix — CSP translation, corrupted emoji, Gift Codes iOS redeem, Quick Actions rename
 Files: SupportAtlas.tsx, _headers, GiftCodes.tsx, QuickActions.tsx (unchanged, i18n only), 9x translation.json

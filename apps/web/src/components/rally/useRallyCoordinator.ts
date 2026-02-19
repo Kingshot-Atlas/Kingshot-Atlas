@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePremium } from '../../contexts/PremiumContext';
 import { useGoldKingdoms } from '../../hooks/useGoldKingdoms';
+import { useKvk11Promo } from '../../hooks/useKvk11Promo';
 import { useToast } from '../Toast';
 import { ADMIN_USERNAMES } from '../../utils/constants';
 import { supabase } from '../../lib/supabase';
@@ -98,6 +99,7 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
   const { profile, user } = useAuth();
   const { isAdmin: isPremiumAdmin } = usePremium();
   const goldKingdoms = useGoldKingdoms();
+  const { hasPromoAccess } = useKvk11Promo();
   const { showToast } = useToast();
 
   // Admin gate
@@ -105,6 +107,9 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
 
   // Gold kingdom gate: user's linked kingdom must be Gold tier
   const isGoldKingdom = !!(profile?.linked_kingdom && goldKingdoms.has(profile.linked_kingdom));
+
+  // KvK #11 promo: Silver tier kingdoms also get access until Feb 21 22:00 UTC
+  const hasSilverPromoAccess = !!(profile?.linked_kingdom && hasPromoAccess(profile.linked_kingdom));
 
   // Onboarding 1-hour trial check (Stage 3)
   const hasOnboardingTrial = (() => {
@@ -145,7 +150,7 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
   const [hasAccess, setHasAccess] = useState<boolean | null>(null);
 
   useEffect(() => {
-    if (isAdmin || isPremiumAdmin || isGoldKingdom || isEditorOrCoEditor || hasOnboardingTrial) {
+    if (isAdmin || isPremiumAdmin || isGoldKingdom || hasSilverPromoAccess || isEditorOrCoEditor || hasOnboardingTrial) {
       setHasAccess(true);
       return;
     }
@@ -169,7 +174,7 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
       }
     })();
     return () => { cancelled = true; };
-  }, [isAdmin, isPremiumAdmin, isGoldKingdom, isEditorOrCoEditor, hasOnboardingTrial, user?.id]);
+  }, [isAdmin, isPremiumAdmin, isGoldKingdom, hasSilverPromoAccess, isEditorOrCoEditor, hasOnboardingTrial, user?.id]);
 
   // State: Unified player database (allies + enemies)
   const [players, setPlayers] = useState<RallyPlayer[]>(() => loadFromStorage(STORAGE_KEY_PLAYERS, []));

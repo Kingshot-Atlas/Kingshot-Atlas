@@ -5,6 +5,43 @@ All notable changes to Kingshot Atlas are documented here.
 
 ---
 
+## [2026-02-21] — v1.15.0
+
+### ✨ New
+- 📜 Terms of Service — New /terms page covering all platform policies, data use, and user content
+- 🎁 Gift Codes redesigned — Display-only page with copy buttons and in-game redeem instructions (Android + iOS)
+- 🔐 Screenshot ownership disclaimer — Required confirmation when submitting KvK screenshots
+
+### 🐛 Fixed
+- Removed email magic link login — Only Google + Discord OAuth remain (more reliable)
+- Removed auto-redeem feature — Gift codes are now manually redeemed in-game for ToS compliance
+
+### 🔧 Improved
+- 📋 Account verification — Added explanation text for why ownership checks exist
+- ⚖️ Legal compliance — Century Games trademark attribution in About page and site-wide footer
+- 🌍 i18n — Added 193 missing keys, translated to all 9 languages, cleaned 280 orphaned keys
+---
+
+## [2026-02-18] — v1.14.0
+
+### ✨ New
+- 💾 Rally session persistence — Your Battle Planner setup now auto-saves to the cloud and restores on next visit
+- 📅 Bot Dashboard event preview — See the next event date and upcoming 5 dates for each alliance event
+- 🤖 Discord welcome message — New concise embed with action items when players join the server
+
+### 🐛 Fixed
+- Timezone bug — Alliance event dates now correctly display for all timezones (was off by one day)
+- Public Profile header — Fixed duplicate "PROFILE" text display
+- Battle Planner shoutout — Fixed text wrapping on mobile
+- CSP policy — Translation API now works correctly in Transfer Hub messages
+
+### 🔧 Improved
+- ♿ Rally Coordinator accessibility — Focus trap, keyboard reordering (Alt+↑/↓), screen reader announcements, reduced-motion support
+- ⏰ Rally copy text — UTC timestamps with 30-second buffer rounding for better coordination
+- 🌍 Rally Coordinator i18n — All 47 keys translated to 8 languages
+- 🛡️ Supabase security — Fixed 26 functions with mutable search paths, hardened kingdom_review_summaries view, added RLS policies
+---
+
 ## [2026-02-13] — v1.13.0
 
 ### ✨ New

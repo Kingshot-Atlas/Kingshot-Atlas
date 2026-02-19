@@ -71,15 +71,20 @@ export default defineConfig({
     sourcemap: true,
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
-          router: ['react-router-dom'],
-          query: ['@tanstack/react-query'],
-          ui: ['@headlessui/react', '@heroicons/react'],
-          supabase: ['@supabase/supabase-js'],
-          sentry: ['@sentry/react'],
-          i18n: ['i18next', 'react-i18next', 'i18next-browser-languagedetector', 'i18next-http-backend'],
-          charts: ['recharts'],
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react-dom')) return 'vendor';
+            if (id.includes('react-router-dom') || id.includes('@remix-run') || id.includes('turbo-stream')) return 'router';
+            if (id.includes('@tanstack/react-query')) return 'query';
+            if (id.includes('@tanstack/react-virtual')) return 'virtual';
+            if (id.includes('@headlessui') || id.includes('@heroicons')) return 'ui';
+            if (id.includes('@supabase')) return 'supabase';
+            if (id.includes('@sentry')) return 'sentry';
+            if (id.includes('i18next') || id.includes('react-i18next')) return 'i18n';
+            if (id.includes('recharts') || id.includes('d3-') || id.includes('victory')) return 'charts';
+            if (id.includes('html2canvas')) return 'html2canvas';
+            if (id.includes('zod')) return 'zod';
+          }
         }
       }
     }

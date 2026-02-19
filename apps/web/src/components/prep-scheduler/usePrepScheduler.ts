@@ -6,6 +6,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useIsMobile } from '../../hooks/useMediaQuery';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useGoldKingdoms } from '../../hooks/useGoldKingdoms';
+import { useKvk11Promo } from '../../hooks/useKvk11Promo';
 import { useToast } from '../Toast';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import { logger } from '../../utils/logger';
@@ -27,6 +28,7 @@ export function usePrepScheduler() {
   const { user, profile } = useAuth();
   const isMobile = useIsMobile();
   const goldKingdoms = useGoldKingdoms();
+  const { hasPromoAccess } = useKvk11Promo();
   const { showToast } = useToast();
   useDocumentTitle('KvK Prep Scheduler');
 
@@ -376,7 +378,7 @@ export function usePrepScheduler() {
       showToast(t('prepScheduler.toastRoleRequired', 'Only Editors, Co-Editors, and Prep Managers can create schedules.'), 'error');
       return;
     }
-    if (!goldKingdoms.has(createKingdom)) {
+    if (!goldKingdoms.has(createKingdom) && !hasPromoAccess(createKingdom)) {
       showToast(t('prepScheduler.toastGoldOnly', 'Only Gold Tier kingdoms can use the KvK Prep Scheduler.'), 'error');
       return;
     }

@@ -217,6 +217,7 @@
 | Gold Tier: Alliance Details | ✅ Live | Product | Gold-only section in KingdomProfileTab for per-alliance main language and open spots. `alliance_details` field on `FundInfo`. (2026-02-14) |
 | Gold Tier: CSV Download | ✅ Live | Product | Gold tier recruiters can download approved applicants as CSV from InboxTab. Includes username, kingdom, TC, power, language, date. (2026-02-14) |
 | Alliance Info Rename | ✅ Live | Product | "Alliance Event Times" renamed to "Alliance Information" across KingdomListingCard, KingdomProfileTab, KingdomFundContribute, TransferHubLanding. (2026-02-14) |
+| KvK #11 Silver Tier Promotion | ✅ Live | Business + Product | Time-limited promo: Silver Tier kingdoms get KvK Prep Scheduler + Battle Planner access (normally Gold-only) until Feb 21, 2026 22:00 UTC. `useKvk11Promo.ts` hook fetches silver kingdoms, auto-expires. `Kvk11PromoBanner.tsx` on homepage with countdown + dynamic kingdom fund link. Access gates updated in `useRallyCoordinator.ts`, `usePrepScheduler.ts`, `BattlePlannerLanding.tsx`. Zero cleanup needed — auto-reverts after deadline. (2026-02-19) |
 
 ---
 

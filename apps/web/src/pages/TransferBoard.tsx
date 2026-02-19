@@ -1,35 +1,39 @@
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { supabase } from '../lib/supabase';
-import TransferProfileForm from '../components/TransferProfileForm';
 import { ApplyModal, MyApplicationsTracker } from '../components/TransferApplications';
-import RecruiterDashboard from '../components/RecruiterDashboard';
 import EditorClaiming from '../components/EditorClaiming';
 import { logger } from '../utils/logger';
-import KingdomFundContribute from '../components/KingdomFundContribute';
 import { useTranslation } from 'react-i18next';
 import { neonGlow, FONT_DISPLAY, colors } from '../utils/styles';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
-import KingdomListingCard, { KingdomData, KingdomFund, KingdomReviewSummary, BoardMode, MatchDetail } from '../components/KingdomListingCard';
+import type { KingdomData, KingdomFund, KingdomReviewSummary, BoardMode, MatchDetail } from '../components/KingdomListingCard';
 import { useScrollDepth } from '../hooks/useScrollDepth';
 import TransferHubGuide from '../components/TransferHubGuide';
 import EntryModal from '../components/transfer/EntryModal';
 import ModeToggle from '../components/transfer/ModeToggle';
 import FilterPanel, { FilterState, defaultFilters } from '../components/transfer/FilterPanel';
 import { useToast } from '../components/Toast';
-import KingdomCompare from '../components/transfer/KingdomCompare';
 import EndorsementOverlay from '../components/transfer/EndorsementOverlay';
 import TransferProfileCTA from '../components/transfer/TransferProfileCTA';
-import TransfereeDashboard from '../components/transfer/TransfereeDashboard';
 import ContributionSuccessModal from '../components/transfer/ContributionSuccessModal';
 import TransferAuthGate from '../components/transfer/TransferAuthGate';
 import TransferHubErrorFallback from '../components/transfer/TransferHubErrorFallback';
 import ErrorBoundary from '../components/ErrorBoundary';
+
+// Lazy-loaded heavy components for chunk splitting
+const KingdomListingCard = lazy(() => import('../components/KingdomListingCard'));
+const RecruiterDashboard = lazy(() => import('../components/RecruiterDashboard'));
+const TransfereeDashboard = lazy(() => import('../components/transfer/TransfereeDashboard'));
+const KingdomFundContribute = lazy(() => import('../components/KingdomFundContribute'));
+const TransferProfileForm = lazy(() => import('../components/TransferProfileForm'));
+const KingdomCompare = lazy(() => import('../components/transfer/KingdomCompare'));
+
 import { TRANSFER_GROUPS, getTransferGroup, getTransferGroupOptions, areTransferGroupsOutdated, getTransferGroupLabel } from '../config/transferGroups';
 import { calculateMatchScore as calcMatchScore, calculateMatchScoreForSort as calcMatchScoreForSort } from '../utils/matchScore';
 import { useTransferKingdoms, useTransferFunds, useTransferReviewSummaries, useUserTransferProfile, useActiveAppCount, useEditorStatus, useAtlasPlayerCount, useInvalidateTransferHub } from '../hooks/useTransferHubQueries';
@@ -481,9 +485,6 @@ const TransferBoard: React.FC = () => {
   }, [kingdoms, filters, fundMap, mode, profile?.linked_kingdom, effectiveTransferGroup, searchQuery, transferProfile]);
 
   // Match score with details — delegated to utils/matchScore.ts
-  const calculateMatchScore = (kingdom: KingdomData, fund: KingdomFund | null): { score: number; details: MatchDetail[] } =>
-    calcMatchScore(kingdom, fund, transferProfile);
-
   // Auth helpers — browsing is open to all, actions require login + linked account
   const hasLinkedAccount = !!profile?.linked_player_id;
   const requireAuth = (action: () => void) => {
@@ -498,10 +499,10 @@ const TransferBoard: React.FC = () => {
     const map = new Map<number, { score: number; details: MatchDetail[] }>();
     for (const k of filteredKingdoms) {
       const fund = fundMap.get(k.kingdom_number) || null;
-      map.set(k.kingdom_number, calculateMatchScore(k, fund));
+      map.set(k.kingdom_number, calcMatchScore(k, fund, transferProfile));
     }
     return map;
-  }, [filteredKingdoms, fundMap, transferProfile, mode]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [filteredKingdoms, fundMap, transferProfile, mode]);
 
   // Memoized top matches for Recommended Kingdoms section
   const topMatches = useMemo(() => {
@@ -531,6 +532,7 @@ const TransferBoard: React.FC = () => {
   const kingdomsWithoutFunds = useMemo(() => filteredKingdoms.filter((k) => !fundMap.has(k.kingdom_number)), [filteredKingdoms, fundMap]);
 
   return (
+    <Suspense fallback={<div style={{ textAlign: 'center', padding: '2rem', color: colors.textMuted }}>Loading...</div>}>
     <div style={{ maxWidth: '900px', margin: '0 auto', padding: isMobile ? '0 0.25rem' : 0 }}>
       <style>{`
         @keyframes fadeSlideUp {
@@ -1324,6 +1326,7 @@ const TransferBoard: React.FC = () => {
         />
       )}
     </div>
+    </Suspense>
   );
 };
 
