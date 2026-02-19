@@ -3,6 +3,15 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-19 | Product Engineer | COMPLETED
+Task: Discord Transfer Group roles verification + #-readme channel fix
+Files: apps/discord-bot/src/bot.js, apps/discord-bot/src/utils/embeds.js
+Changes:
+1. **Verified full Transfer Group implementation** — Supabase table (7 groups seeded, RLS ✅), backend API endpoints (/transfer-groups public, /linked-users with all_kingdoms ✅), frontend useTransferGroups hook ✅, bot syncTransferGroupRoles ✅, settler sync backward-compat ✅.
+2. **Fixed #-readme channel spam bug** — DISCORD_LINK_PROMPT_CHANNEL_ID was sending a per-member message to #-readme on every join, which would spam a static info channel. Removed the per-join prompt. Instead, enhanced the welcome embed to mention #-readme and account linking.
+3. **Enhanced welcome embed** — Added optional readmeChannel parameter to createWelcomeEmbed(). Now shows "📋 Start here → #-readme" and "🔗 Link your account at ks-atlas.com/profile to unlock roles" for every new member in #welcome.
+4. **Drafted #-readme channel content** — 3 pinnable messages: Welcome & Overview, Getting Started (step-by-step linking guide), Roles & Bot Commands reference.
+
 ## 2026-02-20 | Product Engineer | COMPLETED
 Task: Support page update, Atlas Bot cleanup, passive listener fixes, i18n sync
 Files: SupportAtlas.tsx, AtlasBot.tsx, bot.js, useMediaQuery.ts, RallySubComponents.tsx, 18 locale files (src + public × 9 langs)

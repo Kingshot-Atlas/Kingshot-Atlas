@@ -1074,11 +1074,13 @@ client.on('guildMemberAdd', async (member) => {
       // Resolve channel mentions by finding actual channel IDs
       const generalCh = channels.find(ch => ch.name && ch.name.includes('general') && ch.isTextBased() && !ch.name.includes('welcome'));
       const commandsCh = channels.find(ch => ch.name && ch.name.includes('atlas-commands') && ch.isTextBased());
+      const readmeCh = LINK_PROMPT_CHANNEL_ID ? channels.get(LINK_PROMPT_CHANNEL_ID) : null;
       const gen = generalCh ? `<#${generalCh.id}>` : '#💬-general';
       const cmd = commandsCh ? `<#${commandsCh.id}>` : '#🤖-atlas-commands';
+      const readme = readmeCh ? `<#${readmeCh.id}>` : null;
       
       const mention = `<@${member.user.id}>`;
-      const embed = createWelcomeEmbed(gen, cmd);
+      const embed = createWelcomeEmbed(gen, cmd, readme);
       await welcomeChannel.send({ content: `Welcome to Atlas, ${mention}!`, embeds: [embed] });
       console.log(`✅ Sent welcome message for ${member.user.username} in #${welcomeChannel.name}`);
     } else {
@@ -1113,20 +1115,6 @@ client.on('guildMemberAdd', async (member) => {
     await checkAndAssignTransferGroupRole(member);
   } catch (error) {
     console.error(`Failed to check Transfer Group role for ${member.user.username}:`, error.message);
-  }
-
-  // Prompt unlinked users to link their account (non-intrusive: uses a designated channel)
-  if (LINK_PROMPT_CHANNEL_ID) {
-    try {
-      const promptChannel = member.guild.channels.cache.get(LINK_PROMPT_CHANNEL_ID);
-      if (promptChannel && promptChannel.isTextBased()) {
-        await promptChannel.send({
-          content: `👋 Welcome <@${member.user.id}>! Link your Kingshot account at **ks-atlas.com** to get your **Settler** role and be placed in your **Transfer Group** channel automatically. It only takes 30 seconds! 🔗`,
-        });
-      }
-    } catch (err) {
-      console.error(`Failed to send link prompt for ${member.user.username}:`, err.message);
-    }
   }
 });
 

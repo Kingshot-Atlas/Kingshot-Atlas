@@ -141,7 +141,7 @@
 | Features registry | `/agents/project-instances/kingshot-atlas/FEATURES_IMPLEMENTED.md` |
 | Architecture decisions | `/agents/project-instances/kingshot-atlas/DECISIONS.md` |
 | Power tiers | `/apps/web/src/types/index.ts` |
-| Transfer group config | `/apps/web/src/config/transferGroups.ts` |
+| Transfer group config | Supabase `transfer_groups` table (source of truth), fallback: `/apps/web/src/config/transferGroups.ts` |
 
 ---
 

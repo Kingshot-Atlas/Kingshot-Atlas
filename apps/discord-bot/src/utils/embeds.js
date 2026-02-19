@@ -686,17 +686,27 @@ function createPremiumShowcaseEmbed(showcaseData) {
  * Concise cyan embed — max ~5 visual rows
  * @param {string} generalChannel - Dynamic channel mention for #general
  * @param {string} commandsChannel - Dynamic channel mention for #atlas-commands
+ * @param {string} [readmeChannel] - Dynamic channel mention for #-readme (optional)
  */
-function createWelcomeEmbed(generalChannel, commandsChannel) {
+function createWelcomeEmbed(generalChannel, commandsChannel, readmeChannel) {
+  const lines = [
+    `**Every kingdom. Every stat. No guesswork.**`,
+    '',
+  ];
+
+  if (readmeChannel) {
+    lines.push(`� Start here → ${readmeChannel}`);
+  }
+
+  lines.push(
+    `�💬 Say hello in ${generalChannel}`,
+    `🤖 Try \`/kingdom\` in ${commandsChannel}`,
+    `🔗 Link your account at [ks-atlas.com/profile](https://ks-atlas.com/profile) to unlock roles`,
+  );
+
   const embed = new EmbedBuilder()
     .setColor(config.colors.primary)
-    .setDescription([
-      `**Every kingdom. Every stat. No guesswork.**`,
-      '',
-      `💬 Say hello in ${generalChannel}`,
-      `🤖 Try \`/kingdom\` in ${commandsChannel}`,
-      `🌐 Visit [ks-atlas.com](https://ks-atlas.com)`,
-    ].join('\n'))
+    .setDescription(lines.join('\n'))
     .setFooter({ text: 'By the community, for the community.' });
 
   return embed;
