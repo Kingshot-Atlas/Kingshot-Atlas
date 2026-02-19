@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { logger } from '../utils/logger';
+import { TRANSFER_GROUPS, TRANSFER_GROUPS_UPDATED_AT } from '../config/transferGroups';
 import type { KingdomData, KingdomFund, KingdomReviewSummary } from '../components/KingdomListingCard';
 
 // ─── Query Keys ───────────────────────────────────────────────
@@ -13,7 +14,68 @@ export const transferHubKeys = {
   activeAppCount: (userId: string) => [...transferHubKeys.all, 'activeAppCount', userId] as const,
   editorStatus: (userId: string) => [...transferHubKeys.all, 'editorStatus', userId] as const,
   atlasPlayerCount: () => [...transferHubKeys.all, 'atlasPlayerCount'] as const,
+  transferGroups: () => [...transferHubKeys.all, 'transferGroups'] as const,
 };
+
+// ─── Transfer Groups (from Supabase — single source of truth) ─
+export interface TransferGroupRow {
+  id: number;
+  min_kingdom: number;
+  max_kingdom: number;
+  label: string;
+  event_number: number;
+  is_active: boolean;
+  updated_at: string;
+}
+
+async function fetchTransferGroupsFromDB(): Promise<TransferGroupRow[]> {
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from('transfer_groups')
+    .select('id, min_kingdom, max_kingdom, label, event_number, is_active, updated_at')
+    .eq('is_active', true)
+    .order('min_kingdom', { ascending: true });
+  if (error) {
+    logger.error('Error fetching transfer groups from DB:', error);
+    return [];
+  }
+  return data || [];
+}
+
+/**
+ * Fetch active transfer groups from Supabase (source of truth).
+ * Falls back to static config if DB is unavailable.
+ * Returns groups as [min, max] tuples for compatibility with existing helpers.
+ */
+export function useTransferGroups(): {
+  groups: Array<[number, number]>;
+  rows: TransferGroupRow[];
+  updatedAt: string | null;
+  isLoading: boolean;
+} {
+  const query = useQuery({
+    queryKey: transferHubKeys.transferGroups(),
+    queryFn: fetchTransferGroupsFromDB,
+    staleTime: 10 * 60 * 1000, // 10 minutes — groups rarely change
+    retry: 2,
+  });
+
+  const rows = query.data ?? [];
+  const groups: Array<[number, number]> = rows.length > 0
+    ? rows.map(r => [r.min_kingdom, r.max_kingdom] as [number, number])
+    : TRANSFER_GROUPS; // fallback to static config
+
+  const updatedAt = rows.length > 0
+    ? (rows[0]?.updated_at ?? TRANSFER_GROUPS_UPDATED_AT)
+    : TRANSFER_GROUPS_UPDATED_AT;
+
+  return {
+    groups,
+    rows,
+    updatedAt,
+    isLoading: query.isLoading,
+  };
+}
 
 // ─── Kingdoms (two-phase: funded first, then all) ────────────
 const KINGDOM_COLUMNS = 'kingdom_number, atlas_score, current_rank, total_kvks, prep_wins, prep_losses, prep_win_rate, battle_wins, battle_losses, battle_win_rate, dominations, comebacks, reversals, invasions, most_recent_status';

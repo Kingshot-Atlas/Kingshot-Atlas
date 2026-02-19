@@ -200,9 +200,9 @@ export const IntervalSlider: React.FC<{
       updateValue(clientX);
     };
     const onUp = () => setDragging(false);
-    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mousemove', onMove, { passive: true });
     window.addEventListener('mouseup', onUp);
-    window.addEventListener('touchmove', onMove);
+    window.addEventListener('touchmove', onMove, { passive: true });
     window.addEventListener('touchend', onUp);
     return () => {
       window.removeEventListener('mousemove', onMove);

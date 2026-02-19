@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
@@ -6,18 +6,17 @@ import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { supabase } from '../lib/supabase';
 import { neonGlow, FONT_DISPLAY, colors } from '../utils/styles';
-import { logger } from '../utils/logger';
 import { usePremium } from '../contexts/PremiumContext';
 import {
-  GuildSettings, AllianceEvent, GuildAdmin, EventHistoryRow, EventType, DashTab,
-  DiscordChannel, DiscordRole, DiscordCategory,
+  GuildSettings, AllianceEvent, EventType, DashTab,
   ReactionRoleConfig,
-  EVENT_ORDER, EVENT_META, DEFAULT_GIFT_CODE_MESSAGE,
-  FIXED_REFERENCE_DATES, getFixSteps,
+  EVENT_META, DEFAULT_GIFT_CODE_MESSAGE,
+  getFixSteps,
   fmt, ago,
   iS, lS, Dot, Tog, SearchableSelect, EvCard,
 } from './BotDashboardComponents';
 import RoleAssignerCard from './BotDashboardRoleAssigner';
+import { useBotDashboardData } from '../hooks/useBotDashboardData';
 
 // EmojiPicker + RoleAssignerCard extracted to BotDashboardEmojiPicker.tsx & BotDashboardRoleAssigner.tsx
 
@@ -31,12 +30,16 @@ const BotDashboard: React.FC = () => {
   const { isSupporter, isAdmin } = usePremium();
   const canMultiServer = isSupporter || isAdmin;
 
-  const [loading, setLoading] = useState(true);
-  const [guilds, setGuilds] = useState<GuildSettings[]>([]);
-  const [selGuild, setSelGuild] = useState<string | null>(null);
-  const [events, setEvents] = useState<AllianceEvent[]>([]);
-  const [admins, setAdmins] = useState<GuildAdmin[]>([]);
-  const [hist, setHist] = useState<EventHistoryRow[]>([]);
+  // ─── Data (extracted to hook) ──────────────────────────────────────────
+  const {
+    loading, guilds, selGuild, events, admins, hist,
+    dChannels, dRoles, dCategories, loadingDiscord,
+    rrConfigs, guild, sortedEvents,
+    setGuilds, setSelGuild, setEvents, setRrConfigs,
+    loadGuilds, loadEv, loadAdm, loadHist, loadRr,
+  } = useBotDashboardData({ user, discordId: profile?.discord_id });
+
+  // ─── UI State ──────────────────────────────────────────────────────────
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
   const [tab, setTab] = useState<DashTab>('notifications');
   const [giftCodeOpen, setGiftCodeOpen] = useState(false);
@@ -51,115 +54,17 @@ const BotDashboard: React.FC = () => {
   const [blockSearchOpen, setBlockSearchOpen] = useState(false);
   const blockSearchRef = useRef<HTMLDivElement>(null);
   const [removingGuild, setRemovingGuild] = useState<string | null>(null);
-  const [dChannels, setDChannels] = useState<DiscordChannel[]>([]);
-  const [dRoles, setDRoles] = useState<DiscordRole[]>([]);
-  const [dCategories, setDCategories] = useState<DiscordCategory[]>([]);
-  const [loadingDiscord, setLoadingDiscord] = useState(false);
   const [testingEvent, setTestingEvent] = useState<string | null>(null);
   const [testResults, setTestResults] = useState<Record<string, { ok: boolean; msg: string; steps?: string[] }>>({});
   const [testingGiftCode, setTestingGiftCode] = useState(false);
   const [giftCodeTestResult, setGiftCodeTestResult] = useState<{ ok: boolean; msg: string; steps?: string[] } | null>(null);
-  // Reaction Role state
-  const [rrConfigs, setRrConfigs] = useState<ReactionRoleConfig[]>([]);
+  // Reaction Role UI state
   const [rrSaving, setRrSaving] = useState(false);
   const [rrDeploying, setRrDeploying] = useState<string | null>(null);
   const [rrError, setRrError] = useState('');
   const [rrErrorId, setRrErrorId] = useState<string | null>(null);
 
-  const guild = useMemo(() => guilds.find(g => g.guild_id === selGuild) || null, [guilds, selGuild]);
   const flash = (msg: string, ok = true) => { setToast({ msg, ok }); setTimeout(() => setToast(null), 3000); };
-
-  // Sort events in the correct display order
-  const sortedEvents = useMemo(() => {
-    const order = new Map(EVENT_ORDER.map((t, i) => [t, i]));
-    return [...events].sort((a, b) => (order.get(a.event_type) ?? 99) - (order.get(b.event_type) ?? 99));
-  }, [events]);
-
-  // ─── Data Loading ───────────────────────────────────────────────────────
-
-  const loadGuilds = useCallback(async () => {
-    if (!supabase || !user) return;
-    setLoading(true);
-    try {
-      const { data: ar } = await supabase.from('bot_guild_admins').select('guild_id').eq('user_id', user.id);
-      const { data: og } = await supabase.from('bot_guild_settings').select('*').eq('created_by', user.id);
-      const ids = new Set([...(ar || []).map(r => r.guild_id), ...(og || []).map(g => g.guild_id)]);
-      if (ids.size === 0) { setGuilds([]); setLoading(false); return; }
-      const { data } = await supabase.from('bot_guild_settings').select('*').in('guild_id', Array.from(ids));
-      const gs = data || [];
-      setGuilds(gs);
-      if (gs.length > 0 && !selGuild) setSelGuild(gs[0].guild_id);
-    } catch (e) { logger.error('Load guilds failed:', e); }
-    finally { setLoading(false); }
-  }, [user, selGuild]);
-
-  const loadEv = useCallback(async (gid: string) => {
-    if (!supabase) return;
-    const { data } = await supabase.from('bot_alliance_events').select('*').eq('guild_id', gid).order('event_type');
-    if (data) setEvents(data);
-  }, []);
-
-  const loadAdm = useCallback(async (gid: string) => {
-    if (!supabase) return;
-    const { data } = await supabase.from('bot_guild_admins').select('*').eq('guild_id', gid).order('role');
-    if (data) {
-      const uids = data.map(a => a.user_id);
-      const { data: ps } = await supabase.from('profiles').select('id, username, discord_username').in('id', uids);
-      const pm = new Map((ps || []).map(p => [p.id, p.discord_username || p.username]));
-      setAdmins(data.map(a => ({ ...a, username: pm.get(a.user_id) || 'Unknown' })));
-    }
-  }, []);
-
-  const loadHist = useCallback(async (gid: string) => {
-    if (!supabase) return;
-    const { data } = await supabase.from('bot_event_history').select('*').eq('guild_id', gid).order('sent_at', { ascending: false }).limit(50);
-    if (data) setHist(data);
-  }, []);
-
-  const loadRr = useCallback(async (gid: string) => {
-    if (!supabase) return;
-    const { data } = await supabase.from('bot_reaction_roles').select('*').eq('guild_id', gid).order('created_at', { ascending: false });
-    if (data) setRrConfigs(data);
-  }, []);
-
-  useEffect(() => { if (selGuild) { loadEv(selGuild); loadAdm(selGuild); loadHist(selGuild); loadRr(selGuild); } }, [selGuild, loadEv, loadAdm, loadHist, loadRr]);
-  useEffect(() => { loadGuilds(); }, [loadGuilds]);
-
-  // ─── Fetch Discord Channels & Roles for searchable dropdowns ────────
-  const fetchDiscordData = useCallback(async (gid: string) => {
-    if (!supabase || !profile?.discord_id) return;
-    setLoadingDiscord(true);
-    try {
-      const [chRes, roRes] = await Promise.all([
-        supabase.functions.invoke('verify-guild-permissions', {
-          body: { action: 'list-channels', guild_id: gid, discord_id: profile.discord_id },
-        }),
-        supabase.functions.invoke('verify-guild-permissions', {
-          body: { action: 'list-roles', guild_id: gid, discord_id: profile.discord_id },
-        }),
-      ]);
-      setDChannels(chRes.data?.channels || []);
-      setDCategories(chRes.data?.categories || []);
-      setDRoles(roRes.data?.roles || []);
-    } catch (e) { logger.error('Failed to fetch Discord data:', e); }
-    finally { setLoadingDiscord(false); }
-  }, [profile?.discord_id]);
-
-  useEffect(() => { if (selGuild) fetchDiscordData(selGuild); }, [selGuild, fetchDiscordData]);
-
-  // Auto-set fixed reference dates for non-Bear-Hunt events that have none
-  useEffect(() => {
-    const sb = supabase;
-    if (!sb) return;
-    events.forEach(ev => {
-      if (ev.event_type !== 'bear_hunt' && !ev.reference_date && FIXED_REFERENCE_DATES[ev.event_type]) {
-        const fixedDate = FIXED_REFERENCE_DATES[ev.event_type]!;
-        setEvents(p => p.map(e => e.id === ev.id ? { ...e, reference_date: fixedDate } : e));
-        sb.from('bot_alliance_events').update({ reference_date: fixedDate, updated_at: new Date().toISOString() }).eq('id', ev.id).then(() => {});
-      }
-    });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [events.length]); // Only when events array length changes (initial load)
 
   // ─── Auto-detect Discord Guilds ──────────────────────────────────────────
 

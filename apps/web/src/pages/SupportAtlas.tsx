@@ -67,9 +67,9 @@ const SupportAtlas: React.FC = () => {
     { icon: '📜', text: t('support.free1Title', 'Full KvK History'), desc: t('support.free1Desc', 'Every match, every result, every kingdom') },
     { icon: '⚡', text: t('support.free2Title', 'Atlas Score & Rankings'), desc: t('support.free2Desc', 'See where every kingdom stands') },
     { icon: '⚔️', text: t('support.free3Title', 'Kingdom Comparison'), desc: t('support.free3Desc', 'Compare up to 2 kingdoms side-by-side') },
-    { icon: '🎯', text: t('support.free4Title', 'Score Simulator'), desc: t('support.free4Desc', 'Project future scores based on outcomes') },
     { icon: '📊', text: t('support.free5Title', 'Detailed Kingdom Profiles'), desc: t('support.free5Desc', 'Full stats and performance history') },
-    { icon: '📅', text: t('support.free6Title', 'Event Calendar'), desc: t('support.free6Desc', 'KvK and Transfer Event schedules') },
+    { icon: '�', text: t('support.free6Title', 'Transfer Hub'), desc: t('support.free6Desc', 'Browse open kingdoms and find your next home') },
+    { icon: '🤖', text: t('support.free7Title', 'Atlas Discord Bot'), desc: t('support.free7Desc', 'Kingdom intel straight in your Discord server') },
   ];
 
   const isSupporter = tier === 'supporter' && !isAdmin;

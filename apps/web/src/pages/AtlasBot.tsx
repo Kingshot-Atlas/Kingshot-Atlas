@@ -137,12 +137,6 @@ const AtlasBot: React.FC = () => {
       accentColor: '#a855f7'
     },
     {
-      command: 'link',
-      description: 'Connect your Discord account to your Atlas profile. Unlocks the Settler role, /redeem, and synced alt accounts.',
-      icon: '\ud83d\udd17',
-      accentColor: '#22c55e'
-    },
-    {
       command: 'multirally',
       description: 'Coordinate multiple rallies to hit a building at the same time. Enter players and march times, get the exact call order. No more guessing.',
       example: '/multirally target:King\'s Castle players:PlayerA:15,PlayerB:18',
@@ -151,16 +145,9 @@ const AtlasBot: React.FC = () => {
     },
     {
       command: 'codes',
-      description: 'See every active gift code in one place. Copy-friendly format, ready to paste in-game or redeem on Atlas.',
+      description: 'See every active gift code in one place. Copy-friendly format, ready to paste in-game.',
       icon: '\ud83c\udf81',
       accentColor: '#f59e0b'
-    },
-    {
-      command: 'redeem',
-      description: 'One command, all codes redeemed. Link your Kingshot account on Atlas, then /redeem does the rest. Pick a specific code or hit "All" — your call.',
-      example: '/redeem code:All',
-      icon: '\u26a1',
-      accentColor: '#22c55e'
     }
   ];
 

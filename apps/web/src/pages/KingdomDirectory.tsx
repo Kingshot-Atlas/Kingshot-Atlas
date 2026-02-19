@@ -21,7 +21,7 @@ import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { useAuth } from '../contexts/AuthContext';
 import { useFavoritesContext } from '../contexts/FavoritesContext';
 import { neonGlow, colors } from '../utils/styles';
-import { countActiveFilters, DEFAULT_FILTERS } from '../utils/kingdomStats';
+import { countActiveFilters, DEFAULT_FILTERS, getOutcomeValue } from '../utils/kingdomStats';
 import { DataSyncIndicator } from '../components/DataSyncIndicator';
 import QuickActions from '../components/homepage/QuickActions';
 import TransferHubBanner from '../components/homepage/TransferHubBanner';
@@ -130,7 +130,7 @@ const KingdomDirectory: React.FC = () => {
     const handleScroll = () => {
       setShowBackToTop(window.scrollY > 400);
     };
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -299,16 +299,6 @@ const KingdomDirectory: React.FC = () => {
     
     return result;
   }, [allKingdoms, debouncedSearch, filters, showFavoritesOnly, favorites, transferGroupFilter]);
-
-  // Helper to get calculated outcome stats for sorting
-  const getOutcomeValue = (k: Kingdom, field: string): number => {
-    const dominations = k.dominations ?? 0;
-    if (field === 'dominations') return dominations;
-    if (field === 'invasions') return k.invasions ?? 0;
-    if (field === 'comebacks') return Math.max(0, k.battle_wins - dominations);
-    if (field === 'reversals') return Math.max(0, k.prep_wins - dominations);
-    return 0;
-  };
 
   // Add rank based on overall_score order (all kingdoms, not just filtered)
   // Also apply frontend sorting for calculated fields

@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Kingdom, getPowerTier } from '../types';
+import { neonGlow } from '../utils/styles';
+import { getOutcomeStats } from '../utils/kingdomStats';
 
 interface TableColumn {
   id: string;
@@ -10,17 +12,6 @@ interface TableColumn {
   getValue: (k: Kingdom, rank?: number) => string | number;
   align?: 'left' | 'center' | 'right';
 }
-
-// Calculate outcome stats - same method as KingdomProfile
-// Comebacks = Lost prep but won battle = battle_wins - dominations
-// Reversals = Won prep but lost battle = prep_wins - dominations
-const getOutcomeStats = (k: Kingdom) => {
-  const dominations = k.dominations ?? 0;
-  const invasions = k.invasions ?? 0;
-  const comebacks = Math.max(0, k.battle_wins - dominations);
-  const reversals = Math.max(0, k.prep_wins - dominations);
-  return { dominations, invasions, comebacks, reversals };
-};
 
 const getTranslatedColumns = (t: (key: string, fallback: string) => string): TableColumn[] => [
   { id: 'favorite', label: '★', getValue: () => '', align: 'center' },
@@ -71,11 +62,6 @@ interface KingdomTableProps {
   onSort?: (sortBy: string) => void;
 }
 
-const neonGlow = (color: string) => ({
-  color: color,
-  textShadow: `0 0 8px ${color}40, 0 0 12px ${color}20`
-});
-
 const getStatusColor = (status: string) => {
   switch (status) {
     case 'Leading': return '#fbbf24'; // Gold
@@ -95,7 +81,7 @@ const KingdomTable: React.FC<KingdomTableProps> = ({
 }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const ALL_COLUMNS = getTranslatedColumns(t);
+  const ALL_COLUMNS = useMemo(() => getTranslatedColumns(t), [t]);
   const [showColumnSelector, setShowColumnSelector] = useState(false);
   const [visibleColumns, setVisibleColumns] = useState<string[]>(() => {
     const saved = localStorage.getItem(TABLE_COLUMNS_KEY);

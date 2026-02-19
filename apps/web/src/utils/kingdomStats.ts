@@ -3,7 +3,7 @@
  * Used across KingdomDirectory, KingdomProfile, Leaderboards, and CompareKingdoms
  */
 
-import { KVKRecord, FilterOptions as TypeFilterOptions } from '../types';
+import { Kingdom, KVKRecord, FilterOptions as TypeFilterOptions } from '../types';
 
 // Re-export FilterOptions from types
 export type { FilterOptions } from '../types';
@@ -108,6 +108,31 @@ export interface OutcomeStats {
   reversals: number;    // Won prep, lost battle
   invasions: number;    // Lost both prep and battle
 }
+
+/**
+ * Get outcome stats from a Kingdom object (pre-aggregated fields).
+ * Used by KingdomTable, KingdomDirectory, and similar list views.
+ */
+export const getOutcomeStats = (k: Kingdom): OutcomeStats => {
+  const dominations = k.dominations ?? 0;
+  const invasions = k.invasions ?? 0;
+  const comebacks = Math.max(0, k.battle_wins - dominations);
+  const reversals = Math.max(0, k.prep_wins - dominations);
+  return { dominations, invasions, comebacks, reversals };
+};
+
+/**
+ * Get a single outcome value by field name (for sorting).
+ * Used by KingdomDirectory for frontend sorting on calculated fields.
+ */
+export const getOutcomeValue = (k: Kingdom, field: string): number => {
+  const stats = getOutcomeStats(k);
+  if (field === 'dominations') return stats.dominations;
+  if (field === 'invasions') return stats.invasions;
+  if (field === 'comebacks') return stats.comebacks;
+  if (field === 'reversals') return stats.reversals;
+  return 0;
+};
 
 export const calculateOutcomeStats = (kvkResults: KVKRecord[]): OutcomeStats => {
   if (!kvkResults || kvkResults.length === 0) {

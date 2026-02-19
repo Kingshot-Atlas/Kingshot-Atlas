@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Kingdom, getPowerTier, TIER_COLORS } from '../../types';
+import { neonGlow } from '../../utils/styles';
 import SmartTooltip from '../shared/SmartTooltip';
 
 interface MiniKingdomCardProps {
@@ -11,11 +12,6 @@ interface MiniKingdomCardProps {
   isMobile: boolean;
   navigate: (path: string) => void;
 }
-
-const neonGlow = (color: string) => ({
-  color: color,
-  textShadow: `0 0 8px ${color}40, 0 0 12px ${color}20`
-});
 
 export const MiniKingdomCard: React.FC<MiniKingdomCardProps> = ({ 
   kingdom, 

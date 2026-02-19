@@ -8,6 +8,8 @@ import { MiniKingdomCard } from './profile-features';
 import { reviewService, Review } from '../services/reviewService';
 import { isSupabaseConfigured } from '../lib/supabase';
 import { useFavoritesContext } from '../contexts/FavoritesContext';
+import { neonGlow } from '../utils/styles';
+import { useIsMobile } from '../hooks/useMediaQuery';
 
 const ProfileFeatures: React.FC = () => {
   const { t } = useTranslation();
@@ -17,7 +19,7 @@ const ProfileFeatures: React.FC = () => {
   const [watchlist, setWatchlist] = useState<number[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [homeKingdomData, setHomeKingdomData] = useState<Kingdom | null>(null);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const isMobile = useIsMobile();
   const [showAllFavorites, setShowAllFavorites] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [favoriteKingdoms, setFavoriteKingdoms] = useState<Kingdom[]>([]);
@@ -30,17 +32,6 @@ const ProfileFeatures: React.FC = () => {
   const sortedReviews = [...reviews].sort((a, b) => 
     new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
   );
-
-  const neonGlow = (color: string) => ({
-    color: color,
-    textShadow: `0 0 8px ${color}40, 0 0 12px ${color}20`
-  });
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   useEffect(() => {
     // Load watchlist
@@ -545,11 +536,6 @@ const KingCardLoader: React.FC<{ kingdomNumber: number; onRemove: () => void; th
   const navigate = useNavigate();
   const [kingdom, setKingdom] = useState<Kingdom | null>(null);
   const [loading, setLoading] = useState(true);
-
-  const neonGlow = (color: string) => ({
-    color: color,
-    textShadow: `0 0 8px ${color}40, 0 0 12px ${color}20`
-  });
 
   useEffect(() => {
     apiService.getKingdomProfile(kingdomNumber)

@@ -1,5 +1,6 @@
 import React from 'react';
 import { neonGlow } from '../utils/styles';
+import { useIsMobile } from '../hooks/useMediaQuery';
 
 interface PageTitleProps {
   /** The full title text - will be split into first word (white) and rest (accent) */
@@ -51,7 +52,7 @@ const PageTitle: React.FC<PageTitleProps> = ({
   const firstWord = words[0] || '';
   const restWords = words.slice(1).join(' ');
 
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const isMobile = useIsMobile();
   const fontSize = isMobile ? SIZE_MAP[size].mobile : SIZE_MAP[size].desktop;
 
   return (

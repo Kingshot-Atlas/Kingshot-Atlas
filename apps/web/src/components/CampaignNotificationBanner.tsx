@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useAuth } from '../contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 const DISMISS_KEY = 'kingshot_campaign_notification_dismissed';
 const CAMPAIGN_END = new Date('2026-02-21T00:00:00Z').getTime();
 
 const CampaignNotificationBanner: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useIsMobile();
@@ -71,7 +73,7 @@ const CampaignNotificationBanner: React.FC = () => {
               gap: '0.4rem',
               flexWrap: 'wrap',
             }}>
-              Kingdom Colonies Campaign
+              {t('campaign.title', 'Kingdom Colonies Campaign')}
               <span style={{
                 fontSize: '0.55rem',
                 padding: '0.1rem 0.35rem',
@@ -81,7 +83,7 @@ const CampaignNotificationBanner: React.FC = () => {
                 color: '#22c55e',
                 fontWeight: '700',
               }}>
-                LIVE
+                {t('campaign.live', 'LIVE')}
               </span>
             </div>
             <div style={{
@@ -92,7 +94,7 @@ const CampaignNotificationBanner: React.FC = () => {
               overflow: 'hidden',
               textOverflow: 'ellipsis',
             }}>
-              Top 3 kingdoms by verified players win real rewards. Rally your alliance.
+              {t('campaign.subtitle', 'Top 3 kingdoms by verified players win real rewards. Rally your alliance.')}
             </div>
           </div>
         </div>
@@ -104,7 +106,7 @@ const CampaignNotificationBanner: React.FC = () => {
             fontWeight: '600',
             whiteSpace: 'nowrap',
           }}>
-            See leaderboard →
+            {t('campaign.cta', 'See leaderboard')} →
           </span>
           <button
             onClick={handleDismiss}

@@ -3,6 +3,44 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-20 | Product Engineer | COMPLETED
+Task: Support page update, Atlas Bot cleanup, passive listener fixes, i18n sync
+Files: SupportAtlas.tsx, AtlasBot.tsx, bot.js, useMediaQuery.ts, RallySubComponents.tsx, 18 locale files (src + public × 9 langs)
+Changes:
+1. **Support page — Free features overhaul** — Replaced Event Calendar and Score Simulator with Transfer Hub and Atlas Discord Bot in the "What Everyone Gets — Free" section. These are higher-impact features that better represent the platform's free tier value.
+2. **Atlas Bot landing page — /link and /redeem removed** — Removed the /link and /redeem command cards from the slash commands showcase. Updated /codes description to remove redeem references. Aligns with deprecation of in-app code redemption.
+3. **Discord bot — dead redeem autocomplete removed** — Cleaned up orphaned autocomplete handler for /redeem and /redeem-all in bot.js (command definitions were already removed but handler remained as dead code).
+4. **Passive event listeners** — Added `{ passive: true }` to all 3 resize listeners in useMediaQuery.ts (useIsMobile, useIsTablet, useIsDesktop) and to mousemove/touchmove listeners in RallySubComponents.tsx slider. Prevents scroll jank on mobile.
+5. **i18n — full 9-language sync** — Updated free6/free7 keys across all locale files (EN, ES, FR, ZH, DE, KO, JA, AR, TR) in both src/locales and public/locales. Removed stale free4 (Score Simulator) keys.
+
+## 2026-02-19 | Product Engineer | COMPLETED
+Task: Codebase consolidation pass — hook extraction, DRY utilities, consistent patterns
+Files: BotDashboard.tsx, useBotDashboardData.ts (new), KingdomTable.tsx, KingdomDirectory.tsx, ProfileFeatures.tsx, UserDirectory.tsx, PageTitle.tsx, utils/kingdomStats.ts
+Changes:
+1. **BotDashboard.tsx — useBotDashboardData hook extraction** — Moved 11 useState + 6 useCallback + 4 useEffect + 2 useMemo into `hooks/useBotDashboardData.ts`. Component drops from 33→22 useState calls. Cleaned up 8 unused imports.
+2. **Shared getOutcomeStats/getOutcomeValue** — Added Kingdom-level outcome calculation functions to `utils/kingdomStats.ts`. Replaced duplicate implementations in KingdomTable.tsx and KingdomDirectory.tsx.
+3. **useIsMobile() consolidation (3 files)** — Replaced manual `window.innerWidth < 768` resize listeners in ProfileFeatures.tsx, UserDirectory.tsx, and PageTitle.tsx with the shared `useIsMobile()` hook (includes debounce, SSR-safe).
+
+## 2026-02-19 | Product Engineer | COMPLETED
+Task: Performance hardening pass — memoization, dead code removal, DRY consolidation
+Files: Leaderboards.tsx, KingdomTable.tsx, UserDirectory.tsx, ProfileFeatures.tsx, AtlasScoreInfo.tsx, profile-features/MiniKingdomCard.tsx
+Changes:
+1. **Leaderboards.tsx — getKingdomStats stabilization** — Moved inline `getKingdomStats()` to module-level pure function. Previously recreated on every render inside the component, causing `kingdomsWithStats` useMemo (1200 kingdoms × 12 rankings) to potentially miss cache hits since the function ref was unstable.
+2. **KingdomTable.tsx — ALL_COLUMNS memoization** — Wrapped `getTranslatedColumns(t)` in `useMemo([t])` so the 16-column array isn't rebuilt on every render. Only recomputes on language change.
+3. **UserDirectory.tsx — dead demo users removed** — Deleted 60 lines of unreachable hardcoded demo user fallback data. Supabase is the sole data source; this code never executed in production.
+4. **neonGlow consolidation (5 files)** — Removed duplicate `neonGlow` function definitions in UserDirectory.tsx, KingdomTable.tsx, ProfileFeatures.tsx (×2), AtlasScoreInfo.tsx, profile-features/MiniKingdomCard.tsx. All now import from centralized `utils/styles.ts`. Fixed stale `neonGlowUtil` alias in UserDirectory.tsx.
+
+## 2026-02-19 | Product Engineer | COMPLETED
+Task: Deep code review round 2 — performance, i18n, mobile UX, auth improvements
+Files: CampaignNotificationBanner.tsx, App.tsx, KingdomCard.tsx, FeedbackWidget.tsx, UserDirectory.tsx, KingdomDirectory.tsx, useInViewOnce.ts (new), locales/en/translation.json
+Changes:
+1. **CampaignNotificationBanner i18n** — Wrapped 4 hardcoded English strings in t() calls with fallbacks. Added campaign.* keys to EN locale.
+2. **Mobile banner stacking fix** — CampaignNotificationBanner now hidden on mobile in App.tsx to prevent header+KvKBanner+CampaignBanner eating ~25% of viewport.
+3. **Shared IntersectionObserver** — Created `useInViewOnce` hook with single shared observer. Refactored KingdomCard to use it, eliminating 1200+ per-card observers.
+4. **FeedbackWidget auth headers** — Added `getAuthHeaders()` for logged-in users so backend can attribute feedback. Added safe-area-inset-bottom for notched iPhones.
+5. **UserDirectory infinite scroll bug** — Added missing `[]` dependency array to useEffect creating IntersectionObserver. Was leaking observers on every render.
+6. **KingdomDirectory passive scroll** — Added `{ passive: true }` to scroll event listener for smoother mobile scrolling.
+
 ## 2026-02-19 | Platform Engineer | COMPLETED
 Task: Fix CI failure, telemetry bug, lint warnings, add bot integration tests
 Files: i18n-check-hardcoded.js, consistency-lint.js, telemetry.js, ci.yml, package.json (discord-bot), 7 frontend files, 2 new test files

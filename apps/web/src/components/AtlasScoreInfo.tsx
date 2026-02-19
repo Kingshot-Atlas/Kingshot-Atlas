@@ -1,6 +1,7 @@
 import React from 'react';
 import SmartTooltip from './shared/SmartTooltip';
 import { useTranslation } from 'react-i18next';
+import { neonGlow } from '../utils/styles';
 
 interface AtlasScoreInfoProps {
   inline?: boolean;
@@ -8,10 +9,6 @@ interface AtlasScoreInfoProps {
 
 const AtlasScoreInfo: React.FC<AtlasScoreInfoProps> = ({ inline = false }) => {
   const { t } = useTranslation();
-  const neonGlow = (color: string) => ({
-    color: color,
-    textShadow: `0 0 8px ${color}40, 0 0 12px ${color}20`
-  });
 
   const content = (
     <div style={{

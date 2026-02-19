@@ -18,6 +18,56 @@ import { useScrollDepth } from '../hooks/useScrollDepth';
 import { useTranslation } from 'react-i18next';
 import { getTransferGroupOptions, parseTransferGroupValue } from '../config/transferGroups';
 
+// Module-level pure function — stable reference, never causes useMemo invalidation
+const getKingdomStats = (kingdom: Kingdom) => {
+  const recentKvks = [...(kingdom.recent_kvks || [])].sort((a, b) => b.kvk_number - a.kvk_number);
+  let prepStreak = 0;
+  let battleStreak = 0;
+  
+  for (const kvk of recentKvks) {
+    const isWin = kvk.prep_result === 'Win' || kvk.prep_result === 'W';
+    if (prepStreak === 0 && !isWin) break;
+    if (isWin) prepStreak++;
+    else break;
+  }
+  
+  for (const kvk of recentKvks) {
+    const isWin = kvk.battle_result === 'Win' || kvk.battle_result === 'W';
+    if (battleStreak === 0 && !isWin) break;
+    if (isWin) battleStreak++;
+    else break;
+  }
+  
+  let dominationStreak = 0;
+  for (const kvk of recentKvks) {
+    const prepWin = kvk.prep_result === 'Win' || kvk.prep_result === 'W';
+    const battleWin = kvk.battle_result === 'Win' || kvk.battle_result === 'W';
+    if (prepWin && battleWin) dominationStreak++;
+    else break;
+  }
+
+  let bestDominationStreak = 0;
+  let currentDomStreak = 0;
+  const chronological = [...(kingdom.recent_kvks || [])].sort((a, b) => a.kvk_number - b.kvk_number);
+  for (const kvk of chronological) {
+    const prepWin = kvk.prep_result === 'Win' || kvk.prep_result === 'W';
+    const battleWin = kvk.battle_result === 'Win' || kvk.battle_result === 'W';
+    if (prepWin && battleWin) {
+      currentDomStreak++;
+      if (currentDomStreak > bestDominationStreak) bestDominationStreak = currentDomStreak;
+    } else {
+      currentDomStreak = 0;
+    }
+  }
+
+  const dominations = kingdom.dominations ?? 0;
+  const invasions = kingdom.invasions ?? kingdom.defeats ?? 0;
+  const reversals = kingdom.prep_wins - dominations;
+  const comebacks = kingdom.battle_wins - dominations;
+  
+  return { prepStreak, battleStreak, dominationStreak, bestDominationStreak, dominations, invasions, reversals, comebacks };
+};
+
 const Leaderboards: React.FC = () => {
   const { t } = useTranslation();
   useDocumentTitle('Kingdom Rankings');
@@ -132,66 +182,6 @@ const Leaderboards: React.FC = () => {
       fallers: filterMovers(rankMovers.fallers),
     };
   }, [rankMovers, filteredKingdomNumbers, displayCount]);
-
-  // Calculate stats for each kingdom
-  const getKingdomStats = (kingdom: Kingdom) => {
-    const recentKvks = [...(kingdom.recent_kvks || [])].sort((a, b) => b.kvk_number - a.kvk_number);
-    let prepStreak = 0;
-    let battleStreak = 0;
-    
-    // Prep streak (current)
-    for (const kvk of recentKvks) {
-      const isWin = kvk.prep_result === 'Win' || kvk.prep_result === 'W';
-      if (prepStreak === 0 && !isWin) break;
-      if (isWin) prepStreak++;
-      else break;
-    }
-    
-    // Battle streak (current)
-    for (const kvk of recentKvks) {
-      const isWin = kvk.battle_result === 'Win' || kvk.battle_result === 'W';
-      if (battleStreak === 0 && !isWin) break;
-      if (isWin) battleStreak++;
-      else break;
-    }
-    
-    // Domination streak (current consecutive dominations = both prep & battle wins)
-    let dominationStreak = 0;
-    for (const kvk of recentKvks) {
-      const prepWin = kvk.prep_result === 'Win' || kvk.prep_result === 'W';
-      const battleWin = kvk.battle_result === 'Win' || kvk.battle_result === 'W';
-      if (prepWin && battleWin) dominationStreak++;
-      else break;
-    }
-
-    // Best domination streak (all-time longest consecutive dominations)
-    let bestDominationStreak = 0;
-    let currentDomStreak = 0;
-    // Sort oldest-first for correct streak calculation
-    const chronological = [...(kingdom.recent_kvks || [])].sort((a, b) => a.kvk_number - b.kvk_number);
-    for (const kvk of chronological) {
-      const prepWin = kvk.prep_result === 'Win' || kvk.prep_result === 'W';
-      const battleWin = kvk.battle_result === 'Win' || kvk.battle_result === 'W';
-      if (prepWin && battleWin) {
-        currentDomStreak++;
-        if (currentDomStreak > bestDominationStreak) bestDominationStreak = currentDomStreak;
-      } else {
-        currentDomStreak = 0;
-      }
-    }
-
-    // Use full history data from kingdom object (not just recent_kvks)
-    const dominations = kingdom.dominations ?? 0;
-    const invasions = kingdom.invasions ?? kingdom.defeats ?? 0;
-    
-    // Reversals = prep wins that weren't dominations (won prep but lost battle)
-    const reversals = kingdom.prep_wins - dominations;
-    
-    // Comebacks = battle wins that weren't dominations (lost prep but won battle)
-    const comebacks = kingdom.battle_wins - dominations;
-    
-    return { prepStreak, battleStreak, dominationStreak, bestDominationStreak, dominations, invasions, reversals, comebacks };
-  };
 
   // Rankings with stats (using filtered kingdoms)
   const kingdomsWithStats = useMemo(() => 

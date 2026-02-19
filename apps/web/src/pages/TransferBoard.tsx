@@ -34,9 +34,9 @@ const KingdomFundContribute = lazy(() => import('../components/KingdomFundContri
 const TransferProfileForm = lazy(() => import('../components/TransferProfileForm'));
 const KingdomCompare = lazy(() => import('../components/transfer/KingdomCompare'));
 
-import { TRANSFER_GROUPS, getTransferGroup, getTransferGroupOptions, areTransferGroupsOutdated, getTransferGroupLabel } from '../config/transferGroups';
+import { getTransferGroupLabel } from '../config/transferGroups';
 import { calculateMatchScore as calcMatchScore, calculateMatchScoreForSort as calcMatchScoreForSort } from '../utils/matchScore';
-import { useTransferKingdoms, useTransferFunds, useTransferReviewSummaries, useUserTransferProfile, useActiveAppCount, useEditorStatus, useAtlasPlayerCount, useInvalidateTransferHub } from '../hooks/useTransferHubQueries';
+import { useTransferKingdoms, useTransferFunds, useTransferReviewSummaries, useUserTransferProfile, useActiveAppCount, useEditorStatus, useAtlasPlayerCount, useInvalidateTransferHub, useTransferGroups } from '../hooks/useTransferHubQueries';
 
 // =============================================
 // TYPES (KingdomData, KingdomFund, KingdomReviewSummary, BoardMode, MatchDetail, formatTCLevel
@@ -349,11 +349,16 @@ const TransferBoard: React.FC = () => {
     return map;
   }, [reviewSummaries]);
 
-  // Determine user's transfer group (always active — groups come from central config)
+  // Transfer groups from Supabase (source of truth), falls back to static config
+  const { groups: dynamicTransferGroups, updatedAt: transferGroupsUpdatedAt } = useTransferGroups();
+
+  // Determine user's transfer group using dynamic groups
   const userTransferGroup = useMemo(() => {
     if (!profile?.linked_kingdom) return null;
-    return getTransferGroup(profile.linked_kingdom);
-  }, [profile?.linked_kingdom]);
+    return dynamicTransferGroups.find(
+      ([min, max]) => profile.linked_kingdom! >= min && profile.linked_kingdom! <= max
+    ) ?? null;
+  }, [profile?.linked_kingdom, dynamicTransferGroups]);
 
   // Transfer group filter state (for manual selection when not linked)
   const [transferGroupFilter, setTransferGroupFilter] = useState<string>('auto');
@@ -371,7 +376,13 @@ const TransferBoard: React.FC = () => {
     return null;
   }, [transferGroupFilter, userTransferGroup]);
 
-  const transferGroupsOutdated = areTransferGroupsOutdated();
+  // Groups are outdated if last update was more than 7 weeks ago
+  const transferGroupsOutdated = useMemo(() => {
+    if (!transferGroupsUpdatedAt) return false;
+    const updatedAt = new Date(transferGroupsUpdatedAt).getTime();
+    const daysSince = (Date.now() - updatedAt) / (1000 * 60 * 60 * 24);
+    return daysSince >= 49; // 56 days cycle - 7 day buffer
+  }, [transferGroupsUpdatedAt]);
 
   // Match score for sorting — delegated to utils/matchScore.ts
   const calculateMatchScoreForSort = (kingdom: KingdomData, fund: KingdomFund | null): number =>
@@ -1015,7 +1026,7 @@ const TransferBoard: React.FC = () => {
       )}
 
       {/* Transfer Group Filter — shown in "I'm Transferring" mode */}
-      {mode === 'transferring' && TRANSFER_GROUPS.length > 0 && (
+      {mode === 'transferring' && dynamicTransferGroups.length > 0 && (
         <div style={{
           padding: '0.75rem 1rem',
           backgroundColor: '#22d3ee08',
@@ -1053,9 +1064,11 @@ const TransferBoard: React.FC = () => {
                 </option>
               )}
               <option value="all">{t('transferHub.allGroups', 'All Groups')}</option>
-              {getTransferGroupOptions().map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
+              {dynamicTransferGroups.map(([min, max]) => {
+                const value = `${min}-${max}`;
+                const label = max >= 99999 ? `K${min}+` : `K${min}\u2013K${max}`;
+                return <option key={value} value={value}>{label}</option>;
+              })}
             </select>
             {effectiveTransferGroup && (
               <span style={{ color: colors.textSecondary, fontSize: '0.75rem' }}>

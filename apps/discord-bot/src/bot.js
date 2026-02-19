@@ -75,6 +75,14 @@ let settlerSyncTimer = null;
 let settlerSyncInitTimeout = null;
 let lastSettlerSync = null;
 
+// Transfer Group roles — assigned based on linked kingdom's transfer group
+// Role IDs are created/cached dynamically by syncTransferGroupRoles()
+// Map: "min-max" -> Discord role ID (e.g. "7-115" -> "1234567890")
+const transferGroupRoleCache = new Map(); // populated at runtime
+let lastTransferGroupSync = null;
+// Channel to DM unlinked users who join — set DISCORD_LINK_PROMPT_CHANNEL_ID on Render
+const LINK_PROMPT_CHANNEL_ID = process.env.DISCORD_LINK_PROMPT_CHANNEL_ID || '';
+
 // Supporter role — assigned to Atlas Supporter subscribers who linked Discord
 const SUPPORTER_ROLE_ID = process.env.DISCORD_SUPPORTER_ROLE_ID || '';
 let supporterSyncTimer = null;
@@ -505,6 +513,7 @@ client.on('ready', async () => {
     await syncReferralRoles();
     if (SUPPORTER_ROLE_ID) await syncSupporterRoles();
     if (GILDED_ROLE_ID) await syncGildedRoles();
+    await syncTransferGroupRoles();
     console.log('🔄 Unified role sync complete');
   }
 
@@ -512,7 +521,7 @@ client.on('ready', async () => {
   if (settlerSyncTimer) clearInterval(settlerSyncTimer);
   settlerSyncInitTimeout = setTimeout(() => runAllRoleSyncs(), 60_000);
   settlerSyncTimer = setInterval(() => runAllRoleSyncs(), SETTLER_SYNC_INTERVAL);
-  console.log(`� Unified role sync scheduled (Settler + Referral + Supporter + Gilded, every ${SETTLER_SYNC_INTERVAL / 60000} min)`);
+  console.log(`🔄 Unified role sync scheduled (Settler + Referral + Supporter + Gilded + TransferGroup, every ${SETTLER_SYNC_INTERVAL / 60000} min)`);
   if (!SUPPORTER_ROLE_ID) console.log('⚠️ DISCORD_SUPPORTER_ROLE_ID not set — Supporter role sync disabled');
   if (!GILDED_ROLE_ID) console.log('⚠️ DISCORD_GILDED_ROLE_ID not set — Gilded role sync disabled');
 
@@ -814,20 +823,6 @@ client.on('interactionCreate', async (interaction) => {
           .map(n => ({ name: `Kingdom ${n}`, value: n }));
         await interaction.respond(filtered);
       }
-      // /redeem and /redeem-all code autocomplete — show active codes + "All" option
-      else if ((interaction.commandName === 'redeem' || interaction.commandName === 'redeem-all') && focused.name === 'code') {
-        const typed = String(focused.value).toLowerCase();
-        const api = require('./utils/api');
-        const codes = await api.fetchGiftCodes();
-        const choices = [
-          { name: '🎁 All — Redeem every active code', value: '__ALL__' },
-          ...codes.slice(0, 24).map(c => ({
-            name: c.code,
-            value: c.code,
-          })),
-        ].filter(c => !typed || c.name.toLowerCase().includes(typed) || c.value.toLowerCase().includes(typed));
-        await interaction.respond(choices.slice(0, 25));
-      }
     } catch (e) {
       console.error('Autocomplete error:', e.message);
     }
@@ -1030,7 +1025,7 @@ client.on('guildDelete', (guild) => {
   logger.logGuildEvent('leave', guild);
 });
 
-// Event: New member joins - send welcome message + check Settler role eligibility
+// Event: New member joins - send welcome message + check Settler/TransferGroup role eligibility
 client.on('guildMemberAdd', async (member) => {
   console.log(`👋 New member: ${member.user.username} joined ${member.guild.name}`);
   
@@ -1111,6 +1106,27 @@ client.on('guildMemberAdd', async (member) => {
     await checkAndAssignSettlerRole(member);
   } catch (error) {
     console.error(`Failed to check Settler role for ${member.user.username}:`, error.message);
+  }
+
+  // Check if this new member is eligible for a Transfer Group role
+  try {
+    await checkAndAssignTransferGroupRole(member);
+  } catch (error) {
+    console.error(`Failed to check Transfer Group role for ${member.user.username}:`, error.message);
+  }
+
+  // Prompt unlinked users to link their account (non-intrusive: uses a designated channel)
+  if (LINK_PROMPT_CHANNEL_ID) {
+    try {
+      const promptChannel = member.guild.channels.cache.get(LINK_PROMPT_CHANNEL_ID);
+      if (promptChannel && promptChannel.isTextBased()) {
+        await promptChannel.send({
+          content: `👋 Welcome <@${member.user.id}>! Link your Kingshot account at **ks-atlas.com** to get your **Settler** role and be placed in your **Transfer Group** channel automatically. It only takes 30 seconds! 🔗`,
+        });
+      }
+    } catch (err) {
+      console.error(`Failed to send link prompt for ${member.user.username}:`, err.message);
+    }
   }
 });
 
@@ -1529,6 +1545,237 @@ async function syncGildedRoles() {
     console.log(`✨ Gilded sync done in ${elapsed}ms: +${assigned} -${removed} =${alreadyHas} already`);
   } catch (err) {
     console.error('✨ Gilded sync error:', err.message);
+  }
+}
+
+// ============================================================================
+// TRANSFER GROUP ROLE AUTO-ASSIGNMENT
+// Fetches transfer groups from API (Supabase source of truth), creates Discord
+// roles if they don't exist, then assigns/removes roles based on each user's
+// linked kingdom. Users with multiple kingdoms get all applicable group roles.
+// ============================================================================
+
+/**
+ * Get or create a Discord role for a transfer group.
+ * Caches role ID in transferGroupRoleCache to avoid repeated API calls.
+ * @param {import('discord.js').Guild} guild
+ * @param {number} min - min kingdom number
+ * @param {number} max - max kingdom number
+ * @param {string} label - human-readable label e.g. "K7–K115"
+ * @returns {Promise<string|null>} role ID or null on failure
+ */
+async function getOrCreateTransferGroupRole(guild, min, max, label) {
+  const key = `${min}-${max}`;
+  if (transferGroupRoleCache.has(key)) {
+    return transferGroupRoleCache.get(key);
+  }
+
+  const roleName = `Transfer: ${label}`;
+
+  // Search existing roles first
+  const existing = guild.roles.cache.find(r => r.name === roleName);
+  if (existing) {
+    transferGroupRoleCache.set(key, existing.id);
+    console.log(`   🔀 Found existing role: "${roleName}" (${existing.id})`);
+    return existing.id;
+  }
+
+  // Create the role
+  try {
+    const newRole = await guild.roles.create({
+      name: roleName,
+      color: 0xa855f7, // purple — matches Transfer Hub brand color
+      reason: 'Auto-created: Transfer Group role for Atlas Transfer Hub',
+      mentionable: false,
+      hoist: false,
+    });
+    transferGroupRoleCache.set(key, newRole.id);
+    console.log(`   🔀 Created role: "${roleName}" (${newRole.id})`);
+    return newRole.id;
+  } catch (err) {
+    console.error(`   ❌ Failed to create role "${roleName}": ${err.message}`);
+    return null;
+  }
+}
+
+/**
+ * Find which transfer group a kingdom belongs to.
+ * @param {number} kingdom
+ * @param {Array<{min_kingdom: number, max_kingdom: number, label: string}>} groups
+ * @returns {{min_kingdom: number, max_kingdom: number, label: string}|null}
+ */
+function findTransferGroup(kingdom, groups) {
+  return groups.find(g => kingdom >= g.min_kingdom && kingdom <= g.max_kingdom) || null;
+}
+
+/**
+ * Periodic sync: fetch transfer groups + linked users from API, create Discord
+ * roles if needed, assign/remove roles based on each user's linked kingdom(s).
+ */
+async function syncTransferGroupRoles() {
+  if (!botReady || !client.guilds.cache.size) {
+    console.log('🔀 Transfer Group sync skipped (bot not ready)');
+    return;
+  }
+
+  console.log('🔀 Transfer Group role sync starting...');
+  const startTime = Date.now();
+
+  try {
+    // Fetch transfer groups from API (Supabase source of truth)
+    const groupsRes = await fetch(`${config.apiUrl}/api/v1/bot/transfer-groups`);
+    if (!groupsRes.ok) {
+      console.error(`🔀 Transfer Group sync: groups API returned ${groupsRes.status}`);
+      return;
+    }
+    const groupsData = await groupsRes.json();
+    const groups = groupsData.groups || [];
+
+    if (groups.length === 0) {
+      console.log('🔀 Transfer Group sync: no active groups found, skipping');
+      return;
+    }
+
+    console.log(`🔀 ${groups.length} active transfer groups from API`);
+
+    // Fetch linked users (now includes all_kingdoms per user)
+    const usersRes = await fetch(`${config.apiUrl}/api/v1/bot/linked-users`);
+    if (!usersRes.ok) {
+      console.error(`🔀 Transfer Group sync: users API returned ${usersRes.status}`);
+      return;
+    }
+    const usersData = await usersRes.json();
+    const users = usersData.users || [];
+
+    const guild = client.guilds.cache.get(config.guildId);
+    if (!guild) {
+      console.error('🔀 Transfer Group sync: guild not found in cache');
+      return;
+    }
+
+    // Fetch all members (cached to prevent opcode 8 rate limiting)
+    await fetchGuildMembersCached(guild);
+
+    // Build map: discordId -> Set of role IDs they should have
+    const expectedRoles = new Map(); // discordId -> Set<roleId>
+
+    for (const user of users) {
+      if (!user.discord_id) continue;
+      const kingdoms = user.all_kingdoms || (user.linked_kingdom ? [user.linked_kingdom] : []);
+      if (kingdoms.length === 0) continue;
+
+      const roleIds = new Set();
+      for (const kingdom of kingdoms) {
+        const group = findTransferGroup(kingdom, groups);
+        if (!group) continue;
+        const roleId = await getOrCreateTransferGroupRole(guild, group.min_kingdom, group.max_kingdom, group.label);
+        if (roleId) roleIds.add(roleId);
+      }
+
+      if (roleIds.size > 0) {
+        expectedRoles.set(user.discord_id, roleIds);
+      }
+    }
+
+    console.log(`🔀 ${expectedRoles.size} users should have transfer group roles`);
+
+    // Collect all transfer group role IDs we manage
+    const allManagedRoleIds = new Set(transferGroupRoleCache.values());
+
+    let assigned = 0;
+    let removed = 0;
+    let alreadyHas = 0;
+
+    // Assign roles to eligible members
+    for (const [discordId, roleIds] of expectedRoles) {
+      const member = guild.members.cache.get(discordId);
+      if (!member) continue;
+
+      for (const roleId of roleIds) {
+        if (member.roles.cache.has(roleId)) {
+          alreadyHas++;
+        } else {
+          try {
+            await member.roles.add(roleId, 'Auto-assign: Transfer Group role based on linked kingdom on ks-atlas.com');
+            assigned++;
+            const roleName = guild.roles.cache.get(roleId)?.name || roleId;
+            console.log(`   🔀 +${roleName}: ${member.user.username}`);
+          } catch (err) {
+            console.error(`   ❌ Failed to assign transfer group role to ${member.user.username}: ${err.message}`);
+          }
+        }
+      }
+
+      // Remove any managed transfer group roles they shouldn't have
+      for (const roleId of allManagedRoleIds) {
+        if (!roleIds.has(roleId) && member.roles.cache.has(roleId)) {
+          try {
+            await member.roles.remove(roleId, 'Auto-remove: kingdom changed transfer group on ks-atlas.com');
+            removed++;
+            const roleName = guild.roles.cache.get(roleId)?.name || roleId;
+            console.log(`   🔀 -${roleName}: ${member.user.username}`);
+          } catch (err) {
+            console.error(`   ❌ Failed to remove transfer group role from ${member.user.username}: ${err.message}`);
+          }
+        }
+      }
+    }
+
+    // Remove managed roles from members who are no longer eligible (unlinked)
+    for (const roleId of allManagedRoleIds) {
+      const roleMembers = guild.members.cache.filter(m => m.roles.cache.has(roleId));
+      for (const [memberId, member] of roleMembers) {
+        if (!expectedRoles.has(memberId) && !member.user.bot) {
+          try {
+            await member.roles.remove(roleId, 'Auto-remove: Kingshot account unlinked on ks-atlas.com');
+            removed++;
+            const roleName = guild.roles.cache.get(roleId)?.name || roleId;
+            console.log(`   🔀 -${roleName} (unlinked): ${member.user.username}`);
+          } catch (err) {
+            console.error(`   ❌ Failed to remove transfer group role from ${member.user.username}: ${err.message}`);
+          }
+        }
+      }
+    }
+
+    const elapsed = Date.now() - startTime;
+    lastTransferGroupSync = new Date().toISOString();
+    console.log(`🔀 Transfer Group sync done in ${elapsed}ms: +${assigned} -${removed} =${alreadyHas} already`);
+  } catch (err) {
+    console.error('🔀 Transfer Group sync error:', err.message);
+  }
+}
+
+/**
+ * Check a single guild member for Transfer Group role eligibility via API.
+ * Called on guildMemberAdd for instant role assignment without waiting for the next sync.
+ */
+async function checkAndAssignTransferGroupRole(member) {
+  try {
+    const { lookupUserByDiscordId } = require('./utils/api');
+    const user = await lookupUserByDiscordId(member.user.id);
+    if (!user || !user.linked_kingdom) return; // Not linked or no kingdom
+
+    // Fetch transfer groups
+    const groupsRes = await fetch(`${config.apiUrl}/api/v1/bot/transfer-groups`);
+    if (!groupsRes.ok) return;
+    const groupsData = await groupsRes.json();
+    const groups = groupsData.groups || [];
+
+    const group = findTransferGroup(user.linked_kingdom, groups);
+    if (!group) return;
+
+    const guild = member.guild;
+    const roleId = await getOrCreateTransferGroupRole(guild, group.min_kingdom, group.max_kingdom, group.label);
+    if (!roleId) return;
+
+    if (!member.roles.cache.has(roleId)) {
+      await member.roles.add(roleId, 'Auto-assign: Transfer Group role on join (linked kingdom)');
+      const roleName = guild.roles.cache.get(roleId)?.name || roleId;
+      console.log(`   🔀 +${roleName} (on join): ${member.user.username}`);
+    }
+  } catch (err) {
+    console.error(`🔀 checkAndAssignTransferGroupRole error for ${member.user.username}: ${err.message}`);
   }
 }
 

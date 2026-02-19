@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef, memo, useMemo } from 'react';
+import React, { useState, useEffect, memo, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Kingdom, getPowerTier } from '../types';
 import { neonGlow, colors, radius, shadows, transition, FONT_DISPLAY } from '../utils/styles';
 import { useIsMobile } from '../hooks/useMediaQuery';
+import { useInViewOnce } from '../hooks/useInViewOnce';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { useAuth } from '../contexts/AuthContext';
 import { TierBadge, SmartTooltip } from './shared';
@@ -56,45 +57,33 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
   const { showToast } = useToast();
   const [animatedScore, setAnimatedScore] = useState(0);
   const [hasAnimated, setHasAnimated] = useState(false);
-  const cardRef = useRef<HTMLDivElement>(null);
+  const [cardRef, isInView] = useInViewOnce();
 
   const overallScore = typeof kingdom.overall_score === 'number' && !isNaN(kingdom.overall_score) 
     ? kingdom.overall_score 
     : 0;
 
-  // Animated counter effect
+  // Animated counter effect — triggered by shared IntersectionObserver
   useEffect(() => {
-    if (hasAnimated) return;
+    if (!isInView || hasAnimated) return;
+    setHasAnimated(true);
+    const duration = 800;
+    const steps = 25;
+    const increment = overallScore / steps;
+    let current = 0;
     
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting && !hasAnimated) {
-          setHasAnimated(true);
-          const duration = 800;
-          const steps = 25;
-          const increment = overallScore / steps;
-          let current = 0;
-          
-          const timer = setInterval(() => {
-            current += increment;
-            if (current >= overallScore) {
-              setAnimatedScore(overallScore);
-              clearInterval(timer);
-            } else {
-              setAnimatedScore(current);
-            }
-          }, duration / steps);
-        }
-      },
-      { threshold: 0.3 }
-    );
+    const timer = setInterval(() => {
+      current += increment;
+      if (current >= overallScore) {
+        setAnimatedScore(overallScore);
+        clearInterval(timer);
+      } else {
+        setAnimatedScore(current);
+      }
+    }, duration / steps);
 
-    if (cardRef.current) {
-      observer.observe(cardRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, [overallScore, hasAnimated]);
+    return () => clearInterval(timer);
+  }, [isInView, overallScore, hasAnimated]);
 
   const handleCardClick = () => {
     trackFeature('Kingdom Card Click', { kingdom: kingdom.kingdom_number });

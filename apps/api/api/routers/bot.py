@@ -1453,20 +1453,92 @@ async def get_user_by_discord(discord_id: str, _: bool = Depends(require_bot_adm
     return user
 
 
+@router.get("/transfer-groups")
+async def get_transfer_groups():
+    """
+    Public endpoint — returns active transfer groups from Supabase.
+    Used by the frontend (replaces static transferGroups.ts config) and the Discord bot.
+    No auth required — groups are public information.
+    """
+    sb = get_supabase_admin()
+    if not sb:
+        return {"groups": [], "total": 0, "error": "Supabase not configured"}
+
+    try:
+        result = sb.table("transfer_groups").select(
+            "id, min_kingdom, max_kingdom, label, event_number, is_active, updated_at"
+        ).eq("is_active", True).order("min_kingdom").execute()
+
+        groups = result.data or []
+        updated_at = groups[0]["updated_at"] if groups else None
+
+        return {
+            "groups": groups,
+            "total": len(groups),
+            "updated_at": updated_at,
+        }
+    except Exception as e:
+        logger.error("Error in /transfer-groups: %s", e)
+        return {"groups": [], "total": 0, "error": str(e)}
+
+
 @router.get("/linked-users")
 async def get_linked_users(_: bool = Depends(require_bot_admin)):
     """
     Get all users who have both a linked Kingshot account AND a Discord account.
-    These are eligible for the Settler role.
+    Returns all_kingdoms per user (primary + alt accounts) so the bot can assign
+    the correct transfer group role(s) for multi-account users.
     """
-    from api.supabase_client import get_users_with_linked_kingshot_and_discord
-    
-    users = get_users_with_linked_kingshot_and_discord()
-    
-    return {
-        "users": users,
-        "total": len(users)
-    }
+    sb = get_supabase_admin()
+    if not sb:
+        return {"users": [], "total": 0, "error": "Supabase not configured"}
+
+    try:
+        # Fetch all profiles with both discord_id and linked_player_id
+        result = sb.table("profiles").select(
+            "id, discord_id, linked_player_id, linked_username, username, referral_tier, linked_kingdom"
+        ).not_.is_("linked_player_id", "null").not_.is_("discord_id", "null").execute()
+
+        profiles = result.data or []
+
+        # For each user, also fetch alt accounts from player_accounts table
+        user_ids = [p["id"] for p in profiles]
+        alt_map: dict = {}
+        if user_ids:
+            alts_result = sb.table("player_accounts").select(
+                "user_id, kingdom"
+            ).in_("user_id", user_ids).not_.is_("kingdom", "null").execute()
+            for alt in (alts_result.data or []):
+                uid = alt["user_id"]
+                if uid not in alt_map:
+                    alt_map[uid] = []
+                if alt["kingdom"]:
+                    alt_map[uid].append(alt["kingdom"])
+
+        users = []
+        for p in profiles:
+            kingdoms = []
+            if p.get("linked_kingdom"):
+                kingdoms.append(p["linked_kingdom"])
+            for k in alt_map.get(p["id"], []):
+                if k not in kingdoms:
+                    kingdoms.append(k)
+            users.append({
+                "user_id": p["id"],
+                "discord_id": p["discord_id"],
+                "linked_player_id": p.get("linked_player_id"),
+                "username": p.get("linked_username") or p.get("username"),
+                "referral_tier": p.get("referral_tier"),
+                "linked_kingdom": p.get("linked_kingdom"),
+                "all_kingdoms": kingdoms,
+            })
+
+        logger.info("Found %d linked users (with alt kingdoms)", len(users))
+        return {"users": users, "total": len(users)}
+
+    except Exception as e:
+        logger.error("Error in /linked-users: %s", e)
+        return {"users": [], "total": 0, "error": str(e)}
 
 
 @router.get("/supporter-users")

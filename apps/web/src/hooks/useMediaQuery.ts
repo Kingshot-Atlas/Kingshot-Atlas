@@ -45,7 +45,7 @@ export const useIsMobile = (): boolean => {
   }, 100);
 
   useEffect(() => {
-    window.addEventListener('resize', handleResize);
+    window.addEventListener('resize', handleResize, { passive: true });
     return () => window.removeEventListener('resize', handleResize);
   }, [handleResize]);
 
@@ -70,7 +70,7 @@ export const useIsTablet = (): boolean => {
   }, 100);
 
   useEffect(() => {
-    window.addEventListener('resize', handleResize);
+    window.addEventListener('resize', handleResize, { passive: true });
     return () => window.removeEventListener('resize', handleResize);
   }, [handleResize]);
 
@@ -91,7 +91,7 @@ export const useIsDesktop = (): boolean => {
   }, 100);
 
   useEffect(() => {
-    window.addEventListener('resize', handleResize);
+    window.addEventListener('resize', handleResize, { passive: true });
     return () => window.removeEventListener('resize', handleResize);
   }, [handleResize]);
 

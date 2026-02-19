@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth, UserProfile } from '../contexts/AuthContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
-import { colors, neonGlow as neonGlowUtil, subscriptionColors, FONT_DISPLAY } from '../utils/styles';
+import { colors, neonGlow, subscriptionColors, FONT_DISPLAY } from '../utils/styles';
 import { getDisplayTier, getHighestTierColor, SubscriptionTier, ReferralTier, REFERRAL_TIER_COLORS } from '../utils/constants';
 import ReferralBadge from '../components/ReferralBadge';
 import { logger } from '../utils/logger';
@@ -12,6 +12,7 @@ import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData'
 import { useTranslation } from 'react-i18next';
 import { getTransferGroupOptions, parseTransferGroupValue } from '../config/transferGroups';
 import { useGoldKingdoms } from '../hooks/useGoldKingdoms';
+import { useIsMobile } from '../hooks/useMediaQuery';
 
 // Get username color based on subscription tier (including admin and gilded)
 const getUsernameColor = (tier: SubscriptionTier | null | undefined): string => {
@@ -77,19 +78,13 @@ const UserDirectory: React.FC = () => {
   const PAGE_SIZE = 25;
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const sentinelRef = useRef<HTMLDivElement>(null);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const isMobile = useIsMobile();
   
   // Searchable kingdom filter state
   const [kingdomSearchInput, setKingdomSearchInput] = useState(urlKingdom ? `Kingdom ${urlKingdom}` : '');
   const [showKingdomDropdown, setShowKingdomDropdown] = useState(false);
   const kingdomInputRef = React.useRef<HTMLInputElement>(null);
   const kingdomDropdownRef = React.useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   // Fetch all kingdoms for the dropdown
   useEffect(() => {
@@ -143,68 +138,7 @@ const UserDirectory: React.FC = () => {
         }
       }
 
-      // Fallback to demo users with linked Kingshot accounts
-      const demoUsers: UserProfile[] = [
-        {
-          id: 'demo1',
-          username: 'demo1_discord',
-          email: 'demo1@example.com',
-          avatar_url: '',
-          home_kingdom: 42,
-          alliance_tag: 'DRG',
-          language: 'English',
-          region: 'Americas',
-          bio: 'Leading kingdoms to victory since KvK #1',
-          theme_color: '#ef4444',
-          badge_style: 'glow',
-          created_at: new Date().toISOString(),
-          subscription_tier: 'supporter',
-          linked_username: 'DragonSlayer',
-          linked_avatar_url: '',
-          linked_kingdom: 42,
-          linked_tc_level: 35
-        },
-        {
-          id: 'demo2',
-          username: 'demo2_google',
-          email: 'demo2@example.com',
-          avatar_url: '',
-          home_kingdom: 17,
-          alliance_tag: 'PHX',
-          language: 'Spanish',
-          region: 'Europe',
-          bio: 'From ashes we rise. Building the strongest alliances.',
-          theme_color: '#f97316',
-          badge_style: 'gradient',
-          created_at: new Date().toISOString(),
-          subscription_tier: 'supporter',
-          linked_username: 'PhoenixRising',
-          linked_avatar_url: '',
-          linked_kingdom: 17,
-          linked_tc_level: 32
-        },
-        {
-          id: 'demo3',
-          username: 'demo3_discord',
-          email: 'demo3@example.com',
-          avatar_url: '',
-          home_kingdom: 88,
-          alliance_tag: 'SHD',
-          language: 'English',
-          region: 'Asia',
-          bio: 'Master strategist. Victory through superior tactics.',
-          theme_color: '#8b5cf6',
-          badge_style: 'outline',
-          created_at: new Date().toISOString(),
-          subscription_tier: 'free',
-          linked_username: 'ShadowHunter',
-          linked_avatar_url: '',
-          linked_kingdom: 88,
-          linked_tc_level: 28
-        }
-      ];
-      
-      setUsers(demoUsers);
+      // Supabase is the sole data source — no fallback needed
       setLoading(false);
     };
 
@@ -301,10 +235,6 @@ const UserDirectory: React.FC = () => {
     });
   }, [users, searchQuery, tierFilter, filterBy, filterValue, sortBy, transferGroupFilter]);
 
-  const neonGlow = (color: string) => ({
-    color: color,
-    textShadow: `0 0 8px ${color}40, 0 0 12px ${color}20`
-  });
 
   const uniqueAlliances = Array.from(new Set(users.map(u => u.alliance_tag).filter(Boolean)));
   const uniqueRegions = Array.from(new Set(users.map(u => u.region).filter(Boolean)));
@@ -361,7 +291,7 @@ const UserDirectory: React.FC = () => {
     );
     observer.observe(sentinel);
     return () => observer.disconnect();
-  });
+  }, []);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -905,7 +835,7 @@ const UserDirectory: React.FC = () => {
                           fontWeight: 'bold', 
                           color: getUsernameColor(displayTier),
                           ...(displayTier !== 'free' 
-                            ? neonGlowUtil(getUsernameColor(displayTier)) 
+                            ? neonGlow(getUsernameColor(displayTier)) 
                             : {})
                         }}>
                           {user.linked_username}

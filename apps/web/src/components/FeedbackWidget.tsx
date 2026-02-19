@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
+import { getAuthHeaders } from '../services/authHeaders';
 
 const FEEDBACK_HIDDEN_KEY = 'atlas_feedback_hidden';
 const FEEDBACK_HIDDEN_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -41,9 +42,10 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ position = 'bottom-righ
     setError('');
 
     try {
+      const authHeaders = user ? await getAuthHeaders({ requireAuth: false }) : {};
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://kingshot-atlas.onrender.com'}/api/feedback`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({
           type: feedbackType,
           message: message.trim(),
@@ -73,8 +75,8 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ position = 'bottom-righ
   };
 
   const positionStyles = position === 'bottom-right' 
-    ? { right: '1rem', bottom: '1rem' }
-    : { left: '1rem', bottom: '1rem' };
+    ? { right: '1rem', bottom: 'max(1rem, env(safe-area-inset-bottom))' }
+    : { left: '1rem', bottom: 'max(1rem, env(safe-area-inset-bottom))' };
 
   const handleDismiss = (e: React.MouseEvent) => {
     e.stopPropagation();
