@@ -26,6 +26,7 @@ const FundTab: React.FC<FundTabProps> = ({ fund, editorInfo }) => {
     if (fund && contributions.length === 0) {
       loadContributions();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fund]);
 
   const loadContributions = async () => {

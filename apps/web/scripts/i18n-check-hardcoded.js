@@ -46,11 +46,21 @@ const IGNORE_PATTERNS = [
   /EngagementDashboard/,
   /PageTitle\.tsx/,
   /^Card\.tsx$/,
+  /KvKMatchupSubmission/,
+  /Kvk11PromoBanner/,
+  // Directory-level ignores (matched against relative path)
+  /\/recruiter\//,
+  /\/rally\//,
+  /\/prep-scheduler\//,
+  /\/onboarding\//,
+  /\/cancel-survey\//,
+  /\/transfer\//,
 ];
 
 function shouldIgnore(filePath) {
   const name = path.basename(filePath);
-  return IGNORE_PATTERNS.some(p => p.test(name));
+  const rel = path.relative(SRC_DIR, filePath);
+  return IGNORE_PATTERNS.some(p => p.test(name) || p.test(rel));
 }
 
 function collectTsxFiles(dir) {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAnalytics } from '../../hooks/useAnalytics';
@@ -232,7 +232,7 @@ export function useRecruiterDashboard(): RecruiterDashboardState & RecruiterDash
 
   // Derived from query
   const editorInfo = dashboardData?.editorInfo ?? null;
-  const applications = dashboardData?.applications ?? [];
+  const applications = useMemo(() => dashboardData?.applications ?? [], [dashboardData?.applications]);
   const team = dashboardData?.team ?? [];
   const fund = dashboardData?.fund ?? null;
   const usedInvites = dashboardData?.usedInvites ?? 0;

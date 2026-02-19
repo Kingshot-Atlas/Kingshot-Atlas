@@ -191,7 +191,7 @@ export const IntervalSlider: React.FC<{
     const rect = sliderRef.current.getBoundingClientRect();
     const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
     onChange(min + Math.round(pct * (max - min)));
-  }, [onChange]);
+  }, [onChange, min, max]);
 
   useEffect(() => {
     if (!dragging) return;

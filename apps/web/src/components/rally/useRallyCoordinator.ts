@@ -282,12 +282,12 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
   }, [user?.id, selectedBuilding, hitMode, interval, rallyQueue, counterQueue, counterHitMode, counterInterval]);
 
   // Tick every second when buff timers are active
+  const buffTimerCount = Object.keys(buffTimers).length;
   useEffect(() => {
-    const hasTimers = Object.keys(buffTimers).length > 0;
-    if (!hasTimers) return;
+    if (!buffTimerCount) return;
     const id = window.setInterval(() => setTickNow(Date.now()), 1000);
     return () => clearInterval(id);
-  }, [Object.keys(buffTimers).length]);
+  }, [buffTimerCount]);
 
   // Auto-expire buff timers
   const buffTimersRef = useRef(buffTimers);

@@ -90,11 +90,12 @@ const KingdomProfileTab: React.FC<KingdomProfileTabProps> = ({ fund, editorInfo,
   const [statusHistory, setStatusHistory] = useState<Array<{ id: string; old_status: string; new_status: string; submitted_at: string; status: string; submitted_by: string; submitter_name?: string }>>([]);
   const [loadingStatusHistory, setLoadingStatusHistory] = useState(false);
 
-  // Auto-load status history on mount
+  // Auto-load status history on mount (intentional: load once when editorInfo available)
   useEffect(() => {
     if (editorInfo && statusHistory.length === 0) {
       loadStatusHistory();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editorInfo]);
 
   const loadStatusHistory = async () => {

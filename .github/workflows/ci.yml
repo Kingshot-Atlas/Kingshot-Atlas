@@ -6,6 +6,7 @@ on:
     paths:
       - 'apps/web/**'
       - 'apps/api/**'
+      - 'apps/discord-bot/**'
       - 'package*.json'
       - '.github/workflows/ci.yml'
   push:
@@ -13,6 +14,7 @@ on:
     paths:
       - 'apps/web/**'
       - 'apps/api/**'
+      - 'apps/discord-bot/**'
       - 'package*.json'
       - '.github/workflows/ci.yml'
 
@@ -60,6 +62,32 @@ jobs:
         env:
           SECRET_KEY: "test-secret-key-for-ci-only"
           DATABASE_URL: "sqlite:///:memory:"
+
+  # Discord Bot Tests
+  bot-test:
+    name: Bot Tests (Discord)
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: apps/discord-bot
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: apps/discord-bot/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
 
   # Frontend Lint & Test
   lint-and-test:
@@ -116,7 +144,7 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    needs: [api-test, lint-and-test]
+    needs: [api-test, bot-test, lint-and-test]
     
     defaults:
       run:
@@ -241,7 +269,7 @@ jobs:
   deploy-notify:
     name: Deploy Notification
     runs-on: ubuntu-latest
-    needs: [api-test, lint-and-test, build, e2e-test, lighthouse]
+    needs: [api-test, bot-test, lint-and-test, build, e2e-test, lighthouse]
     if: always() && github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:

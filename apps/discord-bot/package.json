@@ -7,7 +7,8 @@
     "start": "bash start.sh",
     "dev": "nodemon src/bot.js",
     "register": "node src/register-commands.js",
-    "webhook:test": "node src/webhook-test.js"
+    "webhook:test": "node src/webhook-test.js",
+    "test": "node tests/isEventDay.test.js && node tests/logger.test.js && node tests/telemetry.test.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.3",

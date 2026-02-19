@@ -1,5 +1,5 @@
 // ─── KvK Prep Scheduler — Utility Functions ───────────────────────────
-import { PrepSchedule, PrepSubmission, SlotAssignment, Day, DAYS, DAY_LABELS, TIME_SLOTS, getEffectiveSlots, getMaxSlots } from './types';
+import { PrepSchedule, PrepSubmission, SlotAssignment, Day, DAYS, DAY_LABELS, getEffectiveSlots, getMaxSlots } from './types';
 
 export function utcSlotToLocal(utcSlot: string): string {
   const [h, m] = utcSlot.split(':').map(Number);

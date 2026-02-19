@@ -121,7 +121,8 @@ const ApplicationCard: React.FC<{
       .subscribe();
 
     return () => { sb.removeChannel(channel); };
-  }, [showMessages, application.id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showMessages, application.id, user?.id]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {

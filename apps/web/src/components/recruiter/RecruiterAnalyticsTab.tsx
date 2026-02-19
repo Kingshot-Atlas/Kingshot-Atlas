@@ -2,7 +2,6 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabase';
 import { colors } from '../../utils/styles';
-import { logger } from '../../utils/logger';
 import type { EditorInfo, IncomingApplication } from './types';
 
 interface AnalyticsData {
