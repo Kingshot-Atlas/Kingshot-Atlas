@@ -81,6 +81,7 @@ export const GiftCodeAnalyticsTab: React.FC = () => {
 
   useEffect(() => {
     fetchStats();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeRange]);
 
   const handleAddCode = async () => {
@@ -333,7 +334,7 @@ export const GiftCodeAnalyticsTab: React.FC = () => {
               <div style={{ color: colors.textMuted, fontSize: '0.8rem', padding: '1rem', textAlign: 'center' }}>Loading...</div>
             ) : activeCodes.length === 0 ? (
               <div style={{ color: colors.textMuted, fontSize: '0.8rem', padding: '2rem', textAlign: 'center' }}>
-                No gift codes in database yet. Add one above or they'll auto-sync from kingshot.net.
+                No gift codes in database yet. Add one above or they&apos;ll auto-sync from kingshot.net.
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>

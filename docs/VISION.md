@@ -19,6 +19,8 @@ Kingshot Atlas is the analytical hub for KvK opponent scouting and efficient kin
 
 ## Origin Story
 
+**Founded:** January 25, 2026
+
 The game has no clear way to rank kingdoms or know which are better than others in a clear, irrefutable way. Players looking to transfer had no reliable source. The in-game transfer chat is a mess—too many messages, most not serious. Discord and Reddit are inefficient. Direct recruitment is cold-calling at best.
 
 Atlas was built to solve this. One place. Real data. Clear rankings.

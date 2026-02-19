@@ -51,7 +51,7 @@ const PlausibleTab: React.FC<PlausibleTabProps> = ({ analytics }) => (
         />
       </div>
       <p style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '1rem', fontStyle: 'italic' }}>
-        Tip: Click "Full Dashboard" to see detailed breakdowns, goals, and custom reports.
+        Tip: Click &quot;Full Dashboard&quot; to see detailed breakdowns, goals, and custom reports.
       </p>
     </div>
 

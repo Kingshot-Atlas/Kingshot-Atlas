@@ -265,7 +265,7 @@ export const FundsTab: React.FC<FundsTabProps> = ({ funds, timeAgo, onGrantTier,
 
       {/* Fund List */}
       {funds.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '2rem', color: colors.textMuted }}>No kingdom funds yet. Use "Grant Tier" above to add one.</div>
+        <div style={{ textAlign: 'center', padding: '2rem', color: colors.textMuted }}>No kingdom funds yet. Use &quot;Grant Tier&quot; above to add one.</div>
       ) : funds.map(fund => {
         const displayTier = fund.admin_tier_override || fund.tier;
         const tc = TIER_COLORS[displayTier] ?? { bg: `${colors.textMuted}15`, border: `${colors.textMuted}40`, text: colors.textMuted };

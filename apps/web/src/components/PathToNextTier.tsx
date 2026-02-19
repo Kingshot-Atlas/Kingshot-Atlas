@@ -98,21 +98,21 @@ const PathToNextTier: React.FC<PathToNextTierProps> = ({ kingdom, isExpanded: ex
     // Calculate requirements for each higher tier
     const requirements: TierRequirement[] = [];
     
+    const descriptions: Record<PowerTier, string> = {
+      S: t('pathToTier.descS', 'Elite status - Top 3% of all kingdoms'),
+      A: t('pathToTier.descA', 'Formidable - Serious contender status'),
+      B: t('pathToTier.descB', 'Competitive - Above average performance'),
+      C: t('pathToTier.descC', 'Developing - Average kingdom tier'),
+      D: t('pathToTier.descD', 'Rebuilding - Growth opportunity')
+    };
+
     for (let i = currentIndex + 1; i < tierOrder.length; i++) {
-      const targetTier = tierOrder[i];
+      const targetTier = tierOrder[i] as PowerTier;
       const threshold = POWER_TIER_THRESHOLDS[targetTier];
       const pointsNeeded = Math.max(0, threshold - currentScore);
       
       // Use actual simulated score gain for more accurate estimation
       const kvksNeeded = Math.ceil(pointsNeeded / actualScorePerDomination);
-      
-      const descriptions: Record<PowerTier, string> = {
-        S: t('pathToTier.descS', 'Elite status - Top 3% of all kingdoms'),
-        A: t('pathToTier.descA', 'Formidable - Serious contender status'),
-        B: t('pathToTier.descB', 'Competitive - Above average performance'),
-        C: t('pathToTier.descC', 'Developing - Average kingdom tier'),
-        D: t('pathToTier.descD', 'Rebuilding - Growth opportunity')
-      };
       
       requirements.push({
         tier: targetTier,
@@ -433,7 +433,7 @@ const PathToNextTier: React.FC<PathToNextTierProps> = ({ kingdom, isExpanded: ex
         
         {/* Next Tier Box */}
         {analysis.requirements.length > 0 && (() => {
-          const nextTier = analysis.requirements[0];
+          const nextTier = analysis.requirements[0]!;
           return (
             <div 
               style={{
@@ -485,7 +485,7 @@ const PathToNextTier: React.FC<PathToNextTierProps> = ({ kingdom, isExpanded: ex
       
       {/* Progress to Next Tier */}
       {analysis.requirements.length > 0 && (() => {
-        const nextReq = analysis.requirements[0];
+        const nextReq = analysis.requirements[0]!;
         return (
           <div style={{
             marginBottom: '1rem',

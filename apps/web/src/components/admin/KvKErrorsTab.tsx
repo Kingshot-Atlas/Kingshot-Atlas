@@ -21,7 +21,7 @@ export const KvKErrorsTab: React.FC<KvKErrorsTabProps> = ({
   onReviewError, onRejectOpen, onSelectAllPending,
   onToggleItem, onBulkReview, onClearSelection,
 }) => {
-  const { t } = useTranslation();
+  const { t: _t } = useTranslation();
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       {/* CSV export */}

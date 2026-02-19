@@ -303,13 +303,37 @@ async function syncToApi(command, guildId, userId, latencyMs = null) {
   }
 }
 
-// Convenience aliases used by reactionRoles.js and other modules
+// ─── Convenience log-level methods ───────────────────────────────────────────
+// Used by reactionRoles.js and other modules for structured logging.
+
+/**
+ * Log an error message to stderr.
+ * @param {...any} args - Messages / objects to log
+ */
 function error(...args) {
   console.error(...args);
 }
+
+/**
+ * Log an informational message to stdout.
+ * @param {...any} args - Messages / objects to log
+ */
 function info(...args) {
   console.log(...args);
 }
+
+/**
+ * Log a warning message to stderr.
+ * @param {...any} args - Messages / objects to log
+ */
+function warn(...args) {
+  console.warn(...args);
+}
+
+/**
+ * Log a debug message (only when DEBUG env var is set).
+ * @param {...any} args - Messages / objects to log
+ */
 function debug(...args) {
   if (process.env.DEBUG) console.debug(...args);
 }
@@ -324,5 +348,6 @@ module.exports = {
   syncToApi,
   error,
   info,
+  warn,
   debug,
 };

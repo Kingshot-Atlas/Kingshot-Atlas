@@ -28,6 +28,11 @@ let memoryCheckTimer = null;
 let lastMemoryWarning = 0; // Prevent spam — only warn once per 30min
 const MEMORY_WARNING_COOLDOWN = 30 * 60 * 1000;
 
+// Uptime health alert — detect crash loops (uptime < 5min for 3 consecutive starts)
+const SHORT_UPTIME_THRESHOLD = 5 * 60; // 5 minutes in seconds
+const CRASH_LOOP_COUNT = 3;
+let recentStartups = []; // timestamps of recent startups
+
 /**
  * Get current process snapshot for metadata
  */
@@ -85,10 +90,30 @@ async function logEvent(eventType, severity, message, metadata = {}, client = nu
 // ============================================================================
 
 function logStartup(metadata = {}) {
-  return logEvent('startup', 'info', 'Bot process starting', {
+  // Crash loop detection: track recent startups to detect rapid restart cycles
+  const now = Date.now();
+  recentStartups.push(now);
+  // Keep only startups within the last 30 minutes
+  recentStartups = recentStartups.filter(ts => now - ts < 30 * 60 * 1000);
+
+  const isCrashLoop = recentStartups.length >= CRASH_LOOP_COUNT &&
+    recentStartups.every((ts, i) => i === 0 || (ts - recentStartups[i - 1]) < SHORT_UPTIME_THRESHOLD * 1000);
+
+  if (isCrashLoop) {
+    console.error(`🚨 CRASH LOOP DETECTED: ${recentStartups.length} restarts within ${SHORT_UPTIME_THRESHOLD}s each`);
+    logEvent('crash_loop', 'critical', `Crash loop detected: ${recentStartups.length} restarts in rapid succession`, {
+      restart_count: recentStartups.length,
+      threshold_seconds: SHORT_UPTIME_THRESHOLD,
+      restart_timestamps: recentStartups.map(ts => new Date(ts).toISOString()),
+    });
+  }
+
+  return logEvent('startup', isCrashLoop ? 'warn' : 'info', 'Bot process starting', {
     node_version: process.version,
     platform: process.platform,
     pid: process.pid,
+    recent_restart_count: recentStartups.length,
+    crash_loop_detected: isCrashLoop,
     ...metadata,
   });
 }
