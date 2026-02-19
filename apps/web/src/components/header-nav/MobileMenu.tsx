@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getCacheBustedAvatarUrl, UserProfile } from '../../contexts/AuthContext';
 import { getDisplayTier, SUBSCRIPTION_COLORS } from '../../utils/constants';
@@ -21,6 +21,7 @@ interface MobileMenuProps {
 
 const MobileMenu: React.FC<MobileMenuProps> = ({ isActive, user, profile, isAdmin, onSignIn, onSignOut, onClose }) => {
   const { t } = useTranslation();
+  const location = useLocation();
   const [showMobileToolsMenu, setShowMobileToolsMenu] = useState(false);
   const [showMobileCommunityMenu, setShowMobileCommunityMenu] = useState(false);
   const [showMobileRankingsMenu, setShowMobileRankingsMenu] = useState(false);

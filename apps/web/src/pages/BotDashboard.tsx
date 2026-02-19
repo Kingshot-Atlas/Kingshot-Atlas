@@ -6,6 +6,7 @@ import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { supabase } from '../lib/supabase';
 import { neonGlow, FONT_DISPLAY, colors } from '../utils/styles';
+import { logger } from '../utils/logger';
 import { usePremium } from '../contexts/PremiumContext';
 import {
   GuildSettings, AllianceEvent, GuildAdmin, EventHistoryRow, EventType, DashTab,
@@ -16,219 +17,9 @@ import {
   fmt, ago,
   iS, lS, Dot, Tog, SearchableSelect, EvCard,
 } from './BotDashboardComponents';
+import RoleAssignerCard from './BotDashboardRoleAssigner';
 
-// ─── Emoji Picker ───────────────────────────────────────────────────────────
-
-type EmojiEntry = [string, string]; // [emoji, searchable keywords]
-const EMOJI_CATEGORIES: { label: string; emojis: EmojiEntry[] }[] = [
-  { label: 'Smileys', emojis: [
-    ['😀','grinning face happy smile'],['😃','smiley face happy'],['😄','smile grin happy'],['😁','beaming grin teeth'],['😆','laughing xd'],['😅','sweat smile nervous'],['🤣','rofl rolling laughing'],['😂','joy crying laughing tears'],['🙂','slightly smiling'],['🙃','upside down'],['😊','blush happy shy'],['😇','angel halo innocent'],['🥰','love hearts face'],['😍','heart eyes love'],['🤩','star struck amazed'],['😘','kiss blowing'],['😗','kissing'],['😚','kissing closed eyes'],['😙','kissing smiling'],['🥲','smiling tear'],['😋','yummy delicious tongue'],['😛','tongue out'],['😜','wink tongue crazy'],['🤪','zany crazy wild'],['😝','squinting tongue'],['🤑','money face rich'],['🤗','hugging hug'],['🤭','hand over mouth oops'],['🤫','shush quiet secret'],['🤔','thinking hmm'],['🫡','salute'],['🤐','zipper mouth quiet'],['🤨','raised eyebrow skeptical'],['😐','neutral face blank'],['😑','expressionless'],['😶','no mouth silent'],['🫥','dotted line face'],['😏','smirk flirty'],['😒','unamused annoyed'],['🙄','eye roll whatever'],['😬','grimace awkward'],['😮‍💨','exhale sigh'],['🤥','lying pinocchio'],['😌','relieved content'],['😔','pensive sad'],['😪','sleepy tired'],['🤤','drooling'],['😴','sleeping zzz'],['😷','mask sick'],['🤒','thermometer sick fever'],['🤕','bandage hurt injured'],['🤢','nauseated sick green'],['🤮','vomiting sick'],['🥵','hot sweating'],['🥶','cold freezing'],['🥴','woozy drunk'],['😵','dizzy'],['😵‍💫','spiral dizzy'],['🤯','exploding head mind blown'],['🤠','cowboy hat yeehaw'],['🥳','party celebration birthday'],['🥸','disguise'],['😎','cool sunglasses'],['🤓','nerd glasses'],['🧐','monocle fancy'],['😕','confused'],['🫤','diagonal mouth'],['😟','worried'],['🙁','slightly frowning'],['☹️','frowning sad'],['😮','open mouth surprised'],['😯','hushed'],['😲','astonished shocked'],['😳','flushed embarrassed'],['🥺','pleading puppy eyes'],['🥹','holding back tears'],['😦','frowning open mouth'],['😧','anguished'],['😨','fearful scared'],['😰','anxious sweat'],['😥','sad relieved'],['😢','crying tear'],['😭','sobbing crying loud'],['😱','screaming fear'],['😖','confounded'],['😣','persevering'],['😞','disappointed sad'],['😓','downcast sweat'],['😩','weary tired'],['😫','tired exhausted'],['🥱','yawning bored'],['😤','triumph angry steam'],['😡','angry mad red'],['😠','angry'],['🤬','swearing cursing'],['😈','devil smiling purple'],['👿','imp angry devil'],['💀','skull dead death'],['☠️','skull crossbones danger'],['💩','poop'],['🤡','clown'],['👹','ogre oni'],['👺','goblin tengu'],['👻','ghost boo'],['👽','alien'],['👾','space invader game'],['🤖','robot bot'],['😺','cat happy smile'],['😸','cat grin'],['😹','cat joy tears'],['😻','cat heart eyes'],['😼','cat smirk'],['😽','cat kiss'],['🙀','cat weary'],['😿','cat crying'],['😾','cat angry'],
-  ] },
-  { label: 'People', emojis: [
-    ['👋','wave hello hi bye hand'],['🤚','raised back hand'],['🖐️','hand fingers splayed'],['✋','raised hand stop high five'],['🖖','vulcan spock'],['🫱','rightwards hand'],['🫲','leftwards hand'],['🫳','palm down hand'],['🫴','palm up hand'],['👌','ok perfect'],['🤌','pinched fingers italian'],['🤏','pinching small tiny'],['✌️','peace victory'],['🤞','crossed fingers luck hope'],['🫰','hand index thumb crossed'],['🤟','love you gesture'],['🤘','rock on metal horns'],['🤙','call me shaka hang loose'],['👈','point left'],['👉','point right'],['👆','point up'],['🖕','middle finger'],['👇','point down'],['☝️','index pointing up'],['🫵','pointing at viewer'],['👍','thumbs up like good yes'],['👎','thumbs down dislike bad no'],['✊','fist bump raised'],['👊','fist punch'],['🤛','left fist bump'],['🤜','right fist bump'],['👏','clap applause'],['🙌','raised hands celebration hooray'],['🫶','heart hands love'],['👐','open hands'],['🤲','palms up together'],['🤝','handshake deal agreement'],['🙏','pray please thank you namaste'],['✍️','writing hand'],['💅','nail polish'],['🤳','selfie'],['💪','muscle strong flex bicep'],['🦾','mechanical arm prosthetic'],['🦿','mechanical leg prosthetic'],['🦵','leg'],['🦶','foot'],['👂','ear listen'],['🦻','ear hearing aid'],['👃','nose smell'],['🧠','brain smart'],['🫀','anatomical heart'],['🫁','lungs'],['🦷','tooth dental'],['🦴','bone'],['👀','eyes look see watching'],['👁️','eye'],['👅','tongue lick'],['👄','mouth lips'],['🫦','biting lip'],['👶','baby'],['🧒','child kid'],['👦','boy'],['👧','girl'],['🧑','person adult'],['👱','blond person'],['👨','man'],['👩','woman'],['🧔','beard'],['👴','old man grandpa'],['👵','old woman grandma'],['🙍','frowning person'],['🙎','pouting person'],['🙅','no gesture'],['🙆','ok gesture'],['💁','tipping hand sassy'],['🙋','raising hand'],['🧏','deaf person'],['🙇','bowing'],['🤦','facepalm'],['🤷','shrug idk'],['👮','police officer cop'],['🕵️','detective spy'],['💂','guard'],['🥷','ninja'],['👷','construction worker'],['🫅','person crown'],['🤴','prince'],['👸','princess'],['👳','turban'],['👲','cap'],['🧕','headscarf hijab'],['🤵','tuxedo'],['👰','veil bride'],['🤰','pregnant'],['🫃','pregnant man'],['🤱','breastfeeding'],['👼','angel baby'],['🎅','santa christmas'],['🤶','mrs claus christmas'],['🦸','superhero'],['🦹','supervillain'],['🧙','mage wizard'],['🧚','fairy'],['🧛','vampire'],['🧜','merperson'],['🧝','elf'],['🧞','genie'],['🧟','zombie'],['🧌','troll'],['💆','massage'],['💇','haircut'],['🚶','walking'],['🧍','standing'],['🧎','kneeling'],['🏃','running'],['💃','dancer dancing woman'],['🕺','man dancing disco'],['👯','bunny ears'],['🧖','sauna steam'],['🧗','climbing'],
-  ] },
-  { label: 'Animals', emojis: [
-    ['🐶','dog puppy'],['🐱','cat kitty meow'],['🐭','mouse'],['🐹','hamster'],['🐰','rabbit bunny'],['🦊','fox'],['🐻','bear'],['🐼','panda'],['🐻‍❄️','polar bear'],['🐨','koala'],['🐯','tiger'],['🦁','lion king'],['🐮','cow'],['🐷','pig'],['🐽','pig nose'],['🐸','frog'],['🐵','monkey'],['🙈','see no evil monkey'],['🙉','hear no evil monkey'],['🙊','speak no evil monkey'],['🐒','monkey'],['🐔','chicken'],['🐧','penguin'],['🐦','bird'],['🐤','baby chick'],['🐣','hatching chick'],['🐥','front facing chick'],['🦆','duck'],['🦅','eagle'],['🦉','owl'],['🦇','bat'],['🐺','wolf'],['🐗','boar'],['🐴','horse'],['🦄','unicorn magical'],['🐝','bee honeybee'],['🪱','worm'],['🐛','bug caterpillar'],['🦋','butterfly'],['🐌','snail'],['🐞','ladybug'],['🐜','ant'],['🦟','mosquito'],['🦗','cricket'],['🪳','cockroach'],['🕷️','spider'],['🕸️','spider web'],['🦂','scorpion'],['🐢','turtle tortoise'],['🐍','snake'],['🦎','lizard'],['🦖','trex dinosaur'],['🦕','dinosaur sauropod'],['🐙','octopus'],['🦑','squid'],['🦐','shrimp'],['🦞','lobster'],['🦀','crab'],['🐡','blowfish puffer'],['🐠','tropical fish'],['🐟','fish'],['🐬','dolphin'],['🐳','whale spouting'],['🐋','whale'],['🦈','shark'],['🪸','coral'],['🐊','crocodile'],['🐅','tiger'],['🐆','leopard'],['🦓','zebra'],['🦍','gorilla'],['🦧','orangutan'],['🐘','elephant'],['🦛','hippo'],['🦏','rhino'],['🐪','camel'],['🐫','two hump camel'],['🦒','giraffe'],['🦘','kangaroo'],['🦬','bison'],['🐃','water buffalo'],['🐂','ox'],['🐄','cow'],['🐎','horse racing'],['🐖','pig'],['🐏','ram sheep'],['🐑','ewe sheep'],['🦙','llama alpaca'],['🐐','goat'],['🦌','deer'],['🐕','dog'],['🐩','poodle'],['🦮','guide dog'],['🐕‍🦺','service dog'],['🐈','cat'],['🐈‍⬛','black cat'],['🪶','feather'],['🐓','rooster'],['🦃','turkey'],['🦤','dodo'],['🦚','peacock'],['🦜','parrot'],['🦢','swan'],['🦩','flamingo'],['🪺','nest eggs'],['🐇','rabbit'],['🦝','raccoon'],['🦨','skunk'],['🦡','badger'],['🦫','beaver'],['🦦','otter'],['🦥','sloth'],['🐁','mouse'],['🐀','rat'],['🐿️','chipmunk squirrel'],['🦔','hedgehog'],
-  ] },
-  { label: 'Food', emojis: [
-    ['🍎','red apple fruit'],['🍐','pear fruit'],['🍊','orange tangerine fruit'],['🍋','lemon fruit'],['🍌','banana fruit'],['🍉','watermelon fruit'],['🍇','grapes fruit'],['🍓','strawberry fruit'],['🫐','blueberries fruit'],['🍈','melon fruit'],['🍒','cherries fruit'],['🍑','peach fruit'],['🥭','mango fruit'],['🍍','pineapple fruit'],['🥥','coconut'],['🥝','kiwi fruit'],['🍅','tomato'],['🍆','eggplant aubergine'],['🥑','avocado'],['🥦','broccoli'],['🥬','leafy green'],['🥒','cucumber'],['🌶️','hot pepper chili'],['🫑','bell pepper'],['🌽','corn'],['🥕','carrot'],['🫒','olive'],['🧄','garlic'],['🧅','onion'],['🥔','potato'],['🍠','sweet potato'],['🫘','beans'],['🥐','croissant'],['🥖','baguette bread'],['🍞','bread'],['🥨','pretzel'],['🥯','bagel'],['🧀','cheese'],['🥚','egg'],['🍳','cooking fried egg'],['🧈','butter'],['🥞','pancakes'],['🧇','waffle'],['🥓','bacon'],['🥩','meat steak'],['🍗','poultry leg chicken'],['🍖','meat bone'],['🌭','hot dog'],['🍔','hamburger burger'],['🍟','french fries'],['🍕','pizza'],['🫓','flatbread'],['🥪','sandwich'],['🌮','taco'],['🌯','burrito'],['🫔','tamale'],['🥙','pita'],['🧆','falafel'],['🥗','salad'],['🥘','pot of food curry'],['🫕','fondue'],['🥫','canned food'],['🧂','salt'],['🍝','spaghetti pasta'],['🍜','ramen noodles'],['🍲','pot stew'],['🍛','curry rice'],['🍣','sushi'],['🍱','bento box'],['🥟','dumpling'],['🍤','shrimp tempura'],['🍙','rice ball onigiri'],['🍚','rice'],['🍘','rice cracker'],['🍥','fish cake'],['🥠','fortune cookie'],['🥡','takeout box'],['🦪','oyster'],['🍦','ice cream soft serve'],['🍧','shaved ice'],['🍨','ice cream'],['🍩','donut doughnut'],['🍪','cookie'],['🎂','birthday cake'],['🍰','shortcake'],['🧁','cupcake'],['🥧','pie'],['🍫','chocolate bar'],['🍬','candy'],['🍭','lollipop'],['🍮','custard pudding'],['🍯','honey pot'],['🍼','baby bottle'],['🥛','milk glass'],['☕','coffee hot'],['🫖','teapot'],['🍵','tea'],['🍶','sake'],['🍾','champagne bottle'],['🍷','wine glass'],['🍸','cocktail martini'],['🍹','tropical drink'],['🍺','beer mug'],['🍻','cheers beers clinking'],['🥂','clinking glasses'],['🥃','whiskey tumbler'],['🫗','pouring liquid'],['🥤','cup straw'],['🧋','bubble tea boba'],['🧃','juice box'],['🧉','mate'],['🫙','jar'],
-  ] },
-  { label: 'Activities', emojis: [
-    ['⚽','soccer football'],['🏀','basketball'],['🏈','football american'],['⚾','baseball'],['🥎','softball'],['🎾','tennis'],['🏐','volleyball'],['🏉','rugby'],['🥏','frisbee disc'],['🎱','pool billiards 8ball'],['🪀','yoyo'],['🏓','ping pong table tennis'],['🏸','badminton'],['🏒','ice hockey'],['🥅','goal net'],['⛳','golf'],['🏹','archery bow arrow'],['🎣','fishing'],['🤿','diving mask'],['🥊','boxing glove'],['🥋','martial arts'],['🎽','running shirt'],['🛹','skateboard'],['🛼','roller skate'],['🛷','sled'],['⛸️','ice skating'],['🥌','curling stone'],['🎿','ski skiing'],['⛷️','skier skiing'],['🏂','snowboarder'],['🪂','parachute'],['🏋️','weight lifting'],['🤼','wrestling'],['🤸','cartwheel gymnast'],['🤽','water polo'],['🚴','cycling bike'],['🚵','mountain biking'],['🤾','handball'],['🏌️','golf'],['🏇','horse racing'],['🧘','yoga meditation'],['🏄','surfing'],['🏊','swimming'],['🤽','water polo'],['🧗','climbing'],['🤺','fencing sword'],['🎮','video game controller gaming'],['🕹️','joystick arcade'],['🎲','dice game'],['♟️','chess pawn'],['🎯','bullseye target dart'],['🎳','bowling'],['🪄','magic wand'],['🎪','circus tent'],['🎨','art palette painting'],['🎭','theater drama masks'],['🎼','music score'],['🎵','music note'],['🎶','music notes'],['🎤','microphone karaoke'],['🎧','headphones music'],['🎷','saxophone jazz'],['🪗','accordion'],['🎸','guitar rock'],['🎹','piano keyboard'],['🎺','trumpet'],['🎻','violin'],['🪕','banjo'],['🥁','drum'],['🪘','long drum'],['🏆','trophy winner champion'],['🥇','gold medal first'],['🥈','silver medal second'],['🥉','bronze medal third'],['🏅','sports medal'],['🎖️','military medal'],['🎗️','reminder ribbon'],['🎟️','admission ticket'],['🎫','ticket'],['🎪','circus tent'],
-  ] },
-  { label: 'Travel & Nature', emojis: [
-    ['🚗','car automobile'],['🚕','taxi cab'],['🚙','suv'],['🚌','bus'],['🚎','trolleybus'],['🏎️','race car'],['🚓','police car'],['🚑','ambulance'],['🚒','fire engine truck'],['🚐','minibus van'],['🛻','pickup truck'],['🚚','delivery truck'],['🚛','semi truck'],['🚜','tractor farm'],['🏍️','motorcycle'],['🛵','scooter'],['🚲','bicycle bike'],['🛴','kick scooter'],['🛺','auto rickshaw'],['🚀','rocket launch space'],['🛸','ufo alien flying saucer'],['🛩️','small airplane'],['✈️','airplane plane flight'],['🚁','helicopter'],['🛶','canoe'],['⛵','sailboat'],['🚤','speedboat'],['🛥️','motor boat'],['🛳️','passenger ship cruise'],['⛴️','ferry'],['🚢','ship'],['⚓','anchor'],['🗼','tokyo tower'],['🏰','castle european'],['🏯','castle japanese'],['🏟️','stadium'],['🎡','ferris wheel'],['🎢','roller coaster'],['🎠','carousel'],['⛲','fountain'],['🌋','volcano'],['🏔️','snow mountain'],['🗻','mount fuji'],['🏕️','camping tent'],['🏖️','beach umbrella'],['🏜️','desert'],['🌅','sunrise'],['🌄','sunrise mountains'],['🌆','cityscape dusk'],['🌇','sunset city'],['🌉','bridge night'],['🌌','milky way galaxy stars'],['🗽','statue liberty'],['🗿','moai easter island'],['🌍','globe earth africa europe'],['🌎','globe earth americas'],['🌏','globe earth asia'],['🌐','globe meridians'],['🧭','compass'],['🏠','house home'],['🏡','house garden'],['🏢','office building'],['🏣','post office'],['🏥','hospital'],['🏦','bank'],['🏨','hotel'],['🏪','convenience store'],['🏫','school'],['🏬','department store'],['🏭','factory'],['🏯','japanese castle'],['⛪','church'],['🕌','mosque'],['🕍','synagogue'],['⛩️','shrine shinto'],['🌳','deciduous tree'],['🌲','evergreen tree pine'],['🌴','palm tree tropical'],['🌵','cactus desert'],['🌿','herb leaf'],['🍀','four leaf clover luck'],['🍁','maple leaf canada fall'],['🍂','fallen leaf autumn'],['🍃','leaf fluttering wind'],['🪻','hyacinth flower'],['🌺','hibiscus flower'],['🌻','sunflower'],['🌹','rose flower'],['🌷','tulip flower'],['🌼','blossom flower'],['🌸','cherry blossom sakura'],['💐','bouquet flowers'],['🪷','lotus flower'],['🪹','empty nest'],['🐚','seashell shell'],['🪨','rock stone'],['🪵','wood log'],['🍄','mushroom'],
-  ] },
-  { label: 'Objects', emojis: [
-    ['⌚','watch time'],['📱','phone mobile'],['💻','laptop computer'],['⌨️','keyboard'],['🖥️','desktop computer monitor'],['🖨️','printer'],['🖱️','mouse computer'],['💽','computer disk'],['💾','floppy disk save'],['💿','cd dvd'],['📀','dvd'],['📷','camera photo'],['📸','camera flash photo'],['📹','video camera'],['🎥','movie camera film'],['📞','telephone phone'],['📺','tv television'],['📻','radio'],['🎙️','studio microphone podcast'],['🎚️','level slider'],['🎛️','control knobs'],['🧭','compass'],['⏱️','stopwatch timer'],['⏲️','timer clock'],['⏰','alarm clock'],['🕰️','mantelpiece clock'],['🔋','battery'],['🔌','plug electric'],['💡','light bulb idea'],['🔦','flashlight torch'],['🕯️','candle'],['🧯','fire extinguisher'],['🛢️','oil drum barrel'],['💰','money bag'],['💳','credit card'],['💎','gem diamond jewel'],['⚖️','balance scale justice'],['🧰','toolbox'],['🔧','wrench tool'],['🔨','hammer tool'],['⚒️','hammer pick'],['🛠️','hammer wrench tools'],['⛏️','pick'],['🔩','nut bolt'],['⚙️','gear settings'],['🧲','magnet'],['🔫','pistol gun water'],['💣','bomb'],['🧨','firecracker dynamite'],['🪓','axe'],['🔪','knife'],['🗡️','dagger sword'],['⚔️','crossed swords battle fight'],['🛡️','shield protect defense'],['🔑','key'],['🗝️','old key'],['🔒','locked padlock'],['🔓','unlocked'],['📦','package box'],['📫','mailbox'],['📬','mailbox flag'],['✉️','email envelope letter'],['📝','memo note writing'],['📁','folder file'],['📂','open folder'],['📋','clipboard'],['📌','pushpin pin'],['📎','paperclip'],['🖊️','pen'],['✏️','pencil'],['📏','ruler'],['📐','triangular ruler'],['✂️','scissors cut'],['🗃️','card file box'],['🗄️','file cabinet'],['🗑️','trash wastebasket delete'],['🔐','locked key'],['🪙','coin money'],['💵','dollar money'],['💴','yen money'],['💶','euro money'],['💷','pound money'],['📊','bar chart graph'],['📈','chart increasing up'],['📉','chart decreasing down'],
-  ] },
-  { label: 'Symbols', emojis: [
-    ['❤️','red heart love'],['🧡','orange heart'],['💛','yellow heart'],['💚','green heart'],['💙','blue heart'],['💜','purple heart'],['🖤','black heart'],['🤍','white heart'],['🤎','brown heart'],['💔','broken heart'],['❣️','heart exclamation'],['💕','two hearts'],['💞','revolving hearts'],['💓','beating heart'],['💗','growing heart'],['💖','sparkling heart'],['💘','heart arrow cupid'],['💝','heart ribbon gift'],['💟','heart decoration'],['❤️‍🔥','heart fire burning'],['❤️‍🩹','mending heart'],['⭐','star'],['🌟','glowing star'],['💫','dizzy star'],['✨','sparkles magic'],['⚡','lightning zap bolt electric'],['🔥','fire hot flame lit'],['💥','collision boom explosion'],['❄️','snowflake cold winter'],['🌈','rainbow'],['☀️','sun sunny'],['🌤️','sun small cloud'],['⛅','sun cloud'],['🌥️','sun behind cloud'],['☁️','cloud'],['🌧️','cloud rain'],['⛈️','cloud lightning rain'],['🌩️','cloud lightning'],['💧','droplet water'],['💦','sweat splash water'],['🌊','wave ocean water'],['✅','check mark yes done'],['❌','cross mark no wrong'],['⚠️','warning caution'],['🔴','red circle'],['🟠','orange circle'],['🟡','yellow circle'],['🟢','green circle'],['🔵','blue circle'],['🟣','purple circle'],['⚫','black circle'],['⚪','white circle'],['🟤','brown circle'],['🔶','large orange diamond'],['🔷','large blue diamond'],['🔸','small orange diamond'],['🔹','small blue diamond'],['💠','diamond dot'],['♠️','spade'],['♣️','club'],['♥️','heart suit'],['♦️','diamond suit'],['🏁','checkered flag race finish'],['🚩','red flag'],['🎌','crossed flags'],['🏴','black flag'],['🏳️','white flag surrender'],['🏳️‍🌈','rainbow flag pride lgbtq'],['🏴‍☠️','pirate flag'],['🔔','bell notification'],['🔕','bell silent muted'],['📢','loudspeaker megaphone'],['📣','megaphone cheering'],['💬','speech bubble chat message'],['💭','thought bubble'],['🗯️','anger bubble'],['🔇','muted speaker'],['🔈','speaker low'],['🔉','speaker medium'],['🔊','speaker loud'],['🎵','music note'],['🎶','music notes'],['💤','sleeping zzz'],['💢','anger symbol'],['💬','speech bubble chat'],['🔰','beginner japanese'],['♻️','recycling recycle'],['✳️','eight spoked asterisk'],['❇️','sparkle'],['🔱','trident emblem'],['📛','name badge'],['🔰','beginner'],['⭕','circle red'],['✅','check yes'],['☑️','ballot check'],['✔️','check mark heavy'],['❎','cross mark'],['➕','plus add'],['➖','minus subtract'],['➗','divide'],['✖️','multiply'],['♾️','infinity'],['‼️','double exclamation'],['⁉️','exclamation question'],['❓','question mark red'],['❔','question mark white'],['❕','exclamation mark white'],['❗','exclamation mark red'],['〰️','wavy dash'],['©️','copyright'],['®️','registered'],['™️','trademark'],['#️⃣','hash number sign'],['*️⃣','asterisk keycap'],['0️⃣','zero'],['1️⃣','one'],['2️⃣','two'],['3️⃣','three'],['4️⃣','four'],['5️⃣','five'],['6️⃣','six'],['7️⃣','seven'],['8️⃣','eight'],['9️⃣','nine'],['🔟','ten keycap'],['💯','hundred perfect score'],['🔠','input latin uppercase'],['🔡','input latin lowercase'],['🔢','input numbers'],['🔣','input symbols'],['🔤','input latin letters'],['🆎','ab blood type'],['🆑','cl button'],['🆒','cool button'],['🆓','free button'],['🆔','id button'],['🆕','new button'],['🆖','ng button'],['🆗','ok button'],['🆘','sos help emergency'],['🆙','up button'],['🆚','vs versus'],['🈁','japanese here'],['🈶','japanese not free charge'],['🈯','japanese reserved'],['🉐','japanese bargain'],['🈹','japanese discount'],['🈚','japanese free charge'],['🈲','japanese prohibited'],['🉑','japanese acceptable'],['㊗️','japanese congratulations'],['㊙️','japanese secret'],
-  ] },
-];
-
-// Flatten for search
-const ALL_EMOJIS = EMOJI_CATEGORIES.flatMap(c => c.emojis);
-
-const EmojiPicker: React.FC<{ value: string; onChange: (emoji: string) => void }> = ({ value, onChange }) => {
-  const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState('');
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [open]);
-
-  const q = search.trim().toLowerCase();
-  const filteredCategories = q
-    ? [{ label: 'Results', emojis: ALL_EMOJIS.filter(([, keywords]) => keywords.toLowerCase().includes(q)) }]
-    : EMOJI_CATEGORIES;
-
-  return (
-    <div ref={ref} style={{ position: 'relative', display: 'inline-block' }}>
-      <button onClick={() => setOpen(!open)} type="button"
-        style={{ width: 44, height: 36, fontSize: value ? '1.1rem' : '0.7rem', backgroundColor: '#1a1a1a', border: `1px solid ${open ? '#a855f7' : '#333'}`, borderRadius: 6, cursor: 'pointer', color: value ? undefined : colors.textMuted, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'border-color 0.15s' }}>
-        {value || '😀'}
-      </button>
-      {open && (
-        <div style={{ position: 'absolute', top: '100%', left: 0, zIndex: 100, marginTop: 4, width: 320, maxHeight: 360, backgroundColor: '#1a1a1a', border: '1px solid #333', borderRadius: 10, boxShadow: '0 12px 40px rgba(0,0,0,0.7)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ padding: '0.4rem 0.5rem', borderBottom: '1px solid #222' }}>
-            <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search emoji (e.g. smile, heart, fire)..." autoFocus
-              style={{ width: '100%', padding: '0.35rem 0.5rem', backgroundColor: '#111', border: '1px solid #333', borderRadius: 6, color: '#fff', fontSize: '0.75rem', outline: 'none', boxSizing: 'border-box' }} />
-          </div>
-          <div style={{ overflowY: 'auto', padding: '0.3rem', flex: 1 }}>
-            {filteredCategories.map(cat => (
-              <div key={cat.label}>
-                {cat.emojis.length > 0 && (
-                  <>
-                    <div style={{ color: colors.textMuted, fontSize: '0.6rem', fontWeight: 700, padding: '0.3rem 0.2rem 0.15rem', textTransform: 'uppercase', letterSpacing: '0.03em' }}>{cat.label}</div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 2 }}>
-                      {cat.emojis.map(([em]) => (
-                        <button key={em} onClick={() => { onChange(em); setOpen(false); setSearch(''); }} type="button"
-                          style={{ width: '100%', aspectRatio: '1', fontSize: '1.15rem', backgroundColor: em === value ? '#a855f730' : 'transparent', border: em === value ? '1px solid #a855f7' : '1px solid transparent', borderRadius: 4, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background-color 0.1s' }}
-                          onMouseEnter={e => { if (em !== value) (e.currentTarget.style.backgroundColor = '#ffffff10'); }}
-                          onMouseLeave={e => { if (em !== value) (e.currentTarget.style.backgroundColor = 'transparent'); }}>
-                          {em}
-                        </button>
-                      ))}
-                    </div>
-                  </>
-                )}
-                {q && cat.emojis.length === 0 && (
-                  <div style={{ color: colors.textMuted, fontSize: '0.75rem', textAlign: 'center', padding: '1.5rem 0.5rem' }}>No emojis match &ldquo;{search}&rdquo;</div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// ─── Role Assigner Card ─────────────────────────────────────────────────────
-
-const RoleAssignerCard: React.FC<{
-  cfg: ReactionRoleConfig; mob: boolean;
-  dChannels: DiscordChannel[]; dRoles: DiscordRole[]; loadingDiscord: boolean;
-  onUpdate: (u: Partial<ReactionRoleConfig>) => void; onDelete: () => void;
-  onDeploy: () => void; onEdit: () => void; onCopy: () => void;
-  deploying: boolean; rrError: string;
-}> = ({ cfg, mob, dChannels, dRoles, loadingDiscord, onUpdate, onDelete, onDeploy, onEdit, onCopy, deploying, rrError }) => {
-
-  const updateMapping = (idx: number, patch: Partial<{ emoji: string; role_id: string; role_name?: string; label?: string }>) => {
-    const updated = cfg.emoji_role_mappings.map((m, i) => i === idx ? { ...m, ...patch } : m);
-    onUpdate({ emoji_role_mappings: updated });
-  };
-
-  return (
-    <div style={{ backgroundColor: colors.surface, borderRadius: 12, border: `1px solid ${cfg.active ? '#a855f730' : colors.border}`, padding: mob ? '0.85rem' : '1rem 1.25rem', marginBottom: '0.75rem' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.4rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0, flex: 1 }}>
-          <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>🏷️</span>
-          <span style={{ color: colors.text, fontWeight: 700, fontSize: mob ? '0.85rem' : '0.9rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cfg.title || 'Untitled'}</span>
-          {cfg.active && cfg.message_id && <span style={{ fontSize: '0.6rem', fontWeight: 600, color: '#22c55e', backgroundColor: '#22c55e15', padding: '0.1rem 0.4rem', borderRadius: 3, flexShrink: 0 }}>LIVE</span>}
-          {!cfg.active && <span style={{ fontSize: '0.6rem', fontWeight: 600, color: colors.textMuted, backgroundColor: `${colors.textMuted}15`, padding: '0.1rem 0.4rem', borderRadius: 3, flexShrink: 0 }}>DRAFT</span>}
-        </div>
-        <div style={{ display: 'flex', gap: '0.3rem', flexShrink: 0 }}>
-          <button onClick={onCopy} title="Duplicate config" style={{ background: 'none', border: 'none', color: colors.textMuted, fontSize: '0.75rem', cursor: 'pointer', padding: '0.2rem 0.3rem' }}>📋</button>
-          <button onClick={onDelete} title="Delete" style={{ background: 'none', border: 'none', color: colors.error, fontSize: '0.75rem', cursor: 'pointer', padding: '0.2rem 0.3rem' }}>🗑️</button>
-        </div>
-      </div>
-
-      {/* Channel */}
-      <div style={{ marginBottom: '0.75rem' }}>
-        <label style={lS}>CHANNEL</label>
-        {dChannels.length > 0 || loadingDiscord ? (
-          <SearchableSelect value={cfg.channel_id || null} onChange={v => onUpdate({ channel_id: v || '' })} options={dChannels.map(c => ({ id: c.id, name: c.name, category: '' }))} placeholder="Select a channel" loading={loadingDiscord} accentColor="#a855f7" />
-        ) : (
-          <input type="text" value={cfg.channel_id} onChange={e => onUpdate({ channel_id: e.target.value })} placeholder="Channel ID" style={iS} />
-        )}
-      </div>
-
-      {/* Title + Description — side by side on desktop, stacked on mobile */}
-      <div style={{ display: 'flex', flexDirection: mob ? 'column' : 'row', gap: '0.75rem', marginBottom: '0.75rem' }}>
-        <div style={{ flex: mob ? undefined : '0 0 40%' }}>
-          <label style={lS}>EMBED TITLE</label>
-          <input type="text" value={cfg.title} onChange={e => onUpdate({ title: e.target.value })} placeholder="Role Selection" maxLength={100} style={{ ...iS, width: '100%', maxWidth: '100%' }} />
-        </div>
-        <div style={{ flex: 1 }}>
-          <label style={lS}>EMBED MESSAGE</label>
-          <textarea value={cfg.description} onChange={e => onUpdate({ description: e.target.value })} placeholder="React to get your roles!" rows={2} maxLength={1000} style={{ ...iS, width: '100%', maxWidth: '100%', resize: 'vertical', minHeight: 44, fontFamily: 'inherit', fontSize: '0.8rem', lineHeight: 1.4 }} />
-        </div>
-      </div>
-
-      {/* Emoji → Role Mappings */}
-      <div style={{ marginBottom: '0.75rem' }}>
-        <label style={lS}>EMOJI → ROLE MAPPINGS ({cfg.emoji_role_mappings.length}/20)</label>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginBottom: '0.5rem' }}>
-          {cfg.emoji_role_mappings.map((mapping, idx) => (
-            <div key={idx} style={{ display: 'flex', alignItems: mob ? 'stretch' : 'center', gap: mob ? '0.3rem' : '0.4rem', padding: '0.35rem 0.5rem', backgroundColor: '#a855f708', border: '1px solid #a855f720', borderRadius: 6, flexDirection: mob ? 'column' : 'row' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <EmojiPicker value={mapping.emoji} onChange={emoji => updateMapping(idx, { emoji })} />
-                <span style={{ color: colors.textMuted, fontSize: '0.7rem' }}>→</span>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  {dRoles.length > 0 || loadingDiscord ? (
-                    <SearchableSelect value={mapping.role_id || null} onChange={v => { const roleName = dRoles.find(r => r.id === v)?.name; updateMapping(idx, { role_id: v || '', role_name: roleName }); }} options={dRoles.map(r => ({ id: r.id, name: r.name, color: r.color }))} placeholder="Select role" loading={loadingDiscord} accentColor="#a855f7" />
-                  ) : (
-                    <input type="text" value={mapping.role_id} onChange={e => updateMapping(idx, { role_id: e.target.value })} placeholder="Role ID" style={{ ...iS, width: '100%', maxWidth: 'none' }} />
-                  )}
-                </div>
-                {!mob && (
-                  <button onClick={() => { const updated = cfg.emoji_role_mappings.filter((_, i) => i !== idx); onUpdate({ emoji_role_mappings: updated }); }} style={{ background: 'none', border: 'none', color: colors.textMuted, cursor: 'pointer', fontSize: '0.7rem', padding: '0.2rem', flexShrink: 0 }}>✕</button>
-                )}
-              </div>
-              {mob && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                  <input type="text" value={mapping.label || ''} onChange={e => updateMapping(idx, { label: e.target.value })} placeholder="Label (optional)" maxLength={50} style={{ ...iS, flex: 1, maxWidth: 'none', fontSize: '0.72rem' }} />
-                  <button onClick={() => { const updated = cfg.emoji_role_mappings.filter((_, i) => i !== idx); onUpdate({ emoji_role_mappings: updated }); }} style={{ background: 'none', border: 'none', color: colors.textMuted, cursor: 'pointer', fontSize: '0.7rem', padding: '0.2rem 0.4rem', flexShrink: 0 }}>✕</button>
-                </div>
-              )}
-              {!mob && (
-                <input type="text" value={mapping.label || ''} onChange={e => updateMapping(idx, { label: e.target.value })} placeholder="Label (optional)" maxLength={50} style={{ ...iS, width: 120, maxWidth: 120, fontSize: '0.72rem' }} />
-              )}
-            </div>
-          ))}
-        </div>
-        {cfg.emoji_role_mappings.length < 20 && (
-          <button onClick={() => { const updated = [...cfg.emoji_role_mappings, { emoji: '', role_id: '' }]; onUpdate({ emoji_role_mappings: updated }); }} style={{ padding: '0.3rem 0.6rem', backgroundColor: 'transparent', border: '1px solid #a855f730', borderRadius: 6, color: '#a855f7', fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer' }}>
-            + Add Mapping
-          </button>
-        )}
-      </div>
-
-      {/* Action Buttons */}
-      <div style={{ borderTop: `1px solid ${colors.borderSubtle}`, paddingTop: '0.75rem' }}>
-        <div style={{ display: 'flex', gap: '0.5rem', flexDirection: mob ? 'column' : 'row' }}>
-          <button onClick={onDeploy} disabled={deploying || !cfg.channel_id || cfg.emoji_role_mappings.length === 0}
-            style={{ flex: 1, padding: '0.5rem 1rem', backgroundColor: deploying ? colors.border : '#a855f720', border: '1px solid #a855f740', borderRadius: 8, color: deploying ? colors.textMuted : '#a855f7', fontSize: '0.8rem', fontWeight: 600, cursor: deploying || !cfg.channel_id || cfg.emoji_role_mappings.length === 0 ? 'default' : 'pointer' }}>
-            {deploying ? '⏳ Working...' : cfg.message_id ? '🔄 Re-deploy' : '🚀 Deploy to Discord'}
-          </button>
-          {cfg.message_id && (
-            <button onClick={onEdit} disabled={deploying}
-              style={{ flex: mob ? undefined : '0 0 auto', padding: '0.5rem 1rem', backgroundColor: 'transparent', border: `1px solid ${colors.border}`, borderRadius: 8, color: colors.text, fontSize: '0.8rem', fontWeight: 600, cursor: deploying ? 'default' : 'pointer' }}>
-              ✏️ Edit Message
-            </button>
-          )}
-        </div>
-        {cfg.message_id && (
-          <div style={{ color: colors.textMuted, fontSize: '0.65rem', marginTop: '0.3rem', textAlign: 'center' }}>
-            Message ID: <span style={{ fontFamily: "'JetBrains Mono', monospace", color: '#a855f7' }}>{cfg.message_id}</span>
-          </div>
-        )}
-        {rrError && (
-          <div style={{ marginTop: '0.4rem', padding: '0.4rem 0.6rem', borderRadius: 6, backgroundColor: `${colors.error}10`, border: `1px solid ${colors.error}30`, color: colors.error, fontSize: '0.72rem' }}>
-            ❌ {rrError}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
+// EmojiPicker + RoleAssignerCard extracted to BotDashboardEmojiPicker.tsx & BotDashboardRoleAssigner.tsx
 
 // ─── Main Component ─────────────────────────────────────────────────────────
 
@@ -298,7 +89,7 @@ const BotDashboard: React.FC = () => {
       const gs = data || [];
       setGuilds(gs);
       if (gs.length > 0 && !selGuild) setSelGuild(gs[0].guild_id);
-    } catch (e) { console.error('Load guilds failed:', e); }
+    } catch (e) { logger.error('Load guilds failed:', e); }
     finally { setLoading(false); }
   }, [user, selGuild]);
 
@@ -350,7 +141,7 @@ const BotDashboard: React.FC = () => {
       setDChannels(chRes.data?.channels || []);
       setDCategories(chRes.data?.categories || []);
       setDRoles(roRes.data?.roles || []);
-    } catch (e) { console.error('Failed to fetch Discord data:', e); }
+    } catch (e) { logger.error('Failed to fetch Discord data:', e); }
     finally { setLoadingDiscord(false); }
   }, [profile?.discord_id]);
 

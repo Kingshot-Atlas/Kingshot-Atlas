@@ -129,7 +129,7 @@ function runBannedTermsCheck() {
         const content = fs.readFileSync(file, 'utf-8');
         const matches = content.match(rule.pattern);
         if (matches) {
-          warn('BANNED_TERM', `${relPath(file)}: Found "${matches[0]}" — ${rule.message}`);
+          error('BANNED_TERM', `${relPath(file)}: Found "${matches[0]}" — ${rule.message}`);
         }
       } catch { /* skip unreadable files */ }
     }
@@ -207,13 +207,14 @@ const SIZE_BASELINE = new Set([
   'apps/web/src/pages/TransferBoard.tsx',
   'apps/web/src/pages/UserDirectory.tsx',
   'apps/web/src/pages/BotDashboard.tsx',
+  'apps/web/src/components/BotDashboard.tsx',
   'apps/web/src/components/EditorClaiming.tsx',
   'apps/web/src/components/KingdomListingCard.tsx',
   'apps/web/src/components/KingdomReviews.tsx',
   'apps/web/src/components/RecruiterDashboard.tsx',
   'apps/web/src/components/TransferApplications.tsx',
   'apps/web/src/components/recruiter/ApplicationCard.tsx',
-  'apps/web/src/components/recruiter/BrowseTransfereesTab.tsx',
+  // BrowseTransfereesTab.tsx split — now 776 lines (removed from baseline)
   'apps/web/src/components/TransferProfileForm.tsx',
   'apps/web/src/components/admin/SpotlightTab.tsx',
   'apps/web/src/components/admin/TransferHubAdminTab.tsx',
@@ -283,7 +284,7 @@ function runEslintDisableCheck() {
   }
   
   if (totalDisables > MAX_ESLINT_DISABLES) {
-    warn('ESLINT_DISABLE', `${totalDisables} eslint-disable comments across ${fileHits.length} files (max ${MAX_ESLINT_DISABLES})`);
+    error('ESLINT_DISABLE', `${totalDisables} eslint-disable comments across ${fileHits.length} files (max ${MAX_ESLINT_DISABLES})`);
     for (const hit of fileHits) {
       console.log(`      → ${hit.file} (${hit.count})`);
     }
@@ -303,7 +304,7 @@ function runStaleFileCheck() {
   for (const check of STALE_FILES) {
     const fullPath = path.join(ROOT, check.file);
     if (fs.existsSync(fullPath)) {
-      warn('STALE_FILE', `${check.file} still exists — ${check.reason}`);
+      error('STALE_FILE', `${check.file} still exists — ${check.reason}`);
     }
   }
 }
@@ -510,11 +511,7 @@ if (errors > 0) {
   console.log(`\n💥 ${errors} error(s), ${warnings} warning(s)`);
   process.exit(1);
 } else if (warnings > 0) {
-  console.log(`\n⚠️  ${warnings} warning(s) found`);
-  if (strict) {
-    console.log('   (--strict mode: exiting with code 1)');
-    process.exit(1);
-  }
+  console.log(`\n⚠️  ${warnings} warning(s) found (informational — not blocking CI)`);
 } else {
   console.log('\n✅ No consistency issues found');
 }

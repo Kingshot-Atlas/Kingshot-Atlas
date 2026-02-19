@@ -2787,6 +2787,14 @@
   "referral": {
     "copyLink": "Copy Link"
   },
+  "kvkBanner": {
+    "matchupMessage": "KvK matchups are live! Add your kingdom's matchup now.",
+    "matchupCta": "Add Matchup",
+    "prepMessage": "KvK Prep Phase has ended! Submit your prep result.",
+    "prepCta": "Add Prep Result",
+    "battleMessage": "KvK Castle Battle is over! Submit your battle result.",
+    "battleCta": "Add Battle Result"
+  },
   "welcome": {
     "favoritesDesc": "Track kingdoms you care about and get notified when scores change",
     "favoritesTitle": "Your Favorites Watchlist",

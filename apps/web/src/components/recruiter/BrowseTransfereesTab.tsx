@@ -9,7 +9,8 @@ import { FONT_DISPLAY, colors } from '../../utils/styles';
 import { logger } from '../../utils/logger';
 import { useToast } from '../Toast';
 import type { EditorInfo, FundInfo, TransfereeProfile } from './types';
-import { formatTCLevel, LANGUAGE_OPTIONS, inputStyle } from './types';
+import { formatTCLevel } from './types';
+import BrowseTransfereesFilters from './BrowseTransfereesFilters';
 import { getTransferGroup, getTransferGroupLabel } from '../../config/transferGroups';
 import RecommendedSection from './RecommendedSection';
 import {
@@ -306,71 +307,7 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
       )}
 
       {/* Browse Filters */}
-      <div style={{
-        display: 'flex', gap: '0.4rem', marginBottom: '0.75rem',
-        flexWrap: 'wrap', alignItems: 'flex-end',
-      }}>
-        <div style={{ flex: '1 1 100px', minWidth: '80px' }}>
-          <span style={{ color: '#6b7280', fontSize: '0.6rem', display: 'block', marginBottom: '0.15rem' }}>{t('recruiter.minTC', 'Min TC')}</span>
-          <select
-            value={browseFilters.minTc}
-            onChange={(e) => setBrowseFilters(f => ({ ...f, minTc: e.target.value }))}
-            style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '36px' }}
-          >
-            <option value="">Any</option>
-            {[15, 20, 25, 30, 35, 40, 45, 50, 55, 60].map(lvl => (
-              <option key={lvl} value={lvl}>{formatTCLevel(lvl)}</option>
-            ))}
-          </select>
-        </div>
-        <div style={{ flex: '1 1 100px', minWidth: '80px' }}>
-          <span style={{ color: '#6b7280', fontSize: '0.6rem', display: 'block', marginBottom: '0.15rem' }}>{t('recruiter.minPower', 'Min Power')}</span>
-          <input
-            type="number"
-            placeholder="e.g. 100"
-            value={browseFilters.minPower}
-            onChange={(e) => setBrowseFilters(f => ({ ...f, minPower: e.target.value }))}
-            style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '36px' }}
-          />
-        </div>
-        <div style={{ flex: '1 1 120px', minWidth: '90px' }}>
-          <span style={{ color: '#6b7280', fontSize: '0.6rem', display: 'block', marginBottom: '0.15rem' }}>{t('recruiter.language', 'Language')}</span>
-          <select
-            value={browseFilters.language}
-            onChange={(e) => setBrowseFilters(f => ({ ...f, language: e.target.value }))}
-            style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '36px' }}
-          >
-            <option value="">Any</option>
-            {LANGUAGE_OPTIONS.map(lang => (
-              <option key={lang} value={lang}>{lang}</option>
-            ))}
-          </select>
-        </div>
-        <div style={{ flex: '1 1 100px', minWidth: '80px' }}>
-          <span style={{ color: '#6b7280', fontSize: '0.6rem', display: 'block', marginBottom: '0.15rem' }}>{t('recruiter.sortBy', 'Sort By')}</span>
-          <select
-            value={browseFilters.sortBy}
-            onChange={(e) => setBrowseFilters(f => ({ ...f, sortBy: e.target.value }))}
-            style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '36px' }}
-          >
-            <option value="newest">{t('recruiter.newestFirst', 'Newest First')}</option>
-            <option value="power_desc">{t('recruiter.powerHighLow', 'Power (High → Low)')}</option>
-            <option value="tc_desc">{t('recruiter.tcHighLow', 'TC Level (High → Low)')}</option>
-          </select>
-        </div>
-        {(browseFilters.minTc || browseFilters.minPower || browseFilters.language) && (
-          <button
-            onClick={() => setBrowseFilters({ minTc: '', minPower: '', language: '', sortBy: browseFilters.sortBy })}
-            style={{
-              padding: '0.35rem 0.5rem', backgroundColor: '#ef444410', border: '1px solid #ef444425',
-              borderRadius: '6px', color: '#ef4444', fontSize: '0.6rem', cursor: 'pointer', minHeight: '36px',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {t('recruiter.clear', 'Clear Filters')}
-          </button>
-        )}
-      </div>
+      <BrowseTransfereesFilters filters={browseFilters} onChange={setBrowseFilters} />
 
       {/* Compare Bar */}
       {compareList.size > 0 && (

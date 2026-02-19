@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { useIsMobile } from '../hooks/useMediaQuery';
@@ -39,7 +39,10 @@ const AccountSwitcher: React.FC<AccountSwitcherProps> = ({ onSwitch }) => {
   const [verifyStep, setVerifyStep] = useState<'input' | 'challenge' | null>(null);
   const [verifyCode, setVerifyCode] = useState('');
   const [pendingPlayer, setPendingPlayer] = useState<{ player_id: string; username: string; avatar_url: string; kingdom: number; town_center_level: number } | null>(null);
-  const [checking, setChecking] = useState(false);
+  const [polling, setPolling] = useState(false);
+  const [pollCount, setPollCount] = useState(0);
+  const pollingActiveRef = useRef(false);
+  const pollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
@@ -197,33 +200,52 @@ const AccountSwitcher: React.FC<AccountSwitcherProps> = ({ onSwitch }) => {
     }
   };
 
-  // Step 2: Re-verify to check if name now contains the code
-  const handleCheckVerification = async () => {
-    if (!supabase || !user?.id || !pendingPlayer) return;
-    setChecking(true);
+  // ─── Auto-Polling Verification ───────────────────────────────────────────
+  // Polls Century Games API every 8s after user clicks verify.
+  // Stays within the 10/min backend rate limit. Max 2 minutes.
+  const POLL_INTERVAL_MS = 8000;
+  const MAX_POLL_ATTEMPTS = 15;
+
+  const checkVerificationOnce = async (playerId: string, code: string): Promise<{ verified: boolean; freshData?: any }> => {
     try {
       const response = await fetch(`${API_BASE}/api/v1/player-link/verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ player_id: pendingPlayer.player_id }),
+        body: JSON.stringify({ player_id: playerId }),
       });
-
-      if (!response.ok) throw new Error('Verification failed');
+      if (!response.ok) return { verified: false };
       const freshData = await response.json();
-
-      // Check if the current in-game name contains the verification code
       const nameUpper = (freshData.username || '').toUpperCase();
-      if (!nameUpper.includes(verifyCode)) {
-        showToast(t('accountSwitcher.codeNotFound', 'Code "{{code}}" not found in your in-game name. Change your name to include it, wait a moment, then try again.', { code: verifyCode }), 'error');
-        return;
-      }
+      return { verified: nameUpper.includes(code), freshData };
+    } catch {
+      return { verified: false };
+    }
+  };
 
-      // Ownership verified — insert account
-      const { error } = await supabase
+  const stopPolling = useCallback(() => {
+    pollingActiveRef.current = false;
+    setPolling(false);
+    setPollCount(0);
+    if (pollTimeoutRef.current) {
+      clearTimeout(pollTimeoutRef.current);
+      pollTimeoutRef.current = null;
+    }
+  }, []);
+
+  const startVerificationPolling = async () => {
+    if (!supabase || !user?.id || !pendingPlayer) return;
+    const playerId = pendingPlayer.player_id;
+    const code = verifyCode;
+
+    pollingActiveRef.current = true;
+    setPolling(true);
+
+    const insertAccount = async (freshData: any): Promise<boolean> => {
+      const { error } = await supabase!
         .from('player_accounts')
         .insert({
-          user_id: user.id,
-          player_id: pendingPlayer.player_id,
+          user_id: user!.id,
+          player_id: playerId,
           username: freshData.username,
           avatar_url: freshData.avatar_url,
           kingdom: freshData.kingdom,
@@ -231,34 +253,65 @@ const AccountSwitcher: React.FC<AccountSwitcherProps> = ({ onSwitch }) => {
           is_active: false,
           last_synced: new Date().toISOString(),
         });
-
       if (error) {
         if (error.code === '23505') {
           showToast(t('linkAccount.alreadyLinked', 'This Player ID is already linked to another Atlas account.'), 'error');
         } else {
-          throw error;
+          logger.error('Failed to insert verified account:', error);
+          showToast(t('accountSwitcher.addFailed', 'Failed to add account'), 'error');
+        }
+        return false;
+      }
+      return true;
+    };
+
+    const poll = async (attempt: number) => {
+      if (!pollingActiveRef.current) return;
+
+      if (attempt > MAX_POLL_ATTEMPTS) {
+        pollingActiveRef.current = false;
+        setPolling(false);
+        showToast(t('accountSwitcher.pollTimeout', 'Verification timed out after {{seconds}}s. Make sure "{{code}}" is in your in-game name and try again.', { seconds: Math.round(MAX_POLL_ATTEMPTS * POLL_INTERVAL_MS / 1000), code }), 'error');
+        return;
+      }
+
+      setPollCount(attempt);
+      const result = await checkVerificationOnce(playerId, code);
+      if (!pollingActiveRef.current) return;
+
+      if (result.verified && result.freshData) {
+        const inserted = await insertAccount(result.freshData);
+        pollingActiveRef.current = false;
+        setPolling(false);
+        if (inserted) {
+          showToast(t('accountSwitcher.verified', 'Ownership verified! Account added: {{name}} (K{{kingdom}})', { name: result.freshData.username, kingdom: result.freshData.kingdom }), 'success');
+          resetAddFlow();
+          await fetchAccounts();
         }
         return;
       }
 
-      showToast(t('accountSwitcher.verified', 'Ownership verified! Account added: {{name}} (K{{kingdom}})', { name: freshData.username, kingdom: freshData.kingdom }), 'success');
-      resetAddFlow();
-      await fetchAccounts();
-    } catch (err) {
-      logger.error('Failed to check verification:', err);
-      showToast(err instanceof Error ? err.message : t('accountSwitcher.addFailed', 'Failed to add account'), 'error');
-    } finally {
-      setChecking(false);
-    }
+      pollTimeoutRef.current = setTimeout(() => poll(attempt + 1), POLL_INTERVAL_MS);
+    };
+
+    await poll(1);
   };
 
   const resetAddFlow = () => {
+    stopPolling();
     setShowAddInput(false);
     setNewPlayerId('');
     setVerifyStep(null);
     setVerifyCode('');
     setPendingPlayer(null);
   };
+
+  useEffect(() => {
+    return () => {
+      pollingActiveRef.current = false;
+      if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
+    };
+  }, []);
 
   // Don't show if user has no linked account at all, or only 1 account and no need to add
   if (loading || !user) return null;
@@ -545,42 +598,72 @@ const AccountSwitcher: React.FC<AccountSwitcherProps> = ({ onSwitch }) => {
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button
-              onClick={handleCheckVerification}
-              disabled={checking}
-              style={{
-                flex: 1,
-                padding: '0.5rem 0.75rem',
-                borderRadius: '6px',
-                border: 'none',
-                backgroundColor: '#f59e0b',
-                color: '#000',
-                fontSize: '0.8rem',
-                fontWeight: '600',
-                cursor: checking ? 'not-allowed' : 'pointer',
-                opacity: checking ? 0.5 : 1,
-                minHeight: isMobile ? '44px' : 'auto',
-              }}
-            >
-              {checking ? t('accountSwitcher.checking', 'Checking...') : t('accountSwitcher.verifyNow', 'I Changed My Name — Verify')}
-            </button>
-            <button
-              onClick={resetAddFlow}
-              style={{
-                padding: '0.5rem',
-                borderRadius: '6px',
-                border: `1px solid ${colors.border}`,
-                backgroundColor: 'transparent',
-                color: colors.textMuted,
-                fontSize: '0.8rem',
-                cursor: 'pointer',
-                minHeight: isMobile ? '44px' : 'auto',
-              }}
-            >
-              ✕
-            </button>
-          </div>
+          {polling ? (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem', borderRadius: '6px', backgroundColor: '#f59e0b10', border: '1px solid #f59e0b30', marginBottom: '0.5rem' }}>
+                <span style={{ fontSize: '1rem' }}>{pollCount % 2 === 0 ? '⏳' : '🔄'}</span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '0.8rem', color: '#f59e0b', fontWeight: '600' }}>
+                    {t('accountSwitcher.polling', 'Checking your in-game name...')}
+                  </div>
+                  <div style={{ fontSize: '0.65rem', color: colors.textMuted, marginTop: '0.15rem' }}>
+                    {t('accountSwitcher.pollAttempt', 'Attempt {{count}} of {{max}} · Rechecking every {{seconds}}s', { count: pollCount, max: MAX_POLL_ATTEMPTS, seconds: Math.round(POLL_INTERVAL_MS / 1000) })}
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={stopPolling}
+                style={{
+                  width: '100%',
+                  padding: '0.5rem 0.75rem',
+                  borderRadius: '6px',
+                  border: `1px solid ${colors.border}`,
+                  backgroundColor: 'transparent',
+                  color: colors.textMuted,
+                  fontSize: '0.8rem',
+                  cursor: 'pointer',
+                  minHeight: isMobile ? '44px' : 'auto',
+                }}
+              >
+                {t('accountSwitcher.stopChecking', 'Stop Checking')}
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button
+                onClick={startVerificationPolling}
+                style={{
+                  flex: 1,
+                  padding: '0.5rem 0.75rem',
+                  borderRadius: '6px',
+                  border: 'none',
+                  backgroundColor: '#f59e0b',
+                  color: '#000',
+                  fontSize: '0.8rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  minHeight: isMobile ? '44px' : 'auto',
+                }}
+              >
+                {t('accountSwitcher.verifyNow', 'I Changed My Name — Verify')}
+              </button>
+              <button
+                onClick={resetAddFlow}
+                style={{
+                  padding: '0.5rem',
+                  borderRadius: '6px',
+                  border: `1px solid ${colors.border}`,
+                  backgroundColor: 'transparent',
+                  color: colors.textMuted,
+                  fontSize: '0.8rem',
+                  cursor: 'pointer',
+                  minHeight: isMobile ? '44px' : 'auto',
+                }}
+              >
+                ✕
+              </button>
+            </div>
+          )}
         </div>
       ) : null}
     </Card>

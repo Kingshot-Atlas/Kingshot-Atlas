@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../lib/supabase';
 import { CURRENT_KVK } from '../constants';
 
@@ -25,34 +26,41 @@ const getActivePhase = (schedule: KvKSchedule | null): Phase => {
   return null;
 };
 
-const PHASE_CONFIG: Record<string, { icon: string; color: string; bg: string; border: string; message: string; cta: string }> = {
+const PHASE_CONFIG: Record<string, { icon: string; color: string; bg: string; border: string; messageKey: string; messageFallback: string; ctaKey: string; ctaFallback: string }> = {
   matchup: {
     icon: '🔗',
     color: '#22d3ee',
     bg: '#22d3ee08',
     border: '#22d3ee30',
-    message: 'KvK matchups are live! Add your kingdom\'s matchup now.',
-    cta: 'Add Matchup',
+    messageKey: 'kvkBanner.matchupMessage',
+    messageFallback: 'KvK matchups are live! Add your kingdom\'s matchup now.',
+    ctaKey: 'kvkBanner.matchupCta',
+    ctaFallback: 'Add Matchup',
   },
   prep: {
     icon: '🛡️',
     color: '#eab308',
     bg: '#eab30808',
     border: '#eab30830',
-    message: 'KvK Prep Phase has ended! Submit your prep result.',
-    cta: 'Add Prep Result',
+    messageKey: 'kvkBanner.prepMessage',
+    messageFallback: 'KvK Prep Phase has ended! Submit your prep result.',
+    ctaKey: 'kvkBanner.prepCta',
+    ctaFallback: 'Add Prep Result',
   },
   battle: {
     icon: '⚔️',
     color: '#f97316',
     bg: '#f9731608',
     border: '#f9731630',
-    message: 'KvK Castle Battle is over! Submit your battle result.',
-    cta: 'Add Battle Result',
+    messageKey: 'kvkBanner.battleMessage',
+    messageFallback: 'KvK Castle Battle is over! Submit your battle result.',
+    ctaKey: 'kvkBanner.battleCta',
+    ctaFallback: 'Add Battle Result',
   },
 };
 
 const KvKPhaseBanner: React.FC = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [schedule, setSchedule] = useState<KvKSchedule | null>(null);
   const [dismissed, setDismissed] = useState(false);
@@ -130,10 +138,10 @@ const KvKPhaseBanner: React.FC = () => {
         KvK #{kvkNum}:
       </span>
       <span style={{ color: '#d1d5db', fontSize: '0.85rem' }}>
-        {config.message}
+        {t(config.messageKey, config.messageFallback)}
       </span>
       <Link
-        to={`/kvk-seasons/${kvkNum}`}
+        to={`/seasons/${kvkNum}`}
         style={{
           padding: '0.3rem 0.75rem',
           backgroundColor: config.color,
@@ -144,7 +152,7 @@ const KvKPhaseBanner: React.FC = () => {
           textDecoration: 'none',
         }}
       >
-        {config.cta} →
+        {t(config.ctaKey, config.ctaFallback)} →
       </Link>
       <button
         onClick={handleDismiss}

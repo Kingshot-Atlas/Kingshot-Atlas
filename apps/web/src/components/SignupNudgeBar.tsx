@@ -34,6 +34,7 @@ const SignupNudgeBar: React.FC = () => {
       backgroundColor: '#111111',
       borderTop: '1px solid #22d3ee40',
       padding: isMobile ? '0.75rem 1rem' : '0.75rem 2rem',
+      paddingBottom: isMobile ? 'max(0.75rem, env(safe-area-inset-bottom))' : '0.75rem',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',

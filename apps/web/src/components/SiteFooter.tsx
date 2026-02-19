@@ -18,13 +18,14 @@ const SiteFooter: React.FC = () => {
       <p style={{ color: '#4b5563', fontSize: '0.7rem', lineHeight: 1.6, margin: 0, maxWidth: '700px', marginLeft: 'auto', marginRight: 'auto' }}>
         {t('footer.trademark', 'Kingshot\u2122 is a trademark of Century Games. All game content and materials are trademarks and copyrights of their respective owners. Kingshot Atlas is an independent fan project \u2014 not affiliated with, endorsed, sponsored, or approved by Century Games.')}
       </p>
-      <p style={{ color: '#374151', fontSize: '0.65rem', marginTop: '0.5rem', marginBottom: 0 }}>
-        &copy; {year} Kingshot Atlas &middot;{' '}
-        <Link to="/about" style={{ color: '#4b5563', textDecoration: 'none' }}>{t('footer.about', 'About')}</Link>
-        {' '}&middot;{' '}
-        <Link to="/terms" style={{ color: '#4b5563', textDecoration: 'none' }}>{t('footer.terms', 'Terms')}</Link>
-        {' '}&middot;{' '}
-        <Link to="/privacy" style={{ color: '#4b5563', textDecoration: 'none' }}>{t('footer.privacy', 'Privacy')}</Link>
+      <p style={{ color: '#374151', fontSize: '0.65rem', marginTop: '0.5rem', marginBottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: '0.25rem' }}>
+        <span>&copy; {year} Kingshot Atlas</span>
+        <span>&middot;</span>
+        <Link to="/about" style={{ color: '#4b5563', textDecoration: 'none', padding: '0.35rem 0.25rem' }}>{t('footer.about', 'About')}</Link>
+        <span>&middot;</span>
+        <Link to="/terms" style={{ color: '#4b5563', textDecoration: 'none', padding: '0.35rem 0.25rem' }}>{t('footer.terms', 'Terms')}</Link>
+        <span>&middot;</span>
+        <Link to="/privacy" style={{ color: '#4b5563', textDecoration: 'none', padding: '0.35rem 0.25rem' }}>{t('footer.privacy', 'Privacy')}</Link>
       </p>
     </footer>
   );

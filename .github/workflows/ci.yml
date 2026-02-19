@@ -17,6 +17,8 @@ on:
       - 'apps/discord-bot/**'
       - 'package*.json'
       - '.github/workflows/ci.yml'
+  schedule:
+    - cron: '0 8 * * 1'  # Every Monday 8am UTC — catches freshness drift
 
 # Cancel in-progress runs for the same branch
 # Note: Cancelled runs still appear as "failed" in GitHub - configure notification settings
@@ -89,6 +91,13 @@ jobs:
       - name: Run tests
         run: npm test
 
+      - name: Security audit (npm)
+        run: |
+          npm audit --audit-level=critical --omit=dev || {
+            echo "⚠️ Critical vulnerabilities found in discord-bot production dependencies"
+            exit 1
+          }
+
   # Frontend Lint & Test
   lint-and-test:
     name: Lint & Test (Frontend)
@@ -125,7 +134,27 @@ jobs:
         run: npm run i18n:check -- --strict
 
       - name: Consistency Lint
-        run: npm run lint:consistency:strict
+        run: |
+          set +e
+          npm run lint:consistency:strict 2>&1 | tee /tmp/lint-report.txt
+          exit ${PIPESTATUS[0]}
+
+      - name: Comment Lint Report on PR
+        if: "!cancelled() && github.event_name == 'pull_request'"
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let output = 'No lint report generated';
+            try { output = fs.readFileSync('/tmp/lint-report.txt', 'utf-8'); } catch {}
+            const hasErrors = output.includes('💥');
+            const icon = hasErrors ? '❌' : '✅';
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `### ${icon} Consistency Lint Report\n\`\`\`\n${output}\n\`\`\``
+            });
 
       - name: Security audit (npm)
         run: |

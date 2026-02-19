@@ -35,6 +35,16 @@ repos:
         args: ['--py312-plus']
         files: ^apps/api/
 
+  # Lockfile drift detection (catches discord-bot npm ci failures before CI)
+  - repo: local
+    hooks:
+      - id: lockfile-sync
+        name: Discord bot lockfile sync
+        entry: node -e "const p=require('./apps/discord-bot/package.json'),l=require('./apps/discord-bot/package-lock.json'),d={...p.dependencies,...p.devDependencies},m=Object.keys(d).filter(k=>!l.packages['node_modules/'+k]);if(m.length){console.error('❌ discord-bot lockfile out of sync:',m.join(', '));console.error('Fix: cd apps/discord-bot && npm install --package-lock-only');process.exit(1)}"
+        language: system
+        files: apps/discord-bot/package(-lock)?\.json$
+        pass_filenames: false
+
   # TypeScript/JavaScript linting
   - repo: local
     hooks:
