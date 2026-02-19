@@ -271,7 +271,7 @@ export const BattlePlannerAccessTab: React.FC = () => {
               boxShadow: '0 8px 24px rgba(0,0,0,0.6)',
             }}>
               <span style={{ color: colors.textMuted, fontSize: '0.8rem' }}>
-                No linked Kingshot users found matching "{searchQuery}"
+                No linked Kingshot users found matching &quot;{searchQuery}&quot;
               </span>
             </div>
           )}

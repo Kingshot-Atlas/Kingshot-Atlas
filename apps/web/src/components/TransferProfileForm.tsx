@@ -184,6 +184,7 @@ const TransferProfileForm: React.FC<{
         setCoordKingdom(String(profile.linked_kingdom));
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile]);
 
   // Load existing profile

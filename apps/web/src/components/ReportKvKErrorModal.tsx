@@ -194,8 +194,6 @@ const ReportKvKErrorModal: React.FC<ReportKvKErrorModalProps> = ({
   const [corrBattle, setCorrBattle] = useState('');
   const [missingKvkNumber, setMissingKvkNumber] = useState('');
 
-  if (!isOpen) return null;
-
   const sortedKvKs = [...kvkRecords].sort((a, b) => b.kvk_number - a.kvk_number);
   const rec = sortedKvKs.find(k => k.kvk_number === selectedKvK);
 
@@ -240,6 +238,8 @@ const ReportKvKErrorModal: React.FC<ReportKvKErrorModalProps> = ({
     if (needsResults && (!corrPrep || !corrBattle)) return false;
     return true;
   }, [user, errorType, submitting, needsKvkSelect, selectedKvK, needsKingdom, corrOpponent, needsResults, corrPrep, corrBattle, missingKvkNumber]);
+
+  if (!isOpen) return null;
 
   const handleSubmit = async () => {
     if (!canSubmit || !user?.id) return;

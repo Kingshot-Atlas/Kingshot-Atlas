@@ -822,7 +822,7 @@ const Profile: React.FC = () => {
             kingdomNumber={viewedProfile?.linked_kingdom || null}
             onDismiss={() => {
               setShowWelcomeScreen(false);
-              try { localStorage.setItem('atlas_onboarding_welcomeScreenShown', 'true'); } catch {}
+              try { localStorage.setItem('atlas_onboarding_welcomeScreenShown', 'true'); } catch { /* localStorage may be unavailable */ }
             }}
           />
         )}

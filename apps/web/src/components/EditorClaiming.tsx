@@ -803,6 +803,7 @@ const EditorClaiming: React.FC<{
       })
       .subscribe();
     return () => { sb.removeChannel(channel); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [myClaim?.id, myClaim?.status]);
 
   if (!user) return null;

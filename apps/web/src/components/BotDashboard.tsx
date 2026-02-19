@@ -150,6 +150,7 @@ export const BotDashboard: React.FC = () => {
 
   useEffect(() => {
     if (activeTab === 'analytics' && !analytics) loadAnalytics();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   const loadAnalytics = async () => {

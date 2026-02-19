@@ -543,7 +543,7 @@ export const FinanceTab: React.FC<FinanceTabProps> = ({
           <div style={{ padding: '2rem', textAlign: 'center', color: colors.textMuted, fontSize: '0.8rem' }}>Loading...</div>
         ) : allExpenses.length === 0 ? (
           <div style={{ padding: '2rem', textAlign: 'center', color: colors.textMuted, fontSize: '0.8rem', border: `1px dashed ${colors.border}`, borderRadius: '8px' }}>
-            No expenses logged yet. Click "+ Add Expense" to start tracking.
+            No expenses logged yet. Click &quot;+ Add Expense&quot; to start tracking.
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>

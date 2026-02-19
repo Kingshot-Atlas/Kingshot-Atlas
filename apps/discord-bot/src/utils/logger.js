@@ -303,6 +303,17 @@ async function syncToApi(command, guildId, userId, latencyMs = null) {
   }
 }
 
+// Convenience aliases used by reactionRoles.js and other modules
+function error(...args) {
+  console.error(...args);
+}
+function info(...args) {
+  console.log(...args);
+}
+function debug(...args) {
+  if (process.env.DEBUG) console.debug(...args);
+}
+
 module.exports = {
   logCommand,
   logError,
@@ -311,4 +322,7 @@ module.exports = {
   getStats,
   getFormattedStats,
   syncToApi,
+  error,
+  info,
+  debug,
 };

@@ -444,6 +444,7 @@ const MyApplicationsTracker: React.FC<{
   useEffect(() => {
     loadApplications();
     loadInvites();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   // Fetch recruiter contacts for accepted applications

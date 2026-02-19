@@ -243,6 +243,7 @@ const PathToNextTier: React.FC<PathToNextTierProps> = ({ kingdom, isExpanded: ex
       sTierBuffer,
       sTierSinceKvK
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [kingdom]);
   
   const isSTier = analysis.currentTier === 'S';
