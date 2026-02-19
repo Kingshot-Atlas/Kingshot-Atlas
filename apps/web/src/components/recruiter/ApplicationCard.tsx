@@ -38,6 +38,7 @@ const ApplicationCard: React.FC<{
   const [sendingMsg, setSendingMsg] = useState(false);
   const [showMessages, setShowMessages] = useState(false);
   const msgEndRef = useRef<HTMLDivElement>(null);
+  const [senderNames, setSenderNames] = useState<Record<string, string>>({});
   // Watchlist move state
   const [movingToWatchlist, setMovingToWatchlist] = useState(false);
   const [movedToWatchlist, setMovedToWatchlist] = useState(false);
@@ -77,7 +78,21 @@ const ApplicationCard: React.FC<{
         .select('id, sender_user_id, message, created_at')
         .eq('application_id', application.id)
         .order('created_at', { ascending: true });
-      if (data) setMessages(data);
+      if (data) {
+        setMessages(data);
+        // Fetch sender usernames for messages not from me
+        const otherIds = [...new Set(data.filter((m: AppMessage) => m.sender_user_id !== user?.id).map((m: AppMessage) => m.sender_user_id))];
+        if (otherIds.length > 0) {
+          const { data: profiles } = await sb.from('profiles').select('id, username, linked_username').in('id', otherIds);
+          if (profiles) {
+            const map: Record<string, string> = {};
+            profiles.forEach((p: { id: string; username: string; linked_username?: string }) => {
+              map[p.id] = p.linked_username || p.username || 'Unknown';
+            });
+            setSenderNames(prev => ({ ...prev, ...map }));
+          }
+        }
+      }
 
       // Mark messages as read (upsert read status)
       if (user) {
@@ -557,6 +572,7 @@ const ApplicationCard: React.FC<{
                 {messages.map(msg => {
                   const isMe = msg.sender_user_id === user?.id;
                   const translated = translations[msg.id];
+                  const senderName = !isMe ? senderNames[msg.sender_user_id] : undefined;
                   return (
                     <div key={msg.id} style={{
                       display: 'flex',
@@ -570,6 +586,11 @@ const ApplicationCard: React.FC<{
                         border: `1px solid ${isMe ? '#3b82f630' : '#ffffff15'}`,
                         borderRadius: isMe ? '8px 8px 2px 8px' : '8px 8px 8px 2px',
                       }}>
+                        {senderName && (
+                          <div style={{ color: '#a78bfa', fontSize: '0.58rem', fontWeight: 600, marginBottom: '0.1rem' }}>
+                            {senderName}
+                          </div>
+                        )}
                         <p style={{ color: '#d1d5db', fontSize: '0.72rem', margin: 0, lineHeight: 1.4, wordBreak: 'break-word' }}>
                           {msg.message}
                         </p>

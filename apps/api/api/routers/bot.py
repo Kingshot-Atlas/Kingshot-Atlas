@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 import hashlib
 import random
+import urllib.parse
 from api.config import DISCORD_BOT_TOKEN, DISCORD_API_KEY, DISCORD_API_PROXY, DISCORD_PROXY_KEY, ENVIRONMENT, ADMIN_EMAILS
 from api.supabase_client import get_supabase_admin
 
@@ -549,6 +550,156 @@ async def send_message(data: SendMessageRequest, _: bool = Depends(require_bot_a
     except Exception as e:
         logger.error("Error in /send-message: %s", e)
         raise HTTPException(status_code=500, detail="Failed to send message")
+
+
+class SendReactionRoleRequest(BaseModel):
+    """Request model for deploying a reaction role message"""
+    channel_id: str = Field(..., description="Discord channel ID to send message to")
+    title: str = Field(..., description="Embed title")
+    description: str = Field(..., description="Embed description with emoji-role listing")
+    emoji_role_mappings: List[Dict[str, Any]] = Field(..., description="List of {emoji, role_id, label} mappings")
+    config_id: str = Field(..., description="Supabase bot_reaction_roles row ID")
+
+
+@router.post("/send-reaction-role")
+async def send_reaction_role(data: SendReactionRoleRequest, _: bool = Depends(require_bot_admin)):
+    """
+    Deploy a reaction role message: send embed, add reactions, update config with message_id.
+    The bot-side handler listens for reactions on messages with IDs in bot_reaction_roles.
+    """
+    if not DISCORD_BOT_TOKEN:
+        raise HTTPException(status_code=503, detail="Discord bot token not configured")
+
+    if not data.emoji_role_mappings:
+        raise HTTPException(status_code=400, detail="Must provide at least one emoji-role mapping")
+
+    try:
+        # Build embed
+        embed = {
+            "title": data.title or "Role Selection",
+            "description": data.description or "React to get your roles!",
+            "color": 0xa855f7,
+            "footer": {"text": "Kingshot Atlas • React to assign roles"},
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+
+        payload: Dict[str, Any] = {"embeds": [embed]}
+
+        # Send message
+        response = await discord_fetch(
+            "POST",
+            f"/api/v10/channels/{data.channel_id}/messages",
+            json=payload,
+        )
+
+        if response.status_code not in (200, 201):
+            raise HTTPException(
+                status_code=response.status_code,
+                detail=_sanitize_discord_error(response.status_code, response.text)
+            )
+
+        message = response.json()
+        message_id = message.get("id")
+
+        # Add reactions to the message (one per emoji mapping)
+        for mapping in data.emoji_role_mappings:
+            emoji = mapping.get("emoji", "").strip()
+            if not emoji:
+                continue
+            # URL-encode the emoji for the API path
+            encoded_emoji = urllib.parse.quote(emoji)
+            try:
+                await discord_fetch(
+                    "PUT",
+                    f"/api/v10/channels/{data.channel_id}/messages/{message_id}/reactions/{encoded_emoji}/@me",
+                    max_retries=1,
+                    timeout=10.0,
+                )
+                # Small delay to avoid rate limits on reactions
+                await asyncio.sleep(0.3)
+            except Exception as e:
+                logger.warning("Failed to add reaction %s: %s", emoji, e)
+
+        # Update Supabase config with message_id and set active
+        sb = get_supabase_admin()
+        if sb and data.config_id:
+            try:
+                sb.table("bot_reaction_roles").update({
+                    "message_id": message_id,
+                    "active": True,
+                    "updated_at": datetime.now(timezone.utc).isoformat(),
+                }).eq("id", data.config_id).execute()
+            except Exception as e:
+                logger.warning("Failed to update reaction role config: %s", e)
+
+        return {
+            "success": True,
+            "message_id": message_id,
+            "channel_id": data.channel_id,
+            "reactions_added": len(data.emoji_role_mappings),
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error in /send-reaction-role: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to deploy reaction role message")
+
+
+class EditReactionRoleRequest(BaseModel):
+    """Request model for editing an already-deployed reaction role message"""
+    channel_id: str = Field(..., description="Discord channel ID where the message lives")
+    message_id: str = Field(..., description="Discord message ID to edit")
+    title: str = Field(..., description="Updated embed title")
+    description: str = Field(..., description="Updated embed description")
+    config_id: str = Field(..., description="Supabase bot_reaction_roles row ID")
+
+
+@router.patch("/edit-reaction-role")
+async def edit_reaction_role(data: EditReactionRoleRequest, _: bool = Depends(require_bot_admin)):
+    """
+    Edit an already-deployed reaction role embed message in Discord.
+    Updates the embed content in-place without deleting and re-posting.
+    """
+    if not DISCORD_BOT_TOKEN:
+        raise HTTPException(status_code=503, detail="Discord bot token not configured")
+
+    try:
+        embed = {
+            "title": data.title or "Role Selection",
+            "description": data.description or "React to get your roles!",
+            "color": 0xa855f7,
+            "footer": {"text": "Kingshot Atlas • React to assign roles"},
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+
+        response = await discord_fetch(
+            "PATCH",
+            f"/api/v10/channels/{data.channel_id}/messages/{data.message_id}",
+            json={"embeds": [embed]},
+        )
+
+        if response.status_code not in (200, 201):
+            raise HTTPException(
+                status_code=response.status_code,
+                detail=_sanitize_discord_error(response.status_code, response.text)
+            )
+
+        # Update Supabase config
+        sb = get_supabase_admin()
+        if sb and data.config_id:
+            try:
+                sb.table("bot_reaction_roles").update({
+                    "updated_at": datetime.now(timezone.utc).isoformat(),
+                }).eq("id", data.config_id).execute()
+            except Exception as e:
+                logger.warning("Failed to update reaction role config timestamp: %s", e)
+
+        return {"success": True, "message_id": data.message_id}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error in /edit-reaction-role: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to edit reaction role message")
 
 
 class SpotlightRequest(BaseModel):

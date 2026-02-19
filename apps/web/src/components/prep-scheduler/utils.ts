@@ -1,5 +1,5 @@
 // ─── KvK Prep Scheduler — Utility Functions ───────────────────────────
-import { PrepSchedule, PrepSubmission, SlotAssignment, Day, DAYS, DAY_LABELS, TIME_SLOTS } from './types';
+import { PrepSchedule, PrepSubmission, SlotAssignment, Day, DAYS, DAY_LABELS, TIME_SLOTS, getEffectiveSlots, getMaxSlots } from './types';
 
 export function utcSlotToLocal(utcSlot: string): string {
   const [h, m] = utcSlot.split(':').map(Number);
@@ -89,15 +89,17 @@ export function autoAssignSlots(submissions: PrepSubmission[], schedule: PrepSch
     })
     .sort((a, b) => getEffectiveSpeedups(b, day, schedule) - getEffectiveSpeedups(a, day, schedule));
 
+  const effectiveSlots = getEffectiveSlots(schedule.stagger_enabled);
+  const maxSlots = getMaxSlots(schedule.stagger_enabled);
   const assignments: { submission_id: string; slot_time: string }[] = [];
   const usedSlots = new Set<string>();
   const assignedUsers = new Set<string>();
 
   for (const sub of sorted) {
-    if (assignments.length >= 48) break;
+    if (assignments.length >= maxSlots) break;
     if (assignedUsers.has(sub.id)) continue;
     const avail = (sub[availKey] as string[][] | undefined) || [];
-    for (const slot of TIME_SLOTS) {
+    for (const slot of effectiveSlots) {
       if (usedSlots.has(slot)) continue;
       if (isSlotInAvailability(slot, avail)) {
         assignments.push({ submission_id: sub.id, slot_time: slot });

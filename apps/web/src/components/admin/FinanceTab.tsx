@@ -5,12 +5,14 @@ import { getAuthHeaders } from '../../services/authHeaders';
 import { colors } from '../../utils/styles';
 import { logger } from '../../utils/logger';
 import { downloadCSV } from '../../utils/csvExport';
-import SupporterBadge from '../SupporterBadge';
 import {
   type Expense, type RevenueData, type ChurnAlert, type FinanceSection,
   SECTIONS, EXPENSE_CATEGORIES, getCategoryConfig, getNextRecurringDate,
   inputStyle, actionBtnStyle,
 } from './FinanceTabHelpers';
+import { RevenueSection } from './RevenueSection';
+import { SubscribersSection } from './SubscribersSection';
+import { PromoSection } from './PromoSection';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
@@ -307,151 +309,6 @@ export const FinanceTab: React.FC<FinanceTabProps> = ({
       ))}
     </div>
   );
-
-  // ─── Revenue Section ────────────────────────────────────────────────────
-
-  const renderRevenue = () => {
-    if (loadingRevenue) {
-      return <div style={{ padding: '2rem', textAlign: 'center', color: colors.textMuted }}>Loading revenue data...</div>;
-    }
-    if (revenueError || !revenue) {
-      return (
-        <div style={{ padding: '2rem', textAlign: 'center' }}>
-          <div style={{ color: colors.error, marginBottom: '0.75rem' }}>Failed to load revenue data</div>
-          {revenueError && <div style={{ color: colors.textMuted, fontSize: '0.8rem', marginBottom: '1rem' }}>{revenueError}</div>}
-          <button onClick={fetchRevenue} style={{ padding: '0.5rem 1rem', backgroundColor: `${colors.primary}20`, color: colors.primary, border: `1px solid ${colors.primary}40`, borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>Retry</button>
-        </div>
-      );
-    }
-
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        {/* Key Revenue Metrics */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
-          {[
-            { label: 'Monthly Recurring Revenue', value: `$${revenue.mrr.toFixed(2)}`, color: colors.success, icon: '💰' },
-            { label: 'Total Revenue (All Time)', value: `$${revenue.total.toFixed(2)}`, color: colors.gold, icon: '🏆' },
-            { label: 'Active Subscriptions', value: revenue.activeSubscriptions.toString(), color: colors.purple, icon: '🔄' },
-            { label: 'Stripe Balance', value: `$${(revenue.stripeBalance.available / 100).toFixed(2)}`, color: colors.primary, icon: '🏦' },
-          ].map((metric, i) => (
-            <div key={i} style={{
-              backgroundColor: colors.cardAlt, borderRadius: '10px', padding: '1rem',
-              border: `1px solid ${colors.border}`,
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.4rem' }}>
-                <span>{metric.icon}</span>
-                <span style={{ color: colors.textMuted, fontSize: '0.75rem' }}>{metric.label}</span>
-              </div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 700, color: metric.color }}>
-                {metric.value}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Sync Button */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <button
-            onClick={onSyncSubscriptions}
-            disabled={syncingSubscriptions}
-            style={{
-              padding: '0.4rem 0.8rem',
-              backgroundColor: syncingSubscriptions ? '#374151' : `${colors.primary}20`,
-              color: syncingSubscriptions ? colors.textMuted : colors.primary,
-              border: `1px solid ${colors.primary}40`,
-              borderRadius: '6px', fontSize: '0.75rem',
-              cursor: syncingSubscriptions ? 'not-allowed' : 'pointer',
-              display: 'flex', alignItems: 'center', gap: '0.35rem',
-            }}
-          >
-            {syncingSubscriptions ? '⏳ Syncing...' : '🔄 Sync with Stripe'}
-          </button>
-        </div>
-
-        {/* Subscription Breakdown */}
-        {revenue.subscriptions.length > 0 && (
-          <div style={{ backgroundColor: colors.cardAlt, borderRadius: '10px', padding: '1rem', border: `1px solid ${colors.border}` }}>
-            <div style={{ fontSize: '0.75rem', color: colors.textSecondary, fontWeight: 600, marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Subscription Tiers
-            </div>
-            {revenue.subscriptions.map((sub, i) => (
-              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.35rem 0', borderBottom: i < revenue.subscriptions.length - 1 ? `1px solid ${colors.borderSubtle}` : 'none' }}>
-                <span style={{ color: colors.text, fontSize: '0.85rem' }}>{sub.tier}</span>
-                <span style={{ color: colors.primary, fontWeight: 600, fontSize: '0.85rem' }}>{sub.count}</span>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Recent Payments */}
-        <div style={{ backgroundColor: colors.cardAlt, borderRadius: '10px', padding: '1rem', border: `1px solid ${colors.border}` }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-            <div style={{ fontSize: '0.75rem', color: colors.textSecondary, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Recent Payments
-            </div>
-            {revenue.recentPayments.length > 0 && (
-              <button
-                onClick={() => downloadCSV(revenue.recentPayments.map(p => ({ amount: `$${p.amount.toFixed(2)}`, date: p.date, email: p.customer_email || 'N/A' })), 'payments')}
-                style={{ background: 'none', border: `1px solid ${colors.border}`, borderRadius: '4px', color: colors.textMuted, padding: '0.15rem 0.4rem', cursor: 'pointer', fontSize: '0.65rem' }}
-              >
-                📥 CSV
-              </button>
-            )}
-          </div>
-          {revenue.recentPayments.length > 0 ? (
-            revenue.recentPayments.slice(0, 8).map((payment, i) => (
-              <div key={i} style={{
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                padding: '0.4rem 0',
-                borderBottom: i < Math.min(revenue.recentPayments.length, 8) - 1 ? `1px solid ${colors.borderSubtle}` : 'none',
-              }}>
-                <div>
-                  <span style={{ color: colors.success, fontWeight: 600 }}>${payment.amount.toFixed(2)}</span>
-                  <span style={{ color: colors.textMuted, fontSize: '0.7rem', marginLeft: '0.5rem' }}>
-                    {new Date(payment.date).toLocaleDateString()}
-                  </span>
-                </div>
-                {payment.customer_email && (
-                  <span style={{ color: colors.textSecondary, fontSize: '0.7rem' }}>
-                    {payment.customer_email.length > 25 ? payment.customer_email.substring(0, 25) + '…' : payment.customer_email}
-                  </span>
-                )}
-              </div>
-            ))
-          ) : (
-            <div style={{ color: colors.textMuted, fontSize: '0.8rem', fontStyle: 'italic', padding: '1rem 0', textAlign: 'center' }}>No payments yet</div>
-          )}
-        </div>
-
-        {/* Churn Alerts */}
-        {churnAlerts.length > 0 && (
-          <div style={{ backgroundColor: colors.cardAlt, borderRadius: '10px', padding: '1rem', border: `1px solid ${colors.error}30` }}>
-            <div style={{ fontSize: '0.75rem', color: colors.error, fontWeight: 600, marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              ⚠️ Churn Alerts ({churnAlerts.length})
-            </div>
-            {churnAlerts.slice(0, 5).map((alert, i) => (
-              <div key={alert.event_id || i} style={{
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                padding: '0.4rem 0',
-                borderBottom: i < Math.min(churnAlerts.length, 5) - 1 ? `1px solid ${colors.borderSubtle}` : 'none',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span style={{ color: colors.error, fontSize: '0.75rem' }}>✕</span>
-                  <span style={{ color: colors.text, fontSize: '0.8rem' }}>{alert.customer_id}</span>
-                  <span style={{ padding: '0.1rem 0.35rem', borderRadius: '4px', fontSize: '0.6rem', fontWeight: 600, backgroundColor: `${colors.error}15`, color: colors.error }}>
-                    {alert.reason}
-                  </span>
-                </div>
-                <span style={{ color: colors.textMuted, fontSize: '0.7rem' }}>
-                  {new Date(alert.canceled_at).toLocaleDateString()}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  };
 
   // ─── Expenses Section ───────────────────────────────────────────────────
 
@@ -856,344 +713,42 @@ export const FinanceTab: React.FC<FinanceTabProps> = ({
     );
   };
 
-  // ─── Subscribers Section ────────────────────────────────────────────────
-
-  const renderSubscribers = () => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      {/* Manual Subscription Grant */}
-      {onGrantSubscription && (
-        <div style={{ backgroundColor: colors.cardAlt, borderRadius: '10px', padding: '1rem', border: `1px solid ${'#FF6B8A'}30` }}>
-          <h3 style={{ color: colors.text, fontSize: '0.9rem', margin: '0 0 0.5rem 0' }}>💖 Manual Supporter Grant</h3>
-          <p style={{ color: colors.textSecondary, fontSize: '0.75rem', marginBottom: '0.75rem' }}>
-            Grant or revoke Supporter perks for Ko-Fi subscribers or manual grants. Updates badge + Discord role.
-          </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-            <input
-              type="email"
-              placeholder="User email address"
-              value={grantEmail}
-              onChange={e => { setGrantEmail(e.target.value); setGrantResult(null); }}
-              style={inputStyle}
-            />
-            <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
-              <span style={{ color: colors.textSecondary, fontSize: '0.75rem' }}>Source:</span>
-              {(['kofi', 'manual', 'stripe'] as const).map(src => (
-                <button
-                  key={src}
-                  onClick={() => setGrantSource(src)}
-                  style={{
-                    padding: '0.25rem 0.55rem', borderRadius: '6px', fontSize: '0.7rem', cursor: 'pointer',
-                    backgroundColor: grantSource === src ? '#FF6B8A20' : 'transparent',
-                    border: `1px solid ${grantSource === src ? '#FF6B8A' : colors.border}`,
-                    color: grantSource === src ? '#FF6B8A' : colors.textMuted,
-                    textTransform: 'capitalize',
-                  }}
-                >
-                  {src === 'kofi' ? 'Ko-Fi' : src}
-                </button>
-              ))}
-            </div>
-            <input
-              type="text"
-              placeholder="Reason (optional)"
-              value={grantReason}
-              onChange={e => setGrantReason(e.target.value)}
-              style={inputStyle}
-            />
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button
-                onClick={async () => {
-                  if (!grantEmail.trim()) return;
-                  setGrantLoading(true); setGrantResult(null);
-                  const result = await onGrantSubscription(grantEmail.trim(), 'supporter', grantSource, grantReason);
-                  setGrantResult(result); setGrantLoading(false);
-                  if (result.success) { setGrantEmail(''); setGrantReason(''); }
-                }}
-                disabled={grantLoading || !grantEmail.trim()}
-                style={{
-                  flex: 1, padding: '0.5rem', borderRadius: '6px', fontWeight: 600, fontSize: '0.8rem',
-                  backgroundColor: grantLoading ? '#374151' : `${colors.success}20`,
-                  color: grantLoading ? colors.textMuted : colors.success,
-                  border: `1px solid ${colors.success}50`,
-                  cursor: grantLoading || !grantEmail.trim() ? 'not-allowed' : 'pointer',
-                }}
-              >
-                {grantLoading ? '⏳ Processing...' : '✅ Grant Supporter'}
-              </button>
-              <button
-                onClick={async () => {
-                  if (!grantEmail.trim()) return;
-                  setGrantLoading(true); setGrantResult(null);
-                  const result = await onGrantSubscription(grantEmail.trim(), 'free', grantSource, grantReason || 'Revoked');
-                  setGrantResult(result); setGrantLoading(false);
-                  if (result.success) { setGrantEmail(''); setGrantReason(''); }
-                }}
-                disabled={grantLoading || !grantEmail.trim()}
-                style={{
-                  padding: '0.5rem 0.8rem', borderRadius: '6px', fontWeight: 600, fontSize: '0.8rem',
-                  backgroundColor: grantLoading ? '#374151' : `${colors.error}20`,
-                  color: grantLoading ? colors.textMuted : colors.error,
-                  border: `1px solid ${colors.error}50`,
-                  cursor: grantLoading || !grantEmail.trim() ? 'not-allowed' : 'pointer',
-                }}
-              >
-                Revoke
-              </button>
-            </div>
-            {grantResult && (
-              <div style={{
-                padding: '0.4rem 0.6rem', borderRadius: '6px', fontSize: '0.75rem',
-                backgroundColor: grantResult.success ? `${colors.success}10` : `${colors.error}10`,
-                border: `1px solid ${grantResult.success ? `${colors.success}30` : `${colors.error}30`}`,
-                color: grantResult.success ? colors.success : colors.error,
-              }}>
-                {grantResult.message}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Recent Subscribers */}
-      <div style={{ backgroundColor: colors.cardAlt, borderRadius: '10px', padding: '1rem', border: `1px solid ${colors.border}` }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-          <div style={{ fontSize: '0.75rem', color: colors.textSecondary, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Recent Subscribers
-          </div>
-          {revenue?.recentSubscribers && revenue.recentSubscribers.length > 0 && (
-            <button
-              onClick={() => downloadCSV(
-                (revenue?.recentSubscribers || []).map(s => ({ username: s.username, tier: s.tier, supporting_since: s.created_at })),
-                'subscribers'
-              )}
-              style={{ background: 'none', border: `1px solid ${colors.border}`, borderRadius: '4px', color: colors.textMuted, padding: '0.15rem 0.4rem', cursor: 'pointer', fontSize: '0.65rem' }}
-            >
-              📥 CSV
-            </button>
-          )}
-        </div>
-        {revenue?.recentSubscribers && revenue.recentSubscribers.length > 0 ? (
-          revenue.recentSubscribers.slice(0, 10).map((sub, i) => {
-            const subDate = new Date(sub.created_at);
-            const daysAgo = Math.floor((Date.now() - subDate.getTime()) / 86400000);
-            const durationLabel = daysAgo < 1 ? 'Today' : daysAgo === 1 ? '1 day' : daysAgo < 30 ? `${daysAgo} days` : `${Math.floor(daysAgo / 30)} mo`;
-            return (
-              <div key={i} style={{
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                padding: '0.5rem 0',
-                borderBottom: i < Math.min(revenue.recentSubscribers.length, 10) - 1 ? `1px solid ${colors.borderSubtle}` : 'none',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span style={{ color: colors.text, fontWeight: 500 }}>{sub.username}</span>
-                  <SupporterBadge size="sm" />
-                  <span style={{ padding: '0.05rem 0.35rem', borderRadius: '4px', fontSize: '0.55rem', fontWeight: 600, backgroundColor: `${colors.success}15`, color: colors.success }}>
-                    {durationLabel}
-                  </span>
-                </div>
-                <span style={{ color: colors.textSecondary, fontSize: '0.7rem' }}>
-                  Since {subDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                </span>
-              </div>
-            );
-          })
-        ) : (
-          <div style={{ padding: '2rem', textAlign: 'center', color: colors.textMuted, fontSize: '0.8rem' }}>No subscribers yet</div>
-        )}
-      </div>
-    </div>
-  );
-
-  // ─── KvK #11 Promo Section ─────────────────────────────────────────────
-
-  // Promo date constants — promo started Feb 19, ends Feb 28 22:00 UTC
-  const PROMO_START = '2026-02-19T00:00:00Z';
-  const PROMO_END = '2026-02-28T22:00:00Z';
-  const promoActive = Date.now() < new Date(PROMO_END).getTime();
-
-  const [promoData, setPromoData] = useState<{
-    fundedKingdoms: { kingdom_number: number; tier: string; balance: number; total_contributed: number; contributor_count: number; updated_at: string }[];
-    tierConversions: { kingdom_number: number; tier: string; balance: number; updated_at: string }[];
-    loading: boolean;
-  }>({ fundedKingdoms: [], tierConversions: [], loading: true });
-
-  const fetchPromoData = useCallback(async () => {
-    if (!supabase) return;
-    setPromoData(prev => ({ ...prev, loading: true }));
-    try {
-      // All kingdoms with fund activity updated during promo window
-      const { data: funds } = await supabase
-        .from('kingdom_funds')
-        .select('kingdom_number, tier, balance, total_contributed, contributor_count, updated_at')
-        .gte('updated_at', PROMO_START)
-        .gt('total_contributed', 0)
-        .order('total_contributed', { ascending: false });
-
-      // Silver and Gold kingdoms (potential conversions)
-      const { data: tiered } = await supabase
-        .from('kingdom_funds')
-        .select('kingdom_number, tier, balance, updated_at')
-        .in('tier', ['silver', 'gold'])
-        .order('tier', { ascending: false });
-
-      setPromoData({
-        fundedKingdoms: funds || [],
-        tierConversions: tiered || [],
-        loading: false,
-      });
-    } catch (err) {
-      logger.error('Failed to fetch promo data:', err);
-      setPromoData(prev => ({ ...prev, loading: false }));
-    }
-  }, []);
-
-  useEffect(() => {
-    if (activeSection === 'promo') fetchPromoData();
-  }, [activeSection, fetchPromoData]);
-
-  const renderPromo = () => {
-    if (promoData.loading) {
-      return <div style={{ padding: '2rem', textAlign: 'center', color: colors.textMuted }}>Loading promo data...</div>;
-    }
-
-    const silverCount = promoData.tierConversions.filter(k => k.tier === 'silver').length;
-    const goldCount = promoData.tierConversions.filter(k => k.tier === 'gold').length;
-    const totalPromoContributions = promoData.fundedKingdoms.reduce((sum, k) => sum + Number(k.total_contributed), 0);
-    const totalContributors = promoData.fundedKingdoms.reduce((sum, k) => sum + (k.contributor_count || 0), 0);
-
-    const tierColor = (tier: string) => tier === 'gold' ? '#ffc30b' : tier === 'silver' ? '#d1d5db' : tier === 'bronze' ? '#cd7f32' : '#6b7280';
-
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        {/* Promo Status */}
-        <div style={{
-          padding: '0.75rem 1rem',
-          backgroundColor: promoActive ? '#22c55e10' : '#f9731610',
-          border: `1px solid ${promoActive ? '#22c55e30' : '#f9731630'}`,
-          borderRadius: '8px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-          fontSize: '0.8rem',
-        }}>
-          <span style={{ fontSize: '0.6rem', padding: '0.1rem 0.35rem', backgroundColor: promoActive ? '#22c55e20' : '#f9731620', border: `1px solid ${promoActive ? '#22c55e40' : '#f9731640'}`, borderRadius: '3px', color: promoActive ? '#22c55e' : '#f97316', fontWeight: 700 }}>
-            {promoActive ? 'ACTIVE' : 'ENDED'}
-          </span>
-          <span style={{ color: colors.textSecondary }}>
-            Silver Tier → Gold Tools promo • Ends Feb 28 at 22:00 UTC
-          </span>
-        </div>
-
-        {/* Key Metrics */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.75rem' }}>
-          {[
-            { label: 'Silver Kingdoms', value: silverCount.toString(), color: '#d1d5db', icon: '🥈' },
-            { label: 'Gold Kingdoms', value: goldCount.toString(), color: '#ffc30b', icon: '🥇' },
-            { label: 'Promo Contributions', value: `$${totalPromoContributions.toFixed(2)}`, color: '#22c55e', icon: '💰' },
-            { label: 'Total Contributors', value: totalContributors.toString(), color: '#a855f7', icon: '👥' },
-          ].map((metric, i) => (
-            <div key={i} style={{
-              backgroundColor: colors.cardAlt, borderRadius: '10px', padding: '1rem',
-              border: `1px solid ${colors.border}`,
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
-                <span style={{ fontSize: '0.9rem' }}>{metric.icon}</span>
-                <span style={{ color: colors.textMuted, fontSize: '0.7rem' }}>{metric.label}</span>
-              </div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 700, color: metric.color }}>{metric.value}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Tier Breakdown */}
-        <div style={{
-          backgroundColor: colors.cardAlt, borderRadius: '10px', padding: '1rem',
-          border: `1px solid ${colors.border}`,
-        }}>
-          <h4 style={{ color: colors.text, fontSize: '0.85rem', marginBottom: '0.75rem' }}>Current Silver & Gold Kingdoms</h4>
-          {promoData.tierConversions.length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-              {promoData.tierConversions.map(k => (
-                <div key={k.kingdom_number} style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  padding: '0.5rem 0.75rem', backgroundColor: colors.bg, borderRadius: '6px',
-                  border: `1px solid ${colors.border}`,
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <span style={{ fontWeight: 600, color: colors.text, fontSize: '0.8rem' }}>K{k.kingdom_number}</span>
-                    <span style={{
-                      fontSize: '0.6rem', padding: '0.1rem 0.3rem', borderRadius: '3px',
-                      backgroundColor: `${tierColor(k.tier)}20`, color: tierColor(k.tier),
-                      fontWeight: 700, textTransform: 'uppercase',
-                    }}>{k.tier}</span>
-                  </div>
-                  <span style={{ color: colors.textMuted, fontSize: '0.75rem' }}>
-                    ${Number(k.balance).toFixed(2)} balance
-                  </span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div style={{ padding: '1rem', textAlign: 'center', color: colors.textMuted, fontSize: '0.8rem' }}>No Silver or Gold kingdoms yet</div>
-          )}
-        </div>
-
-        {/* Fund Activity During Promo */}
-        <div style={{
-          backgroundColor: colors.cardAlt, borderRadius: '10px', padding: '1rem',
-          border: `1px solid ${colors.border}`,
-        }}>
-          <h4 style={{ color: colors.text, fontSize: '0.85rem', marginBottom: '0.75rem' }}>Fund Activity During Promo</h4>
-          {promoData.fundedKingdoms.length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-              {promoData.fundedKingdoms.map(k => {
-                const updDate = new Date(k.updated_at);
-                return (
-                  <div key={k.kingdom_number} style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    padding: '0.5rem 0.75rem', backgroundColor: colors.bg, borderRadius: '6px',
-                    border: `1px solid ${colors.border}`,
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <span style={{ fontWeight: 600, color: colors.text, fontSize: '0.8rem' }}>K{k.kingdom_number}</span>
-                      <span style={{
-                        fontSize: '0.6rem', padding: '0.1rem 0.3rem', borderRadius: '3px',
-                        backgroundColor: `${tierColor(k.tier)}20`, color: tierColor(k.tier),
-                        fontWeight: 700, textTransform: 'uppercase',
-                      }}>{k.tier}</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                      <span style={{ color: '#22c55e', fontSize: '0.75rem', fontWeight: 600 }}>
-                        ${Number(k.total_contributed).toFixed(2)}
-                      </span>
-                      <span style={{ color: colors.textMuted, fontSize: '0.65rem' }}>
-                        {k.contributor_count} contributor{k.contributor_count !== 1 ? 's' : ''}
-                      </span>
-                      <span style={{ color: colors.textMuted, fontSize: '0.65rem' }}>
-                        {updDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div style={{ padding: '1rem', textAlign: 'center', color: colors.textMuted, fontSize: '0.8rem' }}>No fund activity during promo period yet</div>
-          )}
-        </div>
-      </div>
-    );
-  };
 
   // ─── Main Render ────────────────────────────────────────────────────────
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       {renderSectionNav()}
-      {activeSection === 'revenue' && renderRevenue()}
+      {activeSection === 'revenue' && (
+        <RevenueSection
+          loading={loadingRevenue}
+          error={revenueError}
+          revenue={revenue}
+          churnAlerts={churnAlerts}
+          syncingSubscriptions={syncingSubscriptions}
+          onSyncSubscriptions={onSyncSubscriptions}
+          onRetry={fetchRevenue}
+        />
+      )}
       {activeSection === 'expenses' && renderExpenses()}
       {activeSection === 'pnl' && renderPnL()}
-      {activeSection === 'subscribers' && renderSubscribers()}
-      {activeSection === 'promo' && renderPromo()}
+      {activeSection === 'subscribers' && (
+        <SubscribersSection
+          revenue={revenue}
+          onGrantSubscription={onGrantSubscription}
+          grantEmail={grantEmail}
+          setGrantEmail={setGrantEmail}
+          grantSource={grantSource}
+          setGrantSource={setGrantSource}
+          grantReason={grantReason}
+          setGrantReason={setGrantReason}
+          grantLoading={grantLoading}
+          setGrantLoading={setGrantLoading}
+          grantResult={grantResult}
+          setGrantResult={setGrantResult}
+        />
+      )}
+      {activeSection === 'promo' && <PromoSection />}
     </div>
   );
 };

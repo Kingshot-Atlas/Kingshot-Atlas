@@ -14,7 +14,7 @@ import { RealtimeChannel } from '@supabase/supabase-js';
 import {
   PrepSchedule, PrepSubmission, ChangeRequest, SlotAssignment, EditorRecord,
   ManagerEntry, ManagerSearchResult, PendingConfirm,
-  SchedulerView, Day, TIME_SLOTS, getDayLabel,
+  SchedulerView, Day, getDayLabel, getEffectiveSlots, getMaxSlots,
 } from './types';
 import {
   getDeadlineCountdown, getEffectiveSpeedups, isSlotInAvailability,
@@ -427,6 +427,26 @@ export function usePrepScheduler() {
     });
   };
 
+  const toggleStagger = async () => {
+    if (!supabase || !schedule) return;
+    const newVal = !schedule.stagger_enabled;
+    setSaving(true);
+    try {
+      await supabase.from('prep_schedules').update({ stagger_enabled: newVal }).eq('id', schedule.id);
+      setSchedule({ ...schedule, stagger_enabled: newVal });
+      showToast(
+        newVal
+          ? t('prepScheduler.toastStaggerEnabled', '49-slot stagger enabled — 23:45 UTC slot added.')
+          : t('prepScheduler.toastStaggerDisabled', 'Stagger disabled — back to 48 slots.'),
+        'success'
+      );
+    } catch (err) {
+      logger.error('Failed to toggle stagger:', err);
+      showToast(t('prepScheduler.toastStaggerFailed', 'Failed to toggle stagger.'), 'error');
+    }
+    setSaving(false);
+  };
+
   const toggleLock = () => {
     if (!supabase || !schedule) return;
     const newLocked = !schedule.is_locked;
@@ -714,11 +734,14 @@ export function usePrepScheduler() {
     return daySubmissions.filter(s => !assignedIds.has(s.id));
   }, [daySubmissions, dayAssignments]);
 
+  const effectiveSlots = useMemo(() => getEffectiveSlots(schedule?.stagger_enabled ?? false), [schedule?.stagger_enabled]);
+  const maxSlots = useMemo(() => getMaxSlots(schedule?.stagger_enabled ?? false), [schedule?.stagger_enabled]);
+
   const availabilityGaps = useMemo(() => {
     if (!schedule) return [];
     const gaps: { slot: string; candidates: number }[] = [];
     const availKey = `${activeDay}_availability` as keyof PrepSubmission;
-    for (const slot of TIME_SLOTS) {
+    for (const slot of effectiveSlots) {
       const candidates = daySubmissions.filter(s => {
         const avail = (s[availKey] as string[][] | undefined) || [];
         return isSlotInAvailability(slot, avail);
@@ -728,7 +751,7 @@ export function usePrepScheduler() {
       }
     }
     return gaps;
-  }, [daySubmissions, dayAssignments, activeDay, schedule]);
+  }, [daySubmissions, dayAssignments, activeDay, schedule, effectiveSlots]);
 
   return {
     // Routing
@@ -768,9 +791,10 @@ export function usePrepScheduler() {
     // Confirmation
     pendingConfirm, setPendingConfirm,
     // Computed
+    effectiveSlots, maxSlots,
     dayAssignments, daySubmissions, unassignedPlayers, availabilityGaps,
     // Actions
-    createSchedule, closeOrReopenForm, toggleLock, archiveSchedule, deleteSchedule, updateDeadline,
+    createSchedule, closeOrReopenForm, toggleStagger, toggleLock, archiveSchedule, deleteSchedule, updateDeadline,
     submitForm, submitChangeRequest, acknowledgeChangeRequest,
     runAutoAssign, assignSlot, removeAssignment,
     copyShareLink, exportScheduleCSV, exportOptedOut,

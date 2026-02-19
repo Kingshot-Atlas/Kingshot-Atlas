@@ -146,10 +146,18 @@ async function checkAndSendReminders(client) {
       const guild = event.bot_guild_settings;
       if (!guild) continue;
 
-      // Check if today is an event day for this type
-      if (!isEventDay(event.event_type, event.reference_date, now)) continue;
+      const isBearHunt = event.event_type === 'bear_hunt';
+
+      // For non-bear-hunt events, check event day using the event-level reference_date
+      if (!isBearHunt && !isEventDay(event.event_type, event.reference_date, now)) continue;
 
       for (const slot of event.time_slots) {
+        // Bear hunt: each slot has its own ref_date for independent 2-day cycles
+        if (isBearHunt) {
+          const slotRef = slot.ref_date || event.reference_date;
+          if (!isEventDay('bear_hunt', slotRef, now)) continue;
+        }
+
         // Support per-day slots (e.g. Viking Vengeance: Tuesday=2, Thursday=4)
         if (slot.day !== undefined && slot.day !== null && slot.day !== now.getUTCDay()) continue;
 
@@ -174,7 +182,9 @@ async function checkAndSendReminders(client) {
           continue;
         }
 
-        await sendReminder(client, event, guild, slot, channelId, now);
+        // Bear hunt slots can override the event-level role_id
+        const effectiveRoleId = (isBearHunt && slot.role_id) ? slot.role_id : event.role_id;
+        await sendReminder(client, event, guild, slot, channelId, now, effectiveRoleId);
       }
     }
   } catch (error) {
@@ -185,10 +195,11 @@ async function checkAndSendReminders(client) {
 /**
  * Send a single reminder message and log the result.
  */
-async function sendReminder(client, event, guild, slot, channelId, now) {
+async function sendReminder(client, event, guild, slot, channelId, now, effectiveRoleId) {
   const meta = EVENT_DISPLAY[event.event_type] || { label: event.event_type, emoji: '📢', color: 0x22d3ee };
   const timeStr = `${String(slot.hour).padStart(2, '0')}:${String(slot.minute).padStart(2, '0')} UTC`;
   const minsBefore = event.reminder_minutes_before || 0;
+  const roleId = effectiveRoleId !== undefined ? effectiveRoleId : event.role_id;
 
   try {
     const channel = await client.channels.fetch(channelId);
@@ -215,12 +226,12 @@ async function sendReminder(client, event, guild, slot, channelId, now) {
       .setFooter({ text: 'Brought to you by Atlas · ks-atlas.com' })
       .setTimestamp();
 
-    const roleMention = event.role_id ? `<@&${event.role_id}>` : '';
+    const roleMention = roleId ? `<@&${roleId}>` : '';
 
     await channel.send({
       content: roleMention || undefined,
       embeds: [embed],
-      allowedMentions: event.role_id ? { roles: [event.role_id] } : undefined,
+      allowedMentions: roleId ? { roles: [roleId] } : undefined,
     });
 
     console.log(`🔔 Reminder sent: ${meta.label} for ${guild.guild_name} (${guild.guild_id})`);

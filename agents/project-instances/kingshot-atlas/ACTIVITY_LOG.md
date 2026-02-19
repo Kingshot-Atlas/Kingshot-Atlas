@@ -3,8 +3,33 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-19 | Product Engineer | COMPLETED
+Task: Redesign Bear Hunt slot editor — per-slot reference date + optional role
+Files: BotDashboardComponents.tsx, allianceReminders.js
+Changes:
+1. **BearHuntSlotEditor** — Replaced per-day-of-week editor with per-slot design. Each slot has: time (UTC), its own reference date, and optional role. Capped at 4 slots.
+2. **TimeSlot interface** — Added `ref_date` and `role_id` optional fields.
+3. **getNextFireTime** — Bear hunt slots now independently compute next fire from their own ref_date.
+4. **fmtSlotSummary** — Shows day-of-week from ref_date (e.g. "14:00 (Tue), 18:00 (Wed)").
+5. **EvCard** — Removed shared REFERENCE DATE for bear_hunt (now per-slot). Hidden global ROLE TO MENTION for bear_hunt (roles per-slot). Updated Verify Schedule to work with per-slot ref_dates.
+6. **Bot-side allianceReminders.js** — Each bear_hunt slot checks its own ref_date for the 2-day cycle. Slot-level role_id overrides event-level role_id in sendReminder.
+7. **maxSlots** reverted from 7 back to 4.
+Result: Build passes. Local preview running for verification.
+
+## 2026-02-19 | Product Engineer | COMPLETED
+Task: 49-Slot Stagger Toggle for KvK Prep Scheduler
+Files: types.ts, utils.ts, usePrepScheduler.ts, PrepSchedulerManager.tsx, PrepScheduler.tsx, FEATURES_IMPLEMENTED.md
+Changes:
+1. **DB migration** `add_stagger_enabled_to_prep_schedules` — `stagger_enabled` boolean column on `prep_schedules` (default false).
+2. **types.ts** — `stagger_enabled` in `PrepSchedule` interface, `STAGGER_SLOT='23:45'`, `getEffectiveSlots()`, `getMaxSlots()` helpers.
+3. **utils.ts** — `autoAssignSlots` uses effective slots + dynamic max (49 when staggered, 48 otherwise).
+4. **usePrepScheduler.ts** — `toggleStagger` action, `effectiveSlots`/`maxSlots` computed values, availability gaps use effective slots.
+5. **PrepSchedulerManager.tsx** — Toggle button (mobile + desktop), all hardcoded `48` replaced with `maxSlots`, slot grid uses `effectiveSlots`, stagger badge in header.
+6. **PrepScheduler.tsx** — Passes `toggleStagger`, `effectiveSlots`, `maxSlots` props.
+Result: Build passes. Manual add/remove of players to slots already worked (verified). Local dev server running for testing.
+
 ## 2026-02-19 | Platform Engineer | COMPLETED
-Task: Fix "infinite recursion detected in policy for relation kingdom_editors" when adding Co-Editor
+Task: Fix "infinite recursion detected in policy for kingdom_editors" when adding Co-Editor
 Files: Supabase migration `fix_kingdom_editors_rls_infinite_recursion`
 Changes:
 1. **Root cause:** 3 RLS policies on `kingdom_editors` had self-referencing `EXISTS(SELECT 1 FROM kingdom_editors ...)` subqueries — PostgreSQL's recursion detector flagged them at plan time.

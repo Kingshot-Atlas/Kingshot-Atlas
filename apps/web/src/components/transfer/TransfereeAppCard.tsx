@@ -60,6 +60,7 @@ const TransfereeAppCard: React.FC<TransfereeAppCardProps> = ({
   const [newMsg, setNewMsg] = useState('');
   const [sendingMsg, setSendingMsg] = useState(false);
   const msgEndRef = useRef<HTMLDivElement>(null);
+  const [senderNames, setSenderNames] = useState<Record<string, string>>({});
 
   // Outcome prompt state
   const [showOutcomePrompt, setShowOutcomePrompt] = useState(false);
@@ -78,7 +79,21 @@ const TransfereeAppCard: React.FC<TransfereeAppCardProps> = ({
         .select('id, sender_user_id, message, created_at')
         .eq('application_id', app.id)
         .order('created_at', { ascending: true });
-      if (data) setMessages(data);
+      if (data) {
+        setMessages(data);
+        // Fetch sender usernames for messages not from me (recruiter names)
+        const otherIds = [...new Set(data.filter((m: AppMessage) => m.sender_user_id !== user?.id).map((m: AppMessage) => m.sender_user_id))];
+        if (otherIds.length > 0) {
+          const { data: profiles } = await sb.from('profiles').select('id, username, linked_username').in('id', otherIds);
+          if (profiles) {
+            const map: Record<string, string> = {};
+            profiles.forEach((p: { id: string; username: string; linked_username?: string }) => {
+              map[p.id] = p.linked_username || p.username || 'Unknown';
+            });
+            setSenderNames(prev => ({ ...prev, ...map }));
+          }
+        }
+      }
       // Mark as read
       sb.from('message_read_status')
         .upsert({ application_id: app.id, user_id: user.id, last_read_at: new Date().toISOString() }, { onConflict: 'application_id,user_id' })
@@ -245,6 +260,7 @@ const TransfereeAppCard: React.FC<TransfereeAppCardProps> = ({
             )}
             {messages.map(msg => {
               const isMe = msg.sender_user_id === user?.id;
+              const senderName = !isMe ? senderNames[msg.sender_user_id] : undefined;
               return (
                 <div key={msg.id} style={{
                   alignSelf: isMe ? 'flex-end' : 'flex-start',
@@ -256,6 +272,11 @@ const TransfereeAppCard: React.FC<TransfereeAppCardProps> = ({
                   fontSize: '0.7rem',
                   color: colors.text,
                 }}>
+                  {senderName && (
+                    <div style={{ color: '#a78bfa', fontSize: '0.58rem', fontWeight: 600, marginBottom: '0.1rem' }}>
+                      {senderName}
+                    </div>
+                  )}
                   <div>{msg.message}</div>
                   <div style={{ fontSize: '0.5rem', color: colors.textMuted, marginTop: '0.1rem', textAlign: isMe ? 'right' : 'left' }}>
                     {new Date(msg.created_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}

@@ -13,6 +13,7 @@ export interface PrepSchedule {
   thursday_buff: string;
   notes: string | null;
   deadline: string | null;
+  stagger_enabled: boolean;
   created_at: string;
 }
 
@@ -131,6 +132,19 @@ for (let h = 0; h < 24; h++) {
   for (let m = 0; m < 60; m += 30) {
     TIME_SLOTS.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
   }
+}
+
+// Stagger slot: 23:45 UTC — first appointment starts 15 min before midnight
+export const STAGGER_SLOT = '23:45';
+
+// Returns ordered slot list: [23:45, 00:00, 00:30, ..., 23:30] when staggered
+export function getEffectiveSlots(staggerEnabled: boolean): string[] {
+  if (!staggerEnabled) return TIME_SLOTS;
+  return [STAGGER_SLOT, ...TIME_SLOTS];
+}
+
+export function getMaxSlots(staggerEnabled: boolean): number {
+  return staggerEnabled ? 49 : 48;
 }
 
 // Timezone Helpers

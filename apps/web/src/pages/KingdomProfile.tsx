@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { KingdomProfile as KingdomProfileType, getPowerTier } from '../types';
 import { incrementStat } from '../components/UserAchievements';
@@ -10,18 +11,19 @@ import { KingdomProfileSkeleton } from '../components/Skeleton';
 import { statusService } from '../services/statusService';
 import { logger } from '../utils/logger';
 import { useKingdomsRealtime } from '../hooks/useKingdomsRealtime';
-import KingdomReviews from '../components/KingdomReviews';
 import StatusSubmission from '../components/StatusSubmission';
 import ReportDataModal from '../components/ReportDataModal';
 import ReportKvKErrorModal from '../components/ReportKvKErrorModal';
-import TrendChart from '../components/TrendChart';
-import ScoreHistoryChart from '../components/ScoreHistoryChart';
-import RankingHistoryChart from '../components/RankingHistoryChart';
-import SimilarKingdoms from '../components/SimilarKingdoms';
-import KingdomPlayers from '../components/KingdomPlayers';
-import AtlasScoreBreakdown from '../components/AtlasScoreBreakdown';
-import PathToNextTier from '../components/PathToNextTier';
-import { ScoreSimulator } from '../components/ScoreSimulator';
+// Lazy-load below-fold components for bundle splitting
+const KingdomReviews = lazy(() => import('../components/KingdomReviews'));
+const TrendChart = lazy(() => import('../components/TrendChart'));
+const ScoreHistoryChart = lazy(() => import('../components/ScoreHistoryChart'));
+const RankingHistoryChart = lazy(() => import('../components/RankingHistoryChart'));
+const SimilarKingdoms = lazy(() => import('../components/SimilarKingdoms'));
+const KingdomPlayers = lazy(() => import('../components/KingdomPlayers'));
+const AtlasScoreBreakdown = lazy(() => import('../components/AtlasScoreBreakdown'));
+const PathToNextTier = lazy(() => import('../components/PathToNextTier'));
+const ScoreSimulator = lazy(() => import('../components/ScoreSimulator').then(m => ({ default: m.ScoreSimulator })));
 import { KingdomHeader, QuickStats, PhaseCards, KvKHistoryTable, LoginGatedSection } from '../components/kingdom-profile';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useAuth } from '../contexts/AuthContext';
@@ -31,11 +33,11 @@ import { isAdminUsername } from '../utils/constants';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, getKingdomMetaTags } from '../hooks/useMetaTags';
 import { useStructuredData, getKingdomBreadcrumbs } from '../hooks/useStructuredData';
-import { reviewService } from '../services/reviewService';
+import { useKingdomFund, useKingdomPendingSubmissions, useKingdomEditor, useKingdomAggregateRating, kingdomProfileKeys } from '../hooks/useKingdomProfileQueries';
 import { scoreHistoryService } from '../services/scoreHistoryService';
 import { analyticsService } from '../services/analyticsService';
 import { useScrollDepth } from '../hooks/useScrollDepth';
-import KingdomFundContribute from '../components/KingdomFundContribute';
+const KingdomFundContribute = lazy(() => import('../components/KingdomFundContribute'));
 import { useTranslation } from 'react-i18next';
 
 const KingdomProfile: React.FC = () => {
@@ -46,25 +48,18 @@ const KingdomProfile: React.FC = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
   const { showToast } = useToast();
+  const queryClient = useQueryClient();
   const [kingdom, setKingdom] = useState<KingdomProfileType | null>(null);
   const [allKingdoms, setAllKingdoms] = useState<KingdomProfileType[]>([]);
   const [loading, setLoading] = useState(true);
   const isMobile = useIsMobile();
   const [refreshKey, setRefreshKey] = useState(0);
-  const [aggregateRating, setAggregateRating] = useState<{
-    ratingValue: number;
-    reviewCount: number;
-    bestRating: number;
-    worstRating: number;
-  } | null>(null);
   const [scoreHistoryRank, setScoreHistoryRank] = useState<number>(0);
   const [totalKingdomsAtKvk, setTotalKingdomsAtKvk] = useState<number>(0);
   const [percentileRank, setPercentileRank] = useState<number>(0);
   const [recentScoreChange, setRecentScoreChange] = useState<number | null>(null);
   const [recentRankChange, setRecentRankChange] = useState<number | null>(null);
   const [visitDelta, setVisitDelta] = useState<number | null>(null);
-  const [managedBy, setManagedBy] = useState<{ username: string; userId: string } | null>(null);
-  const [isKingdomEditor, setIsKingdomEditor] = useState(false);
 
   // Auto-refresh when KvK history changes for this kingdom via realtime
   const handleKvkHistoryUpdate = useCallback((updatedKingdom: number, kvkNumber: number) => {
@@ -80,11 +75,18 @@ const KingdomProfile: React.FC = () => {
 
   // Modal states
   const [showStatusModal, setShowStatusModal] = useState(false);
-  const [hasPendingSubmission, setHasPendingSubmission] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [showKvKErrorModal, setShowKvKErrorModal] = useState(false);
   const [showFundModal, setShowFundModal] = useState(false);
-  const [fundData, setFundData] = useState<{ balance: number; tier: string } | null>(null);
+
+  // React Query hooks (ADR-022 migration)
+  const kNum = kingdomNumber ? parseInt(kingdomNumber) : undefined;
+  const { data: fundData = null } = useKingdomFund(kNum);
+  const { data: hasPendingSubmission = false } = useKingdomPendingSubmissions(kNum);
+  const { data: editorData } = useKingdomEditor(kNum, user?.id);
+  const managedBy = editorData?.managedBy ?? null;
+  const isKingdomEditor = editorData?.isEditor ?? false;
+  const { data: aggregateRating = null } = useKingdomAggregateRating(kNum);
   const location = useLocation();
   
   // Auto-open fund modal when visiting /kingdom/{number}/fund
@@ -94,25 +96,6 @@ const KingdomProfile: React.FC = () => {
     }
   }, [location.pathname, kingdom]);
 
-  // Fetch kingdom fund data for contribute modal
-  useEffect(() => {
-    const fetchFund = async () => {
-      if (!kingdomNumber) return;
-      try {
-        const { supabase } = await import('../lib/supabase');
-        if (!supabase) return;
-        const { data } = await supabase
-          .from('kingdom_funds')
-          .select('balance, tier')
-          .eq('kingdom_number', parseInt(kingdomNumber))
-          .maybeSingle();
-        if (data) {
-          setFundData({ balance: Number(data.balance) || 0, tier: data.tier || 'standard' });
-        }
-      } catch { /* silent */ }
-    };
-    fetchFund();
-  }, [kingdomNumber, showFundModal]);
 
   // Expand/collapse all state for collapsible sections
   const [breakdownExpanded, setBreakdownExpanded] = useState(false);
@@ -133,83 +116,8 @@ const KingdomProfile: React.FC = () => {
     setTrendExpanded(newState);
   };
 
-  // Check for pending submissions
-  useEffect(() => {
-    const checkPending = async () => {
-      if (kingdomNumber) {
-        try {
-          const pending = await statusService.getKingdomPendingSubmissions(parseInt(kingdomNumber));
-          setHasPendingSubmission(pending.length > 0);
-        } catch {
-          setHasPendingSubmission(false);
-        }
-      }
-    };
-    checkPending();
-  }, [kingdomNumber]);
 
-  // Fetch active editor for "Managed by" display + check if current user is editor/co-editor
-  useEffect(() => {
-    const fetchEditor = async () => {
-      if (!kingdomNumber) return;
-      try {
-        const { supabase } = await import('../lib/supabase');
-        if (!supabase) return;
-        const { data: editor } = await supabase
-          .from('kingdom_editors')
-          .select('user_id')
-          .eq('kingdom_number', parseInt(kingdomNumber))
-          .eq('role', 'editor')
-          .eq('status', 'active')
-          .limit(1)
-          .maybeSingle();
-        if (editor) {
-          const { data: editorProfile } = await supabase
-            .from('profiles')
-            .select('linked_username, username')
-            .eq('id', editor.user_id)
-            .single();
-          if (editorProfile) {
-            setManagedBy({
-              username: editorProfile.linked_username || editorProfile.username || 'Editor',
-              userId: editor.user_id,
-            });
-          }
-        }
 
-        // Check if current user is an active editor or co-editor for this kingdom
-        if (user) {
-          const { data: myEditorRole } = await supabase
-            .from('kingdom_editors')
-            .select('id')
-            .eq('kingdom_number', parseInt(kingdomNumber))
-            .eq('user_id', user.id)
-            .eq('status', 'active')
-            .limit(1)
-            .maybeSingle();
-          setIsKingdomEditor(!!myEditorRole);
-        } else {
-          setIsKingdomEditor(false);
-        }
-      } catch { /* silent */ }
-    };
-    fetchEditor();
-  }, [kingdomNumber, user]);
-
-  // Fetch aggregate rating for structured data (SEO) - only available if 5+ reviews exist
-  useEffect(() => {
-    const fetchAggregateRating = async () => {
-      if (kingdomNumber) {
-        try {
-          const rating = await reviewService.getAggregateRatingForStructuredData(parseInt(kingdomNumber));
-          setAggregateRating(rating);
-        } catch {
-          setAggregateRating(null);
-        }
-      }
-    };
-    fetchAggregateRating();
-  }, [kingdomNumber]);
 
   const handleStatusSubmit = async (newStatus: string, notes: string) => {
     if (!user || !kingdom) return;
@@ -226,7 +134,8 @@ const KingdomProfile: React.FC = () => {
     );
     
     showToast(canAutoApprove ? 'Status update auto-approved!' : 'Status update submitted for review!', 'success');
-    setHasPendingSubmission(!canAutoApprove);
+    // Invalidate pending submissions cache so it refetches
+    queryClient.invalidateQueries({ queryKey: kingdomProfileKeys.pendingSubmissions(kingdom.kingdom_number) });
   };
 
   useEffect(() => {
@@ -535,6 +444,7 @@ const KingdomProfile: React.FC = () => {
           </button>
         </div>
 
+        <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>Loading analytics...</div>}>
         {/* Atlas Score Breakdown - Toggleable Radar Chart */}
         {user ? (
           <AtlasScoreBreakdown 
@@ -654,6 +564,7 @@ const KingdomProfile: React.FC = () => {
         <div style={{ marginBottom: isMobile ? '1.25rem' : '1.5rem' }}>
           <KingdomReviews kingdomNumber={kingdom.kingdom_number} />
         </div>
+        </Suspense>
 
         {/* Action Buttons */}
         <div style={{ 
@@ -666,9 +577,11 @@ const KingdomProfile: React.FC = () => {
         }}>
           {/* Similar Kingdoms */}
           {allKingdoms.length > 0 && (
-            <div style={{ width: '100%', maxWidth: '400px' }}>
-              <SimilarKingdoms currentKingdom={kingdom} allKingdoms={allKingdoms} limit={4} />
-            </div>
+            <Suspense fallback={null}>
+              <div style={{ width: '100%', maxWidth: '400px' }}>
+                <SimilarKingdoms currentKingdom={kingdom} allKingdoms={allKingdoms} limit={4} />
+              </div>
+            </Suspense>
           )}
 
 
@@ -767,18 +680,20 @@ const KingdomProfile: React.FC = () => {
 
       {/* Kingdom Fund Contribution Modal */}
       {showFundModal && kingdom && (
-        <KingdomFundContribute
-          kingdomNumber={kingdom.kingdom_number}
-          currentBalance={fundData?.balance ?? 0}
-          currentTier={fundData?.tier ?? 'standard'}
-          onClose={() => {
-            setShowFundModal(false);
-            // If we came from /fund route, navigate back to the profile
-            if (location.pathname.endsWith('/fund')) {
-              navigate(`/kingdom/${kingdom.kingdom_number}`, { replace: true });
-            }
-          }}
-        />
+        <Suspense fallback={null}>
+          <KingdomFundContribute
+            kingdomNumber={kingdom.kingdom_number}
+            currentBalance={fundData?.balance ?? 0}
+            currentTier={fundData?.tier ?? 'standard'}
+            onClose={() => {
+              setShowFundModal(false);
+              // If we came from /fund route, navigate back to the profile
+              if (location.pathname.endsWith('/fund')) {
+                navigate(`/kingdom/${kingdom.kingdom_number}`, { replace: true });
+              }
+            }}
+          />
+        </Suspense>
       )}
 
       {/* KvK Error Report Modal */}

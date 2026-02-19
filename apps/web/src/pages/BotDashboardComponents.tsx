@@ -56,8 +56,28 @@ export interface EventHistoryRow {
 }
 
 export type EventType = 'bear_hunt' | 'viking_vengeance' | 'swordland_showdown' | 'tri_alliance_clash' | 'arena';
-export interface TimeSlot { hour: number; minute: number; day?: number; }
-export type DashTab = 'notifications' | 'servers' | 'access' | 'history';
+export interface TimeSlot { hour: number; minute: number; day?: number; ref_date?: string; role_id?: string; }
+export type DashTab = 'notifications' | 'roles' | 'servers' | 'access' | 'history';
+
+export interface EmojiRoleMapping {
+  emoji: string;
+  role_id: string;
+  role_name?: string;
+  label?: string;
+}
+
+export interface ReactionRoleConfig {
+  id: string;
+  guild_id: string;
+  channel_id: string;
+  message_id: string | null;
+  title: string;
+  description: string;
+  emoji_role_mappings: EmojiRoleMapping[];
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+}
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -199,12 +219,37 @@ export const fmtDate = (d: Date) => {
 
 /** Compute the next fire timestamp from event dates + time slots */
 export function getNextFireTime(nextDates: Date[], timeSlots: TimeSlot[], eventType: EventType): Date | null {
-  if (nextDates.length === 0 || timeSlots.length === 0) return null;
+  if (timeSlots.length === 0) return null;
   const now = new Date();
+
+  // Bear hunt: each slot has its own ref_date, compute independently
+  if (eventType === 'bear_hunt') {
+    let earliest: Date | null = null;
+    for (const slot of timeSlots) {
+      if (!slot.ref_date) continue;
+      const ref = new Date(slot.ref_date);
+      ref.setUTCHours(0, 0, 0, 0);
+      const today = todayUTC();
+      const diffDays = Math.floor((today.getTime() - ref.getTime()) / 86400000);
+      const cycleStart = diffDays >= 0 ? diffDays - (diffDays % 2) : 0;
+      for (let i = 0; i < 30; i++) {
+        const d = new Date(ref);
+        d.setUTCDate(d.getUTCDate() + cycleStart + i * 2);
+        d.setUTCHours(slot.hour, slot.minute, 0, 0);
+        if (d > now) {
+          if (!earliest || d < earliest) earliest = d;
+          break;
+        }
+      }
+    }
+    return earliest;
+  }
+
+  if (nextDates.length === 0) return null;
   for (const date of nextDates) {
     const dayOfWeek = date.getUTCDay();
     const slots = eventType === 'viking_vengeance'
-      ? timeSlots.filter(s => s.day === dayOfWeek)
+      ? timeSlots.filter(s => s.day === undefined || s.day === dayOfWeek)
       : timeSlots;
     const sorted = [...slots].sort((a, b) => a.hour * 60 + a.minute - (b.hour * 60 + b.minute));
     for (const slot of sorted) {
@@ -278,6 +323,127 @@ const SlotEditor: React.FC<{ slots: TimeSlot[]; max: number; onChange: (s: TimeS
     )}
   </div>
 );
+
+const DAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+const BearHuntSlotEditor: React.FC<{
+  slots: TimeSlot[];
+  max: number;
+  onChange: (s: TimeSlot[]) => void;
+  color: string;
+  local: boolean;
+  roles: { id: string; name: string; color: number }[];
+  loadingDiscord: boolean;
+}> = ({ slots, max, onChange, color, local, roles, loadingDiscord }) => {
+  const [addH, setAddH] = useState('');
+  const [addM, setAddM] = useState('');
+  const [addRef, setAddRef] = useState('');
+  const [addRole, setAddRole] = useState<string | null>(null);
+  const validAdd = addH !== '' && addM !== '' && !isNaN(+addH) && !isNaN(+addM) && +addH >= 0 && +addH <= 23 && +addM >= 0 && +addM <= 59;
+
+  const doAdd = () => {
+    if (!validAdd) return;
+    const newSlot: TimeSlot = {
+      hour: parseInt(addH),
+      minute: parseInt(addM),
+      ref_date: addRef || undefined,
+      role_id: addRole || undefined,
+    };
+    onChange([...slots, newSlot]);
+    setAddH(''); setAddM(''); setAddRef(''); setAddRole(null);
+  };
+
+  const updateSlot = (idx: number, patch: Partial<TimeSlot>) => {
+    const updated = slots.map((s, i) => i === idx ? { ...s, ...patch } : s);
+    onChange(updated);
+  };
+
+  const fmtRefLabel = (iso: string) => {
+    const d = new Date(iso);
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${days[d.getUTCDay()]}, ${months[d.getUTCMonth()]} ${d.getUTCDate()}`;
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+      <div style={{ color: colors.textMuted, fontSize: '0.65rem' }}>
+        Each slot fires every 2 days from its own reference date. Set a role per slot to mention different groups.
+      </div>
+      {slots.map((s, i) => (
+        <div key={i} style={{ padding: '0.6rem 0.7rem', backgroundColor: `${color}08`, border: `1px solid ${color}25`, borderRadius: 8, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ color, fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, fontSize: '0.9rem' }}>{fmt(s)} UTC</span>
+              {local && <span style={{ color: colors.textMuted, fontSize: '0.65rem' }}>({fmtLocal(s)})</span>}
+            </div>
+            <button onClick={() => onChange(slots.filter((_, j) => j !== i))} style={{ background: 'none', border: 'none', color: colors.textMuted, cursor: 'pointer', fontSize: '0.8rem', padding: '0 4px' }}>✕</button>
+          </div>
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+              <span style={{ color: colors.textMuted, fontSize: '0.6rem', fontWeight: 600 }}>REF DATE</span>
+              <input type="date" value={s.ref_date ? s.ref_date.split('T')[0] : ''} onChange={e => updateSlot(i, { ref_date: e.target.value ? e.target.value + 'T00:00:00Z' : undefined })}
+                style={{ ...iS, width: 140, maxWidth: 140, fontSize: '0.75rem', padding: '0.25rem 0.4rem' }} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem', minWidth: 140 }}>
+              <span style={{ color: colors.textMuted, fontSize: '0.6rem', fontWeight: 600 }}>ROLE (optional)</span>
+              {roles.length > 0 || loadingDiscord ? (
+                <select value={s.role_id || ''} onChange={e => updateSlot(i, { role_id: e.target.value || undefined })}
+                  style={{ ...iS, width: 160, maxWidth: 160, fontSize: '0.75rem', padding: '0.25rem 0.4rem', cursor: 'pointer' }}>
+                  <option value="">No role</option>
+                  {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                </select>
+              ) : (
+                <input type="text" value={s.role_id || ''} onChange={e => updateSlot(i, { role_id: e.target.value || undefined })} placeholder="Role ID" style={{ ...iS, width: 140, maxWidth: 140, fontSize: '0.75rem', padding: '0.25rem 0.4rem' }} />
+              )}
+            </div>
+          </div>
+          {s.ref_date && (
+            <div style={{ color: colors.textMuted, fontSize: '0.6rem' }}>
+              Cycle started: {fmtRefLabel(s.ref_date)} — fires every 2 days from here
+            </div>
+          )}
+          {!s.ref_date && (
+            <div style={{ color: colors.warning, fontSize: '0.6rem' }}>⚠️ Set a reference date so the bot knows when this slot fires</div>
+          )}
+        </div>
+      ))}
+      {slots.length < max && (
+        <div style={{ padding: '0.5rem 0.6rem', border: `1px dashed ${color}40`, borderRadius: 8, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+              <span style={{ color: colors.textMuted, fontSize: '0.6rem', fontWeight: 600 }}>TIME (UTC)</span>
+              <div style={{ display: 'flex', gap: '0.2rem', alignItems: 'center' }}>
+                <input type="number" min={0} max={23} placeholder="HH" value={addH} onChange={e => setAddH(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') doAdd(); }}
+                  style={{ ...iS, width: 48, maxWidth: 48, textAlign: 'center', fontSize: '0.8rem', padding: '0.3rem 0.15rem' }} />
+                <span style={{ color: colors.textMuted, fontWeight: 700 }}>:</span>
+                <input type="number" min={0} max={59} placeholder="MM" value={addM} onChange={e => setAddM(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') doAdd(); }}
+                  style={{ ...iS, width: 48, maxWidth: 48, textAlign: 'center', fontSize: '0.8rem', padding: '0.3rem 0.15rem' }} />
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+              <span style={{ color: colors.textMuted, fontSize: '0.6rem', fontWeight: 600 }}>REF DATE</span>
+              <input type="date" value={addRef} onChange={e => setAddRef(e.target.value)} style={{ ...iS, width: 140, maxWidth: 140, fontSize: '0.75rem', padding: '0.3rem 0.4rem' }} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+              <span style={{ color: colors.textMuted, fontSize: '0.6rem', fontWeight: 600 }}>ROLE</span>
+              {roles.length > 0 || loadingDiscord ? (
+                <select value={addRole || ''} onChange={e => setAddRole(e.target.value || null)}
+                  style={{ ...iS, width: 140, maxWidth: 140, fontSize: '0.75rem', padding: '0.3rem 0.4rem', cursor: 'pointer' }}>
+                  <option value="">None</option>
+                  {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                </select>
+              ) : (
+                <input type="text" value={addRole || ''} onChange={e => setAddRole(e.target.value || null)} placeholder="Role ID" style={{ ...iS, width: 140, maxWidth: 140, fontSize: '0.75rem', padding: '0.3rem 0.4rem' }} />
+              )}
+            </div>
+            <button onClick={doAdd} disabled={!validAdd} style={{ padding: '0.35rem 0.75rem', backgroundColor: validAdd ? color : colors.border, border: 'none', borderRadius: 6, color: validAdd ? '#fff' : colors.textMuted, fontSize: '0.75rem', fontWeight: 600, cursor: validAdd ? 'pointer' : 'default', alignSelf: 'flex-end' }}>+ Add Slot</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const VikingSlotEditor: React.FC<{ slots: TimeSlot[]; onChange: (s: TimeSlot[]) => void; color: string; local: boolean }> = ({ slots, onChange, color, local }) => {
   const tueSlot = slots.find(s => s.day === 2);
@@ -397,10 +563,24 @@ export const EvCard: React.FC<{
   const isViking = ev.event_type === 'viking_vengeance';
   const isFixedSlot = ev.event_type === 'swordland_showdown' || ev.event_type === 'tri_alliance_clash';
   const effectiveChannel = ev.channel_id || guildChannelId;
-  const nextDates = useMemo(() => isArena
-    ? getNextEventDates('arena', new Date().toISOString(), 5)
-    : getNextEventDates(ev.event_type, ev.reference_date, 5),
-    [ev.event_type, ev.reference_date, isArena]);
+  const nextDates = useMemo(() => {
+    if (isArena) return getNextEventDates('arena', new Date().toISOString(), 5);
+    if (isBearHunt) {
+      // For bear hunt, compute next dates from each slot's individual ref_date
+      const allDates: Date[] = [];
+      for (const slot of ev.time_slots) {
+        if (slot.ref_date) {
+          const slotDates = getNextEventDates('bear_hunt', slot.ref_date, 3);
+          allDates.push(...slotDates);
+        }
+      }
+      allDates.sort((a, b) => a.getTime() - b.getTime());
+      // Deduplicate by date string
+      const seen = new Set<string>();
+      return allDates.filter(d => { const k = d.toISOString().slice(0, 10); if (seen.has(k)) return false; seen.add(k); return true; }).slice(0, 5);
+    }
+    return getNextEventDates(ev.event_type, ev.reference_date, 5);
+  }, [ev.event_type, ev.reference_date, isArena, isBearHunt, ev.time_slots]);
   const missingRefDate = !isBearHunt && !isArena && !ev.reference_date;
 
   // Live countdown: tick every 60s to update "fires in X"
@@ -432,6 +612,16 @@ export const EvCard: React.FC<{
       if (tue) parts.push(`Tuesday ${fmt(tue)}`);
       if (thu) parts.push(`Thursday ${fmt(thu)}`);
       return parts.length > 0 ? parts.join(', ') : ev.time_slots.map(s => fmt(s)).join(', ');
+    }
+    if (isBearHunt) {
+      return ev.time_slots.map(s => {
+        const time = fmt(s);
+        if (s.ref_date) {
+          const rd = new Date(s.ref_date);
+          return `${time} (${DAY_SHORT[rd.getUTCDay()]})`;
+        }
+        return time;
+      }).join(', ');
     }
     return ev.time_slots.map(s => fmt(s)).join(', ');
   };
@@ -475,8 +665,10 @@ export const EvCard: React.FC<{
       {open && (
         <div style={{ padding: mob ? '0 0.85rem 0.85rem' : '0 1.25rem 1.25rem', borderTop: `1px solid ${colors.borderSubtle}`, paddingTop: '1rem' }}>
           <div style={{ marginBottom: '1rem' }}>
-            <label style={lS}>TIME SLOTS {!isViking && `(${ev.time_slots.length}/${m.maxSlots})`}</label>
-            {isViking ? (
+            <label style={lS}>TIME SLOTS {!isViking && !isBearHunt && `(${ev.time_slots.length}/${m.maxSlots})`}{isBearHunt && `(${ev.time_slots.length}/${m.maxSlots})`}</label>
+            {isBearHunt ? (
+              <BearHuntSlotEditor slots={ev.time_slots} max={m.maxSlots} onChange={s => onUp({ time_slots: s })} color={m.color} local={local} roles={roles.map(r => ({ id: r.id, name: r.name, color: r.color }))} loadingDiscord={loadingDiscord} />
+            ) : isViking ? (
               <VikingSlotEditor slots={ev.time_slots} onChange={s => onUp({ time_slots: s })} color={m.color} local={local} />
             ) : isFixedSlot ? (
               <FixedSlotSelector slots={ev.time_slots} max={m.maxSlots} onChange={s => onUp({ time_slots: s })} color={m.color} local={local} />
@@ -512,15 +704,6 @@ export const EvCard: React.FC<{
             </div>
             {!(isArena ? ARENA_REMINDER_PRESETS : REMINDER_PRESETS).includes(ev.reminder_minutes_before) && ev.reminder_minutes_before > 0 && <div style={{ color: m.color, fontSize: '0.7rem', marginTop: '0.3rem' }}>Current: {ev.reminder_minutes_before}m before</div>}
           </div>
-          {isBearHunt && (
-            <div style={{ marginBottom: '1rem' }}>
-              <label style={lS}>REFERENCE DATE <span style={{ fontWeight: 400, color: colors.textMuted }}>(when cycle started)</span></label>
-              <input type="date" value={ev.reference_date ? ev.reference_date.split('T')[0] : ''} onChange={e => onUp({ reference_date: e.target.value ? e.target.value + 'T00:00:00Z' : null })} style={{ ...iS, width: 160, maxWidth: 160 }} />
-              <div style={{ color: colors.textMuted, fontSize: '0.65rem', marginTop: '0.2rem' }}>
-                Pick any Bear Hunt day. Bot counts every 2 days from here.
-              </div>
-            </div>
-          )}
           <div style={{ marginBottom: '0.75rem' }}>
             <label style={lS}>REMINDER CHANNEL <span style={{ fontWeight: 400, color: colors.textMuted }}>(optional override)</span></label>
             {channels.length > 0 || loadingDiscord ? (
@@ -529,16 +712,18 @@ export const EvCard: React.FC<{
               <input type="text" value={ev.channel_id || ''} onChange={e => onUp({ channel_id: e.target.value || null })} placeholder="Channel ID or select from dropdown" style={iS} />
             )}
           </div>
-          <div style={{ marginBottom: '1rem' }}>
-            <label style={lS}>ROLE TO MENTION <span style={{ fontWeight: 400, color: colors.textMuted }}>(optional)</span></label>
-            {roles.length > 0 || loadingDiscord ? (
-              <SearchableSelect value={ev.role_id} onChange={v => onUp({ role_id: v })} options={roleOpts} placeholder="No role mention" loading={loadingDiscord} accentColor={m.color} />
-            ) : (
-              <input type="text" value={ev.role_id || ''} onChange={e => onUp({ role_id: e.target.value || null })} placeholder="Role ID or select from dropdown" style={iS} />
-            )}
-          </div>
+          {!isBearHunt && (
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={lS}>ROLE TO MENTION <span style={{ fontWeight: 400, color: colors.textMuted }}>(optional)</span></label>
+              {roles.length > 0 || loadingDiscord ? (
+                <SearchableSelect value={ev.role_id} onChange={v => onUp({ role_id: v })} options={roleOpts} placeholder="No role mention" loading={loadingDiscord} accentColor={m.color} />
+              ) : (
+                <input type="text" value={ev.role_id || ''} onChange={e => onUp({ role_id: e.target.value || null })} placeholder="Role ID or select from dropdown" style={iS} />
+              )}
+            </div>
+          )}
           {/* Verify Schedule */}
-          {ev.reference_date && (
+          {(ev.reference_date || (isBearHunt && ev.time_slots.some(s => !!s.ref_date))) && (
             <div style={{ marginBottom: '1rem' }}>
               <button onClick={() => setShowSchedule(!showSchedule)} style={{ padding: '0.4rem 0.8rem', backgroundColor: 'transparent', border: `1px solid ${m.color}40`, borderRadius: 6, color: m.color, fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>
                 📅 {showSchedule ? 'Hide' : 'Verify'} Schedule

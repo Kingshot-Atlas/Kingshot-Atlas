@@ -5,7 +5,7 @@ import { colors, FONT_DISPLAY } from '../../utils/styles';
 import {
   PrepSchedule, PrepSubmission, SlotAssignment, ChangeRequest,
   ManagerEntry, ManagerSearchResult,
-  Day, DAYS, DAY_COLORS, TIME_SLOTS,
+  Day, DAYS, DAY_COLORS,
   getDayLabel, getDayLabelShort,
 } from './types';
 import {
@@ -53,6 +53,9 @@ interface PrepSchedulerManagerProps {
   addManager: (userId: string, username: string) => Promise<void>;
   removeManagerById: (mgrId: string, userId: string) => Promise<void>;
   updateDeadline?: (newDeadline: string) => Promise<void>;
+  toggleStagger: () => Promise<void>;
+  effectiveSlots: string[];
+  maxSlots: number;
 }
 
 const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
@@ -68,6 +71,7 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
     setView, closeOrReopenForm, toggleLock, archiveSchedule, deleteSchedule,
     runAutoAssign, assignSlot, removeAssignment,
     acknowledgeChangeRequest, addManager, removeManagerById, updateDeadline,
+    toggleStagger, effectiveSlots, maxSlots,
   } = props;
 
   const cardStyle: React.CSSProperties = {
@@ -107,12 +111,13 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
               <p style={{ color: colors.textMuted, fontSize: '0.75rem', margin: '0.25rem 0 0', display: 'flex', flexWrap: 'wrap', gap: '0.25rem', alignItems: 'center' }}>
                 <span>{submissions.length} {t('prepScheduler.submissions', 'submissions')}</span>
                 <span>·</span>
-                <span>{assignedCount}/48 {t('prepScheduler.slotsFor', 'slots for')} {getDayLabel(activeDay, t)}</span>
+                <span>{assignedCount}/{maxSlots} {t('prepScheduler.slotsFor', 'slots for')} {getDayLabel(activeDay, t)}</span>
                 {(() => { const skipCount = submissions.filter(s => isSkippedDay(s, activeDay)).length; return skipCount > 0 ? <><span>·</span><span style={{ color: '#f59e0b' }}>{skipCount} {t('prepScheduler.skipped', 'skipped')} {getDayLabel(activeDay, t)}</span></> : null; })()}
                 {managerUsername && <><span>·</span><span>{t('prepScheduler.manager', 'Manager')}: <span style={{ color: '#a855f7' }}>{managerUsername}</span></span></>}
                 {schedule.status === 'archived' && <span style={{ padding: '0.1rem 0.4rem', backgroundColor: `${colors.textMuted}20`, borderRadius: '4px', fontSize: '0.65rem', color: colors.textMuted }}>{t('prepScheduler.archived', 'ARCHIVED')}</span>}
                 {schedule.status === 'closed' && <span style={{ padding: '0.1rem 0.4rem', backgroundColor: '#ef444420', borderRadius: '4px', fontSize: '0.65rem', color: '#ef4444', fontWeight: 600 }}>🔒 {t('prepScheduler.formClosedTag', 'FORM CLOSED')}</span>}
                 {schedule.is_locked && <span style={{ padding: '0.1rem 0.4rem', backgroundColor: '#22c55e20', borderRadius: '4px', fontSize: '0.65rem', color: '#22c55e', fontWeight: 600 }}>✅ {t('prepScheduler.lockedIn', 'LOCKED IN')}</span>}
+                {schedule.stagger_enabled && <span style={{ padding: '0.1rem 0.4rem', backgroundColor: '#8b5cf620', borderRadius: '4px', fontSize: '0.65rem', color: '#8b5cf6', fontWeight: 600 }}>⏱️ 49 {t('prepScheduler.staggerTag', 'STAGGER')}</span>}
                 {pendingRequests.length > 0 && <span style={{ padding: '0.1rem 0.4rem', backgroundColor: '#ef444420', borderRadius: '4px', fontSize: '0.65rem', color: '#ef4444', fontWeight: 600 }}>🔔 {pendingRequests.length} {t('prepScheduler.changeRequests', 'change requests')}</span>}
                 {(() => { const dl = getDeadlineCountdown(schedule.deadline, t); const utcLabel = formatDeadlineUTC(schedule.deadline); return dl ? <><span style={{ padding: '0.1rem 0.4rem', backgroundColor: dl.urgent ? '#ef444420' : '#f59e0b20', borderRadius: '4px', fontSize: '0.65rem', color: dl.urgent ? '#ef4444' : '#f59e0b', fontWeight: 600 }}>⏰ {dl.text}</span>{utcLabel && <span style={{ fontSize: '0.6rem', color: '#6b7280' }}>{utcLabel}</span>}</> : null; })()}
                 {(isEditorOrCoEditor || isManager) && updateDeadline && !editingDeadline && (
@@ -168,7 +173,10 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
                       <button onClick={closeOrReopenForm} style={{ padding: '0.5rem 0.75rem', backgroundColor: schedule.status === 'closed' ? '#22c55e15' : '#ef444415', border: `1px solid ${schedule.status === 'closed' ? '#22c55e30' : '#ef444430'}`, borderRadius: '6px', color: schedule.status === 'closed' ? '#22c55e' : '#ef4444', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', textAlign: 'left', minHeight: '40px' }}>{schedule.status === 'closed' ? `🔓 ${t('prepScheduler.reopenForm', 'Reopen Form')}` : `🔒 ${t('prepScheduler.closeForm', 'Close Form')}`}</button>
                     )}
                     {schedule.status !== 'archived' && (isEditorOrCoEditor || isManager) && (
-                      <button onClick={toggleLock} style={{ padding: '0.5rem 0.75rem', backgroundColor: schedule.is_locked ? '#f59e0b15' : '#22c55e15', border: `1px solid ${schedule.is_locked ? '#f59e0b30' : '#22c55e30'}`, borderRadius: '6px', color: schedule.is_locked ? '#f59e0b' : '#22c55e', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', textAlign: 'left', minHeight: '40px' }}>{schedule.is_locked ? `� ${t('prepScheduler.unlockSchedule', 'Unlock Schedule')}` : `✅ ${t('prepScheduler.lockInSchedule', 'Lock In Schedule')}`}</button>
+                      <button onClick={toggleLock} style={{ padding: '0.5rem 0.75rem', backgroundColor: schedule.is_locked ? '#f59e0b15' : '#22c55e15', border: `1px solid ${schedule.is_locked ? '#f59e0b30' : '#22c55e30'}`, borderRadius: '6px', color: schedule.is_locked ? '#f59e0b' : '#22c55e', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', textAlign: 'left', minHeight: '40px' }}>{schedule.is_locked ? `🔓 ${t('prepScheduler.unlockSchedule', 'Unlock Schedule')}` : `✅ ${t('prepScheduler.lockInSchedule', 'Lock In Schedule')}`}</button>
+                    )}
+                    {schedule.status !== 'archived' && (isEditorOrCoEditor || isManager) && (
+                      <button onClick={toggleStagger} disabled={saving} style={{ padding: '0.5rem 0.75rem', backgroundColor: schedule.stagger_enabled ? '#8b5cf615' : '#6366f115', border: `1px solid ${schedule.stagger_enabled ? '#8b5cf630' : '#6366f130'}`, borderRadius: '6px', color: schedule.stagger_enabled ? '#8b5cf6' : '#6366f1', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', textAlign: 'left', minHeight: '40px', opacity: saving ? 0.6 : 1 }}>{schedule.stagger_enabled ? `⏱️ ${t('prepScheduler.disableStagger', 'Disable 49-Slot Stagger')}` : `⏱️ ${t('prepScheduler.enableStagger', 'Enable 49-Slot Stagger')}`}</button>
                     )}
                     {schedule.status === 'active' && isEditorOrCoEditor && (
                       <button onClick={archiveSchedule} style={{ padding: '0.5rem 0.75rem', backgroundColor: `${colors.textMuted}10`, border: `1px solid ${colors.border}`, borderRadius: '6px', color: colors.textMuted, fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', textAlign: 'left', minHeight: '40px' }}>📦 {t('prepScheduler.archive', 'Archive')}</button>
@@ -190,6 +198,9 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
                 )}
                 {schedule.status !== 'archived' && (isEditorOrCoEditor || isManager) && (
                   <button onClick={toggleLock} style={{ padding: '0.4rem 0.75rem', backgroundColor: schedule.is_locked ? '#f59e0b15' : '#22c55e15', border: `1px solid ${schedule.is_locked ? '#f59e0b30' : '#22c55e30'}`, borderRadius: '6px', color: schedule.is_locked ? '#f59e0b' : '#22c55e', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>{schedule.is_locked ? `🔓 ${t('prepScheduler.unlockSchedule', 'Unlock Schedule')}` : `✅ ${t('prepScheduler.lockInSchedule', 'Lock In Schedule')}`}</button>
+                )}
+                {schedule.status !== 'archived' && (isEditorOrCoEditor || isManager) && (
+                  <button onClick={toggleStagger} disabled={saving} style={{ padding: '0.4rem 0.75rem', backgroundColor: schedule.stagger_enabled ? '#8b5cf615' : '#6366f115', border: `1px solid ${schedule.stagger_enabled ? '#8b5cf630' : '#6366f130'}`, borderRadius: '6px', color: schedule.stagger_enabled ? '#8b5cf6' : '#6366f1', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', opacity: saving ? 0.6 : 1 }}>{schedule.stagger_enabled ? `⏱️ ${t('prepScheduler.disableStagger', 'Disable 49-Slot Stagger')}` : `⏱️ ${t('prepScheduler.enableStagger', 'Enable 49-Slot Stagger')}`}</button>
                 )}
                 {schedule.status === 'active' && isEditorOrCoEditor && (
                   <button onClick={archiveSchedule} style={{ padding: '0.4rem 0.75rem', backgroundColor: `${colors.textMuted}10`, border: `1px solid ${colors.border}`, borderRadius: '6px', color: colors.textMuted, fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>📦 {t('prepScheduler.archive', 'Archive')}</button>
@@ -296,7 +307,7 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
                   display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: 'center', gap: isMobile ? '0.1rem' : '0.3rem',
                   minHeight: isMobile ? '48px' : undefined }}>
                 <span>{isMobile ? getDayLabelShort(day, t) : getDayLabel(day, t)}</span>
-                <span style={{ fontSize: isMobile ? '0.65rem' : '0.8rem', opacity: 0.8 }}>({dayCount}/48)</span>
+                <span style={{ fontSize: isMobile ? '0.65rem' : '0.8rem', opacity: 0.8 }}>({dayCount}/{maxSlots})</span>
               </button>
             );
           })}
@@ -349,7 +360,7 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
                   const availKey = `${activeDay}_availability` as keyof PrepSubmission;
                   const avail = (sub[availKey] as string[][] | undefined) || [];
                   const rank = idx + 1;
-                  const isBeyondCutoff = rank > 48;
+                  const isBeyondCutoff = rank > maxSlots;
                   return (
                     <div key={sub.id} style={{
                       padding: '0.6rem', borderRadius: '8px',
@@ -404,11 +415,11 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
                       const availKey = `${activeDay}_availability` as keyof PrepSubmission;
                       const avail = (sub[availKey] as string[][] | undefined) || [];
                       const rank = idx + 1;
-                      const isBeyondCutoff = rank > 48;
+                      const isBeyondCutoff = rank > maxSlots;
                       const hasChanged = !!sub.speedup_changed_at;
                       return (
                         <tr key={sub.id} style={{ borderBottom: `1px solid ${isBeyondCutoff ? '#ef444430' : colors.borderSubtle}`, backgroundColor: isBeyondCutoff ? '#ef444410' : assignment ? `${DAY_COLORS[activeDay]}08` : 'transparent' }}>
-                          <td style={{ padding: '0.4rem', textAlign: 'center', color: isBeyondCutoff ? '#ef4444' : DAY_COLORS[activeDay], fontWeight: 700, fontSize: '0.7rem' }}>{rank}{isBeyondCutoff && <span title="Beyond 48-user cutoff" style={{ display: 'block', fontSize: '0.5rem', color: '#ef4444' }}>WAIT</span>}</td>
+                          <td style={{ padding: '0.4rem', textAlign: 'center', color: isBeyondCutoff ? '#ef4444' : DAY_COLORS[activeDay], fontWeight: 700, fontSize: '0.7rem' }}>{rank}{isBeyondCutoff && <span title={`Beyond ${maxSlots}-user cutoff`} style={{ display: 'block', fontSize: '0.5rem', color: '#ef4444' }}>WAIT</span>}</td>
                           <td style={{ padding: '0.4rem', color: colors.textMuted }}>{sub.alliance_tag || '—'}</td>
                           <td style={{ padding: '0.4rem', color: isBeyondCutoff ? '#ef4444' : assignment ? colors.text : colors.textMuted, fontWeight: assignment ? 500 : 400 }}>{sub.username}{hasChanged && <span title={`Speedups changed ${new Date(sub.speedup_changed_at!).toLocaleDateString()}`} style={{ marginLeft: '0.3rem', color: '#f59e0b', fontSize: '0.65rem', cursor: 'help' }}>⚠️</span>}</td>
                           <td style={{ padding: '0.4rem', textAlign: 'right', color: isBeyondCutoff ? '#ef4444' : DAY_COLORS[activeDay], fontWeight: 600 }}>{formatMinutes(effective)}</td>
@@ -448,12 +459,12 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
             <div style={{ maxHeight: isMobile ? undefined : '500px', overflowY: isMobile ? undefined : 'auto' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '4px' : '2px' }}>
                 {(isMobile && !showAllSlots
-                  ? TIME_SLOTS.filter(slot => {
+                  ? effectiveSlots.filter(slot => {
                       const hasAssignment = dayAssignments.some(a => a.slot_time === slot);
                       const isGap = availabilityGaps.some(g => g.slot === slot);
                       return hasAssignment || isGap;
                     })
-                  : TIME_SLOTS
+                  : effectiveSlots
                 ).map(slot => {
                   const assignment = dayAssignments.find(a => a.slot_time === slot);
                   const assignedSub = assignment ? submissions.find(s => s.id === assignment.submission_id) : null;
@@ -505,7 +516,7 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
               }}>
                 {showAllSlots
                   ? `▲ ${t('prepScheduler.showAssignedOnly', 'Show Assigned Only')}`
-                  : `▼ ${t('prepScheduler.showAllSlots', 'Show All 48 Slots')}`}
+                  : `▼ ${t('prepScheduler.showAllSlots', 'Show All {{count}} Slots').replace('{{count}}', String(maxSlots))}`}
               </button>
             )}
           </div>

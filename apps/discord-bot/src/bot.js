@@ -30,7 +30,7 @@
 
 require('dotenv').config();
 const http = require('http');
-const { Client, GatewayIntentBits, REST, Routes, ActivityType } = require('discord.js');
+const { Client, GatewayIntentBits, REST, Routes, ActivityType, Partials } = require('discord.js');
 const config = require('./config');
 const commands = require('./commands');
 const handlers = require('./commands/handlers');
@@ -38,6 +38,7 @@ const logger = require('./utils/logger');
 const { createWelcomeEmbed } = require('./utils/embeds');
 const scheduler = require('./scheduler');
 const telemetry = require('./telemetry');
+const { initReactionRoles } = require('./reactionRoles');
 
 // ============================================================================
 // DISCORD REST API PROXY — bypasses Cloudflare IP bans on Render's shared IP
@@ -449,7 +450,9 @@ const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildMessageReactions,
   ],
+  partials: [Partials.Message, Partials.Reaction, Partials.User],
   rest: clientRestOptions,
 });
 
@@ -533,6 +536,7 @@ client.on('ready', async () => {
   // Only on first ready to avoid duplicate cron jobs
   if (readyFiredCount === 1) {
     scheduler.initScheduler(client);
+    initReactionRoles(client);
   }
   
   // Test API connectivity

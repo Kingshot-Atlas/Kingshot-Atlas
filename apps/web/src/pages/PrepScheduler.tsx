@@ -137,6 +137,9 @@ const PrepScheduler: React.FC = () => {
           addManager={hook.addManager}
           removeManagerById={hook.removeManagerById}
           updateDeadline={hook.updateDeadline}
+          toggleStagger={hook.toggleStagger}
+          effectiveSlots={hook.effectiveSlots}
+          maxSlots={hook.maxSlots}
         />
         {hook.pendingConfirm && <ConfirmDialog confirm={hook.pendingConfirm} onDismiss={() => hook.setPendingConfirm(null)} />}
       </>

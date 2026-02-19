@@ -26,34 +26,11 @@ import { getAuthHeaders } from '../services/authHeaders';
 import { fetchWithRetry } from '../utils/fetchWithRetry';
 import { getCurrentKvK, incrementKvK } from '../services/configService';
 import { CURRENT_KVK } from '../constants';
-import { 
+import {
   AdminHeader,
   AdminTabNav,
-  AnalyticsOverview, 
-  FinanceTab,
-  SubmissionsTab, 
-  NewKingdomsTab, 
-  ClaimsTab,
-  AdminActivityFeed,
-  TransferApplicationsTab,
-  TransferHubAdminTab,
-  EmailTab,
-  FeedbackTab,
-  CorrectionsTab,
-  KvKErrorsTab,
-  TransferStatusTab,
-  BotTelemetryTab,
-  GiftCodeAnalyticsTab,
-  BattlePlannerAccessTab,
-  SpotlightTab,
-  ImportTab,
-  PlausibleTab,
-  RejectModal,
-  KvKBulkMatchupTab,
-  TransferOutcomesTab,
   SkeletonGrid,
   type AdminTab,
-
   type ApiHealth,
   type Submission,
   type Claim,
@@ -62,6 +39,29 @@ import {
   type NewKingdomSubmission,
   type AnalyticsData
 } from '../components/admin';
+// Lazy-load all tab components for chunk splitting
+const AnalyticsOverview = lazy(() => import('../components/admin/AnalyticsOverview').then(m => ({ default: m.AnalyticsOverview })));
+const FinanceTab = lazy(() => import('../components/admin/FinanceTab'));
+const SubmissionsTab = lazy(() => import('../components/admin/SubmissionsTab').then(m => ({ default: m.SubmissionsTab })));
+const NewKingdomsTab = lazy(() => import('../components/admin/NewKingdomsTab').then(m => ({ default: m.NewKingdomsTab })));
+const ClaimsTab = lazy(() => import('../components/admin/ClaimsTab').then(m => ({ default: m.ClaimsTab })));
+const AdminActivityFeed = lazy(() => import('../components/admin/AdminActivityFeed').then(m => ({ default: m.AdminActivityFeed })));
+const TransferApplicationsTab = lazy(() => import('../components/admin/TransferApplicationsTab').then(m => ({ default: m.TransferApplicationsTab })));
+const TransferHubAdminTab = lazy(() => import('../components/admin/TransferHubAdminTab').then(m => ({ default: m.TransferHubAdminTab })));
+const EmailTab = lazy(() => import('../components/admin/EmailTab').then(m => ({ default: m.EmailTab })));
+const FeedbackTab = lazy(() => import('../components/admin/FeedbackTab').then(m => ({ default: m.FeedbackTab })));
+const CorrectionsTab = lazy(() => import('../components/admin/CorrectionsTab').then(m => ({ default: m.CorrectionsTab })));
+const KvKErrorsTab = lazy(() => import('../components/admin/KvKErrorsTab').then(m => ({ default: m.KvKErrorsTab })));
+const TransferStatusTab = lazy(() => import('../components/admin/TransferStatusTab').then(m => ({ default: m.TransferStatusTab })));
+const BotTelemetryTab = lazy(() => import('../components/admin/BotTelemetryTab').then(m => ({ default: m.BotTelemetryTab })));
+const GiftCodeAnalyticsTab = lazy(() => import('../components/admin/GiftCodeAnalyticsTab').then(m => ({ default: m.GiftCodeAnalyticsTab })));
+const BattlePlannerAccessTab = lazy(() => import('../components/admin/BattlePlannerAccessTab').then(m => ({ default: m.BattlePlannerAccessTab })));
+const SpotlightTab = lazy(() => import('../components/admin/SpotlightTab').then(m => ({ default: m.SpotlightTab })));
+const ImportTab = lazy(() => import('../components/admin/ImportTab'));
+const PlausibleTab = lazy(() => import('../components/admin/PlausibleTab'));
+const RejectModal = lazy(() => import('../components/admin/RejectModal'));
+const KvKBulkMatchupTab = lazy(() => import('../components/admin/KvKBulkMatchupTab'));
+const TransferOutcomesTab = lazy(() => import('../components/admin/TransferOutcomesTab'));
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 const ADMIN_LOG_KEY = 'kingshot_admin_log';
@@ -992,6 +992,7 @@ const AdminDashboard: React.FC = () => {
         </div>
       )}
 
+      <Suspense fallback={<SkeletonGrid cards={4} cardHeight="100px" />}>
       {loading && activeTab !== 'import' ? (
         <SkeletonGrid cards={4} cardHeight="100px" />
       ) : activeTab === 'analytics' ? (
@@ -1030,33 +1031,19 @@ const AdminDashboard: React.FC = () => {
           onGrantSubscription={handleGrantSubscription}
         />
       ) : activeTab === 'engagement' ? (
-        <Suspense fallback={<div style={{ padding: '2rem', color: '#6b7280' }}>Loading engagement...</div>}>
-          <EngagementDashboard />
-        </Suspense>
+        <EngagementDashboard />
       ) : activeTab === 'user-heatmap' ? (
-        <Suspense fallback={<div style={{ padding: '2rem', color: '#6b7280' }}>Loading heatmap...</div>}>
-          <UserHeatmap />
-        </Suspense>
+        <UserHeatmap />
       ) : activeTab === 'webhooks' ? (
-        <Suspense fallback={<div style={{ padding: '2rem', color: '#6b7280' }}>Loading webhooks...</div>}>
-          <WebhookMonitor />
-        </Suspense>
+        <WebhookMonitor />
       ) : activeTab === 'data-sources' ? (
-        <Suspense fallback={<div style={{ padding: '2rem', color: '#6b7280' }}>Loading data sources...</div>}>
-          <DataSourceStats />
-        </Suspense>
+        <DataSourceStats />
       ) : activeTab === 'discord-bot' ? (
-        <Suspense fallback={<div style={{ padding: '2rem', color: '#6b7280' }}>Loading bot dashboard...</div>}>
-          <BotDashboard />
-        </Suspense>
+        <BotDashboard />
       ) : activeTab === 'discord-roles' ? (
-        <Suspense fallback={<div style={{ padding: '2rem', color: '#6b7280' }}>Loading roles dashboard...</div>}>
-          <DiscordRolesDashboard />
-        </Suspense>
+        <DiscordRolesDashboard />
       ) : activeTab === 'referrals' ? (
-        <Suspense fallback={<div style={{ padding: '2rem', color: '#6b7280' }}>Loading referral intelligence...</div>}>
-          <ReferralIntelligence />
-        </Suspense>
+        <ReferralIntelligence />
       ) : activeTab === 'new-kingdoms' ? (
         <NewKingdomsTab
           submissions={newKingdomSubmissions}
@@ -1141,6 +1128,7 @@ const AdminDashboard: React.FC = () => {
       ) : activeTab === 'import' ? (
         <ImportTab />
       ) : null}
+      </Suspense>
 
       {/* Reject Modal with Reason */}
       {rejectModalOpen && (

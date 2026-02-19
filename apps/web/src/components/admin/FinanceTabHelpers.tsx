@@ -49,6 +49,7 @@ export const SECTIONS: FinanceSection[] = [
   { id: 'expenses', label: 'Expenses', icon: '📤' },
   { id: 'pnl', label: 'P&L', icon: '📊' },
   { id: 'subscribers', label: 'Subscribers', icon: '👥' },
+  { id: 'promo', label: 'Promo', icon: '🎯' },
 ];
 
 export const EXPENSE_CATEGORIES: { value: string; label: string; icon: string; color: string }[] = [
