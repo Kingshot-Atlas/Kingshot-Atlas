@@ -307,6 +307,7 @@ export function useRecruiterDashboard(): RecruiterDashboardState & RecruiterDash
       })
       .subscribe();
     return () => { sb.removeChannel(channel); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editorInfo?.kingdom_number, user?.id, showToast, refetch]);
 
   const getInviteBudget = useCallback(() => {

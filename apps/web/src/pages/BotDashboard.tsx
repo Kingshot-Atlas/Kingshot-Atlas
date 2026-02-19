@@ -98,7 +98,7 @@ const EmojiPicker: React.FC<{ value: string; onChange: (emoji: string) => void }
                   </>
                 )}
                 {q && cat.emojis.length === 0 && (
-                  <div style={{ color: colors.textMuted, fontSize: '0.75rem', textAlign: 'center', padding: '1.5rem 0.5rem' }}>No emojis match "{search}"</div>
+                  <div style={{ color: colors.textMuted, fontSize: '0.75rem', textAlign: 'center', padding: '1.5rem 0.5rem' }}>No emojis match &ldquo;{search}&rdquo;</div>
                 )}
               </div>
             ))}
@@ -367,6 +367,7 @@ const BotDashboard: React.FC = () => {
         sb.from('bot_alliance_events').update({ reference_date: fixedDate, updated_at: new Date().toISOString() }).eq('id', ev.id).then(() => {});
       }
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [events.length]); // Only when events array length changes (initial load)
 
   // ─── Auto-detect Discord Guilds ──────────────────────────────────────────
@@ -983,7 +984,7 @@ const BotDashboard: React.FC = () => {
 
             {rrConfigs.length === 0 && (
               <div style={{ backgroundColor: colors.surface, borderRadius: 12, border: `1px solid ${colors.border}`, padding: '2rem', textAlign: 'center', color: colors.textMuted, fontSize: '0.85rem' }}>
-                No role assigners yet. Click "+ New Role Assigner" to create one.
+                No role assigners yet. Click &quot;+ New Role Assigner&quot; to create one.
               </div>
             )}
 
@@ -1093,7 +1094,7 @@ const BotDashboard: React.FC = () => {
             {guild.created_by === user?.id && (
               <div style={{ backgroundColor: colors.surface, borderRadius: 12, border: `1px solid ${colors.border}`, padding: mob ? '1rem' : '1.25rem', marginBottom: '1rem' }}>
                 <label style={lS}>BLOCK A USER</label>
-                <p style={{ color: colors.textMuted, fontSize: '0.7rem', marginBottom: '0.5rem' }}>Blocked users cannot access this server's dashboard even if they have Manage Server permission.</p>
+                <p style={{ color: colors.textMuted, fontSize: '0.7rem', marginBottom: '0.5rem' }}>Blocked users cannot access this server&apos;s dashboard even if they have Manage Server permission.</p>
                 <div ref={blockSearchRef} style={{ position: 'relative', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                   <div style={{ position: 'relative', flex: 1 }}>
                     <input type="text" value={blockInput} onChange={e => { setBlockInput(e.target.value); setBlockSearchOpen(true); searchBlockUsers(e.target.value); }}

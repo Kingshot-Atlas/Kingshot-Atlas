@@ -64,6 +64,7 @@ const TransfereeDashboard: React.FC<{
   useEffect(() => {
     if (!user) return;
     loadAll();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const loadAll = async () => {

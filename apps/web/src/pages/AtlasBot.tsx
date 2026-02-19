@@ -514,7 +514,7 @@ const AtlasBot: React.FC = () => {
               lineHeight: 1.6,
               marginBottom: '1rem'
             }}>
-              The bot accounts for the 5-minute rally fill time plus each player's individual march time, then tells you <strong style={{ color: '#fff' }}>who calls first</strong> and the <strong style={{ color: '#fff' }}>exact delay</strong> between each subsequent call. Your rallies connect within a 1-second window. The enemy can't reinforce fast enough.
+              The bot accounts for the 5-minute rally fill time plus each player&apos;s individual march time, then tells you <strong style={{ color: '#fff' }}>who calls first</strong> and the <strong style={{ color: '#fff' }}>exact delay</strong> between each subsequent call. Your rallies connect within a 1-second window. The enemy can&apos;t reinforce fast enough.
             </p>
 
             <div style={{
