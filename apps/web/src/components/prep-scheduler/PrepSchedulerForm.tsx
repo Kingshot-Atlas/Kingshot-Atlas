@@ -14,6 +14,7 @@ interface PrepSchedulerFormProps {
   isMobile: boolean;
   schedule: PrepSchedule;
   existingSubmission: PrepSubmission | null;
+  mySubmissions: PrepSubmission[];
   assignments: SlotAssignment[];
   // Form state
   formUsername: string; setFormUsername: (v: string) => void;
@@ -26,6 +27,8 @@ interface PrepSchedulerFormProps {
   constructionSpeedups: number; setConstructionSpeedups: (v: number) => void;
   researchSpeedups: number; setResearchSpeedups: (v: number) => void;
   generalTarget: string; setGeneralTarget: (v: string) => void;
+  generalAllocation: { construction: number; training: number; research: number } | null;
+  setGeneralAllocation: (v: { construction: number; training: number; research: number } | null) => void;
   skipMonday: boolean; setSkipMonday: (v: boolean) => void;
   skipTuesday: boolean; setSkipTuesday: (v: boolean) => void;
   skipThursday: boolean; setSkipThursday: (v: boolean) => void;
@@ -42,9 +45,12 @@ interface PrepSchedulerFormProps {
   submitChangeRequest: () => Promise<void>;
   // Non-qualifying popup
   showNonQualifyingPopup: boolean; setShowNonQualifyingPopup: (v: boolean) => void;
+  // Multi-account
+  startAltSubmission: () => void;
+  editSubmission: (sub: PrepSubmission) => void;
 }
 
-// ─── Speedup Section with Advanced Slider Mode ──────────────────────────────
+// ─── Speedup Section — Simple number inputs only ──────────────────────────────
 
 const SPEEDUP_TYPES = [
   { key: 'general' as const, icon: '🔧', color: '#a855f7', i18nKey: 'prepScheduler.general', fallback: 'General' },
@@ -62,44 +68,15 @@ const SpeedupSection: React.FC<{
   inputStyle: React.CSSProperties; labelStyle: React.CSSProperties; cardStyle: React.CSSProperties;
   t: (key: string, fallback: string) => string;
 }> = ({ isMobile, generalSpeedups, setGeneralSpeedups, trainingSpeedups, setTrainingSpeedups, constructionSpeedups, setConstructionSpeedups, researchSpeedups, setResearchSpeedups, inputStyle, labelStyle, cardStyle, t }) => {
-  const [advancedMode, setAdvancedMode] = useState(false);
-
   type SpeedupKey = 'general' | 'training' | 'construction' | 'research';
   const values: Record<SpeedupKey, number> = { general: generalSpeedups, training: trainingSpeedups, construction: constructionSpeedups, research: researchSpeedups };
   const setters: Record<SpeedupKey, (v: number) => void> = { general: setGeneralSpeedups, training: setTrainingSpeedups, construction: setConstructionSpeedups, research: setResearchSpeedups };
-  const total = useMemo(() => generalSpeedups + trainingSpeedups + constructionSpeedups + researchSpeedups, [generalSpeedups, trainingSpeedups, constructionSpeedups, researchSpeedups]);
-
-  const pct = (v: number) => total > 0 ? Math.round((v / total) * 100) : 0;
-
-  const formatTime = (mins: number) => {
-    if (mins < 60) return `${mins}m`;
-    const h = Math.floor(mins / 60);
-    const m = mins % 60;
-    return m > 0 ? `${h}h ${m}m` : `${h}h`;
-  };
 
   return (
     <div style={cardStyle}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-        <label style={{ ...labelStyle, marginBottom: 0, fontSize: '0.85rem' }}>⏱️ {t('prepScheduler.speedups', 'Speedups (in minutes)')}</label>
-        <button
-          onClick={() => setAdvancedMode(!advancedMode)}
-          style={{
-            display: 'flex', alignItems: 'center', gap: '0.3rem',
-            background: advancedMode ? '#a855f710' : 'none',
-            border: `1px solid ${advancedMode ? '#a855f740' : colors.border}`,
-            borderRadius: '5px', padding: '0.2rem 0.5rem',
-            color: advancedMode ? '#a855f7' : colors.textMuted,
-            fontSize: '0.65rem', fontWeight: 600, cursor: 'pointer',
-            transition: 'all 0.2s',
-          }}
-        >
-          📊 {advancedMode ? t('prepScheduler.simpleMode', 'Simple') : t('prepScheduler.advancedMode', 'Advanced')}
-        </button>
-      </div>
+      <label style={{ ...labelStyle, marginBottom: '0.25rem', fontSize: '0.85rem' }}>⏱️ {t('prepScheduler.speedups', 'Speedups (in minutes)')}</label>
       <p style={{ color: colors.textMuted, fontSize: '0.7rem', marginBottom: '0.75rem' }}>{t('prepScheduler.speedupsDesc', 'Total minutes of each speedup type you plan to use this KvK Prep Phase.')}</p>
 
-      {/* Number inputs — always visible */}
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '0.75rem' }}>
         {SPEEDUP_TYPES.map(st => (
           <div key={st.key}>
@@ -108,65 +85,148 @@ const SpeedupSection: React.FC<{
           </div>
         ))}
       </div>
+    </div>
+  );
+};
 
-      {/* Advanced mode: percentage sliders + visual distribution */}
-      {advancedMode && (
-        <div style={{ marginTop: '1rem', paddingTop: '0.75rem', borderTop: `1px solid ${colors.border}` }}>
-          {/* Total summary */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.6rem' }}>
-            <span style={{ color: colors.textSecondary, fontSize: '0.75rem', fontWeight: 600 }}>
-              {t('prepScheduler.totalSpeedups', 'Total')}: <span style={{ color: '#a855f7', fontFamily: "'JetBrains Mono', monospace" }}>{formatTime(total)}</span>
-            </span>
-            {total > 0 && (
-              <span style={{ color: colors.textMuted, fontSize: '0.65rem' }}>
-                {t('prepScheduler.distribution', 'Distribution')} ↓
-              </span>
-            )}
-          </div>
+// ─── General Speedup Allocation Section ──────────────────────────────────────
 
+const ALLOC_TYPES = [
+  { key: 'construction' as const, icon: '🏗️', color: '#f59e0b', i18nKey: 'prepScheduler.construction', fallback: 'Construction' },
+  { key: 'research' as const, icon: '🔬', color: '#3b82f6', i18nKey: 'prepScheduler.research', fallback: 'Research' },
+  { key: 'training' as const, icon: '⚔️', color: '#ef4444', i18nKey: 'prepScheduler.training', fallback: 'Training' },
+] as const;
+
+const GeneralTargetSection: React.FC<{
+  generalSpeedups: number;
+  generalTarget: string; setGeneralTarget: (v: string) => void;
+  generalAllocation: { construction: number; training: number; research: number } | null;
+  setGeneralAllocation: (v: { construction: number; training: number; research: number } | null) => void;
+  labelStyle: React.CSSProperties; cardStyle: React.CSSProperties;
+  t: (key: string, fallback: string) => string;
+}> = ({ generalSpeedups, generalTarget, setGeneralTarget, generalAllocation, setGeneralAllocation, labelStyle, cardStyle, t }) => {
+  const [advancedMode, setAdvancedMode] = useState(!!generalAllocation);
+
+  const formatTime = (mins: number) => {
+    if (mins < 60) return `${mins}m`;
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return m > 0 ? `${h}h ${m}m` : `${h}h`;
+  };
+
+  const handleToggleAdvanced = () => {
+    if (advancedMode) {
+      setAdvancedMode(false);
+      setGeneralAllocation(null);
+    } else {
+      setAdvancedMode(true);
+      setGeneralTarget('');
+      setGeneralAllocation({ construction: 34, training: 33, research: 33 });
+    }
+  };
+
+  const handleAllocChange = (key: 'construction' | 'training' | 'research', newVal: number) => {
+    if (!generalAllocation) return;
+    const other1Key = key === 'construction' ? 'training' : 'construction';
+    const other2Key = key === 'construction' ? 'research' : key === 'training' ? 'research' : 'training';
+    const remaining = 100 - newVal;
+    const otherTotal = generalAllocation[other1Key] + generalAllocation[other2Key];
+    let v1: number, v2: number;
+    if (otherTotal === 0) {
+      v1 = Math.round(remaining / 2);
+      v2 = remaining - v1;
+    } else {
+      v1 = Math.round((generalAllocation[other1Key] / otherTotal) * remaining);
+      v2 = remaining - v1;
+    }
+    setGeneralAllocation({ ...generalAllocation, [key]: newVal, [other1Key]: v1, [other2Key]: v2 });
+  };
+
+  return (
+    <div style={cardStyle}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+        <label style={{ ...labelStyle, marginBottom: 0 }}>{t('prepScheduler.generalTarget', 'Where will you spend most of your General Speedups?')}</label>
+        {generalSpeedups > 0 && (
+          <button
+            onClick={handleToggleAdvanced}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '0.3rem',
+              background: advancedMode ? '#a855f710' : 'none',
+              border: `1px solid ${advancedMode ? '#a855f740' : colors.border}`,
+              borderRadius: '5px', padding: '0.2rem 0.5rem',
+              color: advancedMode ? '#a855f7' : colors.textMuted,
+              fontSize: '0.65rem', fontWeight: 600, cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+          >
+            📊 {advancedMode ? t('prepScheduler.simpleMode', 'Simple') : t('prepScheduler.advancedSplit', 'Split %')}
+          </button>
+        )}
+      </div>
+
+      {!advancedMode ? (
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.25rem' }}>
+          {ALLOC_TYPES.map(tt => (
+            <button key={tt.key} onClick={() => setGeneralTarget(tt.key)}
+              style={{ padding: '0.4rem 0.75rem', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem',
+                backgroundColor: generalTarget === tt.key ? `${tt.color}20` : 'transparent',
+                border: `1px solid ${generalTarget === tt.key ? `${tt.color}50` : colors.border}`,
+                color: generalTarget === tt.key ? tt.color : colors.textMuted,
+                fontWeight: generalTarget === tt.key ? 600 : 400 }}>
+              {tt.icon} {t(tt.i18nKey, tt.fallback)}
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div style={{ marginTop: '0.5rem' }}>
+          {generalSpeedups > 0 && (
+            <p style={{ color: colors.textMuted, fontSize: '0.7rem', marginBottom: '0.5rem' }}>
+              {t('prepScheduler.allocDesc', 'Split your {{total}} General Speedups across types.').replace('{{total}}', formatTime(generalSpeedups))}
+            </p>
+          )}
           {/* Visual distribution bar */}
-          {total > 0 && (
-            <div style={{ display: 'flex', height: '8px', borderRadius: '4px', overflow: 'hidden', marginBottom: '0.75rem', backgroundColor: `${colors.border}` }}>
-              {SPEEDUP_TYPES.map(st => {
-                const p = pct(values[st.key]);
+          {generalAllocation && generalSpeedups > 0 && (
+            <div style={{ display: 'flex', height: '8px', borderRadius: '4px', overflow: 'hidden', marginBottom: '0.75rem', backgroundColor: colors.border }}>
+              {ALLOC_TYPES.map(at => {
+                const p = generalAllocation[at.key];
                 return p > 0 ? (
-                  <div key={st.key} style={{ width: `${p}%`, backgroundColor: st.color, transition: 'width 0.3s ease' }} title={`${t(st.i18nKey, st.fallback)}: ${p}%`} />
+                  <div key={at.key} style={{ width: `${p}%`, backgroundColor: at.color, transition: 'width 0.3s ease' }} />
                 ) : null;
               })}
             </div>
           )}
-
-          {/* Per-type slider bars */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            {SPEEDUP_TYPES.map(st => {
-              const v = values[st.key];
-              const p = pct(v);
-              const maxSlider = Math.max(total * 2, 10000); // Slider max = 2x total or 10k mins
-              return (
-                <div key={st.key}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
-                    <span style={{ color: st.color, fontSize: '0.7rem', fontWeight: 600 }}>{st.icon} {t(st.i18nKey, st.fallback)}</span>
-                    <span style={{ color: colors.textMuted, fontSize: '0.65rem', fontFamily: "'JetBrains Mono', monospace" }}>
-                      {formatTime(v)} {total > 0 && <span style={{ color: st.color }}>({p}%)</span>}
-                    </span>
+          {/* Per-type sliders */}
+          {generalAllocation && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+              {ALLOC_TYPES.map(at => {
+                const pct = generalAllocation[at.key];
+                const mins = Math.round(generalSpeedups * pct / 100);
+                return (
+                  <div key={at.key}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
+                      <span style={{ color: at.color, fontSize: '0.7rem', fontWeight: 600 }}>{at.icon} {t(at.i18nKey, at.fallback)}</span>
+                      <span style={{ color: colors.textMuted, fontSize: '0.65rem', fontFamily: "'JetBrains Mono', monospace" }}>
+                        {formatTime(mins)} <span style={{ color: at.color }}>({pct}%)</span>
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={100}
+                      step={1}
+                      value={pct}
+                      onChange={(e) => handleAllocChange(at.key, parseInt(e.target.value) || 0)}
+                      style={{
+                        width: '100%', height: '6px', appearance: 'none', WebkitAppearance: 'none',
+                        background: `linear-gradient(to right, ${at.color} 0%, ${at.color} ${pct}%, ${colors.border} ${pct}%, ${colors.border} 100%)`,
+                        borderRadius: '3px', outline: 'none', cursor: 'pointer',
+                      }}
+                    />
                   </div>
-                  <input
-                    type="range"
-                    min={0}
-                    max={maxSlider}
-                    step={30}
-                    value={v}
-                    onChange={(e) => setters[st.key](parseInt(e.target.value) || 0)}
-                    style={{
-                      width: '100%', height: '6px', appearance: 'none', WebkitAppearance: 'none',
-                      background: `linear-gradient(to right, ${st.color} 0%, ${st.color} ${(v / maxSlider) * 100}%, ${colors.border} ${(v / maxSlider) * 100}%, ${colors.border} 100%)`,
-                      borderRadius: '3px', outline: 'none', cursor: 'pointer',
-                    }}
-                  />
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -176,13 +236,14 @@ const SpeedupSection: React.FC<{
 const PrepSchedulerForm: React.FC<PrepSchedulerFormProps> = (props) => {
   const { t } = useTranslation();
   const {
-    isMobile, schedule, existingSubmission, assignments,
+    isMobile, schedule, existingSubmission, mySubmissions, assignments,
     formUsername, setFormUsername, formAlliance, setFormAlliance,
     mondayAvail, setMondayAvail, tuesdayAvail, setTuesdayAvail,
     thursdayAvail, setThursdayAvail,
     generalSpeedups, setGeneralSpeedups, trainingSpeedups, setTrainingSpeedups,
     constructionSpeedups, setConstructionSpeedups, researchSpeedups, setResearchSpeedups,
     generalTarget, setGeneralTarget,
+    generalAllocation, setGeneralAllocation,
     skipMonday, setSkipMonday, skipTuesday, setSkipTuesday, skipThursday, setSkipThursday,
     screenshotPreview, fileInputRef, handleScreenshotChange,
     saving, submitForm,
@@ -190,7 +251,14 @@ const PrepSchedulerForm: React.FC<PrepSchedulerFormProps> = (props) => {
     changeRequestDay, setChangeRequestDay, changeRequestType, setChangeRequestType,
     changeRequestMessage, setChangeRequestMessage, submitChangeRequest,
     showNonQualifyingPopup, setShowNonQualifyingPopup,
+    startAltSubmission, editSubmission,
   } = props;
+
+  // Is this an alt-account submission (no existing submission loaded = new alt form)?
+  const isAltMode = !existingSubmission && mySubmissions.length > 0;
+
+  // Whether the form is in read-only mode (submitted and not an alt form in progress)
+  const isReadOnly = !!existingSubmission && !isAltMode;
 
   // Progress tracking for mobile
   const formProgress = useMemo(() => {
@@ -200,10 +268,11 @@ const PrepSchedulerForm: React.FC<PrepSchedulerFormProps> = (props) => {
       { done: skipTuesday || tuesdayAvail.some(r => r[0] && r[1]) },
       { done: skipThursday || thursdayAvail.some(r => r[0] && r[1]) },
       { done: generalSpeedups > 0 || trainingSpeedups > 0 || constructionSpeedups > 0 || researchSpeedups > 0 },
-      { done: !!generalTarget },
+      { done: !!generalTarget || !!generalAllocation },
+      { done: !!screenshotPreview },
     ];
     return { completed: steps.filter(s => s.done).length, total: steps.length };
-  }, [formUsername, formAlliance, skipMonday, skipTuesday, skipThursday, mondayAvail, tuesdayAvail, thursdayAvail, generalSpeedups, trainingSpeedups, constructionSpeedups, researchSpeedups, generalTarget]);
+  }, [formUsername, formAlliance, skipMonday, skipTuesday, skipThursday, mondayAvail, tuesdayAvail, thursdayAvail, generalSpeedups, trainingSpeedups, constructionSpeedups, researchSpeedups, generalTarget, generalAllocation, screenshotPreview]);
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '0.5rem 0.75rem', backgroundColor: colors.bg,
@@ -243,13 +312,18 @@ const PrepSchedulerForm: React.FC<PrepSchedulerFormProps> = (props) => {
         )}
         {existingSubmission && schedule.status !== 'closed' && (
           <div style={{ marginTop: '0.5rem', padding: '0.3rem 0.8rem', backgroundColor: '#22c55e15', border: '1px solid #22c55e30', borderRadius: '20px', display: 'inline-block' }}>
-            <span style={{ color: '#22c55e', fontSize: '0.75rem', fontWeight: 600 }}>✅ {t('prepScheduler.editingResponse', 'Editing your existing response')}</span>
+            <span style={{ color: '#22c55e', fontSize: '0.75rem', fontWeight: 600 }}>✅ {t('prepScheduler.submittedResponse', 'Your response has been submitted')}</span>
+          </div>
+        )}
+        {isAltMode && (
+          <div style={{ marginTop: '0.5rem', padding: '0.3rem 0.8rem', backgroundColor: '#a855f715', border: '1px solid #a855f730', borderRadius: '20px', display: 'inline-block' }}>
+            <span style={{ color: '#a855f7', fontSize: '0.75rem', fontWeight: 600 }}>👤 {t('prepScheduler.altAccountSubmission', 'Submitting for an alt account')}</span>
           </div>
         )}
       </div>
 
       {/* Mobile Progress Indicator */}
-      {isMobile && (
+      {isMobile && !isReadOnly && (
         <div style={{ maxWidth: '600px', margin: '0 auto', padding: '0 1rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
             <div style={{ flex: 1, height: '4px', borderRadius: '2px', backgroundColor: colors.border, overflow: 'hidden' }}>
@@ -296,121 +370,210 @@ const PrepSchedulerForm: React.FC<PrepSchedulerFormProps> = (props) => {
             </div>
           )}
 
-          {/* Non-qualifying notice */}
-          {existingSubmission && schedule.is_locked && assignments.filter(a => a.submission_id === existingSubmission.id).length === 0 && !showNonQualifyingPopup && (
-            <div style={{ ...cardStyle, borderColor: '#ef444430', backgroundColor: '#ef444408' }}>
-              <h4 style={{ color: '#ef4444', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.5rem' }}>❌ {t('prepScheduler.notAssigned', 'You were not assigned a slot')}</h4>
+          {/* Non-qualifying notice — show whenever assigned slots = 0 for any submitted account */}
+          {existingSubmission && assignments.filter(a => mySubmissions.some(ms => ms.id === a.submission_id)).length === 0 && !showNonQualifyingPopup && (
+            <div style={{ ...cardStyle, borderColor: schedule.is_locked ? '#ef444430' : '#f59e0b30', backgroundColor: schedule.is_locked ? '#ef444408' : '#f59e0b08' }}>
+              <h4 style={{ color: schedule.is_locked ? '#ef4444' : '#f59e0b', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.5rem' }}>
+                {schedule.is_locked ? `❌ ${t('prepScheduler.notAssigned', 'You were not assigned a slot')}` : `⏳ ${t('prepScheduler.pendingAssignment', 'Awaiting slot assignment')}`}
+              </h4>
               <p style={{ color: colors.textMuted, fontSize: '0.75rem', marginBottom: '0.5rem', lineHeight: 1.5 }}>
-                {t('prepScheduler.notAssignedDesc', 'The schedule has been locked and you did not receive an appointment slot. This may be due to the 48-user limit per day or scheduling conflicts.')}
+                {schedule.is_locked
+                  ? t('prepScheduler.notAssignedDesc', 'The schedule has been locked and you did not receive an appointment slot. This may be due to the 48-user limit per day or scheduling conflicts.')
+                  : t('prepScheduler.pendingAssignmentDesc', 'Your Prep Manager has not assigned you a slot yet. Check back later or contact your Prep Manager.')}
               </p>
-              <button onClick={() => setShowNonQualifyingPopup(true)} style={{ padding: '0.4rem 0.8rem', backgroundColor: '#a855f715', border: '1px solid #a855f730', borderRadius: '6px', color: '#a855f7', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>📊 {t('prepScheduler.viewReport', 'View Report')}</button>
+              {schedule.is_locked && (
+                <button onClick={() => setShowNonQualifyingPopup(true)} style={{ padding: '0.4rem 0.8rem', backgroundColor: '#a855f715', border: '1px solid #a855f730', borderRadius: '6px', color: '#a855f7', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>📊 {t('prepScheduler.viewReport', 'View Report')}</button>
+              )}
+            </div>
+          )}
+
+          {/* Multi-account submission switcher */}
+          {mySubmissions.length > 0 && !isAltMode && (
+            <div style={{ ...cardStyle, borderColor: '#a855f730', backgroundColor: '#a855f708' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: mySubmissions.length > 1 ? '0.5rem' : 0 }}>
+                <span style={{ color: colors.textSecondary, fontSize: '0.75rem', fontWeight: 600 }}>
+                  👤 {t('prepScheduler.yourSubmissions', 'Your Submissions')} ({mySubmissions.length})
+                </span>
+                {schedule.status !== 'closed' && (
+                  <button onClick={startAltSubmission} style={{ padding: '0.25rem 0.6rem', backgroundColor: '#a855f715', border: '1px solid #a855f730', borderRadius: '4px', color: '#a855f7', fontSize: '0.7rem', fontWeight: 600, cursor: 'pointer' }}>
+                    + {t('prepScheduler.addAltAccount', 'Alt Account')}
+                  </button>
+                )}
+              </div>
+              {mySubmissions.length > 1 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                  {mySubmissions.map(sub => (
+                    <div key={sub.id} onClick={() => editSubmission(sub)}
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.35rem 0.5rem', borderRadius: '6px', cursor: 'pointer',
+                        backgroundColor: existingSubmission?.id === sub.id ? '#a855f715' : 'transparent',
+                        border: `1px solid ${existingSubmission?.id === sub.id ? '#a855f730' : 'transparent'}` }}>
+                      <span style={{ color: existingSubmission?.id === sub.id ? '#a855f7' : colors.textMuted, fontSize: '0.8rem', fontWeight: existingSubmission?.id === sub.id ? 600 : 400 }}>{sub.username}</span>
+                      <span style={{ color: colors.textMuted, fontSize: '0.65rem' }}>{sub.alliance_tag || ''}</span>
+                      {assignments.some(a => a.submission_id === sub.id) && (
+                        <span style={{ marginLeft: 'auto', color: '#22c55e', fontSize: '0.65rem' }}>✅</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
           {/* Username & Alliance */}
-          <div style={cardStyle}>
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '0.75rem' }}>
-              <div>
-                <label style={labelStyle}>{t('prepScheduler.username', 'Username')} *</label>
-                <input type="text" value={formUsername} onChange={(e) => setFormUsername(e.target.value)} placeholder={t('prepScheduler.usernamePlaceholder', 'In-game username')} style={inputStyle} />
-              </div>
-              <div>
-                <label style={labelStyle}>{t('prepScheduler.alliance', 'Alliance')} *</label>
-                <input type="text" value={formAlliance} onChange={(e) => setFormAlliance(e.target.value)} placeholder="e.g. ABC" style={inputStyle} />
+          {isReadOnly ? (
+            <div style={cardStyle}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '0.75rem' }}>
+                <div>
+                  <label style={labelStyle}>{t('prepScheduler.username', 'Username')}</label>
+                  <div style={{ ...inputStyle, backgroundColor: `${colors.bg}80`, opacity: 0.8 }}>{formUsername}</div>
+                </div>
+                <div>
+                  <label style={labelStyle}>{t('prepScheduler.alliance', 'Alliance')}</label>
+                  <div style={{ ...inputStyle, backgroundColor: `${colors.bg}80`, opacity: 0.8 }}>{formAlliance || '—'}</div>
+                </div>
               </div>
             </div>
-          </div>
-
-          {/* Availability per day */}
-          {DAYS.map(day => {
-            const isSkipped = day === 'monday' ? skipMonday : day === 'tuesday' ? skipTuesday : skipThursday;
-            const setSkipped = day === 'monday' ? setSkipMonday : day === 'tuesday' ? setSkipTuesday : setSkipThursday;
-            const buffType = day === 'monday' ? schedule.monday_buff : day === 'tuesday' ? schedule.tuesday_buff : schedule.thursday_buff;
-            return (
-              <div key={day} style={{ ...cardStyle, borderColor: `${DAY_COLORS[day]}30`, opacity: isSkipped ? 0.6 : 1 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                  <label style={{ ...labelStyle, marginBottom: 0, color: DAY_COLORS[day] }}>
-                    {getDayLabel(day, t)} — {getBuffLabel(buffType, t)}
-                  </label>
-                  {day !== 'monday' && !isSkipped && (
-                    <button onClick={() => {
-                      if (day === 'tuesday') setTuesdayAvail([...mondayAvail]);
-                      if (day === 'thursday') setThursdayAvail([...tuesdayAvail]);
-                    }} style={{ padding: '0.2rem 0.5rem', backgroundColor: `${DAY_COLORS[day]}10`, border: `1px solid ${DAY_COLORS[day]}30`, borderRadius: '4px', color: DAY_COLORS[day], fontSize: '0.65rem', cursor: 'pointer' }}>
-                      {t('prepScheduler.copyFrom', 'Copy from')} {day === 'tuesday' ? getDayLabel('monday', t) : getDayLabel('tuesday', t)}
-                    </button>
+          ) : (
+            <div style={cardStyle}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '0.75rem' }}>
+                <div>
+                  <label style={labelStyle}>{t('prepScheduler.username', 'Username')} *</label>
+                  {isAltMode ? (
+                    <input type="text" value={formUsername} onChange={(e) => setFormUsername(e.target.value)} placeholder={t('prepScheduler.altUsernamePlaceholder', 'Alt account username')} style={inputStyle} />
+                  ) : (
+                    <div style={{ ...inputStyle, backgroundColor: `${colors.bg}80`, opacity: 0.8, cursor: 'not-allowed' }} title={t('prepScheduler.usernameAutoAssigned', 'Auto-assigned from your linked account')}>{formUsername || '—'}</div>
                   )}
                 </div>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', marginBottom: isSkipped ? 0 : '0.5rem' }}>
-                  <input type="checkbox" checked={isSkipped} onChange={(e) => setSkipped(e.target.checked)}
-                    style={{ width: '14px', height: '14px', accentColor: DAY_COLORS[day], cursor: 'pointer' }} />
-                  <span style={{ color: isSkipped ? DAY_COLORS[day] : colors.textMuted, fontSize: '0.75rem', fontWeight: isSkipped ? 600 : 400 }}>
-                    {t('prepScheduler.dontNeedBuff', "I don't need this buff")}
-                  </span>
-                </label>
-                {!isSkipped && (
-                  <>
-                    <p style={{ color: colors.textMuted, fontSize: '0.7rem', marginBottom: '0.5rem' }}>
-                      {t('prepScheduler.timezoneHint', 'Select up to 3 time ranges when you can play (UTC).')} <span style={{ color: '#a855f7' }}>{t('prepScheduler.yourTimezone', 'Your timezone')}: {TZ_ABBR} (UTC{UTC_OFFSET_HOURS >= 0 ? '+' : ''}{UTC_OFFSET_HOURS})</span>
-                    </p>
-                    <TimeRangePicker
-                      ranges={day === 'monday' ? mondayAvail : day === 'tuesday' ? tuesdayAvail : thursdayAvail}
-                      onChange={day === 'monday' ? setMondayAvail : day === 'tuesday' ? setTuesdayAvail : setThursdayAvail}
-                      accentColor={DAY_COLORS[day]}
-                      isMobile={isMobile}
-                    />
-                  </>
+                <div>
+                  <label style={labelStyle}>{t('prepScheduler.alliance', 'Alliance')} <span style={{ color: '#ef4444' }}>*</span></label>
+                  <input type="text" value={formAlliance} onChange={(e) => setFormAlliance(e.target.value)} placeholder="e.g. ABC" style={{ ...inputStyle, borderColor: !formAlliance.trim() ? '#ef444450' : colors.border }} />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Availability, Speedups, Target, Screenshot — hidden when read-only */}
+          {isReadOnly ? (
+            <>
+              {/* Read-only summary of submission */}
+              <div style={cardStyle}>
+                <label style={{ ...labelStyle, fontSize: '0.85rem', marginBottom: '0.5rem' }}>📋 {t('prepScheduler.submissionSummary', 'Submission Summary')}</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {DAYS.map(day => {
+                    const isSkipped = isSkippedDay(existingSubmission!, day);
+                    const buffType = day === 'monday' ? schedule.monday_buff : day === 'tuesday' ? schedule.tuesday_buff : schedule.thursday_buff;
+                    const availKey = `${day}_availability` as keyof PrepSubmission;
+                    const avail = (existingSubmission![availKey] as string[][] | undefined) || [];
+                    const effective = getEffectiveSpeedups(existingSubmission!, day, schedule);
+                    return (
+                      <div key={day} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.35rem 0.5rem', borderRadius: '6px', backgroundColor: isSkipped ? `${colors.textMuted}05` : `${DAY_COLORS[day]}08`, border: `1px solid ${isSkipped ? colors.border : `${DAY_COLORS[day]}20`}` }}>
+                        <span style={{ color: isSkipped ? colors.textMuted : DAY_COLORS[day], fontSize: '0.8rem', fontWeight: 600, minWidth: '70px' }}>{getDayLabel(day, t)}</span>
+                        <span style={{ color: colors.textMuted, fontSize: '0.65rem' }}>{getBuffLabel(buffType, t)}</span>
+                        {isSkipped ? (
+                          <span style={{ marginLeft: 'auto', color: '#f59e0b', fontSize: '0.7rem' }}>⏭ {t('prepScheduler.optedOut', 'Opted Out')}</span>
+                        ) : (
+                          <>
+                            <span style={{ color: colors.textMuted, fontSize: '0.65rem' }}>{formatAvailRanges(avail)}</span>
+                            <span style={{ marginLeft: 'auto', color: DAY_COLORS[day], fontSize: '0.75rem', fontWeight: 600, fontFamily: 'monospace' }}>{formatMinutes(effective)}</span>
+                          </>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+                {existingSubmission!.screenshot_url && (
+                  <div style={{ marginTop: '0.5rem' }}>
+                    <a href={existingSubmission!.screenshot_url} target="_blank" rel="noopener noreferrer" style={{ color: '#22c55e', fontSize: '0.75rem' }}>📷 {t('prepScheduler.viewScreenshot', 'View Screenshot')}</a>
+                  </div>
                 )}
               </div>
-            );
-          })}
+            </>
+          ) : (
+            <>
+              {/* Availability per day */}
+              {DAYS.map(day => {
+                const isSkipped = day === 'monday' ? skipMonday : day === 'tuesday' ? skipTuesday : skipThursday;
+                const setSkipped = day === 'monday' ? setSkipMonday : day === 'tuesday' ? setSkipTuesday : setSkipThursday;
+                const buffType = day === 'monday' ? schedule.monday_buff : day === 'tuesday' ? schedule.tuesday_buff : schedule.thursday_buff;
+                return (
+                  <div key={day} style={{ ...cardStyle, borderColor: `${DAY_COLORS[day]}30`, opacity: isSkipped ? 0.6 : 1 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                      <label style={{ ...labelStyle, marginBottom: 0, color: DAY_COLORS[day] }}>
+                        {getDayLabel(day, t)} — {getBuffLabel(buffType, t)}
+                      </label>
+                      {day !== 'monday' && !isSkipped && (
+                        <button onClick={() => {
+                          if (day === 'tuesday') setTuesdayAvail([...mondayAvail]);
+                          if (day === 'thursday') setThursdayAvail([...tuesdayAvail]);
+                        }} style={{ padding: '0.2rem 0.5rem', backgroundColor: `${DAY_COLORS[day]}10`, border: `1px solid ${DAY_COLORS[day]}30`, borderRadius: '4px', color: DAY_COLORS[day], fontSize: '0.65rem', cursor: 'pointer' }}>
+                          {t('prepScheduler.copyFrom', 'Copy from')} {day === 'tuesday' ? getDayLabel('monday', t) : getDayLabel('tuesday', t)}
+                        </button>
+                      )}
+                    </div>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', marginBottom: isSkipped ? 0 : '0.5rem' }}>
+                      <input type="checkbox" checked={isSkipped} onChange={(e) => setSkipped(e.target.checked)}
+                        style={{ width: '14px', height: '14px', accentColor: DAY_COLORS[day], cursor: 'pointer' }} />
+                      <span style={{ color: isSkipped ? DAY_COLORS[day] : colors.textMuted, fontSize: '0.75rem', fontWeight: isSkipped ? 600 : 400 }}>
+                        {t('prepScheduler.dontNeedBuff', "I don't need this buff")}
+                      </span>
+                    </label>
+                    {!isSkipped && (
+                      <>
+                        <p style={{ color: colors.textMuted, fontSize: '0.7rem', marginBottom: '0.5rem' }}>
+                          {t('prepScheduler.timezoneHint', 'Select up to 3 time ranges when you can play (UTC).')} <span style={{ color: '#a855f7' }}>{t('prepScheduler.yourTimezone', 'Your timezone')}: {TZ_ABBR} (UTC{UTC_OFFSET_HOURS >= 0 ? '+' : ''}{UTC_OFFSET_HOURS})</span>
+                        </p>
+                        <TimeRangePicker
+                          ranges={day === 'monday' ? mondayAvail : day === 'tuesday' ? tuesdayAvail : thursdayAvail}
+                          onChange={day === 'monday' ? setMondayAvail : day === 'tuesday' ? setTuesdayAvail : setThursdayAvail}
+                          accentColor={DAY_COLORS[day]}
+                          isMobile={isMobile}
+                        />
+                      </>
+                    )}
+                  </div>
+                );
+              })}
 
-          {/* Speedups */}
-          <SpeedupSection
-            isMobile={isMobile}
-            generalSpeedups={generalSpeedups} setGeneralSpeedups={setGeneralSpeedups}
-            trainingSpeedups={trainingSpeedups} setTrainingSpeedups={setTrainingSpeedups}
-            constructionSpeedups={constructionSpeedups} setConstructionSpeedups={setConstructionSpeedups}
-            researchSpeedups={researchSpeedups} setResearchSpeedups={setResearchSpeedups}
-            inputStyle={inputStyle} labelStyle={labelStyle} cardStyle={cardStyle}
-            t={t}
-          />
+              {/* Speedups */}
+              <SpeedupSection
+                isMobile={isMobile}
+                generalSpeedups={generalSpeedups} setGeneralSpeedups={setGeneralSpeedups}
+                trainingSpeedups={trainingSpeedups} setTrainingSpeedups={setTrainingSpeedups}
+                constructionSpeedups={constructionSpeedups} setConstructionSpeedups={setConstructionSpeedups}
+                researchSpeedups={researchSpeedups} setResearchSpeedups={setResearchSpeedups}
+                inputStyle={inputStyle} labelStyle={labelStyle} cardStyle={cardStyle}
+                t={t}
+              />
 
-          {/* General Speedup Target */}
-          <div style={cardStyle}>
-            <label style={labelStyle}>{t('prepScheduler.generalTarget', 'Where will you spend most of your General Speedups?')}</label>
-            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.25rem' }}>
-              {(['construction', 'research', 'training'] as const).map(tt => (
-                <button key={tt} onClick={() => setGeneralTarget(tt)}
-                  style={{ padding: '0.4rem 0.75rem', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem',
-                    backgroundColor: generalTarget === tt ? `${tt === 'construction' ? DAY_COLORS.monday : tt === 'research' ? DAY_COLORS.tuesday : DAY_COLORS.thursday}20` : 'transparent',
-                    border: `1px solid ${generalTarget === tt ? `${tt === 'construction' ? DAY_COLORS.monday : tt === 'research' ? DAY_COLORS.tuesday : DAY_COLORS.thursday}50` : colors.border}`,
-                    color: generalTarget === tt ? (tt === 'construction' ? DAY_COLORS.monday : tt === 'research' ? DAY_COLORS.tuesday : DAY_COLORS.thursday) : colors.textMuted,
-                    fontWeight: generalTarget === tt ? 600 : 400 }}>
-                  {getBuffLabel(tt, t)}
+              {/* General Speedup Target with allocation */}
+              <GeneralTargetSection
+                generalSpeedups={generalSpeedups}
+                generalTarget={generalTarget} setGeneralTarget={setGeneralTarget}
+                generalAllocation={generalAllocation} setGeneralAllocation={setGeneralAllocation}
+                labelStyle={labelStyle} cardStyle={cardStyle}
+                t={t}
+              />
+
+              {/* Screenshot Upload — Required */}
+              <div style={{ ...cardStyle, borderColor: !screenshotPreview ? '#ef444430' : colors.border }}>
+                <label style={labelStyle}>📸 {t('prepScheduler.screenshotProofRequired', 'Screenshot Proof')} <span style={{ color: '#ef4444' }}>*</span></label>
+                <p style={{ color: colors.textMuted, fontSize: '0.7rem', marginBottom: '0.5rem' }}>{t('prepScheduler.screenshotDesc', 'Upload a screenshot of your speedups. JPEG, PNG, GIF, or WebP. Max 5MB.')}</p>
+                <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/gif,image/webp" onChange={handleScreenshotChange} style={{ display: 'none' }} />
+                <button onClick={() => fileInputRef.current?.click()}
+                  style={{ padding: '0.4rem 0.75rem', backgroundColor: `${colors.primary}15`, border: `1px solid ${colors.primary}30`, borderRadius: '6px', color: colors.primary, fontSize: '0.8rem', cursor: 'pointer' }}>
+                  {screenshotPreview ? `📷 ${t('prepScheduler.changeScreenshot', 'Change Screenshot')}` : `📷 ${t('prepScheduler.uploadScreenshot', 'Upload Screenshot')}`}
                 </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Screenshot Upload */}
-          <div style={cardStyle}>
-            <label style={labelStyle}>📸 {t('prepScheduler.screenshotProof', 'Screenshot Proof (optional)')}</label>
-            <p style={{ color: colors.textMuted, fontSize: '0.7rem', marginBottom: '0.5rem' }}>{t('prepScheduler.screenshotDesc', 'Upload a screenshot of your speedups. JPEG, PNG, GIF, or WebP. Max 5MB.')}</p>
-            <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/gif,image/webp" onChange={handleScreenshotChange} style={{ display: 'none' }} />
-            <button onClick={() => fileInputRef.current?.click()}
-              style={{ padding: '0.4rem 0.75rem', backgroundColor: `${colors.primary}15`, border: `1px solid ${colors.primary}30`, borderRadius: '6px', color: colors.primary, fontSize: '0.8rem', cursor: 'pointer' }}>
-              {screenshotPreview ? `📷 ${t('prepScheduler.changeScreenshot', 'Change Screenshot')}` : `📷 ${t('prepScheduler.uploadScreenshot', 'Upload Screenshot')}`}
-            </button>
-            {screenshotPreview && (
-              <div style={{ marginTop: '0.5rem' }}>
-                <img src={screenshotPreview} alt="Screenshot preview" style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '8px', border: `1px solid ${colors.border}` }} />
+                {screenshotPreview && (
+                  <div style={{ marginTop: '0.5rem' }}>
+                    <img src={screenshotPreview} alt="Screenshot preview" style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '8px', border: `1px solid ${colors.border}` }} />
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            </>
+          )}
 
           {/* Submit — inline on desktop, spacer + sticky bar on mobile */}
-          {!isMobile && (
+          {!isReadOnly && !isMobile && (
             <>
               {schedule.status === 'closed' ? (
                 <div style={{ padding: '0.75rem 1.5rem', backgroundColor: '#ef444410', border: '1px solid #ef444430', borderRadius: '10px', textAlign: 'center' }}>
@@ -419,14 +582,14 @@ const PrepSchedulerForm: React.FC<PrepSchedulerFormProps> = (props) => {
               ) : (
                 <button onClick={submitForm} disabled={saving || !formUsername.trim()}
                   style={{ padding: '0.75rem 1.5rem', backgroundColor: '#a855f720', border: '1px solid #a855f750', borderRadius: '10px', color: '#a855f7', fontSize: '0.9rem', fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1 }}>
-                  {saving ? t('prepScheduler.submitting', 'Submitting...') : existingSubmission ? `✏️ ${t('prepScheduler.updateSubmission', 'Update Submission')}` : `📤 ${t('prepScheduler.submit', 'Submit')}`}
+                  {saving ? t('prepScheduler.submitting', 'Submitting...') : isAltMode ? `📤 ${t('prepScheduler.submitAlt', 'Submit Alt Account')}` : `📤 ${t('prepScheduler.submit', 'Submit')}`}
                 </button>
               )}
             </>
           )}
 
           {/* Spacer for mobile sticky bar */}
-          {isMobile && <div style={{ height: '70px' }} />}
+          {isMobile && !isReadOnly && <div style={{ height: '70px' }} />}
 
           <div style={{ textAlign: 'center', marginTop: '0.5rem' }}>
             <Link to="/tools" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: '0.8rem' }}>← {t('prepScheduler.backToTools', 'Back to Tools')}</Link>
@@ -435,7 +598,7 @@ const PrepSchedulerForm: React.FC<PrepSchedulerFormProps> = (props) => {
       </div>
 
       {/* Mobile Sticky Submit Bar */}
-      {isMobile && schedule.status !== 'closed' && (
+      {isMobile && !isReadOnly && schedule.status !== 'closed' && (
         <div style={{
           position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50,
           padding: '0.75rem 1rem',
@@ -453,11 +616,11 @@ const PrepSchedulerForm: React.FC<PrepSchedulerFormProps> = (props) => {
               opacity: (saving || !formUsername.trim()) ? 0.5 : 1,
               minHeight: '50px',
             }}>
-            {saving ? t('prepScheduler.submitting', 'Submitting...') : existingSubmission ? `✏️ ${t('prepScheduler.updateSubmission', 'Update Submission')}` : `📤 ${t('prepScheduler.submit', 'Submit')}`}
+            {saving ? t('prepScheduler.submitting', 'Submitting...') : isAltMode ? `📤 ${t('prepScheduler.submitAlt', 'Submit Alt Account')}` : `📤 ${t('prepScheduler.submit', 'Submit')}`}
           </button>
         </div>
       )}
-      {isMobile && schedule.status === 'closed' && (
+      {isMobile && !isReadOnly && schedule.status === 'closed' && (
         <div style={{
           position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50,
           padding: '0.75rem 1rem',

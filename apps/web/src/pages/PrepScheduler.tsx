@@ -64,6 +64,7 @@ const PrepScheduler: React.FC = () => {
           isMobile={hook.isMobile}
           schedule={hook.schedule}
           existingSubmission={hook.existingSubmission}
+          mySubmissions={hook.mySubmissions}
           assignments={hook.assignments}
           formUsername={hook.formUsername} setFormUsername={hook.setFormUsername}
           formAlliance={hook.formAlliance} setFormAlliance={hook.setFormAlliance}
@@ -75,6 +76,7 @@ const PrepScheduler: React.FC = () => {
           constructionSpeedups={hook.constructionSpeedups} setConstructionSpeedups={hook.setConstructionSpeedups}
           researchSpeedups={hook.researchSpeedups} setResearchSpeedups={hook.setResearchSpeedups}
           generalTarget={hook.generalTarget} setGeneralTarget={hook.setGeneralTarget}
+          generalAllocation={hook.generalAllocation} setGeneralAllocation={hook.setGeneralAllocation}
           skipMonday={hook.skipMonday} setSkipMonday={hook.setSkipMonday}
           skipTuesday={hook.skipTuesday} setSkipTuesday={hook.setSkipTuesday}
           skipThursday={hook.skipThursday} setSkipThursday={hook.setSkipThursday}
@@ -89,6 +91,8 @@ const PrepScheduler: React.FC = () => {
           changeRequestMessage={hook.changeRequestMessage} setChangeRequestMessage={hook.setChangeRequestMessage}
           submitChangeRequest={hook.submitChangeRequest}
           showNonQualifyingPopup={hook.showNonQualifyingPopup} setShowNonQualifyingPopup={hook.setShowNonQualifyingPopup}
+          startAltSubmission={hook.startAltSubmission}
+          editSubmission={hook.editSubmission}
         />
         {hook.pendingConfirm && <ConfirmDialog confirm={hook.pendingConfirm} onDismiss={() => hook.setPendingConfirm(null)} />}
       </>

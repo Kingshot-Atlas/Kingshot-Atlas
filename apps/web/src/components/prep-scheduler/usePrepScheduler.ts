@@ -57,7 +57,9 @@ export function usePrepScheduler() {
   const [constructionSpeedups, setConstructionSpeedups] = useState(0);
   const [researchSpeedups, setResearchSpeedups] = useState(0);
   const [generalTarget, setGeneralTarget] = useState<string>('');
+  const [generalAllocation, setGeneralAllocation] = useState<{ construction: number; training: number; research: number } | null>(null);
   const [existingSubmission, setExistingSubmission] = useState<PrepSubmission | null>(null);
+  const [mySubmissions, setMySubmissions] = useState<PrepSubmission[]>([]);
   const [screenshotFile, setScreenshotFile] = useState<File | null>(null);
   const [screenshotPreview, setScreenshotPreview] = useState<string>('');
   const [skipMonday, setSkipMonday] = useState(false);
@@ -174,8 +176,11 @@ export function usePrepScheduler() {
       const { data } = await supabase.from('prep_submissions').select('*').eq('schedule_id', schedId).order('created_at', { ascending: true });
       setSubmissions(data || []);
       if (user?.id && data) {
-        const mine = data.find((s: PrepSubmission) => s.user_id === user.id);
-        if (mine) { setExistingSubmission(mine); prefillForm(mine); }
+        const allMine = data.filter((s: PrepSubmission) => s.user_id === user.id);
+        setMySubmissions(allMine);
+        // Primary submission = first one (linked username)
+        const mine = allMine.length > 0 ? allMine[0] : null;
+        if (mine && !existingSubmission) { setExistingSubmission(mine); prefillForm(mine); }
       }
     } catch (err) { logger.error('Failed to fetch submissions:', err); }
   }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -240,6 +245,7 @@ export function usePrepScheduler() {
     setConstructionSpeedups(sub.construction_speedups);
     setResearchSpeedups(sub.research_speedups);
     setGeneralTarget(sub.general_speedup_target || '');
+    setGeneralAllocation(sub.general_speedup_allocation || null);
     setSkipMonday(sub.skip_monday || false);
     setSkipTuesday(sub.skip_tuesday || false);
     setSkipThursday(sub.skip_thursday || false);
@@ -569,6 +575,10 @@ export function usePrepScheduler() {
     if (!supabase || !user?.id || !scheduleId) return;
     if (!formUsername.trim()) { showToast(t('prepScheduler.toastUsernameRequired', 'Please enter your username.'), 'error'); return; }
     if (!formAlliance.trim()) { showToast(t('prepScheduler.toastAllianceRequired', 'Please enter your alliance tag.'), 'error'); return; }
+    // Screenshot is required
+    if (!screenshotFile && !existingSubmission?.screenshot_url) {
+      showToast(t('prepScheduler.toastScreenshotRequired', 'Please upload a screenshot of your speedups.'), 'error'); return;
+    }
     const hasAvail = (!skipMonday && mondayAvail.length > 0) || (!skipTuesday && tuesdayAvail.length > 0) || (!skipThursday && thursdayAvail.length > 0);
     if (!hasAvail && !(skipMonday && skipTuesday && skipThursday)) {
       showToast(t('prepScheduler.toastAvailabilityRequired', 'Please add availability for at least one day, or mark all days as skipped.'), 'error'); return;
@@ -582,7 +592,8 @@ export function usePrepScheduler() {
         monday_availability: mondayAvail, tuesday_availability: tuesdayAvail, thursday_availability: thursdayAvail,
         general_speedups: generalSpeedups, training_speedups: trainingSpeedups,
         construction_speedups: constructionSpeedups, research_speedups: researchSpeedups,
-        general_speedup_target: generalTarget || null,
+        general_speedup_target: generalAllocation ? null : (generalTarget || null),
+        general_speedup_allocation: generalAllocation,
         screenshot_url: screenshotUrl,
         skip_monday: skipMonday, skip_tuesday: skipTuesday, skip_thursday: skipThursday,
       };
@@ -638,24 +649,33 @@ export function usePrepScheduler() {
     if (!supabase || !schedule || !user?.id) return;
     try {
       const toRemove = assignments.find(a => a.id === assignmentId);
-      await supabase.from('prep_slot_assignments').delete().eq('id', assignmentId);
+      if (!toRemove) { logger.error('Assignment not found:', assignmentId); return; }
+      // Delete with select to verify it actually happened (RLS can silently block)
+      const { data: deleted, error: delError } = await supabase
+        .from('prep_slot_assignments')
+        .delete()
+        .eq('id', assignmentId)
+        .select();
+      if (delError) throw delError;
+      if (!deleted || deleted.length === 0) {
+        showToast(t('prepScheduler.toastRemoveFailed', 'Failed to remove assignment. You may not have permission.'), 'error');
+        return;
+      }
       // Waitlist auto-promotion
-      if (toRemove) {
-        const day = toRemove.day as Day;
-        const slotTime = toRemove.slot_time;
-        const currentAssignedIds = new Set(assignments.filter(a => a.day === day && a.id !== assignmentId).map(a => a.submission_id));
-        const availKey = `${day}_availability` as keyof PrepSubmission;
-        const candidates = submissions
-          .filter(s => !currentAssignedIds.has(s.id) && !isSkippedDay(s, day))
-          .filter(s => { const avail = (s[availKey] as string[][] | undefined) || []; return isSlotInAvailability(slotTime, avail); })
-          .sort((a, b) => getEffectiveSpeedups(b, day, schedule) - getEffectiveSpeedups(a, day, schedule));
-        const next = candidates[0];
-        if (next) {
-          await supabase.from('prep_slot_assignments').insert({ schedule_id: schedule.id, submission_id: next.id, day, slot_time: slotTime, assigned_by: user.id });
-        }
+      const day = toRemove.day as Day;
+      const slotTime = toRemove.slot_time;
+      const currentAssignedIds = new Set(assignments.filter(a => a.day === day && a.id !== assignmentId).map(a => a.submission_id));
+      const availKey = `${day}_availability` as keyof PrepSubmission;
+      const candidates = submissions
+        .filter(s => !currentAssignedIds.has(s.id) && !isSkippedDay(s, day))
+        .filter(s => { const avail = (s[availKey] as string[][] | undefined) || []; return isSlotInAvailability(slotTime, avail); })
+        .sort((a, b) => getEffectiveSpeedups(b, day, schedule) - getEffectiveSpeedups(a, day, schedule));
+      const next = candidates[0];
+      if (next) {
+        await supabase.from('prep_slot_assignments').insert({ schedule_id: schedule.id, submission_id: next.id, day, slot_time: slotTime, assigned_by: user.id });
       }
       await fetchAssignments(schedule.id);
-    } catch (err) { logger.error('Failed to remove assignment:', err); }
+    } catch (err) { logger.error('Failed to remove assignment:', err); showToast(t('prepScheduler.toastRemoveError', 'Error removing assignment.'), 'error'); }
   };
 
   const copyShareLink = () => {
@@ -753,6 +773,33 @@ export function usePrepScheduler() {
     return gaps;
   }, [daySubmissions, dayAssignments, activeDay, schedule, effectiveSlots]);
 
+  // Start a new submission for an alt account (clears form but keeps schedule context)
+  const startAltSubmission = () => {
+    setExistingSubmission(null);
+    setFormUsername('');
+    setFormAlliance(profile?.alliance_tag || '');
+    setMondayAvail([]);
+    setTuesdayAvail([]);
+    setThursdayAvail([]);
+    setGeneralSpeedups(0);
+    setTrainingSpeedups(0);
+    setConstructionSpeedups(0);
+    setResearchSpeedups(0);
+    setGeneralTarget('');
+    setGeneralAllocation(null);
+    setScreenshotFile(null);
+    setScreenshotPreview('');
+    setSkipMonday(false);
+    setSkipTuesday(false);
+    setSkipThursday(false);
+  };
+
+  // Switch to editing an existing submission (for multi-account)
+  const editSubmission = (sub: PrepSubmission) => {
+    setExistingSubmission(sub);
+    prefillForm(sub);
+  };
+
   return {
     // Routing
     scheduleId, navigate,
@@ -771,7 +818,8 @@ export function usePrepScheduler() {
     generalSpeedups, setGeneralSpeedups, trainingSpeedups, setTrainingSpeedups,
     constructionSpeedups, setConstructionSpeedups, researchSpeedups, setResearchSpeedups,
     generalTarget, setGeneralTarget,
-    existingSubmission, screenshotFile, screenshotPreview,
+    generalAllocation, setGeneralAllocation,
+    existingSubmission, mySubmissions, screenshotFile, screenshotPreview,
     skipMonday, setSkipMonday, skipTuesday, setSkipTuesday, skipThursday, setSkipThursday,
     fileInputRef,
     // Create state
@@ -799,5 +847,6 @@ export function usePrepScheduler() {
     runAutoAssign, assignSlot, removeAssignment,
     copyShareLink, exportScheduleCSV, exportOptedOut,
     handleScreenshotChange, addManager, removeManagerById,
+    startAltSubmission, editSubmission,
   };
 }

@@ -44,7 +44,13 @@ export function getEffectiveSpeedups(sub: PrepSubmission, day: Day, schedule: Pr
   if (buffType === 'construction') base = sub.construction_speedups;
   else if (buffType === 'research') base = sub.research_speedups;
   else if (buffType === 'training') base = sub.training_speedups;
-  if (sub.general_speedup_target === buffType) base += sub.general_speedups;
+  // Advanced allocation: split general speedups by percentage
+  if (sub.general_speedup_allocation) {
+    const pct = (sub.general_speedup_allocation as Record<string, number>)[buffType] || 0;
+    base += Math.round(sub.general_speedups * pct / 100);
+  } else if (sub.general_speedup_target === buffType) {
+    base += sub.general_speedups;
+  }
   return base;
 }
 

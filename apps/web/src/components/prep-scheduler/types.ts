@@ -35,6 +35,7 @@ export interface PrepSubmission {
   skip_monday: boolean;
   skip_tuesday: boolean;
   skip_thursday: boolean;
+  general_speedup_allocation: { construction: number; training: number; research: number } | null;
   speedup_changed_at: string | null;
   previous_speedups: { general: number; training: number; construction: number; research: number; changed_at: string } | null;
   created_at: string;
