@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import MissingKvKPrompt from '../MissingKvKPrompt';
 import SmartTooltip from '../shared/SmartTooltip';
 import { getOutcome, OUTCOMES } from '../../utils/outcomes';
@@ -27,7 +27,6 @@ const KvKHistoryTable: React.FC<KvKHistoryTableProps> = ({
   isMobile,
   onReportErrorClick,
 }) => {
-  const navigate = useNavigate();
   const { t } = useTranslation();
 
   // Sort by kvk_number descending (most recent first)
@@ -148,8 +147,8 @@ const KvKHistoryTable: React.FC<KvKHistoryTableProps> = ({
                         {t('kingdomProfile.noMatch', 'No match')}
                       </span>
                     ) : (
-                      <span 
-                        onClick={() => navigate(`/kingdom/${kvk.opponent_kingdom}`)}
+                      <Link 
+                        to={`/kingdom/${kvk.opponent_kingdom}`}
                         style={{ 
                           color: '#22d3ee', 
                           cursor: 'pointer',
@@ -160,7 +159,7 @@ const KvKHistoryTable: React.FC<KvKHistoryTableProps> = ({
                         onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
                       >
                         {`${t('common.kingdom', 'Kingdom')} ${kvk.opponent_kingdom}`}
-                      </span>
+                      </Link>
                     )}
                   </td>
                   <td style={{ padding: isMobile ? '0.5rem 0.35rem' : '0.65rem 0.5rem', textAlign: 'center' }}>

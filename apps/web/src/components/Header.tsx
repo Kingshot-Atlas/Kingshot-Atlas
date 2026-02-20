@@ -153,6 +153,7 @@ const Header: React.FC = () => {
             {/* Support Atlas Button */}
             <Link
               to="/support"
+              onClick={() => trackButton('Upgrade Click: Header Mobile')}
               style={{
                 display: 'flex',
                 flexDirection: 'column',

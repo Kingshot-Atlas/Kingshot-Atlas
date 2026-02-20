@@ -8,6 +8,28 @@ import { logger } from '../utils/logger';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
+// Typed interfaces for Discord role user data (eliminates no-explicit-any)
+interface RoleUser {
+  id: string;
+  user_id?: string;
+  username?: string;
+  discord_id: string;
+  linked_username?: string;
+  linked_player_id?: string;
+  linked_kingdom?: number;
+  all_kingdoms?: number[];
+  kingdom?: number;
+  referral_tier?: string;
+  referral_count?: number;
+}
+
+interface TransferGroup {
+  id: string;
+  label: string;
+  min_kingdom: number;
+  max_kingdom: number;
+}
+
 async function botHeaders(extra: Record<string, string> = {}): Promise<Record<string, string>> {
   try {
     const { getAuthHeaders } = await import('../services/authHeaders');
@@ -25,8 +47,8 @@ interface BackfillResult {
   assigned: number;
   skipped: number;
   failed: number;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
+  groups?: TransferGroup[];
+  group_counts?: Record<string, number>;
 }
 
 const C = {
@@ -114,26 +136,22 @@ export const DiscordRolesDashboard: React.FC = () => {
   const [activeSection, setActiveSection] = useState<Section>('settler');
 
   // Settler state
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [linkedUsers, setLinkedUsers] = useState<any[]>([]);
+  const [linkedUsers, setLinkedUsers] = useState<RoleUser[]>([]);
   const [settlerResult, setSettlerResult] = useState<BackfillResult | null>(null);
   const [settlerLoading, setSettlerLoading] = useState(false);
 
   // Supporter state
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [supporterUsers, setSupporterUsers] = useState<any[]>([]);
+  const [supporterUsers, setSupporterUsers] = useState<RoleUser[]>([]);
   const [supporterResult, setSupporterResult] = useState<BackfillResult | null>(null);
   const [supporterLoading, setSupporterLoading] = useState(false);
 
   // Gilded state
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [gildedUsers, setGildedUsers] = useState<any[]>([]);
+  const [gildedUsers, setGildedUsers] = useState<RoleUser[]>([]);
   const [gildedResult, setGildedResult] = useState<BackfillResult | null>(null);
   const [gildedLoading, setGildedLoading] = useState(false);
 
   // Referral state
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [referralUsers, setReferralUsers] = useState<any[]>([]);
+  const [referralUsers, setReferralUsers] = useState<RoleUser[]>([]);
   const [referralResult, setReferralResult] = useState<BackfillResult | null>(null);
   const [referralLoading, setReferralLoading] = useState(false);
 
@@ -391,8 +409,7 @@ export const DiscordRolesDashboard: React.FC = () => {
               <div>Range</div>
               <div>Users</div>
             </div>
-            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            {(transferResult.groups as any[]).map((g: any) => (
+            {transferResult.groups?.map((g) => (
               <div key={g.id} style={{ padding: '0.6rem 1rem', borderBottom: `1px solid ${C.border}`, display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', alignItems: 'center', fontSize: '0.8rem' }}>
                 <div style={{ color: C.transfer, fontWeight: 600 }}>{g.label}</div>
                 <div style={{ color: C.muted }}>K{g.min_kingdom}–K{g.max_kingdom}</div>
@@ -417,13 +434,11 @@ export const DiscordRolesDashboard: React.FC = () => {
 interface Column {
   key: string;
   label: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  render: (user: any) => React.ReactNode;
+  render: (user: RoleUser) => React.ReactNode;
 }
 
 const UserTable: React.FC<{
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  users: any[];
+  users: RoleUser[];
   columns: Column[];
   syncAction?: (userId: string) => void;
   syncingUser?: string | null;
@@ -446,19 +461,19 @@ const UserTable: React.FC<{
             {syncAction && (
               <div>
                 <button
-                  onClick={() => syncAction(user.id || user.user_id)}
-                  disabled={syncingUser === (user.id || user.user_id)}
+                  onClick={() => syncAction(user.id)}
+                  disabled={syncingUser === user.id}
                   style={{
                     padding: '0.2rem 0.5rem',
-                    backgroundColor: syncingUser === (user.id || user.user_id) ? C.muted : `${syncColor}20`,
+                    backgroundColor: syncingUser === user.id ? C.muted : `${syncColor}20`,
                     color: syncColor,
                     border: `1px solid ${syncColor}40`,
                     borderRadius: '4px',
-                    cursor: syncingUser === (user.id || user.user_id) ? 'wait' : 'pointer',
+                    cursor: syncingUser === user.id ? 'wait' : 'pointer',
                     fontSize: '0.7rem',
                   }}
                 >
-                  {syncingUser === (user.id || user.user_id) ? '...' : 'Sync'}
+                  {syncingUser === user.id ? '...' : 'Sync'}
                 </button>
               </div>
             )}

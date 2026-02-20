@@ -3,6 +3,24 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-19 | Product Engineer | COMPLETED
+Task: Silver Promo UX Polish — countdown banner + updated gate notice on Prep Scheduler
+Files: apps/web/src/components/prep-scheduler/PrepSchedulerList.tsx, apps/web/src/components/prep-scheduler/usePrepScheduler.ts, apps/web/src/pages/PrepScheduler.tsx
+Changes:
+1. **Silver Promo Countdown banner** — Silver-tier kingdoms (not gold) now see a 🥈 banner with live countdown ("Access expires in Xd Yh") and a "Reach Gold" CTA linking to Transfer Hub.
+2. **Updated Tier Required notice** — When promo is active, non-qualifying kingdoms see "Gold and Silver Tier kingdoms" messaging with specific fund thresholds ($50+ Silver, $100+ Gold) and a "Contribute to Kingdom Fund" CTA button.
+3. **Plumbing:** Exposed `isPromoActive` and `promoMsRemaining` from `usePrepScheduler.ts` → `PrepScheduler.tsx` → `PrepSchedulerList.tsx` props.
+
+## 2026-02-19 | Product Engineer | COMPLETED
+Task: Fix KvK #11 Silver Tier Promo — PrepSchedulerList not recognizing silver kingdoms
+Files: apps/web/src/components/prep-scheduler/PrepSchedulerList.tsx, apps/web/src/components/prep-scheduler/usePrepScheduler.ts, apps/web/src/pages/PrepScheduler.tsx, agents/project-instances/kingshot-atlas/FEATURES_IMPLEMENTED.md
+Changes:
+1. **Root cause:** `PrepSchedulerList.tsx` had 7 places checking only `goldKingdoms.has(...)` without accounting for the silver promo. The `useKvk11Promo` hook and `hasPromoAccess` function existed but were never wired into this component.
+2. **Fix:** Exposed `hasPromoAccess` from `usePrepScheduler.ts` return, passed it through `PrepScheduler.tsx` page, added `hasPromoAccess` prop to `PrepSchedulerList.tsx`, created `hasQualifyingTier()` helper that checks gold OR silver promo access.
+3. **7 gates fixed:** Header badge, Fill The Form CTA, Gold Tier Required notice, Permission info banner, Create Schedule section, Kingdom number validation, Create button disabled state, Empty state text.
+4. **Updated header badge** from "GOLD TIER KINGDOMS ONLY" to "GOLD & SILVER TIER KINGDOMS" during promo period.
+5. **Fixed FEATURES_IMPLEMENTED.md** — incorrect date (Feb 21 → Feb 28) for promo deadline.
+
 ## 2026-02-19 | Platform Engineer | COMPLETED
 Task: Transfer Group role sync hardening — health endpoint, manual trigger, improved logging, alt kingdom fix
 Files: apps/discord-bot/src/bot.js, apps/api/api/supabase_client.py

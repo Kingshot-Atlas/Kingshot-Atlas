@@ -5,6 +5,7 @@ import { usePremium } from '../contexts/PremiumContext';
 import { useOnboardingTracker } from '../hooks/useOnboardingTracker';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useTranslation } from 'react-i18next';
+import { useAnalytics } from '../hooks/useAnalytics';
 
 const ConversionBanner: React.FC = () => {
   const { t } = useTranslation();
@@ -12,6 +13,7 @@ const ConversionBanner: React.FC = () => {
   const { tier } = usePremium();
   const { weeklySessionCount, shouldShowConversionBanner, dismissConversionBanner } = useOnboardingTracker();
   const isMobile = useIsMobile();
+  const { trackButton } = useAnalytics();
 
   // Only show for logged-in free users with 3+ sessions this week
   if (!user || tier === 'supporter' || tier === 'anonymous') return null;
@@ -50,6 +52,7 @@ const ConversionBanner: React.FC = () => {
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
         <Link
           to="/support"
+          onClick={() => trackButton('Upgrade Click: Conversion Banner')}
           style={{
             padding: '0.4rem 0.85rem',
             backgroundColor: '#FF6B8A',

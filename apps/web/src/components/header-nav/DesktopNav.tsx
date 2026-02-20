@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import NotificationBell from '../NotificationBell';
 import { neonGlow } from '../../utils/styles';
 import { SUPPORTED_LANGUAGES, LANGUAGE_META } from '../../i18n';
+import { useAnalytics } from '../../hooks/useAnalytics';
 
 const DISCORD_INVITE = import.meta.env.VITE_DISCORD_INVITE || 'https://discord.gg/cajcacDzGd';
 
@@ -21,6 +22,7 @@ interface DesktopNavProps {
 
 const DesktopNav: React.FC<DesktopNavProps> = ({ isActive, user, changeLanguage, children }) => {
   const { t, i18n } = useTranslation();
+  const { trackButton } = useAnalytics();
   const [showToolsMenu, setShowToolsMenu] = useState(false);
   const [showCommunityMenu, setShowCommunityMenu] = useState(false);
   const [showRankingsMenu, setShowRankingsMenu] = useState(false);
@@ -589,6 +591,7 @@ const DesktopNav: React.FC<DesktopNavProps> = ({ isActive, user, changeLanguage,
       {/* Support Atlas Button */}
       <Link
         to="/support"
+        onClick={() => trackButton('Upgrade Click: Header Desktop')}
         style={{
           display: 'flex',
           alignItems: 'center',

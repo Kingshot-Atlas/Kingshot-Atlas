@@ -27,6 +27,7 @@ import QuickActions from '../components/homepage/QuickActions';
 import TransferHubBanner from '../components/homepage/TransferHubBanner';
 import Kvk11PromoBanner from '../components/homepage/Kvk11PromoBanner';
 import ConversionBanner from '../components/ConversionBanner';
+import SupporterSpotlight from '../components/homepage/SupporterSpotlight';
 import MobileCountdowns from '../components/homepage/MobileCountdowns';
 import { useScrollDepth } from '../hooks/useScrollDepth';
 import { useTranslation } from 'react-i18next';
@@ -412,6 +413,9 @@ const KingdomDirectory: React.FC = () => {
 
       {/* Stage 4: Conversion banner for active free users */}
       <ConversionBanner />
+
+      {/* Supporter Spotlight - social proof for non-supporters */}
+      <SupporterSpotlight />
 
       {/* Search and Controls - Sticky */}
       <div style={{ 

@@ -9,6 +9,9 @@ interface PrepSchedulerListProps {
   user: { id: string } | null;
   profile: { linked_kingdom?: number; linked_player_id?: string; is_admin?: boolean } | null;
   goldKingdoms: Set<number>;
+  hasPromoAccess: (kingdomNumber: number) => boolean;
+  isPromoActive: boolean;
+  promoMsRemaining: number;
   mySchedules: PrepSchedule[];
   kingdomSchedules: PrepSchedule[];
   navigate: (path: string) => void;
@@ -28,13 +31,16 @@ interface PrepSchedulerListProps {
 }
 
 const PrepSchedulerList: React.FC<PrepSchedulerListProps> = ({
-  isMobile, user, profile, goldKingdoms, mySchedules, kingdomSchedules, navigate,
+  isMobile, user, profile, goldKingdoms, hasPromoAccess, isPromoActive, promoMsRemaining, mySchedules, kingdomSchedules, navigate,
   isEditorOrCoEditor, isManager,
   createKingdom, setCreateKingdom, createKvkNumber, setCreateKvkNumber,
   createNotes, setCreateNotes, createDeadline, setCreateDeadline,
   createSchedule, saving,
 }) => {
   const { t } = useTranslation();
+
+  // Helper: kingdom qualifies via Gold tier OR Silver promo
+  const hasQualifyingTier = (kn: number) => goldKingdoms.has(kn) || hasPromoAccess(kn);
 
   // Check for return URL (after login/linking)
   const returnUrl = (() => { try { return sessionStorage.getItem('prep_return_url'); } catch { return null; } })();
@@ -69,7 +75,7 @@ const PrepSchedulerList: React.FC<PrepSchedulerListProps> = ({
             {t('prepScheduler.subtitle', 'Coordinate Castle Appointments for your kingdom\'s Prep Phase. Collect player availability and speedup data, then assign optimal buff slots.')}
           </p>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.5rem', padding: '0.2rem 0.6rem', backgroundColor: '#ffc30b15', border: '1px solid #ffc30b30', borderRadius: '20px' }}>
-            <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#ffc30b' }}>👑 {t('prepScheduler.goldTierOnly', 'GOLD TIER KINGDOMS ONLY')}</span>
+            <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#ffc30b' }}>👑 {t('prepScheduler.goldAndSilverTier', 'GOLD & SILVER TIER KINGDOMS')}</span>
           </div>
         </div>
       </div>
@@ -84,8 +90,31 @@ const PrepSchedulerList: React.FC<PrepSchedulerListProps> = ({
           </div>
         )}
 
+        {/* Silver Promo Countdown — only for silver promo kingdoms (not gold) */}
+        {user && profile?.linked_kingdom && isPromoActive && hasPromoAccess(profile.linked_kingdom) && !goldKingdoms.has(profile.linked_kingdom) && (
+          <div style={{ ...cardStyle, marginBottom: '1rem', borderColor: '#c0c0c030', backgroundColor: '#c0c0c008', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>🥈</span>
+            <div style={{ flex: 1 }}>
+              <p style={{ color: '#c0c0c0', fontSize: '0.8rem', fontWeight: 600, margin: 0 }}>
+                {t('prepScheduler.silverPromoActive', 'Silver Tier Promo — You have temporary access!')}
+              </p>
+              <p style={{ color: colors.textMuted, fontSize: '0.7rem', margin: '0.2rem 0 0', lineHeight: 1.4 }}>
+                {(() => {
+                  const days = Math.floor(promoMsRemaining / (1000 * 60 * 60 * 24));
+                  const hours = Math.floor((promoMsRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                  if (days > 0) return t('prepScheduler.silverPromoCountdown', 'Access expires in {{days}}d {{hours}}h. Reach Gold tier to keep permanent access.', { days, hours });
+                  return t('prepScheduler.silverPromoCountdownHours', 'Access expires in {{hours}}h. Reach Gold tier to keep permanent access.', { hours });
+                })()}
+              </p>
+            </div>
+            <Link to="/transfer-hub" style={{ color: '#ffc30b', fontSize: '0.7rem', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap', padding: '0.3rem 0.6rem', border: '1px solid #ffc30b30', borderRadius: '6px', backgroundColor: '#ffc30b08' }}>
+              {t('prepScheduler.reachGold', 'Reach Gold')}
+            </Link>
+          </div>
+        )}
+
         {/* Fill The Form CTA */}
-        {kingdomSchedules.length > 0 && user && profile?.linked_kingdom && goldKingdoms.has(profile.linked_kingdom) && (
+        {kingdomSchedules.length > 0 && user && profile?.linked_kingdom && hasQualifyingTier(profile.linked_kingdom) && (
           <div style={{ ...cardStyle, marginBottom: '1.5rem', borderColor: '#a855f730', backgroundColor: '#a855f708' }}>
             <h3 style={{ color: '#a855f7', fontSize: '0.95rem', marginBottom: '0.5rem', fontWeight: 700 }}>📅 {t('prepScheduler.activeSchedule', 'Your Kingdom Has an Active Prep Schedule')}</h3>
             <p style={{ color: colors.textMuted, fontSize: '0.8rem', marginBottom: '0.75rem', lineHeight: 1.5 }}>
@@ -102,18 +131,25 @@ const PrepSchedulerList: React.FC<PrepSchedulerListProps> = ({
           </div>
         )}
 
-        {/* Gold Tier Required notice */}
-        {user && profile?.linked_kingdom && !goldKingdoms.has(profile.linked_kingdom) && !kingdomSchedules.length && mySchedules.length === 0 && (
+        {/* Tier Required notice — mentions Silver promo when active */}
+        {user && profile?.linked_kingdom && !hasQualifyingTier(profile.linked_kingdom) && !kingdomSchedules.length && mySchedules.length === 0 && (
           <div style={{ ...cardStyle, marginBottom: '1.5rem', borderColor: '#ffc30b30', backgroundColor: '#ffc30b08' }}>
             <h3 style={{ color: '#ffc30b', fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.5rem' }}>👑 {t('prepScheduler.goldTierRequired', 'Gold Tier Required')}</h3>
             <p style={{ color: colors.textMuted, fontSize: '0.8rem', lineHeight: 1.5 }}>
-              {t('prepScheduler.goldTierRequiredDesc', 'The KvK Prep Scheduler is available for Gold Tier kingdoms. Encourage your kingdom to reach Gold tier through the Kingdom Fund to unlock this tool!')}
+              {isPromoActive
+                ? t('prepScheduler.tierRequiredPromoDesc', 'The KvK Prep Scheduler is available for Gold and Silver Tier kingdoms during the KvK #11 promotion. Contribute to the Kingdom Fund to reach Silver ($50+) or Gold ($100+) and unlock this tool!')
+                : t('prepScheduler.goldTierRequiredDesc', 'The KvK Prep Scheduler is available for Gold Tier kingdoms. Encourage your kingdom to reach Gold tier through the Kingdom Fund to unlock this tool!')}
             </p>
+            {isPromoActive && (
+              <Link to="/transfer-hub" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.5rem', padding: '0.4rem 0.8rem', backgroundColor: '#ffc30b10', border: '1px solid #ffc30b30', borderRadius: '6px', color: '#ffc30b', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none' }}>
+                💰 {t('prepScheduler.contributeNow', 'Contribute to Kingdom Fund')}
+              </Link>
+            )}
           </div>
         )}
 
         {/* Permission info banner for non-editors with Gold Tier kingdoms */}
-        {user && profile?.linked_kingdom && goldKingdoms.has(profile.linked_kingdom) && !profile?.is_admin && !isEditorOrCoEditor && !isManager && (
+        {user && profile?.linked_kingdom && hasQualifyingTier(profile.linked_kingdom) && !profile?.is_admin && !isEditorOrCoEditor && !isManager && (
           <div style={{ ...cardStyle, marginBottom: '1.5rem', borderColor: '#a855f730', backgroundColor: '#a855f708', display: 'flex', alignItems: 'flex-start', gap: '0.6rem' }}>
             <span style={{ fontSize: '1rem', flexShrink: 0 }}>ℹ️</span>
             <p style={{ color: colors.textMuted, fontSize: '0.8rem', lineHeight: 1.5, margin: 0 }}>
@@ -123,7 +159,7 @@ const PrepSchedulerList: React.FC<PrepSchedulerListProps> = ({
         )}
 
         {/* Create New Schedule — only Editors, Co-Editors, Prep Managers, or admins */}
-        {user && (profile?.is_admin || ((isEditorOrCoEditor || isManager) && profile?.linked_kingdom && goldKingdoms.has(profile.linked_kingdom))) && (
+        {user && (profile?.is_admin || ((isEditorOrCoEditor || isManager) && profile?.linked_kingdom && hasQualifyingTier(profile.linked_kingdom))) && (
           <div style={{ ...cardStyle, marginBottom: '1.5rem' }}>
             <h3 style={{ color: colors.text, fontSize: '1rem', marginBottom: '0.75rem', fontWeight: 700 }}>📋 {t('prepScheduler.createSchedule', 'Create New Schedule')}</h3>
             <p style={{ color: colors.textMuted, fontSize: '0.75rem', marginBottom: '1rem', lineHeight: 1.5 }}>
@@ -134,8 +170,8 @@ const PrepSchedulerList: React.FC<PrepSchedulerListProps> = ({
                 <label style={labelStyle}>{t('prepScheduler.kingdomNumber', 'Kingdom Number')} *</label>
                 <input type="number" value={createKingdom || ''} readOnly={!!profile?.linked_kingdom} style={{ ...inputStyle, ...(profile?.linked_kingdom ? { opacity: 0.7, cursor: 'not-allowed', backgroundColor: '#1a1a1a' } : {}) }} onChange={(e) => { if (!profile?.linked_kingdom) setCreateKingdom(parseInt(e.target.value) || 0); }} placeholder="e.g. 172" />
                 {profile?.linked_kingdom && <p style={{ color: colors.textMuted, fontSize: '0.65rem', marginTop: '0.2rem' }}>{t('prepScheduler.autoFilled', 'Auto-filled from your linked kingdom.')}</p>}
-                {createKingdom > 0 && !goldKingdoms.has(createKingdom) && (
-                  <p style={{ color: colors.error, fontSize: '0.7rem', marginTop: '0.25rem' }}>⚠️ {t('prepScheduler.notGoldTier', 'Kingdom {{kingdom}} is not Gold Tier. Only Gold Tier kingdoms can use this tool.', { kingdom: createKingdom })}</p>
+                {createKingdom > 0 && !hasQualifyingTier(createKingdom) && (
+                  <p style={{ color: colors.error, fontSize: '0.7rem', marginTop: '0.25rem' }}>⚠️ {t('prepScheduler.notQualifyingTier', 'Kingdom {{kingdom}} does not have Gold or Silver tier. Only qualifying kingdoms can use this tool.', { kingdom: createKingdom })}</p>
                 )}
               </div>
               <div>
@@ -181,8 +217,8 @@ const PrepSchedulerList: React.FC<PrepSchedulerListProps> = ({
                 ); })()}
                 <p style={{ color: colors.textMuted, fontSize: '0.65rem', marginTop: '0.2rem' }}>{t('prepScheduler.deadlineHintUTC', 'Select the deadline date and time in 24-hour UTC format.')}</p>
               </div>
-              <button onClick={createSchedule} disabled={saving || !createKingdom || !goldKingdoms.has(createKingdom)}
-                style={{ padding: '0.6rem 1.25rem', backgroundColor: createKingdom && goldKingdoms.has(createKingdom) ? '#a855f720' : `${colors.textMuted}10`, border: `1px solid ${createKingdom && goldKingdoms.has(createKingdom) ? '#a855f750' : colors.border}`, borderRadius: '8px', color: createKingdom && goldKingdoms.has(createKingdom) ? '#a855f7' : colors.textMuted, fontSize: '0.85rem', fontWeight: 600, cursor: createKingdom && goldKingdoms.has(createKingdom) ? 'pointer' : 'not-allowed', width: 'fit-content', opacity: saving ? 0.6 : 1 }}>
+              <button onClick={createSchedule} disabled={saving || !createKingdom || !hasQualifyingTier(createKingdom)}
+                style={{ padding: '0.6rem 1.25rem', backgroundColor: createKingdom && hasQualifyingTier(createKingdom) ? '#a855f720' : `${colors.textMuted}10`, border: `1px solid ${createKingdom && hasQualifyingTier(createKingdom) ? '#a855f750' : colors.border}`, borderRadius: '8px', color: createKingdom && hasQualifyingTier(createKingdom) ? '#a855f7' : colors.textMuted, fontSize: '0.85rem', fontWeight: 600, cursor: createKingdom && hasQualifyingTier(createKingdom) ? 'pointer' : 'not-allowed', width: 'fit-content', opacity: saving ? 0.6 : 1 }}>
                 {saving ? t('prepScheduler.creating', 'Creating...') : `✨ ${t('prepScheduler.createScheduleBtn', 'Create Schedule')}`}
               </button>
             </div>
@@ -219,7 +255,7 @@ const PrepSchedulerList: React.FC<PrepSchedulerListProps> = ({
               {t('prepScheduler.noSchedulesYet', 'No Schedules Yet')}
             </h3>
             <p style={{ color: colors.textMuted, fontSize: '0.8rem', lineHeight: 1.6 }}>
-              {profile?.linked_kingdom && goldKingdoms.has(profile.linked_kingdom)
+              {profile?.linked_kingdom && hasQualifyingTier(profile.linked_kingdom)
                 ? t('prepScheduler.noSchedulesGold', 'Create your first Prep Schedule above to coordinate Castle Appointments for your kingdom.')
                 : t('prepScheduler.noSchedulesGeneral', 'When your kingdom has an active Prep Schedule, it will appear here. Ask your Prep Manager to share the form link with you.')}
             </p>

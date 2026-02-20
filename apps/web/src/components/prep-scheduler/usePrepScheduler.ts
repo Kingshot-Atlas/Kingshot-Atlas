@@ -28,7 +28,7 @@ export function usePrepScheduler() {
   const { user, profile } = useAuth();
   const isMobile = useIsMobile();
   const goldKingdoms = useGoldKingdoms();
-  const { hasPromoAccess } = useKvk11Promo();
+  const { hasPromoAccess, isPromoActive, msRemaining: promoMsRemaining } = useKvk11Promo();
   const { showToast } = useToast();
   useDocumentTitle('KvK Prep Scheduler');
 
@@ -804,7 +804,7 @@ export function usePrepScheduler() {
     // Routing
     scheduleId, navigate,
     // Auth
-    user, profile, goldKingdoms,
+    user, profile, goldKingdoms, hasPromoAccess, isPromoActive, promoMsRemaining,
     // Layout
     isMobile,
     // State

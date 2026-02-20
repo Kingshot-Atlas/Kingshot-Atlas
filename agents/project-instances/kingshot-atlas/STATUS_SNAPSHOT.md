@@ -101,20 +101,20 @@
 
 | Issue | Severity | Owner | Notes |
 |-------|----------|-------|-------|
-| ESLint-disable comments | Low | Product | 9 remaining — all non-fetch (canvas, keyboard, useMemo). 7 converted to React Query in Phase 1. |
-| Large component files | Low | Product | 20 baselined files tracked. Key pages reduced: AdminDashboard (1299), TransferBoard (1444), Profile (939), KingdomProfile (765, removed from baseline). RecruiterDashboard (814→275) and RallyCoordinator (997→392) refactored in Phase 3. Header (1631) remains largest. |
+| ESLint-disable comments | Low | Product | 30 remaining (was 38) — 8 removed from DiscordRolesDashboard via proper TypeScript interfaces. All remaining are intentional non-fetch (canvas, keyboard, useMemo). |
+| Large component files | Low | Product | 19 baselined files tracked. Header already refactored (334 lines + 3 sub-components in header-nav/). |
 | TypeScript 5.7.0 | Info | Platform | Upgrade complete. `.npmrc` with `legacy-peer-deps=true` can be removed once verified in CI. |
-| GSC Indexing | Low | Ops | 29% indexed → target 60%+ over 2-4 weeks. Edge-side meta injection deployed. |
+| GSC Indexing | Low | Ops | 29% indexed → target 60%+. KvK opponent links converted from span+onClick to crawlable \<Link\> elements. Edge-side meta injection deployed. |
 
 ---
 
 ## Next Priorities
 
-1. **Monitor GSC indexing rate** — Target 60%+ from 29%
-2. **Component refactoring Phase 4** — Header (1631) remains the largest component
-3. **React Query Phase 2** — Convert mutation patterns (review/approve actions) to useMutation
-4. **Test coverage** — Add Vitest tests for useAdminQueries, useKingdoms, PremiumContext (ADR-025)
-5. **GOVERNANCE_CHECKLIST.md refresh** — Open issues tracker is stale (Jan 26 items, many now fixed)
+1. **Monitor GSC indexing rate** — Target 60%+ from 29%, submit URLs via GSC URL Inspection
+2. **React Query Phase 2** — Convert mutation patterns (review/approve actions) to useMutation
+3. **Monitor onboarding funnel** — Analyze drop-off in Plausible, A/B test ConversionBanner messaging
+4. **GOVERNANCE_CHECKLIST.md refresh** — Open issues tracker is stale (Jan 26 items, many now fixed)
+5. **sharing.test.ts canvas mocks** — 9 pre-existing test failures due to missing canvas mock methods
 
 ---
 
