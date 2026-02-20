@@ -100,6 +100,34 @@ const GROUP_SIZE_OPTIONS = [
 const UTC_HOURS = Array.from({ length: 24 }, (_, i) => `${i.toString().padStart(2, '0')}:00`);
 
 // =============================================
+// SESSION STORAGE DRAFT PERSISTENCE (mobile app-switch protection)
+// =============================================
+
+const TRANSFER_DRAFT_KEY = 'atlas_transfer_draft';
+
+interface TransferDraft {
+  formData: TransferProfileData;
+  coordKingdom: string;
+  coordX: string;
+  coordY: string;
+}
+
+function saveTransferDraft(draft: TransferDraft) {
+  try { sessionStorage.setItem(TRANSFER_DRAFT_KEY, JSON.stringify(draft)); } catch { /* quota */ }
+}
+
+function loadTransferDraft(): TransferDraft | null {
+  try {
+    const raw = sessionStorage.getItem(TRANSFER_DRAFT_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+function clearTransferDraft() {
+  try { sessionStorage.removeItem(TRANSFER_DRAFT_KEY); } catch { /* noop */ }
+}
+
+// =============================================
 // COMPONENT
 // =============================================
 
@@ -143,8 +171,12 @@ const TransferProfileForm: React.FC<{
     }
   };
 
+  // Restore draft from sessionStorage (mobile app-switch protection)
+  const draft = loadTransferDraft();
+  const [draftRestored] = useState(() => !!draft);
+
   // Form state
-  const [formData, setFormData] = useState<TransferProfileData>({
+  const [formData, setFormData] = useState<TransferProfileData>(draft?.formData ?? {
     username: '',
     current_kingdom: 0,
     tc_level: 0,
@@ -165,9 +197,33 @@ const TransferProfileForm: React.FC<{
   });
 
   // Structured coordinate fields for in-game contact
-  const [coordKingdom, setCoordKingdom] = useState<string>('');
-  const [coordX, setCoordX] = useState<string>('');
-  const [coordY, setCoordY] = useState<string>('');
+  const [coordKingdom, setCoordKingdom] = useState<string>(draft?.coordKingdom ?? '');
+  const [coordX, setCoordX] = useState<string>(draft?.coordX ?? '');
+  const [coordY, setCoordY] = useState<string>(draft?.coordY ?? '');
+
+  // Show toast when draft is restored
+  useEffect(() => {
+    if (draftRestored) {
+      showToast(t('transferProfile.draftRestored', 'Draft restored'), 'info');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Persist draft to sessionStorage on every form change
+  useEffect(() => {
+    saveTransferDraft({ formData, coordKingdom, coordX, coordY });
+  }, [formData, coordKingdom, coordX, coordY]);
+
+  // Also save on visibilitychange (catches mobile tab kill before useEffect fires)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        saveTransferDraft({ formData, coordKingdom, coordX, coordY });
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [formData, coordKingdom, coordX, coordY]);
 
   // Auto-fill from linked account
   useEffect(() => {
@@ -414,6 +470,7 @@ const TransferProfileForm: React.FC<{
       if (upsertError) throw upsertError;
       if (!existingProfile) trackFeature('Transfer Funnel: Profile Created');
 
+      clearTransferDraft();
       onSaved();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to save profile';

@@ -1292,7 +1292,12 @@
     "verifyNow": "J'ai Changé Mon Nom — Vérifier",
     "checking": "Vérification...",
     "codeNotFound": "Code \"{{code}}\" non trouvé dans votre nom en jeu. Changez votre nom pour l'inclure, attendez un instant, puis réessayez.",
-    "verified": "Propriété vérifiée ! Compte ajouté : {{name}} (K{{kingdom}})"
+    "verified": "Propriété vérifiée ! Compte ajouté : {{name}} (K{{kingdom}})",
+    "draftRestored": "Progression de vérification restaurée",
+    "pollAttempt": "Tentative {{count}} sur {{max}} · Revérification toutes les {{seconds}}s",
+    "pollTimeout": "La vérification a expiré après {{seconds}}s. Assurez-vous que \"{{code}}\" figure dans votre nom en jeu et réessayez.",
+    "polling": "Vérification de votre nom en jeu...",
+    "stopChecking": "Arrêter la Vérification"
   },
   "transferHub": {
     "heroTitle1": "CENTRE DE",
@@ -1787,7 +1792,8 @@
     "share": "Partager",
     "saving": "Enregistrement...",
     "updateProfile": "Mettre à Jour le Profil",
-    "createProfile": "Créer le Profil"
+    "createProfile": "Créer le Profil",
+    "draftRestored": "Brouillon restauré"
   },
   "kingdom": {
     "battle": "Bataille",
@@ -2707,7 +2713,21 @@
     "general": "Général",
     "training": "Entraînement",
     "construction": "Construction",
-    "research": "Recherche"
+    "research": "Recherche",
+    "contributeNow": "Contribuer au Fonds du Royaume",
+    "disableStagger": "Désactiver le Décalage 49 Créneaux",
+    "enableStagger": "Activer le Décalage 49 Créneaux",
+    "goldAndSilverTier": "ROYAUMES NIVEAU OR ET ARGENT",
+    "notQualifyingTier": "Le royaume {{kingdom}} n'a pas le niveau Or ou Argent. Seuls les royaumes qualifiés peuvent utiliser cet outil.",
+    "reachGold": "Atteindre Or",
+    "silverPromoActive": "Promo Niveau Argent — Vous avez un accès temporaire !",
+    "silverPromoCountdown": "L'accès expire dans {{days}}j {{hours}}h. Atteignez le niveau Or pour garder un accès permanent.",
+    "silverPromoCountdownHours": "L'accès expire dans {{hours}}h. Atteignez le niveau Or pour garder un accès permanent.",
+    "staggerTag": "DÉCALÉ",
+    "tierRequiredPromoDesc": "Le Planificateur de Prep KvK est disponible pour les royaumes Or et Argent pendant la promotion KvK #11. Contribuez au Fonds du Royaume pour atteindre Argent (50$+) ou Or (100$+) et débloquer cet outil !",
+    "toastStaggerDisabled": "Décalage désactivé — retour à 48 créneaux.",
+    "toastStaggerEnabled": "Décalage 49 créneaux activé — créneau 23:45 UTC ajouté.",
+    "toastStaggerFailed": "Échec du basculement du décalage."
   },
   "prepLanding": {
     "featAutoAssign": "Assignation Automatique des Créneaux",
@@ -2821,5 +2841,24 @@
   },
   "kvkSubmit": {
     "screenshotDisclaimer": "Je confirme que ces captures d'écran sont mes propres captures en jeu. Je comprends que tout le contenu du jeu est la propriété de Century Games et j'autorise Kingshot Atlas à les stocker et afficher à des fins communautaires."
+  },
+  "supporter": {
+    "spotlightTitle": "Données Communautaires",
+    "spotlightDesc": "Les Supporters Atlas financent les serveurs, la base de données et le développement qui maintiennent plus de 1200 profils de royaumes précis et gratuits pour tous.",
+    "spotlightCta": "En Savoir Plus"
+  },
+  "campaign": {
+    "title": "Campagne des Colonies du Royaume",
+    "live": "EN DIRECT",
+    "subtitle": "Les 3 meilleurs royaumes par joueurs vérifiés gagnent de vraies récompenses. Ralliez votre alliance.",
+    "cta": "Voir le classement"
+  },
+  "kvkBanner": {
+    "matchupMessage": "Les matchs KvK sont en direct ! Ajoutez le match de votre royaume maintenant.",
+    "matchupCta": "Ajouter un Match",
+    "prepMessage": "La Phase de Préparation KvK est terminée ! Soumettez votre résultat de préparation.",
+    "prepCta": "Ajouter Résultat Prep",
+    "battleMessage": "La Bataille du Château KvK est terminée ! Soumettez votre résultat de bataille.",
+    "battleCta": "Ajouter Résultat de Bataille"
   }
 }

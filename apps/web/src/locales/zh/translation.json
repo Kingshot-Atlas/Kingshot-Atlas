@@ -1292,7 +1292,12 @@
     "verifyNow": "我已更改名字 — 验证",
     "checking": "检查中...",
     "codeNotFound": "在你的游戏名中未找到代码 \"{{code}}\"。请更改名字包含此代码，稍等片刻后重试。",
-    "verified": "所有权已验证！账号已添加：{{name}} (K{{kingdom}})"
+    "verified": "所有权已验证！账号已添加：{{name}} (K{{kingdom}})",
+    "draftRestored": "验证进度已恢复",
+    "pollAttempt": "第 {{count}} 次尝试（共 {{max}} 次）· 每 {{seconds}} 秒重新检查",
+    "pollTimeout": "验证在 {{seconds}} 秒后超时。请确保游戏名中包含\"{{code}}\"，然后重试。",
+    "polling": "正在检查您的游戏名称...",
+    "stopChecking": "停止检查"
   },
   "transferHub": {
     "heroTitle1": "转服",
@@ -1787,7 +1792,8 @@
     "share": "分享",
     "saving": "保存中...",
     "updateProfile": "更新资料",
-    "createProfile": "创建资料"
+    "createProfile": "创建资料",
+    "draftRestored": "草稿已恢复"
   },
   "kingdom": {
     "battle": "战斗",
@@ -2707,7 +2713,21 @@
     "general": "通用",
     "training": "训练",
     "construction": "建造",
-    "research": "研究"
+    "research": "研究",
+    "contributeNow": "为王国基金捐款",
+    "disableStagger": "禁用49时段交错",
+    "enableStagger": "启用49时段交错",
+    "goldAndSilverTier": "金级和银级王国",
+    "notQualifyingTier": "王国 {{kingdom}} 没有金级或银级。只有符合条件的王国才能使用此工具。",
+    "reachGold": "达到金级",
+    "silverPromoActive": "银级促销 — 你有临时访问权限！",
+    "silverPromoCountdown": "访问权限将在 {{days}}天 {{hours}}小时后到期。达到金级以保持永久访问。",
+    "silverPromoCountdownHours": "访问权限将在 {{hours}}小时后到期。达到金级以保持永久访问。",
+    "staggerTag": "交错",
+    "tierRequiredPromoDesc": "KvK 准备调度器在 KvK #11 促销期间可供金级和银级王国使用。为王国基金捐款以达到银级（$50+）或金级（$100+）并解锁此工具！",
+    "toastStaggerDisabled": "交错已禁用 — 恢复为48个时段。",
+    "toastStaggerEnabled": "49时段交错已启用 — 已添加 23:45 UTC 时段。",
+    "toastStaggerFailed": "切换交错失败。"
   },
   "prepLanding": {
     "featAutoAssign": "自动时段分配",
@@ -2821,5 +2841,24 @@
   },
   "kvkSubmit": {
     "screenshotDisclaimer": "我确认这些截图是我自己的游戏截图。我了解所有游戏内容均为Century Games的财产，并授权Kingshot Atlas存储和展示这些截图用于社区数据目的。"
+  },
+  "supporter": {
+    "spotlightTitle": "社区驱动数据",
+    "spotlightDesc": "Atlas Supporters 资助服务器、数据库和开发，使 1200 多个王国档案保持准确且对所有人免费。",
+    "spotlightCta": "了解更多"
+  },
+  "campaign": {
+    "title": "王国殖民地活动",
+    "live": "进行中",
+    "subtitle": "验证玩家最多的前3个王国赢得真实奖励。动员你的联盟。",
+    "cta": "查看排行榜"
+  },
+  "kvkBanner": {
+    "matchupMessage": "KvK 对阵已公布！立即添加你王国的对阵信息。",
+    "matchupCta": "添加对阵",
+    "prepMessage": "KvK 准备阶段已结束！提交你的准备结果。",
+    "prepCta": "添加准备结果",
+    "battleMessage": "KvK 城堡战已结束！提交你的战斗结果。",
+    "battleCta": "添加战斗结果"
   }
 }

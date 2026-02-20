@@ -97,11 +97,31 @@ const AccountSwitcher: React.FC<AccountSwitcherProps> = ({ onSwitch }) => {
     fetchAccounts();
   }, [fetchAccounts]);
 
+  // Show toast when verification draft is restored from sessionStorage
+  useEffect(() => {
+    if (restored) {
+      showToast(t('accountSwitcher.draftRestored', 'Verification progress restored'), 'info');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Persist verification flow state to sessionStorage on every change
   useEffect(() => {
     if (showAddInput || verifyStep || verifyCode || pendingPlayer) {
       saveVerifyState({ newPlayerId, verifyStep, verifyCode, pendingPlayer, showAddInput });
     }
+  }, [newPlayerId, verifyStep, verifyCode, pendingPlayer, showAddInput]);
+
+  // Also save on visibilitychange (catches mobile tab kill before useEffect fires)
+  useEffect(() => {
+    if (!showAddInput && !verifyStep) return;
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        saveVerifyState({ newPlayerId, verifyStep, verifyCode, pendingPlayer, showAddInput });
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [newPlayerId, verifyStep, verifyCode, pendingPlayer, showAddInput]);
 
   const handleSwitch = async (account: PlayerAccount) => {

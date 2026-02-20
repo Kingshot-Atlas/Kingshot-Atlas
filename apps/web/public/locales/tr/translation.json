@@ -1292,7 +1292,12 @@
     "verifyNow": "Adımı Değiştirdim — Doğrula",
     "checking": "Kontrol ediliyor...",
     "codeNotFound": "Oyun içi adınızda \"{{code}}\" kodu bulunamadı. Adınızı değiştirin, bir süre bekleyin ve tekrar deneyin.",
-    "verified": "Sahiplik doğrulandı! Hesap eklendi: {{name}} (K{{kingdom}})"
+    "verified": "Sahiplik doğrulandı! Hesap eklendi: {{name}} (K{{kingdom}})",
+    "draftRestored": "Doğrulama ilerlemesi geri yüklendi",
+    "pollAttempt": "Deneme {{count}}/{{max}} · Her {{seconds}} saniyede yeniden kontrol",
+    "pollTimeout": "{{seconds}} saniye sonra doğrulama zaman aşımına uğradı. Oyun içi adınızda \"{{code}}\" olduğundan emin olun ve tekrar deneyin.",
+    "polling": "Oyun içi adınız kontrol ediliyor...",
+    "stopChecking": "Kontrolü Durdur"
   },
   "transferHub": {
     "heroTitle1": "TRANSFER",
@@ -1787,7 +1792,8 @@
     "share": "Paylaş",
     "saving": "Kaydediliyor...",
     "updateProfile": "Profili Güncelle",
-    "createProfile": "Profil Oluştur"
+    "createProfile": "Profil Oluştur",
+    "draftRestored": "Taslak geri yüklendi"
   },
   "kingdom": {
     "battle": "Savaş",
@@ -2707,7 +2713,21 @@
     "general": "Genel",
     "training": "Eğitim",
     "construction": "İnşaat",
-    "research": "Araştırma"
+    "research": "Araştırma",
+    "contributeNow": "Krallık Fonuna Katkıda Bulun",
+    "disableStagger": "49 Slot Kademelemeyi Devre Dışı Bırak",
+    "enableStagger": "49 Slot Kademelemeyi Etkinleştir",
+    "goldAndSilverTier": "ALTIN VE GÜMÜŞ SEVİYE KRALLIKLAR",
+    "notQualifyingTier": "Krallık {{kingdom}} Altın veya Gümüş seviyeye sahip değil. Bu aracı yalnızca uygun krallıklar kullanabilir.",
+    "reachGold": "Altına Ulaş",
+    "silverPromoActive": "Gümüş Seviye Promosyonu — Geçici erişiminiz var!",
+    "silverPromoCountdown": "Erişim {{days}}g {{hours}}s sonra sona eriyor. Kalıcı erişim için Altın seviyeye ulaşın.",
+    "silverPromoCountdownHours": "Erişim {{hours}}s sonra sona eriyor. Kalıcı erişim için Altın seviyeye ulaşın.",
+    "staggerTag": "KADEMELİ",
+    "tierRequiredPromoDesc": "KvK Hazırlık Zamanlayıcısı, KvK #11 promosyonu süresince Altın ve Gümüş Seviye krallıklar için kullanılabilir. Gümüş ($50+) veya Altın ($100+) seviyeye ulaşmak için Krallık Fonuna katkıda bulunun!",
+    "toastStaggerDisabled": "Kademeleme devre dışı — 48 slota geri dönüldü.",
+    "toastStaggerEnabled": "49 slot kademeleme etkinleştirildi — 23:45 UTC slotu eklendi.",
+    "toastStaggerFailed": "Kademeleme değiştirilemedi."
   },
   "prepLanding": {
     "featAutoAssign": "Otomatik Slot Ataması",
@@ -2821,5 +2841,24 @@
   },
   "kvkSubmit": {
     "screenshotDisclaimer": "Bu ekran görüntülerinin kendi oyun içi yakalamaalarım olduğunu onaylıyorum. Tüm oyun içeriğinin Century Games'in mülkü olduğunu anlıyor ve Kingshot Atlas'ın bunları topluluk veri amaçları için saklamasına ve görüntülemesine izin veriyorum."
+  },
+  "supporter": {
+    "spotlightTitle": "Topluluk Destekli Veriler",
+    "spotlightDesc": "Atlas Destekçileri, 1200+ krallık profilini doğru ve herkes için ücretsiz tutan sunucuları, veritabanını ve geliştirmeyi finanse eder.",
+    "spotlightCta": "Daha Fazla Bilgi"
+  },
+  "campaign": {
+    "title": "Krallık Kolonileri Kampanyası",
+    "live": "CANLI",
+    "subtitle": "Doğrulanmış oyuncu sayısına göre ilk 3 krallık gerçek ödüller kazanır. İttifakınızı toplayın.",
+    "cta": "Sıralamayı gör"
+  },
+  "kvkBanner": {
+    "matchupMessage": "KvK eşleşmeleri yayında! Krallığınızın eşleşmesini şimdi ekleyin.",
+    "matchupCta": "Eşleşme Ekle",
+    "prepMessage": "KvK Hazırlık Aşaması sona erdi! Hazırlık sonucunuzu gönderin.",
+    "prepCta": "Hazırlık Sonucu Ekle",
+    "battleMessage": "KvK Kale Savaşı sona erdi! Savaş sonucunuzu gönderin.",
+    "battleCta": "Savaş Sonucu Ekle"
   }
 }

@@ -1292,7 +1292,12 @@
     "verifyNow": "I Changed My Name — Verify",
     "checking": "Checking...",
     "codeNotFound": "Code \"{{code}}\" not found in your in-game name. Change your name to include it, wait a moment, then try again.",
-    "verified": "Ownership verified! Account added: {{name}} (K{{kingdom}})"
+    "verified": "Ownership verified! Account added: {{name}} (K{{kingdom}})",
+    "draftRestored": "Verification progress restored",
+    "pollAttempt": "Attempt {{count}} of {{max}} · Rechecking every {{seconds}}s",
+    "pollTimeout": "Verification timed out after {{seconds}}s. Make sure \"{{code}}\" is in your in-game name and try again.",
+    "polling": "Checking your in-game name...",
+    "stopChecking": "Stop Checking"
   },
   "transferHub": {
     "heroTitle1": "TRANSFER",
@@ -1787,7 +1792,8 @@
     "share": "Share",
     "saving": "Saving...",
     "updateProfile": "Update Profile",
-    "createProfile": "Create Profile"
+    "createProfile": "Create Profile",
+    "draftRestored": "Draft restored"
   },
   "kingdom": {
     "battle": "Battle",
@@ -2707,7 +2713,21 @@
     "general": "General",
     "training": "Training",
     "construction": "Construction",
-    "research": "Research"
+    "research": "Research",
+    "contributeNow": "Contribute to Kingdom Fund",
+    "disableStagger": "Disable 49-Slot Stagger",
+    "enableStagger": "Enable 49-Slot Stagger",
+    "goldAndSilverTier": "GOLD & SILVER TIER KINGDOMS",
+    "notQualifyingTier": "Kingdom {{kingdom}} does not have Gold or Silver tier. Only qualifying kingdoms can use this tool.",
+    "reachGold": "Reach Gold",
+    "silverPromoActive": "Silver Tier Promo — You have temporary access!",
+    "silverPromoCountdown": "Access expires in {{days}}d {{hours}}h. Reach Gold tier to keep permanent access.",
+    "silverPromoCountdownHours": "Access expires in {{hours}}h. Reach Gold tier to keep permanent access.",
+    "staggerTag": "STAGGER",
+    "tierRequiredPromoDesc": "The KvK Prep Scheduler is available for Gold and Silver Tier kingdoms during the KvK #11 promotion. Contribute to the Kingdom Fund to reach Silver ($50+) or Gold ($100+) and unlock this tool!",
+    "toastStaggerDisabled": "Stagger disabled — back to 48 slots.",
+    "toastStaggerEnabled": "49-slot stagger enabled — 23:45 UTC slot added.",
+    "toastStaggerFailed": "Failed to toggle stagger."
   },
   "prepLanding": {
     "featAutoAssign": "Automated Slot Assignment",
@@ -2821,6 +2841,11 @@
     "prepCta": "Add Prep Result",
     "battleMessage": "KvK Castle Battle is over! Submit your battle result.",
     "battleCta": "Add Battle Result"
+  },
+  "supporter": {
+    "spotlightTitle": "Community-Powered Data",
+    "spotlightDesc": "Atlas Supporters fund the servers, database, and development that keep 1200+ kingdom profiles accurate and free for everyone.",
+    "spotlightCta": "Learn More"
   },
   "welcome": {
     "favoritesDesc": "Track kingdoms you care about and get notified when scores change",

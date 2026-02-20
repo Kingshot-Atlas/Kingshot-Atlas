@@ -1292,7 +1292,12 @@
     "verifyNow": "이름을 변경했습니다 — 확인",
     "checking": "확인 중...",
     "codeNotFound": "게임 내 이름에서 코드 \"{{code}}\"를 찾을 수 없습니다. 이름을 변경하고 잠시 후 다시 시도하세요.",
-    "verified": "소유권 확인 완료! 계정 추가됨: {{name}} (K{{kingdom}})"
+    "verified": "소유권 확인 완료! 계정 추가됨: {{name}} (K{{kingdom}})",
+    "draftRestored": "인증 진행 상태 복원됨",
+    "pollAttempt": "시도 {{count}}/{{max}} · {{seconds}}초마다 재확인",
+    "pollTimeout": "{{seconds}}초 후 인증 시간 초과. 게임 내 이름에 \"{{code}}\"가 포함되어 있는지 확인하고 다시 시도하세요.",
+    "polling": "게임 내 이름 확인 중...",
+    "stopChecking": "확인 중지"
   },
   "transferHub": {
     "heroTitle1": "이적",
@@ -1787,7 +1792,8 @@
     "share": "공유",
     "saving": "저장 중...",
     "updateProfile": "프로필 업데이트",
-    "createProfile": "프로필 만들기"
+    "createProfile": "프로필 만들기",
+    "draftRestored": "초안 복원됨"
   },
   "kingdom": {
     "battle": "전투",
@@ -2707,7 +2713,21 @@
     "general": "일반",
     "training": "훈련",
     "construction": "건설",
-    "research": "연구"
+    "research": "연구",
+    "contributeNow": "왕국 기금에 기여",
+    "disableStagger": "49슬롯 시차 비활성화",
+    "enableStagger": "49슬롯 시차 활성화",
+    "goldAndSilverTier": "골드 & 실버 등급 왕국",
+    "notQualifyingTier": "왕국 {{kingdom}}은(는) 골드 또는 실버 등급이 아닙니다. 자격이 있는 왕국만 이 도구를 사용할 수 있습니다.",
+    "reachGold": "골드 달성",
+    "silverPromoActive": "실버 등급 프로모 — 임시 접근 권한이 있습니다!",
+    "silverPromoCountdown": "접근 권한이 {{days}}일 {{hours}}시간 후에 만료됩니다. 영구 접근을 위해 골드 등급을 달성하세요.",
+    "silverPromoCountdownHours": "접근 권한이 {{hours}}시간 후에 만료됩니다. 영구 접근을 위해 골드 등급을 달성하세요.",
+    "staggerTag": "시차",
+    "tierRequiredPromoDesc": "KvK 준비 스케줄러는 KvK #11 프로모션 기간 동안 골드 및 실버 등급 왕국에서 사용할 수 있습니다. 왕국 기금에 기여하여 실버($50+) 또는 골드($100+)를 달성하세요!",
+    "toastStaggerDisabled": "시차 비활성화 — 48슬롯으로 복원.",
+    "toastStaggerEnabled": "49슬롯 시차 활성화 — 23:45 UTC 슬롯 추가됨.",
+    "toastStaggerFailed": "시차 전환 실패."
   },
   "prepLanding": {
     "featAutoAssign": "자동 슬롯 배정",
@@ -2821,5 +2841,24 @@
   },
   "kvkSubmit": {
     "screenshotDisclaimer": "이 스크린샷이 제 게임 내 캡처임을 확인합니다. 모든 게임 콘텐츠는 Century Games의 자산이며, Kingshot Atlas가 커뮤니티 데이터 목적으로 저장 및 표시할 수 있도록 허가합니다."
+  },
+  "supporter": {
+    "spotlightTitle": "커뮤니티 기반 데이터",
+    "spotlightDesc": "Atlas Supporters는 1200개 이상의 왕국 프로필을 정확하고 무료로 유지하는 서버, 데이터베이스 및 개발을 지원합니다.",
+    "spotlightCta": "더 알아보기"
+  },
+  "campaign": {
+    "title": "왕국 식민지 캠페인",
+    "live": "진행 중",
+    "subtitle": "인증된 플레이어 수 상위 3개 왕국이 실제 보상을 받습니다. 동맹을 모으세요.",
+    "cta": "리더보드 보기"
+  },
+  "kvkBanner": {
+    "matchupMessage": "KvK 매칭이 공개되었습니다! 지금 왕국의 매칭을 추가하세요.",
+    "matchupCta": "매칭 추가",
+    "prepMessage": "KvK 준비 단계가 끝났습니다! 준비 결과를 제출하세요.",
+    "prepCta": "준비 결과 추가",
+    "battleMessage": "KvK 성 전투가 끝났습니다! 전투 결과를 제출하세요.",
+    "battleCta": "전투 결과 추가"
   }
 }

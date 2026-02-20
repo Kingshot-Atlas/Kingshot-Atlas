@@ -1292,7 +1292,12 @@
     "verifyNow": "Cambié Mi Nombre — Verificar",
     "checking": "Verificando...",
     "codeNotFound": "Código \"{{code}}\" no encontrado en tu nombre del juego. Cambia tu nombre para incluirlo, espera un momento e intenta de nuevo.",
-    "verified": "¡Propiedad verificada! Cuenta agregada: {{name}} (K{{kingdom}})"
+    "verified": "¡Propiedad verificada! Cuenta agregada: {{name}} (K{{kingdom}})",
+    "draftRestored": "Progreso de verificación restaurado",
+    "pollAttempt": "Intento {{count}} de {{max}} · Recomprobando cada {{seconds}}s",
+    "pollTimeout": "La verificación expiró después de {{seconds}}s. Asegúrate de que \"{{code}}\" esté en tu nombre del juego e intenta de nuevo.",
+    "polling": "Verificando tu nombre del juego...",
+    "stopChecking": "Dejar de Verificar"
   },
   "transferHub": {
     "heroTitle1": "CENTRO DE",
@@ -1787,7 +1792,8 @@
     "share": "Compartir",
     "saving": "Guardando...",
     "updateProfile": "Actualizar Perfil",
-    "createProfile": "Crear Perfil"
+    "createProfile": "Crear Perfil",
+    "draftRestored": "Borrador restaurado"
   },
   "kingdom": {
     "battle": "Batalla",
@@ -2707,7 +2713,21 @@
     "general": "General",
     "training": "Entrenamiento",
     "construction": "Construcción",
-    "research": "Investigación"
+    "research": "Investigación",
+    "contributeNow": "Contribuir al Fondo del Reino",
+    "disableStagger": "Desactivar Escalonamiento de 49 Turnos",
+    "enableStagger": "Activar Escalonamiento de 49 Turnos",
+    "goldAndSilverTier": "REINOS DE NIVEL ORO Y PLATA",
+    "notQualifyingTier": "El reino {{kingdom}} no tiene nivel Oro o Plata. Solo los reinos calificados pueden usar esta herramienta.",
+    "reachGold": "Alcanzar Oro",
+    "silverPromoActive": "Promo Nivel Plata — ¡Tienes acceso temporal!",
+    "silverPromoCountdown": "El acceso expira en {{days}}d {{hours}}h. Alcanza el nivel Oro para mantener acceso permanente.",
+    "silverPromoCountdownHours": "El acceso expira en {{hours}}h. Alcanza el nivel Oro para mantener acceso permanente.",
+    "staggerTag": "ESCALONADO",
+    "tierRequiredPromoDesc": "El Programador de Prep KvK está disponible para reinos de nivel Oro y Plata durante la promoción de KvK #11. ¡Contribuye al Fondo del Reino para alcanzar Plata ($50+) u Oro ($100+) y desbloquea esta herramienta!",
+    "toastStaggerDisabled": "Escalonamiento desactivado — volviendo a 48 turnos.",
+    "toastStaggerEnabled": "Escalonamiento de 49 turnos activado — turno 23:45 UTC agregado.",
+    "toastStaggerFailed": "Error al cambiar el escalonamiento."
   },
   "prepLanding": {
     "featAutoAssign": "Asignación Automática de Turnos",
@@ -2821,5 +2841,24 @@
   },
   "kvkSubmit": {
     "screenshotDisclaimer": "Confirmo que estas capturas son propias del juego. Entiendo que todo el contenido del juego es propiedad de Century Games y autorizo a Kingshot Atlas a almacenarlas y mostrarlas para fines comunitarios."
+  },
+  "supporter": {
+    "spotlightTitle": "Datos Impulsados por la Comunidad",
+    "spotlightDesc": "Los Supporters de Atlas financian los servidores, base de datos y desarrollo que mantienen más de 1200 perfiles de reinos precisos y gratuitos para todos.",
+    "spotlightCta": "Saber Más"
+  },
+  "campaign": {
+    "title": "Campaña de Colonias del Reino",
+    "live": "EN VIVO",
+    "subtitle": "Los 3 mejores reinos por jugadores verificados ganan recompensas reales. Moviliza a tu alianza.",
+    "cta": "Ver clasificación"
+  },
+  "kvkBanner": {
+    "matchupMessage": "¡Los emparejamientos de KvK están en vivo! Agrega el emparejamiento de tu reino ahora.",
+    "matchupCta": "Agregar Emparejamiento",
+    "prepMessage": "¡La Fase de Preparación de KvK ha terminado! Envía tu resultado de preparación.",
+    "prepCta": "Agregar Resultado de Prep",
+    "battleMessage": "¡La Batalla de Castillo de KvK ha terminado! Envía tu resultado de batalla.",
+    "battleCta": "Agregar Resultado de Batalla"
   }
 }

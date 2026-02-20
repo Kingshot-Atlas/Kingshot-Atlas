@@ -1292,7 +1292,12 @@
     "verifyNow": "名前を変更しました — 確認",
     "checking": "確認中...",
     "codeNotFound": "ゲーム内の名前にコード \"{{code}}\" が見つかりません。名前を変更してしばらく待ってから再試行してください。",
-    "verified": "所有権確認完了！アカウント追加：{{name}} (K{{kingdom}})"
+    "verified": "所有権確認完了！アカウント追加：{{name}} (K{{kingdom}})",
+    "draftRestored": "認証の進捗が復元されました",
+    "pollAttempt": "試行 {{count}}/{{max}} · {{seconds}}秒ごとに再確認",
+    "pollTimeout": "{{seconds}}秒後に認証がタイムアウトしました。ゲーム内の名前に\"{{code}}\"が含まれていることを確認して、もう一度お試しください。",
+    "polling": "ゲーム内の名前を確認中...",
+    "stopChecking": "確認を停止"
   },
   "transferHub": {
     "heroTitle1": "トランスファー",
@@ -1787,7 +1792,8 @@
     "share": "共有",
     "saving": "保存中...",
     "updateProfile": "プロフィールを更新",
-    "createProfile": "プロフィールを作成"
+    "createProfile": "プロフィールを作成",
+    "draftRestored": "下書きが復元されました"
   },
   "kingdom": {
     "battle": "Battle",
@@ -2707,7 +2713,21 @@
     "general": "汎用",
     "training": "訓練",
     "construction": "建設",
-    "research": "研究"
+    "research": "研究",
+    "contributeNow": "王国ファンドに貢献",
+    "disableStagger": "49スロットスタガーを無効化",
+    "enableStagger": "49スロットスタガーを有効化",
+    "goldAndSilverTier": "ゴールド＆シルバーティア王国",
+    "notQualifyingTier": "王国 {{kingdom}} はゴールドまたはシルバーティアではありません。資格のある王国のみこのツールを使用できます。",
+    "reachGold": "ゴールドを目指す",
+    "silverPromoActive": "シルバーティアプロモ — 一時的なアクセス権があります！",
+    "silverPromoCountdown": "アクセスは {{days}}日 {{hours}}時間後に期限切れになります。永久アクセスにはゴールドティアを達成してください。",
+    "silverPromoCountdownHours": "アクセスは {{hours}}時間後に期限切れになります。永久アクセスにはゴールドティアを達成してください。",
+    "staggerTag": "スタガー",
+    "tierRequiredPromoDesc": "KvK準備スケジューラーはKvK #11プロモーション期間中、ゴールドおよびシルバーティア王国で利用可能です。王国ファンドに貢献してシルバー（$50+）またはゴールド（$100+）を達成してください！",
+    "toastStaggerDisabled": "スタガー無効化 — 48スロットに戻りました。",
+    "toastStaggerEnabled": "49スロットスタガー有効化 — 23:45 UTCスロット追加。",
+    "toastStaggerFailed": "スタガーの切り替えに失敗しました。"
   },
   "prepLanding": {
     "featAutoAssign": "自動スロット割り当て",
@@ -2821,5 +2841,24 @@
   },
   "kvkSubmit": {
     "screenshotDisclaimer": "これらのスクリーンショットが自分のゲーム内キャプチャであることを確認します。すべてのゲームコンテンツはCentury Gamesの所有物であり、Kingshot Atlasがコミュニティデータ目的で保存・表示することを許可します。"
+  },
+  "supporter": {
+    "spotlightTitle": "コミュニティ主導のデータ",
+    "spotlightDesc": "Atlas Supportersはサーバー、データベース、開発を支援し、1200以上の王国プロフィールを正確かつ無料で維持しています。",
+    "spotlightCta": "詳しく見る"
+  },
+  "campaign": {
+    "title": "王国コロニーキャンペーン",
+    "live": "ライブ",
+    "subtitle": "認証プレイヤー数トップ3の王国が本物の報酬を獲得。アライアンスを動員しよう。",
+    "cta": "リーダーボードを見る"
+  },
+  "kvkBanner": {
+    "matchupMessage": "KvKの対戦が公開されました！今すぐ王国の対戦を追加してください。",
+    "matchupCta": "対戦を追加",
+    "prepMessage": "KvK準備フェーズが終了しました！準備結果を提出してください。",
+    "prepCta": "準備結果を追加",
+    "battleMessage": "KvK城バトルが終了しました！バトル結果を提出してください。",
+    "battleCta": "バトル結果を追加"
   }
 }

@@ -3,6 +3,14 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-20 | Product Engineer | COMPLETED
+Task: 3 bug fixes — alt form state persistence, spotlight dedup, welcome emoji cleanup
+Files: apps/web/src/components/AccountSwitcher.tsx, apps/discord-bot/src/bot.js, apps/discord-bot/src/utils/embeds.js
+Changes:
+1. **Alt form state persistence** — AccountSwitcher verification flow now persists to sessionStorage (player ID, verify step, challenge code, pending player). Survives mobile app-switch page refreshes. Cleared on completion/cancel.
+2. **Spotlight dedup** — Removed duplicate `sendSpotlightMessage('supporter')` call from bot's `syncSupporterRoles()`. API Stripe webhook handler already sends the spotlight as "Atlas" with correct avatar; bot was sending a second one as "Atlas Spotlight".
+3. **Welcome embed emoji fix** — Removed U+FFFD replacement characters: general channel row now shows just 💬, readme channel row now shows ‼️ instead of �.
+
 ## 2026-02-19 | Product Engineer | COMPLETED
 Task: Silver Promo UX Polish — countdown banner + updated gate notice on Prep Scheduler
 Files: apps/web/src/components/prep-scheduler/PrepSchedulerList.tsx, apps/web/src/components/prep-scheduler/usePrepScheduler.ts, apps/web/src/pages/PrepScheduler.tsx

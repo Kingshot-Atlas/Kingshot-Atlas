@@ -145,6 +145,10 @@ const SPOTLIGHT_MESSAGES = {
   ],
 };
 
+// In-memory spotlight dedup guard — prevents duplicate spotlights within 1 hour
+const spotlightSentCache = new Map(); // key: "roleType:discordId" → timestamp
+const SPOTLIGHT_DEDUP_TTL = 60 * 60 * 1000; // 1 hour
+
 /**
  * Send an auto-spotlight message to the #spotlight channel via webhook.
  * @param {'supporter'|'ambassador'|'booster'} roleType
@@ -155,6 +159,14 @@ async function sendSpotlightMessage(roleType, discordId, displayName) {
   if (!SPOTLIGHT_WEBHOOK_URL) return;
   const templates = SPOTLIGHT_MESSAGES[roleType];
   if (!templates || templates.length === 0) return;
+
+  // Dedup guard: skip if we already sent this spotlight recently
+  const dedupKey = `${roleType}:${discordId}`;
+  const lastSent = spotlightSentCache.get(dedupKey);
+  if (lastSent && Date.now() - lastSent < SPOTLIGHT_DEDUP_TTL) {
+    console.log(`🔦 Spotlight dedup: skipping ${roleType} for ${displayName || discordId} (sent ${Math.round((Date.now() - lastSent) / 1000)}s ago)`);
+    return;
+  }
 
   const mention = discordId ? `<@${discordId}>` : `**${displayName || 'Someone'}**`;
   const message = templates[Math.floor(Math.random() * templates.length)].replace('{user}', mention);
@@ -170,6 +182,7 @@ async function sendSpotlightMessage(roleType, discordId, displayName) {
       }),
     });
     if (res.ok || res.status === 204) {
+      spotlightSentCache.set(dedupKey, Date.now());
       console.log(`🔦 Spotlight sent for ${roleType}: ${displayName || discordId}`);
     } else {
       console.error(`🔦 Spotlight webhook failed (${res.status}) for ${displayName || discordId}`);

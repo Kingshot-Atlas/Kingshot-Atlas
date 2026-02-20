@@ -1292,7 +1292,12 @@
     "verifyNow": "Ich habe meinen Namen geändert — Verifizieren",
     "checking": "Prüfe...",
     "codeNotFound": "Code \"{{code}}\" nicht in deinem Spielnamen gefunden. Ändere deinen Namen, warte einen Moment und versuche es erneut.",
-    "verified": "Besitz verifiziert! Konto hinzugefügt: {{name}} (K{{kingdom}})"
+    "verified": "Besitz verifiziert! Konto hinzugefügt: {{name}} (K{{kingdom}})",
+    "draftRestored": "Verifizierungsfortschritt wiederhergestellt",
+    "pollAttempt": "Versuch {{count}} von {{max}} · Erneute Prüfung alle {{seconds}}s",
+    "pollTimeout": "Verifizierung nach {{seconds}}s abgelaufen. Stelle sicher, dass \"{{code}}\" in deinem Spielnamen enthalten ist und versuche es erneut.",
+    "polling": "Überprüfe deinen Spielnamen...",
+    "stopChecking": "Prüfung Stoppen"
   },
   "transferHub": {
     "heroTitle1": "TRANSFER-",
@@ -1787,7 +1792,8 @@
     "share": "Teilen",
     "saving": "Wird gespeichert...",
     "updateProfile": "Profil aktualisieren",
-    "createProfile": "Profil erstellen"
+    "createProfile": "Profil erstellen",
+    "draftRestored": "Entwurf wiederhergestellt"
   },
   "kingdom": {
     "battle": "Kampf",
@@ -2707,7 +2713,21 @@
     "general": "Allgemein",
     "training": "Training",
     "construction": "Bau",
-    "research": "Forschung"
+    "research": "Forschung",
+    "contributeNow": "Zum Königreichsfonds beitragen",
+    "disableStagger": "49-Slot-Staffelung Deaktivieren",
+    "enableStagger": "49-Slot-Staffelung Aktivieren",
+    "goldAndSilverTier": "GOLD- & SILBER-KÖNIGREICHE",
+    "notQualifyingTier": "Königreich {{kingdom}} hat keine Gold- oder Silber-Stufe. Nur qualifizierte Königreiche können dieses Tool nutzen.",
+    "reachGold": "Gold Erreichen",
+    "silverPromoActive": "Silber-Stufe Promo — Du hast temporären Zugang!",
+    "silverPromoCountdown": "Zugang läuft in {{days}}T {{hours}}h ab. Erreiche Gold für permanenten Zugang.",
+    "silverPromoCountdownHours": "Zugang läuft in {{hours}}h ab. Erreiche Gold für permanenten Zugang.",
+    "staggerTag": "GESTAFFELT",
+    "tierRequiredPromoDesc": "Der KvK-Prep-Planer ist während der KvK #11 Promotion für Gold- und Silber-Königreiche verfügbar. Trage zum Königreichsfonds bei, um Silber ($50+) oder Gold ($100+) zu erreichen!",
+    "toastStaggerDisabled": "Staffelung deaktiviert — zurück zu 48 Slots.",
+    "toastStaggerEnabled": "49-Slot-Staffelung aktiviert — 23:45 UTC Slot hinzugefügt.",
+    "toastStaggerFailed": "Fehler beim Umschalten der Staffelung."
   },
   "prepLanding": {
     "featAutoAssign": "Automatische Slot-Zuweisung",
@@ -2821,5 +2841,24 @@
   },
   "kvkSubmit": {
     "screenshotDisclaimer": "Ich bestätige, dass diese Screenshots meine eigenen In-Game-Aufnahmen sind. Ich verstehe, dass alle Spielinhalte Eigentum von Century Games sind, und erteile Kingshot Atlas die Erlaubnis, sie für Community-Zwecke zu speichern und anzuzeigen."
+  },
+  "supporter": {
+    "spotlightTitle": "Community-gestützte Daten",
+    "spotlightDesc": "Atlas Supporters finanzieren Server, Datenbank und Entwicklung, die über 1200 Königreichsprofile genau und kostenlos für alle halten.",
+    "spotlightCta": "Mehr Erfahren"
+  },
+  "campaign": {
+    "title": "Königreich-Kolonien-Kampagne",
+    "live": "LIVE",
+    "subtitle": "Die Top 3 Königreiche nach verifizierten Spielern gewinnen echte Belohnungen. Mobilisiere deine Allianz.",
+    "cta": "Rangliste ansehen"
+  },
+  "kvkBanner": {
+    "matchupMessage": "KvK-Paarungen sind live! Füge jetzt die Paarung deines Königreichs hinzu.",
+    "matchupCta": "Paarung Hinzufügen",
+    "prepMessage": "Die KvK-Vorbereitungsphase ist vorbei! Reiche dein Vorbereitungsergebnis ein.",
+    "prepCta": "Prep-Ergebnis Hinzufügen",
+    "battleMessage": "Die KvK-Burgschlacht ist vorbei! Reiche dein Kampfergebnis ein.",
+    "battleCta": "Kampfergebnis Hinzufügen"
   }
 }
