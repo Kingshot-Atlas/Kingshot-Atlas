@@ -252,7 +252,7 @@ const RecruiterDashboard: React.FC<{
                 >
                   {tab === 'inbox' ? (<>{t('recruiter.inbox', 'Inbox')}{pendingCount > 0 ? ` (${pendingCount})` : ''}{unreadMessageCount > 0 && <span style={{ marginLeft: '0.25rem', backgroundColor: '#ef4444', color: '#fff', borderRadius: '50%', width: '16px', height: '16px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.5rem', fontWeight: 'bold' }}>{unreadMessageCount > 9 ? '9+' : unreadMessageCount}</span>}</>) :
                    tab === 'browse' ? t('recruiter.candidates', 'Candidates') :
-                   tab === 'profile' ? t('recruiter.profile', 'Profile') :
+                   tab === 'profile' ? t('recruiter.editor', 'Editor') :
                    tab === 'team' ? (<>{t('recruiter.team', 'Team')}{pendingCoEditorRequests.length > 0 && <span style={{ marginLeft: '0.3rem', backgroundColor: '#eab308', color: '#000', borderRadius: '50%', width: '16px', height: '16px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.55rem', fontWeight: 'bold' }}>{pendingCoEditorRequests.length}</span>}</>) :
                    tab === 'watchlist' ? t('recruiter.watchlist', 'Watchlist') :
                    tab === 'fund' ? t('recruiter.fund', 'Fund') :

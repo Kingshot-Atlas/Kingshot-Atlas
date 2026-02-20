@@ -35,11 +35,12 @@ const AuthCallback: React.FC = () => {
     let pollCount = 0;
     let manualAttempted = false;
     const hasHash = window.location.hash.length > 1;
+    const hasPKCECode = new URLSearchParams(window.location.search).has('code');
 
     Sentry.addBreadcrumb({
       category: 'auth',
       message: 'AuthCallback mounted',
-      data: { hasHash },
+      data: { hasHash, hasPKCECode },
       level: 'info',
     });
 
@@ -76,10 +77,13 @@ const AuthCallback: React.FC = () => {
       } catch { /* ignore manual fallback errors */ }
     };
 
-    // If no hash fragment, the user likely landed here from another tab that
-    // already consumed the OAuth token, or via direct navigation.
-    // Check for existing session immediately and redirect fast.
-    if (!hasHash) {
+    // PKCE flow: Supabase sends ?code= in the query string (not hash).
+    // detectSessionInUrl handles the code exchange automatically, but it's async.
+    // We must NOT check for session immediately — wait for the exchange to finish.
+    // Fall through to the polling/listener logic below which will catch the session.
+    if (!hasHash && !hasPKCECode) {
+      // No hash AND no PKCE code — user landed here directly or from another tab.
+      // Check for existing session immediately.
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session) {
           redirect();

@@ -85,6 +85,19 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
     return () => clearInterval(timer);
   }, [isInView, overallScore, hasAnimated]);
 
+  // Safety net: if IntersectionObserver never fires (mobile viewport race,
+  // LazyCard threshold mismatch, or iOS quirks), show the real score after 2s
+  useEffect(() => {
+    if (hasAnimated || overallScore === 0) return;
+    const fallback = setTimeout(() => {
+      if (!hasAnimated) {
+        setAnimatedScore(overallScore);
+        setHasAnimated(true);
+      }
+    }, 2000);
+    return () => clearTimeout(fallback);
+  }, [overallScore, hasAnimated]);
+
   const handleCardClick = () => {
     trackFeature('Kingdom Card Click', { kingdom: kingdom.kingdom_number });
     navigate(`/kingdom/${kingdom.kingdom_number}`);
