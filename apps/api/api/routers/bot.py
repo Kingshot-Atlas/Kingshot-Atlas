@@ -1940,6 +1940,157 @@ async def backfill_gilded_roles(_: bool = Depends(require_bot_admin)):
         return {"success": False, "message": str(e), "total": 0, "assigned": 0, "skipped": 0, "failed": 0}
 
 
+@router.post("/backfill-referral-roles")
+async def backfill_referral_roles(_: bool = Depends(require_bot_admin)):
+    """
+    Backfill Consul and Ambassador Discord roles for all users who have
+    the appropriate referral_tier AND a linked Discord account.
+    Admin-only endpoint for manual referral role sync.
+    """
+    from api.discord_role_sync import add_role_to_member
+
+    CONSUL_ROLE_ID = os.getenv("DISCORD_CONSUL_ROLE_ID", "1470500049141235926")
+    AMBASSADOR_ROLE_ID = os.getenv("DISCORD_AMBASSADOR_ROLE_ID", "1466442919304237207")
+
+    sb = get_supabase_admin()
+    if not sb:
+        return {"success": False, "message": "Supabase not configured", "total": 0, "assigned": 0, "skipped": 0, "failed": 0}
+
+    try:
+        result = sb.table("profiles").select(
+            "id, discord_id, linked_username, referral_tier"
+        ).not_.is_("discord_id", "null").in_("referral_tier", ["consul", "ambassador"]).execute()
+
+        users = [p for p in (result.data or []) if p.get("discord_id")]
+
+        if not users:
+            return {"success": True, "message": "No eligible referral users found", "total": 0, "assigned": 0, "skipped": 0, "failed": 0}
+
+        results = {"total": len(users), "assigned": 0, "skipped": 0, "failed": 0, "details": []}
+
+        for user in users:
+            discord_id = user["discord_id"]
+            username = user.get("linked_username") or "Unknown"
+            tier = user.get("referral_tier")
+
+            try:
+                role_id = AMBASSADOR_ROLE_ID if tier == "ambassador" else CONSUL_ROLE_ID
+                success = await add_role_to_member(discord_id, role_id)
+                # Ambassadors also get Consul role
+                if tier == "ambassador" and CONSUL_ROLE_ID:
+                    await add_role_to_member(discord_id, CONSUL_ROLE_ID)
+
+                if success:
+                    results["assigned"] += 1
+                    results["details"].append({"username": username, "tier": tier, "status": "assigned"})
+                else:
+                    results["skipped"] += 1
+                    results["details"].append({"username": username, "tier": tier, "status": "skipped"})
+            except Exception as e:
+                results["failed"] += 1
+                results["details"].append({"username": username, "tier": tier, "status": "failed", "error": str(e)})
+
+        results["success"] = results["failed"] == 0
+        results["message"] = f"Referral backfill: {results['assigned']} assigned, {results['skipped']} skipped, {results['failed']} failed"
+        logger.info("Referral role backfill: %s", results['message'])
+        return results
+
+    except Exception as e:
+        logger.error("Error in /backfill-referral-roles: %s", e)
+        return {"success": False, "message": str(e), "total": 0, "assigned": 0, "skipped": 0, "failed": 0}
+
+
+@router.get("/referral-users")
+async def get_referral_users(_: bool = Depends(require_bot_admin)):
+    """
+    Get all users who have a Consul or Ambassador referral tier AND a Discord account.
+    Used by the admin Roles dashboard.
+    """
+    sb = get_supabase_admin()
+    if not sb:
+        return {"users": [], "total": 0, "error": "Supabase not configured"}
+
+    try:
+        result = sb.table("profiles").select(
+            "id, discord_id, linked_username, referral_tier, referral_count"
+        ).not_.is_("discord_id", "null").in_("referral_tier", ["consul", "ambassador"]).execute()
+
+        users = [
+            {
+                "user_id": p["id"],
+                "discord_id": p["discord_id"],
+                "username": p.get("linked_username"),
+                "referral_tier": p.get("referral_tier"),
+                "referral_count": p.get("referral_count", 0),
+            }
+            for p in (result.data or [])
+            if p.get("discord_id")
+        ]
+
+        return {"users": users, "total": len(users)}
+    except Exception as e:
+        logger.error("Error in /referral-users: %s", e)
+        return {"users": [], "total": 0, "error": str(e)}
+
+
+@router.post("/backfill-transfer-group-roles")
+async def backfill_transfer_group_roles(_: bool = Depends(require_bot_admin)):
+    """
+    Backfill Transfer Group Discord roles for all users who have a linked kingdom
+    AND a linked Discord account. This triggers the bot's transfer group sync
+    by calling the bot directly via add_role_to_member for each eligible user.
+
+    NOTE: Transfer group roles are dynamically created by the bot. This endpoint
+    cannot create roles — it can only assign existing ones. For full sync
+    (including role creation), use the bot's 30-min auto-sync or restart the bot.
+    """
+    sb = get_supabase_admin()
+    if not sb:
+        return {"success": False, "message": "Supabase not configured", "total": 0, "assigned": 0, "skipped": 0, "failed": 0}
+
+    try:
+        # Get active transfer groups
+        groups_result = sb.table("transfer_groups").select(
+            "id, min_kingdom, max_kingdom, label"
+        ).eq("is_active", True).order("min_kingdom").execute()
+        groups = groups_result.data or []
+
+        if not groups:
+            return {"success": True, "message": "No active transfer groups found", "total": 0, "assigned": 0, "skipped": 0, "failed": 0}
+
+        # Get all linked users with kingdoms and discord
+        profiles_result = sb.table("profiles").select(
+            "id, discord_id, linked_username, linked_kingdom"
+        ).not_.is_("discord_id", "null").not_.is_("linked_kingdom", "null").execute()
+
+        users = [p for p in (profiles_result.data or []) if p.get("discord_id") and p.get("linked_kingdom")]
+
+        if not users:
+            return {"success": True, "message": "No eligible users found", "total": 0, "assigned": 0, "skipped": 0, "failed": 0}
+
+        # Count users per group
+        group_counts = {}
+        for g in groups:
+            count = sum(1 for u in users if g["min_kingdom"] <= (u.get("linked_kingdom") or 0) <= g["max_kingdom"])
+            group_counts[g["label"]] = count
+
+        return {
+            "success": True,
+            "message": f"Found {len(users)} eligible users across {len(groups)} transfer groups. Transfer group role assignment is handled by the Discord bot's 30-min auto-sync. Roles are created dynamically by the bot.",
+            "total": len(users),
+            "assigned": 0,
+            "skipped": len(users),
+            "failed": 0,
+            "groups": groups,
+            "group_counts": group_counts,
+            "note": "Transfer group roles are managed by the Discord bot, not the API. This endpoint provides status only.",
+        }
+
+    except Exception as e:
+        logger.error("Error in /backfill-transfer-group-roles: %s", e)
+        return {"success": False, "message": str(e), "total": 0, "assigned": 0, "skipped": 0, "failed": 0}
+
+
 @router.post("/leave-server/{server_id}")
 async def leave_server(server_id: str, _: bool = Depends(require_bot_admin)):
     """

@@ -92,8 +92,6 @@ export const BotTelemetryTab: React.FC = () => {
   const [eventFilter, setEventFilter] = useState<string>('all');
   const [hoursFilter, setHoursFilter] = useState<number>(168);
   const [expandedEvent, setExpandedEvent] = useState<string | null>(null);
-  const [gildedSyncing, setGildedSyncing] = useState(false);
-  const [gildedSyncResult, setGildedSyncResult] = useState<string | null>(null);
   const [nullRefDateEvents, setNullRefDateEvents] = useState<{ event_type: string; guild_id: string }[]>([]);
 
   // Check for enabled alliance events with NULL reference_date
@@ -267,55 +265,6 @@ export const BotTelemetryTab: React.FC = () => {
           })}
         </div>
       )}
-
-      {/* Admin Actions */}
-      <div style={{
-        backgroundColor: colors.cardAlt,
-        borderRadius: '10px',
-        padding: '0.75rem 1rem',
-        border: `1px solid ${colors.border}`,
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.75rem',
-        flexWrap: 'wrap',
-      }}>
-        <span style={{ color: colors.textMuted, fontSize: '0.75rem', fontWeight: 500 }}>Manual Sync:</span>
-        <button
-          onClick={async () => {
-            setGildedSyncing(true);
-            setGildedSyncResult(null);
-            try {
-              const headers = await getAuthHeaders({ requireAuth: false });
-              const res = await fetch(`${API_URL}/api/v1/bot/backfill-gilded-roles`, { method: 'POST', headers });
-              const json = await res.json();
-              setGildedSyncResult(json.message || (json.success ? 'Done' : 'Failed'));
-            } catch (err) {
-              setGildedSyncResult(err instanceof Error ? err.message : 'Failed');
-            } finally {
-              setGildedSyncing(false);
-            }
-          }}
-          disabled={gildedSyncing}
-          style={{
-            padding: '0.35rem 0.75rem',
-            background: gildedSyncing ? colors.cardAlt : 'linear-gradient(135deg, #b8860b20, #ffd70020)',
-            border: `1px solid #ffd70050`,
-            borderRadius: '6px',
-            color: '#ffd700',
-            cursor: gildedSyncing ? 'not-allowed' : 'pointer',
-            fontSize: '0.75rem',
-            fontWeight: 600,
-            opacity: gildedSyncing ? 0.6 : 1,
-          }}
-        >
-          {gildedSyncing ? '⏳ Syncing...' : '✨ Sync Gilded Roles'}
-        </button>
-        {gildedSyncResult && (
-          <span style={{ fontSize: '0.7rem', color: gildedSyncResult.includes('fail') || gildedSyncResult.includes('Failed') ? colors.error : colors.success }}>
-            {gildedSyncResult}
-          </span>
-        )}
-      </div>
 
       {/* Filters + Refresh */}
       <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>

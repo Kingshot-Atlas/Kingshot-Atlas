@@ -1774,17 +1774,23 @@ async function checkAndAssignTransferGroupRole(member) {
     const groupsData = await groupsRes.json();
     const groups = groupsData.groups || [];
 
-    const group = findTransferGroup(user.linked_kingdom, groups);
-    if (!group) return;
+    // Use all_kingdoms (includes alts) like syncTransferGroupRoles does
+    const kingdoms = user.all_kingdoms || (user.linked_kingdom ? [user.linked_kingdom] : []);
+    if (kingdoms.length === 0) return;
 
     const guild = member.guild;
-    const roleId = await getOrCreateTransferGroupRole(guild, group.min_kingdom, group.max_kingdom, group.label);
-    if (!roleId) return;
+    for (const kingdom of kingdoms) {
+      const group = findTransferGroup(kingdom, groups);
+      if (!group) continue;
 
-    if (!member.roles.cache.has(roleId)) {
-      await member.roles.add(roleId, 'Auto-assign: Transfer Group role on join (linked kingdom)');
-      const roleName = guild.roles.cache.get(roleId)?.name || roleId;
-      console.log(`   🔀 +${roleName} (on join): ${member.user.username}`);
+      const roleId = await getOrCreateTransferGroupRole(guild, group.min_kingdom, group.max_kingdom, group.label);
+      if (!roleId) continue;
+
+      if (!member.roles.cache.has(roleId)) {
+        await member.roles.add(roleId, 'Auto-assign: Transfer Group role on join (linked kingdom)');
+        const roleName = guild.roles.cache.get(roleId)?.name || roleId;
+        console.log(`   🔀 +${roleName} (on join): ${member.user.username}`);
+      }
     }
   } catch (err) {
     console.error(`🔀 checkAndAssignTransferGroupRole error for ${member.user.username}: ${err.message}`);

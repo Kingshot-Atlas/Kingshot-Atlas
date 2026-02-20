@@ -1012,7 +1012,7 @@ def get_user_by_discord_id(discord_id: str) -> Optional[dict]:
         return None
     try:
         result = client.table("profiles").select(
-            "id, discord_id, linked_player_id, linked_username, username, alt_accounts, subscription_tier"
+            "id, discord_id, linked_player_id, linked_username, username, alt_accounts, subscription_tier, linked_kingdom"
         ).eq("discord_id", discord_id).limit(1).execute()
         if result.data and len(result.data) > 0:
             return result.data[0]

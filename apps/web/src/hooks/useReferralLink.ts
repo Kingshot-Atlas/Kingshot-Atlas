@@ -38,29 +38,30 @@ export const useReferralLink = (): UseReferralLinkReturn => {
   );
 
   const referralUrl = useMemo(() => {
-    if (!refCode) return null;
-    const url = new URL(location.pathname, 'https://ks-atlas.com');
-    // Preserve existing search params (e.g., ?kingdom=231)
+    if (!refCode || !profile?.linked_username) return null;
+    // Build URL manually to keep Unicode characters readable (not percent-encoded)
     const currentParams = new URLSearchParams(location.search);
+    const preserved: string[] = [];
     currentParams.forEach((value, key) => {
       if (key !== 'ref' && key !== 'src') {
-        url.searchParams.set(key, value);
+        preserved.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
       }
     });
-    url.searchParams.set('ref', profile!.linked_username!);
-    return url.toString();
+    preserved.push(`ref=${profile.linked_username}`);
+    return `https://ks-atlas.com${location.pathname}?${preserved.join('&')}`;
   }, [refCode, location.pathname, location.search, profile]);
 
   const getReferralUrl = useCallback((path: string, extraParams?: Record<string, string>): string | null => {
     if (!refCode || !profile?.linked_username) return null;
-    const url = new URL(path, 'https://ks-atlas.com');
+    // Build URL manually to keep Unicode characters readable
+    const parts: string[] = [];
     if (extraParams) {
       Object.entries(extraParams).forEach(([key, value]) => {
-        url.searchParams.set(key, value);
+        parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
       });
     }
-    url.searchParams.set('ref', profile.linked_username);
-    return url.toString();
+    parts.push(`ref=${profile.linked_username}`);
+    return `https://ks-atlas.com${path}?${parts.join('&')}`;
   }, [refCode, profile?.linked_username]);
 
   const copyCurrentPageLink = useCallback(async (): Promise<boolean> => {
