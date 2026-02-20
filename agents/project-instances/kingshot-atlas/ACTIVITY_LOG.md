@@ -3,6 +3,17 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-20 17:45 | Platform Engineer | COMPLETED
+Task: Backfill 246 missing score_history entries for KvK #10 — fix Atlas Score History & Kingdom Ranking History charts
+Files: Supabase score_history table (data), create_score_history_entry() trigger function (migration)
+Changes:
+1. **Root cause:** 246 kingdoms had kvk_history entries for KvK #10 but no corresponding score_history rows. This caused ScoreHistoryChart and RankingHistoryChart to show "Need at least 2 KvKs for trend data" even when kingdoms had 2+ KvKs.
+2. **Data backfill:** Inserted 246 missing score_history entries for KvK #10 using calculate_atlas_score_at_kvk(), with proper tier, prep/battle win-loss records.
+3. **Rank recalculation:** Recalculated rank_at_time and percentile_rank for all 1304 KvK #10 entries. Synced kingdoms.current_rank.
+4. **Trigger improvement:** Updated create_score_history_entry() to use calculate_atlas_score_at_kvk() instead of calculate_atlas_score(), populate prep/battle win-loss records, and calculate percentile_rank. Prevents future data gaps.
+5. **Verification:** All 10 KvKs now have 0 gaps. All 1189 kingdoms with 2+ KvKs have 2+ score_history entries.
+Result: K1116 and 245 other kingdoms now show Atlas Score History and Kingdom Ranking History charts correctly. No frontend code changes needed — fix was entirely database-side.
+
 ## 2026-02-20 16:45 | Platform Engineer + Product Engineer | COMPLETED
 Task: Kingdom Fund — undo manual depletion, 1-week grace period, transaction history Activity tab, grace period alerts
 Files: FundTab.tsx, KingdomProfile.tsx, useKingdomProfileQueries.ts, supabase_client.py, 9× translation.json
