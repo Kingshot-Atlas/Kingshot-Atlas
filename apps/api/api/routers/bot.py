@@ -1482,6 +1482,125 @@ async def get_transfer_groups():
         return {"groups": [], "total": 0, "error": str(e)}
 
 
+@router.get("/transfer-groups/with-counts")
+async def get_transfer_groups_with_counts(_: bool = Depends(require_bot_admin)):
+    """
+    Admin endpoint: get all transfer groups (active + inactive) with user counts per group.
+    Counts how many linked users fall into each kingdom range.
+    """
+    sb = get_supabase_admin()
+    if not sb:
+        raise HTTPException(status_code=500, detail="Supabase not configured")
+
+    try:
+        # Get ALL groups (not just active) for admin view
+        result = sb.table("transfer_groups").select("*").order("min_kingdom").execute()
+        groups = result.data or []
+
+        # Count linked users per group
+        profiles = sb.table("profiles").select(
+            "linked_kingdom"
+        ).not_.is_("linked_kingdom", "null").not_.is_("discord_id", "null").execute()
+        kingdoms = [p["linked_kingdom"] for p in (profiles.data or []) if p.get("linked_kingdom")]
+
+        for g in groups:
+            g["user_count"] = sum(1 for k in kingdoms if g["min_kingdom"] <= k <= g["max_kingdom"])
+
+        return {"groups": groups, "total": len(groups)}
+    except Exception as e:
+        logger.error("Error in /transfer-groups/with-counts: %s", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.put("/transfer-groups/{group_id}")
+async def update_transfer_group(
+    group_id: int,
+    data: Dict[str, Any],
+    _: bool = Depends(require_bot_admin),
+):
+    """
+    Admin endpoint: update a single transfer group (min_kingdom, max_kingdom, is_active, event_number).
+    """
+    sb = get_supabase_admin()
+    if not sb:
+        raise HTTPException(status_code=500, detail="Supabase not configured")
+
+    allowed_fields = {"min_kingdom", "max_kingdom", "is_active", "event_number"}
+    update_data = {k: v for k, v in data.items() if k in allowed_fields}
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No valid fields to update")
+
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+
+    try:
+        result = sb.table("transfer_groups").update(update_data).eq("id", group_id).execute()
+        if not result.data:
+            raise HTTPException(status_code=404, detail="Group not found")
+        return {"group": result.data[0], "ok": True}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error updating transfer group %d: %s", group_id, e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/transfer-groups/new-event")
+async def create_new_transfer_event(
+    data: Dict[str, Any],
+    _: bool = Depends(require_bot_admin),
+):
+    """
+    Admin endpoint: create a new transfer event.
+    Deactivates all current groups and creates new ones from the provided ranges.
+    Expects: { event_number: int, groups: [{ min_kingdom: int, max_kingdom: int }] }
+    """
+    sb = get_supabase_admin()
+    if not sb:
+        raise HTTPException(status_code=500, detail="Supabase not configured")
+
+    event_number = data.get("event_number")
+    new_groups = data.get("groups", [])
+
+    if not event_number or not new_groups:
+        raise HTTPException(status_code=400, detail="event_number and groups[] are required")
+
+    # Validate ranges
+    for g in new_groups:
+        if not g.get("min_kingdom") or not g.get("max_kingdom"):
+            raise HTTPException(status_code=400, detail="Each group needs min_kingdom and max_kingdom")
+        if g["min_kingdom"] > g["max_kingdom"]:
+            raise HTTPException(status_code=400, detail=f"min_kingdom ({g['min_kingdom']}) > max_kingdom ({g['max_kingdom']})")
+
+    now = datetime.now(timezone.utc).isoformat()
+
+    try:
+        # Deactivate all existing active groups
+        sb.table("transfer_groups").update({
+            "is_active": False, "updated_at": now
+        }).eq("is_active", True).execute()
+
+        # Insert new groups
+        rows = [{
+            "min_kingdom": g["min_kingdom"],
+            "max_kingdom": g["max_kingdom"],
+            "event_number": event_number,
+            "is_active": True,
+            "created_at": now,
+            "updated_at": now,
+        } for g in new_groups]
+
+        result = sb.table("transfer_groups").insert(rows).execute()
+        created = result.data or []
+
+        logger.info("Created %d new transfer groups for event #%d", len(created), event_number)
+        return {"groups": created, "total": len(created), "event_number": event_number, "ok": True}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error creating new transfer event: %s", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/linked-users")
 async def get_linked_users(_: bool = Depends(require_bot_admin)):
     """

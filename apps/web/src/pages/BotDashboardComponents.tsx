@@ -57,7 +57,7 @@ export interface EventHistoryRow {
 
 export type EventType = 'bear_hunt' | 'viking_vengeance' | 'swordland_showdown' | 'tri_alliance_clash' | 'arena';
 export interface TimeSlot { hour: number; minute: number; day?: number; ref_date?: string; role_id?: string; }
-export type DashTab = 'notifications' | 'roles' | 'servers' | 'access' | 'history';
+export type DashTab = 'notifications' | 'roles' | 'operations' | 'servers' | 'access' | 'history';
 
 export interface EmojiRoleMapping {
   emoji: string;

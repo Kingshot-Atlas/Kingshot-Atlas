@@ -68,6 +68,21 @@ if (DISCORD_API_PROXY) {
   console.log('📡 Discord REST: direct (no proxy)');
 }
 
+// Bot → Atlas API authentication key (must match DISCORD_API_KEY on the API side)
+const BOT_API_KEY = process.env.BOT_API_KEY || process.env.DISCORD_API_KEY || '';
+if (!BOT_API_KEY) console.warn('⚠️ BOT_API_KEY not set — bot admin API calls will fail in production');
+
+/**
+ * Fetch from the Atlas API with bot admin authentication.
+ * Always sends X-API-Key header so require_bot_admin passes.
+ */
+function atlasFetch(path, options = {}) {
+  const url = path.startsWith('http') ? path : `${config.apiUrl}${path}`;
+  const headers = { ...options.headers };
+  if (BOT_API_KEY) headers['X-API-Key'] = BOT_API_KEY;
+  return fetch(url, { ...options, headers });
+}
+
 // Settler role — assigned to Discord members who linked both Discord + Kingshot on ks-atlas.com
 const SETTLER_ROLE_ID = process.env.DISCORD_SETTLER_ROLE_ID || '1466442878585934102';
 const SETTLER_SYNC_INTERVAL = 30 * 60 * 1000; // 30 minutes
@@ -1165,7 +1180,7 @@ async function fetchGuildMembersCached(guild) {
  */
 async function checkAndAssignSettlerRole(member) {
   try {
-    const res = await fetch(`${config.apiUrl}/api/v1/bot/linked-users`);
+    const res = await atlasFetch('/api/v1/bot/linked-users');
     if (!res.ok) return;
     const data = await res.json();
     const eligible = (data.users || []).find(u => u.discord_id === member.user.id);
@@ -1193,7 +1208,7 @@ async function syncSettlerRoles() {
 
   try {
     // Fetch eligible users from API
-    const res = await fetch(`${config.apiUrl}/api/v1/bot/linked-users`);
+    const res = await atlasFetch('/api/v1/bot/linked-users');
     if (!res.ok) {
       console.error(`🎖️ Settler sync: API returned ${res.status}`);
       return;
@@ -1235,8 +1250,11 @@ async function syncSettlerRoles() {
     }
 
     // Remove from members who have the role but are no longer eligible
+    // SAFETY: If API returned 0 users, skip removal — likely API error, not real data
     const settlerMembers = guild.members.cache.filter(m => m.roles.cache.has(SETTLER_ROLE_ID));
-    for (const [memberId, member] of settlerMembers) {
+    if (eligibleDiscordIds.size === 0 && settlerMembers.size > 0) {
+      console.warn(`🎖️ SAFETY: API returned 0 eligible users but ${settlerMembers.size} members have Settler role — skipping removal`);
+    } else for (const [memberId, member] of settlerMembers) {
       if (!eligibleDiscordIds.has(memberId) && !member.user.bot) {
         try {
           await member.roles.remove(SETTLER_ROLE_ID, 'Auto-remove: Kingshot account unlinked on ks-atlas.com');
@@ -1272,7 +1290,7 @@ async function syncReferralRoles() {
 
   try {
     // Reuse the same linked-users endpoint (now includes referral_tier)
-    const res = await fetch(`${config.apiUrl}/api/v1/bot/linked-users`);
+    const res = await atlasFetch('/api/v1/bot/linked-users');
     if (!res.ok) {
       console.error(`🏛️ Referral sync: API returned ${res.status}`);
       return;
@@ -1321,8 +1339,11 @@ async function syncReferralRoles() {
       }
     }
     // Remove Consul from those who lost eligibility
+    // SAFETY: If API returned 0 eligible, skip removal to prevent mass stripping
     const consulMembers = guild.members.cache.filter(m => m.roles.cache.has(CONSUL_ROLE_ID));
-    for (const [memberId, member] of consulMembers) {
+    if (users.length === 0 && consulMembers.size > 0) {
+      console.warn(`🏛️ SAFETY: API returned 0 users but ${consulMembers.size} have Consul — skipping removal`);
+    } else for (const [memberId, member] of consulMembers) {
       if (!consulEligible.has(memberId) && !member.user.bot) {
         try {
           await member.roles.remove(CONSUL_ROLE_ID, 'Auto-remove: referral tier changed on ks-atlas.com');
@@ -1352,7 +1373,9 @@ async function syncReferralRoles() {
     }
     // Remove Ambassador from those who lost eligibility
     const ambMembers = guild.members.cache.filter(m => m.roles.cache.has(AMBASSADOR_ROLE_ID));
-    for (const [memberId, member] of ambMembers) {
+    if (users.length === 0 && ambMembers.size > 0) {
+      console.warn(`🏛️ SAFETY: API returned 0 users but ${ambMembers.size} have Ambassador — skipping removal`);
+    } else for (const [memberId, member] of ambMembers) {
       if (!ambassadorEligible.has(memberId) && !member.user.bot) {
         try {
           await member.roles.remove(AMBASSADOR_ROLE_ID, 'Auto-remove: referral tier changed on ks-atlas.com');
@@ -1391,7 +1414,7 @@ async function syncSupporterRoles() {
   const startTime = Date.now();
 
   try {
-    const res = await fetch(`${config.apiUrl}/api/v1/bot/supporter-users`);
+    const res = await atlasFetch('/api/v1/bot/supporter-users');
     if (!res.ok) {
       console.error(`💎 Supporter sync: API returned ${res.status}`);
       return;
@@ -1474,7 +1497,7 @@ async function syncGildedRoles() {
   const startTime = Date.now();
 
   try {
-    const res = await fetch(`${config.apiUrl}/api/v1/bot/gilded-users`);
+    const res = await atlasFetch('/api/v1/bot/gilded-users');
     if (!res.ok) {
       console.error(`✨ Gilded sync: API returned ${res.status}`);
       return;
@@ -1558,7 +1581,8 @@ async function getOrCreateTransferGroupRole(guild, min, max, label) {
     return transferGroupRoleCache.get(key);
   }
 
-  const roleName = `Transfer: ${label}`;
+  // Format: "Transfer K1-K6" (plain hyphen, no colon)
+  const roleName = `Transfer ${label.replace(/\u2013/g, '-')}`;
 
   // Search existing roles first
   const existing = guild.roles.cache.find(r => r.name === roleName);
@@ -1611,7 +1635,7 @@ async function syncTransferGroupRoles() {
 
   try {
     // Fetch transfer groups from API (Supabase source of truth)
-    const groupsRes = await fetch(`${config.apiUrl}/api/v1/bot/transfer-groups`);
+    const groupsRes = await atlasFetch('/api/v1/bot/transfer-groups');
     if (!groupsRes.ok) {
       console.error(`🔀 Transfer Group sync: groups API returned ${groupsRes.status}`);
       return;
@@ -1627,7 +1651,7 @@ async function syncTransferGroupRoles() {
     console.log(`🔀 ${groups.length} active transfer groups from API`);
 
     // Fetch linked users (now includes all_kingdoms per user)
-    const usersRes = await fetch(`${config.apiUrl}/api/v1/bot/linked-users`);
+    const usersRes = await atlasFetch('/api/v1/bot/linked-users');
     if (!usersRes.ok) {
       console.error(`🔀 Transfer Group sync: users API returned ${usersRes.status}`);
       return;
@@ -1745,7 +1769,7 @@ async function checkAndAssignTransferGroupRole(member) {
     if (!user || !user.linked_kingdom) return; // Not linked or no kingdom
 
     // Fetch transfer groups
-    const groupsRes = await fetch(`${config.apiUrl}/api/v1/bot/transfer-groups`);
+    const groupsRes = await atlasFetch('/api/v1/bot/transfer-groups');
     if (!groupsRes.ok) return;
     const groupsData = await groupsRes.json();
     const groups = groupsData.groups || [];

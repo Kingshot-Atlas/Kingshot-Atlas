@@ -16,6 +16,7 @@ import {
   iS, lS, Dot, Tog, SearchableSelect, EvCard,
 } from './BotDashboardComponents';
 import RoleAssignerCard from './BotDashboardRoleAssigner';
+import BotDashboardTransferGroups from './BotDashboardTransferGroups';
 import { useBotDashboardData } from '../hooks/useBotDashboardData';
 
 // EmojiPicker + RoleAssignerCard extracted to BotDashboardEmojiPicker.tsx & BotDashboardRoleAssigner.tsx
@@ -491,6 +492,7 @@ const BotDashboard: React.FC = () => {
   const tabs: { id: DashTab; label: string; icon: string }[] = [
     { id: 'notifications', label: 'Notifications', icon: '📣' },
     { id: 'roles', label: 'Roles', icon: '🏷️' },
+    ...(isAdmin ? [{ id: 'operations' as const, label: 'Operations', icon: '⚙️' }] : []),
     { id: 'servers', label: 'Servers', icon: '🖥️' },
     { id: 'access', label: 'Access', icon: '🔐' },
     { id: 'history', label: 'History', icon: '📋' },
@@ -691,6 +693,11 @@ const BotDashboard: React.FC = () => {
                 deploying={rrDeploying === cfg.id} rrError={rrErrorId === cfg.id ? rrError : ''} />
             ))}
           </div>
+        )}
+
+        {/* Operations Tab (Admin Only) */}
+        {tab === 'operations' && isAdmin && (
+          <BotDashboardTransferGroups mob={mob} />
         )}
 
         {/* Servers Tab */}
