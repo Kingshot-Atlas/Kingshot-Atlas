@@ -1616,23 +1616,28 @@ async def get_linked_users(_: bool = Depends(require_bot_admin)):
         # Fetch all profiles with both discord_id and linked_player_id
         result = sb.table("profiles").select(
             "id, discord_id, linked_player_id, linked_username, username, referral_tier, linked_kingdom"
-        ).not_.is_("linked_player_id", "null").not_.is_("discord_id", "null").execute()
+        ).not_.is_("linked_player_id", "null").not_.is_("discord_id", "null").limit(10000).execute()
 
         profiles = result.data or []
 
-        # For each user, also fetch alt accounts from player_accounts table
-        user_ids = [p["id"] for p in profiles]
+        # Fetch alt accounts from player_accounts table
+        # NOTE: We fetch ALL rows with kingdom and filter in Python to avoid
+        # exceeding PostgREST URL length limit with a massive .in_() clause
+        # (711+ UUIDs in the URL causes 'JSON could not be generated' 400 error).
+        user_id_set = set(p["id"] for p in profiles)
         alt_map: dict = {}
-        if user_ids:
+        try:
             alts_result = sb.table("player_accounts").select(
                 "user_id, kingdom"
-            ).in_("user_id", user_ids).not_.is_("kingdom", "null").execute()
+            ).not_.is_("kingdom", "null").limit(10000).execute()
             for alt in (alts_result.data or []):
                 uid = alt["user_id"]
-                if uid not in alt_map:
-                    alt_map[uid] = []
-                if alt["kingdom"]:
+                if uid in user_id_set and alt.get("kingdom"):
+                    if uid not in alt_map:
+                        alt_map[uid] = []
                     alt_map[uid].append(alt["kingdom"])
+        except Exception as alt_err:
+            logger.warning("Failed to fetch alt accounts, continuing without: %s", alt_err)
 
         users = []
         for p in profiles:
