@@ -3,6 +3,16 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-19 | Platform Engineer | COMPLETED
+Task: Transfer Group role sync hardening — health endpoint, manual trigger, improved logging, alt kingdom fix
+Files: apps/discord-bot/src/bot.js, apps/api/api/supabase_client.py
+Changes:
+1. **Investigated transfer group role sync** — 711 eligible users (discord + kingshot linked), all map to 7 active transfer groups, no missing kingdoms. Bot sync logic is architecturally correct.
+2. **Bug fix: `get_user_by_discord_id` now returns `all_kingdoms`** — The `checkAndAssignTransferGroupRole` (on-join) function used `/user-by-discord` which only returned `linked_kingdom`, missing alt account kingdoms from `player_accounts`. Now builds `all_kingdoms` list (primary + alts) like the bulk sync does.
+3. **Added `lastTransferGroupSync` to health endpoint** — Was missing from diagnostics, making it impossible to verify if sync ran.
+4. **Added `/trigger-transfer-sync` HTTP endpoint** — Manual trigger (secured with DIAGNOSTIC_API_KEY) for immediate transfer group sync, matching existing `/trigger-gilded-sync` pattern.
+5. **Improved sync logging** — Added guild-miss counter (eligible users not in Discord server), error counter, and comprehensive summary line for better observability.
+
 ## 2026-02-19 | Product Engineer | COMPLETED
 Task: Discord Transfer Group roles verification + #-readme channel fix
 Files: apps/discord-bot/src/bot.js, apps/discord-bot/src/utils/embeds.js

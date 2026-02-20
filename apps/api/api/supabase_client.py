@@ -1006,7 +1006,7 @@ def mark_gift_code_expired(code: str) -> bool:
 
 
 def get_user_by_discord_id(discord_id: str) -> Optional[dict]:
-    """Look up a user profile by their Discord ID. Returns profile dict or None."""
+    """Look up a user profile by their Discord ID. Returns profile dict with all_kingdoms or None."""
     client = get_supabase_admin()
     if not client:
         return None
@@ -1014,9 +1014,25 @@ def get_user_by_discord_id(discord_id: str) -> Optional[dict]:
         result = client.table("profiles").select(
             "id, discord_id, linked_player_id, linked_username, username, alt_accounts, subscription_tier, linked_kingdom"
         ).eq("discord_id", discord_id).limit(1).execute()
-        if result.data and len(result.data) > 0:
-            return result.data[0]
-        return None
+        if not result.data or len(result.data) == 0:
+            return None
+        profile = result.data[0]
+
+        # Build all_kingdoms (primary + alts) for transfer group role assignment
+        kingdoms = []
+        if profile.get("linked_kingdom"):
+            kingdoms.append(profile["linked_kingdom"])
+        try:
+            alts = client.table("player_accounts").select(
+                "kingdom"
+            ).eq("user_id", profile["id"]).not_.is_("kingdom", "null").execute()
+            for alt in (alts.data or []):
+                if alt.get("kingdom") and alt["kingdom"] not in kingdoms:
+                    kingdoms.append(alt["kingdom"])
+        except Exception:
+            pass  # Non-critical — primary kingdom is still included
+        profile["all_kingdoms"] = kingdoms
+        return profile
     except Exception as e:
         logger.error("Error looking up user by discord_id: %s", e)
         return None

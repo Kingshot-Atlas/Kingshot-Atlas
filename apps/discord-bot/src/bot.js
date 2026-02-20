@@ -264,6 +264,7 @@ const healthServer = http.createServer(async (req, res) => {
         lastReferralSync: lastReferralSync,
         lastSupporterSync: lastSupporterSync,
         lastGildedSync: lastGildedSync,
+        lastTransferGroupSync: lastTransferGroupSync,
         spotlightWebhookSet: !!SPOTLIGHT_WEBHOOK_URL,
         welcomeChannelIdSet: !!WELCOME_CHANNEL_ID,
         explorerRoleIdSet: !!EXPLORER_ROLE_ID,
@@ -380,6 +381,26 @@ const healthServer = http.createServer(async (req, res) => {
     syncGildedRoles().then(() => {
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ status: 'ok', message: 'Gilded role sync completed', lastSync: lastGildedSync }));
+    }).catch(err => {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ status: 'error', message: err.message }));
+    });
+  } else if (req.url === '/trigger-transfer-sync' || req.url?.startsWith('/trigger-transfer-sync?')) {
+    // Manual trigger for Transfer Group role sync — secured with DIAGNOSTIC_API_KEY
+    const diagKey = process.env.DIAGNOSTIC_API_KEY;
+    if (diagKey) {
+      const url = new URL(req.url, `http://localhost:${HEALTH_PORT}`);
+      const providedKey = url.searchParams.get('key') || req.headers['x-diagnostic-key'];
+      if (providedKey !== diagKey) {
+        res.writeHead(403, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Forbidden — provide ?key= or X-Diagnostic-Key header' }));
+        return;
+      }
+    }
+    console.log('🔀 Manual Transfer Group sync triggered via HTTP');
+    syncTransferGroupRoles().then(() => {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ status: 'ok', message: 'Transfer Group role sync completed', lastSync: lastTransferGroupSync }));
     }).catch(err => {
       res.writeHead(500, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ status: 'error', message: err.message }));
@@ -1689,7 +1710,12 @@ async function syncTransferGroupRoles() {
       }
     }
 
-    console.log(`🔀 ${expectedRoles.size} users should have transfer group roles`);
+    // Count how many eligible users are actually in the Discord server
+    let notInGuild = 0;
+    for (const [discordId] of expectedRoles) {
+      if (!guild.members.cache.get(discordId)) notInGuild++;
+    }
+    console.log(`🔀 ${expectedRoles.size} users should have transfer group roles (${expectedRoles.size - notInGuild} in guild, ${notInGuild} not in server)`);
 
     // Collect all transfer group role IDs we manage
     const allManagedRoleIds = new Set(transferGroupRoleCache.values());
@@ -1697,6 +1723,7 @@ async function syncTransferGroupRoles() {
     let assigned = 0;
     let removed = 0;
     let alreadyHas = 0;
+    let errors = 0;
 
     // Assign roles to eligible members
     for (const [discordId, roleIds] of expectedRoles) {
@@ -1713,6 +1740,7 @@ async function syncTransferGroupRoles() {
             const roleName = guild.roles.cache.get(roleId)?.name || roleId;
             console.log(`   🔀 +${roleName}: ${member.user.username}`);
           } catch (err) {
+            errors++;
             console.error(`   ❌ Failed to assign transfer group role to ${member.user.username}: ${err.message}`);
           }
         }
@@ -1752,7 +1780,7 @@ async function syncTransferGroupRoles() {
 
     const elapsed = Date.now() - startTime;
     lastTransferGroupSync = new Date().toISOString();
-    console.log(`🔀 Transfer Group sync done in ${elapsed}ms: +${assigned} -${removed} =${alreadyHas} already`);
+    console.log(`🔀 Transfer Group sync done in ${elapsed}ms: +${assigned} -${removed} =${alreadyHas} already, ${errors} errors, ${notInGuild} not in server`);
   } catch (err) {
     console.error('🔀 Transfer Group sync error:', err.message);
   }
