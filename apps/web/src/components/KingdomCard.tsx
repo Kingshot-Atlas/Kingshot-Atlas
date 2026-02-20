@@ -1,4 +1,4 @@
-import React, { useState, useEffect, memo, useMemo } from 'react';
+import React, { useState, useEffect, useRef, memo, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Kingdom, getPowerTier } from '../types';
 import { neonGlow, colors, radius, shadows, transition, FONT_DISPLAY } from '../utils/styles';
@@ -56,6 +56,7 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
   const [showStatusModal, setShowStatusModal] = useState(false);
   const { showToast } = useToast();
   const [animatedScore, setAnimatedScore] = useState<number | null>(null);
+  const hasAnimatedRef = useRef(false);
   const [cardRef, isInView] = useInViewOnce();
 
   const overallScore = typeof kingdom.overall_score === 'number' && !isNaN(kingdom.overall_score) 
@@ -63,9 +64,11 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
     : 0;
 
   // Animated counter effect — triggered by shared IntersectionObserver
-  // Animation is visual sugar; overallScore is always the fallback display value
+  // Uses a ref to track animation state so the effect doesn't self-cancel
+  // (animatedScore in deps would cause cleanup to kill the interval after 1 tick)
   useEffect(() => {
-    if (!isInView || animatedScore !== null) return;
+    if (!isInView || hasAnimatedRef.current) return;
+    hasAnimatedRef.current = true;
     const duration = 800;
     const steps = 25;
     const increment = overallScore / steps;
@@ -82,7 +85,7 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
     }, duration / steps);
 
     return () => clearInterval(timer);
-  }, [isInView, overallScore, animatedScore]);
+  }, [isInView, overallScore]);
 
   // Display: use animated value once animation has started, otherwise show real score
   const displayScore = animatedScore !== null ? animatedScore : overallScore;

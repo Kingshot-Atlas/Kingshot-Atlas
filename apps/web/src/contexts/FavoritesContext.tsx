@@ -50,24 +50,23 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   // Re-hydrate from Supabase after login (cloud is source of truth for logged-in users)
   useEffect(() => {
-    if (user) {
-      // Give syncFromCloud time to update localStorage, then read it
-      const timer = setTimeout(() => {
-        try {
-          const saved = localStorage.getItem(STORAGE_KEYS.FAVORITES);
-          const cloudFavorites: number[] = saved ? JSON.parse(saved) : [];
-          setFavorites(prev => {
-            if (JSON.stringify(prev) !== JSON.stringify(cloudFavorites)) {
-              return cloudFavorites;
-            }
-            return prev;
-          });
-        } catch {
-          // ignore parse errors
-        }
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
+    if (!user) return;
+    // Give syncFromCloud time to update localStorage, then read it
+    const timer = setTimeout(() => {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEYS.FAVORITES);
+        const cloudFavorites: number[] = saved ? JSON.parse(saved) : [];
+        setFavorites(prev => {
+          if (JSON.stringify(prev) !== JSON.stringify(cloudFavorites)) {
+            return cloudFavorites;
+          }
+          return prev;
+        });
+      } catch {
+        // ignore parse errors
+      }
+    }, 1000);
+    return () => clearTimeout(timer);
   }, [user]);
 
   const toggleFavorite = useCallback((kingdomNumber: number) => {

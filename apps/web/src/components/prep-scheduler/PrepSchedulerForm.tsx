@@ -33,7 +33,7 @@ interface PrepSchedulerFormProps {
   skipTuesday: boolean; setSkipTuesday: (v: boolean) => void;
   skipThursday: boolean; setSkipThursday: (v: boolean) => void;
   screenshotPreview: string;
-  fileInputRef: React.RefObject<HTMLInputElement>;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
   handleScreenshotChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   saving: boolean;
   submitForm: () => Promise<void>;

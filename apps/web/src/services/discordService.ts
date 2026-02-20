@@ -62,23 +62,23 @@ class DiscordService {
         return { success: false, error: 'Not authenticated' };
       }
 
-      // Call backend with retry (handles transient 400s from Discord token exchange)
-      const API_URL = import.meta.env.VITE_API_URL;
-      if (!API_URL) {
-        return { success: false, error: 'Discord account linking is temporarily unavailable. The backend service is being migrated. Please try again later or contact support.' };
+      // Call Supabase Edge Function for Discord code exchange
+      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+      if (!SUPABASE_URL) {
+        return { success: false, error: 'Supabase not configured for Discord linking.' };
       }
+
       const MAX_RETRIES = 2;
       let lastError = 'Failed to link Discord';
 
       for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
         if (attempt > 0) {
-          // Exponential backoff: 1s, 2s
           await new Promise(r => setTimeout(r, attempt * 1000));
           logger.info(`Discord callback retry attempt ${attempt}/${MAX_RETRIES}`);
         }
 
         const session = await supabase.auth.getSession();
-        const response = await fetch(`${API_URL}/api/v1/discord/callback`, {
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/discord-link`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -91,8 +91,8 @@ class DiscordService {
           return { success: true };
         }
 
-        const error = await response.json().catch(() => ({ detail: `HTTP ${response.status}` }));
-        lastError = error.detail || 'Failed to link Discord';
+        const error = await response.json().catch(() => ({ error: `HTTP ${response.status}` }));
+        lastError = error.error || error.detail || 'Failed to link Discord';
 
         // Don't retry on auth errors (401) or config errors (503) — only transient failures
         if (response.status === 401 || response.status === 503) {

@@ -36,7 +36,7 @@ interface PrepSchedulerManagerProps {
   managerSearchResults: ManagerSearchResult[];
   showManagerDropdown: boolean;
   setShowManagerDropdown: (v: boolean) => void;
-  managerSearchRef: React.RefObject<HTMLDivElement>;
+  managerSearchRef: React.RefObject<HTMLDivElement | null>;
   // Actions
   copyShareLink: () => void;
   exportScheduleCSV: () => void;

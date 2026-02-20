@@ -79,7 +79,7 @@ const AllianceScoring: React.FC<AllianceScoringProps> = ({
       memberCount: allianceKingdoms.length,
       totalKvks,
       avgScore: scores.reduce((a, b) => a + b, 0) / scores.length,
-      medianScore: scores[Math.floor(scores.length / 2)],
+      medianScore: scores[Math.floor(scores.length / 2)] ?? 0,
       totalDominations,
       totalInvasions,
       dominationRate: totalKvks > 0 ? totalDominations / totalKvks : 0,

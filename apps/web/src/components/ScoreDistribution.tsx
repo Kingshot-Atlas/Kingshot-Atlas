@@ -28,27 +28,25 @@ const ScoreDistribution: React.FC<ScoreDistributionProps> = ({ kingdoms }) => {
       tierCounts[getPowerTier(score)]++;
     });
     
-    // Score buckets for histogram
+    // Score buckets for histogram — aligned with 0-100 scale tier thresholds
     const buckets: { range: string; count: number; color: string }[] = [
-      { range: '0-2', count: 0, color: '#ef4444' },
-      { range: '2-4', count: 0, color: '#ef4444' },
-      { range: '4-5', count: 0, color: '#f97316' },
-      { range: '5-6', count: 0, color: '#f97316' },
-      { range: '6-7', count: 0, color: '#3b82f6' },
-      { range: '7-8', count: 0, color: '#3b82f6' },
-      { range: '8-9', count: 0, color: '#22c55e' },
-      { range: '9+', count: 0, color: '#fbbf24' },
+      { range: '0-29', count: 0, color: '#ef4444' },
+      { range: '29-38', count: 0, color: '#f97316' },
+      { range: '38-47', count: 0, color: '#3b82f6' },
+      { range: '47-57', count: 0, color: '#3b82f6' },
+      { range: '57-70', count: 0, color: '#22c55e' },
+      { range: '70-85', count: 0, color: '#22c55e' },
+      { range: '85+', count: 0, color: '#fbbf24' },
     ];
     
     scores.forEach(score => {
-      if (score < 2) buckets[0].count++;
-      else if (score < 4) buckets[1].count++;
-      else if (score < 5) buckets[2].count++;
-      else if (score < 6) buckets[3].count++;
-      else if (score < 7) buckets[4].count++;
-      else if (score < 8) buckets[5].count++;
-      else if (score < 9) buckets[6].count++;
-      else buckets[7].count++;
+      if (score < 29) buckets[0]!.count++;
+      else if (score < 38) buckets[1]!.count++;
+      else if (score < 47) buckets[2]!.count++;
+      else if (score < 57) buckets[3]!.count++;
+      else if (score < 70) buckets[4]!.count++;
+      else if (score < 85) buckets[5]!.count++;
+      else buckets[6]!.count++;
     });
     
     const maxBucket = Math.max(...buckets.map(b => b.count));
@@ -66,13 +64,13 @@ const ScoreDistribution: React.FC<ScoreDistributionProps> = ({ kingdoms }) => {
       buckets,
       maxBucket,
       stats: {
-        min: Math.round(sorted[0] * 100) / 100,
-        max: Math.round(sorted[total - 1] * 100) / 100,
+        min: Math.round(sorted[0]! * 100) / 100,
+        max: Math.round(sorted[total - 1]! * 100) / 100,
         mean: Math.round((scores.reduce((a, b) => a + b, 0) / total) * 100) / 100,
-        median: Math.round(sorted[Math.floor(total / 2)] * 100) / 100,
-        p25: Math.round(sorted[Math.floor(total * 0.25)] * 100) / 100,
-        p75: Math.round(sorted[Math.floor(total * 0.75)] * 100) / 100,
-        p90: Math.round(sorted[Math.floor(total * 0.90)] * 100) / 100,
+        median: Math.round(sorted[Math.floor(total / 2)]! * 100) / 100,
+        p25: Math.round(sorted[Math.floor(total * 0.25)]! * 100) / 100,
+        p75: Math.round(sorted[Math.floor(total * 0.75)]! * 100) / 100,
+        p90: Math.round(sorted[Math.floor(total * 0.90)]! * 100) / 100,
       }
     };
   }, [kingdoms]);

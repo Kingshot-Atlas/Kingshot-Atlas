@@ -244,7 +244,7 @@ export function calculateRecentFormMultiplier(recentOutcomes: string[]): number 
   let totalWeight = 0;
   
   for (let i = 0; i < Math.min(recentOutcomes.length, 5); i++) {
-    const weight = RECENT_FORM_WEIGHTS[i];
+    const weight = RECENT_FORM_WEIGHTS[i]!;
     const outcome = recentOutcomes[i];
     const score = KVK_OUTCOME_SCORES[outcome as keyof typeof KVK_OUTCOME_SCORES] ?? 0.5;
     

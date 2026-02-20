@@ -288,8 +288,8 @@ const ScorePrediction: React.FC<ScorePredictionProps> = ({ kingdom, opponent }) 
         fontSize: '0.7rem'
       }}>
         <span style={{ color: '#6b7280' }}>Most likely: </span>
-        <span style={{ color: getOutcomeColor(predictions.predictions[0].outcome), fontWeight: '600' }}>
-          {predictions.predictions[0].outcome} ({Math.round(predictions.predictions[0].probability * 100)}%)
+        <span style={{ color: getOutcomeColor(predictions.predictions[0]?.outcome ?? 'Domination'), fontWeight: '600' }}>
+          {predictions.predictions[0]?.outcome} ({Math.round((predictions.predictions[0]?.probability ?? 0) * 100)}%)
         </span>
       </div>
     </div>

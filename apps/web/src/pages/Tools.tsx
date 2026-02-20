@@ -201,8 +201,8 @@ const Tools: React.FC = () => {
 
   // Fetch active gift code count for badge
   const [giftCodeCount, setGiftCodeCount] = useState<number | null>(null);
-  // Fetch Discord server count for bot card
-  const [discordServerCount, setDiscordServerCount] = useState<number | null>(null);
+  // Discord server count — no longer fetched since Render API was deleted; static fallback used
+  const discordServerCount: number | null = null;
   // Fetch linked Kingshot player count for Transfer Hub card
   const [playerCount, setPlayerCount] = useState<number | null>(null);
   useEffect(() => {
