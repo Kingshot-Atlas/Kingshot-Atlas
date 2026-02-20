@@ -1466,7 +1466,10 @@
     "nominationCancelled": "Nominierung abgebrochen",
     "nominationCancelledDesc": "Ihre Co-Editor-Nominierung wurde abgebrochen.",
     "playersInAtlas": "Spieler in Atlas",
-    "tapToComplete": "Tippen zum Vervollständigen →"
+    "tapToComplete": "Tippen zum Vervollständigen →",
+    "discordCalloutTitle": "Transfer-Gruppenkanäle sind jetzt auf Discord aktiv",
+    "discordCalloutDesc": "Koordiniere direkt mit Spielern in deinem Königsreichbereich. Jede Gruppe hat ihren eigenen Kanal.",
+    "joinTransferGroup": "Discord beitreten"
   },
   "listing": {
     "allianceEventTimes": "Allianz-Event-Zeiten",
@@ -2282,6 +2285,13 @@
     "problemDesc": "Hunderte Nachrichten. Die Hälfte nicht ernst gemeint. Keine Möglichkeit, Königreiche nebeneinander zu vergleichen. Keine Möglichkeit zu wissen, welche Rekrutierer seriös sind. Am Ende fragst du in Discord und bekommst 20 verschiedene Meinungen.",
     "solutionDesc": "Der Transfer Hub ersetzt das alles. Jedes rekrutierende Königreich hat echte Werte, einen Atlas Score, KvK-Verlauf und Community-Bewertungen. Spieler erstellen Profile mit eigenen Werten und Präferenzen. Direkt bewerben. Bewerbungen verfolgen. Fertig.",
     "punchline": "Echte Daten. Echte Bewerbungen. Keine blinden Migrationen mehr.",
+    "discordTitle": "Transfer-Gruppenkanäle — Jetzt Verfügbar",
+    "discordDesc": "Bei jedem Transfer-Event eröffnen wir dedizierte Discord-Kanäle für jede Königsreichgruppe. Verknüpfe dein Konto, erhalte automatisch deine Gruppenrolle und beginne mit der Koordination mit Spielern in deinem Bereich — noch bevor das Event startet.",
+    "discordStep1": "Verknüpfe dein Kingshot-Konto",
+    "discordStep2": "Erhalte automatisch deine Gruppenrolle",
+    "discordStep3": "Chatte mit Spielern in deinem Königsreichbereich",
+    "discordWhy": "Der Transfer Hub liefert die Daten. Discord liefert das Gespräch. Nutze beides, um im richtigen Königreich zu landen.",
+    "joinDiscord": "Atlas Discord beitreten",
     "freeBadge": "100% Kostenlos",
     "ctaTitle": "Dein nächstes Königreich wartet.",
     "ctaDesc": "Ob du ein neues Zuhause oder starke Spieler suchst — der Transfer Hub verbindet dich mit dem richtigen Match. Kostenlos, ohne Haken.",

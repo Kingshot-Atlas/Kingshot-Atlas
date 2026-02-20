@@ -1466,7 +1466,10 @@
     "nominationCancelled": "Nomination annulée",
     "nominationCancelledDesc": "Votre nomination de co-éditeur a été annulée.",
     "playersInAtlas": "Joueurs dans Atlas",
-    "tapToComplete": "Appuyez pour compléter →"
+    "tapToComplete": "Appuyez pour compléter →",
+    "discordCalloutTitle": "Les canaux de Groupes de Transfert sont actifs sur Discord",
+    "discordCalloutDesc": "Coordonnez directement avec les joueurs de votre tranche de royaumes. Chaque groupe a son propre canal.",
+    "joinTransferGroup": "Rejoindre Discord"
   },
   "listing": {
     "allianceEventTimes": "Horaires des Événements d'Alliance",
@@ -2282,6 +2285,13 @@
     "problemDesc": "Des centaines de messages. La moitié ne sont pas sérieux. Pas moyen de comparer les royaumes côte à côte. Pas moyen de savoir quels recruteurs sont légitimes. Vous finissez par demander sur Discord et obtenir 20 opinions différentes.",
     "solutionDesc": "Le Transfer Hub remplace tout ça. Chaque royaume recruteur a des stats réelles, un Atlas Score, un historique KvK et des avis de la communauté. Les joueurs créent des profils avec leurs propres stats et préférences. Postulez directement. Suivez vos candidatures. C'est fait.",
     "punchline": "Des données réelles. Des candidatures réelles. Fini les migrations à l'aveugle.",
+    "discordTitle": "Canaux de Groupes de Transfert — Maintenant Disponibles",
+    "discordDesc": "À chaque Événement de Transfert, nous ouvrons des canaux Discord dédiés pour chaque groupe de royaumes. Liez votre compte, recevez automatiquement votre rôle de groupe et commencez à coordonner avec les joueurs de votre tranche — avant même le début de l'événement.",
+    "discordStep1": "Liez votre compte Kingshot",
+    "discordStep2": "Recevez votre rôle de groupe automatiquement",
+    "discordStep3": "Discutez avec les joueurs de votre tranche de royaumes",
+    "discordWhy": "Le Transfer Hub vous donne les données. Discord vous donne la conversation. Utilisez les deux pour atterrir dans le bon royaume.",
+    "joinDiscord": "Rejoindre le Discord Atlas",
     "freeBadge": "100% Gratuit",
     "ctaTitle": "Votre prochain royaume vous attend.",
     "ctaDesc": "Que vous cherchiez un nouveau foyer ou des joueurs forts — le Transfer Hub vous connecte avec la bonne correspondance. Sans coût, sans piège.",

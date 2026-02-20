@@ -1466,7 +1466,10 @@
     "nominationCancelled": "추천 취소됨",
     "nominationCancelledDesc": "공동 편집자 추천이 취소되었습니다.",
     "playersInAtlas": "Atlas 내 플레이어",
-    "tapToComplete": "탭하여 완료 →"
+    "tapToComplete": "탭하여 완료 →",
+    "discordCalloutTitle": "Discord에서 이적 그룹 채널이 활성화되었습니다",
+    "discordCalloutDesc": "당신의 왕국 범위 내 플레이어들과 직접 조율하세요. 각 그룹마다 전용 채널이 있습니다.",
+    "joinTransferGroup": "Discord 참여"
   },
   "listing": {
     "allianceEventTimes": "얼라이언스 이벤트 시간",
@@ -2281,7 +2284,14 @@
     "problemTitle": "이적 채팅은 엉망입니다. 알고 계시죠.",
     "problemDesc": "수백 개의 메시지. 절반은 진지하지 않음. 왕국을 나란히 비교할 방법 없음. 어떤 모집자가 진짜인지 알 수 없음. 결국 Discord에서 물어보고 20가지 다른 의견을 듣게 됩니다.",
     "solutionDesc": "이적 허브가 이 모든 것을 대체합니다. 모든 모집 왕국에는 실제 스탯, Atlas 점수, KvK 기록, 커뮤니티 리뷰가 있습니다. 플레이어는 자신의 스탯과 선호로 프로필을 만듭니다. 직접 지원. 지원 추적. 끝.",
-    "punchline": "실제 데이터. 실제 지원. 더 이상 맹목적 이적 없음.",
+    "punchline": "실제 데이터. 실제 지원. 더 이상 맹목적 이적은 없습니다.",
+    "discordTitle": "이적 그룹 채널 — 현재 활성화",
+    "discordDesc": "매 이적 이벤트마다 각 왕국 그룹을 위한 전용 Discord 채널을 엽니다. 계정을 연동하고, 자동으로 그룹 역할을 받고, 이벤트 시작 전에 범위 내 플레이어들과 조율을 시작하세요.",
+    "discordStep1": "Kingshot 계정 연동",
+    "discordStep2": "자동으로 그룹 역할 받기",
+    "discordStep3": "왕국 범위 내 플레이어들과 채팅",
+    "discordWhy": "Transfer Hub는 데이터를 제공합니다. Discord는 대화를 제공합니다. 둘 다 활용해 올바른 왕국에 정착하세요.",
+    "joinDiscord": "Atlas Discord 참여",
     "freeBadge": "100% 무료",
     "ctaTitle": "다음 왕국이 기다리고 있습니다.",
     "ctaDesc": "새 보금자리를 찾든 강한 플레이어를 찾든 — 이적 허브가 최적의 매칭을 연결해 줍니다. 무료, 함정 없음.",

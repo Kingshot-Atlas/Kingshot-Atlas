@@ -1466,7 +1466,10 @@
     "nominationCancelled": "Adaylık İptal Edildi",
     "nominationCancelledDesc": "Yardımcı editör adaylığınız iptal edildi.",
     "playersInAtlas": "Atlas'taki Oyuncular",
-    "tapToComplete": "Tamamlamak için dokunun →"
+    "tapToComplete": "Tamamlamak için dokunun →",
+    "discordCalloutTitle": "Discord'da Transfer Grubu kanalları aktif",
+    "discordCalloutDesc": "Krallık aralığındaki oyuncularla doğrudan koordine edin. Her grubun kendi kanalı var.",
+    "joinTransferGroup": "Discord'a Katıl"
   },
   "listing": {
     "allianceEventTimes": "İttifak Etkinlik Zamanları",
@@ -2282,6 +2285,13 @@
     "problemDesc": "Yüzlerce mesaj. Yarısı ciddi değil. Krallıkları yan yana karşılaştırmanın yolu yok. Hangi asker toplayanların gerçek olduğunu bilmenin yolu yok. Sonunda Discord'da sorup 20 farklı görüş alıyorsun.",
     "solutionDesc": "Transfer Hub bunların hepsinin yerini alıyor. Her asker toplayan krallığın gerçek istatistikleri, Atlas Skoru, KvK geçmişi ve topluluk yorumları var. Oyuncular kendi istatistikleri ve tercihleriyle profil oluşturur. Doğrudan başvur. Başvurularını takip et. Bitti.",
     "punchline": "Gerçek veriler. Gerçek başvurular. Artık kör göçler yok.",
+    "discordTitle": "Transfer Grubu Kanalları — Şimdi Aktif",
+    "discordDesc": "Her Transfer Etkinliğinde, her krallık grubu için özel Discord kanalları açıyoruz. Hesabını bağla, grup rolünü otomatik al ve etkinlik başlamadan önce aralığındaki oyuncularla koordinasyona başla.",
+    "discordStep1": "Kingshot hesabını bağla",
+    "discordStep2": "Grup rolünü otomatik al",
+    "discordStep3": "Krallık aralığındaki oyuncularla sohbet et",
+    "discordWhy": "Transfer Hub verileri sağlar. Discord sohbeti sağlar. Doğru krallığa ulaşmak için ikisini birlikte kullan.",
+    "joinDiscord": "Atlas Discord'a Katıl",
     "freeBadge": "%100 Ücretsiz",
     "ctaTitle": "Bir sonraki krallığın seni bekliyor.",
     "ctaDesc": "Yeni bir yuva arasan da güçlü oyuncular arasan da — Transfer Hub seni doğru eşleşmeyle buluşturur. Ücretsiz, tuzak yok.",

@@ -1466,7 +1466,10 @@
     "nominationCancelled": "Nomination Cancelled",
     "nominationCancelledDesc": "Your co-editor nomination has been cancelled.",
     "playersInAtlas": "Players in Atlas",
-    "tapToComplete": "Tap to complete →"
+    "tapToComplete": "Tap to complete →",
+    "discordCalloutTitle": "Transfer Group channels are live in Discord",
+    "discordCalloutDesc": "Coordinate directly with players in your kingdom range. Each group has its own channel.",
+    "joinTransferGroup": "Join Discord"
   },
   "listing": {
     "allianceEventTimes": "Alliance Event Times",
@@ -2282,6 +2285,13 @@
     "problemDesc": "Hundreds of messages. Half of them aren't serious. No way to compare kingdoms side by side. No way to know which recruiters are legit. You end up asking in Discord and getting 20 different opinions.",
     "solutionDesc": "The Transfer Hub replaces all of that. Every recruiting kingdom has real stats, an Atlas Score, KvK history, and community reviews. Players create profiles with their own stats and preferences. Apply directly. Track your applications. Done.",
     "punchline": "Real data. Real applications. No more blind migrations.",
+    "discordTitle": "Transfer Group Channels — Now Live",
+    "discordDesc": "Every Transfer Event, we open dedicated Discord channels for each kingdom group. Link your account, get auto-assigned to your group, and start coordinating with players in your range — before the event even starts.",
+    "discordStep1": "Link your Kingshot account",
+    "discordStep2": "Get your group role automatically",
+    "discordStep3": "Chat with players in your kingdom range",
+    "discordWhy": "The Transfer Hub gives you the data. Discord gives you the conversation. Use both to land in the right kingdom.",
+    "joinDiscord": "Join the Atlas Discord",
     "freeBadge": "100% Free",
     "ctaTitle": "Your next kingdom is waiting.",
     "ctaDesc": "Whether you're looking for a new home or looking for strong players — the Transfer Hub connects you with the right match. No cost, no catch.",
