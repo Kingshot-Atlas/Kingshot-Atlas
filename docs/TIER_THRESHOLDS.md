@@ -1,20 +1,20 @@
 # Power Tier Thresholds - Single Source of Truth
 
-**Last Updated:** 2026-01-30
+**Last Updated:** 2026-02-20
 
 ## ⚠️ IMPORTANT: This is the ONLY source of truth for tier thresholds
 
 When updating tier thresholds, you MUST update ALL of the following files:
 
-## Current Thresholds
+## Current Thresholds (Atlas Score v3.1, 0-100 scale)
 
-| Tier | Score Range | Percentile | Description |
-|------|-------------|------------|-------------|
-| **S** | 8.90+ | Top 3% | Elite kingdoms |
-| **A** | 7.79 - 8.89 | Top 10% | Strong kingdoms |
-| **B** | 6.42 - 7.78 | Top 25% | Competitive kingdoms |
-| **C** | 4.72 - 6.41 | Top 50% | Developing kingdoms |
-| **D** | < 4.72 | Bottom 50% | Rebuilding kingdoms |
+| Tier | Score Range | Percentile | Description | Detail |
+|------|-------------|------------|-------------|--------|
+| **S** | 57+ | Top 3% | Elite | Apex predators |
+| **A** | 47 – 57 | Top 10% | Formidable | Serious contenders |
+| **B** | 38 – 47 | Top 25% | Competitive | Solid performers |
+| **C** | 29 – 38 | Top 50% | Developing | Room to grow |
+| **D** | 0 – 29 | Bottom 50% | Struggling | Rebuilding |
 
 ## Files That Must Stay In Sync
 
@@ -70,15 +70,17 @@ When updating tier thresholds, you MUST update ALL of the following files:
 
 The thresholds are based on percentile distribution of Atlas Scores across all kingdoms:
 
-- **S-Tier (8.90+):** Approximately top 3% of kingdoms. Reserved for elite performers with exceptional track records.
-- **A-Tier (7.79-8.89):** Top 10% of kingdoms. Strong, consistent performers.
-- **B-Tier (6.42-7.78):** Top 25% of kingdoms. Competitive and reliable.
-- **C-Tier (4.72-6.41):** Top 50% of kingdoms. Developing with room to grow.
-- **D-Tier (<4.72):** Bottom 50% of kingdoms. New or rebuilding.
+- **S-Tier (57+):** Approximately top 3% of kingdoms. Elite — apex predators with exceptional track records.
+- **A-Tier (47–57):** Top 10% of kingdoms. Formidable — serious contenders.
+- **B-Tier (38–47):** Top 25% of kingdoms. Competitive — solid performers.
+- **C-Tier (29–38):** Top 50% of kingdoms. Developing — room to grow.
+- **D-Tier (0–29):** Bottom 50% of kingdoms. Struggling — rebuilding.
 
 ## History
 
 | Date | Change | Reason |
 |------|--------|--------|
+| 2026-02-20 | Updated docs to match 0-100 scale | Docs were stale (still showed old 0-15 scale thresholds) |
+| 2026-02-07 | Atlas Score v3.1 — 0-100 scale | Inflation fix, tier recalibration. Thresholds: S≥57, A≥47, B≥38, C≥29 |
 | 2026-01-30 | Updated all files to match POWER_TIER_THRESHOLDS | Discovered inconsistency between About page (10+/7+) and actual thresholds |
 | 2026-01-27 | Initial thresholds set based on percentile analysis | Data-driven tier assignment |

@@ -45,7 +45,7 @@
 | Feature | Status | Agent | Notes |
 |---------|--------|-------|-------|
 | Kingdom Search | ✅ Live | Product | `SearchAutocomplete.tsx` with instant results |
-| Atlas Score System | ✅ Live | Product | Bayesian scoring with tier badges (S/A/B/C/D/F) |
+| Atlas Score System | ✅ Live | Product | Bayesian scoring with tier badges (S/A/B/C/D), 0-100 scale |
 | Atlas Score Breakdown | ✅ Live | Product | Detailed score component analysis |
 | Radar Charts | ✅ Live | Product | `RadarChart.tsx`, `MiniRadarChart.tsx`, `CompareRadarChart.tsx` |
 | Kingdom Cards | ✅ Live | Product | `KingdomCard.tsx` with stats display |

@@ -227,11 +227,11 @@ function createRankingsEmbed(kingdoms, title = '\ud83c\udfc6 Atlas Rankings') {
 function createTierEmbed(tier, kingdoms) {
   const tierEmoji = getTierEmoji(tier);
   const tierDescriptions = {
-    S: 'Elite kingdoms with exceptional track records',
-    A: 'Strong performers with consistent results',
-    B: 'Solid kingdoms with room to grow',
-    C: 'Developing kingdoms building their legacy',
-    D: 'New or struggling kingdoms',
+    S: 'Elite — Apex predators (Top 3%)',
+    A: 'Formidable — Serious contenders (Top 10%)',
+    B: 'Competitive — Solid performers (Top 25%)',
+    C: 'Developing — Room to grow (Top 50%)',
+    D: 'Struggling — Rebuilding (Bottom 50%)',
   };
 
   const pageSize = 10;

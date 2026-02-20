@@ -36,207 +36,6 @@ export interface SimulationResult {
   currentTier: 'S' | 'A' | 'B' | 'C' | 'D';
 }
 
-// Wilson Score lower bound for statistical confidence
-function wilsonScoreLowerBound(wins: number, total: number, confidence: number = 0.90): number {
-  if (total === 0) return 0;
-  
-  const p = wins / total;
-  const n = total;
-  
-  const zScores: Record<number, number> = { 0.90: 1.645, 0.95: 1.96, 0.99: 2.576 };
-  const z = zScores[confidence] || 1.645;
-  
-  const denominator = 1 + (z ** 2) / n;
-  const center = p + (z ** 2) / (2 * n);
-  const spread = z * Math.sqrt((p * (1 - p) + (z ** 2) / (4 * n)) / n);
-  
-  const lowerBound = (center - spread) / denominator;
-  return Math.max(0, lowerBound);
-}
-
-// Bayesian adjusted win rate with strong prior toward 50%
-function bayesianAdjustedWinRate(wins: number, losses: number, priorWins: number = 50, priorLosses: number = 50): number {
-  const totalWins = wins + priorWins;
-  const totalGames = wins + losses + priorWins + priorLosses;
-  return totalGames > 0 ? totalWins / totalGames : 0;
-}
-
-// Enhanced Wilson Score with variable confidence based on sample size
-function enhancedWilsonScore(wins: number, total: number, minSamplePenalty: number = 0.7): number {
-  if (total === 0) return 0;
-  
-  let confidence: number;
-  if (total < 5) {
-    confidence = 0.99;
-  } else if (total < 10) {
-    confidence = 0.95;
-  } else {
-    confidence = 0.90;
-  }
-  
-  const p = wins / total;
-  const n = total;
-  
-  const zScores: Record<number, number> = { 0.90: 1.645, 0.95: 1.96, 0.99: 2.576 };
-  const z = zScores[confidence] || 1.645;
-  
-  const denominator = 1 + (z ** 2) / n;
-  const center = p + (z ** 2) / (2 * n);
-  const spread = z * Math.sqrt((p * (1 - p) + (z ** 2) / (4 * n)) / n);
-  
-  let lowerBound = (center - spread) / denominator;
-  
-  if (total < 3) {
-    lowerBound *= minSamplePenalty;
-  }
-  
-  return Math.max(0, lowerBound);
-}
-
-// Calculate streak bonus/penalty
-function calculateStreakBonus(streak: number, isCurrent: boolean = true): number {
-  if (streak === 0) return 0;
-  
-  if (isCurrent && streak < 0) {
-    const lossStreak = Math.abs(streak);
-    if (lossStreak >= 5) return -0.8;
-    if (lossStreak >= 3) return -0.5;
-    if (lossStreak >= 2) return -0.3;
-    return -0.1;
-  } else {
-    const winStreak = Math.abs(streak);
-    if (winStreak >= 8) return 1.0;
-    if (winStreak >= 5) return 0.7;
-    if (winStreak >= 3) return 0.4;
-    if (winStreak >= 2) return 0.2;
-    return 0.1;
-  }
-}
-
-// Get experience factor based on total KvKs (veteran threshold = 5)
-function getExperienceFactor(totalKvks: number): number {
-  if (totalKvks === 0) return 0.0;
-  if (totalKvks === 1) return 0.4;
-  if (totalKvks === 2) return 0.6;
-  if (totalKvks === 3) return 0.75;
-  if (totalKvks === 4) return 0.9;
-  return 1.0; // Full credit at 5+ KvKs
-}
-
-// Re-export getPowerTier from centralized module (already imported above)
-
-// Comprehensive Atlas Score calculation
-function calculateAtlasScoreComprehensive(
-  totalKvks: number,
-  prepWins: number,
-  prepLosses: number,
-  battleWins: number,
-  battleLosses: number,
-  dominations: number,
-  invasions: number,
-  recentResults: string[],
-  currentPrepStreak: number,
-  currentBattleStreak: number,
-  overallPrepStreak: number,
-  overallBattleStreak: number,
-  recentPrepRates: number[],
-  recentBattleRates: number[]
-): number {
-  const totalMatches = prepWins + prepLosses;
-  if (totalMatches === 0) return 0;
-  
-  // COMPONENT 1: HYBRID STATISTICAL WIN RATE
-  let prepRate: number;
-  let battleRate: number;
-  
-  if (totalKvks < 3) {
-    prepRate = bayesianAdjustedWinRate(prepWins, prepLosses, 50, 50);
-    battleRate = bayesianAdjustedWinRate(battleWins, battleLosses, 50, 50);
-  } else if (totalKvks < 8) {
-    prepRate = enhancedWilsonScore(prepWins, totalMatches, 0.8);
-    battleRate = enhancedWilsonScore(battleWins, totalMatches, 0.8);
-  } else {
-    prepRate = wilsonScoreLowerBound(prepWins, totalMatches, 0.90);
-    battleRate = wilsonScoreLowerBound(battleWins, totalMatches, 0.90);
-  }
-  
-  const baseWinRate = (prepRate * 0.3) + (battleRate * 0.7);
-  
-  // COMPONENT 2: DOMINATION/INVASION PATTERN
-  let domRate: number;
-  let invRate: number;
-  
-  if (totalKvks < 3) {
-    // Fix: bayesianAdjustedWinRate expects (wins, losses), not (wins, total)
-    domRate = totalKvks > 0 ? bayesianAdjustedWinRate(dominations, totalKvks - dominations, 10, 10) : 0;
-    invRate = totalKvks > 0 ? bayesianAdjustedWinRate(invasions, totalKvks - invasions, 10, 10) : 0;
-  } else if (totalKvks < 8) {
-    domRate = totalKvks > 0 ? enhancedWilsonScore(dominations, totalKvks, 0.85) : 0;
-    invRate = totalKvks > 0 ? enhancedWilsonScore(invasions, totalKvks, 0.85) : 0;
-  } else {
-    domRate = totalKvks > 0 ? wilsonScoreLowerBound(dominations, totalKvks, 0.90) : 0;
-    invRate = totalKvks > 0 ? wilsonScoreLowerBound(invasions, totalKvks, 0.90) : 0;
-  }
-  
-  const performanceModifier = (domRate * 0.8) - (invRate * 0.8);
-  
-  // COMPONENT 3: RECENT FORM (Last 3 KvKs)
-  const weights = [1.0, 0.75, 0.5];
-  let recentScore = 0;
-  let totalWeight = 0;
-  
-  for (let i = 0; i < Math.min(recentResults.length, 3); i++) {
-    const weight = weights[i] || 0.3;
-    const result = recentResults[i];
-    if (result === 'D') recentScore += 1.0 * weight;
-    else if (result === 'W') recentScore += 0.5 * weight;
-    else if (result === 'L') recentScore += 0.0 * weight;
-    else if (result === 'F') recentScore -= 0.25 * weight;
-    totalWeight += weight;
-  }
-  
-  const recentForm = totalWeight > 0 ? recentScore / totalWeight : 0;
-  
-  // COMPONENT 4: STREAK ANALYSIS
-  const currentPrepBonus = calculateStreakBonus(currentPrepStreak, true);
-  const currentBattleBonus = calculateStreakBonus(currentBattleStreak, true);
-  const overallPrepBonus = calculateStreakBonus(overallPrepStreak, false);
-  const overallBattleBonus = calculateStreakBonus(overallBattleStreak, false);
-  
-  const totalStreakBonus = (currentPrepBonus * 0.15) + (currentBattleBonus * 0.25) +
-                          (overallPrepBonus * 0.20) + (overallBattleBonus * 0.40);
-  
-  // COMPONENT 5: RECENT PERFORMANCE TREND
-  let recentTrendBonus = 0;
-  if (recentPrepRates.length > 0 && recentBattleRates.length > 0) {
-    const avgRecentPrep = recentPrepRates.reduce((a, b) => a + b, 0) / recentPrepRates.length;
-    const avgRecentBattle = recentBattleRates.reduce((a, b) => a + b, 0) / recentBattleRates.length;
-    const recentPerformance = (avgRecentPrep * 0.3) + (avgRecentBattle * 0.7);
-    
-    const recentCount = recentPrepRates.length;
-    if (recentCount >= 5) recentTrendBonus = recentPerformance * 1.0;
-    else if (recentCount >= 3) recentTrendBonus = recentPerformance * 0.8;
-    else if (recentCount >= 1) recentTrendBonus = recentPerformance * 0.5;
-  }
-  
-  // COMPONENT 6: EXPERIENCE SCALING
-  const experienceFactor = getExperienceFactor(totalKvks);
-  
-  // FINAL SCORE CALCULATION
-  const baseScore = baseWinRate * 10;
-  const performanceScore = performanceModifier * 6;
-  const formBonus = recentForm * 4;
-  const streakBonus = totalStreakBonus * 3;
-  const trendBonus = recentTrendBonus * 2;
-  
-  const rawScore = baseScore + performanceScore + formBonus + streakBonus + trendBonus;
-  let finalScore = rawScore * experienceFactor;
-  
-  finalScore = Math.max(0, Math.min(20, finalScore));
-  
-  return Math.round(finalScore * 100) / 100;
-}
-
 // Extract current stats from kingdom data
 function extractKingdomStats(kingdom: KingdomProfile) {
   const sortedKvks = [...(kingdom.recent_kvks || [])].sort((a, b) => b.kvk_number - a.kvk_number);
@@ -393,7 +192,7 @@ export function simulateScore(
       }
     }),
   };
-  const insights = generateInsights(legacyCurrentStats, legacySimStats, simulatedKvKs, scoreChange);
+  const insights = generateInsights(legacyCurrentStats, legacySimStats, simulatedKvKs, scoreChange, currentScore, projectedScore);
   
   return {
     currentScore,
@@ -417,7 +216,9 @@ function generateInsights(
   currentStats: ReturnType<typeof extractKingdomStats>,
   simStats: ReturnType<typeof extractKingdomStats>,
   simulatedKvKs: SimulatedKvK[],
-  scoreChange: number
+  scoreChange: number,
+  currentScore: number,
+  projectedScore: number
 ): string[] {
   const insights: string[] = [];
   
@@ -446,9 +247,9 @@ function generateInsights(
     insights.push(`${newDominations} domination${newDominations > 1 ? 's' : ''} will boost your performance modifier.`);
   }
   
-  // Tier change insights
-  const currentTier = getPowerTier(simulateScoreWithStats(currentStats));
-  const projectedTier = getPowerTier(simulateScoreWithStats(simStats));
+  // Tier change insights — use actual scores from centralized formula (0-100 scale)
+  const currentTier = getPowerTier(currentScore);
+  const projectedTier = getPowerTier(projectedScore);
   if (projectedTier !== currentTier) {
     if (['S', 'A'].includes(projectedTier) && !['S', 'A'].includes(currentTier)) {
       insights.push(`This could push you into ${projectedTier}-Tier! Elite territory.`);
@@ -477,25 +278,6 @@ function generateInsights(
   return insights.slice(0, 3);
 }
 
-// Helper to calculate score from stats object
-function simulateScoreWithStats(stats: ReturnType<typeof extractKingdomStats>): number {
-  return calculateAtlasScoreComprehensive(
-    stats.totalKvks,
-    stats.prepWins,
-    stats.prepLosses,
-    stats.battleWins,
-    stats.battleLosses,
-    stats.dominations,
-    stats.invasions,
-    stats.recentResults,
-    stats.currentPrepStreak,
-    stats.currentBattleStreak,
-    stats.overallPrepStreak,
-    stats.overallBattleStreak,
-    stats.recentPrepRates,
-    stats.recentBattleRates
-  );
-}
 
 // Get outcome label for a simulated KvK
 export function getSimulatedOutcome(prep: 'W' | 'L', battle: 'W' | 'L'): {

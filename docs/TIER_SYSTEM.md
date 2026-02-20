@@ -2,18 +2,17 @@
 
 > **Single Source of Truth** for tier thresholds across all platforms.
 
-## Current Tier System (Percentile-Based)
+## Current Tier System (Atlas Score v3.1, 0-100 scale)
 
-Tiers are determined by **percentile ranking** within the kingdom population, not fixed score thresholds.
-This ensures tiers remain meaningful as the overall score distribution evolves.
+Tiers are determined by Atlas Score thresholds calibrated to percentile distribution.
 
-| Tier | Percentile | Description |
-|------|------------|-------------|
-| **S** | Top 3% | Elite kingdoms, consistent dominators |
-| **A** | Top 10% | Strong performers, reliable winners |
-| **B** | Top 25% | Above average, competitive |
-| **C** | Top 50% | Solid performers, developing kingdoms |
-| **D** | Bottom 50% | Rebuilding, newer kingdoms |
+| Tier | Score Range | Percentile | Description | Detail |
+|------|-------------|------------|-------------|--------|
+| **S** | 57+ | Top 3% | Elite | Apex predators |
+| **A** | 47 – 57 | Top 10% | Formidable | Serious contenders |
+| **B** | 38 – 47 | Top 25% | Competitive | Solid performers |
+| **C** | 29 – 38 | Top 50% | Developing | Room to grow |
+| **D** | 0 – 29 | Bottom 50% | Struggling | Rebuilding |
 
 ### Historical Tier Calculation
 
@@ -29,18 +28,6 @@ ELSIF percentile >= 75 THEN RETURN 'B';  -- Top 25%
 ELSIF percentile >= 50 THEN RETURN 'C';  -- Top 50%
 ELSE RETURN 'D';  -- Bottom 50%
 ```
-
-## Legacy Tier Thresholds (Score-Based)
-
-The following fixed thresholds are still used in some older components:
-
-| Tier | Min Score | Max Score | Approx Percentile |
-|------|-----------|-----------|-------------------|
-| **S** | 10.0 | ∞ | ~Top 3% |
-| **A** | 7.0 | 9.9 | ~Top 10% |
-| **B** | 4.5 | 6.9 | ~Top 25% |
-| **C** | 2.5 | 4.4 | ~Top 50% |
-| **D** | -∞ | 2.4 | ~Bottom 50% |
 
 ## Implementation Locations
 
@@ -74,6 +61,8 @@ The following fixed thresholds are still used in some older components:
 
 | Date | Change | Reason |
 |------|--------|--------|
+| 2026-02-20 | Updated docs to 0-100 scale, removed legacy thresholds | Docs showed stale 0-15 scale values |
+| 2026-02-07 | Atlas Score v3.1 — 0-100 scale | Inflation fix, tier recalibration. S≥57, A≥47, B≥38, C≥29 |
 | 2026-02-04 | Implemented percentile-based tiers for historical tracking | Tiers now reflect ranking at time of KvK, not fixed thresholds |
 | 2026-02-04 | Added `percentile_rank` to `score_history` table | Enables accurate historical tier display |
 | 2026-01-29 | Fixed bot to match website thresholds | Bot was using outdated S:12, A:8, B:5, C:2 |
@@ -81,4 +70,4 @@ The following fixed thresholds are still used in some older components:
 
 ---
 
-*Last Updated: 2026-02-04*
+*Last Updated: 2026-02-20*

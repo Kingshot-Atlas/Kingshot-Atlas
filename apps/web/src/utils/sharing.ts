@@ -232,11 +232,10 @@ export const generateKingdomCard = async (
   // Tier badge
   const tierColors: Record<string, string> = {
     'S': '#fbbf24',
-    'A': '#a855f7',
-    'B': '#22d3ee',
-    'C': '#22c55e',
-    'D': '#6b7280',
-    'F': '#ef4444'
+    'A': '#22c55e',
+    'B': '#3b82f6',
+    'C': '#f97316',
+    'D': '#ef4444',
   };
   const tierKey: string = tier && tier.length > 0 ? tier.charAt(0) : 'D';
   const tierColor = tierColors[tierKey] || '#6b7280';
