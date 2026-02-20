@@ -1,29 +1,59 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as Sentry from '@sentry/react';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { logger } from '../utils/logger';
 
 /**
- * Dedicated OAuth callback page.
- * Supabase redirects here after Google/Discord sign-in with #access_token=... in the hash.
- * The Supabase client (detectSessionInUrl: true) processes the hash automatically.
- * This page waits for the session to be established, then redirects to /profile.
+ * Dedicated OAuth callback page (PKCE flow).
+ *
+ * After Google/Discord sign-in, Supabase redirects here with ?code=...
+ * The Supabase client (detectSessionInUrl + flowType: 'pkce') exchanges the
+ * code automatically during initialization. This page waits for the session
+ * to be established, then redirects to /profile.
+ *
+ * Failure modes handled:
+ *  1. ?error= params from Supabase (provider rejected / server error)
+ *  2. PKCE code_verifier lost (mobile redirect, in-app browser, app switch)
+ *  3. Slow PKCE exchange on mobile (getSession can hang — use Promise.race)
+ *  4. No credentials at all (direct navigation / stale tab)
  */
+
+// Non-blocking getSession with timeout — prevents hanging when PKCE exchange is stuck
+const getSessionSafe = async (timeoutMs = 5000) => {
+  if (!supabase) return null;
+  try {
+    const result = await Promise.race([
+      supabase.auth.getSession().then(({ data }) => data.session),
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), timeoutMs)),
+    ]);
+    return result;
+  } catch {
+    return null;
+  }
+};
+
 const AuthCallback: React.FC = () => {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
   const [showRetry, setShowRetry] = useState(false);
 
-  const retryLogin = () => {
-    // Clear stale session data and redirect to profile to re-trigger OAuth
-    if (supabase) {
-      supabase.auth.signOut().then(() => {
-        window.location.href = '/profile';
+  // Re-initiate sign-in (works for both Discord and Google)
+  const retrySignIn = useCallback(async (provider?: 'discord' | 'google') => {
+    if (!supabase) { window.location.href = '/profile'; return; }
+    setError(null);
+    if (provider) {
+      const { error: oauthErr } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: { redirectTo: `${window.location.origin}/auth/callback` },
       });
+      if (oauthErr) setError('Failed to start sign-in. Please try again.');
     } else {
+      // Generic retry: sign out stale state, go to profile
+      await supabase.auth.signOut().catch(() => {});
       window.location.href = '/profile';
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase) {
@@ -34,8 +64,29 @@ const AuthCallback: React.FC = () => {
     let cancelled = false;
     let pollCount = 0;
     let manualAttempted = false;
+
+    // ─── Parse URL parameters ────────────────────────────────────────
+    const params = new URLSearchParams(window.location.search);
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
     const hasHash = window.location.hash.length > 1;
-    const hasPKCECode = new URLSearchParams(window.location.search).has('code');
+    const pkceCode = params.get('code');
+    const hasPKCECode = !!pkceCode;
+
+    // ─── 1. IMMEDIATE: Check for OAuth error from Supabase redirect ──
+    const errorParam = params.get('error') || hashParams.get('error');
+    const errorDesc = params.get('error_description') || hashParams.get('error_description');
+    if (errorParam) {
+      const msg = errorDesc
+        ? decodeURIComponent(errorDesc.replace(/\+/g, ' '))
+        : `Sign-in failed (${errorParam})`;
+      logger.error('[AuthCallback] OAuth error from provider:', { error: errorParam, description: errorDesc });
+      Sentry.captureMessage('OAuth callback error from provider', {
+        level: 'warning',
+        extra: { error: errorParam, description: errorDesc },
+      });
+      setError(msg);
+      return;
+    }
 
     Sentry.addBreadcrumb({
       category: 'auth',
@@ -62,10 +113,8 @@ const AuthCallback: React.FC = () => {
       if (manualAttempted || cancelled || !hasHash) return;
       manualAttempted = true;
       try {
-        const hash = window.location.hash.substring(1);
-        const params = new URLSearchParams(hash);
-        const accessToken = params.get('access_token');
-        const refreshToken = params.get('refresh_token');
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
         if (accessToken && refreshToken) {
           Sentry.addBreadcrumb({ category: 'auth', message: 'Attempting manual setSession', level: 'info' });
           const { data, error: sessErr } = await supabase!.auth.setSession({
@@ -77,63 +126,67 @@ const AuthCallback: React.FC = () => {
       } catch { /* ignore manual fallback errors */ }
     };
 
-    // PKCE flow: Supabase sends ?code= in the query string (not hash).
-    // detectSessionInUrl handles the code exchange automatically, but it's async.
-    // We must NOT check for session immediately — wait for the exchange to finish.
-    // Fall through to the polling/listener logic below which will catch the session.
+    // ─── 2. No credentials at all → check existing session ──────────
     if (!hasHash && !hasPKCECode) {
-      // No hash AND no PKCE code — user landed here directly or from another tab.
-      // Check for existing session immediately.
-      supabase.auth.getSession().then(({ data: { session } }) => {
+      getSessionSafe(4000).then((session) => {
         if (session) {
           redirect();
         } else {
-          setError('Sign-in is taking longer than expected. Please try again.');
+          logger.warn('[AuthCallback] No credentials in URL and no session');
+          setError('No sign-in credentials found. Please try signing in again.');
         }
       });
       return () => { cancelled = true; };
     }
 
-    // Show retry button after 6s
-    const retryTimerId = setTimeout(() => { if (!cancelled) setShowRetry(true); }, 6000);
+    // ─── 3. Credentials present — wait for session ───────────────────
 
-    // Timeout: 12s
-    const timeoutId = setTimeout(() => {
-      if (!cancelled) {
-        Sentry.addBreadcrumb({
-          category: 'auth',
-          message: 'AuthCallback timeout reached',
-          data: { pollCount, hasHash },
-          level: 'warning',
-        });
-        supabase!.auth.getSession().then(({ data: { session } }) => {
-          if (session) {
-            redirect();
-          } else {
-            setError('Sign-in is taking longer than expected. Please try again.');
-          }
-        });
+    // Show retry button after 8s (was 6s — more time for mobile)
+    const retryTimerId = setTimeout(() => { if (!cancelled) setShowRetry(true); }, 8000);
+
+    // Hard timeout: 20s (was 12s). Uses non-blocking getSession to avoid
+    // hanging when the PKCE exchange request is stuck on slow mobile networks.
+    const timeoutId = setTimeout(async () => {
+      if (cancelled) return;
+      const session = await getSessionSafe(3000);
+      if (session) {
+        redirect();
+        return;
       }
-    }, 12000);
+      // Exchange failed — build a helpful error message
+      const failureContext = hasPKCECode ? 'pkce' : hasHash ? 'hash' : 'none';
+      logger.error('[AuthCallback] Timeout — no session after 20s', { failureContext, pollCount });
+      Sentry.captureMessage('Auth callback timeout — session not established', {
+        level: 'warning',
+        extra: { hasPKCECode, hasHash, pollCount, failureContext },
+      });
 
-    // Listen for auth state changes (fires when Supabase processes the hash)
+      if (hasPKCECode) {
+        setError(
+          'Sign-in verification failed. This can happen on mobile browsers or when switching apps during sign-in.'
+        );
+      } else {
+        setError('Sign-in is taking longer than expected.');
+      }
+    }, 20000);
+
+    // Listen for auth state changes (fires when Supabase processes the code/hash)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) redirect();
     });
 
-    // Poll for session every 1.5s — handles multi-tab race conditions
+    // Poll for session every 2s using non-blocking getSession
     const pollSession = async () => {
       pollCount++;
-      const { data: { session } } = await supabase!.auth.getSession();
+      const session = await getSessionSafe(3000);
       if (session) {
         redirect();
-      } else if (pollCount >= 3 && !manualAttempted) {
-        // After 4.5s, try manual hash parsing as fallback
+      } else if (pollCount >= 3 && !manualAttempted && hasHash) {
         tryManualSession();
       }
     };
     pollSession();
-    const pollId = setInterval(pollSession, 1500);
+    const pollId = setInterval(pollSession, 2000);
 
     return () => {
       cancelled = true;
@@ -158,37 +211,54 @@ const AuthCallback: React.FC = () => {
       }}>
         <div style={{ color: '#ef4444', fontSize: '1.1rem', textAlign: 'center' }}>{error}</div>
         <p style={{ color: '#6b7280', fontSize: '0.85rem', textAlign: 'center', maxWidth: '360px', lineHeight: 1.5 }}>
-          This can happen on slow connections or when multiple tabs are open. Try signing in again.
+          This can happen on slow connections, mobile in-app browsers, or when switching apps during sign-in.
         </p>
-        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center' }}>
           <button
-            onClick={() => navigate('/profile', { replace: true })}
+            onClick={() => retrySignIn('discord')}
             style={{
-              padding: '0.75rem 1.5rem',
-              background: 'linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%)',
+              padding: '0.75rem 1.25rem',
+              background: '#5865F2',
+              border: 'none',
+              borderRadius: '8px',
+              color: '#fff',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              fontSize: '0.9rem'
+            }}
+          >
+            Try Discord Again
+          </button>
+          <button
+            onClick={() => retrySignIn('google')}
+            style={{
+              padding: '0.75rem 1.25rem',
+              background: '#fff',
               border: 'none',
               borderRadius: '8px',
               color: '#000',
               fontWeight: 'bold',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              fontSize: '0.9rem'
             }}
           >
-            Go to Profile
-          </button>
-          <button
-            onClick={() => { window.location.href = '/'; }}
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: 'transparent',
-              border: '1px solid #3a3a3a',
-              borderRadius: '8px',
-              color: '#9ca3af',
-              cursor: 'pointer'
-            }}
-          >
-            Back to Home
+            Try Google Instead
           </button>
         </div>
+        <button
+          onClick={() => { window.location.href = '/'; }}
+          style={{
+            padding: '0.5rem 1rem',
+            backgroundColor: 'transparent',
+            border: '1px solid #3a3a3a',
+            borderRadius: '8px',
+            color: '#6b7280',
+            cursor: 'pointer',
+            fontSize: '0.8rem'
+          }}
+        >
+          Back to Home
+        </button>
       </div>
     );
   }
@@ -214,7 +284,7 @@ const AuthCallback: React.FC = () => {
       <div style={{ color: '#9ca3af', fontSize: '1rem' }}>Signing you in...</div>
       {showRetry && (
         <button
-          onClick={retryLogin}
+          onClick={() => retrySignIn()}
           style={{
             marginTop: '0.5rem',
             padding: '0.5rem 1.25rem',

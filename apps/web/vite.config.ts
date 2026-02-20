@@ -13,7 +13,7 @@ export default defineConfig({
         cleanupOutdatedCaches: true, // Remove old caches on activation
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
         navigateFallback: '/index.html',  // SPA: serve app shell for all navigation
-        navigateFallbackDenylist: [/^\/api\//, /^\/sw\.js$/],
+        navigateFallbackDenylist: [/^\/api\//, /^\/sw\.js$/, /^\/auth\//],
         runtimeCaching: [
           {
             urlPattern: ({ request }) => request.mode === 'navigate',
