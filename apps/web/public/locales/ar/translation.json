@@ -696,7 +696,19 @@
     "discordOpensInBrowser": "يفتح Discord في متصفحك",
     "discordBrowserHint": "Discord يتطلب تسجيل الدخول عبر المتصفح للأمان.",
     "oauthDisclaimer": "نستخدم مزودي OAuth لمنع الحسابات المزيفة.",
-    "termsLink": "بالتسجيل توافق على شروط الخدمة"
+    "termsLink": "بالتسجيل توافق على شروط الخدمة",
+    "callbackSigningIn": "جاري تسجيل الدخول...",
+    "callbackSigningInWith": "جاري تسجيل الدخول عبر {{provider}}...",
+    "callbackTakingTooLong": "يستغرق وقتاً طويلاً؟ إعادة المحاولة",
+    "callbackNotConfigured": "المصادقة غير مهيأة.",
+    "callbackNoCredentials": "لم يتم العثور على بيانات تسجيل الدخول. يرجى المحاولة مرة أخرى.",
+    "callbackPkceFailed": "فشل التحقق من تسجيل الدخول. قد يحدث هذا في متصفحات الجوال أو عند التبديل بين التطبيقات أثناء تسجيل الدخول.",
+    "callbackSlow": "تسجيل الدخول يستغرق وقتاً أطول من المتوقع.",
+    "callbackRetryFailed": "تعذر بدء تسجيل الدخول. يرجى المحاولة مرة أخرى.",
+    "callbackErrorHint": "قد يحدث هذا مع الاتصالات البطيئة أو متصفحات التطبيقات أو عند التبديل بين التطبيقات أثناء تسجيل الدخول.",
+    "tryDiscordAgain": "إعادة محاولة Discord",
+    "tryGoogleInstead": "جرب Google بدلاً من ذلك",
+    "backToHome": "العودة للرئيسية"
   },
   "notifications": {
     "title": "الإشعارات",

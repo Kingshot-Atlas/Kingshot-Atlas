@@ -696,7 +696,19 @@
     "discordOpensInBrowser": "Abre Discord en tu navegador",
     "discordBrowserHint": "Discord requiere inicio de sesión en el navegador por seguridad. Marca \"Recuérdame\" para inicios de sesión más rápidos. Serás redirigido automáticamente.",
     "oauthDisclaimer": "Usamos proveedores de OAuth para prevenir cuentas de spam.",
-    "termsLink": "Al registrarte aceptas nuestros Términos de Servicio"
+    "termsLink": "Al registrarte aceptas nuestros Términos de Servicio",
+    "callbackSigningIn": "Iniciando sesión...",
+    "callbackSigningInWith": "Iniciando sesión con {{provider}}...",
+    "callbackTakingTooLong": "¿Tarda demasiado? Reintentar",
+    "callbackNotConfigured": "La autenticación no está configurada.",
+    "callbackNoCredentials": "No se encontraron credenciales. Por favor intenta iniciar sesión de nuevo.",
+    "callbackPkceFailed": "La verificación falló. Esto puede ocurrir en navegadores móviles o al cambiar de aplicación durante el inicio de sesión.",
+    "callbackSlow": "El inicio de sesión está tardando más de lo esperado.",
+    "callbackRetryFailed": "No se pudo iniciar sesión. Por favor inténtalo de nuevo.",
+    "callbackErrorHint": "Esto puede ocurrir con conexiones lentas, navegadores integrados en apps o al cambiar de aplicación durante el inicio de sesión.",
+    "tryDiscordAgain": "Intentar Discord de nuevo",
+    "tryGoogleInstead": "Intentar con Google",
+    "backToHome": "Volver al inicio"
   },
   "notifications": {
     "title": "Notificaciones",

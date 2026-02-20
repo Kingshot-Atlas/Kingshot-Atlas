@@ -696,7 +696,19 @@
     "discordOpensInBrowser": "Discord'u tarayıcınızda açar",
     "discordBrowserHint": "Discord güvenlik için tarayıcı girişi gerektirir. Daha hızlı gelecek girişler için \"Beni hatırla\"yı işaretleyin. Otomatik olarak geri yönlendirileceksiniz.",
     "oauthDisclaimer": "Spam hesapları önlemek için OAuth sağlayıcıları kullanıyoruz.",
-    "termsLink": "Kaydolarak Hizmet Şartlarını kabul etmiş olursunuz"
+    "termsLink": "Kaydolarak Hizmet Şartlarını kabul etmiş olursunuz",
+    "callbackSigningIn": "Giriş yapılıyor...",
+    "callbackSigningInWith": "{{provider}} ile giriş yapılıyor...",
+    "callbackTakingTooLong": "Çok mu uzun sürüyor? Tekrar dene",
+    "callbackNotConfigured": "Kimlik doğrulama yapılandırılmamış.",
+    "callbackNoCredentials": "Giriş bilgisi bulunamadı. Lütfen tekrar giriş yapın.",
+    "callbackPkceFailed": "Giriş doğrulaması başarısız oldu. Bu, mobil tarayıcılarda veya giriş sırasında uygulama değiştirirken olabilir.",
+    "callbackSlow": "Giriş beklenenden uzun sürüyor.",
+    "callbackRetryFailed": "Giriş başlatılamadı. Lütfen tekrar deneyin.",
+    "callbackErrorHint": "Bu, yavaş bağlantılarda, uygulama içi tarayıcılarda veya giriş sırasında uygulama değiştirirken olabilir.",
+    "tryDiscordAgain": "Discord'u tekrar dene",
+    "tryGoogleInstead": "Google'ı dene",
+    "backToHome": "Ana sayfaya dön"
   },
   "notifications": {
     "title": "Bildirimler",

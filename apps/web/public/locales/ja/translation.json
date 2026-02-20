@@ -696,7 +696,19 @@
     "discordOpensInBrowser": "ブラウザでDiscordを開きます",
     "discordBrowserHint": "セキュリティのため、Discordはブラウザログインが必要です。「ログインを保持」をチェックすると次回以降速くなります。",
     "oauthDisclaimer": "スパムアカウント防止のためOAuthプロバイダーを使用しています。",
-    "termsLink": "登録することで利用規約に同意したことになります"
+    "termsLink": "登録することで利用規約に同意したことになります",
+    "callbackSigningIn": "サインイン中...",
+    "callbackSigningInWith": "{{provider}}でサインイン中...",
+    "callbackTakingTooLong": "時間がかかっていますか？再試行",
+    "callbackNotConfigured": "認証が設定されていません。",
+    "callbackNoCredentials": "サインイン情報が見つかりません。もう一度サインインしてください。",
+    "callbackPkceFailed": "サインインの検証に失敗しました。モバイルブラウザやサインイン中のアプリ切り替えで発生することがあります。",
+    "callbackSlow": "サインインに予想以上に時間がかかっています。",
+    "callbackRetryFailed": "サインインを開始できませんでした。もう一度お試しください。",
+    "callbackErrorHint": "遅い接続、アプリ内ブラウザ、またはサインイン中のアプリ切り替えで発生することがあります。",
+    "tryDiscordAgain": "Discordで再試行",
+    "tryGoogleInstead": "Googleで試す",
+    "backToHome": "ホームに戻る"
   },
   "notifications": {
     "title": "通知",

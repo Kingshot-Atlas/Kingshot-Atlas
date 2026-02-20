@@ -3,6 +3,18 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-20 16:00 | Product Engineer | COMPLETED
+Task: Auth flow polish — pre-login URL memory, profile skeleton, provider logos, i18n, security
+Files: AuthModal.tsx, AuthCallback.tsx, ProfileLoadingFallback.tsx, AuthContext.tsx, i18n-diff.js, 9× translation.json
+Changes:
+1. **Pre-login page memory** — AuthModal stores current URL in sessionStorage; AuthCallback redirects there after login instead of always /profile. Users return to the page they were on (e.g. /kingdoms/231 → login → back to /kingdoms/231).
+2. **Profile loading skeleton** — Replaced plain "Loading profile..." text with a skeleton UI matching the real profile layout (avatar, name, stats grid, content sections) with pulse animation.
+3. **AuthCallback provider detection** — Shows Google/Discord logo and provider-specific "Signing in with Google/Discord..." message during callback. Uses document.referrer + sessionStorage hint. Adds animated progress bar in provider color.
+4. **Open redirect guard** — returnUrl validation ensures only safe relative paths (starts with /, not //) are used as post-login destinations.
+5. **i18n complete** — Added `callbackSigningInWith` key to all 9 locales. Added TR to i18n-diff.js LANGUAGES array (was missing).
+6. **Previous session fixes** — Dead email auth code removal, Discord ID identity extraction, race condition guard, non-blocking referrals, instant cache hydration, helper extraction, AuthCallback full i18n (13 keys × 9 langs).
+Result: Build passes. All 2658 i18n keys in sync across 9 languages. Zero hardcoded strings.
+
 ## 2026-02-20 15:30 | Platform Engineer | COMPLETED
 Task: Fix Discord sign-in failures — AuthCallback hardening (URGENT)
 Files: AuthCallback.tsx, vite.config.ts

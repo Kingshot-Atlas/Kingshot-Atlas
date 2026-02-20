@@ -696,7 +696,19 @@
     "discordOpensInBrowser": "Öffnet Discord in deinem Browser",
     "discordBrowserHint": "Discord erfordert eine Browser-Anmeldung aus Sicherheitsgründen. Aktiviere \"Angemeldet bleiben\" für schnellere zukünftige Logins. Du wirst automatisch zurückgeleitet.",
     "oauthDisclaimer": "Wir verwenden OAuth-Anbieter zur Vermeidung von Spam-Konten.",
-    "termsLink": "Mit der Registrierung akzeptieren Sie unsere Nutzungsbedingungen"
+    "termsLink": "Mit der Registrierung akzeptieren Sie unsere Nutzungsbedingungen",
+    "callbackSigningIn": "Anmeldung läuft...",
+    "callbackSigningInWith": "Anmeldung mit {{provider}}...",
+    "callbackTakingTooLong": "Dauert zu lange? Erneut versuchen",
+    "callbackNotConfigured": "Authentifizierung ist nicht konfiguriert.",
+    "callbackNoCredentials": "Keine Anmeldedaten gefunden. Bitte erneut anmelden.",
+    "callbackPkceFailed": "Anmeldeverifizierung fehlgeschlagen. Dies kann bei mobilen Browsern oder beim App-Wechsel während der Anmeldung auftreten.",
+    "callbackSlow": "Die Anmeldung dauert länger als erwartet.",
+    "callbackRetryFailed": "Anmeldung konnte nicht gestartet werden. Bitte erneut versuchen.",
+    "callbackErrorHint": "Dies kann bei langsamen Verbindungen, In-App-Browsern oder beim App-Wechsel während der Anmeldung auftreten.",
+    "tryDiscordAgain": "Discord erneut versuchen",
+    "tryGoogleInstead": "Google versuchen",
+    "backToHome": "Zurück zur Startseite"
   },
   "notifications": {
     "title": "Benachrichtigungen",

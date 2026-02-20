@@ -696,7 +696,19 @@
     "signInFailed": "Failed to sign in. Please try again or check your connection.",
     "discordOpensInBrowser": "Opens Discord in your browser",
     "discordBrowserHint": "Discord requires browser login for security. Check \"Remember me\" for faster future logins. You'll be redirected back automatically.",
-    "oauthDisclaimer": "We use OAuth providers to prevent spam accounts."
+    "oauthDisclaimer": "We use OAuth providers to prevent spam accounts.",
+    "callbackSigningIn": "Signing you in...",
+    "callbackSigningInWith": "Signing in with {{provider}}...",
+    "callbackTakingTooLong": "Taking too long? Retry",
+    "callbackNotConfigured": "Authentication is not configured.",
+    "callbackNoCredentials": "No sign-in credentials found. Please try signing in again.",
+    "callbackPkceFailed": "Sign-in verification failed. This can happen on mobile browsers or when switching apps during sign-in.",
+    "callbackSlow": "Sign-in is taking longer than expected.",
+    "callbackRetryFailed": "Failed to start sign-in. Please try again.",
+    "callbackErrorHint": "This can happen on slow connections, mobile in-app browsers, or when switching apps during sign-in.",
+    "tryDiscordAgain": "Try Discord Again",
+    "tryGoogleInstead": "Try Google Instead",
+    "backToHome": "Back to Home"
   },
   "notifications": {
     "title": "Notifications",

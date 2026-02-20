@@ -17,6 +17,16 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
+  // Store pre-login URL so AuthCallback can redirect back to this page
+  useEffect(() => {
+    if (!isOpen) return;
+    const currentPath = window.location.pathname + window.location.search + window.location.hash;
+    // Don't store auth-related pages as return destinations
+    if (!['/auth/callback', '/profile'].includes(window.location.pathname)) {
+      sessionStorage.setItem('atlas_pre_login_url', currentPath);
+    }
+  }, [isOpen]);
+
   // Focus trap and escape key handler
   useEffect(() => {
     if (!isOpen) return;
@@ -45,6 +55,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     }
     
     setLoading(true);
+    // Store provider hint for AuthCallback to show correct logo
+    sessionStorage.setItem('atlas_auth_provider', provider);
     try {
       if (provider === 'google') {
         await signInWithGoogle();

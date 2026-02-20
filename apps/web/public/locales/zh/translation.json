@@ -696,7 +696,19 @@
     "discordOpensInBrowser": "在浏览器中打开Discord",
     "discordBrowserHint": "Discord需要通过浏览器登录以确保安全。勾选\"记住我\"可加快今后的登录速度。你将被自动重定向回来。",
     "oauthDisclaimer": "我们使用OAuth提供商来防止垃圾账户。",
-    "termsLink": "注册即表示您同意我们的服务条款"
+    "termsLink": "注册即表示您同意我们的服务条款",
+    "callbackSigningIn": "正在登录...",
+    "callbackSigningInWith": "正在通过 {{provider}} 登录...",
+    "callbackTakingTooLong": "时间太长？重试",
+    "callbackNotConfigured": "身份验证未配置。",
+    "callbackNoCredentials": "未找到登录凭据。请重新登录。",
+    "callbackPkceFailed": "登录验证失败。这可能发生在移动浏览器或登录过程中切换应用时。",
+    "callbackSlow": "登录时间比预期长。",
+    "callbackRetryFailed": "无法开始登录。请重试。",
+    "callbackErrorHint": "这可能发生在网络较慢、应用内浏览器或登录过程中切换应用时。",
+    "tryDiscordAgain": "重试 Discord",
+    "tryGoogleInstead": "改用 Google",
+    "backToHome": "返回首页"
   },
   "notifications": {
     "title": "通知",

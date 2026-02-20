@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import * as Sentry from '@sentry/react';
 import { logger } from '../utils/logger';
-import { User, Session, AuthError } from '@supabase/supabase-js';
+import { User, Session } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { userDataService } from '../services/userDataService';
 import { generateRandomUsername } from '../utils/randomUsername';
@@ -54,8 +54,6 @@ interface AuthContextType {
   isConfigured: boolean;
   signInWithGoogle: () => Promise<void>;
   signInWithDiscord: () => Promise<void>;
-  signInWithEmail: (email: string, password: string) => Promise<{ error: AuthError | null }>;
-  signUpWithEmail: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<UserProfile>) => Promise<{ success: boolean; error?: string }>;
   refreshLinkedPlayer: () => Promise<void>;
@@ -109,10 +107,16 @@ const getDiscordInfoFromAuth = (user: User): { discordId: string | null; discord
     return { discordId: null, discordUsername: null };
   }
   
-  // Extract Discord ID from avatar URL: https://cdn.discordapp.com/avatars/332218895765209089/...
-  const avatarUrl = user.user_metadata?.avatar_url || '';
-  const discordAvatarMatch = avatarUrl.match(/cdn\.discordapp\.com\/avatars\/(\d+)\//);
-  const discordId = discordAvatarMatch?.[1] || null;
+  // Primary: use identity data (reliable, works even without a custom avatar)
+  const discordIdentity = user.identities?.find(i => i.provider === 'discord');
+  let discordId = discordIdentity?.id || null;
+  
+  // Fallback: extract from avatar URL pattern
+  if (!discordId) {
+    const avatarUrl = user.user_metadata?.avatar_url || '';
+    const discordAvatarMatch = avatarUrl.match(/cdn\.discordapp\.com\/avatars\/(\d+)\//);
+    discordId = discordAvatarMatch?.[1] || null;
+  }
   
   // Get username from metadata
   const discordUsername = user.user_metadata?.full_name || 
@@ -123,12 +127,32 @@ const getDiscordInfoFromAuth = (user: User): { discordId: string | null; discord
   return { discordId, discordUsername };
 };
 
+// Helper: extract cached linked player data from localStorage to avoid duplication
+const getCachedLinkedPlayerData = (): Record<string, unknown> => {
+  try {
+    const cached = localStorage.getItem(PROFILE_KEY);
+    if (!cached) return {};
+    const cachedProfile = JSON.parse(cached);
+    if (cachedProfile.linked_player_id) {
+      return {
+        linked_player_id: cachedProfile.linked_player_id,
+        linked_username: cachedProfile.linked_username,
+        linked_avatar_url: cachedProfile.linked_avatar_url,
+        linked_kingdom: cachedProfile.linked_kingdom,
+        linked_tc_level: cachedProfile.linked_tc_level,
+      };
+    }
+  } catch { /* ignore parse errors */ }
+  return {};
+};
+
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const isConfigured = isSupabaseConfigured;
+  const profileFetchInFlight = useRef(false);
 
   // Capture ?ref= and ?src= params from URL and store in localStorage for later use during signup
   // Also stores the landing page path for analytics and cleans the URL after capture
@@ -261,13 +285,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [profile]);
 
   const fetchOrCreateProfile = async (user: User) => {
+    // Guard: prevent concurrent fetches (e.g. onAuthStateChange fires SIGNED_IN + TOKEN_REFRESHED)
+    if (profileFetchInFlight.current) return;
+    profileFetchInFlight.current = true;
+
     if (!supabase) {
-      // Create local profile when Supabase is not configured
       const avatarUrl = getCleanAvatarUrl(
         user.user_metadata?.avatar_url || 
         user.user_metadata?.picture
       );
-      // Generate random username for new users (will be replaced when they link Kingshot account)
       const username = generateRandomUsername();
       const localProfile: UserProfile = {
         id: user.id,
@@ -287,7 +313,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setProfile(localProfile);
       localStorage.setItem(PROFILE_KEY, JSON.stringify(localProfile));
       setLoading(false);
+      profileFetchInFlight.current = false;
       return;
+    }
+
+    // Instant hydration: show cached profile immediately while we fetch fresh data
+    const cachedRaw = localStorage.getItem(PROFILE_KEY);
+    if (cachedRaw) {
+      try {
+        const cachedProfile = JSON.parse(cachedRaw);
+        if (cachedProfile.id === user.id) {
+          setProfile(cachedProfile);
+          setLoading(false); // Unblock UI instantly with cached data
+        }
+      } catch { /* ignore */ }
     }
     
     try {
@@ -303,10 +342,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           user.user_metadata?.avatar_url || 
           user.user_metadata?.picture
         );
-        // Generate random username for new users (will be replaced when they link Kingshot account)
         const username = generateRandomUsername();
-        
-        // Auto-populate Discord info if user logged in via Discord
         const { discordId, discordUsername } = getDiscordInfoFromAuth(user);
 
         const newProfile: UserProfile = {
@@ -336,118 +372,36 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
         if (createError) {
           logger.error('Error creating profile:', createError);
-          // Use local profile on error, but preserve any cached linked player data
-          const cached = localStorage.getItem(PROFILE_KEY);
-          let linkedData = {};
-          if (cached) {
-            try {
-              const cachedProfile = JSON.parse(cached);
-              if (cachedProfile.linked_player_id) {
-                linkedData = {
-                  linked_player_id: cachedProfile.linked_player_id,
-                  linked_username: cachedProfile.linked_username,
-                  linked_avatar_url: cachedProfile.linked_avatar_url,
-                  linked_kingdom: cachedProfile.linked_kingdom,
-                  linked_tc_level: cachedProfile.linked_tc_level,
-                };
-              }
-            } catch { /* ignore */ }
-          }
-          const mergedProfile = { ...newProfile, ...linkedData };
+          const mergedProfile = { ...newProfile, ...getCachedLinkedPlayerData() };
           setProfile(mergedProfile);
           localStorage.setItem(PROFILE_KEY, JSON.stringify(mergedProfile));
         } else if (created) {
-          // Process referral code if present (new user was referred)
+          // Set profile and unblock UI immediately — referral processing is non-blocking
+          const mergedProfile = { ...created, ...getCachedLinkedPlayerData() };
+          setProfile(mergedProfile);
+          localStorage.setItem(PROFILE_KEY, JSON.stringify(mergedProfile));
+
+          // Process referral code asynchronously (does NOT block loading)
           const storedRefCode = localStorage.getItem(REFERRAL_KEY);
-          if (storedRefCode && supabase) {
-            try {
-              // Look up the referrer by their linked_username
-              const { data: referrer } = await supabase
-                .from('profiles')
-                .select('id')
-                .eq('linked_username', storedRefCode)
-                .maybeSingle();
-              
-              if (referrer && referrer.id !== created.id) {
-                // Capture IP for abuse detection (best-effort, non-blocking)
-                let signupIp: string | null = null;
-                try {
-                  const ipRes = await fetch('https://api.ipify.org?format=json', { signal: AbortSignal.timeout(3000) });
-                  if (ipRes.ok) { signupIp = (await ipRes.json()).ip; }
-                } catch { /* IP capture is best-effort */ }
-                // Create the referral record (pending until referred user links account)
-                const storedSource = localStorage.getItem(REFERRAL_SOURCE_KEY) || 'referral_link';
-                const storedLanding = localStorage.getItem(REFERRAL_LANDING_KEY) || '/';
-                await supabase.from('referrals').insert({
-                  referrer_user_id: referrer.id,
-                  referred_user_id: created.id,
-                  referral_code: storedRefCode,
-                  status: 'pending',
-                  signup_ip: signupIp,
-                  source: storedSource,
-                  landing_page: storedLanding,
-                });
-                // Update profile with referred_by
-                await supabase.from('profiles').update({ referred_by: storedRefCode }).eq('id', created.id);
-                logger.info('Referral recorded:', { referrer: storedRefCode, referred: created.id });
-              }
-            } catch (refErr) {
+          if (storedRefCode) {
+            processReferral(storedRefCode, created.id).catch(refErr => {
               logger.error('Failed to process referral:', refErr);
-            }
+            });
             localStorage.removeItem(REFERRAL_KEY);
             localStorage.removeItem(REFERRAL_SOURCE_KEY);
             localStorage.removeItem(REFERRAL_LANDING_KEY);
           }
-          // Merge created profile with any cached linked player data
-          const cached = localStorage.getItem(PROFILE_KEY);
-          let linkedData = {};
-          if (cached) {
-            try {
-              const cachedProfile = JSON.parse(cached);
-              if (cachedProfile.linked_player_id) {
-                linkedData = {
-                  linked_player_id: cachedProfile.linked_player_id,
-                  linked_username: cachedProfile.linked_username,
-                  linked_avatar_url: cachedProfile.linked_avatar_url,
-                  linked_kingdom: cachedProfile.linked_kingdom,
-                  linked_tc_level: cachedProfile.linked_tc_level,
-                };
-              }
-            } catch { /* ignore */ }
-          }
-          const mergedProfile = { ...created, ...linkedData };
-          setProfile(mergedProfile);
-          localStorage.setItem(PROFILE_KEY, JSON.stringify(mergedProfile));
         } else {
-          // Fallback: merge with cached linked player data
-          const cached = localStorage.getItem(PROFILE_KEY);
-          let linkedData = {};
-          if (cached) {
-            try {
-              const cachedProfile = JSON.parse(cached);
-              if (cachedProfile.linked_player_id) {
-                linkedData = {
-                  linked_player_id: cachedProfile.linked_player_id,
-                  linked_username: cachedProfile.linked_username,
-                  linked_avatar_url: cachedProfile.linked_avatar_url,
-                  linked_kingdom: cachedProfile.linked_kingdom,
-                  linked_tc_level: cachedProfile.linked_tc_level,
-                };
-              }
-            } catch { /* ignore */ }
-          }
-          const mergedProfile = { ...newProfile, ...linkedData };
+          const mergedProfile = { ...newProfile, ...getCachedLinkedPlayerData() };
           setProfile(mergedProfile);
           localStorage.setItem(PROFILE_KEY, JSON.stringify(mergedProfile));
         }
       } else if (error) {
-        // Some other error occurred, try to use cached profile
         logger.error('Error fetching profile:', error);
         const cached = localStorage.getItem(PROFILE_KEY);
         if (cached) {
           setProfile(JSON.parse(cached));
         } else {
-          // No cache available — create a minimal local profile so the user isn't stuck
           const fallbackProfile: UserProfile = {
             id: user.id,
             username: generateRandomUsername(),
@@ -468,22 +422,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           logger.warn('Using fallback profile due to fetch error — will retry on next load');
         }
       } else if (data) {
-        // Debug: Log OAuth metadata to understand avatar source
-        logger.info('OAuth metadata:', {
-          avatar_url: user.user_metadata?.avatar_url,
-          picture: user.user_metadata?.picture,
-          db_avatar: data.avatar_url
-        });
-        
-        // Always prefer fresh avatar from OAuth metadata over cached DB value
-        // Store clean URL without cache-busting - apply cache-busting at render time
         const avatarUrl = getCleanAvatarUrl(
           user.user_metadata?.avatar_url || 
           user.user_metadata?.picture || 
           data.avatar_url
         );
-        
-        logger.info('Final avatar URL:', avatarUrl);
         
         // Auto-populate Discord info for Discord-authenticated users who don't have it set
         let discordData: { discord_id?: string | null; discord_username?: string | null; discord_linked_at?: string | null } = {};
@@ -496,7 +439,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               discord_linked_at: new Date().toISOString()
             };
             logger.info('Auto-populated Discord info from auth:', discordData);
-            // Update the database with Discord info
             supabase.from('profiles').update(discordData).eq('id', user.id).then(({ error: updateError }) => {
               if (updateError) logger.error('Failed to save Discord info:', updateError);
             });
@@ -504,24 +446,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
         
         // Merge with cached linked player data (prioritize cache over null DB values)
-        const cached = localStorage.getItem(PROFILE_KEY);
         let linkedPlayerData = {};
-        if (cached) {
-          try {
-            const cachedProfile = JSON.parse(cached);
-            // Always restore linked player data from cache if DB has null values
-            if (cachedProfile.linked_player_id && !data.linked_player_id) {
-              linkedPlayerData = {
-                linked_player_id: cachedProfile.linked_player_id,
-                linked_username: cachedProfile.linked_username,
-                linked_avatar_url: cachedProfile.linked_avatar_url,
-                linked_kingdom: cachedProfile.linked_kingdom,
-                linked_tc_level: cachedProfile.linked_tc_level,
-              };
-              logger.info('Restored linked player data from cache:', linkedPlayerData);
-            }
-          } catch {
-            // Ignore parse errors
+        if (!data.linked_player_id) {
+          linkedPlayerData = getCachedLinkedPlayerData();
+          if (Object.keys(linkedPlayerData).length > 0) {
+            logger.info('Restored linked player data from cache:', linkedPlayerData);
           }
         }
         
@@ -532,12 +461,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     } catch (err) {
       logger.error('Error fetching profile:', err);
-      // Try cached profile on network error
       const cached = localStorage.getItem(PROFILE_KEY);
       if (cached) {
         setProfile(JSON.parse(cached));
       } else {
-        // No cache — create minimal fallback so user isn't stuck on loading screen
         const fallbackProfile: UserProfile = {
           id: user.id,
           username: generateRandomUsername(),
@@ -559,7 +486,40 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     } finally {
       setLoading(false);
+      profileFetchInFlight.current = false;
     }
+  };
+
+  // Non-blocking referral processing for new user signups
+  const processReferral = async (refCode: string, newUserId: string) => {
+    if (!supabase) return;
+    const { data: referrer } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('linked_username', refCode)
+      .maybeSingle();
+    
+    if (!referrer || referrer.id === newUserId) return;
+    
+    let signupIp: string | null = null;
+    try {
+      const ipRes = await fetch('https://api.ipify.org?format=json', { signal: AbortSignal.timeout(3000) });
+      if (ipRes.ok) { signupIp = (await ipRes.json()).ip; }
+    } catch { /* IP capture is best-effort */ }
+    
+    const storedSource = localStorage.getItem(REFERRAL_SOURCE_KEY) || 'referral_link';
+    const storedLanding = localStorage.getItem(REFERRAL_LANDING_KEY) || '/';
+    await supabase.from('referrals').insert({
+      referrer_user_id: referrer.id,
+      referred_user_id: newUserId,
+      referral_code: refCode,
+      status: 'pending',
+      signup_ip: signupIp,
+      source: storedSource,
+      landing_page: storedLanding,
+    });
+    await supabase.from('profiles').update({ referred_by: refCode }).eq('id', newUserId);
+    logger.info('Referral recorded:', { referrer: refCode, referred: newUserId });
   };
 
   const signInWithGoogle = async () => {
@@ -582,24 +542,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     });
     if (error) logger.error('Discord sign-in error:', error);
-  };
-
-  const signInWithEmail = async (email: string, password: string) => {
-    if (!supabase) return { error: { message: 'Auth not configured' } as AuthError };
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error };
-  };
-
-  const signUpWithEmail = async (email: string, password: string) => {
-    if (!supabase) return { error: { message: 'Auth not configured' } as AuthError };
-    const { error } = await supabase.auth.signUp({ 
-      email, 
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`
-      }
-    });
-    return { error };
   };
 
   const signOut = async () => {
@@ -728,8 +670,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     isConfigured,
     signInWithGoogle,
     signInWithDiscord,
-    signInWithEmail,
-    signUpWithEmail,
     signOut,
     updateProfile,
     refreshLinkedPlayer
