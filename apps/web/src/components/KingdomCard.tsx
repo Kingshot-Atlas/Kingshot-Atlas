@@ -55,8 +55,7 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const { showToast } = useToast();
-  const [animatedScore, setAnimatedScore] = useState(0);
-  const [hasAnimated, setHasAnimated] = useState(false);
+  const [animatedScore, setAnimatedScore] = useState<number | null>(null);
   const [cardRef, isInView] = useInViewOnce();
 
   const overallScore = typeof kingdom.overall_score === 'number' && !isNaN(kingdom.overall_score) 
@@ -64,9 +63,9 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
     : 0;
 
   // Animated counter effect — triggered by shared IntersectionObserver
+  // Animation is visual sugar; overallScore is always the fallback display value
   useEffect(() => {
-    if (!isInView || hasAnimated) return;
-    setHasAnimated(true);
+    if (!isInView || animatedScore !== null) return;
     const duration = 800;
     const steps = 25;
     const increment = overallScore / steps;
@@ -83,20 +82,10 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
     }, duration / steps);
 
     return () => clearInterval(timer);
-  }, [isInView, overallScore, hasAnimated]);
+  }, [isInView, overallScore, animatedScore]);
 
-  // Safety net: if IntersectionObserver never fires (mobile viewport race,
-  // LazyCard threshold mismatch, or iOS quirks), show the real score after 2s
-  useEffect(() => {
-    if (hasAnimated || overallScore === 0) return;
-    const fallback = setTimeout(() => {
-      if (!hasAnimated) {
-        setAnimatedScore(overallScore);
-        setHasAnimated(true);
-      }
-    }, 2000);
-    return () => clearTimeout(fallback);
-  }, [overallScore, hasAnimated]);
+  // Display: use animated value once animation has started, otherwise show real score
+  const displayScore = animatedScore !== null ? animatedScore : overallScore;
 
   const handleCardClick = () => {
     trackFeature('Kingdom Card Click', { kingdom: kingdom.kingdom_number });
@@ -289,7 +278,7 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
                   lineHeight: 1
                 }}
               >
-                {animatedScore.toFixed(2)}
+                {displayScore.toFixed(2)}
               </span>
               {rank && (
                 <span style={{ fontSize: '0.85rem', color: colors.primary, fontWeight: 'normal' }}>

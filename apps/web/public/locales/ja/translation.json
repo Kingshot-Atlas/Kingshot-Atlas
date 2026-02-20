@@ -1466,7 +1466,10 @@
     "nominationCancelled": "推薦キャンセル",
     "nominationCancelledDesc": "共同エディターの推薦がキャンセルされました。",
     "playersInAtlas": "Atlas内のプレイヤー",
-    "tapToComplete": "タップして完了 →"
+    "tapToComplete": "タップして完了 →",
+    "discordCalloutTitle": "Discordで移籍グループチャンネルが稼働中",
+    "discordCalloutDesc": "あなたの王国範囲のプレイヤーと直接調整しましょう。各グループに専用チャンネルがあります。",
+    "joinTransferGroup": "Discordに参加"
   },
   "listing": {
     "allianceEventTimes": "アライアンスイベント時間",
@@ -2282,6 +2285,13 @@
     "problemDesc": "何百ものメッセージ。半分は真剣ではない。王国を並べて比較する方法がない。どのリクルーターが本物か分からない。結局Discordで聞いて20の異なる意見を得ることに。",
     "solutionDesc": "トランスファーハブがすべてを置き換えます。募集中の王国には実データ、Atlasスコア、KvK履歴、コミュニティレビューがあります。プレイヤーは自分のステータスと好みでプロフィールを作成。直接応募。申請を追跡。完了。",
     "punchline": "実データ。実応募。もう盲目的な移籍はなし。",
+    "discordTitle": "移籍グループチャンネル — 稼働中",
+    "discordDesc": "移籍イベントごとに、各王国グループ専用のDiscordチャンネルを開設します。アカウントを連携し、グループロールを自動取得、イベント開始前から範囲内のプレイヤーと調整を始めましょう。",
+    "discordStep1": "Kingshotアカウントを連携",
+    "discordStep2": "グループロールを自動取得",
+    "discordStep3": "王国範囲内のプレイヤーとチャット",
+    "discordWhy": "Transfer Hubはデータを提供。Discordは会話を提供。両方を活用して最適な王国を見つけましょう。",
+    "joinDiscord": "Atlas Discordに参加",
     "freeBadge": "100%無料",
     "ctaTitle": "次の王国が待っています。",
     "ctaDesc": "新しい拠点を探すにも、強いプレイヤーを探すにも — トランスファーハブが最適なマッチを実現。無料、罠なし。",

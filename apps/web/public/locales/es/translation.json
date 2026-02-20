@@ -1466,7 +1466,10 @@
     "nominationCancelled": "Nominación cancelada",
     "nominationCancelledDesc": "Tu nominación de co-editor ha sido cancelada.",
     "playersInAtlas": "Jugadores en Atlas",
-    "tapToComplete": "Toca para completar →"
+    "tapToComplete": "Toca para completar →",
+    "discordCalloutTitle": "Los canales de Grupos de Transferencia están activos en Discord",
+    "discordCalloutDesc": "Coordina directamente con jugadores en tu rango de reinos. Cada grupo tiene su propio canal.",
+    "joinTransferGroup": "Unirse a Discord"
   },
   "listing": {
     "allianceEventTimes": "Horarios de Eventos de Alianza",
@@ -2282,6 +2285,13 @@
     "problemDesc": "Cientos de mensajes. La mitad no son serios. No hay forma de comparar reinos lado a lado. No hay forma de saber qué reclutadores son legítimos. Terminas preguntando en Discord y obteniendo 20 opiniones diferentes.",
     "solutionDesc": "El Transfer Hub reemplaza todo eso. Cada reino reclutador tiene estadísticas reales, un Atlas Score, historial KvK y reseñas de la comunidad. Los jugadores crean perfiles con sus propias estadísticas y preferencias. Postula directamente. Sigue tus solicitudes. Listo.",
     "punchline": "Datos reales. Solicitudes reales. No más migraciones a ciegas.",
+    "discordTitle": "Canales de Grupos de Transferencia — Ya Disponibles",
+    "discordDesc": "En cada Evento de Transferencia, abrimos canales de Discord dedicados para cada grupo de reinos. Vincula tu cuenta, recibe tu rol de grupo automáticamente y empieza a coordinar con jugadores en tu rango — antes de que comience el evento.",
+    "discordStep1": "Vincula tu cuenta de Kingshot",
+    "discordStep2": "Recibe tu rol de grupo automáticamente",
+    "discordStep3": "Chatea con jugadores en tu rango de reinos",
+    "discordWhy": "El Transfer Hub te da los datos. Discord te da la conversación. Usa ambos para llegar al reino correcto.",
+    "joinDiscord": "Unirse al Discord de Atlas",
     "freeBadge": "100% Gratis",
     "ctaTitle": "Tu próximo reino te espera.",
     "ctaDesc": "Ya sea que busques un nuevo hogar o jugadores fuertes — el Transfer Hub te conecta con la opción correcta. Sin costo, sin trampa.",

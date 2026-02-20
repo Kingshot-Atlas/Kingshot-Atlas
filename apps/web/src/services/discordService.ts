@@ -63,7 +63,10 @@ class DiscordService {
       }
 
       // Call backend with retry (handles transient 400s from Discord token exchange)
-      const API_URL = import.meta.env.VITE_API_URL || 'https://kingshot-atlas.onrender.com';
+      const API_URL = import.meta.env.VITE_API_URL;
+      if (!API_URL) {
+        return { success: false, error: 'Discord account linking is temporarily unavailable. The backend service is being migrated. Please try again later or contact support.' };
+      }
       const MAX_RETRIES = 2;
       let lastError = 'Failed to link Discord';
 
@@ -151,7 +154,12 @@ class DiscordService {
    */
   async syncSettlerRole(userId: string, isLinking: boolean = true): Promise<{ success: boolean; error?: string; skipped?: boolean }> {
     try {
-      const API_URL = import.meta.env.VITE_API_URL || 'https://kingshot-atlas.onrender.com';
+      const API_URL = import.meta.env.VITE_API_URL;
+      if (!API_URL) {
+        // Bot handles settler role sync on a 30-min schedule; skip real-time sync
+        logger.info('Settler role sync skipped: no backend API URL configured');
+        return { success: true, skipped: true };
+      }
       
       const { getAuthHeaders } = await import('./authHeaders');
       const authHeaders = await getAuthHeaders({ requireAuth: false });

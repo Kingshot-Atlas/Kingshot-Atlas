@@ -1466,7 +1466,10 @@
     "nominationCancelled": "提名已取消",
     "nominationCancelledDesc": "您的副编辑提名已被取消。",
     "playersInAtlas": "Atlas中的玩家",
-    "tapToComplete": "点击完成 →"
+    "tapToComplete": "点击完成 →",
+    "discordCalloutTitle": "Discord 转服分组频道已开放",
+    "discordCalloutDesc": "直接与你王国范围内的玩家协调。每个分组都有专属频道。",
+    "joinTransferGroup": "加入 Discord"
   },
   "listing": {
     "allianceEventTimes": "联盟活动时间",
@@ -2282,6 +2285,13 @@
     "problemDesc": "几百条消息。一半都不认真。无法并排比较王国。无法知道哪些招募者是可靠的。最后你在Discord上问了一圈，得到20个不同的意见。",
     "solutionDesc": "转移中心替代了这一切。每个招募王国都有真实数据、Atlas评分、KvK历史和社区评价。玩家用自己的数据和偏好创建档案。直接申请。跟踪你的申请。搞定。",
     "punchline": "真实数据。真实申请。不再盲目迁移。",
+    "discordTitle": "转服分组频道 — 已上线",
+    "discordDesc": "每次转服活动，我们都会为每个王国分组开设专属 Discord 频道。绑定你的账号，自动获得分组角色，在活动开始前就与你范围内的玩家开始协调。",
+    "discordStep1": "绑定你的 Kingshot 账号",
+    "discordStep2": "自动获得分组角色",
+    "discordStep3": "与你王国范围内的玩家聊天",
+    "discordWhy": "Transfer Hub 提供数据。Discord 提供对话。结合使用，找到合适的王国。",
+    "joinDiscord": "加入 Atlas Discord",
     "freeBadge": "100%免费",
     "ctaTitle": "你的下一个王国在等你。",
     "ctaDesc": "无论你在寻找新家还是强力玩家——转移中心帮你找到最佳匹配。免费，无套路。",

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
-import { getAuthHeaders } from '../services/authHeaders';
+
 
 const FEEDBACK_HIDDEN_KEY = 'atlas_feedback_hidden';
 const FEEDBACK_HIDDEN_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -42,21 +42,22 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ position = 'bottom-righ
     setError('');
 
     try {
-      const authHeaders = user ? await getAuthHeaders({ requireAuth: false }) : {};
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://kingshot-atlas.onrender.com'}/api/feedback`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...authHeaders },
-        body: JSON.stringify({
+      // Write directly to Supabase feedback table (no backend API needed)
+      const { supabase } = await import('../lib/supabase');
+      if (!supabase) throw new Error('Supabase not configured');
+
+      const { error: insertError } = await supabase
+        .from('feedback')
+        .insert({
           type: feedbackType,
           message: message.trim(),
           email: email.trim() || (user?.email ?? null),
           user_id: user?.id ?? null,
           page_url: window.location.href,
           user_agent: navigator.userAgent,
-        }),
-      });
+        });
 
-      if (!response.ok) throw new Error('Failed to submit feedback');
+      if (insertError) throw new Error(insertError.message);
 
       setSubmitted(true);
       setMessage('');

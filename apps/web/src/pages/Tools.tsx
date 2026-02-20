@@ -206,23 +206,15 @@ const Tools: React.FC = () => {
   // Fetch linked Kingshot player count for Transfer Hub card
   const [playerCount, setPlayerCount] = useState<number | null>(null);
   useEffect(() => {
-    const API_BASE = import.meta.env.VITE_API_URL || 'https://kingshot-atlas.onrender.com';
-    fetch(`${API_BASE}/api/v1/player-link/gift-codes`)
-      .then(r => r.ok ? r.json() : null)
-      .then(data => {
-        if (data?.codes?.length) setGiftCodeCount(data.codes.filter((c: any) => !c.is_expired).length);
-      })
-      .catch(() => {});
-    // Fetch Discord server count from bot API (requires auth headers)
-    import('../services/authHeaders').then(({ getAuthHeaders }) => {
-      getAuthHeaders({ requireAuth: false }).then(headers => {
-        fetch(`${API_BASE}/api/v1/bot/status`, { headers })
-          .then(r => r.ok ? r.json() : null)
-          .then(data => {
-            if (data?.server_count) setDiscordServerCount(data.server_count);
-          })
-          .catch(() => {});
-      });
+    // Fetch active gift code count from Supabase directly
+    import('../lib/supabase').then(({ supabase }) => {
+      if (!supabase) return;
+      supabase.from('gift_codes').select('id', { count: 'exact', head: true })
+        .eq('is_active', true)
+        .or('expire_date.is.null,expire_date.gt.' + new Date().toISOString().split('T')[0])
+        .then(({ count }) => {
+          if (count) setGiftCodeCount(count);
+        });
     }).catch(() => {});
     // Fetch linked player count from Supabase
     import('../lib/supabase').then(({ supabase }) => {

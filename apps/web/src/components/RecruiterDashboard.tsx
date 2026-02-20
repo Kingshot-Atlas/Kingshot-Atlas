@@ -18,11 +18,6 @@ import {
   SentInvitesPanel,
   RecruiterAnalyticsTab,
   useRecruiterDashboard,
-  BrowseTabSkeleton,
-  ProfileTabSkeleton,
-  TeamTabSkeleton,
-  WatchlistTabSkeleton,
-  FundTabSkeleton,
 } from './recruiter';
 
 // =============================================
@@ -49,21 +44,6 @@ const RecruiterDashboard: React.FC<{
     filteredApps, pendingCount, updating, listingViews, unreadMessageCount, perAppUnreadCounts,
   } = dashboard;
 
-  // Track previous tab to detect tab switches and show skeletons
-  const [prevTab, setPrevTab] = React.useState(activeTab);
-  const [tabReady, setTabReady] = React.useState<Record<string, boolean>>({ inbox: true });
-
-  React.useEffect(() => {
-    if (activeTab !== prevTab) {
-      setPrevTab(activeTab);
-      if (!tabReady[activeTab]) {
-        // Show skeleton briefly while tab mounts
-        setTabReady(prev => ({ ...prev, [activeTab]: false }));
-        const timer = setTimeout(() => setTabReady(prev => ({ ...prev, [activeTab]: true })), 150);
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [activeTab, prevTab, tabReady]);
 
   if (!user) return null;
 
@@ -252,7 +232,7 @@ const RecruiterDashboard: React.FC<{
                 >
                   {tab === 'inbox' ? (<>{t('recruiter.inbox', 'Inbox')}{pendingCount > 0 ? ` (${pendingCount})` : ''}{unreadMessageCount > 0 && <span style={{ marginLeft: '0.25rem', backgroundColor: '#ef4444', color: '#fff', borderRadius: '50%', width: '16px', height: '16px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.5rem', fontWeight: 'bold' }}>{unreadMessageCount > 9 ? '9+' : unreadMessageCount}</span>}</>) :
                    tab === 'browse' ? t('recruiter.candidates', 'Candidates') :
-                   tab === 'profile' ? t('recruiter.editor', 'Editor') :
+                   tab === 'profile' ? t('recruiter.profile', 'Profile') :
                    tab === 'team' ? (<>{t('recruiter.team', 'Team')}{pendingCoEditorRequests.length > 0 && <span style={{ marginLeft: '0.3rem', backgroundColor: '#eab308', color: '#000', borderRadius: '50%', width: '16px', height: '16px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.55rem', fontWeight: 'bold' }}>{pendingCoEditorRequests.length}</span>}</>) :
                    tab === 'watchlist' ? t('recruiter.watchlist', 'Watchlist') :
                    tab === 'fund' ? t('recruiter.fund', 'Fund') :
@@ -281,7 +261,6 @@ const RecruiterDashboard: React.FC<{
 
             {/* TAB: Browse Transferees */}
             {activeTab === 'browse' && (
-              tabReady['browse'] === false ? <BrowseTabSkeleton /> :
               <>
                 <SentInvitesPanel editorInfo={editorInfo} />
                 <BrowseTransfereesTab fund={fund} editorInfo={editorInfo} initialUsedInvites={getInviteBudget().used} />
@@ -290,13 +269,11 @@ const RecruiterDashboard: React.FC<{
 
             {/* TAB: Profile - Kingdom Listing Editor */}
             {activeTab === 'profile' && (
-              tabReady['profile'] === false ? <ProfileTabSkeleton /> :
               <KingdomProfileTab fund={fund} editorInfo={editorInfo} onFundUpdate={setFund} />
             )}
 
             {/* TAB: Team (merged Team + Co-Editors) */}
             {activeTab === 'team' && (
-              tabReady['team'] === false ? <TeamTabSkeleton /> :
               <>
                 <TeamTab team={team} />
                 <div style={{ marginTop: '1rem' }}>
@@ -307,13 +284,11 @@ const RecruiterDashboard: React.FC<{
 
             {/* TAB: Watchlist */}
             {activeTab === 'watchlist' && (
-              tabReady['watchlist'] === false ? <WatchlistTabSkeleton /> :
               <WatchlistTab editorInfo={editorInfo} />
             )}
 
             {/* TAB: Fund */}
             {activeTab === 'fund' && (
-              tabReady['fund'] === false ? <FundTabSkeleton /> :
               <FundTab fund={fund} editorInfo={editorInfo} />
             )}
 
