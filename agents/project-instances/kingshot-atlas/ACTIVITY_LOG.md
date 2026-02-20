@@ -3,6 +3,18 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-20 15:30 | Platform Engineer | COMPLETED
+Task: Fix Discord sign-in failures — AuthCallback hardening (URGENT)
+Files: AuthCallback.tsx, vite.config.ts
+Changes:
+1. **AuthCallback error param handling** — Page now immediately detects `?error=` and `#error=` params from Supabase redirect instead of waiting 12s for generic timeout.
+2. **Non-blocking getSession** — `getSessionSafe()` wraps `getSession()` with `Promise.race` timeout so polling and timeout handler never hang when PKCE exchange is stuck on slow mobile networks.
+3. **Timeout increase** — Hard timeout 12s→20s, retry button 6s→8s for mobile users (80% of traffic).
+4. **Retry UX** — Error UI now shows "Try Discord Again" + "Try Google Instead" buttons that re-initiate OAuth directly (was: generic "Go to Profile").
+5. **Sentry captures** — All failure paths now log to Sentry with context (hasPKCECode, hasHash, pollCount, failureContext).
+6. **SW auth denylist** — Added `/auth/` to `navigateFallbackDenylist` in vite.config.ts so service worker doesn't serve cached HTML for OAuth callbacks.
+Result: Build passes, deployed to production via Cloudflare Pages.
+
 ## 2026-02-20 | Platform Engineer | COMPLETED
 Task: Atlas Score animation fix, Discord Edge Function, TypeScript errors, histogram scale fix
 Files: KingdomCard.tsx, discordService.ts, ScoreDistribution.tsx, ScorePrediction.tsx, AllianceScoring.tsx, FavoritesContext.tsx, PrepSchedulerForm.tsx, PrepSchedulerManager.tsx, atlasScoreFormula.ts, Tools.tsx

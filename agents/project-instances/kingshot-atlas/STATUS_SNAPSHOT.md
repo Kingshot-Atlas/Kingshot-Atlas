@@ -95,7 +95,7 @@
 
 | Item | Owner | Notes |
 |------|-------|-------|
-| Discord Edge Function secrets | Owner | `DISCORD_CLIENT_ID` and `DISCORD_CLIENT_SECRET` must be set via Supabase Dashboard for `discord-link` Edge Function to work in production. See step-by-step guide below. |
+| — | — | No blockers |
 
 ---
 
@@ -103,7 +103,8 @@
 
 | Issue | Severity | Owner | Notes |
 |-------|----------|-------|-------|
-| ESLint-disable comments | Low | Product | 30 remaining (was 38) — 8 removed from DiscordRolesDashboard via proper TypeScript interfaces. All remaining are intentional non-fetch (canvas, keyboard, useMemo). |
+| Discord sign-in intermittent | Medium | Platform | PKCE code_verifier can be lost on mobile in-app browsers / app switches. AuthCallback hardened with error param detection, non-blocking timeouts, Sentry captures. Monitor Sentry for `Auth callback timeout` events. Supabase Free plan "EXCEEDING USAGE LIMITS" may also cause intermittent failures. |
+| ESLint-disable comments | Low | Product | 32 remaining (threshold 30) — all intentional non-fetch (canvas, keyboard, useMemo). |
 | Large component files | Low | Product | 19 baselined files tracked. Header already refactored (334 lines + 3 sub-components in header-nav/). |
 | TypeScript 5.7.0 | Info | Platform | Upgrade complete. `.npmrc` with `legacy-peer-deps=true` can be removed once verified in CI. |
 | GSC Indexing | Low | Ops | 29% indexed → target 60%+. KvK opponent links converted from span+onClick to crawlable \<Link\> elements. Edge-side meta injection deployed. |
