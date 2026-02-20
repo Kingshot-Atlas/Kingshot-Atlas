@@ -1470,8 +1470,7 @@ async function syncSupporterRoles() {
         await member.roles.add(SUPPORTER_ROLE_ID, 'Auto-assign: Atlas Supporter subscriber on ks-atlas.com');
         assigned++;
         console.log(`   💎 +Supporter: ${member.user.username}`);
-        // Auto-spotlight for new supporters
-        sendSpotlightMessage('supporter', member.user.id, member.displayName || member.user.username).catch(() => {});
+        // Spotlight is sent by the API Stripe webhook handler (bot.py) — no duplicate here
       } catch (err) {
         console.error(`   ❌ Failed to assign Supporter to ${member.user.username}: ${err.message}`);
       }

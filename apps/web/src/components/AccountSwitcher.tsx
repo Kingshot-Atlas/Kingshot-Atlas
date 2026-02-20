@@ -24,6 +24,32 @@ interface AccountSwitcherProps {
   onSwitch?: () => void;
 }
 
+// sessionStorage key for persisting verification flow across app switches (mobile)
+const VERIFY_STATE_KEY = 'atlas_alt_verify_state';
+
+interface PersistedVerifyState {
+  newPlayerId: string;
+  verifyStep: 'input' | 'challenge' | null;
+  verifyCode: string;
+  pendingPlayer: { player_id: string; username: string; avatar_url: string; kingdom: number; town_center_level: number } | null;
+  showAddInput: boolean;
+}
+
+function saveVerifyState(state: PersistedVerifyState) {
+  try { sessionStorage.setItem(VERIFY_STATE_KEY, JSON.stringify(state)); } catch { /* quota */ }
+}
+
+function loadVerifyState(): PersistedVerifyState | null {
+  try {
+    const raw = sessionStorage.getItem(VERIFY_STATE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+function clearVerifyState() {
+  try { sessionStorage.removeItem(VERIFY_STATE_KEY); } catch { /* noop */ }
+}
+
 const AccountSwitcher: React.FC<AccountSwitcherProps> = ({ onSwitch }) => {
   const { t } = useTranslation();
   const { user, profile, updateProfile } = useAuth();
@@ -32,13 +58,16 @@ const AccountSwitcher: React.FC<AccountSwitcherProps> = ({ onSwitch }) => {
   const [accounts, setAccounts] = useState<PlayerAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [switching, setSwitching] = useState<string | null>(null);
-  const [showAddInput, setShowAddInput] = useState(false);
-  const [newPlayerId, setNewPlayerId] = useState('');
+
+  // Restore persisted verification state (survives mobile app-switch page refresh)
+  const restored = loadVerifyState();
+  const [showAddInput, setShowAddInput] = useState(restored?.showAddInput ?? false);
+  const [newPlayerId, setNewPlayerId] = useState(restored?.newPlayerId ?? '');
   const [verifying, setVerifying] = useState(false);
   // Name verification challenge state
-  const [verifyStep, setVerifyStep] = useState<'input' | 'challenge' | null>(null);
-  const [verifyCode, setVerifyCode] = useState('');
-  const [pendingPlayer, setPendingPlayer] = useState<{ player_id: string; username: string; avatar_url: string; kingdom: number; town_center_level: number } | null>(null);
+  const [verifyStep, setVerifyStep] = useState<'input' | 'challenge' | null>(restored?.verifyStep ?? null);
+  const [verifyCode, setVerifyCode] = useState(restored?.verifyCode ?? '');
+  const [pendingPlayer, setPendingPlayer] = useState<{ player_id: string; username: string; avatar_url: string; kingdom: number; town_center_level: number } | null>(restored?.pendingPlayer ?? null);
   const [polling, setPolling] = useState(false);
   const [pollCount, setPollCount] = useState(0);
   const pollingActiveRef = useRef(false);
@@ -67,6 +96,13 @@ const AccountSwitcher: React.FC<AccountSwitcherProps> = ({ onSwitch }) => {
   useEffect(() => {
     fetchAccounts();
   }, [fetchAccounts]);
+
+  // Persist verification flow state to sessionStorage on every change
+  useEffect(() => {
+    if (showAddInput || verifyStep || verifyCode || pendingPlayer) {
+      saveVerifyState({ newPlayerId, verifyStep, verifyCode, pendingPlayer, showAddInput });
+    }
+  }, [newPlayerId, verifyStep, verifyCode, pendingPlayer, showAddInput]);
 
   const handleSwitch = async (account: PlayerAccount) => {
     if (!supabase || !user?.id || !updateProfile || account.is_active) return;
@@ -304,6 +340,7 @@ const AccountSwitcher: React.FC<AccountSwitcherProps> = ({ onSwitch }) => {
     setVerifyStep(null);
     setVerifyCode('');
     setPendingPlayer(null);
+    clearVerifyState();
   };
 
   useEffect(() => {

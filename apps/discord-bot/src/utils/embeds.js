@@ -695,11 +695,11 @@ function createWelcomeEmbed(generalChannel, commandsChannel, readmeChannel) {
   ];
 
   if (readmeChannel) {
-    lines.push(`� Start here → ${readmeChannel}`);
+    lines.push(`‼️ Start here → ${readmeChannel}`);
   }
 
   lines.push(
-    `�💬 Say hello in ${generalChannel}`,
+    `💬 Say hello in ${generalChannel}`,
     `🤖 Try \`/kingdom\` in ${commandsChannel}`,
     `🔗 Link your account at [ks-atlas.com/profile](https://ks-atlas.com/profile) to unlock roles`,
   );
