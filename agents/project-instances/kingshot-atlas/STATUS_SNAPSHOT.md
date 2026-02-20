@@ -93,7 +93,9 @@
 
 ## Blocked / Waiting
 
-*Nothing currently blocked*
+| Item | Owner | Notes |
+|------|-------|-------|
+| Discord Edge Function secrets | Owner | `DISCORD_CLIENT_ID` and `DISCORD_CLIENT_SECRET` must be set via Supabase Dashboard for `discord-link` Edge Function to work in production. See step-by-step guide below. |
 
 ---
 

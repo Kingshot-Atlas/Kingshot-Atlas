@@ -3,6 +3,17 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-20 | Platform Engineer | COMPLETED
+Task: Atlas Score animation fix, Discord Edge Function, TypeScript errors, histogram scale fix
+Files: KingdomCard.tsx, discordService.ts, ScoreDistribution.tsx, ScorePrediction.tsx, AllianceScoring.tsx, FavoritesContext.tsx, PrepSchedulerForm.tsx, PrepSchedulerManager.tsx, atlasScoreFormula.ts, Tools.tsx
+Changes:
+1. **Atlas Score animation fix** — KingdomCard useEffect had animatedScore in deps, causing self-cancelling interval (score showed as overallScore/25). Fixed with useRef guard.
+2. **Discord account linking Edge Function** — Deployed `discord-link` Supabase Edge Function. Handles OAuth code exchange server-side (JWT verification, Discord token exchange, profile update, logging). Updated discordService.ts to call Edge Function instead of deleted Render endpoint.
+3. **ScoreDistribution histogram** — Updated buckets from old 0-9+ scale to 0-100 scale aligned with tier thresholds (D<29, C≥29, B≥38, A≥47, S≥57).
+4. **TypeScript errors** — Fixed 24 errors across 8 files (object-possibly-undefined, RefObject nullability, not-all-code-paths-return, unused vars).
+5. **Review fix** — Moved session fetch inside retry loop in discordService.ts to prevent stale JWT on retries.
+Result: Build passes, deployed to production via Cloudflare Pages.
+
 ## 2026-02-20 | Product Engineer | COMPLETED
 Task: 3 bug fixes — alt form state persistence, spotlight dedup, welcome emoji cleanup
 Files: apps/web/src/components/AccountSwitcher.tsx, apps/discord-bot/src/bot.js, apps/discord-bot/src/utils/embeds.js
