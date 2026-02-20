@@ -187,7 +187,10 @@
     "townCenter": "城镇中心",
     "viewProfile": "查看资料",
     "youCanUpdate": "您可以更新此内容",
-    "chipInToFund": "为基金贡献"
+    "chipInToFund": "为基金贡献",
+    "fundActivity": "基金活动",
+    "fundMoreTransactions": "+ {{count}} 笔更多交易",
+    "gracePeriodWarning": "等级宽限期生效中 — 在 {{date}} 前贡献以维持当前等级"
   },
   "rankings": {
     "subtitle": "谁在称霸？数据不会说谎。",
@@ -1726,7 +1729,23 @@
     "sending": "发送中...",
     "showingPlayersInGroup": "显示您转移组中的玩家",
     "transferGroupFilter": "转移分组",
-    "watchlist": "关注列表"
+    "watchlist": "关注列表",
+    "gracePeriodTitle": "等级宽限期生效中",
+    "gracePeriodDesc": "您的基金余额已降至 {{tier}} 等级门槛以下。您有 {{days}} 天时间充值，否则等级将被降低。请与您的王国分享贡献链接！",
+    "gracePeriodNote": "宽限期",
+    "fundOverview": "概览",
+    "fundActivityTab": "活动",
+    "fundActivity": "基金活动",
+    "fundDepletionInfo": "基金从2月23日起每周消耗约$5。当前余额可维持 {{tier}} 等级约 {{weeks}} 周。分享王国链接以鼓励贡献。",
+    "activityDescription": "您王国基金的所有贡献和每周维护费用。",
+    "noTransactions": "暂无交易。请与您的王国成员分享贡献链接！",
+    "totalIn": "总收入",
+    "totalOut": "总支出",
+    "totalTransactions": "交易笔数",
+    "weeklyMaintenance": "每周维护",
+    "contributionLabel": "贡献",
+    "listingLinkCopied": "列表链接已复制！分享以招募转服者。",
+    "contributionLinkCopied": "贡献链接已复制！与您的王国分享。"
   },
   "applications": {
     "applyTo": "申请",

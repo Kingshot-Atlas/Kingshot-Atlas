@@ -187,7 +187,10 @@
     "townCenter": "タウンセンター",
     "viewProfile": "プロフィールを見る",
     "youCanUpdate": "更新できます",
-    "chipInToFund": "基金に貢献"
+    "chipInToFund": "基金に貢献",
+    "fundActivity": "基金活動",
+    "fundMoreTransactions": "+ {{count}}件の取引",
+    "gracePeriodWarning": "ランク猶予期間有効 — {{date}} までに貢献して現在のランクを維持してください"
   },
   "rankings": {
     "subtitle": "誰が支配しているのか？データは嘘をつかない。",
@@ -1726,7 +1729,23 @@
     "sending": "送信中...",
     "showingPlayersInGroup": "グループ内のプレイヤーを表示",
     "transferGroupFilter": "移籍グループ",
-    "watchlist": "ウォッチリスト"
+    "watchlist": "ウォッチリスト",
+    "gracePeriodTitle": "ランク猶予期間有効",
+    "gracePeriodDesc": "基金残高が {{tier}} ランクのしきい値を下回りました。ランクが下がる前に {{days}} 日以内にチャージしてください。王国に貢献リンクを共有しましょう！",
+    "gracePeriodNote": "猶予期間",
+    "fundOverview": "概要",
+    "fundActivityTab": "活動",
+    "fundActivity": "基金活動",
+    "fundDepletionInfo": "基金は2月23日から毎週約$5減少します。現在の残高で {{tier}} ランクを約 {{weeks}} 週間維持できます。王国リンクを共有して貢献を促しましょう。",
+    "activityDescription": "王国基金のすべての貢献と週次維持費の履歴です。",
+    "noTransactions": "まだ取引がありません。王国メンバーに貢献リンクを共有しましょう！",
+    "totalIn": "合計入金",
+    "totalOut": "合計出金",
+    "totalTransactions": "取引",
+    "weeklyMaintenance": "週次維持費",
+    "contributionLabel": "貢献",
+    "listingLinkCopied": "リスティングリンクをコピーしました！移籍者を募集するために共有してください。",
+    "contributionLinkCopied": "貢献リンクをコピーしました！王国と共有してください。"
   },
   "applications": {
     "applyTo": "応募先",

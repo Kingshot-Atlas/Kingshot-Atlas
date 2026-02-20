@@ -187,7 +187,10 @@
     "townCenter": "Town Center",
     "viewProfile": "Profili Gör",
     "youCanUpdate": "Bunu güncelleyebilirsiniz",
-    "chipInToFund": "Fona Katkıda Bulun"
+    "chipInToFund": "Fona Katkıda Bulun",
+    "fundActivity": "Fon Aktivitesi",
+    "fundMoreTransactions": "+ {{count}} daha fazla işlem",
+    "gracePeriodWarning": "Seviye tolerans süresi aktif — mevcut seviyeyi korumak için {{date}} tarihinden önce katkıda bulunun"
   },
   "rankings": {
     "subtitle": "Kim hükmünü sürüyor? Veriler yalan söylemez.",
@@ -1726,7 +1729,23 @@
     "sending": "Gönderiliyor...",
     "showingPlayersInGroup": "Grubunuzdaki oyuncular gösteriliyor",
     "transferGroupFilter": "Transfer Grubu",
-    "watchlist": "İzleme Listesi"
+    "watchlist": "İzleme Listesi",
+    "gracePeriodTitle": "Seviye Tolerans Süresi Aktif",
+    "gracePeriodDesc": "Fon bakiyeniz {{tier}} seviyesinin altına düştü. Seviyeniz düşürülmeden önce {{days}} gününüz var. Katkı bağlantısını krallığınızla paylaşın!",
+    "gracePeriodNote": "Tolerans süresi",
+    "fundOverview": "Genel Bakış",
+    "fundActivityTab": "Aktivite",
+    "fundActivity": "Fon Aktivitesi",
+    "fundDepletionInfo": "Fon 23 Şubat'tan itibaren haftalık ~$5 azalır. Mevcut bakiye {{tier}} seviyesini yaklaşık {{weeks}} hafta daha sürdürür. Katkıları teşvik etmek için krallık bağlantısını paylaşın.",
+    "activityDescription": "Krallık fonunuzun tüm katkıları ve haftalık bakım ücretleri.",
+    "noTransactions": "Henüz işlem yok. Katkı bağlantısını krallık üyelerinizle paylaşın!",
+    "totalIn": "Toplam Gelen",
+    "totalOut": "Toplam Giden",
+    "totalTransactions": "İşlemler",
+    "weeklyMaintenance": "Haftalık bakım",
+    "contributionLabel": "Katkı",
+    "listingLinkCopied": "Liste bağlantısı kopyalandı! Transfer oyuncuları için paylaşın.",
+    "contributionLinkCopied": "Katkı bağlantısı kopyalandı! Krallığınızla paylaşın."
   },
   "applications": {
     "applyTo": "Başvur:",

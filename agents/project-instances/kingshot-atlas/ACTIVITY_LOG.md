@@ -3,6 +3,20 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-20 16:45 | Platform Engineer + Product Engineer | COMPLETED
+Task: Kingdom Fund — undo manual depletion, 1-week grace period, transaction history Activity tab, grace period alerts
+Files: FundTab.tsx, KingdomProfile.tsx, useKingdomProfileQueries.ts, supabase_client.py, 9× translation.json
+Changes:
+1. **Undo manual depletion** — Reversed $5 depletion on 6 kingdoms, restored original balances/tiers, deleted depletion transaction records.
+2. **Grace period for tier downgrades** — Updated `deplete_kingdom_funds()` PG function: when balance drops below tier threshold, a 7-day grace period starts instead of immediate downgrade. Tier is preserved during grace. If not topped up by next depletion, tier is then reduced.
+3. **Transaction history** — Created `kingdom_fund_transactions` table (previous session), `useFundTransactions` hook. Restructured FundTab with Overview + Activity sub-tabs. Activity tab shows all contributions/depletions with summary stats.
+4. **Grace period alerts** — Yellow warning banner on FundTab (Recruiter Dashboard) and KingdomProfile page when grace period is active, showing days remaining.
+5. **useKingdomFund updated** — Now fetches `grace_period_until` from `kingdom_funds` table for frontend grace period detection.
+6. **Backend transaction logging** — `credit_kingdom_fund()` logs contributions to `kingdom_fund_transactions` with balance_before/after.
+7. **Cron schedule confirmed** — `0 0 * * 1` (every Monday 00:00 UTC). First depletion: Feb 23, 2026.
+8. **i18n complete** — 19 new keys across 9 languages (EN, ES, FR, ZH, DE, KO, JA, AR, TR). All 2677 keys in sync.
+Result: Fund depletion starts Feb 23 with grace period protection. Full transaction history available in Recruiter Dashboard.
+
 ## 2026-02-20 16:00 | Product Engineer | COMPLETED
 Task: Auth flow polish — pre-login URL memory, profile skeleton, provider logos, i18n, security
 Files: AuthModal.tsx, AuthCallback.tsx, ProfileLoadingFallback.tsx, AuthContext.tsx, i18n-diff.js, 9× translation.json

@@ -187,7 +187,10 @@
     "townCenter": "Centre-ville",
     "viewProfile": "Voir le Profil",
     "youCanUpdate": "Vous pouvez mettre à jour",
-    "chipInToFund": "Contribuer au Fonds"
+    "chipInToFund": "Contribuer au Fonds",
+    "fundActivity": "Activité du Fonds",
+    "fundMoreTransactions": "+ {{count}} transactions supplémentaires",
+    "gracePeriodWarning": "Période de grâce active — contribuez pour maintenir le niveau actuel avant le {{date}}"
   },
   "rankings": {
     "subtitle": "Qui domine ? Les données ne mentent pas.",
@@ -1726,7 +1729,23 @@
     "sending": "Envoi en cours...",
     "showingPlayersInGroup": "Affichage des joueurs dans votre groupe",
     "transferGroupFilter": "Groupe de transfert",
-    "watchlist": "Liste de suivi"
+    "watchlist": "Liste de suivi",
+    "gracePeriodTitle": "Période de Grâce du Niveau Active",
+    "gracePeriodDesc": "Le solde de votre fonds est passé en dessous du seuil du niveau {{tier}}. Vous avez {{days}} jour(s) pour recharger avant que votre niveau ne soit réduit. Partagez le lien de contribution avec votre royaume !",
+    "gracePeriodNote": "Période de grâce",
+    "fundOverview": "Aperçu",
+    "fundActivityTab": "Activité",
+    "fundActivity": "Activité du Fonds",
+    "fundDepletionInfo": "Le fonds diminue d'environ 5$/semaine à partir du 23 fév. Le solde actuel maintient le niveau {{tier}} pendant environ {{weeks}} semaines supplémentaires. Partagez le lien du royaume pour encourager les contributions.",
+    "activityDescription": "Toutes les contributions et frais de maintenance hebdomadaires de votre fonds du royaume.",
+    "noTransactions": "Aucune transaction pour le moment. Partagez le lien de contribution avec les membres de votre royaume !",
+    "totalIn": "Total Entrée",
+    "totalOut": "Total Sortie",
+    "totalTransactions": "Transactions",
+    "weeklyMaintenance": "Maintenance hebdomadaire",
+    "contributionLabel": "Contribution",
+    "listingLinkCopied": "Lien d'annonce copié ! Partagez pour recruter des transférés.",
+    "contributionLinkCopied": "Lien de contribution copié ! Partagez avec votre royaume."
   },
   "applications": {
     "applyTo": "Postuler à",

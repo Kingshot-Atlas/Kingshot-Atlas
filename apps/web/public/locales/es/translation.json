@@ -187,7 +187,10 @@
     "townCenter": "Centro de Ciudad",
     "viewProfile": "Ver Perfil",
     "youCanUpdate": "Puedes actualizar esto",
-    "chipInToFund": "Contribuir al Fondo"
+    "chipInToFund": "Contribuir al Fondo",
+    "fundActivity": "Actividad del Fondo",
+    "fundMoreTransactions": "+ {{count}} transacciones más",
+    "gracePeriodWarning": "Período de gracia activo — contribuye para mantener el nivel actual antes del {{date}}"
   },
   "rankings": {
     "subtitle": "¿Quién domina? Los datos no mienten.",
@@ -1726,7 +1729,23 @@
     "sending": "Enviando...",
     "showingPlayersInGroup": "Mostrando jugadores en tu grupo",
     "transferGroupFilter": "Grupo de transferencia",
-    "watchlist": "Lista de seguimiento"
+    "watchlist": "Lista de seguimiento",
+    "gracePeriodTitle": "Período de Gracia del Nivel Activo",
+    "gracePeriodDesc": "El saldo de tu fondo cayó por debajo del umbral del nivel {{tier}}. Tienes {{days}} día(s) para recargar antes de que se reduzca tu nivel. ¡Comparte el enlace de contribución con tu reino!",
+    "gracePeriodNote": "Período de gracia",
+    "fundOverview": "Resumen",
+    "fundActivityTab": "Actividad",
+    "fundActivity": "Actividad del Fondo",
+    "fundDepletionInfo": "El fondo se reduce ~$5/semana a partir del 23 de feb. El saldo actual mantiene el nivel {{tier}} por aproximadamente {{weeks}} semanas más. Comparte el enlace del reino para fomentar contribuciones.",
+    "activityDescription": "Todas las contribuciones y cargos de mantenimiento semanal de tu fondo del reino.",
+    "noTransactions": "Aún no hay transacciones. ¡Comparte el enlace de contribución con los miembros de tu reino!",
+    "totalIn": "Total Ingresado",
+    "totalOut": "Total Salido",
+    "totalTransactions": "Transacciones",
+    "weeklyMaintenance": "Mantenimiento semanal",
+    "contributionLabel": "Contribución",
+    "listingLinkCopied": "¡Enlace de listado copiado! Comparte para reclutar transferidos.",
+    "contributionLinkCopied": "¡Enlace de contribución copiado! Comparte con tu reino."
   },
   "applications": {
     "applyTo": "Aplicar a",

@@ -771,6 +771,25 @@ def credit_kingdom_fund(
 
         client.table("kingdom_fund_contributions").insert(contribution_data).execute()
 
+        # 2b. Log transaction for balance history
+        current_balance = new_balance - amount  # balance before this contribution
+        transaction_data = {
+            "kingdom_number": kingdom_number,
+            "type": "contribution",
+            "amount": amount,
+            "balance_before": current_balance,
+            "balance_after": new_balance,
+            "description": "Kingdom Fund contribution",
+        }
+        if user_id:
+            transaction_data["user_id"] = user_id
+        if stripe_payment_intent_id:
+            transaction_data["stripe_payment_intent_id"] = stripe_payment_intent_id
+        try:
+            client.table("kingdom_fund_transactions").insert(transaction_data).execute()
+        except Exception as tx_err:
+            logger.warning("Non-blocking: failed to log fund transaction for K%d: %s", kingdom_number, tx_err)
+
         # 3. Notify the kingdom's active editor about the contribution
         try:
             editor_result = client.table("kingdom_editors").select("user_id").eq(

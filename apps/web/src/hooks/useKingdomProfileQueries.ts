@@ -6,6 +6,7 @@ import { reviewService } from '../services/reviewService';
 // Query keys
 export const kingdomProfileKeys = {
   fund: (kingdomNumber: number) => ['kingdom-fund', kingdomNumber] as const,
+  fundTransactions: (kingdomNumber: number) => ['kingdom-fund-transactions', kingdomNumber] as const,
   pendingSubmissions: (kingdomNumber: number) => ['kingdom-pending-submissions', kingdomNumber] as const,
   editor: (kingdomNumber: number) => ['kingdom-editor', kingdomNumber] as const,
   aggregateRating: (kingdomNumber: number) => ['kingdom-aggregate-rating', kingdomNumber] as const,
@@ -21,13 +22,57 @@ export function useKingdomFund(kingdomNumber: number | undefined) {
       if (!supabase) return null;
       const { data } = await supabase
         .from('kingdom_funds')
-        .select('balance, tier')
+        .select('balance, tier, grace_period_until')
         .eq('kingdom_number', kingdomNumber!)
         .maybeSingle();
       if (data) {
-        return { balance: Number(data.balance) || 0, tier: data.tier || 'standard' };
+        return {
+          balance: Number(data.balance) || 0,
+          tier: data.tier || 'standard',
+          gracePeriodUntil: data.grace_period_until as string | null,
+        };
       }
       return null;
+    },
+    enabled: !!kingdomNumber,
+    staleTime: 60 * 1000,
+  });
+}
+
+export interface FundTransaction {
+  id: string;
+  kingdom_number: number;
+  type: 'contribution' | 'depletion' | 'adjustment';
+  amount: number;
+  balance_before: number;
+  balance_after: number;
+  description: string | null;
+  stripe_payment_intent_id: string | null;
+  user_id: string | null;
+  created_at: string;
+}
+
+/**
+ * Fetch all fund transactions (contributions + depletions) for a kingdom
+ */
+export function useFundTransactions(kingdomNumber: number | undefined) {
+  return useQuery({
+    queryKey: kingdomProfileKeys.fundTransactions(kingdomNumber!),
+    queryFn: async (): Promise<FundTransaction[]> => {
+      if (!supabase) return [];
+      const { data, error } = await supabase
+        .from('kingdom_fund_transactions')
+        .select('*')
+        .eq('kingdom_number', kingdomNumber!)
+        .order('created_at', { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return (data || []).map((t: Record<string, unknown>) => ({
+        ...t,
+        amount: Number(t.amount),
+        balance_before: Number(t.balance_before),
+        balance_after: Number(t.balance_after),
+      })) as FundTransaction[];
     },
     enabled: !!kingdomNumber,
     staleTime: 60 * 1000,

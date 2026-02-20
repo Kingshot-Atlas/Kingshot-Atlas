@@ -187,7 +187,10 @@
     "townCenter": "Town Center",
     "viewProfile": "View Profile",
     "youCanUpdate": "You can update this",
-    "chipInToFund": "Chip In to Fund"
+    "chipInToFund": "Chip In to Fund",
+    "fundActivity": "Fund Activity",
+    "fundMoreTransactions": "+ {{count}} more transactions",
+    "gracePeriodWarning": "Tier grace period active — contribute to maintain the current tier before {{date}}"
   },
   "rankings": {
     "subtitle": "Who's dominating? The data doesn't lie.",
@@ -1726,7 +1729,23 @@
     "sending": "Sending...",
     "showingPlayersInGroup": "Showing players in your transfer group",
     "transferGroupFilter": "Transfer Group",
-    "watchlist": "Watchlist"
+    "watchlist": "Watchlist",
+    "gracePeriodTitle": "Tier Grace Period Active",
+    "gracePeriodDesc": "Your fund balance dropped below the {{tier}} tier threshold. You have {{days}} day(s) to top up before your tier is reduced. Share the contribution link with your kingdom!",
+    "gracePeriodNote": "Grace period",
+    "fundOverview": "Overview",
+    "fundActivityTab": "Activity",
+    "fundActivity": "Fund Activity",
+    "fundDepletionInfo": "Fund depletes ~$5/week starting Feb 23. Current balance sustains the {{tier}} tier for approximately {{weeks}} more weeks. Share the kingdom link to encourage contributions.",
+    "activityDescription": "All contributions and weekly maintenance charges for your kingdom fund.",
+    "noTransactions": "No transactions yet. Share the contribution link with your kingdom members!",
+    "totalIn": "Total In",
+    "totalOut": "Total Out",
+    "totalTransactions": "Transactions",
+    "weeklyMaintenance": "Weekly maintenance",
+    "contributionLabel": "Contribution",
+    "listingLinkCopied": "Listing link copied! Share to recruit transferees.",
+    "contributionLinkCopied": "Contribution link copied! Share with your kingdom."
   },
   "applications": {
     "applyTo": "Apply to",

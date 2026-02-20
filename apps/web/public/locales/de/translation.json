@@ -187,7 +187,10 @@
     "townCenter": "Stadtzentrum",
     "viewProfile": "Profil ansehen",
     "youCanUpdate": "Du kannst dies aktualisieren",
-    "chipInToFund": "Zum Fonds beitragen"
+    "chipInToFund": "Zum Fonds beitragen",
+    "fundActivity": "Fondsaktivität",
+    "fundMoreTransactions": "+ {{count}} weitere Transaktionen",
+    "gracePeriodWarning": "Stufen-Schonfrist aktiv — trage bei, um die aktuelle Stufe vor dem {{date}} zu erhalten"
   },
   "rankings": {
     "subtitle": "Wer dominiert? Die Daten lügen nicht.",
@@ -1726,7 +1729,23 @@
     "sending": "Wird gesendet...",
     "showingPlayersInGroup": "Spieler in Ihrer Gruppe",
     "transferGroupFilter": "Transfergruppe",
-    "watchlist": "Merkliste"
+    "watchlist": "Merkliste",
+    "gracePeriodTitle": "Stufen-Schonfrist Aktiv",
+    "gracePeriodDesc": "Dein Fondsguthaben ist unter die Schwelle der {{tier}}-Stufe gefallen. Du hast {{days}} Tag(e) zum Aufladen, bevor deine Stufe herabgesetzt wird. Teile den Beitragslink mit deinem Königreich!",
+    "gracePeriodNote": "Schonfrist",
+    "fundOverview": "Übersicht",
+    "fundActivityTab": "Aktivität",
+    "fundActivity": "Fondsaktivität",
+    "fundDepletionInfo": "Der Fonds verringert sich ab dem 23. Feb. um ~$5/Woche. Das aktuelle Guthaben hält die {{tier}}-Stufe für etwa {{weeks}} weitere Wochen. Teile den Königreich-Link, um Beiträge zu fördern.",
+    "activityDescription": "Alle Beiträge und wöchentlichen Wartungsgebühren deines Königreich-Fonds.",
+    "noTransactions": "Noch keine Transaktionen. Teile den Beitragslink mit deinen Königreich-Mitgliedern!",
+    "totalIn": "Gesamt Eingang",
+    "totalOut": "Gesamt Ausgang",
+    "totalTransactions": "Transaktionen",
+    "weeklyMaintenance": "Wöchentliche Wartung",
+    "contributionLabel": "Beitrag",
+    "listingLinkCopied": "Listing-Link kopiert! Teile ihn, um Transferspieler zu rekrutieren.",
+    "contributionLinkCopied": "Beitragslink kopiert! Teile ihn mit deinem Königreich."
   },
   "applications": {
     "applyTo": "Bewerben bei",

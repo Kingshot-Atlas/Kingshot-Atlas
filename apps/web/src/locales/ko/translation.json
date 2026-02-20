@@ -187,7 +187,10 @@
     "townCenter": "타운센터",
     "viewProfile": "프로필 보기",
     "youCanUpdate": "업데이트할 수 있습니다",
-    "chipInToFund": "기금에 기여"
+    "chipInToFund": "기금에 기여",
+    "fundActivity": "기금 활동",
+    "fundMoreTransactions": "+ {{count}}건의 거래 더 보기",
+    "gracePeriodWarning": "등급 유예 기간 활성 — {{date}} 전에 기여하여 현재 등급을 유지하세요"
   },
   "rankings": {
     "subtitle": "누가 지배하고 있나? 데이터는 거짓말하지 않습니다.",
@@ -1726,7 +1729,23 @@
     "sending": "전송 중...",
     "showingPlayersInGroup": "그룹 내 플레이어 표시",
     "transferGroupFilter": "이적 그룹",
-    "watchlist": "관심 목록"
+    "watchlist": "관심 목록",
+    "gracePeriodTitle": "등급 유예 기간 활성",
+    "gracePeriodDesc": "기금 잔액이 {{tier}} 등급 기준 이하로 떨어졌습니다. 등급이 하향되기 전 {{days}}일 이내에 충전하세요. 왕국에 기여 링크를 공유하세요!",
+    "gracePeriodNote": "유예 기간",
+    "fundOverview": "개요",
+    "fundActivityTab": "활동",
+    "fundActivity": "기금 활동",
+    "fundDepletionInfo": "기금은 2월 23일부터 매주 약 $5씩 감소합니다. 현재 잔액으로 {{tier}} 등급을 약 {{weeks}}주 더 유지할 수 있습니다. 왕국 링크를 공유하여 기여를 장려하세요.",
+    "activityDescription": "왕국 기금의 모든 기여 및 주간 유지비 내역입니다.",
+    "noTransactions": "아직 거래가 없습니다. 왕국 멤버들에게 기여 링크를 공유하세요!",
+    "totalIn": "총 입금",
+    "totalOut": "총 출금",
+    "totalTransactions": "거래",
+    "weeklyMaintenance": "주간 유지비",
+    "contributionLabel": "기여",
+    "listingLinkCopied": "목록 링크가 복사되었습니다! 이적자를 모집하기 위해 공유하세요.",
+    "contributionLinkCopied": "기여 링크가 복사되었습니다! 왕국과 공유하세요."
   },
   "applications": {
     "applyTo": "지원 대상",

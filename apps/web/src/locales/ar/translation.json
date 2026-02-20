@@ -187,7 +187,10 @@
     "townCenter": "مركز المدينة",
     "viewProfile": "عرض الملف",
     "youCanUpdate": "يمكنك تحديث هذا",
-    "chipInToFund": "المساهمة في الصندوق"
+    "chipInToFund": "المساهمة في الصندوق",
+    "fundActivity": "نشاط الصندوق",
+    "fundMoreTransactions": "+ {{count}} معاملات إضافية",
+    "gracePeriodWarning": "فترة السماح للمستوى نشطة — ساهم قبل {{date}} للحفاظ على المستوى الحالي"
   },
   "rankings": {
     "subtitle": "من يتصدر؟ البيانات لا تكذب.",
@@ -1726,7 +1729,23 @@
     "sending": "جارٍ الإرسال...",
     "showingPlayersInGroup": "عرض اللاعبين في مجموعتك",
     "transferGroupFilter": "مجموعة النقل",
-    "watchlist": "قائمة المراقبة"
+    "watchlist": "قائمة المراقبة",
+    "gracePeriodTitle": "فترة السماح للمستوى نشطة",
+    "gracePeriodDesc": "انخفض رصيد صندوقك عن حد مستوى {{tier}}. لديك {{days}} يوم(أيام) للشحن قبل خفض مستواك. شارك رابط المساهمة مع مملكتك!",
+    "gracePeriodNote": "فترة سماح",
+    "fundOverview": "نظرة عامة",
+    "fundActivityTab": "النشاط",
+    "fundActivity": "نشاط الصندوق",
+    "fundDepletionInfo": "ينخفض الصندوق بمقدار ~$5/أسبوع بدءًا من 23 فبراير. الرصيد الحالي يحافظ على مستوى {{tier}} لمدة {{weeks}} أسابيع تقريبًا. شارك رابط المملكة لتشجيع المساهمات.",
+    "activityDescription": "جميع المساهمات ورسوم الصيانة الأسبوعية لصندوق مملكتك.",
+    "noTransactions": "لا توجد معاملات بعد. شارك رابط المساهمة مع أعضاء مملكتك!",
+    "totalIn": "إجمالي الوارد",
+    "totalOut": "إجمالي الصادر",
+    "totalTransactions": "المعاملات",
+    "weeklyMaintenance": "صيانة أسبوعية",
+    "contributionLabel": "مساهمة",
+    "listingLinkCopied": "تم نسخ رابط الإعلان! شاركه لتجنيد المنتقلين.",
+    "contributionLinkCopied": "تم نسخ رابط المساهمة! شاركه مع مملكتك."
   },
   "applications": {
     "applyTo": "التقديم على",
