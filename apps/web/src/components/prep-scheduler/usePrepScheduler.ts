@@ -648,38 +648,40 @@ export function usePrepScheduler() {
   };
 
   const removeAssignment = async (assignmentId: string) => {
-    if (!supabase || !schedule || !user?.id) return;
+    if (!supabase || !schedule || !user?.id) {
+      logger.error('[PrepScheduler] removeAssignment guard failed:', { supabase: !!supabase, schedule: !!schedule, userId: user?.id });
+      return;
+    }
     try {
       const toRemove = assignments.find(a => a.id === assignmentId);
-      if (!toRemove) { logger.error('Assignment not found:', assignmentId); return; }
+      if (!toRemove) { logger.error('[PrepScheduler] Assignment not found in local state:', assignmentId); return; }
 
-      // Attempt delete — refresh session and retry once if RLS silently blocks (expired JWT)
-      const attemptDelete = async () => {
-        const { data, error: err } = await supabase!
-          .from('prep_slot_assignments')
-          .delete()
-          .eq('id', assignmentId)
-          .select();
-        return { data, error: err };
-      };
+      // Ensure fresh JWT before write operation
+      await supabase.auth.refreshSession();
 
-      let { data: deleted, error: delError } = await attemptDelete();
+      // Delete without .select() — avoids known issue where .delete().select()
+      // returns empty results with complex RLS policies despite successful delete
+      const { error: delError } = await supabase
+        .from('prep_slot_assignments')
+        .delete()
+        .eq('id', assignmentId);
+
       if (delError) throw delError;
 
-      // If delete returned 0 rows, refresh session and retry once
-      if (!deleted || deleted.length === 0) {
-        logger.info('[PrepScheduler] Delete returned 0 rows, refreshing session and retrying');
-        await supabase.auth.refreshSession();
-        const retry = await attemptDelete();
-        if (retry.error) throw retry.error;
-        deleted = retry.data;
-      }
+      // Verify: check if the row still exists (RLS silently blocks deletes by returning 0 rows, no error)
+      const { data: stillExists } = await supabase
+        .from('prep_slot_assignments')
+        .select('id')
+        .eq('id', assignmentId)
+        .maybeSingle();
 
-      if (!deleted || deleted.length === 0) {
+      if (stillExists) {
+        // Row survived — RLS blocked the delete
         showToast(t('prepScheduler.toastRemoveFailed', 'Failed to remove assignment. You may not have permission.'), 'error');
         return;
       }
-      // Waitlist auto-promotion
+
+      // Delete confirmed — run waitlist auto-promotion
       const day = toRemove.day as Day;
       const slotTime = toRemove.slot_time;
       const currentAssignedIds = new Set(assignments.filter(a => a.day === day && a.id !== assignmentId).map(a => a.submission_id));
@@ -693,7 +695,7 @@ export function usePrepScheduler() {
         await supabase.from('prep_slot_assignments').insert({ schedule_id: schedule.id, submission_id: next.id, day, slot_time: slotTime, assigned_by: user.id });
       }
       await fetchAssignments(schedule.id);
-    } catch (err) { logger.error('Failed to remove assignment:', err); showToast(t('prepScheduler.toastRemoveError', 'Error removing assignment.'), 'error'); }
+    } catch (err) { logger.error('[PrepScheduler] Failed to remove assignment:', err); showToast(t('prepScheduler.toastRemoveError', 'Error removing assignment.'), 'error'); }
   };
 
   const copyShareLink = () => {

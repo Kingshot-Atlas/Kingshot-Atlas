@@ -3,12 +3,26 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-20 23:30 | Platform Engineer | COMPLETED
+Task: Fix Prep Scheduler slot removal — .delete().select() returning empty despite successful delete
+Files: usePrepScheduler.ts
+Root cause: `.delete().select()` returns empty results with complex RLS policies even when the delete succeeds. Previous code interpreted empty results as "permission denied" and showed error toast. Retry logic made it worse — second attempt tried to delete an already-deleted row, also returned empty, confirming the false "failure."
+Fix: Complete rewrite of `removeAssignment()`:
+1. **Removed `.delete().select()` pattern** — replaced with `.delete()` (no `.select()`)
+2. **Verify via existence check** — after delete, query `.select('id').eq('id', x).maybeSingle()` to confirm row is gone
+3. **If row survives** → RLS genuinely blocked it → show permission error
+4. **If row gone** → proceed with waitlist auto-promotion + fetchAssignments
+5. **Session refresh** before delete to ensure fresh JWT
+6. **Added logging** to guard clause for debugging silent returns
+Proof: RLS DELETE tested as authenticated user with Gatreno's UUID — `deleted_count=1`. Policy is correct.
+Result: Build passes.
+
 ## 2026-02-20 23:15 | Platform Engineer | COMPLETED
-Task: Fix Discord login timeout on mobile + Prep Scheduler slot removal permission error
-Files: AuthCallback.tsx, usePrepScheduler.ts
+Task: Fix Discord login timeout on mobile
+Files: AuthCallback.tsx
 Changes:
 1. **Discord login fix** — Added explicit `exchangeCodeForSession(code)` call in AuthCallback for immediate PKCE exchange instead of relying on silent `detectSessionInUrl`. On failure (code_verifier lost on mobile), shows error immediately instead of waiting 20s. Reduced hard timeout from 20s→15s, retry button from 8s→6s. Retry now clears stale PKCE state via signOut before re-initiating OAuth.
-2. **Slot removal fix** — Added session refresh + retry pattern to `removeAssignment()`: if delete returns 0 rows (expired JWT), refreshes session and retries once before showing error. Same proactive `refreshSession()` added to `assignSlot()` and `runAutoAssign()` to prevent stale JWT blocking write operations.
+2. **Prep scheduler write ops** — Proactive `refreshSession()` on `assignSlot()` and `runAutoAssign()`.
 Result: Build passes. No new i18n keys needed.
 
 ## 2026-02-20 22:45 | Product Engineer | COMPLETED
