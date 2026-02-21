@@ -1745,7 +1745,13 @@
     "weeklyMaintenance": "Mantenimiento semanal",
     "contributionLabel": "Contribución",
     "listingLinkCopied": "¡Enlace de listado copiado! Comparte para reclutar transferidos.",
-    "contributionLinkCopied": "¡Enlace de contribución copiado! Comparte con tu reino."
+    "contributionLinkCopied": "¡Enlace de contribución copiado! Comparte con tu reino.",
+    "searchApplicants": "Buscar solicitantes...",
+    "sortNewest": "Más reciente",
+    "sortOldest": "Más antiguo",
+    "sortTcHigh": "TC (Alto)",
+    "sortPowerHigh": "Poder (Alto)",
+    "noMatchingApps": "Ninguna solicitud coincide con tu búsqueda"
   },
   "applications": {
     "applyTo": "Aplicar a",
@@ -2438,6 +2444,8 @@
     "declineConfirm": "¿Rechazar esta solicitud?",
     "yesDecline": "Sí, Rechazar",
     "markViewed": "Marcar como Visto",
+    "acceptConfirm": "¿Aceptar esta solicitud? Su identidad será revelada.",
+    "yesAccept": "Sí, Aceptar",
     "cancelApproval": "Cancelar Aprobación",
     "translate": "Traducir",
     "translating": "Traduciendo...",

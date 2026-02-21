@@ -2,10 +2,9 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
-import { useIsMobile } from '../../hooks/useMediaQuery';
 import { useAnalytics } from '../../hooks/useAnalytics';
 import { supabase } from '../../lib/supabase';
-import { FONT_DISPLAY, colors } from '../../utils/styles';
+import { colors } from '../../utils/styles';
 import { logger } from '../../utils/logger';
 import { useToast } from '../Toast';
 import type { EditorInfo, FundInfo, TransfereeProfile } from './types';
@@ -26,7 +25,6 @@ interface BrowseTransfereesTabProps {
 
 const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, editorInfo, initialUsedInvites = 0 }) => {
   const { user } = useAuth();
-  const isMobile = useIsMobile();
   const { t } = useTranslation();
   const { showToast } = useToast();
   const { trackFeature } = useAnalytics();
@@ -38,8 +36,6 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
 
   // UI-only state (declared before useInfiniteQuery so filters are available in query key)
   const [browseFilters, setBrowseFilters] = useState<BrowseFilters>(EMPTY_FILTERS);
-  const [compareList, setCompareList] = useState<Set<string>>(new Set());
-  const [showCompare, setShowCompare] = useState(false);
   const [sentInviteIds, setSentInviteIds] = useState<Set<string>>(new Set());
   const [usedInvites, setUsedInvites] = useState(initialUsedInvites);
   const [selectedForInvite, setSelectedForInvite] = useState<Set<string>>(new Set());
@@ -309,45 +305,6 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
       {/* Browse Filters */}
       <BrowseTransfereesFilters filters={browseFilters} onChange={setBrowseFilters} />
 
-      {/* Compare Bar */}
-      {compareList.size > 0 && (
-        <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '0.4rem 0.75rem',
-          backgroundColor: '#a855f708',
-          border: '1px solid #a855f720',
-          borderRadius: '8px',
-          marginBottom: '0.75rem',
-        }}>
-          <span style={{ color: '#a855f7', fontSize: '0.75rem', fontWeight: '600' }}>
-            {t('recruiter.selectedForComparison', '{{count}} selected for comparison', { count: compareList.size })}
-          </span>
-          <div style={{ display: 'flex', gap: '0.3rem' }}>
-            <button
-              onClick={() => setShowCompare(true)}
-              disabled={compareList.size < 2}
-              style={{
-                padding: '0.3rem 0.6rem', backgroundColor: compareList.size >= 2 ? '#a855f715' : '#1a1a1a',
-                border: `1px solid ${compareList.size >= 2 ? '#a855f730' : '#2a2a2a'}`,
-                borderRadius: '6px', color: compareList.size >= 2 ? '#a855f7' : '#4b5563',
-                fontSize: '0.65rem', fontWeight: '600', cursor: compareList.size >= 2 ? 'pointer' : 'not-allowed', minHeight: '32px',
-              }}
-            >
-              {t('recruiter.compare', 'Compare')}
-            </button>
-            <button
-              onClick={() => setCompareList(new Set())}
-              style={{
-                padding: '0.3rem 0.5rem', backgroundColor: 'transparent', border: '1px solid #2a2a2a',
-                borderRadius: '6px', color: '#6b7280', fontSize: '0.6rem', cursor: 'pointer', minHeight: '32px',
-              }}
-            >
-              {t('recruiter.clear', 'Clear')}
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Recommended for You */}
       {!loadingTransferees && (
         <RecommendedSection
@@ -398,52 +355,8 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
           </div>
         );
 
-        // Compute match scores for "Recommended for you"
-        const withScores = fund ? transferees.map(tp => {
-          let matched = 0, total = 0;
-          const minPwr = fund.min_power_million || 0;
-          if (minPwr > 0) { total++; if ((tp.power_million || 0) >= minPwr) matched++; }
-          if (fund.min_tc_level && fund.min_tc_level > 0) { total++; if ((tp.tc_level || 0) >= fund.min_tc_level) matched++; }
-          if (fund.main_language) { total++; if (tp.main_language === fund.main_language) matched++; }
-          const score = total > 0 ? Math.round((matched / total) * 100) : 0;
-          return { ...tp, _matchScore: score };
-        }) : [];
-        const recommended = withScores
-          .filter(tp => tp._matchScore >= 60)
-          .sort((a, b) => b._matchScore - a._matchScore)
-          .slice(0, 5);
-
         return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          {/* Recommended for you section */}
-          {recommended.length > 0 && !browseFilters.minTc && !browseFilters.minPower && !browseFilters.language && (
-            <div style={{
-              backgroundColor: '#a855f708', border: '1px solid #a855f720',
-              borderRadius: '10px', padding: '0.6rem 0.75rem', marginBottom: '0.25rem',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.4rem' }}>
-                <span style={{ fontSize: '0.85rem' }}>⭐</span>
-                <span style={{ color: '#a855f7', fontSize: '0.75rem', fontWeight: '700' }}>{t('recruiter.recommendedForYou', 'Recommended for You')}</span>
-                <span style={{ color: '#6b7280', fontSize: '0.6rem' }}>{t('recruiter.basedOnRequirements', 'Based on your kingdom requirements')}</span>
-              </div>
-              <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
-                {recommended.map(tp => (
-                  <div key={`rec-${tp.id}`} style={{
-                    padding: '0.3rem 0.5rem', backgroundColor: '#1a1a20',
-                    border: '1px solid #a855f725', borderRadius: '8px',
-                    display: 'flex', alignItems: 'center', gap: '0.35rem',
-                    fontSize: '0.65rem', minWidth: '120px',
-                  }}>
-                    <span style={{ color: '#d1d5db', fontWeight: '600' }}>
-                      {(tp as { is_anonymous?: boolean }).is_anonymous ? '🔒 Anon' : ((tp as { username?: string }).username || 'Unknown')}
-                    </span>
-                    <span style={{ color: '#a855f7', fontWeight: 'bold' }}>{tp._matchScore}%</span>
-                    <span style={{ color: '#6b7280' }}>{formatTCLevel(tp.tc_level)} · {tp.power_million ? `${tp.power_million}M` : '—'}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
           <span style={{ color: '#4b5563', fontSize: '0.65rem' }}>{transferees.length} transferee{transferees.length !== 1 ? 's' : ''}{browseFilters.minTc || browseFilters.minPower || browseFilters.language ? ' (filtered)' : ''}</span>
           {transferees.map((tp: TransfereeProfile) => {
             const isAnon = tp.is_anonymous as boolean;
@@ -555,25 +468,9 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
                   </p>
                 )}
 
-                {/* Compare + Save for Later + Send Invite Row */}
+                {/* Save for Later + Send Invite Row */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', justifyContent: 'space-between', flexWrap: 'wrap' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer', fontSize: '0.65rem', color: compareList.has(tp.id) ? '#a855f7' : '#6b7280' }}>
-                      <input
-                        type="checkbox"
-                        checked={compareList.has(tp.id)}
-                        onChange={() => {
-                          setCompareList(prev => {
-                            const next = new Set(prev);
-                            if (next.has(tp.id)) next.delete(tp.id);
-                            else if (next.size < 4) next.add(tp.id);
-                            return next;
-                          });
-                        }}
-                        style={{ accentColor: '#a855f7' }}
-                      />
-                      {t('recruiter.compare', 'Compare')}
-                    </label>
                     <button
                       disabled={savedToWatchlist.has(tp.id)}
                       onClick={() => saveToWatchlist(tp)}
@@ -704,71 +601,6 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
         </div>
       )}
 
-      {/* Comparison Modal */}
-      {showCompare && compareList.size >= 2 && (() => {
-        const selected = transferees.filter(tp => compareList.has(tp.id));
-        if (selected.length < 2) return null;
-        const fields: { key: string; label: string; render: (tp: TransfereeProfile) => string }[] = [
-          { key: 'tc', label: t('recruiter.tcLevel', 'TC Level'), render: (tp) => formatTCLevel(tp.tc_level) },
-          { key: 'power', label: t('recruiter.power', 'Power'), render: (tp) => tp.power_million ? `${tp.power_million}M` : (tp.power_range || '—') },
-          { key: 'lang', label: t('recruiter.language', 'Language'), render: (tp) => tp.main_language || '—' },
-          { key: 'kvk', label: t('recruiter.kvkAvail', 'KvK Avail.'), render: (tp) => (tp.kvk_availability || '—').replace(/_/g, ' ') },
-          { key: 'saving', label: t('recruiter.savingFor', 'Saving For'), render: (tp) => (tp.saving_for_kvk || '—').replace(/_/g, ' ') },
-          { key: 'group', label: t('recruiter.groupSize', 'Group Size'), render: (tp) => String(tp.group_size || '—') },
-          { key: 'looking', label: t('recruiter.lookingFor', 'Looking For'), render: (tp) => tp.looking_for?.join(', ') || '—' },
-        ];
-        return (
-          <div style={{
-            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-            backgroundColor: 'rgba(0,0,0,0.9)', zIndex: 1100,
-            display: 'flex', alignItems: isMobile ? 'flex-end' : 'center', justifyContent: 'center',
-            padding: isMobile ? 0 : '1rem',
-          }} onClick={() => setShowCompare(false)}>
-            <div style={{
-              backgroundColor: '#111111', border: '1px solid #2a2a2a',
-              borderRadius: isMobile ? '16px 16px 0 0' : '16px',
-              padding: isMobile ? '1rem' : '1.5rem',
-              maxWidth: '700px', width: '100%', maxHeight: '80vh', overflowY: 'auto',
-              paddingBottom: isMobile ? 'max(1rem, env(safe-area-inset-bottom))' : '1.5rem',
-            }} onClick={(e) => e.stopPropagation()}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                <h3 style={{ color: '#fff', fontSize: '1rem', fontWeight: '700', margin: 0, fontFamily: FONT_DISPLAY }}>
-                  {t('recruiter.profileComparison', 'Profile Comparison')}
-                </h3>
-                <button onClick={() => setShowCompare(false)} style={{
-                  background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '1.2rem', padding: '0.25rem',
-                }}>✕</button>
-              </div>
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
-                  <thead>
-                    <tr>
-                      <th style={{ textAlign: 'left', padding: '0.4rem 0.5rem', color: '#6b7280', borderBottom: '1px solid #2a2a2a', fontSize: '0.65rem' }}>{t('recruiter.field', 'Field')}</th>
-                      {selected.map(tp => (
-                        <th key={tp.id} style={{ textAlign: 'center', padding: '0.4rem 0.5rem', color: '#22d3ee', borderBottom: '1px solid #2a2a2a', fontSize: '0.7rem', fontWeight: '600' }}>
-                          {tp.is_anonymous ? '🔒 Anonymous' : (tp.username || 'Unknown')}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {fields.map(field => (
-                      <tr key={field.key}>
-                        <td style={{ padding: '0.4rem 0.5rem', color: '#9ca3af', borderBottom: '1px solid #1a1a1a', fontWeight: '500', whiteSpace: 'nowrap' }}>{field.label}</td>
-                        {selected.map(tp => (
-                          <td key={tp.id} style={{ padding: '0.4rem 0.5rem', color: '#d1d5db', borderBottom: '1px solid #1a1a1a', textAlign: 'center', textTransform: 'capitalize' }}>
-                            {field.render(tp)}
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
     </div>
   );
 };

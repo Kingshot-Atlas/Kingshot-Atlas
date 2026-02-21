@@ -1745,7 +1745,13 @@
     "weeklyMaintenance": "每周维护",
     "contributionLabel": "贡献",
     "listingLinkCopied": "列表链接已复制！分享以招募转服者。",
-    "contributionLinkCopied": "贡献链接已复制！与您的王国分享。"
+    "contributionLinkCopied": "贡献链接已复制！与您的王国分享。",
+    "searchApplicants": "搜索申请者...",
+    "sortNewest": "最新",
+    "sortOldest": "最早",
+    "sortTcHigh": "TC（高）",
+    "sortPowerHigh": "战力（高）",
+    "noMatchingApps": "没有匹配的申请"
   },
   "applications": {
     "applyTo": "申请",
@@ -2438,6 +2444,8 @@
     "declineConfirm": "拒绝此申请？",
     "yesDecline": "是的，拒绝",
     "markViewed": "标记为已查看",
+    "acceptConfirm": "接受此申请？对方身份将被公开。",
+    "yesAccept": "是的，接受",
     "cancelApproval": "取消批准",
     "translate": "翻译",
     "translating": "翻译中...",

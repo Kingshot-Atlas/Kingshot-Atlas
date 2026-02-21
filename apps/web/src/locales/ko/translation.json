@@ -1745,7 +1745,13 @@
     "weeklyMaintenance": "주간 유지비",
     "contributionLabel": "기여",
     "listingLinkCopied": "목록 링크가 복사되었습니다! 이적자를 모집하기 위해 공유하세요.",
-    "contributionLinkCopied": "기여 링크가 복사되었습니다! 왕국과 공유하세요."
+    "contributionLinkCopied": "기여 링크가 복사되었습니다! 왕국과 공유하세요.",
+    "searchApplicants": "지원자 검색...",
+    "sortNewest": "최신순",
+    "sortOldest": "오래된순",
+    "sortTcHigh": "TC (높은순)",
+    "sortPowerHigh": "전투력 (높은순)",
+    "noMatchingApps": "검색과 일치하는 지원이 없습니다"
   },
   "applications": {
     "applyTo": "지원 대상",
@@ -2438,6 +2444,8 @@
     "declineConfirm": "이 지원을 거절하시겠습니까?",
     "yesDecline": "예, 거절",
     "markViewed": "확인됨으로 표시",
+    "acceptConfirm": "이 지원을 수락하시겠습니까? 신원이 공개됩니다.",
+    "yesAccept": "예, 수락",
     "cancelApproval": "승인 취소",
     "translate": "번역",
     "translating": "번역 중...",

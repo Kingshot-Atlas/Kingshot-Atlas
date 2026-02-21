@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../contexts/AuthContext';
 import { useIsMobile } from '../../hooks/useMediaQuery';
-import { useAnalytics } from '../../hooks/useAnalytics';
 import { useToast } from '../Toast';
 import { supabase } from '../../lib/supabase';
 import { colors } from '../../utils/styles';
 import { logger } from '../../utils/logger';
 import type { EditorInfo } from './types';
 import { formatTCLevel, inputStyle } from './types';
+import { useSendInvite } from './useSendInvite';
 
 interface WatchlistItem {
   id: string;
@@ -54,8 +54,11 @@ const WatchlistTab: React.FC<WatchlistTabProps> = ({ editorInfo }) => {
   const { user } = useAuth();
   const isMobile = useIsMobile();
   const { showToast } = useToast();
-  const { trackFeature } = useAnalytics();
   const queryClient = useQueryClient();
+  const { sentInviteIds, sendingInviteId, sendInvite } = useSendInvite({
+    kingdomNumber: editorInfo.kingdom_number,
+    source: 'Watchlist',
+  });
 
   const queryKey = watchlistKeys.list(user?.id || '', editorInfo.kingdom_number);
 
@@ -72,8 +75,6 @@ const WatchlistTab: React.FC<WatchlistTabProps> = ({ editorInfo }) => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editNotes, setEditNotes] = useState('');
-  const [sentInviteIds, setSentInviteIds] = useState<Set<string>>(new Set());
-  const [sendingInviteId, setSendingInviteId] = useState<string | null>(null);
 
   // Add form state
   const [formName, setFormName] = useState('');
@@ -166,58 +167,8 @@ const WatchlistTab: React.FC<WatchlistTabProps> = ({ editorInfo }) => {
   };
 
   const handleSendInvite = async (item: WatchlistItem) => {
-    if (!supabase || !user || !editorInfo || !item.transfer_profile_id) return;
-    setSendingInviteId(item.id);
-    try {
-      // Check for existing pending invite
-      const { data: existing } = await supabase
-        .from('transfer_invites')
-        .select('id')
-        .eq('kingdom_number', editorInfo.kingdom_number)
-        .eq('recipient_profile_id', item.transfer_profile_id)
-        .eq('status', 'pending')
-        .maybeSingle();
-      if (existing) {
-        showToast('An invite is already pending for this player.', 'error');
-        setSentInviteIds(prev => new Set(prev).add(item.id));
-        return;
-      }
-
-      const { error } = await supabase.from('transfer_invites').insert({
-        kingdom_number: editorInfo.kingdom_number,
-        sender_user_id: user.id,
-        recipient_profile_id: item.transfer_profile_id,
-      });
-      if (error) {
-        showToast('Failed to send invite: ' + error.message, 'error');
-        return;
-      }
-      setSentInviteIds(prev => new Set(prev).add(item.id));
-      trackFeature('Watchlist Invite Sent', { kingdom: editorInfo.kingdom_number });
-      showToast('Invite sent!', 'success');
-
-      // Notify the transferee
-      const { data: profileRow } = await supabase
-        .from('transfer_profiles')
-        .select('user_id')
-        .eq('id', item.transfer_profile_id)
-        .single();
-      if (profileRow) {
-        await supabase.from('notifications').insert({
-          user_id: profileRow.user_id,
-          type: 'transfer_invite',
-          title: 'Kingdom Invite Received',
-          message: `Kingdom ${editorInfo.kingdom_number} has invited you to transfer!`,
-          link: '/transfer-hub',
-          metadata: { kingdom_number: editorInfo.kingdom_number },
-        });
-      }
-    } catch (err) {
-      logger.error('WatchlistTab: sendInvite failed', err);
-      showToast('Failed to send invite.', 'error');
-    } finally {
-      setSendingInviteId(null);
-    }
+    if (!item.transfer_profile_id) return;
+    await sendInvite(item.transfer_profile_id);
   };
 
   const resetForm = () => {
@@ -229,6 +180,70 @@ const WatchlistTab: React.FC<WatchlistTabProps> = ({ editorInfo }) => {
     setFormNotes('');
     setFormEvent('next');
     setShowAddForm(false);
+  };
+
+  const handleExport = () => {
+    if (items.length === 0) { showToast('Nothing to export.', 'error'); return; }
+    const csv = [
+      ['Name', 'Player ID', 'TC Level', 'Power', 'Language', 'Notes', 'Target Event', 'Source', 'Added'].join(','),
+      ...items.map(i => [
+        `"${(i.player_name || '').replace(/"/g, '""')}"`,
+        i.player_id || '',
+        i.tc_level || '',
+        i.power_range || '',
+        i.language || '',
+        `"${(i.notes || '').replace(/"/g, '""')}"`,
+        i.target_event || '',
+        i.source || '',
+        new Date(i.created_at).toLocaleDateString(),
+      ].join(','))
+    ].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `watchlist-k${editorInfo.kingdom_number}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Watchlist exported!', 'success');
+  };
+
+  const handleImport = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file || !supabase || !user) return;
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text) as Array<{ player_name: string; player_id?: string; tc_level?: number; power_range?: string; language?: string; notes?: string; target_event?: string }>;
+        if (!Array.isArray(data) || data.length === 0) { showToast('Invalid file format.', 'error'); return; }
+        let added = 0;
+        for (const row of data) {
+          if (!row.player_name) continue;
+          const { error } = await supabase.from('recruiter_watchlist').insert({
+            recruiter_user_id: user.id,
+            kingdom_number: editorInfo.kingdom_number,
+            player_name: row.player_name,
+            player_id: row.player_id || null,
+            tc_level: row.tc_level || null,
+            power_range: row.power_range || null,
+            language: row.language || null,
+            notes: row.notes || '',
+            target_event: row.target_event || 'next',
+            source: 'import',
+          });
+          if (!error) added++;
+        }
+        queryClient.invalidateQueries({ queryKey });
+        showToast(`Imported ${added} of ${data.length} players.`, 'success');
+      } catch (err) {
+        logger.error('WatchlistTab: import failed', err);
+        showToast('Failed to import watchlist.', 'error');
+      }
+    };
+    input.click();
   };
 
   if (loading) {
@@ -251,22 +266,58 @@ const WatchlistTab: React.FC<WatchlistTabProps> = ({ editorInfo }) => {
             Save players interested in transferring in a future event
           </p>
         </div>
-        <button
-          onClick={() => setShowAddForm(!showAddForm)}
-          style={{
-            padding: '0.35rem 0.65rem',
-            backgroundColor: '#22d3ee15',
-            border: '1px solid #22d3ee30',
-            borderRadius: '6px',
-            color: '#22d3ee',
-            fontSize: '0.7rem',
-            fontWeight: '600',
-            cursor: 'pointer',
-            minHeight: '36px',
-          }}
-        >
-          {showAddForm ? '✕ Cancel' : '+ Add Player'}
-        </button>
+        <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
+          {items.length > 0 && (
+            <button
+              onClick={handleExport}
+              title="Export as CSV"
+              style={{
+                padding: '0.35rem 0.5rem',
+                backgroundColor: 'transparent',
+                border: '1px solid #2a2a2a',
+                borderRadius: '6px',
+                color: '#6b7280',
+                fontSize: '0.65rem',
+                cursor: 'pointer',
+                minHeight: '36px',
+              }}
+            >
+              ↓ Export
+            </button>
+          )}
+          <button
+            onClick={handleImport}
+            title="Import from JSON"
+            style={{
+              padding: '0.35rem 0.5rem',
+              backgroundColor: 'transparent',
+              border: '1px solid #2a2a2a',
+              borderRadius: '6px',
+              color: '#6b7280',
+              fontSize: '0.65rem',
+              cursor: 'pointer',
+              minHeight: '36px',
+            }}
+          >
+            ↑ Import
+          </button>
+          <button
+            onClick={() => setShowAddForm(!showAddForm)}
+            style={{
+              padding: '0.35rem 0.65rem',
+              backgroundColor: '#22d3ee15',
+              border: '1px solid #22d3ee30',
+              borderRadius: '6px',
+              color: '#22d3ee',
+              fontSize: '0.7rem',
+              fontWeight: '600',
+              cursor: 'pointer',
+              minHeight: '36px',
+            }}
+          >
+            {showAddForm ? '✕ Cancel' : '+ Add Player'}
+          </button>
+        </div>
       </div>
 
       {/* Add Form */}
@@ -441,21 +492,21 @@ const WatchlistTab: React.FC<WatchlistTabProps> = ({ editorInfo }) => {
                 </span>
                 {item.transfer_profile_id && (
                   <button
-                    disabled={sentInviteIds.has(item.id) || sendingInviteId === item.id}
+                    disabled={sentInviteIds.has(item.transfer_profile_id!) || sendingInviteId === item.transfer_profile_id}
                     onClick={() => handleSendInvite(item)}
                     style={{
                       padding: '0.25rem 0.55rem',
-                      backgroundColor: sentInviteIds.has(item.id) ? '#22c55e10' : '#a855f715',
-                      border: `1px solid ${sentInviteIds.has(item.id) ? '#22c55e30' : '#a855f730'}`,
+                      backgroundColor: sentInviteIds.has(item.transfer_profile_id!) ? '#22c55e10' : '#a855f715',
+                      border: `1px solid ${sentInviteIds.has(item.transfer_profile_id!) ? '#22c55e30' : '#a855f730'}`,
                       borderRadius: '6px',
-                      color: sentInviteIds.has(item.id) ? '#22c55e' : '#a855f7',
+                      color: sentInviteIds.has(item.transfer_profile_id!) ? '#22c55e' : '#a855f7',
                       fontSize: '0.65rem',
                       fontWeight: '600',
-                      cursor: sentInviteIds.has(item.id) || sendingInviteId === item.id ? 'default' : 'pointer',
+                      cursor: sentInviteIds.has(item.transfer_profile_id!) || sendingInviteId === item.transfer_profile_id ? 'default' : 'pointer',
                       minHeight: '28px',
                     }}
                   >
-                    {sentInviteIds.has(item.id) ? '✓ Invited' : sendingInviteId === item.id ? 'Sending...' : '📩 Send Invite'}
+                    {sentInviteIds.has(item.transfer_profile_id!) ? '✓ Invited' : sendingInviteId === item.transfer_profile_id ? 'Sending...' : '📩 Send Invite'}
                   </button>
                 )}
               </div>

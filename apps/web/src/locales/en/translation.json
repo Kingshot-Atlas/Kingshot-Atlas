@@ -1745,7 +1745,13 @@
     "weeklyMaintenance": "Weekly maintenance",
     "contributionLabel": "Contribution",
     "listingLinkCopied": "Listing link copied! Share to recruit transferees.",
-    "contributionLinkCopied": "Contribution link copied! Share with your kingdom."
+    "contributionLinkCopied": "Contribution link copied! Share with your kingdom.",
+    "searchApplicants": "Search applicants...",
+    "sortNewest": "Newest",
+    "sortOldest": "Oldest",
+    "sortTcHigh": "TC (High)",
+    "sortPowerHigh": "Power (High)",
+    "noMatchingApps": "No applications match your search"
   },
   "applications": {
     "applyTo": "Apply to",
@@ -2438,6 +2444,8 @@
     "declineConfirm": "Decline this application?",
     "yesDecline": "Yes, Decline",
     "markViewed": "Mark Viewed",
+    "acceptConfirm": "Accept this application? Their identity will be revealed.",
+    "yesAccept": "Yes, Accept",
     "cancelApproval": "Cancel Approval",
     "translate": "Translate",
     "translating": "Translating...",

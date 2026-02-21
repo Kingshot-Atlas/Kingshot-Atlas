@@ -76,9 +76,6 @@ const KingdomCommunities: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [transferGroupFilter, setTransferGroupFilter] = useState('all');
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
-  const [campaignOpen, setCampaignOpen] = useState(() => {
-    return !localStorage.getItem('kingshot_campaign_collapsed');
-  });
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -240,119 +237,6 @@ const KingdomCommunities: React.FC = () => {
 
       {/* Content */}
       <div style={{ maxWidth: '900px', margin: '0 auto', padding: isMobile ? '1rem' : '1.5rem 2rem' }}>
-        {/* Campaign Banner — collapsible, open by default on first visit */}
-        <div style={{
-          marginBottom: '1.5rem',
-          background: 'linear-gradient(135deg, #1a0f05 0%, #111 50%, #0a1a0f 100%)',
-          border: '1px solid #f59e0b40',
-          borderRadius: '12px',
-          overflow: 'hidden',
-        }}>
-          <button
-            onClick={() => {
-              const next = !campaignOpen;
-              setCampaignOpen(next);
-              if (!next) localStorage.setItem('kingshot_campaign_collapsed', '1');
-              else localStorage.removeItem('kingshot_campaign_collapsed');
-            }}
-            style={{
-              width: '100%',
-              padding: isMobile ? '0.75rem 1rem' : '0.85rem 1.25rem',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: '#fff',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span style={{ fontSize: '1.1rem' }}>⚡</span>
-              <span style={{ fontWeight: '700', fontSize: isMobile ? '0.85rem' : '0.95rem', color: '#f59e0b' }}>
-                KINGDOM COLONIES CAMPAIGN
-              </span>
-              <span style={{
-                fontSize: '0.6rem',
-                padding: '0.15rem 0.4rem',
-                backgroundColor: '#22c55e20',
-                border: '1px solid #22c55e40',
-                borderRadius: '4px',
-                color: '#22c55e',
-                fontWeight: '700',
-              }}>
-                LIVE
-              </span>
-            </div>
-            <span style={{
-              fontSize: '1rem',
-              color: colors.textMuted,
-              transform: campaignOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-              transition: 'transform 0.2s ease',
-            }}>
-              ▾
-            </span>
-          </button>
-
-          {campaignOpen && (
-            <div style={{ padding: isMobile ? '0 1rem 1rem' : '0 1.25rem 1.25rem' }}>
-              <div style={{ borderTop: '1px solid #ffffff10', paddingTop: '0.75rem' }}>
-                <p style={{ color: colors.text, fontSize: '0.8rem', fontWeight: '600', margin: '0 0 0.5rem', lineHeight: 1.5 }}>
-                  Top 3 kingdoms by verified players win real rewards. Rally your alliance — numbers don't lie.
-                </p>
-
-                <div style={{
-                  display: 'flex',
-                  gap: isMobile ? '0.5rem' : '0.75rem',
-                  marginBottom: '0.75rem',
-                  flexWrap: 'wrap',
-                }}>
-                  {[
-                    { emoji: '🥇', label: '1st', reward: 'Gold Tier or $100 Fund', color: '#ffc30b' },
-                    { emoji: '🥈', label: '2nd', reward: 'Silver Tier or $50 Fund', color: '#d1d5db' },
-                    { emoji: '🥉', label: '3rd', reward: 'Bronze Tier or $25 Fund', color: '#cd7f32' },
-                  ].map(({ emoji, label, reward, color }) => (
-                    <div key={label} style={{
-                      flex: '1 1 0',
-                      minWidth: isMobile ? '100%' : '140px',
-                      padding: '0.5rem 0.75rem',
-                      backgroundColor: `${color}0a`,
-                      border: `1px solid ${color}25`,
-                      borderRadius: '8px',
-                      textAlign: 'center',
-                    }}>
-                      <span style={{ fontSize: '1rem' }}>{emoji}</span>
-                      <div style={{ color, fontSize: '0.7rem', fontWeight: '700', marginTop: '0.15rem' }}>{label}</div>
-                      <div style={{ color: colors.textMuted, fontSize: '0.65rem', marginTop: '0.1rem' }}>{reward}</div>
-                    </div>
-                  ))}
-                </div>
-
-                <div style={{ color: colors.textMuted, fontSize: '0.7rem', lineHeight: 1.6 }}>
-                  <strong style={{ color: colors.text }}>How to win:</strong> Get your kingdom members on Atlas → Link accounts (TC20+ required) → Most verified players wins.<br />
-                  Already have a tier? We'll deposit the equivalent into your Kingdom Fund instead.
-                </div>
-
-                <div style={{
-                  marginTop: '0.75rem',
-                  padding: '0.5rem 0.75rem',
-                  backgroundColor: '#ef444415',
-                  border: '1px solid #ef444430',
-                  borderRadius: '6px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.4rem',
-                }}>
-                  <span style={{ fontSize: '0.85rem' }}>⏰</span>
-                  <span style={{ color: '#ef4444', fontSize: '0.75rem', fontWeight: '700' }}>
-                    Campaign ends: February 21st, 00:00 UTC
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
         {/* Info Banner - centered */}
         <div style={{
           padding: isMobile ? '0.75rem 1rem' : '1rem 1.5rem',

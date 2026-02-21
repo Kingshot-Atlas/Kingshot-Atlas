@@ -3,6 +3,20 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-20 22:45 | Product Engineer | COMPLETED
+Task: Recruiter Dashboard P3/P4 improvements, Player Directory enhancements, Campaign banner removal
+Files: RecruiterDashboard.tsx, KingdomProfileTab.tsx, useSendInvite.ts, WatchlistTab.tsx, UserDirectory.tsx, App.tsx, KingdomCommunities.tsx
+Changes:
+1. **Mobile tab nav** — Equal padding with `flex:1` on all tabs, centered emojis, removed scrollOverflow
+2. **Keyboard shortcuts** — 1-7 keys switch recruiter tabs (skips when input focused)
+3. **Status history pagination** — Shows 5 entries initially with "Show more" button
+4. **eslint-disable reduced** — 31→30 by converting loadStatusHistory to useCallback with ref guard
+5. **Optimistic invite UI** — useSendInvite marks sent immediately, rolls back on failure
+6. **Watchlist export/import** — CSV export + JSON import buttons in WatchlistTab header
+7. **Player Directory** — Consul role added after Ambassador in sort priority; infinite scroll replaced with "Show More" button (25 per page)
+8. **Campaign banner removed** — Removed CampaignNotificationBanner from App.tsx and campaign section from KingdomCommunities.tsx
+Result: Build passes, consistency lint 0 errors. All i18n keys in sync.
+
 ## 2026-02-20 17:45 | Platform Engineer | COMPLETED
 Task: Backfill 246 missing score_history entries for KvK #10 — fix Atlas Score History & Kingdom Ranking History charts
 Files: Supabase score_history table (data), create_score_history_entry() trigger function (migration)

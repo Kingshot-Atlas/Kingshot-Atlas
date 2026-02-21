@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { useIsMobile } from '../hooks/useMediaQuery';
@@ -44,6 +44,21 @@ const RecruiterDashboard: React.FC<{
     filteredApps, pendingCount, updating, listingViews, unreadMessageCount, perAppUnreadCounts,
   } = dashboard;
 
+
+  // Keyboard shortcuts: 1-7 switch tabs
+  useEffect(() => {
+    const TAB_KEYS: Record<string, typeof activeTab> = {
+      '1': 'inbox', '2': 'browse', '3': 'profile', '4': 'team',
+      '5': 'watchlist', '6': 'fund', '7': 'analytics',
+    };
+    const handler = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) return;
+      const tab = TAB_KEYS[e.key];
+      if (tab) { setActiveTab(tab); trackFeature('Recruiter Tab Switch', { tab, via: 'keyboard' }); }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [setActiveTab, trackFeature]);
 
   if (!user) return null;
 
@@ -196,50 +211,78 @@ const RecruiterDashboard: React.FC<{
             )}
 
             {/* Tab Navigation */}
-            <div style={{
-              display: 'flex', gap: '0.25rem',
-              backgroundColor: colors.surface,
-              borderRadius: '10px',
-              padding: '0.25rem',
-              marginBottom: '1rem',
-              overflowX: 'auto',
-              WebkitOverflowScrolling: 'touch',
-            }}>
-              {(['inbox', 'browse', 'profile', 'team', 'watchlist', 'fund', 'analytics'] as const).map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => {
-                    setActiveTab(tab);
-                    trackFeature('Recruiter Tab Switch', { tab });
-                  }}
-                  style={{
-                    flex: isMobile ? 'none' : 1,
-                    padding: isMobile ? '0.4rem 0.5rem' : '0.4rem 0.25rem',
-                    backgroundColor: activeTab === tab ? '#22d3ee15' : 'transparent',
-                    border: activeTab === tab ? '1px solid #22d3ee30' : '1px solid transparent',
-                    borderRadius: '8px',
-                    color: activeTab === tab ? '#22d3ee' : '#6b7280',
-                    fontSize: isMobile ? '0.6rem' : '0.7rem',
-                    fontWeight: activeTab === tab ? '600' : '400',
-                    cursor: 'pointer',
-                    position: 'relative',
-                    minHeight: '44px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {tab === 'inbox' ? (<>{t('recruiter.inbox', 'Inbox')}{pendingCount > 0 ? ` (${pendingCount})` : ''}{unreadMessageCount > 0 && <span style={{ marginLeft: '0.25rem', backgroundColor: '#ef4444', color: '#fff', borderRadius: '50%', width: '16px', height: '16px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.5rem', fontWeight: 'bold' }}>{unreadMessageCount > 9 ? '9+' : unreadMessageCount}</span>}</>) :
-                   tab === 'browse' ? t('recruiter.candidates', 'Candidates') :
-                   tab === 'profile' ? t('recruiter.profile', 'Profile') :
-                   tab === 'team' ? (<>{t('recruiter.team', 'Team')}{pendingCoEditorRequests.length > 0 && <span style={{ marginLeft: '0.3rem', backgroundColor: '#eab308', color: '#000', borderRadius: '50%', width: '16px', height: '16px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.55rem', fontWeight: 'bold' }}>{pendingCoEditorRequests.length}</span>}</>) :
-                   tab === 'watchlist' ? t('recruiter.watchlist', 'Watchlist') :
-                   tab === 'fund' ? t('recruiter.fund', 'Fund') :
-                   t('recruiter.analytics', 'Analytics')}
-                </button>
-              ))}
-            </div>
+            {(() => {
+              const TAB_CONFIG: Array<{ key: typeof activeTab; icon: string; label: string; badge?: number }> = [
+                { key: 'inbox', icon: '📥', label: t('recruiter.inbox', 'Inbox'), badge: pendingCount + unreadMessageCount },
+                { key: 'browse', icon: '🔍', label: t('recruiter.candidates', 'Candidates') },
+                { key: 'profile', icon: '📝', label: t('recruiter.profile', 'Profile') },
+                { key: 'team', icon: '👥', label: t('recruiter.team', 'Team'), badge: pendingCoEditorRequests.length },
+                { key: 'watchlist', icon: '📋', label: t('recruiter.watchlist', 'Watchlist') },
+                { key: 'fund', icon: '💰', label: t('recruiter.fund', 'Fund') },
+                { key: 'analytics', icon: '📊', label: t('recruiter.analytics', 'Analytics') },
+              ];
+              return (
+                <div style={{
+                  display: 'flex', gap: '0.2rem',
+                  backgroundColor: colors.surface,
+                  borderRadius: '10px',
+                  padding: '0.25rem',
+                  marginBottom: '1rem',
+                }}>
+                  {TAB_CONFIG.map(({ key, icon, label, badge }) => (
+                    <button
+                      key={key}
+                      onClick={() => {
+                        setActiveTab(key);
+                        trackFeature('Recruiter Tab Switch', { tab: key });
+                      }}
+                      title={label}
+                      style={{
+                        flex: 1,
+                        padding: isMobile ? '0.4rem 0' : '0.4rem 0.25rem',
+                        backgroundColor: activeTab === key ? '#22d3ee15' : 'transparent',
+                        border: activeTab === key ? '1px solid #22d3ee30' : '1px solid transparent',
+                        borderRadius: '8px',
+                        color: activeTab === key ? '#22d3ee' : '#6b7280',
+                        fontSize: isMobile ? '1rem' : '0.7rem',
+                        fontWeight: activeTab === key ? '600' : '400',
+                        cursor: 'pointer',
+                        position: 'relative',
+                        minHeight: '44px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.25rem',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      <span>{icon}</span>
+                      {!isMobile && <span>{label}</span>}
+                      {(badge ?? 0) > 0 && (
+                        <span style={{
+                          position: isMobile ? 'absolute' : 'relative',
+                          top: isMobile ? '4px' : 'auto',
+                          right: isMobile ? '2px' : 'auto',
+                          backgroundColor: '#ef4444',
+                          color: '#fff',
+                          borderRadius: '50%',
+                          width: '16px',
+                          height: '16px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '0.5rem',
+                          fontWeight: 'bold',
+                          lineHeight: 1,
+                        }}>
+                          {badge! > 9 ? '9+' : badge}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              );
+            })()}
 
             {/* TAB: Inbox */}
             {activeTab === 'inbox' && (

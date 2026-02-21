@@ -11,10 +11,8 @@ import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
 import FeedbackWidget from './components/FeedbackWidget';
 import SignupNudgeBar from './components/SignupNudgeBar';
 import SiteFooter from './components/SiteFooter';
-import CampaignNotificationBanner from './components/CampaignNotificationBanner';
 import KvKPhaseBanner from './components/KvKPhaseBanner';
 import { useKeyboardShortcuts, useKeyboardHelp } from './hooks/useKeyboardShortcuts';
-import { useIsMobile } from './hooks/useMediaQuery';
 import { usePageTracking } from './hooks/useAnalytics';
 import { useKingdomsRealtime } from './hooks/useKingdomsRealtime';
 import { useToast } from './components/Toast';
@@ -93,7 +91,6 @@ function AppContent() {
   const { showHelp, openHelp, closeHelp } = useKeyboardHelp();
   const { showToast } = useToast();
   const { t } = useTranslation();
-  const isMobile = useIsMobile();
   useKeyboardShortcuts({ onShowHelp: openHelp });
   usePageTracking(); // Track page views for analytics
   
@@ -117,8 +114,6 @@ function AppContent() {
     <div className="min-h-screen bg-bg">
       <Header />
       <KvKPhaseBanner />
-      {/* On mobile, skip CampaignBanner when KvKPhaseBanner may render — prevents banner stacking */}
-      {!isMobile && <CampaignNotificationBanner />}
       <KeyboardShortcutsModal isOpen={showHelp} onClose={closeHelp} />
       <main className="container mx-auto px-4 py-8">
         <PageTransition>

@@ -1745,7 +1745,13 @@
     "weeklyMaintenance": "Maintenance hebdomadaire",
     "contributionLabel": "Contribution",
     "listingLinkCopied": "Lien d'annonce copié ! Partagez pour recruter des transférés.",
-    "contributionLinkCopied": "Lien de contribution copié ! Partagez avec votre royaume."
+    "contributionLinkCopied": "Lien de contribution copié ! Partagez avec votre royaume.",
+    "searchApplicants": "Rechercher des candidats...",
+    "sortNewest": "Plus récent",
+    "sortOldest": "Plus ancien",
+    "sortTcHigh": "TC (Élevé)",
+    "sortPowerHigh": "Puissance (Élevée)",
+    "noMatchingApps": "Aucune candidature ne correspond à votre recherche"
   },
   "applications": {
     "applyTo": "Postuler à",
@@ -2438,6 +2444,8 @@
     "declineConfirm": "Refuser cette candidature ?",
     "yesDecline": "Oui, Refuser",
     "markViewed": "Marquer comme Vu",
+    "acceptConfirm": "Accepter cette candidature ? Son identité sera révélée.",
+    "yesAccept": "Oui, Accepter",
     "cancelApproval": "Annuler l'Approbation",
     "translate": "Traduire",
     "translating": "Traduction en cours...",

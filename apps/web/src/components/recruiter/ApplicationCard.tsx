@@ -28,6 +28,7 @@ const ApplicationCard: React.FC<{
   const isMobile = useIsMobile();
   const { user } = useAuth();
   const [expanded, setExpanded] = useState(false);
+  const [confirmingAccept, setConfirmingAccept] = useState(false);
   const [confirmingDecline, setConfirmingDecline] = useState(false);
   const [editingNote, setEditingNote] = useState(false);
   const [noteText, setNoteText] = useState(application.recruiter_note || '');
@@ -716,7 +717,57 @@ const ApplicationCard: React.FC<{
               display: 'flex', gap: '0.5rem', marginTop: '0.75rem',
               flexWrap: 'wrap',
             }}>
-              {confirmingDecline ? (
+              {confirmingAccept ? (
+                <>
+                  <span style={{ color: '#22c55e', fontSize: '0.75rem', fontWeight: '600', alignSelf: 'center' }}>
+                    {t('appCard.acceptConfirm', 'Accept this application? Their identity will be revealed.')}
+                  </span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setConfirmingAccept(false);
+                      onStatusChange(application.id, 'accepted');
+                    }}
+                    disabled={updating === application.id}
+                    style={{
+                      padding: '0.4rem 0.75rem',
+                      backgroundColor: '#22c55e20',
+                      border: '1px solid #22c55e50',
+                      borderRadius: '6px',
+                      color: '#22c55e',
+                      fontSize: '0.75rem',
+                      fontWeight: '700',
+                      cursor: 'pointer',
+                      minHeight: '44px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                    }}
+                  >
+                    {t('appCard.yesAccept', 'Yes, Accept')}
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setConfirmingAccept(false);
+                    }}
+                    style={{
+                      padding: '0.4rem 0.75rem',
+                      backgroundColor: '#ffffff08',
+                      border: '1px solid #ffffff15',
+                      borderRadius: '6px',
+                      color: '#9ca3af',
+                      fontSize: '0.75rem',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      minHeight: '44px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                    }}
+                  >
+                    {t('appCard.cancel', 'Cancel')}
+                  </button>
+                </>
+              ) : confirmingDecline ? (
                 <>
                   <span style={{ color: '#ef4444', fontSize: '0.75rem', fontWeight: '600', alignSelf: 'center' }}>
                     {t('appCard.declineConfirm', 'Decline this application?')}
@@ -770,6 +821,7 @@ const ApplicationCard: React.FC<{
                 const actionColor = actions.colors[nextStatus];
                 if (!actionColor) return null;
                 const isDecline = nextStatus === 'declined';
+                const isAccept = nextStatus === 'accepted';
                 return (
                   <button
                     key={nextStatus}
@@ -777,6 +829,8 @@ const ApplicationCard: React.FC<{
                       e.stopPropagation();
                       if (isDecline) {
                         setConfirmingDecline(true);
+                      } else if (isAccept) {
+                        setConfirmingAccept(true);
                       } else {
                         onStatusChange(application.id, nextStatus);
                       }

@@ -1745,7 +1745,13 @@
     "weeklyMaintenance": "Wöchentliche Wartung",
     "contributionLabel": "Beitrag",
     "listingLinkCopied": "Listing-Link kopiert! Teile ihn, um Transferspieler zu rekrutieren.",
-    "contributionLinkCopied": "Beitragslink kopiert! Teile ihn mit deinem Königreich."
+    "contributionLinkCopied": "Beitragslink kopiert! Teile ihn mit deinem Königreich.",
+    "searchApplicants": "Bewerber suchen...",
+    "sortNewest": "Neueste",
+    "sortOldest": "Älteste",
+    "sortTcHigh": "TC (Hoch)",
+    "sortPowerHigh": "Stärke (Hoch)",
+    "noMatchingApps": "Keine Bewerbungen entsprechen Ihrer Suche"
   },
   "applications": {
     "applyTo": "Bewerben bei",
@@ -2438,6 +2444,8 @@
     "declineConfirm": "Diese Bewerbung ablehnen?",
     "yesDecline": "Ja, ablehnen",
     "markViewed": "Als gesehen markieren",
+    "acceptConfirm": "Diese Bewerbung annehmen? Die Identität wird enthüllt.",
+    "yesAccept": "Ja, annehmen",
     "cancelApproval": "Genehmigung aufheben",
     "translate": "Übersetzen",
     "translating": "Übersetze...",

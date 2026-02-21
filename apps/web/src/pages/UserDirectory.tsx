@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth, UserProfile } from '../contexts/AuthContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
@@ -77,7 +77,6 @@ const UserDirectory: React.FC = () => {
   };
   const PAGE_SIZE = 25;
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-  const sentinelRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   
   // Searchable kingdom filter state
@@ -165,14 +164,15 @@ const UserDirectory: React.FC = () => {
   // Current user's kingdom for "My Kingdom" filter
   const myKingdom = (currentUser as UserProfile | null)?.linked_kingdom;
 
-  // Sort helper — Admin > Supporters > Ambassadors > everyone else alphabetical
+  // Sort helper — Admin > Supporters > Ambassadors > Consuls > everyone else alphabetical
   const getUserPriority = (u: UserProfile): number => {
     const dt = getDisplayTier(u.subscription_tier, u.linked_username || u.username, u.linked_kingdom, goldKingdoms);
     if (dt === 'admin') return 0;
     if (dt === 'supporter') return 1;
     const rt = u.referral_tier as string | null;
     if (rt === 'ambassador') return 2;
-    return 3;
+    if (rt === 'consul') return 3;
+    return 4;
   };
 
   const filteredUsers = React.useMemo(() => {
@@ -277,21 +277,6 @@ const UserDirectory: React.FC = () => {
     setVisibleCount(PAGE_SIZE);
   }, [searchQuery, filterBy, filterValue]);
 
-  // Infinite scroll: observe sentinel to load more
-  useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting) {
-          setVisibleCount(prev => prev + PAGE_SIZE);
-        }
-      },
-      { threshold: 0.1 }
-    );
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, []);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -993,9 +978,26 @@ const UserDirectory: React.FC = () => {
         )}
       </div>
 
-      {/* Infinite scroll sentinel */}
+      {/* Show More button */}
       {visibleCount < filteredUsers.length && (
-        <div ref={sentinelRef} style={{ height: '1px' }} />
+        <div style={{ textAlign: 'center', margin: '1.5rem 0' }}>
+          <button
+            onClick={() => setVisibleCount(prev => prev + PAGE_SIZE)}
+            style={{
+              padding: '0.6rem 1.5rem',
+              backgroundColor: '#22d3ee15',
+              border: '1px solid #22d3ee30',
+              borderRadius: '8px',
+              color: '#22d3ee',
+              fontSize: '0.85rem',
+              fontWeight: '600',
+              cursor: 'pointer',
+              minHeight: '44px',
+            }}
+          >
+            {t('playerDirectory.showMore', 'Show More')} ({Math.min(PAGE_SIZE, filteredUsers.length - visibleCount)} {t('playerDirectory.more', 'more')})
+          </button>
+        </div>
       )}
 
       {/* Back to Home */}

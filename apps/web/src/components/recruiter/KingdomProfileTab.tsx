@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../../lib/supabase';
 import { colors } from '../../utils/styles';
@@ -23,7 +23,7 @@ const KINGDOM_VIBE_OPTIONS = [
 
 
 // =============================================
-// PROFILE FIELD WRAPPER
+// PROFILE FIELD WRAPPER (Collapsible)
 // =============================================
 
 const ProfileField: React.FC<{
@@ -31,10 +31,12 @@ const ProfileField: React.FC<{
   tierRequired: string;
   currentTier: string;
   children: React.ReactNode;
-}> = ({ label, tierRequired, currentTier, children }) => {
+  defaultOpen?: boolean;
+}> = ({ label, tierRequired, currentTier, children, defaultOpen = false }) => {
   const currentIdx = TIER_ORDER.indexOf(currentTier);
   const requiredIdx = TIER_ORDER.indexOf(tierRequired);
   const locked = currentIdx < requiredIdx;
+  const [expanded, setExpanded] = useState(defaultOpen);
 
   return (
     <div style={{
@@ -45,28 +47,46 @@ const ProfileField: React.FC<{
       opacity: locked ? 0.5 : 1,
       position: 'relative',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+      <div
+        onClick={() => !locked && setExpanded(prev => !prev)}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          marginBottom: expanded && !locked ? '0.5rem' : 0,
+          cursor: locked ? 'default' : 'pointer',
+          userSelect: 'none',
+        }}
+      >
         <span style={{ color: '#9ca3af', fontSize: '0.75rem', fontWeight: '600' }}>{label}</span>
-        {locked && (
-          <span style={{
-            padding: '0.1rem 0.3rem',
-            backgroundColor: '#f59e0b15',
-            border: '1px solid #f59e0b30',
-            borderRadius: '4px',
-            fontSize: '0.55rem',
-            color: '#f59e0b',
-            fontWeight: 'bold',
-            textTransform: 'uppercase',
-          }}>
-            {tierRequired}+ Required
-          </span>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+          {locked && (
+            <span style={{
+              padding: '0.1rem 0.3rem',
+              backgroundColor: '#f59e0b15',
+              border: '1px solid #f59e0b30',
+              borderRadius: '4px',
+              fontSize: '0.55rem',
+              color: '#f59e0b',
+              fontWeight: 'bold',
+              textTransform: 'uppercase',
+            }}>
+              {tierRequired}+ Required
+            </span>
+          )}
+          {!locked && (
+            <svg
+              width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2"
+              style={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
+            >
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          )}
+        </div>
       </div>
       {locked ? (
-        <p style={{ color: '#4b5563', fontSize: '0.7rem', margin: 0 }}>
+        <p style={{ color: '#4b5563', fontSize: '0.7rem', margin: '0.5rem 0 0' }}>
           Upgrade to {tierRequired} tier to unlock this feature.
         </p>
-      ) : children}
+      ) : expanded ? children : null}
     </div>
   );
 };
@@ -89,16 +109,9 @@ const KingdomProfileTab: React.FC<KingdomProfileTabProps> = ({ fund, editorInfo,
   const [savingProfile, setSavingProfile] = useState(false);
   const [statusHistory, setStatusHistory] = useState<Array<{ id: string; old_status: string; new_status: string; submitted_at: string; status: string; submitted_by: string; submitter_name?: string }>>([]);
   const [loadingStatusHistory, setLoadingStatusHistory] = useState(false);
+  const [statusHistoryVisible, setStatusHistoryVisible] = useState(5);
 
-  // Auto-load status history on mount (intentional: load once when editorInfo available)
-  useEffect(() => {
-    if (editorInfo && statusHistory.length === 0) {
-      loadStatusHistory();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editorInfo]);
-
-  const loadStatusHistory = async () => {
+  const loadStatusHistory = useCallback(async () => {
     if (!supabase || !editorInfo) return;
     setLoadingStatusHistory(true);
     try {
@@ -125,7 +138,16 @@ const KingdomProfileTab: React.FC<KingdomProfileTabProps> = ({ fund, editorInfo,
     } finally {
       setLoadingStatusHistory(false);
     }
-  };
+  }, [editorInfo]);
+
+  // Auto-load status history on mount (intentional: load once when editorInfo available)
+  const statusHistoryLoaded = useRef(false);
+  useEffect(() => {
+    if (editorInfo && !statusHistoryLoaded.current) {
+      statusHistoryLoaded.current = true;
+      loadStatusHistory();
+    }
+  }, [editorInfo, loadStatusHistory]);
 
   const handleSaveProfile = async () => {
     if (!supabase || !fund || !editorInfo || Object.keys(profileDraft).length === 0) return;
@@ -693,7 +715,7 @@ const KingdomProfileTab: React.FC<KingdomProfileTabProps> = ({ fund, editorInfo,
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.5rem' }}>
-            {statusHistory.map((entry) => {
+            {statusHistory.slice(0, statusHistoryVisible).map((entry) => {
               const isApproved = entry.status === 'approved';
               const isPending = entry.status === 'pending';
               const isRejected = entry.status === 'rejected';
@@ -722,6 +744,23 @@ const KingdomProfileTab: React.FC<KingdomProfileTabProps> = ({ fund, editorInfo,
                 </div>
               );
             })}
+            {statusHistory.length > statusHistoryVisible && (
+              <button
+                onClick={() => setStatusHistoryVisible(prev => prev + 5)}
+                style={{
+                  padding: '0.3rem 0.5rem',
+                  backgroundColor: 'transparent',
+                  border: '1px solid #2a2a2a',
+                  borderRadius: '6px',
+                  color: '#6b7280',
+                  fontSize: '0.65rem',
+                  cursor: 'pointer',
+                  textAlign: 'center',
+                }}
+              >
+                Show more ({statusHistory.length - statusHistoryVisible} remaining)
+              </button>
+            )}
           </div>
         )}
       </div>

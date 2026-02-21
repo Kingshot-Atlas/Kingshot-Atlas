@@ -1745,7 +1745,13 @@
     "weeklyMaintenance": "Haftalık bakım",
     "contributionLabel": "Katkı",
     "listingLinkCopied": "Liste bağlantısı kopyalandı! Transfer oyuncuları için paylaşın.",
-    "contributionLinkCopied": "Katkı bağlantısı kopyalandı! Krallığınızla paylaşın."
+    "contributionLinkCopied": "Katkı bağlantısı kopyalandı! Krallığınızla paylaşın.",
+    "searchApplicants": "Başvuranları ara...",
+    "sortNewest": "En yeni",
+    "sortOldest": "En eski",
+    "sortTcHigh": "TC (Yüksek)",
+    "sortPowerHigh": "Güç (Yüksek)",
+    "noMatchingApps": "Aramanızla eşleşen başvuru yok"
   },
   "applications": {
     "applyTo": "Başvur:",
@@ -2438,6 +2444,8 @@
     "declineConfirm": "Bu başvuruyu reddet?",
     "yesDecline": "Evet, Reddet",
     "markViewed": "Görüldü Olarak İşaretle",
+    "acceptConfirm": "Bu başvuruyu kabul et? Kimlikleri açığa çıkacak.",
+    "yesAccept": "Evet, Kabul Et",
     "cancelApproval": "Onayı İptal Et",
     "translate": "Çevir",
     "translating": "Çevriliyor...",

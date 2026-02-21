@@ -52,6 +52,7 @@ const PlayersFromMyKingdom: React.FC<PlayersFromMyKingdomProps> = ({
   const isMobile = useIsMobile();
   const goldKingdoms = useGoldKingdoms();
   const [players, setPlayers] = useState<PlayerProfile[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -68,6 +69,14 @@ const PlayersFromMyKingdom: React.FC<PlayersFromMyKingdomProps> = ({
       setError(null);
 
       try {
+        const { count } = await supabase!
+          .from('profiles')
+          .select('id', { count: 'exact', head: true })
+          .or(`home_kingdom.eq.${myKingdom},linked_kingdom.eq.${myKingdom}`)
+          .neq('id', user?.id || '');
+
+        setTotalCount(count || 0);
+
         const { data, error: fetchError } = await supabase!
           .from('profiles')
           .select('id, username, avatar_url, home_kingdom, linked_kingdom, linked_username, linked_avatar_url, linked_tc_level, alliance_tag, theme_color, subscription_tier')
@@ -129,7 +138,10 @@ const PlayersFromMyKingdom: React.FC<PlayersFromMyKingdomProps> = ({
           </h3>
         </div>
         <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>
-          {players.length} {players.length === 1 ? 'player' : 'players'}
+          {totalCount > players.length
+            ? `${players.length} of ${totalCount} players`
+            : `${players.length} ${players.length === 1 ? 'player' : 'players'}`
+          }
         </span>
       </div>
 

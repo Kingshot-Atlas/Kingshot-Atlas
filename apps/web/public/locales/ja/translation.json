@@ -1745,7 +1745,13 @@
     "weeklyMaintenance": "週次維持費",
     "contributionLabel": "貢献",
     "listingLinkCopied": "リスティングリンクをコピーしました！移籍者を募集するために共有してください。",
-    "contributionLinkCopied": "貢献リンクをコピーしました！王国と共有してください。"
+    "contributionLinkCopied": "貢献リンクをコピーしました！王国と共有してください。",
+    "searchApplicants": "応募者を検索...",
+    "sortNewest": "新しい順",
+    "sortOldest": "古い順",
+    "sortTcHigh": "TC（高い順）",
+    "sortPowerHigh": "戦力（高い順）",
+    "noMatchingApps": "検索に一致する応募はありません"
   },
   "applications": {
     "applyTo": "応募先",
@@ -2438,6 +2444,8 @@
     "declineConfirm": "この応募を辞退しますか？",
     "yesDecline": "はい、辞退",
     "markViewed": "閲覧済みにする",
+    "acceptConfirm": "この応募を承認しますか？身元が公開されます。",
+    "yesAccept": "はい、承認",
     "cancelApproval": "承認を取り消す",
     "translate": "翻訳",
     "translating": "翻訳中...",

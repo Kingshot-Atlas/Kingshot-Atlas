@@ -1745,7 +1745,13 @@
     "weeklyMaintenance": "صيانة أسبوعية",
     "contributionLabel": "مساهمة",
     "listingLinkCopied": "تم نسخ رابط الإعلان! شاركه لتجنيد المنتقلين.",
-    "contributionLinkCopied": "تم نسخ رابط المساهمة! شاركه مع مملكتك."
+    "contributionLinkCopied": "تم نسخ رابط المساهمة! شاركه مع مملكتك.",
+    "searchApplicants": "البحث عن المتقدمين...",
+    "sortNewest": "الأحدث",
+    "sortOldest": "الأقدم",
+    "sortTcHigh": "TC (الأعلى)",
+    "sortPowerHigh": "القوة (الأعلى)",
+    "noMatchingApps": "لا توجد طلبات تطابق بحثك"
   },
   "applications": {
     "applyTo": "التقديم على",
@@ -2438,6 +2444,8 @@
     "declineConfirm": "رفض هذا الطلب؟",
     "yesDecline": "نعم، رفض",
     "markViewed": "تحديد كمُشاهَد",
+    "acceptConfirm": "قبول هذا الطلب؟ سيتم الكشف عن هويتهم.",
+    "yesAccept": "نعم، قبول",
     "cancelApproval": "إلغاء الموافقة",
     "translate": "ترجمة",
     "translating": "جارٍ الترجمة...",

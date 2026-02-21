@@ -1,9 +1,9 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { colors } from '../../utils/styles';
 import { ApplicationCard } from './index';
 import type { IncomingApplication } from './types';
-import { formatTCLevel } from './types';
+import { formatTCLevel, inputStyle } from './types';
 
 const downloadApprovedCSV = (apps: IncomingApplication[]) => {
   const headers = ['Player ID', 'Username', 'Kingdom', 'TC Level', 'Power', 'Language', 'KvK Availability', 'Applied At', 'Note'];
@@ -60,6 +60,28 @@ const InboxTab: React.FC<InboxTabProps> = ({
   const { t } = useTranslation();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkUpdating, setBulkUpdating] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'tc_desc' | 'power_desc'>('newest');
+
+  const visibleApps = useMemo(() => {
+    let apps = [...filteredApps];
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      apps = apps.filter(app => {
+        const name = (app.profile?.username || '').toLowerCase();
+        const note = (app.applicant_note || '').toLowerCase();
+        const lang = (app.profile?.main_language || '').toLowerCase();
+        return name.includes(q) || note.includes(q) || lang.includes(q);
+      });
+    }
+    switch (sortBy) {
+      case 'oldest': apps.sort((a, b) => new Date(a.applied_at).getTime() - new Date(b.applied_at).getTime()); break;
+      case 'tc_desc': apps.sort((a, b) => (b.profile?.tc_level || 0) - (a.profile?.tc_level || 0)); break;
+      case 'power_desc': apps.sort((a, b) => (b.profile?.power_million || 0) - (a.profile?.power_million || 0)); break;
+      default: apps.sort((a, b) => new Date(b.applied_at).getTime() - new Date(a.applied_at).getTime()); break;
+    }
+    return apps;
+  }, [filteredApps, searchQuery, sortBy]);
 
   const toggleSelect = useCallback((id: string) => {
     setSelectedIds(prev => {
@@ -70,12 +92,12 @@ const InboxTab: React.FC<InboxTabProps> = ({
   }, []);
 
   const toggleAll = useCallback(() => {
-    if (selectedIds.size === filteredApps.length) {
+    if (selectedIds.size === visibleApps.length) {
       setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(filteredApps.map(a => a.id)));
+      setSelectedIds(new Set(visibleApps.map(a => a.id)));
     }
-  }, [selectedIds.size, filteredApps]);
+  }, [selectedIds.size, visibleApps]);
 
   const handleBulkAction = useCallback(async (newStatus: string) => {
     if (selectedIds.size === 0 || bulkUpdating) return;
@@ -164,6 +186,29 @@ const InboxTab: React.FC<InboxTabProps> = ({
         </button>
       </div>
 
+      {/* Search & Sort */}
+      {filteredApps.length > 0 && (
+        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem', alignItems: 'center' }}>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={t('recruiter.searchApplicants', 'Search applicants...')}
+            style={{ ...inputStyle, flex: 1, fontSize: '0.75rem', minHeight: '36px', padding: '0.3rem 0.5rem' }}
+          />
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+            style={{ ...inputStyle, width: 'auto', minWidth: '110px', fontSize: '0.7rem', minHeight: '36px', cursor: 'pointer' }}
+          >
+            <option value="newest">{t('recruiter.sortNewest', 'Newest')}</option>
+            <option value="oldest">{t('recruiter.sortOldest', 'Oldest')}</option>
+            <option value="tc_desc">{t('recruiter.sortTcHigh', 'TC (High)')}</option>
+            <option value="power_desc">{t('recruiter.sortPowerHigh', 'Power (High)')}</option>
+          </select>
+        </div>
+      )}
+
       {/* CSV Download for Gold tier */}
       {fundTier === 'gold' && filterStatus === 'approved' && approvedApps.length > 0 && (
         <button
@@ -194,7 +239,7 @@ const InboxTab: React.FC<InboxTabProps> = ({
       )}
 
       {/* Bulk Select Bar */}
-      {filteredApps.length > 1 && filterStatus === 'active' && (
+      {visibleApps.length > 1 && filterStatus === 'active' && (
         <div style={{
           display: 'flex', alignItems: 'center', gap: '0.5rem',
           marginBottom: '0.5rem', padding: '0.4rem 0.6rem',
@@ -205,11 +250,11 @@ const InboxTab: React.FC<InboxTabProps> = ({
           <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer', fontSize: '0.7rem', color: colors.textSecondary }}>
             <input
               type="checkbox"
-              checked={selectedIds.size === filteredApps.length && filteredApps.length > 0}
+              checked={selectedIds.size === visibleApps.length && visibleApps.length > 0}
               onChange={toggleAll}
               style={{ accentColor: '#3b82f6', width: '14px', height: '14px' }}
             />
-            {t('recruiter.selectAll', 'Select All')} ({selectedIds.size}/{filteredApps.length})
+            {t('recruiter.selectAll', 'Select All')} ({selectedIds.size}/{visibleApps.length})
           </label>
           {selectedIds.size > 0 && (
             <div style={{ display: 'flex', gap: '0.3rem', marginLeft: 'auto' }}>
@@ -249,21 +294,23 @@ const InboxTab: React.FC<InboxTabProps> = ({
         </div>
       )}
 
-      {filteredApps.length === 0 ? (
+      {visibleApps.length === 0 ? (
         <div style={{
           textAlign: 'center', padding: '2rem 1rem',
           backgroundColor: colors.surface, borderRadius: '10px',
           border: `1px solid ${colors.border}`,
         }}>
           <p style={{ color: colors.textMuted, fontSize: '0.85rem' }}>
-            {filterStatus === 'active' ? t('recruiter.noActiveApps', 'No active applications') : filterStatus === 'approved' ? t('recruiter.noApprovedApps', 'No approved applications') : t('recruiter.noPastApps', 'No past applications')}
+            {searchQuery.trim()
+              ? t('recruiter.noMatchingApps', 'No applications match your search')
+              : filterStatus === 'active' ? t('recruiter.noActiveApps', 'No active applications') : filterStatus === 'approved' ? t('recruiter.noApprovedApps', 'No approved applications') : t('recruiter.noPastApps', 'No past applications')}
           </p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          {filteredApps.map((app) => (
+          {visibleApps.map((app) => (
             <div key={app.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.4rem' }}>
-              {filterStatus === 'active' && filteredApps.length > 1 && (
+              {filterStatus === 'active' && visibleApps.length > 1 && (
                 <input
                   type="checkbox"
                   checked={selectedIds.has(app.id)}
