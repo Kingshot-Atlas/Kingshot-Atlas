@@ -356,7 +356,27 @@
     "reachGold": "ゴールドティアに到達",
     "tabCounter": "カウンター",
     "tabPlayers": "プレイヤー",
-    "tabRally": "ラリー"
+    "tabRally": "ラリー",
+    "goldTierBadge": "ゴールドティア",
+    "summaryPlayers": "人のプレイヤー",
+    "whatYouGet": "利用可能な機能",
+    "featureMultiRally": "精密なタイミングによるマルチラリー調整",
+    "featureChainHits": "チェーンヒット — カスタム間隔でラリーを分散",
+    "featureGantt": "すべての行軍のガントタイムライン視覚化",
+    "featureBuffTimers": "リアルタイムバフタイマーと期限切れアラート",
+    "featureCopyOrder": "Discord用ラリー呼び出し順序のワンクリックコピー",
+    "howToGetAccess": "アクセス方法",
+    "accessGold": "ゴールドティア王国（王国基金残高$100+）",
+    "accessSilverPromo": "シルバーティア王国（期間限定プロモ）",
+    "accessEditor": "編集者がバトルマネージャーを指名可能",
+    "accessAdmin": "管理者アクセス",
+    "contributeToFund": "王国基金に貢献する",
+    "chainHitsDesc": "各ラリーが前のラリーの後X秒で命中",
+    "longPressHint": "プレイヤーを長押しして編集または削除",
+    "dragToReorder": "ドラッグして並び替え",
+    "copyPreviewLabel": "コピープレビュー",
+    "quickAddToRally": "タップしてラリーに追加",
+    "quickAddToCounter": "タップしてカウンターに追加"
   },
   "battlePlannerBanner": {
     "dismiss": "バトルプランナーバナーを閉じる",
@@ -1886,6 +1906,7 @@
     "holdToDrag": "長押しでドラッグ",
     "clearBtn": "クリア",
     "tapToAdd": "上のプレイヤーをタップして追加",
+    "tapToAddMobile": "上のプレイヤーボタンを使って追加",
     "dropToAdd": "ここにドロップまたはクリックして追加",
     "minPlayersLabel": "最低{{count}}人",
     "minOnePlayer": "最低1人",
@@ -1917,9 +1938,7 @@
     "howToStep4": "攻撃順序を設定 — 誰が先に到着するかが重要。",
     "howToStep5": "必要ならカウンターキューも同様に。",
     "howToStep6": "該当する場合はペットバフタイマーを有効化。",
-    "accessDeniedDesc": "ラリーコーディネーターにはゴールドティアが必要です。",
-    "arriveAfter": "到着時刻",
-    "secondsAfterEnemy": "敵の後の秒数"
+    "accessDeniedDesc": "ラリーコーディネーターにはゴールドティアが必要です。"
   },
   "missingData": {
     "contributeTitle": "データ",

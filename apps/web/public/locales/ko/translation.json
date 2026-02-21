@@ -356,7 +356,27 @@
     "reachGold": "골드 등급 달성",
     "tabCounter": "카운터",
     "tabPlayers": "플레이어",
-    "tabRally": "랠리"
+    "tabRally": "랠리",
+    "goldTierBadge": "골드 등급",
+    "summaryPlayers": "명 플레이어",
+    "whatYouGet": "제공되는 기능",
+    "featureMultiRally": "정밀한 타이밍의 다중 랠리 조율",
+    "featureChainHits": "체인 히트 — 맞춤 간격으로 랠리 분산",
+    "featureGantt": "모든 행군의 간트 타임라인 시각화",
+    "featureBuffTimers": "실시간 버프 타이머 및 만료 알림",
+    "featureCopyOrder": "Discord용 랠리 호출 순서 원클릭 복사",
+    "howToGetAccess": "접근 권한 얻는 방법",
+    "accessGold": "골드 등급 왕국 (왕국 기금 잔액 $100+)",
+    "accessSilverPromo": "실버 등급 왕국 (한시적 프로모션)",
+    "accessEditor": "편집자가 전투 매니저를 지정할 수 있음",
+    "accessAdmin": "관리자 접근",
+    "contributeToFund": "왕국 기금에 기여하기",
+    "chainHitsDesc": "각 랠리가 이전 랠리 후 X초에 타격",
+    "longPressHint": "플레이어를 길게 눌러 편집 또는 삭제",
+    "dragToReorder": "드래그하여 순서 변경",
+    "copyPreviewLabel": "복사 미리보기",
+    "quickAddToRally": "탭하여 랠리에 추가",
+    "quickAddToCounter": "탭하여 카운터에 추가"
   },
   "battlePlannerBanner": {
     "dismiss": "전투 플래너 배너 닫기",
@@ -1886,6 +1906,7 @@
     "holdToDrag": "길게 눌러 드래그",
     "clearBtn": "지우기",
     "tapToAdd": "위의 플레이어를 탭하여 추가",
+    "tapToAddMobile": "위의 플레이어 버튼을 사용하여 추가",
     "dropToAdd": "여기에 플레이어를 드롭하거나 클릭하여 추가",
     "minPlayersLabel": "최소 {{count}}명",
     "minOnePlayer": "최소 1명",
@@ -1917,9 +1938,7 @@
     "howToStep4": "공격 순서를 설정하세요 — 누가 먼저 도착하는지가 중요합니다.",
     "howToStep5": "필요하면 카운터 대기열도 같은 방법으로.",
     "howToStep6": "해당하는 경우 펫 버프 타이머를 활성화하세요.",
-    "accessDeniedDesc": "랠리 코디네이터를 사용하려면 골드 등급이 필요합니다.",
-    "arriveAfter": "도착 시간",
-    "secondsAfterEnemy": "적 이후 초"
+    "accessDeniedDesc": "랠리 코디네이터를 사용하려면 골드 등급이 필요합니다."
   },
   "missingData": {
     "contributeTitle": "데이터",

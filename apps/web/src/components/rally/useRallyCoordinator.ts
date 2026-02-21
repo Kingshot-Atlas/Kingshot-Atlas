@@ -28,7 +28,6 @@ export interface RallyCoordinatorState {
   counterQueue: RallySlot[];
   counterHitMode: HitMode;
   counterInterval: number;
-  counterAutoOffset: number;
   playerModalOpen: boolean;
   editingPlayer: RallyPlayer | null;
   defaultTeam: 'ally' | 'enemy';
@@ -49,7 +48,6 @@ export interface RallyCoordinatorActions {
   setMarchType: (m: MarchType) => void;
   setCounterHitMode: (m: HitMode) => void;
   setCounterInterval: (n: number) => void;
-  setCounterAutoOffset: (n: number) => void;
   setPlayerModalOpen: (open: boolean) => void;
   setEditingPlayer: (p: RallyPlayer | null) => void;
   setDefaultTeam: (t: 'ally' | 'enemy') => void;
@@ -193,7 +191,6 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
   const [counterQueue, setCounterQueue] = useState<RallySlot[]>([]);
   const [counterHitMode, setCounterHitMode] = useState<HitMode>('simultaneous');
   const [counterInterval, setCounterInterval] = useState(1);
-  const [counterAutoOffset, setCounterAutoOffset] = useState(0);
 
   // Session recovery: restore from Supabase on mount
   const sessionRestoredRef = useRef(false);
@@ -353,23 +350,10 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
     () => calculateRallyTimings(rallyQueue, gap),
     [rallyQueue, gap]
   );
-  const calculatedCounters = useMemo(() => {
-    const base = calculateRallyTimings(counterQueue, cGap);
-    if (counterAutoOffset > 0 && calculatedRallies.length > 0 && base.length > 0) {
-      const lastRallyArrival = Math.max(...calculatedRallies.map(r => r.arrivalTime));
-      const targetArrival = lastRallyArrival + counterAutoOffset;
-      const firstCounterArrival = Math.min(...base.map(c => c.arrivalTime));
-      const shift = targetArrival - firstCounterArrival;
-      if (shift > 0) {
-        return base.map(c => ({
-          ...c,
-          startDelay: c.startDelay + shift,
-          arrivalTime: c.arrivalTime + shift,
-        }));
-      }
-    }
-    return base;
-  }, [counterQueue, cGap, counterAutoOffset, calculatedRallies]);
+  const calculatedCounters = useMemo(
+    () => calculateRallyTimings(counterQueue, cGap),
+    [counterQueue, cGap]
+  );
 
   // Player IDs in queues
   const queuedPlayerIds = useMemo(() => new Set(rallyQueue.map(s => s.playerId)), [rallyQueue]);
@@ -471,7 +455,7 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
     const slot = queue[index];
     if (!slot) return;
 
-    if (slot.useBuffed && !forceOff && buffTimers[slot.playerId]) {
+    if (slot.useBuffed && !forceOff) {
       setBuffConfirmPopup({ queueType, index });
       return;
     }
@@ -685,8 +669,43 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
     setPresets(prev => prev.filter(p => p.id !== id));
   }, []);
 
-  const clearQueue = useCallback(() => setRallyQueue([]), []);
-  const clearCounterQueue = useCallback(() => setCounterQueue([]), []);
+  const clearUndoRef = useRef<{ timer: ReturnType<typeof setTimeout>; queue: RallySlot[]; type: 'rally' | 'counter' } | null>(null);
+
+  const clearQueue = useCallback(() => {
+    const snapshot = rallyQueue;
+    if (snapshot.length === 0) return;
+    setRallyQueue([]);
+    setLastAnnouncement('Rally queue cleared');
+    if (clearUndoRef.current) clearTimeout(clearUndoRef.current.timer);
+    const timer = setTimeout(() => { clearUndoRef.current = null; }, 5000);
+    clearUndoRef.current = { timer, queue: snapshot, type: 'rally' };
+    showToast(`Rally queue cleared (${snapshot.length} players)`, 'info', 5000, () => {
+      if (clearUndoRef.current?.type === 'rally') {
+        clearTimeout(clearUndoRef.current.timer);
+        setRallyQueue(clearUndoRef.current.queue);
+        clearUndoRef.current = null;
+        showToast('↩️ Rally queue restored', 'success');
+      }
+    }, 'Undo');
+  }, [rallyQueue, showToast]);
+
+  const clearCounterQueue = useCallback(() => {
+    const snapshot = counterQueue;
+    if (snapshot.length === 0) return;
+    setCounterQueue([]);
+    setLastAnnouncement('Counter queue cleared');
+    if (clearUndoRef.current) clearTimeout(clearUndoRef.current.timer);
+    const timer = setTimeout(() => { clearUndoRef.current = null; }, 5000);
+    clearUndoRef.current = { timer, queue: snapshot, type: 'counter' };
+    showToast(`Counter queue cleared (${snapshot.length} players)`, 'info', 5000, () => {
+      if (clearUndoRef.current?.type === 'counter') {
+        clearTimeout(clearUndoRef.current.timer);
+        setCounterQueue(clearUndoRef.current.queue);
+        clearUndoRef.current = null;
+        showToast('↩️ Counter queue restored', 'success');
+      }
+    }, 'Undo');
+  }, [counterQueue, showToast]);
 
   // Touch drag hooks — MUST be before conditional returns (Rules of Hooks)
   const rallyTouchDrag = useTouchDragReorder(moveInQueue);
@@ -696,14 +715,14 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
     // State
     players, presets,
     selectedBuilding, hitMode, interval, marchType,
-    rallyQueue, counterQueue, counterHitMode, counterInterval, counterAutoOffset,
+    rallyQueue, counterQueue, counterHitMode, counterInterval,
     playerModalOpen, editingPlayer, defaultTeam,
     presetName, showPresetSave, howToOpen,
     buffTimers, buffConfirmPopup, tickNow,
     hasAccess, lastAnnouncement,
     // Actions
     setSelectedBuilding, setHitMode, setInterval, setMarchType,
-    setCounterHitMode, setCounterInterval, setCounterAutoOffset,
+    setCounterHitMode, setCounterInterval,
     setPlayerModalOpen, setEditingPlayer, setDefaultTeam,
     setPresetName, setShowPresetSave, setHowToOpen,
     setBuffConfirmPopup,

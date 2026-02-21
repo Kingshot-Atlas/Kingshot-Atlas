@@ -3,6 +3,53 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-21 12:50 | Product Engineer | COMPLETED
+Task: KvK Battle Planner — Touch drag reorder robustness + verify "Arrive after" removal + mobile counter queue adding
+Files: RallySubComponents.tsx (useTouchDragReorder hook rewrite)
+Changes:
+1. **Touch drag reorder — full rewrite** — Moved touchmove/touchend handling from React synthetic events (passive, `preventDefault()` silently ignored) to **native `document` listeners** with `{ passive: false }`. This guarantees page scroll is blocked during drag. Also added `dragIndexRef`/`overIndexRef` refs to avoid stale closure issues in the native callbacks. `onReorderRef` keeps callback fresh.
+2. **"Arrive after X seconds after enemy"** — Verified fully removed from codebase (grep across all .tsx, .ts, and locale files returns 0 matches). User screenshot was from stale/cached build.
+3. **Build verified** — `npm run build` passed clean. Deployed locally at http://localhost:4000
+
+## 2026-02-21 12:45 | Product Engineer | COMPLETED
+Task: KvK Battle Planner — Critical mobile UX fixes (iPhone SE layout, counter queue adding, touch drag reorder)
+Files: RallySubComponents.tsx, RallyCoordinator.tsx, QueueDropZone.tsx, locales/*/translation.json (all 9 languages)
+Changes:
+1. **RallyQueueSlot 2-row mobile layout** — Row 1: number + name + time; Row 2: buff toggle + arrows + remove. Eliminates horizontal overflow on iPhone SE (320px). Desktop layout unchanged.
+2. **Mobile Quick Add pills** — Rally tab shows ally pills inline for one-tap adding to rally queue. Counter tab shows ALL players (allies + enemies) for one-tap adding to counter queue. Solves the fundamental mobile problem of no access to player list from Rally/Counter tabs.
+3. **Touch drag reorder fix** — Root cause: `e.currentTarget` captured inside `setTimeout` was `null` (React clears it after handler returns). Fix: capture `targetEl`, `targetRect`, `targetHTML` synchronously before the 200ms timer fires. Ghost element now renders correctly.
+4. **Queue title overflow** — Added text truncation (ellipsis) on narrow screens so "RALLY QUEUE — King's Castle" doesn't push buttons off-screen.
+5. **Empty state hint fix** — Changed mobile hint from "Tap players above to add" (misleading — players are on a different tab) to "Use the player pills above to add" (accurate — references Quick Add pills).
+6. **i18n** — 3 new keys (quickAddToRally, quickAddToCounter, tapToAddMobile) translated across all 9 languages.
+7. **Build verified** — `npm run build` passed clean, exit code 0. Deployed locally at http://localhost:59486
+
+## 2026-02-21 12:30 | Product Engineer | COMPLETED
+Task: KvK Battle Planner UI/UX improvements — 10 component enhancements based on evaluation report
+Files: RallyCoordinator.tsx, useRallyCoordinator.ts, RallySubComponents.tsx, RallyPlayersColumn.tsx, QueueDropZone.tsx, locales/*/translation.json (all 9 languages)
+Changes:
+1. **Hero / Page Header** — Gold Tier badge pill next to title, session summary bar (players/rally/counter counts), back-link moved below subtitle with always-rendered ← arrow
+2. **Access Gate** — Teaser preview of features, "How to get access" panel (Gold/Silver promo/Editor/Admin), CTA link to Kingdom Fund (/support), improved styling
+3. **Mobile Tab Bar** — Colored bottom border indicator on active tab, hit mode (Simultaneous/Chain) shown in context bar alongside queue counts
+4. **Players Column** — Gradient visual separator between ally/enemy sections, "long-press to edit" hint on mobile
+5. **Queue Drop Zone** — Undo toast for Clear button (5s window with restore), "Need X more" warning moved to top, "Drag to reorder" hint on desktop
+6. **Rally Queue Slot** — Desktop grip handle (⠇), pill-shaped buff toggle with Buff/Reg label, increased mobile touch targets
+7. **Call Order Output** — Copy format preview directly in the card (monospace pre block)
+8. **Rally Configuration** — Chain hits tooltip description under both Rally and Counter config, intermediate tick labels (1s-5s) on IntervalSlider
+9. **Buff Timer System** — Buff expiry clock time shown below countdown (e.g. "14:47")
+10. **i18n** — 21 new keys translated across all 9 languages (EN/ES/FR/ZH/DE/KO/JA/AR/TR)
+11. **Build verified** — `npm run build` passed clean, exit code 0
+
+## 2026-02-21 10:15 | Product Engineer | COMPLETED
+Task: Remove "Arrive after X seconds after enemy" (counterAutoOffset) from KvK Battle Planner + full component evaluation report
+Files: useRallyCoordinator.ts, RallyCoordinator.tsx, locales/*/translation.json (all 9 languages)
+Changes:
+1. **Removed counterAutoOffset state** — deleted `useState(0)` declaration, `RallyCoordinatorState` interface field, `RallyCoordinatorActions` interface method, return value from hook
+2. **Simplified calculatedCounters** — removed the offset-shift logic; now a direct `calculateRallyTimings(counterQueue, cGap)` call (same as calculatedRallies pattern)
+3. **Removed UI block** — deleted the "Arrive / input / s after rally hits" div from Counter Configuration section in RallyCoordinator.tsx
+4. **Cleaned i18n** — removed `arriveAfter` and `secondsAfterEnemy` keys from all 9 locale files (en, es, fr, zh, de, ko, ja, ar, tr)
+5. **Build verified** — `npm run build` passed clean, 1387 modules, no TypeScript errors
+6. **Evaluation report** — delivered 14-component analysis covering look, feel, and utility with prioritized improvement recommendations
+
 ## 2026-02-21 08:50 | Platform Engineer | COMPLETED
 Task: Prep Scheduler reliability hardening + UX polish (instant remove, undo, batch clear, conflict detection)
 Files: usePrepScheduler.ts, PrepSchedulerManager.tsx, PrepScheduler.tsx, LATEST_KNOWLEDGE.md, all 9 i18n locale files

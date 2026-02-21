@@ -356,7 +356,27 @@
     "reachGold": "Gold-Stufe erreichen",
     "tabCounter": "Konter",
     "tabPlayers": "Spieler",
-    "tabRally": "Rally"
+    "tabRally": "Rally",
+    "goldTierBadge": "Gold-Stufe",
+    "summaryPlayers": "Spieler",
+    "whatYouGet": "Was du bekommst",
+    "featureMultiRally": "Multi-Rally-Koordination mit präzisem Timing",
+    "featureChainHits": "Kettentreffer — Rallyes in benutzerdefinierten Intervallen staffeln",
+    "featureGantt": "Gantt-Zeitachsen-Visualisierung für jeden Marsch",
+    "featureBuffTimers": "Live-Buff-Timer mit Ablauf-Benachrichtigungen",
+    "featureCopyOrder": "Ein-Klick-Kopie der Rally-Reihenfolge für Discord",
+    "howToGetAccess": "Zugang erhalten",
+    "accessGold": "Gold-Stufe Königreich ($100+ Königreichsfonds-Guthaben)",
+    "accessSilverPromo": "Silber-Stufe Königreiche (zeitlich begrenztes Angebot)",
+    "accessEditor": "Editoren können Kampfmanager ernennen",
+    "accessAdmin": "Admin-Zugang",
+    "contributeToFund": "Zum Königreichsfonds beitragen",
+    "chainHitsDesc": "Jede Rally trifft X Sekunden nach der vorherigen",
+    "longPressHint": "Spieler lange drücken zum Bearbeiten oder Entfernen",
+    "dragToReorder": "Ziehen zum Umsortieren",
+    "copyPreviewLabel": "Kopiervorschau",
+    "quickAddToRally": "Tippen zum Rally hinzufügen",
+    "quickAddToCounter": "Tippen zum Konter hinzufügen"
   },
   "battlePlannerBanner": {
     "dismiss": "Kampfplaner-Banner schließen",
@@ -1886,6 +1906,7 @@
     "holdToDrag": "Halten zum Ziehen",
     "clearBtn": "Leeren",
     "tapToAdd": "Tippe oben auf Spieler zum Hinzufügen",
+    "tapToAddMobile": "Nutze die Spieler-Chips oben zum Hinzufügen",
     "dropToAdd": "Spieler hierher ziehen oder klicken zum Hinzufügen",
     "minPlayersLabel": "Min. {{count}} Spieler",
     "minOnePlayer": "Min. 1 Spieler",
@@ -1917,9 +1938,7 @@
     "howToStep4": "Lege die Angriffsreihenfolge fest — wer zuerst ankommt, zählt.",
     "howToStep5": "Mache das Gleiche für die Konter-Warteschlange falls nötig.",
     "howToStep6": "Aktiviere Haustier-Buff-Timer wenn zutreffend.",
-    "accessDeniedDesc": "Sie brauchen Gold-Stufe für den Rally-Koordinator.",
-    "arriveAfter": "Ankunft nach",
-    "secondsAfterEnemy": "Sekunden nach dem Feind"
+    "accessDeniedDesc": "Sie brauchen Gold-Stufe für den Rally-Koordinator."
   },
   "missingData": {
     "contributeTitle": "DATEN",

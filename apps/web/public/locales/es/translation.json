@@ -356,7 +356,27 @@
     "reachGold": "Alcanzar nivel Gold",
     "tabCounter": "Contra",
     "tabPlayers": "Jugadores",
-    "tabRally": "Rally"
+    "tabRally": "Rally",
+    "goldTierBadge": "Nivel Gold",
+    "summaryPlayers": "jugadores",
+    "whatYouGet": "Lo que obtienes",
+    "featureMultiRally": "Coordinación de múltiples rallies con precisión",
+    "featureChainHits": "Golpes encadenados — escalonar rallies a intervalos personalizados",
+    "featureGantt": "Visualización de línea de tiempo Gantt para cada marcha",
+    "featureBuffTimers": "Temporizadores de buff en vivo con alertas de expiración",
+    "featureCopyOrder": "Copia el orden de llamada con un clic para Discord",
+    "howToGetAccess": "Cómo obtener acceso",
+    "accessGold": "Reino Gold (saldo de $100+ en el Fondo del Reino)",
+    "accessSilverPromo": "Reinos Silver (promoción por tiempo limitado)",
+    "accessEditor": "Editores y co-editores pueden designar Gestores de Batalla",
+    "accessAdmin": "Acceso de administrador",
+    "contributeToFund": "Contribuir al Fondo del Reino",
+    "chainHitsDesc": "Cada rally golpea X segundos después del anterior",
+    "longPressHint": "Mantén presionado un jugador para editar o eliminar",
+    "dragToReorder": "Arrastra para reordenar",
+    "copyPreviewLabel": "Vista previa de copia",
+    "quickAddToRally": "Toca para añadir al rally",
+    "quickAddToCounter": "Toca para añadir al contra"
   },
   "battlePlannerBanner": {
     "dismiss": "Cerrar banner del Planificador de Batalla",
@@ -1886,6 +1906,7 @@
     "holdToDrag": "Mantener para arrastrar",
     "clearBtn": "Limpiar",
     "tapToAdd": "Toca jugadores arriba para agregar",
+    "tapToAddMobile": "Usa las fichas de jugadores arriba para añadir",
     "dropToAdd": "Arrastra jugadores aquí o haz clic para agregar",
     "minPlayersLabel": "Mín {{count}} jugadores",
     "minOnePlayer": "Mín 1 jugador",
@@ -1917,9 +1938,7 @@
     "howToStep4": "Establece el orden de ataque — quién llega primero importa.",
     "howToStep5": "Haz lo mismo para la Cola de Contra si es necesario.",
     "howToStep6": "Activa temporizadores de mejora de mascota cuando corresponda.",
-    "accessDeniedDesc": "Necesitas acceso Gold para usar el Coordinador de Rally.",
-    "arriveAfter": "Llegar después de",
-    "secondsAfterEnemy": "segundos después del enemigo"
+    "accessDeniedDesc": "Necesitas acceso Gold para usar el Coordinador de Rally."
   },
   "missingData": {
     "contributeTitle": "CONTRIBUIR",

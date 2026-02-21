@@ -48,6 +48,11 @@ interface PrepSchedulerFormProps {
   // Multi-account
   startAltSubmission: () => void;
   editSubmission: (sub: PrepSubmission) => void;
+  // Refill mode
+  isRefilling?: boolean;
+  setIsRefilling?: (v: boolean) => void;
+  // Opt-out editing
+  updateSubmissionOptOuts?: (submissionId: string, optOuts: { skip_monday: boolean; skip_tuesday: boolean; skip_thursday: boolean }) => Promise<void>;
 }
 
 // ─── Speedup Section — Simple number inputs only ──────────────────────────────
@@ -252,13 +257,14 @@ const PrepSchedulerForm: React.FC<PrepSchedulerFormProps> = (props) => {
     changeRequestMessage, setChangeRequestMessage, submitChangeRequest,
     showNonQualifyingPopup, setShowNonQualifyingPopup,
     startAltSubmission, editSubmission,
+    isRefilling, setIsRefilling, updateSubmissionOptOuts,
   } = props;
 
   // Is this an alt-account submission (no existing submission loaded = new alt form)?
   const isAltMode = !existingSubmission && mySubmissions.length > 0;
 
-  // Whether the form is in read-only mode (submitted and not an alt form in progress)
-  const isReadOnly = !!existingSubmission && !isAltMode;
+  // Whether the form is in read-only mode (submitted and not an alt form in progress, and not refilling)
+  const isReadOnly = !!existingSubmission && !isAltMode && !isRefilling;
 
   // Progress tracking for mobile
   const formProgress = useMemo(() => {
@@ -487,6 +493,45 @@ const PrepSchedulerForm: React.FC<PrepSchedulerFormProps> = (props) => {
                   </div>
                 )}
               </div>
+
+              {/* Opt-out editing — form fillers can toggle their day opt-outs */}
+              {updateSubmissionOptOuts && schedule.status !== 'closed' && (
+                <div style={cardStyle}>
+                  <label style={{ ...labelStyle, fontSize: '0.85rem', marginBottom: '0.5rem' }}>⏭ {t('prepScheduler.editOptOuts', 'Edit Opt-Outs')}</label>
+                  <p style={{ color: colors.textMuted, fontSize: '0.7rem', marginBottom: '0.5rem' }}>{t('prepScheduler.editOptOutsDesc', 'Toggle which days you want to opt out of. Changes are saved immediately.')}</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                    {DAYS.map(day => {
+                      const skipKey = `skip_${day}` as 'skip_monday' | 'skip_tuesday' | 'skip_thursday';
+                      const isSkipped = existingSubmission![skipKey];
+                      return (
+                        <label key={day} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', padding: '0.35rem 0.5rem', borderRadius: '6px', backgroundColor: isSkipped ? `${DAY_COLORS[day]}08` : 'transparent', border: `1px solid ${isSkipped ? `${DAY_COLORS[day]}20` : 'transparent'}` }}>
+                          <input type="checkbox" checked={isSkipped} onChange={() => {
+                            updateSubmissionOptOuts(existingSubmission!.id, {
+                              skip_monday: day === 'monday' ? !isSkipped : existingSubmission!.skip_monday,
+                              skip_tuesday: day === 'tuesday' ? !isSkipped : existingSubmission!.skip_tuesday,
+                              skip_thursday: day === 'thursday' ? !isSkipped : existingSubmission!.skip_thursday,
+                            });
+                          }} style={{ width: '16px', height: '16px', accentColor: DAY_COLORS[day], cursor: 'pointer' }} />
+                          <span style={{ color: isSkipped ? DAY_COLORS[day] : colors.textMuted, fontSize: '0.8rem', fontWeight: isSkipped ? 600 : 400 }}>
+                            {t('prepScheduler.skipDayLabel', 'Skip {{day}}', { day: getDayLabel(day, t) })}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Re-fill Form button */}
+              {setIsRefilling && schedule.status !== 'closed' && (
+                <div style={{ textAlign: 'center' }}>
+                  <button onClick={() => setIsRefilling(true)}
+                    style={{ padding: '0.5rem 1.25rem', backgroundColor: '#a855f710', border: '1px solid #a855f730', borderRadius: '8px', color: '#a855f7', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>
+                    ✏️ {t('prepScheduler.refillForm', 'Update My Form')}
+                  </button>
+                  <p style={{ color: colors.textMuted, fontSize: '0.65rem', marginTop: '0.3rem' }}>{t('prepScheduler.refillDesc', 'Edit your speedups, availability, or other details.')}</p>
+                </div>
+              )}
             </>
           ) : (
             <>

@@ -67,8 +67,8 @@ const QueueDropZone: React.FC<QueueDropZoneProps> = ({
         } : {}),
       }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-        <h3 style={cardHeader()}>{title}</h3>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', gap: '0.3rem' }}>
+        <h3 style={{ ...cardHeader(), overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{title}</h3>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
           {isMobile && queue.length > 1 && (
             <span style={{ color: '#9ca3af', fontSize: '0.6rem', fontStyle: 'italic' }}>
@@ -93,6 +93,13 @@ const QueueDropZone: React.FC<QueueDropZoneProps> = ({
         </div>
       </div>
 
+      {/* Need more players warning — shown at the top */}
+      {queue.length > 0 && queue.length < minPlayers && (
+        <p role="status" aria-live="polite" style={{ color: '#f59e0b', fontSize: '0.65rem', marginBottom: '0.4rem', textAlign: 'center' }}>
+          ⚠️ {t('rallyCoordinator.needMorePlayers', 'Need {{count}} more to calculate timings.', { count: minPlayers - queue.length })}
+        </p>
+      )}
+
       {queue.length === 0 ? (
         <div style={{
           display: 'flex', flexDirection: 'column', alignItems: 'center',
@@ -107,7 +114,7 @@ const QueueDropZone: React.FC<QueueDropZoneProps> = ({
               : t('rallyCoordinator.emptyCounterTitle', 'No counter leaders queued')}
           </p>
           <p style={{ fontSize: '0.7rem', textAlign: 'center' }}>
-            {isMobile ? t('rallyCoordinator.tapToAdd', 'Tap players above to add') : t('rallyCoordinator.dropToAdd', 'Drop players here or click to add')}
+            {isMobile ? t('rallyCoordinator.tapToAddMobile', 'Use the player pills above to add') : t('rallyCoordinator.dropToAdd', 'Drop players here or click to add')}
           </p>
           <p style={{ fontSize: '0.65rem', marginTop: '0.15rem' }}>
             {minPlayers > 1 ? t('rallyCoordinator.minPlayersLabel', 'Min {{count}} players', { count: minPlayers }) : t('rallyCoordinator.minOnePlayer', 'Min 1 player')}
@@ -115,6 +122,11 @@ const QueueDropZone: React.FC<QueueDropZoneProps> = ({
         </div>
       ) : (
         <div ref={touchDrag.containerRef} role="list" aria-label={`${queueType === 'rally' ? 'Rally' : 'Counter'} queue players`} style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+          {!isMobile && queue.length > 1 && (
+            <p style={{ color: '#6b7280', fontSize: '0.55rem', textAlign: 'center', margin: '0 0 0.15rem' }}>
+              {t('battlePlanner.dragToReorder', 'Drag to reorder')}
+            </p>
+          )}
           {queue.map((slot, i) => (
             <RallyQueueSlot
               key={`${slot.playerId}-${i}`}
@@ -142,11 +154,6 @@ const QueueDropZone: React.FC<QueueDropZoneProps> = ({
         </div>
       )}
 
-      {queue.length > 0 && queue.length < minPlayers && (
-        <p role="status" aria-live="polite" style={{ color: '#f59e0b', fontSize: '0.65rem', marginTop: '0.4rem', textAlign: 'center' }}>
-          {t('rallyCoordinator.needMorePlayers', 'Need {{count}} more to calculate timings.', { count: minPlayers - queue.length })}
-        </p>
-      )}
     </div>
   );
 };

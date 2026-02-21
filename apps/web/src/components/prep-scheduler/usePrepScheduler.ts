@@ -94,6 +94,9 @@ export function usePrepScheduler() {
   // Non-qualifying popup
   const [showNonQualifyingPopup, setShowNonQualifyingPopup] = useState(false);
 
+  // Re-fill mode: allows form fillers to edit their submitted form again
+  const [isRefilling, setIsRefilling] = useState(false);
+
   // Confirmation dialog state (replaces native confirm())
   const [pendingConfirm, setPendingConfirm] = useState<PendingConfirm | null>(null);
 
@@ -872,6 +875,32 @@ export function usePrepScheduler() {
     return gaps;
   }, [daySubmissions, dayAssignments, activeDay, schedule, effectiveSlots]);
 
+  // Update opt-outs for a submission (form fillers can edit their own, managers can edit any)
+  const updateSubmissionOptOuts = useCallback(async (submissionId: string, optOuts: { skip_monday: boolean; skip_tuesday: boolean; skip_thursday: boolean }) => {
+    if (!supabase || !scheduleId) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase.from('prep_submissions').update(optOuts).eq('id', submissionId);
+      if (error) throw error;
+      showToast(t('prepScheduler.toastOptOutsUpdated', 'Opt-outs updated.'), 'success');
+      await fetchSubmissions(scheduleId);
+    } catch (err) { logger.error('Failed to update opt-outs:', err); showToast(t('prepScheduler.toastOptOutsFailed', 'Failed to update opt-outs.'), 'error'); }
+    setSaving(false);
+  }, [scheduleId, fetchSubmissions, showToast, t]);
+
+  // Update any submission's data (for editors/managers editing a player's form)
+  const updateAnySubmission = useCallback(async (submissionId: string, data: Partial<PrepSubmission>) => {
+    if (!supabase || !scheduleId) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase.from('prep_submissions').update(data).eq('id', submissionId);
+      if (error) throw error;
+      showToast(t('prepScheduler.toastSubmissionEdited', 'Submission updated.'), 'success');
+      await fetchSubmissions(scheduleId);
+    } catch (err) { logger.error('Failed to update submission:', err); showToast(t('prepScheduler.toastEditFailed', 'Failed to update submission.'), 'error'); }
+    setSaving(false);
+  }, [scheduleId, fetchSubmissions, showToast, t]);
+
   // Start a new submission for an alt account (clears form but keeps schedule context)
   const startAltSubmission = () => {
     setExistingSubmission(null);
@@ -949,5 +978,9 @@ export function usePrepScheduler() {
     copyShareLink, exportScheduleCSV, exportOptedOut,
     handleScreenshotChange, addManager, removeManagerById,
     startAltSubmission, editSubmission,
+    // Refill mode
+    isRefilling, setIsRefilling,
+    // Submission editing
+    updateSubmissionOptOuts, updateAnySubmission,
   };
 }

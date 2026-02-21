@@ -122,6 +122,10 @@ const RallyPlayersColumn: React.FC<RallyPlayersColumnProps> = ({
           </div>
         )}
 
+        {enemies.length > 0 && allies.length > 0 && (
+          <div style={{ height: '1px', background: `linear-gradient(90deg, transparent, #4b556340, transparent)`, margin: '0.15rem 0' }} />
+        )}
+
         {enemies.length > 0 && (
           <div>
             <div style={{ fontSize: '0.65rem', color: ENEMY_COLOR, fontWeight: '700', marginBottom: '0.25rem', letterSpacing: '0.05em' }}>{t('rallyCoordinator.enemies')}</div>
@@ -160,9 +164,16 @@ const RallyPlayersColumn: React.FC<RallyPlayersColumnProps> = ({
         )}
 
         {players.length > 0 && (
-          <p style={{ color: '#9ca3af', fontSize: '0.65rem' }}>
-            {isMobile ? t('rallyCoordinator.playersHintMobile') : t('rallyCoordinator.playersHintDesktop')}
-          </p>
+          <>
+            <p style={{ color: '#9ca3af', fontSize: '0.65rem' }}>
+              {isMobile ? t('rallyCoordinator.playersHintMobile') : t('rallyCoordinator.playersHintDesktop')}
+            </p>
+            {isMobile && (
+              <p style={{ color: '#6b7280', fontSize: '0.6rem', fontStyle: 'italic' }}>
+                {t('battlePlanner.longPressHint', 'Long-press a player to edit or remove')}
+              </p>
+            )}
+          </>
         )}
 
         {/* Export/Import */}

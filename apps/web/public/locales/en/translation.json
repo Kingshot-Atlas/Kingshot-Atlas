@@ -356,7 +356,27 @@
     "reachGold": "Reach Gold Tier",
     "tabCounter": "Counter",
     "tabPlayers": "Players",
-    "tabRally": "Rally"
+    "tabRally": "Rally",
+    "goldTierBadge": "Gold Tier",
+    "summaryPlayers": "players",
+    "whatYouGet": "What you get",
+    "featureMultiRally": "Multi-rally strike coordination with precise timing",
+    "featureChainHits": "Chain Hits — stagger rallies at custom intervals",
+    "featureGantt": "Gantt timeline visualization for every march",
+    "featureBuffTimers": "Live buff timers with auto-expire alerts",
+    "featureCopyOrder": "One-click copy of rally call order for Discord",
+    "howToGetAccess": "How to get access",
+    "accessGold": "Gold Tier kingdom ($100+ Kingdom Fund balance)",
+    "accessSilverPromo": "Silver Tier kingdoms (limited-time promo)",
+    "accessEditor": "Editors & Co-Editors can designate Battle Managers",
+    "accessAdmin": "Admin access",
+    "contributeToFund": "Contribute to Kingdom Fund",
+    "chainHitsDesc": "Each rally hits X seconds after the previous one",
+    "longPressHint": "Long-press a player to edit or remove",
+    "dragToReorder": "Drag to reorder",
+    "copyPreviewLabel": "Copy preview",
+    "quickAddToRally": "Tap to add to rally",
+    "quickAddToCounter": "Tap to add to counter"
   },
   "battlePlannerBanner": {
     "dismiss": "Dismiss Battle Planner banner",
@@ -1886,6 +1906,7 @@
     "holdToDrag": "Hold to drag",
     "clearBtn": "Clear",
     "tapToAdd": "Tap players above to add",
+    "tapToAddMobile": "Use the player pills above to add",
     "dropToAdd": "Drop players here or click to add",
     "minPlayersLabel": "Min {{count}} players",
     "minOnePlayer": "Min 1 player",
@@ -1917,9 +1938,7 @@
     "howToStep4": "Set the hit order — who lands first matters.",
     "howToStep5": "Do the same for the Counter Queue if needed.",
     "howToStep6": "Activate pet buff timers when applicable.",
-    "accessDeniedDesc": "You need Gold Tier access to use the Rally Coordinator.",
-    "arriveAfter": "Arrive after",
-    "secondsAfterEnemy": "seconds after enemy"
+    "accessDeniedDesc": "You need Gold Tier access to use the Rally Coordinator."
   },
   "missingData": {
     "contributeTitle": "CONTRIBUTE",

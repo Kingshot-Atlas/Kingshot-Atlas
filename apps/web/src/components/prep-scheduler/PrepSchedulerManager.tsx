@@ -58,6 +58,8 @@ interface PrepSchedulerManagerProps {
   removingIds: Set<string>;
   effectiveSlots: string[];
   maxSlots: number;
+  updateSubmissionOptOuts?: (submissionId: string, optOuts: { skip_monday: boolean; skip_tuesday: boolean; skip_thursday: boolean }) => Promise<void>;
+  updateAnySubmission?: (submissionId: string, data: Partial<PrepSubmission>) => Promise<void>;
 }
 
 const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
@@ -74,6 +76,7 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
     runAutoAssign, assignSlot, removeAssignment, clearDayAssignments,
     acknowledgeChangeRequest, addManager, removeManagerById, updateDeadline,
     toggleStagger, removingIds, effectiveSlots, maxSlots,
+    updateSubmissionOptOuts, updateAnySubmission,
   } = props;
 
   const cardStyle: React.CSSProperties = {
@@ -88,6 +91,9 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
 
   const [showAllActions, setShowAllActions] = useState(false);
   const [showAllSlots, setShowAllSlots] = useState(false);
+  const [expandedSubmissionId, setExpandedSubmissionId] = useState<string | null>(null);
+  const [editingSubId, setEditingSubId] = useState<string | null>(null);
+  const [editSpeedups, setEditSpeedups] = useState<{ general: number; training: number; construction: number; research: number }>({ general: 0, training: 0, construction: 0, research: 0 });
   const [editingDeadline, setEditingDeadline] = useState(false);
   const [deadlineInput, setDeadlineInput] = useState(() => {
     if (!schedule.deadline) return '';
@@ -537,6 +543,114 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
             )}
           </div>
         </div>
+
+        {/* All Submissions Panel — for editors/managers to view & edit any player's form */}
+        {(isEditorOrCoEditor || isManager) && submissions.length > 0 && (
+          <div style={{ ...cardStyle, marginTop: '1rem' }}>
+            <h3 style={{ color: '#a855f7', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.5rem' }}>📋 {t('prepScheduler.allSubmissions', 'All Submissions')} ({submissions.length})</h3>
+            <p style={{ color: colors.textMuted, fontSize: '0.7rem', marginBottom: '0.75rem' }}>{t('prepScheduler.allSubmissionsDesc', 'Click a player to view details. Editors can edit speedups and opt-outs.')}</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+              {submissions.map(sub => {
+                const isExpanded = expandedSubmissionId === sub.id;
+                const isEditing = editingSubId === sub.id;
+                const totalSpeedups = sub.general_speedups + sub.training_speedups + sub.construction_speedups + sub.research_speedups;
+                return (
+                  <div key={sub.id} style={{ borderRadius: '8px', border: `1px solid ${isExpanded ? '#a855f730' : colors.borderSubtle}`, backgroundColor: isExpanded ? '#a855f708' : 'transparent', overflow: 'hidden' }}>
+                    {/* Summary row */}
+                    <div
+                      onClick={() => { setExpandedSubmissionId(isExpanded ? null : sub.id); setEditingSubId(null); }}
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.6rem', cursor: 'pointer' }}
+                    >
+                      <span style={{ color: isExpanded ? '#a855f7' : colors.text, fontWeight: 600, fontSize: '0.8rem', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sub.username}</span>
+                      {sub.alliance_tag && <span style={{ color: colors.textMuted, fontSize: '0.7rem' }}>[{sub.alliance_tag}]</span>}
+                      <span style={{ color: colors.textMuted, fontSize: '0.7rem', fontFamily: 'monospace' }}>{formatMinutes(totalSpeedups)}</span>
+                      {sub.screenshot_url && <a href={sub.screenshot_url} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ color: '#22c55e', fontSize: '0.7rem' }}>📷</a>}
+                      <span style={{ color: colors.textMuted, fontSize: '0.7rem' }}>{isExpanded ? '▲' : '▼'}</span>
+                    </div>
+                    {/* Expanded details */}
+                    {isExpanded && (
+                      <div style={{ padding: '0 0.6rem 0.6rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        {/* Speedups */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.3rem', fontSize: '0.7rem' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.2rem 0.4rem', backgroundColor: '#a855f708', borderRadius: '4px' }}><span style={{ color: '#a855f7' }}>🔧 {t('prepScheduler.general', 'General')}</span><span style={{ color: colors.text, fontWeight: 600 }}>{isEditing ? '' : formatMinutes(sub.general_speedups)}</span></div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.2rem 0.4rem', backgroundColor: '#ef444408', borderRadius: '4px' }}><span style={{ color: '#ef4444' }}>⚔️ {t('prepScheduler.training', 'Training')}</span><span style={{ color: colors.text, fontWeight: 600 }}>{isEditing ? '' : formatMinutes(sub.training_speedups)}</span></div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.2rem 0.4rem', backgroundColor: '#f59e0b08', borderRadius: '4px' }}><span style={{ color: '#f59e0b' }}>🏗️ {t('prepScheduler.construction', 'Construction')}</span><span style={{ color: colors.text, fontWeight: 600 }}>{isEditing ? '' : formatMinutes(sub.construction_speedups)}</span></div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.2rem 0.4rem', backgroundColor: '#3b82f608', borderRadius: '4px' }}><span style={{ color: '#3b82f6' }}>🔬 {t('prepScheduler.research', 'Research')}</span><span style={{ color: colors.text, fontWeight: 600 }}>{isEditing ? '' : formatMinutes(sub.research_speedups)}</span></div>
+                        </div>
+                        {/* Availability per day */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                          {DAYS.map(day => {
+                            const skipKey = `skip_${day}` as 'skip_monday' | 'skip_tuesday' | 'skip_thursday';
+                            const isSkipped = sub[skipKey];
+                            const availKey = `${day}_availability` as keyof PrepSubmission;
+                            const avail = (sub[availKey] as string[][] | undefined) || [];
+                            return (
+                              <div key={day} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.2rem 0.4rem', borderRadius: '4px', backgroundColor: isSkipped ? `${colors.textMuted}05` : `${DAY_COLORS[day]}08`, fontSize: '0.7rem' }}>
+                                <span style={{ color: isSkipped ? colors.textMuted : DAY_COLORS[day], fontWeight: 600, minWidth: '50px' }}>{getDayLabelShort(day, t)}</span>
+                                {isSkipped ? (
+                                  <span style={{ color: '#f59e0b', fontSize: '0.65rem' }}>⏭ {t('prepScheduler.optedOut', 'Opted Out')}</span>
+                                ) : (
+                                  <span style={{ color: colors.textMuted }}>{formatAvailRanges(avail)}</span>
+                                )}
+                                {/* Inline opt-out toggle for managers */}
+                                {updateSubmissionOptOuts && (
+                                  <label style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.2rem', cursor: 'pointer' }} onClick={e => e.stopPropagation()}>
+                                    <input type="checkbox" checked={isSkipped} onChange={() => {
+                                      updateSubmissionOptOuts(sub.id, {
+                                        skip_monday: day === 'monday' ? !isSkipped : sub.skip_monday,
+                                        skip_tuesday: day === 'tuesday' ? !isSkipped : sub.skip_tuesday,
+                                        skip_thursday: day === 'thursday' ? !isSkipped : sub.skip_thursday,
+                                      });
+                                    }} style={{ width: '14px', height: '14px', accentColor: DAY_COLORS[day], cursor: 'pointer' }} />
+                                    <span style={{ color: colors.textMuted, fontSize: '0.6rem' }}>{t('prepScheduler.skipDay', 'Skip this day')}</span>
+                                  </label>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                        {/* Edit speedups inline */}
+                        {updateAnySubmission && !isEditing && (
+                          <button onClick={(e) => { e.stopPropagation(); setEditingSubId(sub.id); setEditSpeedups({ general: sub.general_speedups, training: sub.training_speedups, construction: sub.construction_speedups, research: sub.research_speedups }); }}
+                            style={{ padding: '0.35rem 0.75rem', backgroundColor: '#a855f710', border: '1px solid #a855f730', borderRadius: '6px', color: '#a855f7', fontSize: '0.7rem', fontWeight: 600, cursor: 'pointer', alignSelf: 'flex-start' }}>
+                            ✏️ {t('prepScheduler.editSpeedups', 'Edit Speedups')}
+                          </button>
+                        )}
+                        {isEditing && updateAnySubmission && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.3rem' }}>
+                              {[{ key: 'general' as const, icon: '🔧', color: '#a855f7', label: t('prepScheduler.general', 'General') },
+                                { key: 'training' as const, icon: '⚔️', color: '#ef4444', label: t('prepScheduler.training', 'Training') },
+                                { key: 'construction' as const, icon: '🏗️', color: '#f59e0b', label: t('prepScheduler.construction', 'Construction') },
+                                { key: 'research' as const, icon: '🔬', color: '#3b82f6', label: t('prepScheduler.research', 'Research') },
+                              ].map(st => (
+                                <div key={st.key}>
+                                  <label style={{ color: colors.textMuted, fontSize: '0.65rem', fontWeight: 600, display: 'block', marginBottom: '0.15rem' }}>{st.icon} {st.label}</label>
+                                  <input type="number" value={editSpeedups[st.key] || ''} onChange={e => setEditSpeedups(prev => ({ ...prev, [st.key]: parseInt(e.target.value) || 0 }))} min={0}
+                                    style={{ ...inputStyle, padding: '0.35rem 0.5rem', fontSize: '0.8rem' }} />
+                                </div>
+                              ))}
+                            </div>
+                            <div style={{ display: 'flex', gap: '0.4rem' }}>
+                              <button onClick={async () => { await updateAnySubmission(sub.id, { general_speedups: editSpeedups.general, training_speedups: editSpeedups.training, construction_speedups: editSpeedups.construction, research_speedups: editSpeedups.research }); setEditingSubId(null); }} disabled={saving}
+                                style={{ padding: '0.35rem 0.75rem', backgroundColor: '#22c55e15', border: '1px solid #22c55e30', borderRadius: '6px', color: '#22c55e', fontSize: '0.7rem', fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1 }}>
+                                {saving ? '...' : `✓ ${t('prepScheduler.save', 'Save')}`}
+                              </button>
+                              <button onClick={() => setEditingSubId(null)}
+                                style={{ padding: '0.35rem 0.75rem', backgroundColor: 'transparent', border: `1px solid ${colors.border}`, borderRadius: '6px', color: colors.textMuted, fontSize: '0.7rem', cursor: 'pointer' }}>
+                                {t('prepScheduler.cancel', 'Cancel')}
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         <div style={{ textAlign: 'center', marginTop: '1.5rem', paddingBottom: '1rem' }}>
           <Link to="/tools/prep-scheduler" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: '0.8rem' }}>← {t('prepScheduler.backToSchedules', 'Back to Schedules')}</Link>

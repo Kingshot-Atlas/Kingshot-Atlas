@@ -96,6 +96,9 @@ const PrepScheduler: React.FC = () => {
           showNonQualifyingPopup={hook.showNonQualifyingPopup} setShowNonQualifyingPopup={hook.setShowNonQualifyingPopup}
           startAltSubmission={hook.startAltSubmission}
           editSubmission={hook.editSubmission}
+          isRefilling={hook.isRefilling}
+          setIsRefilling={hook.setIsRefilling}
+          updateSubmissionOptOuts={hook.updateSubmissionOptOuts}
         />
         {hook.pendingConfirm && <ConfirmDialog confirm={hook.pendingConfirm} onDismiss={() => hook.setPendingConfirm(null)} />}
       </>
@@ -149,6 +152,8 @@ const PrepScheduler: React.FC = () => {
           removingIds={hook.removingIds}
           effectiveSlots={hook.effectiveSlots}
           maxSlots={hook.maxSlots}
+          updateSubmissionOptOuts={hook.updateSubmissionOptOuts}
+          updateAnySubmission={hook.updateAnySubmission}
         />
         {hook.pendingConfirm && <ConfirmDialog confirm={hook.pendingConfirm} onDismiss={() => hook.setPendingConfirm(null)} />}
       </>

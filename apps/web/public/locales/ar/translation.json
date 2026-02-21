@@ -356,7 +356,27 @@
     "reachGold": "الوصول للمستوى الذهبي",
     "tabCounter": "هجوم مضاد",
     "tabPlayers": "لاعبون",
-    "tabRally": "تجمع"
+    "tabRally": "تجمع",
+    "goldTierBadge": "المستوى الذهبي",
+    "summaryPlayers": "لاعبين",
+    "whatYouGet": "ما تحصل عليه",
+    "featureMultiRally": "تنسيق تجمعات متعددة بتوقيت دقيق",
+    "featureChainHits": "ضربات متسلسلة — تباعد التجمعات بفواصل مخصصة",
+    "featureGantt": "عرض مخطط جانت الزمني لكل مسيرة",
+    "featureBuffTimers": "مؤقتات تعزيز مباشرة مع تنبيهات انتهاء",
+    "featureCopyOrder": "نسخ ترتيب النداء بنقرة واحدة لـ Discord",
+    "howToGetAccess": "كيفية الحصول على الوصول",
+    "accessGold": "مملكة ذهبية (رصيد صندوق المملكة $100+)",
+    "accessSilverPromo": "ممالك فضية (عرض لفترة محدودة)",
+    "accessEditor": "يمكن للمحررين تعيين مديري معارك",
+    "accessAdmin": "وصول المشرف",
+    "contributeToFund": "المساهمة في صندوق المملكة",
+    "chainHitsDesc": "كل تجمع يضرب بعد X ثانية من السابق",
+    "longPressHint": "اضغط مطولاً على لاعب للتعديل أو الحذف",
+    "dragToReorder": "اسحب لإعادة الترتيب",
+    "copyPreviewLabel": "معاينة النسخ",
+    "quickAddToRally": "انقر للإضافة إلى التجمع",
+    "quickAddToCounter": "انقر للإضافة إلى الهجوم المضاد"
   },
   "battlePlannerBanner": {
     "dismiss": "إغلاق بانر مخطط المعارك",
@@ -1886,6 +1906,7 @@
     "holdToDrag": "اضغط مطولاً للسحب",
     "clearBtn": "مسح",
     "tapToAdd": "انقر على اللاعبين أعلاه للإضافة",
+    "tapToAddMobile": "استخدم أزرار اللاعبين أعلاه للإضافة",
     "dropToAdd": "اسحب اللاعبين هنا أو انقر للإضافة",
     "minPlayersLabel": "الحد الأدنى {{count}} لاعبين",
     "minOnePlayer": "الحد الأدنى 1 لاعب",
@@ -1917,9 +1938,7 @@
     "howToStep4": "حدد ترتيب الهجوم — من يصل أولاً مهم.",
     "howToStep5": "افعل نفس الشيء لقائمة المضاد إذا لزم الأمر.",
     "howToStep6": "فعّل مؤقتات تعزيز الحيوان الأليف عند الحاجة.",
-    "accessDeniedDesc": "تحتاج المستوى الذهبي لاستخدام منسق التجمع.",
-    "arriveAfter": "الوصول بعد",
-    "secondsAfterEnemy": "ثوانٍ بعد العدو"
+    "accessDeniedDesc": "تحتاج المستوى الذهبي لاستخدام منسق التجمع."
   },
   "missingData": {
     "contributeTitle": "ساهم",

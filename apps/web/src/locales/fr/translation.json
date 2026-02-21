@@ -356,7 +356,27 @@
     "reachGold": "Atteindre le niveau Gold",
     "tabCounter": "Contre",
     "tabPlayers": "Joueurs",
-    "tabRally": "Rally"
+    "tabRally": "Rally",
+    "goldTierBadge": "Niveau Gold",
+    "summaryPlayers": "joueurs",
+    "whatYouGet": "Ce que vous obtenez",
+    "featureMultiRally": "Coordination multi-rallye avec précision",
+    "featureChainHits": "Frappes en chaîne — échelonner les rallyes à intervalles personnalisés",
+    "featureGantt": "Visualisation chronologique Gantt pour chaque marche",
+    "featureBuffTimers": "Minuteries de buff en direct avec alertes d'expiration",
+    "featureCopyOrder": "Copie en un clic de l'ordre de rallye pour Discord",
+    "howToGetAccess": "Comment obtenir l'accès",
+    "accessGold": "Royaume Gold (solde de 100$+ du Fonds du Royaume)",
+    "accessSilverPromo": "Royaumes Silver (promotion temporaire)",
+    "accessEditor": "Les éditeurs peuvent désigner des Gestionnaires de Bataille",
+    "accessAdmin": "Accès administrateur",
+    "contributeToFund": "Contribuer au Fonds du Royaume",
+    "chainHitsDesc": "Chaque rallye frappe X secondes après le précédent",
+    "longPressHint": "Appui long sur un joueur pour modifier ou supprimer",
+    "dragToReorder": "Glisser pour réorganiser",
+    "copyPreviewLabel": "Aperçu de copie",
+    "quickAddToRally": "Appuyez pour ajouter au rallye",
+    "quickAddToCounter": "Appuyez pour ajouter au contre"
   },
   "battlePlannerBanner": {
     "dismiss": "Fermer la bannière du Planificateur de Bataille",
@@ -1886,6 +1906,7 @@
     "holdToDrag": "Maintenir pour glisser",
     "clearBtn": "Effacer",
     "tapToAdd": "Touchez les joueurs ci-dessus pour ajouter",
+    "tapToAddMobile": "Utilisez les pastilles de joueurs ci-dessus",
     "dropToAdd": "Déposez les joueurs ici ou cliquez pour ajouter",
     "minPlayersLabel": "Min {{count}} joueurs",
     "minOnePlayer": "Min 1 joueur",
@@ -1917,9 +1938,7 @@
     "howToStep4": "Définissez l'ordre d'attaque — qui arrive en premier compte.",
     "howToStep5": "Faites de même pour la File de Contre si nécessaire.",
     "howToStep6": "Activez les minuteurs d'amélioration de familier si applicable.",
-    "accessDeniedDesc": "Vous avez besoin du niveau Gold pour utiliser le Coordinateur de Rally.",
-    "arriveAfter": "Arriver après",
-    "secondsAfterEnemy": "secondes après l'ennemi"
+    "accessDeniedDesc": "Vous avez besoin du niveau Gold pour utiliser le Coordinateur de Rally."
   },
   "missingData": {
     "contributeTitle": "CONTRIBUER",
@@ -2784,7 +2803,19 @@
     "tierRequiredPromoDesc": "Le Planificateur de Prep KvK est disponible pour les royaumes Or et Argent pendant la promotion KvK #11. Contribuez au Fonds du Royaume pour atteindre Argent (50$+) ou Or (100$+) et débloquer cet outil !",
     "toastStaggerDisabled": "Décalage désactivé — retour à 48 créneaux.",
     "toastStaggerEnabled": "Décalage 49 créneaux activé — créneau 23:45 UTC ajouté.",
-    "toastStaggerFailed": "Échec du basculement du décalage."
+    "toastStaggerFailed": "Échec du basculement du décalage.",
+    "editOptOuts": "Modifier les Désistements",
+    "editOptOutsDesc": "Activez ou désactivez les jours que vous souhaitez ignorer. Les changements sont enregistrés immédiatement.",
+    "skipDayLabel": "Ignorer {{day}}",
+    "refillForm": "Mettre à Jour Mon Formulaire",
+    "refillDesc": "Modifiez vos accélérateurs, disponibilité ou autres détails.",
+    "allSubmissions": "Toutes les Soumissions",
+    "allSubmissionsDesc": "Cliquez sur un joueur pour voir les détails. Les éditeurs peuvent modifier les accélérateurs et les désistements.",
+    "editSpeedups": "Modifier les Accélérateurs",
+    "toastOptOutsUpdated": "Désistements mis à jour.",
+    "toastOptOutsFailed": "Échec de la mise à jour des désistements.",
+    "toastSubmissionEdited": "Soumission mise à jour.",
+    "toastEditFailed": "Échec de la mise à jour de la soumission."
   },
   "prepLanding": {
     "featAutoAssign": "Assignation Automatique des Créneaux",

@@ -356,7 +356,27 @@
     "reachGold": "Altın Seviyeye Ulaş",
     "tabCounter": "Karşı",
     "tabPlayers": "Oyuncular",
-    "tabRally": "Rally"
+    "tabRally": "Rally",
+    "goldTierBadge": "Altın Seviye",
+    "summaryPlayers": "oyuncu",
+    "whatYouGet": "Neler sunuluyor",
+    "featureMultiRally": "Hassas zamanlama ile çoklu rally koordinasyonu",
+    "featureChainHits": "Zincir Vuruş — rallyleri özel aralıklarla kademelendirin",
+    "featureGantt": "Her yürüyüş için Gantt zaman çizelgesi görselleştirmesi",
+    "featureBuffTimers": "Canlı buff zamanlayıcıları ve süre dolma uyarıları",
+    "featureCopyOrder": "Discord için tek tıkla rally çağrı sırası kopyalama",
+    "howToGetAccess": "Erişim nasıl sağlanır",
+    "accessGold": "Altın Seviye krallık (Krallık Fonu bakiyesi $100+)",
+    "accessSilverPromo": "Gümüş Seviye krallıklar (sınırlı süre promosyonu)",
+    "accessEditor": "Editörler Savaş Yöneticisi atayabilir",
+    "accessAdmin": "Yönetici erişimi",
+    "contributeToFund": "Krallık Fonuna Katkıda Bulun",
+    "chainHitsDesc": "Her rally öncekinden X saniye sonra vurur",
+    "longPressHint": "Düzenlemek veya silmek için oyuncuya uzun basın",
+    "dragToReorder": "Sıralamak için sürükleyin",
+    "copyPreviewLabel": "Kopya önizleme",
+    "quickAddToRally": "Rally'ye eklemek için dokunun",
+    "quickAddToCounter": "Karşıya eklemek için dokunun"
   },
   "battlePlannerBanner": {
     "dismiss": "Savaş Planlayıcı bannerını kapat",
@@ -1886,6 +1906,7 @@
     "holdToDrag": "Sürüklemek için basılı tut",
     "clearBtn": "Temizle",
     "tapToAdd": "Eklemek için yukarıdaki oyunculara dokun",
+    "tapToAddMobile": "Eklemek için yukarıdaki oyuncu düğmelerini kullanın",
     "dropToAdd": "Oyuncuları buraya bırakın veya eklemek için tıklayın",
     "minPlayersLabel": "Min {{count}} oyuncu",
     "minOnePlayer": "Min 1 oyuncu",
@@ -1917,9 +1938,7 @@
     "howToStep4": "Vuruş sırasını belirleyin — kimin önce ulaştığı önemlidir.",
     "howToStep5": "Gerekirse Karşı Kuyruğu için aynısını yapın.",
     "howToStep6": "Uygun olduğunda evcil hayvan buff zamanlayıcılarını etkinleştirin.",
-    "accessDeniedDesc": "Rally Koordinatörünü kullanmak için Altın Seviye gerekli.",
-    "arriveAfter": "Varış zamanı",
-    "secondsAfterEnemy": "düşmandan sonra saniye"
+    "accessDeniedDesc": "Rally Koordinatörünü kullanmak için Altın Seviye gerekli."
   },
   "missingData": {
     "contributeTitle": "VERİ",

@@ -87,7 +87,7 @@ const RallyCoordinator: React.FC = () => {
   if (!rc.hasAccess) {
     return (
       <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
-        <div style={{ textAlign: 'center', maxWidth: '440px' }}>
+        <div style={{ textAlign: 'center', maxWidth: '480px' }}>
           <div style={{ fontSize: '3.5rem', marginBottom: '1rem' }}>⚔️</div>
           <h2 style={{ color: '#fff', fontSize: '1.5rem', fontFamily: FONT_DISPLAY, marginBottom: '0.5rem', letterSpacing: '0.05em' }}>
             <span style={{ color: '#fff' }}>KvK BATTLE </span>
@@ -95,21 +95,66 @@ const RallyCoordinator: React.FC = () => {
           </h2>
           <div style={{
             display: 'inline-block', padding: '0.25rem 0.75rem', marginBottom: '1rem',
-            backgroundColor: '#ef444420', border: '1px solid #ef444440', borderRadius: '20px',
-            fontSize: '0.7rem', fontWeight: '700', color: '#ef4444', textTransform: 'uppercase', letterSpacing: '0.08em',
+            backgroundColor: '#f59e0b20', border: '1px solid #f59e0b40', borderRadius: '20px',
+            fontSize: '0.7rem', fontWeight: '700', color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.08em',
           }}>
             {t('battlePlanner.accessRequired', 'Gold Tier Required')}
           </div>
-          <p style={{ color: '#9ca3af', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '1.5rem' }}>
+          <p style={{ color: '#9ca3af', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '1rem' }}>
             {t('rallyCoordinator.accessDeniedDesc', 'Coordinate multi-rally strikes with surgical precision. The Battle Planner is available for Gold Tier kingdoms, editors, and admins.')}
           </p>
-          <Link to="/tools" style={{
-            display: 'inline-block', padding: '0.6rem 1.5rem',
-            backgroundColor: '#ef444420', border: '1px solid #ef444450', borderRadius: '8px',
-            color: '#ef4444', textDecoration: 'none', fontWeight: '600', fontSize: '0.9rem',
+
+          {/* Teaser preview */}
+          <div style={{
+            padding: '0.75rem', marginBottom: '1.25rem',
+            backgroundColor: '#111111', border: '1px solid #2a2a2a', borderRadius: '12px',
+            fontSize: '0.75rem', color: '#6b7280', lineHeight: 1.7, textAlign: 'left',
           }}>
-            {t('rallyCoordinator.backToTools', '← Back to Tools')}
-          </Link>
+            <div style={{ fontSize: '0.65rem', fontWeight: '700', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.4rem', textAlign: 'center' }}>
+              {t('battlePlanner.whatYouGet', 'What you get')}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+              <span>⚔️ {t('battlePlanner.featureMultiRally', 'Multi-rally strike coordination with precise timing')}</span>
+              <span>🔗 {t('battlePlanner.featureChainHits', 'Chain Hits — stagger rallies at custom intervals')}</span>
+              <span>📊 {t('battlePlanner.featureGantt', 'Gantt timeline visualization for every march')}</span>
+              <span>⚡ {t('battlePlanner.featureBuffTimers', 'Live buff timers with auto-expire alerts')}</span>
+              <span>📢 {t('battlePlanner.featureCopyOrder', 'One-click copy of rally call order for Discord')}</span>
+            </div>
+          </div>
+
+          {/* How to get access */}
+          <div style={{
+            padding: '0.75rem', marginBottom: '1.25rem',
+            backgroundColor: '#f59e0b08', border: '1px solid #f59e0b20', borderRadius: '12px',
+            fontSize: '0.75rem', color: '#9ca3af', lineHeight: 1.7, textAlign: 'left',
+          }}>
+            <div style={{ fontSize: '0.65rem', fontWeight: '700', color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.4rem', textAlign: 'center' }}>
+              {t('battlePlanner.howToGetAccess', 'How to get access')}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+              <span>🏆 {t('battlePlanner.accessGold', 'Gold Tier kingdom ($100+ Kingdom Fund balance)')}</span>
+              <span>🥈 {t('battlePlanner.accessSilverPromo', 'Silver Tier kingdoms (limited-time promo)')}</span>
+              <span>📝 {t('battlePlanner.accessEditor', 'Editors & Co-Editors can designate Battle Managers')}</span>
+              <span>🛡️ {t('battlePlanner.accessAdmin', 'Admin access')}</span>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'center' }}>
+            <Link to="/support" style={{
+              display: 'inline-block', padding: '0.6rem 1.5rem',
+              background: 'linear-gradient(135deg, #f59e0b30, #f59e0b10)',
+              border: '1px solid #f59e0b50', borderRadius: '8px',
+              color: '#f59e0b', textDecoration: 'none', fontWeight: '600', fontSize: '0.9rem',
+            }}>
+              {t('battlePlanner.contributeToFund', 'Contribute to Kingdom Fund')}
+            </Link>
+            <Link to="/tools" style={{
+              color: '#9ca3af', textDecoration: 'none', fontSize: '0.8rem',
+              display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
+            }}>
+              {t('rallyCoordinator.backToTools', '← Back to Tools')}
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -124,19 +169,43 @@ const RallyCoordinator: React.FC = () => {
         background: 'linear-gradient(180deg, #111111 0%, #0a0a0a 100%)',
       }}>
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
-          <Link to="/tools" style={{ color: '#9ca3af', fontSize: '0.8rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', marginBottom: '0.5rem' }}>
-            {t('rallyCoordinator.backToTools')}
-          </Link>
           <h1 style={{
             fontSize: isMobile ? '1.3rem' : '1.75rem', fontWeight: 'bold',
-            fontFamily: FONT_DISPLAY, letterSpacing: '0.05em', marginBottom: '0.3rem',
+            fontFamily: FONT_DISPLAY, letterSpacing: '0.05em', margin: 0, marginBottom: '0.25rem',
           }}>
             <span style={{ color: '#fff' }}>{t('rallyCoordinator.title')}</span>
             <span style={{ ...neonGlow('#ef4444'), marginLeft: '0.4rem' }}>{t('rallyCoordinator.titleAccent')}</span>
           </h1>
-          <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.75rem' : '0.9rem' }}>
+          <span style={{
+            display: 'inline-block', padding: '0.15rem 0.5rem', fontSize: '0.55rem', fontWeight: '700',
+            background: 'linear-gradient(135deg, #f59e0b20, #f59e0b08)',
+            border: '1px solid #f59e0b40', borderRadius: '12px',
+            color: '#f59e0b', letterSpacing: '0.06em', textTransform: 'uppercase',
+            whiteSpace: 'nowrap', marginBottom: '0.3rem',
+          }}>
+            {t('battlePlanner.goldTierBadge', 'Gold Tier')}
+          </span>
+          <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.75rem' : '0.9rem', marginBottom: '0.4rem' }}>
             {t('rallyCoordinator.subtitle')}
           </p>
+          {/* Session summary bar */}
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: '0.75rem',
+            padding: '0.25rem 0.75rem', borderRadius: '20px',
+            backgroundColor: '#ffffff06', border: '1px solid #ffffff10',
+            fontSize: '0.7rem', color: '#6b7280', marginBottom: '0.3rem',
+          }}>
+            <span>👥 {rc.players.length} {t('battlePlanner.summaryPlayers', 'players')}</span>
+            <span style={{ color: '#2a2a2a' }}>|</span>
+            <span style={{ color: ALLY_COLOR }}>⚔️ {rc.rallyQueue.length}</span>
+            <span style={{ color: '#2a2a2a' }}>|</span>
+            <span style={{ color: ENEMY_COLOR }}>🛡️ {rc.counterQueue.length}</span>
+          </div>
+          <div>
+            <Link to="/tools" style={{ color: '#9ca3af', fontSize: '0.75rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+              {t('rallyCoordinator.backToTools')}
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -210,6 +279,7 @@ const RallyCoordinator: React.FC = () => {
                     flex: 1, padding: '0.5rem 0.25rem',
                     backgroundColor: mobileTab === tab.key ? `${tab.color}15` : 'transparent',
                     border: `1px solid ${mobileTab === tab.key ? `${tab.color}50` : '#2a2a2a'}`,
+                    borderBottom: mobileTab === tab.key ? `3px solid ${tab.color}` : `1px solid ${mobileTab === tab.key ? `${tab.color}50` : '#2a2a2a'}`,
                     borderRadius: '10px', cursor: 'pointer',
                     color: mobileTab === tab.key ? tab.color : '#9ca3af',
                     fontSize: '0.75rem', fontWeight: '700',
@@ -236,6 +306,8 @@ const RallyCoordinator: React.FC = () => {
                   🏰 {getBuildingLabel(rc.selectedBuilding, t)}
                 </span>
                 <span style={{ color: '#6b7280' }}>
+                  {rc.hitMode === 'interval' ? '🔗' : '💥'} {rc.hitMode === 'interval' ? t('rallyCoordinator.chainHits') : t('rallyCoordinator.simultaneous')}
+                  &nbsp;·&nbsp;
                   ⚔️ {rc.rallyQueue.length} &nbsp;|&nbsp; 🛡️ {rc.counterQueue.length}
                 </span>
               </div>
@@ -290,6 +362,56 @@ const RallyCoordinator: React.FC = () => {
 
           {/* ===== COLUMN 2: RALLY ===== */}
           {(!isMobile || mobileTab === 'rally') && <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+
+            {/* Mobile Quick Add — show available allies inline + Add Ally button */}
+            {isMobile && (
+              <div style={{
+                display: 'flex', flexWrap: 'wrap', gap: '0.3rem', padding: '0.4rem',
+                backgroundColor: '#0d0d0d', borderRadius: '8px', border: '1px solid #1a1a1a',
+              }}>
+                <span style={{ width: '100%', fontSize: '0.55rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.1rem' }}>
+                  {t('battlePlanner.quickAddToRally', 'Tap to add to rally')}
+                </span>
+                {rc.allies.map(p => {
+                  const inQueue = rc.queuedPlayerIds.has(p.id) || rc.counterQueuedIds.has(p.id);
+                  return (
+                    <button
+                      key={p.id}
+                      disabled={inQueue}
+                      onClick={() => rc.addToQueue(p, rc.marchType === 'buffed')}
+                      style={{
+                        padding: '0.2rem 0.5rem', borderRadius: '14px',
+                        backgroundColor: inQueue ? '#1a1a1a' : `${ALLY_COLOR}12`,
+                        border: `1px solid ${inQueue ? '#2a2a2a' : `${ALLY_COLOR}40`}`,
+                        color: inQueue ? '#6b7280' : '#fff',
+                        fontSize: '0.65rem', fontWeight: '600', cursor: inQueue ? 'not-allowed' : 'pointer',
+                        opacity: inQueue ? 0.4 : 1, minHeight: '30px',
+                        display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
+                      }}
+                    >
+                      <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: ALLY_COLOR }} />
+                      {p.name}
+                      {p.marchTimes[rc.selectedBuilding]?.[rc.marchType] > 0 && (
+                        <span style={{ color: '#9ca3af', fontSize: '0.55rem' }}>
+                          {p.marchTimes[rc.selectedBuilding][rc.marchType]}s
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+                <button
+                  onClick={() => { rc.setEditingPlayer(null); rc.setDefaultTeam('ally'); rc.setPlayerModalOpen(true); }}
+                  style={{
+                    padding: '0.2rem 0.5rem', borderRadius: '14px',
+                    backgroundColor: `${ALLY_COLOR}08`, border: `1px dashed ${ALLY_COLOR}40`,
+                    color: ALLY_COLOR, fontSize: '0.65rem', fontWeight: '600', cursor: 'pointer',
+                    minHeight: '30px', display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
+                  }}
+                >
+                  + {t('rallyCoordinator.addAlly', 'Ally')}
+                </button>
+              </div>
+            )}
 
             {/* Rally Queue */}
             <QueueDropZone
@@ -357,7 +479,12 @@ const RallyCoordinator: React.FC = () => {
                     </button>
                   </div>
                   {rc.hitMode === 'interval' && (
-                    <IntervalSlider value={rc.interval} onChange={rc.setInterval} accentColor={ALLY_COLOR} />
+                    <>
+                      <p style={{ color: '#6b7280', fontSize: '0.6rem', margin: '0.1rem 0 0.2rem' }}>
+                        {t('battlePlanner.chainHitsDesc', 'Each rally hits X seconds after the previous one')}
+                      </p>
+                      <IntervalSlider value={rc.interval} onChange={rc.setInterval} accentColor={ALLY_COLOR} />
+                    </>
                   )}
                 </div>
               </div>
@@ -396,6 +523,68 @@ const RallyCoordinator: React.FC = () => {
 
           {/* ===== COLUMN 3: COUNTER ===== */}
           {(!isMobile || mobileTab === 'counter') && <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+
+            {/* Mobile Quick Add — show all players for counter queue + Add buttons */}
+            {isMobile && (
+              <div style={{
+                display: 'flex', flexWrap: 'wrap', gap: '0.3rem', padding: '0.4rem',
+                backgroundColor: '#0d0d0d', borderRadius: '8px', border: '1px solid #1a1a1a',
+              }}>
+                <span style={{ width: '100%', fontSize: '0.55rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.1rem' }}>
+                  {t('battlePlanner.quickAddToCounter', 'Tap to add to counter')}
+                </span>
+                {rc.players.map(p => {
+                  const inQueue = rc.queuedPlayerIds.has(p.id) || rc.counterQueuedIds.has(p.id);
+                  const pillColor = p.team === 'ally' ? ALLY_COLOR : ENEMY_COLOR;
+                  return (
+                    <button
+                      key={p.id}
+                      disabled={inQueue}
+                      onClick={() => rc.addToCounterQueue(p, rc.marchType === 'buffed')}
+                      style={{
+                        padding: '0.2rem 0.5rem', borderRadius: '14px',
+                        backgroundColor: inQueue ? '#1a1a1a' : `${pillColor}12`,
+                        border: `1px solid ${inQueue ? '#2a2a2a' : `${pillColor}40`}`,
+                        color: inQueue ? '#6b7280' : '#fff',
+                        fontSize: '0.65rem', fontWeight: '600', cursor: inQueue ? 'not-allowed' : 'pointer',
+                        opacity: inQueue ? 0.4 : 1, minHeight: '30px',
+                        display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
+                      }}
+                    >
+                      <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: pillColor }} />
+                      {p.name}
+                      {p.marchTimes[rc.selectedBuilding]?.[rc.marchType] > 0 && (
+                        <span style={{ color: '#9ca3af', fontSize: '0.55rem' }}>
+                          {p.marchTimes[rc.selectedBuilding][rc.marchType]}s
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+                <button
+                  onClick={() => { rc.setEditingPlayer(null); rc.setDefaultTeam('ally'); rc.setPlayerModalOpen(true); }}
+                  style={{
+                    padding: '0.2rem 0.5rem', borderRadius: '14px',
+                    backgroundColor: `${ALLY_COLOR}08`, border: `1px dashed ${ALLY_COLOR}40`,
+                    color: ALLY_COLOR, fontSize: '0.65rem', fontWeight: '600', cursor: 'pointer',
+                    minHeight: '30px', display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
+                  }}
+                >
+                  + {t('rallyCoordinator.addAlly', 'Ally')}
+                </button>
+                <button
+                  onClick={() => { rc.setEditingPlayer(null); rc.setDefaultTeam('enemy'); rc.setPlayerModalOpen(true); }}
+                  style={{
+                    padding: '0.2rem 0.5rem', borderRadius: '14px',
+                    backgroundColor: `${ENEMY_COLOR}08`, border: `1px dashed ${ENEMY_COLOR}40`,
+                    color: ENEMY_COLOR, fontSize: '0.65rem', fontWeight: '600', cursor: 'pointer',
+                    minHeight: '30px', display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
+                  }}
+                >
+                  + {t('rallyCoordinator.addEnemy', 'Enemy')}
+                </button>
+              </div>
+            )}
 
             {/* 🛡️ COUNTER QUEUE */}
             <QueueDropZone
@@ -463,35 +652,13 @@ const RallyCoordinator: React.FC = () => {
                     </button>
                   </div>
                   {rc.counterHitMode === 'interval' && (
-                    <IntervalSlider value={rc.counterInterval} onChange={rc.setCounterInterval} accentColor={ENEMY_COLOR} />
+                    <>
+                      <p style={{ color: '#6b7280', fontSize: '0.6rem', margin: '0.1rem 0 0.2rem' }}>
+                        {t('battlePlanner.chainHitsDesc', 'Each rally hits X seconds after the previous one')}
+                      </p>
+                      <IntervalSlider value={rc.counterInterval} onChange={rc.setCounterInterval} accentColor={ENEMY_COLOR} />
+                    </>
                   )}
-                  {/* Counter auto-timing: arrive X seconds after enemy */}
-                  <div style={{
-                    display: 'flex', alignItems: 'center', gap: '0.4rem',
-                    marginTop: '0.3rem', padding: '0.3rem 0.4rem',
-                    backgroundColor: rc.counterAutoOffset > 0 ? `${ENEMY_COLOR}10` : 'transparent',
-                    border: `1px solid ${rc.counterAutoOffset > 0 ? `${ENEMY_COLOR}30` : '#1a1a1a'}`,
-                    borderRadius: '7px',
-                  }}>
-                    <span style={{ color: '#9ca3af', fontSize: '0.6rem', whiteSpace: 'nowrap' }}>
-                      {t('rallyCoordinator.arriveAfter', 'Arrive')}
-                    </span>
-                    <input
-                      type="number" min="0" max="30"
-                      value={rc.counterAutoOffset || ''}
-                      onChange={e => rc.setCounterAutoOffset(Math.max(0, Math.min(30, parseInt(e.target.value) || 0)))}
-                      placeholder="0"
-                      style={{
-                        width: '42px', padding: '0.15rem 0.25rem',
-                        backgroundColor: '#0a0a0a', border: `1px solid ${rc.counterAutoOffset > 0 ? `${ENEMY_COLOR}40` : '#2a2a2a'}`,
-                        borderRadius: '4px', color: rc.counterAutoOffset > 0 ? ENEMY_COLOR : '#9ca3af',
-                        fontSize: '0.7rem', fontWeight: 600, textAlign: 'center',
-                      }}
-                    />
-                    <span style={{ color: '#9ca3af', fontSize: '0.6rem', whiteSpace: 'nowrap' }}>
-                      {t('rallyCoordinator.secondsAfterEnemy', 's after rally hits')}
-                    </span>
-                  </div>
                 </div>
               </div>
               {rc.calculatedCounters.length >= 1 ? (

@@ -356,7 +356,27 @@
     "reachGold": "达到黄金级别",
     "tabCounter": "反击",
     "tabPlayers": "玩家",
-    "tabRally": "集结"
+    "tabRally": "集结",
+    "goldTierBadge": "黄金级别",
+    "summaryPlayers": "名玩家",
+    "whatYouGet": "功能概览",
+    "featureMultiRally": "多路集结精确协调",
+    "featureChainHits": "连锁打击 — 按自定义间隔交错集结",
+    "featureGantt": "甘特图时间线可视化每次行军",
+    "featureBuffTimers": "实时增益计时器，到期自动提醒",
+    "featureCopyOrder": "一键复制集结命令到Discord",
+    "howToGetAccess": "如何获取访问权限",
+    "accessGold": "黄金级别王国（王国基金余额$100+）",
+    "accessSilverPromo": "白银级别王国（限时促销）",
+    "accessEditor": "编辑和副编辑可指定战斗管理员",
+    "accessAdmin": "管理员访问",
+    "contributeToFund": "为王国基金做贡献",
+    "chainHitsDesc": "每次集结在前一次之后X秒命中",
+    "longPressHint": "长按玩家进行编辑或删除",
+    "dragToReorder": "拖拽重新排序",
+    "copyPreviewLabel": "复制预览",
+    "quickAddToRally": "点击添加到集结",
+    "quickAddToCounter": "点击添加到反击"
   },
   "battlePlannerBanner": {
     "dismiss": "关闭战斗规划器横幅",
@@ -1886,6 +1906,7 @@
     "holdToDrag": "长按拖动",
     "clearBtn": "清空",
     "tapToAdd": "点击上方玩家添加",
+    "tapToAddMobile": "使用上方的玩家按钮添加",
     "dropToAdd": "将玩家拖到此处或点击添加",
     "minPlayersLabel": "最少 {{count}} 名玩家",
     "minOnePlayer": "最少 1 名玩家",
@@ -1917,9 +1938,7 @@
     "howToStep4": "设置攻击顺序——先到达的很重要。",
     "howToStep5": "如有需要，对反击队列做同样操作。",
     "howToStep6": "适时激活宠物增益计时器。",
-    "accessDeniedDesc": "您需要黄金级别才能使用集结协调器。",
-    "arriveAfter": "到达时间晚于",
-    "secondsAfterEnemy": "秒后于敌方"
+    "accessDeniedDesc": "您需要黄金级别才能使用集结协调器。"
   },
   "missingData": {
     "contributeTitle": "贡献",
@@ -2784,7 +2803,19 @@
     "tierRequiredPromoDesc": "KvK 准备调度器在 KvK #11 促销期间可供金级和银级王国使用。为王国基金捐款以达到银级（$50+）或金级（$100+）并解锁此工具！",
     "toastStaggerDisabled": "交错已禁用 — 恢复为48个时段。",
     "toastStaggerEnabled": "49时段交错已启用 — 已添加 23:45 UTC 时段。",
-    "toastStaggerFailed": "切换交错失败。"
+    "toastStaggerFailed": "切换交错失败。",
+    "editOptOuts": "编辑退出选项",
+    "editOptOutsDesc": "切换你想跳过的日期。更改会立即保存。",
+    "skipDayLabel": "跳过 {{day}}",
+    "refillForm": "更新我的表单",
+    "refillDesc": "编辑你的加速、可用时间或其他详情。",
+    "allSubmissions": "所有提交",
+    "allSubmissionsDesc": "点击玩家查看详情。编辑者可以修改加速和退出选项。",
+    "editSpeedups": "编辑加速",
+    "toastOptOutsUpdated": "退出选项已更新。",
+    "toastOptOutsFailed": "更新退出选项失败。",
+    "toastSubmissionEdited": "提交已更新。",
+    "toastEditFailed": "更新提交失败。"
   },
   "prepLanding": {
     "featAutoAssign": "自动时段分配",

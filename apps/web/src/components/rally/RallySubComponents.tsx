@@ -265,8 +265,11 @@ export const IntervalSlider: React.FC<{
         }} />
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2px' }}>
-        <span style={{ color: '#9ca3af', fontSize: '0.6rem' }}>{min}s</span>
-        <span style={{ color: '#9ca3af', fontSize: '0.6rem' }}>{max}s</span>
+        {Array.from({ length: max - min + 1 }, (_, i) => min + i).map(v => (
+          <span key={v} style={{ color: v === value ? accentColor : '#9ca3af', fontSize: '0.6rem', fontWeight: v === value ? '700' : '400', minWidth: '16px', textAlign: 'center' }}>
+            {v}s
+          </span>
+        ))}
       </div>
     </div>
   );
@@ -282,6 +285,10 @@ export function useTouchDragReorder(onReorder: (from: number, to: number) => voi
   const startPosRef = useRef<{ x: number; y: number } | null>(null);
   const isDraggingRef = useRef(false);
   const itemRectsRef = useRef<DOMRect[]>([]);
+  const overIndexRef = useRef<number | null>(null);
+  const dragIndexRef = useRef<number | null>(null);
+  const onReorderRef = useRef(onReorder);
+  onReorderRef.current = onReorder;
 
   const cleanup = useCallback(() => {
     if (ghostRef.current) {
@@ -293,17 +300,83 @@ export function useTouchDragReorder(onReorder: (from: number, to: number) => voi
       longPressTimerRef.current = null;
     }
     isDraggingRef.current = false;
+    dragIndexRef.current = null;
+    overIndexRef.current = null;
     setDragIndex(null);
     setOverIndex(null);
   }, []);
+
+  // Non-passive native touchmove/touchend on document during active drag.
+  // React 17+ registers onTouchMove as passive, so e.preventDefault() is a no-op.
+  // This native listener with { passive: false } actually prevents page scroll.
+  useEffect(() => {
+    const onNativeTouchMove = (e: TouchEvent) => {
+      if (!isDraggingRef.current || !ghostRef.current) return;
+      e.preventDefault();
+
+      const touch = e.touches[0];
+      if (!touch) return;
+
+      // Move ghost
+      ghostRef.current.style.left = `${touch.clientX - ghostRef.current.offsetWidth / 2}px`;
+      ghostRef.current.style.top = `${touch.clientY - 20}px`;
+
+      // Determine which slot we're over
+      const cy = touch.clientY;
+      let closest = -1;
+      let minDist = Infinity;
+      for (let i = 0; i < itemRectsRef.current.length; i++) {
+        const r = itemRectsRef.current[i]!;
+        const mid = r.top + r.height / 2;
+        const d = Math.abs(cy - mid);
+        if (d < minDist) { minDist = d; closest = i; }
+      }
+      if (closest >= 0) {
+        overIndexRef.current = closest;
+        setOverIndex(closest);
+      }
+
+      // Auto-scroll near edges
+      if (cy < 100) window.scrollBy({ top: -8, behavior: 'auto' });
+      if (cy > window.innerHeight - 100) window.scrollBy({ top: 8, behavior: 'auto' });
+    };
+
+    const onNativeTouchEnd = () => {
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+        longPressTimerRef.current = null;
+      }
+      if (isDraggingRef.current && dragIndexRef.current != null && overIndexRef.current != null && dragIndexRef.current !== overIndexRef.current) {
+        onReorderRef.current(dragIndexRef.current, overIndexRef.current);
+        try { navigator.vibrate?.(15); } catch { /* not supported */ }
+      }
+      cleanup();
+    };
+
+    document.addEventListener('touchmove', onNativeTouchMove, { passive: false });
+    document.addEventListener('touchend', onNativeTouchEnd);
+    return () => {
+      document.removeEventListener('touchmove', onNativeTouchMove);
+      document.removeEventListener('touchend', onNativeTouchEnd);
+    };
+  }, [cleanup]);
+
+  // Cleanup on unmount
+  useEffect(() => cleanup, [cleanup]);
 
   const handleTouchStart = useCallback((e: React.TouchEvent, index: number) => {
     const touch = e.touches[0];
     if (!touch) return;
     startPosRef.current = { x: touch.clientX, y: touch.clientY };
 
+    // Capture element ref synchronously — React clears e.currentTarget after handler returns
+    const targetEl = e.currentTarget as HTMLElement;
+    const targetRect = targetEl.getBoundingClientRect();
+    const targetHTML = targetEl.outerHTML;
+
     longPressTimerRef.current = setTimeout(() => {
       isDraggingRef.current = true;
+      dragIndexRef.current = index;
       setDragIndex(index);
       try { navigator.vibrate?.(30); } catch { /* not supported */ }
 
@@ -313,75 +386,40 @@ export function useTouchDragReorder(onReorder: (from: number, to: number) => voi
         itemRectsRef.current = Array.from(items).map(el => el.getBoundingClientRect());
       }
 
-      // Create ghost
-      const target = e.currentTarget as HTMLElement;
-      const rect = target.getBoundingClientRect();
+      // Create ghost from captured snapshot
       const ghost = document.createElement('div');
       ghost.style.cssText = `
         position:fixed; z-index:9999; pointer-events:none;
-        width:${rect.width}px; opacity:0.85; transform:scale(1.04);
+        width:${targetRect.width}px; opacity:0.85; transform:scale(1.04);
         border-radius:10px; box-shadow:0 8px 32px rgba(0,0,0,0.5);
         transition:none;
       `;
-      ghost.innerHTML = target.outerHTML;
+      ghost.innerHTML = targetHTML;
       document.body.appendChild(ghost);
-      ghost.style.left = `${rect.left}px`;
-      ghost.style.top = `${rect.top}px`;
+      ghost.style.left = `${targetRect.left}px`;
+      ghost.style.top = `${targetRect.top}px`;
       ghostRef.current = ghost;
     }, 200);
   }, []);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    // Cancel long-press if finger moved too far before activation
     const touch = e.touches[0];
     if (!touch) return;
-
-    // Cancel long-press if finger moved too far before activation
     if (!isDraggingRef.current && startPosRef.current && longPressTimerRef.current) {
       const dx = touch.clientX - startPosRef.current.x;
       const dy = touch.clientY - startPosRef.current.y;
       if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
         clearTimeout(longPressTimerRef.current);
         longPressTimerRef.current = null;
-        return;
       }
     }
-
-    if (!isDraggingRef.current || !ghostRef.current) return;
-    e.preventDefault();
-
-    // Move ghost
-    ghostRef.current.style.left = `${touch.clientX - ghostRef.current.offsetWidth / 2}px`;
-    ghostRef.current.style.top = `${touch.clientY - 20}px`;
-
-    // Determine which slot we're over
-    const cy = touch.clientY;
-    let closest = -1;
-    let minDist = Infinity;
-    for (let i = 0; i < itemRectsRef.current.length; i++) {
-      const r = itemRectsRef.current[i]!;
-      const mid = r.top + r.height / 2;
-      const d = Math.abs(cy - mid);
-      if (d < minDist) { minDist = d; closest = i; }
-    }
-    if (closest >= 0) setOverIndex(closest);
-
-    // Auto-scroll near edges
-    const scrollParent = containerRef.current?.closest('[style*="overflow"]') || window;
-    if (cy < 100) (scrollParent === window ? window : scrollParent as HTMLElement).scrollBy?.({ top: -8, behavior: 'auto' });
-    if (cy > window.innerHeight - 100) (scrollParent === window ? window : scrollParent as HTMLElement).scrollBy?.({ top: 8, behavior: 'auto' });
+    // Actual drag handling is done by the native document listener (non-passive)
   }, []);
 
   const handleTouchEnd = useCallback(() => {
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
-    if (isDraggingRef.current && dragIndex != null && overIndex != null && dragIndex !== overIndex) {
-      onReorder(dragIndex, overIndex);
-      try { navigator.vibrate?.(15); } catch { /* not supported */ }
-    }
-    cleanup();
-  }, [dragIndex, overIndex, onReorder, cleanup]);
+    // Actual end handling is done by the native document listener
+  }, []);
 
   return { containerRef, dragIndex, overIndex, handleTouchStart, handleTouchMove, handleTouchEnd };
 }
@@ -426,81 +464,131 @@ export const RallyQueueSlot: React.FC<{
       onTouchMove={onTouchDragMove}
       onTouchEnd={onTouchDragEnd}
       style={{
-        display: 'flex', alignItems: 'center', gap: isMobile ? '0.35rem' : '0.5rem',
-        padding: isMobile ? '0.4rem' : '0.45rem 0.65rem',
+        display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center',
+        gap: isMobile ? '0.25rem' : '0.5rem',
+        padding: isMobile ? '0.45rem 0.5rem' : '0.45rem 0.65rem',
         backgroundColor: isDragOver ? `${color}20` : `${color}08`,
         border: `1px solid ${isDragOver ? `${color}70` : `${color}30`}`,
         borderLeft: `3px solid ${teamColor}`,
         borderRadius: '10px',
         transition: isBeingDragged ? 'none' : 'all 0.15s',
-        cursor: 'grab', touchAction: 'none',
+        cursor: 'grab',
         opacity: isBeingDragged ? 0.3 : 1,
         transform: isDragOver ? 'scale(1.02)' : 'none',
       }}
     >
-      {/* Drag handle for mobile */}
-      {isMobile && (
+      {/* Row 1: badge + name + time (+ grip handle on desktop) */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '0.35rem' : '0.5rem', minWidth: 0 }}>
+        {/* Desktop grip handle */}
+        {!isMobile && (
+          <span style={{
+            display: 'flex', flexShrink: 0, cursor: 'grab',
+            color: '#4b5563', fontSize: '0.85rem', letterSpacing: '0.05em',
+            userSelect: 'none', padding: '0 0.15rem',
+          }} aria-hidden="true">⠇</span>
+        )}
         <span style={{
-          display: 'flex', flexDirection: 'column', gap: '3px', flexShrink: 0,
-          padding: '0.4rem 0.3rem', color: '#6b7280', minWidth: '28px', minHeight: '44px',
-          cursor: 'grab', touchAction: 'none', userSelect: 'none',
-          alignItems: 'center', justifyContent: 'center',
+          width: '20px', height: '20px', borderRadius: '50%',
+          backgroundColor: `${color}25`, color: color,
+          fontSize: '0.6rem', fontWeight: '700',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
         }}>
-          <span style={{ display: 'block', width: '16px', height: '2px', backgroundColor: '#4b5563', borderRadius: '1px' }} />
-          <span style={{ display: 'block', width: '16px', height: '2px', backgroundColor: '#4b5563', borderRadius: '1px' }} />
-          <span style={{ display: 'block', width: '16px', height: '2px', backgroundColor: '#4b5563', borderRadius: '1px' }} />
+          {index + 1}
         </span>
-      )}
-      <span style={{
-        width: '22px', height: '22px', borderRadius: '50%',
-        backgroundColor: `${color}25`, color: color,
-        fontSize: '0.65rem', fontWeight: '700',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-      }}>
-        {index + 1}
-      </span>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <span style={{ color: '#fff', fontSize: isMobile ? '0.8rem' : '1rem', fontWeight: '600' }}>
+        <span style={{ color: '#fff', fontSize: isMobile ? '0.8rem' : '1rem', fontWeight: '600', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {slot.playerName}
         </span>
-        <span style={{ color: '#9ca3af', fontSize: '0.75rem', marginLeft: '0.4rem' }}>
+        <span style={{ color: '#9ca3af', fontSize: '0.7rem', flexShrink: 0 }}>
           {slot.marchTime}s
         </span>
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', flexShrink: 0 }}>
-        <button
-          onClick={onToggleBuff}
-          className="rally-focusable"
-          aria-label={slot.useBuffed ? 'Using buffed march speed. Click to switch to regular' : 'Using regular march speed. Click to switch to buffed'}
-          aria-pressed={slot.useBuffed}
-          style={{
-            padding: '0.15rem 0.35rem', minWidth: '28px', minHeight: '28px',
-            backgroundColor: slot.useBuffed ? '#22c55e20' : 'transparent',
-            border: `1px solid ${slot.useBuffed ? '#22c55e50' : '#2a2a2a'}`,
-            borderRadius: '4px', cursor: 'pointer',
-            color: slot.useBuffed ? '#22c55e' : '#9ca3af',
-            fontSize: '0.6rem', fontWeight: '600',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}
-        >
-          {slot.useBuffed ? '⚡' : '🏃'}
-        </button>
-        {buffTimeRemaining != null && buffTimeRemaining > 0 && (
-          <span style={{
-            color: '#f59e0b', fontSize: '0.6rem', fontWeight: '600',
-            padding: '0.1rem 0.25rem', backgroundColor: '#f59e0b15',
-            border: '1px solid #f59e0b30', borderRadius: '3px',
-            whiteSpace: 'nowrap',
-          }}>
-            ⏱ {formatCountdown(buffTimeRemaining)}
-          </span>
+        {/* Desktop: buff + arrows inline */}
+        {!isMobile && (
+          <>
+            <div style={{ flex: 1 }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', flexShrink: 0 }}>
+              <button
+                onClick={onToggleBuff}
+                className="rally-focusable"
+                aria-label={slot.useBuffed ? 'Using buffed march speed. Click to switch to regular' : 'Using regular march speed. Click to switch to buffed'}
+                aria-pressed={slot.useBuffed}
+                style={{
+                  padding: '0.2rem 0.5rem', minWidth: '36px', minHeight: '26px',
+                  backgroundColor: slot.useBuffed ? '#22c55e20' : '#1a1a1a',
+                  border: `1px solid ${slot.useBuffed ? '#22c55e50' : '#2a2a2a'}`,
+                  borderRadius: '14px', cursor: 'pointer',
+                  color: slot.useBuffed ? '#22c55e' : '#9ca3af',
+                  fontSize: '0.6rem', fontWeight: '600',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.2rem',
+                  transition: 'all 0.15s',
+                }}
+              >
+                {slot.useBuffed ? '⚡' : '🏃'}
+                <span style={{ fontSize: '0.55rem' }}>{slot.useBuffed ? 'Buff' : 'Reg'}</span>
+              </button>
+              {buffTimeRemaining != null && buffTimeRemaining > 0 && (
+                <span style={{
+                  color: '#f59e0b', fontSize: '0.55rem', fontWeight: '600',
+                  padding: '0.1rem 0.25rem', backgroundColor: '#f59e0b15',
+                  border: '1px solid #f59e0b30', borderRadius: '3px',
+                  whiteSpace: 'nowrap', display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.3,
+                }}>
+                  <span>⏱ {formatCountdown(buffTimeRemaining)}</span>
+                  <span style={{ fontSize: '0.5rem', color: '#f59e0b80' }}>
+                    {new Date(Date.now() + buffTimeRemaining).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </span>
+              )}
+            </div>
+            <div style={{ display: 'flex', gap: '1px', flexShrink: 0 }}>
+              <button onClick={onMoveUp} disabled={index === 0} className="rally-focusable" aria-label={`Move ${slot.playerName} up`} style={arrowBtnStyle(index > 0, false)}>▲</button>
+              <button onClick={onMoveDown} disabled={index === total - 1} className="rally-focusable" aria-label={`Move ${slot.playerName} down`} style={arrowBtnStyle(index < total - 1, false)}>▼</button>
+              <button onClick={onRemove} className="rally-focusable" aria-label={`Remove ${slot.playerName} from queue`} style={{ ...arrowBtnStyle(true, false), color: '#ef4444' }}>✕</button>
+            </div>
+          </>
         )}
       </div>
-      <div style={{ display: 'flex', gap: isMobile ? '4px' : '1px', flexShrink: 0 }}>
-        <button onClick={onMoveUp} disabled={index === 0} className="rally-focusable" aria-label={`Move ${slot.playerName} up`} style={arrowBtnStyle(index > 0, isMobile)}>▲</button>
-        <button onClick={onMoveDown} disabled={index === total - 1} className="rally-focusable" aria-label={`Move ${slot.playerName} down`} style={arrowBtnStyle(index < total - 1, isMobile)}>▼</button>
-        <button onClick={onRemove} className="rally-focusable" aria-label={`Remove ${slot.playerName} from queue`} style={{ ...arrowBtnStyle(true, isMobile), color: '#ef4444' }}>✕</button>
-      </div>
+
+      {/* Row 2 (mobile only): buff toggle + move arrows + remove */}
+      {isMobile && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+            <button
+              onClick={onToggleBuff}
+              className="rally-focusable"
+              aria-label={slot.useBuffed ? 'Using buffed march speed. Click to switch to regular' : 'Using regular march speed. Click to switch to buffed'}
+              aria-pressed={slot.useBuffed}
+              style={{
+                padding: '0.15rem 0.45rem', minWidth: '52px', minHeight: '32px',
+                backgroundColor: slot.useBuffed ? '#22c55e20' : '#1a1a1a',
+                border: `1px solid ${slot.useBuffed ? '#22c55e50' : '#2a2a2a'}`,
+                borderRadius: '14px', cursor: 'pointer',
+                color: slot.useBuffed ? '#22c55e' : '#9ca3af',
+                fontSize: '0.6rem', fontWeight: '600',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.2rem',
+                transition: 'all 0.15s',
+              }}
+            >
+              {slot.useBuffed ? '⚡' : '🏃'}
+              <span style={{ fontSize: '0.55rem' }}>{slot.useBuffed ? 'Buff' : 'Reg'}</span>
+            </button>
+            {buffTimeRemaining != null && buffTimeRemaining > 0 && (
+              <span style={{
+                color: '#f59e0b', fontSize: '0.5rem', fontWeight: '600',
+                padding: '0.1rem 0.2rem', backgroundColor: '#f59e0b15',
+                border: '1px solid #f59e0b30', borderRadius: '3px',
+                whiteSpace: 'nowrap', lineHeight: 1.3,
+              }}>
+                ⏱ {formatCountdown(buffTimeRemaining)}
+              </span>
+            )}
+          </div>
+          <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
+            <button onClick={onMoveUp} disabled={index === 0} className="rally-focusable" aria-label={`Move ${slot.playerName} up`} style={arrowBtnStyle(index > 0, true)}>▲</button>
+            <button onClick={onMoveDown} disabled={index === total - 1} className="rally-focusable" aria-label={`Move ${slot.playerName} down`} style={arrowBtnStyle(index < total - 1, true)}>▼</button>
+            <button onClick={onRemove} className="rally-focusable" aria-label={`Remove ${slot.playerName} from queue`} style={{ ...arrowBtnStyle(true, true), color: '#ef4444' }}>✕</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -954,6 +1042,22 @@ export const CallOrderOutput: React.FC<{
             </span>
           </div>
         ))}
+      </div>
+
+      {/* Copy format preview */}
+      <div style={{
+        marginTop: '0.5rem', padding: '0.4rem 0.6rem',
+        backgroundColor: '#0d0d0d', border: '1px dashed #1a1a1a', borderRadius: '6px',
+      }}>
+        <div style={{ fontSize: '0.55rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.25rem' }}>
+          {t('battlePlanner.copyPreviewLabel', 'Copy preview')}
+        </div>
+        <pre style={{
+          fontSize: '0.6rem', color: '#9ca3af', margin: 0,
+          whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontFamily: 'monospace', lineHeight: 1.5,
+        }}>
+          {`📢 RALLY ORDER: ${getBuildingLabel(building, t)}\n\n${rallies.map(r => `${r.name} — T+${r.startDelay}s`).join('\n')}`}
+        </pre>
       </div>
     </div>
   );
