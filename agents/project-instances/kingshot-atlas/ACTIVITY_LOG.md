@@ -3,6 +3,37 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-21 08:50 | Platform Engineer | COMPLETED
+Task: Prep Scheduler reliability hardening + UX polish (instant remove, undo, batch clear, conflict detection)
+Files: usePrepScheduler.ts, PrepSchedulerManager.tsx, PrepScheduler.tsx, LATEST_KNOWLEDGE.md, all 9 i18n locale files
+Changes:
+1. **Instant slot removal** — optimistic update removes player from UI immediately on X click; server delete fires in background
+2. **5-second undo** — success toast "{{username}} removed from slot" with Undo button; cancels server delete if clicked within 5s
+3. **Disabled X during removal** — button grayed out + `not-allowed` cursor while pending, prevents double-clicks
+4. **Sentry breadcrumbs** — added to removeAssignment, assignSlot, clearDayAssignments for production monitoring
+5. **Clear Day button** — appears in Slots header when assignments exist; batch-deletes all assignments for active day with optimistic update
+6. **Assigned-by tooltip** — hover over assigned player row shows "Assigned by [manager name]"
+7. **Conflict detection** — realtime handler detects changes from other editors (different assigned_by), shows info toast with 10s debounce
+8. **Move between slots** — dropdown for empty slots now includes already-assigned players (with ↔ prefix + current slot), allowing drag-free reassignment
+9. **Realtime undo-safe** — fetchAssignments filters out pendingRemoveIds to prevent realtime from reverting optimistic removes during undo window
+10. **i18n** — 9 new keys translated across ES/FR/ZH/DE/KO/JA/AR/TR
+11. **LATEST_KNOWLEDGE.md** — documented optimistic update + undo pattern, .delete().select() gotcha, refreshSession() view-flicker bug
+Result: Build passes (✓ built in 3.09s). No regressions.
+
+## 2026-02-21 08:15 | Platform Engineer | COMPLETED
+Task: Fix Prep Scheduler slot removal + instant UI for remove/assign (no page refresh)
+Files: usePrepScheduler.ts
+Root causes found:
+1. **Auto-promotion re-inserted removed player** — After deleting an assignment, waitlist auto-promotion found the same player as the best candidate and re-inserted them into the same slot immediately.
+2. **`refreshSession()` caused view flicker** — Triggered `onAuthStateChange`, which briefly set `user` to null in the view-switching useEffect, causing the component to unmount (gate) and remount (manage) — looks like a page refresh.
+3. **No optimistic updates** — Both remove and assign waited for full server round-trip before updating UI.
+Fix:
+1. **Removed auto-promotion from `removeAssignment`** — manual removal leaves the slot empty for manager to reassign.
+2. **Removed all `refreshSession()` calls** from removeAssignment, assignSlot, runAutoAssign — `autoRefreshToken: true` handles token freshness.
+3. **Optimistic updates** — `removeAssignment` instantly filters the assignment from local state; `assignSlot` instantly pushes the new assignment to local state. Both revert on server error.
+4. **Simplified removeAssignment** — just `.delete()`, no `.select()`, no verification query, no retry logic. Revert-on-error pattern is cleaner.
+Result: Build passes. Instant UI updates, no page refresh.
+
 ## 2026-02-20 23:30 | Platform Engineer | COMPLETED
 Task: Fix Prep Scheduler slot removal — .delete().select() returning empty despite successful delete
 Files: usePrepScheduler.ts

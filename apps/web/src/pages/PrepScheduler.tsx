@@ -140,11 +140,13 @@ const PrepScheduler: React.FC = () => {
           runAutoAssign={hook.runAutoAssign}
           assignSlot={hook.assignSlot}
           removeAssignment={hook.removeAssignment}
+          clearDayAssignments={hook.clearDayAssignments}
           acknowledgeChangeRequest={hook.acknowledgeChangeRequest}
           addManager={hook.addManager}
           removeManagerById={hook.removeManagerById}
           updateDeadline={hook.updateDeadline}
           toggleStagger={hook.toggleStagger}
+          removingIds={hook.removingIds}
           effectiveSlots={hook.effectiveSlots}
           maxSlots={hook.maxSlots}
         />

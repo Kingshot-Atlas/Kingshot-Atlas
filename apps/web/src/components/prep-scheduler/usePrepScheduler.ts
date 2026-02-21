@@ -11,6 +11,7 @@ import { useToast } from '../Toast';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import { logger } from '../../utils/logger';
 import { RealtimeChannel } from '@supabase/supabase-js';
+import * as Sentry from '@sentry/react';
 import {
   PrepSchedule, PrepSubmission, ChangeRequest, SlotAssignment, EditorRecord,
   ManagerEntry, ManagerSearchResult, PendingConfirm,
@@ -95,6 +96,24 @@ export function usePrepScheduler() {
 
   // Confirmation dialog state (replaces native confirm())
   const [pendingConfirm, setPendingConfirm] = useState<PendingConfirm | null>(null);
+
+  // Slot removal state — undo support + disabled button tracking
+  const [removingIds, setRemovingIds] = useState<Set<string>>(new Set());
+  const pendingRemoveIds = useRef<Set<string>>(new Set());
+  const undoTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const lastConflictToast = useRef<number>(0);
+
+  // Cleanup pending deletes on unmount
+  useEffect(() => {
+    return () => {
+      undoTimers.current.forEach((timer, id) => {
+        clearTimeout(timer);
+        if (supabase) supabase.from('prep_slot_assignments').delete().eq('id', id);
+      });
+      undoTimers.current.clear();
+      pendingRemoveIds.current.clear();
+    };
+  }, []);
 
   // ─── Data Fetching ─────────────────────────────────────────────────
   const fetchMySchedules = useCallback(async () => {
@@ -189,7 +208,9 @@ export function usePrepScheduler() {
     if (!supabase) return;
     try {
       const { data } = await supabase.from('prep_slot_assignments').select('*').eq('schedule_id', schedId);
-      setAssignments(data || []);
+      // Filter out assignments with pending undo (not yet deleted on server)
+      const filtered = (data || []).filter(a => !pendingRemoveIds.current.has(a.id));
+      setAssignments(filtered);
     } catch (err) { logger.error('Failed to fetch assignments:', err); }
   }, []);
 
@@ -273,7 +294,15 @@ export function usePrepScheduler() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'prep_submissions', filter: `schedule_id=eq.${scheduleId}` },
         () => { fetchSubmissions(scheduleId); })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'prep_slot_assignments', filter: `schedule_id=eq.${scheduleId}` },
-        () => { fetchAssignments(scheduleId); })
+        (payload: { new?: Record<string, unknown>; old?: Record<string, unknown> }) => {
+          fetchAssignments(scheduleId);
+          // Conflict detection: notify when another editor changes assignments
+          const record = (payload.new || payload.old) as { assigned_by?: string } | undefined;
+          if (record?.assigned_by && record.assigned_by !== user?.id && Date.now() - lastConflictToast.current > 10000) {
+            lastConflictToast.current = Date.now();
+            showToast(t('prepScheduler.toastExternalChange', 'Schedule updated by another editor.'), 'info');
+          }
+        })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'prep_change_requests', filter: `schedule_id=eq.${scheduleId}` },
         () => { fetchChangeRequests(scheduleId); })
       .subscribe((status) => {
@@ -620,7 +649,6 @@ export function usePrepScheduler() {
     if (!supabase || !user?.id || !schedule) return;
     setSaving(true);
     try {
-      await supabase.auth.refreshSession();
       await supabase.from('prep_slot_assignments').delete().eq('schedule_id', schedule.id).eq('day', day);
       const newAssignments = autoAssignSlots(submissions, schedule, day);
       if (newAssignments.length > 0) {
@@ -636,66 +664,117 @@ export function usePrepScheduler() {
 
   const assignSlot = async (day: Day, slotTime: string, submissionId: string) => {
     if (!supabase || !user?.id || !schedule) return;
+
+    Sentry.addBreadcrumb({ category: 'prep-scheduler', message: 'Assign slot', data: { day, slotTime, submissionId, scheduleId: schedule.id }, level: 'info' });
+
+    // Optimistic update — add assignment to local state instantly
+    const prevAssignments = assignments;
+    const tempId = `temp-${Date.now()}`;
+    setAssignments(prev => {
+      // Remove any existing assignment for this slot + any existing assignment for this submission on same day
+      const filtered = prev.filter(a => !(a.schedule_id === schedule.id && a.day === day && a.slot_time === slotTime)
+        && !(a.schedule_id === schedule.id && a.day === day && a.submission_id === submissionId));
+      if (submissionId) {
+        filtered.push({ id: tempId, schedule_id: schedule.id, submission_id: submissionId, day, slot_time: slotTime, assigned_by: user!.id });
+      }
+      return filtered;
+    });
+
     try {
-      await supabase.auth.refreshSession();
+      // Clear existing slot assignment
       await supabase.from('prep_slot_assignments').delete().eq('schedule_id', schedule.id).eq('day', day).eq('slot_time', slotTime);
       if (submissionId) {
+        // Clear any other slot this submission had on the same day
         await supabase.from('prep_slot_assignments').delete().eq('schedule_id', schedule.id).eq('day', day).eq('submission_id', submissionId);
         await supabase.from('prep_slot_assignments').insert({ schedule_id: schedule.id, submission_id: submissionId, day, slot_time: slotTime, assigned_by: user.id });
       }
+      // Fetch real IDs from server to replace temp ID
       await fetchAssignments(schedule.id);
-    } catch (err) { logger.error('Failed to assign slot:', err); }
+    } catch (err) {
+      setAssignments(prevAssignments);
+      showToast(t('prepScheduler.toastAssignFailed', 'Failed to assign slot.'), 'error');
+      logger.error('[PrepScheduler] Failed to assign slot:', err);
+    }
   };
 
   const removeAssignment = async (assignmentId: string) => {
-    if (!supabase || !schedule || !user?.id) {
-      logger.error('[PrepScheduler] removeAssignment guard failed:', { supabase: !!supabase, schedule: !!schedule, userId: user?.id });
-      return;
-    }
+    if (!supabase || !schedule) return;
+    const removedAssignment = assignments.find(a => a.id === assignmentId);
+    if (!removedAssignment) return;
+
+    Sentry.addBreadcrumb({ category: 'prep-scheduler', message: 'Remove assignment', data: { assignmentId, scheduleId: schedule.id }, level: 'info' });
+
+    // Track as removing (disables X button)
+    setRemovingIds(prev => new Set(prev).add(assignmentId));
+
+    // Optimistic remove — instant UI update
+    setAssignments(prev => prev.filter(a => a.id !== assignmentId));
+    pendingRemoveIds.current.add(assignmentId);
+
+    const username = submissions.find(s => s.id === removedAssignment.submission_id)?.username || 'Player';
+
+    // Delayed server delete — 5 second undo window
+    const executeDelete = async () => {
+      undoTimers.current.delete(assignmentId);
+      try {
+        const { error } = await supabase!.from('prep_slot_assignments').delete().eq('id', assignmentId);
+        if (error) {
+          logger.error('[PrepScheduler] Delete error:', error);
+          pendingRemoveIds.current.delete(assignmentId);
+          setAssignments(prev => !prev.find(a => a.id === assignmentId) && removedAssignment ? [...prev, removedAssignment] : prev);
+          showToast(t('prepScheduler.toastRemoveError', 'Error removing assignment.'), 'error');
+        }
+      } catch (err) {
+        logger.error('[PrepScheduler] Failed to remove assignment:', err);
+        pendingRemoveIds.current.delete(assignmentId);
+        setAssignments(prev => !prev.find(a => a.id === assignmentId) && removedAssignment ? [...prev, removedAssignment] : prev);
+        showToast(t('prepScheduler.toastRemoveError', 'Error removing assignment.'), 'error');
+      } finally {
+        pendingRemoveIds.current.delete(assignmentId);
+        setRemovingIds(prev => { const next = new Set(prev); next.delete(assignmentId); return next; });
+      }
+    };
+
+    const timer = setTimeout(executeDelete, 5000);
+    undoTimers.current.set(assignmentId, timer);
+
+    // Success toast with Undo button (5s window)
+    showToast(
+      t('prepScheduler.toastSlotCleared', '{{username}} removed from slot.', { username }),
+      'success',
+      5500,
+      () => {
+        // Undo: cancel pending delete, restore assignment
+        const pending = undoTimers.current.get(assignmentId);
+        if (pending) clearTimeout(pending);
+        undoTimers.current.delete(assignmentId);
+        pendingRemoveIds.current.delete(assignmentId);
+        setAssignments(prev => !prev.find(a => a.id === assignmentId) && removedAssignment ? [...prev, removedAssignment] : prev);
+        setRemovingIds(prev => { const next = new Set(prev); next.delete(assignmentId); return next; });
+      },
+      t('prepScheduler.undo', 'Undo'),
+    );
+  };
+
+  const clearDayAssignments = async (day: Day) => {
+    if (!supabase || !schedule) return;
+    const dayAssigns = assignments.filter(a => a.day === day && a.schedule_id === schedule.id);
+    if (dayAssigns.length === 0) return;
+
+    Sentry.addBreadcrumb({ category: 'prep-scheduler', message: 'Clear day assignments', data: { day, count: dayAssigns.length, scheduleId: schedule.id }, level: 'info' });
+
+    const prev = assignments;
+    setAssignments(p => p.filter(a => !(a.day === day && a.schedule_id === schedule.id)));
+
     try {
-      const toRemove = assignments.find(a => a.id === assignmentId);
-      if (!toRemove) { logger.error('[PrepScheduler] Assignment not found in local state:', assignmentId); return; }
-
-      // Ensure fresh JWT before write operation
-      await supabase.auth.refreshSession();
-
-      // Delete without .select() — avoids known issue where .delete().select()
-      // returns empty results with complex RLS policies despite successful delete
-      const { error: delError } = await supabase
-        .from('prep_slot_assignments')
-        .delete()
-        .eq('id', assignmentId);
-
-      if (delError) throw delError;
-
-      // Verify: check if the row still exists (RLS silently blocks deletes by returning 0 rows, no error)
-      const { data: stillExists } = await supabase
-        .from('prep_slot_assignments')
-        .select('id')
-        .eq('id', assignmentId)
-        .maybeSingle();
-
-      if (stillExists) {
-        // Row survived — RLS blocked the delete
-        showToast(t('prepScheduler.toastRemoveFailed', 'Failed to remove assignment. You may not have permission.'), 'error');
-        return;
-      }
-
-      // Delete confirmed — run waitlist auto-promotion
-      const day = toRemove.day as Day;
-      const slotTime = toRemove.slot_time;
-      const currentAssignedIds = new Set(assignments.filter(a => a.day === day && a.id !== assignmentId).map(a => a.submission_id));
-      const availKey = `${day}_availability` as keyof PrepSubmission;
-      const candidates = submissions
-        .filter(s => !currentAssignedIds.has(s.id) && !isSkippedDay(s, day))
-        .filter(s => { const avail = (s[availKey] as string[][] | undefined) || []; return isSlotInAvailability(slotTime, avail); })
-        .sort((a, b) => getEffectiveSpeedups(b, day, schedule) - getEffectiveSpeedups(a, day, schedule));
-      const next = candidates[0];
-      if (next) {
-        await supabase.from('prep_slot_assignments').insert({ schedule_id: schedule.id, submission_id: next.id, day, slot_time: slotTime, assigned_by: user.id });
-      }
-      await fetchAssignments(schedule.id);
-    } catch (err) { logger.error('[PrepScheduler] Failed to remove assignment:', err); showToast(t('prepScheduler.toastRemoveError', 'Error removing assignment.'), 'error'); }
+      const { error } = await supabase.from('prep_slot_assignments').delete().eq('schedule_id', schedule.id).eq('day', day);
+      if (error) { setAssignments(prev); showToast(t('prepScheduler.toastClearFailed', 'Failed to clear assignments.'), 'error'); }
+      else showToast(t('prepScheduler.toastDayCleared', 'All {{day}} assignments cleared.', { day: getDayLabel(day, t) }), 'success');
+    } catch (err) {
+      setAssignments(prev);
+      showToast(t('prepScheduler.toastClearFailed', 'Failed to clear assignments.'), 'error');
+      logger.error('[PrepScheduler] Failed to clear day:', err);
+    }
   };
 
   const copyShareLink = () => {
@@ -861,10 +940,12 @@ export function usePrepScheduler() {
     // Computed
     effectiveSlots, maxSlots,
     dayAssignments, daySubmissions, unassignedPlayers, availabilityGaps,
+    // Slot management state
+    removingIds,
     // Actions
     createSchedule, closeOrReopenForm, toggleStagger, toggleLock, archiveSchedule, deleteSchedule, updateDeadline,
     submitForm, submitChangeRequest, acknowledgeChangeRequest,
-    runAutoAssign, assignSlot, removeAssignment,
+    runAutoAssign, assignSlot, removeAssignment, clearDayAssignments,
     copyShareLink, exportScheduleCSV, exportOptedOut,
     handleScreenshotChange, addManager, removeManagerById,
     startAltSubmission, editSubmission,

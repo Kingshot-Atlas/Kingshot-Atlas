@@ -49,11 +49,13 @@ interface PrepSchedulerManagerProps {
   runAutoAssign: (day: Day) => Promise<void>;
   assignSlot: (day: Day, slotTime: string, submissionId: string) => Promise<void>;
   removeAssignment: (assignmentId: string) => Promise<void>;
+  clearDayAssignments: (day: Day) => Promise<void>;
   acknowledgeChangeRequest: (reqId: string) => Promise<void>;
   addManager: (userId: string, username: string) => Promise<void>;
   removeManagerById: (mgrId: string, userId: string) => Promise<void>;
   updateDeadline?: (newDeadline: string) => Promise<void>;
   toggleStagger: () => Promise<void>;
+  removingIds: Set<string>;
   effectiveSlots: string[];
   maxSlots: number;
 }
@@ -69,9 +71,9 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
     showManagerDropdown, setShowManagerDropdown, managerSearchRef,
     copyShareLink, exportScheduleCSV, exportOptedOut,
     setView, closeOrReopenForm, toggleLock, archiveSchedule, deleteSchedule,
-    runAutoAssign, assignSlot, removeAssignment,
+    runAutoAssign, assignSlot, removeAssignment, clearDayAssignments,
     acknowledgeChangeRequest, addManager, removeManagerById, updateDeadline,
-    toggleStagger, effectiveSlots, maxSlots,
+    toggleStagger, removingIds, effectiveSlots, maxSlots,
   } = props;
 
   const cardStyle: React.CSSProperties = {
@@ -450,7 +452,14 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
 
           {/* Slot Assignment Grid */}
           <div style={cardStyle}>
-            <h3 style={{ color: DAY_COLORS[activeDay], fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.5rem' }}>🗓️ {t('prepScheduler.slots', 'Slots')}</h3>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+              <h3 style={{ color: DAY_COLORS[activeDay], fontSize: '0.85rem', fontWeight: 700, margin: 0 }}>🗓️ {t('prepScheduler.slots', 'Slots')}</h3>
+              {dayAssignments.length > 0 && (
+                <button onClick={() => clearDayAssignments(activeDay)} style={{ background: 'none', border: `1px solid ${colors.error}20`, borderRadius: '4px', color: colors.error, cursor: 'pointer', fontSize: '0.6rem', padding: '0.15rem 0.4rem', opacity: 0.7 }}>
+                  {t('prepScheduler.clearDay', 'Clear Day')}
+                </button>
+              )}
+            </div>
             {isMobile && !showAllSlots && (
               <p style={{ color: colors.textMuted, fontSize: '0.7rem', marginBottom: '0.4rem' }}>
                 {t('prepScheduler.showingAssigned', 'Showing assigned slots only.')}
@@ -476,24 +485,31 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
                       minHeight: isMobile ? '44px' : undefined }}>
                       <span style={{ color: isGap ? colors.error : colors.textMuted, fontSize: isMobile ? '0.8rem' : '0.65rem', fontFamily: 'monospace', width: isMobile ? '44px' : '36px', flexShrink: 0, fontWeight: assignment ? 600 : 400 }}>{slot}</span>
                       {assignment && assignedSub ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flex: 1, minWidth: 0 }}
+                          title={assignment.assigned_by ? `${t('prepScheduler.assignedBy', 'Assigned by')} ${managers.find(m => m.user_id === assignment.assigned_by)?.username || submissions.find(s => s.user_id === assignment.assigned_by)?.username || t('prepScheduler.manager', 'Manager')}` : undefined}>
                           <span style={{ color: DAY_COLORS[activeDay], fontSize: isMobile ? '0.85rem' : '0.7rem', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{assignedSub.username}</span>
-                          <button onClick={() => removeAssignment(assignment.id)} style={{ marginLeft: 'auto', background: 'none', border: isMobile ? `1px solid ${colors.error}30` : 'none', borderRadius: isMobile ? '6px' : 0, color: colors.error, cursor: 'pointer', fontSize: isMobile ? '0.8rem' : '0.7rem', padding: isMobile ? '0.25rem 0.5rem' : '0 0.15rem', flexShrink: 0, minHeight: isMobile ? '32px' : undefined }}>×</button>
+                          <button onClick={() => removeAssignment(assignment.id)} disabled={removingIds.has(assignment.id)} style={{ marginLeft: 'auto', background: 'none', border: isMobile ? `1px solid ${colors.error}30` : 'none', borderRadius: isMobile ? '6px' : 0, color: removingIds.has(assignment.id) ? colors.textMuted : colors.error, cursor: removingIds.has(assignment.id) ? 'not-allowed' : 'pointer', fontSize: isMobile ? '0.8rem' : '0.7rem', padding: isMobile ? '0.25rem 0.5rem' : '0 0.15rem', flexShrink: 0, minHeight: isMobile ? '32px' : undefined, opacity: removingIds.has(assignment.id) ? 0.4 : 1 }}>×</button>
                         </div>
                       ) : (
                         <select value="" onChange={(e) => { if (e.target.value) assignSlot(activeDay, slot, e.target.value); }}
                           style={{ flex: 1, padding: isMobile ? '0.4rem 0.3rem' : '0.1rem 0.2rem', backgroundColor: 'transparent', border: `1px solid ${colors.borderSubtle}`, borderRadius: '4px', color: colors.textMuted, fontSize: isMobile ? '0.85rem' : '0.65rem', minWidth: 0 }}>
                           <option value="">{isGap ? '⚠️ none' : '—'}</option>
                           {submissions
-                            .filter(s => !dayAssignments.find(a => a.submission_id === s.id) && !isSkippedDay(s, activeDay))
-                            .sort((a, b) => getEffectiveSpeedups(b, activeDay, schedule) - getEffectiveSpeedups(a, activeDay, schedule))
+                            .filter(s => !isSkippedDay(s, activeDay))
+                            .sort((a, b) => {
+                              const aAssigned = dayAssignments.some(da => da.submission_id === a.id);
+                              const bAssigned = dayAssignments.some(da => da.submission_id === b.id);
+                              if (aAssigned !== bAssigned) return aAssigned ? 1 : -1;
+                              return getEffectiveSpeedups(b, activeDay, schedule) - getEffectiveSpeedups(a, activeDay, schedule);
+                            })
                             .map(s => {
                               const sAvailKey = `${activeDay}_availability` as keyof PrepSubmission;
                               const sAvail = (s[sAvailKey] as string[][] | undefined) || [];
                               const inAvail = isSlotInAvailability(slot, sAvail);
+                              const existingSlot = dayAssignments.find(da => da.submission_id === s.id);
                               return (
                                 <option key={s.id} value={s.id}>
-                                  {!inAvail ? '⚠️ ' : ''}{s.username}
+                                  {!inAvail ? '⚠️ ' : ''}{existingSlot ? `↔ ` : ''}{s.username}{existingSlot ? ` (${existingSlot.slot_time})` : ''}
                                 </option>
                               );
                             })

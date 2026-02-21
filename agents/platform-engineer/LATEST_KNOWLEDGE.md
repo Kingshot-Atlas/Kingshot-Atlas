@@ -1,7 +1,45 @@
 # Platform Engineer — Latest Knowledge
 
-**Last Updated:** 2026-02-08  
+**Last Updated:** 2026-02-21  
 **Purpose:** Current best practices for backend development, security, and performance
+
+---
+
+## Supabase Optimistic Updates + Undo Pattern (2026-02-21)
+
+**Problem:** Supabase `.delete().select()` can return empty results even on successful deletes when complex RLS policies are involved (confirmed with `@supabase/supabase-js` v2.93.3). Additionally, `supabase.auth.refreshSession()` triggers `onAuthStateChange`, which can briefly null the `user` object, causing React components that depend on `user` in their view-switching `useEffect` to unmount and remount (looks like a page refresh).
+
+**Pattern — Optimistic Delete with Undo:**
+```typescript
+// 1. Track removal state for UI (disabled button)
+setRemovingIds(prev => new Set(prev).add(id));
+// 2. Optimistic remove — instant UI
+setItems(prev => prev.filter(a => a.id !== id));
+pendingRemoveIds.current.add(id); // block realtime from reverting
+// 3. Delayed server delete (5s undo window)
+const timer = setTimeout(executeDelete, 5000);
+// 4. Show toast with Undo action
+showToast(msg, 'success', 5500, undoCallback, 'Undo');
+// 5. On undo: clearTimeout, restore item, clear pending
+// 6. On execute: .delete().eq('id', id) — NO .select()
+// 7. On error: revert optimistic state
+```
+
+**Key rules:**
+- **Never use `.delete().select()`** — use `.delete()` alone, verify via separate query if needed
+- **Never call `refreshSession()` before UI operations** — `autoRefreshToken: true` handles this; manual refresh causes view flicker
+- **Block realtime during undo window** — filter `pendingRemoveIds` out of `fetchAssignments` results to prevent realtime from reverting optimistic state
+- **Cleanup on unmount** — execute all pending deletes immediately via `useEffect` cleanup
+- **Revert uses functional updater** — `setItems(prev => ...)` to avoid stale closures
+
+**Pattern — Optimistic Insert:**
+```typescript
+// 1. Immediately push temp item to state (tempId = `temp-${Date.now()}`)
+// 2. Server insert + fetchAll to replace temp ID with real ID
+// 3. On error: revert to previous state snapshot
+```
+
+**Conflict Detection:** In Supabase realtime handler, check `payload.new.assigned_by !== user?.id` to detect changes from other editors. Debounce notifications (10s cooldown) to avoid toast spam.
 
 ---
 
