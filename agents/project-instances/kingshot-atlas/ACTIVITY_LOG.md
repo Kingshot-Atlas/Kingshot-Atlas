@@ -3,6 +3,14 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-20 23:15 | Platform Engineer | COMPLETED
+Task: Fix Discord login timeout on mobile + Prep Scheduler slot removal permission error
+Files: AuthCallback.tsx, usePrepScheduler.ts
+Changes:
+1. **Discord login fix** — Added explicit `exchangeCodeForSession(code)` call in AuthCallback for immediate PKCE exchange instead of relying on silent `detectSessionInUrl`. On failure (code_verifier lost on mobile), shows error immediately instead of waiting 20s. Reduced hard timeout from 20s→15s, retry button from 8s→6s. Retry now clears stale PKCE state via signOut before re-initiating OAuth.
+2. **Slot removal fix** — Added session refresh + retry pattern to `removeAssignment()`: if delete returns 0 rows (expired JWT), refreshes session and retries once before showing error. Same proactive `refreshSession()` added to `assignSlot()` and `runAutoAssign()` to prevent stale JWT blocking write operations.
+Result: Build passes. No new i18n keys needed.
+
 ## 2026-02-20 22:45 | Product Engineer | COMPLETED
 Task: Recruiter Dashboard P3/P4 improvements, Player Directory enhancements, Campaign banner removal
 Files: RecruiterDashboard.tsx, KingdomProfileTab.tsx, useSendInvite.ts, WatchlistTab.tsx, UserDirectory.tsx, App.tsx, KingdomCommunities.tsx

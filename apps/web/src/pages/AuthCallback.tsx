@@ -53,21 +53,23 @@ const AuthCallback: React.FC = () => {
   const [provider] = useState(detectProvider);
 
   // Re-initiate sign-in (works for both Discord and Google)
-  const retrySignIn = useCallback(async (provider?: 'discord' | 'google') => {
+  const retrySignIn = useCallback(async (retryProvider?: 'discord' | 'google') => {
     if (!supabase) { window.location.href = '/profile'; return; }
     setError(null);
-    if (provider) {
+    setShowRetry(false);
+    // Clear any stale PKCE state before retrying
+    await supabase.auth.signOut().catch(() => {});
+    const target = retryProvider || provider;
+    if (target) {
       const { error: oauthErr } = await supabase.auth.signInWithOAuth({
-        provider,
+        provider: target,
         options: { redirectTo: `${window.location.origin}/auth/callback` },
       });
       if (oauthErr) setError(t('auth.callbackRetryFailed', 'Failed to start sign-in. Please try again.'));
     } else {
-      // Generic retry: sign out stale state, go to profile
-      await supabase.auth.signOut().catch(() => {});
       window.location.href = '/profile';
     }
-  }, []);
+  }, [provider]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase) {
@@ -162,11 +164,55 @@ const AuthCallback: React.FC = () => {
 
     // ─── 3. Credentials present — wait for session ───────────────────
 
-    // Show retry button after 8s (was 6s — more time for mobile)
-    const retryTimerId = setTimeout(() => { if (!cancelled) setShowRetry(true); }, 8000);
+    // Listen for auth state changes (fires when Supabase processes the code/hash)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) redirect();
+    });
 
-    // Hard timeout: 20s (was 12s). Uses non-blocking getSession to avoid
-    // hanging when the PKCE exchange request is stuck on slow mobile networks.
+    // ─── 3a. PKCE code present — try explicit exchange first ──────────
+    // This is faster and more reliable than detectSessionInUrl, especially
+    // on mobile where the code_verifier in localStorage can be lost.
+    let exchangeAttempted = false;
+    if (hasPKCECode) {
+      exchangeAttempted = true;
+      (async () => {
+        try {
+          const { data, error: exchErr } = await supabase!.auth.exchangeCodeForSession(pkceCode!);
+          if (cancelled) return;
+          if (data?.session && !exchErr) {
+            redirect();
+            return;
+          }
+          // Exchange failed — likely code_verifier missing (mobile app-switch)
+          const errMsg = exchErr?.message || 'unknown';
+          logger.error('[AuthCallback] exchangeCodeForSession failed:', errMsg);
+          Sentry.captureMessage('PKCE exchange failed', {
+            level: 'warning',
+            extra: { error: errMsg, provider: provider || 'unknown' },
+          });
+          // Check if detectSessionInUrl already handled it
+          const existingSession = await getSessionSafe(2000);
+          if (existingSession) {
+            redirect();
+            return;
+          }
+          // Immediate feedback — don't make the user wait 20s
+          setError(
+            t('auth.callbackPkceFailed', 'Sign-in verification failed. This can happen on mobile browsers or when switching apps during sign-in.')
+          );
+          setShowRetry(true);
+        } catch (err) {
+          if (cancelled) return;
+          logger.error('[AuthCallback] exchangeCodeForSession exception:', err);
+          // Fall through to polling as last resort
+        }
+      })();
+    }
+
+    // Show retry button after 6s (fallback for hash-based flows or if exchange is slow)
+    const retryTimerId = setTimeout(() => { if (!cancelled) setShowRetry(true); }, 6000);
+
+    // Hard timeout: 15s. If exchange already failed, this is a safety net for hash flows.
     const timeoutId = setTimeout(async () => {
       if (cancelled) return;
       const session = await getSessionSafe(3000);
@@ -174,27 +220,17 @@ const AuthCallback: React.FC = () => {
         redirect();
         return;
       }
-      // Exchange failed — build a helpful error message
       const failureContext = hasPKCECode ? 'pkce' : hasHash ? 'hash' : 'none';
-      logger.error('[AuthCallback] Timeout — no session after 20s', { failureContext, pollCount });
+      logger.error('[AuthCallback] Timeout — no session after 15s', { failureContext, pollCount });
       Sentry.captureMessage('Auth callback timeout — session not established', {
         level: 'warning',
-        extra: { hasPKCECode, hasHash, pollCount, failureContext },
+        extra: { hasPKCECode, hasHash, pollCount, failureContext, exchangeAttempted },
       });
-
-      if (hasPKCECode) {
-        setError(
-          t('auth.callbackPkceFailed', 'Sign-in verification failed. This can happen on mobile browsers or when switching apps during sign-in.')
-        );
-      } else {
+      if (!exchangeAttempted || !error) {
         setError(t('auth.callbackSlow', 'Sign-in is taking longer than expected.'));
       }
-    }, 20000);
-
-    // Listen for auth state changes (fires when Supabase processes the code/hash)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) redirect();
-    });
+      setShowRetry(true);
+    }, 15000);
 
     // Poll for session every 2s using non-blocking getSession
     const pollSession = async () => {

@@ -620,6 +620,7 @@ export function usePrepScheduler() {
     if (!supabase || !user?.id || !schedule) return;
     setSaving(true);
     try {
+      await supabase.auth.refreshSession();
       await supabase.from('prep_slot_assignments').delete().eq('schedule_id', schedule.id).eq('day', day);
       const newAssignments = autoAssignSlots(submissions, schedule, day);
       if (newAssignments.length > 0) {
@@ -636,6 +637,7 @@ export function usePrepScheduler() {
   const assignSlot = async (day: Day, slotTime: string, submissionId: string) => {
     if (!supabase || !user?.id || !schedule) return;
     try {
+      await supabase.auth.refreshSession();
       await supabase.from('prep_slot_assignments').delete().eq('schedule_id', schedule.id).eq('day', day).eq('slot_time', slotTime);
       if (submissionId) {
         await supabase.from('prep_slot_assignments').delete().eq('schedule_id', schedule.id).eq('day', day).eq('submission_id', submissionId);
@@ -650,13 +652,29 @@ export function usePrepScheduler() {
     try {
       const toRemove = assignments.find(a => a.id === assignmentId);
       if (!toRemove) { logger.error('Assignment not found:', assignmentId); return; }
-      // Delete with select to verify it actually happened (RLS can silently block)
-      const { data: deleted, error: delError } = await supabase
-        .from('prep_slot_assignments')
-        .delete()
-        .eq('id', assignmentId)
-        .select();
+
+      // Attempt delete — refresh session and retry once if RLS silently blocks (expired JWT)
+      const attemptDelete = async () => {
+        const { data, error: err } = await supabase!
+          .from('prep_slot_assignments')
+          .delete()
+          .eq('id', assignmentId)
+          .select();
+        return { data, error: err };
+      };
+
+      let { data: deleted, error: delError } = await attemptDelete();
       if (delError) throw delError;
+
+      // If delete returned 0 rows, refresh session and retry once
+      if (!deleted || deleted.length === 0) {
+        logger.info('[PrepScheduler] Delete returned 0 rows, refreshing session and retrying');
+        await supabase.auth.refreshSession();
+        const retry = await attemptDelete();
+        if (retry.error) throw retry.error;
+        deleted = retry.data;
+      }
+
       if (!deleted || deleted.length === 0) {
         showToast(t('prepScheduler.toastRemoveFailed', 'Failed to remove assignment. You may not have permission.'), 'error');
         return;
