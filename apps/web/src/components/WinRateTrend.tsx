@@ -13,8 +13,8 @@ const WinRateTrend: React.FC<WinRateTrendProps> = ({ records, type }) => {
   
   if (!records || records.length < 2) return null;
 
-  const isWin = (result: string) => result === 'Win' || result === 'W';
-  const last10 = records.slice(0, 10);
+  const isWin = (result: string | null) => result === 'Win' || result === 'W';
+  const last10 = records.filter(r => r.prep_result !== null && r.battle_result !== null).slice(0, 10);
   const wins = last10.map(r => type === 'prep' ? isWin(r.prep_result) : isWin(r.battle_result));
   
   // Calculate trend (positive = improving, negative = declining)

@@ -2240,6 +2240,8 @@
     "Comeback": "Remontée",
     "Bye": "Exempt",
     "byeDesc": "Pas d'adversaire ce tour",
+    "Pending": "En attente",
+    "pendingDesc": "Résultats pas encore signalés",
     "noMatch": "Pas de match"
   },
   "giftCodes": {

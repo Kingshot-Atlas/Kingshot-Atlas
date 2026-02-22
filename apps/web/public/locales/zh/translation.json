@@ -2240,6 +2240,8 @@
     "Comeback": "反击",
     "Bye": "轮空",
     "byeDesc": "本轮无对手",
+    "Pending": "待定",
+    "pendingDesc": "结果尚未报告",
     "noMatch": "无对战"
   },
   "giftCodes": {

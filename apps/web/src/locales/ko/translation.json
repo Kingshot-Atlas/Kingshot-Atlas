@@ -2240,6 +2240,8 @@
     "Comeback": "반격",
     "Bye": "부전승",
     "byeDesc": "이번 라운드 상대 없음",
+    "Pending": "대기 중",
+    "pendingDesc": "결과가 아직 보고되지 않음",
     "noMatch": "대전 없음"
   },
   "giftCodes": {

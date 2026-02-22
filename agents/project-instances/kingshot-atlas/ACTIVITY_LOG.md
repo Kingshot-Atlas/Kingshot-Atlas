@@ -3,6 +3,18 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-21 20:30 | Platform Engineer | COMPLETED
+Task: Fix incomplete matchup display — NULL results shown as L/L/Invasion across entire frontend
+Files: kvkHistoryService.ts, KvKHistoryTable.tsx, kingdomsSupabaseService.ts, types/index.ts, ReportKvKErrorModal.tsx, TrendChart.tsx, WinRateTrend.tsx, RecentKvKs.tsx, PhaseCards.tsx, 9 locale files
+Changes:
+1. **Root cause** — `kvkHistoryService.ts` line 294: `rawPrepResult ?? 'L'` converted NULL to 'L'. `kingdomsSupabaseService.ts` line 142: `r.prep_result === 'W' ? 'Win' : 'Loss'` also converted NULL to 'Loss'. These two conversions made incomplete matchups appear as double losses (Invasion) everywhere.
+2. **Service fix** — Preserved NULL as distinct state through the entire data pipeline. Added `isPending` detection in service layer, setting `overall_result: 'Pending'` for incomplete matchups.
+3. **UI fix** — Added "Pending" state (yellow ⏳ badge) distinct from "Bye" (gray ⏸️) across: KvKHistoryTable, RecentKvKs dots, KingdomCard tooltips. Shows opponent link + dashes for prep/battle.
+4. **Type fix** — Updated `KVKRecord.prep_result` and `battle_result` to `string | null` in types/index.ts. Fixed all 9 consuming components for null safety.
+5. **Chart/trend fix** — TrendChart, WinRateTrend, PhaseCards now filter out incomplete matchups before calculations.
+6. **i18n** — Added "Pending"/"pendingDesc" translations to all 9 locales (EN/ES/FR/ZH/DE/KO/JA/AR/TR).
+Result: Incomplete matchups now show as -/-/⏳ Pending on kingdom profiles and KvK cards. Scores, streaks, and win rates unaffected by incomplete data. KvK #11 visible in seasons dropdown.
+
 ## 2026-02-21 20:15 | Platform Engineer | COMPLETED
 Task: Fix KvK #11 incomplete matchup scoring bug + add KvK #11 to seasons dropdown
 Files: KvKSeasons.tsx, DB: 7 PostgreSQL functions + 1 trigger

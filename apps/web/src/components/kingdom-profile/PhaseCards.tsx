@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next';
 
 interface KvKRecord {
   kvk_number: number;
-  prep_result: string;
-  battle_result: string;
+  prep_result: string | null;
+  battle_result: string | null;
   overall_result?: string;
 }
 
@@ -42,7 +42,8 @@ const PhaseCards: React.FC<PhaseCardsProps> = ({
     kvk.prep_result?.toLowerCase() === 'bye' || 
     kvk.battle_result?.toLowerCase() === 'bye' || 
     kvk.overall_result?.toLowerCase() === 'bye';
-  const nonByeKvks = sortedKvks.filter(kvk => !isByeResult(kvk));
+  // Filter out Byes AND incomplete matchups (null results)
+  const nonByeKvks = sortedKvks.filter(kvk => !isByeResult(kvk) && kvk.prep_result !== null && kvk.battle_result !== null);
 
   // Calculate prep streak
   let prepStreak = 0;

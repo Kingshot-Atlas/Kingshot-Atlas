@@ -2240,6 +2240,8 @@
     "Comeback": "Geri Dönüş",
     "Bye": "Bye",
     "byeDesc": "Bu turda rakip yok",
+    "Pending": "Beklemede",
+    "pendingDesc": "Sonuçlar henüz bildirilmedi",
     "noMatch": "Eşleşme yok"
   },
   "giftCodes": {

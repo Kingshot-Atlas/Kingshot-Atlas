@@ -2240,6 +2240,8 @@
     "Comeback": "Comeback",
     "Bye": "Bye",
     "byeDesc": "No opponent this round",
+    "Pending": "Pending",
+    "pendingDesc": "Results not yet reported",
     "noMatch": "No match"
   },
   "giftCodes": {

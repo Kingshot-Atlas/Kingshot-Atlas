@@ -15,7 +15,7 @@ const RecentKvKs: React.FC<RecentKvKsProps> = ({ recentKvks }) => {
   // Get last 5 for display (most recent 5, but in chronological order)
   const recentResults = sortedKvks.slice(-5);
 
-  const isWinResult = (r: string) => r === 'Win' || r === 'W';
+  const isWinResult = (r: string | null) => r === 'Win' || r === 'W';
 
   if (recentResults.length === 0) {
     return (
@@ -28,15 +28,22 @@ const RecentKvKs: React.FC<RecentKvKsProps> = ({ recentKvks }) => {
   return (
     <div style={{ display: 'flex', gap: '4px' }}>
       {recentResults.map((kvk, index) => {
-        const isByeResult = kvk.overall_result?.toLowerCase() === 'bye' || kvk.prep_result === null || kvk.battle_result === null || kvk.opponent_kingdom === 0 || kvk.prep_result === 'B' || kvk.battle_result === 'B';
+        // Pending: has opponent but missing results (incomplete matchup)
+        const isPending = kvk.overall_result?.toLowerCase() === 'pending' ||
+          (kvk.opponent_kingdom > 0 && (kvk.prep_result === null || kvk.battle_result === null) && kvk.prep_result !== 'B' && kvk.battle_result !== 'B');
+        const isByeResult = !isPending && (
+          kvk.overall_result?.toLowerCase() === 'bye' || kvk.opponent_kingdom === 0 || kvk.prep_result === 'B' || kvk.battle_result === 'B'
+        );
+        const noResults = isPending || isByeResult;
         
-        // Override outcome info for Bye results
+        // Override outcome info for Bye/Pending results
+        const pendingInfo = { name: 'Pending', abbrev: '⏳', color: '#eab308', bgColor: '#eab30820', description: t('outcomes.pendingDesc', 'Results not yet reported') };
         const byeInfo = { name: 'Bye', abbrev: '⏸️', color: '#6b7280', bgColor: '#6b728020', description: 'No opponent this round' };
-        const outcome = isByeResult ? 'Bye' : getOutcome(kvk.prep_result, kvk.battle_result);
-        const outcomeInfo = isByeResult ? byeInfo : OUTCOMES[outcome];
+        const outcome = noResults ? (isPending ? 'Bye' : 'Bye') : getOutcome(kvk.prep_result!, kvk.battle_result!);
+        const outcomeInfo = isPending ? pendingInfo : isByeResult ? byeInfo : OUTCOMES[outcome];
         
-        const prepDisplay = isByeResult ? '-' : (isWinResult(kvk.prep_result) ? 'W' : 'L');
-        const battleDisplay = isByeResult ? '-' : (isWinResult(kvk.battle_result) ? 'W' : 'L');
+        const prepDisplay = noResults ? '-' : (isWinResult(kvk.prep_result) ? 'W' : 'L');
+        const battleDisplay = noResults ? '-' : (isWinResult(kvk.battle_result) ? 'W' : 'L');
         
         const tooltipContent = (
           <div style={{ minWidth: '120px' }}>

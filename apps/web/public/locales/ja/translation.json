@@ -2240,6 +2240,8 @@
     "Comeback": "カムバック",
     "Bye": "不戦勝",
     "byeDesc": "このラウンドの対戦相手なし",
+    "Pending": "保留中",
+    "pendingDesc": "結果はまだ報告されていません",
     "noMatch": "対戦なし"
   },
   "giftCodes": {

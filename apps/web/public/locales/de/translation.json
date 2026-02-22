@@ -2240,6 +2240,8 @@
     "Comeback": "Aufholjagd",
     "Bye": "Freilos",
     "byeDesc": "Kein Gegner in dieser Runde",
+    "Pending": "Ausstehend",
+    "pendingDesc": "Ergebnisse noch nicht gemeldet",
     "noMatch": "Kein Spiel"
   },
   "giftCodes": {

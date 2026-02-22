@@ -2240,6 +2240,8 @@
     "Comeback": "Remontada",
     "Bye": "Descanso",
     "byeDesc": "Sin oponente en esta ronda",
+    "Pending": "Pendiente",
+    "pendingDesc": "Resultados aún no reportados",
     "noMatch": "Sin enfrentamiento"
   },
   "giftCodes": {

@@ -9,8 +9,8 @@ import { useTranslation } from 'react-i18next';
 interface KvKRecord {
   kvk_number: number;
   opponent_kingdom: number;
-  prep_result: string;
-  battle_result: string;
+  prep_result: string | null;
+  battle_result: string | null;
   overall_result?: string;
 }
 
@@ -117,12 +117,23 @@ const KvKHistoryTable: React.FC<KvKHistoryTableProps> = ({
           </thead>
           <tbody>
             {allKvks.map((kvk, index) => {
-              const isByeResult = kvk.overall_result?.toLowerCase() === 'bye' || kvk.prep_result === null || kvk.battle_result === null || kvk.opponent_kingdom === 0 || kvk.prep_result === 'B' || kvk.battle_result === 'B';
+              // Pending: has opponent but missing prep/battle results (incomplete matchup)
+              const isPending = kvk.overall_result?.toLowerCase() === 'pending' || 
+                (kvk.opponent_kingdom > 0 && (kvk.prep_result === null || kvk.battle_result === null) && kvk.prep_result !== 'B' && kvk.battle_result !== 'B');
+              // Bye: no opponent at all
+              const isByeResult = !isPending && (
+                kvk.overall_result?.toLowerCase() === 'bye' || 
+                kvk.opponent_kingdom === 0 || 
+                kvk.prep_result === 'B' || kvk.battle_result === 'B'
+              );
+              // No results = show dashes
+              const noResults = isPending || isByeResult;
               
-              // Override outcome style and letter for Bye results
+              // Style for each state
+              const pendingStyle = { bg: '#eab30815', text: '#eab308', label: t('outcomes.Pending', 'Pending'), description: t('outcomes.pendingDesc', 'Results not yet reported') };
               const byeStyle = { bg: '#6b728020', text: '#6b7280', label: t('outcomes.Bye', 'Bye'), description: t('outcomes.byeDesc', 'No opponent this round') };
-              const outcomeStyle = isByeResult ? byeStyle : getOutcomeStyle(kvk.prep_result, kvk.battle_result);
-              const outcomeLetter = isByeResult ? '⏸️' : getOutcomeLetter(kvk.prep_result, kvk.battle_result);
+              const outcomeStyle = isPending ? pendingStyle : isByeResult ? byeStyle : getOutcomeStyle(kvk.prep_result!, kvk.battle_result!);
+              const outcomeLetter = isPending ? '⏳' : isByeResult ? '⏸️' : getOutcomeLetter(kvk.prep_result!, kvk.battle_result!);
               
               return (
                 <tr 
@@ -164,20 +175,20 @@ const KvKHistoryTable: React.FC<KvKHistoryTableProps> = ({
                   </td>
                   <td style={{ padding: isMobile ? '0.5rem 0.35rem' : '0.65rem 0.5rem', textAlign: 'center' }}>
                     <span style={{ 
-                      color: isByeResult ? '#6b7280' : (isWin(kvk.prep_result) ? '#22c55e' : '#ef4444'), 
+                      color: noResults ? '#6b7280' : (isWin(kvk.prep_result!) ? '#22c55e' : '#ef4444'), 
                       fontWeight: '600',
                       fontSize: isMobile ? '0.75rem' : '0.85rem'
                     }}>
-                      {isByeResult ? '-' : (isWin(kvk.prep_result) ? 'W' : 'L')}
+                      {noResults ? '-' : (isWin(kvk.prep_result!) ? 'W' : 'L')}
                     </span>
                   </td>
                   <td style={{ padding: isMobile ? '0.5rem 0.35rem' : '0.65rem 0.5rem', textAlign: 'center' }}>
                     <span style={{ 
-                      color: isByeResult ? '#6b7280' : (isWin(kvk.battle_result) ? '#22c55e' : '#ef4444'), 
+                      color: noResults ? '#6b7280' : (isWin(kvk.battle_result!) ? '#22c55e' : '#ef4444'), 
                       fontWeight: '600',
                       fontSize: isMobile ? '0.75rem' : '0.85rem'
                     }}>
-                      {isByeResult ? '-' : (isWin(kvk.battle_result) ? 'W' : 'L')}
+                      {noResults ? '-' : (isWin(kvk.battle_result!) ? 'W' : 'L')}
                     </span>
                   </td>
                   <td style={{ padding: isMobile ? '0.5rem 0.35rem' : '0.65rem 0.5rem', textAlign: 'center' }}>

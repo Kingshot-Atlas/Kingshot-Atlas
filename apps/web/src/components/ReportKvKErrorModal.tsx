@@ -164,13 +164,14 @@ const ResultPicker: React.FC<{
 
 // ─── Flip helper ────────────────────────────────────────────────────────────
 
-const flipR = (r: string) => {
+const flipR = (r: string | null) => {
+  if (r === null) return '-';
   if (r === 'W' || r === 'Win') return 'L';
   if (r === 'L' || r === 'Loss') return 'W';
   return r;
 };
-const normR = (r: string) => (r === 'Win' ? 'W' : r === 'Loss' ? 'L' : r);
-const colorR = (r: string) => r === 'W' || r === 'Win' ? '#22c55e' : r === 'L' || r === 'Loss' ? '#ef4444' : '#6b7280';
+const normR = (r: string | null) => (r === null ? '-' : r === 'Win' ? 'W' : r === 'Loss' ? 'L' : r);
+const colorR = (r: string | null) => r === null ? '#6b7280' : r === 'W' || r === 'Win' ? '#22c55e' : r === 'L' || r === 'Loss' ? '#ef4444' : '#6b7280';
 
 // ─── Main Component ─────────────────────────────────────────────────────────
 

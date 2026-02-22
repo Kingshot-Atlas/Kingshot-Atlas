@@ -13,8 +13,8 @@ export interface KvKHistoryRecord {
   kingdom_number: number;
   kvk_number: number;
   opponent_kingdom: number;
-  prep_result: 'W' | 'L' | 'B';
-  battle_result: 'W' | 'L' | 'B';
+  prep_result: 'W' | 'L' | 'B' | null;
+  battle_result: 'W' | 'L' | 'B' | null;
   overall_result: string;
   kvk_date: string | null;
   order_index: number;
@@ -289,17 +289,19 @@ class KvKHistoryService {
 
       const rawPrepResult = row.prep_result as 'W' | 'L' | 'B' | null;
       const rawBattleResult = row.battle_result as 'W' | 'L' | 'B' | null;
-      const prepResult: 'W' | 'L' | 'B' = correction 
+      const prepResult: 'W' | 'L' | 'B' | null = correction 
         ? correction.corrected_prep_result as 'W' | 'L' | 'B' 
-        : (rawPrepResult ?? 'L');
-      const battleResult: 'W' | 'L' | 'B' = correction 
+        : rawPrepResult;
+      const battleResult: 'W' | 'L' | 'B' | null = correction 
         ? correction.corrected_battle_result as 'W' | 'L' | 'B' 
-        : (rawBattleResult ?? 'L');
+        : rawBattleResult;
       
       // Check for Bye BEFORE normalizing - Bye records have prep/battle='B' or overall_result='Bye'
       const isBye = prepResult === 'B' || battleResult === 'B' || 
                     row.overall_result?.toLowerCase() === 'bye' || 
                     row.opponent_kingdom === 0;
+      // Incomplete matchup: has opponent but missing prep/battle results
+      const isPending = !isBye && (prepResult === null || battleResult === null) && row.opponent_kingdom > 0;
       
       const record: KvKHistoryRecord = {
         kingdom_number: kingdomNumber,
@@ -307,8 +309,8 @@ class KvKHistoryService {
         opponent_kingdom: row.opponent_kingdom,
         prep_result: prepResult,
         battle_result: battleResult,
-        // For Bye, preserve 'Bye' as overall_result; otherwise normalize
-        overall_result: isBye ? 'Bye' : normalizeOutcome(row.overall_result ?? undefined, prepResult, battleResult),
+        // Pending = results not yet reported, Bye = no opponent, otherwise normalize
+        overall_result: isPending ? 'Pending' : isBye ? 'Bye' : normalizeOutcome(row.overall_result ?? undefined, prepResult ?? undefined, battleResult ?? undefined),
         kvk_date: row.kvk_date,
         order_index: row.order_index ?? row.kvk_number,
       };

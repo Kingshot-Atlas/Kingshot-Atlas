@@ -42,11 +42,11 @@ const TrendChart: React.FC<TrendChartProps> = ({
     // Calculate cumulative stats
     let prepWins = 0, prepLosses = 0, battleWins = 0, battleLosses = 0;
     
-    return sorted.map((kvk) => {
+    return sorted.filter(kvk => kvk.prep_result !== null && kvk.battle_result !== null).map((kvk) => {
       const isWin = (r: string) => r === 'Win' || r === 'W';
       
-      if (isWin(kvk.prep_result)) prepWins++; else prepLosses++;
-      if (isWin(kvk.battle_result)) battleWins++; else battleLosses++;
+      if (isWin(kvk.prep_result!)) prepWins++; else prepLosses++;
+      if (isWin(kvk.battle_result!)) battleWins++; else battleLosses++;
       
       const totalPrep = prepWins + prepLosses;
       const totalBattle = battleWins + battleLosses;
@@ -55,8 +55,8 @@ const TrendChart: React.FC<TrendChartProps> = ({
         kvk: kvk.kvk_number,
         prepWR: totalPrep > 0 ? (prepWins / totalPrep) * 100 : 0,
         battleWR: totalBattle > 0 ? (battleWins / totalBattle) * 100 : 0,
-        prepResult: isWin(kvk.prep_result),
-        battleResult: isWin(kvk.battle_result),
+        prepResult: isWin(kvk.prep_result!),
+        battleResult: isWin(kvk.battle_result!),
         opponent: kvk.opponent_kingdom
       };
     });

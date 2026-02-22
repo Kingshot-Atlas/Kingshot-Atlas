@@ -36,8 +36,8 @@ export interface KVKRecord {
   kingdom_number: number;
   kvk_number: number;
   opponent_kingdom: number;
-  prep_result: string;
-  battle_result: string;
+  prep_result: string | null;
+  battle_result: string | null;
   overall_result: string;
   date_or_order_index: string;
   created_at: string;
