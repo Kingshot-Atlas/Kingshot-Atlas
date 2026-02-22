@@ -79,17 +79,16 @@ const KvKSeasons: React.FC = () => {
     return () => observer.disconnect();
   }, [loadMore]);
 
-  // Load available seasons on mount - always show KvKs 1-10 in ascending order
+  // Load available seasons on mount - show KvKs 1 through CURRENT_KVK in ascending order
   useEffect(() => {
-    // Generate seasons 1-10 in ascending order
-    const allSeasons = Array.from({ length: 10 }, (_, i) => i + 1);
+    const allSeasons = Array.from({ length: CURRENT_KVK }, (_, i) => i + 1);
     setSeasons(allSeasons);
     
-    // Set initial season from URL or default to latest (10)
+    // Set initial season from URL or default to latest
     if (seasonNumber) {
       setSelectedSeason(parseInt(seasonNumber));
     } else {
-      setSelectedSeason(10); // Default to latest season
+      setSelectedSeason(CURRENT_KVK); // Default to latest season
     }
   }, [seasonNumber]);
 

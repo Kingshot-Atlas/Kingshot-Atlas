@@ -3,6 +3,15 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-21 19:57 | Ops Lead | COMPLETED
+Task: Fix KvK #11 matchup banner to trigger Feb 22 00:00 UTC
+Files: KvKPhaseBanner.tsx, constants/index.ts, DB: kvk_schedule
+Changes:
+1. **DB fix** — KvK #11 was marked `is_complete=true` with `matchups_open_at=Feb 23`. Updated to `is_complete=false`, `matchups_open_at=2026-02-22T00:00:00Z`.
+2. **Banner query fix** — Added `.lte('matchups_open_at', now)` filter so future KvK #12 (Mar 23) doesn't shadow the active KvK #11 schedule. Previously the query fetched the highest kvk_number with is_complete=false, which returned KvK #12.
+3. **CURRENT_KVK** — Updated from 10 to 11 in constants/index.ts.
+Result: Banner will appear globally starting Feb 22 00:00 UTC with "KvK matchups are live! Add your kingdom's matchup now." linking to /seasons/11.
+
 ## 2026-02-21 12:50 | Product Engineer | COMPLETED
 Task: KvK Battle Planner — Touch drag reorder robustness + verify "Arrive after" removal + mobile counter queue adding
 Files: RallySubComponents.tsx (useTouchDragReorder hook rewrite)

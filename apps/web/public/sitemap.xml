@@ -10338,4 +10338,10 @@
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
+  <url>
+    <loc>https://ks-atlas.com/seasons/12</loc>
+    <lastmod>2026-02-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
 </urlset>
