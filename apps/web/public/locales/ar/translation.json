@@ -224,7 +224,11 @@
     "scoreTimingDesc": "تعكس النقاط نقاط Atlas لكل مملكة قبل بدء المعركة — بناءً على سجلها حتى تلك اللحظة.",
     "addMatchup": "إضافة مواجهة",
     "addPrepResult": "إضافة نتيجة التحضير",
-    "addBattleResult": "إضافة نتيجة المعركة"
+    "addBattleResult": "إضافة نتيجة المعركة",
+    "lockNotAnnounced": "لم يتم الإعلان عن المواجهات بعد. يُفتح في {{date}}.",
+    "lockPrepNotEnded": "مرحلة التحضير لم تنتهِ بعد. يُفتح في {{date}}.",
+    "lockBattleNotEnded": "معركة القلعة لم تنتهِ بعد. يُفتح في {{date}}.",
+    "lockClosed": "تم إغلاق التقديمات لهذا الموسم."
   },
   "compare": {
     "heroTitle1": "مقارنة",

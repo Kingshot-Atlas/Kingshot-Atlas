@@ -8,7 +8,8 @@ import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { useStructuredData, PAGE_BREADCRUMBS, getSeasonBreadcrumbs } from '../hooks/useStructuredData';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
-import { CURRENT_KVK } from '../constants';
+import { CURRENT_KVK, getKvKButtonStates } from '../constants';
+import { useToast } from '../components/Toast';
 import KvKMatchupSubmission from '../components/KvKMatchupSubmission';
 
 interface SeasonStats {
@@ -23,6 +24,7 @@ interface SeasonStats {
 const KvKSeasons: React.FC = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [showMatchupModal, setShowMatchupModal] = useState(false);
   const [matchupModalMode, setMatchupModalMode] = useState<'matchup' | 'prep' | 'battle'>('matchup');
   const { seasonNumber } = useParams<{ seasonNumber?: string }>();
@@ -296,81 +298,69 @@ const KvKSeasons: React.FC = () => {
           </div>
 
           {/* Action Buttons: Add Matchup / Prep Result / Battle Result */}
-          {user && (
-            <div style={{ 
-              display: 'flex', 
-              flexWrap: 'wrap',
-              justifyContent: 'center',
-              gap: isMobile ? '0.5rem' : '0.6rem',
-            }}>
-              <button
-                onClick={() => { setMatchupModalMode('matchup'); setShowMatchupModal(true); }}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.35rem',
-                  padding: isMobile ? '0.6rem 0.9rem' : '0.5rem 1rem',
-                  minHeight: isMobile ? '44px' : 'auto',
-                  backgroundColor: '#131318',
-                  border: '1px solid #22d3ee40',
-                  borderRadius: '8px',
-                  color: '#22d3ee',
-                  cursor: 'pointer',
-                  fontWeight: '600',
-                  fontSize: isMobile ? '0.8rem' : '0.85rem',
-                  transition: 'all 0.2s',
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                🔗 {t('seasons.addMatchup', 'Add Matchup')}
-              </button>
-              <button
-                onClick={() => { setMatchupModalMode('prep'); setShowMatchupModal(true); }}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.35rem',
-                  padding: isMobile ? '0.6rem 0.9rem' : '0.5rem 1rem',
-                  minHeight: isMobile ? '44px' : 'auto',
-                  backgroundColor: '#131318',
-                  border: '1px solid #eab30840',
-                  borderRadius: '8px',
-                  color: '#eab308',
-                  cursor: 'pointer',
-                  fontWeight: '600',
-                  fontSize: isMobile ? '0.8rem' : '0.85rem',
-                  transition: 'all 0.2s',
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                🛡️ {t('seasons.addPrepResult', 'Add Prep Result')}
-              </button>
-              <button
-                onClick={() => { setMatchupModalMode('battle'); setShowMatchupModal(true); }}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.35rem',
-                  padding: isMobile ? '0.6rem 0.9rem' : '0.5rem 1rem',
-                  minHeight: isMobile ? '44px' : 'auto',
-                  backgroundColor: '#131318',
-                  border: '1px solid #f9731640',
-                  borderRadius: '8px',
-                  color: '#f97316',
-                  cursor: 'pointer',
-                  fontWeight: '600',
-                  fontSize: isMobile ? '0.8rem' : '0.85rem',
-                  transition: 'all 0.2s',
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                ⚔️ {t('seasons.addBattleResult', 'Add Battle Result')}
-              </button>
-            </div>
-          )}
+          {user && (() => {
+            const btnStates = getKvKButtonStates(selectedSeason ?? CURRENT_KVK);
+            const btnConfigs: Array<{ key: 'matchup' | 'prep' | 'battle'; label: string; icon: string; activeColor: string; activeBorder: string }> = [
+              { key: 'matchup', label: t('seasons.addMatchup', 'Add Matchup'), icon: '🔗', activeColor: '#22d3ee', activeBorder: '#22d3ee40' },
+              { key: 'prep', label: t('seasons.addPrepResult', 'Add Prep Result'), icon: '🛡️', activeColor: '#eab308', activeBorder: '#eab30840' },
+              { key: 'battle', label: t('seasons.addBattleResult', 'Add Battle Result'), icon: '⚔️', activeColor: '#f97316', activeBorder: '#f9731640' },
+            ];
+            return (
+              <div style={{ 
+                display: 'flex', 
+                flexWrap: 'wrap',
+                justifyContent: 'center',
+                gap: isMobile ? '0.5rem' : '0.6rem',
+              }}>
+                {btnConfigs.map(({ key, label, icon, activeColor, activeBorder }) => {
+                  const state = btnStates[key];
+                  const locked = !state.unlocked;
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => {
+                        if (locked) {
+                          const dateStr = state.unlocksAt
+                            ? state.unlocksAt.toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZoneName: 'short' })
+                            : '';
+                          const reasonMessages: Record<string, string> = {
+                            not_announced: t('seasons.lockNotAnnounced', { date: dateStr, defaultValue: `Matchups haven't been announced yet. Unlocks {{date}}.` }),
+                            prep_not_ended: t('seasons.lockPrepNotEnded', { date: dateStr, defaultValue: `Prep Phase hasn't ended yet. Unlocks {{date}}.` }),
+                            battle_not_ended: t('seasons.lockBattleNotEnded', { date: dateStr, defaultValue: `Castle Battle hasn't ended yet. Unlocks {{date}}.` }),
+                            closed: t('seasons.lockClosed', 'Submissions are closed for this KvK season.'),
+                          };
+                          showToast(`🔒 ${reasonMessages[state.reasonKey] || ''}`, 'info');
+                          return;
+                        }
+                        setMatchupModalMode(key);
+                        setShowMatchupModal(true);
+                      }}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.35rem',
+                        padding: isMobile ? '0.6rem 0.9rem' : '0.5rem 1rem',
+                        minHeight: isMobile ? '44px' : 'auto',
+                        backgroundColor: locked ? '#0a0a0a' : '#131318',
+                        border: `1px solid ${locked ? '#2a2a2a' : activeBorder}`,
+                        borderRadius: '8px',
+                        color: locked ? '#4a4a4a' : activeColor,
+                        cursor: locked ? 'not-allowed' : 'pointer',
+                        fontWeight: '600',
+                        fontSize: isMobile ? '0.8rem' : '0.85rem',
+                        transition: 'all 0.2s',
+                        whiteSpace: 'nowrap',
+                        opacity: locked ? 0.6 : 1,
+                      }}
+                    >
+                      {locked ? '🔒' : icon} {label}
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          })()}
         </div>
       )}
 
@@ -556,7 +546,7 @@ const KvKSeasons: React.FC = () => {
                         <div style={{ color: '#fff', fontWeight: '600', fontSize: isMobile ? '0.75rem' : '0.85rem' }}>
                           {t('common.kingdom')} {matchup.kingdom1}
                         </div>
-                        <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', marginTop: '0.1rem' }}>
+                        <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', marginTop: '0.1rem', whiteSpace: 'nowrap' }}>
                           <span style={{ color: '#22d3ee' }}>
                             {matchup.kingdom1_score.toFixed(2)}
                           </span>
@@ -646,7 +636,7 @@ const KvKSeasons: React.FC = () => {
                         <div style={{ color: '#fff', fontWeight: '600', fontSize: isMobile ? '0.75rem' : '0.85rem' }}>
                           {t('common.kingdom')} {matchup.kingdom2}
                         </div>
-                        <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', marginTop: '0.1rem' }}>
+                        <div style={{ fontSize: isMobile ? '0.55rem' : '0.65rem', marginTop: '0.1rem', whiteSpace: 'nowrap' }}>
                           <span style={{ color: '#22d3ee' }}>
                             {matchup.kingdom2_score.toFixed(2)}
                           </span>

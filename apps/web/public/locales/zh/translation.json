@@ -224,7 +224,11 @@
     "scoreTimingDesc": "评分反映每个王国在战斗开始前的 Atlas 评分——基于它们到那时为止的战绩。没有后见之明，只有纯粹的赛前战力。",
     "addMatchup": "添加对战",
     "addPrepResult": "添加准备赛结果",
-    "addBattleResult": "添加战斗结果"
+    "addBattleResult": "添加战斗结果",
+    "lockNotAnnounced": "对战尚未公布。解锁时间：{{date}}。",
+    "lockPrepNotEnded": "准备阶段尚未结束。解锁时间：{{date}}。",
+    "lockBattleNotEnded": "城堡战斗尚未结束。解锁时间：{{date}}。",
+    "lockClosed": "本赛季KvK的数据提交已关闭。"
   },
   "compare": {
     "heroTitle1": "王国",

@@ -224,7 +224,11 @@
     "scoreTimingDesc": "Las puntuaciones reflejan el Índice Atlas de cada reino antes de que comenzara la batalla—basado en su historial hasta ese momento. Sin retrospectiva, solo poder puro pre-batalla.",
     "addMatchup": "Agregar enfrentamiento",
     "addPrepResult": "Agregar resultado Prep",
-    "addBattleResult": "Agregar resultado Batalla"
+    "addBattleResult": "Agregar resultado Batalla",
+    "lockNotAnnounced": "Los enfrentamientos aún no se han anunciado. Se desbloquea {{date}}.",
+    "lockPrepNotEnded": "La Fase de Preparación aún no ha terminado. Se desbloquea {{date}}.",
+    "lockBattleNotEnded": "La Batalla del Castillo aún no ha terminado. Se desbloquea {{date}}.",
+    "lockClosed": "Las contribuciones están cerradas para esta temporada KvK."
   },
   "compare": {
     "heroTitle1": "COMPARACIÓN DE",

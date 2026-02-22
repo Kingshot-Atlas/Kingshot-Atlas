@@ -224,7 +224,11 @@
     "scoreTimingDesc": "Die Wertungen spiegeln die Atlas-Wertung jedes Königreichs vor Beginn der Schlacht wider—basierend auf ihrer Bilanz bis dahin. Keine Rückschau, nur pure Vor-Schlacht-Stärke.",
     "addMatchup": "Begegnung hinzufügen",
     "addPrepResult": "Prep-Ergebnis hinzufügen",
-    "addBattleResult": "Schlacht-Ergebnis hinzufügen"
+    "addBattleResult": "Schlacht-Ergebnis hinzufügen",
+    "lockNotAnnounced": "Begegnungen wurden noch nicht bekannt gegeben. Freischaltung {{date}}.",
+    "lockPrepNotEnded": "Die Vorbereitungsphase ist noch nicht beendet. Freischaltung {{date}}.",
+    "lockBattleNotEnded": "Die Burgschlacht ist noch nicht beendet. Freischaltung {{date}}.",
+    "lockClosed": "Einreichungen sind für diese KvK-Saison geschlossen."
   },
   "compare": {
     "heroTitle1": "KÖNIGREICH-",

@@ -224,7 +224,11 @@
     "scoreTimingDesc": "Les scores reflètent le Score Atlas de chaque royaume avant le début de la bataille — basé sur leur historique jusqu'à ce moment. Pas de recul, juste la puissance brute d'avant-bataille.",
     "addMatchup": "Ajouter un affrontement",
     "addPrepResult": "Ajouter résultat Prep",
-    "addBattleResult": "Ajouter résultat Bataille"
+    "addBattleResult": "Ajouter résultat Bataille",
+    "lockNotAnnounced": "Les affrontements n'ont pas encore été annoncés. Déverrouillage {{date}}.",
+    "lockPrepNotEnded": "La Phase de Préparation n'est pas encore terminée. Déverrouillage {{date}}.",
+    "lockBattleNotEnded": "La Bataille du Château n'est pas encore terminée. Déverrouillage {{date}}.",
+    "lockClosed": "Les contributions sont fermées pour cette saison KvK."
   },
   "compare": {
     "heroTitle1": "COMPARAISON DE",

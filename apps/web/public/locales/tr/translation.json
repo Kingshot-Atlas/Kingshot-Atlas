@@ -224,7 +224,11 @@
     "scoreTimingDesc": "Puanlar, savaş başlamadan önceki her krallığın Atlas Puanını yansıtır—o noktaya kadarki sicillerine dayanarak. Geriye dönük bakış yok, sadece ham savaş öncesi güç.",
     "addMatchup": "Eşleşme Ekle",
     "addPrepResult": "Hazırlık Sonucu Ekle",
-    "addBattleResult": "Savaş Sonucu Ekle"
+    "addBattleResult": "Savaş Sonucu Ekle",
+    "lockNotAnnounced": "Eşleşmeler henüz açıklanmadı. {{date}} tarihinde açılır.",
+    "lockPrepNotEnded": "Hazırlık Aşaması henüz bitmedi. {{date}} tarihinde açılır.",
+    "lockBattleNotEnded": "Kale Savaşı henüz bitmedi. {{date}} tarihinde açılır.",
+    "lockClosed": "Bu KvK sezonu için gönderimler kapatılmıştır."
   },
   "compare": {
     "heroTitle1": "KRALLIK",

@@ -3,6 +3,27 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-21 21:36 | Product Engineer | COMPLETED
+Task: Fix matchup card layout wrapping + phase-gated submission buttons with auto-cycling KvK schedule
+Files: constants/index.ts, KvKSeasons.tsx, 9 locale files (en/es/fr/zh/de/ko/ja/ar/tr)
+Changes:
+1. **Card layout fix** — Added `whiteSpace: 'nowrap'` to kingdom stats line (score/rank/records) in both K1 and K2 rows. Prevents text wrapping to 3rd row on narrow cards.
+2. **KvK schedule computation** — Added `getKvKSchedule(kvkNumber)` and `getKvKButtonStates(kvkNumber)` to constants/index.ts. Auto-computes all phase dates from reference (KvK #10 = Jan 26, 2026) + 28-day cycle. Fully documented cycle pattern in JSDoc.
+3. **Phase-gated buttons** — "Add Matchup" unlocks when matchups announced (Day -1). "Add Prep Result" unlocks when Prep Phase ends (Day 5, 10:00 UTC). "Add Battle Result" unlocks when Castle Battle ends (Day 5, 18:00 UTC). All lock 7 days after Battle Phase ends (Day 12, 22:00 UTC). Auto-cycles for every KvK.
+4. **Locked button UX** — Locked buttons show 🔒 icon, grayed out with `not-allowed` cursor. Click shows info toast with translated reason and unlock date.
+5. **i18n** — 4 new keys (lockNotAnnounced, lockPrepNotEnded, lockBattleNotEnded, lockClosed) with {{date}} interpolation across all 9 locales.
+Result: Cards always display in clean 2-row format. Buttons auto-gate based on KvK schedule with no manual intervention needed.
+
+## 2026-02-21 21:10 | Product Engineer | COMPLETED
+Task: Fix dynamic KvK number in submission modal + add Prep/Battle result buttons to Seasons page
+Files: PostKvKSubmission.tsx, KvKMatchupSubmission.tsx, KvKSeasons.tsx, 9 locale files (en/es/fr/zh/de/ko/ja/ar/tr)
+Changes:
+1. **Bug fix** — PostKvKSubmission title was hardcoded "Submit KvK #10 Result". Now uses dynamic `kvkNumber` variable. Also fixed hardcoded KvK number in toast messages and payload.
+2. **KvKMatchupSubmission** — Added `initialMode` prop ('matchup'|'prep'|'battle') for targeted opening. Mode-specific headers with color-coded icons (cyan/yellow/orange). Auto-lookup opponent from kvk_history when opening in prep/battle mode.
+3. **KvKSeasons** — Moved "Add Matchup" from top view toggle row to below season dropdown. Added "Add Prep Result" (yellow) and "Add Battle Result" (orange) buttons. All 3 buttons open KvKMatchupSubmission with the correct initialMode. Mobile-first layout with flex-wrap and 44px touch targets.
+4. **i18n** — Added `seasons.addPrepResult` and `seasons.addBattleResult` keys to all 9 locales.
+Result: Users can now contribute matchup, prep, and battle data independently with auto-filled kingdom info.
+
 ## 2026-02-21 20:30 | Platform Engineer | COMPLETED
 Task: Fix incomplete matchup display — NULL results shown as L/L/Invasion across entire frontend
 Files: kvkHistoryService.ts, KvKHistoryTable.tsx, kingdomsSupabaseService.ts, types/index.ts, ReportKvKErrorModal.tsx, TrendChart.tsx, WinRateTrend.tsx, RecentKvKs.tsx, PhaseCards.tsx, 9 locale files

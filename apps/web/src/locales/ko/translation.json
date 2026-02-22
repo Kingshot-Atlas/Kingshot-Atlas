@@ -224,7 +224,11 @@
     "scoreTimingDesc": "점수는 전투가 시작되기 전 각 왕국의 Atlas 점수를 반영합니다 — 그 시점까지의 전적을 기반으로 합니다. 사후 판단이 아닌, 순수한 전투 전 전력입니다.",
     "addMatchup": "매치업 추가",
     "addPrepResult": "준비전 결과 추가",
-    "addBattleResult": "전투 결과 추가"
+    "addBattleResult": "전투 결과 추가",
+    "lockNotAnnounced": "매치업이 아직 발표되지 않았습니다. {{date}}에 잠금 해제됩니다.",
+    "lockPrepNotEnded": "준비 단계가 아직 끝나지 않았습니다. {{date}}에 잠금 해제됩니다.",
+    "lockBattleNotEnded": "성 전투가 아직 끝나지 않았습니다. {{date}}에 잠금 해제됩니다.",
+    "lockClosed": "이번 KvK 시즌의 제출이 마감되었습니다."
   },
   "compare": {
     "heroTitle1": "왕국",

@@ -224,7 +224,11 @@
     "scoreTimingDesc": "Scores reflect each kingdom's Atlas Score before the battle began—based on their track record up to that point. No hindsight, just raw pre-battle power.",
     "addMatchup": "Add Matchup",
     "addPrepResult": "Add Prep Result",
-    "addBattleResult": "Add Battle Result"
+    "addBattleResult": "Add Battle Result",
+    "lockNotAnnounced": "Matchups haven't been announced yet. Unlocks {{date}}.",
+    "lockPrepNotEnded": "Prep Phase hasn't ended yet. Unlocks {{date}}.",
+    "lockBattleNotEnded": "Castle Battle hasn't ended yet. Unlocks {{date}}.",
+    "lockClosed": "Submissions are closed for this KvK season."
   },
   "compare": {
     "heroTitle1": "KINGDOM",

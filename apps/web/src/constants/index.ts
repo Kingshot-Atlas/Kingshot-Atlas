@@ -67,15 +67,24 @@ export const ANIMATIONS = {
  * KvK Configuration - SINGLE SOURCE OF TRUTH
  * Update CURRENT_KVK after each KvK battle phase ends
  * 
- * KvK Schedule: Every 4 weeks
- * - Prep Phase: Monday 00:00 UTC to Saturday 10:00 UTC
- * - Battle Phase: Saturday 10:00 UTC to Saturday 22:00 UTC
- * - Reference: KvK #10 started Monday, January 26, 2026 at 00:00 UTC
+ * KvK Schedule: Every 28 days (4 weeks)
+ * Reference: KvK #10 Prep Phase started Monday, January 26, 2026 at 00:00 UTC
+ *
+ * Cycle pattern (relative to Prep Phase start = Day 0):
+ *   Day -1, 00:00 UTC  = Matchups announced → "Add Matchup" unlocks
+ *   Day  0, 00:00 UTC  = Prep Phase begins
+ *   Day  5, 10:00 UTC  = Prep Phase ends → "Add Prep Result" unlocks
+ *   Day  5, 10:00 UTC  = Battle Phase begins
+ *   Day  5, 12:00 UTC  = Castle Battle begins
+ *   Day  5, 18:00 UTC  = Castle Battle ends → "Add Battle Result" unlocks
+ *   Day  5, 22:00 UTC  = Battle Phase ends
+ *   Day 12, 22:00 UTC  = Submission buttons lock (7 days after Battle Phase ends)
+ *   Day 28             = Next KvK cycle begins
  */
 export const KVK_CONFIG = {
   /** Current KvK number - UPDATE THIS AFTER EACH KVK */
   CURRENT_KVK: 11,
-  /** Reference date for KvK #10 (used for calculations) */
+  /** Reference date for KvK #10 prep start (used for all schedule calculations) */
   KVK_10_START: '2026-01-26T00:00:00Z',
   /** Days between KvK cycles */
   CYCLE_DAYS: 28,
@@ -93,3 +102,84 @@ export const KVK_CONFIG = {
 // Convenience exports for direct import
 export const CURRENT_KVK = KVK_CONFIG.CURRENT_KVK;
 export const HIGHEST_KINGDOM_IN_KVK = KVK_CONFIG.HIGHEST_KINGDOM_IN_KVK;
+
+/**
+ * KvK Schedule for any KvK number, auto-computed from the reference date.
+ * All dates are in UTC.
+ */
+export interface KvKScheduleDates {
+  kvkNumber: number;
+  matchupsAnnounced: Date;  // Day -1, 00:00 UTC
+  prepStart: Date;          // Day 0, 00:00 UTC
+  prepEnd: Date;            // Day 5, 10:00 UTC
+  battleStart: Date;        // Day 5, 10:00 UTC
+  castleBattleStart: Date;  // Day 5, 12:00 UTC
+  castleBattleEnd: Date;    // Day 5, 18:00 UTC
+  battleEnd: Date;          // Day 5, 22:00 UTC
+  buttonsLock: Date;        // Day 12, 22:00 UTC (7 days after battle end)
+}
+
+export function getKvKSchedule(kvkNumber: number): KvKScheduleDates {
+  const ref = new Date(KVK_CONFIG.KVK_10_START);
+  const offsetDays = (kvkNumber - 10) * KVK_CONFIG.CYCLE_DAYS;
+
+  const addDaysHours = (baseDays: number, hours: number): Date => {
+    const d = new Date(ref);
+    d.setUTCDate(d.getUTCDate() + offsetDays + baseDays);
+    d.setUTCHours(hours, 0, 0, 0);
+    return d;
+  };
+
+  return {
+    kvkNumber,
+    matchupsAnnounced: addDaysHours(-1, 0),
+    prepStart:         addDaysHours(0, 0),
+    prepEnd:           addDaysHours(5, 10),
+    battleStart:       addDaysHours(5, 10),
+    castleBattleStart: addDaysHours(5, 12),
+    castleBattleEnd:   addDaysHours(5, 18),
+    battleEnd:         addDaysHours(5, 22),
+    buttonsLock:       addDaysHours(12, 22),
+  };
+}
+
+export type LockReason = 'not_announced' | 'prep_not_ended' | 'battle_not_ended' | 'closed' | '';
+
+export interface ButtonState {
+  unlocked: boolean;
+  reasonKey: LockReason;
+  unlocksAt: Date | null;
+}
+
+export interface KvKButtonStates {
+  matchup: ButtonState;
+  prep:    ButtonState;
+  battle:  ButtonState;
+}
+
+export function getKvKButtonStates(kvkNumber: number, now: Date = new Date()): KvKButtonStates {
+  const s = getKvKSchedule(kvkNumber);
+  const nowMs = now.getTime();
+
+  const matchupUnlocked = nowMs >= s.matchupsAnnounced.getTime() && nowMs < s.buttonsLock.getTime();
+  const prepUnlocked = nowMs >= s.prepEnd.getTime() && nowMs < s.buttonsLock.getTime();
+  const battleUnlocked = nowMs >= s.castleBattleEnd.getTime() && nowMs < s.buttonsLock.getTime();
+
+  return {
+    matchup: {
+      unlocked: matchupUnlocked,
+      reasonKey: nowMs < s.matchupsAnnounced.getTime() ? 'not_announced' : nowMs >= s.buttonsLock.getTime() ? 'closed' : '',
+      unlocksAt: nowMs < s.matchupsAnnounced.getTime() ? s.matchupsAnnounced : null,
+    },
+    prep: {
+      unlocked: prepUnlocked,
+      reasonKey: nowMs < s.prepEnd.getTime() ? 'prep_not_ended' : nowMs >= s.buttonsLock.getTime() ? 'closed' : '',
+      unlocksAt: nowMs < s.prepEnd.getTime() ? s.prepEnd : null,
+    },
+    battle: {
+      unlocked: battleUnlocked,
+      reasonKey: nowMs < s.castleBattleEnd.getTime() ? 'battle_not_ended' : nowMs >= s.buttonsLock.getTime() ? 'closed' : '',
+      unlocksAt: nowMs < s.castleBattleEnd.getTime() ? s.castleBattleEnd : null,
+    },
+  };
+}

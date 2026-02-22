@@ -224,7 +224,11 @@
     "scoreTimingDesc": "スコアは戦闘開始前の各王国のAtlasスコアを反映。それまでの実績に基づいた純粋な戦前のパワー。",
     "addMatchup": "マッチアップを追加",
     "addPrepResult": "準備戦結果を追加",
-    "addBattleResult": "バトル結果を追加"
+    "addBattleResult": "バトル結果を追加",
+    "lockNotAnnounced": "マッチアップはまだ発表されていません。{{date}}に解除されます。",
+    "lockPrepNotEnded": "準備フェーズはまだ終了していません。{{date}}に解除されます。",
+    "lockBattleNotEnded": "キャッスルバトルはまだ終了していません。{{date}}に解除されます。",
+    "lockClosed": "このKvKシーズンの投稿は締め切られました。"
   },
   "compare": {
     "heroTitle1": "王国",
