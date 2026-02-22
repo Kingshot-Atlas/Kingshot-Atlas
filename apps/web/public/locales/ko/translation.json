@@ -2803,7 +2803,19 @@
     "tierRequiredPromoDesc": "KvK 준비 스케줄러는 KvK #11 프로모션 기간 동안 골드 및 실버 등급 왕국에서 사용할 수 있습니다. 왕국 기금에 기여하여 실버($50+) 또는 골드($100+)를 달성하세요!",
     "toastStaggerDisabled": "시차 비활성화 — 48슬롯으로 복원.",
     "toastStaggerEnabled": "49슬롯 시차 활성화 — 23:45 UTC 슬롯 추가됨.",
-    "toastStaggerFailed": "시차 전환 실패."
+    "toastStaggerFailed": "시차 전환 실패.",
+    "editOptOuts": "제외 편집",
+    "editOptOutsDesc": "건너뛸 요일을 전환하세요. 변경 사항은 즉시 저장됩니다.",
+    "skipDayLabel": "{{day}} 건너뛰기",
+    "refillForm": "내 양식 업데이트",
+    "refillDesc": "가속, 가용 시간 또는 기타 세부 사항을 편집하세요.",
+    "allSubmissions": "모든 제출",
+    "allSubmissionsDesc": "플레이어를 클릭하여 세부 정보를 확인하세요. 편집자는 가속과 제외를 편집할 수 있습니다.",
+    "editSpeedups": "가속 편집",
+    "toastOptOutsUpdated": "제외가 업데이트되었습니다.",
+    "toastOptOutsFailed": "제외 업데이트에 실패했습니다.",
+    "toastSubmissionEdited": "제출이 업데이트되었습니다.",
+    "toastEditFailed": "제출 업데이트에 실패했습니다."
   },
   "prepLanding": {
     "featAutoAssign": "자동 슬롯 배정",

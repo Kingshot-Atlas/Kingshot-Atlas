@@ -2803,7 +2803,19 @@
     "tierRequiredPromoDesc": "KvK 准备调度器在 KvK #11 促销期间可供金级和银级王国使用。为王国基金捐款以达到银级（$50+）或金级（$100+）并解锁此工具！",
     "toastStaggerDisabled": "交错已禁用 — 恢复为48个时段。",
     "toastStaggerEnabled": "49时段交错已启用 — 已添加 23:45 UTC 时段。",
-    "toastStaggerFailed": "切换交错失败。"
+    "toastStaggerFailed": "切换交错失败。",
+    "editOptOuts": "编辑退出选项",
+    "editOptOutsDesc": "切换你想跳过的日期。更改会立即保存。",
+    "skipDayLabel": "跳过 {{day}}",
+    "refillForm": "更新我的表单",
+    "refillDesc": "编辑你的加速、可用时间或其他详情。",
+    "allSubmissions": "所有提交",
+    "allSubmissionsDesc": "点击玩家查看详情。编辑者可以修改加速和退出选项。",
+    "editSpeedups": "编辑加速",
+    "toastOptOutsUpdated": "退出选项已更新。",
+    "toastOptOutsFailed": "更新退出选项失败。",
+    "toastSubmissionEdited": "提交已更新。",
+    "toastEditFailed": "更新提交失败。"
   },
   "prepLanding": {
     "featAutoAssign": "自动时段分配",

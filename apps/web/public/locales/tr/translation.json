@@ -2803,7 +2803,19 @@
     "tierRequiredPromoDesc": "KvK Hazırlık Zamanlayıcısı, KvK #11 promosyonu süresince Altın ve Gümüş Seviye krallıklar için kullanılabilir. Gümüş ($50+) veya Altın ($100+) seviyeye ulaşmak için Krallık Fonuna katkıda bulunun!",
     "toastStaggerDisabled": "Kademeleme devre dışı — 48 slota geri dönüldü.",
     "toastStaggerEnabled": "49 slot kademeleme etkinleştirildi — 23:45 UTC slotu eklendi.",
-    "toastStaggerFailed": "Kademeleme değiştirilemedi."
+    "toastStaggerFailed": "Kademeleme değiştirilemedi.",
+    "editOptOuts": "Çıkışları Düzenle",
+    "editOptOutsDesc": "Atlamak istediğiniz günleri değiştirin. Değişiklikler anında kaydedilir.",
+    "skipDayLabel": "{{day}} atla",
+    "refillForm": "Formumu Güncelle",
+    "refillDesc": "Hızlandırıcılarınızı, müsaitliğinizi veya diğer detayları düzenleyin.",
+    "allSubmissions": "Tüm Gönderimler",
+    "allSubmissionsDesc": "Detayları görmek için bir oyuncuya tıklayın. Editörler hızlandırıcıları ve çıkışları düzenleyebilir.",
+    "editSpeedups": "Hızlandırıcıları Düzenle",
+    "toastOptOutsUpdated": "Çıkışlar güncellendi.",
+    "toastOptOutsFailed": "Çıkışlar güncellenemedi.",
+    "toastSubmissionEdited": "Gönderim güncellendi.",
+    "toastEditFailed": "Gönderim güncellenemedi."
   },
   "prepLanding": {
     "featAutoAssign": "Otomatik Slot Ataması",

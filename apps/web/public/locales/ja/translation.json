@@ -2803,7 +2803,19 @@
     "tierRequiredPromoDesc": "KvK準備スケジューラーはKvK #11プロモーション期間中、ゴールドおよびシルバーティア王国で利用可能です。王国ファンドに貢献してシルバー（$50+）またはゴールド（$100+）を達成してください！",
     "toastStaggerDisabled": "スタガー無効化 — 48スロットに戻りました。",
     "toastStaggerEnabled": "49スロットスタガー有効化 — 23:45 UTCスロット追加。",
-    "toastStaggerFailed": "スタガーの切り替えに失敗しました。"
+    "toastStaggerFailed": "スタガーの切り替えに失敗しました。",
+    "editOptOuts": "オプトアウト編集",
+    "editOptOutsDesc": "スキップしたい曜日を切り替えます。変更は即座に保存されます。",
+    "skipDayLabel": "{{day}}をスキップ",
+    "refillForm": "フォームを更新",
+    "refillDesc": "加速、空き時間、その他の詳細を編集します。",
+    "allSubmissions": "全提出一覧",
+    "allSubmissionsDesc": "プレイヤーをクリックして詳細を表示。エディターは加速とオプトアウトを編集できます。",
+    "editSpeedups": "加速を編集",
+    "toastOptOutsUpdated": "オプトアウトが更新されました。",
+    "toastOptOutsFailed": "オプトアウトの更新に失敗しました。",
+    "toastSubmissionEdited": "提出が更新されました。",
+    "toastEditFailed": "提出の更新に失敗しました。"
   },
   "prepLanding": {
     "featAutoAssign": "自動スロット割り当て",

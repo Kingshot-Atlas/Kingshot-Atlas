@@ -2803,7 +2803,19 @@
     "tierRequiredPromoDesc": "Le Planificateur de Prep KvK est disponible pour les royaumes Or et Argent pendant la promotion KvK #11. Contribuez au Fonds du Royaume pour atteindre Argent (50$+) ou Or (100$+) et débloquer cet outil !",
     "toastStaggerDisabled": "Décalage désactivé — retour à 48 créneaux.",
     "toastStaggerEnabled": "Décalage 49 créneaux activé — créneau 23:45 UTC ajouté.",
-    "toastStaggerFailed": "Échec du basculement du décalage."
+    "toastStaggerFailed": "Échec du basculement du décalage.",
+    "editOptOuts": "Modifier les Désistements",
+    "editOptOutsDesc": "Activez ou désactivez les jours que vous souhaitez ignorer. Les changements sont enregistrés immédiatement.",
+    "skipDayLabel": "Ignorer {{day}}",
+    "refillForm": "Mettre à Jour Mon Formulaire",
+    "refillDesc": "Modifiez vos accélérateurs, disponibilité ou autres détails.",
+    "allSubmissions": "Toutes les Soumissions",
+    "allSubmissionsDesc": "Cliquez sur un joueur pour voir les détails. Les éditeurs peuvent modifier les accélérateurs et les désistements.",
+    "editSpeedups": "Modifier les Accélérateurs",
+    "toastOptOutsUpdated": "Désistements mis à jour.",
+    "toastOptOutsFailed": "Échec de la mise à jour des désistements.",
+    "toastSubmissionEdited": "Soumission mise à jour.",
+    "toastEditFailed": "Échec de la mise à jour de la soumission."
   },
   "prepLanding": {
     "featAutoAssign": "Assignation Automatique des Créneaux",

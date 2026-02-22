@@ -2803,7 +2803,19 @@
     "tierRequiredPromoDesc": "Der KvK-Prep-Planer ist während der KvK #11 Promotion für Gold- und Silber-Königreiche verfügbar. Trage zum Königreichsfonds bei, um Silber ($50+) oder Gold ($100+) zu erreichen!",
     "toastStaggerDisabled": "Staffelung deaktiviert — zurück zu 48 Slots.",
     "toastStaggerEnabled": "49-Slot-Staffelung aktiviert — 23:45 UTC Slot hinzugefügt.",
-    "toastStaggerFailed": "Fehler beim Umschalten der Staffelung."
+    "toastStaggerFailed": "Fehler beim Umschalten der Staffelung.",
+    "editOptOuts": "Abmeldungen Bearbeiten",
+    "editOptOutsDesc": "Wähle die Tage, die du überspringen möchtest. Änderungen werden sofort gespeichert.",
+    "skipDayLabel": "{{day}} überspringen",
+    "refillForm": "Mein Formular Aktualisieren",
+    "refillDesc": "Bearbeite deine Beschleuniger, Verfügbarkeit oder andere Details.",
+    "allSubmissions": "Alle Einreichungen",
+    "allSubmissionsDesc": "Klicke auf einen Spieler für Details. Editoren können Beschleuniger und Abmeldungen bearbeiten.",
+    "editSpeedups": "Beschleuniger Bearbeiten",
+    "toastOptOutsUpdated": "Abmeldungen aktualisiert.",
+    "toastOptOutsFailed": "Fehler beim Aktualisieren der Abmeldungen.",
+    "toastSubmissionEdited": "Einreichung aktualisiert.",
+    "toastEditFailed": "Fehler beim Aktualisieren der Einreichung."
   },
   "prepLanding": {
     "featAutoAssign": "Automatische Slot-Zuweisung",

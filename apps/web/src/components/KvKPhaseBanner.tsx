@@ -69,11 +69,12 @@ const KvKPhaseBanner: React.FC = () => {
   useEffect(() => {
     if (!supabase) { setLoaded(true); return; }
 
-    // Fetch latest non-complete KvK schedule
+    // Fetch latest non-complete KvK schedule whose matchup phase has started
     supabase
       .from('kvk_schedule')
       .select('*')
       .eq('is_complete', false)
+      .lte('matchups_open_at', new Date().toISOString())
       .order('kvk_number', { ascending: false })
       .limit(1)
       .maybeSingle()

@@ -74,7 +74,7 @@ export const ANIMATIONS = {
  */
 export const KVK_CONFIG = {
   /** Current KvK number - UPDATE THIS AFTER EACH KVK */
-  CURRENT_KVK: 10,
+  CURRENT_KVK: 11,
   /** Reference date for KvK #10 (used for calculations) */
   KVK_10_START: '2026-01-26T00:00:00Z',
   /** Days between KvK cycles */
