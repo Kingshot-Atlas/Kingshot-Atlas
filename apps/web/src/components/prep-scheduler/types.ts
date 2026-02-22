@@ -136,11 +136,11 @@ for (let h = 0; h < 24; h++) {
 }
 
 // Stagger slots: 30-min intervals on :15/:45 grid starting at 23:45 UTC
-// Pattern: 23:45, 00:15, 00:45, 01:15, 01:45, ..., 23:15 (48 slots)
+// Pattern: 23:45, 00:15, 00:45, 01:15, ..., 23:15, 23:45 (49 slots)
 export const STAGGER_SLOTS: string[] = [];
 {
   let minutes = 23 * 60 + 45; // Start at 23:45
-  for (let i = 0; i < 48; i++) {
+  for (let i = 0; i < 49; i++) {
     const wrapped = minutes % 1440;
     const h = Math.floor(wrapped / 60);
     const m = wrapped % 60;
@@ -155,7 +155,7 @@ export function getEffectiveSlots(staggerEnabled: boolean): string[] {
 }
 
 export function getMaxSlots(staggerEnabled: boolean): number {
-  return staggerEnabled ? 48 : 48;
+  return staggerEnabled ? 49 : 48;
 }
 
 // Timezone Helpers
