@@ -1470,7 +1470,9 @@
       "allTags": "Tüm Etiketler",
       "minAtlasScore": "Min Atlas Puanı",
       "minMatchScore": "Min Eşleşme Puanı",
-      "activelyRecruiting": "Sadece Aktif İşe Alanlar",
+      "activelyRecruiting": "Sadece Aktif Olarak İşe Alan",
+      "eventTime": "Etkinlik Saatleri",
+      "anyTime": "Herhangi Bir Saat",
       "clearFilters": "Filtreleri Temizle",
       "applyFilters": "Filtreleri Uygula"
     },
@@ -2823,7 +2825,21 @@
     "toastOptOutsUpdated": "Çıkışlar güncellendi.",
     "toastOptOutsFailed": "Çıkışlar güncellenemedi.",
     "toastSubmissionEdited": "Gönderim güncellendi.",
-    "toastEditFailed": "Gönderim güncellenemedi."
+    "toastEditFailed": "Gönderim güncellenemedi.",
+    "closedSchedule": "Kapalı Program",
+    "closedScheduleDesc": "Bu program kapatılmıştır. Gönderiminizi hâlâ görüntüleyebilirsiniz.",
+    "yourSubmissionsDesc": "Müsaitlik bilgisi gönderdiğiniz programlar.",
+    "viewSchedule": "Programı Görüntüle",
+    "enabledDays": "Etkin Günler",
+    "enabledDaysHint": "Bu program için etkin günleri değiştirin.",
+    "toastCantDisableAll": "En az bir gün etkin kalmalıdır.",
+    "toastDayDisabled": "{{day}} devre dışı bırakıldı.",
+    "toastDayEnabled": "{{day}} etkinleştirildi.",
+    "toastDayToggleFailed": "Gün ayarları güncellenemedi.",
+    "toastNotified": "{{count}} oyuncuya programın hazır olduğu bildirildi.",
+    "toastNotifyFailed": "Bildirim gönderilemedi.",
+    "notifyReady": "Oyuncuları Bilgilendir — Program Hazır",
+    "allianceExact3": "İttifak etiketi tam olarak 3 karakter olmalıdır."
   },
   "prepLanding": {
     "featAutoAssign": "Otomatik Slot Ataması",

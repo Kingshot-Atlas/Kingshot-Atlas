@@ -73,6 +73,7 @@ export function usePrepScheduler() {
   const [createKvkNumber, setCreateKvkNumber] = useState<number>(0);
   const [createNotes, setCreateNotes] = useState('');
   const [createDeadline, setCreateDeadline] = useState('');
+  const [createDisabledDays, setCreateDisabledDays] = useState<string[]>([]);
 
   // Prep Manager assignment state (multi-manager)
   const [assignManagerInput, setAssignManagerInput] = useState('');
@@ -83,6 +84,9 @@ export function usePrepScheduler() {
 
   // Kingdom schedules for "Fill The Form" CTA
   const [kingdomSchedules, setKingdomSchedules] = useState<PrepSchedule[]>([]);
+
+  // Schedules the user has submitted to (regardless of kingdom)
+  const [submittedSchedules, setSubmittedSchedules] = useState<PrepSchedule[]>([]);
 
   // Change requests state
   const [changeRequests, setChangeRequests] = useState<ChangeRequest[]>([]);
@@ -343,9 +347,22 @@ export function usePrepScheduler() {
         if (profile.linked_kingdom && supabase && !scheduleId) {
           try {
             const { data: ks } = await supabase.from('prep_schedules').select('*')
-              .eq('kingdom_number', profile.linked_kingdom).eq('status', 'active')
+              .eq('kingdom_number', profile.linked_kingdom).in('status', ['active', 'closed'])
               .order('created_at', { ascending: false });
             setKingdomSchedules(ks || []);
+          } catch { /* silent */ }
+        }
+        // Fetch schedules the user has submitted to (even from other kingdoms)
+        if (user?.id && supabase && !scheduleId) {
+          try {
+            const { data: subs } = await supabase.from('prep_submissions').select('schedule_id').eq('user_id', user.id);
+            if (subs && subs.length > 0) {
+              const schedIds = [...new Set(subs.map(s => s.schedule_id))];
+              const { data: schedules } = await supabase.from('prep_schedules').select('*')
+                .in('id', schedIds).in('status', ['active', 'closed'])
+                .order('created_at', { ascending: false });
+              setSubmittedSchedules(schedules || []);
+            }
           } catch { /* silent */ }
         }
         // Check editor/co-editor status for landing view (schedule creation gate)
@@ -433,6 +450,7 @@ export function usePrepScheduler() {
         kingdom_number: createKingdom, created_by: user.id,
         kvk_number: createKvkNumber || null, notes: createNotes || null,
         deadline: createDeadline ? new Date(createDeadline + 'Z').toISOString() : null,
+        disabled_days: createDisabledDays,
       }).select().single();
       if (error) throw error;
       if (data) {
@@ -481,6 +499,50 @@ export function usePrepScheduler() {
     } catch (err) {
       logger.error('Failed to toggle stagger:', err);
       showToast(t('prepScheduler.toastStaggerFailed', 'Failed to toggle stagger.'), 'error');
+    }
+    setSaving(false);
+  };
+
+  const notifyScheduleReady = async () => {
+    if (!supabase || !schedule) return;
+    setSaving(true);
+    try {
+      const { data: count, error } = await supabase.rpc('notify_prep_schedule_ready', {
+        p_schedule_id: schedule.id,
+        p_kingdom_number: schedule.kingdom_number,
+        p_kvk_number: schedule.kvk_number || null,
+      });
+      if (error) throw error;
+      showToast(t('prepScheduler.toastNotified', 'Notified {{count}} player(s) that the schedule is ready.', { count: count || 0 }), 'success');
+    } catch (err) {
+      logger.error('Failed to send schedule ready notification:', err);
+      showToast(t('prepScheduler.toastNotifyFailed', 'Failed to send notifications.'), 'error');
+    }
+    setSaving(false);
+  };
+
+  const toggleDisabledDay = async (day: string) => {
+    if (!supabase || !schedule) return;
+    const current = schedule.disabled_days || [];
+    const newDays = current.includes(day) ? current.filter(d => d !== day) : [...current, day];
+    // Don't allow disabling all 3 days
+    if (newDays.length >= 3) {
+      showToast(t('prepScheduler.toastCantDisableAll', 'At least one day must remain enabled.'), 'error');
+      return;
+    }
+    setSaving(true);
+    try {
+      await supabase.from('prep_schedules').update({ disabled_days: newDays }).eq('id', schedule.id);
+      setSchedule({ ...schedule, disabled_days: newDays });
+      showToast(
+        newDays.includes(day)
+          ? t('prepScheduler.toastDayDisabled', '{{day}} disabled.', { day: day.charAt(0).toUpperCase() + day.slice(1) })
+          : t('prepScheduler.toastDayEnabled', '{{day}} enabled.', { day: day.charAt(0).toUpperCase() + day.slice(1) }),
+        'success'
+      );
+    } catch (err) {
+      logger.error('Failed to toggle disabled day:', err);
+      showToast(t('prepScheduler.toastDayToggleFailed', 'Failed to update day settings.'), 'error');
     }
     setSaving(false);
   };
@@ -949,11 +1011,12 @@ export function usePrepScheduler() {
     // Create state
     createKingdom, setCreateKingdom, createKvkNumber, setCreateKvkNumber,
     createNotes, setCreateNotes, createDeadline, setCreateDeadline,
+    createDisabledDays, setCreateDisabledDays,
     // Manager state
     assignManagerInput, setAssignManagerInput, managerSearchResults,
     managers, showManagerDropdown, setShowManagerDropdown, managerSearchRef,
     // Kingdom schedules
-    kingdomSchedules,
+    kingdomSchedules, submittedSchedules,
     // Change request state
     changeRequests, showChangeRequestForm, setShowChangeRequestForm,
     changeRequestDay, setChangeRequestDay, changeRequestType, setChangeRequestType,
@@ -968,7 +1031,7 @@ export function usePrepScheduler() {
     // Slot management state
     removingIds,
     // Actions
-    createSchedule, closeOrReopenForm, toggleStagger, toggleLock, archiveSchedule, deleteSchedule, updateDeadline,
+    createSchedule, closeOrReopenForm, toggleStagger, toggleLock, toggleDisabledDay, notifyScheduleReady, archiveSchedule, deleteSchedule, updateDeadline,
     submitForm, submitChangeRequest, acknowledgeChangeRequest,
     runAutoAssign, assignSlot, removeAssignment, clearDayAssignments,
     copyShareLink, exportScheduleCSV,

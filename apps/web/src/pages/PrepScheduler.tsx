@@ -42,6 +42,7 @@ const PrepScheduler: React.FC = () => {
         promoMsRemaining={hook.promoMsRemaining}
         mySchedules={hook.mySchedules}
         kingdomSchedules={hook.kingdomSchedules}
+        submittedSchedules={hook.submittedSchedules}
         navigate={hook.navigate}
         isEditorOrCoEditor={hook.isEditorOrCoEditor}
         isManager={hook.isManager}
@@ -53,6 +54,8 @@ const PrepScheduler: React.FC = () => {
         setCreateNotes={hook.setCreateNotes}
         createDeadline={hook.createDeadline}
         setCreateDeadline={hook.setCreateDeadline}
+        createDisabledDays={hook.createDisabledDays}
+        setCreateDisabledDays={hook.setCreateDisabledDays}
         createSchedule={hook.createSchedule}
         saving={hook.saving}
       />
@@ -134,10 +137,12 @@ const PrepScheduler: React.FC = () => {
           managerSearchRef={hook.managerSearchRef}
           copyShareLink={hook.copyShareLink}
           exportScheduleCSV={hook.exportScheduleCSV}
-          exportOptedOut={hook.exportOptedOut}
+
           setView={hook.setView}
           closeOrReopenForm={hook.closeOrReopenForm}
           toggleLock={hook.toggleLock}
+          toggleDisabledDay={hook.toggleDisabledDay}
+          notifyScheduleReady={hook.notifyScheduleReady}
           archiveSchedule={hook.archiveSchedule}
           deleteSchedule={hook.deleteSchedule}
           runAutoAssign={hook.runAutoAssign}

@@ -13,6 +13,7 @@ export interface FilterState {
   tag: string;
   minMatchScore: string;
   sortBy: string;
+  eventTime: string;
 }
 
 export const defaultFilters: FilterState = {
@@ -24,7 +25,15 @@ export const defaultFilters: FilterState = {
   tag: 'all',
   minMatchScore: '',
   sortBy: 'tier',
+  eventTime: 'all',
 };
+
+const EVENT_TIME_OPTIONS = [
+  { value: '0-6', label: '00:00–06:00 UTC' },
+  { value: '6-12', label: '06:00–12:00 UTC' },
+  { value: '12-18', label: '12:00–18:00 UTC' },
+  { value: '18-24', label: '18:00–24:00 UTC' },
+];
 
 const LANGUAGE_OPTIONS = [
   'English', 'Mandarin Chinese', 'Hindi', 'Spanish', 'French', 'Arabic', 'Bengali',
@@ -100,6 +109,15 @@ const FilterPanel: React.FC<{
           <option value="score">{t('transferHub.filters.sortScore', 'Atlas Score (High → Low)')}</option>
           <option value="rank">{t('transferHub.filters.sortRank', 'Rank (Best → Worst)')}</option>
           <option value="match">{t('transferHub.filters.sortMatch', 'Match Score (Best → Worst)')}</option>
+        </select>
+      </div>
+      <div>
+        <label style={{ color: colors.textSecondary, fontSize: '0.7rem', marginBottom: '0.25rem', display: 'block' }}>{t('transferHub.filters.eventTime', 'Event Times')}</label>
+        <select value={filters.eventTime} onChange={(e) => update('eventTime', e.target.value)} style={selectStyle}>
+          <option value="all">{t('transferHub.filters.anyTime', 'Any Time')}</option>
+          {EVENT_TIME_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
         </select>
       </div>
       <div>

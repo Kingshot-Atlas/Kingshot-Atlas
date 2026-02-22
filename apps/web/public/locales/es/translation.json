@@ -1471,6 +1471,8 @@
       "minAtlasScore": "Índice Atlas Mínimo",
       "minMatchScore": "Compatibilidad Mínima",
       "activelyRecruiting": "Solo Reclutando Activamente",
+      "eventTime": "Horarios de Eventos",
+      "anyTime": "Cualquier Hora",
       "clearFilters": "Borrar Filtros",
       "applyFilters": "Aplicar filtros"
     },
@@ -2823,7 +2825,21 @@
     "toastOptOutsUpdated": "Exclusiones actualizadas.",
     "toastOptOutsFailed": "Error al actualizar exclusiones.",
     "toastSubmissionEdited": "Entrega actualizada.",
-    "toastEditFailed": "Error al actualizar la entrega."
+    "toastEditFailed": "Error al actualizar la entrega.",
+    "closedSchedule": "Horario Cerrado",
+    "closedScheduleDesc": "Este horario está cerrado. Aún puedes ver tu entrega.",
+    "yourSubmissionsDesc": "Horarios donde enviaste tu disponibilidad.",
+    "viewSchedule": "Ver Horario",
+    "enabledDays": "Días Habilitados",
+    "enabledDaysHint": "Activa o desactiva los días para este horario.",
+    "toastCantDisableAll": "Al menos un día debe permanecer habilitado.",
+    "toastDayDisabled": "{{day}} deshabilitado.",
+    "toastDayEnabled": "{{day}} habilitado.",
+    "toastDayToggleFailed": "Error al actualizar los días.",
+    "toastNotified": "Se notificó a {{count}} jugador(es) que el horario está listo.",
+    "toastNotifyFailed": "Error al enviar notificaciones.",
+    "notifyReady": "Notificar Jugadores — Horario Listo",
+    "allianceExact3": "La etiqueta de alianza debe tener exactamente 3 caracteres."
   },
   "prepLanding": {
     "featAutoAssign": "Asignación Automática de Turnos",

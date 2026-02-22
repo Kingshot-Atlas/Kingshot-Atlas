@@ -1471,6 +1471,8 @@
       "minAtlasScore": "Min Atlas Score",
       "minMatchScore": "Min Match Score",
       "activelyRecruiting": "Actively Recruiting Only",
+      "eventTime": "Event Times",
+      "anyTime": "Any Time",
       "clearFilters": "Clear Filters",
       "applyFilters": "Apply Filters"
     },
@@ -2823,7 +2825,21 @@
     "toastOptOutsUpdated": "Opt-outs updated.",
     "toastOptOutsFailed": "Failed to update opt-outs.",
     "toastSubmissionEdited": "Submission updated.",
-    "toastEditFailed": "Failed to update submission."
+    "toastEditFailed": "Failed to update submission.",
+    "closedSchedule": "Closed Schedule",
+    "closedScheduleDesc": "This schedule is closed. You can still view your submission.",
+    "yourSubmissionsDesc": "Schedules you've submitted availability to.",
+    "viewSchedule": "View Schedule",
+    "enabledDays": "Enabled Days",
+    "enabledDaysHint": "Toggle which days are enabled for this schedule.",
+    "toastCantDisableAll": "At least one day must remain enabled.",
+    "toastDayDisabled": "{{day}} disabled.",
+    "toastDayEnabled": "{{day}} enabled.",
+    "toastDayToggleFailed": "Failed to update day settings.",
+    "toastNotified": "Notified {{count}} player(s) that the schedule is ready.",
+    "toastNotifyFailed": "Failed to send notifications.",
+    "notifyReady": "Notify Players — Schedule Ready",
+    "allianceExact3": "Alliance tag must be exactly 3 characters."
   },
   "prepLanding": {
     "featAutoAssign": "Automated Slot Assignment",

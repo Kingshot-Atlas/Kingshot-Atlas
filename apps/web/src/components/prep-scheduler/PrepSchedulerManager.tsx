@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { colors, FONT_DISPLAY } from '../../utils/styles';
@@ -43,6 +43,8 @@ interface PrepSchedulerManagerProps {
   setView: (view: 'landing' | 'form' | 'manage' | 'gate') => void;
   closeOrReopenForm: () => void;
   toggleLock: () => void;
+  toggleDisabledDay: (day: string) => Promise<void>;
+  notifyScheduleReady: () => Promise<void>;
   archiveSchedule: () => void;
   deleteSchedule: () => void;
   runAutoAssign: (day: Day) => Promise<void>;
@@ -71,7 +73,7 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
     managers, assignManagerInput, setAssignManagerInput, managerSearchResults,
     showManagerDropdown, setShowManagerDropdown, managerSearchRef,
     copyShareLink, exportScheduleCSV,
-    setView, closeOrReopenForm, toggleLock, archiveSchedule, deleteSchedule,
+    setView, closeOrReopenForm, toggleLock, toggleDisabledDay, notifyScheduleReady, archiveSchedule, deleteSchedule,
     runAutoAssign, assignSlot, removeAssignment, clearDayAssignments,
     acknowledgeChangeRequest, addManager, removeManagerById, updateDeadline,
     toggleStagger, removingIds, effectiveSlots, maxSlots,
@@ -100,6 +102,7 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
     return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}T${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`;
   });
 
+  const enabledDays = useMemo(() => DAYS.filter(d => !(schedule.disabled_days || []).includes(d)), [schedule.disabled_days]);
   const assignedCount = dayAssignments.length;
   const pendingRequests = changeRequests.filter(r => r.status === 'pending');
 
@@ -184,6 +187,27 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
                     {schedule.status !== 'archived' && (isEditorOrCoEditor || isManager) && (
                       <button onClick={toggleStagger} disabled={saving} style={{ padding: '0.5rem 0.75rem', backgroundColor: schedule.stagger_enabled ? '#8b5cf615' : '#6366f115', border: `1px solid ${schedule.stagger_enabled ? '#8b5cf630' : '#6366f130'}`, borderRadius: '6px', color: schedule.stagger_enabled ? '#8b5cf6' : '#6366f1', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', textAlign: 'left', minHeight: '40px', opacity: saving ? 0.6 : 1 }}>{schedule.stagger_enabled ? `⏱️ ${t('prepScheduler.disableStagger', 'Disable Stagger')}` : `⏱️ ${t('prepScheduler.enableStagger', 'Enable Stagger')}`}</button>
                     )}
+                    {schedule.status !== 'archived' && (isEditorOrCoEditor || isManager) && (
+                      <div style={{ padding: '0.5rem 0.75rem', backgroundColor: `${colors.bg}60`, border: `1px solid ${colors.border}`, borderRadius: '6px' }}>
+                        <p style={{ color: colors.textSecondary, fontSize: '0.7rem', fontWeight: 600, margin: '0 0 0.4rem' }}>📅 {t('prepScheduler.enabledDays', 'Enabled Days')}</p>
+                        <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
+                          {(['monday', 'tuesday', 'thursday'] as const).map(day => {
+                            const disabled = (schedule.disabled_days || []).includes(day);
+                            const dc: Record<string, string> = { monday: '#f97316', tuesday: '#3b82f6', thursday: '#a855f7' };
+                            const dl: Record<string, string> = { monday: 'Mon', tuesday: 'Tue', thursday: 'Thu' };
+                            return (
+                              <button key={day} onClick={() => toggleDisabledDay(day)} disabled={saving}
+                                style={{ padding: '0.3rem 0.6rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', border: `1px solid ${disabled ? colors.border : dc[day] + '50'}`, backgroundColor: disabled ? '#1a1a1a' : dc[day] + '15', color: disabled ? colors.textMuted : dc[day], opacity: disabled ? 0.5 : 1, textDecoration: disabled ? 'line-through' : 'none' }}>
+                                {disabled ? '✕' : '✓'} {dl[day]}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                    {schedule.status !== 'archived' && (isEditorOrCoEditor || isManager) && submissions.length > 0 && (
+                      <button onClick={notifyScheduleReady} disabled={saving} style={{ padding: '0.5rem 0.75rem', backgroundColor: '#0ea5e915', border: '1px solid #0ea5e930', borderRadius: '6px', color: '#0ea5e9', fontSize: '0.8rem', fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer', textAlign: 'left', minHeight: '40px', opacity: saving ? 0.6 : 1 }}>🔔 {t('prepScheduler.notifyReady', 'Notify Players — Schedule Ready')}</button>
+                    )}
                     {schedule.status === 'active' && isEditorOrCoEditor && (
                       <button onClick={archiveSchedule} style={{ padding: '0.5rem 0.75rem', backgroundColor: `${colors.textMuted}10`, border: `1px solid ${colors.border}`, borderRadius: '6px', color: colors.textMuted, fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', textAlign: 'left', minHeight: '40px' }}>📦 {t('prepScheduler.archive', 'Archive')}</button>
                     )}
@@ -206,6 +230,25 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
                 )}
                 {schedule.status !== 'archived' && (isEditorOrCoEditor || isManager) && (
                   <button onClick={toggleStagger} disabled={saving} style={{ padding: '0.4rem 0.75rem', backgroundColor: schedule.stagger_enabled ? '#8b5cf615' : '#6366f115', border: `1px solid ${schedule.stagger_enabled ? '#8b5cf630' : '#6366f130'}`, borderRadius: '6px', color: schedule.stagger_enabled ? '#8b5cf6' : '#6366f1', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', opacity: saving ? 0.6 : 1 }}>{schedule.stagger_enabled ? `⏱️ ${t('prepScheduler.disableStagger', 'Disable Stagger')}` : `⏱️ ${t('prepScheduler.enableStagger', 'Enable Stagger')}`}</button>
+                )}
+                {schedule.status !== 'archived' && (isEditorOrCoEditor || isManager) && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.3rem 0.5rem', backgroundColor: `${colors.bg}60`, border: `1px solid ${colors.border}`, borderRadius: '6px' }}>
+                    <span style={{ color: colors.textSecondary, fontSize: '0.7rem', fontWeight: 600 }}>📅</span>
+                    {(['monday', 'tuesday', 'thursday'] as const).map(day => {
+                      const disabled = (schedule.disabled_days || []).includes(day);
+                      const dc: Record<string, string> = { monday: '#f97316', tuesday: '#3b82f6', thursday: '#a855f7' };
+                      const dl: Record<string, string> = { monday: 'Mon', tuesday: 'Tue', thursday: 'Thu' };
+                      return (
+                        <button key={day} onClick={() => toggleDisabledDay(day)} disabled={saving}
+                          style={{ padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 600, cursor: 'pointer', border: `1px solid ${disabled ? colors.border : dc[day] + '50'}`, backgroundColor: disabled ? '#1a1a1a' : dc[day] + '15', color: disabled ? colors.textMuted : dc[day], opacity: disabled ? 0.5 : 1, textDecoration: disabled ? 'line-through' : 'none' }}>
+                          {disabled ? '✕' : '✓'} {dl[day]}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+                {schedule.status !== 'archived' && (isEditorOrCoEditor || isManager) && submissions.length > 0 && (
+                  <button onClick={notifyScheduleReady} disabled={saving} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#0ea5e915', border: '1px solid #0ea5e930', borderRadius: '6px', color: '#0ea5e9', fontSize: '0.75rem', fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1 }}>🔔 {t('prepScheduler.notifyReady', 'Notify Players — Schedule Ready')}</button>
                 )}
                 {schedule.status === 'active' && isEditorOrCoEditor && (
                   <button onClick={archiveSchedule} style={{ padding: '0.4rem 0.75rem', backgroundColor: `${colors.textMuted}10`, border: `1px solid ${colors.border}`, borderRadius: '6px', color: colors.textMuted, fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>📦 {t('prepScheduler.archive', 'Archive')}</button>
@@ -301,7 +344,7 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
 
         {/* Day Tabs */}
         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
-          {DAYS.map(day => {
+          {enabledDays.map(day => {
             const dayCount = assignments.filter(a => a.day === day).length;
             return (
               <button key={day} onClick={() => { setActiveDay(day); setShowAllSlots(false); }}
@@ -576,7 +619,7 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
                         </div>
                         {/* Availability per day */}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-                          {DAYS.map(day => {
+                          {enabledDays.map(day => {
                             const skipKey = `skip_${day}` as 'skip_monday' | 'skip_tuesday' | 'skip_thursday';
                             const isSkipped = sub[skipKey];
                             const availKey = `${day}_availability` as keyof PrepSubmission;

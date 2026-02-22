@@ -166,6 +166,7 @@ function createCompareEmbed(k1, k2) {
           `${better(k1.overall_score, k2.overall_score)} **Score:** ${k1.overall_score.toFixed(1)} (${tier1})`,
           `${better(k1.prep_win_rate, k2.prep_win_rate)} **Prep:** ${formatWinRate(k1.prep_win_rate)}`,
           `${better(k1.battle_win_rate, k2.battle_win_rate)} **Battle:** ${formatWinRate(k1.battle_win_rate)}`,
+          `─────────`,
           `${better(doms1, doms2)} **Dominations:** ${doms1}`,
           `${betterLow(invs1, invs2)} **Invasions:** ${invs1}`,
         ].join('\n'),
@@ -178,6 +179,7 @@ function createCompareEmbed(k1, k2) {
           `${better(k2.overall_score, k1.overall_score)} **Score:** ${k2.overall_score.toFixed(1)} (${tier2})`,
           `${better(k2.prep_win_rate, k1.prep_win_rate)} **Prep:** ${formatWinRate(k2.prep_win_rate)}`,
           `${better(k2.battle_win_rate, k1.battle_win_rate)} **Battle:** ${formatWinRate(k2.battle_win_rate)}`,
+          `─────────`,
           `${better(doms2, doms1)} **Dominations:** ${doms2}`,
           `${betterLow(invs2, invs1)} **Invasions:** ${invs2}`,
         ].join('\n'),
@@ -737,22 +739,17 @@ function createHistoryEmbed(kingdom, page = 1) {
     const safePage = Math.min(Math.max(page, 1), totalPages);
     const pageItems = sorted.slice((safePage - 1) * perPage, safePage * perPage);
 
-    // Two-column inline layout (Matchup | Result)
-    const matchups = pageItems.map((kvk) => {
+    // Single-column layout (mobile-friendly)
+    const lines = pageItems.map((kvk) => {
       const num = kvk.kvk_number ? `KvK #${kvk.kvk_number}` : `#${kvk.order_index}`;
       const opponent = kvk.opponent_kingdom ? `vs K${kvk.opponent_kingdom}` : '';
-      return `**${num}** ${opponent}`;
-    });
-
-    const results = pageItems.map((kvk) => {
       const prep = resultEmoji(kvk.prep_result);
       const battle = resultEmoji(kvk.battle_result);
-      return `Pre: ${prep}  Bat: ${battle}`;
+      return `**${num}** ${opponent} — Pre: ${prep}  Bat: ${battle}`;
     });
 
     embed.addFields(
-      { name: 'Matchup', value: matchups.join('\n'), inline: true },
-      { name: 'Result', value: results.join('\n'), inline: true },
+      { name: 'KvK History', value: lines.join('\n') },
     );
 
     if (totalPages > 1) {

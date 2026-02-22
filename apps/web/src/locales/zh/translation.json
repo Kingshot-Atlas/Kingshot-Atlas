@@ -1470,7 +1470,9 @@
       "allTags": "所有标签",
       "minAtlasScore": "最低 Atlas 评分",
       "minMatchScore": "最低匹配分数",
-      "activelyRecruiting": "仅显示积极招募",
+      "activelyRecruiting": "仅限积极招募",
+      "eventTime": "活动时间",
+      "anyTime": "任何时间",
       "clearFilters": "清除筛选",
       "applyFilters": "应用筛选"
     },
@@ -2823,7 +2825,21 @@
     "toastOptOutsUpdated": "退出选项已更新。",
     "toastOptOutsFailed": "更新退出选项失败。",
     "toastSubmissionEdited": "提交已更新。",
-    "toastEditFailed": "更新提交失败。"
+    "toastEditFailed": "更新提交失败。",
+    "closedSchedule": "已关闭的日程",
+    "closedScheduleDesc": "此日程已关闭。你仍可查看你的提交。",
+    "yourSubmissionsDesc": "你提交了可用时间的日程。",
+    "viewSchedule": "查看日程",
+    "enabledDays": "已启用天数",
+    "enabledDaysHint": "切换此日程启用的天数。",
+    "toastCantDisableAll": "至少保留一天为启用状态。",
+    "toastDayDisabled": "{{day}} 已禁用。",
+    "toastDayEnabled": "{{day}} 已启用。",
+    "toastDayToggleFailed": "更新天数设置失败。",
+    "toastNotified": "已通知 {{count}} 名玩家日程已就绪。",
+    "toastNotifyFailed": "发送通知失败。",
+    "notifyReady": "通知玩家 — 日程已就绪",
+    "allianceExact3": "联盟标签必须恰好为3个字符。"
   },
   "prepLanding": {
     "featAutoAssign": "自动时段分配",

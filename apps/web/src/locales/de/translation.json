@@ -1470,7 +1470,9 @@
       "allTags": "Alle Tags",
       "minAtlasScore": "Min. Atlas-Wertung",
       "minMatchScore": "Min. Match-Wertung",
-      "activelyRecruiting": "Nur aktiv rekrutierend",
+      "activelyRecruiting": "Nur Aktiv Rekrutierend",
+      "eventTime": "Eventzeiten",
+      "anyTime": "Jederzeit",
       "clearFilters": "Filter löschen",
       "applyFilters": "Filter anwenden"
     },
@@ -2823,7 +2825,21 @@
     "toastOptOutsUpdated": "Abmeldungen aktualisiert.",
     "toastOptOutsFailed": "Fehler beim Aktualisieren der Abmeldungen.",
     "toastSubmissionEdited": "Einreichung aktualisiert.",
-    "toastEditFailed": "Fehler beim Aktualisieren der Einreichung."
+    "toastEditFailed": "Fehler beim Aktualisieren der Einreichung.",
+    "closedSchedule": "Geschlossener Zeitplan",
+    "closedScheduleDesc": "Dieser Zeitplan ist geschlossen. Du kannst deine Einreichung weiterhin einsehen.",
+    "yourSubmissionsDesc": "Zeitpläne, für die du deine Verfügbarkeit eingereicht hast.",
+    "viewSchedule": "Zeitplan ansehen",
+    "enabledDays": "Aktivierte Tage",
+    "enabledDaysHint": "Aktiviere oder deaktiviere Tage für diesen Zeitplan.",
+    "toastCantDisableAll": "Mindestens ein Tag muss aktiviert bleiben.",
+    "toastDayDisabled": "{{day}} deaktiviert.",
+    "toastDayEnabled": "{{day}} aktiviert.",
+    "toastDayToggleFailed": "Fehler beim Aktualisieren der Tageseinstellungen.",
+    "toastNotified": "{{count}} Spieler benachrichtigt, dass der Zeitplan bereit ist.",
+    "toastNotifyFailed": "Fehler beim Senden der Benachrichtigungen.",
+    "notifyReady": "Spieler benachrichtigen — Zeitplan bereit",
+    "allianceExact3": "Das Allianz-Tag muss genau 3 Zeichen lang sein."
   },
   "prepLanding": {
     "featAutoAssign": "Automatische Slot-Zuweisung",

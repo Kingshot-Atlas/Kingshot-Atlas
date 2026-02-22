@@ -1471,6 +1471,8 @@
       "minAtlasScore": "Score Atlas Minimum",
       "minMatchScore": "Compatibilité Minimum",
       "activelyRecruiting": "Recrutement Actif Uniquement",
+      "eventTime": "Horaires d'Événements",
+      "anyTime": "Toute Heure",
       "clearFilters": "Effacer les Filtres",
       "applyFilters": "Appliquer les filtres"
     },
@@ -2823,7 +2825,21 @@
     "toastOptOutsUpdated": "Désistements mis à jour.",
     "toastOptOutsFailed": "Échec de la mise à jour des désistements.",
     "toastSubmissionEdited": "Soumission mise à jour.",
-    "toastEditFailed": "Échec de la mise à jour de la soumission."
+    "toastEditFailed": "Échec de la mise à jour de la soumission.",
+    "closedSchedule": "Planning Fermé",
+    "closedScheduleDesc": "Ce planning est fermé. Vous pouvez toujours voir votre soumission.",
+    "yourSubmissionsDesc": "Plannings auxquels vous avez soumis votre disponibilité.",
+    "viewSchedule": "Voir le Planning",
+    "enabledDays": "Jours Activés",
+    "enabledDaysHint": "Activez ou désactivez les jours pour ce planning.",
+    "toastCantDisableAll": "Au moins un jour doit rester activé.",
+    "toastDayDisabled": "{{day}} désactivé.",
+    "toastDayEnabled": "{{day}} activé.",
+    "toastDayToggleFailed": "Échec de la mise à jour des jours.",
+    "toastNotified": "{{count}} joueur(s) notifié(s) que le planning est prêt.",
+    "toastNotifyFailed": "Échec de l'envoi des notifications.",
+    "notifyReady": "Notifier les Joueurs — Planning Prêt",
+    "allianceExact3": "Le tag d'alliance doit contenir exactement 3 caractères."
   },
   "prepLanding": {
     "featAutoAssign": "Assignation Automatique des Créneaux",

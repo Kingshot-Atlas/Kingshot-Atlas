@@ -14,6 +14,7 @@ interface PrepSchedulerListProps {
   promoMsRemaining: number;
   mySchedules: PrepSchedule[];
   kingdomSchedules: PrepSchedule[];
+  submittedSchedules: PrepSchedule[];
   navigate: (path: string) => void;
   isEditorOrCoEditor: boolean;
   isManager: boolean;
@@ -26,16 +27,18 @@ interface PrepSchedulerListProps {
   setCreateNotes: (v: string) => void;
   createDeadline: string;
   setCreateDeadline: (v: string) => void;
+  createDisabledDays: string[];
+  setCreateDisabledDays: (v: string[]) => void;
   createSchedule: () => Promise<void>;
   saving: boolean;
 }
 
 const PrepSchedulerList: React.FC<PrepSchedulerListProps> = ({
-  isMobile, user, profile, goldKingdoms, hasPromoAccess, isPromoActive, promoMsRemaining, mySchedules, kingdomSchedules, navigate,
+  isMobile, user, profile, goldKingdoms, hasPromoAccess, isPromoActive, promoMsRemaining, mySchedules, kingdomSchedules, submittedSchedules, navigate,
   isEditorOrCoEditor, isManager,
   createKingdom, setCreateKingdom, createKvkNumber, setCreateKvkNumber,
   createNotes, setCreateNotes, createDeadline, setCreateDeadline,
-  createSchedule, saving,
+  createDisabledDays, setCreateDisabledDays, createSchedule, saving,
 }) => {
   const { t } = useTranslation();
 
@@ -113,23 +116,70 @@ const PrepSchedulerList: React.FC<PrepSchedulerListProps> = ({
           </div>
         )}
 
-        {/* Fill The Form CTA */}
-        {kingdomSchedules.length > 0 && user && profile?.linked_kingdom && hasQualifyingTier(profile.linked_kingdom) && (
-          <div style={{ ...cardStyle, marginBottom: '1.5rem', borderColor: '#a855f730', backgroundColor: '#a855f708' }}>
-            <h3 style={{ color: '#a855f7', fontSize: '0.95rem', marginBottom: '0.5rem', fontWeight: 700 }}>📅 {t('prepScheduler.activeSchedule', 'Your Kingdom Has an Active Prep Schedule')}</h3>
-            <p style={{ color: colors.textMuted, fontSize: '0.8rem', marginBottom: '0.75rem', lineHeight: 1.5 }}>
-              {t('prepScheduler.activeScheduleDesc', 'Kingdom {{kingdom}} has {{count}} active schedule(s). Submit your speedups and availability so your Prep Manager can assign you a slot.', { kingdom: profile.linked_kingdom, count: kingdomSchedules.length })}
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              {kingdomSchedules.map(ks => (
-                <button key={ks.id} onClick={() => navigate(`/tools/prep-scheduler/${ks.id}`)}
-                  style={{ padding: '0.6rem 1rem', backgroundColor: '#a855f720', border: '1px solid #a855f750', borderRadius: '8px', color: '#a855f7', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', width: 'fit-content', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  📝 {t('prepScheduler.fillForm', 'Fill The Form')}{ks.kvk_number ? ` — KvK #${ks.kvk_number}` : ''}
-                </button>
-              ))}
+        {/* Kingdom Schedules CTA — active and closed */}
+        {kingdomSchedules.length > 0 && user && profile?.linked_kingdom && hasQualifyingTier(profile.linked_kingdom) && (() => {
+          const activeKS = kingdomSchedules.filter(s => s.status === 'active');
+          const closedKS = kingdomSchedules.filter(s => s.status === 'closed');
+          return (
+            <>
+              {activeKS.length > 0 && (
+                <div style={{ ...cardStyle, marginBottom: '1.5rem', borderColor: '#a855f730', backgroundColor: '#a855f708' }}>
+                  <h3 style={{ color: '#a855f7', fontSize: '0.95rem', marginBottom: '0.5rem', fontWeight: 700 }}>📅 {t('prepScheduler.activeSchedule', 'Your Kingdom Has an Active Prep Schedule')}</h3>
+                  <p style={{ color: colors.textMuted, fontSize: '0.8rem', marginBottom: '0.75rem', lineHeight: 1.5 }}>
+                    {t('prepScheduler.activeScheduleDesc', 'Kingdom {{kingdom}} has {{count}} active schedule(s). Submit your speedups and availability so your Prep Manager can assign you a slot.', { kingdom: profile.linked_kingdom, count: activeKS.length })}
+                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    {activeKS.map(ks => (
+                      <button key={ks.id} onClick={() => navigate(`/tools/prep-scheduler/${ks.id}`)}
+                        style={{ padding: '0.6rem 1rem', backgroundColor: '#a855f720', border: '1px solid #a855f750', borderRadius: '8px', color: '#a855f7', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', width: 'fit-content', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        📝 {t('prepScheduler.fillForm', 'Fill The Form')}{ks.kvk_number ? ` — KvK #${ks.kvk_number}` : ''}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {closedKS.length > 0 && (
+                <div style={{ ...cardStyle, marginBottom: '1.5rem', borderColor: '#6b728030', backgroundColor: '#6b728008' }}>
+                  <h3 style={{ color: colors.textSecondary, fontSize: '0.95rem', marginBottom: '0.5rem', fontWeight: 700 }}>🔒 {t('prepScheduler.closedSchedule', 'Closed Schedule')}</h3>
+                  <p style={{ color: colors.textMuted, fontSize: '0.8rem', marginBottom: '0.75rem', lineHeight: 1.5 }}>
+                    {t('prepScheduler.closedScheduleDesc', 'The submission window has ended. View the schedule to check your assigned slots.')}
+                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    {closedKS.map(ks => (
+                      <button key={ks.id} onClick={() => navigate(`/tools/prep-scheduler/${ks.id}`)}
+                        style={{ padding: '0.6rem 1rem', backgroundColor: `${colors.textMuted}10`, border: `1px solid ${colors.textMuted}30`, borderRadius: '8px', color: colors.textSecondary, fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', width: 'fit-content', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        👁️ {t('prepScheduler.viewSchedule', 'View Schedule')}{ks.kvk_number ? ` — KvK #${ks.kvk_number}` : ''}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          );
+        })()}
+
+        {/* Submitted Schedules — schedules the user has filled a form for */}
+        {submittedSchedules.length > 0 && user && (() => {
+          const uniqueSubmitted = submittedSchedules.filter(s => !mySchedules.some(ms => ms.id === s.id) && !kingdomSchedules.some(ks => ks.id === s.id));
+          if (uniqueSubmitted.length === 0) return null;
+          return (
+            <div style={{ ...cardStyle, marginBottom: '1.5rem', borderColor: '#22c55e30', backgroundColor: '#22c55e08' }}>
+              <h3 style={{ color: '#22c55e', fontSize: '0.95rem', marginBottom: '0.5rem', fontWeight: 700 }}>📬 {t('prepScheduler.yourSubmissions', 'Your Submissions')}</h3>
+              <p style={{ color: colors.textMuted, fontSize: '0.8rem', marginBottom: '0.75rem', lineHeight: 1.5 }}>
+                {t('prepScheduler.yourSubmissionsDesc', 'Schedules you\'ve submitted your availability to. View them to check your assigned slots.')}
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {uniqueSubmitted.map(s => (
+                  <button key={s.id} onClick={() => navigate(`/tools/prep-scheduler/${s.id}`)}
+                    style={{ padding: '0.6rem 1rem', backgroundColor: '#22c55e15', border: '1px solid #22c55e30', borderRadius: '8px', color: '#22c55e', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', width: 'fit-content', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    🗓️ {t('prepScheduler.kingdom', 'Kingdom')} {s.kingdom_number}{s.kvk_number ? ` — KvK #${s.kvk_number}` : ''}
+                    <span style={{ fontSize: '0.65rem', padding: '0.1rem 0.35rem', borderRadius: '4px', backgroundColor: s.status === 'active' ? `${colors.success}20` : `${colors.textMuted}20`, color: s.status === 'active' ? colors.success : colors.textMuted, fontWeight: 600 }}>{s.status}</span>
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* Tier Required notice — mentions Silver promo when active */}
         {user && profile?.linked_kingdom && !hasQualifyingTier(profile.linked_kingdom) && !kingdomSchedules.length && mySchedules.length === 0 && (
@@ -177,6 +227,26 @@ const PrepSchedulerList: React.FC<PrepSchedulerListProps> = ({
               <div>
                 <label style={labelStyle}>{t('prepScheduler.kvkNumber', 'KvK Number (optional)')}</label>
                 <input type="number" value={createKvkNumber || ''} onChange={(e) => setCreateKvkNumber(parseInt(e.target.value) || 0)} placeholder="e.g. 11" style={inputStyle} />
+              </div>
+              <div>
+                <label style={labelStyle}>{t('prepScheduler.enabledDays', 'Enabled Days')}</label>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  {(['monday', 'tuesday', 'thursday'] as const).map(day => {
+                    const isDisabled = createDisabledDays.includes(day);
+                    const dayLabels: Record<string, string> = { monday: 'Monday', tuesday: 'Tuesday', thursday: 'Thursday' };
+                    const dayColors: Record<string, string> = { monday: '#f97316', tuesday: '#3b82f6', thursday: '#a855f7' };
+                    return (
+                      <button key={day} type="button" onClick={() => {
+                        if (isDisabled) setCreateDisabledDays(createDisabledDays.filter(d => d !== day));
+                        else if (createDisabledDays.length < 2) setCreateDisabledDays([...createDisabledDays, day]);
+                      }}
+                        style={{ padding: '0.4rem 0.75rem', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', border: `1px solid ${isDisabled ? colors.border : dayColors[day] + '60'}`, backgroundColor: isDisabled ? '#1a1a1a' : dayColors[day] + '15', color: isDisabled ? colors.textMuted : dayColors[day], opacity: isDisabled ? 0.5 : 1, textDecoration: isDisabled ? 'line-through' : 'none' }}>
+                        {isDisabled ? '✕' : '✓'} {dayLabels[day]}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p style={{ color: colors.textMuted, fontSize: '0.65rem', marginTop: '0.2rem' }}>{t('prepScheduler.enabledDaysHint', 'Click a day to disable it. At least one day must remain enabled.')}</p>
               </div>
               <div>
                 <label style={labelStyle}>{t('prepScheduler.notesForPlayers', 'Notes for Players (optional)')}</label>
@@ -247,8 +317,8 @@ const PrepSchedulerList: React.FC<PrepSchedulerListProps> = ({
           </div>
         )}
 
-        {/* Empty State — no schedules, no active kingdom schedules */}
-        {mySchedules.length === 0 && kingdomSchedules.length === 0 && user && (
+        {/* Empty State — no schedules, no kingdom schedules, no submissions */}
+        {mySchedules.length === 0 && kingdomSchedules.length === 0 && submittedSchedules.length === 0 && user && (
           <div style={{ ...cardStyle, marginTop: '1rem', textAlign: 'center', padding: isMobile ? '1.5rem 1rem' : '2rem' }}>
             <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📭</div>
             <h3 style={{ color: colors.text, fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.5rem' }}>

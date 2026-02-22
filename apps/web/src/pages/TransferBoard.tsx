@@ -455,6 +455,22 @@ const TransferBoard: React.FC = () => {
       });
     }
 
+    if (filters.eventTime !== 'all') {
+      const parts = filters.eventTime.split('-').map(Number);
+      const filterStart = parts[0] ?? 0;
+      const filterEnd = parts[1] ?? 24;
+      result = result.filter((k) => {
+        const fund = fundMap.get(k.kingdom_number);
+        if (!fund?.event_times || fund.event_times.length === 0) return false;
+        return fund.event_times.some(et => {
+          const startH = parseInt(et.start?.split(':')[0] || '0', 10);
+          const endH = parseInt(et.end?.split(':')[0] || '0', 10) || 24;
+          // Check overlap: event [startH, endH) overlaps filter [filterStart, filterEnd)
+          return startH < filterEnd && endH > filterStart;
+        });
+      });
+    }
+
     // Sort
     const tierOrder = { gold: 0, silver: 1, bronze: 2, standard: 3 };
     switch (filters.sortBy) {

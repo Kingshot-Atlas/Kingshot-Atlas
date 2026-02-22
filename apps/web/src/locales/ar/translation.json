@@ -1471,6 +1471,8 @@
       "minAtlasScore": "أدنى نقاط Atlas",
       "minMatchScore": "أدنى نقاط توافق",
       "activelyRecruiting": "التجنيد النشط فقط",
+      "eventTime": "أوقات الأحداث",
+      "anyTime": "أي وقت",
       "clearFilters": "مسح التصفيات",
       "applyFilters": "تطبيق الفلاتر"
     },
@@ -2823,7 +2825,21 @@
     "toastOptOutsUpdated": "تم تحديث الإعفاءات.",
     "toastOptOutsFailed": "فشل تحديث الإعفاءات.",
     "toastSubmissionEdited": "تم تحديث الإرسال.",
-    "toastEditFailed": "فشل تحديث الإرسال."
+    "toastEditFailed": "فشل تحديث الإرسال.",
+    "closedSchedule": "جدول مغلق",
+    "closedScheduleDesc": "هذا الجدول مغلق. لا يزال بإمكانك عرض إرسالك.",
+    "yourSubmissionsDesc": "الجداول التي أرسلت فيها توفرك.",
+    "viewSchedule": "عرض الجدول",
+    "enabledDays": "الأيام المفعّلة",
+    "enabledDaysHint": "تبديل الأيام المفعّلة لهذا الجدول.",
+    "toastCantDisableAll": "يجب أن يبقى يوم واحد على الأقل مفعّلاً.",
+    "toastDayDisabled": "تم تعطيل {{day}}.",
+    "toastDayEnabled": "تم تفعيل {{day}}.",
+    "toastDayToggleFailed": "فشل تحديث إعدادات الأيام.",
+    "toastNotified": "تم إخطار {{count}} لاعب(ين) بأن الجدول جاهز.",
+    "toastNotifyFailed": "فشل إرسال الإشعارات.",
+    "notifyReady": "إخطار اللاعبين — الجدول جاهز",
+    "allianceExact3": "يجب أن يكون وسم التحالف مكونًا من 3 أحرف بالضبط."
   },
   "prepLanding": {
     "featAutoAssign": "تعيين تلقائي للفترات",

@@ -1471,6 +1471,8 @@
       "minAtlasScore": "最低Atlasスコア",
       "minMatchScore": "最低マッチスコア",
       "activelyRecruiting": "リクルート中のみ",
+      "eventTime": "イベント時間",
+      "anyTime": "すべての時間",
       "clearFilters": "フィルターをクリア",
       "applyFilters": "フィルターを適用"
     },
@@ -2823,7 +2825,21 @@
     "toastOptOutsUpdated": "オプトアウトが更新されました。",
     "toastOptOutsFailed": "オプトアウトの更新に失敗しました。",
     "toastSubmissionEdited": "提出が更新されました。",
-    "toastEditFailed": "提出の更新に失敗しました。"
+    "toastEditFailed": "提出の更新に失敗しました。",
+    "closedSchedule": "締め切り済みスケジュール",
+    "closedScheduleDesc": "このスケジュールは締め切られています。提出内容は引き続き確認できます。",
+    "yourSubmissionsDesc": "空き時間を提出したスケジュールです。",
+    "viewSchedule": "スケジュールを見る",
+    "enabledDays": "有効な曜日",
+    "enabledDaysHint": "このスケジュールで有効にする曜日を切り替えます。",
+    "toastCantDisableAll": "少なくとも1日は有効のままにしてください。",
+    "toastDayDisabled": "{{day}} が無効になりました。",
+    "toastDayEnabled": "{{day}} が有効になりました。",
+    "toastDayToggleFailed": "曜日設定の更新に失敗しました。",
+    "toastNotified": "{{count}}人のプレイヤーにスケジュール準備完了を通知しました。",
+    "toastNotifyFailed": "通知の送信に失敗しました。",
+    "notifyReady": "プレイヤーに通知 — スケジュール準備完了",
+    "allianceExact3": "同盟タグは正確に3文字でなければなりません。"
   },
   "prepLanding": {
     "featAutoAssign": "自動スロット割り当て",

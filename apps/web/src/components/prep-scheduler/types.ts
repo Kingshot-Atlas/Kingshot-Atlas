@@ -14,6 +14,7 @@ export interface PrepSchedule {
   notes: string | null;
   deadline: string | null;
   stagger_enabled: boolean;
+  disabled_days: string[];
   created_at: string;
 }
 

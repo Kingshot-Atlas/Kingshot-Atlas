@@ -52,6 +52,7 @@ const SOURCE_CONFIG: Record<string, { label: string; icon: string; color: string
   endorsement: { label: 'Endorsements', icon: '🗳️', color: '#a855f7' },
   review_invite: { label: 'Reviews', icon: '⭐', color: '#fbbf24' },
   transfer_listing: { label: 'Transfer Hub', icon: '🔄', color: '#22c55e' },
+  manual_admin: { label: 'Manual (Admin)', icon: '✏️', color: '#f97316' },
 };
 
 // =============================================
@@ -62,7 +63,100 @@ export const ReferralIntelligence: React.FC = () => {
   const { t } = useTranslation();
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeSection, setActiveSection] = useState<'overview' | 'sources' | 'referrers' | 'recent'>('overview');
+  const [activeSection, setActiveSection] = useState<'overview' | 'sources' | 'referrers' | 'recent' | 'manual'>('overview');
+
+  // Manual referral assignment state
+  const [manualReferrer, setManualReferrer] = useState('');
+  const [manualReferred, setManualReferred] = useState('');
+  const [manualSaving, setManualSaving] = useState(false);
+  const [manualResult, setManualResult] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  const handleManualReferral = async () => {
+    if (!supabase || !manualReferrer.trim() || !manualReferred.trim()) return;
+    setManualSaving(true);
+    setManualResult(null);
+    try {
+      // Look up the referrer by linked_username or linked_player_id
+      const referrerQuery = manualReferrer.trim();
+      const { data: referrerData } = await supabase
+        .from('profiles')
+        .select('id, linked_username')
+        .or(`linked_username.ilike.${referrerQuery},linked_player_id.eq.${referrerQuery}`)
+        .limit(1)
+        .maybeSingle();
+      if (!referrerData) {
+        setManualResult({ type: 'error', message: `Referrer "${referrerQuery}" not found. Use their linked username or player ID.` });
+        setManualSaving(false);
+        return;
+      }
+
+      // Look up the referred user
+      const referredQuery = manualReferred.trim();
+      const { data: referredData } = await supabase
+        .from('profiles')
+        .select('id, linked_username, referred_by')
+        .or(`linked_username.ilike.${referredQuery},linked_player_id.eq.${referredQuery}`)
+        .limit(1)
+        .maybeSingle();
+      if (!referredData) {
+        setManualResult({ type: 'error', message: `Referred user "${referredQuery}" not found. Use their linked username or player ID.` });
+        setManualSaving(false);
+        return;
+      }
+
+      if (referrerData.id === referredData.id) {
+        setManualResult({ type: 'error', message: 'Referrer and referred user cannot be the same person.' });
+        setManualSaving(false);
+        return;
+      }
+
+      // Check if referral already exists
+      const { data: existing } = await supabase
+        .from('referrals')
+        .select('id')
+        .eq('referrer_user_id', referrerData.id)
+        .eq('referred_user_id', referredData.id)
+        .maybeSingle();
+      if (existing) {
+        setManualResult({ type: 'error', message: 'This referral already exists.' });
+        setManualSaving(false);
+        return;
+      }
+
+      // Insert verified referral
+      const { error: insertErr } = await supabase.from('referrals').insert({
+        referrer_user_id: referrerData.id,
+        referred_user_id: referredData.id,
+        referral_code: referrerData.linked_username || referrerQuery,
+        status: 'verified',
+        source: 'manual_admin',
+        verified_at: new Date().toISOString(),
+      });
+      if (insertErr) throw insertErr;
+
+      // Update referred_by on the referred user's profile
+      await supabase.from('profiles').update({ referred_by: referrerData.linked_username || referrerQuery }).eq('id', referredData.id);
+
+      // Recount and update the referrer's count and tier
+      const { count: newCount } = await supabase
+        .from('referrals')
+        .select('*', { count: 'exact', head: true })
+        .eq('referrer_user_id', referrerData.id)
+        .eq('status', 'verified');
+
+      const tierValue = (newCount ?? 0) >= 20 ? 'ambassador' : (newCount ?? 0) >= 10 ? 'consul' : (newCount ?? 0) >= 5 ? 'recruiter' : (newCount ?? 0) >= 2 ? 'scout' : null;
+      await supabase.from('profiles').update({ referral_count: newCount ?? 0, referral_tier: tierValue }).eq('id', referrerData.id);
+
+      setManualResult({ type: 'success', message: `Referral added: ${referredData.linked_username || referredQuery} → ${referrerData.linked_username || referrerQuery} (new count: ${newCount})` });
+      setManualReferrer('');
+      setManualReferred('');
+      fetchMetrics(); // Refresh data
+    } catch (err) {
+      logger.error('Manual referral failed:', err);
+      setManualResult({ type: 'error', message: 'Failed to create referral. Check the console for details.' });
+    }
+    setManualSaving(false);
+  };
 
   useEffect(() => {
     fetchMetrics();
@@ -226,6 +320,7 @@ export const ReferralIntelligence: React.FC = () => {
           { id: 'sources' as const, label: '🧭 How People Found Atlas' },
           { id: 'referrers' as const, label: '👥 Top Referrers' },
           { id: 'recent' as const, label: '📋 Recent Activity' },
+          { id: 'manual' as const, label: '✏️ Manual Assign' },
         ].map(tab => (
           <button
             key={tab.id}
@@ -636,6 +731,72 @@ export const ReferralIntelligence: React.FC = () => {
               </table>
             </div>
           )}
+        </div>
+      )}
+      {/* ============================================= */}
+      {/* MANUAL ASSIGN SECTION */}
+      {/* ============================================= */}
+      {activeSection === 'manual' && (
+        <div>
+          <div style={{ ...cardStyle, marginBottom: '1rem' }}>
+            <h4 style={{ color: '#fff', fontSize: '0.85rem', margin: '0 0 0.75rem', fontWeight: '600' }}>✏️ Manually Assign Referral</h4>
+            <p style={{ color: '#6b7280', fontSize: '0.75rem', margin: '0 0 1rem', lineHeight: 1.5 }}>
+              Add a verified referral for a user who wasn't automatically tracked. Enter the referrer's and referred user's linked username or player ID.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <div>
+                <label style={{ color: '#9ca3af', fontSize: '0.7rem', display: 'block', marginBottom: '0.25rem' }}>Referrer (who brought them)</label>
+                <input
+                  type="text"
+                  value={manualReferrer}
+                  onChange={(e) => setManualReferrer(e.target.value)}
+                  placeholder="Username or Player ID..."
+                  style={{ width: '100%', padding: '0.5rem 0.75rem', borderRadius: '6px', border: '1px solid #2a2a2a', backgroundColor: '#0a0a0a', color: '#fff', fontSize: '0.8rem', boxSizing: 'border-box' }}
+                />
+              </div>
+              <div>
+                <label style={{ color: '#9ca3af', fontSize: '0.7rem', display: 'block', marginBottom: '0.25rem' }}>Referred User (who was brought)</label>
+                <input
+                  type="text"
+                  value={manualReferred}
+                  onChange={(e) => setManualReferred(e.target.value)}
+                  placeholder="Username or Player ID..."
+                  style={{ width: '100%', padding: '0.5rem 0.75rem', borderRadius: '6px', border: '1px solid #2a2a2a', backgroundColor: '#0a0a0a', color: '#fff', fontSize: '0.8rem', boxSizing: 'border-box' }}
+                />
+              </div>
+              <button
+                onClick={handleManualReferral}
+                disabled={manualSaving || !manualReferrer.trim() || !manualReferred.trim()}
+                style={{
+                  padding: '0.5rem 1rem',
+                  borderRadius: '6px',
+                  border: '1px solid #22c55e40',
+                  backgroundColor: '#22c55e15',
+                  color: '#22c55e',
+                  fontSize: '0.8rem',
+                  fontWeight: '600',
+                  cursor: manualSaving ? 'not-allowed' : 'pointer',
+                  opacity: manualSaving || !manualReferrer.trim() || !manualReferred.trim() ? 0.5 : 1,
+                  alignSelf: 'flex-start',
+                }}
+              >
+                {manualSaving ? 'Adding...' : '+ Add Verified Referral'}
+              </button>
+              {manualResult && (
+                <div style={{
+                  padding: '0.5rem 0.75rem',
+                  borderRadius: '6px',
+                  fontSize: '0.8rem',
+                  fontWeight: '500',
+                  backgroundColor: manualResult.type === 'success' ? '#22c55e15' : '#ef444415',
+                  border: `1px solid ${manualResult.type === 'success' ? '#22c55e40' : '#ef444440'}`,
+                  color: manualResult.type === 'success' ? '#22c55e' : '#ef4444',
+                }}>
+                  {manualResult.message}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>

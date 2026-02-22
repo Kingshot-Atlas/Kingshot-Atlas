@@ -260,6 +260,9 @@ const PrepSchedulerForm: React.FC<PrepSchedulerFormProps> = (props) => {
     isRefilling, setIsRefilling, updateSubmissionOptOuts,
   } = props;
 
+  // Filter out disabled days from the schedule
+  const enabledDays = useMemo(() => DAYS.filter(d => !(schedule.disabled_days || []).includes(d)), [schedule.disabled_days]);
+
   // Is this an alt-account submission (no existing submission loaded = new alt form)?
   const isAltMode = !existingSubmission && mySubmissions.length > 0;
 
@@ -354,7 +357,7 @@ const PrepSchedulerForm: React.FC<PrepSchedulerFormProps> = (props) => {
             <div style={{ ...cardStyle, borderColor: '#22c55e30', backgroundColor: '#22c55e08' }}>
               <h4 style={{ color: '#22c55e', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.5rem' }}>🗓️ {t('prepScheduler.yourSlots', 'Your Assigned Slots')}</h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                {DAYS.map(day => {
+                {enabledDays.map(day => {
                   const mySlots = assignments.filter(a => a.submission_id === existingSubmission.id && a.day === day);
                   if (mySlots.length === 0) return null;
                   const buffType = day === 'monday' ? schedule.monday_buff : day === 'tuesday' ? schedule.tuesday_buff : schedule.thursday_buff;
@@ -452,7 +455,10 @@ const PrepSchedulerForm: React.FC<PrepSchedulerFormProps> = (props) => {
                 </div>
                 <div>
                   <label style={labelStyle}>{t('prepScheduler.alliance', 'Alliance')} <span style={{ color: '#ef4444' }}>*</span></label>
-                  <input type="text" value={formAlliance} onChange={(e) => setFormAlliance(e.target.value)} placeholder="e.g. ABC" style={{ ...inputStyle, borderColor: !formAlliance.trim() ? '#ef444450' : colors.border }} />
+                  <input type="text" value={formAlliance} onChange={(e) => setFormAlliance(e.target.value.toUpperCase().slice(0, 3))} maxLength={3} placeholder="e.g. ABC" style={{ ...inputStyle, borderColor: formAlliance.trim().length !== 3 ? '#ef444450' : colors.border }} />
+                  {formAlliance.trim().length > 0 && formAlliance.trim().length !== 3 && (
+                    <span style={{ color: '#ef4444', fontSize: '0.65rem', marginTop: '0.2rem', display: 'block' }}>{t('prepScheduler.allianceExact3', 'Alliance tag must be exactly 3 characters.')}</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -465,7 +471,7 @@ const PrepSchedulerForm: React.FC<PrepSchedulerFormProps> = (props) => {
               <div style={cardStyle}>
                 <label style={{ ...labelStyle, fontSize: '0.85rem', marginBottom: '0.5rem' }}>📋 {t('prepScheduler.submissionSummary', 'Submission Summary')}</label>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  {DAYS.map(day => {
+                  {enabledDays.map(day => {
                     const isSkipped = isSkippedDay(existingSubmission!, day);
                     const buffType = day === 'monday' ? schedule.monday_buff : day === 'tuesday' ? schedule.tuesday_buff : schedule.thursday_buff;
                     const availKey = `${day}_availability` as keyof PrepSubmission;
@@ -500,7 +506,7 @@ const PrepSchedulerForm: React.FC<PrepSchedulerFormProps> = (props) => {
                   <label style={{ ...labelStyle, fontSize: '0.85rem', marginBottom: '0.5rem' }}>⏭ {t('prepScheduler.editOptOuts', 'Edit Opt-Outs')}</label>
                   <p style={{ color: colors.textMuted, fontSize: '0.7rem', marginBottom: '0.5rem' }}>{t('prepScheduler.editOptOutsDesc', 'Toggle which days you want to opt out of. Changes are saved immediately.')}</p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                    {DAYS.map(day => {
+                    {enabledDays.map(day => {
                       const skipKey = `skip_${day}` as 'skip_monday' | 'skip_tuesday' | 'skip_thursday';
                       const isSkipped = existingSubmission![skipKey];
                       return (
@@ -536,7 +542,7 @@ const PrepSchedulerForm: React.FC<PrepSchedulerFormProps> = (props) => {
           ) : (
             <>
               {/* Availability per day */}
-              {DAYS.map(day => {
+              {enabledDays.map(day => {
                 const isSkipped = day === 'monday' ? skipMonday : day === 'tuesday' ? skipTuesday : skipThursday;
                 const setSkipped = day === 'monday' ? setSkipMonday : day === 'tuesday' ? setSkipTuesday : setSkipThursday;
                 const buffType = day === 'monday' ? schedule.monday_buff : day === 'tuesday' ? schedule.tuesday_buff : schedule.thursday_buff;
@@ -625,8 +631,8 @@ const PrepSchedulerForm: React.FC<PrepSchedulerFormProps> = (props) => {
                   <span style={{ color: '#ef4444', fontSize: '0.85rem', fontWeight: 600 }}>🔒 {t('prepScheduler.formClosedLocked', 'Form is closed — submissions are locked')}</span>
                 </div>
               ) : (
-                <button onClick={submitForm} disabled={saving || !formUsername.trim()}
-                  style={{ padding: '0.75rem 1.5rem', backgroundColor: '#a855f720', border: '1px solid #a855f750', borderRadius: '10px', color: '#a855f7', fontSize: '0.9rem', fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1 }}>
+                <button onClick={submitForm} disabled={saving || !formUsername.trim() || formAlliance.trim().length !== 3}
+                  style={{ padding: '0.75rem 1.5rem', backgroundColor: '#a855f720', border: '1px solid #a855f750', borderRadius: '10px', color: '#a855f7', fontSize: '0.9rem', fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving || formAlliance.trim().length !== 3 ? 0.6 : 1 }}>
                   {saving ? t('prepScheduler.submitting', 'Submitting...') : isAltMode ? `📤 ${t('prepScheduler.submitAlt', 'Submit Alt Account')}` : `📤 ${t('prepScheduler.submit', 'Submit')}`}
                 </button>
               )}
@@ -652,13 +658,13 @@ const PrepSchedulerForm: React.FC<PrepSchedulerFormProps> = (props) => {
           backdropFilter: 'blur(12px)',
           WebkitBackdropFilter: 'blur(12px)',
         }}>
-          <button onClick={submitForm} disabled={saving || !formUsername.trim()}
+          <button onClick={submitForm} disabled={saving || !formUsername.trim() || formAlliance.trim().length !== 3}
             style={{
               width: '100%', padding: '0.85rem 1.5rem',
               backgroundColor: '#a855f720', border: '1px solid #a855f750',
               borderRadius: '10px', color: '#a855f7', fontSize: '1rem',
               fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer',
-              opacity: (saving || !formUsername.trim()) ? 0.5 : 1,
+              opacity: (saving || !formUsername.trim() || formAlliance.trim().length !== 3) ? 0.5 : 1,
               minHeight: '50px',
             }}>
             {saving ? t('prepScheduler.submitting', 'Submitting...') : isAltMode ? `📤 ${t('prepScheduler.submitAlt', 'Submit Alt Account')}` : `📤 ${t('prepScheduler.submit', 'Submit')}`}
@@ -696,7 +702,7 @@ const PrepSchedulerForm: React.FC<PrepSchedulerFormProps> = (props) => {
             <div style={{ marginBottom: '0.75rem' }}>
               <label style={labelStyle}>{t('prepScheduler.day', 'Day')}</label>
               <select value={changeRequestDay} onChange={e => setChangeRequestDay(e.target.value as Day)} style={{ ...inputStyle, width: '100%' }}>
-                {DAYS.map(d => <option key={d} value={d}>{getDayLabel(d, t)}</option>)}
+                {enabledDays.map(d => <option key={d} value={d}>{getDayLabel(d, t)}</option>)}
               </select>
             </div>
             <div style={{ marginBottom: '1rem' }}>
@@ -717,7 +723,7 @@ const PrepSchedulerForm: React.FC<PrepSchedulerFormProps> = (props) => {
           <div onClick={e => e.stopPropagation()} style={{ backgroundColor: colors.surface, border: `1px solid ${colors.border}`, borderRadius: '12px', padding: '1.25rem', width: '100%', maxWidth: '420px' }}>
             <h4 style={{ color: colors.text, fontSize: '0.95rem', margin: '0 0 0.75rem', fontWeight: 600 }}>📊 {t('prepScheduler.yourPrepReport', 'Your Prep Report')}</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              {DAYS.map(day => {
+              {enabledDays.map(day => {
                 const isSkipped = isSkippedDay(existingSubmission, day);
                 const effective = getEffectiveSpeedups(existingSubmission, day, schedule);
                 const buffType = day === 'monday' ? schedule.monday_buff : day === 'tuesday' ? schedule.tuesday_buff : schedule.thursday_buff;
