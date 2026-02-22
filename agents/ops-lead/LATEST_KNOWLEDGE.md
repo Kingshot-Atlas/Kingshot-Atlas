@@ -76,16 +76,44 @@ resend._domainkey         CNAME (Resend-provided)
 
 ---
 
-## Dynamic Sitemap Generation (2026-02-08)
+## Sitemap Index with Sub-Sitemaps (2026-02-22)
 
-`scripts/generate-sitemap.js` now queries Supabase REST API at build time:
-- Fetches actual kingdom numbers from `kingdoms` table (not hardcoded range)
-- Fetches max KvK number from `kvk_history` table
+`scripts/generate-sitemap.js` now produces a **sitemap index** with 3 sub-sitemaps:
+- `sitemap.xml` → Sitemap index pointing to sub-sitemaps
+- `sitemap-static.xml` → 18 static pages (rankings, tools, etc.)
+- `sitemap-kingdoms.xml` → All kingdom profiles with **real `last_updated` timestamps from Supabase**
+- `sitemap-seasons.xml` → All KvK season pages
+
+### Key improvements over single sitemap:
+- **Real lastmod** — Fetches `kingdoms.last_updated` column for accurate per-kingdom dates
+- **Crawl targeting** — Google can prioritize sub-sitemaps independently
+- **Cache headers** — Sub-sitemaps have `Cache-Control: public, max-age=3600` in `_headers`
 - Falls back to `FALLBACK_MAX_KINGDOM=1260` / `FALLBACK_MAX_KVK=11` if Supabase unavailable
-- Manual `.env` loader (no dotenv dependency) — reads `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`
-- Uses `limit=5000` on kingdom query to prevent PostgREST silent truncation
-- Runs as `prebuild` hook — sitemap is always fresh before each build
-- **Gotcha:** Cloudflare Pages CI must have `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` env vars set, otherwise falls back to hardcoded values
+- Runs as `prebuild` hook — sitemaps always fresh before each build
+- **Gotcha:** Cloudflare Pages CI must have `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` env vars
+
+## Bot Request Caching (2026-02-22)
+
+### If-Modified-Since / 304 Not Modified
+- Middleware checks `If-Modified-Since` header on bot requests
+- Returns **304** if cached version is less than 30 minutes old (saves crawl budget)
+- Adds `Last-Modified` and `Cache-Control: public, max-age=1800` to all bot responses
+- `X-Bot-Seo: injected` header marks responses that went through the SEO pipeline
+- `X-Bot-Cache: not-modified` header marks 304 responses
+
+### X-Robots-Tag Headers
+Added `X-Robots-Tag: noindex, nofollow` in `_headers` for:
+- `/api/*`, `/admin`, `/auth/*`, `/cancel-survey`
+- Defense-in-depth alongside robots.txt Disallow rules
+
+### Internal Linking for Crawl Discovery
+Bot body content for `/kingdom/:id` pages now includes **Nearby Kingdoms** links:
+- Links to `kingdom/{num-2}`, `kingdom/{num-1}`, `kingdom/{num+1}`, `kingdom/{num+2}`
+- Creates a crawl web between kingdom pages, helping Google discover the 905 "Discovered - currently not indexed" pages
+
+### Edge Cache TTL
+- Supabase query in middleware: `cacheTtl: 1800` (was 3600)
+- Bot response cache: `max-age=1800` (30 minutes)
 
 ## BreadcrumbList Structured Data (2026-02-08)
 

@@ -3,6 +3,20 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-22 19:30 | Ops Lead | COMPLETED
+Task: SEO Monitoring & Optimization + Performance & Crawl Budget improvements
+Files: _middleware.ts, generate-sitemap.js, _headers, robots.txt, sitemap-static.xml, sitemap-kingdoms.xml, sitemap-seasons.xml
+Changes:
+1. **Sitemap index splitting** — Rewrote generate-sitemap.js to produce sitemap index with 3 sub-sitemaps (static, kingdoms, seasons) for better crawl targeting
+2. **Real lastmod dates** — Fetch last_updated timestamps from Supabase kingdoms table for accurate sitemap lastmod
+3. **If-Modified-Since / 304** — Bot requests return 304 Not Modified if cached version is fresh (saves crawl budget)
+4. **Last-Modified headers** — Bot responses include Last-Modified + Cache-Control (30min TTL)
+5. **X-Robots-Tag headers** — Added noindex for /api, /admin, /auth, /cancel-survey (defense-in-depth)
+6. **Internal linking** — Bot body content now includes links to neighboring kingdoms (crawl discovery)
+7. **Edge cache optimization** — Reduced Supabase cache TTL from 3600s to 1800s
+8. **Sub-sitemap caching** — Added Cache-Control headers for sitemap XML files
+Result: All Option A and Option B SEO tasks implemented and deployed
+
 ## 2026-02-22 18:41 | Ops Lead | COMPLETED
 Task: Deep SEO audit and fixes
 Files: index.html, robots.txt, _redirects, _middleware.ts, generate-sitemap.js, useMetaTags.ts, useStructuredData.ts, KingdomCommunities.tsx, TermsOfService.tsx, PrivacyPolicy.tsx, LATEST_KNOWLEDGE.md
