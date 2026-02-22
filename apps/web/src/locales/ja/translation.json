@@ -222,7 +222,9 @@
     "combinedPowerDesc": "マッチアップに入る両王国のAtlasスコアの合計。スコアが高いほど、実力ある王国同士の激戦を意味します。",
     "scoreTimingTitle": "スコアのタイミング",
     "scoreTimingDesc": "スコアは戦闘開始前の各王国のAtlasスコアを反映。それまでの実績に基づいた純粋な戦前のパワー。",
-    "addMatchup": "マッチアップを追加"
+    "addMatchup": "マッチアップを追加",
+    "addPrepResult": "準備戦結果を追加",
+    "addBattleResult": "バトル結果を追加"
   },
   "compare": {
     "heroTitle1": "王国",

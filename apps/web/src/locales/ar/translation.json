@@ -222,7 +222,9 @@
     "combinedPowerDesc": "مجموع نقاط Atlas لكلتا المملكتين عند دخول المواجهة. نقاط أعلى = معارك أكثر تنافسية.",
     "scoreTimingTitle": "توقيت النقاط",
     "scoreTimingDesc": "تعكس النقاط نقاط Atlas لكل مملكة قبل بدء المعركة — بناءً على سجلها حتى تلك اللحظة.",
-    "addMatchup": "إضافة مواجهة"
+    "addMatchup": "إضافة مواجهة",
+    "addPrepResult": "إضافة نتيجة التحضير",
+    "addBattleResult": "إضافة نتيجة المعركة"
   },
   "compare": {
     "heroTitle1": "مقارنة",

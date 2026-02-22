@@ -222,7 +222,9 @@
     "combinedPowerDesc": "Die Summe der Atlas-Wertungen beider Königreiche vor dem Duell. Höhere Wertungen = wettbewerbsfähigere Schlachten zwischen bewährten Königreichen. So entstehen Legenden.",
     "scoreTimingTitle": "Wertungszeitpunkt",
     "scoreTimingDesc": "Die Wertungen spiegeln die Atlas-Wertung jedes Königreichs vor Beginn der Schlacht wider—basierend auf ihrer Bilanz bis dahin. Keine Rückschau, nur pure Vor-Schlacht-Stärke.",
-    "addMatchup": "Begegnung hinzufügen"
+    "addMatchup": "Begegnung hinzufügen",
+    "addPrepResult": "Prep-Ergebnis hinzufügen",
+    "addBattleResult": "Schlacht-Ergebnis hinzufügen"
   },
   "compare": {
     "heroTitle1": "KÖNIGREICH-",

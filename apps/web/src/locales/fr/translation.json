@@ -222,7 +222,9 @@
     "combinedPowerDesc": "La somme des Scores Atlas des deux royaumes entrant dans l'affrontement. Des scores plus élevés = des batailles plus compétitives entre royaumes éprouvés. C'est ainsi que naissent les légendes.",
     "scoreTimingTitle": "Moment du Score",
     "scoreTimingDesc": "Les scores reflètent le Score Atlas de chaque royaume avant le début de la bataille — basé sur leur historique jusqu'à ce moment. Pas de recul, juste la puissance brute d'avant-bataille.",
-    "addMatchup": "Ajouter un affrontement"
+    "addMatchup": "Ajouter un affrontement",
+    "addPrepResult": "Ajouter résultat Prep",
+    "addBattleResult": "Ajouter résultat Bataille"
   },
   "compare": {
     "heroTitle1": "COMPARAISON DE",

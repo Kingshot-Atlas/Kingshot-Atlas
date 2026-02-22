@@ -222,7 +222,9 @@
     "combinedPowerDesc": "The sum of both kingdoms' Atlas Scores going into the matchup. Higher scores = more competitive battles between proven kingdoms. This is how legends are made.",
     "scoreTimingTitle": "Score Timing",
     "scoreTimingDesc": "Scores reflect each kingdom's Atlas Score before the battle began—based on their track record up to that point. No hindsight, just raw pre-battle power.",
-    "addMatchup": "Add Matchup"
+    "addMatchup": "Add Matchup",
+    "addPrepResult": "Add Prep Result",
+    "addBattleResult": "Add Battle Result"
   },
   "compare": {
     "heroTitle1": "KINGDOM",

@@ -14,6 +14,8 @@ interface KvKMatchupSubmissionProps {
   defaultKingdom?: number;
   defaultKvkNumber?: number;
   isAdmin?: boolean;
+  /** Pre-select which data the user wants to add: matchup, prep, or battle */
+  initialMode?: 'matchup' | 'prep' | 'battle';
 }
 
 type SubmitMode = 'matchup' | 'prep' | 'battle' | 'full';
@@ -62,6 +64,7 @@ const KvKMatchupSubmission: React.FC<KvKMatchupSubmissionProps> = ({
   defaultKingdom,
   defaultKvkNumber,
   isAdmin = false,
+  initialMode: initialModeProp,
 }) => {
   const { user, profile } = useAuth();
   const { showToast } = useToast();
@@ -106,11 +109,36 @@ const KvKMatchupSubmission: React.FC<KvKMatchupSubmissionProps> = ({
       setPrepWinner(null);
       setBattleWinner(null);
       setExisting(null);
-      setMode('matchup');
+      setMode(initialModeProp || 'matchup');
       setShowReport(false);
       setReportDesc('');
+
+      // Auto-lookup opponent when opening in prep/battle mode with a known kingdom
+      if ((initialModeProp === 'prep' || initialModeProp === 'battle') && autoKingdom && supabase) {
+        supabase
+          .from('kvk_history')
+          .select('kingdom_number, opponent_kingdom, prep_result, battle_result, overall_result')
+          .eq('kingdom_number', autoKingdom)
+          .eq('kvk_number', kvkNumber)
+          .neq('opponent_kingdom', 0)
+          .limit(1)
+          .maybeSingle()
+          .then(({ data }) => {
+            if (data && data.opponent_kingdom) {
+              setOpponentKingdom(data.opponent_kingdom);
+              setExisting(data);
+              if (data.prep_result && data.battle_result) {
+                setMode('full');
+              } else if (data.prep_result && !data.battle_result) {
+                setMode('battle');
+              } else {
+                setMode(initialModeProp);
+              }
+            }
+          });
+      }
     }
-  }, [isOpen, defaultKingdom, userKingdom, isAdmin]);
+  }, [isOpen, defaultKingdom, userKingdom, isAdmin, initialModeProp, kvkNumber]);
 
   // Check for existing matchup when both kingdoms are entered
   const checkExisting = useCallback(async () => {
@@ -131,23 +159,24 @@ const KvKMatchupSubmission: React.FC<KvKMatchupSubmissionProps> = ({
 
       if (data) {
         setExisting(data);
-        if (!data.prep_result && !data.battle_result) {
-          setMode('prep');
+        // Auto-detect mode based on existing data
+        if (data.prep_result && data.battle_result) {
+          setMode('full');
         } else if (data.prep_result && !data.battle_result) {
           setMode('battle');
-        } else {
-          setMode('full');
+        } else if (!data.prep_result && !data.battle_result) {
+          setMode(initialModeProp === 'battle' ? 'prep' : initialModeProp || 'prep');
         }
       } else {
         setExisting(null);
-        setMode('matchup');
+        setMode(initialModeProp || 'matchup');
       }
     } catch (err) {
       logger.error('Error checking existing matchup:', err);
     } finally {
       setCheckingExisting(false);
     }
-  }, [kingdomNumber, opponentKingdom, kvkNumber]);
+  }, [kingdomNumber, opponentKingdom, kvkNumber, initialModeProp]);
 
   useEffect(() => {
     const timer = setTimeout(checkExisting, 300);
@@ -392,14 +421,22 @@ const KvKMatchupSubmission: React.FC<KvKMatchupSubmissionProps> = ({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-              <span style={{ fontSize: '1.25rem' }}>📋</span>
+              <span style={{ fontSize: '1.25rem' }}>
+                {initialModeProp === 'prep' ? '🛡️' : initialModeProp === 'battle' ? '⚔️' : '📋'}
+              </span>
               <h2 style={{ color: '#fff', fontSize: '1.15rem', fontWeight: 600, margin: 0, fontFamily: FONT_DISPLAY }}>
                 <span style={{ color: '#fff' }}>KvK</span>
-                <span style={{ ...neonGlow('#22d3ee'), marginLeft: '0.3rem' }}>MATCHUP</span>
+                <span style={{ ...neonGlow(initialModeProp === 'prep' ? '#eab308' : initialModeProp === 'battle' ? '#f97316' : '#22d3ee'), marginLeft: '0.3rem' }}>
+                  {initialModeProp === 'prep' ? 'PREP RESULT' : initialModeProp === 'battle' ? 'BATTLE RESULT' : 'MATCHUP'}
+                </span>
               </h2>
             </div>
             <p style={{ color: '#6b7280', fontSize: '0.8rem', margin: 0 }}>
-              Add matchup info progressively — matchup → prep → battle
+              {initialModeProp === 'prep' 
+                ? 'Report who won the Prep Phase for your matchup'
+                : initialModeProp === 'battle'
+                ? 'Report who won the Battle Phase for your matchup'
+                : 'Add matchup info progressively — matchup → prep → battle'}
             </p>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '1.5rem', lineHeight: 1 }}>×</button>

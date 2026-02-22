@@ -24,6 +24,7 @@ const KvKSeasons: React.FC = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const [showMatchupModal, setShowMatchupModal] = useState(false);
+  const [matchupModalMode, setMatchupModalMode] = useState<'matchup' | 'prep' | 'battle'>('matchup');
   const { seasonNumber } = useParams<{ seasonNumber?: string }>();
   const seasonNum = seasonNumber ? parseInt(seasonNumber) : null;
   useMetaTags(seasonNum ? {
@@ -229,29 +230,6 @@ const KvKSeasons: React.FC = () => {
         >
           📅 {t('seasons.browseBySeason', 'Browse by Season')}
         </button>
-        {user && (
-          <button
-            onClick={() => setShowMatchupModal(true)}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '0.5rem',
-              padding: isMobile ? '0.75rem 1.25rem' : '0.6rem 1.25rem',
-              minHeight: isMobile ? '44px' : 'auto',
-              backgroundColor: '#131318',
-              border: '1px solid #22c55e40',
-              borderRadius: '8px',
-              color: '#22c55e',
-              cursor: 'pointer',
-              fontWeight: '600',
-              fontSize: '0.9rem',
-              transition: 'all 0.2s'
-            }}
-          >
-            📋 {t('seasons.addMatchup', 'Add Matchup')}
-          </button>
-        )}
         <button
           onClick={() => setView('all-time')}
           style={{
@@ -279,41 +257,120 @@ const KvKSeasons: React.FC = () => {
       {view === 'season' && (
         <div style={{ 
           display: 'flex', 
-          justifyContent: 'center',
+          flexDirection: 'column',
           alignItems: 'center',
           gap: '0.75rem', 
           marginBottom: '1.5rem'
         }}>
-          <span style={{ color: '#9ca3af', fontSize: '0.9rem', fontWeight: '500' }}>
-            {t('seasons.selectSeason')}
-          </span>
-          <select
-            value={selectedSeason ?? ''}
-            onChange={(e) => handleSeasonChange(Number(e.target.value))}
-            style={{
-              padding: isMobile ? '0.6rem 2rem 0.6rem 1rem' : '0.5rem 2rem 0.5rem 1rem',
-              minHeight: isMobile ? '44px' : 'auto',
-              backgroundColor: '#131318',
-              border: '1px solid #2a2a2a',
-              borderRadius: '8px',
-              color: '#22d3ee',
-              cursor: 'pointer',
-              fontWeight: '600',
-              fontSize: '1rem',
-              fontFamily: "'Orbitron', monospace",
-              appearance: 'none',
-              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239ca3af' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
-              backgroundRepeat: 'no-repeat',
-              backgroundPosition: 'right 0.75rem center',
-              backgroundSize: '12px'
-            }}
-          >
-            {seasons.map(season => (
-              <option key={season} value={season} style={{ backgroundColor: '#131318', color: '#fff' }}>
-                KvK #{season}
-              </option>
-            ))}
-          </select>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <span style={{ color: '#9ca3af', fontSize: '0.9rem', fontWeight: '500' }}>
+              {t('seasons.selectSeason')}
+            </span>
+            <select
+              value={selectedSeason ?? ''}
+              onChange={(e) => handleSeasonChange(Number(e.target.value))}
+              style={{
+                padding: isMobile ? '0.6rem 2rem 0.6rem 1rem' : '0.5rem 2rem 0.5rem 1rem',
+                minHeight: isMobile ? '44px' : 'auto',
+                backgroundColor: '#131318',
+                border: '1px solid #2a2a2a',
+                borderRadius: '8px',
+                color: '#22d3ee',
+                cursor: 'pointer',
+                fontWeight: '600',
+                fontSize: '1rem',
+                fontFamily: "'Orbitron', monospace",
+                appearance: 'none',
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239ca3af' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'right 0.75rem center',
+                backgroundSize: '12px'
+              }}
+            >
+              {seasons.map(season => (
+                <option key={season} value={season} style={{ backgroundColor: '#131318', color: '#fff' }}>
+                  KvK #{season}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Action Buttons: Add Matchup / Prep Result / Battle Result */}
+          {user && (
+            <div style={{ 
+              display: 'flex', 
+              flexWrap: 'wrap',
+              justifyContent: 'center',
+              gap: isMobile ? '0.5rem' : '0.6rem',
+            }}>
+              <button
+                onClick={() => { setMatchupModalMode('matchup'); setShowMatchupModal(true); }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.35rem',
+                  padding: isMobile ? '0.6rem 0.9rem' : '0.5rem 1rem',
+                  minHeight: isMobile ? '44px' : 'auto',
+                  backgroundColor: '#131318',
+                  border: '1px solid #22d3ee40',
+                  borderRadius: '8px',
+                  color: '#22d3ee',
+                  cursor: 'pointer',
+                  fontWeight: '600',
+                  fontSize: isMobile ? '0.8rem' : '0.85rem',
+                  transition: 'all 0.2s',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                🔗 {t('seasons.addMatchup', 'Add Matchup')}
+              </button>
+              <button
+                onClick={() => { setMatchupModalMode('prep'); setShowMatchupModal(true); }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.35rem',
+                  padding: isMobile ? '0.6rem 0.9rem' : '0.5rem 1rem',
+                  minHeight: isMobile ? '44px' : 'auto',
+                  backgroundColor: '#131318',
+                  border: '1px solid #eab30840',
+                  borderRadius: '8px',
+                  color: '#eab308',
+                  cursor: 'pointer',
+                  fontWeight: '600',
+                  fontSize: isMobile ? '0.8rem' : '0.85rem',
+                  transition: 'all 0.2s',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                🛡️ {t('seasons.addPrepResult', 'Add Prep Result')}
+              </button>
+              <button
+                onClick={() => { setMatchupModalMode('battle'); setShowMatchupModal(true); }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.35rem',
+                  padding: isMobile ? '0.6rem 0.9rem' : '0.5rem 1rem',
+                  minHeight: isMobile ? '44px' : 'auto',
+                  backgroundColor: '#131318',
+                  border: '1px solid #f9731640',
+                  borderRadius: '8px',
+                  color: '#f97316',
+                  cursor: 'pointer',
+                  fontWeight: '600',
+                  fontSize: isMobile ? '0.8rem' : '0.85rem',
+                  transition: 'all 0.2s',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                ⚔️ {t('seasons.addBattleResult', 'Add Battle Result')}
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -720,6 +777,7 @@ const KvKSeasons: React.FC = () => {
         isOpen={showMatchupModal}
         onClose={() => setShowMatchupModal(false)}
         defaultKvkNumber={selectedSeason ?? CURRENT_KVK}
+        initialMode={matchupModalMode}
         onSuccess={() => {
           // Reload matchups after successful submission
           scoreHistoryService.clearCache();

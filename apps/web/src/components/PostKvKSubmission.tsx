@@ -174,7 +174,7 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
       const payload = {
         kingdom_number: kingdomNumber,
         opponent_kingdom: opponentKingdom,
-        kvk_number: CURRENT_KVK,
+        kvk_number: kvkNumber,
         prep_result: prepResult,
         battle_result: battleResult,
         notes: notes || null,
@@ -197,7 +197,7 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
         body: JSON.stringify({
           kingdom_number: kingdomNumber,
           opponent_kingdom: opponentKingdom,
-          kvk_number: CURRENT_KVK,
+          kvk_number: kvkNumber,
           prep_result: prepResult,
           battle_result: battleResult,
           notes: notes || null,
@@ -228,8 +228,8 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
       const wasAutoApproved = result.status === 'approved';
       showToast(
         wasAutoApproved 
-          ? 'KvK #10 result auto-approved and recorded!' 
-          : 'KvK #10 result submitted for admin review!', 
+          ? `KvK #${kvkNumber} result auto-approved and recorded!` 
+          : `KvK #${kvkNumber} result submitted for admin review!`, 
         'success'
       );
       incrementStat('dataSubmissions');
@@ -294,7 +294,7 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
               <span style={{ fontSize: '1.25rem' }}>⚔️</span>
               <h2 style={{ color: '#fff', fontSize: '1.15rem', fontWeight: '600', margin: 0 }}>
-                Submit KvK #10 Result
+                Submit KvK #{kvkNumber} Result
               </h2>
             </div>
             <p style={{ color: '#6b7280', fontSize: '0.8rem', margin: 0 }}>

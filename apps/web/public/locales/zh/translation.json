@@ -222,7 +222,9 @@
     "combinedPowerDesc": "对战双方 Atlas 评分的总和。分数越高 = 经过验证的强国之间更激烈的战斗。传奇由此诞生。",
     "scoreTimingTitle": "评分时间",
     "scoreTimingDesc": "评分反映每个王国在战斗开始前的 Atlas 评分——基于它们到那时为止的战绩。没有后见之明，只有纯粹的赛前战力。",
-    "addMatchup": "添加对战"
+    "addMatchup": "添加对战",
+    "addPrepResult": "添加准备赛结果",
+    "addBattleResult": "添加战斗结果"
   },
   "compare": {
     "heroTitle1": "王国",

@@ -222,7 +222,9 @@
     "combinedPowerDesc": "Eşleşmeye giren her iki krallığın Atlas Puanlarının toplamı. Yüksek puanlar = kanıtlanmış krallıklar arasındaki daha rekabetçi savaşlar. Efsaneler böyle doğar.",
     "scoreTimingTitle": "Puan Zamanlaması",
     "scoreTimingDesc": "Puanlar, savaş başlamadan önceki her krallığın Atlas Puanını yansıtır—o noktaya kadarki sicillerine dayanarak. Geriye dönük bakış yok, sadece ham savaş öncesi güç.",
-    "addMatchup": "Eşleşme Ekle"
+    "addMatchup": "Eşleşme Ekle",
+    "addPrepResult": "Hazırlık Sonucu Ekle",
+    "addBattleResult": "Savaş Sonucu Ekle"
   },
   "compare": {
     "heroTitle1": "KRALLIK",

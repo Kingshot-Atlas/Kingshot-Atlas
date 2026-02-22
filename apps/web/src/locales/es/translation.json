@@ -222,7 +222,9 @@
     "combinedPowerDesc": "La suma de los Índices Atlas de ambos reinos al entrar al enfrentamiento. Puntuaciones más altas = batallas más competitivas entre reinos probados. Así se forjan las leyendas.",
     "scoreTimingTitle": "Momento de la Puntuación",
     "scoreTimingDesc": "Las puntuaciones reflejan el Índice Atlas de cada reino antes de que comenzara la batalla—basado en su historial hasta ese momento. Sin retrospectiva, solo poder puro pre-batalla.",
-    "addMatchup": "Agregar enfrentamiento"
+    "addMatchup": "Agregar enfrentamiento",
+    "addPrepResult": "Agregar resultado Prep",
+    "addBattleResult": "Agregar resultado Batalla"
   },
   "compare": {
     "heroTitle1": "COMPARACIÓN DE",
