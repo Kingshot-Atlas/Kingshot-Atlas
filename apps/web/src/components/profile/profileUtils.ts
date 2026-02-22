@@ -13,12 +13,18 @@ export const getTierBorderColor = (tier: string): string => {
   }
 };
 
-// Get auth provider from user metadata
+// Get auth provider from user metadata (returns primary provider)
+// Also checks the providers array for multi-provider users
 export const getAuthProvider = (user: { app_metadata?: { provider?: string; providers?: string[] } } | null): 'discord' | 'google' | 'email' | null => {
   if (!user) return null;
-  const provider = user.app_metadata?.provider || user.app_metadata?.providers?.[0];
-  if (provider === 'discord') return 'discord';
-  if (provider === 'google') return 'google';
-  if (provider === 'email') return 'email';
+  const primary = user.app_metadata?.provider;
+  if (primary === 'discord') return 'discord';
+  if (primary === 'google') return 'google';
+  if (primary === 'email') return 'email';
+  // Fallback: check providers array
+  const providers = user.app_metadata?.providers || [];
+  if (providers.includes('discord')) return 'discord';
+  if (providers.includes('google')) return 'google';
+  if (providers.includes('email')) return 'email';
   return null;
 };

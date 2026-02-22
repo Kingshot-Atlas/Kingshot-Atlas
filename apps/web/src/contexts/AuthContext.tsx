@@ -99,11 +99,15 @@ export const getCacheBustedAvatarUrl = (url: string | undefined): string => {
   }
 };
 
-// Extract Discord ID and username from Supabase auth metadata for Discord-authenticated users
+// Extract Discord ID and username from Supabase auth metadata for Discord-authenticated users.
+// Checks ALL linked providers (not just primary) so users who signed in with Google first
+// and later added Discord still get their Discord info auto-populated.
 const getDiscordInfoFromAuth = (user: User): { discordId: string | null; discordUsername: string | null } => {
-  // Check if user logged in via Discord
-  const provider = user.app_metadata?.provider || user.app_metadata?.providers?.[0];
-  if (provider !== 'discord') {
+  // Check if Discord is among the user's providers (primary OR secondary)
+  const providers: string[] = user.app_metadata?.providers || [];
+  const primaryProvider = user.app_metadata?.provider;
+  const hasDiscord = primaryProvider === 'discord' || providers.includes('discord');
+  if (!hasDiscord) {
     return { discordId: null, discordUsername: null };
   }
   
@@ -111,17 +115,18 @@ const getDiscordInfoFromAuth = (user: User): { discordId: string | null; discord
   const discordIdentity = user.identities?.find(i => i.provider === 'discord');
   let discordId = discordIdentity?.id || null;
   
-  // Fallback: extract from avatar URL pattern
-  if (!discordId) {
+  // Fallback: extract from avatar URL pattern (only if primary provider is Discord)
+  if (!discordId && primaryProvider === 'discord') {
     const avatarUrl = user.user_metadata?.avatar_url || '';
     const discordAvatarMatch = avatarUrl.match(/cdn\.discordapp\.com\/avatars\/(\d+)\//);
     discordId = discordAvatarMatch?.[1] || null;
   }
   
-  // Get username from metadata
-  const discordUsername = user.user_metadata?.full_name || 
-                          user.user_metadata?.name || 
-                          user.user_metadata?.custom_claims?.global_name ||
+  // Get username from Discord identity data first, then fall back to user_metadata
+  const discordUsername = discordIdentity?.identity_data?.full_name ||
+                          discordIdentity?.identity_data?.name ||
+                          discordIdentity?.identity_data?.custom_claims?.global_name ||
+                          (primaryProvider === 'discord' ? (user.user_metadata?.full_name || user.user_metadata?.name) : null) ||
                           null;
   
   return { discordId, discordUsername };
@@ -153,6 +158,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [loading, setLoading] = useState(true);
   const isConfigured = isSupabaseConfigured;
   const profileFetchInFlight = useRef(false);
+  const signOutInProgress = useRef(false);
 
   // Capture ?ref= and ?src= params from URL and store in localStorage for later use during signup
   // Also stores the landing page path for analytics and cleans the URL after capture
@@ -198,6 +204,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_OUT' && !session && supabase) {
+        // If user intentionally signed out, skip the re-auth check
+        if (signOutInProgress.current) {
+          setSession(null);
+          setUser(null);
+          setProfile(null);
+          userDataService.setUserId(null);
+          setLoading(false);
+          return;
+        }
         // Another tab may have refreshed the token, invalidating this tab's session.
         // Re-check localStorage for a valid session before clearing state.
         try {
@@ -545,13 +560,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const signOut = async () => {
-    if (supabase) {
-      await supabase.auth.signOut();
+    signOutInProgress.current = true;
+    try {
+      if (supabase) {
+        await supabase.auth.signOut({ scope: 'global' });
+      }
+      setUser(null);
+      setSession(null);
+      setProfile(null);
+      localStorage.removeItem(PROFILE_KEY);
+    } finally {
+      signOutInProgress.current = false;
     }
-    setUser(null);
-    setSession(null);
-    setProfile(null);
-    localStorage.removeItem(PROFILE_KEY);
   };
 
   const updateProfile = async (updates: Partial<UserProfile>): Promise<{ success: boolean; error?: string }> => {

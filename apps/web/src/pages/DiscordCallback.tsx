@@ -1,36 +1,44 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import React, { useEffect, useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { discordService } from '../services/discordService';
 import { useAnalytics } from '../hooks/useAnalytics';
 
+// Capture code ONCE from the URL before Supabase's detectSessionInUrl can
+// call replaceState() and strip the ?code= parameter.
+const initialParams = new URLSearchParams(window.location.search);
+const initialCode = initialParams.get('code');
+const initialError = initialParams.get('error');
+
 const DiscordCallback: React.FC = () => {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [status, setStatus] = useState<'processing' | 'success' | 'error'>('processing');
   const [error, setError] = useState<string>('');
   const { trackFeature } = useAnalytics();
+  const processed = useRef(false);
 
   useEffect(() => {
-    const handleCallback = async () => {
-      const code = searchParams.get('code');
-      const errorParam = searchParams.get('error');
+    // Guard: Discord codes are single-use. Only process once even if
+    // React re-renders or Supabase's URL cleanup triggers a re-render.
+    if (processed.current) return;
+    processed.current = true;
 
-      if (errorParam) {
+    const handleCallback = async () => {
+      if (initialError) {
         setStatus('error');
-        const errorMessage = errorParam === 'access_denied' ? 'Discord authorization was cancelled' : errorParam;
+        const errorMessage = initialError === 'access_denied' ? 'Discord authorization was cancelled' : initialError;
         setError(errorMessage);
-        trackFeature('discord_link_failed', { error_code: errorParam, error_message: errorMessage });
+        trackFeature('discord_link_failed', { error_code: initialError, error_message: errorMessage });
         return;
       }
 
-      if (!code) {
+      if (!initialCode) {
         setStatus('error');
         setError('No authorization code received');
         trackFeature('discord_link_failed', { error_code: 'no_code', error_message: 'No authorization code received' });
         return;
       }
 
-      const result = await discordService.handleCallback(code);
+      const result = await discordService.handleCallback(initialCode);
       
       if (result.success) {
         setStatus('success');
@@ -46,7 +54,7 @@ const DiscordCallback: React.FC = () => {
     };
 
     handleCallback();
-  }, [searchParams, navigate, trackFeature]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div style={{
