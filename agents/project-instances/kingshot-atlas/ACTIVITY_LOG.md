@@ -3,6 +3,15 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-21 20:15 | Platform Engineer | COMPLETED
+Task: Fix KvK #11 incomplete matchup scoring bug + add KvK #11 to seasons dropdown
+Files: KvKSeasons.tsx, DB: 7 PostgreSQL functions + 1 trigger
+Changes:
+1. **Root cause** — `calculate_atlas_score`, `calculate_atlas_score_at_kvk`, `recalculate_kingdom_stats`, `get_recent_form_multiplier`, `get_streak_multiplier`, `get_recent_form_multiplier_at_kvk`, `get_streak_multiplier_at_kvk` all counted rows with NULL `prep_result` (incomplete matchups) as total KvKs, effectively treating them as double losses (invasion). Adding matchup-only rows tanked kingdom scores.
+2. **DB fix** — Added `AND prep_result IS NOT NULL` to all 7 functions. Fixed `create_score_history_entry` trigger to skip incomplete matchups entirely. Deleted incorrect score_history entries for KvK #11. Recalculated K172, K162, K163, K199 — scores verified matching pre-bug values.
+3. **Frontend fix** — KvK Seasons dropdown was hardcoded to 1-10. Updated to use `CURRENT_KVK` (11) dynamically.
+Result: Incomplete matchups (matchup-only submissions) no longer affect Atlas Scores or records. KvK #11 visible in seasons page. Scores/records only update when full prep+battle results are provided.
+
 ## 2026-02-21 19:57 | Ops Lead | COMPLETED
 Task: Fix KvK #11 matchup banner to trigger Feb 22 00:00 UTC
 Files: KvKPhaseBanner.tsx, constants/index.ts, DB: kvk_schedule
