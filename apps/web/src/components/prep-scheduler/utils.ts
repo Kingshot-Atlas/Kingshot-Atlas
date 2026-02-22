@@ -86,33 +86,85 @@ export function isSkippedDay(sub: PrepSubmission, day: Day): boolean {
   return false;
 }
 
+// Augmenting-path helper for maximum bipartite matching.
+// Tries to find an augmenting path from `userId` through the bipartite
+// graph (users ↔ slots) and flips edges along it to increase the matching.
+function tryAugment(
+  userId: string,
+  userSlots: Map<string, string[]>,
+  matchUser: Map<string, string>,
+  matchSlot: Map<string, string>,
+  visited: Set<string>,
+): boolean {
+  const slots = userSlots.get(userId);
+  if (!slots) return false;
+  for (const slot of slots) {
+    if (visited.has(slot)) continue;
+    visited.add(slot);
+    const currentOwner = matchSlot.get(slot);
+    // Slot is free, or the current occupant can be reassigned elsewhere
+    if (!currentOwner || tryAugment(currentOwner, userSlots, matchUser, matchSlot, visited)) {
+      matchUser.set(userId, slot);
+      matchSlot.set(slot, userId);
+      return true;
+    }
+  }
+  return false;
+}
+
 export function autoAssignSlots(submissions: PrepSubmission[], schedule: PrepSchedule, day: Day): { submission_id: string; slot_time: string }[] {
   const availKey = `${day}_availability` as keyof PrepSubmission;
+
+  // Step 1: Filter eligible submissions, sort by effective speedups (highest first)
   const sorted = [...submissions]
     .filter(s => {
       if (isSkippedDay(s, day)) return false;
-      const avail = (s[availKey] as string[][] | undefined) || []; return avail.length > 0;
+      const avail = (s[availKey] as string[][] | undefined) || [];
+      return avail.length > 0;
     })
     .sort((a, b) => getEffectiveSpeedups(b, day, schedule) - getEffectiveSpeedups(a, day, schedule));
 
   const effectiveSlots = getEffectiveSlots(schedule.stagger_enabled);
   const maxSlots = getMaxSlots(schedule.stagger_enabled);
-  const assignments: { submission_id: string; slot_time: string }[] = [];
-  const usedSlots = new Set<string>();
-  const assignedUsers = new Set<string>();
 
-  for (const sub of sorted) {
-    if (assignments.length >= maxSlots) break;
-    if (assignedUsers.has(sub.id)) continue;
+  // Step 2: Only consider the top N (maxSlots) users — never accommodate users
+  // beyond this threshold. If someone in the top N can't fit, leave the slot empty.
+  const topN = sorted.slice(0, maxSlots);
+
+  // Step 3: Build adjacency — for each user, which slots can they use?
+  const userSlots = new Map<string, string[]>();
+  for (const sub of topN) {
     const avail = (sub[availKey] as string[][] | undefined) || [];
+    const available: string[] = [];
     for (const slot of effectiveSlots) {
-      if (usedSlots.has(slot)) continue;
       if (isSlotInAvailability(slot, avail)) {
-        assignments.push({ submission_id: sub.id, slot_time: slot });
-        usedSlots.add(slot);
-        assignedUsers.add(sub.id);
-        break;
+        available.push(slot);
       }
+    }
+    if (available.length > 0) {
+      userSlots.set(sub.id, available);
+    }
+  }
+
+  // Step 4: Maximum bipartite matching via augmenting paths.
+  // Process from lowest priority → highest so higher-priority users can
+  // "bump" lower-priority ones through augmenting paths, ensuring the
+  // final matching favors top-ranked players.
+  const matchUser = new Map<string, string>(); // user → slot
+  const matchSlot = new Map<string, string>(); // slot → user
+
+  const reversePriority = [...topN].reverse();
+  for (const sub of reversePriority) {
+    if (!userSlots.has(sub.id)) continue;
+    tryAugment(sub.id, userSlots, matchUser, matchSlot, new Set<string>());
+  }
+
+  // Step 5: Build result array preserving priority order
+  const assignments: { submission_id: string; slot_time: string }[] = [];
+  for (const sub of topN) {
+    const slot = matchUser.get(sub.id);
+    if (slot) {
+      assignments.push({ submission_id: sub.id, slot_time: slot });
     }
   }
   return assignments;

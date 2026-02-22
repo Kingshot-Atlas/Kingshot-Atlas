@@ -95,7 +95,7 @@ export const DAY_LABELS: Record<Day, string> = { monday: 'Monday', tuesday: 'Tue
 export const DAY_BUFF_LABELS: Record<string, string> = {
   construction: '🏗️ Construction', research: '🔬 Research', training: '⚔️ Soldier Training',
 };
-export const DAY_COLORS: Record<Day, string> = { monday: '#f59e0b', tuesday: '#3b82f6', thursday: '#ef4444' };
+export const DAY_COLORS: Record<Day, string> = { monday: '#f97316', tuesday: '#3b82f6', thursday: '#a855f7' };
 
 // i18n-aware label helpers (use these for UI rendering)
 // The `t` parameter is the i18next translation function

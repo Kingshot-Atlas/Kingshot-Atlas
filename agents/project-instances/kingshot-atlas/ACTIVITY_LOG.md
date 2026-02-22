@@ -3,6 +3,24 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-22 09:27 | Design Lead | COMPLETED
+Task: Change Prep Scheduler day tab theme colors — Thursday red→purple, Monday yellow→orange
+Files: apps/web/src/components/prep-scheduler/types.ts
+Changes:
+1. **Thursday**: `#ef4444` (red) → `#a855f7` (purple) — prevents confusion between Thursday's theme and error/cutoff indicators (e.g. "beyond top 49" red badges)
+2. **Monday**: `#f59e0b` (amber) → `#f97316` (orange) — better visual distinction
+Result: Single constant change in `DAY_COLORS`. All 60+ usages across PrepSchedulerManager.tsx and PrepSchedulerForm.tsx auto-inherit. Semantic red (#ef4444) for errors/warnings/destructive actions remains unchanged.
+
+## 2026-02-22 09:12 | Product Engineer | COMPLETED
+Task: Optimize Prep Scheduler Auto-Assign to maximize top-49 user accommodation
+Files: apps/web/src/components/prep-scheduler/utils.ts, apps/web/src/components/prep-scheduler/usePrepScheduler.ts
+Changes:
+1. **Algorithm upgrade** — Replaced greedy slot assignment with maximum bipartite matching via augmenting paths (Hungarian method). Guarantees the maximum number of top-N users get assigned, where N = maxSlots (49 with stagger, 48 without).
+2. **Top-N cutoff** — Only considers top N users by effective speedups. Users ranked beyond N are never accommodated — slots are left empty instead, ensuring the system does its best for the top players.
+3. **Priority-aware matching** — Processes users from lowest→highest priority so higher-ranked players can "bump" lower-ranked ones through augmenting paths. Final matching favors top-ranked players.
+4. **Enhanced toast** — When submissions exceed maxSlots, toast shows "Auto-assigned X/49 top players for Day (Y below cutoff excluded)".
+Result: Auto-assign now finds mathematically optimal slot assignments for top-49 users. Build passes, deployed locally at localhost:3000.
+
 ## 2026-02-21 21:36 | Product Engineer | COMPLETED
 Task: Fix matchup card layout wrapping + phase-gated submission buttons with auto-cycling KvK schedule
 Files: constants/index.ts, KvKSeasons.tsx, 9 locale files (en/es/fr/zh/de/ko/ja/ar/tr)

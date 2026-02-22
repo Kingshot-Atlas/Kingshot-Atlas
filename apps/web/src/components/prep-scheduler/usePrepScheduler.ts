@@ -645,7 +645,18 @@ export function usePrepScheduler() {
         if (error) throw error;
       }
       await fetchAssignments(schedule.id);
-      showToast(t('prepScheduler.toastAutoAssigned', 'Auto-assigned {{count}} slots for {{day}}.', { count: newAssignments.length, day: getDayLabel(day, t) }), 'success');
+      const maxSlots = getMaxSlots(schedule.stagger_enabled);
+      const eligibleCount = submissions.filter(s => {
+        if (isSkippedDay(s, day)) return false;
+        const ak = `${day}_availability` as keyof PrepSubmission;
+        const av = (s[ak] as string[][] | undefined) || [];
+        return av.length > 0;
+      }).length;
+      const topNCount = Math.min(eligibleCount, maxSlots);
+      const msg = eligibleCount > maxSlots
+        ? t('prepScheduler.toastAutoAssignedTopN', 'Auto-assigned {{count}}/{{topN}} top players for {{day}} ({{excess}} below cutoff excluded).', { count: newAssignments.length, topN: topNCount, day: getDayLabel(day, t), excess: eligibleCount - maxSlots })
+        : t('prepScheduler.toastAutoAssigned', 'Auto-assigned {{count}} slots for {{day}}.', { count: newAssignments.length, day: getDayLabel(day, t) });
+      showToast(msg, 'success');
     } catch (err) { logger.error('Auto-assign failed:', err); showToast(t('prepScheduler.toastAutoAssignFailed', 'Auto-assign failed.'), 'error'); }
     setSaving(false);
   };
