@@ -3,8 +3,14 @@
 /**
  * Sitemap Generator for Kingshot Atlas
  * 
- * Dynamically generates sitemap.xml by querying Supabase for:
- * - Actual kingdom numbers (not a hardcoded range)
+ * Generates a sitemap index with separate sub-sitemaps for better crawl targeting:
+ * - sitemap.xml          → Sitemap index pointing to sub-sitemaps
+ * - sitemap-static.xml   → Static pages (rankings, tools, etc.)
+ * - sitemap-kingdoms.xml → All kingdom profile pages (with real lastmod from Supabase)
+ * - sitemap-seasons.xml  → All KvK season pages
+ * 
+ * Queries Supabase for:
+ * - Actual kingdom numbers + last_updated timestamps (for accurate lastmod)
  * - Current max KvK season
  * Falls back to hardcoded values if Supabase is unavailable.
  * 
@@ -17,13 +23,11 @@ const fs = require('fs');
 const path = require('path');
 
 const DOMAIN = 'https://ks-atlas.com';
-const OUTPUT_PATH = path.join(__dirname, '../public/sitemap.xml');
+const PUBLIC_DIR = path.join(__dirname, '../public');
 
-// Fallback values if Supabase query fails (updated 2026-02-08)
+// Fallback values if Supabase query fails (updated 2026-02-22)
 const FALLBACK_MAX_KINGDOM = 1260;
 const FALLBACK_MAX_KVK = 11;
-
-// Supabase config is read dynamically after .env loading (see fetchFromSupabase)
 
 // Define all public static routes with their metadata
 const staticRoutes = [
@@ -56,9 +60,31 @@ function generateUrlEntry(urlPath, changefreq, priority, lastmod) {
   </url>`;
 }
 
+function wrapUrlset(entries) {
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${entries.join('\n')}
+</urlset>
+`;
+}
+
+function generateSitemapIndex(sitemaps, today) {
+  const entries = sitemaps.map(s => `  <sitemap>
+    <loc>${DOMAIN}/${s.file}</loc>
+    <lastmod>${s.lastmod || today}</lastmod>
+  </sitemap>`);
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${entries.join('\n')}
+</sitemapindex>
+`;
+}
+
 /**
- * Query Supabase REST API for kingdom numbers and max KvK.
- * Returns { kingdomNumbers: number[], maxKvk: number } or null on failure.
+ * Query Supabase REST API for kingdom data and max KvK.
+ * Now fetches last_updated for accurate lastmod dates.
+ * Returns { kingdoms: Array<{kingdom_number, last_updated}>, maxKvk: number } or null.
  */
 async function fetchFromSupabase() {
   const url = process.env.VITE_SUPABASE_URL || '';
@@ -70,9 +96,9 @@ async function fetchFromSupabase() {
   }
 
   try {
-    // Fetch all kingdom numbers (only the column we need)
+    // Fetch kingdom numbers + last_updated for accurate lastmod
     const kRes = await fetch(
-      `${url}/rest/v1/kingdoms?select=kingdom_number&order=kingdom_number.asc&limit=5000`,
+      `${url}/rest/v1/kingdoms?select=kingdom_number,last_updated&order=kingdom_number.asc&limit=5000`,
       {
         headers: {
           'apikey': key,
@@ -82,7 +108,6 @@ async function fetchFromSupabase() {
     );
     if (!kRes.ok) throw new Error(`kingdoms query failed: ${kRes.status}`);
     const kingdoms = await kRes.json();
-    const kingdomNumbers = kingdoms.map(k => k.kingdom_number);
 
     // Fetch max KvK number
     const kvkRes = await fetch(
@@ -98,7 +123,7 @@ async function fetchFromSupabase() {
     const kvkData = await kvkRes.json();
     const maxKvk = kvkData.length > 0 ? kvkData[0].kvk_number : FALLBACK_MAX_KVK;
 
-    return { kingdomNumbers, maxKvk };
+    return { kingdoms, maxKvk };
   } catch (err) {
     console.log(`   ⚠️  Supabase query failed: ${err.message}, using fallback values`);
     return null;
@@ -125,66 +150,87 @@ function loadEnvFile() {
   }
 }
 
-async function generateMainSitemap() {
+/** Convert ISO timestamp to YYYY-MM-DD, falling back to today */
+function toDateStr(isoStr, fallback) {
+  if (!isoStr) return fallback;
+  try {
+    return new Date(isoStr).toISOString().split('T')[0];
+  } catch {
+    return fallback;
+  }
+}
+
+async function generateSitemaps() {
   // Load .env if running locally (CI will have env vars already set)
   loadEnvFile();
   const today = new Date().toISOString().split('T')[0];
   
-  let kingdomNumbers;
+  let kingdoms;
   let maxKvk;
   let source;
 
   // Try to fetch live data from Supabase
   const data = await fetchFromSupabase();
-  if (data && data.kingdomNumbers.length > 0) {
-    kingdomNumbers = data.kingdomNumbers;
+  if (data && data.kingdoms.length > 0) {
+    kingdoms = data.kingdoms;
     maxKvk = data.maxKvk;
     source = 'Supabase (live)';
   }
 
   // Fallback to hardcoded range
-  if (!kingdomNumbers) {
-    kingdomNumbers = Array.from({ length: FALLBACK_MAX_KINGDOM }, (_, i) => i + 1);
+  if (!kingdoms) {
+    kingdoms = Array.from({ length: FALLBACK_MAX_KINGDOM }, (_, i) => ({
+      kingdom_number: i + 1,
+      last_updated: null,
+    }));
     maxKvk = FALLBACK_MAX_KVK;
     source = 'fallback (hardcoded)';
   }
 
-  // Static routes
+  // --- 1. Static sitemap ---
   const staticEntries = staticRoutes.map(route => 
     generateUrlEntry(route.path, route.changefreq, route.priority, route.lastmod || today)
   );
+  const staticSitemap = wrapUrlset(staticEntries);
+  fs.writeFileSync(path.join(PUBLIC_DIR, 'sitemap-static.xml'), staticSitemap);
 
-  // Kingdom profile pages
-  const kingdomEntries = kingdomNumbers.map(num =>
-    generateUrlEntry(`/kingdom/${num}`, 'weekly', 0.8, today)
-  );
+  // --- 2. Kingdom sitemap (with real lastmod from Supabase) ---
+  let latestKingdomUpdate = today;
+  const kingdomEntries = kingdoms.map(k => {
+    const lastmod = toDateStr(k.last_updated, today);
+    if (lastmod > latestKingdomUpdate) latestKingdomUpdate = lastmod;
+    return generateUrlEntry(`/kingdom/${k.kingdom_number}`, 'weekly', 0.8, lastmod);
+  });
+  const kingdomSitemap = wrapUrlset(kingdomEntries);
+  fs.writeFileSync(path.join(PUBLIC_DIR, 'sitemap-kingdoms.xml'), kingdomSitemap);
 
-  // KvK season pages (include next upcoming season)
+  // --- 3. Season sitemap ---
   const seasonEntries = [];
   for (let i = 1; i <= maxKvk + 1; i++) {
     seasonEntries.push(
       generateUrlEntry(`/seasons/${i}`, 'monthly', 0.6, today)
     );
   }
+  const seasonSitemap = wrapUrlset(seasonEntries);
+  fs.writeFileSync(path.join(PUBLIC_DIR, 'sitemap-seasons.xml'), seasonSitemap);
 
-  const allEntries = [...staticEntries, ...kingdomEntries, ...seasonEntries];
+  // --- 4. Sitemap index ---
+  const sitemapIndex = generateSitemapIndex([
+    { file: 'sitemap-static.xml', lastmod: today },
+    { file: 'sitemap-kingdoms.xml', lastmod: latestKingdomUpdate },
+    { file: 'sitemap-seasons.xml', lastmod: today },
+  ], today);
+  fs.writeFileSync(path.join(PUBLIC_DIR, 'sitemap.xml'), sitemapIndex);
 
-  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${allEntries.join('\n')}
-</urlset>
-`;
-
-  fs.writeFileSync(OUTPUT_PATH, sitemap);
-  
-  const totalUrls = allEntries.length;
-  console.log(`✅ Sitemap generated: ${OUTPUT_PATH}`);
-  console.log(`   � Source: ${source}`);
-  console.log(`   �� ${staticRoutes.length} static pages`);
-  console.log(`   🏰 ${kingdomNumbers.length} kingdom profiles (max: ${kingdomNumbers[kingdomNumbers.length - 1]})`);
-  console.log(`   ⚔️  ${maxKvk + 1} KvK season pages`);
-  console.log(`   📊 ${totalUrls} total URLs`);
-  console.log(`   📅 Last modified: ${today}`);
+  // --- Summary ---
+  const totalUrls = staticEntries.length + kingdomEntries.length + seasonEntries.length;
+  console.log(`✅ Sitemap index generated with 3 sub-sitemaps`);
+  console.log(`   📡 Source: ${source}`);
+  console.log(`   📄 ${staticRoutes.length} static pages → sitemap-static.xml`);
+  console.log(`   🏰 ${kingdoms.length} kingdom profiles → sitemap-kingdoms.xml (max: K${kingdoms[kingdoms.length - 1].kingdom_number})`);
+  console.log(`   ⚔️  ${maxKvk + 1} KvK season pages → sitemap-seasons.xml`);
+  console.log(`   📊 ${totalUrls} total URLs across all sitemaps`);
+  console.log(`   📅 Kingdom lastmod: real timestamps from Supabase`);
 }
 
-generateMainSitemap();
+generateSitemaps();

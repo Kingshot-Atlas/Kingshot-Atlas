@@ -27,3 +27,26 @@
 # Static assets with content hash can be cached forever
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
+
+# X-Robots-Tag: noindex for non-public pages (defense-in-depth alongside robots.txt)
+/api/*
+  X-Robots-Tag: noindex, nofollow
+
+/admin
+  X-Robots-Tag: noindex, nofollow
+
+/auth/*
+  X-Robots-Tag: noindex, nofollow
+
+/cancel-survey
+  X-Robots-Tag: noindex, nofollow
+
+# Sub-sitemaps should be discoverable but not indexed as pages
+/sitemap-static.xml
+  Cache-Control: public, max-age=3600
+
+/sitemap-kingdoms.xml
+  Cache-Control: public, max-age=3600
+
+/sitemap-seasons.xml
+  Cache-Control: public, max-age=3600

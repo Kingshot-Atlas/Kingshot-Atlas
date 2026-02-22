@@ -318,7 +318,7 @@ async function getKingdomMeta(num: number, env: Env): Promise<PageMeta> {
         'apikey': env.VITE_SUPABASE_ANON_KEY,
         'Authorization': `Bearer ${env.VITE_SUPABASE_ANON_KEY}`,
       },
-      cf: { cacheTtl: 3600, cacheEverything: true } as RequestInitCfProperties,
+      cf: { cacheTtl: 1800, cacheEverything: true } as RequestInitCfProperties,
     });
 
     if (!res.ok) return fallback;
@@ -364,6 +364,13 @@ async function getKingdomMeta(num: number, env: Env): Promise<PageMeta> {
 </ul></section>
 <section><h2>About Kingdom ${num}</h2>
 <p>View complete KvK history, performance trends, score breakdown, and compare with other kingdoms. Scout Kingdom ${num} before Kingshot Transfer Events.</p></section>
+<nav><h2>Nearby Kingdoms</h2>
+<ul>
+${num > 2 ? `<li><a href="/kingdom/${num - 2}">Kingdom ${num - 2}</a></li>` : ''}
+${num > 1 ? `<li><a href="/kingdom/${num - 1}">Kingdom ${num - 1}</a></li>` : ''}
+<li><a href="/kingdom/${num + 1}">Kingdom ${num + 1}</a></li>
+<li><a href="/kingdom/${num + 2}">Kingdom ${num + 2}</a></li>
+</ul></nav>
 <nav><h2>Explore More</h2>
 <ul>
 <li><a href="/rankings">Kingdom Rankings</a> — All kingdoms ranked S to D Tier</li>
@@ -429,10 +436,29 @@ class RootContentInjector {
 // Edge-side meta injection (free alternative to prerender.io)
 // ---------------------------------------------------------------------------
 
+// Bot response cache TTL: 30 minutes (balances freshness vs crawl budget)
+const BOT_CACHE_TTL_SECONDS = 1800;
+
 async function injectSeoMeta(
   meta: PageMeta,
+  request: Request,
   next: () => Promise<Response>,
 ): Promise<Response> {
+  // If-Modified-Since: return 304 if bot has a recent cached version
+  // This saves crawl budget — Google won't re-download unchanged pages
+  const ifModifiedSince = request.headers.get('if-modified-since');
+  if (ifModifiedSince) {
+    const sinceDate = new Date(ifModifiedSince).getTime();
+    const now = Date.now();
+    // If the cached version is less than BOT_CACHE_TTL old, return 304
+    if (!isNaN(sinceDate) && (now - sinceDate) < BOT_CACHE_TTL_SECONDS * 1000) {
+      return new Response(null, {
+        status: 304,
+        headers: { 'X-Bot-Cache': 'not-modified' },
+      });
+    }
+  }
+
   const response = await next();
 
   // Only rewrite HTML responses
@@ -455,7 +481,18 @@ async function injectSeoMeta(
     rewriter = rewriter.on('div#root', new RootContentInjector(meta.bodyContent));
   }
 
-  return rewriter.transform(response);
+  const rewritten = rewriter.transform(response);
+
+  // Add Last-Modified and Cache-Control headers for bot responses
+  const newHeaders = new Headers(rewritten.headers);
+  newHeaders.set('Last-Modified', new Date().toUTCString());
+  newHeaders.set('Cache-Control', `public, max-age=${BOT_CACHE_TTL_SECONDS}`);
+  newHeaders.set('X-Bot-Seo', 'injected');
+
+  return new Response(rewritten.body, {
+    status: rewritten.status,
+    headers: newHeaders,
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -506,7 +543,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   const cleanPath = url.pathname.replace(/\/$/, '') || '/'; // normalize trailing slash
   const meta = await getMetaForPath(cleanPath, env);
   if (meta) {
-    return injectSeoMeta(meta, next);
+    return injectSeoMeta(meta, request, next);
   }
 
   return next();
