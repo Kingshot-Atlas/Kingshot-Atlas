@@ -135,17 +135,27 @@ for (let h = 0; h < 24; h++) {
   }
 }
 
-// Stagger slot: 23:45 UTC — first appointment starts 15 min before midnight
-export const STAGGER_SLOT = '23:45';
+// Stagger slots: 30-min intervals on :15/:45 grid starting at 23:45 UTC
+// Pattern: 23:45, 00:15, 00:45, 01:15, 01:45, ..., 23:15 (48 slots)
+export const STAGGER_SLOTS: string[] = [];
+{
+  let minutes = 23 * 60 + 45; // Start at 23:45
+  for (let i = 0; i < 48; i++) {
+    const wrapped = minutes % 1440;
+    const h = Math.floor(wrapped / 60);
+    const m = wrapped % 60;
+    STAGGER_SLOTS.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+    minutes += 30;
+  }
+}
 
-// Returns ordered slot list: [23:45, 00:00, 00:30, ..., 23:30] when staggered
 export function getEffectiveSlots(staggerEnabled: boolean): string[] {
   if (!staggerEnabled) return TIME_SLOTS;
-  return [STAGGER_SLOT, ...TIME_SLOTS];
+  return STAGGER_SLOTS;
 }
 
 export function getMaxSlots(staggerEnabled: boolean): number {
-  return staggerEnabled ? 49 : 48;
+  return staggerEnabled ? 48 : 48;
 }
 
 // Timezone Helpers

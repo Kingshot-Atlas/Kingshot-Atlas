@@ -40,7 +40,6 @@ interface PrepSchedulerManagerProps {
   // Actions
   copyShareLink: () => void;
   exportScheduleCSV: () => void;
-  exportOptedOut: (day: Day) => void;
   setView: (view: 'landing' | 'form' | 'manage' | 'gate') => void;
   closeOrReopenForm: () => void;
   toggleLock: () => void;
@@ -71,7 +70,7 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
     dayAssignments, daySubmissions, unassignedPlayers, availabilityGaps,
     managers, assignManagerInput, setAssignManagerInput, managerSearchResults,
     showManagerDropdown, setShowManagerDropdown, managerSearchRef,
-    copyShareLink, exportScheduleCSV, exportOptedOut,
+    copyShareLink, exportScheduleCSV,
     setView, closeOrReopenForm, toggleLock, archiveSchedule, deleteSchedule,
     runAutoAssign, assignSlot, removeAssignment, clearDayAssignments,
     acknowledgeChangeRequest, addManager, removeManagerById, updateDeadline,
@@ -125,7 +124,7 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
                 {schedule.status === 'archived' && <span style={{ padding: '0.1rem 0.4rem', backgroundColor: `${colors.textMuted}20`, borderRadius: '4px', fontSize: '0.65rem', color: colors.textMuted }}>{t('prepScheduler.archived', 'ARCHIVED')}</span>}
                 {schedule.status === 'closed' && <span style={{ padding: '0.1rem 0.4rem', backgroundColor: '#ef444420', borderRadius: '4px', fontSize: '0.65rem', color: '#ef4444', fontWeight: 600 }}>🔒 {t('prepScheduler.formClosedTag', 'FORM CLOSED')}</span>}
                 {schedule.is_locked && <span style={{ padding: '0.1rem 0.4rem', backgroundColor: '#22c55e20', borderRadius: '4px', fontSize: '0.65rem', color: '#22c55e', fontWeight: 600 }}>✅ {t('prepScheduler.lockedIn', 'LOCKED IN')}</span>}
-                {schedule.stagger_enabled && <span style={{ padding: '0.1rem 0.4rem', backgroundColor: '#8b5cf620', borderRadius: '4px', fontSize: '0.65rem', color: '#8b5cf6', fontWeight: 600 }}>⏱️ 49 {t('prepScheduler.staggerTag', 'STAGGER')}</span>}
+                {schedule.stagger_enabled && <span style={{ padding: '0.1rem 0.4rem', backgroundColor: '#8b5cf620', borderRadius: '4px', fontSize: '0.65rem', color: '#8b5cf6', fontWeight: 600 }}>⏱️ {t('prepScheduler.staggerTag', 'STAGGER')}</span>}
                 {pendingRequests.length > 0 && <span style={{ padding: '0.1rem 0.4rem', backgroundColor: '#ef444420', borderRadius: '4px', fontSize: '0.65rem', color: '#ef4444', fontWeight: 600 }}>🔔 {pendingRequests.length} {t('prepScheduler.changeRequests', 'change requests')}</span>}
                 {(() => { const dl = getDeadlineCountdown(schedule.deadline, t); const utcLabel = formatDeadlineUTC(schedule.deadline); return dl ? <><span style={{ padding: '0.1rem 0.4rem', backgroundColor: dl.urgent ? '#ef444420' : '#f59e0b20', borderRadius: '4px', fontSize: '0.65rem', color: dl.urgent ? '#ef4444' : '#f59e0b', fontWeight: 600 }}>⏰ {dl.text}</span>{utcLabel && <span style={{ fontSize: '0.6rem', color: '#6b7280' }}>{utcLabel}</span>}</> : null; })()}
                 {(isEditorOrCoEditor || isManager) && updateDeadline && !editingDeadline && (
@@ -176,7 +175,6 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
                 {showAllActions && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', padding: '0.5rem', backgroundColor: `${colors.bg}80`, borderRadius: '8px', border: `1px solid ${colors.border}` }}>
                     <button onClick={exportScheduleCSV} style={{ padding: '0.5rem 0.75rem', backgroundColor: '#22c55e15', border: '1px solid #22c55e30', borderRadius: '6px', color: '#22c55e', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', textAlign: 'left', minHeight: '40px' }}>📊 {t('prepScheduler.exportCSV', 'Export CSV')}</button>
-                    <button onClick={() => exportOptedOut(activeDay)} style={{ padding: '0.5rem 0.75rem', backgroundColor: '#f59e0b15', border: '1px solid #f59e0b30', borderRadius: '6px', color: '#f59e0b', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', textAlign: 'left', minHeight: '40px' }}>📋 {t('prepScheduler.optedOutCSV', 'Opted-Out CSV')}</button>
                     {schedule.status !== 'archived' && (isEditorOrCoEditor || isManager) && (
                       <button onClick={closeOrReopenForm} style={{ padding: '0.5rem 0.75rem', backgroundColor: schedule.status === 'closed' ? '#22c55e15' : '#ef444415', border: `1px solid ${schedule.status === 'closed' ? '#22c55e30' : '#ef444430'}`, borderRadius: '6px', color: schedule.status === 'closed' ? '#22c55e' : '#ef4444', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', textAlign: 'left', minHeight: '40px' }}>{schedule.status === 'closed' ? `🔓 ${t('prepScheduler.reopenForm', 'Reopen Form')}` : `🔒 ${t('prepScheduler.closeForm', 'Close Form')}`}</button>
                     )}
@@ -184,7 +182,7 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
                       <button onClick={toggleLock} style={{ padding: '0.5rem 0.75rem', backgroundColor: schedule.is_locked ? '#f59e0b15' : '#22c55e15', border: `1px solid ${schedule.is_locked ? '#f59e0b30' : '#22c55e30'}`, borderRadius: '6px', color: schedule.is_locked ? '#f59e0b' : '#22c55e', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', textAlign: 'left', minHeight: '40px' }}>{schedule.is_locked ? `🔓 ${t('prepScheduler.unlockSchedule', 'Unlock Schedule')}` : `✅ ${t('prepScheduler.lockInSchedule', 'Lock In Schedule')}`}</button>
                     )}
                     {schedule.status !== 'archived' && (isEditorOrCoEditor || isManager) && (
-                      <button onClick={toggleStagger} disabled={saving} style={{ padding: '0.5rem 0.75rem', backgroundColor: schedule.stagger_enabled ? '#8b5cf615' : '#6366f115', border: `1px solid ${schedule.stagger_enabled ? '#8b5cf630' : '#6366f130'}`, borderRadius: '6px', color: schedule.stagger_enabled ? '#8b5cf6' : '#6366f1', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', textAlign: 'left', minHeight: '40px', opacity: saving ? 0.6 : 1 }}>{schedule.stagger_enabled ? `⏱️ ${t('prepScheduler.disableStagger', 'Disable 49-Slot Stagger')}` : `⏱️ ${t('prepScheduler.enableStagger', 'Enable 49-Slot Stagger')}`}</button>
+                      <button onClick={toggleStagger} disabled={saving} style={{ padding: '0.5rem 0.75rem', backgroundColor: schedule.stagger_enabled ? '#8b5cf615' : '#6366f115', border: `1px solid ${schedule.stagger_enabled ? '#8b5cf630' : '#6366f130'}`, borderRadius: '6px', color: schedule.stagger_enabled ? '#8b5cf6' : '#6366f1', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', textAlign: 'left', minHeight: '40px', opacity: saving ? 0.6 : 1 }}>{schedule.stagger_enabled ? `⏱️ ${t('prepScheduler.disableStagger', 'Disable Stagger')}` : `⏱️ ${t('prepScheduler.enableStagger', 'Enable Stagger')}`}</button>
                     )}
                     {schedule.status === 'active' && isEditorOrCoEditor && (
                       <button onClick={archiveSchedule} style={{ padding: '0.5rem 0.75rem', backgroundColor: `${colors.textMuted}10`, border: `1px solid ${colors.border}`, borderRadius: '6px', color: colors.textMuted, fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', textAlign: 'left', minHeight: '40px' }}>📦 {t('prepScheduler.archive', 'Archive')}</button>
@@ -199,7 +197,6 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
               <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                 <button onClick={copyShareLink} style={{ padding: '0.4rem 0.75rem', backgroundColor: `${colors.primary}15`, border: `1px solid ${colors.primary}30`, borderRadius: '6px', color: colors.primary, fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>🔗 {t('prepScheduler.copyFormLink', 'Copy Form Link')}</button>
                 <button onClick={exportScheduleCSV} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#22c55e15', border: '1px solid #22c55e30', borderRadius: '6px', color: '#22c55e', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>📊 {t('prepScheduler.exportCSV', 'Export CSV')}</button>
-                <button onClick={() => exportOptedOut(activeDay)} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#f59e0b15', border: '1px solid #f59e0b30', borderRadius: '6px', color: '#f59e0b', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>📋 {t('prepScheduler.optedOutCSV', 'Opted-Out CSV')}</button>
                 <button onClick={() => setView('form')} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#a855f715', border: '1px solid #a855f730', borderRadius: '6px', color: '#a855f7', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>📝 {t('prepScheduler.viewForm', 'View Form')}</button>
                 {schedule.status !== 'archived' && (isEditorOrCoEditor || isManager) && (
                   <button onClick={closeOrReopenForm} style={{ padding: '0.4rem 0.75rem', backgroundColor: schedule.status === 'closed' ? '#22c55e15' : '#ef444415', border: `1px solid ${schedule.status === 'closed' ? '#22c55e30' : '#ef444430'}`, borderRadius: '6px', color: schedule.status === 'closed' ? '#22c55e' : '#ef4444', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>{schedule.status === 'closed' ? `🔓 ${t('prepScheduler.reopenForm', 'Reopen Form')}` : `🔒 ${t('prepScheduler.closeForm', 'Close Form')}`}</button>
@@ -208,7 +205,7 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
                   <button onClick={toggleLock} style={{ padding: '0.4rem 0.75rem', backgroundColor: schedule.is_locked ? '#f59e0b15' : '#22c55e15', border: `1px solid ${schedule.is_locked ? '#f59e0b30' : '#22c55e30'}`, borderRadius: '6px', color: schedule.is_locked ? '#f59e0b' : '#22c55e', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>{schedule.is_locked ? `🔓 ${t('prepScheduler.unlockSchedule', 'Unlock Schedule')}` : `✅ ${t('prepScheduler.lockInSchedule', 'Lock In Schedule')}`}</button>
                 )}
                 {schedule.status !== 'archived' && (isEditorOrCoEditor || isManager) && (
-                  <button onClick={toggleStagger} disabled={saving} style={{ padding: '0.4rem 0.75rem', backgroundColor: schedule.stagger_enabled ? '#8b5cf615' : '#6366f115', border: `1px solid ${schedule.stagger_enabled ? '#8b5cf630' : '#6366f130'}`, borderRadius: '6px', color: schedule.stagger_enabled ? '#8b5cf6' : '#6366f1', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', opacity: saving ? 0.6 : 1 }}>{schedule.stagger_enabled ? `⏱️ ${t('prepScheduler.disableStagger', 'Disable 49-Slot Stagger')}` : `⏱️ ${t('prepScheduler.enableStagger', 'Enable 49-Slot Stagger')}`}</button>
+                  <button onClick={toggleStagger} disabled={saving} style={{ padding: '0.4rem 0.75rem', backgroundColor: schedule.stagger_enabled ? '#8b5cf615' : '#6366f115', border: `1px solid ${schedule.stagger_enabled ? '#8b5cf630' : '#6366f130'}`, borderRadius: '6px', color: schedule.stagger_enabled ? '#8b5cf6' : '#6366f1', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', opacity: saving ? 0.6 : 1 }}>{schedule.stagger_enabled ? `⏱️ ${t('prepScheduler.disableStagger', 'Disable Stagger')}` : `⏱️ ${t('prepScheduler.enableStagger', 'Enable Stagger')}`}</button>
                 )}
                 {schedule.status === 'active' && isEditorOrCoEditor && (
                   <button onClick={archiveSchedule} style={{ padding: '0.4rem 0.75rem', backgroundColor: `${colors.textMuted}10`, border: `1px solid ${colors.border}`, borderRadius: '6px', color: colors.textMuted, fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>📦 {t('prepScheduler.archive', 'Archive')}</button>

@@ -44,13 +44,13 @@ const AtlasBotIcon: React.FC<{ size?: number }> = ({ size = 20 }) => (
   </svg>
 );
 
-const GiftCodeIcon: React.FC<{ size?: number }> = ({ size = 20 }) => (
+const KvkSeasonsIcon: React.FC<{ size?: number }> = ({ size = 20 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect x="3" y="10" width="18" height="11" rx="2" stroke="currentColor" strokeWidth="2" />
-    <path d="M12 10V21" stroke="currentColor" strokeWidth="2" />
-    <path d="M3 14H21" stroke="currentColor" strokeWidth="2" />
-    <path d="M7.5 10C7.5 10 6 8.5 6 7C6 5.5 7.5 4 9 5C10.5 6 12 10 12 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    <path d="M16.5 10C16.5 10 18 8.5 18 7C18 5.5 16.5 4 15 5C13.5 6 12 10 12 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" />
+    <path d="M12 3C12 3 16 7 16 12C16 17 12 21 12 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    <path d="M12 3C12 3 8 7 8 12C8 17 12 21 12 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    <path d="M3.5 9H20.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    <path d="M3.5 15H20.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
   </svg>
 );
 
@@ -90,8 +90,8 @@ const QuickActions: React.FC = () => {
     { label: 'KvK Battle Planner', line1: t('quickAction.battlePlanner_1', 'KvK Battle'), line2: t('quickAction.battlePlanner_2', 'Planner'), path: '/tools/battle-planner', color: '#ef4444', icon: <BattlePlannerIcon size={iconSize} /> },
     { label: 'KvK Prep Scheduler', line1: t('quickAction.prepScheduler_1', 'KvK Prep'), line2: t('quickAction.prepScheduler_2', 'Scheduler'), path: '/tools/prep-scheduler-info', color: '#a855f7', icon: <PrepSchedulerIcon size={iconSize} /> },
     { label: 'Discord Bot Atlas', line1: t('quickAction.atlasBot_1', 'Discord'), line2: t('quickAction.atlasBot_2', 'Bot Atlas'), path: '/atlas-bot', color: '#5865F2', icon: <AtlasBotIcon size={iconSize} /> },
-    { label: 'Gift Codes', line1: t('quickAction.giftCode_1', 'Gift'), line2: t('quickAction.giftCode_2', 'Codes'), path: '/gift-codes', color: '#f59e0b', icon: <GiftCodeIcon size={iconSize} /> },
     { label: 'Kingdom Rankings', line1: t('quickAction.rankings_1', 'Kingdom'), line2: t('quickAction.rankings_2', 'Rankings'), path: '/rankings', color: '#22d3ee', icon: <RankingsIcon size={iconSize} /> },
+    { label: 'KvK Seasons', line1: t('quickAction.kvkSeasons_1', 'KvK'), line2: t('quickAction.kvkSeasons_2', 'Seasons'), path: '/kvk-seasons', color: '#f59e0b', icon: <KvkSeasonsIcon size={iconSize} /> },
   ];
 
   return (

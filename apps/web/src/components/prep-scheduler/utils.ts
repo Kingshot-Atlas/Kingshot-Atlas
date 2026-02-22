@@ -133,6 +133,14 @@ export function exportToSpreadsheet(submissions: PrepSubmission[], assignments: 
       }
     }
     rows.push('');
+    // Opted-out players for this day
+    const skipped = submissions.filter(s => isSkippedDay(s, day));
+    if (skipped.length > 0) {
+      rows.push(`--- ${DAY_LABELS[day]} Opted Out ---`);
+      rows.push('Username,Alliance');
+      for (const s of skipped) rows.push(`${s.username},${s.alliance_tag || ''}`);
+      rows.push('');
+    }
   }
   const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);

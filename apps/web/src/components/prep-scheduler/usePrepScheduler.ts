@@ -474,8 +474,8 @@ export function usePrepScheduler() {
       setSchedule({ ...schedule, stagger_enabled: newVal });
       showToast(
         newVal
-          ? t('prepScheduler.toastStaggerEnabled', '49-slot stagger enabled — 23:45 UTC slot added.')
-          : t('prepScheduler.toastStaggerDisabled', 'Stagger disabled — back to 48 slots.'),
+          ? t('prepScheduler.toastStaggerEnabled', 'Stagger enabled — slots shifted to :15/:45 pattern.')
+          : t('prepScheduler.toastStaggerDisabled', 'Stagger disabled — back to :00/:30 slots.'),
         'success'
       );
     } catch (err) {
@@ -574,21 +574,6 @@ export function usePrepScheduler() {
       setChangeRequests(prev => prev.map(r => r.id === reqId ? { ...r, status: 'resolved' as const } : r));
       showToast(t('prepScheduler.toastChangeResolved', 'Change request resolved.'), 'success');
     } catch (err) { logger.error('Failed to acknowledge:', err); }
-  };
-
-  const exportOptedOut = (day: Day) => {
-    if (!schedule) return;
-    const skipped = submissions.filter(s => isSkippedDay(s, day));
-    if (skipped.length === 0) { showToast(t('prepScheduler.toastNoOptedOut', 'No opted-out players for {{day}}.', { day: getDayLabel(day, t) }), 'info'); return; }
-    const rows = ['Username,Alliance,Reason'];
-    for (const s of skipped) rows.push(`${s.username},${s.alliance_tag || ''},Opted out of ${getDayLabel(day, t)}`);
-    const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `opted-out-${day}-K${schedule.kingdom_number || ''}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
   };
 
   const uploadScreenshot = async (): Promise<string | null> => {
@@ -975,7 +960,7 @@ export function usePrepScheduler() {
     createSchedule, closeOrReopenForm, toggleStagger, toggleLock, archiveSchedule, deleteSchedule, updateDeadline,
     submitForm, submitChangeRequest, acknowledgeChangeRequest,
     runAutoAssign, assignSlot, removeAssignment, clearDayAssignments,
-    copyShareLink, exportScheduleCSV, exportOptedOut,
+    copyShareLink, exportScheduleCSV,
     handleScreenshotChange, addManager, removeManagerById,
     startAltSubmission, editSubmission,
     // Refill mode
