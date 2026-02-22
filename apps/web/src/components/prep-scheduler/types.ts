@@ -136,7 +136,8 @@ for (let h = 0; h < 24; h++) {
 }
 
 // Stagger slots: 30-min intervals on :15/:45 grid starting at 23:45 UTC
-// Pattern: 23:45, 00:15, 00:45, 01:15, ..., 23:15, 23:45 (49 slots)
+// Pattern: 23:45 A, 00:15, 00:45, ..., 23:15, 23:45 B (49 slots)
+// A = previous day's 23:45, B = current day's 23:45 (distinct keys)
 export const STAGGER_SLOTS: string[] = [];
 {
   let minutes = 23 * 60 + 45; // Start at 23:45
@@ -144,7 +145,10 @@ export const STAGGER_SLOTS: string[] = [];
     const wrapped = minutes % 1440;
     const h = Math.floor(wrapped / 60);
     const m = wrapped % 60;
-    STAGGER_SLOTS.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+    let label = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    if (i === 0) label += ' A';
+    else if (i === 48) label += ' B';
+    STAGGER_SLOTS.push(label);
     minutes += 30;
   }
 }

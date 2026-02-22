@@ -2,7 +2,7 @@
 import { PrepSchedule, PrepSubmission, SlotAssignment, Day, DAYS, DAY_LABELS, getEffectiveSlots, getMaxSlots } from './types';
 
 export function utcSlotToLocal(utcSlot: string): string {
-  const [h, m] = utcSlot.split(':').map(Number);
+  const [h, m] = utcSlot.split(':').map(s => parseInt(s, 10));
   const d = new Date();
   d.setUTCHours(h ?? 0, m ?? 0, 0, 0);
   const hr12 = d.getHours() % 12 || 12;
@@ -34,7 +34,7 @@ export function getDeadlineCountdown(deadline: string | null, t?: (key: string, 
 }
 
 export function timeToMinutes(time: string): number {
-  const parts = time.split(':').map(Number);
+  const parts = time.split(':').map(s => parseInt(s, 10));
   return (parts[0] ?? 0) * 60 + (parts[1] ?? 0);
 }
 
