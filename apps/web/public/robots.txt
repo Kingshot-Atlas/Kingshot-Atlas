@@ -7,6 +7,7 @@ Disallow: /api/
 Disallow: /admin
 Disallow: /auth/
 Disallow: /components
+Disallow: /cancel-survey
 
 # Allow public profiles but block user's own profile page
 Allow: /profile/
@@ -15,11 +16,8 @@ Disallow: /profile$
 # Transfer Hub is public — allow crawling
 # (kingdom-specific pages like /transfer-hub?kingdom=123 are valuable for SEO)
 
-# Disallow legacy URLs (301 redirects exist, but save crawl budget)
-Disallow: /leaderboards
-Disallow: /transfer-board
-Disallow: /pro
-Disallow: /upgrade
+# Legacy URLs have 301 redirects in _redirects — let Google follow them naturally
+# (Previously disallowed here, but that caused GSC "Blocked by robots.txt" conflicts)
 
 # Sitemap
 Sitemap: https://ks-atlas.com/sitemap.xml

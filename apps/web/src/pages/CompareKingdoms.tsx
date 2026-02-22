@@ -14,6 +14,7 @@ import ComparisonRadarChart from '../components/ComparisonRadarChart';
 import ShareComparisonScreenshot from '../components/ShareComparisonScreenshot';
 import { useMetaTags, getCompareMetaTags } from '../hooks/useMetaTags';
 import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
+import Breadcrumbs from '../components/Breadcrumbs';
 import { useTranslation } from 'react-i18next';
 
 // Max slots to show in UI (Pro limit)
@@ -429,6 +430,7 @@ const CompareKingdoms: React.FC = () => {
         overflow: 'hidden'
       }}>
         <div style={{ position: 'relative', zIndex: 1, maxWidth: '800px', margin: '0 auto' }}>
+          <Breadcrumbs items={PAGE_BREADCRUMBS.compare} />
           <h1 style={{ 
             fontSize: isMobile ? '1.5rem' : '2rem', 
             fontWeight: 'bold', 

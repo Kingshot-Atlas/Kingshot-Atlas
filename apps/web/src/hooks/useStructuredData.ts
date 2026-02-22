@@ -233,6 +233,33 @@ export const RANKINGS_FAQ_DATA: FAQItem[] = [
 ];
 
 /**
+ * Pre-defined FAQ data for Transfer Hub — targets featured snippets
+ * for "how to transfer kingdoms", "kingdom recruiting", "transfer event" queries.
+ */
+export const TRANSFER_HUB_FAQ_DATA: FAQItem[] = [
+  {
+    question: 'How do I transfer to a new kingdom in Kingshot?',
+    answer: 'During a Transfer Event, visit the Transfer Hub on Kingshot Atlas. Browse kingdoms that are actively recruiting, compare their stats and KvK performance, then apply directly with your Transfer Profile. Recruiters review applications and can accept or decline.',
+  },
+  {
+    question: 'When is the next Kingshot Transfer Event?',
+    answer: 'Transfer Events happen every 8 weeks with three phases: Pre-Transfer (browse and prepare), Invitational (top kingdoms recruit first), and Open Transfer (all players can move). Check the Event Calendar on the Tools page for exact dates.',
+  },
+  {
+    question: 'How do I recruit players for my kingdom?',
+    answer: 'Claim your kingdom on the Transfer Hub, set up a recruiting listing with your requirements and what you offer, then review incoming transfer applications. Your kingdom\'s real KvK performance data is shown automatically — no need to exaggerate.',
+  },
+  {
+    question: 'What should I look for when choosing a kingdom to transfer to?',
+    answer: 'Check the kingdom\'s Atlas Score and tier (S-Tier kingdoms are top 3%), battle win rate, KvK experience count, and recent form. Use the Compare tool to evaluate kingdoms side-by-side. Also check if the kingdom has an active recruiter on the Transfer Hub.',
+  },
+  {
+    question: 'Is the Kingshot Atlas Transfer Hub free?',
+    answer: 'Yes, the Transfer Hub is 100% free for both transferees and recruiters. Browse kingdoms, create a Transfer Profile, apply to kingdoms, and manage applications — all at no cost. Powered by real data from every KvK event.',
+  },
+];
+
+/**
  * Pre-defined breadcrumb data for key pages.
  * Google displays breadcrumbs in search results, improving CTR.
  */
@@ -252,6 +279,7 @@ export const PAGE_BREADCRUMBS = {
   transferHub: [HOME_CRUMB, { name: 'Transfer Hub', url: 'https://ks-atlas.com/transfer-hub' }],
   ambassadors: [HOME_CRUMB, { name: 'Ambassador Network', url: 'https://ks-atlas.com/ambassadors' }],
   transferHubLanding: [HOME_CRUMB, { name: 'Transfer Hub', url: 'https://ks-atlas.com/transfer-hub' }, { name: 'About', url: 'https://ks-atlas.com/transfer-hub/about' }],
+  kingdomCommunities: [HOME_CRUMB, { name: 'Kingdom Colonies', url: 'https://ks-atlas.com/kingdoms/communities' }],
 };
 
 /**

@@ -13,6 +13,7 @@ import { neonGlow, FONT_DISPLAY, statTypeStyles } from '../utils/styles';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { useStructuredData, PAGE_BREADCRUMBS, RANKINGS_FAQ_DATA } from '../hooks/useStructuredData';
+import Breadcrumbs from '../components/Breadcrumbs';
 import { scoreHistoryService, RankMover } from '../services/scoreHistoryService';
 import { useScrollDepth } from '../hooks/useScrollDepth';
 import { useTranslation } from 'react-i18next';
@@ -516,6 +517,7 @@ const Leaderboards: React.FC = () => {
         overflow: 'hidden'
       }}>
         <div style={{ position: 'relative', zIndex: 1, maxWidth: '800px', margin: '0 auto' }}>
+          <Breadcrumbs items={PAGE_BREADCRUMBS.rankings} />
           <h1 style={{ 
             fontSize: isMobile ? '1.5rem' : '2rem', 
             fontWeight: 'bold', 

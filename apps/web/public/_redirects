@@ -8,6 +8,7 @@ https://www.ks-atlas.com/*  https://ks-atlas.com/:splat  301
 /transfer-board   /transfer-hub    301
 /pro              /support         301
 /upgrade          /support         301
+/gift-codes       /tools/gift-codes 301
 
 # SPA fallback - all routes serve index.html
 /*    /index.html   200

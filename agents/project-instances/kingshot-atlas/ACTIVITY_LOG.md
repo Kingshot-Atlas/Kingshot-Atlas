@@ -3,6 +3,22 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-22 18:41 | Ops Lead | COMPLETED
+Task: Deep SEO audit and fixes
+Files: index.html, robots.txt, _redirects, _middleware.ts, generate-sitemap.js, useMetaTags.ts, useStructuredData.ts, KingdomCommunities.tsx, TermsOfService.tsx, PrivacyPolicy.tsx, LATEST_KNOWLEDGE.md
+Changes:
+1. **CRITICAL: Removed hardcoded canonical** from index.html that was forcing ALL pages to canonicalize to homepage (documented as removed in Feb-12 but was still present)
+2. **Added og:locale** meta tag for better social sharing signals
+3. **Fixed KingdomCommunities** relative URL → absolute, added PAGE_META_TAGS entry + breadcrumbs
+4. **Fixed gift codes URL mismatch** — PAGE_META_TAGS pointed to /gift-codes instead of /tools/gift-codes
+5. **Added 301 redirect** /gift-codes → /tools/gift-codes to prevent duplicate content
+6. **Added 5 missing pages to sitemap**: /transfer-hub, /transfer-hub/about, /kingdoms/communities, /terms, /privacy
+7. **Added 5 missing pages to STATIC_META** in middleware for bot meta injection
+8. **Added useMetaTags** to TermsOfService.tsx and PrivacyPolicy.tsx (had no canonical/OG/meta)
+9. **Added /cancel-survey and /gift-codes** to robots.txt disallow
+10. **Fixed stale docs** in LATEST_KNOWLEDGE.md re: canonical removal
+Result: Build passes. All public pages now have proper canonical URLs, OG tags, structured data breadcrumbs, sitemap entries, and bot-side meta injection.
+
 ## 2026-02-22 09:27 | Design Lead | COMPLETED
 Task: Change Prep Scheduler day tab theme colors — Thursday red→purple, Monday yellow→orange
 Files: apps/web/src/components/prep-scheduler/types.ts

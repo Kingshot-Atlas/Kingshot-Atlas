@@ -11,7 +11,8 @@ import { useTranslation } from 'react-i18next';
 import { neonGlow, FONT_DISPLAY, colors } from '../utils/styles';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
-import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
+import { useStructuredData, PAGE_BREADCRUMBS, TRANSFER_HUB_FAQ_DATA } from '../hooks/useStructuredData';
+import Breadcrumbs from '../components/Breadcrumbs';
 import type { KingdomData, KingdomFund, KingdomReviewSummary, BoardMode, MatchDetail } from '../components/KingdomListingCard';
 import { useScrollDepth } from '../hooks/useScrollDepth';
 import TransferHubGuide from '../components/TransferHubGuide';
@@ -68,6 +69,7 @@ import { useTransferKingdoms, useTransferFunds, useTransferReviewSummaries, useU
 
 const TransferBoard: React.FC = () => {
   useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.transferHub });
+  useStructuredData({ type: 'FAQPage', data: TRANSFER_HUB_FAQ_DATA });
   useScrollDepth('Transfer Hub');
   const { t } = useTranslation();
   const { user, profile } = useAuth();
@@ -144,13 +146,13 @@ const TransferBoard: React.FC = () => {
       title: `Kingdom ${highlightedKingdom} Transfer Listing — Kingshot Atlas`,
       description: `View Kingdom ${highlightedKingdom}'s transfer listing on the Kingshot Atlas Transfer Hub. Check stats, recruitment info, and apply to transfer.`,
       url: `https://ks-atlas.com/transfer-hub?kingdom=${highlightedKingdom}`,
-      image: 'https://ks-atlas.com/Atlas%20Logo.png',
+      image: 'https://ks-atlas.com/atlas-og.png',
       type: 'article',
     } : endorseClaimData ? {
       title: `Endorse ${endorseClaimData.nominee_linked_username || endorseClaimData.nominee_username} for Kingdom ${endorseClaimData.kingdom_number} — Kingshot Atlas`,
       description: `${endorseClaimData.nominee_linked_username || endorseClaimData.nominee_username} is running for Kingdom ${endorseClaimData.kingdom_number} editor. ${endorseClaimData.endorsement_count}/${endorseClaimData.required_endorsements} endorsements so far. Your vote matters.`,
       url: `https://ks-atlas.com/transfer-hub?endorse=${endorseClaimData.id}`,
-      image: 'https://ks-atlas.com/Atlas%20Logo.png',
+      image: 'https://ks-atlas.com/atlas-og.png',
       type: 'article',
     } : PAGE_META_TAGS.transferHub
   );
@@ -589,6 +591,7 @@ const TransferBoard: React.FC = () => {
         overflow: 'hidden',
       }}>
         <div style={{ position: 'relative', zIndex: 1, maxWidth: '800px', margin: '0 auto' }}>
+          <Breadcrumbs items={PAGE_BREADCRUMBS.transferHub} />
           <h1 style={{
             fontSize: isMobile ? '1.5rem' : '2rem',
             fontWeight: 'bold',

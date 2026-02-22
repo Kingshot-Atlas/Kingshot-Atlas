@@ -43,7 +43,7 @@ resend._domainkey         CNAME (Resend-provided)
 - Page with redirect: 1 page (expected — legacy redirects)
 
 ### Root Causes Identified & Fixed
-1. **Hardcoded canonical URL** — `<link rel="canonical" href="https://ks-atlas.com/" />` in index.html caused ALL pages to canonicalize to homepage → "Alternate page with canonical" issues. **REMOVED.**
+1. **Hardcoded canonical URL** — `<link rel="canonical" href="https://ks-atlas.com/" />` in index.html caused ALL pages to canonicalize to homepage → "Alternate page with canonical" issues. **REMOVED 2026-02-22** (was documented as removed earlier but persisted until deep SEO audit caught it).
 2. **useMetaTags didn't create canonical** — Hook only updated existing canonical, didn't create one if missing. **FIXED** to create `<link rel="canonical">` dynamically.
 3. **Transfer Hub crawlable** — Gated page showed "Coming Soon" to bots → soft 404s. **Added to robots.txt disallow.**
 4. **Missing sitemap entries** — `/ambassadors` and `/tools/gift-codes` were public but not in sitemap. **Added.**

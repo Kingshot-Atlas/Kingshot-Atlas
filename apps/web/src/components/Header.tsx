@@ -107,7 +107,7 @@ const Header: React.FC = () => {
         {/* Logo Section */}
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
           <img 
-            src="/Atlas Favicon.png" 
+            src="/atlas-favicon.png" 
             alt="KA" 
             style={{
               width: isMobile ? '28px' : '32px',

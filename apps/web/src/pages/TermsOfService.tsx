@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { colors, FONT_DISPLAY } from '../utils/styles';
 import { useTranslation } from 'react-i18next';
@@ -8,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 const TermsOfService: React.FC = () => {
   const { t } = useTranslation();
   useDocumentTitle(t('tos.pageTitle', 'Terms of Service'));
+  useMetaTags(PAGE_META_TAGS.terms);
   const isMobile = useIsMobile();
 
   const sectionStyle: React.CSSProperties = {

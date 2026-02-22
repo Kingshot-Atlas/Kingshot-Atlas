@@ -37,9 +37,14 @@ const staticRoutes = [
   { path: '/atlas-bot', changefreq: 'monthly', priority: 0.6 },
   { path: '/tools/gift-codes', changefreq: 'weekly', priority: 0.6 },
   { path: '/changelog', changefreq: 'weekly', priority: 0.5 },
-  { path: '/about', changefreq: 'monthly', priority: 0.5 },
-  { path: '/support', changefreq: 'monthly', priority: 0.4 },
-  { path: '/contribute-data', changefreq: 'monthly', priority: 0.4 },
+  { path: '/about', changefreq: 'monthly', priority: 0.5, lastmod: '2026-02-01' },
+  { path: '/support', changefreq: 'monthly', priority: 0.4, lastmod: '2026-01-15' },
+  { path: '/contribute-data', changefreq: 'monthly', priority: 0.4, lastmod: '2026-01-01' },
+  { path: '/transfer-hub', changefreq: 'daily', priority: 0.8 },
+  { path: '/transfer-hub/about', changefreq: 'monthly', priority: 0.6, lastmod: '2026-02-01' },
+  { path: '/kingdoms/communities', changefreq: 'weekly', priority: 0.7 },
+  { path: '/terms', changefreq: 'yearly', priority: 0.3, lastmod: '2025-12-01' },
+  { path: '/privacy', changefreq: 'yearly', priority: 0.3, lastmod: '2025-12-01' },
 ];
 
 function generateUrlEntry(urlPath, changefreq, priority, lastmod) {
@@ -146,7 +151,7 @@ async function generateMainSitemap() {
 
   // Static routes
   const staticEntries = staticRoutes.map(route => 
-    generateUrlEntry(route.path, route.changefreq, route.priority, today)
+    generateUrlEntry(route.path, route.changefreq, route.priority, route.lastmod || today)
   );
 
   // Kingdom profile pages

@@ -28,9 +28,13 @@ export const useMetaTags = (options: MetaTagsOptions) => {
     const originalOgImage = getMetaContent('og:image');
     const originalOgUrl = getMetaContent('og:url');
     const originalOgType = getMetaContent('og:type');
-    const originalTwitterTitle = getMetaContent('twitter:title');
-    const originalTwitterDescription = getMetaContent('twitter:description');
-    const originalTwitterImage = getMetaContent('twitter:image');
+    const getNameMetaContent = (name: string) => {
+      const meta = document.querySelector(`meta[name="${name}"]`) as HTMLMetaElement;
+      return meta?.content || '';
+    };
+    const originalTwitterTitle = getNameMetaContent('twitter:title');
+    const originalTwitterDescription = getNameMetaContent('twitter:description');
+    const originalTwitterImage = getNameMetaContent('twitter:image');
 
     // Helper to update or create meta tag
     const updateMeta = (property: string, content: string) => {
@@ -124,7 +128,7 @@ export function getKingdomMetaTags(
     title: `${name}${tierInfo} Stats & KvK History - Kingshot Kingdom Rankings`,
     description: `${name} Kingdom Rankings & Transfer Info.${winRateInfo} View KvK Event history, tier ranking, and stats. Scout before Kingshot Transfer Events.`,
     url: `https://ks-atlas.com/kingdom/${kingdomNumber}`,
-    image: 'https://ks-atlas.com/Atlas%20Logo.png',
+    image: 'https://ks-atlas.com/atlas-og.png',
     type: 'article'
   };
 }
@@ -142,7 +146,7 @@ export const getCompareMetaTags = (
       description: `Compare Kingdom #${kingdom1Number} and Kingdom #${kingdom2Number} - Head-to-head stats, win rates, and performance analysis.`,
       url: `https://ks-atlas.com/compare?kingdoms=${kingdom1Number},${kingdom2Number}`,
       type: 'website',
-      image: 'https://ks-atlas.com/Atlas%20Favicon.png'
+      image: 'https://ks-atlas.com/atlas-og.png'
     };
   }
   
@@ -239,13 +243,31 @@ export const PAGE_META_TAGS = {
   giftCodes: {
     title: 'Kingshot Gift Codes - Never Miss Free Rewards',
     description: 'Every active Kingshot gift code in one place. Copy codes and redeem them in-game — never miss free rewards again. Free tool by Kingshot Atlas.',
-    url: 'https://ks-atlas.com/gift-codes',
+    url: 'https://ks-atlas.com/tools/gift-codes',
     type: 'website'
   },
   transferHubLanding: {
     title: 'Kingshot Transfer Hub - Find Your Next Kingdom or Recruit Players',
     description: 'The Kingshot Transfer Hub: browse recruiting kingdoms, create a transfer profile, apply directly. Recruiters set up listings and receive applications. 100% free, powered by real data.',
     url: 'https://ks-atlas.com/transfer-hub/about',
+    type: 'website'
+  },
+  kingdomCommunities: {
+    title: 'Kingdom Colonies | Kingshot Atlas',
+    description: 'Discover the most active kingdoms on Atlas. See which kingdoms have the biggest colonies of competitive Kingshot players.',
+    url: 'https://ks-atlas.com/kingdoms/communities',
+    type: 'website'
+  },
+  terms: {
+    title: 'Terms of Service - Kingshot Atlas',
+    description: 'Kingshot Atlas Terms of Service. Read about usage terms, acceptable use, and user responsibilities for the kingdom intelligence platform.',
+    url: 'https://ks-atlas.com/terms',
+    type: 'website'
+  },
+  privacy: {
+    title: 'Privacy Policy - Kingshot Atlas',
+    description: 'Kingshot Atlas Privacy Policy. How we collect, use, and protect your data. We never sell user information.',
+    url: 'https://ks-atlas.com/privacy',
     type: 'website'
   }
 } as const satisfies Record<string, MetaTagsOptions>;

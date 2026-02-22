@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { colors, neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
-import { useMetaTags } from '../hooks/useMetaTags';
+import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
+import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useTranslation } from 'react-i18next';
 import { logger } from '../utils/logger';
@@ -65,11 +66,8 @@ const KingdomCommunities: React.FC = () => {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
   useDocumentTitle(t('kingdomCommunities.title', 'Kingdom Colonies'));
-  useMetaTags({
-    title: 'Kingdom Colonies | Kingshot Atlas',
-    description: 'Discover the most active kingdoms on Atlas. See which kingdoms have the biggest colonies of competitive Kingshot players.',
-    url: '/kingdoms/communities',
-  });
+  useMetaTags(PAGE_META_TAGS.kingdomCommunities);
+  useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.kingdomCommunities });
 
   const [communities, setCommunities] = useState<KingdomCommunity[]>([]);
   const [loading, setLoading] = useState(true);
