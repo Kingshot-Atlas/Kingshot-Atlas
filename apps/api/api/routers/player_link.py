@@ -15,7 +15,7 @@ import os
 import logging
 import httpx
 import asyncio
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Depends
 from pydantic import BaseModel, Field
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -24,6 +24,11 @@ from api.supabase_client import log_gift_code_redemption, get_gift_codes_from_db
 logger = logging.getLogger("atlas.player_link")
 
 router = APIRouter()
+
+# ---------------------------------------------------------------------------
+# Admin auth (reuses shared admin helpers)
+# ---------------------------------------------------------------------------
+from api.routers.admin._shared import require_admin as _require_admin
 
 # Discord webhook for gift code notifications
 DISCORD_GIFT_CODES_WEBHOOK = os.getenv("DISCORD_GIFT_CODES_WEBHOOK", "")
@@ -399,7 +404,7 @@ class ManualGiftCodeRequest(BaseModel):
     description="Admin endpoint to manually add a gift code to the database."
 )
 @limiter.limit("10/minute")
-async def add_gift_code(request: Request, body: ManualGiftCodeRequest):
+async def add_gift_code(request: Request, body: ManualGiftCodeRequest, _admin=Depends(_require_admin)):
     """Add a gift code manually. Requires admin auth in production."""
     result = add_manual_gift_code(
         code=body.code,
@@ -421,7 +426,7 @@ async def add_gift_code(request: Request, body: ManualGiftCodeRequest):
     description="Admin endpoint to deactivate a gift code."
 )
 @limiter.limit("10/minute")
-async def deactivate_code(request: Request, code: str):
+async def deactivate_code(request: Request, code: str, _admin=Depends(_require_admin)):
     """Deactivate a gift code."""
     success = deactivate_gift_code(code)
     if not success:

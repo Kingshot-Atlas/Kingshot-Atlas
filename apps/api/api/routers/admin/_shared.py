@@ -6,6 +6,7 @@ Provides admin authentication, rate limiting, and audit logging.
 import os
 import logging
 import time
+import contextvars
 from fastapi import HTTPException, Request, Header
 from typing import Optional, List, Dict, Any
 
@@ -20,8 +21,18 @@ ADMIN_API_KEY = os.getenv("ADMIN_API_KEY", "")
 # Default KvK number (fallback if not set in database)
 DEFAULT_CURRENT_KVK = 10
 
-# Thread-local-ish storage for current admin info (set during require_admin)
-_current_admin_info: Dict[str, Any] = {}
+# Per-request admin info using contextvars (thread/async-safe)
+_current_admin_info_var: contextvars.ContextVar[Dict[str, Any]] = contextvars.ContextVar(
+    "_current_admin_info_var", default={}
+)
+
+
+def _get_admin_info() -> Dict[str, Any]:
+    return _current_admin_info_var.get()
+
+
+def _set_admin_info(info: Dict[str, Any]) -> None:
+    _current_admin_info_var.set(info)
 
 # Simple in-memory rate limiter for admin endpoints
 _rate_limit_store: Dict[str, List[float]] = {}
@@ -50,8 +61,8 @@ def audit_log(action: str, resource_type: str = None, resource_id: str = None, d
             return
         entry = {
             "action": action,
-            "admin_user_id": _current_admin_info.get("user_id"),
-            "admin_email": _current_admin_info.get("email"),
+            "admin_user_id": _get_admin_info().get("user_id"),
+            "admin_email": _get_admin_info().get("email"),
             "resource_type": resource_type,
             "resource_id": str(resource_id) if resource_id else None,
             "details": details or {},
@@ -96,14 +107,14 @@ def _verify_admin_jwt(authorization: Optional[str]) -> bool:
                 profile = client.table("profiles").select("is_admin").eq("id", user_id).single().execute()
                 if profile.data and profile.data.get("is_admin") is True:
                     logger.info(f"Admin JWT auth via DB flag for {user_email}")
-                    _current_admin_info.update({"user_id": user_id, "email": user_email})
+                    _set_admin_info({"user_id": user_id, "email": user_email})
                     return True
             except Exception as db_err:
                 logger.warning(f"DB admin check failed, falling back to email list: {db_err}")
             # Fallback: hardcoded email list (bootstrap / DB unavailable)
             if user_email and user_email.lower() in [e.lower() for e in ADMIN_EMAILS]:
                 logger.info(f"Admin JWT auth via email list for {user_email}")
-                _current_admin_info.update({"user_id": user_id, "email": user_email})
+                _set_admin_info({"user_id": user_id, "email": user_email})
                 return True
             logger.warning(f"JWT valid but user {user_email} is not admin")
     except Exception as e:

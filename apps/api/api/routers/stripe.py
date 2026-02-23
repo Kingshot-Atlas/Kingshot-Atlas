@@ -9,13 +9,13 @@ Handles:
 import os
 import logging
 import stripe
-from fastapi import APIRouter, HTTPException, Request, Header
+from fastapi import APIRouter, HTTPException, Request, Header, Depends
 from pydantic import BaseModel
 from typing import Optional
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from api.config import STRIPE_SECRET_KEY, FRONTEND_URL
-from api.supabase_client import update_user_subscription, get_user_by_stripe_customer, get_user_by_email, get_user_profile, log_webhook_event, is_webhook_event_processed, credit_kingdom_fund
+from api.supabase_client import update_user_subscription, get_user_by_stripe_customer, get_user_by_email, get_user_profile, log_webhook_event, is_webhook_event_processed, credit_kingdom_fund, get_supabase_admin
 from api.email_service import send_welcome_email, send_cancellation_email, send_payment_failed_email
 from api.discord_role_sync import sync_user_discord_role, is_discord_sync_configured
 from api.routers.bot import send_spotlight_to_discord, _build_spotlight_message, _log_spotlight_history
@@ -507,14 +507,45 @@ async def handle_kingdom_fund_payment(session: dict):
         logger.error("Failed to credit kingdom %d fund", kingdom_number)
 
 
+def _verify_caller_owns_user_id(
+    user_id: str,
+    authorization: Optional[str] = Header(None),
+) -> str:
+    """Verify the caller's JWT matches the requested user_id. Returns user_id if valid."""
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    token = authorization
+    if token.startswith("Bearer "):
+        token = token[7:]
+    if not token:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    try:
+        client = get_supabase_admin()
+        if not client:
+            raise HTTPException(status_code=503, detail="Auth service unavailable")
+        user_response = client.auth.get_user(token)
+        if not user_response or not user_response.user:
+            raise HTTPException(status_code=401, detail="Invalid or expired token")
+        caller_id = user_response.user.id
+        if caller_id != user_id:
+            raise HTTPException(status_code=403, detail="Not authorized to access this user's data")
+        return caller_id
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+
 @router.get("/subscription/{user_id}")
 @limiter.limit("30/minute")
-async def get_subscription_status(request: Request, user_id: str):
+async def get_subscription_status(request: Request, user_id: str, authorization: Optional[str] = Header(None)):
     """
     Get a user's current subscription status.
     
     Returns tier, status, and billing info if subscribed.
+    Requires the caller to own the user_id (JWT must match).
     """
+    _verify_caller_owns_user_id(user_id, authorization)
     # Get user profile from Supabase
     profile = get_user_profile(user_id)
     
@@ -560,11 +591,15 @@ async def get_subscription_status(request: Request, user_id: str):
 
 
 @router.get("/health")
-async def stripe_health_check():
+async def stripe_health_check(authorization: Optional[str] = Header(None)):
     """
     Health check endpoint for Stripe configuration.
-    Returns status of all required configuration.
+    Returns status of all required configuration. Admin only.
     """
+    # Only expose config status to authenticated admins
+    from api.routers.admin._shared import _verify_admin_jwt
+    if not _verify_admin_jwt(authorization):
+        raise HTTPException(status_code=401, detail="Admin authentication required")
     return {
         "stripe_configured": bool(STRIPE_SECRET_KEY),
         "webhook_configured": bool(STRIPE_WEBHOOK_SECRET),
@@ -580,7 +615,7 @@ class PortalRequest(BaseModel):
 
 @router.post("/portal")
 @limiter.limit("10/minute")
-async def create_portal_session(request: Request, portal_request: PortalRequest):
+async def create_portal_session(request: Request, portal_request: PortalRequest, authorization: Optional[str] = Header(None)):
     """
     Create a Stripe Customer Portal session for managing subscriptions.
     
@@ -589,6 +624,8 @@ async def create_portal_session(request: Request, portal_request: PortalRequest)
     - Cancel subscription
     - View billing history
     """
+    _verify_caller_owns_user_id(portal_request.user_id, authorization)
+    
     if not STRIPE_SECRET_KEY:
         raise HTTPException(
             status_code=503,
@@ -634,7 +671,7 @@ class SyncRequest(BaseModel):
 
 @router.post("/sync")
 @limiter.limit("5/minute")
-async def sync_subscription(request: Request, sync_request: SyncRequest):
+async def sync_subscription(request: Request, sync_request: SyncRequest, authorization: Optional[str] = Header(None)):
     """
     Sync a user's subscription status from Stripe.
     
@@ -645,6 +682,8 @@ async def sync_subscription(request: Request, sync_request: SyncRequest):
     
     Returns the synced subscription status.
     """
+    _verify_caller_owns_user_id(sync_request.user_id, authorization)
+    
     if not STRIPE_SECRET_KEY:
         raise HTTPException(
             status_code=503,

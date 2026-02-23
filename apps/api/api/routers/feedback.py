@@ -3,7 +3,7 @@ Feedback API Router
 Handles user feedback submission and retrieval
 """
 import logging
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 from datetime import datetime
@@ -12,6 +12,9 @@ import os
 logger = logging.getLogger("atlas.feedback")
 
 router = APIRouter(prefix="/api/feedback", tags=["feedback"])
+
+# Admin auth
+from api.routers.admin._shared import require_admin as _require_admin
 
 # Try to import supabase client
 try:
@@ -84,8 +87,8 @@ async def submit_feedback(feedback: FeedbackSubmission):
 
 
 @router.get("/stats")
-async def get_feedback_stats():
-    """Get feedback statistics (admin only in future)"""
+async def get_feedback_stats(_admin=Depends(_require_admin)):
+    """Get feedback statistics (admin only)."""
     
     if not get_supabase_admin:
         return {"total": 0, "by_type": {}, "by_status": {}}

@@ -371,19 +371,12 @@ def _update_kingdom_stats_directly(client, kingdom_number: int) -> bool:
             else:
                 break
         
-        # Calculate Atlas Score (simplified Bayesian formula)
-        prior_mean = 0.5
-        prior_strength = 3
-        adj_prep_rate = (prep_wins + prior_strength * prior_mean) / (total_kvks + prior_strength)
-        adj_battle_rate = (battle_wins + prior_strength * prior_mean) / (total_kvks + prior_strength)
-        base_score = (adj_prep_rate + 2 * adj_battle_rate) / 3
-        experience_factor = min(total_kvks, 5) / 5.0
-        dominance_bonus = (dominations / max(total_kvks, 1)) * 0.1
-        invasion_penalty = (invasions / max(total_kvks, 1)) * 0.1
-        atlas_score = round((base_score * experience_factor + dominance_bonus - invasion_penalty) * 15, 2)
-        atlas_score = max(0, min(15, atlas_score))
+        # NOTE: atlas_score is intentionally NOT calculated here.
+        # The authoritative formula lives in Supabase's calculate_atlas_score() RPC.
+        # This fallback only updates aggregate stats so the score isn't overwritten
+        # with a stale/incorrect formula.
         
-        # Upsert kingdom record
+        # Upsert kingdom record (aggregate stats only — no atlas_score)
         update_data = {
             'kingdom_number': kingdom_number,
             'total_kvks': total_kvks,
@@ -399,7 +392,6 @@ def _update_kingdom_stats_directly(client, kingdom_number: int) -> bool:
             'reversals': reversals,
             'comebacks': comebacks,
             'invasions': invasions,
-            'atlas_score': atlas_score,
         }
         
         client.table('kingdoms').upsert(update_data, on_conflict='kingdom_number').execute()

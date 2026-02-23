@@ -2,6 +2,7 @@
 // See /docs/STRIPE_QUICK_SETUP.md for setup instructions
 
 import { logger } from '../utils/logger';
+import { getAuthHeaders } from '../services/authHeaders';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
@@ -104,10 +105,12 @@ export const getCustomerPortalUrl = (): string => {
 
 // Create customer portal session via API (for managing subscriptions)
 export const createPortalSession = async (userId: string): Promise<string> => {
+  const authHeaders = await getAuthHeaders();
   const response = await fetch(`${API_BASE_URL}/api/v1/stripe/portal`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      ...authHeaders,
     },
     body: JSON.stringify({ user_id: userId }),
   });
@@ -128,10 +131,12 @@ export const syncSubscription = async (userId: string): Promise<{
   tier: string;
   message: string;
 }> => {
+  const authHeaders = await getAuthHeaders();
   const response = await fetch(`${API_BASE_URL}/api/v1/stripe/sync`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      ...authHeaders,
     },
     body: JSON.stringify({ user_id: userId }),
   });
