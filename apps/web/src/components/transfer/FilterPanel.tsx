@@ -28,12 +28,10 @@ export const defaultFilters: FilterState = {
   eventTime: 'all',
 };
 
-const EVENT_TIME_OPTIONS = [
-  { value: '0-6', label: '00:00–06:00 UTC' },
-  { value: '6-12', label: '06:00–12:00 UTC' },
-  { value: '12-18', label: '12:00–18:00 UTC' },
-  { value: '18-24', label: '18:00–24:00 UTC' },
-];
+const HOUR_OPTIONS = Array.from({ length: 25 }, (_, i) => ({
+  value: String(i),
+  label: `${String(i).padStart(2, '0')}:00`,
+}));
 
 const LANGUAGE_OPTIONS = [
   'English', 'Mandarin Chinese', 'Hindi', 'Spanish', 'French', 'Arabic', 'Bengali',
@@ -112,13 +110,43 @@ const FilterPanel: React.FC<{
         </select>
       </div>
       <div>
-        <label style={{ color: colors.textSecondary, fontSize: '0.7rem', marginBottom: '0.25rem', display: 'block' }}>{t('transferHub.filters.eventTime', 'Event Times')}</label>
-        <select value={filters.eventTime} onChange={(e) => update('eventTime', e.target.value)} style={selectStyle}>
-          <option value="all">{t('transferHub.filters.anyTime', 'Any Time')}</option>
-          {EVENT_TIME_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
-          ))}
-        </select>
+        <label style={{ color: colors.textSecondary, fontSize: '0.7rem', marginBottom: '0.25rem', display: 'block' }}>{t('transferHub.filters.eventTime', 'Event Times (UTC)')}</label>
+        <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
+          <select
+            value={filters.eventTime === 'all' ? '' : filters.eventTime.split('-')[0] || ''}
+            onChange={(e) => {
+              const startH = e.target.value;
+              if (!startH) { update('eventTime', 'all'); return; }
+              const curEnd = filters.eventTime !== 'all' ? filters.eventTime.split('-')[1] : '';
+              const endH = curEnd && Number(curEnd) > Number(startH) ? curEnd : String(Math.min(Number(startH) + 6, 24));
+              update('eventTime', `${startH}-${endH}`);
+            }}
+            style={{ ...selectStyle, flex: 1, padding: '0.5rem 0.4rem' }}
+          >
+            <option value="">{t('transferHub.filters.anyTime', 'Any')}</option>
+            {HOUR_OPTIONS.slice(0, 24).map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+          <span style={{ color: colors.textMuted, fontSize: '0.75rem', flexShrink: 0 }}>–</span>
+          <select
+            value={filters.eventTime === 'all' ? '' : filters.eventTime.split('-')[1] || ''}
+            onChange={(e) => {
+              const endH = e.target.value;
+              if (!endH) { update('eventTime', 'all'); return; }
+              const curStart = filters.eventTime !== 'all' ? filters.eventTime.split('-')[0] : '';
+              const startH = curStart || '0';
+              update('eventTime', `${startH}-${endH}`);
+            }}
+            disabled={filters.eventTime === 'all'}
+            style={{ ...selectStyle, flex: 1, padding: '0.5rem 0.4rem', opacity: filters.eventTime === 'all' ? 0.5 : 1 }}
+          >
+            <option value="">{t('transferHub.filters.anyTime', 'Any')}</option>
+            {HOUR_OPTIONS.slice(1).map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+        </div>
       </div>
       <div>
         <label style={{ color: colors.textSecondary, fontSize: '0.7rem', marginBottom: '0.25rem', display: 'block' }}>{t('transferHub.filters.recruitmentTag', 'Recruitment Tag')}</label>

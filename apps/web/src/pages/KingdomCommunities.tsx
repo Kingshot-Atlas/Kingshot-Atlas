@@ -20,7 +20,7 @@ interface KingdomCommunity {
 
 const FUND_TIER_COLORS: Record<string, string> = {
   gold: '#ffc30b',
-  silver: '#d1d5db',
+  silver: '#e0e0e0',
   bronze: '#cd7f32',
   standard: colors.textMuted,
 };
@@ -44,9 +44,9 @@ const getCardStyle = (tier: string, tierColor: string): React.CSSProperties => {
       };
     case 'silver':
       return {
-        background: `linear-gradient(135deg, ${tierColor}0a 0%, #60a5fa08 100%)`,
-        border: `1px solid ${tierColor}35`,
-        boxShadow: `0 0 12px ${tierColor}0a, inset 0 1px 0 ${tierColor}12`,
+        background: `linear-gradient(135deg, #c0c0c012 0%, #e8e8e806 50%, #a8a8a808 100%)`,
+        border: `1px solid #c0c0c050`,
+        boxShadow: `0 0 18px #c0c0c018, 0 0 6px #e0e0e010, inset 0 1px 0 #ffffff18`,
       };
     case 'bronze':
       return {
@@ -383,7 +383,7 @@ const KingdomCommunities: React.FC = () => {
                           fontSize: '0.95rem',
                           fontWeight: '700',
                           color: isPremium ? tierColor : colors.text,
-                          ...(isGold ? neonGlow(tierColor) : {}),
+                          ...(isGold || community.fund_tier === 'silver' ? neonGlow(tierColor) : {}),
                         }}>
                           Kingdom {community.kingdom_number}
                         </span>

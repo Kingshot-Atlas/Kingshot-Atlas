@@ -463,13 +463,33 @@ const TransferBoard: React.FC = () => {
       const filterEnd = parts[1] ?? 24;
       result = result.filter((k) => {
         const fund = fundMap.get(k.kingdom_number);
-        if (!fund?.event_times || fund.event_times.length === 0) return false;
-        return fund.event_times.some(et => {
-          const startH = parseInt(et.start?.split(':')[0] || '0', 10);
-          const endH = parseInt(et.end?.split(':')[0] || '0', 10) || 24;
-          // Check overlap: event [startH, endH) overlaps filter [filterStart, filterEnd)
-          return startH < filterEnd && endH > filterStart;
-        });
+        // Check alliance_events.schedule (primary source) and event_times (legacy fallback)
+        const schedule = fund?.alliance_events?.schedule;
+        if (schedule && Object.keys(schedule).length > 0) {
+          // schedule is Record<string, string[][]> — each event type has array of time pairs per alliance
+          for (const eventType of Object.values(schedule)) {
+            for (const timePair of eventType) {
+              if (!timePair || timePair.length === 0) continue;
+              for (const timeStr of timePair) {
+                if (!timeStr) continue;
+                const hour = parseInt(timeStr.split(':')[0] || '', 10);
+                if (isNaN(hour)) continue;
+                // Check if this event hour falls within the filter range
+                if (hour >= filterStart && hour < filterEnd) return true;
+              }
+            }
+          }
+          return false;
+        }
+        // Legacy fallback: event_times array
+        if (fund?.event_times && fund.event_times.length > 0) {
+          return fund.event_times.some(et => {
+            const startH = parseInt(et.start?.split(':')[0] || '0', 10);
+            const endH = parseInt(et.end?.split(':')[0] || '0', 10) || 24;
+            return startH < filterEnd && endH > filterStart;
+          });
+        }
+        return false;
       });
     }
 

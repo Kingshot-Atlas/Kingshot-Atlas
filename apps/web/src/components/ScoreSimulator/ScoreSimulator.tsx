@@ -243,7 +243,15 @@ const ScoreSimulator: React.FC<ScoreSimulatorProps> = ({ kingdom, isExpanded: ex
                       fontSize: '0.75rem',
                       minWidth: isMobile ? '50px' : '60px'
                     }}>
-                      KvK #{(kingdom.recent_kvks?.length ? Math.max(...kingdom.recent_kvks.map(k => k.kvk_number)) : kingdom.total_kvks) + index + 1}
+                      KvK #{(() => {
+                        if (!kingdom.recent_kvks?.length) return kingdom.total_kvks + index + 1;
+                        const sorted = [...kingdom.recent_kvks].sort((a, b) => b.kvk_number - a.kvk_number);
+                        const latestKvk = sorted[0]!;
+                        const maxKvkNumber = latestKvk.kvk_number;
+                        // If the latest KvK has no results yet (pending), start from that number
+                        const isPending = !latestKvk.prep_result && !latestKvk.battle_result;
+                        return isPending ? maxKvkNumber + index : maxKvkNumber + index + 1;
+                      })()}
                     </span>
 
                     {/* Prep Result */}
