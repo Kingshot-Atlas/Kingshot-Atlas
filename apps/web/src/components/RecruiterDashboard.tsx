@@ -41,7 +41,7 @@ const RecruiterDashboard: React.FC<{
     handleAcceptInvite, handleDeclineInvite,
     loadDashboard, setFund, getInviteBudget,
     pendingCoEditorRequests, activeApps, approvedApps, closedApps,
-    filteredApps, pendingCount, updating, listingViews, unreadMessageCount, perAppUnreadCounts,
+    filteredApps, pendingCount, updating, listingViews, unreadMessageCount, perAppUnreadCounts, perAppLastMessages,
   } = dashboard;
 
 
@@ -298,6 +298,7 @@ const RecruiterDashboard: React.FC<{
                 updating={updating}
                 fundTier={fund?.tier}
                 perAppUnreadCounts={perAppUnreadCounts}
+                perAppLastMessages={perAppLastMessages}
                 kingdomNumber={editorInfo?.kingdom_number}
               />
             )}

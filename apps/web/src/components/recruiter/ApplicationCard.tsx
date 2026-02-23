@@ -23,7 +23,9 @@ const ApplicationCard: React.FC<{
   unreadCount?: number;
   kingdomNumber?: number;
   onMovedToWatchlist?: () => void;
-}> = ({ application, onStatusChange, updating, unreadCount = 0, kingdomNumber, onMovedToWatchlist }) => {
+  lastMessagePreview?: string;
+  lastMessageAt?: string;
+}> = ({ application, onStatusChange, updating, unreadCount = 0, kingdomNumber, onMovedToWatchlist, lastMessagePreview, lastMessageAt }) => {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
   const { user } = useAuth();
@@ -118,6 +120,9 @@ const ApplicationCard: React.FC<{
           if (prev.some(m => m.id === row.id)) return prev;
           return [...prev, row];
         });
+        if (row.sender_user_id !== user?.id) {
+          try { new Audio('/sounds/message.wav').play().catch(() => {}); } catch {}
+        }
       })
       .subscribe();
 
@@ -183,8 +188,12 @@ const ApplicationCard: React.FC<{
     }
   };
 
+  const lastSentRef = useRef(0);
   const sendMessage = async () => {
     if (!supabase || !user || !msgText.trim() || sendingMsg) return;
+    const now = Date.now();
+    if (now - lastSentRef.current < 2000) return;
+    lastSentRef.current = now;
     setSendingMsg(true);
     try {
       const { data, error } = await supabase
@@ -267,6 +276,29 @@ const ApplicationCard: React.FC<{
           </svg>
         </div>
       </div>
+      {/* Last message preview (collapsed) */}
+      {!expanded && lastMessagePreview && (
+        <div style={{
+          padding: isMobile ? '0 0.75rem 0.5rem' : '0 1rem 0.5rem',
+          display: 'flex', alignItems: 'center', gap: '0.35rem',
+        }}>
+          <span style={{ color: '#3b82f6', fontSize: '0.6rem', flexShrink: 0 }}>💬</span>
+          <span style={{
+            color: unreadCount > 0 ? '#d1d5db' : colors.textMuted,
+            fontSize: '0.68rem',
+            fontWeight: unreadCount > 0 ? '500' : '400',
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            flex: 1, minWidth: 0,
+          }}>
+            {lastMessagePreview.length > 60 ? lastMessagePreview.slice(0, 60) + '…' : lastMessagePreview}
+          </span>
+          {lastMessageAt && (
+            <span style={{ color: colors.textMuted, fontSize: '0.55rem', flexShrink: 0 }}>
+              {new Date(lastMessageAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Expanded Profile Details */}
       {expanded && profile && (

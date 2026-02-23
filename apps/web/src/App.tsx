@@ -48,6 +48,7 @@ const GiftCodes = lazy(() => import('./pages/GiftCodes'));
 const TransferHubLanding = lazy(() => import('./pages/TransferHubLanding'));
 const AuthCallback = lazy(() => import('./pages/AuthCallback'));
 const CancelSurvey = lazy(() => import('./pages/CancelSurvey'));
+const Messages = lazy(() => import('./pages/Messages'));
 const KingdomCommunities = lazy(() => import('./pages/KingdomCommunities'));
 const PrepScheduler = lazy(() => import('./pages/PrepScheduler'));
 const PrepSchedulerLanding = lazy(() => import('./pages/PrepSchedulerLanding'));
@@ -155,6 +156,7 @@ function AppContent() {
               <Route path="/tools/prep-scheduler" element={<ErrorBoundary><PrepScheduler /></ErrorBoundary>} />
               <Route path="/tools/prep-scheduler/:scheduleId" element={<ErrorBoundary><PrepScheduler /></ErrorBoundary>} />
               <Route path="/atlas-bot/dashboard" element={<ErrorBoundary><BotDashboard /></ErrorBoundary>} />
+              <Route path="/messages" element={<ErrorBoundary><Messages /></ErrorBoundary>} />
               <Route path="/terms" element={<ErrorBoundary><TermsOfService /></ErrorBoundary>} />
               <Route path="/privacy" element={<ErrorBoundary><PrivacyPolicy /></ErrorBoundary>} />
             </Routes>

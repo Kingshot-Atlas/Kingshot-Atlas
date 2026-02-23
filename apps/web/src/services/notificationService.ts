@@ -40,7 +40,8 @@ export type NotificationType =
   | 'endorsement_received'
   | 'editor_activated'
   | 'co_editor_request'
-  | 'prep_schedule_form';
+  | 'prep_schedule_form'
+  | 'new_message';
 
 export interface NotificationPreferences {
   score_changes: boolean;
@@ -48,6 +49,7 @@ export interface NotificationPreferences {
   system_announcements: boolean;
   transfer_updates: boolean;
   co_editor_requests: boolean;
+  message_notifications: boolean;
 }
 
 export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
@@ -56,6 +58,7 @@ export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   system_announcements: true,
   transfer_updates: true,
   co_editor_requests: true,
+  message_notifications: true,
 };
 
 class NotificationService {
@@ -297,6 +300,8 @@ class NotificationService {
         return '🙋';
       case 'prep_schedule_form':
         return '📅';
+      case 'new_message':
+        return '💬';
       default:
         return '🔔';
     }
@@ -342,6 +347,8 @@ class NotificationService {
         return colors.purple; // purple
       case 'prep_schedule_form':
         return '#a855f7'; // prep purple
+      case 'new_message':
+        return '#3b82f6'; // blue
       default:
         return colors.textSecondary; // gray
     }
@@ -372,6 +379,7 @@ class NotificationService {
         system_announcements: prefs.system_announcements !== false,
         transfer_updates: prefs.transfer_updates !== false,
         co_editor_requests: prefs.co_editor_requests !== false,
+        message_notifications: prefs.message_notifications !== false,
       };
     } catch (err) {
       logger.error('Error fetching notification preferences:', err);
@@ -403,6 +411,7 @@ class NotificationService {
           system_announcements: prefs.system_announcements,
           transfer_updates: prefs.transfer_updates,
           co_editor_requests: prefs.co_editor_requests,
+          message_notifications: prefs.message_notifications,
         }
       };
 

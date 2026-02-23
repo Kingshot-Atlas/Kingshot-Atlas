@@ -36,6 +36,9 @@ interface TransfereeAppCardProps {
   onWithdraw: (applicationId: string) => Promise<void>;
   withdrawingId: string | null;
   onRate: (id: string, kingdom: number) => void;
+  unreadCount?: number;
+  lastMessagePreview?: string;
+  lastMessageAt?: string;
 }
 
 const formatDate = (dateStr: string) => {
@@ -48,7 +51,7 @@ const getDaysLeft = (expiresAt: string) => {
 };
 
 const TransfereeAppCard: React.FC<TransfereeAppCardProps> = ({
-  app, statusColor: sc, outcomeSubmitted, onSubmitOutcome, onWithdraw, withdrawingId, onRate,
+  app, statusColor: sc, outcomeSubmitted, onSubmitOutcome, onWithdraw, withdrawingId, onRate, unreadCount = 0, lastMessagePreview, lastMessageAt,
 }) => {
   const { user } = useAuth();
   const { t } = useTranslation();
@@ -108,6 +111,9 @@ const TransfereeAppCard: React.FC<TransfereeAppCardProps> = ({
       }, (payload) => {
         const row = payload.new as AppMessage;
         setMessages(prev => prev.some(m => m.id === row.id) ? prev : [...prev, row]);
+        if (row.sender_user_id !== user?.id) {
+          try { new Audio('/sounds/message.wav').play().catch(() => {}); } catch {}
+        }
       })
       .subscribe();
     return () => { sb.removeChannel(channel); };
@@ -118,8 +124,12 @@ const TransfereeAppCard: React.FC<TransfereeAppCardProps> = ({
     if (messages.length > 0) msgEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages.length]);
 
+  const lastSentRef = useRef(0);
   const handleSendMsg = async () => {
     if (!supabase || !user || !newMsg.trim()) return;
+    const now = Date.now();
+    if (now - lastSentRef.current < 2000) return;
+    lastSentRef.current = now;
     setSendingMsg(true);
     try {
       await supabase.from('application_messages').insert({
@@ -213,8 +223,16 @@ const TransfereeAppCard: React.FC<TransfereeAppCardProps> = ({
         {app.status !== 'accepted' && (
           <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
             <button onClick={toggleMessages}
-              style={{ padding: '0.25rem 0.5rem', backgroundColor: '#22d3ee10', border: '1px solid #22d3ee25', borderRadius: '6px', color: '#22d3ee', fontSize: '0.65rem', cursor: 'pointer', fontWeight: '500' }}>
+              style={{ padding: '0.25rem 0.5rem', backgroundColor: '#22d3ee10', border: '1px solid #22d3ee25', borderRadius: '6px', color: '#22d3ee', fontSize: '0.65rem', cursor: 'pointer', fontWeight: '500', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
               💬 {t('transfereeDash.messages', 'Messages')}
+              {!openMessages && unreadCount > 0 && (
+                <span style={{
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  minWidth: '16px', height: '16px', padding: '0 4px',
+                  backgroundColor: '#ef4444', borderRadius: '8px',
+                  fontSize: '0.5rem', fontWeight: '700', color: '#fff',
+                }}>{unreadCount}</span>
+              )}
             </button>
             {confirmWithdraw ? (
               <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
@@ -240,11 +258,43 @@ const TransfereeAppCard: React.FC<TransfereeAppCardProps> = ({
         {/* Accepted app message button */}
         {app.status === 'accepted' && (
           <button onClick={toggleMessages}
-            style={{ padding: '0.25rem 0.5rem', backgroundColor: '#22d3ee10', border: '1px solid #22d3ee25', borderRadius: '6px', color: '#22d3ee', fontSize: '0.65rem', cursor: 'pointer', fontWeight: '500', marginLeft: '0.25rem' }}>
+            style={{ padding: '0.25rem 0.5rem', backgroundColor: '#22d3ee10', border: '1px solid #22d3ee25', borderRadius: '6px', color: '#22d3ee', fontSize: '0.65rem', cursor: 'pointer', fontWeight: '500', marginLeft: '0.25rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
             💬 {t('transfereeDash.messages', 'Messages')}
+            {!openMessages && unreadCount > 0 && (
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                minWidth: '16px', height: '16px', padding: '0 4px',
+                backgroundColor: '#ef4444', borderRadius: '8px',
+                fontSize: '0.5rem', fontWeight: '700', color: '#fff',
+              }}>{unreadCount}</span>
+            )}
           </button>
         )}
       </div>
+      {/* Last message preview (collapsed) */}
+      {!openMessages && lastMessagePreview && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '0.35rem',
+          marginTop: '0.3rem', paddingTop: '0.3rem',
+          borderTop: `1px solid ${colors.border}`,
+        }}>
+          <span style={{ color: '#22d3ee', fontSize: '0.6rem', flexShrink: 0 }}>💬</span>
+          <span style={{
+            color: unreadCount > 0 ? '#d1d5db' : colors.textMuted,
+            fontSize: '0.68rem',
+            fontWeight: unreadCount > 0 ? '500' : '400',
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            flex: 1, minWidth: 0,
+          }}>
+            {lastMessagePreview.length > 60 ? lastMessagePreview.slice(0, 60) + '…' : lastMessagePreview}
+          </span>
+          {lastMessageAt && (
+            <span style={{ color: colors.textMuted, fontSize: '0.55rem', flexShrink: 0 }}>
+              {new Date(lastMessageAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Message Thread Panel */}
       {openMessages && (

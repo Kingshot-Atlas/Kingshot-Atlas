@@ -11,6 +11,7 @@ import { SUPPORTED_LANGUAGES, LANGUAGE_META } from '../i18n';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { ADMIN_USERNAMES } from '../utils/constants';
 import { DesktopNav, MobileMenu, UserMenu } from './header-nav';
+import { useUnreadMessages } from '../hooks/useUnreadMessages';
 
 // Discord invite link - configurable via environment variable
 const DISCORD_INVITE = import.meta.env.VITE_DISCORD_INVITE || 'https://discord.gg/cajcacDzGd';
@@ -31,6 +32,7 @@ const Header: React.FC = () => {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const isMobile = useIsMobile();
+  const unreadMsgCount = useUnreadMessages();
 
 
   // Close mobile language menu on outside click
@@ -297,6 +299,28 @@ const Header: React.FC = () => {
                   <path d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               )}
+              {unreadMsgCount > 0 && !showMobileMenu && (
+                <span style={{
+                  position: 'absolute',
+                  top: '4px',
+                  right: '2px',
+                  minWidth: '16px',
+                  height: '16px',
+                  padding: '0 3px',
+                  backgroundColor: '#3b82f6',
+                  borderRadius: '8px',
+                  color: '#fff',
+                  fontSize: '0.6rem',
+                  fontWeight: '700',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: '2px solid #0a0a0a',
+                  lineHeight: 1,
+                }}>
+                  {unreadMsgCount > 99 ? '99+' : unreadMsgCount}
+                </span>
+              )}
             </button>
           </div>
         )}
@@ -310,6 +334,7 @@ const Header: React.FC = () => {
               isAdmin={isAdmin}
               onSignIn={handleSignIn}
               onSignOut={signOut}
+              unreadMsgCount={unreadMsgCount}
             />
           </DesktopNav>
         )}
@@ -325,6 +350,7 @@ const Header: React.FC = () => {
           onSignIn={() => setShowAuthModal(true)}
           onSignOut={signOut}
           onClose={() => setShowMobileMenu(false)}
+          unreadMsgCount={unreadMsgCount}
         />
       )}
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />

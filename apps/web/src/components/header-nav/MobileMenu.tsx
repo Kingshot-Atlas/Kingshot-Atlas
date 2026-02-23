@@ -17,9 +17,10 @@ interface MobileMenuProps {
   onSignIn: () => void;
   onSignOut: () => void;
   onClose: () => void;
+  unreadMsgCount?: number;
 }
 
-const MobileMenu: React.FC<MobileMenuProps> = ({ isActive, user, profile, isAdmin, onSignIn, onSignOut, onClose }) => {
+const MobileMenu: React.FC<MobileMenuProps> = ({ isActive, user, profile, isAdmin, onSignIn, onSignOut, onClose, unreadMsgCount = 0 }) => {
   const { t } = useTranslation();
   const location = useLocation();
   const [showMobileToolsMenu, setShowMobileToolsMenu] = useState(false);
@@ -125,6 +126,49 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isActive, user, profile, isAdmi
           </svg>
           {t('common.signIn')}
         </button>
+      )}
+
+      {/* Messages — between profile and Home */}
+      {user && (
+        <Link
+          to="/messages"
+          style={{
+            color: isActive('/messages') ? '#3b82f6' : '#3b82f6',
+            textDecoration: 'none',
+            fontSize: '1rem',
+            padding: '0.75rem 1rem',
+            borderRadius: '8px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            backgroundColor: isActive('/messages') ? '#3b82f615' : '#3b82f610',
+            border: `1px solid ${isActive('/messages') ? '#3b82f640' : '#3b82f625'}`,
+          }}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+          </svg>
+          {t('messages.title', 'Messages')}
+          {unreadMsgCount > 0 && (
+            <span style={{
+              marginLeft: 'auto',
+              minWidth: '22px',
+              height: '22px',
+              padding: '0 5px',
+              backgroundColor: '#3b82f6',
+              borderRadius: '11px',
+              color: '#fff',
+              fontSize: '0.7rem',
+              fontWeight: '700',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              lineHeight: 1,
+            }}>
+              {unreadMsgCount > 99 ? '99+' : unreadMsgCount}
+            </span>
+          )}
+        </Link>
       )}
 
       <div style={{ height: '1px', backgroundColor: '#1f1f1f', margin: '0.5rem 0' }} />

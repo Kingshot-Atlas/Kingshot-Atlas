@@ -22,6 +22,7 @@ export interface RecruiterDashboardState {
   showOnboarding: boolean;
   unreadMessageCount: number;
   perAppUnreadCounts: Record<string, number>;
+  perAppLastMessages: Record<string, { message: string; created_at: string }>;
 }
 
 export interface RecruiterDashboardActions {
@@ -63,6 +64,7 @@ interface RecruiterDashboardData {
   listingViews: number;
   unreadMessageCount: number;
   perAppUnreadCounts: Record<string, number>;
+  perAppLastMessages: Record<string, { message: string; created_at: string }>;
 }
 
 const EMPTY_DASHBOARD: RecruiterDashboardData = {
@@ -75,6 +77,7 @@ const EMPTY_DASHBOARD: RecruiterDashboardData = {
   listingViews: 0,
   unreadMessageCount: 0,
   perAppUnreadCounts: {},
+  perAppLastMessages: {},
 };
 
 async function fetchRecruiterDashboard(userId: string): Promise<RecruiterDashboardData> {
@@ -202,6 +205,21 @@ async function fetchRecruiterDashboard(userId: string): Promise<RecruiterDashboa
     }
   }
 
+  // Fetch last message per app for preview
+  const perAppLastMessages: Record<string, { message: string; created_at: string }> = {};
+  if (appIds.length > 0) {
+    const { data: lastMsgs } = await supabase
+      .from('application_messages')
+      .select('application_id, message, created_at')
+      .in('application_id', appIds)
+      .order('created_at', { ascending: false });
+    (lastMsgs || []).forEach(m => {
+      if (!perAppLastMessages[m.application_id]) {
+        perAppLastMessages[m.application_id] = { message: m.message, created_at: m.created_at };
+      }
+    });
+  }
+
   return {
     editorInfo: editor,
     applications: enrichedApps,
@@ -212,6 +230,7 @@ async function fetchRecruiterDashboard(userId: string): Promise<RecruiterDashboa
     listingViews: viewCount || 0,
     unreadMessageCount: unreadMsgCount,
     perAppUnreadCounts: perAppUnread,
+    perAppLastMessages,
   };
 }
 
@@ -240,6 +259,7 @@ export function useRecruiterDashboard(): RecruiterDashboardState & RecruiterDash
   const listingViews = dashboardData?.listingViews ?? 0;
   const unreadMessageCount = dashboardData?.unreadMessageCount ?? 0;
   const perAppUnreadCounts = dashboardData?.perAppUnreadCounts ?? {};
+  const perAppLastMessages = dashboardData?.perAppLastMessages ?? {};
   const loading = isLoading;
 
   // UI-only state
@@ -456,6 +476,7 @@ export function useRecruiterDashboard(): RecruiterDashboardState & RecruiterDash
     showOnboarding,
     unreadMessageCount,
     perAppUnreadCounts,
+    perAppLastMessages,
     // Actions
     setActiveTab,
     setFilterStatus,

@@ -40,6 +40,7 @@ interface InboxTabProps {
   updating: string | null;
   fundTier?: string;
   perAppUnreadCounts?: Record<string, number>;
+  perAppLastMessages?: Record<string, { message: string; created_at: string }>;
   kingdomNumber?: number;
 }
 
@@ -55,6 +56,7 @@ const InboxTab: React.FC<InboxTabProps> = ({
   updating,
   fundTier,
   perAppUnreadCounts,
+  perAppLastMessages,
   kingdomNumber,
 }) => {
   const { t } = useTranslation();
@@ -325,6 +327,8 @@ const InboxTab: React.FC<InboxTabProps> = ({
                   updating={updating}
                   unreadCount={perAppUnreadCounts?.[app.id] || 0}
                   kingdomNumber={kingdomNumber}
+                  lastMessagePreview={perAppLastMessages?.[app.id]?.message}
+                  lastMessageAt={perAppLastMessages?.[app.id]?.created_at}
                 />
               </div>
             </div>

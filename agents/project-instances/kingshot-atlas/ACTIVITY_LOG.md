@@ -3,6 +3,21 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-23 11:00 | Business Lead | COMPLETED
+Task: Create Reddit post strategy for Transfer Hub promotion
+Files: None (copywriting deliverable, no code changes)
+Result: Full StoryBrand-structured Reddit post with Atlas brand voice, 3 title options, hyperlink strategy (4 links), image recommendations (4 screenshots), posting strategy (timing, subreddits, engagement rules), and messaging principles breakdown. Post emphasizes free access, data-driven value, and community tone.
+
+## 2026-02-23 10:30 | Product Engineer | COMPLETED
+Task: Add Messages button to desktop dropdown and mobile menu with unread badges
+Files: src/hooks/useUnreadMessages.ts (new), src/components/Header.tsx, src/components/header-nav/UserMenu.tsx, src/components/header-nav/MobileMenu.tsx
+Changes:
+1. **useUnreadMessages hook** — New lightweight hook that fetches total unread message count across all active applications (as both recruiter and transferee). Real-time subscriptions for new messages and read status changes.
+2. **Desktop UserMenu** — Added "Messages" link (blue, 💬 icon) below "My Profile" with unread count badge. Unread badge also shown on profile button when dropdown is closed.
+3. **Mobile MobileMenu** — Added "Messages" button between profile link and Home (above divider) with unread count badge. Unread badge also shown on hamburger button when menu is closed.
+4. **Badge behavior** — Profile/hamburger badge hides when menu is open (count transfers to Messages button inside menu). Badge shows "99+" for counts over 99.
+Result: Users can now access /messages from both desktop and mobile navigation. Unread counts are visible at a glance.
+
 ## 2026-02-22 19:30 | Ops Lead | COMPLETED
 Task: SEO Monitoring & Optimization + Performance & Crawl Budget improvements
 Files: _middleware.ts, generate-sitemap.js, _headers, robots.txt, sitemap-static.xml, sitemap-kingdoms.xml, sitemap-seasons.xml

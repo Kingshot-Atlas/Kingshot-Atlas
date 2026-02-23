@@ -11,9 +11,10 @@ interface UserMenuProps {
   isAdmin: boolean;
   onSignIn: () => void;
   onSignOut: () => void;
+  unreadMsgCount?: number;
 }
 
-const UserMenu: React.FC<UserMenuProps> = ({ user, profile, isAdmin, onSignIn, onSignOut }) => {
+const UserMenu: React.FC<UserMenuProps> = ({ user, profile, isAdmin, onSignIn, onSignOut, unreadMsgCount = 0 }) => {
   const { t } = useTranslation();
   const [showLoginMenu, setShowLoginMenu] = useState(false);
   const [refCopied, setRefCopied] = useState(false);
@@ -47,6 +48,28 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, profile, isAdmin, onSignIn, o
             </div>
           )}
           {profile?.linked_username || profile?.username || 'User'}
+          {unreadMsgCount > 0 && !showLoginMenu && (
+            <span style={{
+              position: 'absolute',
+              top: '-4px',
+              right: '-4px',
+              minWidth: '18px',
+              height: '18px',
+              padding: '0 4px',
+              backgroundColor: '#3b82f6',
+              borderRadius: '9px',
+              color: '#fff',
+              fontSize: '0.65rem',
+              fontWeight: '700',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              border: '2px solid #0a0a0a',
+              lineHeight: 1,
+            }}>
+              {unreadMsgCount > 99 ? '99+' : unreadMsgCount}
+            </span>
+          )}
         </button>
       ) : (
         <button
@@ -112,6 +135,53 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, profile, isAdmin, onSignIn, o
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
             {t('common.myProfile')}
+          </Link>
+          <Link
+            to="/messages"
+            onClick={() => setShowLoginMenu(false)}
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+              padding: '0.75rem 1rem',
+              backgroundColor: 'transparent',
+              border: 'none',
+              borderRadius: '8px',
+              color: '#3b82f6',
+              cursor: 'pointer',
+              fontSize: '0.9rem',
+              textAlign: 'left',
+              textDecoration: 'none',
+              transition: 'background-color 0.2s',
+              position: 'relative',
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+          >
+            <svg style={{ width: '18px', height: '18px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            </svg>
+            {t('messages.title', 'Messages')}
+            {unreadMsgCount > 0 && (
+              <span style={{
+                marginLeft: 'auto',
+                minWidth: '20px',
+                height: '20px',
+                padding: '0 5px',
+                backgroundColor: '#3b82f6',
+                borderRadius: '10px',
+                color: '#fff',
+                fontSize: '0.7rem',
+                fontWeight: '700',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                lineHeight: 1,
+              }}>
+                {unreadMsgCount > 99 ? '99+' : unreadMsgCount}
+              </span>
+            )}
           </Link>
           {isAdmin && (
             <Link

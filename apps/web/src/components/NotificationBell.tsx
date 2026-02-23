@@ -146,6 +146,10 @@ const NotificationBell: React.FC = () => {
         return '/profile';
       case 'favorite_score_change':
         return kn ? `/kingdom/${kn}` : '/';
+      case 'new_message': {
+        const appId = meta.application_id as string | undefined;
+        return appId ? `/messages?app=${appId}` : '/messages';
+      }
       case 'prep_schedule_form':
         return notification.link || '/tools/prep-scheduler';
       case 'system_announcement':

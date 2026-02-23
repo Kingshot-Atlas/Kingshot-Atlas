@@ -58,6 +58,8 @@ const TransfereeDashboard: React.FC<{
   const [withdrawingId, setWithdrawingId] = useState<string | null>(null);
   const [ratingApp, setRatingApp] = useState<{ id: string; kingdom: number } | null>(null);
   const [unreadMsgCount, setUnreadMsgCount] = useState(0);
+  const [perAppUnread, setPerAppUnread] = useState<Record<string, number>>({});
+  const [perAppLastMsg, setPerAppLastMsg] = useState<Record<string, { message: string; created_at: string }>>({});
   const [expiringItems, setExpiringItems] = useState<Array<{ record_type: string; record_id: string; kingdom_number: number; hours_remaining: number }>>([]);
   const [submittedOutcomes, setSubmittedOutcomes] = useState<Set<string>>(new Set());
 
@@ -66,6 +68,31 @@ const TransfereeDashboard: React.FC<{
     loadAll();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
+
+  // Real-time unread count refresh: subscribe to new messages across active apps
+  useEffect(() => {
+    if (!supabase || !user || applications.length === 0) return;
+    const sb = supabase;
+    const activeAppIds = applications.filter(a => ['pending', 'viewed', 'accepted'].includes(a.status)).map(a => a.id);
+    if (activeAppIds.length === 0) return;
+    const channels = activeAppIds.map(appId =>
+      sb.channel(`transferee-unread-${appId}`)
+        .on('postgres_changes', {
+          event: 'INSERT', schema: 'public', table: 'application_messages',
+          filter: `application_id=eq.${appId}`,
+        }, (payload) => {
+          const row = payload.new as { sender_user_id: string; message: string; created_at: string };
+          if (row.sender_user_id === user.id) return;
+          setPerAppUnread(prev => ({ ...prev, [appId]: (prev[appId] || 0) + 1 }));
+          setUnreadMsgCount(prev => prev + 1);
+          setPerAppLastMsg(prev => ({ ...prev, [appId]: { message: row.message, created_at: row.created_at } }));
+          try { new Audio('/sounds/message.wav').play().catch(() => {}); } catch {}
+        })
+        .subscribe()
+    );
+    return () => { channels.forEach(ch => sb.removeChannel(ch)); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, applications.length]);
 
   const loadAll = async () => {
     if (!supabase || !user) { setLoading(false); return; }
@@ -97,6 +124,7 @@ const TransfereeDashboard: React.FC<{
             .in('application_id', activeAppIds);
           const readMap = new Map((readRows || []).map((r: { application_id: string; last_read_at: string }) => [r.application_id, r.last_read_at]));
           let total = 0;
+          const appUnread: Record<string, number> = {};
           for (const appId of activeAppIds) {
             const lastRead = readMap.get(appId);
             let q = supabase
@@ -106,9 +134,26 @@ const TransfereeDashboard: React.FC<{
               .neq('sender_user_id', user.id);
             if (lastRead) q = q.gt('created_at', lastRead);
             const { count } = await q;
-            total += count || 0;
+            const c = count || 0;
+            appUnread[appId] = c;
+            total += c;
           }
+          setPerAppUnread(appUnread);
           setUnreadMsgCount(total);
+
+          // Fetch last message per app for preview
+          const { data: lastMsgs } = await supabase
+            .from('application_messages')
+            .select('application_id, message, created_at')
+            .in('application_id', activeAppIds)
+            .order('created_at', { ascending: false });
+          const lastMsgMap: Record<string, { message: string; created_at: string }> = {};
+          (lastMsgs || []).forEach(m => {
+            if (!lastMsgMap[m.application_id]) {
+              lastMsgMap[m.application_id] = { message: m.message, created_at: m.created_at };
+            }
+          });
+          setPerAppLastMsg(lastMsgMap);
         }
       }
 
@@ -480,6 +525,9 @@ const TransfereeDashboard: React.FC<{
               onWithdraw={handleWithdraw}
               withdrawingId={withdrawingId}
               onRate={(id, kingdom) => setRatingApp({ id, kingdom })}
+              unreadCount={perAppUnread[app.id] || 0}
+              lastMessagePreview={perAppLastMsg[app.id]?.message}
+              lastMessageAt={perAppLastMsg[app.id]?.created_at}
             />
           ))}
           {pastApps.length > 0 && (

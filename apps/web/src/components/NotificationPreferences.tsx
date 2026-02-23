@@ -179,6 +179,14 @@ const NotificationPreferences: React.FC = () => {
             onChange={(v) => handleChange('co_editor_requests', v)}
             isMobile={isMobile}
           />
+          <ToggleItem
+            icon="💬"
+            label="Messages"
+            description="Get notified when you receive a new message from a recruiter or transferee"
+            enabled={preferences.message_notifications}
+            onChange={(v) => handleChange('message_notifications', v)}
+            isMobile={isMobile}
+          />
           <p style={{
             margin: '0.75rem 0 0',
             fontSize: '0.7rem',

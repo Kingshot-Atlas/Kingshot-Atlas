@@ -91,7 +91,7 @@ const QuickActions: React.FC = () => {
     { label: 'KvK Prep Scheduler', line1: t('quickAction.prepScheduler_1', 'KvK Prep'), line2: t('quickAction.prepScheduler_2', 'Scheduler'), path: '/tools/prep-scheduler-info', color: '#a855f7', icon: <PrepSchedulerIcon size={iconSize} /> },
     { label: 'Discord Bot Atlas', line1: t('quickAction.atlasBot_1', 'Discord'), line2: t('quickAction.atlasBot_2', 'Bot Atlas'), path: '/atlas-bot', color: '#5865F2', icon: <AtlasBotIcon size={iconSize} /> },
     { label: 'Kingdom Rankings', line1: t('quickAction.rankings_1', 'Kingdom'), line2: t('quickAction.rankings_2', 'Rankings'), path: '/rankings', color: '#22d3ee', icon: <RankingsIcon size={iconSize} /> },
-    { label: 'KvK Seasons', line1: t('quickAction.kvkSeasons_1', 'KvK'), line2: t('quickAction.kvkSeasons_2', 'Seasons'), path: '/kvk-seasons', color: '#f59e0b', icon: <KvkSeasonsIcon size={iconSize} /> },
+    { label: 'KvK Seasons', line1: t('quickAction.kvkSeasons_1', 'KvK'), line2: t('quickAction.kvkSeasons_2', 'Seasons'), path: '/seasons', color: '#f59e0b', icon: <KvkSeasonsIcon size={iconSize} /> },
   ];
 
   return (
