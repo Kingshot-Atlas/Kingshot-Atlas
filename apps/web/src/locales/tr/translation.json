@@ -1729,7 +1729,7 @@
     "editor": "Editör",
     "coEditor": "Yardımcı Editör",
     "currentCoEditors": "Mevcut Yardımcı Editörler",
-    "noCoEditors": "Henüz yardımcı editör yok. Krallığınızı yönetmeye yardımcı olmak için 2'ye kadar yardımcı editör davet edin.",
+    "noCoEditors": "Henüz yardımcı editör yok. Krallığınızı yönetmeye yardımcı olmak için 5'e kadar yardımcı editör davet edin.",
     "inviteCoEditor": "Yardımcı Editör Davet Et",
     "inviteCoEditorDesc": "Yardımcı editör olarak eklemek için bağlı bir krallık üyesinin (TC20+) oyuncu ID'sini girin. Yardımcı editörler başvuruları yönetebilir, transfer edenlere göz atabilir ve krallık profilini güncelleyebilir.",
     "invite": "Davet Et",

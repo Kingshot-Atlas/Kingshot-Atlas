@@ -340,7 +340,7 @@ class StatusService {
 
     let query = supabase!
       .from('status_submissions')
-      .select('*, submitter:profiles!status_submissions_submitted_by_fkey(username, display_name)')
+      .select('*, submitter:profiles!status_submissions_submitted_by_profiles_fkey(username, display_name)')
       .order('submitted_at', { ascending: false });
 
     if (statusFilter && statusFilter !== 'all') {

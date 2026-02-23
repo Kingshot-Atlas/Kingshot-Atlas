@@ -1729,7 +1729,7 @@
     "editor": "Éditeur",
     "coEditor": "Co-Éditeur",
     "currentCoEditors": "Co-Éditeurs Actuels",
-    "noCoEditors": "Pas encore de co-éditeurs. Invitez jusqu'à 2 co-éditeurs pour aider à gérer votre royaume.",
+    "noCoEditors": "Pas encore de co-éditeurs. Invitez jusqu'à 5 co-éditeurs pour aider à gérer votre royaume.",
     "inviteCoEditor": "Inviter un Co-Éditeur",
     "inviteCoEditorDesc": "Entrez l'ID de joueur d'un membre lié du royaume (TC20+) pour l'ajouter comme co-éditeur. Les co-éditeurs peuvent gérer les candidatures, parcourir les transférés et mettre à jour le profil du royaume.",
     "invite": "Inviter",

@@ -243,7 +243,7 @@ const ScoreSimulator: React.FC<ScoreSimulatorProps> = ({ kingdom, isExpanded: ex
                       fontSize: '0.75rem',
                       minWidth: isMobile ? '50px' : '60px'
                     }}>
-                      KvK #{kingdom.total_kvks + index + 1}
+                      KvK #{(kingdom.recent_kvks?.length ? Math.max(...kingdom.recent_kvks.map(k => k.kvk_number)) : kingdom.total_kvks) + index + 1}
                     </span>
 
                     {/* Prep Result */}

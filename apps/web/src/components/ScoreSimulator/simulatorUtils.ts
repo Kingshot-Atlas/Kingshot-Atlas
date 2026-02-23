@@ -110,7 +110,9 @@ export function simulateScore(
   // Use centralized extraction for current stats
   const currentKingdomStats = extractStatsFromProfile(kingdom);
   const currentBreakdown = calculateAtlasScore(currentKingdomStats);
-  const currentScore = currentBreakdown.finalScore;
+  // Use Supabase score as base (source of truth), fall back to formula
+  const currentScore = kingdom.overall_score ?? currentBreakdown.finalScore;
+  const formulaBaseScore = currentBreakdown.finalScore;
   
   // Clone stats for simulation
   const simStats: KingdomStats = { ...currentKingdomStats };
@@ -158,16 +160,18 @@ export function simulateScore(
   
   // Calculate projected score using centralized formula
   const projectedBreakdown = calculateAtlasScore(simStats);
-  const projectedScore = projectedBreakdown.finalScore;
   
-  const scoreChange = projectedScore - currentScore;
+  // Use formula-based delta to avoid mixing Supabase score with formula projected score
+  const formulaDelta = projectedBreakdown.finalScore - formulaBaseScore;
+  const projectedScore = currentScore + formulaDelta;
+  const scoreChange = formulaDelta;
   const percentageChange = currentScore > 0 ? (scoreChange / currentScore) * 100 : 0;
   
   // Calculate breakdown components from centralized results
   const experienceGain = (projectedBreakdown.experienceFactor - initialExpFactor) * 10;
   const streakImpact = (projectedBreakdown.streakMultiplier - currentBreakdown.streakMultiplier) * currentBreakdown.baseScore;
   const formBonus = (projectedBreakdown.recentFormMultiplier - currentBreakdown.recentFormMultiplier) * currentBreakdown.baseScore;
-  const baseScoreChange = scoreChange - experienceGain - streakImpact - formBonus;
+  const baseScoreChange = formulaDelta - experienceGain - streakImpact - formBonus;
   
   // Generate insights using legacy format for compatibility
   const legacyCurrentStats = extractKingdomStats(kingdom);
@@ -203,7 +207,7 @@ export function simulateScore(
       baseScoreChange: Math.round(baseScoreChange * 100) / 100,
       streakImpact: Math.round(streakImpact * 100) / 100,
       experienceGain: Math.round(experienceGain * 100) / 100,
-      formBonus: Math.round((scoreChange - baseScoreChange - streakImpact - experienceGain) * 100) / 100
+      formBonus: Math.round((formulaDelta - baseScoreChange - streakImpact - experienceGain) * 100) / 100
     },
     insights,
     currentTier: getPowerTier(currentScore),

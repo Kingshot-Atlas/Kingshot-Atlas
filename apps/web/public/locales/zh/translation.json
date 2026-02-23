@@ -1729,7 +1729,7 @@
     "editor": "编辑者",
     "coEditor": "共同编辑者",
     "currentCoEditors": "当前共同编辑者",
-    "noCoEditors": "暂无共同编辑者。邀请最多 2 名共同编辑者帮助管理你的王国。",
+    "noCoEditors": "暂无共同编辑者。邀请最多 5 名共同编辑者帮助管理你的王国。",
     "inviteCoEditor": "邀请共同编辑者",
     "inviteCoEditorDesc": "输入已关联王国成员（TC20+）的玩家 ID 以添加为共同编辑者。共同编辑者可以管理申请、浏览转服者和更新王国资料。",
     "invite": "邀请",

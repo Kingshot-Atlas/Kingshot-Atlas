@@ -30,10 +30,10 @@ const CoEditorsTab: React.FC<CoEditorsTabProps> = ({ editorInfo, team, onReloadD
     if (!supabase || !editorInfo || !coEditorUserId.trim()) return;
     setInvitingCoEditor(true);
     try {
-      // Enforce max 2 co-editors (active + pending)
+      // Enforce max 5 co-editors (active + pending)
       const coEditorCount = team.filter(t => t.role === 'co-editor' && (t.status === 'active' || t.status === 'pending')).length;
-      if (coEditorCount >= 2) {
-        showToast('Maximum of 2 co-editors allowed per kingdom.', 'error');
+      if (coEditorCount >= 5) {
+        showToast('Maximum of 5 co-editors allowed per kingdom.', 'error');
         return;
       }
 

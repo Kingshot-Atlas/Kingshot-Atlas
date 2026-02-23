@@ -1724,7 +1724,7 @@
     "editor": "Editor",
     "coEditor": "Co-Editor",
     "currentCoEditors": "Current Co-Editors",
-    "noCoEditors": "No co-editors yet. Invite up to 2 co-editors to help manage your kingdom.",
+    "noCoEditors": "No co-editors yet. Invite up to 5 co-editors to help manage your kingdom.",
     "inviteCoEditor": "Invite Co-Editor",
     "inviteCoEditorDesc": "Enter the player ID of a linked kingdom member (TC20+) to add as co-editor. Co-editors can manage applications, browse transferees, and update the kingdom profile.",
     "invite": "Invite",

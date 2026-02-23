@@ -74,9 +74,9 @@ const PathToNextTier: React.FC<PathToNextTierProps> = ({ kingdom, isExpanded: ex
   const analysis = useMemo(() => {
     const stats = extractStatsFromProfile(kingdom);
     const breakdown = calculateAtlasScore(stats);
-    // Use Supabase score if available, otherwise fall back to calculated score
-    // This ensures pointsNeeded calculation matches the displayed score
+    // Use Supabase score as displayed current score (source of truth)
     const currentScore = kingdom.overall_score ?? breakdown.finalScore;
+    const formulaBaseScore = breakdown.finalScore;
     const currentTier = breakdown.tier;
     
     // Get tiers above current
@@ -93,7 +93,8 @@ const PathToNextTier: React.FC<PathToNextTierProps> = ({ kingdom, isExpanded: ex
     domSimStats.currentBattleStreak = Math.max(1, domSimStats.currentBattleStreak + 1);
     domSimStats.recentOutcomes = ['Domination', ...domSimStats.recentOutcomes.slice(0, 4)];
     const singleDomScore = calculateAtlasScore(domSimStats).finalScore;
-    const actualScorePerDomination = Math.max(0.1, singleDomScore - currentScore);
+    // Use formula-based delta to avoid mixing Supabase score with formula projected score
+    const actualScorePerDomination = Math.max(0.1, singleDomScore - formulaBaseScore);
     
     // Calculate requirements for each higher tier
     const requirements: TierRequirement[] = [];
@@ -190,11 +191,15 @@ const PathToNextTier: React.FC<PathToNextTierProps> = ({ kingdom, isExpanded: ex
     ];
     
     // Calculate projected scores for each scenario
-    const projections = scenarios.map(s => ({
-      ...s,
-      projectedScore: s.simulate(),
-      change: s.simulate() - currentScore
-    }));
+    const projections = scenarios.map(s => {
+      // Use formula-based delta for consistency with Score Simulator
+      const formulaDelta = s.simulate() - formulaBaseScore;
+      return {
+        ...s,
+        projectedScore: currentScore + formulaDelta,
+        change: formulaDelta
+      };
+    });
     
     // S-tier specific calculations
     let sTierBuffer = 0;

@@ -683,7 +683,7 @@ const EndorseButton: React.FC<{
 // MAIN EDITOR CLAIMING COMPONENT
 // =============================================
 
-const MAX_CO_EDITORS_PER_KINGDOM = 2;
+const MAX_CO_EDITORS_PER_KINGDOM = 5;
 
 const EditorClaiming: React.FC<{
   onEditorActivated?: () => void;
