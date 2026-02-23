@@ -26,7 +26,6 @@ logger = logging.getLogger("atlas.discord_sync")
 # Discord guild & role configuration (module-specific, not shared)
 DISCORD_GUILD_ID = os.getenv("DISCORD_GUILD_ID")
 DISCORD_SUPPORTER_ROLE_ID = os.getenv("DISCORD_SUPPORTER_ROLE_ID")
-DISCORD_RECRUITER_ROLE_ID = os.getenv("DISCORD_RECRUITER_ROLE_ID")
 DISCORD_SETTLER_ROLE_ID = os.getenv("DISCORD_SETTLER_ROLE_ID", "1466442878585934102")
 DISCORD_GILDED_ROLE_ID = os.getenv("DISCORD_GILDED_ROLE_ID", "1472230516823556260")
 
@@ -38,7 +37,7 @@ def is_discord_sync_configured() -> bool:
     return all([
         DISCORD_BOT_TOKEN,
         DISCORD_GUILD_ID,
-        DISCORD_SUPPORTER_ROLE_ID or DISCORD_RECRUITER_ROLE_ID,
+        DISCORD_SUPPORTER_ROLE_ID,
     ])
 
 
@@ -132,16 +131,15 @@ async def remove_role_from_member(discord_user_id: str, role_id: str) -> bool:
 
 async def sync_subscription_role(
     discord_user_id: str,
-    new_tier: Literal["free", "pro", "supporter", "recruiter"],
-    old_tier: Optional[Literal["free", "pro", "supporter", "recruiter"]] = None,
+    new_tier: Literal["free", "supporter"],
+    old_tier: Optional[Literal["free", "supporter"]] = None,
 ) -> dict:
     """
     Sync Discord roles based on subscription tier change.
     
     This handles:
-    - Adding the appropriate role for the new tier
-    - Removing the old tier's role if applicable
-    - Upgrading from Supporter to Recruiter (adds Recruiter, keeps Supporter as bonus)
+    - Adding the Supporter role for paid tier
+    - Removing the Supporter role on cancellation
     
     Args:
         discord_user_id: Discord user ID
@@ -174,28 +172,8 @@ async def sync_subscription_role(
     }
     
     # Determine which roles to add/remove based on tier
-    # Role hierarchy: Recruiter > Supporter > Free
-    # Recruiters keep Supporter role as well (they get both perks)
     
-    if new_tier == "recruiter":
-        # Add Recruiter role
-        if DISCORD_RECRUITER_ROLE_ID:
-            success = await add_role_to_member(discord_user_id, DISCORD_RECRUITER_ROLE_ID)
-            results["actions"].append({
-                "action": "add",
-                "role": "Recruiter",
-                "success": success,
-            })
-        # Also add Supporter role (Recruiters get Supporter perks too)
-        if DISCORD_SUPPORTER_ROLE_ID:
-            success = await add_role_to_member(discord_user_id, DISCORD_SUPPORTER_ROLE_ID)
-            results["actions"].append({
-                "action": "add",
-                "role": "Supporter",
-                "success": success,
-            })
-            
-    elif new_tier in ("pro", "supporter"):
+    if new_tier == "supporter":
         # Add Supporter role
         if DISCORD_SUPPORTER_ROLE_ID:
             success = await add_role_to_member(discord_user_id, DISCORD_SUPPORTER_ROLE_ID)
@@ -204,29 +182,14 @@ async def sync_subscription_role(
                 "role": "Supporter",
                 "success": success,
             })
-        # Remove Recruiter role if downgrading
-        if old_tier == "recruiter" and DISCORD_RECRUITER_ROLE_ID:
-            success = await remove_role_from_member(discord_user_id, DISCORD_RECRUITER_ROLE_ID)
-            results["actions"].append({
-                "action": "remove",
-                "role": "Recruiter",
-                "success": success,
-            })
             
     elif new_tier == "free":
-        # Remove all subscription roles
+        # Remove Supporter role
         if DISCORD_SUPPORTER_ROLE_ID:
             success = await remove_role_from_member(discord_user_id, DISCORD_SUPPORTER_ROLE_ID)
             results["actions"].append({
                 "action": "remove",
                 "role": "Supporter",
-                "success": success,
-            })
-        if DISCORD_RECRUITER_ROLE_ID:
-            success = await remove_role_from_member(discord_user_id, DISCORD_RECRUITER_ROLE_ID)
-            results["actions"].append({
-                "action": "remove",
-                "role": "Recruiter",
                 "success": success,
             })
     
@@ -370,7 +333,7 @@ async def sync_settler_role_for_user(user_id: str, is_linking: bool = True) -> d
     return result
 
 
-async def sync_user_discord_role(user_id: str, new_tier: str, old_tier: Optional[str] = None) -> dict:
+async def sync_user_discord_role(user_id: str, new_tier: Literal["free", "supporter"], old_tier: Optional[Literal["free", "supporter"]] = None) -> dict:
     """
     High-level function to sync Discord role for a Supabase user.
     

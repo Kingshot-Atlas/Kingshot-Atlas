@@ -8,7 +8,7 @@ import logging
 from fastapi import APIRouter, HTTPException, Header
 from pydantic import BaseModel
 from typing import Optional
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from api.config import RESEND_API_KEY
 from api.supabase_client import get_supabase_admin
@@ -377,7 +377,7 @@ async def send_weekly_digest(
         raise HTTPException(status_code=500, detail="RESEND_API_KEY not configured")
     
     try:
-        week_ago = (datetime.utcnow() - timedelta(days=7)).isoformat()
+        week_ago = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
         
         # Gather weekly stats
         new_users = client.table("profiles").select("id", count="exact").gte("created_at", week_ago).execute()
@@ -386,7 +386,7 @@ async def send_weekly_digest(
         unread_emails = client.table("support_emails").select("id", count="exact").eq("status", "unread").eq("direction", "inbound").execute()
         
         # Build digest body
-        body = f"""Weekly Admin Digest — {datetime.utcnow().strftime('%b %d, %Y')}
+        body = f"""Weekly Admin Digest — {datetime.now(timezone.utc).strftime('%b %d, %Y')}
 
 New Users (7d): {new_users.count or 0}
 New Feedback (7d): {new_feedback.count or 0}
@@ -403,7 +403,7 @@ Unread Emails: {unread_emails.count or 0}
                 json={
                     "from": "Kingshot Atlas <support@ks-atlas.com>",
                     "to": ["support@ks-atlas.com"],
-                    "subject": f"Weekly Digest — {datetime.utcnow().strftime('%b %d')}",
+                    "subject": f"Weekly Digest — {datetime.now(timezone.utc).strftime('%b %d')}",
                     "text": body,
                 }
             )

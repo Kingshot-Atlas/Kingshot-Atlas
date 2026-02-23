@@ -1,5 +1,4 @@
 import React, { useState, useCallback, useRef } from 'react';
-import html2canvas from 'html2canvas';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { triggerHaptic } from '../hooks/useHaptic';
 import { colors } from '../utils/styles';
@@ -30,6 +29,7 @@ const ShareComparisonScreenshot: React.FC<ShareComparisonScreenshotProps> = ({
     triggerHaptic('light');
 
     try {
+      const { default: html2canvas } = await import('html2canvas');
       const canvas = await html2canvas(targetRef.current, {
         backgroundColor: '#0a0a0a',
         scale: 2, // Higher resolution for better quality

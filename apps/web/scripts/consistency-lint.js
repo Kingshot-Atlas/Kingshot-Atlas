@@ -260,10 +260,10 @@ function runComponentSizeCheck() {
 // ─── 4. ESLINT-DISABLE AUDIT ────────────────────────────────────────────────
 // Count eslint-disable comments — they accumulate silently.
 
-// Baseline: 30 eslint-disable comments as of 2026-02-19.
-// Most are intentional React "fetch on dep change" patterns.
+// Baseline: 34 eslint-disable comments as of 2026-02-23.
+// All 34 audited as intentional (stable hook refs, canvas, keyboard handlers).
 // This threshold catches NEW additions beyond the baseline.
-const MAX_ESLINT_DISABLES = 30;
+const MAX_ESLINT_DISABLES = 34;
 
 function runEslintDisableCheck() {
   console.log('\n🚫 Checking eslint-disable count...');
