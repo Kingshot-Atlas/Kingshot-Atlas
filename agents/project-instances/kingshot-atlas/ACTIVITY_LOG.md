@@ -3,6 +3,18 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-23 11:30 | Product Engineer | COMPLETED
+Task: Messaging polish — typing indicator, read receipts, conversation search, global notification
+Files: src/pages/Messages.tsx, src/index.css, 9× locales/*/translation.json
+Changes:
+1. **Typing indicator** — Real-time via Supabase broadcast channels (ephemeral, no DB). Shows animated "typing..." bubble with bouncing dots when other party is composing. 2s throttle on broadcasts.
+2. **Read receipts** — ✓ (delivered) / ✓✓ (read, blue) on sent messages. Fetches other party's `message_read_status.last_read_at` with real-time subscription for live updates.
+3. **Conversation search** — Sticky search bar above conversation list. Filters by name, kingdom number, or last message content. "No conversations found" empty state.
+4. **Global notification** — Inserted `system_announcement` notification for all 2,044 users about the new Messages page. Links to `/messages`.
+5. **i18n** — 3 new keys (searchPlaceholder, noSearchResults, typing) × 9 locales.
+6. **Auto-translation** — Already existed (translateMessage.ts + UI buttons). No changes needed.
+Result: Build passed, committed (db5e289), pushed to main. Cloudflare Pages auto-deploying.
+
 ## 2026-02-23 11:00 | Business Lead | COMPLETED
 Task: Create Reddit post strategy for Transfer Hub promotion
 Files: None (copywriting deliverable, no code changes)
