@@ -3,6 +3,15 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-24 17:30 | Product Engineer | COMPLETED
+Task: Fix Tool Delegates broken search/add + transfer_applications 400 console error
+Files: src/hooks/useToolAccess.ts, src/hooks/useUnreadMessages.ts
+Changes:
+1. **useToolAccess.ts** — searchUsers, addDelegate, and same-kingdom validation all queried only `home_kingdom` which was null for 1,872 linked users. Added fallback to `linked_kingdom` via `home_kingdom ?? linked_kingdom` pattern. Search now uses `.or()` filter to match either column.
+2. **useUnreadMessages.ts** — Query used `.eq('user_id', ...)` but `transfer_applications` table has `applicant_user_id` column. Fixed column name, eliminating 400 Bad Request errors in console.
+3. **Supabase backfill** — Ran `UPDATE profiles SET home_kingdom = linked_kingdom WHERE home_kingdom IS NULL AND linked_kingdom IS NOT NULL` to fix 1,872 affected profiles.
+Result: Build passed. Committed 5866bb2 and pushed to main.
+
 ## 2026-02-24 16:30 | Product Engineer | COMPLETED
 Task: Fix HQ territory radius in Alliance Base Designer (showed 5 instead of 6)
 Files: src/hooks/useBaseDesigner.ts, src/pages/AllianceBaseDesigner.tsx
