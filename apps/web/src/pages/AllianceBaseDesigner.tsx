@@ -768,7 +768,7 @@ const AllianceBaseDesigner: React.FC = () => {
   const [canvasSize, setCanvasSize] = useState({ width: 600, height: 600 });
   const [modalMode, setModalMode] = useState<'save' | 'load' | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [mobilePanelTab, setMobilePanelTab] = useState<'buildings' | 'nav' | 'props'>('buildings');
+  const [mobilePanelTab, setMobilePanelTab] = useState<'buildings' | 'nav'>('buildings');
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [autoSaveFlash, setAutoSaveFlash] = useState(false);
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -1139,18 +1139,17 @@ const AllianceBaseDesigner: React.FC = () => {
 
   // ─── Mobile Layout ───
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#0a0a0a', overflow: 'hidden' }}>
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#0a0a0a', overflow: 'hidden', userSelect: 'none', WebkitUserSelect: 'none' } as React.CSSProperties}>
       {/* Mobile header */}
       <div style={{ padding: '0.5rem 0.75rem', background: 'linear-gradient(180deg, #111827 0%, #0d1117 100%)', borderBottom: '1px solid #1e2a35', textAlign: 'center' }}>
         <h1 style={{ fontSize: '1rem', fontWeight: 'bold', fontFamily: FONT_DISPLAY, letterSpacing: '0.04em', margin: 0 }}>
           <span style={{ color: '#fff' }}>BASE </span>
           <span style={neonGlow('#22d3ee')}>DESIGNER</span>
         </h1>
-        <p style={{ color: '#6b7280', fontSize: '0.6rem', margin: '0.15rem 0 0' }}>Alliance fortress layout planner</p>
       </div>
 
       {/* Canvas fills most of the screen */}
-      <div ref={containerRef} style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+      <div ref={containerRef} style={{ flex: 1, position: 'relative', overflow: 'hidden', WebkitTouchCallout: 'none' } as React.CSSProperties}>
         <GridCanvas
           designer={designer}
           canvasWidth={canvasSize.width}
@@ -1191,12 +1190,11 @@ const AllianceBaseDesigner: React.FC = () => {
                 backgroundColor: '#111827', border: '1px solid #22d3ee',
                 borderRadius: '4px', color: '#fff', fontSize: '0.75rem',
                 outline: 'none', boxShadow: '0 2px 12px rgba(0,0,0,0.5)',
-                textAlign: 'center',
-              }}
+                textAlign: 'center', userSelect: 'text', WebkitUserSelect: 'text',
+              } as React.CSSProperties}
             />
           </div>
         )}
-        <MapControls designer={designer} isMobile={true} />
 
         {/* Mobile floating toolbar */}
         <div style={{
@@ -1216,30 +1214,88 @@ const AllianceBaseDesigner: React.FC = () => {
           <div style={{ flex: 1 }} />
           <span style={{ fontSize: '0.55rem', color: '#4b5563' }}>{designer.buildings.length} bldgs</span>
         </div>
+
+        {/* Floating action buttons for selected building (bottom-right) */}
+        {selectedBuilding && selectedBuildingType && (
+          <div style={{
+            position: 'absolute', bottom: 12, right: 12, zIndex: 10,
+            display: 'flex', flexDirection: 'column', gap: '0.4rem', alignItems: 'flex-end',
+          }}>
+            {/* Building info chip */}
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '0.3rem',
+              backgroundColor: '#0d1117ee', padding: '0.3rem 0.6rem', borderRadius: '8px',
+              border: `1px solid ${selectedBuildingType.color}40`, backdropFilter: 'blur(10px)',
+            }}>
+              <span style={{ fontSize: '0.8rem' }}>{selectedBuildingType.icon}</span>
+              <span style={{ color: selectedBuildingType.color, fontSize: '0.65rem', fontWeight: '700' }}>{selectedBuildingType.name}</span>
+              <span style={{ color: '#4b5563', fontSize: '0.55rem' }}>({selectedBuilding.x},{selectedBuilding.y})</span>
+            </div>
+            <div style={{ display: 'flex', gap: '0.35rem' }}>
+              {/* Rename button (only if building supports labels) */}
+              {selectedBuildingType.labelField && (
+                <button
+                  onClick={() => {
+                    const bCenter = g2s(
+                      selectedBuilding.x + (selectedBuildingType?.size || 1) / 2,
+                      selectedBuilding.y + (selectedBuildingType?.size || 1) / 2,
+                      designer.centerX, designer.centerY, designer.zoom,
+                      canvasSize.width, canvasSize.height,
+                    );
+                    setEditingLabel({ buildingId: selectedBuilding.id, screenX: bCenter.x, screenY: bCenter.y, value: selectedBuilding.label || '' });
+                    setTimeout(() => editInputRef.current?.focus(), 50);
+                  }}
+                  style={{
+                    padding: '0.5rem 0.75rem', backgroundColor: '#0d1117ee',
+                    border: '1px solid #22d3ee40', borderRadius: '8px',
+                    color: '#22d3ee', cursor: 'pointer', fontSize: '0.7rem', fontWeight: '600',
+                    backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', gap: '0.25rem',
+                    touchAction: 'manipulation',
+                  }}
+                >
+                  ✏️ {t('baseDesigner.renameBtn', 'Rename')}
+                </button>
+              )}
+              {/* Remove button */}
+              <button
+                onClick={() => designer.removeBuilding(selectedBuilding.id)}
+                style={{
+                  padding: '0.5rem 0.75rem', backgroundColor: '#0d1117ee',
+                  border: '1px solid #ef444440', borderRadius: '8px',
+                  color: '#ef4444', cursor: 'pointer', fontSize: '0.7rem', fontWeight: '600',
+                  backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', gap: '0.25rem',
+                  touchAction: 'manipulation',
+                }}
+              >
+                🗑️ {t('baseDesigner.removeBtn', 'Remove')}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Mobile bottom panel with tabs */}
       <div style={{ borderTop: '1px solid #1e2a35', backgroundColor: '#0d1117' }}>
         {/* Tab bar */}
         <div style={{ display: 'flex', borderBottom: '1px solid #1e2a35' }}>
-          {(['buildings', 'nav', 'props'] as const).map((tab) => (
+          {(['buildings', 'nav'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setMobilePanelTab(tab)}
               style={{
-                flex: 1, padding: '0.4rem', backgroundColor: 'transparent', border: 'none',
+                flex: 1, padding: '0.5rem', backgroundColor: 'transparent', border: 'none',
                 color: mobilePanelTab === tab ? '#22d3ee' : '#6b7280', cursor: 'pointer',
-                fontSize: '0.65rem', fontWeight: mobilePanelTab === tab ? '700' : '400',
+                fontSize: '0.7rem', fontWeight: mobilePanelTab === tab ? '700' : '400',
                 borderBottom: mobilePanelTab === tab ? '2px solid #22d3ee' : '2px solid transparent',
               }}
             >
-              {tab === 'buildings' ? '🧱 Build' : tab === 'nav' ? '🧭 Nav' : '⚙️ Props'}
+              {tab === 'buildings' ? t('baseDesigner.buildTab', '🧱 Buildings') : t('baseDesigner.navTab', '🧭 Navigate')}
             </button>
           ))}
         </div>
 
-        {/* Tab content */}
-        <div style={{ maxHeight: '180px', overflowY: 'auto', padding: '0.5rem 0.75rem' }}>
+        {/* Tab content — no scroll, full height */}
+        <div style={{ padding: '0.5rem 0.75rem', paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}>
           {mobilePanelTab === 'buildings' && (
             <BuildingPalette
               selectedToolType={designer.selectedToolType}
@@ -1254,40 +1310,11 @@ const AllianceBaseDesigner: React.FC = () => {
             <div>
               <CoordinateSearch onGo={goToCoords} onFocusBase={focusOnBase} hasBuildings={designer.buildings.length > 0} />
               <div style={{ marginTop: '0.5rem' }}>
-                <div style={{ color: '#6b7280', fontSize: '0.6rem', marginBottom: '3px' }}>Design Name</div>
+                <div style={{ color: '#6b7280', fontSize: '0.6rem', marginBottom: '3px' }}>{t('baseDesigner.designName', 'Design Name')}</div>
                 <input type="text" value={designer.designName} onChange={(e) => designer.setDesignName(e.target.value)}
-                  style={{ width: '100%', padding: '0.25rem 0.4rem', backgroundColor: '#0a0a0a', border: '1px solid #1e2a35', borderRadius: '4px', color: '#e5e7eb', fontSize: '0.7rem', outline: 'none', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '0.25rem 0.4rem', backgroundColor: '#0a0a0a', border: '1px solid #1e2a35', borderRadius: '4px', color: '#e5e7eb', fontSize: '0.7rem', outline: 'none', boxSizing: 'border-box', userSelect: 'text', WebkitUserSelect: 'text' } as React.CSSProperties}
                 />
               </div>
-            </div>
-          )}
-
-          {mobilePanelTab === 'props' && (
-            <div>
-              {selectedBuilding && selectedBuildingType ? (
-                <>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
-                    <span style={{ fontSize: '1rem' }}>{selectedBuildingType.icon}</span>
-                    <div>
-                      <div style={{ color: selectedBuildingType.color, fontSize: '0.75rem', fontWeight: '700' }}>{selectedBuildingType.name}</div>
-                      <div style={{ color: '#4b5563', fontSize: '0.6rem' }}>({selectedBuilding.x}, {selectedBuilding.y})</div>
-                    </div>
-                  </div>
-                  {selectedBuildingType.labelField && (
-                    <input type="text" value={selectedBuilding.label || ''}
-                      onChange={(e) => designer.updateBuildingLabel(selectedBuilding.id, e.target.value)}
-                      placeholder={selectedBuildingType.labelField === 'playerName' ? 'Player name' : 'Time slot'}
-                      style={{ width: '100%', padding: '0.25rem 0.4rem', backgroundColor: '#0a0a0a', border: '1px solid #1e2a35', borderRadius: '4px', color: '#e5e7eb', fontSize: '0.7rem', outline: 'none', marginBottom: '0.4rem', boxSizing: 'border-box' }}
-                    />
-                  )}
-                  <button onClick={() => designer.removeBuilding(selectedBuilding.id)} style={{
-                    width: '100%', padding: '0.3rem', backgroundColor: '#ef444415', border: '1px solid #ef444440',
-                    borderRadius: '4px', color: '#ef4444', cursor: 'pointer', fontSize: '0.65rem',
-                  }}>🗑️ Remove</button>
-                </>
-              ) : (
-                <p style={{ color: '#4b5563', fontSize: '0.7rem', textAlign: 'center' }}>Select a building to edit</p>
-              )}
             </div>
           )}
         </div>

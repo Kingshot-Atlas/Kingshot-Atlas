@@ -5,7 +5,6 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { useTranslation } from 'react-i18next';
 import { useToolAccess } from '../hooks/useToolAccess';
-import ToolDelegates from '../components/ToolDelegates';
 
 const ACCENT = '#f97316';
 const ACCENT_DIM = '#f9731615';
@@ -16,7 +15,6 @@ const BaseDesignerLanding: React.FC = () => {
   useDocumentTitle(t('baseDesigner.pageTitle', 'Alliance Base Designer'));
   const isMobile = useIsMobile();
   const { hasAccess, reason, grantedBy } = useToolAccess();
-  const canManageDelegates = reason === 'supporter' || reason === 'ambassador' || reason === 'booster' || reason === 'admin';
 
   const features = [
     {
@@ -346,11 +344,6 @@ const BaseDesignerLanding: React.FC = () => {
             <p style={{ color: '#22d3ee', fontSize: '0.8rem', marginTop: '0.75rem' }}>
               🤝 {t('baseDesigner.delegateBadge', 'Delegated access from {{name}}', { name: grantedBy })}
             </p>
-          )}
-          {canManageDelegates && (
-            <div style={{ marginTop: '1.5rem', maxWidth: '420px', marginLeft: 'auto', marginRight: 'auto' }}>
-              <ToolDelegates />
-            </div>
           )}
         </div>
 
