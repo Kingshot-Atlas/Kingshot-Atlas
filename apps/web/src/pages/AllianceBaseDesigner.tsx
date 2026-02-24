@@ -1,5 +1,6 @@
 import React, { useRef, useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useBaseDesigner, PlacedBuilding } from '../hooks/useBaseDesigner';
@@ -24,21 +25,22 @@ const s2g = (sx: number, sy: number, cx: number, cy: number, hc: number, cw: num
 const AccessGate: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { hasAccess } = useToolAccess();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   if (!hasAccess) {
     return (
       <div style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem', textAlign: 'center' }}>
         <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔒</div>
-        <h2 style={{ color: '#fff', fontFamily: FONT_DISPLAY, fontSize: '1.5rem', marginBottom: '0.75rem' }}>Alliance Base Designer</h2>
+        <h2 style={{ color: '#fff', fontFamily: FONT_DISPLAY, fontSize: '1.5rem', marginBottom: '0.75rem' }}>{t('baseDesigner.pageTitle', 'Alliance Base Designer')}</h2>
         <p style={{ color: '#9ca3af', maxWidth: '400px', marginBottom: '1.5rem', lineHeight: 1.6 }}>
-          This tool is available to Atlas Supporters, Ambassadors, Discord Server Boosters, and Admins. Support Atlas to unlock powerful alliance management tools.
+          {t('baseDesigner.gateDesc', 'This tool is available to Atlas Supporters, Ambassadors, Discord Server Boosters, and Admins. Support Atlas to unlock powerful alliance management tools.')}
         </p>
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
           <button onClick={() => navigate('/support')} style={{ padding: '0.6rem 1.5rem', backgroundColor: '#22d3ee', color: '#000', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', fontSize: '0.9rem' }}>
-            Become a Supporter
+            {t('baseDesigner.becomeSupporter', 'Become a Supporter')}
           </button>
           <Link to="/tools" style={{ padding: '0.6rem 1.5rem', backgroundColor: 'transparent', color: '#9ca3af', border: '1px solid #333', borderRadius: '8px', textDecoration: 'none', fontSize: '0.9rem' }}>
-            Back to Tools
+            {t('baseDesigner.backToTools', 'Back to Tools')}
           </Link>
         </div>
       </div>

@@ -56,10 +56,22 @@ class DiscordService {
         return { success: false, error: 'Supabase not configured' };
       }
       
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
+      // Get current user — this also refreshes the token if expired.
+      // On mobile, the session can be lost during the Discord OAuth redirect
+      // (e.g. Discord app intercepts the URL and callback opens in a WebView).
+      let { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        return { success: false, error: 'Not authenticated' };
+        // Try explicit session refresh — handles stale/expired tokens after redirect
+        logger.warn('Discord link: getUser failed, attempting session refresh');
+        const { error: refreshError } = await supabase.auth.refreshSession();
+        if (!refreshError) {
+          const retry = await supabase.auth.getUser();
+          user = retry.data.user;
+        }
+        if (!user) {
+          logger.error('Discord link: session lost after redirect');
+          return { success: false, error: 'auth_lost' };
+        }
       }
 
       // Call Supabase Edge Function for Discord code exchange
@@ -71,11 +83,17 @@ class DiscordService {
       // Discord authorization codes are SINGLE-USE — never retry with the same code.
       // Retrying consumed the code and always returned "Invalid code".
       const session = await supabase.auth.getSession();
+      const accessToken = session.data.session?.access_token;
+      if (!accessToken) {
+        logger.error('Discord link: no access token after session check');
+        return { success: false, error: 'auth_lost' };
+      }
+
       const response = await fetch(`${SUPABASE_URL}/functions/v1/discord-link`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.data.session?.access_token}`,
+          'Authorization': `Bearer ${accessToken}`,
         },
         body: JSON.stringify({ code, redirect_uri: getDiscordRedirectUri() }),
       });
@@ -85,8 +103,13 @@ class DiscordService {
       }
 
       const error = await response.json().catch(() => ({ error: `HTTP ${response.status}` }));
-      const errorMsg = error.error || error.detail || 'Failed to link Discord';
+      // Supabase Edge Runtime returns {msg:...} for JWT errors; Discord returns {error:...}
+      const errorMsg = error.error || error.detail || error.msg || error.message || 'Failed to link Discord';
       logger.error('Discord link failed:', errorMsg);
+      // Treat JWT/auth errors as session loss
+      if (response.status === 401) {
+        return { success: false, error: 'auth_lost' };
+      }
       return { success: false, error: errorMsg };
     } catch (error) {
       logger.error('Discord callback error:', error);

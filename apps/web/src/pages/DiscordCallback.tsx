@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { discordService } from '../services/discordService';
 import { useAnalytics } from '../hooks/useAnalytics';
 
@@ -9,10 +10,14 @@ const initialParams = new URLSearchParams(window.location.search);
 const initialCode = initialParams.get('code');
 const initialError = initialParams.get('error');
 
+const CONSUMED_KEY = 'discord_code_consumed';
+
 const DiscordCallback: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [status, setStatus] = useState<'processing' | 'success' | 'error'>('processing');
   const [error, setError] = useState<string>('');
+  const [isAuthLost, setIsAuthLost] = useState(false);
   const { trackFeature } = useAnalytics();
   const processed = useRef(false);
 
@@ -25,7 +30,9 @@ const DiscordCallback: React.FC = () => {
     const handleCallback = async () => {
       if (initialError) {
         setStatus('error');
-        const errorMessage = initialError === 'access_denied' ? 'Discord authorization was cancelled' : initialError;
+        const errorMessage = initialError === 'access_denied'
+          ? t('discord.authCancelled', 'Discord authorization was cancelled')
+          : initialError;
         setError(errorMessage);
         trackFeature('discord_link_failed', { error_code: initialError, error_message: errorMessage });
         return;
@@ -33,21 +40,44 @@ const DiscordCallback: React.FC = () => {
 
       if (!initialCode) {
         setStatus('error');
-        setError('No authorization code received');
+        setError(t('discord.noCode', 'No authorization code received'));
         trackFeature('discord_link_failed', { error_code: 'no_code', error_message: 'No authorization code received' });
         return;
       }
+
+      // Prevent code replay: Discord codes are single-use. If this code was
+      // already sent to the Edge Function, don't send it again.
+      const consumed = sessionStorage.getItem(CONSUMED_KEY);
+      if (consumed === initialCode) {
+        setStatus('error');
+        setError(t('discord.codeAlreadyUsed', 'This link has already been processed. Please try linking Discord again from your profile.'));
+        trackFeature('discord_link_failed', { error_code: 'code_replay', error_message: 'Code already consumed' });
+        return;
+      }
+      // Mark code as consumed BEFORE sending — codes are single-use
+      sessionStorage.setItem(CONSUMED_KEY, initialCode);
+
+      // Small delay for Supabase session restoration from localStorage
+      // (critical on mobile after cross-origin redirect)
+      await new Promise(resolve => setTimeout(resolve, 300));
 
       const result = await discordService.handleCallback(initialCode);
       
       if (result.success) {
         setStatus('success');
         trackFeature('discord_link_success', {});
-        // Redirect to profile after short delay
+        sessionStorage.removeItem(CONSUMED_KEY);
         setTimeout(() => navigate('/profile?discord=linked'), 1500);
+      } else if (result.error === 'auth_lost') {
+        setStatus('error');
+        setIsAuthLost(true);
+        setError(t('discord.sessionLost', 'Your sign-in session was lost during the Discord redirect. This commonly happens on mobile devices.'));
+        trackFeature('discord_link_failed', { error_code: 'auth_lost', error_message: 'Session lost during redirect' });
+        // Clear consumed flag so user can retry after signing in
+        sessionStorage.removeItem(CONSUMED_KEY);
       } else {
         setStatus('error');
-        const errorMessage = result.error || 'Failed to link Discord account';
+        const errorMessage = result.error || t('discord.linkFailed', 'Failed to link Discord account');
         setError(errorMessage);
         trackFeature('discord_link_failed', { error_code: 'api_error', error_message: errorMessage });
       }
@@ -84,10 +114,10 @@ const DiscordCallback: React.FC = () => {
               margin: '0 auto 1rem'
             }} />
             <h2 style={{ color: '#fff', fontSize: '1.25rem', marginBottom: '0.5rem' }}>
-              Linking Discord Account...
+              {t('discord.linking', 'Linking Discord Account...')}
             </h2>
             <p style={{ color: '#9ca3af', fontSize: '0.9rem' }}>
-              Please wait while we connect your accounts.
+              {t('discord.pleaseWait', 'Please wait while we connect your accounts.')}
             </p>
           </>
         )}
@@ -109,10 +139,10 @@ const DiscordCallback: React.FC = () => {
               </svg>
             </div>
             <h2 style={{ color: '#22c55e', fontSize: '1.25rem', marginBottom: '0.5rem' }}>
-              Discord Linked!
+              {t('discord.linked', 'Discord Linked!')}
             </h2>
             <p style={{ color: '#9ca3af', fontSize: '0.9rem' }}>
-              Redirecting to your profile...
+              {t('discord.redirecting', 'Redirecting to your profile...')}
             </p>
           </>
         )}
@@ -136,11 +166,16 @@ const DiscordCallback: React.FC = () => {
               </svg>
             </div>
             <h2 style={{ color: '#ef4444', fontSize: '1.25rem', marginBottom: '0.5rem' }}>
-              Link Failed
+              {t('discord.linkFailedTitle', 'Link Failed')}
             </h2>
             <p style={{ color: '#9ca3af', fontSize: '0.9rem', marginBottom: '1rem' }}>
               {error}
             </p>
+            {isAuthLost && (
+              <p style={{ color: '#eab308', fontSize: '0.8rem', marginBottom: '1rem' }}>
+                {t('discord.tryDesktop', 'Try linking from a desktop browser, or sign in again on this device first.')}
+              </p>
+            )}
             <button
               onClick={() => navigate('/profile')}
               style={{
@@ -154,7 +189,7 @@ const DiscordCallback: React.FC = () => {
                 cursor: 'pointer'
               }}
             >
-              Return to Profile
+              {t('discord.returnToProfile', 'Return to Profile')}
             </button>
           </>
         )}

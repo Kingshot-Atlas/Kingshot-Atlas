@@ -1840,10 +1840,11 @@ async function checkAndAssignTransferGroupRole(member) {
 
 // ============================================================================
 // DISCORD SERVER BOOSTER STATUS SYNC
-// Checks member.premiumSince for all linked users and updates
-// profiles.is_discord_booster in Supabase via REST API.
+// Checks if linked members have the Booster role (ID: 1471857928695844884)
+// and updates profiles.is_discord_booster in Supabase via REST API.
 // Runs as part of the unified role sync cycle.
 // ============================================================================
+const BOOSTER_ROLE_ID = '1471857928695844884';
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
 let lastBoosterSync = null;
@@ -1896,7 +1897,7 @@ async function syncBoosterStatus() {
     for (const [discordId] of linkedMap) {
       const member = guild.members.cache.get(discordId);
       if (!member) continue;
-      if (member.premiumSince) {
+      if (member.roles.cache.has(BOOSTER_ROLE_ID)) {
         boosterDiscordIds.add(discordId);
       } else {
         nonBoosterDiscordIds.add(discordId);
