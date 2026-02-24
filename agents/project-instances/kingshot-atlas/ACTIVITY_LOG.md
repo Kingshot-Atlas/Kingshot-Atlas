@@ -3,6 +3,31 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-23 21:01 | Product Engineer | COMPLETED
+Task: Alliance Base Designer — pan direction, auto-save, city icon, additional fixes
+Files: src/hooks/useBaseDesigner.ts, src/pages/AllianceBaseDesigner.tsx
+Changes:
+1. **panByPixels sign fix** — Root cause: `dgy` formula had wrong sign, swapping X/Y screen movements. Dragging right moved content down instead of right. Fixed the isometric inverse transform.
+2. **Drag-to-pan natural direction** — Mouse drag + touch drag + 2-finger touch now move content in correct screen direction (content follows cursor/finger).
+3. **Trackpad direction** — Wheel/trackpad delta now maps 1:1 to screen pixel movement. Fingers up = map moves down.
+4. **Auto-save/restore** — Added `atlas_base_designer_session` localStorage key. Buildings, design name, viewport, and labels auto-persist on every change and auto-restore on page load. Uses delayed initialization flag to prevent overwriting restored state.
+5. **City icon removed** — Player city blocks render as empty diamonds; only centered label shown when present. Hover preview also skips icon for city.
+6. **mouseLeave fix** — Pan state now properly cleared when cursor leaves canvas during drag-to-pan.
+Result: Build passed. Local deploy verified.
+
+## 2026-02-23 20:35 | Product Engineer | COMPLETED
+Task: Alliance Base Designer UX fixes + Review Reply bug fix
+Files: src/pages/AllianceBaseDesigner.tsx, src/config/allianceBuildings.ts, src/components/KingdomReviews.tsx
+Changes:
+1. **Drag-to-pan** — Left-click on empty map space now starts panning (was only middle/right-click before)
+2. **Trackpad direction fix** — Inverted pan direction so 2-finger-up moves map down (natural scrolling)
+3. **Map Area labels** — Renamed "From X/Y" → "Top Corner X/Y", "To X/Y" → "Bottom Corner X/Y"
+4. **Canvas fills container** — Changed canvas height from `auto` to `100%` to eliminate black space below map
+5. **City icon** — Replaced 🧑 face icon with 🏙️ city icon for player cities
+6. **Thicker borders** — Building border lineWidth increased from 1→2 (normal) and 2.5→3 (selected)
+7. **Reply button bug** — Removed `!isOwnReview` condition from Reply button in KingdomReviews.tsx so users can see replies and respond under their own reviews
+Result: Build passed. Local deploy verified.
+
 ## 2026-02-23 11:30 | Product Engineer | COMPLETED
 Task: Messaging polish — typing indicator, read receipts, conversation search, global notification
 Files: src/pages/Messages.tsx, src/index.css, 9× locales/*/translation.json

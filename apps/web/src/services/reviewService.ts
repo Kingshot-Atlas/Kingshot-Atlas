@@ -651,5 +651,66 @@ export const reviewService = {
       .maybeSingle();
 
     return !!data;
+  },
+
+  /**
+   * Admin: Fetch all review reports with review details
+   */
+  async getReviewReports(status?: 'pending' | 'reviewed' | 'dismissed'): Promise<ReviewReport[]> {
+    let query = getSupabase()
+      .from('review_reports')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (status) {
+      query = query.eq('status', status);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      logger.error('Error fetching review reports:', error);
+      return [];
+    }
+
+    return data || [];
+  },
+
+  /**
+   * Admin: Update the status of a review report
+   */
+  async updateReportStatus(
+    reportId: string,
+    status: 'reviewed' | 'dismissed',
+    reviewedBy: string
+  ): Promise<{ success: boolean; error?: string }> {
+    const { error } = await getSupabase()
+      .from('review_reports')
+      .update({ status, reviewed_by: reviewedBy, reviewed_at: new Date().toISOString() })
+      .eq('id', reportId);
+
+    if (error) {
+      logger.error('Error updating report status:', error);
+      return { success: false, error: 'Failed to update report' };
+    }
+
+    return { success: true };
+  },
+
+  /**
+   * Admin: Delete a review (used when a report is valid)
+   */
+  async adminDeleteReview(reviewId: string): Promise<{ success: boolean; error?: string }> {
+    const { error } = await getSupabase()
+      .from('kingdom_reviews')
+      .delete()
+      .eq('id', reviewId);
+
+    if (error) {
+      logger.error('Error deleting review:', error);
+      return { success: false, error: 'Failed to delete review' };
+    }
+
+    return { success: true };
   }
 };

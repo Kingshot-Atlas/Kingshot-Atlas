@@ -55,6 +55,8 @@ const PrepSchedulerLanding = lazy(() => import('./pages/PrepSchedulerLanding'));
 const BotDashboard = lazy(() => import('./pages/BotDashboard'));
 const TermsOfService = lazy(() => import('./pages/TermsOfService'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
+const AllianceBaseDesigner = lazy(() => import('./pages/AllianceBaseDesigner'));
+const BaseDesignerLanding = lazy(() => import('./pages/BaseDesignerLanding'));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -159,6 +161,8 @@ function AppContent() {
               <Route path="/messages" element={<ErrorBoundary><Messages /></ErrorBoundary>} />
               <Route path="/terms" element={<ErrorBoundary><TermsOfService /></ErrorBoundary>} />
               <Route path="/privacy" element={<ErrorBoundary><PrivacyPolicy /></ErrorBoundary>} />
+              <Route path="/tools/base-designer" element={<ErrorBoundary><AllianceBaseDesigner /></ErrorBoundary>} />
+              <Route path="/tools/base-designer/about" element={<ErrorBoundary><BaseDesignerLanding /></ErrorBoundary>} />
             </Routes>
           </Suspense>
         </PageTransition>

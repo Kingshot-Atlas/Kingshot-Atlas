@@ -227,12 +227,12 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isActive, user, profile, isAdmi
       <button
         onClick={() => setShowMobileToolsMenu(!showMobileToolsMenu)}
         style={{
-          color: (isActive('/tools') || isActive('/compare') || isActive('/atlas-bot') || isActive('/transfer-hub') || isActive('/transfer-hub/about') || isActive('/tools/prep-scheduler') || isActive('/tools/prep-scheduler-info')) ? '#22d3ee' : '#9ca3af',
+          color: (isActive('/tools') || isActive('/compare') || isActive('/atlas-bot') || isActive('/transfer-hub') || isActive('/transfer-hub/about') || isActive('/tools/prep-scheduler') || isActive('/tools/prep-scheduler-info') || isActive('/tools/base-designer')) ? '#22d3ee' : '#9ca3af',
           textDecoration: 'none',
           fontSize: '1rem',
           padding: '0.75rem 1rem',
           borderRadius: '8px',
-          backgroundColor: (isActive('/tools') || isActive('/compare') || isActive('/atlas-bot') || isActive('/transfer-hub') || isActive('/transfer-hub/about') || isActive('/tools/prep-scheduler') || isActive('/tools/prep-scheduler-info')) ? '#111' : 'transparent',
+          backgroundColor: (isActive('/tools') || isActive('/compare') || isActive('/atlas-bot') || isActive('/transfer-hub') || isActive('/transfer-hub/about') || isActive('/tools/prep-scheduler') || isActive('/tools/prep-scheduler-info') || isActive('/tools/base-designer')) ? '#111' : 'transparent',
           border: 'none',
           width: '100%',
           textAlign: 'left',
@@ -257,6 +257,9 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isActive, user, profile, isAdmi
           </Link>
           <Link to="/tools/prep-scheduler-info" style={{ color: isActive('/tools/prep-scheduler') || isActive('/tools/prep-scheduler-info') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.9rem', padding: '0.5rem 1rem 0.5rem 1.5rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span style={{ color: '#333' }}>└</span> {t('nav.kvkPrepScheduler', 'KvK Prep Scheduler')}
+          </Link>
+          <Link to="/tools/base-designer/about" style={{ color: (isActive('/tools/base-designer') || isActive('/tools/base-designer/about')) ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.9rem', padding: '0.5rem 1rem 0.5rem 1.5rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ color: '#333' }}>└</span> {t('nav.baseDesigner', 'Base Designer')}
           </Link>
           <Link to="/atlas-bot" style={{ color: isActive('/atlas-bot') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.9rem', padding: '0.5rem 1rem 0.5rem 1.5rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span style={{ color: '#333' }}>└</span> {t('nav.atlasBot')}

@@ -273,7 +273,32 @@ const DesktopNav: React.FC<DesktopNavProps> = ({ isActive, user, changeLanguage,
               </svg>
               {t('nav.kvkPrepScheduler', 'KvK Prep Scheduler')}
             </Link>
-            {/* 4. Atlas Discord Bot */}
+            {/* 4. Alliance Base Designer */}
+            <Link
+              to="/tools/base-designer/about"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                padding: '0.75rem 1rem',
+                borderRadius: '8px',
+                color: (isActive('/tools/base-designer') || isActive('/tools/base-designer/about')) ? '#22d3ee' : '#fff',
+                textDecoration: 'none',
+                fontSize: '0.85rem',
+                transition: 'background-color 0.2s'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#f97316' }}>
+                <rect x="3" y="3" width="7" height="7"/>
+                <rect x="14" y="3" width="7" height="7"/>
+                <rect x="14" y="14" width="7" height="7"/>
+                <rect x="3" y="14" width="7" height="7"/>
+              </svg>
+              {t('nav.baseDesigner', 'Base Designer')}
+            </Link>
+            {/* 5. Atlas Discord Bot */}
             <Link
               to="/atlas-bot"
               style={{

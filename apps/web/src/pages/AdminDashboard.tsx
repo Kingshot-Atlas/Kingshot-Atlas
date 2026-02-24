@@ -52,6 +52,7 @@ const EmailTab = lazy(() => import('../components/admin/EmailTab').then(m => ({ 
 const FeedbackTab = lazy(() => import('../components/admin/FeedbackTab').then(m => ({ default: m.FeedbackTab })));
 const CorrectionsTab = lazy(() => import('../components/admin/CorrectionsTab').then(m => ({ default: m.CorrectionsTab })));
 const KvKErrorsTab = lazy(() => import('../components/admin/KvKErrorsTab').then(m => ({ default: m.KvKErrorsTab })));
+const ReviewReportsTab = lazy(() => import('../components/admin/ReviewReportsTab').then(m => ({ default: m.ReviewReportsTab })));
 const TransferStatusTab = lazy(() => import('../components/admin/TransferStatusTab').then(m => ({ default: m.TransferStatusTab })));
 const BotTelemetryTab = lazy(() => import('../components/admin/BotTelemetryTab').then(m => ({ default: m.BotTelemetryTab })));
 const GiftCodeAnalyticsTab = lazy(() => import('../components/admin/GiftCodeAnalyticsTab').then(m => ({ default: m.GiftCodeAnalyticsTab })));
@@ -89,7 +90,7 @@ const AdminDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('pending');
   // React Query hooks for polling data (ADR-022 migration)
-  const { data: pendingCounts = { submissions: 0, claims: 0, corrections: 0, transfers: 0, kvkErrors: 0, feedback: 0 } } = useAdminPendingCounts(!!isAdmin);
+  const { data: pendingCounts = { submissions: 0, claims: 0, corrections: 0, transfers: 0, kvkErrors: 0, feedback: 0, reviewReports: 0 } } = useAdminPendingCounts(!!isAdmin);
   const { data: unreadEmailCount = 0 } = useUnreadEmailCount(!!isAdmin);
   const { data: feedbackItems = [] } = useAdminFeedback(filter, !!isAdmin && activeTab === 'feedback');
   const { data: feedbackCounts = { new: 0, reviewed: 0, in_progress: 0, resolved: 0, closed: 0 } } = useAdminFeedbackCounts(!!isAdmin);
@@ -939,13 +940,13 @@ const AdminDashboard: React.FC = () => {
   // Determine active category based on current tab
   const getActiveCategory = () => {
     if (['analytics', 'engagement', 'user-heatmap', 'plausible'].includes(activeTab)) return 'overview';
-    if (['submissions', 'new-kingdoms', 'claims', 'corrections', 'kvk-errors', 'kvk-bulk'].includes(activeTab)) return 'review';
+    if (['submissions', 'new-kingdoms', 'claims', 'corrections', 'kvk-errors', 'kvk-bulk', 'review-reports'].includes(activeTab)) return 'review';
     if (['transfer-hub', 'transfer-status', 'transfer-apps', 'transfer-outcomes'].includes(activeTab)) return 'transfer';
     if (['finance'].includes(activeTab)) return 'finance';
     return 'operations';
   };
   const activeCategory = getActiveCategory();
-  const totalPending = pendingCounts.submissions + pendingCounts.claims + pendingCounts.corrections + pendingCounts.transfers + pendingCounts.kvkErrors + pendingCounts.feedback;
+  const totalPending = pendingCounts.submissions + pendingCounts.claims + pendingCounts.corrections + pendingCounts.transfers + pendingCounts.kvkErrors + pendingCounts.feedback + (pendingCounts.reviewReports || 0);
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '1rem', backgroundColor: '#0a0a0a', minHeight: '100vh' }}>
@@ -1087,6 +1088,8 @@ const AdminDashboard: React.FC = () => {
           onBulkReview={bulkReviewKvkErrors}
           onClearSelection={clearSelection}
         />
+      ) : activeTab === 'review-reports' ? (
+        <ReviewReportsTab filter={dashboardSearch} />
       ) : activeTab === 'kvk-bulk' ? (
         <KvKBulkMatchupTab />
       ) : activeTab === 'transfer-hub' ? (

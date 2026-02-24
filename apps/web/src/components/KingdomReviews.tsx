@@ -1098,7 +1098,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                         
                         {/* Reply, Share & Report buttons */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                          {user && !isOwnReview && (
+                          {user && (
                             <button
                               onClick={() => {
                                 setReplyingToId(replyingToId === review.id ? null : review.id);

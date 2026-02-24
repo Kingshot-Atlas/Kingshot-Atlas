@@ -145,7 +145,8 @@ export type AdminTab =
   | 'battle-planner'
   | 'spotlight'
   | 'finance'
-  | 'kvk-bulk';
+  | 'kvk-bulk'
+  | 'review-reports';
 
 export type AdminCategory = 'overview' | 'review' | 'transfer' | 'finance' | 'operations';
 
@@ -156,6 +157,7 @@ export interface PendingCounts {
   transfers: number;
   kvkErrors: number;
   feedback: number;
+  reviewReports: number;
 }
 
 export interface ApiHealth {

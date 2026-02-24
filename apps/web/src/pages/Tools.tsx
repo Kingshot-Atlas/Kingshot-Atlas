@@ -338,6 +338,24 @@ const Tools: React.FC = () => {
       accentColor: '#22d3ee'
     },
     {
+      title: t('tools.baseDesignerTitle', 'Alliance Base Designer'),
+      description: t('tools.baseDesignerDesc', 'Plan your alliance base layout on a grid. Place cities, traps, and buildings to optimize positioning. Save, share, and collaborate on designs.'),
+      tagline: t('tools.baseDesignerTagline', 'Design your fortress. Dominate the map.'),
+      icon: (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="3" width="7" height="7"/>
+          <rect x="14" y="3" width="7" height="7"/>
+          <rect x="14" y="14" width="7" height="7"/>
+          <rect x="3" y="14" width="7" height="7"/>
+          <line x1="10" y1="6.5" x2="14" y2="6.5"/>
+          <line x1="6.5" y1="10" x2="6.5" y2="14"/>
+        </svg>
+      ),
+      href: '/tools/base-designer/about',
+      accentColor: '#f97316',
+      ctaLabel: t('tools.learnMore', 'Learn More'),
+    },
+    {
       title: t('tools.calcTitle', 'Gaming Calculators'),
       description: t('tools.calcDesc', 'Resource planners, upgrade costs, speedup estimates. Math so you don\'t have to.'),
       tagline: t('tools.calcTagline', 'Calculate smarter. Grow faster.'),

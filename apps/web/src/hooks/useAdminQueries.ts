@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { getAuthHeaders } from '../services/authHeaders';
 import { logger } from '../utils/logger';
 import { statusService } from '../services/statusService';
+import type { PendingCounts } from '../components/admin/types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
@@ -23,15 +24,6 @@ export const adminKeys = {
 };
 
 // ─── Pending Counts ───────────────────────────────────────────
-interface PendingCounts {
-  submissions: number;
-  claims: number;
-  corrections: number;
-  transfers: number;
-  kvkErrors: number;
-  feedback: number;
-}
-
 async function fetchPendingCounts(): Promise<PendingCounts> {
   const counts: PendingCounts = {
     submissions: 0,
@@ -40,6 +32,7 @@ async function fetchPendingCounts(): Promise<PendingCounts> {
     transfers: 0,
     kvkErrors: 0,
     feedback: 0,
+    reviewReports: 0,
   };
 
   // Corrections from Supabase
@@ -94,6 +87,17 @@ async function fetchPendingCounts(): Promise<PendingCounts> {
         .select('*', { count: 'exact', head: true })
         .eq('status', 'new');
       counts.feedback = count || 0;
+    } catch { /* Table might not exist yet */ }
+  }
+
+  // Review reports from Supabase
+  if (supabase) {
+    try {
+      const { count } = await supabase
+        .from('review_reports')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending');
+      counts.reviewReports = count || 0;
     } catch { /* Table might not exist yet */ }
   }
 

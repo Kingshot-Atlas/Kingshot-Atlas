@@ -141,6 +141,7 @@ export const AdminTabNav: React.FC<AdminTabNavProps> = ({
         { id: 'claims', label: 'Claims', count: pendingCounts.claims },
         { id: 'corrections', label: 'Corrections', count: pendingCounts.corrections },
         { id: 'kvk-errors', label: 'KvK Errors', count: pendingCounts.kvkErrors },
+        { id: 'review-reports', label: 'Review Reports', count: pendingCounts.reviewReports },
         { id: 'kvk-bulk', label: 'KvK Bulk / Reports', count: 0 },
       ].map(tab => (
         <SubTabButton
