@@ -187,7 +187,8 @@ const GridCanvas: React.FC<GridCanvasProps> = ({ designer, canvasWidth, canvasHe
     for (const b of buildings) {
       const bType = getBuildingType(b.typeId);
       if (!bType?.territoryRadius) continue;
-      const r = bType.territoryRadius;
+      // Effective radius accounts for building size so territoryRadius means tiles past the edge
+      const r = bType.territoryRadius + (bType.size - 1) / 2;
       const bcx = b.x + bType.size / 2;
       const bcy = b.y + bType.size / 2;
       // Bounding box of territory in grid coords

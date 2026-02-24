@@ -74,7 +74,9 @@ export function useBaseDesigner() {
       const bcy = b.y + bType.size / 2;
       const dx = gx + 0.5 - bcx;
       const dy = gy + 0.5 - bcy;
-      if (Math.abs(dx) <= bType.territoryRadius && Math.abs(dy) <= bType.territoryRadius) return true;
+      // Effective radius accounts for building size so territoryRadius means tiles past the edge
+      const effectiveR = bType.territoryRadius + (bType.size - 1) / 2;
+      if (Math.abs(dx) <= effectiveR && Math.abs(dy) <= effectiveR) return true;
     }
     return false;
   }, [buildings]);
