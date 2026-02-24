@@ -811,7 +811,9 @@
     "other": "Sonstiges",
     "detailsOptional": "Details (optional)",
     "additionalContext": "Zusätzliche Informationen...",
-    "submitReport": "Meldung einreichen"
+    "submitReport": "Meldung einreichen",
+    "showingOf": "Zeige {{visible}} von {{total}}",
+    "viewMore": "Mehr anzeigen"
   },
   "scoreBreakdown": {
     "title": "Atlas-Wertung Aufschlüsselung",
@@ -1578,6 +1580,8 @@
     "availableSlots": "Verfügbare Plätze",
     "detail": "Detail",
     "reviewCount": "{{count}} Bewertung(en)",
+    "showingTopReviews": "Zeige die {{count}} besten von {{total}} Bewertungen",
+    "seeAllReviews": "Alle Bewertungen im Königreich-Profil ansehen →",
     "fundedListingsPromo": "✨ Finanzierte Einträge erhalten Schimmer-Rahmen, Glüheffekte & mehr Sichtbarkeit",
     "share": "Teilen",
     "linkCopied": "Link kopiert!",
@@ -3098,5 +3102,8 @@
     "prepCta": "Prep-Ergebnis Hinzufügen",
     "battleMessage": "Die KvK-Burgschlacht ist vorbei! Reiche dein Kampfergebnis ein.",
     "battleCta": "Kampfergebnis Hinzufügen"
+  },
+  "errors": {
+    "pageNotFound": "Diese Seite existiert nicht. Sie wurde möglicherweise verschoben oder entfernt."
   }
 }

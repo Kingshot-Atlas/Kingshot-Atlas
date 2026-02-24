@@ -78,6 +78,7 @@ const KingdomProfile: React.FC = () => {
   const [showReportModal, setShowReportModal] = useState(false);
   const [showKvKErrorModal, setShowKvKErrorModal] = useState(false);
   const [showFundModal, setShowFundModal] = useState(false);
+  const [fundConfetti, setFundConfetti] = useState(false);
 
   // React Query hooks (ADR-022 migration)
   const kNum = kingdomNumber ? parseInt(kingdomNumber) : undefined;
@@ -90,12 +91,21 @@ const KingdomProfile: React.FC = () => {
   const { data: aggregateRating = null } = useKingdomAggregateRating(kNum);
   const location = useLocation();
   
-  // Auto-open fund modal when visiting /kingdom/{number}/fund
+  // Auto-open fund modal when visiting /kingdom/{number}/fund or returning from Stripe payment
   useEffect(() => {
     if (location.pathname.endsWith('/fund') && kingdom) {
       setShowFundModal(true);
     }
-  }, [location.pathname, kingdom]);
+    const params = new URLSearchParams(location.search);
+    if (params.get('fund_success') === '1' && kingdom) {
+      setShowFundModal(true);
+      setFundConfetti(true);
+      // Clean up URL param
+      params.delete('fund_success');
+      const cleanSearch = params.toString();
+      navigate(`${location.pathname}${cleanSearch ? `?${cleanSearch}` : ''}`, { replace: true });
+    }
+  }, [location.pathname, location.search, kingdom, navigate]);
 
 
   // Expand/collapse all state for collapsible sections
@@ -688,8 +698,10 @@ const KingdomProfile: React.FC = () => {
             currentTier={fundData?.tier ?? 'standard'}
             gracePeriodUntil={fundData?.gracePeriodUntil}
             transactions={fundTransactions}
+            showConfetti={fundConfetti}
             onClose={() => {
               setShowFundModal(false);
+              setFundConfetti(false);
               // If we came from /fund route, navigate back to the profile
               if (location.pathname.endsWith('/fund')) {
                 navigate(`/kingdom/${kingdom.kingdom_number}`, { replace: true });

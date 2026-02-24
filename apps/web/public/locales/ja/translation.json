@@ -811,7 +811,9 @@
     "other": "その他",
     "detailsOptional": "詳細（任意）",
     "additionalContext": "追加の背景情報...",
-    "submitReport": "報告を送信"
+    "submitReport": "報告を送信",
+    "showingOf": "{{total}}件中{{visible}}件を表示",
+    "viewMore": "もっと見る"
   },
   "scoreBreakdown": {
     "title": "Atlasスコア内訳",
@@ -1578,6 +1580,8 @@
     "availableSlots": "空きスロット",
     "detail": "詳細",
     "reviewCount": "{{count}}件のレビュー",
+    "showingTopReviews": "{{total}}件のレビュー中、上位{{count}}件を表示",
+    "seeAllReviews": "王国プロフィールで全レビューを見る →",
     "fundedListingsPromo": "✨ ファンド付きリスティングはシマーボーダー、グローエフェクト等でより目立ちます",
     "share": "共有",
     "linkCopied": "リンクをコピーしました！",
@@ -3098,5 +3102,8 @@
     "prepCta": "準備結果を追加",
     "battleMessage": "KvK城バトルが終了しました！バトル結果を提出してください。",
     "battleCta": "バトル結果を追加"
+  },
+  "errors": {
+    "pageNotFound": "このページは存在しません。移動または削除された可能性があります。"
   }
 }

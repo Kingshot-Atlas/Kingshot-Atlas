@@ -811,7 +811,9 @@
     "other": "Autre",
     "detailsOptional": "Détails (facultatif)",
     "additionalContext": "Tout contexte supplémentaire...",
-    "submitReport": "Soumettre le Signalement"
+    "submitReport": "Soumettre le Signalement",
+    "showingOf": "Affichage de {{visible}} sur {{total}}",
+    "viewMore": "Voir Plus"
   },
   "scoreBreakdown": {
     "title": "Détail du Score Atlas",
@@ -1578,6 +1580,8 @@
     "availableSlots": "Places Disponibles",
     "detail": "Détail",
     "reviewCount": "{{count}} avis",
+    "showingTopReviews": "Affichage des {{count}} meilleurs sur {{total}} avis",
+    "seeAllReviews": "Voir tous les avis sur le profil du royaume →",
     "fundedListingsPromo": "✨ Les annonces financées obtiennent des bordures scintillantes, des effets de lumière et plus de visibilité",
     "share": "Partager",
     "linkCopied": "Lien Copié !",
@@ -3098,5 +3102,8 @@
     "prepCta": "Ajouter Résultat Prep",
     "battleMessage": "La Bataille du Château KvK est terminée ! Soumettez votre résultat de bataille.",
     "battleCta": "Ajouter Résultat de Bataille"
+  },
+  "errors": {
+    "pageNotFound": "Cette page n'existe pas. Elle a peut-être été déplacée ou supprimée."
   }
 }

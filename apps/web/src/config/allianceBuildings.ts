@@ -14,6 +14,7 @@ export interface BuildingType {
   description: string;
   maxCount?: number; // optional limit per design
   labelField?: 'playerName' | 'timeSlot'; // what kind of custom label this building supports
+  territoryRadius?: number; // radius (in grid squares) of alliance territory this building provides
 }
 
 export const BUILDING_TYPES: BuildingType[] = [
@@ -61,6 +62,7 @@ export const BUILDING_TYPES: BuildingType[] = [
     icon: '🏳',
     category: 'relocatable',
     description: 'Alliance Banner (1×1). R5/R4 can relocate.',
+    territoryRadius: 3,
   },
   {
     id: 'hq',
@@ -72,6 +74,7 @@ export const BUILDING_TYPES: BuildingType[] = [
     category: 'relocatable',
     description: 'Alliance Headquarters (3×3). R5/R4 can relocate.',
     maxCount: 1,
+    territoryRadius: 6,
   },
   // Obstacles (game-placed, immovable)
   {

@@ -39,6 +39,14 @@ export function useKingdomFund(kingdomNumber: number | undefined) {
   });
 }
 
+export interface FundContributor {
+  id: string;
+  username: string | null;
+  linked_username: string | null;
+  avatar_url: string | null;
+  linked_avatar_url: string | null;
+}
+
 export interface FundTransaction {
   id: string;
   kingdom_number: number;
@@ -50,6 +58,7 @@ export interface FundTransaction {
   stripe_payment_intent_id: string | null;
   user_id: string | null;
   created_at: string;
+  contributor?: FundContributor | null;
 }
 
 /**
@@ -67,12 +76,38 @@ export function useFundTransactions(kingdomNumber: number | undefined) {
         .order('created_at', { ascending: false })
         .limit(50);
       if (error) throw error;
-      return (data || []).map((t: Record<string, unknown>) => ({
+
+      const transactions = (data || []).map((t: Record<string, unknown>) => ({
         ...t,
         amount: Number(t.amount),
         balance_before: Number(t.balance_before),
         balance_after: Number(t.balance_after),
       })) as FundTransaction[];
+
+      // Batch-fetch contributor profiles for contribution transactions
+      const userIds = [...new Set(
+        transactions
+          .filter((t) => t.type === 'contribution' && t.user_id)
+          .map((t) => t.user_id!)
+      )];
+
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, username, linked_username, avatar_url, linked_avatar_url')
+          .in('id', userIds);
+
+        if (profiles) {
+          const profileMap = new Map(profiles.map((p: FundContributor) => [p.id, p]));
+          for (const tx of transactions) {
+            if (tx.user_id && profileMap.has(tx.user_id)) {
+              tx.contributor = profileMap.get(tx.user_id) || null;
+            }
+          }
+        }
+      }
+
+      return transactions;
     },
     enabled: !!kingdomNumber,
     staleTime: 60 * 1000,

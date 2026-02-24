@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { neonGlow, FONT_DISPLAY, colors } from '../utils/styles';
-import type { FundTransaction } from '../hooks/useKingdomProfileQueries';
+import type { FundTransaction, FundContributor } from '../hooks/useKingdomProfileQueries';
 
 // =============================================
 // STRIPE PAYMENT LINKS (Kingdom Fund Contribution)
@@ -81,13 +81,95 @@ const KingdomFundContribute: React.FC<{
   currentTier?: string;
   gracePeriodUntil?: string | null;
   transactions?: FundTransaction[];
+  showConfetti?: boolean;
   onClose: () => void;
-}> = ({ kingdomNumber, currentBalance = 0, currentTier = 'standard', gracePeriodUntil, transactions = [], onClose }) => {
+}> = ({ kingdomNumber, currentBalance = 0, currentTier = 'standard', gracePeriodUntil, transactions = [], showConfetti = false, onClose }) => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const isMobile = useIsMobile();
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<FundTab>('chipIn');
+  const [showAllTransactions, setShowAllTransactions] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const confettiContainerRef = useRef<HTMLDivElement>(null);
+  const [hasShownConfetti, setHasShownConfetti] = useState(false);
+
+  // Progress to next tier
+  const nextTierInfo = useMemo(() => {
+    const tiers = ['standard', 'bronze', 'silver', 'gold'] as const;
+    const currentIdx = tiers.indexOf(currentTier as (typeof tiers)[number]);
+    if (currentIdx >= tiers.length - 1) return null;
+    const nextTier = tiers[currentIdx + 1] as keyof typeof TIER_THRESHOLDS;
+    const nextThreshold = TIER_THRESHOLDS[nextTier];
+    const prevThreshold = TIER_THRESHOLDS[currentTier as keyof typeof TIER_THRESHOLDS] || 0;
+    const range = nextThreshold - prevThreshold;
+    const progress = range > 0 ? Math.min(1, Math.max(0, (currentBalance - prevThreshold) / range)) : 0;
+    return { nextTier, nextThreshold, progress, amountNeeded: Math.max(0, nextThreshold - currentBalance) };
+  }, [currentBalance, currentTier]);
+
+  // Aggregate contributor data
+  const { recentContributors, topContributorId } = useMemo(() => {
+    const contributions = transactions.filter((tx) => tx.type === 'contribution' && tx.contributor);
+    const aggregated = new Map<string, { contributor: FundContributor; totalAmount: number; latestDate: string }>();
+    for (const tx of contributions) {
+      if (!tx.user_id || !tx.contributor) continue;
+      const existing = aggregated.get(tx.user_id);
+      if (existing) {
+        existing.totalAmount += tx.amount;
+        if (tx.created_at > existing.latestDate) existing.latestDate = tx.created_at;
+      } else {
+        aggregated.set(tx.user_id, { contributor: tx.contributor, totalAmount: tx.amount, latestDate: tx.created_at });
+      }
+    }
+    const sorted = [...aggregated.values()].sort((a, b) => b.totalAmount - a.totalAmount);
+    const topId = sorted[0]?.contributor.id || null;
+    const recent = [...aggregated.values()]
+      .sort((a, b) => b.latestDate.localeCompare(a.latestDate))
+      .slice(0, 5)
+      .map((c) => c.contributor);
+    return { recentContributors: recent, topContributorId: topId };
+  }, [transactions]);
+
+  const getDisplayInfo = useCallback((c: FundContributor) => ({
+    name: c.linked_username || c.username || 'Anonymous',
+    avatar: c.linked_avatar_url || c.avatar_url || null,
+  }), []);
+
+  // Confetti animation
+  const triggerConfetti = useCallback(() => {
+    if (!confettiContainerRef.current || hasShownConfetti) return;
+    setHasShownConfetti(true);
+    const container = confettiContainerRef.current;
+    const confettiColors = ['#22c55e', '#fbbf24', '#22d3ee', '#a855f7', '#fff'];
+    for (let i = 0; i < 40; i++) {
+      const piece = document.createElement('div');
+      piece.style.cssText = `
+        position: absolute; width: ${Math.random() * 8 + 4}px; height: ${Math.random() * 8 + 4}px;
+        background: ${confettiColors[Math.floor(Math.random() * confettiColors.length)]};
+        left: ${Math.random() * 100}%; top: 0;
+        border-radius: ${Math.random() > 0.5 ? '50%' : '0'};
+        pointer-events: none; opacity: 1;
+        transform: rotate(${Math.random() * 360}deg);
+        animation: fund-confetti ${1.5 + Math.random()}s ease-out forwards;
+      `;
+      container.appendChild(piece);
+      setTimeout(() => piece.remove(), 2500);
+    }
+  }, [hasShownConfetti]);
+
+  useEffect(() => {
+    if (!showConfetti) return;
+    const timer = setTimeout(triggerConfetti, 400);
+    return () => clearTimeout(timer);
+  }, [showConfetti, triggerConfetti]);
+
+  const handleShareLink = useCallback(() => {
+    const url = `${window.location.origin}/kingdom/${kingdomNumber}/fund`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2000);
+    });
+  }, [kingdomNumber]);
 
   // Grace period should only show when the kingdom is at risk of losing its tier.
   // If balance meets/exceeds the current tier threshold, the grace period doesn't apply.
@@ -137,7 +219,7 @@ const KingdomFundContribute: React.FC<{
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: '0.75rem' }}>
+        <div style={{ textAlign: 'center', marginBottom: '0.75rem', position: 'relative' }}>
           <h2 style={{
             fontFamily: FONT_DISPLAY,
             fontSize: isMobile ? '1.1rem' : '1.25rem',
@@ -149,6 +231,23 @@ const KingdomFundContribute: React.FC<{
           <p style={{ color: '#6b7280', fontSize: '0.8rem', margin: 0 }}>
             {t('kingdomFund.boostDesc')}
           </p>
+          <button
+            onClick={handleShareLink}
+            style={{
+              position: 'absolute', top: 0, right: 0,
+              background: copiedLink ? '#22c55e20' : '#ffffff08',
+              border: `1px solid ${copiedLink ? '#22c55e40' : '#333'}`,
+              borderRadius: '6px',
+              color: copiedLink ? '#22c55e' : '#9ca3af',
+              cursor: 'pointer', fontSize: '0.7rem', padding: '0.25rem 0.6rem',
+              transition: 'all 0.2s',
+              display: 'flex', alignItems: 'center', gap: '0.3rem',
+              fontWeight: 500,
+            }}
+            title={t('kingdomFund.shareFundLink', 'Share fund link')}
+          >
+            {copiedLink ? '✓' : '🔗'} {copiedLink ? t('kingdomFund.copied', 'Copied!') : t('kingdomFund.share', 'Share')}
+          </button>
         </div>
 
         {/* Tabs */}
@@ -239,6 +338,30 @@ const KingdomFundContribute: React.FC<{
             </div>
           </div>
         </div>
+
+        {/* Progress to Next Tier */}
+        {nextTierInfo && (
+          <div style={{ marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
+              <span style={{ color: '#6b7280', fontSize: '0.65rem', textTransform: 'capitalize' }}>
+                {t('kingdomFund.progressToTier', 'Progress to {{tier}}', { tier: nextTierInfo.nextTier })}
+              </span>
+              <span style={{ color: TIER_COLORS[nextTierInfo.nextTier] || '#6b7280', fontSize: '0.65rem', fontWeight: '600' }}>
+                ${nextTierInfo.amountNeeded.toFixed(0)} {t('kingdomFund.needed', 'needed')}
+              </span>
+            </div>
+            <div style={{ height: '6px', backgroundColor: '#1a1a1a', borderRadius: '3px', overflow: 'hidden' }}>
+              <div style={{
+                height: '100%',
+                width: `${nextTierInfo.progress * 100}%`,
+                backgroundColor: TIER_COLORS[nextTierInfo.nextTier] || '#22d3ee',
+                borderRadius: '3px',
+                transition: 'width 0.5s ease',
+                minWidth: nextTierInfo.progress > 0 ? '4px' : '0',
+              }} />
+            </div>
+          </div>
+        )}
 
         {/* ===== CHIP IN TAB ===== */}
         {activeTab === 'chipIn' && (
@@ -448,43 +571,97 @@ const KingdomFundContribute: React.FC<{
               </span>
             </div>
 
+            {/* Recent Contributors */}
+            {recentContributors.length > 0 && (
+              <div style={{ marginBottom: '0.75rem' }}>
+                <span style={{ color: '#6b7280', fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: '600' }}>
+                  {t('kingdomFund.recentContributors', 'Recent Contributors')}
+                </span>
+                <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.4rem', overflowX: 'auto', paddingBottom: '0.25rem' }}>
+                  {recentContributors.map((c) => {
+                    const info = getDisplayInfo(c);
+                    const isTop = topContributorId === c.id;
+                    return (
+                      <div key={c.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.2rem', minWidth: '48px' }}>
+                        <div style={{ position: 'relative' }}>
+                          {info.avatar ? (
+                            <img src={info.avatar} alt="" style={{ width: 36, height: 36, borderRadius: '50%', border: isTop ? '2px solid #fbbf24' : '2px solid #2a2a2a', objectFit: 'cover' }} referrerPolicy="no-referrer" />
+                          ) : (
+                            <div style={{ width: 36, height: 36, borderRadius: '50%', backgroundColor: '#1a1a1a', border: isTop ? '2px solid #fbbf24' : '2px solid #2a2a2a', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280', fontSize: '0.75rem', fontWeight: '600' }}>
+                              {info.name.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                          {isTop && <span style={{ position: 'absolute', top: -6, right: -6, fontSize: '0.65rem' }}>🏆</span>}
+                        </div>
+                        <span style={{ color: '#9ca3af', fontSize: '0.55rem', maxWidth: '52px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'center' }}>
+                          {info.name}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Transaction List */}
             {transactions.length > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                {transactions.slice(0, 10).map((tx) => {
+                {transactions.slice(0, showAllTransactions ? undefined : 10).map((tx) => {
                   const isDepletion = tx.type === 'depletion';
                   const isContribution = tx.type === 'contribution';
+                  const contributor = isContribution && tx.contributor ? getDisplayInfo(tx.contributor) : null;
                   return (
                     <div key={tx.id} style={{
                       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                       padding: '0.4rem 0.6rem',
                       backgroundColor: '#0a0a0a', borderRadius: '8px',
                       border: `1px solid ${isDepletion ? '#ef444415' : '#1a1a1a'}`,
+                      gap: '0.4rem',
                     }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        <span style={{ fontSize: '0.85rem' }}>{isDepletion ? '📉' : isContribution ? '💰' : '🔧'}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', minWidth: 0, flex: 1 }}>
+                        {contributor?.avatar ? (
+                          <img src={contributor.avatar} alt="" style={{ width: 22, height: 22, borderRadius: '50%', flexShrink: 0, border: topContributorId === tx.user_id ? '1.5px solid #fbbf24' : '1.5px solid #2a2a2a', objectFit: 'cover' }} referrerPolicy="no-referrer" />
+                        ) : contributor ? (
+                          <div style={{ width: 22, height: 22, borderRadius: '50%', backgroundColor: '#1a1a1a', border: topContributorId === tx.user_id ? '1.5px solid #fbbf24' : '1.5px solid #2a2a2a', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280', fontSize: '0.55rem', fontWeight: '600', flexShrink: 0 }}>
+                            {contributor.name.charAt(0).toUpperCase()}
+                          </div>
+                        ) : (
+                          <span style={{ fontSize: '0.85rem' }}>{isDepletion ? '📉' : isContribution ? '💰' : '🔧'}</span>
+                        )}
                         <span style={{
                           color: isDepletion ? '#ef4444' : '#22c55e',
                           fontWeight: '600', fontSize: '0.85rem',
                         }}>
                           {isDepletion ? '' : '+'}${Math.abs(tx.amount).toFixed(2)}
                         </span>
-                        <span style={{ color: '#4b5563', fontSize: '0.65rem' }}>
-                          → ${tx.balance_after.toFixed(2)}
-                        </span>
+                        {contributor ? (
+                          <span style={{ color: '#6b7280', fontSize: '0.6rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {contributor.name}{topContributorId === tx.user_id ? ' 🏆' : ''}
+                          </span>
+                        ) : (
+                          <span style={{ color: '#4b5563', fontSize: '0.65rem' }}>
+                            → ${tx.balance_after.toFixed(2)}
+                          </span>
+                        )}
                       </div>
-                      <span style={{ color: '#4b5563', fontSize: '0.65rem' }}>
+                      <span style={{ color: '#4b5563', fontSize: '0.65rem', flexShrink: 0 }}>
                         {new Date(tx.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                       </span>
                     </div>
                   );
                 })}
-                {transactions.length > 10 && (
-                  <div style={{ textAlign: 'center', marginTop: '0.35rem' }}>
-                    <span style={{ color: '#4b5563', fontSize: '0.65rem' }}>
-                      {t('kingdomFund.moreTransactions', '+ {{count}} more transactions', { count: transactions.length - 10 })}
-                    </span>
-                  </div>
+                {!showAllTransactions && transactions.length > 10 && (
+                  <button
+                    onClick={() => setShowAllTransactions(true)}
+                    style={{
+                      width: '100%', padding: '0.4rem', marginTop: '0.35rem',
+                      backgroundColor: 'transparent', border: '1px solid #2a2a2a',
+                      borderRadius: '8px', color: '#9ca3af', fontSize: '0.7rem',
+                      cursor: 'pointer', transition: 'all 0.2s',
+                    }}
+                  >
+                    {t('kingdomFund.viewAll', 'View All {{count}} Transactions', { count: transactions.length })}
+                  </button>
                 )}
               </div>
             ) : (
@@ -522,6 +699,20 @@ const KingdomFundContribute: React.FC<{
             </button>
           </>
         )}
+
+        {/* Confetti Container */}
+        <div
+          ref={confettiContainerRef}
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, pointerEvents: 'none', zIndex: 1001, overflow: 'hidden' }}
+        />
+
+        {/* Confetti CSS */}
+        <style>{`
+          @keyframes fund-confetti {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+          }
+        `}</style>
       </div>
     </div>
   );

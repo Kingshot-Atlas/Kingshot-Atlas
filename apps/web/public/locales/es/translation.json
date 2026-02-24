@@ -811,7 +811,9 @@
     "other": "Otro",
     "detailsOptional": "Detalles (opcional)",
     "additionalContext": "Cualquier contexto adicional...",
-    "submitReport": "Enviar Reporte"
+    "submitReport": "Enviar Reporte",
+    "showingOf": "Mostrando {{visible}} de {{total}}",
+    "viewMore": "Ver Más"
   },
   "scoreBreakdown": {
     "title": "Desglose del Índice Atlas",
@@ -1578,6 +1580,8 @@
     "availableSlots": "Plazas Disponibles",
     "detail": "Detalle",
     "reviewCount": "{{count}} reseña(s)",
+    "showingTopReviews": "Mostrando las {{count}} mejores de {{total}} reseñas",
+    "seeAllReviews": "Ver todas las reseñas en el perfil del reino →",
     "fundedListingsPromo": "✨ Los listados financiados obtienen bordes brillantes, efectos de brillo y más visibilidad",
     "share": "Compartir",
     "linkCopied": "¡Enlace Copiado!",
@@ -3098,5 +3102,8 @@
     "prepCta": "Agregar Resultado de Prep",
     "battleMessage": "¡La Batalla de Castillo de KvK ha terminado! Envía tu resultado de batalla.",
     "battleCta": "Agregar Resultado de Batalla"
+  },
+  "errors": {
+    "pageNotFound": "Esta página no existe. Puede haber sido movida o eliminada."
   }
 }

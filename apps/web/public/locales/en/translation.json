@@ -811,7 +811,9 @@
     "other": "Other",
     "detailsOptional": "Details (optional)",
     "additionalContext": "Any additional context...",
-    "submitReport": "Submit Report"
+    "submitReport": "Submit Report",
+    "showingOf": "Showing {{visible}} of {{total}}",
+    "viewMore": "View More"
   },
   "scoreBreakdown": {
     "title": "Atlas Score Breakdown",
@@ -1578,6 +1580,8 @@
     "availableSlots": "Available Slots",
     "detail": "Detail",
     "reviewCount": "{{count}} review(s)",
+    "showingTopReviews": "Showing top {{count}} of {{total}} reviews",
+    "seeAllReviews": "See all reviews on kingdom profile →",
     "fundedListingsPromo": "✨ Funded listings get shimmer borders, glow effects & more visibility",
     "share": "Share",
     "linkCopied": "Link Copied!",
@@ -3098,5 +3102,8 @@
     "subtitle": "Your account is linked. Here's what Atlas has for you.",
     "title": "Welcome to Atlas",
     "viewScore": "View Score"
+  },
+  "errors": {
+    "pageNotFound": "This page doesn't exist. It may have been moved or removed."
   }
 }

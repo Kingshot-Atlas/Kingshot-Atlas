@@ -3102,5 +3102,8 @@
     "prepCta": "Agregar Resultado de Prep",
     "battleMessage": "¡La Batalla de Castillo de KvK ha terminado! Envía tu resultado de batalla.",
     "battleCta": "Agregar Resultado de Batalla"
+  },
+  "errors": {
+    "pageNotFound": "Esta página no existe. Puede haber sido movida o eliminada."
   }
 }

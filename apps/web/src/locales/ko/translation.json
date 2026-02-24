@@ -3102,5 +3102,8 @@
     "prepCta": "준비 결과 추가",
     "battleMessage": "KvK 성 전투가 끝났습니다! 전투 결과를 제출하세요.",
     "battleCta": "전투 결과 추가"
+  },
+  "errors": {
+    "pageNotFound": "이 페이지는 존재하지 않습니다. 이동되었거나 삭제되었을 수 있습니다."
   }
 }

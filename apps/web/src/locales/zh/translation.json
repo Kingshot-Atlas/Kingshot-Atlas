@@ -1351,7 +1351,8 @@
     "draftRestored": "验证进度已恢复",
     "pollAttempt": "第 {{count}} 次尝试（共 {{max}} 次）· 每 {{seconds}} 秒重新检查",
     "pollTimeout": "验证在 {{seconds}} 秒后超时。请确保游戏名中包含\"{{code}}\"，然后重试。",
-    "polling": "正在检查您的游戏名称..."
+    "polling": "正在检查您的游戏名称...",
+    "stopChecking": "停止检查"
   },
   "transferHub": {
     "heroTitle1": "转服",
@@ -2495,9 +2496,23 @@
     "send": "发送",
     "translate": "翻译",
     "hideTranslation": "隐藏",
-    "searchPlaceholder": "搜索对话...",
-    "noSearchResults": "未找到对话。",
-    "typing": "正在输入"
+    "outcomeSubmitted": "转服结果已提交",
+    "didPlayerTransfer": "该玩家是否已转入您的王国？",
+    "yesTransferred": "是，已转入",
+    "no": "否",
+    "confirmOutcome": "确认转服结果",
+    "declineConfirm": "拒绝此申请？",
+    "yesDecline": "是，拒绝",
+    "markViewed": "标记已查看",
+    "acceptConfirm": "接受此申请？其身份将被公开。",
+    "yesAccept": "是，接受",
+    "cancelApproval": "取消批准",
+    "translating": "翻译中...",
+    "translateAll": "全部翻译",
+    "translationOn": "翻译已开启",
+    "machineTranslation": "机器翻译 · 可能不准确",
+    "moveToWatchlist": "移至关注列表",
+    "addedToWatchlist": "已添加至关注列表"
   },
   "rateKingdom": {
     "title": "评价王国 {{num}}",
@@ -2788,7 +2803,6 @@
     "notesForPlayers": "给玩家的说明",
     "notesPlaceholder": "给王国成员的说明...",
     "optedOut": "已退出",
-    "other": "其他",
     "pageTitle": "备战调度器",
     "qualified": "合格",
     "redirectNote": "提交后将自动跳转",
@@ -2900,32 +2914,6 @@
     "noKingdom": "请先在个人资料中设置您的母国",
     "noResults": "未找到匹配用户"
   },
-  "atlasBot": {
-    "heroSubtitle": "王国情报，直达你的 Discord 服务器。无需切换标签页。无需延迟。只有数据。",
-    "addToServer": "添加到你的服务器",
-    "freeForAll": "所有 Discord 服务器免费",
-    "threeSteps": "三步。三十秒。完成。",
-    "oneSlashAway": "你需要的一切，一个斜杠命令即可。",
-    "tacticalTools": "为协同作战的玩家打造的战术工具。",
-    "freeUsesPerDay": "每天 5 次免费使用",
-    "supportersUnlimited": "Atlas 支持者享有无限使用——每次集结，每场 KvK。",
-    "becomeSupporter": "成为支持者",
-    "serverDeserves": "你的服务器值得更好的情报。",
-    "playersUseBot": "数十个服务器中的 Kingshot 玩家使用 Atlas 机器人来侦察对手、对比王国和规划转服——无需离开 Discord。",
-    "joinDiscord": "加入我们的 Discord",
-    "allTools": "← 所有工具",
-    "dashboardSubtitle": "你的服务器，你做主。在一个地方配置一切。",
-    "dashGiftCodes": "礼品码",
-    "dashGiftCodesDesc": "新代码发布——你的服务器立即知道。自动发布到你的频道，可选角色提及。",
-    "dashEventReminders": "联盟活动提醒",
-    "dashEventRemindersDesc": "猎熊、维京复仇、剑域对决、三联盟冲突——定时提醒，确保无人错过战斗。",
-    "dashMultiServer": "多服务器管理",
-    "dashMultiServerDesc": "管理多个 Discord 服务器？无缝切换。一个面板，所有配置。",
-    "dashAccessControl": "访问控制",
-    "dashAccessControlDesc": "阻止特定用户访问你的面板。只有合适的人才能管理你服务器的 Bot 配置。",
-    "openDashboard": "打开控制面板",
-    "dashSupporterNote": "Atlas Supporter 专属功能。先邀请 Bot，然后从这里配置。"
-  },
   "baseDesigner": {
     "pageTitle": "联盟基地设计师",
     "heroTitle1": "联盟基地",
@@ -3018,5 +3006,104 @@
     "prepCta": "添加准备结果",
     "battleMessage": "KvK 城堡战已结束！提交你的战斗结果。",
     "battleCta": "添加战斗结果"
+  },
+  "prepLanding": {
+    "featAutoAssign": "自动分配时段",
+    "featAutoAssignDesc": "玩家提交可用时间和加速道具。系统根据谁贡献最大自动分配30分钟增益时段。无需电子表格，无需猜测。",
+    "featSpeedups": "加速优化",
+    "featSpeedupsDesc": "算法根据每天的增益类型——建造、研究或训练——优先分配加速最多的玩家。每一分钟都很重要。",
+    "featExport": "一键导出",
+    "featExportDesc": "将完整的3天排班导出为CSV。玩家名称、联盟、时段和加速数据——可直接发送至Discord或游戏内聊天。",
+    "featProof": "加速截图证明",
+    "featProofDesc": "玩家提交时上传加速道具库存截图。管理者可在分配时段前验证。信任但需验证。",
+    "featShareLink": "可分享的表单链接",
+    "featShareLinkDesc": "与王国成员分享一个链接。玩家只看到提交表单——简洁明了。他们填写，你管理排班。",
+    "featConflict": "智能冲突检测",
+    "featConflictDesc": "未分配的玩家立即被标记。可用性空档被高亮显示。管理者能准确看到排班需要关注的地方——没有人会被遗漏。",
+    "step1": "创建排班",
+    "step1Desc": "编辑者、协编或备战管理者为其黄金级别王国创建备战排班，并设置可选的提交截止时间。",
+    "step2": "分享表单",
+    "step2Desc": "将表单链接分享给王国玩家。他们提交加速道具、可用时间和截图证明。",
+    "step3": "自动分配与导出",
+    "step3Desc": "一键自动分配最优时段。检查调整后导出排班并分享给王国。",
+    "heroSubtitle": "你的黄金级别王国已获得精英工具。别再因为混乱的增益排班而丢失准备阶段积分——Atlas将混乱变为精密计时的机器，最大化每个30分钟时段。",
+    "goldTierBadge": "黄金级别王国功能",
+    "goldTierNote": "通过王国基金达到黄金级别，解锁此功能和其他高级王国工具。",
+    "openScheduler": "打开调度器",
+    "ctaNote": "黄金级别王国的编辑者、协编和备战管理者可以创建和管理排班。",
+    "threeSteps": "三个步骤。一个有序的王国。",
+    "featuresSubtitle": "每个功能都因管理备战排班曾是噩梦而存在。直到现在。",
+    "problemTitle": "你的王国有200名玩家。每天48个增益时段。算算看。",
+    "problemP1": "现在你的备战管理者可能在同时处理一个Google表格、一个已有500条消息的Discord帖子和一个头疼。玩家在不同时区发布可用时间。没人知道谁的加速最好。一半时段分给了根本不会出现的人。",
+    "problemP2": "KvK备战调度器将所有信息收集在一个表单中——加速道具、可用时间、截图证明——提交截止时间以24小时UTC格式显示（同时显示你的本地时间）。然后根据每天增益类型自动分配给贡献最大的人。周一建造？系统知道谁的建造加速最多并安排最佳时段。周二研究？同样逻辑，不同数据。",
+    "problemP3": "未分配的玩家立即被标记。空闲时段被高亮显示。管理者能准确看到哪里有缺口，并可以手动将任何人分配到任何时段进行覆盖。",
+    "punchline": "这不是排班。这是战略资源分配。",
+    "whoTitle": "谁使用备战调度器？",
+    "whoEditors": "王国编辑者和协编",
+    "whoEditorsDesc": "为王国创建排班。指派备战管理者运行流程。完全控制排班生命周期。",
+    "whoPrepManagers": "备战管理者",
+    "whoPrepManagersDesc": "由编辑者指派负责日常运营。审核提交、自动分配时段、导出排班、处理变更请求。",
+    "whoPlayers": "王国玩家",
+    "whoPlayersDesc": "填写表单。提交加速道具、可用时间和证明。获得分配的30分钟时段。准时到达并增益。",
+    "getStarted": "开始使用",
+    "ctaTitle": "准备好组织你的王国了吗？",
+    "ctaDesc": "你王国的备战阶段不必混乱。调度器将其变为精简的、数据驱动的流程。",
+    "goldBadge": "黄金级别功能",
+    "goldDesc": "备战调度器适用于黄金级别王国。",
+    "goldTitle": "组织你王国的备战阶段",
+    "whoManagers": "备战管理者",
+    "whoManagersDesc": "由编辑者指派负责日常运营。审核提交、自动分配时段、导出排班、处理变更请求。"
+  },
+  "tos": {
+    "pageTitle": "服务条款"
+  },
+  "privacy": {
+    "pageTitle": "隐私政策"
+  },
+  "footer": {
+    "trademark": "Kingshot™ 是 Century Games 的商标。所有游戏内容和素材均为其各自所有者的商标和版权。Kingshot Atlas 是一个独立的粉丝项目——与 Century Games 无关联、无背书、无赞助、无批准。",
+    "about": "关于",
+    "terms": "条款",
+    "privacy": "隐私"
+  },
+  "bpTrial": {
+    "activeDesc": "您在试用期内可以使用战斗规划器。",
+    "activeTitle": "试用中",
+    "offerDesc": "免费试用战斗规划器24小时。无需付款。",
+    "offerTitle": "可免费试用",
+    "openPlanner": "打开规划器",
+    "startTrial": "开始免费试用"
+  },
+  "cancelSurvey": {
+    "annualOffer": "切换为年付，节省17%",
+    "backToAtlas": "返回 Atlas",
+    "feedbackPlaceholder": "告诉我们如何改进...",
+    "heading": "很遗憾看到您离开",
+    "pauseButton": "暂停订阅",
+    "pauseOffer": "还没准备好取消？您可以暂停订阅最多3个月。",
+    "reasonTitle": "您为什么要取消？",
+    "skip": "跳过",
+    "subheading": "在您离开之前，帮助我们为每个人改进 Atlas。",
+    "submit": "提交并取消",
+    "submitting": "提交中...",
+    "switchAnnual": "切换为年付",
+    "thankYou": "感谢您的反馈",
+    "thankYouDesc": "您的订阅已取消。您将保留访问权限直到当前计费周期结束。",
+    "title": "取消订阅"
+  },
+  "conversion": {
+    "cta": "成为支持者",
+    "subtitle": "支持 Atlas 并解锁高级功能",
+    "title": "解锁更多 Atlas 支持者功能"
+  },
+  "onboarding": {
+    "signUpFree": "免费注册",
+    "signupNudge": "创建免费账户以解锁所有功能"
+  },
+  "referral": {
+    "copyLink": "复制链接"
+  },
+  "errors": {
+    "pageNotFound": "此页面不存在。它可能已被移动或删除。"
   }
 }

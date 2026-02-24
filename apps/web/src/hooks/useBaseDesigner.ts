@@ -61,7 +61,25 @@ export function useBaseDesigner() {
     historyIndexRef.current = newHistory.length - 1;
   }, []);
 
-  // Check if a building can be placed at a position (no overlap)
+  // Types that must be placed within alliance territory (HQ/Banner radius)
+  const TERRITORY_REQUIRED_TYPES = new Set(['city', 'trap', 'special']);
+
+  // Check if a cell (gx, gy) is within any territory zone
+  const isCellInTerritory = useCallback((gx: number, gy: number, excludeBuildingId?: string): boolean => {
+    for (const b of buildings) {
+      if (excludeBuildingId && b.id === excludeBuildingId) continue;
+      const bType = getBuildingType(b.typeId);
+      if (!bType?.territoryRadius) continue;
+      const bcx = b.x + bType.size / 2;
+      const bcy = b.y + bType.size / 2;
+      const dx = gx + 0.5 - bcx;
+      const dy = gy + 0.5 - bcy;
+      if (Math.abs(dx) <= bType.territoryRadius && Math.abs(dy) <= bType.territoryRadius) return true;
+    }
+    return false;
+  }, [buildings]);
+
+  // Check if a building can be placed at a position (no overlap + territory rules)
   const canPlace = useCallback((typeId: string, x: number, y: number, excludeId?: string): boolean => {
     const type = getBuildingType(typeId);
     if (!type) return false;
@@ -77,8 +95,18 @@ export function useBaseDesigner() {
         return false;
       }
     }
+
+    // Territory enforcement: city, trap, special must be fully inside territory
+    if (TERRITORY_REQUIRED_TYPES.has(typeId)) {
+      for (let gx = x; gx < x + size; gx++) {
+        for (let gy = y; gy < y + size; gy++) {
+          if (!isCellInTerritory(gx, gy, excludeId)) return false;
+        }
+      }
+    }
+
     return true;
-  }, [buildings]);
+  }, [buildings, isCellInTerritory]);
 
   const placeBuilding = useCallback((typeId: string, x: number, y: number, label?: string): string | null => {
     if (!canPlace(typeId, x, y)) return null;

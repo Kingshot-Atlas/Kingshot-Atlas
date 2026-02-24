@@ -196,8 +196,18 @@ class KvKCorrectionService {
             .eq('kingdom_number', oldOpp).eq('kvk_number', kvkError.kvk_number).eq('opponent_kingdom', kvkError.kingdom_number);
         }
         if (newOpp !== 0) {
-          await supabase.from('kvk_history').update({ opponent_kingdom: kvkError.kingdom_number })
-            .eq('kingdom_number', newOpp).eq('kvk_number', kvkError.kvk_number);
+          // Fetch the primary kingdom's current results so we can mirror them for the opponent
+          const { data: primaryRow } = await supabase.from('kvk_history')
+            .select('prep_result, battle_result')
+            .eq('kingdom_number', kvkError.kingdom_number).eq('kvk_number', kvkError.kvk_number)
+            .maybeSingle();
+          const oppPrep = primaryRow?.prep_result ? this.flipResult(primaryRow.prep_result) : null;
+          const oppBattle = primaryRow?.battle_result ? this.flipResult(primaryRow.battle_result) : null;
+          const oppOverall = (oppPrep && oppBattle) ? this.calculateOverallResult(oppPrep, oppBattle) : null;
+          await supabase.from('kvk_history').upsert({
+            kingdom_number: newOpp, kvk_number: kvkError.kvk_number, opponent_kingdom: kvkError.kingdom_number,
+            prep_result: oppPrep, battle_result: oppBattle, overall_result: oppOverall,
+          }, { onConflict: 'kingdom_number,kvk_number' });
         }
         this.correctionsCache = null; this.lastFetchTime = 0;
         return true;

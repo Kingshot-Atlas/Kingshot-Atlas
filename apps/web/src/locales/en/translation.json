@@ -3102,5 +3102,8 @@
     "subtitle": "Your account is linked. Here's what Atlas has for you.",
     "title": "Welcome to Atlas",
     "viewScore": "View Score"
+  },
+  "errors": {
+    "pageNotFound": "This page doesn't exist. It may have been moved or removed."
   }
 }

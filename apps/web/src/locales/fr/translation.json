@@ -3102,5 +3102,8 @@
     "prepCta": "Ajouter Résultat Prep",
     "battleMessage": "La Bataille du Château KvK est terminée ! Soumettez votre résultat de bataille.",
     "battleCta": "Ajouter Résultat de Bataille"
+  },
+  "errors": {
+    "pageNotFound": "Cette page n'existe pas. Elle a peut-être été déplacée ou supprimée."
   }
 }

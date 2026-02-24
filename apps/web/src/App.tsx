@@ -1,6 +1,6 @@
 import React, { Suspense, lazy } from 'react';
 import * as Sentry from '@sentry/react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, Link } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './lib/queryClient';
 import Header from './components/Header';
@@ -57,6 +57,23 @@ const TermsOfService = lazy(() => import('./pages/TermsOfService'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const AllianceBaseDesigner = lazy(() => import('./pages/AllianceBaseDesigner'));
 const BaseDesignerLanding = lazy(() => import('./pages/BaseDesignerLanding'));
+
+// 404 Not Found component
+const NotFound = () => {
+  const { t } = useTranslation();
+  return (
+    <div style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '2rem' }}>
+      <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🔍</div>
+      <h1 style={{ fontSize: '2rem', fontWeight: 700, color: '#fff', marginBottom: '0.5rem' }}>404</h1>
+      <p style={{ color: '#6b7280', marginBottom: '1.5rem', maxWidth: '400px' }}>
+        {t('errors.pageNotFound', 'This page doesn\'t exist. It may have been moved or removed.')}
+      </p>
+      <Link to="/" style={{ padding: '0.75rem 1.5rem', backgroundColor: '#22d3ee', color: '#000', borderRadius: '8px', fontWeight: 600, textDecoration: 'none' }}>
+        {t('common.backToHome', 'Back to Home')}
+      </Link>
+    </div>
+  );
+};
 
 // Loading fallback component
 const PageLoader = () => (
@@ -163,6 +180,7 @@ function AppContent() {
               <Route path="/privacy" element={<ErrorBoundary><PrivacyPolicy /></ErrorBoundary>} />
               <Route path="/tools/base-designer" element={<ErrorBoundary><AllianceBaseDesigner /></ErrorBoundary>} />
               <Route path="/tools/base-designer/about" element={<ErrorBoundary><BaseDesignerLanding /></ErrorBoundary>} />
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
         </PageTransition>

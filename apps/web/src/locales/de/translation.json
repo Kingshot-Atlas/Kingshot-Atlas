@@ -3102,5 +3102,8 @@
     "prepCta": "Prep-Ergebnis Hinzufügen",
     "battleMessage": "Die KvK-Burgschlacht ist vorbei! Reiche dein Kampfergebnis ein.",
     "battleCta": "Kampfergebnis Hinzufügen"
+  },
+  "errors": {
+    "pageNotFound": "Diese Seite existiert nicht. Sie wurde möglicherweise verschoben oder entfernt."
   }
 }

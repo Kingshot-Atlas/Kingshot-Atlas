@@ -54,11 +54,10 @@ interface GridCanvasProps {
   designer: ReturnType<typeof useBaseDesigner>;
   canvasWidth: number;
   canvasHeight: number;
-  mapBounds?: { x1: number; y1: number; x2: number; y2: number } | null;
   onEditBuilding?: (building: PlacedBuilding, screenX: number, screenY: number) => void;
 }
 
-const GridCanvas: React.FC<GridCanvasProps> = ({ designer, canvasWidth, canvasHeight, mapBounds, onEditBuilding }) => {
+const GridCanvas: React.FC<GridCanvasProps> = ({ designer, canvasWidth, canvasHeight, onEditBuilding }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState<{ x: number; y: number } | null>(null);
@@ -184,23 +183,38 @@ const GridCanvas: React.FC<GridCanvasProps> = ({ designer, canvasWidth, canvasHe
       ctx.fillText('(1199,0)', bRight.x + 8, bRight.y);
     }
 
-    // Draw user-defined map bounds highlight
-    if (mapBounds) {
-      const mbTop = g2s(mapBounds.x2, mapBounds.y2, centerX, centerY, hc, canvasWidth, canvasHeight);
-      const mbRight = g2s(mapBounds.x2, mapBounds.y1, centerX, centerY, hc, canvasWidth, canvasHeight);
-      const mbBottom = g2s(mapBounds.x1, mapBounds.y1, centerX, centerY, hc, canvasWidth, canvasHeight);
-      const mbLeft = g2s(mapBounds.x1, mapBounds.y2, centerX, centerY, hc, canvasWidth, canvasHeight);
+    // Draw territory zones (soft green) for buildings with territoryRadius
+    for (const b of buildings) {
+      const bType = getBuildingType(b.typeId);
+      if (!bType?.territoryRadius) continue;
+      const r = bType.territoryRadius;
+      const bcx = b.x + bType.size / 2;
+      const bcy = b.y + bType.size / 2;
+      // Bounding box of territory in grid coords
+      const tMinX = Math.max(0, Math.floor(bcx - r));
+      const tMaxX = Math.min(1199, Math.ceil(bcx + r) - 1);
+      const tMinY = Math.max(0, Math.floor(bcy - r));
+      const tMaxY = Math.min(1199, Math.ceil(bcy + r) - 1);
+      // Quick screen-space visibility check
+      const tCenter = g2s((tMinX + tMaxX) / 2, (tMinY + tMaxY) / 2, centerX, centerY, hc, canvasWidth, canvasHeight);
+      const tExtent = r * 2 * hc * 1.5;
+      if (tCenter.x + tExtent < 0 || tCenter.x - tExtent > canvasWidth || tCenter.y + tExtent < 0 || tCenter.y - tExtent > canvasHeight) continue;
+      // Draw the entire territory as one large diamond
+      const top = g2s(tMaxX + 1, tMaxY + 1, centerX, centerY, hc, canvasWidth, canvasHeight);
+      const right = g2s(tMaxX + 1, tMinY, centerX, centerY, hc, canvasWidth, canvasHeight);
+      const bottom = g2s(tMinX, tMinY, centerX, centerY, hc, canvasWidth, canvasHeight);
+      const left = g2s(tMinX, tMaxY + 1, centerX, centerY, hc, canvasWidth, canvasHeight);
       ctx.beginPath();
-      ctx.moveTo(mbTop.x, mbTop.y);
-      ctx.lineTo(mbRight.x, mbRight.y);
-      ctx.lineTo(mbBottom.x, mbBottom.y);
-      ctx.lineTo(mbLeft.x, mbLeft.y);
+      ctx.moveTo(top.x, top.y);
+      ctx.lineTo(right.x, right.y);
+      ctx.lineTo(bottom.x, bottom.y);
+      ctx.lineTo(left.x, left.y);
       ctx.closePath();
-      ctx.fillStyle = '#f59e0b08';
+      ctx.fillStyle = '#22c55e12';
       ctx.fill();
-      ctx.strokeStyle = '#f59e0b60';
-      ctx.lineWidth = 2;
-      ctx.setLineDash([6, 4]);
+      ctx.strokeStyle = '#22c55e30';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 3]);
       ctx.stroke();
       ctx.setLineDash([]);
     }
@@ -318,7 +332,7 @@ const GridCanvas: React.FC<GridCanvasProps> = ({ designer, canvasWidth, canvasHe
   }, [
     canvasWidth, canvasHeight, centerX, centerY, hc,
     buildings, selectedBuildingId, selectedToolType, showLabels, hoveredCell,
-    dragBuilding, dragPreview, canPlace, mapBounds,
+    dragBuilding, dragPreview, canPlace,
   ]);
 
   // Screen → grid
@@ -779,13 +793,16 @@ const SidebarSection: React.FC<{ title: string; children: React.ReactNode; defau
   );
 };
 
-// ─── Map Bounds Editor ───
-interface MapBoundsEditorProps {
-  bounds: { x1: number; y1: number; x2: number; y2: number };
-  onChange: (b: { x1: number; y1: number; x2: number; y2: number }) => void;
-  onFocus: () => void;
+// ─── Coordinate Search & Navigation ───
+interface CoordinateSearchProps {
+  onGo: (x: number, y: number) => void;
+  onFocusBase: () => void;
+  hasBuildings: boolean;
 }
-const MapBoundsEditor: React.FC<MapBoundsEditorProps> = ({ bounds, onChange, onFocus }) => {
+const CoordinateSearch: React.FC<CoordinateSearchProps> = ({ onGo, onFocusBase, hasBuildings }) => {
+  const [cx, setCx] = useState('600');
+  const [cy, setCy] = useState('600');
+  const { t } = useTranslation();
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '0.25rem 0.4rem', backgroundColor: '#0d1117',
     border: '1px solid #1e2a35', borderRadius: '4px', color: '#e5e7eb',
@@ -796,38 +813,39 @@ const MapBoundsEditor: React.FC<MapBoundsEditorProps> = ({ bounds, onChange, onF
 
   return (
     <div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '0.4rem', alignItems: 'end' }}>
         <div>
-          <div style={labelStyle}>Top Corner X</div>
-          <input style={inputStyle} type="number" min={0} max={1199} value={bounds.x1}
-            onChange={(e) => onChange({ ...bounds, x1: parse(e.target.value) })} />
+          <div style={labelStyle}>{t('baseDesigner.coordX', 'X')}</div>
+          <input style={inputStyle} type="number" min={0} max={1199} value={cx}
+            onChange={(e) => setCx(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') onGo(parse(cx), parse(cy)); }} />
         </div>
         <div>
-          <div style={labelStyle}>Top Corner Y</div>
-          <input style={inputStyle} type="number" min={0} max={1199} value={bounds.y1}
-            onChange={(e) => onChange({ ...bounds, y1: parse(e.target.value) })} />
+          <div style={labelStyle}>{t('baseDesigner.coordY', 'Y')}</div>
+          <input style={inputStyle} type="number" min={0} max={1199} value={cy}
+            onChange={(e) => setCy(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') onGo(parse(cx), parse(cy)); }} />
         </div>
-        <div>
-          <div style={labelStyle}>Bottom Corner X</div>
-          <input style={inputStyle} type="number" min={0} max={1199} value={bounds.x2}
-            onChange={(e) => onChange({ ...bounds, x2: parse(e.target.value) })} />
-        </div>
-        <div>
-          <div style={labelStyle}>Bottom Corner Y</div>
-          <input style={inputStyle} type="number" min={0} max={1199} value={bounds.y2}
-            onChange={(e) => onChange({ ...bounds, y2: parse(e.target.value) })} />
-        </div>
+        <button
+          onClick={() => onGo(parse(cx), parse(cy))}
+          style={{
+            padding: '0.25rem 0.5rem', backgroundColor: '#22d3ee15',
+            border: '1px solid #22d3ee40', borderRadius: '4px',
+            color: '#22d3ee', cursor: 'pointer', fontSize: '0.65rem', fontWeight: '600',
+            whiteSpace: 'nowrap', height: 'fit-content',
+          }}
+        >{t('baseDesigner.go', 'Go')}</button>
       </div>
-      <button
-        onClick={onFocus}
-        style={{
-          width: '100%', marginTop: '0.4rem', padding: '0.3rem',
-          backgroundColor: '#f59e0b15', border: '1px solid #f59e0b40', borderRadius: '4px',
-          color: '#f59e0b', cursor: 'pointer', fontSize: '0.65rem', fontWeight: '600',
-        }}
-      >
-        Focus on Area
-      </button>
+      {hasBuildings && (
+        <button
+          onClick={onFocusBase}
+          style={{
+            width: '100%', marginTop: '0.4rem', padding: '0.3rem',
+            backgroundColor: '#22c55e15', border: '1px solid #22c55e40', borderRadius: '4px',
+            color: '#22c55e', cursor: 'pointer', fontSize: '0.65rem', fontWeight: '600',
+          }}
+        >📍 {t('baseDesigner.focusOnBase', 'Focus on Base')}</button>
+      )}
     </div>
   );
 };
@@ -843,29 +861,18 @@ const AllianceBaseDesigner: React.FC = () => {
     ],
   });
   const isMobile = useIsMobile();
+  const { t } = useTranslation();
   const designer = useBaseDesigner();
   const containerRef = useRef<HTMLDivElement>(null);
   const [canvasSize, setCanvasSize] = useState({ width: 600, height: 600 });
   const [modalMode, setModalMode] = useState<'save' | 'load' | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [mapBounds, setMapBounds] = useState(() => {
-    try {
-      const saved = localStorage.getItem('atlas_base_designer_mapbounds');
-      if (saved) return JSON.parse(saved);
-    } catch {}
-    return { x1: 550, y1: 550, x2: 650, y2: 650 };
-  });
-  const [mobilePanelTab, setMobilePanelTab] = useState<'buildings' | 'area' | 'props'>('buildings');
+  const [mobilePanelTab, setMobilePanelTab] = useState<'buildings' | 'nav' | 'props'>('buildings');
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [autoSaveFlash, setAutoSaveFlash] = useState(false);
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [editingLabel, setEditingLabel] = useState<{ buildingId: string; screenX: number; screenY: number; value: string } | null>(null);
   const editInputRef = useRef<HTMLInputElement>(null);
-
-  // Persist mapBounds
-  useEffect(() => {
-    try { localStorage.setItem('atlas_base_designer_mapbounds', JSON.stringify(mapBounds)); } catch {}
-  }, [mapBounds]);
 
   // Desktop: Enter key opens inline label editor for selected building
   useEffect(() => {
@@ -916,17 +923,37 @@ const AllianceBaseDesigner: React.FC = () => {
     return () => window.removeEventListener('resize', updateSize);
   }, []);
 
-  // Focus view on map bounds
-  const focusBounds = useCallback(() => {
-    const cx = (mapBounds.x1 + mapBounds.x2) / 2;
-    const cy = (mapBounds.y1 + mapBounds.y2) / 2;
-    designer.setCenterX(cx);
-    designer.setCenterY(cy);
-    // Auto-zoom to fit the bounds
-    const range = Math.max(mapBounds.x2 - mapBounds.x1, mapBounds.y2 - mapBounds.y1, 10);
+  // Navigate to specific coordinates
+  const goToCoords = useCallback((x: number, y: number) => {
+    designer.setCenterX(x);
+    designer.setCenterY(y);
+    designer.setZoom(Math.max(designer.zoom, 15));
+  }, [designer]);
+
+  // Focus on the center of all placed buildings
+  const focusOnBase = useCallback(() => {
+    if (designer.buildings.length === 0) return;
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const b of designer.buildings) {
+      const bt = getBuildingType(b.typeId);
+      const size = bt?.size || 1;
+      if (b.x < minX) minX = b.x;
+      if (b.y < minY) minY = b.y;
+      if (b.x + size > maxX) maxX = b.x + size;
+      if (b.y + size > maxY) maxY = b.y + size;
+    }
+    designer.setCenterX((minX + maxX) / 2);
+    designer.setCenterY((minY + maxY) / 2);
+    const range = Math.max(maxX - minX, maxY - minY, 10);
     const targetZoom = Math.min(40, Math.max(3, Math.min(canvasSize.width, canvasSize.height) / (range * 2.5)));
     designer.setZoom(targetZoom);
-  }, [mapBounds, canvasSize, designer]);
+  }, [designer, canvasSize]);
+
+  // Check if any territory-providing buildings (HQ/Banner) are placed
+  const hasTerritory = designer.buildings.some(b => {
+    const bt = getBuildingType(b.typeId);
+    return !!bt?.territoryRadius;
+  });
 
   const selectedBuilding = designer.selectedBuildingId
     ? designer.buildings.find((b) => b.id === designer.selectedBuildingId) ?? null
@@ -1006,10 +1033,26 @@ const AllianceBaseDesigner: React.FC = () => {
                 </div>
               </div>
 
-              {/* Map Area */}
-              <SidebarSection title="Map Area" defaultOpen={true}>
-                <MapBoundsEditor bounds={mapBounds} onChange={setMapBounds} onFocus={focusBounds} />
+              {/* Navigate */}
+              <SidebarSection title={t('baseDesigner.navigate', 'Navigate')} defaultOpen={true}>
+                <CoordinateSearch onGo={goToCoords} onFocusBase={focusOnBase} hasBuildings={designer.buildings.length > 0} />
               </SidebarSection>
+
+              {/* Territory prompt */}
+              {!hasTerritory && (
+                <div style={{
+                  margin: '0 0.75rem 0.5rem', padding: '0.5rem',
+                  backgroundColor: '#22c55e08', border: '1px solid #22c55e25',
+                  borderRadius: '6px',
+                }}>
+                  <div style={{ color: '#22c55e', fontSize: '0.65rem', fontWeight: '600', marginBottom: '0.25rem' }}>
+                    🏳 {t('baseDesigner.startWithBanners', 'Place Banners or HQ First')}
+                  </div>
+                  <div style={{ color: '#6b7280', fontSize: '0.6rem', lineHeight: 1.5 }}>
+                    {t('baseDesigner.territoryPrompt', 'Define your alliance territory by placing Banners or HQ. Cities, Traps, and Special buildings can only be placed within territory zones (shown in green).')}
+                  </div>
+                </div>
+              )}
 
               {/* Buildings */}
               <SidebarSection title="Buildings" defaultOpen={true}>
@@ -1099,10 +1142,8 @@ const AllianceBaseDesigner: React.FC = () => {
                       designer.setCenterX(600);
                       designer.setCenterY(600);
                       designer.setZoom(8);
-                      setMapBounds({ x1: 550, y1: 550, x2: 650, y2: 650 });
                       try {
                         localStorage.removeItem('atlas_base_designer_session');
-                        localStorage.removeItem('atlas_base_designer_mapbounds');
                       } catch {}
                     }
                   }}
@@ -1158,7 +1199,6 @@ const AllianceBaseDesigner: React.FC = () => {
                   designer={designer}
                   canvasWidth={canvasSize.width}
                   canvasHeight={canvasSize.height}
-                  mapBounds={mapBounds}
                   onEditBuilding={(building, sx, sy) => {
                     setEditingLabel({ buildingId: building.id, screenX: sx, screenY: sy, value: building.label || '' });
                     designer.setSelectedBuildingId(building.id);
@@ -1258,7 +1298,6 @@ const AllianceBaseDesigner: React.FC = () => {
           designer={designer}
           canvasWidth={canvasSize.width}
           canvasHeight={canvasSize.height}
-          mapBounds={mapBounds}
           onEditBuilding={(building, sx, sy) => {
             setEditingLabel({ buildingId: building.id, screenX: sx, screenY: sy, value: building.label || '' });
             designer.setSelectedBuildingId(building.id);
@@ -1326,7 +1365,7 @@ const AllianceBaseDesigner: React.FC = () => {
       <div style={{ borderTop: '1px solid #1e2a35', backgroundColor: '#0d1117' }}>
         {/* Tab bar */}
         <div style={{ display: 'flex', borderBottom: '1px solid #1e2a35' }}>
-          {(['buildings', 'area', 'props'] as const).map((tab) => (
+          {(['buildings', 'nav', 'props'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setMobilePanelTab(tab)}
@@ -1337,7 +1376,7 @@ const AllianceBaseDesigner: React.FC = () => {
                 borderBottom: mobilePanelTab === tab ? '2px solid #22d3ee' : '2px solid transparent',
               }}
             >
-              {tab === 'buildings' ? '🧱 Build' : tab === 'area' ? '📐 Area' : '⚙️ Props'}
+              {tab === 'buildings' ? '🧱 Build' : tab === 'nav' ? '🧭 Nav' : '⚙️ Props'}
             </button>
           ))}
         </div>
@@ -1346,6 +1385,20 @@ const AllianceBaseDesigner: React.FC = () => {
         <div style={{ maxHeight: '180px', overflowY: 'auto', padding: '0.5rem 0.75rem' }}>
           {mobilePanelTab === 'buildings' && (
             <div>
+              {!hasTerritory && (
+                <div style={{
+                  marginBottom: '0.5rem', padding: '0.4rem',
+                  backgroundColor: '#22c55e08', border: '1px solid #22c55e25',
+                  borderRadius: '6px',
+                }}>
+                  <div style={{ color: '#22c55e', fontSize: '0.6rem', fontWeight: '600' }}>
+                    🏳 {t('baseDesigner.startWithBanners', 'Place Banners or HQ First')}
+                  </div>
+                  <div style={{ color: '#6b7280', fontSize: '0.55rem', lineHeight: 1.4, marginTop: '0.15rem' }}>
+                    {t('baseDesigner.territoryPromptShort', 'Define territory with Banners/HQ. Other buildings must be placed within territory zones.')}
+                  </div>
+                </div>
+              )}
               {BUILDING_CATEGORIES.map((cat) => (
                 <div key={cat.key} style={{ marginBottom: '0.4rem' }}>
                   <div style={{ fontSize: '0.55rem', fontWeight: '600', color: cat.color, textTransform: 'uppercase', marginBottom: '0.2rem' }}>{cat.label}</div>
@@ -1371,9 +1424,9 @@ const AllianceBaseDesigner: React.FC = () => {
             </div>
           )}
 
-          {mobilePanelTab === 'area' && (
+          {mobilePanelTab === 'nav' && (
             <div>
-              <MapBoundsEditor bounds={mapBounds} onChange={setMapBounds} onFocus={focusBounds} />
+              <CoordinateSearch onGo={goToCoords} onFocusBase={focusOnBase} hasBuildings={designer.buildings.length > 0} />
               <div style={{ marginTop: '0.5rem' }}>
                 <div style={{ color: '#6b7280', fontSize: '0.6rem', marginBottom: '3px' }}>Design Name</div>
                 <input type="text" value={designer.designName} onChange={(e) => designer.setDesignName(e.target.value)}

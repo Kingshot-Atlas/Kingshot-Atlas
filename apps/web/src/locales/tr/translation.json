@@ -3102,5 +3102,8 @@
     "prepCta": "Hazırlık Sonucu Ekle",
     "battleMessage": "KvK Kale Savaşı sona erdi! Savaş sonucunuzu gönderin.",
     "battleCta": "Savaş Sonucu Ekle"
+  },
+  "errors": {
+    "pageNotFound": "Bu sayfa mevcut değil. Taşınmış veya kaldırılmış olabilir."
   }
 }
