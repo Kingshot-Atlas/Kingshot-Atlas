@@ -3,6 +3,19 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-24 18:45 | Product Engineer | COMPLETED
+Task: Prevent home_kingdom drift + polish Alliance Base Designer
+Files: AuthContext.tsx, AllianceBaseDesigner.tsx, + 2 new components, 9 locale files
+Changes:
+1. **Supabase trigger** — Created `trg_sync_home_kingdom` trigger: auto-sets `home_kingdom = linked_kingdom` on INSERT/UPDATE when `home_kingdom` is null. Prevents future drift for newly linked accounts.
+2. **AuthContext.tsx** — `refreshLinkedPlayer` now syncs `home_kingdom` from `linked_kingdom` if not already set, keeping local state consistent with the DB trigger.
+3. **DesignModal extracted** — Moved save/load modal (150 lines) to `components/base-designer/DesignModal.tsx`. Replaced 4 inline `<button style={{}}>` with shared `<Button>` component.
+4. **BuildingPalette extracted** — Moved building category grid + territory prompt (80 lines) to `components/base-designer/BuildingPalette.tsx`. Supports `compact` prop for mobile.
+5. **ToolDelegates in designer** — Added collapsible Delegates sidebar section inside the Base Designer tool itself (previously only on landing page).
+6. **i18n** — Added `baseDesigner.delegates` key to all 9 locales (EN/ES/FR/ZH/DE/KO/JA/AR/TR).
+7. **File reduction** — AllianceBaseDesigner.tsx reduced from 1,524 → 1,301 lines.
+Result: Build passed. Committed 97a993a and pushed to main.
+
 ## 2026-02-24 17:30 | Product Engineer | COMPLETED
 Task: Fix Tool Delegates broken search/add + transfer_applications 400 console error
 Files: src/hooks/useToolAccess.ts, src/hooks/useUnreadMessages.ts
