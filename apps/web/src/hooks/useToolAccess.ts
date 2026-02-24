@@ -26,6 +26,7 @@ interface ToolAccessResult {
 export interface UserSearchResult {
   id: string;
   username: string;
+  linked_username?: string;
   avatar_url?: string;
 }
 
@@ -130,7 +131,7 @@ export function useDelegateManagement(): DelegateManagement {
       const delegateIds = rows.map(r => r.delegate_id);
       const { data: profiles } = await supabase
         .from('profiles')
-        .select('id, username, avatar_url')
+        .select('id, username, linked_username, avatar_url')
         .in('id', delegateIds);
 
       const profileMap = new Map((profiles || []).map(p => [p.id, p]));
@@ -142,7 +143,7 @@ export function useDelegateManagement(): DelegateManagement {
           owner_id: row.owner_id,
           delegate_id: row.delegate_id,
           created_at: row.created_at,
-          delegate_username: p?.username,
+          delegate_username: p?.linked_username || p?.username,
           delegate_avatar_url: p?.avatar_url,
         };
       });
@@ -171,11 +172,11 @@ export function useDelegateManagement(): DelegateManagement {
         return { success: false, error: 'noKingdom' };
       }
 
-      // Look up the user by username
+      // Look up the user by linked_username
       const { data: targetProfile, error: lookupError } = await supabase
         .from('profiles')
-        .select('id, username, home_kingdom')
-        .ilike('username', username)
+        .select('id, linked_username, home_kingdom')
+        .ilike('linked_username', username)
         .single();
 
       if (lookupError || !targetProfile) {
@@ -257,14 +258,19 @@ export function useDelegateManagement(): DelegateManagement {
 
     const { data: results } = await supabase
       .from('profiles')
-      .select('id, username, avatar_url')
-      .ilike('username', `%${query}%`)
+      .select('id, username, linked_username, avatar_url')
+      .ilike('linked_username', `%${query}%`)
       .eq('home_kingdom', myProfile.home_kingdom)
       .neq('id', user.id)
-      .not('username', 'is', null)
+      .not('linked_username', 'is', null)
       .limit(8);
 
-    return (results || []).filter(r => r.username) as UserSearchResult[];
+    return (results || []).filter(r => r.linked_username).map(r => ({
+      id: r.id,
+      username: r.linked_username || r.username,
+      linked_username: r.linked_username,
+      avatar_url: r.avatar_url,
+    })) as UserSearchResult[];
   };
 
   return {
