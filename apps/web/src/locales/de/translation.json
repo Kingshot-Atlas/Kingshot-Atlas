@@ -3049,7 +3049,19 @@
     "focusOnBase": "Auf Basis fokussieren",
     "startWithBanners": "Zuerst Banner oder HQ platzieren",
     "territoryPrompt": "Definiere dein Allianzterritorium durch das Platzieren von Bannern oder dem HQ. Städte, Fallen und Spezialgebäude können nur innerhalb von Territoriumszonen (grün) platziert werden.",
-    "territoryPromptShort": "Territorium mit Bannern/HQ definieren. Andere Gebäude müssen in Territoriumszonen platziert werden."
+    "territoryPromptShort": "Territorium mit Bannern/HQ definieren. Andere Gebäude müssen in Territoriumszonen platziert werden.",
+    "saveDesign": "Design speichern",
+    "loadDesign": "Design laden",
+    "designNamePlaceholder": "Designname...",
+    "overwriteWarning": "Ein Design namens \"{{name}}\" existiert bereits. Speichern wird es überschreiben.",
+    "overwriteBtn": "Überschreiben",
+    "overwriteSuccess": "\"{{name}}\" erfolgreich aktualisiert.",
+    "saveSuccess": "\"{{name}}\" erfolgreich gespeichert.",
+    "confirmDelete": "\"{{name}}\" löschen?",
+    "noSavedDesigns": "Noch keine gespeicherten Designs.",
+    "buildings": "Gebäude",
+    "loadBtn": "Laden",
+    "close": "Schließen"
   },
   "toolDelegates": {
     "title": "Tool-Delegierte",

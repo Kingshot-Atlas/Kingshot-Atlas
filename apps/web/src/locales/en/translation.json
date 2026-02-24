@@ -3071,7 +3071,19 @@
     "focusOnBase": "Focus on Base",
     "startWithBanners": "Place Banners or HQ First",
     "territoryPrompt": "Define your alliance territory by placing Banners or HQ. Cities, Traps, and Special buildings can only be placed within territory zones (shown in green).",
-    "territoryPromptShort": "Define territory with Banners/HQ. Other buildings must be placed within territory zones."
+    "territoryPromptShort": "Define territory with Banners/HQ. Other buildings must be placed within territory zones.",
+    "saveDesign": "Save Design",
+    "loadDesign": "Load Design",
+    "designNamePlaceholder": "Design name...",
+    "overwriteWarning": "A design named \"{{name}}\" already exists. Saving will overwrite it.",
+    "overwriteBtn": "Overwrite",
+    "overwriteSuccess": "\"{{name}}\" updated successfully.",
+    "saveSuccess": "\"{{name}}\" saved successfully.",
+    "confirmDelete": "Delete \"{{name}}\"?",
+    "noSavedDesigns": "No saved designs yet.",
+    "buildings": "buildings",
+    "loadBtn": "Load",
+    "close": "Close"
   },
   "toolDelegates": {
     "title": "Tool Delegates",

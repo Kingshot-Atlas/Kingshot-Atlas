@@ -2969,7 +2969,19 @@
     "focusOnBase": "聚焦基地",
     "startWithBanners": "请先放置旗帜或总部",
     "territoryPrompt": "通过放置旗帜或总部来定义联盟领地。城市、陷阱和特殊建筑只能放置在领地区域内（绿色显示）。",
-    "territoryPromptShort": "用旗帜/总部定义领地。其他建筑必须放置在领地区域内。"
+    "territoryPromptShort": "用旗帜/总部定义领地。其他建筑必须放置在领地区域内。",
+    "saveDesign": "保存设计",
+    "loadDesign": "加载设计",
+    "designNamePlaceholder": "设计名称...",
+    "overwriteWarning": "已存在名为 \"{{name}}\" 的设计。保存将覆盖它。",
+    "overwriteBtn": "覆盖",
+    "overwriteSuccess": "\"{{name}}\" 已成功更新。",
+    "saveSuccess": "\"{{name}}\" 已成功保存。",
+    "confirmDelete": "删除 \"{{name}}\"？",
+    "noSavedDesigns": "暂无保存的设计。",
+    "buildings": "建筑",
+    "loadBtn": "加载",
+    "close": "关闭"
   },
   "welcome": {
     "favoritesDesc": "追踪您关注的王国并在评分变化时收到通知",

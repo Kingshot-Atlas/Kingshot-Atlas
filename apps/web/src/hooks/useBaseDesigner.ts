@@ -237,21 +237,33 @@ export function useBaseDesigner() {
   }, [zoom]);
 
   // Save/Load/Export/Import
-  const saveDesign = useCallback((name?: string) => {
-    const design: BaseDesign = {
-      id: `design_${Date.now()}`,
-      name: name || designName,
-      buildings: JSON.parse(JSON.stringify(buildings)),
-      gridSize: zoom,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+  const saveDesign = useCallback((name?: string): { id: string; overwrote: boolean } => {
+    const saveName = name || designName;
     const saved = localStorage.getItem('atlas_base_designs');
     const designs: BaseDesign[] = saved ? JSON.parse(saved) : [];
+    const existingIdx = designs.findIndex((d) => d.name.trim().toLowerCase() === saveName.trim().toLowerCase());
+    const now = new Date().toISOString();
+    if (existingIdx >= 0) {
+      const existing = designs[existingIdx]!;
+      existing.buildings = JSON.parse(JSON.stringify(buildings));
+      existing.gridSize = zoom;
+      existing.updatedAt = now;
+      localStorage.setItem('atlas_base_designs', JSON.stringify(designs));
+      setIsDirty(false);
+      return { id: existing.id, overwrote: true };
+    }
+    const design: BaseDesign = {
+      id: `design_${Date.now()}`,
+      name: saveName,
+      buildings: JSON.parse(JSON.stringify(buildings)),
+      gridSize: zoom,
+      createdAt: now,
+      updatedAt: now,
+    };
     designs.push(design);
     localStorage.setItem('atlas_base_designs', JSON.stringify(designs));
     setIsDirty(false);
-    return design.id;
+    return { id: design.id, overwrote: false };
   }, [buildings, designName, zoom]);
 
   const loadDesign = useCallback((designId: string): boolean => {
@@ -272,11 +284,13 @@ export function useBaseDesigner() {
     return saved ? JSON.parse(saved) : [];
   }, []);
 
-  const deleteDesign = useCallback((designId: string) => {
+  const deleteDesign = useCallback((designId: string): BaseDesign[] => {
     const saved = localStorage.getItem('atlas_base_designs');
-    if (!saved) return;
+    if (!saved) return [];
     const designs: BaseDesign[] = JSON.parse(saved);
-    localStorage.setItem('atlas_base_designs', JSON.stringify(designs.filter((d) => d.id !== designId)));
+    const updated = designs.filter((d) => d.id !== designId);
+    localStorage.setItem('atlas_base_designs', JSON.stringify(updated));
+    return updated;
   }, []);
 
   const exportDesign = useCallback((): string => {

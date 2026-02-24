@@ -3049,7 +3049,19 @@
     "focusOnBase": "기지에 집중",
     "startWithBanners": "먼저 깃발 또는 본부를 배치하세요",
     "territoryPrompt": "깃발 또는 본부를 배치하여 연맹 영토를 정의하세요. 도시, 함정, 특수 건물은 영토 구역(녹색) 내에만 배치할 수 있습니다.",
-    "territoryPromptShort": "깃발/본부로 영토를 정의하세요. 다른 건물은 영토 구역 내에 배치해야 합니다."
+    "territoryPromptShort": "깃발/본부로 영토를 정의하세요. 다른 건물은 영토 구역 내에 배치해야 합니다.",
+    "saveDesign": "디자인 저장",
+    "loadDesign": "디자인 불러오기",
+    "designNamePlaceholder": "디자인 이름...",
+    "overwriteWarning": "\"{{name}}\" 이름의 디자인이 이미 존재합니다. 저장하면 덮어쓰기됩니다.",
+    "overwriteBtn": "덮어쓰기",
+    "overwriteSuccess": "\"{{name}}\"이(가) 성공적으로 업데이트되었습니다.",
+    "saveSuccess": "\"{{name}}\"이(가) 성공적으로 저장되었습니다.",
+    "confirmDelete": "\"{{name}}\"을(를) 삭제하시겠습니까?",
+    "noSavedDesigns": "저장된 디자인이 없습니다.",
+    "buildings": "건물",
+    "loadBtn": "불러오기",
+    "close": "닫기"
   },
   "toolDelegates": {
     "title": "도구 위임",

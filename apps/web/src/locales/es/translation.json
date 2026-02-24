@@ -3049,7 +3049,19 @@
     "focusOnBase": "Enfocar en la Base",
     "startWithBanners": "Coloca Banderas o CG Primero",
     "territoryPrompt": "Define el territorio de tu alianza colocando Banderas o CG. Las Ciudades, Trampas y edificios Especiales solo se pueden colocar dentro de zonas de territorio (en verde).",
-    "territoryPromptShort": "Define territorio con Banderas/CG. Los demás edificios deben colocarse dentro de las zonas de territorio."
+    "territoryPromptShort": "Define territorio con Banderas/CG. Los demás edificios deben colocarse dentro de las zonas de territorio.",
+    "saveDesign": "Guardar Diseño",
+    "loadDesign": "Cargar Diseño",
+    "designNamePlaceholder": "Nombre del diseño...",
+    "overwriteWarning": "Ya existe un diseño llamado \"{{name}}\". Guardar lo sobrescribirá.",
+    "overwriteBtn": "Sobrescribir",
+    "overwriteSuccess": "\"{{name}}\" actualizado correctamente.",
+    "saveSuccess": "\"{{name}}\" guardado correctamente.",
+    "confirmDelete": "¿Eliminar \"{{name}}\"?",
+    "noSavedDesigns": "Aún no hay diseños guardados.",
+    "buildings": "edificios",
+    "loadBtn": "Cargar",
+    "close": "Cerrar"
   },
   "toolDelegates": {
     "title": "Delegados de Herramientas",

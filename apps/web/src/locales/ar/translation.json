@@ -3049,7 +3049,19 @@
     "focusOnBase": "التركيز على القاعدة",
     "startWithBanners": "ضع الرايات أو المقر أولاً",
     "territoryPrompt": "حدّد أراضي تحالفك بوضع الرايات أو المقر. لا يمكن وضع المدن والفخاخ والمباني الخاصة إلا ضمن مناطق الأراضي (باللون الأخضر).",
-    "territoryPromptShort": "حدّد الأراضي بالرايات/المقر. يجب وضع المباني الأخرى ضمن مناطق الأراضي."
+    "territoryPromptShort": "حدّد الأراضي بالرايات/المقر. يجب وضع المباني الأخرى ضمن مناطق الأراضي.",
+    "saveDesign": "حفظ التصميم",
+    "loadDesign": "تحميل التصميم",
+    "designNamePlaceholder": "اسم التصميم...",
+    "overwriteWarning": "يوجد تصميم باسم \"{{name}}\" بالفعل. الحفظ سيستبدله.",
+    "overwriteBtn": "استبدال",
+    "overwriteSuccess": "تم تحديث \"{{name}}\" بنجاح.",
+    "saveSuccess": "تم حفظ \"{{name}}\" بنجاح.",
+    "confirmDelete": "حذف \"{{name}}\"؟",
+    "noSavedDesigns": "لا توجد تصاميم محفوظة بعد.",
+    "buildings": "مباني",
+    "loadBtn": "تحميل",
+    "close": "إغلاق"
   },
   "toolDelegates": {
     "title": "مفوّضو الأدوات",

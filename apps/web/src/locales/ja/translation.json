@@ -3049,7 +3049,19 @@
     "focusOnBase": "基地にフォーカス",
     "startWithBanners": "まずバナーまたは本部を配置",
     "territoryPrompt": "バナーまたは本部を配置して同盟領土を定義してください。都市、罠、特殊建物は領土ゾーン（緑色）内にのみ配置できます。",
-    "territoryPromptShort": "バナー/本部で領土を定義。他の建物は領土ゾーン内に配置する必要があります。"
+    "territoryPromptShort": "バナー/本部で領土を定義。他の建物は領土ゾーン内に配置する必要があります。",
+    "saveDesign": "デザインを保存",
+    "loadDesign": "デザインを読み込み",
+    "designNamePlaceholder": "デザイン名...",
+    "overwriteWarning": "\"{{name}}\"という名前のデザインが既に存在します。保存すると上書きされます。",
+    "overwriteBtn": "上書き",
+    "overwriteSuccess": "\"{{name}}\"が正常に更新されました。",
+    "saveSuccess": "\"{{name}}\"が正常に保存されました。",
+    "confirmDelete": "\"{{name}}\"を削除しますか？",
+    "noSavedDesigns": "保存されたデザインはまだありません。",
+    "buildings": "建物",
+    "loadBtn": "読み込み",
+    "close": "閉じる"
   },
   "toolDelegates": {
     "title": "ツール委任",

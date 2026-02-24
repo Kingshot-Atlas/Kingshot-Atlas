@@ -3049,7 +3049,19 @@
     "focusOnBase": "Üsse Odaklan",
     "startWithBanners": "Önce Bayrak veya Karargâh Yerleştirin",
     "territoryPrompt": "Bayrak veya Karargâh yerleştirerek ittifak bölgenizi tanımlayın. Şehirler, Tuzaklar ve Özel binalar yalnızca bölge alanları içine (yeşil) yerleştirilebilir.",
-    "territoryPromptShort": "Bayrak/Karargâh ile bölge tanımlayın. Diğer binalar bölge alanları içine yerleştirilmelidir."
+    "territoryPromptShort": "Bayrak/Karargâh ile bölge tanımlayın. Diğer binalar bölge alanları içine yerleştirilmelidir.",
+    "saveDesign": "Tasarımı Kaydet",
+    "loadDesign": "Tasarım Yükle",
+    "designNamePlaceholder": "Tasarım adı...",
+    "overwriteWarning": "\"{{name}}\" adlı bir tasarım zaten mevcut. Kaydetmek üzerine yazacaktır.",
+    "overwriteBtn": "Üzerine Yaz",
+    "overwriteSuccess": "\"{{name}}\" başarıyla güncellendi.",
+    "saveSuccess": "\"{{name}}\" başarıyla kaydedildi.",
+    "confirmDelete": "\"{{name}}\" silinsin mi?",
+    "noSavedDesigns": "Henüz kaydedilmiş tasarım yok.",
+    "buildings": "bina",
+    "loadBtn": "Yükle",
+    "close": "Kapat"
   },
   "toolDelegates": {
     "title": "Araç Temsilcileri",

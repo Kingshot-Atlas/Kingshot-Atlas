@@ -642,10 +642,44 @@ interface DesignModalProps {
 }
 
 const DesignModal: React.FC<DesignModalProps> = ({ mode, onClose, designer }) => {
-  const [saveName, setSaveName] = useState(designer.designName);
-  const designs = designer.getSavedDesigns();
+  const { t } = useTranslation();
+  const [saveName, setSaveName] = useState('');
+  const [designs, setDesigns] = useState(designer.getSavedDesigns);
+  const [saveToast, setSaveToast] = useState<string | null>(null);
+
+  // Refresh designs list and autofill name when modal opens/changes mode
+  useEffect(() => {
+    if (mode) {
+      setDesigns(designer.getSavedDesigns());
+      if (mode === 'save') setSaveName(designer.designName || 'Untitled Design');
+      setSaveToast(null);
+    }
+  }, [mode, designer]);
+
+  // Check if save name matches an existing design (case-insensitive)
+  const willOverwrite = mode === 'save' && saveName.trim().length > 0 &&
+    designs.some((d) => d.name.trim().toLowerCase() === saveName.trim().toLowerCase());
 
   if (!mode) return null;
+
+  const handleSave = () => {
+    const trimmed = saveName.trim();
+    if (!trimmed) return;
+    designer.setDesignName(trimmed);
+    const result = designer.saveDesign(trimmed);
+    setSaveToast(result.overwrote
+      ? t('baseDesigner.overwriteSuccess', '"{{name}}" updated successfully.', { name: trimmed })
+      : t('baseDesigner.saveSuccess', '"{{name}}" saved successfully.', { name: trimmed })
+    );
+    setTimeout(onClose, 1200);
+  };
+
+  const handleDelete = (designId: string, designName: string) => {
+    if (confirm(t('baseDesigner.confirmDelete', 'Delete "{{name}}"?', { name: designName }))) {
+      const updated = designer.deleteDesign(designId);
+      setDesigns(updated);
+    }
+  };
 
   return (
     <div style={{
@@ -670,39 +704,52 @@ const DesignModal: React.FC<DesignModalProps> = ({ mode, onClose, designer }) =>
       }} onClick={(e) => e.stopPropagation()}>
         {mode === 'save' && (
           <>
-            <h3 style={{ color: '#fff', fontSize: '1rem', marginBottom: '1rem' }}>💾 Save Design</h3>
+            <h3 style={{ color: '#fff', fontSize: '1rem', marginBottom: '1rem' }}>💾 {t('baseDesigner.saveDesign', 'Save Design')}</h3>
             <input
               type="text"
               value={saveName}
               onChange={(e) => setSaveName(e.target.value)}
-              placeholder="Design name..."
+              onKeyDown={(e) => { if (e.key === 'Enter') handleSave(); }}
+              placeholder={t('baseDesigner.designNamePlaceholder', 'Design name...')}
+              autoFocus
               style={{
                 width: '100%',
                 padding: '0.5rem',
                 backgroundColor: '#0a0a0a',
-                border: '1px solid #333',
+                border: `1px solid ${willOverwrite ? '#f59e0b' : '#333'}`,
                 borderRadius: '6px',
                 color: '#fff',
                 fontSize: '0.85rem',
-                marginBottom: '1rem',
+                marginBottom: willOverwrite ? '0.5rem' : '1rem',
                 boxSizing: 'border-box',
               }}
             />
+            {willOverwrite && (
+              <div style={{ color: '#f59e0b', fontSize: '0.7rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                ⚠️ {t('baseDesigner.overwriteWarning', 'A design named "{{name}}" already exists. Saving will overwrite it.', { name: saveName.trim() })}
+              </div>
+            )}
+            {saveToast && (
+              <div style={{ color: '#22c55e', fontSize: '0.75rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                ✓ {saveToast}
+              </div>
+            )}
             <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-              <button onClick={onClose} style={{ padding: '0.4rem 1rem', backgroundColor: 'transparent', border: '1px solid #333', borderRadius: '6px', color: '#9ca3af', cursor: 'pointer', fontSize: '0.8rem' }}>Cancel</button>
+              <button onClick={onClose} style={{ padding: '0.4rem 1rem', backgroundColor: 'transparent', border: '1px solid #333', borderRadius: '6px', color: '#9ca3af', cursor: 'pointer', fontSize: '0.8rem' }}>{t('common.cancel', 'Cancel')}</button>
               <button
-                onClick={() => { designer.setDesignName(saveName); designer.saveDesign(saveName); onClose(); }}
-                style={{ padding: '0.4rem 1.2rem', backgroundColor: '#22d3ee', color: '#000', border: 'none', borderRadius: '6px', fontWeight: '700', cursor: 'pointer', fontSize: '0.8rem' }}
-              >Save</button>
+                onClick={handleSave}
+                disabled={!saveName.trim()}
+                style={{ padding: '0.4rem 1.2rem', backgroundColor: willOverwrite ? '#f59e0b' : '#22d3ee', color: '#000', border: 'none', borderRadius: '6px', fontWeight: '700', cursor: saveName.trim() ? 'pointer' : 'not-allowed', fontSize: '0.8rem', opacity: saveName.trim() ? 1 : 0.5 }}
+              >{willOverwrite ? t('baseDesigner.overwriteBtn', 'Overwrite') : t('common.save', 'Save')}</button>
             </div>
           </>
         )}
 
         {mode === 'load' && (
           <>
-            <h3 style={{ color: '#fff', fontSize: '1rem', marginBottom: '1rem' }}>📂 Load Design</h3>
+            <h3 style={{ color: '#fff', fontSize: '1rem', marginBottom: '1rem' }}>📂 {t('baseDesigner.loadDesign', 'Load Design')}</h3>
             {designs.length === 0 ? (
-              <p style={{ color: '#666', fontSize: '0.85rem' }}>No saved designs yet.</p>
+              <p style={{ color: '#666', fontSize: '0.85rem' }}>{t('baseDesigner.noSavedDesigns', 'No saved designs yet.')}</p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 {designs.map((d) => (
@@ -713,15 +760,15 @@ const DesignModal: React.FC<DesignModalProps> = ({ mode, onClose, designer }) =>
                     <div>
                       <div style={{ color: '#fff', fontSize: '0.85rem', fontWeight: '600' }}>{d.name}</div>
                       <div style={{ color: '#666', fontSize: '0.6rem' }}>
-                        {d.buildings.length} buildings • {new Date(d.updatedAt).toLocaleDateString()}
+                        {d.buildings.length} {t('baseDesigner.buildings', 'buildings')} • {new Date(d.updatedAt).toLocaleDateString()}
                       </div>
                     </div>
                     <div style={{ display: 'flex', gap: '0.4rem' }}>
                       <button onClick={() => { designer.loadDesign(d.id); onClose(); }}
                         style={{ padding: '0.3rem 0.6rem', backgroundColor: '#22d3ee20', border: '1px solid #22d3ee50', borderRadius: '4px', color: '#22d3ee', cursor: 'pointer', fontSize: '0.7rem' }}>
-                        Load
+                        {t('baseDesigner.loadBtn', 'Load')}
                       </button>
-                      <button onClick={() => { if (confirm(`Delete "${d.name}"?`)) designer.deleteDesign(d.id); }}
+                      <button onClick={() => handleDelete(d.id, d.name)}
                         style={{ padding: '0.3rem 0.5rem', backgroundColor: '#ef444420', border: '1px solid #ef444450', borderRadius: '4px', color: '#ef4444', cursor: 'pointer', fontSize: '0.7rem' }}>
                         🗑️
                       </button>
@@ -731,7 +778,7 @@ const DesignModal: React.FC<DesignModalProps> = ({ mode, onClose, designer }) =>
               </div>
             )}
             <div style={{ marginTop: '1rem', textAlign: 'right' }}>
-              <button onClick={onClose} style={{ padding: '0.4rem 1rem', backgroundColor: 'transparent', border: '1px solid #333', borderRadius: '6px', color: '#9ca3af', cursor: 'pointer', fontSize: '0.8rem' }}>Close</button>
+              <button onClick={onClose} style={{ padding: '0.4rem 1rem', backgroundColor: 'transparent', border: '1px solid #333', borderRadius: '6px', color: '#9ca3af', cursor: 'pointer', fontSize: '0.8rem' }}>{t('baseDesigner.close', 'Close')}</button>
             </div>
           </>
         )}

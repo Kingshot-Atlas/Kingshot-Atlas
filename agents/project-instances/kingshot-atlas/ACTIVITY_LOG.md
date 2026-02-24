@@ -3,6 +3,12 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-24 16:30 | Product Engineer | COMPLETED
+Task: Fix HQ territory radius in Alliance Base Designer (showed 5 instead of 6)
+Files: src/hooks/useBaseDesigner.ts, src/pages/AllianceBaseDesigner.tsx
+Changes: Territory calculation was measuring from building center, causing 3×3 HQ with territoryRadius:6 to only extend 5 tiles past the edge. Fixed by using effective radius = territoryRadius + (size-1)/2 in both gameplay check and visual rendering. Banner (1×1) unchanged.
+Result: Build passed. Committed 78aad68 and pushed to main.
+
 ## 2026-02-23 21:01 | Product Engineer | COMPLETED
 Task: Alliance Base Designer — pan direction, auto-save, city icon, additional fixes
 Files: src/hooks/useBaseDesigner.ts, src/pages/AllianceBaseDesigner.tsx

@@ -3049,7 +3049,19 @@
     "focusOnBase": "Centrer sur la Base",
     "startWithBanners": "Placez d'abord les Bannières ou le QG",
     "territoryPrompt": "Définissez le territoire de votre alliance en plaçant des Bannières ou le QG. Les Villes, Pièges et Bâtiments spéciaux ne peuvent être placés que dans les zones de territoire (en vert).",
-    "territoryPromptShort": "Définissez le territoire avec Bannières/QG. Les autres bâtiments doivent être dans les zones de territoire."
+    "territoryPromptShort": "Définissez le territoire avec Bannières/QG. Les autres bâtiments doivent être dans les zones de territoire.",
+    "saveDesign": "Enregistrer le design",
+    "loadDesign": "Charger un design",
+    "designNamePlaceholder": "Nom du design...",
+    "overwriteWarning": "Un design nommé \"{{name}}\" existe déjà. L'enregistrement l'écrasera.",
+    "overwriteBtn": "Écraser",
+    "overwriteSuccess": "\"{{name}}\" mis à jour avec succès.",
+    "saveSuccess": "\"{{name}}\" enregistré avec succès.",
+    "confirmDelete": "Supprimer \"{{name}}\" ?",
+    "noSavedDesigns": "Aucun design enregistré.",
+    "buildings": "bâtiments",
+    "loadBtn": "Charger",
+    "close": "Fermer"
   },
   "toolDelegates": {
     "title": "Délégués d'outils",
