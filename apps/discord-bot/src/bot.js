@@ -563,6 +563,7 @@ client.on('ready', async () => {
     if (SUPPORTER_ROLE_ID) await syncSupporterRoles();
     if (GILDED_ROLE_ID) await syncGildedRoles();
     await syncTransferGroupRoles();
+    await syncBoosterStatus();
     console.log('🔄 Unified role sync complete');
   }
 
@@ -570,7 +571,7 @@ client.on('ready', async () => {
   if (settlerSyncTimer) clearInterval(settlerSyncTimer);
   settlerSyncInitTimeout = setTimeout(() => runAllRoleSyncs(), 60_000);
   settlerSyncTimer = setInterval(() => runAllRoleSyncs(), SETTLER_SYNC_INTERVAL);
-  console.log(`🔄 Unified role sync scheduled (Settler + Referral + Supporter + Gilded + TransferGroup, every ${SETTLER_SYNC_INTERVAL / 60000} min)`);
+  console.log(`🔄 Unified role sync scheduled (Settler + Referral + Supporter + Gilded + TransferGroup + Booster, every ${SETTLER_SYNC_INTERVAL / 60000} min)`);
   if (!SUPPORTER_ROLE_ID) console.log('⚠️ DISCORD_SUPPORTER_ROLE_ID not set — Supporter role sync disabled');
   if (!GILDED_ROLE_ID) console.log('⚠️ DISCORD_GILDED_ROLE_ID not set — Gilded role sync disabled');
 
@@ -1834,6 +1835,122 @@ async function checkAndAssignTransferGroupRole(member) {
     }
   } catch (err) {
     console.error(`🔀 checkAndAssignTransferGroupRole error for ${member.user.username}: ${err.message}`);
+  }
+}
+
+// ============================================================================
+// DISCORD SERVER BOOSTER STATUS SYNC
+// Checks member.premiumSince for all linked users and updates
+// profiles.is_discord_booster in Supabase via REST API.
+// Runs as part of the unified role sync cycle.
+// ============================================================================
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
+let lastBoosterSync = null;
+
+/**
+ * Update profiles.is_discord_booster for linked Discord members.
+ * Uses Supabase REST API with service_role key (same pattern as telemetry.js).
+ */
+async function syncBoosterStatus() {
+  if (!botReady || !client.guilds.cache.size) {
+    console.log('💜 Booster sync skipped (bot not ready)');
+    return;
+  }
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
+    console.log('💜 Booster sync skipped (SUPABASE_URL or SUPABASE_SERVICE_KEY not set)');
+    return;
+  }
+
+  console.log('💜 Booster status sync starting...');
+  const startTime = Date.now();
+
+  try {
+    // Fetch linked users from API
+    const res = await atlasFetch('/api/v1/bot/linked-users');
+    if (!res.ok) {
+      console.error(`💜 Booster sync: API returned ${res.status}`);
+      return;
+    }
+    const data = await res.json();
+    const users = data.users || [];
+
+    // Build map: discord_id -> atlas profile info
+    const linkedMap = new Map();
+    for (const u of users) {
+      if (u.discord_id) linkedMap.set(u.discord_id, u);
+    }
+
+    const guild = client.guilds.cache.get(config.guildId);
+    if (!guild) {
+      console.error('💜 Booster sync: guild not found in cache');
+      return;
+    }
+
+    await fetchGuildMembersCached(guild);
+
+    // Determine booster discord_ids
+    const boosterDiscordIds = new Set();
+    const nonBoosterDiscordIds = new Set();
+
+    for (const [discordId] of linkedMap) {
+      const member = guild.members.cache.get(discordId);
+      if (!member) continue;
+      if (member.premiumSince) {
+        boosterDiscordIds.add(discordId);
+      } else {
+        nonBoosterDiscordIds.add(discordId);
+      }
+    }
+
+    console.log(`💜 ${boosterDiscordIds.size} boosters, ${nonBoosterDiscordIds.size} non-boosters (among linked members in guild)`);
+
+    let updated = 0;
+
+    // Set is_discord_booster = true for boosters
+    if (boosterDiscordIds.size > 0) {
+      const boosterArr = [...boosterDiscordIds];
+      const setTrueRes = await fetch(`${SUPABASE_URL}/rest/v1/profiles?discord_id=in.(${boosterArr.map(id => `"${id}"`).join(',')})`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_SERVICE_KEY,
+          'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+          'Prefer': 'return=minimal',
+        },
+        body: JSON.stringify({ is_discord_booster: true }),
+      });
+      if (setTrueRes.ok) {
+        updated += boosterDiscordIds.size;
+      } else {
+        console.error(`💜 Booster sync: failed to set true: ${setTrueRes.status}`);
+      }
+    }
+
+    // Set is_discord_booster = false for non-boosters (only those currently marked true)
+    if (nonBoosterDiscordIds.size > 0) {
+      const nonBoosterArr = [...nonBoosterDiscordIds];
+      // Only update those that are currently true to avoid unnecessary writes
+      const setFalseRes = await fetch(`${SUPABASE_URL}/rest/v1/profiles?discord_id=in.(${nonBoosterArr.map(id => `"${id}"`).join(',')})&is_discord_booster=eq.true`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_SERVICE_KEY,
+          'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+          'Prefer': 'return=minimal',
+        },
+        body: JSON.stringify({ is_discord_booster: false }),
+      });
+      if (!setFalseRes.ok) {
+        console.error(`💜 Booster sync: failed to set false: ${setFalseRes.status}`);
+      }
+    }
+
+    const elapsed = Date.now() - startTime;
+    lastBoosterSync = new Date().toISOString();
+    console.log(`💜 Booster sync done in ${elapsed}ms: ${boosterDiscordIds.size} boosters, ${updated} updated`);
+  } catch (err) {
+    console.error('💜 Booster sync error:', err.message);
   }
 }
 

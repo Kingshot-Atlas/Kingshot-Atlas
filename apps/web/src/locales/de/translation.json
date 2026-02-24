@@ -681,7 +681,19 @@
     "linkDiscordAccount": "Discord-Konto verknüpfen",
     "accountUnlinked": "Discord-Konto getrennt",
     "unlinkFailed": "Discord trennen fehlgeschlagen",
-    "notConfigured": "Discord-Integration ist noch nicht konfiguriert"
+    "notConfigured": "Discord-Integration ist noch nicht konfiguriert",
+    "linking": "Discord-Konto wird verknüpft...",
+    "pleaseWait": "Bitte warte, während wir deine Konten verbinden.",
+    "linked": "Discord verknüpft!",
+    "redirecting": "Weiterleitung zu deinem Profil...",
+    "linkFailedTitle": "Verknüpfung fehlgeschlagen",
+    "linkFailed": "Discord-Konto konnte nicht verknüpft werden",
+    "authCancelled": "Discord-Autorisierung wurde abgebrochen",
+    "noCode": "Kein Autorisierungscode erhalten",
+    "codeAlreadyUsed": "Dieser Link wurde bereits verarbeitet. Bitte versuche Discord erneut über dein Profil zu verknüpfen.",
+    "sessionLost": "Deine Sitzung ging während der Discord-Weiterleitung verloren. Das passiert häufig auf Mobilgeräten.",
+    "tryDesktop": "Versuche die Verknüpfung über einen Desktop-Browser, oder melde dich zuerst auf diesem Gerät erneut an.",
+    "returnToProfile": "Zurück zum Profil"
   },
   "ambassadors": {
     "title": "Botschafter",
@@ -2972,7 +2984,7 @@
     "heroSubtitle": "Eure Allianzbasis ist eine Festung — oder eine Schwachstelle. Plant das Layout, bevor die erste Flagge fällt. Schluss mit 'stell deine Stadt irgendwo hin.'",
     "launchDesigner": "Designer starten",
     "accessConfirm": "Du hast Zugang zum Allianz-Basis-Designer.",
-    "accessNote": "Verfügbar für Atlas Supporter, Botschafter und Administratoren.",
+    "accessNote": "Verfügbar für Atlas Supporter, Botschafter, Discord-Server-Booster und Administratoren.",
     "howItWorks1": "SO",
     "howItWorks2": "FUNKTIONIERT'S",
     "threeSteps": "Drei Schritte. Eine organisierte Festung.",
@@ -3008,7 +3020,22 @@
     "accessTitle": "Deine Allianz verdient einen echten Schlachtplan.",
     "accessDesc": "Der Allianz-Basis-Designer ist verfügbar für Atlas Supporter, Botschafter und Administratoren. Werde Supporter, um dieses und andere Premium-Tools freizuschalten.",
     "becomeSupporter": "Supporter werden",
-    "tryDesigner": "Designer ausprobieren"
+    "tryDesigner": "Designer ausprobieren",
+    "accessDelegate": "Zugang gewährt von {{name}}",
+    "delegateBadge": "Delegierter Zugang von {{name}}"
+  },
+  "toolDelegates": {
+    "title": "Tool-Delegierte",
+    "desc": "Gewähre bis zu 2 Allianz-Mitgliedern Zugang zu deinen Allianz-Management-Tools (Basis-Designer, Schlachtplaner, etc.).",
+    "added": "Delegierter erfolgreich hinzugefügt",
+    "addFailed": "Delegierter konnte nicht hinzugefügt werden",
+    "removed": "Delegierter entfernt",
+    "removeFailed": "Delegierter konnte nicht entfernt werden",
+    "unknownUser": "Unbekannter Benutzer",
+    "remove": "Entfernen",
+    "noDelegates": "Noch keine Delegierten. Füge Allianz-Mitglieder hinzu, die dir bei der Tool-Verwaltung helfen können.",
+    "usernamePlaceholder": "Benutzername eingeben...",
+    "add": "Hinzufügen"
   },
   "welcome": {
     "favoritesDesc": "Verfolgen Sie Königreiche und erhalten Sie Benachrichtigungen bei Änderungen",

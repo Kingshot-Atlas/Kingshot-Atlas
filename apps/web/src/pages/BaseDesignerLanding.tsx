@@ -4,8 +4,8 @@ import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { useTranslation } from 'react-i18next';
-import { usePremium } from '../contexts/PremiumContext';
-import { useAuth } from '../contexts/AuthContext';
+import { useToolAccess } from '../hooks/useToolAccess';
+import ToolDelegates from '../components/ToolDelegates';
 
 const ACCENT = '#f97316';
 const ACCENT_DIM = '#f9731615';
@@ -15,10 +15,8 @@ const BaseDesignerLanding: React.FC = () => {
   const { t } = useTranslation();
   useDocumentTitle(t('baseDesigner.pageTitle', 'Alliance Base Designer'));
   const isMobile = useIsMobile();
-  const { isAdmin, isSupporter } = usePremium();
-  const { profile } = useAuth();
-  const isAmbassador = profile?.referral_tier === 'ambassador';
-  const hasAccess = isAdmin || isSupporter || isAmbassador;
+  const { hasAccess, reason, grantedBy } = useToolAccess();
+  const canManageDelegates = reason === 'supporter' || reason === 'ambassador' || reason === 'booster' || reason === 'admin';
 
   const features = [
     {
@@ -130,9 +128,11 @@ const BaseDesignerLanding: React.FC = () => {
             </Link>
           </div>
           <p style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.75rem' }}>
-            {hasAccess
-              ? t('baseDesigner.accessConfirm', 'You have access to the Alliance Base Designer.')
-              : t('baseDesigner.accessNote', 'Available for Atlas Supporters, Ambassadors, and Admins.')}
+            {reason === 'delegate'
+              ? t('baseDesigner.accessDelegate', 'Access granted by {{name}}', { name: grantedBy })
+              : hasAccess
+                ? t('baseDesigner.accessConfirm', 'You have access to the Alliance Base Designer.')
+                : t('baseDesigner.accessNote', 'Available for Atlas Supporters, Ambassadors, and Admins.')}
           </p>
 
           {!isMobile && (
@@ -342,6 +342,16 @@ const BaseDesignerLanding: React.FC = () => {
               </>
             )}
           </div>
+          {reason === 'delegate' && grantedBy && (
+            <p style={{ color: '#22d3ee', fontSize: '0.8rem', marginTop: '0.75rem' }}>
+              🤝 {t('baseDesigner.delegateBadge', 'Delegated access from {{name}}', { name: grantedBy })}
+            </p>
+          )}
+          {canManageDelegates && (
+            <div style={{ marginTop: '1.5rem', maxWidth: '420px', marginLeft: 'auto', marginRight: 'auto' }}>
+              <ToolDelegates />
+            </div>
+          )}
         </div>
 
         {/* Back links */}

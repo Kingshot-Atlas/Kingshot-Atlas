@@ -4,8 +4,7 @@ import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useBaseDesigner, PlacedBuilding } from '../hooks/useBaseDesigner';
 import { BUILDING_TYPES, BUILDING_CATEGORIES, getBuildingType } from '../config/allianceBuildings';
-import { usePremium } from '../contexts/PremiumContext';
-import { useAuth } from '../contexts/AuthContext';
+import { useToolAccess } from '../hooks/useToolAccess';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
 
@@ -23,12 +22,8 @@ const s2g = (sx: number, sy: number, cx: number, cy: number, hc: number, cw: num
 
 // ─── Access Gate ───
 const AccessGate: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAdmin, isSupporter } = usePremium();
-  const { profile } = useAuth();
+  const { hasAccess } = useToolAccess();
   const navigate = useNavigate();
-  const referralTier = profile?.referral_tier;
-  const isAmbassador = referralTier === 'ambassador';
-  const hasAccess = isAdmin || isSupporter || isAmbassador;
 
   if (!hasAccess) {
     return (
@@ -36,7 +31,7 @@ const AccessGate: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔒</div>
         <h2 style={{ color: '#fff', fontFamily: FONT_DISPLAY, fontSize: '1.5rem', marginBottom: '0.75rem' }}>Alliance Base Designer</h2>
         <p style={{ color: '#9ca3af', maxWidth: '400px', marginBottom: '1.5rem', lineHeight: 1.6 }}>
-          This tool is available to Atlas Supporters, Ambassadors, and Admins. Support Atlas to unlock powerful alliance management tools.
+          This tool is available to Atlas Supporters, Ambassadors, Discord Server Boosters, and Admins. Support Atlas to unlock powerful alliance management tools.
         </p>
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
           <button onClick={() => navigate('/support')} style={{ padding: '0.6rem 1.5rem', backgroundColor: '#22d3ee', color: '#000', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', fontSize: '0.9rem' }}>
@@ -67,6 +62,13 @@ const GridCanvas: React.FC<GridCanvasProps> = ({ designer, canvasWidth, canvasHe
   const [panStart, setPanStart] = useState<{ x: number; y: number } | null>(null);
   const [dragPreview, setDragPreview] = useState<{ x: number; y: number } | null>(null);
   const touchRef = useRef<{ dist: number; cx: number; cy: number } | null>(null);
+
+  // Mobile gesture refs
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const touchStartPos = useRef<{ x: number; y: number; time: number } | null>(null);
+  const lastTapRef = useRef<{ x: number; y: number; time: number } | null>(null);
+  const isDraggingTouch = useRef(false);
+  const hasMoved = useRef(false);
 
   const {
     centerX, centerY, zoom, buildings, selectedBuildingId, selectedToolType,
@@ -408,18 +410,54 @@ const GridCanvas: React.FC<GridCanvasProps> = ({ designer, canvasWidth, canvasHe
     return () => canvas.removeEventListener('wheel', handler);
   }, []);
 
-  // Touch support: single-finger pan, two-finger pinch zoom
+  // Helper: convert touch event to grid cell
+  const getCellFromTouch = useCallback((touch: React.Touch): { x: number; y: number } => {
+    const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+    const rect = canvas.getBoundingClientRect();
+    const sx = (touch.clientX - rect.left) * (canvasWidth / rect.width);
+    const sy = (touch.clientY - rect.top) * (canvasHeight / rect.height);
+    return s2g(sx, sy, centerX, centerY, hc, canvasWidth, canvasHeight);
+  }, [centerX, centerY, hc, canvasWidth, canvasHeight]);
+
+  // Touch support: single-finger pan, two-finger pinch zoom,
+  // long-press to drag buildings, double-tap to edit labels
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (e.touches.length === 2) {
+      // Cancel any pending long-press
+      if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; }
+      isDraggingTouch.current = false;
       e.preventDefault();
       const t0 = e.touches[0]!, t1 = e.touches[1]!;
       const dist = Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY);
       touchRef.current = { dist, cx: (t0.clientX + t1.clientX) / 2, cy: (t0.clientY + t1.clientY) / 2 };
     } else if (e.touches.length === 1) {
+      const touch = e.touches[0]!;
+      hasMoved.current = false;
+      touchStartPos.current = { x: touch.clientX, y: touch.clientY, time: Date.now() };
+
+      // Check if touch is on a building for long-press drag
+      const cell = getCellFromTouch(touch);
+      const building = getBuildingAtCell(cell.x, cell.y);
+
+      if (building && !selectedToolType) {
+        // Start long-press timer for drag
+        longPressTimer.current = setTimeout(() => {
+          isDraggingTouch.current = true;
+          setSelectedBuildingId(building.id);
+          setDragBuilding(building.id);
+          setDragOffset({ dx: cell.x - building.x, dy: cell.y - building.y });
+          setDragPreview(null);
+          // Haptic feedback if available
+          if (navigator.vibrate) navigator.vibrate(30);
+        }, 500);
+      }
+
+      // Start panning (will be overridden if long-press activates)
       setIsPanning(true);
-      setPanStart({ x: e.touches[0]!.clientX, y: e.touches[0]!.clientY });
+      setPanStart({ x: touch.clientX, y: touch.clientY });
     }
-  }, []);
+  }, [getCellFromTouch, getBuildingAtCell, selectedToolType, setSelectedBuildingId, setDragBuilding, setDragOffset]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (e.touches.length === 2 && touchRef.current) {
@@ -432,21 +470,115 @@ const GridCanvas: React.FC<GridCanvasProps> = ({ designer, canvasWidth, canvasHe
       const ncy = (t0.clientY + t1.clientY) / 2;
       panByPixels(ncx - touchRef.current.cx, ncy - touchRef.current.cy);
       touchRef.current = { dist, cx: ncx, cy: ncy };
-    } else if (e.touches.length === 1 && isPanning && panStart) {
-      const dx = e.touches[0]!.clientX - panStart.x;
-      const dy = e.touches[0]!.clientY - panStart.y;
-      if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
-        panByPixels(dx, dy);
-        setPanStart({ x: e.touches[0]!.clientX, y: e.touches[0]!.clientY });
+    } else if (e.touches.length === 1) {
+      const touch = e.touches[0]!;
+
+      // Check if finger moved enough to cancel long-press
+      if (touchStartPos.current) {
+        const dx = touch.clientX - touchStartPos.current.x;
+        const dy = touch.clientY - touchStartPos.current.y;
+        if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
+          hasMoved.current = true;
+          if (!isDraggingTouch.current && longPressTimer.current) {
+            clearTimeout(longPressTimer.current);
+            longPressTimer.current = null;
+          }
+        }
+      }
+
+      if (isDraggingTouch.current && dragBuilding) {
+        // Dragging a building via long-press
+        const cell = getCellFromTouch(touch);
+        setDragPreview({ x: cell.x - dragOffset.dx, y: cell.y - dragOffset.dy });
+      } else if (isPanning && panStart) {
+        const dx = touch.clientX - panStart.x;
+        const dy = touch.clientY - panStart.y;
+        if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
+          panByPixels(dx, dy);
+          setPanStart({ x: touch.clientX, y: touch.clientY });
+        }
       }
     }
-  }, [isPanning, panStart, panByPixels, zoomBy]);
+  }, [isPanning, panStart, panByPixels, zoomBy, dragBuilding, dragOffset, getCellFromTouch]);
 
-  const handleTouchEnd = useCallback(() => {
+  const handleTouchEnd = useCallback((_e: React.TouchEvent) => {
+    // Cancel long-press timer
+    if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; }
+
+    // Complete drag if active
+    if (isDraggingTouch.current && dragBuilding && dragPreview) {
+      moveBuilding(dragBuilding, dragPreview.x, dragPreview.y);
+    }
+    if (isDraggingTouch.current) {
+      setDragBuilding(null);
+      setDragPreview(null);
+      isDraggingTouch.current = false;
+      touchRef.current = null;
+      setIsPanning(false);
+      setPanStart(null);
+      touchStartPos.current = null;
+      return;
+    }
+
+    // Detect taps (short touch, no significant movement)
+    if (touchStartPos.current && !hasMoved.current) {
+      const elapsed = Date.now() - touchStartPos.current.time;
+      if (elapsed < 300) {
+        const now = Date.now();
+        const tap = touchStartPos.current;
+
+        // Check for double-tap (two taps within 300ms, within 30px)
+        if (lastTapRef.current) {
+          const dt = now - lastTapRef.current.time;
+          const dist = Math.hypot(tap.x - lastTapRef.current.x, tap.y - lastTapRef.current.y);
+          if (dt < 350 && dist < 30 && onEditBuilding) {
+            // Double-tap detected
+            lastTapRef.current = null;
+            const canvas = canvasRef.current;
+            if (canvas) {
+              const rect = canvas.getBoundingClientRect();
+              const sx = (tap.x - rect.left) * (canvasWidth / rect.width);
+              const sy = (tap.y - rect.top) * (canvasHeight / rect.height);
+              const cell = s2g(sx, sy, centerX, centerY, hc, canvasWidth, canvasHeight);
+              const building = getBuildingAtCell(cell.x, cell.y);
+              if (building && getBuildingType(building.typeId)?.labelField) {
+                onEditBuilding(building, tap.x - rect.left, tap.y - rect.top);
+              }
+            }
+            touchRef.current = null;
+            setIsPanning(false);
+            setPanStart(null);
+            touchStartPos.current = null;
+            return;
+          }
+        }
+        lastTapRef.current = { x: tap.x, y: tap.y, time: now };
+
+        // Single tap: select building or place tool
+        const canvas = canvasRef.current;
+        if (canvas) {
+          const rect = canvas.getBoundingClientRect();
+          const sx = (tap.x - rect.left) * (canvasWidth / rect.width);
+          const sy = (tap.y - rect.top) * (canvasHeight / rect.height);
+          const cell = s2g(sx, sy, centerX, centerY, hc, canvasWidth, canvasHeight);
+          if (selectedToolType) {
+            const placed = placeBuilding(selectedToolType, cell.x, cell.y);
+            if (placed) setSelectedBuildingId(placed);
+          } else {
+            const building = getBuildingAtCell(cell.x, cell.y);
+            setSelectedBuildingId(building ? building.id : null);
+          }
+        }
+      }
+    }
+
     touchRef.current = null;
     setIsPanning(false);
     setPanStart(null);
-  }, []);
+    touchStartPos.current = null;
+  }, [dragBuilding, dragPreview, moveBuilding, setDragBuilding, onEditBuilding,
+    centerX, centerY, hc, canvasWidth, canvasHeight, getBuildingAtCell,
+    selectedToolType, placeBuilding, setSelectedBuildingId]);
 
   return (
     <canvas
@@ -733,6 +865,32 @@ const AllianceBaseDesigner: React.FC = () => {
     try { localStorage.setItem('atlas_base_designer_mapbounds', JSON.stringify(mapBounds)); } catch {}
   }, [mapBounds]);
 
+  // Desktop: Enter key opens inline label editor for selected building
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.key !== 'Enter') return;
+      if (editingLabel) return; // Already editing
+      const sel = designer.selectedBuildingId
+        ? designer.buildings.find(b => b.id === designer.selectedBuildingId)
+        : null;
+      if (!sel) return;
+      const type = getBuildingType(sel.typeId);
+      if (!type?.labelField) return;
+      e.preventDefault();
+      // Compute screen position of building center using g2s
+      const bCenter = g2s(
+        sel.x + type.size / 2, sel.y + type.size / 2,
+        designer.centerX, designer.centerY, designer.zoom,
+        canvasSize.width, canvasSize.height,
+      );
+      setEditingLabel({ buildingId: sel.id, screenX: bCenter.x, screenY: bCenter.y, value: sel.label || '' });
+      setTimeout(() => editInputRef.current?.focus(), 50);
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [designer.selectedBuildingId, designer.buildings, designer.centerX, designer.centerY, designer.zoom, canvasSize, editingLabel]);
+
   // Flash auto-saved indicator when buildings change
   useEffect(() => {
     if (designer.buildings.length === 0) return;
@@ -926,7 +1084,7 @@ const AllianceBaseDesigner: React.FC = () => {
 
               {/* Tips */}
               <div style={{ padding: '0.5rem 0.75rem', fontSize: '0.55rem', color: '#4b5563', lineHeight: 1.6 }}>
-                <strong style={{ color: '#6b7280' }}>Shortcuts:</strong> Click to place · Drag to move · Delete to remove · Ctrl+Z undo · Ctrl+C/V copy/paste · Double-click to edit name · Scroll to pan · Pinch to zoom
+                <strong style={{ color: '#6b7280' }}>Shortcuts:</strong> Click to place · Drag to move · Delete to remove · Enter to edit name · Ctrl+Z undo · Ctrl+C/V copy/paste · Double-click to edit name · Scroll to pan · Pinch to zoom
               </div>
 
               {/* Reset to Default */}

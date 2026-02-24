@@ -681,7 +681,19 @@
     "linkDiscordAccount": "Link Discord Account",
     "accountUnlinked": "Discord account unlinked",
     "unlinkFailed": "Failed to unlink Discord",
-    "notConfigured": "Discord integration is not configured yet"
+    "notConfigured": "Discord integration is not configured yet",
+    "linking": "Linking Discord Account...",
+    "pleaseWait": "Please wait while we connect your accounts.",
+    "linked": "Discord Linked!",
+    "redirecting": "Redirecting to your profile...",
+    "linkFailedTitle": "Link Failed",
+    "linkFailed": "Failed to link Discord account",
+    "authCancelled": "Discord authorization was cancelled",
+    "noCode": "No authorization code received",
+    "codeAlreadyUsed": "This link has already been processed. Please try linking Discord again from your profile.",
+    "sessionLost": "Your sign-in session was lost during the Discord redirect. This commonly happens on mobile devices.",
+    "tryDesktop": "Try linking from a desktop browser, or sign in again on this device first.",
+    "returnToProfile": "Return to Profile"
   },
   "ambassadors": {
     "title": "Ambassadors",
@@ -2994,7 +3006,7 @@
     "heroSubtitle": "Your alliance base is a fortress — or a liability. Plan the layout before a single flag drops. No more \"just put your city anywhere.\"",
     "launchDesigner": "Launch the Designer",
     "accessConfirm": "You have access to the Alliance Base Designer.",
-    "accessNote": "Available for Atlas Supporters, Ambassadors, and Admins.",
+    "accessNote": "Available for Atlas Supporters, Ambassadors, Discord Server Boosters, and Admins.",
     "howItWorks1": "HOW IT",
     "howItWorks2": "WORKS",
     "threeSteps": "Three steps. One organized fortress.",
@@ -3030,7 +3042,22 @@
     "accessTitle": "Your alliance deserves a real battle plan.",
     "accessDesc": "The Alliance Base Designer is currently available for Atlas Supporters, Ambassadors, and Admins. Become a Supporter to unlock this and other premium tools.",
     "becomeSupporter": "Become a Supporter",
-    "tryDesigner": "Try the Designer"
+    "tryDesigner": "Try the Designer",
+    "accessDelegate": "Access granted by {{name}}",
+    "delegateBadge": "Delegated access from {{name}}"
+  },
+  "toolDelegates": {
+    "title": "Tool Delegates",
+    "desc": "Grant up to 2 alliance members access to your alliance management tools (Base Designer, Battle Planner, etc.).",
+    "added": "Delegate added successfully",
+    "addFailed": "Failed to add delegate",
+    "removed": "Delegate removed",
+    "removeFailed": "Failed to remove delegate",
+    "unknownUser": "Unknown User",
+    "remove": "Remove",
+    "noDelegates": "No delegates yet. Add alliance members so they can help manage your tools.",
+    "usernamePlaceholder": "Enter username...",
+    "add": "Add"
   },
   "welcome": {
     "favoritesDesc": "Track kingdoms you care about and get notified when scores change",

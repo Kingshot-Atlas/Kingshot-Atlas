@@ -681,7 +681,19 @@
     "linkDiscordAccount": "Discord Hesabını Bağla",
     "accountUnlinked": "Discord hesap bağlantısı kesildi",
     "unlinkFailed": "Discord bağlantısı kesilemedi",
-    "notConfigured": "Discord entegrasyonu henüz yapılandırılmadı"
+    "notConfigured": "Discord entegrasyonu henüz yapılandırılmadı",
+    "linking": "Discord hesabı bağlanıyor...",
+    "pleaseWait": "Hesaplarınız bağlanırken lütfen bekleyin.",
+    "linked": "Discord bağlandı!",
+    "redirecting": "Profilinize yönlendiriliyorsunuz...",
+    "linkFailedTitle": "Bağlantı Başarısız",
+    "linkFailed": "Discord hesabı bağlanamadı",
+    "authCancelled": "Discord yetkilendirmesi iptal edildi",
+    "noCode": "Yetkilendirme kodu alınamadı",
+    "codeAlreadyUsed": "Bu bağlantı zaten işlendi. Lütfen profilinizden Discord bağlantısını tekrar deneyin.",
+    "sessionLost": "Discord yönlendirmesi sırasında oturumunuz kayboldu. Bu mobil cihazlarda sıkça yaşanır.",
+    "tryDesktop": "Masaüstü tarayıcıdan bağlamayı deneyin veya önce bu cihazda tekrar giriş yapın.",
+    "returnToProfile": "Profile Dön"
   },
   "ambassadors": {
     "title": "Elçiler",
@@ -2972,7 +2984,7 @@
     "heroSubtitle": "İttifak üssünüz bir kale ya da bir zayıflıktır. İlk bayrak dikilmeden önce düzeni planlayın. 'Şehrinizi herhangi bir yere koyun' artık yok.",
     "launchDesigner": "Tasarımcıyı Başlat",
     "accessConfirm": "İttifak Üssü Tasarımcısına erişiminiz var.",
-    "accessNote": "Atlas Destekçileri, Büyükelçiler ve Yöneticiler için kullanılabilir.",
+    "accessNote": "Atlas Destekçileri, Büyükelçiler, Discord Sunucu Boosterları ve Yöneticiler için kullanılabilir.",
     "howItWorks1": "NASIL",
     "howItWorks2": "ÇALIŞIR",
     "threeSteps": "Üç adım. Bir düzenli kale.",
@@ -3008,7 +3020,22 @@
     "accessTitle": "İttifakınız gerçek bir savaş planını hak ediyor.",
     "accessDesc": "İttifak Üssü Tasarımcısı şu anda Atlas Destekçileri, Büyükelçiler ve Yöneticiler için kullanılabilir. Bu aracı ve diğer premium araçları açmak için Destekçi olun.",
     "becomeSupporter": "Destekçi Ol",
-    "tryDesigner": "Tasarımcıyı Dene"
+    "tryDesigner": "Tasarımcıyı Dene",
+    "accessDelegate": "{{name}} tarafından erişim verildi",
+    "delegateBadge": "{{name}} tarafından yetkilendirilmiş erişim"
+  },
+  "toolDelegates": {
+    "title": "Araç Temsilcileri",
+    "desc": "İttifak yönetim araçlarınıza (Üs Tasarımcısı, Savaş Planlayıcı vb.) en fazla 2 ittifak üyesine erişim verin.",
+    "added": "Temsilci başarıyla eklendi",
+    "addFailed": "Temsilci eklenemedi",
+    "removed": "Temsilci kaldırıldı",
+    "removeFailed": "Temsilci kaldırılamadı",
+    "unknownUser": "Bilinmeyen Kullanıcı",
+    "remove": "Kaldır",
+    "noDelegates": "Henüz temsilci yok. Araç yönetiminde yardımcı olacak ittifak üyelerini ekleyin.",
+    "usernamePlaceholder": "Kullanıcı adı girin...",
+    "add": "Ekle"
   },
   "welcome": {
     "favoritesDesc": "İlgilendiğiniz krallıkları takip edin ve puan değişikliklerinde bildirim alın",

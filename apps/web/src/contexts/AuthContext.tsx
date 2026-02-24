@@ -34,6 +34,7 @@ export interface UserProfile {
   referred_by?: string | null;
   referral_count?: number;
   referral_tier?: string | null;
+  is_discord_booster?: boolean;
   show_coordinates?: boolean;
   coordinates?: string | null;
 }

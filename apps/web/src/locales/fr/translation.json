@@ -681,7 +681,19 @@
     "linkDiscordAccount": "Lier le Compte Discord",
     "accountUnlinked": "Compte Discord dissocié",
     "unlinkFailed": "Échec de la dissociation de Discord",
-    "notConfigured": "L'intégration Discord n'est pas encore configurée"
+    "notConfigured": "L'intégration Discord n'est pas encore configurée",
+    "linking": "Liaison du compte Discord...",
+    "pleaseWait": "Veuillez patienter pendant la connexion de vos comptes.",
+    "linked": "Discord lié !",
+    "redirecting": "Redirection vers votre profil...",
+    "linkFailedTitle": "Liaison échouée",
+    "linkFailed": "Impossible de lier le compte Discord",
+    "authCancelled": "L'autorisation Discord a été annulée",
+    "noCode": "Aucun code d'autorisation reçu",
+    "codeAlreadyUsed": "Ce lien a déjà été traité. Veuillez réessayer de lier Discord depuis votre profil.",
+    "sessionLost": "Votre session a été perdue lors de la redirection Discord. Cela arrive souvent sur les appareils mobiles.",
+    "tryDesktop": "Essayez de lier depuis un navigateur de bureau, ou reconnectez-vous d'abord sur cet appareil.",
+    "returnToProfile": "Retour au Profil"
   },
   "ambassadors": {
     "title": "Ambassadeurs",
@@ -2972,7 +2984,7 @@
     "heroSubtitle": "Votre base d'alliance est une forteresse — ou un handicap. Planifiez le design avant qu'un seul drapeau ne tombe. Fini le \"mets ta ville n'importe où.\"",
     "launchDesigner": "Lancer le Concepteur",
     "accessConfirm": "Vous avez accès au Concepteur de Base d'Alliance.",
-    "accessNote": "Disponible pour les Atlas Supporters, Ambassadeurs et Administrateurs.",
+    "accessNote": "Disponible pour les Atlas Supporters, Ambassadeurs, Boosters du serveur Discord et Administrateurs.",
     "howItWorks1": "COMMENT ÇA",
     "howItWorks2": "MARCHE",
     "threeSteps": "Trois étapes. Une forteresse organisée.",
@@ -3008,7 +3020,22 @@
     "accessTitle": "Votre alliance mérite un vrai plan de bataille.",
     "accessDesc": "Le Concepteur de Base d'Alliance est disponible pour les Atlas Supporters, Ambassadeurs et Administrateurs. Devenez Supporter pour débloquer cet outil et d'autres outils premium.",
     "becomeSupporter": "Devenir Supporter",
-    "tryDesigner": "Essayer le Concepteur"
+    "tryDesigner": "Essayer le Concepteur",
+    "accessDelegate": "Accès accordé par {{name}}",
+    "delegateBadge": "Accès délégué de {{name}}"
+  },
+  "toolDelegates": {
+    "title": "Délégués d'outils",
+    "desc": "Accordez l'accès à jusqu'à 2 membres de votre alliance aux outils de gestion (Concepteur de Base, Planificateur de Bataille, etc.).",
+    "added": "Délégué ajouté avec succès",
+    "addFailed": "Échec de l'ajout du délégué",
+    "removed": "Délégué supprimé",
+    "removeFailed": "Échec de la suppression du délégué",
+    "unknownUser": "Utilisateur inconnu",
+    "remove": "Supprimer",
+    "noDelegates": "Aucun délégué pour le moment. Ajoutez des membres de votre alliance pour qu'ils puissent vous aider à gérer vos outils.",
+    "usernamePlaceholder": "Entrez le nom d'utilisateur...",
+    "add": "Ajouter"
   },
   "welcome": {
     "favoritesDesc": "Suivez les royaumes qui vous intéressent et recevez des notifications",

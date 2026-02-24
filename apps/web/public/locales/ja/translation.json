@@ -681,7 +681,19 @@
     "linkDiscordAccount": "Discordアカウントを連携",
     "accountUnlinked": "Discordアカウントの連携が解除されました",
     "unlinkFailed": "Discord連携解除に失敗しました",
-    "notConfigured": "Discord統合はまだ設定されていません"
+    "notConfigured": "Discord統合はまだ設定されていません",
+    "linking": "Discordアカウントを連携中...",
+    "pleaseWait": "アカウントを接続中です。しばらくお待ちください。",
+    "linked": "Discord連携完了！",
+    "redirecting": "プロフィールへ移動中...",
+    "linkFailedTitle": "連携失敗",
+    "linkFailed": "Discordアカウントの連携に失敗しました",
+    "authCancelled": "Discord認証がキャンセルされました",
+    "noCode": "認証コードを受信できませんでした",
+    "codeAlreadyUsed": "このリンクは既に処理済みです。プロフィールからDiscord連携をやり直してください。",
+    "sessionLost": "Discordリダイレクト中にログインセッションが失われました。モバイル端末でよく発生します。",
+    "tryDesktop": "デスクトップブラウザから連携するか、この端末で先に再ログインしてください。",
+    "returnToProfile": "プロフィールに戻る"
   },
   "ambassadors": {
     "title": "アンバサダー",
@@ -2972,7 +2984,7 @@
     "heroSubtitle": "同盟拠点は要塞か弱点か。旗が立つ前にレイアウトを計画しましょう。「どこでもいいから城を置いて」はもう終わり。",
     "launchDesigner": "デザイナーを起動",
     "accessConfirm": "同盟拠点デザイナーにアクセスできます。",
-    "accessNote": "Atlas サポーター、アンバサダー、管理者が利用可能です。",
+    "accessNote": "Atlas サポーター、アンバサダー、Discordサーバーブースター、管理者が利用可能です。",
     "howItWorks1": "使い方",
     "howItWorks2": "ガイド",
     "threeSteps": "3ステップ。整った要塞。",
@@ -3008,7 +3020,22 @@
     "accessTitle": "あなたの同盟は本当の戦闘計画に値します。",
     "accessDesc": "同盟拠点デザイナーは現在Atlas サポーター、アンバサダー、管理者が利用可能です。サポーターになってこのツールと他のプレミアムツールをアンロック。",
     "becomeSupporter": "サポーターになる",
-    "tryDesigner": "デザイナーを試す"
+    "tryDesigner": "デザイナーを試す",
+    "accessDelegate": "{{name}} からアクセス権付与",
+    "delegateBadge": "{{name}} からの委任アクセス"
+  },
+  "toolDelegates": {
+    "title": "ツール委任",
+    "desc": "最大2名の同盟メンバーに同盟管理ツール（拠点デザイナー、戦闘プランナー等）へのアクセスを付与します。",
+    "added": "委任を追加しました",
+    "addFailed": "委任の追加に失敗しました",
+    "removed": "委任を削除しました",
+    "removeFailed": "委任の削除に失敗しました",
+    "unknownUser": "不明なユーザー",
+    "remove": "削除",
+    "noDelegates": "まだ委任がありません。ツール管理を手伝ってくれる同盟メンバーを追加してください。",
+    "usernamePlaceholder": "ユーザー名を入力...",
+    "add": "追加"
   },
   "welcome": {
     "favoritesDesc": "気になる王国を追跡してスコア変更の通知を受け取る",

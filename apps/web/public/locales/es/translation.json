@@ -681,7 +681,19 @@
     "linkDiscordAccount": "Vincular Cuenta de Discord",
     "accountUnlinked": "Cuenta de Discord desvinculada",
     "unlinkFailed": "Error al desvincular Discord",
-    "notConfigured": "La integración de Discord aún no está configurada"
+    "notConfigured": "La integración de Discord aún no está configurada",
+    "linking": "Vinculando cuenta de Discord...",
+    "pleaseWait": "Por favor espera mientras conectamos tus cuentas.",
+    "linked": "¡Discord vinculado!",
+    "redirecting": "Redirigiendo a tu perfil...",
+    "linkFailedTitle": "Vinculación fallida",
+    "linkFailed": "Error al vincular cuenta de Discord",
+    "authCancelled": "La autorización de Discord fue cancelada",
+    "noCode": "No se recibió código de autorización",
+    "codeAlreadyUsed": "Este enlace ya fue procesado. Intenta vincular Discord nuevamente desde tu perfil.",
+    "sessionLost": "Tu sesión se perdió durante la redirección de Discord. Esto suele ocurrir en dispositivos móviles.",
+    "tryDesktop": "Intenta vincular desde un navegador de escritorio, o inicia sesión de nuevo en este dispositivo primero.",
+    "returnToProfile": "Volver al Perfil"
   },
   "ambassadors": {
     "title": "Embajadores",
@@ -2972,7 +2984,7 @@
     "heroSubtitle": "Tu base de alianza es una fortaleza — o una debilidad. Planifica el diseño antes de que caiga una sola bandera. Basta de \"pon tu ciudad donde sea.\"",
     "launchDesigner": "Abrir el Diseñador",
     "accessConfirm": "Tienes acceso al Diseñador de Base de Alianza.",
-    "accessNote": "Disponible para Atlas Supporters, Embajadores y Administradores.",
+    "accessNote": "Disponible para Atlas Supporters, Embajadores, Boosters del servidor de Discord y Administradores.",
     "howItWorks1": "CÓMO",
     "howItWorks2": "FUNCIONA",
     "threeSteps": "Tres pasos. Una fortaleza organizada.",
@@ -3008,7 +3020,22 @@
     "accessTitle": "Tu alianza merece un verdadero plan de batalla.",
     "accessDesc": "El Diseñador de Base de Alianza está disponible para Atlas Supporters, Embajadores y Administradores. Hazte Supporter para desbloquear esta y otras herramientas premium.",
     "becomeSupporter": "Hazte Supporter",
-    "tryDesigner": "Probar el Diseñador"
+    "tryDesigner": "Probar el Diseñador",
+    "accessDelegate": "Acceso otorgado por {{name}}",
+    "delegateBadge": "Acceso delegado de {{name}}"
+  },
+  "toolDelegates": {
+    "title": "Delegados de Herramientas",
+    "desc": "Otorga acceso a hasta 2 miembros de tu alianza a las herramientas de gestión (Diseñador de Base, Planificador de Batalla, etc.).",
+    "added": "Delegado añadido correctamente",
+    "addFailed": "Error al añadir delegado",
+    "removed": "Delegado eliminado",
+    "removeFailed": "Error al eliminar delegado",
+    "unknownUser": "Usuario Desconocido",
+    "remove": "Eliminar",
+    "noDelegates": "Sin delegados aún. Añade miembros de tu alianza para que te ayuden a gestionar tus herramientas.",
+    "usernamePlaceholder": "Ingresa nombre de usuario...",
+    "add": "Añadir"
   },
   "welcome": {
     "favoritesDesc": "Sigue los reinos que te importan y recibe notificaciones",
