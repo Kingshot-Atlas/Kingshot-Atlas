@@ -161,21 +161,22 @@ export function useDelegateManagement(): DelegateManagement {
         return { success: false, error: `Maximum ${MAX_DELEGATES} delegates allowed` };
       }
 
-      // Get current user's kingdom for same-kingdom check
+      // Get current user's kingdom for same-kingdom check (fall back to linked_kingdom)
       const { data: myProfile } = await supabase
         .from('profiles')
-        .select('home_kingdom')
+        .select('home_kingdom, linked_kingdom')
         .eq('id', user.id)
         .single();
 
-      if (!myProfile?.home_kingdom) {
+      const myKingdom = myProfile?.home_kingdom ?? myProfile?.linked_kingdom;
+      if (!myKingdom) {
         return { success: false, error: 'noKingdom' };
       }
 
       // Look up the user by linked_username
       const { data: targetProfile, error: lookupError } = await supabase
         .from('profiles')
-        .select('id, linked_username, home_kingdom')
+        .select('id, linked_username, home_kingdom, linked_kingdom')
         .ilike('linked_username', username)
         .single();
 
@@ -185,8 +186,9 @@ export function useDelegateManagement(): DelegateManagement {
       if (targetProfile.id === user.id) {
         return { success: false, error: 'Cannot add yourself as a delegate' };
       }
-      // Same-kingdom constraint
-      if (targetProfile.home_kingdom !== myProfile.home_kingdom) {
+      // Same-kingdom constraint (fall back to linked_kingdom)
+      const targetKingdom = targetProfile.home_kingdom ?? targetProfile.linked_kingdom;
+      if (targetKingdom !== myKingdom) {
         return { success: false, error: 'notInKingdom' };
       }
 
@@ -247,22 +249,24 @@ export function useDelegateManagement(): DelegateManagement {
   const searchUsers = async (query: string): Promise<UserSearchResult[]> => {
     if (!isSupabaseConfigured || !supabase || !user || query.length < 2) return [];
 
-    // Get current user's kingdom
+    // Get current user's kingdom (fall back to linked_kingdom)
     const { data: myProfile } = await supabase
       .from('profiles')
-      .select('home_kingdom')
+      .select('home_kingdom, linked_kingdom')
       .eq('id', user.id)
       .single();
 
-    if (!myProfile?.home_kingdom) return [];
+    const myKingdom = myProfile?.home_kingdom ?? myProfile?.linked_kingdom;
+    if (!myKingdom) return [];
 
+    // Search users in same kingdom using OR filter for home_kingdom/linked_kingdom
     const { data: results } = await supabase
       .from('profiles')
-      .select('id, username, linked_username, avatar_url')
+      .select('id, username, linked_username, avatar_url, home_kingdom, linked_kingdom')
       .ilike('linked_username', `%${query}%`)
-      .eq('home_kingdom', myProfile.home_kingdom)
       .neq('id', user.id)
       .not('linked_username', 'is', null)
+      .or(`home_kingdom.eq.${myKingdom},linked_kingdom.eq.${myKingdom}`)
       .limit(8);
 
     return (results || []).filter(r => r.linked_username).map(r => ({

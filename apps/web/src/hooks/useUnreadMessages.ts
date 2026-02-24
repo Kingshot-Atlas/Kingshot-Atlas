@@ -20,7 +20,7 @@ export function useUnreadMessages(): number {
     const { data: asApplicant } = await supabase
       .from('transfer_applications')
       .select('id')
-      .eq('user_id', userId)
+      .eq('applicant_user_id', userId)
       .in('status', ['pending', 'viewed', 'accepted']);
 
     // 2. As recruiter — find kingdoms they edit, then find apps for those kingdoms
