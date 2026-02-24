@@ -3,6 +3,20 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-24 19:15 | Product Engineer | COMPLETED
+Task: Mobile Base Designer UX overhaul + remove landing page delegates
+Files: AllianceBaseDesigner.tsx, BaseDesignerLanding.tsx, 18 locale files (src + public × 9)
+Changes:
+1. **Landing page** — Removed ToolDelegates section (now accessible from within the designer sidebar only).
+2. **Long-press fix** — Added `user-select: none`, `-webkit-user-select: none`, `-webkit-touch-callout: none` to mobile layout, preventing native text selection during building drag. Text inputs retain `user-select: text`.
+3. **MapControls removed from mobile** — D-pad and zoom buttons removed; users pan with finger drag and zoom with pinch (already supported).
+4. **Props tab removed** — Mobile now has 2 tabs: "🧱 Buildings" and "🧭 Navigate" (was 3: Build/Nav/Props).
+5. **Floating action buttons** — When a building is selected on mobile, a floating chip with building info + Rename/Remove buttons appears in the bottom-right corner for easy thumb access.
+6. **Panel scroll removed** — Bottom panel no longer has `maxHeight: 180px; overflowY: auto`. Content is fully visible without scrolling.
+7. **Safe area padding** — Added `env(safe-area-inset-bottom)` for notched phones.
+8. **i18n** — Added 5 new keys (renameBtn, removeBtn, buildTab, navTab, designName) to all 9 locales × 2 dirs = 90 translations.
+Result: Build passed. Committed e7e69b7 and pushed to main.
+
 ## 2026-02-24 18:45 | Product Engineer | COMPLETED
 Task: Prevent home_kingdom drift + polish Alliance Base Designer
 Files: AuthContext.tsx, AllianceBaseDesigner.tsx, + 2 new components, 9 locale files
