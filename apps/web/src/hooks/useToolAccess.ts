@@ -23,6 +23,12 @@ interface ToolAccessResult {
   loading: boolean;
 }
 
+export interface UserSearchResult {
+  id: string;
+  username: string;
+  avatar_url?: string;
+}
+
 interface DelegateManagement {
   delegates: ToolDelegate[];
   delegatesLoading: boolean;
@@ -30,6 +36,7 @@ interface DelegateManagement {
   maxDelegates: number;
   addDelegate: (username: string) => Promise<{ success: boolean; error?: string }>;
   removeDelegate: (delegateId: string) => Promise<{ success: boolean; error?: string }>;
+  searchUsers: (query: string) => Promise<UserSearchResult[]>;
 }
 
 /**
@@ -153,10 +160,21 @@ export function useDelegateManagement(): DelegateManagement {
         return { success: false, error: `Maximum ${MAX_DELEGATES} delegates allowed` };
       }
 
+      // Get current user's kingdom for same-kingdom check
+      const { data: myProfile } = await supabase
+        .from('profiles')
+        .select('home_kingdom')
+        .eq('id', user.id)
+        .single();
+
+      if (!myProfile?.home_kingdom) {
+        return { success: false, error: 'noKingdom' };
+      }
+
       // Look up the user by username
       const { data: targetProfile, error: lookupError } = await supabase
         .from('profiles')
-        .select('id, username')
+        .select('id, username, home_kingdom')
         .ilike('username', username)
         .single();
 
@@ -165,6 +183,10 @@ export function useDelegateManagement(): DelegateManagement {
       }
       if (targetProfile.id === user.id) {
         return { success: false, error: 'Cannot add yourself as a delegate' };
+      }
+      // Same-kingdom constraint
+      if (targetProfile.home_kingdom !== myProfile.home_kingdom) {
+        return { success: false, error: 'notInKingdom' };
       }
 
       // Check if already a delegate
@@ -220,6 +242,31 @@ export function useDelegateManagement(): DelegateManagement {
     },
   });
 
+  // Search linked users in same kingdom for autocomplete
+  const searchUsers = async (query: string): Promise<UserSearchResult[]> => {
+    if (!isSupabaseConfigured || !supabase || !user || query.length < 2) return [];
+
+    // Get current user's kingdom
+    const { data: myProfile } = await supabase
+      .from('profiles')
+      .select('home_kingdom')
+      .eq('id', user.id)
+      .single();
+
+    if (!myProfile?.home_kingdom) return [];
+
+    const { data: results } = await supabase
+      .from('profiles')
+      .select('id, username, avatar_url')
+      .ilike('username', `%${query}%`)
+      .eq('home_kingdom', myProfile.home_kingdom)
+      .neq('id', user.id)
+      .not('username', 'is', null)
+      .limit(8);
+
+    return (results || []).filter(r => r.username) as UserSearchResult[];
+  };
+
   return {
     delegates,
     delegatesLoading,
@@ -227,5 +274,6 @@ export function useDelegateManagement(): DelegateManagement {
     maxDelegates: MAX_DELEGATES,
     addDelegate: addMutation.mutateAsync,
     removeDelegate: removeMutation.mutateAsync,
+    searchUsers,
   };
 }
