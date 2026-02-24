@@ -2182,7 +2182,13 @@
     "securePayment": "Zahlungen sicher verarbeitet durch Stripe",
     "toTier": "→ {{tier}}-Tier",
     "alliancePitch": "Bitten Sie Ihre Allianz mitzumachen — Rekrutierung nützt dem ganzen Königreich.",
-    "perMember": "pro Mitglied"
+    "perMember": "pro Mitglied",
+    "tabChipIn": "Beitragen",
+    "tabActivity": "Aktivität",
+    "gracePeriodWarning": "Tier-Kulanzfrist aktiv — tragen Sie bei, um das aktuelle Tier vor dem {{date}} zu halten",
+    "fundActivityTitle": "Fondsaktivität",
+    "moreTransactions": "+ {{count}} weitere Transaktionen",
+    "noActivity": "Noch keine Fondsaktivität. Seien Sie der Erste, der beiträgt!"
   },
   "reportData": {
     "title": "Falsche Daten melden",

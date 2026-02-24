@@ -2182,7 +2182,13 @@
     "securePayment": "Ödemeler Stripe tarafından güvenle işlenir",
     "toTier": "→ {{tier}} seviye",
     "alliancePitch": "İttifakınızdan katkıda bulunmalarını isteyin — işe alım tüm krallığa fayda sağlar.",
-    "perMember": "üye başına"
+    "perMember": "üye başına",
+    "tabChipIn": "Katkıda Bulun",
+    "tabActivity": "Aktivite",
+    "gracePeriodWarning": "Seviye ek süresi aktif — {{date}} tarihinden önce katkıda bulunarak mevcut seviyenizi koruyun",
+    "fundActivityTitle": "Fon Aktivitesi",
+    "moreTransactions": "+ {{count}} işlem daha",
+    "noActivity": "Henüz fon aktivitesi yok. İlk katkıda bulunan siz olun!"
   },
   "reportData": {
     "title": "Yanlış Veri Bildir",

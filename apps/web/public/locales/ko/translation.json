@@ -2182,7 +2182,13 @@
     "securePayment": "Stripe를 통한 안전한 결제",
     "toTier": "→ {{tier}} 등급",
     "alliancePitch": "동맹에게 기여를 요청하세요 — 모집은 왕국 전체에 도움이 됩니다.",
-    "perMember": "멤버당"
+    "perMember": "멤버당",
+    "tabChipIn": "기여하기",
+    "tabActivity": "활동",
+    "gracePeriodWarning": "등급 유예 기간 활성 — {{date}} 전에 기여하여 현재 등급을 유지하세요",
+    "fundActivityTitle": "펀드 활동",
+    "moreTransactions": "+ {{count}}건 더 보기",
+    "noActivity": "아직 펀드 활동이 없습니다. 첫 번째 기여자가 되세요!"
   },
   "reportData": {
     "title": "잘못된 데이터 신고",

@@ -2182,7 +2182,13 @@
     "securePayment": "Payments processed securely by Stripe",
     "toTier": "→ {{tier}} tier",
     "alliancePitch": "Ask your alliance to chip in — recruiting benefits everyone in the kingdom.",
-    "perMember": "per member"
+    "perMember": "per member",
+    "tabChipIn": "Chip In",
+    "tabActivity": "Activity",
+    "gracePeriodWarning": "Tier grace period active — contribute to maintain the current tier before {{date}}",
+    "fundActivityTitle": "Fund Activity",
+    "moreTransactions": "+ {{count}} more transactions",
+    "noActivity": "No fund activity yet. Be the first to contribute!"
   },
   "reportData": {
     "title": "Report Incorrect Data",

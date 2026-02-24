@@ -2181,7 +2181,13 @@
     "securePayment": "由Stripe安全处理支付",
     "toTier": "→ {{tier}} 等级",
     "alliancePitch": "请求联盟成员贡献——招募对整个王国有益。",
-    "perMember": "每成员"
+    "perMember": "每成员",
+    "tabChipIn": "捐款",
+    "tabActivity": "活动记录",
+    "gracePeriodWarning": "等级宽限期生效中——请在 {{date}} 前捐款以维持当前等级",
+    "fundActivityTitle": "资金活动",
+    "moreTransactions": "+ {{count}} 笔更多交易",
+    "noActivity": "暂无资金活动。成为第一个贡献者！"
   },
   "reportData": {
     "title": "报告不正确的数据",

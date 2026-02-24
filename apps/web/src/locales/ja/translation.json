@@ -2182,7 +2182,13 @@
     "securePayment": "決済はStripeで安全に処理されます",
     "toTier": "→ {{tier}}ティア",
     "alliancePitch": "同盟に貢献を依頼しましょう — 募集は王国全体の利益です。",
-    "perMember": "メンバーあたり"
+    "perMember": "メンバーあたり",
+    "tabChipIn": "寄付する",
+    "tabActivity": "活動履歴",
+    "gracePeriodWarning": "ティア猶予期間中 — {{date}}までに寄付して現在のティアを維持しましょう",
+    "fundActivityTitle": "ファンド活動",
+    "moreTransactions": "+ {{count}}件の取引",
+    "noActivity": "まだファンド活動がありません。最初の寄付者になりましょう！"
   },
   "reportData": {
     "title": "データの誤りを報告",

@@ -2182,7 +2182,13 @@
     "securePayment": "المدفوعات تُعالج بأمان عبر Stripe",
     "toTier": "← فئة {{tier}}",
     "alliancePitch": "اطلب من تحالفك المساهمة — التوظيف يفيد الجميع في المملكة.",
-    "perMember": "لكل عضو"
+    "perMember": "لكل عضو",
+    "tabChipIn": "المساهمة",
+    "tabActivity": "النشاط",
+    "gracePeriodWarning": "فترة السماح نشطة — ساهم للحفاظ على المستوى الحالي قبل {{date}}",
+    "fundActivityTitle": "نشاط الصندوق",
+    "moreTransactions": "+ {{count}} معاملات إضافية",
+    "noActivity": "لا يوجد نشاط بعد. كن أول من يساهم!"
   },
   "reportData": {
     "title": "الإبلاغ عن بيانات خاطئة",

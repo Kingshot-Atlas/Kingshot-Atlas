@@ -2182,7 +2182,13 @@
     "securePayment": "Paiements sécurisés par Stripe",
     "toTier": "→ tier {{tier}}",
     "alliancePitch": "Demandez à votre alliance de contribuer — le recrutement profite à tout le royaume.",
-    "perMember": "par membre"
+    "perMember": "par membre",
+    "tabChipIn": "Contribuer",
+    "tabActivity": "Activité",
+    "gracePeriodWarning": "Période de grâce active — contribuez pour maintenir le niveau actuel avant le {{date}}",
+    "fundActivityTitle": "Activité du Fonds",
+    "moreTransactions": "+ {{count}} transactions supplémentaires",
+    "noActivity": "Aucune activité pour le moment. Soyez le premier à contribuer !"
   },
   "reportData": {
     "title": "Signaler des Données Incorrectes",

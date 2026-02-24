@@ -607,90 +607,6 @@ const KingdomProfile: React.FC = () => {
             💰 {t('kingdomProfile.chipInToFund', 'Chip In to Fund')}
           </button>
 
-          {/* Fund Activity Log — visible when transactions exist or grace period active */}
-          {(fundTransactions.length > 0 || (fundData?.gracePeriodUntil && new Date(fundData.gracePeriodUntil) > new Date())) && (
-            <div style={{
-              width: '100%',
-              maxWidth: '500px',
-              backgroundColor: '#111111',
-              border: '1px solid #2a2a2a',
-              borderRadius: '12px',
-              padding: '0.75rem 1rem',
-            }}>
-              {/* Grace Period Alert */}
-              {fundData?.gracePeriodUntil && new Date(fundData.gracePeriodUntil) > new Date() && (
-                <div style={{
-                  padding: '0.5rem 0.6rem',
-                  backgroundColor: '#f59e0b10',
-                  border: '1px solid #f59e0b30',
-                  borderRadius: '6px',
-                  marginBottom: '0.5rem',
-                  display: 'flex', alignItems: 'center', gap: '0.4rem',
-                }}>
-                  <span style={{ fontSize: '0.8rem' }}>⚠️</span>
-                  <span style={{ color: '#f59e0b', fontSize: '0.65rem', lineHeight: 1.3 }}>
-                    {t('kingdomProfile.gracePeriodWarning', 'Tier grace period active — contribute to maintain the current tier before {{date}}', {
-                      date: new Date(fundData.gracePeriodUntil).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                    })}
-                  </span>
-                </div>
-              )}
-              <div style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                marginBottom: '0.5rem',
-              }}>
-                <span style={{ color: '#9ca3af', fontSize: '0.7rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  {t('kingdomProfile.fundActivity', 'Fund Activity')}
-                </span>
-                {fundData && (
-                  <span style={{
-                    color: fundData.tier === 'gold' ? '#ffc30b' : fundData.tier === 'silver' ? '#d1d5db' : fundData.tier === 'bronze' ? '#cd7f32' : '#6b7280',
-                    fontSize: '0.7rem', fontWeight: '600', textTransform: 'capitalize',
-                  }}>
-                    {fundData.tier} · ${fundData.balance.toFixed(2)}
-                  </span>
-                )}
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                {fundTransactions.slice(0, 5).map((tx) => {
-                  const isDepletion = tx.type === 'depletion';
-                  const isContribution = tx.type === 'contribution';
-                  return (
-                    <div key={tx.id} style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                      padding: '0.35rem 0.5rem',
-                      backgroundColor: '#0a0a0a', borderRadius: '6px',
-                      border: `1px solid ${isDepletion ? '#ef444415' : '#1a1a1a'}`,
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        <span style={{ fontSize: '0.8rem' }}>{isDepletion ? '📉' : isContribution ? '💰' : '🔧'}</span>
-                        <span style={{
-                          color: isDepletion ? '#ef4444' : '#22c55e',
-                          fontWeight: '600', fontSize: '0.8rem',
-                        }}>
-                          {isDepletion ? '' : '+'}${Math.abs(tx.amount).toFixed(2)}
-                        </span>
-                        <span style={{ color: '#4b5563', fontSize: '0.6rem' }}>
-                          → ${tx.balance_after.toFixed(2)}
-                        </span>
-                      </div>
-                      <span style={{ color: '#4b5563', fontSize: '0.6rem' }}>
-                        {new Date(tx.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-              {fundTransactions.length > 5 && (
-                <div style={{ textAlign: 'center', marginTop: '0.35rem' }}>
-                  <span style={{ color: '#4b5563', fontSize: '0.6rem' }}>
-                    {t('kingdomProfile.fundMoreTransactions', '+ {{count}} more transactions', { count: fundTransactions.length - 5 })}
-                  </span>
-                </div>
-              )}
-            </div>
-          )}
-
           <button
             onClick={() => navigate(`/compare?kingdoms=${kingdom.kingdom_number},`)}
             style={{
@@ -770,6 +686,8 @@ const KingdomProfile: React.FC = () => {
             kingdomNumber={kingdom.kingdom_number}
             currentBalance={fundData?.balance ?? 0}
             currentTier={fundData?.tier ?? 'standard'}
+            gracePeriodUntil={fundData?.gracePeriodUntil}
+            transactions={fundTransactions}
             onClose={() => {
               setShowFundModal(false);
               // If we came from /fund route, navigate back to the profile
