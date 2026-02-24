@@ -245,10 +245,10 @@ const BaseDesignerLanding: React.FC = () => {
             {t('baseDesigner.problemTitle', '"Just put your city near the flag." That\'s not a strategy.')}
           </h2>
           <p style={{ color: '#d1d5db', fontSize: isMobile ? '0.85rem' : '0.9rem', lineHeight: 1.7, marginBottom: '1rem' }}>
-            {t('baseDesigner.problemDesc', 'Every KvK, the same chaos. Cities scattered randomly. Traps placed where they block reinforcements. The flag surrounded by dead space. Half the alliance doesn\'t know where to relocate. R4s spending hours in Discord trying to explain coordinates.')}
+            {t('baseDesigner.problemDesc', 'Players too far from the bear traps. Cities scattered in dead zones where reinforcements can\'t reach them in time. Without a layout tool, you\'re stuck with spreadsheets, hand-drawn maps, or just hoping everyone figures it out. R4s spend hours directing teleports one by one — and between language barriers and players who keep landing on the wrong tile, half the work gets undone the moment someone moves.')}
           </p>
           <p style={{ color: '#d1d5db', fontSize: isMobile ? '0.85rem' : '0.9rem', lineHeight: 1.7, marginBottom: '1rem' }}>
-            {t('baseDesigner.solutionDesc', 'The Alliance Base Designer lets you plan the entire layout before anyone moves. Place every city, every trap, every building on the exact coordinates. Label each block with the player\'s name. Share the screenshot. Everyone knows exactly where to go.')}
+            {t('baseDesigner.solutionDesc', 'The Alliance Base Designer lets you plan the entire layout before anyone moves. Place every city, every trap, every building on the exact coordinates. Label each block with the player\'s name. Share the screenshot. Everyone knows exactly where to go. Need to adjust? It\'s drag and drop — rearrange the whole base in minutes, not hours.')}
           </p>
           <p style={{ color: ACCENT, fontSize: isMobile ? '0.8rem' : '0.85rem', fontWeight: 600, fontStyle: 'italic' }}>
             {t('baseDesigner.punchline', 'That\'s not planning. That\'s a defensive masterclass.')}
