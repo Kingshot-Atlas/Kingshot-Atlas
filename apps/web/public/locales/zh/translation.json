@@ -2970,6 +2970,7 @@
     "startWithBanners": "请先放置旗帜或总部",
     "territoryPrompt": "通过放置旗帜或总部来定义联盟领地。城市、陷阱和特殊建筑只能放置在领地区域内（绿色显示）。",
     "territoryPromptShort": "用旗帜/总部定义领地。其他建筑必须放置在领地区域内。",
+    "delegates": "委托人",
     "saveDesign": "保存设计",
     "loadDesign": "加载设计",
     "designNamePlaceholder": "设计名称...",

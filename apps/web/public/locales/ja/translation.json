@@ -3050,6 +3050,7 @@
     "startWithBanners": "まずバナーまたは本部を配置",
     "territoryPrompt": "バナーまたは本部を配置して同盟領土を定義してください。都市、罠、特殊建物は領土ゾーン（緑色）内にのみ配置できます。",
     "territoryPromptShort": "バナー/本部で領土を定義。他の建物は領土ゾーン内に配置する必要があります。",
+    "delegates": "委任者",
     "saveDesign": "デザインを保存",
     "loadDesign": "デザインを読み込み",
     "designNamePlaceholder": "デザイン名...",

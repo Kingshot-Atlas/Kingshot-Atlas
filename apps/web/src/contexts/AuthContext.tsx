@@ -660,6 +660,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           linked_tc_level: data.town_center_level,
           linked_last_synced: new Date().toISOString(),
         };
+        // Sync home_kingdom from linked_kingdom if not already set
+        if (data.kingdom && !profile?.home_kingdom) {
+          updates.home_kingdom = data.kingdom;
+        }
         await updateProfile(updates);
         logger.info('Auto-refreshed linked player data:', data.username);
       }

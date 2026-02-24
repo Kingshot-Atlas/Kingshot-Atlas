@@ -3050,6 +3050,7 @@
     "startWithBanners": "Önce Bayrak veya Karargâh Yerleştirin",
     "territoryPrompt": "Bayrak veya Karargâh yerleştirerek ittifak bölgenizi tanımlayın. Şehirler, Tuzaklar ve Özel binalar yalnızca bölge alanları içine (yeşil) yerleştirilebilir.",
     "territoryPromptShort": "Bayrak/Karargâh ile bölge tanımlayın. Diğer binalar bölge alanları içine yerleştirilmelidir.",
+    "delegates": "Delegeler",
     "saveDesign": "Tasarımı Kaydet",
     "loadDesign": "Tasarım Yükle",
     "designNamePlaceholder": "Tasarım adı...",

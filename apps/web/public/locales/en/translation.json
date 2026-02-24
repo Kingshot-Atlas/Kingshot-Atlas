@@ -3072,6 +3072,7 @@
     "startWithBanners": "Place Banners or HQ First",
     "territoryPrompt": "Define your alliance territory by placing Banners or HQ. Cities, Traps, and Special buildings can only be placed within territory zones (shown in green).",
     "territoryPromptShort": "Define territory with Banners/HQ. Other buildings must be placed within territory zones.",
+    "delegates": "Delegates",
     "saveDesign": "Save Design",
     "loadDesign": "Load Design",
     "designNamePlaceholder": "Design name...",

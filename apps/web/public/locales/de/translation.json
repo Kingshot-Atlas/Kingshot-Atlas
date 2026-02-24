@@ -3050,6 +3050,7 @@
     "startWithBanners": "Zuerst Banner oder HQ platzieren",
     "territoryPrompt": "Definiere dein Allianzterritorium durch das Platzieren von Bannern oder dem HQ. Städte, Fallen und Spezialgebäude können nur innerhalb von Territoriumszonen (grün) platziert werden.",
     "territoryPromptShort": "Territorium mit Bannern/HQ definieren. Andere Gebäude müssen in Territoriumszonen platziert werden.",
+    "delegates": "Delegierte",
     "saveDesign": "Design speichern",
     "loadDesign": "Design laden",
     "designNamePlaceholder": "Designname...",

@@ -4,10 +4,14 @@ import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useBaseDesigner, PlacedBuilding } from '../hooks/useBaseDesigner';
-import { BUILDING_TYPES, BUILDING_CATEGORIES, getBuildingType } from '../config/allianceBuildings';
+import { getBuildingType } from '../config/allianceBuildings';
 import { useToolAccess } from '../hooks/useToolAccess';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
+import { Button } from '../components/shared';
+import DesignModal from '../components/base-designer/DesignModal';
+import BuildingPalette from '../components/base-designer/BuildingPalette';
+import ToolDelegates from '../components/ToolDelegates';
 
 // ─── Isometric Coordinate Transforms ───
 // Grid: (0,0)=bottom, (1199,1199)=top, (0,1199)=left, (1199,0)=right
@@ -36,11 +40,13 @@ const AccessGate: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           {t('baseDesigner.gateDesc', 'This tool is available to Atlas Supporters, Ambassadors, Discord Server Boosters, and Admins. Support Atlas to unlock powerful alliance management tools.')}
         </p>
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-          <button onClick={() => navigate('/support')} style={{ padding: '0.6rem 1.5rem', backgroundColor: '#22d3ee', color: '#000', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', fontSize: '0.9rem' }}>
+          <Button variant="primary" onClick={() => navigate('/support')}>
             {t('baseDesigner.becomeSupporter', 'Become a Supporter')}
-          </button>
-          <Link to="/tools" style={{ padding: '0.6rem 1.5rem', backgroundColor: 'transparent', color: '#9ca3af', border: '1px solid #333', borderRadius: '8px', textDecoration: 'none', fontSize: '0.9rem' }}>
-            {t('baseDesigner.backToTools', 'Back to Tools')}
+          </Button>
+          <Link to="/tools" style={{ textDecoration: 'none' }}>
+            <Button variant="ghost">
+              {t('baseDesigner.backToTools', 'Back to Tools')}
+            </Button>
           </Link>
         </div>
       </div>
@@ -634,159 +640,6 @@ const GridCanvas: React.FC<GridCanvasProps> = ({ designer, canvasWidth, canvasHe
   );
 };
 
-// ─── Save/Load Modal ───
-interface DesignModalProps {
-  mode: 'save' | 'load' | null;
-  onClose: () => void;
-  designer: ReturnType<typeof useBaseDesigner>;
-}
-
-const DesignModal: React.FC<DesignModalProps> = ({ mode, onClose, designer }) => {
-  const { t } = useTranslation();
-  const [saveName, setSaveName] = useState('');
-  const [designs, setDesigns] = useState(designer.getSavedDesigns);
-  const [saveToast, setSaveToast] = useState<string | null>(null);
-
-  // Refresh designs list and autofill name when modal opens/changes mode
-  useEffect(() => {
-    if (mode) {
-      setDesigns(designer.getSavedDesigns());
-      if (mode === 'save') setSaveName(designer.designName || 'Untitled Design');
-      setSaveToast(null);
-    }
-  }, [mode, designer]);
-
-  // Check if save name matches an existing design (case-insensitive)
-  const willOverwrite = mode === 'save' && saveName.trim().length > 0 &&
-    designs.some((d) => d.name.trim().toLowerCase() === saveName.trim().toLowerCase());
-
-  if (!mode) return null;
-
-  const handleSave = () => {
-    const trimmed = saveName.trim();
-    if (!trimmed) return;
-    designer.setDesignName(trimmed);
-    const result = designer.saveDesign(trimmed);
-    setSaveToast(result.overwrote
-      ? t('baseDesigner.overwriteSuccess', '"{{name}}" updated successfully.', { name: trimmed })
-      : t('baseDesigner.saveSuccess', '"{{name}}" saved successfully.', { name: trimmed })
-    );
-    setTimeout(onClose, 1200);
-  };
-
-  const handleDelete = (designId: string, designName: string) => {
-    if (confirm(t('baseDesigner.confirmDelete', 'Delete "{{name}}"?', { name: designName }))) {
-      const updated = designer.deleteDesign(designId);
-      setDesigns(updated);
-    }
-  };
-
-  return (
-    <div style={{
-      position: 'fixed',
-      top: 0, left: 0, right: 0, bottom: 0,
-      backgroundColor: 'rgba(0,0,0,0.75)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 1000,
-      padding: '1rem',
-    }} onClick={onClose}>
-      <div style={{
-        backgroundColor: '#111',
-        borderRadius: '12px',
-        border: '1px solid #2a2a2a',
-        padding: '1.5rem',
-        maxWidth: '440px',
-        width: '100%',
-        maxHeight: '70vh',
-        overflowY: 'auto',
-      }} onClick={(e) => e.stopPropagation()}>
-        {mode === 'save' && (
-          <>
-            <h3 style={{ color: '#fff', fontSize: '1rem', marginBottom: '1rem' }}>💾 {t('baseDesigner.saveDesign', 'Save Design')}</h3>
-            <input
-              type="text"
-              value={saveName}
-              onChange={(e) => setSaveName(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') handleSave(); }}
-              placeholder={t('baseDesigner.designNamePlaceholder', 'Design name...')}
-              autoFocus
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                backgroundColor: '#0a0a0a',
-                border: `1px solid ${willOverwrite ? '#f59e0b' : '#333'}`,
-                borderRadius: '6px',
-                color: '#fff',
-                fontSize: '0.85rem',
-                marginBottom: willOverwrite ? '0.5rem' : '1rem',
-                boxSizing: 'border-box',
-              }}
-            />
-            {willOverwrite && (
-              <div style={{ color: '#f59e0b', fontSize: '0.7rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                ⚠️ {t('baseDesigner.overwriteWarning', 'A design named "{{name}}" already exists. Saving will overwrite it.', { name: saveName.trim() })}
-              </div>
-            )}
-            {saveToast && (
-              <div style={{ color: '#22c55e', fontSize: '0.75rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                ✓ {saveToast}
-              </div>
-            )}
-            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-              <button onClick={onClose} style={{ padding: '0.4rem 1rem', backgroundColor: 'transparent', border: '1px solid #333', borderRadius: '6px', color: '#9ca3af', cursor: 'pointer', fontSize: '0.8rem' }}>{t('common.cancel', 'Cancel')}</button>
-              <button
-                onClick={handleSave}
-                disabled={!saveName.trim()}
-                style={{ padding: '0.4rem 1.2rem', backgroundColor: willOverwrite ? '#f59e0b' : '#22d3ee', color: '#000', border: 'none', borderRadius: '6px', fontWeight: '700', cursor: saveName.trim() ? 'pointer' : 'not-allowed', fontSize: '0.8rem', opacity: saveName.trim() ? 1 : 0.5 }}
-              >{willOverwrite ? t('baseDesigner.overwriteBtn', 'Overwrite') : t('common.save', 'Save')}</button>
-            </div>
-          </>
-        )}
-
-        {mode === 'load' && (
-          <>
-            <h3 style={{ color: '#fff', fontSize: '1rem', marginBottom: '1rem' }}>📂 {t('baseDesigner.loadDesign', 'Load Design')}</h3>
-            {designs.length === 0 ? (
-              <p style={{ color: '#666', fontSize: '0.85rem' }}>{t('baseDesigner.noSavedDesigns', 'No saved designs yet.')}</p>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {designs.map((d) => (
-                  <div key={d.id} style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    padding: '0.5rem 0.75rem', backgroundColor: '#1a1a1a', borderRadius: '6px', border: '1px solid #2a2a2a',
-                  }}>
-                    <div>
-                      <div style={{ color: '#fff', fontSize: '0.85rem', fontWeight: '600' }}>{d.name}</div>
-                      <div style={{ color: '#666', fontSize: '0.6rem' }}>
-                        {d.buildings.length} {t('baseDesigner.buildings', 'buildings')} • {new Date(d.updatedAt).toLocaleDateString()}
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', gap: '0.4rem' }}>
-                      <button onClick={() => { designer.loadDesign(d.id); onClose(); }}
-                        style={{ padding: '0.3rem 0.6rem', backgroundColor: '#22d3ee20', border: '1px solid #22d3ee50', borderRadius: '4px', color: '#22d3ee', cursor: 'pointer', fontSize: '0.7rem' }}>
-                        {t('baseDesigner.loadBtn', 'Load')}
-                      </button>
-                      <button onClick={() => handleDelete(d.id, d.name)}
-                        style={{ padding: '0.3rem 0.5rem', backgroundColor: '#ef444420', border: '1px solid #ef444450', borderRadius: '4px', color: '#ef4444', cursor: 'pointer', fontSize: '0.7rem' }}>
-                        🗑️
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-            <div style={{ marginTop: '1rem', textAlign: 'right' }}>
-              <button onClick={onClose} style={{ padding: '0.4rem 1rem', backgroundColor: 'transparent', border: '1px solid #333', borderRadius: '6px', color: '#9ca3af', cursor: 'pointer', fontSize: '0.8rem' }}>{t('baseDesigner.close', 'Close')}</button>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
-  );
-};
-
 // ─── Floating Map Controls (D-pad + Zoom) ───
 const MapControls: React.FC<{ designer: ReturnType<typeof useBaseDesigner>; isMobile: boolean }> = ({ designer, isMobile }) => {
   const sz = isMobile ? '38px' : '30px';
@@ -1086,58 +939,14 @@ const AllianceBaseDesigner: React.FC = () => {
                 <CoordinateSearch onGo={goToCoords} onFocusBase={focusOnBase} hasBuildings={designer.buildings.length > 0} />
               </SidebarSection>
 
-              {/* Territory prompt */}
-              {!hasTerritory && (
-                <div style={{
-                  margin: '0 0.75rem 0.5rem', padding: '0.5rem',
-                  backgroundColor: '#22c55e08', border: '1px solid #22c55e25',
-                  borderRadius: '6px',
-                }}>
-                  <div style={{ color: '#22c55e', fontSize: '0.65rem', fontWeight: '600', marginBottom: '0.25rem' }}>
-                    🏳 {t('baseDesigner.startWithBanners', 'Place Banners or HQ First')}
-                  </div>
-                  <div style={{ color: '#6b7280', fontSize: '0.6rem', lineHeight: 1.5 }}>
-                    {t('baseDesigner.territoryPrompt', 'Define your alliance territory by placing Banners or HQ. Cities, Traps, and Special buildings can only be placed within territory zones (shown in green).')}
-                  </div>
-                </div>
-              )}
-
               {/* Buildings */}
               <SidebarSection title="Buildings" defaultOpen={true}>
-                {BUILDING_CATEGORIES.map((cat) => (
-                  <div key={cat.key} style={{ marginBottom: '0.5rem' }}>
-                    <div style={{ fontSize: '0.6rem', fontWeight: '600', color: cat.color, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.3rem' }}>
-                      {cat.label}
-                    </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }}>
-                      {BUILDING_TYPES.filter((b) => b.category === cat.key).map((building) => {
-                        const isSelected = designer.selectedToolType === building.id;
-                        const count = designer.buildingCounts[building.id] || 0;
-                        return (
-                          <button
-                            key={building.id}
-                            onClick={() => designer.setSelectedToolType(isSelected ? null : building.id)}
-                            title={`${building.name} (${building.size}×${building.size})\n${building.description}`}
-                            style={{
-                              display: 'flex', alignItems: 'center', gap: '0.2rem',
-                              padding: '0.25rem 0.4rem',
-                              backgroundColor: isSelected ? building.color + '25' : '#0a0a0a',
-                              border: `1px solid ${isSelected ? building.color : '#1e2a35'}`,
-                              borderRadius: '4px', color: isSelected ? building.color : '#9ca3af',
-                              cursor: 'pointer', fontSize: '0.65rem', fontWeight: isSelected ? '600' : '400',
-                              transition: 'all 0.1s', whiteSpace: 'nowrap',
-                            }}
-                          >
-                            <span>{building.icon}</span>
-                            <span>{building.shortName}</span>
-                            <span style={{ fontSize: '0.5rem', color: '#4b5563' }}>{building.size}²</span>
-                            {count > 0 && <span style={{ fontSize: '0.5rem', color: building.color, fontWeight: '700' }}>×{count}</span>}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
+                <BuildingPalette
+                  selectedToolType={designer.selectedToolType}
+                  buildingCounts={designer.buildingCounts}
+                  onSelectTool={designer.setSelectedToolType}
+                  hasTerritory={hasTerritory}
+                />
               </SidebarSection>
 
               {/* Properties */}
@@ -1174,6 +983,11 @@ const AllianceBaseDesigner: React.FC = () => {
                   </button>
                 </SidebarSection>
               )}
+
+              {/* Delegates */}
+              <SidebarSection title={t('baseDesigner.delegates', 'Delegates')} defaultOpen={false}>
+                <ToolDelegates />
+              </SidebarSection>
 
               {/* Tips */}
               <div style={{ padding: '0.5rem 0.75rem', fontSize: '0.55rem', color: '#4b5563', lineHeight: 1.6 }}>
@@ -1312,14 +1126,9 @@ const AllianceBaseDesigner: React.FC = () => {
                 This will remove all {designer.buildings.length} placed buildings. This action cannot be undone.
               </p>
               <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                <button onClick={() => setShowClearConfirm(false)} style={{
-                  padding: '0.45rem 0.9rem', backgroundColor: '#1e2a35', border: 'none',
-                  borderRadius: '6px', color: '#9ca3af', cursor: 'pointer', fontSize: '0.8rem',
-                }}>Cancel</button>
-                <button onClick={() => { designer.clearAll(); setShowClearConfirm(false); }} style={{
-                  padding: '0.45rem 0.9rem', backgroundColor: '#ef4444', border: 'none',
-                  borderRadius: '6px', color: '#fff', cursor: 'pointer', fontSize: '0.8rem', fontWeight: '600',
-                }}>Clear All</button>
+                <Button variant="ghost" size="sm" onClick={() => setShowClearConfirm(false)}>Cancel</Button>
+                <Button variant="danger" size="sm" onClick={() => { designer.clearAll(); setShowClearConfirm(false); }}
+                  style={{ backgroundColor: '#ef4444', color: '#fff', borderColor: '#ef4444' }}>Clear All</Button>
               </div>
             </div>
           </div>
@@ -1432,44 +1241,13 @@ const AllianceBaseDesigner: React.FC = () => {
         {/* Tab content */}
         <div style={{ maxHeight: '180px', overflowY: 'auto', padding: '0.5rem 0.75rem' }}>
           {mobilePanelTab === 'buildings' && (
-            <div>
-              {!hasTerritory && (
-                <div style={{
-                  marginBottom: '0.5rem', padding: '0.4rem',
-                  backgroundColor: '#22c55e08', border: '1px solid #22c55e25',
-                  borderRadius: '6px',
-                }}>
-                  <div style={{ color: '#22c55e', fontSize: '0.6rem', fontWeight: '600' }}>
-                    🏳 {t('baseDesigner.startWithBanners', 'Place Banners or HQ First')}
-                  </div>
-                  <div style={{ color: '#6b7280', fontSize: '0.55rem', lineHeight: 1.4, marginTop: '0.15rem' }}>
-                    {t('baseDesigner.territoryPromptShort', 'Define territory with Banners/HQ. Other buildings must be placed within territory zones.')}
-                  </div>
-                </div>
-              )}
-              {BUILDING_CATEGORIES.map((cat) => (
-                <div key={cat.key} style={{ marginBottom: '0.4rem' }}>
-                  <div style={{ fontSize: '0.55rem', fontWeight: '600', color: cat.color, textTransform: 'uppercase', marginBottom: '0.2rem' }}>{cat.label}</div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }}>
-                    {BUILDING_TYPES.filter((b) => b.category === cat.key).map((building) => {
-                      const isSelected = designer.selectedToolType === building.id;
-                      return (
-                        <button key={building.id} onClick={() => designer.setSelectedToolType(isSelected ? null : building.id)}
-                          style={{
-                            display: 'flex', alignItems: 'center', gap: '0.2rem', padding: '0.3rem 0.4rem',
-                            backgroundColor: isSelected ? building.color + '25' : '#0a0a0a',
-                            border: `1px solid ${isSelected ? building.color : '#1e2a35'}`,
-                            borderRadius: '4px', color: isSelected ? building.color : '#9ca3af',
-                            cursor: 'pointer', fontSize: '0.65rem', whiteSpace: 'nowrap',
-                          }}>
-                          <span>{building.icon}</span><span>{building.shortName}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
+            <BuildingPalette
+              selectedToolType={designer.selectedToolType}
+              buildingCounts={designer.buildingCounts}
+              onSelectTool={designer.setSelectedToolType}
+              hasTerritory={hasTerritory}
+              compact
+            />
           )}
 
           {mobilePanelTab === 'nav' && (

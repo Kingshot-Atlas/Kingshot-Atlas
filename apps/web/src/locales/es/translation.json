@@ -3050,6 +3050,7 @@
     "startWithBanners": "Coloca Banderas o CG Primero",
     "territoryPrompt": "Define el territorio de tu alianza colocando Banderas o CG. Las Ciudades, Trampas y edificios Especiales solo se pueden colocar dentro de zonas de territorio (en verde).",
     "territoryPromptShort": "Define territorio con Banderas/CG. Los demás edificios deben colocarse dentro de las zonas de territorio.",
+    "delegates": "Delegados",
     "saveDesign": "Guardar Diseño",
     "loadDesign": "Cargar Diseño",
     "designNamePlaceholder": "Nombre del diseño...",
